@@ -506,11 +506,17 @@ public class MatchRound
 			if (parameters[0] != null)
 			{
 				if (m_team1.getPlayer(parameters[0]).getPlayerName().equals(m_botAction.getFuzzyPlayerName(parameters[0])))
+				{
 					player = m_team1.getPlayer(parameters[0]);
-				else
+					m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
+				}
+				else if (m_team2.getPlayer(parameters[0]).getPlayerName().equals(m_botAction.getFuzzyPlayer(parameters[0])))
+				{
 					player = m_team2.getPlayer(parameters[0]);
-				
-				m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
+					m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
+				}
+				else
+					m_logger.sendPrivateMessage(name, "The player isn't in the game");
 			}
 			
 			MatchPlayer t1b = m_team1.getMVP(), t2b = m_team2.getMVP(), best;
