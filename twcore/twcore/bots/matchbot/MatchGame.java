@@ -208,8 +208,7 @@ public class MatchGame
 	public void handleEvent(WeaponFired event)
 	{
 		//m_logger.logEvent(event); too much extra overhead for database
-		if (event == null) { return; }
-		m_curRound.handleEvent(event);
+			if (m_curRound != null) { m_curRound.handleEvent(event); } 
 	}
 	
 	public void handleEvent(ArenaJoined event)
