@@ -44,6 +44,7 @@ public class MatchRound
     MatchTeam m_team2;
     java.util.Date m_timeStarted;
     java.util.Date m_timeEnded;
+	long m_timeBOEnabled;
     long m_timeStartedms;
     TimerTask m_countdown10Seconds;
 	TimerTask m_countdown54321;
@@ -294,7 +295,7 @@ public class MatchRound
      */
     public void handleEvent(Message event)
     {
-        if ((event.getMessageType() == Message.PUBLIC_MESSAGE) && (m_blueoutState == 1))
+        if ((event.getMessageType() == Message.PUBLIC_MESSAGE) && (m_blueoutState == 1) && (m_endGame != null) && (System.currentTimeMillis() - m_timeBOEnabled > 5000))
         {
             String name = m_botAction.getPlayerName(event.getPlayerID());
             m_botAction.sendUnfilteredPublicMessage("?cheater " + name + " talking in blueout: " + name + "> " + event.getMessage());
@@ -1068,8 +1069,10 @@ public class MatchRound
         {
 
             m_timeEnded = new java.util.Date();
+	
+			if (updateScores != null)
+				updateScores.cancel();
 
-			updateScores.cancel();
 			do_updateScoreBoard();
 			m_botAction.showObject(m_rules.getInt("obj_gameover"));
 
@@ -1279,6 +1282,7 @@ public class MatchRound
             if (m_blueoutDesiredState)
             {
                 m_logger.sendArenaMessage("Blueout has been enabled. Staff, don't speak in public from now on.");
+				m_timeBOEnabled = System.currentTimeMillis();
                 m_blueoutState = 1;
             }
             else if (m_blueoutState == 1)
