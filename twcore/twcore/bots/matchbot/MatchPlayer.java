@@ -124,12 +124,7 @@ public class MatchPlayer implements Comparable
 			throw new ClassCastException("A MatchPlayer object expected.");
 
 		//this has to be done in reverse order so it can be sorted in decending order
-		if (this.getPoints() < ((MatchPlayer) anotherPlayer).getPoints())
-			return -1;
-		else if (this.getPoints() == ((MatchPlayer) anotherPlayer).getPoints())
-			return 0;
-		else //p2 > p1.
-			return 1;
+		return  ((MatchPlayer) anotherPlayer).getPoints() - this.getPoints();
 	}
 
 	/**
