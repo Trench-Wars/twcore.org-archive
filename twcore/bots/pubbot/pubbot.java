@@ -4,7 +4,6 @@ import java.util.*;
 import java.io.*;
 import twcore.core.*;
 
-
 public class pubbot extends SubspaceBot
 {
   public static final String IPCCHANNEL = "pubBots";

@@ -1,7 +1,4 @@
-package twcore.bots.pubhub;
-
-import twcore.core.*;
-
+package twcore.core;
 
 public class IPCMessage
 {
