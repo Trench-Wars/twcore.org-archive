@@ -435,7 +435,7 @@ public class MatchTeam
                 {
                     m_logger.sendPrivateMessage(name, "Player " + p.getPlayerName() + " added to " + m_fcTeamName);
                     m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game");
-                    if(m_botAction.getOperatorList().isZH(p.getPlayerName() && getBlueoutState())
+                    if(m_botAction.getOperatorList().isZH(p.getPlayerName()) && getBlueoutState())
                     	m_botAction.sendPrivateMessage(p.getPlayerName(), "Blueout has been enabled for this game, please refrain from speaking in public");
                     m_botAction.sendUnfilteredPrivateMessage( p.getPlayerName(), "*einfo" );
                     if (m_rules.getInt("pickbyturn") == 1)
