@@ -1208,7 +1208,13 @@ public class MatchTeam
 	 */
 	public int getTimeScore()
 	{
-		return m_teamTime;
+            if (m_fnForfeit == 0)
+                return m_teamTime;
+            else if (m_fnForfeit == 1)
+                return m_rules.getInt("forfeit_winner_score");
+            else if (m_fnForfeit == 2)
+                return m_rules.getInt("forfeit_loser_score");
+            return 0;
 	}
 
 	/**

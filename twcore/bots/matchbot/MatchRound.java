@@ -89,17 +89,23 @@ public class MatchRound
 
 		if (m_rules.getInt("pickbyturn") == 0)
 		{
-			m_fnRoundState = 1;
-			m_logger.sendArenaMessage("Captains, you have " + m_rules.getInt("lineuptime") + " minutes to set up your lineup correctly");
-			m_scheduleTimer = new TimerTask()
-			{
-				public void run()
-				{
-					scheduleTimeIsUp();
-				};
-			};
-			m_botAction.scheduleTask(m_scheduleTimer, 60000 * m_rules.getInt("lineuptime"));
-			m_botAction.setTimer(m_rules.getInt("lineuptime"));
+                    //This is for the time race.  If the person hasn't set the time it is set to default
+                    String winby = m_rules.getString("winby");
+                    if (winby.equals("timerace") && (m_raceTarget < 5 * 60 || m_raceTarget > 30 * 30)) // 5 mins and 30 mins in secs
+                    {
+                        setRaceTarget(m_rules.getInt("defaulttarget") * 60); //mins to secs
+                        m_logger.sendArenaMessage("Race set to " + m_rules.getInt("defaulttarget") + " mins");
+                    }
+                    
+                    m_fnRoundState = 1;
+                    m_logger.sendArenaMessage("Captains, you have " + m_rules.getInt("lineuptime") + " minutes to set up your lineup correctly");
+                    m_scheduleTimer = new TimerTask() {
+                        public void run() {
+                            scheduleTimeIsUp();
+                        };
+                    };
+                    m_botAction.scheduleTask(m_scheduleTimer, 60000 * m_rules.getInt("lineuptime"));
+                    m_botAction.setTimer(m_rules.getInt("lineuptime"));
 		};
 		specAll();
 
