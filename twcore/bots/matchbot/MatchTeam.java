@@ -1037,11 +1037,11 @@ public class MatchTeam
 	    if (m_rules.getInt("matchtype") < 4) 
             {
 		try {
-			ResultSet s = m_botAction.SQLQuery("local", "SELECT tblSiteVar.fcVarValue AS lockDate FROM tblSiteVar, tblTeamUser WHERE tblSiteVar.fcVarName = 'LockDate' AND tblTeamUser.fnUserID = '" + dbP.getUserID() + "' AND tblTeamUser.fdJoined < tblSiteVar.fcVarValue;");
+			ResultSet s = m_botAction.SQLQuery("website", "SELECT tblSiteVar.fcVarValue AS lockDate FROM tblSiteVar, tblTeamUser WHERE tblSiteVar.fcVarName = 'LockDate' AND tblTeamUser.fnUserID = '" + dbP.getUserID() + "' AND tblTeamUser.fdJoined < tblSiteVar.fcVarValue;");
 			if (!s.next()) {
 			    return "Player was rostered after the roster lock and is ineligible for TWL games";
 			}
-			ResultSet s2 = m_botAction.SQLQuery("local", "SELECT * FROM tblTeamUser WHERE fnUserID = '" + dbP.getUserID() + "' AND fnTWL = '1'");
+			ResultSet s2 = m_botAction.SQLQuery("website", "SELECT * FROM tblTeamUser WHERE fnUserID = '" + dbP.getUserID() + "' AND fnTWL = '1'");
 			if (!s2.next()) {
 			    return "Player is not rostered as a TWL player";
 			}
