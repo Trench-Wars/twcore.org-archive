@@ -129,7 +129,17 @@ public class matchbot extends SubspaceBot
         req.request(EventRequester.PLAYER_POSITION);
         req.request(EventRequester.MESSAGE);
         req.request(EventRequester.ARENA_JOINED);
+        req.request(EventRequester.WEAPON_FIRED);
     };
+
+	/**
+	 * @param event The weapon Fired event
+	 */
+	public void handleEvent(WeaponFired event)
+	{
+		if (m_game != null)
+			m_game.handleEvent(event);
+	}
 
     public void handleEvent(ArenaJoined event)
     {

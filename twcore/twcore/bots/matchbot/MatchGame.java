@@ -200,6 +200,15 @@ public class MatchGame
 		};
 	};
 
+	/**
+	 * @param event WeaponFired event
+	 */
+	public void handleEvent(WeaponFired event)
+	{
+		//m_logger.logEvent(event); too much extra overhead for database
+		m_curRound.handleEvent(event);
+	}
+	
 	public void handleEvent(ArenaJoined event)
 	{
 		m_logger.logEvent(event);
