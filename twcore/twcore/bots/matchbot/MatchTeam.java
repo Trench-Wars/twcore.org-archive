@@ -172,10 +172,11 @@ public class MatchTeam
 			{
 				String playerName = m_botAction.getPlayer(event.getKillerID()).getPlayerName();
 				MatchPlayer p = getPlayer(playerName);
-				p.reportKill(event.getScore());
+				p.reportKill(event.getScore(), event.getKilleeID());
 			}
 			catch (Exception e)
 			{
+				Tools.printStackTrace(e);
 			};
 		};
 	};
@@ -1171,10 +1172,13 @@ public class MatchTeam
 	 * 
 	 * @author FoN
 	 */
-	public void ownFlag()
+	public void ownFlag(int playerID)
 	{
 		if (m_round.m_fnRoundState == 3 && m_flagOwned == false)
 		{
+			String playerName = m_botAction.getPlayer(playerID).getPlayerName();
+			MatchPlayer p = getPlayer(playerName);
+			p.reportFlagClaimed();
 			m_flagOwned = true;
 		}
 	}
