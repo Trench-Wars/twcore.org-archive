@@ -49,7 +49,6 @@ public class pubbot extends SubspaceBot
     botName = m_botAction.getBotName();
     m_botAction.ipcSubscribe(IPCCHANNEL);
     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("spawned"));
-    m_botAction.sendUnfilteredPublicMessage("?obscene");
     m_botAction.scheduleTask(new LogOffTimeoutTask(), LOGOFF_TIMEOUT_DELAY);
     moduleHandler.handleEvent(event);
   }
