@@ -467,8 +467,8 @@ public class MatchRound
 		if (command.equals("!score"))
 			command_score(name, parameters);
 			
-		if (command.equals("!rating"))
-			command_rating(name, parameters[0]);
+		if (command.equals("!rating") && (m_fnRoundState == 3))
+			command_rating(name, parameters);
 
 		if (command.length() > 3)
 		{
@@ -498,41 +498,49 @@ public class MatchRound
 	 * @param name The person who got commanded
 	 * @param parameters 
 	 */
-	public void command_rating(String name, String parameters)
+	public void command_rating(String name, String[] parameters)
 	{
 		String winby = m_rules.getString("winby");
 		if (winby.equals("timerace") && m_fnRoundState == 3)
 		{
 			try
 			{
-				MatchPlayer player;
-			
-				if ((m_team1.getPlayer(parameters).getPlayerName().toLowerCase()).equals(m_botAction.getFuzzyPlayerName(parameters).toLowerCase()))
+				if (parameters.length > 0)
 				{
-					player = m_team1.getPlayer(parameters);
-					m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
-				}
-				else if ((m_team2.getPlayer(parameters).getPlayerName().toLowerCase()).equals(m_botAction.getFuzzyPlayerName(parameters).toLowerCase()))
-				{
-					player = m_team2.getPlayer(parameters);
-					m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
+					String playerName = parameters[0];
+					MatchPlayer player;
+
+					if ((m_team1.getPlayer(playerName).getPlayerName().toLowerCase()).equals(m_botAction.getFuzzyPlayerName(playerName).toLowerCase()))
+					{
+						player = m_team1.getPlayer(playerName);
+						m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
+					}
+					else if ((m_team2.getPlayer(playerName).getPlayerName().toLowerCase()).equals(m_botAction.getFuzzyPlayerName(playerName).toLowerCase()))
+					{
+						player = m_team2.getPlayer(playerName);
+						m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
+					}
+					else
+						m_logger.sendPrivateMessage(name, "The player isn't in the game");
 				}
 				else
-					m_logger.sendPrivateMessage(name, "The player isn't in the game");	
-					
+				{
+					m_logger.sendPrivateMessage(name, "Please specify a player name for the rating");
+				}
+
 			}
 			catch (Exception e)
 			{
 				Tools.printStackTrace(e);
 			}
-			
+
 			MatchPlayer t1b = m_team1.getMVP(), t2b = m_team2.getMVP(), best;
 			if (t1b.getPoints() > t2b.getPoints())
 				best = t1b;
 			else
 				best = t2b;
-			
-			m_logger.sendPrivateMessage(name, "The current MVP is: " + best.getPlayerName()); 
+
+			m_logger.sendPrivateMessage(name, "The current MVP is: " + best.getPlayerName());
 			m_logger.sendPrivateMessage(name, "Stats: " + best.getStatistics());
 		}
 	}
