@@ -1,18 +1,16 @@
 package twcore.bots.matchbot;
 
 /*
- * MatchTeam.java
- *
- * Created on August 19, 2002, 10:27 PM
+ * MatchTeam.java Created on August 19, 2002, 10:27 PM
  */
 
 /**
- *
- * @author  Administrator
+ * @author Administrator
  */
 
 import twcore.core.*;
 import twcore.misc.database.DBPlayerData;
+import twcore.misc.statistics.Statistics;
 import java.util.*;
 import java.sql.*;
 import java.text.*;
@@ -44,7 +42,7 @@ public class MatchTeam
     // 0 - no forfeit, 1 - forfeitwin, 2 - forfeitloss
     int m_fnForfeit;
 
-	boolean m_addPlayer = false;
+    boolean m_addPlayer = false;
     boolean m_turn = false;
     boolean m_blueoutState = false;
 
@@ -92,7 +90,7 @@ public class MatchTeam
         if (m_rules.getInt("rosterjoined") == 1)
         {
             populateCaptainList();
-        };
+        }
     }
 
     // saves player data
@@ -103,7 +101,7 @@ public class MatchTeam
         while (i.hasNext())
         {
             ((MatchPlayer) i.next()).storePlayerResult(m_round.m_fnMatchRoundID, m_fnTeamNumber);
-        };
+        }
     };
 
     // retrieves captains
@@ -111,35 +109,34 @@ public class MatchTeam
     {
         try
         {
-            ResultSet rs =
-                m_botAction.SQLQuery(
-                    dbConn,
-                    "SELECT DISTINCT tblUser.fcUserName FROM tblUser, tblTeamUser, tblUserRank WHERE "
-                        + "tblUser.fnUserID = tblTeamUser.fnUserID AND tblTeamUser.fnCurrentTeam = 1 "
-                        + "AND tblTeamUser.fnTeamID = "
-                        + m_fnTeamID
-                        + " AND tblUser.fnUserID = tblUserRank.fnUserID "
-                        + "AND tblUser.fnUserID = tblUserRank.fnUserID AND tblUserRank.fnRankID IN (3,4) ORDER BY tblUser.fcUserName");
+            ResultSet rs = m_botAction.SQLQuery(
+                            dbConn,
+                            "SELECT DISTINCT tblUser.fcUserName FROM tblUser, tblTeamUser, tblUserRank WHERE "
+                                    + "tblUser.fnUserID = tblTeamUser.fnUserID AND tblTeamUser.fnCurrentTeam = 1 "
+                                    + "AND tblTeamUser.fnTeamID = "
+                                    + m_fnTeamID
+                                    + " AND tblUser.fnUserID = tblUserRank.fnUserID "
+                                    + "AND tblUser.fnUserID = tblUserRank.fnUserID AND tblUserRank.fnRankID IN (3,4) ORDER BY tblUser.fcUserName");
 
             m_captains = new LinkedList();
 
             while (rs.next())
             {
                 m_captains.add(rs.getString("fcUserName").toLowerCase());
-            };
+            }
 
         }
         catch (Exception e)
         {
             System.out.println(e.getMessage());
-        };
+        }
     };
 
     /**
-     * Can get various weapon info and the player who used it
-     * Get repel used count
-     *
-     * @param event WeaponFired event
+     * Can get various weapon info and the player who used it Get repel used
+     * count
+     * 
+     * @param event weaponfired
      */
     public void handleEvent(WeaponFired event)
     {
@@ -159,17 +156,19 @@ public class MatchTeam
         MatchPlayer p = getPlayer(playerName);
         if ((event.getShipType() == 0) && (p.getPlayerState() == MatchPlayer.IN_GAME))
         {
-            if (m_round.m_fnRoundState < 4) {
+            if (m_round.m_fnRoundState < 4)
+            {
                 sendPrivateMessageToCaptains(playerName + " lagged out or specced himself", 13);
 
-		if (m_rules.getInt("deaths") != -1 && m_round.m_fnRoundState == 3) {
-			m_botAction.sendArenaMessage(playerName + " has changed/lagged to spectator mode - +1 death");
-			p.reportDeath();
-		}
-	    }
+                if (m_rules.getInt("deaths") != -1 && m_round.m_fnRoundState == 3)
+                {
+                    m_botAction.sendArenaMessage(playerName + " has changed/lagged to spectator mode - +1 death");
+                    p.reportDeath();
+                }
+            }
 
             p.lagout(false);
-        };
+        }
     };
 
     // when somebody dies
@@ -185,8 +184,8 @@ public class MatchTeam
             }
             catch (Exception e)
             {
-            };
-        };
+            }
+        }
     };
 
     // not officially an event, but it's treated like one.
@@ -203,8 +202,8 @@ public class MatchTeam
             catch (Exception e)
             {
                 Tools.printStackTrace(e);
-            };
-        };
+            }
+        }
     };
 
     // when somebody disconnects
@@ -212,14 +211,16 @@ public class MatchTeam
     {
         String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
         MatchPlayer p = getPlayer(playerName);
-        if ((m_round.m_fnRoundState < 4) && (p.getPlayerState() == MatchPlayer.IN_GAME)) {
+        if ((m_round.m_fnRoundState < 4) && (p.getPlayerState() == MatchPlayer.IN_GAME))
+        {
             sendPrivateMessageToCaptains(playerName + " lagged out or left the arena", 13);
 
-            if (m_rules.getInt("deaths") != -1 && m_round.m_fnRoundState == 3) {
-		m_botAction.sendArenaMessage(playerName + " has lagged out/left arena - +1 death");
-	        p.reportDeath();
-	    }
-	}
+            if (m_rules.getInt("deaths") != -1 && m_round.m_fnRoundState == 3)
+            {
+                m_botAction.sendArenaMessage(playerName + " has lagged out/left arena - +1 death");
+                p.reportDeath();
+            }
+        }
         p.lagout(true);
     };
 
@@ -227,22 +228,25 @@ public class MatchTeam
     {
         MatchPlayer matchPlayer;
 
-                if( event.getMessageType() == Message.ARENA_MESSAGE ){
-                    String msg = event.getMessage();
-                    if( msg.indexOf( "Idle:" ) != -1 ){
-                        String      name;
-                        String      captain;
-                        int         idleTime;
-                        name = msg.substring( 0, msg.indexOf( ":" ) );
+        if (event.getMessageType() == Message.ARENA_MESSAGE)
+        {
+            String msg = event.getMessage();
+            if (msg.indexOf("Idle:") != -1)
+            {
+                String name;
+                String captain;
+                int idleTime;
+                name = msg.substring(0, msg.indexOf(":"));
 
-                        idleTime = getIdleTime( msg );
-                        if( isPlayerOnTeam( name ) ){
-                            sendPrivateMessageToCaptains( name + " has been idle for " + idleTime + " seconds." );
-                        }
-                    }
-
-                    return;
+                idleTime = getIdleTime(msg);
+                if (isPlayerOnTeam(name))
+                {
+                    sendPrivateMessageToCaptains(name + " has been idle for " + idleTime + " seconds.");
                 }
+            }
+
+            return;
+        }
 
         for (int index = 0; index < m_players.size(); index++)
         {
@@ -259,7 +263,8 @@ public class MatchTeam
         if ((isStaff) || (isCaptain(name)))
         {
             if (m_rules.getInt("captainfixed") == 0)
-                help.add("!setcaptain <player>                     - changes captain to <player>. Note: there can be only 1 captain");
+                help
+                        .add("!setcaptain <player>                     - changes captain to <player>. Note: there can be only 1 captain");
             if (m_round.m_fnRoundState == 1)
             {
                 help.add("!list                                    - lists all players on this team");
@@ -268,7 +273,7 @@ public class MatchTeam
                 help.add("!switch <player>:<player>                - exchanges the ship of both players");
                 help.add("!change <player>:<ship>                  - sets the player in the specified ship");
                 help.add("!ready                                   - use this when you're done setting your lineup");
-				help.add("!addplayer                               - request to add an extra player");
+                help.add("!addplayer                               - request to add an extra player");
                 help.add("!lagout <player>                         - puts <player> back in the game");
                 if (m_rules.getInt("blueout") == 1)
                     help.add("!blueout                                 - enable/disable blueout");
@@ -277,7 +282,7 @@ public class MatchTeam
             {
                 help.add("!list                                    - lists all players on this team");
                 help.add("!add <player>:<ship>                     - adds player, <ship> only required for basing");
-				help.add("!addplayer                               - request to add an extra player");
+                help.add("!addplayer                               - request to add an extra player");
                 help.add("!lagout <player>                         - puts <player> back in the game");
                 help.add("!sub <playerA>:<playerB>                 - substitutes <playerA> with <playerB>");
                 if (m_rules.getInt("shipswitches") != 0)
@@ -286,8 +291,10 @@ public class MatchTeam
                     help.add("!change <player>:<ship>                  - sets the player in the specified ship");
                 if (m_rules.getInt("blueout") == 1)
                     help.add("!blueout                                 - enable/disable blueout");
-                //                help.add("!lagger <player>                         - make me check <player>'s lag again (in case his lag increased during the game)");
-            };
+                //                help.add("!lagger <player> - make me check <player>'s lag
+                // again (in case his lag increased during the game)");
+            }
+            ;
         }
         else if (getPlayer(name) != null)
         {
@@ -300,8 +307,8 @@ public class MatchTeam
             {
                 help.add("!list                                    - lists all players on this team");
                 help.add("!lagout                                  - puts you back in the game");
-            };
-        };
+            }
+        }
 
         return help;
     };
@@ -362,8 +369,9 @@ public class MatchTeam
                         command_change(name, parameters);
                     if (command.equals("!blueout"))
                         command_blueout(name, parameters);
-                    //                    if (command.equals("!lagger")) command_lagger(name, parameters);
-                };
+                    //                    if (command.equals("!lagger")) command_lagger(name,
+                    // parameters);
+                }
             }
             else if (getPlayer(name) != null)
             {
@@ -371,16 +379,14 @@ public class MatchTeam
                     command_list(name, parameters);
                 if ((command.equals("!lagout")) && (parameters.length == 0))
                     command_lagout(name, parameters);
-            };
+            }
         }
         catch (Exception e)
         {
-        };
+        }
 
     }
 
-
-;
 
     // sets the captain
     public void command_setcaptain(String name, String[] parameters)
@@ -416,7 +422,8 @@ public class MatchTeam
                                         m_captains.add(p.getPlayerName().toLowerCase());
                                     else
                                         m_captains.set(0, p.getPlayerName().toLowerCase());
-                                    m_logger.sendArenaMessage(p.getPlayerName() + " assigned as captain for " + getTeamName());
+                                    m_logger.sendArenaMessage(p.getPlayerName() + " assigned as captain for "
+                                            + getTeamName());
                                 }
                                 else
                                     m_logger.sendPrivateMessage(name, "Player is captain of the other team");
@@ -460,44 +467,48 @@ public class MatchTeam
                     m_logger.sendPrivateMessage(name, "Player " + p.getPlayerName() + " added to " + m_fcTeamName);
                     m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game");
 
-                    m_botAction.sendUnfilteredPrivateMessage( p.getPlayerName(), "*einfo" );
+                    m_botAction.sendUnfilteredPrivateMessage(p.getPlayerName(), "*einfo");
                     if (m_rules.getInt("pickbyturn") == 1)
                     {
                         m_turn = !m_turn;
                         m_round.determineNextPick();
-                    };
+                    }
                 }
                 else
                 {
                     m_logger.sendPrivateMessage(name, "Could not add player " + parameters[0] + ": " + answer);
-                };
+                }
             }
             else
-                m_logger.sendPrivateMessage(name, "Specify ship, for example: !add Sphonk:3 to set the player is a spider");
+                m_logger.sendPrivateMessage(name,
+                        "Specify ship, for example: !add Sphonk:3 to set the player is a spider");
         }
         catch (Exception e)
         {
-            m_logger.sendPrivateMessage(name, "Could not add player " + parameters[0] + ": unknown error in command_add (" + e.getMessage() + ")");
-        };
+            m_logger.sendPrivateMessage(name, "Could not add player " + parameters[0]
+                    + ": unknown error in command_add (" + e.getMessage() + ")");
+        }
     };
 
-	public void command_addplayer(String name, String[] parameters)
-	{
-		if (!m_addPlayer)
-		{
-			if (m_round.m_game.getPlayersNum() < m_rules.getInt("players"))
-			{
-				m_addPlayer = true;
-				if (!m_round.checkAddPlayer(m_fcTeamName))
-				{
-					m_botAction.sendPrivateMessage(name, "Your request of adding an extra player has been sent to opposing team.");
-				}
-			}
-			else {
-				m_botAction.sendPrivateMessage(name, "The game already has maximum # of players.");
-			}
-		}
-	}
+    public void command_addplayer(String name, String[] parameters)
+    {
+        if (!m_addPlayer)
+        {
+            if (m_round.m_game.getPlayersNum() < m_rules.getInt("players"))
+            {
+                m_addPlayer = true;
+                if (!m_round.checkAddPlayer(m_fcTeamName))
+                {
+                    m_botAction.sendPrivateMessage(name,
+                            "Your request of adding an extra player has been sent to opposing team.");
+                }
+            }
+            else
+            {
+                m_botAction.sendPrivateMessage(name, "The game already has maximum # of players.");
+            }
+        }
+    }
 
     // removes a player from the team
     public void command_remove(String name, String[] parameters)
@@ -510,7 +521,7 @@ public class MatchTeam
             {
                 m_logger.sendPrivateMessage(name, "Specify player");
                 return;
-            };
+            }
 
             p = getPlayer(parameters[0]);
 
@@ -523,16 +534,17 @@ public class MatchTeam
                 if (m_rules.getInt("pickbyturn") == 1)
                 {
                     m_round.determineNextPick();
-                };
+                }
 
                 return;
-            };
+            }
             m_logger.sendPrivateMessage(name, "Player not found");
         }
         catch (Exception e)
         {
-            m_logger.sendPrivateMessage(name, "Could not remove player, unknown error in command_remove (" + e.getMessage() + ")");
-        };
+            m_logger.sendPrivateMessage(name, "Could not remove player, unknown error in command_remove ("
+                    + e.getMessage() + ")");
+        }
     };
 
     // lists all current players
@@ -593,7 +605,7 @@ public class MatchTeam
             }
             else
                 answ = answ + "          ";
-        };
+        }
         if (!answ.equals(""))
             m_logger.sendPrivateMessage(name, answ);
     };
@@ -626,17 +638,20 @@ public class MatchTeam
                                 pA.m_switchedShip = true;
                                 pB.m_switchedShip = true;
 
-                                m_logger.sendArenaMessage(
-                                    pA.m_fcPlayerName + " (" + pB.getShipType() + ") and " + pB.m_fcPlayerName + " (" + pA.getShipType() + ") switched ships.");
+                                m_logger.sendArenaMessage(pA.m_fcPlayerName + " (" + pB.getShipType() + ") and "
+                                        + pB.m_fcPlayerName + " (" + pA.getShipType() + ") switched ships.");
                                 if (m_round.m_fnRoundState == 3)
                                 {
                                     m_fnShipSwitches++;
                                     if (m_rules.getInt("shipswitches") != -1)
-                                        m_logger.sendPrivateMessage(name, "You have " + (m_rules.getInt("shipswitches") - m_fnShipSwitches) + " shipswitches left");
-                                };
+                                        m_logger.sendPrivateMessage(name, "You have "
+                                                + (m_rules.getInt("shipswitches") - m_fnShipSwitches)
+                                                + " shipswitches left");
+                                }
                             }
                             else
-                                m_logger.sendPrivateMessage(name, pB.getPlayerName() + " is not in the game (subbed or is out)");
+                                m_logger.sendPrivateMessage(name, pB.getPlayerName()
+                                        + " is not in the game (subbed or is out)");
                         }
                         else
                             m_logger.sendPrivateMessage(name, pB.getPlayerName() + " is not on your team");
@@ -672,7 +687,7 @@ public class MatchTeam
                 catch (Exception e)
                 {
                     newShip = 0;
-                };
+                }
                 if (pA != null)
                 {
                     if (pA.isReadyToPlay())
@@ -688,10 +703,12 @@ public class MatchTeam
                                 {
                                     int oldShip = pA.getShipType();
                                     // when the player leaves that ship, does it get under the minimum?
-                                    if ((m_rules.getInt("minship" + oldShip) == 0) || (m_rules.getInt("minship" + oldShip) < getPlayersRosteredInShip(oldShip)))
+                                    if ((m_rules.getInt("minship" + oldShip) == 0)
+                                            || (m_rules.getInt("minship" + oldShip) < getPlayersRosteredInShip(oldShip)))
                                     {
                                         // when the player enters the new ship, does it get over the maximum?
-                                        if ((m_rules.getInt("maxship" + newShip) == 0) || (m_rules.getInt("maxship" + newShip) > getPlayersRosteredInShip(newShip)))
+                                        if ((m_rules.getInt("maxship" + newShip) == 0)
+                                                || (m_rules.getInt("maxship" + newShip) > getPlayersRosteredInShip(newShip)))
                                         {
                                             pA.setShip(newShip);
 
@@ -699,18 +716,24 @@ public class MatchTeam
                                             //currently it voids the player from getting mvp in time race games
                                             pA.m_switchedShip = true;
 
-                                            m_logger.sendArenaMessage(pA.m_fcPlayerName + " changed from ship " + oldShip + " to ship " + newShip);
+                                            m_logger.sendArenaMessage(pA.m_fcPlayerName + " changed from ship "
+                                                    + oldShip + " to ship " + newShip);
                                             if ((m_rules.getInt("shipchanges") != -1) && (m_round.m_fnRoundState == 3))
                                             {
                                                 m_fnShipChanges++;
-                                                m_logger.sendPrivateMessage(name, "You have " + (m_rules.getInt("shipchanges") - m_fnShipChanges) + " shipchanges left");
-                                            };
+                                                m_logger.sendPrivateMessage(name, "You have "
+                                                        + (m_rules.getInt("shipchanges") - m_fnShipChanges)
+                                                        + " shipchanges left");
+                                            }
                                         }
                                         else
-                                            m_logger.sendPrivateMessage(name, "Can't change ship, you are at the maximum amount of ship " + newShip);
+                                            m_logger.sendPrivateMessage(name,
+                                                    "Can't change ship, you are at the maximum amount of ship "
+                                                            + newShip);
                                     }
                                     else
-                                        m_logger.sendPrivateMessage(name, "Can't change ship, you are at the minimum amount of ship " + oldShip);
+                                        m_logger.sendPrivateMessage(name,
+                                                "Can't change ship, you are at the minimum amount of ship " + oldShip);
                                 }
                                 else
                                     m_logger.sendPrivateMessage(name, "Can't shipchange at this point in the game");
@@ -747,8 +770,8 @@ public class MatchTeam
                 m_fbReadyToGo = true;
                 m_logger.sendArenaMessage(m_fcTeamName + " is ready to begin");
 
-		if (m_rules.getInt("manual_game_start") == 0)
-	                m_round.checkReadyToGo();
+                if (m_rules.getInt("manual_game_start") == 0)
+                    m_round.checkReadyToGo();
             }
             else
                 m_logger.sendPrivateMessage(name, message);
@@ -757,7 +780,7 @@ public class MatchTeam
         {
             m_fbReadyToGo = false;
             m_logger.sendArenaMessage(m_fcTeamName + " is NOT ready to begin");
-        };
+        }
     };
 
     // puts a player back in the game, IF ALLOWED TO
@@ -777,7 +800,9 @@ public class MatchTeam
             lagger = parameters[0];
 
         p = getPlayer(lagger);
-        if (p != null && (m_rules.getInt("rosterjoined") == 0 || getTeamName().equalsIgnoreCase(m_botAction.getPlayer(lagger).getSquadName())))
+        if (p != null
+                && (m_rules.getInt("rosterjoined") == 0 || getTeamName().equalsIgnoreCase(
+                        m_botAction.getPlayer(lagger).getSquadName())))
         {
             // put player back in, returns message to report if it's succesful
             message = p.lagin();
@@ -793,7 +818,7 @@ public class MatchTeam
                     m_logger.sendPrivateMessage(name, "Couldn't put player back in: " + message);
                 else
                     m_logger.sendPrivateMessage(name, "Couldn't put you back in: " + message);
-            };
+            }
         }
         else
             m_logger.sendPrivateMessage(name, "Player isn't in the game");
@@ -819,7 +844,6 @@ public class MatchTeam
          */
 
         // check if the given substitute command is legal
-
         // if subdelaytime > 0 then create a timertask to call the substitute routine in subdelaytime seconds
 
         String playerA, playerB, answer;
@@ -912,8 +936,9 @@ public class MatchTeam
                                 if (answer.equals("yes"))
                                     pB = getPlayer(ppB.getPlayerName());
                                 else
-                                    m_logger.sendPrivateMessage(name, "Could not add player " + playerB + ": " + answer);
-                            };
+                                    m_logger
+                                            .sendPrivateMessage(name, "Could not add player " + playerB + ": " + answer);
+                            }
 
                             // if the adding of playerB didn't fail:
                             if (pB != null)
@@ -933,11 +958,13 @@ public class MatchTeam
                                             pA.getPlayerName() + " has been substituted by " + pB.getPlayerName() + ", with " + subDeathsLeft + " deaths left");
 
                                     if (m_rules.getInt("substitutes") != -1)
-                                        m_logger.sendPrivateMessage(name, "You have " + (m_rules.getInt("substitutes") - m_fnSubstitutes) + " substitutes left");
+                                        m_logger.sendPrivateMessage(name, "You have "
+                                                + (m_rules.getInt("substitutes") - m_fnSubstitutes)
+                                                + " substitutes left");
                                 }
                                 else
                                     m_logger.sendPrivateMessage(name, pB.getPlayerName() + " is already in the game");
-                            };
+                            }
 
                         }
                         else
@@ -978,10 +1005,11 @@ public class MatchTeam
             {
                 if (m_round.getOtherTeam(m_fnFrequency).getBlueoutState() == false)
                     m_round.requestBlueout(m_blueoutState);
-                m_logger.sendPrivateMessage(name, "If the other team also requested to turn off blueout, blueout will be taken off.");
-            };
+                m_logger.sendPrivateMessage(name,
+                        "If the other team also requested to turn off blueout, blueout will be taken off.");
+            }
 
-        };
+        }
     };
 
     // warpto (safe spots in this case)
@@ -992,7 +1020,7 @@ public class MatchTeam
         while (i.hasNext())
         {
             ((MatchPlayer) i.next()).warpTo(x, y);
-        };
+        }
     };
 
     // playerallowedtoplay - checks several requirements
@@ -1003,19 +1031,13 @@ public class MatchTeam
         int playersAvail;
 
         // is it the turn of this freq to pick a player?
-        if ((m_round.m_fnRoundState == 1)
-            && (m_rules.getInt("pickbyturn") == 1)
-            && (m_turn == false)
-            && (m_round.getOtherTeam(m_fnFrequency).getPlayersRostered() - getPlayersRostered() <= 0))
-        {
-            return "The other team currently has the turn to pick a ship";
-        };
+        if ((m_round.m_fnRoundState == 1) && (m_rules.getInt("pickbyturn") == 1) && (m_turn == false)
+                && (m_round.getOtherTeam(m_fnFrequency).getPlayersRostered() - getPlayersRostered() <= 0)) { return "The other team currently has the turn to pick a ship"; }
+        ;
 
         // does the player want to be picked
-        if (m_round.m_notPlaying.indexOf(name.toLowerCase()) != -1)
-        {
-            return "player can't or doesn't want to play this round";
-        };
+        if (m_round.m_notPlaying.indexOf(name.toLowerCase()) != -1) { return "player can't or doesn't want to play this round"; }
+        ;
 
         // when rosterjoined=1, has to exist in the Roster database
         if (m_rules.getInt("rosterjoined") == 1)
@@ -1024,7 +1046,7 @@ public class MatchTeam
             if (!m_fcTeamName.equalsIgnoreCase(dbP.getTeamName()))
                 return "Player isn't on the squad roster";
             //            if(isDoubleSquadding(name))
-            //                return "Player is not elligible to play because he / she is double squadding.";
+            //                return "Player is not elligible to play because he / she is
             // if eligibleafter specified, player has to be on the roster for x days
             if (m_rules.getInt("eligibleafter") > 0)
             {
@@ -1035,37 +1057,37 @@ public class MatchTeam
                 double msDiff = (today.getTimeInMillis() - signup.getTimeInMillis()) / 1000 / 60 / 60;
                 if (msDiff < 0)
                     return "Player isn't eligible yet, he will be eligible " + (-msDiff) + " hours";
-            };
+            }
 
-	    // only for TWL games
-	    if (m_rules.getInt("matchtype") < 4) 
+            // only for TWL games
+            if (m_rules.getInt("matchtype") < 4)
             {
-		try {
-			ResultSet s = m_botAction.SQLQuery("website", "SELECT tblSiteVar.fcVarValue AS lockDate FROM tblSiteVar, tblTeamUser WHERE tblSiteVar.fcVarName = 'LockDate' AND tblTeamUser.fnUserID = '" + dbP.getUserID() + "' AND tblTeamUser.fdJoined < tblSiteVar.fcVarValue;");
-			if (!s.next()) {
-			    return "Player was rostered after the roster lock and is ineligible for TWL games";
-			}
-			ResultSet s2 = m_botAction.SQLQuery("website", "SELECT * FROM tblTeamUser WHERE fnUserID = '" + dbP.getUserID() + "' AND fnTWL = '1'");
-			if (!s2.next()) {
-			    return "Player is not rostered as a TWL player";
-			}
-		} catch (Exception e) {
-			return "Error: " + e.getMessage();
-		}
-	    }
-        };
+                try
+                {
+                    ResultSet s = m_botAction
+                            .SQLQuery(
+                                    "website",
+                                    "SELECT tblSiteVar.fcVarValue AS lockDate FROM tblSiteVar, tblTeamUser WHERE tblSiteVar.fcVarName = 'LockDate' AND tblTeamUser.fnUserID = '"
+                                            + dbP.getUserID() + "' AND tblTeamUser.fdJoined < tblSiteVar.fcVarValue;");
+                    if (!s.next()) { return "Player was rostered after the roster lock and is ineligible for TWL games"; }
+                    ResultSet s2 = m_botAction.SQLQuery("website", "SELECT * FROM tblTeamUser WHERE fnUserID = '"
+                            + dbP.getUserID() + "' AND fnTWL = '1'");
+                    if (!s2.next()) { return "Player is not rostered as a TWL player"; }
+                }
+                catch (Exception e)
+                {
+                    return "Error: " + e.getMessage();
+                }
+            }
+        }
 
         // name should not start with "matchbot"
-        if (name.toLowerCase().startsWith("matchbot"))
-        {
-            return "Playername should not start with 'matchbot'";
-        };
+        if (name.toLowerCase().startsWith("matchbot")) { return "Playername should not start with 'matchbot'"; }
+        ;
 
         // name should not start with "robo ref"
-        if (name.toLowerCase().startsWith("robo ref"))
-        {
-            return "Playername should not start with 'robo ref'";
-        };
+        if (name.toLowerCase().startsWith("robo ref")) { return "Playername should not start with 'robo ref'"; }
+        ;
 
         // player should be in the arena
         p = m_botAction.getPlayer(name);
@@ -1085,7 +1107,7 @@ public class MatchTeam
                 return "Ship " + ship + " is not allowed";
             else if (getPlayersRosteredInShip(ship) >= maxShips)
                 return "The maximum number (" + maxShips + ") of ship " + ship + " has been reached already";
-        };
+        }
 
         // player is not in this team, and not in the other
 
@@ -1104,15 +1126,19 @@ public class MatchTeam
         if (!((ship == m_rules.getInt("ship")) || (m_rules.getInt("ship") == 0)))
             return "invalid ship";
 
-        if( m_rules.getInt("aliascheck") == 1 ) {
+        if (m_rules.getInt("aliascheck") == 1)
+        {
             // redudant action
             DBPlayerData dbP = new DBPlayerData(m_botAction, dbConn, name);
 
             // a name has to be registered
-            if (!dbP.isRegistered()) {
-				m_botAction.sendPrivateMessage(dbP.getUserName(), "Your name is not registered. You must send !register to TWDBot in ?go twd before you can play.");
+            if (!dbP.isRegistered())
+            {
+                m_botAction
+                        .sendPrivateMessage(dbP.getUserName(),
+                                "Your name is not registered. You must send !register to TWDBot in ?go twd before you can play.");
                 return "Player must register this name to play.  (Usage: !register to TWDBot in ?go twd)";
-			}
+            }
 
             // the name must be enabled
             if (!dbP.isEnabled())
@@ -1213,7 +1239,7 @@ public class MatchTeam
         }
         catch (Exception e)
         {
-                    e.printStackTrace();
+            e.printStackTrace();
             return "Could not add player, unknown error in addPlayer: " + e.getMessage();
         }
     };
@@ -1229,7 +1255,7 @@ public class MatchTeam
             if (getInGame)
                 p.getInGame(fbSilent);
             m_players.add(p);
-        };
+        }
     };
 
     // sets turn to true
@@ -1242,7 +1268,7 @@ public class MatchTeam
             if (m_rules.getInt("ship") == -1)
                 andShip = " and specify ship";
             m_logger.sendArenaMessage(getTeamName() + ", pick a player" + andShip);
-        };
+        }
     };
 
     // flagreward
@@ -1251,7 +1277,7 @@ public class MatchTeam
         ListIterator i = m_players.listIterator();
 
         while (i.hasNext())
-             ((MatchPlayer) i.next()).flagReward(points);
+            ((MatchPlayer) i.next()).flagReward(points);
 
     };
 
@@ -1271,7 +1297,7 @@ public class MatchTeam
             if ((p.getPlayerState() == MatchPlayer.IN_GAME)
                 || ((p.getPlayerState() == MatchPlayer.LAGGED) && ((System.currentTimeMillis() - p.getLaggedTime()) <= m_rules.getInt("lagoutextension") * 1000)))
                 retval++;
-        };
+        }
 
         if (retval == 0)
             return true;
@@ -1303,14 +1329,15 @@ public class MatchTeam
         {
             String playerName = m_botAction.getPlayer(playerID).getPlayerName();
             MatchPlayer p = getPlayer(playerName);
-		if (p != null)      p.reportFlagClaimed();
+            if (p != null)
+                p.reportFlagClaimed();
             m_flagOwned = true;
         }
     }
 
     /**
      * Unset the flag control flag and updates score
-     *
+     * 
      * @author FoN
      */
     public void disownFlag()
@@ -1323,19 +1350,19 @@ public class MatchTeam
 
     /**
      * Method getTimeScore.
-     *
+     * 
      * @author FoN
      * @return int which returns the updated score if this team owns the flag
      */
     public int getTimeScore()
     {
-            if (m_fnForfeit == 0)
-                return m_teamTime;
-            else if (m_fnForfeit == 1)
-                return m_rules.getInt("forfeit_winner_score");
-            else if (m_fnForfeit == 2)
-                return m_rules.getInt("forfeit_loser_score");
-            return 0;
+        if (m_fnForfeit == 0)
+            return m_teamTime;
+        else if (m_fnForfeit == 1)
+            return m_rules.getInt("forfeit_winner_score");
+        else if (m_fnForfeit == 2)
+            return m_rules.getInt("forfeit_loser_score");
+        return 0;
     }
 
     /**
@@ -1377,17 +1404,18 @@ public class MatchTeam
         {
             answ = (MatchPlayer) i.next();
 
-			if (answ.getPlayerName() != null) {
-	            if ((!matchExact) && (answ.getPlayerName().toLowerCase().startsWith(name.toLowerCase())))
-		            if (best == null)
-			            best = answ;
-				    else if (best.getPlayerName().toLowerCase().compareTo(answ.getPlayerName().toLowerCase()) > 0)
-					    best = answ;
+            if (answ.getPlayerName() != null)
+            {
+                if ((!matchExact) && (answ.getPlayerName().toLowerCase().startsWith(name.toLowerCase())))
+                    if (best == null)
+                        best = answ;
+                    else if (best.getPlayerName().toLowerCase().compareTo(answ.getPlayerName().toLowerCase()) > 0)
+                        best = answ;
 
-				if (answ.getPlayerName().equalsIgnoreCase(name))
-		            return answ;
-			}
-        };
+                if (answ.getPlayerName().equalsIgnoreCase(name))
+                    return answ;
+            }
+        }
         return best;
     };
 
@@ -1409,7 +1437,7 @@ public class MatchTeam
                 best = rightnow;
             else if (rightnow.getPoints() > best.getPoints())
                 best = rightnow;
-        };
+        }
 
         return best;
     };
@@ -1421,10 +1449,7 @@ public class MatchTeam
 
         if (m_fnForfeit == 0)
         {
-            if (winby.equals("timerace"))
-            {
-                return getTimeScore();
-            }
+            if (winby.equals("timerace")) { return getTimeScore(); }
 
             if (winby.equals("score") || winby.equals("race"))
             {
@@ -1437,7 +1462,7 @@ public class MatchTeam
                 int otheramount = m_rules.getInt("players") - m_round.getOtherTeam(m_fnFrequency).getPlayersIsWasInGame();
 
                 return m_round.getOtherTeam(m_fnFrequency).getTotalDeaths() + otheramount * m_rules.getInt("deaths");
-            };
+            }
         }
         else if (m_fnForfeit == 1)
             return m_rules.getInt("forfeit_winner_score");
@@ -1542,7 +1567,7 @@ public class MatchTeam
             p = (MatchPlayer) i.next();
             if ((p.isAllowedToPlay()) && (p.getShipType() == shipType))
                 retval++;
-        };
+        }
 
         return retval;
     };
@@ -1557,7 +1582,7 @@ public class MatchTeam
             curShips = getPlayersRosteredInShip(i);
             if (curShips < minShips)
                 return "You need at least " + minShips + " of type " + i + ", there are currently " + curShips;
-        };
+        }
         return "yes";
     };
 
@@ -1567,7 +1592,7 @@ public class MatchTeam
         ListIterator i = m_players.listIterator();
 
         while (i.hasNext())
-             ((MatchPlayer) i.next()).reportStartOfGame();
+            ((MatchPlayer) i.next()).reportStartOfGame();
     };
 
     // send end signal to all players
@@ -1576,7 +1601,7 @@ public class MatchTeam
         ListIterator i = m_players.listIterator();
 
         while (i.hasNext())
-             ((MatchPlayer) i.next()).reportEndOfGame();
+            ((MatchPlayer) i.next()).reportEndOfGame();
     };
 
     public void sendPrivateMessageToCaptains(String text)
@@ -1590,7 +1615,7 @@ public class MatchTeam
         while (i.hasNext())
         {
             m_logger.sendPrivateMessage((String) i.next(), text, soundCode);
-        };
+        }
     };
 
     public void reportLaggerName(String name)
@@ -1608,10 +1633,11 @@ public class MatchTeam
             if (ping > maxPing)
             {
                 m_logger.doubleSpec(m_fcLaggerName);
-                m_logger.sendPrivateMessage(m_fcLaggerName, "your lag is too high to play in this game. Max ping: " + maxPing + ", your ping: " + ping);
-            };
+                m_logger.sendPrivateMessage(m_fcLaggerName, "your lag is too high to play in this game. Max ping: "
+                        + maxPing + ", your ping: " + ping);
+            }
             m_fcLaggerName = null;
-        };
+        }
     };
 
     public boolean isCaptain(String name)
@@ -1638,8 +1664,8 @@ public class MatchTeam
                 else
                     answ = answ + ", ";
                 answ = answ + temp;
-            };
-        };
+            }
+        }
         return answ;
     };
 
@@ -1647,55 +1673,73 @@ public class MatchTeam
     {
         return m_fcTeamName;
     };
+
     public int getFrequency()
     {
         return m_fnFrequency;
     };
+
     public boolean isReadyToGo()
     {
         return m_fbReadyToGo;
     };
-	public boolean addEPlayer()
-	{
-		return m_addPlayer;
-	};
-	public void setAddPlayer(boolean b)
-	{
-		m_addPlayer = b;
-	};
+
+    public boolean addEPlayer()
+    {
+        return m_addPlayer;
+    };
+
+    public void setAddPlayer(boolean b)
+    {
+        m_addPlayer = b;
+    };
+
     public boolean getBlueoutState()
     {
         return m_blueoutState;
     };
 
-    public boolean isPlayerOnTeam( String name ){
+    public boolean isPlayerOnTeam(String name)
+    {
         MatchPlayer player;
         ListIterator i = m_players.listIterator();
 
-        while( i.hasNext() ){
-            player = (MatchPlayer)i.next();
-            if( player.getPlayerName().toLowerCase().compareTo( name.toLowerCase() ) == 0 ){
-                return true;
-            }
+        while (i.hasNext())
+        {
+            player = (MatchPlayer) i.next();
+            if (player.getPlayerName().toLowerCase().compareTo(name.toLowerCase()) == 0) { return true; }
         }
 
         return false;
     }
 
-    private int getIdleTime( String message ){
+    private int getIdleTime(String message)
+    {
         int beginIndex = message.indexOf("Idle: ") + 6;
         int endIndex = message.indexOf(" s", beginIndex);
 
-        if( beginIndex > -1 && endIndex > -1 ){
+        if (beginIndex > -1 && endIndex > -1)
+        {
             return Integer.parseInt(message.substring(beginIndex, endIndex));
-        } else {
+        }
+        else
+        {
             return 0;
         }
     }
 
-    public ArrayList getDScores(boolean duelG, boolean wbG) {
+    /**
+     * Please use the global constants defined in the stats file so we don't introduce bugs
+     * @author Someoneelse, Edited by FoN
+     * 
+     * @param duelG: Is it a duel game ie not base
+     * @param wbG: Is it a wb game ie not javs
+     * @return The array of strings to print game summary
+     */
+    public ArrayList getDScores(boolean duelG, boolean wbG)
+    {
 
-	ArrayList out = new ArrayList();
+        ArrayList out = new ArrayList();
 
         Comparator a = new Comparator()
         {
@@ -1710,54 +1754,97 @@ public class MatchTeam
         Object[] players = m_players.toArray();
         Arrays.sort(players, a);
 
+        if (duelG)
+        {
+            if (wbG)
+            {
+                out.add("|                          ,------+------+-----------+----+");
+                out.add("| " + Tools.formatString(m_fcTeamName, 23) + " /  "
+                        + rightenString(Integer.toString(getDTotalStats(Statistics.TOTAL_KILLS)), 4) + " | "
+                        + rightenString(Integer.toString(getDTotalStats(Statistics.DEATHS)), 4) + " | "
+                        + rightenString(Integer.toString(getDTotalStats(Statistics.RATING)), 9) + " | "
+                        + rightenString(Integer.toString(getTotalLagOuts()), 2) + " |");
+                out.add("+------------------------'        |      |           |    |");
 
-	if (duelG) {
-		if (wbG) {
-		    out.add("|                          ,------+------+-----------+----+");
-		    out.add("| " + Tools.formatString(m_fcTeamName, 23) + " /  " + rightenString(Integer.toString(getDTotalStats(20)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(0)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(23)), 9) + " | " + rightenString(Integer.toString(getTotalLagOuts()), 2) + " |");
-		    out.add("+------------------------'        |      |           |    |");
+                for (int i = players.length - 1; i >= 0; i--)
+                {
+                    MatchPlayer p = (MatchPlayer) players[i];
+                    out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " "
+                            + rightenString(Integer.toString(p.getTotalStatistic(Statistics.TOTAL_KILLS)), 4) + " | "
+                            + rightenString(Integer.toString(p.getTotalStatistic(Statistics.DEATHS)), 4) + " | "
+                            + rightenString(Integer.toString(p.getTotalStatistic(Statistics.RATING)), 9) + " | "
+                            + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
+                }
+            }
+            else
+            {
+                out.add("|                          ,------+------+------+-----------+----+");
+                out.add("| " + Tools.formatString(m_fcTeamName, 23) + " /  "
+                        + rightenString(Integer.toString(getDTotalStats(Statistics.TOTAL_KILLS)), 4) + " | "
+                        + rightenString(Integer.toString(getDTotalStats(Statistics.DEATHS)), 4) + " | "
+                        + rightenString(Integer.toString(getDTotalStats(Statistics.TOTAL_TEAMKILLS)), 4) + " | "
+                        + rightenString(Integer.toString(getDTotalStats(Statistics.RATING)), 9) + " | "
+                        + rightenString(Integer.toString(getTotalLagOuts()), 2) + " |");
+                out.add("+------------------------'        |      |      |           |    |");
 
-		    for (int i = players.length - 1; i >= 0; i--) {
-			MatchPlayer p = (MatchPlayer)players[i];
-			out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " " + rightenString(Integer.toString(p.getTotalStatistic(20)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(0)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(23)), 9) + " | " + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
-		    }
-		} else {
-		    out.add("|                          ,------+------+------+-----------+----+");
-		    out.add("| " + Tools.formatString(m_fcTeamName, 23) + " /  " + rightenString(Integer.toString(getDTotalStats(20)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(0)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(21)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(23)), 9) + " | " + rightenString(Integer.toString(getTotalLagOuts()), 2) + " |");
-		    out.add("+------------------------'        |      |      |           |    |");
+                for (int i = players.length - 1; i >= 0; i--)
+                {
+                    MatchPlayer p = (MatchPlayer) players[i];
+                    out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " "
+                            + rightenString(Integer.toString(p.getTotalStatistic(Statistics.TOTAL_KILLS)), 4) + " | "
+                            + rightenString(Integer.toString(p.getTotalStatistic(Statistics.DEATHS)), 4) + " | "
+                            + rightenString(Integer.toString(p.getTotalStatistic(Statistics.TOTAL_TEAMKILLS)), 4) + " | "
+                            + rightenString(Integer.toString(p.getTotalStatistic(Statistics.RATING)), 9) + " | "
+                            + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
+                }
+            }
+        }
+        else
+        {
+            out.add("|                          ,------+------+------+-----------+------+------+-----------+----+");
+            out.add("| " + Tools.formatString(m_fcTeamName, 23) + " /  "
+                    + rightenString(Integer.toString(getDTotalStats(Statistics.TOTAL_KILLS)), 4) + " | "
+                    + rightenString(Integer.toString(getDTotalStats(Statistics.DEATHS)), 4) + " | "
+                    + rightenString(Integer.toString(getDTotalStats(Statistics.TOTAL_TEAMKILLS)), 4) + " | "
+                    + rightenString(Integer.toString(getDTotalStats(Statistics.SCORE)), 9) + " | "
+                    + rightenString(Integer.toString(getDTotalStats(Statistics.FLAG_CLAIMED)), 4) + " | "
+                    + rightenString(Integer.toString(getDTotalStats(Statistics.TERRIER_KILL)), 4) + " | "
+                    + rightenString(Integer.toString(getDTotalStats(Statistics.RATING)), 9) + " | "
+                    + rightenString(Integer.toString(getTotalLagOuts()), 2) + " |");
+            out.add("+------------------------'        |      |      |           |      |      |           |    |");
 
-		    for (int i = players.length - 1; i >= 0; i--) {
-			MatchPlayer p = (MatchPlayer)players[i];
-			out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " " + rightenString(Integer.toString(p.getTotalStatistic(20)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(0)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(21)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(23)), 9) + " | " + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
-		    }
-		}
-	} else {
-	    out.add("|                          ,------+------+------+-----------+------+------+-----------+----+");
-	    out.add("| " + Tools.formatString(m_fcTeamName, 23) + " /  " + rightenString(Integer.toString(getDTotalStats(20)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(0)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(21)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(1)), 9) + " | " + rightenString(Integer.toString(getDTotalStats(18)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(6)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(23)), 9) + " | " + rightenString(Integer.toString(getTotalLagOuts()), 2) + " |");
-	    out.add("+------------------------'        |      |      |           |      |      |           |    |");
+            for (int i = players.length - 1; i >= 0; i--)
+            {
+                MatchPlayer p = (MatchPlayer) players[i];
+                out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " "
+                        + rightenString(Integer.toString(p.getTotalStatistic(Statistics.TOTAL_KILLS)), 4) + " | "
+                        + rightenString(Integer.toString(p.getTotalStatistic(Statistics.DEATHS)), 4) + " | "
+                        + rightenString(Integer.toString(p.getTotalStatistic(Statistics.TOTAL_TEAMKILLS)), 4) + " | "
+                        + rightenString(Integer.toString(p.getTotalStatistic(Statistics.SCORE)), 9) + " | "
+                        + rightenString(Integer.toString(p.getTotalStatistic(Statistics.FLAG_CLAIMED)), 4) + " | "
+                        + rightenString(Integer.toString(p.getTotalStatistic(Statistics.TERRIER_KILL)), 4) + " | "
+                        + rightenString(Integer.toString(p.getTotalStatistic(Statistics.RATING)), 9) + " | "
+                        + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
+            }
 
-	    for (int i = players.length - 1; i >= 0; i--) {
-		MatchPlayer p = (MatchPlayer)players[i];
-		out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " " + rightenString(Integer.toString(p.getTotalStatistic(20)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(0)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(21)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(1)), 9) + " | " + rightenString(Integer.toString(p.getTotalStatistic(18)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(6)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(23)), 9) + " | " + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
-	    }
+        }
 
-	}
-
-	return out;
+        return out;
     }
 
-    public String rightenString(String fragment, int length) {
-	int curLength = fragment.length();
-	int startPos = length - curLength;
-	String result = "";
+    public String rightenString(String fragment, int length)
+    {
+        int curLength = fragment.length();
+        int startPos = length - curLength;
+        String result = "";
 
-	for (int i=0; i < startPos; i++) result = result + " ";
-	result = result + fragment;
-	for (int j=result.length(); j < length; j++) result = result + " ";
+        for (int i = 0; i < startPos; i++)
+            result = result + " ";
+        result = result + fragment;
+        for (int j = result.length(); j < length; j++)
+            result = result + " ";
 
-	return result;
+        return result;
     }
 }
-
-
 
