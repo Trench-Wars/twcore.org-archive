@@ -935,6 +935,8 @@ public class MatchRound
 		}
 	}
 
+    public boolean TWLGame() { return (m_rules.getInt("matchtype") > 0 && m_rules.getInt("matchtype") < 4); }
+
     public void checkReadyToGo()
     {
         if ((m_team1.isReadyToGo()) && (m_team2.isReadyToGo()))
@@ -959,6 +961,7 @@ public class MatchRound
                 {
                     m_team1.warpTo(m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
                     m_team2.warpTo(m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
+		    if (TWLGame()) { m_botAction.sendArenaMessage("Survived 2nd warp.."); }
                 }
 
             };
@@ -967,6 +970,7 @@ public class MatchRound
                 public void run()
                 {
                     m_botAction.showObject(m_rules.getInt("obj_countdown10"));
+		    if (TWLGame()) { m_botAction.sendArenaMessage("Survived obj 10s.."); }
                 };
             };
             m_countdown54321 = new TimerTask()
@@ -974,18 +978,20 @@ public class MatchRound
                 public void run()
                 {
                     m_botAction.showObject(m_rules.getInt("obj_countdown54321"));
+		    if (TWLGame()) { m_botAction.sendArenaMessage("Survived obj 5s.."); }
                 };
             };
             m_startGame = new TimerTask()
             {
                 public void run()
                 {
+    		    if (TWLGame()) { m_botAction.sendArenaMessage("Starting game.."); }
                     startGame();
                 };
             };
             m_botAction.scheduleTask(m_secondWarp, 10000);
             m_botAction.scheduleTask(m_countdown10Seconds, 20000);
-			m_botAction.scheduleTask(m_countdown54321, 25000);
+            m_botAction.scheduleTask(m_countdown54321, 25000);
             m_botAction.scheduleTask(m_startGame, 30000);
         };
     };
@@ -1003,6 +1009,7 @@ public class MatchRound
             }
         };
         m_botAction.scheduleTaskAtFixedRate(updateScores, 2000, 1000);
+        if (TWLGame()) { m_botAction.sendArenaMessage("Survived updating scoreboard.."); }
 
         if ((m_rules.getInt("safe1xout") != 0) && (m_rules.getInt("safe1yout") != 0))
         {
