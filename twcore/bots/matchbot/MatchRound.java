@@ -44,10 +44,10 @@ public class MatchRound
     MatchTeam m_team2;
     java.util.Date m_timeStarted;
     java.util.Date m_timeEnded;
-	long m_timeBOEnabled;
+    long m_timeBOEnabled;
     long m_timeStartedms;
     TimerTask m_countdown10Seconds;
-	TimerTask m_countdown54321;
+    TimerTask m_countdown54321;
     TimerTask m_startGame;
     TimerTask m_endGame;
     TimerTask m_scheduleTimer;
@@ -56,11 +56,13 @@ public class MatchRound
     TimerTask m_closeDoors;
     TimerTask m_moveAround;
     TimerTask m_secondWarp;
-	TimerTask updateScores;
+    TimerTask updateScores;
     ArrayList m_notPlaying;
 
-	private Objset m_myObjects;
-	private int m_generalTime = 0;
+    private Objset m_myObjects;
+    private int m_generalTime = 0;
+
+    private lagHandler m_lagHandler;
 
     boolean m_fbAffectsEntireGame = false;
     boolean m_fbExtension = false;
@@ -85,6 +87,7 @@ public class MatchRound
         useDatabase = false;
         m_game = Matchgame;
         m_botAction = m_game.m_botAction;
+        m_botAction.getObjectSet();
         m_rules = m_game.m_rules;
         m_fnRoundNumber = fnRoundNumber;
         m_fnRoundState = 0;
@@ -93,6 +96,8 @@ public class MatchRound
         m_logger = m_game.m_logger;
         m_team1 = new MatchTeam(fcTeam1Name, 1, 1, this);
         m_team2 = new MatchTeam(fcTeam2Name, 2, 2, this);
+
+	m_lagHandler = new lagHandler(m_botAction, m_rules);
 
         m_notPlaying = new ArrayList();
 
@@ -306,8 +311,14 @@ public class MatchRound
         {
             String msg = event.getMessage();
 
-            m_team1.handleEvent(event);
-            m_team2.handleEvent(event);
+
+		if (m_fnRoundState == 1) {
+			m_team1.handleEvent(event);
+			m_team2.handleEvent(event);
+		} else if (m_fnRoundState == 3) {
+			m_lagHandler.handleLagMessage(msg);
+		}
+			
             /*
                         if (msg.startsWith("IP:")) {
                             String[] pieces = msg.split("  ");
@@ -348,6 +359,10 @@ public class MatchRound
         {
             String killeeName = m_botAction.getPlayer(event.getKilleeID()).getPlayerName();
             String killerName = m_botAction.getPlayer(event.getKillerID()).getPlayerName();
+
+            if (m_fnRoundState == 3)
+                m_lagHandler.requestLag(killerName, "[BOT]", false, true);
+
             if (m_team1.getPlayer(killeeName, true) != null)
                 m_team1.handleEvent(event);
             if (m_team2.getPlayer(killeeName, true) != null)
@@ -480,6 +495,8 @@ public class MatchRound
                 help.add("!settime <time in mins>                  - time to racebetween 5 and 30 only for timerace");
                 help.add("!startpick                               - start rostering");
             }
+            if (m_fnRoundState == 3)
+                help.add("!lag <player>                            - show <player> lag");
             if (m_team1 != null)
             {
                 help.add("-- Prepend your command with !t1- for '" + m_team1.getTeamName() + "', !t2- for '" + m_team2.getTeamName() + "' --");
@@ -511,6 +528,13 @@ public class MatchRound
 
         if ((command.equals("!startpick")) && (m_fnRoundState == 0) && isStaff)
             command_startpick(name, parameters);
+
+	if ((command.equals("!lag")) && (m_fnRoundState == 3) && isStaff)
+	    command_checklag(name, parameters);
+
+	if ((command.equals("!lagstatus")) && isStaff)
+	    command_lagstatus(name, parameters);
+
         if (command.equals("!cap"))
         {
             m_logger.sendPrivateMessage(name, m_team1.getCaptains() + " is/are captain(s) of " + m_team1.getTeamName());
@@ -708,8 +732,7 @@ public class MatchRound
         }
         else
             m_logger.sendPrivateMessage(name, "Please specify a time");
-    }
-;
+    };
 
     public void command_score(String name, String[] parameters)
     {
@@ -833,7 +856,33 @@ public class MatchRound
         }
 
         m_fnRoundState = 1;
-        m_team1.setTurn();
+
+	if (m_game.m_fnMatchTypeID > 0 && m_game.m_fnMatchTypeID < 4) {
+            m_logger.sendArenaMessage("Captains, you have " + m_rules.getInt("lineuptime") + " minutes to set up your lineup correctly");
+            m_scheduleTimer = new TimerTask() {
+                public void run() {
+                    scheduleTimeIsUp();
+                };
+            };
+            m_botAction.scheduleTask(m_scheduleTimer, 60000 * m_rules.getInt("lineuptime"));
+            m_botAction.setTimer(m_rules.getInt("lineuptime"));
+	} else {
+            m_team1.setTurn();
+	}
+    };
+
+    public void command_checklag(String name, String parameters[])
+    {
+        if (parameters.length != 0) {
+            m_lagHandler.requestLag(parameters[0], name, false, false);
+        } else {
+            m_lagHandler.requestLag(name, name, false, false);
+        }
+    };
+
+    public void command_lagstatus(String name, String parameters[])
+    {
+	m_botAction.sendPrivateMessage(name, m_lagHandler.getStatus());
     };
 
     public MatchTeam getOtherTeam(int freq)
@@ -925,9 +974,9 @@ public class MatchRound
     // gets called by m_startGame TimerTask.
     public void startGame()
     {
-		m_generalTime = m_rules.getInt("time") * 60;
-		m_myObjects = m_botAction.getObjectSet();
-		updateScores = new TimerTask()
+        m_generalTime = m_rules.getInt("time") * 60;
+        m_myObjects = m_botAction.getObjectSet();
+        updateScores = new TimerTask()
         {
             public void run()
             {
@@ -1487,11 +1536,11 @@ public class MatchRound
         if (m_blueoutState == 1)
             m_botAction.toggleBlueOut();
 
-		if (updateScores != null)
-			updateScores.cancel();
+        if (updateScores != null)
+            updateScores.cancel();
 
-		if (m_myObjects != null)
-	        m_myObjects.hideAllObjects();
+        if (m_myObjects != null)
+            m_myObjects.hideAllObjects();
 
         m_botAction.setObjects();
         m_generalTime = 0;

@@ -1712,7 +1712,7 @@ public class MatchTeam
 		    out.add("| " + Tools.formatString(m_fcTeamName, 23) + " /  " + rightenString(Integer.toString(getDTotalStats(20)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(0)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(22)), 9) + " | " + rightenString(Integer.toString(getTotalLagOuts()), 2) + " |");
 		    out.add("+------------------------'        |      |           |    |");
 
-		    for (int i = 0; i < players.length; i++) {
+		    for (int i = players.length - 1; i >= 0; i--) {
 			MatchPlayer p = (MatchPlayer)players[i];
 			out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " " + rightenString(Integer.toString(p.getTotalStatistic(20)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(0)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(22)), 9) + " | " + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
 		    }
@@ -1721,7 +1721,7 @@ public class MatchTeam
 		    out.add("| " + Tools.formatString(m_fcTeamName, 23) + " /  " + rightenString(Integer.toString(getDTotalStats(20)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(0)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(21)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(22)), 9) + " | " + rightenString(Integer.toString(getTotalLagOuts()), 2) + " |");
 		    out.add("+------------------------'        |      |      |           |    |");
 
-		    for (int i = 0; i < players.length; i++) {
+		    for (int i = players.length - 1; i >= 0; i--) {
 			MatchPlayer p = (MatchPlayer)players[i];
 			out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " " + rightenString(Integer.toString(p.getTotalStatistic(20)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(0)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(21)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(22)), 9) + " | " + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
 		    }
@@ -1731,7 +1731,7 @@ public class MatchTeam
 	    out.add("| " + Tools.formatString(m_fcTeamName, 23) + " /  " + rightenString(Integer.toString(getDTotalStats(20)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(0)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(21)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(1)), 9) + " | " + rightenString(Integer.toString(getDTotalStats(18)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(6)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(22)), 9) + " | " + rightenString(Integer.toString(getTotalLagOuts()), 2) + " |");
 	    out.add("+------------------------'        |      |      |           |      |      |           |    |");
 
-	    for (int i = 0; i < players.length; i++) {
+	    for (int i = players.length - 1; i >= 0; i--) {
 		MatchPlayer p = (MatchPlayer)players[i];
 		out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " " + rightenString(Integer.toString(p.getTotalStatistic(20)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(0)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(21)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(1)), 9) + " | " + rightenString(Integer.toString(p.getTotalStatistic(18)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(6)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(22)), 9) + " | " + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
 	    }
