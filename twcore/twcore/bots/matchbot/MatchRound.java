@@ -205,8 +205,8 @@ public class MatchRound
         catch (Exception e)
         {
             System.out.println("Error: " + e.getMessage());
-        };
-    };
+        }
+    }
 
  	/**
  	 * Can get various weapon info and the player who used it
@@ -216,27 +216,35 @@ public class MatchRound
 	 */
 	public void handleEvent(WeaponFired event)
 	{
-        String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
-        if (m_team1.getPlayer(playerName, true) != null)
-            m_team1.handleEvent(event);
-        if (m_team2.getPlayer(playerName, true) != null)
-            m_team2.handleEvent(event);
+	    try {
+	        String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();    
+	        if (m_team1.getPlayer(playerName, true) != null)
+	            m_team1.handleEvent(event);
+	        if (m_team2.getPlayer(playerName, true) != null)
+	            m_team2.handleEvent(event);
+	    } catch ( Exception e ) {
+	    }
 	}
  
-    /*
+    /**
      * Parses the FrequencyShipChange event to the team in which the player is
+     *
+	 * @param event FrequencyShipChange event
      */
     public void handleEvent(FrequencyShipChange event)
     {
-        String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
-        if (m_team1.getPlayer(playerName, true) != null)
-            m_team1.handleEvent(event);
-        if (m_team2.getPlayer(playerName, true) != null)
-            m_team2.handleEvent(event);
+	    try {
+	        String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+        	if (m_team1.getPlayer(playerName, true) != null)
+            	m_team1.handleEvent(event);
+        	if (m_team2.getPlayer(playerName, true) != null)
+            	m_team2.handleEvent(event);
 
-        if ((m_team1.isDead() || m_team2.isDead()) && (m_fnRoundState == 3))
-            endGame();
-    };
+        	if ((m_team1.isDead() || m_team2.isDead()) && (m_fnRoundState == 3))
+            	endGame();
+	    } catch ( Exception e ) {
+	    }
+    }
 
     public void handleEvent( PlayerEntered event ){
 
