@@ -767,16 +767,16 @@ public class MatchPlayer
 		 * y = shark kills
 		 * z = kills
 		 *
-		 * jav: points * (1 + .05x - .1y) * (1 + 0.1z)
+		 * jav: points * (1 + .01x - .1y + 0.1z)
 		 * x = kills
 		 * y = teamkills
 		 * z = terr kills
 		 *
-		 * spiders: points * .8kills/deaths * (1 + .05x + .005y)
+		 * spiders: points * .8kills/deaths * (1 + .01x + .001y)
 		 * x = terr kills
 		 * y = shark kills
 		 * 
-		 * terr: points * (x/y) * (1 + 0.05z)
+		 * terr: points * 2(x/y) * (1 + 0.2z)
 		 * x = kills
 		 * y = deaths
 		 * z = terr kills
@@ -796,7 +796,7 @@ public class MatchPlayer
 		 * c = weasel kills
 		 * d = wb kills
 		 *  
-		 * shark: points * (1 + .02x - .05y + .1z) * (1 + 0.4(x/a)) * (3 / avgRepelCount)
+		 * shark: points * (1 + .05x - .05y + .1z) * (1 + 4(x/a)) * (3 / avgRepelCount)
 		 * x = kills
 		 * y = teamkills
 		 * z = terr kills
@@ -821,13 +821,13 @@ public class MatchPlayer
 					return rating;
 
 				case 2 : //jav
-					rating = (int) (m_score * (1 + 0.05 * getTotalKills() - 0.1 * m_teamKills) * (1 + 0.1 * m_terrKill));
+					rating = (int) (m_score * (1 + 0.01 * getTotalKills() - 0.1 * m_teamKills + 0.1 * m_terrKill));
 					return rating;
 
 				case 3 : //spider				
 					if (m_deaths == 0) //can't divide by zero
-						return (int) (m_score * MAXIMUM_RATIO * (1 + 0.05 * m_terrKill + 0.005 * m_sharkKill));
-					rating = (int) (m_score * (0.8 * getTotalKills() / m_deaths) * (1 + 0.05 * m_terrKill + 0.005 * m_sharkKill));
+						return (int) (m_score * 0.8 * MAXIMUM_RATIO * (1 + 0.01 * m_terrKill + 0.001 * m_sharkKill));
+					rating = (int) (m_score * (0.8 * getTotalKills() / m_deaths) * (1 + 0.01 * m_terrKill + 0.001 * m_sharkKill));
 					return rating;
 
 				case 4 : //lev
@@ -836,8 +836,8 @@ public class MatchPlayer
 
 				case 5 : //terr
 					if (m_deaths == 0)
-						return (int) (m_score * MAXIMUM_RATIO * (1 + 0.05 * m_terrKill)); //can't divide by zero
-					rating = (int) (m_score * (getTotalKills() / m_deaths) * (1 + 0.5 * m_terrKill));
+						return (int) (m_score * 2 * MAXIMUM_RATIO * (1 + 0.2 * m_terrKill)); //can't divide by zero
+					rating = (int) (m_score * 2 * (getTotalKills() / m_deaths) * (1 + 0.5 * m_terrKill));
 					return rating;
 
 				case 6 : //weasel
@@ -854,14 +854,14 @@ public class MatchPlayer
 
 				case 8 : //shark
 					if (m_deaths == 0 && (getAverageRepelCount() != 0))
-						return (int) (m_score * (1 + 0.02 * getTotalKills() - 0.05 * m_teamKills + 0.1 * m_terrKill) * (1 +  0.4 * MAXIMUM_RATIO) * (3 / getAverageRepelCount()));
+						return (int) (m_score * (1 + 0.05 * getTotalKills() - 0.05 * m_teamKills + 0.1 * m_terrKill) * (1 +  MAXIMUM_RATIO) * (3 / getAverageRepelCount()));
 					else if (m_deaths == 0 && getAverageRepelCount() == 0)
-						return (int) (m_score * (1 + 0.02 * getTotalKills() - 0.05 * m_teamKills + 0.1 * m_terrKill) * (1 +  0.4 * MAXIMUM_RATIO) * MAXIMUM_RATIO);
+						return (int) (m_score * (1 + 0.05 * getTotalKills() - 0.05 * m_teamKills + 0.1 * m_terrKill) * (1 +  MAXIMUM_RATIO) * MAXIMUM_RATIO);
 					else if (getAverageRepelCount() == 0)
-						return (int) (m_score * (1 + 0.02 * getTotalKills() - 0.05 * m_teamKills + 0.1 * m_terrKill) * (1 +  0.4 * getTotalKills() / m_deaths) * MAXIMUM_RATIO);	
+						return (int) (m_score * (1 + 0.05 * getTotalKills() - 0.05 * m_teamKills + 0.1 * m_terrKill) * (1 + 4 * getTotalKills() / m_deaths) * MAXIMUM_RATIO);	
 					else
 					{
-						rating = (int) (m_score * (1 + 0.02 * getTotalKills() - 0.05 * m_teamKills + 0.1 * m_terrKill) * (1 +  0.4 * getTotalKills() / m_deaths) * (3 / getAverageRepelCount()));
+						rating = (int) (m_score * (1 + 0.05 * getTotalKills() - 0.05 * m_teamKills + 0.1 * m_terrKill) * (1 +  4 * getTotalKills() / m_deaths) * (3 / getAverageRepelCount()));
 						return rating;
 					}
 
