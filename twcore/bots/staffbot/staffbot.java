@@ -139,14 +139,12 @@ public class staffbot extends SubspaceBot {
         if( m_opList.isER( name ) ){
             if( message.toLowerCase().startsWith( "!warning " ) ){
                 queryWarnings( name, message.substring( 9 ) );
-                return;
             }
         }
         
         if( m_opList.isER( name ) ){
             if( message.toLowerCase().startsWith( "!warnings " ) ){
                 queryWarnings( name, message.substring( 10 ) );
-                return;
             }
         }
 
@@ -169,8 +167,10 @@ public class staffbot extends SubspaceBot {
                 handleMessageStaff( OperatorList.ER_LEVEL, OperatorList.ER_LEVEL, name, message.substring( 11 ) );*/
             }
             
-            handleCommand( name, message, remote );
         }
+
+        if( m_opList.isZH(name) )
+            handleCommand( name, message, remote );
     }
     
     public void queryWarnings( String name, String message ){
@@ -360,18 +360,6 @@ public class staffbot extends SubspaceBot {
             handleHelp( name, remote );
         } else if( message.toLowerCase().startsWith("!add ") ){
             addPlayer( name, message.substring(5), remote );
-        } else if( message.toLowerCase().equals("!list") ){
-            sendListAsc( name, 10, SORT_DATE_ADDED, remote );
-        } else if( message.toLowerCase().startsWith("!list ") ){
-            sendListAsc( name, getInteger(message.substring(6), 10), SORT_DATE_ADDED, remote );
-        } else if( message.toLowerCase().equals("!listall") ){
-            sendListDesc( name, m_playerList.size(), SORT_NAME, remote );
-        } else if( message.toLowerCase().equals("!listrating") ){
-            sendListDesc( name, 10, SORT_RATING, remote );
-        } else if( message.toLowerCase().startsWith("!listrating ") ){
-            sendListDesc( name, getInteger(message.substring(12), 10), SORT_RATING, remote );
-        } else if( message.toLowerCase().startsWith("!remove ") ){
-            remPlayer( name, message.substring(8).trim(), remote );
         } else if( message.toLowerCase().startsWith("!comment ") ){
             String[] args;
             
@@ -381,42 +369,92 @@ public class staffbot extends SubspaceBot {
             } else {
                 sendPM( name, "Incorrect parameters. Use !comment <player>:<rating>:<comment>", remote);
             }
+        }
+        
+        if( ! m_opList.isModerator(name) )
+            return;
+        
+        if( message.toLowerCase().equals("!list") ){
+            sendListAsc( name, 10, SORT_DATE_ADDED, remote );
+        } else if( message.toLowerCase().startsWith("!list ") ){
+            sendListAsc( name, getInteger(message.substring(6), 10), SORT_DATE_ADDED, remote );
+        } else if( message.toLowerCase().equals("!listall") ){
+            sendListDesc( name, m_playerList.size(), SORT_NAME, remote );
+        } else if( message.toLowerCase().equals("!listrating") ){
+            sendListDesc( name, 10, SORT_RATING, remote );
+        } else if( message.toLowerCase().startsWith("!listrating ") ){
+            sendListDesc( name, getInteger(message.substring(12), 10), SORT_RATING, remote );
         } else if( message.toLowerCase().startsWith("!listplayer ") ){
             showComments( name, message.substring(12), remote );
+        }
+        
+        if( ! m_opList.isSmod(name) )
+            return;
+
+        if( message.toLowerCase().startsWith("!remove ") ){
+            remPlayer( name, message.substring(8).trim(), remote );
         } else if( message.toLowerCase().equals("!getlog") ){
             getLog( name, remote );
         }
     }
     
     public void handleHelp( String name, boolean remote ){
-        final String[] smodHelpText = {
-            "Smod+ commands:",
-            "!add <player>          - Adds a player to the list",
-            "!remove <player>       - Removes a player from the list",
+        final String[] helpTextZH = {
+            "Available ZH commands:",
+            "!add <player>          - Adds a player to the recommendation list",
+            "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player"
+        };
+            
+        final String[] helpTextER = {
+            "Available ER commands:",
+            "!warnings <player>     - Checks red warnings on specified player",
+            "!add <player>          - Adds a player to the recommendation list",
+            "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player"
+        };
+ 
+        final String[] helpTextMod = {
+            "Available Mod commands:",
+            "!warnings <player>     - Checks red warnings on specified player",
+            "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player",
             "!list <num>            - Lists <num>(optional) of players in chronological order",
             "!listrating <num>      - Lists <num>(optional) of players descending by average rating",
             "!listall               - Displays all players in the list in alphabetical order",
+            "!listplayer <player>   - Displays that player's details along with all comments"
+        };
+            
+        final String[] helpTextSmod = {            
+            "Available upper staff commands:",
+            "!add <player>          - Adds a player to the recommendation list",
+            "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player",
+            "!remove <player>       - Removes a player from the list",
+            "!list <num>            - Lists <num>(optional) of players in chronological order",
+            "!listrating <num>      - Lists <num>(optional) of players descending by average rating",
+            "!listall               - Displays all players in the list in alphabetical order",
             "!listplayer <player>   - Displays that player's details along with all comments",
-            "Player Database Commands",
+            "!getlog                - Downloads server log",
+            "Player DB commands:",
             "!squaddies <player>    - Displays a list of all the players on a player's squad",
             "!dblsquad <player>     - Displays a list of all the name/squad combinations this player might own",
             "!altnick <player>      - Displays a list of all the player's alt nicks.",
+            "!warnings <player>     - Checks red warnings on specified player",
             "!warningsfrom <player> - Displays a list of recent warns given to a player."
         };
         
-        final String[] helpText = {
-            "Moderator and ER commands:",
-            "!warning <player>      - Displays a list of recent warns given to a player."
-        };
-
-        if( m_opList.isER( name ) ){
-            m_botAction.remotePrivateMessageSpam( name, helpText );
+        if( m_opList.isZHExact( name ) ){
+            m_botAction.remotePrivateMessageSpam( name, helpTextZH );
         }
-
-        if( m_opList.isSmod( name ) ){
-            m_botAction.remotePrivateMessageSpam( name, smodHelpText );
+        else if( m_opList.isERExact( name ) ){
+            m_botAction.remotePrivateMessageSpam( name, helpTextER );
         }
+        else if( m_opList.isModeratorExact( name ) ){
+            m_botAction.remotePrivateMessageSpam( name, helpTextMod );
+        }
+        else if( m_opList.isSmod( name ) ){
+            m_botAction.remotePrivateMessageSpam( name, helpTextSmod );
+        }
+        
+        
     }
     
     /* Potential Staff List Code */
