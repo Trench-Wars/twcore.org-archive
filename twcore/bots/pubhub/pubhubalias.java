@@ -390,7 +390,6 @@ public class pubhubalias extends PubBotModule
   {
     String playerName;
 
-    m_botAction.sendChatMessage("Clearing " + removeList.size() + " records.");
     for(int index = 0; index < removeList.size(); index++)
     {
       playerName = (String) removeList.get(index);
