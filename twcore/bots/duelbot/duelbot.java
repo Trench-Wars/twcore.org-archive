@@ -1281,7 +1281,11 @@ public class duelbot extends SubspaceBot {
 			//update scorereports
 			if( updates.containsKey( d ) ) {
 				ScoreReport report = (ScoreReport)updates.get( d );
-				report.cancel();
+				// Handle exception if it has been unexpectedly cancelled
+				try {
+					report.cancel();
+				} catch (Exception e) {				    
+				}
 			}	
 			updates.put( d, scoreReport );
 			m_botAction.scheduleTask( scoreReport, 2000 );
