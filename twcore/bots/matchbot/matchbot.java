@@ -943,7 +943,6 @@ public class matchbot extends SubspaceBot
         catch (Exception e)
         {
             m_botAction.sendPrivateMessage(name, "Provide a correct game type number");
-            Tools.printStackTrace(e);
         };
     };
 
