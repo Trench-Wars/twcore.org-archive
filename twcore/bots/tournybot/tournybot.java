@@ -4,7 +4,7 @@ import twcore.core.*;
 import java.util.*;
 import java.sql.*;
 import java.text.*;
-import twcore.misc.lag.lagHandler;
+import twcore.misc.lag.*;
 
 public class tournybot extends SubspaceBot {
 	
@@ -80,7 +80,7 @@ public class tournybot extends SubspaceBot {
 
 		requestEvents();
 		m_botSettings = m_botAction.getBotSettings();
-		m_lagHandler = new lagHandler(botAction, m_botSettings);
+		m_lagHandler = new lagHandler(botAction, m_botSettings, this, "handleLagReport");
 	}
 	
 	public void requestEvents() {
@@ -224,9 +224,9 @@ public class tournybot extends SubspaceBot {
 			} else if (message.startsWith("!lag")) {
 				if (message.length() > 4) {
 					String piece = message.substring(5);
-					m_lagHandler.requestLag(piece, name, false, false);
+					m_lagHandler.requestLag(piece, name);
 				} else {
-					m_lagHandler.requestLag(name, name, false, false);
+					m_lagHandler.requestLag(name, name);
 				}
 			} else if (message.startsWith("!lagoff")) {
 				if (lagWorks) {
@@ -342,7 +342,7 @@ public class tournybot extends SubspaceBot {
 		if (trState == 4) {
 			String killerName = m_botAction.getPlayerName(event.getKillerID());
 	 	  	String killeeName = m_botAction.getPlayerName(event.getKilleeID());
-			if (lagWorks) { m_lagHandler.requestLag(killerName, "[BOT]", false, true); }
+			if (lagWorks) { m_lagHandler.requestLag(killerName); }
 
 			if (playerStillIn(killerName) && playerStillIn(killeeName)) {
 				pStats info = (pStats)players.get( killerName );
@@ -650,6 +650,26 @@ public class tournybot extends SubspaceBot {
 				} catch (Exception e) {
 					dbAvailable = false;
 				}
+			}
+		}
+	}
+
+	public void handleLagReport(LagReport report) {
+		if (!report.isBotRequest()) {
+			m_botAction.privateMessageSpam(report.getRequester(), report.getLagStats());
+		}
+
+		if (report.isOverLimits()) 
+		{
+			if (!report.isBotRequest()) 
+            {
+				m_botAction.sendPrivateMessage(report.getRequester(), report.getLagReport());
+			}
+			if (m_botAction.getPlayer(report.getName()).getShipType() != 0)
+			{
+				m_botAction.sendPrivateMessage(report.getName(), report.getLagReport());
+				m_botAction.spec(report.getName());
+				m_botAction.spec(report.getName());
 			}
 		}
 	}
@@ -1513,15 +1533,15 @@ public class tournybot extends SubspaceBot {
 
 				if (newRound != 7) {
 					if (maxPerFreq == 2) {
-						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeat " + fCheck.getNames() + "[-" + fDuel.getLR() + "]   Score: [" + fCheck.getGameDeaths() + "-" + oFreq.getGameDeaths() + "] and advance to " + getRoundName(newRound) + "!"); 
+						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeat " + fCheck.getNames() + "[-" + fDuel.getLR() + "]  Score: [" + fCheck.getGameDeaths() + "-" + oFreq.getGameDeaths() + "] and advance to " + getRoundName(newRound) + "!"); 
 					} else {
-						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeats " + fCheck.getNames() + "[-" + fDuel.getLR() + "]   Score: [" + fCheck.getGameDeaths() + "-" + oFreq.getGameDeaths() + "] and advances to " + getRoundName(newRound) + "!"); 
+						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeats " + fCheck.getNames() + "[-" + fDuel.getLR() + "]  Score: [" + fCheck.getGameDeaths() + "-" + oFreq.getGameDeaths() + "] and advances to " + getRoundName(newRound) + "!"); 
 					}
 				} else {
 					if (maxPerFreq == 2) {
-						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeat " + fCheck.getNames() + "[-" + fDuel.getLR() + "]   Score: [" + fCheck.getGameDeaths() + "-" + oFreq.getGameDeaths() + "]!"); 
+						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeat " + fCheck.getNames() + "[-" + fDuel.getLR() + "]  Score: [" + fCheck.getGameDeaths() + "-" + oFreq.getGameDeaths() + "]!"); 
 					} else {
-						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeats " + fCheck.getNames() + "[-" + fDuel.getLR() + "]   Score: [" + fCheck.getGameDeaths() + "-" + oFreq.getGameDeaths() + "]!"); 
+						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeats " + fCheck.getNames() + "[-" + fDuel.getLR() + "]  Score: [" + fCheck.getGameDeaths() + "-" + oFreq.getGameDeaths() + "]!"); 
 					}
 				}
 				advanceFreq( opponent );
@@ -2186,102 +2206,6 @@ public class tournybot extends SubspaceBot {
 		}
 	}
 
-	class aboutToDieOut extends TimerTask {
-		String player;
-
-		public aboutToDieOut( String name ) {
-			player = name;
-		}
-
-		public void run() 
-		{
-			if (players.containsKey(player)) {
-				pStats info2 = (pStats)players.get(player);
-
-				if (info2.getGameDeaths() >= deaths) {
-					removePlayer(player, false);
-				}
-			}
-		}
-	}
-
-	class duelDelay extends TimerTask {
-		String dName;
-		String player;
-		String killer;
-		HashMap delayers;
-		boolean silent;
-
-		public duelDelay( String tName, String name, String name2, HashMap d, boolean s ) {
-			dName = tName;
-			player = name;
-			killer = name2;
-			delayers = d;
-			silent = s;
-		}
-	
-		public void run() 
-		{
-			delayers.remove(dName);
-
-			if (trState == 4) {
-				pStats info = (pStats)players.get( killer );
-				fStats fInfo = (fStats)freqs.get( info.getFreq() );
-
-				pStats info2 = (pStats)players.get( player );
-				fStats fInfo2 = (fStats)freqs.get( info2.getFreq() );
-
-				if (freqStillIn(info2.getFreq()) && freqStillIn(info.getFreq())) {
-					m_botAction.shipReset(player);
-
-					if (!silent) {
-/*
-						m_botAction.sendOpposingTeamMessage( Integer.parseInt(info.getFreq()), "Score: [" + fInfo.getNames() + " " + fInfo.getGameKills() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
-						m_botAction.sendPublicMessage( "[" + info.getFreq() + "] Score: [" + fInfo.getNames() + " " + fInfo.getGameKills() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
-						m_botAction.sendOpposingTeamMessage( Integer.parseInt(info2.getFreq()), "Score: [" + fInfo2.getNames() + " " + fInfo2.getGameKills() + "-" + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]");
-*/
-						m_botAction.sendPrivateMessage( killer, "Score: [" + fInfo.getNames() + " " + fInfo2.getGameDeaths() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
-						m_botAction.sendPrivateMessage( player, "Score: [" + fInfo2.getNames() + " " + fInfo.getGameDeaths() + "-" + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]");
-
-						if (maxPerFreq == 2) {
-							m_botAction.sendPrivateMessage( getPartner(killer), "Score: [" + fInfo.getNames() + " " + fInfo2.getGameDeaths() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
-							m_botAction.sendPrivateMessage( getPartner(player), "Score: [" + fInfo2.getNames() + " " + fInfo.getGameDeaths() + "-" + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]");
-						}
-
-					}
-					warpPlayer(player);
-					if (maxPerFreq != 2) {
-						m_botAction.shipReset(killer);
-						warpPlayer(killer);
-					}
-				}
-			}
-		}
-	}
-	
-	class Lagger extends TimerTask {
-		String player;
-		HashMap laggers;
-	
-		public Lagger( String name, HashMap l ) {
-			player = name;
-			laggers = l;
-		}
-	
-		public void run()
-		{
-			pStats lagi = (pStats)players.get( player );
-
-			String dqM = "Failed to return from his lagout in time and was disqualified.";
-
-			m_botAction.sendArenaMessage( player + " " + dqM);
-			laggers.remove(player);
-			lagi.setNotes(dqM);
-			lagi.laggedOut();
-			removePlayer(player, true);
-		}
-	}
-
 	void setupStart() {
 		m_start = new TimerTask()
 		{
@@ -2382,7 +2306,6 @@ public class tournybot extends SubspaceBot {
 		setupStop();
 		m_botAction.scheduleTaskAtFixedRate(m_stop, getStopTime(), 7 * 24 * 60 * 60 * 1000);
 	}
-
 
 	/*
 	 * Creates a record of the tournament to database
@@ -2541,4 +2464,100 @@ public class tournybot extends SubspaceBot {
 			m_botAction.sendArenaMessage("Database error, no statistics available."); 
 		};
 	}
+
+	class aboutToDieOut extends TimerTask {
+		String player;
+
+		public aboutToDieOut( String name ) {
+			player = name;
+		}
+
+		public void run() 
+		{
+			if (players.containsKey(player)) {
+				pStats info2 = (pStats)players.get(player);
+
+				if (info2.getGameDeaths() >= deaths) {
+					removePlayer(player, false);
+				}
+			}
+		}
+	}
+
+	class duelDelay extends TimerTask {
+		String dName;
+		String player;
+		String killer;
+		HashMap delayers;
+		boolean silent;
+
+		public duelDelay( String tName, String name, String name2, HashMap d, boolean s ) {
+			dName = tName;
+			player = name;
+			killer = name2;
+			delayers = d;
+			silent = s;
+		}
+	
+		public void run() 
+		{
+			delayers.remove(dName);
+
+			if (trState == 4) {
+				pStats info = (pStats)players.get( killer );
+				fStats fInfo = (fStats)freqs.get( info.getFreq() );
+
+				pStats info2 = (pStats)players.get( player );
+				fStats fInfo2 = (fStats)freqs.get( info2.getFreq() );
+
+				if (freqStillIn(info2.getFreq()) && freqStillIn(info.getFreq())) {
+					m_botAction.shipReset(player);
+
+					if (!silent) {
+
+						m_botAction.sendOpposingTeamMessage( Integer.parseInt(info.getFreq()), "Score: [" + fInfo.getNames() + " " + fInfo.getGameKills() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
+						m_botAction.sendOpposingTeamMessage( Integer.parseInt(info2.getFreq()), "Score: [" + fInfo2.getNames() + " " + fInfo2.getGameKills() + "-" + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]");
+
+//						m_botAction.sendPrivateMessage( killer, "Score: [" + fInfo.getNames() + " " + fInfo2.getGameDeaths() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
+//						m_botAction.sendPrivateMessage( player, "Score: [" + fInfo2.getNames() + " " + fInfo.getGameDeaths() + "-" + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]");
+
+//						if (maxPerFreq == 2) {
+//							m_botAction.sendPrivateMessage( getPartner(killer), "Score: [" + fInfo.getNames() + " " + fInfo2.getGameDeaths() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
+//							m_botAction.sendPrivateMessage( getPartner(player), "Score: [" + fInfo2.getNames() + " " + fInfo.getGameDeaths() + "-" + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]");
+//						}
+					}
+					warpPlayer(player);
+					if (maxPerFreq != 2) {
+						m_botAction.shipReset(killer);
+						warpPlayer(killer);
+					}
+				}
+			}
+		}
+	}
+	
+	class Lagger extends TimerTask {
+		String player;
+		HashMap laggers;
+	
+		public Lagger( String name, HashMap l ) {
+			player = name;
+			laggers = l;
+		}
+	
+		public void run()
+		{
+			pStats lagi = (pStats)players.get( player );
+
+			String dqM = "Failed to return from his lagout in time and was disqualified.";
+
+			m_botAction.sendArenaMessage( player + " " + dqM);
+			laggers.remove(player);
+			lagi.setNotes(dqM);
+			lagi.laggedOut();
+			removePlayer(player, true);
+		}
+	}
 }
+
+
