@@ -1045,7 +1045,7 @@ public class MatchTeam
 			if (!s.next()) {
 			    return "Player was rostered after the roster lock and is ineligible for TWL games";
 			}
-			ResultSet s2 = m_botAction.SQLQuery("website", "SELECT * FROM tblTeamUser WHERE fnUserID = '" + dbP.getUserID() + "' AND fnTWL = '1'");
+			ResultSet s2 = m_botAction.SQLQuery(dbConn, "SELECT * FROM tblTeamUser WHERE fnUserID = '" + dbP.getUserID() + "' AND fnTWL = '1'");
 			if (!s2.next()) {
 			    return "Player is not rostered as a TWL player";
 			}
