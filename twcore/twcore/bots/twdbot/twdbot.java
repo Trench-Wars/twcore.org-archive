@@ -335,7 +335,7 @@ public class twdbot extends SubspaceBot {
 
     public void checkMessages() {
         try {
-            ResultSet s = m_botAction.SQLQuery("local", "select * from tblMessage where fnProcessed = 0 and fcSubject='TWD'");
+            ResultSet s = m_botAction.SQLQuery("local", "select * from tblMessage where fnProcessed = 0 and fcSubject='TWD' and fcMessage != ' '");
             while (s.next()) {
                 if (s.getString("fcMessageType").equalsIgnoreCase("squad")) {
                     m_botAction.sendSquadMessage(s.getString("fcTarget"), s.getString("fcMessage"), s.getInt("fnSound"));
