@@ -21,6 +21,8 @@ import twcore.misc.database.DBPlayerData;
 import java.util.*;
 import java.sql.*;
 import java.io.*;
+import java.util.regex.*;
+
 
 public class matchbot extends SubspaceBot
 {
@@ -33,7 +35,7 @@ public class matchbot extends SubspaceBot
     LinkedList m_gameRequests;
     TimerTask m_gameKiller;
     String startMessage;
-    HashMap	m_registerList;
+    HashMap m_registerList;
 
     //
     boolean m_isLocked = false;
@@ -49,6 +51,9 @@ public class matchbot extends SubspaceBot
 
     // --- temporary
     String m_team1 = null, m_team2 = null;
+
+    private static Pattern parseInfoRE = Pattern.compile("^IP:(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})  TimeZoneBias:\\d+  Freq:\\d+  TypedName:(.*)  Demo:\\d  MachineId:(\\d+)$");
+    private static Pattern cruncherRE = Pattern.compile("\\s+");
 
     /** Creates a new instance of Matchtwl */
     public matchbot(BotAction botAction)
@@ -132,14 +137,14 @@ public class matchbot extends SubspaceBot
         req.request(EventRequester.WEAPON_FIRED);
     };
 
-	/**
-	 * @param event The weapon Fired event
-	 */
-	public void handleEvent(WeaponFired event)
-	{
-		if (m_game != null)
-			m_game.handleEvent(event);
-	}
+    /**
+     * @param event The weapon Fired event
+     */
+    public void handleEvent(WeaponFired event)
+    {
+        if (m_game != null)
+            m_game.handleEvent(event);
+    }
 
     public void handleEvent(ArenaJoined event)
     {
@@ -278,11 +283,11 @@ public class matchbot extends SubspaceBot
                 m_game.cancel();
             m_botAction.die();
         };
-        
+
         if ((event.getMessageType() == Message.ARENA_MESSAGE)
-            && (event.getMessage()).startsWith("IP:")) 
+            && (event.getMessage()).startsWith("IP:"))
         {
-        	parseInfo( event.getMessage() );
+            parseInfo( event.getMessage() );
         };
 
         if ((event.getMessageType() == Message.PRIVATE_MESSAGE)
@@ -452,37 +457,40 @@ public class matchbot extends SubspaceBot
         if (command.equals("!help"))
             m_botAction.privateMessageSpam(name, getHelpMessages(name, isStaff, isRestrictedStaff));
 
-		if (command.equals("!register"))
-			command_registername(name, parameters);
+        if (command.equals("!register"))
+            command_registername(name, parameters);
 
         if (m_game != null)
             m_game.parseCommand(name, command, parameters, isStaff);
     };
 
     public void parseInfo(String message) {
-    	String[] pieces = message.split("  ");
-	    String name = pieces[3].substring(10);
-	    String ip = pieces[0].substring(3);
-	    String mid = pieces[5].substring(10);
-    	
-    	//The purpose of this is to not confuse the info doen by PlayerLagInfo
-    	if( !m_registerList.containsKey( name ) ) return;
-   		
-   		m_registerList.remove( name );
-    	
-    	DBPlayerData dbP = new DBPlayerData( m_botAction, "local", name );
 
-		//Note you can't get here if already registered, so can't match yourself.
-		if( dbP.aliasMatch( ip, mid ) ) {
-			m_botAction.sendSmartPrivateMessage( name, "Another account has already been registered on your connection, please contact a TWD/TWL Op for further information." );
-			return;
-		}
+        Matcher m = parseInfoRE.matcher(message);
+        if ( !m.matches() )
+            return;
+        String ip = m.group(1);
+        String name = cruncherRE.matcher( m.group(2) ).replaceAll(" ");
+        String mid = m.group(3);
 
-    	if( !dbP.register( ip, mid ) ) {
-    		m_botAction.sendSmartPrivateMessage( name, "Unable to register name, please contact a TWL/TWD op for further help." );
-    		return;
-    	}
-    	m_botAction.sendSmartPrivateMessage( name, "Registration successful." );
+        //The purpose of this is to not confuse the info doen by PlayerLagInfo
+        if( !m_registerList.containsKey( name ) ) return;
+
+        m_registerList.remove( name );
+
+        DBPlayerData dbP = new DBPlayerData( m_botAction, "local", name );
+
+        //Note you can't get here if already registered, so can't match yourself.
+        if( dbP.aliasMatch( ip, mid ) ) {
+            m_botAction.sendSmartPrivateMessage( name, "Another account has already been registered on your connection, please contact a TWD/TWL Op for further information." );
+            return;
+        }
+
+        if( !dbP.register( ip, mid ) ) {
+            m_botAction.sendSmartPrivateMessage( name, "Unable to register name, please contact a TWL/TWD op for further help." );
+            return;
+        }
+        m_botAction.sendSmartPrivateMessage( name, "Registration successful." );
 
     };
 
@@ -725,21 +733,21 @@ public class matchbot extends SubspaceBot
             accA[i] = accA[i].substring(1);
         return accA;
     };
-    
+
     public void command_registername(String name, String[] parameters)
     {
-    	
-    	if( m_rules.getInt("aliascheck") == 0 ) return;
-    	
-    	DBPlayerData dbP = new DBPlayerData( m_botAction, "local", name );
-		
-		if( dbP.isRegistered() ) {
-			m_botAction.sendSmartPrivateMessage( name, "This name has already been registered." );
-			return;
-		}
-		
-		m_registerList.put( name, name );
-		m_botAction.sendUnfilteredPrivateMessage( name, "*info" );
+
+        if( m_rules.getInt("aliascheck") == 0 ) return;
+
+        DBPlayerData dbP = new DBPlayerData( m_botAction, "local", name );
+
+        if( dbP.isRegistered() ) {
+            m_botAction.sendSmartPrivateMessage( name, "This name has already been registered." );
+            return;
+        }
+
+        m_registerList.put( name, name );
+        m_botAction.sendUnfilteredPrivateMessage( name, "*info" );
     }
 
     public void command_listaccess(String name, String[] parameters)
