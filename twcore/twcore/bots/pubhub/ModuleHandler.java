@@ -52,6 +52,7 @@ public class ModuleHandler
     }
     catch(Exception e)
     {
+      Tools.printStackTrace(e);
       throw new RuntimeException("ERROR: Could not load " + moduleName);
     }
   }
