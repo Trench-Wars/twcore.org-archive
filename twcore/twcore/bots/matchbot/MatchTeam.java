@@ -543,6 +543,11 @@ public class MatchTeam
 								int ship = pB.getShipType();
 								pB.setShip(pA.getShipType());
 								pA.setShip(ship);
+								
+								//this indicates that the player has switched ships during the game
+								//currently it voids the player from getting mvp in time race games
+								pA.m_switchedShip = true;
+								pB.m_switchedShip = true;
                                                                 
 								m_logger.sendArenaMessage(
 									pA.m_fcPlayerName + " (" + pB.getShipType() + ") and " + pB.m_fcPlayerName + " (" + pA.getShipType() + ") switched ships.");
@@ -612,6 +617,11 @@ public class MatchTeam
 										if ((m_rules.getInt("maxship" + newShip) == 0) || (m_rules.getInt("maxship" + newShip) > getPlayersRosteredInShip(newShip)))
 										{
 											pA.setShip(newShip);
+											
+											//this indicates that the player has switched ships during the game
+											//currently it voids the player from getting mvp in time race games
+											pA.m_switchedShip = true;
+											
 											m_logger.sendArenaMessage(pA.m_fcPlayerName + " changed from ship " + oldShip + " to ship " + newShip);
 											if ((m_rules.getInt("shipchanges") != -1) && (m_round.m_fnRoundState == 3))
 											{
