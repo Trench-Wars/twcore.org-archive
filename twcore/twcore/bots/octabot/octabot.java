@@ -46,9 +46,8 @@ public class octabot extends SubspaceBot {
 		else if( message.startsWith( "Arena UNLOCKED" ) )
 			handleLockedState( false );
 
-                if( !hasAccess( event.getPlayerID() ) ) return;
+                if(!hasAccess(event.getPlayerID()) && !m_botAction.getOperatorList().isER(name)) return;
 		message = event.getMessage().toLowerCase();
-
 		if( message.startsWith( "!start" ) )
 			startGame();
 		else if( message.startsWith( "!cancel" ) )
@@ -113,7 +112,7 @@ public class octabot extends SubspaceBot {
 	public void handleEvent( ArenaJoined event ) {
 		//m_botAction.toggleLocked();
 		//m_botAction.specAll();
-		//m_botAction.sendArenaMessage( "OctaBot is here!!!", 11 );
+		m_botAction.sendArenaMessage( "OctaBot is here!!!", 11 );
 		running = true;
 	}
 
