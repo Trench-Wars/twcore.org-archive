@@ -389,7 +389,7 @@ public class mrarrogant extends SubspaceBot
 
     try
     {
-      if(opList.isSmod(sender) || accessList.contains(sender.toLowerCase()))
+      if(opList.isHighmod(sender) || accessList.contains(sender.toLowerCase()))
       {
         if(command.startsWith("!go "))
           doGoCmd(sender, message.substring(4));
