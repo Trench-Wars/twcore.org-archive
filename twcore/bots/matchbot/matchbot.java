@@ -736,6 +736,7 @@ public class matchbot extends SubspaceBot
 
     public void command_registername(String name, String[] parameters)
     {
+        if ( m_rules == null ) return;
 
         if( m_rules.getInt("aliascheck") == 0 ) return;
 
