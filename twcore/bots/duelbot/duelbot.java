@@ -471,7 +471,9 @@ public class duelbot extends SubspaceBot {
     		}
     	
     	} catch (Exception e) {
-    		Tools.printStackTrace( "Error (do_enableName)", e );
+    	    // This exception is caught frequently.  Removed stack trace print
+			// Don't need to see it anymore until we take the time to deal w/ it.
+			m_botAction.sendSmartPrivateMessage( name, "Problem retreiving your info from database.  Please try again later, or talk to a staff member." );    	    
     	}
     }	
     
