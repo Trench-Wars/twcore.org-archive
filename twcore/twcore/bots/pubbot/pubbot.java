@@ -3,6 +3,7 @@ package twcore.bots.pubbot;
 import java.util.*;
 import java.io.*;
 import twcore.core.*;
+import twcore.bots.pubhub.*;
 
 public class pubbot extends SubspaceBot
 {
