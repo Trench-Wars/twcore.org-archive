@@ -42,12 +42,13 @@ public class MatchGame
 	static int KILL_ME_PLEASE = 10;
 
 	boolean m_gameStored = false;
+	boolean announced = false;
 
 	LinkedList m_rounds;
 	MatchRound m_curRound;
 
 	/** Creates a new instance of MatchGame */
-	public MatchGame(String ruleFile, String fcTeam1Name, String fcTeam2Name, int players, BotAction botAction)
+	public MatchGame(String ruleFile, String fcTeam1Name, String fcTeam2Name, int players, int m_id, BotAction botAction)
 	{
 		m_botAction = botAction;
 		m_fcRuleFile = ruleFile;
@@ -57,6 +58,8 @@ public class MatchGame
 		playersNum = players;
 		m_rules = new BotSettings(m_fcRuleFile);
 		m_logger = new MatchLogger(m_botAction);
+
+		m_fnMatchTypeID = m_rules.getInt("matchtype");
 
 		if ((m_rules.getInt("rosterjoined") == 1) || (m_rules.getInt("storegame") == 1))
 		{
@@ -73,8 +76,11 @@ public class MatchGame
 
 		if ((m_rules.getInt("storegame") == 1) && (m_rules.getInt("matchtype") != 0))
 		{
-			m_fnMatchTypeID = m_rules.getInt("matchtype");
-			createGameRecord();
+			if (m_fnMatchTypeID > 0 && m_fnMatchTypeID < 4) {
+				m_fnMatchID = m_id;
+			} else {
+				createGameRecord();
+			}
 			if (m_rules.getInt("loggame") == 1)
 			{
 				m_logger.activate(m_fnMatchID);
@@ -179,7 +185,7 @@ public class MatchGame
 		};
 	};
 
-	// store game result
+	// store game results
 	public void storeGameResult()
 	{
 		try
@@ -208,7 +214,9 @@ public class MatchGame
 	public void handleEvent(WeaponFired event)
 	{
 		//m_logger.logEvent(event); too much extra overhead for database
-			if (m_curRound != null) { m_curRound.handleEvent(event); } 
+		if (m_curRound != null) {
+			m_curRound.handleEvent(event);
+		}
 	}
 	
 	public void handleEvent(ArenaJoined event)
@@ -301,6 +309,9 @@ public class MatchGame
 
 		help.add("!status                                  - Shows the current state of the entire game");
 
+		if (isStaff && m_fnMatchTypeID > 0 && m_fnMatchTypeID < 4)
+			help.add("!zone                                    - Announce the game in *zone");
+
 		if (m_curRound != null)
 		{
 			help.addAll(m_curRound.getHelpMessages(name, isStaff));
@@ -313,6 +324,12 @@ public class MatchGame
 	{
 		if (command.equals("!status"))
 			command_status(name, parameters);
+
+		if (isStaff) {
+			if (command.equals("!zone"))
+				command_zone(name, parameters);
+		}
+
 		if (m_curRound != null)
 		{
 			m_curRound.parseCommand(name, command, parameters, isStaff);
@@ -362,7 +379,7 @@ public class MatchGame
 		else
 		{
 			MatchRound z;
-			if (m_rounds.listIterator() == null) { return; }
+			if (m_rounds == null) { return; }
 			ListIterator i = m_rounds.listIterator();
 
 			while (i.hasNext())
@@ -385,6 +402,20 @@ public class MatchGame
 		String extra = getRoundStateSummary();
 		if (extra != null)
 			m_logger.sendPrivateMessage(name, "- " + extra);
+	}
+
+	public void command_zone(String name, String[] parameters) {
+
+		if (!announced) {
+			if (m_rules.getInt("matchtype") > 0 && m_rules.getInt("matchtype") < 4) {
+				announced = true;
+				m_botAction.sendZoneMessage("TWL Season 8: [" + m_rules.getString("name") + "] " + m_fcTeam1Name + " vs. " + m_fcTeam2Name + " Type ?go " + m_botAction.getArenaName());
+			} else {
+				m_botAction.sendPrivateMessage(name, "Only TWL games may be !zone'd");
+			}
+		} else {
+			m_botAction.sendPrivateMessage(name, "A game may be !zone'd only once");
+		}
 	}
 
 	public String getRoundStateSummary()
