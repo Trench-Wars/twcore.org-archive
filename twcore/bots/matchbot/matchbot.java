@@ -319,16 +319,24 @@ public class matchbot extends SubspaceBot
                 isRestrictedStaff = false;
             };
 
+            if( stringChopper(message, ' ') == null )
+            	return;
+            
             // First: convert the command to a command with parameters
-	    if (stringChopper(message, ' ').length != 0) {
-                String command = stringChopper(message, ' ')[0];
+            if (stringChopper(message, ' ').length > 0) {
+            	String command;
+            	try {
+                    command = stringChopper(message, ' ')[0];
+            	} catch (Exception e) {
+                    return;            		
+            	}
                 String[] parameters = stringChopper(message.substring(command.length()).trim(), ':');
                 for (int i = 0; i < parameters.length; i++)
                     parameters[i] = parameters[i].replace(':', ' ').trim();
                 command = command.trim();
 
                 parseCommand(name, command, parameters, isStaff, isRestrictedStaff);
-	    }
+            }
         }
         else if (event.getMessageType() == Message.ARENA_MESSAGE)
         {
@@ -947,20 +955,20 @@ public class matchbot extends SubspaceBot
                 {
                     cutFrom = 1;
                     cutTo += 1;
-                };
+                }
                 if (cutTo > acc.length())
                     cutTo = acc.length();
                 acc = acc.substring(0, cutFrom - 1) + acc.substring(cutTo);
                 m_rules.put("specialaccess", acc);
                 m_rules.save();
                 m_botAction.sendPrivateMessage(name, newP + " has been removed from the access list");
-            };
+            }
         }
         catch (Exception e)
         {
             System.out.println("Error in command_removeaccess: " + e.getMessage());
-        };
-    };
+        }
+    }
 
     //
     public void goToLockedArena()
@@ -1001,7 +1009,7 @@ public class matchbot extends SubspaceBot
                 {
                     if (m_game != null)
                     {
-                        if (m_game.getGameState() == m_game.KILL_ME_PLEASE)
+                        if (m_game.getGameState() == MatchGame.KILL_ME_PLEASE)
                         {
                             m_game.cancel();
                             m_game = null;
