@@ -1288,8 +1288,6 @@ public class MatchTeam
 		ListIterator i = m_players.listIterator();
 		MatchPlayer best = null, rightnow;
 
-		//but fix
-
 		while (i.hasNext())
 		{
 			rightnow = (MatchPlayer) i.next();
