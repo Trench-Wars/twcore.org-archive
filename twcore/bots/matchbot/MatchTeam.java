@@ -1076,8 +1076,8 @@ public class MatchTeam
 
             // a name has to be registered
             if (!dbP.isRegistered()) {
-				m_botAction.sendPrivateMessage(dbP.getUserName(), "Your name is not registered. You must send !register to AliasTron in ?go twd before you can play.");
-                return "Player must register this name to play.  (Usage: !register to AliasTron in ?go twd)";
+				m_botAction.sendPrivateMessage(dbP.getUserName(), "Your name is not registered. You must send !register to TWDBot in ?go twd before you can play.");
+                return "Player must register this name to play.  (Usage: !register to TWDBot in ?go twd)";
 			}
 
             // the name must be enabled
@@ -1342,14 +1342,17 @@ public class MatchTeam
         while (i.hasNext())
         {
             answ = (MatchPlayer) i.next();
-            if ((!matchExact) && (answ.getPlayerName().toLowerCase().startsWith(name.toLowerCase())))
-                if (best == null)
-                    best = answ;
-                else if (best.getPlayerName().toLowerCase().compareTo(answ.getPlayerName().toLowerCase()) > 0)
-                    best = answ;
 
-            if (answ.getPlayerName().equalsIgnoreCase(name))
-                return answ;
+			if (answ.getPlayerName() != null) {
+	            if ((!matchExact) && (answ.getPlayerName().toLowerCase().startsWith(name.toLowerCase())))
+		            if (best == null)
+			            best = answ;
+				    else if (best.getPlayerName().toLowerCase().compareTo(answ.getPlayerName().toLowerCase()) > 0)
+					    best = answ;
+
+				if (answ.getPlayerName().equalsIgnoreCase(name))
+		            return answ;
+			}
         };
         return best;
     };
