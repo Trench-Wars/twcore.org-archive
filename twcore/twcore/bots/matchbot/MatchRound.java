@@ -451,7 +451,7 @@ public class MatchRound
 		};
 	
 		if ((command.equals("!settime")) && (m_fnRoundState == 0) && isStaff)
-			command_setTime(name, parameters[0]);
+			command_setTime(name, parameters);
 
 		if ((command.equals("!startpick")) && (m_fnRoundState == 0) && isStaff)
 			command_startpick(name, parameters);
@@ -550,22 +550,28 @@ public class MatchRound
 	 * @param name
 	 * @param string
 	 */
-	public void command_setTime(String name, String string)
+	public void command_setTime(String name, String[] parameters)
 	{
-		Integer time = new Integer(string);
-		
-		//the time is also set in !startpick command method
-		if (time == null || time.intValue() < 5 || time.intValue() > 30)
+		if (parameters.length > 0)
 		{
-			setRaceTarget(m_rules.getInt("defaulttarget") * 60); //mins to secs
-			m_logger.sendArenaMessage("Race set to: " + m_rules.getInt("defaulttarget") + " mins" );
-			m_logger.sendPrivateMessage(name, "Needs to be between 5 mins and 30 mins - setting default race");
+			String string = parameters[0];
+			Integer time = new Integer(string);
+
+			//the time is also set in !startpick command method
+			if (time == null || time.intValue() < 5 || time.intValue() > 30)
+			{
+				setRaceTarget(m_rules.getInt("defaulttarget") * 60); //mins to secs
+				m_logger.sendArenaMessage("Race set to: " + m_rules.getInt("defaulttarget") + " mins");
+				m_logger.sendPrivateMessage(name, "Needs to be between 5 mins and 30 mins - setting default race");
+			}
+			else
+			{
+				setRaceTarget(time.intValue() * 60); //mins to secs
+				m_logger.sendArenaMessage("Race set to: " + time.intValue() + " mins");
+			}
 		}
 		else
-		{
-			setRaceTarget(time.intValue() * 60);//mins to secs
-			m_logger.sendArenaMessage("Race set to: " + time.intValue() + " mins" );
-		}
+			m_logger.sendPrivateMessage(name, "Please specify a time");
 	}
 ;
 
