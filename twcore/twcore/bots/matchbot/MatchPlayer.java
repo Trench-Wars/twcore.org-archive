@@ -856,7 +856,7 @@ public class MatchPlayer
 							+ m_score
 							+ " R: "
 							+ getRating());
-					return (String[]) stats.toArray(new String[stats.size()]);
+					break;
 
 				case 2 : //jav
 					stats.add(FORMULA, "Jav: .5Points * (.05wb + .05jav + .06spid + 0.12terr + .07x + .05lanc + .09shark - .05deaths - (.07wbTK + .07javTK + .06spiderTK + .15terrTK + .06WeaselTK + .07LancTK + .09SharkTK))");
@@ -904,7 +904,7 @@ public class MatchPlayer
 							+ " ShtK: "
 							+ m_sharkTeamKill);
 
-					return (String[]) stats.toArray(new String[stats.size()]);
+						break;
 
 				case 3 : //spider				
 					stats.add(FORMULA, "Spider: .4points * (.06wb + .06jav + .04spid + .08terr + .05x + .05lanc + .09shark - .05deaths)");
@@ -934,12 +934,12 @@ public class MatchPlayer
 							+ m_score
 							+ " R: "
 							+ getRating());
-					return (String[]) stats.toArray(new String[stats.size()]);
+					break;
 
 				case 4 : //lev
 					stats.add(FORMULA, "Leviathen Forumla: Points");
 					stats.add(STATS, "S: " + m_score);
-					return (String[]) stats.toArray(new String[stats.size()]);
+					break;
 
 				case 5 : //terr					
 					stats.add(FORMULA, "Terr: .8points * (.06wb + .06jav + .08spid + .12terr + .1x + .06lanc + .09shark - .12deaths)");
@@ -969,7 +969,7 @@ public class MatchPlayer
 							+ m_score
 							+ " R: "
 							+ getRating());
-					return (String[]) stats.toArray(new String[stats.size()]);
+						break;
 
 				case 6 : //weasel
 					stats.add(FORMULA, "Weasel: .8points * (sum(.09allships) - 0.05deaths)");
@@ -999,7 +999,7 @@ public class MatchPlayer
 							+ m_score
 							+ " R: "
 							+ getRating());
-					return (String[]) stats.toArray(new String[stats.size()]);
+						break;
 
 				case 7 : //lanc
 					stats.add(FORMULA, "Lanc: .6Points * (.07wb + .07jav + .05spid + 0.12terr + .05x + .06lanc + .08shark - .04deaths)");
@@ -1029,7 +1029,7 @@ public class MatchPlayer
 							+ m_score
 							+ " R: "
 							+ getRating());
-					return (String[]) stats.toArray(new String[stats.size()]);
+						break;
 
 				case 8 : //shark
 					stats.add(FORMULA, "Shark: points * (.12terr + sum(.09allotherships) - 0.005deaths - (.1(allothershipstks) + .15terrtk + .11sharkTK)) * (.4 * (3 / avgRepelLeft)");
@@ -1078,14 +1078,18 @@ public class MatchPlayer
 							+ m_lancTeamKill
 							+ " ShtK: "
 							+ m_sharkTeamKill);
+						break;
 
-					return (String[]) stats.toArray(new String[stats.size()]);
 
 				default : //if errored
 					stats.add(FORMULA, "Default");
 					stats.add(STATS, "S: " + m_score);
-					return (String[]) stats.toArray(new String[stats.size()]);
+					break;
+					
 			}
+
+			stats.trimToSize();			
+			return (String[]) stats.toArray(new String[stats.size()]);			
 
 		}
 
