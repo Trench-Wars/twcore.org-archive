@@ -25,6 +25,7 @@ public class MatchGame
 	BotSettings m_rules;
 
 	MatchLogger m_logger;
+	String dbConn = "website";
 	String m_fcRuleFile;
 	String m_fcTeam1Name;
 	String m_fcTeam2Name;
@@ -110,7 +111,7 @@ public class MatchGame
 		{
 			ResultSet rs =
 				m_botAction.SQLQuery(
-					"local",
+					dbConn,
 					"SELECT fnTeamID FROM tblTeam WHERE fcTeamName = '" + Tools.addSlashesToString(fcTeamName) + "' AND (fdDeleted IS NULL or fdDeleted = 0)");
 			if (rs.next())
 			{
@@ -170,10 +171,10 @@ public class MatchGame
 					Integer.toString(m_fnTeam2ID),
 					Tools.addSlashesToString(m_fcTeam2Name),
 					time };
-			m_botAction.SQLInsertInto("local", "tblMatch", fields, values);
+			m_botAction.SQLInsertInto(dbConn, "tblMatch", fields, values);
 
-			//            ResultSet s = m_botAction.SQLQuery("local", "select fnMatchID from tblMatch where ftTimeStarted = '"+time+"' and fcTeam1Name = '"+Tools.addSlashesToString(m_fcTeam1Name)+"' and fcTeam2Name = '"+Tools.addSlashesToString(m_fcTeam2Name)+"'");
-			ResultSet s = m_botAction.SQLQuery("local", "select MAX(fnMatchID) as fnMatchID from tblMatch");
+			//            ResultSet s = m_botAction.SQLQuery(dbConn, "select fnMatchID from tblMatch where ftTimeStarted = '"+time+"' and fcTeam1Name = '"+Tools.addSlashesToString(m_fcTeam1Name)+"' and fcTeam2Name = '"+Tools.addSlashesToString(m_fcTeam2Name)+"'");
+			ResultSet s = m_botAction.SQLQuery(dbConn, "select MAX(fnMatchID) as fnMatchID from tblMatch");
 			if (s.next())
 			{
 				m_fnMatchID = s.getInt("fnMatchID");
@@ -192,7 +193,7 @@ public class MatchGame
 		{
 			String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
 			m_botAction.SQLQuery(
-				"local",
+				dbConn,
 				"UPDATE tblMatch SET fnMatchStateID = 3, fnTeam1Score="
 					+ m_fnTeam1Score
 					+ ", fnTeam2Score="
@@ -596,7 +597,7 @@ public class MatchGame
 			try
 			{
 				String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
-				m_botAction.SQLQuery("local", "UPDATE tblMatch SET ftTimeEnded = '" + time + "', fnMatchStateID=5 WHERE fnMatchID = " + m_fnMatchID);
+				m_botAction.SQLQuery(dbConn, "UPDATE tblMatch SET ftTimeEnded = '" + time + "', fnMatchStateID=5 WHERE fnMatchID = " + m_fnMatchID);
 			}
 			catch (Exception e)
 			{

@@ -40,6 +40,8 @@ public class MatchPlayer implements Comparable
 	Player m_player;
 	BotSettings m_rules;
 
+	String dbConn = "website";
+
 	MatchTeam m_team;
 	MatchLogger m_logger;
 
@@ -107,7 +109,7 @@ public class MatchPlayer implements Comparable
 		m_statTracker = new TotalStatistics();
 
 		if ((m_rules.getInt("storegame") != 0) || (m_rules.getInt("rosterjoined") != 0))
-			m_dbPlayer = new DBPlayerData(m_botAction, "local", m_fcPlayerName);
+			m_dbPlayer = new DBPlayerData(m_botAction, dbConn, m_fcPlayerName);
 
 		m_logger.scoreReset(m_fcPlayerName);
 	}
@@ -170,14 +172,14 @@ public class MatchPlayer implements Comparable
 					Integer.toString(m_fnLagouts),
 					Integer.toString(substituted)};
 
-			m_botAction.SQLInsertInto("local", "tblMatchRoundUser", fields, values);
+			m_botAction.SQLInsertInto(dbConn, "tblMatchRoundUser", fields, values);
 
 			//get fnMatchRoundUserID
 			int fnMatchRoundUserID = 0;
 
 			try
 			{
-				ResultSet qryMatchRoundUserID = m_botAction.SQLQuery("local", "SELECT MAX(fnMatchRoundUserID) as fnMatchRoundUserID " + "FROM tblMatchRoundUser");
+				ResultSet qryMatchRoundUserID = m_botAction.SQLQuery(dbConn, "SELECT MAX(fnMatchRoundUserID) as fnMatchRoundUserID " + "FROM tblMatchRoundUser");
 
 				if (qryMatchRoundUserID.next())
 				{
@@ -266,7 +268,7 @@ public class MatchPlayer implements Comparable
 						started,
 						ended };
 
-				m_botAction.SQLInsertInto("local", "tblMatchRoundUserShip", shipFields, shipValues);
+				m_botAction.SQLInsertInto(dbConn, "tblMatchRoundUserShip", shipFields, shipValues);
 			}
 		}
 		catch (Exception e)
