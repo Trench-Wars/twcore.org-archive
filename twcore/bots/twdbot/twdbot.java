@@ -398,12 +398,14 @@ public class twdbot extends SubspaceBot {
 					String fields2[] = {
 						"fnUserID",
 						"fnTeamID",
-						"fdJoined"
+						"fdJoined",
+						"fnCurrentTeam"
 					};
 					String values2[] = {
 						Integer.toString(thisP.getUserID()),
 						Integer.toString(teamID),
-						time
+						time,
+						1
 					};
 					m_botAction.SQLInsertInto("website", "tblTeamUser", fields2, values2);
 
