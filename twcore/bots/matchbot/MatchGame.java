@@ -267,7 +267,10 @@ public class MatchGame
 	public void handleEvent(PlayerEntered event)
 	{
 		m_botAction.sendPrivateMessage(event.getPlayerID(), shortStatus());
-	}
+	        if( m_curRound != null ){
+                        m_curRound.handleEvent( event );
+                }
+        }
 
 	public void handleEvent(PlayerLeft event)
 	{
