@@ -111,12 +111,12 @@ public class MatchTeam
             ResultSet rs =
                 m_botAction.SQLQuery(
                     "local",
-                    "SELECT tblUser.fcUserName FROM tblUser, tblTeamUser, tblUserRank WHERE "
+                    "SELECT DISTINCT tblUser.fcUserName FROM tblUser, tblTeamUser, tblUserRank WHERE "
                         + "tblUser.fnUserID = tblTeamUser.fnUserID AND tblTeamUser.fnCurrentTeam = 1 "
                         + "AND tblTeamUser.fnTeamID = "
                         + m_fnTeamID
                         + " AND tblUser.fnUserID = tblUserRank.fnUserID "
-                        + "AND tblUser.fnUserID = tblUserRank.fnUserID AND tblUserRank.fnRankID IN (3,4)");
+                        + "AND tblUser.fnUserID = tblUserRank.fnUserID AND tblUserRank.fnRankID IN (3,4) ORDER BY tblUser.fcUserName");
 
             m_captains = new LinkedList();
 
