@@ -594,7 +594,7 @@ public class robohelp extends SubspaceBot {
                 m_botAction.sendChatMessage( name + " hasn't done a help call yet." );
             } else {
                 if( helpRequest.getBeenWarned() == true ){
-                    m_botAction.sendChatMessage( name + " has already been warned." );
+                    m_botAction.sendChatMessage( "NOTICE: " + name + " has already been warned." );
                 } else {
                     helpRequest.setBeenWarned( true );
                     m_botAction.sendRemotePrivateMessage( name, "WARNING: We appreciate "
@@ -602,9 +602,12 @@ public class robohelp extends SubspaceBot {
                     +"not be tolerated further!", 1 );
                     m_botAction.sendChatMessage( name + " has been warned." );
 
+                    Calendar thisTime = Calendar.getInstance();
+                    java.util.Date day = thisTime.getTime();
+                    String warntime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format( day );
                     String[] paramNames = { "name", "warning", "staffmember", "timeofwarning" };
                     String date = new java.sql.Date( System.currentTimeMillis() ).toString();
-                    String[] data = { name.toLowerCase().trim(), new String( "Warning to " + name + " from Robohelp for help/cheater abuse.  !warn ordered by " + playerName ), playerName.toLowerCase().trim(), date };
+                    String[] data = { name.toLowerCase().trim(), new String( warntime + ": Warning to " + name + " from Robohelp for help/cheater abuse.  !warn ordered by " + playerName ), playerName.toLowerCase().trim(), date };
 
                     m_botAction.SQLInsertInto( "local", "tblWarnings", paramNames, data );
                 }
@@ -633,6 +636,13 @@ public class robohelp extends SubspaceBot {
         } else {
             if( !opList.isER( playerName ) ){
                 m_botAction.sendChatMessage( "Only ER's and above are authorized to ban." );
+	    } else if( opList.isSmod( playerName ) && opList.isZH( name ) ){
+                        m_lastBanner = playerName;
+                        m_banPending = true;
+                        m_botAction.sendRemotePrivateMessage( name, "You have been banned for abuse of the !ban command.  I am sorry this had to happen.  Your ban will likely expire in 24 hours.  Goodbye!" );
+                        m_botAction.sendUnfilteredPublicMessage( "?ban -e1 " + name );
+                        m_botAction.sendChatMessage( "Player \"" + name + "\" has been banned." );
+                        m_playerList.remove( name );
             } else if( opList.isZH( name ) ){
                 m_botAction.sendChatMessage( "Are you nuts?  You can't ban a staff member!" );
             } else {

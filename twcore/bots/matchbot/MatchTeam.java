@@ -157,8 +157,15 @@ public class MatchTeam
         MatchPlayer p = getPlayer(playerName);
         if ((event.getShipType() == 0) && (p.getPlayerState() == MatchPlayer.IN_GAME))
         {
-            if (m_round.m_fnRoundState < 4)
+            if (m_round.m_fnRoundState < 4) {
                 sendPrivateMessageToCaptains(playerName + " lagged out or specced himself", 13);
+
+		if (m_rules.getInt("deaths") != -1 && m_round.m_fnRoundState == 3) {
+			m_botAction.sendArenaMessage(playerName + " has changed/lagged to spectator mode - +1 death");
+			p.reportDeath();
+		}
+	    }
+
             p.lagout(false);
         };
     };
@@ -203,8 +210,14 @@ public class MatchTeam
     {
         String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
         MatchPlayer p = getPlayer(playerName);
-        if ((m_round.m_fnRoundState < 4) && (p.getPlayerState() == MatchPlayer.IN_GAME))
+        if ((m_round.m_fnRoundState < 4) && (p.getPlayerState() == MatchPlayer.IN_GAME)) {
             sendPrivateMessageToCaptains(playerName + " lagged out or left the arena", 13);
+
+            if (m_rules.getInt("deaths") != -1 && m_round.m_fnRoundState == 3) {
+		m_botAction.sendArenaMessage(playerName + " has lagged out/left arena - +1 death");
+	        p.reportDeath();
+	    }
+	}
         p.lagout(true);
     };
 
@@ -1019,6 +1032,23 @@ public class MatchTeam
                 if (msDiff < 0)
                     return "Player isn't eligible yet, he will be eligible " + (-msDiff) + " hours";
             };
+
+	    // only for TWL games
+	    if (m_rules.getInt("matchtype") < 4) 
+            {
+		try {
+			ResultSet s = m_botAction.SQLQuery("local", "SELECT tblSiteVar.fcVarValue AS lockDate FROM tblSiteVar, tblTeamUser WHERE tblSiteVar.fcVarName = 'LockDate' AND tblTeamUser.fnUserID = '" + dbP.getUserID() + "' AND tblTeamUser.fdJoined < tblSiteVar.fcVarValue;");
+			if (!s.next()) {
+			    return "Player was rostered after the roster lock and is ineligible for TWL games";
+			}
+			ResultSet s2 = m_botAction.SQLQuery("local", "SELECT * FROM tblTeamUser WHERE fnUserID = '" + dbP.getUserID() + "' AND fnTWL = '1'");
+			if (!s2.next()) {
+			    return "Player is not rostered as a TWL player";
+			}
+		} catch (Exception e) {
+			return "Error: " + e.getMessage();
+		}
+	    }
         };
 
         // name should not start with "matchbot"
@@ -1269,7 +1299,7 @@ public class MatchTeam
         {
             String playerName = m_botAction.getPlayer(playerID).getPlayerName();
             MatchPlayer p = getPlayer(playerName);
-            p.reportFlagClaimed();
+		if (p != null)      p.reportFlagClaimed();
             m_flagOwned = true;
         }
     }
@@ -1435,6 +1465,28 @@ public class MatchTeam
 
         return retval;
     };
+
+    public int getTotalLagOuts()
+    {
+        ListIterator i = m_players.listIterator();
+        int retval = 0;
+
+        while (i.hasNext())
+            retval = retval + ((MatchPlayer) i.next()).getLagOuts();
+
+        return retval;
+    };
+
+    public int getDTotalStats(int sType)
+    {
+        ListIterator i = m_players.listIterator();
+        int retval = 0;
+
+        while (i.hasNext())
+            retval = retval + ((MatchPlayer) i.next()).getTotalStatistic(sType);
+
+        return retval;
+    }
 
     // get # ready to play players
     public int getPlayersReadyToPlay()
@@ -1635,6 +1687,70 @@ public class MatchTeam
         } else {
             return 0;
         }
+    }
+
+    public ArrayList getDScores(boolean duelG, boolean wbG) {
+
+	ArrayList out = new ArrayList();
+
+        Comparator a = new Comparator()
+        {
+            public int compare(Object oa, Object ob)
+            {
+                MatchPlayer pa = (MatchPlayer) oa, pb = (MatchPlayer) ob;
+                return pb.getPlayerName().compareToIgnoreCase(pa.getPlayerName());
+            };
+        };
+
+        // use the comparator
+        Object[] players = m_players.toArray();
+        Arrays.sort(players, a);
+
+	if (duelG) {
+		if (wbG) {
+		    out.add("|                          ,------+------+-----------+----+");
+		    out.add("| " + Tools.formatString(m_fcTeamName, 23) + " /  " + rightenString(Integer.toString(getDTotalStats(20)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(0)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(22)), 9) + " | " + rightenString(Integer.toString(getTotalLagOuts()), 2) + " |");
+		    out.add("+------------------------'        |      |           |    |");
+
+		    for (int i = 0; i < players.length; i++) {
+			MatchPlayer p = (MatchPlayer)players[i];
+			out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " " + rightenString(Integer.toString(p.getTotalStatistic(20)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(0)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(22)), 9) + " | " + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
+		    }
+		} else {
+		    out.add("|                          ,------+------+------+-----------+----+");
+		    out.add("| " + Tools.formatString(m_fcTeamName, 23) + " /  " + rightenString(Integer.toString(getDTotalStats(20)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(0)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(21)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(22)), 9) + " | " + rightenString(Integer.toString(getTotalLagOuts()), 2) + " |");
+		    out.add("+------------------------'        |      |      |           |    |");
+
+		    for (int i = 0; i < players.length; i++) {
+			MatchPlayer p = (MatchPlayer)players[i];
+			out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " " + rightenString(Integer.toString(p.getTotalStatistic(20)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(0)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(21)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(22)), 9) + " | " + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
+		    }
+		}
+	} else {
+	    out.add("|                          ,------+------+------+-----------+------+------+-----------+----+");
+	    out.add("| " + Tools.formatString(m_fcTeamName, 23) + " /  " + rightenString(Integer.toString(getDTotalStats(20)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(0)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(21)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(1)), 9) + " | " + rightenString(Integer.toString(getDTotalStats(18)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(6)), 4) + " | " + rightenString(Integer.toString(getDTotalStats(22)), 9) + " | " + rightenString(Integer.toString(getTotalLagOuts()), 2) + " |");
+	    out.add("+------------------------'        |      |      |           |      |      |           |    |");
+
+	    for (int i = 0; i < players.length; i++) {
+		MatchPlayer p = (MatchPlayer)players[i];
+		out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " " + rightenString(Integer.toString(p.getTotalStatistic(20)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(0)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(21)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(1)), 9) + " | " + rightenString(Integer.toString(p.getTotalStatistic(18)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(6)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(22)), 9) + " | " + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
+	    }
+
+	}
+
+	return out;
+    }
+
+    public String rightenString(String fragment, int length) {
+	int curLength = fragment.length();
+	int startPos = length - curLength;
+	String result = "";
+
+	for (int i=0; i < startPos; i++) result = result + " ";
+	result = result + fragment;
+	for (int j=result.length(); j < length; j++) result = result + " ";
+
+	return result;
     }
 }
 

@@ -52,7 +52,8 @@ public class staffbot extends SubspaceBot {
         m_botAction.joinArena( m_botSettings.getString( "InitialArena" ) );
         m_opList = m_botAction.getOperatorList();
         m_botAction.sendUnfilteredPublicMessage( "?chat=" + m_botAction.getGeneralSettings().getString( "Chat Name" ) );
-        
+        m_botAction.sendUnfilteredPublicMessage( "?obscene" );
+
         if( m_logArchivingEnabled ){
             TimerTask getLogTask = new TimerTask(){
                 public void run(){
@@ -143,6 +144,13 @@ public class staffbot extends SubspaceBot {
             }
         }
         
+        if( m_opList.isER( name ) ){
+            if( message.toLowerCase().startsWith( "!warnings " ) ){
+                queryWarnings( name, message.substring( 10 ) );
+                return;
+            }
+        }
+
         if( m_opList.isSmod( name ) ){
             if( message.startsWith( "!altnick " )){
                 queryAltNick( name, message.substring( 9 ));
@@ -399,6 +407,7 @@ public class staffbot extends SubspaceBot {
         };
         
         final String[] helpText = {
+            "Moderator and ER commands:",
             "!warning <player>      - Displays a list of recent warns given to a player."
         };
 

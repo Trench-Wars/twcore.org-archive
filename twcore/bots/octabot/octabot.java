@@ -46,15 +46,13 @@ public class octabot extends SubspaceBot {
 		else if( message.startsWith( "Arena UNLOCKED" ) )
 			handleLockedState( false );
 
-                if(!hasAccess(event.getPlayerID()) && !m_botAction.getOperatorList().isER(name)) return;
+//                if(!m_botAction.getOperatorList().isER(name)) return;
 		message = event.getMessage().toLowerCase();
-		if( message.startsWith( "!start" ) )
+		if( message.startsWith( "!start" ) && m_botAction.getOperatorList().isER( name ))
 			startGame();
-		else if( message.startsWith( "!cancel" ) )
+		else if( message.startsWith( "!cancel" ) && m_botAction.getOperatorList().isER( name ) )
 			stopGame();
-		else if( message.startsWith( "!access" ) )
-			showAccessList( name );
-		else if( message.startsWith( "!help" ) )
+		else if( message.startsWith( "!help" ) && m_botAction.getOperatorList().isER( name ) )
 			displayAccessHelp( name );
 
 	}
@@ -122,7 +120,7 @@ public class octabot extends SubspaceBot {
 
 		m_botAction.joinArena( m_botSettings.getString("Arena") );
 
-		readPermit( m_botSettings.getString("PathToPermit") );
+//		readPermit( m_botSettings.getString("PathToPermit") );
  	}
 
  	public void handleEvent( FlagVictory event ) {
@@ -309,7 +307,7 @@ public class octabot extends SubspaceBot {
 		if( !running && !locked )
 			m_botAction.toggleLocked();
 	}
-	
+	/*
 	public void showAccessList( String name ) {
 		
 		Iterator it = access.keySet().iterator();
@@ -326,7 +324,7 @@ public class octabot extends SubspaceBot {
 			m_botAction.sendPrivateMessage( name, (String)v.elementAt(i) );
 			
 	}
-	
+	*/
 	public void displayAccessHelp( String name ) {
 		
 		String help[] = {
@@ -339,7 +337,7 @@ public class octabot extends SubspaceBot {
 		};
 		m_botAction.privateMessageSpam( name, help );
 	}
-	
+	/*
 	public void readPermit( String file ) {
 		
 		try {
@@ -355,7 +353,7 @@ public class octabot extends SubspaceBot {
 			Tools.printLog( "Error reading Permit.txt" );
 		}
 	}
-	
+	*/
 	public void warpPlayer( Player p ) {
 		
 		if( p.getFrequency() == 0 )

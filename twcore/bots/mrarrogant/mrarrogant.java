@@ -17,6 +17,7 @@ public class mrarrogant extends SubspaceBot
   public static final int DEFAULT_CHECK_TIME = 30;
 
   private SimpleDateFormat dateFormat;
+  private SimpleDateFormat fileNameFormat;
   private OperatorList opList;
   private String currentArena;
   private RoamTask roamTask;
@@ -25,7 +26,10 @@ public class mrarrogant extends SubspaceBot
   private Date lastLogDate;
   private Vector commandQueue;
   private FileWriter logFile;
+  private String logFileName;
   private int year;
+  private boolean isStaying;
+  private boolean isArroSpy;
 
   /**
    * This method initializes the mrarrogant class.
@@ -41,6 +45,8 @@ public class mrarrogant extends SubspaceBot
     lastLogDate = null;
     commandQueue = new Vector();
     accessList = new HashSet();
+    isStaying = false;
+    isArroSpy = false;
   }
 
   /**
@@ -55,11 +61,13 @@ public class mrarrogant extends SubspaceBot
     String initialArena = botSettings.getString("initialarena");
     String chat = botSettings.getString("chat");
     String accessString = botSettings.getString("accesslist");
-    String logFileName = botSettings.getString("logfile");
+    String logPath = botSettings.getString("logpath");
+    fileNameFormat = new SimpleDateFormat("'" + logPath + "'MMMyyyy'.log'");
+    logFileName = fileNameFormat.format(new Date());
 
+    changeArena(initialArena);
     m_botAction.sendUnfilteredPublicMessage("?chat=" + chat);
     openFile(logFileName);
-    changeArena(initialArena);
     opList = m_botAction.getOperatorList();
     setupAccessList(accessString);
     m_botAction.scheduleTaskAtFixedRate(new CheckLogTask(), 0, CHECK_LOG_TIME);
@@ -76,12 +84,65 @@ public class mrarrogant extends SubspaceBot
     String sender = getSender(event);
     String message = event.getMessage();
     int messageType = event.getMessageType();
+
     if(messageType == Message.ARENA_MESSAGE)
       handleArenaMessage(message);
     if(messageType == Message.REMOTE_PRIVATE_MESSAGE || messageType == Message.PRIVATE_MESSAGE)
       handleCommand(sender, message);
     if(messageType == Message.CHAT_MESSAGE)
       handleChatCommand(sender, message);
+    if(isArroSpy && messageType != Message.ALERT_MESSAGE && messageType != Message.ARENA_MESSAGE &&
+       messageType != Message.CHAT_MESSAGE)
+      handleSpyMessage(sender, message, messageType);
+  }
+
+  /**
+   * This method relays a message to chat.
+   *
+   * @param sender is the sender of the message.
+   * @param message is the message to relay.
+   * @param messageType is the type of message.
+   */
+  private void handleSpyMessage(String sender, String message, int messageType)
+  {
+    String messageTypeString = getMessageTypeString(messageType);
+    String getCurrentArena = m_botAction.getArenaName();
+
+    m_botAction.sendChatMessage(messageTypeString + ": (" + sender + ") (" + currentArena + "): " + message);
+  }
+
+  /**
+   * This method gets a string representation of the message type.
+   *
+   * @param messageType is the type of message to handle
+   * @returns a string representation of the message is returned.
+   */
+  private String getMessageTypeString(int messageType)
+  {
+    switch(messageType)
+    {
+      case Message.PUBLIC_MESSAGE:
+        return "Public";
+      case Message.PRIVATE_MESSAGE:
+        return "Private";
+      case Message.TEAM_MESSAGE:
+        return "Team";
+      case Message.OPPOSING_TEAM_MESSAGE:
+        return "Opp. Team";
+      case Message.ARENA_MESSAGE:
+        return "Arena";
+      case Message.PUBLIC_MACRO_MESSAGE:
+        return "Pub. Macro";
+      case Message.REMOTE_PRIVATE_MESSAGE:
+        return "Private";
+      case Message.WARNING_MESSAGE:
+        return "Warning";
+      case Message.SERVER_ERROR:
+        return "Serv. Error";
+      case Message.ALERT_MESSAGE:
+        return "Alert";
+    }
+    return "Other";
   }
 
   private void openFile(String fileName)
@@ -166,29 +227,46 @@ public class mrarrogant extends SubspaceBot
 
   private void handleLogCommand(Date date, String logMessage)
   {
+    String arena = getArena(logMessage);
+    String fromPlayer = getFromPlayer(logMessage);
+    String toPlayer = getToPlayer(logMessage);
+    String command = getCommand(logMessage);
+    CommandLog commandLog;
+
+    if (fromPlayer != null && command != null && opList.isZH(fromPlayer))
+    {
+      commandLog = new CommandLog(date, arena, fromPlayer, toPlayer, command);
+      if (isBadCommand(command))
+        m_botAction.sendChatMessage(commandLog.toString());
+      commandQueue.add(commandLog);
+      writeCommand(commandLog);
+    }
+  }
+
+  private void writeCommand(CommandLog commandLog)
+  {
     try
     {
-      String arena = getArena(logMessage);
-      String fromPlayer = getFromPlayer(logMessage);
-      String toPlayer = getToPlayer(logMessage);
-      String command = getCommand(logMessage);
-      CommandLog commandLog;
+      String newFileName = fileNameFormat.format(commandLog.getDate());
 
-      if(fromPlayer != null && command != null && opList.isZH(fromPlayer))
-      {
-        commandLog = new CommandLog(date, arena, fromPlayer, toPlayer, command);
-        if(isBadCommand(command))
-          m_botAction.sendChatMessage(commandLog.toString());
-        commandQueue.add(commandLog);
-        logFile.write(commandLog.toString() + '\n');
-        logFile.flush();
-        lastLogDate = date;
-      }
+      if(!logFileName.equals(newFileName))
+        openNewLogFile(newFileName);
+      logFile.write(commandLog.toString() + '\n');
+      logFile.flush();
+      lastLogDate = commandLog.getDate();
     }
     catch(IOException e)
     {
     }
   }
+
+  private void openNewLogFile(String newFileName) throws IOException
+  {
+    logFileName = newFileName;
+    logFile.close();
+    openFile(logFileName);
+  }
+
 
   /**
    * This method gets the sender of a command.
@@ -325,6 +403,8 @@ public class mrarrogant extends SubspaceBot
     }
     catch(RuntimeException e)
     {
+      if(sender == null)
+        m_botAction.sendChatMessage(e.getMessage());
       m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
     }
   }
@@ -337,12 +417,20 @@ public class mrarrogant extends SubspaceBot
     {
       if(opList.isSmod(sender) || accessList.contains(sender.toLowerCase()))
       {
+        if(command.equals("!arrospy"))
+          doArroSpyCmd();
+        if(command.equals("!stay"))
+          doStayCmd();
+        if(message.startsWith( "!say" ) || message.startsWith( "!//" ) || message.startsWith( "!;" ) || message.startsWith( "!!" ))
+          handleSay(message);
+//        if(command.startsWith("!say "))
+//          doSayCmd(message.substring(5).trim());
         if(command.startsWith("!logto "))
-          doLogToCmd(message.substring(7));
+          doLogToCmd(message.substring(7).trim());
         if(command.startsWith("!logfrom "))
-          doLogFromCmd(message.substring(9));
+          doLogFromCmd(message.substring(9).trim());
         if(command.startsWith("!log "))
-          doLogCmd(message.substring(4));
+          doLogCmd(message.substring(4).trim());
         if(command.equals("!log"))
           doLogCmd("");
         if(command.equals("!help"))
@@ -353,6 +441,56 @@ public class mrarrogant extends SubspaceBot
     {
       m_botAction.sendChatMessage(e.getMessage());
     }
+  }
+
+  /**
+   * This method makes arrogant say chat/team/public/private messages.
+   */
+
+  public void handleSay( String message ){
+      if( message.startsWith( "!sayc " )){
+          m_botAction.sendChatMessage( 1, message.substring( 6 ));
+      } else if( message.startsWith( "!;" )){
+          m_botAction.sendChatMessage( 1, message.substring( 2 ));
+      } else if( message.startsWith( "!sayt " )){
+          m_botAction.sendTeamMessage( message.substring( 6 ));
+      } else if( message.startsWith( "!//" )){
+          m_botAction.sendTeamMessage( message.substring( 3 ));
+      } else if( message.indexOf( ":" ) != -1 ){  // Must be a private message request...
+          int indexOfColon = message.indexOf( ":" );
+          String recipient = message.substring( 5, indexOfColon );
+          m_botAction.sendSmartPrivateMessage( recipient,
+          message.substring( indexOfColon + 1 ));
+          m_botAction.sendChatMessage("Message sent to "  + recipient );
+      } else if( message.startsWith( "!say " )){
+          m_botAction.sendPublicMessage( message.substring( 5 ));
+      } else if( message.startsWith( "!!" )){
+          m_botAction.sendPublicMessage( message.substring( 2 ));
+      }
+  }
+
+  /**
+   * This method toggles the arrogant spying.
+   */
+  private void doArroSpyCmd()
+  {
+    isArroSpy = !isArroSpy;
+    if(isArroSpy)
+      m_botAction.sendChatMessage("Arrogant Spying Enabled.");
+    else
+      m_botAction.sendChatMessage("Arrogant Spying Disabled.");
+  }
+
+  /**
+   * This method toggles staying.
+   */
+  private void doStayCmd()
+  {
+    isStaying = !isStaying;
+    if(isStaying)
+      m_botAction.sendChatMessage("Arrogant Staying in " + m_botAction.getArenaName() + ".");
+    else
+      m_botAction.sendChatMessage("Arrogant Roaming.");
   }
 
   /**
@@ -658,7 +796,8 @@ public class mrarrogant extends SubspaceBot
   {
     public void run()
     {
-      m_botAction.requestArenaList();
+      if(!isStaying)
+        m_botAction.requestArenaList();
       scheduleRoamTask();
     }
   }

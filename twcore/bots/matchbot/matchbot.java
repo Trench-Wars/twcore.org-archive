@@ -394,7 +394,6 @@ public class matchbot extends SubspaceBot
                     help.add("!challenge <squad>:<players>             - request a game of " + m_rules.getString("name") + " against <squad> with <players> number of players");
 					help.add("!removechallenge <squad>                 - removes the challenge of " + m_rules.getString("name") + " game against <squad>");
                     help.add("!accept <squad>                          - accept the !challenge made by the challenging squad");
-                    help.add("!cancel                                  - cancels the game about to start if done within 30 seconds from !accept");
                 };
             };
         };
@@ -476,8 +475,6 @@ public class matchbot extends SubspaceBot
 				command_removechallenge(name, parameters);
 			if (command.equals("!accept"))
                 command_accept(name, parameters);
-			if (command.equals("!cancel"))
-				command_cancel(name);
 
 		};
         if (command.equals("!help"))

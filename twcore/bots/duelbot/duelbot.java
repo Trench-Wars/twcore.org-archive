@@ -1,3 +1,5 @@
+//Need to store ALL players by name, no case crap
+
 package twcore.bots.duelbot;
 
 import twcore.core.*;
@@ -101,6 +103,7 @@ public class duelbot extends SubspaceBot {
     	m_commandInterpreter.registerCommand( "!lag", acceptedMessages, this, "do_showLag" );
     	m_commandInterpreter.registerCommand( "!help", acceptedMessages, this, "do_showHelp" );
     	/*********LeagueOp Commands*********/
+    	m_commandInterpreter.registerCommand( "!version", acceptedMessages, this, "do_showVersion" );
     	m_commandInterpreter.registerCommand( "!allowuser", acceptedMessages, this, "do_allowUser" );
     	m_commandInterpreter.registerCommand( "!banuser", acceptedMessages, this, "do_banUser" );
     	m_commandInterpreter.registerCommand( "!unbanuser", acceptedMessages, this, "do_unbanUser" );
@@ -108,8 +111,13 @@ public class duelbot extends SubspaceBot {
     	m_commandInterpreter.registerCommand( "!shutdown", acceptedMessages, this, "do_shutDown" );
     	m_commandInterpreter.registerCommand( "!die", acceptedMessages, this, "do_die" );
     	
+    	
     	m_commandInterpreter.registerDefaultCommand( Message.ARENA_MESSAGE, this, "do_checkArena" );
     }
+	
+	public void do_showVersion( String name, String message ) {
+		m_botAction.sendSmartPrivateMessage( name, "1.00" );
+	}
     
     
     /***********************************************
@@ -145,84 +153,96 @@ public class duelbot extends SubspaceBot {
     	
     }
     
-    public void do_issueChallenge( String name, String message ) {
+    public void do_issueChallenge( String _name, String _message ) {
+    	
+    	//Shutdown mode check
     	if( shutDown ) {
-    		m_botAction.sendPrivateMessage( name, "Currently in 'ShutDown' mode, no new duels may begin at this time: " + shutDownMessage );
+    		m_botAction.sendPrivateMessage( _name, "Currently in 'ShutDown' mode, no new duels may begin at this time: " + shutDownMessage );
     		return;
     	}
-    	if( sql_banned( name ) ) {
-    		m_botAction.sendPrivateMessage( name, "You have been banned from this league." );
+    	//Player banned check
+    	if( sql_banned( _name ) ) {
+    		m_botAction.sendPrivateMessage( _name, "You have been banned from this league." );
     		return;
     	}
-    	String pieces[] = message.split( ":" );
+    	
+    	//Get this player from the database
+    	DuelPlayer player = mySQL_getPlayer( _name );
+    	
+    	//Signed up check
+    	if( player == null ) {
+    		m_botAction.sendPrivateMessage( _name, "Unable to issue challenge, you have not signed up or have disabled this name." );
+    		return;
+    	}
+    	//Notplaying challenger check
+    	if( notPlaying.containsKey( _name ) ) {
+    		m_botAction.sendPrivateMessage( _name, "Unable to issue challenge, you have enabled 'notplaying', toggle it off with !notplaying." );
+    		return;
+    	}
+    	
+    	//Get the gametype requested and the opponent
+    	String pieces[] = _message.split( ":" );
     	int gameType = 0;
     	String opponent = pieces[0];
     	try { gameType = Integer.parseInt( pieces[1] ); } catch (Exception e) {}
-    	DuelPlayer player = mySQL_getPlayer( name );
-    	if( player == null ) {
-    		m_botAction.sendPrivateMessage( name, "Unable to issue challenge, you have not signed up or have disabled this name." );
-    		return;
-    	}
-    	if( notPlaying.containsKey( name ) ) {
-    		m_botAction.sendPrivateMessage( name, "Unable to issue challenge, you have enabled 'notplaying', toggle it off with !notplaying." );
-    		return;
-    	}
     	opponent = m_botAction.getFuzzyPlayerName( opponent );
+    	
+    	//Can't challenge a player who does not exist
     	if( opponent == null ) {
-    		m_botAction.sendPrivateMessage( name, "Unable to issue challenge, "+pieces[0] +" is not in this arena." );
+    		m_botAction.sendPrivateMessage( _name, "Unable to issue challenge, "+pieces[0] +" is not in this arena." );
     		return;
     	}
-    	if( opponent.equals( name ) ) {
-    		m_botAction.sendPrivateMessage( name, "Unable to issue challenge, you cannot challenge yourself." );
+    	if( opponent.equals( _name ) ) {
+    		m_botAction.sendPrivateMessage( _name, "Unable to issue challenge, you cannot challenge yourself." );
     		return;
     	}
     	if( notPlaying.containsKey( opponent ) ) {
     		NotPlaying np = (NotPlaying)notPlaying.get( opponent );
     		if( !np.timeUp( ((int)System.currentTimeMillis() / 1000 )) ) {
-	    		m_botAction.sendPrivateMessage( name, "Unable to issue challenge, "+opponent+ " has enabled notplaying." );
+	    		m_botAction.sendPrivateMessage( _name, "Unable to issue challenge, "+opponent+ " has enabled notplaying." );
 	    		return;
 	    	} else notPlaying.remove( opponent );
     	}
     	if( gameType < 1 || gameType > 3 ) {
-    		m_botAction.sendPrivateMessage( name, "Unable to issue challenge, invalid league entered, valid leagues: (1-warbird, 2-javelin, 3-spider.)" );
+    		m_botAction.sendPrivateMessage( _name, "Unable to issue challenge, invalid league entered, valid leagues: (1-warbird, 2-javelin, 3-spider.)" );
     		return;
     	}
-    	if( playing.containsKey( name ) ) {
-    		m_botAction.sendPrivateMessage( name, "Unable to issue challenge, you are already dueling." );
+    	if( playing.containsKey( _name ) ) {
+    		m_botAction.sendPrivateMessage( _name, "Unable to issue challenge, you are already dueling." );
     		return;
     	}
     	if( playing.containsKey( opponent ) ) {
-    		m_botAction.sendPrivateMessage( name, "Unable to issue challenge, "+opponent +" is already dueling." );
+    		m_botAction.sendPrivateMessage( _name, "Unable to issue challenge, "+opponent +" is already dueling." );
     		return;
     	}
     	if( !boxOpen( gameType ) ) {
-    		m_botAction.sendPrivateMessage( name, "There is currently no duel box open for that league, please challenge again when a box opens up." );
+    		m_botAction.sendPrivateMessage( _name, "There is currently no duel box open for that league, please challenge again when a box opens up." );
     		return;
     	}
     	DuelPlayer enemy = mySQL_getPlayer( opponent );
     	if( enemy == null ) {
-    		m_botAction.sendPrivateMessage( name, opponent + " has not signed up for this league." );
+    		m_botAction.sendPrivateMessage( _name, opponent + " has not signed up for this league." );
     		return;
     	}
-    	if( sql_gameLimitReached( name, opponent, gameType ) ) {
-    		m_botAction.sendPrivateMessage( name, "Unable to issue challenge, you are only allowed "+s_duelLimit+" duels per user per "+s_duelDays+" day(s)." );
+    	if( sql_gameLimitReached( _name, opponent, gameType ) ) {
+    		m_botAction.sendPrivateMessage( _name, "Unable to issue challenge, you are only allowed "+s_duelLimit+" duels per user per "+s_duelDays+" day(s)." );
     		return;
     	}
-    	if( challenges.containsKey( name+opponent ) )
-    		challenges.remove( name+opponent );
+    	if( challenges.containsKey( _name+opponent ) )
+    		challenges.remove( _name+opponent );
     	String type = "";
     	if( gameType == 1 ) type = "Warbird";
     	else if( gameType == 2 ) type = "Javelin";
     	else if( gameType == 3 ) type = "Spider";
-    	String rules = "Rules: First to " + player.toWin();
-    	if( player.winBy2() ) rules += ", Win By 2";
-    	if( player.noCount() ) rules += ", No Count (nc) Double Kills";
-    	if( player.deathWarp() ) rules += ", Warp On Deaths";
+    	String rules = "Rules: First to " + player.getToWin();
+    	if( player.getWinBy2() ) rules += ", Win By 2";
+    	if( player.getNoCount() ) rules += ", No Count (nc) Double Kills";
+    	if( player.getDeathWarp() ) rules += ", Warp On Deaths";
     	
-    	challenges.put( name+opponent, new DuelChallenge( name, opponent, player, gameType, 1 ) );
-    	m_botAction.sendPrivateMessage( name, "Your challenge has been issued to '" + opponent + "' (UNRECORDED DUEL)" );
-    	m_botAction.sendPrivateMessage( name, rules );
-    	m_botAction.sendPrivateMessage( opponent, name + " is challenging you to a "+type+" duel. PM me with, !accept "+name+" to accept. (UNRECORDED DUEL)" );
+    	challenges.put( _name+opponent, new DuelChallenge( _name, opponent, player, gameType ) );
+    	m_botAction.sendPrivateMessage( _name, "Your challenge has been issued to '" + opponent + "' (UNRECORDED DUEL)" );
+    	m_botAction.sendPrivateMessage( _name, rules );
+    	m_botAction.sendPrivateMessage( opponent, _name + " is challenging you to a "+type+" duel. PM me with, !accept "+_name+" to accept. (UNRECORDED DUEL)" );
     	m_botAction.sendPrivateMessage( opponent, rules );
     	   	
     }
@@ -331,7 +351,7 @@ public class duelbot extends SubspaceBot {
     	pOne = m_botAction.getFuzzyPlayerName( pOne );
     	pTwo = m_botAction.getFuzzyPlayerName( pTwo );
     	TournyGame tg = new TournyGame( gid, pOne, pTwo, idOne, idTwo, gameType, realGameId, players );
-    	challenges.put( name+opponent, new DuelChallenge( name, opponent, player, gameType, tg ) );
+    	challenges.put( name+opponent, new DuelChallenge( name, opponent, player, gameType ) );
     	m_botAction.sendPrivateMessage( name, "Your challenge has been issued to '" + opponent + "' (TOURNAMENT DUEL)" );
     	m_botAction.sendPrivateMessage( name, rules );
     	m_botAction.sendPrivateMessage( opponent, name + " is challenging you to a "+type+" duel. PM me with, !accept "+name+" to accept. (TOURNAMENT DUEL)" );
@@ -389,10 +409,9 @@ public class duelbot extends SubspaceBot {
     		m_botAction.sendPrivateMessage( name, "Unable to accept challenge, all duel boxes are full." );
     		return;
     	}
-    	if( thisChallenge.getDuelType() == 1 )
-    		duels.put( new Integer( thisBox.getBoxNumber() ), new Duel( thisBox, challenger, name, thisChallenge, thisChallenge.getDuelType() ) );
-    	else
-    		duels.put( new Integer( thisBox.getBoxNumber() ), new Duel( thisBox, thisChallenge.getTournyGame() ) );
+
+    	duels.put( new Integer( thisBox.getBoxNumber() ), new Duel( thisBox, thisChallenge ) );
+
     	startDuel( (Duel)duels.get( new Integer( thisBox.getBoxNumber() ) ), challenger, name );
     	playing.put( challenger, duels.get( new Integer( thisBox.getBoxNumber() ) ) );
     	playing.put( name, duels.get( new Integer( thisBox.getBoxNumber() ) ) );
@@ -590,30 +609,53 @@ public class duelbot extends SubspaceBot {
     	
     }
     
-    public void do_lagOut( String name, String message ) {
-    	if( !playing.containsKey( name ) ) {
-    		m_botAction.sendPrivateMessage( name, "You are not playing a duel." );
+    /** Called from a !lagout command, used to place a player back into a duel.
+     * To use this command:
+     * 	- must be playing in a duel
+     *  - must be a spectator
+     * @param _name Name of the player requesting a lagout
+     * @param _message Anything else the player may have sent with the command
+     */
+    public void do_lagOut( String _name, String _message ) {
+    	
+    	//Check for rules on using this command
+    	if( !playing.containsKey( _name ) ) {
+    		m_botAction.sendPrivateMessage( _name, "You are not playing a duel." );
     		return;
     	}
-    	if( m_botAction.getPlayer( name ).getShipType() > 0 ) {
-			m_botAction.sendPrivateMessage( name, "You are already in. " );
+    	if( m_botAction.getPlayer( _name ).getShipType() > 0 ) {
+			m_botAction.sendPrivateMessage( _name, "You are already in. " );
 			return;
 		}
-    	Duel d = (Duel)playing.get( name );
-    	d.getPlayer( name ).setData( 9, -1 );
-    	m_botAction.setShip( name, d.getPlayer( name ).getShip() );
-    	m_botAction.setFreq( name, d.getPlayer( name ).getFreq() );
-    	WarpPoint p = d.getRandomWarpPoint();
-		m_botAction.warpTo( name, p.getXCoord(), p.getYCoord() );
-		d.getPlayer( name ).setData( 9, 0 );
-		if( laggers.containsKey( name ) ) {
-			((Lagger)laggers.get( name )).cancel();
-			laggers.remove( name );
+    	
+    	//Get the duel associated with this player
+    	Duel duel = (Duel)playing.get( _name );
+    	
+    	//Get the stats object associated with this player
+    	DuelPlayerStats playerStats = duel.getPlayer( _name );
+    	
+    	//Set the player to warping
+    	playerStats.setWarping( true );
+    	
+    	//Put the player back into the game
+    	m_botAction.setShip( _name, duel.getPlayer( _name ).getShip() );
+    	m_botAction.setFreq( _name, duel.getPlayer( _name ).getFreq() );
+    	WarpPoint p = duel.getRandomWarpPoint();
+		m_botAction.warpTo( _name, p.getXCoord(), p.getYCoord() );
+		
+		//Set the player to not warping
+		//duel.getPlayer( _name ).setData( 9, 0 );
+		
+		//Remove any lag timers for this player
+		if( laggers.containsKey( _name ) ) {
+			((Lagger)laggers.get( _name )).cancel();
+			laggers.remove( _name );
 		}
-		setScoreboard( d, 0 );
+		
+		setScoreboard( duel, 0 );
     }
     
-    public void do_checkTournyDuel( String name, String message ) {
+   /* public void do_checkTournyDuel( String name, String message ) {
     	
     	System.out.println( "CHECK: "+name );
     	
@@ -644,7 +686,7 @@ public class duelbot extends SubspaceBot {
     			}
     		}
     	} else m_botAction.sendSmartPrivateMessage( name, "That game ID does not exist."+gid );
-    }
+    }*/
 
     /***********************************************
     *                 Help Messages                *
@@ -827,6 +869,7 @@ public class duelbot extends SubspaceBot {
     }
     
     public void startDuel( Duel d, String p1, String p2 ) {
+    	
     	int freq = d.getBoxFreq();
     	int ship = d.getShipType();
     	m_botAction.setShip( p1, ship );
@@ -838,10 +881,9 @@ public class duelbot extends SubspaceBot {
     	m_botAction.sendPrivateMessage( p1, "Duel Begins in 15 Seconds Against '"+p2+"'", 2 );
     	m_botAction.sendPrivateMessage( p2, "Duel Begins in 15 Seconds Against '"+p1+"'", 2 );
     	m_botAction.scheduleTask( new GameStartTimer( d, p1, p2, m_botAction ), 15000 );
-    	if( d.getDuelType() == 1 )
-    		m_botAction.sendTeamMessage( "A "+d.getLeagueType()+" duel is starting between " + p1 + " and " + p2 + " in box # " +(d.getBoxFreq()/2) );
-    	else
-    		m_botAction.sendTeamMessage( "A "+d.getLeagueType()+" tournament duel is starting between " + p1 + " and " + p2 + " in box # " +(d.getBoxFreq()/2) );
+
+    	
+    	m_botAction.sendTeamMessage( "A "+d.getLeagueType()+" duel is starting between " + p1 + " and " + p2 + " in box # " +(d.getBoxFreq()/2) );
     	setScoreboard( d, 0 );
     	
     }
@@ -888,7 +930,7 @@ public class duelbot extends SubspaceBot {
 		*/
 		
 		/*
-		int matchType = d.getLeagueId();
+		int matchType = d.getLeagueId();*/
 		d.toggleDuelBox();
 		duels.remove( new Integer( d.getBoxNumber() ) );
 		playing.remove( winner );
@@ -897,6 +939,7 @@ public class duelbot extends SubspaceBot {
 		m_botAction.spec( winner );
 		m_botAction.spec( loser );
 		m_botAction.spec( loser );
+		/*
 		
 		
 		if( d.getDuelType() == 1 ) return;
@@ -1079,8 +1122,8 @@ public class duelbot extends SubspaceBot {
 		
 		String message = event.getMessage();
 		
-		if( message.startsWith( "!yes " ) && event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ) 
-			do_checkTournyDuel( event.getMessager(), message.substring( 5, message.length() ) );
+		//if( message.startsWith( "!yes " ) && event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ) 
+		//	do_checkTournyDuel( event.getMessager(), message.substring( 5, message.length() ) );
     }
     
     public void handleEvent( LoggedOn event ) {
@@ -1160,7 +1203,7 @@ public class duelbot extends SubspaceBot {
 			
 			//Checks for a spawn
 			if( d.getPlayer( name ).timeFromLastDeath() < s_spawnTime + s_extra ) {
-				if( d.getPlayer( killer ).getData( 0 ) >= s_spawnLimit - 1 ) {
+				if( d.getPlayer( killer ).getSpawns() >= s_spawnLimit - 1 ) {
 					endDuel( d, name, killer, 1 );
 					if( updates.containsKey( d ) ) {
 						ScoreReport report = (ScoreReport)updates.get( d );
@@ -1168,8 +1211,8 @@ public class duelbot extends SubspaceBot {
 					}
 					return;
 				} else {
-					d.getPlayer( killer ).incData( 0 );
-					d.getPlayer( name ).setTimer();
+					d.getPlayer( killer ).addSpawn();
+					//d.getPlayer( name ).setTimer();
 					m_botAction.sendPrivateMessage( killer, "Spawns are illegal in this league. If you should continue to spawn you will forfeit your match. (NC)" );
 					m_botAction.sendPrivateMessage( name, "The kill was considered a spawn and does not count." );
 					int scoreK = d.getPlayer( killer ).getKills();
@@ -1191,7 +1234,7 @@ public class duelbot extends SubspaceBot {
 				setScoreboard( d, 2 );
 			//Spawnkill
 			} else if( d.getPlayer( killer ).timeFromLastDeath() < s_spawnTime+s_extra && d.noCount() ) {
-				if( d.getPlayer( killer ).getData( 0 ) >= s_spawnLimit - 1 ) {
+				if( d.getPlayer( killer ).getSpawns() >= s_spawnLimit - 1 ) {
 					endDuel( d, name, killer, 1 );
 					if( updates.containsKey( d ) ) {
 						ScoreReport report = (ScoreReport)updates.get( d );
@@ -1199,8 +1242,8 @@ public class duelbot extends SubspaceBot {
 					}	
 					return;
 				} else {
-					d.getPlayer( killer ).incData( 0 );
-					d.getPlayer( name ).setTimer();
+					d.getPlayer( killer ).addSpawn();
+					//d.getPlayer( name ).setTimer();
 					m_botAction.sendPrivateMessage( killer, "Spawns are illegal in this league. If you should continue to spawn you will forfeit your match. (NC)" );
 					m_botAction.sendPrivateMessage( name, "The kill was considered a spawn and does not count." );
 					int scoreK = d.getPlayer( killer ).getKills();
@@ -1248,25 +1291,40 @@ public class duelbot extends SubspaceBot {
     	int x = event.getXLocation();
     	int y = event.getYLocation();
     	double dist = Math.sqrt( Math.pow(( 8192 - x ), 2) + Math.pow(( 8192 - y ), 2) );
+    	
     	if( dist < 600 ) {
-    		Duel d = (Duel)playing.get( name );
-    		if( d.getPlayer( name ).getData( 9 ) == -1 ) return;
-    		d.getPlayer( name ).incData( 1 );
+    		
+    		//Get the associated duel
+    		Duel duel = (Duel)playing.get( name );
+    		
+    		//Get the associated player
+    		DuelPlayerStats player = duel.getPlayer( name );
+    		
+    		//Make sure the player didn't lagout
+    		if( player.isWarping() ) {
+    			
+    			player.setWarping( false );
+    			return;
+    		}
+    		
+    		//Increment the count of warpings
+    		player.addWarp();
+    		
     		m_botAction.sendPrivateMessage( name, "Warping is not allowed. Do not warp again else you will forfiet your duel." );
-    		if( d.getPlayer( name ).getData( 1 ) > 1 ) {
-		    	String opponent = d.getOpponent( name );
-				endDuel( d, opponent, name, 2 );
+    		if( player.getWarps() > 1 ) {
+		    	String opponent = duel.getOpponent( name );
+				endDuel( duel, opponent, name, 2 );
 				return;
     		}
-    		if( d.hasStarted() ) {
-	    		WarpPoint p = d.getRandomWarpPoint();
+    		if( duel.hasStarted() ) {
+	    		WarpPoint p = duel.getRandomWarpPoint();
 				m_botAction.warpTo( name, p.getXCoord(), p.getYCoord() );
-			} else if( d.getPlayerNumber( name ) == 1 ) {
-				m_botAction.warpTo( name, d.getSafeXOne(), d.getSafeYOne() );
-				d.getPlayer( name ).decData( 1 );
+			} else if( duel.getPlayerNumber( name ) == 1 ) {
+				m_botAction.warpTo( name, duel.getSafeXOne(), duel.getSafeYOne() );
+				player.removeWarp();
 			} else {
-				m_botAction.warpTo( name, d.getSafeXTwo(), d.getSafeYTwo() );
-				d.getPlayer( name ).decData( 1 );
+				m_botAction.warpTo( name, duel.getSafeXTwo(), duel.getSafeYTwo() );
+				player.removeWarp();
 			}
 		}
     	
@@ -1277,18 +1335,29 @@ public class duelbot extends SubspaceBot {
     	m_botAction.sendPrivateMessage( name, "Welcome, if you are new PM me with !help for more information." );
     }
     
-    public void handleEvent( FrequencyShipChange event ) {
-    	String name = m_botAction.getPlayerName( event.getPlayerID() );
+    public void handleEvent( FrequencyShipChange _event ) {
+    	
+    	//Get the player name for this event
+    	String name = m_botAction.getPlayerName( _event.getPlayerID() );
+    	
+    	//Make sure the player is playing and in spectator mode
     	if( !playing.containsKey( name ) ) return;
-    	if( event.getShipType() != 0 ) return;
-    	Duel d = (Duel)playing.get( name );
-    	m_botAction.sendPrivateMessage( d.getOpponent( name ), "Your opponent has lagged out or specced, if he/she does not return in 1 minute you win by forfiet." );
+    	if( _event.getShipType() != 0 ) return;
+    	
+    	//Get the associated duel for this player
+    	Duel duel = (Duel)playing.get( name );
+    	
+    	//Get the associated stats object for the player
+    	DuelPlayerStats player = duel.getPlayer( name );
+    	
+    	m_botAction.sendPrivateMessage( duel.getOpponent( name ), "Your opponent has lagged out or specced, if he/she does not return in 1 minute you win by forfiet." );
     	m_botAction.sendPrivateMessage( name, "You have 1 minute to return to your duel or you forfeit (!lagout)" );
-    	d.getPlayer( name ).setData( 8, ((int)System.currentTimeMillis() / 1000 ) );
-    	d.getPlayer( name ).incData( 7 );
-    	if( d.getPlayer( name ).getData( 7 ) >= s_lagLimit ) {
-    		String opponent = d.getOpponent( name );
-			endDuel( d, opponent, name, 3 );
+    	//duel.getPlayer( name ).setData( 8, ((int)System.currentTimeMillis() / 1000 ) );
+    	player.addLagout();
+    	
+    	if( player.getLagouts() >= s_lagLimit ) {
+    		String opponent = duel.getOpponent( name );
+			endDuel( duel, opponent, name, 3 );
 			return;
     	}
 
@@ -1296,25 +1365,41 @@ public class duelbot extends SubspaceBot {
 			((Lagger)laggers.get( name )).cancel();
 			laggers.remove( name );
 		}
-		laggers.put( name, new Lagger( name, d, laggers ) );
+		laggers.put( name, new Lagger( name, duel, laggers ) );
 		Lagger l = (Lagger)laggers.get( name );
 		m_botAction.scheduleTask( l, 60000 );
     }
     
-    public void handleEvent( PlayerLeft event ) {
-    	String name = m_botAction.getPlayerName( event.getPlayerID() );
+    public void handleEvent( PlayerLeft _event ) {
+    	
+    	//Get the player name for this event
+    	String name = m_botAction.getPlayerName( _event.getPlayerID() );
+    	
+    	//Make sure the player is playing
     	if( !playing.containsKey( name ) ) return;
-    	if( laggers.containsKey( name ) ) return;
-    	Duel d = (Duel)playing.get( name );
-    	m_botAction.sendPrivateMessage( d.getOpponent( name ), "Your opponent has lagged out or specced, if he/she does not return in 1 minute you win by forfiet." );
-    	d.getPlayer( name ).setData( 8, ((int)System.currentTimeMillis() / 1000 ) );
-    	d.getPlayer( name ).incData( 7 );
-    	if( d.getPlayer( name ).getData( 7 ) >= s_lagLimit ) {
-    		String opponent = d.getOpponent( name );
-			endDuel( d, opponent, name, 3 );
+    	
+    	//Get the associated duel for this player
+    	Duel duel = (Duel)playing.get( name );
+    	
+    	//Get the associated stats object for the player
+    	DuelPlayerStats player = duel.getPlayer( name );
+    	
+    	m_botAction.sendPrivateMessage( duel.getOpponent( name ), "Your opponent has lagged out or specced, if he/she does not return in 1 minute you win by forfiet." );
+    	m_botAction.sendPrivateMessage( name, "You have 1 minute to return to your duel or you forfeit (!lagout)" );
+    	//duel.getPlayer( name ).setData( 8, ((int)System.currentTimeMillis() / 1000 ) );
+    	player.addLagout();
+    	
+    	if( player.getLagouts() >= s_lagLimit ) {
+    		String opponent = duel.getOpponent( name );
+			endDuel( duel, opponent, name, 3 );
 			return;
     	}
-		laggers.put( name, new Lagger( name, d, laggers ) );
+
+		if( laggers.containsKey( name ) ) {
+			((Lagger)laggers.get( name )).cancel();
+			laggers.remove( name );
+		}
+		laggers.put( name, new Lagger( name, duel, laggers ) );
 		Lagger l = (Lagger)laggers.get( name );
 		m_botAction.scheduleTask( l, 60000 );
 		
@@ -1352,7 +1437,7 @@ class Lagger extends TimerTask {
 	}
 }
 
-class StartDuel extends TimerTask {
+/*class StartDuel extends TimerTask {
 	
 	TournyGame game;
 	
@@ -1376,7 +1461,7 @@ class StartDuel extends TimerTask {
     	playing.put( game.getPlayerOne(), duels.get( new Integer( thisBox.getBoxNumber() ) ) );
     	playing.put( game.getPlayerTwo(), duels.get( new Integer( thisBox.getBoxNumber() ) ) );
 	}
-}
+}*/
 
 class ScoreReport extends TimerTask {
 	

@@ -176,7 +176,7 @@ public class twdbot extends SubspaceBot {
 						if (t.getOwner().equalsIgnoreCase(squadOwner)) {
 							storeSquad(t.getSquad(), t.getOwner());
 						} else {
-							m_botAction.sendPrivateMessage(t.getOwner(), "You are not the owner of the squad " + t.getSquad());
+							m_botAction.sendSmartPrivateMessage(t.getOwner(), "You are not the owner of the squad " + t.getSquad());
 						}
 					}
 				}
@@ -206,7 +206,10 @@ public class twdbot extends SubspaceBot {
         if (command.equals("!help")) {
 			String help[] = {
 				"--------- TWD/TWL COMMANDS -----------------------------------------------------------",
-				"!signup <password>      - Example: !signup mypass. This command will get you an",
+				"!signup <password>      - Replace <password> with a password which is hard to guess.",
+				"                          You are safer if you choose a password that differs",
+				"                          completely from your current SSCU Continuum password.",
+				"                          Example: !signup mypass. This command will get you an",
 				"                          useraccount for TWL and TWD. If you have forgotten your",
 				"                          password, you can use this to pick a new password",
 				"!squadsignup            - This command will sign up your current ?squad for TWD.",
@@ -247,13 +250,7 @@ public class twdbot extends SubspaceBot {
         try {
             if (parameters.length > 0) {
 
-				DBPlayerData thisP2 = new DBPlayerData(m_botAction, "server", name);
-				if (!thisP2.isRegistered()) {
-					m_botAction.sendPrivateMessage(name, "Your name has not been !registered. Please private message AliasTron with !register.");
-					return;
-				}
-    
-				boolean success = false;
+		boolean success = false;
                 boolean can_continue = true;
 
                 String fcPassword = parameters[0];
@@ -264,7 +261,7 @@ public class twdbot extends SubspaceBot {
                     if (System.currentTimeMillis() - thisP.getLastQuery() < 300000)
                         can_continue = false;
 
-				if (thisP == null) {
+		if (thisP == null) {
                     thisP = new DBPlayerData(m_botAction, "website", name, true);
                     success = thisP.getPlayerAccountData();
                 } else success = true;
@@ -282,19 +279,19 @@ public class twdbot extends SubspaceBot {
                     if (!thisP.hasRank(2)) thisP.giveRank(2);
 
                     if (success) {
-                        m_botAction.sendPrivateMessage(name, "This is your account information: ");
-                        m_botAction.sendPrivateMessage(name, "Username: " + thisP.getUserName());
-                        m_botAction.sendPrivateMessage(name, "Password: " + thisP.getPassword());
-                        m_botAction.sendPrivateMessage(name, "To join your squad roster, go to http://twd.trenchwars.org . Log in, click on 'Roster', select your squad, click on main and then click on 'Apply for this squad'");
+                        m_botAction.sendSmartPrivateMessage(name, "This is your account information: ");
+                        m_botAction.sendSmartPrivateMessage(name, "Username: " + thisP.getUserName());
+                        m_botAction.sendSmartPrivateMessage(name, "Password: " + thisP.getPassword());
+                        m_botAction.sendSmartPrivateMessage(name, "To join your squad roster, go to http://twd.trenchwars.org . Log in, click on 'Roster', select your squad, click on main and then click on 'Apply for this squad'");
                         m_players.add(thisP);
                     } else {
-                        m_botAction.sendPrivateMessage(name, "Couldn't create/update your useraccount. Try again another day, if it still doesn't work, ?message lnx");
+                        m_botAction.sendSmartPrivateMessage(name, "Couldn't create/update your useraccount. Try again another day, if it still doesn't work, ?message PriitK");
                     }
                 } else {
-                    m_botAction.sendPrivateMessage(name, "You can only signup / change passwords once every 5 minutes");
+                    m_botAction.sendSmartPrivateMessage(name, "You can only signup / change passwords once every 5 minutes");
                 };
             } else
-                m_botAction.sendPrivateMessage(name, "Specify a password, ex. '!signup mypass'");
+                m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup mypass'");
 
         }
         catch(Exception e)
@@ -308,7 +305,7 @@ public class twdbot extends SubspaceBot {
 		String squad = p.getSquadName();
 		if (squad.equals(""))
 		{
-			m_botAction.sendPrivateMessage(name, "You are not in a squad.");
+			m_botAction.sendSmartPrivateMessage(name, "You are not in a squad.");
 		} else {
 			m_squadowner.add(new SquadOwner(name, squad, ownerID));
 			m_botAction.sendUnfilteredPublicMessage("?squadowner " + squad);
@@ -355,17 +352,17 @@ public class twdbot extends SubspaceBot {
 
 		try
 		{
-			DBPlayerData thisP2 = new DBPlayerData(m_botAction, "server", owner, true);
+			DBPlayerData thisP2 = new DBPlayerData(m_botAction, "server", owner, false);
 
-            if (!thisP2.isRegistered()) {
-				m_botAction.sendPrivateMessage(owner, "Your name has not been !registered. Please private message AliasTron with !register.");
-                return;
+			if (thisP2 == null || !thisP2.isRegistered()) {
+				m_botAction.sendSmartPrivateMessage(owner, "Your name has not been !registered. Please private message AliasTron with !register.");
+				return;
 			}
-            if (!thisP2.isEnabled()) {
-                return;
+			if (!thisP2.isEnabled()) {
+				return;
 			}
 
-			DBPlayerData thisP = new DBPlayerData(m_botAction, "website", owner, true);
+			DBPlayerData thisP = new DBPlayerData(m_botAction, "website", owner, false);
 
 			if (thisP != null)
 			{
@@ -373,7 +370,7 @@ public class twdbot extends SubspaceBot {
 				{
 					ResultSet s = m_botAction.SQLQuery("website", "select fnTeamID from tblTeam where fcTeamName = '" + Tools.addSlashesToString(squad) + "' and (fdDeleted = 0 or fdDeleted IS NULL)");
 					if (s.next()) {
-						m_botAction.sendPrivateMessage(owner, "That squad is already registered..");
+						m_botAction.sendSmartPrivateMessage(owner, "That squad is already registered..");
 						return;
 					}
 
@@ -394,7 +391,7 @@ public class twdbot extends SubspaceBot {
 					if (s2.next()) {
 						teamID = s2.getInt("fnTeamID");
 					} else {
-						m_botAction.sendPrivateMessage(owner, "Database error, contact a TWD Op.");
+						m_botAction.sendSmartPrivateMessage(owner, "Database error, contact a TWD Op.");
 						return;
 					}
 
@@ -412,15 +409,15 @@ public class twdbot extends SubspaceBot {
 
 					thisP.giveRank(4);
 
-					m_botAction.sendPrivateMessage(owner, "The squad " + squad + " has been signed up for TWD.");
+					m_botAction.sendSmartPrivateMessage(owner, "The squad " + squad + " has been signed up for TWD.");
 				} else
-					m_botAction.sendPrivateMessage(owner, "You must leave your current squad first.");
+					m_botAction.sendSmartPrivateMessage(owner, "You must leave your current squad first.");
 			} else
-				m_botAction.sendPrivateMessage(owner, "You must !signup first.");
+				m_botAction.sendSmartPrivateMessage(owner, "You must !signup first.");
 		}
 		catch (Exception e)
 		{
-			m_botAction.sendPrivateMessage(owner, "Database error, contact a TWD Op.");
+			m_botAction.sendSmartPrivateMessage(owner, "Database error, contact a TWD Op.");
 		}
 	}
 
@@ -509,16 +506,16 @@ public class twdbot extends SubspaceBot {
 
 				if (player)
 				{
-					m_botAction.sendPrivateMessage( name, "Your name has been removed from the list of names about to get reset.");
+					m_botAction.sendSmartPrivateMessage( name, "Your name has been removed from the list of names about to get reset.");
 				} else {
-					m_botAction.sendPrivateMessage( name, "The name '" + message + "' has been removed from the list of names about to get reset.");
+					m_botAction.sendSmartPrivateMessage( name, "The name '" + message + "' has been removed from the list of names about to get reset.");
 				}
 			} else {
 				if (player)
 				{
-					m_botAction.sendPrivateMessage( name, "Your name isn't on the list of names about to get reset.");
+					m_botAction.sendSmartPrivateMessage( name, "Your name isn't on the list of names about to get reset.");
 				} else {
-					m_botAction.sendPrivateMessage( name, "The name '" + message + "' was not found on the list of names about to get reset.");
+					m_botAction.sendSmartPrivateMessage( name, "The name '" + message + "' was not found on the list of names about to get reset.");
 				}
 			}
 		}		
@@ -526,9 +523,9 @@ public class twdbot extends SubspaceBot {
 		{
 			if (player)
 			{
-				m_botAction.sendPrivateMessage( name, "Database error, contact a TWD Op.");
+				m_botAction.sendSmartPrivateMessage( name, "Database error, contact a TWD Op.");
 			} else {
-				m_botAction.sendPrivateMessage( name, "Database error: " + e.getMessage() + ".");
+				m_botAction.sendSmartPrivateMessage( name, "Database error: " + e.getMessage() + ".");
 			}
 		}
 	}
@@ -545,17 +542,17 @@ public class twdbot extends SubspaceBot {
 				String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
 				if (player)
 				{
-					m_botAction.sendPrivateMessage( name, "Your name will reset at " + s.getString("resetTime") + ". Current time: " + time);
+					m_botAction.sendSmartPrivateMessage( name, "Your name will reset at " + s.getString("resetTime") + ". Current time: " + time);
 				} else {
-					m_botAction.sendPrivateMessage( name, "The name '" + message + "' will reset at " + s.getString("resetTime") + ". Current time: " + time);
+					m_botAction.sendSmartPrivateMessage( name, "The name '" + message + "' will reset at " + s.getString("resetTime") + ". Current time: " + time);
 				}
 			} else {
 				if (!silent) {
 					if (player)
 					{
-						m_botAction.sendPrivateMessage( name, "Your name was not found on the list of names about to get reset.");
+						m_botAction.sendSmartPrivateMessage( name, "Your name was not found on the list of names about to get reset.");
 					} else {
-						m_botAction.sendPrivateMessage( name, "The name '" + message + "' was not found on the list of names about to get reset.");
+						m_botAction.sendSmartPrivateMessage( name, "The name '" + message + "' was not found on the list of names about to get reset.");
 					}
 				}
 			}
@@ -564,9 +561,9 @@ public class twdbot extends SubspaceBot {
 		{
 			if (player)
 			{
-				m_botAction.sendPrivateMessage( name, "Database error, contact a TWD Op.");
+				m_botAction.sendSmartPrivateMessage( name, "Database error, contact a TWD Op.");
 			} else {
-				m_botAction.sendPrivateMessage( name, "Database error: " + e.getMessage() + ".");
+				m_botAction.sendSmartPrivateMessage( name, "Database error: " + e.getMessage() + ".");
 			}
 		}
 	}
@@ -768,7 +765,7 @@ public class twdbot extends SubspaceBot {
         	
 				if( option.equals("register") ) 
 				{
-					m_botAction.sendSmartPrivateMessage( name, "Please contact a TWD op to register this name." );
+					m_botAction.sendSmartPrivateMessage( name, "Please reset your old name(s) with !resetname and wait the 24h, and then register this name. In case of problems with reseting, feel free to ask for assistance of TW Staff with ?help." );
 					return;
 				} 
 				else
