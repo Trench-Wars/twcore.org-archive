@@ -65,7 +65,6 @@ public class pubhub extends SubspaceBot
       botName = m_botAction.getBotName();
       m_botAction.ipcSubscribe(IPCCHANNEL);
       m_botAction.sendUnfilteredPublicMessage("?chat=" + pubBotChat);
-      m_botAction.sendUnfilteredPublicMessage("?obscene");
       m_botAction.scheduleTask(new CheckPubsTask(), SPAWN_DELAY);
       moduleHandler.handleEvent(event);
     }

@@ -52,7 +52,6 @@ public class staffbot extends SubspaceBot {
         m_botAction.joinArena( m_botSettings.getString( "InitialArena" ) );
         m_opList = m_botAction.getOperatorList();
         m_botAction.sendUnfilteredPublicMessage( "?chat=" + m_botAction.getGeneralSettings().getString( "Chat Name" ) );
-        m_botAction.sendUnfilteredPublicMessage( "?obscene" );
 
         if( m_logArchivingEnabled ){
             TimerTask getLogTask = new TimerTask(){
