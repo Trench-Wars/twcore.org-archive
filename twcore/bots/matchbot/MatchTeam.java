@@ -1043,7 +1043,7 @@ public class MatchTeam
         ;
 
         // does the player want to be picked
-        if (m_round.m_notPlaying.indexOf(name.toLowerCase()) != -1) { return "player can't or doesn't want to play this round"; }
+        if (m_round.m_notPlaying.indexOf(name.toLowerCase()) != -1) { return "Player can't or doesn't want to play this round"; }
         ;
 
         // when rosterjoined=1, has to exist in the Roster database
@@ -1064,27 +1064,6 @@ public class MatchTeam
                 double msDiff = (today.getTimeInMillis() - signup.getTimeInMillis()) / 1000 / 60 / 60;
                 if (msDiff < 0)
                     return "Player isn't eligible yet, he will be eligible " + (-msDiff) + " hours";
-            }
-
-            // only for TWL games
-            if (m_rules.getInt("matchtype") < 4)
-            {
-                try
-                {
-                    ResultSet s = m_botAction
-                            .SQLQuery(
-                                    "website",
-                                    "SELECT tblSiteVar.fcVarValue AS lockDate FROM tblSiteVar, tblTeamUser WHERE tblSiteVar.fcVarName = 'LockDate' AND tblTeamUser.fnUserID = '"
-                                            + dbP.getUserID() + "' AND tblTeamUser.fdJoined < tblSiteVar.fcVarValue;");
-                    if (!s.next()) { return "Player was rostered after the roster lock and is ineligible for TWL games"; }
-                    ResultSet s2 = m_botAction.SQLQuery("website", "SELECT * FROM tblTeamUser WHERE fnUserID = '"
-                            + dbP.getUserID() + "' AND fnTWL = '1'");
-                    if (!s2.next()) { return "Player is not rostered as a TWL player"; }
-                }
-                catch (Exception e)
-                {
-                    return "Error: " + e.getMessage();
-                }
             }
         }
 
