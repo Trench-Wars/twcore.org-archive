@@ -1127,7 +1127,7 @@ public class matchbot extends SubspaceBot
 
     public String[] getTWLDetails(int m_TWLID) {
 	try {
-            ResultSet result = m_botAction.SQLQuery("website", "SELECT * FROM tblMatch WHERE fnMatchID = '" + m_TWLID + "'");
+            ResultSet result = m_botAction.SQLQuery(dbConn, "SELECT * FROM tblMatch WHERE fnMatchID = '" + m_TWLID + "'");
             if (result.next())
             {
                 int fnMatchID = result.getInt("fnMatchID");
