@@ -164,9 +164,9 @@ public class MatchPlayer implements Comparable
 					Tools.addSlashesToString(m_fcPlayerName),
 					Integer.toString(fnTeam),
 					Integer.toString(m_statTracker.getShipType()),
-					Integer.toString(m_statTracker.getTotalStatistic(StatisticRequester.SCORE)),
-					Integer.toString(m_statTracker.getTotalStatistic(StatisticRequester.TOTAL_KILLS)),
-					Integer.toString(m_statTracker.getTotalStatistic(StatisticRequester.DEATHS)),
+					Integer.toString(m_statTracker.getTotalStatistic(Statistics.SCORE)),
+					Integer.toString(m_statTracker.getTotalStatistic(Statistics.TOTAL_KILLS)),
+					Integer.toString(m_statTracker.getTotalStatistic(Statistics.DEATHS)),
 					Integer.toString(m_fnLagouts),
 					Integer.toString(substituted)};
 
@@ -177,7 +177,7 @@ public class MatchPlayer implements Comparable
 
 			try
 			{
-				ResultSet qryMatchRoundUserID = m_botAction.SQLQuery("local", "SELECT MAX(fnMatchRoundUserID) as fnMatchRoundUserID" + "FROM tblMatchRoundUser");
+				ResultSet qryMatchRoundUserID = m_botAction.SQLQuery("local", "SELECT MAX(fnMatchRoundUserID) as fnMatchRoundUserID " + "FROM tblMatchRoundUser");
 
 				if (qryMatchRoundUserID.next())
 				{
@@ -242,27 +242,27 @@ public class MatchPlayer implements Comparable
 					{
 						Integer.toString(fnMatchRoundUserID),
 						Integer.toString(MPS.getShipType()),
-						Integer.toString(MPS.getStatistic(StatisticRequester.SCORE)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.DEATHS)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.WARBIRD_KILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.JAVELIN_KILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.SPIDER_KILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.LEVIATHAN_KILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.TERRIER_KILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.WEASEL_KILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.LANCASTER_KILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.SHARK_KILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.WARBIRD_TEAMKILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.JAVELIN_TEAMKILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.SPIDER_TEAMKILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.LEVIATHAN_TEAMKILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.TERRIER_TEAMKILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.WEASEL_TEAMKILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.LANCASTER_TEAMKILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.SHARK_TEAMKILL)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.FLAG_CLAIMED)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.RATING)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.REPELS_USED)),
+						Integer.toString(MPS.getStatistic(Statistics.SCORE)),
+						Integer.toString(MPS.getStatistic(Statistics.DEATHS)),
+						Integer.toString(MPS.getStatistic(Statistics.WARBIRD_KILL)),
+						Integer.toString(MPS.getStatistic(Statistics.JAVELIN_KILL)),
+						Integer.toString(MPS.getStatistic(Statistics.SPIDER_KILL)),
+						Integer.toString(MPS.getStatistic(Statistics.LEVIATHAN_KILL)),
+						Integer.toString(MPS.getStatistic(Statistics.TERRIER_KILL)),
+						Integer.toString(MPS.getStatistic(Statistics.WEASEL_KILL)),
+						Integer.toString(MPS.getStatistic(Statistics.LANCASTER_KILL)),
+						Integer.toString(MPS.getStatistic(Statistics.SHARK_KILL)),
+						Integer.toString(MPS.getStatistic(Statistics.WARBIRD_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(Statistics.JAVELIN_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(Statistics.SPIDER_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(Statistics.LEVIATHAN_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(Statistics.TERRIER_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(Statistics.WEASEL_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(Statistics.LANCASTER_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(Statistics.SHARK_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(Statistics.FLAG_CLAIMED)),
+						Integer.toString(MPS.getStatistic(Statistics.RATING)),
+						Integer.toString(MPS.getStatistic(Statistics.REPELS_USED)),
 						started,
 						ended };
 
@@ -349,7 +349,7 @@ public class MatchPlayer implements Comparable
 		m_statTracker.reportDeath();
 
 		//lag check timer cancel
-		if ((m_statTracker.getStatistic(StatisticRequester.DEATHS) >= m_fnSpecAt) && (m_rules.getInt("deaths") > 0))
+		if ((m_statTracker.getStatistic(Statistics.DEATHS) >= m_fnSpecAt) && (m_rules.getInt("deaths") > 0))
 		{
 			if (m_fnPlayerState != 2)
 			{
@@ -383,7 +383,7 @@ public class MatchPlayer implements Comparable
 		if (lagRequestTask != null)
 			lagRequestTask.cancel();
 
-		m_fnSpecAt = m_statTracker.getStatistic(StatisticRequester.DEATHS);
+		m_fnSpecAt = m_statTracker.getStatistic(Statistics.DEATHS);
 		m_statTracker.endNow();
 
 		if (m_player != null)
@@ -425,7 +425,7 @@ public class MatchPlayer implements Comparable
 							    createNewShip(m_fnShipType);
 							};
 							 */
-							if (m_statTracker.getTotalStatistic(StatisticRequester.TOTAL_KILLS) == 0 && m_statTracker.getTotalStatistic(StatisticRequester.DEATHS) == 0)
+							if (m_statTracker.getTotalStatistic(Statistics.TOTAL_KILLS) == 0 && m_statTracker.getTotalStatistic(Statistics.DEATHS) == 0)
 								m_botAction.shipReset(m_fcPlayerName);
 							getInGame(true);
 							if ((m_fnMaxLagouts > 0) && (fnRoundState == 3))
@@ -536,7 +536,7 @@ public class MatchPlayer implements Comparable
 	public int getDeaths()
 	{
 		if ((m_fnPlayerState >= 1) && (m_fnPlayerState <= 2))
-			return m_statTracker.getTotalStatistic(StatisticRequester.DEATHS);
+			return m_statTracker.getTotalStatistic(Statistics.DEATHS);
 		if (m_fnPlayerState == 0)
 			return 0;
 		if (m_fnPlayerState == 3)
@@ -615,9 +615,9 @@ public class MatchPlayer implements Comparable
 		else if (winby.equals("timerace"))
 		{
 			if (m_switchedShip)
-				return m_statTracker.getTotalStatistic(StatisticRequester.RATING);
+				return m_statTracker.getTotalStatistic(Statistics.RATING);
 			else
-				return m_statTracker.getStatistic(StatisticRequester.RATING);
+				return m_statTracker.getStatistic(Statistics.RATING);
 		}
 		return 0;
 	}
@@ -678,11 +678,11 @@ public class MatchPlayer implements Comparable
 
 	public int getActualDeaths()
 	{
-		return m_statTracker.getTotalStatistic(StatisticRequester.DEATHS);
+		return m_statTracker.getTotalStatistic(Statistics.DEATHS);
 	};
 	public int getKills()
 	{
-		return m_statTracker.getTotalStatistic(StatisticRequester.TOTAL_KILLS);
+		return m_statTracker.getTotalStatistic(Statistics.TOTAL_KILLS);
 	}
 
 	/**
@@ -706,7 +706,7 @@ public class MatchPlayer implements Comparable
 	};
 	public int getScore()
 	{
-		return m_statTracker.getStatistic(StatisticRequester.SCORE);
+		return m_statTracker.getStatistic(Statistics.SCORE);
 	};
 	public int getSpecAt()
 	{
@@ -989,35 +989,35 @@ public class MatchPlayer implements Comparable
 				switch (shipType)
 				{
 					case 1 : //wb
-						m_statisticTracker.setWbTeamKill();
+						m_statisticTracker.setStatistic(Statistics.WARBIRD_TEAMKILL);
 						break;
 
 					case 2 : //jav
-						m_statisticTracker.setJavTeamKill();
+						m_statisticTracker.setStatistic(Statistics.JAVELIN_TEAMKILL);
 						break;
 
 					case 3 : //spider
-						m_statisticTracker.setSpiderTeamKill();
+						m_statisticTracker.setStatistic(Statistics.SPIDER_TEAMKILL);
 						break;
 
 					case 4 : //lev
-						m_statisticTracker.setLevTeamKill();
+						m_statisticTracker.setStatistic(Statistics.LEVIATHAN_TEAMKILL);
 						break;
 
 					case 5 : //terr
-						m_statisticTracker.setTerrTeamKill();
+						m_statisticTracker.setStatistic(Statistics.TERRIER_TEAMKILL);
 						break;
 
 					case 6 : //x
-						m_statisticTracker.setWeaselTeamKill();
+						m_statisticTracker.setStatistic(Statistics.WEASEL_TEAMKILL);
 						break;
 
 					case 7 : //lanc
-						m_statisticTracker.setLancTeamKill();
+						m_statisticTracker.setStatistic(Statistics.LANCASTER_TEAMKILL);
 						break;
 
 					case 8 : //shark
-						m_statisticTracker.setSharkTeamKill();
+						m_statisticTracker.setStatistic(Statistics.SHARK_TEAMKILL);
 						break;
 				}
 			}
@@ -1026,40 +1026,40 @@ public class MatchPlayer implements Comparable
 				switch (shipType)
 				{
 					case 1 : //wb
-						m_statisticTracker.setWbKill();
+						m_statisticTracker.setStatistic(Statistics.WARBIRD_KILL);
 						break;
 
 					case 2 : //jav
-						m_statisticTracker.setJavKill();
+						m_statisticTracker.setStatistic(Statistics.JAVELIN_KILL);
 						break;
 
 					case 3 : //spider
-						m_statisticTracker.setSpiderKill();
+						m_statisticTracker.setStatistic(Statistics.SPIDER_KILL);
 						break;
 
 					case 4 : //lev
-						m_statisticTracker.setLevKill();
+						m_statisticTracker.setStatistic(Statistics.LEVIATHAN_KILL);
 						break;
 
 					case 5 : //terr
-						m_statisticTracker.setTerrKill();
+						m_statisticTracker.setStatistic(Statistics.TERRIER_KILL);
 						break;
 
 					case 6 : //x
-						m_statisticTracker.setWeaselKill();
+						m_statisticTracker.setStatistic(Statistics.WEASEL_KILL);
 						break;
 
 					case 7 : //lanc
-						m_statisticTracker.setLancKill();
+						m_statisticTracker.setStatistic(Statistics.LANCASTER_KILL);
 						break;
 
 					case 8 : //shark
-						m_statisticTracker.setSharkKill();
+						m_statisticTracker.setStatistic(Statistics.SHARK_KILL);
 						break;
 				}
 			}
 
-			m_statisticTracker.setScore(fnPoints);
+			m_statisticTracker.setStatistic(Statistics.SCORE, fnPoints);
 		}
 
 		/**
@@ -1067,7 +1067,7 @@ public class MatchPlayer implements Comparable
 		*/
 		public void reportRepelUsed()
 		{
-			m_statisticTracker.setRepelsUsed();
+			m_statisticTracker.setStatistic(Statistics.REPELS_USED);
 		}
 
 		/**
@@ -1077,20 +1077,18 @@ public class MatchPlayer implements Comparable
 		 */
 		public void reportFlagClaimed()
 		{
-			m_statisticTracker.setFlagClaimed();
+			m_statisticTracker.setStatistic(Statistics.FLAG_CLAIMED);
 		}
 
 		// report death
 		public void reportDeath()
 		{
-			m_statisticTracker.setDeaths();
-			//		if (m_fnShipType == 8) //shark
-			//			m_statisticTracker.setAverageRepelCount(m_botAction.getPlayer(m_fcPlayerName).getRepelCount());
+			m_statisticTracker.setStatistic(Statistics.DEATHS);
 		}
 
 		public void flagReward(int points)
 		{
-			m_statisticTracker.setScore(points);
+			m_statisticTracker.setStatistic(Statistics.SCORE, points);
 		}
 
 		/**
@@ -1099,7 +1097,7 @@ public class MatchPlayer implements Comparable
 		 */
 		public void changeDeaths(int deaths)
 		{
-			m_statisticTracker.changeDeaths(deaths);
+			m_statisticTracker.changeStatistic(Statistics.DEATHS, deaths);
 		}
 
 		// report end of playership
@@ -1126,7 +1124,7 @@ public class MatchPlayer implements Comparable
 
 		public int getStatistic(int statType)
 		{
-			return m_statisticTracker.getStatistic(statType);
+			return m_statisticTracker.getIntStatistic(statType);
 		}
 
 		public java.util.Date getTimeStarted()
