@@ -2139,7 +2139,7 @@ public class tournybot extends SubspaceBot {
 
 		for (int i = 1; i < counters.length; i++) {
 
-			if (winner < counters[i]) { 
+			if (counters[winner] < counters[i]) { 
 				winner = i; 
 			}
 		}
