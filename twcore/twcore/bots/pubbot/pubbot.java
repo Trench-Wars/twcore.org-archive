@@ -3,7 +3,7 @@ package twcore.bots.pubbot;
 import java.util.*;
 import java.io.*;
 import twcore.core.*;
-import twcore.bots.pubhub.*;
+import twcore.misc.pubcommon.*;
 
 public class pubbot extends SubspaceBot
 {
@@ -42,7 +42,7 @@ public class pubbot extends SubspaceBot
   {
     BotSettings botSettings = m_botAction.getBotSettings();
 
-    moduleHandler = new ModuleHandler(m_botAction, m_botAction.getGeneralSettings().getString( "Core Location" ) + "/twcore/bots/pubhub", "pubbot");
+    moduleHandler = new ModuleHandler(m_botAction, m_botAction.getGeneralSettings().getString( "Core Location" ) + "/twcore/bots/pubbot", "pubbot");
     currentArena = botSettings.getString("InitialArena");
     m_botAction.changeArena(currentArena);
     opList = m_botAction.getOperatorList();

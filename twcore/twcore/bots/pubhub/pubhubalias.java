@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import twcore.core.*;
 import twcore.misc.database.DBPlayerData;
+import twcore.misc.pubcommon.*;
 
 public class pubhubalias extends PubBotModule
 {
