@@ -510,12 +510,12 @@ public class MatchRound
 					String playerName = parameters[0];
 					MatchPlayer player;
 
-					if ((m_team1.getPlayer(playerName).getPlayerName().toLowerCase()).equals(m_botAction.getFuzzyPlayerName(playerName).toLowerCase()))
+					if (m_team1.getPlayer(playerName) != null)
 					{
 						player = m_team1.getPlayer(playerName);
 						m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
 					}
-					else if ((m_team2.getPlayer(playerName).getPlayerName().toLowerCase()).equals(m_botAction.getFuzzyPlayerName(playerName).toLowerCase()))
+					else if (m_team2.getPlayer(playerName) != null)
 					{
 						player = m_team2.getPlayer(playerName);
 						m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
