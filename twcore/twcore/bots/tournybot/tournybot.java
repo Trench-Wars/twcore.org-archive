@@ -4,6 +4,7 @@ import twcore.core.*;
 import java.util.*;
 import java.sql.*;
 import java.text.*;
+import twcore.misc.lag.lagHandler;
 
 public class tournybot extends SubspaceBot {
 	
@@ -1724,8 +1725,9 @@ public class tournybot extends SubspaceBot {
 				} else if (nChecks > 9) {
 					dbAvailable = false;
 					reallyAnnouncePlayers();
+				} else {
+					nChecks++;
 				}
-				nChecks++;
 			}
 		};
 	        m_botAction.scheduleTaskAtFixedRate(checkQueries, 2000, 1000);
@@ -2233,9 +2235,11 @@ public class tournybot extends SubspaceBot {
 					m_botAction.shipReset(player);
 
 					if (!silent) {
-						/* m_botAction.sendOpposingTeamMessage( Integer.parseInt(info.getFreq()), "Score: [" + fInfo.getNames() + " " + fInfo.getGameKills() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
-						m_botAction.sendOpposingTeamMessage( Integer.parseInt(info2.getFreq()), "Score: [" + fInfo2.getNames() + " " + fInfo2.getGameKills() + "-" + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]"); */
-
+/*
+						m_botAction.sendOpposingTeamMessage( Integer.parseInt(info.getFreq()), "Score: [" + fInfo.getNames() + " " + fInfo.getGameKills() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
+						m_botAction.sendPublicMessage( "[" + info.getFreq() + "] Score: [" + fInfo.getNames() + " " + fInfo.getGameKills() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
+						m_botAction.sendOpposingTeamMessage( Integer.parseInt(info2.getFreq()), "Score: [" + fInfo2.getNames() + " " + fInfo2.getGameKills() + "-" + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]");
+*/
 						m_botAction.sendPrivateMessage( killer, "Score: [" + fInfo.getNames() + " " + fInfo2.getGameDeaths() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
 						m_botAction.sendPrivateMessage( player, "Score: [" + fInfo2.getNames() + " " + fInfo.getGameDeaths() + "-" + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]");
 
@@ -2243,6 +2247,7 @@ public class tournybot extends SubspaceBot {
 							m_botAction.sendPrivateMessage( getPartner(killer), "Score: [" + fInfo.getNames() + " " + fInfo2.getGameDeaths() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
 							m_botAction.sendPrivateMessage( getPartner(player), "Score: [" + fInfo2.getNames() + " " + fInfo.getGameDeaths() + "-" + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]");
 						}
+
 					}
 					warpPlayer(player);
 					if (maxPerFreq != 2) {
