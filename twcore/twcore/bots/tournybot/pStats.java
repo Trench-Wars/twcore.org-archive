@@ -17,7 +17,7 @@ public class pStats {
 	int lastDeath = 0;
 	int lastReturn = 0;
 	int id = 0;
-	String lastKiller;
+	String lastKiller = "";
 	String lag = "No";
 	int lagOuts = 0;
 	int fouls = 0;

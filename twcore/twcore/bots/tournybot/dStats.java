@@ -17,6 +17,9 @@ public class dStats {
 	int id1;
 	int id2;
 
+	int wR = 0;
+	int lR = 0;
+
 	boolean finished;
 
 	// 1v1
@@ -76,6 +79,10 @@ public class dStats {
 
 	public int duration() { return (int)(System.currentTimeMillis() / 1000) - startTime; }
 
+	public int getWR() { return wR; }
+
+	public int getLR() { return lR; }
+
 	public void endForfeitDuel(fStats winner) {
 
 		round = winner.getRound();
@@ -129,8 +136,11 @@ public class dStats {
 			loser.setRating(1);
 		}
 
-		double wRating = (loser.getRating() / 10) * (0.5 * (loser.getRating() / winner.getRating()));
-		double lRating = (loser.getRating() / 10) * (0.1 * (loser.getRating() / winner.getRating()));
+		double wRating = (loser.getRating() / 10) * (0.5 * (loser.getRating() / winner.getRating())) + 10;
+		double lRating = (loser.getRating() / 10) * (0.1 * (loser.getRating() / winner.getRating())) + 5;
+
+		wR = (int)wRating;
+		lR = (int)lRating;
 
 		winner.setRatingChange(winner.getRatingChange() + (int)wRating);
 		loser.setRatingChange(loser.getRatingChange() - (int)lRating);

@@ -554,6 +554,8 @@ public class MatchPlayer implements Comparable
 			return "unlimited";
 	};
 
+	public int getLagOuts() { return m_fnLagouts; }
+
 	public boolean isLagged()
 	{
 		if (m_fnPlayerState == 3)

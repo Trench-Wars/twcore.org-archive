@@ -278,14 +278,14 @@ public class MatchRound
 
             if (m_team1.getFrequency() == freq)
             {
-                m_team1.ownFlag(event.getPlayerID());
-                m_team2.disownFlag();
+                m_team2.disownFlag();                 // Disown flag before reowning
+                m_team1.ownFlag(event.getPlayerID()); // .. or else own will not register. -qan 10/04
             }
 
             if (m_team2.getFrequency() == freq)
             {
-                m_team2.ownFlag(event.getPlayerID());
                 m_team1.disownFlag();
+                m_team2.ownFlag(event.getPlayerID());
             }
         }
     }
@@ -1112,6 +1112,8 @@ public class MatchRound
             else
                 m_logger.sendArenaMessage("Result of " + m_team1.getTeamName() + " vs. " + m_team2.getTeamName() + ": " + m_fnTeam1Score + " - " + m_fnTeam2Score, 5);
 
+    	    displayScores();
+
             if (m_fnTeam1Score > m_fnTeam2Score)
             {
                 m_fnRoundResult = 1;
@@ -1133,6 +1135,7 @@ public class MatchRound
                 m_fnRoundResult = 2;
                 m_logger.sendArenaMessage("Draw!");
             };
+
             m_fnRoundState = 4;
 
             if (m_rules.getInt("storegame") == 1)
@@ -1406,6 +1409,57 @@ public class MatchRound
         }
 
     }
+
+    public void displayScores()
+    {
+	boolean duelG = m_rules.getString("winby").equalsIgnoreCase("kills");
+	boolean wbG = m_rules.getInt("ship") == 1;
+	ArrayList out = new ArrayList();
+
+	if (duelG) {
+	    if (wbG) {
+		    out.add(",---------------------------------+------+-----------+----.");
+		    out.add("|                               K |    D |    Rating | LO |");
+	    } else {
+		    out.add(",---------------------------------+------+------+-----------+----.");
+		    out.add("|                               K |    D |   TK |    Rating | LO |");
+	    }
+	} else {
+	    out.add(",---------------------------------+------+------+-----------+------+------+-----------+----.");
+	    out.add("|                               K |    D |   TK |    Points |   FT |  TeK |    Rating | LO |");
+	}
+
+	out.addAll(m_team1.getDScores(duelG, wbG));
+
+	if (duelG) {
+	    if (wbG) {
+		    out.add("+---------------------------------+------+-----------+----+");
+	    } else {
+		    out.add("+---------------------------------+------+------+-----------+----+");
+	    }
+	} else {
+	    out.add("+---------------------------------+------+------+-----------+------+------+-----------+----+");
+	}
+
+	out.addAll(m_team2.getDScores(duelG, wbG));
+
+	if (duelG) {
+	    if (wbG) {
+		    out.add("`---------------------------------+------+-----------+----'");
+	    } else {
+		    out.add("`---------------------------------+------+------+-----------+----'");
+	    }
+	} else {
+	    out.add("`---------------------------------+------+------+-----------+------+------+-----------+----'");
+	}
+
+	String out2[] = (String[]) out.toArray(new String[out.size()]);
+
+        for (int i = 0; i < out2.length; i++) {
+            m_botAction.sendArenaMessage(out2[i]);
+        }
+    }
+	
 
     public void cancel()
     {
