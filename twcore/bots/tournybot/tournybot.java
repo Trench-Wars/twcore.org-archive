@@ -426,13 +426,6 @@ public class tournybot extends SubspaceBot {
 						warpPlayer(killeeName);
 						info2.playing();
 
-						if (maxPerFreq != 2) {
-							info.sleeping();
-							m_botAction.shipReset(killerName);
-							warpPlayer(killerName);
-							info.playing();
-						}
-
 						String name = killeeName + killerName;
 						if (delayers.containsKey( name )) {
 							((duelDelay) delayers.get(name)).cancel();
@@ -2514,18 +2507,10 @@ public class tournybot extends SubspaceBot {
 					m_botAction.shipReset(player);
 
 					if (!silent) {
-
-						m_botAction.sendOpposingTeamMessage( Integer.parseInt(info.getFreq()), "Score: [" + fInfo.getNames() + " " + fInfo.getGameKills() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
-						m_botAction.sendOpposingTeamMessage( Integer.parseInt(info2.getFreq()), "Score: [" + fInfo2.getNames() + " " + fInfo2.getGameKills() + "-" + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]");
-
-//						m_botAction.sendPrivateMessage( killer, "Score: [" + fInfo.getNames() + " " + fInfo2.getGameDeaths() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
-//						m_botAction.sendPrivateMessage( player, "Score: [" + fInfo2.getNames() + " " + fInfo.getGameDeaths() + "-" + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]");
-
-//						if (maxPerFreq == 2) {
-//							m_botAction.sendPrivateMessage( getPartner(killer), "Score: [" + fInfo.getNames() + " " + fInfo2.getGameDeaths() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
-//							m_botAction.sendPrivateMessage( getPartner(player), "Score: [" + fInfo2.getNames() + " " + fInfo.getGameDeaths() + "-" + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]");
-//						}
+						m_botAction.sendOpposingTeamMessage( killer, "Score: [" + fInfo.getNames() + " " + fInfo.getGameKills() + "-" + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]", 0 ); 
+						m_botAction.sendOpposingTeamMessage( player, "Score: [" + fInfo2.getNames() + " " + fInfo2.getGameKills() + "-" + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]", 0 );
 					}
+
 					warpPlayer(player);
 					if (maxPerFreq != 2) {
 						m_botAction.shipReset(killer);
