@@ -24,7 +24,7 @@ import java.sql.*;
 public class duelbot extends SubspaceBot {
 	
 	CommandInterpreter  m_commandInterpreter;
-	final String		mySQLHost = "dock";
+	final String		mySQLHost = "local";
 	//Used to 'shutdown' the bot and allow no new duels.
 	boolean 			shutDown  = false;    
 	
