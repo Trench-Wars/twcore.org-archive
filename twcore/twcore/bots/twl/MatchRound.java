@@ -16,7 +16,7 @@ import twcore.misc.database.DBPlayerData;
 import java.util.*;
 import java.sql.*;
 import java.text.*;
-import twcore.misc.lag.lagHandler;
+import twcore.misc.lag.*;
 
 public class MatchRound
 {
@@ -100,7 +100,7 @@ public class MatchRound
         m_team1 = new MatchTeam(fcTeam1Name, 1, 1, this);
         m_team2 = new MatchTeam(fcTeam2Name, 2, 2, this);
 
-	m_lagHandler = new lagHandler(m_botAction, m_rules);
+	m_lagHandler = new lagHandler(m_botAction, m_rules, this, "handleLagReport");
 
         m_notPlaying = new ArrayList();
 
@@ -364,7 +364,7 @@ public class MatchRound
             String killerName = m_botAction.getPlayer(event.getKillerID()).getPlayerName();
 
             if (m_fnRoundState == 3)
-                m_lagHandler.requestLag(killerName, "[BOT]", false, true);
+                m_lagHandler.requestLag(killerName);
 
             if (m_team1.getPlayer(killeeName, true) != null)
                 m_team1.handleEvent(event);
@@ -897,16 +897,44 @@ public class MatchRound
     public void command_checklag(String name, String parameters[])
     {
         if (parameters.length != 0) {
-            m_lagHandler.requestLag(parameters[0], name, false, false);
+            m_lagHandler.requestLag(parameters[0], name);
         } else {
-            m_lagHandler.requestLag(name, name, false, false);
+            m_lagHandler.requestLag(name, name);
         }
     };
 
     public void command_lagstatus(String name, String parameters[])
     {
-	m_botAction.sendPrivateMessage(name, m_lagHandler.getStatus());
+        m_botAction.sendPrivateMessage(name, m_lagHandler.getStatus());
     };
+
+    public void handleLagReport(LagReport report) 
+    {
+        if (!report.isBotRequest()) 
+        {
+            m_botAction.privateMessageSpam(report.getRequester(), report.getLagStats());
+        }
+
+        MatchPlayer p = m_team1.getPlayer(report.getName(), true);
+		if (p == null) {
+			p = m_team2.getPlayer(report.getName(), true);
+		}
+
+        if (report.isOverLimits()) 
+        {
+            if (!report.isBotRequest()) 
+            {
+                m_botAction.sendPrivateMessage(report.getRequester(), report.getLagReport());
+            }
+			if (p != null && m_botAction.getPlayer(report.getName()).getShipType() != 0 && p.getPlayerState() == MatchPlayer.IN_GAME)
+			{
+	            m_botAction.sendPrivateMessage(report.getName(), report.getLagReport());
+				p.setLagByBot(true);
+				m_botAction.spec(report.getName());
+				m_botAction.spec(report.getName());
+			}
+        }
+    }
 
     public MatchTeam getOtherTeam(int freq)
     {
