@@ -413,6 +413,7 @@ public class MatchRound
 		if (m_fnRoundState == 3)
 		{
 			help.add("!score                                   - Show the current score of both teams");
+			help.add("!rating <player>						   - provides realtime stats and rating and current MVP");
 		};
 
 		// for staff
@@ -502,22 +503,22 @@ public class MatchRound
 		String winby = m_rules.getString("winby");
 		if (winby.equals("timerace") && m_fnRoundState == 3)
 		{
-			MatchPlayer player;
-			
 			try
 			{
-				if (m_team1.getPlayer(parameters).getPlayerName().equals(m_botAction.getFuzzyPlayerName(parameters)))
+				MatchPlayer player;
+			
+				if ((m_team1.getPlayer(parameters).getPlayerName().toLowerCase()).equals(m_botAction.getFuzzyPlayerName(parameters).toLowerCase()))
 				{
 					player = m_team1.getPlayer(parameters);
 					m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
 				}
-				else if (m_team2.getPlayer(parameters).getPlayerName().equals(m_botAction.getFuzzyPlayer(parameters)))
+				else if ((m_team2.getPlayer(parameters).getPlayerName().toLowerCase()).equals(m_botAction.getFuzzyPlayerName(parameters).toLowerCase()))
 				{
 					player = m_team2.getPlayer(parameters);
 					m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
 				}
-				
-				m_logger.sendPrivateMessage(name, "The player isn't in the game");	
+				else
+					m_logger.sendPrivateMessage(name, "The player isn't in the game");	
 					
 			}
 			catch (Exception e)

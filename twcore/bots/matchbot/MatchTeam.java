@@ -247,7 +247,6 @@ public class MatchTeam
 			}
 			else if (m_round.m_fnRoundState == 3)
 			{
-				help.add("!rating <player>						   - provides realtime stats and rating");
 				help.add("!list                                    - lists all players on this team");
 				help.add("!lagout                                  - puts you back in the game");
 			};
