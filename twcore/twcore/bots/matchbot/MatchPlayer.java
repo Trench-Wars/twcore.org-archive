@@ -70,7 +70,7 @@ public class MatchPlayer implements Comparable
 	 */
 	int m_fnPlayerState = 0;
 	int m_fnMaxLagouts;
-	
+
 	boolean m_aboutToBeSubbed = false;
 	boolean m_fbSubstituter = false;
 	boolean m_switchedShip = false;
@@ -81,8 +81,6 @@ public class MatchPlayer implements Comparable
 	static final int SUBSTITUTED = 2;
 	static final int LAGGED = 3;
 	static final int OUT = 4;
-
-
 
 	/** Creates a new instance of MatchPlayer */
 	public MatchPlayer(String fcPlayerName, MatchTeam Matchteam)
@@ -120,22 +118,28 @@ public class MatchPlayer implements Comparable
 	 * @param anotherPlayer Another matchplayer class from which it will compare points for MVP
 	 * @exception throws exception if wrong class is passed
 	 */
-	
-	public int compareTo(Object anotherPlayer) throws ClassCastException 
+	public int compareTo(Object anotherPlayer) throws ClassCastException
 	{
 		if (!(anotherPlayer instanceof MatchPlayer))
 			throw new ClassCastException("A MatchPlayer object expected.");
-		      
-		    //this has to be done in reverse order so it can be sorted in decending order
-            if (this.getPoints() < ((MatchPlayer)anotherPlayer).getPoints())
-                return -1;
-            else if (this.getPoints() == ((MatchPlayer)anotherPlayer).getPoints())
-                return 0;
-            else //p2 > p1.
-                return 1;
+
+		//this has to be done in reverse order so it can be sorted in decending order
+		if (this.getPoints() < ((MatchPlayer) anotherPlayer).getPoints())
+			return -1;
+		else if (this.getPoints() == ((MatchPlayer) anotherPlayer).getPoints())
+			return 0;
+		else //p2 > p1.
+			return 1;
 	}
-	
-	// store player result
+
+	/**
+	 * 
+	 * This function stores all the values in the database at the end of the game
+	 * It now also implements storing of individual ship database stats.
+	 * 
+	 * @param fnMatchRoundID The match round ID that is being played
+	 * @param fnTeam The team the player belongs to
+	 */
 	public void storePlayerResult(int fnMatchRoundID, int fnTeam)
 	{
 		try
@@ -144,9 +148,57 @@ public class MatchPlayer implements Comparable
 			if (m_fnPlayerState == 2)
 				substituted = 1;
 
+			//first put stats into table: tblMatchRoundUser
+			String[] fields =
+				{
+					"fnMatchRoundID",
+					"fnUserID",
+					"fcUserName",
+					"fnTeam",
+					"fnShipTypeID",
+					"fnScore",
+					"fnWins",
+					"fnLosses",
+					"fnLagout",
+					"fnSubstituted" };
+
+			String[] values =
+				{
+					Integer.toString(fnMatchRoundID),
+					Integer.toString(m_dbPlayer.getUserID()),
+					Tools.addSlashesToString(m_fcPlayerName),
+					Integer.toString(fnTeam),
+					Integer.toString(m_statTracker.getShipType()),
+					Integer.toString(m_statTracker.getTotalStatistic(StatisticRequester.SCORE)),
+					Integer.toString(m_statTracker.getTotalStatistic(StatisticRequester.TOTAL_KILLS)),
+					Integer.toString(m_statTracker.getTotalStatistic(StatisticRequester.DEATHS)),
+					Integer.toString(m_fnLagouts),
+					Integer.toString(substituted)};
+
+			m_botAction.SQLInsertInto("local", "tblMatchRoundUser", fields, values);
+
+			//get fnMatchRoundUserID
+			int fnMatchRoundUserID = 0;
+
+			try
+			{
+				ResultSet qryMatchRoundUserID = m_botAction.SQLQuery("local", "SELECT MAX(fnMatchRoundUserID) as fnMatchRoundUserID" + "FROM tblMatchRoundUser");
+
+				if (qryMatchRoundUserID.next())
+				{
+					fnMatchRoundUserID = qryMatchRoundUserID.getInt("fnMatchRoundUserID");
+				}
+			}
+			catch (Exception e)
+			{
+				Tools.printStackTrace(e);
+			}
+
+			//store for each ship
+			java.util.Date m_ftTimeStarted;
+			java.util.Date m_ftTimeEnded;
 			MatchPlayerShip MPS;
 			ListIterator i = m_statTracker.m_ships.listIterator();
-			java.util.Date m_ftTimeStarted, m_ftTimeEnded;
 			String started, ended;
 
 			while (i.hasNext())
@@ -159,39 +211,66 @@ public class MatchPlayer implements Comparable
 					m_ftTimeStarted = new java.util.Date();
 				if (m_ftTimeEnded == null)
 					m_ftTimeEnded = new java.util.Date();
+
 				started = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(m_ftTimeStarted);
 				ended = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(m_ftTimeEnded);
 
-				String[] fields =
+				String[] shipFields =
 					{
-						"fnMatchRoundID",
-						"fnUserID",
-						"fcUserName",
-						"fnTeam",
+						"fnMatchRoundUserID",
 						"fnShipTypeID",
 						"fnScore",
-						"fnWins",
-						"fnLosses",
-						"fnLagout",
+						"fnDeaths",
+						"fnWarbirdKill",
+						"fnJavelinKill",
+						"fnSpiderKill",
+						"fnLeviathanKill",
+						"fnTerrierKill",
+						"fnWeaselKill",
+						"fnLancasterKill",
+						"fnSharkKill",
+						"fnWarbirdTeamKill",
+						"fnJavelinTeamKill",
+						"fnSpiderTeamKill",
+						"fnLeviathanTeamKill",
+						"fnTerrierTeamKill",
+						"fnWeaselTeamKill",
+						"fnLancasterTeamKill",
+						"fnSharkTeamKill",
+						"fnFlagClaimed",
+						"fnRating",
 						"ftTimeStarted",
-						"ftTimeEnded",
-						"fnSubstituted" };
-				String[] values =
+						"ftTimeEnded" };
+
+				String[] shipValues =
 					{
-						Integer.toString(fnMatchRoundID),
-						Integer.toString(m_dbPlayer.getUserID()),
-						Tools.addSlashesToString(m_fcPlayerName),
-						Integer.toString(fnTeam),
+						Integer.toString(fnMatchRoundUserID),
 						Integer.toString(MPS.getShipType()),
 						Integer.toString(MPS.getStatistic(StatisticRequester.SCORE)),
-						Integer.toString(MPS.getStatistic(StatisticRequester.TOTAL_KILLS)),
 						Integer.toString(MPS.getStatistic(StatisticRequester.DEATHS)),
-						Integer.toString(m_fnLagouts),
+						Integer.toString(MPS.getStatistic(StatisticRequester.WARBIRD_KILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.JAVELIN_KILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.SPIDER_KILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.LEVIATHAN_KILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.TERRIER_KILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.WEASEL_KILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.LANCASTER_KILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.SHARK_KILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.WARBIRD_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.JAVELIN_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.SPIDER_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.LEVIATHAN_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.TERRIER_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.WEASEL_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.LANCASTER_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.SHARK_TEAMKILL)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.FLAG_CLAIMED)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.RATING)),
 						started,
-						ended,
-						Integer.toString(substituted)};
-				m_botAction.SQLInsertInto("local", "tblMatchRoundUser", fields, values);
-			};
+						ended };
+
+				m_botAction.SQLInsertInto("local", "tblMatchRoundUserShip", shipFields, shipValues);
+			}
 		}
 		catch (Exception e)
 		{
@@ -236,10 +315,7 @@ public class MatchPlayer implements Comparable
 			lagRequestTask = new LagRequestTask();
 			m_botAction.scheduleTaskAtFixedRate(lagRequestTask, 0, m_rules.getInt("lagcheckdelay") * 1000);
 		};
-	}
-
-
-;
+	};
 
 	// report kill
 	public void reportKill(int fnPoints, int killeeID)
@@ -262,10 +338,10 @@ public class MatchPlayer implements Comparable
 
 	// report death
 	public void reportDeath()
-	{	
+	{
 		resetOutOfBorderTime();
 		m_statTracker.reportDeath();
-			
+
 		//lag check timer cancel
 		if ((m_statTracker.getStatistic(StatisticRequester.DEATHS) >= m_fnSpecAt) && (m_rules.getInt("deaths") > 0))
 		{
@@ -279,7 +355,7 @@ public class MatchPlayer implements Comparable
 			m_logger.sendArenaMessage(getPlayerName() + " is out. " + getKills() + " wins " + getDeaths() + " losses");
 		};
 	}
-	
+
 	// report lagout
 	/*
 	public void reportLagout() {
@@ -296,23 +372,19 @@ public class MatchPlayer implements Comparable
 	{
 		resetOutOfBorderTime();
 		m_fnPlayerState = 2;
-		
+
 		//cancel lag checks
 		if (lagRequestTask != null)
 			lagRequestTask.cancel();
-			
+
 		m_fnSpecAt = m_statTracker.getStatistic(StatisticRequester.DEATHS);
 		m_statTracker.endNow();
-
 
 		if (m_player != null)
 		{
 			m_logger.specAndSetFreq(m_fcPlayerName, m_team.getFrequency());
 		};
-	}
-
-
-;
+	};
 
 	// substitute (put yourself in)
 	public void substitute(int newSpecAt)
@@ -347,7 +419,7 @@ public class MatchPlayer implements Comparable
 							    createNewShip(m_fnShipType);
 							};
 							 */
-							if (m_statTracker.getTotalStatistic(StatisticRequester.TOTAL_KILLS)== 0 && m_statTracker.getTotalStatistic(StatisticRequester.DEATHS) == 0)
+							if (m_statTracker.getTotalStatistic(StatisticRequester.TOTAL_KILLS) == 0 && m_statTracker.getTotalStatistic(StatisticRequester.DEATHS) == 0)
 								m_botAction.shipReset(m_fcPlayerName);
 							getInGame(true);
 							if ((m_fnMaxLagouts > 0) && (fnRoundState == 3))
@@ -374,7 +446,7 @@ public class MatchPlayer implements Comparable
 	public void lagout(boolean fbOutOfArena)
 	{
 		m_statTracker.endNow();
-		
+
 		resetOutOfBorderTime();
 		if (fbOutOfArena)
 			m_player = null;
@@ -448,9 +520,10 @@ public class MatchPlayer implements Comparable
 			m_statTracker.createNewShip(ship);
 		};
 		m_logger.setShip(m_fcPlayerName, m_statTracker.getShipType());
-                
-        if (m_player != null)
-            if (m_player.getFrequency() != getFrequency()) m_logger.setFreq(m_fcPlayerName, getFrequency());
+
+		if (m_player != null)
+			if (m_player.getFrequency() != getFrequency())
+				m_logger.setFreq(m_fcPlayerName, getFrequency());
 	};
 
 	// return the amount of deaths the scoreboard should count for him.
@@ -542,7 +615,7 @@ public class MatchPlayer implements Comparable
 		}
 		return 0;
 	}
-	
+
 	/**
 	 * Method getStatistics.
 	 * @return String A formated line of stats depending on the ship
@@ -559,12 +632,7 @@ public class MatchPlayer implements Comparable
 	public String[] getStatistics()
 	{
 		return m_statTracker.getStatisticsSummary();
-	}
-
-
-
-
-	;
+	};
 
 	public long getOutOfBorderTime()
 	{
@@ -595,13 +663,12 @@ public class MatchPlayer implements Comparable
 		m_fnPlayerState = 4;
 		if (lagRequestTask != null)
 			lagRequestTask.cancel();
-		
+
 		m_statTracker.changeDeaths(10);
-		
+
 		m_logger.specAndSetFreq(m_fcPlayerName, m_team.getFrequency());
 		m_logger.sendArenaMessage(getPlayerName() + " is out (too long outside of base). " + getKills() + " wins " + getDeaths() + " losses");
-	}
-;
+	};
 
 	public int getActualDeaths()
 	{
@@ -611,7 +678,7 @@ public class MatchPlayer implements Comparable
 	{
 		return m_statTracker.getTotalStatistic(StatisticRequester.TOTAL_KILLS);
 	}
-	
+
 	/**
 	 * Gets total statistics added over all ships
 	 * 
@@ -619,9 +686,9 @@ public class MatchPlayer implements Comparable
 	 */
 	public int getTotalStatistic(int statType)
 	{
-		return m_statTracker.getTotalStatistic(statType);	
+		return m_statTracker.getTotalStatistic(statType);
 	}
-	
+
 	/**
 	 * Gets total statistics for current ships
 	 * 
@@ -629,9 +696,8 @@ public class MatchPlayer implements Comparable
 	 */
 	public int getStatistic(int statType)
 	{
-		return m_statTracker.getStatistic(statType);	
-	}
-	;
+		return m_statTracker.getStatistic(statType);
+	};
 	public int getScore()
 	{
 		return m_statTracker.getStatistic(StatisticRequester.SCORE);
@@ -657,9 +723,12 @@ public class MatchPlayer implements Comparable
 		return m_fnLaggedTime;
 	};
 
-        public int getFrequency() { return m_fnFrequency; }
-        
-        public void handleEvent(Message event)
+	public int getFrequency()
+	{
+		return m_fnFrequency;
+	}
+
+	public void handleEvent(Message event)
 	{
 		playerLagInfo.handleEvent(event);
 	}
@@ -712,351 +781,342 @@ public class MatchPlayer implements Comparable
 		}
 	}
 
-/**
-	 * @author FoN
-	 * 
-	 * This class is to congregate all the stats so they can be organised and added + removed easily
-	 */
-private class TotalStatistics
-{
-	private MatchPlayerShip m_currentShip;
-	private LinkedList m_ships;
-
-	public TotalStatistics()
-	{
-		m_ships = new LinkedList();
-	}
-
 	/**
-	* Creates a new ship given a shiptype
-	* 
-	* @param fnShipType Type of ship 1 - 8 corresponding to Wb - Shark
-	*/
-	public void createNewShip(int fnShipType)
+		 * @author FoN
+		 * 
+		 * This class is to congregate all the stats so they can be organised and added + removed easily
+		 */
+	private class TotalStatistics
 	{
-		if (m_currentShip != null)
-			m_currentShip.endNow();
-		m_currentShip = new MatchPlayerShip(fnShipType);
-		m_ships.add(m_currentShip);
-	}
+		private MatchPlayerShip m_currentShip;
+		private LinkedList m_ships;
 
-	/**
-	 * Method reportKill.
-	 * 
-	 * @param fnPoints The amount of points obtained for kill
-	 * @param killeeID The person who got killed
-	 * @param m_fnFrequency The frequency of the killer
-	 * @param shipType The type of ship killed
-	 * @param killeeFreq The frequency of the killed
-	 */
-	public void reportKill(int fnPoints, int killeeID, int m_fnFrequency, int shipType, int killeeFreq)
-	{
-		if (m_currentShip != null)
-			m_currentShip.reportKill(fnPoints, killeeID, m_fnFrequency, shipType, killeeFreq);
-
-	}
-
-	/**
-	* Method reportDeath.
-	*/
-	public void reportDeath()
-	{
-		if (m_currentShip != null)
-			m_currentShip.reportDeath();
-	}
-
-	/**
-	 * Method reportFlagClaimed.
-	 * 
-	 * Adds flagclaimed to stats
-	 */
-	public void reportFlagClaimed()
-	{
-		if (m_currentShip != null)
-			m_currentShip.reportFlagClaimed();
-	}
-
-	/**
-	 * Adds to the m_score.
-	 * @param score The m_score to set
-	 */
-	public void reportFlagReward(int score)
-	{
-		if (m_currentShip != null)
-			m_currentShip.flagReward(score);
-
-	}
-	
-	/**
-	 * Method changeDeaths.
-	 * @param deaths
-	 */
-	public void changeDeaths(int deaths)
-	{
-		if (m_currentShip != null)
-			m_currentShip.changeDeaths(deaths);
-	}
-	
-	
-
-	/**
-	* Method startNow.
-	*/
-	public void startNow()
-	{
-		if (m_currentShip != null)
-			m_currentShip.startNow();
-	}
-
-	/**
-	 * Method endNow.
-	 */
-	public void endNow()
-	{
-		if (m_currentShip != null)
-			m_currentShip.endNow();
-	}
-
-	/**
-	 * Method getStatistics.
-	 * @return String depending on the ship type
-	 */
-	public String[] getTotalStatisticsSummary()
-	{
-		Iterator i = m_ships.iterator();
-		LinkedList summary = new LinkedList();
-		while (i.hasNext())
+		public TotalStatistics()
 		{
-			String[] summ = ((MatchPlayerShip) i.next()).getStatisticsSummary();
-			for (int j = 0; j < summ.length; j++)
-				summary.add(summ[j]);
+			m_ships = new LinkedList();
 		}
 
-		return (String[]) summary.toArray();
-	}
-
-	/**
-	 * Method getStatistics.
-	 * @return String depending on the ship type
-	 */
-	public String[] getStatisticsSummary()
-	{
-		return m_currentShip.getStatisticsSummary();
-	}
-
-	/**
-	 * Method getTotalStatistic.
-	 * @param i
-	 * @return int
-	 */
-	public int getTotalStatistic(int statType)
-	{
-		Iterator i = m_ships.iterator();
-		int total = 0;
-		
-		while (i.hasNext())
+		/**
+		* Creates a new ship given a shiptype
+		* 
+		* @param fnShipType Type of ship 1 - 8 corresponding to Wb - Shark
+		*/
+		public void createNewShip(int fnShipType)
 		{
-			total += ((MatchPlayerShip) i.next()).getStatistic(statType);
+			if (m_currentShip != null)
+				m_currentShip.endNow();
+			m_currentShip = new MatchPlayerShip(fnShipType);
+			m_ships.add(m_currentShip);
 		}
 
-		return total;
-	}
-
-	/**
-	 * Method getTotalStatistic.
-	 * @param statType Type of statistic
-	 * @return int
-	 */
-	public int getStatistic(int statType)
-	{
-		return m_currentShip.getStatistic(statType);
-	}
-	
-	/**
-	 * @return shipType the type of current ship
-	 */
-	public int getShipType()
-	{
-		if (m_currentShip != null)
-			return m_currentShip.getShipType();
-		else
-			return 0; //error
-	}
-}
-
-private class MatchPlayerShip
-{
-	private Statistics m_statisticTracker;
-
-
-
-
-	private java.util.Date m_ftTimeStarted;
-	private java.util.Date m_ftTimeEnded;
-
-	public MatchPlayerShip(int fnShipType)
-	{
-		m_ftTimeStarted = new java.util.Date();
-
-		//statistics tracker
-		m_statisticTracker = new Statistics(fnShipType);
-	}
-
-;
-
-	// report kill
-	public void reportKill(int fnPoints, int killeeID, int frequency, int shipType, int killeeFreq)
-	{
-		if (killeeFreq == frequency)
+		/**
+		 * Method reportKill.
+		 * 
+		 * @param fnPoints The amount of points obtained for kill
+		 * @param killeeID The person who got killed
+		 * @param m_fnFrequency The frequency of the killer
+		 * @param shipType The type of ship killed
+		 * @param killeeFreq The frequency of the killed
+		 */
+		public void reportKill(int fnPoints, int killeeID, int m_fnFrequency, int shipType, int killeeFreq)
 		{
-			switch (shipType)
+			if (m_currentShip != null)
+				m_currentShip.reportKill(fnPoints, killeeID, m_fnFrequency, shipType, killeeFreq);
+
+		}
+
+		/**
+		* Method reportDeath.
+		*/
+		public void reportDeath()
+		{
+			if (m_currentShip != null)
+				m_currentShip.reportDeath();
+		}
+
+		/**
+		 * Method reportFlagClaimed.
+		 * 
+		 * Adds flagclaimed to stats
+		 */
+		public void reportFlagClaimed()
+		{
+			if (m_currentShip != null)
+				m_currentShip.reportFlagClaimed();
+		}
+
+		/**
+		 * Adds to the m_score.
+		 * @param score The m_score to set
+		 */
+		public void reportFlagReward(int score)
+		{
+			if (m_currentShip != null)
+				m_currentShip.flagReward(score);
+
+		}
+
+		/**
+		 * Method changeDeaths.
+		 * @param deaths
+		 */
+		public void changeDeaths(int deaths)
+		{
+			if (m_currentShip != null)
+				m_currentShip.changeDeaths(deaths);
+		}
+
+		/**
+		* Method startNow.
+		*/
+		public void startNow()
+		{
+			if (m_currentShip != null)
+				m_currentShip.startNow();
+		}
+
+		/**
+		 * Method endNow.
+		 */
+		public void endNow()
+		{
+			if (m_currentShip != null)
+				m_currentShip.endNow();
+		}
+
+		/**
+		 * Method getStatistics.
+		 * @return String depending on the ship type
+		 */
+		public String[] getTotalStatisticsSummary()
+		{
+			Iterator i = m_ships.iterator();
+			LinkedList summary = new LinkedList();
+			while (i.hasNext())
 			{
-				case 1 : //wb
-					m_statisticTracker.setWbTeamKill();
-					break;
-
-				case 2 : //jav
-					m_statisticTracker.setJavTeamKill();
-					break;
-
-				case 3 : //spider
-					m_statisticTracker.setSpiderTeamKill();
-					break;
-
-				case 4 : //lev
-					m_statisticTracker.setLevTeamKill();
-					break;
-
-				case 5 : //terr
-					m_statisticTracker.setTerrTeamKill();
-					break;
-
-				case 6 : //x
-					m_statisticTracker.setWeaselTeamKill();
-					break;
-
-				case 7 : //lanc
-					m_statisticTracker.setLancTeamKill();
-					break;
-
-				case 8 : //shark
-					m_statisticTracker.setSharkTeamKill();
-					break;
+				String[] summ = ((MatchPlayerShip) i.next()).getStatisticsSummary();
+				for (int j = 0; j < summ.length; j++)
+					summary.add(summ[j]);
 			}
+
+			return (String[]) summary.toArray();
 		}
-		else
+
+		/**
+		 * Method getStatistics.
+		 * @return String depending on the ship type
+		 */
+		public String[] getStatisticsSummary()
 		{
-			switch (shipType)
-			{
-				case 1 : //wb
-					m_statisticTracker.setWbKill();
-					break;
-
-				case 2 : //jav
-					m_statisticTracker.setJavKill();
-					break;
-
-				case 3 : //spider
-					m_statisticTracker.setSpiderKill();
-					break;
-
-				case 4 : //lev
-					m_statisticTracker.setLevKill();
-					break;
-
-				case 5 : //terr
-					m_statisticTracker.setTerrKill();
-					break;
-
-				case 6 : //x
-					m_statisticTracker.setWeaselKill();
-					break;
-
-				case 7 : //lanc
-					m_statisticTracker.setLancKill();
-					break;
-
-				case 8 : //shark
-					m_statisticTracker.setSharkKill();
-					break;
-			}
+			return m_currentShip.getStatisticsSummary();
 		}
 
-		m_statisticTracker.setScore(fnPoints);
+		/**
+		 * Method getTotalStatistic.
+		 * @param i
+		 * @return int
+		 */
+		public int getTotalStatistic(int statType)
+		{
+			Iterator i = m_ships.iterator();
+			int total = 0;
+
+			while (i.hasNext())
+			{
+				total += ((MatchPlayerShip) i.next()).getStatistic(statType);
+			}
+
+			return total;
+		}
+
+		/**
+		 * Method getTotalStatistic.
+		 * @param statType Type of statistic
+		 * @return int
+		 */
+		public int getStatistic(int statType)
+		{
+			return m_currentShip.getStatistic(statType);
+		}
+
+		/**
+		 * @return shipType the type of current ship
+		 */
+		public int getShipType()
+		{
+			if (m_currentShip != null)
+				return m_currentShip.getShipType();
+			else
+				return 0; //error
+		}
 	}
 
-	/**
-	 * Method reportFlagClaimed.
-	 * 
-	 * Adds flagclaimed to stats
-	 */
-	public void reportFlagClaimed()
+	private class MatchPlayerShip
 	{
-		m_statisticTracker.setFlagClaimed();
-	}
-	
-	// report death
-	public void reportDeath()
-	{
-		m_statisticTracker.setDeaths();
-//		if (m_fnShipType == 8) //shark
-//			m_statisticTracker.setAverageRepelCount(m_botAction.getPlayer(m_fcPlayerName).getRepelCount());
-	}
+		private Statistics m_statisticTracker;
 
-	public void flagReward(int points)
-	{
-		m_statisticTracker.setScore(points);
-	}
-	
-	/**
-	 * Method changeDeaths.
-	 * @param deaths
-	 */
-	public void changeDeaths(int deaths)
-	{
-		m_statisticTracker.changeDeaths(deaths);
-	}
+		private java.util.Date m_ftTimeStarted;
+		private java.util.Date m_ftTimeEnded;
 
+		public MatchPlayerShip(int fnShipType)
+		{
+			m_ftTimeStarted = new java.util.Date();
 
-	// report end of playership
-	public void endNow()
-	{
-		m_ftTimeEnded = new java.util.Date();
-	}
+			//statistics tracker
+			m_statisticTracker = new Statistics(fnShipType);
+		};
 
-	// report start of playership
-	public void startNow()
-	{
-		m_ftTimeStarted = new java.util.Date();
-	}
+		// report kill
+		public void reportKill(int fnPoints, int killeeID, int frequency, int shipType, int killeeFreq)
+		{
+			if (killeeFreq == frequency)
+			{
+				switch (shipType)
+				{
+					case 1 : //wb
+						m_statisticTracker.setWbTeamKill();
+						break;
 
-	public int getShipType()
-	{
-		return m_statisticTracker.getShipType();
-	}
-	
-	public String[] getStatisticsSummary()
-	{
-		return m_statisticTracker.getStatisticsSummary();
-	}
-	
-	public int getStatistic(int statType)
-	{
-		return m_statisticTracker.getStatistic(statType);
-	}	
-	
-	
-	public java.util.Date getTimeStarted()
-	{
-		return m_ftTimeStarted;
-	}
-	
-	public java.util.Date getTimeEnded()
-	{
-		return m_ftTimeEnded;
-	}
+					case 2 : //jav
+						m_statisticTracker.setJavTeamKill();
+						break;
 
-}
+					case 3 : //spider
+						m_statisticTracker.setSpiderTeamKill();
+						break;
+
+					case 4 : //lev
+						m_statisticTracker.setLevTeamKill();
+						break;
+
+					case 5 : //terr
+						m_statisticTracker.setTerrTeamKill();
+						break;
+
+					case 6 : //x
+						m_statisticTracker.setWeaselTeamKill();
+						break;
+
+					case 7 : //lanc
+						m_statisticTracker.setLancTeamKill();
+						break;
+
+					case 8 : //shark
+						m_statisticTracker.setSharkTeamKill();
+						break;
+				}
+			}
+			else
+			{
+				switch (shipType)
+				{
+					case 1 : //wb
+						m_statisticTracker.setWbKill();
+						break;
+
+					case 2 : //jav
+						m_statisticTracker.setJavKill();
+						break;
+
+					case 3 : //spider
+						m_statisticTracker.setSpiderKill();
+						break;
+
+					case 4 : //lev
+						m_statisticTracker.setLevKill();
+						break;
+
+					case 5 : //terr
+						m_statisticTracker.setTerrKill();
+						break;
+
+					case 6 : //x
+						m_statisticTracker.setWeaselKill();
+						break;
+
+					case 7 : //lanc
+						m_statisticTracker.setLancKill();
+						break;
+
+					case 8 : //shark
+						m_statisticTracker.setSharkKill();
+						break;
+				}
+			}
+
+			m_statisticTracker.setScore(fnPoints);
+		}
+
+		/**
+		 * Method reportFlagClaimed.
+		 * 
+		 * Adds flagclaimed to stats
+		 */
+		public void reportFlagClaimed()
+		{
+			m_statisticTracker.setFlagClaimed();
+		}
+
+		// report death
+		public void reportDeath()
+		{
+			m_statisticTracker.setDeaths();
+			//		if (m_fnShipType == 8) //shark
+			//			m_statisticTracker.setAverageRepelCount(m_botAction.getPlayer(m_fcPlayerName).getRepelCount());
+		}
+
+		public void flagReward(int points)
+		{
+			m_statisticTracker.setScore(points);
+		}
+
+		/**
+		 * Method changeDeaths.
+		 * @param deaths
+		 */
+		public void changeDeaths(int deaths)
+		{
+			m_statisticTracker.changeDeaths(deaths);
+		}
+
+		// report end of playership
+		public void endNow()
+		{
+			m_ftTimeEnded = new java.util.Date();
+		}
+
+		// report start of playership
+		public void startNow()
+		{
+			m_ftTimeStarted = new java.util.Date();
+		}
+
+		public int getShipType()
+		{
+			return m_statisticTracker.getShipType();
+		}
+
+		public String[] getStatisticsSummary()
+		{
+			return m_statisticTracker.getStatisticsSummary();
+		}
+
+		public int getStatistic(int statType)
+		{
+			return m_statisticTracker.getStatistic(statType);
+		}
+
+		public java.util.Date getTimeStarted()
+		{
+			return m_ftTimeStarted;
+		}
+
+		public java.util.Date getTimeEnded()
+		{
+			return m_ftTimeEnded;
+		}
+
+	}
 
 	private class LagRequestTask extends TimerTask
 	{
@@ -1083,8 +1143,5 @@ private class MatchPlayerShip
 			checkLag();
 		}
 	}
-	
-}
 
-
-;
+};
