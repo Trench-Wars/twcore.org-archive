@@ -239,6 +239,7 @@ public class MatchPlayer implements Comparable
 						"fnSharkTeamKill",
 						"fnFlagClaimed",
 						"fnRating",
+						"fnRepelsUsed",
 						"ftTimeStarted",
 						"ftTimeEnded" };
 
@@ -266,6 +267,7 @@ public class MatchPlayer implements Comparable
 						Integer.toString(MPS.getStatistic(StatisticRequester.SHARK_TEAMKILL)),
 						Integer.toString(MPS.getStatistic(StatisticRequester.FLAG_CLAIMED)),
 						Integer.toString(MPS.getStatistic(StatisticRequester.RATING)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.REPELS_USED)),
 						started,
 						ended };
 
@@ -325,6 +327,15 @@ public class MatchPlayer implements Comparable
 
 		m_statTracker.reportKill(fnPoints, killeeID, m_fnFrequency, shipType, killeeFreq);
 	};
+
+	/**
+	 * 
+	 * Adds repelUsed to stats
+	 */
+	public void reportRepelUsed()
+	{
+		m_statTracker.reportRepelUsed();
+	}
 
 	/**
 	 * Method reportFlagClaimed.
@@ -826,6 +837,15 @@ public class MatchPlayer implements Comparable
 		}
 
 		/**
+		* Method reportRepelUsed.
+		*/
+		public void reportRepelUsed()
+		{
+			if (m_currentShip != null)
+				m_currentShip.reportRepelUsed();
+		}
+
+		/**
 		* Method reportDeath.
 		*/
 		public void reportDeath()
@@ -1045,6 +1065,14 @@ public class MatchPlayer implements Comparable
 			}
 
 			m_statisticTracker.setScore(fnPoints);
+		}
+
+		/**
+		* Method reportRepelUsed.
+		*/
+		public void reportRepelUsed()
+		{
+			m_statisticTracker.setRepelsUsed();
 		}
 
 		/**

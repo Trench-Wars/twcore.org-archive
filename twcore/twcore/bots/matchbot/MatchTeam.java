@@ -132,6 +132,22 @@ public class MatchTeam
 		};
 	};
 
+ 	/**
+ 	 * Can get various weapon info and the player who used it
+ 	 * Get repel used count
+ 	 * 
+	 * @param event WeaponFired event
+	 */
+	public void handleEvent(WeaponFired event)
+	{
+        String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+		MatchPlayer p = getPlayer(playerName);
+		
+		if (event.getWeaponType() == WeaponFired.WEAPON_REPEL)
+			p.reportRepelUsed();
+		
+	}
+
 	// when somebody lags out
 	public void handleEvent(FrequencyShipChange event)
 	{
