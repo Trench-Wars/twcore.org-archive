@@ -405,7 +405,7 @@ public class twdbot extends SubspaceBot {
 						Integer.toString(thisP.getUserID()),
 						Integer.toString(teamID),
 						time,
-						1
+						"1"
 					};
 					m_botAction.SQLInsertInto("website", "tblTeamUser", fields2, values2);
 
