@@ -37,6 +37,7 @@ public class MatchGame
 	int m_fnTeam2ID = 0;
 
 	int m_gameState = 0;
+	int playersNum = 0;
 
 	static int KILL_ME_PLEASE = 10;
 
@@ -46,13 +47,14 @@ public class MatchGame
 	MatchRound m_curRound;
 
 	/** Creates a new instance of MatchGame */
-	public MatchGame(String ruleFile, String fcTeam1Name, String fcTeam2Name, BotAction botAction)
+	public MatchGame(String ruleFile, String fcTeam1Name, String fcTeam2Name, int players, BotAction botAction)
 	{
 		m_botAction = botAction;
 		m_fcRuleFile = ruleFile;
 
 		m_fcTeam1Name = fcTeam1Name;
 		m_fcTeam2Name = fcTeam2Name;
+		playersNum = players;
 		m_rules = new BotSettings(m_fcRuleFile);
 		m_logger = new MatchLogger(m_botAction);
 
@@ -268,7 +270,7 @@ public class MatchGame
 	{
 		m_botAction.sendPrivateMessage(event.getPlayerID(), shortStatus());
 	        if( m_curRound != null ){
-                        m_curRound.handleEvent( event );
+  	                     m_curRound.handleEvent( event );
                 }
         }
 
@@ -542,6 +544,16 @@ public class MatchGame
 		return m_gameState;
 	};
 
+	public int getPlayersNum()
+	{
+		return playersNum;
+	};
+
+	public void setPlayersNum(int n)
+	{
+		playersNum = n;
+	};
+
 	public void cancel()
 	{
 		if (m_curRound != null)
@@ -559,5 +571,5 @@ public class MatchGame
 			};
 		};
 	};
-
 }
+
