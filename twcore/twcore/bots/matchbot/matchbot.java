@@ -418,7 +418,8 @@ public class matchbot extends SubspaceBot
                 };
                 if (command.equals("!startinfo"))
                 {
-                    m_botAction.sendPrivateMessage(name,startMessage);
+                    if (startMessage != null)
+                        m_botAction.sendPrivateMessage(name,startMessage);
                 }
 
             };
