@@ -419,7 +419,8 @@ public class MatchRound
 		if (m_fnRoundState == 3)
 		{
 			help.add("!score                                   - Show the current score of both teams");
-			help.add("!rating <player>						   - provides realtime stats and rating and current MVP");
+			help.add("!rating <player>                         - provides realtime stats and rating of the player");
+			help.add("!mvp                                     - provides the current mvp");
 		};
 
 		// for staff
@@ -475,6 +476,9 @@ public class MatchRound
 			
 		if (command.equals("!rating") && (m_fnRoundState == 3))
 			command_rating(name, parameters);
+		
+		if (command.equals("!mvp") && (m_fnRoundState == 3))
+			command_mvp(name, parameters);
 
 		if (command.length() > 3)
 		{
@@ -500,6 +504,26 @@ public class MatchRound
 	}
 	
 	/**
+	 * Method command_mvp.
+	 * @param name The person who got commanded
+	 * @param parameters 
+	 */
+	public void command_mvp(String name, String[] parameters)
+	{
+			MatchPlayer t1b = m_team1.getMVP(), t2b = m_team2.getMVP(), best;
+			if (t1b.getPoints() > t2b.getPoints())
+				best = t1b;
+			else
+				best = t2b;
+
+			m_logger.sendPrivateMessage(name, "The current MVP is: " + best.getPlayerName());
+
+			String[] stats = best.getStatistics();
+			for (int i = 0; i < stats.length; i++)
+				m_logger.sendPrivateMessage(name, stats[i]);		
+	}
+
+	/**
 	 * Method command_rating.
 	 * @param name The person who got commanded
 	 * @param parameters 
@@ -513,25 +537,11 @@ public class MatchRound
 			{
 				if (parameters.length > 0)
 				{
-					String playerName = parameters[0];
-					MatchPlayer player;
-
-					if (m_team1.getPlayer(playerName) != null)
-					{
-						player = m_team1.getPlayer(playerName);
-						m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
-					}
-					else if (m_team2.getPlayer(playerName) != null)
-					{
-						player = m_team2.getPlayer(playerName);
-						m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
-					}
-					else
-						m_logger.sendPrivateMessage(name, "The player isn't in the game");
+					reportRating(name, parameters[0]);
 				}
-				else
+				else 
 				{
-					m_logger.sendPrivateMessage(name, "Please specify a player name for the rating");
+					reportRating(name, name);
 				}
 
 			}
@@ -539,16 +549,35 @@ public class MatchRound
 			{
 				Tools.printStackTrace(e);
 			}
-
-			MatchPlayer t1b = m_team1.getMVP(), t2b = m_team2.getMVP(), best;
-			if (t1b.getPoints() > t2b.getPoints())
-				best = t1b;
-			else
-				best = t2b;
-
-			m_logger.sendPrivateMessage(name, "The current MVP is: " + best.getPlayerName());
-			m_logger.sendPrivateMessage(name, "Stats: " + best.getStatistics());
 		}
+	}
+
+	/**
+	 * @param name The name of the person who messaged the bot
+	 * @param playerName The name of the player to retreive the rating for
+	 */
+	private void reportRating(String name, String playerName)
+	{
+		MatchPlayer player;
+
+		if (m_team1.getPlayer(playerName) != null)
+		{
+			player = m_team1.getPlayer(playerName);
+			String[] stats = player.getStatistics();
+			m_logger.sendPrivateMessage(name, player.getPlayerName());
+			for (int i = 0; i < stats.length; i++)
+				m_logger.sendPrivateMessage(name, stats[i]);
+		}
+		else if (m_team2.getPlayer(playerName) != null)
+		{
+			player = m_team2.getPlayer(playerName);
+			String[] stats = player.getStatistics();
+			m_logger.sendPrivateMessage(name, player.getPlayerName());
+			for (int i = 0; i < stats.length; i++)
+				m_logger.sendPrivateMessage(name, stats[i]);
+		}
+		else
+			m_logger.sendPrivateMessage(name, "The player isn't in the game");
 	}
 
 	/**

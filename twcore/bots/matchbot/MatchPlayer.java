@@ -78,6 +78,7 @@ public class MatchPlayer
 
 	//statistic tracker
 	Statistics m_statisticTracker;
+	boolean m_switchedShip = false;
 	
 	/** Creates a new instance of MatchPlayer */
 	public MatchPlayer(String fcPlayerName, MatchTeam Matchteam)
@@ -564,7 +565,12 @@ public class MatchPlayer
 		}
 		else if (winby.equals("timerace"))
 		{
-			return m_statisticTracker.getRating();
+			final int VOID_RATING = 100000; //rating to be deducted so never gets mvp
+			
+			if (m_switchedShip)
+				return m_statisticTracker.getRating() - VOID_RATING;
+			else
+				return m_statisticTracker.getRating();
 		}
 		return 0;
 	}
@@ -573,7 +579,7 @@ public class MatchPlayer
 	 * Method getStatistics.
 	 * @return String A formated line of stats depending on the ship
 	 */
-	public String getStatistics()
+	public String[] getStatistics()
 	{
 		return m_statisticTracker.getStatistics();
 	}
@@ -770,68 +776,255 @@ public class MatchPlayer
 		 * Method getStatistics.
 		 * @return String depending on the ship type
 		 */
-		public String getStatistics()
+		public String[] getStatistics()
 		{
-			String stats;
+			Vector stats = new Vector(2);
+
+			final int FORMULA = 0;
+			final int STATS = 1;
 
 			switch (m_fnShipType)
 			{
 				case 1 : //warbird
-					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Xk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
-					return stats;
+					stats.add(FORMULA, "Warbird: .6Points * (.07wb + .07jav + .05spid + 0.12terr + .05x + .06lanc + .08shark - .04deaths)");
+					stats.add(
+						STATS,
+						"K: "
+							+ getTotalKills()
+							+ " D: "
+							+ m_deaths
+							+ " Wk: "
+							+ m_wbKill
+							+ " Jk: "
+							+ m_javKill
+							+ " Sk: "
+							+ m_spiderKill
+							+ " Tk: "
+							+ m_terrKill
+							+ " Xk: "
+							+ m_weaselKill
+							+ " Lk: "
+							+ m_lancKill
+							+ " ShK: "
+							+ m_sharkKill
+							+ " F: "
+							+ m_flagClaimed
+							+ " S: "
+							+ m_score
+							+ " R: "
+							+ getRating());
+					return (String[]) stats.toArray(new String[stats.size()]);
 
 				case 2 : //jav
-					stats = "K: " + getTotalKills() + " D: " + m_deaths + " TKs: " + m_teamKills + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Xk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
-					return stats;
+					stats.add(FORMULA, "Jav: .5Points * (.05wb + .05jav + .06spid + 0.12terr + .07x + .05lanc + .09shark - .05deaths - .06tks)");
+					stats.add(STATS,
+						"K: "
+							+ getTotalKills()
+							+ " D: "
+							+ m_deaths
+							+ " TKs: "
+							+ m_teamKills
+							+ " Wk: "
+							+ m_wbKill
+							+ " Jk: "
+							+ m_javKill
+							+ " Sk: "
+							+ m_spiderKill
+							+ " Tk: "
+							+ m_terrKill
+							+ " Xk: "
+							+ m_weaselKill
+							+ " Lk: "
+							+ m_lancKill
+							+ " ShK: "
+							+ m_sharkKill
+							+ " F: "
+							+ m_flagClaimed
+							+ " S: "
+							+ m_score
+							+ " R: "
+							+ getRating());
+					return (String[]) stats.toArray(new String[stats.size()]);
 
 				case 3 : //spider				
-					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Xk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
-					return stats;
+					stats.add(FORMULA, "Spider: .4points * (.06wb + .06jav + .04spid + .08terr + .05x + .05lanc + .09shark - .05deaths)");
+					stats.add(STATS,
+						"K: "
+							+ getTotalKills()
+							+ " D: "
+							+ m_deaths
+							+ " Wk: "
+							+ m_wbKill
+							+ " Jk: "
+							+ m_javKill
+							+ " Sk: "
+							+ m_spiderKill
+							+ " Tk: "
+							+ m_terrKill
+							+ " Xk: "
+							+ m_weaselKill
+							+ " Lk: "
+							+ m_lancKill
+							+ " ShK: "
+							+ m_sharkKill
+							+ " F: "
+							+ m_flagClaimed
+							+ " S: "
+							+ m_score
+							+ " R: "
+							+ getRating());
+					return (String[]) stats.toArray(new String[stats.size()]);
 
 				case 4 : //lev
-					stats = "S: " + m_score;
-					return stats;
+					stats.add(FORMULA, "Leviathen Forumla: Points");
+					stats.add(STATS, "S: " + m_score);
+					return (String[]) stats.toArray(new String[stats.size()]);
 
 				case 5 : //terr					
-					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Xk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
-					return stats;
+					stats.add(FORMULA, "Terr: .8points * (.06wb + .06jav + .08spid + .12terr + .1x + .06lanc + .09shark - .12deaths)");
+					stats.add(STATS,
+						"K: "
+							+ getTotalKills()
+							+ " D: "
+							+ m_deaths
+							+ " Wk: "
+							+ m_wbKill
+							+ " Jk: "
+							+ m_javKill
+							+ " Sk: "
+							+ m_spiderKill
+							+ " Tk: "
+							+ m_terrKill
+							+ " Xk: "
+							+ m_weaselKill
+							+ " Lk: "
+							+ m_lancKill
+							+ " ShK: "
+							+ m_sharkKill
+							+ " F: "
+							+ m_flagClaimed
+							+ " S: "
+							+ m_score
+							+ " R: "
+							+ getRating());
+					return (String[]) stats.toArray(new String[stats.size()]);
 
 				case 6 : //weasel
-					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Xk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
-					return stats;
+					stats.add(FORMULA, "Weasel: .8points * (sum(.09allships) - 0.05deaths)");
+					stats.add(STATS,
+						"K: "
+							+ getTotalKills()
+							+ " D: "
+							+ m_deaths
+							+ " Wk: "
+							+ m_wbKill
+							+ " Jk: "
+							+ m_javKill
+							+ " Sk: "
+							+ m_spiderKill
+							+ " Tk: "
+							+ m_terrKill
+							+ " Xk: "
+							+ m_weaselKill
+							+ " Lk: "
+							+ m_lancKill
+							+ " ShK: "
+							+ m_sharkKill
+							+ " F: "
+							+ m_flagClaimed
+							+ " S: "
+							+ m_score
+							+ " R: "
+							+ getRating());
+					return (String[]) stats.toArray(new String[stats.size()]);
 
 				case 7 : //lanc
-					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Xk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
-					return stats;
+					stats.add(FORMULA, "Lanc: .6Points * (.07wb + .07jav + .05spid + 0.12terr + .05x + .06lanc + .08shark - .04deaths)");
+					stats.add(STATS, 
+						"K: "
+							+ getTotalKills()
+							+ " D: "
+							+ m_deaths
+							+ " Wk: "
+							+ m_wbKill
+							+ " Jk: "
+							+ m_javKill
+							+ " Sk: "
+							+ m_spiderKill
+							+ " Tk: "
+							+ m_terrKill
+							+ " Xk: "
+							+ m_weaselKill
+							+ " Lk: "
+							+ m_lancKill
+							+ " ShK: "
+							+ m_sharkKill
+							+ " F: "
+							+ m_flagClaimed
+							+ " S: "
+							+ m_score
+							+ " R: "
+							+ getRating());
+					return (String[]) stats.toArray(new String[stats.size()]);
 
 				case 8 : //shark
-					stats = "K: " + getTotalKills() + " D: " + m_deaths + " TKs: " + m_teamKills + " AvgR: " + getAverageRepelCount() + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Xk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
-					return stats;
+					stats.add(FORMULA, "Shark: points * (.12terr + sum(.09allotherships) - 0.005deaths - .1tks) * (.4 * (3 / avgRepelLeft)");
+					stats.add(STATS,
+						"K: "
+							+ getTotalKills()
+							+ " D: "
+							+ m_deaths
+							+ " TKs: "
+							+ m_teamKills
+							+ " AvgR: "
+							+ getAverageRepelCount()
+							+ " Wk: "
+							+ m_wbKill
+							+ " Jk: "
+							+ m_javKill
+							+ " Sk: "
+							+ m_spiderKill
+							+ " Tk: "
+							+ m_terrKill
+							+ " Xk: "
+							+ m_weaselKill
+							+ " Lk: "
+							+ m_lancKill
+							+ " ShK: "
+							+ m_sharkKill
+							+ " F: "
+							+ m_flagClaimed
+							+ " S: "
+							+ m_score
+							+ " R: "
+							+ getRating());
+					return (String[]) stats.toArray(new String[stats.size()]);
 
 				default : //if errored
-					stats = "S: " + m_score;
-					return stats;
+					stats.add(FORMULA, "Default");
+					stats.add(STATS, "S: " + m_score);
+					return (String[]) stats.toArray(new String[stats.size()]);
 			}
-			
+
 		}
 
 		/**
 		 * Method getRating.
 		 * This returns the rating for the player according to this:
 		 * 
-		 * warbird: .6Points * (.07wb + .07jav + .05spid + 0.1terr + .05x + .06lanc + .08shark - .06deaths)
+		 * warbird: .6Points * (.07wb + .07jav + .05spid + 0.12terr + .05x + .06lanc + .08shark - .04deaths)
 		 *
-		 * jav: .5Points * (.05wb + .05jav + .05spid + 0.09terr + .07x + .05lanc + .09shark - .06deaths - .1tks)
+		 * jav: .5Points * (.05wb + .05jav + .06spid + 0.12terr + .07x + .05lanc + .09shark - .05deaths - .06tks)
 		 *
-		 * spiders: .4points * (.06wb + .06jav + .05spid + .08terr + .05x + .05lanc + .09shark - .05deaths)
+		 * spiders: .4points * (.06wb + .06jav + .04spid + .08terr + .05x + .05lanc + .09shark - .05deaths)
 		 *
-		 * terr: .9points * (.06wb + .06jav + .08spid + .1terr + .1x + .06lanc + .09shark - .09deaths)
+		 * terr: .8points * (.06wb + .06jav + .08spid + .12terr + .1x + .06lanc + .09shark - .12deaths)
 		 * 		 
 		 * weasel: .8points * (sum(.09allships) - 0.05deaths)
 		 * 
-		 * lanc: .6Points * (.07wb + .07jav + .05spid + 0.1terr + .05x + .06lanc + .08shark - .06deaths)
+		 * lanc: .6Points * (.07wb + .07jav + .05spid + 0.12terr + .05x + .06lanc + .08shark - .04deaths)
 		 *  
-		 * shark: points * (sum(.09allships) - 0.009deaths - .08tks) * (.4 * (3 / avgRepelLeft))
+		 * shark: points * (.12terr + sum(.09allotherships) - 0.005deaths - .1tks) * (.4 * (3 / avgRepelLeft))
 		 * 
 		 * Original idea by Bleen and FoN
 		 * 
@@ -846,15 +1039,15 @@ public class MatchPlayer
 			switch (m_fnShipType)
 			{
 				case 1 : //warbird
-					rating = (int) (m_score * 0.6 * (m_wbKill * 0.07 + m_javKill * 0.07 + m_spiderKill * 0.05 + m_levKill + m_terrKill * 0.1 + m_weaselKill * 0.05 + m_lancKill * 0.06 + m_sharkKill * 0.08 - m_deaths * 0.06));
+					rating = (int) (m_score * 0.6 * (m_wbKill * 0.07 + m_javKill * 0.07 + m_spiderKill * 0.05 + m_levKill + m_terrKill * 0.12 + m_weaselKill * 0.05 + m_lancKill * 0.06 + m_sharkKill * 0.08 - m_deaths * 0.04));
 					return rating;
 
 				case 2 : //jav
-					rating = (int) (m_score * 0.5 * (m_wbKill * 0.05 + m_javKill * 0.07 + m_spiderKill * 0.05 + m_levKill + m_terrKill * 0.09 + m_weaselKill * 0.07 + m_lancKill * 0.05 + m_sharkKill * 0.09 - m_deaths * 0.06 - m_teamKills * .1));
+					rating = (int) (m_score * 0.5 * (m_wbKill * 0.05 + m_javKill * 0.07 + m_spiderKill * 0.06 + m_levKill + m_terrKill * 0.12 + m_weaselKill * 0.07 + m_lancKill * 0.05 + m_sharkKill * 0.09 - m_deaths * 0.05 - m_teamKills * .06));
 					return rating;
 
 				case 3 : //spider				
-					rating = (int) (m_score * 0.4 * (m_wbKill * 0.06 + m_javKill * 0.06 + m_spiderKill * 0.05 + m_levKill + m_terrKill * 0.08 + m_weaselKill * 0.05 + m_lancKill * 0.05 + m_sharkKill * 0.09 - m_deaths * 0.05));
+					rating = (int) (m_score * 0.4 * (m_wbKill * 0.06 + m_javKill * 0.06 + m_spiderKill * 0.04 + m_levKill + m_terrKill * 0.08 + m_weaselKill * 0.05 + m_lancKill * 0.05 + m_sharkKill * 0.09 - m_deaths * 0.05));
 					return rating;
 
 				case 4 : //lev
@@ -862,7 +1055,7 @@ public class MatchPlayer
 					return rating;
 
 				case 5 : //terr
-					rating = (int) (m_score * 0.9 * (m_wbKill * 0.06 + m_javKill * 0.06 + m_spiderKill * 0.08 + m_levKill + m_terrKill * 0.1 + m_weaselKill * 0.1 + m_lancKill * 0.1 + m_sharkKill * 0.09 - m_deaths * 0.08));
+					rating = (int) (m_score * 0.8 * (m_wbKill * 0.06 + m_javKill * 0.06 + m_spiderKill * 0.08 + m_levKill + m_terrKill * 0.12 + m_weaselKill * 0.1 + m_lancKill * 0.1 + m_sharkKill * 0.09 - m_deaths * 0.12));
 					return rating;
 
 				case 6 : //weasel
@@ -870,15 +1063,15 @@ public class MatchPlayer
 					return rating;
 
 				case 7 : //lanc
-					rating = (int) (m_score * 0.6 * (m_wbKill * 0.07 + m_javKill * 0.07 + m_spiderKill * 0.05 + m_levKill + m_terrKill * 0.1 + m_weaselKill * 0.05 + m_lancKill * 0.06 + m_sharkKill * 0.08 - m_deaths * 0.06));
+					rating = (int) (m_score * 0.6 * (m_wbKill * 0.07 + m_javKill * 0.07 + m_spiderKill * 0.05 + m_levKill + m_terrKill * 0.12 + m_weaselKill * 0.05 + m_lancKill * 0.06 + m_sharkKill * 0.08 - m_deaths * 0.04));
 					return rating;
 					
 
 				case 8 : //shark
 					if (getAverageRepelCount() != 0)
-						rating = (int) (m_score * (m_wbKill * 0.09 + m_javKill * 0.09 + m_spiderKill * 0.09 + m_levKill + m_terrKill * 0.09 + m_weaselKill * 0.09 + m_lancKill * 0.09 + m_sharkKill * 0.09 - m_deaths * 0.009 - m_teamKills * .05) * (0.4 * REPELS_PER_SHARK/getAverageRepelCount()));
+						rating = (int) (m_score * (m_wbKill * 0.09 + m_javKill * 0.09 + m_spiderKill * 0.09 + m_levKill + m_terrKill * 0.12 + m_weaselKill * 0.09 + m_lancKill * 0.09 + m_sharkKill * 0.09 - m_deaths * 0.005 - m_teamKills * .1) * (0.4 * REPELS_PER_SHARK/getAverageRepelCount()));
 					else
-						rating = (int) (m_score * (m_wbKill * 0.09 + m_javKill * 0.09 + m_spiderKill * 0.09 + m_levKill + m_terrKill * 0.09 + m_weaselKill * 0.09 + m_lancKill * 0.09 + m_sharkKill * 0.09 - m_deaths * 0.009 - m_teamKills * .05) * MAXIMUM_RATIO);
+						rating = (int) (m_score * (m_wbKill * 0.09 + m_javKill * 0.09 + m_spiderKill * 0.09 + m_levKill + m_terrKill * 0.12 + m_weaselKill * 0.09 + m_lancKill * 0.09 + m_sharkKill * 0.09 - m_deaths * 0.005 - m_teamKills * .1) * MAXIMUM_RATIO);
 
 					return rating;
 					
