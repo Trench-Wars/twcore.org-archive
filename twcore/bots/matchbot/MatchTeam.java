@@ -540,6 +540,7 @@ public class MatchTeam
 								int ship = pB.getShipType();
 								pB.setShip(pA.getShipType());
 								pA.setShip(ship);
+                                                                
 								m_logger.sendArenaMessage(
 									pA.m_fcPlayerName + " (" + pB.getShipType() + ") and " + pB.m_fcPlayerName + " (" + pA.getShipType() + ") switched ships.");
 								if (m_round.m_fnRoundState == 3)
