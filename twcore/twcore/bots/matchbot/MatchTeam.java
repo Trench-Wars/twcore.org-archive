@@ -1007,6 +1007,19 @@ public class MatchTeam
 		// player is in the right ship
 		if (!((ship == m_rules.getInt("ship")) || (m_rules.getInt("ship") == 0)))
 			return "invalid ship";
+		
+		if( m_rules.getInt("aliascheck") == 1 ) {
+			// redudant action
+			DBPlayerData dbP = new DBPlayerData(m_botAction, "local", name);
+			
+			// a name has to be registered
+			if (!dbP.isRegistered())
+				return "Player must register this name to play.  (Usage: !register)";
+				
+			// the name must be enabled
+			if (!dbP.isEnabled())
+				return "Player's name is disabled.";
+		}
 
 		// do a lag check.
 
