@@ -70,7 +70,7 @@ public class MatchRound
     //time race variables
     private int m_raceTarget = 0;
     TimerTask m_raceTimer;
-    MvpCompare m_mvpCompare;
+
 
     /** Creates a new instance of MatchRound */
     public MatchRound(int fnRoundNumber, String fcTeam1Name, String fcTeam2Name, MatchGame Matchgame)
@@ -86,7 +86,6 @@ public class MatchRound
         m_logger = m_game.m_logger;
         m_team1 = new MatchTeam(fcTeam1Name, 1, 1, this);
         m_team2 = new MatchTeam(fcTeam2Name, 2, 2, this);
-        m_mvpCompare = new MvpCompare();
 
         m_notPlaying = new ArrayList();
 
@@ -517,9 +516,22 @@ public class MatchRound
 
         try
         {
-            Vector playerList = new Vector(m_team1.m_players);
-            playerList.add(m_team2.m_players);
-            Collections.sort(playerList, m_mvpCompare);
+            ArrayList playerList = new ArrayList();
+            Iterator it = m_team1.m_players.iterator();
+            
+            while (it.hasNext())
+            {
+            	playerList.add(it.next());
+            }
+            
+            it = m_team2.m_players.iterator();
+            
+            while (it.hasNext())
+            {
+            	playerList.add(it.next());
+            }
+                      
+            Collections.sort(playerList);
 
             if (NUMBER_OF_MVPS > playerList.size())
                 NUMBER_OF_MVPS = playerList.size();
@@ -547,6 +559,7 @@ public class MatchRound
         }
     }
 
+    /*
     private class MvpCompare implements Comparator
     {
         public MvpCompare()
@@ -569,6 +582,7 @@ public class MatchRound
         }
 
     }
+    */
 
     /**
      * Method command_rating.
