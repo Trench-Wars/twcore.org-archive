@@ -450,6 +450,10 @@ public class duelbot extends SubspaceBot {
     	
     	ResultSet info = sql_getUserIPMID( name );
     	
+    	if( info == null )
+			m_botAction.sendSmartPrivateMessage( name, "Problem accessing database.  Please try again later." );    	    
+    	    
+    	
     	try {
     		String IP = info.getString( "fcIP" );
     		String MID = info.getString( "fnMID" );
