@@ -687,6 +687,11 @@ public class twdbot extends SubspaceBot {
 	public void commandMIDCheck( String name, String mid ) 
 	{
 
+	    if( mid == null || mid == "" || !(Tools.isAllDigits(mid)) ) {
+			m_botAction.sendSmartPrivateMessage( name, "MID must be all numeric." );	        
+	        return;
+	    }
+	    
 		try 
 		{
 			String query = "SELECT fcUserName, fcIP, fnMID FROM tblAliasSuppression AS A, ";
