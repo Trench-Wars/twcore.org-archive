@@ -69,6 +69,7 @@ public class MatchRound
 	//time race variables
 	private int m_raceTarget = 0;
 	TimerTask m_raceTimer;
+	MvpCompare m_mvpCompare;
 
 	/** Creates a new instance of MatchRound */
 	public MatchRound(int fnRoundNumber, String fcTeam1Name, String fcTeam2Name, MatchGame Matchgame)
@@ -84,6 +85,7 @@ public class MatchRound
 		m_logger = m_game.m_logger;
 		m_team1 = new MatchTeam(fcTeam1Name, 1, 1, this);
 		m_team2 = new MatchTeam(fcTeam2Name, 2, 2, this);
+		m_mvpCompare = new MvpCompare();
 
 		m_notPlaying = new ArrayList();
 
@@ -510,17 +512,61 @@ public class MatchRound
 	 */
 	public void command_mvp(String name, String[] parameters)
 	{
-			MatchPlayer t1b = m_team1.getMVP(), t2b = m_team2.getMVP(), best;
+		int NUMBER_OF_MVPS = 3;
+
+		try
+		{
+			Vector playerList = new Vector(m_team1.m_players);
+			playerList.add(m_team2.m_players);
+			Collections.sort(playerList, m_mvpCompare);
+
+			if (NUMBER_OF_MVPS > playerList.size())
+				NUMBER_OF_MVPS = playerList.size();
+
+			for (int j = 0; j < NUMBER_OF_MVPS; j++)
+			{
+				MatchPlayer mvp = (MatchPlayer) playerList.get(j);
+				m_logger.sendPrivateMessage(name, "MVP " + j + ": " + mvp.getPlayerName());
+
+				String[] stats = mvp.getStatistics();
+				for (int i = 1; i < stats.length; i++)
+					m_logger.sendPrivateMessage(name, stats[i]);
+			}
+
+			/*MatchPlayer t1b = m_team1.getMVP(), t2b = m_team2.getMVP(), best;
 			if (t1b.getPoints() > t2b.getPoints())
 				best = t1b;
 			else
 				best = t2b;
-
-			m_logger.sendPrivateMessage(name, "The current MVP is: " + best.getPlayerName());
-
-			String[] stats = best.getStatistics();
-			for (int i = 0; i < stats.length; i++)
-				m_logger.sendPrivateMessage(name, stats[i]);		
+			*/
+		}
+		catch (Exception e)
+		{
+			Tools.printStackTrace(e);
+		}
+	}
+	
+	private class MvpCompare implements Comparator
+	{
+		public MvpCompare()
+		{
+		}
+		
+		public int compare(Object o1, Object o2)
+		{
+			MatchPlayer p1 = (MatchPlayer)o1;
+			MatchPlayer p2 = (MatchPlayer)o2;
+			
+			//have to compare p2 < p1 if you want desending order
+			
+			if (p2.getPoints() < p1.getPoints())
+				return -1;
+			else if (p1.getPoints() == p2.getPoints())
+				return 0;
+			else //p2 > p1.
+				return 1;
+		}
+		
 	}
 
 	/**
