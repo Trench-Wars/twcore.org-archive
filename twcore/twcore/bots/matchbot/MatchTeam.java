@@ -247,6 +247,7 @@ public class MatchTeam
 			}
 			else if (m_round.m_fnRoundState == 3)
 			{
+				help.add("!rating <player>						   - provides realtime stats and rating");
 				help.add("!list                                    - lists all players on this team");
 				help.add("!lagout                                  - puts you back in the game");
 			};
@@ -312,6 +313,8 @@ public class MatchTeam
 			{
 				if (command.equals("!list"))
 					command_list(name, parameters);
+				if (command.equals("!rating"))
+					command_rating(name, parameters);
 				if ((command.equals("!lagout")) && (parameters.length == 0))
 					command_lagout(name, parameters);
 			};
@@ -320,7 +323,31 @@ public class MatchTeam
 		{
 		};
 
-	};
+	}
+
+	/**
+	 * Method command_rating.
+	 * @param name
+	 * @param parameters
+	 */
+	private void command_rating(String name, String[] parameters)
+	{
+		String winby = m_rules.getString("winby");
+		if (winby.equals("timerace") && m_round.m_fnRoundState == 3)
+		{
+			MatchPlayer player;
+			if (parameters[0] != null)
+			{
+				player = getPlayer(parameters[0]);
+				m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
+			}
+			
+			MatchPlayer best = getMVP();
+			m_logger.sendPrivateMessage(name, "The current best on your team is: " + best.getPlayerName()); 
+			m_logger.sendPrivateMessage(name, "Stats: " + best.getStatistics());
+		}
+	}
+;
 
 	// sets the captain
 	public void command_setcaptain(String name, String[] parameters)
