@@ -455,12 +455,16 @@ public class MatchRound
                                 p.setHalfBorderWarning();
                                 m_logger.sendPrivateMessage(
                                     playerName,
-                                    "Go to base! You have " + outofbordertime / 2000 + " seconds before you'll get removed from the game",
+                                    "Go to base! You have " + outofbordertime / 2000 + " seconds before you'll get +1 death",
                                     26);
                             }
                             else if ((sysTime - pSysTime) > outofbordertime)
                             {
-                                p.kickOutOfGame();
+								m_botAction.sendArenaMessage(playerName + " has been given 1 death for being out of base too long.");
+                                p.reportDeath();
+
+								if (m_team1.isDead() || m_team2.isDead())
+                                    endGame();
                             };
                         };
                     };
