@@ -477,6 +477,9 @@ public class MatchPlayer
 			createNewShip(ship);
 		};
 		m_logger.setShip(m_fcPlayerName, m_fnShipType);
+                
+                if (m_player != null)
+                    if (m_player.getFrequency() != getFrequency()) m_logger.setFreq(m_fcPlayerName, getFrequency());
 	};
 
 	// return the amount of deaths the scoreboard should count for him.
@@ -641,7 +644,9 @@ public class MatchPlayer
 		return m_fnLaggedTime;
 	};
 
-	public void handleEvent(Message event)
+        public int getFrequency() { return m_fnFrequency; }
+        
+        public void handleEvent(Message event)
 	{
 		playerLagInfo.handleEvent(event);
 	}
