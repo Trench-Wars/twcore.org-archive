@@ -476,9 +476,9 @@ public class MatchTeam
 					return -1;
 				else if (pa.m_fnPlayerState > pb.m_fnPlayerState)
 					return 1;
-				else if (pa.m_fnShipType < pb.m_fnShipType)
+				else if (pa.getShipType() < pb.getShipType())
 					return -1;
-				else if (pa.m_fnShipType > pb.m_fnShipType)
+				else if (pa.getShipType() > pb.getShipType())
 					return 1;
 				else if (pb.getPlayerName().compareTo(pa.getPlayerName()) < 0)
 					return 1;

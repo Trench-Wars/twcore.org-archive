@@ -12,14 +12,15 @@ package twcore.bots.matchbot;
  */
 
 import twcore.core.*;
+import twcore.misc.statistics.*;
 import twcore.misc.database.DBPlayerData;
+
 import java.sql.*;
 import java.util.*;
 import java.text.*;
 
 public class MatchPlayer
 {
-
 	/** This class holds 2 connections: 1 to the SS game, and 1 to the DB.
 	 *  The SS connection is dynamic though, so it will have to refresh every
 	 *  PlayerLeft and PlayerEntered event.
@@ -33,13 +34,11 @@ public class MatchPlayer
 	private double maxStandardDeviation;
 	private int maxNumSpikes;
 
+	private TotalStatistics m_statTracker;
 	Connection m_connection;
 	BotAction m_botAction;
 	Player m_player;
 	BotSettings m_rules;
-
-	MatchPlayerShip m_currentShip;
-	LinkedList m_ships;
 
 	MatchTeam m_team;
 	MatchLogger m_logger;
@@ -59,27 +58,32 @@ public class MatchPlayer
 	boolean m_fbHasHalfBorderWarning = false;
 
 	// regular game stats
-	int  m_fnShipType = 0, m_fnSpecAt = 10, m_fnFrequency = 0, m_fnLagouts = 0,
+	int m_deafaultShip = 1;
+	int m_fnSpecAt = 10;
+	int m_fnFrequency = 0;
+	int m_fnLagouts = 0;
 	/* playerstate: 0 - Not In Game (0 deaths)
 	                1 - In Game
 	                2 - Substituted
 	                3 - Lagged (m_fnSpecAt deaths)
 	                4 - Out (m_fnSpecAt deaths)
 	 */
-	m_fnPlayerState = 0, m_fnMaxLagouts;
+	int m_fnPlayerState = 0;
+	int m_fnMaxLagouts;
+	
 	boolean m_aboutToBeSubbed = false;
 	boolean m_fbSubstituter = false;
-
-	static int NOT_IN_GAME = 0;
-	static int IN_GAME = 1;
-	static int SUBSTITUTED = 2;
-	static int LAGGED = 3;
-	static int OUT = 4;
-
-	//statistic tracker
-	Statistics m_statisticTracker;
 	boolean m_switchedShip = false;
-	
+
+	//constants
+	static final int NOT_IN_GAME = 0;
+	static final int IN_GAME = 1;
+	static final int SUBSTITUTED = 2;
+	static final int LAGGED = 3;
+	static final int OUT = 4;
+
+
+
 	/** Creates a new instance of MatchPlayer */
 	public MatchPlayer(String fcPlayerName, MatchTeam Matchteam)
 	{
@@ -92,10 +96,8 @@ public class MatchPlayer
 		m_fnMaxLagouts = m_rules.getInt("lagouts");
 		m_fnSpecAt = m_rules.getInt("deaths");
 		m_player = m_botAction.getPlayer(m_fcPlayerName);
-		m_fnShipType = m_player.getShipType();
 		m_fnFrequency = m_player.getFrequency();
 		m_fnPlayerState = 0;
-		m_ships = new LinkedList();
 		playerLagInfo = new PlayerLagInfo(m_botAction, fcPlayerName, m_rules.getInt("spikesize"));
 		playerLagInfo.updateLag();
 		maxCurrPing = m_rules.getInt("maxcurrping");
@@ -104,8 +106,7 @@ public class MatchPlayer
 		maxStandardDeviation = m_rules.getDouble("maxstandarddeviation");
 		maxNumSpikes = m_rules.getInt("maxnumspikes");
 
-		//statistics tracker
-		m_statisticTracker = new Statistics();
+		m_statTracker = new TotalStatistics();
 
 		if ((m_rules.getInt("storegame") != 0) || (m_rules.getInt("rosterjoined") != 0))
 			m_dbPlayer = new DBPlayerData(m_botAction, "local", m_fcPlayerName);
@@ -123,7 +124,7 @@ public class MatchPlayer
 				substituted = 1;
 
 			MatchPlayerShip MPS;
-			ListIterator i = m_ships.listIterator();
+			ListIterator i = m_statTracker.m_ships.listIterator();
 			java.util.Date m_ftTimeStarted, m_ftTimeEnded;
 			String started, ended;
 
@@ -160,10 +161,10 @@ public class MatchPlayer
 						Integer.toString(m_dbPlayer.getUserID()),
 						Tools.addSlashesToString(m_fcPlayerName),
 						Integer.toString(fnTeam),
-						Integer.toString(m_fnShipType),
-						Integer.toString(MPS.getScore()),
-						Integer.toString(MPS.getKills()),
-						Integer.toString(MPS.getDeaths()),
+						Integer.toString(MPS.getShipType()),
+						Integer.toString(MPS.getStatistic(StatisticRequester.SCORE)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.TOTAL_KILLS)),
+						Integer.toString(MPS.getStatistic(StatisticRequester.DEATHS)),
 						Integer.toString(m_fnLagouts),
 						started,
 						ended,
@@ -178,15 +179,6 @@ public class MatchPlayer
 		};
 	};
 
-	//
-	private void createNewShip(int fnShipType)
-	{
-		if (m_currentShip != null)
-			m_currentShip.endNow();
-		m_currentShip = new MatchPlayerShip(fnShipType);
-		m_ships.add(m_currentShip);
-	};
-
 	// sets rank
 	public void setRank(int fnRank)
 	{
@@ -196,9 +188,8 @@ public class MatchPlayer
 	// set ship and freq
 	public void setShipAndFreq(int fnShipType, int fnFrequency)
 	{
-		if (m_fnShipType != fnShipType)
-			createNewShip(fnShipType);
-		m_fnShipType = fnShipType;
+		if (m_statTracker.getShipType() != fnShipType)
+			m_statTracker.createNewShip(fnShipType);
 		m_fnFrequency = fnFrequency;
 	};
 
@@ -220,98 +211,22 @@ public class MatchPlayer
 		if (m_fnPlayerState == 0)
 		{
 			m_fnPlayerState = 1;
-			if (m_currentShip != null)
-				m_currentShip.startNow();
+			m_statTracker.startNow();
 			lagRequestTask = new LagRequestTask();
 			m_botAction.scheduleTaskAtFixedRate(lagRequestTask, 0, m_rules.getInt("lagcheckdelay") * 1000);
-
 		};
-	};
+	}
+
+
+;
 
 	// report kill
 	public void reportKill(int fnPoints, int killeeID)
 	{
 		int shipType = m_botAction.getPlayer(killeeID).getShipType();
 		int killeeFreq = m_botAction.getPlayer(killeeID).getFrequency();
-		
-		if (killeeFreq == m_fnFrequency)
-		{
-			switch (shipType)
-			{
-				case 1 : //wb
-					m_statisticTracker.setWbTeamKill();
-					break;
 
-				case 2 : //jav
-					m_statisticTracker.setJavTeamKill();
-					break;
-
-				case 3 : //spider
-					m_statisticTracker.setSpiderTeamKill();
-					break;
-
-				case 4 : //lev
-					m_statisticTracker.setLevTeamKill();
-					break;
-
-				case 5 : //terr
-					m_statisticTracker.setTerrTeamKill();
-					break;
-
-				case 6 : //x
-					m_statisticTracker.setWeaselTeamKill();
-					break;
-
-				case 7 : //lanc
-					m_statisticTracker.setLancTeamKill();
-					break;
-
-				case 8 : //shark
-					m_statisticTracker.setSharkTeamKill();
-					break;
-			}
-		}
-		else
-		{
-			switch (shipType)
-			{
-				case 1 : //wb
-					m_statisticTracker.setWbKill();
-					break;
-
-				case 2 : //jav
-					m_statisticTracker.setJavKill();
-					break;
-
-				case 3 : //spider
-					m_statisticTracker.setSpiderKill();
-					break;
-
-				case 4 : //lev
-					m_statisticTracker.setLevKill();
-					break;
-
-				case 5 : //terr
-					m_statisticTracker.setTerrKill();
-					break;
-
-				case 6 : //x
-					m_statisticTracker.setWeaselKill();
-					break;
-
-				case 7 : //lanc
-					m_statisticTracker.setLancKill();
-					break;
-
-				case 8 : //shark
-					m_statisticTracker.setSharkKill();
-					break;
-			}
-		}
-
-		m_statisticTracker.setScore(fnPoints);
-		if (m_currentShip != null)
-			m_currentShip.reportKill(fnPoints);
+		m_statTracker.reportKill(fnPoints, killeeID, m_fnFrequency, shipType, killeeFreq);
 	};
 
 	/**
@@ -321,20 +236,17 @@ public class MatchPlayer
 	 */
 	public void reportFlagClaimed()
 	{
-		m_statisticTracker.setFlagClaimed();
+		m_statTracker.reportFlagClaimed();
 	}
 
 	// report death
 	public void reportDeath()
-	{
-		m_statisticTracker.setDeaths();
-		if (m_fnShipType == 8) //shark
-			m_statisticTracker.setAverageRepelCount(m_botAction.getPlayer(m_fcPlayerName).getRepelCount());
-		
+	{	
 		resetOutOfBorderTime();
-		if (m_currentShip != null)
-			m_currentShip.reportDeath();
-		if ((m_statisticTracker.getDeaths() >= m_fnSpecAt) && (m_rules.getInt("deaths") > 0))
+		m_statTracker.reportDeath();
+			
+		//lag check timer cancel
+		if ((m_statTracker.getStatistic(StatisticRequester.DEATHS) >= m_fnSpecAt) && (m_rules.getInt("deaths") > 0))
 		{
 			if (m_fnPlayerState != 2)
 			{
@@ -345,8 +257,8 @@ public class MatchPlayer
 			m_logger.specAndSetFreq(m_fcPlayerName, m_team.getFrequency());
 			m_logger.sendArenaMessage(getPlayerName() + " is out. " + getKills() + " wins " + getDeaths() + " losses");
 		};
-	};
-
+	}
+	
 	// report lagout
 	/*
 	public void reportLagout() {
@@ -363,17 +275,23 @@ public class MatchPlayer
 	{
 		resetOutOfBorderTime();
 		m_fnPlayerState = 2;
+		
+		//cancel lag checks
 		if (lagRequestTask != null)
 			lagRequestTask.cancel();
-		m_fnSpecAt = m_statisticTracker.getDeaths();
-		if (m_currentShip != null)
-			m_currentShip.endNow();
+			
+		m_fnSpecAt = m_statTracker.getStatistic(StatisticRequester.DEATHS);
+		m_statTracker.endNow();
+
 
 		if (m_player != null)
 		{
 			m_logger.specAndSetFreq(m_fcPlayerName, m_team.getFrequency());
 		};
-	};
+	}
+
+
+;
 
 	// substitute (put yourself in)
 	public void substitute(int newSpecAt)
@@ -408,7 +326,7 @@ public class MatchPlayer
 							    createNewShip(m_fnShipType);
 							};
 							 */
-							if (m_statisticTracker.getTotalKills() == 0 && m_statisticTracker.getDeaths() == 0)
+							if (m_statTracker.getTotalStatistic(StatisticRequester.TOTAL_KILLS)== 0 && m_statTracker.getTotalStatistic(StatisticRequester.DEATHS) == 0)
 								m_botAction.shipReset(m_fcPlayerName);
 							getInGame(true);
 							if ((m_fnMaxLagouts > 0) && (fnRoundState == 3))
@@ -434,7 +352,8 @@ public class MatchPlayer
 	// lagout event (when a player lags out to spec)
 	public void lagout(boolean fbOutOfArena)
 	{
-		m_currentShip.endNow();
+		m_statTracker.endNow();
+		
 		resetOutOfBorderTime();
 		if (fbOutOfArena)
 			m_player = null;
@@ -448,9 +367,9 @@ public class MatchPlayer
 	// report end of game
 	public void reportEndOfGame()
 	{
-		if ((m_fnPlayerState == 1) && (m_currentShip != null))
+		if (m_fnPlayerState == 1)
 		{
-			m_currentShip.endNow();
+			m_statTracker.endNow();
 			if (lagRequestTask != null)
 				lagRequestTask.cancel();
 		}
@@ -460,7 +379,7 @@ public class MatchPlayer
 	public void getInGame(boolean fbSilent)
 	{
 		resetOutOfBorderTime();
-		m_logger.setFreqAndShip(m_fcPlayerName, m_fnFrequency, m_fnShipType);
+		m_logger.setFreqAndShip(m_fcPlayerName, m_fnFrequency, m_statTracker.getShipType());
 		m_fnPlayerState = 1;
 		if (m_rules.getInt("checkforlag") == 1)
 		{
@@ -474,7 +393,7 @@ public class MatchPlayer
 		if (!fbSilent)
 		{
 			if (m_rules.getInt("ship") == 0)
-				m_logger.sendArenaMessage(m_fcPlayerName + " in for " + m_team.m_fcTeamName + " with ship " + m_fnShipType);
+				m_logger.sendArenaMessage(m_fcPlayerName + " in for " + m_team.m_fcTeamName + " with ship " + m_statTracker.getShipType());
 			else
 				m_logger.sendArenaMessage(m_fcPlayerName + " in for " + m_team.m_fcTeamName);
 		}
@@ -493,9 +412,7 @@ public class MatchPlayer
 	// reward
 	public void flagReward(int points)
 	{
-		m_statisticTracker.setScore(points);
-		if (m_currentShip != null)
-			m_currentShip.flagReward(points);
+		m_statTracker.reportFlagReward(points);
 	};
 
 	public void setAboutToBeSubbed(boolean waarde)
@@ -505,22 +422,21 @@ public class MatchPlayer
 
 	public void setShip(int ship)
 	{
-		if (ship != m_fnShipType)
+		if (ship != m_statTracker.getShipType())
 		{
-			m_fnShipType = ship;
-			createNewShip(ship);
+			m_statTracker.createNewShip(ship);
 		};
-		m_logger.setShip(m_fcPlayerName, m_fnShipType);
+		m_logger.setShip(m_fcPlayerName, m_statTracker.getShipType());
                 
-                if (m_player != null)
-                    if (m_player.getFrequency() != getFrequency()) m_logger.setFreq(m_fcPlayerName, getFrequency());
+        if (m_player != null)
+            if (m_player.getFrequency() != getFrequency()) m_logger.setFreq(m_fcPlayerName, getFrequency());
 	};
 
 	// return the amount of deaths the scoreboard should count for him.
 	public int getDeaths()
 	{
 		if ((m_fnPlayerState >= 1) && (m_fnPlayerState <= 2))
-			return m_statisticTracker.getDeaths();
+			return m_statTracker.getTotalStatistic(StatisticRequester.DEATHS);
 		if (m_fnPlayerState == 0)
 			return 0;
 		if (m_fnPlayerState == 3)
@@ -601,9 +517,9 @@ public class MatchPlayer
 			final int VOID_RATING = 100000; //rating to be deducted so never gets mvp
 			
 			if (m_switchedShip)
-				return m_statisticTracker.getRating() - VOID_RATING;
+				return m_statTracker.getTotalStatistic(StatisticRequester.RATING);
 			else
-				return m_statisticTracker.getRating();
+				return m_statTracker.getStatistic(StatisticRequester.RATING);
 		}
 		return 0;
 	}
@@ -612,9 +528,18 @@ public class MatchPlayer
 	 * Method getStatistics.
 	 * @return String A formated line of stats depending on the ship
 	 */
+	public String[] getTotalStatistics()
+	{
+		return m_statTracker.getTotalStatisticsSummary();
+	}
+
+	/**
+	 * Method getStatistics.
+	 * @return String A formated line of stats depending on the ship
+	 */
 	public String[] getStatistics()
 	{
-		return m_statisticTracker.getStatistics();
+		return m_statTracker.getStatisticsSummary();
 	}
 
 
@@ -652,23 +577,45 @@ public class MatchPlayer
 		if (lagRequestTask != null)
 			lagRequestTask.cancel();
 		
-		m_statisticTracker.changeDeaths(10);
+		m_statTracker.changeDeaths(10);
 		
 		m_logger.specAndSetFreq(m_fcPlayerName, m_team.getFrequency());
 		m_logger.sendArenaMessage(getPlayerName() + " is out (too long outside of base). " + getKills() + " wins " + getDeaths() + " losses");
-	};
+	}
+;
 
 	public int getActualDeaths()
 	{
-		return m_statisticTracker.getDeaths();
+		return m_statTracker.getTotalStatistic(StatisticRequester.DEATHS);
 	};
 	public int getKills()
 	{
-		return m_statisticTracker.getTotalKills();
-	};
+		return m_statTracker.getTotalStatistic(StatisticRequester.TOTAL_KILLS);
+	}
+	
+	/**
+	 * Gets total statistics added over all ships
+	 * 
+	 * @param statType @see twcore.misc.statistics.StatisticRequester.java for stattypes
+	 */
+	public int getTotalStatistic(int statType)
+	{
+		return m_statTracker.getTotalStatistic(statType);	
+	}
+	
+	/**
+	 * Gets total statistics for current ships
+	 * 
+	 * @param statType @see twcore.misc.statistics.StatisticRequester.java for stattypes
+	 */
+	public int getStatistic(int statType)
+	{
+		return m_statTracker.getStatistic(statType);	
+	}
+	;
 	public int getScore()
 	{
-		return m_statisticTracker.getScore();
+		return m_statTracker.getStatistic(StatisticRequester.SCORE);
 	};
 	public int getSpecAt()
 	{
@@ -680,10 +627,7 @@ public class MatchPlayer
 	};
 	public int getShipType()
 	{
-		if (m_currentShip != null)
-			return m_currentShip.getShipType();
-		else
-			return 0;
+		return m_statTracker.getShipType();
 	};
 	public String getPlayerName()
 	{
@@ -749,6 +693,352 @@ public class MatchPlayer
 		}
 	}
 
+/**
+	 * @author FoN
+	 * 
+	 * This class is to congregate all the stats so they can be organised and added + removed easily
+	 */
+private class TotalStatistics
+{
+	private MatchPlayerShip m_currentShip;
+	private LinkedList m_ships;
+
+	public TotalStatistics()
+	{
+		m_ships = new LinkedList();
+	}
+
+	/**
+	* Creates a new ship given a shiptype
+	* 
+	* @param fnShipType Type of ship 1 - 8 corresponding to Wb - Shark
+	*/
+	public void createNewShip(int fnShipType)
+	{
+		if (m_currentShip != null)
+			m_currentShip.endNow();
+		m_currentShip = new MatchPlayerShip(fnShipType);
+		m_ships.add(m_currentShip);
+	}
+
+	/**
+	 * Method reportKill.
+	 * 
+	 * @param fnPoints The amount of points obtained for kill
+	 * @param killeeID The person who got killed
+	 * @param m_fnFrequency The frequency of the killer
+	 * @param shipType The type of ship killed
+	 * @param killeeFreq The frequency of the killed
+	 */
+	public void reportKill(int fnPoints, int killeeID, int m_fnFrequency, int shipType, int killeeFreq)
+	{
+		if (m_currentShip != null)
+			m_currentShip.reportKill(fnPoints, killeeID, m_fnFrequency, shipType, killeeFreq);
+
+	}
+
+	/**
+	* Method reportDeath.
+	*/
+	public void reportDeath()
+	{
+		if (m_currentShip != null)
+			m_currentShip.reportDeath();
+	}
+
+	/**
+	 * Method reportFlagClaimed.
+	 * 
+	 * Adds flagclaimed to stats
+	 */
+	public void reportFlagClaimed()
+	{
+		if (m_currentShip != null)
+			m_currentShip.reportFlagClaimed();
+	}
+
+	/**
+	 * Adds to the m_score.
+	 * @param score The m_score to set
+	 */
+	public void reportFlagReward(int score)
+	{
+		if (m_currentShip != null)
+			m_currentShip.flagReward(score);
+
+	}
+	
+	/**
+	 * Method changeDeaths.
+	 * @param deaths
+	 */
+	public void changeDeaths(int deaths)
+	{
+		if (m_currentShip != null)
+			m_currentShip.changeDeaths(deaths);
+	}
+	
+	
+
+	/**
+	* Method startNow.
+	*/
+	public void startNow()
+	{
+		if (m_currentShip != null)
+			m_currentShip.startNow();
+	}
+
+	/**
+	 * Method endNow.
+	 */
+	public void endNow()
+	{
+		if (m_currentShip != null)
+			m_currentShip.endNow();
+	}
+
+	/**
+	 * Method getStatistics.
+	 * @return String depending on the ship type
+	 */
+	public String[] getTotalStatisticsSummary()
+	{
+		Iterator i = m_ships.iterator();
+		LinkedList summary = new LinkedList();
+		while (i.hasNext())
+		{
+			String[] summ = ((MatchPlayerShip) i.next()).getStatisticsSummary();
+			for (int j = 0; j < summ.length; j++)
+				summary.add(summ[j]);
+		}
+
+		return (String[]) summary.toArray();
+	}
+
+	/**
+	 * Method getStatistics.
+	 * @return String depending on the ship type
+	 */
+	public String[] getStatisticsSummary()
+	{
+		return m_currentShip.getStatisticsSummary();
+	}
+
+	/**
+	 * Method getTotalStatistic.
+	 * @param i
+	 * @return int
+	 */
+	public int getTotalStatistic(int statType)
+	{
+		Iterator i = m_ships.iterator();
+		int total = 0;
+		
+		while (i.hasNext())
+		{
+			total += ((MatchPlayerShip) i.next()).getStatistic(statType);
+		}
+
+		return total;
+	}
+
+	/**
+	 * Method getTotalStatistic.
+	 * @param statType Type of statistic
+	 * @return int
+	 */
+	public int getStatistic(int statType)
+	{
+		return m_currentShip.getStatistic(statType);
+	}
+	
+	/**
+	 * @return shipType the type of current ship
+	 */
+	public int getShipType()
+	{
+		if (m_currentShip != null)
+			return m_currentShip.getShipType();
+		else
+			return 0; //error
+	}
+}
+
+private class MatchPlayerShip
+{
+	private Statistics m_statisticTracker;
+
+
+
+
+	private java.util.Date m_ftTimeStarted;
+	private java.util.Date m_ftTimeEnded;
+
+	public MatchPlayerShip(int fnShipType)
+	{
+		m_ftTimeStarted = new java.util.Date();
+
+		//statistics tracker
+		m_statisticTracker = new Statistics(fnShipType);
+	}
+
+;
+
+	// report kill
+	public void reportKill(int fnPoints, int killeeID, int frequency, int shipType, int killeeFreq)
+	{
+		if (killeeFreq == frequency)
+		{
+			switch (shipType)
+			{
+				case 1 : //wb
+					m_statisticTracker.setWbTeamKill();
+					break;
+
+				case 2 : //jav
+					m_statisticTracker.setJavTeamKill();
+					break;
+
+				case 3 : //spider
+					m_statisticTracker.setSpiderTeamKill();
+					break;
+
+				case 4 : //lev
+					m_statisticTracker.setLevTeamKill();
+					break;
+
+				case 5 : //terr
+					m_statisticTracker.setTerrTeamKill();
+					break;
+
+				case 6 : //x
+					m_statisticTracker.setWeaselTeamKill();
+					break;
+
+				case 7 : //lanc
+					m_statisticTracker.setLancTeamKill();
+					break;
+
+				case 8 : //shark
+					m_statisticTracker.setSharkTeamKill();
+					break;
+			}
+		}
+		else
+		{
+			switch (shipType)
+			{
+				case 1 : //wb
+					m_statisticTracker.setWbKill();
+					break;
+
+				case 2 : //jav
+					m_statisticTracker.setJavKill();
+					break;
+
+				case 3 : //spider
+					m_statisticTracker.setSpiderKill();
+					break;
+
+				case 4 : //lev
+					m_statisticTracker.setLevKill();
+					break;
+
+				case 5 : //terr
+					m_statisticTracker.setTerrKill();
+					break;
+
+				case 6 : //x
+					m_statisticTracker.setWeaselKill();
+					break;
+
+				case 7 : //lanc
+					m_statisticTracker.setLancKill();
+					break;
+
+				case 8 : //shark
+					m_statisticTracker.setSharkKill();
+					break;
+			}
+		}
+
+		m_statisticTracker.setScore(fnPoints);
+	}
+
+	/**
+	 * Method reportFlagClaimed.
+	 * 
+	 * Adds flagclaimed to stats
+	 */
+	public void reportFlagClaimed()
+	{
+		m_statisticTracker.setFlagClaimed();
+	}
+	
+	// report death
+	public void reportDeath()
+	{
+		m_statisticTracker.setDeaths();
+//		if (m_fnShipType == 8) //shark
+//			m_statisticTracker.setAverageRepelCount(m_botAction.getPlayer(m_fcPlayerName).getRepelCount());
+	}
+
+	public void flagReward(int points)
+	{
+		m_statisticTracker.setScore(points);
+	}
+	
+	/**
+	 * Method changeDeaths.
+	 * @param deaths
+	 */
+	public void changeDeaths(int deaths)
+	{
+		m_statisticTracker.changeDeaths(deaths);
+	}
+
+
+	// report end of playership
+	public void endNow()
+	{
+		m_ftTimeEnded = new java.util.Date();
+	}
+
+	// report start of playership
+	public void startNow()
+	{
+		m_ftTimeStarted = new java.util.Date();
+	}
+
+	public int getShipType()
+	{
+		return m_statisticTracker.getShipType();
+	}
+	
+	public String[] getStatisticsSummary()
+	{
+		return m_statisticTracker.getStatisticsSummary();
+	}
+	
+	public int getStatistic(int statType)
+	{
+		return m_statisticTracker.getStatistic(statType);
+	}	
+	
+	
+	public java.util.Date getTimeStarted()
+	{
+		return m_ftTimeStarted;
+	}
+	
+	public java.util.Date getTimeEnded()
+	{
+		return m_ftTimeEnded;
+	}
+
+}
+
 	private class LagRequestTask extends TimerTask
 	{
 		public void run()
@@ -775,961 +1065,7 @@ public class MatchPlayer
 		}
 	}
 	
-	/**
-	 * @author FoN
-	 * 
-	 * This class is to congregate all the stats so they can be organised and added + removed easily
-	 */
-	private class Statistics
-	{
-		//stats
-		private int m_wbKill;
-		private int m_javKill;
-		private int m_spiderKill;
-		private int m_levKill;
-		private int m_terrKill;
-		private int m_weaselKill;
-		private int m_lancKill;
-		private int m_sharkKill;
-		private int m_deaths;
-		private int m_score;
-		private int m_avgRepelCount;
-		private int m_flagClaimed;
-
-		//teamkill
-		private int m_wbTeamKill;
-		private int m_javTeamKill;
-		private int m_spiderTeamKill;
-		private int m_levTeamKill;
-		private int m_terrTeamKill;
-		private int m_weaselTeamKill;
-		private int m_lancTeamKill;
-		private int m_sharkTeamKill;
-
-		private final double MAXIMUM_RATIO = 1.2;
-		private final int REPELS_PER_SHARK = 3;
-
-		public Statistics()
-		{
-			reset();
-		}
-
-		/**
-		 * Method getStatistics.
-		 * @return String depending on the ship type
-		 */
-		public String[] getStatistics()
-		{
-			Vector stats = new Vector(3);
-
-			final int FORMULA = 0;
-			final int STATS = 1;
-			final int TEAMKILLS = 2;
-
-			switch (m_fnShipType)
-			{
-				case 1 : //warbird
-					stats.add(FORMULA, "Warbird: .6Points * (.07wb + .07jav + .05spid + 0.12terr + .05x + .06lanc + .08shark - .04deaths)");
-					stats.add(
-						STATS,
-						"K: "
-							+ getTotalKills()
-							+ " D: "
-							+ m_deaths
-							+ " Wk: "
-							+ m_wbKill
-							+ " Jk: "
-							+ m_javKill
-							+ " Sk: "
-							+ m_spiderKill
-							+ " Tk: "
-							+ m_terrKill
-							+ " Xk: "
-							+ m_weaselKill
-							+ " Lk: "
-							+ m_lancKill
-							+ " ShK: "
-							+ m_sharkKill
-							+ " F: "
-							+ m_flagClaimed
-							+ " S: "
-							+ m_score
-							+ " R: "
-							+ getRating());
-					break;
-
-				case 2 : //jav
-					stats.add(FORMULA, "Jav: .5Points * (.05wb + .05jav + .06spid + 0.12terr + .07x + .05lanc + .09shark - .05deaths - (.07wbTK + .07javTK + .06spiderTK + .15terrTK + .06WeaselTK + .07LancTK + .09SharkTK))");
-					stats.add(
-						STATS,
-						"K: "
-							+ getTotalKills()
-							+ " D: "
-							+ m_deaths
-							+ " TKs: "
-							+ getTotalTeamKills()
-							+ " Wk: "
-							+ m_wbKill
-							+ " Jk: "
-							+ m_javKill
-							+ " Sk: "
-							+ m_spiderKill
-							+ " Tk: "
-							+ m_terrKill
-							+ " Xk: "
-							+ m_weaselKill
-							+ " Lk: "
-							+ m_lancKill
-							+ " ShK: "
-							+ m_sharkKill
-							+ " F: "
-							+ m_flagClaimed
-							+ " S: "
-							+ m_score
-							+ " R: "
-							+ getRating());
-						stats.add(TEAMKILLS,
-						      "Team Kills - Wtk: "
-							+ m_wbTeamKill
-							+ " Jtk: "
-							+ m_javTeamKill
-							+ " Stk: "
-							+ m_spiderTeamKill
-							+ " Ttk: "
-							+ m_terrTeamKill
-							+ " Xtk: "
-							+ m_weaselTeamKill
-							+ " Ltk: "
-							+ m_lancTeamKill
-							+ " ShtK: "
-							+ m_sharkTeamKill);
-
-						break;
-
-				case 3 : //spider				
-					stats.add(FORMULA, "Spider: .4points * (.06wb + .06jav + .04spid + .08terr + .05x + .05lanc + .09shark - .05deaths)");
-					stats.add(
-						STATS,
-						"K: "
-							+ getTotalKills()
-							+ " D: "
-							+ m_deaths
-							+ " Wk: "
-							+ m_wbKill
-							+ " Jk: "
-							+ m_javKill
-							+ " Sk: "
-							+ m_spiderKill
-							+ " Tk: "
-							+ m_terrKill
-							+ " Xk: "
-							+ m_weaselKill
-							+ " Lk: "
-							+ m_lancKill
-							+ " ShK: "
-							+ m_sharkKill
-							+ " F: "
-							+ m_flagClaimed
-							+ " S: "
-							+ m_score
-							+ " R: "
-							+ getRating());
-					break;
-
-				case 4 : //lev
-					stats.add(FORMULA, "Leviathen Forumla: Points");
-					stats.add(STATS, "S: " + m_score);
-					break;
-
-				case 5 : //terr					
-					stats.add(FORMULA, "Terr: .8points * (.06wb + .06jav + .08spid + .12terr + .1x + .06lanc + .09shark - .12deaths)");
-					stats.add(
-						STATS,
-						"K: "
-							+ getTotalKills()
-							+ " D: "
-							+ m_deaths
-							+ " Wk: "
-							+ m_wbKill
-							+ " Jk: "
-							+ m_javKill
-							+ " Sk: "
-							+ m_spiderKill
-							+ " Tk: "
-							+ m_terrKill
-							+ " Xk: "
-							+ m_weaselKill
-							+ " Lk: "
-							+ m_lancKill
-							+ " ShK: "
-							+ m_sharkKill
-							+ " F: "
-							+ m_flagClaimed
-							+ " S: "
-							+ m_score
-							+ " R: "
-							+ getRating());
-						break;
-
-				case 6 : //weasel
-					stats.add(FORMULA, "Weasel: .8points * (sum(.09allships) - 0.05deaths)");
-					stats.add(
-						STATS,
-						"K: "
-							+ getTotalKills()
-							+ " D: "
-							+ m_deaths
-							+ " Wk: "
-							+ m_wbKill
-							+ " Jk: "
-							+ m_javKill
-							+ " Sk: "
-							+ m_spiderKill
-							+ " Tk: "
-							+ m_terrKill
-							+ " Xk: "
-							+ m_weaselKill
-							+ " Lk: "
-							+ m_lancKill
-							+ " ShK: "
-							+ m_sharkKill
-							+ " F: "
-							+ m_flagClaimed
-							+ " S: "
-							+ m_score
-							+ " R: "
-							+ getRating());
-						break;
-
-				case 7 : //lanc
-					stats.add(FORMULA, "Lanc: .6Points * (.07wb + .07jav + .05spid + 0.12terr + .05x + .06lanc + .08shark - .04deaths)");
-					stats.add(
-						STATS,
-						"K: "
-							+ getTotalKills()
-							+ " D: "
-							+ m_deaths
-							+ " Wk: "
-							+ m_wbKill
-							+ " Jk: "
-							+ m_javKill
-							+ " Sk: "
-							+ m_spiderKill
-							+ " Tk: "
-							+ m_terrKill
-							+ " Xk: "
-							+ m_weaselKill
-							+ " Lk: "
-							+ m_lancKill
-							+ " ShK: "
-							+ m_sharkKill
-							+ " F: "
-							+ m_flagClaimed
-							+ " S: "
-							+ m_score
-							+ " R: "
-							+ getRating());
-						break;
-
-				case 8 : //shark
-					stats.add(FORMULA, "Shark: points * (.12terr + sum(.09allotherships) - 0.005deaths - (.1(allothershipstks) + .15terrtk + .11sharkTK)) * (.4 * (3 / avgRepelLeft)");
-					stats.add(
-						STATS,
-						"K: "
-							+ getTotalKills()
-							+ " D: "
-							+ m_deaths
-							+ " TKs: "
-							+ getTotalTeamKills()
-							+ " AvgR: "
-							+ getAverageRepelCount()
-							+ " Wk: "
-							+ m_wbKill
-							+ " Jk: "
-							+ m_javKill
-							+ " Sk: "
-							+ m_spiderKill
-							+ " Tk: "
-							+ m_terrKill
-							+ " Xk: "
-							+ m_weaselKill
-							+ " Lk: "
-							+ m_lancKill
-							+ " ShK: "
-							+ m_sharkKill
-							+ " F: "
-							+ m_flagClaimed
-							+ " S: "
-							+ m_score
-							+ " R: "
-							+ getRating());
-						stats.add(TEAMKILLS,
-						      "Team Kills - Wtk: "
-							+ m_wbTeamKill
-							+ " Jtk: "
-							+ m_javTeamKill
-							+ " Stk: "
-							+ m_spiderTeamKill
-							+ " Ttk: "
-							+ m_terrTeamKill
-							+ " Xtk: "
-							+ m_weaselTeamKill
-							+ " Ltk: "
-							+ m_lancTeamKill
-							+ " ShtK: "
-							+ m_sharkTeamKill);
-						break;
-
-
-				default : //if errored
-					stats.add(FORMULA, "Default");
-					stats.add(STATS, "S: " + m_score);
-					break;
-					
-			}
-
-			stats.trimToSize();			
-			return (String[]) stats.toArray(new String[stats.size()]);			
-
-		}
-
-		/**
-		 * Method getTotalTeamKills.
-		 * @return int
-		 */
-		public int getTotalTeamKills()
-		{
-			return m_wbTeamKill + m_javTeamKill + m_spiderTeamKill + m_levTeamKill + m_terrTeamKill + m_weaselTeamKill + m_lancTeamKill + m_sharkTeamKill;
-		}
-
-
-		/**
-		 * Method getRating.
-		 * This returns the rating for the player according to this:
-		 * 
-		 * warbird: .6Points * (.07wb + .07jav + .05spid + 0.12terr + .05x + .06lanc + .08shark - .04deaths)
-		 *
-		 * jav: .5Points * (.05wb + .05jav + .06spid + 0.12terr + .07x + .05lanc + .09shark - .05deaths - (.07wbTK + .07javTK + .06spiderTK + .15terrTK + .06WeaselTK + .07LancTK + .09SharkTK))
-		 *
-		 * spiders: .4points * (.06wb + .06jav + .04spid + .08terr + .05x + .05lanc + .09shark - .05deaths)
-		 *
-		 * terr: .8points * (.06wb + .06jav + .08spid + .12terr + .1x + .06lanc + .09shark - .12deaths)
-		 * 		 
-		 * weasel: .8points * (sum(.09allships) - 0.05deaths)
-		 * 
-		 * lanc: .6Points * (.07wb + .07jav + .05spid + 0.12terr + .05x + .06lanc + .08shark - .04deaths)
-		 *  
-		 * shark: points * (.12terr + sum(.09allotherships) - 0.005deaths - (.1(allothershipstks) + .15terrtk + .11sharkTK)) * (.4 * (3 / avgRepelLeft))
-		 * 
-		 * Original idea by Bleen and FoN
-		 * 
-		 * @author FoN
-		 * 
-		 * @return int which is the rating depending on the shiptype
-		 */
-		public int getRating()
-		{
-			int rating = 0;
-
-			switch (m_fnShipType)
-			{
-				case 1 : //warbird
-					rating =
-						(int) (m_score
-							* 0.6
-							* (m_wbKill * 0.07
-								+ m_javKill * 0.07
-								+ m_spiderKill * 0.05
-								+ m_levKill
-								+ m_terrKill * 0.12
-								+ m_weaselKill * 0.05
-								+ m_lancKill * 0.06
-								+ m_sharkKill * 0.08
-								- m_deaths * 0.04));
-					return rating;
-
-				case 2 : //jav
-					rating =
-						(int) (m_score
-							* 0.5
-							* (m_wbKill * 0.05
-								+ m_javKill * 0.07
-								+ m_spiderKill * 0.06
-								+ m_levKill
-								+ m_terrKill * 0.12
-								+ m_weaselKill * 0.07
-								+ m_lancKill * 0.05
-								+ m_sharkKill * 0.09
-								- m_deaths * 0.05
-								- (m_wbTeamKill * 0.07 + m_javTeamKill * 0.07 + m_spiderTeamKill * 0.06 + m_levTeamKill * 0.06 + m_terrTeamKill * 0.15 + m_weaselTeamKill * 0.06 + m_lancTeamKill * 0.07 + m_sharkTeamKill * .09)));
-					return rating;
-
-				case 3 : //spider				
-					rating =
-						(int) (m_score
-							* 0.4
-							* (m_wbKill * 0.06
-								+ m_javKill * 0.06
-								+ m_spiderKill * 0.04
-								+ m_levKill
-								+ m_terrKill * 0.08
-								+ m_weaselKill * 0.05
-								+ m_lancKill * 0.05
-								+ m_sharkKill * 0.09
-								- m_deaths * 0.05));
-					return rating;
-
-				case 4 : //lev
-					rating = m_score;
-					return rating;
-
-				case 5 : //terr
-					rating =
-						(int) (m_score
-							* 0.8
-							* (m_wbKill * 0.06
-								+ m_javKill * 0.06
-								+ m_spiderKill * 0.08
-								+ m_levKill
-								+ m_terrKill * 0.12
-								+ m_weaselKill * 0.1
-								+ m_lancKill * 0.1
-								+ m_sharkKill * 0.09
-								- m_deaths * 0.12));
-					return rating;
-
-				case 6 : //weasel
-					rating =
-						(int) (m_score
-							* 0.8
-							* (m_wbKill * 0.09
-								+ m_javKill * 0.09
-								+ m_spiderKill * 0.09
-								+ m_levKill
-								+ m_terrKill * 0.09
-								+ m_weaselKill * 0.09
-								+ m_lancKill * 0.09
-								+ m_sharkKill * 0.09
-								- m_deaths * 0.05));
-					return rating;
-
-				case 7 : //lanc
-					rating =
-						(int) (m_score
-							* 0.6
-							* (m_wbKill * 0.07
-								+ m_javKill * 0.07
-								+ m_spiderKill * 0.05
-								+ m_levKill
-								+ m_terrKill * 0.12
-								+ m_weaselKill * 0.05
-								+ m_lancKill * 0.06
-								+ m_sharkKill * 0.08
-								- m_deaths * 0.04));
-					return rating;
-
-				case 8 : //shark
-					if (getAverageRepelCount() != 0)
-						rating =
-							(int) (m_score
-								* (m_wbKill * 0.09
-									+ m_javKill * 0.09
-									+ m_spiderKill * 0.09
-									+ m_levKill
-									+ m_terrKill * 0.12
-									+ m_weaselKill * 0.09
-									+ m_lancKill * 0.09
-									+ m_sharkKill * 0.09
-									- m_deaths * 0.005
-									- (m_wbTeamKill * 0.1 + m_javTeamKill * 0.1 + m_spiderTeamKill * 0.1 + m_levTeamKill * 0.1 + m_terrTeamKill * 0.15 + m_weaselTeamKill * 0.1 + m_lancTeamKill * 0.1 + m_sharkTeamKill * 0.11))
-								* (0.4 * REPELS_PER_SHARK / getAverageRepelCount()));
-					else
-						rating =
-							(int) (m_score
-								* (m_wbKill * 0.09
-									+ m_javKill * 0.09
-									+ m_spiderKill * 0.09
-									+ m_levKill
-									+ m_terrKill * 0.12
-									+ m_weaselKill * 0.09
-									+ m_lancKill * 0.09
-									+ m_sharkKill * 0.09
-									- m_deaths * 0.005
-									- (m_wbTeamKill * 0.1 + m_javTeamKill * 0.1 + m_spiderTeamKill * 0.1 + m_levTeamKill * 0.1 + m_terrTeamKill * 0.15 + m_weaselTeamKill * 0.1 + m_lancTeamKill * 0.1 + m_sharkTeamKill * 0.11))
-								* MAXIMUM_RATIO);
-
-					return rating;
-
-				default : //if errored
-					rating = m_score;
-					return rating;
-			}
-
-		}
-
-		/**
-		 * sets all the stat variables to zero or their initial values
-		 */
-		private void reset()
-		{
-			m_wbKill = 0;
-			m_javKill = 0;
-			m_spiderKill = 0;
-			m_levKill = 0;
-			m_terrKill = 0;
-			m_weaselKill = 0;
-			m_lancKill = 0;
-			m_sharkKill = 0;
-			m_deaths = 0;
-			m_score = 0;
-			m_flagClaimed = 0;
-			m_avgRepelCount = 0;
-			m_wbTeamKill = 0;
-			m_javTeamKill = 0;
-			m_spiderTeamKill = 0;
-			m_levTeamKill = 0;
-			m_terrTeamKill = 0;
-			m_weaselTeamKill = 0;
-			m_lancTeamKill = 0;
-			m_sharkTeamKill = 0;
-		}
-
-		/**
-		 * Adds up all the shiptype kills and returns total
-		 * @return int
-		 */
-		public int getTotalKills()
-		{
-			return m_wbKill + m_javKill + m_spiderKill + m_levKill + m_terrKill + m_weaselKill + m_lancKill + m_sharkKill;
-		}
-
-		public float getKillDeathRatio()
-		{
-			if (m_deaths == 0) //cant divide by zero
-				return getTotalKills();
-			return getTotalKills() / m_deaths;
-		}
-
-		/**
-		 * Returns the m_javKill.
-		 * @return int
-		 */
-		public int getJavKill()
-		{
-			return m_javKill;
-		}
-
-		/**
-		 * Returns the m_lancKill.
-		 * @return int
-		 */
-		public int getLancKill()
-		{
-			return m_lancKill;
-		}
-
-		/**
-		 * Returns the m_levKill.
-		 * @return int
-		 */
-		public int getLevKill()
-		{
-			return m_levKill;
-		}
-
-		/**
-		 * Returns the m_sharkKill.
-		 * @return int
-		 */
-		public int getSharkKill()
-		{
-			return m_sharkKill;
-		}
-
-		/**
-		 * Returns the m_spiderKill.
-		 * @return int
-		 */
-		public int getSpiderKill()
-		{
-			return m_spiderKill;
-		}
-
-		/**
-		 * Returns the m_terrKill.
-		 * @return int
-		 */
-		public int getTerrKill()
-		{
-			return m_terrKill;
-		}
-
-		/**
-		 * Returns the m_wbKill.
-		 * @return int
-		 */
-		public int getWbKill()
-		{
-			return m_wbKill;
-		}
-
-		/**
-		 * Returns the m_weaselKill.
-		 * @return int
-		 */
-		public int getWeaselKill()
-		{
-			return m_weaselKill;
-		}
-
-		/**
-		 * Sets the m_javKill.
-		 * Increments it by one
-		 */
-		public void setJavKill()
-		{
-			m_javKill++;
-		}
-
-		/**
-		 * Sets the m_lancKill.
-		 * Increments it by one
-		 */
-		public void setLancKill()
-		{
-			m_lancKill++;
-		}
-
-		/**
-		 * Sets the m_levKill.
-		 * Increments it by one
-		 */
-		public void setLevKill()
-		{
-			m_levKill++;
-		}
-
-		/**
-		 * Sets the m_sharkKill.
-		 * Increments it by one
-			 */
-		public void setSharkKill()
-		{
-			m_sharkKill++;
-		}
-
-		/**
-		 * Sets the m_spiderKill.
-		 * Increments it by one
-		 */
-		public void setSpiderKill()
-		{
-			m_spiderKill++;
-		}
-
-		/**
-		 * Sets the m_terrKill.
-		 * Increments it by one
-		 */
-		public void setTerrKill()
-		{
-			m_terrKill++;
-		}
-
-		/**
-		 * Sets the m_wbKill.
-		 * Increments it by one
-		 */
-		public void setWbKill()
-		{
-			m_wbKill++;
-		}
-
-		/**
-		 * Sets the m_weaselKill.
-		 * Increments it by one
-		 */
-		public void setWeaselKill()
-		{
-			m_weaselKill++;
-		}
-
-		/**
-		 * Returns the m_deaths.
-		 * @return int
-		 */
-		public int getDeaths()
-		{
-			return m_deaths;
-		}
-
-		/**
-		 * Sets the m_deaths.
-		 */
-		public void setDeaths()
-		{
-			m_deaths++;
-		}
-
-		/**
-		 * Changes the death via the input
-		 * @ param deaths The deaths to be changed to
-		 */
-		private void changeDeaths(int deaths)
-		{
-			m_deaths = deaths;
-		}
-
-		/**
-		 * Returns the m_score.
-		 * @return int
-		 */
-		public int getScore()
-		{
-			return m_score;
-		}
-
-		/**
-		 * Adds to the m_score.
-		 * @param score The m_score to set
-		 */
-		public void setScore(int score)
-		{
-			m_score += score;
-		}
-
-		/**
-		 * Returns the m_avgRepelCount.
-		 * @return int
-		 */
-		public int getAverageRepelCount()
-		{
-			if (m_deaths == 0)
-				return m_avgRepelCount / 1; //can't divide by zero;
-			return m_avgRepelCount / m_deaths;
-		}
-
-		/**
-		 * Returns the m_flagClaimed.
-		 * @return int
-		 */
-		public int getFlagClaimed()
-		{
-			return m_flagClaimed;
-		}
-
-		/**
-		 * Sets the m_avgRepelCount.
-		 * @param m_avgRepelCount The m_avgRepelCount to set
-		 */
-		public void setAverageRepelCount(int avgRepelCount)
-		{
-			m_avgRepelCount += avgRepelCount;
-		}
-
-		/**
-		 * Sets the m_flagClaimed.
-		 */
-		public void setFlagClaimed()
-		{
-			m_flagClaimed++;
-		}
-
-		/**
-		 * Returns the m_javTeamKill.
-		 * @return int
-		 */
-		public int getJavTeamKill()
-		{
-			return m_javTeamKill;
-		}
-
-		/**
-		 * Returns the m_lancTeamKill.
-		 * @return int
-		 */
-		public int getLancTeamKill()
-		{
-			return m_lancTeamKill;
-		}
-
-		/**
-		 * Returns the m_levTeamKill.
-		 * @return int
-		 */
-		public int getLevTeamKill()
-		{
-			return m_levTeamKill;
-		}
-
-		/**
-		 * Returns the m_sharkTeamKill.
-		 * @return int
-		 */
-		public int getSharkTeamKill()
-		{
-			return m_sharkTeamKill;
-		}
-
-		/**
-		 * Returns the m_spiderTeamKill.
-		 * @return int
-		 */
-		public int getSpiderTeamKill()
-		{
-			return m_spiderTeamKill;
-		}
-
-		/**
-		 * Returns the m_terrTeamKill.
-		 * @return int
-		 */
-		public int getTerrTeamKill()
-		{
-			return m_terrTeamKill;
-		}
-
-		/**
-		 * Returns the m_wbTeamKill.
-		 * @return int
-		 */
-		public int getWbTeamKill()
-		{
-			return m_wbTeamKill;
-		}
-
-		/**
-		 * Returns the m_weaselTeamKill.
-		 * @return int
-		 */
-		public int getWeaselTeamKill()
-		{
-			return m_weaselTeamKill;
-		}
-
-		/**
-		 * Sets the m_javTeamKill.
-		 * @param m_javTeamKill The m_javTeamKill to set
-		 */
-		public void setJavTeamKill()
-		{
-			m_javTeamKill++;
-		}
-
-		/**
-		 * Sets the m_lancTeamKill.
-		 * @param m_lancTeamKill The m_lancTeamKill to set
-		 */
-		public void setLancTeamKill()
-		{
-			m_lancTeamKill++;
-		}
-
-		/**
-		 * Sets the m_levTeamKill.
-		 * @param m_levTeamKill The m_levTeamKill to set
-		 */
-		public void setLevTeamKill()
-		{
-			m_levTeamKill++;
-		}
-
-		/**
-		 * Sets the m_sharkTeamKill.
-		 * @param m_sharkTeamKill The m_sharkTeamKill to set
-		 */
-		public void setSharkTeamKill()
-		{
-			m_sharkTeamKill++;
-		}
-
-		/**
-		 * Sets the m_spiderTeamKill.
-		 * @param m_spiderTeamKill The m_spiderTeamKill to set
-		 */
-		public void setSpiderTeamKill()
-		{
-			m_spiderTeamKill++;
-		}
-
-		/**
-		 * Sets the m_terrTeamKill.
-		 * @param m_terrTeamKill The m_terrTeamKill to set
-		 */
-		public void setTerrTeamKill()
-		{
-			m_terrTeamKill++;
-		}
-
-		/**
-		 * Sets the m_wbTeamKill.
-		 * @param m_wbTeamKill The m_wbTeamKill to set
-		 */
-		public void setWbTeamKill()
-		{
-			m_wbTeamKill++;		}
-
-		/**
-		 * Sets the m_weaselTeamKill.
-		 * @param m_weaselTeamKill The m_weaselTeamKill to set
-		 */
-		public void setWeaselTeamKill()
-		{
-			m_weaselTeamKill++;
-		}
-
-	}
-
 }
 
 
-class MatchPlayerShip {
-
-    int m_fnShipType = 0,
-        m_fnKills = 0,
-        m_fnDeaths = 0,
-        m_fnScore = 0;
-
-    java.util.Date m_ftTimeStarted, m_ftTimeEnded;
-
-
-    public MatchPlayerShip(int fnShipType) {
-        m_fnShipType = fnShipType;
-        m_ftTimeStarted = new java.util.Date();
-    };
-
-    // report kill
-    public void reportKill(int fnPoints) {
-        m_fnKills++;
-        m_fnScore += fnPoints;
-    };
-
-
-    // report death
-    public void reportDeath() {
-        m_fnDeaths++;
-    };
-
-   public void flagReward(int points) {
-        m_fnScore += points;
-   };
-
-   // report end of playership
-    public void endNow() {
-        m_ftTimeEnded = new java.util.Date();
-    };
-
-    // report start of playership
-    public void startNow() {
-        m_ftTimeStarted = new java.util.Date();
-    };
-
-    public int getShipType() { return m_fnShipType; };
-    public int getKills() { return m_fnKills; };
-    public int getDeaths() { return m_fnDeaths; };
-    public int getScore() { return m_fnScore; };
-    public java.util.Date getTimeStarted() { return m_ftTimeStarted; };
-    public java.util.Date getTimeEnded() { return m_ftTimeEnded; };
-
-
-};
+;
