@@ -4,65 +4,95 @@ import twcore.core.*;
 
 public class pStats {
 
+	String name;
+	String freq;
+	String notes = "-";
 	int playerID = 0;
 	int totalKills = 0;
 	int totalDeaths = 0;
-    int gameKills = 0;
-    int gameDeaths = 0;
-	int registered = 0;
-    int playerRound = 0;
-	int playerBox = 0;
+	int gameKills = 0;
+	int gameDeaths = 0;
 	int playerState = 0;
-	int playerNro = 0;
 	int busy = 0;
 	int lastDeath = 0;
 	int lastReturn = 0;
-	int randNum = 0;
+	int id = 0;
+	String lastKiller;
 	String lag = "No";
 	int lagOuts = 0;
-	int warps = 0;
+	int fouls = 0;
 	int ship = 0;
-	static int players = 0;
-	static int playersB = 1;
+	boolean trueLag = false;
 	boolean smallLag = false;
+	boolean randomT = false;
+	static int players = 0;
 
-    public pStats(){
-    }
-        
-    public void incrementKills() {
-        totalKills++;
-	    gameKills++;
-    }
+	boolean qSent = false;
 
-	public void removeKills() {
-	    totalKills--;
-	    gameKills--;
+	public pStats(String tName) {
+		name = tName;
 	}
 
-	public void incrementRound() { playerRound++; }
+	public String getName() { return name; }
+
+	public String getNotes() { return notes; }
+
+	public void setNotes(String note) { notes = note; }
+
+	public void endTournament() { players = 0; }
+
+	public void setRandomT(boolean r) { randomT = r; }
+
+	public boolean getRandomT() { return randomT; }
+
+	public void setDBID(int i) { id = i; }
+
+	public int getDBID() {return id; }
+
+	public void setFreq(String sFreq) {	freq = sFreq; }
+
+	public String getFreq() { return freq; }
+
+	public void setLastKiller(String name) { lastKiller = name; }
+
+	public String getLastKiller() { return lastKiller; }
+
+	public void incrementKills() {
+		totalKills++;
+		gameKills++;
+	}
+
+	public void removeKills() {
+		totalKills--;
+		gameKills--;
+	}
 
 	public void incrementLagOuts() { lagOuts++; }
 
-	public void incrementWarps() { warps++; }
+	public void incrementFouls() { fouls++; }
 
-    public void incrementDeaths() {
-        totalDeaths++;
-	    gameDeaths++;
-	    lastDeath = (int)(System.currentTimeMillis() / 1000);
-    }
+	public void incrementDeaths() {
+		totalDeaths++;
+		gameDeaths++;
+		lastDeath = (int)(System.currentTimeMillis() / 1000);
+	}
+
+	public void setLastDeath() { lastDeath = (int)(System.currentTimeMillis() / 1000); }
 
 	public void removeDeaths() {
 	    totalDeaths--;
 	    gameDeaths--;
 	}
-        
-    public int getTotalKills() { return totalKills; }
-        
-    public int getGameKills() { return gameKills; }
 
-    public int getTotalDeaths() { return totalDeaths; }
+	public int getPlayerID() { return playerID; }
 
-    public int getGameDeaths() { return gameDeaths; }
+	public int getTotalKills() { return totalKills; }
+        
+	public int getGameKills() { return gameKills; }
+
+	public int getTotalDeaths() { return totalDeaths; }
+
+	public int getGameDeaths() { return gameDeaths; }
 
 	public int timeFromLastDeath() { return (int)(System.currentTimeMillis() / 1000) - lastDeath; }
 
@@ -70,31 +100,21 @@ public class pStats {
 
 	public void setLastReturn(int time) { lastReturn = time; }
 
-	public int getRegistered() { return registered; }
-
 	public int getPlayerState() { return playerState; }
-
-	public int getPlayers() { return players; }
-
-	public int getPlayerID() { return playerID; }
-
-	public int getRound() { return playerRound; }
-        
-	public int getBox() { return playerBox; }
-
-	public int getPlayerNro() { return playerNro; }
 
 	public int getLagOuts() { return lagOuts; }
 
-	public int getWarps() { return warps; }
-
-	public int getRandNum() { return randNum; }
-
-	public void setRandNum(int num) { randNum = num; }
+	public int getFouls() { return fouls; }
 
 	public int getShip() { return ship; }
 
 	public void setShip(int num) { ship = num; }
+
+	public boolean getTrueLag() { return trueLag; }
+
+	public void toggleTrueLag(boolean sl) { 
+		trueLag = sl;
+	}
 
 	public boolean getSmallLag() { return smallLag; }
 
@@ -106,56 +126,31 @@ public class pStats {
 
 	public String getLagOut() { return lag; }
 
-    public void reset() {
-        gameKills = 0;
-        gameDeaths = 0;
+	public void reset() {
+		gameKills = 0;
+		gameDeaths = 0;
 		lagOuts = 0;
-		warps = 0;
-    }
+		fouls = 0;
+		notes = "-";
+	}
 
 	public void busy(int yn) { busy = yn; }
 
 	public int getBusy() { return busy; }
 
-	public void unRegister() {
-	    playerID = 0;
- 	    totalKills = 0;
-	    totalDeaths = 0;
-        gameKills = 0;
-        gameDeaths = 0;
-	    registered = 0;
-        playerRound = 0;
-	    playerBox = 0;
-	    playerState = 0;
-	    playersB = 1;
-	    players = 0;
-	    playerNro = 0;
-	    busy = 0;
-	    lag = "No";
-		lagOuts = 0;
-		warps = 0;
-		randNum = 0;
-		ship = 0;
-		smallLag = false;
-    }
-
-	public void changeBox(int box) { playerBox = box; }
-
-	public void changeNro(int nro) { playerNro = nro; }
-
-	public void changeRound(int round) { playerRound = round; }
-
 	public void register() {
-        registered = 1;
-	    playerRound = 1;
 	    playerState = 0;
 	    playerID = players;
   	    players++;
-    }
+	}
 
 	public void playing() { playerState = 1; }
 
 	public void sleeping() { playerState = 0; }
 
 	public void remove() { playerState = 2; }
+
+	public boolean getQSent() { return qSent; }
+
+	public void setQSent(boolean q) { qSent = q; }
 }
