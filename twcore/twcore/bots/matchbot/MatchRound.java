@@ -1214,12 +1214,18 @@ public class MatchRound
     public void toggleBlueout(boolean blueout)
     {
         m_blueoutDesiredState = blueout;
-        if ((m_blueoutState == -1) || ((m_blueoutState == 0) && (m_blueoutDesiredState)) || ((m_blueoutState == 1) && (!m_blueoutDesiredState)))
+        if((m_blueoutState == -1) || ((m_blueoutState == 0) && (m_blueoutDesiredState)) || ((m_blueoutState == 1) && (!m_blueoutDesiredState)))
         {
             if (m_blueoutDesiredState)
+            {
                 m_logger.sendArenaMessage("Blueout has been enabled. Staff, don't speak in public from now on.");
+                m_blueoutState = 1;
+            }
             else if (m_blueoutState == 1)
+            {
                 m_logger.sendArenaMessage("Blueout has been disabled. You can speak in public now.");
+                m_blueoutState = 0;
+            }
             m_botAction.toggleBlueOut();
         }
     };
