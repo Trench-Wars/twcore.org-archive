@@ -811,6 +811,7 @@ public class matchbot extends SubspaceBot
     {
         try
         {
+
             createKillChecker();
             String fcTeam1Name = null, fcTeam2Name = null, rulesName = null;
 
@@ -854,6 +855,8 @@ public class matchbot extends SubspaceBot
                 {
                     m_botAction.toggleLocked();
                     m_botAction.setMessageLimit(ACTIVE_MESSAGE_LIMIT);
+                    if (!name.equalsIgnoreCase(m_botAction.getBotName()))
+                        startMessage = "Game started by " + name;
                     m_game = new MatchGame(rulesName, fcTeam1Name, fcTeam2Name, m_botAction);
                 }
                 else
