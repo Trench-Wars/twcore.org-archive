@@ -777,15 +777,15 @@ public class MatchPlayer
 			switch (m_fnShipType)
 			{
 				case 1 : //warbird
-					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Wk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
+					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Xk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
 					return stats;
 
 				case 2 : //jav
-					stats = "K: " + getTotalKills() + " D: " + m_deaths + "TKs: " + m_teamKills + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Wk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
+					stats = "K: " + getTotalKills() + " D: " + m_deaths + " TKs: " + m_teamKills + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Xk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
 					return stats;
 
 				case 3 : //spider				
-					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Wk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
+					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Xk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
 					return stats;
 
 				case 4 : //lev
@@ -793,19 +793,19 @@ public class MatchPlayer
 					return stats;
 
 				case 5 : //terr					
-					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Wk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
+					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Xk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
 					return stats;
 
 				case 6 : //weasel
-					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Wk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
+					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Xk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
 					return stats;
 
 				case 7 : //lanc
-					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Wk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
+					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Xk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
 					return stats;
 
 				case 8 : //shark
-					stats = "K: " + getTotalKills() + " D: " + m_deaths + "TKs: " + m_teamKills + " AvgR: " + getAverageRepelCount() + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Wk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
+					stats = "K: " + getTotalKills() + " D: " + m_deaths + " TKs: " + m_teamKills + " AvgR: " + getAverageRepelCount() + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Xk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
 					return stats;
 
 				default : //if errored
