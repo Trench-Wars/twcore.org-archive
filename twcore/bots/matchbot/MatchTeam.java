@@ -162,8 +162,15 @@ public class MatchTeam
 
                 if (m_rules.getInt("deaths") != -1 && m_round.m_fnRoundState == 3)
                 {
-                    m_botAction.sendArenaMessage(playerName + " has changed/lagged to spectator mode - +1 death");
-                    p.reportDeath();
+					if (!p.getLagByBot())
+					{
+	                    m_botAction.sendArenaMessage(playerName + " has changed to spectator mode - +1 death");
+		                p.reportDeath();
+					}
+					else
+					{
+						p.setLagByBot(false);
+					}
                 }
             }
 

@@ -76,6 +76,7 @@ public class MatchPlayer implements Comparable
 	boolean m_aboutToBeSubbed = false;
 	boolean m_fbSubstituter = false;
 	boolean m_switchedShip = false;
+	boolean m_lagByBot = false;
 
 	//constants
 	static final int NOT_IN_GAME = 0;
@@ -564,6 +565,16 @@ public class MatchPlayer implements Comparable
 			return true;
 		return false;
 	};
+
+	public void setLagByBot(boolean b)
+	{
+		m_lagByBot = b;
+	}
+
+	public boolean getLagByBot()
+	{
+		return m_lagByBot;
+	}
 
 	public boolean isReadyToPlay()
 	{
