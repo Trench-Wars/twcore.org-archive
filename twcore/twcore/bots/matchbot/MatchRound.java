@@ -465,6 +465,9 @@ public class MatchRound
 
 		if (command.equals("!score"))
 			command_score(name, parameters);
+			
+		if (command.equals("!rating"))
+			command_rating(name, parameters);
 
 		if (command.length() > 3)
 		{
@@ -487,6 +490,38 @@ public class MatchRound
 				m_team2.parseCommand(name, command, parameters, isStaff);
 			};
 		};
+	}
+	
+	/**
+	 * Method command_rating.
+	 * @param name The person who got commanded
+	 * @param parameters 
+	 */
+	public void command_rating(String name, String[] parameters)
+	{
+		String winby = m_rules.getString("winby");
+		if (winby.equals("timerace") && m_fnRoundState == 3)
+		{
+			MatchPlayer player;
+			if (parameters[0] != null)
+			{
+				if (m_team1.getPlayer(parameters[0]).getPlayerName().equals(m_botAction.getFuzzyPlayerName(parameters[0])))
+					player = m_team1.getPlayer(parameters[0]);
+				else
+					player = m_team2.getPlayer(parameters[0]);
+				
+				m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
+			}
+			
+			MatchPlayer t1b = m_team1.getMVP(), t2b = m_team2.getMVP(), best;
+			if (t1b.getPoints() > t2b.getPoints())
+				best = t1b;
+			else
+				best = t2b;
+			
+			m_logger.sendPrivateMessage(name, "The current MVP is: " + best.getPlayerName()); 
+			m_logger.sendPrivateMessage(name, "Stats: " + best.getStatistics());
+		}
 	}
 
 	/**
