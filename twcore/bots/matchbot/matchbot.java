@@ -39,6 +39,7 @@ public class matchbot extends SubspaceBot
 
     //
     boolean m_isLocked = false;
+    boolean m_aliasCheck = false;
     boolean m_isStartingUp = false;
     String m_locker;
     int m_lockState = 0;
@@ -546,6 +547,9 @@ public class matchbot extends SubspaceBot
                     m_arenaList = new LinkedList();
                     m_isLocked = true;
                     m_botAction.ipcTransmit("MatchBot", "whatArena");
+                    
+                    if( m_rules.getInt("aliascheck") == 1 ) m_aliasCheck = true;
+                    
                     TimerTask a = new TimerTask()
                     {
                         public void run()
@@ -736,9 +740,7 @@ public class matchbot extends SubspaceBot
 
     public void command_registername(String name, String[] parameters)
     {
-        if ( m_rules == null ) return;
-
-        if( m_rules.getInt("aliascheck") == 0 ) return;
+        if( !m_aliasCheck ) return;
 
         DBPlayerData dbP = new DBPlayerData( m_botAction, "local", name );
 
