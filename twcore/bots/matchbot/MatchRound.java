@@ -164,9 +164,9 @@ public class MatchRound
                 roundstate = 1;
             String started = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(m_timeStarted);
             String ended = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(m_timeEnded);
-            String[] fields = { "fnMatchID", "fnRoundStateID", "ftTimeStarted", "ftTimeEnded", "fnTeam1Score", "fnTeam2Score", "fnTeam1Time", "fnTeam2Time" };
+            String[] fields = { "fnMatchID", "fnRoundStateID", "ftTimeStarted", "ftTimeEnded", "fnTeam1Score", "fnTeam2Score" };
             String[] values =
-                { Integer.toString(fnMatchID), Integer.toString(roundstate), started, ended, Integer.toString(m_fnTeam1Score), Integer.toString(m_fnTeam2Score), Integer.toString(m_team1.getTimeScore()), Integer.toString(m_team2.getTimeScore())};
+                { Integer.toString(fnMatchID), Integer.toString(roundstate), started, ended, Integer.toString(m_fnTeam1Score), Integer.toString(m_fnTeam2Score)};
             m_botAction.SQLInsertInto("local", "tblMatchRound", fields, values);
             //            ResultSet s = m_botAction.SQLQuery("local", "select fnMatchRoundID from tblMatchRound where ftTimeStarted = '"+started+"' and ftTimeEnded = '"+ended+"' and fnTeam1Score = "+m_fnTeam1Score+" and fnTeam2Score = "+m_fnTeam2Score);
             ResultSet s = m_botAction.SQLQuery("local", "select MAX(fnMatchRoundID) as fnMatchRoundID from tblMatchRound");
@@ -183,6 +183,21 @@ public class MatchRound
         };
     };
 
+ 	/**
+ 	 * Can get various weapon info and the player who used it
+ 	 * Get repel used count
+ 	 * 
+	 * @param event WeaponFired event
+	 */
+	public void handleEvent(WeaponFired event)
+	{
+        String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+        if (m_team1.getPlayer(playerName, true) != null)
+            m_team1.handleEvent(event);
+        if (m_team2.getPlayer(playerName, true) != null)
+            m_team2.handleEvent(event);
+	}
+ 
     /*
      * Parses the FrequencyShipChange event to the team in which the player is
      */
