@@ -63,11 +63,12 @@ public class tournybot extends SubspaceBot {
 			"+----------------------------------------------------------+",
 			"| TournyBot v.0.80b                         - author Sika  |",
 			"+----------------------------------------------------------+",
-			"| Hosts an automated tournament with up to 32 players.     |",
+			"| Hosts an automated tournament with up to 64 players.     |",
 			"| Tournament begins when 2 or more players enter the game. |",
 			"+----------------------------------------------------------+",
 			"| !help OR !about    - Brings up this message.             |",
 			"| !status            - Tournament status.                  |",
+			"| !score             - Displays your score                 |",
 			"+----------------------------------------------------------+",
 			"| !start             - Enables the tournybot               |",
 			"| !stop              - Stops the tournybot. Note: Doesn't  |",
@@ -83,11 +84,12 @@ public class tournybot extends SubspaceBot {
 			"+----------------------------------------------------------+",
 			"| TournyBot v.0.80b                         - author Sika  |",
 			"+----------------------------------------------------------+",
-			"| Hosts an automated tournament with up to 32 players.     |",
+			"| Hosts an automated tournament with up to 64 players.     |",
 			"| Tournament begins when 2 or more players enter the game. |",
 			"+----------------------------------------------------------+",
 			"| !help OR !about    - Brings up this message.             |",
 			"| !status            - Tournament status.                  |",
+			"| !score             - Displays your score                 |",
 			"+----------------------------------------------------------+"
 		};
 		m_botAction.privateMessageSpam(name, about);
@@ -98,6 +100,12 @@ public class tournybot extends SubspaceBot {
 	    String status;
 	    if (trState == -1) { status = "Waiting for host to !start me."; } else if (trState == 1 || trState == 2) { status = "Voting on gametype."; } else if (trState == 3) { status = ship + " tournament to " + deaths + " death(s) starting."; } else { status = ship + " tournament to " + deaths + " death(s) in progress with " + playersNum + " players in."; }
 	    m_botAction.sendPrivateMessage(name, "Tournament Status: " + status);
+	}
+	
+	if (event.getMessageType() == Message.PRIVATE_MESSAGE && event.getMessage().equalsIgnoreCase("!score") && players.containsKey(name) && playerStillIn(name))
+	{
+		pStats info = (pStats)players.get(name);
+		m_botAction.sendPrivateMessage(name, "[" + info.getGameKills() + "-" + info.getGameDeaths() + "]");
 	}
 
 	if (trState == 1) { handleVote( name, event.getMessage(), 9); }
@@ -227,8 +235,28 @@ public class tournybot extends SubspaceBot {
         if (trState == 4)
         {
             String name = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+            pStats out = (pStats)players.get(name);
+            int maxx = 1024;
+            int minx = 0;
+            int maxy = 1024;
+            int miny = 0;
+            int plyrNo = out.getPlayerNro();
+            if(plyrNo == 1)
+            {
+            	minx = playerXPos(name) - 11;
+            	miny = playerYPos(name) - 11;
+            	maxx = minx + 128;
+            	maxy = miny + 129;
+            }
+            else if(plyrNo == 2)
+            {
+            	maxx = playerXPos(name) + 11;
+            	maxy = playerYPos(name) + 11;
+            	minx = maxx - 128;
+            	miny = maxy - 129;
+            }
 
-	    if (playerStillIn( name ) && event.getXLocation() / 16 > 500 && event.getXLocation() / 16 < 524 && event.getYLocation() / 16 > 500 && event.getYLocation() / 16 < 524) {
+	    if (playerStillIn( name ) && event.getXLocation() > maxx && event.getXLocation() < minx && event.getYLocation() > maxy && event.getYLocation() < miny) {
 
 		warpPlayer( name );
 	    }
@@ -307,7 +335,7 @@ public class tournybot extends SubspaceBot {
 						int nuRound = info.getRound() +1;
 						info.busy(0);
 
-						if (nuRound == 6) {
+						if (nuRound == 7) {
 							m_botAction.sendArenaMessage(killerName + " defeats " + killeeName + " [" + kKills + "-" + kDeaths + "]");
 						} else {
 							m_botAction.sendArenaMessage(killerName + " defeats " + killeeName + " [" + kKills + "-" + kDeaths + "] and advances to round " + nuRound + "!");
@@ -365,9 +393,11 @@ public class tournybot extends SubspaceBot {
 	int nroer = pPos.getPlayerNro();
 
 	if (pPos.getPlayerState() == 0) {
-		String comboSafX = "box" + rounder + ":" + boxer + "saf" + nroer + "x";
+		String comboSafX = "box" + rounder + ":" + boxer + "out" + nroer + "x";
 		String tx = m_botSettings.getString( comboSafX );
 		int x = Integer.parseInt(tx);
+		if(nroer == 1) x -= 6;
+		else x +=6;
 		return x;
 	} else {
 		String comboOutX = "box" + rounder + ":" + boxer + "out" + nroer + "x";
@@ -391,9 +421,11 @@ public class tournybot extends SubspaceBot {
 	int nroer = pPos.getPlayerNro();
 
 	if (pPos.getPlayerState() == 0) {
-		String comboSafY = "box" + rounder + ":" + boxer + "saf" + nroer + "y";
+		String comboSafY = "box" + rounder + ":" + boxer + "out" + nroer + "y";
 		String ty = m_botSettings.getString( comboSafY );
 		int y = Integer.parseInt(ty);
+		if(nroer == 1) y -= 6;
+		else y += 6;
 		return y;
 	} else {
 		String comboOutY = "box" + rounder + ":" + boxer + "out" + nroer + "y";
@@ -428,7 +460,7 @@ public class tournybot extends SubspaceBot {
 
 		trState = 3;
 		deaths = countVote(10);
-		if (deaths == 0) { deaths = 3; }
+		if (deaths == 0) { deaths = 10; }
 		votes.clear();
 		m_botAction.sendArenaMessage( ship + " tournament to " + deaths + " death(s)! Locking in 10 seconds");
 	    };
@@ -455,6 +487,7 @@ public class tournybot extends SubspaceBot {
 
 		displayScores();
 		m_botAction.sendArenaMessage("GAME OVER: Winner " + name + "!", 5);
+		m_botAction.warpTo(name, 414, 447);
 
 	} else {
 
@@ -508,7 +541,7 @@ public class tournybot extends SubspaceBot {
 	aCheck.reset();
 	aCheck.incrementRound();
 
-	if (aCheck.getRound() == 6) {
+	if (aCheck.getRound() == 7) {
 		
 		endTournament( name, 1 );
 		return;
@@ -585,15 +618,18 @@ public class tournybot extends SubspaceBot {
 		endTournament("hihi", 0);
 		return;
 	} else if (playersNum == 2) {
+		rood = 6;
+		m_botAction.sendArenaMessage("Registrations locked! Skipping first 5 rounds due to lack of players.", 2);
+	} else if (playersNum <= 4 && playersNum >= 3) {
 		rood = 5;
 		m_botAction.sendArenaMessage("Registrations locked! Skipping first 4 rounds due to lack of players.", 2);
-	} else if (playersNum <= 4 && playersNum >= 3) {
+	} else if (playersNum <= 8 && playersNum >= 5) {
 		rood = 4;
 		m_botAction.sendArenaMessage("Registrations locked! Skipping first 3 rounds due to lack of players.", 2);
-	} else if (playersNum <= 8 && playersNum >= 5) {
+	} else if (playersNum <= 16 && playersNum >= 9) {
 		rood = 3;
 		m_botAction.sendArenaMessage("Registrations locked! Skipping first 2 rounds due to lack of players.", 2);
-	} else if (playersNum <= 16 && playersNum >= 9) {
+	} else if (playersNum <= 32 && playersNum >= 17) {
 		rood = 2;
 		m_botAction.sendArenaMessage("Registrations locked! Skipping first round due to lack of players.", 2);
 	} else {
@@ -714,26 +750,39 @@ public class tournybot extends SubspaceBot {
 			
 				for (int aRound = round; aRound >= 2; aRound--) {
 					
-					if (aRound == 2) {
+					if (aRound == 2)
+					{
 
 						int newRound = 1;
 
-						if (round == 3) {
+						if (round == 3)
+						{
 
 							box1 = box *4;
 							lBox = box1 -3;
 
-						} else if (round == 4) {
+						}
+						else if (round == 4)
+						{
 
 							box1 = box *8;
 							lBox = box1 -7;
 
-						} else if (round == 5) {
+						}
+						else if (round == 5)
+						{
 
-							box1 = 16;
+							box1 = box *16;
+							lBox = box1 -15;
+
+						}
+						else if (round == 6)
+						{
+							box1 = 32;
 							lBox = 1;
-
-						} else {
+						}
+						else
+						{
 
 							box1 = box *2;
 							lBox = box1 -1;
@@ -748,7 +797,10 @@ public class tournybot extends SubspaceBot {
 							}
 						}
 
-					} else if (aRound == 3) {
+					}
+					
+					else if (aRound == 3)
+					{
 
 						int newRound = 2;
 
@@ -759,9 +811,12 @@ public class tournybot extends SubspaceBot {
 
 						} else if (round == 5) {
 
-							box1 = 8;
-							lBox = 1;
+							box1 = box *8;
+							lBox = box1 -7;
 
+						} else if (round == 6) {
+							box1 = box *16;
+							lBox = box1 -15;
 						} else {
 
 							box1 = box *2;
@@ -786,6 +841,9 @@ public class tournybot extends SubspaceBot {
 							box1 = box *4;
 							lBox = box1 -3;
 
+						} else if (round == 6) {
+							box1 = box *8;
+							lBox = box1 -7;
 						} else {
 
 							box1 = box *2;
@@ -804,8 +862,15 @@ public class tournybot extends SubspaceBot {
 					} else if (aRound == 5) {
 
 						int newRound = 4;
-						box1 = box *2;
-						lBox = box1 -1;
+						
+						if(round == 6) {
+							box1 = box * 4;
+							lBox = box1 -3;
+						}
+						else {
+							box1 = box *2;
+							lBox = box1 -1;
+						}
 
 						for (int fBox = box1; fBox >= lBox; fBox--) {
 
@@ -816,6 +881,24 @@ public class tournybot extends SubspaceBot {
 							}
 						}
 					}
+					
+					else if (aRound == 6)
+					{
+						int newRound = 5;
+						
+						box1 = box *2;
+						lBox = box1 -1;
+						
+						for (int fBox = box1; fBox >= lBox; fBox--) {
+							
+							if (newRound == oCheck.getRound() && fBox == oCheck.getBox()) {
+								roundBox.changeNro(1);
+								warpPlayer(name);
+								return;
+							}
+						}
+					}
+						
 				}
 			}
 		}
@@ -829,7 +912,7 @@ public class tournybot extends SubspaceBot {
 	if (playerStillIn(name)) {
 
                 int xRound = round +1;
-		if (xRound != 6) {
+		if (xRound != 7) {
 			m_botAction.sendArenaMessage( name + " wins by default and advances to round " + xRound + "!");
 		}
 
@@ -860,7 +943,7 @@ public class tournybot extends SubspaceBot {
 	m_botAction.sendArenaMessage(Tools.formatString("" + ship + " tournament to " + deaths + " death(s)", 39) + "Kills   Deaths   LO");
 	m_botAction.sendArenaMessage(Tools.formatString("", 59, "-"));
 
-	for (int r = 6; r >= 1; r--) {
+	for (int r = 7; r >= 1; r--) {
 
 		if (emptyRound( r )) {
 
@@ -875,7 +958,7 @@ public class tournybot extends SubspaceBot {
 
 					if (eka == 1) {
 
-						if (r == 6) { out = Tools.formatString("_ " + "Winner", 14); }
+						if (r == 7) { out = Tools.formatString("_ " + "Winner", 14); }
 						else if (r == 5) { out = Tools.formatString("_ " + "Runner up", 14); }
 						else { out = Tools.formatString("_ " + "Round " + r, 14); }
 
