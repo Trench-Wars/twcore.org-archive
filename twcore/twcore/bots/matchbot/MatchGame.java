@@ -208,6 +208,7 @@ public class MatchGame
 	public void handleEvent(WeaponFired event)
 	{
 		//m_logger.logEvent(event); too much extra overhead for database
+		if (event == null) { return; }
 		m_curRound.handleEvent(event);
 	}
 	
@@ -362,6 +363,7 @@ public class MatchGame
 		else
 		{
 			MatchRound z;
+			if (m_rounds.listIterator() == null) { return; }
 			ListIterator i = m_rounds.listIterator();
 
 			while (i.hasNext())
