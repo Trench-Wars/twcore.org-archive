@@ -71,6 +71,7 @@ public class MatchRound
     private int m_raceTarget = 0;
     TimerTask m_raceTimer;
 
+    static final int NOT_PLAYING_FREQ = 200;
 
     /** Creates a new instance of MatchRound */
     public MatchRound(int fnRoundNumber, String fcTeam1Name, String fcTeam2Name, MatchGame Matchgame)
@@ -88,6 +89,16 @@ public class MatchRound
         m_team2 = new MatchTeam(fcTeam2Name, 2, 2, this);
 
         m_notPlaying = new ArrayList();
+
+        Iterator iterator = m_botAction.getPlayerIterator();
+        Player player;
+
+        while( iterator.hasNext() ){
+            player = (Player)iterator.next();
+            if( player.getFrequency() == NOT_PLAYING_FREQ ){
+                m_notPlaying.add(player.getPlayerName().toLowerCase());
+            }
+        }
 
         if (m_rules.getInt("pickbyturn") == 0)
         {
@@ -122,7 +133,7 @@ public class MatchRound
         while (iterator.hasNext())
         {
             player = (Player) iterator.next();
-            if (!player.isPlaying() && player.getFrequency() != specFreq)
+            if (!player.isPlaying() && player.getFrequency() != specFreq && player.getFrequency() != NOT_PLAYING_FREQ)
                 placeOnSpecFreq(player.getPlayerName());
         }
         m_botAction.specAll();
@@ -212,6 +223,16 @@ public class MatchRound
         if ((m_team1.isDead() || m_team2.isDead()) && (m_fnRoundState == 3))
             endGame();
     };
+
+    public void handleEvent( PlayerEntered event ){
+        int exists = m_notPlaying.indexOf( event.getPlayerName().toLowerCase());
+        if( exists != -1 ){
+            m_botAction.spec( event.getPlayerName() );
+            m_botAction.spec( event.getPlayerName() );
+            m_logger.sendPrivateMessage( event.getPlayerName(), "notplaying mode is still on, captains will be unable to pick you");
+            m_logger.setFreq( event.getPlayerName(), NOT_PLAYING_FREQ);
+        }
+    }
 
     /*
      * Parses the FlagReward event to the correct team
@@ -751,12 +772,21 @@ public class MatchRound
                 m_team1.command_remove(name, tmp);
             if ((m_team2.getPlayer(name, true) != null) && (m_fnRoundState == 1))
                 m_team2.command_remove(name, tmp);
-            m_logger.sendPrivateMessage(name, "notplaying mode turned on, captains will be unable to pick you");
+            m_botAction.spec( name );
+            m_botAction.spec( name );
+            m_logger.sendPrivateMessage(name, "Not Playing mode turned on, captains will be unable to pick you");
+            m_logger.setFreq(name, NOT_PLAYING_FREQ);
         }
         else
         {
             m_notPlaying.remove(exists);
             m_logger.sendPrivateMessage(name, "notplaying mode turned off, captains will be able to pick you");
+            if( m_fnRoundState > 2 ){
+                m_logger.sendPrivateMessage( name, "If you wish to get back on the normal spec frequency, rejoin the arena" );
+                m_logger.setFreq( name, NOT_PLAYING_FREQ + 1 );
+            } else {
+                placeOnSpecFreq( name );
+            } 
         };
     };
 
