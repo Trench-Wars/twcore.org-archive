@@ -42,6 +42,7 @@ public class MatchTeam
     // 0 - no forfeit, 1 - forfeitwin, 2 - forfeitloss
     int m_fnForfeit;
 
+	boolean m_addPlayer = false;
     boolean m_turn = false;
     boolean m_blueoutState = false;
 
@@ -252,6 +253,7 @@ public class MatchTeam
                 help.add("!switch <player>:<player>                - exchanges the ship of both players");
                 help.add("!change <player>:<ship>                  - sets the player in the specified ship");
                 help.add("!ready                                   - use this when you're done setting your lineup");
+				help.add("!addplayer                               - request to add an extra player");
                 help.add("!lagout <player>                         - puts <player> back in the game");
                 if (m_rules.getInt("blueout") == 1)
                     help.add("!blueout                                 - enable/disable blueout");
@@ -260,6 +262,7 @@ public class MatchTeam
             {
                 help.add("!list                                    - lists all players on this team");
                 help.add("!add <player>:<ship>                     - adds player, <ship> only required for basing");
+				help.add("!addplayer                               - request to add an extra player");
                 help.add("!lagout <player>                         - puts <player> back in the game");
                 help.add("!sub <playerA>:<playerB>                 - substitutes <playerA> with <playerB>");
                 if (m_rules.getInt("shipswitches") != 0)
@@ -304,6 +307,8 @@ public class MatchTeam
                         command_list(name, parameters);
                     if (command.equals("!add"))
                         command_add(name, parameters);
+                    if (command.equals("!addplayer"))
+                        command_addplayer(name, parameters);
                     if (command.equals("!remove"))
                         command_remove(name, parameters);
                     if (command.equals("!switch"))
@@ -321,11 +326,15 @@ public class MatchTeam
                 {
                     if (command.equals("!blueout"))
                         command_blueout(name, parameters);
+                    if (command.equals("!addplayer"))
+                        command_addplayer(name, parameters);
                 }
                 else if (m_round.m_fnRoundState == 3)
                 {
                     if (command.equals("!add"))
                         command_add(name, parameters);
+                    if (command.equals("!addplayer"))
+                        command_addplayer(name, parameters);
                     if (command.equals("!list"))
                         command_list(name, parameters);
                     if (command.equals("!lagout"))
@@ -435,8 +444,7 @@ public class MatchTeam
                 {
                     m_logger.sendPrivateMessage(name, "Player " + p.getPlayerName() + " added to " + m_fcTeamName);
                     m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game");
-                    if(m_botAction.getOperatorList().isZH(p.getPlayerName()) && getBlueoutState())
-                    	m_botAction.sendPrivateMessage(p.getPlayerName(), "Blueout has been enabled for this game, please refrain from speaking in public");
+
                     m_botAction.sendUnfilteredPrivateMessage( p.getPlayerName(), "*einfo" );
                     if (m_rules.getInt("pickbyturn") == 1)
                     {
@@ -457,6 +465,24 @@ public class MatchTeam
             m_logger.sendPrivateMessage(name, "Could not add player " + parameters[0] + ": unknown error in command_add (" + e.getMessage() + ")");
         };
     };
+
+	public void command_addplayer(String name, String[] parameters)
+	{
+		if (!m_addPlayer)
+		{
+			if (m_round.m_game.getPlayersNum() < m_rules.getInt("players"))
+			{
+				m_addPlayer = true;
+				if (!m_round.checkAddPlayer(m_fcTeamName))
+				{
+					m_botAction.sendPrivateMessage(name, "Your request of adding an extra player has been sent to opposing team.");
+				}
+			}
+			else {
+				m_botAction.sendPrivateMessage(name, "The game already has maximum # of players.");
+			}
+		}
+	}
 
     // removes a player from the team
     public void command_remove(String name, String[] parameters)
@@ -1014,8 +1040,8 @@ public class MatchTeam
 
         // there should be room in the team
         playersAvail = getPlayersIsWasInGame();
-        if (playersAvail >= m_rules.getInt("players"))
-            return "Team is full, maximum of " + m_rules.getInt("players");
+        if (playersAvail >= m_round.m_game.getPlayersNum())
+            return "Team is full, maximum of " + m_round.m_game.getPlayersNum();
 
         // maximum number of that ship shouldn't be reached
         int maxShips = m_rules.getInt("maxship" + ship);
@@ -1049,8 +1075,10 @@ public class MatchTeam
             DBPlayerData dbP = new DBPlayerData(m_botAction, "local", name);
 
             // a name has to be registered
-            if (!dbP.isRegistered())
-                return "Player must register this name to play.  (Usage: !register)";
+            if (!dbP.isRegistered()) {
+				m_botAction.sendPrivateMessage(dbP.getUserName(), "Your name is not registered. You must send !register to AliasTron in ?go twd before you can play.");
+                return "Player must register this name to play.  (Usage: !register to AliasTron in ?go twd)";
+			}
 
             // the name must be enabled
             if (!dbP.isEnabled())
@@ -1568,7 +1596,14 @@ public class MatchTeam
     {
         return m_fbReadyToGo;
     };
-
+	public boolean addEPlayer()
+	{
+		return m_addPlayer;
+	};
+	public void setAddPlayer(boolean b)
+	{
+		m_addPlayer = b;
+	};
     public boolean getBlueoutState()
     {
         return m_blueoutState;
@@ -1599,5 +1634,6 @@ public class MatchTeam
         }
     }
 }
+
 
 

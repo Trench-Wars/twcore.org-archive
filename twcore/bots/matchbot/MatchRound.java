@@ -46,6 +46,7 @@ public class MatchRound
     java.util.Date m_timeEnded;
     long m_timeStartedms;
     TimerTask m_countdown10Seconds;
+	TimerTask m_countdown54321;
     TimerTask m_startGame;
     TimerTask m_endGame;
     TimerTask m_scheduleTimer;
@@ -54,7 +55,11 @@ public class MatchRound
     TimerTask m_closeDoors;
     TimerTask m_moveAround;
     TimerTask m_secondWarp;
+	TimerTask updateScores;
     ArrayList m_notPlaying;
+
+	private Objset m_myObjects;
+	private int m_generalTime = 0;
 
     boolean m_fbAffectsEntireGame = false;
     boolean m_fbExtension = false;
@@ -225,6 +230,11 @@ public class MatchRound
     };
 
     public void handleEvent( PlayerEntered event ){
+
+		if (m_blueoutState == 1){
+			m_botAction.sendPrivateMessage(event.getPlayerID(), "This game has blueout enabled.");
+		}
+
         int exists = m_notPlaying.indexOf( event.getPlayerName().toLowerCase());
         if( exists != -1 ){
             m_botAction.spec( event.getPlayerName() );
@@ -835,6 +845,27 @@ public class MatchRound
             return null;
     };
 
+	public boolean checkAddPlayer(String team)
+	{
+		if (m_team1.addEPlayer() && m_team2.addEPlayer())
+		{
+			m_game.setPlayersNum(m_game.getPlayersNum() + 1);
+			m_botAction.sendSquadMessage(m_team1.getTeamName(), "Both teams have agreed to add an extra player. Max players: " + m_game.getPlayersNum());
+			m_botAction.sendSquadMessage(m_team2.getTeamName(), "Both teams have agreed to add an extra player. Max players: " + m_game.getPlayersNum());
+			m_team1.setAddPlayer(false);
+			m_team2.setAddPlayer(false);
+			return true;
+		} else {
+			if (team.equalsIgnoreCase(m_team1.getTeamName()))
+			{
+				m_botAction.sendSquadMessage(m_team2.getTeamName(), m_team1.getTeamName() + " has requested to add an extra player. Captains/Assistants reply with !addplayer to accept the request.");
+			} else {
+				m_botAction.sendSquadMessage(m_team1.getTeamName(), m_team2.getTeamName() + " has requested to add an extra player. Captains/Assistants reply with !addplayer to accept the request.");
+			}
+			return false;
+		}
+	}
+
     public void checkReadyToGo()
     {
         if ((m_team1.isReadyToGo()) && (m_team2.isReadyToGo()))
@@ -869,6 +900,13 @@ public class MatchRound
                     m_botAction.showObject(m_rules.getInt("obj_countdown10"));
                 };
             };
+            m_countdown54321 = new TimerTask()
+            {
+                public void run()
+                {
+                    m_botAction.showObject(m_rules.getInt("obj_countdown54321"));
+                };
+            };
             m_startGame = new TimerTask()
             {
                 public void run()
@@ -878,6 +916,7 @@ public class MatchRound
             };
             m_botAction.scheduleTask(m_secondWarp, 10000);
             m_botAction.scheduleTask(m_countdown10Seconds, 20000);
+			m_botAction.scheduleTask(m_countdown54321, 25000);
             m_botAction.scheduleTask(m_startGame, 30000);
         };
     };
@@ -885,6 +924,17 @@ public class MatchRound
     // gets called by m_startGame TimerTask.
     public void startGame()
     {
+		m_generalTime = m_rules.getInt("time") * 60;
+		m_myObjects = m_botAction.getObjectSet();
+		updateScores = new TimerTask()
+        {
+            public void run()
+            {
+                do_updateScoreBoard();
+            }
+        };
+        m_botAction.scheduleTaskAtFixedRate(updateScores, 2000, 1000);
+
         if ((m_rules.getInt("safe1xout") != 0) && (m_rules.getInt("safe1yout") != 0))
         {
             m_team1.warpTo(m_rules.getInt("safe1xout"), m_rules.getInt("safe1yout"));
@@ -994,6 +1044,7 @@ public class MatchRound
                 if (extTime != 0)
                 {
                     m_logger.sendArenaMessage("The scores are tied. The game will be extended for " + extTime + " minutes.", 2);
+					m_generalTime = extTime * 60;
                     m_fbExtension = true;
                     m_endGame = new TimerTask()
                     {
@@ -1009,6 +1060,7 @@ public class MatchRound
             else
             {
                 m_game.reportEndOfRound(m_fbAffectsEntireGame);
+				m_botAction.showObject(m_rules.getInt("obj_gameover"));
                 return;
             };
         }
@@ -1016,6 +1068,10 @@ public class MatchRound
         {
 
             m_timeEnded = new java.util.Date();
+
+			updateScores.cancel();
+			do_updateScoreBoard();
+			m_botAction.showObject(m_rules.getInt("obj_gameover"));
 
             m_team1.signalEndToPlayers();
             m_team2.signalEndToPlayers();
@@ -1095,6 +1151,10 @@ public class MatchRound
             {
                 public void run()
                 {
+		            m_myObjects.hideAllObjects();
+		            m_botAction.setObjects();
+	                m_generalTime = 0;
+
                     signalEndOfRound();
                 };
             };
@@ -1247,14 +1307,112 @@ public class MatchRound
             toggleBlueout(false);
     };
 
+    public void do_updateScoreBoard()
+    {
+        m_myObjects.hideAllObjects();
+        m_generalTime -= 1;
+        String team1Score;
+        String team2Score;
+
+        team1Score = "" + m_team1.getTeamScore();
+        team2Score = "" + m_team2.getTeamScore();
+
+		//If lb display twlb scoreboard
+        if( m_rules.getString("winby").equals("timerace") ) {
+            int t1s = Integer.parseInt( team1Score );
+            int t2s = Integer.parseInt( team2Score );
+
+            int team1Minutes = (int)Math.floor( t1s / 60.0 );
+            int team2Minutes = (int)Math.floor( t2s / 60.0 );
+            int team1Seconds = t1s - team1Minutes * 60;
+            int team2Seconds = t2s - team2Minutes * 60;
+
+            //Team 1
+            m_myObjects.showObject( 100 + team1Seconds % 10 );
+            m_myObjects.showObject( 110 + (team1Seconds - team1Seconds % 10)/10 );
+            m_myObjects.showObject( 130 + team1Minutes % 10 );
+            m_myObjects.showObject( 140 + (team1Minutes - team1Minutes % 10)/10 );
+
+            //Team 2
+            m_myObjects.showObject( 200 + team2Seconds % 10 );
+            m_myObjects.showObject( 210 + (team2Seconds - team2Seconds % 10)/10 );
+            m_myObjects.showObject( 230 + team2Minutes % 10 );
+            m_myObjects.showObject( 240 + (team2Minutes - team2Minutes % 10)/10 );
+		} else { //Else display ld lj on normal scoreboard
+            for (int i = team1Score.length() - 1; i > -1; i--)
+                m_myObjects.showObject(Integer.parseInt("" + team1Score.charAt(i)) + 200 + (team1Score.length() - 1 - i) * 10);
+            for (int i = team2Score.length() - 1; i > -1; i--)
+                m_myObjects.showObject(Integer.parseInt("" + team2Score.charAt(i)) + 100 + (team2Score.length() - 1 - i) * 10);
+        }
+        if (m_generalTime >= 0)
+        {
+            int seconds = m_generalTime % 60;
+            int minutes = (m_generalTime - seconds) / 60;
+            m_myObjects.showObject(730 + (int) ((minutes - minutes % 10) / 10));
+            m_myObjects.showObject(720 + (int) (minutes % 10));
+            m_myObjects.showObject(710 + (int) ((seconds - seconds % 10) / 10));
+            m_myObjects.showObject(700 + (int) (seconds % 10));
+        }
+        do_showTeamNames(m_team1.getTeamName(), m_team2.getTeamName());
+        m_botAction.setObjects();
+
+    }
+
+    public void do_showTeamNames(String n1, String n2)
+    {
+        n1 = n1.toLowerCase();
+        n2 = n2.toLowerCase();
+		if (n1.equalsIgnoreCase("Freq 1"))
+		{
+			n1 = "freq1";
+		}
+		if (n2.equalsIgnoreCase("Freq 2"))
+		{
+			n2 = "freq2";
+		}
+        int i;
+        String s1 = "", s2 = "";
+
+        for (i = 0; i < n1.length(); i++)
+            if ((n1.charAt(i) >= '0') && (n1.charAt(i) <= 'z') && (s1.length() < 5))
+                s1 = s1 + n1.charAt(i);
+
+        for (i = 0; i < n2.length(); i++)
+            if ((n2.charAt(i) >= '0') && (n2.charAt(i) <= 'z') && (s2.length() < 5))
+                s2 = s2 + n2.charAt(i);
+
+        show_string(s1, 0, 30);
+
+        show_string(s2, 5, 30);
+    }
+
+    public void show_string(String new_n, int pos_offs, int alph_offs)
+    {
+        int i, t;
+        char to;
+
+        for (i = 0; i < new_n.length(); i++)
+        {
+			t = new Integer(Integer.toString(((new_n.getBytes()[i]) - 97) + alph_offs) + Integer.toString(i + pos_offs)).intValue();
+			if (t < -89) {
+				t = new Integer(Integer.toString(((new_n.getBytes()[i])) + alph_offs) + Integer.toString(i + pos_offs)).intValue();
+				t -= 220;
+			}
+            m_myObjects.showObject(t);
+        }
+
+    }
+
     public void cancel()
     {
         if (m_countdown10Seconds != null)
             m_countdown10Seconds.cancel();
         if (m_startGame != null)
             m_startGame.cancel();
-        if (m_endGame != null)
+        if (m_endGame != null) {
+			m_botAction.showObject(m_rules.getInt("obj_gameover"));
             m_endGame.cancel();
+		}
         if (m_raceTimer != null)
             m_raceTimer.cancel();
         if (m_scheduleTimer != null)
@@ -1270,6 +1428,15 @@ public class MatchRound
 
         if (m_blueoutState == 1)
             m_botAction.toggleBlueOut();
+
+		if (updateScores != null)
+			updateScores.cancel();
+
+		if (m_myObjects != null)
+	        m_myObjects.hideAllObjects();
+
+        m_botAction.setObjects();
+        m_generalTime = 0;
     };
 
     /**
@@ -1291,3 +1458,4 @@ public class MatchRound
     }
 
 }
+
