@@ -223,13 +223,13 @@ public class MatchRound
 			
 			if (m_team1.getFrequency() == freq)
 			{
-				m_team1.ownFlag();
+				m_team1.ownFlag(event.getPlayerID());
 				m_team2.disownFlag();
 			}
 			
 			if (m_team2.getFrequency() == freq)
 			{
-				m_team2.ownFlag();
+				m_team2.ownFlag(event.getPlayerID());
 				m_team1.disownFlag();
 			}
 		}
