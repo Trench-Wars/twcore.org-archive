@@ -560,13 +560,6 @@ public class MatchRound
                 for (int i = 1; i < stats.length; i++)
                     m_logger.sendPrivateMessage(name, stats[i]);
             }
-
-            /*MatchPlayer t1b = m_team1.getMVP(), t2b = m_team2.getMVP(), best;
-            if (t1b.getPoints() > t2b.getPoints())
-                best = t1b;
-            else
-                best = t2b;
-            */
         }
         catch (Exception e)
         {
