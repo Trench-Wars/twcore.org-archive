@@ -19,7 +19,7 @@ import java.sql.*;
 import java.util.*;
 import java.text.*;
 
-public class MatchPlayer
+public class MatchPlayer implements Comparable
 {
 	/** This class holds 2 connections: 1 to the SS game, and 1 to the DB.
 	 *  The SS connection is dynamic though, so it will have to refresh every
@@ -114,6 +114,27 @@ public class MatchPlayer
 		m_logger.scoreReset(m_fcPlayerName);
 	}
 
+	/**
+	 * @author FoN
+	 * 
+	 * @param anotherPlayer Another matchplayer class from which it will compare points for MVP
+	 * @exception throws exception if wrong class is passed
+	 */
+	
+	public int compareTo(Object anotherPlayer) throws ClassCastException 
+	{
+		if (!(anotherPlayer instanceof MatchPlayer))
+			throw new ClassCastException("A MatchPlayer object expected.");
+		      
+		    //this has to be done in reverse order so it can be sorted in decending order
+            if (this.getPoints() < ((MatchPlayer)anotherPlayer).getPoints())
+                return -1;
+            else if (this.getPoints() == ((MatchPlayer)anotherPlayer).getPoints())
+                return 0;
+            else //p2 > p1.
+                return 1;
+	}
+	
 	// store player result
 	public void storePlayerResult(int fnMatchRoundID, int fnTeam)
 	{
@@ -514,8 +535,6 @@ public class MatchPlayer
 		}
 		else if (winby.equals("timerace"))
 		{
-			final int VOID_RATING = 100000; //rating to be deducted so never gets mvp
-			
 			if (m_switchedShip)
 				return m_statTracker.getTotalStatistic(StatisticRequester.RATING);
 			else
