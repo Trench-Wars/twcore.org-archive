@@ -211,6 +211,23 @@ public class MatchTeam
 	{
 		MatchPlayer matchPlayer;
 
+                if( event.getMessageType() == Message.ARENA_MESSAGE ){
+                    String msg = event.getMessage();
+                    if( msg.indexOf( "Idle:" ) != -1 ){
+                        String      name;
+                        String      captain;
+                        int         idleTime;
+                        name = msg.substring( 0, msg.indexOf( ":" ) );
+
+                        idleTime = getIdleTime( msg );
+                        if( isPlayerOnTeam( name ) ){
+                            sendPrivateMessageToCaptains( name + " has been idle for " + idleTime + " seconds." );
+                        }
+                    }
+
+                    return;
+                }
+                    
 		for (int index = 0; index < m_players.size(); index++)
 		{
 			matchPlayer = (MatchPlayer) m_players.get(index);
@@ -418,6 +435,7 @@ public class MatchTeam
 				{
 					m_logger.sendPrivateMessage(name, "Player " + p.getPlayerName() + " added to " + m_fcTeamName);
 					m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game");
+                                        m_botAction.sendUnfilteredPrivateMessage( p.getPlayerName(), "*einfo" );
 					if (m_rules.getInt("pickbyturn") == 1)
 					{
 						m_turn = !m_turn;
@@ -430,7 +448,7 @@ public class MatchTeam
 				};
 			}
 			else
-				m_logger.sendPrivateMessage(name, "Specify ship, for example: !add Mythrandir:3 to set the player is a spider");
+				m_logger.sendPrivateMessage(name, "Specify ship, for example: !add Sphonk:3 to set the player is a spider");
 		}
 		catch (Exception e)
 		{
@@ -1554,5 +1572,30 @@ public class MatchTeam
 		return m_blueoutState;
 	};
         
+    public boolean isPlayerOnTeam( String name ){
+        MatchPlayer player;
+        ListIterator i = m_players.listIterator();
 
+        while( i.hasNext() ){
+            player = (MatchPlayer)i.next();
+            if( player.getPlayerName().toLowerCase().compareTo( name.toLowerCase() ) == 0 ){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private int getIdleTime( String message ){
+        int beginIndex = message.indexOf("Idle: ") + 6;
+        int endIndex = message.indexOf(" s", beginIndex);
+
+        if( beginIndex > -1 && endIndex > -1 ){
+            return Integer.parseInt(message.substring(beginIndex, endIndex));
+        } else {
+            return 0;
+        }
+    }
 }
+
+
