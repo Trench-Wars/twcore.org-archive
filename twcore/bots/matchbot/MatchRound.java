@@ -467,7 +467,7 @@ public class MatchRound
 			command_score(name, parameters);
 			
 		if (command.equals("!rating"))
-			command_rating(name, parameters);
+			command_rating(name, parameters[0]);
 
 		if (command.length() > 3)
 		{
@@ -497,26 +497,32 @@ public class MatchRound
 	 * @param name The person who got commanded
 	 * @param parameters 
 	 */
-	public void command_rating(String name, String[] parameters)
+	public void command_rating(String name, String parameters)
 	{
 		String winby = m_rules.getString("winby");
 		if (winby.equals("timerace") && m_fnRoundState == 3)
 		{
 			MatchPlayer player;
-			if (parameters[0] != null)
+			
+			try
 			{
-				if (m_team1.getPlayer(parameters[0]).getPlayerName().equals(m_botAction.getFuzzyPlayerName(parameters[0])))
+				if (m_team1.getPlayer(parameters).getPlayerName().equals(m_botAction.getFuzzyPlayerName(parameters)))
 				{
-					player = m_team1.getPlayer(parameters[0]);
+					player = m_team1.getPlayer(parameters);
 					m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
 				}
-				else if (m_team2.getPlayer(parameters[0]).getPlayerName().equals(m_botAction.getFuzzyPlayer(parameters[0])))
+				else if (m_team2.getPlayer(parameters).getPlayerName().equals(m_botAction.getFuzzyPlayer(parameters)))
 				{
-					player = m_team2.getPlayer(parameters[0]);
+					player = m_team2.getPlayer(parameters);
 					m_logger.sendPrivateMessage(name, player.getPlayerName() + ": " + player.getStatistics());
 				}
-				else
-					m_logger.sendPrivateMessage(name, "The player isn't in the game");
+				
+				m_logger.sendPrivateMessage(name, "The player isn't in the game");	
+					
+			}
+			catch (Exception e)
+			{
+				Tools.printStackTrace(e);
 			}
 			
 			MatchPlayer t1b = m_team1.getMVP(), t2b = m_team2.getMVP(), best;
