@@ -31,6 +31,8 @@ public class MatchTeam
     BotSettings m_rules;
     MatchRound m_round;
 
+    String dbConn = "website";
+
     String m_fcTeamName;
     int m_fnTeamID;
     int m_fnTeamNumber;
@@ -111,7 +113,7 @@ public class MatchTeam
         {
             ResultSet rs =
                 m_botAction.SQLQuery(
-                    "local",
+                    dbConn,
                     "SELECT DISTINCT tblUser.fcUserName FROM tblUser, tblTeamUser, tblUserRank WHERE "
                         + "tblUser.fnUserID = tblTeamUser.fnUserID AND tblTeamUser.fnCurrentTeam = 1 "
                         + "AND tblTeamUser.fnTeamID = "
@@ -1016,7 +1018,7 @@ public class MatchTeam
         // when rosterjoined=1, has to exist in the Roster database
         if (m_rules.getInt("rosterjoined") == 1)
         {
-            DBPlayerData dbP = new DBPlayerData(m_botAction, "local", name);
+            DBPlayerData dbP = new DBPlayerData(m_botAction, dbConn, name);
             if (!m_fcTeamName.equalsIgnoreCase(dbP.getTeamName()))
                 return "Player isn't on the squad roster";
             //            if(isDoubleSquadding(name))
@@ -1102,7 +1104,7 @@ public class MatchTeam
 
         if( m_rules.getInt("aliascheck") == 1 ) {
             // redudant action
-            DBPlayerData dbP = new DBPlayerData(m_botAction, "local", name);
+            DBPlayerData dbP = new DBPlayerData(m_botAction, dbConn, name);
 
             // a name has to be registered
             if (!dbP.isRegistered()) {
@@ -1130,7 +1132,7 @@ public class MatchTeam
 
               try
               {
-                ResultSet nameSet = m_botAction.SQLQuery("local",
+                ResultSet nameSet = m_botAction.SQLQuery(dbConn,
                   "SELECT A.* " +
                   "FROM `tblAlias` A, `tblUser` U " +
                   "WHERE U.fcUserName = \"" + name + "\" " +

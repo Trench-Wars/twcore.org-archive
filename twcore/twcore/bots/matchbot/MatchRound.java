@@ -26,6 +26,8 @@ public class MatchRound
     Connection m_connection;
     BotAction m_botAction;
 
+    String dbConn = "website";
+
     MatchGame m_game;
     BotSettings m_rules;
     MatchLogger m_logger;
@@ -189,9 +191,9 @@ public class MatchRound
             String[] fields = { "fnMatchID", "fnRoundStateID", "ftTimeStarted", "ftTimeEnded", "fnTeam1Score", "fnTeam2Score" };
             String[] values =
                 { Integer.toString(fnMatchID), Integer.toString(roundstate), started, ended, Integer.toString(m_fnTeam1Score), Integer.toString(m_fnTeam2Score)};
-            m_botAction.SQLInsertInto("local", "tblMatchRound", fields, values);
-            //            ResultSet s = m_botAction.SQLQuery("local", "select fnMatchRoundID from tblMatchRound where ftTimeStarted = '"+started+"' and ftTimeEnded = '"+ended+"' and fnTeam1Score = "+m_fnTeam1Score+" and fnTeam2Score = "+m_fnTeam2Score);
-            ResultSet s = m_botAction.SQLQuery("local", "select MAX(fnMatchRoundID) as fnMatchRoundID from tblMatchRound");
+            m_botAction.SQLInsertInto(dbConn, "tblMatchRound", fields, values);
+            //            ResultSet s = m_botAction.SQLQuery(dbConn, "select fnMatchRoundID from tblMatchRound where ftTimeStarted = '"+started+"' and ftTimeEnded = '"+ended+"' and fnTeam1Score = "+m_fnTeam1Score+" and fnTeam2Score = "+m_fnTeam2Score);
+            ResultSet s = m_botAction.SQLQuery(dbConn, "select MAX(fnMatchRoundID) as fnMatchRoundID from tblMatchRound");
             if (s.next())
             {
                 m_fnMatchRoundID = s.getInt("fnMatchRoundID");

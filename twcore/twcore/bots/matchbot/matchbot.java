@@ -34,6 +34,8 @@ public class matchbot extends SubspaceBot
     String startMessage;
     HashMap m_registerList;
 
+    String dbConn = "website";
+
     //
     boolean m_isLocked = false;
     boolean m_aliasCheck = false;
@@ -514,7 +516,7 @@ public class matchbot extends SubspaceBot
 
         m_registerList.remove( name );
 
-        DBPlayerData dbP = new DBPlayerData( m_botAction, "local", name );
+        DBPlayerData dbP = new DBPlayerData( m_botAction, dbConn, name );
 
         //Note you can't get here if already registered, so can't match yourself.
         if( dbP.aliasMatch( ip, mid ) ) {
@@ -642,14 +644,14 @@ public class matchbot extends SubspaceBot
                     } else {
                             players = m_rules.getInt("players");
                     }
-                    DBPlayerData dp = new DBPlayerData(m_botAction, "local", name);
+                    DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
                     if ((dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (p.getSquadName().equalsIgnoreCase(dp.getTeamName())))
                     {
                         // check if the challenged team exists
                         String nmySquad = parameters[0];
                         ResultSet rs =
                             m_botAction.SQLQuery(
-                                "local",
+                                dbConn,
                                 "select fnTeamID from tblTeam where fcTeamName = '" + Tools.addSlashesToString(nmySquad) + "' and (fdDeleted = 0 or fdDeleted IS NULL)");
                         if (rs.next())
                         {
@@ -701,7 +703,7 @@ public class matchbot extends SubspaceBot
             {
                 Player p = m_botAction.getPlayer(name);
 
-                DBPlayerData dp = new DBPlayerData(m_botAction, "local", name);
+                DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
                 if ((dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (p.getSquadName().equalsIgnoreCase(dp.getTeamName())))
                 {
                     String nmySquad = parameters[0];
@@ -741,7 +743,7 @@ public class matchbot extends SubspaceBot
             {
                 if (m_game == null)
                 {
-                    DBPlayerData dp = new DBPlayerData(m_botAction, "local", name);
+                    DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
                     Player p = m_botAction.getPlayer(name);
                     if (p != null)
                     {
@@ -836,7 +838,7 @@ public class matchbot extends SubspaceBot
             {
                 if (m_game == null)
                 {
-                    DBPlayerData dp = new DBPlayerData(m_botAction, "local", name);
+                    DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
                     Player p = m_botAction.getPlayer(name);
                     if (p != null)
                     {
@@ -883,7 +885,7 @@ public class matchbot extends SubspaceBot
     {
         if( !m_aliasCheck ) return;
 
-        DBPlayerData dbP = new DBPlayerData( m_botAction, "local", name );
+        DBPlayerData dbP = new DBPlayerData( m_botAction, dbConn, name );
 
         if( dbP.isRegistered() ) {
             m_botAction.sendSmartPrivateMessage( name, "This name has already been registered." );
