@@ -254,7 +254,9 @@ public class tournybot extends SubspaceBot {
 		 */
 
 		if (trState == 4) {
-			String name = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+			Player p = m_botAction.getPlayer(event.getPlayerID());
+				if (p == null) return;
+				String name = p.getPlayerName();
 
 			if (!playerStillIn(name)) { 
 				return; 
