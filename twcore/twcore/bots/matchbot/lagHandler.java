@@ -16,7 +16,7 @@ public class lagHandler {
 	int sessionTime;
 	int c2SSlowPackets;
 	int s2CSlowPackets;
-	int spikeSize = 150;
+	int spikeSize = 100;
 	int numSpikes;
 	double s2C;
 	double c2S;
@@ -308,6 +308,30 @@ public class lagHandler {
 		return spikeCount;
 	}
 
+	private boolean checkGrowing() {
+		Integer tinfoValue;
+		int lValue = 0;
+		for(int index = 0; index < tinfoValues.size(); index++) {
+			tinfoValue = (Integer) tinfoValues.get(index);
+			if (tinfoValue.intValue() < lValue) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean checkDiminishing() {
+		Integer tinfoValue;
+		int lValue = 0;
+		for(int index = 0; index < tinfoValues.size(); index++) {
+			tinfoValue = (Integer) tinfoValues.get(index);
+			if (tinfoValue.intValue() > lValue) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public void startLagRequest(String pName, String req, boolean sil, boolean bot) {
 
 		free = false;
@@ -377,7 +401,7 @@ public class lagHandler {
 					}
 
 					if (tI) {
-						if (m_botSettings.getInt("Med") < spikeSD && !spec) {
+						if (m_botSettings.getInt("Med") < spikeSD && !spec && (!checkGrowing() || !checkDiminishing())) {
 							spec = true;
 							lagReport = "SPIKE Med. [" + medF.format(spikeSD) + "  LIMIT: " + m_botSettings.getInt("Med") + "]";
 						}
@@ -388,6 +412,7 @@ public class lagHandler {
 					}
 
 					if (spec) {
+						if (!botR) { m_botAction.sendPrivateMessage(requester, "LAG REPORT: Too high " + lagReport); }
 						m_botAction.sendPrivateMessage(playerName, "LAG REPORT: Too high " + lagReport);
 						m_botAction.spec(playerName);
 						m_botAction.spec(playerName);
