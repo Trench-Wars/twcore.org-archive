@@ -1116,7 +1116,7 @@ public class matchbot extends SubspaceBot
         if (parameters.length == 1 && Tools.isAllDigits(parameters[0])) {
             parameters = getTWLDetails(Integer.parseInt(parameters[0]));
         }
-        if (parameters.length == 5) {
+        if (parameters != null && parameters.length == 5) {
             createGame(name, parameters);
         } else {
             m_botAction.sendPrivateMessage(name, "GameID does not exist");
@@ -1125,7 +1125,7 @@ public class matchbot extends SubspaceBot
 
     public String[] getTWLDetails(int m_TWLID) {
 	try {
-            ResultSet result = m_botAction.SQLQuery("local", "SELECT * FROM tblMatch WHERE fnMatchID = '" + m_TWLID + "'");
+            ResultSet result = m_botAction.SQLQuery("website", "SELECT * FROM tblMatch WHERE fnMatchID = '" + m_TWLID + "'");
             if (result.next())
             {
                 int fnMatchID = result.getInt("fnMatchID");
@@ -1268,3 +1268,4 @@ class GameRequest {
 
 
 };
+
