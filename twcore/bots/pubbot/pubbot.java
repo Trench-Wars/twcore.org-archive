@@ -8,6 +8,7 @@ import twcore.misc.pubcommon.*;
 public class pubbot extends SubspaceBot
 {
   public static final String IPCCHANNEL = "pubBots";
+  public static final String IPCCHANNEL2 = "messages";
   public static final int UPDATE_CHECK_DELAY = 500;
   public static final int LOGOFF_TIMEOUT_DELAY = 5 * 1000;
   public static final int LOG_OFF_DELAY = 200;
@@ -48,6 +49,7 @@ public class pubbot extends SubspaceBot
     opList = m_botAction.getOperatorList();
     botName = m_botAction.getBotName();
     m_botAction.ipcSubscribe(IPCCHANNEL);
+    m_botAction.ipcSubscribe(IPCCHANNEL2);
     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("spawned"));
     m_botAction.scheduleTask(new LogOffTimeoutTask(), LOGOFF_TIMEOUT_DELAY);
     moduleHandler.handleEvent(event);
