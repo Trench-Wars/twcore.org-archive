@@ -104,7 +104,7 @@ public class MatchPlayer
 		maxNumSpikes = m_rules.getInt("maxnumspikes");
 
 		//statistics tracker
-		m_statisticTracker = new Statistics(m_fnShipType);
+		m_statisticTracker = new Statistics();
 
 		if ((m_rules.getInt("storegame") != 0) || (m_rules.getInt("rosterjoined") != 0))
 			m_dbPlayer = new DBPlayerData(m_botAction, "local", m_fcPlayerName);
@@ -758,14 +758,10 @@ public class MatchPlayer
 		private int m_avgRepelCount;
 		private int m_flagClaimed;
 
-		//others
-		private int m_shipType;
-
 		private final int MAXIMUM_RATIO = 4;
 
-		public Statistics(int shipType)
+		public Statistics()
 		{
-			m_shipType = shipType;
 			reset();
 		}
 
@@ -777,7 +773,7 @@ public class MatchPlayer
 		{
 			String stats;
 
-			switch (m_shipType)
+			switch (m_fnShipType)
 			{
 				case 1 : //warbird
 					stats = "K: " + getTotalKills() + " D: " + m_deaths + " Wk: " + m_wbKill + " Jk: " + m_javKill + " Sk: " + m_spiderKill +  " Tk: " + m_terrKill + " Wk: " + m_weaselKill + " Lk: " + m_lancKill + " ShK: " + m_sharkKill + " F: " + m_flagClaimed + " S: " + m_score + " R: " + getRating();
@@ -872,7 +868,7 @@ public class MatchPlayer
 		{
 			int rating = 0;
 
-			switch (m_shipType)
+			switch (m_fnShipType)
 			{
 				case 1 : //warbird
 					if (getTotalKills() == 0) //can't divide by zero
