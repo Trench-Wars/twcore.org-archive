@@ -12,7 +12,6 @@ package twcore.bots.matchbot;
  */
 
 import twcore.core.*;
-import twcore.misc.database.DBPlayerData;
 import java.util.*;
 import java.sql.*;
 import java.text.*;
@@ -416,7 +415,10 @@ public class MatchRound
          */
         if (m_fnRoundState == 2)
         {
-            String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+            Player p = m_botAction.getPlayer(event.getPlayerID());
+            if( p == null )
+                return;
+            String playerName = p.getPlayerName();
             m_logger.announce("warping " + playerName + " to his team's safe zone");
             if ((m_team1.getPlayer(playerName, true) != null)
                 && (event.getXLocation() / 16 != m_rules.getInt("safe1x"))
