@@ -746,7 +746,9 @@ public class MatchTeam
             {
                 m_fbReadyToGo = true;
                 m_logger.sendArenaMessage(m_fcTeamName + " is ready to begin");
-                m_round.checkReadyToGo();
+
+		if (m_rules.getInt("captain_can_start_game") == 1)
+	                m_round.checkReadyToGo();
             }
             else
                 m_logger.sendPrivateMessage(name, message);
