@@ -551,7 +551,7 @@ public class MatchRound
             if (NUMBER_OF_MVPS > playerList.size())
                 NUMBER_OF_MVPS = playerList.size();
 
-            for (int j = 0; j < NUMBER_OF_MVPS; j++)
+            for (int j = 1; j <= NUMBER_OF_MVPS; j++)
             {
                 MatchPlayer mvp = (MatchPlayer) playerList.get(j);
                 m_logger.sendPrivateMessage(name, "MVP " + j + ": " + mvp.getPlayerName());
