@@ -34,7 +34,7 @@ public class matchbot extends SubspaceBot
     String startMessage;
     HashMap m_registerList;
 
-    String dbConn = "website";
+    String dbConn = "local";
 
     //
     boolean m_isLocked = false;
