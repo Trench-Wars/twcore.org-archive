@@ -28,6 +28,11 @@ public class MatchLogger
 		m_active = false;
 	}
 
+	public void logEvent(WeaponFired event)
+	{
+		createLogRecord("weaponFired", "used a weapon", m_botAction.getPlayerName(event.getPlayerID()));
+	}
+	
 	public void logEvent(Message event)
 	{
 		String cType = "", cName = m_botAction.getPlayerName(event.getPlayerID()), m = event.getMessage();
