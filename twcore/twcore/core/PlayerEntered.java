@@ -19,7 +19,6 @@ public class PlayerEntered extends SubspaceEvent
 
 	public PlayerEntered(ByteArray array)
 	{
-		m_byteArray = array;
 		m_eventType = EventRequester.PLAYER_ENTERED; //sets the event type in the superclass
 
 		m_shipType = ((int) array.readByte(1) + 1) % 9;

@@ -13,7 +13,6 @@ public class BallPosition extends SubspaceEvent
 
 	public BallPosition(ByteArray array)
 	{
-		m_byteArray = array;
 		m_eventType = EventRequester.BALL_POSITION; //sets the event type in the superclass
 		
 		m_ballID = (int) array.readByte(1);

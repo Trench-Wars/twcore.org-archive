@@ -15,7 +15,6 @@ public class FrequencyChange extends SubspaceEvent
 
 	public FrequencyChange(ByteArray array)
 	{
-		m_byteArray = array;
 		m_eventType = EventRequester.FREQUENCY_CHANGE; //sets the event type in the superclass
 		
 		m_playerID = (int) array.readLittleEndianShort(1);

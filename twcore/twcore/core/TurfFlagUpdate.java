@@ -8,7 +8,6 @@ public class TurfFlagUpdate extends SubspaceEvent
 
 	public TurfFlagUpdate(ByteArray array, int flagId)
 	{
-		m_byteArray = array;
 		m_eventType = EventRequester.TURF_FLAG_UPDATE; //sets the event type in the superclass
 
 		m_flagId = flagId;

@@ -10,7 +10,6 @@ public class FlagPosition extends SubspaceEvent
 
 	public FlagPosition(ByteArray array)
 	{
-		m_byteArray = array;
 		m_eventType = EventRequester.FLAG_POSITION; //sets the event type in the superclass
 		
 		m_flagID = (int) array.readLittleEndianShort(1);

@@ -40,7 +40,6 @@ public class Prize extends SubspaceEvent
 
 	public Prize(ByteArray array)
 	{
-		m_byteArray = array;
 		m_eventType = EventRequester.PRIZE; //sets the event type in the superclass
 		
 		m_timeStamp = (int) array.readLittleEndianInt(1);

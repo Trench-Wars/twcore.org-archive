@@ -29,7 +29,6 @@ public class Message extends SubspaceEvent
 
 	public Message(ByteArray array)
 	{
-		m_byteArray = array;
 		m_eventType = EventRequester.MESSAGE; //sets the event type in the superclass
 		
 		int nameEnding;

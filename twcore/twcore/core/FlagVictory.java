@@ -14,7 +14,6 @@ public class FlagVictory extends SubspaceEvent
 
 	public FlagVictory(ByteArray array)
 	{
-		m_byteArray = array;
 		m_eventType = EventRequester.FLAG_VICTORY; //sets the event type in the superclass
 
 		m_frequency = (int) array.readLittleEndianShort(1);
