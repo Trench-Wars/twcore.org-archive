@@ -498,10 +498,6 @@ public class MatchRound
                 help.add("!settime <time in mins>                  - time to racebetween 5 and 30 only for timerace");
                 help.add("!startpick                               - start rostering");
             }
-            if ((m_fnRoundState == 1) && (m_team1.isReadyToGo()) && (m_team2.isReadyToGo()))
-            {
-                help.add("!startgame                               - start the game");
-            }
             if (m_fnRoundState == 3)
                 help.add("!lag <player>                            - show <player> lag");
             if (m_team1 != null)
@@ -536,14 +532,11 @@ public class MatchRound
         if ((command.equals("!startpick")) && (m_fnRoundState == 0) && isStaff)
             command_startpick(name, parameters);
 
-	if ((command.equals("!startgame")) && (m_fnRoundState == 1) && isStaff)
-	    command_startgame(name, parameters);
+        if ((command.equals("!lag")) && (m_fnRoundState == 3) && isStaff)
+            command_checklag(name, parameters);
 
-	if ((command.equals("!lag")) && (m_fnRoundState == 3) && isStaff)
-	    command_checklag(name, parameters);
-
-	if ((command.equals("!lagstatus")) && isStaff)
-	    command_lagstatus(name, parameters);
+        if ((command.equals("!lagstatus")) && isStaff)
+            command_lagstatus(name, parameters);
 
         if (command.equals("!cap"))
         {
@@ -866,29 +859,8 @@ public class MatchRound
         }
 
         m_fnRoundState = 1;
-
-	if (m_game.m_fnMatchTypeID > 0 && m_game.m_fnMatchTypeID < 4) {
-            m_logger.sendArenaMessage("Captains, you have " + m_rules.getInt("lineuptime") + " minutes to set up your lineup correctly");
-            m_scheduleTimer = new TimerTask() {
-                public void run() {
-                    scheduleTimeIsUp();
-                };
-            };
-            m_botAction.scheduleTask(m_scheduleTimer, 60000 * m_rules.getInt("lineuptime"));
-            m_botAction.setTimer(m_rules.getInt("lineuptime"));
-	} else {
-            m_team1.setTurn();
-	}
+        m_team1.setTurn();
     };
-
-    public void command_startgame(String name, String parameters[])
-    {
-        if ((m_team1.isReadyToGo()) && (m_team2.isReadyToGo())) {
-            checkReadyToGo();
-	} else {
-            m_botAction.sendPrivateMessage(name, "Both of the teams are not ready..");
-        }
-    }       
 
     public void command_checklag(String name, String parameters[])
     {

@@ -32,7 +32,6 @@ public class matchbot extends SubspaceBot
     LinkedList m_gameRequests;
     TimerTask m_gameKiller;
     String startMessage;
-    HashMap m_registerList;
 
     String dbConn = "local";
 
@@ -67,7 +66,6 @@ public class matchbot extends SubspaceBot
         m_arena = m_botSettings.getString("Arena");
         m_opList = m_botAction.getOperatorList();
         m_gameRequests = new LinkedList();
-        m_registerList = new HashMap();
 
         requestEvents();
 
@@ -286,12 +284,6 @@ public class matchbot extends SubspaceBot
             m_botAction.die();
         };
 
-        if ((event.getMessageType() == Message.ARENA_MESSAGE)
-            && (event.getMessage()).startsWith("IP:"))
-        {
-            parseInfo( event.getMessage() );
-        };
-
         if ((event.getMessageType() == Message.PRIVATE_MESSAGE)
             || ((event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) && (message.toLowerCase().startsWith("!accept"))))
         {
@@ -375,7 +367,6 @@ public class matchbot extends SubspaceBot
                         help.add("!listgames                               - list all available game types");
                         help.add("!game <typenumber>                       - start a game of <type>");
                         help.add("!game <typenumber>:<teamA>:<teamB>       - start a game of <type>");
-                        help.add("!twlgame <game ID>                       - load a TWL game");
 
                     if (!isRestrictedStaff)
                     {
@@ -420,8 +411,6 @@ public class matchbot extends SubspaceBot
         {
             if (command.equals("!game"))
                 createGame(name, parameters);
-	    if (command.equals("!twlgame"))
-		createTWLGame(name, parameters);
             if (!isRestrictedStaff)
             {
                 if (command.equals("!listgames"))
@@ -495,41 +484,8 @@ public class matchbot extends SubspaceBot
         if (command.equals("!help"))
             m_botAction.privateMessageSpam(name, getHelpMessages(name, isStaff, isRestrictedStaff));
 
-        if (command.equals("!register"))
-            command_registername(name, parameters);
-
         if (m_game != null)
             m_game.parseCommand(name, command, parameters, isStaff);
-    };
-
-    public void parseInfo(String message) {
-
-        Matcher m = parseInfoRE.matcher(message);
-        if ( !m.matches() )
-            return;
-        String ip = m.group(1);
-        String name = cruncherRE.matcher( m.group(2) ).replaceAll(" ");
-        String mid = m.group(3);
-
-        //The purpose of this is to not confuse the info doen by PlayerLagInfo
-        if( !m_registerList.containsKey( name ) ) return;
-
-        m_registerList.remove( name );
-
-        DBPlayerData dbP = new DBPlayerData( m_botAction, dbConn, name );
-
-        //Note you can't get here if already registered, so can't match yourself.
-        if( dbP.aliasMatch( ip, mid ) ) {
-            m_botAction.sendSmartPrivateMessage( name, "Another account has already been registered on your connection, please contact a TWD/TWL Op for further information." );
-            return;
-        }
-
-        if( !dbP.register( ip, mid ) ) {
-            m_botAction.sendSmartPrivateMessage( name, "Unable to register name, please contact a TWL/TWD op for further help." );
-            return;
-        }
-        m_botAction.sendSmartPrivateMessage( name, "Registration successful." );
-
     };
 
     public void command_go(String name, String[] parameters)
@@ -881,21 +837,6 @@ public class matchbot extends SubspaceBot
         return null;
     };
 
-    public void command_registername(String name, String[] parameters)
-    {
-        if( !m_aliasCheck ) return;
-
-        DBPlayerData dbP = new DBPlayerData( m_botAction, dbConn, name );
-
-        if( dbP.isRegistered() ) {
-            m_botAction.sendSmartPrivateMessage( name, "This name has already been registered." );
-            return;
-        }
-
-        m_registerList.put( name, name );
-        m_botAction.sendUnfilteredPrivateMessage( name, "*info" );
-    }
-
     public void command_listaccess(String name, String[] parameters)
     {
         String accA[] = getAccessList();
@@ -1038,22 +979,11 @@ public class matchbot extends SubspaceBot
             createKillChecker();
             String fcTeam1Name = null, fcTeam2Name = null, rulesName = null;
 
-            int matchID = -1;
             int players = 0;
             int typenumber;
             if (!m_isLocked)
             {
-	        if (parameters.length == 5) {
-                    m_botAction.sendPrivateMessage(name, "[" + parameters[0] + "] " + parameters[1] + ": " + parameters[2] + " vs. " + parameters[3] + " loaded.");
-
-                    matchID = Integer.parseInt(parameters[0]);
-		    rulesName = parameters[4];
-                    m_rules = new BotSettings(rulesName);
-		    fcTeam1Name = parameters[2];
-		    fcTeam2Name = parameters[3];
-                    players = m_rules.getInt("players");
-
-                } else if (parameters.length >= 1)
+                if (parameters.length >= 1)
                 {
                     typenumber = Integer.parseInt(parameters[0]);
                     rulesName = m_botAction.getGeneralSettings().getString("Core Location") + "/data/Rules/" + getGameTypeName(typenumber) + ".txt";
@@ -1098,7 +1028,7 @@ public class matchbot extends SubspaceBot
                     m_botAction.setMessageLimit(ACTIVE_MESSAGE_LIMIT);
                     if (!name.equalsIgnoreCase(m_botAction.getBotName()))
                         startMessage = "Game started by " + name;
-                    m_game = new MatchGame(rulesName, fcTeam1Name, fcTeam2Name, players, matchID, m_botAction);
+                    m_game = new MatchGame(rulesName, fcTeam1Name, fcTeam2Name, players, m_botAction);
                 }
                 else
                     m_botAction.sendPrivateMessage(name, "There's already a game running, type !killgame to kill it first");
@@ -1111,62 +1041,6 @@ public class matchbot extends SubspaceBot
             m_botAction.sendPrivateMessage(name, "Provide a correct game type number");
         };
     };
-
-    // create TWL game
-    public void createTWLGame(String name, String[] parameters)
-    {
-        if (parameters.length == 1 && Tools.isAllDigits(parameters[0])) {
-            parameters = getTWLDetails(Integer.parseInt(parameters[0]));
-        }
-        if (parameters != null && parameters.length == 5) {
-            createGame(name, parameters);
-        } else {
-            m_botAction.sendPrivateMessage(name, "GameID does not exist");
-        }
-    };
-
-    public String[] getTWLDetails(int m_TWLID) {
-	try {
-            ResultSet result = m_botAction.SQLQuery(dbConn, "SELECT * FROM tblMatch WHERE fnMatchID = '" + m_TWLID + "'");
-            if (result.next())
-            {
-                int fnMatchID = result.getInt("fnMatchID");
-                int fnMatchTypeID = result.getInt("fnMatchTypeID");
-                String fcTeam1Name = result.getString("fcTeam1Name");
-                String fcTeam2Name = result.getString("fcTeam2Name");
-
-                String rulesName = "";
-		String gName = "";
-
-                if (fnMatchTypeID == 1) {
-                    rulesName = m_botAction.getGeneralSettings().getString("Core Location") + "/data/Rules/TWLD.txt";
-                    gName = "TWLD";
-                } else if (fnMatchTypeID == 2) {
-                    rulesName = m_botAction.getGeneralSettings().getString("Core Location") + "/data/Rules/TWLJ.txt";
-                    gName = "TWLJ";
-                } else if (fnMatchTypeID == 3) {
-                    rulesName = m_botAction.getGeneralSettings().getString("Core Location") + "/data/Rules/TWLB.txt";
-                    gName = "TWLB";
-                }
-
-		if (rulesName.equals("")) {
-                    return null;
-                } else {
-                    String s[] = { 
-			Integer.toString(fnMatchID), 
-			gName, 
-			fcTeam1Name, 
-			fcTeam2Name, 
-		        rulesName 
-	            };
-                    return s;
-                }
-            } else {
-                return null;
-            }
-        } catch (Exception e) { return null; }
-    }
-
 
     // list games
     public void listGames(String name)
