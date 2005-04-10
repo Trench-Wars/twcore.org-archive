@@ -1,7 +1,5 @@
 package twcore.bots.duelbot;
 
-import twcore.core.*;
-
 
 public class WarpPoint {
 	

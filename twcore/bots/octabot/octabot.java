@@ -2,7 +2,6 @@ package twcore.bots.octabot;
 
 import twcore.core.*;
 import java.util.*;
-import java.io.*;
 import java.sql.*;
 
 public class octabot extends SubspaceBot {

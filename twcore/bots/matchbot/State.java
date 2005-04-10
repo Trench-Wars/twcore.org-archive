@@ -6,8 +6,6 @@
 
 package twcore.bots.matchbot;
 
-import twcore.core.*;
-import twcore.misc.database.DBPlayerData;
 import java.util.*;
 
 /**

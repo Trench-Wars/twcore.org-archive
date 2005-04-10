@@ -1,7 +1,5 @@
 package twcore.bots.duelbot;
 
-import twcore.core.*;
-
 
 //With intentions of being able to use this for a variety of things.
 

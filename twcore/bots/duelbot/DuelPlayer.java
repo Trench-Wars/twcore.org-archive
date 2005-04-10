@@ -1,7 +1,6 @@
 package twcore.bots.duelbot;
 
-import twcore.core.*;
-import java.sql.*;
+import java.sql.ResultSet;
 
 public class DuelPlayer {
 	

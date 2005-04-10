@@ -1,7 +1,6 @@
 package twcore.bots.tournybot;
 
 import twcore.core.*;
-import java.sql.*;
 
 public class dStats {
 

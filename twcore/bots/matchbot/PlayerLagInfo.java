@@ -7,39 +7,6 @@
 package twcore.bots.matchbot;
 
 import twcore.core.*;
-import twcore.misc.database.DBPlayerData;
-import java.util.*;
-
-/**
- * This class retrieves detailed lag information about a certain player.  The
- * following stats are obtained:
- *
- * Current, Average, Low, and High Ping
- * C2S, S2C, and S2CWeapons packetloss
- * Number and percent of C2S and S2C Slow packets.
- * The standard deviation and number of spikes.
- *
- * This class obtains this information by parsing *info, and *tinfo.  The spike
- * information is for the last 160 seconds of play.  If the player has not been
- * in the game for at least 3 minutes, then the standard deviation and number of
- * spikes will both be 0.
- *
- * When figuring out what the spike is, this class will check if consecutive
- * tinfo values are over a certain number of milliseconds.  This number can be
- * specified in the constructor of the class.
- *
- * The *info and *tinfo commands are synchronized so it is safe to put
- * this class into different threads on the same bot.  Because it is
- * synchronized, other * commands will not be placed inbetween these 3 commands.
- *
- * Updated 08/10/03 by Cpt.Guano!
- * - Parsed all of the ping / ploss information out of *info instead of *lag.
- *
- * @author Cpt.Guano!
- * @version 1.1, 08/10/03
- *
- */
-
 import java.util.*;
 
 public class PlayerLagInfo extends PlayerInfo

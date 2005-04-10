@@ -1,7 +1,6 @@
 package twcore.bots.matchbot;
 
 import twcore.core.*;
-import twcore.misc.database.DBPlayerData;
 /**
  * This class models a base GameComponent.  It bleh im sleepy...
  */
