@@ -1,7 +1,5 @@
 package twcore.bots.tournybot;
 
-import twcore.core.*;
-
 public class fStats {
 
 	pStats player1;

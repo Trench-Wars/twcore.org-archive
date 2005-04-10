@@ -7,7 +7,6 @@
 package twcore.bots.twl;
 
 import twcore.core.*;
-import twcore.misc.database.DBPlayerData;
 import java.util.*;
 
 /**
@@ -40,7 +39,6 @@ import java.util.*;
  *
  */
 
-import java.util.*;
 
 public class PlayerLagInfo extends PlayerInfo
 {

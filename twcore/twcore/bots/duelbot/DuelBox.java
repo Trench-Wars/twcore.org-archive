@@ -1,7 +1,5 @@
 package twcore.bots.duelbot;
 
-import twcore.core.*;
-
 import java.util.*;
 
 public class DuelBox {

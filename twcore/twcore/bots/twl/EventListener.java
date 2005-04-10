@@ -1,7 +1,6 @@
 package twcore.bots.twl;
 
 import twcore.core.*;
-import twcore.misc.database.DBPlayerData;
 
 
 public abstract class EventListener

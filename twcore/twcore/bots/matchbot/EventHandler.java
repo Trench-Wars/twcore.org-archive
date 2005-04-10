@@ -2,7 +2,6 @@ package twcore.bots.matchbot;
 
 import java.util.*;
 import twcore.core.*;
-import twcore.misc.database.DBPlayerData;
 
 /**
  * This class handles events that are inherited from SubspaceEvent.  It provides

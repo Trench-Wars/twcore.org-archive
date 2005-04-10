@@ -7,10 +7,6 @@
 package twcore.bots.twl;
 
 import twcore.core.*;
-import twcore.misc.database.DBPlayerData;
-import java.io.*;
-import java.text.*;
-import java.util.*;
 
 /**
  * This abstract class sets up future PlayerInfo classes.  It ties the info

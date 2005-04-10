@@ -1,6 +1,5 @@
 package twcore.bots.pubhub;
 
-import java.util.*;
 import twcore.core.*;
 import twcore.misc.pubcommon.*;
 
