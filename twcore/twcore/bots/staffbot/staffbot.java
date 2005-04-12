@@ -450,6 +450,9 @@ public class staffbot extends SubspaceBot {
         else if( m_opList.isModeratorExact( name ) ){
             m_botAction.remotePrivateMessageSpam( name, helpTextMod );
         }
+        else if( m_opList.isHighmodExact( name ) ){
+            m_botAction.remotePrivateMessageSpam( name, helpTextMod );
+        }
         else if( m_opList.isSmod( name ) ){
             m_botAction.remotePrivateMessageSpam( name, helpTextSmod );
         }
