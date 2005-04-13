@@ -248,7 +248,7 @@ public class twdbot extends SubspaceBot {
 
     public void command_signup(String name, String command, String[] parameters) {
         try {
-            if (parameters.length > 0) {
+            if (parameters.length > 0 && passwordIsValid(parameters[0])) {
 
 		boolean success = false;
                 boolean can_continue = true;
@@ -291,7 +291,7 @@ public class twdbot extends SubspaceBot {
                     m_botAction.sendSmartPrivateMessage(name, "You can only signup / change passwords once every 5 minutes");
                 };
             } else
-                m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup mypass'");
+                m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup mypass'. Password must contain a number and needs to be atleast 5 characters long.");
 
         }
         catch(Exception e)
@@ -299,6 +299,21 @@ public class twdbot extends SubspaceBot {
           throw new RuntimeException("Error in command_signnup.");
         }
     };
+
+    public boolean passwordIsValid(String pw) {
+
+        if (pw.length() < 5) {
+            return false;
+        } else {
+             for (int i = 0; i < pw.length(); i++) {
+
+                 if (Character.isDigit(pw.charAt(i))) {
+                     return true;
+                 }
+             }
+             return false;
+        }
+    }
 
 	public void command_squadsignup(String name, String command) {
         Player p = m_botAction.getPlayer(name);
