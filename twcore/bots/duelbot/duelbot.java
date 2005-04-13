@@ -281,7 +281,7 @@ public class duelbot extends SubspaceBot {
     	//Pull the appropriate game.
     	try {
 			String query = "SELECT fnGameId, fnLeagueTypeID, fnTournyUserOne, fnTournyUserTwo, fnTotalPlayers, fnGameNumber FROM tblDuelTournyGame AS TG, tblDuelTourny T WHERE T.fnTournyID = TG.fnTournyID AND fnGameID = "+gid;
-			ResultSet result = m_botAction.SQLQuery( "website", query );
+			ResultSet result = m_botAction.SQLQuery( "local", query );
 			if( result.next() ) {
 				
 				idOne = result.getInt( "fnTournyUserOne" );
@@ -811,7 +811,7 @@ public class duelbot extends SubspaceBot {
     	try {
     		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT fcUserName FROM tblDuelPlayer WHERE fnEnabled = 1 AND fcIP = '"+IP+"' AND fnMID = '"+MID+"' OR fcUserName = '"+Tools.addSlashesToString(name)+"'" );
     		if( !result.next() ) {
-    			DBPlayerData player = new DBPlayerData( m_botAction, "website", name, true );
+    			DBPlayerData player = new DBPlayerData( m_botAction, "local", name, true );
     			m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"')" );
     			
     			//Removed as of season 2
@@ -823,7 +823,7 @@ public class duelbot extends SubspaceBot {
     				m_botAction.sendSmartPrivateMessage( name, "You have already signed up." );
     			} else {
     				if( allowedNames.containsKey( name ) ) {
-    					DBPlayerData player = new DBPlayerData( m_botAction, "website", name, true );
+    					DBPlayerData player = new DBPlayerData( m_botAction, "local", name, true );
 		    			m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"')" );
 		    			
 		    			//Removed as of season 2
@@ -931,8 +931,8 @@ public class duelbot extends SubspaceBot {
 		}
 		
 		/*
-		DBPlayerData winnerInfo = new DBPlayerData( m_botAction, "website", winner, true );
-		DBPlayerData loserInfo = new DBPlayerData( m_botAction, "website", loser, true );
+		DBPlayerData winnerInfo = new DBPlayerData( m_botAction, "local", winner, true );
+		DBPlayerData loserInfo = new DBPlayerData( m_botAction, "local", loser, true );
 		*/
 		
 		/*
@@ -1173,7 +1173,7 @@ public class duelbot extends SubspaceBot {
     		public void run() {
     			try {
     				String query = "SELECT fnGameId, fnLeagueTypeID, fnTournyUserOne, fnTournyUserTwo, fnTotalPlayers, fnGameNumber FROM tblDuelTournyGame AS TG, tblDuelTourny T WHERE T.fnTournyID = TG.fnTournyID";
-    				ResultSet result = m_botAction.SQLQuery( "website", query );
+    				ResultSet result = m_botAction.SQLQuery( "local", query );
     				while( result.next() ) {
     					
     					int gid = result.getInt( "fnGameId" );
@@ -1626,7 +1626,7 @@ class ScoreReport extends TimerTask {
     
     public void sql_enableUser( String name ) {
     
-    	DBPlayerData player = new DBPlayerData( m_botAction, "website", name, true );
+    	DBPlayerData player = new DBPlayerData( m_botAction, "local", name, true );
     	
     	try {
     		String query = "UPDATE tblDuelPlayer SET fnEnabled = 1 WHERE fnUserID = "+player.getUserID();
@@ -1638,7 +1638,7 @@ class ScoreReport extends TimerTask {
     
     public void sql_disableUser( String name ) {
     	
-    	DBPlayerData player = new DBPlayerData( m_botAction, "website", name, true );
+    	DBPlayerData player = new DBPlayerData( m_botAction, "local", name, true );
     	
     	for( int i = 1; i <= 3; i++ )
     		sql_verifyRecord( name, player.getUserID(), i );
@@ -1690,7 +1690,7 @@ class ScoreReport extends TimerTask {
 		
 		try {
 			String query = "SELECT fcUserName FROM tblUser AS U WHERE fnUserID = "+tournyId;
-			ResultSet result = m_botAction.SQLQuery( "website", query );
+			ResultSet result = m_botAction.SQLQuery( "local", query );
 			if( result.next() )
 				return result.getString( "fcUserName" );
 			else
@@ -1709,7 +1709,7 @@ class ScoreReport extends TimerTask {
 		try {
 			System.out.println( "UPDATE tblDuelTournyGame SET "+extra+" WHERE fnGameID = "+gameId );
 			String query = "UPDATE tblDuelTournyGame SET "+extra+" WHERE fnGameID = "+gameId;
-			m_botAction.SQLQuery( "website", query );
+			m_botAction.SQLQuery( "local", query );
 		} catch (Exception e) {
 			System.out.println( "Error Updating avail:"+e );
 		}
