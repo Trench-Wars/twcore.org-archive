@@ -447,6 +447,10 @@ public class MatchRound
                 int yborder = m_rules.getInt("yborder");
                 int outofbordertime = m_rules.getInt("outofbordertime") * 1000;
                 String playerName = m_botAction.getPlayerName(event.getPlayerID());
+
+                if( playerName == null )
+                    return;
+
                 if (ypos > yborder)
                 {
                     MatchPlayer p;
