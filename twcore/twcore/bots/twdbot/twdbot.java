@@ -291,12 +291,12 @@ public class twdbot extends SubspaceBot {
                     m_botAction.sendSmartPrivateMessage(name, "You can only signup / change passwords once every 5 minutes");
                 };
             } else
-                m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup mypass'. Password must contain a number and needs to be atleast 5 characters long.");
+                m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup mypass'. The password must contain a number and needs to be at least 5 characters long.");
 
         }
         catch(Exception e)
         {
-          throw new RuntimeException("Error in command_signnup.");
+          throw new RuntimeException("Error in command_signup.");
         }
     };
 
