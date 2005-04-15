@@ -135,14 +135,14 @@ public class dStats {
 			loser.setRating(1);
 		}
 
-		double wRating = (loser.getRating() / 10) * (0.5 * (loser.getRating() / winner.getRating())) + 10;
-		double lRating = (loser.getRating() / 10) * (0.1 * (loser.getRating() / winner.getRating())) + 5;
+		double wRating = (loser.getRating() / 10.0) * (0.5 * (loser.getRating() / (double)winner.getRating())) + 5;
+		double lRating = (loser.getRating() / 10.0) * (0.1 * (loser.getRating() / (double)winner.getRating())) + 1;
 
 		wR = (int)wRating;
 		lR = (int)lRating;
 
-		winner.setRatingChange(winner.getRatingChange() + (int)wRating);
-		loser.setRatingChange(loser.getRatingChange() - (int)lRating);
+		winner.setRatingChange(winner.getRatingChange() + wR);
+		loser.setRatingChange(loser.getRatingChange() - lR);
 
 		if (winner.getPlayerNro() == 1) {
 			freq1 = winner;
