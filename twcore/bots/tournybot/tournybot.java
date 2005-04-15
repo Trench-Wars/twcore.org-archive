@@ -323,7 +323,7 @@ public class tournybot extends SubspaceBot {
 					warper.incrementFouls();
 
 					if (warper.getFouls() >= maxFouls) {
-						String dqM = "Disqualified for not obeying the rules (warping/spawning).";
+						String dqM = "disqualified for not obeying the rules (warping/spawning).";
 						m_botAction.sendArenaMessage( name + " has been " + dqM);
 						warper.setNotes(dqM);
 						warper.laggedOut();
@@ -391,7 +391,7 @@ public class tournybot extends SubspaceBot {
 						info2.setLastDeath();
 
 						if (info.getFouls() >= maxFouls) {
-							String dqM = "Disqualified for not obeying the rules (warping/spawning).";
+							String dqM = "disqualified for not obeying the rules (warping/spawning).";
 							m_botAction.sendArenaMessage( killerName + " has been " + dqM);
 							info.setNotes(dqM);
 							info.laggedOut();
@@ -878,7 +878,7 @@ public class tournybot extends SubspaceBot {
 		lagi.incrementLagOuts();
 
 		if (lagi.getLagOuts() > maxLagOuts) {
-			String dqM = "Exceeded the lagout limit and was disqualified.";
+			String dqM = "exceeded the lagout limit and was disqualified.";
 
 			m_botAction.sendArenaMessage( name + " " + dqM);
 			lagi.laggedOut();
@@ -2544,7 +2544,7 @@ public class tournybot extends SubspaceBot {
 		{
 			pStats lagi = (pStats)players.get( player );
 
-			String dqM = "Failed to return from his lagout in time and was disqualified.";
+			String dqM = "failed to return from his lagout in time and was disqualified.";
 
 			m_botAction.sendArenaMessage( player + " " + dqM);
 			laggers.remove(player);
