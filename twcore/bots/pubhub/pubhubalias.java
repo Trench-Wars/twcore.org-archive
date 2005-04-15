@@ -70,6 +70,7 @@ public class pubhubalias extends PubBotModule
           m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
         lastName = currName;
       }
+      resultSet.close();
       if(results == 0)
         m_botAction.sendChatMessage("Player not in database.");
     }
@@ -115,6 +116,7 @@ public class pubhubalias extends PubBotModule
           m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
         lastName = currName;
       }
+      resultSet.close();
       if(results == 0)
         m_botAction.sendChatMessage("Player not in database.");
     }
@@ -128,6 +130,7 @@ public class pubhubalias extends PubBotModule
   {
   }
 
+  // wtf?
   public void doInfoCmd(String argString) throws SQLException
   {
     ResultSet resultSet = m_botAction.SQLQuery(DATABASE,
@@ -135,6 +138,7 @@ public class pubhubalias extends PubBotModule
     "FROM tblUser U, tblAlias A " +
     "WHERE U.fcUserName = '" + Tools.addSlashesToString(argString) + "' " +
     "AND U.fnUserID = A.fnUserID");
+    resultSet.close();
     int results = 0;
   }
 
@@ -186,6 +190,7 @@ public class pubhubalias extends PubBotModule
           m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Squad: " + resultSet.getString("T.fcTeamName"));
         lastName = currName;
       }
+      resultSet.close();
       if(results == 0)
         m_botAction.sendChatMessage("Player is not on a TWL squad.");
     }
@@ -333,7 +338,9 @@ public class pubhubalias extends PubBotModule
       "AND fnMachineID = " + playerMacID);
       if(!resultSet.next())
         return -1;
-      return resultSet.getLong("fnAliasID");
+      long results = resultSet.getLong("fnAliasID");
+      resultSet.close();
+      return results;
     }
     catch(SQLException e)
     {
@@ -345,10 +352,11 @@ public class pubhubalias extends PubBotModule
   {
     try
     {
-      m_botAction.SQLQuery(DATABASE,
+      ResultSet r = m_botAction.SQLQuery(DATABASE,
       "INSERT INTO tblAlias " +
       "(fnUserID, fcIP, fnMachineID, fnTimesUpdated, fdRecorded, fdUpdated) " +
       "VALUES (" + userID + ", '" + playerIP + "', " + playerMacID + ", 1, NOW(), NOW())");
+      if (r != null) r.close();
     }
     catch(SQLException e)
     {
@@ -360,10 +368,11 @@ public class pubhubalias extends PubBotModule
   {
     try
     {
-      m_botAction.SQLQuery(DATABASE,
+      ResultSet r = m_botAction.SQLQuery(DATABASE,
       "UPDATE tblAlias " +
       "SET fnTimesUpdated = fnTimesUpdated + 1, fdUpdated = NOW() " +
       "WHERE fnAliasID = " + aliasID);
+      if (r != null) r.close();
     }
     catch(SQLException e)
     {
