@@ -2512,12 +2512,12 @@ public class tournybot extends SubspaceBot {
 							fInfo2 = (fStats)freqs.get(findOpponent(info.getFreq()));
 						}
 
-						m_botAction.sendOpposingTeamMessage( m_botAction.getPlayerID(fInfo.getName1()), "Score: [" + fInfo.getNames() + " " + fInfo2.getGameDeaths() + " - " + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
-						m_botAction.sendOpposingTeamMessage( m_botAction.getPlayerID(fInfo2.getName1()), "Score: [" + fInfo2.getNames() + " " + fInfo.getGameDeaths() + " - " + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]");
+						m_botAction.sendOpposingTeamMessage( m_botAction.getPlayerID(fInfo.getName1()), "Score: [" + fInfo.getNames() + " " + fInfo2.getGameDeaths() + " - " + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]", 0);
+						m_botAction.sendOpposingTeamMessage( m_botAction.getPlayerID(fInfo2.getName1()), "Score: [" + fInfo2.getNames() + " " + fInfo.getGameDeaths() + " - " + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]", 0);
 
 						if (maxPerFreq == 2) {
-							m_botAction.sendOpposingTeamMessage( m_botAction.getPlayerID(fInfo.getName2()), "Score: [" + fInfo.getNames() + " " + fInfo2.getGameDeaths() + " - " + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]");
-							m_botAction.sendOpposingTeamMessage( m_botAction.getPlayerID(fInfo2.getName2()), "Score: [" + fInfo2.getNames() + " " + fInfo.getGameDeaths() + " - " + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]");
+							m_botAction.sendOpposingTeamMessage( m_botAction.getPlayerID(fInfo.getName2()), "Score: [" + fInfo.getNames() + " " + fInfo2.getGameDeaths() + " - " + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]", 0);
+							m_botAction.sendOpposingTeamMessage( m_botAction.getPlayerID(fInfo2.getName2()), "Score: [" + fInfo2.getNames() + " " + fInfo.getGameDeaths() + " - " + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]", 0);
 						}
 					}
 
