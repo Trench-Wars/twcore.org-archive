@@ -262,7 +262,7 @@ public class twdbot extends SubspaceBot {
                         can_continue = false;
 
         if (thisP == null) {
-                    thisP = new DBPlayerData(m_botAction, "local", name, true);
+                    thisP = new DBPlayerData(m_botAction, "website", name, true);
                     success = thisP.getPlayerAccountData();
                 } else success = true;
 
@@ -350,11 +350,11 @@ public class twdbot extends SubspaceBot {
 
     public void checkMessages() {
         try {
-            ResultSet s = m_botAction.SQLQuery("local", "select * from tblMessage where fnProcessed = 0 and fcSubject='TWD' and fcMessage != ' '");
+            ResultSet s = m_botAction.SQLQuery("website", "select * from tblMessage where fnProcessed = 0 and fcSubject='TWD' and fcMessage != ' '");
             while (s.next()) {
                 if (s.getString("fcMessageType").equalsIgnoreCase("squad")) {
                     m_botAction.sendSquadMessage(s.getString("fcTarget"), s.getString("fcMessage"), s.getInt("fnSound"));
-                    m_botAction.SQLQuery("local", "update tblMessage set fnProcessed = 1 where fnMessageID = " + s.getInt("fnMessageID"));
+                    m_botAction.SQLQuery("website", "update tblMessage set fnProcessed = 1 where fnMessageID = " + s.getInt("fnMessageID"));
                 };
             };
             s.close();
@@ -368,7 +368,7 @@ public class twdbot extends SubspaceBot {
 
         try
         {
-            DBPlayerData thisP2 = new DBPlayerData(m_botAction, "server", owner, false);
+            DBPlayerData thisP2 = new DBPlayerData(m_botAction, "local", owner, false);
 
             if (thisP2 == null || !thisP2.isRegistered()) {
                 m_botAction.sendSmartPrivateMessage(owner, "Your name has not been !registered. Please private message AliasTron with !register.");
@@ -378,13 +378,13 @@ public class twdbot extends SubspaceBot {
                 return;
             }
 
-            DBPlayerData thisP = new DBPlayerData(m_botAction, "local", owner, false);
+            DBPlayerData thisP = new DBPlayerData(m_botAction, "website", owner, false);
 
             if (thisP != null)
             {
                 if (thisP.getTeamID() == 0)
                 {
-                    ResultSet s = m_botAction.SQLQuery("local", "select fnTeamID from tblTeam where fcTeamName = '" + Tools.addSlashesToString(squad) + "' and (fdDeleted = 0 or fdDeleted IS NULL)");
+                    ResultSet s = m_botAction.SQLQuery("website", "select fnTeamID from tblTeam where fcTeamName = '" + Tools.addSlashesToString(squad) + "' and (fdDeleted = 0 or fdDeleted IS NULL)");
                     if (s.next()) {
                         m_botAction.sendSmartPrivateMessage(owner, "That squad is already registered..");
                         s.close();
@@ -400,11 +400,11 @@ public class twdbot extends SubspaceBot {
                         Tools.addSlashesToString(squad),
                         time
                     };
-                    m_botAction.SQLInsertInto("local", "tblTeam", fields, values);
+                    m_botAction.SQLInsertInto("website", "tblTeam", fields, values);
 
                     int teamID;
 
-                    ResultSet s2 = m_botAction.SQLQuery("local", "SELECT MAX(fnTeamID) AS fnTeamID FROM tblTeam");
+                    ResultSet s2 = m_botAction.SQLQuery("website", "SELECT MAX(fnTeamID) AS fnTeamID FROM tblTeam");
                     if (s2.next()) {
                         teamID = s2.getInt("fnTeamID");
                         s2.close();
@@ -426,7 +426,7 @@ public class twdbot extends SubspaceBot {
                         time,
                         "1"
                     };
-                    m_botAction.SQLInsertInto("local", "tblTeamUser", fields2, values2);
+                    m_botAction.SQLInsertInto("website", "tblTeamUser", fields2, values2);
 
                     thisP.giveRank(4);
 
@@ -465,7 +465,7 @@ public class twdbot extends SubspaceBot {
     public void commandCheckRegistered( String name, String message )
     {
 
-        DBPlayerData dbP = new DBPlayerData( m_botAction, "server", message );
+        DBPlayerData dbP = new DBPlayerData( m_botAction, "local", message );
 
         if( dbP.isRegistered() )
             m_botAction.sendSmartPrivateMessage( name, "The name '"+message+"' has been registered." );
@@ -476,7 +476,7 @@ public class twdbot extends SubspaceBot {
     public void commandResetName( String name, String message, boolean player )
     {
 
-        DBPlayerData dbP = new DBPlayerData( m_botAction, "server", message );
+        DBPlayerData dbP = new DBPlayerData( m_botAction, "local", message );
 
         if( !dbP.isRegistered() )
         {
@@ -516,14 +516,14 @@ public class twdbot extends SubspaceBot {
 
     public void commandCancelResetName( String name, String message, boolean player )
     {
-        DBPlayerData dbP = new DBPlayerData( m_botAction, "server", message );
+        DBPlayerData dbP = new DBPlayerData( m_botAction, "local", message );
 
         try
         {
-            ResultSet s = m_botAction.SQLQuery( "server", "SELECT * FROM tblAliasSuppression WHERE fnUserID = '" + dbP.getUserID() + "' && fdResetTime IS NOT NULL");
+            ResultSet s = m_botAction.SQLQuery( "local", "SELECT * FROM tblAliasSuppression WHERE fnUserID = '" + dbP.getUserID() + "' && fdResetTime IS NOT NULL");
             if (s.next())
             {
-                m_botAction.SQLQuery( "server", "UPDATE tblAliasSuppression SET fdResetTime = NULL WHERE fnUserID = '" + dbP.getUserID() + "'");
+                m_botAction.SQLQuery( "local", "UPDATE tblAliasSuppression SET fdResetTime = NULL WHERE fnUserID = '" + dbP.getUserID() + "'");
 
                 if (player)
                 {
@@ -554,11 +554,11 @@ public class twdbot extends SubspaceBot {
 
     public void commandGetResetTime( String name, String message, boolean player, boolean silent )
     {
-        DBPlayerData dbP = new DBPlayerData( m_botAction, "server", message );
+        DBPlayerData dbP = new DBPlayerData( m_botAction, "local", message );
 
         try
         {
-            ResultSet s = m_botAction.SQLQuery( "server", "SELECT DATE_ADD(fdResetTime, INTERVAL 1 DAY) AS resetTime FROM tblAliasSuppression WHERE fnUserID = '" + dbP.getUserID() + "' && fdResetTime IS NOT NULL");
+            ResultSet s = m_botAction.SQLQuery( "local", "SELECT DATE_ADD(fdResetTime, INTERVAL 1 DAY) AS resetTime FROM tblAliasSuppression WHERE fnUserID = '" + dbP.getUserID() + "' && fdResetTime IS NOT NULL");
             if (s.next())
             {
                 String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
@@ -594,7 +594,7 @@ public class twdbot extends SubspaceBot {
     public void commandEnableName( String name, String message )
     {
 
-        DBPlayerData dbP = new DBPlayerData( m_botAction, "server", message );
+        DBPlayerData dbP = new DBPlayerData( m_botAction, "local", message );
 
         if( !dbP.isRegistered() )
         {
@@ -619,7 +619,7 @@ public class twdbot extends SubspaceBot {
     public void commandDisableName( String name, String message )
     {
 
-        DBPlayerData dbP = new DBPlayerData( m_botAction, "server", message );
+        DBPlayerData dbP = new DBPlayerData( m_botAction, "local", message );
 
         if( !dbP.isRegistered() )
         {
@@ -644,7 +644,7 @@ public class twdbot extends SubspaceBot {
     public void commandDisplayInfo( String name, String message )
     {
 
-        DBPlayerData dbP = new DBPlayerData( m_botAction, "server", message );
+        DBPlayerData dbP = new DBPlayerData( m_botAction, "local", message );
 
         if( !dbP.isRegistered() )
         {
@@ -667,7 +667,7 @@ public class twdbot extends SubspaceBot {
             return;
         }
 
-        DBPlayerData dbP = new DBPlayerData( m_botAction, "server", player );
+        DBPlayerData dbP = new DBPlayerData( m_botAction, "local", player );
 
         if( dbP.isRegistered() )
         {
@@ -689,7 +689,7 @@ public class twdbot extends SubspaceBot {
         {
             String query = "SELECT fcUserName, fcIP, fnMID FROM tblAliasSuppression AS A, ";
             query += " tblUser AS U WHERE A.fnUserID = U.fnUserID AND fcIP LIKE '"+ip+"%'";
-            ResultSet result = m_botAction.SQLQuery( "server", query );
+            ResultSet result = m_botAction.SQLQuery( "local", query );
             while( result.next () )
             {
                 String out = result.getString( "fcUserName" ) + "  ";
@@ -718,7 +718,7 @@ public class twdbot extends SubspaceBot {
         {
             String query = "SELECT fcUserName, fcIP, fnMID FROM tblAliasSuppression AS A, ";
             query += " tblUser AS U WHERE A.fnUserID = U.fnUserID AND fnMID = "+mid;
-            ResultSet result = m_botAction.SQLQuery( "server", query );
+            ResultSet result = m_botAction.SQLQuery( "local", query );
             while( result.next () )
             {
                 String out = result.getString( "fcUserName" ) + "  ";
@@ -781,7 +781,7 @@ public class twdbot extends SubspaceBot {
         String ip = pieces[0].substring(3);
         String mid = pieces[5].substring(10);
 
-        DBPlayerData dbP = new DBPlayerData( m_botAction, "server", name );
+        DBPlayerData dbP = new DBPlayerData( m_botAction, "local", name );
 
         //If an info action wasn't set don't handle it
         if( m_waitingAction.containsKey( name ) ) {
@@ -818,7 +818,7 @@ public class twdbot extends SubspaceBot {
 
         try {
             String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
-            ResultSet r = m_botAction.SQLQuery( "server", "UPDATE tblAliasSuppression SET fdResetTime = '"+time+"' WHERE fnUserID = '" + id + "'");
+            ResultSet r = m_botAction.SQLQuery( "local", "UPDATE tblAliasSuppression SET fdResetTime = '"+time+"' WHERE fnUserID = '" + id + "'");
             if (r != null) r.close();
             return true;
         } catch (Exception e) {
@@ -828,7 +828,7 @@ public class twdbot extends SubspaceBot {
 
     public void checkNamesToReset() {
         try {
-            ResultSet r = m_botAction.SQLQuery("server", "DELETE FROM tblAliasSuppression WHERE fdResetTime < DATE_SUB(NOW(), INTERVAL 1 DAY);");
+            ResultSet r = m_botAction.SQLQuery("local", "DELETE FROM tblAliasSuppression WHERE fdResetTime < DATE_SUB(NOW(), INTERVAL 1 DAY);");
             if (r != null) r.close();
         } catch (Exception e) {
             System.out.println("Can't check for new names to reset...");
