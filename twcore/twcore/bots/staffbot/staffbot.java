@@ -119,7 +119,8 @@ public class staffbot extends SubspaceBot {
                 String date = new java.sql.Date( System.currentTimeMillis() ).toString();
                 String[] data = { warnedPlayer, message, staffMember, date };
         
-                m_botAction.SQLInsertInto( "local", "tblWarnings", paramNames, data );
+                ResultSet set = m_botAction.SQLInsertInto( "local", "tblWarnings", paramNames, data );
+                if (set != null) set.close();
             }
 
             return;
@@ -184,6 +185,7 @@ public class staffbot extends SubspaceBot {
                 m_botAction.sendRemotePrivateMessage( name, set.getString( "warning" ) );
             }
             m_botAction.sendRemotePrivateMessage( name, "End of list." );
+            if (set != null) set.close();
         } catch( SQLException e ){
             Tools.printStackTrace( e );
         }
@@ -200,6 +202,7 @@ public class staffbot extends SubspaceBot {
                 m_botAction.sendRemotePrivateMessage( name, set.getString( "warning" ) );
             }
             m_botAction.sendRemotePrivateMessage( name, "End of list." );
+            if (set != null) set.close();
         } catch( SQLException e ){
             Tools.printStackTrace( e );
         }
@@ -234,6 +237,7 @@ public class staffbot extends SubspaceBot {
                         alt.setIPMatch();//response += "IP ";
                     //m_botAction.sendSmartPrivateMessage( name, response );
                 }
+            if (set != null) set.close();
             }
             
             int ct = 0;
@@ -300,6 +304,7 @@ public class staffbot extends SubspaceBot {
                         + " is in " + sqd );
                     }
                 }
+            if (set != null) set.close();
             }
             
         } catch( SQLException e ){
@@ -321,6 +326,7 @@ public class staffbot extends SubspaceBot {
                 while( set2.next() ){
                     m_botAction.sendSmartPrivateMessage( name, set2.getString( "Name" ));
                 }
+            if (set != null) set.close();
             }
             
         } catch( SQLException e ){
