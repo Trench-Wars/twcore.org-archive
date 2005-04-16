@@ -9,11 +9,11 @@ public class pubhub extends SubspaceBot
   public static final char CHAT_DELIM = ':';
   public static final String IPCCHANNEL = "pubBots";
   public static final int UPDATE_CHECK_DELAY = 500;
-  public static final int SPAWN_DELAY = 5 * 1000;
   public static final int CHECK_DELAY = 5 * 60 * 1000;
   public static final int LOG_OFF_DELAY = 200;
   public static final int AUTOLOAD_DELAY = 2000;
 
+  private int SPAWN_DELAY = 5 * 1000;
   private OperatorList opList;
   private ModuleHandler moduleHandler;
   private HashMap botList;
@@ -49,7 +49,7 @@ public class pubhub extends SubspaceBot
     requestEvents();
 
     if (m_botAction.getCoreData().getGeneralSettings().getString( "Server" ).equals("localhost"))
-        AUTOLOAD_DELAY = 100;
+        SPAWN_DELAY = 100;
 
   }
 
