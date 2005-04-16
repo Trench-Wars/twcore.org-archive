@@ -1,7 +1,7 @@
 /*
   @author  mr. spam
   last updated: 07/26/2002
- 
+
   Changes:
     Added "Comment count" to /!list* commands
     Cleaned up staffbot.cfg.  Removed unused settings and added LogArchivedEnabled, ArchivePath, & AutoLogTime
@@ -30,7 +30,7 @@ public class staffbot extends SubspaceBot {
     String              m_logNotifyPlayer;
     final String        m_LOGFILENAME = "subgame.log";
     java.util.Date      m_logTimeStamp;
-    
+
     /* Initialization code */
     public staffbot( BotAction botAction ) {
         super( botAction );
@@ -60,27 +60,27 @@ public class staffbot extends SubspaceBot {
                     getLog();
                 }
             };
-            
+
             try{
                 java.util.Date dateNow = new java.util.Date();
-                
+
                 String strDate = new SimpleDateFormat("MM/dd/yyyy").format( dateNow );
                 strDate += " " + m_botSettings.getString( "AutoLogTime" );
                 java.util.Date timeToActivate = new SimpleDateFormat("MM/dd/yyyy k:m").parse( strDate );
-                
+
                 //If scheduled time for today is passed, schedule for tommorow
                 if( dateNow.after( timeToActivate ) ){
                     Calendar calCompare = Calendar.getInstance();
                     long millis;
-                    
+
                     calCompare.setTime( timeToActivate );
                     millis = calCompare.getTimeInMillis();
                     millis += 86400000; //add a day
-                    
+
                     calCompare.setTimeInMillis( millis );
                     timeToActivate = calCompare.getTime();
                 }
-                
+
                 m_botAction.scheduleTaskAtFixedRate( getLogTask, timeToActivate.getTime(), 86400000 );
                 Tools.printLog( m_botAction.getBotName() + "> Autolog at: " + timeToActivate );
             } catch( Exception e ){
@@ -94,22 +94,22 @@ public class staffbot extends SubspaceBot {
                 m_botAction.sendUnfilteredPublicMessage( "*log" );
             }
         };
-        
+
         m_botAction.scheduleTaskAtFixedRate( getLog, 0, 60000 );
     }
-    
+
     public void handleEvent( Message event ){
         String name = m_botAction.getPlayerName( event.getPlayerID() ); ;
         String message = event.getMessage();
         boolean remote = false;
-        
+
         if( event.getMessageType() == Message.ARENA_MESSAGE ){
             if( message.toLowerCase().indexOf( "*warn" ) > 0 ){
                 String          temp;
                 String          staffMember;
                 String          warnedPlayer;
                 LinkedList      warnings;
-                
+
                 temp = message.substring( message.indexOf( ") to " ) + 5 );
                 warnedPlayer = temp.substring( 0, temp.indexOf( ":" ) ).toLowerCase();
                 temp = message.substring( message.indexOf( "Ext: " ) + 5 );
@@ -118,7 +118,7 @@ public class staffbot extends SubspaceBot {
                 String[] paramNames = { "name", "warning", "staffmember", "timeofwarning" };
                 String date = new java.sql.Date( System.currentTimeMillis() ).toString();
                 String[] data = { warnedPlayer, message, staffMember, date };
-        
+
                 m_botAction.SQLInsertInto( "local", "tblWarnings", paramNames, data );
             }
 
@@ -126,7 +126,7 @@ public class staffbot extends SubspaceBot {
         }
 
         if( !message.startsWith("!") ) return;
-        
+
         if( event.getMessageType() == Message.PRIVATE_MESSAGE ){
             remote = false;
         } else if( event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ) {
@@ -135,13 +135,13 @@ public class staffbot extends SubspaceBot {
         } else {
             return;
         }
-        
+
         if( m_opList.isER( name ) ){
             if( message.toLowerCase().startsWith( "!warning " ) ){
                 queryWarnings( name, message.substring( 9 ) );
             }
         }
-        
+
         if( m_opList.isER( name ) ){
             if( message.toLowerCase().startsWith( "!warnings " ) ){
                 queryWarnings( name, message.substring( 10 ) );
@@ -166,19 +166,19 @@ public class staffbot extends SubspaceBot {
             } else if( message.toLowerCase().startsWith( "!messageer " )){
                 handleMessageStaff( OperatorList.ER_LEVEL, OperatorList.ER_LEVEL, name, message.substring( 11 ) );*/
             }
-            
+
         }
 
         if( m_opList.isZH(name) )
             handleCommand( name, message, remote );
     }
-    
+
     public void queryWarnings( String name, String message ){
         String      query = "select * from tblWarnings where name = \"" + message.toLowerCase() + "\"";
-        
+
         try {
             ResultSet set = m_botAction.SQLQuery( "local", query );
-            
+
             m_botAction.sendRemotePrivateMessage( name, "Warnings for " + message + ":" );
             while( set.next() ){
                 m_botAction.sendRemotePrivateMessage( name, set.getString( "warning" ) );
@@ -192,10 +192,10 @@ public class staffbot extends SubspaceBot {
 
     public void queryWarningsFrom( String name, String message ){
         String      query = "select * from tblWarnings where staffmember = \"" + message.toLowerCase() + "\"";
-        
+
         try {
             ResultSet set = m_botAction.SQLQuery( "local", query );
-            
+
             m_botAction.sendRemotePrivateMessage( name, "Warnings given by " + message + ":" );
             while( set.next() ){
                 m_botAction.sendRemotePrivateMessage( name, set.getString( "warning" ) );
@@ -206,10 +206,10 @@ public class staffbot extends SubspaceBot {
             Tools.printStackTrace( e );
         }
     }
-    
+
     public void queryAltNick( String name, String message ){
-    	m_botAction.sendSmartPrivateMessage( name, "Please hold as I look for matches." );
-    	HashMap altNick = new HashMap();
+        m_botAction.sendSmartPrivateMessage( name, "Please hold as I look for matches." );
+        HashMap altNick = new HashMap();
         //look up the machineid for the nick
         String query = "select machineid, ip from Arrogant where name = \"" + message + "\"";
         try{
@@ -217,74 +217,75 @@ public class staffbot extends SubspaceBot {
             while( set.next() ){
                 String macid = set.getString( "MachineID" );
                 String ip = set.getString( "IP" );
-                String newquery = "select distinct Name, ip, machineid from Arrogant where IP = \"" 
+                String newquery = "select distinct Name, ip, machineid from Arrogant where IP = \""
                 + ip + "\" order by Name";
                 ResultSet set2 = m_botAction.SQLQuery( "local", newquery );
-                //m_botAction.sendSmartPrivateMessage( name, message 
+                //m_botAction.sendSmartPrivateMessage( name, message
                 //+ " has MachineID: " + macid + " and IP: " + ip );
-                while( set2.next() ){     
+                while( set2.next() ){
                     String n2 = set2.getString( "Name" );
                     String machineid = set2.getString( "MachineID" );
                     String ip2 = set2.getString( "IP" );
                     String response = n2 + " matches: ";
                     if( !altNick.containsKey( n2 ) )
-						altNick.put( n2, new AltNick( n2 ) );
-					AltNick alt = (AltNick)altNick.get( n2 );
+                        altNick.put( n2, new AltNick( n2 ) );
+                    AltNick alt = (AltNick)altNick.get( n2 );
                     if( macid.equals( machineid ))
                         alt.setMIDMatch();//response += "MachineID ";
                     if( ip2.equals( ip ))
                         alt.setIPMatch();//response += "IP ";
                     //m_botAction.sendSmartPrivateMessage( name, response );
                 }
-            if (set != null) set.close();
+                if (set2 != null) set2.close();
             }
-            
+            if (set != null) set.close();
+
             int ct = 0;
             Set set3 = altNick.keySet();
-			Iterator it = set3.iterator();
-			while (it.hasNext()) {
-				String curName = (String) it.next();
-				AltNick alt = (AltNick)altNick.get( curName );
-				String output = formatString( curName, 20 );
-				if( alt.hasIPMatch() )
-					output += "  (IP Match)";
-				if( alt.hasMIDMatch() )
-					output += "  (MachineID Match)";
-				m_botAction.sendSmartPrivateMessage( name, output );
-				ct++;
-			}
-			altNick.clear();
-			m_botAction.sendSmartPrivateMessage( name, "Matches Displayed: " + ct );
-            
+            Iterator it = set3.iterator();
+            while (it.hasNext()) {
+                String curName = (String) it.next();
+                AltNick alt = (AltNick)altNick.get( curName );
+                String output = formatString( curName, 20 );
+                if( alt.hasIPMatch() )
+                    output += "  (IP Match)";
+                if( alt.hasMIDMatch() )
+                    output += "  (MachineID Match)";
+                m_botAction.sendSmartPrivateMessage( name, output );
+                ct++;
+            }
+            altNick.clear();
+            m_botAction.sendSmartPrivateMessage( name, "Matches Displayed: " + ct );
+
         } catch( SQLException e ){
             Tools.printStackTrace( e );
         }
-       
+
     }
-    
+
     public String formatString(String fragment, int length) {
-		String line;
-		if(fragment.length() > length)
-			fragment = fragment.substring(0,length-1);
-		else {
-			for(int i=fragment.length();i<length;i++)
-				fragment = fragment + " ";
-		}
-		return fragment;
-	}
-    
-    class AltNick {
-    	String name;
-    	boolean ip = false, mid = false;
-    	public AltNick( String n ) {
-    		name = n;
-    	}
-    	public void setMIDMatch() { mid = true; }
-    	public void setIPMatch() { ip = true; }
-    	public boolean hasMIDMatch() { return mid; }
-    	public boolean hasIPMatch() { return ip; }
+        String line;
+        if(fragment.length() > length)
+            fragment = fragment.substring(0,length-1);
+        else {
+            for(int i=fragment.length();i<length;i++)
+                fragment = fragment + " ";
+        }
+        return fragment;
     }
-    
+
+    class AltNick {
+        String name;
+        boolean ip = false, mid = false;
+        public AltNick( String n ) {
+            name = n;
+        }
+        public void setMIDMatch() { mid = true; }
+        public void setIPMatch() { ip = true; }
+        public boolean hasMIDMatch() { return mid; }
+        public boolean hasIPMatch() { return ip; }
+    }
+
     public void queryDblSquad( String name, String message ){
         //look up the machineid for the nick
         String query = "select machineid, ip from Arrogant where name = \"" + message + "\"";
@@ -303,9 +304,10 @@ public class staffbot extends SubspaceBot {
                         + " is in " + sqd );
                     }
                 }
-            if (set != null) set.close();
+                if (set2 != null) set2.close();
             }
-            
+            if (set != null) set.close();
+
         } catch( SQLException e ){
             Tools.printStackTrace( e );
         }
@@ -325,41 +327,42 @@ public class staffbot extends SubspaceBot {
                 while( set2.next() ){
                     m_botAction.sendSmartPrivateMessage( name, set2.getString( "Name" ));
                 }
-            if (set != null) set.close();
+                if (set2 != null) set2.close();
             }
-            
+            if (set != null) set.close();
+
         } catch( SQLException e ){
             Tools.printStackTrace( e );
         }
     }
-    
+
     public void handleEvent( FileArrived event ){
         if ( event.getFileName().equals(m_LOGFILENAME) ){
             logArrived();
         }
     }
-   /*     
+   /*
     public void handleMessageStaff( int minAccessLevel, int maxAccessLevel, String name, String message ){
         int         level;
         String      recipient;
         Map         staffList;
         Iterator    staffIterator;
-        
+
         staffList = m_opList.getList();
         staffIterator = staffList.keySet().iterator();
-        
+
         while( staffIterator.hasNext() ){
             recipient = ((String)staffIterator.next()).trim();
             level = m_opList.getAccessLevel( recipient );
-            
+
             if( level >= minAccessLevel && level <= maxAccessLevel ){
                 m_botAction.sendRemotePrivateMessage( "Sphonk", "...?message " + recipient + ":Message from " + name + ": " + message );
-            
+
                 m_botAction.sendUnfilteredPublicMessage( "?message " + recipient + ":Message from " + name + ": " + message );
             }
         }
     }*/
-        
+
     public void handleCommand( String name, String message, boolean remote){
         if( message.toLowerCase().equals("!help") ){
             handleHelp( name, remote );
@@ -367,7 +370,7 @@ public class staffbot extends SubspaceBot {
             addPlayer( name, message.substring(5), remote );
         } else if( message.toLowerCase().startsWith("!comment ") ){
             String[] args;
-            
+
             args = message.substring(9).split(":", 3);
             if ( args.length == 3 ){
                 addComment( args[0], name, args[2], getInteger(args[1], 0), remote );
@@ -375,10 +378,10 @@ public class staffbot extends SubspaceBot {
                 sendPM( name, "Incorrect parameters. Use !comment <player>:<rating>:<comment>", remote);
             }
         }
-        
+
         if( ! m_opList.isModerator(name) )
             return;
-        
+
         if( message.toLowerCase().equals("!list") ){
             sendListAsc( name, 10, SORT_DATE_ADDED, remote );
         } else if( message.toLowerCase().startsWith("!list ") ){
@@ -392,7 +395,7 @@ public class staffbot extends SubspaceBot {
         } else if( message.toLowerCase().startsWith("!listplayer ") ){
             showComments( name, message.substring(12), remote );
         }
-        
+
         if( ! m_opList.isSmod(name) )
             return;
 
@@ -402,21 +405,21 @@ public class staffbot extends SubspaceBot {
             getLog( name, remote );
         }
     }
-    
+
     public void handleHelp( String name, boolean remote ){
         final String[] helpTextZH = {
             "Available ZH commands:",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player"
         };
-            
+
         final String[] helpTextER = {
             "Available ER commands:",
             "!warnings <player>     - Checks red warnings on specified player",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player"
         };
- 
+
         final String[] helpTextMod = {
             "Available Mod commands:",
             "!warnings <player>     - Checks red warnings on specified player",
@@ -427,8 +430,8 @@ public class staffbot extends SubspaceBot {
             "!listall               - Displays all players in the list in alphabetical order",
             "!listplayer <player>   - Displays that player's details along with all comments"
         };
-            
-        final String[] helpTextSmod = {            
+
+        final String[] helpTextSmod = {
             "Available upper staff commands:",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player",
@@ -445,7 +448,7 @@ public class staffbot extends SubspaceBot {
             "!warnings <player>     - Checks red warnings on specified player",
             "!warningsfrom <player> - Displays a list of recent warns given to a player."
         };
-        
+
         if( m_opList.isZHExact( name ) ){
             m_botAction.remotePrivateMessageSpam( name, helpTextZH );
         }
@@ -461,14 +464,14 @@ public class staffbot extends SubspaceBot {
         else if( m_opList.isSmod( name ) ){
             m_botAction.remotePrivateMessageSpam( name, helpTextSmod );
         }
-        
-        
+
+
     }
-    
+
     /* Potential Staff List Code */
     public void addPlayer( String staffName, String playerName, boolean remote ){
         playerName = playerName.trim();
-        
+
         if ( !m_playerList.containsKey( playerName.toLowerCase() ) ){
             m_playerList.put( playerName.toLowerCase(), new potentialStaffer( playerName ) );
             writeObjects();
@@ -477,13 +480,13 @@ public class staffbot extends SubspaceBot {
             sendPM( staffName, "Player already exists: " + playerName, remote );
         }
     }
-    
+
     public void remPlayer( String staffName, String playerName, boolean remote ){
         potentialStaffer axed;
         boolean found = false;
-        
+
         axed = (potentialStaffer)m_playerList.get( playerName.toLowerCase().trim() );
-        
+
         if ( axed != null ){
             m_playerList.remove( playerName.toLowerCase().trim() );
             writeObjects();
@@ -492,70 +495,70 @@ public class staffbot extends SubspaceBot {
             sendPM( staffName, "Player could not be found", remote );
         }
     }
-    
+
     public void sendRecord( String staffName, boolean remote, String dateAdded, int numComments, double aveRating, String playerName ){
         sendPM( staffName, "Added: " + dateAdded + "  Comments: " + numComments + "  Ave Rating: " + aveRating + "  Name: " + playerName, remote );
     }
-    
+
     public void sendListAsc( String name, int count, Comparator sort, boolean remote ){
         LinkedList sortedList = new LinkedList();
         LinkedList buffer = new LinkedList();
         potentialStaffer listItem;
-        
+
         sortedList.addAll( m_playerList.values() );
         Collections.sort( sortedList, sort );
-        
+
         if( count > sortedList.size() ){ count = sortedList.size() ; }
-        
+
         Iterator i = sortedList.iterator();
-        
+
         for( int x = 0 ; x < count ; x++ ){
             buffer.addFirst( i.next() );
         }
-        
+
         for( i = buffer.iterator(); i.hasNext(); ){
             listItem = (potentialStaffer)i.next();
             sendRecord( name, remote, listItem.getDate(), listItem.getCommentCount(), listItem.getAveRating(), listItem.getName() );
         }
     }
-    
+
     public void sendListDesc( String name, int count, Comparator sort, boolean remote ){
         LinkedList sortedList = new LinkedList();
         potentialStaffer listItem;
-        
+
         sortedList.addAll( m_playerList.values() );
         Collections.sort( sortedList, sort );
-        
+
         if( count > sortedList.size() ){ count = sortedList.size() ; }
-        
+
         Iterator i = sortedList.iterator();
-        
+
         for( int x = 0 ; x < count ; x++ ){
             listItem = (potentialStaffer)i.next();
             sendRecord( name, remote, listItem.getDate(), listItem.getCommentCount(), listItem.getAveRating(), listItem.getName() );
         }
     }
-    
+
     public void listPlayer( String staffName, String playerName, boolean remote ){
         potentialStaffer player = (potentialStaffer)m_playerList.get( playerName.toLowerCase().trim() );
-        
+
         if (player != null){
             sendRecord( staffName, remote, player.getDate(), player.getCommentCount(), player.getAveRating(), player.getName() );
         } else {
             sendPM( staffName, playerName + " not found", remote );
         }
     }
-    
+
     public void addComment( String playerName, String staffName, String comment, int rating, boolean remote ){
         potentialStaffer player;
-        
+
         player = (potentialStaffer)m_playerList.get( playerName.toLowerCase().trim() );
-        
+
         if ( player != null ){
             if ( comment.length() > 212 ){
                 comment = comment.substring(0, 212);
             }
-            
+
             if ( rating >= 0 && rating <= 5 ){
                 player.addComment( staffName, comment, rating );
                 writeObjects();
@@ -567,18 +570,18 @@ public class staffbot extends SubspaceBot {
             sendPM( staffName, "Player could not be found", remote );
         }
     }
-    
+
     public void showComments( String staffName, String playerName, boolean remote ){
         potentialStaffer player;
-        
+
         player = (potentialStaffer)m_playerList.get( playerName.toLowerCase().trim() );
-        
+
         if ( player != null ){
             HashMap comments = player.getComments();
             staffComment comment;
-            
+
             listPlayer( staffName, playerName, remote );
-            
+
             for ( Iterator i = comments.values().iterator(); i.hasNext(); ){
                 comment = (staffComment)i.next();
                 sendPM( staffName, "- Rating: " + comment.getRating() + "  By: " + comment.getName() + "  Comment: " + comment.getComment(), remote );
@@ -587,50 +590,50 @@ public class staffbot extends SubspaceBot {
             sendPM( staffName, playerName + " not found", remote );
         }
     }
-    
+
     /* Log Archiving Code */
     public void getLog(){
         if(!m_logArchivingEnabled)return;
         if(m_logActive)return;
-        
+
         m_logActive = true;
-        
+
         m_logTimeStamp = new java.util.Date();
         m_botAction.sendUnfilteredPublicMessage( "*getfile " + m_LOGFILENAME );
     }
-    
+
     public void getLog( String name, boolean remote){
         if(!m_logArchivingEnabled){
             sendPM( name, "Sorry, all log archiving functions for this bot have been disabled.", remote );
             return;
         }
-        
+
         if(!m_logActive){
             Tools.printLog( m_botAction.getBotName() + "> Processing server log at " + name + "'s request." );
             m_botAction.sendChatMessage( "Processing server log at " + name + "'s request." );
             sendPM( name, "Downloading server log. You will be notified when completed.", remote );
-            
+
             m_logNotifyPlayer = name;
             getLog();
         } else {
             sendPM( name, "Already processing a log. Please try again when finished.", remote );
         }
     }
-    
+
     public void logArrived(){
         String archivePath = m_botSettings.getString( "ArchivePath" );
         compressToZip( m_LOGFILENAME, archivePath + "TWLog " + new SimpleDateFormat("MMM-dd-yyyy(HH-mm-ss z)").format(m_logTimeStamp) + ".zip" );
         sendBlankLog( m_LOGFILENAME );
-        
+
         if( m_logNotifyPlayer != null ){
             m_botAction.sendRemotePrivateMessage( m_logNotifyPlayer, "Server log successfully downloaded and archived." );
             m_logNotifyPlayer = null;
         }
-        
+
         m_botAction.sendChatMessage( "Server log successfully downloaded and archived." );
         m_logActive = false;
     }
-    
+
     public void sendBlankLog( String fileName ){
         try {
             FileWriter fileOut = new FileWriter( fileName );
@@ -641,7 +644,7 @@ public class staffbot extends SubspaceBot {
             Tools.printStackTrace( e );
         }
     }
-    
+
     /* Misc Code */
     public void sendPM( String name, String message, boolean remote ){
         if(remote){
@@ -650,44 +653,44 @@ public class staffbot extends SubspaceBot {
             m_botAction.sendPrivateMessage( name, message );
         }
     }
-    
+
     public void readObjects(){
         String fname = m_botAction.getBotName().toLowerCase() + ".dat";
         File f = new File(fname);
-        
-        
+
+
         m_playerList.clear();
-        
-        
+
+
         try{
             if (!f.exists()) f.createNewFile();
-            
-            ObjectInputStream in = new ObjectInputStream( 
+
+            ObjectInputStream in = new ObjectInputStream(
             new BufferedInputStream(
-            new FileInputStream( 
+            new FileInputStream(
             m_botAction.getDataFile( fname ))));
-            
+
             while ( true ) {
                 potentialStaffer o = (potentialStaffer)in.readObject();
-                
+
                 if( o == null ) break;
                 m_playerList.put( o.getName().toLowerCase(), o );
             }
-            
+
             in.close();
-            
+
         }catch( EOFException e){
-            
+
         }catch( Exception e ){
             Tools.printStackTrace( e );
         }
     }
-    
+
     public void writeObjects(){
         try{
-            ObjectOutputStream out = new ObjectOutputStream( 
+            ObjectOutputStream out = new ObjectOutputStream(
             new BufferedOutputStream( new FileOutputStream(
-            m_botAction.getDataFile( 
+            m_botAction.getDataFile(
             m_botAction.getBotName().toLowerCase() + ".dat" ))));
             Iterator i = m_playerList.values().iterator();
             while( i.hasNext() ){
@@ -698,7 +701,7 @@ public class staffbot extends SubspaceBot {
             Tools.printStackTrace( e );
         }
     }
-    
+
     public int getInteger( String input, int def ){
         try{
             return Integer.parseInt( input.trim() );
@@ -706,30 +709,30 @@ public class staffbot extends SubspaceBot {
             return def;
         }
     }
-    
+
     public void compressToZip( String inFileName, String outFileName){
         try {
             FileInputStream fileIn = new FileInputStream( inFileName );
             ZipOutputStream fileOut = new ZipOutputStream( new FileOutputStream( outFileName ));
-            
+
             fileOut.putNextEntry(new ZipEntry( inFileName ));
-            
+
             byte[] buf = new byte[1024];
             int len;
-            
+
             while ((len = fileIn.read(buf)) > 0) {
                 fileOut.write(buf, 0, len);
             }
-            
+
             fileIn.close();
             fileOut.closeEntry();
             fileOut.close();
-            
+
         } catch( Exception e ){
             Tools.printStackTrace( e );
         }
     }
-    
+
     static final Comparator SORT_DATE_ADDED = new Comparator() {
         public int compare(Object o1, Object o2) {
             potentialStaffer r1 = (potentialStaffer) o1;
@@ -737,7 +740,7 @@ public class staffbot extends SubspaceBot {
             return r2.getDate().compareTo(r1.getDate());
         }
     };
-    
+
     static final Comparator SORT_NAME = new Comparator() {
         public int compare(Object o1, Object o2) {
             potentialStaffer r1 = (potentialStaffer) o1;
@@ -745,7 +748,7 @@ public class staffbot extends SubspaceBot {
             return r1.getName().toLowerCase().compareTo(r2.getName().toLowerCase());
         }
     };
-    
+
     static final Comparator SORT_RATING = new Comparator() {
         public int compare(Object o1, Object o2) {
             potentialStaffer r1 = (potentialStaffer) o1;
@@ -760,45 +763,45 @@ class potentialStaffer implements java.io.Serializable, java.lang.Comparable {
     private String name;
     private java.util.Date created = new java.util.Date();
     private HashMap comments = new HashMap();
-    
+
     public int compareTo(Object o) {
         potentialStaffer n = (potentialStaffer)o;
         int lastCmp = name.compareTo(n.name);
         return (lastCmp);
     }
-    
+
     public potentialStaffer( String playerName ){
         name = playerName;
     }
-    
+
     public String getName(){
         return name;
     }
-    
+
     public String getDate(){
         return new SimpleDateFormat("MM.dd.yy HH:mm:ss z").format(created);
     }
-    
+
     public void addComment( String staffName, String comment, int rating ){
         comments.put( staffName.toLowerCase(), new staffComment( staffName, comment, rating ) );
     }
-    
+
     public HashMap getComments(){
         return comments;
     }
-    
+
     public double getAveRating(){
         double sum = 0;
         double count = 0;
         double value = 0;
         staffComment comment;
-        
+
         for ( Iterator i = comments.values().iterator(); i.hasNext(); ){
             comment = (staffComment)i.next();
             sum += comment.getRating();
             count++;
         }
-        
+
         if (count != 0){
             value = sum / count;
             value *= 10;
@@ -809,7 +812,7 @@ class potentialStaffer implements java.io.Serializable, java.lang.Comparable {
             return 0;
         }
     }
-    
+
     public int getCommentCount(){
         return comments.size();
     }
@@ -820,21 +823,21 @@ class staffComment implements java.io.Serializable {
     private String name;
     private String comment;
     private int rating;
-    
+
     public staffComment( String inName, String inComment, int inRating ){
         name = inName.trim();
         comment = inComment.trim();
         rating = inRating;
     }
-    
+
     public String getComment(){
         return comment;
     }
-    
+
     public int getRating(){
         return rating;
     }
-    
+
     public String getName(){
         return name;
     }
