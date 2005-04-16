@@ -119,8 +119,7 @@ public class staffbot extends SubspaceBot {
                 String date = new java.sql.Date( System.currentTimeMillis() ).toString();
                 String[] data = { warnedPlayer, message, staffMember, date };
         
-                ResultSet set = m_botAction.SQLInsertInto( "local", "tblWarnings", paramNames, data );
-                if (set != null) set.close();
+                m_botAction.SQLInsertInto( "local", "tblWarnings", paramNames, data );
             }
 
             return;
