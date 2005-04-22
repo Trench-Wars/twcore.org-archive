@@ -423,7 +423,7 @@ public class matchbot extends SubspaceBot
                     command_unlock(name, parameters);
                 if ((command.equals("!die")) && (m_opList.isSmod(name)))
                     m_botAction.die();
-                if ((command.equals("!off")) && (m_opList.isMod(name)))
+                if ((command.equals("!off")) && (m_opList.isModerator(name)))
                 if (m_game == null)	{
                     command_unlock(name, parameters);
                 } else {
