@@ -371,7 +371,7 @@ public class twdbot extends SubspaceBot {
             DBPlayerData thisP2 = new DBPlayerData(m_botAction, "local", owner, false);
 
             if (thisP2 == null || !thisP2.isRegistered()) {
-                m_botAction.sendSmartPrivateMessage(owner, "Your name has not been !registered. Please private message AliasTron with !register.");
+                m_botAction.sendSmartPrivateMessage(owner, "Your name has not been !registered. Please private message me with !register.");
                 return;
             }
             if (!thisP2.isEnabled()) {
