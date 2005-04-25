@@ -975,31 +975,31 @@ public class MatchRound
                 {
                     m_team1.warpTo(m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
                     m_team2.warpTo(m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
-		    if (TWLGame()) { m_botAction.sendArenaMessage("Survived 2nd warp.."); }
                 }
-
             };
-            m_countdown10Seconds = new TimerTask()
+
+			m_countdown10Seconds = new TimerTask()
             {
                 public void run()
                 {
                     m_botAction.showObject(m_rules.getInt("obj_countdown10"));
-		    if (TWLGame()) { m_botAction.sendArenaMessage("Survived obj 10s.."); }
                 };
             };
-            m_countdown54321 = new TimerTask()
+
+			m_countdown54321 = new TimerTask()
             {
                 public void run()
                 {
                     m_botAction.showObject(m_rules.getInt("obj_countdown54321"));
-		    if (TWLGame()) { m_botAction.sendArenaMessage("Survived obj 5s.."); }
+                    m_team1.warpTo(m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
+                    m_team2.warpTo(m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
                 };
             };
-            m_startGame = new TimerTask()
+
+			m_startGame = new TimerTask()
             {
                 public void run()
                 {
-    		    if (TWLGame()) { m_botAction.sendArenaMessage("Starting game.."); }
                     startGame();
                 };
             };
