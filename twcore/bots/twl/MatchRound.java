@@ -1259,8 +1259,11 @@ public class MatchRound
             {
                 public void run()
                 {
+                        if (m_myObjects != null)
+                        {
 		            m_myObjects.hideAllObjects();
 		            m_botAction.setObjects();
+                        }
 	                m_generalTime = 0;
 
                     signalEndOfRound();
