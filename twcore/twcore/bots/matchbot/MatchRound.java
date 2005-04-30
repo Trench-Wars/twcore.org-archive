@@ -1405,7 +1405,8 @@ public class MatchRound
 
     public void do_updateScoreBoard()
     {
-        m_myObjects.hideAllObjects();
+        if (m_myObjects != null)
+            m_myObjects.hideAllObjects();
         m_generalTime -= 1;
         String team1Score;
         String team2Score;
