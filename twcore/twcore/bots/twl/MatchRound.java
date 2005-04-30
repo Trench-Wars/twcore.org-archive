@@ -1418,54 +1418,54 @@ public class MatchRound
 
     public void do_updateScoreBoard()
     {
-        if (m_myObjects != null)
+        if (m_myObjects != null) {
             m_myObjects.hideAllObjects();
-        m_generalTime -= 1;
-        String team1Score;
-        String team2Score;
+            m_generalTime -= 1;
+            String team1Score;
+            String team2Score;
 
-        team1Score = "" + m_team1.getTeamScore();
-        team2Score = "" + m_team2.getTeamScore();
+            team1Score = "" + m_team1.getTeamScore();
+            team2Score = "" + m_team2.getTeamScore();
 
-		//If lb display twlb scoreboard
-        if( m_rules.getString("winby").equals("timerace") ) {
-            int t1s = Integer.parseInt( team1Score );
-            int t2s = Integer.parseInt( team2Score );
+	  	//If lb display twlb scoreboard
+            if( m_rules.getString("winby").equals("timerace") ) {
+                int t1s = Integer.parseInt( team1Score );
+                int t2s = Integer.parseInt( team2Score );
 
-            int team1Minutes = (int)Math.floor( t1s / 60.0 );
-            int team2Minutes = (int)Math.floor( t2s / 60.0 );
-            int team1Seconds = t1s - team1Minutes * 60;
-            int team2Seconds = t2s - team2Minutes * 60;
+                int team1Minutes = (int)Math.floor( t1s / 60.0 );
+                int team2Minutes = (int)Math.floor( t2s / 60.0 );
+                int team1Seconds = t1s - team1Minutes * 60;
+                int team2Seconds = t2s - team2Minutes * 60;
 
-            //Team 1
-            m_myObjects.showObject( 100 + team1Seconds % 10 );
-            m_myObjects.showObject( 110 + (team1Seconds - team1Seconds % 10)/10 );
-            m_myObjects.showObject( 130 + team1Minutes % 10 );
-            m_myObjects.showObject( 140 + (team1Minutes - team1Minutes % 10)/10 );
+                //Team 1
+                m_myObjects.showObject( 100 + team1Seconds % 10 );
+                m_myObjects.showObject( 110 + (team1Seconds - team1Seconds % 10)/10 );
+                m_myObjects.showObject( 130 + team1Minutes % 10 );
+                m_myObjects.showObject( 140 + (team1Minutes - team1Minutes % 10)/10 );
 
-            //Team 2
-            m_myObjects.showObject( 200 + team2Seconds % 10 );
-            m_myObjects.showObject( 210 + (team2Seconds - team2Seconds % 10)/10 );
-            m_myObjects.showObject( 230 + team2Minutes % 10 );
-            m_myObjects.showObject( 240 + (team2Minutes - team2Minutes % 10)/10 );
-		} else { //Else display ld lj on normal scoreboard
-            for (int i = team1Score.length() - 1; i > -1; i--)
-                m_myObjects.showObject(Integer.parseInt("" + team1Score.charAt(i)) + 200 + (team1Score.length() - 1 - i) * 10);
-            for (int i = team2Score.length() - 1; i > -1; i--)
-                m_myObjects.showObject(Integer.parseInt("" + team2Score.charAt(i)) + 100 + (team2Score.length() - 1 - i) * 10);
+                //Team 2
+                m_myObjects.showObject( 200 + team2Seconds % 10 );
+                m_myObjects.showObject( 210 + (team2Seconds - team2Seconds % 10)/10 );
+                m_myObjects.showObject( 230 + team2Minutes % 10 );
+                m_myObjects.showObject( 240 + (team2Minutes - team2Minutes % 10)/10 );
+	    	    } else { //Else display ld lj on normal scoreboard
+                for (int i = team1Score.length() - 1; i > -1; i--)
+                    m_myObjects.showObject(Integer.parseInt("" + team1Score.charAt(i)) + 200 + (team1Score.length() - 1 - i) * 10);
+                for (int i = team2Score.length() - 1; i > -1; i--)
+                    m_myObjects.showObject(Integer.parseInt("" + team2Score.charAt(i)) + 100 + (team2Score.length() - 1 - i) * 10);
+            }
+            if (m_generalTime >= 0)
+            {
+                int seconds = m_generalTime % 60;
+                int minutes = (m_generalTime - seconds) / 60;
+                m_myObjects.showObject(730 + (int) ((minutes - minutes % 10) / 10));
+                m_myObjects.showObject(720 + (int) (minutes % 10));
+                m_myObjects.showObject(710 + (int) ((seconds - seconds % 10) / 10));
+                m_myObjects.showObject(700 + (int) (seconds % 10));
+            }
+            do_showTeamNames(m_team1.getTeamName(), m_team2.getTeamName());
+            m_botAction.setObjects();
         }
-        if (m_generalTime >= 0)
-        {
-            int seconds = m_generalTime % 60;
-            int minutes = (m_generalTime - seconds) / 60;
-            m_myObjects.showObject(730 + (int) ((minutes - minutes % 10) / 10));
-            m_myObjects.showObject(720 + (int) (minutes % 10));
-            m_myObjects.showObject(710 + (int) ((seconds - seconds % 10) / 10));
-            m_myObjects.showObject(700 + (int) (seconds % 10));
-        }
-        do_showTeamNames(m_team1.getTeamName(), m_team2.getTeamName());
-        m_botAction.setObjects();
-
     }
 
     public void do_showTeamNames(String n1, String n2)
