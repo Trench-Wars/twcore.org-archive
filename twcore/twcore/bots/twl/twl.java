@@ -388,7 +388,7 @@ public class twl extends SubspaceBot
                     help.add("!game <squadA>:<squadB>                  - start a game of " + m_rules.getString("name") + " between teamA and teamB");
                     if (!isRestrictedStaff)
                     {
-                        help.add("!unlock                                  - unlock the bot, makes it go back to ?go twd");
+                        help.add("!unlock                                  - unlock the bot, makes it go back to ?go twl");
                         if (m_opList.isSmod(name))
                         {
                             help.add("!listaccess                              - list all the players who have special access to this game");
@@ -616,8 +616,8 @@ public class twl extends SubspaceBot
         };
 
         m_isLocked = false;
-        m_botAction.sendPrivateMessage(name, "Unlocked, going to ?go twd");
-        m_botAction.changeArena("twd");
+        m_botAction.sendPrivateMessage(name, "Unlocked, going to ?go twl");
+        m_botAction.changeArena("twl");
     };
 
     //
@@ -863,10 +863,10 @@ public class twl extends SubspaceBot
         if (m_off)
         {
             m_off = false;
-            m_botAction.sendPrivateMessage(name, "!off disabled, bot won't ?go twd after the current game finishes.");
+            m_botAction.sendPrivateMessage(name, "!off disabled, bot won't ?go twl after the current game finishes.");
         } else {
             m_off = true;
-            m_botAction.sendPrivateMessage(name, "!off enabled, bot will ?go twd after the current game finishes.");
+            m_botAction.sendPrivateMessage(name, "!off enabled, bot will ?go twl after the current game finishes.");
         }
     }
 
@@ -1020,7 +1020,7 @@ public class twl extends SubspaceBot
                             if (m_off){
                                 m_off = false;
                                 m_isLocked = false;
-                                m_botAction.changeArena("twd");
+                                m_botAction.changeArena("twl");
                             }
                         };
                     };
