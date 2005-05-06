@@ -71,6 +71,7 @@ public class MatchRound
     // -1 - unknown;  0 - off; 1 - on
     int m_blueoutState = -1;
     boolean m_blueoutDesiredState = false;
+	boolean m_lineUpExtension = false;
 
     // this is for lagchecking:
     String m_lagPlayerName;
@@ -99,7 +100,7 @@ public class MatchRound
         m_team1 = new MatchTeam(fcTeam1Name, 1, 1, this);
         m_team2 = new MatchTeam(fcTeam2Name, 2, 2, this);
 
-	m_lagHandler = new lagHandler(m_botAction, m_rules, this, "handleLagReport");
+        m_lagHandler = new lagHandler(m_botAction, m_rules, this, "handleLagReport");
 
         m_notPlaying = new ArrayList();
 
@@ -505,9 +506,17 @@ public class MatchRound
                 help.add("!settime <time in mins>                  - time to racebetween 5 and 30 only for timerace");
                 help.add("!startpick                               - start rostering");
             }
-            if ((m_fnRoundState == 1) && (m_team1.isReadyToGo()) && (m_team2.isReadyToGo()))
+            if ((m_fnRoundState == 1))
             {
-                help.add("!startgame                               - start the game");
+                if (m_team1.isReadyToGo() && m_team2.isReadyToGo())
+                {
+                    help.add("!startgame                               - start the game");
+                }
+
+                if (!m_lineUpExtension)
+                {
+                    help.add("!add2mins                                - adds 2 mins to lineup submission");
+                }
             }
             if (m_fnRoundState == 3)
                 help.add("!lag <player>                            - show <player> lag");
@@ -546,6 +555,9 @@ public class MatchRound
 	if ((command.equals("!startgame")) && (m_fnRoundState == 1) && isStaff)
 	    command_startgame(name, parameters);
 
+	if ((command.equals("!add2mins")) && (m_fnRoundState == 1) && isStaff)
+	    command_add2mins(name, parameters);
+	
 	if ((command.equals("!lag")) && (m_fnRoundState == 3) && isStaff)
 	    command_checklag(name, parameters);
 
@@ -892,10 +904,20 @@ public class MatchRound
     {
         if ((m_team1.isReadyToGo()) && (m_team2.isReadyToGo())) {
             checkReadyToGo();
-	} else {
+        } else {
             m_botAction.sendPrivateMessage(name, "Both of the teams are not ready..");
         }
-    }       
+    }
+
+    public void command_add2mins(String name, String parameters[])
+    {
+        if (!m_lineUpExtension) {
+            m_lineUpExtension = true;
+		    m_botAction.sendArenaMessage("2 minutes will be added to the lineup submission when the timer runs out.", 1);
+        } else {
+            m_botAction.sendPrivateMessage(name, "2 minute extension has already been enabled, try again during the extension if you need to delay more.");
+        }
+    }
 
     public void command_checklag(String name, String parameters[])
     {
@@ -1312,6 +1334,20 @@ public class MatchRound
     // schedule time is up. Start game when both rosters are ok, otherwise call forfeit
     public void scheduleTimeIsUp()
     {
+        if (m_lineUpExtension)
+        {
+            m_botAction.setTimer(2);
+			m_scheduleTimer = new TimerTask() {
+                public void run() {
+                    scheduleTimeIsUp();
+                };
+            };
+            m_botAction.scheduleTask(m_scheduleTimer, 120000);
+            m_botAction.sendArenaMessage("Lineup submission has been extended by 2 mins", 2);
+			m_lineUpExtension = false;
+            return;
+        }
+
         String t1a = m_team1.isAllowedToBegin(), t2a = m_team2.isAllowedToBegin();
         // 0 - GO,     1 - TEAM 1 FORFEITS,       2 - TEAM 2 FORFEITS,     3 - BOTH FORFEIT
         int gameResult = 0;
