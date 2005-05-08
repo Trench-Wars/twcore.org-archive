@@ -14,7 +14,7 @@ import java.sql.*;
 public class twdtbot extends SubspaceBot {
 
     private BotSettings m_botSettings;
-	private String m_conn = "website";
+	private String m_conn = "local";
 	private HashMap m_access;
 
     public twdtbot(BotAction botAction) {
