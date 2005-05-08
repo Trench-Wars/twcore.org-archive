@@ -105,6 +105,7 @@ public class twdtbot extends SubspaceBot {
 	    	r = m_botAction.SQLQuery(m_conn,
 	    		"INSERT INTO tblTWDTUser (fnTWDUserID, fcUserName, ftCreated) VALUES ("
 	    		+ pdata.getUserID() + ", " + Tools.addSlashesToString(name) + ", NOW())");
+ m_botAction.sendSmartPrivateMessage(name, pdata.getUserID() + name);
 	    	if(r != null)
 	    		r.close();
 	    	return true;
