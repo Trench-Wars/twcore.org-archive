@@ -88,7 +88,7 @@ public class twdtbot extends SubspaceBot {
     		return false;
     	}
     	if(!pdata.isEnabled()) {
-    		m_botAction.sendSmartPrivateMessage(name, "You're TWD account is currently disabled.");
+    		m_botAction.sendSmartPrivateMessage(name, "Your TWD account is currently disabled.");
     		return false;
     	}
 
