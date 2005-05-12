@@ -930,13 +930,13 @@ public class duelbot extends SubspaceBot {
 			m_botAction.sendTeamMessage( loser + " forfeits to " + winner + " (1 MIN LAGOUT) in their " + d.getLeagueType() + " duel");
 		}
 		
-		/*
+		
 		DBPlayerData winnerInfo = new DBPlayerData( m_botAction, "local", winner, true );
 		DBPlayerData loserInfo = new DBPlayerData( m_botAction, "local", loser, true );
-		*/
 		
-		/*
-		int matchType = d.getLeagueId();*/
+		
+		
+		int matchType = d.getLeagueId();
 		d.toggleDuelBox();
 		duels.remove( new Integer( d.getBoxNumber() ) );
 		playing.remove( winner );
@@ -945,10 +945,10 @@ public class duelbot extends SubspaceBot {
 		m_botAction.spec( winner );
 		m_botAction.spec( loser );
 		m_botAction.spec( loser );
-		/*
 		
 		
-		if( d.getDuelType() == 1 ) return;
+		
+		/*if( d.getDuelType() == 1 ) return;
 		
 		int realGameId = d.getTournyGame().getRealGameId();
 		int players = d.getTournyGame().getPlayers();
@@ -984,7 +984,7 @@ public class duelbot extends SubspaceBot {
 			int newGameIdWinner = 
 		}*/
 
-		/*
+		
 		sql_verifyRecord( loser, loserInfo.getUserID(), matchType );
 		sql_verifyRecord( winner, winnerInfo.getUserID(), matchType );
 		
@@ -1015,10 +1015,10 @@ public class duelbot extends SubspaceBot {
 			if( d.toWin() == 5 ) 
 				aced = false;
 			
-			//Store loser information
-			sql_storeUserLoseRating( loser, loserInfo.getUserID(), matchType, d.getPlayer( loser ).getKills(), d.getPlayer( loser ).getDeaths(), loserStreak, loserCurStreak, winner, d.getPlayer( loser ).getData(0), d.getPlayer( winner ).getData(0), d.getPlayer( loser ).getData(7), d.getTime(), loserRatingAfter, aced );
+			//Store loser information  
+			sql_storeUserLoseRating( loser, loserInfo.getUserID(), matchType, d.getPlayer( loser ).getKills(), d.getPlayer( loser ).getDeaths(), loserStreak, loserCurStreak, winner, d.getPlayer( loser ).getSpawns(), d.getPlayer( winner ).getSpawns(), d.getPlayer( loser ).getLagouts(), d.getTime(), loserRatingAfter, aced );
 			//Stores winner information
-			sql_storeUserWinRating( winner, winnerInfo.getUserID(), matchType, d.getPlayer( winner ).getKills(), d.getPlayer( winner ).getDeaths(), winnerStreak, winnerCurStreak, loser, d.getPlayer( winner ).getData(0), d.getPlayer( loser ).getData(0), d.getPlayer( winner ).getData(7), d.getTime(), winnerRatingAfter, aced );
+			sql_storeUserWinRating( winner, winnerInfo.getUserID(), matchType, d.getPlayer( winner ).getKills(), d.getPlayer( winner ).getDeaths(), winnerStreak, winnerCurStreak, loser, d.getPlayer( winner ).getSpawns(), d.getPlayer( loser ).getSpawns(), d.getPlayer( winner ).getLagouts(), d.getTime(), winnerRatingAfter, aced );
 			
 			String query = "INSERT INTO `tblDuelMatch` (`fnSeason`, `fnLeagueTypeID`, `fnWinnerScore`, `fnLoserScore`, `fcWinnerName`, `fcLoserName`, `fnWinnerUserID`, `fnLoserUserID`, `fnCommentID`, `fnWinBy2`, `fnNoCount`, `fnDeathWarp`, `fnDeaths`, `fnDuration`, `fnUser1RatingBefore`, `fnUser1RatingAfter`, `fnUser2RatingBefore`, `fnUser2RatingAfter` ) VALUES (";
 			query += s_season+", "+matchType+", "+winnerScore+", "+loserScore+", ";
@@ -1033,7 +1033,7 @@ public class duelbot extends SubspaceBot {
 			query += loserRatingBefore+", "+loserRatingAfter+")";
 			m_botAction.SQLQuery( mySQLHost, query );
 		} catch (Exception e) { Tools.printStackTrace( "Error ending duel", e );}
-		*/
+		
 		clearScoreboard( d );
     }
     
