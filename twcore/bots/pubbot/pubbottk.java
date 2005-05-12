@@ -294,6 +294,10 @@ public class pubbottk extends PubBotModule {
 
         String pn = m_botAction.getPlayerName( event.getPlayerID() ).toLowerCase();
         TKInfo oldtker = (TKInfo)tkers.remove( pn );
+        try {
+            oldtker.cancel();
+        } catch (Exception e ) {
+        }
 
         if( oldtker != null )
             oldtkers.put( pn, oldtker );
