@@ -174,7 +174,7 @@ public class pubbot extends SubspaceBot
 
   public void gotUnloadedCmd(String argString)
   {
-    moduleHandler.loadModule(argString);
+    moduleHandler.unloadModule(argString);
     m_botAction.sendChatMessage(argString + " has been unloaded from " + currentArena);
   }
 
