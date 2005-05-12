@@ -240,9 +240,9 @@ public class duelbot extends SubspaceBot {
     	if( player.getDeathWarp() ) rules += ", Warp On Deaths";
     	
     	challenges.put( _name+opponent, new DuelChallenge( _name, opponent, player, gameType ) );
-    	m_botAction.sendPrivateMessage( _name, "Your challenge has been issued to '" + opponent + "' (UNRECORDED DUEL)" );
+    	m_botAction.sendPrivateMessage( _name, "Your challenge has been issued to '" + opponent + "'" );
     	m_botAction.sendPrivateMessage( _name, rules );
-    	m_botAction.sendPrivateMessage( opponent, _name + " is challenging you to a "+type+" duel. PM me with, !accept "+_name+" to accept. (UNRECORDED DUEL)" );
+    	m_botAction.sendPrivateMessage( opponent, _name + " is challenging you to a "+type+" duel. PM me with, !accept "+_name+" to accept." );
     	m_botAction.sendPrivateMessage( opponent, rules );
     	   	
     }
