@@ -293,8 +293,12 @@ public class pubbot extends SubspaceBot
     String sender = m_botAction.getPlayerName(senderID);
     String message = event.getMessage();
 
-    if(messageType == Message.PRIVATE_MESSAGE)
-      m_botAction.sendChatMessage(sender + " said: \"" + message + "\" in " + currentArena + ".");
+    // No need to spam the chat if a mod is checking TKs
+    if( ! opList.isModerator( sender ) )
+    {
+      if(messageType == Message.PRIVATE_MESSAGE)
+        m_botAction.sendChatMessage(sender + " said: \"" + message + "\" in " + currentArena + ".");
+    }
     moduleHandler.handleEvent(event);
   }
 
