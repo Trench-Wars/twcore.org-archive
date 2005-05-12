@@ -660,9 +660,9 @@ public class twdbot extends SubspaceBot {
     public void commandRegisterName( String name, String message, boolean p )
     {
 
-        Player p = m_botAction.getPlayer( message );
+        Player pl = m_botAction.getPlayer( message );
         String player;
-        if( p == null )
+        if( pl == null )
         {
             m_botAction.sendSmartPrivateMessage( name, "Unable to find "+message+" in the arena." );
             return;
