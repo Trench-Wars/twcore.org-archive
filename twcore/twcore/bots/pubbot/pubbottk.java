@@ -14,7 +14,7 @@ import twcore.misc.pubcommon.*;
 public class pubbottk extends PubBotModule {
 
     private final int normTKpts = 12;        // Penalty for TKing (any ship but shark)
-    private final int sharkTKpts = 7;        // Penalty for TKing as a shark
+    private final int sharkTKpts = 6;        // Penalty for TKing as a shark
     private final int continuedTKpts = 20;   // Penalty for Tking same person twice in a row
     private final int warnAt = 20;           // Points at which player receives a warning
     private final int notifyAt = 40;         // Points at which staff is notified
@@ -189,6 +189,8 @@ public class pubbottk extends PubBotModule {
     
     /**
      * Messages a staff member the information on a TKer.
+     * FIXME: After running long periods of time, all TK info is sometimes destroyed, and no new
+     *        TKs can be recorded. (returns 'Teamkill record not found' msg)
      * @param staffname Staff member to msg
      * @param tkname Name of TKer
      */
@@ -212,7 +214,7 @@ public class pubbottk extends PubBotModule {
     			m_botAction.sendPrivateMessage( staffname, "Player not found.  Please verify the person is in the arena." );                		
                 return;
             } else {
-                tker = (TKInfo)tkers.get( tkname );
+                tker = (TKInfo)tkers.get( searchPlayer.getPlayerName().toLowerCase() );
                 if( tker == null ) {
         			m_botAction.sendPrivateMessage( staffname, "Teamkill record not found.  Please check the name and verify they have teamkilled." );                		
                     return;
