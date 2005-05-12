@@ -8,7 +8,7 @@ import twcore.misc.pubcommon.*;
 
 public class pubbotspy extends PubBotModule
 {
-  public static final String keywords = "j3w jew chink nig nigger n1g n1gg3r nigg3r paki gook";
+  public static final String keywords = "j3w jew chink nig nigger n1g n1gg3r nigg3r paki gook nigg@ n1gg@ nigga";
   private HashSet watchList;
   private HashSet ignoreList;
   private String currentArena;
