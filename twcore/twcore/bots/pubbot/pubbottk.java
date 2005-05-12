@@ -8,16 +8,19 @@ import twcore.misc.pubcommon.*;
 /**
  * Tracks TKs, warns players who TK excessively, and notifies staff as necessary.
  * Operates on a point system.
- * 
+ *
  * @author qan
  */
 public class pubbottk extends PubBotModule {
 
     private final int normTKpts = 12;        // Penalty for TKing (any ship but shark)
-    private final int sharkTKpts = 6;        // Penalty for TKing as a shark
-    private final int continuedTKpts = 20;   // Penalty for Tking same person twice in a row
-    private final int warnAt = 20;           // Points at which player receives a warning
-    private final int notifyAt = 40;         // Points at which staff is notified
+    private final int levTKpts = 9;          // Penalty for TKing as a lev
+    private final int sharkTKpts = 7;        // Penalty for TKing as a shark
+    private final int continuedTKpts = 22;   // Penalty for Tking same person twice in a row
+    private final int warnAt = 30;           // Points at which player receives a warning
+// above was 20
+    private final int notifyAt = 60;         // Points at which staff is notified
+// above was 40
     private final int cooldownSecs = 10;     // Time, in secs, it takes to remove 1 TK point
     private final int forgetTime = 15;       // Time, in secs, between when the
                                              //    slate is wiped clean for TKers who
@@ -31,7 +34,7 @@ public class pubbottk extends PubBotModule {
     private HashMap oldtkers;                // temp. stores TKers who leave arena
                                              // (low-cost abuse prevention)
 
-    
+
     /**
      * Called when the module is loaded for each individual pubbot.
      */
@@ -159,7 +162,7 @@ public class pubbottk extends PubBotModule {
 
     /**
      * Handles command PMs to the bot.
-     * 
+     *
      * @param event The Message event containing all necessary information derived
      * from the incoming packet.
      */
@@ -169,37 +172,35 @@ public class pubbottk extends PubBotModule {
         if( event.getMessageType() == Message.PRIVATE_MESSAGE ){
             String name = m_botAction.getPlayerName( event.getPlayerID() );
             if( m_opList.isZH( name ) ) {
-           	
+
                 if( message.equals( "!help" )){
                     m_botAction.sendPrivateMessage( name, "Pubbot TK Module (qan@twdev.org)" );
                 	m_botAction.sendPrivateMessage( name, "!help        - this message");
                 	m_botAction.sendPrivateMessage( name, "!tkinfo name - gives TK information on 'name', if they have TK'd");
-                	
+
                 } else if( message.startsWith( "!tkinfo " )){
                     String tkname = message.substring( 8 ).toLowerCase();
                     if( tkname == null )
-           		        m_botAction.sendPrivateMessage( name, "Formatting error.  Please use format: !tkinfo playername" );           		    	
-                    else 
+           		        m_botAction.sendPrivateMessage( name, "Formatting error.  Please use format: !tkinfo playername" );
+                    else
            		        msgTKInfo( name, tkname );
                 }
-            }           
+            }
         }
     }
-    
-    
+
+
     /**
      * Messages a staff member the information on a TKer.
-     * FIXME: After running long periods of time, all TK info is sometimes destroyed, and no new
-     *        TKs can be recorded. (returns 'Teamkill record not found' msg)
      * @param staffname Staff member to msg
      * @param tkname Name of TKer
      */
-    public void msgTKInfo( String staffname, String tkname ) {  	
+    public void msgTKInfo( String staffname, String tkname ) {
     	TKInfo tker = (TKInfo)tkers.get( tkname );
-    	
+
         if( tker == null ){
             Iterator i = m_botAction.getPlayerIterator();
-            Player searchPlayer = null;            
+            Player searchPlayer = null;
             while( i.hasNext() && searchPlayer == null ){
                 searchPlayer = (Player)i.next();
                 // For inexact names
@@ -211,34 +212,34 @@ public class pubbottk extends PubBotModule {
                 }
             }
             if( searchPlayer == null ) {
-    			m_botAction.sendPrivateMessage( staffname, "Player not found.  Please verify the person is in the arena." );                		
+    			m_botAction.sendPrivateMessage( staffname, "Player not found.  Please verify the person is in the arena." );
                 return;
             } else {
-                tker = (TKInfo)tkers.get( searchPlayer.getPlayerName().toLowerCase() );
+                tker = (TKInfo)tkers.get( tkname );
                 if( tker == null ) {
-        			m_botAction.sendPrivateMessage( staffname, "Teamkill record not found.  Please check the name and verify they have teamkilled." );                		
+        			m_botAction.sendPrivateMessage( staffname, "Teamkill record not found.  Please check the name and verify they have teamkilled." );
                     return;
                 }
             }
         }
-    	
+
     	m_botAction.sendPrivateMessage( staffname, "'" + tker.getName() + "' TK Record" );
 		m_botAction.sendPrivateMessage( staffname, "TKs:  " + tker.getNumTKs() + "     Warns:  " + tker.getNumWarns() );
     	m_botAction.sendPrivateMessage( staffname, "Last player TKd:  " + tker.getLastTKd() );
-		
+
     	String pointsmsg = "";
-		
+
 		if( tker.wasStaffNotified() ) {
-		    pointsmsg = "TK Points at current / at notify:  " + tker.getTKpoints() + " / " + tker.getTKpointsAtNotify();			
+		    pointsmsg = "TK Points at current / at notify:  " + tker.getTKpoints() + " / " + tker.getTKpointsAtNotify();
 		    m_botAction.sendPrivateMessage( staffname, "  - Staff has been notified.");
 		    if( tker.wasSetShipped() )
 		        m_botAction.sendPrivateMessage( staffname, "  - Player has been setshipped.");
 		} else {
-		    pointsmsg = "TK Points at current:  " + tker.getTKpoints();			
+		    pointsmsg = "TK Points at current:  " + tker.getTKpoints();
 		    if( tker.wasSetShipped() )
 		        m_botAction.sendPrivateMessage( staffname, "  - Player has been setshipped.");
 		}
-	
+
 		m_botAction.sendPrivateMessage( staffname, pointsmsg );
 		if( tker.wasRepeatKiller() ) {
 			m_botAction.sendPrivateMessage( staffname, "Potential 'target' player:  " + tker.getRepeatTKd() );
@@ -248,8 +249,8 @@ public class pubbottk extends PubBotModule {
 			    m_botAction.sendPrivateMessage( staffname, "  - TKd this player twice in a row." );
 		}
     }
-    
-    
+
+
     /**
      * Main grunt of the module.  If a person kills someone on the same freq,
      * add a TK to their preexisting TKInfo obj, or make a new one if this is
@@ -265,7 +266,7 @@ public class pubbottk extends PubBotModule {
         Player killed = m_botAction.getPlayer( event.getKilleeID() );
         Player killer = m_botAction.getPlayer( event.getKillerID() );
 
-        if( killed.getFrequency() != killer.getFrequency() )
+        if( killed != null || killer != null || killed.getFrequency() != killer.getFrequency() )
             return;
 
         if( tkers != null )
@@ -294,10 +295,6 @@ public class pubbottk extends PubBotModule {
 
         String pn = m_botAction.getPlayerName( event.getPlayerID() ).toLowerCase();
         TKInfo oldtker = (TKInfo)tkers.remove( pn );
-        try {
-            oldtker.cancel();
-        } catch (Exception e ) {
-        }
 
         if( oldtker != null )
             oldtkers.put( pn, oldtker );
@@ -383,6 +380,10 @@ public class pubbottk extends PubBotModule {
                 m_TKpoints += sharkTKpts;
                 if( m_setShipped == true )
                 	m_TKpoints += sharkTKpts;	// counts for double if you've been setshipped
+		    } else if( shipnum == 4 ) {
+                m_TKpoints += levTKpts;
+                if( m_setShipped == true )
+                	m_TKpoints += levTKpts;	// counts for double if you've been setshipped
             } else {
                 m_TKpoints += normTKpts;
                 if( m_setShipped == true )
@@ -436,8 +437,8 @@ public class pubbottk extends PubBotModule {
             m_warns++;
             sendWarn();
         }
-        
-        
+
+
         /**
          * Sets ship to a non-TKable ship.  This almost always happens before staff is notified.
          */
@@ -447,11 +448,11 @@ public class pubbottk extends PubBotModule {
         	m_setShipped = true;
             addWarn();
         }
-        
+
 
         /**
          * Sends a warning message to player depending on number of past warns.
-         */        
+         */
         public void sendWarn() {
             if( m_warns == 1 )
                 m_botAction.sendPrivateMessage( m_playerName, "NOTICE: Excessive and intentional team killing (TKing) are prohibited in Trench Wars.  Ships with names in yellow are your own teammates.  Please try not to kill them.", 1 );
@@ -475,9 +476,9 @@ public class pubbottk extends PubBotModule {
                     return;
             }
 
-            m_staffNotified = true;           
+            m_staffNotified = true;
             m_ptsAtNotify = m_TKpoints;
-            
+
             // Do not add on additional warns for this particular warn (so as not to throw
             // off numbers for staff reviewing it).
             sendWarn();
@@ -485,7 +486,7 @@ public class pubbottk extends PubBotModule {
             String msg = "?cheater " + m_playerName + " - TKs: " + m_TKs + ", BotWarns: " + m_warns;
             if( m_repeatKiller )
                 msg = msg + " (player '" + m_lastRepeatTK + "' TK'd " + m_repeat + " times)";
-            
+
             m_botAction.sendUnfilteredPublicMessage( msg );
         }
 
@@ -501,7 +502,7 @@ public class pubbottk extends PubBotModule {
                 m_TKpoints--;
         }
 
-        
+
         // Getter methods
         public String getName() {
         	return m_playerName;
@@ -510,11 +511,11 @@ public class pubbottk extends PubBotModule {
         public String getLastTKd() {
         	return m_lastTKd;
         }
-        
+
         public String getRepeatTKd() {
         	return m_lastRepeatTK;
         }
-        
+
         public int getNumTKs() {
         	return m_TKs;
         }
@@ -522,7 +523,7 @@ public class pubbottk extends PubBotModule {
         public int getNumWarns() {
         	return m_warns;
         }
-        
+
         public int getTKpoints() {
         	return m_TKpoints;
         }
@@ -545,6 +546,6 @@ public class pubbottk extends PubBotModule {
 
         public boolean wasRepeatKiller() {
         	return m_repeatKiller;
-        }        
+        }
     }
 }
