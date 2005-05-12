@@ -1,7 +1,6 @@
 package twcore.bots.pubbot;
 
 import java.util.*;
-//import java.util.Date;
 import twcore.core.*;
 import twcore.misc.pubcommon.*;
 
@@ -15,12 +14,10 @@ public class pubbottk extends PubBotModule {
 
     private final int normTKpts = 12;        // Penalty for TKing (any ship but shark)
     private final int levTKpts = 9;          // Penalty for TKing as a lev
-    private final int sharkTKpts = 7;        // Penalty for TKing as a shark
+    private final int sharkTKpts = 6;        // Penalty for TKing as a shark
     private final int continuedTKpts = 22;   // Penalty for Tking same person twice in a row
     private final int warnAt = 30;           // Points at which player receives a warning
-// above was 20
     private final int notifyAt = 60;         // Points at which staff is notified
-// above was 40
     private final int cooldownSecs = 10;     // Time, in secs, it takes to remove 1 TK point
     private final int forgetTime = 15;       // Time, in secs, between when the
                                              //    slate is wiped clean for TKers who
@@ -192,6 +189,8 @@ public class pubbottk extends PubBotModule {
 
     /**
      * Messages a staff member the information on a TKer.
+     * FIXME: After running long periods of time, all TK info is sometimes destroyed, and no new
+     * TKs can be recorded. (returns 'Teamkill record not found' msg)
      * @param staffname Staff member to msg
      * @param tkname Name of TKer
      */
@@ -215,7 +214,7 @@ public class pubbottk extends PubBotModule {
     			m_botAction.sendPrivateMessage( staffname, "Player not found.  Please verify the person is in the arena." );
                 return;
             } else {
-                tker = (TKInfo)tkers.get( tkname );
+                tker = (TKInfo)tkers.get( searchPlayer.getPlayerName().toLowerCase());
                 if( tker == null ) {
         			m_botAction.sendPrivateMessage( staffname, "Teamkill record not found.  Please check the name and verify they have teamkilled." );
                     return;
@@ -295,6 +294,10 @@ public class pubbottk extends PubBotModule {
 
         String pn = m_botAction.getPlayerName( event.getPlayerID() ).toLowerCase();
         TKInfo oldtker = (TKInfo)tkers.remove( pn );
+        try {
+            oldtker.cancel();
+        } catch (Exception e ) {
+        }
 
         if( oldtker != null )
             oldtkers.put( pn, oldtker );
