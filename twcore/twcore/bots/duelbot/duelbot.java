@@ -14,6 +14,10 @@ import twcore.core.*;
  *   - clearScoreboard on end of duel or !cancel, show scoreboard on kills/events
  * - addition of season code for mysql queries
  * - !enable/!disable - users can now switch names without OP help
+ * - Bot will zone when a player gets a streak over 10, max 1 zoner per hour
+ * - Checks players lag (challenger at beginning of duel, challenged at the end)
+ *   and puts into a database for website lag info.
+ * - Added command !banned to give OPs a list of players that have been banned.
  *
  * Possible Updates:
  * - remove warp tiles on map	
@@ -41,6 +45,7 @@ public class duelbot extends SubspaceBot {
     int s_challengeTime;	//How long before a challenge expires
     int s_duelLimit;		//Number of duels allowed per s_duelDays
     int s_duelDays;			//Number of days restriction is put on duels 
+    long lastZoner;			//Last time someone's streak was zoned.
     String from = "", to = "";
     String shutDownMessage = "";
 	
@@ -107,6 +112,7 @@ public class duelbot extends SubspaceBot {
     	m_commandInterpreter.registerCommand( "!allowuser", acceptedMessages, this, "do_allowUser" );
     	m_commandInterpreter.registerCommand( "!banuser", acceptedMessages, this, "do_banUser" );
     	m_commandInterpreter.registerCommand( "!unbanuser", acceptedMessages, this, "do_unbanUser" );
+    	m_commandInterpreter.registerCommand( "!banned", acceptedMessages, this, "do_sayBanned" );
     	m_commandInterpreter.registerCommand( "!setgreet", acceptedMessages, this, "do_setGreetMessage" );
     	m_commandInterpreter.registerCommand( "!shutdown", acceptedMessages, this, "do_shutDown" );
     	m_commandInterpreter.registerCommand( "!die", acceptedMessages, this, "do_die" );
@@ -776,6 +782,13 @@ public class duelbot extends SubspaceBot {
     		m_botAction.sendPrivateMessage( name, "Unable to unban user " + player );
     }
     
+    public void do_sayBanned( String name, String message) {
+    	if( !leagueOps.containsKey( name ) ) return;
+    	
+    	m_botAction.sendPrivateMessage(name, "Banned players: ");
+    	sql_bannedPlayers(name);
+    }
+    
     public void do_setGreetMessage( String name, String message ) {
     	if( !leagueOps.containsKey( name ) ) return;
     	
@@ -801,7 +814,10 @@ public class duelbot extends SubspaceBot {
 	     	String pieces[] = message.split(" ");
 	     	String output = pieces[4] + " ms  " + pieces[10] + " ms";
 	     	output = message.substring( 0, message.length()-16 );
-	     	m_botAction.sendPrivateMessage( to, from + ":  " + output );
+	     	if(to != null)
+	     		m_botAction.sendPrivateMessage( to, from + ":  " + output );
+	     	int average = Integer.parseInt(pieces[4].substring(pieces[4].indexOf(":") + 1));
+	     	sql_lagInfo(from, average);
 	     	to = "";
 	     	from = "";
 	     }
@@ -885,6 +901,9 @@ public class duelbot extends SubspaceBot {
     	m_botAction.warpTo( p1, d.getSafeXOne(), d.getSafeYOne() );
     	m_botAction.warpTo( p2, d.getSafeXTwo(), d.getSafeYTwo() );
     	m_botAction.sendPrivateMessage( p1, "Duel Begins in 15 Seconds Against '"+p2+"'", 2 );
+    	m_botAction.sendUnfilteredPrivateMessage( p1, "*lag");
+    	to = null;
+    	from = p1;
     	m_botAction.sendPrivateMessage( p2, "Duel Begins in 15 Seconds Against '"+p1+"'", 2 );
     	m_botAction.scheduleTask( new GameStartTimer( d, p1, p2, m_botAction ), 15000 );
 
@@ -896,6 +915,11 @@ public class duelbot extends SubspaceBot {
     
     public void endDuel( Duel d, String winner, String loser, int type ) {
     	//0 - normal, 1 - spawning, 2 - warping, 3 - lagouts, 4 - 1 min lagout
+    	
+    	m_botAction.sendUnfilteredPrivateMessage(d.getPlayerTwo().getName(), "*lag");
+    	to = null;
+    	from = d.getPlayerTwo().getName();
+    	
     	if( laggers.containsKey( winner ) ) {
 			((Lagger)laggers.get( winner )).cancel();
 			laggers.remove( winner );
@@ -999,6 +1023,9 @@ public class duelbot extends SubspaceBot {
 			int winnerStreak = player2.getInt( "fnWinStreak" );
 			int winnerCurStreak = player2.getInt( "fnCurrentWinStreak" ) + 1;
 			if( winnerStreak < winnerCurStreak ) winnerStreak = winnerCurStreak;
+			
+			if((lastZoner + 60 * 60 * 1000) < System.currentTimeMillis() && winnerCurStreak > 5)
+				streakZoner(winner, winnerCurStreak, d.getLeagueType().toLowerCase());
 			
 			boolean aced = false;
 			if( d.getPlayer( loser ).getKills() == 0 ) aced = true;
@@ -1119,6 +1146,18 @@ public class duelbot extends SubspaceBot {
     	m_botAction.setObjects( player2 );
     }
     
+    public void streakZoner(String name, int streak, String ship)
+    {
+    	if(streak >= 10 && streak < 15)
+    		m_botAction.sendZoneMessage(name + " is on a roll, ?go duel to try to stop this " + ship + "'s " + streak + " game winning streak! -DuelBot", 2);
+    	else if(streak >= 15 && streak < 20)
+    		m_botAction.sendZoneMessage(name + " is on fire with a " + streak + " game winning streak in " + ship + ". Come stop him before he burns down ?go duel -DuelBot", 2);
+    	else if(streak >= 20)
+    		m_botAction.sendZoneMessage("Someone bring the kryptonite to ?go duel, " + name + " has a " + streak + " game winning streak in " + ship + "! -DuelBot", 2);
+    	
+    	lastZoner = System.currentTimeMillis();
+    }
+    
     /***********************************************
     *                 Events                       *
     ***********************************************/
@@ -1136,6 +1175,9 @@ public class duelbot extends SubspaceBot {
     	//join initial arena
     	BotSettings m_botSettings = m_botAction.getBotSettings();
         m_botAction.joinArena( m_botSettings.getString( "Arena" ) );
+        
+        //Sets up all variables for new features that I can't think of a good comment for
+        lastZoner = System.currentTimeMillis() - (30 * 60 * 1000);
         
         //Create new box Objects
         int boxCount = m_botSettings.getInt( "BoxCount" );
@@ -1320,7 +1362,7 @@ public class duelbot extends SubspaceBot {
     		//Increment the count of warpings
     		player.addWarp();
     		
-    		m_botAction.sendPrivateMessage( name, "Warping is not allowed. Do not warp again else you will forfiet your duel." );
+    		m_botAction.sendPrivateMessage( name, "Warping is not allowed. Do not warp again else you will forfeit your duel." );
     		if( player.getWarps() > 1 ) {
 		    	String opponent = duel.getOpponent( name );
 				endDuel( duel, opponent, name, 2 );
@@ -1360,7 +1402,7 @@ public class duelbot extends SubspaceBot {
     	//Get the associated stats object for the player
     	DuelPlayerStats player = duel.getPlayer( name );
     	
-    	m_botAction.sendPrivateMessage( duel.getOpponent( name ), "Your opponent has lagged out or specced, if he/she does not return in 1 minute you win by forfiet." );
+    	m_botAction.sendPrivateMessage( duel.getOpponent( name ), "Your opponent has lagged out or specced, if he/she does not return in 1 minute you win by forfeit." );
     	m_botAction.sendPrivateMessage( name, "You have 1 minute to return to your duel or you forfeit (!lagout)" );
     	//duel.getPlayer( name ).setData( 8, ((int)System.currentTimeMillis() / 1000 ) );
     	player.addLagout();
@@ -1394,7 +1436,7 @@ public class duelbot extends SubspaceBot {
     	//Get the associated stats object for the player
     	DuelPlayerStats player = duel.getPlayer( name );
     	
-    	m_botAction.sendPrivateMessage( duel.getOpponent( name ), "Your opponent has lagged out or specced, if he/she does not return in 1 minute you win by forfiet." );
+    	m_botAction.sendPrivateMessage( duel.getOpponent( name ), "Your opponent has lagged out or specced, if he/she does not return in 1 minute you win by forfeit." );
     	m_botAction.sendPrivateMessage( name, "You have 1 minute to return to your duel or you forfeit (!lagout)" );
     	//duel.getPlayer( name ).setData( 8, ((int)System.currentTimeMillis() / 1000 ) );
     	player.addLagout();
@@ -1542,6 +1584,14 @@ class ScoreReport extends TimerTask {
     		m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelBan (fcUserName) VALUES ('"+Tools.addSlashesToString(name)+"')" );
     		return true;
     	} catch (Exception e) { return false; }
+    }
+    
+    public void sql_bannedPlayers( String name ) {
+    	try {
+    		ResultSet results = m_botAction.SQLQuery( mySQLHost, "SELECT * FROM tblDuelBan WHERE 1");
+    		while(results.next())
+    			m_botAction.sendPrivateMessage(name, results.getString("fcUserName"));
+    	} catch (Exception e) { Tools.printStackTrace(e); }
     }
     
     public boolean sql_unbanPlayer( String name ) {
@@ -1713,6 +1763,14 @@ class ScoreReport extends TimerTask {
 		} catch (Exception e) {
 			System.out.println( "Error Updating avail:"+e );
 		}
+	}
+	
+	public void sql_lagInfo(String name, int average)
+	{
+		try {
+			DBPlayerData player = new DBPlayerData( m_botAction, "local", name, true );
+			m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelLag (`fnUserID`, `fnAverage`) VALUES (" + player.getUserID() + ", " + average + ")");
+		} catch(Exception e) { Tools.printStackTrace(e); }
 	}
       
 }
