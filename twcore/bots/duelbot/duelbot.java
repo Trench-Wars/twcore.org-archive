@@ -828,7 +828,7 @@ public class duelbot extends SubspaceBot {
     		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT fcUserName FROM tblDuelPlayer WHERE fnEnabled = 1 AND fcIP = '"+IP+"' AND fnMID = '"+MID+"' OR fcUserName = '"+Tools.addSlashesToString(name)+"'" );
     		if( !result.next() ) {
     			DBPlayerData player = new DBPlayerData( m_botAction, "local", name, true );
-    			m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"')" );
+    			m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"', 0, 0)" );
     			
     			//Removed as of season 2
     			//sql_createLeagueData( player );
@@ -1768,8 +1768,12 @@ class ScoreReport extends TimerTask {
 	public void sql_lagInfo(String name, int average)
 	{
 		try {
-			DBPlayerData player = new DBPlayerData( m_botAction, "local", name, true );
-			m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelLag (`fnUserID`, `fnAverage`) VALUES (" + player.getUserID() + ", " + average + ")");
+			ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT * FROM tblDuelPlayer WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
+			if(result.next()) {
+				int totalLag = result.getInt("fnLag") * result.getInt("fnLagCheckCount");
+				int average2 = (totalLag + average) / (result.getInt("fnLagCheckCount") + 1);
+				m_botAction.SQLQuery( mySQLHost, "UPDATE tblDuelPlayer SET fnLag = " + average2 + " fnLagCheckCount = fnLagCheckCount + 1 WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
+			}
 		} catch(Exception e) { Tools.printStackTrace(e); }
 	}
       
