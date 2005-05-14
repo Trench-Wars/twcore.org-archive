@@ -1149,11 +1149,11 @@ public class duelbot extends SubspaceBot {
     public void streakZoner(String name, int streak, String ship)
     {
     	if(streak >= 10 && streak < 15)
-    		m_botAction.sendZoneMessage(name + " is on a roll, ?go duel to try to stop this " + ship + "'s " + streak + " game winning streak! -DuelBot", 2);
+    		m_botAction.sendZoneMessage(name + " is on a roll, ?go "+ m_botAction.getArenaName() + " to try to stop this " + ship + "'s " + streak + " game winning streak! -" + m_botAction.getBotName(), 2);
     	else if(streak >= 15 && streak < 20)
-    		m_botAction.sendZoneMessage(name + " is on fire with a " + streak + " game winning streak in " + ship + ". Come stop him before he burns down ?go duel -DuelBot", 2);
+    		m_botAction.sendZoneMessage(name + " is on fire with a " + streak + " game winning streak in " + ship + ". Come stop him before he burns down ?go " + m_botAction.getArenaName() + " -"+ m_botAction.getBotName(), 2);
     	else if(streak >= 20)
-    		m_botAction.sendZoneMessage("Someone bring the kryptonite to ?go duel, " + name + " has a " + streak + " game winning streak in " + ship + "! -DuelBot", 2);
+    		m_botAction.sendZoneMessage("Someone bring the kryptonite to ?go "+ m_botAction.getArenaName() + ", " + name + " has a " + streak + " game winning streak in " + ship + "! -" + m_botAction.getBotName(), 2);
     	
     	lastZoner = System.currentTimeMillis();
     }
@@ -1174,7 +1174,7 @@ public class duelbot extends SubspaceBot {
     public void handleEvent( LoggedOn event ) {
     	//join initial arena
     	BotSettings m_botSettings = m_botAction.getBotSettings();
-        m_botAction.joinArena( m_botSettings.getString( "Arena" ) );
+        m_botAction.joinArena( m_botSettings.getString( "Arena" + m_botAction.getBotNumber()) );
         
         //Sets up all variables for new features that I can't think of a good comment for
         lastZoner = System.currentTimeMillis() - (30 * 60 * 1000);
