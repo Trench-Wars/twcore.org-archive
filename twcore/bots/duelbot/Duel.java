@@ -88,7 +88,10 @@ public class Duel {
 	}
 	public boolean hasStarted() { return m_gameStarted; }
 	public int getTime() {
-		return (int)(System.currentTimeMillis()/1000) - m_startTime;
+		if(m_gameStarted)
+			return (int)(System.currentTimeMillis()/1000) - m_startTime;
+		else
+			return 120;
 	}
 	
 	public String showScore() {
