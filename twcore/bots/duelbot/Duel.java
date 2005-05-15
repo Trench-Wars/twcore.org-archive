@@ -55,6 +55,7 @@ public class Duel {
 		m_noCount = _challenge.getNoCount();
 		m_deathWarp = _challenge.getDeathWarp();
 		m_toWin = _challenge.getToWin();
+		m_startTime = (int)System.currentTimeMillis();
 		
 		//Create stat tracking objects
 		m_challengerStats = new DuelPlayerStats( m_challenger, m_gameType, getBoxFreq() );
@@ -88,10 +89,7 @@ public class Duel {
 	}
 	public boolean hasStarted() { return m_gameStarted; }
 	public int getTime() {
-		if(m_gameStarted)
 			return (int)(System.currentTimeMillis()/1000) - m_startTime;
-		else
-			return 120;
 	}
 	
 	public String showScore() {
