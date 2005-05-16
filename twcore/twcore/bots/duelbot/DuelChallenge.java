@@ -14,6 +14,7 @@ public class DuelChallenge {
 	private boolean m_winBy2;
 	private boolean m_noCount;
 	private boolean m_deathWarp;
+	private boolean m_deathDeplete;
 	private int 	m_toWin;
 
 	//Issued time of challenge
@@ -31,6 +32,7 @@ public class DuelChallenge {
 		m_noCount = 	_player.getNoCount();
 		m_deathWarp = 	_player.getDeathWarp();
 		m_toWin = 		_player.getToWin();
+		m_deathDeplete =_player.getDeathDeplete();
 
 		m_issueTime = 	((int)System.currentTimeMillis()/1000);
 	}
@@ -42,6 +44,7 @@ public class DuelChallenge {
 	public boolean getWinBy2() { return m_winBy2; }
 	public boolean getNoCount() { return m_noCount; }
 	public boolean getDeathWarp() { return m_deathWarp; }
+	public boolean getDeathDeplete() { return m_deathDeplete; }
 	public int getToWin() { return m_toWin; }
 	
 	public int getElapsedTime() {
