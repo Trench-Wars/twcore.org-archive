@@ -139,16 +139,18 @@ public class duelbot extends SubspaceBot {
     	int winby2 = 0;
     	int nc = 0;
     	int warp = 0;
+    	int deplete = 0;
     	int kills = 10;
     	for( int i = 0; i < pieces.length; i++ )
     		if( pieces[i].equals( "winby2" ) ) winby2 = 1;
     		else if( pieces[i].equals( "nc" ) ) nc = 1;
     		else if( pieces[i].equals( "warp" ) ) warp = 1;
     		else if( pieces[i].equals( "5" ) ) kills = 5;
+    		else if( pieces[i].equals( "deplete" ) ) deplete = 1;
     	try {
     		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT * FROM tblDuelPlayer WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
     		if( result.next() ) {
-    			m_botAction.SQLQuery( mySQLHost, "UPDATE tblDuelPlayer SET fnGameKills = "+kills+", fnWinBy2 = "+winby2+", fnNoCount = "+nc+", fnDeathWarp = "+warp+" WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
+    			m_botAction.SQLQuery( mySQLHost, "UPDATE tblDuelPlayer SET fnDeathDeplete = "+deplete+" fnGameKills = "+kills+", fnWinBy2 = "+winby2+", fnNoCount = "+nc+", fnDeathWarp = "+warp+" WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
     			String rules = "Rules: First to "+kills;
     			if( winby2 == 1 ) rules += ", Win By 2";
     			if( nc == 1 ) rules += ", No Count (nc) Double Kills";
@@ -709,7 +711,7 @@ public class duelbot extends SubspaceBot {
 			"------------------------------------------------------------------------------",
 			"| !signup                      - signs you up for the dueling league.        |",
 			"| !setrules <included rules>   - sets rules, include rules you wish to use   |",
-			"|   available rules:  winby2, nc, warp, 5/10  : Ex  !setrules nc warp 5      |",
+			"|   available rules: winby2, nc, warp, 5/10, deplete : Ex  !setrules warp 5  |",
 			"| !challenge <name>:<type>     - challenges <name> to a duel wb=1/jav=2/sp=3 |",
 			"| !accept    <name>            - accepts a challenge from <name>             |",
 			"| !removechallenge <name>      - removes the challenge issued to <name>      |",
@@ -1322,6 +1324,14 @@ public class duelbot extends SubspaceBot {
 				WarpPoint p = d.getRandomWarpPoint();
 				m_botAction.warpTo( name, p.getXCoord(), p.getYCoord() );
 			}
+			
+			int energyPrize = 13;
+			
+			if( d.deathDeplete() )
+				energyPrize *= -1;
+			
+			m_botAction.specificPrize( name, energyPrize );
+			m_botAction.specificPrize( killer, energyPrize );
 			//update scorereports
 			if( updates.containsKey( d ) ) {
 				ScoreReport report = (ScoreReport)updates.get( d );
