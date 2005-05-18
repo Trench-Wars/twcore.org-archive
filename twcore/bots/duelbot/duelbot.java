@@ -146,18 +146,16 @@ public class duelbot extends SubspaceBot {
     	int winby2 = 0;
     	int nc = 0;
     	int warp = 0;
-    	int deplete = 0;
     	int kills = 10;
     	for( int i = 0; i < pieces.length; i++ )
     		if( pieces[i].equals( "winby2" ) ) winby2 = 1;
     		else if( pieces[i].equals( "nc" ) ) nc = 1;
     		else if( pieces[i].equals( "warp" ) ) warp = 1;
     		else if( pieces[i].equals( "5" ) ) kills = 5;
-    		else if( pieces[i].equals( "deplete" ) ) deplete = 1;
     	try {
     		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT * FROM tblDuelPlayer WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
     		if( result.next() ) {
-    			m_botAction.SQLQuery( mySQLHost, "UPDATE tblDuelPlayer SET fnDeathDeplete = "+deplete+" fnGameKills = "+kills+", fnWinBy2 = "+winby2+", fnNoCount = "+nc+", fnDeathWarp = "+warp+" WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
+    			m_botAction.SQLQuery( mySQLHost, "UPDATE tblDuelPlayer SET fnGameKills = "+kills+", fnWinBy2 = "+winby2+", fnNoCount = "+nc+", fnDeathWarp = "+warp+" WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
     			String rules = "Rules: First to "+kills;
     			if( winby2 == 1 ) rules += ", Win By 2";
     			if( nc == 1 ) rules += ", No Count (nc) Double Kills";
