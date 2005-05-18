@@ -18,6 +18,9 @@ import twcore.core.*;
  * - Checks players lag (challenger at beginning of duel, challenged at the end)
  *   and puts into a database for website lag info.
  * - Added command !banned to give OPs a list of players that have been banned.
+ * - Made warp thing send people back to their corners to help stop spawning problem.
+ * - Ban comments added.
+ * - Can't !disable when banned.
  *
  * Possible Updates:
  * - remove warp tiles on map	
@@ -113,6 +116,8 @@ public class duelbot extends SubspaceBot {
     	m_commandInterpreter.registerCommand( "!banuser", acceptedMessages, this, "do_banUser" );
     	m_commandInterpreter.registerCommand( "!unbanuser", acceptedMessages, this, "do_unbanUser" );
     	m_commandInterpreter.registerCommand( "!banned", acceptedMessages, this, "do_sayBanned" );
+    	m_commandInterpreter.registerCommand( "!comment", acceptedMessages, this, "do_reComment" );
+    	m_commandInterpreter.registerCommand( "!readcomment", acceptedMessages, this, "do_readComment" );
     	m_commandInterpreter.registerCommand( "!setgreet", acceptedMessages, this, "do_setGreetMessage" );
     	m_commandInterpreter.registerCommand( "!shutdown", acceptedMessages, this, "do_shutDown" );
     	m_commandInterpreter.registerCommand( "!die", acceptedMessages, this, "do_die" );
@@ -443,6 +448,11 @@ public class duelbot extends SubspaceBot {
     		return;
     	}
     	
+    	if( sql_banned( name ) ) {
+    		m_botAction.sendPrivateMessage( name, "You have been banned from this league." );
+    		return;
+    	}
+    	
     	sql_disableUser( name );
     	m_botAction.sendSmartPrivateMessage( name, "Your username has been disabled and has suffered a -300 rating loss in each league." );
     	m_botAction.sendSmartPrivateMessage( name, "To reenable this account use !enable, please note all other accounts must be disabled first." );
@@ -765,9 +775,15 @@ public class duelbot extends SubspaceBot {
     public void do_banUser( String name, String message ) {
     	if( !leagueOps.containsKey( name ) ) return;
     	
-    	String player = m_botAction.getFuzzyPlayerName( message );
-    	if( player == null ) player = message;
-    	if( sql_banPlayer( player ) ) 
+    	String pieces[] = message.split(":", 2);
+    	if(pieces.length != 2) {
+    		m_botAction.sendPrivateMessage(name, "Please provide a ban comment (!banuser name:comment).");
+    		return;
+    	}
+    	
+    	String player = m_botAction.getFuzzyPlayerName( pieces[0] );
+    	if( player == null ) player = pieces[0];
+    	if( sql_banPlayer( player, pieces[1] ) ) 
     		m_botAction.sendPrivateMessage( name, player + " has been banned." );
     	else
     		m_botAction.sendPrivateMessage( name, "Unable to ban user " + player );
@@ -789,6 +805,29 @@ public class duelbot extends SubspaceBot {
     	
     	m_botAction.sendPrivateMessage(name, "Banned players: ");
     	sql_bannedPlayers(name);
+    }
+    
+    public void do_reComment( String name, String message) {
+    	if( !leagueOps.containsKey( name ) ) return;
+    	
+    	String pieces[] = message.split(":", 2);
+    	if(pieces.length != 2) {
+    		m_botAction.sendPrivateMessage(name, "Please provide a ban comment (!banuser name:comment).");
+    		return;
+    	}
+    	
+    	String player = m_botAction.getFuzzyPlayerName( pieces[0] );
+    	if( player == null ) player = pieces[0];
+    	
+    	sql_recommentBan(name, player, pieces[1]);
+    }
+    
+    public void do_getComment( String name, String message) {
+    	if( !leagueOps.containsKey( name ) ) return;
+    	
+    	String player = m_botAction.getFuzzyPlayerName( message );
+    	if( player == null ) player = message;
+    	sql_getComment( name, message );
     }
     
     public void do_setGreetMessage( String name, String message ) {
@@ -1603,9 +1642,9 @@ class ScoreReport extends TimerTask {
     	} catch (Exception e) { return false; }
     }
     
-    public boolean sql_banPlayer( String name ) {
+    public boolean sql_banPlayer( String name, String comment ) {
     	try {
-    		m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelBan (fcUserName) VALUES ('"+Tools.addSlashesToString(name)+"')" );
+    		m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelBan (fcUserName, fcComment) VALUES ('"+Tools.addSlashesToString(name)+"', '"+Tools.addSlashesToString(comment)+"')" );
     		return true;
     	} catch (Exception e) { return false; }
     }
@@ -1617,6 +1656,32 @@ class ScoreReport extends TimerTask {
     			m_botAction.sendPrivateMessage(name, results.getString("fcUserName"));
     	} catch (Exception e) { Tools.printStackTrace(e); }
     }
+    
+    public void sql_recommentBan( String name, String player, String comment ) {
+    	try {
+    		if(sql_banned(player)) {
+    			m_botAction.SQLQuery( mySQLHost, "UPDATE tblDuelBan SET fcComment = '"+Tools.addSlashesToString(comment)+"' WHERE fcUserName = '"+Tools.addSlashesToString(player)+"'");
+    			m_botAction.sendPrivateMessage(name, "Set " + player + "'s ban comment to: " + comment);
+    		}
+    		else
+    			m_botAction.sendPrivateMessage(name, "That player is not banned.");
+    	} catch(Exception e) { Tools.printStackTrace(e); }
+    }
+    
+    public void sql_getComment(String name, String player) {
+    	try {
+    		if(sql_banned(player)) {
+    			ResultSet results = m_botAction.SQLQuery( mySQLHost, "SELECT * FROM tblDuelBan WHERE fcUserName = '"+Tools.addSlashesToString(player)+"'");
+    			if(results.next())
+    				m_botAction.sendPrivateMessage(name, "Ban comment: " + results.getString("fcComment"));
+    			else
+    				m_botAction.sendPrivateMessage(name, "Sorry, I could not find that comment.");
+    		}
+    		else
+    			m_botAction.sendPrivateMessage(name, "That player is not banned.");
+    	} catch(Exception e) { Tools.printStackTrace(e); }
+    }
+    		
     
     public boolean sql_unbanPlayer( String name ) {
     	try {
