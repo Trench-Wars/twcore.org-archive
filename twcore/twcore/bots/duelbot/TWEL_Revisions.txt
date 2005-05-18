@@ -1,0 +1,3 @@
+--- 5-17-05
+- Changed the warp rule to warp both players to their respective corners.
+- Average lag of challenge is displayed when issuing a challenge
