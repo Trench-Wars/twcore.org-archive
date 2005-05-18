@@ -1409,7 +1409,7 @@ public class duelbot extends SubspaceBot {
 				}
 			}	
 			updates.put( d, scoreReport );
-			m_botAction.scheduleTask( scoreReport, 2000 );
+			m_botAction.scheduleTask( scoreReport, 1000 * s_noCount );
 		}	
     }
     
