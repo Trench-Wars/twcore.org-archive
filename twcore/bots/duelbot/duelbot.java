@@ -1160,6 +1160,20 @@ public class duelbot extends SubspaceBot {
     	lastZoner = System.currentTimeMillis();
     }
     
+    public void warpPlayers(String one, String two)
+    {
+    	Duel d = (Duel)playing.get(one);
+    	
+    	if(d.getPlayerNumber( one ) == 1) {
+    		m_botAction.warpTo(one, d.getXOne(), d.getYOne());
+    		m_botAction.warpTo(two, d.getXTwo(), d.getYTwo());
+    	}
+    	else {
+    		m_botAction.warpTo(two, d.getXOne(), d.getYOne());
+    		m_botAction.warpTo(one, d.getXTwo(), d.getYTwo());
+    	}
+    }
+    
     /***********************************************
     *                 Events                       *
     ***********************************************/
@@ -1241,8 +1255,8 @@ public class duelbot extends SubspaceBot {
     }
     
     public void handleEvent( PlayerDeath event ) {
-    	String name = m_botAction.getPlayerName( event.getKilleeID() );
-    	String killer = m_botAction.getPlayerName( event.getKillerID() );
+    	final String name = m_botAction.getPlayerName( event.getKilleeID() );
+    	final String killer = m_botAction.getPlayerName( event.getKillerID() );
 		if( playing.containsKey( name ) ) {
 			
 			Duel d = (Duel)playing.get( name );
@@ -1321,17 +1335,17 @@ public class duelbot extends SubspaceBot {
 				} */
 			}
 			if( d.deathWarp() ) {
-				WarpPoint p = d.getRandomWarpPoint();
-				m_botAction.warpTo( name, p.getXCoord(), p.getYCoord() );
+				if(d.getPlayerNumber(name) == 1)
+					m_botAction.warpTo( name, d.getSafeXOne(), d.getSafeYOne() );
+				TimerTask t = new TimerTask() {
+					public void run() {
+						warpPlayers( name, killer );
+					}
+				};
+				
+				m_botAction.scheduleTask(t, s_noCount * 1000);
 			}
 			
-			int energyPrize = 13;
-			
-			if( d.deathDeplete() )
-				energyPrize *= -1;
-			
-			m_botAction.specificPrize( name, energyPrize );
-			m_botAction.specificPrize( killer, energyPrize );
 			//update scorereports
 			if( updates.containsKey( d ) ) {
 				ScoreReport report = (ScoreReport)updates.get( d );
