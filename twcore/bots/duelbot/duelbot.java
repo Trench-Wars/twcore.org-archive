@@ -182,7 +182,7 @@ public class duelbot extends SubspaceBot {
     	}
     	
     	//Get this player from the database
-    	DuelPlayer player = mySQL_getPlayer( _name );
+    	DuelPlayer player = sql_getPlayer( _name );
     	
     	//Signed up check
     	if( player == null ) {
@@ -234,7 +234,7 @@ public class duelbot extends SubspaceBot {
     		m_botAction.sendPrivateMessage( _name, "There is currently no duel box open for that league, please challenge again when a box opens up." );
     		return;
     	}
-    	DuelPlayer enemy = mySQL_getPlayer( opponent );
+    	DuelPlayer enemy = sql_getPlayer( opponent );
     	if( enemy == null ) {
     		m_botAction.sendPrivateMessage( _name, opponent + " has not signed up for this league." );
     		return;
@@ -280,7 +280,7 @@ public class duelbot extends SubspaceBot {
     		return;
     	}
 
-    	DuelPlayer player = mySQL_getPlayer( name );
+    	DuelPlayer player = sql_getPlayer( name );
     	if( player == null ) {
     		m_botAction.sendPrivateMessage( name, "Unable to issue challenge, you have not signed up or have disabled this name." );
     		return;
@@ -1623,7 +1623,7 @@ class ScoreReport extends TimerTask {
     *                SQL Related                   *
     ***********************************************/
     
-    public DuelPlayer mySQL_getPlayer( String name ) {
+    public DuelPlayer sql_getPlayer( String name ) {
     	try {
     		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT * FROM tblDuelPlayer WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' AND fnEnabled = 1" );
     		if( result.next() )
