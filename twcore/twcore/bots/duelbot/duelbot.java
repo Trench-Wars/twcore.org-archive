@@ -254,19 +254,25 @@ public class duelbot extends SubspaceBot {
     	if( player.getNoCount() ) rules += ", No Count (nc) Double Kills";
     	if( player.getDeathWarp() ) rules += ", Warp On Deaths";
     	
-    	int lag = player.getAverageLag();
-    	String avgLag;
-    	if(lag > 0)
-    		avgLag = String.valueOf(lag);
+    	int lag1 = player.getAverageLag();
+    	int lag2 = enemy.getAverageLag();
+    	String avgLag1, avgLag2;
+    	if(lag1 > 0)
+    		avgLag1 = String.valueOf(lag1);
     	else
-    		avgLag = "Unknown";
+    		avgLag1 = "Unknown";
+    	if(lag2 > 0)
+    		avgLag2 = String.valueOf(lag2);
+    	else
+    		avgLag2 = "Unknown";
     	
     	challenges.put( _name+opponent, new DuelChallenge( _name, opponent, player, gameType ) );
     	m_botAction.sendPrivateMessage( _name, "Your challenge has been issued to '" + opponent + "'" );
     	m_botAction.sendPrivateMessage( _name, rules );
+    	m_botAction.sendPrivateMessage( _name, opponent + "'s average lag: " + avgLag2);
     	m_botAction.sendPrivateMessage( opponent, _name + " is challenging you to a "+type+" duel. PM me with, !accept "+_name+" to accept." );
     	m_botAction.sendPrivateMessage( opponent, rules );
-    	m_botAction.sendPrivateMessage( opponent, _name + "'s average lag: " + avgLag);
+    	m_botAction.sendPrivateMessage( opponent, _name + "'s average lag: " + avgLag1);
     	   	
     }
     
@@ -731,7 +737,7 @@ public class duelbot extends SubspaceBot {
 			"------------------------------------------------------------------------------",
 			"| !signup                      - signs you up for the dueling league.        |",
 			"| !setrules <included rules>   - sets rules, include rules you wish to use   |",
-			"|   available rules: winby2, nc, warp, 5/10, deplete : Ex  !setrules warp 5  |",
+			"|   available rules: winby2, nc, warp, 5/10 : Ex  !setrules warp 5           |",
 			"| !challenge <name>:<type>     - challenges <name> to a duel wb=1/jav=2/sp=3 |",
 			"| !accept    <name>            - accepts a challenge from <name>             |",
 			"| !removechallenge <name>      - removes the challenge issued to <name>      |",
@@ -1386,13 +1392,10 @@ public class duelbot extends SubspaceBot {
 			if( d.deathWarp() ) {
 				if(d.getPlayerNumber(name) == 1)
 					m_botAction.warpTo( name, d.getSafeXOne(), d.getSafeYOne() );
-				TimerTask t = new TimerTask() {
-					public void run() {
-						warpPlayers( name, killer );
-					}
-				};
+				else
+					m_botAction.warpTo( name, d.getSafeXTwo(), d.getSafeYTwo() );
 				
-				m_botAction.scheduleTask(t, s_noCount * 1000);
+				m_botAction.scheduleTask(new CornerWarp(name, killer, System.currentTimeMillis()), s_noCount * 1000);
 			}
 			
 			//update scorereports
@@ -1876,6 +1879,22 @@ class ScoreReport extends TimerTask {
 			}
 		} catch(Exception e) { Tools.printStackTrace(e); }
 	}      
+	
+	class CornerWarp extends TimerTask {
+	
+		long warpTime;
+		String one, two;
+		
+		public CornerWarp(String n1, String n2, long time) {
+			one = n1;
+			two = n2;
+			warpTime = time;
+		}
+	
+		public void run() {
+			warpPlayers(one, two);
+		}
+	}
 }
 
 
