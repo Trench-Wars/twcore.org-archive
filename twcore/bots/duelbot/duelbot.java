@@ -21,6 +21,7 @@ import twcore.core.*;
  * - Made warp thing send people back to their corners to help stop spawning problem.
  * - Ban comments added.
  * - Can't !disable when banned.
+ * - Tells a player that is challenged what the other player's average lag is.
  *
  * Possible Updates:
  * - remove warp tiles on map	
@@ -252,11 +253,19 @@ public class duelbot extends SubspaceBot {
     	if( player.getNoCount() ) rules += ", No Count (nc) Double Kills";
     	if( player.getDeathWarp() ) rules += ", Warp On Deaths";
     	
+    	int lag = sql_getAverageLag(_name);
+    	String avgLag;
+    	if(lag > 0)
+    		avgLag = String.valueOf(lag);
+    	else
+    		avgLag = "Unknown";
+    	
     	challenges.put( _name+opponent, new DuelChallenge( _name, opponent, player, gameType ) );
     	m_botAction.sendPrivateMessage( _name, "Your challenge has been issued to '" + opponent + "'" );
     	m_botAction.sendPrivateMessage( _name, rules );
     	m_botAction.sendPrivateMessage( opponent, _name + " is challenging you to a "+type+" duel. PM me with, !accept "+_name+" to accept." );
     	m_botAction.sendPrivateMessage( opponent, rules );
+    	m_botAction.sendPrivateMessage( opponent, _name + "'s average lag: " + avgLag);
     	   	
     }
     
@@ -1866,6 +1875,22 @@ class ScoreReport extends TimerTask {
 			}
 		} catch(Exception e) { Tools.printStackTrace(e); }
 	}
+	
+	public int sql_getAverageLag( String name )
+	{
+		try {
+			ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT fnLag FROM tblDuelPlayer WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'");
+			if(result.next()) {
+				int lag = result.getInt("fnLag");
+				return lag;
+			}
+			else
+				return -5;
+		} catch(Exception e) { Tools.printStackTrace(e); }
+		
+		return -5;
+	}
+				
       
 }
 
