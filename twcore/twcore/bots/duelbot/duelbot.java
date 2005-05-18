@@ -1395,8 +1395,9 @@ public class duelbot extends SubspaceBot {
 				else
 					m_botAction.warpTo( name, d.getSafeXTwo(), d.getSafeYTwo() );
 				
-				m_botAction.scheduleTask(new CornerWarp(name, killer, System.currentTimeMillis()), s_noCount * 1000);
+				scoreReport.addDeathWarp( name, killer );
 			}
+			
 			
 			//update scorereports
 			if( updates.containsKey( d ) ) {
@@ -1593,10 +1594,14 @@ class Lagger extends TimerTask {
 
 class ScoreReport extends TimerTask {
 	
-	Duel duel;
+	private Duel 	duel;
+	private boolean warpOnKill;
+	private String 	player1;
+	private String 	player2;
 	
 	public ScoreReport( Duel d ) {
 		duel = d;
+		warpOnKill = false;
 	}
 	
 	public void run() {
@@ -1619,6 +1624,17 @@ class ScoreReport extends TimerTask {
 			endDuel( duel, winner, loser, 0 );
 			return;
 		}
+		
+		if( warpOnKill )
+			warpPlayers( player1, player2 );
+	}
+	
+	public void addDeathWarp( String p1, String p2 ) {
+		
+		player1 = p1;
+		player2 = p2;
+		warpOnKill = true;
+		
 	}
 }
 
