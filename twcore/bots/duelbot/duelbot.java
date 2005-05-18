@@ -24,7 +24,8 @@ import twcore.core.*;
  * - Tells a player that is challenged what the other player's average lag is.
  *
  * Possible Updates:
- * - remove warp tiles on map	
+ * - remove warp tiles on map
+ * - !rank?
  */
 
 import java.util.*;
@@ -253,7 +254,7 @@ public class duelbot extends SubspaceBot {
     	if( player.getNoCount() ) rules += ", No Count (nc) Double Kills";
     	if( player.getDeathWarp() ) rules += ", Warp On Deaths";
     	
-    	int lag = sql_getAverageLag(_name);
+    	int lag = player.getAverageLag();
     	String avgLag;
     	if(lag > 0)
     		avgLag = String.valueOf(lag);
@@ -1874,24 +1875,7 @@ class ScoreReport extends TimerTask {
 				m_botAction.SQLQuery( mySQLHost, "UPDATE tblDuelPlayer SET fnLag = " + average2 + ", fnLagCheckCount = fnLagCheckCount + 1 WHERE fnUserID = "+userID);
 			}
 		} catch(Exception e) { Tools.printStackTrace(e); }
-	}
-	
-	public int sql_getAverageLag( String name )
-	{
-		try {
-			ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT fnLag FROM tblDuelPlayer WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'");
-			if(result.next()) {
-				int lag = result.getInt("fnLag");
-				return lag;
-			}
-			else
-				return -5;
-		} catch(Exception e) { Tools.printStackTrace(e); }
-		
-		return -5;
-	}
-				
-      
+	}      
 }
 
 
