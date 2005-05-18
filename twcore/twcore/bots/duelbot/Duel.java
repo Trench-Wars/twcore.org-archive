@@ -18,7 +18,6 @@ public class Duel {
 	private boolean m_winBy2;
 	private boolean m_noCount;
 	private boolean m_deathWarp;
-	private boolean m_deathDeplete;
 	private int 	m_toWin;
 
 	//Stat tracking for players
@@ -57,7 +56,6 @@ public class Duel {
 		m_deathWarp = _challenge.getDeathWarp();
 		m_toWin = _challenge.getToWin();
 		m_startTime = (int)System.currentTimeMillis();
-		m_deathDeplete = _challenge.getDeathDeplete();
 		
 		//Create stat tracking objects
 		m_challengerStats = new DuelPlayerStats( m_challenger, m_gameType, getBoxFreq() );
@@ -180,7 +178,6 @@ public class Duel {
 	public boolean winBy2() { return m_winBy2; }
 	public boolean noCount() { return m_noCount; }
 	public boolean deathWarp() { return m_deathWarp; }
-	public boolean deathDeplete() { return m_deathDeplete; }
 	public int toWin() { return m_toWin; }
 	
 	public WarpPoint getRandomWarpPoint() {
