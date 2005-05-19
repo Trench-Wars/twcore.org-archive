@@ -2,6 +2,9 @@
 - Changed the warp rule to warp both players to their respective corners.
 - Average lag of challenge is displayed when issuing a challenge
 
+--- 5-19-05
+- Made the bot cancel a player's cancel request if either player dies.
+
 
 TODO:
 
