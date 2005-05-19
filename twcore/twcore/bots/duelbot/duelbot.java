@@ -1396,6 +1396,14 @@ public class duelbot extends SubspaceBot {
 				scoreReport.addDeathWarp( name, killer );
 			}
 			
+			if( d.getCancelState(name)) {
+				d.toggleCancelGame(name);
+				m_botAction.sendPrivateMessage(name, "Your cancel request has been voided because " + killer + " killed you.");
+			}
+			if( d.getCancelState(killer)) {
+				d.toggleCancelGame(killer);
+				m_botAction.sendPrivateMessage(killer, "Your cancel request has been voided becase you killed " + name + ".");
+			}
 			
 			//update scorereports
 			if( updates.containsKey( d ) ) {
