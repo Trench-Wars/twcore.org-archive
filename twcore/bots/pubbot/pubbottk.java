@@ -16,8 +16,8 @@ public class pubbottk extends PubBotModule {
     private final int levTKpts = 9;          // Penalty for TKing as a lev
     private final int sharkTKpts = 6;        // Penalty for TKing as a shark
     private final int continuedTKpts = 22;   // Penalty for Tking same person twice in a row
-    private final int warnAt = 30;           // Points at which player receives a warning
-    private final int notifyAt = 60;         // Points at which staff is notified
+    private final int warnAt = 25;           // Points at which player receives a warning
+    private final int notifyAt = 55;         // Points at which staff is notified
     private final int cooldownSecs = 10;     // Time, in secs, it takes to remove 1 TK point
     private final int forgetTime = 15;       // Time, in secs, between when the
                                              //    slate is wiped clean for TKers who
@@ -265,7 +265,7 @@ public class pubbottk extends PubBotModule {
         Player killed = m_botAction.getPlayer( event.getKilleeID() );
         Player killer = m_botAction.getPlayer( event.getKillerID() );
 
-        if( killed != null || killer != null || killed.getFrequency() != killer.getFrequency() )
+        if( killed.getFrequency() != killer.getFrequency() )
             return;
 
         if( tkers != null )
