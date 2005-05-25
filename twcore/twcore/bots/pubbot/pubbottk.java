@@ -12,10 +12,10 @@ import twcore.misc.pubcommon.*;
  */
 public class pubbottk extends PubBotModule {
 
-    private final int normTKpts = 12;        // Penalty for TKing (any ship but shark)
-    private final int levTKpts = 9;          // Penalty for TKing as a lev
-    private final int sharkTKpts = 6;        // Penalty for TKing as a shark
-    private final int continuedTKpts = 22;   // Penalty for Tking same person twice in a row
+    private final int normTKpts = 10;        // Penalty for TKing (any ship but shark or levi)
+    private final int levTKpts = 8;          // Penalty for TKing as a lev
+    private final int sharkTKpts = 5;        // Penalty for TKing as a shark
+    private final int continuedTKpts = 15;   // Penalty for Tking same person twice in a row
     private final int warnAt = 25;           // Points at which player receives a warning
     private final int notifyAt = 55;         // Points at which staff is notified
     private final int cooldownSecs = 10;     // Time, in secs, it takes to remove 1 TK point
@@ -36,8 +36,14 @@ public class pubbottk extends PubBotModule {
      * Called when the module is loaded for each individual pubbot.
      */
     public void initializeModule() {
-        checkTKs = false;
         currentArena = m_botAction.getArenaName();
+        
+        // TODO: Add to CFG
+        if( currentArena.toLowerCase().equals("tourny") || currentArena.toLowerCase().equals("duel") )
+            checkTKs = false;
+        else
+            checkTKs = true;
+        
         tkers = new HashMap();
         oldtkers = new HashMap();
 
@@ -386,7 +392,7 @@ public class pubbottk extends PubBotModule {
 		    } else if( shipnum == 4 ) {
                 m_TKpoints += levTKpts;
                 if( m_setShipped == true )
-                	m_TKpoints += levTKpts;	// counts for double if you've been setshipped
+                	m_TKpoints += levTKpts;		// counts for double if you've been setshipped
             } else {
                 m_TKpoints += normTKpts;
                 if( m_setShipped == true )
@@ -397,10 +403,10 @@ public class pubbottk extends PubBotModule {
             // by one person being TKd twice in a row.  After that records every
             // additional TK on that person, regardless of whether it's consecutive.
             if( playerTKd.equals( m_lastRepeatTK ) ) {
-                m_TKpoints += continuedTKpts;
+                if( shipnum != 4 && shipnum != 8 )
+                    m_TKpoints += continuedTKpts;
             	m_repeat += 1;
             } else if( playerTKd.equals( m_lastTKd ) ) {
-                m_TKpoints += continuedTKpts;
                 m_repeatKiller = true;
                 m_lastRepeatTK = m_lastTKd;
                 m_repeat = 2;
@@ -417,18 +423,33 @@ public class pubbottk extends PubBotModule {
                     setTKerShip();
                 else
                     addWarn();
-            } else if( m_TKs >= 10 && m_staffNotified == false ) {
-                m_TKpoints += notifyAt;
+            // Below: "Failsafes" for players attempting to cheat the system
+            } else if( m_TKs >= 20 && m_staffNotified == false ) {
+                if( m_TKpoints < notifyAt )
+                    m_TKpoints = notifyAt;
                 notifyStaff();
-            } else if( m_TKs >= 8 && m_setShipped == false ) {
-                m_TKpoints += notifyAt;
+            } else if( m_TKs >= 15 && m_setShipped == false ) {
+                if( m_TKpoints < notifyAt )
+                    m_TKpoints = notifyAt;
                 setTKerShip();
-            } else if( m_TKs >= 4 && m_warns == 0 ) {
-                m_TKpoints += warnAt;
+            } else if( m_TKs >= 5 && m_warns == 0 ) {
+                if( m_TKpoints < warnAt )
+                    m_TKpoints = warnAt;
                 addWarn();
             }
 
             m_lastTKd = playerTKd;
+        }
+
+
+        /**
+         * Sets ship to a non-TKable ship.  This almost always happens before staff is notified.
+         */
+        public void setTKerShip() {
+            addWarn();
+        	m_botAction.setShip( m_playerName, 1 );
+        	m_botAction.sendPrivateMessage( m_playerName, "NOTICE: Your ship has been automatically changed due to excessive killing of teammates.", 1 );
+        	m_setShipped = true;
         }
 
 
@@ -441,18 +462,7 @@ public class pubbottk extends PubBotModule {
             sendWarn();
         }
 
-
-        /**
-         * Sets ship to a non-TKable ship.  This almost always happens before staff is notified.
-         */
-        public void setTKerShip() {
-        	m_botAction.setShip( m_playerName, 1 );
-        	m_botAction.sendPrivateMessage( m_playerName, "NOTICE: Your ship has been automatically changed due to excessive killing of teammates.", 1 );
-        	m_setShipped = true;
-            addWarn();
-        }
-
-
+        
         /**
          * Sends a warning message to player depending on number of past warns.
          */
@@ -475,7 +485,7 @@ public class pubbottk extends PubBotModule {
          */
         public void notifyStaff() {
             if( m_staffNotified == true ) {
-                if( m_TKs % 10 != 0 )
+                if( m_TKs % 25 != 0 )
                     return;
             }
 
