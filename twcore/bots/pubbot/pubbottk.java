@@ -14,7 +14,7 @@ public class pubbottk extends PubBotModule {
 
     private final int normTKpts = 10;        // Penalty for TKing (any ship but shark or levi)
     private final int levTKpts = 8;          // Penalty for TKing as a lev
-    private final int sharkTKpts = 5;        // Penalty for TKing as a shark
+    private final int sharkTKpts = 4;        // Penalty for TKing as a shark
     private final int continuedTKpts = 15;   // Penalty for Tking same person twice in a row
     private final int warnAt = 25;           // Points at which player receives a warning
     private final int notifyAt = 55;         // Points at which staff is notified
@@ -424,11 +424,11 @@ public class pubbottk extends PubBotModule {
                 else
                     addWarn();
             // Below: "Failsafes" for players attempting to cheat the system
-            } else if( m_TKs >= 20 && m_staffNotified == false ) {
+            } else if( m_TKs >= 30 && m_staffNotified == false ) {
                 if( m_TKpoints < notifyAt )
                     m_TKpoints = notifyAt;
                 notifyStaff();
-            } else if( m_TKs >= 15 && m_setShipped == false ) {
+            } else if( m_TKs >= 25 && m_setShipped == false ) {
                 if( m_TKpoints < notifyAt )
                     m_TKpoints = notifyAt;
                 setTKerShip();
