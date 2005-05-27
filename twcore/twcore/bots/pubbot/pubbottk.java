@@ -271,7 +271,7 @@ public class pubbottk extends PubBotModule {
         Player killed = m_botAction.getPlayer( event.getKilleeID() );
         Player killer = m_botAction.getPlayer( event.getKillerID() );
 
-        if( killed.getFrequency() != killer.getFrequency() )
+        if( killed == null || killer == null || killed.getFrequency() != killer.getFrequency() )
             return;
 
         if( tkers != null )
