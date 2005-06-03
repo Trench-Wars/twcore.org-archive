@@ -16,8 +16,8 @@ public class pubbottk extends PubBotModule {
     private final int levTKpts = 8;          // Penalty for TKing as a lev
     private final int sharkTKpts = 4;        // Penalty for TKing as a shark
     private final int continuedTKpts = 15;   // Penalty for Tking same person twice in a row
-    private final int warnAt = 25;           // Points at which player receives a warning
-    private final int notifyAt = 55;         // Points at which staff is notified
+    private final int warnAt = 30;           // Points at which player receives a warning
+    private final int notifyAt = 65;         // Points at which staff is notified
     private final int cooldownSecs = 10;     // Time, in secs, it takes to remove 1 TK point
     private final int forgetTime = 15;       // Time, in secs, between when the
                                              //    slate is wiped clean for TKers who
@@ -424,15 +424,15 @@ public class pubbottk extends PubBotModule {
                 else
                     addWarn();
             // Below: "Failsafes" for players attempting to cheat the system
-            } else if( m_TKs >= 30 && m_staffNotified == false ) {
+            } else if( m_TKs >= 35 && m_staffNotified == false ) {
                 if( m_TKpoints < notifyAt )
                     m_TKpoints = notifyAt;
                 notifyStaff();
-            } else if( m_TKs >= 25 && m_setShipped == false ) {
+            } else if( m_TKs >= 30 && m_setShipped == false ) {
                 if( m_TKpoints < notifyAt )
                     m_TKpoints = notifyAt;
                 setTKerShip();
-            } else if( m_TKs >= 5 && m_warns == 0 ) {
+            } else if( m_TKs >= 10 && m_warns == 0 ) {
                 if( m_TKpoints < warnAt )
                     m_TKpoints = warnAt;
                 addWarn();
