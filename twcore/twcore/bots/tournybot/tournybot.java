@@ -7,7 +7,7 @@ import java.text.*;
 import twcore.misc.lag.*;
 
 public class tournybot extends SubspaceBot {
-	
+
 	private BotSettings m_botSettings;
 	private lagHandler m_lagHandler;
 
@@ -38,7 +38,7 @@ public class tournybot extends SubspaceBot {
 	int shipType = 0;	// Shipnumber used in tourny
 	int deaths = 0;		// Deathlimit in tourny
 	int playersNum = 0;	// # of players still in the tourny
-	int trState = -1;	// Tournament state. -1 = stopped | 0 = less than 2 players have entered | 1 = voting on shiptype 
+	int trState = -1;	// Tournament state. -1 = stopped | 0 = less than 2 players have entered | 1 = voting on shiptype
 				// 2 = voting on deathlimit | 3 = starting in 10 seconds | 4 = tourney in progress
 	int maxLagOuts = 2;	// Max lagouts
 	int maxFouls = 3;	// Max fouls (warping/spawning)
@@ -48,7 +48,7 @@ public class tournybot extends SubspaceBot {
 	int tournyID;
 	int startHour = 9;
 	int stopHour = 23;
-	
+
 	boolean lagWorks = true;
 	boolean stopped = false;
 	boolean even;
@@ -82,7 +82,7 @@ public class tournybot extends SubspaceBot {
 		m_botSettings = m_botAction.getBotSettings();
 		m_lagHandler = new lagHandler(botAction, m_botSettings, this, "handleLagReport");
 	}
-	
+
 	public void requestEvents() {
 		EventRequester req = m_botAction.getEventRequester();
 		req.request(EventRequester.MESSAGE);
@@ -94,7 +94,7 @@ public class tournybot extends SubspaceBot {
 		req.request(EventRequester.FREQUENCY_SHIP_CHANGE);
 		req.request(EventRequester.LOGGED_ON);
 	}
-	
+
 	public void handleEvent(Message event) {
 		String name = event.getMessager() != null ? event.getMessager() : m_botAction.getPlayerName(event.getPlayerID());
 		if (name == null) name = "-anonymous-";
@@ -112,14 +112,14 @@ public class tournybot extends SubspaceBot {
 		}
 
 		if (event.getMessageType() == Message.PUBLIC_MESSAGE || event.getMessageType() == Message.PRIVATE_MESSAGE) {
-			if (trState == 1) { 
-				handleVote( name, event.getMessage(), 10); 
+			if (trState == 1) {
+				handleVote( name, event.getMessage(), 10);
 			}
-			if (trState == 2) { 
-				handleVote( name, event.getMessage(), 5); 
+			if (trState == 2) {
+				handleVote( name, event.getMessage(), 5);
 			}
 		}
-		
+
 		if (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) {
 			if (message.equalsIgnoreCase("!status")) {
 				handleStatus(name);
@@ -160,7 +160,7 @@ public class tournybot extends SubspaceBot {
 			} else if (message.equalsIgnoreCase("!duels")) {
 				m_botAction.privateMessageSpam(name, getDuels());
 			}
-			
+
 			if (!m_botAction.getOperatorList().isER(name)) {
 				return;
 			}
@@ -170,7 +170,7 @@ public class tournybot extends SubspaceBot {
 		   		m_botAction.die();
 			} else if (message.equalsIgnoreCase("!start")) {
 				if (trState == -1) {
-					startTournament(); 
+					startTournament();
 				} else {
 					m_botAction.sendPrivateMessage(name, "Tournament already in progress.");
 				}
@@ -259,7 +259,7 @@ public class tournybot extends SubspaceBot {
 			if (playersNum >= 2 && trState == 0) {
 				startTournament();
 			}
-		} 
+		}
 
 		if (event.getShipType() == 0) {
 
@@ -288,14 +288,14 @@ public class tournybot extends SubspaceBot {
 				if (p == null) return;
 				String name = p.getPlayerName();
 
-			if (!playerStillIn(name)) { 
-				return; 
+			if (!playerStillIn(name)) {
+				return;
 			}
 
 			pStats warper = (pStats)players.get(name);
 
-			if (warper.getFreq() == null || !freqs.containsKey(warper.getFreq())) { 
-				return; 
+			if (warper.getFreq() == null || !freqs.containsKey(warper.getFreq())) {
+				return;
 			}
 
 			fStats out = (fStats)freqs.get(warper.getFreq());
@@ -336,7 +336,7 @@ public class tournybot extends SubspaceBot {
 				warpPlayer( name );
 			}
 		}
-	} 
+	}
 
 	public void handleEvent(PlayerDeath event) {
 		if (trState == 4) {
@@ -380,7 +380,7 @@ public class tournybot extends SubspaceBot {
 						return;
 					}
 
-					
+
 					/*
 					 * Kills don't count if the victim had died 6 or less seconds earlier. (SpawnKill)
 					 * Note: first 3 seconds of the 6 second timer are spent in the corner.
@@ -420,7 +420,7 @@ public class tournybot extends SubspaceBot {
 						if (info2.getGameDeaths() >= deaths) {
 							m_botAction.scheduleTask( new aboutToDieOut( killeeName ), 2000 );
 						}
-					
+
 						info2.sleeping();
 						m_botAction.shipReset(killeeName);
 						warpPlayer(killeeName);
@@ -431,15 +431,28 @@ public class tournybot extends SubspaceBot {
 							((duelDelay) delayers.get(name)).cancel();
 							delayers.remove(name);
 						}
-						delayers.put( name, new duelDelay( name, killeeName, killerName, delayers, false ));
-						duelDelay d = (duelDelay)delayers.get( name );
+
+						//delayers.put( name, new duelDelay( name, killeeName, killerName, delayers, false ));
+						//duelDelay d = (duelDelay)delayers.get( name );
+
+						//If you get timesliced before this line, but after either of the 2 previous, could cause
+						//some major issues.  Consider making this function synchronized.
+
+						//m_botAction.scheduleTask( d, 3000 );
+
+						//much more efficient like this, since you dont need the hash lookup
+						//-AlienKing
+
+
+						duelDelay d = new duelDelay( name, killeeName, killerName, delayers, false );
 						m_botAction.scheduleTask( d, 3000 );
+						delayers.put( name, d);
 					}
 				}
 			}
 		}
 	}
-	
+
 	public void handleEvent(LoggedOn event) {
 		trState = -1;
 		m_botAction.joinArena(m_botSettings.getString("arena"));
@@ -452,7 +465,7 @@ public class tournybot extends SubspaceBot {
 		m_botAction.setMessageLimit(10);
 		m_botAction.toggleLocked();
 	}
-	
+
 	public void handleEvent(ArenaJoined event) {
 		m_botAction.setReliableKills(1);
 	}
@@ -535,8 +548,8 @@ public class tournybot extends SubspaceBot {
 
 		if (maxPerFreq == 1) {
 
-			if (!freqs.containsKey(event.getIdentifier())) { 
-			    return; 
+			if (!freqs.containsKey(event.getIdentifier())) {
+			    return;
 			}
 
 			fStats rand = (fStats)freqs.get( event.getIdentifier() );
@@ -566,8 +579,8 @@ public class tournybot extends SubspaceBot {
 			String team[] = event.getIdentifier().split(":");
 			if (team.length == 2) {
 
-				if (!freqs.containsKey(team[0])) { 
-				    return; 
+				if (!freqs.containsKey(team[0])) {
+				    return;
 				}
 
 				fStats rand = (fStats)freqs.get( team[0] );
@@ -610,8 +623,8 @@ public class tournybot extends SubspaceBot {
 				}
 			} else {
 
-				if (!freqs.containsKey(event.getIdentifier())) { 
-				    return; 
+				if (!freqs.containsKey(event.getIdentifier())) {
+				    return;
 				}
 
 				fStats rand = (fStats)freqs.get( event.getIdentifier() );
@@ -652,9 +665,9 @@ public class tournybot extends SubspaceBot {
 			m_botAction.privateMessageSpam(report.getRequester(), report.getLagStats());
 		}
 
-		if (report.isOverLimits()) 
+		if (report.isOverLimits())
 		{
-			if (!report.isBotRequest()) 
+			if (!report.isBotRequest())
             {
 				m_botAction.sendPrivateMessage(report.getRequester(), report.getLagReport());
 			}
@@ -728,21 +741,21 @@ public class tournybot extends SubspaceBot {
 
 	public void handleStatus(String name) {
 		String status;
-		if (trState == -1) { 
-			status = "Waiting for host to !start me."; 
+		if (trState == -1) {
+			status = "Waiting for host to !start me.";
 		} else if (trState == 0) {
 			status = "Tournament about to begin (When 2 or more players enter).";
-		} else if (trState == 1 || trState == 2) { 
-			status = "Voting on gametype."; 
+		} else if (trState == 1 || trState == 2) {
+			status = "Voting on gametype.";
 		} else if (trState == 3) {
-			status = ship + " tournament to " + deaths + " death(s) starting."; 
-		} else { 
+			status = ship + " tournament to " + deaths + " death(s) starting.";
+		} else {
 			String figure;
 			if (maxPerFreq == 2) {
 				figure = "teams";
 			} else {
 				figure = "players";
-			} 
+			}
 			status = ship + " tournament to " + deaths + " death(s) in progress with " + playersNum + " " + figure + " in.";
 			if (dbAvailable) {
 				status += " Prize: " + trPrize;
@@ -766,11 +779,11 @@ public class tournybot extends SubspaceBot {
 	public void handleScore(String name, String tempPlayer) {
 		String player = m_botAction.getFuzzyPlayerName(tempPlayer);
 
-		if (player == null) { 
-		    player = tempPlayer; 
+		if (player == null) {
+		    player = tempPlayer;
 		}
 
-		if (players.containsKey(player) && trState == 4) {			
+		if (players.containsKey(player) && trState == 4) {
 			pStats score = (pStats)players.get( player );
 			fStats fScore = (fStats)freqs.get( score.getFreq() );
 
@@ -798,7 +811,7 @@ public class tournybot extends SubspaceBot {
 				m_botAction.sendPrivateMessage( name, getRoundName(sRound) + ": [" + fScore.getNames() + " " + ops.getGameDeaths() + " - " + fScore.getGameDeaths() + " " + ops.getNames() + "]");
 
 				if (maxPerFreq == 2) {
-					m_botAction.sendPrivateMessage( name, Tools.formatString("", getRoundName(sRound).length(), "-") + "  " + fScore.getName1() + "(" + fScore.getP1().getGameKills() + " - " + fScore.getP1().getGameDeaths() + ")    " + fScore.getName2() + "(" + fScore.getP2().getGameKills() + "-" + fScore.getP2().getGameDeaths() + ")"); 
+					m_botAction.sendPrivateMessage( name, Tools.formatString("", getRoundName(sRound).length(), "-") + "  " + fScore.getName1() + "(" + fScore.getP1().getGameKills() + " - " + fScore.getP1().getGameDeaths() + ")    " + fScore.getName2() + "(" + fScore.getP2().getGameKills() + "-" + fScore.getP2().getGameDeaths() + ")");
 				}
 			}
 		}
@@ -828,11 +841,11 @@ public class tournybot extends SubspaceBot {
 
 		if (playerStillIn(name) && trState == 4 && m_botAction.getPlayer(name).getShipType() == 0) {
 			pStats messager = (pStats)players.get( name );
-				
+
 			if (laggers.containsKey(name)) {
 				((Lagger)laggers.get( name )).cancel();
 				laggers.remove( name );
-				
+
 				if (findOpponent(messager.getFreq()) != null) {
 					int remainingLO = maxLagOuts - messager.getLagOuts();
 
@@ -866,13 +879,13 @@ public class tournybot extends SubspaceBot {
 	public void handleLagOut(String name) {
 		pStats lagi = (pStats)players.get( name );
 
-		if (lagi.getPlayerState() == 0) { 
-		    lagi.toggleSmallLag(true); 
-		    return; 
+		if (lagi.getPlayerState() == 0) {
+		    lagi.toggleSmallLag(true);
+		    return;
 		}
 
-		if (lagi.getTrueLag() || lagi.getPlayerState() == 2) { 
-		    return; 
+		if (lagi.getTrueLag() || lagi.getPlayerState() == 2) {
+		    return;
 		}
 
 		lagi.incrementLagOuts();
@@ -893,7 +906,7 @@ public class tournybot extends SubspaceBot {
 			}
 			laggers.put( name, new Lagger( name, laggers ) );
 			Lagger l = (Lagger)laggers.get( name );
-			m_botAction.scheduleTask( l, 60000 );						
+			m_botAction.scheduleTask( l, 60000 );
 
 			fStats ops = (fStats)freqs.get( findOpponent(lagi.getFreq()));
 			m_botAction.sendSmartPrivateMessage( name, "You have 60 seconds to return to the game, send me !return to enter.");
@@ -913,8 +926,8 @@ public class tournybot extends SubspaceBot {
 
 	public int playerXPos(String name) {
 
-		if (!playerStillIn( name )) { 
-		    return 512; 
+		if (!playerStillIn( name )) {
+		    return 512;
 		}
 
 		pStats tPos = (pStats)players.get( name );
@@ -961,8 +974,8 @@ public class tournybot extends SubspaceBot {
 
 	public int playerYPos(String name) {
 
-		if (!playerStillIn( name )) { 
-		    return 512; 
+		if (!playerStillIn( name )) {
+		    return 512;
 		}
 
 		pStats tPos = (pStats)players.get( name );
@@ -1009,14 +1022,14 @@ public class tournybot extends SubspaceBot {
 
 	public void startTournament() {
 
-		m_voteDeaths = new TimerTask() 
+		m_voteDeaths = new TimerTask()
 		{
 			public void run() {
 				trState = 2;
 				shipType = countVote(10);
 
-				if (shipType == 0) { 
-				    shipType = 1; 
+				if (shipType == 0) {
+				    shipType = 1;
 				}
 
 				votes.clear();
@@ -1025,22 +1038,22 @@ public class tournybot extends SubspaceBot {
 			};
 		};
 
-		m_announceVote = new TimerTask() 
+		m_announceVote = new TimerTask()
 		{
-			public void run() 
+			public void run()
 			{
 				trState = 3;
 				deaths = countVote(5);
 
-				if (deaths == 0) { 
-				    deaths = 5; 
+				if (deaths == 0) {
+				    deaths = 5;
 				}
 				votes.clear();
 				m_botAction.sendArenaMessage( ship + " tournament to " + deaths + " death(s)!", 2);
 				m_botAction.sendArenaMessage( "Rules: No warping or spawning! " + maxLagOuts + " lagouts/duel allowed. You may spec/leave arena if you don't have an opponent.");
 
-				if (maxPerFreq == 2) { 
-					m_botAction.sendArenaMessage( "1 minute extension given to arrange teams."); 
+				if (maxPerFreq == 2) {
+					m_botAction.sendArenaMessage( "1 minute extension given to arrange teams.");
 					m_botAction.scheduleTask(m_startGame, 60000);
 				} else {
 					m_botAction.scheduleTask(m_startGame, 20000);
@@ -1050,15 +1063,15 @@ public class tournybot extends SubspaceBot {
 
 		m_3Seconds = new TimerTask()
 		{
-			public void run() 
+			public void run()
 			{
 				announcePlayers();
 			};
 		};
 
-		m_startGame = new TimerTask() 
+		m_startGame = new TimerTask()
 		{
-			public void run() 
+			public void run()
 			{
 				m_botAction.toggleLocked();
 				ppIterator = m_botAction.getPlayingPlayerIterator();
@@ -1074,7 +1087,7 @@ public class tournybot extends SubspaceBot {
 
 					players.put( name, new pStats(name) );
 					pStats check = (pStats)players.get( name );
-			
+
 					playersNum++;
 					check.register();
 					check.setFreq(freq);
@@ -1213,8 +1226,8 @@ public class tournybot extends SubspaceBot {
 
 			m_botAction.sendArenaMessage( "Rules: No warping or spawning! " + maxLagOuts + " lagouts/duel allowed. You may spec/leave arena if you don't have an opponent.");
 
-			if (maxPerFreq == 2) { 
-				m_botAction.sendArenaMessage( "1 minute extension given to arrange teams."); 
+			if (maxPerFreq == 2) {
+				m_botAction.sendArenaMessage( "1 minute extension given to arrange teams.");
 				m_botAction.scheduleTask(m_startGame, 80000);
 			} else {
 				m_botAction.scheduleTask(m_startGame, 40000);
@@ -1237,19 +1250,19 @@ public class tournybot extends SubspaceBot {
 
 	public void setRealShipType(int sType) {
 
-		if (sType == 1) { 
+		if (sType == 1) {
 			shipType = 1;
 			ship = "Warbird";
 			base = false;
 			maxPerFreq = 1;
-		} else if (sType == 2) { 
+		} else if (sType == 2) {
 			shipType = 2;
-			ship = "Javelin"; 
+			ship = "Javelin";
 			base = true;
 			maxPerFreq = 1;
-		} else if (sType == 3) { 
+		} else if (sType == 3) {
 			shipType = 3;
-			ship = "Spider"; 
+			ship = "Spider";
 			base = false;
 			maxPerFreq = 1;
 		} else if (sType == 4) {
@@ -1257,36 +1270,36 @@ public class tournybot extends SubspaceBot {
 			ship = "AFS";
 			base = false;
 			maxPerFreq = 1;
-		} else if (sType == 5) { 
+		} else if (sType == 5) {
 			shipType = 11;
-			ship = "ABS"; 
+			ship = "ABS";
 			base = true;
 			maxPerFreq = 1;
 		} else if (sType == 6) {
 			shipType = 1;
-			ship = "2vs2 Warbird"; 
+			ship = "2vs2 Warbird";
 			base = false;
 			maxPerFreq = 2;
 		} else if (sType == 7) {
 			shipType = 2;
-			ship = "2vs2 Javelin"; 
+			ship = "2vs2 Javelin";
 			base = true;
-			maxPerFreq = 2; 
-		} else if (sType == 8) { 
+			maxPerFreq = 2;
+		} else if (sType == 8) {
 			shipType = 10;
-			ship = "2vs2 AFS"; 
+			ship = "2vs2 AFS";
 			base = false;
-			maxPerFreq = 2; 
-		} else if (sType == 9) { 
+			maxPerFreq = 2;
+		} else if (sType == 9) {
 			shipType = 11;
-			ship = "2vs2 ABS"; 
+			ship = "2vs2 ABS";
 			base = true;
-			maxPerFreq = 2; 
+			maxPerFreq = 2;
 		} else if (sType == 10) {
 			shipType = 12;
-			ship = "2vs2 LevTerr"; 
+			ship = "2vs2 LevTerr";
 			base = true;
-			maxPerFreq = 2; 
+			maxPerFreq = 2;
 		}
 	}
 
@@ -1307,8 +1320,8 @@ public class tournybot extends SubspaceBot {
 			m_botAction.warpFreqToLocation(Integer.parseInt(freq), 512, 512);
 
 			if (stopped) {
-				trState = -1; 
-				stopped = false; 
+				trState = -1;
+				stopped = false;
 				m_botAction.sendArenaMessage("TournyBot disabled (" + tournyCount + " tournaments hosted)");
 				m_botAction.sendSmartPrivateMessage("lnx", "Turnaus loppu!!");
 
@@ -1339,10 +1352,10 @@ public class tournybot extends SubspaceBot {
 		laggers.clear();
 		delayers.clear();
 
-		m_endGame = new TimerTask() 
+		m_endGame = new TimerTask()
 		{
-			public void run() 
-			{ 
+			public void run()
+			{
 				playersNum = 0;
 
 				Iterator i = m_botAction.getPlayerIterator();
@@ -1480,8 +1493,8 @@ public class tournybot extends SubspaceBot {
 		pStats lCheck = (pStats)players.get( name );
 		int fr1 = Integer.parseInt(lCheck.getFreq());
 
-		if (findOpponent(lCheck.getFreq()) == null) { 
-		    return; 
+		if (findOpponent(lCheck.getFreq()) == null) {
+		    return;
 		}
 
 		int fr2 = Integer.parseInt(findOpponent(lCheck.getFreq()));
@@ -1494,10 +1507,10 @@ public class tournybot extends SubspaceBot {
 
 			// Removes the freq if both players are out
 			if (!playerStillIn( getPartner(name) )) {
-				removeFreq( lCheck.getFreq(), forfeit, getPartner(name) ); 
+				removeFreq( lCheck.getFreq(), forfeit, getPartner(name) );
 			} else {
 				if (!forfeit) {
-					m_botAction.sendArenaMessage( name + " is out. " + lCheck.getGameKills() + " kills, " + lCheck.getGameDeaths() + " deaths"); 
+					m_botAction.sendArenaMessage( name + " is out. " + lCheck.getGameKills() + " kills, " + lCheck.getGameDeaths() + " deaths");
 				}
 				m_botAction.setFreq(name, Integer.parseInt(lCheck.getFreq()));
 			}
@@ -1526,15 +1539,15 @@ public class tournybot extends SubspaceBot {
 
 				if (newRound != 7) {
 					if (maxPerFreq == 2) {
-						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeat " + fCheck.getNames() + "[-" + fDuel.getLR() + "]  Score: [" + fCheck.getGameDeaths() + " - " + oFreq.getGameDeaths() + "]  and advance to " + getRoundName(newRound) + "!"); 
+						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeat " + fCheck.getNames() + "[-" + fDuel.getLR() + "]  Score: [" + fCheck.getGameDeaths() + " - " + oFreq.getGameDeaths() + "]  and advance to " + getRoundName(newRound) + "!");
 					} else {
-						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeats " + fCheck.getNames() + "[-" + fDuel.getLR() + "]  Score: [" + fCheck.getGameDeaths() + " - " + oFreq.getGameDeaths() + "]  and advances to " + getRoundName(newRound) + "!"); 
+						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeats " + fCheck.getNames() + "[-" + fDuel.getLR() + "]  Score: [" + fCheck.getGameDeaths() + " - " + oFreq.getGameDeaths() + "]  and advances to " + getRoundName(newRound) + "!");
 					}
 				} else {
 					if (maxPerFreq == 2) {
-						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeat " + fCheck.getNames() + "[-" + fDuel.getLR() + "]  Score: [" + fCheck.getGameDeaths() + " - " + oFreq.getGameDeaths() + "]!"); 
+						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeat " + fCheck.getNames() + "[-" + fDuel.getLR() + "]  Score: [" + fCheck.getGameDeaths() + " - " + oFreq.getGameDeaths() + "]!");
 					} else {
-						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeats " + fCheck.getNames() + "[-" + fDuel.getLR() + "]  Score: [" + fCheck.getGameDeaths() + " - " + oFreq.getGameDeaths() + "]!"); 
+						m_botAction.sendArenaMessage( oFreq.getNames() + "[+" + fDuel.getWR() + "] defeats " + fCheck.getNames() + "[-" + fDuel.getLR() + "]  Score: [" + fCheck.getGameDeaths() + " - " + oFreq.getGameDeaths() + "]!");
 					}
 				}
 				advanceFreq( opponent );
@@ -1557,8 +1570,8 @@ public class tournybot extends SubspaceBot {
 
 	public boolean playerStillIn(String name) {
 
-		if (!players.containsKey(name)) { 
-		    return false; 
+		if (!players.containsKey(name)) {
+		    return false;
 		}
 
 		pStats stillIn = (pStats)players.get( name );
@@ -1577,8 +1590,8 @@ public class tournybot extends SubspaceBot {
 
 	public boolean freqStillIn(String freq) {
 
-		if (!freqs.containsKey(freq)) { 
-		    return false; 
+		if (!freqs.containsKey(freq)) {
+		    return false;
 		}
 
 		fStats stillIn = (fStats)freqs.get( freq );
@@ -1642,7 +1655,7 @@ public class tournybot extends SubspaceBot {
 	 * Sends queries of every team/player in the tournament to get their rating & ID
 	 * Also assigns random number for each freq to make the seedings more random
 	 */
-		
+
 	public void announcePlayers() {
 		createTournament(playersNum);
 
@@ -1756,13 +1769,13 @@ public class tournybot extends SubspaceBot {
 			String freq = (String) it3.next();
 			fStats rCheck2 = (fStats)freqs.get( freq );
 
-			checkOpponent(freq, 1); 
+			checkOpponent(freq, 1);
 		}
 
 		m_announcePrize = new TimerTask()
-		{			
-			public void run() 
-			{				
+		{
+			public void run()
+			{
 				if (dbAvailable) {
 					if (playersNum < 5) {
 						trPrize = 0;
@@ -1868,8 +1881,8 @@ public class tournybot extends SubspaceBot {
 		final int round = roundBox.getRound();
 		int box = roundBox.getBox();
 
-		if (roundBox.getBusy() != 0) { 
-		    return; 
+		if (roundBox.getBusy() != 0) {
+		    return;
 		}
 
 		fStats oCheck;
@@ -1891,9 +1904,9 @@ public class tournybot extends SubspaceBot {
 				if (oCheck.getFreqState() != 2) {
 					int box1;
 					int lBox;
-	
+
 					for (int aRound = round; aRound >= 2; aRound--) {
-					
+
 						if (aRound == 2) {
 							int newRound = 1;
 
@@ -1977,10 +1990,10 @@ public class tournybot extends SubspaceBot {
 									return;
 								}
 							}
-	
+
 						} else if (aRound == 5) {
 							int newRound = 4;
-						
+
 							if (round == 6) {
 								box1 = box * 4;
 								lBox = box1 -3;
@@ -2000,12 +2013,12 @@ public class tournybot extends SubspaceBot {
 
 						} else if (aRound == 6)	{
 							int newRound = 5;
-						
+
 							box1 = box *2;
 							lBox = box1 -1;
-						
+
 							for (int fBox = box1; fBox >= lBox; fBox--) {
-							
+
 								if (newRound == oCheck.getRound() && fBox == oCheck.getBox()) {
 									warpFreq(freq);
 									return;
@@ -2060,12 +2073,12 @@ public class tournybot extends SubspaceBot {
 
 					if (eka == 1) {
 
-						if (r == 7) { 
-						    out = Tools.formatString("  " + "Winner", 14); 
-						} else if (r == 6) { 
-						    out = Tools.formatString("  " + "Runner up", 14); 
-						} else { 
-						    out = Tools.formatString("  " + "Round " + r, 14); 
+						if (r == 7) {
+						    out = Tools.formatString("  " + "Winner", 14);
+						} else if (r == 6) {
+						    out = Tools.formatString("  " + "Runner up", 14);
+						} else {
+						    out = Tools.formatString("  " + "Round " + r, 14);
 						}
 					} else {
 						out = Tools.formatString("  " + " ", 14);
@@ -2111,11 +2124,11 @@ public class tournybot extends SubspaceBot {
 				} catch (NumberFormatException nfe) {
 					return;
 				}
-				
+
 				if(!(vote > 0 && vote <= range)) {
 					return;
 				}
-				
+
 				votes.put(name, new Integer(vote));
 			}
 		} catch( Exception e ) {}
@@ -2132,8 +2145,8 @@ public class tournybot extends SubspaceBot {
 
 		for (int i = 1; i < counters.length; i++) {
 
-			if (counters[winner] < counters[i]) { 
-				winner = i; 
+			if (counters[winner] < counters[i]) {
+				winner = i;
 			}
 		}
 		return winner;
@@ -2150,15 +2163,15 @@ public class tournybot extends SubspaceBot {
 
 		public void run()
 		{
-			if (trState == 4) { 
+			if (trState == 4) {
 				String f1 = freq1.getP1().getFreq();
 				String f2 = freq2.getP1().getFreq();
 
 				if (freqStillIn(f1) && freqStillIn(f2))	{
 					handlePlayerGo(freq1.getP1());
-					handlePlayerGo(freq2.getP1());				
+					handlePlayerGo(freq2.getP1());
 
-					if (maxPerFreq == 2) {					
+					if (maxPerFreq == 2) {
 						handlePlayerGo(freq1.getP2());
 						handlePlayerGo(freq2.getP2());
 					}
@@ -2208,7 +2221,7 @@ public class tournybot extends SubspaceBot {
 			}
 		};
 	}
-	
+
 	void setupStop() {
 		m_stop = new TimerTask()
 		{
@@ -2218,7 +2231,7 @@ public class tournybot extends SubspaceBot {
 			}
 		};
 	}
-	
+
 	public long getStartTime() {
 		String[] ids = TimeZone.getAvailableIDs(-5 * 60 * 60 * 1000);
 	    	SimpleTimeZone est = new SimpleTimeZone(-5 * 60 * 60 * 1000, ids[0]);
@@ -2232,13 +2245,13 @@ public class tournybot extends SubspaceBot {
 
 		if (timeTil < 0) {
 			timeTil = (7 * 24 * 60 * 60 * 1000) + timeTil;
-			if (trState == -1) { 
-				startTournament(); 
+			if (trState == -1) {
+				startTournament();
 			}
 		}
 		return timeTil;
 	}
-	
+
 	public long getStopTime() {
 		String[] ids = TimeZone.getAvailableIDs(-5 * 60 * 60 * 1000);
 		SimpleTimeZone est = new SimpleTimeZone(-5 * 60 * 60 * 1000, ids[0]);
@@ -2277,7 +2290,7 @@ public class tournybot extends SubspaceBot {
 		setupStart();
 		m_botAction.scheduleTaskAtFixedRate(m_start, getStartTime(), 7 * 24 * 60 * 60 * 1000);
 	}
-	
+
 	public void changeStop(String message) {
 		String pieces[] = message.split(" ");
 		int tempStop = 23;
@@ -2303,7 +2316,7 @@ public class tournybot extends SubspaceBot {
 	/*
 	 * Creates a record of the tournament to database
 	 */
-	
+
 	public void createTournament(int num) {
 		try {
 			String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
@@ -2324,14 +2337,14 @@ public class tournybot extends SubspaceBot {
 			if (s.next()) {
 				tournyID = s.getInt("tournyID");
 			}
-		} catch (Exception e) { 
+		} catch (Exception e) {
 			dbAvailable = false;
 			tournyID = -1;
 		};
 	}
 
 
-	/* 
+	/*
 	 * Finishes the tournament by updating playerstats and sending all the duel results to database
 	 * Also updates the Rank tables
 	 */
@@ -2360,7 +2373,7 @@ public class tournybot extends SubspaceBot {
 
 				String query;
 				String query2;
-		
+
 				if (maxPerFreq == 1) {
 					query = "UPDATE tblTournyPlayerStats SET rating = rating + '" + fU.getFRating(trPrize) + "', wins = wins + '" + fU.getWins() + "', losses = losses + '" + fU.getLosses() + "', kills = kills + '" + fU.getTotalKills() + "', deaths = deaths + '" + fU.getTotalDeaths() + "', trs = trs + '1' ";
 
@@ -2453,8 +2466,8 @@ public class tournybot extends SubspaceBot {
 			String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
 			m_botAction.SQLQuery(dbConn, "UPDATE tblTournyTournaments SET prize = '" + trPrize + "', trState = 1, finished = '" + time + "', winner = '" + winner + "' WHERE id = " + id);
 			m_botAction.sendArenaMessage("Complete tournament statistics at: " + m_botSettings.getString( "websiteR" ) + tournyID);
-		} catch (Exception e) { 
-			m_botAction.sendArenaMessage("Database error, no statistics available."); 
+		} catch (Exception e) {
+			m_botAction.sendArenaMessage("Database error, no statistics available.");
 		};
 	}
 
@@ -2465,7 +2478,7 @@ public class tournybot extends SubspaceBot {
 			player = name;
 		}
 
-		public void run() 
+		public void run()
 		{
 			if (players.containsKey(player)) {
 				pStats info2 = (pStats)players.get(player);
@@ -2491,8 +2504,8 @@ public class tournybot extends SubspaceBot {
 			delayers = d;
 			silent = s;
 		}
-	
-		public void run() 
+
+		public void run()
 		{
 			delayers.remove(dName);
 
@@ -2525,16 +2538,16 @@ public class tournybot extends SubspaceBot {
 			}
 		}
 	}
-	
+
 	class Lagger extends TimerTask {
 		String player;
 		HashMap laggers;
-	
+
 		public Lagger( String name, HashMap l ) {
 			player = name;
 			laggers = l;
 		}
-	
+
 		public void run()
 		{
 			pStats lagi = (pStats)players.get( player );
@@ -2549,3 +2562,4 @@ public class tournybot extends SubspaceBot {
 		}
 	}
 }
+
