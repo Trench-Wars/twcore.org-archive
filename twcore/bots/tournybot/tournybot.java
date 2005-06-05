@@ -32,7 +32,7 @@ public class tournybot extends SubspaceBot {
 
 	Iterator ppIterator;
 
-	String dbConn = "local";
+	String dbConn = "website";
 
 	String ship;		// Shipname used in tourny
 	int shipType = 0;	// Shipnumber used in tourny
