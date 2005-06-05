@@ -373,9 +373,9 @@ public class tournybot extends SubspaceBot {
 								((duelDelay) delayers.get(name)).cancel();
 								delayers.remove(name);
 							}
-							delayers.put( name, new duelDelay( name, killeeName, killerName, delayers, true ));
-							duelDelay d = (duelDelay)delayers.get( name );
+							duelDelay d = new duelDelay( name, killeeName, killerName, delayers, true, System.currentTimeMillis());
 							m_botAction.scheduleTask( d, 3000 );
+							delayers.put(name, d);
 						}
 						return;
 					}
@@ -444,7 +444,7 @@ public class tournybot extends SubspaceBot {
 						//-AlienKing
 
 
-						duelDelay d = new duelDelay( name, killeeName, killerName, delayers, false );
+						duelDelay d = new duelDelay( name, killeeName, killerName, delayers, false, System.currentTimeMillis());
 						m_botAction.scheduleTask( d, 3000 );
 						delayers.put( name, d);
 					}
@@ -2495,14 +2495,16 @@ public class tournybot extends SubspaceBot {
 		String player;
 		String killer;
 		HashMap delayers;
+		long timeStamp;
 		boolean silent;
 
-		public duelDelay( String tName, String name, String name2, HashMap d, boolean s ) {
+		public duelDelay( String tName, String name, String name2, HashMap d, boolean s, long time ) {
 			dName = tName;
 			player = name;
 			killer = name2;
 			delayers = d;
 			silent = s;
+			timeStamp = time;
 		}
 
 		public void run()
