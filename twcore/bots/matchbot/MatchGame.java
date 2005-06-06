@@ -297,6 +297,14 @@ public class MatchGame
 	{
 		m_logger.logEvent(event);
 	};
+	
+	public void handleEvent(SoccerGoal event)
+	{
+		if (m_curRound != null)
+		{
+			m_curRound.handleEvent(event);
+		};
+	};
 
 	public ArrayList getHelpMessages(String name, boolean isStaff)
 	{

@@ -391,6 +391,27 @@ public class MatchRound
         {
         };
     };
+    
+    /*
+     * Parses the SoccerGoal event to the team in which the player is
+     */
+    public void handleEvent(SoccerGoal event)
+    {
+    	try {
+    		int freq = event.getFrequency();
+    		if(freq == 1) {
+    			m_fnTeam1Score++;
+    			if(m_fnTeam1Score > m_rules.getInt("goals"))
+    				endGame();
+    		}
+    		if(freq == 2) {
+    			m_fnTeam2Score++;
+    			if(m_fnTeam2Score > m_rules.getInt("goals"))
+    				endGame();
+    		}
+    	} catch(Exception e) {}
+    }
+    			
 
     /*
      * Parses the PlayerLeft event to the team in which the player is
@@ -1161,7 +1182,7 @@ public class MatchRound
 	
 			if (updateScores != null)
 				updateScores.cancel();
-
+				
 			do_updateScoreBoard();
 			m_botAction.showObject(m_rules.getInt("obj_gameover"));
 
@@ -1200,8 +1221,9 @@ public class MatchRound
             }
             else
                 m_logger.sendArenaMessage("Result of " + m_team1.getTeamName() + " vs. " + m_team2.getTeamName() + ": " + m_fnTeam1Score + " - " + m_fnTeam2Score, 5);
-
-    	    displayScores();
+			
+			if(!m_rules.getString("winby").equals("goals"))
+    	    	displayScores();
 
             if (m_fnTeam1Score > m_fnTeam2Score)
             {
