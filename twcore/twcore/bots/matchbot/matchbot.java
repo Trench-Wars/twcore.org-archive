@@ -135,6 +135,7 @@ public class matchbot extends SubspaceBot
         req.request(EventRequester.MESSAGE);
         req.request(EventRequester.ARENA_JOINED);
         req.request(EventRequester.WEAPON_FIRED);
+        req.request(EventRequester.SOCCER_GOAL);
     };
 
     /**
@@ -152,6 +153,14 @@ public class matchbot extends SubspaceBot
         {
             m_game.handleEvent(event);
         };
+    }
+    
+    public void handleEvent(SoccerGoal event)
+    {
+    	if (m_game != null)
+    	{
+    		m_game.handleEvent(event);
+    	};
     }
 
     public void handleEvent(LoggedOn event)
