@@ -102,7 +102,7 @@ public class twdbot extends SubspaceBot {
       {
         boolean isStaff;
         String message = event.getMessage();
-        if( event.getMessageType() == Message.PRIVATE_MESSAGE ){
+        if( event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ){
             String name = m_botAction.getPlayerName( event.getPlayerID() );
             if( m_opList.isER( name )) isStaff = true; else isStaff= false;
 
@@ -138,6 +138,8 @@ public class twdbot extends SubspaceBot {
             }
             else
             {
+                if( ! (event.getMessageType() == Message.PRIVATE_MESSAGE) )
+                    return;
                 //Player commands
                 if( message.equals( "!resetname" ) )
                     commandResetName( name, name, true);
