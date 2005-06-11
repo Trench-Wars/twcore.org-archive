@@ -33,7 +33,8 @@ public class pubbotmessage extends PubBotModule
     		String pieces[] = message.split(":");
     		int mins = Integer.parseInt(pieces[3]);
     		if(mins < 1)
-    			m_botAction.ipcTransmit("messages", new IPCMessage(name, "MessageBot"));
+    			m_botAction.sendSmartPrivateMessage("MessageBot", "!login " + name);
+    		//	m_botAction.ipcTransmit("messages", new IPCMessage(name, "MessageBot"));
     	}
   }
 
