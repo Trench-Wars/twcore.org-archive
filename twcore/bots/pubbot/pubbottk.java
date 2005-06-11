@@ -12,14 +12,18 @@ import twcore.misc.pubcommon.*;
  */
 public class pubbottk extends PubBotModule {
 
-    private final int normTKpts = 10;        // Penalty for TKing (any ship but shark or levi)
-    private final int levTKpts = 8;          // Penalty for TKing as a lev
-    private final int sharkTKpts = 4;        // Penalty for TKing as a shark
-    private final int continuedTKpts = 15;   // Penalty for Tking same person twice in a row
-    private final int warnAt = 30;           // Points at which player receives a warning
-    private final int notifyAt = 65;         // Points at which staff is notified
-    private final int cooldownSecs = 10;     // Time, in secs, it takes to remove 1 TK point
-    private final int forgetTime = 15;       // Time, in secs, between when the
+    private final int TK_POINTS_NORM = 12;   // Penalty for TKing (any ship but shark or levi)
+    private final int TK_POINTS_LEVI = 9;    // Penalty for TKing as a lev
+    private final int TK_POINTS_SHARK = 5;   // Penalty for TKing as a shark
+    private final int TK_POINTS_REPEAT = 20; // Penalty for Tking same person twice in a row
+    private final int AMT_WARNAT = 35;       // Points at which player receives a warning
+    private final int AMT_NOTIFYAT = 70;     // Points at which staff is notified
+    private final int TKNUM_EMERGENCY_WARN = 10;    // # TK's to force a first warning 
+    private final int TKNUM_EMERGENCY_SETSHIP = 30; // # TK's to force a setship
+    private final int TKNUM_EMERGENCY_NOTIFY = 50;  // # TK's to force a notify
+    
+    private final int COOLDOWN_SECS = 7;     // Time, in secs, it takes to remove 1 TK point
+    private final int FORGET_TIME_MINS = 15; // Time, in minutes, between when the
                                              //    slate is wiped clean for TKers who
                                              //    have left the arena. (def: 15 min)
     private OperatorList m_opList;
@@ -59,7 +63,7 @@ public class pubbottk extends PubBotModule {
                 oldtkers = new HashMap();
             }
         };
-        m_botAction.scheduleTaskAtFixedRate( forgetOldTKers, forgetTime * 1000, forgetTime * 1000 );
+        m_botAction.scheduleTaskAtFixedRate( forgetOldTKers, FORGET_TIME_MINS * 1000, FORGET_TIME_MINS * 1000 );
     }
 
 
@@ -195,8 +199,6 @@ public class pubbottk extends PubBotModule {
 
     /**
      * Messages a staff member the information on a TKer.
-     * FIXME: After running long periods of time, all TK info is sometimes destroyed, and no new
-     * TKs can be recorded. (returns 'Teamkill record not found' msg)
      * @param staffname Staff member to msg
      * @param tkname Name of TKer
      */
@@ -282,7 +284,7 @@ public class pubbottk extends PubBotModule {
         } else {
             TKInfo newtk = new TKInfo( killer.getPlayerName() );
             newtk.addTK( killer.getShipType(), killed.getPlayerName() );
-            m_botAction.scheduleTaskAtFixedRate( newtk, cooldownSecs * 1000, cooldownSecs * 1000 );
+            m_botAction.scheduleTaskAtFixedRate( newtk, COOLDOWN_SECS * 1000, COOLDOWN_SECS * 1000 );
             tkers.put( newtk.getName(), newtk );
         }
 
@@ -386,55 +388,57 @@ public class pubbottk extends PubBotModule {
             m_TKs++;
 
             if( shipnum == 8 ) {
-                m_TKpoints += sharkTKpts;
+                m_TKpoints += TK_POINTS_SHARK;
                 if( m_setShipped == true )
-                	m_TKpoints += sharkTKpts;	// counts for double if you've been setshipped
+                	m_TKpoints += TK_POINTS_SHARK;	// counts for double if you've been setshipped
 		    } else if( shipnum == 4 ) {
-                m_TKpoints += levTKpts;
+                m_TKpoints += TK_POINTS_LEVI;
                 if( m_setShipped == true )
-                	m_TKpoints += levTKpts;		// counts for double if you've been setshipped
+                	m_TKpoints += TK_POINTS_LEVI;	// counts for double if you've been setshipped
             } else {
-                m_TKpoints += normTKpts;
+                m_TKpoints += TK_POINTS_NORM;
                 if( m_setShipped == true )
-                	m_TKpoints += normTKpts;	// counts for double if you've been setshipped
+                	m_TKpoints += TK_POINTS_NORM;	// counts for double if you've been setshipped
             }
 
             // System to find out of one person is being targetted.  Activated
             // by one person being TKd twice in a row.  After that records every
             // additional TK on that person, regardless of whether it's consecutive.
             if( playerTKd.equals( m_lastRepeatTK ) ) {
-                if( shipnum != 4 && shipnum != 8 )
-                    m_TKpoints += continuedTKpts;
             	m_repeat += 1;
+                if( shipnum != 4 && shipnum != 8 )
+                    m_TKpoints += TK_POINTS_REPEAT;
             } else if( playerTKd.equals( m_lastTKd ) ) {
                 m_repeatKiller = true;
                 m_lastRepeatTK = m_lastTKd;
                 m_repeat = 2;
+                if( shipnum != 4 && shipnum != 8 )
+                    m_TKpoints += TK_POINTS_REPEAT;
             }
 
-            if( m_setShipped && m_TKpoints >= notifyAt ) {
+            if( m_setShipped && m_TKpoints >= AMT_NOTIFYAT ) {
                 notifyStaff();
-            } else if( m_TKpoints >= notifyAt) {
+            } else if( m_TKpoints >= AMT_NOTIFYAT) {
                 setTKerShip();
-            } else if( m_TKpoints >= warnAt ) {
-                if( m_warns >= 4 && m_setShipped )
+            } else if( m_TKpoints >= AMT_WARNAT ) {
+                if( m_warns >= 8 && m_setShipped )
                     notifyStaff();
-                else if( m_warns >= 4 )
+                else if( m_warns >= 6 )
                     setTKerShip();
                 else
                     addWarn();
             // Below: "Failsafes" for players attempting to cheat the system
-            } else if( m_TKs >= 35 && m_staffNotified == false ) {
-                if( m_TKpoints < notifyAt )
-                    m_TKpoints = notifyAt;
+            } else if( m_TKs >= TKNUM_EMERGENCY_NOTIFY && m_staffNotified == false ) {
+                if( m_TKpoints < AMT_NOTIFYAT )
+                    m_TKpoints = AMT_NOTIFYAT;
                 notifyStaff();
-            } else if( m_TKs >= 30 && m_setShipped == false ) {
-                if( m_TKpoints < notifyAt )
-                    m_TKpoints = notifyAt;
+            } else if( m_TKs >= TKNUM_EMERGENCY_SETSHIP && m_setShipped == false ) {
+                if( m_TKpoints < AMT_NOTIFYAT )
+                    m_TKpoints = AMT_NOTIFYAT;
                 setTKerShip();
-            } else if( m_TKs >= 10 && m_warns == 0 ) {
-                if( m_TKpoints < warnAt )
-                    m_TKpoints = warnAt;
+            } else if( m_TKs >= TKNUM_EMERGENCY_WARN && m_warns == 0 ) {
+                if( m_TKpoints < AMT_WARNAT )
+                    m_TKpoints = AMT_WARNAT;
                 addWarn();
             }
 
@@ -476,7 +480,7 @@ public class pubbottk extends PubBotModule {
             else if( m_warns == 4 )
             	m_botAction.sendPrivateMessage( m_playerName, ">>> WARNING! <<<  Continuing to kill your teammates puts you in serious danger of being banned from Trench Wars!", 2 );
             else if( m_warns > 4 )
-            	m_botAction.sendPrivateMessage( m_playerName, ">>> WARNING! <<<  You will be banned if you continue to TK!!  >>> WARNING! <<<", 2 );
+            	m_botAction.sendPrivateMessage( m_playerName, ">>> WARNING! <<<  Moderators will be notified, and you may be banned if you continue to TK!!", 2 );
         }
 
 
