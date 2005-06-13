@@ -14,7 +14,8 @@ public class pubhubalias extends PubBotModule
   public static final int CLEAR_DELAY = 30 * 60 * 1000;
   public static final int DEFAULT_DAYS = 180;
 
-  private Map recordTimeList;
+  private Set justAdded;
+  private Set deleteNextTime;
   private ClearRecordTask clearRecordTask;
 
   /**
@@ -23,7 +24,8 @@ public class pubhubalias extends PubBotModule
 
   public void initializeModule()
   {
-    recordTimeList = Collections.synchronizedMap(new HashMap());
+    justAdded = Collections.synchronizedSet(new HashSet());
+    deleteNextTime = Collections.synchronizedSet(new HashSet());
     clearRecordTask = new ClearRecordTask();
 
     m_botAction.scheduleTaskAtFixedRate(clearRecordTask, CLEAR_DELAY, CLEAR_DELAY);
@@ -131,6 +133,7 @@ public class pubhubalias extends PubBotModule
   }
 
   // wtf?
+  // ^^^^
   public void doInfoCmd(String argString) throws SQLException
   {
     ResultSet resultSet = m_botAction.SQLQuery(DATABASE,
@@ -157,7 +160,7 @@ public class pubhubalias extends PubBotModule
 
   public void doRecordInfoCmd(String sender)
   {
-    m_botAction.sendChatMessage("Players recorded in the hashmap: " + recordTimeList.size());
+    m_botAction.sendChatMessage("Players recorded in the hashmap: " + (justAdded.size() + deleteNextTime.size()));
   }
 
   public void doAltTWLCmd(String argString)
@@ -239,9 +242,7 @@ public class pubhubalias extends PubBotModule
 
   public void gotEntered(String botSender, String argString)
   {
-    String playerName = argString.toLowerCase();
-
-    if(!recordTimeList.containsKey(playerName))
+    if(!justAdded.contains(argString.toLowerCase()) && !deleteNextTime.contains(argString.toLowerCase()))
       m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("notrecorded " + argString, botSender));
   }
 
@@ -253,13 +254,11 @@ public class pubhubalias extends PubBotModule
     String playerName = recordArgs.nextToken();
     String playerIP = recordArgs.nextToken();
     String playerMacID = recordArgs.nextToken();
-    String lowerName = playerName.toLowerCase();
 
     try
     {
       recordInfo(playerName, playerIP, playerMacID);
-      RecordTime recordTime = new RecordTime(lowerName, new Date());
-      recordTimeList.put(lowerName, recordTime);
+      justAdded.add(playerName.toLowerCase());
     }
     catch(Exception e)
     {
@@ -318,7 +317,7 @@ public class pubhubalias extends PubBotModule
   {
     DBPlayerData playerData = new DBPlayerData(m_botAction, DATABASE, playerName, true);
     int userID = playerData.getUserID();
-    long aliasID = getAliasID(userID, playerIP, playerMacID);
+    int aliasID = getAliasID(userID, playerIP, playerMacID);
 
     if(aliasID == -1)
       createAlias(userID, playerIP, playerMacID);
@@ -326,7 +325,7 @@ public class pubhubalias extends PubBotModule
       updateAlias(aliasID);
   }
 
-  private long getAliasID(int userID, String playerIP, String playerMacID)
+  private int getAliasID(int userID, String playerIP, String playerMacID)
   {
     try
     {
@@ -338,7 +337,7 @@ public class pubhubalias extends PubBotModule
       "AND fnMachineID = " + playerMacID);
       if(!resultSet.next())
         return -1;
-      long results = resultSet.getLong("fnAliasID");
+      int results = resultSet.getInt("fnAliasID");
       resultSet.close();
       return results;
     }
@@ -364,7 +363,7 @@ public class pubhubalias extends PubBotModule
     }
   }
 
-  private void updateAlias(long aliasID)
+  private void updateAlias(int aliasID)
   {
     try
     {
@@ -377,33 +376,6 @@ public class pubhubalias extends PubBotModule
     catch(SQLException e)
     {
       throw new RuntimeException("ERROR: Unable to update alias entry.");
-    }
-  }
-
-  /**
-   * This method checks to see if a record time should be removed.
-   */
-
-  private boolean isOldRecord(Date removeDate, RecordTime recordTime)
-  {
-    Date recordDate = recordTime.getRecordDate();
-
-    return removeDate.after(recordDate);
-  }
-
-  /**
-   * This method removes the recording time info from the record list.
-   */
-
-  private void removeRecords(Vector removeList)
-  {
-    String playerName;
-
-    for(int index = 0; index < removeList.size(); index++)
-    {
-      playerName = (String) removeList.get(index);
-      if(recordTimeList.remove(playerName) == null)
-        m_botAction.sendChatMessage("Could not remove " + playerName + ".");
     }
   }
 
@@ -430,32 +402,6 @@ public class pubhubalias extends PubBotModule
   }
 
   /**
-   * This class records when the player info was recorded and for who.
-   */
-
-  private class RecordTime
-  {
-    private String playerName;
-    private Date recordDate;
-
-    public RecordTime(String playerName, Date recordDate)
-    {
-      this.playerName = playerName;
-      this.recordDate = recordDate;
-    }
-
-    public String getPlayerName()
-    {
-      return playerName;
-    }
-
-    public Date getRecordDate()
-    {
-      return recordDate;
-    }
-  }
-
-  /**
    * This method clears out RecordTimes that have been recorded later than
    * RECORD_DELAY so the info for those players can be recorded again.
    */
@@ -464,19 +410,9 @@ public class pubhubalias extends PubBotModule
   {
     public void run()
     {
-      Vector removeList = new Vector();
-      Date removeDate = new Date(System.currentTimeMillis() - REMOVE_DELAY);
-      Collection collection = recordTimeList.values();
-      Iterator iterator = collection.iterator();
-      RecordTime recordTime;
-
-      while(iterator.hasNext())
-      {
-        recordTime = (RecordTime) iterator.next();
-        if(isOldRecord(removeDate, recordTime))
-          removeList.add(recordTime.getPlayerName());
-      }
-      removeRecords(removeList);
+      deleteNextTime.clear();
+      deleteNextTime.addAll(justAdded);
+      justAdded.clear();
     }
   }
 }
