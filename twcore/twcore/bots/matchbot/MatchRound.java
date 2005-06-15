@@ -370,9 +370,6 @@ public class MatchRound
             String killeeName = m_botAction.getPlayer(event.getKilleeID()).getPlayerName();
             String killerName = m_botAction.getPlayer(event.getKillerID()).getPlayerName();
 
-            if (m_fnRoundState == 3)
-                m_lagHandler.requestLag(killerName);
-
             if (m_team1.getPlayer(killeeName, true) != null)
                 m_team1.handleEvent(event);
             if (m_team2.getPlayer(killeeName, true) != null)
@@ -1031,6 +1028,7 @@ public class MatchRound
         };
     };
 
+
     // gets called by m_startGame TimerTask.
     public void startGame()
     {
@@ -1040,6 +1038,8 @@ public class MatchRound
         {
             public void run()
             {
+                m_lagHandler.requestLag(m_team1.getNameToLagCheck());
+                m_lagHandler.requestLag(m_team2.getNameToLagCheck());
                 do_updateScoreBoard();
             }
         };

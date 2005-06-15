@@ -13,6 +13,7 @@ import twcore.misc.database.DBPlayerData;
 import twcore.misc.statistics.Statistics;
 import java.util.*;
 import java.sql.*;
+import java.text.*;
 
 public class MatchTeam
 {
@@ -37,6 +38,8 @@ public class MatchTeam
     int m_fnSubstitutes;
     int m_fnShipSwitches;
     int m_fnShipChanges;
+
+	int m_lagID = 0;
 
     // 0 - no forfeit, 1 - forfeitwin, 2 - forfeitloss
     int m_fnForfeit;
@@ -1713,7 +1716,25 @@ public class MatchTeam
         }
     }
 
-    /**
+	public String getNameToLagCheck()
+	{
+		MatchPlayer player;
+
+        try
+        {
+            player = (MatchPlayer)m_players.get(m_lagID);			
+        }
+        catch (IndexOutOfBoundsException e)
+        {
+            m_lagID = 0;
+            player = (MatchPlayer)m_players.get(m_lagID);
+        }
+        m_lagID++;
+        return player.getPlayerName();
+    }
+
+
+	/**
      * Please use the global constants defined in the stats file so we don't introduce bugs
      * @author Someoneelse, Edited by FoN
      * 
