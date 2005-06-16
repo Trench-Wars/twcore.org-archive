@@ -36,7 +36,7 @@ public class pubhubalias extends PubBotModule
     eventRequester.request(EventRequester.MESSAGE);
   }
 
-  public void doAltNickCmd(String argString)
+  public void doAltNickCmd(String argString, boolean compareIP, boolean compareMID)
   {
     StringTokenizer argTokens = new StringTokenizer(argString, ":");
 
@@ -51,15 +51,20 @@ public class pubhubalias extends PubBotModule
 
     try
     {
-      ResultSet resultSet = m_botAction.SQLQuery(DATABASE,
+      String queryString =
       "SELECT * " +
       "FROM tblAlias A1, tblAlias A2, tblUser U1, tblUser U2 " +
       "WHERE U1.fcUserName = '" + Tools.addSlashesToString(playerName) + "' " +
-      "AND U1.fnUserID = A1.fnUserID " +
-      "AND A1.fcIP = A2.fcIP " +
-      "AND A1.fnMachineID = A2.fnMachineID " +
+      "AND U1.fnUserID = A1.fnUserID ";     
+      if(compareIP)
+          queryString += "AND A1.fcIP = A2.fcIP ";
+      if(compareMID)          
+          queryString += "AND A1.fnMachineID = A2.fnMachineID ";
+      queryString +=
       "AND A2.fnUserID = U2.fnUserID " +
-      "ORDER BY U2.fcUserName, A2.fdUpdated");
+      "ORDER BY U2.fcUserName, A2.fdUpdated";          
+      ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
+      
       int results = 0;
       String lastName = "";
       String currName;
@@ -82,12 +87,12 @@ public class pubhubalias extends PubBotModule
     }
   }
 
-  public void doAltIPCmd(String argString)
+  public void doAltIPCmd(String argString, boolean compareMID)
   {
     StringTokenizer argTokens = new StringTokenizer(argString, ":");
 
     if(argTokens.countTokens() < 1 || argTokens.countTokens() > 2)
-      throw new IllegalArgumentException("Please use the following format: !altnick <PlayerName>:<Date Updated>");
+      throw new IllegalArgumentException("Please use the following format: !altip <PlayerName>:<Date Updated>");
 
     String playerIP = argTokens.nextToken();
     int updateDays = DEFAULT_DAYS;
@@ -96,16 +101,20 @@ public class pubhubalias extends PubBotModule
       updateDays = Integer.parseInt(argTokens.nextToken());
 
     try
-    {
-      ResultSet resultSet = m_botAction.SQLQuery(DATABASE,
+    {        
+      String queryString =
       "SELECT * " +
       "FROM tblAlias A1, tblAlias A2, tblUser U1, tblUser U2 " +
       "WHERE A1.fcIP = '" + playerIP + "' " +
       "AND U1.fnUserID = A1.fnUserID " +
-      "AND A1.fcIP = A2.fcIP " +
-      "AND A1.fnMachineID = A2.fnMachineID " +
+      "AND A1.fcIP = A2.fcIP ";
+      if(compareMID)
+        queryString += "AND A1.fnMachineID = A2.fnMachineID ";      
+      queryString +=
       "AND A2.fnUserID = U2.fnUserID " +
-      "ORDER BY U2.fcUserName");
+      "ORDER BY U2.fcUserName";      
+      
+      ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
       int results = 0;
       String lastName = "";
       String currName;
@@ -128,32 +137,93 @@ public class pubhubalias extends PubBotModule
     }
   }
 
-  public void doAltMacIDCmd(String argString)
+  public void doAltMacIDCmd(String argString, boolean compareIP)
   {
+      StringTokenizer argTokens = new StringTokenizer(argString, ":");
+
+      if(argTokens.countTokens() < 1 || argTokens.countTokens() > 2)
+        throw new IllegalArgumentException("Please use the following format: !altmid <PlayerName>:<Date Updated>");
+
+      String playerMID = argTokens.nextToken();
+      int updateDays = DEFAULT_DAYS;
+
+      if(argTokens.hasMoreTokens())
+        updateDays = Integer.parseInt(argTokens.nextToken());
+
+      try
+      {
+        String queryString =
+        "SELECT * " +
+        "FROM tblAlias A1, tblAlias A2, tblUser U1, tblUser U2 " +
+        "WHERE A1.fcMachineID = '" + playerMID + "' " +
+        "AND U1.fnUserID = A1.fnUserID ";
+        if(compareIP)
+          queryString += "AND A1.fcIP = A2.fcIP ";
+        queryString += 
+        "AND A1.fnMachineID = A2.fnMachineID " +
+        "AND A2.fnUserID = U2.fnUserID " +
+        "ORDER BY U2.fcUserName";
+        
+        ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
+        int results = 0;
+        String lastName = "";
+        String currName;
+        if(resultSet == null)
+          throw new RuntimeException("ERROR: Cannot connect to database.");
+        for(; resultSet.next(); results++)
+        {
+          currName = resultSet.getString("U2.fcUserName");
+          if(!currName.equalsIgnoreCase(lastName))
+            m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
+          lastName = currName;
+        }
+        resultSet.close();
+        if(results == 0)
+          m_botAction.sendChatMessage("Player not in database.");
+      }
+      catch(SQLException e)
+      {
+        throw new RuntimeException("ERROR: Cannot connect to database.");
+      }
   }
 
-  // wtf?
-  // ^^^^
+  // made useful.  -qan
   public void doInfoCmd(String argString) throws SQLException
   {
-    ResultSet resultSet = m_botAction.SQLQuery(DATABASE,
-    "SELECT * " +
-    "FROM tblUser U, tblAlias A " +
-    "WHERE U.fcUserName = '" + Tools.addSlashesToString(argString) + "' " +
-    "AND U.fnUserID = A.fnUserID");
-    resultSet.close();
-    int results = 0;
+      try
+      {
+          ResultSet resultSet = m_botAction.SQLQuery(DATABASE,
+                  "SELECT * " +
+                  "FROM tblUser U, tblAlias A " +
+                  "WHERE U.fcUserName = '" + Tools.addSlashesToString(argString) + "' " +
+          		  "AND U.fnUserID = A.fnUserID");
+          resultSet.close();
+
+          if(resultSet == null)
+              throw new RuntimeException("ERROR: Cannot connect to database.");
+        
+          if( resultSet.next() ) {
+              m_botAction.sendChatMessage("Name: " + padString(resultSet.getString("U.fcUserName"), 25) + " Last Updated: " + resultSet.getDate("A.fdUpdated") + " " + resultSet.getTime("A.fdUpdated"));
+              m_botAction.sendChatMessage("Last reg'd info - MID: " + resultSet.getInt("A.fnMachineID") + "  IP: " + resultSet.getString("A.fcIP") + "  (Times updated: " + resultSet.getInt("A.fnTimesUpdated") + ")" );
+          }
+      }
+      catch(SQLException e)
+      {
+          throw new RuntimeException("ERROR: Cannot connect to database.");
+      }
+      
   }
 
   public void doHelpCmd(String sender)
   {
     String[] message =
     {
-      "!AltNick <PlayerName>:<Days>",
-      "!AltIP <IP>:<Days>",
-      "!AltMacID <MacID>:<Days>",
-      "!Info <PlayerName>",
-      "!Help"
+      "!AltNick  [-noip|-nomid] <PlayerName>:<Days>",
+      "!AltIP    [-nomid]       <IP>:<Days>",
+      "!AltMID   [-noip]        <MacID>:<Days>",
+      "!Info                    <PlayerName>",
+      "!Help",
+      "(-noip and -nomid will force-ignore IP/MID, respectively)"
     };
     m_botAction.smartPrivateMessageSpam(sender, message);
   }
@@ -211,12 +281,20 @@ public class pubhubalias extends PubBotModule
     {
       if(command.equals("!recordinfo"))
         doRecordInfoCmd(sender);
+      if(command.startsWith("!altnick -nomid "))
+        doAltNickCmd(message.substring(16).trim(), true, false);
+      if(command.startsWith("!altnick -noip "))
+        doAltNickCmd(message.substring(15).trim(), false, true);
       if(command.startsWith("!altnick "))
-        doAltNickCmd(message.substring(9).trim());
+        doAltNickCmd(message.substring(9).trim(), true, true);
+      if(command.startsWith("!altip -nomid "))
+        doAltIPCmd(message.substring(14).trim(), false);
       if(command.startsWith("!altip "))
-        doAltIPCmd(message.substring(7).trim());
-      if(command.startsWith("!altmacid "))
-        doAltMacIDCmd(message.substring(10).trim());
+        doAltIPCmd(message.substring(7).trim(), true);
+      if(command.startsWith("!altmid -noip "))
+        doAltMacIDCmd(message.substring(14).trim(), false);
+      if(command.startsWith("!altmid "))
+        doAltMacIDCmd(message.substring(8).trim(), true);
       if(command.startsWith("!alttwl "))
         doAltTWLCmd(message.substring(8).trim());
       if(command.startsWith("!info "))
