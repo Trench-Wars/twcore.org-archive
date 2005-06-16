@@ -9,7 +9,7 @@ import twcore.misc.pubcommon.*;
 
 public class pubhubalias extends PubBotModule
 {
-  public static final String DATABASE = "local";
+  public static final String DATABASE = "server";
   public static final int REMOVE_DELAY = 3 * 60 * 60 * 1000;
   public static final int CLEAR_DELAY = 30 * 60 * 1000;
   public static final int DEFAULT_DAYS = 180;
@@ -69,7 +69,7 @@ public class pubhubalias extends PubBotModule
       String lastName = "";
       String currName;
       if(resultSet == null)
-        throw new RuntimeException("ERROR: Cannot connect to database.");
+        throw new RuntimeException("ERROR: Null result set returned; connnection may be down.");
       for(; resultSet.next(); results++)
       {
         currName = resultSet.getString("U2.fcUserName");
@@ -119,7 +119,7 @@ public class pubhubalias extends PubBotModule
       String lastName = "";
       String currName;
       if(resultSet == null)
-        throw new RuntimeException("ERROR: Cannot connect to database.");
+        throw new RuntimeException("ERROR: Null result set returned; connnection may be down.");
       for(; resultSet.next(); results++)
       {
         currName = resultSet.getString("U2.fcUserName");
@@ -155,7 +155,7 @@ public class pubhubalias extends PubBotModule
         String queryString =
         "SELECT * " +
         "FROM tblAlias A1, tblAlias A2, tblUser U1, tblUser U2 " +
-        "WHERE A1.fcMachineID = '" + playerMID + "' " +
+        "WHERE A1.fnMachineID = '" + playerMID + "' " +
         "AND U1.fnUserID = A1.fnUserID ";
         if(compareIP)
           queryString += "AND A1.fcIP = A2.fcIP ";
@@ -169,7 +169,7 @@ public class pubhubalias extends PubBotModule
         String lastName = "";
         String currName;
         if(resultSet == null)
-          throw new RuntimeException("ERROR: Cannot connect to database.");
+          throw new RuntimeException("ERROR: Null result set returned; connnection may be down.");
         for(; resultSet.next(); results++)
         {
           currName = resultSet.getString("U2.fcUserName");
@@ -197,15 +197,15 @@ public class pubhubalias extends PubBotModule
                   "FROM tblUser U, tblAlias A " +
                   "WHERE U.fcUserName = '" + Tools.addSlashesToString(argString) + "' " +
           		  "AND U.fnUserID = A.fnUserID");
-          resultSet.close();
 
           if(resultSet == null)
-              throw new RuntimeException("ERROR: Cannot connect to database.");
+              throw new RuntimeException("ERROR: Null result set returned; connnection may be down.");
         
           if( resultSet.next() ) {
               m_botAction.sendChatMessage("Name: " + padString(resultSet.getString("U.fcUserName"), 25) + " Last Updated: " + resultSet.getDate("A.fdUpdated") + " " + resultSet.getTime("A.fdUpdated"));
               m_botAction.sendChatMessage("Last reg'd info - MID: " + resultSet.getInt("A.fnMachineID") + "  IP: " + resultSet.getString("A.fcIP") + "  (Times updated: " + resultSet.getInt("A.fnTimesUpdated") + ")" );
           }
+          resultSet.close();
       }
       catch(SQLException e)
       {
