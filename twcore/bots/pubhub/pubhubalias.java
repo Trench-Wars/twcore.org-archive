@@ -69,7 +69,7 @@ public class pubhubalias extends PubBotModule
       String lastName = "";
       String currName;
       if(resultSet == null)
-        throw new RuntimeException("ERROR: Null result set returned; connnection may be down.");
+        throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
       for(; resultSet.next(); results++)
       {
         currName = resultSet.getString("U2.fcUserName");
@@ -119,7 +119,7 @@ public class pubhubalias extends PubBotModule
       String lastName = "";
       String currName;
       if(resultSet == null)
-        throw new RuntimeException("ERROR: Null result set returned; connnection may be down.");
+        throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
       for(; resultSet.next(); results++)
       {
         currName = resultSet.getString("U2.fcUserName");
@@ -169,7 +169,7 @@ public class pubhubalias extends PubBotModule
         String lastName = "";
         String currName;
         if(resultSet == null)
-          throw new RuntimeException("ERROR: Null result set returned; connnection may be down.");
+          throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
         for(; resultSet.next(); results++)
         {
           currName = resultSet.getString("U2.fcUserName");
@@ -199,7 +199,7 @@ public class pubhubalias extends PubBotModule
           		  "AND U.fnUserID = A.fnUserID");
 
           if(resultSet == null)
-              throw new RuntimeException("ERROR: Null result set returned; connnection may be down.");
+              throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
         
           if( resultSet.next() ) {
               m_botAction.sendChatMessage("Name: " + padString(resultSet.getString("U.fcUserName"), 25) + " Last Updated: " + resultSet.getDate("A.fdUpdated") + " " + resultSet.getTime("A.fdUpdated"));
@@ -218,12 +218,12 @@ public class pubhubalias extends PubBotModule
   {
     String[] message =
     {
-      "!AltNick  [-noip|-nomid] <PlayerName>:<Days>",
-      "!AltIP    [-nomid]       <IP>:<Days>",
-      "!AltMID   [-noip]        <MacID>:<Days>",
-      "!Info                    <PlayerName>",
+      "!AltNick[-noip|-nomid] <PlayerName>:<Days>",
+      "!AltIP[-nomid]         <IP>:<Days>",
+      "!AltMID[-noip]         <MacID>:<Days>",
+      "!Info                  <PlayerName>",
       "!Help",
-      "(-noip and -nomid will force-ignore IP/MID, respectively)"
+      "(-noip and -nomid additions to cmds will force-ignore IP/MID, respectively)"
     };
     m_botAction.smartPrivateMessageSpam(sender, message);
   }
@@ -281,18 +281,18 @@ public class pubhubalias extends PubBotModule
     {
       if(command.equals("!recordinfo"))
         doRecordInfoCmd(sender);
-      if(command.startsWith("!altnick -nomid "))
-        doAltNickCmd(message.substring(16).trim(), true, false);
-      if(command.startsWith("!altnick -noip "))
-        doAltNickCmd(message.substring(15).trim(), false, true);
+      if(command.startsWith("!altnick-nomid "))
+        doAltNickCmd(message.substring(15).trim(), true, false);
+      if(command.startsWith("!altnick-noip "))
+        doAltNickCmd(message.substring(14).trim(), false, true);
       if(command.startsWith("!altnick "))
         doAltNickCmd(message.substring(9).trim(), true, true);
-      if(command.startsWith("!altip -nomid "))
-        doAltIPCmd(message.substring(14).trim(), false);
+      if(command.startsWith("!altip-nomid "))
+        doAltIPCmd(message.substring(13).trim(), false);
       if(command.startsWith("!altip "))
         doAltIPCmd(message.substring(7).trim(), true);
-      if(command.startsWith("!altmid -noip "))
-        doAltMacIDCmd(message.substring(14).trim(), false);
+      if(command.startsWith("!altmid-noip "))
+        doAltMacIDCmd(message.substring(13).trim(), false);
       if(command.startsWith("!altmid "))
         doAltMacIDCmd(message.substring(8).trim(), true);
       if(command.startsWith("!alttwl "))
