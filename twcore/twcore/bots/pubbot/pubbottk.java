@@ -13,8 +13,8 @@ import twcore.misc.pubcommon.*;
 public class pubbottk extends PubBotModule {
 
     private final int TK_POINTS_NORM = 12;   // Penalty for TKing (any ship but shark or levi)
-    private final int TK_POINTS_LEVI = 9;    // Penalty for TKing as a lev
-    private final int TK_POINTS_SHARK = 5;   // Penalty for TKing as a shark
+    private final int TK_POINTS_LEVI = 8;    // Penalty for TKing as a lev
+    private final int TK_POINTS_SHARK = 2;   // Penalty for TKing as a shark
     private final int TK_POINTS_REPEAT = 20; // Penalty for Tking same person twice in a row
     private final int AMT_WARNAT = 35;       // Points at which player receives a warning
     private final int AMT_NOTIFYAT = 70;     // Points at which staff is notified
