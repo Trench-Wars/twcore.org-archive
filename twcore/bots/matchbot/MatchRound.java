@@ -919,6 +919,7 @@ public class MatchRound
 		if (p == null) {
 			p = m_team2.getPlayer(report.getName(), true);
 		}
+		Player pbot = m_botAction.getPlayer( report.getName() );
 
         if (report.isOverLimits()) 
         {
@@ -926,13 +927,16 @@ public class MatchRound
             {
                 m_botAction.sendPrivateMessage(report.getRequester(), report.getLagReport());
             }
-			if (p != null && m_botAction.getPlayer(report.getName()).getShipType() != 0 && p.getPlayerState() == MatchPlayer.IN_GAME)
-			{
-	            m_botAction.sendPrivateMessage(report.getName(), report.getLagReport());
-				p.setLagByBot(true);
-				m_botAction.spec(report.getName());
-				m_botAction.spec(report.getName());
-			}
+            try {
+                if (p != null && pbot != null && pbot.getShipType() != 0 && p.getPlayerState() == MatchPlayer.IN_GAME)
+				{
+	            	m_botAction.sendPrivateMessage(report.getName(), report.getLagReport());
+					p.setLagByBot(true);
+					m_botAction.spec(report.getName());
+					m_botAction.spec(report.getName());
+				}
+            } catch (Exception e ) {                
+            }
         }
     }
 
