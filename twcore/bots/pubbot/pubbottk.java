@@ -284,7 +284,7 @@ public class pubbottk extends PubBotModule {
         } else {
             TKInfo newtk = new TKInfo( killer.getPlayerName() );
             newtk.addTK( killer.getShipType(), killed.getPlayerName() );
-            m_botAction.scheduleTaskAtFixedRate( newtk, COOLDOWN_SECS * 1000, COOLDOWN_SECS * 1000 );
+
             tkers.put( newtk.getName(), newtk );
         }
 
@@ -302,10 +302,6 @@ public class pubbottk extends PubBotModule {
 
         String pn = m_botAction.getPlayerName( event.getPlayerID() ).toLowerCase();
         TKInfo oldtker = (TKInfo)tkers.remove( pn );
-        try {
-            oldtker.cancel();
-        } catch (Exception e ) {
-        }
 
         if( oldtker != null )
             oldtkers.put( pn, oldtker );
@@ -353,7 +349,7 @@ public class pubbottk extends PubBotModule {
      *
      * @author qan
      */
-    private class TKInfo extends TimerTask {
+    private class TKInfo {
         private String m_playerName;     // name of TKer
         private String m_lastTKd = "";   // last person TKd by this person
         private String m_lastRepeatTK;   // last person "repeat" TK by this person
@@ -366,13 +362,14 @@ public class pubbottk extends PubBotModule {
         private boolean m_setShipped = false;       // true if player has been setshipped
         private boolean m_repeatKiller = false;     // true if killed same person twice
                                                     // in a row
-
+        private long m_lastTKTime;                  // Last systemclock MS person TKd
 
         /**
          * Create a new TK object whenever a TKer is identified.
          */
         public TKInfo( String name ) {
             m_playerName = name.toLowerCase();
+            m_lastTKTime = System.currentTimeMillis();
         }
 
 
@@ -385,6 +382,9 @@ public class pubbottk extends PubBotModule {
          * @param playerTKd The name of the player who was TKd.
          */
         public void addTK( int shipnum, String playerTKd ) {
+            calculatePointLoss();
+            m_lastTKTime = System.currentTimeMillis();
+            
             m_TKs++;
 
             if( shipnum == 8 ) {
@@ -443,6 +443,24 @@ public class pubbottk extends PubBotModule {
             }
 
             m_lastTKd = playerTKd;
+        }
+        
+        
+        /**
+         * Calculates the number of points a player has lost over time since the last TK.
+         */
+        public void calculatePointLoss() {
+            long diff = System.currentTimeMillis() - m_lastTKTime;
+            if( diff <= 0 )
+                return;
+            long diffsecs = diff / 1000;
+            if( diffsecs <= 0 )
+                return;               
+            long pointloss = diffsecs / COOLDOWN_SECS;
+            
+            m_TKpoints -= pointloss;
+            if( m_TKpoints < 0 )
+                m_TKpoints = 0;
         }
 
 
@@ -505,18 +523,6 @@ public class pubbottk extends PubBotModule {
                 msg = msg + " (player '" + m_lastRepeatTK + "' TK'd " + m_repeat + " times)";
 
             m_botAction.sendUnfilteredPublicMessage( msg );
-        }
-
-
-        /**
-         * Removes a TK point (TKs fade over time, though are always recorded as
-         * a total), if staff have not already been notified.
-         *
-         * TK points reduced by 1 at each tick (generally 10 seconds).
-         */
-        public void run() {
-            if( m_TKpoints > 0 )
-                m_TKpoints--;
         }
 
 
