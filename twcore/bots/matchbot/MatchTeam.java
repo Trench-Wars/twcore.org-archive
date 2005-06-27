@@ -1727,7 +1727,10 @@ public class MatchTeam
         catch (IndexOutOfBoundsException e)
         {
             m_lagID = 0;
-            player = (MatchPlayer)m_players.get(m_lagID);
+            if( m_players.isEmpty() )
+                return null;
+            else
+                player = (MatchPlayer)m_players.get(m_lagID);
         }
         m_lagID++;
         return player.getPlayerName();
