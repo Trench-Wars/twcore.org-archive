@@ -11,9 +11,9 @@ public class pubhub extends SubspaceBot
   public static final int UPDATE_CHECK_DELAY = 500;
   public static final int CHECK_DELAY = 5 * 60 * 1000;
   public static final int LOG_OFF_DELAY = 200;
-  public static final int AUTOLOAD_DELAY = 6000;
+  public static final int AUTOLOAD_DELAY = 10000;
 
-  private int SPAWN_DELAY = 7 * 1000;
+  private int SPAWN_DELAY = 10000;
   private OperatorList opList;
   private ModuleHandler moduleHandler;
   private HashMap botList;
