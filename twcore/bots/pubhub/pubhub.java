@@ -13,7 +13,7 @@ public class pubhub extends SubspaceBot
   public static final int LOG_OFF_DELAY = 200;
   public static final int AUTOLOAD_DELAY = 30000;
 
-  private int SPAWN_DELAY = 20000;
+  private int SPAWN_DELAY = 25000;
   private OperatorList opList;
   private ModuleHandler moduleHandler;
   private HashMap botList;
