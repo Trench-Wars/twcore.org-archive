@@ -1239,7 +1239,10 @@ public class MatchTeam
         if (!useDatabase)
         {
             p = new MatchPlayer(fcPlayerName, this);
-            p.setShipAndFreq(fnShipType, m_fnFrequency);
+            if(!m_rules.getString("name").equalsIgnoreCase("strikeball") || m_fnFrequency == 0)
+           		p.setShipAndFreq(fnShipType, m_fnFrequency);
+           	else
+           		p.setShipAndFreq((fnShipType + 1), m_fnFrequency);
             if (getInGame)
                 p.getInGame(fbSilent);
             m_players.add(p);

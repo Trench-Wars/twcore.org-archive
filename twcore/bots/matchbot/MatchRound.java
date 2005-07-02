@@ -70,6 +70,7 @@ public class MatchRound
     boolean m_fbExtension = false;
     // -1 - unknown;  0 - off; 1 - on
     int m_blueoutState = -1;
+    boolean waitingOnBall = false;
     boolean m_blueoutDesiredState = false;
 
     // this is for lagchecking:
@@ -96,8 +97,13 @@ public class MatchRound
         m_fnRoundResult = 0;
         m_timeStarted = new java.util.Date();
         m_logger = m_game.m_logger;
-        m_team1 = new MatchTeam(fcTeam1Name, 1, 1, this);
-        m_team2 = new MatchTeam(fcTeam2Name, 2, 2, this);
+        if(!m_rules.getString("name").equalsIgnoreCase("strikeball")) {
+	        m_team1 = new MatchTeam(fcTeam1Name, 1, 1, this);
+	        m_team2 = new MatchTeam(fcTeam2Name, 2, 2, this);
+	    } else {
+	    	m_team1 = new MatchTeam(fcTeam1Name, 0, 1, this);
+	        m_team2 = new MatchTeam(fcTeam2Name, 1, 2, this);
+	    }
 
         m_lagHandler = new lagHandler(m_botAction, m_rules, this, "handleLagReport");
 
@@ -156,7 +162,9 @@ public class MatchRound
     {
         String botName = m_botAction.getBotName();
         Player bot = m_botAction.getPlayer(botName);
-
+		if(bot == null)
+			return 9999;
+		
         placeOnSpecFreq(botName);
         return bot.getFrequency();
     }
@@ -396,17 +404,29 @@ public class MatchRound
     {
     	try {
     		int freq = event.getFrequency();
-    		if(freq == 1) {
+    		
+    		if(freq == 0) {
     			m_fnTeam1Score++;
-    			if(m_fnTeam1Score > m_rules.getInt("goals"))
+    			if(m_fnTeam1Score >= m_rules.getInt("goals"))
     				endGame();
     		}
-    		if(freq == 2) {
+    		if(freq == 1) {
     			m_fnTeam2Score++;
-    			if(m_fnTeam2Score > m_rules.getInt("goals"))
+    			if(m_fnTeam2Score >= m_rules.getInt("goals"))
     				endGame();
     		}
+    		System.out.println("Goal by: " + freq);
+    		System.out.println("Score: " + m_fnTeam1Score + "-" + m_fnTeam2Score);
     	} catch(Exception e) {}
+    }
+    
+    public void handleEvent(BallPosition event)
+    {
+    	if(waitingOnBall)
+    	{
+    		startGame();
+    		waitingOnBall = false;
+    	}
     }
     			
 
@@ -983,54 +1003,62 @@ public class MatchRound
                 m_scheduleTimer.cancel();
             };
             m_botAction.setTimer(0);
-
-            m_logger.sendArenaMessage("Both teams are ready, game starts in 30 seconds", 2);
-            m_logger.setDoors(255);
-            m_team1.warpTo(m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
-            m_team2.warpTo(m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
-            m_botAction.move(0, 0);
-            m_fnRoundState = 2;
-            checkBlueout();
-            m_secondWarp = new TimerTask()
-            {
-                public void run()
-                {
-                    m_team1.warpTo(m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
-                    m_team2.warpTo(m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
-                }
-            };
-
-			m_countdown10Seconds = new TimerTask()
-            {
-                public void run()
-                {
-                    m_botAction.showObject(m_rules.getInt("obj_countdown10"));
-                };
-            };
-
-			m_countdown54321 = new TimerTask()
-            {
-                public void run()
-                {
-                    m_botAction.showObject(m_rules.getInt("obj_countdown54321"));
-                    m_team1.warpTo(m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
-                    m_team2.warpTo(m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
-                };
-            };
-
-			m_startGame = new TimerTask()
-            {
-                public void run()
-                {
-                    startGame();
-                };
-            };
-            m_botAction.scheduleTask(m_secondWarp, 10000);
-            m_botAction.scheduleTask(m_countdown10Seconds, 20000);
-            m_botAction.scheduleTask(m_countdown54321, 25000);
-            m_botAction.scheduleTask(m_startGame, 30000);
-        };
-    };
+			if(!m_rules.getString("winby").equals("goals")) {
+	            m_logger.sendArenaMessage("Both teams are ready, game starts in 30 seconds", 2);
+	            m_logger.setDoors(255);
+	            m_team1.warpTo(m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
+	            m_team2.warpTo(m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
+	            m_botAction.move(0, 0);
+	            m_fnRoundState = 2;
+	            checkBlueout();
+	            m_secondWarp = new TimerTask()
+	            {
+	                public void run()
+	                {
+	                    m_team1.warpTo(m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
+	                    m_team2.warpTo(m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
+	                }
+	            };
+	
+				m_countdown10Seconds = new TimerTask()
+	            {
+	                public void run()
+	                {
+	                    m_botAction.showObject(m_rules.getInt("obj_countdown10"));
+	                };
+	            };
+	
+				m_countdown54321 = new TimerTask()
+	            {
+	                public void run()
+	                {
+	                    m_botAction.showObject(m_rules.getInt("obj_countdown54321"));
+	                    m_team1.warpTo(m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
+	                    m_team2.warpTo(m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
+	                };
+	            };
+				
+				m_startGame = new TimerTask()
+	            {
+	                public void run()
+	                {
+	                    startGame();
+	                };
+	            };
+	            m_botAction.scheduleTask(m_secondWarp, 10000);
+	            m_botAction.scheduleTask(m_countdown10Seconds, 20000);
+	            m_botAction.scheduleTask(m_countdown54321, 25000);
+	            m_botAction.scheduleTask(m_startGame, 30000);
+	        }
+	        else {
+	        	m_logger.sendArenaMessage("Both teams are ready, game begins when the ball respawns!", 2);
+	        	m_botAction.sendUnfilteredPublicMessage("*reset");
+	        	m_team1.warpTo(m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
+	            m_team2.warpTo(m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
+	            waitingOnBall = true;
+	        }
+		}
+	};
 
 
     // gets called by m_startGame TimerTask.
@@ -1145,9 +1173,11 @@ public class MatchRound
 
         if (m_raceTimer != null)
             m_raceTimer.cancel();
-
-        m_fnTeam1Score = m_team1.getTeamScore();
-        m_fnTeam2Score = m_team2.getTeamScore();
+        
+		if(!m_rules.getString("winby").equalsIgnoreCase("goals")) {
+	        m_fnTeam1Score = m_team1.getTeamScore();
+	        m_fnTeam2Score = m_team2.getTeamScore();
+	    }
 
         if (m_fnTeam1Score == m_fnTeam2Score)
         {
