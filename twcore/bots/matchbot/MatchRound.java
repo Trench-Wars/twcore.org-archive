@@ -1052,7 +1052,7 @@ public class MatchRound
 	        }
 	        else {
 	        	m_logger.sendArenaMessage("Both teams are ready, game begins when the ball respawns!", 2);
-	        	m_botAction.sendUnfilteredPublicMessage("*reset");
+	        	m_botAction.sendUnfilteredPublicMessage("*restart");
 	        	m_team1.warpTo(m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
 	            m_team2.warpTo(m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
 	            waitingOnBall = true;
