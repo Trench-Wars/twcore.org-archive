@@ -941,12 +941,15 @@ public class MatchTeam
                             // If playerB isn't in the arena.
                             if (pB == null)
                             {
-                                answer = addPlayer(ppB.getPlayerName(), pA.getShipType(), false, true);
+                            	if(!m_rules.getString("name").equalsIgnoreCase("strikeball") || m_fnTeamNumber == 1)
+                                	answer = addPlayer(ppB.getPlayerName(), pA.getShipType(), false, true);
+                                else
+                                	answer = addPlayer(ppB.getPlayerName(), (pA.getShipType() - 1), false, true);
+                                
                                 if (answer.equals("yes"))
                                     pB = getPlayer(ppB.getPlayerName());
                                 else
-                                    m_logger
-                                            .sendPrivateMessage(name, "Could not add player " + playerB + ": " + answer);
+                                    m_logger.sendPrivateMessage(name, "Could not add player " + playerB + ": " + answer);
                             }
 
                             // if the adding of playerB didn't fail:
