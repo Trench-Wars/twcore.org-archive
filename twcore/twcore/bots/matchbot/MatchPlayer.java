@@ -352,7 +352,7 @@ public class MatchPlayer implements Comparable
 		m_statTracker.reportDeath();
 
 		//lag check timer cancel
-		if ((m_statTracker.getStatistic(Statistics.DEATHS) >= m_fnSpecAt) && (m_rules.getInt("deaths") > 0))
+		if ((m_statTracker.getStatistic(Statistics.DEATHS) >= m_fnSpecAt) && (m_rules.getString("winby").equals("kills")))
 		{
 			if (m_fnPlayerState != 2)
 			{
@@ -538,7 +538,7 @@ public class MatchPlayer implements Comparable
 	// return the amount of deaths the scoreboard should count for him.
 	public int getDeaths()
 	{
-		if ((m_fnPlayerState >= 1) && (m_fnPlayerState <= 2))
+		if (m_rules.getString("winby").equals("killrace") || ((m_fnPlayerState >= 1) && (m_fnPlayerState <= 2)))
 			return m_statTracker.getTotalStatistic(Statistics.DEATHS);
 		if (m_fnPlayerState == 0)
 			return 0;
@@ -623,7 +623,7 @@ public class MatchPlayer implements Comparable
 		{
 			return getScore();
 		}
-		else if (winby.equals("kills"))
+		else if (winby.equals("kills") || winby.equals("killrace"))
 		{
 			return getKills();
 		}

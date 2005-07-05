@@ -11,7 +11,6 @@ package twcore.bots.matchbot;
 import twcore.core.*;
 import twcore.misc.database.DBPlayerData;
 import twcore.misc.statistics.Statistics;
-import twcore.misc.lag.*;
 import java.util.*;
 import java.sql.*;
 import java.text.*;
@@ -432,7 +431,7 @@ public class MatchTeam
                                         m_captains.add(p.getPlayerName().toLowerCase());
                                     else
                                         m_captains.set(0, p.getPlayerName().toLowerCase());
-                                    m_logger.sendArenaMessage(p.getPlayerName().trim() + " assigned as captain for "
+                                    m_logger.sendArenaMessage(p.getPlayerName() + " assigned as captain for "
                                             + getTeamName());
                                 }
                                 else
@@ -942,15 +941,12 @@ public class MatchTeam
                             // If playerB isn't in the arena.
                             if (pB == null)
                             {
-                            	if(!m_rules.getString("name").equalsIgnoreCase("strikeball") || m_fnTeamNumber == 1)
-                                	answer = addPlayer(ppB.getPlayerName(), pA.getShipType(), false, true);
-                                else
-                                	answer = addPlayer(ppB.getPlayerName(), (pA.getShipType() - 1), false, true);
-                                
+                                answer = addPlayer(ppB.getPlayerName(), pA.getShipType(), false, true);
                                 if (answer.equals("yes"))
                                     pB = getPlayer(ppB.getPlayerName());
                                 else
-                                    m_logger.sendPrivateMessage(name, "Could not add player " + playerB + ": " + answer);
+                                    m_logger
+                                            .sendPrivateMessage(name, "Could not add player " + playerB + ": " + answer);
                             }
 
                             // if the adding of playerB didn't fail:
@@ -1243,19 +1239,10 @@ public class MatchTeam
         if (!useDatabase)
         {
             p = new MatchPlayer(fcPlayerName, this);
-            if(!m_rules.getString("name").equalsIgnoreCase("strikeball") || m_fnFrequency == 0)
-           		p.setShipAndFreq(fnShipType, m_fnFrequency);
-           	else
-           		p.setShipAndFreq((fnShipType + 1), m_fnFrequency);
+            p.setShipAndFreq(fnShipType, m_fnFrequency);
             if (getInGame)
                 p.getInGame(fbSilent);
             m_players.add(p);
-            String caps = "";
-            Object[] captains = m_captains.toArray();
-            for(int k = 0;k < (captains.length - 1);k++)
-            	caps += String.valueOf(captains[k]) + ":";
-            caps += String.valueOf(captains[(captains.length - 1)]);
-            m_round.m_lagHandler.requestLag(fcPlayerName.trim(), caps);
         }
     };
 
@@ -1300,9 +1287,11 @@ public class MatchTeam
                 retval++;
         }
 
-        if (retval == 0)
+        if (retval == 0) {
+            forfeitLoss();
+			m_round.getOtherTeam(m_fnFrequency).forfeitWin();
             return true;
-        else
+        } else
             return false;
     };
 
@@ -1311,7 +1300,7 @@ public class MatchTeam
         String winBy = m_rules.getString("winby");
         int raceTo = m_rules.getInt("points");
 
-        if (m_round.m_fnRoundState != 3 || !winBy.equals("race") || raceTo < 0)
+        if (m_round.m_fnRoundState != 3 || !(winBy.equals("race") || winBy.equals("killrace")) || raceTo < 0)
             return false;
         return getTeamScore() >= raceTo;
     }
@@ -1455,6 +1444,10 @@ public class MatchTeam
             if (winby.equals("score") || winby.equals("race"))
             {
                 return getTotalScore();
+            }
+            else if (winby.equals("killrace"))
+            {
+                return m_round.getOtherTeam(m_fnFrequency).getTotalDeaths();
             }
             else if (winby.equals("kills"))
             {
@@ -1740,10 +1733,7 @@ public class MatchTeam
         catch (IndexOutOfBoundsException e)
         {
             m_lagID = 0;
-            if( m_players.isEmpty() )
-                return null;
-            else
-                player = (MatchPlayer)m_players.get(m_lagID);
+            player = (MatchPlayer)m_players.get(m_lagID);
         }
         m_lagID++;
         return player.getPlayerName();

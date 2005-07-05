@@ -487,10 +487,25 @@ public class MatchGame
 		m_curRound.cancel();
 
 		int rounds = m_rules.getInt("rounds");
-		if (m_curRound.m_fnTeam1Score > m_curRound.m_fnTeam2Score)
-			m_fnTeam1Score++;
-		else if (m_curRound.m_fnTeam2Score > m_curRound.m_fnTeam1Score)
-			m_fnTeam2Score++;
+
+		if (m_curRound.m_team1.isForfeit() || m_curRound.m_team2.isForfeit())
+		{
+			if (m_curRound.m_team1.isForfeit())
+			{
+				m_fnTeam2Score++;
+			}
+			else
+			{
+				m_fnTeam1Score++;
+			}
+		}
+		else
+		{
+			if (m_curRound.m_fnTeam1Score > m_curRound.m_fnTeam2Score)
+				m_fnTeam1Score++;
+			else if (m_curRound.m_fnTeam2Score > m_curRound.m_fnTeam1Score)
+				m_fnTeam2Score++;
+		}
 
 		if (m_fbAffectsEntireGame)
 		{
