@@ -936,14 +936,18 @@ public class MatchRound
         	if(player.indexOf(":") > -1) {
         		String players[] = player.split(":");
         		for(int k = 0;k < players.length;k++) {
-        			if(report.isOverLimits())
+        			if(report.isOverLimits()) {
         				m_botAction.sendPrivateMessage(players[k], report.getName() + "'s lag is over this arena's limit.");
-        			m_botAction.privateMessageSpam(players[k], report.getLagStats());
+        				m_botAction.sendPrivateMessage(players[k], report.getLagReport());
+        			} else 
+        				m_botAction.privateMessageSpam(players[k], report.getLagStats());
         		}
         	} else {
-        		if(report.isOverLimits())
+        		if(report.isOverLimits()) {
         			m_botAction.sendPrivateMessage(report.getRequester(), report.getName() + "'s lag is over this arena's limit.");
-        	    m_botAction.privateMessageSpam(report.getRequester(), report.getLagStats());
+        			m_botAction.sendPrivateMessage(report.getRequester(), report.getLagReport());
+        		} else 
+        	   		m_botAction.privateMessageSpam(report.getRequester(), report.getLagStats());
         	 }
         }
 
