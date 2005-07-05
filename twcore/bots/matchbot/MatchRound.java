@@ -77,6 +77,8 @@ public class MatchRound
     String m_lagPlayerName;
     int m_lagTeam;
 
+	int m_fnAliveCheck = (int)System.currentTimeMillis();
+
 
     //time race variables
     private int m_raceTarget = 0;
@@ -1007,8 +1009,6 @@ public class MatchRound
 		}
 	}
 
-    public boolean TWLGame() { return (m_rules.getInt("matchtype") > 0 && m_rules.getInt("matchtype") < 4); }
-
     public void checkReadyToGo()
     {
         if ((m_team1.isReadyToGo()) && (m_team2.isReadyToGo()))
@@ -1089,10 +1089,11 @@ public class MatchRound
                 m_lagHandler.requestLag(m_team1.getNameToLagCheck());
                 m_lagHandler.requestLag(m_team2.getNameToLagCheck());
                 do_updateScoreBoard();
+				
+				checkTeamsAlive();
             }
         };
         m_botAction.scheduleTaskAtFixedRate(updateScores, 2000, 1000);
-        if (TWLGame()) { m_botAction.sendArenaMessage("Survived updating scoreboard.."); }
 
         if ((m_rules.getInt("safe1xout") != 0) && (m_rules.getInt("safe1yout") != 0))
         {
@@ -1197,9 +1198,10 @@ public class MatchRound
 
         if (m_fnTeam1Score == m_fnTeam2Score)
         {
-                        String ondraw = m_rules.getString("ondraw");
-                        if (ondraw == null) ondraw = "quit";
-            if ((ondraw.equalsIgnoreCase("extension")) && (!m_fbExtension) && (!m_team1.isForfeit()))
+            String ondraw = m_rules.getString("ondraw");
+            if (ondraw == null) ondraw = "quit";
+
+			if ((ondraw.equalsIgnoreCase("extension")) && (!m_fbExtension) && (!m_team1.isForfeit()))
             {
                 int extTime = m_rules.getInt("extensiontime");
                 if (extTime != 0)
@@ -1275,27 +1277,41 @@ public class MatchRound
 			if(!m_rules.getString("winby").equals("goals"))
     	    	displayScores();
 
-            if (m_fnTeam1Score > m_fnTeam2Score)
+            if (m_team1.isForfeit() || m_team2.isForfeit())
             {
-                m_fnRoundResult = 1;
-                if (m_rules.getInt("rounds") > 1)
-                    m_logger.sendArenaMessage(m_team1.getTeamName() + " wins round " + m_fnRoundNumber + "!");
+                if (m_team1.isForfeit())
+                {
+                    m_logger.sendArenaMessage(m_team1.getTeamName() + " forfeits this round!");
+                }
                 else
-                    m_logger.sendArenaMessage(m_team1.getTeamName() + " wins this game!");
-            }
-            else if (m_fnTeam2Score > m_fnTeam1Score)
-            {
-                m_fnRoundResult = 1;
-                if (m_rules.getInt("rounds") > 1)
-                    m_logger.sendArenaMessage(m_team2.getTeamName() + " wins round " + m_fnRoundNumber + "!");
-                else
-                    m_logger.sendArenaMessage(m_team2.getTeamName() + " wins this game!");
+                {
+                    m_logger.sendArenaMessage(m_team2.getTeamName() + " forfeits this round!");
+                }
             }
             else
             {
-                m_fnRoundResult = 2;
-                m_logger.sendArenaMessage("Draw!");
-            };
+                if (m_fnTeam1Score > m_fnTeam2Score)
+                {
+                    m_fnRoundResult = 1;
+                    if (m_rules.getInt("rounds") > 1)
+                        m_logger.sendArenaMessage(m_team1.getTeamName() + " wins round " + m_fnRoundNumber + "!");
+                    else
+                        m_logger.sendArenaMessage(m_team1.getTeamName() + " wins this game!");
+                }
+                else if (m_fnTeam2Score > m_fnTeam1Score)
+                {
+                    m_fnRoundResult = 1;
+                    if (m_rules.getInt("rounds") > 1)
+                        m_logger.sendArenaMessage(m_team2.getTeamName() + " wins round " + m_fnRoundNumber + "!");
+                    else
+                        m_logger.sendArenaMessage(m_team2.getTeamName() + " wins this game!");
+                }
+                else
+                {
+                    m_fnRoundResult = 2;
+                    m_logger.sendArenaMessage("Draw!");
+                };
+            }
 
             m_fnRoundState = 4;
 
@@ -1575,9 +1591,18 @@ public class MatchRound
 
     }
 
+    public void checkTeamsAlive() {
+        if ((int)System.currentTimeMillis() - m_fnAliveCheck > 5000) {
+            if (m_team1.isDead() || m_team2.isDead())
+                endGame();
+
+            m_fnAliveCheck = (int)System.currentTimeMillis();
+        }
+    }
+
     public void displayScores()
     {
-	boolean duelG = m_rules.getString("winby").equalsIgnoreCase("kills");
+	boolean duelG = m_rules.getString("winby").equalsIgnoreCase("kills") ||  m_rules.getString("winby").equalsIgnoreCase("killrace");
 	boolean wbG = m_rules.getInt("ship") == 1;
 	ArrayList out = new ArrayList();
 
