@@ -64,7 +64,7 @@ public class MatchRound
     private Objset m_myObjects;
     private int m_generalTime = 0;
 
-    private lagHandler m_lagHandler;
+    public lagHandler m_lagHandler;
 
     boolean m_fbAffectsEntireGame = false;
     boolean m_fbExtension = false;
@@ -932,7 +932,19 @@ public class MatchRound
     {
         if (!report.isBotRequest()) 
         {
-            m_botAction.privateMessageSpam(report.getRequester(), report.getLagStats());
+        	String player = report.getRequester();
+        	if(player.indexOf(":") > -1) {
+        		String players[] = player.split(":");
+        		for(int k = 0;k < players.length;k++) {
+        			if(report.isOverLimits())
+        				m_botAction.sendPrivateMessage(players[k], report.getName() + "'s lag is over this arena's limit.");
+        			m_botAction.privateMessageSpam(players[k], report.getLagStats());
+        		}
+        	} else {
+        		if(report.isOverLimits())
+        			m_botAction.sendPrivateMessage(report.getRequester(), report.getName() + "'s lag is over this arena's limit.");
+        	    m_botAction.privateMessageSpam(report.getRequester(), report.getLagStats());
+        	 }
         }
 
         MatchPlayer p = m_team1.getPlayer(report.getName(), true);

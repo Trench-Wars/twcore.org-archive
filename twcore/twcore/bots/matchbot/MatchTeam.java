@@ -11,6 +11,7 @@ package twcore.bots.matchbot;
 import twcore.core.*;
 import twcore.misc.database.DBPlayerData;
 import twcore.misc.statistics.Statistics;
+import twcore.misc.lag.*;
 import java.util.*;
 import java.sql.*;
 import java.text.*;
@@ -431,7 +432,7 @@ public class MatchTeam
                                         m_captains.add(p.getPlayerName().toLowerCase());
                                     else
                                         m_captains.set(0, p.getPlayerName().toLowerCase());
-                                    m_logger.sendArenaMessage(p.getPlayerName() + " assigned as captain for "
+                                    m_logger.sendArenaMessage(p.getPlayerName().trim() + " assigned as captain for "
                                             + getTeamName());
                                 }
                                 else
@@ -1249,6 +1250,12 @@ public class MatchTeam
             if (getInGame)
                 p.getInGame(fbSilent);
             m_players.add(p);
+            String caps = "";
+            Object[] captains = m_captains.toArray();
+            for(int k = 0;k < (captains.length - 1);k++)
+            	caps += String.valueOf(captains[k]) + ":";
+            caps += String.valueOf(captains[(captains.length - 1)]);
+            m_round.m_lagHandler.requestLag(fcPlayerName.trim(), caps);
         }
     };
 
