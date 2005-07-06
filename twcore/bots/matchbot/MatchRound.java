@@ -1277,9 +1277,9 @@ public class MatchRound
 			if(!m_rules.getString("winby").equals("goals"))
     	    	displayScores();
 
-            if (m_team1.isForfeit() || m_team2.isForfeit())
+            if (m_team1.isForfeit())
             {
-                if (m_team1.isForfeit())
+                if (m_team1.teamForfeit())
                 {
                     m_logger.sendArenaMessage(m_team1.getTeamName() + " forfeits this round!");
                 }
