@@ -960,7 +960,7 @@ public class MatchTeam
                                     pB.setShip(pA.getShipType());
                                     m_logger.sendPrivateMessage(pB.getPlayerName(), "You are subbed in the game");
                                     m_fnSubstitutes++;
-                                    if (m_rules.getInt("deaths") == -1)
+                                    if (!m_rules.getString("winby").equals("kills"))
                                         m_logger.sendArenaMessage(pA.getPlayerName() + " has been substituted by " + pB.getPlayerName());
                                     else
                                         m_logger.sendArenaMessage(
