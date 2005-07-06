@@ -1204,6 +1204,11 @@ public class MatchTeam
             return true;
     };
 
+    public boolean teamForfeit()
+    {
+        return m_fnForfeit == 2;
+    }
+
     // addPlayer, including errormessages
     public String addPlayer(String playerName, int fnShip, boolean getInGame, boolean fbSilent)
     {
@@ -1288,8 +1293,11 @@ public class MatchTeam
         }
 
         if (retval == 0) {
-            forfeitLoss();
-			m_round.getOtherTeam(m_fnFrequency).forfeitWin();
+            if (!m_rules.getString("winby").equals("kills"))
+            {
+                forfeitLoss();
+                m_round.getOtherTeam(m_fnFrequency).forfeitWin();
+			}
             return true;
         } else
             return false;
