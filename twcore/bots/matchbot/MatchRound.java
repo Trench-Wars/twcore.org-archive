@@ -502,6 +502,7 @@ public class MatchRound
                         if (p.getPlayerState() == MatchPlayer.IN_GAME)
                         {
                             long pSysTime = p.getOutOfBorderTime(), sysTime = System.currentTimeMillis();
+
                             if (pSysTime == 0)
                                 p.setOutOfBorderTime();
                             else if (((sysTime - pSysTime) > outofbordertime / 2) && (!p.hasHalfBorderWarning()) && ((sysTime - pSysTime) < outofbordertime))
@@ -1086,8 +1087,6 @@ public class MatchRound
         {
             public void run()
             {
-                m_lagHandler.requestLag(m_team1.getNameToLagCheck());
-                m_lagHandler.requestLag(m_team2.getNameToLagCheck());
                 do_updateScoreBoard();
 				
 				checkTeamsAlive();
@@ -1451,7 +1450,7 @@ public class MatchRound
         {
             m_team1.setReadyToGo();
             m_team2.setReadyToGo();
-            m_logger.sendArenaMessage("Time is up. roster are OK.");
+            m_logger.sendArenaMessage("Time is up. Rosters are OK.");
             checkReadyToGo();
         };
 
@@ -1593,7 +1592,11 @@ public class MatchRound
 
     public void checkTeamsAlive() {
         if ((int)System.currentTimeMillis() - m_fnAliveCheck > 5000) {
-            if (m_team1.isDead() || m_team2.isDead())
+ 
+			m_lagHandler.requestLag(m_team1.getNameToLagCheck());
+            m_lagHandler.requestLag(m_team2.getNameToLagCheck());
+
+			if (m_team1.isDead() || m_team2.isDead())
                 endGame();
 
             m_fnAliveCheck = (int)System.currentTimeMillis();
@@ -1603,7 +1606,7 @@ public class MatchRound
     public void displayScores()
     {
 	boolean duelG = m_rules.getString("winby").equalsIgnoreCase("kills") ||  m_rules.getString("winby").equalsIgnoreCase("killrace");
-	boolean wbG = m_rules.getInt("ship") == 1;
+	boolean wbG = m_rules.getInt("ship") == 1 || m_rules.getInt("ship") == 3;
 	ArrayList out = new ArrayList();
 
 	if (duelG) {
