@@ -315,11 +315,14 @@ public class matchbot extends SubspaceBot
             {
                 if (m_rules.getString("specialaccess") != null)
                 {
+                    try {
                     if ((new String(":" + m_rules.getString("specialaccess").toLowerCase() + ":")).indexOf(":" + name.toLowerCase() + ":") != -1)
                     {
                         isStaff = true;
                         isRestrictedStaff = true;
                     };
+                    } catch (Exception e) {                        
+                    }
                 };
             };
 
