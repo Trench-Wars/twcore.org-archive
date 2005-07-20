@@ -488,13 +488,13 @@ public class MatchGame
 
 		int rounds = m_rules.getInt("rounds");
 
-		if (m_curRound.m_team1.isForfeit())
+		if (m_curRound.m_team1.isForfeit() || m_curRound.m_team2.isForfeit())
 		{
-			if (m_curRound.m_team1.teamForfeit())
+			if (m_curRound.m_team1.teamForfeit() && !m_curRound.m_team2.teamForfeit())
 			{
 				m_fnTeam2Score++;
 			}
-			else
+			else if (!m_curRound.m_team1.teamForfeit() && m_curRound.m_team2.teamForfeit())
 			{
 				m_fnTeam1Score++;
 			}
