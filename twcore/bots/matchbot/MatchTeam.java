@@ -1732,7 +1732,12 @@ public class MatchTeam
 
 	public String getNameToLagCheck()
 	{
-		MatchPlayer player;
+        if (m_players.size() <= 0)
+        {
+            return null;
+        }
+
+        MatchPlayer player;
 
         try
         {
