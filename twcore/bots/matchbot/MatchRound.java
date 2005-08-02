@@ -332,12 +332,12 @@ public class MatchRound
             String msg = event.getMessage();
 
 
-		if (m_fnRoundState == 1) {
-			m_team1.handleEvent(event);
-			m_team2.handleEvent(event);
-		} else if (m_fnRoundState == 3) {
-			m_lagHandler.handleLagMessage(msg);
-		}
+            if (m_fnRoundState == 1) {
+                m_team1.handleEvent(event);
+                m_team2.handleEvent(event);
+            }
+
+            m_lagHandler.handleLagMessage(msg);
 			
             /*
                         if (msg.startsWith("IP:")) {
@@ -553,8 +553,7 @@ public class MatchRound
                 help.add("!settime <time in mins>                  - time to racebetween 5 and 30 only for timerace");
                 help.add("!startpick                               - start rostering");
             }
-            if (m_fnRoundState == 3)
-                help.add("!lag <player>                            - show <player> lag");
+            help.add("!lag <player>                            - show <player>'s lag");
             if (m_team1 != null)
             {
                 help.add("-- Prepend your command with !t1- for '" + m_team1.getTeamName() + "', !t2- for '" + m_team2.getTeamName() + "' --");
@@ -587,7 +586,7 @@ public class MatchRound
         if ((command.equals("!startpick")) && (m_fnRoundState == 0) && isStaff)
             command_startpick(name, parameters);
 
-        if ((command.equals("!lag")) && (m_fnRoundState == 3) && isStaff)
+        if (command.equals("!lag") && isStaff)
             command_checklag(name, parameters);
 
         if ((command.equals("!lagstatus")) && isStaff)
@@ -931,49 +930,52 @@ public class MatchRound
         m_botAction.sendPrivateMessage(name, m_lagHandler.getStatus());
     };
 
-    public void handleLagReport(LagReport report) 
+    public void handleLagReport(LagReport report)
     {
         if (!report.isBotRequest()) 
         {
         	String player = report.getRequester();
-        	if(player.indexOf(":") > -1) {
-        		String players[] = player.split(":");
-        		for(int k = 0;k < players.length;k++) {
-        			if(report.isOverLimits()) {
-        				m_botAction.sendPrivateMessage(players[k], report.getName() + "'s lag is over this arena's limit.");
-        				m_botAction.sendPrivateMessage(players[k], report.getLagReport());
-        			} else 
-        				m_botAction.privateMessageSpam(players[k], report.getLagStats());
-        		}
-        	} else {
-        		if(report.isOverLimits()) {
-        			m_botAction.sendPrivateMessage(report.getRequester(), report.getName() + "'s lag is over this arena's limit.");
-        			m_botAction.sendPrivateMessage(report.getRequester(), report.getLagReport());
-        		} else 
-        	   		m_botAction.privateMessageSpam(report.getRequester(), report.getLagStats());
-        	 }
-        }
+            String[] lagStats;
 
-        MatchPlayer p = m_team1.getPlayer(report.getName(), true);
-		if (p == null) {
-			p = m_team2.getPlayer(report.getName(), true);
-		}
-		Player pbot = m_botAction.getPlayer( report.getName() );
+            if (report.isOverLimits()) {
+                lagStats = new String[2];
+                lagStats[0] = report.getLagStats()[0];
+                lagStats[1] = report.getLagStats()[1] + "  " + report.getLagReport();
+            } else {
+                lagStats = report.getLagStats();
+            }
+
+            if (player.startsWith("!")) {
+                if (m_team1.getTeamName().equals(player.substring(1))) {
+                    m_team1.sendPrivateMessageToCaptains(lagStats);
+                } else {
+                    m_team2.sendPrivateMessageToCaptains(lagStats);
+                }
+            } else {
+                m_botAction.privateMessageSpam(player, lagStats);
+            }
+        }
 
         if (report.isOverLimits()) 
         {
-            if (!report.isBotRequest()) 
-            {
-                m_botAction.sendPrivateMessage(report.getRequester(), report.getLagReport());
+            MatchPlayer p = m_team1.getPlayer(report.getName(), true);
+            if (p == null) {
+                p = m_team2.getPlayer(report.getName(), true);
             }
-            try {
+            Player pbot = m_botAction.getPlayer( report.getName() );
+
+			try {
                 if (p != null && pbot != null && pbot.getShipType() != 0 && p.getPlayerState() == MatchPlayer.IN_GAME)
 				{
-	            	m_botAction.sendPrivateMessage(report.getName(), report.getLagReport());
-					p.setLagByBot(true);
-					m_botAction.spec(report.getName());
-					m_botAction.spec(report.getName());
-				}
+                    m_botAction.sendPrivateMessage(report.getName(), report.getLagReport());
+
+					if (m_fnRoundState == 3) {
+                        p.setLagByBot(true);
+                    }
+
+                    m_botAction.spec(report.getName());
+                    m_botAction.spec(report.getName());
+                }
             } catch (Exception e ) {                
             }
         }

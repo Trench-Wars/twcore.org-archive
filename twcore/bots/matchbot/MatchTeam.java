@@ -169,13 +169,9 @@ public class MatchTeam
 	                    m_botAction.sendArenaMessage(playerName + " has changed to spectator mode - +1 death");
 		                p.reportDeath();
 					}
-					else
-					{
-						p.setLagByBot(false);
-					}
                 }
             }
-
+            p.setLagByBot(false);
             p.lagout(false);
         }
     };
@@ -251,6 +247,7 @@ public class MatchTeam
                 if (isPlayerOnTeam(name))
                 {
                     sendPrivateMessageToCaptains(name + " has been idle for " + idleTime + " seconds.");
+                    m_round.m_lagHandler.requestLag(name, "!" + m_fcTeamName);
                 }
             }
 
@@ -477,6 +474,7 @@ public class MatchTeam
                     m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game");
 
                     m_botAction.sendUnfilteredPrivateMessage(p.getPlayerName(), "*einfo");
+
                     if (m_rules.getInt("pickbyturn") == 1)
                     {
                         m_turn = !m_turn;
@@ -1617,6 +1615,15 @@ public class MatchTeam
         while (i.hasNext())
         {
             m_logger.sendPrivateMessage((String) i.next(), text, soundCode);
+        }
+    };
+
+    public void sendPrivateMessageToCaptains(String[] text)
+    {
+        ListIterator i = m_captains.listIterator();
+        while (i.hasNext())
+        {
+            m_botAction.privateMessageSpam((String) i.next(), text);
         }
     };
 
