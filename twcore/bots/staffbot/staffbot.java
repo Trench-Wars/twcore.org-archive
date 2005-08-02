@@ -149,13 +149,13 @@ public class staffbot extends SubspaceBot {
         }
 
         if( m_opList.isSmod( name ) ){
-            if( message.startsWith( "!altnick " )){
+/*            if( message.startsWith( "!altnick " )){
                 queryAltNick( name, message.substring( 9 ));
             } else if( message.startsWith( "!squaddies " )){
                 querySquaddies( name, message.substring( 11 ));
             } else if( message.startsWith( "!dblsquad " )){
-                queryDblSquad( name, message.substring( 10 ));
-            } else if( message.toLowerCase().startsWith( "!warningsfrom " )){
+                queryDblSquad( name, message.substring( 10 )); */                
+            if( message.toLowerCase().startsWith( "!warningsfrom " ))
                 queryWarningsFrom( name, message.substring( 14 ) );
 /*            } else if( message.toLowerCase().startsWith( "!messagestaff " )){
                 handleMessageStaff( OperatorList.ZH_LEVEL, OperatorList.MODERATOR_LEVEL, name, message.substring( 14 ) );
@@ -164,9 +164,9 @@ public class staffbot extends SubspaceBot {
             } else if( message.toLowerCase().startsWith( "!messagezh " )){
                 handleMessageStaff( OperatorList.ZH_LEVEL, OperatorList.ZH_LEVEL, name, message.substring( 11 ) );
             } else if( message.toLowerCase().startsWith( "!messageer " )){
-                handleMessageStaff( OperatorList.ER_LEVEL, OperatorList.ER_LEVEL, name, message.substring( 11 ) );*/
+                handleMessageStaff( OperatorList.ER_LEVEL, OperatorList.ER_LEVEL, name, message.substring( 11 ) );
             }
-
+*/
         }
 
         if( m_opList.isZH(name) )
@@ -207,7 +207,7 @@ public class staffbot extends SubspaceBot {
         }
     }
 
-    public void queryAltNick( String name, String message ){
+/*    public void queryAltNick( String name, String message ){
         m_botAction.sendSmartPrivateMessage( name, "Please hold as I look for matches." );
         HashMap altNick = new HashMap();
         //look up the machineid for the nick
@@ -262,6 +262,7 @@ public class staffbot extends SubspaceBot {
         }
 
     }
+*/
 
     public String formatString(String fragment, int length) {
         String line;
@@ -274,6 +275,7 @@ public class staffbot extends SubspaceBot {
         return fragment;
     }
 
+/*
     class AltNick {
         String name;
         boolean ip = false, mid = false;
@@ -335,6 +337,7 @@ public class staffbot extends SubspaceBot {
             Tools.printStackTrace( e );
         }
     }
+*/
 
     public void handleEvent( FileArrived event ){
         if ( event.getFileName().equals(m_LOGFILENAME) ){
@@ -442,9 +445,9 @@ public class staffbot extends SubspaceBot {
             "!listplayer <player>   - Displays that player's details along with all comments",
             "!getlog                - Downloads server log",
             "Player DB commands:",
-            "!squaddies <player>    - Displays a list of all the players on a player's squad",
+/*            "!squaddies <player>    - Displays a list of all the players on a player's squad",
             "!dblsquad <player>     - Displays a list of all the name/squad combinations this player might own",
-            "!altnick <player>      - Displays a list of all the player's alt nicks.",
+            "!altnick <player>      - Displays a list of all the player's alt nicks.",*/
             "!warnings <player>     - Checks red warnings on specified player",
             "!warningsfrom <player> - Displays a list of recent warns given to a player."
         };
