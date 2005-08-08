@@ -28,6 +28,7 @@ public class pubhubalias extends PubBotModule
     justAdded = Collections.synchronizedSet(new HashSet());
     deleteNextTime = Collections.synchronizedSet(new HashSet());
     watchedIPs = Collections.synchronizedSet(new HashSet());
+    watchedNames = Collections.synchronizedSet(new HashSet());
     clearRecordTask = new ClearRecordTask();
 
     m_botAction.scheduleTaskAtFixedRate(clearRecordTask, CLEAR_DELAY, CLEAR_DELAY);
@@ -204,7 +205,7 @@ public class pubhubalias extends PubBotModule
           if(resultSet == null)
               throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
         
-          m_botAction.sendChatMessage("Info results for '" + resultSet.getString("U.fcUserName") + "':" );
+          m_botAction.sendChatMessage("Info results for '" + argString + "':" );
           boolean hasResults = false;
           while( resultSet.next() ) {
               hasResults = true;
@@ -304,11 +305,11 @@ public class pubhubalias extends PubBotModule
    * @param name Name to watch for
    */
   public void doNameWatchCmd( String name ) {
-      if( watchedIPs.contains( name ) ) {
-          watchedIPs.remove( name );
+      if( watchedNames.contains( name ) ) {
+          watchedNames.remove( name );
           m_botAction.sendChatMessage( "Login watching disabled for '" + name + "'." );          
       } else {
-          watchedIPs.add( name );
+          watchedNames.add( name );
           m_botAction.sendChatMessage( "Login watching enabled for '" + name + "'." );          
       }          
   }
@@ -397,10 +398,11 @@ public class pubhubalias extends PubBotModule
     String playerIP = recordArgs.nextToken();
     String playerMacID = recordArgs.nextToken();    
 
+    checkName( playerName, playerIP, playerMacID );
+    checkIP( playerName, playerIP, playerMacID );
+
     try
     {
-      checkName( playerName, playerIP, playerMacID );
-      checkIP( playerName, playerIP, playerMacID );
       recordInfo(playerName, playerIP, playerMacID);
       justAdded.add(playerName.toLowerCase());
     }
