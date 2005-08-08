@@ -430,6 +430,7 @@ public class pubhubalias extends PubBotModule
 
     checkName( playerName, playerIP, playerMacID );
     checkIP( playerName, playerIP, playerMacID );
+    checkMID( playerName, playerIP, playerMacID );
 
     try
     {
