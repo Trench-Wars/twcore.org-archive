@@ -18,6 +18,7 @@ public class pubhubalias extends PubBotModule
   private Set deleteNextTime;
   private Set watchedIPs;
   private Set watchedNames;
+  private Set watchedMIDs;
   private ClearRecordTask clearRecordTask;
 
   /**
@@ -29,6 +30,7 @@ public class pubhubalias extends PubBotModule
     deleteNextTime = Collections.synchronizedSet(new HashSet());
     watchedIPs = Collections.synchronizedSet(new HashSet());
     watchedNames = Collections.synchronizedSet(new HashSet());
+    watchedMIDs = Collections.synchronizedSet(new HashSet());
     clearRecordTask = new ClearRecordTask();
 
     m_botAction.scheduleTaskAtFixedRate(clearRecordTask, CLEAR_DELAY, CLEAR_DELAY);
@@ -209,8 +211,8 @@ public class pubhubalias extends PubBotModule
           boolean hasResults = false;
           while( resultSet.next() ) {
               hasResults = true;
-              m_botAction.sendChatMessage( padString("MID: " + resultSet.getInt("A.fnMachineID"), 18) + "  IP: " + padString(resultSet.getString("A.fcIP"), 18) +
-                                           "Updated on " + resultSet.getDate("A.fdUpdated") + "  (updates: " + resultSet.getInt("A.fnTimesUpdated") + ")" );
+              m_botAction.sendChatMessage( padString("MID: " + resultSet.getInt("A.fnMachineID"), 15) + "  IP: " + padString(resultSet.getString("A.fcIP"), 15) +
+                                           " Updated " + resultSet.getDate("A.fdUpdated") + " - " + resultSet.getInt("A.fnTimesUpdated") + " update(s)" );
           }
           if( !hasResults )
               m_botAction.sendChatMessage( "None found." );
@@ -231,10 +233,12 @@ public class pubhubalias extends PubBotModule
       "!AltIP[-nomid]         <IP>:<Days>",
       "!AltMID[-noip]         <MacID>:<Days>",
       "!Info                  <PlayerName>",
-      "!IPWatch               <IP>",
       "!NameWatch             <Name>",
-      "!ClearIPWatch          (clears all IPs being watched)",
+      "!IPWatch               <IP>",
+      "!MIDWatch              <MID>",
       "!ClearNameWatch        (clears all names being watched)",
+      "!ClearIPWatch          (clears all IPs being watched)",
+      "!ClearMIDWatch         (clears all MIDs being watched)",
       "!Help",
       "(-noip and -nomid additions to cmds will force-ignore IP/MID, respectively)"
     };
@@ -305,12 +309,26 @@ public class pubhubalias extends PubBotModule
    * @param name Name to watch for
    */
   public void doNameWatchCmd( String name ) {
-      if( watchedNames.contains( name ) ) {
-          watchedNames.remove( name );
+      if( watchedNames.contains( name.toLowerCase() ) ) {
+          watchedNames.remove( name.toLowerCase() );
           m_botAction.sendChatMessage( "Login watching disabled for '" + name + "'." );          
       } else {
-          watchedNames.add( name );
+          watchedNames.add( name.toLowerCase() );
           m_botAction.sendChatMessage( "Login watching enabled for '" + name + "'." );          
+      }          
+  }
+
+  /**
+   * Starts watching for a given MacID.
+   * @param MID MID to watch for
+   */
+  public void doMIDWatchCmd( String MID ) {
+      if( watchedMIDs.contains( MID ) ) {
+          watchedMIDs.remove( MID );
+          m_botAction.sendChatMessage( "MID watching disabled for MID: " + MID );          
+      } else {
+          watchedMIDs.add( MID );
+          m_botAction.sendChatMessage( "MID watching enabled for MID: " + MID );          
       }          
   }
 
@@ -330,6 +348,14 @@ public class pubhubalias extends PubBotModule
       m_botAction.sendChatMessage( "All watched names cleared." );                
   }
         
+  /**
+   * Stops all MacID watching.
+   */
+  public void doClearMIDWatchCmd( ) {
+      watchedNames.clear();
+      m_botAction.sendChatMessage( "All watched MIDs cleared." );                
+  }
+
   public void handleChatMessage(String sender, String message)
   {
     String command = message.toLowerCase();
@@ -362,10 +388,14 @@ public class pubhubalias extends PubBotModule
         doIPWatchCmd(message.substring(9).trim());        
       else if(command.startsWith("!namewatch "))
         doNameWatchCmd(message.substring(11).trim());
+      else if(command.startsWith("!midwatch "))
+        doMIDWatchCmd(message.substring(10).trim());
       else if(command.equals("!clearipwatch"))
         doClearIPWatchCmd();
       else if(command.equals("!clearnamewatch"))
         doClearNameWatchCmd();
+      else if(command.equals("!clearmidwatch"))
+        doClearMIDWatchCmd();
     }
     catch(Exception e)
     {
@@ -418,8 +448,8 @@ public class pubhubalias extends PubBotModule
    * @param MacId MacID of player
    */
   public void checkName( String name, String IP, String MacID ) {
-      if( watchedNames.contains(name) ) {
-          m_botAction.sendChatMessage( "NameWatch: '" + name + "' logged in.  (IP: " + IP + ", MID: " + MacID + ")" );                          
+      if( watchedNames.contains( name.toLowerCase() ) ) {
+          m_botAction.sendChatMessage( "NAMEWATCH: '" + name + "' logged in.  (IP: " + IP + ", MID: " + MacID + ")" );                          
       }          
   }
 
@@ -435,7 +465,24 @@ public class pubhubalias extends PubBotModule
       while( i.hasNext() ) {
           String IPfragment = (String)i.next();
           if( IP.startsWith( IPfragment ) ) {
-              m_botAction.sendChatMessage( "IPWatch: Match on '" + name + "' - " + IP + " (matches '" + IPfragment + "')  MID: " + MacID + "" );                          
+              m_botAction.sendChatMessage( "IPWATCH: Match on '" + name + "' - " + IP + " (matches " + IPfragment + "*)  MID: " + MacID );                          
+          }
+      }
+  }
+
+  /**
+   * Check if an MID is being watched for, and notify on chat if so.
+   * @param name Name of player
+   * @param IP IP of player
+   * @param MacId MacID to checl
+   */
+  public void checkMID( String name, String IP, String MacID ) {
+      Iterator i = watchedIPs.iterator();
+      
+      while( i.hasNext() ) {
+          String IPfragment = (String)i.next();
+          if( IP.startsWith( IPfragment ) ) {
+              m_botAction.sendChatMessage( "MIDWATCH: Match on '" + name + "' - " + MacID + "  IP: " + IP );                          
           }
       }
   }
