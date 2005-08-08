@@ -478,14 +478,9 @@ public class pubhubalias extends PubBotModule
    * @param MacId MacID to checl
    */
   public void checkMID( String name, String IP, String MacID ) {
-      Iterator i = watchedIPs.iterator();
-      
-      while( i.hasNext() ) {
-          String IPfragment = (String)i.next();
-          if( IP.startsWith( IPfragment ) ) {
-              m_botAction.sendChatMessage( "MIDWATCH: Match on '" + name + "' - " + MacID + "  IP: " + IP );                          
-          }
-      }
+      if( watchedMIDs.contains( MacID ) ) {
+          m_botAction.sendChatMessage( "MIDWATCH: Match on '" + name + "' - " + MacID + "  IP: " + IP );                          
+      }          
   }
 
   /**
