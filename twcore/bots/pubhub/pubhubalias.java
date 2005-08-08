@@ -16,16 +16,18 @@ public class pubhubalias extends PubBotModule
 
   private Set justAdded;
   private Set deleteNextTime;
+  private Set watchedIPs;
+  private Set watchedNames;
   private ClearRecordTask clearRecordTask;
 
   /**
    * This method initializes the module.
    */
-
   public void initializeModule()
   {
     justAdded = Collections.synchronizedSet(new HashSet());
     deleteNextTime = Collections.synchronizedSet(new HashSet());
+    watchedIPs = Collections.synchronizedSet(new HashSet());
     clearRecordTask = new ClearRecordTask();
 
     m_botAction.scheduleTaskAtFixedRate(clearRecordTask, CLEAR_DELAY, CLEAR_DELAY);
@@ -196,15 +198,21 @@ public class pubhubalias extends PubBotModule
                   "SELECT * " +
                   "FROM tblUser U, tblAlias A " +
                   "WHERE U.fcUserName = '" + Tools.addSlashesToString(argString) + "' " +
-          		  "AND U.fnUserID = A.fnUserID");
+          		  "AND U.fnUserID = A.fnUserID " +
+                  "ORDER BY A.fdUpdated" );
 
           if(resultSet == null)
               throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
         
-          if( resultSet.next() ) {
-              m_botAction.sendChatMessage("Name: " + padString(resultSet.getString("U.fcUserName"), 25) + " Last Updated: " + resultSet.getDate("A.fdUpdated") + " " + resultSet.getTime("A.fdUpdated"));
-              m_botAction.sendChatMessage("Last reg'd info - MID: " + resultSet.getInt("A.fnMachineID") + "  IP: " + resultSet.getString("A.fcIP") + "  (Times updated: " + resultSet.getInt("A.fnTimesUpdated") + ")" );
+          m_botAction.sendChatMessage("Info results for '" + resultSet.getString("U.fcUserName") + "':" );
+          boolean hasResults = false;
+          while( resultSet.next() ) {
+              hasResults = true;
+              m_botAction.sendChatMessage( padString("MID: " + resultSet.getInt("A.fnMachineID"), 18) + "  IP: " + padString(resultSet.getString("A.fcIP"), 18) +
+                                           "Updated on " + resultSet.getDate("A.fdUpdated") + "  (updates: " + resultSet.getInt("A.fnTimesUpdated") + ")" );
           }
+          if( !hasResults )
+              m_botAction.sendChatMessage( "None found." );
           resultSet.close();
       }
       catch(SQLException e)
@@ -222,6 +230,10 @@ public class pubhubalias extends PubBotModule
       "!AltIP[-nomid]         <IP>:<Days>",
       "!AltMID[-noip]         <MacID>:<Days>",
       "!Info                  <PlayerName>",
+      "!IPWatch               <IP>",
+      "!NameWatch             <Name>",
+      "!ClearIPWatch          (clears all IPs being watched)",
+      "!ClearNameWatch        (clears all names being watched)",
       "!Help",
       "(-noip and -nomid additions to cmds will force-ignore IP/MID, respectively)"
     };
@@ -273,6 +285,50 @@ public class pubhubalias extends PubBotModule
     }
   }
 
+  /**
+   * Starts watching for an IP starting with a given string.
+   * @param IP IP to watch for
+   */
+  public void doIPWatchCmd( String IP ) {
+      if( watchedIPs.contains( IP ) ) {
+          watchedIPs.remove( IP );
+          m_botAction.sendChatMessage( "IP watching disabled for IPs starting with " + IP );          
+      } else {
+          watchedIPs.add( IP );
+          m_botAction.sendChatMessage( "IP watching enabled for IPs starting with " + IP );          
+      }          
+  }
+
+  /**
+   * Starts watching for a name to log on.
+   * @param name Name to watch for
+   */
+  public void doNameWatchCmd( String name ) {
+      if( watchedIPs.contains( name ) ) {
+          watchedIPs.remove( name );
+          m_botAction.sendChatMessage( "Login watching disabled for '" + name + "'." );          
+      } else {
+          watchedIPs.add( name );
+          m_botAction.sendChatMessage( "Login watching enabled for '" + name + "'." );          
+      }          
+  }
+
+  /**
+   * Stops all IP watching.
+   */
+  public void doClearIPWatchCmd( ) {
+      watchedIPs.clear();
+      m_botAction.sendChatMessage( "All watched IPs cleared." );                
+  }
+
+  /**
+   * Stops all name watching.
+   */
+  public void doClearNameWatchCmd( ) {
+      watchedNames.clear();
+      m_botAction.sendChatMessage( "All watched names cleared." );                
+  }
+        
   public void handleChatMessage(String sender, String message)
   {
     String command = message.toLowerCase();
@@ -281,26 +337,34 @@ public class pubhubalias extends PubBotModule
     {
       if(command.equals("!recordinfo"))
         doRecordInfoCmd(sender);
-      if(command.startsWith("!altnick-nomid "))
-        doAltNickCmd(message.substring(15).trim(), true, false);
-      if(command.startsWith("!altnick-noip "))
-        doAltNickCmd(message.substring(14).trim(), false, true);
-      if(command.startsWith("!altnick "))
-        doAltNickCmd(message.substring(9).trim(), true, true);
-      if(command.startsWith("!altip-nomid "))
-        doAltIPCmd(message.substring(13).trim(), false);
-      if(command.startsWith("!altip "))
-        doAltIPCmd(message.substring(7).trim(), true);
-      if(command.startsWith("!altmid-noip "))
-        doAltMacIDCmd(message.substring(13).trim(), false);
-      if(command.startsWith("!altmid "))
-        doAltMacIDCmd(message.substring(8).trim(), true);
-      if(command.startsWith("!alttwl "))
-        doAltTWLCmd(message.substring(8).trim());
-      if(command.startsWith("!info "))
-        doInfoCmd(message.substring(6).trim());
-      if(command.equals("!help"))
+      else if(command.equals("!help"))
         doHelpCmd(sender);
+      else if(command.startsWith("!altnick-nomid "))
+        doAltNickCmd(message.substring(15).trim(), true, false);
+      else if(command.startsWith("!altnick-noip "))
+        doAltNickCmd(message.substring(14).trim(), false, true);
+      else if(command.startsWith("!altnick "))
+        doAltNickCmd(message.substring(9).trim(), true, true);
+      else if(command.startsWith("!altip-nomid "))
+        doAltIPCmd(message.substring(13).trim(), false);
+      else if(command.startsWith("!altip "))
+        doAltIPCmd(message.substring(7).trim(), true);
+      else if(command.startsWith("!altmid-noip "))
+        doAltMacIDCmd(message.substring(13).trim(), false);
+      else if(command.startsWith("!altmid "))
+        doAltMacIDCmd(message.substring(8).trim(), true);
+      else if(command.startsWith("!alttwl "))
+        doAltTWLCmd(message.substring(8).trim());
+      else if(command.startsWith("!info "))
+        doInfoCmd(message.substring(6).trim());
+      else if(command.startsWith("!ipwatch "))
+        doIPWatchCmd(message.substring(9).trim());        
+      else if(command.startsWith("!namewatch "))
+        doNameWatchCmd(message.substring(11).trim());
+      else if(command.equals("!clearipwatch"))
+        doClearIPWatchCmd();
+      else if(command.equals("!clearnamewatch"))
+        doClearNameWatchCmd();
     }
     catch(Exception e)
     {
@@ -331,16 +395,47 @@ public class pubhubalias extends PubBotModule
       throw new IllegalArgumentException("ERROR: Could not write player information.");
     String playerName = recordArgs.nextToken();
     String playerIP = recordArgs.nextToken();
-    String playerMacID = recordArgs.nextToken();
+    String playerMacID = recordArgs.nextToken();    
 
     try
     {
+      checkName( playerName, playerIP, playerMacID );
+      checkIP( playerName, playerIP, playerMacID );
       recordInfo(playerName, playerIP, playerMacID);
       justAdded.add(playerName.toLowerCase());
     }
     catch(Exception e)
     {
     }
+  }
+  
+  /**
+   * Check if a name is being watched for, and notify on chat if so.
+   * @param name Name to check
+   * @param IP IP of player
+   * @param MacId MacID of player
+   */
+  public void checkName( String name, String IP, String MacID ) {
+      if( watchedNames.contains(name) ) {
+          m_botAction.sendChatMessage( "NameWatch: '" + name + "' logged in.  (IP: " + IP + ", MID: " + MacID + ")" );                          
+      }          
+  }
+
+  /**
+   * Check if an IP is being watched for, and notify on chat if so.
+   * @param name Name of player
+   * @param IP IP to check
+   * @param MacId MacID of player
+   */
+  public void checkIP( String name, String IP, String MacID ) {
+      Iterator i = watchedIPs.iterator();
+      
+      while( i.hasNext() ) {
+          String IPfragment = (String)i.next();
+          if( IP.startsWith( IPfragment ) ) {
+              m_botAction.sendChatMessage( "IPWatch: Match on '" + name + "' - " + IP + " (matches '" + IPfragment + "')  MID: " + MacID + "" );                          
+          }
+      }
   }
 
   /**
@@ -349,7 +444,6 @@ public class pubhubalias extends PubBotModule
    * @param botSender is the bot that sent the command.
    * @param message is the message that is being sent via IPC.
    */
-
   public void handleIPCMessage(String botSender, String message)
   {
     if(message.startsWith("entered "))
@@ -363,7 +457,6 @@ public class pubhubalias extends PubBotModule
    *
    * @param event is the IPC event to handle.
    */
-
   public void handleEvent(InterProcessEvent event)
   {
     IPCMessage ipcMessage = (IPCMessage) event.getObject();
@@ -465,7 +558,6 @@ public class pubhubalias extends PubBotModule
    * @return the string padded with spaces to fit into spaces characters.  If
    * the string is too long to fit, it is truncated.
    */
-
   private String padString(String string, int spaces)
   {
     int whitespaces = spaces - string.length();
@@ -483,7 +575,6 @@ public class pubhubalias extends PubBotModule
    * This method clears out RecordTimes that have been recorded later than
    * RECORD_DELAY so the info for those players can be recorded again.
    */
-
   private class ClearRecordTask extends TimerTask
   {
     public void run()
