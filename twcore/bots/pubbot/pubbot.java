@@ -276,7 +276,10 @@ public class pubbot extends SubspaceBot
 
   public void handleEvent(PlayerLeft event)
   {
-    m_botAction.scheduleTask(new ArenaDyingTask(), UPDATE_CHECK_DELAY);
+    try {
+        m_botAction.scheduleTask(new ArenaDyingTask(), UPDATE_CHECK_DELAY);
+    } catch (Exception e) {        
+    }
     moduleHandler.handleEvent(event);
   }
 
