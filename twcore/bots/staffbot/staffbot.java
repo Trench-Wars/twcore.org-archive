@@ -227,20 +227,17 @@ public class staffbot extends SubspaceBot {
 
     public void handleHelp( String name, boolean remote ){
         final String[] helpTextZH = {
-            "Available ZH commands:",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player"
         };
 
         final String[] helpTextER = {
-            "Available ER commands:",
             "!warnings <player>     - Checks red warnings on specified player",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player"
         };
 
         final String[] helpTextMod = {
-            "Available Mod commands:",
             "!warnings <player>     - Checks red warnings on specified player",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player",
@@ -251,7 +248,6 @@ public class staffbot extends SubspaceBot {
         };
         
         final String[] helpTextHighmod = {
-            "Available HighMod commands:",
             "!warnings <player>     - Checks red warnings on specified player",
             "!altwarn <player>      - Checks warns on all of player's altnicks",
             "!find <player>         - Finds a player on all of their altnicks",
@@ -264,7 +260,10 @@ public class staffbot extends SubspaceBot {
         };
         
         final String[] helpTextSmod = {
-            "Available upper staff commands:",
+            "!warnings <player>     - Checks red warnings on specified player",
+            "!warningsfrom <player> - Displays a list of recent warns given to a player.",
+            "!altwarn <player>      - Checks warns on all of player's altnicks",
+            "!find <player>         - Finds a player on all of their altnicks",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player",
             "!remove <player>       - Removes a player from the list",
@@ -272,10 +271,7 @@ public class staffbot extends SubspaceBot {
             "!listrating <num>      - Lists <num>(optional) of players descending by average rating",
             "!listall               - Displays all players in the list in alphabetical order",
             "!listplayer <player>   - Displays that player's details along with all comments",
-            "!getlog                - Downloads server log",
-            "Player DB commands:",
-            "!warnings <player>     - Checks red warnings on specified player",
-            "!warningsfrom <player> - Displays a list of recent warns given to a player."
+            "!getlog                - Downloads server log"
         };
 
         if( m_opList.isZHExact( name ) ){
