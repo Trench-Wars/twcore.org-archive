@@ -149,12 +149,14 @@ public class staffbot extends SubspaceBot {
 
         if( m_opList.isER( name ) ){
             if( message.toLowerCase().startsWith( "!warning " ) ){
+                m_botAction.sendRemotePrivateMessage( name, "Warnings for " + message + ":" );
                 queryWarnings( name, message.substring( 9 ) );
             }
         }
 
         if( m_opList.isER( name ) ){
             if( message.toLowerCase().startsWith( "!warnings " ) ){
+                m_botAction.sendRemotePrivateMessage( name, "Warnings for " + message + ":" );
                 queryWarnings( name, message.substring( 10 ) );
             }
         }
@@ -319,7 +321,6 @@ public class staffbot extends SubspaceBot {
         try {
             ResultSet set = m_botAction.SQLQuery( TWSITES_DATABASE, query );
 
-            m_botAction.sendRemotePrivateMessage( name, "Warnings for " + message + ":" );
             while( set.next() ){
                 m_botAction.sendRemotePrivateMessage( name, set.getString( "warning" ) );
             }
@@ -719,7 +720,6 @@ public class staffbot extends SubspaceBot {
                 altnick = (String)i.next();
                 queryWarnings(sender, altnick);
             }
-            m_botAction.sendRemotePrivateMessage(sender, "End of list.");
         } catch (Exception e) {
             m_botAction.sendSmartPrivateMessage( sender, "Unexpected error while querying altnicks." );
         }
