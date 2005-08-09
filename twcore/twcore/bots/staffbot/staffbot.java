@@ -22,7 +22,7 @@ import java.sql.*;
 import twcore.core.*;
 
 public class staffbot extends SubspaceBot {
-    public static final String TWSITES_DATABASE = "server";
+    public static final String TWSITES_DATABASE = "local";
     public static final String FIND_DELIMETER = " - ";
     public static final int CHECK_LENGTH = 180;
     public static final int CHECK_DURATION = 1;
@@ -128,7 +128,7 @@ public class staffbot extends SubspaceBot {
                 String date = new java.sql.Date( System.currentTimeMillis() ).toString();
                 String[] data = { warnedPlayer, message, staffMember, date };
 
-                m_botAction.SQLInsertInto( "local", "tblWarnings", paramNames, data );
+                m_botAction.SQLInsertInto( TWSITES_DATABASE, "tblWarnings", paramNames, data );
             } else {
                 handleArenaMessage(message);
             }
@@ -317,7 +317,7 @@ public class staffbot extends SubspaceBot {
         String      query = "select * from tblWarnings where name = \"" + message.toLowerCase() + "\"";
 
         try {
-            ResultSet set = m_botAction.SQLQuery( "local", query );
+            ResultSet set = m_botAction.SQLQuery( TWSITES_DATABASE, query );
 
             m_botAction.sendRemotePrivateMessage( name, "Warnings for " + message + ":" );
             while( set.next() ){
@@ -333,7 +333,7 @@ public class staffbot extends SubspaceBot {
         String      query = "select * from tblWarnings where staffmember = \"" + message.toLowerCase() + "\"";
 
         try {
-            ResultSet set = m_botAction.SQLQuery( "local", query );
+            ResultSet set = m_botAction.SQLQuery( TWSITES_DATABASE, query );
 
             m_botAction.sendRemotePrivateMessage( name, "Warnings given by " + message + ":" );
             while( set.next() ){
@@ -657,12 +657,16 @@ public class staffbot extends SubspaceBot {
      */
     private void doFindCmd(String sender, String argString)
     {
-        if(currentCheck.isActive())
-            throw new RuntimeException("Already performing a check.  Please try again momentarily.");
+        if(currentCheck.isActive()) {
+            m_botAction.sendSmartPrivateMessage( sender, "Already performing a check.  Please try again momentarily.");
+            return;
+        }
         
         Vector altNicks = getAltNicks(argString);
-        if(altNicks.isEmpty())
-            throw new RuntimeException("Player not found in database.");
+        if(altNicks.isEmpty()) {
+            m_botAction.sendSmartPrivateMessage( sender, "Player not found in database.");
+        	return;
+        }
         currentCheck.startCheck(sender, altNicks);
         locateAll(altNicks);
         m_botAction.scheduleTask(new EndCheckTask(), CHECK_DURATION * 1000);
@@ -675,12 +679,16 @@ public class staffbot extends SubspaceBot {
      */
     private void doAltWarnCmd(String sender, String argString)
     {
-        if(currentCheck.isActive())
-            throw new RuntimeException("Already performing a check.  Please try again momentarily.");
+        if(currentCheck.isActive()) {
+            m_botAction.sendSmartPrivateMessage( sender, "Already performing a check.  Please try again momentarily.");
+            return;
+        }
         
         Vector altNicks = getAltNicks(argString);
-        if(altNicks.isEmpty())
-            throw new RuntimeException("Player not found in database.");
+        if(altNicks.isEmpty()) {
+            m_botAction.sendSmartPrivateMessage( sender, "Player not found in database.");
+        	return;
+        }
         findWarnings(sender, argString, altNicks);
     }
     
@@ -701,10 +709,7 @@ public class staffbot extends SubspaceBot {
      * @param altNicks are the names to perform the altNick command on.
      */
     private void findWarnings(String sender, String name, Vector altNicks)
-    {
-        if( altNicks.size() <= 0 )
-            throw new RuntimeException( "Unable to retreive any altnicks for player." );
-                       
+    {                      
         m_botAction.sendRemotePrivateMessage(sender, "Warnings for " + name + ":");                
 
         try {
@@ -716,7 +721,7 @@ public class staffbot extends SubspaceBot {
             }
             m_botAction.sendRemotePrivateMessage(sender, "End of list.");
         } catch (Exception e) {
-            throw new RuntimeException( "Unexpected error while querying altnicks." );            
+            m_botAction.sendSmartPrivateMessage( sender, "Unexpected error while querying altnicks." );
         }
     }
     
@@ -743,7 +748,7 @@ public class staffbot extends SubspaceBot {
             String lastName = "";
             String currName;
             if(resultSet == null)
-                throw new RuntimeException("ERROR: Cannot connect to database.");
+                return new Vector();
             
             while(resultSet.next())
             {
@@ -756,7 +761,7 @@ public class staffbot extends SubspaceBot {
         }
         catch(SQLException e)
         {
-            throw new RuntimeException("ERROR: Cannot connect to database.");
+            return new Vector();
         }
     }
     
@@ -777,7 +782,7 @@ public class staffbot extends SubspaceBot {
         public void startCheck(String checkSender, Vector altNicks)
         {
             if(isActive)
-                throw new RuntimeException("Already performing a check.  Please try again momentarily.");
+                m_botAction.sendSmartPrivateMessage( checkSender, "Unexpected error while querying altnicks." );
             this.checkSender = checkSender;
             checkResults.clear();
             populateResults(altNicks);
