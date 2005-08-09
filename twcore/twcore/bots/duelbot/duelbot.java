@@ -1414,8 +1414,11 @@ public class duelbot extends SubspaceBot {
 				} catch (Exception e) {				    
 				}
 			}	
-			updates.put( d, scoreReport );
-			m_botAction.scheduleTask( scoreReport, 1000 * s_noCount );
+		    updates.put( d, scoreReport );
+			try {
+			    m_botAction.scheduleTask( scoreReport, 1000 * s_noCount );
+			} catch (Exception e) {
+			}
 		}	
     }
     
