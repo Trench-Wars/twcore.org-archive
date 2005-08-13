@@ -160,7 +160,7 @@ public class MatchTeam
         {
             if (m_round.m_fnRoundState < 4)
             {
-                sendPrivateMessageToCaptains(playerName + " lagged out or specced himself", 13);
+                sendPrivateMessageToCaptains(playerName + " lagged out or manually specced", 13);
 
                 if (m_rules.getInt("deaths") != -1 && m_round.m_fnRoundState == 3)
                 {
