@@ -94,7 +94,7 @@ public class duelbot extends SubspaceBot {
         
         acceptedMessages = Message.PRIVATE_MESSAGE;
         /*********Player Commands*********/
-        m_commandInterpreter.registerCommand( "!yes", acceptedMessages, this, "do_checkTournyDuel" );
+        //m_commandInterpreter.registerCommand( "!yes", acceptedMessages, this, "do_checkTournyDuel" );
         m_commandInterpreter.registerCommand( "!challenge", acceptedMessages, this, "do_issueChallenge" );
         m_commandInterpreter.registerCommand( "!tchallenge", acceptedMessages, this, "do_issueTournyChallenge" );
         m_commandInterpreter.registerCommand( "!removechallenge", acceptedMessages, this, "do_removeChallenge" );
@@ -119,7 +119,7 @@ public class duelbot extends SubspaceBot {
     	m_commandInterpreter.registerCommand( "!unbanuser", acceptedMessages, this, "do_unbanUser" );
     	m_commandInterpreter.registerCommand( "!banned", acceptedMessages, this, "do_sayBanned" );
     	m_commandInterpreter.registerCommand( "!comment", acceptedMessages, this, "do_reComment" );
-    	m_commandInterpreter.registerCommand( "!readcomment", acceptedMessages, this, "do_readComment" );
+    	m_commandInterpreter.registerCommand( "!readcomment", acceptedMessages, this, "do_getComment" );
     	m_commandInterpreter.registerCommand( "!setgreet", acceptedMessages, this, "do_setGreetMessage" );
     	m_commandInterpreter.registerCommand( "!shutdown", acceptedMessages, this, "do_shutDown" );
     	m_commandInterpreter.registerCommand( "!die", acceptedMessages, this, "do_die" );
