@@ -291,9 +291,17 @@ public class pubbot extends SubspaceBot
 
   public void handleEvent(Message event)
   {
-    int senderID = event.getPlayerID();
+    Player p = m_botAction.getPlayer(event.getPlayerID());
+    String sender;
+    if( p == null ) {
+        sender = event.getMessager();
+        if( sender == null )
+            sender = "unknown";
+    } else {
+        sender = p.getPlayerName();
+    }    
+    
     int messageType = event.getMessageType();
-    String sender = m_botAction.getPlayerName(senderID);
     String message = event.getMessage();
 
     // No need to spam the chat if a mod is checking TKs
