@@ -2517,6 +2517,9 @@ public class tournybot extends SubspaceBot {
 
 				pStats info2 = (pStats)players.get( player );
 				fStats fInfo2 = (fStats)freqs.get( info2.getFreq() );
+				
+				if( fInfo == null || fInfo2 == null )
+				    return;
 
 				if (freqStillIn(info2.getFreq()) && freqStillIn(info.getFreq())) {
 					m_botAction.shipReset(player);
