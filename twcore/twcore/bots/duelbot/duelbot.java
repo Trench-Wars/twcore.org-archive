@@ -1310,6 +1310,9 @@ public class duelbot extends SubspaceBot {
     public void handleEvent( PlayerDeath event ) {
     	final String name = m_botAction.getPlayerName( event.getKilleeID() );
     	final String killer = m_botAction.getPlayerName( event.getKillerID() );
+    	if( name == null || killer == null )
+    	    return;
+    	
 		if( playing.containsKey( name ) ) {
 			
 			Duel d = (Duel)playing.get( name );
