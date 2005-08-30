@@ -445,8 +445,12 @@ public class tournybot extends SubspaceBot {
 
 
 						duelDelay d = new duelDelay( name, killeeName, killerName, delayers, false, System.currentTimeMillis());
-						m_botAction.scheduleTask( d, 3000 );
-						delayers.put( name, d);
+						try {
+						    m_botAction.scheduleTask( d, 3000 );
+							delayers.put( name, d);
+						} catch ( Exception e ) {
+						    // NOOP
+						}
 					}
 				}
 			}
@@ -2529,6 +2533,8 @@ public class tournybot extends SubspaceBot {
 						if (fInfo == fInfo2) {
 							fInfo2 = (fStats)freqs.get(findOpponent(info.getFreq()));
 						}
+						if( fInfo2 == null )
+						    return;
 
 						m_botAction.sendOpposingTeamMessage( m_botAction.getPlayerID(fInfo.getName1()), "Score: [" + fInfo.getNames() + " " + fInfo2.getGameDeaths() + " - " + fInfo.getGameDeaths() + " " + fInfo2.getNames() + "]", 0);
 						m_botAction.sendOpposingTeamMessage( m_botAction.getPlayerID(fInfo2.getName1()), "Score: [" + fInfo2.getNames() + " " + fInfo.getGameDeaths() + " - " + fInfo2.getGameDeaths() + " " + fInfo.getNames() + "]", 0);
