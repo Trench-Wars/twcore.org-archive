@@ -47,7 +47,7 @@ public class MatchGame
 	MatchRound m_curRound;
 
 	/** Creates a new instance of MatchGame */
-	public MatchGame(String ruleFile, String fcTeam1Name, String fcTeam2Name, int players, BotAction botAction)
+	public MatchGame(String ruleFile, String fcTeam1Name, String fcTeam2Name, int players, int challenger, int accepter, BotAction botAction)
 	{
 		m_botAction = botAction;
 		m_fcRuleFile = ruleFile;
@@ -75,7 +75,7 @@ public class MatchGame
 
 		if ((m_rules.getInt("storegame") == 1) && (m_rules.getInt("matchtype") != 0))
 		{
-			createGameRecord();
+			createGameRecord(challenger, accepter);
 			if (m_rules.getInt("loggame") == 1)
 			{
 				m_logger.activate(m_fnMatchID);
@@ -149,13 +149,13 @@ public class MatchGame
 	};
 
 	// creates a Game record in the database
-	public void createGameRecord()
+	public void createGameRecord(int challenger, int accepter)
 	{
 		try
 		{
 			String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
 
-			String[] fields = { "fnMatchTypeID", "fnMatchStateID", "fnTeam1ID", "fcTeam1Name", "fnTeam2ID", "fcTeam2Name", "ftTimeStarted" };
+			String[] fields = { "fnMatchTypeID", "fnMatchStateID", "fnTeam1ID", "fcTeam1Name", "fnTeam2ID", "fcTeam2Name", "ftTimeStarted", "fnChallengerUserID", "fnAccepterUserID" };
 			String[] values =
 				{
 					m_rules.getString("matchtype"),
@@ -164,7 +164,10 @@ public class MatchGame
 					Tools.addSlashesToString(m_fcTeam1Name),
 					Integer.toString(m_fnTeam2ID),
 					Tools.addSlashesToString(m_fcTeam2Name),
-					time };
+					time,
+                    Integer.toString(challenger),
+                    Integer.toString(accepter)						
+                };
 			m_botAction.SQLInsertInto(dbConn, "tblMatch", fields, values);
 
 			//            ResultSet s = m_botAction.SQLQuery(dbConn, "select fnMatchID from tblMatch where ftTimeStarted = '"+time+"' and fcTeam1Name = '"+Tools.addSlashesToString(m_fcTeam1Name)+"' and fcTeam2Name = '"+Tools.addSlashesToString(m_fcTeam2Name)+"'");
