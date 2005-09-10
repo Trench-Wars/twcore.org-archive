@@ -633,7 +633,7 @@ public class matchbot extends SubspaceBot
                             // check if he is assistant or captain
                             if (dp.hasRank(3) || dp.hasRank(4))
                             {
-                                m_gameRequests.add(new GameRequest(name, p.getSquadName(), nmySquad, players));
+                                m_gameRequests.add(new GameRequest(name, dp.getTeamName(), nmySquad, players, dp.getUserID()));
                                 m_botAction.sendSquadMessage(
                                     nmySquad,
                                     name
@@ -641,11 +641,11 @@ public class matchbot extends SubspaceBot
 										+ players + "vs" + players + " "
                                         + m_rules.getString("name")
                                         + " versus "
-                                        + p.getSquadName()
+                                        + dp.getTeamName()
                                         + ". Captains/assistants, ?go "
                                         + m_botAction.getArenaName()
                                         + " and pm me with '!accept "
-                                        + p.getSquadName()
+                                        + dp.getTeamName()
                                         + "'");
                                 m_botAction.sendPrivateMessage(name, "Your challenge has been sent out to " + nmySquad);
                             }
@@ -748,18 +748,20 @@ public class matchbot extends SubspaceBot
                                             + r.getPlayersNum() + "vs" + r.getPlayersNum() + " "
                                             + m_rules.getString("name")
                                             + " versus "
-                                            + p.getSquadName()
+                                            + dp.getTeamName()
                                             + " will start in ?go "
                                             + m_botAction.getArenaName()
                                             + " in 30 seconds");
                                     m_botAction.sendSquadMessage(
                                         p.getSquadName(),
-                                        "A game of " + r.getPlayersNum() + "vs" + r.getPlayersNum() + " " + m_rules.getString("name") + " versus " + nmySquad + " will start in ?go " + m_botAction.getArenaName() + " in 30 seconds");
-                                    m_botAction.sendArenaMessage(nmySquad + " vs. " + p.getSquadName() + " will start here in 30 seconds", 2);
-                                    m_team1 = nmySquad;
-                                    m_team2 = p.getSquadName();
+                                        "A game of " + r.getPlayersNum() + "vs" + r.getPlayersNum() + " " + m_rules.getString("name") + " versus " + r.getChallenger() + " will start in ?go " + m_botAction.getArenaName() + " in 30 seconds");
+                                    m_botAction.sendArenaMessage(r.getChallenger() + " vs. " + dp.getTeamName() + " will start here in 30 seconds", 2);
+                                    m_team1 = r.getChallenger();
+                                    m_team2 = dp.getTeamName();
                                     startMessage = name + "(" + p.getSquadName() + ") accepted challenge from " + r.getRequester() + "(" + r.getChallenger() + ")";
                                     final int pNum = r.getPlayersNum();
+									final int chID = r.getRequesterID();
+									final int acID = dp.getUserID();
 
                                     TimerTask m_startGameTimer = new TimerTask()
                                     {
@@ -772,8 +774,8 @@ public class matchbot extends SubspaceBot
                                                 m_team2 = null;
                                                 m_cancelGame = false;
                                             } else {
-	                                            String dta[] = { m_team1, m_team2, Integer.toString(pNum) };
-		                                    createGame(m_botAction.getBotName(), dta);
+                                                String dta[] = { m_team1, m_team2, Integer.toString(pNum), Integer.toString(chID), Integer.toString(acID)  };
+                                                createGame(m_botAction.getBotName(), dta);
                                             }
                                         };
                                     };
@@ -999,6 +1001,8 @@ public class matchbot extends SubspaceBot
             String fcTeam1Name = null, fcTeam2Name = null, rulesName = null;
 
             int players = 0;
+			int challenger = 0;
+			int accepter = 0;
             int typenumber;
             if (!m_isLocked)
             {
@@ -1033,8 +1037,14 @@ public class matchbot extends SubspaceBot
                 {
                     fcTeam1Name = parameters[0];
                     fcTeam2Name = parameters[1];
-                    if (parameters.length == 3) {
+                    if (parameters.length >= 3) {
                         players = Integer.parseInt(parameters[2]);
+                        if (parameters.length >= 4) {
+                            challenger = Integer.parseInt(parameters[3]);
+                            if (parameters.length >= 5) {
+                                accepter = Integer.parseInt(parameters[4]);
+                            }
+                        }
                     }
                 };
             };
@@ -1047,7 +1057,7 @@ public class matchbot extends SubspaceBot
                     m_botAction.setMessageLimit(ACTIVE_MESSAGE_LIMIT);
                     if (!name.equalsIgnoreCase(m_botAction.getBotName()))
                         startMessage = "Game started by " + name;
-                    m_game = new MatchGame(rulesName, fcTeam1Name, fcTeam2Name, players, m_botAction);
+                    m_game = new MatchGame(rulesName, fcTeam1Name, fcTeam2Name, players, challenger, accepter, m_botAction);
                 }
                 else
                     m_botAction.sendPrivateMessage(name, "There's already a game running, type !killgame to kill it first");
@@ -1142,16 +1152,18 @@ public class matchbot extends SubspaceBot
 class GameRequest {
     long m_timeRequest = 0;
     String m_challenger = "", m_challenged = "", m_requester = "";
+    int m_requesterID;
     boolean accepted = false;
     int playersNum;
     BotAction m_botAction;
 
-    public GameRequest(String requester, String challenger, String challenged, int players) {
+    public GameRequest(String requester, String challenger, String challenged, int players, int requesterID) {
         m_requester = requester;
         m_challenger = challenger;
         m_challenged = challenged;
         m_timeRequest = System.currentTimeMillis();
         playersNum = players;
+        m_requesterID = requesterID;
     };
 
 
@@ -1160,6 +1172,7 @@ class GameRequest {
     public String getRequester()  { return m_requester;  };
     public long getRequestAge() { return (System.currentTimeMillis()-m_timeRequest); };
     public int getPlayersNum() { return playersNum; };
+    public int getRequesterID() { return m_requesterID; };
 
 
 };
