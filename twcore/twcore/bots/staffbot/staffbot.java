@@ -18,16 +18,9 @@ import java.text.*;
 import java.util.*;
 import java.util.zip.*;
 import java.sql.*;
-
 import twcore.core.*;
 
 public class staffbot extends SubspaceBot {
-    public static final String TWSITES_DATABASE = "local";
-    public static final String FIND_DELIMETER = " - ";
-    public static final int CHECK_LENGTH = 180;
-    public static final int CHECK_DURATION = 1;
-    public static final int DIE_DELAY = 100;
-
     OperatorList        m_opList;
     HashMap             m_playerList = new HashMap();
     BotAction           m_botAction;
@@ -37,14 +30,12 @@ public class staffbot extends SubspaceBot {
     String              m_logNotifyPlayer;
     final String        m_LOGFILENAME = "subgame.log";
     java.util.Date      m_logTimeStamp;
-    private AltCheck 	currentCheck;
 
     /* Initialization code */
     public staffbot( BotAction botAction ) {
         super( botAction );
         m_botAction = botAction;
         m_botSettings = m_botAction.getBotSettings();
-        currentCheck = new AltCheck();
         if ( m_botSettings.getString( "LogArchivingEnabled" ).toLowerCase().equals("true") ){
             m_logArchivingEnabled = true;
         } else {
@@ -111,7 +102,7 @@ public class staffbot extends SubspaceBot {
         String name = m_botAction.getPlayerName( event.getPlayerID() ); ;
         String message = event.getMessage();
         boolean remote = false;
-        
+
         if( event.getMessageType() == Message.ARENA_MESSAGE ){
             if( message.toLowerCase().indexOf( "*warn" ) > 0 ){
                 String          temp;
@@ -128,11 +119,9 @@ public class staffbot extends SubspaceBot {
                 String date = new java.sql.Date( System.currentTimeMillis() ).toString();
                 String[] data = { warnedPlayer, message, staffMember, date };
 
-                m_botAction.SQLInsertInto( TWSITES_DATABASE, "tblWarnings", paramNames, data );
-            } else {
-                handleArenaMessage(message);
+                m_botAction.SQLInsertInto( "local", "tblWarnings", paramNames, data );
             }
-            
+
             return;
         }
 
@@ -149,40 +138,233 @@ public class staffbot extends SubspaceBot {
 
         if( m_opList.isER( name ) ){
             if( message.toLowerCase().startsWith( "!warning " ) ){
-                m_botAction.sendRemotePrivateMessage( name, "Warnings for " + message + ":" );
                 queryWarnings( name, message.substring( 9 ) );
             }
         }
 
         if( m_opList.isER( name ) ){
             if( message.toLowerCase().startsWith( "!warnings " ) ){
-                m_botAction.sendRemotePrivateMessage( name, "Warnings for " + message + ":" );
                 queryWarnings( name, message.substring( 10 ) );
             }
         }
 
-        if( m_opList.isHighmod( name ) ){
-            if( message.toLowerCase().startsWith( "!altwarn " ) ){
-                doAltWarnCmd( name, message.substring( 9 ) );
-            } else if( message.toLowerCase().startsWith( "!find " ) ){
-                doFindCmd( name, message.substring( 6 ) );
-            }
-        }
-
         if( m_opList.isSmod( name ) ){
+/*            if( message.startsWith( "!altnick " )){
+                queryAltNick( name, message.substring( 9 ));
+            } else if( message.startsWith( "!squaddies " )){
+                querySquaddies( name, message.substring( 11 ));
+            } else if( message.startsWith( "!dblsquad " )){
+                queryDblSquad( name, message.substring( 10 )); */                
             if( message.toLowerCase().startsWith( "!warningsfrom " ))
                 queryWarningsFrom( name, message.substring( 14 ) );
+/*            } else if( message.toLowerCase().startsWith( "!messagestaff " )){
+                handleMessageStaff( OperatorList.ZH_LEVEL, OperatorList.MODERATOR_LEVEL, name, message.substring( 14 ) );
+            } else if( message.toLowerCase().startsWith( "!messageall " )){
+                handleMessageStaff( OperatorList.ZH_LEVEL, OperatorList.OWNER_LEVEL, name, message.substring( 12 ) );
+            } else if( message.toLowerCase().startsWith( "!messagezh " )){
+                handleMessageStaff( OperatorList.ZH_LEVEL, OperatorList.ZH_LEVEL, name, message.substring( 11 ) );
+            } else if( message.toLowerCase().startsWith( "!messageer " )){
+                handleMessageStaff( OperatorList.ER_LEVEL, OperatorList.ER_LEVEL, name, message.substring( 11 ) );
+            }
+*/
         }
 
         if( m_opList.isZH(name) )
             handleCommand( name, message, remote );
     }
 
+    public void queryWarnings( String name, String message ){
+        String      query = "select * from tblWarnings where name = \"" + message.toLowerCase() + "\"";
+
+        try {
+            ResultSet set = m_botAction.SQLQuery( "local", query );
+
+            m_botAction.sendRemotePrivateMessage( name, "Warnings for " + message + ":" );
+            while( set.next() ){
+                m_botAction.sendRemotePrivateMessage( name, set.getString( "warning" ) );
+            }
+            m_botAction.sendRemotePrivateMessage( name, "End of list." );
+            if (set != null) set.close();
+        } catch( SQLException e ){
+            Tools.printStackTrace( e );
+        }
+    }
+
+    public void queryWarningsFrom( String name, String message ){
+        String      query = "select * from tblWarnings where staffmember = \"" + message.toLowerCase() + "\"";
+
+        try {
+            ResultSet set = m_botAction.SQLQuery( "local", query );
+
+            m_botAction.sendRemotePrivateMessage( name, "Warnings given by " + message + ":" );
+            while( set.next() ){
+                m_botAction.sendRemotePrivateMessage( name, set.getString( "warning" ) );
+            }
+            m_botAction.sendRemotePrivateMessage( name, "End of list." );
+            if (set != null) set.close();
+        } catch( SQLException e ){
+            Tools.printStackTrace( e );
+        }
+    }
+
+/*    public void queryAltNick( String name, String message ){
+        m_botAction.sendSmartPrivateMessage( name, "Please hold as I look for matches." );
+        HashMap altNick = new HashMap();
+        //look up the machineid for the nick
+        String query = "select machineid, ip from Arrogant where name = \"" + message + "\"";
+        try{
+            ResultSet set = m_botAction.SQLQuery( "local", query );
+            while( set.next() ){
+                String macid = set.getString( "MachineID" );
+                String ip = set.getString( "IP" );
+                String newquery = "select distinct Name, ip, machineid from Arrogant where IP = \""
+                + ip + "\" order by Name";
+                ResultSet set2 = m_botAction.SQLQuery( "local", newquery );
+                //m_botAction.sendSmartPrivateMessage( name, message
+                //+ " has MachineID: " + macid + " and IP: " + ip );
+                while( set2.next() ){
+                    String n2 = set2.getString( "Name" );
+                    String machineid = set2.getString( "MachineID" );
+                    String ip2 = set2.getString( "IP" );
+                    String response = n2 + " matches: ";
+                    if( !altNick.containsKey( n2 ) )
+                        altNick.put( n2, new AltNick( n2 ) );
+                    AltNick alt = (AltNick)altNick.get( n2 );
+                    if( macid.equals( machineid ))
+                        alt.setMIDMatch();//response += "MachineID ";
+                    if( ip2.equals( ip ))
+                        alt.setIPMatch();//response += "IP ";
+                    //m_botAction.sendSmartPrivateMessage( name, response );
+                }
+                if (set2 != null) set2.close();
+            }
+            if (set != null) set.close();
+
+            int ct = 0;
+            Set set3 = altNick.keySet();
+            Iterator it = set3.iterator();
+            while (it.hasNext()) {
+                String curName = (String) it.next();
+                AltNick alt = (AltNick)altNick.get( curName );
+                String output = formatString( curName, 20 );
+                if( alt.hasIPMatch() )
+                    output += "  (IP Match)";
+                if( alt.hasMIDMatch() )
+                    output += "  (MachineID Match)";
+                m_botAction.sendSmartPrivateMessage( name, output );
+                ct++;
+            }
+            altNick.clear();
+            m_botAction.sendSmartPrivateMessage( name, "Matches Displayed: " + ct );
+
+        } catch( SQLException e ){
+            Tools.printStackTrace( e );
+        }
+
+    }
+*/
+
+    public String formatString(String fragment, int length) {
+        String line;
+        if(fragment.length() > length)
+            fragment = fragment.substring(0,length-1);
+        else {
+            for(int i=fragment.length();i<length;i++)
+                fragment = fragment + " ";
+        }
+        return fragment;
+    }
+
+/*
+    class AltNick {
+        String name;
+        boolean ip = false, mid = false;
+        public AltNick( String n ) {
+            name = n;
+        }
+        public void setMIDMatch() { mid = true; }
+        public void setIPMatch() { ip = true; }
+        public boolean hasMIDMatch() { return mid; }
+        public boolean hasIPMatch() { return ip; }
+    }
+
+    public void queryDblSquad( String name, String message ){
+        //look up the machineid for the nick
+        String query = "select machineid, ip from Arrogant where name = \"" + message + "\"";
+        try{
+            ResultSet set = m_botAction.SQLQuery( "local", query );
+            while( set.next() ){
+                String macid = set.getString( "MachineID" );
+                String ip = set.getString( "IP" );
+                String newquery = "select distinctrow name, squad from Arrogant where MachineID=\""
+                + macid + "\" OR IP = \"" + ip + "\" order by Name";
+                ResultSet set2 = m_botAction.SQLQuery( "local", newquery );
+                while( set2.next() ){
+                    String sqd = set2.getString( "Squad" );
+                    if( !sqd.trim().equals( "" )){
+                        m_botAction.sendSmartPrivateMessage( name, set2.getString( "Name" )
+                        + " is in " + sqd );
+                    }
+                }
+                if (set2 != null) set2.close();
+            }
+            if (set != null) set.close();
+
+        } catch( SQLException e ){
+            Tools.printStackTrace( e );
+        }
+    }
+    public void querySquaddies( String name, String message ){
+        //look up the machineid for the nick
+        String query = "select squad from Arrogant where name = \"" + message + "\"";
+        try{
+            ResultSet set = m_botAction.SQLQuery( "local", query );
+            while( set.next() ){
+                String squad = set.getString( "Squad" );
+                if( squad.trim().equals( "" )) return;
+                m_botAction.sendSmartPrivateMessage( name, "Members of squad " + squad);
+                String newquery = "select distinct Name from Arrogant where Squad=\""
+                + squad + "\" order by Name";
+                ResultSet set2 = m_botAction.SQLQuery( "local", newquery );
+                while( set2.next() ){
+                    m_botAction.sendSmartPrivateMessage( name, set2.getString( "Name" ));
+                }
+                if (set2 != null) set2.close();
+            }
+            if (set != null) set.close();
+
+        } catch( SQLException e ){
+            Tools.printStackTrace( e );
+        }
+    }
+*/
+
     public void handleEvent( FileArrived event ){
         if ( event.getFileName().equals(m_LOGFILENAME) ){
             logArrived();
         }
     }
+   /*
+    public void handleMessageStaff( int minAccessLevel, int maxAccessLevel, String name, String message ){
+        int         level;
+        String      recipient;
+        Map         staffList;
+        Iterator    staffIterator;
+
+        staffList = m_opList.getList();
+        staffIterator = staffList.keySet().iterator();
+
+        while( staffIterator.hasNext() ){
+            recipient = ((String)staffIterator.next()).trim();
+            level = m_opList.getAccessLevel( recipient );
+
+            if( level >= minAccessLevel && level <= maxAccessLevel ){
+                m_botAction.sendRemotePrivateMessage( "Sphonk", "...?message " + recipient + ":Message from " + name + ": " + message );
+
+                m_botAction.sendUnfilteredPublicMessage( "?message " + recipient + ":Message from " + name + ": " + message );
+            }
+        }
+    }*/
 
     public void handleCommand( String name, String message, boolean remote){
         if( message.toLowerCase().equals("!help") ){
@@ -229,17 +411,20 @@ public class staffbot extends SubspaceBot {
 
     public void handleHelp( String name, boolean remote ){
         final String[] helpTextZH = {
+            "Available ZH commands:",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player"
         };
 
         final String[] helpTextER = {
+            "Available ER commands:",
             "!warnings <player>     - Checks red warnings on specified player",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player"
         };
 
         final String[] helpTextMod = {
+            "Available Mod commands:",
             "!warnings <player>     - Checks red warnings on specified player",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player",
@@ -248,24 +433,9 @@ public class staffbot extends SubspaceBot {
             "!listall               - Displays all players in the list in alphabetical order",
             "!listplayer <player>   - Displays that player's details along with all comments"
         };
-        
-        final String[] helpTextHighmod = {
-            "!warnings <player>     - Checks red warnings on specified player",
-            "!altwarn <player>      - Checks warns on all of player's altnicks",
-            "!find <player>         - Finds a player on all of their altnicks",
-            "!add <player>          - Adds a player to the recommendation list",
-            "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player",
-            "!list <num>            - Lists <num>(optional) of players in chronological order",
-            "!listrating <num>      - Lists <num>(optional) of players descending by average rating",
-            "!listall               - Displays all players in the list in alphabetical order",
-            "!listplayer <player>   - Displays that player's details along with all comments"
-        };
-        
+
         final String[] helpTextSmod = {
-            "!warnings <player>     - Checks red warnings on specified player",
-            "!warningsfrom <player> - Displays a list of recent warns given to a player.",
-            "!altwarn <player>      - Checks warns on all of player's altnicks",
-            "!find <player>         - Finds a player on all of their altnicks",
+            "Available upper staff commands:",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player",
             "!remove <player>       - Removes a player from the list",
@@ -273,7 +443,13 @@ public class staffbot extends SubspaceBot {
             "!listrating <num>      - Lists <num>(optional) of players descending by average rating",
             "!listall               - Displays all players in the list in alphabetical order",
             "!listplayer <player>   - Displays that player's details along with all comments",
-            "!getlog                - Downloads server log"
+            "!getlog                - Downloads server log",
+            "Player DB commands:",
+/*            "!squaddies <player>    - Displays a list of all the players on a player's squad",
+            "!dblsquad <player>     - Displays a list of all the name/squad combinations this player might own",
+            "!altnick <player>      - Displays a list of all the player's alt nicks.",*/
+            "!warnings <player>     - Checks red warnings on specified player",
+            "!warningsfrom <player> - Displays a list of recent warns given to a player."
         };
 
         if( m_opList.isZHExact( name ) ){
@@ -286,76 +462,13 @@ public class staffbot extends SubspaceBot {
             m_botAction.remotePrivateMessageSpam( name, helpTextMod );
         }
         else if( m_opList.isHighmodExact( name ) ){
-            m_botAction.remotePrivateMessageSpam( name, helpTextHighmod );
+            m_botAction.remotePrivateMessageSpam( name, helpTextMod );
         }
         else if( m_opList.isSmod( name ) ){
             m_botAction.remotePrivateMessageSpam( name, helpTextSmod );
         }
-    }
 
-    /**
-     * This method handles an arena message.  If it is the result of a *locate
-     * command, and a check is active, it will send the results of the find to the
-     * person.
-     *
-     * @param message is the arena message to handle.
-     */
-    private void handleArenaMessage(String message)
-    {
-        String name;
-        int endOfNameIndex;
-        
-        if(currentCheck.isActive())
-        {
-            endOfNameIndex = message.indexOf(FIND_DELIMETER);
-            if(endOfNameIndex != -1) {
-                name = message.substring(0, endOfNameIndex).trim();
-                currentCheck.addResult(name, message);
-            }
-        }
-    }
 
-    public void queryWarnings( String name, String message ){
-        String      query = "select * from tblWarnings where name = \"" + message.toLowerCase() + "\"";
-
-        try {
-            ResultSet set = m_botAction.SQLQuery( TWSITES_DATABASE, query );
-
-            while( set.next() ){
-                m_botAction.sendRemotePrivateMessage( name, set.getString( "warning" ) );
-            }
-            if (set != null) set.close();
-        } catch( SQLException e ){
-            Tools.printStackTrace( e );
-        }
-    }
-
-    public void queryWarningsFrom( String name, String message ){
-        String      query = "select * from tblWarnings where staffmember = \"" + message.toLowerCase() + "\"";
-
-        try {
-            ResultSet set = m_botAction.SQLQuery( TWSITES_DATABASE, query );
-
-            m_botAction.sendRemotePrivateMessage( name, "Warnings given by " + message + ":" );
-            while( set.next() ){
-                m_botAction.sendRemotePrivateMessage( name, set.getString( "warning" ) );
-            }
-            m_botAction.sendRemotePrivateMessage( name, "End of list." );
-            if (set != null) set.close();
-        } catch( SQLException e ){
-            Tools.printStackTrace( e );
-        }
-    }
-
-    public String formatString(String fragment, int length) {
-        String line;
-        if(fragment.length() > length)
-            fragment = fragment.substring(0,length-1);
-        else {
-            for(int i=fragment.length();i<length;i++)
-                fragment = fragment + " ";
-        }
-        return fragment;
     }
 
     /* Potential Staff List Code */
@@ -646,271 +759,6 @@ public class staffbot extends SubspaceBot {
             return Double.compare(r2.getAveRating(), r1.getAveRating());
         }
     };
-    
-
-    // **** EXPERIMENTAL '!FIND' and '!ALTWARN' COMMAND SUPPORT 
-
-    /**
-     * This method finds a player if they are in the zone, using any of their
-     * known altnicks.
-     *
-     * @param argString
-     */
-    private void doFindCmd(String sender, String argString)
-    {
-        if(currentCheck.isActive()) {
-            m_botAction.sendSmartPrivateMessage( sender, "Already performing a check.  Please try again momentarily.");
-            return;
-        }
-        
-        Vector altNicks = getAltNicks(argString);
-        if(altNicks.isEmpty()) {
-            m_botAction.sendSmartPrivateMessage( sender, "Player not found in database.");
-        	return;
-        }
-        currentCheck.startCheck(sender, altNicks);
-        locateAll(altNicks);
-        m_botAction.scheduleTask(new EndCheckTask(), CHECK_DURATION * 1000);
-    }
-    
-    /**
-     *
-     * @param sender
-     * @param argString
-     */
-    private void doAltWarnCmd(String sender, String argString)
-    {
-        if(currentCheck.isActive()) {
-            m_botAction.sendSmartPrivateMessage( sender, "Already performing a check.  Please try again momentarily.");
-            return;
-        }
-        
-        Vector altNicks = getAltNicks(argString);
-        if(altNicks.isEmpty()) {
-            m_botAction.sendSmartPrivateMessage( sender, "Player not found in database.");
-        	return;
-        }
-        findWarnings(sender, argString, altNicks);
-    }
-    
-    /**
-     * This private method performs a locate command on a Vector of names.
-     *
-     * @param altNicks are the names to perform the altnick command on.
-     */
-    private void locateAll(Vector altNicks)
-    {
-        for(int index = 0; index < altNicks.size(); index++)
-            m_botAction.sendUnfilteredPublicMessage("*locate " + (String) altNicks.get(index));
-    }
-    
-    /**
-     * This private method finds the warnings for a Vector of names.
-     *
-     * @param altNicks are the names to perform the altNick command on.
-     */
-    private void findWarnings(String sender, String name, Vector altNicks)
-    {                      
-        m_botAction.sendRemotePrivateMessage(sender, "Warnings for " + name + ":");                
-
-        try {
-            Iterator i = altNicks.iterator();
-            String altnick;
-            while( i.hasNext() ) {
-                altnick = (String)i.next();
-                queryWarnings(sender, altnick);
-            }
-        } catch (Exception e) {
-            m_botAction.sendSmartPrivateMessage( sender, "Unexpected error while querying altnicks." );
-        }
-    }
-    
-    /**
-     * This private method performs an altnick query on a players name and returns
-     * the results in the form of a ResultSet.
-     * @param playerName is the player to check.
-     * @return the results of the query are returned.
-     */
-    private Vector getAltNicks(String playerName)
-    {
-        try
-        {
-            Vector altNicks = new Vector();
-            ResultSet resultSet = m_botAction.SQLQuery(TWSITES_DATABASE,
-                    "SELECT * " +
-                    "FROM tblAlias A1, tblAlias A2, tblUser U1, tblUser U2 " +
-                    "WHERE U1.fcUserName = '" + Tools.addSlashesToString(playerName) + "' " +
-                    "AND U1.fnUserID = A1.fnUserID " +
-                    "AND A1.fcIP = A2.fcIP " +
-                    "AND A1.fnMachineID = A2.fnMachineID " +
-                    "AND A2.fnUserID = U2.fnUserID " +
-            "ORDER BY U2.fcUserName, A2.fdUpdated");
-            String lastName = "";
-            String currName;
-            if(resultSet == null)
-                return new Vector();
-            
-            while(resultSet.next())
-            {
-                currName = resultSet.getString("U2.fcUserName");
-                if(!currName.equalsIgnoreCase(lastName))
-                    altNicks.add(currName);
-                lastName = currName;
-            }
-            return altNicks;
-        }
-        catch(SQLException e)
-        {
-            return new Vector();
-        }
-    }
-    
-    private class AltCheck
-    {
-        public static final int FIND_CHECK = 0;
-        
-        private TreeMap checkResults;
-        private String checkSender;
-        private boolean isActive;
-        
-        public AltCheck()
-        {
-            checkResults = new TreeMap();
-            isActive = false;
-        }
-        
-        public void startCheck(String checkSender, Vector altNicks)
-        {
-            if(isActive)
-                m_botAction.sendSmartPrivateMessage( checkSender, "Unexpected error while querying altnicks." );
-            this.checkSender = checkSender;
-            checkResults.clear();
-            populateResults(altNicks);
-            isActive = true;
-        }
-        
-        public String getCheckSender()
-        {
-            return checkSender;
-        }
-        
-        /**
-         * This method stops the current check.
-         */
-        public void stopCheck()
-        {
-            isActive = false;
-        }
-        
-        /**
-         * This method gets the number of checks that were made.
-         *
-         * @return the number of checks that were made is returned.
-         */
-        public int getNumNicks()
-        {
-            return checkResults.size();
-        }
-        
-        /**
-         * This method gets the results of a check.
-         *
-         * @return a Vector containing the results of a check is returned.
-         */
-        public Vector getResults()
-        {
-            Vector results = new Vector();
-            Collection allResults = checkResults.values();
-            Iterator iterator = allResults.iterator();
-            String result;
-            
-            while(iterator.hasNext())
-            {
-                result = (String) iterator.next();
-                if(result != null)
-                    results.add(result);
-            }
-            
-            return results;
-        }
-        
-        /**
-         * This method adds a result to the result map.
-         *
-         * @param name is the name of the nick that got the result.
-         * @param result is the result of the check.
-         */
-        public void addResult(String name, String result)
-        {
-            String lowerName = name.toLowerCase();
-            if(checkResults.containsKey(lowerName))
-                checkResults.put(lowerName, result);
-        }
-        
-        /**
-         * This method checks to see if a check is currently active.
-         *
-         * @return true is returned if the check is active.
-         */
-        public boolean isActive()
-        {
-            return isActive;
-        }
-        
-        /**
-         * This private method populates the keys of the result map with the names
-         * from the altNick check.
-         *
-         * @param altNicks are the names that will be checked.
-         */
-        private void populateResults(Vector altNicks)
-        {
-            String altNick;
-            
-            for(int index = 0; index < altNicks.size(); index++)
-            {
-                altNick = (String) altNicks.get(index);
-                checkResults.put(altNick.toLowerCase(), null);
-            }
-        }
-    }
-    
-    /**
-     * This private method displays the results of a check.
-     *
-     * @param sender
-     * @param numNicks
-     * @param checkType
-     * @param results
-     */
-    private void displayResults(String sender, int numNicks, Vector results)
-    {
-        if(results.isEmpty())
-            throw new RuntimeException("Player not online.");
-        for(int index = 0; index < results.size(); index++)
-            m_botAction.sendSmartPrivateMessage(sender, (String) results.get(index));
-        m_botAction.sendSmartPrivateMessage(sender, "Checked " + numNicks + " names.");
-    }
-    
-    private class EndCheckTask extends TimerTask
-    {
-        public void run()
-        {
-            Vector results = currentCheck.getResults();
-            String checkSender = currentCheck.getCheckSender();
-            int numNicks = currentCheck.getNumNicks();
-            
-            try
-            {
-                currentCheck.stopCheck();
-                displayResults(checkSender, numNicks, results);
-            }
-            catch(RuntimeException e)
-            {
-                m_botAction.sendSmartPrivateMessage(checkSender, e.getMessage());
-            }
-        }
-    }
 }
 
 class potentialStaffer implements java.io.Serializable, java.lang.Comparable {
@@ -997,3 +845,4 @@ class staffComment implements java.io.Serializable {
         return name;
     }
 }
+
