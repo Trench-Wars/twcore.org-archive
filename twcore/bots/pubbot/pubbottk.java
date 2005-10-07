@@ -325,14 +325,6 @@ public class pubbottk extends PubBotModule {
 
         if( killed == null || killer == null || killed.getFrequency() != killer.getFrequency() )
             return;
-
-        if( ALLOW_PLAYER_NOTIFY == true ) {
-            // Tell players who are TKd for the first time that they can notify staff 
-            if( tked.remove( killed.getPlayerName() ) == null )
-                m_botAction.sendPrivateMessage( event.getKilleeID(), "You were TK'd by " + killer.getPlayerName() + ".  Type ::report to notify staff of any non-accidental TKs." );
-
-            tked.put( killed.getPlayerName(), killer.getPlayerName() );
-        }
         
         if( tkers != null )
             tk = (TKInfo)tkers.get( killer.getPlayerName().toLowerCase() );
@@ -346,6 +338,13 @@ public class pubbottk extends PubBotModule {
             tkers.put( newtk.getName(), newtk );
         }
 
+        if( ALLOW_PLAYER_NOTIFY == true ) {
+            // Tell players who are TKd for the first time that they can notify staff 
+            if( tked.remove( killed.getPlayerName() ) == null )
+                m_botAction.sendPrivateMessage( event.getKilleeID(), "You were TK'd by " + killer.getPlayerName() + ".  Type ::report to notify staff of any non-accidental TKs." );
+
+            tked.put( killed.getPlayerName(), killer.getPlayerName() );
+        }        
     }
 
 
