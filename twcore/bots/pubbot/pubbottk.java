@@ -260,7 +260,7 @@ public class pubbottk extends PubBotModule {
                 dateformat.format( new Date( curTime - tker.getFirstTKTime() ) ) + " ago]" );
 		m_botAction.sendSmartPrivateMessage( staffname, "TKs:  " + tker.getNumTKs() + "     Warns:  " + tker.getNumWarns() );
     	m_botAction.sendSmartPrivateMessage( staffname, "Last player TKd:  " + tker.getLastTKd() + "    [" +
-                dateformat.format( new Date( curTime - tker.getLastTKTime() ) + " ago]" ) );
+                dateformat.format( new Date( curTime - tker.getLastTKTime() ) ) + " ago]" );
 
     	String pointsmsg = "";
 
