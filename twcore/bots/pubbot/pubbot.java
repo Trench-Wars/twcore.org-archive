@@ -291,19 +291,6 @@ public class pubbot extends SubspaceBot
 
   public void handleEvent(Message event)
   {
-    Player p = m_botAction.getPlayer(event.getPlayerID());
-    String sender;
-    if( p == null ) {
-        sender = event.getMessager();
-        if( sender == null )
-            sender = "unknown";
-    } else {
-        sender = p.getPlayerName();
-    }    
-    
-    int messageType = event.getMessageType();
-    String message = event.getMessage();
-
     moduleHandler.handleEvent(event);
   }
 
