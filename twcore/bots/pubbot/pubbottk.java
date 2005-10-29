@@ -301,10 +301,16 @@ public class pubbottk extends PubBotModule {
             return;
         }
         
+        if( info.playerHasNotified() ) {
+            m_botAction.sendPrivateMessage( name, "Staff has already been notified about '" + tker + "'.  Please use ?cheater if the problem continues or you do not receive a response." );
+        	return;
+        }
+        
         String msg = "?cheater TK Report: " + name + " is reporting " + tker + " for intentional TK.  (" + info.getNumTKs() + " total TKs)";
         m_botAction.sendUnfilteredPublicMessage( msg );
         m_botAction.sendPrivateMessage( name, tker + " was reported to staff for intentionally teamkilling.  If a staff member does not contact you, please use ?cheater", 1 );
         info.setNotified();
+        info.setPlayerHasNotified();
     }
 
     
@@ -421,6 +427,7 @@ public class pubbottk extends PubBotModule {
         private boolean m_setShipped = false;       // true if player has been setshipped
         private boolean m_repeatKiller = false;     // true if killed same person twice
                                                     // in a row
+        private boolean m_playerHasNotified = false;// true if last TKd notified staff
         private long m_lastTKTime;                  // Last systemclock MS person TKd
         private long m_firstTKTime;                 // Time started TKing
         private long m_lastWarn;                    // Time of last warning
@@ -479,6 +486,7 @@ public class pubbottk extends PubBotModule {
             }
 
             m_lastTKd = playerTKd;
+            m_playerHasNotified = false;
 
             // "Neutered" version of the bot for info gathering only
             if( HARDASS == false )
@@ -655,6 +663,14 @@ public class pubbottk extends PubBotModule {
             return m_firstTKTime;
         }
         
+        public boolean playerHasNotified() {
+            return m_playerHasNotified;
+        }
+
+        public void setPlayerHasNotified() {
+            m_playerHasNotified = true;
+        }
+
         public void setNotified() {
             m_staffNotified = true;
         }
