@@ -1899,11 +1899,13 @@ class ScoreReport extends TimerTask {
 	{
 		try {
 			ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT fnUserID, fnLagCheckCount, fnLag FROM tblDuelPlayer WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
-			if(result.next()) {
-				int userID = result.getInt("fnUserID");
-				int totalLag = result.getInt("fnLag") * result.getInt("fnLagCheckCount");
-				int average2 = (totalLag + average) / (result.getInt("fnLagCheckCount") + 1);
-				m_botAction.SQLQuery( mySQLHost, "UPDATE tblDuelPlayer SET fnLag = " + average2 + ", fnLagCheckCount = fnLagCheckCount + 1 WHERE fnUserID = "+userID);
+			if( result != null ) {
+				if(result.next()) {
+					int userID = result.getInt("fnUserID");
+					int totalLag = result.getInt("fnLag") * result.getInt("fnLagCheckCount");
+					int average2 = (totalLag + average) / (result.getInt("fnLagCheckCount") + 1);
+					m_botAction.SQLQuery( mySQLHost, "UPDATE tblDuelPlayer SET fnLag = " + average2 + ", fnLagCheckCount = fnLagCheckCount + 1 WHERE fnUserID = "+userID);
+				}
 			}
 		} catch(Exception e) { Tools.printStackTrace(e); }
 	}      
