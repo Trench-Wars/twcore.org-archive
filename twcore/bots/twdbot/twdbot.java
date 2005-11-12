@@ -24,7 +24,7 @@ public class twdbot extends SubspaceBot {
     LinkedList m_players;
     LinkedList m_squadowner;
 
-    private String requester = "";
+    public HashMap m_requesters;
 
     private String register = "";
     private HashMap m_access;
@@ -46,6 +46,7 @@ public class twdbot extends SubspaceBot {
 
         m_access = new HashMap();
         m_waitingAction = new HashMap();
+        m_requesters = new HashMap();
 
         requestEvents();
     }
@@ -120,7 +121,9 @@ public class twdbot extends SubspaceBot {
                 else if( message.startsWith( "!disablename " ) )
                     commandDisableName( name, message.substring( 13 ) );
                 else if( message.startsWith( "!info " ) )
-                    commandDisplayInfo( name, message.substring( 6 ) );
+                    commandDisplayInfo( name, message.substring( 6 ), false );
+                else if( message.startsWith( "!fullinfo " ) )
+                    commandDisplayInfo( name, message.substring( 10 ), true );                
                 else if( message.startsWith( "!register " ) )
                     commandRegisterName( name, message.substring( 10 ), false );
                 else if( message.startsWith( "!registered " ) )
@@ -643,7 +646,7 @@ public class twdbot extends SubspaceBot {
         m_botAction.sendSmartPrivateMessage( name, "The name '"+message+"' has been disabled." );
     }
 
-    public void commandDisplayInfo( String name, String message )
+    public void commandDisplayInfo( String name, String message, boolean verbose )
     {
 
         DBPlayerData dbP = new DBPlayerData( m_botAction, "local", message );
@@ -655,7 +658,11 @@ public class twdbot extends SubspaceBot {
         }
         String status = "ENABLED";
         if( !dbP.isEnabled() ) status = "DISABLED";
-        m_botAction.sendSmartPrivateMessage( name, "'"+message+"'  IP:"+dbP.getIP()+"  MID:"+dbP.getMID()+"  "+status );
+        m_botAction.sendSmartPrivateMessage( name, "'"+message+"'  IP:"+dbP.getIP()+"  MID:"+dbP.getMID()+"  "+status + ".  Registered " + dbP.getSignedUp() );
+        if( verbose ) {
+            dbP.getPlayerSquadData();
+            m_botAction.sendSmartPrivateMessage( name, "Member of '" + dbP.getTeamName() + "'; squad created " + dbP.getTeamSignedUp() );
+        }
         commandGetResetTime( name, message, false, true );
     }
 
@@ -754,6 +761,7 @@ public class twdbot extends SubspaceBot {
                 "!registered <name>      - checks if the name is registered",
                 "--------- ALIAS CHECK COMMANDS -------------------------------------------------------",
                 "!info <name>            - displays the IP/MID that was used to register this name",
+                "!fullinfo <name>        - displays IP/MID, squad name, and date squad was reg'd",
                 "!ipcheck <IP>           - looks for matching records based on <IP>",
                 "!midcheck <MID>         - looks for matching records based on <MID>",
                 "!ipidcheck <IP> <MID>   - looks for matching records based on <IP> and <MID>",
@@ -814,8 +822,12 @@ public class twdbot extends SubspaceBot {
             }
             m_botAction.sendSmartPrivateMessage( register, "Registration successful." );
         } else {
-            String response = name + "  IP:"+ip+"  MID:"+mid;
-            m_botAction.sendSmartPrivateMessage( requester, response );
+            if( m_requesters != null ) {
+            	String response = name + "  IP:"+ip+"  MID:"+mid;
+            	String requester = (String)m_requesters.remove( name );
+            	if( requester != null )
+            		m_botAction.sendSmartPrivateMessage( requester, response );
+            }
         }
     }
 
@@ -852,6 +864,6 @@ public class twdbot extends SubspaceBot {
         }
 
         m_botAction.sendUnfilteredPrivateMessage( target, "*info" );
-        requester = name;
+        m_requesters.put( target, name );
     }
 }
