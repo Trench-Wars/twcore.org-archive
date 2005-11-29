@@ -74,6 +74,8 @@ public class duelbot extends SubspaceBot {
 	HashMap				leagueOps    = new HashMap();
 	//Contains the list of tourny games
 	HashMap				tournyGames	 = new HashMap();
+	//Contains the list of tourny games running.
+	HashMap				tournyGamesRunning = new HashMap();
 	
 	public duelbot( BotAction botAction ) {
 		super( botAction );
@@ -1027,41 +1029,11 @@ public class duelbot extends SubspaceBot {
 		
 		
 		
-		/*if( d.getDuelType() == 1 ) return;
-		
-		int realGameId = d.getTournyGame().getRealGameId();
-		int players = d.getTournyGame().getPlayers();
-		
-		boolean losersBracket = false;
-		if( realGameId > players+2 ) losersBracket = true;
-		
-		if( !losersBracket ) {
+		if(tournyGamesRunning.containsKey((d.getBoxFreq() / 2))) {
+			int gID = (Integer)tournyGamesRunning.get((d.getBoxFreq() / 2));
+			tournyGamesRunning.remove((d.getBoxFreq() / 2));
 			
-			int round = players / 4;
-			int p = 1;
-			boolean notfound = true;
-			while( notfound ) {
-				players -= p;
-				if( players <= realGameId )
-					notfound = false;
-				else {
-					round--;
-					p *= 2;
-				}
-			}
-			
-			
-			players = d.getTournyGame().getPlayers();
-			int playersInRound = players / (int)Math.pow( 2, round-1 );
-			int newGameIdWinner = players / 2 + (int)Math.ceil( realGameId / 2.0 );
-			int newGameIdLoser = realGameId - playersInRound / 2;
-			if( realGameId <= players / 2 )
-				newGameIdLoser = (int)Math.ceil( realGameId / 2.0 );
-			newGameIdLoser += players;
-		} else {
-			
-			int newGameIdWinner = 
-		}*/
+		}
 
 		
 		sql_verifyRecord( loser, loserInfo.getUserID(), matchType );
@@ -1299,12 +1271,12 @@ public class duelbot extends SubspaceBot {
     					tournyGames.put( new Integer( gid ), tg );
     					m_botAction.sendSmartPrivateMessage( "2dragons", "Game #"+gid+"   "+ pOne + "  vs   " + pTwo + "  League:"+leagueId);
     					m_botAction.sendSmartPrivateMessage( pOne, "You have a "+tg.getType()+" Tournament duel versus "+pTwo+". If you are available please reply with '!yes "+gid+"'" );
-    					m_botAction.sendSmartPrivateMessage( pTwo, "If you and your opponent both are available within 5 minutes of this message a duel will automatically begin." );
+    					m_botAction.sendSmartPrivateMessage( pTwo, "You have a "+tg.getType()+" Tournament duel versus "+pOne+". If you are available please reply with '!yes "+gid+"'" );
     				}
     			} catch (Exception e) {System.out.println("ERROR"+e);}
     		}
     	};
-    	m_botAction.scheduleTaskAtFixedRate( tournyTalk, getDelay(), 1800000 );
+    	m_botAction.scheduleTaskAtFixedRate( tournyTalk, getDelay(), 60 * 60 * 1000 );
     }
     
     public void handleEvent( PlayerDeath event ) {
@@ -1601,6 +1573,7 @@ class Lagger extends TimerTask {
     	startDuel( (Duel)duels.get( new Integer( thisBox.getBoxNumber() ) ), game.getPlayerOne(), game.getPlayerTwo() );
     	playing.put( game.getPlayerOne(), duels.get( new Integer( thisBox.getBoxNumber() ) ) );
     	playing.put( game.getPlayerTwo(), duels.get( new Integer( thisBox.getBoxNumber() ) ) );
+    	tournyGamesRunning.put(thisBox.getBoxNumber(), game.getGameID());
 	}
 }*/
 
@@ -1893,6 +1866,14 @@ class ScoreReport extends TimerTask {
 		} catch (Exception e) {
 			System.out.println( "Error Updating avail:"+e );
 		}
+	}
+	
+	public void sql_updateTournyMatchData( int gameId, int winner) {
+		String extra;
+		try {
+			String query = "UPDATE tblDuelTournyGame SET fnStatus = "+playerID+" WHERE fnGameID = "+gameId;
+			m_botAction.SQLQuery("local", query);
+		} catch(Excepton e) {}
 	}
 	
 	public void sql_lagInfo(String name, int average)
