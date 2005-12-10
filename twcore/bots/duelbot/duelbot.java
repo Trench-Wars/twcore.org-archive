@@ -169,7 +169,7 @@ public class duelbot extends SubspaceBot {
     }
     
     public void do_issueChallenge( String _name, String _message ) {
-    	
+    	_name = _name.toLowerCase();
     	//Shutdown mode check
     	if( shutDown ) {
     		m_botAction.sendPrivateMessage( _name, "Currently in 'ShutDown' mode, no new duels may begin at this time: " + shutDownMessage );
@@ -389,6 +389,7 @@ public class duelbot extends SubspaceBot {
     }
     
     public void do_acceptChallenge( String name, String message ) {
+    	name = name.toLowerCase();
     	if( shutDown ) {
     		m_botAction.sendPrivateMessage( name, "Currently in 'ShutDown' mode, no new duels may begin at this time: " + shutDownMessage );
     		return;
