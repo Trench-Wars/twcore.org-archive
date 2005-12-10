@@ -449,6 +449,7 @@ public class duelbot extends SubspaceBot {
     }
     
     public void do_removeChallenge( String name, String message ) {
+    	name = name.toLowerCase();
     	String opponent = m_botAction.getFuzzyPlayerName( message );
     	if( !challenges.containsKey( name+opponent ) ) {
     		m_botAction.sendPrivateMessage( name, "Unable to remove challenge, no such challenge exists." );
@@ -513,6 +514,7 @@ public class duelbot extends SubspaceBot {
     }	
     
     public void do_cancelDuel( String name, String message ) {
+    	name = name.toLowerCase();
     	if( !playing.containsKey( name ) ) {
     		m_botAction.sendPrivateMessage( name, "You are not playing a duel." );
     		return;
@@ -658,7 +660,7 @@ public class duelbot extends SubspaceBot {
      * @param _message Anything else the player may have sent with the command
      */
     public void do_lagOut( String _name, String _message ) {
-    	
+    	_name = _name.toLowerCase();
     	//Check for rules on using this command
     	if( !playing.containsKey( _name ) ) {
     		m_botAction.sendPrivateMessage( _name, "You are not playing a duel." );
