@@ -1251,7 +1251,7 @@ public class duelbot extends SubspaceBot {
         m_botAction.setReliableKills( 1 );
         m_botAction.setMessageLimit( 3 );
         
-        //setupTournyTask();
+        setupTournyTask();
     }
     
     public void setupTournyTask() {
@@ -1284,8 +1284,8 @@ public class duelbot extends SubspaceBot {
     }
     
     public void handleEvent( PlayerDeath event ) {
-    	final String name = m_botAction.getPlayerName( event.getKilleeID() );
-    	final String killer = m_botAction.getPlayerName( event.getKillerID() );
+    	final String name = m_botAction.getPlayerName( event.getKilleeID() ).toLowerCase();
+    	final String killer = m_botAction.getPlayerName( event.getKillerID() ).toLowerCase();
     	if( name == null || killer == null )
     	    return;
     	
@@ -1403,7 +1403,7 @@ public class duelbot extends SubspaceBot {
     
     //Unchecked
     public void handleEvent( PlayerPosition event ) {
-    	String name = m_botAction.getPlayerName( event.getPlayerID() );
+    	String name = m_botAction.getPlayerName( event.getPlayerID() ).toLowerCase();
     	if( !playing.containsKey( name ) ) return;
     	int x = event.getXLocation();
     	int y = event.getYLocation();
@@ -1455,7 +1455,7 @@ public class duelbot extends SubspaceBot {
     public void handleEvent( FrequencyShipChange _event ) {
     	
     	//Get the player name for this event
-    	String name = m_botAction.getPlayerName( _event.getPlayerID() );
+    	String name = m_botAction.getPlayerName( _event.getPlayerID() ).toLowerCase();
     	
     	//Make sure the player is playing and in spectator mode
     	if( !playing.containsKey( name ) ) return;
@@ -1490,7 +1490,7 @@ public class duelbot extends SubspaceBot {
     public void handleEvent( PlayerLeft _event ) {
     	
     	//Get the player name for this event
-    	String name = m_botAction.getPlayerName( _event.getPlayerID() );
+    	String name = m_botAction.getPlayerName( _event.getPlayerID() ).toLowerCase();
     	
     	//Make sure the player is playing
     	if( !playing.containsKey( name ) ) return;
