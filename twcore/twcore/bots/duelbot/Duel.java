@@ -61,6 +61,33 @@ public class Duel {
 		m_challengerStats = new DuelPlayerStats( m_challenger, m_gameType, getBoxFreq() );
 		m_challengedStats = new DuelPlayerStats( m_challenged, m_gameType, getBoxFreq() + 1 );
 	}
+	
+	/** Constructor for a tourny duel.
+	 * @param _duelBox A DuelBox object for the box the duel is being held in
+	 * @param _tournyGame A TournyGame object for the match
+	 */
+	public Duel( DuelBox _duelBox, TournyGame _tournyGame) {
+		
+		//Set the duelbox to be in use
+		_duelBox.toggleUse();
+		m_duelBox = _duelBox;
+		
+		//Save players
+		m_challenger = _tournyGame.getPlayerOne();
+		m_challenged = _tournyGame.getPlayerTwo();
+		
+		//Set tourny ruleset
+		m_gameType = _tournyGame.getGameType();
+		m_winBy2 = true;
+		m_noCount = true;
+		m_deathWarp = true;
+		m_toWin = 20;
+		m_startTime = (int)System.currentTimeMillis();
+		
+		//Create stat tracking objects
+		m_challengerStats = new DuelPlayerStats( m_challenger, m_gameType, getBoxFreq() );
+		m_challengedStats = new DuelPlayerStats( m_challenged, m_gameType, getBoxFreq() + 1 );
+	}
 
 	/** Returns the current name of the league being played
 	 * @return A String representation of the league being played.
