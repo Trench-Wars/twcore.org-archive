@@ -96,7 +96,7 @@ public class duelbot extends SubspaceBot {
         
         acceptedMessages = Message.PRIVATE_MESSAGE;
         /*********Player Commands*********/
-        //m_commandInterpreter.registerCommand( "!yes", acceptedMessages, this, "do_checkTournyDuel" );
+        m_commandInterpreter.registerCommand( "!yes", acceptedMessages, this, "do_checkTournyDuel" );
         m_commandInterpreter.registerCommand( "!challenge", acceptedMessages, this, "do_issueChallenge" );
         m_commandInterpreter.registerCommand( "!tchallenge", acceptedMessages, this, "do_issueTournyChallenge" );
         m_commandInterpreter.registerCommand( "!removechallenge", acceptedMessages, this, "do_removeChallenge" );
@@ -309,7 +309,7 @@ public class duelbot extends SubspaceBot {
     	
     	//Pull the appropriate game.
     	try {
-			String query = "SELECT fnGameId, fnLeagueTypeID, fnTournyUserOne, fnTournyUserTwo, fnTotalPlayers, fnGameNumber FROM tblDuelTournyGame AS TG, tblDuelTourny T WHERE T.fnTournyID = TG.fnTournyID AND fnGameID = "+gid;
+			String query = "SELECT fnGameId, fnLeagueTypeID, fnTournyUserOne, fnTournyUserTwo, fnTotalPlayers, fnGameNumber FROM tblDuelTournyGame AS TG, tblDuelTourny T WHERE T.fnTournyID = TG.fnTournyID AND fnGameID = "+gid+" AND TG.fnStatus = 0";
 			ResultSet result = m_botAction.SQLQuery( "local", query );
 			if( result.next() ) {
 				
@@ -380,10 +380,10 @@ public class duelbot extends SubspaceBot {
     	pOne = m_botAction.getFuzzyPlayerName( pOne );
     	pTwo = m_botAction.getFuzzyPlayerName( pTwo );
     	TournyGame tg = new TournyGame( gid, pOne, pTwo, idOne, idTwo, gameType, realGameId, players );
-    	challenges.put( name+opponent, new DuelChallenge( name, opponent, player, gameType ) );
+    	tournyGames.put(gid, tg);
     	m_botAction.sendPrivateMessage( name, "Your challenge has been issued to '" + opponent + "' (TOURNAMENT DUEL)" );
     	m_botAction.sendPrivateMessage( name, rules );
-    	m_botAction.sendPrivateMessage( opponent, name + " is challenging you to a "+type+" duel. PM me with, !accept "+name+" to accept. (TOURNAMENT DUEL)" );
+    	m_botAction.sendPrivateMessage( opponent, name + " is challenging you to a "+type+" duel. PM me with, !yes "+gid+" to accept. (TOURNAMENT DUEL)" );
     	m_botAction.sendPrivateMessage( opponent, rules );
     	   	
     }
@@ -695,7 +695,7 @@ public class duelbot extends SubspaceBot {
 		setScoreboard( duel, 0 );
     }
     
-   /* public void do_checkTournyDuel( String name, String message ) {
+    public void do_checkTournyDuel( String name, String message ) {
     	
     	System.out.println( "CHECK: "+name );
     	
@@ -721,12 +721,12 @@ public class duelbot extends SubspaceBot {
     			if( tg.bothReady() ) {
     				m_botAction.sendSmartPrivateMessage( name, "Your "+tg.getType()+" tournament duel will begin in 60 seconds. If you do not show you will forfeit." );
     				m_botAction.sendSmartPrivateMessage( tg.getOpponent( name ), "Your "+tg.getType()+" tournament duel will begin in 60 seconds. If you do not show you will forfeit." );
-    				StartDuel d = new StartDuel( tg );
+    				StartDuel d = new StartDuel( tg, this );
     				m_botAction.scheduleTask( d, 60000 );
     			}
     		}
     	} else m_botAction.sendSmartPrivateMessage( name, "That game ID does not exist."+gid );
-    }*/
+    }
 
     /***********************************************
     *                 Help Messages                *
@@ -1026,14 +1026,6 @@ public class duelbot extends SubspaceBot {
 		m_botAction.spec( winner );
 		m_botAction.spec( loser );
 		m_botAction.spec( loser );
-		
-		
-		
-		if(tournyGamesRunning.containsKey((d.getBoxFreq() / 2))) {
-			int gID = (Integer)tournyGamesRunning.get((d.getBoxFreq() / 2));
-			tournyGamesRunning.remove((d.getBoxFreq() / 2));
-			
-		}
 
 		
 		sql_verifyRecord( loser, loserInfo.getUserID(), matchType );
@@ -1087,6 +1079,17 @@ public class duelbot extends SubspaceBot {
 			query += loserRatingBefore+", "+loserRatingAfter+")";
 			m_botAction.SQLQuery( mySQLHost, query );
 		} catch (Exception e) { Tools.printStackTrace( "Error ending duel", e );}
+		
+		try {
+			if(tournyGamesRunning.containsKey((d.getBoxFreq() / 2))) {
+				int gID = (Integer)tournyGamesRunning.get((d.getBoxFreq() / 2));
+				tournyGamesRunning.remove((d.getBoxFreq() / 2));
+				TournyGame tg = (TournyGame)tournyGames.get(gID);
+				ResultSet results = m_botAction.SQLQuery( mySQLHost, "SELECT fnMatchID FROM `tblDuelMatch` ORDER BY fnMatchID DESC LIMIT 0,1");
+				results.next();
+				sql_updateTournyMatchData(gID, results.getInt("fnMatchID"), tg.getPlayerNumber(winner));
+			}
+		} catch(Exception e) {}
 		
 		clearScoreboard( d );
     }
@@ -1255,7 +1258,7 @@ public class duelbot extends SubspaceBot {
     	TimerTask tournyTalk = new TimerTask() {
     		public void run() {
     			try {
-    				String query = "SELECT fnGameId, fnLeagueTypeID, fnTournyUserOne, fnTournyUserTwo, fnTotalPlayers, fnGameNumber FROM tblDuelTournyGame AS TG, tblDuelTourny T WHERE T.fnTournyID = TG.fnTournyID";
+    				String query = "SELECT fnGameId, fnLeagueTypeID, fnTournyUserOne, fnTournyUserTwo, fnTotalPlayers, fnGameNumber FROM tblDuelTournyGame AS TG, tblDuelTourny T WHERE T.fnTournyID = TG.fnTournyID AND TG.fnStatus = 0";
     				ResultSet result = m_botAction.SQLQuery( "local", query );
     				while( result.next() ) {
     					
@@ -1550,16 +1553,18 @@ class Lagger extends TimerTask {
 	}
 }
 
-/*class StartDuel extends TimerTask {
+class StartDuel extends TimerTask {
 	
 	TournyGame game;
+	duelbot dbot;
 	
-	public StartDuel( TournyGame tg ) {
+	public StartDuel( TournyGame tg, duelbot d ) {
 		game = tg;
+		dbot = d;
 	}
 	
 	public void run() {
-		DuelBox thisBox = getDuelBox( game.getGameType() );
+		DuelBox thisBox = dbot.getDuelBox( game.getGameType() );
     	//Add queue system for dueling
     	if( thisBox == null ) {
     		m_botAction.sendPrivateMessage( game.getPlayerOne(), "Unable to start tournament duel, all duel boxes are full." );
@@ -1573,9 +1578,9 @@ class Lagger extends TimerTask {
     	startDuel( (Duel)duels.get( new Integer( thisBox.getBoxNumber() ) ), game.getPlayerOne(), game.getPlayerTwo() );
     	playing.put( game.getPlayerOne(), duels.get( new Integer( thisBox.getBoxNumber() ) ) );
     	playing.put( game.getPlayerTwo(), duels.get( new Integer( thisBox.getBoxNumber() ) ) );
-    	tournyGamesRunning.put(thisBox.getBoxNumber(), game.getGameID());
+    	tournyGamesRunning.put(thisBox.getBoxNumber(), game.getGameId());
 	}
-}*/
+}
 
 class ScoreReport extends TimerTask {
 	
@@ -1868,12 +1873,12 @@ class ScoreReport extends TimerTask {
 		}
 	}
 	
-	public void sql_updateTournyMatchData( int gameId, int winner) {
+	public void sql_updateTournyMatchData( int gameId, int matchId, int winner) {
 		String extra;
 		try {
-			String query = "UPDATE tblDuelTournyGame SET fnStatus = "+playerID+" WHERE fnGameID = "+gameId;
+			String query = "UPDATE tblDuelTournyGame SET fnStatus = "+winner+", fnDuelMatchID = "+matchId+" WHERE fnGameID = "+gameId;
 			m_botAction.SQLQuery("local", query);
-		} catch(Excepton e) {}
+		} catch(Exception e) {}
 	}
 	
 	public void sql_lagInfo(String name, int average)
