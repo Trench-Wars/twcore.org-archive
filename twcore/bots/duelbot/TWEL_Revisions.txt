@@ -5,6 +5,9 @@
 --- 5-19-05
 - Made the bot cancel a player's cancel request if either player dies.
 
+--- 12-10-05
+- Completed playoffs bot interface
+
 
 TODO:
 
