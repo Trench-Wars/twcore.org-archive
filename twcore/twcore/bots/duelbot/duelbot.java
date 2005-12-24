@@ -381,6 +381,7 @@ public class duelbot extends SubspaceBot {
     	pOne = m_botAction.getFuzzyPlayerName( pOne );
     	pTwo = m_botAction.getFuzzyPlayerName( pTwo );
     	TournyGame tg = new TournyGame( gid, pOne, pTwo, idOne, idTwo, gameType, realGameId, players );
+    	tg.setResponse(name.toLowerCase());
     	tournyGames.put(gid, tg);
     	m_botAction.sendPrivateMessage( name, "Your challenge has been issued to '" + opponent + "' (TOURNAMENT DUEL)" );
     	m_botAction.sendPrivateMessage( name, rules );
