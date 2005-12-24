@@ -2029,14 +2029,14 @@ class ScoreReport extends TimerTask {
 		try {
 			ResultSet results = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuelTournyGame AS DTG, tblDuelTourny AS DT WHERE DTG.fnGameNumber = "+matchId+" AND DTG.fnTournyID = DT.fnTournyID AND DT.fnLeagueTypeID = "+leagueId);
 			results.next();
-			if(results.getInt("DTG.fnTournyUserOne") == 0) {
+			if(results.getInt("fnTournyUserOne") == 0) {
 				m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelTournyGame SET fnTournyUserOne = "+userId+" WHERE fnGameID = "+results.getInt("fnGameID"));
 				m_botAction.sendPrivateMessage(name, "Your opponent has not advanced yet. You will receive a message via MessageBot when he/she advances.");
 			} else {
 				m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelTournyGame SET fnTournyUserTwo = "+userId+" WHERE fnGameID = "+results.getInt("fnGameID"));
-				ResultSet results2 = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuelPlayer WHERE fnUserID = "+results.getInt("DTG.fnTournyUserOne"));
+				ResultSet results2 = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuelPlayer WHERE fnUserID = "+results.getInt("fnTournyUserOne"));
 				results2.next();
-				String otherPlayer = results2.getString("DP.fcUserName");
+				String otherPlayer = results2.getString("fcUserName");
 				m_botAction.sendSmartPrivateMessage(otherPlayer, "Your opponent ("+name+") has just advanced. PM me with !tchallenge "+results.getInt("fnGameID")+" to challenge him/her.");
 				m_botAction.sendSmartPrivateMessage(name, "Your opponent ("+otherPlayer+") has already advanced. PM me with !tchallenge "+results.getInt("fnGameID")+" to challenge him/her.");
 				m_botAction.SQLQuery(mySQLHost, "INSERT INTO tblMessageSystem (fnID, fcName, fcMessage, fnRead, fdTimeStamp) VALUES (0, '"+Tools.addSlashesToString(name.toLowerCase())+"', 'Your match for the TWEL Playoffs is available. Your opponent is "+Tools.addSlashesToString(otherPlayer)+". PM DuelBot with !tchallenge "+results.getInt("fnGameID")+" to challenge him/her.', 0, NOW())");
