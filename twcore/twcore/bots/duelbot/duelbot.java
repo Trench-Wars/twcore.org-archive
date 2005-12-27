@@ -132,7 +132,7 @@ public class duelbot extends SubspaceBot {
     }
 	
 	public void do_showVersion( String name, String message ) {
-		m_botAction.sendSmartPrivateMessage( name, "1.38" );
+		m_botAction.sendSmartPrivateMessage( name, "1.39" );
 	}
     
     
@@ -1091,10 +1091,10 @@ public class duelbot extends SubspaceBot {
 				int gID = (Integer)tournyGamesRunning.get((d.getBoxFreq() / 2));
 				tournyGamesRunning.remove((d.getBoxFreq() / 2));
 				TournyGame tg = (TournyGame)tournyGames.get(gID);
-				updatePlayoffBracket(winner, loser, type, gID);
 				ResultSet results = m_botAction.SQLQuery( mySQLHost, "SELECT fnMatchID FROM `tblDuelMatch` ORDER BY fnMatchID DESC LIMIT 0,1");
 				results.next();
 				sql_updateTournyMatchData(gID, results.getInt("fnMatchID"), tg.getPlayerNumber(winner));
+				updatePlayoffBracket(winner, loser, type, gID);
 			}
 		} catch(Exception e) {}
 		
@@ -1110,8 +1110,8 @@ public class duelbot extends SubspaceBot {
 	    	String winner = pieces[2];
 	    	String loser = pieces[3];
 	    	int type = Integer.parseInt(pieces[4]);
-	    	updatePlayoffBracket(winner, loser, type, gID);
 	    	sql_updateTournyMatchData(gID, 0, winID);
+	    	updatePlayoffBracket(winner, loser, type, gID);
 	    } catch(Exception e) {}
     }
     
@@ -1294,8 +1294,8 @@ public class duelbot extends SubspaceBot {
     					TournyGame tg = new TournyGame( gid, pOne, pTwo, idOne, idTwo, leagueId, realGameId, players );
     					tournyGames.put( new Integer( gid ), tg );
     					//m_botAction.sendSmartPrivateMessage( "2dragons", "Game #"+gid+"   "+ pOne + "  vs   " + pTwo + "  League:"+leagueId);
-    					m_botAction.sendSmartPrivateMessage( pOne, "You have a "+tg.getType()+" Tournament duel versus "+pTwo+". If you are available please reply with '!yes "+gid+"'" );
-    					m_botAction.sendSmartPrivateMessage( pTwo, "You have a "+tg.getType()+" Tournament duel versus "+pOne+". If you are available please reply with '!yes "+gid+"'" );
+    					//m_botAction.sendSmartPrivateMessage( pOne, "You have a "+tg.getType()+" Tournament duel versus "+pTwo+". If you are available please reply with '!yes "+gid+"'" );
+    					//m_botAction.sendSmartPrivateMessage( pTwo, "You have a "+tg.getType()+" Tournament duel versus "+pOne+". If you are available please reply with '!yes "+gid+"'" );
     				}
     			} catch (Exception e) {System.out.println("ERROR"+e);}
     		}
@@ -1943,7 +1943,7 @@ class ScoreReport extends TimerTask {
 					matches /= 2;
 					totalMatches += matches;
 				}
-				int winnerNext = (gameNumber - totalMatches) / 2 + (totalMatches + (matches / 2));
+				int winnerNext = (gameNumber - totalMatches + 1) / 2 + (totalMatches + (matches / 2));
 				if((gameNumber + 1) == players) winnerNext = players;
 				int totalMatches2 = 0;
 				int matches2 = players / 2;
