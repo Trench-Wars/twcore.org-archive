@@ -132,7 +132,7 @@ public class duelbot extends SubspaceBot {
     }
 	
 	public void do_showVersion( String name, String message ) {
-		m_botAction.sendSmartPrivateMessage( name, "1.39" );
+		m_botAction.sendSmartPrivateMessage( name, "1.40" );
 	}
     
     
@@ -1094,7 +1094,7 @@ public class duelbot extends SubspaceBot {
 				ResultSet results = m_botAction.SQLQuery( mySQLHost, "SELECT fnMatchID FROM `tblDuelMatch` ORDER BY fnMatchID DESC LIMIT 0,1");
 				results.next();
 				sql_updateTournyMatchData(gID, results.getInt("fnMatchID"), tg.getPlayerNumber(winner));
-				updatePlayoffBracket(winner, loser, type, gID);
+				updatePlayoffBracket(winner, loser, type, gID); // 191252 vs 1637
 			}
 		} catch(Exception e) {}
 		
