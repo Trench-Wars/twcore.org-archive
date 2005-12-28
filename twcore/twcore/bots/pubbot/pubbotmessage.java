@@ -18,7 +18,6 @@ public class pubbotmessage extends PubBotModule
   public void requestEvents(EventRequester eventRequester)
   {
     eventRequester.request(EventRequester.MESSAGE);
-    eventRequester.request(EventRequester.PLAYER_ENTERED);
   }
 
   public void handleEvent(Message event)
@@ -38,14 +37,53 @@ public class pubbotmessage extends PubBotModule
     	}
   }
 
-  /** Checks for a recently joined player so the MessageBot
-   *  can check if they have new messages.
-   */
-  public void handleEvent(PlayerEntered event)
+  
+  public void gotNotRecordedCmd(String argString)
   {
-  	String name = m_botAction.getPlayerName(event.getPlayerID()).toLowerCase();
-  	checkQueue.add(name);
-  	m_botAction.sendUnfilteredPrivateMessage(name, "*info");
+  	checkQueue.add(argString.toLowerCase());
+  }
+
+  public void handleBotIPC(String botSender, String recipient, String sender, String message)
+  {
+    String command = message.toLowerCase();
+
+    try
+    {
+      if(command.startsWith("notrecorded "))
+        gotNotRecordedCmd(message.substring(12));
+    }
+    catch(Exception e)
+    {
+      m_botAction.sendChatMessage(e.getMessage());
+    }
+  }
+
+  /**
+   * This method handles an InterProcessEvent.
+   *
+   * @param event is the InterProcessEvent to handle.
+   */
+
+  public void handleEvent(InterProcessEvent event)
+  {
+    IPCMessage ipcMessage = (IPCMessage) event.getObject();
+    String message = ipcMessage.getMessage();
+    String recipient = ipcMessage.getRecipient();
+    String sender = ipcMessage.getSender();
+    String botSender = event.getSenderName();
+
+    try
+    {
+      if(recipient == null || recipient.equals(botName))
+      {
+        if(sender == null)
+          handleBotIPC(botSender, recipient, sender, message);
+      }
+    }
+    catch(Exception e)
+    {
+      m_botAction.sendChatMessage(e.getMessage());
+    }
   }
 
   public void cancel()
