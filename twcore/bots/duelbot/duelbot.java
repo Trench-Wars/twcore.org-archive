@@ -2023,7 +2023,7 @@ class ScoreReport extends TimerTask {
 				};
 				m_botAction.sendZoneMessage(winner + " has just won the " + leagueName + " TWEL Championship. Congratulate him/her next time you see him/her. -TWEL Staff", 2);
 			}
-		} catch(Exception e) {}
+		} catch(Exception e) { m_botAction.sendSmartPrivateMessage("ikrit <ER>", e.getMessage()); }
 	}
 	
 	public void advancePlayer(int userId, String name, int matchId, int leagueId) {
@@ -2043,7 +2043,7 @@ class ScoreReport extends TimerTask {
 				m_botAction.SQLQuery(mySQLHost, "INSERT INTO tblMessageSystem (fnID, fcName, fcMessage, fnRead, fdTimeStamp) VALUES (0, '"+Tools.addSlashesToString(name.toLowerCase())+"', 'Your match for the TWEL Playoffs is available. Your opponent is "+Tools.addSlashesToString(otherPlayer)+". PM DuelBot with !tchallenge "+results.getInt("fnGameID")+" to challenge him/her.', 0, NOW())");
 				m_botAction.SQLQuery(mySQLHost, "INSERT INTO tblMessageSystem (fnID, fcName, fcMessage, fnRead, fdTimeStamp) VALUES (0, '"+Tools.addSlashesToString(otherPlayer.toLowerCase())+"', 'Your match for the TWEL Playoffs is available. Your opponent is "+Tools.addSlashesToString(name)+". PM DuelBot with !tchallenge "+results.getInt("fnGameID")+" to challenge him/her.', 0, NOW())");
 			}
-		} catch(Exception e) {}
+		} catch(Exception e) { m_botAction.sendSmartPrivateMessage("ikrit <ER>", e.getMessage()); }
 	}
 	
 	class CornerWarp extends TimerTask {
