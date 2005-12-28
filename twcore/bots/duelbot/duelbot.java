@@ -1094,7 +1094,8 @@ public class duelbot extends SubspaceBot {
 				ResultSet results = m_botAction.SQLQuery( mySQLHost, "SELECT fnMatchID FROM `tblDuelMatch` ORDER BY fnMatchID DESC LIMIT 0,1");
 				results.next();
 				sql_updateTournyMatchData(gID, results.getInt("fnMatchID"), tg.getPlayerNumber(winner));
-				updatePlayoffBracket(winner, loser, type, gID); // 191252 vs 1637
+				updatePlayoffBracket(winner, loser, d.getLeagueId(), gID);  // 191252 vs 1637
+																			// 292939 vs 3635
 			}
 		} catch(Exception e) {}
 		
