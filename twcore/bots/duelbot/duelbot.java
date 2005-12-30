@@ -297,6 +297,8 @@ public class duelbot extends SubspaceBot {
     		return;
     	}
     	
+    	
+    	
     	//Check for the proper game
     	int gid = -1;
     	int idOne = -1;
@@ -306,7 +308,14 @@ public class duelbot extends SubspaceBot {
     	int gameType;
     	int realGameId;
     	int players;
-    	try { gid = Integer.parseInt( message ); } catch (Exception e) {}
+    	if(message.indexOf(":") > -1) {
+    		String pieces[] = message.split(":");
+    		try {
+    			gid = sql_getTournyGameID(Integer.parseInt(pieces[0]), Integer.parseInt(pieces[1]));
+    		} catch(Exception e) {}
+    	} else {
+    		try { gid = Integer.parseInt( message ); } catch (Exception e) {}
+    	}
     	
     	//Pull the appropriate game.
     	try {
@@ -332,9 +341,9 @@ public class duelbot extends SubspaceBot {
     	
     	//Figure out who to challenge
     	String opponent;
-    	if( name.equals( pOne ) )
+    	if( name.equalsIgnoreCase( pOne ) )
     		opponent = pTwo;
-    	else if( name.equals( pTwo ) )
+    	else if( name.equalsIgnoreCase( pTwo ) )
     		opponent = pOne;
     	else {
     		m_botAction.sendSmartPrivateMessage( name, "You are not a player in this duel." );
@@ -371,7 +380,7 @@ public class duelbot extends SubspaceBot {
     	if( gameType == 1 ) type = "Warbird";
     	else if( gameType == 2 ) type = "Javelin";
     	else if( gameType == 3 ) type = "Spider";
-    	String rules = "Rules: First to " + 10;
+    	String rules = "Rules: First to " + 20;
     	rules += ", Win By 2";
     	rules += ", No Count (nc) Double Kills";
     	rules += ", Warp On Deaths";
@@ -745,6 +754,8 @@ public class duelbot extends SubspaceBot {
 			"| !setrules <included rules>   - sets rules, include rules you wish to use   |",
 			"|   available rules: winby2, nc, warp, 5/10 : Ex  !setrules warp 5           |",
 			"| !challenge <name>:<type>     - challenges <name> to a duel wb=1/jav=2/sp=3 |",
+			"| !tchallenge <gID>            - challenges your opponent for game #<gID>    |",
+			"| !tchallenge <gN>:<league>    - challenges your opponent in playoffs        |",
 			"| !accept    <name>            - accepts a challenge from <name>             |",
 			"| !removechallenge <name>      - removes the challenge issued to <name>      |",
 			"| !notplaying <time>           - turns on notplaying for requested <time>    |",
@@ -770,13 +781,13 @@ public class duelbot extends SubspaceBot {
     ***********************************************/
     
     public void do_die( String name, String message ) {
-    	if( !leagueOps.containsKey( name ) ) return;
+    	if( !(leagueOps.containsKey( name ) || m_botAction.getOperatorList().isSmod(name)) ) return;
 		//Removes the bot from the server.
     	m_botAction.die();
     }
     
     public void do_shutDown( String name, String message ) {
-    	if( !leagueOps.containsKey( name ) ) return;
+    	if( !(leagueOps.containsKey( name ) || m_botAction.getOperatorList().isSmod(name)) ) return;
     	shutDownMessage = message;
     	if( shutDown ) {
     		m_botAction.sendPrivateMessage( name, "Shutdown mode turned off." );
@@ -898,7 +909,7 @@ public class duelbot extends SubspaceBot {
     			
     			m_botAction.sendPrivateMessage( name, "You have been registered to use this bot. It is advised you set your personal dueling rules, for further information use !help" );
     		} else {
-    			if( result.getString( "fcUserName" ).equals( name ) ) {
+    			if( result.getString( "fcUserName" ).equalsIgnoreCase( name ) ) {
     				m_botAction.sendSmartPrivateMessage( name, "You have already signed up." );
     			} else {
     				if( allowedNames.containsKey( name ) ) {
@@ -1901,6 +1912,18 @@ class ScoreReport extends TimerTask {
 			String query = "UPDATE tblDuelTournyGame SET fnStatus = "+winner+", fnDuelMatchID = "+matchId+" WHERE fnGameID = "+gameId;
 			m_botAction.SQLQuery("local", query);
 		} catch(Exception e) {}
+	}
+	
+	public int sql_getTournyGameID(int gameNumber, int leagueId) {
+		try {
+			ResultSet results = m_botAction.SQLQuery( mySQLHost, "SELECT fnGameID FROM tblDuelTournyGame AS DTG, tblDuelTourny AS DT WHERE DT.fnTournyID = DTG.fnTournyID AND DT.fnLeagueTypeID = "+leagueId+" AND DTG.fnGameNumber = "+gameNumber);
+			if(results.next()) {
+				return results.getInt("fnGameID");
+			} else {
+				return -1;
+			}
+		} catch(Exception e) {}
+		return -1;
 	}
 	
 	public void sql_lagInfo(String name, int average)
