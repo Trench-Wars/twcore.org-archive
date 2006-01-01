@@ -15,7 +15,7 @@ package twcore.bots.matchbot;
 
 import twcore.core.*;
 import twcore.misc.database.DBPlayerData;
-//import twcore.misc.spy.Spy;
+import twcore.misc.spy.Spy;
 import java.util.*;
 import java.sql.*;
 import java.io.*;
@@ -50,7 +50,7 @@ public class matchbot extends SubspaceBot
     // these variables are for when the bot is locked
     BotSettings m_rules;
     String m_rulesFileName;
-    // Spy racismSpy;				// Equivalent to using a PubBot's spy module
+    Spy racismSpy;				// Equivalent to using a PubBot's spy module
 
     // --- temporary
     String m_team1 = null, m_team2 = null;
@@ -70,7 +70,7 @@ public class matchbot extends SubspaceBot
         m_gameRequests = new LinkedList();
 
         requestEvents();
-        // racismSpy = new Spy( m_botAction );
+        racismSpy = new Spy( m_botAction );
     }
 
     public static String[] stringChopper(String input, char deliniator)
@@ -361,7 +361,7 @@ public class matchbot extends SubspaceBot
         };
         
         // Send to spy to check for racist comments
-        // racismSpy.handleEvent( event );
+        racismSpy.handleEvent( event );
         
         if (m_game != null)
         {
