@@ -208,6 +208,7 @@ public class duelbot extends SubspaceBot {
     		m_botAction.sendPrivateMessage( _name, "Unable to issue challenge, "+pieces[0] +" is not in this arena." );
     		return;
     	}
+    	opponent = opponent.toLowerCase();
     	if( opponent.equals( _name ) ) {
     		m_botAction.sendPrivateMessage( _name, "Unable to issue challenge, you cannot challenge yourself." );
     		return;
@@ -355,6 +356,7 @@ public class duelbot extends SubspaceBot {
     		m_botAction.sendPrivateMessage( name, "Unable to issue challenge, your opponent is not in this arena." );
     		return;
     	}
+    	opponent = opponent.toLowerCase();
     	if( notPlaying.containsKey( opponent ) ) {
     		NotPlaying np = (NotPlaying)notPlaying.get( opponent );
     		if( !np.timeUp( ((int)System.currentTimeMillis() / 1000 )) ) {
@@ -387,8 +389,13 @@ public class duelbot extends SubspaceBot {
     	
     	name = m_botAction.getFuzzyPlayerName( name );
     	opponent = m_botAction.getFuzzyPlayerName( opponent );
+    	if(name == null || opponent == null) return;
+    	name = name.toLowerCase();
+    	opponent = opponent.toLowerCase();
     	pOne = m_botAction.getFuzzyPlayerName( pOne );
     	pTwo = m_botAction.getFuzzyPlayerName( pTwo );
+    	pOne = pOne.toLowerCase();
+    	pTwo = pTwo.toLowerCase();
     	TournyGame tg = new TournyGame( gid, pOne, pTwo, idOne, idTwo, gameType, realGameId, players );
     	tg.setResponse(name.toLowerCase());
     	tournyGames.put(gid, tg);
@@ -418,6 +425,7 @@ public class duelbot extends SubspaceBot {
     		m_botAction.sendPrivateMessage( name, "Unable to accept challenge, `"+message+"` has not challenged you or is not in this arena." );
     		return;
     	}
+    	challenger = challenger.toLowerCase();
     	if( !challenges.containsKey( challenger+name ) ) {
     		m_botAction.sendPrivateMessage( name, "Unable to accept challenge, `"+challenger+"` has not challenged you" );
     		return;
@@ -462,6 +470,8 @@ public class duelbot extends SubspaceBot {
     public void do_removeChallenge( String name, String message ) {
     	name = name.toLowerCase();
     	String opponent = m_botAction.getFuzzyPlayerName( message );
+    	if(opponent == null) return;
+    	opponent = opponent.toLowerCase();
     	if( !challenges.containsKey( name+opponent ) ) {
     		m_botAction.sendPrivateMessage( name, "Unable to remove challenge, no such challenge exists." );
     		return;
@@ -615,6 +625,7 @@ public class duelbot extends SubspaceBot {
     		m_botAction.sendPrivateMessage( name, "Unable to find player." );
     		return;
     	}
+    	player = player.toLowerCase();
     	if( !from.equals("") ) {
     		m_botAction.sendPrivateMessage( name, "Please try again in a few seconds." );
     		return;
@@ -1609,9 +1620,12 @@ class StartDuel extends TimerTask {
     		m_botAction.sendPrivateMessage( game.getPlayerTwo(), "Unable to start tournament duel, all duel boxes are full." );
     		return;
     	}
-    	game.setPlayerOne( m_botAction.getFuzzyPlayerName( game.getPlayerOne() ) );
-    	game.setPlayerTwo( m_botAction.getFuzzyPlayerName( game.getPlayerTwo() ) );
-    	
+    	String p1 = m_botAction.getFuzzyPlayerName( game.getPlayerOne() );
+    	String p2 = m_botAction.getFuzzyPlayerName( game.getPlayerTwo() );
+    	if(p1 != null && p2 != null) {
+	    	game.setPlayerOne( p1.toLowerCase() );
+	    	game.setPlayerTwo( p2.toLowerCase() );
+    	}
     	duels.put( new Integer( thisBox.getBoxNumber() ), new Duel( thisBox, game ) );
     	startDuel( (Duel)duels.get( new Integer( thisBox.getBoxNumber() ) ), game.getPlayerOne(), game.getPlayerTwo() );
     	playing.put( game.getPlayerOne(), duels.get( new Integer( thisBox.getBoxNumber() ) ) );
