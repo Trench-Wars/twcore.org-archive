@@ -624,7 +624,10 @@ public class duelbot extends SubspaceBot {
     }
     
     public void do_showScore( String name, String message ) {
-    	String player = m_botAction.getFuzzyPlayerName( message ).toLowerCase();
+    	String player = m_botAction.getFuzzyPlayerName( message );
+        if( player == null )
+            return;
+        player = player.toLowerCase();
     	int i = -1;
     	try { i = Integer.parseInt( message ); } catch (Exception e) {}
 		if( duels.containsKey( new Integer( i ) ) ) {
@@ -1242,7 +1245,7 @@ public class duelbot extends SubspaceBot {
     public void handleEvent( Message event ) {
 		m_commandInterpreter.handleEvent( event ); 
 		
-		String message = event.getMessage();
+		// String message = event.getMessage();
 		
 		//if( message.startsWith( "!yes " ) && event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ) 
 		//	do_checkTournyDuel( event.getMessager(), message.substring( 5, message.length() ) );
