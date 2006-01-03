@@ -77,12 +77,14 @@ public class pubhubalias extends PubBotModule
       String currName;
       if(resultSet == null)
         throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
-      for(; resultSet.next(); results++)
+      while( resultSet.next() )
       {
         if( results <= m_maxRecords ) {
           currName = resultSet.getString("U2.fcUserName");
-          if(!currName.equalsIgnoreCase(lastName))
+          if(!currName.equalsIgnoreCase(lastName)) {
             m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
+            results++;
+          }
           lastName = currName;
         }
       }
@@ -131,12 +133,14 @@ public class pubhubalias extends PubBotModule
       String currName;
       if(resultSet == null)
         throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
-      for(; resultSet.next(); results++)
+      while( resultSet.next() )
       {
         if( results <= m_maxRecords ) {
           currName = resultSet.getString("U2.fcUserName");
-          if(!currName.equalsIgnoreCase(lastName))
+          if(!currName.equalsIgnoreCase(lastName)) {
             m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
+            results++;
+          }
           lastName = currName;
         }
       }
@@ -185,12 +189,14 @@ public class pubhubalias extends PubBotModule
         String currName;
         if(resultSet == null)
           throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
-        for(; resultSet.next(); results++)
+        while( resultSet.next() )
         {
           if( results <= m_maxRecords ) {
             currName = resultSet.getString("U2.fcUserName");
-            if(!currName.equalsIgnoreCase(lastName))
+            if(!currName.equalsIgnoreCase(lastName)) {
               m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
+              results++;
+            }
             lastName = currName;
           }
         }
@@ -227,10 +233,11 @@ public class pubhubalias extends PubBotModule
         
           m_botAction.sendChatMessage("Info results for '" + argString + "':" );
           int results = 0;
-          for( ; resultSet.next(); results++ ) {
+          while( resultSet.next() ) {
               if( results <= m_maxRecords ) {
                   m_botAction.sendChatMessage( padString("MID: " + resultSet.getInt("A.fnMachineID"), 15) + "  IP: " + padString(resultSet.getString("A.fcIP"), 15) +
                                                          " Updated " + resultSet.getDate("A.fdUpdated") + " - " + resultSet.getInt("A.fnTimesUpdated") + " update(s)" );
+                  results++;                  
               }
           }
           resultSet.close();
