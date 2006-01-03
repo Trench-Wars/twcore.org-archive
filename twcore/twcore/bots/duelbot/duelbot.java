@@ -1316,10 +1316,12 @@ public class duelbot extends SubspaceBot {
     }
     
     public void handleEvent( PlayerDeath event ) {
-    	final String name = m_botAction.getPlayerName( event.getKilleeID() ).toLowerCase();
-    	final String killer = m_botAction.getPlayerName( event.getKillerID() ).toLowerCase();
+    	String name = m_botAction.getPlayerName( event.getKilleeID() );
+    	String killer = m_botAction.getPlayerName( event.getKillerID() );
     	if( name == null || killer == null )
     	    return;
+        name = name.toLowerCase();
+        killer = killer.toLowerCase();
     	
 		if( playing.containsKey( name ) ) {
 			
