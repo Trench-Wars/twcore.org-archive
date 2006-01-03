@@ -397,7 +397,7 @@ public class pubhubalias extends PubBotModule
   /**
    * Shows current watches.
    */
-  public void doShowWatches( ) {
+  public void doShowWatchesCmd( ) {
       Iterator i;
       i = watchedIPs.iterator();
       if( i.hasNext() ) {
