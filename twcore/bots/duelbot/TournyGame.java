@@ -60,11 +60,11 @@ public class TournyGame {
 	
 	public boolean setResponse( String name ) {
 		
-		if( name.equals( playerOne.toLowerCase() ) ) {
+		if( name.equalsIgnoreCase( playerOne.toLowerCase() ) ) {
 			if( replyOne ) return true;
 			replyOne = true;
 			return false;
-		} else if( name.equals( playerTwo.toLowerCase() ) ) {
+		} else if( name.equalsIgnoreCase( playerTwo.toLowerCase() ) ) {
 			if( replyTwo ) return true;
 			replyTwo = true;
 			return false;
@@ -72,9 +72,9 @@ public class TournyGame {
 	}
 	
 	public int getPlayerNumber( String name ) {
-		if( name.equals( playerOne ) ) {
+		if( name.equalsIgnoreCase( playerOne ) ) {
 			return 1;
-		} else if( name.equals( playerTwo ) ) {
+		} else if( name.equalsIgnoreCase( playerTwo ) ) {
 			return 2;
 		}
 		return 1;
