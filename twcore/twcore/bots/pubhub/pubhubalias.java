@@ -261,6 +261,7 @@ public class pubhubalias extends PubBotModule
       "!ClearNameWatch        (clears all names being watched)",
       "!ClearIPWatch          (clears all IPs being watched)",
       "!ClearMIDWatch         (clears all MIDs being watched)",
+      "!ShowWatches           (shows all watches in effect)",
       "!Help",
       "(-noip and -nomid additions to cmds will force-ignore IP/MID, respectively)"
     };
@@ -401,6 +402,7 @@ public class pubhubalias extends PubBotModule
       Iterator i;
       i = watchedIPs.iterator();
       if( i.hasNext() ) {
+        m_botAction.sendChatMessage( "------------" );
         m_botAction.sendChatMessage( "IP watches" );
         m_botAction.sendChatMessage( "------------" );
         do {
@@ -409,6 +411,7 @@ public class pubhubalias extends PubBotModule
       }
       i = watchedMIDs.iterator();
       if( i.hasNext() ) {
+        m_botAction.sendChatMessage( "------------" );
         m_botAction.sendChatMessage( "MID watches" );
         m_botAction.sendChatMessage( "------------" );
         do {
@@ -417,6 +420,7 @@ public class pubhubalias extends PubBotModule
       }
       i = watchedNames.iterator();
       if( i.hasNext() ) {
+        m_botAction.sendChatMessage( "------------" );
         m_botAction.sendChatMessage( "Name watches" );
         m_botAction.sendChatMessage( "------------" );
         do {
