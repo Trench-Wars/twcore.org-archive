@@ -20,6 +20,8 @@ public class pubhubalias extends PubBotModule
   private Set watchedNames;
   private Set watchedMIDs;
   private ClearRecordTask clearRecordTask;
+  
+  private int m_maxRecords = 50;
 
   /**
    * This method initializes the module.
@@ -77,14 +79,18 @@ public class pubhubalias extends PubBotModule
         throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
       for(; resultSet.next(); results++)
       {
-        currName = resultSet.getString("U2.fcUserName");
-        if(!currName.equalsIgnoreCase(lastName))
-          m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
-        lastName = currName;
+        if( results <= m_maxRecords ) {
+          currName = resultSet.getString("U2.fcUserName");
+          if(!currName.equalsIgnoreCase(lastName))
+            m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
+          lastName = currName;
+        }
       }
       resultSet.close();
       if(results == 0)
         m_botAction.sendChatMessage("Player not in database.");
+      if( results > m_maxRecords )
+        m_botAction.sendChatMessage( results - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")" );
     }
     catch(SQLException e)
     {
@@ -127,14 +133,18 @@ public class pubhubalias extends PubBotModule
         throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
       for(; resultSet.next(); results++)
       {
-        currName = resultSet.getString("U2.fcUserName");
-        if(!currName.equalsIgnoreCase(lastName))
-          m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
-        lastName = currName;
+        if( results <= m_maxRecords ) {
+          currName = resultSet.getString("U2.fcUserName");
+          if(!currName.equalsIgnoreCase(lastName))
+            m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
+          lastName = currName;
+        }
       }
       resultSet.close();
       if(results == 0)
         m_botAction.sendChatMessage("Player not in database.");
+      if( results > m_maxRecords )
+          m_botAction.sendChatMessage( results - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")" );
     }
     catch(SQLException e)
     {
@@ -177,14 +187,18 @@ public class pubhubalias extends PubBotModule
           throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
         for(; resultSet.next(); results++)
         {
-          currName = resultSet.getString("U2.fcUserName");
-          if(!currName.equalsIgnoreCase(lastName))
-            m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
-          lastName = currName;
+          if( results <= m_maxRecords ) {
+            currName = resultSet.getString("U2.fcUserName");
+            if(!currName.equalsIgnoreCase(lastName))
+              m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
+            lastName = currName;
+          }
         }
         resultSet.close();
         if(results == 0)
           m_botAction.sendChatMessage("Player not in database.");
+        if( results > m_maxRecords )
+            m_botAction.sendChatMessage( results - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")" );
       }
       catch(SQLException e)
       {
@@ -192,7 +206,11 @@ public class pubhubalias extends PubBotModule
       }
   }
 
-  // made useful.  -qan
+  /**
+   * Returns IP and MID entries for a particular player.
+   * @param argString
+   * @throws SQLException
+   */
   public void doInfoCmd(String argString) throws SQLException
   {
       try
@@ -208,15 +226,18 @@ public class pubhubalias extends PubBotModule
               throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
         
           m_botAction.sendChatMessage("Info results for '" + argString + "':" );
-          boolean hasResults = false;
-          while( resultSet.next() ) {
-              hasResults = true;
-              m_botAction.sendChatMessage( padString("MID: " + resultSet.getInt("A.fnMachineID"), 15) + "  IP: " + padString(resultSet.getString("A.fcIP"), 15) +
-                                           " Updated " + resultSet.getDate("A.fdUpdated") + " - " + resultSet.getInt("A.fnTimesUpdated") + " update(s)" );
+          int results = 0;
+          for( ; resultSet.next(); results++ ) {
+              if( results <= m_maxRecords ) {
+                  m_botAction.sendChatMessage( padString("MID: " + resultSet.getInt("A.fnMachineID"), 15) + "  IP: " + padString(resultSet.getString("A.fcIP"), 15) +
+                                                         " Updated " + resultSet.getDate("A.fdUpdated") + " - " + resultSet.getInt("A.fnTimesUpdated") + " update(s)" );
+              }
           }
-          if( !hasResults )
-              m_botAction.sendChatMessage( "None found." );
           resultSet.close();
+          if( results == 0 )
+              m_botAction.sendChatMessage( "None found." );
+          if( results > m_maxRecords )
+              m_botAction.sendChatMessage( results - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")" );
       }
       catch(SQLException e)
       {
@@ -233,6 +254,7 @@ public class pubhubalias extends PubBotModule
       "!AltIP[-nomid]         <IP>:<Days>",
       "!AltMID[-noip]         <MacID>:<Days>",
       "!Info                  <PlayerName>",
+      "!MaxResults            <Max # results to return>",
       "!NameWatch             <Name>",
       "!IPWatch               <IP>",
       "!MIDWatch              <MID>",
@@ -275,18 +297,34 @@ public class pubhubalias extends PubBotModule
         throw new RuntimeException("ERROR: Cannot connect to database.");
       for(; resultSet.next(); results++)
       {
-        currName = resultSet.getString("U2.fcUserName");
-        if(!currName.equalsIgnoreCase(lastName))
-          m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Squad: " + resultSet.getString("T.fcTeamName"));
-        lastName = currName;
+        if( results <= m_maxRecords ) {
+          currName = resultSet.getString("U2.fcUserName");
+          if(!currName.equalsIgnoreCase(lastName))
+            m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Squad: " + resultSet.getString("T.fcTeamName"));
+          lastName = currName;
+        }
       }
       resultSet.close();
       if(results == 0)
         m_botAction.sendChatMessage("Player is not on a TWL squad.");
+      if( results > m_maxRecords )
+          m_botAction.sendChatMessage( results - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")" );
     }
     catch(SQLException e)
     {
       throw new RuntimeException("ERROR: Cannot connect to database.");
+    }
+  }
+
+  /**
+   * 
+   */
+  public void doMaxRecordsCmd( String maxRecords ) {
+    try {
+      m_maxRecords = Integer.parseInt( maxRecords );
+      m_botAction.sendChatMessage( "Max. number of records to display set to " + m_maxRecords + "." );          
+    } catch (Exception e) {
+      throw new RuntimeException("Please give a number.");        
     }
   }
 
@@ -356,6 +394,37 @@ public class pubhubalias extends PubBotModule
       m_botAction.sendChatMessage( "All watched MIDs cleared." );                
   }
 
+  /**
+   * Shows current watches.
+   */
+  public void doShowWatches( ) {
+      Iterator i;
+      i = watchedIPs.iterator();
+      if( i.hasNext() ) {
+        m_botAction.sendChatMessage( "IP watches" );
+        m_botAction.sendChatMessage( "------------" );
+        do {
+          m_botAction.sendChatMessage( (String)i.next() );
+        } while( i.hasNext() );
+      }
+      i = watchedMIDs.iterator();
+      if( i.hasNext() ) {
+        m_botAction.sendChatMessage( "MID watches" );
+        m_botAction.sendChatMessage( "------------" );
+        do {
+          m_botAction.sendChatMessage( (String)i.next() );
+        } while( i.hasNext() );
+      }
+      i = watchedNames.iterator();
+      if( i.hasNext() ) {
+        m_botAction.sendChatMessage( "Name watches" );
+        m_botAction.sendChatMessage( "------------" );
+        do {
+          m_botAction.sendChatMessage( (String)i.next() );
+        } while( i.hasNext() );
+      }      
+  }
+
   public void handleChatMessage(String sender, String message)
   {
     String command = message.toLowerCase();
@@ -384,6 +453,8 @@ public class pubhubalias extends PubBotModule
         doAltTWLCmd(message.substring(8).trim());
       else if(command.startsWith("!info "))
         doInfoCmd(message.substring(6).trim());
+      else if(command.startsWith("!maxrecords "))
+        doMaxRecordsCmd(message.substring(12).trim());
       else if(command.startsWith("!ipwatch "))
         doIPWatchCmd(message.substring(9).trim());        
       else if(command.startsWith("!namewatch "))
@@ -396,6 +467,8 @@ public class pubhubalias extends PubBotModule
         doClearNameWatchCmd();
       else if(command.equals("!clearmidwatch"))
         doClearMIDWatchCmd();
+      else if(command.equals("!showwatches"))
+        doShowWatchesCmd();
     }
     catch(Exception e)
     {
