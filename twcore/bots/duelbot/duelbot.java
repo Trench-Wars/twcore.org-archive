@@ -125,7 +125,6 @@ public class duelbot extends SubspaceBot {
     	m_commandInterpreter.registerCommand( "!setgreet", acceptedMessages, this, "do_setGreetMessage" );
     	m_commandInterpreter.registerCommand( "!shutdown", acceptedMessages, this, "do_shutDown" );
     	m_commandInterpreter.registerCommand( "!die", acceptedMessages, this, "do_die" );
-    	m_commandInterpreter.registerCommand( "!test", acceptedMessages, this, "do_testTourny" );
     	
     	
     	m_commandInterpreter.registerDefaultCommand( Message.ARENA_MESSAGE, this, "do_checkArena" );
@@ -1128,7 +1127,7 @@ public class duelbot extends SubspaceBot {
     }
     
     public void do_testTourny(String name, String message) {
-    	if(!leagueOps.containsKey(name.toLowerCase())) return;
+    	if(!leagueOps.containsKey(name)) return;
     	try {
     		String pieces[] = message.split(":");
 	    	int gID = Integer.parseInt(pieces[0]);
@@ -1256,8 +1255,15 @@ public class duelbot extends SubspaceBot {
     public void handleEvent( Message event ) {
 		m_commandInterpreter.handleEvent( event ); 
 		
-		// String message = event.getMessage();
-		
+		String message = event.getMessage();
+		if(event.getMessageType() == Message.PRIVATE_MESSAGE) {
+			String name = m_botAction.getPlayerName(event.getPlayerID());
+			if(name != null && message != null && leagueOps.containsKey(name)) {
+				if(message.toLowerCase().startsWith("!test ")) {
+					do_testTourny(name, message.substring(6));
+				}
+			}
+		}
 		//if( message.startsWith( "!yes " ) && event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ) 
 		//	do_checkTournyDuel( event.getMessager(), message.substring( 5, message.length() ) );
     }
