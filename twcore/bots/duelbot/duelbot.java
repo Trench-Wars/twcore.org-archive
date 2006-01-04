@@ -1301,7 +1301,7 @@ public class duelbot extends SubspaceBot {
         m_botAction.toggleLocked();
         m_botAction.specAll();
         m_botAction.setReliableKills( 1 );
-        m_botAction.setMessageLimit( 3 );
+        //m_botAction.setMessageLimit( 3 );
         
         setupTournyTask();
     }
