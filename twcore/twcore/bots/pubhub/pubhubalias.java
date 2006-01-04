@@ -22,7 +22,7 @@ public class pubhubalias extends PubBotModule
   private ClearRecordTask clearRecordTask;
   
   private int m_maxRecords = 50;
-  private boolean m_sortByName = true;
+  private boolean m_sortByName = false;
 
   /**
    * This method initializes the module.
@@ -52,10 +52,12 @@ public class pubhubalias extends PubBotModule
       throw new IllegalArgumentException("Please use the following format: !altnick <PlayerName>:<Date Updated>");
 
     String playerName = argTokens.nextToken();
+    /*
     int updateDays = DEFAULT_DAYS;
 
     if(argTokens.hasMoreTokens())
       updateDays = Integer.parseInt(argTokens.nextToken());
+    */
 
     try
     {
@@ -75,21 +77,21 @@ public class pubhubalias extends PubBotModule
           queryString += "ORDER BY A2.fdUpdated DESC, U2.fcUserName";
           
       ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
-      int results = 0;
-      String lastName = "";
-      String currName;
       if(resultSet == null)
         throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+      int results = 0;
+      String currName;
+      LinkedList<String> usedNames = new LinkedList<String>();
       resultSet.afterLast();
       while( resultSet.previous() )
       {
         currName = resultSet.getString("U2.fcUserName");
-        if(!currName.equalsIgnoreCase(lastName)) {
+        if(!usedNames.contains(currName)) {
           if( results <= m_maxRecords )
             m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
           results++;
+          usedNames.add(currName);
         }
-        lastName = currName;
       }
       resultSet.close();
       if(results == 0)
@@ -111,10 +113,12 @@ public class pubhubalias extends PubBotModule
       throw new IllegalArgumentException("Please use the following format: !altip <PlayerName>:<Date Updated>");
 
     String playerIP = argTokens.nextToken();
+    /*
     int updateDays = DEFAULT_DAYS;
 
     if(argTokens.hasMoreTokens())
       updateDays = Integer.parseInt(argTokens.nextToken());
+    */
 
     try
     {        
@@ -130,24 +134,24 @@ public class pubhubalias extends PubBotModule
       if( m_sortByName )
           queryString += "ORDER BY U2.fcUserName DESC, A2.fdUpdated";
       else
-          queryString += "ORDER BY A2.fdUpdated DESC, U2.fcUserName";
+          queryString += "ORDER BY A2.fdUpdated ASC, U2.fcUserName";
       
       ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
-      int results = 0;
-      String lastName = "";
-      String currName;
       if(resultSet == null)
         throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+      int results = 0;
+      String currName;
+      LinkedList<String> usedNames = new LinkedList<String>();
       resultSet.afterLast();
       while( resultSet.previous() )
       {
         currName = resultSet.getString("U2.fcUserName");
-        if(!currName.equalsIgnoreCase(lastName)) {
+        if(!usedNames.contains(currName)) {
           if( results <= m_maxRecords )
             m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
           results++;
+          usedNames.add(currName);
         }
-        lastName = currName;
       }
       resultSet.close();
       if(results == 0)
@@ -169,10 +173,12 @@ public class pubhubalias extends PubBotModule
         throw new IllegalArgumentException("Please use the following format: !altmid <PlayerName>:<Date Updated>");
 
       String playerMID = argTokens.nextToken();
+      /*
       int updateDays = DEFAULT_DAYS;
 
       if(argTokens.hasMoreTokens())
         updateDays = Integer.parseInt(argTokens.nextToken());
+      */
 
       try
       {
@@ -187,26 +193,26 @@ public class pubhubalias extends PubBotModule
         "AND A1.fnMachineID = A2.fnMachineID " +
         "AND A2.fnUserID = U2.fnUserID ";
         if( m_sortByName )
-            queryString += "ORDER BY U2.fcUserName DESC, A2.fdUpdated";
+            queryString += "ORDER BY U2.fUserName DESC, A2.fdUpdated";
         else
-            queryString += "ORDER BY A2.fdUpdated DESC, U2.fcUserName";
+            queryString += "ORDER BY A2.fdUpdated ASC, U2.fcUserName";
         
         ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
-        int results = 0;
-        String lastName = "";
-        String currName;
         if(resultSet == null)
           throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+        int results = 0;
+        String currName;
         resultSet.afterLast();
+        LinkedList<String> usedNames = new LinkedList<String>();
         while( resultSet.previous() )
         {
           currName = resultSet.getString("U2.fcUserName");
-          if(!currName.equalsIgnoreCase(lastName)) {
+          if(!usedNames.contains(currName)) {
             if( results <= m_maxRecords )
               m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
             results++;
+            usedNames.add(currName);
           }
-          lastName = currName;
         }
         resultSet.close();
         if(results == 0)
