@@ -193,7 +193,7 @@ public class pubhubalias extends PubBotModule
         "AND A1.fnMachineID = A2.fnMachineID " +
         "AND A2.fnUserID = U2.fnUserID ";
         if( m_sortByName )
-            queryString += "ORDER BY U2.fUserName DESC, A2.fdUpdated";
+            queryString += "ORDER BY U2.fcUserName DESC, A2.fdUpdated";
         else
             queryString += "ORDER BY A2.fdUpdated ASC, U2.fcUserName";
         
