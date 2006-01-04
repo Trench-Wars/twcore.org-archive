@@ -22,6 +22,7 @@ public class pubhubalias extends PubBotModule
   private ClearRecordTask clearRecordTask;
   
   private int m_maxRecords = 50;
+  private boolean m_sortByName = true;
 
   /**
    * This method initializes the module.
@@ -67,26 +68,28 @@ public class pubhubalias extends PubBotModule
           queryString += "AND A1.fcIP = A2.fcIP ";
       if(compareMID)          
           queryString += "AND A1.fnMachineID = A2.fnMachineID ";
-      queryString +=
-      "AND A2.fnUserID = U2.fnUserID " +
-      "ORDER BY U2.fcUserName, A2.fdUpdated";          
+      queryString += "AND A2.fnUserID = U2.fnUserID ";      
+      if( m_sortByName )
+          queryString += "ORDER BY U2.fcUserName DESC, A2.fdUpdated";
+      else
+          queryString += "ORDER BY A2.fdUpdated DESC, U2.fcUserName";
+          
       ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
-      
       int results = 0;
       String lastName = "";
       String currName;
       if(resultSet == null)
         throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
-      while( resultSet.next() )
+      resultSet.afterLast();
+      while( resultSet.previous() )
       {
-        if( results <= m_maxRecords ) {
-          currName = resultSet.getString("U2.fcUserName");
-          if(!currName.equalsIgnoreCase(lastName)) {
+        currName = resultSet.getString("U2.fcUserName");
+        if(!currName.equalsIgnoreCase(lastName)) {
+          if( results <= m_maxRecords )
             m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
-            results++;
-          }
-          lastName = currName;
+          results++;
         }
+        lastName = currName;
       }
       resultSet.close();
       if(results == 0)
@@ -123,9 +126,11 @@ public class pubhubalias extends PubBotModule
       "AND A1.fcIP = A2.fcIP ";
       if(compareMID)
         queryString += "AND A1.fnMachineID = A2.fnMachineID ";      
-      queryString +=
-      "AND A2.fnUserID = U2.fnUserID " +
-      "ORDER BY U2.fcUserName";      
+      queryString += "AND A2.fnUserID = U2.fnUserID ";
+      if( m_sortByName )
+          queryString += "ORDER BY U2.fcUserName DESC, A2.fdUpdated";
+      else
+          queryString += "ORDER BY A2.fdUpdated DESC, U2.fcUserName";
       
       ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
       int results = 0;
@@ -133,16 +138,16 @@ public class pubhubalias extends PubBotModule
       String currName;
       if(resultSet == null)
         throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
-      while( resultSet.next() )
+      resultSet.afterLast();
+      while( resultSet.previous() )
       {
-        if( results <= m_maxRecords ) {
-          currName = resultSet.getString("U2.fcUserName");
-          if(!currName.equalsIgnoreCase(lastName)) {
+        currName = resultSet.getString("U2.fcUserName");
+        if(!currName.equalsIgnoreCase(lastName)) {
+          if( results <= m_maxRecords )
             m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
-            results++;
-          }
-          lastName = currName;
+          results++;
         }
+        lastName = currName;
       }
       resultSet.close();
       if(results == 0)
@@ -180,8 +185,11 @@ public class pubhubalias extends PubBotModule
           queryString += "AND A1.fcIP = A2.fcIP ";
         queryString += 
         "AND A1.fnMachineID = A2.fnMachineID " +
-        "AND A2.fnUserID = U2.fnUserID " +
-        "ORDER BY U2.fcUserName";
+        "AND A2.fnUserID = U2.fnUserID ";
+        if( m_sortByName )
+            queryString += "ORDER BY U2.fcUserName DESC, A2.fdUpdated";
+        else
+            queryString += "ORDER BY A2.fdUpdated DESC, U2.fcUserName";
         
         ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
         int results = 0;
@@ -189,16 +197,16 @@ public class pubhubalias extends PubBotModule
         String currName;
         if(resultSet == null)
           throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
-        while( resultSet.next() )
+        resultSet.afterLast();
+        while( resultSet.previous() )
         {
-          if( results <= m_maxRecords ) {
-            currName = resultSet.getString("U2.fcUserName");
-            if(!currName.equalsIgnoreCase(lastName)) {
+          currName = resultSet.getString("U2.fcUserName");
+          if(!currName.equalsIgnoreCase(lastName)) {
+            if( results <= m_maxRecords )
               m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
-              results++;
-            }
-            lastName = currName;
+            results++;
           }
+          lastName = currName;
         }
         resultSet.close();
         if(results == 0)
@@ -226,14 +234,15 @@ public class pubhubalias extends PubBotModule
                   "FROM tblUser U, tblAlias A " +
                   "WHERE U.fcUserName = '" + Tools.addSlashesToString(argString) + "' " +
           		  "AND U.fnUserID = A.fnUserID " +
-                  "ORDER BY A.fdUpdated" );
+                  "ORDER BY A.fdUpdated DESC" );
 
           if(resultSet == null)
               throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
-        
+          
+          resultSet.afterLast();
           m_botAction.sendChatMessage("Info results for '" + argString + "':" );
           int results = 0;
-          while( resultSet.next() ) {
+          while( resultSet.previous() ) {
               if( results <= m_maxRecords ) {
                   m_botAction.sendChatMessage( padString("MID: " + resultSet.getInt("A.fnMachineID"), 15) + "  IP: " + padString(resultSet.getString("A.fcIP"), 15) +
                                                          " Updated " + resultSet.getDate("A.fdUpdated") + " - " + resultSet.getInt("A.fnTimesUpdated") + " update(s)" );
@@ -269,6 +278,7 @@ public class pubhubalias extends PubBotModule
       "!ClearIPWatch          (clears all IPs being watched)",
       "!ClearMIDWatch         (clears all MIDs being watched)",
       "!ShowWatches           (shows all watches in effect)",
+      "!SortByName / !SortByDate   (Selects sorting method)",
       "!Help",
       "(-noip and -nomid additions to cmds will force-ignore IP/MID, respectively)"
     };
@@ -480,6 +490,14 @@ public class pubhubalias extends PubBotModule
         doClearMIDWatchCmd();
       else if(command.equals("!showwatches"))
         doShowWatchesCmd();
+      else if(command.equals("!sortbyname")) {
+        m_sortByName = true;
+        m_botAction.sendChatMessage( "Sorting !alt cmds by name first." );                                    
+      }
+      else if(command.equals("!sortbydate")) {
+        m_sortByName = false;
+        m_botAction.sendChatMessage( "Sorting !alt cmds by date first." );                                    
+      }
     }
     catch(Exception e)
     {
