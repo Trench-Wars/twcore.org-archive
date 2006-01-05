@@ -74,7 +74,7 @@ public class pubhubalias extends PubBotModule
       if( m_sortByName )
           queryString += "ORDER BY U2.fcUserName DESC, A2.fdUpdated";
       else
-          queryString += "ORDER BY A2.fdUpdated DESC, U2.fcUserName";
+          queryString += "ORDER BY A2.fdUpdated ASC, U2.fcUserName";
           
       ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
       if(resultSet == null)
@@ -87,7 +87,7 @@ public class pubhubalias extends PubBotModule
       {
         currName = resultSet.getString("U2.fcUserName");
         if(!usedNames.contains(currName)) {
-          if( results <= m_maxRecords )
+          if( results < m_maxRecords )
             m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
           results++;
           usedNames.add(currName);
@@ -147,7 +147,7 @@ public class pubhubalias extends PubBotModule
       {
         currName = resultSet.getString("U2.fcUserName");
         if(!usedNames.contains(currName)) {
-          if( results <= m_maxRecords )
+          if( results < m_maxRecords )
             m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
           results++;
           usedNames.add(currName);
@@ -208,7 +208,7 @@ public class pubhubalias extends PubBotModule
         {
           currName = resultSet.getString("U2.fcUserName");
           if(!usedNames.contains(currName)) {
-            if( results <= m_maxRecords )
+            if( results < m_maxRecords )
               m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
             results++;
             usedNames.add(currName);
@@ -249,7 +249,7 @@ public class pubhubalias extends PubBotModule
           m_botAction.sendChatMessage("Info results for '" + argString + "':" );
           int results = 0;
           while( resultSet.previous() ) {
-              if( results <= m_maxRecords ) {
+              if( results < m_maxRecords ) {
                   m_botAction.sendChatMessage( padString("MID: " + resultSet.getInt("A.fnMachineID"), 15) + "  IP: " + padString(resultSet.getString("A.fcIP"), 15) +
                                                          " Updated " + resultSet.getDate("A.fdUpdated") + " - " + resultSet.getInt("A.fnTimesUpdated") + " update(s)" );
                   results++;                  
