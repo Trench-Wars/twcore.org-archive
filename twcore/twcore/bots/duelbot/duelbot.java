@@ -115,6 +115,7 @@ public class duelbot extends SubspaceBot {
     	m_commandInterpreter.registerCommand( "!lag", acceptedMessages, this, "do_showLag" );
     	m_commandInterpreter.registerCommand( "!help", acceptedMessages, this, "do_showHelp" );
     	/*********LeagueOp Commands*********/
+    	m_commandInterpreter.registerCommand( "!limit", acceptedMessages, this, "do_setMessageLimit" );
     	m_commandInterpreter.registerCommand( "!version", acceptedMessages, this, "do_showVersion" );
     	m_commandInterpreter.registerCommand( "!allowuser", acceptedMessages, this, "do_allowUser" );
     	m_commandInterpreter.registerCommand( "!banuser", acceptedMessages, this, "do_banUser" );
@@ -797,6 +798,17 @@ public class duelbot extends SubspaceBot {
     	if( !(leagueOps.containsKey( name ) || m_botAction.getOperatorList().isSmod(name)) ) return;
 		//Removes the bot from the server.
     	m_botAction.die();
+    }
+    
+    public void do_setMessageLimit(String name, String message) {
+    	if( !(leagueOps.containsKey( name ))) return;
+    	
+    	int limit = 3;
+    	try {
+    		limit = Integer.parseInt(message);
+    	} catch(Exception e) {}
+    	
+    	m_botAction.setMessageLimit(limit);
     }
     
     public void do_shutDown( String name, String message ) {
