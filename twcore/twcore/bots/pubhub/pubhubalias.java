@@ -240,7 +240,7 @@ public class pubhubalias extends PubBotModule
                   "FROM tblUser U, tblAlias A " +
                   "WHERE U.fcUserName = '" + Tools.addSlashesToString(argString) + "' " +
           		  "AND U.fnUserID = A.fnUserID " +
-                  "ORDER BY A.fdUpdated DESC" );
+                  "ORDER BY A.fdUpdated ASC" );
 
           if(resultSet == null)
               throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
@@ -249,11 +249,10 @@ public class pubhubalias extends PubBotModule
           m_botAction.sendChatMessage("Info results for '" + argString + "':" );
           int results = 0;
           while( resultSet.previous() ) {
-              if( results < m_maxRecords ) {
+              if( results < m_maxRecords )
                   m_botAction.sendChatMessage( padString("MID: " + resultSet.getInt("A.fnMachineID"), 15) + "  IP: " + padString(resultSet.getString("A.fcIP"), 15) +
                                                          " Updated " + resultSet.getDate("A.fdUpdated") + " - " + resultSet.getInt("A.fnTimesUpdated") + " update(s)" );
-                  results++;                  
-              }
+              results++;
           }
           resultSet.close();
           if( results == 0 )
