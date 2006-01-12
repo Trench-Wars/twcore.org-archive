@@ -264,6 +264,91 @@ public class pubhubalias extends PubBotModule
       catch(SQLException e)
       {
           throw new RuntimeException("ERROR: Cannot connect to database.");
+      }      
+  }
+
+  /**
+   * Compares IP and MID info of two names, and shows where they match.
+   * @param argString
+   * @throws SQLException
+   */
+  public void doCompareCmd(String argString) throws SQLException
+  {
+      StringTokenizer argTokens = new StringTokenizer(argString, ":");
+
+      if( argTokens.countTokens() != 2 )
+        throw new IllegalArgumentException("Please use the following format: !compare <Player1Name>:<Player2Name>");
+
+      String player1Name = argTokens.nextToken();
+      String player2Name = argTokens.nextToken();
+
+      try
+      {
+          ResultSet p1Set = m_botAction.SQLQuery(DATABASE,
+                  "SELECT * " +
+                  "FROM tblUser U, tblAlias A " +
+                  "WHERE U.fcUserName = '" + Tools.addSlashesToString(player1Name) + "' " +
+                  "AND U.fnUserID = A.fnUserID " +
+                  "ORDER BY A.fdUpdated DESC" );
+
+          ResultSet p2Set = m_botAction.SQLQuery(DATABASE,
+                  "SELECT * " +
+                  "FROM tblUser U, tblAlias A " +
+                  "WHERE U.fcUserName = '" + Tools.addSlashesToString(player2Name) + "' " +
+                  "AND U.fnUserID = A.fnUserID " +
+                  "ORDER BY A.fdUpdated DESC" );
+
+          if( p1Set == null || p2Set == null )
+              throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+          
+          p1Set.afterLast();
+          p2Set.afterLast();
+
+          m_botAction.sendChatMessage("Comparison of " + player1Name + " to " + player2Name + ":" );
+
+          LinkedList<String> IPs = new LinkedList<String>();
+          LinkedList<Integer> MIDs = new LinkedList<Integer>();
+          while( p1Set.previous() ) {
+              IPs.add( p1Set.getString("A.fcIP") );
+              MIDs.add( p1Set.getInt("A.fnMachineID") );
+          }          
+          
+          int results = 0;
+          boolean matchIP, matchMID;
+          String display;
+          
+          while( p2Set.previous() ) {
+              matchIP = false;
+              matchMID = false;
+              display = "";
+              if( MIDs.contains( p2Set.getInt("A.fnMachineID") ) )
+                  matchMID = true;
+              if( IPs.contains( p2Set.getString("A.fcIP") ) )
+                  matchIP = true;              
+              
+              if( matchMID == true )
+                  display += "MID match: " + p2Set.getInt("A.fnMachineID") + " ";
+              if( matchIP == true )
+                  display += " IP match: " + p2Set.getString("A.fcIP");
+
+              if( display != "" ) {
+                  if( results < m_maxRecords ) {
+                      m_botAction.sendChatMessage( display );
+                      results++;
+                  }
+              }
+          }
+
+          p1Set.close();
+          p2Set.close();
+          if( results == 0 )
+              m_botAction.sendChatMessage( "No matching IPs or MIDs found." );
+          if( results > m_maxRecords )
+              m_botAction.sendChatMessage( results - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")" );
+      }
+      catch(SQLException e)
+      {
+          throw new RuntimeException("ERROR: Cannot connect to database.");
       }
       
   }
@@ -276,6 +361,7 @@ public class pubhubalias extends PubBotModule
       "!AltIP[-nomid]         <IP>:<Days>",
       "!AltMID[-noip]         <MacID>:<Days>",
       "!Info                  <PlayerName>",
+      "!Compare               <Player1>:<Player2>",
       "!MaxResults            <Max # results to return>",
       "!NameWatch             <Name>",
       "!IPWatch               <IP>",
