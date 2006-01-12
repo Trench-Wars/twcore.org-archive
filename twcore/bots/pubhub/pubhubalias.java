@@ -566,6 +566,8 @@ public class pubhubalias extends PubBotModule
         doAltTWLCmd(message.substring(8).trim());
       else if(command.startsWith("!info "))
         doInfoCmd(message.substring(6).trim());
+      else if(command.startsWith("!compare "))
+          doCompareCmd(message.substring(9).trim());
       else if(command.startsWith("!maxrecords "))
         doMaxRecordsCmd(message.substring(12).trim());
       else if(command.startsWith("!ipwatch "))
