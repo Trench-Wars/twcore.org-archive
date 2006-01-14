@@ -99,9 +99,10 @@ public class MatchRound
         m_fnRoundResult = 0;
         m_timeStarted = new java.util.Date();
         m_logger = m_game.m_logger;
+        
         if(!m_rules.getString("name").equalsIgnoreCase("strikeball")) {
-	        m_team1 = new MatchTeam(fcTeam1Name, 1, 1, this);
-	        m_team2 = new MatchTeam(fcTeam2Name, 2, 2, this);
+	        m_team1 = new MatchTeam(fcTeam1Name, (int)Math.floor(Math.random()*8000+1000), 1, this);
+	        m_team2 = new MatchTeam(fcTeam2Name, (int)Math.floor(Math.random()*8000+1000), 2, this);
 	    } else {
 	    	m_team1 = new MatchTeam(fcTeam1Name, 0, 1, this);
 	        m_team2 = new MatchTeam(fcTeam2Name, 1, 2, this);
