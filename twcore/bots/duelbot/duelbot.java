@@ -1323,7 +1323,7 @@ public class duelbot extends SubspaceBot {
     	TimerTask tournyTalk = new TimerTask() {
     		public void run() {
     			try {
-    				String query = "SELECT fnGameId, fnLeagueTypeID, fnTournyUserOne, fnTournyUserTwo, fnTotalPlayers, fnGameNumber FROM tblDuelTournyGame AS TG, tblDuelTourny T WHERE T.fnTournyID = TG.fnTournyID AND TG.fnStatus = 0 AND TG.fnTournyUserOne > 0 AND TG.fnTournyUserTwo > 0";
+    				String query = "SELECT fnGameId, fnLeagueTypeID, fnTournyUserOne, fnTournyUserTwo, fnTotalPlayers, fnGameNumber FROM tblDuelTournyGame AS TG, tblDuelTourny T WHERE T.fnTournyID = TG.fnTournyID AND TG.fnStatus = 0 AND TG.fnTournyUserOne > 0 AND TG.fnTournyUserTwo > 0 AND TG.fnGameRound > 0";
     				ResultSet result = m_botAction.SQLQuery( "local", query );
     				while( result.next() ) {
     					
@@ -1338,13 +1338,13 @@ public class duelbot extends SubspaceBot {
     					TournyGame tg = new TournyGame( gid, pOne, pTwo, idOne, idTwo, leagueId, realGameId, players );
     					tournyGames.put( new Integer( gid ), tg );
     					//m_botAction.sendSmartPrivateMessage( "2dragons", "Game #"+gid+"   "+ pOne + "  vs   " + pTwo + "  League:"+leagueId);
-    					//m_botAction.sendSmartPrivateMessage( pOne, "You have a "+tg.getType()+" Tournament duel versus "+pTwo+". If you are available please reply with '!yes "+gid+"'" );
-    					//m_botAction.sendSmartPrivateMessage( pTwo, "You have a "+tg.getType()+" Tournament duel versus "+pOne+". If you are available please reply with '!yes "+gid+"'" );
+    					m_botAction.sendSmartPrivateMessage( pOne, "You have a "+tg.getType()+" Tournament duel versus "+pTwo+". If you are available please reply with '!yes "+gid+"'" );
+    					m_botAction.sendSmartPrivateMessage( pTwo, "You have a "+tg.getType()+" Tournament duel versus "+pOne+". If you are available please reply with '!yes "+gid+"'" );
     				}
     			} catch (Exception e) {System.out.println("ERROR"+e);}
     		}
     	};
-    	m_botAction.scheduleTaskAtFixedRate( tournyTalk, getDelay(), 60 * 60 * 1000 );
+    	m_botAction.scheduleTaskAtFixedRate( tournyTalk, getDelay(), 30 * 60 * 1000 );
     }
     
     public void handleEvent( PlayerDeath event ) {
