@@ -1014,7 +1014,7 @@ public class duelbot extends SubspaceBot {
     
     public void endDuel( Duel d, String winner, String loser, int type ) {
     	//0 - normal, 1 - spawning, 2 - warping, 3 - lagouts, 4 - 1 min lagout
-    	
+    	finalOff(d.getLeagueId(), d.getBoxNumber(), d.getPlayerOne().getKills(), d.getPlayerTwo().getKills());
     	m_botAction.sendUnfilteredPrivateMessage(d.getPlayerTwo().getName(), "*lag");
     	to = null;
     	from = d.getPlayerTwo().getName();
@@ -1464,6 +1464,7 @@ public class duelbot extends SubspaceBot {
 			    m_botAction.scheduleTask( scoreReport, 1000 * s_noCount );
 			} catch (Exception e) {
 			}
+			redoBox(d.getLeagueId(), d.getBoxNumber(), d.getPlayerOne().getKills(), d.getPlayerTwo().getKills());
 		}	
     }
     
@@ -2121,6 +2122,58 @@ class ScoreReport extends TimerTask {
 		public void run() {
 			warpPlayers(one, two);
 		}
+	}
+	
+	/***************************************
+	 * Real-time scoreboard related stuff. *
+	 ***************************************/
+	 
+	String boxToRow[] = {"","01","01","02","03","02","04","03","05","04","06","05","07","08","06","09","07","10","08","11","09","12","13","14","10"};
+
+	public void redoBox(int gameType, int box, int score1, int score2)
+	{
+		String row = boxToRow[box];
+		oldOff(gameType, row, 0, score1);
+		oldOff(gameType, row, 2, score2);
+		newOn(gameType, row, 0, score1);
+		newOn(gameType, row, 2, score2);
+	}
+	
+	public void oldOff(int gameType, String row, int pos, int score)
+	{
+		int tensScore = score / 10;
+		int onesScore = score % 10;
+		if(onesScore != 0)
+		{
+			m_botAction.sendUnfilteredPublicMessage("*objoff " + gameType + row + pos + tensScore);
+			m_botAction.sendUnfilteredPublicMessage("*objoff " + gameType + row + (pos + 1) + (onesScore - 1));
+		}
+		else
+		{
+			m_botAction.sendUnfilteredPublicMessage("*objoff " + gameType + row + pos + (tensScore - 1));
+			m_botAction.sendUnfilteredPublicMessage("*objoff " + gameType + row + (pos + 1) + 9);
+		}
+	}
+	
+	public void newOn(int gameType, String row, int pos, int score)
+	{
+		int tensScore = score / 10;
+		int onesScore = score % 10;
+		m_botAction.sendUnfilteredPublicMessage("*objon " + gameType + row + pos + tensScore);
+		m_botAction.sendUnfilteredPublicMessage("*objon " + gameType + row + (pos + 1) + onesScore);
+	}
+	
+	public void finalOff(int gameType, int box, int score1, int score2)
+	{
+		int tensScore = score1 / 10;
+		int onesScore = score1 % 10;
+		m_botAction.sendUnfilteredPublicMessage("*objoff " + gameType + boxToRow[box] + 0 + tensScore);
+		m_botAction.sendUnfilteredPublicMessage("*objoff " + gameType + boxToRow[box] + 1 + onesScore);
+	
+		tensScore = score2 / 10;
+		onesScore = score2 % 10;
+		m_botAction.sendUnfilteredPublicMessage("*objoff " + gameType + boxToRow[box] + 2 + tensScore);
+		m_botAction.sendUnfilteredPublicMessage("*objoff " + gameType + boxToRow[box] + 3 + onesScore);
 	}
 }
 
