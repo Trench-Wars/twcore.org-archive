@@ -917,13 +917,42 @@ public class duelbot extends SubspaceBot {
     public void do_aliasCheck(String name, String message) {
     	if( !leagueOps.containsKey( name.toLowerCase() ) ) return;
     	
-    	String player = m_botAction.getFuzzyPlayerName( message );
-    	if(player == null) {
-    		m_botAction.sendSmartPrivateMessage(name, "This player is not in the arena right now.");
+    	if( sql_enabledUser( message ) ) {
+    		m_botAction.sendSmartPrivateMessage( name, "This name is already enabled for play." );
     		return;
     	}
-    	aliasChecker = name;
-    	m_botAction.sendUnfilteredPrivateMessage(player, "*info");
+    	
+    	ResultSet info = sql_getUserIPMID( message );
+    	
+    	if( info == null ) {
+    		String player = m_botAction.getFuzzyPlayerName( message );
+		   	if(player == null) {
+		   		m_botAction.sendSmartPrivateMessage(name, "This player is not in the arena right now.");
+		   		return;
+		   	}
+		   	aliasChecker = name;
+		   	m_botAction.sendUnfilteredPrivateMessage(player, "*info");
+    	}   	    
+    	    
+    	
+    	try {
+    		String IP = info.getString( "fcIP" );
+    		String MID = info.getString( "fnMID" );
+    		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT fcUserName FROM tblDuelPlayer WHERE fnEnabled = 1 AND fcIP = '"+IP+"' AND fnMID = '"+MID+"'" );
+    		if( result.next() ) {
+    			String extras = "";
+    			do {
+    				extras += " " + result.getString( "fcUserName" ) + " ";
+    			} while( result.next() );
+    			m_botAction.sendSmartPrivateMessage( name, "Aliases registered: " + extras );
+    			return;
+    		}
+    	
+    	} catch (Exception e) {
+    	    // This exception is caught frequently.  Removed stack trace print
+			// Don't need to see it anymore until we take the time to deal w/ it.
+			m_botAction.sendSmartPrivateMessage( name, "Problem retreiving your info from database.  Please try again later, or talk to a staff member." );    	    
+    	}
     }
     
     public void do_opDisableName(String name, String message) {
