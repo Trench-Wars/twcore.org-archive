@@ -127,7 +127,7 @@ public class duelbot extends SubspaceBot {
     	m_commandInterpreter.registerCommand( "!setgreet", acceptedMessages, this, "do_setGreetMessage" );
     	m_commandInterpreter.registerCommand( "!shutdown", acceptedMessages, this, "do_shutDown" );
     	m_commandInterpreter.registerCommand( "!alias", acceptedMessages, this, "do_aliasCheck" );
-    	m_commandInterpreter.registerCommand( "!disable", acceptedMessages, this, "do_opDisableName" );
+    	m_commandInterpreter.registerCommand( "!disableuser", acceptedMessages, this, "do_opDisableName" );
     	m_commandInterpreter.registerCommand( "!die", acceptedMessages, this, "do_die" );
     	
     	
