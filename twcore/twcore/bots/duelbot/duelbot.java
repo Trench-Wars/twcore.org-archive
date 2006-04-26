@@ -801,7 +801,7 @@ public class duelbot extends SubspaceBot {
 				"| !comment <name>:<comment> - Recomments <name>'s ban.                       |",
 				"| !readcomment <name>       - Gets the ban comment for <name>                |",
 				"| !alias <name>             - Checks the database for <name>'s aliases.      |",
-				"| !disable <name>           - Disables <name> in the database.               |",
+				"| !disableuser <name>       - Disables <name> in the database.               |",
 				"------------------------------------------------------------------------------"
 				};
 			m_botAction.privateMessageSpam( name, help2 );
@@ -951,6 +951,7 @@ public class duelbot extends SubspaceBot {
     	} catch (Exception e) {
     	    // This exception is caught frequently.  Removed stack trace print
 			// Don't need to see it anymore until we take the time to deal w/ it.
+		e.printStackTrace();
 			m_botAction.sendSmartPrivateMessage( name, "Problem retreiving your info from database.  Please try again later, or talk to a staff member." );    	    
     	}
     }
