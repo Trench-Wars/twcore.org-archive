@@ -9,8 +9,13 @@ package twcore.bots.twdbot;
 import java.util.*;
 import java.sql.*;
 import twcore.core.*;
+import twcore.core.events.LoggedOn;
+import twcore.core.events.Message;
+import twcore.core.game.Player;
+import twcore.core.stats.DBPlayerData;
+import twcore.core.util.Tools;
+
 import java.text.*;
-import twcore.misc.database.DBPlayerData;
 
 /**
  *
@@ -123,7 +128,7 @@ public class twdbot extends SubspaceBot {
                 else if( message.startsWith( "!info " ) )
                     commandDisplayInfo( name, message.substring( 6 ), false );
                 else if( message.startsWith( "!fullinfo " ) )
-                    commandDisplayInfo( name, message.substring( 10 ), true );                
+                    commandDisplayInfo( name, message.substring( 10 ), true );
                 else if( message.startsWith( "!register " ) )
                     commandRegisterName( name, message.substring( 10 ), false );
                 else if( message.startsWith( "!registered " ) )
@@ -678,7 +683,7 @@ public class twdbot extends SubspaceBot {
         } else {
             player = message;
         }
-            
+
         DBPlayerData dbP = new DBPlayerData( m_botAction, "local", player );
 
         if( dbP.isRegistered() )

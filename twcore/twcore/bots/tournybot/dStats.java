@@ -1,6 +1,7 @@
 package twcore.bots.tournybot;
 
 import twcore.core.*;
+import twcore.core.util.Tools;
 
 public class dStats {
 
@@ -65,7 +66,7 @@ public class dStats {
 		m_botAction = botAction;
 		type = teams;
 		tournyID = tID;
-		startTime = (int)(System.currentTimeMillis() / 1000); 
+		startTime = (int)(System.currentTimeMillis() / 1000);
 		finished = true;
 	}
 
@@ -157,7 +158,7 @@ public class dStats {
 
 		id1 = freq1.getDBID();
 		id2 = freq2.getDBID();
-		
+
 		victor = winner.getPlayerNro();
 		duration = this.duration();
 
@@ -192,36 +193,36 @@ public class dStats {
 
 		if (type == 1) {
 			try {
-				String fields[] = {	
-					"tourny_ID", 
-					"round", 
-					"box", 
-					"player1id", 
+				String fields[] = {
+					"tourny_ID",
+					"round",
+					"box",
+					"player1id",
 					"player1Name",
-					"player2id", 
+					"player2id",
 					"player2Name",
 					"player1Score",
 					"player1Notes",
 					"player2Score",
 					"player2Notes",
-					"winner", 
-					"duration" 
+					"winner",
+					"duration"
 				};
 
-				String values[] = { 
-					Integer.toString(tournyID), 
-					Integer.toString(round), 
-					Integer.toString(box), 
+				String values[] = {
+					Integer.toString(tournyID),
+					Integer.toString(round),
+					Integer.toString(box),
 					Integer.toString(id1),
 					Tools.addSlashesToString(player1Name),
 					Integer.toString(id2),
 					Tools.addSlashesToString(player2Name),
 					Integer.toString(player1Score),
 					player1Notes,
-					Integer.toString(player2Score), 
+					Integer.toString(player2Score),
 					player2Notes,
-					Integer.toString(victor), 
-					Integer.toString(duration) 
+					Integer.toString(victor),
+					Integer.toString(duration)
 				};
 
 				m_botAction.SQLBackgroundInsertInto(connection, "tblTourny1v1games", fields, values);
@@ -230,35 +231,35 @@ public class dStats {
 
 			try {
 
-				String fields[] = {	
-					"tourny_ID", 
-					"round", 
+				String fields[] = {
+					"tourny_ID",
+					"round",
 					"box",
 					"team1",
 					"team2",
-					"team1player1", 
-					"team1player2", 
-					"team2player1", 
-					"team2player2", 
-					"team1player1Kills", 
+					"team1player1",
+					"team1player2",
+					"team2player1",
+					"team2player2",
+					"team1player1Kills",
 					"team1player1Deaths",
 					"team1player1Notes",
-					"team1player2Kills", 
-					"team1player2Deaths", 
+					"team1player2Kills",
+					"team1player2Deaths",
 					"team1player2Notes",
-					"team2player1Kills", 
-					"team2player1Deaths", 
+					"team2player1Kills",
+					"team2player1Deaths",
 					"team2player1Notes",
-					"team2player2Kills", 
-					"team2player2Deaths", 
+					"team2player2Kills",
+					"team2player2Deaths",
 					"team2player2Notes",
-					"winner", 
-					"duration" 
+					"winner",
+					"duration"
 				};
 
-				String values[] = { 
-					Integer.toString(tournyID), 
-					Integer.toString(round), 
+				String values[] = {
+					Integer.toString(tournyID),
+					Integer.toString(round),
 					Integer.toString(box),
 					Integer.toString(id1),
 					Integer.toString(id2),
@@ -266,20 +267,20 @@ public class dStats {
 					Tools.addSlashesToString(team1player2),
 					Tools.addSlashesToString(team2player1),
 					Tools.addSlashesToString(team2player2),
-					Integer.toString(team1player1Kills), 
-					Integer.toString(team1player1Deaths), 
+					Integer.toString(team1player1Kills),
+					Integer.toString(team1player1Deaths),
 					team1player1Notes,
-					Integer.toString(team1player2Kills), 
-					Integer.toString(team1player2Deaths), 
+					Integer.toString(team1player2Kills),
+					Integer.toString(team1player2Deaths),
 					team1player2Notes,
-					Integer.toString(team2player1Kills), 
-					Integer.toString(team2player1Deaths), 
+					Integer.toString(team2player1Kills),
+					Integer.toString(team2player1Deaths),
 					team2player1Notes,
-					Integer.toString(team2player2Kills), 
-					Integer.toString(team2player2Deaths), 
+					Integer.toString(team2player2Kills),
+					Integer.toString(team2player2Deaths),
 					team2player2Notes,
-					Integer.toString(victor), 
-					Integer.toString(duration) 
+					Integer.toString(victor),
+					Integer.toString(duration)
 				};
 
 				m_botAction.SQLBackgroundInsertInto(connection, "tblTourny2v2games", fields, values);

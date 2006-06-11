@@ -9,8 +9,11 @@ package twcore.bots.matchbot;
  */
 
 import twcore.core.*;
-import twcore.misc.database.DBPlayerData;
-import twcore.misc.statistics.Statistics;
+import twcore.core.events.*;
+import twcore.core.game.Player;
+import twcore.core.stats.DBPlayerData;
+import twcore.core.stats.Statistics;
+import twcore.core.util.Tools;
 import java.util.*;
 import java.sql.*;
 import java.text.*;
@@ -137,7 +140,7 @@ public class MatchTeam
     /**
      * Can get various weapon info and the player who used it Get repel used
      * count
-     * 
+     *
      * @param event weaponfired
      */
     public void handleEvent(WeaponFired event)
@@ -1333,7 +1336,7 @@ public class MatchTeam
 
     /**
      * Unset the flag control flag and updates score
-     * 
+     *
      * @author FoN
      */
     public void disownFlag()
@@ -1346,7 +1349,7 @@ public class MatchTeam
 
     /**
      * Method getTimeScore.
-     * 
+     *
      * @author FoN
      * @return int which returns the updated score if this team owns the flag
      */
@@ -1748,7 +1751,7 @@ public class MatchTeam
 
         try
         {
-            player = (MatchPlayer)m_players.get(m_lagID);			
+            player = (MatchPlayer)m_players.get(m_lagID);
         }
         catch (IndexOutOfBoundsException e)
         {
@@ -1763,7 +1766,7 @@ public class MatchTeam
 	/**
      * Please use the global constants defined in the stats file so we don't introduce bugs
      * @author Someoneelse, Edited by FoN
-     * 
+     *
      * @param duelG: Is it a duel game ie not base
      * @param wbG: Is it a wb game ie not javs
      * @return The array of strings to print game summary

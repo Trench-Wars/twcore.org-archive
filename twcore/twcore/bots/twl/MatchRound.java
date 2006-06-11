@@ -12,10 +12,16 @@ package twcore.bots.twl;
  */
 
 import twcore.core.*;
+import twcore.core.events.*;
+import twcore.core.game.Player;
+import twcore.core.lvz.Objset;
+import twcore.core.stats.LagReport;
+import twcore.core.stats.lagHandler;
+import twcore.core.util.Tools;
+
 import java.util.*;
 import java.sql.*;
 import java.text.*;
-import twcore.misc.lag.*;
 
 public class MatchRound
 {
@@ -211,7 +217,7 @@ public class MatchRound
  	/**
  	 * Can get various weapon info and the player who used it
  	 * Get repel used count
- 	 * 
+ 	 *
 	 * @param event WeaponFired event
 	 */
 	public void handleEvent(WeaponFired event)
@@ -222,7 +228,7 @@ public class MatchRound
         if (m_team2.getPlayer(playerName, true) != null)
             m_team2.handleEvent(event);
 	}
- 
+
     /*
      * Parses the FrequencyShipChange event to the team in which the player is
      */
@@ -321,7 +327,7 @@ public class MatchRound
 		} else if (m_fnRoundState == 3) {
 			m_lagHandler.handleLagMessage(msg);
 		}
-			
+
             /*
                         if (msg.startsWith("IP:")) {
                             String[] pieces = msg.split("  ");
@@ -557,7 +563,7 @@ public class MatchRound
 
 	if ((command.equals("!add2mins")) && (m_fnRoundState == 1) && isStaff)
 	    command_add2mins(name, parameters);
-	
+
 	if ((command.equals("!lag")) && (m_fnRoundState == 3) && isStaff)
 	    command_checklag(name, parameters);
 
@@ -618,19 +624,19 @@ public class MatchRound
         {
             ArrayList playerList = new ArrayList();
             Iterator it = m_team1.m_players.iterator();
-            
+
             while (it.hasNext())
             {
             	playerList.add(it.next());
             }
-            
+
             it = m_team2.m_players.iterator();
-            
+
             while (it.hasNext())
             {
             	playerList.add(it.next());
             }
-                      
+
             Collections.sort(playerList);
 
             if (NUMBER_OF_MVPS > playerList.size())
@@ -849,7 +855,7 @@ public class MatchRound
                 m_logger.setFreq( name, NOT_PLAYING_FREQ + 1 );
             } else {
                 placeOnSpecFreq( name );
-            } 
+            }
         };
     };
 
@@ -933,9 +939,9 @@ public class MatchRound
         m_botAction.sendPrivateMessage(name, m_lagHandler.getStatus());
     };
 
-    public void handleLagReport(LagReport report) 
+    public void handleLagReport(LagReport report)
     {
-        if (!report.isBotRequest()) 
+        if (!report.isBotRequest())
         {
             m_botAction.privateMessageSpam(report.getRequester(), report.getLagStats());
         }
@@ -945,9 +951,9 @@ public class MatchRound
 			p = m_team2.getPlayer(report.getName(), true);
 		}
 
-        if (report.isOverLimits()) 
+        if (report.isOverLimits())
         {
-            if (!report.isBotRequest()) 
+            if (!report.isBotRequest())
             {
                 m_botAction.sendPrivateMessage(report.getRequester(), report.getLagReport());
             }
@@ -1193,7 +1199,7 @@ public class MatchRound
         {
 
             m_timeEnded = new java.util.Date();
-	
+
 			if (updateScores != null)
 				updateScores.cancel();
 
@@ -1601,7 +1607,7 @@ public class MatchRound
             m_botAction.sendArenaMessage(out2[i]);
         }
     }
-	
+
 
     public void cancel()
     {

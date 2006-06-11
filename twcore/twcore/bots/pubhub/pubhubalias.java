@@ -3,9 +3,14 @@ package twcore.bots.pubhub;
 import java.util.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import twcore.bots.PubBotModule;
 import twcore.core.*;
-import twcore.misc.database.DBPlayerData;
-import twcore.misc.pubcommon.*;
+import twcore.core.events.InterProcessEvent;
+import twcore.core.events.Message;
+import twcore.core.stats.DBPlayerData;
+import twcore.core.util.IPCMessage;
+import twcore.core.util.Tools;
 
 public class pubhubalias extends PubBotModule
 {
@@ -20,7 +25,7 @@ public class pubhubalias extends PubBotModule
   private Set watchedNames;
   private Set watchedMIDs;
   private ClearRecordTask clearRecordTask;
-  
+
   private int m_maxRecords = 50;
   private boolean m_sortByName = false;
 
@@ -65,17 +70,17 @@ public class pubhubalias extends PubBotModule
       "SELECT * " +
       "FROM tblAlias A1, tblAlias A2, tblUser U1, tblUser U2 " +
       "WHERE U1.fcUserName = '" + Tools.addSlashesToString(playerName) + "' " +
-      "AND U1.fnUserID = A1.fnUserID ";     
+      "AND U1.fnUserID = A1.fnUserID ";
       if(compareIP)
           queryString += "AND A1.fcIP = A2.fcIP ";
-      if(compareMID)          
+      if(compareMID)
           queryString += "AND A1.fnMachineID = A2.fnMachineID ";
-      queryString += "AND A2.fnUserID = U2.fnUserID ";      
+      queryString += "AND A2.fnUserID = U2.fnUserID ";
       if( m_sortByName )
           queryString += "ORDER BY U2.fcUserName DESC, A2.fdUpdated";
       else
           queryString += "ORDER BY A2.fdUpdated ASC, U2.fcUserName";
-          
+
       ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
       if(resultSet == null)
         throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
@@ -121,7 +126,7 @@ public class pubhubalias extends PubBotModule
     */
 
     try
-    {        
+    {
       String queryString =
       "SELECT * " +
       "FROM tblAlias A1, tblAlias A2, tblUser U1, tblUser U2 " +
@@ -129,13 +134,13 @@ public class pubhubalias extends PubBotModule
       "AND U1.fnUserID = A1.fnUserID " +
       "AND A1.fcIP = A2.fcIP ";
       if(compareMID)
-        queryString += "AND A1.fnMachineID = A2.fnMachineID ";      
+        queryString += "AND A1.fnMachineID = A2.fnMachineID ";
       queryString += "AND A2.fnUserID = U2.fnUserID ";
       if( m_sortByName )
           queryString += "ORDER BY U2.fcUserName DESC, A2.fdUpdated";
       else
           queryString += "ORDER BY A2.fdUpdated ASC, U2.fcUserName";
-      
+
       ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
       if(resultSet == null)
         throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
@@ -189,14 +194,14 @@ public class pubhubalias extends PubBotModule
         "AND U1.fnUserID = A1.fnUserID ";
         if(compareIP)
           queryString += "AND A1.fcIP = A2.fcIP ";
-        queryString += 
+        queryString +=
         "AND A1.fnMachineID = A2.fnMachineID " +
         "AND A2.fnUserID = U2.fnUserID ";
         if( m_sortByName )
             queryString += "ORDER BY U2.fcUserName DESC, A2.fdUpdated";
         else
             queryString += "ORDER BY A2.fdUpdated ASC, U2.fcUserName";
-        
+
         ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
         if(resultSet == null)
           throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
@@ -244,7 +249,7 @@ public class pubhubalias extends PubBotModule
 
           if(resultSet == null)
               throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
-          
+
           resultSet.afterLast();
           m_botAction.sendChatMessage("Info results for '" + argString + "':" );
           int results = 0;
@@ -263,7 +268,7 @@ public class pubhubalias extends PubBotModule
       catch(SQLException e)
       {
           throw new RuntimeException("ERROR: Cannot connect to database.");
-      }      
+      }
   }
 
   /**
@@ -299,7 +304,7 @@ public class pubhubalias extends PubBotModule
 
           if( p1Set == null || p2Set == null )
               throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
-          
+
           p1Set.afterLast();
           p2Set.afterLast();
 
@@ -310,12 +315,12 @@ public class pubhubalias extends PubBotModule
           while( p1Set.previous() ) {
               IPs.add( p1Set.getString("A.fcIP") );
               MIDs.add( p1Set.getInt("A.fnMachineID") );
-          }          
-          
+          }
+
           int results = 0;
           boolean matchIP, matchMID;
           String display;
-          
+
           while( p2Set.previous() ) {
               matchIP = false;
               matchMID = false;
@@ -323,8 +328,8 @@ public class pubhubalias extends PubBotModule
               if( MIDs.contains( p2Set.getInt("A.fnMachineID") ) )
                   matchMID = true;
               if( IPs.contains( p2Set.getString("A.fcIP") ) )
-                  matchIP = true;              
-              
+                  matchIP = true;
+
               if( matchMID == true )
                   display += "MID match: " + p2Set.getInt("A.fnMachineID") + " ";
               if( matchIP == true )
@@ -349,7 +354,7 @@ public class pubhubalias extends PubBotModule
       {
           throw new RuntimeException("ERROR: Cannot connect to database.");
       }
-      
+
   }
 
   public void doHelpCmd(String sender)
@@ -426,14 +431,14 @@ public class pubhubalias extends PubBotModule
   }
 
   /**
-   * 
+   *
    */
   public void doMaxRecordsCmd( String maxRecords ) {
     try {
       m_maxRecords = Integer.parseInt( maxRecords );
-      m_botAction.sendChatMessage( "Max. number of records to display set to " + m_maxRecords + "." );          
+      m_botAction.sendChatMessage( "Max. number of records to display set to " + m_maxRecords + "." );
     } catch (Exception e) {
-      throw new RuntimeException("Please give a number.");        
+      throw new RuntimeException("Please give a number.");
     }
   }
 
@@ -444,11 +449,11 @@ public class pubhubalias extends PubBotModule
   public void doIPWatchCmd( String IP ) {
       if( watchedIPs.contains( IP ) ) {
           watchedIPs.remove( IP );
-          m_botAction.sendChatMessage( "IP watching disabled for IPs starting with " + IP );          
+          m_botAction.sendChatMessage( "IP watching disabled for IPs starting with " + IP );
       } else {
           watchedIPs.add( IP );
-          m_botAction.sendChatMessage( "IP watching enabled for IPs starting with " + IP );          
-      }          
+          m_botAction.sendChatMessage( "IP watching enabled for IPs starting with " + IP );
+      }
   }
 
   /**
@@ -458,11 +463,11 @@ public class pubhubalias extends PubBotModule
   public void doNameWatchCmd( String name ) {
       if( watchedNames.contains( name.toLowerCase() ) ) {
           watchedNames.remove( name.toLowerCase() );
-          m_botAction.sendChatMessage( "Login watching disabled for '" + name + "'." );          
+          m_botAction.sendChatMessage( "Login watching disabled for '" + name + "'." );
       } else {
           watchedNames.add( name.toLowerCase() );
-          m_botAction.sendChatMessage( "Login watching enabled for '" + name + "'." );          
-      }          
+          m_botAction.sendChatMessage( "Login watching enabled for '" + name + "'." );
+      }
   }
 
   /**
@@ -472,11 +477,11 @@ public class pubhubalias extends PubBotModule
   public void doMIDWatchCmd( String MID ) {
       if( watchedMIDs.contains( MID ) ) {
           watchedMIDs.remove( MID );
-          m_botAction.sendChatMessage( "MID watching disabled for MID: " + MID );          
+          m_botAction.sendChatMessage( "MID watching disabled for MID: " + MID );
       } else {
           watchedMIDs.add( MID );
-          m_botAction.sendChatMessage( "MID watching enabled for MID: " + MID );          
-      }          
+          m_botAction.sendChatMessage( "MID watching enabled for MID: " + MID );
+      }
   }
 
   /**
@@ -484,7 +489,7 @@ public class pubhubalias extends PubBotModule
    */
   public void doClearIPWatchCmd( ) {
       watchedIPs.clear();
-      m_botAction.sendChatMessage( "All watched IPs cleared." );                
+      m_botAction.sendChatMessage( "All watched IPs cleared." );
   }
 
   /**
@@ -492,15 +497,15 @@ public class pubhubalias extends PubBotModule
    */
   public void doClearNameWatchCmd( ) {
       watchedNames.clear();
-      m_botAction.sendChatMessage( "All watched names cleared." );                
+      m_botAction.sendChatMessage( "All watched names cleared." );
   }
-        
+
   /**
    * Stops all MacID watching.
    */
   public void doClearMIDWatchCmd( ) {
       watchedNames.clear();
-      m_botAction.sendChatMessage( "All watched MIDs cleared." );                
+      m_botAction.sendChatMessage( "All watched MIDs cleared." );
   }
 
   /**
@@ -534,7 +539,7 @@ public class pubhubalias extends PubBotModule
         do {
           m_botAction.sendChatMessage( (String)i.next() );
         } while( i.hasNext() );
-      }      
+      }
   }
 
   public void handleChatMessage(String sender, String message)
@@ -570,7 +575,7 @@ public class pubhubalias extends PubBotModule
       else if(command.startsWith("!maxrecords "))
         doMaxRecordsCmd(message.substring(12).trim());
       else if(command.startsWith("!ipwatch "))
-        doIPWatchCmd(message.substring(9).trim());        
+        doIPWatchCmd(message.substring(9).trim());
       else if(command.startsWith("!namewatch "))
         doNameWatchCmd(message.substring(11).trim());
       else if(command.startsWith("!midwatch "))
@@ -585,11 +590,11 @@ public class pubhubalias extends PubBotModule
         doShowWatchesCmd();
       else if(command.equals("!sortbyname")) {
         m_sortByName = true;
-        m_botAction.sendChatMessage( "Sorting !alt cmds by name first." );                                    
+        m_botAction.sendChatMessage( "Sorting !alt cmds by name first." );
       }
       else if(command.equals("!sortbydate")) {
         m_sortByName = false;
-        m_botAction.sendChatMessage( "Sorting !alt cmds by date first." );                                    
+        m_botAction.sendChatMessage( "Sorting !alt cmds by date first." );
       }
     }
     catch(Exception e)
@@ -621,7 +626,7 @@ public class pubhubalias extends PubBotModule
       throw new IllegalArgumentException("ERROR: Could not write player information.");
     String playerName = recordArgs.nextToken();
     String playerIP = recordArgs.nextToken();
-    String playerMacID = recordArgs.nextToken();    
+    String playerMacID = recordArgs.nextToken();
 
     checkName( playerName, playerIP, playerMacID );
     checkIP( playerName, playerIP, playerMacID );
@@ -636,7 +641,7 @@ public class pubhubalias extends PubBotModule
     {
     }
   }
-  
+
   /**
    * Check if a name is being watched for, and notify on chat if so.
    * @param name Name to check
@@ -645,8 +650,8 @@ public class pubhubalias extends PubBotModule
    */
   public void checkName( String name, String IP, String MacID ) {
       if( watchedNames.contains( name.toLowerCase() ) ) {
-          m_botAction.sendChatMessage( "NAMEWATCH: '" + name + "' logged in.  (IP: " + IP + ", MID: " + MacID + ")" );                          
-      }          
+          m_botAction.sendChatMessage( "NAMEWATCH: '" + name + "' logged in.  (IP: " + IP + ", MID: " + MacID + ")" );
+      }
   }
 
   /**
@@ -657,11 +662,11 @@ public class pubhubalias extends PubBotModule
    */
   public void checkIP( String name, String IP, String MacID ) {
       Iterator i = watchedIPs.iterator();
-      
+
       while( i.hasNext() ) {
           String IPfragment = (String)i.next();
           if( IP.startsWith( IPfragment ) ) {
-              m_botAction.sendChatMessage( "IPWATCH: Match on '" + name + "' - " + IP + " (matches " + IPfragment + "*)  MID: " + MacID );                          
+              m_botAction.sendChatMessage( "IPWATCH: Match on '" + name + "' - " + IP + " (matches " + IPfragment + "*)  MID: " + MacID );
           }
       }
   }
@@ -674,8 +679,8 @@ public class pubhubalias extends PubBotModule
    */
   public void checkMID( String name, String IP, String MacID ) {
       if( watchedMIDs.contains( MacID ) ) {
-          m_botAction.sendChatMessage( "MIDWATCH: Match on '" + name + "' - " + MacID + "  IP: " + IP );                          
-      }          
+          m_botAction.sendChatMessage( "MIDWATCH: Match on '" + name + "' - " + MacID + "  IP: " + IP );
+      }
   }
 
   /**

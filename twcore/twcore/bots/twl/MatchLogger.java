@@ -11,6 +11,8 @@
 package twcore.bots.twl;
 
 import twcore.core.*;
+import twcore.core.events.*;
+import twcore.core.util.Tools;
 
 public class MatchLogger
 {
@@ -31,7 +33,7 @@ public class MatchLogger
 	{
 		createLogRecord("weaponFired", "used a weapon", m_botAction.getPlayerName(event.getPlayerID()));
 	}
-	
+
 	public void logEvent(Message event)
 	{
 		String cType = "", cName = m_botAction.getPlayerName(event.getPlayerID()), m = event.getMessage();

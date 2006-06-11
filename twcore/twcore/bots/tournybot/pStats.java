@@ -85,7 +85,7 @@ public class pStats {
 	public int getPlayerID() { return playerID; }
 
 	public int getTotalKills() { return totalKills; }
-        
+
 	public int getGameKills() { return gameKills; }
 
 	public int getTotalDeaths() { return totalDeaths; }
@@ -110,13 +110,13 @@ public class pStats {
 
 	public boolean getTrueLag() { return trueLag; }
 
-	public void toggleTrueLag(boolean sl) { 
+	public void toggleTrueLag(boolean sl) {
 		trueLag = sl;
 	}
 
 	public boolean getSmallLag() { return smallLag; }
 
-	public void toggleSmallLag(boolean sl) { 
+	public void toggleSmallLag(boolean sl) {
 		smallLag = sl;
 	}
 

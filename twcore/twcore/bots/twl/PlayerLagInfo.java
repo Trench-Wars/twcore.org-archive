@@ -7,6 +7,8 @@
 package twcore.bots.twl;
 
 import twcore.core.*;
+import twcore.core.events.Message;
+
 import java.util.*;
 
 /**

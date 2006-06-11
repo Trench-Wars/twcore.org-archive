@@ -12,8 +12,11 @@ package twcore.bots.twl;
  */
 
 import twcore.core.*;
-import twcore.misc.statistics.*;
-import twcore.misc.database.DBPlayerData;
+import twcore.core.events.Message;
+import twcore.core.game.Player;
+import twcore.core.stats.DBPlayerData;
+import twcore.core.stats.Statistics;
+import twcore.core.util.Tools;
 
 import java.sql.*;
 import java.util.*;
@@ -117,7 +120,7 @@ public class MatchPlayer implements Comparable
 
 	/**
 	 * @author FoN
-	 * 
+	 *
 	 * @param anotherPlayer Another matchplayer class from which it will compare points for MVP
 	 * @exception throws exception if wrong class is passed
 	 */
@@ -131,10 +134,10 @@ public class MatchPlayer implements Comparable
 	}
 
 	/**
-	 * 
+	 *
 	 * This function stores all the values in the database at the end of the game
 	 * It now also implements storing of individual ship database stats.
-	 * 
+	 *
 	 * @param fnMatchRoundID The match round ID that is being played
 	 * @param fnTeam The team the player belongs to
 	 */
@@ -327,7 +330,7 @@ public class MatchPlayer implements Comparable
 	};
 
 	/**
-	 * 
+	 *
 	 * Adds repelUsed to stats
 	 */
 	public void reportRepelUsed()
@@ -337,7 +340,7 @@ public class MatchPlayer implements Comparable
 
 	/**
 	 * Method reportFlagClaimed.
-	 * 
+	 *
 	 * Adds flagclaimed to stats
 	 */
 	public void reportFlagClaimed()
@@ -702,7 +705,7 @@ public class MatchPlayer implements Comparable
 
 	/**
 	 * Gets total statistics added over all ships
-	 * 
+	 *
 	 * @param statType @see twcore.misc.statistics.StatisticRequester.java for stattypes
 	 */
 	public int getTotalStatistic(int statType)
@@ -712,7 +715,7 @@ public class MatchPlayer implements Comparable
 
 	/**
 	 * Gets total statistics for current ships
-	 * 
+	 *
 	 * @param statType @see twcore.misc.statistics.StatisticRequester.java for stattypes
 	 */
 	public int getStatistic(int statType)
@@ -804,7 +807,7 @@ public class MatchPlayer implements Comparable
 
 	/**
 		 * @author FoN
-		 * 
+		 *
 		 * This class is to congregate all the stats so they can be organised and added + removed easily
 		 */
 	private class TotalStatistics
@@ -819,7 +822,7 @@ public class MatchPlayer implements Comparable
 
 		/**
 		* Creates a new ship given a shiptype
-		* 
+		*
 		* @param fnShipType Type of ship 1 - 8 corresponding to Wb - Shark
 		*/
 		public void createNewShip(int fnShipType)
@@ -832,7 +835,7 @@ public class MatchPlayer implements Comparable
 
 		/**
 		 * Method reportKill.
-		 * 
+		 *
 		 * @param fnPoints The amount of points obtained for kill
 		 * @param killeeID The person who got killed
 		 * @param m_fnFrequency The frequency of the killer
@@ -866,7 +869,7 @@ public class MatchPlayer implements Comparable
 
 		/**
 		 * Method reportFlagClaimed.
-		 * 
+		 *
 		 * Adds flagclaimed to stats
 		 */
 		public void reportFlagClaimed()
@@ -1087,7 +1090,7 @@ public class MatchPlayer implements Comparable
 
 		/**
 		 * Method reportFlagClaimed.
-		 * 
+		 *
 		 * Adds flagclaimed to stats
 		 */
 		public void reportFlagClaimed()

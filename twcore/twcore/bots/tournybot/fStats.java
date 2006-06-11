@@ -79,14 +79,14 @@ public class fStats {
 			return player1.getTotalKills();
 		}
 	}
-        
+
 	public int getGameKills() {
 		if (player2 != null) {
 			int gameKills = player1.getGameKills() + player2.getGameKills();
 			return gameKills;
 		} else {
 			return player1.getGameKills();
-		}	
+		}
 	}
 
 	public int getTotalDeaths() {
@@ -95,7 +95,7 @@ public class fStats {
 			return totalDeaths;
 		} else {
 			return player1.getTotalDeaths();
-		}	
+		}
 	}
 
 	public int getGameDeaths() {
@@ -104,13 +104,13 @@ public class fStats {
 			return gameDeaths;
 		} else {
 			return player1.getGameDeaths();
-		}	
+		}
 	}
 
 	public int getFreqState() { return freqState; }
 
 	public int getRound() { return playerRound; }
-        
+
 	public int getBox() { return playerBox; }
 
 	public int getPlayerNro() { return playerNro; }

@@ -11,6 +11,9 @@ package twcore.bots.twl;
  */
 
 import twcore.core.*;
+import twcore.core.events.*;
+import twcore.core.util.Tools;
+
 import java.util.*;
 import java.sql.*;
 import java.text.*;
@@ -218,7 +221,7 @@ public class MatchGame
 			m_curRound.handleEvent(event);
 		}
 	}
-	
+
 	public void handleEvent(ArenaJoined event)
 	{
 		m_logger.logEvent(event);

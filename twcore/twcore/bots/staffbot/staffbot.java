@@ -19,6 +19,10 @@ import java.util.*;
 import java.util.zip.*;
 import java.sql.*;
 import twcore.core.*;
+import twcore.core.events.FileArrived;
+import twcore.core.events.LoggedOn;
+import twcore.core.events.Message;
+import twcore.core.util.Tools;
 
 public class staffbot extends SubspaceBot {
     OperatorList        m_opList;
@@ -154,7 +158,7 @@ public class staffbot extends SubspaceBot {
             } else if( message.startsWith( "!squaddies " )){
                 querySquaddies( name, message.substring( 11 ));
             } else if( message.startsWith( "!dblsquad " )){
-                queryDblSquad( name, message.substring( 10 )); */                
+                queryDblSquad( name, message.substring( 10 )); */
             if( message.toLowerCase().startsWith( "!warningsfrom " ))
                 queryWarningsFrom( name, message.substring( 14 ) );
 /*            } else if( message.toLowerCase().startsWith( "!messagestaff " )){

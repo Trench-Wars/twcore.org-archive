@@ -1,8 +1,12 @@
 package twcore.bots.pubbot;
 
 import java.util.*;
+
+import twcore.bots.ModuleHandler;
+import twcore.bots.PubBotModule;
 import twcore.core.*;
-import twcore.misc.pubcommon.*;
+import twcore.core.events.*;
+import twcore.core.util.IPCMessage;
 
 public class pubbot extends SubspaceBot
 {
@@ -278,7 +282,7 @@ public class pubbot extends SubspaceBot
   {
     try {
         m_botAction.scheduleTask(new ArenaDyingTask(), UPDATE_CHECK_DELAY);
-    } catch (Exception e) {        
+    } catch (Exception e) {
     }
     moduleHandler.handleEvent(event);
   }

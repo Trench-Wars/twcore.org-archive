@@ -6,7 +6,11 @@
 package twcore.bots.twdtbot;
 
 import twcore.core.*;
-import twcore.misc.database.*;
+import twcore.core.events.ArenaJoined;
+import twcore.core.events.LoggedOn;
+import twcore.core.events.Message;
+import twcore.core.stats.DBPlayerData;
+import twcore.core.util.Tools;
 import java.util.*;
 import java.sql.*;
 

@@ -1,8 +1,12 @@
 package twcore.bots.pubhub;
 
 import java.util.*;
+
+import twcore.bots.ModuleHandler;
+import twcore.bots.PubBotModule;
 import twcore.core.*;
-import twcore.misc.pubcommon.*;
+import twcore.core.events.*;
+import twcore.core.util.IPCMessage;
 
 public class pubhub extends SubspaceBot
 {
