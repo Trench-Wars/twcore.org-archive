@@ -1,10 +1,23 @@
 package twcore.bots.tournybot;
 
 import twcore.core.*;
+import twcore.core.events.ArenaJoined;
+import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.LoggedOn;
+import twcore.core.events.Message;
+import twcore.core.events.PlayerDeath;
+import twcore.core.events.PlayerEntered;
+import twcore.core.events.PlayerLeft;
+import twcore.core.events.PlayerPosition;
+import twcore.core.events.SQLResultEvent;
+import twcore.core.game.Player;
+import twcore.core.stats.LagReport;
+import twcore.core.stats.lagHandler;
+import twcore.core.util.Tools;
+
 import java.util.*;
 import java.sql.*;
 import java.text.*;
-import twcore.misc.lag.*;
 
 public class tournybot extends SubspaceBot {
 
@@ -2521,7 +2534,7 @@ public class tournybot extends SubspaceBot {
 
 				pStats info2 = (pStats)players.get( player );
 				fStats fInfo2 = (fStats)freqs.get( info2.getFreq() );
-				
+
 				if( fInfo == null || fInfo2 == null )
 				    return;
 

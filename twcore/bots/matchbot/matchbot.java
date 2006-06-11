@@ -14,8 +14,11 @@
 package twcore.bots.matchbot;
 
 import twcore.core.*;
-import twcore.misc.database.DBPlayerData;
-import twcore.misc.spy.Spy;
+import twcore.core.events.*;
+import twcore.core.game.Player;
+import twcore.core.stats.DBPlayerData;
+import twcore.core.util.Spy;
+import twcore.core.util.Tools;
 import java.util.*;
 import java.sql.*;
 import java.io.*;
@@ -157,7 +160,7 @@ public class matchbot extends SubspaceBot
             m_game.handleEvent(event);
         };
     }
-    
+
     public void handleEvent(SoccerGoal event)
     {
     	if (m_game != null)
@@ -278,7 +281,7 @@ public class matchbot extends SubspaceBot
         if (m_game != null)
             m_game.handleEvent(event);
     };
-    
+
     public void handleEvent(BallPosition event)
     {
     	if (m_game != null)
@@ -323,7 +326,7 @@ public class matchbot extends SubspaceBot
                         isStaff = true;
                         isRestrictedStaff = true;
                     };
-                    } catch (Exception e) {                        
+                    } catch (Exception e) {
                     }
                 };
             };
@@ -336,14 +339,14 @@ public class matchbot extends SubspaceBot
 
             if( stringChopper(message, ' ') == null )
             	return;
-            
+
             // First: convert the command to a command with parameters
             if (stringChopper(message, ' ').length > 0) {
             	String command;
             	try {
                     command = stringChopper(message, ' ')[0];
             	} catch (Exception e) {
-                    return;            		
+                    return;
             	}
                 String[] parameters = stringChopper(message.substring(command.length()).trim(), ':');
                 for (int i = 0; i < parameters.length; i++)
@@ -359,10 +362,10 @@ public class matchbot extends SubspaceBot
             if (msg.startsWith("Arena UNLOCKED"))
                 m_botAction.toggleLocked();
         };
-        
+
         // Send to spy to check for racist comments
         racismSpy.handleEvent( event );
-        
+
         if (m_game != null)
         {
             m_game.handleEvent(event);
@@ -565,9 +568,9 @@ public class matchbot extends SubspaceBot
                     m_arenaList = new LinkedList();
                     m_isLocked = true;
                     m_botAction.ipcTransmit("MatchBot", "whatArena");
-                    
+
                     if( m_rules.getInt("aliascheck") == 1 ) m_aliasCheck = true;
-                    
+
                     TimerTask a = new TimerTask()
                     {
                         public void run()

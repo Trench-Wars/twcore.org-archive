@@ -14,7 +14,10 @@
 package twcore.bots.twl;
 
 import twcore.core.*;
-import twcore.misc.database.DBPlayerData;
+import twcore.core.events.*;
+import twcore.core.game.Player;
+import twcore.core.stats.DBPlayerData;
+import twcore.core.util.Tools;
 import java.util.*;
 import java.sql.*;
 import java.io.*;
@@ -323,14 +326,14 @@ public class twl extends SubspaceBot
 
             if( stringChopper(message, ' ') == null )
             	return;
-            
+
             // First: convert the command to a command with parameters
             if (stringChopper(message, ' ').length > 0) {
             	String command;
             	try {
                     command = stringChopper(message, ' ')[0];
             	} catch (Exception e) {
-                    return;            		
+                    return;
             	}
                 String[] parameters = stringChopper(message.substring(command.length()).trim(), ':');
                 for (int i = 0; i < parameters.length; i++)
@@ -584,9 +587,9 @@ public class twl extends SubspaceBot
                     m_arenaList = new LinkedList();
                     m_isLocked = true;
                     m_botAction.ipcTransmit("MatchBot", "whatArena");
-                    
+
                     if( m_rules.getInt("aliascheck") == 1 ) m_aliasCheck = true;
-                    
+
                     TimerTask a = new TimerTask()
                     {
                         public void run()
@@ -1152,12 +1155,12 @@ public class twl extends SubspaceBot
 		if (rulesName.equals("")) {
                     return null;
                 } else {
-                    String s[] = { 
-			Integer.toString(fnMatchID), 
-			gName, 
-			fcTeam1Name, 
-			fcTeam2Name, 
-		        rulesName 
+                    String s[] = {
+			Integer.toString(fnMatchID),
+			gName,
+			fcTeam1Name,
+			fcTeam2Name,
+		        rulesName
 	            };
                     return s;
                 }

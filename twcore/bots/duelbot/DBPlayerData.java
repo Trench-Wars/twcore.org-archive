@@ -1,6 +1,7 @@
 package twcore.bots.duelbot;
 
 import twcore.core.*;
+import twcore.core.util.Tools;
 
 
 /*
@@ -18,55 +19,55 @@ import java.sql.*;
 
 public class DBPlayerData {
     BotAction m_connection;
-    
+
     boolean m_playerLoaded = false;
     String m_connName = "local";
     String m_fcUserName = "";
     String m_fcPassword = "";
     int m_fnUserID = 0;
     java.sql.Date m_fdSignedUp = null;
-        
+
     int m_fnTeamUserID = 0;
     int m_fnTeamID = 0;
     java.sql.Date m_fdTeamSignedUp = null;
     String m_fcTeamName = "";
-    
+
     long m_lastQuery = 0;
-    
-    
+
+
     /** Creates a new instance of DBPlayerData */
-    
+
     public DBPlayerData(BotAction conn, String connName) {
         m_connection = conn;
         m_connName = connName;
     };
-    
-    
+
+
     public DBPlayerData(BotAction conn, String connName, String fcPlayerName) {
         m_connection = conn;
         m_fcUserName = fcPlayerName;
         m_connName = connName;
         getPlayerData();
     }
-    
-        
+
+
     public DBPlayerData(BotAction conn, String connName, String fcPlayerName, boolean createIfNotExists) {
         m_connection = conn;
         m_fcUserName = fcPlayerName;
         m_connName = connName;
         if (!getPlayerData() && createIfNotExists) createPlayerData();
     }
- 
-    
 
-    
+
+
+
     public boolean getPlayerSquadData() {
         try {
             ResultSet qryPlayerSquadInfo = m_connection.SQLQuery(m_connName,
             "SELECT TU.fdJoined, TU.fnTeamUserID, T.fnTeamID, T.fcTeamName FROM tblTeam T, tblTeamUser TU " +
             "WHERE TU.fnTeamID = T.fnTeamID AND TU.fnCurrentTeam = 1 AND TU.fnUserID = " + getUserID());
             m_lastQuery = System.currentTimeMillis();
-            
+
             if (qryPlayerSquadInfo.next()) {
                 m_fnTeamID = qryPlayerSquadInfo.getInt("fnTeamID");
                 m_fcTeamName = qryPlayerSquadInfo.getString("fcTeamName");
@@ -79,9 +80,9 @@ public class DBPlayerData {
             return false;
         }
     };
-    
-    
-    public boolean getPlayerData() {        
+
+
+    public boolean getPlayerData() {
         try {
             ResultSet qryPlayerInfo = m_connection.SQLQuery(m_connName,
             "SELECT U.fnUserID, U.fcUserName, U.fdSignedUp FROM tblUser U WHERE U.fcUserName = '"+Tools.addSlashesToString(m_fcUserName)+"'");
@@ -91,7 +92,7 @@ public class DBPlayerData {
                 m_fcUserName = qryPlayerInfo.getString("fcUserName");
                 m_fnUserID = qryPlayerInfo.getInt("fnUserID");
                 m_fdSignedUp = qryPlayerInfo.getDate("fdSignedUp");
-                
+
                 getPlayerSquadData();
                 return true;
             } else return false;
@@ -100,8 +101,8 @@ public class DBPlayerData {
             return false;
         }
     };
-    
-    
+
+
     public boolean createPlayerData() {
         try {
             m_connection.SQLQuery(m_connName, "INSERT INTO tblUser (fcUserName, fdSignedUp) VALUES ('"+Tools.addSlashesToString(m_fcUserName)+"', NOW())");
@@ -112,9 +113,9 @@ public class DBPlayerData {
             return false;
         }
     };
-    
-    
-    
+
+
+
     public boolean createPlayerAccountData(String fcPassword) {
         if (m_fnUserID != 0) {
             try {
@@ -128,8 +129,8 @@ public class DBPlayerData {
             }
         } else return false;
     };
-    
-    
+
+
     public boolean updatePlayerAccountData(String fcPassword) {
         if (m_fnUserID != 0) {
             try {
@@ -143,7 +144,7 @@ public class DBPlayerData {
             }
         } else return false;
     };
-    
+
     public boolean getPlayerAccountData() {
         if (m_fnUserID != 0) {
             try {
@@ -156,13 +157,13 @@ public class DBPlayerData {
                     return false;
                 }
             } catch (Exception e) {
-                
+
             };
         };
         return false;
     };
-    
-    
+
+
     public boolean hasRank(int rankNr) {
         if (m_fnUserID != 0) {
             try {
@@ -175,9 +176,9 @@ public class DBPlayerData {
         };
         return false;
     };
-    
-    
-    
+
+
+
     public boolean giveRank(int rankNr) {
         if (m_fnUserID != 0) {
             try {
@@ -190,10 +191,10 @@ public class DBPlayerData {
         };
         return false;
     };
-    
-    
+
+
     public BotAction getBotAction() { return m_connection; };
-    
+
     public boolean playerLoaded() { return m_playerLoaded; };
     public int getUserID() { return m_fnUserID; };
     public String getUserName() { return m_fcUserName; };
@@ -204,6 +205,6 @@ public class DBPlayerData {
     public int getTeamID() { return m_fnTeamID; };
     public int getTeamUserID() { return m_fnTeamUserID; };
     public long getLastQuery() { return m_lastQuery; };
-    
+
     public void setUserName(String fcUserName) { m_fcUserName = fcUserName; };
 };

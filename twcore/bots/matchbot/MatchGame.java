@@ -11,6 +11,9 @@ package twcore.bots.matchbot;
  */
 
 import twcore.core.*;
+import twcore.core.events.*;
+import twcore.core.util.Tools;
+
 import java.util.*;
 import java.sql.*;
 import java.text.*;
@@ -166,7 +169,7 @@ public class MatchGame
 					Tools.addSlashesToString(m_fcTeam2Name),
 					time,
                     Integer.toString(challenger),
-                    Integer.toString(accepter)						
+                    Integer.toString(accepter)
                 };
 			m_botAction.SQLInsertInto(dbConn, "tblMatch", fields, values);
 
@@ -216,7 +219,7 @@ public class MatchGame
 			m_curRound.handleEvent(event);
 		}
 	}
-	
+
 	public void handleEvent(ArenaJoined event)
 	{
 		m_logger.logEvent(event);
@@ -300,7 +303,7 @@ public class MatchGame
 	{
 		m_logger.logEvent(event);
 	};
-	
+
 	public void handleEvent(SoccerGoal event)
 	{
 		if (m_curRound != null)
@@ -308,7 +311,7 @@ public class MatchGame
 			m_curRound.handleEvent(event);
 		};
 	};
-	
+
 	public void handleEvent(BallPosition event)
 	{
 		if (m_curRound != null)

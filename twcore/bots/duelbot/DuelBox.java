@@ -3,7 +3,7 @@ package twcore.bots.duelbot;
 import java.util.*;
 
 public class DuelBox {
-	
+
 	int d_box 		= -1;
 	int d_type 		= -1;
 	int d_x1   		= 0;
@@ -16,10 +16,10 @@ public class DuelBox {
 	int d_safey2   	= 0;
 	boolean inUse   = false;
 	WarpPoint	last;
-	
+
 	Random generator;
 	Vector randomWarpPoints = new Vector();
-	
+
 	public DuelBox( String settings[], String randomPt[], int b ) {
 		d_box = b;
 		d_type = Integer.parseInt( settings[0] );
@@ -35,22 +35,22 @@ public class DuelBox {
 			randomWarpPoints.add( new WarpPoint( randomPt[i], randomPt[i+1] ) );
 		generator = new Random();
 	}
-	
+
 	public boolean gameType( int gameType ) {
-		
+
 		if( d_type == 1 && gameType == 3 ) return true;
 		else if( d_type == gameType ) return true;
 		else return false;
 	}
-	
+
 	public WarpPoint getRandomWarpPoint() {
-		
+
 		WarpPoint p = (WarpPoint)randomWarpPoints.elementAt( generator.nextInt( randomWarpPoints.size() ) );
 		if( p == last ) return getRandomWarpPoint();
 		last = p;
 		return p;
 	}
-	
+
 	public int getXOne() { return d_x1; }
 	public int getXTwo() { return d_x2; }
 	public int getYOne() { return d_y1; }

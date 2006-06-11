@@ -2,6 +2,7 @@ package twcore.bots.twl;
 
 import java.util.*;
 import twcore.core.*;
+import twcore.core.events.SubspaceEvent;
 
 /**
  * This class handles events that are inherited from SubspaceEvent.  It provides

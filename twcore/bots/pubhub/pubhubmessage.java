@@ -1,7 +1,7 @@
 package twcore.bots.pubhub;
 
+import twcore.bots.PubBotModule;
 import twcore.core.*;
-import twcore.misc.pubcommon.*;
 
 public class pubhubmessage extends PubBotModule {
 

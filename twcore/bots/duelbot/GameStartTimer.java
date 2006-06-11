@@ -4,19 +4,19 @@ import twcore.core.*;
 import java.util.*;
 
 public class GameStartTimer extends TimerTask {
-	
+
 	BotAction m_botAction;
 	String player1;
 	String player2;
 	Duel duel;
-	
+
 	public GameStartTimer( Duel d, String p1, String p2, BotAction b ) {
 		m_botAction = b;
 		duel = d;
 		player1 = p1;
 		player2 = p2;
 	}
-	
+
 	public void run() {
 		duel.started();
 		m_botAction.warpTo( player1, duel.getXOne(), duel.getYOne() );

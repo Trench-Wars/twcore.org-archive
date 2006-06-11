@@ -12,10 +12,16 @@ package twcore.bots.matchbot;
  */
 
 import twcore.core.*;
+import twcore.core.events.*;
+import twcore.core.game.Player;
+import twcore.core.lvz.Objset;
+import twcore.core.stats.LagReport;
+import twcore.core.stats.lagHandler;
+import twcore.core.util.Tools;
+
 import java.util.*;
 import java.sql.*;
 import java.text.*;
-import twcore.misc.lag.*;
 
 public class MatchRound
 {
@@ -99,7 +105,7 @@ public class MatchRound
         m_fnRoundResult = 0;
         m_timeStarted = new java.util.Date();
         m_logger = m_game.m_logger;
-        
+
         if(!m_rules.getString("name").equalsIgnoreCase("strikeball")) {
 	        m_team1 = new MatchTeam(fcTeam1Name, (int)Math.floor(Math.random()*8000+1000), 1, this);
 	        m_team2 = new MatchTeam(fcTeam2Name, (int)Math.floor(Math.random()*8000+1000), 2, this);
@@ -167,7 +173,7 @@ public class MatchRound
         Player bot = m_botAction.getPlayer(botName);
 		if(bot == null)
 			return 9999;
-		
+
         placeOnSpecFreq(botName);
         return bot.getFrequency();
     }
@@ -221,13 +227,13 @@ public class MatchRound
  	/**
  	 * Can get various weapon info and the player who used it
  	 * Get repel used count
- 	 * 
+ 	 *
 	 * @param event WeaponFired event
 	 */
 	public void handleEvent(WeaponFired event)
 	{
 	    try {
-	        String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();    
+	        String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
 	        if (m_team1.getPlayer(playerName, true) != null)
 	            m_team1.handleEvent(event);
 	        if (m_team2.getPlayer(playerName, true) != null)
@@ -235,7 +241,7 @@ public class MatchRound
 	    } catch ( Exception e ) {
 	    }
 	}
- 
+
     /**
      * Parses the FrequencyShipChange event to the team in which the player is
      *
@@ -339,7 +345,7 @@ public class MatchRound
             }
 
             m_lagHandler.handleLagMessage(msg);
-			
+
             /*
                         if (msg.startsWith("IP:")) {
                             String[] pieces = msg.split("  ");
@@ -399,7 +405,7 @@ public class MatchRound
         {
         };
     };
-    
+
     /*
      * Parses the SoccerGoal event to the team in which the player is
      */
@@ -407,7 +413,7 @@ public class MatchRound
     {
     	try {
     		int freq = event.getFrequency();
-    		
+
     		if(freq == 0) {
     			m_fnTeam1Score++;
     			if(m_fnTeam1Score >= m_rules.getInt("goals"))
@@ -422,7 +428,7 @@ public class MatchRound
     		System.out.println("Score: " + m_fnTeam1Score + "-" + m_fnTeam2Score);
     	} catch(Exception e) {}
     }
-    
+
     public void handleEvent(BallPosition event)
     {
     	if(waitingOnBall)
@@ -431,7 +437,7 @@ public class MatchRound
     		waitingOnBall = false;
     	}
     }
-    			
+
 
     /*
      * Parses the PlayerLeft event to the team in which the player is
@@ -647,19 +653,19 @@ public class MatchRound
         {
             ArrayList playerList = new ArrayList();
             Iterator it = m_team1.m_players.iterator();
-            
+
             while (it.hasNext())
             {
             	playerList.add(it.next());
             }
-            
+
             it = m_team2.m_players.iterator();
-            
+
             while (it.hasNext())
             {
             	playerList.add(it.next());
             }
-                      
+
             Collections.sort(playerList);
 
             if (NUMBER_OF_MVPS > playerList.size())
@@ -878,7 +884,7 @@ public class MatchRound
                 m_logger.setFreq( name, NOT_PLAYING_FREQ + 1 );
             } else {
                 placeOnSpecFreq( name );
-            } 
+            }
         };
     };
 
@@ -933,7 +939,7 @@ public class MatchRound
 
     public void handleLagReport(LagReport report)
     {
-        if (!report.isBotRequest()) 
+        if (!report.isBotRequest())
         {
         	String player = report.getRequester();
             String[] lagStats;
@@ -957,7 +963,7 @@ public class MatchRound
             }
         }
 
-        if (report.isOverLimits()) 
+        if (report.isOverLimits())
         {
             MatchPlayer p = m_team1.getPlayer(report.getName(), true);
             if (p == null) {
@@ -977,7 +983,7 @@ public class MatchRound
                     m_botAction.spec(report.getName());
                     m_botAction.spec(report.getName());
                 }
-            } catch (Exception e ) {                
+            } catch (Exception e ) {
             }
         }
     }
@@ -1039,7 +1045,7 @@ public class MatchRound
 	                    m_team2.warpTo(m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
 	                }
 	            };
-	
+
 				m_countdown10Seconds = new TimerTask()
 	            {
 	                public void run()
@@ -1047,7 +1053,7 @@ public class MatchRound
 	                    m_botAction.showObject(m_rules.getInt("obj_countdown10"));
 	                };
 	            };
-	
+
 				m_countdown54321 = new TimerTask()
 	            {
 	                public void run()
@@ -1057,7 +1063,7 @@ public class MatchRound
 	                    m_team2.warpTo(m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
 	                };
 	            };
-				
+
 				m_startGame = new TimerTask()
 	            {
 	                public void run()
@@ -1091,7 +1097,7 @@ public class MatchRound
             public void run()
             {
                 do_updateScoreBoard();
-				
+
 				checkTeamsAlive();
             }
         };
@@ -1192,7 +1198,7 @@ public class MatchRound
 
         if (m_raceTimer != null)
             m_raceTimer.cancel();
-        
+
 		if(!m_rules.getString("winby").equalsIgnoreCase("goals")) {
 	        m_fnTeam1Score = m_team1.getTeamScore();
 	        m_fnTeam2Score = m_team2.getTeamScore();
@@ -1233,10 +1239,10 @@ public class MatchRound
         {
 
             m_timeEnded = new java.util.Date();
-	
+
 			if (updateScores != null)
 				updateScores.cancel();
-				
+
 			do_updateScoreBoard();
 			m_botAction.showObject(m_rules.getInt("obj_gameover"));
 
@@ -1275,7 +1281,7 @@ public class MatchRound
             }
             else
                 m_logger.sendArenaMessage("Result of " + m_team1.getTeamName() + " vs. " + m_team2.getTeamName() + ": " + m_fnTeam1Score + " - " + m_fnTeam2Score, 5);
-			
+
 			if(!m_rules.getString("winby").equals("goals"))
     	    	displayScores();
 
@@ -1595,7 +1601,7 @@ public class MatchRound
 
     public void checkTeamsAlive() {
         if ((int)System.currentTimeMillis() - m_fnAliveCheck > 5000) {
- 
+
 			m_lagHandler.requestLag(m_team1.getNameToLagCheck());
             m_lagHandler.requestLag(m_team2.getNameToLagCheck());
 
@@ -1655,7 +1661,7 @@ public class MatchRound
             m_botAction.sendArenaMessage(out2[i]);
         }
     }
-	
+
 
     public void cancel()
     {

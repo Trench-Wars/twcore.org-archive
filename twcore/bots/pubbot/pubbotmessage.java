@@ -1,14 +1,18 @@
 package twcore.bots.pubbot;
 
 import java.util.*;
+
+import twcore.bots.PubBotModule;
 import twcore.core.*;
-import twcore.misc.pubcommon.*;
+import twcore.core.events.InterProcessEvent;
+import twcore.core.events.Message;
+import twcore.core.util.IPCMessage;
 
 public class pubbotmessage extends PubBotModule
 {
   private String botName;
   Queue checkQueue;
-  
+
   public void initializeModule()
   {
   	checkQueue = new Queue();
@@ -37,7 +41,7 @@ public class pubbotmessage extends PubBotModule
     	}
   }
 
-  
+
   public void gotNotRecordedCmd(String argString)
   {
   	checkQueue.add(argString.toLowerCase());
@@ -94,24 +98,24 @@ public class pubbotmessage extends PubBotModule
 class Queue
 {
 	ArrayList objects;
-	
+
 	public Queue()
 	{
 		objects = new ArrayList();
 	}
-	
+
 	public Object next()
 	{
 		Object obj = objects.get(0);
 		objects.remove(0);
 		return obj;
 	}
-	
+
 	public void add(Object obj)
 	{
 		objects.add(obj);
 	}
-	
+
 	public int size()
 	{
 		return objects.size();

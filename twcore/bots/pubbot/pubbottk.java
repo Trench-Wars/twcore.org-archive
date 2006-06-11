@@ -3,16 +3,24 @@ package twcore.bots.pubbot;
 import java.util.*;
 import java.text.*;
 
+import twcore.bots.PubBotModule;
 import twcore.core.*;
-import twcore.misc.pubcommon.*;
+import twcore.core.events.ArenaList;
+import twcore.core.events.InterProcessEvent;
+import twcore.core.events.Message;
+import twcore.core.events.PlayerDeath;
+import twcore.core.events.PlayerEntered;
+import twcore.core.events.PlayerLeft;
+import twcore.core.game.Player;
+import twcore.core.util.IPCMessage;
 
 /**
  * Tracks TKs, warns players who TK excessively, and notifies staff as necessary.
  * Operates on a point system.
- * 
+ *
  * Note: Setting HARDASS final to false reduces functionality of this module to
  * that of a TK tracker (not issuing disciplinary action).
- * 
+ *
  * Setting IGNORE_FAILSAFES to true is highly recommended.  If you choose to use
  * failsafes that warn, setship and notify staff based on number of TKs, be sure
  * that you are addressing a problem of someone intentionally TKing and abusing
@@ -23,29 +31,29 @@ import twcore.misc.pubcommon.*;
  * @author qan
  */
 public class pubbottk extends PubBotModule {
-    
+
     private final boolean HARDASS = false;   // True if bot should warn, setship and
                                              // notify staff.  If set to false, bot only
                                              // records info about TKs.
-    
+
     private final boolean IGNORE_FAILSAFES = true;  // True if "failsafes" that protect
                                                     // against sneaky TKers should be
                                                     // ignored.  Should be kept at true
                                                     // unless you know what you are doing.
-    
+
     private final boolean ALLOW_PLAYER_NOTIFY = true;   // True to allow players to notify staff
                                                         // after being TK'd.
-    
+
     private final int TK_POINTS_NORM = 12;   // Penalty for TKing (any ship but shark or levi)
     private final int TK_POINTS_LEVI = 8;    // Penalty for TKing as a lev
     private final int TK_POINTS_SHARK = 1;   // Penalty for TKing as a shark
     private final int TK_POINTS_REPEAT = 20; // Penalty for Tking same person twice in a row
     private final int AMT_WARNAT = 45;       // Points at which player receives a warning
     private final int AMT_NOTIFYAT = 90;     // Points at which staff is notified
-    private final int TKNUM_EMERGENCY_WARN = 10;    // # TK's to force a first warning 
+    private final int TKNUM_EMERGENCY_WARN = 10;    // # TK's to force a first warning
     private final int TKNUM_EMERGENCY_SETSHIP = 30; // # TK's to force a setship
     private final int TKNUM_EMERGENCY_NOTIFY = 50;  // # TK's to force a notify
-    
+
     private final int COOLDOWN_SECS = 7;     // Time, in secs, it takes to remove 1 TK point
     private final int FORGET_TIME_MINS = 15; // Time, in minutes, between when the
                                              //    slate is wiped clean for TKers who
@@ -64,16 +72,16 @@ public class pubbottk extends PubBotModule {
      */
     public void initializeModule() {
         currentArena = m_botAction.getArenaName();
-        
+
         // TODO: Add to CFG
         if( currentArena.toLowerCase().equals("tourny") || currentArena.toLowerCase().equals("duel") )
             checkTKs = false;
         else
             checkTKs = true;
-        
-        tkers = new HashMap(); 
+
+        tkers = new HashMap();
         oldtkers = new HashMap();
-        tked = new HashMap(); 
+        tked = new HashMap();
 
         m_opList = m_botAction.getOperatorList();
 
@@ -135,7 +143,7 @@ public class pubbottk extends PubBotModule {
      */
     public void doTKset( int setting ) {
         if( setting == -1 ) {
-            if( checkTKs ) 
+            if( checkTKs )
                 setting = 0;
             else
                 setting = 1;
@@ -150,7 +158,7 @@ public class pubbottk extends PubBotModule {
                 m_botAction.sendChatMessage( "TK checking disabled in " + currentArena + ".");
                 checkTKs = false;
             }
-        } 
+        }
     }
 
 
@@ -285,7 +293,7 @@ public class pubbottk extends PubBotModule {
 		}
     }
 
-    
+
     /**
      * Sends a manual warning to moderators from a player that claims a TK has
      * been made intentionally.
@@ -294,18 +302,18 @@ public class pubbottk extends PubBotModule {
         String tker = (String)tked.get( name );
         if( tker == null )
             return;
-        
+
         TKInfo info = (TKInfo)tkers.get( tker );
         if( info == null ) {
             m_botAction.sendPrivateMessage( name, "Error reporting player '" + tker + "' - player not found.  Please use the ?cheater command to manually notify staff." );
             return;
         }
-        
+
         if( info.playerHasNotified() ) {
             m_botAction.sendPrivateMessage( name, "Staff has already been notified about '" + tker + "'.  Please use ?cheater if the problem continues or you do not receive a response." );
         	return;
         }
-        
+
         String msg = "?cheater TK Report: " + name + " is reporting " + tker + " for intentional TK.  (" + info.getNumTKs() + " total TKs)";
         m_botAction.sendUnfilteredPublicMessage( msg );
         m_botAction.sendPrivateMessage( name, tker + " was reported to staff for intentionally teamkilling.  If a staff member does not contact you, please use ?cheater", 1 );
@@ -313,7 +321,7 @@ public class pubbottk extends PubBotModule {
         info.setPlayerHasNotified();
     }
 
-    
+
     /**
      * Main grunt of the module.  If a person kills someone on the same freq,
      * add a TK to their preexisting TKInfo obj, or make a new one if this is
@@ -331,7 +339,7 @@ public class pubbottk extends PubBotModule {
 
         if( killed == null || killer == null || killed.getFrequency() != killer.getFrequency() )
             return;
-        
+
         if( tkers != null )
             tk = (TKInfo)tkers.get( killer.getPlayerName().toLowerCase() );
 
@@ -345,12 +353,12 @@ public class pubbottk extends PubBotModule {
         }
 
         if( ALLOW_PLAYER_NOTIFY == true ) {
-            // Tell players who are TKd for the first time that they can notify staff 
+            // Tell players who are TKd for the first time that they can notify staff
             if( tked.remove( killed.getPlayerName() ) == null )
                 m_botAction.sendPrivateMessage( event.getKilleeID(), "You were TK'd by " + killer.getPlayerName() + ".  Type ::report to notify staff of any non-accidental TKs." );
 
             tked.put( killed.getPlayerName(), killer.getPlayerName() );
-        }        
+        }
     }
 
 
@@ -397,7 +405,7 @@ public class pubbottk extends PubBotModule {
 
     /**
      * Used to store info on TKers.  Operates on a point system.
-     * 
+     *
      * Defaults:
      *
      * Shark TKs ..........................  +7 points
@@ -453,7 +461,7 @@ public class pubbottk extends PubBotModule {
         public void addTK( int shipnum, String playerTKd ) {
             calculatePointLoss();
             m_lastTKTime = System.currentTimeMillis();
-            
+
             m_TKs++;
 
             if( shipnum == 8 ) {
@@ -491,7 +499,7 @@ public class pubbottk extends PubBotModule {
             // "Neutered" version of the bot for info gathering only
             if( HARDASS == false )
                 return;
-            
+
             if( m_setShipped && m_TKpoints >= AMT_NOTIFYAT ) {
                 notifyStaff();
             } else if( m_TKpoints >= AMT_NOTIFYAT) {
@@ -503,10 +511,10 @@ public class pubbottk extends PubBotModule {
                     setTKerShip();
                 else
                     addWarn();
-            
+
             } else if( IGNORE_FAILSAFES == true ) {
                 return;
-            
+
             // Below: "Failsafes" for players attempting to cheat the system
             } else if( m_TKs >= TKNUM_EMERGENCY_NOTIFY && m_staffNotified == false ) {
                 if( m_TKpoints < AMT_NOTIFYAT )
@@ -522,8 +530,8 @@ public class pubbottk extends PubBotModule {
                 addWarn();
             }
         }
-        
-        
+
+
         /**
          * Calculates the number of points a player has lost over time since the last TK.
          */
@@ -533,9 +541,9 @@ public class pubbottk extends PubBotModule {
                 return;
             long diffsecs = diff / 1000;
             if( diffsecs <= 0 )
-                return;               
+                return;
             long pointloss = diffsecs / COOLDOWN_SECS;
-            
+
             m_TKpoints -= pointloss;
             if( m_TKpoints < 0 )
                 m_TKpoints = 0;
@@ -563,16 +571,16 @@ public class pubbottk extends PubBotModule {
             if( m_lastWarn > System.currentTimeMillis() - 30000 )
                 return;
             m_lastWarn = System.currentTimeMillis();
-            
+
             m_warns++;
             sendWarn();
         }
 
-        
+
         /**
          * Sends a warning message to player depending on number of past warns.
          */
-        public void sendWarn() {            
+        public void sendWarn() {
             if( m_warns == 1 )
                 m_botAction.sendPrivateMessage( m_playerName, "NOTICE: Excessive and intentional team killing (TKing) are prohibited in Trench Wars.  Ships with names in yellow are your own teammates.  Please try not to kill them.", 1 );
             else if( m_warns == 2 )
@@ -654,7 +662,7 @@ public class pubbottk extends PubBotModule {
         public boolean wasRepeatKiller() {
         	return m_repeatKiller;
         }
-        
+
         public long getLastTKTime() {
             return m_lastTKTime;
         }
@@ -662,7 +670,7 @@ public class pubbottk extends PubBotModule {
         public long getFirstTKTime() {
             return m_firstTKTime;
         }
-        
+
         public boolean playerHasNotified() {
             return m_playerHasNotified;
         }

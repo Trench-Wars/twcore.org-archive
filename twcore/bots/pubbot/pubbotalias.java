@@ -2,8 +2,12 @@
 
 package twcore.bots.pubbot;
 
+import twcore.bots.PubBotModule;
 import twcore.core.*;
-import twcore.misc.pubcommon.*;
+import twcore.core.events.InterProcessEvent;
+import twcore.core.events.Message;
+import twcore.core.events.PlayerEntered;
+import twcore.core.util.IPCMessage;
 
 public class pubbotalias extends PubBotModule
 {

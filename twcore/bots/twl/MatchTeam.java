@@ -12,7 +12,14 @@ package twcore.bots.twl;
  */
 
 import twcore.core.*;
-import twcore.misc.database.DBPlayerData;
+import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.Message;
+import twcore.core.events.PlayerDeath;
+import twcore.core.events.PlayerLeft;
+import twcore.core.events.WeaponFired;
+import twcore.core.game.Player;
+import twcore.core.stats.DBPlayerData;
+import twcore.core.util.Tools;
 import java.util.*;
 import java.sql.*;
 
@@ -1044,7 +1051,7 @@ public class MatchTeam
             };
 
 	    // only for TWL games
-	    if (m_rules.getInt("matchtype") < 4) 
+	    if (m_rules.getInt("matchtype") < 4)
             {
 		try {
 			ResultSet s = m_botAction.SQLQuery(dbConn, "SELECT tblSiteVar.fcVarValue AS lockDate FROM tblSiteVar, tblTeamUser WHERE tblSiteVar.fcVarName = 'LockDate' AND tblTeamUser.fnUserID = '" + dbP.getUserID() + "' AND tblTeamUser.fdJoined < tblSiteVar.fcVarValue;");

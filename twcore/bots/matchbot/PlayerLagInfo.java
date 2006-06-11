@@ -7,6 +7,8 @@
 package twcore.bots.matchbot;
 
 import twcore.core.*;
+import twcore.core.events.Message;
+
 import java.util.*;
 
 public class PlayerLagInfo extends PlayerInfo
