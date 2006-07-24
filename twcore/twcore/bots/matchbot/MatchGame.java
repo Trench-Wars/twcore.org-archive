@@ -109,7 +109,7 @@ public class MatchGame
 				if(zoner.indexOf("%n") > -1) {
 					String pieces[] = zoner.split("%n");
 					if(pieces.length == 1) {
-						zoner += m_botAction.getBotName();
+						zoner = pieces[0] + m_botAction.getBotName();
 					} else {
 						zoner = "";
 						for(int k = 0;k < pieces.length - 1;k++) {
@@ -120,7 +120,7 @@ public class MatchGame
 				if(zoner.indexOf("%a") > -1) {
 					String pieces[] = zoner.split("%a");
 					if(pieces.length == 1) {
-						zoner += m_botAction.getArenaName();
+						zoner = pieces[0] + m_botAction.getArenaName();
 					} else {
 						zoner = "";
 						for(int k = 0;k < pieces.length - 1;k++) {
