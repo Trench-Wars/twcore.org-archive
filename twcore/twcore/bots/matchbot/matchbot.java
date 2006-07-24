@@ -60,6 +60,8 @@ public class matchbot extends SubspaceBot
 
     private static Pattern parseInfoRE = Pattern.compile("^IP:(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})  TimeZoneBias:\\d+  Freq:\\d+  TypedName:(.*)  Demo:\\d  MachineId:(\\d+)$");
     private static Pattern cruncherRE = Pattern.compile("\\s+");
+    
+    boolean canZone = true;
 
     /** Creates a new instance of Matchtwl */
     public matchbot(BotAction botAction)
@@ -1067,6 +1069,15 @@ public class matchbot extends SubspaceBot
                     if (!name.equalsIgnoreCase(m_botAction.getBotName()))
                         startMessage = "Game started by " + name;
                     m_game = new MatchGame(rulesName, fcTeam1Name, fcTeam2Name, players, challenger, accepter, m_botAction);
+                    canZone = m_game.zone(canZone);
+                    if(!canZone) {
+                    	TimerTask canZoneTrue = new TimerTask() {
+	                    	public void run() {
+	                    		canZoneTrue();
+	                    	}
+	                    };
+	                    m_botAction.scheduleTask(canZoneTrue,60 * 60 * 1000);
+	                }
                 }
                 else
                     m_botAction.sendPrivateMessage(name, "There's already a game running, type !killgame to kill it first");
@@ -1079,6 +1090,10 @@ public class matchbot extends SubspaceBot
             m_botAction.sendPrivateMessage(name, "Provide a correct game type number");
         };
     };
+    
+    public void canZoneTrue() {
+    	canZone = true;
+    }
 
     // list games
     public void listGames(String name)

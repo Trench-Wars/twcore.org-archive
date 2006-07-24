@@ -101,6 +101,17 @@ public class MatchGame
 		m_botAction.scheduleTask(startup, 1000);
 
 	}
+	
+	public boolean zone(boolean canZone) {
+		if(m_rules.getInt("advertise") == 1) {
+			String zoner = m_rules.getString("zoner");
+			if(zoner != null && canZone && m_botAction.getArenaSize() < m_rules.getInt("peopletoad")) {
+				m_botAction.sendZoneMessage(zoner);
+				return false;
+			}
+		}
+		return true;
+	}
 
 	public int getTeamID(String fcTeamName)
 	{
