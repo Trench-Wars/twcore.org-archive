@@ -106,7 +106,7 @@ public class MatchGame
 		if(m_rules.getInt("advertise") == 1) {
 			String zoner = m_rules.getString("zoner");
 			if(zoner != null && canZone && m_botAction.getArenaSize() < m_rules.getInt("peopletoad")) {
-				m_botAction.sendZoneMessage(zoner);
+				m_botAction.sendZoneMessage(zoner,2);
 				return false;
 			}
 		}
