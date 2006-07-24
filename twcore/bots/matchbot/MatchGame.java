@@ -106,16 +106,28 @@ public class MatchGame
 		if(m_rules.getInt("advertise") == 1) {
 			String zoner = m_rules.getString("zoner");
 			if(zoner != null && canZone && m_botAction.getArenaSize() < m_rules.getInt("peopletoad")) {
-				String pieces[] = zoner.split("%n");
-				zoner = "";
-				for(int k = 0;k < pieces.length - 1;k++) {
-					zoner += pieces[k] + m_botAction.getBotName();
-				} zoner += pieces[pieces.length - 1];
-				String pieces2[] = zoner.split("%a");
-				zoner = "";
-				for(int k = 0;k < pieces2.length - 1;k++) {
-					zoner += pieces2[k] + m_botAction.getArenaName();
-				} zoner += pieces2[pieces2.length - 1];
+				if(zoner.indexOf("%n") > -1) {
+					String pieces[] = zoner.split("%n");
+					if(pieces.length == 1) {
+						zoner += m_botAction.getBotName();
+					} else {
+						zoner = "";
+						for(int k = 0;k < pieces.length - 1;k++) {
+							zoner += pieces[k] + m_botAction.getBotName();
+						} zoner += pieces[pieces.length - 1];
+					}
+				}
+				if(zoner.indexOf("%a") > -1) {
+					String pieces[] = zoner.split("%a");
+					if(pieces.length == 1) {
+						zoner += m_botAction.getArenaName();
+					} else {
+						zoner = "";
+						for(int k = 0;k < pieces.length - 1;k++) {
+							zoner += pieces[k] + m_botAction.getArenaName();
+						} zoner += pieces[pieces.length - 1];
+					}
+				}
 				m_botAction.sendZoneMessage(zoner,2);
 				return false;
 			}
