@@ -27,7 +27,7 @@ public class MatchGame
 	BotSettings m_rules;
 
 	MatchLogger m_logger;
-	String dbConn = "local";
+	String dbConn = "server";
 	String m_fcRuleFile;
 	String m_fcTeam1Name;
 	String m_fcTeam2Name;
