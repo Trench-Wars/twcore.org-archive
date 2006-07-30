@@ -37,7 +37,7 @@ public class twl extends SubspaceBot
     String startMessage;
     HashMap m_registerList;
 
-    String dbConn = "local";
+    String dbConn = "server";
 
     //
     boolean m_isLocked = false;
