@@ -26,7 +26,7 @@ public class pubhubalias extends PubBotModule
   private Set watchedMIDs;
   private ClearRecordTask clearRecordTask;
 
-  private int m_maxRecords = 50;
+  private int m_maxRecords = 15;
   private boolean m_sortByName = false;
 
   /**
