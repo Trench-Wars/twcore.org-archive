@@ -128,21 +128,37 @@ public class twdbot extends SubspaceBot {
                 else if( message.startsWith( "!info " ) )
                     commandDisplayInfo( name, message.substring( 6 ), false );
                 else if( message.startsWith( "!fullinfo " ) )
-                    commandDisplayInfo( name, message.substring( 10 ), true );
+                    commandDisplayInfo( name, message.substring( 10 ), true );                
                 else if( message.startsWith( "!register " ) )
                     commandRegisterName( name, message.substring( 10 ), false );
                 else if( message.startsWith( "!registered " ) )
                     commandCheckRegistered( name, message.substring( 12 ) );
-                else if( message.startsWith( "!ipcheck " ) )
-                    commandIPCheck( name, message.substring( 9 ) );
-                else if( message.startsWith( "!midcheck " ) )
-                    commandMIDCheck( name, message.substring( 10 ) );
+                else if( message.startsWith( "!altip " ) )
+                    commandIPCheck( name, message.substring( 7 ), true );
+                else if( message.startsWith( "!altmid " ) )
+                    commandMIDCheck( name, message.substring( 8 ), true );
                 else if( message.startsWith( "!check " ) )
                     checkIP( name, message.substring( 7 ) );
                 else if( message.startsWith( "!go " ) )
                     m_botAction.changeArena( message.substring( 4 ) );
                 else if( message.startsWith( "!help" ) )
                     commandDisplayHelp( name, false );
+                else if( message.startsWith("!add ")) 
+                	commandAddMIDIP(name, message.substring(5));
+               	else if( message.startsWith("!removeip "))
+               		commandRemoveIP(name, message.substring(10));
+               	else if( message.startsWith("!removemid "))
+               		commandRemoveMID(name, message.substring(11));
+               	else if( message.startsWith("!listipmid "))
+               		commandListIPMID(name, message.substring(11));
+                if(m_opList.isSmod(name)) {
+	                if( message.toLowerCase().startsWith( "!addaccess ")) 
+	                	command_addaccess(name, message.substring(11));
+	                else if( message.toLowerCase().startsWith( "!removeaccess ")) 
+	                	command_removeaccess(name, message.substring(14));
+	                else if( message.toLowerCase().startsWith( "!listaccess")) 
+	                	command_listaccess(name);
+	            }
             }
             else
             {
@@ -202,7 +218,96 @@ public class twdbot extends SubspaceBot {
         m_botAction.sendSmartPrivateMessage("Cpt.Guano!", e.getMessage());
       }
     }
-
+	
+	public void commandAddMIDIP(String Name, String info) {
+	   try {
+	   	 	info = info.toLowerCase();
+	    	String pieces[] = info.split("  ", 3);
+	    	HashSet names = new HashSet();
+	    	HashSet IPs = new HashSet();
+	    	HashSet mIDs = new HashSet();
+	    	for(int k = 0;k < pieces.length;k++) {
+	    		if(pieces[k].startsWith("name")) 
+	    			names.add(pieces[k].split(":")[1]);
+	    		else if(pieces[k].startsWith("ip"))
+	    			IPs.add(pieces[k].split(":")[1]);
+	    		else if(pieces[k].startsWith("mid"))
+	    			mIDs.add(pieces[k].split(":")[1]);
+	    	}
+	    	Iterator namesIt = names.iterator();
+	    	while(namesIt.hasNext()) {
+	    		String name = (String)namesIt.next();
+		    	Iterator ipsIt = IPs.iterator();
+		    	Iterator midsIt = mIDs.iterator();
+	    		while(ipsIt.hasNext() || midsIt.hasNext()) {
+	    			String IP = null;
+	    			if(ipsIt.hasNext()) IP = (String)ipsIt.next();
+	    			String mID = null;
+	    			if(midsIt.hasNext()) mID = (String)midsIt.next();
+			    	if(IP == null && mID == null) {
+			    		m_botAction.sendSmartPrivateMessage(Name, "Please be sure to include name and IP or MID. Use !help for info.");
+			    	} else if(IP == null) {
+			    		m_botAction.SQLQuery("website", "INSERT INTO tblTWDPlayerMID (fnUserID, fcUserName, fnMID) VALUES "
+			    			+ "((SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' LIMIT 0,1), "
+			    			+ "'"+Tools.addSlashesToString(name)+"', "+Tools.addSlashesToString(mID)+")");
+			    		m_botAction.sendSmartPrivateMessage(Name, "Added mid: " + mID);
+			    	} else if(mID == null) {
+			    		m_botAction.SQLQuery("website", "INSERT INTO tblTWDPlayerMID (fnUserID, fcUserName, fcIP) VALUES "
+			    			+ "((SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' LIMIT 0,1), "
+			    			+ "'"+Tools.addSlashesToString(name)+"', '"+Tools.addSlashesToString(IP)+"')");
+			    		m_botAction.sendSmartPrivateMessage(Name, "Added IP: " + IP);
+			    	} else {
+				    	m_botAction.SQLQuery("website", "INSERT INTO tblTWDPlayerMID (fnUserID, fcUserName, fnMID, fcIP) VALUES "
+				    		+ "((SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' LIMIT 0,1), "
+				    		+ "'"+Tools.addSlashesToString(name)+"', "+Tools.addSlashesToString(mID)+", "
+				    		+ "'"+Tools.addSlashesToString(IP)+"')");
+				    	m_botAction.sendSmartPrivateMessage(Name, "Added, IP+MID: " + IP + "+" + mID);
+			    	}
+			    }
+		    }
+    	} catch(Exception e) {e.printStackTrace();}
+    }
+    
+    public void commandRemoveMID(String Name, String info) {
+    	try {
+    		String pieces[] = info.split(":", 2);
+    		if(pieces.length < 2) {
+    			m_botAction.sendPrivateMessage(Name, "Needs to be like !removemid <name>:<mid>");
+    		}
+    		String name = pieces[0];
+    		String mID = pieces[1];
+    		m_botAction.SQLQuery("website", "UPDATE tblTWDPlayerMID SET fnMID = 0 WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' AND fnMID = "+Tools.addSlashesToString(mID));
+    		m_botAction.sendPrivateMessage(Name, "MID removed.");
+    	} catch(Exception e) {e.printStackTrace();}
+    }
+    
+    public void commandRemoveIP(String Name, String info) {
+    	try {
+    		String pieces[] = info.split(":", 2);
+    		if(pieces.length < 2) {
+    			m_botAction.sendPrivateMessage(Name, "Needs to be like !removeip <name>:<IP>");
+    		}
+    		String name = pieces[0];
+    		String IP = pieces[1];
+    		m_botAction.SQLQuery("website", "UPDATE tblTWDPlayerMID SET fcIP = '0.0.0.0' WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' AND fcIP = '"+Tools.addSlashesToString(IP)+"'");
+    		m_botAction.sendPrivateMessage(Name, "IP removed.");
+    	} catch(Exception e) {e.printStackTrace();}
+    }
+    
+    public void commandListIPMID(String name, String player) {
+    	try {
+    		m_botAction.sendPrivateMessage(name, "Results for: " + player);
+    		ResultSet results = m_botAction.SQLQuery("website", "SELECT fcIP, fnMID FROM tblTWDPlayerMID WHERE fcUserName = '"+Tools.addSlashesToString(player)+"'");
+    		while(results.next()) {
+    			String message = "";
+    			if(!results.getString("fcIP").equals("0.0.0.0"))
+    				message += "IP: " + results.getString("fcIP") + "   ";
+    			if(results.getInt("fnMID") != 0)
+    				message += "mID: " + results.getInt("fnMID");
+    			m_botAction.sendPrivateMessage(name, message);
+    		}
+    	} catch(Exception e) {e.printStackTrace();}
+    }
 
     public void parseCommand(String name, String command, String[] parameters, boolean isStaff) {
       try
@@ -242,7 +347,7 @@ public class twdbot extends SubspaceBot {
         String accessList = m_botSettings.getString( "AccessList" );
 
         //Parse accesslist
-        String pieces[] = accessList.split( "," );
+        String pieces[] = accessList.split( ":" );
         for( int i = 0; i < pieces.length; i++ )
             m_access.put( pieces[i].toLowerCase(), pieces[i] );
 
@@ -253,6 +358,42 @@ public class twdbot extends SubspaceBot {
             };
         };
         m_botAction.scheduleTaskAtFixedRate(checkMessages, 5000, 10000);
+    }
+    
+    public void command_addaccess(String name, String player) {
+    	if(player != null && !player.trim().equals("")) {
+    		m_access.put(player.toLowerCase(), player);
+    		updateAccessString();
+    		m_botAction.sendSmartPrivateMessage(name, player + " granted access.");
+    	}
+    }
+    
+    public void command_removeaccess(String name, String player) {
+    	if(player != null && !player.trim().equals("")) {
+    		if(m_access.remove(player.toLowerCase()) != null) {
+    			updateAccessString();
+    			m_botAction.sendSmartPrivateMessage(name, player + "'s access revoked.");
+    		} else {
+    			m_botAction.sendSmartPrivateMessage(name, player + " is not an op.");
+    		}
+    	}
+    }
+    
+    public void command_listaccess(String name) {
+    	m_botAction.sendSmartPrivateMessage(name, m_botSettings.getString("AccessList"));
+    }
+    
+    public void updateAccessString() {
+    	Iterator it = m_access.values().iterator();
+    	String accessString = "";
+    	while(it.hasNext()) {
+    		accessString += (String)it.next();
+    		if(it.hasNext()) {
+    			accessString += ":";
+    		}    		
+    	}
+    	m_botSettings.put("AccessList", accessString);
+		m_botSettings.save();
     }
 
 
@@ -683,7 +824,7 @@ public class twdbot extends SubspaceBot {
         } else {
             player = message;
         }
-
+            
         DBPlayerData dbP = new DBPlayerData( m_botAction, "local", player );
 
         if( dbP.isRegistered() )
@@ -699,7 +840,7 @@ public class twdbot extends SubspaceBot {
         m_botAction.sendUnfilteredPrivateMessage( player, "*info" );
     }
 
-    public void commandIPCheck( String name, String ip )
+    public void commandIPCheck( String name, String ip, boolean staff )
     {
 
         try
@@ -710,8 +851,10 @@ public class twdbot extends SubspaceBot {
             while( result.next () )
             {
                 String out = result.getString( "fcUserName" ) + "  ";
-                out += "IP:" + result.getString( "fcIP" ) + "  ";
-                out += "MID:" + result.getString( "fnMID" );
+                if(staff) {
+                	out += "IP:" + result.getString( "fcIP" ) + "  ";
+	                out += "MID:" + result.getString( "fnMID" );
+	            }
                 m_botAction.sendSmartPrivateMessage( name, out );
             }
             result.close();
@@ -723,7 +866,7 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public void commandMIDCheck( String name, String mid )
+    public void commandMIDCheck( String name, String mid, boolean staff )
     {
 
         if( mid == null || mid == "" || !(Tools.isAllDigits(mid)) ) {
@@ -739,8 +882,10 @@ public class twdbot extends SubspaceBot {
             while( result.next () )
             {
                 String out = result.getString( "fcUserName" ) + "  ";
-                out += "IP:" + result.getString( "fcIP" ) + "  ";
-                out += "MID:" + result.getString( "fnMID" );
+                if(staff) {
+                	out += "IP:" + result.getString( "fcIP" ) + "  ";
+	                out += "MID:" + result.getString( "fnMID" );
+	            }
                 m_botAction.sendSmartPrivateMessage( name, out );
             }
             result.close();
@@ -767,8 +912,8 @@ public class twdbot extends SubspaceBot {
                 "--------- ALIAS CHECK COMMANDS -------------------------------------------------------",
                 "!info <name>            - displays the IP/MID that was used to register this name",
                 "!fullinfo <name>        - displays IP/MID, squad name, and date squad was reg'd",
-                "!ipcheck <IP>           - looks for matching records based on <IP>",
-                "!midcheck <MID>         - looks for matching records based on <MID>",
+                "!altip <IP>             - looks for matching records based on <IP>",
+                "!altmid <MID>           - looks for matching records based on <MID>",
                 "!ipidcheck <IP> <MID>   - looks for matching records based on <IP> and <MID>",
                 "         <IP> can be partial address - ie:  192.168.0.",
                 "--------- MISC COMMANDS --------------------------------------------------------------",
@@ -814,6 +959,8 @@ public class twdbot extends SubspaceBot {
                 if( option.equals("register") )
                 {
                     m_botAction.sendSmartPrivateMessage( name, "Please reset your old name(s) with !resetname and wait the 24h, and then register this name. In case of problems with reseting, feel free to ask for assistance of TW Staff with ?help." );
+                    commandMIDCheck(name, mid, false);
+                    commandIPCheck(name,ip,false);
                     return;
                 }
                 else
@@ -825,6 +972,7 @@ public class twdbot extends SubspaceBot {
                 m_botAction.sendSmartPrivateMessage( register, "Unable to register name." );
                 return;
             }
+            commandAddMIDIP(name, "name:"+name+"  ip:"+ip+"  mid:"+mid);
             m_botAction.sendSmartPrivateMessage( register, "Registration successful." );
         } else {
             if( m_requesters != null ) {
