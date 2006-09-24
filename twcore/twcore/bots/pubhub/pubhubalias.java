@@ -151,6 +151,8 @@ WHERE fcUserName = "Cpt.Guano!"
 	  
 	  if(resultSet == null)
 		  throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+	  if(!resultSet.next())
+		  return "() ";
 	  for(;;)
 	  {
 		  subQueryResultString.append(resultSet.getString(columnName));
