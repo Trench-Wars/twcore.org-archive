@@ -78,7 +78,7 @@ public class pubhubalias extends PubBotModule
     			"SELECT fnIP " +
     			"FROM `tblAlias`, `tblUser` " +
     			"WHERE `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-    			"AND `tblUser`.fnUserID = '" +  Tools.addSlashesToString(playerName) + "'" +
+    			"AND `tblUser`.fcUserName = '" +  Tools.addSlashesToString(playerName) + "'" +
     		") ";
 
     	if(compareMID)
@@ -88,7 +88,7 @@ public class pubhubalias extends PubBotModule
     			"SELECT fnMachineID " +
     			"FROM `tblAlias`, `tblUser` " +
     			"WHERE `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-    			"AND `tblUser`.fnUserID = '" +  Tools.addSlashesToString(playerName) + "'" +
+    			"AND `tblUser`.fcUserName = '" +  Tools.addSlashesToString(playerName) + "'" +
     		") ";
       if( m_sortByName )
           queryString += "ORDER BY fcUserName DESC, fdUpdated";
