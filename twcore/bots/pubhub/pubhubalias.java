@@ -73,7 +73,7 @@ public class pubhubalias extends PubBotModule
     	
     	if(compareIP)
     		queryString +=
-    		"AND A.fnIP IN " +
+    		"AND `tblAlias`.fnIP IN " +
     		"(" +
     			"SELECT fnIP " +
     			"FROM `tblAlias`, `tblUser` " +
@@ -83,7 +83,7 @@ public class pubhubalias extends PubBotModule
 
     	if(compareMID)
     		queryString +=
-    		"AND A.fnMachineID IN " +
+    		"AND `tblAlias`.fnMachineID IN " +
     		"(" +
     			"SELECT fnMachineID " +
     			"FROM `tblAlias`, `tblUser` " +
@@ -233,12 +233,11 @@ public class pubhubalias extends PubBotModule
 
       try
       {
-      	int ip32Bit = 0;
     	String queryString =
         	"SELECT * " + 
         	"FROM `tblAlias`, `tblUser` " +
         	"WHERE `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-        	"AND A.fnMachineID IN " + 
+        	"AND `tblAlias`.fnMachineID IN " + 
        		"(" +
         		"SELECT fnMachineID " +
         		"FROM `tblAlias` " +
@@ -246,7 +245,7 @@ public class pubhubalias extends PubBotModule
        		") ";
         	if(compareIP)
         		queryString +=
-               	"AND A.fnIP IN " + 
+               	"AND `tblAlias`.fnIP IN " + 
                	"(" +
                 	"SELECT fnIP " +
                 	"FROM `tblAlias` " +
