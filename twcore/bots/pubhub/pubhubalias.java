@@ -91,12 +91,10 @@ WHERE fcUserName = "Cpt.Guano!"
     	{
     		queryString.append("WHERE fnIP IN ");
     		queryString.append(getSubQueryResultString(
-     		"(" +
-    		    "SELECT DISTINCT(fnIP) " +
-     		    "FROM `tblAlias` " +
+     		    "SELECT DISTINCT(fnIP) " +
+    		    "FROM `tblAlias` " +
     		    "INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-    		    "WHERE fcUserName = '" +  Tools.addSlashesToString(playerName) + "'" +
-      		") ", "fnIP"));
+    		    "WHERE fcUserName = '" +  Tools.addSlashesToString(playerName) + "'", "fnIP"));
     	}
 
     	if(compareMID)
@@ -107,12 +105,10 @@ WHERE fcUserName = "Cpt.Guano!"
     			queryString.append("AND ");
     		queryString.append("fnMachineID IN ");
     		queryString.append(getSubQueryResultString(
-    		"(" +
-				"SELECT DISTINCT(fnMachineID) " +
-				"FROM `tblAlias` " +
-				"INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-				"WHERE fcUserName = '" +  Tools.addSlashesToString(playerName) + "'" +
-    		") ", "fnMachineID"));
+			"SELECT DISTINCT(fnMachineID) " +
+			"FROM `tblAlias` " +
+			"INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+			"WHERE fcUserName = '" +  Tools.addSlashesToString(playerName) + "'", "fnMachineID"));
     	}
       if( m_sortByName )
           queryString.append("ORDER BY fcUserName DESC, fdUpdated");
@@ -144,7 +140,7 @@ WHERE fcUserName = "Cpt.Guano!"
     }
     catch(SQLException e)
     {
-      throw new RuntimeException("ERROR: Cannot connect to database.");
+      throw new RuntimeException("ERROR: Cannot connect to database.  " + e.getMessage());
     }
   }
   
@@ -162,7 +158,7 @@ WHERE fcUserName = "Cpt.Guano!"
 			  break;
 		  subQueryResultString.append(", ");
 	  }
-	  subQueryResultString.append(")");
+	  subQueryResultString.append(") ");
 	  return subQueryResultString.toString();
   }
   
