@@ -80,42 +80,46 @@ WHERE fcUserName = "Cpt.Guano!"
 
     try
     {
-    	String queryString =
-    	"SELECT * " + 
-    	"FROM `tblAlias` " +
-    	"INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID ";
+    	StringBuffer queryString = new StringBuffer
+    	(
+    	  "SELECT * " + 
+    	  "FROM `tblAlias` " +
+    	  "INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID "
+    	);
     	
     	if(compareIP)
-    		queryString +=
-    		"WHERE fnIP IN " +
-    		"(" +
-    			"SELECT DISTINCT(fnIP) " +
-    			"FROM `tblAlias` " +
-    			"INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-    			"WHERE fcUserName = '" +  Tools.addSlashesToString(playerName) + "'" +
-    		") ";
+    	{
+    		queryString.append("WHERE fnIP IN ");
+    		queryString.append(getSubQueryResultString(
+     		"(" +
+    		    "SELECT DISTINCT(fnIP) " +
+     		    "FROM `tblAlias` " +
+    		    "INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+    		    "WHERE fcUserName = '" +  Tools.addSlashesToString(playerName) + "'" +
+      		") ", "fnIP"));
+    	}
 
     	if(compareMID)
     	{
     		if(!compareIP)
-    			queryString += "WHERE ";
+    			queryString.append("WHERE ");
     		else
-    			queryString += "AND ";
-    		queryString +=
-    		"fnMachineID IN " +
+    			queryString.append("AND ");
+    		queryString.append("fnMachineID IN ");
+    		queryString.append(getSubQueryResultString(
     		"(" +
 				"SELECT DISTINCT(fnMachineID) " +
 				"FROM `tblAlias` " +
 				"INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
 				"WHERE fcUserName = '" +  Tools.addSlashesToString(playerName) + "'" +
-    		") ";
+    		") ", "fnMachineID"));
     	}
       if( m_sortByName )
-          queryString += "ORDER BY fcUserName DESC, fdUpdated";
+          queryString.append("ORDER BY fcUserName DESC, fdUpdated");
       else
-          queryString += "ORDER BY fdUpdated ASC, fcUserName";
+          queryString.append("ORDER BY fdUpdated ASC, fcUserName");
 
-      ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
+      ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString.toString());
       if(resultSet == null)
         throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
       int results = 0;
@@ -142,6 +146,24 @@ WHERE fcUserName = "Cpt.Guano!"
     {
       throw new RuntimeException("ERROR: Cannot connect to database.");
     }
+  }
+  
+  private String getSubQueryResultString(String queryString, String columnName) throws SQLException
+  {
+	  ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
+	  StringBuffer subQueryResultString = new StringBuffer("(");
+	  
+	  if(resultSet == null)
+		  throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+	  for(;;)
+	  {
+		  subQueryResultString.append(resultSet.getString(columnName));
+		  if(!resultSet.next())
+			  break;
+		  subQueryResultString.append(", ");
+	  }
+	  subQueryResultString.append(")");
+	  return subQueryResultString.toString();
   }
   
   private int make32BitIP(String ipString)
