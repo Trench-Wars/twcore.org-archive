@@ -62,34 +62,54 @@ public class pubhubalias extends PubBotModule
 
     if(argTokens.hasMoreTokens())
       updateDays = Integer.parseInt(argTokens.nextToken());
+SELECT * 
+FROM `tblAlias` 
+INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID
+WHERE fnIP
+IN (
+
+SELECT DISTINCT (
+fnIP
+)
+FROM `tblAlias` 
+INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID
+WHERE fcUserName = "Cpt.Guano!"
+)
+      
     */
 
     try
     {
     	String queryString =
     	"SELECT * " + 
-    	"FROM `tblAlias`, `tblUser` " +
-    	"WHERE `tblAlias`.fnUserID = `tblUser`.fnUserID ";
+    	"FROM `tblAlias` " +
+    	"INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID ";
     	
     	if(compareIP)
     		queryString +=
-    		"AND `tblAlias`.fnIP IN " +
+    		"WHERE fnIP IN " +
     		"(" +
-    			"SELECT fnIP " +
-    			"FROM `tblAlias`, `tblUser` " +
-    			"WHERE `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-    			"AND `tblUser`.fcUserName = '" +  Tools.addSlashesToString(playerName) + "'" +
+    			"SELECT DISTINCT(fnIP) " +
+    			"FROM `tblAlias` " +
+    			"INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+    			"WHERE fcUserName = '" +  Tools.addSlashesToString(playerName) + "'" +
     		") ";
 
     	if(compareMID)
+    	{
+    		if(!compareIP)
+    			queryString += "WHERE ";
+    		else
+    			queryString += "AND ";
     		queryString +=
-    		"AND `tblAlias`.fnMachineID IN " +
+    		"fnMachineID IN " +
     		"(" +
-    			"SELECT fnMachineID " +
-    			"FROM `tblAlias`, `tblUser` " +
-    			"WHERE `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-    			"AND `tblUser`.fcUserName = '" +  Tools.addSlashesToString(playerName) + "'" +
+				"SELECT DISTINCT(fnMachineID) " +
+				"FROM `tblAlias` " +
+				"INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+				"WHERE fcUserName = '" +  Tools.addSlashesToString(playerName) + "'" +
     		") ";
+    	}
       if( m_sortByName )
           queryString += "ORDER BY fcUserName DESC, fdUpdated";
       else
