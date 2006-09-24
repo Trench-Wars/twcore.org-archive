@@ -66,20 +66,34 @@ public class pubhubalias extends PubBotModule
 
     try
     {
-      String queryString =
-      "SELECT * " +
-      "FROM tblAlias A1, tblAlias A2, tblUser U1, tblUser U2 " +
-      "WHERE U1.fcUserName = '" + Tools.addSlashesToString(playerName) + "' " +
-      "AND U1.fnUserID = A1.fnUserID ";
-      if(compareIP)
-          queryString += "AND A1.fcIP = A2.fcIP ";
-      if(compareMID)
-          queryString += "AND A1.fnMachineID = A2.fnMachineID ";
-      queryString += "AND A2.fnUserID = U2.fnUserID ";
+    	String queryString =
+    	"SELECT * " + 
+    	"FROM `tblAlias`, `tblUser` " +
+    	"WHERE `tblAlias`.fnUserID = `tblUser`.fnUserID ";
+    	
+    	if(compareIP)
+    		queryString +=
+    		"AND A.fnIP IN " +
+    		"(" +
+    			"SELECT fnIP " +
+    			"FROM `tblAlias`, `tblUser` " +
+    			"WHERE `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+    			"AND `tblUser`.fnUserID = '" +  Tools.addSlashesToString(playerName) + "'" +
+    		") ";
+
+    	if(compareMID)
+    		queryString +=
+    		"AND A.fnMachineID IN " +
+    		"(" +
+    			"SELECT fnMachineID " +
+    			"FROM `tblAlias`, `tblUser` " +
+    			"WHERE `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+    			"AND `tblUser`.fnUserID = '" +  Tools.addSlashesToString(playerName) + "'" +
+    		") ";
       if( m_sortByName )
-          queryString += "ORDER BY U2.fcUserName DESC, A2.fdUpdated";
+          queryString += "ORDER BY fcUserName DESC, fdUpdated";
       else
-          queryString += "ORDER BY A2.fdUpdated ASC, U2.fcUserName";
+          queryString += "ORDER BY fdUpdated ASC, fcUserName";
 
       ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
       if(resultSet == null)
@@ -90,10 +104,10 @@ public class pubhubalias extends PubBotModule
       resultSet.afterLast();
       while( resultSet.previous() )
       {
-        currName = resultSet.getString("U2.fcUserName");
+        currName = resultSet.getString("fcUserName");
         if(!usedNames.contains(currName)) {
           if( results < m_maxRecords )
-            m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
+            m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("fdUpdated") + " " + resultSet.getTime("fdUpdated"));
           results++;
           usedNames.add(currName);
         }
@@ -108,6 +122,28 @@ public class pubhubalias extends PubBotModule
     {
       throw new RuntimeException("ERROR: Cannot connect to database.");
     }
+  }
+  
+  private int make32BitIP(String ipString)
+  {
+	  StringTokenizer stringTokens = new StringTokenizer(ipString, ".");
+	  String ipPart;
+	  int ip32Bit = 0;
+
+	  try
+	  {
+		  while(stringTokens.hasMoreTokens())
+		  {
+			  ipPart = stringTokens.nextToken();
+			  ip32Bit = ip32Bit * Byte.MAX_VALUE + Integer.parseInt(ipPart);
+		  }
+	  }
+	  catch(NumberFormatException e)
+	  {
+	  	throw new IllegalArgumentException("Error: Malformed IP Address.");
+	  }
+	  
+	  return ip32Bit;
   }
 
   public void doAltIPCmd(String argString, boolean compareMID)
@@ -127,19 +163,29 @@ public class pubhubalias extends PubBotModule
 
     try
     {
-      String queryString =
-      "SELECT * " +
-      "FROM tblAlias A1, tblAlias A2, tblUser U1, tblUser U2 " +
-      "WHERE A1.fcIP = '" + playerIP + "' " +
-      "AND U1.fnUserID = A1.fnUserID " +
-      "AND A1.fcIP = A2.fcIP ";
-      if(compareMID)
-        queryString += "AND A1.fnMachineID = A2.fnMachineID ";
-      queryString += "AND A2.fnUserID = U2.fnUserID ";
-      if( m_sortByName )
-          queryString += "ORDER BY U2.fcUserName DESC, A2.fdUpdated";
-      else
-          queryString += "ORDER BY A2.fdUpdated ASC, U2.fcUserName";
+    	int ip32Bit = make32BitIP(playerIP);
+    	String queryString =
+        	"SELECT * " + 
+        	"FROM `tblAlias`, `tblUser` " +
+        	"WHERE `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+        	"AND A.fnIP IN " + 
+       		"(" +
+        		"SELECT fnIP " +
+        		"FROM `tblAlias` " +
+        		"WHERE fnIP = " + ip32Bit + " " +
+       		") ";
+        	if(compareMID)
+        		queryString +=
+               	"AND A.fnMachineID IN " + 
+               	"(" +
+                	"SELECT fnMachineID " +
+                	"FROM `tblAlias` " +
+                	"WHERE fnIP = " + ip32Bit +
+               	") ";
+          if( m_sortByName )
+              queryString += "ORDER BY fcUserName DESC, fdUpdated";
+          else
+              queryString += "ORDER BY fdUpdated ASC, fcUserName";
 
       ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
       if(resultSet == null)
@@ -150,10 +196,10 @@ public class pubhubalias extends PubBotModule
       resultSet.afterLast();
       while( resultSet.previous() )
       {
-        currName = resultSet.getString("U2.fcUserName");
+        currName = resultSet.getString("fcUserName");
         if(!usedNames.contains(currName)) {
           if( results < m_maxRecords )
-            m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
+            m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("fdUpdated") + " " + resultSet.getTime("fdUpdated"));
           results++;
           usedNames.add(currName);
         }
@@ -187,21 +233,30 @@ public class pubhubalias extends PubBotModule
 
       try
       {
-        String queryString =
-        "SELECT * " +
-        "FROM tblAlias A1, tblAlias A2, tblUser U1, tblUser U2 " +
-        "WHERE A1.fnMachineID = '" + playerMID + "' " +
-        "AND U1.fnUserID = A1.fnUserID ";
-        if(compareIP)
-          queryString += "AND A1.fcIP = A2.fcIP ";
-        queryString +=
-        "AND A1.fnMachineID = A2.fnMachineID " +
-        "AND A2.fnUserID = U2.fnUserID ";
-        if( m_sortByName )
-            queryString += "ORDER BY U2.fcUserName DESC, A2.fdUpdated";
-        else
-            queryString += "ORDER BY A2.fdUpdated ASC, U2.fcUserName";
-
+      	int ip32Bit = 0;
+    	String queryString =
+        	"SELECT * " + 
+        	"FROM `tblAlias`, `tblUser` " +
+        	"WHERE `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+        	"AND A.fnMachineID IN " + 
+       		"(" +
+        		"SELECT fnMachineID " +
+        		"FROM `tblAlias` " +
+        		"WHERE fnMachineID = " + playerMID + " " +
+       		") ";
+        	if(compareIP)
+        		queryString +=
+               	"AND A.fnIP IN " + 
+               	"(" +
+                	"SELECT fnIP " +
+                	"FROM `tblAlias` " +
+                	"WHERE fnMachineID = " + playerMID + " " +
+               	") ";
+          if( m_sortByName )
+              queryString += "ORDER BY fcUserName DESC, fdUpdated";
+          else
+              queryString += "ORDER BY fdUpdated ASC, fcUserName";
+    	  
         ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
         if(resultSet == null)
           throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
@@ -211,10 +266,10 @@ public class pubhubalias extends PubBotModule
         LinkedList<String> usedNames = new LinkedList<String>();
         while( resultSet.previous() )
         {
-          currName = resultSet.getString("U2.fcUserName");
+          currName = resultSet.getString("fcUserName");
           if(!usedNames.contains(currName)) {
             if( results < m_maxRecords )
-              m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("A2.fdUpdated") + " " + resultSet.getTime("A2.fdUpdated"));
+              m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Last Updated: " + resultSet.getDate("fdUpdated") + " " + resultSet.getTime("fdUpdated"));
             results++;
             usedNames.add(currName);
           }
@@ -255,7 +310,7 @@ public class pubhubalias extends PubBotModule
           int results = 0;
           while( resultSet.previous() ) {
               if( results < m_maxRecords )
-                  m_botAction.sendChatMessage( padString("MID: " + resultSet.getInt("A.fnMachineID"), 15) + "  IP: " + padString(resultSet.getString("A.fcIP"), 15) +
+                  m_botAction.sendChatMessage( padString("MID: " + resultSet.getInt("A.fnMachineID"), 15) + "  IP: " + padString(resultSet.getString("A.fcIPString"), 15) +
                                                          " Updated " + resultSet.getDate("A.fdUpdated") + " - " + resultSet.getInt("A.fnTimesUpdated") + " update(s)" );
               results++;
           }
@@ -313,7 +368,7 @@ public class pubhubalias extends PubBotModule
           LinkedList<String> IPs = new LinkedList<String>();
           LinkedList<Integer> MIDs = new LinkedList<Integer>();
           while( p1Set.previous() ) {
-              IPs.add( p1Set.getString("A.fcIP") );
+              IPs.add( p1Set.getString("A.fnIP") );
               MIDs.add( p1Set.getInt("A.fnMachineID") );
           }
 
@@ -327,13 +382,13 @@ public class pubhubalias extends PubBotModule
               display = "";
               if( MIDs.contains( p2Set.getInt("A.fnMachineID") ) )
                   matchMID = true;
-              if( IPs.contains( p2Set.getString("A.fcIP") ) )
+              if( IPs.contains( p2Set.getString("A.fnIP") ) )
                   matchIP = true;
 
               if( matchMID == true )
                   display += "MID match: " + p2Set.getInt("A.fnMachineID") + " ";
               if( matchIP == true )
-                  display += " IP match: " + p2Set.getString("A.fcIP");
+                  display += " IP match: " + p2Set.getString("A.fnIP");
 
               if( display != "" ) {
                   if( results < m_maxRecords ) {
@@ -395,7 +450,7 @@ public class pubhubalias extends PubBotModule
       "FROM tblAlias A1, tblAlias A2, tblUser U1, tblUser U2, tblTeam T, tblTeamUser TU " +
       "WHERE U1.fcUserName = '" + Tools.addSlashesToString(argString) + "' " +
       "AND A1.fnUserID = U1.fnUserID " +
-      "AND A1.fcIP = A2.fcIP " +
+      "AND A1.fnIP = A2.fnIP " +
       "AND A1.fnMachineID = A2.fnMachineID " +
       "AND A2.fnUserID = U2.fnUserID " +
       "AND TU.fnUserID = U2.fnUserID " +
@@ -745,11 +800,12 @@ public class pubhubalias extends PubBotModule
   {
     try
     {
+      int ip32Bit = make32BitIP(playerIP);
       ResultSet resultSet = m_botAction.SQLQuery(DATABASE,
       "SELECT * " +
       "FROM tblAlias " +
       "WHERE fnUserID = " + userID + " " +
-      "AND fcIP = '" + playerIP + "' " +
+      "AND fnIP = " + ip32Bit + " " +
       "AND fnMachineID = " + playerMacID);
       if(!resultSet.next())
         return -1;
@@ -767,10 +823,11 @@ public class pubhubalias extends PubBotModule
   {
     try
     {
+      int ip32Bit = make32BitIP(playerIP);
       ResultSet r = m_botAction.SQLQuery(DATABASE,
       "INSERT INTO tblAlias " +
-      "(fnUserID, fcIP, fnMachineID, fnTimesUpdated, fdRecorded, fdUpdated) " +
-      "VALUES (" + userID + ", '" + playerIP + "', " + playerMacID + ", 1, NOW(), NOW())");
+      "(fnUserID, fcIPString, fnIP, fnMachineID, fnTimesUpdated, fdRecorded, fdUpdated) " +
+      "VALUES (" + userID + ", " + playerIP + ", " + ip32Bit + ", " + playerMacID + ", 1, NOW(), NOW())");
       if (r != null) r.close();
     }
     catch(SQLException e)
