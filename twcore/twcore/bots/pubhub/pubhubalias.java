@@ -91,8 +91,7 @@ public class pubhubalias extends PubBotModule
 				"SELECT * " + 
 				"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
 				"WHERE fnIP IN " + ipResults + " " +
-				"AND fnMachineID IN " + midResults + " " +
-				"ORDER BY fcUserName";
+				"AND fnMachineID IN " + midResults + " " + getOrderBy();
 			
 			if(ipResults == null || midResults == null)
 				m_botAction.sendChatMessage("Player not found in database.");
@@ -111,17 +110,25 @@ public class pubhubalias extends PubBotModule
 		try
 		{
 			String[] headers = {NAME_FIELD, IP_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD};
+			
 			displayAltNickResults(
 					"SELECT * " + 
 					"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + 
 					"WHERE fnMachineId = " + playerMid + " " +
-					"ORDER BY fdUpdated DESC", headers, "fcUserName"
+					getOrderBy(), headers, "fcUserName"
 			);
 		}
 		catch(SQLException e)
 		{
 			throw new RuntimeException("SQL Error: " + e.getMessage(), e);
 		}
+	}
+	
+	private String getOrderBy()
+	{
+		if(m_sortByName)
+			return "ORDER BY fcUserName";
+		return "ORDER BY fdUpdated";
 	}
 	
 	private void doAltIpCmd(String playerIp)
@@ -135,7 +142,7 @@ public class pubhubalias extends PubBotModule
 					"SELECT * " + 
 					"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + 
 					"WHERE fnIp = " + ip32Bit + " " +
-					"ORDER BY fdUpdated DESC", headers, "fcUserName"
+					getOrderBy(), headers, "fcUserName"
 			);
 		}
 		catch(SQLException e)
@@ -152,7 +159,8 @@ public class pubhubalias extends PubBotModule
 			displayAltNickResults(
 					"SELECT * " +
 					"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + 
-					"WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "'", headers
+					"WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "' " +
+					getOrderBy(), headers
 			);
 		}
 		catch(SQLException e)
