@@ -48,7 +48,7 @@ public class pubhubalias extends PubBotModule
 	private Set watchedMIDs;
 	private ClearRecordTask clearRecordTask;
 	
-	private int m_maxRecords = 50;
+	private int m_maxRecords = 15;
 	private boolean m_sortByName = false;
 	
 	/**
@@ -608,10 +608,10 @@ public class pubhubalias extends PubBotModule
 				doAltIpCmd(message.substring(7).trim());
 			else if(command.startsWith("!altmid "))
 				doAltMacIdCmd(message.substring(8).trim());
-			else if(command.startsWith("!alttwl "))
+			/*else if(command.startsWith("!alttwl "))
 				doAltTWLCmd(message.substring(8).trim());
 			else if(command.startsWith("!info "))
-				doInfoCmd(message.substring(6).trim());
+				doInfoCmd(message.substring(6).trim());*/
 			else if(command.startsWith("!compare "))
 				doCompareCmd(message.substring(9).trim());
 			else if(command.startsWith("!maxrecords "))
