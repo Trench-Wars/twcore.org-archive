@@ -12,6 +12,10 @@ import twcore.core.stats.DBPlayerData;
 import twcore.core.util.IPCMessage;
 import twcore.core.util.Tools;
 
+/**
+ * THIS CODE SERIOUSLY NEEDS TO BE REFACTORED!! - Cpt
+ */
+
 public class pubhubalias extends PubBotModule
 {
 	public static final String DATABASE = "local";
@@ -608,10 +612,10 @@ public class pubhubalias extends PubBotModule
 				doAltIpCmd(message.substring(7).trim());
 			else if(command.startsWith("!altmid "))
 				doAltMacIdCmd(message.substring(8).trim());
-			/*else if(command.startsWith("!alttwl "))
-				doAltTWLCmd(message.substring(8).trim());
+//			else if(command.startsWith("!alttwl "))
+//				doAltTWLCmd(message.substring(8).trim());
 			else if(command.startsWith("!info "))
-				doInfoCmd(message.substring(6).trim());*/
+				doInfoCmd(message.substring(6).trim());
 			else if(command.startsWith("!compare "))
 				doCompareCmd(message.substring(9).trim());
 			else if(command.startsWith("!maxrecords "))
