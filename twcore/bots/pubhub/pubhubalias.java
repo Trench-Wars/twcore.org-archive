@@ -132,7 +132,7 @@ public class pubhubalias extends PubBotModule
 	{
 		if(m_sortByName)
 			return "ORDER BY fcUserName";
-		return "ORDER BY fdUpdated";
+		return "ORDER BY fdUpdated DESC";
 	}
 	
 	private void doAltIpCmd(String playerIp)
