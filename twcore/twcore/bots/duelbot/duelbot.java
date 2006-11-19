@@ -1284,18 +1284,21 @@ public class duelbot extends SubspaceBot {
     }
     
     public void updateInactives() {
+    	long start = System.currentTimeMillis();
     	try {
-    		ResultSet results = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuelPlayer WHERE fdLastPlayed < SUBDATE(NOW(), INTERVAL 14 DAY)");
+    		ResultSet results = m_botAction.SQLQuery(mySQLHost, "SELECT fnUserID FROM tblDuelPlayer WHERE fdLastPlayed < SUBDATE(NOW(), INTERVAL 14 DAY)");
 	    	while(results.next()) {
 	    		m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelLeague SET fnInactive = 1 WHERE fnUserID = "+results.getInt("fnUserID"));
 	    		for(int i = 1;i <= 3;i++) {
-	    			ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuelLeague WHERE fnLeagueTypeID = "+i+" AND fnUserID = "+results.getInt("fnUserID"));
+	    			ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT fnRating FROM tblDuelLeague WHERE fnLeagueTypeID = "+i+" AND fnUserID = "+results.getInt("fnUserID"));
 	    			if(result.next())
 		    			if(result.getInt("fnRating") > 1000)
 		    				m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelLeague SET fnRating = fnRating - 1 WHERE fnLeagueTypeID = "+i+" AND fnUserID = "+results.getInt("fnUserID"));
 	    		}
 	    	}
 	    } catch(Exception e) {}
+	    long end = System.currentTimeMillis();
+	    m_botAction.sendSmartPrivateMessage("ikrit", "Time: " + (end - start) + "ms");
     }
 
 
