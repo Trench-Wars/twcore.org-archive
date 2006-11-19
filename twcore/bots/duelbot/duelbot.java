@@ -1290,14 +1290,12 @@ public class duelbot extends SubspaceBot {
 	    		m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelLeague SET fnInactive = 1 WHERE fnUserID = "+results.getInt("fnUserID"));
 	    		for(int i = 1;i <= 3;i++) {
 	    			ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuelLeague WHERE fnLeagueTypeID = "+i+" AND fnUserID = "+results.getInt("fnUserID"));
-	    			result.next();
-	    			if(result.getInt("fnRating") > 1000)
-	    				m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelLeague SET fnRating = fnRating - 1 WHERE fnLeagueTypeID = "+i+" AND fnUserID = "+results.getInt("fnUserID"));
+	    			if(result.next())
+		    			if(result.getInt("fnRating") > 1000)
+		    				m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelLeague SET fnRating = fnRating - 1 WHERE fnLeagueTypeID = "+i+" AND fnUserID = "+results.getInt("fnUserID"));
 	    		}
-	    		System.out.println(results.getString("fcUserName"));
 	    	}
-	    } catch(Exception e) { e.printStackTrace();
-	    }
+	    } catch(Exception e) {}
     }
 
 
