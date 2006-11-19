@@ -124,6 +124,7 @@ public class duelbot extends SubspaceBot {
     	m_commandInterpreter.registerCommand( "!scoreboard", acceptedMessages, this, "do_toggleScoreboard" );
     	m_commandInterpreter.registerCommand( "!ops", acceptedMessages, this, "do_showLeagueOps" );
     	m_commandInterpreter.registerCommand( "!lag", acceptedMessages, this, "do_showLag" );
+    	m_commandInterpreter.registerCommand( "!rank", acceptedMessages, this, "do_showRank");
     	m_commandInterpreter.registerCommand( "!help", acceptedMessages, this, "do_showHelp" );
     	/*********LeagueOp Commands*********/
     	m_commandInterpreter.registerCommand( "!limit", acceptedMessages, this, "do_setMessageLimit" );
@@ -769,6 +770,29 @@ public class duelbot extends SubspaceBot {
     		}
     	} else m_botAction.sendSmartPrivateMessage( name, "That game ID does not exist."+gid );
     }
+    
+    public void do_showRank(String name, String message) {
+    	try {
+    		String rankCheck = name;
+	    	String rankString = "TWE-D: #&     TWE-J: #&     TWE-S: #&";
+	    	if(message != null && (message.equals("") || message.equals(" "))) rankCheck = message;
+	    	for(int k = 1;k <= 3;k++) {
+	    		ResultSet results = m_botAction.SQLQuery(mySQLHost, "SELECT COUNT( * ) AS rank, dl1.fnRating AS rating"
+					+ "FROM tblDuelLeague AS dl1, tblDuelLeague AS dl2 "
+					+ "WHERE dl1.fcUserName = '"+Tools.addSlashesToString(rankCheck)+"' "
+					+ "AND dl2.fnRating > dl1.fnRating "
+					+ "AND dl1.fnLeagueTypeID = dl2.fnLeagueTypeID "
+					+ "AND dl1.fnLeagueTypeID = " + k + " "
+					+ "GROUP BY dl2.fnLeagueTypeID");
+				if(results != null && results.next()) {
+					rankString = rankString.split("&", 2)[0] + (results.getInt("rank")+1) + rankString.split("&", 2)[1];
+				} else {
+					rankString = rankString.split("&", 2)[0] + "N/A" + rankString.split("&", 2)[1];
+				}
+	    	}
+	    	m_botAction.sendPrivateMessage(name, rankString);
+	    } catch(Exception e) {e.printStackTrace();}
+    }
 
     /***********************************************
     *                 Help Messages                *
@@ -796,6 +820,8 @@ public class duelbot extends SubspaceBot {
 			"| !scoreboard                  - turns the scoreboard on/off                 |",
 			"| !enable                      - enables your username                       |",
 			"| !disable                     - disables your username                      |",
+			"| !rank                        - displays your ranks for all leagues         |",
+			"| !rank <name>                 - displays <name>'s ranks for all leagues     |",
 			"------------------------------------------------------------------------------"
 
 			};
@@ -1006,7 +1032,7 @@ public class duelbot extends SubspaceBot {
     		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT fcUserName FROM tblDuelPlayer WHERE fnEnabled = 1 AND fcIP = '"+IP+"' AND fnMID = '"+MID+"' OR fcUserName = '"+Tools.addSlashesToString(name)+"'" );
     		if( !result.next() ) {
     			DBPlayerData player = new DBPlayerData( m_botAction, "local", name, true );
-    			m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"', 0, 0)" );
+    			m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"', 0, 0, NOW())" );
 
     			//Removed as of season 2
     			//sql_createLeagueData( player );
@@ -1027,7 +1053,7 @@ public class duelbot extends SubspaceBot {
     			} else {
     				if( allowedNames.containsKey( name ) && aliasChecker.equals("") ) {
     					DBPlayerData player = new DBPlayerData( m_botAction, "local", name, true );
-		    			m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"')" );
+		    			m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"', 0, 0, NOW())" );
 
 		    			//Removed as of season 2
 		    			//sql_createLeagueData( player );
@@ -1166,7 +1192,7 @@ public class duelbot extends SubspaceBot {
 
 		sql_verifyRecord( loser, loserInfo.getUserID(), matchType );
 		sql_verifyRecord( winner, winnerInfo.getUserID(), matchType );
-
+		
 		ResultSet player1 = sql_getUserInfo( loserInfo.getUserID(), matchType );
 		ResultSet player2 = sql_getUserInfo( winnerInfo.getUserID(), matchType );
 
@@ -1186,6 +1212,7 @@ public class duelbot extends SubspaceBot {
 			if( d.getPlayer( loser ).getKills() == 0 ) aced = true;
 
 			//Calculate new ratings.
+			
 			int loserRatingBefore = player1.getInt( "fnRating" );
 			int winnerRatingBefore = player2.getInt( "fnRating" );
 			int ratingDifference = loserRatingBefore - winnerRatingBefore;
@@ -1227,6 +1254,10 @@ public class duelbot extends SubspaceBot {
 				updatePlayoffBracket(winner, loser, d.getLeagueId(), gID);  // 191252 vs 1637
 																			// 292939 vs 3635
 			}
+			m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelLeague SET fnInactive = 0 WHERE fnUserID = "+winnerInfo.getUserID()+" AND fnLeagueTypeID = "+type);
+			m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelLeague SET fnInactive = 0 WHERE fnUserID = "+loserInfo.getUserID()+" AND fnLeagueTypeID = "+type);
+			m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelPlayer SET fdLastPlayed = NOW() WHERE fcUserName = '"+Tools.addSlashesToString(winner)+"' OR fcUserName = '"+Tools.addSlashesToString(loser)+"'");
+
 		} catch(Exception e) {}
 
 		clearScoreboard( d );
@@ -1244,6 +1275,23 @@ public class duelbot extends SubspaceBot {
 	    	sql_updateTournyMatchData(gID, 0, winID);
 	    	updatePlayoffBracket(winner, loser, type, gID);
 	    } catch(Exception e) {}
+    }
+    
+    public void updateInactives() {
+    	try {
+    		ResultSet results = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuelPlayer WHERE fdLastPlayed < SUBDATE(NOW(), INTERVAL 14 DAY)");
+	    	while(results.next()) {
+	    		m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelLeague SET fnInactive = 1 WHERE fnUserID = "+results.getInt("fnUserID"));
+	    		for(int i = 1;i <= 3;i++) {
+	    			ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuelLeague WHERE fnLeagueTypeID = "+i+" AND fnUserID = "+results.getInt("fnUserID"));
+	    			result.next();
+	    			if(result.getInt("fnRating") > 1000)
+	    				m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelLeague SET fnRating = fnRating - 1 WHERE fnLeagueTypeID = "+i+" AND fnUserID = "+results.getInt("fnUserID"));
+	    		}
+	    		System.out.println(results.getString("fcUserName"));
+	    	}
+	    } catch(Exception e) { e.printStackTrace();
+	    }
     }
 
 
@@ -1436,6 +1484,7 @@ public class duelbot extends SubspaceBot {
     					m_botAction.sendSmartPrivateMessage( pTwo, "You have a "+tg.getType()+" Tournament duel versus "+pOne+". If you are available please reply with '!yes "+gid+"'" );
     				}
     			} catch (Exception e) {System.out.println("ERROR"+e);}
+    			updateInactives();
     		}
     	};
     	m_botAction.scheduleTaskAtFixedRate( tournyTalk, getDelay(), 30 * 60 * 1000 );
@@ -1970,8 +2019,16 @@ class ScoreReport extends TimerTask {
     		String query = "UPDATE tblDuelPlayer SET fnEnabled = 0 WHERE fnUserID = "+player.getUserID();
     		m_botAction.SQLQuery( mySQLHost, query );
     		if(ratingL) {
-    			query = "UPDATE tblDuelLeague SET fnRating = fnRating - 300 WHERE fnSeason = "+s_season+" AND fnUserID = "+player.getUserID();
-    			m_botAction.SQLQuery( mySQLHost, query );
+    			for(int i = 1; i <= 3;i++) {
+    				DBPlayerData playerinfo = new DBPlayerData( m_botAction, "local", name, true );
+					ResultSet playerRS = sql_getUserInfo( playerinfo.getUserID(), i );
+					int rating = playerRS.getInt( "fnRating" );
+					if(rating > 1300) rating -= 300;
+					else if(rating > 1000) rating = 1000;
+					else rating = rating;
+	    			query = "UPDATE tblDuelLeague SET fnRating = "+rating+" WHERE fnLeagueTypeID = "+i+" AND fnSeason = "+s_season+" AND fnUserID = "+player.getUserID();
+	    			m_botAction.SQLQuery( mySQLHost, query );
+	    		}
     		}
     	} catch (Exception e) {
     		Tools.printStackTrace( "Error disabling user", e );
