@@ -140,6 +140,7 @@ public class duelbot extends SubspaceBot {
     	m_commandInterpreter.registerCommand( "!alias", acceptedMessages, this, "do_aliasCheck" );
     	m_commandInterpreter.registerCommand( "!disableuser", acceptedMessages, this, "do_opDisableName" );
     	m_commandInterpreter.registerCommand( "!die", acceptedMessages, this, "do_die" );
+    	m_commandInterpreter.registerCommand( "!zone", acceptedMessages, this, "do_twelZoner" );
 
 
     	m_commandInterpreter.registerDefaultCommand( Message.ARENA_MESSAGE, this, "do_checkArena" );
@@ -853,6 +854,11 @@ public class duelbot extends SubspaceBot {
     	if( !(leagueOps.containsKey( name.toLowerCase() ) || m_botAction.getOperatorList().isSmod(name)) ) return;
 		//Removes the bot from the server.
     	m_botAction.die();
+    }
+    
+    public void do_die( String name, String message ) {
+    	if( !(leagueOps.containsKey( name.toLowerCase() ) || m_botAction.getOperatorList().isSmod(name)) ) return;
+    	m_botAction.sendZoneMessage(message + " -TWEL Staff",2);
     }
 
     public void do_setMessageLimit(String name, String message) {
