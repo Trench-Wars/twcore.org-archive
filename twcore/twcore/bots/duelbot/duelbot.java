@@ -856,7 +856,7 @@ public class duelbot extends SubspaceBot {
     	m_botAction.die();
     }
     
-    public void do_die( String name, String message ) {
+    public void do_twelZoner( String name, String message ) {
     	if( !(leagueOps.containsKey( name.toLowerCase() ) || m_botAction.getOperatorList().isSmod(name)) ) return;
     	m_botAction.sendZoneMessage(message + " -TWEL Staff",2);
     }
