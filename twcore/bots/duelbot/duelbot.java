@@ -1500,7 +1500,66 @@ public class duelbot extends SubspaceBot {
     			updateInactives();
     		}
     	};
-    	m_botAction.scheduleTaskAtFixedRate( tournyTalk, getDelay(), 30 * 60 * 1000 );
+    	//m_botAction.scheduleTaskAtFixedRate( tournyTalk, getDelay(), 30 * 60 * 1000 );
+    	TimerTask tournyStuff = new TimerTask() {
+    		public void run() {
+    			tournyTalk();
+    			checkForfeits();
+    		}
+    	};
+    	m_botAction.scheduleTaskAtFixedRate( tournyStuff, 0, 5 * 60 * 1000 );
+    }
+    
+    public void tournyTalk() {
+    	try {
+    		String query = "SELECT fnGameId, fnLeagueTypeID, fnTournyUserOne, fnTournyUserTwo, fnTotalPlayers, fnGameNumber FROM tblDuelTournyGame AS TG, tblDuelTourny T WHERE T.fnTournyID = TG.fnTournyID AND TG.fnStatus = 0 AND TG.fnTournyUserOne > 0 AND TG.fnTournyUserTwo > 0 AND TG.fnGameRound > 0 ORDER BY TG.fdLastCall LIMIT 0,20";
+    		ResultSet result = m_botAction.SQLQuery("local", query);
+    		while(result.next()) {
+    			int gid = result.getInt( "fnGameId" );
+    			int idOne = result.getInt( "fnTournyUserOne" );
+    			int idTwo = result.getInt( "fnTournyUserTwo" );
+    			String pOne = sql_getName( result.getInt( "fnTournyUserOne" ) );
+    			String pTwo = sql_getName( result.getInt( "fnTournyUserTwo" ) );
+    			int leagueId = result.getInt( "fnLeagueTypeID" );
+    			int realGameId = result.getInt( "fnGameNumber" );
+    			int players = result.getInt( "fnTotalPlayers" );
+    			m_botAction.SQLQuery("local", "UPDATE tblDuelTournyGame SET fdLastCall = NOW() WHERE fnGameID = "+gid);
+    			TournyGame tg = new TournyGame( gid, pOne, pTwo, idOne, idTwo, leagueId, realGameId, players );
+    			tournyGames.put( new Integer( gid ), tg );
+    			//m_botAction.sendSmartPrivateMessage( "2dragons", "Game #"+gid+"   "+ pOne + "  vs   " + pTwo + "  League:"+leagueId);
+    			m_botAction.sendSmartPrivateMessage( pOne, "You have a "+tg.getType()+" Tournament duel versus "+pTwo+". If you are available please reply with '!yes "+gid+"'" );
+    			m_botAction.sendSmartPrivateMessage( pTwo, "You have a "+tg.getType()+" Tournament duel versus "+pOne+". If you are available please reply with '!yes "+gid+"'" );
+    		}
+    	} catch(Exception e) { e.printStackTrace(); }
+    }
+    
+    public void checkForfeits() {
+    	String query = "SELECT * FROM tblDuelTournyGame WHERE fnTournyUserOne > 0 AND fnTournyUserTwo > 0 AND SUBDATE(NOW(), INTERVAL 14 DAYS) > fdTimeStarted";
+    	ResultSet results = m_botAction.SQLQuery("local", query);
+    	while(results.next()) {
+    		int gid = results.getInt("fnGameID");
+    		int p1av = results.getInt("fnOneActivity");
+    		int p2av = results.getInt("fnTwoActivity");
+    		int id1 = results.getInt("fnTournyUserOne");
+    		int id2 = results.getInt("fnTournyUserTwo");
+    		String pOne = sql_getName(id1);
+    		String pTwo = sql_getName(id2);
+    		int leagueId = results.getInt("fnLeagueTypeID");
+    		int realGameId = results.getInt("fnGameNumber");
+    		if(p1av > p2av) {
+    			updatePlayoffBracket(pOne, pTwo, leagueId, gid);
+    		} else if(p2av > p1av) {
+    			updatePlayoffBracket(pTwo, pOne, leagueId, gid);
+    		} else {
+    			Random rand = new Random();
+    			int random = rand.nextInt(1);
+    			if(random == 0) {
+    				updatePlayoffBracket(pOne, pTwo, leagueId, gid);
+    			} else {
+    				updatePlayoffBracket(pTwo, pOne, leagueId, gid);
+    			}
+    		}
+    	}
     }
 
     public void handleEvent( PlayerDeath event ) {
@@ -2164,7 +2223,7 @@ class ScoreReport extends TimerTask {
 			results = m_botAction.SQLQuery( mySQLHost, "SELECT * FROM tblDuelTourny WHERE fnLeagueTypeID = "+league);
 			results.next();
 			int players = results.getInt("fnTotalPlayers");
-			if(gameNumber < players && gameNumber > 0) {
+			if(gameNumber < (players - 1)) {
 				int totalMatches = 0;
 				int matches = players;
 				for(int k = 1;k < round;k++) {
@@ -2172,71 +2231,10 @@ class ScoreReport extends TimerTask {
 					totalMatches += matches;
 				}
 				int winnerNext = (gameNumber - totalMatches + 1) / 2 + (totalMatches + (matches / 2));
-				if((gameNumber + 1) == players) winnerNext = players;
-				int totalMatches2 = 0;
-				int matches2 = players / 2;
-				for(int k = 1;k < round;k++) {
-					matches2 /= 2;
-					totalMatches2 += matches2;
-					if(k + 1 < round) totalMatches2 += matches2;
-				}
-				if(round != 1) {
-					totalMatches2 += matches2 / 2;
-				}
-				int offset = (gameNumber - totalMatches + 1) / 2;
-				int loserNext = offset + players + totalMatches2;
 				advancePlayer(userNum1, winner, winnerNext, league);
-				advancePlayer(userNum2, loser, loserNext, league);
-			} else if(gameNumber > players) {
-				int realGN = gameNumber - players;
-				int totalMatches = 0;
-				int matches = players / 2;
-				boolean divide = true;
-				while(totalMatches < realGN) {
-					if(divide) matches /= 2;
-					divide = !divide;
-					totalMatches += matches;
-				}
-				int matchesInRound = matches;
-				totalMatches -= matches;
-				int nextRound = (realGN - totalMatches + 1) / 2 + players + totalMatches + matchesInRound;
-				advancePlayer(userNum1, winner, nextRound, league);
 				m_botAction.sendPrivateMessage(loser, "Sorry, you have been eliminated.");
-			} else if(gameNumber == players) {
-				results = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuelTournyGame AS DTG, tblDuelTourny AS DT WHERE DTG.fnGameNumber = "+(players-1)+" AND DTG.fnTournyID = DT.fnTournyID AND DT.fnLeagueTypeID = "+league);
-				results.next();
-				int win;
-				if(results.getInt("fnStatus") == 1)
-					win = results.getInt("fnTournyUserOne");
-				else win = results.getInt("fnTournyUserTwo");
-				results = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuelPlayer WHERE fnUserID = "+win);
-				results.next();
-				ResultSet results3 = results = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuelTournyGame AS DTG, tblDuelTourny AS DT WHERE DTG.fnGameNumber = 0 AND DTG.fnTournyID = DT.fnTournyID AND DT.fnLeagueTypeID = "+league);
-				results3.next();
-				int gameZeroID = results3.getInt("fnGameID");
-				if(results.getString("fcUserName").equalsIgnoreCase(winner)) {
-					results = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuelPlayer WHERE fcUserName = '"+Tools.addSlashesToString(loser)+"'");
-					results.next();
-					int lose = results.getInt("fnTournyUserID");
-					m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelTournyGame SET fnTournyUserOne = "+win+", fnTournyUserTwo = "+lose+", fnStatus = 1 WHERE fnGameID = "+gameZeroID);
-					String leagueName = "";
-					switch(league) {
-						case 1:
-							leagueName = "Warbird";
-							break;
-						case 2:
-							leagueName = "Javelin";
-							break;
-						case 3:
-							leagueName = "Spider";
-							break;
-					};
-					m_botAction.sendZoneMessage(winner + " has just won the " + leagueName + " TWEL Championship. Congratulate him/her next time you see him/her. -TWEL Staff", 2);
-				} else {
-					advancePlayer(userNum1, winner, 0, league);
-					advancePlayer(userNum2, loser, 0, league);
-				}
-			} else if(gameNumber == 0) {
+				m_botAction.SQLQuery(mySQLHost, "INSERT INTO tblMessageSystem (fnID, fcName, fcMessage, fcSender, fnRead, fdTimeStamp) VALUES (0, '"+Tools.addSlashesToString(loser.toLowerCase())+"', 'You have been eliminated from the TWEL Playoffs. Thanks for playing.', 'TWEL Staff', 0, NOW())");
+			} else {
 				String leagueName = "";
 				switch(league) {
 					case 1:
@@ -2251,7 +2249,7 @@ class ScoreReport extends TimerTask {
 				};
 				m_botAction.sendZoneMessage(winner + " has just won the " + leagueName + " TWEL Championship. Congratulate him/her next time you see him/her. -TWEL Staff", 2);
 			}
-		} catch(Exception e) { m_botAction.sendSmartPrivateMessage("ikrit <ER>", e.getMessage()); }
+		} catch(Exception e) { e.printStackTrace(); }
 	}
 
 	public void advancePlayer(int userId, String name, int matchId, int leagueId) {
@@ -2262,7 +2260,7 @@ class ScoreReport extends TimerTask {
 				m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelTournyGame SET fnTournyUserOne = "+userId+" WHERE fnGameID = "+results.getInt("fnGameID"));
 				m_botAction.sendPrivateMessage(name, "Your opponent has not advanced yet. You will receive a message via MessageBot when he/she advances.");
 			} else {
-				m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelTournyGame SET fnTournyUserTwo = "+userId+" WHERE fnGameID = "+results.getInt("fnGameID"));
+				m_botAction.SQLQuery(mySQLHost, "UPDATE tblDuelTournyGame SET fnTournyUserTwo = "+userId+", fdLastCall = NOW(), fdTimeStarted = NOW() WHERE fnGameID = "+results.getInt("fnGameID"));
 				ResultSet results2 = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuelPlayer WHERE fnUserID = "+results.getInt("fnTournyUserOne"));
 				results2.next();
 				String otherPlayer = results2.getString("fcUserName");
@@ -2271,7 +2269,7 @@ class ScoreReport extends TimerTask {
 				m_botAction.SQLQuery(mySQLHost, "INSERT INTO tblMessageSystem (fnID, fcName, fcMessage, fcSender, fnRead, fdTimeStamp) VALUES (0, '"+Tools.addSlashesToString(name.toLowerCase())+"', 'Your match for the TWEL Playoffs is available. Your opponent is "+Tools.addSlashesToString(otherPlayer)+". PM DuelBot with !tchallenge "+results.getInt("fnGameID")+" to challenge him/her.', 'TWEL Staff', 0, NOW())");
 				m_botAction.SQLQuery(mySQLHost, "INSERT INTO tblMessageSystem (fnID, fcName, fcMessage, fcSender, fnRead, fdTimeStamp) VALUES (0, '"+Tools.addSlashesToString(otherPlayer.toLowerCase())+"', 'Your match for the TWEL Playoffs is available. Your opponent is "+Tools.addSlashesToString(name)+". PM DuelBot with !tchallenge "+results.getInt("fnGameID")+" to challenge him/her.', 'TWEL Staff', 0, NOW())");
 			}
-		} catch(Exception e) { m_botAction.sendSmartPrivateMessage("ikrit <ER>", e.getMessage()); }
+		} catch(Exception e) { e.printStackTrace(); }
 	}
 
 	class CornerWarp extends TimerTask {
