@@ -1534,32 +1534,34 @@ public class duelbot extends SubspaceBot {
     }
     
     public void checkForfeits() {
-    	String query = "SELECT * FROM tblDuelTournyGame WHERE fnTournyUserOne > 0 AND fnTournyUserTwo > 0 AND SUBDATE(NOW(), INTERVAL 14 DAYS) > fdTimeStarted";
-    	ResultSet results = m_botAction.SQLQuery("local", query);
-    	while(results.next()) {
-    		int gid = results.getInt("fnGameID");
-    		int p1av = results.getInt("fnOneActivity");
-    		int p2av = results.getInt("fnTwoActivity");
-    		int id1 = results.getInt("fnTournyUserOne");
-    		int id2 = results.getInt("fnTournyUserTwo");
-    		String pOne = sql_getName(id1);
-    		String pTwo = sql_getName(id2);
-    		int leagueId = results.getInt("fnLeagueTypeID");
-    		int realGameId = results.getInt("fnGameNumber");
-    		if(p1av > p2av) {
-    			updatePlayoffBracket(pOne, pTwo, leagueId, gid);
-    		} else if(p2av > p1av) {
-    			updatePlayoffBracket(pTwo, pOne, leagueId, gid);
-    		} else {
-    			Random rand = new Random();
-    			int random = rand.nextInt(1);
-    			if(random == 0) {
-    				updatePlayoffBracket(pOne, pTwo, leagueId, gid);
-    			} else {
-    				updatePlayoffBracket(pTwo, pOne, leagueId, gid);
-    			}
-    		}
-    	}
+    	try {
+    		String query = "SELECT * FROM tblDuelTournyGame WHERE fnTournyUserOne > 0 AND fnTournyUserTwo > 0 AND SUBDATE(NOW(), INTERVAL 14 DAYS) > fdTimeStarted";
+	    	ResultSet results = m_botAction.SQLQuery("local", query);
+	    	while(results.next()) {
+	    		int gid = results.getInt("fnGameID");
+	    		int p1av = results.getInt("fnOneActivity");
+	    		int p2av = results.getInt("fnTwoActivity");
+	    		int id1 = results.getInt("fnTournyUserOne");
+	    		int id2 = results.getInt("fnTournyUserTwo");
+	    		String pOne = sql_getName(id1);
+	    		String pTwo = sql_getName(id2);
+	    		int leagueId = results.getInt("fnLeagueTypeID");
+	    		int realGameId = results.getInt("fnGameNumber");
+	    		if(p1av > p2av) {
+	    			updatePlayoffBracket(pOne, pTwo, leagueId, gid);
+	    		} else if(p2av > p1av) {
+	    			updatePlayoffBracket(pTwo, pOne, leagueId, gid);
+	    		} else {
+	    			Random rand = new Random();
+	    			int random = rand.nextInt(1);
+	    			if(random == 0) {
+	    				updatePlayoffBracket(pOne, pTwo, leagueId, gid);
+	    			} else {
+	    				updatePlayoffBracket(pTwo, pOne, leagueId, gid);
+	    			}
+	    		}
+	    	}
+	    } catch(Exception e) { e.printStackTrace(); }
     }
 
     public void handleEvent( PlayerDeath event ) {
