@@ -20,7 +20,7 @@ public class pubhubalias extends PubBotModule
 {
 	public static final String DATABASE = "local";
 	public static final int REMOVE_DELAY = 3 * 60 * 60 * 1000;
-	public static final int CLEAR_DELAY = 30 * 60 * 1000;
+	public static final int CLEAR_DELAY = 3 * 60 * 1000;
 	public static final int DEFAULT_DAYS = 180;
 	
 	private static final String NAME_FIELD = "fcUserName";
