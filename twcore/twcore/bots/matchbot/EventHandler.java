@@ -1,7 +1,6 @@
 package twcore.bots.matchbot;
 
 import java.util.*;
-import twcore.core.*;
 import twcore.core.events.SubspaceEvent;
 
 /**
