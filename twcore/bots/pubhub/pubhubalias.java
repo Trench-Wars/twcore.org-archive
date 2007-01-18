@@ -815,10 +815,11 @@ public class pubhubalias extends PubBotModule
 		try
 		{
 			long ip32Bit = make32BitIp(playerIP);
-			ResultSet r = m_botAction.SQLQuery(DATABASE,
-					"INSERT INTO tblAlias " +
+			String query = "INSERT INTO tblAlias " +
 					"(fnUserID, fcIPString, fnIP, fnMachineID, fnTimesUpdated, fdRecorded, fdUpdated) " +
-					"VALUES (" + userID + ", " + playerIP + ", " + ip32Bit + ", " + playerMacID + ", 1, NOW(), NOW())");
+					"VALUES (" + userID + ", '" + playerIP + "', " + ip32Bit + ", " + playerMacID + ", 1, NOW(), NOW())";
+			ResultSet r = m_botAction.SQLQuery(DATABASE, query);
+			
 			if (r != null) r.close();
 		}
 		catch(SQLException e)
