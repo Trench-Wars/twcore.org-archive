@@ -13,7 +13,7 @@ import twcore.core.util.IPCMessage;
 
 public class pubbotspy extends PubBotModule
 {
-  public static final String keywords = "j3w jew chink nig nigger n1g n1gg3r nigg3r paki gook nigg@ n1gg@ nigga";
+  public static final String keywords = "j3w jew chink nig nigger n1g n1gg3r nigg3r paki gook nigg@ n1gg@ nigga nignog nign0g n1gnog n1gn0g nikka nika n1kka n1ka";
   private HashSet watchList;
   private HashSet ignoreList;
   private String currentArena;
