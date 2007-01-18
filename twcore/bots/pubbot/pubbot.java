@@ -166,7 +166,6 @@ public class pubbot extends SubspaceBot
     moduleHandler.loadModule(argString);
     module = (PubBotModule) moduleHandler.getModule(argString);
     module.initializeModule(IPCCHANNEL, pubHubBot);
-    m_botAction.sendChatMessage(argString + " has been loaded in " + currentArena);
   }
 
   /**
