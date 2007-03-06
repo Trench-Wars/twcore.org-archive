@@ -115,7 +115,9 @@ public class pubbotalias extends PubBotModule
   public void handleEvent(PlayerEntered event)
   {
     String playerName = event.getPlayerName();
-    m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("entered " + playerName, getPubHubName()));
+    if(playerName.startsWith("^") == false) {
+    	m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("entered " + playerName, getPubHubName()));
+    }
   }
 
   public void cancel()
