@@ -118,6 +118,8 @@ public class staffbot extends SubspaceBot {
                 warnedPlayer = temp.substring( 0, temp.indexOf( ":" ) ).toLowerCase();
                 temp = message.substring( message.indexOf( "Ext: " ) + 5 );
                 staffMember = temp.substring( 0, temp.indexOf( " (" ) ).toLowerCase().trim();
+                if( !m_opList.isZH( staffMember ) )
+                    return;
 
                 String[] paramNames = { "name", "warning", "staffmember", "timeofwarning" };
                 String date = new java.sql.Date( System.currentTimeMillis() ).toString();
