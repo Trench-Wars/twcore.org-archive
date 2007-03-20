@@ -444,6 +444,17 @@ public class MatchGame
 		String extra = getRoundStateSummary();
 		if (extra != null)
 			m_logger.sendPrivateMessage(name, "- " + extra);
+		
+		if( m_curRound != null ) {
+			switch( m_curRound.m_blueoutState ) {
+			case 0:
+				m_logger.sendPrivateMessage(name, "Blueout is not enabled.");
+			case 1:
+				m_logger.sendPrivateMessage(name, "Blueout is enabled.");
+			default:
+				m_logger.sendPrivateMessage(name, "Blueout status is unknown.");
+			}			
+		}
 	}
 
 	public String getRoundStateSummary()
@@ -458,17 +469,17 @@ public class MatchGame
 			switch (m_curRound.m_fnRoundState)
 			{
 				case 1 :
-					append = append + "arranging lineups";
+					append = append + "arranging lineups.";
 					break;
 				case 2 :
-					append = append + "starting the game";
+					append = append + "starting the game.";
 					break;
 				case 3 :
 					long minutesPlayed = (System.currentTimeMillis() - m_curRound.m_timeStartedms) / 60000;
-					append = append + "playing, " + minutesPlayed + " minutes played";
+					append = append + "playing; " + minutesPlayed + " minutes played.";
 					break;
 				case 4 :
-					append = append + "ending the game";
+					append = append + "ending the game.";
 					break;
 			};
 		};
