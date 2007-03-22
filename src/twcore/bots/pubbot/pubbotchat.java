@@ -13,7 +13,7 @@ public class pubbotchat extends PubBotModule {
 	private String botName;
 	
 	private Stack<String> chat = new Stack<String>();
-	private int maxSize = 20;
+	private int maxSize = 50; //max size of the Stack which holds the messages for the !last command
 
 	/**
 	 * Initialize this module
