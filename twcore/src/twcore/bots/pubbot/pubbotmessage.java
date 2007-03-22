@@ -70,6 +70,10 @@ public class pubbotmessage extends PubBotModule
 
   public void handleEvent(InterProcessEvent event)
   {
+	  // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
+	  if(event.getObject() instanceof IPCMessage == false) { 
+		  return;
+	  }
     IPCMessage ipcMessage = (IPCMessage) event.getObject();
     String message = ipcMessage.getMessage();
     String recipient = ipcMessage.getRecipient();
