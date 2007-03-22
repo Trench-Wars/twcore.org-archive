@@ -12,6 +12,7 @@ public class pubbot extends SubspaceBot
 {
   public static final String IPCCHANNEL = "pubBots";
   public static final String IPCCHANNEL2 = "messages";
+  public static final String IPCCHAT = "pubbotChat";
   public static final int UPDATE_CHECK_DELAY = 500;
   public static final int LOGOFF_TIMEOUT_DELAY = 5 * 1000;
   public static final int LOG_OFF_DELAY = 200;
@@ -247,6 +248,11 @@ public class pubbot extends SubspaceBot
 
   public void handleEvent(InterProcessEvent event)
   {
+	  // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
+	  if(event.getObject() instanceof IPCMessage == false) { 
+		  return;
+	  }
+	  
     IPCMessage ipcMessage = (IPCMessage) event.getObject();
     String message = ipcMessage.getMessage();
     String recipient = ipcMessage.getRecipient();

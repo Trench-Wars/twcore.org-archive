@@ -750,6 +750,11 @@ public class pubhubalias extends PubBotModule
 	 */
 	public void handleEvent(InterProcessEvent event)
 	{
+		// If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
+		if(event.getObject() instanceof IPCMessage == false) { 
+			return;
+		}
+		
 		IPCMessage ipcMessage = (IPCMessage) event.getObject();
 		String botName = m_botAction.getBotName();
 		String message = ipcMessage.getMessage();

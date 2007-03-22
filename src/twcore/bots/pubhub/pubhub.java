@@ -1,17 +1,54 @@
 package twcore.bots.pubhub;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.TimerTask;
+import java.util.Vector;
 
 import twcore.bots.ModuleHandler;
 import twcore.bots.PubBotModule;
-import twcore.core.*;
-import twcore.core.events.*;
+import twcore.bots.pubbot.pubbotchatIPC;
+import twcore.core.BotAction;
+import twcore.core.BotSettings;
+import twcore.core.EventRequester;
+import twcore.core.OperatorList;
+import twcore.core.SubspaceBot;
+import twcore.core.events.ArenaJoined;
+import twcore.core.events.ArenaList;
+import twcore.core.events.BallPosition;
+import twcore.core.events.FileArrived;
+import twcore.core.events.FlagClaimed;
+import twcore.core.events.FlagDropped;
+import twcore.core.events.FlagPosition;
+import twcore.core.events.FlagReward;
+import twcore.core.events.FlagVictory;
+import twcore.core.events.FrequencyChange;
+import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.InterProcessEvent;
+import twcore.core.events.LoggedOn;
+import twcore.core.events.Message;
+import twcore.core.events.PlayerDeath;
+import twcore.core.events.PlayerEntered;
+import twcore.core.events.PlayerLeft;
+import twcore.core.events.PlayerPosition;
+import twcore.core.events.Prize;
+import twcore.core.events.ScoreReset;
+import twcore.core.events.ScoreUpdate;
+import twcore.core.events.SoccerGoal;
+import twcore.core.events.WatchDamage;
+import twcore.core.events.WeaponFired;
 import twcore.core.util.IPCMessage;
 
 public class pubhub extends SubspaceBot
 {
   public static final char CHAT_DELIM = ':';
   public static final String IPCCHANNEL = "pubBots";
+  public static final String IPCCHAT = "pubbotChat";
   public static final int UPDATE_CHECK_DELAY = 500;
   public static final int CHECK_DELAY = 5 * 60 * 1000;
   public static final int LOG_OFF_DELAY = 200;
@@ -71,6 +108,7 @@ public class pubhub extends SubspaceBot
       opList = m_botAction.getOperatorList();
       botName = m_botAction.getBotName();
       m_botAction.ipcSubscribe(IPCCHANNEL);
+      m_botAction.ipcSubscribe(IPCCHAT);
       m_botAction.sendUnfilteredPublicMessage("?chat=" + pubBotChat);
       m_botAction.scheduleTask(new CheckPubsTask(), SPAWN_DELAY);
       moduleHandler.handleEvent(event);
@@ -433,6 +471,15 @@ public class pubhub extends SubspaceBot
       m_botAction.sendChatMessage(e.getMessage());
     }
   }
+  
+  /**
+   * This method handles the specific pubbotchatIPC and should be overridden to be used
+   * 
+   * @param ipc
+   */
+  public void handleChatIPC(pubbotchatIPC ipc) {
+	  
+  }
 
   /**
    * This method handles an InterProcessEvent.
@@ -442,15 +489,22 @@ public class pubhub extends SubspaceBot
 
   public void handleEvent(InterProcessEvent event)
   {
-    IPCMessage ipcMessage = (IPCMessage) event.getObject();
-    String message = ipcMessage.getMessage();
-    String recipient = ipcMessage.getRecipient();
-    String sender = ipcMessage.getSender();
-    String botSender = event.getSenderName();
-
-    if(recipient == null || recipient.equals(botName))
-      handleIPC(botSender, recipient, sender, message);
-    moduleHandler.handleEvent(event);
+	  // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
+	  if(event.getObject() instanceof IPCMessage == false) { 
+		  moduleHandler.handleEvent(event); 
+		  return;
+	  }
+	  
+	  IPCMessage ipcMessage = (IPCMessage) event.getObject();
+	  String message = ipcMessage.getMessage();
+	  String recipient = ipcMessage.getRecipient();
+	  String sender = ipcMessage.getSender();
+	  String botSender = event.getSenderName();
+	
+	  if(recipient == null || recipient.equals(botName))
+		  handleIPC(botSender, recipient, sender, message);
+	  
+	  moduleHandler.handleEvent(event);    
   }
 
   /**
