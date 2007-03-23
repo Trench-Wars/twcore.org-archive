@@ -29,7 +29,6 @@ public class pubbotchat extends PubBotModule {
 	 */
 	public void requestEvents(EventRequester eventRequester) {
 		eventRequester.request(EventRequester.MESSAGE);
-		eventRequester.request(EventRequester.ARENA_LIST);
 	}
 
 	/**
@@ -105,10 +104,6 @@ public class pubbotchat extends PubBotModule {
 			chat.insertElementAt(getMessageTypeString(event.getMessageType()) + "  " + (sender==null ? "" : sender+"> ") + event.getMessage(),0);
 			chat.setSize(maxSize);
 		}
-	}
-
-	public void handleEvent(ArenaList event) {
-		currentArena = m_botAction.getArenaName();
 	}
 
 	@Override
