@@ -69,6 +69,12 @@ public class pubbotchat extends PubBotModule {
 			return;
 		}
 		
+		// Ignore the "report" command
+		if( event.getMessageType() == Message.PRIVATE_MESSAGE && 
+			event.getMessage().trim().equalsIgnoreCase("report")) {
+			return;
+		}
+		
 		// Ignore arena messages that the bot shouldn't record
 		if( event.getMessageType() == Message.ARENA_MESSAGE &&
 			(
