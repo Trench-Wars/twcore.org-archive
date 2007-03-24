@@ -29,6 +29,7 @@ public class pubbotchat extends PubBotModule {
 	 */
 	public void requestEvents(EventRequester eventRequester) {
 		eventRequester.request(EventRequester.MESSAGE);
+		eventRequester.request(EventRequester.ARENA_LIST);
 	}
 
 	/**
@@ -110,6 +111,17 @@ public class pubbotchat extends PubBotModule {
 			chat.insertElementAt(getMessageTypeString(event.getMessageType()) + "  " + (sender==null ? "" : sender+"> ") + event.getMessage(),0);
 			chat.setSize(maxSize);
 		}
+	}
+
+	/**
+	 * This method handles an ArenaList event. 
+	 * When ?arena has been done by the pubbot, this module updates its location by getting it from botAction.
+	 * The Pubhub has a timertask to ask each pubbot where they are, each pubbot does ?arena and returns its position.
+	 * 
+	 * @param event is the ArenaList event.
+	 */
+	public void handleEvent(ArenaList event) {
+		currentArena = m_botAction.getArenaName();
 	}
 
 	@Override
