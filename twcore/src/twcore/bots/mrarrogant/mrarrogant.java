@@ -9,12 +9,18 @@ import java.util.*;
 import java.text.*;
 import java.io.*;
 
+/**
+ * Mr. Arrogant -- everyone's favorite Subspace Gestapo.
+ * 
+ * Kicks idle players; provides a way to check logs for certain commands; can spy
+ * on chat going on in a room; can act as a talking puppet.
+ */
 public class mrarrogant extends SubspaceBot
 {
   public static final int MIN_ROAM_TIME = 1 * 60 * 1000;
   public static final int MAX_ROAM_TIME = 3 * 60 * 1000;
   public static final int IDLE_KICK_TIME = 15 * 60;
-  public static final int LOWERSTAFF_IDLE_KICK_TIME = 60 * 60;
+  public static final int LOWERSTAFF_IDLE_KICK_TIME = 180 * 60;
   public static final int CHECK_LOG_TIME = 30 * 1000;
   public static final int COMMAND_CLEAR_TIME = 3 * 60 * 60 * 1000;
   public static final int DIE_DELAY = 500;
