@@ -73,8 +73,12 @@ public class DBPlayerData {
                 m_fcTeamName = qryPlayerSquadInfo.getString("fcTeamName");
                 m_fnTeamUserID = qryPlayerSquadInfo.getInt("fnTeamUserID");
                 m_fdTeamSignedUp = qryPlayerSquadInfo.getDate("fdJoined");
+                m_connection.SQLClose( qryPlayerSquadInfo );
                 return true;
-            } else return false;
+            } else {
+                m_connection.SQLClose( qryPlayerSquadInfo );
+                return false;
+            }
         } catch (Exception e) {
             System.out.println("Database error! - " + e.getMessage());
             return false;
@@ -92,10 +96,13 @@ public class DBPlayerData {
                 m_fcUserName = qryPlayerInfo.getString("fcUserName");
                 m_fnUserID = qryPlayerInfo.getInt("fnUserID");
                 m_fdSignedUp = qryPlayerInfo.getDate("fdSignedUp");
-
+                m_connection.SQLClose( qryPlayerInfo );
                 getPlayerSquadData();
                 return true;
-            } else return false;
+            } else {
+                m_connection.SQLClose( qryPlayerInfo );
+                return false;
+            }
         } catch (Exception e) {
             System.out.println("Database error! - " + e.getMessage());
             return false;
@@ -105,7 +112,7 @@ public class DBPlayerData {
 
     public boolean createPlayerData() {
         try {
-            m_connection.SQLQuery(m_connName, "INSERT INTO tblUser (fcUserName, fdSignedUp) VALUES ('"+Tools.addSlashesToString(m_fcUserName)+"', NOW())");
+            m_connection.SQLQueryAndClose(m_connName, "INSERT INTO tblUser (fcUserName, fdSignedUp) VALUES ('"+Tools.addSlashesToString(m_fcUserName)+"', NOW())");
             m_lastQuery = System.currentTimeMillis();
             if (getPlayerData()) return true; else return false;
         } catch (Exception e) {
@@ -119,7 +126,7 @@ public class DBPlayerData {
     public boolean createPlayerAccountData(String fcPassword) {
         if (m_fnUserID != 0) {
             try {
-                m_connection.SQLQuery(m_connName, "INSERT INTO tblUserAccount(fnUserID, fcPassword) VALUES ("+m_fnUserID+",PASSWORD('"+Tools.addSlashesToString(fcPassword)+"'))");
+                m_connection.SQLQueryAndClose(m_connName, "INSERT INTO tblUserAccount(fnUserID, fcPassword) VALUES ("+m_fnUserID+",PASSWORD('"+Tools.addSlashesToString(fcPassword)+"'))");
                 m_lastQuery = System.currentTimeMillis();
                 m_fcPassword = fcPassword;
                 return true;
@@ -134,7 +141,7 @@ public class DBPlayerData {
     public boolean updatePlayerAccountData(String fcPassword) {
         if (m_fnUserID != 0) {
             try {
-                m_connection.SQLQuery(m_connName, "UPDATE tblUserAccount SET fcPassword = PASSWORD('"+Tools.addSlashesToString(fcPassword)+"') WHERE fnUserID = "+m_fnUserID);
+                m_connection.SQLQueryAndClose(m_connName, "UPDATE tblUserAccount SET fcPassword = PASSWORD('"+Tools.addSlashesToString(fcPassword)+"') WHERE fnUserID = "+m_fnUserID);
                 m_lastQuery = System.currentTimeMillis();
                 m_fcPassword = fcPassword;
                 return true;
@@ -152,8 +159,10 @@ public class DBPlayerData {
                 m_lastQuery = System.currentTimeMillis();
                 if (qryPlayerAccountInfo.next()) {
                     m_fcPassword = qryPlayerAccountInfo.getString("fcPassword");
+                    m_connection.SQLClose(qryPlayerAccountInfo);
                     return true;
                 } else {
+                    m_connection.SQLClose(qryPlayerAccountInfo);
                     return false;
                 }
             } catch (Exception e) {
@@ -167,10 +176,13 @@ public class DBPlayerData {
     public boolean hasRank(int rankNr) {
         if (m_fnUserID != 0) {
             try {
+                boolean hasRank = false;
                 ResultSet qryHasPlayerRank = m_connection.SQLQuery(m_connName, "SELECT fnUserID FROM tblUserRank WHERE fnUserID = "+m_fnUserID+" AND fnRankID =" + rankNr);
                 m_lastQuery = System.currentTimeMillis();
-                if (qryHasPlayerRank.next()) return true;
-                else return false;
+                if (qryHasPlayerRank.next())
+                    hasRank = true;
+                m_connection.SQLClose(qryHasPlayerRank);
+                return hasRank;
             } catch (Exception e) {
             };
         };

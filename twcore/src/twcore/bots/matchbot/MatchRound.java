@@ -217,6 +217,7 @@ public class MatchRound
                 m_team1.storePlayerResults();
                 m_team2.storePlayerResults();
             };
+            m_botAction.SQLClose( s );
         }
         catch (Exception e)
         {

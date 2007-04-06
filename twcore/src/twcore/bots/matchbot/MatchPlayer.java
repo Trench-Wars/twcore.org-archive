@@ -189,6 +189,7 @@ public class MatchPlayer implements Comparable
 				{
 					fnMatchRoundUserID = qryMatchRoundUserID.getInt("fnMatchRoundUserID");
 				}
+                                m_botAction.SQLClose( qryMatchRoundUserID );
 			}
 			catch (Exception e)
 			{

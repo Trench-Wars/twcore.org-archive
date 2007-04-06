@@ -2,6 +2,9 @@ package twcore.bots.duelbot;
 
 import java.sql.ResultSet;
 
+/**
+ * Holds data of player in a duel. 
+ */
 public class DuelPlayer {
 
 	private boolean m_winBy2 	= false;
@@ -10,15 +13,17 @@ public class DuelPlayer {
 	private int     m_toWin 	= 10;
 	private int     m_lag       = 0;
 
-	public DuelPlayer( ResultSet _result ) {
-		try {
-			if( _result.getInt( "fnWinBy2" ) == 1 ) m_winBy2 = true;
-			if( _result.getInt( "fnNoCount" ) == 1 ) m_noCount = true;
-			if( _result.getInt( "fnDeathWarp" ) == 1 ) m_deathWarp = true;
-			m_lag = _result.getInt("fnLag");
-			m_toWin = _result.getInt( "fnGameKills" );
-		} catch (Exception e) {}
-	}
+        /**
+         * Constructor should not take a ResultSet it can not close.  Reimplemented
+         * as straight variables.
+         */
+        public DuelPlayer( boolean winby2, boolean nocount, boolean deathwarp, int lag, int killstowin ) {
+            m_winBy2 = winby2;
+            m_noCount = nocount;
+            m_deathWarp = deathwarp;
+            m_lag = lag;
+            m_toWin = killstowin;
+        }
 
 	public boolean getWinBy2() { return m_winBy2; }
 	public boolean getNoCount() { return m_noCount; }

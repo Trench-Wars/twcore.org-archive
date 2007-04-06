@@ -7,6 +7,9 @@ import twcore.core.*;
 import java.util.*;
 import java.sql.*;
 
+/**
+ * Hosts the OctaBase event.  
+ */
 public class octabot extends SubspaceBot {
 
 	private HashMap players;
@@ -24,16 +27,16 @@ public class octabot extends SubspaceBot {
 		access = new HashMap();
 
 		EventRequester events = m_botAction.getEventRequester();
-        events.request( EventRequester.MESSAGE );
-        events.request( EventRequester.ARENA_JOINED );
-        events.request( EventRequester.FREQUENCY_SHIP_CHANGE );
-        events.request( EventRequester.FREQUENCY_CHANGE );
-        events.request( EventRequester.FLAG_VICTORY );
-        events.request( EventRequester.PLAYER_ENTERED );
-        events.request( EventRequester.PLAYER_DEATH );
-        events.request( EventRequester.FLAG_REWARD );
-        events.request( EventRequester.FLAG_CLAIMED );
-        events.request( EventRequester.FLAG_DROPPED );
+                events.request( EventRequester.MESSAGE );
+                events.request( EventRequester.ARENA_JOINED );
+                events.request( EventRequester.FREQUENCY_SHIP_CHANGE );
+                events.request( EventRequester.FREQUENCY_CHANGE );
+                events.request( EventRequester.FLAG_VICTORY );
+                events.request( EventRequester.PLAYER_ENTERED );
+                events.request( EventRequester.PLAYER_DEATH );
+                events.request( EventRequester.FLAG_REWARD );
+                events.request( EventRequester.FLAG_CLAIMED );
+                events.request( EventRequester.FLAG_DROPPED );
 	}
 
 	public void handleEvent( Message event ) {
@@ -220,6 +223,13 @@ public class octabot extends SubspaceBot {
 		p.update( event );
 	}
 
+        public void handleEvent(SQLResultEvent event) {
+            // Only close query if it belongs to us.
+            if( event.getIdentifier().startsWith( "%octa" ) )
+                m_botAction.SQLClose( event.getResultSet() );
+        }
+
+
  	public void setToLowerTeam( int playerId, int playerFreq ) {
 
  		Iterator it = m_botAction.getPlayingPlayerIterator();
@@ -371,7 +381,7 @@ public class octabot extends SubspaceBot {
 		String query = "INSERT INTO `tblOctaGame` (fnWinner, fnJackpot, fnLength, fdDate) VALUES ";
 		query += "("+team+", "+jackpot+", "+length+", NOW())";
 		try {
-			m_botAction.SQLQuery( "local", query );
+			m_botAction.SQLQueryAndClose( "local", query );
 		} catch (Exception e) {
 			Tools.printStackTrace( "Unable to store game:" , e );
 		}
@@ -383,7 +393,7 @@ public class octabot extends SubspaceBot {
 			String name = (String)it.next();
 			OctaPlayer p = (OctaPlayer)players.get( name );
 			try {
-				m_botAction.SQLBackgroundQuery( "local", name, p.getQueryString( getUserId( name ), id ) );
+				m_botAction.SQLBackgroundQuery( "local", "%octa" + name, p.getQueryString( getUserId( name ), id ) );
 			} catch (Exception e) {
 				Tools.printStackTrace( "Unable to store player:", e );
 			}
@@ -395,11 +405,13 @@ public class octabot extends SubspaceBot {
 		try {
 			String query = "SELECT fnGameID FROM  `tblOctaGame` WHERE 1  ORDER BY fnGameID DESC LIMIT 1";
 			ResultSet result = m_botAction.SQLQuery( "local", query );
+                        int gameid = 0;
 			if( result.next() )
-				return result.getInt( "fnGameID" );
-			else return 0;
+				gameid = result.getInt( "fnGameID" );
+                        m_botAction.SQLClose( result );
+			return gameid;
 		} catch (Exception e) {
-			Tools.printStackTrace( "Unable to get userID:", e );
+			Tools.printStackTrace( "Unable to get gameID:", e );
 		}
 		return 0;
 	}
@@ -408,9 +420,11 @@ public class octabot extends SubspaceBot {
 		
 		try {
 			ResultSet result = m_botAction.SQLQuery( "local", "SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
+                        int gameid = 0;
 			if( result.next() )
-				return result.getInt( "fnUserID" );
-			else return 0;
+				gameid = result.getInt( "fnUserID" );
+                        m_botAction.SQLClose( result );
+			return gameid;
 		} catch (Exception e) {
 			Tools.printStackTrace( "Unable to get userID:", e );
 		}

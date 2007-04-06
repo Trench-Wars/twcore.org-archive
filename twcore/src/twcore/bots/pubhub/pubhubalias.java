@@ -226,8 +226,7 @@ public class pubhubalias extends PubBotModule
 			m_botAction.sendChatMessage(numResults - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")" );
 		else
 			m_botAction.sendChatMessage("Altnick returned " + numResults + " results.");
-		resultSet.close();		
-	}
+                m_botAction.SQLClose( resultSet );	}
 	
 	private void displayAltNickResults(String queryString, String[] headers) throws SQLException
 	{
@@ -321,7 +320,7 @@ public class pubhubalias extends PubBotModule
 			subQueryResultString.append(", ");
 		}
 		subQueryResultString.append(") ");
-		resultSet.close();
+                m_botAction.SQLClose( resultSet );
 		
 		return subQueryResultString.toString();
 	}
@@ -398,8 +397,8 @@ public class pubhubalias extends PubBotModule
 				}
 			}
 			
-			p1Set.close();
-			p2Set.close();
+                        m_botAction.SQLClose( p1Set );
+                        m_botAction.SQLClose( p2Set );
 			if( results == 0 )
 				m_botAction.sendChatMessage( "No matching IPs or MIDs found." );
 			if( results > m_maxRecords )
@@ -472,7 +471,7 @@ public class pubhubalias extends PubBotModule
 					lastName = currName;
 				}
 			}
-			resultSet.close();
+                        m_botAction.SQLClose( resultSet );
 			if(results == 0)
 				m_botAction.sendChatMessage("Player is not on a TWL squad.");
 			if( results > m_maxRecords )
@@ -806,7 +805,7 @@ public class pubhubalias extends PubBotModule
 			if(!resultSet.next())
 				return -1;
 			int results = resultSet.getInt("fnAliasID");
-			resultSet.close();
+                        m_botAction.SQLClose( resultSet );
 			return results;
 		}
 		catch(SQLException e)
@@ -825,7 +824,7 @@ public class pubhubalias extends PubBotModule
 					"VALUES (" + userID + ", '" + playerIP + "', " + ip32Bit + ", " + playerMacID + ", 1, NOW(), NOW())";
 			ResultSet r = m_botAction.SQLQuery(DATABASE, query);
 			
-			if (r != null) r.close();
+                        m_botAction.SQLClose( r );
 		}
 		catch(SQLException e)
 		{
@@ -841,7 +840,7 @@ public class pubhubalias extends PubBotModule
 					"UPDATE tblAlias " +
 					"SET fnTimesUpdated = fnTimesUpdated + 1, fdUpdated = NOW() " +
 					"WHERE fnAliasID = " + aliasID);
-			if (r != null) r.close();
+                        m_botAction.SQLClose( r );
 		}
 		catch(SQLException e)
 		{

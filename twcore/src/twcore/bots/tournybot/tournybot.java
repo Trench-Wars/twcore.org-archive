@@ -488,7 +488,6 @@ public class tournybot extends SubspaceBot {
 	}
 
 	public void handleEvent(SQLResultEvent event) {
-
 		String ranks[] = event.getIdentifier().split(":");
 		if (ranks.length == 4 && ranks[0].equals("sRank")) {
 
@@ -532,6 +531,7 @@ public class tournybot extends SubspaceBot {
 					}
 				}
 			} catch (Exception e) {}
+                        m_botAction.SQLClose( event.getResultSet() );
 			return;
 		} else if (ranks.length == 5 && ranks[0].equals("tRank")) {
 
@@ -560,6 +560,7 @@ public class tournybot extends SubspaceBot {
 					}
 				}
 			} catch (Exception e) {}
+                        m_botAction.SQLClose( event.getResultSet() );
 			return;
 		}
 
@@ -592,6 +593,7 @@ public class tournybot extends SubspaceBot {
 			} catch (Exception e) {
 				dbAvailable = false;
 			}
+                        m_botAction.SQLClose( event.getResultSet() );
 		} else {
 			String team[] = event.getIdentifier().split(":");
 			if (team.length == 2) {
@@ -638,6 +640,7 @@ public class tournybot extends SubspaceBot {
 				} catch (Exception e) {
 					dbAvailable = false;
 				}
+                                m_botAction.SQLClose( event.getResultSet() );
 			} else {
 
 				if (!freqs.containsKey(event.getIdentifier())) {
@@ -673,6 +676,7 @@ public class tournybot extends SubspaceBot {
 				} catch (Exception e) {
 					dbAvailable = false;
 				}
+                                m_botAction.SQLClose( event.getResultSet() );
 			}
 		}
 	}
@@ -2354,10 +2358,12 @@ public class tournybot extends SubspaceBot {
 			if (s.next()) {
 				tournyID = s.getInt("tournyID");
 			}
+			m_botAction.SQLClose( s );
 		} catch (Exception e) {
 			dbAvailable = false;
 			tournyID = -1;
 		};
+                
 	}
 
 
@@ -2415,7 +2421,7 @@ public class tournybot extends SubspaceBot {
 						}
 
 						query2 += "WHERE player_id = '" + fU.getP2().getDBID() + "'";
-						m_botAction.SQLQuery(dbConn, query2);
+						m_botAction.SQLQueryAndClose(dbConn, query2);
 					} else {
 						query = "UPDATE tblTournyTeamStats SET rating = rating + '" + fU.getFRating(trPrize) + "', wins = wins + '" + fU.getWins() + "', losses = losses + '" + fU.getLosses() + "', player1Kills = player1Kills + '" + fU.getP1().getTotalKills() + "', player1Deaths = player1Deaths + '" + fU.getP1().getTotalDeaths() + "', player2Kills = player2Kills + '" + fU.getP2().getTotalKills() + "', player2Deaths = player2Deaths + '" + fU.getP2().getTotalDeaths() + "', trs = trs + '1' ";
 
@@ -2426,11 +2432,11 @@ public class tournybot extends SubspaceBot {
 						query += "WHERE team_id = '" + fU.getDBID() + "'";
 					}
 				}
-				m_botAction.SQLQuery(dbConn, query);
+				m_botAction.SQLQueryAndClose(dbConn, query);
 			}
 
 			if (maxPerFreq == 1) {
-				m_botAction.SQLQuery(dbConn, "TRUNCATE TABLE tblTourny1v1Ranks");
+			    m_botAction.SQLQueryAndClose(dbConn, "TRUNCATE TABLE tblTourny1v1Ranks");
 				int rank = 1;
 				ResultSet s = m_botAction.SQLQuery(dbConn, "SELECT player_id, rating FROM tblTournyPlayerStats ORDER BY rating DESC LIMIT 100");
 				while (s.next()) {
@@ -2445,8 +2451,9 @@ public class tournybot extends SubspaceBot {
 					m_botAction.SQLBackgroundInsertInto(dbConn, "tblTourny1v1Ranks", fields, values);
 					rank++;
 				}
+				m_botAction.SQLClose( s );
 			} else {
-				m_botAction.SQLQuery(dbConn, "TRUNCATE TABLE tblTourny2v2Ranks");
+			    m_botAction.SQLQueryAndClose(dbConn, "TRUNCATE TABLE tblTourny2v2Ranks");
 				int rank = 1;
 				ResultSet s = m_botAction.SQLQuery(dbConn, "SELECT team_id, rating FROM tblTournyTeamStats ORDER BY rating DESC LIMIT 100");
 				while (s.next()) {
@@ -2461,8 +2468,8 @@ public class tournybot extends SubspaceBot {
 					m_botAction.SQLBackgroundInsertInto(dbConn, "tblTourny2v2Ranks", fields, values);
 					rank++;
 				}
-
-				m_botAction.SQLQuery(dbConn, "TRUNCATE TABLE tblTournyRRanks");
+				m_botAction.SQLClose( s );
+				m_botAction.SQLQueryAndClose(dbConn, "TRUNCATE TABLE tblTournyRRanks");
 
 				int rank2 = 1;
 				ResultSet s2 = m_botAction.SQLQuery(dbConn, "SELECT player_id, rRating FROM tblTournyPlayerStats ORDER BY rRating DESC LIMIT 100");
@@ -2478,10 +2485,11 @@ public class tournybot extends SubspaceBot {
 					m_botAction.SQLBackgroundInsertInto(dbConn, "tblTournyRRanks", fields2, values2);
 					rank2++;
 				}
+				m_botAction.SQLClose( s2 );
 			}
 
 			String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
-			m_botAction.SQLQuery(dbConn, "UPDATE tblTournyTournaments SET prize = '" + trPrize + "', trState = 1, finished = '" + time + "', winner = '" + winner + "' WHERE id = " + id);
+			m_botAction.SQLQueryAndClose(dbConn, "UPDATE tblTournyTournaments SET prize = '" + trPrize + "', trState = 1, finished = '" + time + "', winner = '" + winner + "' WHERE id = " + id);
 			m_botAction.sendArenaMessage("Complete tournament statistics at: " + m_botSettings.getString( "websiteR" ) + tournyID);
 		} catch (Exception e) {
 			m_botAction.sendArenaMessage("Database error, no statistics available.");
