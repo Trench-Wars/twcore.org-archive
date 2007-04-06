@@ -22,6 +22,7 @@ public class pubhubhunt extends PubBotModule
 			ResultSet results = m_botAction.SQLQuery("local", "SELECT fcVarValue AS val FROM tblSiteVar WHERE fcVarName = 'fbHuntRunning'");
 			results.next();
 			isRunning = new Boolean(results.getString("val").equals("true"));
+            m_botAction.SQLClose( results );
 		} catch(Exception e) {e.printStackTrace();}
 		botName = m_botAction.getBotName();
 	}
@@ -89,15 +90,16 @@ public class pubhubhunt extends PubBotModule
 		if(!isRunning) return;
 		m_botAction.ipcSendMessage("pubBots", "endhunt", null, "PubHub");
 		try {
-			m_botAction.SQLQuery("local", "UPDATE tblSiteVar SET fcVarValue = 'false' WHERE fcVarName = 'fbHuntRunning'");
+		    m_botAction.SQLQueryAndClose("local", "UPDATE tblSiteVar SET fcVarValue = 'false' WHERE fcVarName = 'fbHuntRunning'");
 			ResultSet results = m_botAction.SQLQuery("local", "SELECT * FROM tblPubHuntPlayer WHERE fnUserID = (SELECT fnUserID FROM tblPubHuntCurrent)");
 			if(results == null || !results.next())
-				m_botAction.SQLQuery("local", "INSERT INTO tblPubHuntPlayer (fnUserID, fnPoints) "
+			    m_botAction.SQLQueryAndClose("local", "INSERT INTO tblPubHuntPlayer (fnUserID, fnPoints) "
 					+ "(SELECT fnUserID, fnPoints FROM tblPubHuntCurrent)");
 			else 
-				m_botAction.SQLQuery("local", "UPDATE tblPubHuntPlayer SET fnPoints = fnPoints + (SELECT fnPoints FROM tblPubHuntCurrent) "
+			    m_botAction.SQLQueryAndClose("local", "UPDATE tblPubHuntPlayer SET fnPoints = fnPoints + (SELECT fnPoints FROM tblPubHuntCurrent) "
 					+ "WHERE fnUserID = (SELECT fnUserID FROM tblPubHuntCurrent)");
-			m_botAction.SQLQuery("local", "TRUNCATE TABLE tblPubHuntCurrent");
+			m_botAction.SQLClose( results );
+            m_botAction.SQLQueryAndClose("local", "TRUNCATE TABLE tblPubHuntCurrent");
 		} catch(Exception e) {e.printStackTrace();}
 		isRunning = false;
 	}	
@@ -111,6 +113,7 @@ public class pubhubhunt extends PubBotModule
 			while(results.next()) {
 				userids.add((Integer)results.getInt("fnUserID"));
 			}
+                        m_botAction.SQLClose( results );
 			Random rand = new Random();
 			ArrayList<Integer> huntOrder = new ArrayList<Integer>();
 			while(userids.size() > 0) {
@@ -121,9 +124,9 @@ public class pubhubhunt extends PubBotModule
 				if(k > 0) prey = huntOrder.get(k-1);
 				else prey = huntOrder.get(huntOrder.size()-1);
 				int hunter = huntOrder.get(k);
-				m_botAction.SQLQuery("local", "UPDATE tblPubHuntCurrent SET fnPreyID = "+prey+" WHERE fnUserID = "+hunter);
+				m_botAction.SQLQueryAndClose("local", "UPDATE tblPubHuntCurrent SET fnPreyID = "+prey+" WHERE fnUserID = "+hunter);
 			}
-			m_botAction.SQLQuery("local", "UPDATE tblSiteVar SET fcVarValue = 'true' WHERE fcVarName = 'fbHuntRunning'");
+			m_botAction.SQLQueryAndClose("local", "UPDATE tblSiteVar SET fcVarValue = 'true' WHERE fcVarName = 'fbHuntRunning'");
 		} catch(Exception e) {e.printStackTrace();}
 		m_botAction.ipcSendMessage("pubBots", "starthunt", null, "PubHub");
 		scheduleTasks();
@@ -146,6 +149,7 @@ public class pubhubhunt extends PubBotModule
 			ResultSet results = m_botAction.SQLQuery("local", "SELECT MAX(fnActivity) AS max FROM tblPubHuntCurrent");
 			results.next();
 			int minAct = results.getInt("max") - 15;
+            m_botAction.SQLClose( results );
 			results = m_botAction.SQLQuery("local", "SELECT fnUserID, fnPreyID FROM tblPubHuntCurrent WHERE fnActivity < "+minAct);
 			while(results.next()) {
 				ResultSet result2 = m_botAction.SQLQuery("local", 
@@ -163,6 +167,7 @@ public class pubhubhunt extends PubBotModule
 					endHunt();	
 				}
 			}
+			m_botAction.SQLClose( results );
 		} catch(Exception e) {e.printStackTrace();}
 	}
 	

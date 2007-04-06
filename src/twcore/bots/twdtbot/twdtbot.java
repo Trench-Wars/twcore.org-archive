@@ -103,15 +103,13 @@ public class twdtbot extends SubspaceBot {
 				m_botAction.sendSmartPrivateMessage(name, "You have already signed up.");
 				return false;
 			}
-			if(r != null)
-				r.close();
+            m_botAction.SQLClose(r);
 
 	    	r = m_botAction.SQLQuery(m_conn,
 	    		"INSERT INTO tblTWDTUser (fnTWDUserID, fcUserName, ftCreated) VALUES ("
 	    		+ pdata.getUserID() + ", '" + Tools.addSlashesToString(name) + "', NOW())");
  m_botAction.sendSmartPrivateMessage(name, pdata.getUserID() + name);
-	    	if(r != null)
-	    		r.close();
+            m_botAction.SQLClose(r);
 	    	return true;
 		} catch(SQLException e) {
 			m_botAction.sendSmartPrivateMessage(name, "Database error.");

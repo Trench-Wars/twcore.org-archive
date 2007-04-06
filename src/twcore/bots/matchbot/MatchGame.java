@@ -143,12 +143,11 @@ public class MatchGame
 				m_botAction.SQLQuery(
 					dbConn,
 					"SELECT fnTeamID FROM tblTeam WHERE fcTeamName = '" + Tools.addSlashesToString(fcTeamName) + "' AND (fdDeleted IS NULL or fdDeleted = 0)");
+                        int id = 0;
 			if (rs.next())
-			{
-				return rs.getInt("fnTeamID");
-			}
-			else
-				return 0;
+				id = rs.getInt("fnTeamID");
+                        m_botAction.SQLClose(rs);
+                        return id;
 		}
 		catch (Exception e)
 		{
@@ -212,6 +211,7 @@ public class MatchGame
 			{
 				m_fnMatchID = s.getInt("fnMatchID");
 			};
+                        m_botAction.SQLClose(s);
 		}
 		catch (Exception e)
 		{
@@ -225,7 +225,7 @@ public class MatchGame
 		try
 		{
 			String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
-			m_botAction.SQLQuery(
+                        m_botAction.SQLQueryAndClose(
 				dbConn,
 				"UPDATE tblMatch SET fnMatchStateID = 3, fnTeam1Score="
 					+ m_fnTeam1Score
@@ -239,8 +239,8 @@ public class MatchGame
 		}
 		catch (Exception e)
 		{
-		};
-	};
+		}
+	}
 
 	/**
 	 * @param event WeaponFired event
@@ -565,7 +565,7 @@ public class MatchGame
 				m_fnTeam1Score = (rounds + 1) / 2;
 			if (m_curRound.m_fnTeam2Score > m_curRound.m_fnTeam1Score)
 				m_fnTeam2Score = (rounds + 1) / 2;
-		};
+		}
 
 		if ((m_fnTeam1Score == (rounds + 1) / 2) || (m_fnTeam2Score == (rounds + 1) / 2))
 		{
@@ -617,28 +617,28 @@ public class MatchGame
 		{
 			m_curRound.cancel();
 			m_gameState = KILL_ME_PLEASE;
-		};
-	};
+		}
+	}
 
 	public void reportEndOfRound()
 	{
 		reportEndOfRound(false);
-	};
+	}
 
 	public int getGameState()
 	{
 		return m_gameState;
-	};
+	}
 
 	public int getPlayersNum()
 	{
 		return playersNum;
-	};
+	}
 
 	public void setPlayersNum(int n)
 	{
 		playersNum = n;
-	};
+	}
 
 	public void cancel()
 	{
@@ -650,12 +650,12 @@ public class MatchGame
 			try
 			{
 				String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
-				m_botAction.SQLQuery(dbConn, "UPDATE tblMatch SET ftTimeEnded = '" + time + "', fnMatchStateID=5 WHERE fnMatchID = " + m_fnMatchID);
+				m_botAction.SQLQueryAndClose(dbConn, "UPDATE tblMatch SET ftTimeEnded = '" + time + "', fnMatchStateID=5 WHERE fnMatchID = " + m_fnMatchID);
 			}
 			catch (Exception e)
 			{
-			};
-		};
-	};
+			}
+		}
+	}
 }
 

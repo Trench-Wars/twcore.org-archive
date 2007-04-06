@@ -39,7 +39,7 @@ public class pubhubchat extends PubBotModule {
 			
 			// Save the message
 			try {
-				m_botAction.SQLQuery( dbConn, "INSERT INTO tblChat (`fcArena`, `fnMessageType`, `fcPlayername`, `fcMessage`) VALUES ('"+arena+"', "+ipc.getMessageType()+", '"+sender+"', '"+message+"')" );
+			    m_botAction.SQLQueryAndClose( dbConn, "INSERT INTO tblChat (`fcArena`, `fnMessageType`, `fcPlayername`, `fcMessage`) VALUES ('"+arena+"', "+ipc.getMessageType()+", '"+sender+"', '"+message+"')" );
 			} catch(SQLException sqle) {
 				Tools.printStackTrace(sqle);
 			}
@@ -52,10 +52,10 @@ public class pubhubchat extends PubBotModule {
 					resultSet.relative(-maxSavedLines);		// Move up a number of rows to save
 					if(resultSet.isBeforeFirst() == false && resultSet.isAfterLast() == false) {
 						int fnChatID = resultSet.getInt("fnChatID"); // Get the fnChatID of this row
-						m_botAction.SQLQuery( dbConn, "DELETE FROM tblChat WHERE fcArena = '"+arena+"' AND fnChatID < "+fnChatID);
+						m_botAction.SQLQueryAndClose( dbConn, "DELETE FROM tblChat WHERE fcArena = '"+arena+"' AND fnChatID < "+fnChatID);
 					}
 				}
-				resultSet.close();
+                                m_botAction.SQLClose( resultSet );
 			} catch (SQLException sqle) {
 				Tools.printStackTrace(sqle);
 			}

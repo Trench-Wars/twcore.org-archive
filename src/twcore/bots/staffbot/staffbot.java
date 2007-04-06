@@ -1,16 +1,3 @@
-/*
-  @author  mr. spam
-  last updated: 07/26/2002
-
-  Changes:
-    Added "Comment count" to /!list* commands
-    Cleaned up staffbot.cfg.  Removed unused settings and added LogArchivedEnabled, ArchivePath, & AutoLogTime
-    Misc code changes/tweaks.. cleanup
-    Added /!listrating (sorts ascending by average rating)
-    Added automatic server log archiving. See .cfg
-    Added /!getlog command, unlisted in help as not all smods will have access to logs
- */
-
 package twcore.bots.staffbot;
 
 import java.io.*;
@@ -24,6 +11,22 @@ import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
 import twcore.core.util.Tools;
 
+/**
+ * StaffBot performs two functions: checking for *warn-ings on specific players,
+ * or from specific staff members; and rating potential new staffers.
+ * 
+ *
+ * @author  mr. spam
+ * last updated: 07/26/2002
+ *
+ * Changes:
+ *   Added "Comment count" to /!list* commands
+ *   Cleaned up staffbot.cfg.  Removed unused settings and added LogArchivedEnabled, ArchivePath, & AutoLogTime
+ *   Misc code changes/tweaks.. cleanup
+ *   Added /!listrating (sorts ascending by average rating)
+ *   Added automatic server log archiving. See .cfg
+ *   Added /!getlog command, unlisted in help as not all smods will have access to logs
+ */
 public class staffbot extends SubspaceBot {
     OperatorList        m_opList;
     HashMap             m_playerList = new HashMap();
@@ -190,7 +193,7 @@ public class staffbot extends SubspaceBot {
                 m_botAction.sendRemotePrivateMessage( name, set.getString( "warning" ) );
             }
             m_botAction.sendRemotePrivateMessage( name, "End of list." );
-            if (set != null) set.close();
+            m_botAction.SQLClose( set );
         } catch( SQLException e ){
             Tools.printStackTrace( e );
         }
@@ -207,7 +210,7 @@ public class staffbot extends SubspaceBot {
                 m_botAction.sendRemotePrivateMessage( name, set.getString( "warning" ) );
             }
             m_botAction.sendRemotePrivateMessage( name, "End of list." );
-            if (set != null) set.close();
+            m_botAction.SQLClose( set );
         } catch( SQLException e ){
             Tools.printStackTrace( e );
         }

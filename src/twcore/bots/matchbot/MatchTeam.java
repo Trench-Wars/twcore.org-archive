@@ -129,7 +129,7 @@ public class MatchTeam
             {
                 m_captains.add(rs.getString("fcUserName").toLowerCase());
             }
-
+            m_botAction.SQLClose( rs );
         }
         catch (Exception e)
         {

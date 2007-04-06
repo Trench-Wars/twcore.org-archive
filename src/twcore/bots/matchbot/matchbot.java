@@ -1,16 +1,3 @@
-/*
- * Matchtwl.java
- *
- * Created on August 19, 2002, 8:34 PM
- */
-
-/**
- *
- * @author  Administrator
- */
-
-
-
 package twcore.bots.matchbot;
 
 import twcore.core.*;
@@ -25,6 +12,9 @@ import java.io.*;
 import java.util.regex.*;
 
 
+/**
+ * Runs automated squad vs. squad TWD matches.  
+ */
 public class matchbot extends SubspaceBot
 {
 
@@ -211,16 +201,16 @@ public class matchbot extends SubspaceBot
         if (m_game != null)
         {
             m_game.handleEvent(event);
-        };
-    };
+        }
+    }
 
     public void handleEvent(FlagReward event)
     {
         if (m_game != null)
         {
             m_game.handleEvent(event);
-        };
-    };
+        }
+    }
 
     public void handleEvent(InterProcessEvent event)
     {
@@ -232,7 +222,7 @@ public class matchbot extends SubspaceBot
                 if (s.equals("whatArena"))
                 {
                     m_botAction.ipcTransmit("MatchBot", "myArena:" + m_botAction.getArenaName());
-                };
+                }
 
                 if ((s.startsWith("myArena:")) && (m_isLocked) && (m_lockState == CHECKING_ARENAS))
                 {
@@ -241,58 +231,55 @@ public class matchbot extends SubspaceBot
                         m_arenaList = new LinkedList();
                     };
                     m_arenaList.add(s.substring(8).toLowerCase());
-                };
-            };
-        };
-    };
+                }
+            }
+        }
+    }
 
     public void handleEvent(PlayerDeath event)
     {
         if (m_game != null)
         {
             m_game.handleEvent(event);
-        };
-    };
+        }
+    }
 
     public void handleEvent(PlayerLeft event)
     {
         if (m_game != null)
         {
             m_game.handleEvent(event);
-        };
-    };
+        }
+    }
 
     public void handleEvent(PlayerEntered event)
     {
         if (m_game != null)
         {
             m_game.handleEvent(event);
-        };
-    };
+        }
+    }
 
     public void handleEvent(PlayerPosition event)
     {
         if (m_game != null)
         {
             m_game.handleEvent(event);
-        };
-    };
+        }
+    }
 
     public void handleEvent(ScoreReset event)
     {
         if (m_game != null)
             m_game.handleEvent(event);
-    };
+    }
 
     public void handleEvent(BallPosition event)
     {
     	if (m_game != null)
     		m_game.handleEvent(event);
-    };
+    }
 
-    public void handleEvent(SQLResultEvent event)
-    {
-    };
 
     public void handleEvent(Message event)
     {
@@ -665,6 +652,7 @@ public class matchbot extends SubspaceBot
                         }
                         else
                             m_botAction.sendPrivateMessage(name, "The team you want to challenge does NOT exist in TWD");
+                        m_botAction.SQLClose(rs);
                     }
                     else
                         m_botAction.sendPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
