@@ -657,18 +657,27 @@ public class duelbot extends SubspaceBot {
 
     public void do_showScore( String name, String message ) {
     	String player = m_botAction.getFuzzyPlayerName( message );
-        if( player == null )
-            return;
-        player = player.toLowerCase();
-    	int i = -1;
-    	try { i = Integer.parseInt( message ); } catch (Exception e) {}
-		if( duels.containsKey( new Integer( i ) ) ) {
-			m_botAction.sendPrivateMessage( name, ((Duel)duels.get( new Integer( Integer.parseInt(message) ) )).showScore() );
-		} else if( playing.containsKey( player ) ) {
-			m_botAction.sendPrivateMessage( name, ((Duel)playing.get( player )).showScore() );
-		} else {
-			m_botAction.sendPrivateMessage( name, "No score available for requested duel. Reason: Box is empty or player isn't playing." );
-		}
+        int i = -1;
+        if( player == null ) {
+            try {
+                i = Integer.parseInt( message );
+            } catch (Exception e) {
+                m_botAction.sendPrivateMessage( name, "Can't read a player name or box # from your input.  Please check the name/number and try again." );
+                return;
+            }
+            if( duels.containsKey( new Integer( i ) ) ) {
+                m_botAction.sendPrivateMessage( name, ((Duel)duels.get( new Integer( Integer.parseInt(message) ) )).showScore() );
+            } else {
+                m_botAction.sendPrivateMessage( name, "No score available for requested duel (box is probably empty)." );
+            }
+        } else {
+            player = player.toLowerCase();
+            if( playing.containsKey( player ) ) {
+                m_botAction.sendPrivateMessage( name, ((Duel)playing.get( player )).showScore() );
+            } else {
+                m_botAction.sendPrivateMessage( name, "No score available for requested duel (player is probably not playing)." );
+            }
+        }
     }
 
     public void do_showDuels( String name, String message ) {
