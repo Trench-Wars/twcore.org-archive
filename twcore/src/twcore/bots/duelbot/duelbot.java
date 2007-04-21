@@ -550,6 +550,7 @@ public class duelbot extends SubspaceBot {
     	} catch (Exception e) {
     	    // This exception is caught frequently.  Removed stack trace print
 			// Don't need to see it anymore until we take the time to deal w/ it.
+    		Tools.printStackTrace(e);
 			m_botAction.sendSmartPrivateMessage( name, "Problem retreiving your info from database.  Please try again later, or talk to a staff member." );
     	}
         m_botAction.SQLClose( info );
@@ -1011,7 +1012,7 @@ public class duelbot extends SubspaceBot {
     	} catch (Exception e) {
     	    // This exception is caught frequently.  Removed stack trace print
 			// Don't need to see it anymore until we take the time to deal w/ it.
-		e.printStackTrace();
+    		Tools.printStackTrace(e);
 			m_botAction.sendSmartPrivateMessage( name, "Problem retreiving your info from database.  Please try again later, or talk to a staff member." );
     	}
         m_botAction.SQLClose( info );
