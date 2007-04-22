@@ -183,7 +183,7 @@ public class staffbot extends SubspaceBot {
     }
 
     public void queryWarnings( String name, String message ){
-        String      query = "select * from tblWarnings where name = \"" + message.toLowerCase() + "\"";
+        String      query = "select * from tblWarnings where name = \"" + Tools.addSlashesToString(message.toLowerCase()) + "\"";
 
         try {
             ResultSet set = m_botAction.SQLQuery( "local", query );
@@ -200,7 +200,7 @@ public class staffbot extends SubspaceBot {
     }
 
     public void queryWarningsFrom( String name, String message ){
-        String      query = "select * from tblWarnings where staffmember = \"" + message.toLowerCase() + "\"";
+        String      query = "select * from tblWarnings where staffmember = \"" + Tools.addSlashesToString(message.toLowerCase()) + "\"";
 
         try {
             ResultSet set = m_botAction.SQLQuery( "local", query );
