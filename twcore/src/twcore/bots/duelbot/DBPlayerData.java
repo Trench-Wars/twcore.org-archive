@@ -80,7 +80,7 @@ public class DBPlayerData {
                 return false;
             }
         } catch (Exception e) {
-            System.out.println("Database error! - " + e.getMessage());
+            Tools.printLog("Database error on player " + m_fcUserName + ": " + e.getMessage());
             return false;
         }
     };
@@ -104,7 +104,7 @@ public class DBPlayerData {
                 return false;
             }
         } catch (Exception e) {
-            System.out.println("Database error! - " + e.getMessage());
+            Tools.printLog("Database error on player " + m_fcUserName + ": " + e.getMessage());
             return false;
         }
     };
@@ -116,7 +116,7 @@ public class DBPlayerData {
             m_lastQuery = System.currentTimeMillis();
             if (getPlayerData()) return true; else return false;
         } catch (Exception e) {
-            System.out.println("Couldn't create user");
+            Tools.printLog("Couldn't create user: " + m_fcUserName );
             return false;
         }
     };
@@ -131,7 +131,7 @@ public class DBPlayerData {
                 m_fcPassword = fcPassword;
                 return true;
             } catch (Exception e) {
-                System.out.println("Couldn't create useraccount");
+                Tools.printLog("Couldn't create useraccount");
                 return false;
             }
         } else return false;
@@ -146,7 +146,7 @@ public class DBPlayerData {
                 m_fcPassword = fcPassword;
                 return true;
             } catch (Exception e) {
-                System.out.println("Couldn't update useraccount");
+                Tools.printLog("Couldn't update useraccount");
                 return false;
             }
         } else return false;
