@@ -403,6 +403,7 @@ public class MatchPlayer implements Comparable
 	public void substitute(int newSpecAt)
 	{
 		m_fnSpecAt = newSpecAt;
+        m_botAction.scoreReset( m_fcPlayerName );
 		getInGame(true);
 	};
 
