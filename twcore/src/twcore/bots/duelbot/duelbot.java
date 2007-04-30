@@ -161,6 +161,7 @@ public class duelbot extends SubspaceBot {
 
     public void do_signUp( String name, String message ) {
     	m_botAction.sendUnfilteredPrivateMessage( name, "*info" );
+        Tools.printLog( "DUELTEST: !signup for " + name );
     }
 
     public void do_setRules( String name, String message ) {
@@ -528,9 +529,10 @@ public class duelbot extends SubspaceBot {
 
     	ResultSet info = sql_getUserIPMID( name );
 
-    	if( info == null )
-			m_botAction.sendSmartPrivateMessage( name, "Problem accessing database.  Please try again later." );
-
+    	if( info == null ) {
+			m_botAction.sendSmartPrivateMessage( name, "Can't find your record; you will need to !signup first." );
+            return;
+        }
 
     	try {
     		String IP = info.getString( "fcIP" );
@@ -1037,6 +1039,7 @@ public class duelbot extends SubspaceBot {
 	        String thisName = pieces[3].substring(10);
 	        String thisIP = pieces[0].substring(3);
 	        String thisID = pieces[5].substring(10);
+            Tools.printLog( "DUELTEST: *info received for " + thisName );            
 	        do_addPlayer( thisName, thisIP, thisID );
 	     } else if( message.equals( "Arena UNLOCKED" ) ) {
 	     	m_botAction.toggleLocked();
@@ -1057,9 +1060,11 @@ public class duelbot extends SubspaceBot {
     	try {
     		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT fcUserName FROM tblDuelPlayer WHERE fnEnabled = 1 AND fcIP = '"+IP+"' AND fnMID = '"+MID+"' OR fcUserName = '"+Tools.addSlashesToString(name)+"'" );
     		if( !result.next() ) {
+                Tools.printLog( "DUELTEST: normal add request recevied for " + name );            
     			DBPlayerData player = new DBPlayerData( m_botAction, "local", name, true );
-    			m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"', 0, 0, NOW())" );
-
+    			m_botAction.SQLQueryAndClose( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"', 0, 0, NOW())" );
+                Tools.printLog( "DUELTEST: created DBPlayerData and inserted player into DB: " + name + " - DBPD is " + player == null ? "null" : "not null" );            
+                
     			//Removed as of season 2
     			//sql_createLeagueData( player );
     			if(aliasChecker.equals(""))
@@ -1100,7 +1105,6 @@ public class duelbot extends SubspaceBot {
     						m_botAction.sendSmartPrivateMessage( aliasChecker, "Aliases registered: " + extras);
     						aliasChecker = "";
     					}
-    					//m_botAction.sendSmartPrivateMessage( name, "Sign up failed, please contact a league op for more information. Please note you can only have 1 username per connection." );
     				}
     			}
     		}
