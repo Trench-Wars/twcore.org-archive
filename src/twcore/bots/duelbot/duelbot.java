@@ -13,6 +13,7 @@ import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
 import twcore.core.lvz.Objset;
 import twcore.core.util.Tools;
+import twcore.core.game.Player;
 
 /***********************************************************
  * Updates:
@@ -541,12 +542,11 @@ public class duelbot extends SubspaceBot {
     				extras += " " + result.getString( "fcUserName" ) + " ";
     			} while( result.next() );
     			m_botAction.sendSmartPrivateMessage( name, "To enable this name you must disable: ("+extras+")" );
-    			return;
     		} else {
     			sql_enableUser( name );
     			m_botAction.sendSmartPrivateMessage( name, "Your name has been enabled to play." );
     		}
-                m_botAction.SQLClose( result );
+            m_botAction.SQLClose( result );
     	} catch (Exception e) {
     	    // This exception is caught frequently.  Removed stack trace print
 			// Don't need to see it anymore until we take the time to deal w/ it.
@@ -1597,12 +1597,12 @@ public class duelbot extends SubspaceBot {
     }
 
     public void handleEvent( PlayerDeath event ) {
-    	String name = m_botAction.getPlayerName( event.getKilleeID() );
-    	String killer = m_botAction.getPlayerName( event.getKillerID() );
-    	if( name == null || killer == null )
+    	Player p1 = m_botAction.getPlayer( event.getKilleeID() );
+    	Player p2 = m_botAction.getPlayer( event.getKillerID() );
+    	if( p1 == null || p2 == null )
     	    return;
-        name = name.toLowerCase();
-        killer = killer.toLowerCase();
+        String name = p1.getPlayerName().toLowerCase();
+        String killer = p2.getPlayerName().toLowerCase();
 
 		if( playing.containsKey( name ) ) {
 
@@ -1717,9 +1717,17 @@ public class duelbot extends SubspaceBot {
 		}
     }
 
-    //Unchecked
     public void handleEvent( PlayerPosition event ) {
-    	String name = m_botAction.getPlayerName( event.getPlayerID() ).toLowerCase();
+        Player ptest = m_botAction.getPlayer( event.getPlayerID() );        
+        /* Sometimes a player leaves the arena just after a position packet is received;
+           while the position event is distributed, the PlayerLeft event is given to
+           Arena, causing all information about the player to be wiped from record.
+           This also occurs frequently with the PlayerDeath event.  Moral: check for null.
+         */
+        if( ptest == null ) 
+            return;
+        
+    	String name = ptest.getPlayerName().toLowerCase();
     	if( !playing.containsKey( name ) ) return;
     	int x = event.getXLocation();
     	int y = event.getYLocation();
@@ -2103,9 +2111,9 @@ class ScoreReport extends TimerTask {
     	try {
     		String query = "SELECT fnUserID FROM tblDuelPlayer WHERE fnEnabled = 1 AND fcUserName = '"+Tools.addSlashesToString(name)+"'";
     		ResultSet result = m_botAction.SQLQuery( mySQLHost, query );
-                boolean hasNext = result.next();
-                m_botAction.SQLClose( result );
-                return hasNext;
+            boolean hasNext = result.next();
+            m_botAction.SQLClose( result );
+            return hasNext;
     	} catch (Exception e) {
     		Tools.printStackTrace( "Failed to check for enabled user", e );
     		return false;
@@ -2157,8 +2165,8 @@ class ScoreReport extends TimerTask {
     		String query = "SELECT fcIP, fnMID FROM tblDuelPlayer WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'";
 
     		ResultSet result = m_botAction.SQLQuery( mySQLHost, query );
-                boolean hasNext = result.next();
-                m_botAction.SQLClose( result );
+            boolean hasNext = result.next();
+            m_botAction.SQLClose( result );
     		if( hasNext ) return result;
     	} catch (Exception e) {
     		Tools.printStackTrace( "Problem getting user IP/MID", e );
