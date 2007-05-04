@@ -215,7 +215,7 @@ public class twdbot extends SubspaceBot {
 	public void commandAddMIDIP(String staffname, String info) {
 	   try {
 	   	info = info.toLowerCase();
-	    	String pieces[] = info.split(" ", 3);
+	    	String pieces[] = info.split("  ", 3);
 	    	HashSet names = new HashSet();
 	    	HashSet IPs = new HashSet();
 	    	HashSet mIDs = new HashSet();
