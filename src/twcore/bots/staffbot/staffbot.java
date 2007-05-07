@@ -29,7 +29,7 @@ import twcore.core.util.Tools;
  */
 public class staffbot extends SubspaceBot {
     OperatorList        m_opList;
-    HashMap             m_playerList = new HashMap();
+    HashMap             <String,potentialStaffer>m_playerList = new HashMap<String,potentialStaffer>();
     BotAction           m_botAction;
     BotSettings         m_botSettings;
     boolean             m_logActive = false;
@@ -115,7 +115,6 @@ public class staffbot extends SubspaceBot {
                 String          temp;
                 String          staffMember;
                 String          warnedPlayer;
-                LinkedList      warnings;
 
                 temp = message.substring( message.indexOf( ") to " ) + 5 );
                 warnedPlayer = temp.substring( 0, temp.indexOf( ":" ) ).toLowerCase();
@@ -183,14 +182,23 @@ public class staffbot extends SubspaceBot {
     }
 
     public void queryWarnings( String name, String message ){
-        String      query = "select * from tblWarnings where name = \"" + Tools.addSlashesToString(message.toLowerCase()) + "\"";
-
+        String      query = "SELECT * FROM tblWarnings WHERE name = \"" + Tools.addSlashesToString(message.toLowerCase()) + "\" ORDER BY timeofwarning DESC";
+        
         try {
             ResultSet set = m_botAction.SQLQuery( "local", query );
 
-            m_botAction.sendRemotePrivateMessage( name, "Warnings for " + message + ":" );
+            m_botAction.sendRemotePrivateMessage( name, "Warnings in database for " + message + ":" );
+            
             while( set.next() ){
-                m_botAction.sendRemotePrivateMessage( name, set.getString( "warning" ) );
+                String warning = set.getString( "warning" );
+                java.sql.Date date = set.getDate( "timeofwarning" );
+                String strDate = new SimpleDateFormat("dd MMM yyyy").format( date );
+                
+                // Split using regex ": (nonwhitespacechar)", which is the point of
+                // similarity between logged *warn and RoboHelp !warn messages
+                String[] text = warning.split( ": \\S", 2);
+                if( text.length == 2 )
+                    m_botAction.sendRemotePrivateMessage( name, strDate + "  - " + text[1]);
             }
             m_botAction.sendRemotePrivateMessage( name, "End of list." );
             m_botAction.SQLClose( set );
@@ -200,14 +208,20 @@ public class staffbot extends SubspaceBot {
     }
 
     public void queryWarningsFrom( String name, String message ){
-        String      query = "select * from tblWarnings where staffmember = \"" + Tools.addSlashesToString(message.toLowerCase()) + "\"";
+        String      query = "SELECT * FROM tblWarnings WHERE staffmember = \"" + Tools.addSlashesToString(message.toLowerCase()) + "\" ORDER BY timeofwarning DESC";
 
         try {
             ResultSet set = m_botAction.SQLQuery( "local", query );
 
-            m_botAction.sendRemotePrivateMessage( name, "Warnings given by " + message + ":" );
+            m_botAction.sendRemotePrivateMessage( name, "Warnings in database given by " + message + ":" );
             while( set.next() ){
-                m_botAction.sendRemotePrivateMessage( name, set.getString( "warning" ) );
+                String warning = set.getString( "warning" );
+                java.sql.Date date = set.getDate( "timeofwarning" );
+                String strDate = new SimpleDateFormat("dd MMM yyyy").format( date );
+                
+                String[] text = warning.split( ": \\S", 2);
+                if( text.length == 2 )
+                    m_botAction.sendRemotePrivateMessage( name, strDate + "  - " + text[1]);
             }
             m_botAction.sendRemotePrivateMessage( name, "End of list." );
             m_botAction.SQLClose( set );
@@ -216,65 +230,7 @@ public class staffbot extends SubspaceBot {
         }
     }
 
-/*    public void queryAltNick( String name, String message ){
-        m_botAction.sendSmartPrivateMessage( name, "Please hold as I look for matches." );
-        HashMap altNick = new HashMap();
-        //look up the machineid for the nick
-        String query = "select machineid, ip from Arrogant where name = \"" + message + "\"";
-        try{
-            ResultSet set = m_botAction.SQLQuery( "local", query );
-            while( set.next() ){
-                String macid = set.getString( "MachineID" );
-                String ip = set.getString( "IP" );
-                String newquery = "select distinct Name, ip, machineid from Arrogant where IP = \""
-                + ip + "\" order by Name";
-                ResultSet set2 = m_botAction.SQLQuery( "local", newquery );
-                //m_botAction.sendSmartPrivateMessage( name, message
-                //+ " has MachineID: " + macid + " and IP: " + ip );
-                while( set2.next() ){
-                    String n2 = set2.getString( "Name" );
-                    String machineid = set2.getString( "MachineID" );
-                    String ip2 = set2.getString( "IP" );
-                    String response = n2 + " matches: ";
-                    if( !altNick.containsKey( n2 ) )
-                        altNick.put( n2, new AltNick( n2 ) );
-                    AltNick alt = (AltNick)altNick.get( n2 );
-                    if( macid.equals( machineid ))
-                        alt.setMIDMatch();//response += "MachineID ";
-                    if( ip2.equals( ip ))
-                        alt.setIPMatch();//response += "IP ";
-                    //m_botAction.sendSmartPrivateMessage( name, response );
-                }
-                if (set2 != null) set2.close();
-            }
-            if (set != null) set.close();
-
-            int ct = 0;
-            Set set3 = altNick.keySet();
-            Iterator it = set3.iterator();
-            while (it.hasNext()) {
-                String curName = (String) it.next();
-                AltNick alt = (AltNick)altNick.get( curName );
-                String output = formatString( curName, 20 );
-                if( alt.hasIPMatch() )
-                    output += "  (IP Match)";
-                if( alt.hasMIDMatch() )
-                    output += "  (MachineID Match)";
-                m_botAction.sendSmartPrivateMessage( name, output );
-                ct++;
-            }
-            altNick.clear();
-            m_botAction.sendSmartPrivateMessage( name, "Matches Displayed: " + ct );
-
-        } catch( SQLException e ){
-            Tools.printStackTrace( e );
-        }
-
-    }
-*/
-
     public String formatString(String fragment, int length) {
-        String line;
         if(fragment.length() > length)
             fragment = fragment.substring(0,length-1);
         else {
@@ -284,96 +240,11 @@ public class staffbot extends SubspaceBot {
         return fragment;
     }
 
-/*
-    class AltNick {
-        String name;
-        boolean ip = false, mid = false;
-        public AltNick( String n ) {
-            name = n;
-        }
-        public void setMIDMatch() { mid = true; }
-        public void setIPMatch() { ip = true; }
-        public boolean hasMIDMatch() { return mid; }
-        public boolean hasIPMatch() { return ip; }
-    }
-
-    public void queryDblSquad( String name, String message ){
-        //look up the machineid for the nick
-        String query = "select machineid, ip from Arrogant where name = \"" + message + "\"";
-        try{
-            ResultSet set = m_botAction.SQLQuery( "local", query );
-            while( set.next() ){
-                String macid = set.getString( "MachineID" );
-                String ip = set.getString( "IP" );
-                String newquery = "select distinctrow name, squad from Arrogant where MachineID=\""
-                + macid + "\" OR IP = \"" + ip + "\" order by Name";
-                ResultSet set2 = m_botAction.SQLQuery( "local", newquery );
-                while( set2.next() ){
-                    String sqd = set2.getString( "Squad" );
-                    if( !sqd.trim().equals( "" )){
-                        m_botAction.sendSmartPrivateMessage( name, set2.getString( "Name" )
-                        + " is in " + sqd );
-                    }
-                }
-                if (set2 != null) set2.close();
-            }
-            if (set != null) set.close();
-
-        } catch( SQLException e ){
-            Tools.printStackTrace( e );
-        }
-    }
-    public void querySquaddies( String name, String message ){
-        //look up the machineid for the nick
-        String query = "select squad from Arrogant where name = \"" + message + "\"";
-        try{
-            ResultSet set = m_botAction.SQLQuery( "local", query );
-            while( set.next() ){
-                String squad = set.getString( "Squad" );
-                if( squad.trim().equals( "" )) return;
-                m_botAction.sendSmartPrivateMessage( name, "Members of squad " + squad);
-                String newquery = "select distinct Name from Arrogant where Squad=\""
-                + squad + "\" order by Name";
-                ResultSet set2 = m_botAction.SQLQuery( "local", newquery );
-                while( set2.next() ){
-                    m_botAction.sendSmartPrivateMessage( name, set2.getString( "Name" ));
-                }
-                if (set2 != null) set2.close();
-            }
-            if (set != null) set.close();
-
-        } catch( SQLException e ){
-            Tools.printStackTrace( e );
-        }
-    }
-*/
-
     public void handleEvent( FileArrived event ){
         if ( event.getFileName().equals(m_LOGFILENAME) ){
             logArrived();
         }
     }
-   /*
-    public void handleMessageStaff( int minAccessLevel, int maxAccessLevel, String name, String message ){
-        int         level;
-        String      recipient;
-        Map         staffList;
-        Iterator    staffIterator;
-
-        staffList = m_opList.getList();
-        staffIterator = staffList.keySet().iterator();
-
-        while( staffIterator.hasNext() ){
-            recipient = ((String)staffIterator.next()).trim();
-            level = m_opList.getAccessLevel( recipient );
-
-            if( level >= minAccessLevel && level <= maxAccessLevel ){
-                m_botAction.sendRemotePrivateMessage( "Sphonk", "...?message " + recipient + ":Message from " + name + ": " + message );
-
-                m_botAction.sendUnfilteredPublicMessage( "?message " + recipient + ":Message from " + name + ": " + message );
-            }
-        }
-    }*/
 
     public void handleCommand( String name, String message, boolean remote){
         if( message.toLowerCase().equals("!help") ){
@@ -495,7 +366,6 @@ public class staffbot extends SubspaceBot {
 
     public void remPlayer( String staffName, String playerName, boolean remote ){
         potentialStaffer axed;
-        boolean found = false;
 
         axed = (potentialStaffer)m_playerList.get( playerName.toLowerCase().trim() );
 
@@ -512,17 +382,16 @@ public class staffbot extends SubspaceBot {
         sendPM( staffName, "Added: " + dateAdded + "  Comments: " + numComments + "  Ave Rating: " + aveRating + "  Name: " + playerName, remote );
     }
 
-    public void sendListAsc( String name, int count, Comparator sort, boolean remote ){
-        LinkedList sortedList = new LinkedList();
-        LinkedList buffer = new LinkedList();
-        potentialStaffer listItem;
-
+    public void sendListAsc( String name, int count, Comparator <potentialStaffer>sort, boolean remote ){
+        LinkedList <potentialStaffer>sortedList = new LinkedList<potentialStaffer>();
+        LinkedList <potentialStaffer>buffer = new LinkedList<potentialStaffer>();
+        potentialStaffer listItem;        
         sortedList.addAll( m_playerList.values() );
         Collections.sort( sortedList, sort );
 
         if( count > sortedList.size() ){ count = sortedList.size() ; }
 
-        Iterator i = sortedList.iterator();
+        Iterator <potentialStaffer>i = sortedList.iterator();
 
         for( int x = 0 ; x < count ; x++ ){
             buffer.addFirst( i.next() );
@@ -534,8 +403,8 @@ public class staffbot extends SubspaceBot {
         }
     }
 
-    public void sendListDesc( String name, int count, Comparator sort, boolean remote ){
-        LinkedList sortedList = new LinkedList();
+    public void sendListDesc( String name, int count, Comparator <potentialStaffer>sort, boolean remote ){
+        LinkedList <potentialStaffer>sortedList = new LinkedList<potentialStaffer>();
         potentialStaffer listItem;
 
         sortedList.addAll( m_playerList.values() );
@@ -745,24 +614,24 @@ public class staffbot extends SubspaceBot {
         }
     }
 
-    static final Comparator SORT_DATE_ADDED = new Comparator() {
-        public int compare(Object o1, Object o2) {
+    static final Comparator <potentialStaffer>SORT_DATE_ADDED = new Comparator<potentialStaffer>() {
+        public int compare(potentialStaffer o1, potentialStaffer o2) {
             potentialStaffer r1 = (potentialStaffer) o1;
             potentialStaffer r2 = (potentialStaffer) o2;
             return r2.getDate().compareTo(r1.getDate());
         }
     };
 
-    static final Comparator SORT_NAME = new Comparator() {
-        public int compare(Object o1, Object o2) {
+    static final Comparator <potentialStaffer>SORT_NAME = new Comparator<potentialStaffer>() {
+        public int compare(potentialStaffer o1, potentialStaffer o2) {
             potentialStaffer r1 = (potentialStaffer) o1;
             potentialStaffer r2 = (potentialStaffer) o2;
             return r1.getName().toLowerCase().compareTo(r2.getName().toLowerCase());
         }
     };
 
-    static final Comparator SORT_RATING = new Comparator() {
-        public int compare(Object o1, Object o2) {
+    static final Comparator <potentialStaffer>SORT_RATING = new Comparator<potentialStaffer>() {
+        public int compare(potentialStaffer o1, potentialStaffer o2) {
             potentialStaffer r1 = (potentialStaffer) o1;
             potentialStaffer r2 = (potentialStaffer) o2;
             return Double.compare(r2.getAveRating(), r1.getAveRating());
@@ -774,7 +643,7 @@ class potentialStaffer implements java.io.Serializable, java.lang.Comparable {
     static final long serialVersionUID = -518954860696583857L; //Old checksum so ReadObjects() will still read the .dat file
     private String name;
     private java.util.Date created = new java.util.Date();
-    private HashMap comments = new HashMap();
+    private HashMap <String,staffComment>comments = new HashMap<String,staffComment>();
 
     public int compareTo(Object o) {
         potentialStaffer n = (potentialStaffer)o;
