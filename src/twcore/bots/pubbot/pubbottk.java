@@ -62,10 +62,10 @@ public class pubbottk extends PubBotModule {
     private TimerTask forgetOldTKers;        // Used to throw away data about TKers
     private String currentArena;             // Current arena the host bot is in
     private boolean checkTKs;                // True if TK checking enabled
-    private HashMap tkers;                   // (String)Name -> (TKInfo)Teamkilling record
-    private HashMap oldtkers;                // Same as above; stores TKers who leave arena
+    private HashMap <String,TKInfo>tkers;    // (String)Name -> (TKInfo)Teamkilling record
+    private HashMap <String,TKInfo>oldtkers; // Same as above; stores TKers who leave arena
                                              // (low-cost abuse prevention)
-    private HashMap tked;                    // (String)Name TKd -> (String)Last name who TKd them
+    private HashMap <String,String>tked;     // (String)Name TKd -> (String)Last name who TKd them
 
     /**
      * Called when the module is loaded for each individual pubbot.
@@ -79,9 +79,9 @@ public class pubbottk extends PubBotModule {
         else
             checkTKs = true;
 
-        tkers = new HashMap();
-        oldtkers = new HashMap();
-        tked = new HashMap();
+        tkers = new HashMap<String,TKInfo>();
+        oldtkers = new HashMap<String,TKInfo>();
+        tked = new HashMap<String,String>();
 
         m_opList = m_botAction.getOperatorList();
 
@@ -91,7 +91,7 @@ public class pubbottk extends PubBotModule {
         // I've left the arena.  Forget me not?  No, forget me every 15 minutes.
         forgetOldTKers = new TimerTask() {
             public void run() {
-                oldtkers = new HashMap();
+                oldtkers = new HashMap<String,TKInfo>();
             }
         };
         m_botAction.scheduleTaskAtFixedRate( forgetOldTKers, FORGET_TIME_MINS * 1000, FORGET_TIME_MINS * 1000 );
@@ -308,7 +308,7 @@ public class pubbottk extends PubBotModule {
         if( tker == null )
             return;
 
-        TKInfo info = (TKInfo)tkers.get( tker );
+        TKInfo info = (TKInfo)tkers.get( tker.toLowerCase() );
         if( info == null ) {
             m_botAction.sendPrivateMessage( name, "Error reporting player '" + tker + "' - player not found.  Please use the ?cheater command to manually notify staff." );
             return;
