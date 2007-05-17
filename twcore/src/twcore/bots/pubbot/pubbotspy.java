@@ -13,7 +13,7 @@ import twcore.core.util.IPCMessage;
 
 public class pubbotspy extends PubBotModule
 {
-  public static final String keywords = "j3w jew chink nig nigger n1g n1gg3r nigg3r paki gook nigg@ n1gg@ nigga nignog nign0g n1gnog n1gn0g nikka nika n1kka n1ka n*gga n*gger n*g nigg*r nigg* n*gg*r n*gg*";
+  public static final String keywords = "j3w jew chink nig nigger n1g n1gg3r nigg3r paki gook nigg@ n1gg@ nigga niggaa nignog nign0g n1gnog n1gn0g nikka nika n1kka n1ka n*gga n*ggaa n*ggaaa n*gger n*g nigg*r nigg* n*gg*r n*gg* n!g n!ga n!gg n!gga n!ggaa n!ggaaa n!ggaaaa n!ggaaaaa";
   private HashSet watchList;
   private HashSet ignoreList;
   private String currentArena;
@@ -244,7 +244,7 @@ public class pubbotspy extends PubBotModule
 
   private boolean isRacist(String message)
   {
-    StringTokenizer keywordTokens = new StringTokenizer(keywords);
+    StringTokenizer keywordTokens = new StringTokenizer(keywords," ");
 
     while(keywordTokens.hasMoreTokens())
       if(containsWord(message, keywordTokens.nextToken()))
