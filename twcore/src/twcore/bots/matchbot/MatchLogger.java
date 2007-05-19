@@ -10,8 +10,17 @@
  */
 package twcore.bots.matchbot;
 
-import twcore.core.*;
-import twcore.core.events.*;
+import twcore.core.BotAction;
+import twcore.core.events.ArenaJoined;
+import twcore.core.events.FlagClaimed;
+import twcore.core.events.FlagReward;
+import twcore.core.events.FrequencyChange;
+import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.Message;
+import twcore.core.events.PlayerDeath;
+import twcore.core.events.PlayerLeft;
+import twcore.core.events.ScoreReset;
+import twcore.core.events.WeaponFired;
 import twcore.core.util.Tools;
 
 public class MatchLogger

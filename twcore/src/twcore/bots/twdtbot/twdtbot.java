@@ -5,14 +5,19 @@
 
 package twcore.bots.twdtbot;
 
-import twcore.core.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+
+import twcore.core.BotAction;
+import twcore.core.BotSettings;
+import twcore.core.EventRequester;
+import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
 import twcore.core.stats.DBPlayerData;
 import twcore.core.util.Tools;
-import java.util.*;
-import java.sql.*;
 
 
 public class twdtbot extends SubspaceBot {

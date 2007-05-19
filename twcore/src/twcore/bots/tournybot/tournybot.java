@@ -1,6 +1,21 @@
 package twcore.bots.tournybot;
 
-import twcore.core.*;
+import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.SimpleTimeZone;
+import java.util.TimeZone;
+import java.util.TimerTask;
+
+import twcore.core.BotAction;
+import twcore.core.BotSettings;
+import twcore.core.EventRequester;
+import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.LoggedOn;
@@ -14,10 +29,6 @@ import twcore.core.game.Player;
 import twcore.core.stats.LagReport;
 import twcore.core.stats.lagHandler;
 import twcore.core.util.Tools;
-
-import java.util.*;
-import java.sql.*;
-import java.text.*;
 
 public class tournybot extends SubspaceBot {
 

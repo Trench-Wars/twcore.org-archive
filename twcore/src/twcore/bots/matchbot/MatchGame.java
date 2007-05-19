@@ -10,13 +10,31 @@ package twcore.bots.matchbot;
  * @author  Administrator
  */
 
-import twcore.core.*;
-import twcore.core.events.*;
-import twcore.core.util.Tools;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.ListIterator;
+import java.util.TimerTask;
 
-import java.util.*;
-import java.sql.*;
-import java.text.*;
+import twcore.core.BotAction;
+import twcore.core.BotSettings;
+import twcore.core.events.ArenaJoined;
+import twcore.core.events.BallPosition;
+import twcore.core.events.FlagClaimed;
+import twcore.core.events.FlagReward;
+import twcore.core.events.FrequencyChange;
+import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.Message;
+import twcore.core.events.PlayerDeath;
+import twcore.core.events.PlayerEntered;
+import twcore.core.events.PlayerLeft;
+import twcore.core.events.PlayerPosition;
+import twcore.core.events.ScoreReset;
+import twcore.core.events.SoccerGoal;
+import twcore.core.events.WeaponFired;
+import twcore.core.util.Tools;
 
 public class MatchGame
 {

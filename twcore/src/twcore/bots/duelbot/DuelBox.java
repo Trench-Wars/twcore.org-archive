@@ -1,6 +1,7 @@
 package twcore.bots.duelbot;
 
-import java.util.*;
+import java.util.Random;
+import java.util.Vector;
 
 public class DuelBox {
 

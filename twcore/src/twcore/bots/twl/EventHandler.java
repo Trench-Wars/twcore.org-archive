@@ -1,7 +1,7 @@
 package twcore.bots.twl;
 
-import java.util.*;
-import twcore.core.*;
+import java.util.Vector;
+
 import twcore.core.events.SubspaceEvent;
 
 /**

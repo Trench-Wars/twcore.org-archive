@@ -1,15 +1,24 @@
 package twcore.bots.twdbot;
 
-import java.util.*;
-import java.sql.*;
-import twcore.core.*;
+import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.ListIterator;
+import java.util.TimerTask;
+
+import twcore.core.BotAction;
+import twcore.core.BotSettings;
+import twcore.core.EventRequester;
+import twcore.core.OperatorList;
+import twcore.core.SubspaceBot;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
 import twcore.core.game.Player;
 import twcore.core.stats.DBPlayerData;
 import twcore.core.util.Tools;
-
-import java.text.*;
 
 /**
  * Handles TWD administration tasks such as registration and deletion.

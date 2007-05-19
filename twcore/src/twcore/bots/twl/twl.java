@@ -13,15 +13,39 @@
 
 package twcore.bots.twl;
 
-import twcore.core.*;
-import twcore.core.events.*;
+import java.io.File;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.ListIterator;
+import java.util.TimerTask;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import twcore.core.BotAction;
+import twcore.core.BotSettings;
+import twcore.core.EventRequester;
+import twcore.core.OperatorList;
+import twcore.core.SubspaceBot;
+import twcore.core.events.ArenaJoined;
+import twcore.core.events.FlagClaimed;
+import twcore.core.events.FlagReward;
+import twcore.core.events.FrequencyChange;
+import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.InterProcessEvent;
+import twcore.core.events.LoggedOn;
+import twcore.core.events.Message;
+import twcore.core.events.PlayerDeath;
+import twcore.core.events.PlayerEntered;
+import twcore.core.events.PlayerLeft;
+import twcore.core.events.PlayerPosition;
+import twcore.core.events.SQLResultEvent;
+import twcore.core.events.ScoreReset;
+import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.stats.DBPlayerData;
 import twcore.core.util.Tools;
-import java.util.*;
-import java.sql.*;
-import java.io.*;
-import java.util.regex.*;
 
 
 public class twl extends SubspaceBot

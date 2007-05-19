@@ -1,10 +1,17 @@
 package twcore.bots.pubbot;
 
-import java.util.*;
-import twcore.core.*;
-import twcore.core.events.*;
-import twcore.core.command.*;
-import twcore.bots.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import twcore.bots.PubBotModule;
+import twcore.core.EventRequester;
+import twcore.core.command.CommandInterpreter;
+import twcore.core.events.FrequencyChange;
+import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.Message;
+import twcore.core.events.PlayerEntered;
+import twcore.core.events.PlayerLeft;
 
 public class pubbotpure extends PubBotModule {
     Map                 m_playerList;

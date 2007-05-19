@@ -6,7 +6,7 @@
 
 package twcore.bots.twl;
 
-import java.util.*;
+import java.util.Vector;
 
 /**
  * This class models a State tree.  The purpose of this class is to allow for

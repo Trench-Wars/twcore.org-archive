@@ -2,10 +2,11 @@
 
 package twcore.bots.pubbot;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.StringTokenizer;
 
 import twcore.bots.PubBotModule;
-import twcore.core.*;
+import twcore.core.EventRequester;
 import twcore.core.events.ArenaList;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
