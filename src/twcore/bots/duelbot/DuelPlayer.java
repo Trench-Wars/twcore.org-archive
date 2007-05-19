@@ -1,6 +1,5 @@
 package twcore.bots.duelbot;
 
-import java.sql.ResultSet;
 
 /**
  * Holds data of player in a duel. 

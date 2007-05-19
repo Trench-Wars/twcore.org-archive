@@ -1,13 +1,26 @@
 package twcore.bots.mrarrogant;
 
-import twcore.core.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.StringTokenizer;
+import java.util.TimeZone;
+import java.util.TimerTask;
+import java.util.Vector;
+
+import twcore.core.BotAction;
+import twcore.core.BotSettings;
+import twcore.core.EventRequester;
+import twcore.core.OperatorList;
+import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaList;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
-
-import java.util.*;
-import java.text.*;
-import java.io.*;
 
 /**
  * Mr. Arrogant -- everyone's favorite Subspace Gestapo.

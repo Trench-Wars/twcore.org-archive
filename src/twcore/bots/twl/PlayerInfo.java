@@ -6,7 +6,7 @@
 
 package twcore.bots.twl;
 
-import twcore.core.*;
+import twcore.core.BotAction;
 
 /**
  * This abstract class sets up future PlayerInfo classes.  It ties the info

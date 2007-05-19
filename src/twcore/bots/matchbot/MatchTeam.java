@@ -8,15 +8,27 @@ package twcore.bots.matchbot;
  * @author Administrator
  */
 
-import twcore.core.*;
-import twcore.core.events.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.GregorianCalendar;
+import java.util.LinkedList;
+import java.util.ListIterator;
+import java.util.TimerTask;
+
+import twcore.core.BotAction;
+import twcore.core.BotSettings;
+import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.Message;
+import twcore.core.events.PlayerDeath;
+import twcore.core.events.PlayerLeft;
+import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.stats.DBPlayerData;
 import twcore.core.stats.Statistics;
 import twcore.core.util.Tools;
-import java.util.*;
-import java.sql.*;
-import java.text.*;
 
 public class MatchTeam
 {

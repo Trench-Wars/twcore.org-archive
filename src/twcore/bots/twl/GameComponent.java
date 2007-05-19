@@ -1,6 +1,6 @@
 package twcore.bots.twl;
 
-import twcore.core.*;
+import twcore.core.BotAction;
 import twcore.core.events.SubspaceEvent;
 /**
  * This class models a base GameComponent.  It bleh im sleepy...

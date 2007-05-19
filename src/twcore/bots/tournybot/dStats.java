@@ -1,6 +1,6 @@
 package twcore.bots.tournybot;
 
-import twcore.core.*;
+import twcore.core.BotAction;
 import twcore.core.util.Tools;
 
 public class dStats {

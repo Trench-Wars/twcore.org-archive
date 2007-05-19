@@ -2,7 +2,20 @@
 
 package twcore.bots.duelbot;
 
-import twcore.core.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Random;
+import java.util.Set;
+import java.util.TimerTask;
+import java.util.Vector;
+
+import twcore.core.BotAction;
+import twcore.core.BotSettings;
+import twcore.core.EventRequester;
+import twcore.core.SubspaceBot;
 import twcore.core.command.CommandInterpreter;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.LoggedOn;
@@ -11,37 +24,9 @@ import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
+import twcore.core.game.Player;
 import twcore.core.lvz.Objset;
 import twcore.core.util.Tools;
-import twcore.core.game.Player;
-
-/***********************************************************
- * Updates:
- *
- * - 2 second delay before checking for end of games.
- * - Aces can only occur on games to 10
- * - users can turn scoreboard on/off w/!scoreboard
- * - addition of scoreboard code (clearScoreBoard, setScoreboard)
- *   - clearScoreboard on end of duel or !cancel, show scoreboard on kills/events
- * - addition of season code for mysql queries
- * - !enable/!disable - users can now switch names without OP help
- * - Bot will zone when a player gets a streak over 10, max 1 zoner per hour
- * - Checks players lag (challenger at beginning of duel, challenged at the end)
- *   and puts into a database for website lag info.
- * - Added command !banned to give OPs a list of players that have been banned.
- * - Made warp thing send people back to their corners to help stop spawning problem.
- * - Ban comments added.
- * - Can't !disable when banned.
- * - Tells a player that is challenged what the other player's average lag is.
- *
- * Possible Updates:
- * - remove warp tiles on map
- * - !rank?
- */
-
-import java.util.*;
-import java.text.*;
-import java.sql.*;
 
 /**
  * Handles all parts of PvP dueling as found in ?go duel. 

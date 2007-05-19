@@ -1,9 +1,11 @@
 package twcore.bots.octabot;
 
-import twcore.core.*;
-import twcore.core.events.*;
-import twcore.core.game.*;
-import twcore.core.util.*;
+import twcore.core.BotAction;
+import twcore.core.events.FlagClaimed;
+import twcore.core.events.FlagDropped;
+import twcore.core.events.PlayerDeath;
+import twcore.core.game.Player;
+import twcore.core.util.Tools;
 
 public class OctaPlayer {
 	

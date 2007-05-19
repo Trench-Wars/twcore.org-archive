@@ -1,7 +1,8 @@
 package twcore.bots.duelbot;
 
-import twcore.core.*;
-import java.util.*;
+import java.util.TimerTask;
+
+import twcore.core.BotAction;
 
 public class GameStartTimer extends TimerTask {
 

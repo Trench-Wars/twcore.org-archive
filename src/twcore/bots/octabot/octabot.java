@@ -1,11 +1,28 @@
 package twcore.bots.octabot;
 
-import twcore.core.events.*;
-import twcore.core.game.*;
-import twcore.core.util.*;
-import twcore.core.*;
-import java.util.*;
-import java.sql.*;
+import java.sql.ResultSet;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.TimerTask;
+
+import twcore.core.BotAction;
+import twcore.core.BotSettings;
+import twcore.core.EventRequester;
+import twcore.core.SubspaceBot;
+import twcore.core.events.ArenaJoined;
+import twcore.core.events.FlagClaimed;
+import twcore.core.events.FlagDropped;
+import twcore.core.events.FlagReward;
+import twcore.core.events.FlagVictory;
+import twcore.core.events.FrequencyChange;
+import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.LoggedOn;
+import twcore.core.events.Message;
+import twcore.core.events.PlayerDeath;
+import twcore.core.events.PlayerEntered;
+import twcore.core.events.SQLResultEvent;
+import twcore.core.game.Player;
+import twcore.core.util.Tools;
 
 /**
  * Hosts the OctaBase event.  

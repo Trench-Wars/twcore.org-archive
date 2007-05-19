@@ -11,17 +11,31 @@ package twcore.bots.twl;
  * @author  Administrator
  */
 
-import twcore.core.*;
-import twcore.core.events.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.TimerTask;
+
+import twcore.core.BotAction;
+import twcore.core.BotSettings;
+import twcore.core.events.FlagClaimed;
+import twcore.core.events.FlagReward;
+import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.Message;
+import twcore.core.events.PlayerDeath;
+import twcore.core.events.PlayerEntered;
+import twcore.core.events.PlayerLeft;
+import twcore.core.events.PlayerPosition;
+import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.lvz.Objset;
 import twcore.core.stats.LagReport;
 import twcore.core.stats.lagHandler;
 import twcore.core.util.Tools;
-
-import java.util.*;
-import java.sql.*;
-import java.text.*;
 
 public class MatchRound
 {

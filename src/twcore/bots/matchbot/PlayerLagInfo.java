@@ -6,10 +6,11 @@
 
 package twcore.bots.matchbot;
 
-import twcore.core.*;
-import twcore.core.events.Message;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
-import java.util.*;
+import twcore.core.BotAction;
+import twcore.core.events.Message;
 
 public class PlayerLagInfo extends PlayerInfo
 {

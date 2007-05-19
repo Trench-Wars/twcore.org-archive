@@ -1,21 +1,9 @@
 package twcore.bots.duelbot;
 
-import twcore.core.*;
+import java.sql.ResultSet;
+
+import twcore.core.BotAction;
 import twcore.core.util.Tools;
-
-
-/*
- * DBPlayerData.java
- *
- * Created on June 12, 2002, 10:43 PM
- */
-
-/**
- *
- * @author  Mythrandir
- */
-
-import java.sql.*;
 
 public class DBPlayerData {
     BotAction m_connection;

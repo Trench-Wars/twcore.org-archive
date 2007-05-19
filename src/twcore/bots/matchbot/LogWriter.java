@@ -6,9 +6,11 @@
 
 package twcore.bots.matchbot;
 
-import java.io.*;
-import java.util.*;
-import java.text.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * This class provides functionality to create a log file.  Each log entry is
