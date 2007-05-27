@@ -6,11 +6,11 @@ import java.util.HashMap;
 import java.util.Vector;
 
 import twcore.bots.PubBotModule;
-import twcore.bots.pubbot.pubbotchatIPC;
 import twcore.core.EventRequester;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.util.Tools;
+import twcore.core.util.IPCChatMessage;
 
 public class pubhubchat extends PubBotModule {
 
@@ -34,8 +34,8 @@ public class pubhubchat extends PubBotModule {
 
 	@Override
 	public void handleEvent(InterProcessEvent event) {
-		if(event.getChannel().equals(pubhub.IPCCHAT) && event.getObject() instanceof pubbotchatIPC) {
-			pubbotchatIPC ipc = (pubbotchatIPC)event.getObject();
+		if(event.getChannel().equals(pubhub.IPCCHAT) && event.getObject() instanceof IPCChatMessage) {
+			IPCChatMessage ipc = (IPCChatMessage)event.getObject();
 			String arena = Tools.addSlashesToString(ipc.getArena());
 			String message = Tools.addSlashesToString(ipc.getMessage());
 			String sender = (ipc.getMessageType() == Message.ARENA_MESSAGE) ? null : ipc.getSender();

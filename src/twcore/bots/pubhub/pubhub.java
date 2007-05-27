@@ -12,7 +12,6 @@ import java.util.Vector;
 
 import twcore.bots.ModuleHandler;
 import twcore.bots.PubBotModule;
-import twcore.bots.pubbot.pubbotchatIPC;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
@@ -43,6 +42,7 @@ import twcore.core.events.SoccerGoal;
 import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 import twcore.core.util.IPCMessage;
+import twcore.core.util.IPCChatMessage;
 
 public class pubhub extends SubspaceBot
 {
@@ -477,7 +477,7 @@ public class pubhub extends SubspaceBot
    * 
    * @param ipc
    */
-  public void handleChatIPC(pubbotchatIPC ipc) {
+  public void handleChatIPC(IPCChatMessage ipc) {
 	  
   }
 
