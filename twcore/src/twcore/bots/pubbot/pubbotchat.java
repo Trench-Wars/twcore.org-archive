@@ -7,6 +7,7 @@ import twcore.core.EventRequester;
 import twcore.core.events.ArenaList;
 import twcore.core.events.Message;
 import twcore.core.util.Tools;
+import twcore.core.util.IPCChatMessage;
 
 public class pubbotchat extends PubBotModule {
 	private String currentArena;
@@ -105,7 +106,7 @@ public class pubbotchat extends PubBotModule {
 			String sender = getSender(event);
 			// If the sender is null then it's probably an Arena message
 			
-			pubbotchatIPC ipc = new pubbotchatIPC(currentArena, event.getMessageType(), sender, event.getMessage(), botName, this.getPubHubName());
+			IPCChatMessage ipc = new IPCChatMessage(currentArena, event.getMessageType(), sender, event.getMessage(), botName, this.getPubHubName());
 			m_botAction.ipcTransmit(pubbot.IPCCHAT, ipc);
 			
 			chat.insertElementAt(getMessageTypeString(event.getMessageType()) + "  " + (sender==null ? "" : sender+"> ") + event.getMessage(),0);

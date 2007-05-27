@@ -1,7 +1,7 @@
-package twcore.bots.pubbot;
+package twcore.core.util;
 
 
-public class pubbotchatIPC {
+public class IPCChatMessage {
 	private String arena;		// Arena
 	private int messageType;	// Message type
 	private String sender;      // Sender of the message
@@ -13,7 +13,7 @@ public class pubbotchatIPC {
 	/**
 	 * Constructor
 	 */
-	public pubbotchatIPC(
+	public IPCChatMessage(
 			String arena, 
 			int messageType, 
 			String sender, 
