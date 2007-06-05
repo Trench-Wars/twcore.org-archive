@@ -129,7 +129,7 @@ public class duelbot extends SubspaceBot {
     	m_commandInterpreter.registerCommand( "!shutdown", acceptedMessages, this, "do_shutDown" );
     	m_commandInterpreter.registerCommand( "!alias", acceptedMessages, this, "do_aliasCheck" );
     	m_commandInterpreter.registerCommand( "!disableuser", acceptedMessages, this, "do_opDisableName" );
-        m_commandInterpreter.registerCommand( "!shutdowndie", acceptedMessages, this, "do_shutdowndie" );
+        m_commandInterpreter.registerCommand( "!shutdowndie", acceptedMessages, this, "do_shutDownDie" );
     	m_commandInterpreter.registerCommand( "!die", acceptedMessages, this, "do_die" );
     	m_commandInterpreter.registerCommand( "!zone", acceptedMessages, this, "do_twelZoner" );
 
@@ -891,7 +891,7 @@ public class duelbot extends SubspaceBot {
     	}
     }
 
-    public void do_shutDownDie( String name, String message ) {
+    public void do_shutdownDie( String name, String message ) {
         if( !(leagueOps.containsKey( name.toLowerCase() ) || m_botAction.getOperatorList().isSmod(name)) ) return;
         shutDownMessage = message;
         if( shutDownDie ) {
@@ -900,6 +900,10 @@ public class duelbot extends SubspaceBot {
         } else {
             m_botAction.sendPrivateMessage( name, "Shutdown+Die mode turned on." );
             shutDownDie = true;
+            if( duels.size() == 0 ) {
+                m_botAction.sendArenaMessage( "Shutting down for core maintenance.", 1 );
+                m_botAction.die();
+            }
         }
     }
 
