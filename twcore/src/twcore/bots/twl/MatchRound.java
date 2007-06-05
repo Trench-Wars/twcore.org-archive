@@ -1019,7 +1019,7 @@ public class MatchRound
 
             if (m_scheduleTimer != null)
             {
-                m_scheduleTimer.cancel();
+                m_botAction.cancelTask(m_scheduleTimer);
             };
             m_botAction.setTimer(0);
 
@@ -1171,10 +1171,10 @@ public class MatchRound
     public void endGame()
     {
         if (m_endGame != null)
-            m_endGame.cancel();
+            m_botAction.cancelTask(m_endGame);
 
         if (m_raceTimer != null)
-            m_raceTimer.cancel();
+            m_botAction.cancelTask(m_raceTimer);
 
         m_fnTeam1Score = m_team1.getTeamScore();
         m_fnTeam2Score = m_team2.getTeamScore();
@@ -1215,7 +1215,7 @@ public class MatchRound
             m_timeEnded = new java.util.Date();
 
 			if (updateScores != null)
-				updateScores.cancel();
+                m_botAction.cancelTask(updateScores);
 
 			do_updateScoreBoard();
 			m_botAction.showObject(m_rules.getInt("obj_gameover"));
@@ -1626,31 +1626,31 @@ public class MatchRound
     public void cancel()
     {
         if (m_countdown10Seconds != null)
-            m_countdown10Seconds.cancel();
+            m_botAction.cancelTask(m_countdown10Seconds);
         if (m_startGame != null)
-            m_startGame.cancel();
+            m_botAction.cancelTask(m_startGame);
         if (m_endGame != null) {
 			m_botAction.showObject(m_rules.getInt("obj_gameover"));
-            m_endGame.cancel();
+            m_botAction.cancelTask(m_endGame);
 		}
         if (m_raceTimer != null)
-            m_raceTimer.cancel();
+            m_botAction.cancelTask(m_raceTimer);
         if (m_scheduleTimer != null)
-            m_scheduleTimer.cancel();
+            m_botAction.cancelTask(m_scheduleTimer);
         if (m_signalEndOfRound != null)
-            m_signalEndOfRound.cancel();
+            m_botAction.cancelTask(m_signalEndOfRound);
         if (m_announceMVP != null)
-            m_announceMVP.cancel();
+            m_botAction.cancelTask(m_announceMVP);
         if (m_closeDoors != null)
-            m_closeDoors.cancel();
+            m_botAction.cancelTask(m_closeDoors);
         if (m_moveAround != null)
-            m_moveAround.cancel();
+            m_botAction.cancelTask(m_moveAround);
 
         if (m_blueoutState == 1)
             m_botAction.toggleBlueOut();
 
         if (updateScores != null)
-            updateScores.cancel();
+            m_botAction.cancelTask(updateScores);
 
         if (m_myObjects != null)
             m_myObjects.hideAllObjects();

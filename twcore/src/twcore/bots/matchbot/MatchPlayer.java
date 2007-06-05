@@ -367,7 +367,7 @@ public class MatchPlayer implements Comparable
 			{
 				m_fnPlayerState = 4;
 				if (lagRequestTask != null)
-					lagRequestTask.cancel();
+                    m_botAction.cancelTask(lagRequestTask);
 			}
 			m_logger.specAndSetFreq(m_fcPlayerName, m_team.getFrequency());
 			m_logger.sendArenaMessage(getPlayerName() + " is out. " + getKills() + " wins " + getDeaths() + " losses");
@@ -393,7 +393,7 @@ public class MatchPlayer implements Comparable
 
 		//cancel lag checks
 		if (lagRequestTask != null)
-			lagRequestTask.cancel();
+            m_botAction.cancelTask(lagRequestTask);
 
 		m_fnSpecAt = m_statTracker.getStatistic(Statistics.DEATHS);
 		m_statTracker.endNow();
@@ -470,7 +470,7 @@ public class MatchPlayer implements Comparable
 		if (fbOutOfArena)
 			m_player = null;
 		if (lagRequestTask != null)
-			lagRequestTask.cancel();
+            m_botAction.cancelTask(lagRequestTask);
 		if (m_fnPlayerState == 1)
 			m_fnPlayerState = 3;
 		m_fnLaggedTime = System.currentTimeMillis();
@@ -483,7 +483,7 @@ public class MatchPlayer implements Comparable
 		{
 			m_statTracker.endNow();
 			if (lagRequestTask != null)
-				lagRequestTask.cancel();
+                m_botAction.cancelTask(lagRequestTask);
 		}
 	};
 
@@ -518,7 +518,7 @@ public class MatchPlayer implements Comparable
 		m_logger.doubleSpec(m_fcPlayerName);
 		m_fnPlayerState = 0;
 		if (lagRequestTask != null)
-			lagRequestTask.cancel();
+            m_botAction.cancelTask(lagRequestTask);
 	};
 
 	// reward
@@ -693,7 +693,7 @@ public class MatchPlayer implements Comparable
 	{
 		m_fnPlayerState = 4;
 		if (lagRequestTask != null)
-			lagRequestTask.cancel();
+            m_botAction.cancelTask(lagRequestTask);
 
 		m_statTracker.changeDeaths(10);
 
@@ -1175,8 +1175,7 @@ public class MatchPlayer implements Comparable
 			catch (Exception e)
 			{
 				if (lagRequestTask != null)
-					lagRequestTask.cancel();
-				m_botAction.sendSmartPrivateMessage("Cpt.Guano!", "ERROR: " + e.getMessage());
+                    m_botAction.cancelTask(lagRequestTask);
 			}
 		}
 	}

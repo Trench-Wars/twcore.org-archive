@@ -394,7 +394,7 @@ public class tournybot extends SubspaceBot {
 
 							String name = killeeName + killerName;
 							if (delayers.containsKey( name )) {
-								((duelDelay) delayers.get(name)).cancel();
+                                m_botAction.cancelTask(((duelDelay) delayers.get(name)));
 								delayers.remove(name);
 							}
 							duelDelay d = new duelDelay( name, killeeName, killerName, delayers, true, System.currentTimeMillis());
@@ -452,7 +452,7 @@ public class tournybot extends SubspaceBot {
 
 						String name = killeeName + killerName;
 						if (delayers.containsKey( name )) {
-							((duelDelay) delayers.get(name)).cancel();
+                            m_botAction.cancelTask(((duelDelay) delayers.get(name)));
 							delayers.remove(name);
 						}
 
@@ -875,7 +875,7 @@ public class tournybot extends SubspaceBot {
 			pStats messager = (pStats)players.get( name );
 
 			if (laggers.containsKey(name)) {
-				((Lagger)laggers.get( name )).cancel();
+                m_botAction.cancelTask((Lagger)laggers.get( name ));
 				laggers.remove( name );
 
 				if (findOpponent(messager.getFreq()) != null) {
@@ -933,7 +933,7 @@ public class tournybot extends SubspaceBot {
 			lagi.toggleTrueLag(true);
 
 			if (laggers.containsKey(name)) {
-				((Lagger) laggers.get(name)).cancel();
+                m_botAction.cancelTask((Lagger) laggers.get(name));
 				laggers.remove(name);
 			}
 			laggers.put( name, new Lagger( name, laggers ) );
@@ -1421,7 +1421,7 @@ public class tournybot extends SubspaceBot {
 		pStats pCheck = (pStats)players.get( aCheck.getName1() );
 
 		if (laggers.containsKey(aCheck.getName1())) {
-			((Lagger)laggers.get( aCheck.getName1() )).cancel();
+            m_botAction.cancelTask((Lagger)laggers.get( aCheck.getName1() ));
 			laggers.remove( aCheck.getName1() );
 			pCheck.toggleTrueLag(false);
 			pCheck.toggleSmallLag(true);
@@ -1440,7 +1440,7 @@ public class tournybot extends SubspaceBot {
 			pStats p2Check = (pStats)players.get( aCheck.getName2() );
 
 			if( laggers.containsKey( aCheck.getName2() ) ) {
-				((Lagger)laggers.get( aCheck.getName2() )).cancel();
+                m_botAction.cancelTask((Lagger)laggers.get( aCheck.getName2() ));
 				laggers.remove( aCheck.getName2() );
 				p2Check.toggleTrueLag(false);
 				p2Check.toggleSmallLag(true);
@@ -1518,7 +1518,7 @@ public class tournybot extends SubspaceBot {
 	public void removePlayer(String name, boolean forfeit) {
 
 		if (laggers.containsKey(name)) {
-			((Lagger)laggers.get( name )).cancel();
+            m_botAction.cancelTask((Lagger)laggers.get( name ));
 			laggers.remove(name);
 		}
 
@@ -1792,7 +1792,7 @@ public class tournybot extends SubspaceBot {
 	}
 
 	public void reallyAnnouncePlayers() {
-		checkQueries.cancel();
+        m_botAction.cancelTask(checkQueries);
 		trState = 4;
 
 		Iterator it3 = getFreqList();
@@ -2220,7 +2220,7 @@ public class tournybot extends SubspaceBot {
 			p.toggleTrueLag(true);
 
 			if (laggers.containsKey(p.getName())) {
-				((Lagger) laggers.get(p.getName())).cancel();
+			    m_botAction.cancelTask((Lagger) laggers.get(p.getName()));
 				laggers.remove(p.getName());
 			}
 			laggers.put( p.getName(), new Lagger( p.getName(), laggers ) );
@@ -2318,7 +2318,7 @@ public class tournybot extends SubspaceBot {
 		}
 
 		startHour = tempStart;
-		m_start.cancel();
+        m_botAction.cancelTask(m_start);
 		setupStart();
 		m_botAction.scheduleTaskAtFixedRate(m_start, getStartTime(), 7 * 24 * 60 * 60 * 1000);
 	}
