@@ -1176,7 +1176,7 @@ public class matchbot extends SubspaceBot
 
     public void cancel()
     {
-        m_gameKiller.cancel();
+        m_botAction.cancelTask(m_gameKiller);
         m_gameKiller = null;
         m_botAction.cancelTasks();
         m_botAction.ipcUnSubscribe("MatchBot");

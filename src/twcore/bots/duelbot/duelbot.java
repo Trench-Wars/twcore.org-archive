@@ -566,11 +566,11 @@ public class duelbot extends SubspaceBot {
 			m_botAction.spec( opponent );
 			m_botAction.spec( opponent );
 			if( laggers.containsKey( name ) ) {
-				((Lagger)laggers.get( name )).cancel();
+				m_botAction.cancelTask((Lagger)laggers.get( name ));
 				laggers.remove( name );
 			}
 			if( laggers.containsKey( opponent ) ) {
-				((Lagger)laggers.get( opponent )).cancel();
+                m_botAction.cancelTask(((Lagger)laggers.get( opponent )));
 				laggers.remove( opponent );
 			}
 			clearScoreboard( d );
@@ -736,7 +736,7 @@ public class duelbot extends SubspaceBot {
 
 		//Remove any lag timers for this player
 		if( laggers.containsKey( _name ) ) {
-			((Lagger)laggers.get( _name )).cancel();
+            m_botAction.cancelTask((Lagger)laggers.get( _name ));
 			laggers.remove( _name );
 		}
 
@@ -1172,11 +1172,11 @@ public class duelbot extends SubspaceBot {
     	from = d.getPlayerTwo().getName();
 
     	if( laggers.containsKey( winner ) ) {
-			((Lagger)laggers.get( winner )).cancel();
+            m_botAction.cancelTask((Lagger)laggers.get( winner ));
 			laggers.remove( winner );
 		}
     	if( laggers.containsKey( loser ) ) {
-			((Lagger)laggers.get( loser )).cancel();
+            m_botAction.cancelTask((Lagger)laggers.get( loser ));
 			laggers.remove( loser );
 		}
 
@@ -1624,7 +1624,7 @@ public class duelbot extends SubspaceBot {
 					endDuel( d, name, killer, 1 );
 					if( updates.containsKey( d ) ) {
 						ScoreReport report = (ScoreReport)updates.get( d );
-						report.cancel();
+                        m_botAction.cancelTask(report);
 					}
 					return;
 				} else {
@@ -1655,7 +1655,7 @@ public class duelbot extends SubspaceBot {
 					endDuel( d, name, killer, 1 );
 					if( updates.containsKey( d ) ) {
 						ScoreReport report = (ScoreReport)updates.get( d );
-						report.cancel();
+                        m_botAction.cancelTask(report);
 					}
 					return;
 				} else {
@@ -1710,7 +1710,7 @@ public class duelbot extends SubspaceBot {
 				ScoreReport report = (ScoreReport)updates.get( d );
 				// Handle exception if it has been unexpectedly cancelled
 				try {
-					report.cancel();
+                    m_botAction.cancelTask(report);
 				} catch (Exception e) {
 				}
 			}
@@ -1809,7 +1809,7 @@ public class duelbot extends SubspaceBot {
     	}
 
 		if( laggers.containsKey( name ) ) {
-			((Lagger)laggers.get( name )).cancel();
+            m_botAction.cancelTask((Lagger)laggers.get( name ));
 			laggers.remove( name );
 		}
 		laggers.put( name, new Lagger( name, duel, laggers ) );
@@ -1843,7 +1843,7 @@ public class duelbot extends SubspaceBot {
     	}
 
 		if( laggers.containsKey( name ) ) {
-			((Lagger)laggers.get( name )).cancel();
+            m_botAction.cancelTask((Lagger)laggers.get( name ));
 			laggers.remove( name );
 		}
 		laggers.put( name, new Lagger( name, duel, laggers ) );

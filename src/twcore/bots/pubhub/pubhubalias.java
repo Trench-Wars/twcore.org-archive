@@ -782,7 +782,7 @@ public class pubhubalias extends PubBotModule
 	
 	public void cancel()
 	{
-		clearRecordTask.cancel();
+        m_botAction.cancelTask(clearRecordTask);
 	}
 	
 	private void recordInfo(String playerName, String playerIP, String playerMacID)

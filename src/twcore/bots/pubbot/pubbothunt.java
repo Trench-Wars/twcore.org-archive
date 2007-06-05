@@ -261,7 +261,7 @@ public class pubbothunt extends PubBotModule
 	}
 	
 	public void endHunt() {
-		try { activity.cancel(); } catch(Exception e) {}
+		m_botAction.cancelTask(activity);
 		playerNames.clear();
 		isRunning = false;
 	}

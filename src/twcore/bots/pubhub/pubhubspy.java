@@ -105,7 +105,7 @@ public class pubhubspy extends PubBotModule
   public void doIgnoreOff(String playerName)
   {
     IgnoreTask ignoreTask = (IgnoreTask) ignoreList.get(playerName);
-    ignoreTask.cancel();
+    m_botAction.cancelTask(ignoreTask);
     m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("unignore " + playerName));
     m_botAction.sendChatMessage("Listening to racist words from " + playerName + ".");
     ignoreList.remove(playerName);
