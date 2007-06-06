@@ -11,11 +11,11 @@ import twcore.core.util.IPCMessage;
 public class pubbotmessage extends PubBotModule
 {
   private String botName;
-  Queue checkQueue;
+  Queue<String> checkQueue;
 
   public void initializeModule()
   {
-  	checkQueue = new Queue();
+  	checkQueue = new Queue<String>();
     botName = m_botAction.getBotName();
   }
 
@@ -32,7 +32,7 @@ public class pubbotmessage extends PubBotModule
     if(messageType == Message.ARENA_MESSAGE)
     	if(message.toLowerCase().startsWith("time:"))
     	{
-    		String name = (String)checkQueue.next();
+    		String name = checkQueue.next();
     		String pieces[] = message.split(":");
     		int mins = Integer.parseInt(pieces[3]);
     		if(mins < 1)
@@ -71,7 +71,7 @@ public class pubbotmessage extends PubBotModule
   public void handleEvent(InterProcessEvent event)
   {
 	  // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
-	  if(event.getObject() instanceof IPCMessage == false) { 
+	  if(event.getObject() instanceof IPCMessage == false) {
 		  return;
 	  }
     IPCMessage ipcMessage = (IPCMessage) event.getObject();
@@ -99,23 +99,23 @@ public class pubbotmessage extends PubBotModule
   }
 }
 
-class Queue
+class Queue<T>
 {
-	ArrayList objects;
+	ArrayList<T> objects;
 
 	public Queue()
 	{
-		objects = new ArrayList();
+		objects = new ArrayList<T>();
 	}
 
-	public Object next()
+	public T next()
 	{
-		Object obj = objects.get(0);
+		T obj = objects.get(0);
 		objects.remove(0);
 		return obj;
 	}
 
-	public void add(Object obj)
+	public void add(T obj)
 	{
 		objects.add(obj);
 	}

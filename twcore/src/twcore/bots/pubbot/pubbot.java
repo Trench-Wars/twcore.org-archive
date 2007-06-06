@@ -276,10 +276,10 @@ public class pubbot extends SubspaceBot
   public void handleEvent(InterProcessEvent event)
   {
 	  // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
-	  if(event.getObject() instanceof IPCMessage == false) { 
+	  if(event.getObject() instanceof IPCMessage == false) {
 		  return;
 	  }
-	  
+
     IPCMessage ipcMessage = (IPCMessage) event.getObject();
     String message = ipcMessage.getMessage();
     String recipient = ipcMessage.getRecipient();
@@ -382,8 +382,8 @@ public class pubbot extends SubspaceBot
       return false;
     for(int index = 0; index < startString.length(); index++)
     {
-      stringChar = (char) string.charAt(index);
-      startStringChar = (char) startString.charAt(index);
+      stringChar = string.charAt(index);
+      startStringChar = startString.charAt(index);
       if(Character.toLowerCase(stringChar) != Character.toLowerCase(startStringChar))
         return false;
     }

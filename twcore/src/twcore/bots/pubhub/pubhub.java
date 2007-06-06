@@ -57,11 +57,11 @@ public class pubhub extends SubspaceBot
   private int SPAWN_DELAY = 25000;
   private OperatorList opList;
   private ModuleHandler moduleHandler;
-  private HashMap botList;
-  private HashSet autoLoadModuleList;
-  private HashSet permitList;
-  private Vector arenaList;
-  private HashSet nonPubArenaList;
+  private HashMap<String, String> botList;
+  private HashSet<String> autoLoadModuleList;
+  private HashSet<String> permitList;
+  private Vector<String> arenaList;
+  private HashSet<String> nonPubArenaList;
   private String hubBot;
   private String pubBotChat;
   private String botName;
@@ -80,11 +80,11 @@ public class pubhub extends SubspaceBot
     super(botAction);
 
     moduleHandler = new ModuleHandler(m_botAction, m_botAction.getGeneralSettings().getString( "Core Location" ) + "/twcore/bots/pubhub", "pubhub");
-    botList = new HashMap();
-    autoLoadModuleList = new HashSet();
-    permitList = new HashSet();
-    arenaList = new Vector();
-    nonPubArenaList = new HashSet();
+    botList = new HashMap<String, String>();
+    autoLoadModuleList = new HashSet<String>();
+    permitList = new HashSet<String>();
+    arenaList = new Vector<String>();
+    nonPubArenaList = new HashSet<String>();
     numPubBots = 0;
     gotArenaList = false;
     requestEvents();
@@ -151,7 +151,7 @@ public class pubhub extends SubspaceBot
 
   public void doListModulesCmd(String sender)
   {
-    Vector moduleNames = new Vector(moduleHandler.getModuleNames());
+    Vector<String> moduleNames = new Vector<String>(moduleHandler.getModuleNames());
     String moduleName;
 
     if(moduleNames.isEmpty())
@@ -160,7 +160,7 @@ public class pubhub extends SubspaceBot
     m_botAction.sendSmartPrivateMessage(sender, "A * indicates a loaded module.");
     for(int index = 0; index < moduleNames.size(); index++)
     {
-      moduleName = (String) moduleNames.get(index);
+      moduleName = moduleNames.get(index);
       if(moduleHandler.isLoaded(moduleName))
         moduleName.concat(" *");
       m_botAction.sendSmartPrivateMessage(sender, moduleName);
@@ -202,15 +202,15 @@ public class pubhub extends SubspaceBot
 
   public void doWhereCmd()
   {
-    Vector botNames = new Vector(botList.keySet());
+    Vector<String> botNames = new Vector<String>(botList.keySet());
     Collections.sort(botNames);
     StringBuffer line = new StringBuffer();
     String botName;
 
     for(int index = 0; index < botNames.size(); index++)
     {
-      botName = (String) botNames.get(index);
-      line.append(padString(botName + ": " + (String) botList.get(botName), 30));
+      botName = botNames.get(index);
+      line.append(padString(botName + ": " + botList.get(botName), 30));
       if((index + 1) % 3 == 0)
       {
         m_botAction.sendChatMessage(line.toString());
@@ -260,8 +260,7 @@ public class pubhub extends SubspaceBot
     {
       if(sender.equals(hubBot))
         handleHubBotMessage(message);
-      if(startsWithIgnoreCase(message, "!spawn "))
-        ;
+      if(startsWithIgnoreCase(message, "!spawn ")) {}
       if(message.equalsIgnoreCase("!respawn"))
         doRespawnCmd();
       if(message.equalsIgnoreCase("!updateinfo"))
@@ -272,8 +271,7 @@ public class pubhub extends SubspaceBot
         doListModulesCmd(sender);
       if(message.equalsIgnoreCase("!off"))
         doOffCmd();
-      if(message.equalsIgnoreCase("!help"))
-        ;
+      if(message.equalsIgnoreCase("!help")) {}
 //      moduleHandler.handleEvent(new CommandEvent(sender, message));
     }
     catch(Exception e)
@@ -471,14 +469,14 @@ public class pubhub extends SubspaceBot
       m_botAction.sendChatMessage(e.getMessage());
     }
   }
-  
+
   /**
    * This method handles the specific pubbotchatIPC and should be overridden to be used
-   * 
+   *
    * @param ipc
    */
   public void handleChatIPC(IPCChatMessage ipc) {
-	  
+
   }
 
   /**
@@ -490,21 +488,21 @@ public class pubhub extends SubspaceBot
   public void handleEvent(InterProcessEvent event)
   {
 	  // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
-	  if(event.getObject() instanceof IPCMessage == false) { 
-		  moduleHandler.handleEvent(event); 
+	  if(event.getObject() instanceof IPCMessage == false) {
+		  moduleHandler.handleEvent(event);
 		  return;
 	  }
-	  
+
 	  IPCMessage ipcMessage = (IPCMessage) event.getObject();
 	  String message = ipcMessage.getMessage();
 	  String recipient = ipcMessage.getRecipient();
 	  String sender = ipcMessage.getSender();
 	  String botSender = event.getSenderName();
-	
+
 	  if(recipient == null || recipient.equals(botName))
 		  handleIPC(botSender, recipient, sender, message);
-	  
-	  moduleHandler.handleEvent(event);    
+
+	  moduleHandler.handleEvent(event);
   }
 
   /**
@@ -556,7 +554,7 @@ public class pubhub extends SubspaceBot
 
     for(int index = 0; index < arenaList.size(); index++)
     {
-      arenaName = (String) arenaList.get(index);
+      arenaName = arenaList.get(index);
       lowerName = arenaName.toLowerCase();
       if(!botList.containsValue(lowerName))
         return lowerName;
@@ -710,16 +708,16 @@ public class pubhub extends SubspaceBot
 
   private String getTargetFromArena(String arenaName)
   {
-    Set set = botList.keySet();
-    Iterator iterator = set.iterator();
+    Set<String> set = botList.keySet();
+    Iterator<String> iterator = set.iterator();
     String botName;
 
     if(arenaName == null)
       return null;
     while(iterator.hasNext())
     {
-      botName = (String) iterator.next();
-      if(arenaName.equals((String) botList.get(botName)))
+      botName = iterator.next();
+      if(arenaName.equals(botList.get(botName)))
         return botName;
     }
     return null;
@@ -769,8 +767,8 @@ public class pubhub extends SubspaceBot
       return false;
     for(int index = 0; index < startString.length(); index++)
     {
-      stringChar = (char) string.charAt(index);
-      startStringChar = (char) startString.charAt(index);
+      stringChar = string.charAt(index);
+      startStringChar = startString.charAt(index);
       if(Character.toLowerCase(stringChar) != Character.toLowerCase(startStringChar))
         return false;
     }

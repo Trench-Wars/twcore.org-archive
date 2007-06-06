@@ -15,8 +15,8 @@ import twcore.core.util.IPCMessage;
 public class pubbotspy extends PubBotModule
 {
   public static final String keywords = "j3w jew chink nig nigger n1g n1gg3r nigg3r paki gook nigg@ n1gg@ nigga niggaa nignog nign0g n1gnog n1gn0g nikka nika n1kka n1ka n*gga n*ggaa n*ggaaa n*gger n*g nigg*r nigg* n*gg*r n*gg* n!g n!ga n!gg n!gga n!ggaa n!ggaaa n!ggaaaa n!ggaaaaa";
-  private HashSet watchList;
-  private HashSet ignoreList;
+  private HashSet<String> watchList;
+  private HashSet<String> ignoreList;
   private String currentArena;
   private String botName;
   private boolean spying;
@@ -24,9 +24,9 @@ public class pubbotspy extends PubBotModule
   public void initializeModule()
   {
     spying = false;
-    ignoreList = new HashSet();
+    ignoreList = new HashSet<String>();
     currentArena = m_botAction.getArenaName();
-    watchList = new HashSet();
+    watchList = new HashSet<String>();
     botName = m_botAction.getBotName();
   }
 
@@ -166,10 +166,10 @@ public class pubbotspy extends PubBotModule
   public void handleEvent(InterProcessEvent event)
   {
 	  // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
-	  if(event.getObject() instanceof IPCMessage == false) { 
+	  if(event.getObject() instanceof IPCMessage == false) {
 		  return;
 	  }
-	  
+
     IPCMessage ipcMessage = (IPCMessage) event.getObject();
     String message = ipcMessage.getMessage();
     String recipient = ipcMessage.getRecipient();
