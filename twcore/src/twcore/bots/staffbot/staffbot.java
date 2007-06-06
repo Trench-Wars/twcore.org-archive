@@ -35,7 +35,7 @@ import twcore.core.util.Tools;
 /**
  * StaffBot performs two functions: checking for *warn-ings on specific players,
  * or from specific staff members; and rating potential new staffers.
- * 
+ *
  *
  * @author  mr. spam
  * last updated: 07/26/2002
@@ -204,17 +204,17 @@ public class staffbot extends SubspaceBot {
 
     public void queryWarnings( String name, String message ){
         String      query = "SELECT * FROM tblWarnings WHERE name = \"" + Tools.addSlashesToString(message.toLowerCase()) + "\" ORDER BY timeofwarning DESC";
-        
+
         try {
             ResultSet set = m_botAction.SQLQuery( "local", query );
 
             m_botAction.sendRemotePrivateMessage( name, "Warnings in database for " + message + ":" );
-            
+
             while( set.next() ){
                 String warning = set.getString( "warning" );
                 java.sql.Date date = set.getDate( "timeofwarning" );
                 String strDate = new SimpleDateFormat("dd MMM yyyy").format( date );
-                
+
                 // Split using regex ": (nonwhitespacechar)", which is the point of
                 // similarity between logged *warn and RoboHelp !warn messages
                 String[] text = warning.split( ": \\S", 2);
@@ -239,7 +239,7 @@ public class staffbot extends SubspaceBot {
                 String warning = set.getString( "warning" );
                 java.sql.Date date = set.getDate( "timeofwarning" );
                 String strDate = new SimpleDateFormat("dd MMM yyyy").format( date );
-                
+
                 String[] text = warning.split( ": \\S", 2);
                 if( text.length == 2 )
                     m_botAction.sendRemotePrivateMessage( name, strDate + "  - " + text[1]);
@@ -388,7 +388,7 @@ public class staffbot extends SubspaceBot {
     public void remPlayer( String staffName, String playerName, boolean remote ){
         potentialStaffer axed;
 
-        axed = (potentialStaffer)m_playerList.get( playerName.toLowerCase().trim() );
+        axed = m_playerList.get( playerName.toLowerCase().trim() );
 
         if ( axed != null ){
             m_playerList.remove( playerName.toLowerCase().trim() );
@@ -406,7 +406,7 @@ public class staffbot extends SubspaceBot {
     public void sendListAsc( String name, int count, Comparator <potentialStaffer>sort, boolean remote ){
         LinkedList <potentialStaffer>sortedList = new LinkedList<potentialStaffer>();
         LinkedList <potentialStaffer>buffer = new LinkedList<potentialStaffer>();
-        potentialStaffer listItem;        
+        potentialStaffer listItem;
         sortedList.addAll( m_playerList.values() );
         Collections.sort( sortedList, sort );
 
@@ -419,7 +419,7 @@ public class staffbot extends SubspaceBot {
         }
 
         for( i = buffer.iterator(); i.hasNext(); ){
-            listItem = (potentialStaffer)i.next();
+            listItem = i.next();
             sendRecord( name, remote, listItem.getDate(), listItem.getCommentCount(), listItem.getAveRating(), listItem.getName() );
         }
     }
@@ -442,7 +442,7 @@ public class staffbot extends SubspaceBot {
     }
 
     public void listPlayer( String staffName, String playerName, boolean remote ){
-        potentialStaffer player = (potentialStaffer)m_playerList.get( playerName.toLowerCase().trim() );
+        potentialStaffer player = m_playerList.get( playerName.toLowerCase().trim() );
 
         if (player != null){
             sendRecord( staffName, remote, player.getDate(), player.getCommentCount(), player.getAveRating(), player.getName() );
@@ -454,7 +454,7 @@ public class staffbot extends SubspaceBot {
     public void addComment( String playerName, String staffName, String comment, int rating, boolean remote ){
         potentialStaffer player;
 
-        player = (potentialStaffer)m_playerList.get( playerName.toLowerCase().trim() );
+        player = m_playerList.get( playerName.toLowerCase().trim() );
 
         if ( player != null ){
             if ( comment.length() > 212 ){
@@ -476,7 +476,7 @@ public class staffbot extends SubspaceBot {
     public void showComments( String staffName, String playerName, boolean remote ){
         potentialStaffer player;
 
-        player = (potentialStaffer)m_playerList.get( playerName.toLowerCase().trim() );
+        player = m_playerList.get( playerName.toLowerCase().trim() );
 
         if ( player != null ){
             HashMap comments = player.getComments();
@@ -636,25 +636,19 @@ public class staffbot extends SubspaceBot {
     }
 
     static final Comparator <potentialStaffer>SORT_DATE_ADDED = new Comparator<potentialStaffer>() {
-        public int compare(potentialStaffer o1, potentialStaffer o2) {
-            potentialStaffer r1 = (potentialStaffer) o1;
-            potentialStaffer r2 = (potentialStaffer) o2;
+        public int compare(potentialStaffer r1, potentialStaffer r2) {
             return r2.getDate().compareTo(r1.getDate());
         }
     };
 
     static final Comparator <potentialStaffer>SORT_NAME = new Comparator<potentialStaffer>() {
-        public int compare(potentialStaffer o1, potentialStaffer o2) {
-            potentialStaffer r1 = (potentialStaffer) o1;
-            potentialStaffer r2 = (potentialStaffer) o2;
+        public int compare(potentialStaffer r1, potentialStaffer r2) {
             return r1.getName().toLowerCase().compareTo(r2.getName().toLowerCase());
         }
     };
 
     static final Comparator <potentialStaffer>SORT_RATING = new Comparator<potentialStaffer>() {
-        public int compare(potentialStaffer o1, potentialStaffer o2) {
-            potentialStaffer r1 = (potentialStaffer) o1;
-            potentialStaffer r2 = (potentialStaffer) o2;
+        public int compare(potentialStaffer r1, potentialStaffer r2) {
             return Double.compare(r2.getAveRating(), r1.getAveRating());
         }
     };
