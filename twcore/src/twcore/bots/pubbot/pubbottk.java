@@ -78,7 +78,7 @@ public class pubbottk extends PubBotModule {
         currentArena = m_botAction.getArenaName();
 
         // TODO: Add to CFG
-        if( currentArena.toLowerCase().equals("tourny") || currentArena.toLowerCase().equals("base") || currentArena.toLowerCase().equals("duel") )
+        if( currentArena.toLowerCase().equals("tourny") || currentArena.toLowerCase().startsWith("base") || currentArena.toLowerCase().equals("duel") )
             checkTKs = false;
         else
             checkTKs = true;
