@@ -63,8 +63,8 @@ public class MatchTeam
     boolean m_turn = false;
     boolean m_blueoutState = false;
 
-    LinkedList m_players;
-    LinkedList m_captains;
+    LinkedList<MatchPlayer> m_players;
+    LinkedList<String> m_captains;
 
     boolean m_fbReadyToGo;
 
@@ -90,8 +90,8 @@ public class MatchTeam
         m_rules = m_round.m_rules;
         m_logger = m_round.m_logger;
         m_fcTeamName = fcTeamName;
-        m_players = new LinkedList();
-        m_captains = new LinkedList();
+        m_players = new LinkedList<MatchPlayer>();
+        m_captains = new LinkedList<String>();
         m_fnFrequency = fnFrequency;
         m_fbReadyToGo = false;
         m_fnSubstitutes = 0;
@@ -135,7 +135,7 @@ public class MatchTeam
                                     + " AND tblUser.fnUserID = tblUserRank.fnUserID "
                                     + "AND tblUser.fnUserID = tblUserRank.fnUserID AND tblUserRank.fnRankID IN (3,4) ORDER BY tblUser.fcUserName");
 
-            m_captains = new LinkedList();
+            m_captains = new LinkedList<String>();
 
             while (rs.next())
             {
@@ -271,15 +271,15 @@ public class MatchTeam
 
         for (int index = 0; index < m_players.size(); index++)
         {
-            matchPlayer = (MatchPlayer) m_players.get(index);
+            matchPlayer = m_players.get(index);
             matchPlayer.handleEvent(event);
         }
     }
 
     // show help messages
-    public ArrayList getHelpMessages(String name, boolean isStaff)
+    public ArrayList<String> getHelpMessages(String name, boolean isStaff)
     {
-        ArrayList help = new ArrayList();
+        ArrayList<String> help = new ArrayList<String>();
 
         if ((isStaff) || (isCaptain(name)))
         {
@@ -578,11 +578,10 @@ public class MatchTeam
 
         // specify a comparator on how to sort the list
         // sort order: player state, ship number, player name
-        Comparator a = new Comparator()
+        Comparator<MatchPlayer> a = new Comparator<MatchPlayer>()
         {
-            public int compare(Object oa, Object ob)
+            public int compare(MatchPlayer pa, MatchPlayer pb)
             {
-                MatchPlayer pa = (MatchPlayer) oa, pb = (MatchPlayer) oa;
                 if (pa.m_fnPlayerState < pb.m_fnPlayerState)
                     return -1;
                 else if (pa.m_fnPlayerState > pb.m_fnPlayerState)
@@ -599,7 +598,7 @@ public class MatchTeam
         };
 
         // use the comparator
-        Object[] players = m_players.toArray();
+        MatchPlayer[] players = m_players.toArray(new MatchPlayer[m_players.size()]);
         Arrays.sort(players, a);
 
         // show the sorted list
@@ -608,7 +607,7 @@ public class MatchTeam
         answ = "";
         for (i = 0; i < players.length; i++)
         {
-            p = (MatchPlayer) players[i];
+            p = players[i];
             if (p.getPlayerName().length() > 15)
                 answ = answ + p.getPlayerName().substring(0, 15);
             else
@@ -1763,12 +1762,12 @@ public class MatchTeam
 
         try
         {
-            player = (MatchPlayer)m_players.get(m_lagID);
+            player = m_players.get(m_lagID);
         }
         catch (IndexOutOfBoundsException e)
         {
             m_lagID = 0;
-            player = (MatchPlayer)m_players.get(m_lagID);
+            player = m_players.get(m_lagID);
         }
         m_lagID++;
         return player.getPlayerName();
@@ -1783,22 +1782,21 @@ public class MatchTeam
      * @param wbG: Is it a wb game ie not javs
      * @return The array of strings to print game summary
      */
-    public ArrayList getDScores(boolean duelG, boolean wbG)
+    public ArrayList<String> getDScores(boolean duelG, boolean wbG)
     {
 
-        ArrayList out = new ArrayList();
+        ArrayList<String> out = new ArrayList<String>();
 
-        Comparator a = new Comparator()
+        Comparator<MatchPlayer> a = new Comparator<MatchPlayer>()
         {
-            public int compare(Object oa, Object ob)
+            public int compare(MatchPlayer pa, MatchPlayer pb)
             {
-                MatchPlayer pa = (MatchPlayer) oa, pb = (MatchPlayer) ob;
                 return pb.getPlayerName().compareToIgnoreCase(pa.getPlayerName());
             };
         };
 
         // use the comparator
-        Object[] players = m_players.toArray();
+        MatchPlayer[] players = m_players.toArray(new MatchPlayer[m_players.size()]);
         Arrays.sort(players, a);
 
         if (duelG)
@@ -1815,7 +1813,7 @@ public class MatchTeam
 
                 for (int i = players.length - 1; i >= 0; i--)
                 {
-                    MatchPlayer p = (MatchPlayer) players[i];
+                    MatchPlayer p = players[i];
                     out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " "
                             + rightenString(Integer.toString(p.getTotalStatistic(Statistics.TOTAL_KILLS)), 4) + " | "
                             + rightenString(Integer.toString(p.getTotalStatistic(Statistics.DEATHS)), 4) + " | "
@@ -1836,7 +1834,7 @@ public class MatchTeam
 
                 for (int i = players.length - 1; i >= 0; i--)
                 {
-                    MatchPlayer p = (MatchPlayer) players[i];
+                    MatchPlayer p = players[i];
                     out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " "
                             + rightenString(Integer.toString(p.getTotalStatistic(Statistics.TOTAL_KILLS)), 4) + " | "
                             + rightenString(Integer.toString(p.getTotalStatistic(Statistics.DEATHS)), 4) + " | "
@@ -1862,7 +1860,7 @@ public class MatchTeam
 
             for (int i = players.length - 1; i >= 0; i--)
             {
-                MatchPlayer p = (MatchPlayer) players[i];
+                MatchPlayer p = players[i];
                 out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " "
                         + rightenString(Integer.toString(p.getTotalStatistic(Statistics.TOTAL_KILLS)), 4) + " | "
                         + rightenString(Integer.toString(p.getTotalStatistic(Statistics.DEATHS)), 4) + " | "

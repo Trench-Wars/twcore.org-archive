@@ -217,7 +217,7 @@ public class State
   private class StateNode
   {
     private String name;
-    private Vector children;
+    private Vector<StateNode> children;
 
     /**
      * Constructor for the StateNode class.  It initializes the name of the
@@ -229,7 +229,7 @@ public class State
     public StateNode(String name)
     {
       this.name = name;
-      children = new Vector();
+      children = new Vector<StateNode>();
     }
 
     /**
@@ -255,7 +255,7 @@ public class State
       if(index >= children.size() || index < 0)
         throw new IllegalArgumentException("ERROR: Invalid child number.");
 
-      return (StateNode) children.get(index);
+      return children.get(index);
     }
 
     /**

@@ -64,7 +64,7 @@ public class MatchGame
 
 	boolean m_gameStored = false;
 
-	LinkedList m_rounds;
+	LinkedList<MatchRound> m_rounds;
 	MatchRound m_curRound;
 
 	/** Creates a new instance of MatchGame */
@@ -119,7 +119,7 @@ public class MatchGame
 		m_botAction.scheduleTask(startup, 1000);
 
 	}
-	
+
 	public boolean zone(boolean canZone) {
 		if(m_rules.getInt("advertise") == 1) {
 			String zoner = m_rules.getString("zoner");
@@ -184,7 +184,7 @@ public class MatchGame
 
 		m_logger.sendArenaMessage(title + ": " + m_fcTeam1Name + " vs. " + m_fcTeam2Name);
 		m_gameState = 1;
-		m_rounds = new LinkedList();
+		m_rounds = new LinkedList<MatchRound>();
 		m_curRound = new MatchRound(1, m_fcTeam1Name, m_fcTeam2Name, this);
 		m_rounds.add(m_curRound);
 	};
@@ -371,9 +371,9 @@ public class MatchGame
 		};
 	};
 
-	public ArrayList getHelpMessages(String name, boolean isStaff)
+	public ArrayList<String> getHelpMessages(String name, boolean isStaff)
 	{
-		ArrayList help = new ArrayList();
+		ArrayList<String> help = new ArrayList<String>();
 
 		help.add("!status                                  - Shows the current state of the entire game");
 
@@ -462,16 +462,18 @@ public class MatchGame
 		String extra = getRoundStateSummary();
 		if (extra != null)
 			m_logger.sendPrivateMessage(name, "- " + extra);
-		
+
 		if( m_curRound != null ) {
 			switch( m_curRound.m_blueoutState ) {
 			case 0:
 				m_logger.sendPrivateMessage(name, "Blueout is not enabled.");
+				break;
 			case 1:
 				m_logger.sendPrivateMessage(name, "Blueout is enabled.");
+				break;
 			default:
 				m_logger.sendPrivateMessage(name, "Blueout status is unknown.");
-			}			
+			}
 		}
 	}
 
