@@ -24,7 +24,7 @@ import twcore.core.events.Message;
 
 /**
  * Mr. Arrogant -- everyone's favorite Subspace Gestapo.
- * 
+ *
  * Kicks idle players; provides a way to check logs for certain commands; can spy
  * on chat going on in a room; can act as a talking puppet.
  */
@@ -45,10 +45,10 @@ public class mrarrogant extends SubspaceBot
   private OperatorList opList;
   private String currentArena;
   private RoamTask roamTask;
-  private HashSet accessList;
+  private HashSet<String> accessList;
   private String target;
   private Date lastLogDate;
-  private Vector commandQueue;
+  private Vector<CommandLog> commandQueue;
   private FileWriter logFile;
   private String logFileName;
   private int year;
@@ -67,8 +67,8 @@ public class mrarrogant extends SubspaceBot
     dateFormat = new SimpleDateFormat("yyyy EEE MMM dd HH:mm:ss");
     roamTask = new RoamTask();
     lastLogDate = null;
-    commandQueue = new Vector();
-    accessList = new HashSet();
+    commandQueue = new Vector<CommandLog>();
+    accessList = new HashSet<String>();
     isStaying = false;
     isArroSpy = false;
   }
@@ -631,7 +631,7 @@ public class mrarrogant extends SubspaceBot
 
     for(int index = 0; index < commandQueue.size(); index++)
     {
-      commandLog = (CommandLog) commandQueue.get(index);
+      commandLog = commandQueue.get(index);
       if(commandLog.isMatch(currentDate, fromPlayer, toPlayer, command))
       {
         displayed++;
@@ -815,7 +815,7 @@ public class mrarrogant extends SubspaceBot
 
     while(!commandQueue.isEmpty())
     {
-      commandLog = (CommandLog) commandQueue.get(0);
+      commandLog = commandQueue.get(0);
       commandDate = commandLog.getDate();
       if(removeDate.before(commandDate))
         break;
