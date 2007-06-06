@@ -19,7 +19,7 @@ public class DuelBox {
 	WarpPoint	last;
 
 	Random generator;
-	Vector randomWarpPoints = new Vector();
+	Vector<WarpPoint> randomWarpPoints = new Vector<WarpPoint>();
 
 	public DuelBox( String settings[], String randomPt[], int b ) {
 		d_box = b;
@@ -46,7 +46,7 @@ public class DuelBox {
 
 	public WarpPoint getRandomWarpPoint() {
 
-		WarpPoint p = (WarpPoint)randomWarpPoints.elementAt( generator.nextInt( randomWarpPoints.size() ) );
+		WarpPoint p = randomWarpPoints.elementAt( generator.nextInt( randomWarpPoints.size() ) );
 		if( p == last ) return getRandomWarpPoint();
 		last = p;
 		return p;
