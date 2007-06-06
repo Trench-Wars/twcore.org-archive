@@ -16,8 +16,8 @@ public class pubhubspy extends PubBotModule
 {
   public static final int IGNORE_TIME = 10;
 
-  private HashSet watchList;
-  private HashMap ignoreList;
+  private HashSet<String> watchList;
+  private HashMap<String, IgnoreTask> ignoreList;
   private String botName;
 
   /**
@@ -27,8 +27,8 @@ public class pubhubspy extends PubBotModule
 
   public void initializeModule()
   {
-    watchList = new HashSet();
-    ignoreList = new HashMap();
+    watchList = new HashSet<String>();
+    ignoreList = new HashMap<String, IgnoreTask>();
     botName = m_botAction.getBotName();
   }
 
@@ -104,7 +104,7 @@ public class pubhubspy extends PubBotModule
 
   public void doIgnoreOff(String playerName)
   {
-    IgnoreTask ignoreTask = (IgnoreTask) ignoreList.get(playerName);
+    IgnoreTask ignoreTask = ignoreList.get(playerName);
     m_botAction.cancelTask(ignoreTask);
     m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("unignore " + playerName));
     m_botAction.sendChatMessage("Listening to racist words from " + playerName + ".");
@@ -212,10 +212,10 @@ public class pubhubspy extends PubBotModule
   public void handleEvent(InterProcessEvent event)
   {
 	  // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
-	  if(event.getObject() instanceof IPCMessage == false) { 
+	  if(event.getObject() instanceof IPCMessage == false) {
 		  return;
 	  }
-	  
+
     IPCMessage ipcMessage = (IPCMessage) event.getObject();
     String message = ipcMessage.getMessage();
     String recipient = ipcMessage.getRecipient();

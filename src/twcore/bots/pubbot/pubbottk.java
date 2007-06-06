@@ -181,10 +181,10 @@ public class pubbottk extends PubBotModule {
      */
     public void handleEvent( InterProcessEvent event ) {
     	// If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
-  	  	if(event.getObject() instanceof IPCMessage == false) { 
+  	  	if(event.getObject() instanceof IPCMessage == false) {
   	  		return;
   	  	}
-  	  	
+
         IPCMessage ipcMessage = (IPCMessage) event.getObject();
         String message = ipcMessage.getMessage();
         String recipient = ipcMessage.getRecipient();
@@ -244,7 +244,7 @@ public class pubbottk extends PubBotModule {
      * @param tkname Name of TKer
      */
     public void msgTKInfo( String staffname, String tkname ) {
-    	TKInfo tker = (TKInfo)tkers.get( tkname );
+    	TKInfo tker = tkers.get( tkname );
 
         if( tker == null ){
             Iterator i = m_botAction.getPlayerIterator();
@@ -263,7 +263,7 @@ public class pubbottk extends PubBotModule {
     			m_botAction.sendSmartPrivateMessage( staffname, "Player not found.  Please verify the person is in the arena." );
                 return;
             } else {
-                tker = (TKInfo)tkers.get( searchPlayer.getPlayerName().toLowerCase());
+                tker = tkers.get( searchPlayer.getPlayerName().toLowerCase());
                 if( tker == null ) {
         			m_botAction.sendSmartPrivateMessage( staffname, "Teamkill record not found.  Please check the name and verify they have teamkilled." );
                     return;
@@ -308,11 +308,11 @@ public class pubbottk extends PubBotModule {
      * been made intentionally.
      */
     public void doManualPlayerNotify( String name ) {
-        String tker = (String)tked.get( name );
+        String tker = tked.get( name );
         if( tker == null )
             return;
 
-        TKInfo info = (TKInfo)tkers.get( tker.toLowerCase() );
+        TKInfo info = tkers.get( tker.toLowerCase() );
         if( info == null ) {
             m_botAction.sendPrivateMessage( name, "Error reporting player '" + tker + "' - player not found.  Please use the ?cheater command to manually notify staff." );
             return;
@@ -350,7 +350,7 @@ public class pubbottk extends PubBotModule {
             return;
 
         if( tkers != null )
-            tk = (TKInfo)tkers.get( killer.getPlayerName().toLowerCase() );
+            tk = tkers.get( killer.getPlayerName().toLowerCase() );
 
         if( tk != null ) {
             tk.addTK( killer.getShipType(), killed.getPlayerName() );
@@ -381,7 +381,7 @@ public class pubbottk extends PubBotModule {
             return;
 
         String pn = m_botAction.getPlayerName( event.getPlayerID() ).toLowerCase();
-        TKInfo oldtker = (TKInfo)tkers.remove( pn );
+        TKInfo oldtker = tkers.remove( pn );
 
         if( oldtker != null )
             oldtkers.put( pn, oldtker );
@@ -398,7 +398,7 @@ public class pubbottk extends PubBotModule {
             return;
 
         String pn = m_botAction.getPlayerName( event.getPlayerID() ).toLowerCase();
-        TKInfo tker = (TKInfo)oldtkers.remove( pn );
+        TKInfo tker = oldtkers.remove( pn );
 
         if( tker != null )
             tkers.put( pn, tker );

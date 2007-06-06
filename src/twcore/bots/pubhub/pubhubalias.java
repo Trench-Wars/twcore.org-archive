@@ -28,102 +28,102 @@ public class pubhubalias extends PubBotModule
 	public static final int REMOVE_DELAY = 3 * 60 * 60 * 1000;
 	public static final int CLEAR_DELAY = 3 * 60 * 1000;
 	public static final int DEFAULT_DAYS = 180;
-	
+
 	private static final String NAME_FIELD = "fcUserName";
 	private static final String IP_FIELD = "fcIpString";
 	private static final String MID_FIELD = "fnMachineId";
 	private static final String TIMES_UPDATED_FIELD = "fnTimesUpdated";
 	private static final String LAST_UPDATED_FIELD = "fdUpdated";
-	
+
 	private static final int NAME_PADDING = 25;
 	private static final int IP_PADDING = 18;
 	private static final int MID_PADDING = 14;
 	private static final int TIMES_UPDATED_PADDING = 12;
 	private static final int DATE_UPDATED_PADDING = 20;
 	private static final int DEFAULT_PADDING = 25;
-	
+
 	private static final String NAME_HEADER = "Player Name";
 	private static final String IP_HEADER = "IP";
 	private static final String MID_HEADER = "MID";
 	private static final String TIMES_UPDATED_HEADER = "X Updated";
 	private static final String DATE_UPDATED_HEADER = "Last Updated";
 	private static final String DEFAULT_HEADER = "Unknown Column";
-	
+
 	private static final String DATE_FIELD_PREFIX = "fd";
-	
-	private Set justAdded;
-	private Set deleteNextTime;
-	private Set watchedIPs;
-	private Set watchedNames;
-	private Set watchedMIDs;
+
+	private Set<String> justAdded;
+	private Set<String> deleteNextTime;
+	private Set<String> watchedIPs;
+	private Set<String> watchedNames;
+	private Set<String> watchedMIDs;
 	private ClearRecordTask clearRecordTask;
-	
+
 	private int m_maxRecords = 15;
 	private boolean m_sortByName = false;
-	
+
 	/**
 	 * This method initializes the module.
 	 */
 	public void initializeModule()
 	{
-		justAdded = Collections.synchronizedSet(new HashSet());
-		deleteNextTime = Collections.synchronizedSet(new HashSet());
-		watchedIPs = Collections.synchronizedSet(new HashSet());
-		watchedNames = Collections.synchronizedSet(new HashSet());
-		watchedMIDs = Collections.synchronizedSet(new HashSet());
+		justAdded = Collections.synchronizedSet(new HashSet<String>());
+		deleteNextTime = Collections.synchronizedSet(new HashSet<String>());
+		watchedIPs = Collections.synchronizedSet(new HashSet<String>());
+		watchedNames = Collections.synchronizedSet(new HashSet<String>());
+		watchedMIDs = Collections.synchronizedSet(new HashSet<String>());
 		clearRecordTask = new ClearRecordTask();
-		
+
 		m_botAction.scheduleTaskAtFixedRate(clearRecordTask, CLEAR_DELAY, CLEAR_DELAY);
 	}
-	
+
 	public void requestEvents(EventRequester eventRequester)
 	{
 		eventRequester.request(EventRequester.MESSAGE);
 	}
-	
+
 	private void doAltNickCmd(String playerName)
 	{
 		try
 		{
 			String[] headers = {NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD};
-			
+
 			String ipResults = getSubQueryResultString(
-					"SELECT DISTINCT(fnIP) " + 
+					"SELECT DISTINCT(fnIP) " +
 					"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
 					"WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "'", "fnIP");
-			
+
 			String midResults = getSubQueryResultString(
-					"SELECT DISTINCT(fnMachineId) " + 
+					"SELECT DISTINCT(fnMachineId) " +
 					"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
 					"WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "'", "fnMachineId");
-			
+
 			String queryString =
-				"SELECT * " + 
+				"SELECT * " +
 				"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
 				"WHERE fnIP IN " + ipResults + " " +
 				"AND fnMachineID IN " + midResults + " " + getOrderBy();
-			
+
 			if(ipResults == null || midResults == null)
 				m_botAction.sendChatMessage("Player not found in database.");
 			else
 				displayAltNickResults(queryString, headers, "fcUserName");
-			
+
 		}
 		catch(SQLException e)
 		{
 			throw new RuntimeException("SQL Error: " + e.getMessage(), e);
 		}
 	}
-	
+
 	private void doAltMacIdCmd(String playerMid)
 	{
 		try
 		{
 			String[] headers = {NAME_FIELD, IP_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD};
-			
+
 			displayAltNickResults(
-					"SELECT * " + 
-					"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + 
+					"SELECT * " +
+					"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
 					"WHERE fnMachineId = " + playerMid + " " +
 					getOrderBy(), headers, "fcUserName"
 			);
@@ -133,24 +133,24 @@ public class pubhubalias extends PubBotModule
 			throw new RuntimeException("SQL Error: " + e.getMessage(), e);
 		}
 	}
-	
+
 	private String getOrderBy()
 	{
 		if(m_sortByName)
 			return "ORDER BY fcUserName";
 		return "ORDER BY fdUpdated DESC";
 	}
-	
+
 	private void doAltIpCmd(String playerIp)
 	{
 		try
 		{
 			String[] headers = {NAME_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD};
 			long ip32Bit = make32BitIp(playerIp);
-			
+
 			displayAltNickResults(
-					"SELECT * " + 
-					"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + 
+					"SELECT * " +
+					"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
 					"WHERE fnIp = " + ip32Bit + " " +
 					getOrderBy(), headers, "fcUserName"
 			);
@@ -160,7 +160,7 @@ public class pubhubalias extends PubBotModule
 			throw new RuntimeException("SQL Error: " + e.getMessage(), e);
 		}
 	}
-	
+
 	private void doInfoCmd(String playerName)
 	{
 		try
@@ -168,7 +168,7 @@ public class pubhubalias extends PubBotModule
 			String[] headers = {IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD};
 			displayAltNickResults(
 					"SELECT * " +
-					"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + 
+					"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
 					"WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "' " +
 					getOrderBy(), headers
 			);
@@ -178,13 +178,13 @@ public class pubhubalias extends PubBotModule
 			throw new RuntimeException("SQL Error: " + e.getMessage(), e);
 		}
 	}
-	
+
 	private long make32BitIp(String ipString)
 	{
 		StringTokenizer stringTokens = new StringTokenizer(ipString, ".");
 		String ipPart;
 		long ip32Bit = 0;
-		
+
 		try
 		{
 			while(stringTokens.hasMoreTokens())
@@ -197,28 +197,28 @@ public class pubhubalias extends PubBotModule
 		{
 			throw new IllegalArgumentException("Error: Malformed IP Address.");
 		}
-		
+
 		return ip32Bit;
 	}
-	
-	
+
+
 	private void displayAltNickResults(String queryString, String[] headers, String uniqueField) throws SQLException
 	{
 		long startTime = System.currentTimeMillis();
 		ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
-		HashSet prevResults = new HashSet();
+		HashSet<String> prevResults = new HashSet<String>();
 		String curResult = null;
 		int numResults = 0;
-		
+
 		if(resultSet == null)
 			throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
-		
+
 		m_botAction.sendChatMessage(getResultHeaders(headers));
 		while(resultSet.next())
 		{
 			if(uniqueField != null)
 				curResult = resultSet.getString(uniqueField);
-			
+
 			if(uniqueField == null || !prevResults.contains(curResult))
 			{
 				if(numResults <= m_maxRecords)
@@ -227,48 +227,48 @@ public class pubhubalias extends PubBotModule
 				numResults++;
 			}
 		}
-		
+
 		if(numResults > m_maxRecords)
 			m_botAction.sendChatMessage(numResults - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")" );
 		else
 			m_botAction.sendChatMessage("Altnick returned " + numResults + " results.");
                 m_botAction.SQLClose( resultSet );	}
-	
+
 	private void displayAltNickResults(String queryString, String[] headers) throws SQLException
 	{
 		displayAltNickResults(queryString, headers, null);
 	}
-	
+
 	private String getResultHeaders(String[] displayFields)
 	{
 		StringBuffer resultHeaders = new StringBuffer();
 		String displayField;
 		String fieldHeader;
 		int padding;
-		
+
 		for(int index = 0; index < displayFields.length; index++)
 		{
 			displayField = displayFields[index];
 			padding = getFieldPadding(displayField);
 			fieldHeader = getFieldHeader(displayField);
-			
+
 			resultHeaders.append(padString(fieldHeader, padding));
 		}
 		return resultHeaders.toString().trim();
 	}
-	
+
 	private String getResultLine(ResultSet resultSet, String[] displayFields) throws SQLException
 	{
 		StringBuffer resultLine = new StringBuffer();
 		String displayField;
 		String fieldValue;
 		int padding;
-		
+
 		for(int index = 0; index < displayFields.length; index++)
 		{
 			displayField = displayFields[index];
 			padding = getFieldPadding(displayField);
-			
+
 			if(displayField.startsWith(DATE_FIELD_PREFIX))
 				fieldValue = resultSet.getDate(displayField).toString();
 			else
@@ -277,7 +277,7 @@ public class pubhubalias extends PubBotModule
 		}
 		return resultLine.toString().trim();
 	}
-	
+
 	private String getFieldHeader(String displayField)
 	{
 		if(displayField.equalsIgnoreCase(NAME_FIELD))
@@ -292,7 +292,7 @@ public class pubhubalias extends PubBotModule
 			return DATE_UPDATED_HEADER;
 		return DEFAULT_HEADER;
 	}
-	
+
 	private int getFieldPadding(String displayField)
 	{
 		if(displayField.equalsIgnoreCase(NAME_FIELD))
@@ -305,15 +305,15 @@ public class pubhubalias extends PubBotModule
 			return TIMES_UPDATED_PADDING;
 		if(displayField.equalsIgnoreCase(LAST_UPDATED_FIELD))
 			return DATE_UPDATED_PADDING;
-		
-		return DEFAULT_PADDING;		
+
+		return DEFAULT_PADDING;
 	}
-	
+
 	private String getSubQueryResultString(String queryString, String columnName) throws SQLException
 	{
 		ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
 		StringBuffer subQueryResultString = new StringBuffer("(");
-		
+
 		if(resultSet == null)
 			throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
 		if(!resultSet.next())
@@ -327,10 +327,10 @@ public class pubhubalias extends PubBotModule
 		}
 		subQueryResultString.append(") ");
                 m_botAction.SQLClose( resultSet );
-		
+
 		return subQueryResultString.toString();
 	}
-	
+
 	/**
 	 * Compares IP and MID info of two names, and shows where they match.
 	 * @param argString
@@ -339,13 +339,13 @@ public class pubhubalias extends PubBotModule
 	public void doCompareCmd(String argString) throws SQLException
 	{
 		StringTokenizer argTokens = new StringTokenizer(argString, ":");
-		
+
 		if( argTokens.countTokens() != 2 )
 			throw new IllegalArgumentException("Please use the following format: !compare <Player1Name>:<Player2Name>");
-		
+
 		String player1Name = argTokens.nextToken();
 		String player2Name = argTokens.nextToken();
-		
+
 		try
 		{
 			ResultSet p1Set = m_botAction.SQLQuery(DATABASE,
@@ -354,33 +354,33 @@ public class pubhubalias extends PubBotModule
 					"WHERE U.fcUserName = '" + Tools.addSlashesToString(player1Name) + "' " +
 					"AND U.fnUserID = A.fnUserID " +
 			"ORDER BY A.fdUpdated DESC" );
-			
+
 			ResultSet p2Set = m_botAction.SQLQuery(DATABASE,
 					"SELECT * " +
 					"FROM tblUser U, tblAlias A " +
 					"WHERE U.fcUserName = '" + Tools.addSlashesToString(player2Name) + "' " +
 					"AND U.fnUserID = A.fnUserID " +
 			"ORDER BY A.fdUpdated DESC" );
-			
+
 			if( p1Set == null || p2Set == null )
 				throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
-			
+
 			p1Set.afterLast();
 			p2Set.afterLast();
-			
+
 			m_botAction.sendChatMessage("Comparison of " + player1Name + " to " + player2Name + ":" );
-			
+
 			LinkedList<String> IPs = new LinkedList<String>();
 			LinkedList<Integer> MIDs = new LinkedList<Integer>();
 			while( p1Set.previous() ) {
 				IPs.add( p1Set.getString("A.fnIP") );
 				MIDs.add( p1Set.getInt("A.fnMachineID") );
 			}
-			
+
 			int results = 0;
 			boolean matchIP, matchMID;
 			String display;
-			
+
 			while( p2Set.previous() ) {
 				matchIP = false;
 				matchMID = false;
@@ -389,12 +389,12 @@ public class pubhubalias extends PubBotModule
 					matchMID = true;
 				if( IPs.contains( p2Set.getString("A.fnIP") ) )
 					matchIP = true;
-				
+
 				if( matchMID == true )
 					display += "MID match: " + p2Set.getInt("A.fnMachineID") + " ";
 				if( matchIP == true )
 					display += " IP match: " + p2Set.getString("A.fnIP");
-				
+
 				if( display != "" ) {
 					if( results < m_maxRecords ) {
 						m_botAction.sendChatMessage( display );
@@ -402,7 +402,7 @@ public class pubhubalias extends PubBotModule
 					}
 				}
 			}
-			
+
                         m_botAction.SQLClose( p1Set );
                         m_botAction.SQLClose( p2Set );
 			if( results == 0 )
@@ -414,9 +414,9 @@ public class pubhubalias extends PubBotModule
 		{
 			throw new RuntimeException("ERROR: Cannot connect to database.");
 		}
-		
+
 	}
-	
+
 	public void doHelpCmd(String sender)
 	{
 		String[] message =
@@ -439,12 +439,12 @@ public class pubhubalias extends PubBotModule
 		};
 		m_botAction.smartPrivateMessageSpam(sender, message);
 	}
-	
+
 	public void doRecordInfoCmd(String sender)
 	{
 		m_botAction.sendChatMessage("Players recorded in the hashmap: " + (justAdded.size() + deleteNextTime.size()));
 	}
-	
+
 	public void doAltTWLCmd(String argString)
 	{
 		try
@@ -462,7 +462,7 @@ public class pubhubalias extends PubBotModule
 					"AND TU.fnTeamID = T.fnTeamID " +
 					"AND T.fdDeleted = '0000-00-00 00:00:00' " +
 			"ORDER BY U2.fcUserName, T.fcTeamName");
-			
+
 			int results = 0;
 			String lastName = "";
 			String currName;
@@ -488,7 +488,7 @@ public class pubhubalias extends PubBotModule
 			throw new RuntimeException("ERROR: Cannot connect to database.");
 		}
 	}
-	
+
 	/**
 	 *
 	 */
@@ -500,7 +500,7 @@ public class pubhubalias extends PubBotModule
 			throw new RuntimeException("Please give a number.");
 		}
 	}
-	
+
 	/**
 	 * Starts watching for an IP starting with a given string.
 	 * @param IP IP to watch for
@@ -514,7 +514,7 @@ public class pubhubalias extends PubBotModule
 			m_botAction.sendChatMessage( "IP watching enabled for IPs starting with " + IP );
 		}
 	}
-	
+
 	/**
 	 * Starts watching for a name to log on.
 	 * @param name Name to watch for
@@ -528,7 +528,7 @@ public class pubhubalias extends PubBotModule
 			m_botAction.sendChatMessage( "Login watching enabled for '" + name + "'." );
 		}
 	}
-	
+
 	/**
 	 * Starts watching for a given MacID.
 	 * @param MID MID to watch for
@@ -542,7 +542,7 @@ public class pubhubalias extends PubBotModule
 			m_botAction.sendChatMessage( "MID watching enabled for MID: " + MID );
 		}
 	}
-	
+
 	/**
 	 * Stops all IP watching.
 	 */
@@ -550,7 +550,7 @@ public class pubhubalias extends PubBotModule
 		watchedIPs.clear();
 		m_botAction.sendChatMessage( "All watched IPs cleared." );
 	}
-	
+
 	/**
 	 * Stops all name watching.
 	 */
@@ -558,7 +558,7 @@ public class pubhubalias extends PubBotModule
 		watchedNames.clear();
 		m_botAction.sendChatMessage( "All watched names cleared." );
 	}
-	
+
 	/**
 	 * Stops all MacID watching.
 	 */
@@ -566,7 +566,7 @@ public class pubhubalias extends PubBotModule
 		watchedNames.clear();
 		m_botAction.sendChatMessage( "All watched MIDs cleared." );
 	}
-	
+
 	/**
 	 * Shows current watches.
 	 */
@@ -600,11 +600,11 @@ public class pubhubalias extends PubBotModule
 			} while( i.hasNext() );
 		}
 	}
-	
+
 	public void handleChatMessage(String sender, String message)
 	{
 		String command = message.toLowerCase();
-		
+
 		try
 		{
 			if(command.equals("!recordinfo"))
@@ -653,23 +653,23 @@ public class pubhubalias extends PubBotModule
 			m_botAction.sendChatMessage(e.getMessage());
 		}
 	}
-	
+
 	public void handleEvent(Message event)
 	{
 		String sender = event.getMessager();
 		String message = event.getMessage();
 		int messageType = event.getMessageType();
-		
+
 		if(messageType == Message.CHAT_MESSAGE)
 			handleChatMessage(sender, message);
 	}
-	
+
 	public void gotEntered(String botSender, String argString)
 	{
 		if(!justAdded.contains(argString.toLowerCase()) && !deleteNextTime.contains(argString.toLowerCase()))
 			m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("notrecorded " + argString, botSender));
 	}
-	
+
 	public void gotRecord(String argString)
 	{
 		StringTokenizer recordArgs = new StringTokenizer(argString, ":");
@@ -678,11 +678,11 @@ public class pubhubalias extends PubBotModule
 		String playerName = recordArgs.nextToken();
 		String playerIP = recordArgs.nextToken();
 		String playerMacID = recordArgs.nextToken();
-		
+
 		checkName( playerName, playerIP, playerMacID );
 		checkIP( playerName, playerIP, playerMacID );
 		checkMID( playerName, playerIP, playerMacID );
-		
+
 		try
 		{
 			recordInfo(playerName, playerIP, playerMacID);
@@ -692,7 +692,7 @@ public class pubhubalias extends PubBotModule
 		{
 		}
 	}
-	
+
 	/**
 	 * Check if a name is being watched for, and notify on chat if so.
 	 * @param name Name to check
@@ -704,7 +704,7 @@ public class pubhubalias extends PubBotModule
 			m_botAction.sendChatMessage( "NAMEWATCH: '" + name + "' logged in.  (IP: " + IP + ", MID: " + MacID + ")" );
 		}
 	}
-	
+
 	/**
 	 * Check if an IP is being watched for, and notify on chat if so.
 	 * @param name Name of player
@@ -713,7 +713,7 @@ public class pubhubalias extends PubBotModule
 	 */
 	public void checkIP( String name, String IP, String MacID ) {
 		Iterator i = watchedIPs.iterator();
-		
+
 		while( i.hasNext() ) {
 			String IPfragment = (String)i.next();
 			if( IP.startsWith( IPfragment ) ) {
@@ -721,7 +721,7 @@ public class pubhubalias extends PubBotModule
 			}
 		}
 	}
-	
+
 	/**
 	 * Check if an MID is being watched for, and notify on chat if so.
 	 * @param name Name of player
@@ -733,7 +733,7 @@ public class pubhubalias extends PubBotModule
 			m_botAction.sendChatMessage( "MIDWATCH: Match on '" + name + "' - " + MacID + "  IP: " + IP );
 		}
 	}
-	
+
 	/**
 	 * This method handles an IPC message.
 	 *
@@ -747,7 +747,7 @@ public class pubhubalias extends PubBotModule
 		if(message.startsWith("record "))
 			gotRecord(message.substring(7));
 	}
-	
+
 	/**
 	 * This method handles an InterProcess event.
 	 *
@@ -756,15 +756,15 @@ public class pubhubalias extends PubBotModule
 	public void handleEvent(InterProcessEvent event)
 	{
 		// If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
-		if(event.getObject() instanceof IPCMessage == false) { 
+		if(event.getObject() instanceof IPCMessage == false) {
 			return;
 		}
-		
+
 		IPCMessage ipcMessage = (IPCMessage) event.getObject();
 		String botName = m_botAction.getBotName();
 		String message = ipcMessage.getMessage();
 		String botSender = event.getSenderName();
-		
+
 		try
 		{
 			if(botName.equals(ipcMessage.getRecipient()))
@@ -775,28 +775,28 @@ public class pubhubalias extends PubBotModule
 			m_botAction.sendChatMessage(e.getMessage());
 		}
 	}
-	
+
 	/**
 	 * This method handles the destruction of this module.
 	 */
-	
+
 	public void cancel()
 	{
         m_botAction.cancelTask(clearRecordTask);
 	}
-	
+
 	private void recordInfo(String playerName, String playerIP, String playerMacID)
 	{
 		DBPlayerData playerData = new DBPlayerData(m_botAction, DATABASE, playerName, true);
 		int userID = playerData.getUserID();
 		int aliasID = getAliasID(userID, playerIP, playerMacID);
-		
+
 		if(aliasID == -1)
 			createAlias(userID, playerIP, playerMacID);
 		else
 			updateAlias(aliasID);
 	}
-	
+
 	private int getAliasID(int userID, String playerIP, String playerMacID)
 	{
 		try
@@ -819,7 +819,7 @@ public class pubhubalias extends PubBotModule
 			throw new RuntimeException("ERROR: Unable to access database.");
 		}
 	}
-	
+
 	private void createAlias(int userID, String playerIP, String playerMacID)
 	{
 		try
@@ -829,7 +829,7 @@ public class pubhubalias extends PubBotModule
 					"(fnUserID, fcIPString, fnIP, fnMachineID, fnTimesUpdated, fdRecorded, fdUpdated) " +
 					"VALUES (" + userID + ", '" + playerIP + "', " + ip32Bit + ", " + playerMacID + ", 1, NOW(), NOW())";
 			ResultSet r = m_botAction.SQLQuery(DATABASE, query);
-			
+
                         m_botAction.SQLClose( r );
 		}
 		catch(SQLException e)
@@ -837,7 +837,7 @@ public class pubhubalias extends PubBotModule
 			throw new RuntimeException("ERROR: Unable to create alias entry.");
 		}
 	}
-	
+
 	private void updateAlias(int aliasID)
 	{
 		try
@@ -853,7 +853,7 @@ public class pubhubalias extends PubBotModule
 			throw new RuntimeException("ERROR: Unable to update alias entry.");
 		}
 	}
-	
+
 	/**
 	 * This method pads the string with whitespace.
 	 *
@@ -865,16 +865,16 @@ public class pubhubalias extends PubBotModule
 	private String padString(String string, int spaces)
 	{
 		int whitespaces = spaces - string.length();
-		
+
 		if(whitespaces < 0)
 			return string.substring(spaces);
-		
+
 		StringBuffer stringBuffer = new StringBuffer(string);
 		for(int index = 0; index < whitespaces; index++)
 			stringBuffer.append(' ');
 		return stringBuffer.toString();
 	}
-	
+
 	/**
 	 * This method clears out RecordTimes that have been recorded later than
 	 * RECORD_DELAY so the info for those players can be recorded again.

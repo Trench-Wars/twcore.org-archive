@@ -14,7 +14,7 @@ import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 
 public class pubbotpure extends PubBotModule {
-    Map                 m_playerList;
+    Map<String, Integer> m_playerList;
     int                 m_freqOneSize;
     int                 m_freqZeroSize;
     private String      m_currentArena;
@@ -27,16 +27,16 @@ public class pubbotpure extends PubBotModule {
         m_freqZeroSize = 0;
         m_levisAllowed = true;
         m_privateFreqsAllowed = true;
-        
+
         m_commandInterpreter = new CommandInterpreter( m_botAction );
         registerCommands();
 
-        m_playerList = Collections.synchronizedMap( new HashMap() );
+        m_playerList = Collections.synchronizedMap( new HashMap<String, Integer>() );
     }
 
     public void cancel(){
     }
-  
+
     void registerCommands(){
         int         acceptedMessages;
 
@@ -46,7 +46,7 @@ public class pubbotpure extends PubBotModule {
         m_commandInterpreter.registerCommand( "!levis", acceptedMessages, this, "handleLevisAllowed" );
         m_commandInterpreter.registerCommand( "!help", acceptedMessages, this, "handleHelp" );
     }
-    
+
     public void requestEvents( EventRequester eventRequester ){
         eventRequester.request( EventRequester.MESSAGE );
         eventRequester.request( EventRequester.PLAYER_LEFT );
@@ -59,16 +59,16 @@ public class pubbotpure extends PubBotModule {
 
         m_commandInterpreter.handleEvent( event );
     }
-    
+
     public void handleEvent( PlayerEntered event ){
         int         team = event.getTeam();
-    
+
         if( team == 0 ){
             m_freqZeroSize++;
         } else if( team == 1 ){
             m_freqOneSize++;
         }
-        
+
         if( m_privateFreqsAllowed == false && team > 1 ){
             changePlayerFreq( event.getPlayerName() );
         } else {
@@ -88,8 +88,8 @@ public class pubbotpure extends PubBotModule {
         Integer         frequency;
 
         name = m_botAction.getPlayerName( event.getPlayerID() );
-        frequency = (Integer)m_playerList.remove( name.toLowerCase() );
-    
+        frequency = m_playerList.remove( name.toLowerCase() );
+
         if( frequency.intValue() == 0 ){
             m_freqZeroSize--;
         } else if( frequency.intValue() == 1 ){
@@ -103,25 +103,25 @@ public class pubbotpure extends PubBotModule {
         int             newFrequency = event.getFrequency();
 
         name = m_botAction.getPlayerName( event.getPlayerID() );
-        oldFrequency = (Integer)m_playerList.remove( name.toLowerCase() );
-    
+        oldFrequency = m_playerList.remove( name.toLowerCase() );
+
         if( oldFrequency.intValue() == 0 ){
             m_freqZeroSize--;
         } else if( oldFrequency.intValue() == 1 ){
             m_freqOneSize--;
         }
-    
+
         if( newFrequency == 0 ){
             m_freqZeroSize++;
         } else if( newFrequency == 1 ){
             m_freqOneSize++;
         }
-        
+
         if( m_privateFreqsAllowed == false && newFrequency > 1 ){
             changePlayerFreq( name );
         } else {
             m_playerList.put( name.toLowerCase(), new Integer( newFrequency ) );
-        }         
+        }
     }
 
     public void handleEvent( FrequencyShipChange event ){
@@ -130,26 +130,26 @@ public class pubbotpure extends PubBotModule {
         int             newFrequency = event.getFrequency();
 
         name = m_botAction.getPlayerName( event.getPlayerID() );
-        oldFrequency = (Integer)m_playerList.remove( name.toLowerCase() );
-    
+        oldFrequency = m_playerList.remove( name.toLowerCase() );
+
         if( oldFrequency.intValue() == 0 ){
             m_freqZeroSize--;
         } else if( oldFrequency.intValue() == 1 ){
             m_freqOneSize--;
         }
-    
+
         if( newFrequency == 0 ){
             m_freqZeroSize++;
         } else if( newFrequency == 1 ){
             m_freqOneSize++;
         }
-        
+
         if( m_privateFreqsAllowed == false ){
             changePlayerFreq( name );
         } else {
             m_playerList.put( name.toLowerCase(), new Integer( newFrequency ) );
         }
-        
+
         if( m_levisAllowed == false ){
             if( event.getShipType() == 4 ){
                 m_botAction.sendPrivateMessage( name, "Levis are not currently allowed in this arena." );
@@ -159,7 +159,7 @@ public class pubbotpure extends PubBotModule {
     }
 
     public void handlePrivFreqs( String playerName, String message ){
-    
+
         if( opList.isHighmod( playerName ) ){
             if( m_privateFreqsAllowed == true ){
                 m_privateFreqsAllowed = false;
@@ -167,12 +167,12 @@ public class pubbotpure extends PubBotModule {
             } else {
                 m_privateFreqsAllowed = true;
                 m_botAction.sendRemotePrivateMessage( playerName, "Private frequencies are now allowed." );
-            }            
+            }
         }
     }
-    
+
     public void changePlayerFreq( String name ){
-    
+
         if( m_freqZeroSize > m_freqOneSize ){
             m_botAction.setFreq( name, 1 );
             m_playerList.put( name.toLowerCase(), new Integer( 1 ) );
@@ -180,10 +180,10 @@ public class pubbotpure extends PubBotModule {
             m_botAction.setFreq( name, 0 );
             m_playerList.put( name.toLowerCase(), new Integer( 0 ) );
         }
-    }            
-           
+    }
+
     public void handleLevisAllowed( String playerName, String message ){
-    
+
         if( opList.isHighmod( playerName ) ){
             if( m_levisAllowed == true ){
                 m_levisAllowed = false;
@@ -191,12 +191,12 @@ public class pubbotpure extends PubBotModule {
             } else {
                 m_levisAllowed = true;
                 m_botAction.sendRemotePrivateMessage( playerName, "Levis are now allowed." );
-            }            
+            }
         }
     }
 
     public void handleHelp( String playerName, String message ){
-    
+
         if( opList.isHighmod( playerName ) ){
             m_botAction.sendRemotePrivateMessage( playerName, "----------- Pure pub settings -----------" );
             m_botAction.sendRemotePrivateMessage( playerName, "!privfreqs - Toggle whether private freqs are allowed or not." );

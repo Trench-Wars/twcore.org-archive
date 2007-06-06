@@ -25,12 +25,12 @@ import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
 /**
- * Hosts the OctaBase event.  
+ * Hosts the OctaBase event.
  */
 public class octabot extends SubspaceBot {
 
-	private HashMap players;
-	private	HashMap access;
+	private HashMap<String, OctaPlayer> players;
+	//private	HashMap access;
 	private boolean running = false;
 	private boolean prestart = false;
 
@@ -40,8 +40,8 @@ public class octabot extends SubspaceBot {
 	public octabot( BotAction botAction ) {
 		super( botAction );
 
-		players = new HashMap();
-		access = new HashMap();
+		players = new HashMap<String, OctaPlayer>();
+		//access = new HashMap();
 
 		EventRequester events = m_botAction.getEventRequester();
                 events.request( EventRequester.MESSAGE );
@@ -93,7 +93,7 @@ public class octabot extends SubspaceBot {
 		if( !players.containsKey( p.getPlayerName() ) )
 			players.put( p.getPlayerName(), new OctaPlayer( p ) );
 		else {
-			OctaPlayer oP = (OctaPlayer)players.get( p.getPlayerName() );
+			OctaPlayer oP = players.get( p.getPlayerName() );
 			oP.update( p );
 		}
 
@@ -121,7 +121,7 @@ public class octabot extends SubspaceBot {
 		if( !players.containsKey( p.getPlayerName() ) )
 			players.put( p.getPlayerName(), new OctaPlayer( p ) );
 		else {
-			OctaPlayer oP = (OctaPlayer)players.get( p.getPlayerName() );
+			OctaPlayer oP = players.get( p.getPlayerName() );
 			oP.update( p );
 		}
 
@@ -191,13 +191,13 @@ public class octabot extends SubspaceBot {
 			players.put( killee, new OctaPlayer( m_botAction.getPlayer( killee ) ) );
 
 		if( players.containsKey( killer ) ) {
-			OctaPlayer p = (OctaPlayer)players.get( killer );
-			OctaPlayer o = (OctaPlayer)players.get( killee );
+			OctaPlayer p = players.get( killer );
+			OctaPlayer o = players.get( killee );
 			p.handleEvent( event, true, m_botAction, o );
 		}
 		if( players.containsKey( killee ) ) {
-			OctaPlayer p = (OctaPlayer)players.get( killee );
-			OctaPlayer o = (OctaPlayer)players.get( killer );
+			OctaPlayer p = players.get( killee );
+			OctaPlayer o = players.get( killer );
 			p.handleEvent( event, false, m_botAction, o );
 		}
 	}
@@ -210,7 +210,7 @@ public class octabot extends SubspaceBot {
 		Iterator it = players.keySet().iterator();
 		while( it.hasNext() ) {
 			String name = (String)it.next();
-			OctaPlayer p = (OctaPlayer)players.get( name );
+			OctaPlayer p = players.get( name );
 			if( p.getFrequency() == freq )
 				p.addFlagPoints( event.getPoints() );
 		}
@@ -224,7 +224,7 @@ public class octabot extends SubspaceBot {
 		if( !players.containsKey( name ) )
 			players.put( name, new OctaPlayer( m_botAction.getPlayer( name ) ) );
 
-		OctaPlayer p = (OctaPlayer)players.get( name );
+		OctaPlayer p = players.get( name );
 		p.update( event );
 	}
 
@@ -236,7 +236,7 @@ public class octabot extends SubspaceBot {
 		if( !players.containsKey( name ) )
 			players.put( name, new OctaPlayer( m_botAction.getPlayer( name ) ) );
 
-		OctaPlayer p = (OctaPlayer)players.get( name );
+		OctaPlayer p = players.get( name );
 		p.update( event );
 	}
 
@@ -256,15 +256,15 @@ public class octabot extends SubspaceBot {
 			if( p.getFrequency() == 0 ) one++;
 			else if( p.getFrequency() == 1 ) two++;
 		}
-		
+
 		int freq = 0;
 		if( one > two ) freq = 1;
-		
+
 		m_botAction.setFreq( playerId, freq );
 	}
-	
+
 	public int getHighScorer( int freq ) {
-		
+
 		Iterator it = m_botAction.getPlayingPlayerIterator();
 		int score = 0;
 		int topPlayerId = 0;
@@ -277,9 +277,9 @@ public class octabot extends SubspaceBot {
 		}
 		return topPlayerId;
 	}
-	
+
 	public void ensureNoneInSpecialShip( int playerId, int freq ) {
-		
+
 		Iterator it = m_botAction.getPlayingPlayerIterator();
 		while( it.hasNext() ) {
 			Player p = (Player)it.next();
@@ -289,15 +289,17 @@ public class octabot extends SubspaceBot {
 			}
 		}
 	}
-	
+
+	/*
 	public boolean hasAccess( int playerId ) {
 		if( access.containsKey( m_botAction.getPlayerName( playerId ) ) )
 			return true;
 		else return false;
 	}
-	
+	*/
+
 	public void startGame() {
-		
+
 		if( running ) return;
 		m_botAction.toggleLocked();
 		m_botAction.resetFlagGame();
@@ -306,7 +308,7 @@ public class octabot extends SubspaceBot {
 		m_botAction.showObject( 11 );
 		m_botAction.sendArenaMessage( "GET READY", 2 );
 
-		
+
 		TimerTask startGame = new TimerTask() {
 			public void run() {
 				m_botAction.showObject( 12 );
@@ -315,12 +317,12 @@ public class octabot extends SubspaceBot {
 				timeStart = (int)(System.currentTimeMillis()/1000);
 				d = new java.util.Date();
 			}
-		}; 
+		};
 		m_botAction.scheduleTask( startGame, 10500 );
 	}
-	
+
 	public void stopGame() {
-		
+
 		if( !running ) return;
 		running = false;
 		m_botAction.toggleLocked();
@@ -328,17 +330,17 @@ public class octabot extends SubspaceBot {
 		m_botAction.sendArenaMessage( "Game has been canceled." );
 		players.clear();
 	}
-	
+
 	public void handleLockedState( boolean locked ) {
-		
-		if( running && locked ) 
+
+		if( running && locked )
 			m_botAction.toggleLocked();
 		if( !running && !locked )
 			m_botAction.toggleLocked();
 	}
 	/*
 	public void showAccessList( String name ) {
-		
+
 		Iterator it = access.keySet().iterator();
 		Vector v = new Vector();
 		String list = "Access: ";
@@ -351,11 +353,11 @@ public class octabot extends SubspaceBot {
 		}
 		for( int i = 0; i < v.size(); i++ )
 			m_botAction.sendPrivateMessage( name, (String)v.elementAt(i) );
-			
+
 	}
 	*/
 	public void displayAccessHelp( String name ) {
-		
+
 		String help[] = {
 			"-------------- OctaBot v1.0 ----------------------------",
 			"| !start               - starts an Octabase game!!!    |",
@@ -368,7 +370,7 @@ public class octabot extends SubspaceBot {
 	}
 	/*
 	public void readPermit( String file ) {
-		
+
 		try {
 			BufferedReader in = new BufferedReader( new FileReader( file ) );
 			String line = in.readLine();
@@ -384,17 +386,17 @@ public class octabot extends SubspaceBot {
 	}
 	*/
 	public void warpPlayer( Player p ) {
-		
+
 		if( p.getFrequency() == 0 )
 			m_botAction.warpTo( p.getPlayerID(), 450, 512 );
-		else 
+		else
 			m_botAction.warpTo( p.getPlayerID(), 572, 512 );
 	}
-	
+
 	public void storeGameResult( int team, int jackpot ) {
-		
+
 		int length = ((int)(System.currentTimeMillis()/1000))-timeStart;
-		
+
 		String query = "INSERT INTO `tblOctaGame` (fnWinner, fnJackpot, fnLength, fdDate) VALUES ";
 		query += "("+team+", "+jackpot+", "+length+", NOW())";
 		try {
@@ -402,13 +404,13 @@ public class octabot extends SubspaceBot {
 		} catch (Exception e) {
 			Tools.printStackTrace( "Unable to store game:" , e );
 		}
-		
+
 		int id = getGameID();
-		
+
 		Iterator it = players.keySet().iterator();
 		while( it.hasNext() ) {
 			String name = (String)it.next();
-			OctaPlayer p = (OctaPlayer)players.get( name );
+			OctaPlayer p = players.get( name );
 			try {
 				m_botAction.SQLBackgroundQuery( "local", "%octa" + name, p.getQueryString( getUserId( name ), id ) );
 			} catch (Exception e) {
@@ -416,9 +418,9 @@ public class octabot extends SubspaceBot {
 			}
 		}
 	}
-	
+
 	public int getGameID() {
-		
+
 		try {
 			String query = "SELECT fnGameID FROM  `tblOctaGame` WHERE 1  ORDER BY fnGameID DESC LIMIT 1";
 			ResultSet result = m_botAction.SQLQuery( "local", query );
@@ -432,9 +434,9 @@ public class octabot extends SubspaceBot {
 		}
 		return 0;
 	}
-	
+
 	public int getUserId( String name ) {
-		
+
 		try {
 			ResultSet result = m_botAction.SQLQuery( "local", "SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
                         int gameid = 0;
@@ -447,7 +449,7 @@ public class octabot extends SubspaceBot {
 		}
 		return 0;
 	}
-		
-		
-	
+
+
+
 }
