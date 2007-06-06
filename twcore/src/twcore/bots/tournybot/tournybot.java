@@ -35,12 +35,12 @@ public class tournybot extends SubspaceBot {
 	private BotSettings m_botSettings;
 	private lagHandler m_lagHandler;
 
-	HashMap duels;
-	HashMap freqs;
-	HashMap players;
-	HashMap votes;
-	HashMap laggers;
-	HashMap delayers;
+	HashMap<String, dStats> duels;
+	HashMap<String, fStats> freqs;
+	HashMap<String, pStats> players;
+	HashMap<String, Integer> votes;
+	HashMap<String, Lagger> laggers;
+	HashMap<String, duelDelay> delayers;
 
 	TimerTask m_20Seconds;
 	TimerTask m_10Seconds;
@@ -54,7 +54,7 @@ public class tournybot extends SubspaceBot {
 	TimerTask m_start;
 	TimerTask checkQueries;
 
-	Iterator ppIterator;
+	Iterator<Player> ppIterator;
 
 	String dbConn = "website";
 
@@ -95,12 +95,12 @@ public class tournybot extends SubspaceBot {
 
 	public tournybot(BotAction botAction) {
 		super(botAction);
-		duels = new HashMap();
-		freqs = new HashMap();
-		players = new HashMap();
-		votes = new HashMap();
-		laggers = new HashMap();
-		delayers = new HashMap();
+		duels = new HashMap<String, dStats>();
+		freqs = new HashMap<String, fStats>();
+		players = new HashMap<String, pStats>();
+		votes = new HashMap<String, Integer>();
+		laggers = new HashMap<String, Lagger>();
+		delayers = new HashMap<String, duelDelay>();
 
 		requestEvents();
 		m_botSettings = m_botAction.getBotSettings();
@@ -316,13 +316,13 @@ public class tournybot extends SubspaceBot {
 				return;
 			}
 
-			pStats warper = (pStats)players.get(name);
+			pStats warper = players.get(name);
 
 			if (warper.getFreq() == null || !freqs.containsKey(warper.getFreq())) {
 				return;
 			}
 
-			fStats out = (fStats)freqs.get(warper.getFreq());
+			fStats out = freqs.get(warper.getFreq());
 			int maxx = 1024;
 			int minx = 0;
 			int maxy = 1024;
@@ -369,8 +369,8 @@ public class tournybot extends SubspaceBot {
 			if (lagWorks) { m_lagHandler.requestLag(killerName); }
 
 			if (playerStillIn(killerName) && playerStillIn(killeeName)) {
-				pStats info = (pStats)players.get( killerName );
-				pStats info2 = (pStats)players.get( killeeName );
+				pStats info = players.get( killerName );
+				pStats info2 = players.get( killeeName );
 
 				if (findOpponent(info2.getFreq()) != null && (findOpponent(info2.getFreq()).equals(info.getFreq()) || info2.getFreq().equals(info.getFreq()))) {
 
@@ -394,7 +394,7 @@ public class tournybot extends SubspaceBot {
 
 							String name = killeeName + killerName;
 							if (delayers.containsKey( name )) {
-                                m_botAction.cancelTask(((duelDelay) delayers.get(name)));
+                                m_botAction.cancelTask( delayers.get(name) );
 								delayers.remove(name);
 							}
 							duelDelay d = new duelDelay( name, killeeName, killerName, delayers, true, System.currentTimeMillis());
@@ -452,7 +452,7 @@ public class tournybot extends SubspaceBot {
 
 						String name = killeeName + killerName;
 						if (delayers.containsKey( name )) {
-                            m_botAction.cancelTask(((duelDelay) delayers.get(name)));
+                            m_botAction.cancelTask( delayers.get(name) );
 							delayers.remove(name);
 						}
 
@@ -581,7 +581,7 @@ public class tournybot extends SubspaceBot {
 			    return;
 			}
 
-			fStats rand = (fStats)freqs.get( event.getIdentifier() );
+			fStats rand = freqs.get( event.getIdentifier() );
 
 			try {
 				if (event.getResultSet().next()) {
@@ -613,7 +613,7 @@ public class tournybot extends SubspaceBot {
 				    return;
 				}
 
-				fStats rand = (fStats)freqs.get( team[0] );
+				fStats rand = freqs.get( team[0] );
 
 				pStats rP;
 
@@ -658,7 +658,7 @@ public class tournybot extends SubspaceBot {
 				    return;
 				}
 
-				fStats rand = (fStats)freqs.get( event.getIdentifier() );
+				fStats rand = freqs.get( event.getIdentifier() );
 
 				try {
 					if (event.getResultSet().next()) {
@@ -801,7 +801,7 @@ public class tournybot extends SubspaceBot {
 	public void handleMyfreq(String name) {
 
 		if (trState == 4 && maxPerFreq == 2 && players.containsKey(name) && m_botAction.getPlayer(name).getShipType() == 0) {
-			pStats messager = (pStats)players.get( name );
+			pStats messager = players.get( name );
 			if (freqStillIn(messager.getFreq()))	{
 				m_botAction.setFreq(name, Integer.parseInt(messager.getFreq()));
 			}
@@ -816,8 +816,8 @@ public class tournybot extends SubspaceBot {
 		}
 
 		if (players.containsKey(player) && trState == 4) {
-			pStats score = (pStats)players.get( player );
-			fStats fScore = (fStats)freqs.get( score.getFreq() );
+			pStats score = players.get( player );
+			fStats fScore = freqs.get( score.getFreq() );
 
 			int sRound = fScore.getRound();
 
@@ -839,7 +839,7 @@ public class tournybot extends SubspaceBot {
 					m_botAction.sendPrivateMessage( name, fScore.getNames() + " is waiting for an opponent in " + getRoundName(sRound));
 				}
 			} else {
-				fStats ops = (fStats)freqs.get( findOpponent(score.getFreq()) );
+				fStats ops = freqs.get( findOpponent(score.getFreq()) );
 				m_botAction.sendPrivateMessage( name, getRoundName(sRound) + ": [" + fScore.getNames() + " " + ops.getGameDeaths() + " - " + fScore.getGameDeaths() + " " + ops.getNames() + "]");
 
 				if (maxPerFreq == 2) {
@@ -850,15 +850,15 @@ public class tournybot extends SubspaceBot {
 	}
 
 	public String[] getDuels() {
-		ArrayList duelList = new ArrayList();
+		ArrayList<String> duelList = new ArrayList<String>();
 
 		if (trState == 4) {
 
 			for (int i = 1; i < 7; i++) {
-				Iterator d = getDuelList();
+				Iterator<String> d = getDuelList();
 				while (d.hasNext()) {
-					String duel = (String) d.next();
-					dStats dU = (dStats)duels.get( duel );
+					String duel = d.next();
+					dStats dU = duels.get( duel );
 
 					if (!dU.getFinished() && i == dU.getF1().getRound()) {
 						duelList.add(getRoundName(dU.getF1().getRound()) + ": [" + dU.getF1().getNames() + " " + dU.getF2().getGameDeaths() + " - " + dU.getF1().getGameDeaths() + " " + dU.getF2().getNames() + "]");
@@ -866,23 +866,23 @@ public class tournybot extends SubspaceBot {
 				}
 			}
 		}
-		return (String[]) duelList.toArray(new String[duelList.size()]);
+		return duelList.toArray(new String[duelList.size()]);
 	}
 
 	public void handleReturn(String name) {
 
 		if (playerStillIn(name) && trState == 4 && m_botAction.getPlayer(name).getShipType() == 0) {
-			pStats messager = (pStats)players.get( name );
+			pStats messager = players.get( name );
 
 			if (laggers.containsKey(name)) {
-                m_botAction.cancelTask((Lagger)laggers.get( name ));
+                m_botAction.cancelTask(laggers.get( name ));
 				laggers.remove( name );
 
 				if (findOpponent(messager.getFreq()) != null) {
 					int remainingLO = maxLagOuts - messager.getLagOuts();
 
 					if (messager.getPlayerState() == 1) {
-						fStats ops = (fStats)freqs.get( findOpponent(messager.getFreq()) );
+						fStats ops = freqs.get( findOpponent(messager.getFreq()) );
 						m_botAction.sendPrivateMessage( name, "Go! (You have " + remainingLO + " lagout(s) left)", 104);
 						if (maxPerFreq == 1) {
 							m_botAction.sendPrivateMessage( ops.getName1(), "Your opponent has returned from lagout, Go!", 104);
@@ -909,7 +909,7 @@ public class tournybot extends SubspaceBot {
 	 */
 
 	public void handleLagOut(String name) {
-		pStats lagi = (pStats)players.get( name );
+		pStats lagi = players.get( name );
 
 		if (lagi.getPlayerState() == 0) {
 		    lagi.toggleSmallLag(true);
@@ -933,14 +933,14 @@ public class tournybot extends SubspaceBot {
 			lagi.toggleTrueLag(true);
 
 			if (laggers.containsKey(name)) {
-                m_botAction.cancelTask((Lagger) laggers.get(name));
+                m_botAction.cancelTask( laggers.get(name));
 				laggers.remove(name);
 			}
 			laggers.put( name, new Lagger( name, laggers ) );
-			Lagger l = (Lagger)laggers.get( name );
+			Lagger l = laggers.get( name );
 			m_botAction.scheduleTask( l, 60000 );
 
-			fStats ops = (fStats)freqs.get( findOpponent(lagi.getFreq()));
+			fStats ops = freqs.get( findOpponent(lagi.getFreq()));
 			m_botAction.sendSmartPrivateMessage( name, "You have 60 seconds to return to the game, send me !return to enter.");
 			m_botAction.sendPrivateMessage( ops.getName1(), "Your opponent (" + name + ") has lagged out, and has 60 seconds to return. Total " + lagi.getLagOuts() + " lagouts.");
 
@@ -962,8 +962,8 @@ public class tournybot extends SubspaceBot {
 		    return 512;
 		}
 
-		pStats tPos = (pStats)players.get( name );
-		fStats pPos = (fStats)freqs.get( tPos.getFreq() );
+		pStats tPos = players.get( name );
+		fStats pPos = freqs.get( tPos.getFreq() );
 
 		int nroer = pPos.getPlayerNro();
 
@@ -1010,8 +1010,8 @@ public class tournybot extends SubspaceBot {
 		    return 512;
 		}
 
-		pStats tPos = (pStats)players.get( name );
-		fStats pPos = (fStats)freqs.get( tPos.getFreq() );
+		pStats tPos = players.get( name );
+		fStats pPos = freqs.get( tPos.getFreq() );
 
 		int nroer = pPos.getPlayerNro();
 
@@ -1109,16 +1109,16 @@ public class tournybot extends SubspaceBot {
 				ppIterator = m_botAction.getPlayingPlayerIterator();
 				playersNum = 0;
 
-				Iterator i3 = m_botAction.getPlayingPlayerIterator();
+				Iterator<Player> i3 = m_botAction.getPlayingPlayerIterator();
 
 				while (i3.hasNext()) {
-					Player p = (Player)i3.next();
+					Player p = i3.next();
 					String name = p.getPlayerName();
 					int tFreq = p.getFrequency();
 					String freq = Integer.toString(tFreq);
 
 					players.put( name, new pStats(name) );
-					pStats check = (pStats)players.get( name );
+					pStats check = players.get( name );
 
 					playersNum++;
 					check.register();
@@ -1156,7 +1156,7 @@ public class tournybot extends SubspaceBot {
 
 				if (maxPerFreq == 2) {
 					while (ppIterator.hasNext()) {
-						Player p = (Player)ppIterator.next();
+						Player p = ppIterator.next();
 						String name = p.getPlayerName();
 
 						if (!hasPartner(name)) {
@@ -1164,21 +1164,21 @@ public class tournybot extends SubspaceBot {
 						}
 					}
 
-					Iterator i2 = getPlayerList();
+					Iterator<String> i2 = getPlayerList();
 
 					while (i2.hasNext()) {
-						String name2 = (String) i2.next();
-						pStats check = (pStats)players.get( name2 );
+						String name2 = i2.next();
+						pStats check = players.get( name2 );
 
 						String freq = check.getFreq();
 
 						if (!freqs.containsKey(freq)) {
 							freqs.put( freq, new fStats() );
-							fStats fCheck = (fStats)freqs.get( freq );
+							fStats fCheck = freqs.get( freq );
 
 							fCheck.addPlayer(check, 1);
 						} else {
-							fStats fCheck = (fStats)freqs.get( freq );
+							fStats fCheck = freqs.get( freq );
 							fCheck.addPlayer(check, 2);
 
 							if (shipType == 12) {
@@ -1191,17 +1191,17 @@ public class tournybot extends SubspaceBot {
 						}
 					}
 				} else {
-					Iterator i2 = getPlayerList();
+					Iterator<String> i2 = getPlayerList();
 
 					while (i2.hasNext()) {
-						String name2 = (String) i2.next();
-						pStats check = (pStats)players.get( name2 );
+						String name2 = i2.next();
+						pStats check = players.get( name2 );
 
 						String freq = Integer.toString(check.getPlayerID());
 
 						if (!freqs.containsKey(freq)) {
 							freqs.put( freq, new fStats() );
-							fStats fCheck = (fStats)freqs.get( freq );
+							fStats fCheck = freqs.get( freq );
 
 							check.setFreq(freq);
 							m_botAction.setFreq(name2, check.getPlayerID());
@@ -1345,7 +1345,7 @@ public class tournybot extends SubspaceBot {
 		if (n == 1) {
 			tournyCount++;
 			displayScores();
-			fStats fWin = (fStats)freqs.get(freq);
+			fStats fWin = freqs.get(freq);
 			finishTournament(tournyID, fWin.getNames());
 			m_botAction.sendArenaMessage("GAME OVER: Winner " + fWin.getNames() + "!", 5);
 
@@ -1390,10 +1390,10 @@ public class tournybot extends SubspaceBot {
 			{
 				playersNum = 0;
 
-				Iterator i = m_botAction.getPlayerIterator();
+				Iterator<Player> i = m_botAction.getPlayerIterator();
 
 				while (i.hasNext()) {
-					Player p = (Player)i.next();
+					Player p = i.next();
 					if (p.getShipType() != 0) {
 						playersNum++;
 					}
@@ -1412,16 +1412,16 @@ public class tournybot extends SubspaceBot {
 
 	public void warpFreq(String freq) {
 		int iFreq = Integer.parseInt(freq);
-		fStats fWarp = (fStats)freqs.get( freq );
+		fStats fWarp = freqs.get( freq );
 		m_botAction.warpFreqToLocation(iFreq, playerXPos(fWarp.getName1()), playerYPos(fWarp.getName1()));
 	}
 
 	public void advanceFreq(String freq) {
-		fStats aCheck = (fStats)freqs.get( freq );
-		pStats pCheck = (pStats)players.get( aCheck.getName1() );
+		fStats aCheck = freqs.get( freq );
+		pStats pCheck = players.get( aCheck.getName1() );
 
 		if (laggers.containsKey(aCheck.getName1())) {
-            m_botAction.cancelTask((Lagger)laggers.get( aCheck.getName1() ));
+            m_botAction.cancelTask(laggers.get( aCheck.getName1() ));
 			laggers.remove( aCheck.getName1() );
 			pCheck.toggleTrueLag(false);
 			pCheck.toggleSmallLag(true);
@@ -1437,10 +1437,10 @@ public class tournybot extends SubspaceBot {
 		pCheck.sleeping();
 
 		if (maxPerFreq == 2) {
-			pStats p2Check = (pStats)players.get( aCheck.getName2() );
+			pStats p2Check = players.get( aCheck.getName2() );
 
 			if( laggers.containsKey( aCheck.getName2() ) ) {
-                m_botAction.cancelTask((Lagger)laggers.get( aCheck.getName2() ));
+                m_botAction.cancelTask(laggers.get( aCheck.getName2() ));
 				laggers.remove( aCheck.getName2() );
 				p2Check.toggleTrueLag(false);
 				p2Check.toggleSmallLag(true);
@@ -1489,13 +1489,13 @@ public class tournybot extends SubspaceBot {
 	 */
 
 	public String findOpponent(String freq) {
-		fStats fFreq = (fStats)freqs.get( freq );
+		fStats fFreq = freqs.get( freq );
 
-		Iterator it = getFreqList();
+		Iterator<String> it = getFreqList();
 
 		while (it.hasNext()) {
-			String oFreq = (String) it.next();
-			fStats opponent = (fStats)freqs.get( oFreq );
+			String oFreq = it.next();
+			fStats opponent = freqs.get( oFreq );
 
 			if (opponent.getFreqState() != 2 && !freq.equals(oFreq) && opponent.getRound() == fFreq.getRound() && opponent.getBox() == fFreq.getBox()) {
 				return oFreq;
@@ -1505,8 +1505,8 @@ public class tournybot extends SubspaceBot {
 	}
 
 	public String getPartner(String name) {
-		pStats pCheck = (pStats)players.get( name );
-		fStats fCheck = (fStats)freqs.get( pCheck.getFreq() );
+		pStats pCheck = players.get( name );
+		fStats fCheck = freqs.get( pCheck.getFreq() );
 
 		if (fCheck.getName1().equals(name)) {
 			return fCheck.getName2();
@@ -1518,11 +1518,11 @@ public class tournybot extends SubspaceBot {
 	public void removePlayer(String name, boolean forfeit) {
 
 		if (laggers.containsKey(name)) {
-            m_botAction.cancelTask((Lagger)laggers.get( name ));
+            m_botAction.cancelTask(laggers.get( name ));
 			laggers.remove(name);
 		}
 
-		pStats lCheck = (pStats)players.get( name );
+		pStats lCheck = players.get( name );
 		int fr1 = Integer.parseInt(lCheck.getFreq());
 
 		if (findOpponent(lCheck.getFreq()) == null) {
@@ -1552,13 +1552,13 @@ public class tournybot extends SubspaceBot {
 	}
 
 	public void removeFreq(String freq, boolean forfeit, String name) {
-		fStats fCheck = (fStats)freqs.get( freq );
+		fStats fCheck = freqs.get( freq );
 		String duelName = "r" + fCheck.getRound() + "b" + fCheck.getBox();
-		dStats fDuel = (dStats)duels.get( duelName );
+		dStats fDuel = duels.get( duelName );
 
 		if (findOpponent(freq) != null) {
 			String opponent = findOpponent( freq );
-			fStats oFreq = (fStats)freqs.get( opponent );
+			fStats oFreq = freqs.get( opponent );
 			oFreq.busy(0);
 			fDuel.endDuel(oFreq, fCheck);
 			fCheck.remove();
@@ -1606,7 +1606,7 @@ public class tournybot extends SubspaceBot {
 		    return false;
 		}
 
-		pStats stillIn = (pStats)players.get( name );
+		pStats stillIn = players.get( name );
 
 		if (stillIn.getPlayerState() != 2) {
 			return true;
@@ -1626,7 +1626,7 @@ public class tournybot extends SubspaceBot {
 		    return false;
 		}
 
-		fStats stillIn = (fStats)freqs.get( freq );
+		fStats stillIn = freqs.get( freq );
 
 		if (stillIn.getFreqState() != 2) {
 			return true;
@@ -1641,12 +1641,12 @@ public class tournybot extends SubspaceBot {
 	 */
 
 	public boolean hasPartner(String name) {
-		pStats player = (pStats)players.get( name );
-		Iterator it = getPlayerList();
+		pStats player = players.get( name );
+		Iterator<String> it = getPlayerList();
 
 		while (it.hasNext()) {
-			String name2 = (String) it.next();
-			pStats partner = (pStats)players.get( name2 );
+			String name2 = it.next();
+			pStats partner = players.get( name2 );
 			if (!name.equals(name2) && player.getFreq().equals(partner.getFreq())) {
 				return true;
 			}
@@ -1660,12 +1660,12 @@ public class tournybot extends SubspaceBot {
 	 */
 
 	public void findPartner(String name) {
-		pStats player = (pStats)players.get( name );
-		Iterator it2 = getPlayerList();
+		pStats player = players.get( name );
+		Iterator<String> it2 = getPlayerList();
 
 		while (it2.hasNext()) {
-			String name2 = (String) it2.next();
-			pStats partner = (pStats)players.get(name2);
+			String name2 = it2.next();
+			pStats partner = players.get(name2);
 
 			if (!name.equals(name2) && !hasPartner(name2)) {
 				player.setFreq(partner.getFreq());
@@ -1697,11 +1697,11 @@ public class tournybot extends SubspaceBot {
 		int[] seedings = new int[playersNum];
 		int temp = 0;
 
-		Iterator it = getFreqList();
+		Iterator<String> it = getFreqList();
 
 		while (it.hasNext()) {
-			String freq = (String) it.next();
-			fStats rand = (fStats)freqs.get( freq );
+			String freq = it.next();
+			fStats rand = freqs.get( freq );
 
 			if (dbAvailable) {
 
@@ -1739,11 +1739,11 @@ public class tournybot extends SubspaceBot {
 		int pNro = 1;
 
 		for (int c = 0; c < seedings.length; c++) {
-			Iterator it2 = getFreqList();
+			Iterator<String> it2 = getFreqList();
 
 			while (it2.hasNext()) {
-				String freq = (String) it2.next();
-				fStats rCheck = (fStats)freqs.get( freq );
+				String freq = it2.next();
+				fStats rCheck = freqs.get( freq );
 
 				if (seedings[c] == rCheck.getRandNum()) {
 					rCheck.setRealBox( Integer.toString(xB) + Integer.toString(yB) );
@@ -1795,11 +1795,11 @@ public class tournybot extends SubspaceBot {
         m_botAction.cancelTask(checkQueries);
 		trState = 4;
 
-		Iterator it3 = getFreqList();
+		Iterator<String> it3 = getFreqList();
 
 		while (it3.hasNext()) {
-			String freq = (String) it3.next();
-			fStats rCheck2 = (fStats)freqs.get( freq );
+			String freq = it3.next();
+			fStats rCheck2 = freqs.get( freq );
 
 			checkOpponent(freq, 1);
 		}
@@ -1865,8 +1865,8 @@ public class tournybot extends SubspaceBot {
 	}
 
 	public void startDuel(String f1, String f2, int round, int box) {
-		fStats freq1 = (fStats)freqs.get( f1 );
-		fStats freq2 = (fStats)freqs.get( f2 );
+		fStats freq1 = freqs.get( f1 );
+		fStats freq2 = freqs.get( f2 );
 		freq1.busy(1);
 		freq2.busy(1);
 
@@ -1888,7 +1888,7 @@ public class tournybot extends SubspaceBot {
 	}
 
 	public void readyToPlay(pStats player) {
-		fStats ops = (fStats)freqs.get(findOpponent(player.getFreq()));
+		fStats ops = freqs.get(findOpponent(player.getFreq()));
 
 		m_botAction.setFreq(player.getName(), Integer.parseInt(player.getFreq()));
 
@@ -1908,7 +1908,7 @@ public class tournybot extends SubspaceBot {
 	 */
 
 	public void checkOpponent(String freq, int type) {
-		fStats roundBox = (fStats)freqs.get( freq );
+		fStats roundBox = freqs.get( freq );
 
 		final int round = roundBox.getRound();
 		int box = roundBox.getBox();
@@ -1920,18 +1920,18 @@ public class tournybot extends SubspaceBot {
 		fStats oCheck;
 
 		if (findOpponent(freq) != null) {
-			oCheck = (fStats)freqs.get(findOpponent(freq));
+			oCheck = freqs.get(findOpponent(freq));
 			String oFreq = oCheck.getP1().getFreq();
 
 			roundBox.setRealBox(oCheck.getRealBox());
 			warpFreq(freq);
 			startDuel(freq, oFreq, round, box);
 		} else {
-			Iterator it = getFreqList();
+			Iterator<String> it = getFreqList();
 
 			while (it.hasNext()) {
-				String oFreq = (String) it.next();
-				oCheck = (fStats)freqs.get(oFreq);
+				String oFreq = it.next();
+				oCheck = freqs.get(oFreq);
 
 				if (oCheck.getFreqState() != 2) {
 					int box1;
@@ -2069,7 +2069,7 @@ public class tournybot extends SubspaceBot {
 				if (type == 1) {
 					String duelName = "r" + round + "b" + box;
 					duels.put( duelName, new dStats(maxPerFreq, tournyID, m_botAction) );
-					dStats forfeitD = (dStats)duels.get( duelName );
+					dStats forfeitD = duels.get( duelName );
 					forfeitD.endForfeitDuel(roundBox);
 				}
 
@@ -2095,11 +2095,11 @@ public class tournybot extends SubspaceBot {
 
 		for (int r = 7; r >= 3; r--) {
 			int eka = 1;
-			Iterator i = getFreqList();
+			Iterator<String> i = getFreqList();
 
 			while (i.hasNext()) {
-				String frequency = (String) i.next();
-				fStats freq = (fStats)freqs.get( frequency );
+				String frequency = i.next();
+				fStats freq = freqs.get( frequency );
 
 				if (freq.getRound() == r) {
 
@@ -2134,15 +2134,15 @@ public class tournybot extends SubspaceBot {
 		m_botAction.sendArenaMessage( "+" + Tools.formatString("", 77, "-") + "+");
 	}
 
-	public Iterator getPlayerList() {
+	public Iterator<String> getPlayerList() {
 		return players.keySet().iterator();
 	}
 
-	public Iterator getFreqList() {
+	public Iterator<String> getFreqList() {
 		return freqs.keySet().iterator();
 	}
 
-	public Iterator getDuelList() {
+	public Iterator<String> getDuelList() {
 		return duels.keySet().iterator();
 	}
 
@@ -2169,10 +2169,10 @@ public class tournybot extends SubspaceBot {
 	public int countVote(int range) {
 		int winner = 0;
 		int[] counters = new int[range+1];
-		Iterator iterator = votes.values().iterator();
+		Iterator<Integer> iterator = votes.values().iterator();
 
 		while (iterator.hasNext()) {
-			counters[((Integer)iterator.next()).intValue()]++;
+			counters[iterator.next().intValue()]++;
 		}
 
 		for (int i = 1; i < counters.length; i++) {
@@ -2220,14 +2220,14 @@ public class tournybot extends SubspaceBot {
 			p.toggleTrueLag(true);
 
 			if (laggers.containsKey(p.getName())) {
-			    m_botAction.cancelTask((Lagger) laggers.get(p.getName()));
+			    m_botAction.cancelTask( laggers.get(p.getName()));
 				laggers.remove(p.getName());
 			}
 			laggers.put( p.getName(), new Lagger( p.getName(), laggers ) );
-			Lagger l = (Lagger)laggers.get( p.getName() );
+			Lagger l = laggers.get( p.getName() );
 			m_botAction.scheduleTask( l, 60000 );
 
-			fStats freq2 = (fStats)freqs.get( findOpponent(p.getFreq()) );
+			fStats freq2 = freqs.get( findOpponent(p.getFreq()) );
 
 			m_botAction.sendSmartPrivateMessage( p.getName(), "Your duel vs. " + freq2.getNames() + " started without you. (= +1 lagout [Total: " + p.getLagOuts() + "] You have 60 seconds to !return)");
 			m_botAction.sendPrivateMessage( freq2.getName1(), "Your opponent (" + p.getName() + ") failed to show up, and has 60 seconds to return. Total " + p.getLagOuts() + " lagouts.");
@@ -2374,7 +2374,7 @@ public class tournybot extends SubspaceBot {
 			dbAvailable = false;
 			tournyID = -1;
 		};
-                
+
 	}
 
 
@@ -2390,20 +2390,20 @@ public class tournybot extends SubspaceBot {
 		}
 
 		try {
-			Iterator d = getDuelList();
+			Iterator<String> d = getDuelList();
 
 			while (d.hasNext()) {
-				String duel = (String) d.next();
-				dStats dU = (dStats)duels.get( duel );
+				String duel = d.next();
+				dStats dU = duels.get( duel );
 
 				dU.storeDuel(dbConn);
 			}
 
-			Iterator f = getFreqList();
+			Iterator<String> f = getFreqList();
 
 			while (f.hasNext()) {
-				String freq = (String) f.next();
-				fStats fU = (fStats)freqs.get( freq );
+				String freq = f.next();
+				fStats fU = freqs.get( freq );
 
 				String query;
 				String query2;
@@ -2517,7 +2517,7 @@ public class tournybot extends SubspaceBot {
 		public void run()
 		{
 			if (players.containsKey(player)) {
-				pStats info2 = (pStats)players.get(player);
+				pStats info2 = players.get(player);
 
 				if (info2.getGameDeaths() >= deaths) {
 					removePlayer(player, false);
@@ -2548,11 +2548,11 @@ public class tournybot extends SubspaceBot {
 			delayers.remove(dName);
 
 			if (trState == 4) {
-				pStats info = (pStats)players.get( killer );
-				fStats fInfo = (fStats)freqs.get( info.getFreq() );
+				pStats info = players.get( killer );
+				fStats fInfo = freqs.get( info.getFreq() );
 
-				pStats info2 = (pStats)players.get( player );
-				fStats fInfo2 = (fStats)freqs.get( info2.getFreq() );
+				pStats info2 = players.get( player );
+				fStats fInfo2 = freqs.get( info2.getFreq() );
 
 				if( fInfo == null || fInfo2 == null )
 				    return;
@@ -2563,7 +2563,7 @@ public class tournybot extends SubspaceBot {
 					if (!silent) {
 
 						if (fInfo == fInfo2) {
-							fInfo2 = (fStats)freqs.get(findOpponent(info.getFreq()));
+							fInfo2 = freqs.get(findOpponent(info.getFreq()));
 						}
 						if( fInfo2 == null )
 						    return;
@@ -2593,7 +2593,7 @@ public class tournybot extends SubspaceBot {
 
 		public void run()
 		{
-			pStats lagi = (pStats)players.get( player );
+			pStats lagi = players.get( player );
 
 			String dqM = "failed to return from his lagout in time and was disqualified.";
 
