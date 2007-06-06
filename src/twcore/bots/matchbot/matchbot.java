@@ -36,7 +36,7 @@ import twcore.core.util.Tools;
 
 
 /**
- * Runs automated squad vs. squad TWD matches.  
+ * Runs automated squad vs. squad TWD matches.
  */
 public class matchbot extends SubspaceBot
 {
@@ -45,8 +45,8 @@ public class matchbot extends SubspaceBot
     String m_arena;
     BotSettings m_botSettings;
     OperatorList m_opList;
-    LinkedList m_arenaList;
-    LinkedList m_gameRequests;
+    LinkedList<String> m_arenaList;
+    LinkedList<GameRequest> m_gameRequests;
     TimerTask m_gameKiller;
     String startMessage;
 
@@ -73,7 +73,7 @@ public class matchbot extends SubspaceBot
 
     private static Pattern parseInfoRE = Pattern.compile("^IP:(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})  TimeZoneBias:\\d+  Freq:\\d+  TypedName:(.*)  Demo:\\d  MachineId:(\\d+)$");
     private static Pattern cruncherRE = Pattern.compile("\\s+");
-    
+
     boolean canZone = true;
 
     /** Creates a new instance of Matchtwl */
@@ -85,7 +85,7 @@ public class matchbot extends SubspaceBot
         m_botSettings = m_botAction.getBotSettings();
         m_arena = m_botSettings.getString("Arena");
         m_opList = m_botAction.getOperatorList();
-        m_gameRequests = new LinkedList();
+        m_gameRequests = new LinkedList<GameRequest>();
 
         requestEvents();
         racismSpy = new Spy( m_botAction );
@@ -94,7 +94,7 @@ public class matchbot extends SubspaceBot
     public static String[] stringChopper(String input, char deliniator)
     {
 
-        LinkedList list = new LinkedList();
+        LinkedList<String> list = new LinkedList<String>();
 
         int nextSpace = 0;
         int previousSpace = 0;
@@ -125,7 +125,7 @@ public class matchbot extends SubspaceBot
             list.add(stuff);
         };
 
-        return (String[]) list.toArray(new String[list.size()]);
+        return list.toArray(new String[list.size()]);
     }
 
     public int getBotNumber()
@@ -251,7 +251,7 @@ public class matchbot extends SubspaceBot
                 {
                     if (m_arenaList == null)
                     {
-                        m_arenaList = new LinkedList();
+                        m_arenaList = new LinkedList<String>();
                     };
                     m_arenaList.add(s.substring(8).toLowerCase());
                 }
@@ -387,7 +387,7 @@ public class matchbot extends SubspaceBot
     // getHelpMessages, for hosts....
     public String[] getHelpMessages(String name, boolean isStaff, boolean isRestrictedStaff)
     {
-        ArrayList help = new ArrayList();
+        ArrayList<String> help = new ArrayList<String>();
 
         if (m_game != null)
         {
@@ -442,7 +442,7 @@ public class matchbot extends SubspaceBot
             };
         };
 
-        return (String[]) help.toArray(new String[help.size()]);
+        return help.toArray(new String[help.size()]);
     }
 
     public void parseCommand(String name, String command, String[] parameters, boolean isStaff, boolean isRestrictedStaff)
@@ -577,7 +577,7 @@ public class matchbot extends SubspaceBot
                     m_isLocked = true;
                     m_lockState = CHECKING_ARENAS;
                     m_locker = name;
-                    m_arenaList = new LinkedList();
+                    m_arenaList = new LinkedList<String>();
                     m_isLocked = true;
                     m_botAction.ipcTransmit("MatchBot", "whatArena");
 
@@ -1101,7 +1101,7 @@ public class matchbot extends SubspaceBot
             m_botAction.sendPrivateMessage(name, "Provide a correct game type number");
         };
     };
-    
+
     public void canZoneTrue() {
     	canZone = true;
     }

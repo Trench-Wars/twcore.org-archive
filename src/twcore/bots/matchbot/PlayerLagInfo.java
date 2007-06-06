@@ -35,7 +35,7 @@ public class PlayerLagInfo extends PlayerInfo
   private double c2SSlowPercent;
   private double s2CSlowPercent;
 
-  private Vector tinfoValues;
+  private Vector<Integer> tinfoValues;
 
   /**
    * This method initializes a PlayerLag class.  It tracks the lag of a player.
@@ -54,7 +54,7 @@ public class PlayerLagInfo extends PlayerInfo
       throw new IllegalArgumentException("ERROR: Invalid spike size.  Must be a positive number.");
 
     state = new PlayerLagState();
-    tinfoValues = new Vector();
+    tinfoValues = new Vector<Integer>();
     this.spikeSize = spikeSize;
     addEventListener(new MessageListener());
   }
@@ -658,7 +658,7 @@ public class PlayerLagInfo extends PlayerInfo
 
     for(int index = 0; index < tinfoValues.size(); index++)
     {
-      tinfoValue = (Integer) tinfoValues.get(index);
+      tinfoValue = tinfoValues.get(index);
       mean = mean + tinfoValue.intValue();
     }
     return mean / tinfoValues.size();
@@ -681,7 +681,7 @@ public class PlayerLagInfo extends PlayerInfo
 
     for(int index = 0; index < tinfoValues.size(); index++)
     {
-      tinfoValue = (Integer) tinfoValues.get(index);
+      tinfoValue = tinfoValues.get(index);
       delta = tinfoValue.intValue() - spikeMean;
       sd = sd + delta * delta;
     }
@@ -699,13 +699,13 @@ public class PlayerLagInfo extends PlayerInfo
   private int calcNumSpikes()
   {
     int spikeCount = 0;
-    Integer tinfoValue = (Integer) tinfoValues.get(0);
+    Integer tinfoValue = tinfoValues.get(0);
     int lastTinfo = tinfoValue.intValue();
     int thisTinfo;
 
     for(int index = 1; index < tinfoValues.size(); index++)
     {
-      tinfoValue = (Integer) tinfoValues.get(index);
+      tinfoValue = tinfoValues.get(index);
       thisTinfo = tinfoValue.intValue();
       if(Math.abs(lastTinfo - thisTinfo) * 10 > spikeSize)
         spikeCount++;
