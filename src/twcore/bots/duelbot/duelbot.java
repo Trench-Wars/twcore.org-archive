@@ -28,7 +28,7 @@ import twcore.core.lvz.Objset;
 import twcore.core.util.Tools;
 
 /**
- * Handles all parts of PvP dueling as found in ?go duel. 
+ * Handles all parts of PvP dueling as found in ?go duel.
  */
 public class duelbot extends SubspaceBot {
 
@@ -221,7 +221,7 @@ public class duelbot extends SubspaceBot {
     		return;
     	}
     	if( notPlaying.containsKey( opponent ) ) {
-    		NotPlaying np = (NotPlaying)notPlaying.get( opponent );
+    		NotPlaying np = notPlaying.get( opponent );
     		if( !np.timeUp( ((int)System.currentTimeMillis() / 1000 )) ) {
 	    		m_botAction.sendPrivateMessage( _name, "Unable to issue challenge, "+opponent+ " has enabled notplaying." );
 	    		return;
@@ -366,7 +366,7 @@ public class duelbot extends SubspaceBot {
     	}
     	opponent = opponent.toLowerCase();
     	if( notPlaying.containsKey( opponent ) ) {
-    		NotPlaying np = (NotPlaying)notPlaying.get( opponent );
+    		NotPlaying np = notPlaying.get( opponent );
     		if( !np.timeUp( ((int)System.currentTimeMillis() / 1000 )) ) {
 	    		m_botAction.sendPrivateMessage( name, "Unable to issue challenge, "+opponent+ " has enabled notplaying." );
 	    		return;
@@ -450,7 +450,7 @@ public class duelbot extends SubspaceBot {
     		m_botAction.sendPrivateMessage( name, "Unable to accept challenge, `"+challenger+"` is already dueling." );
     		return;
     	}
-    	DuelChallenge thisChallenge = (DuelChallenge)challenges.get( challenger+name );
+    	DuelChallenge thisChallenge = challenges.get( challenger+name );
     	if( thisChallenge == null ) {
     		m_botAction.sendPrivateMessage( name, "Unable to accept challenge, `"+challenger+"` has not challenged you." );
     		return;
@@ -469,7 +469,7 @@ public class duelbot extends SubspaceBot {
 
     	duels.put( new Integer( thisBox.getBoxNumber() ), new Duel( thisBox, thisChallenge ) );
 
-    	startDuel( (Duel)duels.get( new Integer( thisBox.getBoxNumber() ) ), challenger, name );
+    	startDuel( duels.get( new Integer( thisBox.getBoxNumber() ) ), challenger, name );
     	playing.put( challenger, duels.get( new Integer( thisBox.getBoxNumber() ) ) );
     	playing.put( name, duels.get( new Integer( thisBox.getBoxNumber() ) ) );
 
@@ -550,7 +550,7 @@ public class duelbot extends SubspaceBot {
     		m_botAction.sendPrivateMessage( name, "You are not playing a duel." );
     		return;
     	}
-    	Duel d = (Duel)playing.get( name );
+    	Duel d = playing.get( name );
     	String opponent = d.getOpponent( name );
     	boolean state = d.toggleCancelGame( name );
     	if( state && d.getCancelState( opponent ) ) {
@@ -566,11 +566,11 @@ public class duelbot extends SubspaceBot {
 			m_botAction.spec( opponent );
 			m_botAction.spec( opponent );
 			if( laggers.containsKey( name ) ) {
-				m_botAction.cancelTask((Lagger)laggers.get( name ));
+				m_botAction.cancelTask(laggers.get( name ));
 				laggers.remove( name );
 			}
 			if( laggers.containsKey( opponent ) ) {
-                m_botAction.cancelTask(((Lagger)laggers.get( opponent )));
+                m_botAction.cancelTask(laggers.get( opponent ));
 				laggers.remove( opponent );
 			}
 			clearScoreboard( d );
@@ -608,7 +608,7 @@ public class duelbot extends SubspaceBot {
     		m_botAction.sendPrivateMessage( name, "You are not playing a duel." );
     		return;
     	}
-    	Duel d = (Duel)playing.get( name );
+    	Duel d = playing.get( name );
     	if( d.toggleScoreboard( name ) )
   			m_botAction.sendPrivateMessage( name, "Scoreboard on." );
   		else
@@ -655,14 +655,14 @@ public class duelbot extends SubspaceBot {
                 return;
             }
             if( duels.containsKey( new Integer( i ) ) ) {
-                m_botAction.sendPrivateMessage( name, ((Duel)duels.get( new Integer( Integer.parseInt(message) ) )).showScore() );
+                m_botAction.sendPrivateMessage( name, duels.get( new Integer( Integer.parseInt(message) ) ).showScore() );
             } else {
                 m_botAction.sendPrivateMessage( name, "No score available for requested duel (box is probably empty)." );
             }
         } else {
             player = player.toLowerCase();
             if( playing.containsKey( player ) ) {
-                m_botAction.sendPrivateMessage( name, ((Duel)playing.get( player )).showScore() );
+                m_botAction.sendPrivateMessage( name, playing.get( player ).showScore() );
             } else {
                 m_botAction.sendPrivateMessage( name, "No score available for requested duel (player is probably not playing)." );
             }
@@ -678,7 +678,7 @@ public class duelbot extends SubspaceBot {
     	Iterator it = set.iterator();
     	while( it.hasNext() ) {
     		Integer duel = (Integer)it.next();
-    		Duel d = (Duel)duels.get( duel );
+    		Duel d = duels.get( duel );
     		if( d.getShipType() == 1 ) {
     			wb++;
     			wbOut += d.getBoxNumber() + "  ";
@@ -717,7 +717,7 @@ public class duelbot extends SubspaceBot {
 		}
 
     	//Get the duel associated with this player
-    	Duel duel = (Duel)playing.get( _name );
+    	Duel duel = playing.get( _name );
 
     	//Get the stats object associated with this player
     	DuelPlayerStats playerStats = duel.getPlayer( _name );
@@ -736,7 +736,7 @@ public class duelbot extends SubspaceBot {
 
 		//Remove any lag timers for this player
 		if( laggers.containsKey( _name ) ) {
-            m_botAction.cancelTask((Lagger)laggers.get( _name ));
+            m_botAction.cancelTask(laggers.get( _name ));
 			laggers.remove( _name );
 		}
 
@@ -751,7 +751,7 @@ public class duelbot extends SubspaceBot {
     	try { gid = Integer.parseInt( message ); } catch (Exception e) {}
     	if( tournyGames.containsKey( new Integer( gid ) ) ) {
 
-    		TournyGame tg = (TournyGame)tournyGames.get( new Integer( gid ) );
+    		TournyGame tg = tournyGames.get( new Integer( gid ) );
     		if( !tg.hasPlayer( name ) ) {
     			m_botAction.sendSmartPrivateMessage( name, "You are not a player in duel #"+gid );
     			return;
@@ -775,7 +775,7 @@ public class duelbot extends SubspaceBot {
     		}
     	} else m_botAction.sendSmartPrivateMessage( name, "That game ID does not exist."+gid );
     }
-    
+
     public void do_showRank(String name, String message) {
     	try {
     		String rankCheck = name;
@@ -862,7 +862,7 @@ public class duelbot extends SubspaceBot {
 		//Removes the bot from the server.
     	m_botAction.die();
     }
-    
+
     public void do_twelZoner( String name, String message ) {
     	if( !(leagueOps.containsKey( name.toLowerCase() ) || m_botAction.getOperatorList().isSmod(name)) ) return;
     	m_botAction.sendZoneMessage(message + " -TWEL Staff",2);
@@ -1014,7 +1014,7 @@ public class duelbot extends SubspaceBot {
     			return;
     		}
                 m_botAction.SQLClose( result );
-                
+
     	} catch (Exception e) {
     	    // This exception is caught frequently.  Removed stack trace print
 			// Don't need to see it anymore until we take the time to deal w/ it.
@@ -1065,7 +1065,7 @@ public class duelbot extends SubspaceBot {
     		if( !result.next() ) {
     			DBPlayerData player = new DBPlayerData( m_botAction, "local", name, true );
     			m_botAction.SQLQueryAndClose( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"', 0, 0, NOW())" );
-                
+
     			//Removed as of season 2
     			//sql_createLeagueData( player );
     			if(aliasChecker.equals(""))
@@ -1118,7 +1118,7 @@ public class duelbot extends SubspaceBot {
     	Iterator it = duelBoxes.keySet().iterator();
     	while( it.hasNext() ) {
     		String key = (String)it.next();
-    		DuelBox b = (DuelBox)duelBoxes.get( key );
+    		DuelBox b = duelBoxes.get( key );
     		if( !b.inUse() && b.gameType( gameType ) ) i++;
     	}
     	if( i == 0 ) return false;
@@ -1130,14 +1130,14 @@ public class duelbot extends SubspaceBot {
     	Iterator it = duelBoxes.keySet().iterator();
     	while( it.hasNext() ) {
     		String key = (String)it.next();
-    		DuelBox b = (DuelBox)duelBoxes.get( key );
+    		DuelBox b = duelBoxes.get( key );
     		if( !b.inUse() && b.gameType( gameType ) ) v.add( b );
     	}
     	if( v.size() == 0 )
     		return null;
     	else {
     		Random generator = new Random();
-    		return (DuelBox)v.elementAt( generator.nextInt( v.size() ) );
+    		return v.elementAt( generator.nextInt( v.size() ) );
     	}
     }
 
@@ -1172,11 +1172,11 @@ public class duelbot extends SubspaceBot {
     	from = d.getPlayerTwo().getName();
 
     	if( laggers.containsKey( winner ) ) {
-            m_botAction.cancelTask((Lagger)laggers.get( winner ));
+            m_botAction.cancelTask(laggers.get( winner ));
 			laggers.remove( winner );
 		}
     	if( laggers.containsKey( loser ) ) {
-            m_botAction.cancelTask((Lagger)laggers.get( loser ));
+            m_botAction.cancelTask(laggers.get( loser ));
 			laggers.remove( loser );
 		}
 
@@ -1224,7 +1224,7 @@ public class duelbot extends SubspaceBot {
 
 		sql_verifyRecord( loser, loserInfo.getUserID(), matchType );
 		sql_verifyRecord( winner, winnerInfo.getUserID(), matchType );
-		
+
 		ResultSet player1 = sql_getUserInfo( loserInfo.getUserID(), matchType );
 		ResultSet player2 = sql_getUserInfo( winnerInfo.getUserID(), matchType );
 
@@ -1244,7 +1244,7 @@ public class duelbot extends SubspaceBot {
 			if( d.getPlayer( loser ).getKills() == 0 ) aced = true;
 
 			//Calculate new ratings.
-			
+
 			int loserRatingBefore = player1.getInt( "fnRating" );
 			int winnerRatingBefore = player2.getInt( "fnRating" );
 			int ratingDifference = loserRatingBefore - winnerRatingBefore;
@@ -1278,9 +1278,9 @@ public class duelbot extends SubspaceBot {
                 m_botAction.SQLClose( player2 );
 		try {
 			if(tournyGamesRunning.containsKey((d.getBoxFreq() / 2))) {
-				int gID = (Integer)tournyGamesRunning.get((d.getBoxFreq() / 2));
+				int gID = tournyGamesRunning.get((d.getBoxFreq() / 2));
 				tournyGamesRunning.remove((d.getBoxFreq() / 2));
-				TournyGame tg = (TournyGame)tournyGames.get(gID);
+				TournyGame tg = tournyGames.get(gID);
 				ResultSet results = m_botAction.SQLQuery( mySQLHost, "SELECT fnMatchID FROM `tblDuelMatch` ORDER BY fnMatchID DESC LIMIT 0,1");
 				results.next();
 				sql_updateTournyMatchData(gID, results.getInt("fnMatchID"), tg.getPlayerNumber(winner));
@@ -1295,7 +1295,7 @@ public class duelbot extends SubspaceBot {
 		} catch(Exception e) {}
 
 		clearScoreboard( d );
-        
+
         if( shutDownDie && duels.size() == 0 ) {
             m_botAction.sendArenaMessage( "Shutting down for core maintenance.", 1 );
             m_botAction.die();
@@ -1315,7 +1315,7 @@ public class duelbot extends SubspaceBot {
 	    	updatePlayoffBracket(winner, loser, type, gID);
 	    } catch(Exception e) {}
     }
-    
+
     public void updateInactives() {
     	int selects = 1;
     	int updates = 0;
@@ -1435,7 +1435,7 @@ public class duelbot extends SubspaceBot {
 
     public void warpPlayers(String one, String two)
     {
-    	Duel d = (Duel)playing.get(one);
+    	Duel d = playing.get(one);
 
     	if(d.getPlayerNumber( one ) == 1) {
     		m_botAction.warpTo(one, d.getXOne(), d.getYOne());
@@ -1543,7 +1543,7 @@ public class duelbot extends SubspaceBot {
     	};
     	m_botAction.scheduleTaskAtFixedRate( tournyStuff, 0, 5 * 60 * 1000 );
     }
-    
+
     public void tournyTalk() {
     	try {
     		String query = "SELECT fnGameId, fnLeagueTypeID, fnTournyUserOne, fnTournyUserTwo, fnTotalPlayers, fnGameNumber FROM tblDuelTournyGame AS TG, tblDuelTourny T WHERE T.fnTournyID = TG.fnTournyID AND TG.fnStatus = 0 AND TG.fnTournyUserOne > 0 AND TG.fnTournyUserTwo > 0 AND TG.fnGameRound > 0 ORDER BY TG.fdLastCall LIMIT 0,20";
@@ -1566,7 +1566,7 @@ public class duelbot extends SubspaceBot {
                 m_botAction.SQLClose( result );
     	} catch(Exception e) { e.printStackTrace(); }
     }
-    
+
     public void checkForfeits() {
     	try {
     		String query = "SELECT * FROM tblDuelTournyGame AS DTG INNER JOIN tblDuelTourny AS DT ON DT.fnTournyID = DTG.fnTournyID WHERE DTG.fnStatus = 0 AND DTG.fnTournyUserOne > 0 AND DTG.fnTournyUserTwo > 0 AND SUBDATE(NOW(), INTERVAL 14 DAY) > DTG.fdTimeStarted";
@@ -1612,7 +1612,7 @@ public class duelbot extends SubspaceBot {
 
 		if( playing.containsKey( name ) ) {
 
-			Duel d = (Duel)playing.get( name );
+			Duel d = playing.get( name );
 			ScoreReport scoreReport = new ScoreReport( d );
 			int s_extra = 0;
 			if( d.getLeagueId() == 2 ) s_extra = 2;
@@ -1623,7 +1623,7 @@ public class duelbot extends SubspaceBot {
 				if( d.getPlayer( killer ).getSpawns() >= s_spawnLimit - 1 ) {
 					endDuel( d, name, killer, 1 );
 					if( updates.containsKey( d ) ) {
-						ScoreReport report = (ScoreReport)updates.get( d );
+						ScoreReport report = updates.get( d );
                         m_botAction.cancelTask(report);
 					}
 					return;
@@ -1654,7 +1654,7 @@ public class duelbot extends SubspaceBot {
 				if( d.getPlayer( killer ).getSpawns() >= s_spawnLimit - 1 ) {
 					endDuel( d, name, killer, 1 );
 					if( updates.containsKey( d ) ) {
-						ScoreReport report = (ScoreReport)updates.get( d );
+						ScoreReport report = updates.get( d );
                         m_botAction.cancelTask(report);
 					}
 					return;
@@ -1707,7 +1707,7 @@ public class duelbot extends SubspaceBot {
 
 			//update scorereports
 			if( updates.containsKey( d ) ) {
-				ScoreReport report = (ScoreReport)updates.get( d );
+				ScoreReport report = updates.get( d );
 				// Handle exception if it has been unexpectedly cancelled
 				try {
                     m_botAction.cancelTask(report);
@@ -1724,15 +1724,15 @@ public class duelbot extends SubspaceBot {
     }
 
     public void handleEvent( PlayerPosition event ) {
-        Player ptest = m_botAction.getPlayer( event.getPlayerID() );        
+        Player ptest = m_botAction.getPlayer( event.getPlayerID() );
         /* Sometimes a player leaves the arena just after a position packet is received;
            while the position event is distributed, the PlayerLeft event is given to
            Arena, causing all information about the player to be wiped from record.
            This also occurs frequently with the PlayerDeath event.  Moral: check for null.
          */
-        if( ptest == null ) 
+        if( ptest == null )
             return;
-        
+
     	String name = ptest.getPlayerName().toLowerCase();
     	if( !playing.containsKey( name ) ) return;
     	int x = event.getXLocation();
@@ -1742,7 +1742,7 @@ public class duelbot extends SubspaceBot {
     	if( dist < 600 ) {
 
     		//Get the associated duel
-    		Duel duel = (Duel)playing.get( name );
+    		Duel duel = playing.get( name );
 
     		//Get the associated player
     		DuelPlayerStats player = duel.getPlayer( name );
@@ -1792,7 +1792,7 @@ public class duelbot extends SubspaceBot {
     	if( _event.getShipType() != 0 ) return;
 
     	//Get the associated duel for this player
-    	Duel duel = (Duel)playing.get( name );
+    	Duel duel = playing.get( name );
 
     	//Get the associated stats object for the player
     	DuelPlayerStats player = duel.getPlayer( name );
@@ -1809,11 +1809,11 @@ public class duelbot extends SubspaceBot {
     	}
 
 		if( laggers.containsKey( name ) ) {
-            m_botAction.cancelTask((Lagger)laggers.get( name ));
+            m_botAction.cancelTask(laggers.get( name ));
 			laggers.remove( name );
 		}
 		laggers.put( name, new Lagger( name, duel, laggers ) );
-		Lagger l = (Lagger)laggers.get( name );
+		Lagger l = laggers.get( name );
 		m_botAction.scheduleTask( l, 60000 );
     }
 
@@ -1826,7 +1826,7 @@ public class duelbot extends SubspaceBot {
     	if( !playing.containsKey( name ) ) return;
 
     	//Get the associated duel for this player
-    	Duel duel = (Duel)playing.get( name );
+    	Duel duel = playing.get( name );
 
     	//Get the associated stats object for the player
     	DuelPlayerStats player = duel.getPlayer( name );
@@ -1843,11 +1843,11 @@ public class duelbot extends SubspaceBot {
     	}
 
 		if( laggers.containsKey( name ) ) {
-            m_botAction.cancelTask((Lagger)laggers.get( name ));
+            m_botAction.cancelTask(laggers.get( name ));
 			laggers.remove( name );
 		}
 		laggers.put( name, new Lagger( name, duel, laggers ) );
-		Lagger l = (Lagger)laggers.get( name );
+		Lagger l = laggers.get( name );
 		m_botAction.scheduleTask( l, 60000 );
 
     }
@@ -1895,7 +1895,7 @@ class StartDuel extends TimerTask {
 	    	game.setPlayerTwo( p2.toLowerCase() );
     	}
     	duels.put( new Integer( thisBox.getBoxNumber() ), new Duel( thisBox, game ) );
-    	startDuel( (Duel)duels.get( new Integer( thisBox.getBoxNumber() ) ), game.getPlayerOne(), game.getPlayerTwo() );
+    	startDuel( duels.get( new Integer( thisBox.getBoxNumber() ) ), game.getPlayerOne(), game.getPlayerTwo() );
     	playing.put( game.getPlayerOne(), duels.get( new Integer( thisBox.getBoxNumber() ) ) );
     	playing.put( game.getPlayerTwo(), duels.get( new Integer( thisBox.getBoxNumber() ) ) );
     	tournyGamesRunning.put(thisBox.getBoxNumber(), game.getGameId());
@@ -2178,7 +2178,7 @@ class ScoreReport extends TimerTask {
 			ResultSet result = m_botAction.SQLQuery( mySQLHost, query );
 			if( result.next() ) {
 				if( result.getInt( "count" ) < s_duelLimit ) {
-                                    m_botAction.SQLClose( result ); 
+                                    m_botAction.SQLClose( result );
                                     return false;
                                 } else {
                                     m_botAction.SQLClose( result );
@@ -2196,7 +2196,7 @@ class ScoreReport extends TimerTask {
 		try {
 			String query = "SELECT fcUserName FROM tblUser AS U WHERE fnUserID = "+tournyId;
 			ResultSet result = m_botAction.SQLQuery( "local", query );
-                        String name;                        
+                        String name;
 			if( result.next() )
                             name = result.getString( "fcUserName" );
                         else
