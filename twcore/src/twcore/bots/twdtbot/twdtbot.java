@@ -24,13 +24,13 @@ public class twdtbot extends SubspaceBot {
 
     private BotSettings m_botSettings;
 	private String m_conn = "local";
-	private HashMap m_access;
+	private HashMap<String, String> m_access;
 
     public twdtbot(BotAction botAction) {
         super(botAction);
         requestEvents();
 
-		m_access = new HashMap();
+		m_access = new HashMap<String, String>();
         m_botSettings = m_botAction.getBotSettings();
     }
 

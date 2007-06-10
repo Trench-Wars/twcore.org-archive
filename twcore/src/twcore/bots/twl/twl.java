@@ -55,11 +55,11 @@ public class twl extends SubspaceBot
     String m_arena;
     BotSettings m_botSettings;
     OperatorList m_opList;
-    LinkedList m_arenaList;
-    LinkedList m_gameRequests;
+    LinkedList<String> m_arenaList;
+    LinkedList<GameRequest> m_gameRequests;
     TimerTask m_gameKiller;
     String startMessage;
-    HashMap m_registerList;
+    HashMap<String, String> m_registerList;
 
     String dbConn = "server";
 
@@ -93,8 +93,8 @@ public class twl extends SubspaceBot
         m_botSettings = m_botAction.getBotSettings();
         m_arena = m_botSettings.getString("Arena");
         m_opList = m_botAction.getOperatorList();
-        m_gameRequests = new LinkedList();
-        m_registerList = new HashMap();
+        m_gameRequests = new LinkedList<GameRequest>();
+        m_registerList = new HashMap<String, String>();
 
         requestEvents();
 
@@ -103,7 +103,7 @@ public class twl extends SubspaceBot
     public static String[] stringChopper(String input, char deliniator)
     {
 
-        LinkedList list = new LinkedList();
+        LinkedList<String> list = new LinkedList<String>();
 
         int nextSpace = 0;
         int previousSpace = 0;
@@ -134,7 +134,7 @@ public class twl extends SubspaceBot
             list.add(stuff);
         };
 
-        return (String[]) list.toArray(new String[list.size()]);
+        return list.toArray(new String[list.size()]);
     }
 
     public int getBotNumber()
@@ -250,7 +250,7 @@ public class twl extends SubspaceBot
                 {
                     if (m_arenaList == null)
                     {
-                        m_arenaList = new LinkedList();
+                        m_arenaList = new LinkedList<String>();
                     };
                     m_arenaList.add(s.substring(8).toLowerCase());
                 };
@@ -382,7 +382,7 @@ public class twl extends SubspaceBot
     // getHelpMessages, for hosts....
     public String[] getHelpMessages(String name, boolean isStaff, boolean isRestrictedStaff)
     {
-        ArrayList help = new ArrayList();
+        ArrayList<String> help = new ArrayList<String>();
 
         if (m_game != null)
         {
@@ -438,7 +438,7 @@ public class twl extends SubspaceBot
             };
         };
 
-        return (String[]) help.toArray(new String[help.size()]);
+        return help.toArray(new String[help.size()]);
     }
 
     public void parseCommand(String name, String command, String[] parameters, boolean isStaff, boolean isRestrictedStaff)
@@ -608,7 +608,7 @@ public class twl extends SubspaceBot
                     m_isLocked = true;
                     m_lockState = CHECKING_ARENAS;
                     m_locker = name;
-                    m_arenaList = new LinkedList();
+                    m_arenaList = new LinkedList<String>();
                     m_isLocked = true;
                     m_botAction.ipcTransmit("MatchBot", "whatArena");
 
@@ -735,10 +735,10 @@ public class twl extends SubspaceBot
                 {
                     String nmySquad = parameters[0];
                     GameRequest t, r = null;
-                    ListIterator i = m_gameRequests.listIterator();
+                    ListIterator<GameRequest> i = m_gameRequests.listIterator();
                     while (i.hasNext())
                     {
-                        t = (GameRequest) i.next();
+                        t = i.next();
                         if (t.getRequestAge() >= 300000)
                             i.remove();
                         else if ((t.getChallenger().equalsIgnoreCase(p.getSquadName())) && (t.getChallenged().equalsIgnoreCase(nmySquad)))
@@ -779,10 +779,10 @@ public class twl extends SubspaceBot
                             // check if the accepted challenge exists
                             String nmySquad = parameters[0];
                             GameRequest t, r = null;
-                            ListIterator i = m_gameRequests.listIterator();
+                            ListIterator<GameRequest> i = m_gameRequests.listIterator();
                             while (i.hasNext())
                             {
-                                t = (GameRequest) i.next();
+                                t = i.next();
                                 if (t.getRequestAge() >= 300000)
                                     i.remove();
                                 else if ((t.getChallenged().equalsIgnoreCase(p.getSquadName())) && (t.getChallenger().equalsIgnoreCase(nmySquad)))

@@ -27,7 +27,7 @@ import twcore.core.stats.DBPlayerData;
 import twcore.core.stats.Statistics;
 import twcore.core.util.Tools;
 
-public class MatchPlayer implements Comparable
+public class MatchPlayer implements Comparable<MatchPlayer>
 {
 	/** This class holds 2 connections: 1 to the SS game, and 1 to the DB.
 	 *  The SS connection is dynamic though, so it will have to refresh every
@@ -127,15 +127,11 @@ public class MatchPlayer implements Comparable
 	 * @author FoN
 	 *
 	 * @param anotherPlayer Another matchplayer class from which it will compare points for MVP
-	 * @exception throws exception if wrong class is passed
 	 */
-	public int compareTo(Object anotherPlayer) throws ClassCastException
+	public int compareTo(MatchPlayer anotherPlayer)
 	{
-		if (!(anotherPlayer instanceof MatchPlayer))
-			throw new ClassCastException("A MatchPlayer object expected.");
-
 		//this has to be done in reverse order so it can be sorted in decending order
-		return  ((MatchPlayer) anotherPlayer).getPoints() - this.getPoints();
+		return  anotherPlayer.getPoints() - this.getPoints();
 	}
 
 	/**
@@ -204,12 +200,12 @@ public class MatchPlayer implements Comparable
 			java.util.Date m_ftTimeStarted;
 			java.util.Date m_ftTimeEnded;
 			MatchPlayerShip MPS;
-			ListIterator i = m_statTracker.m_ships.listIterator();
+			ListIterator<MatchPlayerShip> i = m_statTracker.m_ships.listIterator();
 			String started, ended;
 
 			while (i.hasNext())
 			{
-				MPS = (MatchPlayerShip) i.next();
+				MPS = i.next();
 				m_ftTimeStarted = MPS.getTimeStarted();
 				m_ftTimeEnded = MPS.getTimeEnded();
 
@@ -818,11 +814,11 @@ public class MatchPlayer implements Comparable
 	private class TotalStatistics
 	{
 		private MatchPlayerShip m_currentShip;
-		private LinkedList m_ships;
+		private LinkedList<MatchPlayerShip> m_ships;
 
 		public TotalStatistics()
 		{
-			m_ships = new LinkedList();
+			m_ships = new LinkedList<MatchPlayerShip>();
 		}
 
 		/**
@@ -928,11 +924,11 @@ public class MatchPlayer implements Comparable
 		 */
 		public String[] getTotalStatisticsSummary()
 		{
-			Iterator i = m_ships.iterator();
-			LinkedList summary = new LinkedList();
+			Iterator<MatchPlayerShip> i = m_ships.iterator();
+			LinkedList<String> summary = new LinkedList<String>();
 			while (i.hasNext())
 			{
-				String[] summ = ((MatchPlayerShip) i.next()).getStatisticsSummary();
+				String[] summ = i.next().getStatisticsSummary();
 				for (int j = 0; j < summ.length; j++)
 					summary.add(summ[j]);
 			}
@@ -956,12 +952,12 @@ public class MatchPlayer implements Comparable
 		 */
 		public int getTotalStatistic(int statType)
 		{
-			Iterator i = m_ships.iterator();
+			Iterator<MatchPlayerShip> i = m_ships.iterator();
 			int total = 0;
 
 			while (i.hasNext())
 			{
-				total += ((MatchPlayerShip) i.next()).getStatistic(statType);
+				total += i.next().getStatistic(statType);
 			}
 
 			return total;

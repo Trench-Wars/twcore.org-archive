@@ -63,8 +63,8 @@ public class MatchTeam
     boolean m_turn = false;
     boolean m_blueoutState = false;
 
-    LinkedList m_players;
-    LinkedList m_captains;
+    LinkedList<MatchPlayer> m_players;
+    LinkedList<String> m_captains;
 
     boolean m_fbReadyToGo;
 
@@ -90,8 +90,8 @@ public class MatchTeam
         m_rules = m_round.m_rules;
         m_logger = m_round.m_logger;
         m_fcTeamName = fcTeamName;
-        m_players = new LinkedList();
-        m_captains = new LinkedList();
+        m_players = new LinkedList<MatchPlayer>();
+        m_captains = new LinkedList<String>();
         m_fnFrequency = fnFrequency;
         m_fbReadyToGo = false;
         m_fnSubstitutes = 0;
@@ -113,11 +113,11 @@ public class MatchTeam
     // saves player data
     public void storePlayerResults()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
 
         while (i.hasNext())
         {
-            ((MatchPlayer) i.next()).storePlayerResult(m_round.m_fnMatchRoundID, m_fnTeamNumber);
+            i.next().storePlayerResult(m_round.m_fnMatchRoundID, m_fnTeamNumber);
         };
     };
 
@@ -136,7 +136,7 @@ public class MatchTeam
                         + " AND tblUser.fnUserID = tblUserRank.fnUserID "
                         + "AND tblUser.fnUserID = tblUserRank.fnUserID AND tblUserRank.fnRankID IN (3,4) ORDER BY tblUser.fcUserName");
 
-            m_captains = new LinkedList();
+            m_captains = new LinkedList<String>();
 
             while (rs.next())
             {
@@ -268,15 +268,15 @@ public class MatchTeam
 
         for (int index = 0; index < m_players.size(); index++)
         {
-            matchPlayer = (MatchPlayer) m_players.get(index);
+            matchPlayer = m_players.get(index);
             matchPlayer.handleEvent(event);
         }
     }
 
     // show help messages
-    public ArrayList getHelpMessages(String name, boolean isStaff)
+    public ArrayList<String> getHelpMessages(String name, boolean isStaff)
     {
-        ArrayList help = new ArrayList();
+        ArrayList<String> help = new ArrayList<String>();
 
         if ((isStaff) || (isCaptain(name)))
         {
@@ -566,11 +566,10 @@ public class MatchTeam
 
         // specify a comparator on how to sort the list
         // sort order: player state, ship number, player name
-        Comparator a = new Comparator()
+        Comparator<MatchPlayer> a = new Comparator<MatchPlayer>()
         {
-            public int compare(Object oa, Object ob)
+            public int compare(MatchPlayer pa, MatchPlayer pb)
             {
-                MatchPlayer pa = (MatchPlayer) oa, pb = (MatchPlayer) oa;
                 if (pa.m_fnPlayerState < pb.m_fnPlayerState)
                     return -1;
                 else if (pa.m_fnPlayerState > pb.m_fnPlayerState)
@@ -587,7 +586,7 @@ public class MatchTeam
         };
 
         // use the comparator
-        Object[] players = m_players.toArray();
+        MatchPlayer[] players = m_players.toArray(new MatchPlayer[m_players.size()]);
         Arrays.sort(players, a);
 
         // show the sorted list
@@ -596,7 +595,7 @@ public class MatchTeam
         answ = "";
         for (i = 0; i < players.length; i++)
         {
-            p = (MatchPlayer) players[i];
+            p = players[i];
             if (p.getPlayerName().length() > 15)
                 answ = answ + p.getPlayerName().substring(0, 15);
             else
@@ -1009,11 +1008,11 @@ public class MatchTeam
     // warpto (safe spots in this case)
     public void warpTo(int x, int y)
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
 
         while (i.hasNext())
         {
-            ((MatchPlayer) i.next()).warpTo(x, y);
+            i.next().warpTo(x, y);
         };
     };
 
@@ -1270,10 +1269,10 @@ public class MatchTeam
     // flagreward
     public void flagReward(int points)
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
 
         while (i.hasNext())
-             ((MatchPlayer) i.next()).flagReward(points);
+             i.next().flagReward(points);
 
     };
 
@@ -1284,12 +1283,12 @@ public class MatchTeam
         if (m_round.m_fnRoundState != 3)
             return false;
 
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
         {
-            p = (MatchPlayer) i.next();
+            p = i.next();
             if ((p.getPlayerState() == MatchPlayer.IN_GAME)
                 || ((p.getPlayerState() == MatchPlayer.LAGGED) && ((System.currentTimeMillis() - p.getLaggedTime()) <= m_rules.getInt("lagoutextension") * 1000)))
                 retval++;
@@ -1392,12 +1391,12 @@ public class MatchTeam
     // searchers for player <name>. Returns NULL if not exists
     public MatchPlayer getPlayer(String name, boolean matchExact)
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         MatchPlayer answ, best = null;
 
         while (i.hasNext())
         {
-            answ = (MatchPlayer) i.next();
+            answ = i.next();
 
 			if (answ.getPlayerName() != null) {
 	            if ((!matchExact) && (answ.getPlayerName().toLowerCase().startsWith(name.toLowerCase())))
@@ -1421,12 +1420,12 @@ public class MatchTeam
     // get MVP
     public MatchPlayer getMVP()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         MatchPlayer best = null, rightnow;
 
         while (i.hasNext())
         {
-            rightnow = (MatchPlayer) i.next();
+            rightnow = i.next();
             if (best == null)
                 best = rightnow;
             else if (rightnow.getPoints() > best.getPoints())
@@ -1471,11 +1470,11 @@ public class MatchTeam
     // get total deaths
     public int getTotalDeaths()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
-            retval = retval + ((MatchPlayer) i.next()).getDeaths();
+            retval = retval + i.next().getDeaths();
 
         return retval;
     };
@@ -1483,33 +1482,33 @@ public class MatchTeam
     // get total score
     public int getTotalScore()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
-            retval = retval + ((MatchPlayer) i.next()).getScore();
+            retval = retval + i.next().getScore();
 
         return retval;
     };
 
     public int getTotalLagOuts()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
-            retval = retval + ((MatchPlayer) i.next()).getLagOuts();
+            retval = retval + i.next().getLagOuts();
 
         return retval;
     };
 
     public int getDTotalStats(int sType)
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
-            retval = retval + ((MatchPlayer) i.next()).getTotalStatistic(sType);
+            retval = retval + i.next().getTotalStatistic(sType);
 
         return retval;
     }
@@ -1517,11 +1516,11 @@ public class MatchTeam
     // get # ready to play players
     public int getPlayersReadyToPlay()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
-            if (((MatchPlayer) i.next()).isReadyToPlay())
+            if (i.next().isReadyToPlay())
                 retval++;
 
         return retval;
@@ -1530,11 +1529,11 @@ public class MatchTeam
     // get # ready to play players
     public int getPlayersRostered()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
-            if (((MatchPlayer) i.next()).isAllowedToPlay())
+            if (i.next().isAllowedToPlay())
                 retval++;
 
         return retval;
@@ -1542,11 +1541,11 @@ public class MatchTeam
 
     public int getPlayersIsWasInGame()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
-            if (((MatchPlayer) i.next()).isWasInGame())
+            if (i.next().isWasInGame())
                 retval++;
 
         return retval;
@@ -1555,13 +1554,13 @@ public class MatchTeam
     // get # ready to play in ship #
     public int getPlayersRosteredInShip(int shipType)
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         MatchPlayer p;
         int retval = 0;
 
         while (i.hasNext())
         {
-            p = (MatchPlayer) i.next();
+            p = i.next();
             if ((p.isAllowedToPlay()) && (p.getShipType() == shipType))
                 retval++;
         };
@@ -1586,19 +1585,19 @@ public class MatchTeam
     // send start signal to all players
     public void signalStartToPlayers()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
 
         while (i.hasNext())
-             ((MatchPlayer) i.next()).reportStartOfGame();
+             i.next().reportStartOfGame();
     };
 
     // send end signal to all players
     public void signalEndToPlayers()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
 
         while (i.hasNext())
-             ((MatchPlayer) i.next()).reportEndOfGame();
+             i.next().reportEndOfGame();
     };
 
     public void sendPrivateMessageToCaptains(String text)
@@ -1608,10 +1607,10 @@ public class MatchTeam
 
     public void sendPrivateMessageToCaptains(String text, int soundCode)
     {
-        ListIterator i = m_captains.listIterator();
+        ListIterator<String> i = m_captains.listIterator();
         while (i.hasNext())
         {
-            m_logger.sendPrivateMessage((String) i.next(), text, soundCode);
+            m_logger.sendPrivateMessage(i.next(), text, soundCode);
         };
     };
 
@@ -1646,13 +1645,13 @@ public class MatchTeam
 
     public String getCaptains()
     {
-        ListIterator i = m_captains.listIterator();
+        ListIterator<String> i = m_captains.listIterator();
         String answ = "", temp;
         boolean isFirst = true;
 
         while (i.hasNext())
         {
-            temp = (String) i.next();
+            temp = i.next();
             if (m_botAction.getPlayer(temp) != null)
             {
                 if (isFirst)
@@ -1692,10 +1691,10 @@ public class MatchTeam
 
     public boolean isPlayerOnTeam( String name ){
         MatchPlayer player;
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
 
         while( i.hasNext() ){
-            player = (MatchPlayer)i.next();
+            player = i.next();
             if( player.getPlayerName().toLowerCase().compareTo( name.toLowerCase() ) == 0 ){
                 return true;
             }
@@ -1715,21 +1714,20 @@ public class MatchTeam
         }
     }
 
-    public ArrayList getDScores(boolean duelG, boolean wbG) {
+    public ArrayList<String> getDScores(boolean duelG, boolean wbG) {
 
-	ArrayList out = new ArrayList();
+	ArrayList<String> out = new ArrayList<String>();
 
-        Comparator a = new Comparator()
+        Comparator<MatchPlayer> a = new Comparator<MatchPlayer>()
         {
-            public int compare(Object oa, Object ob)
+            public int compare(MatchPlayer pa, MatchPlayer pb)
             {
-                MatchPlayer pa = (MatchPlayer) oa, pb = (MatchPlayer) ob;
                 return pb.getPlayerName().compareToIgnoreCase(pa.getPlayerName());
             };
         };
 
         // use the comparator
-        Object[] players = m_players.toArray();
+        MatchPlayer[] players = m_players.toArray(new MatchPlayer[m_players.size()]);
         Arrays.sort(players, a);
 
 
@@ -1740,7 +1738,7 @@ public class MatchTeam
 		    out.add("+------------------------'        |      |           |    |");
 
 		    for (int i = players.length - 1; i >= 0; i--) {
-			MatchPlayer p = (MatchPlayer)players[i];
+			MatchPlayer p = players[i];
 			out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " " + rightenString(Integer.toString(p.getTotalStatistic(20)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(0)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(23)), 9) + " | " + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
 		    }
 		} else {
@@ -1749,7 +1747,7 @@ public class MatchTeam
 		    out.add("+------------------------'        |      |      |           |    |");
 
 		    for (int i = players.length - 1; i >= 0; i--) {
-			MatchPlayer p = (MatchPlayer)players[i];
+			MatchPlayer p = players[i];
 			out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " " + rightenString(Integer.toString(p.getTotalStatistic(20)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(0)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(21)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(23)), 9) + " | " + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
 		    }
 		}
@@ -1759,7 +1757,7 @@ public class MatchTeam
 	    out.add("+------------------------'        |      |      |           |      |      |           |    |");
 
 	    for (int i = players.length - 1; i >= 0; i--) {
-		MatchPlayer p = (MatchPlayer)players[i];
+		MatchPlayer p = players[i];
 		out.add("|  " + Tools.formatString(p.getPlayerName(), 25) + " " + rightenString(Integer.toString(p.getTotalStatistic(20)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(0)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(21)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(1)), 9) + " | " + rightenString(Integer.toString(p.getTotalStatistic(18)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(6)), 4) + " | " + rightenString(Integer.toString(p.getTotalStatistic(23)), 9) + " | " + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
 	    }
 

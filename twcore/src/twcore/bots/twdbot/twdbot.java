@@ -28,14 +28,14 @@ public class twdbot extends SubspaceBot {
     String m_arena;
     BotSettings m_botSettings;
     OperatorList m_opList;
-    LinkedList m_players;
-    LinkedList m_squadowner;
+    LinkedList<DBPlayerData> m_players;
+    LinkedList<SquadOwner> m_squadowner;
 
-    public HashMap m_requesters;
+    public HashMap<String, String> m_requesters;
 
     private String register = "";
-    private HashMap m_access;
-    private HashMap m_waitingAction;
+    private HashMap<String, String> m_access;
+    private HashMap<String, String> m_waitingAction;
     private String webdb = "website";
     private String localdb = "local";
 
@@ -50,12 +50,12 @@ public class twdbot extends SubspaceBot {
         m_arena     = m_botSettings.getString("Arena");
         m_opList        = m_botAction.getOperatorList();
 
-        m_players = new LinkedList();
-        m_squadowner = new LinkedList();
+        m_players = new LinkedList<DBPlayerData>();
+        m_squadowner = new LinkedList<SquadOwner>();
 
-        m_access = new HashMap();
-        m_waitingAction = new HashMap();
-        m_requesters = new HashMap();
+        m_access = new HashMap<String, String>();
+        m_waitingAction = new HashMap<String, String>();
+        m_requesters = new HashMap<String, String>();
 
         requestEvents();
     }
@@ -71,7 +71,7 @@ public class twdbot extends SubspaceBot {
     public static String[] stringChopper( String input, char deliniator ){
       try
       {
-        LinkedList list = new LinkedList();
+        LinkedList<String> list = new LinkedList<String>();
 
         int nextSpace = 0;
         int previousSpace = 0;
@@ -96,7 +96,7 @@ public class twdbot extends SubspaceBot {
         if (stuff.length() > 0) {
             list.add( stuff );
         };
-        return (String[])list.toArray(new String[list.size()]);
+        return list.toArray(new String[list.size()]);
       }
       catch(Exception e)
       {
@@ -130,7 +130,7 @@ public class twdbot extends SubspaceBot {
                 else if( message.startsWith( "!info " ) )
                     commandDisplayInfo( name, message.substring( 6 ), false );
                 else if( message.startsWith( "!fullinfo " ) )
-                    commandDisplayInfo( name, message.substring( 10 ), true );                
+                    commandDisplayInfo( name, message.substring( 10 ), true );
                 else if( message.startsWith( "!register " ) )
                     commandRegisterName( name, message.substring( 10 ), false );
                 else if( message.startsWith( "!registered " ) )
@@ -145,7 +145,7 @@ public class twdbot extends SubspaceBot {
                     m_botAction.changeArena( message.substring( 4 ) );
                 else if( message.startsWith( "!help" ) )
                     commandDisplayHelp( name, false );
-                else if( message.startsWith("!add ")) 
+                else if( message.startsWith("!add "))
                 	commandAddMIDIP(name, message.substring(5));
                	else if( message.startsWith("!removeip "))
                		commandRemoveIP(name, message.substring(10));
@@ -154,11 +154,11 @@ public class twdbot extends SubspaceBot {
                	else if( message.startsWith("!listipmid "))
                		commandListIPMID(name, message.substring(11));
                 if(m_opList.isSmod(name)) {
-	                if( message.toLowerCase().startsWith( "!addaccess ")) 
+	                if( message.toLowerCase().startsWith( "!addaccess "))
 	                	command_addaccess(name, message.substring(11));
-	                else if( message.toLowerCase().startsWith( "!removeaccess ")) 
+	                else if( message.toLowerCase().startsWith( "!removeaccess "))
 	                	command_removeaccess(name, message.substring(14));
-	                else if( message.toLowerCase().startsWith( "!listaccess")) 
+	                else if( message.toLowerCase().startsWith( "!listaccess"))
 	                	command_listaccess(name);
 	            }
             }
@@ -196,10 +196,10 @@ public class twdbot extends SubspaceBot {
             if (event.getMessage().startsWith("Owner is ")) {
                 String squadOwner = event.getMessage().substring(9);
 
-                ListIterator i = m_squadowner.listIterator();
+                ListIterator<SquadOwner> i = m_squadowner.listIterator();
                 while (i.hasNext())
                 {
-                    SquadOwner t = (SquadOwner) i.next();
+                    SquadOwner t = i.next();
                     if (t.getID() == ownerID) {
                         if (t.getOwner().equalsIgnoreCase(squadOwner)) {
                             storeSquad(t.getSquad(), t.getOwner());
@@ -220,32 +220,32 @@ public class twdbot extends SubspaceBot {
         //m_botAction.sendSmartPrivateMessage("Cpt.Guano!", e.getMessage());
       }
     }
-	
+
 	public void commandAddMIDIP(String staffname, String info) {
 	   try {
 	   	info = info.toLowerCase();
 	    	String pieces[] = info.split("  ", 3);
-	    	HashSet names = new HashSet();
-	    	HashSet IPs = new HashSet();
-	    	HashSet mIDs = new HashSet();
+	    	HashSet<String> names = new HashSet<String>();
+	    	HashSet<String> IPs = new HashSet<String>();
+	    	HashSet<String> mIDs = new HashSet<String>();
 	    	for(int k = 0;k < pieces.length;k++) {
-	    		if(pieces[k].startsWith("name")) 
+	    		if(pieces[k].startsWith("name"))
 	    			names.add(pieces[k].split(":")[1]);
 	    		else if(pieces[k].startsWith("ip"))
 	    			IPs.add(pieces[k].split(":")[1]);
 	    		else if(pieces[k].startsWith("mid"))
 	    			mIDs.add(pieces[k].split(":")[1]);
 	    	}
-	    	Iterator namesIt = names.iterator();
+	    	Iterator<String> namesIt = names.iterator();
 	    	while(namesIt.hasNext()) {
-	    		String name = (String)namesIt.next();
-		    	Iterator ipsIt = IPs.iterator();
-		    	Iterator midsIt = mIDs.iterator();
+	    		String name = namesIt.next();
+		    	Iterator<String> ipsIt = IPs.iterator();
+		    	Iterator<String> midsIt = mIDs.iterator();
 	    		while(ipsIt.hasNext() || midsIt.hasNext()) {
 	    			String IP = null;
-	    			if(ipsIt.hasNext()) IP = (String)ipsIt.next();
+	    			if(ipsIt.hasNext()) IP = ipsIt.next();
 	    			String mID = null;
-	    			if(midsIt.hasNext()) mID = (String)midsIt.next();
+	    			if(midsIt.hasNext()) mID = midsIt.next();
 			    	if(IP == null && mID == null) {
 			    		m_botAction.sendSmartPrivateMessage(staffname, "Syntax (note double spaces):  !add name:thename  ip:IP  mid:MID");
 			    	} else if(IP == null) {
@@ -269,7 +269,7 @@ public class twdbot extends SubspaceBot {
 		    }
     	} catch(Exception e) {e.printStackTrace();}
     }
-    
+
     public void commandRemoveMID(String Name, String info) {
     	try {
     		String pieces[] = info.split(":", 2);
@@ -282,7 +282,7 @@ public class twdbot extends SubspaceBot {
     		m_botAction.sendPrivateMessage(Name, "MID removed.");
     	} catch(Exception e) {e.printStackTrace();}
     }
-    
+
     public void commandRemoveIP(String Name, String info) {
     	try {
     		String pieces[] = info.split(":", 2);
@@ -295,7 +295,7 @@ public class twdbot extends SubspaceBot {
     		m_botAction.sendPrivateMessage(Name, "IP removed.");
     	} catch(Exception e) {e.printStackTrace();}
     }
-    
+
     public void commandListIPMID(String name, String player) {
     	try {
     		m_botAction.sendPrivateMessage(name, "Results for: " + player);
@@ -362,7 +362,7 @@ public class twdbot extends SubspaceBot {
         };
         m_botAction.scheduleTaskAtFixedRate(checkMessages, 5000, 10000);
     }
-    
+
     public void command_addaccess(String name, String player) {
     	if(player != null && !player.trim().equals("")) {
     		m_access.put(player.toLowerCase(), player);
@@ -370,7 +370,7 @@ public class twdbot extends SubspaceBot {
     		m_botAction.sendSmartPrivateMessage(name, player + " granted access.");
     	}
     }
-    
+
     public void command_removeaccess(String name, String player) {
     	if(player != null && !player.trim().equals("")) {
     		if(m_access.remove(player.toLowerCase()) != null) {
@@ -381,19 +381,19 @@ public class twdbot extends SubspaceBot {
     		}
     	}
     }
-    
+
     public void command_listaccess(String name) {
     	m_botAction.sendSmartPrivateMessage(name, m_botSettings.getString("AccessList"));
     }
-    
+
     public void updateAccessString() {
-    	Iterator it = m_access.values().iterator();
+    	Iterator<String> it = m_access.values().iterator();
     	String accessString = "";
     	while(it.hasNext()) {
-    		accessString += (String)it.next();
+    		accessString += it.next();
     		if(it.hasNext()) {
     			accessString += ":";
-    		}    		
+    		}
     	}
     	m_botSettings.put("AccessList", accessString);
 		m_botSettings.save();
@@ -485,11 +485,11 @@ public class twdbot extends SubspaceBot {
     public DBPlayerData findPlayerInList(String name) {
       try
       {
-        ListIterator l = m_players.listIterator();
+        ListIterator<DBPlayerData> l = m_players.listIterator();
         DBPlayerData thisP;
 
         while (l.hasNext()) {
-            thisP = (DBPlayerData)l.next();
+            thisP = l.next();
             if (name.equalsIgnoreCase(thisP.getUserName())) return thisP;
         };
         return null;
@@ -820,7 +820,7 @@ public class twdbot extends SubspaceBot {
         } else {
             player = message;
         }
-            
+
         DBPlayerData dbP = new DBPlayerData( m_botAction, localdb, player );
 
         if( dbP.isRegistered() )
@@ -949,7 +949,7 @@ public class twdbot extends SubspaceBot {
         //If an info action wasn't set don't handle it
         if( m_waitingAction.containsKey( name ) ) {
 
-            String option = (String)m_waitingAction.get( name );
+            String option = m_waitingAction.get( name );
             m_waitingAction.remove( name );
 
             //Note you can't get here if already registered, so can't match yourself.
@@ -981,7 +981,7 @@ public class twdbot extends SubspaceBot {
         } else {
             if( m_requesters != null ) {
             	String response = name + "  IP:"+ip+"  MID:"+mid;
-            	String requester = (String)m_requesters.remove( name );
+            	String requester = m_requesters.remove( name );
             	if( requester != null )
             		m_botAction.sendSmartPrivateMessage( requester, response );
             }
