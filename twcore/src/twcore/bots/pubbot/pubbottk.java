@@ -1,12 +1,12 @@
 package twcore.bots.pubbot;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.TimerTask;
 
 import twcore.bots.PubBotModule;
+import twcore.core.util.Tools;
 import twcore.core.EventRequester;
 import twcore.core.OperatorList;
 import twcore.core.events.ArenaList;
@@ -271,13 +271,15 @@ public class pubbottk extends PubBotModule {
             }
         }
 
-        long curTime = System.currentTimeMillis();
-        SimpleDateFormat dateformat = new SimpleDateFormat("HH:mm");
-    	m_botAction.sendSmartPrivateMessage( staffname, "'" + tker.getName() + "' TK Record    [First record " +
-                dateformat.format( new Date( curTime - tker.getFirstTKTime() ) ) + " ago]" );
-		m_botAction.sendSmartPrivateMessage( staffname, "TKs:  " + tker.getNumTKs() + "     Warns:  " + tker.getNumWarns() );
-    	m_botAction.sendSmartPrivateMessage( staffname, "Last player TKd:  " + tker.getLastTKd() + "    [" +
-                dateformat.format( new Date( curTime - tker.getLastTKTime() ) ) + " ago]" );
+    	m_botAction.sendSmartPrivateMessage( staffname, "'" + tker.getName() + "' TK Record    [First record " + Tools.getTimeDiffString(tker.getFirstTKTime(), true) + " ago]" );
+		m_botAction.sendSmartPrivateMessage( staffname, "TKs:  " + tker.getNumTKs() + (HARDASS ? ("     Warns:  " + tker.getNumWarns()) : "") );
+    	m_botAction.sendSmartPrivateMessage( staffname, "Last player TKd:  " + tker.getLastTKd() + "    [" + Tools.getTimeDiffString(tker.getLastTKTime(), true) + " ago]" );
+        long frequency = (((new Date().getTime() - tker.getFirstTKTime()) / 1000) / tker.getNumTKs());
+        String avgTime = "(Avg 1 TK every ";
+        if( frequency > 60 )
+            avgTime += frequency / 60 + " min, ";
+        avgTime += frequency % 60 + " seconds.)";            
+        m_botAction.sendSmartPrivateMessage( staffname, avgTime);
 
     	String pointsmsg = "";
 
@@ -292,7 +294,8 @@ public class pubbottk extends PubBotModule {
 		        m_botAction.sendSmartPrivateMessage( staffname, "  - Player has been setshipped.");
 		}
 
-		m_botAction.sendSmartPrivateMessage( staffname, pointsmsg );
+        if( HARDASS )
+            m_botAction.sendSmartPrivateMessage( staffname, pointsmsg );
 		if( tker.wasRepeatKiller() ) {
 			m_botAction.sendSmartPrivateMessage( staffname, "Potential 'target' player:  " + tker.getRepeatTKd() );
 			if( tker.getNumRepeats() > 2 )
@@ -301,8 +304,8 @@ public class pubbottk extends PubBotModule {
 			    m_botAction.sendSmartPrivateMessage( staffname, "  - TKd this player twice in a row." );
 		}
     }
-
-
+    
+    
     /**
      * Sends a manual warning to moderators from a player that claims a TK has
      * been made intentionally.
@@ -454,8 +457,8 @@ public class pubbottk extends PubBotModule {
          */
         public TKInfo( String name ) {
             m_playerName = name.toLowerCase();
-            m_firstTKTime = System.currentTimeMillis();
-            m_lastTKTime = System.currentTimeMillis();
+            m_firstTKTime = new Date().getTime();
+            m_lastTKTime = new Date().getTime();
         }
 
 
@@ -469,7 +472,7 @@ public class pubbottk extends PubBotModule {
          */
         public void addTK( int shipnum, String playerTKd ) {
             calculatePointLoss();
-            m_lastTKTime = System.currentTimeMillis();
+            m_lastTKTime = new Date().getTime();
 
             m_TKs++;
 
@@ -545,7 +548,7 @@ public class pubbottk extends PubBotModule {
          * Calculates the number of points a player has lost over time since the last TK.
          */
         public void calculatePointLoss() {
-            long diff = System.currentTimeMillis() - m_lastTKTime;
+            long diff = new Date().getTime() - m_lastTKTime;
             if( diff <= 0 )
                 return;
             long diffsecs = diff / 1000;
@@ -577,9 +580,9 @@ public class pubbottk extends PubBotModule {
          */
         public void addWarn() {
             // If warned in the past 30 seconds, ignore warning
-            if( m_lastWarn > System.currentTimeMillis() - 30000 )
+            if( m_lastWarn > new Date().getTime() - 30000 )
                 return;
-            m_lastWarn = System.currentTimeMillis();
+            m_lastWarn = new Date().getTime();
 
             m_warns++;
             sendWarn();
