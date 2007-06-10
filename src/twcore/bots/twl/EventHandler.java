@@ -18,7 +18,7 @@ import twcore.core.events.SubspaceEvent;
 
 public class EventHandler
 {
-  private Vector eventListeners;
+  private Vector<EventListener> eventListeners;
 
   /**
    * This method initializes the EventHandler class.
@@ -26,7 +26,7 @@ public class EventHandler
 
   public EventHandler()
   {
-    eventListeners = new Vector();
+    eventListeners = new Vector<EventListener>();
   }
 
   /**
@@ -57,7 +57,7 @@ public class EventHandler
 
     for(int index = 0; index < eventListeners.size(); index++)
     {
-      eventListener = (EventListener) eventListeners.get(index);
+      eventListener = eventListeners.get(index);
       eventListener.handleEvent(event);
     }
   }

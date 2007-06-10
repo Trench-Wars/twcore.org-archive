@@ -79,7 +79,7 @@ public class MatchRound
     TimerTask m_moveAround;
     TimerTask m_secondWarp;
     TimerTask updateScores;
-    ArrayList m_notPlaying;
+    ArrayList<String> m_notPlaying;
 
     private Objset m_myObjects;
     private int m_generalTime = 0;
@@ -122,13 +122,13 @@ public class MatchRound
 
         m_lagHandler = new lagHandler(m_botAction, m_rules, this, "handleLagReport");
 
-        m_notPlaying = new ArrayList();
+        m_notPlaying = new ArrayList<String>();
 
-        Iterator iterator = m_botAction.getPlayerIterator();
+        Iterator<Player> iterator = m_botAction.getPlayerIterator();
         Player player;
 
         while( iterator.hasNext() ){
-            player = (Player)iterator.next();
+            player = iterator.next();
             if( player.getFrequency() == NOT_PLAYING_FREQ ){
                 m_notPlaying.add(player.getPlayerName().toLowerCase());
             }
@@ -160,13 +160,13 @@ public class MatchRound
 
     public void specAll()
     {
-        Iterator iterator = m_botAction.getPlayerIterator();
+        Iterator<Player> iterator = m_botAction.getPlayerIterator();
         Player player;
         int specFreq = getSpecFreq();
 
         while (iterator.hasNext())
         {
-            player = (Player) iterator.next();
+            player = iterator.next();
             if (!player.isPlaying() && player.getFrequency() != specFreq && player.getFrequency() != NOT_PLAYING_FREQ)
                 placeOnSpecFreq(player.getPlayerName());
         }
@@ -501,9 +501,9 @@ public class MatchRound
      * Collects the available help messages for the player of this class and
      * the subclasses
      */
-    public ArrayList getHelpMessages(String name, boolean isStaff)
+    public ArrayList<String> getHelpMessages(String name, boolean isStaff)
     {
-        ArrayList help = new ArrayList();
+        ArrayList<String> help = new ArrayList<String>();
 
         // for everybody
         help.add("!cap                                     - Show the captains of both teams");
@@ -636,8 +636,8 @@ public class MatchRound
 
         try
         {
-            ArrayList playerList = new ArrayList();
-            Iterator it = m_team1.m_players.iterator();
+            ArrayList<MatchPlayer> playerList = new ArrayList<MatchPlayer>();
+            Iterator<MatchPlayer> it = m_team1.m_players.iterator();
 
             while (it.hasNext())
             {
@@ -658,7 +658,7 @@ public class MatchRound
 
             for (int j = 0; j < NUMBER_OF_MVPS; j++)
             {
-                MatchPlayer mvp = (MatchPlayer) playerList.get(j);
+                MatchPlayer mvp = playerList.get(j);
                 m_logger.sendPrivateMessage(name, "MVP " + (j + 1) + ": " + mvp.getPlayerName());
 
                 String[] stats = mvp.getStatistics();
@@ -875,12 +875,12 @@ public class MatchRound
 
     public void command_notplaylist(String name, String parameters[])
     {
-        ListIterator i = m_notPlaying.listIterator();
+        ListIterator<String> i = m_notPlaying.listIterator();
         String a = "", pn;
         boolean first = true;
         while (i.hasNext())
         {
-            pn = m_botAction.getFuzzyPlayerName((String) i.next());
+            pn = m_botAction.getFuzzyPlayerName(i.next());
             if (pn != null)
             {
                 if (first)
@@ -1517,10 +1517,10 @@ public class MatchRound
             {
                 int seconds = m_generalTime % 60;
                 int minutes = (m_generalTime - seconds) / 60;
-                m_myObjects.showObject(730 + (int) ((minutes - minutes % 10) / 10));
-                m_myObjects.showObject(720 + (int) (minutes % 10));
-                m_myObjects.showObject(710 + (int) ((seconds - seconds % 10) / 10));
-                m_myObjects.showObject(700 + (int) (seconds % 10));
+                m_myObjects.showObject(730 + ((minutes - minutes % 10) / 10));
+                m_myObjects.showObject(720 + (minutes % 10));
+                m_myObjects.showObject(710 + ((seconds - seconds % 10) / 10));
+                m_myObjects.showObject(700 + (seconds % 10));
             }
             do_showTeamNames(m_team1.getTeamName(), m_team2.getTeamName());
             m_botAction.setObjects();
@@ -1576,7 +1576,7 @@ public class MatchRound
     {
 	boolean duelG = m_rules.getString("winby").equalsIgnoreCase("kills");
 	boolean wbG = m_rules.getInt("ship") == 1;
-	ArrayList out = new ArrayList();
+	ArrayList<String> out = new ArrayList<String>();
 
 	if (duelG) {
 	    if (wbG) {
@@ -1615,7 +1615,7 @@ public class MatchRound
 	    out.add("`---------------------------------+------+------+-----------+------+------+-----------+----'");
 	}
 
-	String out2[] = (String[]) out.toArray(new String[out.size()]);
+	String out2[] = out.toArray(new String[out.size()]);
 
         for (int i = 0; i < out2.length; i++) {
             m_botAction.sendArenaMessage(out2[i]);

@@ -63,7 +63,7 @@ public class MatchGame
 	boolean m_gameStored = false;
 	boolean announced = false;
 
-	LinkedList m_rounds;
+	LinkedList<MatchRound> m_rounds;
 	MatchRound m_curRound;
 
 	/** Creates a new instance of MatchGame */
@@ -155,7 +155,7 @@ public class MatchGame
 
 		m_logger.sendArenaMessage(title + ": " + m_fcTeam1Name + " vs. " + m_fcTeam2Name);
 		m_gameState = 1;
-		m_rounds = new LinkedList();
+		m_rounds = new LinkedList<MatchRound>();
 		m_curRound = new MatchRound(1, m_fcTeam1Name, m_fcTeam2Name, this);
 		m_rounds.add(m_curRound);
 	};
@@ -322,9 +322,9 @@ public class MatchGame
 		m_logger.logEvent(event);
 	};
 
-	public ArrayList getHelpMessages(String name, boolean isStaff)
+	public ArrayList<String> getHelpMessages(String name, boolean isStaff)
 	{
-		ArrayList help = new ArrayList();
+		ArrayList<String> help = new ArrayList<String>();
 
 		help.add("!status                                  - Shows the current state of the entire game");
 
@@ -399,11 +399,11 @@ public class MatchGame
 		{
 			MatchRound z;
 			if (m_rounds == null) { return; }
-			ListIterator i = m_rounds.listIterator();
+			ListIterator<MatchRound> i = m_rounds.listIterator();
 
 			while (i.hasNext())
 			{
-				z = (MatchRound) i.next();
+				z = i.next();
 				if ((z.m_fnRoundState == 3) || (z.m_fnRoundState == 4))
 					m_logger.sendPrivateMessage(
 						name,
