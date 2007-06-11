@@ -7,7 +7,6 @@ import twcore.bots.PubBotModule;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
-import twcore.core.OperatorList;
 import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.ArenaList;
@@ -45,7 +44,6 @@ public class pubbot extends SubspaceBot
   public static final int LOG_OFF_DELAY = 200;
 
   private ModuleHandler moduleHandler;
-  private OperatorList opList;
   private String pubHubBot;
   private String currentArena;
   private String botName;
@@ -77,7 +75,6 @@ public class pubbot extends SubspaceBot
     moduleHandler = new ModuleHandler(m_botAction, m_botAction.getGeneralSettings().getString( "Core Location" ) + "/twcore/bots/pubbot", "pubbot");
     currentArena = botSettings.getString("InitialArena");
     m_botAction.changeArena(currentArena);
-    opList = m_botAction.getOperatorList();
     botName = m_botAction.getBotName();
     m_botAction.ipcSubscribe(IPCCHANNEL);
     m_botAction.ipcSubscribe(IPCCHANNEL2);
