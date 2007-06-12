@@ -13,7 +13,7 @@ public class TournyGame {
 	private int leagueType;
 	private int realGameId;
 	private int players;
-	private int round;
+	/*private int round;*/
 
 	private boolean replyOne = false;
 	private boolean replyTwo = false;

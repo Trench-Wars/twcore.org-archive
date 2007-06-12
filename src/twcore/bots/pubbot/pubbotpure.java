@@ -17,7 +17,6 @@ public class pubbotpure extends PubBotModule {
     Map<String, Integer> m_playerList;
     int                 m_freqOneSize;
     int                 m_freqZeroSize;
-    private String      m_currentArena;
     private boolean     m_levisAllowed;
     CommandInterpreter  m_commandInterpreter;
     private boolean     m_privateFreqsAllowed;

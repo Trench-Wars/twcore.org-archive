@@ -5,14 +5,11 @@ import twcore.core.EventRequester;
 
 public class pubhubtk extends PubBotModule {
 
-    private String botName;
-
     /**
      * This method initializes the pubhubtk module.  It is called after
      * m_botAction has been initialized.
      */
     public void initializeModule() {
-        botName = m_botAction.getBotName();
     }
 
 

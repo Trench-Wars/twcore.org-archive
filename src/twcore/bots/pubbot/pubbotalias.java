@@ -26,15 +26,7 @@ public class pubbotalias extends PubBotModule
 
   public void handlePlayerIPC(String botSender, String sender, String message)
   {
-    String command = message.toLowerCase();
 
-    try
-    {
-    }
-    catch(Exception e)
-    {
-      m_botAction.sendChatMessage(e.getMessage());
-    }
   }
 
   public void sendPlayerInfo(String message)

@@ -204,7 +204,6 @@ public class pubhubalias extends PubBotModule
 
 	private void displayAltNickResults(String queryString, String[] headers, String uniqueField) throws SQLException
 	{
-		long startTime = System.currentTimeMillis();
 		ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
 		HashSet<String> prevResults = new HashSet<String>();
 		String curResult = null;

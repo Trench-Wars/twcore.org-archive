@@ -1558,7 +1558,6 @@ public class MatchRound
     public void show_string(String new_n, int pos_offs, int alph_offs)
     {
         int i, t;
-        char to;
 
         for (i = 0; i < new_n.length(); i++)
         {

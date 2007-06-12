@@ -1523,13 +1523,11 @@ public class tournybot extends SubspaceBot {
 		}
 
 		pStats lCheck = players.get( name );
-		int fr1 = Integer.parseInt(lCheck.getFreq());
 
 		if (findOpponent(lCheck.getFreq()) == null) {
 		    return;
 		}
 
-		int fr2 = Integer.parseInt(findOpponent(lCheck.getFreq()));
 
 		lCheck.remove();
 		m_botAction.spec(name);
@@ -1799,7 +1797,6 @@ public class tournybot extends SubspaceBot {
 
 		while (it3.hasNext()) {
 			String freq = it3.next();
-			fStats rCheck2 = freqs.get( freq );
 
 			checkOpponent(freq, 1);
 		}

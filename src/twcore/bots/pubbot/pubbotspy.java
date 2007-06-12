@@ -124,15 +124,11 @@ public class pubbotspy extends PubBotModule
 
   public void gotIgnoreCmd(String argString)
   {
-    String playerName = argString.toLowerCase();
-
     ignoreList.add(argString);
   }
 
   public void gotUnignoreCmd(String argString)
   {
-    String playerName = argString.toLowerCase();
-
     ignoreList.remove(argString);
   }
 
