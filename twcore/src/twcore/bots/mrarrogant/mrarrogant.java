@@ -130,7 +130,6 @@ public class mrarrogant extends SubspaceBot
   private void handleSpyMessage(String sender, String message, int messageType)
   {
     String messageTypeString = getMessageTypeString(messageType);
-    String getCurrentArena = m_botAction.getArenaName();
 
     m_botAction.sendChatMessage(messageTypeString + ": (" + sender + ") (" + currentArena + "): " + message);
   }

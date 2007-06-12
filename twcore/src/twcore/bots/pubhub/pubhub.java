@@ -402,7 +402,6 @@ public class pubhub extends SubspaceBot
   public void gotLoadingCmd(String botSender, String argString)
   {
     PubBotModule module;
-    Integer timesLoaded;
 
     if(!moduleHandler.isLoaded(argString))
     {

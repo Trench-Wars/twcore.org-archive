@@ -254,7 +254,6 @@ public class MatchTeam
             if (msg.indexOf("Idle:") != -1)
             {
                 String name;
-                String captain;
                 int idleTime;
                 name = msg.substring(0, msg.indexOf(":"));
 
@@ -867,7 +866,7 @@ public class MatchTeam
         // check if the given substitute command is legal
         // if subdelaytime > 0 then create a timertask to call the substitute routine in subdelaytime seconds
 
-        String playerA, playerB, answer;
+        String playerA, playerB;
         MatchPlayer pA = null;
         int subdelaytime;
 
@@ -1047,7 +1046,6 @@ public class MatchTeam
     // playerallowedtoplay - checks several requirements
     public String playerAllowedToPlay(String name, int ship)
     {
-        String answer;
         Player p;
         int playersAvail;
 
@@ -1471,7 +1469,7 @@ public class MatchTeam
             }
             else if (winby.equals("kills"))
             {
-                int deaths = m_round.getOtherTeam(m_fnFrequency).getTotalDeaths();
+                //int deaths = m_round.getOtherTeam(m_fnFrequency).getTotalDeaths();
                 // for players that weren't there, count their deaths too
                 int otheramount = m_rules.getInt("players") - m_round.getOtherTeam(m_fnFrequency).getPlayersIsWasInGame();
 

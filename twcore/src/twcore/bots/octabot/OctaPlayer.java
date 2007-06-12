@@ -13,7 +13,6 @@ public class OctaPlayer {
 	
 	private int m_timeStart;
 	private int m_freq;
-	private int m_ship;
 	
 	private int m_kill = 0;
 	private int m_teamKill = 0;
@@ -25,27 +24,22 @@ public class OctaPlayer {
 	private int m_killPoints = 0;
 	private int m_flagPoints = 0;
 	
-	private boolean flag = false;
 	private int m_lastFlag = 0;
 	
 	public OctaPlayer( Player p ) {
 		m_name = p.getPlayerName();
 		m_freq = p.getFrequency();
-		m_ship = p.getShipType();
 		m_timeStart = (int)(System.currentTimeMillis()/1000);
 	}
 	
 	public void update( Player p ) {
 		m_freq = p.getFrequency();
-		m_ship = p.getShipType();
 	}
 	
 	public void update( FlagClaimed event ) {
-		flag = true;
 	}
 	
 	public void update( FlagDropped event ) {
-		flag = false;
 		m_lastFlag = (int)(System.currentTimeMillis()/1000);
 	}
 	

@@ -48,7 +48,6 @@ public class pubbothunt extends PubBotModule
 
 	public void handleEvent(Message event)
 	{
-		int messageType = event.getMessageType();
 		String sender = getSender(event);
 		String message = event.getMessage();
 		if(message.equalsIgnoreCase("!prey")) {

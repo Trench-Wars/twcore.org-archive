@@ -734,7 +734,7 @@ public class twl extends SubspaceBot
                 if ((dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (p.getSquadName().equalsIgnoreCase(dp.getTeamName())))
                 {
                     String nmySquad = parameters[0];
-                    GameRequest t, r = null;
+                    GameRequest t;
                     ListIterator<GameRequest> i = m_gameRequests.listIterator();
                     while (i.hasNext())
                     {
