@@ -169,33 +169,17 @@ public class staffbot extends SubspaceBot {
             if( message.toLowerCase().startsWith( "!warning " ) ){
                 queryWarnings( name, message.substring( 9 ) );
             }
-        }
-
-        if( m_opList.isER( name ) ){
-            if( message.toLowerCase().startsWith( "!warnings " ) ){
+            else if( message.toLowerCase().startsWith( "!warnings " ) ){
                 queryWarnings( name, message.substring( 10 ) );
+            }
+            else if( message.toLowerCase().startsWith( "! " ) ){
+                queryWarnings( name, message.substring( 2 ) );                
             }
         }
 
         if( m_opList.isSmod( name ) ){
-/*            if( message.startsWith( "!altnick " )){
-                queryAltNick( name, message.substring( 9 ));
-            } else if( message.startsWith( "!squaddies " )){
-                querySquaddies( name, message.substring( 11 ));
-            } else if( message.startsWith( "!dblsquad " )){
-                queryDblSquad( name, message.substring( 10 )); */
             if( message.toLowerCase().startsWith( "!warningsfrom " ))
                 queryWarningsFrom( name, message.substring( 14 ) );
-/*            } else if( message.toLowerCase().startsWith( "!messagestaff " )){
-                handleMessageStaff( OperatorList.ZH_LEVEL, OperatorList.MODERATOR_LEVEL, name, message.substring( 14 ) );
-            } else if( message.toLowerCase().startsWith( "!messageall " )){
-                handleMessageStaff( OperatorList.ZH_LEVEL, OperatorList.OWNER_LEVEL, name, message.substring( 12 ) );
-            } else if( message.toLowerCase().startsWith( "!messagezh " )){
-                handleMessageStaff( OperatorList.ZH_LEVEL, OperatorList.ZH_LEVEL, name, message.substring( 11 ) );
-            } else if( message.toLowerCase().startsWith( "!messageer " )){
-                handleMessageStaff( OperatorList.ER_LEVEL, OperatorList.ER_LEVEL, name, message.substring( 11 ) );
-            }
-*/
         }
 
         if( m_opList.isZH(name) )
@@ -203,7 +187,7 @@ public class staffbot extends SubspaceBot {
     }
 
     public void queryWarnings( String name, String message ){
-        String      query = "SELECT * FROM tblWarnings WHERE name = \"" + Tools.addSlashesToString(message.toLowerCase()) + "\" ORDER BY timeofwarning DESC";
+        String      query = "SELECT * FROM tblWarnings WHERE name = \"" + Tools.addSlashesToString(message.toLowerCase()) + "\" ORDER BY timeofwarning ASC";
 
         try {
             ResultSet set = m_botAction.SQLQuery( "local", query );
@@ -215,11 +199,14 @@ public class staffbot extends SubspaceBot {
                 java.sql.Date date = set.getDate( "timeofwarning" );
                 String strDate = new SimpleDateFormat("dd MMM yyyy").format( date );
 
-                // Split using regex ": (nonwhitespacechar)", which is the point of
-                // similarity between logged *warn and RoboHelp !warn messages
-                String[] text = warning.split( ": \\S", 2);
+                String[] text;
+                if( warning.contains("Ext: "))
+                    text = warning.split( "Ext: ", 2);
+                else
+                    text = warning.split( ": ", 2);
+                
                 if( text.length == 2 )
-                    m_botAction.sendRemotePrivateMessage( name, strDate + "  - " + text[1]);
+                    m_botAction.sendRemotePrivateMessage( name, strDate + "  " + text[1]);
             }
             m_botAction.sendRemotePrivateMessage( name, "End of list." );
             m_botAction.SQLClose( set );
@@ -327,6 +314,7 @@ public class staffbot extends SubspaceBot {
         final String[] helpTextMod = {
             "Available Mod commands:",
             "!warnings <player>     - Checks red warnings on specified player",
+            "! <player>             - (shortcut for above)",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player",
             "!list <num>            - Lists <num>(optional) of players in chronological order",
@@ -350,6 +338,7 @@ public class staffbot extends SubspaceBot {
             "!dblsquad <player>     - Displays a list of all the name/squad combinations this player might own",
             "!altnick <player>      - Displays a list of all the player's alt nicks.",*/
             "!warnings <player>     - Checks red warnings on specified player",
+            "! <player>             - (shortcut for above)",
             "!warningsfrom <player> - Displays a list of recent warns given to a player."
         };
 
