@@ -891,7 +891,7 @@ public class duelbot extends SubspaceBot {
     	}
     }
 
-    public void do_shutdownDie( String name, String message ) {
+    public void do_shutDownDie( String name, String message ) {
         if( !(leagueOps.containsKey( name.toLowerCase() ) || m_botAction.getOperatorList().isSmod(name)) ) return;
         shutDownMessage = message;
         if( shutDownDie ) {
