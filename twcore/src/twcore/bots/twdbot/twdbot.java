@@ -16,6 +16,7 @@ import twcore.core.OperatorList;
 import twcore.core.SubspaceBot;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
+import twcore.core.events.SQLResultEvent;
 import twcore.core.game.Player;
 import twcore.core.stats.DBPlayerData;
 import twcore.core.util.Tools;
@@ -221,6 +222,10 @@ public class twdbot extends SubspaceBot {
       }
     }
 
+    public void handleEvent( SQLResultEvent event ){
+        // NOP.
+    }
+    
 	public void commandAddMIDIP(String staffname, String info) {
 	   try {
 	   	info = info.toLowerCase();
@@ -267,7 +272,9 @@ public class twdbot extends SubspaceBot {
 			    	}
 			    }
 		    }
-    	} catch(Exception e) {e.printStackTrace();}
+    	} catch(Exception e) {
+            m_botAction.sendPrivateMessage(staffname, "Syntax (note double spaces):  !add name:thename  ip:IP  mid:MID   (You can omit either the IP or the MID if you wish)");
+        }
     }
 
     public void commandRemoveMID(String Name, String info) {
