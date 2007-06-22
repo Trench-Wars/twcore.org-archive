@@ -367,7 +367,7 @@ public class twdbot extends SubspaceBot {
                 checkNamesToReset();
             };
         };
-        m_botAction.scheduleTaskAtFixedRate(checkMessages, 5000, 10000);
+        m_botAction.scheduleTaskAtFixedRate(checkMessages, 5000, 30000);
     }
 
     public void command_addaccess(String name, String player) {
@@ -515,7 +515,7 @@ public class twdbot extends SubspaceBot {
             while (s.next()) {
                 if (s.getString("fcMessageType").equalsIgnoreCase("squad")) {
                     m_botAction.sendSquadMessage(s.getString("fcTarget"), s.getString("fcMessage"), s.getInt("fnSound"));
-                    m_botAction.SQLBackgroundQuery(webdb, null, "update tblMessage set fnProcessed = 1 where fnMessageID = " + s.getInt("fnMessageID"));
+                    m_botAction.SQLQueryAndClose(webdb, "update tblMessage set fnProcessed = 1 where fnMessageID = " + s.getInt("fnMessageID"));
                 };
             };
             m_botAction.SQLClose( s );
