@@ -511,11 +511,14 @@ public class twdbot extends SubspaceBot {
 
     public void checkMessages() {
         try {
-            ResultSet s = m_botAction.SQLQuery(webdb, "select * from tblMessage where fnProcessed = 0 and fcSubject='TWD' and fcMessage != ' '");
+            // Improved query: tblMessage is only used for TWD score change messages, so we only need to check for unprocessed msgs
+            ResultSet s = m_botAction.SQLQuery(webdb, "SELECT * FROM tblMessage WHERE fnProcessed = 0");
             while (s.next()) {
                 if (s.getString("fcMessageType").equalsIgnoreCase("squad")) {
                     m_botAction.sendSquadMessage(s.getString("fcTarget"), s.getString("fcMessage"), s.getInt("fnSound"));
-                    m_botAction.SQLQueryAndClose(webdb, "update tblMessage set fnProcessed = 1 where fnMessageID = " + s.getInt("fnMessageID"));
+                    // Delete messages rather than update them as sent, as we don't need to keep records.
+                    // This table is only used to send msgs between the website and this bot.
+                    m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblMessage WHERE fnMessageID = " + s.getInt("fnMessageID"));
                 };
             };
             m_botAction.SQLClose( s );
