@@ -34,6 +34,7 @@ public class duelbot extends SubspaceBot {
 
 	CommandInterpreter  m_commandInterpreter;
 	final String		mySQLHost = "local";
+    final int           MSG_LIMIT = 8;           
 	// Used to 'shutdown' the bot and allow no new duels.
 	boolean 			shutDown    = false;
     // Disallows new duels and shuts bot down once all dueling has stopped
@@ -871,7 +872,7 @@ public class duelbot extends SubspaceBot {
     public void do_setMessageLimit(String name, String message) {
     	if( !(leagueOps.containsKey( name.toLowerCase() ))) return;
 
-    	int limit = 3;
+    	int limit = MSG_LIMIT;
     	try {
     		limit = Integer.parseInt(message);
     	} catch(Exception e) {}
@@ -1500,7 +1501,7 @@ public class duelbot extends SubspaceBot {
         m_botAction.toggleLocked();
         m_botAction.specAll();
         m_botAction.setReliableKills( 1 );
-        m_botAction.setMessageLimit( 3 );
+        m_botAction.setMessageLimit( MSG_LIMIT );
 
         setupTournyTask();
     }
