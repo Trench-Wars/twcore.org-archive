@@ -318,7 +318,9 @@ public class matchbot extends SubspaceBot
         };
 
         if ((event.getMessageType() == Message.PRIVATE_MESSAGE)
-            || ((event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) && (message.toLowerCase().startsWith("!accept"))))
+            || ((event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) && (message.toLowerCase().startsWith("!accept")))
+            || ((event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) && (message.toLowerCase().startsWith("!off")))
+            )
         {
             String name = m_botAction.getPlayerName(event.getPlayerID());
             if (name == null)
@@ -463,11 +465,12 @@ public class matchbot extends SubspaceBot
                     command_unlock(name, parameters);
                 if ((command.equals("!die")) && (m_opList.isSmod(name)))
                     m_botAction.die();
-                if ((command.equals("!off")))
-                if (m_game == null)	{
-                    command_unlock(name, parameters);
-                } else {
-                    command_setoff(name);
+                if ((command.equals("!off"))) {
+	                if (m_game == null)	{
+	                    command_unlock(name, parameters);
+	                } else {
+	                    command_setoff(name);
+	                }
                 }
                 if ((command.equals("!listaccess")) && (m_opList.isSmod(name)))
                     command_listaccess(name, parameters);
