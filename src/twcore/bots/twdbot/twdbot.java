@@ -1,6 +1,7 @@
 package twcore.bots.twdbot;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -193,7 +194,7 @@ public class twdbot extends SubspaceBot {
             parseCommand( name, command, parameters, isStaff );
         }
 
-        if( event.getMessageType() == Message.ARENA_MESSAGE) {
+        if( event.getMessageType() == Message.ARENA_MESSAGE) {	// !squadsignup
             if (event.getMessage().startsWith("Owner is ")) {
                 String squadOwner = event.getMessage().substring(9);
 
@@ -210,7 +211,7 @@ public class twdbot extends SubspaceBot {
                     }
                 }
                 ownerID++;
-            } else if (message.startsWith( "IP:" )) {
+            } else if (message.startsWith( "IP:" )) { // !register
                 parseIP( message );
             }
         }
@@ -410,32 +411,34 @@ public class twdbot extends SubspaceBot {
     public void command_signup(String name, String command, String[] parameters) {
         try {
             if (parameters.length > 0 && passwordIsValid(parameters[0])) {
-
-        boolean success = false;
+            	boolean success = false;
                 boolean can_continue = true;
 
                 String fcPassword = parameters[0];
                 DBPlayerData thisP;
 
                 thisP = findPlayerInList(name);
-                if (thisP != null)
-                    if (System.currentTimeMillis() - thisP.getLastQuery() < 300000)
+                if (thisP != null) {
+                    if (System.currentTimeMillis() - thisP.getLastQuery() < 300000) {
                         can_continue = false;
+                    }
+                }
 
-        if (thisP == null) {
+                if (thisP == null) {
                     thisP = new DBPlayerData(m_botAction, webdb, name, true);
                     success = thisP.getPlayerAccountData();
-                } else success = true;
+                } else {
+                	success = true;
+                }
 
                 if (can_continue) {
-
                     if (!success) {
                         success = thisP.createPlayerAccountData(fcPassword);
                     } else {
                         if (!thisP.getPassword().equals(fcPassword)) {
                             success = thisP.updatePlayerAccountData(fcPassword);
                         }
-                    };
+                    }
 
                     if (!thisP.hasRank(2)) thisP.giveRank(2);
 
@@ -450,13 +453,13 @@ public class twdbot extends SubspaceBot {
                     }
                 } else {
                     m_botAction.sendSmartPrivateMessage(name, "You can only signup / change passwords once every 5 minutes");
-                };
-            } else
+                }
+            } else {
                 m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup mypass'. The password must contain a number and needs to be at least 5 characters long.");
+            }
 
         }
-        catch(Exception e)
-        {
+        catch(Exception e) {
           throw new RuntimeException("Error in command_signup.");
         }
     };
@@ -513,7 +516,7 @@ public class twdbot extends SubspaceBot {
         try {
             // Improved query: tblMessage is only used for TWD score change messages, so we only need to check for unprocessed msgs
             ResultSet s = m_botAction.SQLQuery(webdb, "SELECT * FROM tblMessage WHERE fnProcessed = 0");
-            while (s.next()) {
+            while (s != null && s.next()) {
                 if (s.getString("fcMessageType").equalsIgnoreCase("squad")) {
                     m_botAction.sendSquadMessage(s.getString("fcTarget"), s.getString("fcMessage"), s.getInt("fnSound"));
                     // Delete messages rather than update them as sent, as we don't need to keep records.
@@ -522,8 +525,8 @@ public class twdbot extends SubspaceBot {
                 };
             };
             m_botAction.SQLClose( s );
-        } catch (Exception e) {
-            System.out.println("Can't check for new messages...");
+        } catch (SQLException e) {
+        	Tools.printStackTrace(e);
         };
     };
 
