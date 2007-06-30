@@ -568,10 +568,11 @@ public class twdbot extends SubspaceBot {
                         Tools.addSlashesToString(squad),
                         time
                     };
-                    m_botAction.SQLBackgroundInsertInto(webdb, "tblTeam", fields, values);
+                    m_botAction.SQLInsertInto(webdb, "tblTeam", fields, values);
 
                     int teamID;
 
+                    // This query gets the latest inserted TeamID from the database to associate the player with
                     ResultSet s2 = m_botAction.SQLQuery(webdb, "SELECT MAX(fnTeamID) AS fnTeamID FROM tblTeam");
                     if (s2.next()) {
                         teamID = s2.getInt("fnTeamID");
@@ -594,7 +595,7 @@ public class twdbot extends SubspaceBot {
                         time,
                         "1"
                     };
-                    m_botAction.SQLBackgroundInsertInto(webdb, "tblTeamUser", fields2, values2);
+                    m_botAction.SQLInsertInto(webdb, "tblTeamUser", fields2, values2);
 
                     thisP.giveRank(4);
 
