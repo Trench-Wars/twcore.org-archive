@@ -59,6 +59,8 @@ public class MatchGame
 
 	int m_gameState = 0;
 	int playersNum = 0;
+	
+	int settings_FlaggerKillMultiplier = 0;
 
 	static int KILL_ME_PLEASE = 10;
 
@@ -187,6 +189,8 @@ public class MatchGame
 		m_rounds = new LinkedList<MatchRound>();
 		m_curRound = new MatchRound(1, m_fcTeam1Name, m_fcTeam2Name, this);
 		m_rounds.add(m_curRound);
+		
+		m_botAction.sendUnfilteredPublicMessage("?get Flag:FlaggerKillMultiplier");
 	};
 
 	public int getBotNumber()
@@ -211,7 +215,7 @@ public class MatchGame
 			String[] fields = { "fnMatchTypeID", "fnMatchStateID", "fnTeam1ID", "fcTeam1Name", "fnTeam2ID", "fcTeam2Name", "ftTimeStarted", "fnChallengerUserID", "fnAccepterUserID" };
 			String[] values =
 				{
-					m_rules.getString("matchtype"),
+					Integer.toString(m_fnMatchTypeID),
 					"2",
 					Integer.toString(m_fnTeam1ID),
 					Tools.addSlashesToString(m_fcTeam1Name),
@@ -315,6 +319,10 @@ public class MatchGame
 		{
 			m_curRound.handleEvent(event);
 		};
+		
+		if(event.getMessageType() == Message.ARENA_MESSAGE && event.getMessage().startsWith("Flag:FlaggerKillMultiplier=")) {
+			this.settings_FlaggerKillMultiplier = Integer.parseInt(event.getMessage().trim().substring(27));
+		}
 	};
 
 	public void handleEvent(PlayerDeath event)

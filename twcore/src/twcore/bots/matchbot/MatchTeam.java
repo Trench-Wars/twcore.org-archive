@@ -75,6 +75,7 @@ public class MatchTeam
 
     //time race variables
     private boolean m_flagOwned = false;
+    private int m_flagCarrierID = 0;
     private int m_teamTime = 0;
 
     private boolean m_threeMinuteWarning = true;
@@ -217,7 +218,13 @@ public class MatchTeam
             {
                 String playerName = m_botAction.getPlayer(event.getKillerID()).getPlayerName();
                 MatchPlayer p = getPlayer(playerName);
-                p.reportKill(event.getScore(), event.getKilleeID());
+                
+                int score = event.getScore();
+                
+                if(m_round.m_game.m_fnMatchTypeID == 20 && m_flagOwned) { // ONLY TWSDX which has MatchType=20
+                	score = score * (m_round.m_game.settings_FlaggerKillMultiplier+1);
+                }
+                p.reportKill(score, event.getKilleeID());
             }
             catch (Exception e)
             {
@@ -1339,6 +1346,7 @@ public class MatchTeam
             MatchPlayer p = getPlayer(playerName);
             if (p != null)
                 p.reportFlagClaimed();
+            m_flagCarrierID = playerID;
             m_flagOwned = true;
         }
     }
@@ -1352,8 +1360,25 @@ public class MatchTeam
     {
         if (m_round.m_fnRoundState == 3 && m_flagOwned == true)
         {
+        	m_flagCarrierID = 0;
             m_flagOwned = false;
         }
+    }
+    
+    /**
+     * Returns if this team has the flag
+     * @return boolean which is true if this team has the flag
+     */
+    public boolean hasFlag() {
+    	return m_flagOwned;
+    }
+    
+    /**
+     * Returns the ID of the player who currently carries a flag. Meant to be used for games with 1 flag only.
+     * @return the PlayerID of the flagcarrier of this team
+     */
+    public int getFlagCarrier() {
+    	return this.m_flagCarrierID;
     }
 
     /**
