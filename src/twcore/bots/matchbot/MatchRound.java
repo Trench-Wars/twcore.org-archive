@@ -347,8 +347,8 @@ public class MatchRound
         if ((event.getMessageType() == Message.PUBLIC_MESSAGE) && (m_blueoutState == 1) && (m_endGame != null) && (System.currentTimeMillis() - m_timeBOEnabled > 5000))
         {
             String name = m_botAction.getPlayerName(event.getPlayerID());
-            m_botAction.sendUnfilteredPublicMessage("?cheater " + name + " talking in blueout: " + name + "> " + event.getMessage());
-            m_botAction.sendUnfilteredPrivateMessage(event.getPlayerID(), "*warn Do not talk during blueout!");
+            m_botAction.sendCheaterMessage(name + " talking in blueout: " + name + "> " + event.getMessage());
+            m_botAction.warnPlayer(event.getPlayerID(), "Do not talk during blueout!");
         }
 
         if (event.getMessageType() == Message.ARENA_MESSAGE)
@@ -417,12 +417,28 @@ public class MatchRound
                 endGame();
             if (m_team1.wonRace() || m_team2.wonRace())
                 endGame();
+            
+            // TWSDX ONLY:
+            if(m_game.m_fnMatchTypeID == 20) {
+            	if(m_team1.hasFlag() && m_team1.getPlayer(killeeName, true) != null && event.getKilleeID() == m_team1.getFlagCarrier()) {
+            		// team1 had the flag and the killed one was from team1 and it was the flagcarrier, now the killer is the flagcarrier.`
+            		m_botAction.sendPublicMessage("team1 lost the flag.");
+            		m_team1.disownFlag();
+            		m_team2.ownFlag(event.getKillerID());
+            	}
+            	if(m_team2.hasFlag() && m_team2.getPlayer(killeeName, true) != null && event.getKilleeID() == m_team2.getFlagCarrier()) {
+            		// team2 had the flag the killed one was from team2 and it was the flagcarrier, now the killer is the flagcarrier.
+            		m_botAction.sendPublicMessage("team2 lost the flag.");
+            		m_team2.disownFlag();
+            		m_team1.ownFlag(event.getKillerID());
+            	}
+            }
         }
         catch (Exception e)
         {
         };
     };
-
+    
     /*
      * Parses the SoccerGoal event to the team in which the player is
      */
@@ -1142,7 +1158,7 @@ public class MatchRound
         };
         m_team1.signalStartToPlayers();
         m_team2.signalStartToPlayers();
-        m_botAction.setReliableKills(1);
+        m_botAction.receiveAllPlayerDeaths();
         m_logger.scoreResetAll();
         m_logger.shipResetAll();
         m_logger.resetFlagGame();
