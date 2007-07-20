@@ -562,7 +562,7 @@ public class pubhubalias extends PubBotModule
 	 * Stops all MacID watching.
 	 */
 	public void doClearMIDWatchCmd( ) {
-		watchedNames.clear();
+		watchedMIDs.clear();
 		m_botAction.sendChatMessage( "All watched MIDs cleared." );
 	}
 
