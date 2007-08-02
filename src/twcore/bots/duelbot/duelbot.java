@@ -5,6 +5,7 @@ package twcore.bots.duelbot;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
@@ -72,6 +73,8 @@ public class duelbot extends SubspaceBot {
 	HashMap	<Duel,ScoreReport>updates = new HashMap<Duel,ScoreReport>();
 	//Contains the list of players that are allowed to !signup.
 	HashMap	<String,String>allowedNames = new HashMap<String,String>();
+    //Contains the list of players that were allowed to !signup and can now be !enable
+    HashSet <String>allowedSignedUpNames = new HashSet<String>();
 	//Contains the list of league Operators *** SHOULD BE HASHSET ... ***
 	HashMap	<String,String>leagueOps    = new HashMap<String,String>();
 	//Contains the list of tourny games
@@ -525,7 +528,8 @@ public class duelbot extends SubspaceBot {
     		String IP = info.getString( "fcIP" );
     		String MID = info.getString( "fnMID" );
     		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT fcUserName FROM tblDuelPlayer WHERE fnEnabled = 1 AND fcIP = '"+IP+"' AND fnMID = '"+MID+"'" );
-    		if( result.next() ) {
+            boolean okToEnable = allowedSignedUpNames.remove( name );
+    		if( result.next() && !okToEnable ) {
     			String extras = "";
     			do {
     				extras += " " + result.getString( "fcUserName" ) + " ";
@@ -1094,7 +1098,8 @@ public class duelbot extends SubspaceBot {
 		    			//sql_createLeagueData( player );
 
 		    			m_botAction.sendPrivateMessage( name, "You have been registered to use this bot. It is advised you set your personal dueling rules, for further information use !help" );
-		    			allowedNames.remove( name );
+                        allowedNames.remove( name );
+                        allowedSignedUpNames.add( name );
     				} else {
     					if(aliasChecker.equals(""))
     						m_botAction.sendSmartPrivateMessage( name, "It appears you already have other names signed up for TWEL or have registered this name already." );
