@@ -722,12 +722,17 @@ public class mrarrogant extends SubspaceBot
 
   private void doChatHelpCmd()
   {
-    m_botAction.sendChatMessage("!Go <ArenaName>                     -- Moves the bot to <ArenaName>.");
-    m_botAction.sendChatMessage("!LogFrom <Name>:<Command>:<Time>    -- Displays recent commands from <Name>.");
-    m_botAction.sendChatMessage("!LogTo <Name>:<Command>:<Time>      -- Displays recent commands to <Name>.");
-    m_botAction.sendChatMessage("!Log <Time>                         -- Displays all recent commands.");
-    m_botAction.sendChatMessage("!Help                               -- Displays this help message.");
-    m_botAction.sendChatMessage("!Die                                -- Logs the bot off.");
+    m_botAction.sendChatMessage("!Go <ArenaName>                [PM] - Moves the bot to <ArenaName>.");
+    m_botAction.sendChatMessage("!Help                          [PM] - Displays this help message.");
+    m_botAction.sendChatMessage("!Die                           [PM] - Logs the bot off.");
+    m_botAction.sendChatMessage("!LogFrom <Name>[:Cmd][:Time] [Chat] - Displays recent commands from <Name>.");
+    m_botAction.sendChatMessage("!LogTo <Name>[:Cmd][:Time]   [Chat] - Displays recent commands to <Name>.");
+    m_botAction.sendChatMessage("!Stay                        [Chat] - Causes bot to stay in arena.");
+    m_botAction.sendChatMessage("!ArroSpy                     [Chat] - Reports chat in current arena.");
+    m_botAction.sendChatMessage("!say   OR  !!                [Chat] - Sends message to standard chat.");
+    m_botAction.sendChatMessage("!sayt  OR  !//               [Chat] - Sends message to team chat.");
+    m_botAction.sendChatMessage("!sayc  OR  !;                [Chat] - Sends message to chat channel.");
+    m_botAction.sendChatMessage(":<name>:<msg>                [Chat] - Sends PM <msg> to <name>.");
   }
 
   /**
