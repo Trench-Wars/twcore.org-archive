@@ -897,9 +897,11 @@ public class duelbot extends SubspaceBot {
         shutDownMessage = message;
         if( shutDownDie ) {
             m_botAction.sendPrivateMessage( name, "Shutdown+Die mode turned off." );
+            shutDown = false;
             shutDownDie = false;
         } else {
             m_botAction.sendPrivateMessage( name, "Shutdown+Die mode turned on." );
+            shutDown = true;
             shutDownDie = true;
             if( duels.size() == 0 ) {
                 m_botAction.sendArenaMessage( "Shutting down for core maintenance.", 1 );
