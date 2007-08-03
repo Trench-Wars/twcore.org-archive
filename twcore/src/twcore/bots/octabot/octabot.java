@@ -427,7 +427,7 @@ public class octabot extends SubspaceBot {
                         int gameid = 0;
 			if( result.next() )
 				gameid = result.getInt( "fnGameID" );
-                        m_botAction.SQLClose( result );
+                m_botAction.SQLClose( result );
 			return gameid;
 		} catch (Exception e) {
 			Tools.printStackTrace( "Unable to get gameID:", e );
@@ -437,19 +437,18 @@ public class octabot extends SubspaceBot {
 
 	public int getUserId( String name ) {
 
-		try {
-			ResultSet result = m_botAction.SQLQuery( "local", "SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
-                        int gameid = 0;
-			if( result.next() )
-				gameid = result.getInt( "fnUserID" );
-                        m_botAction.SQLClose( result );
-			return gameid;
-		} catch (Exception e) {
-			Tools.printStackTrace( "Unable to get userID:", e );
-		}
-		return 0;
+	    try {
+	        ResultSet result = m_botAction.SQLQuery( "local", "SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
+	        int gameid = 0;
+            if( result == null )
+                return 0;
+	        if( result.next() )
+	            gameid = result.getInt( "fnUserID" );
+	        m_botAction.SQLClose( result );
+	        return gameid;
+	    } catch (Exception e) {
+	        Tools.printStackTrace( "Unable to get userID:", e );
+	    }
+	    return 0;
 	}
-
-
-
 }
