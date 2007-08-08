@@ -230,6 +230,16 @@ public class pubhub extends SubspaceBot
     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("die"));
     m_botAction.scheduleTask(new LogOffTask(), LOG_OFF_DELAY);
   }
+  
+  public void doHubHelpCmd() {
+    m_botAction.sendChatMessage("!respawn      - Respawns all PubBots.");
+    m_botAction.sendChatMessage("!off          - Logs the Hub and all PubBots off.");
+    m_botAction.sendChatMessage("!where        - Shows location of all PubBots.");
+    m_botAction.sendChatMessage("!listmodules  - Gives a list of pub modules available.");
+    m_botAction.sendChatMessage("!updateinfo   - Updates pubbot settings from the CFG.");
+    m_botAction.sendChatMessage("!help         - Gets you a date and a real job.  Probably.");
+    
+  }
 
   /**
    * This method handles a message from the pubHubBot.
@@ -260,7 +270,7 @@ public class pubhub extends SubspaceBot
     {
       if(sender.equals(hubBot))
         handleHubBotMessage(message);
-      if(startsWithIgnoreCase(message, "!spawn ")) {}
+      //if(startsWithIgnoreCase(message, "!spawn ")) {}
       if(message.equalsIgnoreCase("!respawn"))
         doRespawnCmd();
       if(message.equalsIgnoreCase("!updateinfo"))
@@ -271,8 +281,10 @@ public class pubhub extends SubspaceBot
         doListModulesCmd(sender);
       if(message.equalsIgnoreCase("!off"))
         doOffCmd();
-      if(message.equalsIgnoreCase("!help")) {}
+      if(message.equalsIgnoreCase("!help")) {
+        doHubHelpCmd();
 //      moduleHandler.handleEvent(new CommandEvent(sender, message));
+      }
     }
     catch(Exception e)
     {
