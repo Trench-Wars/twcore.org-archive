@@ -1,13 +1,21 @@
 package twcore.bots.pubbot;
 
+import java.util.Iterator;
 import java.util.Stack;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
 import twcore.core.events.ArenaList;
+import twcore.core.events.FrequencyChange;
+import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.Message;
+import twcore.core.events.PlayerEntered;
+import twcore.core.events.PlayerLeft;
+import twcore.core.events.ScoreUpdate;
+import twcore.core.game.Player;
 import twcore.core.util.Tools;
-import twcore.core.util.IPCChatMessage;
+import twcore.core.util.ipc.IPCChatMessage;
+import twcore.core.util.ipc.IPCMessage;
 
 public class pubbotchat extends PubBotModule {
 	private String currentArena;
@@ -15,13 +23,19 @@ public class pubbotchat extends PubBotModule {
 	
 	private Stack<String> chat = new Stack<String>();
 	private int maxSize = 50; //max size of the Stack which holds the messages for the !last command
-
+	
 	/**
 	 * Initialize this module
 	 */
 	public void initializeModule() {
 		currentArena = m_botAction.getArenaName();
 		botName = m_botAction.getBotName();
+		
+		// Send all the players in the arena to pubhubchat
+		Iterator<Player> it = m_botAction.getPlayerIterator();
+		while(it.hasNext()) {
+			m_botAction.ipcTransmit(pubbot.IPCCHAT, it.next());
+		}
 		
 	}
 
@@ -31,6 +45,11 @@ public class pubbotchat extends PubBotModule {
 	public void requestEvents(EventRequester eventRequester) {
 		eventRequester.request(EventRequester.MESSAGE);
 		eventRequester.request(EventRequester.ARENA_LIST);
+		eventRequester.request(EventRequester.FREQUENCY_CHANGE);
+		eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
+		eventRequester.request(EventRequester.PLAYER_ENTERED);
+		eventRequester.request(EventRequester.PLAYER_LEFT);
+		eventRequester.request(EventRequester.SCORE_UPDATE);
 	}
 
 	/**
@@ -124,6 +143,30 @@ public class pubbotchat extends PubBotModule {
 	public void handleEvent(ArenaList event) {
 		currentArena = m_botAction.getArenaName();
 	}
+	
+	public void handleEvent(FrequencyChange event) {
+		Player player = this.getPlayer(null, event.getPlayerID());
+		m_botAction.ipcTransmit(pubbot.IPCCHAT, player);
+	}
+	
+	public void handleEvent(FrequencyShipChange event) {
+		Player player = this.getPlayer(null, event.getPlayerID());
+		m_botAction.ipcTransmit(pubbot.IPCCHAT, player);
+	}
+	
+	public void handleEvent(PlayerEntered event) {
+		Player player = this.getPlayer(null, event.getPlayerID());
+		m_botAction.ipcTransmit(pubbot.IPCCHAT, player);
+	}
+	
+	public void handleEvent(ScoreUpdate event) {
+		Player player = this.getPlayer(null, event.getPlayerID());
+		m_botAction.ipcTransmit(pubbot.IPCCHAT, player);
+	}
+	
+	public void handleEvent(PlayerLeft event) {
+		m_botAction.ipcTransmit(pubbot.IPCCHAT, "left:"+event.getPlayerID());
+	}
 
 	@Override
 	public void cancel() {}
@@ -176,4 +219,13 @@ public class pubbotchat extends PubBotModule {
       }
       return "??";
     }
+  	
+  	private Player getPlayer(String name, int id) {
+  		Player player = m_botAction.getPlayer(id);
+  		if(player == null && name != null) {
+  			return m_botAction.getPlayer(name);
+  		} else {
+  			return player;
+  		}
+  	}
 }

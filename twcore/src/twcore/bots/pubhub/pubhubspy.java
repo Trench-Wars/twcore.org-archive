@@ -10,7 +10,7 @@ import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
-import twcore.core.util.IPCMessage;
+import twcore.core.util.ipc.IPCMessage;
 
 public class pubhubspy extends PubBotModule
 {

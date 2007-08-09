@@ -7,7 +7,7 @@ import twcore.core.EventRequester;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
-import twcore.core.util.IPCMessage;
+import twcore.core.util.ipc.IPCMessage;
 
 public class pubbotalias extends PubBotModule
 {
