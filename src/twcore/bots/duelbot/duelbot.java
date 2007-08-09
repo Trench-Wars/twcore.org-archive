@@ -785,7 +785,7 @@ public class duelbot extends SubspaceBot {
     	try {
     		String rankCheck = name;
 	    	String rankString = "TWE-D: #&     TWE-J: #&     TWE-S: #&";
-	    	if(message != null && (message.equals("") || message.equals(" "))) rankCheck = message;
+	    	if(message != null && !(message.equals("") || message.equals(" "))) rankCheck = message;
 	    	for(int k = 1;k <= 3;k++) {
 	    		ResultSet results = m_botAction.SQLQuery(mySQLHost, "SELECT COUNT( * ) AS rank, dl1.fnRating AS rating"
 					+ "FROM tblDuelLeague AS dl1, tblDuelLeague AS dl2 "
@@ -799,7 +799,7 @@ public class duelbot extends SubspaceBot {
 				} else {
 					rankString = rankString.split("&", 2)[0] + "N/A" + rankString.split("&", 2)[1];
 				}
-                                m_botAction.SQLClose( results );
+                m_botAction.SQLClose( results );
 	    	}
 	    	m_botAction.sendPrivateMessage(name, rankString);
 	    } catch(Exception e) {e.printStackTrace();}
@@ -1565,13 +1565,19 @@ public class duelbot extends SubspaceBot {
     			int leagueId = result.getInt( "fnLeagueTypeID" );
     			int realGameId = result.getInt( "fnGameNumber" );
     			int players = result.getInt( "fnTotalPlayers" );
-                         m_botAction.SQLQueryAndClose("local", "UPDATE tblDuelTournyGame SET fdLastCall = NOW() WHERE fnGameID = "+gid);
+                m_botAction.SQLQueryAndClose("local", "UPDATE tblDuelTournyGame SET fdLastCall = NOW() WHERE fnGameID = "+gid);
     			TournyGame tg = new TournyGame( gid, pOne, pTwo, idOne, idTwo, leagueId, realGameId, players );
     			tournyGames.put( new Integer( gid ), tg );
-    			m_botAction.sendSmartPrivateMessage( pOne, "You have a "+tg.getType()+" Tournament duel versus "+pTwo+". If you are available please reply with '!yes "+gid+"'" );
-    			m_botAction.sendSmartPrivateMessage( pTwo, "You have a "+tg.getType()+" Tournament duel versus "+pOne+". If you are available please reply with '!yes "+gid+"'" );
+                if( tg != null ) {
+                    m_botAction.sendSmartPrivateMessage( pOne, "You have a "+tg.getType()+" Tournament duel versus "+pTwo+". If you are available please reply with '!yes "+gid+"'" );
+                    m_botAction.sendSmartPrivateMessage( pTwo, "You have a "+tg.getType()+" Tournament duel versus "+pOne+". If you are available please reply with '!yes "+gid+"'" );
+                } else {
+                    Tools.printLog("*** DuelBot WARNING: Tournament duel between " + pOne + " and " + pTwo + " returned null. ***" );
+                    m_botAction.sendSmartPrivateMessage( pOne, "ERROR in tournament duel vs " + pTwo + ".  Please report this to a staff member." );
+                    m_botAction.sendSmartPrivateMessage( pTwo, "ERROR in tournament duel vs " + pOne + ".  Please report this to a staff member." );
+                }
     		}
-                m_botAction.SQLClose( result );
+        m_botAction.SQLClose( result );
     	} catch(Exception e) { e.printStackTrace(); }
     }
 
