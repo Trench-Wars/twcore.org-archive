@@ -16,7 +16,7 @@ import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.game.Player;
-import twcore.core.util.IPCMessage;
+import twcore.core.util.ipc.IPCMessage;
 
 /**
  * Tracks TKs, warns players who TK excessively, and notifies staff as necessary.

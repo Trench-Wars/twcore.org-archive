@@ -41,8 +41,8 @@ import twcore.core.events.ScoreUpdate;
 import twcore.core.events.SoccerGoal;
 import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
-import twcore.core.util.IPCMessage;
-import twcore.core.util.IPCChatMessage;
+import twcore.core.util.ipc.IPCChatMessage;
+import twcore.core.util.ipc.IPCMessage;
 
 public class pubhub extends SubspaceBot
 {

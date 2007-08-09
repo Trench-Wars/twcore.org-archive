@@ -15,8 +15,8 @@ import twcore.core.EventRequester;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.stats.DBPlayerData;
-import twcore.core.util.IPCMessage;
 import twcore.core.util.Tools;
+import twcore.core.util.ipc.IPCMessage;
 
 /**
  * THIS CODE SERIOUSLY NEEDS TO BE REFACTORED!! - Cpt
