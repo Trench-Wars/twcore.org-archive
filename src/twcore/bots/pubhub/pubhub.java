@@ -49,6 +49,7 @@ public class pubhub extends SubspaceBot
   public static final char CHAT_DELIM = ':';
   public static final String IPCCHANNEL = "pubBots";
   public static final String IPCCHAT = "pubbotChat";
+  public static final String IPCSILENCE = "pubbotsilence";
   public static final int UPDATE_CHECK_DELAY = 500;
   public static final int CHECK_DELAY = 5 * 60 * 1000;
   public static final int LOG_OFF_DELAY = 200;
@@ -109,6 +110,7 @@ public class pubhub extends SubspaceBot
       botName = m_botAction.getBotName();
       m_botAction.ipcSubscribe(IPCCHANNEL);
       m_botAction.ipcSubscribe(IPCCHAT);
+      m_botAction.ipcSubscribe(IPCSILENCE);
       m_botAction.sendUnfilteredPublicMessage("?chat=" + pubBotChat);
       m_botAction.scheduleTask(new CheckPubsTask(), SPAWN_DELAY);
       moduleHandler.handleEvent(event);
@@ -231,13 +233,13 @@ public class pubhub extends SubspaceBot
     m_botAction.scheduleTask(new LogOffTask(), LOG_OFF_DELAY);
   }
   
-  public void doHubHelpCmd() {
-    m_botAction.sendChatMessage("!respawn      - Respawns all PubBots.");
-    m_botAction.sendChatMessage("!off          - Logs the Hub and all PubBots off.");
-    m_botAction.sendChatMessage("!where        - Shows location of all PubBots.");
-    m_botAction.sendChatMessage("!listmodules  - Gives a list of pub modules available.");
-    m_botAction.sendChatMessage("!updateinfo   - Updates pubbot settings from the CFG.");
-    m_botAction.sendChatMessage("!help         - Gets you a date and a real job.  Probably.");
+  public void doHubHelpCmd(String sender) {
+    m_botAction.sendSmartPrivateMessage(sender, "!respawn      - Respawns all PubBots.");
+    m_botAction.sendSmartPrivateMessage(sender, "!off          - Logs the Hub and all PubBots off.");
+    m_botAction.sendSmartPrivateMessage(sender, "!where        - Shows location of all PubBots.");
+    m_botAction.sendSmartPrivateMessage(sender, "!listmodules  - Gives a list of pub modules available.");
+    m_botAction.sendSmartPrivateMessage(sender, "!updateinfo   - Updates pubbot settings from the CFG.");
+    m_botAction.sendSmartPrivateMessage(sender, "!help         - Gets you a date and a real job.  Probably.");
     
   }
 
@@ -282,7 +284,7 @@ public class pubhub extends SubspaceBot
       if(message.equalsIgnoreCase("!off"))
         doOffCmd();
       if(message.equalsIgnoreCase("!help")) {
-        doHubHelpCmd();
+        doHubHelpCmd(sender);
 //      moduleHandler.handleEvent(new CommandEvent(sender, message));
       }
     }
