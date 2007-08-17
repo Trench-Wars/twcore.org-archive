@@ -17,11 +17,13 @@ import java.util.Map.Entry;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
+import twcore.core.events.ArenaList;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCChatMessage;
+import twcore.core.util.ipc.IPCChatPlayer;
 import twcore.core.util.ipc.IPCMessage;
 
 /**
@@ -63,6 +65,7 @@ public class pubhubchat extends PubBotModule {
 		cleanup = new TimerTask() {
 			public void run() {
 				cleanupArenas();
+				m_botAction.requestArenaList();
 			}
 		};
 		
@@ -72,6 +75,7 @@ public class pubhubchat extends PubBotModule {
 
 	@Override
 	public void requestEvents(EventRequester eventRequester) {
+		eventRequester.request(EventRequester.ARENA_LIST);
 	}
 
 	@Override
@@ -104,9 +108,16 @@ public class pubhubchat extends PubBotModule {
 			chatlines.setSize(maxSavedLines);
 			arenaLastUpdate.put(arena, new Date());
 			
-		} else if(event.getChannel().equals(pubhub.IPCCHAT) && event.getObject() instanceof Player) {
-			Player player = (Player)event.getObject();
-			//player.
+		} else if(event.getChannel().equals(pubhub.IPCCHAT) && event.getObject() instanceof IPCChatPlayer) {
+			IPCChatPlayer ipc = (IPCChatPlayer)event.getObject();
+			Player player = ipc.getPlayer();
+			String arena = ipc.getArena();
+			
+			if(ipc.getAction().equals("LEFT")) {
+				arenaPlayer.get(arena).remove(player.getPlayerID());
+			} else {
+				arenaPlayer.get(arena).put(new Integer(player.getPlayerID()), player);
+			}
 			
 		} else if(event.getChannel().equals(pubhub.IPCCHANNEL) && event.getObject() instanceof IPCMessage) {
 			IPCMessage msg = (IPCMessage)event.getObject();
@@ -136,6 +147,10 @@ public class pubhubchat extends PubBotModule {
 			}
 		}
 		
+	}
+	
+	public void handleEvent(ArenaList event) {
+		// TODO
 	}
 	
 	
