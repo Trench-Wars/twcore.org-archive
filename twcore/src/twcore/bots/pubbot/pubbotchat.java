@@ -15,7 +15,7 @@ import twcore.core.events.ScoreUpdate;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCChatMessage;
-import twcore.core.util.ipc.IPCMessage;
+import twcore.core.util.ipc.IPCChatPlayer;
 
 public class pubbotchat extends PubBotModule {
 	private String currentArena;
@@ -146,26 +146,32 @@ public class pubbotchat extends PubBotModule {
 	
 	public void handleEvent(FrequencyChange event) {
 		Player player = this.getPlayer(null, event.getPlayerID());
-		m_botAction.ipcTransmit(pubbot.IPCCHAT, player);
+		IPCChatPlayer ipc = new IPCChatPlayer(this.currentArena, player, "FREQCHANGE", this.botName, this.getPubHubName());
+		m_botAction.ipcTransmit(pubbot.IPCCHAT, ipc);
 	}
 	
 	public void handleEvent(FrequencyShipChange event) {
 		Player player = this.getPlayer(null, event.getPlayerID());
-		m_botAction.ipcTransmit(pubbot.IPCCHAT, player);
+		IPCChatPlayer ipc = new IPCChatPlayer(this.currentArena, player, "FREQSHIPCHANGE", this.botName, this.getPubHubName());
+		m_botAction.ipcTransmit(pubbot.IPCCHAT, ipc);
 	}
 	
 	public void handleEvent(PlayerEntered event) {
 		Player player = this.getPlayer(null, event.getPlayerID());
-		m_botAction.ipcTransmit(pubbot.IPCCHAT, player);
+		IPCChatPlayer ipc = new IPCChatPlayer(this.currentArena, player, "ENTERED", this.botName, this.getPubHubName());
+		m_botAction.ipcTransmit(pubbot.IPCCHAT, ipc);
 	}
 	
 	public void handleEvent(ScoreUpdate event) {
 		Player player = this.getPlayer(null, event.getPlayerID());
-		m_botAction.ipcTransmit(pubbot.IPCCHAT, player);
+		IPCChatPlayer ipc = new IPCChatPlayer(this.currentArena, player, "SCOREUPDATE", this.botName, this.getPubHubName());
+		m_botAction.ipcTransmit(pubbot.IPCCHAT, ipc);
 	}
 	
 	public void handleEvent(PlayerLeft event) {
-		m_botAction.ipcTransmit(pubbot.IPCCHAT, "left:"+event.getPlayerID());
+		Player player = this.getPlayer(null, event.getPlayerID());
+		IPCChatPlayer ipc = new IPCChatPlayer(this.currentArena, player, "LEFT", this.botName, this.getPubHubName());
+		m_botAction.ipcTransmit(pubbot.IPCCHAT, ipc);
 	}
 
 	@Override
