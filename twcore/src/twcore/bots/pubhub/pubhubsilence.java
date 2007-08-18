@@ -80,7 +80,7 @@ public class pubhubsilence extends PubBotModule {
     				}
     				
     				if(parameters.length == 2) {
-    					responseMessage(event, "Player '"+target+"' has been auto-silenced by "+name+".", true);
+    					responseMessage(event, "Player '"+target+"' has been auto-silenced permanently by "+name+".", true);
     					silencedPlayers.put(target.toLowerCase(), null);
     					m_botAction.ipcSendMessage(pubhub.IPCSILENCE, "silence "+target.toLowerCase(), "pubbotsilence", "pubhubsilence");
     					
