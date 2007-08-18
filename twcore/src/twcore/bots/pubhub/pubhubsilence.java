@@ -66,14 +66,14 @@ public class pubhubsilence extends PubBotModule {
     			
     			// !silence player
     			if( message.startsWith("!silence")) {
-    				String[] parameters = message.split(" ");
+    				String parameters = message.substring(9);
     				String timeStr = "10";
     				
-    				if(parameters[1].contains(":")) {
-    					timeStr = parameters[1].split(":")[1];
-    					parameters[1] = parameters[1].split(":")[0];
+    				if(parameters.contains(":")) {
+    					timeStr = parameters.split(":")[1];
+    					parameters = parameters.split(":")[0];
     				}
-    				final String target = parameters[1];
+    				final String target = parameters;
     				
     				// Check target
     				if(silencedPlayers.containsKey(target.toLowerCase())) {
