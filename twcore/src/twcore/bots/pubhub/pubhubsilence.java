@@ -1,6 +1,5 @@
 package twcore.bots.pubhub;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.TimerTask;
@@ -56,7 +55,7 @@ public class pubhubsilence extends PubBotModule {
     			) && message.startsWith("!help")) {
 		        m_botAction.sendSmartPrivateMessage( name, "!silence <name>         - Permanent silence the specified player even when he tries to bypass." );
 		        m_botAction.sendSmartPrivateMessage( name, "                          Notice: The player isn't given a warning that he is silenced." );
-		        m_botAction.sendSmartPrivateMessage( name, "!silence <name> <time>  - Permanent silences specified player for <time> minutes.");
+		        m_botAction.sendSmartPrivateMessage( name, "!silence <name>:<time>  - Permanent silences specified player for <time> minutes.");
 		        m_botAction.sendSmartPrivateMessage( name, "!removesilence <name>   - Remove the auto-silence on the specified player.");
 		        m_botAction.sendSmartPrivateMessage( name, "!listsilence            - List all silenced players and the amount of time left.");
 		    }
@@ -67,11 +66,21 @@ public class pubhubsilence extends PubBotModule {
     			
     			// !silence player
     			if( message.startsWith("!silence")) {
-    				String[] parameters = message.split(" ");
+    				String[] parameters = message.split(":");
     				final String target = parameters[1];
     				
+    				// Check target
+    				if(silencedPlayers.containsKey(target.toLowerCase())) {
+    					responseMessage(event, "Player '"+target+"' is already auto-silenced. Check !listsilence.", false);
+    					return;
+    				} else
+    				if(m_botAction.getOperatorList().isZH(target)) {
+    					responseMessage(event, "Player '"+target+"' is staff, staff can't be auto-silenced.", false);
+    					return;
+    				}
+    				
     				if(parameters.length == 2) {
-    					responseMessage(event, "Player '"+target+"' has been auto-silenced by "+name+".");
+    					responseMessage(event, "Player '"+target+"' has been auto-silenced by "+name+".", true);
     					silencedPlayers.put(target.toLowerCase(), null);
     					m_botAction.ipcSendMessage(pubhub.IPCSILENCE, "silence "+target.toLowerCase(), "pubbotsilence", "pubhubsilence");
     					
@@ -79,14 +88,14 @@ public class pubhubsilence extends PubBotModule {
     					
     					try {
     						int time = Integer.parseInt(parameters[2]);
-    						responseMessage(event, "Player '"+target+"' has been auto-silenced by "+name+" for "+time+" minutes.");
+    						responseMessage(event, "Player '"+target+"' has been auto-silenced by "+name+" for "+time+" minutes.", true);
     						
     						TimerTask removeSilence = new TimerTask() {
     				    		public void run() {
     				    			if(silencedPlayers.remove(target.toLowerCase()) != null) {
-    				    				responseMessage(event2, "Silence of '"+target+"' has expired, auto-silence removed. Please remove the *shutup if player is still silenced.");
+    				    				responseMessage(event2, "Silence of '"+target+"' has expired, auto-silence removed. Please remove the *shutup if player is still silenced.", true);
     				    			} else {
-    				    				responseMessage(event2, "Silence of '"+target+"' has expired but auto-silence task wasn't found. Please remove the *shutup if player is still silenced.");
+    				    				responseMessage(event2, "Silence of '"+target+"' has expired but auto-silence task wasn't found. Please remove the *shutup if player is still silenced.", true);
     				    			}
     				    			
     				    			m_botAction.ipcSendMessage(pubhub.IPCSILENCE, "unsilence "+target.toLowerCase(), "pubbotsilence", "pubhubsilence");
@@ -98,7 +107,7 @@ public class pubhubsilence extends PubBotModule {
     				    	m_botAction.ipcSendMessage(pubhub.IPCSILENCE, "silence "+target.toLowerCase(), "pubbotsilence", "pubhubsilence");
     						
     					} catch(NumberFormatException nfe) {
-    						responseMessage(event, "Syntax error. Please use: !silence <name> <time>");
+    						responseMessage(event, "Syntax error. Please use: !silence <name>:<time>", false);
     					}
     				}
     				
@@ -110,11 +119,11 @@ public class pubhubsilence extends PubBotModule {
     				String target = message.substring(15).toLowerCase();
     				
     				if(silencedPlayers.containsKey(target)) {
-    					responseMessage(event, "Auto-silence of '"+target+"' removed. Please remove the *shutup if player is still silenced.");
+    					responseMessage(event, "Auto-silence of '"+target+"' removed. Please remove the *shutup if player is still silenced.", true);
     					silencedPlayers.remove(target);
     					m_botAction.ipcSendMessage(pubhub.IPCSILENCE, "unsilence "+target, "pubbotsilence", "pubhubsilence");
     				} else {
-    					responseMessage(event, "Player '"+target+"' isn't auto-silenced.");
+    					responseMessage(event, "Player '"+target+"' isn't auto-silenced.", true);
     				}
     			}
     			
@@ -171,13 +180,12 @@ public class pubhubsilence extends PubBotModule {
      * @param event
      * @param message
      */
-    private void responseMessage(Message event, String message) {
-    	if(event.getMessageType() == Message.CHAT_MESSAGE) {
+    private void responseMessage(Message event, String message, boolean echoChat) {
+    	if(event.getMessageType() == Message.CHAT_MESSAGE || echoChat) {
     		m_botAction.sendChatMessage(message);
-    	} else
+    	}
     	if(event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) {
     		m_botAction.sendSmartPrivateMessage(event.getMessager(), message);
-    		m_botAction.sendChatMessage(message);
     	}
     }
     
