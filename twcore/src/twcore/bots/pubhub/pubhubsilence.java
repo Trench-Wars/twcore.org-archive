@@ -66,7 +66,13 @@ public class pubhubsilence extends PubBotModule {
     			
     			// !silence player
     			if( message.startsWith("!silence")) {
-    				String[] parameters = message.split(":");
+    				String[] parameters = message.split(" ");
+    				String timeStr = "10";
+    				
+    				if(parameters[1].contains(":")) {
+    					timeStr = parameters[1].split(":")[1];
+    					parameters[1] = parameters[1].split(":")[0];
+    				}
     				final String target = parameters[1];
     				
     				// Check target
@@ -79,15 +85,15 @@ public class pubhubsilence extends PubBotModule {
     					return;
     				}
     				
-    				if(parameters.length == 2) {
+    				if(message.contains(":") == false) {
     					responseMessage(event, "Player '"+target+"' has been auto-silenced permanently by "+name+".", true);
     					silencedPlayers.put(target.toLowerCase(), null);
     					m_botAction.ipcSendMessage(pubhub.IPCSILENCE, "silence "+target.toLowerCase(), "pubbotsilence", "pubhubsilence");
     					
-    				} else if(parameters.length == 3) {
+    				} else if(message.contains(":") == true) {
     					
     					try {
-    						int time = Integer.parseInt(parameters[2]);
+    						int time = Integer.parseInt(timeStr);
     						responseMessage(event, "Player '"+target+"' has been auto-silenced by "+name+" for "+time+" minutes.", true);
     						
     						TimerTask removeSilence = new TimerTask() {
