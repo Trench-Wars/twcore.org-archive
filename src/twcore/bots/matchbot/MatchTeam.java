@@ -433,7 +433,10 @@ public class MatchTeam
             if (parameters.length == 1)
             {
                 newCapt = parameters[0];
-                Player p = m_botAction.getFuzzyPlayer(newCapt);
+                Player p;
+                p = m_botAction.getPlayer(newCapt);                
+                if( p == null )
+                    p = m_botAction.getFuzzyPlayer(newCapt);
                 newCapt = p.getPlayerName();
                 if (p != null)
                 {
@@ -486,7 +489,10 @@ public class MatchTeam
                 fnShip = Integer.parseInt(parameters[1]);
             if (fnShip != 0)
             {
-                Player p = m_botAction.getFuzzyPlayer(parameters[0]);
+                Player p;
+                p = m_botAction.getPlayer(parameters[0]);
+                if( p == null )                    
+                    m_botAction.getFuzzyPlayer(parameters[0]);
                 parameters[0] = p.getPlayerName();
                 answer = addPlayer(p.getPlayerName(), fnShip, true, false);
                 if (answer.equals("yes"))
@@ -1234,7 +1240,10 @@ public class MatchTeam
             String answer;
             if ((fnShip >= 1) && (fnShip <= 8))
             {
-                Player p = m_botAction.getFuzzyPlayer(playerName);
+                Player p;
+                p = m_botAction.getPlayer(playerName);
+                if( p == null )
+                    p = m_botAction.getFuzzyPlayer(playerName);
                 answer = playerAllowedToPlay(p.getPlayerName(), fnShip);
                 if (answer.equals("yes"))
                 {
