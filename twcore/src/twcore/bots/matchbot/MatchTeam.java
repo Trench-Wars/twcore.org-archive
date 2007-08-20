@@ -492,7 +492,7 @@ public class MatchTeam
                 Player p;
                 p = m_botAction.getPlayer(parameters[0]);
                 if( p == null )                    
-                    m_botAction.getFuzzyPlayer(parameters[0]);
+                    p = m_botAction.getFuzzyPlayer(parameters[0]);
                 parameters[0] = p.getPlayerName();
                 answer = addPlayer(p.getPlayerName(), fnShip, true, false);
                 if (answer.equals("yes"))
