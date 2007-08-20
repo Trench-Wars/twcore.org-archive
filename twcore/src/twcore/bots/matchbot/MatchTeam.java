@@ -219,7 +219,7 @@ public class MatchTeam
                 String playerName = m_botAction.getPlayer(event.getKillerID()).getPlayerName();
                 MatchPlayer p = getPlayer(playerName);
                 
-                int score = event.getScore();
+                int score = event.getKilledPlayerBounty();
                 
                 if(m_round.m_game.m_fnMatchTypeID == 20 && m_flagOwned) { // ONLY TWSDX which has MatchType=20
                 	score = score * (m_round.m_game.settings_FlaggerKillMultiplier+1);

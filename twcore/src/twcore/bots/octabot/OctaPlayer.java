@@ -56,7 +56,7 @@ public class OctaPlayer {
 			
 			if( o.getLastFlagTouch() < 2 ) addFlagKill();
 			
-			addKillPoints( event.getScore() );
+			addKillPoints( event.getKilledPlayerBounty() );
 		} else {
 			if( getLastFlagTouch() < 2  ) addFlagDeath();
 			addDeath();

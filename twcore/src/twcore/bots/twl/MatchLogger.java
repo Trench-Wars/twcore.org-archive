@@ -113,7 +113,7 @@ public class MatchLogger
 	{
 		String cKiller = m_botAction.getPlayerName(event.getKillerID());
 		String cKillee = m_botAction.getPlayerName(event.getKilleeID());
-		createLogRecord("kill", "killed by " + cKiller + " (" + event.getScore() + ")", cKillee);
+		createLogRecord("kill", "killed by " + cKiller + " (" + event.getKilledPlayerBounty() + ")", cKillee);
 	};
 
 	public void logEvent(PlayerLeft event)

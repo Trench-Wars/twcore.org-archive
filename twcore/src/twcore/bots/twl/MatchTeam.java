@@ -220,7 +220,7 @@ public class MatchTeam
             {
                 String playerName = m_botAction.getPlayer(event.getKillerID()).getPlayerName();
                 MatchPlayer p = getPlayer(playerName);
-                p.reportKill(event.getScore(), event.getKilleeID());
+                p.reportKill(event.getKilledPlayerBounty(), event.getKilleeID());
             }
             catch (Exception e)
             {
