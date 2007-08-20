@@ -452,7 +452,7 @@ public class MatchRound
              */
             if (m_rules.getInt("yborder") != 0)
             {
-                int xpos = event.getXLocation() / 16;
+                //int xpos = event.getXLocation() / 16;
                 int ypos = event.getYLocation() / 16;
                 int yborder = m_rules.getInt("yborder");
                 int outofbordertime = m_rules.getInt("outofbordertime") * 1000;
@@ -463,10 +463,17 @@ public class MatchRound
 
                 if (ypos > yborder)
                 {
-                    MatchPlayer p;
-                    p = m_team1.getPlayer(playerName);
-                    if (p == null)
-                        p = m_team2.getPlayer(playerName);
+                    MatchPlayer p = m_team1.getPlayer(playerName); 
+                    MatchPlayer p2 = m_team2.getPlayer(playerName);
+                    
+                    // We can't settle for whichever one -- have to find the best match
+                    if( p != null && p2 != null ) {
+                        if( p2.getPlayerName().equalsIgnoreCase(playerName) ) {
+                            p = p2;
+                        }
+                    } else if (p == null) {
+                        p = p2;
+                    }
                     if (p != null)
                     {
                         if (p.getPlayerState() == MatchPlayer.IN_GAME)
@@ -614,11 +621,11 @@ public class MatchRound
                 command = "!" + command.substring(4);
                 m_team2.parseCommand(name, command, parameters, isStaff);
             }
-            else if ((m_team1.getPlayer(name) != null) || (m_team1.isCaptain(name)))
+            else if ((m_team1.getPlayer(name, true) != null) || (m_team1.isCaptain(name)))
             {
                 m_team1.parseCommand(name, command, parameters, isStaff);
             }
-            else if ((m_team2.getPlayer(name) != null) || (m_team2.isCaptain(name)))
+            else if ((m_team2.getPlayer(name, true) != null) || (m_team2.isCaptain(name)))
             {
                 m_team2.parseCommand(name, command, parameters, isStaff);
             };
