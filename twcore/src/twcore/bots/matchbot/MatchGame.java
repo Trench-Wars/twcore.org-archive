@@ -1,15 +1,5 @@
 package twcore.bots.matchbot;
 
-/* MatchGame.java
- *
- * Created on August 20, 2002, 8:46 PM
- */
-
-/**
- *
- * @author  Administrator
- */
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
@@ -92,9 +82,9 @@ public class MatchGame
 				if ((m_fnTeam1ID == 0) || (m_fnTeam2ID == 0))
 				{
 					return;
-				};
-			};
-		};
+				}
+			}
+		}
 
 		if ((m_rules.getInt("storegame") == 1) && (m_rules.getInt("matchtype") != 0))
 		{
@@ -102,8 +92,8 @@ public class MatchGame
 			if (m_rules.getInt("loggame") == 1)
 			{
 				m_logger.activate(m_fnMatchID);
-			};
-		};
+			}
+		}
 
 		/*
 		m_fcArena = m_rules.getString("arena");
@@ -116,7 +106,7 @@ public class MatchGame
 			public void run()
 			{
 				setupGame();
-			};
+			}
 		};
 		m_botAction.scheduleTask(startup, 1000);
 
@@ -157,24 +147,22 @@ public class MatchGame
 
 	public int getTeamID(String fcTeamName)
 	{
-		try
-		{
+		try {
 			ResultSet rs =
 				m_botAction.SQLQuery(
 					dbConn,
 					"SELECT fnTeamID FROM tblTeam WHERE fcTeamName = '" + Tools.addSlashesToString(fcTeamName) + "' AND (fdDeleted IS NULL or fdDeleted = 0)");
-                        int id = 0;
+            int id = 0;
 			if (rs.next())
 				id = rs.getInt("fnTeamID");
-                        m_botAction.SQLClose(rs);
-                        return id;
+            m_botAction.SQLClose(rs);
+            return id;
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			System.out.println(e.getMessage());
 			return 0;
 		}
-	};
+	}
 
 	public void setupGame()
 	{
@@ -191,7 +179,7 @@ public class MatchGame
 		m_rounds.add(m_curRound);
 		
 		m_botAction.sendUnfilteredPublicMessage("?get Flag:FlaggerKillMultiplier");
-	};
+	}
 
 	public int getBotNumber()
 	{
@@ -203,7 +191,7 @@ public class MatchGame
 		{
 			return 0;
 		}
-	};
+	}
 
 	// creates a Game record in the database
 	public void createGameRecord(int challenger, int accepter)
@@ -232,14 +220,14 @@ public class MatchGame
 			if (s.next())
 			{
 				m_fnMatchID = s.getInt("fnMatchID");
-			};
-                        m_botAction.SQLClose(s);
+			}
+            m_botAction.SQLClose(s);
 		}
 		catch (Exception e)
 		{
 			System.out.println("unable to insert game record: " + e.getMessage());
-		};
-	};
+		}
+	}
 
 	// store game results
 	public void storeGameResult()
@@ -247,7 +235,7 @@ public class MatchGame
 		try
 		{
 			String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
-                        m_botAction.SQLQueryAndClose(
+            m_botAction.SQLQueryAndClose(
 				dbConn,
 				"UPDATE tblMatch SET fnMatchStateID = 3, fnTeam1Score="
 					+ m_fnTeam1Score
@@ -278,7 +266,7 @@ public class MatchGame
 	public void handleEvent(ArenaJoined event)
 	{
 		m_logger.logEvent(event);
-	};
+	}
 
 	public void handleEvent(FlagClaimed event)
 	{
@@ -287,12 +275,12 @@ public class MatchGame
 		{
 			m_curRound.handleEvent(event);
 		}
-	};
+	}
 
 	public void handleEvent(FrequencyChange event)
 	{
 		m_logger.logEvent(event);
-	};
+	}
 
 	public void handleEvent(FrequencyShipChange event)
 	{
@@ -300,8 +288,8 @@ public class MatchGame
 		if (m_curRound != null)
 		{
 			m_curRound.handleEvent(event);
-		};
-	};
+		}
+	}
 
 	public void handleEvent(FlagReward event)
 	{
@@ -309,8 +297,8 @@ public class MatchGame
 		if (m_curRound != null)
 		{
 			m_curRound.handleEvent(event);
-		};
-	};
+		}
+	}
 
 	public void handleEvent(Message event)
 	{
@@ -318,12 +306,12 @@ public class MatchGame
 		if (m_curRound != null)
 		{
 			m_curRound.handleEvent(event);
-		};
+		}
 		
 		if(event.getMessageType() == Message.ARENA_MESSAGE && event.getMessage().startsWith("Flag:FlaggerKillMultiplier=")) {
 			this.settings_FlaggerKillMultiplier = Integer.parseInt(event.getMessage().trim().substring(27));
 		}
-	};
+	}
 
 	public void handleEvent(PlayerDeath event)
 	{
@@ -331,8 +319,8 @@ public class MatchGame
 		if (m_curRound != null)
 		{
 			m_curRound.handleEvent(event);
-		};
-	};
+		}
+	}
 
 	public void handleEvent(PlayerEntered event)
 	{
@@ -347,37 +335,37 @@ public class MatchGame
 		if (m_curRound != null)
 		{
 			m_curRound.handleEvent(event);
-		};
-	};
+		}
+	}
 
 	public void handleEvent(PlayerPosition event)
 	{
 		if (m_curRound != null)
 		{
 			m_curRound.handleEvent(event);
-		};
-	};
+		}
+	}
 
 	public void handleEvent(ScoreReset event)
 	{
 		m_logger.logEvent(event);
-	};
+	}
 
 	public void handleEvent(SoccerGoal event)
 	{
 		if (m_curRound != null)
 		{
 			m_curRound.handleEvent(event);
-		};
-	};
+		}
+	}
 
 	public void handleEvent(BallPosition event)
 	{
 		if (m_curRound != null)
 		{
 			m_curRound.handleEvent(event);
-		};
-	};
+		}
+	}
 
 	public ArrayList<String> getHelpMessages(String name, boolean isStaff)
 	{
@@ -388,10 +376,10 @@ public class MatchGame
 		if (m_curRound != null)
 		{
 			help.addAll(m_curRound.getHelpMessages(name, isStaff));
-		};
+		}
 
 		return help;
-	};
+	}
 
 	public void parseCommand(String name, String command, String[] parameters, boolean isStaff)
 	{
@@ -401,8 +389,8 @@ public class MatchGame
 		if (m_curRound != null)
 		{
 			m_curRound.parseCommand(name, command, parameters, isStaff);
-		};
-	};
+		}
+	}
 
 	public void command_status(String name, String[] parameters)
 	{
@@ -497,20 +485,20 @@ public class MatchGame
 			switch (m_curRound.m_fnRoundState)
 			{
 				case 1 :
-					append = append + "arranging lineups.";
+					append = append + "arranging lineups";
 					break;
 				case 2 :
-					append = append + "starting the game.";
+					append = append + "starting the game";
 					break;
 				case 3 :
 					long minutesPlayed = (System.currentTimeMillis() - m_curRound.m_timeStartedms) / 60000;
-					append = append + "playing; " + minutesPlayed + " minutes played.";
+					append = append + "playing, " + minutesPlayed + " minutes played";
 					break;
 				case 4 :
-					append = append + "ending the game.";
+					append = append + "ending the game";
 					break;
-			};
-		};
+			}
+		}
 		return append;
 	}
 
@@ -612,7 +600,7 @@ public class MatchGame
 				}
 				else
 					m_logger.sendArenaMessage("Draw. The game is declared void");
-			};
+			}
 			if ((m_rules.getInt("storegame") == 1) && (m_fnTeam1Score != m_fnTeam2Score))
 				storeGameResult();
 			m_curRound.cancel();
