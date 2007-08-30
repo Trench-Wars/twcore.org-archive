@@ -255,17 +255,17 @@ public class twdbot extends SubspaceBot {
 			    	if(IP == null && mID == null) {
 			    		m_botAction.sendSmartPrivateMessage(staffname, "Syntax (note double spaces):  !add name:thename  ip:IP  mid:MID");
 			    	} else if(IP == null) {
-                                        m_botAction.SQLBackgroundQuery(webdb, null, "INSERT INTO tblTWDPlayerMID (fnUserID, fcUserName, fnMID) VALUES "
+                            m_botAction.SQLQueryAndClose(webdb, "INSERT INTO tblTWDPlayerMID (fnUserID, fcUserName, fnMID) VALUES "
 			    			+ "((SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' LIMIT 0,1), "
 			    			+ "'"+Tools.addSlashesToString(name)+"', "+Tools.addSlashesToString(mID)+")");
 			    		m_botAction.sendSmartPrivateMessage(staffname, "Added mid: " + mID);
 			    	} else if(mID == null) {
-                                        m_botAction.SQLBackgroundQuery(webdb, null, "INSERT INTO tblTWDPlayerMID (fnUserID, fcUserName, fcIP) VALUES "
+                            m_botAction.SQLQueryAndClose(webdb, "INSERT INTO tblTWDPlayerMID (fnUserID, fcUserName, fcIP) VALUES "
 			    			+ "((SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' LIMIT 0,1), "
 			    			+ "'"+Tools.addSlashesToString(name)+"', '"+Tools.addSlashesToString(IP)+"')");
 			    		m_botAction.sendSmartPrivateMessage(staffname, "Added IP: " + IP);
 			    	} else {
-                                        m_botAction.SQLBackgroundQuery(webdb, null, "INSERT INTO tblTWDPlayerMID (fnUserID, fcUserName, fnMID, fcIP) VALUES "
+                            m_botAction.SQLQueryAndClose(webdb, "INSERT INTO tblTWDPlayerMID (fnUserID, fcUserName, fnMID, fcIP) VALUES "
 				    		+ "((SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' LIMIT 0,1), "
 				    		+ "'"+Tools.addSlashesToString(name)+"', "+Tools.addSlashesToString(mID)+", "
 				    		+ "'"+Tools.addSlashesToString(IP)+"')");
@@ -286,7 +286,7 @@ public class twdbot extends SubspaceBot {
     		}
     		String name = pieces[0];
     		String mID = pieces[1];
-            m_botAction.SQLBackgroundQuery(webdb, null, "UPDATE tblTWDPlayerMID SET fnMID = 0 WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' AND fnMID = "+Tools.addSlashesToString(mID));
+            m_botAction.SQLQueryAndClose(webdb, "UPDATE tblTWDPlayerMID SET fnMID = 0 WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' AND fnMID = "+Tools.addSlashesToString(mID));
     		m_botAction.sendPrivateMessage(Name, "MID removed.");
     	} catch(Exception e) {e.printStackTrace();}
     }
@@ -299,7 +299,7 @@ public class twdbot extends SubspaceBot {
     		}
     		String name = pieces[0];
     		String IP = pieces[1];
-            m_botAction.SQLBackgroundQuery(webdb, null, "UPDATE tblTWDPlayerMID SET fcIP = '0.0.0.0' WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' AND fcIP = '"+Tools.addSlashesToString(IP)+"'");
+            m_botAction.SQLQueryAndClose(webdb, "UPDATE tblTWDPlayerMID SET fcIP = '0.0.0.0' WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' AND fcIP = '"+Tools.addSlashesToString(IP)+"'");
     		m_botAction.sendPrivateMessage(Name, "IP removed.");
     	} catch(Exception e) {e.printStackTrace();}
     }
@@ -665,13 +665,21 @@ public class twdbot extends SubspaceBot {
         if ( player ) {
             if( !resetPRegistration(dbP.getUserID()) )
                 m_botAction.sendSmartPrivateMessage( name, "Unable to reset name, please contact a TWD Op." );
-            else
+            else {
+                try {
+                    m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblTWDPlayerMID WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'");
+                } catch (SQLException e) {}
                 m_botAction.sendSmartPrivateMessage( name, "Your name will be reset in 24 hours." );
+            }
         } else {
             if ( !dbP.resetRegistration() )
                 m_botAction.sendSmartPrivateMessage( name, "Error resetting name '"+message+"'" );
-            else
-                m_botAction.sendSmartPrivateMessage( name, "The name '"+message+"' has been reset." );
+            else {
+                try {
+                    m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblTWDPlayerMID WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'");
+                } catch (SQLException e) {}
+                m_botAction.sendSmartPrivateMessage( name, "The name '"+message+"' has been reset, and all IP/MID entries have been removed." );
+            }
         }
     }
 
