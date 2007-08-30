@@ -58,6 +58,10 @@ public class staffbot extends SubspaceBot {
     String              m_logNotifyPlayer;
     final String        m_LOGFILENAME = "subgame.log";
     java.util.Date      m_logTimeStamp;
+    private final static int MAX_NAME_SUGGESTIONS = 20;         // Max number of suggestions given
+                                                                // for a name match in !warn
+    private final static int WARNING_EXPIRE_TIME = Tools.TimeInMillis.WEEK * 2;
+    
 
     /* Initialization code */
     public staffbot( BotAction botAction ) {
@@ -103,7 +107,7 @@ public class staffbot extends SubspaceBot {
 
                     calCompare.setTime( timeToActivate );
                     millis = calCompare.getTimeInMillis();
-                    millis += 86400000; //add a day
+                    millis += Tools.TimeInMillis.DAY; //add a day
 
                     calCompare.setTimeInMillis( millis );
                     timeToActivate = calCompare.getTime();
@@ -167,13 +171,19 @@ public class staffbot extends SubspaceBot {
 
         if( m_opList.isER( name ) ){
             if( message.toLowerCase().startsWith( "!warning " ) ){
-                queryWarnings( name, message.substring( 9 ) );
+                queryWarnings( name, message.substring( 9 ), false );
             }
             else if( message.toLowerCase().startsWith( "!warnings " ) ){
-                queryWarnings( name, message.substring( 10 ) );
+                queryWarnings( name, message.substring( 10 ), false );
             }
             else if( message.toLowerCase().startsWith( "! " ) ){
-                queryWarnings( name, message.substring( 2 ) );                
+                queryWarnings( name, message.substring( 2 ), false );
+            }
+            else if( message.toLowerCase().startsWith( "!allwarnings " ) ){
+                queryWarnings( name, message.substring( 13 ), true );
+            }
+            else if( message.toLowerCase().startsWith( "!fuzzyname " ) ) {
+                getFuzzyNames( name, message.substring( 11 ) );
             }
         }
 
@@ -186,7 +196,13 @@ public class staffbot extends SubspaceBot {
             handleCommand( name, message, remote );
     }
 
-    public void queryWarnings( String name, String message ){
+    /**
+     * Queries the database for stored warnings on a player.
+     * @param name Staffer requesting
+     * @param message Player to query
+     * @param showExpired Whether or not to display expired warnings
+     */
+    public void queryWarnings( String name, String message, boolean showExpired ){
         String      query = "SELECT * FROM tblWarnings WHERE name = \"" + Tools.addSlashesToString(message.toLowerCase()) + "\" ORDER BY timeofwarning ASC";
 
         try {
@@ -194,25 +210,76 @@ public class staffbot extends SubspaceBot {
 
             m_botAction.sendRemotePrivateMessage( name, "Warnings in database for " + message + ":" );
 
+            if( set == null ) {
+                m_botAction.sendRemotePrivateMessage( name, "ERROR: There is a problem with your query (returned null).  Please report this to bot development." );
+                return;
+            }
+            
+            int rows = 0;
+            int numExpired = 0;
+            
             while( set.next() ){
                 String warning = set.getString( "warning" );
                 java.sql.Date date = set.getDate( "timeofwarning" );
-                String strDate = new SimpleDateFormat("dd MMM yyyy").format( date );
+                java.sql.Date expireDate = new java.sql.Date(System.currentTimeMillis() - WARNING_EXPIRE_TIME);
+                boolean expired = date.before(expireDate);
+                if( expired )
+                    numExpired++;
+                if( !expired || showExpired ) {
+                    String strDate = new SimpleDateFormat("dd MMM yyyy").format( date );
 
-                String[] text;
-                if( warning.contains("Ext: "))
-                    text = warning.split( "Ext: ", 2);
-                else
-                    text = warning.split( ": ", 2);
-                
-                if( text.length == 2 )
-                    m_botAction.sendRemotePrivateMessage( name, strDate + "  " + text[1]);
+                    String[] text;
+                    if( warning.contains("Ext: "))
+                        text = warning.split( "Ext: ", 2);
+                    else
+                        text = warning.split( ": ", 2);
+
+                    if( text.length == 2 )
+                        m_botAction.sendRemotePrivateMessage( name, strDate + "  " + text[1]);
+                }
+                rows++;
             }
-            m_botAction.sendRemotePrivateMessage( name, "End of list." );
+
+            if( showExpired )
+                m_botAction.sendRemotePrivateMessage( name, rows + " valid warnings displayed (suppressed " + numExpired + " expired).  !allwarnings to display all." );
+            else
+                m_botAction.sendRemotePrivateMessage( name, rows + " valid warnings and " + numExpired + " expired warnings displayed." );                
             m_botAction.SQLClose( set );
+            
+            // Second-guess matching if no exact match is found
+            if( rows == 0 ) {
+                getFuzzyNames( name, message );
+            }
         } catch( SQLException e ){
             Tools.printStackTrace( e );
         }
+    }
+    
+    /**
+     * Based on a given name fragment, find other players that start with the fragment.
+     * @param name Staffer running cmd
+     * @param message Name fragment
+     */
+    public void getFuzzyNames( String name, String message ) {
+        m_botAction.sendRemotePrivateMessage( name, "Names in warning DB starting with '" + message + "':" );
+        try {
+            ResultSet set = m_botAction.SQLQuery( "local", "SELECT * FROM tblWarnings WHERE name = \"" + Tools.addSlashesToString(message.toLowerCase()) + "%\" ORDER BY name" );                
+            String foundName = "";
+            int rows = 0;
+            while( set.next() && rows < MAX_NAME_SUGGESTIONS ) {
+                rows++;
+                if( foundName != set.getString( "name" ) ) {
+                    foundName = set.getString( "name" );
+                    m_botAction.sendRemotePrivateMessage( name, foundName );                        
+                }
+            }
+            if( rows == MAX_NAME_SUGGESTIONS )
+                m_botAction.sendRemotePrivateMessage( name, "Results limited to "+ MAX_NAME_SUGGESTIONS + ".  Refine your search further if you have not found the desired result." );                        
+                
+        } catch( SQLException e ){
+            Tools.printStackTrace( e );
+        }
+
     }
 
     public void queryWarningsFrom( String name, String message ){
@@ -306,15 +373,20 @@ public class staffbot extends SubspaceBot {
 
         final String[] helpTextER = {
             "Available ER commands:",
-            "!warnings <player>     - Checks red warnings on specified player",
+            "!warnings <player>     - Checks valid red warnings on specified player",
+            "! <player>             - (shortcut for above)",
+            "!allwarnings <player>  - Shows all warnings on player, including expired.",
+            "!fuzzyname <player>    - Checks for names similar to <player> in warning DB.",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player"
         };
 
         final String[] helpTextMod = {
             "Available Mod commands:",
-            "!warnings <player>     - Checks red warnings on specified player",
+            "!warnings <player>     - Checks valid red warnings on specified player",
             "! <player>             - (shortcut for above)",
+            "!allwarnings <player>  - Shows all warnings on player, including expired.",
+            "!fuzzyname <player>    - Checks for names similar to <player> in warning DB.",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player",
             "!list <num>            - Lists <num>(optional) of players in chronological order",
@@ -337,9 +409,11 @@ public class staffbot extends SubspaceBot {
 /*            "!squaddies <player>    - Displays a list of all the players on a player's squad",
             "!dblsquad <player>     - Displays a list of all the name/squad combinations this player might own",
             "!altnick <player>      - Displays a list of all the player's alt nicks.",*/
-            "!warnings <player>     - Checks red warnings on specified player",
+            "!warnings <player>     - Checks valid red warnings on specified player",
             "! <player>             - (shortcut for above)",
-            "!warningsfrom <player> - Displays a list of recent warns given to a player."
+            "!allwarnings <player>  - Shows all warnings on player, including expired.",
+            "!warningsfrom <player> - Displays a list of recent warns given to a player.",
+            "!fuzzyname <player>    - Checks for names similar to <player> in warning DB."
         };
 
         if( m_opList.isZHExact( name ) ){
