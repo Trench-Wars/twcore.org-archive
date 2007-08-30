@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.TimerTask;
-import java.util.regex.Pattern;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -71,8 +70,8 @@ public class matchbot extends SubspaceBot
     // --- temporary
     String m_team1 = null, m_team2 = null;
 
-    private static Pattern parseInfoRE = Pattern.compile("^IP:(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})  TimeZoneBias:\\d+  Freq:\\d+  TypedName:(.*)  Demo:\\d  MachineId:(\\d+)$");
-    private static Pattern cruncherRE = Pattern.compile("\\s+");
+    //private static Pattern parseInfoRE = Pattern.compile("^IP:(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})  TimeZoneBias:\\d+  Freq:\\d+  TypedName:(.*)  Demo:\\d  MachineId:(\\d+)$");
+    //private static Pattern cruncherRE = Pattern.compile("\\s+");
 
     boolean canZone = true;
 
@@ -123,7 +122,7 @@ public class matchbot extends SubspaceBot
         if (stuff.length() > 0)
         {
             list.add(stuff);
-        };
+        }
 
         return list.toArray(new String[list.size()]);
     }
@@ -135,9 +134,9 @@ public class matchbot extends SubspaceBot
         {
             if (m_botSettings.getString("Name" + i).equalsIgnoreCase(m_botAction.getBotName()))
                 return i;
-        };
+        }
         return 0;
-    };
+    }
 
     public void requestEvents()
     {
@@ -157,7 +156,7 @@ public class matchbot extends SubspaceBot
         req.request(EventRequester.WEAPON_FIRED);
         req.request(EventRequester.SOCCER_GOAL);
         req.request(EventRequester.BALL_POSITION);
-    };
+    }
 
     /**
      * @param event The weapon Fired event
@@ -168,20 +167,16 @@ public class matchbot extends SubspaceBot
             m_game.handleEvent(event);
     }
 
-    public void handleEvent(ArenaJoined event)
-    {
-        if (m_game != null)
-        {
+    public void handleEvent(ArenaJoined event) {
+        if (m_game != null) {
             m_game.handleEvent(event);
-        };
+        }
     }
-
-    public void handleEvent(SoccerGoal event)
-    {
-    	if (m_game != null)
-    	{
+    
+    public void handleEvent(SoccerGoal event) {
+    	if (m_game != null) {
     		m_game.handleEvent(event);
-    	};
+    	}
     }
 
     public void handleEvent(LoggedOn event)
@@ -199,7 +194,7 @@ public class matchbot extends SubspaceBot
         {
             String[] param = { Integer.toString(typeNumber)};
             command_lock(m_botAction.getBotName(), param);
-        };
+        }
         m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
     }
 
@@ -208,16 +203,16 @@ public class matchbot extends SubspaceBot
         if (m_game != null)
         {
             m_game.handleEvent(event);
-        };
-    };
+        }
+    }
 
     public void handleEvent(FrequencyChange event)
     {
         if (m_game != null)
         {
             m_game.handleEvent(event);
-        };
-    };
+        }
+    }
 
     public void handleEvent(FrequencyShipChange event)
     {
@@ -242,8 +237,7 @@ public class matchbot extends SubspaceBot
             if (event.getObject() instanceof String)
             {
                 String s = (String) event.getObject();
-                if (s.equals("whatArena"))
-                {
+                if (s.equals("whatArena")) {
                     m_botAction.ipcTransmit("MatchBot", "myArena:" + m_botAction.getArenaName());
                 }
 
@@ -252,7 +246,7 @@ public class matchbot extends SubspaceBot
                     if (m_arenaList == null)
                     {
                         m_arenaList = new LinkedList<String>();
-                    };
+                    }
                     m_arenaList.add(s.substring(8).toLowerCase());
                 }
             }
@@ -303,7 +297,6 @@ public class matchbot extends SubspaceBot
     		m_game.handleEvent(event);
     }
 
-
     public void handleEvent(Message event)
     {
         boolean isStaff, isRestrictedStaff;
@@ -315,7 +308,7 @@ public class matchbot extends SubspaceBot
             if (m_game != null)
                 m_game.cancel();
             m_botAction.die();
-        };
+        }
 
         if ((event.getMessageType() == Message.PRIVATE_MESSAGE)
             || ((event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) && (message.toLowerCase().startsWith("!accept")))
@@ -326,7 +319,7 @@ public class matchbot extends SubspaceBot
             if (name == null)
             {
                 name = event.getMessager();
-            };
+            }
 
             isStaff = false;
             isRestrictedStaff = false;
@@ -339,17 +332,17 @@ public class matchbot extends SubspaceBot
                     {
                         isStaff = true;
                         isRestrictedStaff = true;
-                    };
+                    }
                     } catch (Exception e) {
                     }
-                };
-            };
+                }
+            }
 
             if (m_opList.isZH(name))
             {
                 isStaff = true;
                 isRestrictedStaff = false;
-            };
+            }
 
             if( stringChopper(message, ' ') == null )
             	return;
@@ -375,15 +368,14 @@ public class matchbot extends SubspaceBot
             String msg = event.getMessage();
             if (msg.startsWith("Arena UNLOCKED"))
                 m_botAction.toggleLocked();
-        };
+        }
 
         // Send to spy to check for racist comments
         racismSpy.handleEvent( event );
-
-        if (m_game != null)
-        {
+        
+        if (m_game != null) {
             m_game.handleEvent(event);
-        };
+        }
     }
 
     // getHelpMessages, for hosts....
@@ -396,7 +388,7 @@ public class matchbot extends SubspaceBot
             if (isStaff)
             {
                 help.add("!killgame                                - stops a game _immediately_");
-            };
+            }
             help.addAll(m_game.getHelpMessages(name, isStaff));
         }
         else
@@ -414,7 +406,7 @@ public class matchbot extends SubspaceBot
                     {
                         help.add("!go <arena>                              - makes the bot go to the specified arena");
                         help.add("!lock <typenumber>                       - lock at a free arena where the event can be hosted");
-                    };
+                    }
                 }
                 else
                 {
@@ -427,10 +419,10 @@ public class matchbot extends SubspaceBot
                             help.add("!listaccess                              - list all the players who have special access to this game");
                             help.add("!addaccess <name>                        - add a player to the list");
                             help.add("!removeaccess <name>                     - remove a player from the list");
-                        };
-                    };
+                        }
+                    }
                 }
-            };
+            }
             if (m_isLocked)
             {
                 if (m_rules.getInt("captain_can_start_game") == 1)
@@ -440,9 +432,9 @@ public class matchbot extends SubspaceBot
                     help.add("!challenge <squad>:<players>             - request a game of " + m_rules.getString("name") + " against <squad> with <players> number of players");
 					help.add("!removechallenge <squad>                 - removes the challenge of " + m_rules.getString("name") + " game against <squad>");
                     help.add("!accept <squad>                          - accept the !challenge made by the challenging squad");
-                };
-            };
-        };
+                }
+            }
+        }
 
         return help.toArray(new String[help.size()]);
     }
@@ -478,7 +470,7 @@ public class matchbot extends SubspaceBot
                     command_addaccess(name, parameters);
                 if ((command.equals("!removeaccess")) && (m_opList.isSmod(name)))
                     command_removeaccess(name, parameters);
-            };
+            }
             if (m_game != null)
             {
                 if (command.equals("!killgame"))
@@ -487,33 +479,33 @@ public class matchbot extends SubspaceBot
                     m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
                     m_game.cancel();
                     m_game = null;
-                    try { Thread.sleep(100); } catch (Exception e) {};
+                    try { Thread.sleep(100); } catch (Exception e) {}
                     if (m_off)
                     {
                         m_off = false;
                         command_unlock(name, parameters);
                     }
-                };
+                }
                 if (command.equals("!endgameverysilently"))
                 {
                     m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
                     m_game.cancel();
                     m_game = null;
-                    try { Thread.sleep(100); } catch (Exception e) {};
+                    try { Thread.sleep(100); } catch (Exception e) {}
                     if (m_off)
                     {
                         m_off = false;
                         command_unlock(name, parameters);
                     }
-                };
+                }
                 if (command.equals("!startinfo"))
                 {
                     if (startMessage != null)
                         m_botAction.sendPrivateMessage(name,startMessage);
                 }
 
-            };
-        };
+            }
+        }
         if ((m_rules != null) && (m_rules.getInt("captain_can_start_game") == 1))
         {
             if (command.equals("!challenge"))
@@ -523,13 +515,13 @@ public class matchbot extends SubspaceBot
             if (command.equals("!accept"))
                 command_accept(name, parameters);
 
-        };
+        }
         if (command.equals("!help"))
             m_botAction.privateMessageSpam(name, getHelpMessages(name, isStaff, isRestrictedStaff));
 
         if (m_game != null)
             m_game.parseCommand(name, command, parameters, isStaff);
-    };
+    }
 
     public void command_go(String name, String[] parameters)
     {
@@ -542,14 +534,14 @@ public class matchbot extends SubspaceBot
                     String s = parameters[0];
                     m_arena = s;
                     m_botAction.joinArena(m_arena);
-                };
+                }
             }
             else
                 m_botAction.sendPrivateMessage(name, "I am locked in this arena");
         }
         else
             m_botAction.sendPrivateMessage(name, "There's still a game going on, kill it first");
-    };
+    }
 
     public void command_lock(String name, String[] parameters)
     {
@@ -557,13 +549,13 @@ public class matchbot extends SubspaceBot
         {
             m_botAction.sendPrivateMessage(name, "Can't lock to a game, there is another game going on");
             return;
-        };
+        }
 
         if (m_isLocked)
         {
             m_botAction.sendPrivateMessage(name, "Can't lock to a game, I'm already locked in here. Unlock me first");
             return;
-        };
+        }
 
         // lock here
 
@@ -591,7 +583,7 @@ public class matchbot extends SubspaceBot
                         public void run()
                         {
                             goToLockedArena();
-                        };
+                        }
                     };
                     m_botAction.scheduleTask(a, 100);
                 }
@@ -601,10 +593,10 @@ public class matchbot extends SubspaceBot
             catch (Exception e)
             {
                 System.out.println(e.getMessage());
-            };
+            }
 
-        };
-    };
+        }
+    }
 
     public void command_unlock(String name, String[] parameters)
     {
@@ -612,12 +604,12 @@ public class matchbot extends SubspaceBot
         {
             m_botAction.sendPrivateMessage(name, "Can't unlock, there's a game going on");
             return;
-        };
+        }
 
         m_isLocked = false;
         m_botAction.sendPrivateMessage(name, "Unlocked, going to ?go twd");
         m_botAction.changeArena("twd");
-    };
+    }
 
     //
     public void command_challenge(String name, String[] parameters)
@@ -692,8 +684,8 @@ public class matchbot extends SubspaceBot
         catch (Exception e)
         {
             m_botAction.sendPrivateMessage(name, "Specify the squad you want to challenge");
-        };
-    };
+        }
+    }
 
     public void command_removechallenge(String name, String[] parameters)
     {
@@ -728,12 +720,12 @@ public class matchbot extends SubspaceBot
                                         + ".");
                                  i.remove();
                             }
-                    };
+                    }
                 }
             }
         }
-        catch (Exception e) {};
-    };
+        catch (Exception e) {}
+    }
 
     public void command_accept(String name, String[] parameters)
     {
@@ -760,7 +752,7 @@ public class matchbot extends SubspaceBot
                                     i.remove();
                                 else if ((t.getChallenged().equalsIgnoreCase(p.getSquadName())) && (t.getChallenger().equalsIgnoreCase(nmySquad)))
                                     r = t;
-                            };
+                            }
                             if (r != null)
                             {
                                 // check if he is assistant or captain
@@ -802,7 +794,7 @@ public class matchbot extends SubspaceBot
                                                 String dta[] = { m_team1, m_team2, Integer.toString(pNum), Integer.toString(chID), Integer.toString(acID)  };
                                                 createGame(m_botAction.getBotName(), dta);
                                             }
-                                        };
+                                        }
                                     };
 
                                     m_botAction.scheduleTask(m_startGameTimer, 30000);
@@ -829,8 +821,8 @@ public class matchbot extends SubspaceBot
         }
         catch (Exception e)
         {
-        };
-    };
+        }
+    }
 
     public void command_cancel(String name)
     {
@@ -857,8 +849,8 @@ public class matchbot extends SubspaceBot
                 }
             }
         }
-        catch (Exception e) {};
-    };
+        catch (Exception e) {}
+    }
 
     public void command_setoff(String name)
     {
@@ -881,7 +873,7 @@ public class matchbot extends SubspaceBot
                 return accA;
             }
         return null;
-    };
+    }
 
     public void command_listaccess(String name, String[] parameters)
     {
@@ -904,10 +896,10 @@ public class matchbot extends SubspaceBot
             }
             else
                 answ = answ + "          ";
-        };
+        }
         if (!answ.equals(""))
             m_botAction.sendPrivateMessage(name, answ);
-    };
+    }
 
     public void command_addaccess(String name, String[] parameters)
     {
@@ -925,8 +917,8 @@ public class matchbot extends SubspaceBot
         catch (Exception e)
         {
             System.out.println("Error in command_addaccess: " + e.getMessage());
-        };
-    };
+        }
+    }
 
     public void command_removeaccess(String name, String[] parameters)
     {
@@ -970,8 +962,8 @@ public class matchbot extends SubspaceBot
             if ((!m_arenaList.contains(avaArena[i].toLowerCase())) && (pick == null))
             {
                 pick = avaArena[i].toLowerCase();
-            };
-        };
+            }
+        }
         if (pick != null)
         {
             m_lockState = LOCKED;
@@ -984,8 +976,8 @@ public class matchbot extends SubspaceBot
                 m_botAction.sendPrivateMessage(m_locker, "I'm sorry, every arena where this event can be hosted is in use (" + m_rules.getString("arena") + ")");
             m_lockState = 0;
             m_isLocked = false;
-        };
-    };
+        }
+    }
 
     //
     public void createKillChecker()
@@ -1009,13 +1001,13 @@ public class matchbot extends SubspaceBot
                                 m_isLocked = false;
                                 m_botAction.changeArena("twd");
                             }
-                        };
-                    };
-                };
+                        }
+                    }
+                }
             };
             m_botAction.scheduleTaskAtFixedRate(m_gameKiller, 2000, 2000);
-        };
-    };
+        }
+    }
 
     // create game
     public void createGame(String name, String[] parameters)
@@ -1046,8 +1038,8 @@ public class matchbot extends SubspaceBot
                     {
                         fcTeam1Name = parameters[1];
                         fcTeam2Name = parameters[2];
-                    };
-                };
+                    }
+                }
             }
             else
             {
@@ -1071,8 +1063,8 @@ public class matchbot extends SubspaceBot
                             }
                         }
                     }
-                };
-            };
+                }
+            }
 
             if (rulesName != null)
             {
@@ -1102,8 +1094,8 @@ public class matchbot extends SubspaceBot
         catch (Exception e)
         {
             m_botAction.sendPrivateMessage(name, "Provide a correct game type number");
-        };
-    };
+        }
+    }
 
     public void canZoneTrue() {
     	canZone = true;
@@ -1133,7 +1125,7 @@ public class matchbot extends SubspaceBot
                 }
             }
         }
-    };
+    }
 
     public String getGameTypeName(int fnGameTypeNumber)
     {
@@ -1154,7 +1146,7 @@ public class matchbot extends SubspaceBot
             }
         }
         return null;
-    };
+    }
 
     public int getGameTypeNumber(String fcGameTypeName)
     {
@@ -1175,7 +1167,7 @@ public class matchbot extends SubspaceBot
             }
         }
         return 0;
-    };
+    }
 
     public void cancel()
     {
@@ -1202,16 +1194,16 @@ class GameRequest {
         m_timeRequest = System.currentTimeMillis();
         playersNum = players;
         m_requesterID = requesterID;
-    };
+    }
 
 
-    public String getChallenged() { return m_challenged; };
-    public String getChallenger() { return m_challenger; };
-    public String getRequester()  { return m_requester;  };
-    public long getRequestAge() { return (System.currentTimeMillis()-m_timeRequest); };
-    public int getPlayersNum() { return playersNum; };
-    public int getRequesterID() { return m_requesterID; };
+    public String getChallenged() { return m_challenged; }
+    public String getChallenger() { return m_challenger; }
+    public String getRequester()  { return m_requester;  }
+    public long getRequestAge() { return (System.currentTimeMillis()-m_timeRequest); }
+    public int getPlayersNum() { return playersNum; }
+    public int getRequesterID() { return m_requesterID; }
 
 
-};
+}
 
