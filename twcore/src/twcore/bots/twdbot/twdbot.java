@@ -153,6 +153,8 @@ public class twdbot extends SubspaceBot {
                		commandRemoveIP(name, message.substring(10));
                	else if( message.startsWith("!removemid "))
                		commandRemoveMID(name, message.substring(11));
+                else if( message.startsWith("!removeipmid "))
+                    commandRemoveIPMID(name, message.substring(13));
                	else if( message.startsWith("!listipmid "))
                		commandListIPMID(name, message.substring(11));
                 if(m_opList.isSmod(name)) {
@@ -304,20 +306,27 @@ public class twdbot extends SubspaceBot {
     	} catch(Exception e) {e.printStackTrace();}
     }
 
+    public void commandRemoveIPMID(String name, String playerName) {
+        try {
+            m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblTWDPlayerMID WHERE fcUserName = '"+Tools.addSlashesToString(playerName)+"'" );
+            m_botAction.sendPrivateMessage(name, "Removed all IP and MID entries for '" + playerName + "'.");
+        } catch (SQLException e) {}
+    }
+
     public void commandListIPMID(String name, String player) {
-    	try {
-    		m_botAction.sendPrivateMessage(name, "Results for: " + player);
-    		ResultSet results = m_botAction.SQLQuery(webdb, "SELECT fcIP, fnMID FROM tblTWDPlayerMID WHERE fcUserName = '"+Tools.addSlashesToString(player)+"'");
-    		while(results.next()) {
-    			String message = "";
-    			if(!results.getString("fcIP").equals("0.0.0.0"))
-    				message += "IP: " + results.getString("fcIP") + "   ";
-    			if(results.getInt("fnMID") != 0)
-    				message += "mID: " + results.getInt("fnMID");
-    			m_botAction.sendPrivateMessage(name, message);
-    		}
-                m_botAction.SQLClose( results );
-    	} catch(Exception e) {e.printStackTrace();}
+        try {
+            m_botAction.sendPrivateMessage(name, "Results for: " + player);
+            ResultSet results = m_botAction.SQLQuery(webdb, "SELECT fcIP, fnMID FROM tblTWDPlayerMID WHERE fcUserName = '"+Tools.addSlashesToString(player)+"'");
+            while(results.next()) {
+                String message = "";
+                if(!results.getString("fcIP").equals("0.0.0.0"))
+                    message += "IP: " + results.getString("fcIP") + "   ";
+                if(results.getInt("fnMID") != 0)
+                    message += "mID: " + results.getInt("fnMID");
+                m_botAction.sendPrivateMessage(name, message);
+            }
+            m_botAction.SQLClose( results );
+        } catch(Exception e) {e.printStackTrace();}
     }
 
     public void parseCommand(String name, String command, String[] parameters, boolean isStaff) {
@@ -663,8 +672,12 @@ public class twdbot extends SubspaceBot {
         }
 
         if ( player ) {
+            if( dbP.hasBeenDisabled() ) {
+                m_botAction.sendSmartPrivateMessage( name, "Unable to reset name.  Please contact a TWD Op for assistance." );
+                return;
+            }
             if( !resetPRegistration(dbP.getUserID()) )
-                m_botAction.sendSmartPrivateMessage( name, "Unable to reset name, please contact a TWD Op." );
+                m_botAction.sendSmartPrivateMessage( name, "Unable to reset name.  Please contact a TWD Op for assistance." );
             else {
                 try {
                     m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblTWDPlayerMID WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'");
@@ -672,8 +685,12 @@ public class twdbot extends SubspaceBot {
                 m_botAction.sendSmartPrivateMessage( name, "Your name will be reset in 24 hours." );
             }
         } else {
+            if( dbP.hasBeenDisabled() ) {
+                m_botAction.sendSmartPrivateMessage( name, "That name has been disabled.  If you are sure the player should be allowed to play, enable before resetting." );
+                return;
+            }
             if ( !dbP.resetRegistration() )
-                m_botAction.sendSmartPrivateMessage( name, "Error resetting name '"+message+"'" );
+                m_botAction.sendSmartPrivateMessage( name, "Error resetting name '"+message+"'.  The name may not exist in the database." );
             else {
                 try {
                     m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblTWDPlayerMID WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'");
@@ -787,27 +804,19 @@ public class twdbot extends SubspaceBot {
 
     public void commandDisableName( String name, String message )
     {
+        // Create the player if not registered
+        DBPlayerData dbP = new DBPlayerData( m_botAction, localdb, message, true );
 
-        DBPlayerData dbP = new DBPlayerData( m_botAction, localdb, message );
-
-        if( !dbP.isRegistered() )
-        {
-            m_botAction.sendSmartPrivateMessage( name, "The name '"+message+"' has not been registered." );
+        if( dbP.hasBeenDisabled() ) {
+            m_botAction.sendSmartPrivateMessage( name, "The name '"+message+"' has already been disabled." );
             return;
         }
 
-        if( !dbP.isEnabled() )
-        {
-            m_botAction.sendSmartPrivateMessage( name, "The name '"+message+"' is already disabled." );
-            return;
-        }
-
-        if( !dbP.disableName() )
-        {
+        if( !dbP.disableName() ) {
             m_botAction.sendSmartPrivateMessage( name, "Error disabling name '"+message+"'" );
             return;
         }
-        m_botAction.sendSmartPrivateMessage( name, "The name '"+message+"' has been disabled." );
+        m_botAction.sendSmartPrivateMessage( name, "The name '"+message+"' has been disabled, and will not be able to reset manually without being enabled again." );
     }
 
     public void commandDisplayInfo( String name, String message, boolean verbose )
@@ -930,6 +939,7 @@ public class twdbot extends SubspaceBot {
                 "!add name:<name>  ip:<IP>  mid:<MID> - Adds <name> to DB with <IP> and/or <MID>",
                 "!removeip <name>:<IP>                - Removes <IP> associated with <name>",
                 "!removemid <name>:<MID>              - Removes <MID> associated with <name>",
+                "!removeipmid <name>                  - Removes all IPs and MIDs for <name>",
                 "!listipmid <name>                    - Lists IP's and MID's associated with <name>",
                 "--------- ALIAS CHECK COMMANDS -------------------------------------------------------",
                 "!info <name>            - displays the IP/MID that was used to register this name",
@@ -1012,7 +1022,7 @@ public class twdbot extends SubspaceBot {
 
     public boolean resetPRegistration(int id) {
 
-        try {
+        try {            
             String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
             m_botAction.SQLBackgroundQuery( localdb, null, "UPDATE tblAliasSuppression SET fdResetTime = '"+time+"' WHERE fnUserID = '" + id + "'");
             return true;
