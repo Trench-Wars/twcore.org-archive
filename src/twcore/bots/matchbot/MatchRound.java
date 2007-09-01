@@ -83,7 +83,7 @@ public class MatchRound
     TimerTask updateScores;
     ArrayList<String> m_notPlaying;
 
-    private Objset m_myObjects;
+    private Objset m_scoreBoard;
     private int m_generalTime = 0;
 
     public lagHandler m_lagHandler;
@@ -100,11 +100,12 @@ public class MatchRound
     int m_lagTeam;
 
 	int m_fnAliveCheck = (int)System.currentTimeMillis();
-
-
+	
     //time race variables
     private int m_raceTarget = 0;
     TimerTask m_raceTimer;
+    
+    
 
     static final int NOT_PLAYING_FREQ = 200;
 
@@ -114,7 +115,7 @@ public class MatchRound
         useDatabase = false;
         m_game = Matchgame;
         m_botAction = m_game.m_botAction;
-        m_myObjects = m_botAction.getObjectSet();
+        m_scoreBoard = m_botAction.getObjectSet();
         m_rules = m_game.m_rules;
         m_fnRoundNumber = fnRoundNumber;
         m_fnRoundState = 0;
@@ -324,6 +325,12 @@ public class MatchRound
         {
             Player player = m_botAction.getPlayer(event.getPlayerID());
             int freq = player.getFrequency();
+            
+            // TWSDX ONLY:
+            if(m_game.m_fnMatchTypeID == 20 && (m_team1.hasFlag()==false && m_team2.hasFlag()==false)) {
+            	// the flag was claimed for the first time, put the spider logo on the phantom flag
+            	m_botAction.showObject(744);
+            }
 
             if (m_team1.getFrequency() == freq)
             {
@@ -399,44 +406,45 @@ public class MatchRound
      */
     public void handleEvent(PlayerDeath event)
     {
-        try
-        {
-            String killeeName = m_botAction.getPlayer(event.getKilleeID()).getPlayerName();
-            String killerName = m_botAction.getPlayer(event.getKillerID()).getPlayerName();
-
-            if (m_team1.getPlayer(killeeName, true) != null)
-                m_team1.handleEvent(event);
-            if (m_team2.getPlayer(killeeName, true) != null)
-                m_team2.handleEvent(event);
-            if (m_team1.getPlayer(killerName, true) != null)
-                m_team1.reportKill(event);
-            if (m_team2.getPlayer(killerName, true) != null)
-                m_team2.reportKill(event);
-
-            if (m_team1.isDead() || m_team2.isDead())
-                endGame();
-            if (m_team1.wonRace() || m_team2.wonRace())
-                endGame();
-            
-            // TWSDX ONLY:
-            if(m_game.m_fnMatchTypeID == 20) {
-            	if(m_team1.hasFlag() && m_team1.getPlayer(killeeName, true) != null && event.getKilleeID() == m_team1.getFlagCarrier()) {
-            		// team1 had the flag and the killed one was from team1 and it was the flagcarrier, now the killer is the flagcarrier.`
-            		m_botAction.sendPublicMessage("team1 lost the flag.");
-            		m_team1.disownFlag();
-            		m_team2.ownFlag(event.getKillerID());
-            	}
-            	if(m_team2.hasFlag() && m_team2.getPlayer(killeeName, true) != null && event.getKilleeID() == m_team2.getFlagCarrier()) {
-            		// team2 had the flag the killed one was from team2 and it was the flagcarrier, now the killer is the flagcarrier.
-            		m_botAction.sendPublicMessage("team2 lost the flag.");
-            		m_team2.disownFlag();
-            		m_team1.ownFlag(event.getKillerID());
-            	}
-            }
-        }
-        catch (Exception e)
-        {
-        };
+    	if(m_fnRoundState == 3) {
+	        try
+	        {
+	            String killeeName = m_botAction.getPlayer(event.getKilleeID()).getPlayerName();
+	            String killerName = m_botAction.getPlayer(event.getKillerID()).getPlayerName();
+	
+	            if (m_team1.getPlayer(killeeName, true) != null)
+	                m_team1.handleEvent(event);
+	            if (m_team2.getPlayer(killeeName, true) != null)
+	                m_team2.handleEvent(event);
+	            if (m_team1.getPlayer(killerName, true) != null)
+	                m_team1.reportKill(event);
+	            if (m_team2.getPlayer(killerName, true) != null)
+	                m_team2.reportKill(event);
+	
+	            if (m_team1.isDead() || m_team2.isDead())
+	                endGame();
+	            if (m_team1.wonRace() || m_team2.wonRace())
+	                endGame();
+	            
+	            // TWSDX ONLY:
+	            if(m_game.m_fnMatchTypeID == 20) {
+	            	if(m_team1.hasFlag() && m_team1.getPlayer(killeeName, true) != null && event.getKilleeID() == m_team1.getFlagCarrier()) {
+	            		// team1 had the flag and the killed one was from team1 and it was the flagcarrier, now the killer is the flagcarrier.`
+	            		m_team1.disownFlag();
+	            		m_team2.ownFlag(event.getKillerID());
+	            	}
+	            	if(m_team2.hasFlag() && m_team2.getPlayer(killeeName, true) != null && event.getKilleeID() == m_team2.getFlagCarrier()) {
+	            		// team2 had the flag the killed one was from team2 and it was the flagcarrier, now the killer is the flagcarrier.
+	            		m_team2.disownFlag();
+	            		m_team1.ownFlag(event.getKillerID());
+	            	}
+	            	
+	            }
+	        }
+	        catch (Exception e)
+	        {
+	        };
+    	}
     };
     
     /*
@@ -1132,7 +1140,7 @@ public class MatchRound
     public void startGame()
     {
         m_generalTime = m_rules.getInt("time") * 60;
-        m_myObjects = m_botAction.getObjectSet();
+        m_scoreBoard = m_botAction.getObjectSet();
         updateScores = new TimerTask()
         {
             public void run()
@@ -1143,7 +1151,7 @@ public class MatchRound
             }
         };
         m_botAction.scheduleTaskAtFixedRate(updateScores, 2000, 1000);
-
+        
         if ((m_rules.getInt("safe1xout") != 0) && (m_rules.getInt("safe1yout") != 0))
         {
             m_team1.warpTo(m_rules.getInt("safe1xout"), m_rules.getInt("safe1yout"));
@@ -1291,6 +1299,11 @@ public class MatchRound
             m_team2.signalEndToPlayers();
 
             toggleBlueout(false);
+            
+            // TWSDX ONLY: Remove the spider logo from middle & Update the flag status at the scoreboard (turn it off)
+            if(m_game.m_fnMatchTypeID == 20) {
+            	m_botAction.hideObject(744);
+            }
 
             if (m_rules.getString("winby").equals("timerace"))
             {
@@ -1383,9 +1396,9 @@ public class MatchRound
             {
                 public void run()
                 {
-                        if (m_myObjects != null)
+                        if (m_scoreBoard != null)
                         {
-		            m_myObjects.hideAllObjects();
+		            m_scoreBoard.hideAllObjects();
 		            m_botAction.setObjects();
                         }
 	                m_generalTime = 0;
@@ -1545,8 +1558,8 @@ public class MatchRound
 
     public void do_updateScoreBoard()
     {
-        if (m_myObjects != null) {
-            m_myObjects.hideAllObjects();
+        if (m_scoreBoard != null) {
+            m_scoreBoard.hideAllObjects();
             m_generalTime -= 1;
             String team1Score;
             String team2Score;
@@ -1565,36 +1578,57 @@ public class MatchRound
                 int team2Seconds = t2s - team2Minutes * 60;
 
                 //Team 1
-                m_myObjects.showObject( 100 + team1Seconds % 10 );
-                m_myObjects.showObject( 110 + (team1Seconds - team1Seconds % 10)/10 );
-                m_myObjects.showObject( 130 + team1Minutes % 10 );
-                m_myObjects.showObject( 140 + (team1Minutes - team1Minutes % 10)/10 );
+                m_scoreBoard.showObject( 100 + team1Seconds % 10 );
+                m_scoreBoard.showObject( 110 + (team1Seconds - team1Seconds % 10)/10 );
+                m_scoreBoard.showObject( 130 + team1Minutes % 10 );
+                m_scoreBoard.showObject( 140 + (team1Minutes - team1Minutes % 10)/10 );
 
                 //Team 2
-                m_myObjects.showObject( 200 + team2Seconds % 10 );
-                m_myObjects.showObject( 210 + (team2Seconds - team2Seconds % 10)/10 );
-                m_myObjects.showObject( 230 + team2Minutes % 10 );
-                m_myObjects.showObject( 240 + (team2Minutes - team2Minutes % 10)/10 );
+                m_scoreBoard.showObject( 200 + team2Seconds % 10 );
+                m_scoreBoard.showObject( 210 + (team2Seconds - team2Seconds % 10)/10 );
+                m_scoreBoard.showObject( 230 + team2Minutes % 10 );
+                m_scoreBoard.showObject( 240 + (team2Minutes - team2Minutes % 10)/10 );
 	    	    } else { //Else display ld lj on normal scoreboard
                 for (int i = team1Score.length() - 1; i > -1; i--)
-                    m_myObjects.showObject(Integer.parseInt("" + team1Score.charAt(i)) + 200 + (team1Score.length() - 1 - i) * 10);
+                    m_scoreBoard.showObject(Integer.parseInt("" + team1Score.charAt(i)) + 200 + (team1Score.length() - 1 - i) * 10);
                 for (int i = team2Score.length() - 1; i > -1; i--)
-                    m_myObjects.showObject(Integer.parseInt("" + team2Score.charAt(i)) + 100 + (team2Score.length() - 1 - i) * 10);
+                    m_scoreBoard.showObject(Integer.parseInt("" + team2Score.charAt(i)) + 100 + (team2Score.length() - 1 - i) * 10);
             }
             if (m_generalTime >= 0)
             {
                 int seconds = m_generalTime % 60;
                 int minutes = (m_generalTime - seconds) / 60;
-                m_myObjects.showObject(730 + ((minutes - minutes % 10) / 10));
-                m_myObjects.showObject(720 + (minutes % 10));
-                m_myObjects.showObject(710 + ((seconds - seconds % 10) / 10));
-                m_myObjects.showObject(700 + (seconds % 10));
+                m_scoreBoard.showObject(730 + ((minutes - minutes % 10) / 10));
+                m_scoreBoard.showObject(720 + (minutes % 10));
+                m_scoreBoard.showObject(710 + ((seconds - seconds % 10) / 10));
+                m_scoreBoard.showObject(700 + (seconds % 10));
             }
+            
+            if( m_rules.getString("scoreboard_flags").equals("1") ) {
+	            // Flag status
+	    		if(m_team1.hasFlag()) {
+	    			m_scoreBoard.showObject(740);
+	    			m_scoreBoard.showObject(743);
+	    			m_scoreBoard.hideObject(741);
+	    			m_scoreBoard.hideObject(742);
+	    		} else if(m_team2.hasFlag()) {
+	    			m_scoreBoard.showObject(741);
+	    			m_scoreBoard.showObject(742);
+	    			m_scoreBoard.hideObject(743);
+	    			m_scoreBoard.hideObject(740);
+	    		} else {
+	    			m_scoreBoard.showObject(741);
+	    			m_scoreBoard.showObject(742);
+	    			m_scoreBoard.hideObject(743);
+	    			m_scoreBoard.hideObject(740);
+	    		}
+            }
+            
             do_showTeamNames(m_team1.getTeamName(), m_team2.getTeamName());
             m_botAction.setObjects();
         }
     }
-
+    
     public void do_showTeamNames(String n1, String n2)
     {
         n1 = n1.toLowerCase();
@@ -1634,7 +1668,7 @@ public class MatchRound
 				t = new Integer(Integer.toString(((new_n.getBytes()[i])) + alph_offs) + Integer.toString(i + pos_offs)).intValue();
 				t -= 220;
 			}
-            m_myObjects.showObject(t);
+            m_scoreBoard.showObject(t);
         }
 
     }
@@ -1732,8 +1766,8 @@ public class MatchRound
         if (updateScores != null)
             m_botAction.cancelTask(updateScores);
 
-        if (m_myObjects != null)
-            m_myObjects.hideAllObjects();
+        if (m_scoreBoard != null)
+            m_scoreBoard.hideAllObjects();
 
         m_botAction.setObjects();
         m_generalTime = 0;
