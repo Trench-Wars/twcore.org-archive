@@ -24,6 +24,8 @@ import twcore.core.util.Tools;
 
 /**
  * Handles TWD administration tasks such as registration and deletion.
+ * Prevents players from playing from any but registered IP/MID, unless
+ * overridden by an Op.
  */
 public class twdbot extends SubspaceBot {
 
@@ -672,7 +674,7 @@ public class twdbot extends SubspaceBot {
         }
 
         if ( player ) {
-            if( ! dbP.isEnabled() ) {
+            if( dbP.hasBeenDisabled() ) {
                 m_botAction.sendSmartPrivateMessage( name, "Unable to reset name.  Please contact a TWD Op for assistance." );
                 return;
             }
@@ -685,7 +687,7 @@ public class twdbot extends SubspaceBot {
                 m_botAction.sendSmartPrivateMessage( name, "Your name will be reset in 24 hours." );
             }
         } else {
-            if( ! dbP.isEnabled() ) {
+            if( dbP.hasBeenDisabled() ) {
                 m_botAction.sendSmartPrivateMessage( name, "That name has been disabled.  If you are sure the player should be allowed to play, enable before resetting." );
                 return;
             }
@@ -807,7 +809,7 @@ public class twdbot extends SubspaceBot {
         // Create the player if not registered
         DBPlayerData dbP = new DBPlayerData( m_botAction, localdb, message, true );
 
-        if( ! dbP.isEnabled() ) {
+        if( dbP.hasBeenDisabled() ) {
             m_botAction.sendSmartPrivateMessage( name, "The name '"+message+"' has already been disabled." );
             return;
         }
