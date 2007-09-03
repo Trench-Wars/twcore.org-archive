@@ -74,6 +74,7 @@ public class MatchRound
     TimerTask m_countdown54321;
     TimerTask m_startGame;
     TimerTask m_endGame;
+    TimerTask m_endTieGame;
     TimerTask m_scheduleTimer;
     TimerTask m_signalEndOfRound;
     TimerTask m_announceMVP;
@@ -1245,6 +1246,9 @@ public class MatchRound
         if (m_endGame != null)
             m_botAction.cancelTask(m_endGame);
 
+        if (m_endTieGame != null)
+            m_botAction.cancelTask(m_endTieGame);
+        
         if (m_raceTimer != null)
             m_botAction.cancelTask(m_raceTimer);
 
@@ -1266,23 +1270,32 @@ public class MatchRound
                     m_logger.sendArenaMessage("The scores are tied. The game will be extended for " + extTime + " minutes.", 2);
 					m_generalTime = extTime * 60;
                     m_fbExtension = true;
-                    m_endGame = new TimerTask()
+                    m_endTieGame = new TimerTask()
                     {
                         public void run()
                         {
                             endGame();
-                        };
+                        }
                     };
-                    m_botAction.scheduleTask(m_endGame, extTime * 1000 * 60);
+                    try {
+                        m_botAction.scheduleTask(m_endTieGame, extTime * 1000 * 60);
+                    } catch (IllegalStateException e) {
+                        System.gc();
+                        try {
+                            m_botAction.scheduleTask(m_endTieGame, extTime * 1000 * 60);
+                        } catch (IllegalStateException e2) {
+                            m_logger.sendArenaMessage("There was an error in extending the match.  Please contact a TWDOp for help.", 2);                            
+                        }                        
+                    }
                     m_botAction.setTimer(extTime);
-                };
+                }
             }
             else
             {
                 m_game.reportEndOfRound(m_fbAffectsEntireGame);
 				m_botAction.showObject(m_rules.getInt("obj_gameover"));
                 return;
-            };
+            }
         }
         else
         {
