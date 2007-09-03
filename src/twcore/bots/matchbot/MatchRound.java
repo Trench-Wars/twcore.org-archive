@@ -1617,7 +1617,7 @@ public class MatchRound
                 m_scoreBoard.showObject(700 + (seconds % 10));
             }
             
-            if( m_rules.getString("scoreboard_flags").equals("1") ) {
+            if( m_rules.getInt("scoreboard_flags") == 1 ) {
 	            // Flag status
 	    		if(m_team1.hasFlag()) {
 	    			m_scoreBoard.showObject(740);
