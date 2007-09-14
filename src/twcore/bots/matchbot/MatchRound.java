@@ -106,6 +106,9 @@ public class MatchRound
     private int m_raceTarget = 0;
     TimerTask m_raceTimer;
     
+    // TWSDX ONLY: Flag LVZ status
+    private boolean flagClaimed = false;
+    
     
 
     static final int NOT_PLAYING_FREQ = 200;
@@ -328,9 +331,10 @@ public class MatchRound
             int freq = player.getFrequency();
             
             // TWSDX ONLY:
-            if(m_game.m_fnMatchTypeID == 20 && (m_team1.hasFlag()==false && m_team2.hasFlag()==false)) {
+            if(m_game.m_fnMatchTypeID == 20 && (flagClaimed == false)) {
             	// the flag was claimed for the first time, put the spider logo on the phantom flag
             	m_botAction.showObject(744);
+            	flagClaimed = true;
             }
 
             if (m_team1.getFrequency() == freq)
@@ -1179,10 +1183,13 @@ public class MatchRound
         m_logger.scoreResetAll();
         m_logger.shipResetAll();
         m_logger.resetFlagGame();
+        m_team1.disownFlag();
+        m_team2.disownFlag();
         m_logger.sendArenaMessage("Go go go!", 104);
         m_botAction.showObject(m_rules.getInt("obj_gogogo"));
 
         m_timeStartedms = System.currentTimeMillis();
+        flagClaimed = false;
 
         //this is for timerace only
         if ((m_rules.getString("winby")).equals("timerace"))
@@ -1630,10 +1637,10 @@ public class MatchRound
 	    			m_scoreBoard.hideObject(743);
 	    			m_scoreBoard.hideObject(740);
 	    		} else {
-	    			m_scoreBoard.showObject(741);
+	    			m_scoreBoard.showObject(740);
 	    			m_scoreBoard.showObject(742);
+	    			m_scoreBoard.hideObject(741);
 	    			m_scoreBoard.hideObject(743);
-	    			m_scoreBoard.hideObject(740);
 	    		}
             }
             
