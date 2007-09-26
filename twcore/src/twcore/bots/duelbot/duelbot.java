@@ -782,26 +782,29 @@ public class duelbot extends SubspaceBot {
     }
 
     public void do_showRank(String name, String message) {
+        // Old rank code too taxing for a table with high number of rows.
+        // To compensate, !rank could offer the player more stats instead,
+        // including streak, spawns, etc.
     	try {
     		String rankCheck = name;
-	    	String rankString = "TWE-D: #&     TWE-J: #&     TWE-S: #&";
+            boolean ranked = false;
 	    	if(message != null && !(message.equals("") || message.equals(" "))) rankCheck = message;
-	    	for(int k = 1;k <= 3;k++) {
-	    		ResultSet results = m_botAction.SQLQuery(mySQLHost, "SELECT COUNT( * ) AS rank, dl1.fnRating AS rating"
-					+ "FROM tblDuelLeague AS dl1, tblDuelLeague AS dl2 "
-					+ "WHERE dl1.fcUserName = '"+Tools.addSlashesToString(rankCheck)+"' "
-					+ "AND dl2.fnRating > dl1.fnRating "
-					+ "AND dl1.fnLeagueTypeID = dl2.fnLeagueTypeID "
-					+ "AND dl1.fnLeagueTypeID = " + k + " "
-					+ "GROUP BY dl2.fnLeagueTypeID");
-				if(results != null && results.next()) {
-					rankString = rankString.split("&", 2)[0] + results.getInt("fnRating") + rankString.split("&", 2)[1];
-				} else {
-					rankString = rankString.split("&", 2)[0] + "N/A" + rankString.split("&", 2)[1];
-				}
-                m_botAction.SQLClose( results );
+	    	ResultSet results = m_botAction.SQLQuery(mySQLHost, "SELECT fnLeagueTypeID, fnRating FROM tblDuelLeague WHERE fcUserName = '" + Tools.addSlashesToString(rankCheck) +"' AND fnSeason = "+ s_season + " ORDER BY fnLeagueTypeID");
+	    	while( results.next() ) {
+	    	    if( results.getInt("fnLeagueType") == 1 ) {
+	    	        m_botAction.sendPrivateMessage(name, "TWE-D Rating: " + results.getInt("fnRating") );
+                    ranked = true;
+	    	    } else if( results.getInt("fnLeagueType") == 2 ) {
+	    	        m_botAction.sendPrivateMessage(name, "TWE-J Rating: " + results.getInt("fnRating") );
+                    ranked = true;
+	    	    } else if( results.getInt("fnLeagueType") == 3 ) {
+	    	        m_botAction.sendPrivateMessage(name, "TWE-S Rating: " + results.getInt("fnRating") );
+                    ranked = true;
+	    	    } 
 	    	}
-	    	m_botAction.sendPrivateMessage(name, rankString);
+            if( !ranked )
+                m_botAction.sendPrivateMessage(name, "You are not currently rated." );
+	    	m_botAction.SQLClose( results );
 	    } catch(Exception e) {e.printStackTrace();}
     }
 
