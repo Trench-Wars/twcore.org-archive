@@ -795,7 +795,7 @@ public class duelbot extends SubspaceBot {
 					+ "AND dl1.fnLeagueTypeID = " + k + " "
 					+ "GROUP BY dl2.fnLeagueTypeID");
 				if(results != null && results.next()) {
-					rankString = rankString.split("&", 2)[0] + (results.getInt("rank")+1) + rankString.split("&", 2)[1];
+					rankString = rankString.split("&", 2)[0] + results.getInt("fnRating") + rankString.split("&", 2)[1];
 				} else {
 					rankString = rankString.split("&", 2)[0] + "N/A" + rankString.split("&", 2)[1];
 				}
