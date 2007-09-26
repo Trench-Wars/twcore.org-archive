@@ -791,19 +791,19 @@ public class duelbot extends SubspaceBot {
 	    	if(message != null && !(message.equals("") || message.equals(" "))) rankCheck = message;
 	    	ResultSet results = m_botAction.SQLQuery(mySQLHost, "SELECT fnLeagueTypeID, fnRating FROM tblDuelLeague WHERE fcUserName = '" + Tools.addSlashesToString(rankCheck) +"' AND fnSeason = "+ s_season + " ORDER BY fnLeagueTypeID");
 	    	while( results.next() ) {
-	    	    if( results.getInt("fnLeagueType") == 1 ) {
+	    	    if( results.getInt("fnLeagueTypeID") == 1 ) {
 	    	        m_botAction.sendPrivateMessage(name, "TWE-D Rating: " + results.getInt("fnRating") );
                     ranked = true;
-	    	    } else if( results.getInt("fnLeagueType") == 2 ) {
+	    	    } else if( results.getInt("fnLeagueTypeID") == 2 ) {
 	    	        m_botAction.sendPrivateMessage(name, "TWE-J Rating: " + results.getInt("fnRating") );
                     ranked = true;
-	    	    } else if( results.getInt("fnLeagueType") == 3 ) {
+	    	    } else if( results.getInt("fnLeagueTypeID") == 3 ) {
 	    	        m_botAction.sendPrivateMessage(name, "TWE-S Rating: " + results.getInt("fnRating") );
                     ranked = true;
 	    	    } 
 	    	}
             if( !ranked )
-                m_botAction.sendPrivateMessage(name, "You are not currently rated." );
+                m_botAction.sendPrivateMessage(name, rankCheck + " is not currently rated." );
 	    	m_botAction.SQLClose( results );
 	    } catch(Exception e) {e.printStackTrace();}
     }
