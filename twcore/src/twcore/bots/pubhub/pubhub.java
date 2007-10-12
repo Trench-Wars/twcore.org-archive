@@ -60,11 +60,12 @@ public class pubhub extends SubspaceBot
   private ModuleHandler moduleHandler;
   private HashMap<String, String> botList;
   private HashSet<String> autoLoadModuleList;
+  private HashMap<String,HashSet<String>> arenaModules;
   private HashSet<String> permitList;
   private Vector<String> arenaList;
   private HashSet<String> nonPubArenaList;
   private String hubBot;
-  private String pubBotChat;
+  private String pubHubChat;
   private String botName;
 
   private int numPubBots;
@@ -83,6 +84,7 @@ public class pubhub extends SubspaceBot
     moduleHandler = new ModuleHandler(m_botAction, m_botAction.getGeneralSettings().getString( "Core Location" ) + "/twcore/bots/pubhub", "pubhub");
     botList = new HashMap<String, String>();
     autoLoadModuleList = new HashSet<String>();
+    arenaModules = new HashMap<String, HashSet<String>>();
     permitList = new HashSet<String>();
     arenaList = new Vector<String>();
     nonPubArenaList = new HashSet<String>();
@@ -111,7 +113,7 @@ public class pubhub extends SubspaceBot
       m_botAction.ipcSubscribe(IPCCHANNEL);
       m_botAction.ipcSubscribe(IPCCHAT);
       m_botAction.ipcSubscribe(IPCSILENCE);
-      m_botAction.sendUnfilteredPublicMessage("?chat=" + pubBotChat);
+      m_botAction.sendUnfilteredPublicMessage("?chat=" + pubHubChat);
       m_botAction.scheduleTask(new CheckPubsTask(), SPAWN_DELAY);
       moduleHandler.handleEvent(event);
     }
@@ -365,16 +367,27 @@ public class pubhub extends SubspaceBot
    * @param pubBot is the name of the bot to send the messages to.
    */
 
-  public void sendAutoLoadModules(String pubBot)
-  {
-    Iterator iterator = autoLoadModuleList.iterator();
-    String moduleName;
-
-    while(iterator.hasNext())
-    {
-      moduleName = (String) iterator.next();
-      m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("load " + moduleName, pubBot));
-    }
+  public void sendAutoLoadModules(String pubBot) {
+	  
+	  String arena = botList.get(pubBot);
+	  HashSet<String> modules;
+	  
+	  if(arena != null) {
+		  if(arenaModules.containsKey(arena)) {			// Autoload predefined specific modules
+			  modules = arenaModules.get(arena);
+		  } else {										// Autoload default modules
+			  modules = autoLoadModuleList;
+		  }
+	  } else {											 // Autoload default modules + warning
+		  m_botAction.sendChatMessage("ERROR: Cannot autoload modules on "+pubBot+": Arena/location is unknown - autoloading default modules.");
+		  modules = autoLoadModuleList;
+	  }
+	  
+	  // Send the IPC Messages for loading the modules to the Pubbot
+	  for(String moduleName:modules) {
+		  m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("load " + moduleName, pubBot));
+	  }
+	  
   }
 
   /**
@@ -614,10 +627,11 @@ public class pubhub extends SubspaceBot
     String permitListString = botSettings.getString("Permit");
     String initialArena = botSettings.getString("InitialArena");
     hubBot = botSettings.getString("HubBot");
-    pubBotChat = botSettings.getString("PubBotChat");
+    pubHubChat = botSettings.getString("PubHubChat");
 
     setupNonPubArenas(nonPubArenaString);
     setupAutoLoadModules(autoLoadModulesString);
+    setupArenaModules(botSettings);
     setupPermitList(permitListString);
     m_botAction.changeArena(initialArena);
   }
@@ -662,6 +676,40 @@ public class pubhub extends SubspaceBot
       if(moduleHandler.isModule(moduleName))
         autoLoadModuleList.add(moduleName);
     }
+  }
+  
+  /**
+   * This method sets up the modules that each bot will load with in a specified arena.
+   *
+   *
+   */
+  private void setupArenaModules(BotSettings botSettings) {
+	  // Cycle the nonPubArenaList and get each setting from the configuration file
+	  arenaModules.clear();
+	  
+	  for(String arena:nonPubArenaList) {
+		  String modulesSetting = botSettings.getString("ArenaModules-"+arena);
+		  
+		  if(modulesSetting != null && modulesSetting.length() > 0) {
+			  // Cycle through the modules and add each module to the HashMap, the arena as key
+			  StringTokenizer moduleTokens = new StringTokenizer(modulesSetting);
+	
+			  while(moduleTokens.hasMoreTokens()) {
+				  String moduleName = moduleTokens.nextToken().toLowerCase();
+				  if(moduleHandler.isModule(moduleName)) {
+					  HashSet<String> moduleSet;
+					  
+					  if(arenaModules.containsKey(arena)) {
+						  moduleSet = arenaModules.get(arena);
+					  } else {
+						  moduleSet = new HashSet<String>();
+					  }
+					  moduleSet.add(moduleName);
+					  arenaModules.put(arena, moduleSet);
+				  }
+			  }
+		  }
+	  }
   }
 
   /**
@@ -879,7 +927,7 @@ public class pubhub extends SubspaceBot
           sendDieCmd(pubBot);
         else
         {
-          m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("joinchat " + pubBotChat, pubBot));
+          m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("joinchat " + pubHubChat, pubBot));
           sendGoCmd(pubBot, destinationArena);
           m_botAction.scheduleTask(new AutoLoadTask(pubBot), AUTOLOAD_DELAY);
           numPubBots++;
