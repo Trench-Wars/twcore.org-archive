@@ -835,20 +835,29 @@ public class MatchRound
         int nFrequency = 9999;
         if (p != null)
         {
-            if ((p.getSquadName().equalsIgnoreCase(m_team1.getTeamName())) || (m_team1.getPlayer(name) != null) || (m_team1.isCaptain(name)))
+            if ((p.getSquadName().equalsIgnoreCase(m_team1.getTeamName())) || (m_team1.getPlayer(name, true) != null) || (m_team1.isCaptain(name)))
                 nFrequency = m_team1.getFrequency();
-            else if ((p.getSquadName().equalsIgnoreCase(m_team2.getTeamName())) || (m_team2.getPlayer(name) != null) || (m_team2.isCaptain(name)))
-                nFrequency = m_team2.getFrequency();
             else
-                m_botAction.sendPrivateMessage(name, "You're not a part of either of the teams");
+                if ((p.getSquadName().equalsIgnoreCase(m_team2.getTeamName())) || (m_team2.getPlayer(name, true) != null) || (m_team2.isCaptain(name)))
+                    nFrequency = m_team2.getFrequency();
+                else {
+                    // Long name hack for those that don't exact-match using getPlayer(String, true)
+                    if( m_team1.getPlayer(name, false) != null )
+                        nFrequency = m_team1.getFrequency();
+                    else
+                        if( m_team2.getPlayer(name, false) != null )
+                            nFrequency = m_team2.getFrequency();
+                        else
+                            m_botAction.sendPrivateMessage(name, "You're not a part of either of the teams!");
+                }
 
             if ((p.getFrequency() != nFrequency) && (nFrequency != 9999))
             {
                 m_logger.announce("Freqswitch " + name + " to " + nFrequency);
                 m_logger.setFreq(name, nFrequency);
-            };
-        };
-    };
+            }
+        }
+    }
 
     public void command_notplaying(String name, String parameters[])
     {
