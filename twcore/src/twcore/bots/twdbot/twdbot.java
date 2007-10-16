@@ -975,6 +975,13 @@ public class twdbot extends SubspaceBot {
                 "!check <name>           - checks live IP and MID of <name> (through *info, NOT the DB)",
                 "!go <arena>             - moves the bot"
         };
+        String SModHelp[] =
+        {
+                "--------- SMOD COMMANDS --------------------------------------------------------------",
+                "!addaccess <name>       - Adds <name> to the access list as an operator.",
+                "!removeaccess <name>    - Removes <name> from the access list.",
+                "!listaccess             - Shows current TWDOps.",
+        };
         String help2[] =
         {
                 "--------- ACCOUNT MANAGEMENT COMMANDS ------------------------------------------------",
@@ -987,8 +994,12 @@ public class twdbot extends SubspaceBot {
 
         if( player )
             m_botAction.privateMessageSpam( name, help2 );
-        else
+        else {
             m_botAction.privateMessageSpam( name, help );
+            if(m_opList.isSmod(name)) {
+                m_botAction.privateMessageSpam( name, SModHelp );                
+            }
+        }
     }
 
     public void parseIP( String message )
@@ -1033,6 +1044,7 @@ public class twdbot extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage( register, "REGISTRATION SUCCESSFUL" );
             m_botAction.sendSmartPrivateMessage( register, "NOTE: Only one name per household is allowed to be registered with TWD staff approval.  If you have family members that also play, you must register manually with staff (type ?help <msg>)." );
             m_botAction.sendSmartPrivateMessage( register, "Holding two or more name registrations in one household without staff approval may result in the disabling of one or all names registered." );
+            
         } else {
             if( m_requesters != null ) {
                 String response = name + "  IP:"+ip+"  MID:"+mid;
