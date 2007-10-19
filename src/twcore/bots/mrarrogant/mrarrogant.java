@@ -482,6 +482,7 @@ public class mrarrogant extends SubspaceBot
       } else if( message.startsWith( "!//" )){
           m_botAction.sendTeamMessage( message.substring( 3 ));
       } else if( message.indexOf( ":" ) != -1 ){  // Must be a private message request...
+    	  // !say <name>:<text>
           int indexOfColon = message.indexOf( ":" );
           String recipient = message.substring( 5, indexOfColon );
           m_botAction.sendSmartPrivateMessage( recipient,
