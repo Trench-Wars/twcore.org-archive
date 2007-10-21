@@ -21,6 +21,7 @@ import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaList;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
+import twcore.core.util.Tools;
 
 /**
  * Mr. Arrogant -- everyone's favorite Subspace Gestapo.
@@ -54,6 +55,8 @@ public class mrarrogant extends SubspaceBot
   private int year;
   private boolean isStaying;
   private boolean isArroSpy;
+  
+  private HashSet<String> offlimitArenas;	// Contains arena names which Mr. Arrogant won't visit
 
   /**
    * This method initializes the mrarrogant class.
@@ -71,6 +74,8 @@ public class mrarrogant extends SubspaceBot
     accessList = new HashSet<String>();
     isStaying = false;
     isArroSpy = false;
+    offlimitArenas = new HashSet<String>();
+    offlimitArenas.add("afk");		// Add any arenas here that Mr. Arrogant shouldn't visit (lowercase)
   }
 
   /**
@@ -89,8 +94,8 @@ public class mrarrogant extends SubspaceBot
     fileNameFormat = new SimpleDateFormat("'" + logPath + "'MMMyyyy'.log'");
     logFileName = fileNameFormat.format(new Date());
 
-    changeArena(initialArena);
     m_botAction.sendUnfilteredPublicMessage("?chat=" + chat);
+    changeArena(initialArena);
     openFile(logFileName);
     opList = m_botAction.getOperatorList();
     setupAccessList(accessString);
@@ -212,13 +217,20 @@ public class mrarrogant extends SubspaceBot
    * @param message is the arena message from the server.
    */
 
-  private void killIdle(String message)
-  {
+  private void killIdle(String message) {
     if(opList.isSmod(target))
       return;
+    
     int idleTime = getIdleTime(message);
-    if(idleTime > LOWERSTAFF_IDLE_KICK_TIME || (idleTime > IDLE_KICK_TIME && !opList.isZH(target)))
-      m_botAction.sendUnfilteredPrivateMessage(target, "*kill");
+    if(idleTime > LOWERSTAFF_IDLE_KICK_TIME || (idleTime > IDLE_KICK_TIME && !opList.isZH(target))) {
+    	String[] msg = { 
+    			target+", you will now be removed from SSCU Trench Wars because you are found idle too long.",
+    			"You won't be kicked if you idle in the arena 'afk' (type '?go afk' after logging in). Cya later."
+    			};
+    	m_botAction.smartPrivateMessageSpam(target, msg);
+    	m_botAction.sendUnfilteredPrivateMessage(target, "*kill");
+    }
+      
   }
 
   /**
@@ -749,6 +761,13 @@ public class mrarrogant extends SubspaceBot
     {
       String[] arenaNames = event.getArenaNames();
       int arenaIndex = (int) (Math.random() * arenaNames.length);
+      
+      // If an offlimit arena or public arena was selected, pick a new one
+      while(offlimitArenas.contains(arenaNames[arenaIndex].toLowerCase()) || Tools.isAllDigits(arenaNames[arenaIndex])) {
+    	  arenaIndex = (int) (Math.random() * arenaNames.length);
+	  }
+      
+      //m_botAction.sendChatMessage("Moving to "+arenaNames[arenaIndex]);
       changeArena(arenaNames[arenaIndex]);
     }
     catch(Exception e)
@@ -794,7 +813,9 @@ public class mrarrogant extends SubspaceBot
     int roamTime = MIN_ROAM_TIME + (int) (Math.random() * (MAX_ROAM_TIME - MIN_ROAM_TIME));
     m_botAction.cancelTask(roamTask);
     roamTask = new RoamTask();
-
+    
+    //m_botAction.sendChatMessage("Moving to a different arena in "+roamTime/1000+" seconds.");
+        
     m_botAction.scheduleTask(roamTask, roamTime);
   }
 
