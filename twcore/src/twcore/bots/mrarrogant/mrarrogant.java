@@ -667,8 +667,13 @@ public class mrarrogant extends SubspaceBot
   {
     if(argString.equalsIgnoreCase(currentArena))
       throw new IllegalArgumentException("Already in that arena.");
-    m_botAction.sendSmartPrivateMessage(sender, "Going to " + argString + ".");
-    changeArena(argString);
+    
+    if(offlimitArenas.contains(argString.toLowerCase())) {
+    	m_botAction.sendSmartPrivateMessage(sender, "I'm sorry, this arena is off limits for me.");
+    } else {
+    	m_botAction.sendSmartPrivateMessage(sender, "Going to " + argString + ".");
+    	changeArena(argString);
+    }
   }
 
   /**
