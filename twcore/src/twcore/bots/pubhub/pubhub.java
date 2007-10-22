@@ -50,6 +50,7 @@ public class pubhub extends SubspaceBot
   public static final String IPCCHANNEL = "pubBots";
   public static final String IPCCHAT = "pubbotChat";
   public static final String IPCSILENCE = "pubbotsilence";
+  public static final String IPCPUBSTATS = "pubstats";
   public static final int UPDATE_CHECK_DELAY = 500;
   public static final int CHECK_DELAY = 5 * 60 * 1000;
   public static final int LOG_OFF_DELAY = 200;
@@ -113,6 +114,7 @@ public class pubhub extends SubspaceBot
       m_botAction.ipcSubscribe(IPCCHANNEL);
       m_botAction.ipcSubscribe(IPCCHAT);
       m_botAction.ipcSubscribe(IPCSILENCE);
+      m_botAction.ipcSubscribe(IPCPUBSTATS);
       m_botAction.sendUnfilteredPublicMessage("?chat=" + pubHubChat);
       m_botAction.scheduleTask(new CheckPubsTask(), SPAWN_DELAY);
       moduleHandler.handleEvent(event);
