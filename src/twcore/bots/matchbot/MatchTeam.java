@@ -190,6 +190,19 @@ public class MatchTeam
 		                p.reportDeath();
 					}
                 }
+                
+                // TWSDX ONLY:
+                if(m_round.getGame().m_fnMatchTypeID == 20) {
+                	int playerid = m_botAction.getPlayerID(p.getPlayerName());
+                	if(this.m_flagOwned && m_flagCarrierID == playerid) {
+                		// Reset partial flag game - flagcarrier specced
+                		m_round.m_team1.disownFlag();
+                		m_round.m_team2.disownFlag();
+                		m_round.flagClaimed = false;
+                		m_botAction.hideObject(744);
+                		m_botAction.resetFlagGame();
+                	}
+                }
             }
             p.setLagByBot(false);
             p.lagout(false);
