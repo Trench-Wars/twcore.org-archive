@@ -107,7 +107,7 @@ public class MatchRound
     TimerTask m_raceTimer;
     
     // TWSDX ONLY: Flag LVZ status
-    private boolean flagClaimed = false;
+    boolean flagClaimed = false;
     
     
 
@@ -331,10 +331,13 @@ public class MatchRound
             int freq = player.getFrequency();
             
             // TWSDX ONLY:
-            if(m_game.m_fnMatchTypeID == 20 && (flagClaimed == false)) {
-            	// the flag was claimed for the first time, put the spider logo on the phantom flag
-            	m_botAction.showObject(744);
-            	flagClaimed = true;
+            if(m_game.m_fnMatchTypeID == 20) {
+            	
+            	if(flagClaimed == false) {
+	            	// the flag was claimed for the first time, put the spider logo on the phantom flag
+	            	m_botAction.showObject(744);
+	            	flagClaimed = true;
+            	}
             }
 
             if (m_team1.getFrequency() == freq)
@@ -434,7 +437,7 @@ public class MatchRound
 	            // TWSDX ONLY:
 	            if(m_game.m_fnMatchTypeID == 20) {
 	            	if(m_team1.hasFlag() && m_team1.getPlayer(killeeName, true) != null && event.getKilleeID() == m_team1.getFlagCarrier()) {
-	            		// team1 had the flag and the killed one was from team1 and it was the flagcarrier, now the killer is the flagcarrier.`
+	            		// team1 had the flag and the killed one was from team1 and it was the flagcarrier, now the killer is the flagcarrier.
 	            		m_team1.disownFlag();
 	            		m_team2.ownFlag(event.getKillerID());
 	            	}
@@ -442,6 +445,24 @@ public class MatchRound
 	            		// team2 had the flag the killed one was from team2 and it was the flagcarrier, now the killer is the flagcarrier.
 	            		m_team2.disownFlag();
 	            		m_team1.ownFlag(event.getKillerID());
+	            	}
+	            	
+	            	// Further check in case above goes wrong
+	            	Iterator<Player> players = m_botAction.getPlayingPlayerIterator();
+	            	while(players.hasNext()) {
+	            		Player player = players.next();
+	            		if(player.getflagsCarried()>0) {
+	            			if(m_team1.getPlayer(player.getPlayerName(),true) != null && m_team1.hasFlag() == false) {
+	            				// Flagcarrier is in team 1 but team 1 doesn't have the flag - omg! fix this bad situation
+	            				m_team2.disownFlag();
+	            				m_team1.ownFlag(player.getPlayerID());
+	            			} else
+	            			if(m_team2.getPlayer(player.getPlayerName(),true) != null && m_team2.hasFlag() == false) {
+	            				// Flagcarrier is in team 2 but team 2 doesn't have the flag - omg! fix this bad situation
+	            				m_team1.disownFlag();
+	            				m_team2.ownFlag(player.getPlayerID());
+	            			}
+	            		}
 	            	}
 	            	
 	            }
@@ -1619,9 +1640,9 @@ public class MatchRound
                 m_scoreBoard.showObject( 240 + (team2Minutes - team2Minutes % 10)/10 );
 	    	    } else { //Else display ld lj on normal scoreboard
                 for (int i = team1Score.length() - 1; i > -1; i--)
-                    m_scoreBoard.showObject(Integer.parseInt("" + team1Score.charAt(i)) + 200 + (team1Score.length() - 1 - i) * 10);
+                    m_scoreBoard.showObject(Integer.parseInt("" + team1Score.charAt(i)) + 100 + (team1Score.length() - 1 - i) * 10);
                 for (int i = team2Score.length() - 1; i > -1; i--)
-                    m_scoreBoard.showObject(Integer.parseInt("" + team2Score.charAt(i)) + 100 + (team2Score.length() - 1 - i) * 10);
+                    m_scoreBoard.showObject(Integer.parseInt("" + team2Score.charAt(i)) + 200 + (team2Score.length() - 1 - i) * 10);
             }
             if (m_generalTime >= 0)
             {
@@ -1818,6 +1839,10 @@ public class MatchRound
     public void setRaceTarget(int raceTarget)
     {
         m_raceTarget = raceTarget;
+    }
+    
+    public MatchGame getGame() {
+    	return this.m_game;
     }
 
 }
