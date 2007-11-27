@@ -6,14 +6,12 @@ import java.util.TimerTask;
 import twcore.bots.PubBotModule;
 import twcore.bots.pubhub.PubStats;
 import twcore.core.EventRequester;
-import twcore.core.events.InterProcessEvent;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.game.Player;
 
 public class pubbotstats extends PubBotModule {
-  private String botName;
   
   protected HashMap<String, PubStats> stats = new HashMap<String, PubStats>();
   // 			   <#ship#Playername, PubStats>
@@ -23,7 +21,6 @@ public class pubbotstats extends PubBotModule {
   private final int SEND_STATS_TIME = 1000*60*15; // 15 minutes
 
   public void initializeModule() {
-    botName = m_botAction.getBotName();
     m_botAction.scheduleTaskAtFixedRate(new sendStatsTask(), SEND_STATS_TIME, SEND_STATS_TIME);
   }
 
@@ -38,7 +35,8 @@ public class pubbotstats extends PubBotModule {
 	  Player killed = m_botAction.getPlayer(event.getKilleeID());
 	  
 	  if(killer != null) {
-		  updateStats(
+		  updateStats(killer);
+		  /*updateStats(
 				  killer.getPlayerName(), 
 				  killer.getShipType(), 
 				  killer.getSquadName(),
@@ -47,10 +45,11 @@ public class pubbotstats extends PubBotModule {
 				  killer.getWins(),
 				  killer.getLosses(),
 				  this.calculateRating(killer.getKillPoints(), killer.getWins(), killer.getLosses()),
-				  (killer.getKillPoints()/killer.getWins()));
+				  this.calculateAverage(killer.getKillPoints(),killer.getWins()));*/
 	  }
 	  if(killed != null) {
-		  updateStats(
+		  updateStats(killed);
+		  /*updateStats(
 				  killed.getPlayerName(), 
 				  killed.getShipType(), 
 				  killed.getSquadName(),
@@ -59,13 +58,14 @@ public class pubbotstats extends PubBotModule {
 				  killed.getWins(),
 				  killed.getLosses(),
 				  this.calculateRating(killed.getKillPoints(), killed.getWins(), killed.getLosses()),
-				  (killed.getKillPoints()/killed.getWins()));
+				  this.calculateAverage(killed.getKillPoints(),killed.getWins()));*/
 	  }
   }
   
   public void handleEvent( PlayerEntered event ) {
 	  Player player = m_botAction.getPlayer(event.getPlayerID());
-	  updateStats(
+	  updateStats(player);
+	  /*updateStats(
 			  player.getPlayerName(), 
 			  player.getShipType(), 
 			  player.getSquadName(),
@@ -74,12 +74,13 @@ public class pubbotstats extends PubBotModule {
 			  player.getWins(),
 			  player.getLosses(),
 			  this.calculateRating(player.getKillPoints(), player.getWins(), player.getLosses()),
-			  (player.getKillPoints()/player.getWins()));
+			  this.calculateAverage(player.getKillPoints(),player.getWins()));*/
   }
   
   public void handleEvent( PlayerLeft event ) {
 	  Player player = m_botAction.getPlayer(event.getPlayerID());
-	  updateStats(
+	  updateStats(player);
+	  /*updateStats(
 			  player.getPlayerName(), 
 			  player.getShipType(), 
 			  player.getSquadName(),
@@ -88,7 +89,7 @@ public class pubbotstats extends PubBotModule {
 			  player.getWins(),
 			  player.getLosses(),
 			  this.calculateRating(player.getKillPoints(), player.getWins(), player.getLosses()),
-			  (player.getKillPoints()/player.getWins()));
+			  this.calculateAverage(player.getKillPoints(),player.getWins()));*/
   }
 
   public void cancel() {
@@ -100,33 +101,55 @@ public class pubbotstats extends PubBotModule {
   
   /**** Private Helper methods ****/
   
-  private void updateStats(
-		  String playername, 
-		  int ship, 
-		  String squad, 
-		  int flagpoints, 
-		  int killpoints, 
-		  int wins, 
-		  int losses, 
-		  int rate, 
-		  int average) {
+  private void updateStats(Player player) {
+	  
+	  PubStats savedTotalStats;
+	  
+	  // Get saved statistics
+	  if(stats.containsKey("0" + player.getPlayerName())) {
+		  savedTotalStats = stats.get("0" + player.getPlayerName());
+	  } else {
+		  savedTotalStats = new PubStats();
+	  }
+//		  shipstats.setFlagPoints(shipstats.getFlagPoints() + (player.getFlagPoints() - shipstats.getFlagPoints()));
+//		  shipstats.setKillPoints(player.getKillPoints() - shipstats.getKillPoints());
+//		  shipstats.setWins(player.getWins())
+//	  }
+	  
+	  
+	  // TODO
+	  
+	  // Save cumulative player/ship statistics
 	  
 	  PubStats pubstats = new PubStats();
-	  pubstats.setPlayername(playername);
-	  pubstats.setShip(ship);
-	  pubstats.setSquad(squad);
-	  pubstats.setFlagPoints(flagpoints);
-	  pubstats.setKillPoints(killpoints);
-	  pubstats.setWins(wins);
-	  pubstats.setLosses(losses);
-	  pubstats.setRate(rate);
-	  pubstats.setAverage(average);
-	  stats.put(String.valueOf(ship) + playername, pubstats);
-	  // 
+	  pubstats.setPlayername(player.getPlayerName());
+	  pubstats.setShip(0);
+	  pubstats.setSquad(player.getSquadName());
+	  pubstats.setFlagPoints(player.getFlagPoints());
+	  pubstats.setKillPoints(player.getKillPoints());
+	  pubstats.setWins(player.getWins());
+	  pubstats.setLosses(player.getLosses());
+	  pubstats.setRate(
+			  this.calculateRating(player.getKillPoints(), player.getWins(), player.getLosses())
+	  );
+	  pubstats.setAverage(
+			  this.calculateAverage(player.getKillPoints(), player.getWins())
+	  );
+	  stats.put("0" + player.getPlayerName(), pubstats);
+	  
+	  
+	  m_botAction.sendChatMessage("Stats size: "+stats.size()); 
   }
   
   private int calculateRating(int killPoints, int wins, int losses) {
 	  return (killPoints*10 + (wins-losses)*100) / (wins +100);
+  }
+  
+  private float calculateAverage(int killPoints, int wins) {
+	  if(wins > 0)
+		  return killPoints / wins;
+	  else 
+		  return 0;
   }
   
   
