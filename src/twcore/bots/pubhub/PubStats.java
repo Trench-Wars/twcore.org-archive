@@ -11,7 +11,7 @@ import java.util.Date;
 public class PubStats {
 	private String playername;
 	
-	/** Ship number (1-8, 0 = spectating) */
+	/** Ship number (1-8, 0 = total stats) */
 	private int ship;
 	private String squad;
 	
@@ -25,6 +25,17 @@ public class PubStats {
 	private Date date;
 	
 	public PubStats() {
+		this.playername = "UNKNOWN";
+		this.squad = "UNKNOWN";
+		
+		this.ship = 0;
+		this.flagPoints = 0;
+		this.killPoints = 0;
+		this.wins = 0;
+		this.losses = 0;
+		this.rate = 0;
+		this.average = 0;
+		
 		this.date = new Date();
 	}
 	

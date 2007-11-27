@@ -10,7 +10,8 @@ import twcore.core.events.InterProcessEvent;
 import twcore.core.util.Tools;
 
 public class pubhubstats extends PubBotModule {
-	private String database = "pubstats";
+	//private String database = "pubstats";
+	private String database = "server";
 	
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
