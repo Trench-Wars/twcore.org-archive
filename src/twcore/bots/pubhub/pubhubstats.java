@@ -48,7 +48,7 @@ public class pubhubstats extends PubBotModule {
 			return;
 		}
 	  
-		HashMap<String, PubStats> stats = (HashMap<String, PubStats>)event.getObject();
+		HashMap<String, PubStatsScore> stats = (HashMap<String, PubStatsScore>)event.getObject();
 		updateDatabase(stats.values());
   }
 
@@ -64,9 +64,9 @@ public class pubhubstats extends PubBotModule {
 	 * 
 	 * @param stats the Collection containing the PubStats objects
 	 */
-	private void updateDatabase(Collection<PubStats> stats) {
+	private void updateDatabase(Collection<PubStatsScore> stats) {
 		// Loop over all the PubStats objects and replace each in the stats table
-		for(PubStats pubstats:stats) {
+		/*for(PubStatsScore pubstats:stats) {
 			if(stop) break;
 		  
 			String query = 
@@ -82,6 +82,6 @@ public class pubhubstats extends PubBotModule {
 				pubstats.getAverage() + "," +
 				"'" + sdf.format(pubstats.getDate()) + "'";
 			m_botAction.SQLBackgroundQuery(this.database, null, query);
-		}
+		}*/
 	}
 }

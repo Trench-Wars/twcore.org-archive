@@ -8,12 +8,11 @@ import java.util.Date;
  * 
  * @author Maverick
  */
-public class PubStats {
-	private String playername;
+public class PubStatsScore {
+	private PubStatsPlayer player;
 	
-	/** Ship number (1-8, 0 = total stats) */
+	/** Ship number (1-8, 0 = spectator) */
 	private int ship;
-	private String squad;
 	
 	private int flagPoints;
 	private int killPoints;
@@ -23,18 +22,17 @@ public class PubStats {
 	private float average;
 	
 	private Date date;
+	private boolean scorereset = false;
 	
-	public PubStats() {
-		this.playername = "UNKNOWN";
-		this.squad = "UNKNOWN";
-		
-		this.ship = 0;
-		this.flagPoints = 0;
-		this.killPoints = 0;
-		this.wins = 0;
-		this.losses = 0;
-		this.rate = 0;
-		this.average = 0;
+	public PubStatsScore(PubStatsPlayer player, int ship, int flagPoints, int killPoints, int wins, int losses, int rate, float average) {
+		this.player = player;
+		this.ship = ship;
+		this.flagPoints = flagPoints;
+		this.killPoints = killPoints;
+		this.wins = wins;
+		this.losses = losses;
+		this.rate = rate;
+		this.average = average;
 		
 		this.date = new Date();
 	}
@@ -43,107 +41,110 @@ public class PubStats {
 	
 	
 	/**
-	 * @return the playername
+	 * @return the player
 	 */
-	public String getPlayername() {
-		return playername;
+	public PubStatsPlayer getPlayer() {
+		return player;
 	}
+
 	/**
-	 * @param playername the playername to set
+	 * @param player the player to set
 	 */
-	public void setPlayername(String playername) {
-		this.playername = playername;
+	public void setPlayer(PubStatsPlayer player) {
+		this.player = player;
 	}
+
 	/**
 	 * @return the ship
 	 */
 	public int getShip() {
 		return ship;
 	}
+
 	/**
 	 * @param ship the ship to set
 	 */
 	public void setShip(int ship) {
 		this.ship = ship;
 	}
-	/**
-	 * @return the squad
-	 */
-	public String getSquad() {
-		return squad;
-	}
-	/**
-	 * @param squad the squad to set
-	 */
-	public void setSquad(String squad) {
-		this.squad = squad;
-	}
+
 	/**
 	 * @return the flagPoints
 	 */
 	public int getFlagPoints() {
 		return flagPoints;
 	}
+
 	/**
 	 * @param flagPoints the flagPoints to set
 	 */
 	public void setFlagPoints(int flagPoints) {
 		this.flagPoints = flagPoints;
 	}
+
 	/**
 	 * @return the killPoints
 	 */
 	public int getKillPoints() {
 		return killPoints;
 	}
+
 	/**
 	 * @param killPoints the killPoints to set
 	 */
 	public void setKillPoints(int killPoints) {
 		this.killPoints = killPoints;
 	}
+
 	/**
 	 * @return the wins
 	 */
 	public int getWins() {
 		return wins;
 	}
+
 	/**
 	 * @param wins the wins to set
 	 */
 	public void setWins(int wins) {
 		this.wins = wins;
 	}
+
 	/**
 	 * @return the losses
 	 */
 	public int getLosses() {
 		return losses;
 	}
+
 	/**
 	 * @param losses the losses to set
 	 */
 	public void setLosses(int losses) {
 		this.losses = losses;
 	}
+
 	/**
 	 * @return the rate
 	 */
 	public int getRate() {
 		return rate;
 	}
+
 	/**
 	 * @param rate the rate to set
 	 */
 	public void setRate(int rate) {
 		this.rate = rate;
 	}
+
 	/**
 	 * @return the average
 	 */
 	public float getAverage() {
 		return average;
 	}
+
 	/**
 	 * @param average the average to set
 	 */
@@ -156,5 +157,29 @@ public class PubStats {
 	 */
 	public Date getDate() {
 		return date;
-	}	
+	}
+
+	/**
+	 * @param date the date to set
+	 */
+	public void setDate(Date date) {
+		this.date = date;
+	}
+
+	/**
+	 * @return the scorereset
+	 */
+	public boolean isScorereset() {
+		return scorereset;
+	}
+
+	/**
+	 * @param scorereset the scorereset to set
+	 */
+	public void setScorereset(boolean scorereset) {
+		this.scorereset = scorereset;
+	}
+	
+	
+	
 }
