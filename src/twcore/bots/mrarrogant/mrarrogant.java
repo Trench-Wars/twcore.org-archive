@@ -3,11 +3,13 @@ package twcore.bots.mrarrogant;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.TimerTask;
@@ -39,7 +41,7 @@ public class mrarrogant extends SubspaceBot
   public static final int COMMAND_CLEAR_TIME = 3 * 60 * 60 * 1000;
   public static final int DIE_DELAY = 500;
   public static final int ENTER_DELAY = 5000;
-  public static final int DEFAULT_CHECK_TIME = 30;
+  public static final int DEFAULT_CHECK_TIME = 10;
 
   private SimpleDateFormat dateFormat;
   private SimpleDateFormat fileNameFormat;
@@ -67,7 +69,7 @@ public class mrarrogant extends SubspaceBot
     super(botAction);
 
     requestEvents();
-    dateFormat = new SimpleDateFormat("yyyy EEE MMM dd HH:mm:ss");
+    dateFormat = new SimpleDateFormat("yyyy EEE MMM dd HH:mm:ss", Locale.US);
     roamTask = new RoamTask();
     lastLogDate = null;
     commandQueue = new Vector<CommandLog>();
@@ -100,6 +102,10 @@ public class mrarrogant extends SubspaceBot
     opList = m_botAction.getOperatorList();
     setupAccessList(accessString);
     m_botAction.scheduleTaskAtFixedRate(new CheckLogTask(), 0, CHECK_LOG_TIME);
+  }
+  
+  public void handleDisconnect() {
+	  doDieCmd();
   }
 
   /**
@@ -178,8 +184,6 @@ public class mrarrogant extends SubspaceBot
     try
     {
       File file = new File(fileName);
-      if(file.exists())
-        lastLogDate = new Date(file.lastModified());
       logFile = new FileWriter(file, true);
     }
     catch(IOException e)
@@ -196,19 +200,19 @@ public class mrarrogant extends SubspaceBot
 
   private void handleArenaMessage(String message)
   {
-    try
-    {
       if(message.startsWith("IP:"))
         updateTarget(message);
       else if(message.startsWith(target + ": " + "UserId: "))
         killIdle(message);
-      else if(message.length() > 20)
+      else if(!message.startsWith("Ping:") &&			// Exclude all the info from *info
+    		  !message.startsWith("LOSS: S2C:") &&
+    		  !message.startsWith("S2C:") &&
+    		  !message.startsWith("C2S CURRENT: Slow:") &&
+    		  !message.startsWith("S2C CURRENT: Slow:") &&
+    		  !message.startsWith("TIME: Session:") &&
+    		  !message.startsWith("Bytes/Sec:") &&
+    		  message.length() > 20)
         handleLogMessage(message);
-    }
-    catch(Exception e)
-    {
-      m_botAction.sendChatMessage(e.getMessage());
-    }
   }
 
   /**
@@ -241,18 +245,15 @@ public class mrarrogant extends SubspaceBot
 
   private void handleLogMessage(String message)
   {
-    try
-    {
+    try {
       Date date = dateFormat.parse(year + " " + message.substring(0, 19));
       if(lastLogDate == null)
         lastLogDate = date;
-
-      if(date.after(lastLogDate) && message.indexOf("Ext: ") == 22)
-        handleLogCommand(date, message.substring(27));
-    }
-    catch(Exception e)
-    {
-    }
+      
+      if(date.after(lastLogDate) && message.indexOf("Ext: ") == 22) {
+    	  handleLogCommand(date, message.substring(27));  
+      }
+    } catch(ParseException pe) {}
   }
 
   /**
@@ -619,32 +620,35 @@ public class mrarrogant extends SubspaceBot
   {
     StringTokenizer argTokens = new StringTokenizer(argString, ":");
 
-    if(argTokens.countTokens() > 1)
-      throw new IllegalArgumentException("Please use the following format: !Log <Minutes>");
-
-    try
-    {
-      int time = DEFAULT_CHECK_TIME;
-      if(argTokens.hasMoreTokens())
-        time = Integer.parseInt(argTokens.nextToken());
-      displayLog("", "", "", time);
+    if(argTokens.countTokens() > 1) {
+    	m_botAction.sendChatMessage("Please use the following format: !Log <Minutes>");
+    	return;
     }
-    catch(NumberFormatException e)
-    {
-      throw new NumberFormatException("Please use the following format: !Log <Minutes>");
+
+    try {
+      int time = DEFAULT_CHECK_TIME;
+      if(argTokens.hasMoreTokens()) {
+        time = Integer.parseInt(argTokens.nextToken());
+      }
+      
+      m_botAction.sendChatMessage("Command log of the past "+time+" minute(s):");
+      displayLog("", "", "", time);
+    } catch(NumberFormatException e) {
+    	m_botAction.sendChatMessage("Please use the following format: !Log <Minutes>");
+    	return;
     }
   }
 
   private void displayLog(String fromPlayer, String toPlayer, String command, int time)
   {
     CommandLog commandLog;
-    Date currentDate = new Date(System.currentTimeMillis() - time * 60 * 1000);
+    Date lastDate = new Date(this.lastLogDate.getTime() - time * 60 * 1000);
     int displayed = 0;
 
     for(int index = 0; index < commandQueue.size(); index++)
     {
       commandLog = commandQueue.get(index);
-      if(commandLog.isMatch(currentDate, fromPlayer, toPlayer, command))
+      if(commandLog.isMatch(lastDate, fromPlayer, toPlayer, command))
       {
         displayed++;
         m_botAction.sendChatMessage(commandLog.toString());
@@ -743,8 +747,9 @@ public class mrarrogant extends SubspaceBot
     m_botAction.sendChatMessage("!Go <ArenaName>                [PM] - Moves the bot to <ArenaName>.");
     m_botAction.sendChatMessage("!Help                          [PM] - Displays this help message.");
     m_botAction.sendChatMessage("!Die                           [PM] - Logs the bot off.");
-    m_botAction.sendChatMessage("!LogFrom <Name>[:Cmd][:Time] [Chat] - Displays recent commands from <Name>.");
-    m_botAction.sendChatMessage("!LogTo <Name>[:Cmd][:Time]   [Chat] - Displays recent commands to <Name>.");
+    m_botAction.sendChatMessage("!Log [Time/minutes]          [Chat] - Displays last commands of last [Time].");
+    m_botAction.sendChatMessage("!LogFrom <Name>[:Cmd][:Time] [Chat] - Displays last commands from <Name>.");
+    m_botAction.sendChatMessage("!LogTo <Name>[:Cmd][:Time]   [Chat] - Displays last commands to <Name>.");
     m_botAction.sendChatMessage("!Stay                        [Chat] - Causes bot to stay in arena.");
     m_botAction.sendChatMessage("!ArroSpy                     [Chat] - Reports chat in current arena.");
     m_botAction.sendChatMessage("!say   OR  !!                [Chat] - Sends message to standard chat.");
@@ -842,7 +847,11 @@ public class mrarrogant extends SubspaceBot
   {
     CommandLog commandLog;
     Date commandDate;
-    Date removeDate = new Date(System.currentTimeMillis() - COMMAND_CLEAR_TIME);
+    
+    if(this.lastLogDate == null)
+    	return;
+    
+    Date removeDate = new Date(this.lastLogDate.getTime() - COMMAND_CLEAR_TIME);
 
     while(!commandQueue.isEmpty())
     {
@@ -951,6 +960,7 @@ public class mrarrogant extends SubspaceBot
       try
       {
         logFile.close();
+        m_botAction.cancelTasks();
         m_botAction.die();
       }
       catch(IOException e)
