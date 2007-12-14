@@ -66,14 +66,15 @@ public class matchbot extends SubspaceBot
     BotSettings m_rules;
     String m_rulesFileName;
     Spy racismSpy;				// Equivalent to using a PubBot's spy module
-
+    
+    // The last time (in ms) that an advert was done for this game
+    protected long lastAdvertTime = 0;
+    
     // --- temporary
     String m_team1 = null, m_team2 = null;
 
     //private static Pattern parseInfoRE = Pattern.compile("^IP:(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})  TimeZoneBias:\\d+  Freq:\\d+  TypedName:(.*)  Demo:\\d  MachineId:(\\d+)$");
     //private static Pattern cruncherRE = Pattern.compile("\\s+");
-
-    boolean canZone = true;
 
     /** Creates a new instance of Matchtwl */
     public matchbot(BotAction botAction)
@@ -1074,16 +1075,8 @@ public class matchbot extends SubspaceBot
                     m_botAction.setMessageLimit(ACTIVE_MESSAGE_LIMIT);
                     if (!name.equalsIgnoreCase(m_botAction.getBotName()))
                         startMessage = "Game started by " + name;
-                    m_game = new MatchGame(rulesName, fcTeam1Name, fcTeam2Name, players, challenger, accepter, m_botAction);
-                    canZone = m_game.zone(canZone);
-                    if(!canZone) {
-                    	TimerTask canZoneTrue = new TimerTask() {
-	                    	public void run() {
-	                    		canZoneTrue();
-	                    	}
-	                    };
-	                    m_botAction.scheduleTask(canZoneTrue,60 * 60 * 1000);
-	                }
+                    m_game = new MatchGame(rulesName, fcTeam1Name, fcTeam2Name, players, challenger, accepter, m_botAction, this);
+                    m_game.zone();
                 }
                 else
                     m_botAction.sendPrivateMessage(name, "There's already a game running, type !killgame to kill it first");
@@ -1095,10 +1088,6 @@ public class matchbot extends SubspaceBot
         {
             m_botAction.sendPrivateMessage(name, "Provide a correct game type number");
         }
-    }
-
-    public void canZoneTrue() {
-    	canZone = true;
     }
 
     // list games

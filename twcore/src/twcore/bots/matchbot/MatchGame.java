@@ -33,6 +33,8 @@ public class MatchGame
 	BotAction m_botAction;
 
 	BotSettings m_rules;
+	
+	matchbot m_bot;
 
 	MatchLogger m_logger;
 	String dbConn = "local";
@@ -60,10 +62,12 @@ public class MatchGame
 	MatchRound m_curRound;
 
 	/** Creates a new instance of MatchGame */
-	public MatchGame(String ruleFile, String fcTeam1Name, String fcTeam2Name, int players, int challenger, int accepter, BotAction botAction)
+	public MatchGame(String ruleFile, String fcTeam1Name, String fcTeam2Name, int players, int challenger, int accepter, BotAction botAction, matchbot bot)
 	{
 		m_botAction = botAction;
 		m_fcRuleFile = ruleFile;
+		
+		m_bot = bot;
 
 		m_fcTeam1Name = fcTeam1Name;
 		m_fcTeam2Name = fcTeam2Name;
@@ -112,10 +116,20 @@ public class MatchGame
 
 	}
 
-	public boolean zone(boolean canZone) {
+	public void zone() {
+		
 		if(m_rules.getInt("advertise") == 1) {
 			String zoner = m_rules.getString("zoner");
-			if(zoner != null && canZone && m_botAction.getArenaSize() < m_rules.getInt("peopletoad")) {
+			
+			// Check if the time has expired for the zoner
+			if(m_bot.lastAdvertTime > (System.currentTimeMillis()-(m_rules.getInt("advertDelay")*60*1000))) {
+				return;
+			} else {
+				m_bot.lastAdvertTime = System.currentTimeMillis();
+			}
+			
+
+			if(zoner != null && m_botAction.getArenaSize() < m_rules.getInt("peopletoad")) {
 				if(zoner.indexOf("%n") > -1) {
 					String pieces[] = zoner.split("%n");
 					if(pieces.length == 1) {
@@ -139,10 +153,8 @@ public class MatchGame
 					}
 				}
 				m_botAction.sendZoneMessage(zoner,2);
-				return false;
 			}
 		}
-		return true;
 	}
 
 	public int getTeamID(String fcTeamName)
