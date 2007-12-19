@@ -713,6 +713,7 @@ public class MatchTeam
             {
                 pA = getPlayer(parameters[0]);
                 pB = getPlayer(parameters[1]);
+                
                 if (pA != null)
                 {
                     if (pA.isAllowedToPlay())
@@ -721,9 +722,18 @@ public class MatchTeam
                         {
                             if (pB.isAllowedToPlay())
                             {
+                                int freq = pA.getFrequency();
                                 int ship = pB.getShipType();
                                 pB.setShip(pA.getShipType());
                                 pA.setShip(ship);
+                                m_botAction.setFreq(pA.getPlayerName(), freq);
+                                m_botAction.setFreq(pB.getPlayerName(), freq);
+                                pB.setShip(pA.getShipType());
+                                pA.setShip(ship);
+                                m_botAction.setFreq(pA.getPlayerName(), freq);
+                                m_botAction.setFreq(pB.getPlayerName(), freq);
+                                
+                                
 
                                 //this indicates that the player has switched ships during the game
                                 //currently it voids the player from getting mvp in time race games
