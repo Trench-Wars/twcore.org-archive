@@ -152,7 +152,7 @@ public class MatchGame
 						} zoner += pieces[pieces.length - 1];
 					}
 				}
-				m_botAction.sendZoneMessage(zoner,2);
+				m_botAction.sendZoneMessage(zoner);
 			}
 		}
 	}
