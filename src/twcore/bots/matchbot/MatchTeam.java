@@ -723,11 +723,7 @@ public class MatchTeam
                             if (pB.isAllowedToPlay())
                             {
                                 int freq = pA.getFrequency();
-                                int ship = pB.getShipType();
-                                pB.setShip(pA.getShipType());
-                                pA.setShip(ship);
-                                m_botAction.setFreq(pA.getPlayerName(), freq);
-                                m_botAction.setFreq(pB.getPlayerName(), freq);
+                                int ship = pB.getShipType();                               
                                 pB.setShip(pA.getShipType());
                                 pA.setShip(ship);
                                 m_botAction.setFreq(pA.getPlayerName(), freq);
