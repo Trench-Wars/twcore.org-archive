@@ -35,7 +35,7 @@ public class duelbot extends SubspaceBot {
 
 	CommandInterpreter  m_commandInterpreter;
 	final String		mySQLHost = "local";
-    final int           MSG_LIMIT = 8;           
+    final int           MSG_LIMIT = 8;
 	// Used to 'shutdown' the bot and allow no new duels.
 	boolean 			shutDown    = false;
     // Disallows new duels and shuts bot down once all dueling has stopped
@@ -800,7 +800,7 @@ public class duelbot extends SubspaceBot {
 	    	    } else if( results.getInt("fnLeagueTypeID") == 3 ) {
 	    	        m_botAction.sendPrivateMessage(name, "TWE-S Rating: " + results.getInt("fnRating") );
                     ranked = true;
-	    	    } 
+	    	    }
 	    	}
             if( !ranked )
                 m_botAction.sendPrivateMessage(name, rankCheck + " is not currently rated." );
@@ -1007,6 +1007,7 @@ public class duelbot extends SubspaceBot {
 		   	}
 		   	aliasChecker = name;
 		   	m_botAction.sendUnfilteredPrivateMessage(player, "*info");
+            return;
     	}
 
 
@@ -1020,10 +1021,10 @@ public class duelbot extends SubspaceBot {
     				extras += " " + result.getString( "fcUserName" ) + " ";
     			} while( result.next() );
     			m_botAction.sendSmartPrivateMessage( name, "Aliases registered: " + extras );
-                        m_botAction.SQLClose( result );
+                m_botAction.SQLClose( result );
     			return;
     		}
-                m_botAction.SQLClose( result );
+            m_botAction.SQLClose( result );
 
     	} catch (Exception e) {
     	    // This exception is caught frequently.  Removed stack trace print
