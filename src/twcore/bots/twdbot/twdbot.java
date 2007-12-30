@@ -271,7 +271,7 @@ public class twdbot extends SubspaceBot {
                                 + "'"+Tools.addSlashesToString(name)+"', "+Tools.addSlashesToString(mID)+")");
                         m_botAction.sendSmartPrivateMessage(staffname, "Added MID: " + mID);
                     } else if(mID == null) {
-                        ResultSet r = m_botAction.SQLQuery(webdb, "SELECT fnUserID FROM tblTWDPlayerMID WHERE fcUserName='"+Tools.addSlashesToString(name)+"' AND fcIP=" + IP );
+                        ResultSet r = m_botAction.SQLQuery(webdb, "SELECT fnUserID FROM tblTWDPlayerMID WHERE fcUserName='"+Tools.addSlashesToString(name)+"' AND fcIP='" + IP +"'" );
                         if( r.next() ) {
                             m_botAction.sendPrivateMessage(staffname, "Entry for '" + name + "' already exists with that IP in it.");
                             m_botAction.SQLClose(r);
@@ -283,7 +283,7 @@ public class twdbot extends SubspaceBot {
                                 + "'"+Tools.addSlashesToString(name)+"', '"+Tools.addSlashesToString(IP)+"')");
                         m_botAction.sendSmartPrivateMessage(staffname, "Added IP: " + IP);
                     } else {
-                        ResultSet r = m_botAction.SQLQuery(webdb, "SELECT fnUserID FROM tblTWDPlayerMID WHERE fcUserName='"+Tools.addSlashesToString(name)+"' AND fcIP=" + IP + " AND fnMID=" + mID );
+                        ResultSet r = m_botAction.SQLQuery(webdb, "SELECT fnUserID FROM tblTWDPlayerMID WHERE fcUserName='"+Tools.addSlashesToString(name)+"' AND fcIP='" + IP + "' AND fnMID=" + mID );
                         if( r.next() ) {
                             m_botAction.sendPrivateMessage(staffname, "Entry for '" + name + "' already exists with that IP/MID combination.");
                             m_botAction.SQLClose(r);
@@ -299,7 +299,7 @@ public class twdbot extends SubspaceBot {
                 }
             }
         } catch(Exception e) {
-            m_botAction.sendPrivateMessage(staffname, "Syntax (note double spaces):  !add name:thename  ip:IP  mid:MID   (You can omit either the IP or the MID if you wish)");
+            m_botAction.sendPrivateMessage(staffname, "An unexpected error occured. Please contact a bot developer with the following message: "+e.getMessage());
         }
     }
 
