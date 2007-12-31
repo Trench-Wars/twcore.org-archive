@@ -112,7 +112,7 @@ public class pubbot extends SubspaceBot
    * This method logs the bot off.
    *
    * @param recipient is the bot that is supposed to recieve the command.  If
-   * it is null than all pubbots recieve it and thus a chat message is not
+   * it is null then all pubbots recieve it and thus a chat message is not
    * necessary.
    */
 
@@ -429,7 +429,7 @@ public class pubbot extends SubspaceBot
   {
     public void run()
     {
-      m_botAction.die();
+      m_botAction.die( "normal log-off" );
     }
   }
 
