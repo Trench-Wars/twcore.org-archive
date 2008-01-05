@@ -136,7 +136,7 @@ public class MatchLogger
 			try
 			{
 				m_botAction.SQLBackgroundQuery(
-					"server",
+					"local",
 					"MatchLoggerAddRec",
 					"INSERT INTO tblMatchLog(fnMatchID, fcMessageType, fcMessage, fcPlayer, fnOrder)"
 						+ "VALUES("

@@ -46,7 +46,7 @@ public class MatchTeam
     BotSettings m_rules;
     MatchRound m_round;
 
-    String dbConn = "server";
+    String dbConn = "local";
 
     String m_fcTeamName;
     int m_fnTeamID;
