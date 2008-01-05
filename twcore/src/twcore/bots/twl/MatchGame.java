@@ -150,7 +150,7 @@ public class MatchGame
 		String winBy = m_rules.getString("winby");
 		String title = m_rules.getString("name");
 
-		if (winBy.equals("race"))
+		if (winBy != null && winBy.equals("race"))
 			title = title + " to " + m_rules.getInt("points");
 
 		m_logger.sendArenaMessage(title + ": " + m_fcTeam1Name + " vs. " + m_fcTeam2Name);
