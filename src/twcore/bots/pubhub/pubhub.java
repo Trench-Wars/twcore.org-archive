@@ -115,7 +115,7 @@ public class pubhub extends SubspaceBot
       m_botAction.ipcSubscribe(IPCCHAT);
       m_botAction.ipcSubscribe(IPCSILENCE);
       m_botAction.ipcSubscribe(IPCPUBSTATS);
-      m_botAction.sendUnfilteredPublicMessage("?chat=" + pubHubChat);
+      m_botAction.sendUnfilteredPublicMessage("?chat=" + pubHubChat+","+m_botAction.getGeneralSettings().getString("Chat Name"));
       m_botAction.scheduleTask(new CheckPubsTask(), SPAWN_DELAY);
       moduleHandler.handleEvent(event);
     }

@@ -1,6 +1,10 @@
 package twcore.bots.pubhub;
 
-import java.text.SimpleDateFormat;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -11,9 +15,10 @@ import twcore.core.util.Tools;
 
 public class pubhubstats extends PubBotModule {
 	//private String database = "pubstats";
-	private String database = "server";
+	private String database = "local";
 
-	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	// PreparedStatements
+	PreparedStatement psGetPlayerID, psUpdatePlayer, psReplaceScore, psUpdateScore, psGetScoreCalc, psUpdateScoreCalc, psScoreExists;
 
 	// boolean to immediately stop execution
 	private boolean stop = false;
@@ -22,7 +27,22 @@ public class pubhubstats extends PubBotModule {
 	 * This method initializes the pubhubstats module.  It is called after
 	 * m_botAction has been initialized.
 	 */
-	public void initializeModule() {}
+	public void initializeModule() {
+	    psGetPlayerID =  m_botAction.createPreparedStatement(database, "pubstats", "SELECT fnID FROM tblPlayer WHERE fcName = ? LIMIT 0,1");
+	    psUpdatePlayer = m_botAction.createPreparedStatement(database, "pubstats", "REPLACE INTO tblPlayer(fnId, fcName, fcSquad, fcIP, fnTimezone, fcUsage, fdLastSeen) VALUES (?,?,?,?,?,?,?)", true);
+	    psReplaceScore = m_botAction.createPreparedStatement(database, "pubstats", "REPLACE INTO tblScore(fnPlayerId, fnShip, fnFlagPoints, fnKillPoints, fnWins, fnLosses, fnRate, fnAverage, ftLastUpdate) VALUES (?,?,?,?,?,?,?,?,?)");
+	    psUpdateScore = m_botAction.createPreparedStatement(database, "pubstats", "UPDATE tblScore SET fnFlagPoints = fnFlagPoints + ?, fnKillPoints = fnKillPoints + ?, fnWins = fnWins + ?, fnLosses = fnLosses + ?, fnRate = 0, fnAverage = 0 WHERE fnPlayerId = ? AND fnShip = ?");
+	    psGetScoreCalc = m_botAction.createPreparedStatement(database, "pubstats", "SELECT fnKillPoints, fnWins, fnLosses FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
+	    psUpdateScoreCalc = m_botAction.createPreparedStatement(database, "pubstats", "UPDATE tblSCORE SET fnRate = ?, fnAverage = ? WHERE fnPlayerId = ? AND fnShip = ?");
+	    psScoreExists = m_botAction.createPreparedStatement(database, "pubstats", "SELECT fnShip FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
+	    
+	    if(psGetPlayerID == null || psUpdatePlayer == null || psReplaceScore == null || psUpdateScore == null || psGetScoreCalc == null || psUpdateScoreCalc == null || psScoreExists == null) {
+	        Tools.printLog("pubhubstats: One or more PreparedStatements are null! Module pubhubstats disabled.");
+	        m_botAction.sendChatMessage(2, "pubhubstats: One or more PreparedStatements are null! Module pubhubstats disabled.");
+	        this.cancel();
+	    }
+	    
+	}
 
 	/**
 	 * Unused method but needs to be overridden
@@ -48,15 +68,30 @@ public class pubhubstats extends PubBotModule {
 		if(event.getChannel().equals(pubhub.IPCPUBSTATS) == false) {
 			return;
 		}
-
+		
 		HashMap<String, PubStatsScore> stats = (HashMap<String, PubStatsScore>)event.getObject();
-		updateDatabase(stats.values());
+		try {
+		    if(stats != null && stats.size() > 0) {
+		        updateDatabase(stats.values());
+		        stats.clear();
+		    }
+		} catch(SQLException sqle) {
+		    m_botAction.sendChatMessage(2, "SQL Exception encountered while saving "+stats.size()+" stats to database: "+sqle.getMessage());
+		    Tools.printLog("SQL Exception encountered while saving "+stats.size()+" stats to database: "+sqle.getMessage());
+		    Tools.printStackTrace(sqle);
+		}
   }
 
 	/**
 	 * cancel() is called when this module is unloaded
 	 */
 	public void cancel() {
+	    m_botAction.closePreparedStatement(database, psGetPlayerID);
+	    m_botAction.closePreparedStatement(database, psUpdatePlayer);
+	    m_botAction.closePreparedStatement(database, psReplaceScore);
+	    m_botAction.closePreparedStatement(database, psUpdateScore);
+	    m_botAction.closePreparedStatement(database, psUpdateScoreCalc);
+	    m_botAction.closePreparedStatement(database, psScoreExists);
 		stop = true;
 	}
 
@@ -65,24 +100,122 @@ public class pubhubstats extends PubBotModule {
 	 *
 	 * @param stats the Collection containing the PubStats objects
 	 */
-	private void updateDatabase(Collection<PubStatsScore> stats) {
+	private void updateDatabase(Collection<PubStatsScore> stats) throws SQLException {
+	    HashMap<String,Integer> playerIDs = new HashMap<String, Integer>();
+	    // Map for playername to tblPlayer.fnId
+	    
 		// Loop over all the PubStats objects and replace each in the stats table
-		/*for(PubStatsScore pubstats:stats) {
-			if(stop) break;
-
-			String query =
-				"REPLACE INTO tblScore VALUES (" +
-				"'" + Tools.addSlashesToString(pubstats.getPlayername()) + "'," +
-				pubstats.getShip() + "," +
-				"'" + pubstats.getSquad() + "'," +
-				pubstats.getFlagPoints() + "," +
-				pubstats.getKillPoints() + "," +
-				pubstats.getWins() + "," +
-				pubstats.getLosses() + "," +
-				pubstats.getRate() + "," +
-				pubstats.getAverage() + "," +
-				"'" + sdf.format(pubstats.getDate()) + "'";
-			m_botAction.SQLBackgroundQuery(this.database, null, query);
-		}*/
+		for(PubStatsScore score:stats) {
+			PubStatsPlayer player = score.getPlayer();
+		    if(stop) break;
+		    
+		    
+		    // Update player information
+		    if(playerIDs.containsKey(player.getName())== false) {
+    		    // Get the player ID from the database
+                psGetPlayerID.setString(1, player.getName());
+                ResultSet rsPlayerID = psGetPlayerID.executeQuery();
+                
+                // Retrieve player ID
+                int playerID=0;
+                if(rsPlayerID.next()) {
+                    playerID = rsPlayerID.getInt(1);
+                    playerIDs.put(player.getName(), playerID);
+                }
+                
+                // Insert/Update Player information to the database
+                // fnId, fcName, fcSquad, fcIP, fnTimezone, fcUsage, fdLastSeen
+                if(playerID==0)
+                    psUpdatePlayer.setNull(1, Types.INTEGER);
+                else
+                    psUpdatePlayer.setInt(1, playerID);
+                psUpdatePlayer.setString(2, player.getName());
+                psUpdatePlayer.setString(3, player.getSquad());
+                psUpdatePlayer.setString(4, player.getIP());
+                psUpdatePlayer.setInt(   5, player.getTimezone());
+                psUpdatePlayer.setString(6, player.getUsage());
+                psUpdatePlayer.setTimestamp(7, new Timestamp(player.getDate().getTime()));
+                psUpdatePlayer.executeUpdate();
+                
+                // If previous update inserted a new row, retrieve the auto-generated player id
+                if(playerID==0) {
+                    ResultSet rsGeneratedPlayerID = psUpdatePlayer.getGeneratedKeys();
+                    if(rsGeneratedPlayerID.next()) {
+                        playerIDs.put(player.getName(), rsGeneratedPlayerID.getInt(1));
+                    }
+                }
+		    }
+			
+			
+			if(score.getShip() == 0) {
+			    // Total statistics
+			    // fnPlayerID, fnShip, fnFlagPoints, fnKillPoints, fnWins, fnLosses, fnRate, fnAverage, ftLastUpdate
+			    psReplaceScore.setInt(1, playerIDs.get(player.getName()));
+			    psReplaceScore.setInt(2, score.getShip());    // always 0
+			    psReplaceScore.setInt(3, score.getFlagPoints());
+			    psReplaceScore.setInt(4, score.getKillPoints());
+			    psReplaceScore.setInt(5, score.getWins());
+			    psReplaceScore.setInt(6, score.getLosses());
+			    psReplaceScore.setInt(7, score.getRate());
+			    psReplaceScore.setFloat(8, score.getAverage());
+			    psReplaceScore.setTimestamp(9, new Timestamp(score.getDate().getTime()));
+			    psReplaceScore.executeUpdate();
+			} else {
+			    // Ship statistics
+			    psScoreExists.setInt(1, playerIDs.get(player.getName()));
+			    psScoreExists.setInt(2, score.getShip());
+			    if(psScoreExists.execute()) {
+			        // Score row already exists for this player+ship 
+			        // +fnFlagPoints, +fnKillPoints, +fnWins, +fnLosses, fnPlayerId, fnShip
+			        psUpdateScore.setInt(1, score.getFlagPoints());
+			        psUpdateScore.setInt(2, score.getKillPoints());
+			        psUpdateScore.setInt(3, score.getWins());
+			        psUpdateScore.setInt(4, score.getLosses());
+			        psUpdateScore.setInt(5, playerIDs.get(player.getName()));
+			        psUpdateScore.setInt(6, score.getShip());
+			        psUpdateScore.executeUpdate();
+			        
+			        // Get fnKillPoints, fnWins and fnLosses -- do calculations
+			        psGetScoreCalc.setInt(1, playerIDs.get(player.getName()));
+			        psGetScoreCalc.setInt(2, score.getShip());
+			        ResultSet rsScore = psGetScoreCalc.executeQuery();
+			        if(rsScore.next()) {
+			            int killPoints = rsScore.getInt("fnKillPoints");
+			            int wins = rsScore.getInt("fnWins");
+			            int losses = rsScore.getInt("fnLosses");
+			            // fnRate, fnAverage, fnPlayerId, fnShip
+			            psUpdateScoreCalc.setInt(1, this.calculateRating(killPoints, wins, losses));
+			            psUpdateScoreCalc.setFloat(2, this.calculateAverage(killPoints, wins));
+			            psUpdateScoreCalc.setInt(3, playerIDs.get(player.getName()));
+			            psUpdateScoreCalc.setInt(4, score.getShip());
+			            psUpdateScoreCalc.executeUpdate();
+			        }
+			    } else {
+			        // fnPlayerID, fnShip, fnFlagPoints, fnKillPoints, fnWins, fnLosses, fnRate, fnAverage, ftLastUpdate
+	                psReplaceScore.setInt(1, playerIDs.get(player.getName()));
+	                psReplaceScore.setInt(2, score.getShip());
+	                psReplaceScore.setInt(3, score.getFlagPoints());
+	                psReplaceScore.setInt(4, score.getKillPoints());
+	                psReplaceScore.setInt(5, score.getWins());
+	                psReplaceScore.setInt(6, score.getLosses());
+	                psReplaceScore.setInt(7, score.getRate());
+	                psReplaceScore.setFloat(8, score.getAverage());
+	                psReplaceScore.setTimestamp(9, new Timestamp(score.getDate().getTime()));
+	                psReplaceScore.executeUpdate();
+			    }
+			}
+		}
+	}
+	
+	
+	private int calculateRating(int killPoints, int wins, int losses) {
+	    return (killPoints*10 + (wins-losses)*100) / (wins +100);
+	}
+  
+	private float calculateAverage(int killPoints, int wins) {
+	    if(wins > 0)
+	        return killPoints / wins;
+	    else 
+	        return 0;
 	}
 }
