@@ -281,18 +281,15 @@ public class staffbot extends SubspaceBot {
         ArrayList<String> fuzzynames = new ArrayList<String>();
         
         String query = "" +
-        		"SELECT DISTINCT(name), " +
-        		"       ( SELECT COUNT(warning) " +
-        		"         FROM tblWarnings " +
-        		"         WHERE tblW.name = tblWarnings.name ) AS Count " +
-        		"FROM tblWarnings tblW " +
+        		"SELECT DISTINCT(name) " +
+        		"FROM tblWarnings " +
         		"WHERE name LIKE '" + Tools.addSlashesToString(message.toLowerCase()) + "%' " +
         		"ORDER BY name LIMIT 0,"+MAX_NAME_SUGGESTIONS;
         
         try {
             ResultSet set = m_botAction.SQLQuery( "local", query );                
             while( set.next() ) {
-                fuzzynames.add(" " + Tools.formatString(set.getString( "name" ), 23) + " ("+set.getInt("Count")+" warnings)");
+                fuzzynames.add(" " + set.getString( "name" ));
             }
             
             if(fuzzynames.size() > 0) {
@@ -415,6 +412,8 @@ public class staffbot extends SubspaceBot {
             "! <player>             - (shortcut for above)",
             "!allwarnings <player>  - Shows all warnings on player, including expired.",
             "!fuzzyname <player>    - Checks for names similar to <player> in warning DB.",
+            "                         WARNING: This command take a while to execute," +
+            "                         do not search for a small phrase unless you have to!",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player",
             "!list <num>            - Lists <num>(optional) of players in chronological order",
