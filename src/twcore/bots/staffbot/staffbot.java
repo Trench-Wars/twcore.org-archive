@@ -401,7 +401,7 @@ public class staffbot extends SubspaceBot {
             "!warnings <player>     - Checks valid red warnings on specified player",
             "! <player>             - (shortcut for above)",
             "!allwarnings <player>  - Shows all warnings on player, including expired.",
-            "!fuzzyname <player>    - Checks for names similar to <player> in warning DB.",
+            "!fuzzyname <player>    - Checks for names similar to <player> in database.",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player"
         };
@@ -411,9 +411,7 @@ public class staffbot extends SubspaceBot {
             "!warnings <player>     - Checks valid red warnings on specified player",
             "! <player>             - (shortcut for above)",
             "!allwarnings <player>  - Shows all warnings on player, including expired.",
-            "!fuzzyname <player>    - Checks for names similar to <player> in warning DB.",
-            "                         WARNING: This command take a while to execute," +
-            "                         do not search for a small phrase unless you have to!",
+            "!fuzzyname <player>    - Checks for names similar to <player> in database.",
             "!add <player>          - Adds a player to the recommendation list",
             "!comment <player>:<rating>:<comment>  - Adds a comment and rating(0-5) for specified player",
             "!list <num>            - Lists <num>(optional) of players in chronological order",
@@ -440,7 +438,7 @@ public class staffbot extends SubspaceBot {
             "! <player>             - (shortcut for above)",
             "!allwarnings <player>  - Shows all warnings on player, including expired.",
             "!warningsfrom <player> - Displays a list of recent warns given to a player.",
-            "!fuzzyname <player>    - Checks for names similar to <player> in warning DB."
+            "!fuzzyname <player>    - Checks for names similar to <player> in database."
         };
 
         if( m_opList.isZHExact( name ) ){
