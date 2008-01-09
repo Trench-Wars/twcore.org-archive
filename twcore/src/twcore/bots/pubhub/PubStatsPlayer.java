@@ -17,13 +17,23 @@ public class PubStatsPlayer {
 	
 	private Date date; // when this record was made
 	
-	public PubStatsPlayer(String name, String squad, String IP, int timezone, String usage) {
+	public PubStatsPlayer(String name, String squad, String IP, String timezone, String usage) {
 		this.name = name;
 		this.squad = squad;
 		this.IP = IP;
-		this.timezone = timezone;
+		this.timezone = convertTimezone(timezone);
 		this.usage = usage;
 		this.date = new Date();
+	}
+	
+	private int convertTimezone(String timezone) {
+	    int tz;
+	    try {
+	        tz = Integer.parseInt(timezone);
+	    } catch(NumberFormatException nfe) {
+	        tz = 0;    // Too bad, something went wrong
+	    }
+	    return tz;
 	}
 	
 	//******************************* Getters & Setters *************************************//
@@ -82,8 +92,8 @@ public class PubStatsPlayer {
 	/**
 	 * @param timezone the timezone to set
 	 */
-	public void setTimezone(int timezone) {
-		this.timezone = timezone;
+	public void setTimezone(String timezone) {
+		this.timezone = convertTimezone(timezone);
 	}
 
 	/**
