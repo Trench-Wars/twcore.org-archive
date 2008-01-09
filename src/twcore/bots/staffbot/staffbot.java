@@ -9,9 +9,11 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -203,20 +205,20 @@ public class staffbot extends SubspaceBot {
      * @param showExpired Whether or not to display expired warnings
      */
     public void queryWarnings( String name, String message, boolean showExpired ){
-        String      query = "SELECT * FROM tblWarnings WHERE name = \"" + Tools.addSlashesToString(message.toLowerCase()) + "\" ORDER BY timeofwarning ASC";
+        String      query = "SELECT * FROM tblWarnings WHERE name = '" + Tools.addSlashesToString(message.toLowerCase()) + "' ORDER BY timeofwarning ASC";
+        ArrayList<String> warnings = new ArrayList<String>();
 
         try {
             ResultSet set = m_botAction.SQLQuery( "local", query );
 
-            m_botAction.sendRemotePrivateMessage( name, "Warnings in database for " + message + ":" );
-
             if( set == null ) {
-                m_botAction.sendRemotePrivateMessage( name, "ERROR: There is a problem with your query (returned null).  Please report this to bot development." );
+                m_botAction.sendRemotePrivateMessage( name, "ERROR: There is a problem with your query (returned null) or the database is down.  Please report this to bot development." );
                 return;
             }
             
-            int rows = 0;
+            // Lookup the warnings from the database
             int numExpired = 0;
+            int numTotal = 0;
             
             while( set.next() ){
                 String warning = set.getString( "warning" );
@@ -235,20 +237,35 @@ public class staffbot extends SubspaceBot {
                         text = warning.split( ": ", 2);
 
                     if( text.length == 2 )
-                        m_botAction.sendRemotePrivateMessage( name, strDate + "  " + text[1]);
+                        warnings.add(strDate + "  " + text[1]);
                 }
-                rows++;
+                numTotal++;
             }
-
-            if( showExpired )
-                m_botAction.sendRemotePrivateMessage( name, rows + " valid warnings displayed (suppressed " + numExpired + " expired).  !allwarnings to display all." );
-            else
-                m_botAction.sendRemotePrivateMessage( name, rows + " valid warnings and " + numExpired + " expired warnings displayed." );                
+            
             m_botAction.SQLClose( set );
             
-            // Second-guess matching if no exact match is found
-            if( rows == 0 ) {
-                getFuzzyNames( name, message );
+            
+            // Respond to the user
+            if(numTotal > 0) {                
+                if( showExpired ) {   // !allwarnings
+                    m_botAction.sendRemotePrivateMessage( name, "Warnings in database for " + message + ":" );
+                    m_botAction.remotePrivateMessageSpam( name, warnings.toArray(new String[warnings.size()]));
+                    m_botAction.sendRemotePrivateMessage( name, "Displayed " + warnings.size() + " warnings (including " + numExpired + " expired warnings)." );
+                } else {              // !warnings
+                    if(warnings.size() > 0) {
+                        m_botAction.sendRemotePrivateMessage( name, "Warnings in database for " + message + ":" );
+                        m_botAction.remotePrivateMessageSpam( name, warnings.toArray(new String[warnings.size()]));
+                        m_botAction.sendRemotePrivateMessage( name, "Displayed " + warnings.size() + " valid warnings (suppressed " + numExpired + " expired). PM !allwarnings to display all." );
+                    } else {
+                        m_botAction.sendRemotePrivateMessage( name, "No active warnings for "+ message +".");
+                        m_botAction.sendRemotePrivateMessage( name, "There are "+numExpired+" expired warnings. PM !allwarnings to display these.");
+                    }
+                    
+                }
+                
+            } else {
+                m_botAction.sendRemotePrivateMessage( name, "No warnings found for " + message + ".");
+                m_botAction.sendRemotePrivateMessage( name, "PM '!fuzzyname "+message+"' to check for similar names.");
             }
         } catch( SQLException e ){
             Tools.printStackTrace( e );
@@ -261,21 +278,32 @@ public class staffbot extends SubspaceBot {
      * @param message Name fragment
      */
     public void getFuzzyNames( String name, String message ) {
-        m_botAction.sendRemotePrivateMessage( name, "Names in warning DB starting with '" + message + "':" );
+        ArrayList<String> fuzzynames = new ArrayList<String>();
+        
+        String query = "" +
+        		"SELECT DISTINCT(name), " +
+        		"       ( SELECT COUNT(warning) " +
+        		"         FROM tblWarnings " +
+        		"         WHERE tblW.name = tblWarnings.name ) AS Count " +
+        		"FROM tblWarnings tblW " +
+        		"WHERE name LIKE '" + Tools.addSlashesToString(message.toLowerCase()) + "%' " +
+        		"ORDER BY name LIMIT 0,"+MAX_NAME_SUGGESTIONS;
+        
         try {
-            ResultSet set = m_botAction.SQLQuery( "local", "SELECT * FROM tblWarnings WHERE name = \"" + Tools.addSlashesToString(message.toLowerCase()) + "%\" ORDER BY name" );                
-            String foundName = "";
-            int rows = 0;
-            while( set.next() && rows < MAX_NAME_SUGGESTIONS ) {
-                rows++;
-                if( foundName != set.getString( "name" ) ) {
-                    foundName = set.getString( "name" );
-                    m_botAction.sendRemotePrivateMessage( name, foundName );                        
-                }
+            ResultSet set = m_botAction.SQLQuery( "local", query );                
+            while( set.next() ) {
+                fuzzynames.add(" " + Tools.formatString(set.getString( "name" ), 23) + " ("+set.getInt("Count")+" warnings)");
             }
-            if( rows == MAX_NAME_SUGGESTIONS )
-                m_botAction.sendRemotePrivateMessage( name, "Results limited to "+ MAX_NAME_SUGGESTIONS + ".  Refine your search further if you have not found the desired result." );                        
-                
+            
+            if(fuzzynames.size() > 0) {
+                m_botAction.sendRemotePrivateMessage( name, "Names in database starting with '" + message + "':" );
+                m_botAction.remotePrivateMessageSpam( name, fuzzynames.toArray(new String[fuzzynames.size()]));
+                if( fuzzynames.size() == MAX_NAME_SUGGESTIONS )
+                    m_botAction.sendRemotePrivateMessage( name, "Results limited to "+ MAX_NAME_SUGGESTIONS + ", refine your search further if you have not found the desired result." );
+            } else {
+                m_botAction.sendRemotePrivateMessage( name, "No names found starting with '"+message+"'.");
+            }
+            
         } catch( SQLException e ){
             Tools.printStackTrace( e );
         }
@@ -496,10 +524,10 @@ public class staffbot extends SubspaceBot {
 
         if( count > sortedList.size() ){ count = sortedList.size() ; }
 
-        Iterator i = sortedList.iterator();
+        Iterator<potentialStaffer> i = sortedList.iterator();
 
         for( int x = 0 ; x < count ; x++ ){
-            listItem = (potentialStaffer)i.next();
+            listItem = i.next();
             sendRecord( name, remote, listItem.getDate(), listItem.getCommentCount(), listItem.getAveRating(), listItem.getName() );
         }
     }
@@ -542,12 +570,12 @@ public class staffbot extends SubspaceBot {
         player = m_playerList.get( playerName.toLowerCase().trim() );
 
         if ( player != null ){
-            HashMap comments = player.getComments();
+            HashMap<String, staffComment> comments = player.getComments();
             staffComment comment;
 
             listPlayer( staffName, playerName, remote );
 
-            for ( Iterator i = comments.values().iterator(); i.hasNext(); ){
+            for ( Iterator<staffComment> i = comments.values().iterator(); i.hasNext(); ){
                 comment = (staffComment)i.next();
                 sendPM( staffName, "- Rating: " + comment.getRating() + "  By: " + comment.getName() + "  Comment: " + comment.getComment(), remote );
             }
@@ -657,7 +685,7 @@ public class staffbot extends SubspaceBot {
             new BufferedOutputStream( new FileOutputStream(
             m_botAction.getDataFile(
             m_botAction.getBotName().toLowerCase() + ".dat" ))));
-            Iterator i = m_playerList.values().iterator();
+            Iterator<potentialStaffer> i = m_playerList.values().iterator();
             while( i.hasNext() ){
                 out.writeObject( i.next() );
             }
@@ -717,14 +745,14 @@ public class staffbot extends SubspaceBot {
     };
 }
 
-class potentialStaffer implements java.io.Serializable, java.lang.Comparable {
+class potentialStaffer implements Serializable, Comparable<potentialStaffer> {
     static final long serialVersionUID = -518954860696583857L; //Old checksum so ReadObjects() will still read the .dat file
     private String name;
     private java.util.Date created = new java.util.Date();
     private HashMap <String,staffComment>comments = new HashMap<String,staffComment>();
 
-    public int compareTo(Object o) {
-        potentialStaffer n = (potentialStaffer)o;
+    public int compareTo(potentialStaffer o) {
+        potentialStaffer n = o;
         int lastCmp = name.compareTo(n.name);
         return (lastCmp);
     }
@@ -745,7 +773,7 @@ class potentialStaffer implements java.io.Serializable, java.lang.Comparable {
         comments.put( staffName.toLowerCase(), new staffComment( staffName, comment, rating ) );
     }
 
-    public HashMap getComments(){
+    public HashMap<String, staffComment> getComments(){
         return comments;
     }
 
@@ -755,8 +783,8 @@ class potentialStaffer implements java.io.Serializable, java.lang.Comparable {
         double value = 0;
         staffComment comment;
 
-        for ( Iterator i = comments.values().iterator(); i.hasNext(); ){
-            comment = (staffComment)i.next();
+        for ( Iterator<staffComment> i = comments.values().iterator(); i.hasNext(); ){
+            comment = i.next();
             sum += comment.getRating();
             count++;
         }
@@ -777,7 +805,7 @@ class potentialStaffer implements java.io.Serializable, java.lang.Comparable {
     }
 }
 
-class staffComment implements java.io.Serializable {
+class staffComment implements Serializable {
     static final long serialVersionUID = 7658709147071201543L; //Old checksum
     private String name;
     private String comment;
