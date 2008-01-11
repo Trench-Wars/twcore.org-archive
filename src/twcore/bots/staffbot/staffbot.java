@@ -205,7 +205,7 @@ public class staffbot extends SubspaceBot {
      * @param showExpired Whether or not to display expired warnings
      */
     public void queryWarnings( String name, String message, boolean showExpired ){
-        String      query = "SELECT * FROM tblWarnings WHERE name = '" + Tools.addSlashesToString(message.toLowerCase()) + "' ORDER BY timeofwarning ASC";
+        String      query = "SELECT * FROM tblWarnings WHERE name = '" + Tools.addSlashes(message.toLowerCase()) + "' ORDER BY timeofwarning ASC";
         ArrayList<String> warnings = new ArrayList<String>();
 
         try {
@@ -283,7 +283,7 @@ public class staffbot extends SubspaceBot {
         String query = "" +
         		"SELECT DISTINCT(name) " +
         		"FROM tblWarnings " +
-        		"WHERE name LIKE '" + Tools.addSlashesToString(message.toLowerCase()) + "%' " +
+        		"WHERE name LIKE '" + Tools.addSlashes(message.toLowerCase()) + "%' " +
         		"ORDER BY name LIMIT 0,"+MAX_NAME_SUGGESTIONS;
         
         try {
@@ -308,12 +308,12 @@ public class staffbot extends SubspaceBot {
     }
 
     public void queryWarningsFrom( String name, String message ){
-        String      query = "SELECT * FROM tblWarnings WHERE staffmember = \"" + Tools.addSlashesToString(message.toLowerCase()) + "\" ORDER BY timeofwarning DESC";
+        String      query = "SELECT * FROM tblWarnings WHERE staffmember = \"" + Tools.addSlashes(message.toLowerCase()) + "\" ORDER BY timeofwarning DESC LIMIT 0,50";
 
         try {
             ResultSet set = m_botAction.SQLQuery( "local", query );
 
-            m_botAction.sendRemotePrivateMessage( name, "Warnings in database given by " + message + ":" );
+            m_botAction.sendRemotePrivateMessage( name, "Last (max 50) warnings in database given by " + message + ":" );
             while( set.next() ){
                 String warning = set.getString( "warning" );
                 java.sql.Date date = set.getDate( "timeofwarning" );
