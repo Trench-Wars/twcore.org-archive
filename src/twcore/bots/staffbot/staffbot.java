@@ -154,7 +154,7 @@ public class staffbot extends SubspaceBot {
 
                 String[] paramNames = { "name", "warning", "staffmember", "timeofwarning" };
                 String date = new java.sql.Date( System.currentTimeMillis() ).toString();
-                String[] data = { warnedPlayer, message, staffMember, date };
+                String[] data = { Tools.addSlashes(warnedPlayer), Tools.addSlashes(message), Tools.addSlashes(staffMember), date };
 
                 m_botAction.SQLInsertInto( sqlHost, "tblWarnings", paramNames, data );
             }
