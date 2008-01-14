@@ -64,6 +64,8 @@ public class staffbot extends SubspaceBot {
                                                                 // for a name match in !warn
     private final static int WARNING_EXPIRE_TIME = Tools.TimeInMillis.WEEK * 2;
     
+    private String sqlHost = "local";
+    
 
     /* Initialization code */
     public staffbot( BotAction botAction ) {
@@ -154,7 +156,7 @@ public class staffbot extends SubspaceBot {
                 String date = new java.sql.Date( System.currentTimeMillis() ).toString();
                 String[] data = { warnedPlayer, message, staffMember, date };
 
-                m_botAction.SQLInsertInto( "local", "tblWarnings", paramNames, data );
+                m_botAction.SQLInsertInto( sqlHost, "tblWarnings", paramNames, data );
             }
 
             return;
@@ -209,7 +211,7 @@ public class staffbot extends SubspaceBot {
         ArrayList<String> warnings = new ArrayList<String>();
 
         try {
-            ResultSet set = m_botAction.SQLQuery( "local", query );
+            ResultSet set = m_botAction.SQLQuery( sqlHost, query );
 
             if( set == null ) {
                 m_botAction.sendRemotePrivateMessage( name, "ERROR: There is a problem with your query (returned null) or the database is down.  Please report this to bot development." );
@@ -264,8 +266,15 @@ public class staffbot extends SubspaceBot {
                 }
                 
             } else {
-                m_botAction.sendRemotePrivateMessage( name, "No warnings found for " + message + ".");
-                m_botAction.sendRemotePrivateMessage( name, "PM '!fuzzyname "+message+"' to check for similar names.");
+                m_botAction.sendRemotePrivateMessage( name, "No warnings found for '" + message + "'.");
+                
+                ArrayList<String> fuzzynames = getFuzzyNamesDB(message);
+                if(fuzzynames.size() > 0) {
+                    m_botAction.sendRemotePrivateMessage(name, "_");
+                    m_botAction.sendRemotePrivateMessage(name, "Maybe you were searching for the warnings of one of the following players?");
+                    m_botAction.remotePrivateMessageSpam(name, fuzzynames.toArray(new String[fuzzynames.size()]));
+                    m_botAction.sendRemotePrivateMessage(name, "PM !warning <name> to see the warnings on one of these names.");
+                }
             }
         } catch( SQLException e ){
             Tools.printStackTrace( e );
@@ -278,40 +287,46 @@ public class staffbot extends SubspaceBot {
      * @param message Name fragment
      */
     public void getFuzzyNames( String name, String message ) {
+        ArrayList<String> fuzzynames;
+
+        fuzzynames = getFuzzyNamesDB(message);
+        
+        if(fuzzynames.size() > 0) {
+            m_botAction.sendRemotePrivateMessage( name, "Names in database starting with '" + message + "':" );
+            m_botAction.remotePrivateMessageSpam( name, fuzzynames.toArray(new String[fuzzynames.size()]));
+            if( fuzzynames.size() == MAX_NAME_SUGGESTIONS )
+                m_botAction.sendRemotePrivateMessage( name, "Results limited to "+ MAX_NAME_SUGGESTIONS + ", refine your search further if you have not found the desired result." );
+        } else {
+            m_botAction.sendRemotePrivateMessage( name, "No names found starting with '"+message+"'.");
+        }
+    }
+    
+    private ArrayList<String> getFuzzyNamesDB( String name ) {
         ArrayList<String> fuzzynames = new ArrayList<String>();
         
         String query = "" +
-        		"SELECT DISTINCT(name) " +
-        		"FROM tblWarnings " +
-        		"WHERE name LIKE '" + Tools.addSlashes(message.toLowerCase()) + "%' " +
-        		"ORDER BY name LIMIT 0,"+MAX_NAME_SUGGESTIONS;
+                "SELECT DISTINCT(name) " +
+                "FROM tblWarnings " +
+                "WHERE name LIKE '" + Tools.addSlashes(name.toLowerCase()) + "%' " +
+                "ORDER BY name LIMIT 0,"+MAX_NAME_SUGGESTIONS;
         
         try {
-            ResultSet set = m_botAction.SQLQuery( "local", query );                
+            ResultSet set = m_botAction.SQLQuery( sqlHost, query );                
             while( set.next() ) {
                 fuzzynames.add(" " + set.getString( "name" ));
             }
-            
-            if(fuzzynames.size() > 0) {
-                m_botAction.sendRemotePrivateMessage( name, "Names in database starting with '" + message + "':" );
-                m_botAction.remotePrivateMessageSpam( name, fuzzynames.toArray(new String[fuzzynames.size()]));
-                if( fuzzynames.size() == MAX_NAME_SUGGESTIONS )
-                    m_botAction.sendRemotePrivateMessage( name, "Results limited to "+ MAX_NAME_SUGGESTIONS + ", refine your search further if you have not found the desired result." );
-            } else {
-                m_botAction.sendRemotePrivateMessage( name, "No names found starting with '"+message+"'.");
-            }
-            
-        } catch( SQLException e ){
-            Tools.printStackTrace( e );
+        } catch( SQLException sqle ) {
+            Tools.printLog("SQLException encountered in Staffbot.getFuzzyNamesDB(): "+sqle.getMessage());
         }
-
+        
+        return fuzzynames;
     }
 
     public void queryWarningsFrom( String name, String message ){
         String      query = "SELECT * FROM tblWarnings WHERE staffmember = \"" + Tools.addSlashes(message.toLowerCase()) + "\" ORDER BY timeofwarning DESC LIMIT 0,50";
 
         try {
-            ResultSet set = m_botAction.SQLQuery( "local", query );
+            ResultSet set = m_botAction.SQLQuery( sqlHost, query );
 
             m_botAction.sendRemotePrivateMessage( name, "Last (max 50) warnings in database given by " + message + ":" );
             while( set.next() ){
