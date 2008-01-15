@@ -448,7 +448,7 @@ public class MatchGame
 		{
 			MatchRound z;
 			if (m_rounds == null) { return; }
-			ListIterator i = m_rounds.listIterator();
+			ListIterator<MatchRound> i = m_rounds.listIterator();
 
 			while (i.hasNext())
 			{
