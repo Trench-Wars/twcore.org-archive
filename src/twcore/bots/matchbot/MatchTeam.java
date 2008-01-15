@@ -118,11 +118,11 @@ public class MatchTeam
     // saves player data
     public void storePlayerResults()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
 
         while (i.hasNext())
         {
-            ((MatchPlayer) i.next()).storePlayerResult(m_round.m_fnMatchRoundID, m_fnTeamNumber);
+           i.next().storePlayerResult(m_round.m_fnMatchRoundID, m_fnTeamNumber);
         }
     }
 
@@ -201,6 +201,10 @@ public class MatchTeam
                 		m_round.flagClaimed = false;
                 		m_botAction.hideObject(744);
                 		m_botAction.resetFlagGame();
+                		// Stop player spectating cycle and watch the flag
+                		m_botAction.stopReliablePositionUpdating();
+                		m_botAction.stopSpectatingPlayer();
+                		m_botAction.moveToTile(512, 512);
                 	}
                 }
             }
@@ -263,6 +267,23 @@ public class MatchTeam
             {
                 m_botAction.sendArenaMessage(playerName + " has lagged out/left arena - +1 death");
                 p.reportDeath();
+            }
+            
+            // TWSDX ONLY:
+            if(m_round.getGame().m_fnMatchTypeID == 20) {
+                int playerid = m_botAction.getPlayerID(p.getPlayerName());
+                if(this.m_flagOwned && m_flagCarrierID == playerid) {
+                    // Reset partial flag game - flagcarrier specced
+                    m_round.m_team1.disownFlag();
+                    m_round.m_team2.disownFlag();
+                    m_round.flagClaimed = false;
+                    m_botAction.hideObject(744);
+                    m_botAction.resetFlagGame();
+                    // Stop player spectating cycle and watch the flag
+                    m_botAction.stopReliablePositionUpdating();
+                    m_botAction.stopSpectatingPlayer();
+                    m_botAction.moveToTile(512, 512);
+                }
             }
         }
         p.lagout(true);
@@ -1113,11 +1134,11 @@ public class MatchTeam
     // warpto (safe spots in this case)
     public void warpTo(int x, int y)
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
 
         while (i.hasNext())
         {
-            ((MatchPlayer) i.next()).warpTo(x, y);
+            i.next().warpTo(x, y);
         }
     }
 
@@ -1358,10 +1379,10 @@ public class MatchTeam
     // flagreward
     public void flagReward(int points)
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
 
         while (i.hasNext())
-            ((MatchPlayer) i.next()).flagReward(points);
+            i.next().flagReward(points);
 
     }
 
@@ -1372,12 +1393,12 @@ public class MatchTeam
         if (m_round.m_fnRoundState != 3)
             return false;
 
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
         {
-            p = (MatchPlayer) i.next();
+            p = i.next();
             if ((p.getPlayerState() == MatchPlayer.IN_GAME)
                 || ((p.getPlayerState() == MatchPlayer.LAGGED) && ((System.currentTimeMillis() - p.getLaggedTime()) <= m_rules.getInt("lagoutextension") * 1000)))
                 retval++;
@@ -1504,12 +1525,12 @@ public class MatchTeam
     // searchers for player <name>. Returns NULL if not exists
     public MatchPlayer getPlayer(String name, boolean matchExact)
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         MatchPlayer answ, best = null;
 
         while (i.hasNext())
         {
-            answ = (MatchPlayer) i.next();
+            answ = i.next();
 
             if (answ.getPlayerName() != null)
             {
@@ -1534,12 +1555,12 @@ public class MatchTeam
     // get MVP
     public MatchPlayer getMVP()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         MatchPlayer best = null, rightnow;
 
         while (i.hasNext())
         {
-            rightnow = (MatchPlayer) i.next();
+            rightnow = i.next();
             if (best == null)
                 best = rightnow;
             else if (rightnow.getPoints() > best.getPoints())
@@ -1585,11 +1606,11 @@ public class MatchTeam
     // get total deaths
     public int getTotalDeaths()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
-            retval = retval + ((MatchPlayer) i.next()).getDeaths();
+            retval = retval + i.next().getDeaths();
 
         return retval;
     }
@@ -1597,33 +1618,33 @@ public class MatchTeam
     // get total score
     public int getTotalScore()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
-            retval = retval + ((MatchPlayer) i.next()).getScore();
+            retval = retval + i.next().getScore();
 
         return retval;
     }
 
     public int getTotalLagOuts()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
-            retval = retval + ((MatchPlayer) i.next()).getLagOuts();
+            retval = retval + i.next().getLagOuts();
 
         return retval;
     }
 
     public int getDTotalStats(int sType)
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
-            retval = retval + ((MatchPlayer) i.next()).getTotalStatistic(sType);
+            retval = retval + i.next().getTotalStatistic(sType);
 
         return retval;
     }
@@ -1631,11 +1652,11 @@ public class MatchTeam
     // get # ready to play players
     public int getPlayersReadyToPlay()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
-            if (((MatchPlayer) i.next()).isReadyToPlay())
+            if (i.next().isReadyToPlay())
                 retval++;
 
         return retval;
@@ -1644,11 +1665,11 @@ public class MatchTeam
     // get # ready to play players
     public int getPlayersRostered()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
-            if (((MatchPlayer) i.next()).isAllowedToPlay())
+            if (i.next().isAllowedToPlay())
                 retval++;
 
         return retval;
@@ -1656,11 +1677,11 @@ public class MatchTeam
 
     public int getPlayersIsWasInGame()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
 
         while (i.hasNext())
-            if (((MatchPlayer) i.next()).isWasInGame())
+            if (i.next().isWasInGame())
                 retval++;
 
         return retval;
@@ -1669,13 +1690,13 @@ public class MatchTeam
     // get # ready to play in ship #
     public int getPlayersRosteredInShip(int shipType)
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
         MatchPlayer p;
         int retval = 0;
 
         while (i.hasNext())
         {
-            p = (MatchPlayer) i.next();
+            p = i.next();
             if ((p.isAllowedToPlay()) && (p.getShipType() == shipType))
                 retval++;
         }
@@ -1700,19 +1721,19 @@ public class MatchTeam
     // send start signal to all players
     public void signalStartToPlayers()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
 
         while (i.hasNext())
-            ((MatchPlayer) i.next()).reportStartOfGame();
+            i.next().reportStartOfGame();
     }
 
     // send end signal to all players
     public void signalEndToPlayers()
     {
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
 
         while (i.hasNext())
-            ((MatchPlayer) i.next()).reportEndOfGame();
+            i.next().reportEndOfGame();
     }
 
     public void sendPrivateMessageToCaptains(String text)
@@ -1722,19 +1743,19 @@ public class MatchTeam
 
     public void sendPrivateMessageToCaptains(String text, int soundCode)
     {
-        ListIterator i = m_captains.listIterator();
+        ListIterator<String> i = m_captains.listIterator();
         while (i.hasNext())
         {
-            m_logger.sendPrivateMessage((String) i.next(), text, soundCode);
+            m_logger.sendPrivateMessage(i.next(), text, soundCode);
         }
     }
 
     public void sendPrivateMessageToCaptains(String[] text)
     {
-        ListIterator i = m_captains.listIterator();
+        ListIterator<String> i = m_captains.listIterator();
         while (i.hasNext())
         {
-            m_botAction.privateMessageSpam((String) i.next(), text);
+            m_botAction.privateMessageSpam(i.next(), text);
         }
     }
 
@@ -1770,13 +1791,13 @@ public class MatchTeam
 
     public String getCaptains()
     {
-        ListIterator i = m_captains.listIterator();
+        ListIterator<String> i = m_captains.listIterator();
         String answ = "", temp;
         boolean isFirst = true;
 
         while (i.hasNext())
         {
-            temp = (String) i.next();
+            temp = i.next();
             if (m_botAction.getPlayer(temp) != null)
             {
                 if (isFirst)
@@ -1822,11 +1843,11 @@ public class MatchTeam
     public boolean isPlayerOnTeam(String name)
     {
         MatchPlayer player;
-        ListIterator i = m_players.listIterator();
+        ListIterator<MatchPlayer> i = m_players.listIterator();
 
         while (i.hasNext())
         {
-            player = (MatchPlayer) i.next();
+            player = i.next();
             if (player.getPlayerName().toLowerCase().compareTo(name.toLowerCase()) == 0) { return true; }
         }
 
