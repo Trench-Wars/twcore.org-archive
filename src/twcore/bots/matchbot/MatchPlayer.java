@@ -38,7 +38,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	private LagRequestTask lagRequestTask;
 	private int maxCurrPing;
 	private double maxPacketLoss;
-	private double maxSlowPackets;
+	public double maxSlowPackets;
 	private double maxStandardDeviation;
 	private int maxNumSpikes;
 
@@ -207,7 +207,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			java.util.Date m_ftTimeStarted;
 			java.util.Date m_ftTimeEnded;
 			MatchPlayerShip MPS;
-			ListIterator i = m_statTracker.m_ships.listIterator();
+			ListIterator<MatchPlayerShip> i = m_statTracker.m_ships.listIterator();
 			String started, ended;
 
 			while (i.hasNext())
@@ -780,8 +780,9 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			int currentPing = playerLagInfo.getCurrentPing();
 			double s2c = playerLagInfo.getS2C();
 			double c2s = playerLagInfo.getC2S();
-			double s2cSlowPercent = playerLagInfo.getS2CSlowPercent();
-			double c2sSlowPercent = playerLagInfo.getC2SSlowPercent();
+			// Commented these out because they're not being used anywhere. -Pio
+			//double s2cSlowPercent = playerLagInfo.getS2CSlowPercent();
+			//double c2sSlowPercent = playerLagInfo.getC2SSlowPercent();
 			double spikeSD = playerLagInfo.getSpikeSD();
 			int numSpikes = playerLagInfo.getNumSpikes();
 			/*
@@ -817,7 +818,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	/**
 		 * @author FoN
 		 *
-		 * This class is to congregate all the stats so they can be organised and added + removed easily
+		 * This class is to congregate all the stats so they can be organized and added + removed easily
 		 */
 	private class TotalStatistics
 	{
@@ -960,7 +961,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		 */
 		public int getTotalStatistic(int statType)
 		{
-			Iterator i = m_ships.iterator();
+			Iterator<MatchPlayerShip> i = m_ships.iterator();
 			int total = 0;
 
 			while (i.hasNext())
