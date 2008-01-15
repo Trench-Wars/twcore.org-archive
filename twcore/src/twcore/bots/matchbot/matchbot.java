@@ -701,7 +701,7 @@ public class matchbot extends SubspaceBot
                 {
                     String nmySquad = parameters[0];
                     GameRequest t;
-                    ListIterator i = m_gameRequests.listIterator();
+                    ListIterator<GameRequest> i = m_gameRequests.listIterator();
                     while (i.hasNext())
                     {
                         t = (GameRequest) i.next();
@@ -745,7 +745,7 @@ public class matchbot extends SubspaceBot
                             // check if the accepted challenge exists
                             String nmySquad = parameters[0];
                             GameRequest t, r = null;
-                            ListIterator i = m_gameRequests.listIterator();
+                            ListIterator<GameRequest> i = m_gameRequests.listIterator();
                             while (i.hasNext())
                             {
                                 t = (GameRequest) i.next();
