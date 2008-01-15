@@ -139,11 +139,11 @@ public class MatchRound
 
         m_notPlaying = new ArrayList<String>();
 
-        Iterator iterator = m_botAction.getPlayerIterator();
+        Iterator<Player> iterator = m_botAction.getPlayerIterator();
         Player player;
 
         while( iterator.hasNext() ){
-            player = (Player)iterator.next();
+            player = iterator.next();
             if( player.getFrequency() == NOT_PLAYING_FREQ ){
                 m_notPlaying.add(player.getPlayerName().toLowerCase());
             }
@@ -175,13 +175,13 @@ public class MatchRound
 
     public void specAll()
     {
-        Iterator iterator = m_botAction.getPlayerIterator();
+        Iterator<Player> iterator = m_botAction.getPlayerIterator();
         Player player;
         int specFreq = getSpecFreq();
 
         while (iterator.hasNext())
         {
-            player = (Player) iterator.next();
+            player = iterator.next();
             if (!player.isPlaying() && player.getFrequency() != specFreq && player.getFrequency() != NOT_PLAYING_FREQ)
                 placeOnSpecFreq(player.getPlayerName());
         }
@@ -337,6 +337,8 @@ public class MatchRound
 	            	// the flag was claimed for the first time, put the spider logo on the phantom flag
 	            	m_botAction.showObject(744);
 	            	flagClaimed = true;
+	            	// restart player cycling
+	            	m_botAction.resetReliablePositionUpdating();
             	}
             }
 
@@ -974,12 +976,12 @@ public class MatchRound
 
     public void command_notplaylist(String name, String parameters[])
     {
-        ListIterator i = m_notPlaying.listIterator();
+        ListIterator<String> i = m_notPlaying.listIterator();
         String a = "", pn;
         boolean first = true;
         while (i.hasNext())
         {
-            pn = m_botAction.getFuzzyPlayerName((String) i.next());
+            pn = m_botAction.getFuzzyPlayerName(i.next());
             if (pn != null)
             {
                 if (first)
@@ -1217,6 +1219,14 @@ public class MatchRound
         m_team2.disownFlag();
         m_logger.sendArenaMessage("Go go go!", 104);
         m_botAction.showObject(m_rules.getInt("obj_gogogo"));
+        
+        // TWSDX ONLY:
+        if(m_game.m_fnMatchTypeID == 20) {
+            // Stop spectating player and watch on flag to see when it's claimed
+            m_botAction.stopReliablePositionUpdating();
+            m_botAction.stopSpectatingPlayer();
+            m_botAction.moveToTile(512, 512);
+        }
 
         m_timeStartedms = System.currentTimeMillis();
         flagClaimed = false;
