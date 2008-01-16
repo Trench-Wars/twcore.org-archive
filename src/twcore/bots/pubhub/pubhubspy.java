@@ -73,7 +73,7 @@ public class pubhubspy extends PubBotModule
 
   public void doWatchListCmd()
   {
-    Iterator iterator = watchList.iterator();
+    Iterator<String> iterator = watchList.iterator();
     StringBuffer line = new StringBuffer();
     String playerName;
 
@@ -122,8 +122,8 @@ public class pubhubspy extends PubBotModule
 
   public void doIgnoreListCmd()
   {
-    Set set = ignoreList.keySet();
-    Iterator iterator = set.iterator();
+    Set<String> set = ignoreList.keySet();
+    Iterator<String> iterator = set.iterator();
     StringBuffer line = new StringBuffer();
     String playerName;
 
@@ -178,7 +178,7 @@ public class pubhubspy extends PubBotModule
 
   public void gotLoadedSpyCmd(String botSender)
   {
-    Iterator iterator = watchList.iterator();
+    Iterator<String> iterator = watchList.iterator();
     String playerName;
 
     while(iterator.hasNext())
