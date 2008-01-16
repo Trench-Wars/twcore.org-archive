@@ -708,7 +708,7 @@ public class mrarrogant extends SubspaceBot
 
   private void killIdlers()
   {
-    Iterator iterator = m_botAction.getPlayerIDIterator();
+    Iterator<Integer> iterator = m_botAction.getPlayerIDIterator();
     Integer playerID;
     String playerName;
 
