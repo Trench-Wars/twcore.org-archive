@@ -247,10 +247,10 @@ public class pubbottk extends PubBotModule {
     	TKInfo tker = tkers.get( tkname );
 
         if( tker == null ){
-            Iterator i = m_botAction.getPlayerIterator();
+            Iterator<Player> i = m_botAction.getPlayerIterator();
             Player searchPlayer = null;
             while( i.hasNext() && searchPlayer == null ){
-                searchPlayer = (Player)i.next();
+                searchPlayer = i.next();
                 // For inexact names
                 if(! searchPlayer.getPlayerName().toLowerCase().startsWith( tkname ) ) {
                     // Long name hack
