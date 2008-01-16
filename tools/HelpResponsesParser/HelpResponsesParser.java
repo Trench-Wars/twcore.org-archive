@@ -72,6 +72,10 @@ public class HelpResponsesParser {
             String line;
 
             while((line = br.readLine()) != null) {
+            	
+            	if(line == null || line.trim().length() == 0 || line.startsWith("#"))
+            		continue;		// Skip empty lines and lines starting with #
+            	
             	String[] pieces = line.split("\\|");
             	String[] keywords = pieces[0].split(" ");
             	
@@ -137,6 +141,10 @@ public class HelpResponsesParser {
             out.println("</div>");
 
             while((line = br.readLine()) != null) {
+            	
+            	if(line == null || line.trim().length() == 0 || line.startsWith("#"))
+            		continue;		// Skip empty lines and lines starting with #
+            	
             	String[] pieces = line.split("\\|");
             	String[] keywords = pieces[0].split(" ");
             	
