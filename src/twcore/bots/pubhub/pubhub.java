@@ -796,9 +796,9 @@ public class pubhub extends SubspaceBot
    * suitable matches then null is returned.
    */
 
-  private String fuzzyStringCompare(Collection collection, String targetString)
+  private String fuzzyStringCompare(Collection<String> collection, String targetString)
   {
-    Iterator iterator = collection.iterator();
+    Iterator<String> iterator = collection.iterator();
     String string;
     String bestMatch = null;
 
