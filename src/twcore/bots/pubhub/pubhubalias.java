@@ -570,7 +570,7 @@ public class pubhubalias extends PubBotModule
 	 * Shows current watches.
 	 */
 	public void doShowWatchesCmd( ) {
-		Iterator i;
+		Iterator<String> i;
 		i = watchedIPs.iterator();
 		if( i.hasNext() ) {
 			m_botAction.sendChatMessage( "------------" );
@@ -711,10 +711,10 @@ public class pubhubalias extends PubBotModule
 	 * @param MacId MacID of player
 	 */
 	public void checkIP( String name, String IP, String MacID ) {
-		Iterator i = watchedIPs.iterator();
+		Iterator<String> i = watchedIPs.iterator();
 
 		while( i.hasNext() ) {
-			String IPfragment = (String)i.next();
+			String IPfragment = i.next();
 			if( IP.startsWith( IPfragment ) ) {
 				m_botAction.sendChatMessage( "IPWATCH: Match on '" + name + "' - " + IP + " (matches " + IPfragment + "*)  MID: " + MacID );
 			}
