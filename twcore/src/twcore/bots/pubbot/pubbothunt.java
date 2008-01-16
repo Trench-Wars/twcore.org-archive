@@ -162,9 +162,9 @@ public class pubbothunt extends PubBotModule
 	}
 	
 	public void updateActive() {
-		Iterator it = playerNames.keySet().iterator();
+		Iterator<String> it = playerNames.keySet().iterator();
 		while(it.hasNext()) {
-			String name = (String)it.next();
+			String name = it.next();
 			Player p = m_botAction.getPlayer(name);
 			if(p != null && !p.isInSafe() && p.getShipType() != 0)
 				try { m_botAction.SQLQueryAndClose("local", getActivityQuery(name));
