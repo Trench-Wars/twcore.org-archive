@@ -624,7 +624,7 @@ public class duelbot extends SubspaceBot {
 
     public void do_showLeagueOps( String name, String message ) {
     	String ops = "League Operators:  ";
-    	Iterator it = leagueOps.keySet().iterator();
+    	Iterator<String> it = leagueOps.keySet().iterator();
     	while( it.hasNext() ) {
     		if( it.hasNext() )
     			ops += (String)it.next() + ", ";
@@ -679,8 +679,8 @@ public class duelbot extends SubspaceBot {
     	String javOut = "Javelin Duels: ";
     	String spiOut = "Spider Duels : ";
     	int wb = 0, jav = 0, spi = 0;
-    	Set set = duels.keySet();
-    	Iterator it = set.iterator();
+    	Set<Integer> set = duels.keySet();
+    	Iterator<Integer> it = set.iterator();
     	while( it.hasNext() ) {
     		Integer duel = (Integer)it.next();
     		Duel d = duels.get( duel );
@@ -1127,7 +1127,7 @@ public class duelbot extends SubspaceBot {
 
 	public boolean boxOpen( int gameType ) {
     	int i = 0;
-    	Iterator it = duelBoxes.keySet().iterator();
+    	Iterator<String> it = duelBoxes.keySet().iterator();
     	while( it.hasNext() ) {
     		String key = (String)it.next();
     		DuelBox b = duelBoxes.get( key );
@@ -1139,7 +1139,7 @@ public class duelbot extends SubspaceBot {
 
     public DuelBox getDuelBox( int gameType ) {
     	Vector <DuelBox>v = new Vector<DuelBox>();
-    	Iterator it = duelBoxes.keySet().iterator();
+    	Iterator<String> it = duelBoxes.keySet().iterator();
     	while( it.hasNext() ) {
     		String key = (String)it.next();
     		DuelBox b = duelBoxes.get( key );
@@ -1873,10 +1873,10 @@ public class duelbot extends SubspaceBot {
 
 class Lagger extends TimerTask {
 	String player;
-	HashMap laggers;
+	HashMap<String, Lagger> laggers;
 	Duel duel;
 
-	public Lagger( String name, Duel d, HashMap l ) {
+	public Lagger( String name, Duel d, HashMap<String, Lagger> l ) {
 		player = name;
 		duel = d;
 		laggers = l;
