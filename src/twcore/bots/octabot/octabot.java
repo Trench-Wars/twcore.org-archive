@@ -207,7 +207,7 @@ public class octabot extends SubspaceBot {
 		if( !running ) return;
 
 		int freq = event.getFrequency();
-		Iterator it = players.keySet().iterator();
+		Iterator<String> it = players.keySet().iterator();
 		while( it.hasNext() ) {
 			String name = (String)it.next();
 			OctaPlayer p = players.get( name );
@@ -249,7 +249,7 @@ public class octabot extends SubspaceBot {
 
  	public void setToLowerTeam( int playerId, int playerFreq ) {
 
- 		Iterator it = m_botAction.getPlayingPlayerIterator();
+ 		Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
 		int one = 0; int two = 0;
 		while( it.hasNext() ) {
 			Player p = (Player)it.next();
@@ -265,7 +265,7 @@ public class octabot extends SubspaceBot {
 
 	public int getHighScorer( int freq ) {
 
-		Iterator it = m_botAction.getPlayingPlayerIterator();
+		Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
 		int score = 0;
 		int topPlayerId = 0;
 		while( it.hasNext() ) {
@@ -280,7 +280,7 @@ public class octabot extends SubspaceBot {
 
 	public void ensureNoneInSpecialShip( int playerId, int freq ) {
 
-		Iterator it = m_botAction.getPlayingPlayerIterator();
+		Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
 		while( it.hasNext() ) {
 			Player p = (Player)it.next();
 			if( p.getShipType() == 6 && p.getPlayerID() != playerId && p.getFrequency() == freq ) {
@@ -407,7 +407,7 @@ public class octabot extends SubspaceBot {
 
 		int id = getGameID();
 
-		Iterator it = players.keySet().iterator();
+		Iterator<String> it = players.keySet().iterator();
 		while( it.hasNext() ) {
 			String name = (String)it.next();
 			OctaPlayer p = players.get( name );
