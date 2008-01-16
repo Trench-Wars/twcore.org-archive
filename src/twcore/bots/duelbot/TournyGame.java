@@ -8,8 +8,8 @@ public class TournyGame {
 
 	private String playerOne;
 	private String playerTwo;
-	private int playerOneId;
-	private int playerTwoId;
+	public int playerOneId;
+	public int playerTwoId;
 	private int leagueType;
 	private int realGameId;
 	private int players;
