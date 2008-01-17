@@ -334,9 +334,9 @@ public class staffbot extends SubspaceBot {
                 java.sql.Date date = set.getDate( "timeofwarning" );
                 String strDate = new SimpleDateFormat("dd MMM yyyy").format( date );
 
-                String[] text = warning.split( ": \\S", 2);
-                if( text.length == 2 )
-                    m_botAction.sendRemotePrivateMessage( name, strDate + "  - " + text[1]);
+                String[] text = warning.split( ": ", 3);
+                if( text.length == 3 )
+                    m_botAction.sendRemotePrivateMessage( name, strDate + "  - " + text[2]);
             }
             m_botAction.sendRemotePrivateMessage( name, "End of list." );
             m_botAction.SQLClose( set );
