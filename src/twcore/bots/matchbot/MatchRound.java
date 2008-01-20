@@ -1231,6 +1231,19 @@ public class MatchRound
             m_botAction.stopReliablePositionUpdating();
             m_botAction.stopSpectatingPlayer();
             m_botAction.moveToTile(512, 512);
+            
+            // If a player is already carrying a flag, spectate him and put him back in to reset the flag
+            Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
+            while(it.hasNext()) {
+                Player player = it.next();
+                if(player.getflagsCarried() > 0) {
+                    m_botAction.specWithoutLock(player.getPlayerID());
+                    m_botAction.setFreq(player.getPlayerID(), player.getFrequency());
+                    m_botAction.setShip(player.getPlayerID(), player.getShipType());
+                    m_botAction.setFreq(player.getPlayerID(), player.getFrequency());
+                }
+            }
+            m_botAction.resetFlagGame();
         }
 
         m_timeStartedms = System.currentTimeMillis();
