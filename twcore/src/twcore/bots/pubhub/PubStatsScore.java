@@ -179,7 +179,49 @@ public class PubStatsScore {
 	public void setScorereset(boolean scorereset) {
 		this.scorereset = scorereset;
 	}
-	
-	
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + Float.floatToIntBits(average);
+        result = prime * result + ((date == null) ? 0 : date.hashCode());
+        result = prime * result + flagPoints;
+        result = prime * result + killPoints;
+        result = prime * result + losses;
+        result = prime * result + ((player == null) ? 0 : player.hashCode());
+        result = prime * result + rate;
+        result = prime * result + (scorereset ? 1231 : 1237);
+        result = prime * result + ship;
+        result = prime * result + wins;
+        return result;
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        
+        final PubStatsScore other = (PubStatsScore) obj;
+        if( !player.equals(other.player) ||
+            this.ship != other.ship ||
+            !this.date.equals(date) ||
+            this.wins != other.wins || 
+            this.losses != other.losses || 
+            this.killPoints != other.killPoints || 
+            this.flagPoints != other.flagPoints)
+            return false;
+        return true;
+    }
 	
 }

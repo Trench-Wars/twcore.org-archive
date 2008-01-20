@@ -123,4 +123,46 @@ public class PubStatsPlayer {
 	public void setDate(Date date) {
 		this.date = date;
 	}
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((IP == null) ? 0 : IP.hashCode());
+        result = prime * result + ((date == null) ? 0 : date.hashCode());
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + ((squad == null) ? 0 : squad.hashCode());
+        result = prime * result + timezone;
+        result = prime * result + ((usage == null) ? 0 : usage.hashCode());
+        return result;
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        
+        
+        final PubStatsPlayer other = (PubStatsPlayer) obj;
+        if( !this.name.equals(other.name) ||
+            !this.squad.equals(other.squad) ||
+            !this.IP.equals(other.IP) ||
+            this.timezone != other.timezone ||
+            !this.usage.equals(other.usage))
+            return false;
+        return true;
+    }
+	
+	
+	
 }

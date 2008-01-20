@@ -204,6 +204,8 @@ public class pubhubstats extends PubBotModule {
 	                psReplaceScore.executeUpdate();
 			    }
 			}
+			
+			stats.remove(score);
 		}
 	}
 	
