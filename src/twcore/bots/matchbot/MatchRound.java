@@ -297,6 +297,11 @@ public class MatchRound
             m_logger.sendPrivateMessage( event.getPlayerName(), "notplaying mode is still on, captains will be unable to pick you");
             m_logger.setFreq( event.getPlayerName(), NOT_PLAYING_FREQ);
         }
+
+        // TWSDX ONLY:
+        if(m_fnRoundState == 3 && m_game.m_fnMatchTypeID == 20 && flagClaimed) {
+            m_botAction.showObjectForPlayer(event.getPlayerID(), 744);
+        }
     }
 
     /*
