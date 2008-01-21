@@ -406,12 +406,12 @@ public class MatchRound
             if (msg.equals("Public Messages LOCKED"))
             {
                 if (!m_blueoutDesiredState)
-                    m_botAction.toggleBlueOut();
+                    m_botAction.toggleLockPublicChat();
             }
             else if (msg.equals("Public Messages UNLOCKED"))
             {
                 if (m_blueoutDesiredState)
-                    m_botAction.toggleBlueOut();
+                    m_botAction.toggleLockPublicChat();
             };
         };
     };
@@ -1613,7 +1613,7 @@ public class MatchRound
                 m_logger.sendArenaMessage("Blueout has been disabled. You can speak in public now.");
                 m_blueoutState = 0;
             }
-            m_botAction.toggleBlueOut();
+            m_botAction.toggleLockPublicChat();
         }
     };
 
