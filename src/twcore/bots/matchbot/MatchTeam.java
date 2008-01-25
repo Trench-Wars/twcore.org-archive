@@ -56,7 +56,7 @@ public class MatchTeam
     int m_fnShipChanges;
 
 	int m_lagID = 0;
-	
+
 	HashMap<String, Boolean> checkPlayerMID;
 
     // 0 - no forfeit, 1 - forfeitwin, 2 - forfeitloss
@@ -190,7 +190,7 @@ public class MatchTeam
 		                p.reportDeath();
 					}
                 }
-                
+
                 // TWSDX ONLY:
                 if(m_round.getGame().m_fnMatchTypeID == 20) {
                 	int playerid = m_botAction.getPlayerID(p.getPlayerName());
@@ -239,9 +239,9 @@ public class MatchTeam
             {
                 String playerName = m_botAction.getPlayer(event.getKillerID()).getPlayerName();
                 MatchPlayer p = getPlayer(playerName);
-                
+
                 int score = event.getKilledPlayerBounty();
-                
+
                 if(m_round.m_game.m_fnMatchTypeID == 20 && m_flagOwned) { // ONLY TWSDX which has MatchType=20
                 	score = score * (m_round.m_game.settings_FlaggerKillMultiplier+1);
                 }
@@ -268,7 +268,7 @@ public class MatchTeam
                 m_botAction.sendArenaMessage(playerName + " has lagged out/left arena - +1 death");
                 p.reportDeath();
             }
-            
+
             // TWSDX ONLY:
             if(m_round.getGame().m_fnMatchTypeID == 20) {
                 int playerid = m_botAction.getPlayerID(p.getPlayerName());
@@ -309,7 +309,7 @@ public class MatchTeam
                     m_round.m_lagHandler.requestLag(name, "!" + m_fcTeamName);
                 }
             }
-            
+
             if(msg.indexOf("TypedName") != -1 && m_rules.getInt("squadjoined") == 1) {
             	String name = "";
             	String macID = "";
@@ -337,7 +337,7 @@ public class MatchTeam
             matchPlayer.handleEvent(event);
         }
     }
-    
+
     public void checkPlayerMID(String name, String macID, String IP, boolean tellPlayer) {
     	try {
     		ResultSet results = m_botAction.SQLQuery("website", "SELECT * FROM tblTWDPlayerMID "
@@ -514,12 +514,17 @@ public class MatchTeam
             {
                 newCapt = parameters[0];
                 Player p;
-                p = m_botAction.getPlayer(newCapt);                
+                p = m_botAction.getPlayer(newCapt);
                 if( p == null )
                     p = m_botAction.getFuzzyPlayer(newCapt);
                 newCapt = p.getPlayerName();
                 if (p != null)
                 {
+                    if( newCapt.equalsIgnoreCase(m_botAction.getBotName()) ) {
+                        m_logger.sendPrivateMessage(name, "You can't set me as a captain!");
+                        return;
+                    }
+
                     if (!isCaptain(newCapt))
                     {
                         if ((m_rules.getInt("squadjoined") == 0) || ((m_rules.getInt("squadjoined") == 1) && (p.getSquadName().equalsIgnoreCase(m_fcTeamName))))
@@ -536,25 +541,25 @@ public class MatchTeam
                                             + getTeamName());
                                 }
                                 else
-                                    m_logger.sendPrivateMessage(name, "Player is captain of the other team");
+                                    m_logger.sendPrivateMessage(name, "Player '" + newCapt + "' is captain of the other team!");
                             }
                             else
-                                m_logger.sendPrivateMessage(name, "Player is in the other team");
+                                m_logger.sendPrivateMessage(name, "Player '" + newCapt + "' is in the other team!");
                         }
                         else
-                            m_logger.sendPrivateMessage(name, "Player isn't squadjoined");
+                            m_logger.sendPrivateMessage(name, "Player '" + newCapt + "' isn't squadjoined!");
                     }
                     else
-                        m_logger.sendPrivateMessage(name, "Player is captain already");
+                        m_logger.sendPrivateMessage(name, "Player '" + newCapt + "' is captain already!");
                 }
                 else
-                    m_logger.sendPrivateMessage(name, "Player is not in this arena");
+                    m_logger.sendPrivateMessage(name, "Player '" + newCapt + "' is not in this arena!");
             }
             else
-                m_logger.sendPrivateMessage(name, "Specify the name of the new captain");
+                m_logger.sendPrivateMessage(name, "Specify the name of the new captain.");
         }
         else
-            m_logger.sendPrivateMessage(name, "You cannot set other captains");
+            m_logger.sendPrivateMessage(name, "You cannot set other captains.");
 
     }
 
@@ -571,7 +576,7 @@ public class MatchTeam
             {
                 Player p;
                 p = m_botAction.getPlayer(parameters[0]);
-                if( p == null )                    
+                if( p == null )
                     p = m_botAction.getFuzzyPlayer(parameters[0]);
                 parameters[0] = p.getPlayerName();
                 answer = addPlayer(p.getPlayerName(), fnShip, true, false);
@@ -734,7 +739,7 @@ public class MatchTeam
             {
                 pA = getPlayer(parameters[0]);
                 pB = getPlayer(parameters[1]);
-                
+
                 if (pA != null)
                 {
                     if (pA.isAllowedToPlay())
@@ -744,13 +749,13 @@ public class MatchTeam
                             if (pB.isAllowedToPlay())
                             {
                                 int freq = pA.getFrequency();
-                                int ship = pB.getShipType();                               
+                                int ship = pB.getShipType();
                                 pB.setShip(pA.getShipType());
                                 pA.setShip(ship);
                                 m_botAction.setFreq(pA.getPlayerName(), freq);
                                 m_botAction.setFreq(pB.getPlayerName(), freq);
-                                
-                                
+
+
 
                                 //this indicates that the player has switched ships during the game
                                 //currently it voids the player from getting mvp in time race games
@@ -1459,7 +1464,7 @@ public class MatchTeam
             m_flagOwned = false;
         }
     }
-    
+
     /**
      * Returns if this team has the flag
      * @return boolean which is true if this team has the flag
@@ -1467,7 +1472,7 @@ public class MatchTeam
     public boolean hasFlag() {
     	return m_flagOwned;
     }
-    
+
     /**
      * Returns the ID of the player who currently carries a flag. Meant to be used for games with 1 flag only.
      * @return the PlayerID of the flagcarrier of this team
