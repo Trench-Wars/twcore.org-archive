@@ -163,7 +163,7 @@ public class pubhubchat extends PubBotModule {
  * PHP -> Server
  * 	- getArenaList
  *     Returns the available arenas from the bot module pubhubchat
- *  - getChatMessages <arena> [id]
+ *  - getChatMessages &lt;arena&gt; [id]
  *     Returns the available chat lines from the specified arena (mandatory) or only the new chat lines
  *     from the [id] (optional).
  * 
