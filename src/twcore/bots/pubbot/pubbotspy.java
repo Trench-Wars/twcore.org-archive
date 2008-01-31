@@ -2,11 +2,13 @@
 
 package twcore.bots.pubbot;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.StringTokenizer;
 
 import twcore.bots.PubBotModule;
-import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.events.ArenaList;
 import twcore.core.events.InterProcessEvent;
@@ -15,7 +17,8 @@ import twcore.core.util.ipc.IPCMessage;
 
 public class pubbotspy extends PubBotModule
 {
-  public String keywords = "";
+  public ArrayList<String> keywords = new ArrayList<String>(); // our banned words
+  public ArrayList<String> fragments = new ArrayList<String>(); // our banned fragments
   private HashSet<String> watchList;
   private HashSet<String> ignoreList;
   private String currentArena;
@@ -24,13 +27,7 @@ public class pubbotspy extends PubBotModule
 
   public void initializeModule()
   {
-	BotSettings bs;
-	try {
-		bs = new BotSettings(m_botAction.getCoreCfg("racism.cfg"));
-		keywords = bs.getString("words"); }
-	catch (Exception e) {
-		keywords = "j3w jew chink wetback spic paki gook nig n1g nikka nika n1kka n1ka n*g n!g"; // just in case...
-	}
+    loadConfig();
     spying = false;
     ignoreList = new HashSet<String>();
     currentArena = m_botAction.getArenaName();
@@ -227,16 +224,67 @@ public class pubbotspy extends PubBotModule
     }
     return "Other";
   }
-  private boolean isRacist(String message)
+  
+  /***
+   * Searches words/fragments for banned words in corecfg/racism.cfg
+   * @param message Text to check
+   * @return True: If a word/fragment is detected. False: If nothing is found.
+   */
+  public boolean isRacist(String message)
   {
-    StringTokenizer keywordTokens = new StringTokenizer(keywords, " ");
+    StringTokenizer words = new StringTokenizer(message.toLowerCase(), " ");
+    String word = "";
+    
+    while(words.hasMoreTokens()) {
+  	  word = words.nextToken();
+  	  for (String i : keywords){ 
+  		  if (word.trim().equals(i.trim())) {
+  			  return true;
+  		  }
+  	  }
+  	  
+  	  for (String i : fragments){ 
+  		  if (word.contains(i)) {
+  			  return true;
+  		  }
+  	  }
+    }
 
-    while(keywordTokens.hasMoreTokens())
-      if(message.toLowerCase().contains(keywordTokens.nextToken()))
-        return true;
     return false;
   }
 
+  /*** 
+   * Loads the banned keywords and fragments via corecfg/racism.cfg
+   */
+  public void loadConfig () { 
+  	BufferedReader sr;
+  	String line;
+  	boolean loadWords = true;
+  	try {
+  		sr = new BufferedReader(new FileReader(m_botAction.getCoreCfg("racism.cfg")));
+  		while((line = sr.readLine()) != null)
+  		{
+  		   if(line.contains("[Words]")) { loadWords = true; }
+  		   if(line.contains("[Fragments]")) { loadWords = false; }
+  		   
+  		   if(line.startsWith("[") == false) { 
+  			   if (loadWords) {
+  				   keywords.add(line.trim());
+  			   }
+  			   else {
+  				   fragments.add(line.trim());
+  			   }
+  		   }
+  		}
+  		sr.close();
+  		sr = null;
+  	}
+  		catch (Exception e) {
+  		sr = null;
+  	}
+  	
+  }
+  
   /**
    * This method gets the sender from a message Event.
    *
