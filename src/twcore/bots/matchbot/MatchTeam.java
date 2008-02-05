@@ -340,17 +340,25 @@ public class MatchTeam
 
     public void checkPlayerMID(String name, String macID, String IP, boolean tellPlayer) {
     	try {
-    		ResultSet results = m_botAction.SQLQuery("website", "SELECT * FROM tblTWDPlayerMID "
-    			+ "WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' "
-    			+ "LIMIT 0,1) AND (fnMID = "+macID+" OR fcIP = '"+IP+"')");
+            ResultSet results;
+            if(m_rules.getInt("strictmidip") == 1) {
+                results = m_botAction.SQLQuery("website", "SELECT * FROM tblTWDPlayerMID "
+                        + "WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' "
+                        + "LIMIT 0,1) AND (fnMID = "+macID+" AND fcIP = '"+IP+"')");
+            } else {
+                results = m_botAction.SQLQuery("website", "SELECT * FROM tblTWDPlayerMID "
+                        + "WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' "
+                        + "LIMIT 0,1) AND (fnMID = "+macID+" OR fcIP = '"+IP+"')");
+            }
     		if(results.next()) {
-    			if(tellPlayer) m_botAction.sendSmartPrivateMessage(name, "You are allowed to play on that computer.");
+    			if(tellPlayer)
+                    m_botAction.sendSmartPrivateMessage(name, "You are allowed to play on this computer.");
     		} else {
-    			if(tellPlayer) m_botAction.sendSmartPrivateMessage(name, "You can't play from that computer.");
-    			else if(m_rules.getInt("strictmidip") == 1) {
-    				String[] param = { name};
-    				command_remove("^_^", param);
-    				m_botAction.sendSmartPrivateMessage(name, "You must play from your registered IP or mID");
+    			if(tellPlayer) {
+                    m_botAction.sendSmartPrivateMessage(name, "You can't play from this computer.");
+    			} else {
+    				command_remove("^forceremove^", new String[]{name} );
+    				m_botAction.sendSmartPrivateMessage(name, "Sorry, you must log in from the computer on which you registered this name in order to play.");
     			}
     		}
     	} catch(Exception e) {}
@@ -1247,7 +1255,7 @@ public class MatchTeam
                 return "Player's name is disabled.";
         }
 
-        // do a lag check.
+        // NO LONGER IMPLEMENTED: Do a lag check.
 
         return "yes";
     }
@@ -1365,6 +1373,10 @@ public class MatchTeam
             if (getInGame)
                 p.getInGame(fbSilent);
             m_players.add(p);
+            // Unfortunately due to how *info and MatchBot work, we have to do this at the end;
+            // if info does not match up then the player will not be able to play.
+            if (m_rules.getInt("aliascheck") == 1)
+                m_botAction.sendUnfilteredPrivateMessage(fcPlayerName, "*info");
         }
     }
 
