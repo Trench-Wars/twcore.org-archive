@@ -337,19 +337,37 @@ public class twdbot extends SubspaceBot {
     }
 
     public void commandListIPMID(String name, String player) {
+        DBPlayerData dbP = new DBPlayerData( m_botAction, localdb, player );
+        m_botAction.sendSmartPrivateMessage( name, "TWD record for '" + player + "'" );
+        String header = "Status: ";
+        if( dbP.getStatus() == 0 ) {
+            header += "NOT REGISTERED";
+        } else {
+            if( dbP.getStatus() == 1 )
+                header += "REGISTERED";
+            else
+                header += "DISABLED";
+            header += "  Registered IP: " + dbP.getIP() + "  Registered MID: " + dbP.getMID();
+        }
+
         try {
-            m_botAction.sendPrivateMessage(name, "Results for: " + player);
             ResultSet results = m_botAction.SQLQuery(webdb, "SELECT fcIP, fnMID FROM tblTWDPlayerMID WHERE fcUserName = '"+Tools.addSlashesToString(player)+"'");
-            while(results.next()) {
-                String message = "";
-                if(!results.getString("fcIP").equals("0.0.0.0"))
-                    message += "IP: " + results.getString("fcIP") + "   ";
-                if(results.getInt("fnMID") != 0)
-                    message += "mID: " + results.getInt("fnMID");
-                m_botAction.sendPrivateMessage(name, message);
+            if( !results.next() )
+                m_botAction.sendPrivateMessage(name, "There are no staff-registered IPs and MIDs for this name." );
+            else {
+                m_botAction.sendPrivateMessage(name, "Staff-registered IP and MID exceptions:" );
+                do {
+                    String message = "";
+                    if(!results.getString("fcIP").equals("0.0.0.0"))
+                        message += "IP: " + results.getString("fcIP") + "   ";
+                    if(results.getInt("fnMID") != 0)
+                        message += "mID: " + results.getInt("fnMID");
+                    m_botAction.sendPrivateMessage(name, message);
+                } while( results.next() );
             }
             m_botAction.SQLClose( results );
         } catch(Exception e) {e.printStackTrace();}
+
     }
 
     public void parseCommand(String name, String command, String[] parameters, boolean isStaff) {
@@ -997,7 +1015,7 @@ public class twdbot extends SubspaceBot {
         else {
             m_botAction.privateMessageSpam( name, help );
             if(m_opList.isSmod(name)) {
-                m_botAction.privateMessageSpam( name, SModHelp );                
+                m_botAction.privateMessageSpam( name, SModHelp );
             }
         }
     }
@@ -1044,7 +1062,7 @@ public class twdbot extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage( register, "REGISTRATION SUCCESSFUL" );
             m_botAction.sendSmartPrivateMessage( register, "NOTE: Only one name per household is allowed to be registered with TWD staff approval.  If you have family members that also play, you must register manually with staff (type ?help <msg>)." );
             m_botAction.sendSmartPrivateMessage( register, "Holding two or more name registrations in one household without staff approval may result in the disabling of one or all names registered." );
-            
+
         } else {
             if( m_requesters != null ) {
                 String response = name + "  IP:"+ip+"  MID:"+mid;
@@ -1057,7 +1075,7 @@ public class twdbot extends SubspaceBot {
 
     public boolean resetPRegistration(int id) {
 
-        try {            
+        try {
             String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
             m_botAction.SQLBackgroundQuery( localdb, null, "UPDATE tblAliasSuppression SET fdResetTime = '"+time+"' WHERE fnUserID = '" + id + "'");
             return true;
