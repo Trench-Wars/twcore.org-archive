@@ -85,6 +85,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	boolean m_fbSubstituter = false;
 	boolean m_switchedShip = false;
 	boolean m_lagByBot = false;
+    boolean m_checkedIPMID = false;
 
 	//constants
 	static final int NOT_IN_GAME = 0;
@@ -814,6 +815,18 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		{
 		}
 	}
+
+    public boolean hasCheckedIPMID( ) {
+        // If this player has already checked out clean, don't check again.
+        return m_checkedIPMID;
+    }
+
+    public void setIPMIDChecked( boolean value ) {
+        m_checkedIPMID = value;
+    }
+
+
+    // Internal classes
 
 	/**
 		 * @author FoN

@@ -10,6 +10,7 @@ package twcore.bots.matchbot;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -65,6 +66,7 @@ public class MatchTeam
     boolean m_addPlayer = false;
     boolean m_turn = false;
     boolean m_blueoutState = false;
+    boolean m_checkIPMID = false;
 
     LinkedList<MatchPlayer> m_players;
     LinkedList<String> m_captains;
@@ -82,7 +84,6 @@ public class MatchTeam
     private int m_teamTime = 0;
 
     private boolean m_threeMinuteWarning = true;
-
     private boolean m_oneMinuteWarning = true;
 
     /** Creates a new instance of MatchTeam */
@@ -113,6 +114,7 @@ public class MatchTeam
         {
             populateCaptainList();
         }
+        m_checkIPMID = m_rules.getInt("strictmidip") == 1;
     }
 
     // saves player data
@@ -287,6 +289,7 @@ public class MatchTeam
             }
         }
         p.lagout(true);
+        p.setIPMIDChecked(false);
     }
 
     public void handleEvent(Message event)
@@ -324,8 +327,9 @@ public class MatchTeam
 						IP = pieces[k].split(":")[1];
 				}
 				Boolean tellPlayer = checkPlayerMID.remove(name);
-				if(tellPlayer == null) tellPlayer = false;
-				checkPlayerMID(name, macID, IP, tellPlayer);
+				if(tellPlayer == null)
+                    tellPlayer = false;
+				checkPlayerIPMID(name, macID, IP, tellPlayer);
 			}
 
             return;
@@ -338,30 +342,104 @@ public class MatchTeam
         }
     }
 
-    public void checkPlayerMID(String name, String macID, String IP, boolean tellPlayer) {
-    	try {
-            ResultSet results;
-            if(m_rules.getInt("strictmidip") == 1) {
-                results = m_botAction.SQLQuery("website", "SELECT * FROM tblTWDPlayerMID "
-                        + "WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' "
-                        + "LIMIT 0,1) AND (fnMID = "+macID+" AND fcIP = '"+IP+"')");
-            } else {
-                results = m_botAction.SQLQuery("website", "SELECT * FROM tblTWDPlayerMID "
-                        + "WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' "
-                        + "LIMIT 0,1) AND (fnMID = "+macID+" OR fcIP = '"+IP+"')");
+    /**
+     * Check current MID & IP against records.
+     */
+    public void checkPlayerIPMID(String name, String macID, String IP, boolean tellPlayer) {
+        if( !m_checkIPMID ) {
+            if( tellPlayer )
+                m_botAction.sendSmartPrivateMessage(name, "You are allowed to play on this computer.");
+            return;
+        }
+        MatchPlayer p = getPlayer( name, true );
+        if( p == null ) {
+            m_botAction.sendPrivateMessage(name, "You have not been found in the records.  Please notify a staff member with ?help immediately." );
+            m_botAction.sendChatMessage( name + " not found in TWD MatchTeam records.  Please report to coding staff." );
+            command_remove("^forceremove^", new String[]{name} );
+            return;
+        }
+        if( p.hasCheckedIPMID() )
+            return;
+        int mID = 0;
+        try {
+            mID = Integer.parseInt(macID);
+        } catch (NumberFormatException e) {
+            m_botAction.sendPrivateMessage(name, "Error getting you from the records.  Please notify a staff member with ?help immediately." );
+            m_botAction.sendChatMessage( name + "'s machine ID could not be read properly!  Please report to coding staff." );
+            command_remove("^forceremove^", new String[]{name} );
+            return;
+        }
+
+        try {
+            ResultSet qryPlayerAlias = m_botAction.SQLQuery( "website",
+                    "SELECT fcIP, fnMID FROM tblAliasSuppression WHERE fnUserID = (SELECT fnUserID FROM tblUser " +
+                    "WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' LIMIT 0,1) LIMIT 0,1" );
+
+            if( qryPlayerAlias == null || !qryPlayerAlias.next() ) {
+                // If their original registration info is not found, something is amiss.
+                m_botAction.sendPrivateMessage(name, "You have not been found in the records.  Ensure you have done !signup.  Please notify a staff member with ?help immediately." );
+                m_botAction.sendChatMessage( name + " not found in TWD records.  (Somehow missing !signup?)  Please report to coding staff." );
+                command_remove("^forceremove^", new String[]{name} );
+                return;
             }
-    		if(results.next()) {
-    			if(tellPlayer)
-                    m_botAction.sendSmartPrivateMessage(name, "You are allowed to play on this computer.");
-    		} else {
-    			if(tellPlayer) {
-                    m_botAction.sendSmartPrivateMessage(name, "You can't play from this computer.");
-    			} else {
-    				command_remove("^forceremove^", new String[]{name} );
-    				m_botAction.sendSmartPrivateMessage(name, "Sorry, you must log in from the computer on which you registered this name in order to play.");
-    			}
-    		}
-    	} catch(Exception e) {}
+
+            Integer fnMID = qryPlayerAlias.getInt( "fnMID" );
+            String fcIP = qryPlayerAlias.getString( "fcIP" );
+
+            // First verify MID.  If MID does not match perfectly, search for a mod-entered alternate
+            if( fnMID != mID ) {
+                ResultSet results = m_botAction.SQLQuery("website", "SELECT fnMID FROM tblTWDPlayerMID "
+                        + "WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' "
+                        + "LIMIT 0,1)");
+                boolean match = false;
+                while( results.next() && !match ) {
+                    if( results.getInt("fnMID") == mID )
+                        match = true;
+                }
+                if( !match ) {
+                    if(tellPlayer) {
+                        m_botAction.sendSmartPrivateMessage(name, "You can't play from this computer.  Please see a TWD op about playing using this computer if it is a legitimate use.");
+                        return;
+                    } else {
+                        command_remove("^forceremove^", new String[]{name} );
+                        m_botAction.sendSmartPrivateMessage(name, "Sorry, you can only play in TWD from the computer on which you registered this name.  Please contact a TWD op if you have questions.");
+                        return;
+                    }
+                }
+            }
+
+            // Next verify the first two parts of IP.  If the match is no good, search for alternate.
+            String currentIPparts[] = IP.split(".");
+            String recordedIPparts[] = fcIP.split(".");
+            if( currentIPparts.length < 2 || recordedIPparts.length < 2 ||
+                    currentIPparts[0] != recordedIPparts[0] ||
+                    currentIPparts[1] != recordedIPparts[1] ) {
+                ResultSet results = m_botAction.SQLQuery("website", "SELECT fcIP FROM tblTWDPlayerMID "
+                        + "WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' "
+                        + "LIMIT 0,1)");
+                boolean match = false;
+                while( results.next() && !match ) {
+                    String alternateIPparts[] = results.getString("fcIP").split(".");
+                    if( currentIPparts.length > 1 && alternateIPparts.length > 1 &&
+                            currentIPparts[0] == alternateIPparts[0] &&
+                            currentIPparts[1] == alternateIPparts[1] )
+                        match = true;
+                }
+                if( !match ) {
+                    if(tellPlayer) {
+                        m_botAction.sendSmartPrivateMessage(name, "You can't play from this location.  Please see a TWD op about playing using this location if it is a legitimate use.");
+                        return;
+                    } else {
+                        command_remove("^forceremove^", new String[]{name} );
+                        m_botAction.sendSmartPrivateMessage(name, "Sorry, you can only play in TWD from the location at which you registered this name.  Please contact a TWD op if you have questions.");
+                        return;
+                    }
+                }
+            }
+            p.setIPMIDChecked(true);
+            if(tellPlayer)
+                m_botAction.sendSmartPrivateMessage(name, "You are allowed to play on this computer.");
+        } catch(SQLException e) {}
     }
 
     // show help messages
@@ -1370,12 +1448,12 @@ public class MatchTeam
         {
             p = new MatchPlayer(fcPlayerName, this);
             p.setShipAndFreq(fnShipType, m_fnFrequency);
-            if (getInGame)
+            if( getInGame )
                 p.getInGame(fbSilent);
             m_players.add(p);
-            // Unfortunately due to how *info and MatchBot work, we have to do this at the end;
-            // if info does not match up then the player will not be able to play.
-            if (m_rules.getInt("aliascheck") == 1)
+            // Unfortunately due to how *info and MatchBot work, we have to do this at the end.
+            // If MID and IP don't match up, then the player will be removed from the game.
+            if( m_checkIPMID )
                 m_botAction.sendUnfilteredPrivateMessage(fcPlayerName, "*info");
         }
     }
