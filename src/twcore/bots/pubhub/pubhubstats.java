@@ -6,7 +6,9 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
@@ -86,13 +88,13 @@ public class pubhubstats extends PubBotModule {
 	 * cancel() is called when this module is unloaded
 	 */
 	public void cancel() {
+	    stop = true;
 	    m_botAction.closePreparedStatement(database, psGetPlayerID);
 	    m_botAction.closePreparedStatement(database, psUpdatePlayer);
 	    m_botAction.closePreparedStatement(database, psReplaceScore);
 	    m_botAction.closePreparedStatement(database, psUpdateScore);
 	    m_botAction.closePreparedStatement(database, psUpdateScoreCalc);
 	    m_botAction.closePreparedStatement(database, psScoreExists);
-		stop = true;
 	}
 
 	/**
@@ -100,9 +102,19 @@ public class pubhubstats extends PubBotModule {
 	 *
 	 * @param stats the Collection containing the PubStats objects
 	 */
-	private void updateDatabase(Collection<PubStatsScore> stats) throws SQLException {
+	private synchronized void updateDatabase(Collection<PubStatsScore> stats) throws SQLException {
 	    HashMap<String,Integer> playerIDs = new HashMap<String, Integer>();
 	    // Map for playername to tblPlayer.fnId
+	    
+	    // Remove all stat objects from the stats collection if they haven't been updated since last save
+	    Iterator<PubStatsScore> i = stats.iterator();
+	    while(i.hasNext()) {
+	        PubStatsScore stat = i.next();
+	        if(stat.getLastSave() != null && !stat.getLastUpdate().after(stat.getLastSave())) {
+	            i.remove();
+	        }
+	    }
+	    
 	    
 		// Loop over all the PubStats objects and replace each in the stats table
 		for(PubStatsScore score:stats) {
@@ -158,7 +170,7 @@ public class pubhubstats extends PubBotModule {
 			    psReplaceScore.setInt(6, score.getLosses());
 			    psReplaceScore.setInt(7, score.getRate());
 			    psReplaceScore.setFloat(8, score.getAverage());
-			    psReplaceScore.setTimestamp(9, new Timestamp(score.getDate().getTime()));
+			    psReplaceScore.setTimestamp(9, new Timestamp(score.getLastUpdate().getTime()));
 			    psReplaceScore.executeUpdate();
 			} else {
 			    // Ship statistics
@@ -200,12 +212,11 @@ public class pubhubstats extends PubBotModule {
 	                psReplaceScore.setInt(6, score.getLosses());
 	                psReplaceScore.setInt(7, score.getRate());
 	                psReplaceScore.setFloat(8, score.getAverage());
-	                psReplaceScore.setTimestamp(9, new Timestamp(score.getDate().getTime()));
+	                psReplaceScore.setTimestamp(9, new Timestamp(score.getLastUpdate().getTime()));
 	                psReplaceScore.executeUpdate();
 			    }
 			}
-			
-			stats.remove(score);
+			score.setLastSave(new Date());
 		}
 	}
 	

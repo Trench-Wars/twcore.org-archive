@@ -97,6 +97,12 @@ public class pubhub extends SubspaceBot
         SPAWN_DELAY = 100;
 
   }
+  
+    @Override
+    public void handleDisconnect() {
+        moduleHandler.unloadAllModules();
+        m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("die"));
+    }
 
   /**
    * This method handles a LoggedOn event.
@@ -233,6 +239,7 @@ public class pubhub extends SubspaceBot
   public void doOffCmd()
   {
     m_botAction.sendChatMessage("Logging all pub bots off.");
+    moduleHandler.unloadAllModules();
     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("die"));
     m_botAction.scheduleTask(new LogOffTask(), LOG_OFF_DELAY);
   }
@@ -964,7 +971,8 @@ public class pubhub extends SubspaceBot
   {
     public void run()
     {
-      m_botAction.die();
+        m_botAction.cancelTasks();
+        m_botAction.die();
     }
   }
 
