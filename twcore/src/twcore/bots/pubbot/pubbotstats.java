@@ -31,6 +31,8 @@ public class pubbotstats extends PubBotModule {
   
   protected final String IPCCHANNEL = "pubstats";
   private final int SEND_STATS_TIME = 1000*60*15; // 15 minutes
+  
+  private boolean debug = true;
 
   public void initializeModule() {
       m_botAction.scheduleTaskAtFixedRate(new sendStatsTask(), SEND_STATS_TIME, SEND_STATS_TIME);
@@ -136,7 +138,7 @@ public class pubbotstats extends PubBotModule {
   }
 
   public void cancel() {
-	  m_botAction.ipcTransmit(IPCCHANNEL, stats);
+	  //m_botAction.ipcTransmit(IPCCHANNEL, stats);
 	  m_botAction.cancelTasks();
   }
   
@@ -145,6 +147,8 @@ public class pubbotstats extends PubBotModule {
   private void updateStats(Player player, String action) {
 	  PubStatsScore pubStatsScore;
 	  PubStatsPlayer pubStatsPlayer;
+	  
+	  m_botAction.sendChatMessage(player.getPlayerName()+": "+action);
 	  
 	  boolean previousScoreAvailable = false;
 	  
@@ -166,10 +170,11 @@ public class pubbotstats extends PubBotModule {
 		      // the IP wasn't found in the infoBuffer yet, request it ourselves then
 		      m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*info");
 		      infoRequested = true;   // Put missing info on this object later on
+		      debug("Requesting *info myself");
 		  }
-		  
+		      
 		  pubStatsScore = new PubStatsScore(	pubStatsPlayer, 
-				  								player.getShipType(),
+				  								0,    // Total statistics: ship is always 0
 				  								player.getFlagPoints(),
 				  								player.getKillPoints(),
 				  								player.getWins(),
@@ -180,7 +185,7 @@ public class pubbotstats extends PubBotModule {
 	  }
 	  
 	  
-	  if(action.equals("scoreupdate") || action.equals("killee") || action.equals("killer")) {
+	  if(player.getShipType() > 0 && (action.equals("scoreupdate") || action.equals("killee") || action.equals("killer"))) {
 		  PubStatsScore pubStatsScoreShip;
 		  if(stats.containsKey(player.getShipType()+":"+player.getPlayerID())) {
 			  pubStatsScoreShip = stats.get(player.getShipType()+":"+player.getPlayerID());
@@ -203,7 +208,13 @@ public class pubbotstats extends PubBotModule {
 			  pubStatsScoreShip.setLosses(player.getLosses()-pubStatsScore.getLosses());
 			  pubStatsScoreShip.setRate(calculateRating(pubStatsScoreShip.getKillPoints(), pubStatsScoreShip.getWins(), pubStatsScoreShip.getLosses()));
 			  pubStatsScoreShip.setAverage(calculateAverage(pubStatsScoreShip.getKillPoints(), pubStatsScoreShip.getWins()));
+			  pubStatsScoreShip.resetLastUpdate();
 		  }
+		  
+		  // TODO: Update total score aswell?
+		  pubStatsScore.resetLastUpdate();
+		  // etc
+		  
 		  stats.put(player.getShipType()+":"+player.getPlayerID(), pubStatsScoreShip);
 	  } else if(action.equals("entered")) {
 		  // No update necessary here
@@ -225,7 +236,7 @@ public class pubbotstats extends PubBotModule {
 	  }
 	  
 	  stats.put(":"+player.getPlayerID(), pubStatsScore);
-	  m_botAction.sendChatMessage("Stats size: "+stats.size()); 
+	  debug("Stats size: "+stats.size()); 
   }
   
   private int calculateRating(int killPoints, int wins, int losses) {
@@ -369,6 +380,12 @@ public class pubbotstats extends PubBotModule {
 	  if(endIndex == -1)
 		  endIndex = message.length();
 	  return message.substring(beginIndex, endIndex).trim();
+  }
+  
+  
+  private void debug(String message) {
+      if(debug)
+          m_botAction.sendChatMessage(message);
   }
   
   

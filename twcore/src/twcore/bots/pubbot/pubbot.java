@@ -64,6 +64,12 @@ public class pubbot extends SubspaceBot
     connected = false;
     requestEvents();
   }
+  
+  public void handleDisconnect() {
+      m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("dying", pubHubBot));
+      moduleHandler.unloadAllModules();
+      m_botAction.cancelTasks();
+  }
 
   /**
    * This method handles the logging on of the bot.
@@ -90,6 +96,7 @@ public class pubbot extends SubspaceBot
     if(notify)
       m_botAction.sendChatMessage("Logging out of " + currentArena + ".");
     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("dying", pubHubBot));
+    moduleHandler.unloadAllModules();
     m_botAction.scheduleTask(new LogOffTask(), LOG_OFF_DELAY);
   }
 
@@ -190,6 +197,7 @@ public class pubbot extends SubspaceBot
   {
     PubBotModule module;
 
+    //m_botAction.sendChatMessage("loading "+argString);
     moduleHandler.loadModule(argString);
     module = (PubBotModule) moduleHandler.getModule(argString);
     module.initializeModule(IPCCHANNEL, pubHubBot);
@@ -429,6 +437,7 @@ public class pubbot extends SubspaceBot
   {
     public void run()
     {
+      m_botAction.cancelTasks();
       m_botAction.die( "normal log-off" );
     }
   }

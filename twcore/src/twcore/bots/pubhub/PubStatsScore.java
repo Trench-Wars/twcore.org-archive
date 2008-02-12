@@ -21,8 +21,11 @@ public class PubStatsScore {
 	private int rate;
 	private float average;
 	
-	private Date date;
+	private Date lastUpdate;
 	private boolean scorereset = false;
+	
+	// Variables to check if this score has been updated since last updatre
+	private Date lastSave;
 	
 	public PubStatsScore(PubStatsPlayer player, int ship, int flagPoints, int killPoints, int wins, int losses, int rate, float average) {
 		this.player = player;
@@ -34,7 +37,7 @@ public class PubStatsScore {
 		this.rate = rate;
 		this.average = average;
 		
-		this.date = new Date();
+		this.lastUpdate = new Date();
 	}
 	
 	//******************************* Getters & Setters *************************************//
@@ -155,15 +158,19 @@ public class PubStatsScore {
 	/**
 	 * @return the date
 	 */
-	public Date getDate() {
-		return date;
+	public Date getLastUpdate() {
+		return lastUpdate;
 	}
 
 	/**
 	 * @param date the date to set
 	 */
-	public void setDate(Date date) {
-		this.date = date;
+	public void setLastUpdate(Date date) {
+		this.lastUpdate = date;
+	}
+	
+	public void resetLastUpdate() {
+	    this.lastUpdate = new Date();
 	}
 
 	/**
@@ -180,6 +187,20 @@ public class PubStatsScore {
 		this.scorereset = scorereset;
 	}
 
+    /**
+     * @return the lastSave
+     */
+    public Date getLastSave() {
+        return lastSave;
+    }
+
+    /**
+     * @param lastSave the lastSave to set
+     */
+    public void setLastSave(Date lastSave) {
+        this.lastSave = lastSave;
+    }
+
     /* (non-Javadoc)
      * @see java.lang.Object#hashCode()
      */
@@ -188,7 +209,7 @@ public class PubStatsScore {
         final int prime = 31;
         int result = 1;
         result = prime * result + Float.floatToIntBits(average);
-        result = prime * result + ((date == null) ? 0 : date.hashCode());
+        result = prime * result + ((lastUpdate == null) ? 0 : lastUpdate.hashCode());
         result = prime * result + flagPoints;
         result = prime * result + killPoints;
         result = prime * result + losses;
@@ -215,7 +236,7 @@ public class PubStatsScore {
         final PubStatsScore other = (PubStatsScore) obj;
         if( !player.equals(other.player) ||
             this.ship != other.ship ||
-            !this.date.equals(date) ||
+            !this.lastUpdate.equals(lastUpdate) ||
             this.wins != other.wins || 
             this.losses != other.losses || 
             this.killPoints != other.killPoints || 
