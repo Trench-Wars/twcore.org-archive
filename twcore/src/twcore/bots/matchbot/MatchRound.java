@@ -92,9 +92,10 @@ public class MatchRound
     boolean m_fbAffectsEntireGame = false;
     boolean m_fbExtension = false;
     // -1 - unknown;  0 - off; 1 - on
-    int m_blueoutState = -1;
+    int m_blueoutState = 0;
+    public static int BLUEOUT_OFF = 0;
+    public static int BLUEOUT_ON = 1;
     boolean waitingOnBall = false;
-    boolean m_blueoutDesiredState = false;
 
     // this is for lagchecking:
     String m_lagPlayerName;
@@ -405,12 +406,12 @@ public class MatchRound
             */
             if (msg.equals("Public Messages LOCKED"))
             {
-                if (!m_blueoutDesiredState)
+                if (m_blueoutState == BLUEOUT_OFF)
                     m_botAction.toggleLockPublicChat();
             }
             else if (msg.equals("Public Messages UNLOCKED"))
             {
-                if (m_blueoutDesiredState)
+                if (m_blueoutState == BLUEOUT_ON)
                     m_botAction.toggleLockPublicChat();
             };
         };
@@ -1599,17 +1600,14 @@ public class MatchRound
 
     public void toggleBlueout(boolean blueout)
     {
-        m_blueoutDesiredState = blueout;
-        if((m_blueoutState == -1) || ((m_blueoutState == 0) && (m_blueoutDesiredState)) || ((m_blueoutState == 1) && (!m_blueoutDesiredState)))
+        if(((m_blueoutState == BLUEOUT_OFF) && (blueout)) || ((m_blueoutState == BLUEOUT_ON) && (!blueout)))
         {
-            if (m_blueoutDesiredState)
-            {
+            if (blueout){
                 m_logger.sendArenaMessage("Blueout has been enabled. Staff, don't speak in public from now on.");
 				m_timeBOEnabled = System.currentTimeMillis();
                 m_blueoutState = 1;
             }
-            else if (m_blueoutState == 1)
-            {
+            else{
                 m_logger.sendArenaMessage("Blueout has been disabled. You can speak in public now.");
                 m_blueoutState = 0;
             }
@@ -1619,16 +1617,13 @@ public class MatchRound
 
     public void requestBlueout(boolean blueout)
     {
-        m_blueoutDesiredState = blueout;
         if (m_fnRoundState >= 2)
-            toggleBlueout(m_blueoutDesiredState);
+            toggleBlueout(blueout);
     };
 
     public void checkBlueout()
     {
-        if (m_rules.getInt("blueout") == 2)
-            toggleBlueout(true);
-        else if ((m_rules.getInt("blueout") == 1) && (m_blueoutDesiredState))
+        if (m_rules.getInt("blueout") == 2 || m_rules.getInt("blueout") == 1)
             toggleBlueout(true);
         else
             toggleBlueout(false);
@@ -1839,7 +1834,7 @@ public class MatchRound
             m_botAction.cancelTask(m_moveAround);
 
         if (m_blueoutState == 1)
-            m_botAction.toggleBlueOut();
+            m_botAction.toggleLockPublicChat();
 
         if (updateScores != null)
             m_botAction.cancelTask(updateScores);
