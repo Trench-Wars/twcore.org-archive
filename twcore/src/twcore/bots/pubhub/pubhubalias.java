@@ -372,7 +372,7 @@ public class pubhubalias extends PubBotModule
 			LinkedList<String> IPs = new LinkedList<String>();
 			LinkedList<Integer> MIDs = new LinkedList<Integer>();
 			while( p1Set.previous() ) {
-				IPs.add( p1Set.getString("A.fnIP") );
+				IPs.add( p1Set.getString("A.fcIPString") );
 				MIDs.add( p1Set.getInt("A.fnMachineID") );
 			}
 
@@ -386,13 +386,13 @@ public class pubhubalias extends PubBotModule
 				display = "";
 				if( MIDs.contains( p2Set.getInt("A.fnMachineID") ) )
 					matchMID = true;
-				if( IPs.contains( p2Set.getString("A.fnIP") ) )
+				if( IPs.contains( p2Set.getString("A.fcIPString") ) )
 					matchIP = true;
 
 				if( matchMID == true )
 					display += "MID match: " + p2Set.getInt("A.fnMachineID") + " ";
 				if( matchIP == true )
-					display += " IP match: " + p2Set.getString("A.fnIP");
+					display += " IP match: " + p2Set.getString("A.fcIPString");
 
 				if( display != "" ) {
 					if( results < m_maxRecords ) {
@@ -402,8 +402,8 @@ public class pubhubalias extends PubBotModule
 				}
 			}
 
-                        m_botAction.SQLClose( p1Set );
-                        m_botAction.SQLClose( p2Set );
+            m_botAction.SQLClose( p1Set );
+            m_botAction.SQLClose( p2Set );
 			if( results == 0 )
 				m_botAction.sendChatMessage( "No matching IPs or MIDs found." );
 			if( results > m_maxRecords )
