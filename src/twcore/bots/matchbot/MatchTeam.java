@@ -353,7 +353,7 @@ public class MatchTeam
         }
         MatchPlayer p = getPlayer( name, true );
         if( p == null ) {
-            m_botAction.sendPrivateMessage(name, "You have not been found in the records.  Please notify a staff member with ?help immediately." );
+            m_botAction.sendPrivateMessage(name, "You have not been found in the bot's records.  Please notify a staff member with ?help immediately." );
             m_botAction.sendChatMessage( name + " not found in TWD MatchTeam records.  Please report to coding staff." );
             command_remove("^forceremove^", new String[]{name} );
             return;
@@ -371,7 +371,7 @@ public class MatchTeam
         }
 
         try {
-            ResultSet qryPlayerAlias = m_botAction.SQLQuery( "website",
+            ResultSet qryPlayerAlias = m_botAction.SQLQuery( dbConn,
                     "SELECT fcIP, fnMID FROM tblAliasSuppression WHERE fnUserID = (SELECT fnUserID FROM tblUser " +
                     "WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' LIMIT 0,1) LIMIT 0,1" );
 
@@ -388,7 +388,7 @@ public class MatchTeam
 
             // First verify MID.  If MID does not match perfectly, search for a mod-entered alternate
             if( fnMID != mID ) {
-                ResultSet results = m_botAction.SQLQuery("website", "SELECT fnMID FROM tblTWDPlayerMID "
+                ResultSet results = m_botAction.SQLQuery(dbConn, "SELECT fnMID FROM tblTWDPlayerMID "
                         + "WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' "
                         + "LIMIT 0,1)");
                 boolean match = false;
@@ -414,7 +414,7 @@ public class MatchTeam
             if( currentIPparts.length < 2 || recordedIPparts.length < 2 ||
                     currentIPparts[0] != recordedIPparts[0] ||
                     currentIPparts[1] != recordedIPparts[1] ) {
-                ResultSet results = m_botAction.SQLQuery("website", "SELECT fcIP FROM tblTWDPlayerMID "
+                ResultSet results = m_botAction.SQLQuery(dbConn, "SELECT fcIP FROM tblTWDPlayerMID "
                         + "WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' "
                         + "LIMIT 0,1)");
                 boolean match = false;
