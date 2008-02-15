@@ -18,7 +18,6 @@ import twcore.core.events.PlayerLeft;
 import twcore.core.events.ScoreReset;
 import twcore.core.events.ScoreUpdate;
 import twcore.core.game.Player;
-import twcore.core.util.Tools;
 
 public class pubbotstats extends PubBotModule {
   
