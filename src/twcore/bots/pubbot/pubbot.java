@@ -20,6 +20,7 @@ import twcore.core.events.FlagVictory;
 import twcore.core.events.FrequencyChange;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.InterProcessEvent;
+import twcore.core.events.KotHReset;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
@@ -360,6 +361,7 @@ public class pubbot extends SubspaceBot
     eventRequester.request(EventRequester.ARENA_LIST);
     eventRequester.request(EventRequester.PLAYER_LEFT);
     eventRequester.request(EventRequester.MESSAGE);
+    eventRequester.request(EventRequester.KOTH_RESET);
   }
 
   /**
@@ -454,6 +456,18 @@ public class pubbot extends SubspaceBot
       if(m_botAction.getArenaSize() == 1)
         doDieCmd(true);
     }
+  }
+  
+  /**
+   * Handles restarting of the KOTH game
+   * 
+   * @param event is the event to handle.
+   */
+  public void handleEvent(KotHReset event) {
+      if(event.isEnabled() && event.getPlayerID()==-1) {
+          // Make the bot ignore the KOTH game (send that he's out immediately after restarting the game)
+          m_botAction.endKOTH();
+      }
   }
 
   public void handleEvent(PlayerEntered event)
