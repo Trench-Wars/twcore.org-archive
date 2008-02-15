@@ -109,13 +109,11 @@ public class pubbotstats extends PubBotModule {
 		  //String timezone = getInfo(message, "TimeZoneBias:");
 	      
 	      if(infoRequested.containsKey(playerName)) {
-	          Tools.printLog(message);
 	          fillBlankPlayerInfo();
 	      } else {
 	          // fuzzy name player check
 	          for(String name:infoRequested.keySet()) {
 	              if(playerName.startsWith(name)) {
-	                  Tools.printLog(message);
 	                  fillBlankPlayerInfo();
 	              }
 	          }
@@ -139,14 +137,12 @@ public class pubbotstats extends PubBotModule {
 	          
 	          if(infoRequested.containsKey(playerName.trim())) {
 	              infoRequested.remove(playerName);
-	              Tools.printLog(message);
 	              fillBlankPlayerInfo();
 	          } else {
 	              // fuzzy name player check
 	              for(String name:infoRequested.keySet()) {
 	                  if(playerName.startsWith(name)) {
 	                      infoRequested.remove(name);
-	                      Tools.printLog(message);
 	                      fillBlankPlayerInfo();
 	                  }
 	              }
@@ -200,8 +196,6 @@ public class pubbotstats extends PubBotModule {
   private synchronized void updateStats(Player player, String action) {
 	  PubStatsScore pubStatsScore;
 	  PubStatsPlayer pubStatsPlayer;
-	  
-	  m_botAction.sendChatMessage(player.getPlayerName()+": "+action);
 	  
 	  boolean previousScoreAvailable = false;
 	  
