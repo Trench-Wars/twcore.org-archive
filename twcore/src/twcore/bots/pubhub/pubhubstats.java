@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
@@ -18,6 +19,7 @@ import twcore.core.util.Tools;
 public class pubhubstats extends PubBotModule {
 	//private String database = "pubstats";
 	private String database = "local";
+	private String uniqueConnectionID = "pubstats";
 
 	// PreparedStatements
 	PreparedStatement psGetPlayerID, psUpdatePlayer, psReplaceScore, psUpdateScore, psGetScoreCalc, psUpdateScoreCalc, psScoreExists;
@@ -30,13 +32,13 @@ public class pubhubstats extends PubBotModule {
 	 * m_botAction has been initialized.
 	 */
 	public void initializeModule() {
-	    psGetPlayerID =  m_botAction.createPreparedStatement(database, "pubstats", "SELECT fnID FROM tblPlayer WHERE fcName = ? LIMIT 0,1");
-	    psUpdatePlayer = m_botAction.createPreparedStatement(database, "pubstats", "REPLACE INTO tblPlayer(fnId, fcName, fcSquad, fcIP, fnTimezone, fcUsage, fdLastSeen) VALUES (?,?,?,?,?,?,?)", true);
-	    psReplaceScore = m_botAction.createPreparedStatement(database, "pubstats", "REPLACE INTO tblScore(fnPlayerId, fnShip, fnFlagPoints, fnKillPoints, fnWins, fnLosses, fnRate, fnAverage, ftLastUpdate) VALUES (?,?,?,?,?,?,?,?,?)");
-	    psUpdateScore = m_botAction.createPreparedStatement(database, "pubstats", "UPDATE tblScore SET fnFlagPoints = fnFlagPoints + ?, fnKillPoints = fnKillPoints + ?, fnWins = fnWins + ?, fnLosses = fnLosses + ?, fnRate = 0, fnAverage = 0 WHERE fnPlayerId = ? AND fnShip = ?");
-	    psGetScoreCalc = m_botAction.createPreparedStatement(database, "pubstats", "SELECT fnKillPoints, fnWins, fnLosses FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
-	    psUpdateScoreCalc = m_botAction.createPreparedStatement(database, "pubstats", "UPDATE tblSCORE SET fnRate = ?, fnAverage = ? WHERE fnPlayerId = ? AND fnShip = ?");
-	    psScoreExists = m_botAction.createPreparedStatement(database, "pubstats", "SELECT fnShip FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
+	    psGetPlayerID =  m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnID FROM tblPlayer WHERE fcName = ? LIMIT 0,1");
+	    psUpdatePlayer = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblPlayer(fnId, fcName, fcSquad, fcIP, fnTimezone, fcUsage, fdLastSeen) VALUES (?,?,?,?,?,?,?)", true);
+	    psReplaceScore = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblScore(fnPlayerId, fnShip, fnFlagPoints, fnKillPoints, fnWins, fnLosses, fnRate, fnAverage, ftLastUpdate) VALUES (?,?,?,?,?,?,?,?,?)");
+	    psUpdateScore = m_botAction.createPreparedStatement(database, uniqueConnectionID, "UPDATE tblScore SET fnFlagPoints = fnFlagPoints + ?, fnKillPoints = fnKillPoints + ?, fnWins = fnWins + ?, fnLosses = fnLosses + ?, fnRate = 0, fnAverage = 0 WHERE fnPlayerId = ? AND fnShip = ?");
+	    psGetScoreCalc = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnKillPoints, fnWins, fnLosses FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
+	    psUpdateScoreCalc = m_botAction.createPreparedStatement(database, uniqueConnectionID, "UPDATE tblSCORE SET fnRate = ?, fnAverage = ? WHERE fnPlayerId = ? AND fnShip = ?");
+	    psScoreExists = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnShip FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
 	    
 	    if(psGetPlayerID == null || psUpdatePlayer == null || psReplaceScore == null || psUpdateScore == null || psGetScoreCalc == null || psUpdateScoreCalc == null || psScoreExists == null) {
 	        Tools.printLog("pubhubstats: One or more PreparedStatements are null! Module pubhubstats disabled.");
@@ -64,23 +66,25 @@ public class pubhubstats extends PubBotModule {
 	{
 
 		// If the event.getObject() is anything else then the HashMap then return
-		if(event.getObject() instanceof HashMap == false) {
+		if(event.getObject() instanceof Map == false) {
 			return;
 		}
 		if(event.getChannel().equals(pubhub.IPCPUBSTATS) == false) {
 			return;
 		}
 		
-		HashMap<String, PubStatsScore> stats = (HashMap<String, PubStatsScore>)event.getObject();
-		try {
-		    if(stats != null && stats.size() > 0) {
-		        updateDatabase(stats.values());
-		        stats.clear();
-		    }
-		} catch(SQLException sqle) {
-		    m_botAction.sendChatMessage(2, "SQL Exception encountered while saving "+stats.size()+" stats to database: "+sqle.getMessage());
-		    Tools.printLog("SQL Exception encountered while saving "+stats.size()+" stats to database: "+sqle.getMessage());
-		    Tools.printStackTrace(sqle);
+		synchronized(event.getObject()) {
+    		Map<String, PubStatsScore> stats = (Map<String, PubStatsScore>)event.getObject();
+    		try {
+    		    if(stats != null && stats.size() > 0) {
+    		        updateDatabase(stats.values());
+    		        stats.clear();
+    		    }
+    		} catch(SQLException sqle) {
+    		    m_botAction.sendChatMessage(2, "SQL Exception encountered while saving "+stats.size()+" stats to database: "+sqle.getMessage());
+    		    Tools.printLog("SQL Exception encountered while saving "+stats.size()+" stats to database: "+sqle.getMessage());
+    		    Tools.printStackTrace(sqle);
+    		}
 		}
   }
 
@@ -89,12 +93,12 @@ public class pubhubstats extends PubBotModule {
 	 */
 	public void cancel() {
 	    stop = true;
-	    m_botAction.closePreparedStatement(database, psGetPlayerID);
-	    m_botAction.closePreparedStatement(database, psUpdatePlayer);
-	    m_botAction.closePreparedStatement(database, psReplaceScore);
-	    m_botAction.closePreparedStatement(database, psUpdateScore);
-	    m_botAction.closePreparedStatement(database, psUpdateScoreCalc);
-	    m_botAction.closePreparedStatement(database, psScoreExists);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psGetPlayerID);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psUpdatePlayer);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psReplaceScore);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psUpdateScore);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psUpdateScoreCalc);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psScoreExists);
 	}
 
 	/**
