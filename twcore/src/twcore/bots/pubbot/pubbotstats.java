@@ -35,7 +35,7 @@ public class pubbotstats extends PubBotModule {
   protected final String IPCCHANNEL = "pubstats";
   private final int SEND_STATS_TIME = 1000*60*15; // 15 minutes
   
-  private boolean debug = true;
+  private boolean debug = false;
 
   public void initializeModule() {
       m_botAction.scheduleTaskAtFixedRate(new sendStatsTask(), SEND_STATS_TIME, SEND_STATS_TIME);
