@@ -33,6 +33,7 @@ public class pubbotmessage extends PubBotModule
     	if(message.toLowerCase().startsWith("time:"))
     	{
     		String name = checkQueue.next();
+    		if(name == null) return; 
     		String pieces[] = message.split(":");
     		int mins = Integer.parseInt(pieces[3]);
     		if(mins < 1)
@@ -110,8 +111,12 @@ class Queue<T>
 
 	public T next()
 	{
-		T obj = objects.get(0);
-		objects.remove(0);
+	    T obj = null;
+
+	    try {
+	        obj = objects.get(0);
+	        objects.remove(0);
+	    } catch(IndexOutOfBoundsException ioobe) {}
 		return obj;
 	}
 
