@@ -388,7 +388,8 @@ public class pubhub extends SubspaceBot
 			  modules = autoLoadModuleList;
 		  }
 	  } else {											 // Autoload default modules + warning
-		  m_botAction.sendChatMessage("ERROR: Cannot autoload modules on "+pubBot+": Arena/location is unknown - autoloading default modules.");
+		  //m_botAction.sendChatMessage("ERROR: Cannot autoload modules on "+pubBot+": Arena/location is unknown - autoloading default modules.");
+	      // usually caused if the bot disconnected (and thus removed from botList) before loading modules
 		  modules = autoLoadModuleList;
 	  }
 	  
