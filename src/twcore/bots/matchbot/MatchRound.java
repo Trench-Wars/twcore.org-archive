@@ -1663,9 +1663,9 @@ public class MatchRound
                 m_scoreBoard.showObject( 240 + (team2Minutes - team2Minutes % 10)/10 );
 	    	    } else { //Else display ld lj on normal scoreboard
                 for (int i = team1Score.length() - 1; i > -1; i--)
-                    m_scoreBoard.showObject(Integer.parseInt("" + team1Score.charAt(i)) + 200 + (team1Score.length() - 1 - i) * 10);
+                    m_scoreBoard.showObject(Integer.parseInt("" + team1Score.charAt(i)) + 100 + (team1Score.length() - 1 - i) * 10);
                 for (int i = team2Score.length() - 1; i > -1; i--)
-                    m_scoreBoard.showObject(Integer.parseInt("" + team2Score.charAt(i)) + 100 + (team2Score.length() - 1 - i) * 10);
+                    m_scoreBoard.showObject(Integer.parseInt("" + team2Score.charAt(i)) + 200 + (team2Score.length() - 1 - i) * 10);
             }
             if (m_generalTime >= 0)
             {
