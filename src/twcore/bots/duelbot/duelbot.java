@@ -912,7 +912,12 @@ public class duelbot extends SubspaceBot {
             shutDownDie = true;
             if( duels.size() == 0 ) {
                 m_botAction.sendArenaMessage( "Shutting down for core maintenance.", 1 );
-                m_botAction.die();
+                TimerTask dieTask = new TimerTask() {
+                    public void run() {
+                        m_botAction.die();
+                    }
+                };
+                m_botAction.scheduleTask(dieTask, 5000);
             }
         }
     }
@@ -1310,7 +1315,12 @@ public class duelbot extends SubspaceBot {
 
         if( shutDownDie && duels.size() == 0 ) {
             m_botAction.sendArenaMessage( "Shutting down for core maintenance.", 1 );
-            m_botAction.die();
+            TimerTask dieTask = new TimerTask() {
+                public void run() {
+                    m_botAction.die();
+                }
+            };
+            m_botAction.scheduleTask(dieTask, 5000);
         }
     }
 
