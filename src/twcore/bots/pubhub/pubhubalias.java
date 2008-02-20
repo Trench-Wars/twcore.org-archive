@@ -431,11 +431,11 @@ public class pubhubalias extends PubBotModule
 				"!Info     <PlayerName>         - Shows stored info of <PlayerName>",
 				"!Compare  <Player1>:<Player2>  - Compares and shows matches",
 				"!MaxResults <#>                - Changes the max. number of results to return",
-				"!NameWatch <Name>:<reason>     - Watches logins for <Name> and shows the specified <reason>",
+				"!NameWatch <Name>:<reason>     - Watches logins for <Name> with the specified <reason>",
 				"!NameWatch <Name>              - Disables the login watch for <Name>",
-				"!IPWatch   <IP>:<reason>       - Watches logins for <IP> and shows the specified <reason>",
+				"!IPWatch   <IP>:<reason>       - Watches logins for <IP> with the specified <reason>",
 				"!IPWatch   <IP>                - Disables the login watch for <IP>",
-				"!MIDWatch  <MID>:<reason>      - Watches logins for <MID> and shows the specified <reason>",
+				"!MIDWatch  <MID>:<reason>      - Watches logins for <MID> with the specified <reason>",
 				"!MIDWatch  <MID>               - Disables the login watch for <MID>",
 				"!ClearNameWatch                - Clears all login watches for names",
 				"!ClearIPWatch                  - Clears all login watches for IPs",
@@ -515,7 +515,7 @@ public class pubhubalias extends PubBotModule
 	    String[] params = message.split(":");
 	    String IP = params[0].trim();
 	    
-		if( watchedIPs.containsKey( IP ) ) {
+		if( watchedIPs.containsKey( IP ) && (params.length == 1 || params[1] == null || params[1].length() == 0)) {
 			watchedIPs.remove( IP );
 			m_botAction.sendChatMessage( "Login watching disabled for IPs starting with " + IP );
 		} else if(params.length == 1 || params[1] == null || params[1].length() == 0){
@@ -523,8 +523,12 @@ public class pubhubalias extends PubBotModule
 		} else { 
 		    String comment = params[1].trim();
 		    
+		    if(watchedIPs.containsKey(IP)) {
+		        m_botAction.sendChatMessage( "Login watching for (partial) IP "+IP+" reason changed.");
+		    } else {
+		        m_botAction.sendChatMessage( "Login watching enabled for IPs starting with " + IP );
+		    }
 			watchedIPs.put( IP, sender + ": "+comment );
-			m_botAction.sendChatMessage( "Login watching enabled for IPs starting with " + IP );
 		}
 	}
 
@@ -536,7 +540,7 @@ public class pubhubalias extends PubBotModule
 	    String[] params = message.split(":");
 	    String name = params[0].trim();
 	    
-		if( watchedNames.containsKey( name.toLowerCase() ) ) {
+		if( watchedNames.containsKey( name.toLowerCase() ) && (params.length == 1 || params[1] == null || params[1].length() == 0)) {
 			watchedNames.remove( name.toLowerCase() );
 			m_botAction.sendChatMessage( "Login watching disabled for '" + name + "'." );
 		} else if(params.length == 1 || params[1] == null || params[1].length() == 0) {
@@ -544,8 +548,12 @@ public class pubhubalias extends PubBotModule
 		} else {
 		    String comment = params[1].trim();
 		    
+		    if(watchedNames.containsKey(name.toLowerCase())) {
+		        m_botAction.sendChatMessage( "Login watching for '"+name+"' reason changed.");
+		    } else {
+		        m_botAction.sendChatMessage( "Login watching enabled for '" + name + "'." );
+		    }
 			watchedNames.put( name.toLowerCase(), sender + ": "+comment );
-			m_botAction.sendChatMessage( "Login watching enabled for '" + name + "'." );
 		}
 	}
 
@@ -557,15 +565,21 @@ public class pubhubalias extends PubBotModule
 	    String[] params = message.split(":");
 	    String MID = params[0].trim();
 	    
-		if( watchedMIDs.containsKey( MID ) ) {
+		if( watchedMIDs.containsKey( MID ) && (params.length == 1 || params[1] == null || params[1].length() == 0)) {
 			watchedMIDs.remove( MID );
 			m_botAction.sendChatMessage( "Login watching disabled for MID: " + MID );
 		} else if(params.length == 1 || params[1] == null || params[1].length() == 0) {
 		    m_botAction.sendChatMessage( "Please specify a comment/reason after the MID seperated by a : . For example, !MIDWatch 777777777:I like the number .");
 		} else {
 		    String comment = params[1].trim();
+		    
+		    if(watchedMIDs.containsKey(MID)) {
+		        m_botAction.sendChatMessage( "Login watching for MID "+MID+" reason changed.");
+		    } else {
+		        m_botAction.sendChatMessage( "Login watching enabled for MID: " + MID );
+		    }
 			watchedMIDs.put( MID, sender + ": "+comment );
-			m_botAction.sendChatMessage( "Login watching enabled for MID: " + MID );
+			
 		}
 	}
 
