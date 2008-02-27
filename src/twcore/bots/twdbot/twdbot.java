@@ -602,7 +602,7 @@ public class twdbot extends SubspaceBot {
             {
                 if (thisP.getTeamID() == 0)
                 {
-                    ResultSet s = m_botAction.SQLQuery(localdb, "select fnTeamID from tblTeam where fcTeamName = '" + Tools.addSlashesToString(squad) + "' and (fdDeleted = 0 or fdDeleted IS NULL)");
+                    ResultSet s = m_botAction.SQLQuery(webdb, "select fnTeamID from tblTeam where fcTeamName = '" + Tools.addSlashesToString(squad) + "' and (fdDeleted = 0 or fdDeleted IS NULL)");
                     if (s.next()) {
                         m_botAction.sendSmartPrivateMessage(owner, "That squad is already registered..");
                         m_botAction.SQLClose( s );;
@@ -618,12 +618,12 @@ public class twdbot extends SubspaceBot {
                             Tools.addSlashesToString(squad),
                             time
                     };
-                    m_botAction.SQLInsertInto(localdb, "tblTeam", fields, values);
+                    m_botAction.SQLInsertInto(webdb, "tblTeam", fields, values);
 
                     int teamID;
 
                     // This query gets the latest inserted TeamID from the database to associate the player with
-                    ResultSet s2 = m_botAction.SQLQuery(localdb, "SELECT MAX(fnTeamID) AS fnTeamID FROM tblTeam");
+                    ResultSet s2 = m_botAction.SQLQuery(webdb, "SELECT MAX(fnTeamID) AS fnTeamID FROM tblTeam");
                     if (s2.next()) {
                         teamID = s2.getInt("fnTeamID");
                         m_botAction.SQLClose( s2 );
@@ -645,7 +645,7 @@ public class twdbot extends SubspaceBot {
                             time,
                             "1"
                     };
-                    m_botAction.SQLInsertInto(localdb, "tblTeamUser", fields2, values2);
+                    m_botAction.SQLInsertInto(webdb, "tblTeamUser", fields2, values2);
 
                     thisP.giveRank(4);
 
