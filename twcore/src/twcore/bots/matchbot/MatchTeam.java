@@ -67,6 +67,7 @@ public class MatchTeam
     boolean m_turn = false;
     boolean m_blueoutState = false;
     boolean m_checkIPMID = false;
+    boolean m_debug = false;            // True if debug info should be sent to logs
 
     LinkedList<MatchPlayer> m_players;
     LinkedList<String> m_captains;
@@ -115,6 +116,7 @@ public class MatchTeam
             populateCaptainList();
         }
         m_checkIPMID = m_rules.getInt("strictmidip") == 1;
+        m_debug = m_rules.getInt("debug") == 1;
     }
 
     // saves player data
@@ -351,10 +353,40 @@ public class MatchTeam
                 m_botAction.sendSmartPrivateMessage(name, "You are allowed to play on this computer.");
             return;
         }
+
+        // (Probably temporary) extra-surety check for getting a player.
+        // If not found in this MatchTeam, try getting an exact match from each team.
+        // If those fail, try a fuzzy match on both.  If THOSE fail we know something is up.
         MatchPlayer p = getPlayer( name, true );
+        if( p == null ) {
+            m_round.m_team1.getPlayer(name, true );
+            if( p == null ) {
+                m_round.m_team2.getPlayer(name, true );
+                if( p == null ) {
+                    m_round.m_team1.getPlayer(name, false );
+                    if( p == null ) {
+                        m_round.m_team2.getPlayer(name, false );
+                    }
+                }
+            }
+        }
+
         if( p == null ) {
             m_botAction.sendPrivateMessage(name, "You have not been found in the bot's records.  Please notify a staff member with ?help immediately." );
             m_botAction.sendChatMessage( name + " not found in TWD MatchTeam records.  Please report to coding staff." );
+            if( m_debug ) {
+                String namesOnTeam1 = "";
+                String namesOnTeam2 = "";
+                for( MatchPlayer p1 : m_round.m_team1.m_players ) {
+                    namesOnTeam1 += "'" + p1.getPlayerName() + "' ";
+                }
+                for( MatchPlayer p2 : m_round.m_team2.m_players ) {
+                    namesOnTeam2 += "'" + p2.getPlayerName() + "' ";
+                }
+                Tools.printLog(name + " not in TWD records for MatchTeam data of " + m_fcTeamName + "." );
+                Tools.printLog("Team1 players on " + m_round.m_team1.getTeamName() + " (" + m_round.m_team1.getFrequency() + "): " + namesOnTeam1 );
+                Tools.printLog("Team2 players on " + m_round.m_team2.getTeamName() + " (" + m_round.m_team2.getFrequency() + "): " + namesOnTeam2 );
+            }
             command_remove("^forceremove^", new String[]{name} );
             return;
         }
@@ -364,8 +396,10 @@ public class MatchTeam
         try {
             mID = Integer.parseInt(macID);
         } catch (NumberFormatException e) {
-            m_botAction.sendPrivateMessage(name, "Error getting you from the records.  Please notify a staff member with ?help immediately." );
-            m_botAction.sendChatMessage( name + "'s machine ID could not be read properly!  Please report to coding staff." );
+            m_botAction.sendPrivateMessage(name, "Error getting some of your data from the records.  Please notify a staff member with ?help immediately." );
+            m_botAction.sendChatMessage( name + "'s machine ID could not be read properly!  Please report to coding staff.  macID: " + macID );
+            if( m_debug )
+                Tools.printLog("Could not read " + name + "'s MID as a number!  (" + macID + ")" );
             command_remove("^forceremove^", new String[]{name} );
             return;
         }
@@ -379,6 +413,8 @@ public class MatchTeam
                 // If their original registration info is not found, something is amiss.
                 m_botAction.sendPrivateMessage(name, "You have not been found in the records.  Ensure you have done !signup.  Please notify a staff member with ?help immediately." );
                 m_botAction.sendChatMessage( name + " not found in TWD records.  (Somehow missing !signup?)  Please report to coding staff." );
+                if( m_debug )
+                    Tools.printLog("Unable to obtain data from tblAliasSuppression on " + name + "." );
                 command_remove("^forceremove^", new String[]{name} );
                 return;
             }
@@ -401,6 +437,8 @@ public class MatchTeam
                         m_botAction.sendSmartPrivateMessage(name, "You can't play from this computer.  Please see a TWD op about playing using this computer if it is a legitimate use.");
                         return;
                     } else {
+                        if( m_debug )
+                            Tools.printLog("Player's playing MID " + mID + " did not match fnMID in tblAliasSupression: " + fnMID + ", and no TWD-op data found that matches." );
                         command_remove("^forceremove^", new String[]{name} );
                         m_botAction.sendSmartPrivateMessage(name, "Sorry, you can only play in TWD from the computer on which you registered this name.  Please contact a TWD op if you have questions.");
                         return;
@@ -418,9 +456,9 @@ public class MatchTeam
                         + "WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"' "
                         + "LIMIT 0,1)");
                 boolean match = false;
-                while( results.next() && !match ) {
+                while( results != null && results.next() && !match ) {
                     String alternateIPparts[] = results.getString("fcIP").split(".");
-                    if( currentIPparts.length > 1 && alternateIPparts.length > 1 &&
+                    if( currentIPparts.length >= 2 && alternateIPparts.length >= 2 &&
                             currentIPparts[0] == alternateIPparts[0] &&
                             currentIPparts[1] == alternateIPparts[1] )
                         match = true;
@@ -430,6 +468,8 @@ public class MatchTeam
                         m_botAction.sendSmartPrivateMessage(name, "You can't play from this location.  Please see a TWD op about playing using this location if it is a legitimate use.");
                         return;
                     } else {
+                        if( m_debug )
+                            Tools.printLog("Player's playing IP " + IP + " did not match fcIP in tblAliasSupression: " + fcIP + ", and no TWD-op data found that matches." );
                         command_remove("^forceremove^", new String[]{name} );
                         m_botAction.sendSmartPrivateMessage(name, "Sorry, you can only play in TWD from the location at which you registered this name.  Please contact a TWD op if you have questions.");
                         return;
@@ -439,7 +479,9 @@ public class MatchTeam
             p.setIPMIDChecked(true);
             if(tellPlayer)
                 m_botAction.sendSmartPrivateMessage(name, "You are allowed to play on this computer.");
-        } catch(SQLException e) {}
+        } catch(SQLException e) {
+            Tools.printStackTrace("Error checking IP/MID", e);
+        }
     }
 
     // show help messages
