@@ -193,8 +193,8 @@ public class MatchTeam
 					}
                 }
 
-                // TWSDX ONLY:
-                if(m_round.getGame().m_fnMatchTypeID == 20) {
+                // TWSD ONLY:
+                if(m_round.getGame().m_fnMatchTypeID == 13) {
                 	int playerid = m_botAction.getPlayerID(p.getPlayerName());
                 	if(this.m_flagOwned && m_flagCarrierID == playerid) {
                 		// Reset partial flag game - flagcarrier specced
@@ -244,7 +244,7 @@ public class MatchTeam
 
                 int score = event.getKilledPlayerBounty();
 
-                if(m_round.m_game.m_fnMatchTypeID == 20 && m_flagOwned) { // ONLY TWSDX which has MatchType=20
+                if(m_round.m_game.m_fnMatchTypeID == 13 && m_flagOwned) { // ONLY TWSD which has MatchType=13
                 	score = score * (m_round.m_game.settings_FlaggerKillMultiplier+1);
                 }
                 p.reportKill(score, event.getKilleeID());
@@ -271,8 +271,8 @@ public class MatchTeam
                 p.reportDeath();
             }
 
-            // TWSDX ONLY:
-            if(m_round.getGame().m_fnMatchTypeID == 20) {
+            // TWSD ONLY:
+            if(m_round.getGame().m_fnMatchTypeID == 13) {
                 int playerid = m_botAction.getPlayerID(p.getPlayerName());
                 if(this.m_flagOwned && m_flagCarrierID == playerid) {
                     // Reset partial flag game - flagcarrier specced

@@ -299,8 +299,8 @@ public class MatchRound
             m_logger.setFreq( event.getPlayerName(), NOT_PLAYING_FREQ);
         }
 
-        // TWSDX ONLY:
-        if(m_fnRoundState == 3 && m_game.m_fnMatchTypeID == 20 && flagClaimed) {
+        // TWSD ONLY:
+        if(m_fnRoundState == 3 && m_game.m_fnMatchTypeID == 13 && flagClaimed) {
             m_botAction.showObjectForPlayer(event.getPlayerID(), 744);
         }
     }
@@ -336,8 +336,8 @@ public class MatchRound
             Player player = m_botAction.getPlayer(event.getPlayerID());
             int freq = player.getFrequency();
             
-            // TWSDX ONLY:
-            if(m_game.m_fnMatchTypeID == 20) {
+            // TWSD ONLY:
+            if(m_game.m_fnMatchTypeID == 13) {
             	
             	if(flagClaimed == false) {
 	            	// the flag was claimed for the first time, put the spider logo on the phantom flag
@@ -442,8 +442,8 @@ public class MatchRound
 	            if (m_team1.wonRace() || m_team2.wonRace())
 	                endGame();
 	            
-	            // TWSDX ONLY:
-	            if(m_game.m_fnMatchTypeID == 20) {
+	            // TWSD ONLY:
+	            if(m_game.m_fnMatchTypeID == 13) {
 	            	if(m_team1.hasFlag() && m_team1.getPlayer(killeeName, true) != null && event.getKilleeID() == m_team1.getFlagCarrier()) {
 	            		// team1 had the flag and the killed one was from team1 and it was the flagcarrier, now the killer is the flagcarrier.
 	            		m_team1.disownFlag();
@@ -1226,8 +1226,8 @@ public class MatchRound
         m_logger.sendArenaMessage("Go go go!", 104);
         m_botAction.showObject(m_rules.getInt("obj_gogogo"));
         
-        // TWSDX ONLY:
-        if(m_game.m_fnMatchTypeID == 20) {
+        // TWSD ONLY:
+        if(m_game.m_fnMatchTypeID == 13) {
             // Stop spectating player and watch on flag to see when it's claimed
             m_botAction.stopReliablePositionUpdating();
             m_botAction.stopSpectatingPlayer();
@@ -1379,8 +1379,8 @@ public class MatchRound
 
             toggleBlueout(false);
             
-            // TWSDX ONLY: Remove the spider logo from middle & Update the flag status at the scoreboard (turn it off)
-            if(m_game.m_fnMatchTypeID == 20) {
+            // TWSD ONLY: Remove the spider logo from middle & Update the flag status at the scoreboard (turn it off)
+            if(m_game.m_fnMatchTypeID == 13) {
             	m_botAction.hideObject(744);
             }
 
