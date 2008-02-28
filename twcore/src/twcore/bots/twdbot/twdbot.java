@@ -475,7 +475,7 @@ public class twdbot extends SubspaceBot {
                 }
 
                 if (thisP == null) {
-                    thisP = new DBPlayerData(m_botAction, localdb, name, true);
+                    thisP = new DBPlayerData(m_botAction, webdb, name, true);
                     success = thisP.getPlayerAccountData();
                 } else {
                     success = true;
