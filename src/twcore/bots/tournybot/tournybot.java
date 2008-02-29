@@ -107,6 +107,10 @@ public class tournybot extends SubspaceBot {
 		m_lagHandler = new lagHandler(botAction, m_botSettings, this, "handleLagReport");
 	}
 
+    public boolean isIdle() {
+        return trState != 4;
+    }
+
 	public void requestEvents() {
 		EventRequester req = m_botAction.getEventRequester();
 		req.request(EventRequester.MESSAGE);

@@ -66,10 +66,10 @@ public class matchbot extends SubspaceBot
     BotSettings m_rules;
     String m_rulesFileName;
     Spy racismSpy;				// Equivalent to using a PubBot's spy module
-    
+
     // The last time (in ms) that an advert was done for this game
     protected long lastAdvertTime = 0;
-    
+
     // --- temporary
     String m_team1 = null, m_team2 = null;
 
@@ -89,6 +89,10 @@ public class matchbot extends SubspaceBot
 
         requestEvents();
         racismSpy = new Spy( m_botAction );
+    }
+
+    public boolean isIdle() {
+        return (m_game == null);
     }
 
     public static String[] stringChopper(String input, char deliniator)
@@ -173,7 +177,7 @@ public class matchbot extends SubspaceBot
             m_game.handleEvent(event);
         }
     }
-    
+
     public void handleEvent(SoccerGoal event) {
     	if (m_game != null) {
     		m_game.handleEvent(event);
@@ -373,7 +377,7 @@ public class matchbot extends SubspaceBot
 
         // Send to spy to check for racist comments
         racismSpy.handleEvent( event );
-        
+
         if (m_game != null) {
             m_game.handleEvent(event);
         }
