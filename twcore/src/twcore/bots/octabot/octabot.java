@@ -56,6 +56,10 @@ public class octabot extends SubspaceBot {
                 events.request( EventRequester.FLAG_DROPPED );
 	}
 
+    public boolean isIdle() {
+        return !running;
+    }
+
 	public void handleEvent( Message event ) {
 
 		String message = event.getMessage();

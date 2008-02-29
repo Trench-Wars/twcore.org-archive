@@ -100,6 +100,10 @@ public class twl extends SubspaceBot
 
     }
 
+    public boolean isIdle() {
+        return (m_game == null);
+    }
+
     public static String[] stringChopper(String input, char deliniator)
     {
 
