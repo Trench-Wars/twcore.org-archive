@@ -2,8 +2,8 @@ package twcore.bots.pubbot;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.WeakHashMap;
 import java.util.Iterator;
-import java.util.TimerTask;
 
 import twcore.bots.PubBotModule;
 import twcore.core.util.Tools;
@@ -52,6 +52,9 @@ public class pubbottk extends PubBotModule {
     private final int TK_POINTS_LEVI = 8;    // Penalty for TKing as a lev
     private final int TK_POINTS_SHARK = 1;   // Penalty for TKing as a shark
     private final int TK_POINTS_REPEAT = 20; // Penalty for Tking same person twice in a row
+    //private final int MAX_TK_FREQ = 90;      // Maximum frequency of TKs (in seconds) 10 min
+                                             // after the player's first TK before
+                                             // bot sends a request to player
     private final int AMT_WARNAT = 45;       // Points at which player receives a warning
     private final int AMT_NOTIFYAT = 90;     // Points at which staff is notified
     private final int TKNUM_EMERGENCY_WARN = 10;    // # TK's to force a first warning
@@ -59,16 +62,12 @@ public class pubbottk extends PubBotModule {
     private final int TKNUM_EMERGENCY_NOTIFY = 50;  // # TK's to force a notify
 
     private final int COOLDOWN_SECS = 7;     // Time, in secs, it takes to remove 1 TK point
-    private final int FORGET_TIME_MINS = 15; // Time, in minutes, between when the
-                                             //    slate is wiped clean for TKers who
-                                             //    have left the arena. (def: 15 min)
     private OperatorList m_opList;           // Access list
-    private TimerTask forgetOldTKers;        // Used to throw away data about TKers
     private String currentArena;             // Current arena the host bot is in
     private boolean checkTKs;                // True if TK checking enabled
     private HashMap <String,TKInfo>tkers;    // (String)Name -> (TKInfo)Teamkilling record
-    private HashMap <String,TKInfo>oldtkers; // Same as above; stores TKers who leave arena
-                                             // (low-cost abuse prevention)
+    private WeakHashMap <String,TKInfo>oldtkers; // Same as above; stores TKers who leave arena
+                                                 // (low-cost abuse prevention).  Old keys dropped regularly.
     private HashMap <String,String>tked;     // (String)Name TKd -> (String)Last name who TKd them
 
     /**
@@ -84,21 +83,13 @@ public class pubbottk extends PubBotModule {
             checkTKs = true;
 
         tkers = new HashMap<String,TKInfo>();
-        oldtkers = new HashMap<String,TKInfo>();
+        oldtkers = new WeakHashMap<String,TKInfo>();
         tked = new HashMap<String,String>();
 
         m_opList = m_botAction.getOperatorList();
 
         // Must be enabled or the bot won't register kills properly
         m_botAction.sendUnfilteredPublicMessage( "*relkills 1" );
-
-        // I've left the arena.  Forget me not?  No, forget me every 15 minutes.
-        forgetOldTKers = new TimerTask() {
-            public void run() {
-                oldtkers = new HashMap<String,TKInfo>();
-            }
-        };
-        m_botAction.scheduleTaskAtFixedRate( forgetOldTKers, FORGET_TIME_MINS * 1000, FORGET_TIME_MINS * 1000 );
     }
 
 
@@ -278,7 +269,7 @@ public class pubbottk extends PubBotModule {
         String avgTime = "(Avg 1 TK every ";
         if( frequency > 60 )
             avgTime += frequency / 60 + " min, ";
-        avgTime += frequency % 60 + " seconds.)";            
+        avgTime += frequency % 60 + " seconds.)";
         m_botAction.sendSmartPrivateMessage( staffname, avgTime);
 
     	String pointsmsg = "";
@@ -304,8 +295,8 @@ public class pubbottk extends PubBotModule {
 			    m_botAction.sendSmartPrivateMessage( staffname, "  - TKd this player twice in a row." );
 		}
     }
-    
-    
+
+
     /**
      * Sends a manual warning to moderators from a player that claims a TK has
      * been made intentionally.
@@ -447,6 +438,7 @@ public class pubbottk extends PubBotModule {
         private boolean m_setShipped = false;       // true if player has been setshipped
         private boolean m_repeatKiller = false;     // true if killed same person twice
                                                     // in a row
+        //private boolean m_requestedToChange = false;// true if bot has requested player to change ships
         private boolean m_playerHasNotified = false;// true if last TKd notified staff
         private long m_lastTKTime;                  // Last systemclock MS person TKd
         private long m_firstTKTime;                 // Time started TKing
@@ -507,6 +499,14 @@ public class pubbottk extends PubBotModule {
 
             m_lastTKd = playerTKd;
             m_playerHasNotified = false;
+
+			/*
+	         * TODO: Frequency tracking.  Code in progress.
+            long first = new Date().getTime() - getFirstTKTime();
+            long frequency = (((new Date().getTime() - getFirstTKTime()) / 1000) / getNumTKs());
+            if( first > (10 * 60) && frequency <= 60 )
+			*/
+
 
             // "Neutered" version of the bot for info gathering only
             if( HARDASS == false )
