@@ -459,7 +459,7 @@ public class MatchRound
 	            	Iterator<Player> players = m_botAction.getPlayingPlayerIterator();
 	            	while(players.hasNext()) {
 	            		Player player = players.next();
-	            		if(player.getflagsCarried()>0) {
+	            		if(player.getFlagsCarried()>0) {
 	            			if(m_team1.getPlayer(player.getPlayerName(),true) != null && m_team1.hasFlag() == false) {
 	            				// Flagcarrier is in team 1 but team 1 doesn't have the flag - omg! fix this bad situation
 	            				m_team2.disownFlag();
@@ -1237,7 +1237,7 @@ public class MatchRound
             Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
             while(it.hasNext()) {
                 Player player = it.next();
-                if(player.getflagsCarried() > 0) {
+                if(player.getFlagsCarried() > 0) {
                     m_botAction.specWithoutLock(player.getPlayerID());
                     m_botAction.setFreq(player.getPlayerID(), player.getFrequency());
                     m_botAction.setShip(player.getPlayerID(), player.getShipType());
