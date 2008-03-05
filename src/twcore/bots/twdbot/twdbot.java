@@ -118,7 +118,7 @@ public class twdbot extends SubspaceBot {
                 String name = m_botAction.getPlayerName( event.getPlayerID() );
                 if( m_opList.isER( name )) isStaff = true; else isStaff= false;
 
-                if( m_opList.isSmod( name ) || m_access.containsKey( name.toLowerCase() ) )
+                if( m_opList.isSysop( name ) || m_access.containsKey( name.toLowerCase() ) )
                 {
                     //Operator commands
                     if( message.startsWith( "!resetname " ) )
@@ -159,7 +159,7 @@ public class twdbot extends SubspaceBot {
                         commandRemoveIPMID(name, message.substring(13));
                     else if( message.startsWith("!listipmid "))
                         commandListIPMID(name, message.substring(11));
-                    if(m_opList.isSmod(name)) {
+                    if(m_opList.isSysop(name)) {
                         if( message.toLowerCase().startsWith( "!addaccess "))
                             command_addaccess(name, message.substring(11));
                         else if( message.toLowerCase().startsWith( "!removeaccess "))
