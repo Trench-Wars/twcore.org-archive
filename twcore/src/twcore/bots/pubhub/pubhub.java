@@ -264,7 +264,7 @@ public class pubhub extends SubspaceBot {
                     // reschedule the arenaListTask to prevent double pubbot spawns
                     m_botAction.cancelTask(arenaListTask);  
                     arenaListTask = new ArenaListTask();
-                    m_botAction.scheduleTaskAtFixedRate(arenaListTask, 1000, CHECKARENALIST_DELAY);
+                    m_botAction.scheduleTaskAtFixedRate(arenaListTask, CHECKARENALIST_DELAY, CHECKARENALIST_DELAY);
                 }
                 if (message.equalsIgnoreCase("arrivedarena")) {// A pubbot has arrived at the arena
                     sendAutoLoadModules(botSender);
