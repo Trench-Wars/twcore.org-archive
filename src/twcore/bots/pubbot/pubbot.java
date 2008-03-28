@@ -51,6 +51,8 @@ public class pubbot extends SubspaceBot
   private String botName;
   private boolean connected;
   private boolean gotArenaList;
+  
+  private boolean movingGoCmd = false;  // true if this bot received a "go " command and is moving to the new arena
 
   /**
    * This method initializes the bot.
@@ -81,12 +83,15 @@ public class pubbot extends SubspaceBot
     BotSettings botSettings = m_botAction.getBotSettings();
 
     moduleHandler = new ModuleHandler(m_botAction, m_botAction.getGeneralSettings().getString( "Core Location" ) + "/twcore/bots/pubbot", "pubbot");
+    
+    // Join the initial arena from settings
     currentArena = botSettings.getString("InitialArena");
     m_botAction.changeArena(currentArena);
+    
     botName = m_botAction.getBotName();
     m_botAction.ipcSubscribe(IPCCHANNEL);
     m_botAction.ipcSubscribe(IPCCHANNEL2);
-    m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("spawned"));
+    m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("spawned"));         // Let the pubhub know that this bot has spawned
     m_botAction.ipcSubscribe(IPCSILENCE);
     m_botAction.scheduleTask(new LogOffTimeoutTask(), LOGOFF_TIMEOUT_DELAY);
     moduleHandler.handleEvent(event);
@@ -128,7 +133,8 @@ public class pubbot extends SubspaceBot
   {
     if(botName.equals(recipient))
       doDieCmd(true);
-    doDieCmd(false);
+    else
+        doDieCmd(false);
 
   }
 
@@ -150,13 +156,11 @@ public class pubbot extends SubspaceBot
    * @param argString is the new arena to go to.
    */
 
-  public void gotGoCmd(String argString)
-  {
-    if(currentArena.equalsIgnoreCase(argString))
-      throw new IllegalArgumentException("ERROR: " + botName + " is currently in that arena.");
-    currentArena = argString;
-    m_botAction.changeArena(currentArena);
-    m_botAction.sendChatMessage("Going to " + currentArena);
+  public void gotGoCmd(String argString) {
+      currentArena = argString;
+      movingGoCmd = true;
+      m_botAction.changeArena(currentArena);
+      m_botAction.sendChatMessage("Going to " + currentArena);
   }
 
   /**
@@ -168,9 +172,14 @@ public class pubbot extends SubspaceBot
 
   public void gotLoadCmd(String argString)
   {
-    if(!moduleHandler.isModule(argString))
-      throw new IllegalArgumentException("ERROR: Could not find " + argString + ".");
-    m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("loading " + argString, pubHubBot));
+    if(moduleHandler.isModule(argString)) {
+        PubBotModule module;
+
+        m_botAction.sendChatMessage("loading "+argString);
+        moduleHandler.loadModule(argString);
+        module = (PubBotModule) moduleHandler.getModule(argString);
+        module.initializeModule(IPCCHANNEL, pubHubBot);
+    }
   }
 
   /**
@@ -185,23 +194,6 @@ public class pubbot extends SubspaceBot
     if(!moduleHandler.isModule(argString))
       throw new IllegalArgumentException("ERROR: Could not find " + argString + ".");
     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("unloading " + argString, pubHubBot));
-  }
-
-  /**
-   * This method loads and initializes a module from the bot.  It is called when
-   * the pubhub bot sends the loaded message via IPC.
-   *
-   * @param argString is the module to load.
-   */
-
-  public void gotLoadedCmd(String argString)
-  {
-    PubBotModule module;
-
-    //m_botAction.sendChatMessage("loading "+argString);
-    moduleHandler.loadModule(argString);
-    module = (PubBotModule) moduleHandler.getModule(argString);
-    module.initializeModule(IPCCHANNEL, pubHubBot);
   }
 
   /**
@@ -248,8 +240,6 @@ public class pubbot extends SubspaceBot
       gotGoCmd(message.substring(3).trim());
     if(startsWithIgnoreCase(message, "load "))
       gotLoadCmd(message.substring(5).trim());
-    if(startsWithIgnoreCase(message, "loaded "))
-      gotLoadedCmd(message.substring(7).trim());
     if(startsWithIgnoreCase(message, "unloaded "))
       gotUnloadedCmd(message.substring(9).trim());
     if(startsWithIgnoreCase(message, "joinchat "))
@@ -359,6 +349,7 @@ public class pubbot extends SubspaceBot
   {
     EventRequester eventRequester = m_botAction.getEventRequester();
     eventRequester.request(EventRequester.ARENA_LIST);
+    eventRequester.request(EventRequester.ARENA_JOINED);
     eventRequester.request(EventRequester.PLAYER_LEFT);
     eventRequester.request(EventRequester.MESSAGE);
     eventRequester.request(EventRequester.KOTH_RESET);
@@ -458,6 +449,8 @@ public class pubbot extends SubspaceBot
     }
   }
   
+  
+  
   /**
    * Handles restarting of the KOTH game
    * 
@@ -517,6 +510,10 @@ public class pubbot extends SubspaceBot
 
   public void handleEvent(ArenaJoined event)
   {
+      if(movingGoCmd) {
+          m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("arrivedArena", pubHubBot));
+          movingGoCmd = false;
+      }
     moduleHandler.handleEvent(event);
   }
 
