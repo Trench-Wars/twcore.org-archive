@@ -37,7 +37,8 @@ public class pubbotstats extends PubBotModule {
   private boolean debug = false;
 
   public void initializeModule() {
-      m_botAction.scheduleTaskAtFixedRate(new sendStatsTask(), SEND_STATS_TIME, SEND_STATS_TIME);
+      SendStatsTask sendstats = new SendStatsTask();
+      m_botAction.scheduleTaskAtFixedRate(sendstats, SEND_STATS_TIME, SEND_STATS_TIME);
       RequestInfo requestInfo = new RequestInfo(this);
       m_botAction.scheduleTaskAtFixedRate(requestInfo , 1000, 1000);
   }
@@ -440,7 +441,7 @@ public class pubbotstats extends PubBotModule {
   
   /*********************** TimerTask classes ****************************/
   
-  private class sendStatsTask extends TimerTask {
+  private class SendStatsTask extends TimerTask {
 	public void run() {
 		m_botAction.ipcTransmit(IPCCHANNEL, stats);
 	}
