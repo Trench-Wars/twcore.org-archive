@@ -58,9 +58,14 @@ public class pubhub extends SubspaceBot {
     private HashMap<String, HashSet<String>> cfg_arenaModules = new HashMap<String, HashSet<String>>();
     private HashSet<String> cfg_access = new HashSet<String>();
     
-    private static final int CHECKARENALIST_DELAY = 30 * 1000;  // How often the arena list is checked (30 seconds) 
+    private static final int CHECKARENALIST_DELAY = 60 * 1000;  // How often the arena list is checked (60 seconds)
+    private static final int CHECKPUBBOTSARENA_DELAY = 30 * 1000; // How often the pubbots are asked for their position
     private static final int SPAWN_GO_DELAY = 1*1000;           // How long after a bot has spawned it is send to the correct arena (1 second)
     public static final int LOG_OFF_DELAY = 5*1000;             // How long after issuing the !off command, this bot is disconnected (5 seconds)
+    
+    private ArenaListTask arenaListTask = new ArenaListTask();
+    private PubbotsLocationTask pubbotsLocationTask = new PubbotsLocationTask();
+    private LogOffTask logoffTask = new LogOffTask();
     
     private HashMap<String, String> pubbots = new HashMap<String, String>();;
                  //<PubBot, Arena>
@@ -116,7 +121,8 @@ public class pubhub extends SubspaceBot {
         eventRequester.request(EventRequester.MESSAGE);
         
         // Start the task of getting the arena list by which pubbots will be spawned
-        m_botAction.scheduleTaskAtFixedRate(new ArenaListTask(), 1000, CHECKARENALIST_DELAY);
+        m_botAction.scheduleTaskAtFixedRate(arenaListTask, 1000, CHECKARENALIST_DELAY);
+        m_botAction.scheduleTaskAtFixedRate(pubbotsLocationTask, CHECKPUBBOTSARENA_DELAY, CHECKPUBBOTSARENA_DELAY);
     }
     
     /**
@@ -216,7 +222,7 @@ public class pubhub extends SubspaceBot {
                 
                 m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("die"));
                 moduleHandler.unloadAllModules();
-                m_botAction.scheduleTask(new LogOffTask(), LOG_OFF_DELAY);
+                m_botAction.scheduleTask(logoffTask, LOG_OFF_DELAY);
             }
             if (message.equalsIgnoreCase("!help")) {
                 m_botAction.sendSmartPrivateMessage(sender, "PUBHUB CHAT COMMANDS:");
@@ -252,6 +258,11 @@ public class pubhub extends SubspaceBot {
                 if (message.equalsIgnoreCase("spawned")) {     // A pubbot has spawned
                     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("initialize", botSender));
                     m_botAction.scheduleTask(new SpawnGoTask(botSender), SPAWN_GO_DELAY);
+                    
+                    // After a pubbot has been spawned, recheck arena list to spawn another one
+                    m_botAction.requestArenaList();
+                    m_botAction.cancelTask(arenaListTask);  // reschedule the arenaListTask to prevent double pubbot spawns
+                    m_botAction.scheduleTaskAtFixedRate(arenaListTask, 1000, CHECKARENALIST_DELAY);
                 }
                 if (message.equalsIgnoreCase("arrivedarena")) {// A pubbot has arrived at the arena
                     sendAutoLoadModules(botSender);
@@ -438,12 +449,14 @@ public class pubhub extends SubspaceBot {
 
     //************ TIMERTASKS ****************\\
     
-    /**
-     * 
-     */
-    private class ArenaListTask extends TimerTask {
+    private class PubbotsLocationTask extends TimerTask {
         public void run() {
             m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("where"));
+        }
+    }
+    
+    private class ArenaListTask extends TimerTask {
+        public void run() {
             m_botAction.requestArenaList();
         }
     }
