@@ -175,7 +175,6 @@ public class pubbot extends SubspaceBot
     if(moduleHandler.isModule(argString)) {
         PubBotModule module;
 
-        m_botAction.sendChatMessage("loading "+argString);
         moduleHandler.loadModule(argString);
         module = (PubBotModule) moduleHandler.getModule(argString);
         module.initializeModule(IPCCHANNEL, pubHubBot);
