@@ -7,8 +7,8 @@ import java.util.TimerTask;
 import java.util.Vector;
 
 import twcore.bots.PubBotModule;
-import twcore.bots.pubhub.PubStatsPlayer;
-import twcore.bots.pubhub.PubStatsScore;
+import twcore.bots.PubStatsPlayer;
+import twcore.bots.PubStatsScore;
 import twcore.core.EventRequester;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.Message;
