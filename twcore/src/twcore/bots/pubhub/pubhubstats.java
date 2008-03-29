@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.Map;
 
 import twcore.bots.PubBotModule;
+import twcore.bots.PubStatsPlayer;
+import twcore.bots.PubStatsScore;
 import twcore.core.EventRequester;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.util.Tools;

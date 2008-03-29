@@ -1,4 +1,4 @@
-package twcore.bots.pubhub;
+package twcore.bots;
 
 import java.util.Date;
 
