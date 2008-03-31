@@ -6,7 +6,6 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -66,6 +65,8 @@ public class staffbot extends SubspaceBot {
     
     private String sqlHost = "local";
     
+    private File dataFile;
+    
 
     /* Initialization code */
     public staffbot( BotAction botAction ) {
@@ -77,9 +78,12 @@ public class staffbot extends SubspaceBot {
         } else {
             m_logArchivingEnabled = false;
         }
+        
         EventRequester req = botAction.getEventRequester();
         req.request( EventRequester.FILE_ARRIVED );
         req.request( EventRequester.MESSAGE );
+        
+        dataFile = m_botAction.getDataFile(m_botAction.getBotName().toLowerCase()+".dat");
     }
 
     /* Handle Events */
@@ -627,8 +631,7 @@ public class staffbot extends SubspaceBot {
 
     public void logArrived(){
         String archivePath = m_botSettings.getString( "ArchivePath" );
-        compressToZip( m_LOGFILENAME, archivePath + "TWLog " + new SimpleDateFormat("MMM-dd-yyyy(HH-mm-ss z)").format(m_logTimeStamp) + ".zip" );
-        sendBlankLog( m_LOGFILENAME );
+        compressToZip( "data/"+m_LOGFILENAME, archivePath + "TWLog " + new SimpleDateFormat("MMM-dd-yyyy (HH-mm-ss z)").format(m_logTimeStamp) + ".zip" );
 
         if( m_logNotifyPlayer != null ){
             m_botAction.sendRemotePrivateMessage( m_logNotifyPlayer, "Server log successfully downloaded and archived." );
@@ -638,18 +641,7 @@ public class staffbot extends SubspaceBot {
         m_botAction.sendChatMessage( "Server log successfully downloaded and archived." );
         m_logActive = false;
     }
-
-    public void sendBlankLog( String fileName ){
-        try {
-            FileWriter fileOut = new FileWriter( fileName );
-            fileOut.write( new SimpleDateFormat("EEE MMM dd KK:mm:ss:  ").format(new java.util.Date()) + "Log cleared by " + m_botAction.getBotName() + "\n" );
-            fileOut.close();
-            m_botAction.putFile( fileName );
-        } catch( Exception e ){
-            Tools.printStackTrace( e );
-        }
-    }
-
+    
     /* Misc Code */
     public void sendPM( String name, String message, boolean remote ){
         if(remote){
@@ -660,20 +652,13 @@ public class staffbot extends SubspaceBot {
     }
 
     public void readObjects(){
-        String fname = m_botAction.getBotName().toLowerCase() + ".dat";
-        File f = new File(fname);
-
-
         m_playerList.clear();
 
-
         try{
-            if (!f.exists()) f.createNewFile();
+            if (!dataFile.exists()) 
+                dataFile.createNewFile();
 
-            ObjectInputStream in = new ObjectInputStream(
-            new BufferedInputStream(
-            new FileInputStream(
-            m_botAction.getDataFile( fname ))));
+            ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(new FileInputStream(dataFile)));
 
             while ( true ) {
                 potentialStaffer o = (potentialStaffer)in.readObject();
@@ -693,10 +678,7 @@ public class staffbot extends SubspaceBot {
 
     public void writeObjects(){
         try{
-            ObjectOutputStream out = new ObjectOutputStream(
-            new BufferedOutputStream( new FileOutputStream(
-            m_botAction.getDataFile(
-            m_botAction.getBotName().toLowerCase() + ".dat" ))));
+            ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream( new FileOutputStream(dataFile)));
             Iterator<potentialStaffer> i = m_playerList.values().iterator();
             while( i.hasNext() ){
                 out.writeObject( i.next() );
