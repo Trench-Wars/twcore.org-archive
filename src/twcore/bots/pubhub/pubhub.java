@@ -253,7 +253,7 @@ public class pubhub extends SubspaceBot {
     
             if (recipient == null || recipient.equals(pubhub)) {
                 if (message.equalsIgnoreCase("dying")) {       // A pubbot is going away
-                    pubbots.remove(botSender);                    
+                    pubbots.remove(botSender);
                 }
                 if (message.equalsIgnoreCase("spawned")) {     // A pubbot has spawned
                     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("initialize", botSender));
@@ -273,9 +273,25 @@ public class pubhub extends SubspaceBot {
                 }*/
                 /*if (startsWithIgnoreCase(message, "unloading "))
                     gotUnloadingCmd(botSender, message.substring(10).trim());*/
-                if (message.startsWith("here "))
-                    if (!botSender.equals(pubhub))
-                        pubbots.put(botSender, message.substring(5).trim());
+                if (message.startsWith("here ")) {
+                    String pubbot = botSender;
+                    String arena = message.substring(5).trim();
+                    
+                    if (botSender.equals(pubhub)) return;
+                    
+                    pubbots.put(pubbot, arena);
+                    
+                    // Check for double pubbots in arena
+                    for(String stored_pubbot:pubbots.keySet()) {
+                        String stored_arena = pubbots.get(stored_pubbot);
+                        
+                        // if there is a different bot then this one but in the same arena, remove it
+                        if( stored_arena.equalsIgnoreCase(arena) && 
+                            !stored_pubbot.equalsIgnoreCase(pubbot)) {
+                            m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("die", stored_pubbot));
+                        }
+                    }
+                }
             }
                 
         }
