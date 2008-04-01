@@ -1837,7 +1837,12 @@ public class duelbot extends SubspaceBot {
     	}
 
 		if( laggers.containsKey( name ) ) {
-            m_botAction.cancelTask(laggers.get( name ));
+            TimerTask t = laggers.get( name );
+            try {
+                m_botAction.cancelTask(t);
+            } catch( IllegalStateException e) {
+                t = null;
+            }
 			laggers.remove( name );
 		}
 		laggers.put( name, new Lagger( name, duel, laggers ) );
