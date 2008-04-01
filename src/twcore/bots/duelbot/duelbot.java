@@ -1886,7 +1886,12 @@ public class duelbot extends SubspaceBot {
     }
 
 
+    /**
+     * Returns idle status and enables shutdown mode to facilitate rapid restart of core..
+     */
     public boolean isIdle() {
+        shutDown = true;
+        shutDownDie = true;
         return ( duels.size() == 0 );
     }
 
