@@ -36,7 +36,12 @@ public class pubhubspy extends PubBotModule
   }
   
   public void cancel() {
-      
+      // Cancel all current running IgnoreTasks
+      for(TimerTask ignoreTask:ignoreList.values()) {
+          m_botAction.cancelTask(ignoreTask);
+      }
+      watchList.clear();
+      ignoreList.clear();
   }
 
   public void handleEvent(Message event)
