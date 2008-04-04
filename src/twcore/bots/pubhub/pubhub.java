@@ -59,7 +59,7 @@ public class pubhub extends SubspaceBot {
     private HashSet<String> cfg_access = new HashSet<String>();
     
     private static final int CHECKARENALIST_DELAY = 60 * 1000;  // How often the arena list is checked (60 seconds)
-    private static final int CHECKPUBBOTSARENA_DELAY = 10 * 1000; // How often the pubbots are asked for their position
+    private static final int CHECKPUBBOTSARENA_DELAY = 30 * 1000; // How often the pubbots are asked for their position
     private static final int SPAWN_GO_DELAY = 1*1000;           // How long after a bot has spawned it is send to the correct arena (1 second)
     public static final int LOG_OFF_DELAY = 5*1000;             // How long after issuing the !off command, this bot is disconnected (5 seconds)
     
