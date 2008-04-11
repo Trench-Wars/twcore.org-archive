@@ -5,6 +5,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
@@ -43,6 +45,8 @@ public class mrarrogant extends SubspaceBot
   public static final int DIE_DELAY = 500;
   public static final int ENTER_DELAY = 5000;
   public static final int DEFAULT_CHECK_TIME = 10;
+  public static final int NON_PUBLIC = 0;
+  public static final int PUBLIC = 1;
 
   private SimpleDateFormat dateFormat;
   private SimpleDateFormat fileNameFormat;
@@ -55,7 +59,7 @@ public class mrarrogant extends SubspaceBot
   private Vector<CommandLog> commandQueue;
   private FileWriter logFile;
   private String logFileName;
-  private int year;
+  private int year, botType;
   private boolean isStaying;
   private boolean isArroSpy;
   
@@ -94,6 +98,7 @@ public class mrarrogant extends SubspaceBot
     String chat = botSettings.getString("chat");
     String accessString = botSettings.getString("accesslist");
     String logPath = botSettings.getString("logpath");
+    botType = botSettings.getInt("Type" + getBotNumber());
     fileNameFormat = new SimpleDateFormat("'" + logPath + "'MMMyyyy'.log'");
     logFileName = fileNameFormat.format(new Date());
 
@@ -103,6 +108,18 @@ public class mrarrogant extends SubspaceBot
     opList = m_botAction.getOperatorList();
     setupAccessList(accessString);
     m_botAction.scheduleTaskAtFixedRate(new CheckLogTask(), 0, CHECK_LOG_TIME);
+  }
+  
+  public int getBotNumber()
+  {
+      BotSettings botSettings = m_botAction.getBotSettings();
+      int nrBots = botSettings.getInt("Max Bots");
+      for (int i = 1; i <= nrBots; i++)
+      {
+          if (botSettings.getString("Name" + i).equalsIgnoreCase(m_botAction.getBotName()))
+              return i;
+      }
+      return 0;
   }
   
   public void handleDisconnect() {
@@ -442,9 +459,9 @@ public class mrarrogant extends SubspaceBot
     }
     catch(RuntimeException e)
     {
-      if(sender == null)
-        m_botAction.sendChatMessage(e.getMessage());
-      m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
+      if(sender != null)
+          m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
+      m_botAction.sendChatMessage(e.getMessage());
     }
   }
 
@@ -674,7 +691,7 @@ public class mrarrogant extends SubspaceBot
       throw new IllegalArgumentException("Already in that arena.");
     
     if(offlimitArenas.contains(argString.toLowerCase())) {
-    	m_botAction.sendSmartPrivateMessage(sender, "I'm sorry, this arena is off limits for me.");
+    	m_botAction.sendSmartPrivateMessage(sender, "I'm sorry, that arena is off limits for me.");
     } else {
     	m_botAction.sendSmartPrivateMessage(sender, "Going to " + argString + ".");
     	changeArena(argString);
@@ -768,22 +785,62 @@ public class mrarrogant extends SubspaceBot
 
   public void handleEvent(ArenaList event)
   {
-    try
-    {
-      String[] arenaNames = event.getArenaNames();
-      int arenaIndex = (int) (Math.random() * arenaNames.length);
+    if(botType == NON_PUBLIC){
+        try
+        {
+            String[] arenaNames = event.getArenaNames();
+            int arenaIndex = (int) (Math.random() * arenaNames.length);
       
-      // If an offlimit arena or public arena was selected, pick a new one
-      while(offlimitArenas.contains(arenaNames[arenaIndex].toLowerCase()) || Tools.isAllDigits(arenaNames[arenaIndex])) {
-    	  arenaIndex = (int) (Math.random() * arenaNames.length);
-	  }
+            // If an offlimit arena or public arena was selected, pick a new one
+            while(offlimitArenas.contains(arenaNames[arenaIndex].toLowerCase()) || Tools.isAllDigits(arenaNames[arenaIndex])) {
+                arenaIndex = (int) (Math.random() * arenaNames.length);
+            }
       
-      //m_botAction.sendChatMessage("Moving to "+arenaNames[arenaIndex]);
-      changeArena(arenaNames[arenaIndex]);
-    }
-    catch(Exception e)
-    {
-      m_botAction.sendChatMessage(e.getMessage());
+            //m_botAction.sendChatMessage("Moving to "+arenaNames[arenaIndex]);
+            changeArena(arenaNames[arenaIndex]);
+        }
+        catch(Exception e){
+            m_botAction.sendChatMessage(e.getMessage());
+        }
+    }else if(botType == PUBLIC){
+        try{
+          String[] arenaNames = event.getArenaNames();
+
+            Comparator<String> a = new Comparator<String>(){
+                public int compare(String a, String b){
+                    if (Tools.isAllDigits(a) && !a.equals("") ) {
+                        if (Tools.isAllDigits(b) && !b.equals("") ){
+                            if (Integer.parseInt(a) < Integer.parseInt(b))
+                                return -1;
+                            else
+                                return 1;
+                        } else
+                            return -1;
+                    } else if (Tools.isAllDigits(b))
+                        return 1;
+                    else
+                        return a.compareToIgnoreCase(b);
+                };
+            };
+
+          Arrays.sort(arenaNames, a);
+          int endIndex = 0;
+          for(int k = 0;k < arenaNames.length;k++) {
+            if(Tools.isAllDigits(arenaNames[k])) endIndex = k;
+            else break;
+          }
+          int seed = (int) (Math.random() * 100);
+          int start = 0;
+          int arenaIndex = -1;
+          for(int k = 50;arenaIndex != endIndex;k/=2) {
+              arenaIndex++;
+              if(seed >= start && seed < (start + k))
+                break;
+              start += k;
+          }
+          changeArena(arenaNames[arenaIndex]);
+        }
+        catch(Exception e){}
     }
   }
   
