@@ -74,7 +74,7 @@ public class duelbot extends SubspaceBot {
 	//Contains the list of players that are allowed to !signup.
 	HashMap	<String,String>allowedNames = new HashMap<String,String>();
     //Contains the list of players that were allowed to !signup and can now be !enable
-    HashSet <String>allowedSignedUpNames = new HashSet<String>();
+    HashSet <String>canEnableNames = new HashSet<String>();
 	//Contains the list of league Operators *** SHOULD BE HASHSET ... ***
 	HashMap	<String,String>leagueOps    = new HashMap<String,String>();
 	//Contains the list of tourny games
@@ -160,11 +160,17 @@ public class duelbot extends SubspaceBot {
     	int nc = 0;
     	int warp = 0;
     	int kills = 10;
-    	for( int i = 0; i < pieces.length; i++ )
-    		if( pieces[i].equals( "winby2" ) ) winby2 = 1;
-    		else if( pieces[i].equals( "nc" ) ) nc = 1;
-    		else if( pieces[i].equals( "warp" ) ) warp = 1;
-    		else if( pieces[i].equals( "5" ) ) kills = 5;
+    	for( int i = 0; i < pieces.length; i++ ){
+    	    try{
+    	        int numKills = Integer.parseInt(pieces[i]);
+    	        if(numKills <= 15 && numKills > 0)
+    	            kills = numKills;
+    	    }catch(NumberFormatException e){
+    	        if( pieces[i].equals( "winby2" ) ) winby2 = 1;
+    	        else if( pieces[i].equals( "nc" ) ) nc = 1;
+    	        else if( pieces[i].equals( "warp" ) ) warp = 1;
+    	    }
+    	}
     	try {
     		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT * FROM tblDuelPlayer WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
     		if( result.next() ) {
@@ -528,7 +534,7 @@ public class duelbot extends SubspaceBot {
     		String IP = info.getString( "fcIP" );
     		String MID = info.getString( "fnMID" );
     		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT fcUserName FROM tblDuelPlayer WHERE fnEnabled = 1 AND fcIP = '"+IP+"' AND fnMID = '"+MID+"'" );
-            boolean okToEnable = allowedSignedUpNames.remove( name );
+            boolean okToEnable = canEnableNames.remove( name );
     		if( result.next() && !okToEnable ) {
     			String extras = "";
     			do {
@@ -924,9 +930,24 @@ public class duelbot extends SubspaceBot {
 
     public void do_allowUser( String name, String message ) {
     	if( !leagueOps.containsKey( name.toLowerCase() ) ) return;
-
-    	allowedNames.put( message, message );
-    	m_botAction.sendPrivateMessage( name, message + " should now be able to !signup." );
+    	try{
+    	    ResultSet result = m_botAction.SQLQuery("local", "SELECT * FROM tblDuelPlayer WHERE fcUserName='" + Tools.addSlashesToString(message) + "'");
+    	    if(result.next()){
+    	        if(result.getInt("fnEnabled") == 1)
+    	            m_botAction.sendSmartPrivateMessage( name, "This user is already enabled to play.");
+    	        else{
+    	            sql_enableUser(message);
+    	            m_botAction.sendSmartPrivateMessage( name, message + " should now be enabled.");
+    	        }
+    	    }else{    	    
+    	        allowedNames.put( message, message );
+    	        m_botAction.sendPrivateMessage( name, message + " should now be able to !signup." );
+    	    }
+    	    m_botAction.SQLClose(result);
+    	}catch(SQLException e){
+    	    m_botAction.sendSmartPrivateMessage( name, "Error querying database.");
+    	    Tools.printStackTrace(e);
+    	}    	
     }
 
     public void do_banUser( String name, String message ) {
@@ -947,14 +968,14 @@ public class duelbot extends SubspaceBot {
     }
 
     public void do_unbanUser( String name, String message ) {
-    	if( !leagueOps.containsKey( name.toLowerCase() ) ) return;
+        if( !leagueOps.containsKey( name.toLowerCase() ) ) return;
 
-    	String player = m_botAction.getFuzzyPlayerName( message );
-    	if( player == null ) player = message;
-    	if( sql_unbanPlayer( player ) )
-    		m_botAction.sendPrivateMessage( name, player + " has been unbanned." );
-    	else
-    		m_botAction.sendPrivateMessage( name, "Unable to unban user " + player );
+        String player = m_botAction.getFuzzyPlayerName( message );
+        if( player == null ) player = message;
+        if( sql_unbanPlayer( player ) )
+            m_botAction.sendPrivateMessage( name, player + " has been unbanned." );
+        else
+            m_botAction.sendPrivateMessage( name, "Unable to unban user " + player );
     }
 
     public void do_sayBanned( String name, String message) {
@@ -1108,15 +1129,14 @@ public class duelbot extends SubspaceBot {
 
 		    			m_botAction.sendPrivateMessage( name, "You have been registered to use this bot. It is advised you set your personal dueling rules, for further information use !help" );
                         allowedNames.remove( name );
-                        allowedSignedUpNames.add( name );
+                        canEnableNames.add( name );
     				} else {
-    					if(aliasChecker.equals(""))
-    						m_botAction.sendSmartPrivateMessage( name, "It appears you already have other names signed up for TWEL or have registered this name already." );
 						String extras = "";
     					do {
     						extras += " " + result.getString( "fcUserName" ) + " ";
     					} while( result.next() );
     					if(aliasChecker.equals("")) {
+    					    m_botAction.sendSmartPrivateMessage( name, "It appears you already have other names signed up for TWEL or have registered this name already." );
     						m_botAction.sendSmartPrivateMessage( name, "Please login with these names: ("+extras+") and use the command !disable, you will then be able to signup a new name." );
     						m_botAction.sendSmartPrivateMessage( name, "All names disabled suffer a 300 point rating loss. If you have further problems please contact a league op." );
     					} else {
