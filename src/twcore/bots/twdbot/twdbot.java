@@ -38,7 +38,6 @@ public class twdbot extends SubspaceBot {
     public HashMap<String, String> m_requesters;
 
     private String register = "";
-    private HashMap<String, String> m_access;
     private HashMap<String, String> m_waitingAction;
     private String webdb = "website";
     private String localdb = "local";
@@ -57,7 +56,6 @@ public class twdbot extends SubspaceBot {
         m_players = new LinkedList<DBPlayerData>();
         m_squadowner = new LinkedList<SquadOwner>();
 
-        m_access = new HashMap<String, String>();
         m_waitingAction = new HashMap<String, String>();
         m_requesters = new HashMap<String, String>();
 
@@ -118,7 +116,7 @@ public class twdbot extends SubspaceBot {
                 String name = m_botAction.getPlayerName( event.getPlayerID() );
                 if( m_opList.isER( name )) isStaff = true; else isStaff= false;
 
-                if( m_opList.isSysop( name ) || m_access.containsKey( name.toLowerCase() ) )
+                if( m_opList.isSysop( name ) || isTWDOp(name) )
                 {
                     //Operator commands
                     if( message.startsWith( "!resetname " ) )
@@ -159,14 +157,6 @@ public class twdbot extends SubspaceBot {
                         commandRemoveIPMID(name, message.substring(13));
                     else if( message.startsWith("!listipmid "))
                         commandListIPMID(name, message.substring(11));
-                    if(m_opList.isSysop(name)) {
-                        if( message.toLowerCase().startsWith( "!addaccess "))
-                            command_addaccess(name, message.substring(11));
-                        else if( message.toLowerCase().startsWith( "!removeaccess "))
-                            command_removeaccess(name, message.substring(14));
-                        else if( message.toLowerCase().startsWith( "!listaccess"))
-                            command_listaccess(name);
-                    }
                 }
                 else
                 {
@@ -224,6 +214,25 @@ public class twdbot extends SubspaceBot {
         catch(Exception e)
         {
             //m_botAction.sendSmartPrivateMessage("Cpt.Guano!", e.getMessage());
+        }
+    }
+    
+    public boolean isTWDOp(String name){
+        try{
+            ResultSet result = m_botAction.SQLQuery(webdb, "SELECT DISTINCT tblUser.fcUserName FROM tblUser, tblUserRank"+
+                                                           " WHERE tblUser.fcUserName = "+Tools.addSlashesToString(name)+
+                                                           " AND tblUser.fnUserID = tblUserRank.fnUserID"+
+                                                           " AND ( tblUserRank.fnRankID = 14 OR tblUserRank.fnRankID = 19 )");
+            if(result.next()){
+                m_botAction.SQLClose(result);
+                return true;
+            } else {
+                m_botAction.SQLClose(result);
+                return false;
+            }                
+        }catch(SQLException e){
+            Tools.printStackTrace(e);
+            return false;
         }
     }
 
@@ -404,14 +413,6 @@ public class twdbot extends SubspaceBot {
     public void handleEvent( LoggedOn event ) {
         m_botAction.joinArena( m_arena );
         ownerID = 0;
-
-        String accessList = m_botSettings.getString( "AccessList" );
-
-        //Parse accesslist
-        String pieces[] = accessList.split( ":" );
-        for( int i = 0; i < pieces.length; i++ )
-            m_access.put( pieces[i].toLowerCase(), pieces[i] );
-
         TimerTask checkMessages = new TimerTask() {
             public void run() {
                 checkMessages();
@@ -420,43 +421,6 @@ public class twdbot extends SubspaceBot {
         };
         m_botAction.scheduleTaskAtFixedRate(checkMessages, 5000, 30000);
     }
-
-    public void command_addaccess(String name, String player) {
-        if(player != null && !player.trim().equals("")) {
-            m_access.put(player.toLowerCase(), player);
-            updateAccessString();
-            m_botAction.sendSmartPrivateMessage(name, player + " granted access.");
-        }
-    }
-
-    public void command_removeaccess(String name, String player) {
-        if(player != null && !player.trim().equals("")) {
-            if(m_access.remove(player.toLowerCase()) != null) {
-                updateAccessString();
-                m_botAction.sendSmartPrivateMessage(name, player + "'s access revoked.");
-            } else {
-                m_botAction.sendSmartPrivateMessage(name, player + " is not an op.");
-            }
-        }
-    }
-
-    public void command_listaccess(String name) {
-        m_botAction.sendSmartPrivateMessage(name, m_botSettings.getString("AccessList"));
-    }
-
-    public void updateAccessString() {
-        Iterator<String> it = m_access.values().iterator();
-        String accessString = "";
-        while(it.hasNext()) {
-            accessString += it.next();
-            if(it.hasNext()) {
-                accessString += ":";
-            }
-        }
-        m_botSettings.put("AccessList", accessString);
-        m_botSettings.save();
-    }
-
 
     public void command_signup(String name, String command, String[] parameters) {
         try {
