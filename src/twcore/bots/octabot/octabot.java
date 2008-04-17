@@ -33,7 +33,9 @@ public class octabot extends SubspaceBot {
 	//private	HashMap access;
 	private boolean running = false;
 	private boolean prestart = false;
-
+	
+    String database = "local";
+    
 	java.util.Date d;
 	int timeStart;
 
@@ -404,7 +406,7 @@ public class octabot extends SubspaceBot {
 		String query = "INSERT INTO `tblOctaGame` (fnWinner, fnJackpot, fnLength, fdDate) VALUES ";
 		query += "("+team+", "+jackpot+", "+length+", NOW())";
 		try {
-			m_botAction.SQLQueryAndClose( "local", query );
+			m_botAction.SQLQueryAndClose( database, query );
 		} catch (Exception e) {
 			Tools.printStackTrace( "Unable to store game:" , e );
 		}
@@ -416,7 +418,7 @@ public class octabot extends SubspaceBot {
 			String name = (String)it.next();
 			OctaPlayer p = players.get( name );
 			try {
-				m_botAction.SQLBackgroundQuery( "local", "%octa" + name, p.getQueryString( getUserId( name ), id ) );
+				m_botAction.SQLBackgroundQuery( database, "%octa" + name, p.getQueryString( getUserId( name ), id ) );
 			} catch (Exception e) {
 				Tools.printStackTrace( "Unable to store player:", e );
 			}
@@ -427,7 +429,7 @@ public class octabot extends SubspaceBot {
 
 		try {
 			String query = "SELECT fnGameID FROM  `tblOctaGame` WHERE 1  ORDER BY fnGameID DESC LIMIT 1";
-			ResultSet result = m_botAction.SQLQuery( "local", query );
+			ResultSet result = m_botAction.SQLQuery( database, query );
                         int gameid = 0;
 			if( result.next() )
 				gameid = result.getInt( "fnGameID" );
@@ -442,7 +444,7 @@ public class octabot extends SubspaceBot {
 	public int getUserId( String name ) {
 
 	    try {
-	        ResultSet result = m_botAction.SQLQuery( "local", "SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
+	        ResultSet result = m_botAction.SQLQuery( database, "SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'" );
 	        int gameid = 0;
             if( result == null )
                 return 0;
