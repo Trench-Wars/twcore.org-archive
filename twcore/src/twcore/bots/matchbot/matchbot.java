@@ -883,27 +883,10 @@ public class matchbot extends SubspaceBot
     public void command_listaccess(String name, String[] parameters)
     {
         String accA[] = getAccessList();
-        String answ = "";
-        int j = 0;
         m_botAction.sendPrivateMessage(name, "Access list for game: " + m_rules.getString("name"));
-        for (int i = 0; i < accA.length; i++)
-        {
-            if (accA[i].length() > 20)
-                answ = answ + accA[i].substring(0, 20);
-            else
-                answ = answ + accA[i];
-            for (j = 0; j < (20 - accA[i].length()); j++)
-                answ = answ + " ";
-            if (i % 3 == 1)
-            {
-                m_botAction.sendPrivateMessage(name, answ);
-                answ = "";
-            }
-            else
-                answ = answ + "          ";
+        for (int i = 0; i < accA.length; i++){
+            m_botAction.sendPrivateMessage(name, accA[i]);
         }
-        if (!answ.equals(""))
-            m_botAction.sendPrivateMessage(name, answ);
     }
 
     public void command_addaccess(String name, String[] parameters)
@@ -914,7 +897,7 @@ public class matchbot extends SubspaceBot
             String acc = m_rules.getString("specialaccess");
             if (!(acc.trim().equals("")))
                 acc = acc + ":";
-            acc = acc + newP;
+            acc = acc + newP + "(Granted by " + name + ")";
             m_rules.put("specialaccess", acc);
             m_rules.save();
             m_botAction.sendPrivateMessage(name, newP + " has been added to the access list");
