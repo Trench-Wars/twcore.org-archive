@@ -34,7 +34,7 @@ import twcore.core.util.Tools;
 public class duelbot extends SubspaceBot {
 
 	CommandInterpreter  m_commandInterpreter;
-	final String		mySQLHost = "local";
+	final String		mySQLHost = "website";
     final int           MSG_LIMIT = 8;
 	// Used to 'shutdown' the bot and allow no new duels.
 	boolean 			shutDown    = false;

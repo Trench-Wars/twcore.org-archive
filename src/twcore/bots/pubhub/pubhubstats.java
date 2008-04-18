@@ -20,7 +20,7 @@ import twcore.core.util.Tools;
 
 public class pubhubstats extends PubBotModule {
 	//private String database = "pubstats";
-	private String database = "local";
+	private String database = "website";
 	private String uniqueConnectionID = "pubstats";
 
 	// PreparedStatements

@@ -9,7 +9,7 @@ public class DBPlayerData {
     BotAction m_connection;
 
     boolean m_playerLoaded = false;
-    String m_connName = "local";
+    String m_connName = "website";
     String m_fcUserName = "";
     String m_fcPassword = "";
     int m_fnUserID = 0;
@@ -111,7 +111,7 @@ public class DBPlayerData {
 
 
 
-    public boolean createPlayerAccountData(String fcPassword) {
+    /*public boolean createPlayerAccountData(String fcPassword) {
         if (m_fnUserID != 0) {
             try {
                 m_connection.SQLQueryAndClose(m_connName, "INSERT INTO tblUserAccount(fnUserID, fcPassword) VALUES ("+m_fnUserID+",PASSWORD('"+Tools.addSlashesToString(fcPassword)+"'))");
@@ -123,7 +123,7 @@ public class DBPlayerData {
                 return false;
             }
         } else return false;
-    };
+    };*/
 
 
     public boolean updatePlayerAccountData(String fcPassword) {
