@@ -25,7 +25,7 @@ public class pubbothunt extends PubBotModule
 	TimerTask activity;
 	boolean isRunning = false;
 	
-	String database = "local";
+	String database = "website";
 
 	public void initializeModule()
 	{

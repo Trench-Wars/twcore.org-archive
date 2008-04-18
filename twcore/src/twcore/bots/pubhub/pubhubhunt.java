@@ -15,7 +15,7 @@ import twcore.core.util.ipc.IPCMessage;
 public class pubhubhunt extends PubBotModule
 {
 	
-    String database = "local";
+    String database = "website";
     
 	boolean isRunning = false;
 	String botName;

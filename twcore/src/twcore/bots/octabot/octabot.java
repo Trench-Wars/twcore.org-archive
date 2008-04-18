@@ -34,7 +34,7 @@ public class octabot extends SubspaceBot {
 	private boolean running = false;
 	private boolean prestart = false;
 	
-    String database = "local";
+    String database = "website";
     
 	java.util.Date d;
 	int timeStart;
