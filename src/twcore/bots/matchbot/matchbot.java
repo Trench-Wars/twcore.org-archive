@@ -388,7 +388,7 @@ public class matchbot extends SubspaceBot
     {
         ArrayList<String> help = new ArrayList<String>();
 
-        if (m_game != null)
+        if (m_game != null)            // Bot is running a game
         {
             if (isStaff)
             {
@@ -400,7 +400,7 @@ public class matchbot extends SubspaceBot
         {
             if (isStaff)
             {
-                if (!m_isLocked)
+                if (!m_isLocked)        // Bot isn't locked in a specific arena / game
                 {
                     if (!isRestrictedStaff)
                         help.add("!listgames                               - list all available game types");
@@ -413,7 +413,7 @@ public class matchbot extends SubspaceBot
                         help.add("!lock <typenumber>                       - lock at a free arena where the event can be hosted");
                     }
                 }
-                else
+                else                    // Bot is locked in a specific arena / game but not started
                 {
                     help.add("!game <squadA>:<squadB>                  - start a game of " + m_rules.getString("name") + " between teamA and teamB");
                     if (!isRestrictedStaff)
