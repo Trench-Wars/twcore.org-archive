@@ -644,6 +644,7 @@ public class MatchRound
                 help.add("!startpick                               - start rostering");
             }
             help.add("!lag <player>                            - show <player>'s lag");
+            help.add("!startinfo                               - shows who started this game");
             if (m_team1 != null)
             {
                 help.add("-- Prepend your command with !t1- for '" + m_team1.getTeamName() + "', !t2- for '" + m_team2.getTeamName() + "' --");
