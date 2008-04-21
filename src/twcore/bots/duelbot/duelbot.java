@@ -338,7 +338,7 @@ public class duelbot extends SubspaceBot {
     	//Pull the appropriate game.
     	try {
 			String query = "SELECT fnGameId, fnLeagueTypeID, fnTournyUserOne, fnTournyUserTwo, fnTotalPlayers, fnGameNumber FROM tblDuelTournyGame AS TG, tblDuelTourny T WHERE T.fnTournyID = TG.fnTournyID AND fnGameID = "+gid+" AND TG.fnStatus = 0";
-			ResultSet result = m_botAction.SQLQuery( "local", query );
+			ResultSet result = m_botAction.SQLQuery( mySQLHost, query );
 			if( result.next() ) {
 
 				idOne = result.getInt( "fnTournyUserOne" );
@@ -931,7 +931,7 @@ public class duelbot extends SubspaceBot {
     public void do_allowUser( String name, String message ) {
     	if( !leagueOps.containsKey( name.toLowerCase() ) ) return;
     	try{
-    	    ResultSet result = m_botAction.SQLQuery("local", "SELECT * FROM tblDuelPlayer WHERE fcUserName='" + Tools.addSlashesToString(message) + "'");
+    	    ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuelPlayer WHERE fcUserName='" + Tools.addSlashesToString(message) + "'");
     	    if(result.next()){
     	        if(result.getInt("fnEnabled") == 1)
     	            m_botAction.sendSmartPrivateMessage( name, "This user is already enabled to play.");
@@ -1589,7 +1589,7 @@ public class duelbot extends SubspaceBot {
     public void tournyTalk() {
     	try {
     		String query = "SELECT fnGameId, fnLeagueTypeID, fnTournyUserOne, fnTournyUserTwo, fnTotalPlayers, fnGameNumber FROM tblDuelTournyGame AS TG, tblDuelTourny T WHERE T.fnTournyID = TG.fnTournyID AND TG.fnStatus = 0 AND TG.fnTournyUserOne > 0 AND TG.fnTournyUserTwo > 0 AND TG.fnGameRound > 0 ORDER BY TG.fdLastCall LIMIT 0,20";
-    		ResultSet result = m_botAction.SQLQuery("local", query);
+    		ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
     		while(result.next()) {
     			int gid = result.getInt( "fnGameId" );
     			int idOne = result.getInt( "fnTournyUserOne" );
@@ -1599,7 +1599,7 @@ public class duelbot extends SubspaceBot {
     			int leagueId = result.getInt( "fnLeagueTypeID" );
     			int realGameId = result.getInt( "fnGameNumber" );
     			int players = result.getInt( "fnTotalPlayers" );
-                m_botAction.SQLQueryAndClose("local", "UPDATE tblDuelTournyGame SET fdLastCall = NOW() WHERE fnGameID = "+gid);
+                m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuelTournyGame SET fdLastCall = NOW() WHERE fnGameID = "+gid);
     			TournyGame tg = new TournyGame( gid, pOne, pTwo, idOne, idTwo, leagueId, realGameId, players );
     			tournyGames.put( new Integer( gid ), tg );
                 if( tg != null ) {
@@ -1618,7 +1618,7 @@ public class duelbot extends SubspaceBot {
     public void checkForfeits() {
     	try {
     		String query = "SELECT * FROM tblDuelTournyGame AS DTG INNER JOIN tblDuelTourny AS DT ON DT.fnTournyID = DTG.fnTournyID WHERE DTG.fnStatus = 0 AND DTG.fnTournyUserOne > 0 AND DTG.fnTournyUserTwo > 0 AND SUBDATE(NOW(), INTERVAL 14 DAY) > DTG.fdTimeStarted";
-	    	ResultSet results = m_botAction.SQLQuery("local", query);
+	    	ResultSet results = m_botAction.SQLQuery(mySQLHost, query);
 	    	while(results.next()) {
 	    		int gid = results.getInt("fnGameID");
 	    		int p1av = results.getInt("fnOneActivity");
@@ -2262,7 +2262,7 @@ public class duelbot extends SubspaceBot {
 
         try {
             String query = "SELECT fcUserName FROM tblUser AS U WHERE fnUserID = "+tournyId;
-            ResultSet result = m_botAction.SQLQuery( "local", query );
+            ResultSet result = m_botAction.SQLQuery(mySQLHost, query );
             String name;
             if( result.next() )
                 name = result.getString( "fcUserName" );
@@ -2284,7 +2284,7 @@ public class duelbot extends SubspaceBot {
         try {
             System.out.println( "UPDATE tblDuelTournyGame SET "+extra+" WHERE fnGameID = "+gameId );
             String query = "UPDATE tblDuelTournyGame SET "+extra+" WHERE fnGameID = "+gameId;
-            m_botAction.SQLQueryAndClose( "local", query );
+            m_botAction.SQLQueryAndClose(mySQLHost, query );
         } catch (Exception e) {
             System.out.println( "Error Updating avail:"+e );
         }
@@ -2293,7 +2293,7 @@ public class duelbot extends SubspaceBot {
     public void sql_updateTournyMatchData( int gameId, int matchId, int winner) {
         try {
             String query = "UPDATE tblDuelTournyGame SET fnStatus = "+winner+", fnDuelMatchID = "+matchId+" WHERE fnGameID = "+gameId;
-            m_botAction.SQLQueryAndClose("local", query);
+            m_botAction.SQLQueryAndClose(mySQLHost, query);
         } catch(Exception e) {}
     }
 
