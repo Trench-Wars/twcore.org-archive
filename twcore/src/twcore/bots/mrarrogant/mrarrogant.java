@@ -94,20 +94,21 @@ public class mrarrogant extends SubspaceBot
   public void handleEvent(LoggedOn event)
   {
     BotSettings botSettings = m_botAction.getBotSettings();
-    String initialArena = botSettings.getString("initialarena");
-    String chat = botSettings.getString("chat");
+    String initialArena = botSettings.getString("initialarena" + getBotNumber());
+    String chat = botSettings.getString("chat" + getBotNumber());
     String accessString = botSettings.getString("accesslist");
-    String logPath = botSettings.getString("logpath");
+    String logPath = botSettings.getString("logpath" + getBotNumber());
     botType = botSettings.getInt("Type" + getBotNumber());
     fileNameFormat = new SimpleDateFormat("'" + logPath + "'MMMyyyy'.log'");
     logFileName = fileNameFormat.format(new Date());
-
     m_botAction.sendUnfilteredPublicMessage("?chat=" + chat);
     changeArena(initialArena);
     openFile(logFileName);
     opList = m_botAction.getOperatorList();
     setupAccessList(accessString);
     m_botAction.scheduleTaskAtFixedRate(new CheckLogTask(), 0, CHECK_LOG_TIME);
+    if(botType == 0)
+        doArroSpyCmd();
   }
   
   public int getBotNumber()
