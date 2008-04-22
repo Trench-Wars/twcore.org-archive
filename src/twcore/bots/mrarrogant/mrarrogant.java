@@ -45,8 +45,6 @@ public class mrarrogant extends SubspaceBot
   public static final int DIE_DELAY = 500;
   public static final int ENTER_DELAY = 5000;
   public static final int DEFAULT_CHECK_TIME = 10;
-  public static final int NON_PUBLIC = 0;
-  public static final int PUBLIC = 1;
 
   private SimpleDateFormat dateFormat;
   private SimpleDateFormat fileNameFormat;
@@ -59,7 +57,7 @@ public class mrarrogant extends SubspaceBot
   private Vector<CommandLog> commandQueue;
   private FileWriter logFile;
   private String logFileName;
-  private int year, botType;
+  private int year;
   private boolean isStaying;
   private boolean isArroSpy;
   
@@ -94,11 +92,10 @@ public class mrarrogant extends SubspaceBot
   public void handleEvent(LoggedOn event)
   {
     BotSettings botSettings = m_botAction.getBotSettings();
-    String initialArena = botSettings.getString("initialarena" + getBotNumber());
-    String chat = botSettings.getString("chat" + getBotNumber());
+    String initialArena = botSettings.getString("initialarena");
+    String chat = botSettings.getString("chat");
     String accessString = botSettings.getString("accesslist");
-    String logPath = botSettings.getString("logpath" + getBotNumber());
-    botType = botSettings.getInt("Type" + getBotNumber());
+    String logPath = botSettings.getString("logpath");
     fileNameFormat = new SimpleDateFormat("'" + logPath + "'MMMyyyy'.log'");
     logFileName = fileNameFormat.format(new Date());
     m_botAction.sendUnfilteredPublicMessage("?chat=" + chat);
@@ -107,20 +104,6 @@ public class mrarrogant extends SubspaceBot
     opList = m_botAction.getOperatorList();
     setupAccessList(accessString);
     m_botAction.scheduleTaskAtFixedRate(new CheckLogTask(), 0, CHECK_LOG_TIME);
-    if(botType == 0)
-        doArroSpyCmd();
-  }
-  
-  public int getBotNumber()
-  {
-      BotSettings botSettings = m_botAction.getBotSettings();
-      int nrBots = botSettings.getInt("Max Bots");
-      for (int i = 1; i <= nrBots; i++)
-      {
-          if (botSettings.getString("Name" + i).equalsIgnoreCase(m_botAction.getBotName()))
-              return i;
-      }
-      return 0;
   }
   
   public void handleDisconnect() {
@@ -786,24 +769,6 @@ public class mrarrogant extends SubspaceBot
 
   public void handleEvent(ArenaList event)
   {
-    if(botType == NON_PUBLIC){
-        try
-        {
-            String[] arenaNames = event.getArenaNames();
-            int arenaIndex = (int) (Math.random() * arenaNames.length);
-      
-            // If an offlimit arena or public arena was selected, pick a new one
-            while(offlimitArenas.contains(arenaNames[arenaIndex].toLowerCase()) || Tools.isAllDigits(arenaNames[arenaIndex])) {
-                arenaIndex = (int) (Math.random() * arenaNames.length);
-            }
-      
-            //m_botAction.sendChatMessage("Moving to "+arenaNames[arenaIndex]);
-            changeArena(arenaNames[arenaIndex]);
-        }
-        catch(Exception e){
-            m_botAction.sendChatMessage(e.getMessage());
-        }
-    }else if(botType == PUBLIC){
         try{
           String[] arenaNames = event.getArenaNames();
 
@@ -842,7 +807,6 @@ public class mrarrogant extends SubspaceBot
           changeArena(arenaNames[arenaIndex]);
         }
         catch(Exception e){}
-    }
   }
   
   /**
