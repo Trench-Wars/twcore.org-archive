@@ -129,7 +129,7 @@ public class mrarrogant extends SubspaceBot
       handleCommand(sender, message);
     if(messageType == Message.CHAT_MESSAGE)
       handleChatCommand(sender, message);
-    if(isArroSpy && (messageType == Message.SERVER_ERROR || messageType == Message.PRIVATE_MESSAGE))
+    if(isArroSpy && messageType == Message.SERVER_ERROR)
       handleSpyMessage(sender, message, messageType);
   }
 
