@@ -51,7 +51,7 @@ public class pubbot extends SubspaceBot
   private String botName;
   private boolean connected;
   private boolean gotArenaList;
-  
+
   private boolean movingGoCmd = false;  // true if this bot received a "go " command and is moving to the new arena
 
   /**
@@ -67,10 +67,11 @@ public class pubbot extends SubspaceBot
     connected = false;
     requestEvents();
   }
-  
+
   public void handleDisconnect() {
       m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("dying", pubHubBot));
-      moduleHandler.unloadAllModules();
+      if( moduleHandler != null )
+          moduleHandler.unloadAllModules();
       m_botAction.cancelTasks();
       m_botAction.ipcUnSubscribe(IPCCHANNEL);
       m_botAction.ipcUnSubscribe(IPCCHANNEL2);
@@ -86,11 +87,11 @@ public class pubbot extends SubspaceBot
     BotSettings botSettings = m_botAction.getBotSettings();
 
     moduleHandler = new ModuleHandler(m_botAction, m_botAction.getGeneralSettings().getString( "Core Location" ) + "/twcore/bots/pubbot", "pubbot");
-    
+
     // Join the initial arena from settings
     currentArena = botSettings.getString("InitialArena");
     m_botAction.changeArena(currentArena);
-    
+
     botName = m_botAction.getBotName();
     m_botAction.ipcSubscribe(IPCCHANNEL);
     m_botAction.ipcSubscribe(IPCCHANNEL2);
@@ -453,12 +454,12 @@ public class pubbot extends SubspaceBot
         doDieCmd(true);
     }
   }
-  
-  
-  
+
+
+
   /**
    * Handles restarting of the KOTH game
-   * 
+   *
    * @param event is the event to handle.
    */
   public void handleEvent(KotHReset event) {
