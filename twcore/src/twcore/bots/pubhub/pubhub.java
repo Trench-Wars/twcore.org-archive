@@ -1,9 +1,9 @@
 package twcore.bots.pubhub;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.StringTokenizer;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -68,7 +68,7 @@ public class pubhub extends SubspaceBot {
     private PubbotsLocationTask pubbotsLocationTask = new PubbotsLocationTask();
     private LogOffTask logoffTask = new LogOffTask();
 
-    private Map<String, String> pubbots;
+    private ConcurrentHashMap<String, String> pubbots;
                  //<PubBot, Arena>
 
     /**
@@ -79,7 +79,7 @@ public class pubhub extends SubspaceBot {
     public pubhub(BotAction botAction) {
         super(botAction);
         moduleHandler = new ModuleHandler(m_botAction, m_botAction.getGeneralSettings().getString("Core Location") + "/twcore/bots/pubhub", "pubhub");
-        pubbots = Collections.synchronizedMap( new HashMap<String,String>() );
+        pubbots = new ConcurrentHashMap<String,String>();
     }
 
     @Override
