@@ -50,7 +50,6 @@ public class pubbot extends SubspaceBot
   private String currentArena;
   private String botName;
   private boolean connected;
-  private boolean gotArenaList;
 
   private boolean movingGoCmd = false;  // true if this bot received a "go " command and is moving to the new arena
 
@@ -143,18 +142,6 @@ public class pubbot extends SubspaceBot
   }
 
   /**
-   * This method handles the where command from the pubhubbot.  It waits for the
-   * arena info to be updated and then sends the current arena back to the
-   * pubhubbot.
-   */
-
-  public void gotWhereCmd()
-  {
-    updateArenaInfo();
-    m_botAction.scheduleTaskAtFixedRate(new SendWhereTask(), UPDATE_CHECK_DELAY, UPDATE_CHECK_DELAY);
-  }
-
-  /**
    * This method makes the bot change arenas.
    *
    * @param argString is the new arena to go to.
@@ -237,8 +224,8 @@ public class pubbot extends SubspaceBot
       gotInitializedCmd(botSender);
     if(message.equalsIgnoreCase("die"))
       gotDieCmd(recipient);
-    if(message.equalsIgnoreCase("where"))
-      gotWhereCmd();
+    if(startsWithIgnoreCase(message, "location "))
+      currentArena = message.substring(9);
     if(startsWithIgnoreCase(message, "go "))
       gotGoCmd(message.substring(3).trim());
     if(startsWithIgnoreCase(message, "load "))
@@ -339,8 +326,6 @@ public class pubbot extends SubspaceBot
 
   public void handleEvent(ArenaList event)
   {
-    currentArena = event.getCurrentArenaName();
-    gotArenaList = true;
     moduleHandler.handleEvent(event);
   }
 
@@ -356,16 +341,6 @@ public class pubbot extends SubspaceBot
     eventRequester.request(EventRequester.PLAYER_LEFT);
     eventRequester.request(EventRequester.MESSAGE);
     eventRequester.request(EventRequester.KOTH_RESET);
-  }
-
-  /**
-   * This method updates the arena info.
-   */
-
-  private void updateArenaInfo()
-  {
-    gotArenaList = false;
-    m_botAction.requestArenaList();
   }
 
   /**
@@ -404,23 +379,6 @@ public class pubbot extends SubspaceBot
     {
       if(!connected)
         m_botAction.die();
-    }
-  }
-
-  /**
-   * This class waits for the arena info to update.  When it has updated, it
-   * sends the bots current location to the pubHubBot.
-   */
-
-  private class SendWhereTask extends TimerTask
-  {
-    public void run()
-    {
-      if(gotArenaList)
-      {
-        m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("here " + currentArena, pubHubBot));
-        cancel();
-      }
     }
   }
 
