@@ -436,6 +436,7 @@ public class matchbot extends SubspaceBot
                     help.add("!challenge <squad>                       - request a game of " + m_rules.getString("name") + " against <squad>");
                     help.add("!challenge <squad>:<players>             - request a game of " + m_rules.getString("name") + " against <squad> with <players> number of players");
 					help.add("!removechallenge <squad>                 - removes the challenge of " + m_rules.getString("name") + " game against <squad>");
+                    help.add("!removechallenge *                       - removes all challenges sent out by your squad");
                     help.add("!accept <squad>                          - accept the !challenge made by the challenging squad");
                 }
             }
@@ -641,6 +642,11 @@ public class matchbot extends SubspaceBot
                             players = m_rules.getInt("players");
                     }
                     DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
+                    if( !dp.isRankAssistantMinimum() ) {
+                        m_botAction.sendPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
+                        return;
+                    }
+
                     if ((dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (p.getSquadName().equalsIgnoreCase(dp.getTeamName())))
                     {
                         // check if the challenged team exists
@@ -651,27 +657,21 @@ public class matchbot extends SubspaceBot
                                 "select fnTeamID from tblTeam where fcTeamName = '" + Tools.addSlashesToString(nmySquad) + "' and (fdDeleted = 0 or fdDeleted IS NULL)");
                         if (rs.next())
                         {
-                            // check if he is assistant or captain
-                            if (dp.hasRank(3) || dp.hasRank(4))
-                            {
-                                m_gameRequests.add(new GameRequest(name, dp.getTeamName(), nmySquad, players, dp.getUserID()));
-                                m_botAction.sendSquadMessage(
+                            m_gameRequests.add(new GameRequest(name, dp.getTeamName(), nmySquad, players, dp.getUserID()));
+                            m_botAction.sendSquadMessage(
                                     nmySquad,
                                     name
-                                        + " is challenging you for a game of "
-										+ players + "vs" + players + " "
-                                        + m_rules.getString("name")
-                                        + " versus "
-                                        + dp.getTeamName()
-                                        + ". Captains/assistants, ?go "
-                                        + m_botAction.getArenaName()
-                                        + " and pm me with '!accept "
-                                        + dp.getTeamName()
-                                        + "'");
-                                m_botAction.sendPrivateMessage(name, "Your challenge has been sent out to " + nmySquad);
-                            }
-                            else
-                                m_botAction.sendPrivateMessage(name, "You're not allowed to make challenges for your squad");
+                                    + " is challenging you for a game of "
+                                    + players + "vs" + players + " "
+                                    + m_rules.getString("name")
+                                    + " versus "
+                                    + dp.getTeamName()
+                                    + ". Captains/assistants, ?go "
+                                    + m_botAction.getArenaName()
+                                    + " and pm me with '!accept "
+                                    + dp.getTeamName()
+                                    + "'");
+                            m_botAction.sendPrivateMessage(name, "Your challenge has been sent out to " + nmySquad);
                         }
                         else
                             m_botAction.sendPrivateMessage(name, "The team you want to challenge does NOT exist in TWD");
@@ -701,9 +701,16 @@ public class matchbot extends SubspaceBot
                 Player p = m_botAction.getPlayer(name);
 
                 DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
+                if( !dp.isRankAssistantMinimum() ) {
+                    m_botAction.sendPrivateMessage(name, "You must be a captain or assistant to remove challenges.");
+                    return;
+                }
                 if ((dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (p.getSquadName().equalsIgnoreCase(dp.getTeamName())))
                 {
                     String nmySquad = parameters[0];
+                    boolean removeAll = false;
+                    if( nmySquad.equals("*") )
+                        removeAll = true;
                     GameRequest t;
                     ListIterator<GameRequest> i = m_gameRequests.listIterator();
                     while (i.hasNext())
@@ -711,20 +718,21 @@ public class matchbot extends SubspaceBot
                         t = (GameRequest) i.next();
                         if (t.getRequestAge() >= 300000)
                             i.remove();
-                        else if ((t.getChallenger().equalsIgnoreCase(p.getSquadName())) && (t.getChallenged().equalsIgnoreCase(nmySquad)))
-                            if (dp.hasRank(3) || dp.hasRank(4))
-                            {
-                                m_botAction.sendPrivateMessage(name, "Your challenge vs. " + nmySquad + " has been cancelled.");
-                                m_botAction.sendSquadMessage(
-                                    nmySquad,
-                                    name
-                                        + " has cancelled the challenge of "
-                                        + m_rules.getString("name")
-                                        + " game versus "
-                                        + p.getSquadName()
-                                        + ".");
-                                 i.remove();
-                            }
+                        else {
+                            if ((t.getChallenger().equalsIgnoreCase(p.getSquadName())) && (removeAll || (t.getChallenged().equalsIgnoreCase(nmySquad)))  )
+                                {
+                                    m_botAction.sendPrivateMessage(name, "Your challenge vs. " + nmySquad + " has been cancelled.");
+                                    m_botAction.sendSquadMessage(
+                                            nmySquad,
+                                            name
+                                            + " has cancelled the challenge of "
+                                            + m_rules.getString("name")
+                                            + " game versus "
+                                            + p.getSquadName()
+                                            + ".");
+                                    i.remove();
+                                }
+                        }
                     }
                 }
             }
@@ -761,7 +769,7 @@ public class matchbot extends SubspaceBot
                             if (r != null)
                             {
                                 // check if he is assistant or captain
-                                if (dp.hasRank(3) || dp.hasRank(4))
+                                if (dp.isRankAssistantMinimum())
                                 {
                                     m_isStartingUp = true;
                                     m_botAction.sendSquadMessage(
@@ -843,7 +851,7 @@ public class matchbot extends SubspaceBot
                     {
                         if (dp.getTeamName().equalsIgnoreCase(m_team1) || dp.getTeamName().equalsIgnoreCase(m_team2))
                         {
-                            if (dp.hasRank(3) || dp.hasRank(4))
+                            if (dp.isRankAssistantMinimum())
                             {
                                 m_cancelGame = true;
                                 m_botAction.sendSquadMessage( m_team1, "The " + m_rules.getString("name") + " game versus " + m_team2 + " has been cancelled by " + name + ".");
