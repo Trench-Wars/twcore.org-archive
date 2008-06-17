@@ -136,7 +136,13 @@ public class pubhub extends SubspaceBot {
      */
     public void handleEvent(ArenaList event) {
         String[] arenas = event.getArenaNames();
+        boolean startup = pubbots.size()==0;
 
+        if(countUnspawnedArenas() > 0) {
+            // Spawn the pubbot
+            m_botAction.sendSmartPrivateMessage(cfg_hubbot, "!spawn PubBot");
+        }
+        
         for (int i = 0; i < arenas.length; i++) {
             String arena = arenas[i].toLowerCase();
 
@@ -147,8 +153,9 @@ public class pubhub extends SubspaceBot {
                 }
             }
         }
-
-        if(countUnspawnedArenas() > 0) {
+        
+        // Only spawn a pubbot after the arena check when bot is starting up
+        if(startup && countUnspawnedArenas() > 0) {
             // Spawn the pubbot
             m_botAction.sendSmartPrivateMessage(cfg_hubbot, "!spawn PubBot");
         }
@@ -168,7 +175,7 @@ public class pubhub extends SubspaceBot {
         if(sender == null)  // try looking up the sender's name by playerid
             sender = m_botAction.getPlayerName(event.getPlayerID());
         if(sender == null)
-            return;
+            sender = "-";
 
         // Message from the hubbot
         if(sender.equalsIgnoreCase(cfg_hubbot)) {
@@ -185,6 +192,11 @@ public class pubhub extends SubspaceBot {
             if (message.equalsIgnoreCase("!respawn")) {
                 m_botAction.sendChatMessage("Respawning pub bots.");
                 m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("die"));
+                
+                // Restart respawning pubbots after 10 seconds
+                m_botAction.cancelTask(arenaListTask);
+                arenaListTask = new ArenaListTask();
+                m_botAction.scheduleTaskAtFixedRate(arenaListTask, 10000, CHECKARENALIST_DELAY);
             }
             if (message.equalsIgnoreCase("!reloadconfig")) {
                 loadConfiguration();
@@ -262,7 +274,7 @@ public class pubhub extends SubspaceBot {
                     
                     pubbots.put(name, arena);
                     
-                    // let the pubbot know it's (new?) locatoin
+                    // let the pubbot know it's (new?) location
                     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("location "+arena, name));
                 }
                 
@@ -482,7 +494,7 @@ public class pubhub extends SubspaceBot {
             
             String aarena = null;
             for(String arena:sortedArenas) {
-                if(aarena.equalsIgnoreCase(arena)) {
+                if(arena.equalsIgnoreCase(aarena)) {
                     // There are two (or more) pubbots in this arena, remove one
                     
                     // Get a pubbot from this arena
@@ -531,7 +543,8 @@ public class pubhub extends SubspaceBot {
             synchronized( pubbots ) {
                 // *locate all the registered pubbots
                 for(String pubbot:pubbots.keySet()) {
-                    m_botAction.locatePlayer(pubbot);
+                    if(pubbot.startsWith("SPAWNING") == false)
+                        m_botAction.locatePlayer(pubbot);
                 }
             }
         }
