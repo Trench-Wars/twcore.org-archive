@@ -74,6 +74,7 @@ public class pubhub extends SubspaceBot {
 
     private ConcurrentHashMap<String, String> pubbots;
                  //<PubBot, Arena>
+                 // Arena = lowercase
 
     /**
      * This method initializes the bot.
@@ -142,7 +143,7 @@ public class pubhub extends SubspaceBot {
             // Spawn the pubbot
             m_botAction.sendSmartPrivateMessage(cfg_hubbot, "!spawn PubBot");
         }
-
+        
         for (int i = 0; i < arenas.length; i++) {
             String arena = arenas[i].toLowerCase();
 
@@ -153,7 +154,7 @@ public class pubhub extends SubspaceBot {
                 }
             }
         }
-
+        
         // Only spawn a pubbot after the arena check when bot is starting up
         if(startup && countUnspawnedArenas() > 0) {
             // Spawn the pubbot
@@ -192,7 +193,7 @@ public class pubhub extends SubspaceBot {
             if (message.equalsIgnoreCase("!respawn")) {
                 m_botAction.sendChatMessage("Respawning pub bots.");
                 m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("die"));
-
+                
                 // Restart respawning pubbots after 10 seconds
                 m_botAction.cancelTask(arenaListTask);
                 arenaListTask = new ArenaListTask();
@@ -250,34 +251,34 @@ public class pubhub extends SubspaceBot {
                 m_botAction.sendSmartPrivateMessage(sender, "!off          - Disconnects the pubhub and pubbots.");
             }
         }
-
+        
         // Messages from the *locate commands
         if(messageType == Message.ARENA_MESSAGE) {
             // Use a regular expression to determine if this arena message is the result of the *locate command
-            // If yes, then the result of this regular expression can also be used to get the player and arena name
+            // If yes, then the result of this regular expression can also be used to get the player and arena name 
             // from the arena message.
             // The regular expression without java-specific escapes = (.+)\s-\s([\w\d\p{Z}]+)
             // Small explanation:                                     [name] - [arena]
-
+            
             Pattern p = Pattern.compile("(.+)\\s-\\s([\\w\\d\\p{Z}]+)");
             Matcher m = p.matcher(message);
-
+            
             if(m.matches()) {
                 String name = m.group(1);
                 String arena = m.group(2);
-
+                
                 if(name != null && arena != null) {
-
+                    
                     if(arena.startsWith("Public ")) {
                         arena = arena.replaceAll("Public ", "");
                     }
-
-                    pubbots.put(name, arena);
-
+                    
+                    pubbots.put(name, arena.toLowerCase());
+                    
                     // let the pubbot know it's (new?) location
                     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("location "+arena, name));
                 }
-
+                
                 checkPubbots();
             }
         }
@@ -301,10 +302,7 @@ public class pubhub extends SubspaceBot {
 
             if (recipient == null || recipient.equals(pubhub)) {
                 if (message.equalsIgnoreCase("dying")) {       // A pubbot is going away
-                    if( botSender == null )
-                        Tools.printLog("Dying pubbot w/o a name found; can not remove from HashMap!");
-                    else
-                        pubbots.remove(botSender);
+                    pubbots.remove(botSender);
                 }
                 if (message.equalsIgnoreCase("spawned")) {     // A pubbot has spawned
                     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("initialize", botSender));
@@ -343,7 +341,7 @@ public class pubhub extends SubspaceBot {
         StringTokenizer arenas = new StringTokenizer(botSettings.getString("AutoloadArenas"));
         while (arenas.hasMoreTokens()) {
             String arena = arenas.nextToken().toLowerCase();
-            cfg_arenas.add(arena.toLowerCase());
+            cfg_arenas.add(arena);
         }
 
         // AutoloadModules
@@ -356,7 +354,6 @@ public class pubhub extends SubspaceBot {
 
         // Modules-<arena>
         for (String arena : cfg_arenas) {
-            arena = arena.toLowerCase();
             String modulesSetting = botSettings.getString("Modules-" + arena);
 
             if (modulesSetting != null && modulesSetting.length() > 0) {
@@ -466,7 +463,6 @@ public class pubhub extends SubspaceBot {
         HashSet<String> modules;
 
         if (arena != null) {
-            arena = arena.toLowerCase();
             if (cfg_arenaModules.containsKey(arena)) { // Autoload predefined specific modules
                 modules = cfg_arenaModules.get(arena);
             } else { // Autoload default modules
@@ -488,26 +484,25 @@ public class pubhub extends SubspaceBot {
             m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("load " + module, pubBot));
         }
     }
-
-
+    
+    
     private void checkPubbots() {
 
         // Check for double pubbots in arena
         synchronized( pubbots ) {
-
+            
             TreeSet<String> sortedArenas = new TreeSet<String>(pubbots.values());
-
+            
             String aarena = null;
             for(String arena:sortedArenas) {
                 if(arena.equalsIgnoreCase(aarena)) {
                     // There are two (or more) pubbots in this arena, remove one
-
+                    
                     // Get a pubbot from this arena
                     for(String bot:pubbots.keySet()) {
                         String a = pubbots.get(bot);
                         if(a.equalsIgnoreCase(arena)) {
                             killPubbot(bot);
-                            Tools.printLog( "Duplicate pubbot found; killing" );
                             break;
                         }
                     }
@@ -515,38 +510,37 @@ public class pubhub extends SubspaceBot {
                 aarena = arena;
             }
         }
-
+        
         // Check if a pubbot is not in the configured public arena
         synchronized( pubbots ) {
-
+            
             for(Map.Entry<String,String> pubbot:pubbots.entrySet()) {
                 String bot = pubbot.getKey();
                 String arena = pubbot.getValue();
-
-                if( Tools.isAllDigits(arena) == false && cfg_arenas.contains(arena.toLowerCase()) == false) {
+                
+                if( Tools.isAllDigits(arena) == false && cfg_arenas.contains(arena) == false) {
                     // This pubbot is in a wrong arena, disconnect it
                     killPubbot(bot);
-                    Tools.printLog( "PubBot in wrong arena; killing." );
                 }
             }
         }
     }
-
+    
     /**
      * Issues the IPC message to disconnect the specified bot
-     *
+     * 
      * @param bot
      */
     private void killPubbot(String bot) {
         m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("die", bot));
     }
-
+    
 
     //************ TIMERTASKS ****************\\
 
     private class PubbotsLocationTask extends TimerTask {
         public void run() {
-
+            
             synchronized( pubbots ) {
                 // *locate all the registered pubbots
                 for(String pubbot:pubbots.keySet()) {
@@ -579,7 +573,6 @@ public class pubhub extends SubspaceBot {
             if (destinationArena == null) {
                 // Kill the pubbot if no arena is found
                 killPubbot(pubBot);
-                Tools.printLog("PubBot can not find destination arena; killing." );
             } else {
                 m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("joinchat " + cfg_chat, pubBot));
                 m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("go " + destinationArena, pubBot));
