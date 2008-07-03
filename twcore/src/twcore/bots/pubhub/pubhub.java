@@ -343,7 +343,7 @@ public class pubhub extends SubspaceBot {
         StringTokenizer arenas = new StringTokenizer(botSettings.getString("AutoloadArenas"));
         while (arenas.hasMoreTokens()) {
             String arena = arenas.nextToken().toLowerCase();
-            cfg_arenas.add(arena);
+            cfg_arenas.add(arena.toLowerCase());
         }
 
         // AutoloadModules
@@ -356,6 +356,7 @@ public class pubhub extends SubspaceBot {
 
         // Modules-<arena>
         for (String arena : cfg_arenas) {
+            arena = arena.toLowerCase();
             String modulesSetting = botSettings.getString("Modules-" + arena);
 
             if (modulesSetting != null && modulesSetting.length() > 0) {
@@ -465,6 +466,7 @@ public class pubhub extends SubspaceBot {
         HashSet<String> modules;
 
         if (arena != null) {
+            arena = arena.toLowerCase();
             if (cfg_arenaModules.containsKey(arena)) { // Autoload predefined specific modules
                 modules = cfg_arenaModules.get(arena);
             } else { // Autoload default modules
@@ -521,7 +523,7 @@ public class pubhub extends SubspaceBot {
                 String bot = pubbot.getKey();
                 String arena = pubbot.getValue();
 
-                if( Tools.isAllDigits(arena) == false && cfg_arenas.contains(arena) == false) {
+                if( Tools.isAllDigits(arena) == false && cfg_arenas.contains(arena.toLowerCase()) == false) {
                     // This pubbot is in a wrong arena, disconnect it
                     killPubbot(bot);
                     Tools.printLog( "PubBot in wrong arena; killing." );
