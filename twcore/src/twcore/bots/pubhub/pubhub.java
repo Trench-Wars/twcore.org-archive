@@ -273,12 +273,14 @@ public class pubhub extends SubspaceBot {
                         arena = arena.replaceAll("Public ", "");
                     }
                     
-                    pubbots.put(name, arena.toLowerCase());
-                    
-                    // let the pubbot know it's (new?) location
-                    m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("location "+arena, name));
-                    
-                    checkPubbots();
+                    if(pubbots.containsKey(name)) {
+                        pubbots.put(name, arena.toLowerCase());
+                        
+                        // let the pubbot know it's (new?) location
+                        m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("location "+arena, name));
+                        
+                        checkPubbots();
+                    }
                 }
                 
             }
