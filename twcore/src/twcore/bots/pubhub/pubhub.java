@@ -257,10 +257,10 @@ public class pubhub extends SubspaceBot {
             // Use a regular expression to determine if this arena message is the result of the *locate command
             // If yes, then the result of this regular expression can also be used to get the player and arena name 
             // from the arena message.
-            // The regular expression without java-specific escapes = (.+)\s-\s([\w\d\p{Z}]+)
+            // The regular expression without java-specific escapes = (.+)\s-\s([#\w\d\p{Z}]+)
             // Small explanation:                                     [name] - [arena]
             
-            Pattern p = Pattern.compile("(.+)\\s-\\s([\\w\\d\\p{Z}]+)");
+            Pattern p = Pattern.compile("(.+)\\s-\\s([#\\w\\d\\p{Z}]+)");
             Matcher m = p.matcher(message);
             
             if(m.matches()) {
@@ -277,9 +277,10 @@ public class pubhub extends SubspaceBot {
                     
                     // let the pubbot know it's (new?) location
                     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("location "+arena, name));
+                    
+                    checkPubbots();
                 }
                 
-                checkPubbots();
             }
         }
 
