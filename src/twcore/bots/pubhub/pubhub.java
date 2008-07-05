@@ -4,9 +4,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TimerTask;
-import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -492,23 +492,23 @@ public class pubhub extends SubspaceBot {
         // Check for double pubbots in arena
         synchronized( pubbots ) {
             
-            TreeSet<String> sortedArenas = new TreeSet<String>(pubbots.values());
+            Set<Map.Entry <String,String>> bots1 = pubbots.entrySet();
+            Set<Map.Entry <String,String>> bots2 = pubbots.entrySet();
+                        //<Pubbot, Arena>
+                        // key   , value
             
-            String aarena = null;
-            for(String arena:sortedArenas) {
-                if(arena.equalsIgnoreCase(aarena)) {
-                    // There are two (or more) pubbots in this arena, remove one
+            for(Map.Entry<String, String> bot1:bots1) {
+                for(Map.Entry<String, String> bot2:bots2) {
                     
-                    // Get a pubbot from this arena
-                    for(String bot:pubbots.keySet()) {
-                        String a = pubbots.get(bot);
-                        if(a.equalsIgnoreCase(arena)) {
-                            killPubbot(bot);
-                            break;
-                        }
+                    // if the bot names are different but both are in the same arena
+                    if(bot1.getKey().equalsIgnoreCase(bot2.getKey())== false && bot1.getValue().equalsIgnoreCase(bot2.getValue())) {
+                        
+                        killPubbot(bot1.getKey());
+                        bots1.remove(bot1);
+                        bots2.remove(bot1);
+                        break;
                     }
                 }
-                aarena = arena;
             }
         }
         
