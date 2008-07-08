@@ -582,6 +582,8 @@ public class pubhub extends SubspaceBot {
 
                 removeUnspawnedArena(destinationArena);
                 pubbots.put(pubBot, destinationArena);
+                // Make sure the pubbot arrived in the correct arena (and not some #arena)
+                m_botAction.locatePlayer(pubBot);
                 this.cancel();
             }
         }
