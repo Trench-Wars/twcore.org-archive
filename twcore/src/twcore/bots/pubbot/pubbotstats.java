@@ -417,12 +417,16 @@ public class pubbotstats extends PubBotModule {
 	  beginIndex = beginIndex + infoName.length();
 	  
 	  // Custom beginIndex for "Total:" (Usage)
-	  if(infoName.startsWith("Total:")) {
+	  /*if(infoName.startsWith("Total:")) {
 	      // TIME: Session:    0:39:00  Total:    0:39:00  Created: 1-4-2008 09:01:41
+	      // TIME: Session:   20:28:00  Total:36510:02:00  Created: 10-26-2002 10:23:34
 	      while(beginIndex < message.length() && message.charAt(beginIndex) == ' ') {
 	          beginIndex++;
 	      }
 	  }
+	  Removed because moving the beginIndex doesn't work for high usage numbers (see 2nd example above)
+	  Furthermore, the trim() removes any left spaces (below).
+	  */
 	  
 	  endIndex = message.indexOf("  ", beginIndex);
 	  if(endIndex == -1)
