@@ -97,6 +97,30 @@ public class pubbotstats extends PubBotModule {
       
   }
   
+  // Examples
+  
+  /*
+  PubBot9> *info
+  IP:24.22.176.33  TimeZoneBias:420  Freq:9999  TypedName:eN.yoU.Tee.Zee.  Demo:0  MachineId:1828021299
+  Ping:130ms  LowPing:130ms  HighPing:160ms  AvePing:130ms
+  LOSS: S2C:0.1%  C2S:0.1%  S2CWeapons:0.1%  S2C_RelOut:0(0)
+  S2C:47864-->47805  C2S:7449-->7449
+  C2S CURRENT: Slow:0 Fast:468 0.0%   TOTAL: Slow:0 Fast:3006 0.0%
+  S2C CURRENT: Slow:0 Fast:897 0.0%   TOTAL: Slow:0 Fast:22186 0.0%
+  TIME: Session:    0:57:00  Total: 2160:31:00  Created: 5-16-2006 06:44:09
+  Bytes/Sec:241  LowBandwidth:0  MessageLogging:0  ConnectType:UnknownNotRAS
+
+
+
+  IP:72.232.237.74  TimeZoneBias:480  Freq:9999  TypedName:Mr. Arrogant 2  Demo:0  MachineId:1693149144
+  Ping:0ms  LowPing:0ms  HighPing:0ms  AvePing:0ms
+  LOSS: S2C:0.1%  C2S:0.1%  S2CWeapons:0.0%  S2C_RelOut:32(245)
+  S2C:1017491-->1017416  C2S:233740-->233748
+  C2S CURRENT: Slow:0 Fast:117 0.0%   TOTAL: Slow:0 Fast:501 0.0%
+  S2C CURRENT: Slow:0 Fast:0 0.0%   TOTAL: Slow:0 Fast:0 0.0%
+  TIME: Session:   20:28:00  Total:36510:02:00  Created: 10-26-2002 10:23:34
+  Bytes/Sec:1615  LowBandwidth:0  MessageLogging:0  ConnectType:UnknownNotRAS*/
+  
   public void handleEvent( Message event ) {
 	  String message = event.getMessage();
 	  
