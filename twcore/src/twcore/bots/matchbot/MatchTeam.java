@@ -754,6 +754,10 @@ public class MatchTeam
             {
                 m_botAction.sendPrivateMessage(name, "The game already has maximum # of players.");
             }
+        } else {
+        	m_addPlayer = false;
+        	m_botAction.sendPrivateMessage(name, "Your request to add an extra player has been removed.");
+        	m_round.removeAddPlayer(m_fcTeamName);
         }
     }
 

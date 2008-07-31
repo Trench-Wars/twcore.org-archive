@@ -1111,6 +1111,15 @@ public class MatchRound
 			return false;
 		}
 	}
+	
+	public void removeAddPlayer(String team)
+	{
+		if (team.equalsIgnoreCase(m_team1.getTeamName())){
+			m_botAction.sendSquadMessage(m_team2.getTeamName(), m_team1.getTeamName() + " has removed their request to add an extra player.");
+		} else {
+			m_botAction.sendSquadMessage(m_team1.getTeamName(), m_team2.getTeamName() + " has removed their request to add an extra player.");
+		}
+	}
 
     public void checkReadyToGo()
     {
