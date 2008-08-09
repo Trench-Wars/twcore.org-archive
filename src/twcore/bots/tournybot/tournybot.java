@@ -778,7 +778,7 @@ public class tournybot extends SubspaceBot {
 	public void handleStatus(String name) {
 		String status;
 		if (trState == -1) {
-			status = "Waiting for host to !start me.";
+			status = "Tournament is currently stopped or inactive until started automatically.";
 		} else if (trState == 0) {
 			status = "Tournament about to begin (When 2 or more players enter).";
 		} else if (trState == 1 || trState == 2) {
