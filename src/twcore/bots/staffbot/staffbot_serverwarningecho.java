@@ -15,16 +15,8 @@ public class staffbot_serverwarningecho extends Module {
 		if(event.getMessageType() == Message.SERVER_ERROR) {
 		    // 1 = staff chat
 	        // 2 = smod chat
-			m_botAction.sendChatMessage(2, getMessageTypeString(event.getMessageType()) + ": (" + getSender(event) + ") (" + m_botAction.getArenaName() + "): " + event.getMessage());
+			m_botAction.sendChatMessage(2, getMessageTypeString(event.getMessageType()) + ": (" + m_botAction.getArenaName() + "): " + event.getMessage());
 		}
-	}
-	
-	private String getSender(Message message) {
-		int messageType = message.getMessageType();
-	    if(messageType == Message.REMOTE_PRIVATE_MESSAGE || messageType == Message.CHAT_MESSAGE)
-	      return message.getMessager();
-	    int senderID = message.getPlayerID();
-	    return m_botAction.getPlayerName(senderID);
 	}
 	
 	/**
