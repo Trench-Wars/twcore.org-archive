@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.StringTokenizer;
+import java.util.TreeMap;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
@@ -20,6 +21,7 @@ public class pubbotspy extends PubBotModule
   public ArrayList<String> keywords = new ArrayList<String>(); // our banned words
   public ArrayList<String> fragments = new ArrayList<String>(); // our banned fragments
   private HashSet<String> watchList;
+  private TreeMap<String, ArrayList<String>> pWatchList;
   private HashSet<String> ignoreList;
   private String currentArena;
   private String botName;
@@ -32,6 +34,7 @@ public class pubbotspy extends PubBotModule
     ignoreList = new HashSet<String>();
     currentArena = m_botAction.getArenaName();
     watchList = new HashSet<String>();
+    pWatchList = new TreeMap<String, ArrayList<String>>();
     botName = m_botAction.getBotName();
   }
 
@@ -60,6 +63,9 @@ public class pubbotspy extends PubBotModule
       }
       if(spying || watchList.contains(sender.toLowerCase()))
         m_botAction.sendChatMessage(messageTypeString + ": (" + sender + ") (" + currentArena + "): " + message);
+      if(pWatchList.containsKey(sender.toLowerCase()))
+    	  for(String staffMember:pWatchList.get(sender.toLowerCase()))
+    		  m_botAction.sendSmartPrivateMessage(staffMember, messageTypeString + ": (" + sender + ") (" + currentArena + "): " + message);
     }
   }
 
@@ -126,6 +132,32 @@ public class pubbotspy extends PubBotModule
 
     watchList.remove(playerName);
   }
+  
+  public void gotPWatchCmd(String argString)
+  {
+	String[] names = argString.split(":");
+	String playerName = names[0];
+	String staffName = names[1];
+	if(pWatchList.containsKey(playerName)){
+		ArrayList<String> staffNames = pWatchList.get(playerName);
+		if(staffNames.contains(staffName) && staffNames.size() == 1)
+			pWatchList.remove(playerName);
+		else if(staffNames.contains(staffName) && staffNames.size() != 1){
+			staffNames.remove(staffName);
+			pWatchList.remove(playerName);
+			pWatchList.put(playerName, staffNames);
+		}
+		else if(!staffNames.contains(staffName)){
+			staffNames.add(staffName);
+			pWatchList.remove(playerName);
+			pWatchList.put(playerName, staffNames);
+		}
+	} else {
+		ArrayList<String> staffNames = new ArrayList<String>();
+		staffNames.add(staffName);
+		pWatchList.put(playerName, staffNames);
+	}   
+  }
 
   public void gotIgnoreCmd(String argString)
   {
@@ -151,6 +183,9 @@ public class pubbotspy extends PubBotModule
         gotIgnoreCmd(message.substring(7));
       if(command.startsWith("unignore "))
         gotUnignoreCmd(message.substring(9));
+      if(command.startsWith("pwatch "))
+    	gotPWatchCmd(message.substring(7));
+    	  
     }
     catch(Exception e)
     {

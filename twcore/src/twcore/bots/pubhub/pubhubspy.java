@@ -3,6 +3,9 @@ package twcore.bots.pubhub;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TimerTask;
+import java.util.TreeMap;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
@@ -15,6 +18,7 @@ public class pubhubspy extends PubBotModule
   public static final int IGNORE_TIME = 10;
 
   private HashSet<String> watchList;
+  private TreeMap<String, ArrayList<String>> pWatchList;
   private HashMap<String, IgnoreTask> ignoreList;
   private String botName;
 
@@ -26,6 +30,7 @@ public class pubhubspy extends PubBotModule
   public void initializeModule()
   {
     watchList = new HashSet<String>();
+    pWatchList = new TreeMap<String, ArrayList<String>>();
     ignoreList = new HashMap<String, IgnoreTask>();
     botName = m_botAction.getBotName();
   }
@@ -41,6 +46,7 @@ public class pubhubspy extends PubBotModule
           m_botAction.cancelTask(ignoreTask);
       }
       watchList.clear();
+      pWatchList.clear();
       ignoreList.clear();
   }
 
@@ -50,6 +56,56 @@ public class pubhubspy extends PubBotModule
     String message = event.getMessage();
     int messageType = event.getMessageType();
 
+    if(messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE){
+    	if(message.equalsIgnoreCase("!help")){
+    		String[] help = {
+    				"PRIVATE SPY COMMANDS:",
+    				"!pwatch <player>    - Relays any chat messages from <player> to you privately",
+    				"!pwatchlist         - Shows players being !pwatch'ed",
+    		};
+    		m_botAction.smartPrivateMessageSpam(sender, help);
+    	}
+    	if(message.startsWith("!pwatch ")) {
+    		String playerName = message.substring(8).toLowerCase();
+
+            if(pWatchList.containsKey(playerName) && pWatchList.get(playerName).contains(sender)){
+            	ArrayList<String> staffNames = pWatchList.get(playerName);
+            	if(staffNames.contains(sender) && staffNames.size() == 1)
+            		pWatchList.remove(playerName);
+            	else if(staffNames.contains(sender) && staffNames.size() != 1){
+            		staffNames.remove(sender);
+            		pWatchList.remove(playerName);
+            		pWatchList.put(playerName, staffNames);
+            	}
+                // Stop watching the player
+                m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("pwatch " + playerName + ":" + sender));
+                m_botAction.sendSmartPrivateMessage(sender, "Watching player: " + playerName + " disabled.");
+            } else {
+                // Start watching the player
+            	ArrayList<String> staffNames = new ArrayList<String>();
+            	staffNames.add(sender);
+                pWatchList.put(playerName, staffNames);
+                m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("pwatch " + playerName + ":" + sender));
+                m_botAction.sendSmartPrivateMessage(sender, "Watching player: " + playerName + " enabled.");
+            }
+    	}
+        if(message.equalsIgnoreCase("!pwatchlist")) {
+        	m_botAction.sendSmartPrivateMessage(sender, "Current players on !pwatch:");
+            Iterator<String> i = pWatchList.keySet().iterator();
+            while(i.hasNext()){
+            	String n = i.next();
+            	ArrayList<String> staffNames = pWatchList.get(n);
+            	Iterator<String> it = staffNames.iterator();
+            	while(it.hasNext()){
+            		String s = i.next();
+            		if(s.equalsIgnoreCase(sender))
+            			m_botAction.sendSmartPrivateMessage(sender, n);
+            	}
+            }
+        }
+    	
+    }
+    
     if(messageType == Message.CHAT_MESSAGE) {
         
         // !help
@@ -149,6 +205,14 @@ public class pubhubspy extends PubBotModule
             // notify the new pubbot of currently watched players
             for(String watchedPlayer:watchList) {
                 m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("watch " + watchedPlayer, botSender));
+            }
+            Iterator<String> i = pWatchList.keySet().iterator();
+            while(i.hasNext()){
+            	String n = i.next();
+            	ArrayList<String> staffNames = pWatchList.get(n);
+            	Iterator<String> it = staffNames.iterator();
+            	while(it.hasNext())
+            		m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("pwatch " + n + ":" + i.next(), botSender));
             }
         }
     }
