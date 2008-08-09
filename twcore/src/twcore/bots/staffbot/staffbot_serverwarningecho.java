@@ -13,7 +13,9 @@ public class staffbot_serverwarningecho extends Module {
 	
 	public void handleEvent(Message event) {
 		if(event.getMessageType() == Message.SERVER_ERROR) {
-			m_botAction.sendChatMessage(getMessageTypeString(event.getMessageType()) + ": (" + getSender(event) + ") (" + m_botAction.getArenaName() + "): " + event.getMessage());
+		    // 1 = staff chat
+	        // 2 = smod chat
+			m_botAction.sendChatMessage(2, getMessageTypeString(event.getMessageType()) + ": (" + getSender(event) + ") (" + m_botAction.getArenaName() + "): " + event.getMessage());
 		}
 	}
 	
