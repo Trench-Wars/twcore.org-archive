@@ -211,7 +211,7 @@ public class twdbot extends SubspaceBot {
     public boolean isTWDOp(String name){
         try{
             ResultSet result = m_botAction.SQLQuery(webdb, "SELECT DISTINCT tblUser.fcUserName FROM tblUser, tblUserRank"+
-                                                           " WHERE tblUser.fcUserName = "+Tools.addSlashesToString(name)+
+                                                           " WHERE tblUser.fcUserName = '"+Tools.addSlashesToString(name)+"'"+
                                                            " AND tblUser.fnUserID = tblUserRank.fnUserID"+
                                                            " AND ( tblUserRank.fnRankID = 14 OR tblUserRank.fnRankID = 19 )");
             if(result != null && result.next()){
