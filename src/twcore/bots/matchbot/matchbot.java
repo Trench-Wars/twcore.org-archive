@@ -1105,7 +1105,7 @@ public class matchbot extends SubspaceBot
                         extraInfo = "";
                     else
                         extraInfo = "      " + extraInfo;
-                    m_botAction.sendPrivateMessage(name, cnter + ". " + s[i] + extraInfo);
+                    m_botAction.sendPrivateMessage(name, "#" + cnter + "  " + s[i] + extraInfo);
                 }
             }
         }
