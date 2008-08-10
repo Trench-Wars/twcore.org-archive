@@ -28,6 +28,7 @@ public class MatchLogger
 	BotAction m_botAction;
 	int m_fnMatchID, m_fnOrder;
 	boolean m_active;
+	String mySQLHost = "website";
 
 	/** Creates a new instance of MatchLogger */
 	public MatchLogger(BotAction botAction)
@@ -136,7 +137,7 @@ public class MatchLogger
 			try
 			{
 				m_botAction.SQLBackgroundQuery(
-					"local",
+					mySQLHost,
                     null,
 					"INSERT INTO tblMatchLog(fnMatchID, fcMessageType, fcMessage, fcPlayer, fnOrder)"
 						+ "VALUES("

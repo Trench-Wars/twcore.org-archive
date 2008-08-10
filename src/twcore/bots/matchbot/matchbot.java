@@ -49,7 +49,7 @@ public class matchbot extends SubspaceBot
     TimerTask m_gameKiller;
     String startMessage;
 
-    String dbConn = "local";
+    String dbConn = "website";
 
     //
     boolean m_isLocked = false;

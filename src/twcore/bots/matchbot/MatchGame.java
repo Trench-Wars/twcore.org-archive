@@ -37,7 +37,7 @@ public class MatchGame
 	matchbot m_bot;
 
 	MatchLogger m_logger;
-	String dbConn = "local";
+	String dbConn = "website";
 	String m_fcRuleFile;
 	String m_fcTeam1Name;
 	String m_fcTeam2Name;

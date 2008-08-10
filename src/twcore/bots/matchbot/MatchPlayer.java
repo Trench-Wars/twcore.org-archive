@@ -48,7 +48,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	Player m_player;
 	BotSettings m_rules;
 
-	String dbConn = "local";
+	String dbConn = "website";
 
 	MatchTeam m_team;
 	MatchLogger m_logger;
