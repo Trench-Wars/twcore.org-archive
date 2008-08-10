@@ -104,7 +104,6 @@ public class mrarrogant extends SubspaceBot
     opList = m_botAction.getOperatorList();
     setupAccessList(accessString);
     m_botAction.scheduleTaskAtFixedRate(new CheckLogTask(), 0, CHECK_LOG_TIME);
-    doArroSpyCmd();
   }
   
   public void handleDisconnect() {
