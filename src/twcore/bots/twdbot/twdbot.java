@@ -107,8 +107,6 @@ public class twdbot extends SubspaceBot {
 
 
     public void handleEvent( Message event ){
-        try
-        {
             boolean isStaff;
             String message = event.getMessage();
             if( event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ){
@@ -208,12 +206,6 @@ public class twdbot extends SubspaceBot {
                     parseIP( message );
                 }
             }
-
-        }
-        catch(Exception e)
-        {
-            //m_botAction.sendSmartPrivateMessage("Cpt.Guano!", e.getMessage());
-        }
     }
     
     public boolean isTWDOp(String name){
