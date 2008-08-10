@@ -15,7 +15,7 @@ import twcore.core.util.Tools;
 
 public class staffbot_warnings extends Module {
 	
-	private String sqlHost = "local";
+	private String sqlHost = "website";
 	
 	private final static int MAX_NAME_SUGGESTIONS = 20;         // Max number of suggestions given
     															// for a name match in !warn
