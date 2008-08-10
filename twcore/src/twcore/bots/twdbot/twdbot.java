@@ -960,9 +960,7 @@ public class twdbot extends SubspaceBot {
         String SModHelp[] =
         {
                 "--------- SMOD COMMANDS --------------------------------------------------------------",
-                "!addaccess <name>       - Adds <name> to the access list as an operator.",
-                "!removeaccess <name>    - Removes <name> from the access list.",
-                "!listaccess             - Shows current TWDOps.",
+                " TWD Operators are determined by levels on the website which can be modified at www.trenchwars.org/staff"
         };
         String help2[] =
         {
