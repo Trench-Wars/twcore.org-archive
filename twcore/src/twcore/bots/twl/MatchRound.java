@@ -46,7 +46,7 @@ public class MatchRound
     Connection m_connection;
     BotAction m_botAction;
 
-    String dbConn = "local";
+    String dbConn = "website";
 
     MatchGame m_game;
     BotSettings m_rules;
