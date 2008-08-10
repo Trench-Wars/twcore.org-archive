@@ -214,7 +214,7 @@ public class twdbot extends SubspaceBot {
                                                            " WHERE tblUser.fcUserName = "+Tools.addSlashesToString(name)+
                                                            " AND tblUser.fnUserID = tblUserRank.fnUserID"+
                                                            " AND ( tblUserRank.fnRankID = 14 OR tblUserRank.fnRankID = 19 )");
-            if(result.next()){
+            if(result != null && result.next()){
                 m_botAction.SQLClose(result);
                 return true;
             } else {
