@@ -136,7 +136,7 @@ public class twdbot extends SubspaceBot {
                     else if( message.startsWith( "!registered " ) )
                         commandCheckRegistered( name, message.substring( 12 ) );
                     else if( message.equals( "!twdops" ) )
-                    	commandTWDOps( name, true );
+                    	commandTWDOps( name );
                     else if( message.startsWith( "!altip " ) )
                         commandIPCheck( name, message.substring( 7 ), true );
                     else if( message.startsWith( "!altmid " ) )
@@ -176,7 +176,7 @@ public class twdbot extends SubspaceBot {
                     else if( message.equals( "!register" ) )
                         commandRegisterName( name, name, true );
                     else if( message.equals( "!twdops" ) )
-                    	commandTWDOps( name, false);
+                    	commandTWDOps( name );
                     else if( message.equals( "!help" ) )
                         commandDisplayHelp( name, true );
                 }
@@ -232,53 +232,16 @@ public class twdbot extends SubspaceBot {
         }
     }
     
-    public void commandTWDOps(String name, boolean isOp){
-    	if(isOp){
-    		try{
-    			HashSet<String> twdOps = new HashSet<String>();
-    			ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT tblUser.fcUserName FROM tblUser, tblUserRank"+
-                                                           " WHERE tblUser.fcUserName != '"+Tools.addSlashesToString(name)+"'"+
-                                                           " AND tblUser.fnUserID = tblUserRank.fnUserID"+
-                                                           " AND ( tblUserRank.fnRankID = 14 OR tblUserRank.fnRankID = 19 )");
-    			while(rs != null && rs.next()){
-    				if(!twdOps.contains(rs.getString("fcUserName")))
-    					twdOps.add(rs.getString("fcUserName"));
-    			}
-    			Iterator<String> it = twdOps.iterator();
-    			ArrayList<String> bag = new ArrayList<String>();
-    			m_botAction.sendSmartPrivateMessage(name, "+-------------- TWD Operators --------------+");
-    			while(it.hasNext()){
-    				bag.add(it.next());
-    				if(bag.size() == 4){
-    					String row = "";
-    					for(int i = 0;i<4;i++){
-    						row = row + bag.get(i) + ", ";
-    					}
-    					m_botAction.sendSmartPrivateMessage( name, "| " + row.substring(0, row.length() - 2));
-    					bag.clear();
-    				}
-    			}
-    			if(bag.size() != 0){
-    				String row = "";
-    				for(int i=0;i<bag.size();i++){
-    					row = row + bag.get(i) + ", ";
-    				}
-    				m_botAction.sendSmartPrivateMessage( name, "| " + row.substring(0, row.length() - 2));
-    			}
-    			m_botAction.sendSmartPrivateMessage( name, "+-------------------------------------------+");
-    			
-    		} catch(SQLException e){
-    			Tools.printStackTrace(e);
-    		}
-    	} else {
+    public void commandTWDOps(String name){
     		try{
     			HashSet<String> twdOps = new HashSet<String>();
     			ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT tblUser.fcUserName FROM tblUser, tblUserRank"+
                                                            " WHERE tblUser.fnUserID = tblUserRank.fnUserID"+
                                                            " AND ( tblUserRank.fnRankID = 14 OR tblUserRank.fnRankID = 19 )");
     			while(rs != null && rs.next()){
-    				if(!twdOps.contains(rs.getString("fcUserName")))
-    					twdOps.add(rs.getString("fcUserName"));
+    				String queryName = rs.getString("fcUserName");
+    				if(!twdOps.contains(queryName) && !name.equalsIgnoreCase(queryName))
+    					twdOps.add(queryName);
     			}
     			Iterator<String> it = twdOps.iterator();
     			ArrayList<String> bag = new ArrayList<String>();
@@ -305,7 +268,6 @@ public class twdbot extends SubspaceBot {
     		} catch(SQLException e){
     			Tools.printStackTrace(e);
     		}
-    	}
     }
 
     public void handleEvent( SQLResultEvent event ){
