@@ -134,6 +134,8 @@ public class twdbot extends SubspaceBot {
                         commandRegisterName( name, message.substring( 10 ), false );
                     else if( message.startsWith( "!registered " ) )
                         commandCheckRegistered( name, message.substring( 12 ) );
+                    else if( message.equals( "!twdops" ) )
+                    	commandTWDOps( name, true );
                     else if( message.startsWith( "!altip " ) )
                         commandIPCheck( name, message.substring( 7 ), true );
                     else if( message.startsWith( "!altmid " ) )
@@ -172,6 +174,8 @@ public class twdbot extends SubspaceBot {
                         commandCheckRegistered( name, message.substring( 12 ) );
                     else if( message.equals( "!register" ) )
                         commandRegisterName( name, name, true );
+                    else if( message.equals( "!twdops" ) )
+                    	commandTWDOps( name, false);
                     else if( message.equals( "!help" ) )
                         commandDisplayHelp( name, true );
                 }
@@ -225,6 +229,39 @@ public class twdbot extends SubspaceBot {
             Tools.printStackTrace(e);
             return false;
         }
+    }
+    
+    public void commandTWDOps(String name, boolean isOp){
+    	if(isOp){
+    		try{
+    			HashSet<String> twdOps = new HashSet<String>();
+    			ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT tblUser.fcUserName FROM tblUser, tblUserRank"+
+                                                           " WHERE tblUser.fcUserName != '"+Tools.addSlashesToString(name)+"'"+
+                                                           " AND tblUser.fnUserID = tblUserRank.fnUserID"+
+                                                           " AND ( tblUserRank.fnRankID = 14 OR tblUserRank.fnRankID = 19 )");
+    			while(rs != null && rs.next()){
+    				if(!twdOps.contains(rs.getString("fcUserName")))
+    					twdOps.add(rs.getString("fcUserName"));
+    			}
+    			m_botAction.smartPrivateMessageSpam(name, (String[]) twdOps.toArray());
+    		} catch(SQLException e){
+    			Tools.printStackTrace(e);
+    		}
+    	} else {
+    		try{
+    			HashSet<String> twdOps = new HashSet<String>();
+    			ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT tblUser.fcUserName FROM tblUser, tblUserRank"+
+                                                           " WHERE tblUser.fnUserID = tblUserRank.fnUserID"+
+                                                           " AND ( tblUserRank.fnRankID = 14 OR tblUserRank.fnRankID = 19 )");
+    			while(rs != null && rs.next()){
+    				if(!twdOps.contains(rs.getString("fcUserName")))
+    					twdOps.add(rs.getString("fcUserName"));
+    			}
+    			m_botAction.smartPrivateMessageSpam(name, (String[]) twdOps.toArray());
+    		} catch(SQLException e){
+    			Tools.printStackTrace(e);
+    		}
+    	}
     }
 
     public void handleEvent( SQLResultEvent event ){
@@ -946,6 +983,7 @@ public class twdbot extends SubspaceBot {
                 "         <IP> can be partial address - ie:  192.168.0.",
                 "--------- MISC COMMANDS --------------------------------------------------------------",
                 "!check <name>           - checks live IP and MID of <name> (through *info, NOT the DB)",
+                "!twdops                 - displays a list of the current TWD Ops",
                 "!go <arena>             - moves the bot"
         };
         String SModHelp[] =
@@ -960,7 +998,8 @@ public class twdbot extends SubspaceBot {
                 "!resettime              - returns the time when your name will be reset",
                 "!cancelreset            - cancels the !resetname",
                 "!register               - registers your name",
-                "!registered <name>      - checks if the name is registered"
+                "!registered <name>      - checks if the name is registered",
+                "!twdops                 - displays a list of the current TWD Ops"
         };
 
         if( player )

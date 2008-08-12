@@ -893,6 +893,10 @@ public class matchbot extends SubspaceBot
     public void command_listaccess(String name, String[] parameters)
     {
         String accA[] = getAccessList();
+        if(accA == null){
+        	m_botAction.sendSmartPrivateMessage( name, "Access list could not be found.");
+        	return;
+        }
         m_botAction.sendPrivateMessage(name, "Access list for game: " + m_rules.getString("name"));
         for (int i = 0; i < accA.length; i++){
             m_botAction.sendPrivateMessage(name, accA[i]);
