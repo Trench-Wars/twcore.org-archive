@@ -3,9 +3,11 @@ package twcore.bots.matchbot;
 import java.io.File;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.TimerTask;
+import java.util.TreeSet;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -1089,23 +1091,21 @@ public class matchbot extends SubspaceBot
     public void listGames(String name)
     {
         File f = m_botAction.getCoreDirectoryFile("data/Rules");
-        String[] s = f.list();
+        TreeSet<String> files = new TreeSet<String>(Arrays.asList(f.list()));
         int cnter = 0;
+        
         m_botAction.sendPrivateMessage(name, "I contain the following " + "games:");
-        for (int i = 0; i < s.length; i++)
-        {
-            if (s[i].endsWith(".txt"))
-            {
-                s[i] = s[i].substring(0, s[i].lastIndexOf('.'));
-                if (s[i].indexOf('$') == -1)
-                {
+        for(String file:files) {
+            if (file.endsWith(".txt")) {
+                file = file.substring(0, file.lastIndexOf('.'));
+                if (file.indexOf('$') == -1) {
                     cnter++;
-                    String extraInfo = m_botSettings.getString(s[i]);
+                    String extraInfo = m_botSettings.getString(file);
                     if (extraInfo == null)
                         extraInfo = "";
                     else
                         extraInfo = "      " + extraInfo;
-                    m_botAction.sendPrivateMessage(name, "#" + cnter + "  " + s[i] + extraInfo);
+                    m_botAction.sendPrivateMessage(name, "#" + cnter + "  " + file + extraInfo);
                 }
             }
         }
@@ -1114,18 +1114,16 @@ public class matchbot extends SubspaceBot
     public String getGameTypeName(int fnGameTypeNumber)
     {
         File f = m_botAction.getCoreDirectoryFile("data/Rules");
-        String[] s = f.list();
+        TreeSet<String> files = new TreeSet<String>(Arrays.asList(f.list()));
         int cnter = 0;
-        for (int i = 0; i < s.length; i++)
-        {
-            if (s[i].endsWith(".txt"))
-            {
-                s[i] = s[i].substring(0, s[i].lastIndexOf('.'));
-                if (s[i].indexOf('$') == -1)
-                {
+        
+        for(String file:files) {
+            if (file.endsWith(".txt")) {
+                file = file.substring(0, file.lastIndexOf('.'));
+                if (file.indexOf('$') == -1) {
                     cnter++;
                     if (cnter == fnGameTypeNumber)
-                        return s[i];
+                        return file;
                 }
             }
         }
@@ -1135,17 +1133,17 @@ public class matchbot extends SubspaceBot
     public int getGameTypeNumber(String fcGameTypeName)
     {
         File f = m_botAction.getCoreDirectoryFile("data/Rules");
-        String[] s = f.list();
+        TreeSet<String> files = new TreeSet<String>(Arrays.asList(f.list()));
         int cnter = 0;
-        for (int i = 0; i < s.length; i++)
-        {
-            if (s[i].endsWith(".txt"))
+        
+        for(String file:files) {
+            if (file.endsWith(".txt"))
             {
-                s[i] = s[i].substring(0, s[i].lastIndexOf('.'));
-                if (s[i].indexOf('$') == -1)
+                file = file.substring(0, file.lastIndexOf('.'));
+                if (file.indexOf('$') == -1)
                 {
                     cnter++;
-                    if (s[i].equalsIgnoreCase(fcGameTypeName))
+                    if (file.equalsIgnoreCase(fcGameTypeName))
                         return cnter;
                 }
             }
