@@ -255,6 +255,7 @@ public class twdbot extends SubspaceBot {
     						row = row + bag.get(i) + ", ";
     					}
     					m_botAction.sendSmartPrivateMessage( name, "| " + row.substring(0, row.length() - 2));
+    					bag.clear();
     				}
     			}
     			if(bag.size() != 0){
@@ -290,6 +291,7 @@ public class twdbot extends SubspaceBot {
     						row = row + bag.get(i) + ", ";
     					}
     					m_botAction.sendSmartPrivateMessage( name, "| " + row.substring(0, row.length() - 2));
+    					bag.clear();
     				}
     			}
     			if(bag.size() != 0){
