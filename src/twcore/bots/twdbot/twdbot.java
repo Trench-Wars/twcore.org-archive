@@ -243,7 +243,7 @@ public class twdbot extends SubspaceBot {
     				if(!twdOps.contains(rs.getString("fcUserName")))
     					twdOps.add(rs.getString("fcUserName"));
     			}
-    			m_botAction.smartPrivateMessageSpam(name, (String[]) twdOps.toArray());
+    			m_botAction.sendSmartPrivateMessage(name, twdOps.toString());
     		} catch(SQLException e){
     			Tools.printStackTrace(e);
     		}
@@ -257,7 +257,7 @@ public class twdbot extends SubspaceBot {
     				if(!twdOps.contains(rs.getString("fcUserName")))
     					twdOps.add(rs.getString("fcUserName"));
     			}
-    			m_botAction.smartPrivateMessageSpam(name, (String[]) twdOps.toArray());
+    			m_botAction.sendSmartPrivateMessage(name, twdOps.toString());
     		} catch(SQLException e){
     			Tools.printStackTrace(e);
     		}
