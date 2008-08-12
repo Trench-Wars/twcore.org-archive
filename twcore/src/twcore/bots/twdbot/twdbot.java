@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.TimerTask;
+import java.util.ArrayList;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -243,7 +244,28 @@ public class twdbot extends SubspaceBot {
     				if(!twdOps.contains(rs.getString("fcUserName")))
     					twdOps.add(rs.getString("fcUserName"));
     			}
-    			m_botAction.sendSmartPrivateMessage(name, twdOps.toString());
+    			Iterator<String> it = twdOps.iterator();
+    			ArrayList<String> bag = new ArrayList<String>();
+    			m_botAction.sendSmartPrivateMessage(name, "+-------------- TWD Operators --------------+");
+    			while(it.hasNext()){
+    				bag.add(it.next());
+    				if(bag.size() == 4){
+    					String row = "";
+    					for(int i = 0;i<4;i++){
+    						row = row + bag.get(i) + ", ";
+    					}
+    					m_botAction.sendSmartPrivateMessage( name, "| " + row.substring(0, row.length() - 2));
+    				}
+    			}
+    			if(bag.size() != 0){
+    				String row = "";
+    				for(int i=0;i<bag.size();i++){
+    					row = row + bag.get(i) + ", ";
+    				}
+    				m_botAction.sendSmartPrivateMessage( name, "| " + row.substring(0, row.length() - 2));
+    			}
+    			m_botAction.sendSmartPrivateMessage( name, "+-------------------------------------------+");
+    			
     		} catch(SQLException e){
     			Tools.printStackTrace(e);
     		}
@@ -257,7 +279,27 @@ public class twdbot extends SubspaceBot {
     				if(!twdOps.contains(rs.getString("fcUserName")))
     					twdOps.add(rs.getString("fcUserName"));
     			}
-    			m_botAction.sendSmartPrivateMessage(name, twdOps.toString());
+    			Iterator<String> it = twdOps.iterator();
+    			ArrayList<String> bag = new ArrayList<String>();
+    			m_botAction.sendSmartPrivateMessage(name, "+-------------- TWD Operators --------------+");
+    			while(it.hasNext()){
+    				bag.add(it.next());
+    				if(bag.size() == 4){
+    					String row = "";
+    					for(int i = 0;i<4;i++){
+    						row = row + bag.get(i) + ", ";
+    					}
+    					m_botAction.sendSmartPrivateMessage( name, "| " + row.substring(0, row.length() - 2));
+    				}
+    			}
+    			if(bag.size() != 0){
+    				String row = "";
+    				for(int i=0;i<bag.size();i++){
+    					row = row + bag.get(i) + ", ";
+    				}
+    				m_botAction.sendSmartPrivateMessage( name, "| " + row.substring(0, row.length() - 2));
+    			}
+    			m_botAction.sendSmartPrivateMessage( name, "+-------------------------------------------+");
     		} catch(SQLException e){
     			Tools.printStackTrace(e);
     		}
