@@ -183,7 +183,7 @@ public class pubhub extends SubspaceBot {
         if(sender.equalsIgnoreCase(cfg_hubbot)) {
             if (message.startsWith("Maximum number of bots of this type ") || message.equals("Bot failed to log in.")) {
                 String arena = disableUnspawnedArena();
-                m_botAction.sendChatMessage("Unable to spawn pubbot in arena '"+arena+"'.");
+                m_botAction.sendChatMessage(2,"Unable to spawn pubbot in arena '"+arena+"'.");
             }
         }
 
