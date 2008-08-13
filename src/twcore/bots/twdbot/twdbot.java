@@ -239,10 +239,12 @@ public class twdbot extends SubspaceBot {
                                                            " WHERE tblUser.fnUserID = tblUserRank.fnUserID"+
                                                            " AND ( tblUserRank.fnRankID = 14 OR tblUserRank.fnRankID = 19 )");
     			while(rs != null && rs.next()){
-    				String queryName = rs.getString("fcUserName");
+    				String queryName;
+    				String temp = rs.getString("fcUserName");
+    				queryName = temp;
     				if(rs.getInt("fnRankID") == 19)
-    					queryName = queryName + " (TWD SMod)";
-    				if(!twdOps.contains(queryName))
+    					queryName = temp + " (SMod)";
+    				if(!twdOps.contains(temp) && !twdOps.contains(queryName))
     					twdOps.add(queryName);
     			}
     			Iterator<String> it = twdOps.iterator();
