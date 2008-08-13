@@ -91,7 +91,7 @@ public class MatchGame
 					return;
 				}
 			}
-			m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("twdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName()));
+			m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("twdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName(), "PubHub"));
 		}
 
 		if ((m_rules.getInt("storegame") == 1) && (m_rules.getInt("matchtype") != 0))
@@ -617,7 +617,7 @@ public class MatchGame
 				else
 					m_logger.sendArenaMessage("Draw. The game is declared void");
 				if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0)
-					m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("endtwdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName()));
+					m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("endtwdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName(), "PubHub"));
 			}
 			if ((m_rules.getInt("storegame") == 1) && (m_fnTeam1Score != m_fnTeam2Score))
 				storeGameResult();
