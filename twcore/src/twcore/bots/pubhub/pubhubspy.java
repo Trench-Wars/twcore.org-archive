@@ -52,7 +52,7 @@ public class pubhubspy extends PubBotModule
 
   public void handleEvent(Message event)
   {
-    String sender = event.getMessager();
+    String sender = event.getMessager() == null ? m_botAction.getPlayerName(event.getPlayerID()) : event.getMessager();
     String message = event.getMessage();
     int messageType = event.getMessageType();
 
@@ -65,7 +65,7 @@ public class pubhubspy extends PubBotModule
     		};
     		m_botAction.smartPrivateMessageSpam(sender, help);
     	}
-    	if(message.startsWith("!pwatch ")) {
+    	else if(message.startsWith("!pwatch ")) {
     		String playerName = message.substring(8).toLowerCase();
 
             if(pWatchList.containsKey(playerName) && pWatchList.get(playerName).contains(sender)){
@@ -89,7 +89,7 @@ public class pubhubspy extends PubBotModule
                 m_botAction.sendSmartPrivateMessage(sender, "Watching player: " + playerName + " enabled.");
             }
     	}
-        if(message.equalsIgnoreCase("!pwatchlist")) {
+    	else if(message.equalsIgnoreCase("!pwatchlist")) {
         	m_botAction.sendSmartPrivateMessage(sender, "Current players on !pwatch:");
             Iterator<String> i = pWatchList.keySet().iterator();
             while(i.hasNext()){
