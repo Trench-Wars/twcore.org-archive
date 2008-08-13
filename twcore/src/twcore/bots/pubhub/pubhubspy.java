@@ -57,6 +57,7 @@ public class pubhubspy extends PubBotModule
     int messageType = event.getMessageType();
 
     if(messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE){
+    	if(!opList.isSmod(sender))return;
     	if(message.equalsIgnoreCase("!help")){
     		String[] help = {
     				"PRIVATE SPY COMMANDS:",
