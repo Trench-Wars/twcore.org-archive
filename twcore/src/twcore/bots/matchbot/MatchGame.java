@@ -25,6 +25,7 @@ import twcore.core.events.ScoreReset;
 import twcore.core.events.SoccerGoal;
 import twcore.core.events.WeaponFired;
 import twcore.core.util.Tools;
+import twcore.core.util.ipc.IPCMessage;
 
 public class MatchGame
 {
@@ -38,6 +39,7 @@ public class MatchGame
 
 	MatchLogger m_logger;
 	String dbConn = "website";
+	public static final String PUBBOTS = "pubBots";
 	String m_fcRuleFile;
 	String m_fcTeam1Name;
 	String m_fcTeam2Name;
@@ -66,6 +68,7 @@ public class MatchGame
 	{
 		m_botAction = botAction;
 		m_fcRuleFile = ruleFile;
+		m_botAction.ipcSubscribe(PUBBOTS);
 		
 		m_bot = bot;
 
@@ -88,6 +91,7 @@ public class MatchGame
 					return;
 				}
 			}
+			m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("twdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName()));
 		}
 
 		if ((m_rules.getInt("storegame") == 1) && (m_rules.getInt("matchtype") != 0))
@@ -612,6 +616,8 @@ public class MatchGame
 				}
 				else
 					m_logger.sendArenaMessage("Draw. The game is declared void");
+				if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0)
+					m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("endtwdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName()));
 			}
 			if ((m_rules.getInt("storegame") == 1) && (m_fnTeam1Score != m_fnTeam2Score))
 				storeGameResult();
@@ -670,6 +676,8 @@ public class MatchGame
 
 	public void cancel()
 	{
+		if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0)
+			m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("endtwdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName()));
 		if (m_curRound != null)
 			m_curRound.cancel();
 
