@@ -70,9 +70,9 @@ public class pubhubspy extends PubBotModule
 
             if(pWatchList.containsKey(playerName) && pWatchList.get(playerName).contains(sender)){
             	ArrayList<String> staffNames = pWatchList.get(playerName);
-            	if(staffNames.contains(sender) && staffNames.size() == 1)
+            	if(staffNames.size() == 1)
             		pWatchList.remove(playerName);
-            	else if(staffNames.contains(sender) && staffNames.size() != 1){
+            	else{
             		staffNames.remove(sender);
             		pWatchList.remove(playerName);
             		pWatchList.put(playerName, staffNames);
@@ -80,11 +80,19 @@ public class pubhubspy extends PubBotModule
                 // Stop watching the player
                 m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("pwatch " + playerName + ":" + sender));
                 m_botAction.sendSmartPrivateMessage(sender, "Watching player: " + playerName + " disabled.");
-            } else {
-                // Start watching the player
+            } else if(pWatchList.containsKey(playerName) && !pWatchList.get(playerName).contains(sender)){
+            	ArrayList<String> staffNames = pWatchList.get(playerName);
+            	staffNames.add(sender);
+            	pWatchList.remove(playerName);
+            	pWatchList.put(playerName, staffNames);
+            	// Start watching the player
+            	m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("pwatch " + playerName + ":" + sender));
+                m_botAction.sendSmartPrivateMessage(sender, "Watching player: " + playerName + " enabled.");
+            }else {
             	ArrayList<String> staffNames = new ArrayList<String>();
             	staffNames.add(sender);
                 pWatchList.put(playerName, staffNames);
+            	// Start watching the player
                 m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("pwatch " + playerName + ":" + sender));
                 m_botAction.sendSmartPrivateMessage(sender, "Watching player: " + playerName + " enabled.");
             }
@@ -97,7 +105,7 @@ public class pubhubspy extends PubBotModule
             	ArrayList<String> staffNames = pWatchList.get(n);
             	Iterator<String> it = staffNames.iterator();
             	while(it.hasNext()){
-            		String s = i.next();
+            		String s = it.next();
             		if(s.equalsIgnoreCase(sender))
             			m_botAction.sendSmartPrivateMessage(sender, n);
             	}

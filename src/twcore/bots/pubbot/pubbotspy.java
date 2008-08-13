@@ -138,11 +138,11 @@ public class pubbotspy extends PubBotModule
 	String[] names = argString.split(":");
 	String playerName = names[0];
 	String staffName = names[1];
-	if(pWatchList.containsKey(playerName)){
+	if(pWatchList.containsKey(playerName) && pWatchList.get(playerName).contains(staffName)){
 		ArrayList<String> staffNames = pWatchList.get(playerName);
-		if(staffNames.contains(staffName) && staffNames.size() == 1)
+		if(staffNames.size() == 1)
 			pWatchList.remove(playerName);
-		else if(staffNames.contains(staffName) && staffNames.size() != 1){
+		else if(staffNames.size() != 1){
 			staffNames.remove(staffName);
 			pWatchList.remove(playerName);
 			pWatchList.put(playerName, staffNames);
