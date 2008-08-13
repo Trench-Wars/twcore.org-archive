@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.sql.SQLException;
 import java.sql.ResultSet;
+import java.util.Date;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
@@ -26,6 +27,7 @@ public class pubhubtwd extends PubBotModule {
   private long cfg_time;
   private String webdb = "website";
   private String PUBBOTS = "pubBots";
+  private Date date;
 
   public void initializeModule(){
     games = new HashSet<String[]>();
@@ -75,9 +77,10 @@ public class pubhubtwd extends PubBotModule {
   }
   
   public void giveGame(String pubbot, String message){
-	  if((System.currentTimeMillis() - cfg_time) > (12 * Tools.TimeInMillis.HOUR)){
+	  date = new Date();
+	  if((date.getTime() - cfg_time) > (24 * Tools.TimeInMillis.HOUR)){
 		  populateTeams();
-		  m_botAction.getBotSettings().put("TimeInMillis", System.currentTimeMillis());
+		  m_botAction.getBotSettings().put("TimeInMillis", date.getTime());
 	  }
 	  String[] temp = message.split(":");
 	  if(temp.length != 2)return;
@@ -96,6 +99,7 @@ public class pubhubtwd extends PubBotModule {
   
   public void populateTeams(){
 	  try{
+		  teams.clear();
 		  ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT fnTeamID, fcTeamName FROM tblTeam WHERE fdDeleted IS NULL OR fdDeleted = 0");
 		  while(rs != null && rs.next()){
 			  teams.put(rs.getString("fcTeamName").toLowerCase(), rs.getInt("fnTeamID"));
