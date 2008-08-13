@@ -242,14 +242,16 @@ public class twdbot extends SubspaceBot {
     				String queryName;
     				String temp = rs.getString("fcUserName");
     				queryName = temp;
-    				if(rs.getInt("fnRankID") == 19)
+    				if(rs.getInt("fnRankID") == 19){
     					queryName = temp + " (SMod)";
-    				if(!twdOps.contains(temp) && !twdOps.contains(queryName))
+    					twdOps.remove(temp);
+    				}
+    				if(!twdOps.contains(queryName) && !twdOps.contains(queryName + " (SMod)"))
     					twdOps.add(queryName);
     			}
     			Iterator<String> it = twdOps.iterator();
     			ArrayList<String> bag = new ArrayList<String>();
-    			m_botAction.sendSmartPrivateMessage(name, "+-------------- TWD Operators --------------+");
+    			m_botAction.sendSmartPrivateMessage(name, "+------------------- TWD Operators --------------------");
     			while(it.hasNext()){
     				bag.add(it.next());
     				if(bag.size() == 4){
@@ -268,7 +270,7 @@ public class twdbot extends SubspaceBot {
     				}
     				m_botAction.sendSmartPrivateMessage( name, "| " + row.substring(0, row.length() - 2));
     			}
-    			m_botAction.sendSmartPrivateMessage( name, "+-------------------------------------------+");
+    			m_botAction.sendSmartPrivateMessage( name, "+------------------------------------------------------");
     		} catch(SQLException e){
     			Tools.printStackTrace(e);
     		}
