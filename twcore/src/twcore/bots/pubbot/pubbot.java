@@ -103,7 +103,7 @@ public class pubbot extends SubspaceBot
   public void doDieCmd(boolean notify)
   {
     if(notify)
-      m_botAction.sendChatMessage("Logging out of " + currentArena + ".");
+      m_botAction.sendChatMessage(2,"Logging out of " + currentArena + ".");
     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("dying", pubHubBot));
     moduleHandler.unloadAllModules();
     m_botAction.scheduleTask(new LogOffTask(), LOG_OFF_DELAY);
@@ -151,7 +151,7 @@ public class pubbot extends SubspaceBot
       currentArena = argString;
       movingGoCmd = true;
       m_botAction.changeArena(currentArena);
-      m_botAction.sendChatMessage("Going to " + currentArena);
+      m_botAction.sendChatMessage(2,"Going to " + currentArena);
   }
 
   /**
