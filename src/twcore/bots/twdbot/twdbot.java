@@ -235,12 +235,14 @@ public class twdbot extends SubspaceBot {
     public void commandTWDOps(String name){
     		try{
     			HashSet<String> twdOps = new HashSet<String>();
-    			ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT tblUser.fcUserName FROM tblUser, tblUserRank"+
+    			ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT tblUser.fcUserName, tblUserRank.fnRankID FROM tblUser, tblUserRank"+
                                                            " WHERE tblUser.fnUserID = tblUserRank.fnUserID"+
                                                            " AND ( tblUserRank.fnRankID = 14 OR tblUserRank.fnRankID = 19 )");
     			while(rs != null && rs.next()){
     				String queryName = rs.getString("fcUserName");
-    				if(!twdOps.contains(queryName) && !name.equalsIgnoreCase(queryName))
+    				if(rs.getInt("fnRankID") == 19)
+    					queryName = queryName + " (TWD SMod)";
+    				if(!twdOps.contains(queryName))
     					twdOps.add(queryName);
     			}
     			Iterator<String> it = twdOps.iterator();
