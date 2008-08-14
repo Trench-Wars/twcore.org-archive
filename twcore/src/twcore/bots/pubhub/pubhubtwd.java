@@ -9,6 +9,7 @@ import java.util.Date;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
+import twcore.core.events.Message;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.util.ipc.IPCMessage;
 import twcore.core.util.Tools;
@@ -35,13 +36,34 @@ public class pubhubtwd extends PubBotModule {
     cfg_time = m_botAction.getBotSettings().getInt("TimeInMillis");
   }
   
-  public void requestEvents(EventRequester r){}
+  public void requestEvents(EventRequester r){
+	  r.request(EventRequester.MESSAGE);
+  }
   
   public void cancel() {
       games.clear();
       teams.clear();
   }
 
+  public void handleEvent(Message event)
+  {
+    String name = event.getMessager() == null ? m_botAction.getPlayerName(event.getPlayerID()) : event.getMessager();
+    String message = event.getMessage();
+    int messageType = event.getMessageType();
+    
+    if(messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE){
+    	if(message.equalsIgnoreCase("!showgames") && opList.isSmod(name)){
+    		if(!games.isEmpty()){
+    		Iterator<String[]> i = games.iterator();
+    		while(i.hasNext()){
+    			m_botAction.sendSmartPrivateMessage( name, "-------------------");
+    			m_botAction.smartPrivateMessageSpam(name, i.next());
+    		}}else
+    			m_botAction.sendSmartPrivateMessage( name, "No games found.");
+    	}
+    }
+  }
+  
   public void handleEvent(InterProcessEvent event) {
   	try
       {

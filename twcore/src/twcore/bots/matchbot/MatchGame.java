@@ -68,7 +68,6 @@ public class MatchGame
 	{
 		m_botAction = botAction;
 		m_fcRuleFile = ruleFile;
-		m_botAction.ipcSubscribe(PUBBOTS);
 		
 		m_bot = bot;
 
@@ -84,14 +83,20 @@ public class MatchGame
 		{
 			m_fnTeam1ID = getTeamID(m_fcTeam1Name);
 			m_fnTeam2ID = getTeamID(m_fcTeam2Name);
-			if (m_rules.getInt("rosterjoined") == 1)
-			{
+			if (m_rules.getInt("rosterjoined") == 1){
 				if ((m_fnTeam1ID == 0) || (m_fnTeam2ID == 0))
-				{
 					return;
+				else {
+					TimerTask ipcTask = new TimerTask(){
+						public void run(){
+							if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0)
+								m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("twdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName(), "PubHub"));
+						}
+					};
+					m_botAction.scheduleTask(ipcTask, 5000);
 				}
+					
 			}
-			m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("twdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName(), "PubHub"));
 		}
 
 		if ((m_rules.getInt("storegame") == 1) && (m_rules.getInt("matchtype") != 0))
@@ -212,8 +217,7 @@ public class MatchGame
 	// creates a Game record in the database
 	public void createGameRecord(int challenger, int accepter)
 	{
-		try
-		{
+		try{
 			String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
 
 			String[] fields = { "fnMatchTypeID", "fnMatchStateID", "fnTeam1ID", "fcTeam1Name", "fnTeam2ID", "fcTeam2Name", "ftTimeStarted", "fnChallengerUserID", "fnAccepterUserID" };
