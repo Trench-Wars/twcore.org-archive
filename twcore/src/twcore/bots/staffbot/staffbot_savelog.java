@@ -3,7 +3,7 @@ package twcore.bots.staffbot;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.Date;
 import java.util.TimerTask;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -46,26 +46,19 @@ public class staffbot_savelog extends Module {
             };
 
             try{
-                java.util.Date dateNow = new java.util.Date();
+                Date dateNow = new Date();
 
                 String strDate = new SimpleDateFormat("MM/dd/yyyy").format( dateNow );
                 strDate += " " + m_botSettings.getString( "AutoLogTime" );
-                java.util.Date timeToActivate = new SimpleDateFormat("MM/dd/yyyy k:m").parse( strDate );
+                Date timeToActivate = new SimpleDateFormat("MM/dd/yyyy k:m").parse( strDate );
 
                 //If scheduled time for today is passed, schedule for tommorow
                 if( dateNow.after( timeToActivate ) ){
-                    Calendar calCompare = Calendar.getInstance();
-                    long millis;
-
-                    calCompare.setTime( timeToActivate );
-                    millis = calCompare.getTimeInMillis();
-                    millis += Tools.TimeInMillis.DAY; //add a day
-
-                    calCompare.setTimeInMillis( millis );
-                    timeToActivate = calCompare.getTime();
+                    // add a day
+                    timeToActivate.setTime(timeToActivate.getTime() + Tools.TimeInMillis.DAY);
                 }
 
-                m_botAction.scheduleTaskAtFixedRate( getLogTask, timeToActivate.getTime(), 86400000 );
+                m_botAction.scheduleTaskAtFixedRate( getLogTask, timeToActivate.getTime(), Tools.TimeInMillis.DAY );
                 Tools.printLog( m_botAction.getBotName() + "> Autolog at: " + timeToActivate );
             } catch( Exception e ){
                 Tools.printStackTrace( e );
@@ -93,27 +86,43 @@ public class staffbot_savelog extends Module {
         OperatorList m_opList = m_botAction.getOperatorList();
         
 		
-        // Ignore non-private messages
-        if( event.getMessageType() != Message.PRIVATE_MESSAGE && event.getMessageType() != Message.REMOTE_PRIVATE_MESSAGE )
-        	return;
-        // Ignore non-commands
-        if( !message.startsWith("!") ) return;
-        // Ignore player's commands
-        if( !m_opList.isZH(name)) return;
-        
-        if( message.toLowerCase().startsWith("!help") ){
-	        final String[] helpSmod = {
-	        		"--------------------[ SaveLog: SMod+ ]---------------------",
-	        		" !getlog                   - Downloads server log"
-	        };
+        if( event.getMessageType() == Message.PRIVATE_MESSAGE || 
+            event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ) {
+            
+            // SMod+ commands
+            if(m_opList.isSmod(name)) {
+                
+                // !help
+                if(message.toLowerCase().startsWith("!help")) {
+                    final String[] helpSmod = {
+                            "--------------------[ SaveLog: SMod+ ]---------------------",
+                            " !getlog                   - Downloads server log",
+                            " !getAutologTime           - Returns the time when log is automatically backed up"
+                    };
 
-	        if( m_opList.isSmod( name ) ){
-	            m_botAction.smartPrivateMessageSpam( name, helpSmod );
-	        }
+                    m_botAction.smartPrivateMessageSpam( name, helpSmod );
+                }
+                
+                // !getlog
+                if( message.toLowerCase().startsWith("!getlog")) {
+                    getLog(name);
+                }
+                // !getAutologTime
+                if( message.toLowerCase().startsWith("!getautologtime") ){
+                    long time = getLogTask.scheduledExecutionTime();
+                    
+                    m_botAction.sendSmartPrivateMessage(name, 
+                               "Log will automatically be backed up at: " +
+                               new Date(time)+ 
+                               "["+Tools.getTimeDiffString(time, true)+"]"
+                               );
+                }
+            }
         }
-        if( message.toLowerCase().startsWith("!getlog")) {
-        	getLog(name);
-        }
+        
+        
+        
+        
 	}
 	
 	public void handleEvent( FileArrived event ){
@@ -131,6 +140,7 @@ public class staffbot_savelog extends Module {
 
         m_logTimeStamp = new java.util.Date();
         m_botAction.sendUnfilteredPublicMessage( "*getfile " + m_LOGFILENAME );
+        Tools.printLog("Downloading server log.");
     }
 
     public void getLog( String name){
@@ -161,6 +171,7 @@ public class staffbot_savelog extends Module {
         }
 
         m_botAction.sendChatMessage(2, "Server log successfully downloaded and archived." );
+        Tools.printLog("Server log successfully downloaded and archived.");
         m_logActive = false;
     }
     
