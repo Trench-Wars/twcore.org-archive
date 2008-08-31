@@ -111,11 +111,8 @@ public class staffbot_savelog extends Module {
                 if( message.toLowerCase().startsWith("!getautologtime") ){
                     long time = getLogTask.scheduledExecutionTime();
                     
-                    m_botAction.sendSmartPrivateMessage(name, 
-                               "Log will automatically be backed up at: " +
-                               new Date(time)+ 
-                               "["+Tools.getTimeDiffString(time, true)+"]"
-                               );
+                    m_botAction.sendSmartPrivateMessage(name, "Log will automatically be backed up at: ");
+                    m_botAction.sendSmartPrivateMessage(name, new Date(time)+ "  ["+Tools.getTimeDiffString(time, true)+"]");
                 }
             }
         }
