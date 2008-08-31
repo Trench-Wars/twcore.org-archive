@@ -58,7 +58,7 @@ public class staffbot_savelog extends Module {
                     timeToActivate.setTime(timeToActivate.getTime() + Tools.TimeInMillis.DAY);
                 }
 
-                m_botAction.scheduleTaskAtFixedRate( getLogTask, timeToActivate.getTime(), Tools.TimeInMillis.DAY );
+                m_botAction.scheduleTaskAtFixedRate( getLogTask, timeToActivate.getTime() - dateNow.getTime(), Tools.TimeInMillis.DAY );
                 Tools.printLog( m_botAction.getBotName() + "> Autolog at: " + timeToActivate );
             } catch( Exception e ){
                 Tools.printStackTrace( e );
@@ -112,7 +112,7 @@ public class staffbot_savelog extends Module {
                     long time = getLogTask.scheduledExecutionTime();
                     
                     m_botAction.sendSmartPrivateMessage(name, "Log will automatically be backed up at: ");
-                    m_botAction.sendSmartPrivateMessage(name, new Date(time)+ "  ["+Tools.getTimeDiffString(time, true)+"]");
+                    m_botAction.sendSmartPrivateMessage(name, new Date(time)+ "  [ETA: -"+Tools.getTimeDiffString(time, true)+"]");
                 }
             }
         }
