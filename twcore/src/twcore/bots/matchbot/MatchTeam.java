@@ -910,13 +910,13 @@ public class MatchTeam
                                         + " is not in the game (subbed or is out)");
                         }
                         else
-                            m_logger.sendPrivateMessage(name, pB.getPlayerName() + " is not on your team");
+                            m_logger.sendPrivateMessage(name, parameters[1] + " is not on your team");
                     }
                     else
                         m_logger.sendPrivateMessage(name, pA.getPlayerName() + " is not in the game (subbed or is out)");
                 }
                 else
-                    m_logger.sendPrivateMessage(name, pA.getPlayerName() + " is not on your team");
+                    m_logger.sendPrivateMessage(name, parameters[0] + " is not on your team");
             }
             else
                 m_logger.sendPrivateMessage(name, "Specify the players to switch ships with");
