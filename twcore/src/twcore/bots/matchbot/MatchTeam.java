@@ -880,30 +880,36 @@ public class MatchTeam
                         {
                             if (pB.isAllowedToPlay())
                             {
-                                int freq = pA.getFrequency();
-                                int ship = pB.getShipType();
-                                pB.setShip(pA.getShipType());
-                                pA.setShip(ship);
-                                m_botAction.setFreq(pA.getPlayerName(), freq);
-                                m_botAction.setFreq(pB.getPlayerName(), freq);
+                            	if(pA.getShipType() != pB.getShipType())
+                            	{
+                            		int freq = pA.getFrequency();
+                            		int ship = pB.getShipType();
+                            		pB.setShip(pA.getShipType());
+                            		pA.setShip(ship);
+                            		m_botAction.setFreq(pA.getPlayerName(), freq);
+                            		m_botAction.setFreq(pB.getPlayerName(), freq);
 
 
 
-                                //this indicates that the player has switched ships during the game
-                                //currently it voids the player from getting mvp in time race games
-                                pA.m_switchedShip = true;
-                                pB.m_switchedShip = true;
+                            		//this indicates that the player has switched ships during the game
+                            		//currently it voids the player from getting mvp in time race games
+                            		pA.m_switchedShip = true;
+                            		pB.m_switchedShip = true;
 
-                                m_logger.sendArenaMessage(pA.m_fcPlayerName + " (" + pB.getShipType() + ") and "
-                                        + pB.m_fcPlayerName + " (" + pA.getShipType() + ") switched ships.");
-                                if (m_round.m_fnRoundState == 3)
-                                {
-                                    m_fnShipSwitches++;
-                                    if (m_rules.getInt("shipswitches") != -1)
-                                        m_logger.sendPrivateMessage(name, "You have "
-                                                + (m_rules.getInt("shipswitches") - m_fnShipSwitches)
-                                                + " shipswitches left");
-                                }
+                            		m_logger.sendArenaMessage(pA.m_fcPlayerName + " (" + pB.getShipType() + ") and "
+                            				+ pB.m_fcPlayerName + " (" + pA.getShipType() + ") switched ships.");
+                            		if (m_round.m_fnRoundState == 3)
+                            		{
+                            			m_fnShipSwitches++;
+                            				if (m_rules.getInt("shipswitches") != -1)
+                            					m_logger.sendPrivateMessage(name, "You have "
+                            							+ (m_rules.getInt("shipswitches") - m_fnShipSwitches)
+                            							+ " shipswitches left");
+                            		}
+                            	}
+                            	else
+                            		m_logger.sendPrivateMessage(name, pA.getPlayerName() + " and " + pB.getPlayerName() +
+                            				" are in the same ship.");
                             }
                             else
                                 m_logger.sendPrivateMessage(name, pB.getPlayerName()
