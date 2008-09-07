@@ -227,7 +227,7 @@ public class mrarrogant extends SubspaceBot
       return;
     
     int idleTime = getIdleTime(message);
-    if(idleTime > LOWERSTAFF_IDLE_KICK_TIME || (idleTime > IDLE_KICK_TIME && !opList.isZH(target))) {
+    if(idleTime > LOWERSTAFF_IDLE_KICK_TIME || (idleTime > IDLE_KICK_TIME && !opList.isBot(target))) {
     	String[] msg = { 
     			target+", you will now be removed from SSCU Trench Wars because you are found idle too long.",
     			"You won't be kicked if you idle in the arena 'afk' (type '?go afk' after logging in). Cya later."
@@ -272,7 +272,7 @@ public class mrarrogant extends SubspaceBot
     String command = getCommand(logMessage);
     CommandLog commandLog;
 
-    if (fromPlayer != null && command != null && opList.isZH(fromPlayer))
+    if (fromPlayer != null && command != null && opList.isBot(fromPlayer))
     {
       commandLog = new CommandLog(date, arena, fromPlayer, toPlayer, command);
       if (isBadCommand(command))

@@ -346,7 +346,7 @@ public class twl extends SubspaceBot
                 };
             };
 
-            if (m_opList.isZH(name))
+            if (m_opList.isBot(name))
             {
                 isStaff = true;
                 isRestrictedStaff = false;

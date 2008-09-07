@@ -80,7 +80,7 @@ public class pubhubsilence extends PubBotModule {
     					responseMessage(event, "Player '"+target+"' is already auto-silenced. Check !listsilence.", false);
     					return;
     				} else
-    				if(m_botAction.getOperatorList().isZH(target)) {
+    				if(m_botAction.getOperatorList().isBot(target)) {
     					responseMessage(event, "Player '"+target+"' is staff, staff can't be auto-silenced.", false);
     					return;
     				}

@@ -77,7 +77,7 @@ public class staffbot_warnings extends Module {
                 }
                 time = message.substring(message.lastIndexOf(" ", message.indexOf(":  Ext:"))+1,message.indexOf(":  Ext:"));
                 
-                if( !m_opList.isZH( staffMember ) )
+                if( !m_opList.isBot( staffMember ) )
                     return;
 
                 String[] paramNames = { "name", "warning", "staffmember", "timeofwarning" };
@@ -103,7 +103,7 @@ public class staffbot_warnings extends Module {
         // Ignore non-commands
         if( !message.startsWith("!") ) return;
         // Ignore player's commands
-        if( !m_opList.isZH(name)) return;
+        if( !m_opList.isBot(name)) return;
         
         if( message.toLowerCase().startsWith("!help") ){
 	        final String[] helpER = {
