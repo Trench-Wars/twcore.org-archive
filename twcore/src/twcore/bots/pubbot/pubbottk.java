@@ -207,7 +207,7 @@ public class pubbottk extends PubBotModule {
         String message = event.getMessage();
         if( event.getMessageType() == Message.PRIVATE_MESSAGE ){
             String name = m_botAction.getPlayerName( event.getPlayerID() );
-            if( m_opList.isZH( name ) ) {
+            if( m_opList.isBot( name ) ) {
 
                 if( message.equals( "!help" )){
                     m_botAction.sendPrivateMessage( name, "Pubbot TK Module" );

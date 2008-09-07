@@ -63,13 +63,13 @@ public class pubbotchat extends PubBotModule {
 			String name = m_botAction.getPlayerName( event.getPlayerID() );
 			
 			// !help
-			if(m_botAction.getOperatorList().isZH(name) && event.getMessage().toLowerCase().startsWith("!help")) {
+			if(m_botAction.getOperatorList().isBot(name) && event.getMessage().toLowerCase().startsWith("!help")) {
 				m_botAction.sendPrivateMessage( name, "Pubbot Chat Module" );
             	m_botAction.sendPrivateMessage( name, "!help        - this message");
             	m_botAction.sendPrivateMessage( name, "!last #      - returns # previous recorded chat lines (max. "+maxSize+")");
 			}
 			// !last
-			if(m_botAction.getOperatorList().isZH(name) && event.getMessage().toLowerCase().startsWith("!last ")) {
+			if(m_botAction.getOperatorList().isBot(name) && event.getMessage().toLowerCase().startsWith("!last ")) {
 				String arg = event.getMessage().substring(6).toLowerCase();
 				
 				if(Tools.isAllDigits(arg)) {
