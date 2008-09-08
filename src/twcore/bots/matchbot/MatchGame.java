@@ -86,16 +86,6 @@ public class MatchGame
 			if (m_rules.getInt("rosterjoined") == 1){
 				if ((m_fnTeam1ID == 0) || (m_fnTeam2ID == 0))
 					return;
-				else {
-					TimerTask ipcTask = new TimerTask(){
-						public void run(){
-							if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0)
-								m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("twdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName(), "PubHub"));
-						}
-					};
-					m_botAction.scheduleTask(ipcTask, 5000);
-				}
-					
 			}
 		}
 
@@ -187,6 +177,11 @@ public class MatchGame
 
 	public void setupGame()
 	{
+		
+		if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0 && (m_rules.getInt("rosterjoined") == 1) || (m_rules.getInt("storegame") == 1)){
+			m_botAction.ipcSubscribe(PUBBOTS);
+			m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("twdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName()));
+		}
 		String winBy = m_rules.getString("winby");
 		String title = m_rules.getString("name");
 
@@ -621,7 +616,7 @@ public class MatchGame
 				else
 					m_logger.sendArenaMessage("Draw. The game is declared void");
 				if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0)
-					m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("endtwdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName(), "PubHub"));
+					m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("endtwdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName()));
 			}
 			if ((m_rules.getInt("storegame") == 1) && (m_fnTeam1Score != m_fnTeam2Score))
 				storeGameResult();

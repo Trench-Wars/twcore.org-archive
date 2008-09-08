@@ -54,11 +54,12 @@ public class pubhubtwd extends PubBotModule {
     if(messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE){
     	if(message.equalsIgnoreCase("!showgames") && opList.isSmod(name)){
     		if(!games.isEmpty()){
-    		Iterator<String[]> i = games.iterator();
-    		while(i.hasNext()){
-    			m_botAction.sendSmartPrivateMessage( name, "-------------------");
-    			m_botAction.smartPrivateMessageSpam(name, i.next());
-    		}}else
+	    		Iterator<String[]> i = games.iterator();
+	    		while(i.hasNext()){
+	    			m_botAction.sendSmartPrivateMessage( name, "-------------------");
+	    			m_botAction.smartPrivateMessageSpam(name, i.next());
+	    		}
+    		}else
     			m_botAction.sendSmartPrivateMessage( name, "No games found.");
     	}
     }
@@ -92,10 +93,9 @@ public class pubhubtwd extends PubBotModule {
   
   public void gotTWDGameCmd(String message, boolean isStartOfGame){
   	String[] msg = message.split(":");
-  	if(isStartOfGame && !games.contains(msg[0]))
+  	if(isStartOfGame && !games.contains(msg))
   		games.add(msg);
-  	else
-  		games.remove(msg[0]);
+  	else games.remove(msg[0]);
   }
   
   public void giveGame(String pubbot, String message){
