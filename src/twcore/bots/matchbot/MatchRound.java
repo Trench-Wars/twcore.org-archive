@@ -24,6 +24,7 @@ import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.events.BallPosition;
 import twcore.core.events.FlagClaimed;
+import twcore.core.events.FlagPosition;
 import twcore.core.events.FlagReward;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.Message;
@@ -109,8 +110,6 @@ public class MatchRound
     
     // TWSDX ONLY: Flag LVZ status
     boolean flagClaimed = false;
-    
-    
 
     static final int NOT_PLAYING_FREQ = 200;
 
@@ -319,8 +318,8 @@ public class MatchRound
                 m_team2.flagReward(event.getPoints());
             if (m_team1.wonRace() || m_team2.wonRace())
                 endGame();
-        };
-    };
+        }
+    }
 
     /**
      * Parses the FlagClaimed event to the correct team
@@ -1139,6 +1138,38 @@ public class MatchRound
 	            m_botAction.move(0, 0);
 	            m_fnRoundState = 2;
 	            checkBlueout();
+	            
+	            // TWSDX ONLY
+	            if(m_game.m_fnMatchTypeID == 13) {
+                    m_botAction.resetFlagGame();
+                    
+                    // Bot enters game at center to center the flag
+                    TimerTask botEnterGame = new TimerTask() {
+                        public void run() {
+                            m_botAction.stopReliablePositionUpdating();
+                            m_botAction.getShip().setShip(0);
+                            m_botAction.getShip().setFreq(9999);
+                            m_botAction.getShip().move(512*16, 512*16);
+                        }
+                    };
+                    m_botAction.scheduleTask(botEnterGame, 5000);
+                    
+                    TimerTask botGrabFlag = new TimerTask() {
+                        public void run() {
+                            Iterator<Integer> it = m_botAction.getFlagIDIterator(); 
+                            while(it.hasNext()) {
+                                m_botAction.grabFlag(it.next());
+                            }
+                            
+                            m_botAction.getShip().setShip(8);
+                            m_botAction.getShip().setFreq(9999);
+                            m_botAction.resetReliablePositionUpdating();
+                        }
+                    };
+                    m_botAction.scheduleTask(botGrabFlag, 7000);
+                    
+                }
+	            
 	            m_secondWarp = new TimerTask()
 	            {
 	                public void run()
@@ -1230,33 +1261,17 @@ public class MatchRound
         m_botAction.receiveAllPlayerDeaths();
         m_logger.scoreResetAll();
         m_logger.shipResetAll();
-        m_logger.resetFlagGame();
+        
+        // TWSDX ONLY
+        if(m_game.m_fnMatchTypeID != 13) {
+            m_logger.resetFlagGame(); 
+        }
+        
         m_team1.disownFlag();
         m_team2.disownFlag();
         m_logger.sendArenaMessage("Go go go!", 104);
         m_botAction.showObject(m_rules.getInt("obj_gogogo"));
         
-        // TWSD ONLY:
-        if(m_game.m_fnMatchTypeID == 13) {
-            // Stop spectating player and watch on flag to see when it's claimed
-            m_botAction.stopReliablePositionUpdating();
-            m_botAction.stopSpectatingPlayer();
-            m_botAction.moveToTile(512, 512);
-            
-            // If a player is already carrying a flag, spectate him and put him back in to reset the flag
-            Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
-            while(it.hasNext()) {
-                Player player = it.next();
-                if(player.getFlagsCarried() > 0) {
-                    m_botAction.specWithoutLock(player.getPlayerID());
-                    m_botAction.setFreq(player.getPlayerID(), player.getFrequency());
-                    m_botAction.setShip(player.getPlayerID(), player.getShipType());
-                    m_botAction.setFreq(player.getPlayerID(), player.getFrequency());
-                }
-            }
-            m_botAction.resetFlagGame();
-        }
-
         m_timeStartedms = System.currentTimeMillis();
         flagClaimed = false;
 
