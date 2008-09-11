@@ -643,7 +643,7 @@ public class matchbot extends SubspaceBot
                             return;
                         }
                     } else {
-                            players = m_rules.getInt("players");
+                            players = m_rules.getInt("minplayers");
                     }
                     DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
                     if( !dp.isRankAssistantMinimum() ) {
