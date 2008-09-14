@@ -133,7 +133,7 @@ public class MatchGame
 					"SELECT fnTeamId FROM tblTeam WHERE tblTeam.fcTeamName = '" + Tools.addSlashesToString(fcTeamName) + "' AND (fdDeleted IS NULL or fdDeleted = 0)");
 			if (rs.next())
 			{
-				return rs.getInt("fnTWL__TeamId");
+				return rs.getInt("fnTeamId");
 			}
 			else
 				return 0;
