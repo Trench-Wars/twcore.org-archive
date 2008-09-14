@@ -212,9 +212,9 @@ public class MatchRound
             String[] fields = { "fnMatchID", "fnRoundStateID", "ftTimeStarted", "ftTimeEnded", "fnTeam1Score", "fnTeam2Score" };
             String[] values =
                 { Integer.toString(fnMatchID), Integer.toString(roundstate), started, ended, Integer.toString(m_fnTeam1Score), Integer.toString(m_fnTeam2Score)};
-            m_botAction.SQLInsertInto(dbConn, "tblMatchRound", fields, values);
+            m_botAction.SQLInsertInto(dbConn, "tblTWL__MatchRound", fields, values);
             //            ResultSet s = m_botAction.SQLQuery(dbConn, "select fnMatchRoundID from tblMatchRound where ftTimeStarted = '"+started+"' and ftTimeEnded = '"+ended+"' and fnTeam1Score = "+m_fnTeam1Score+" and fnTeam2Score = "+m_fnTeam2Score);
-            ResultSet s = m_botAction.SQLQuery(dbConn, "select MAX(fnMatchRoundID) as fnMatchRoundID from tblMatchRound");
+            ResultSet s = m_botAction.SQLQuery(dbConn, "select MAX(fnMatchRoundID) as fnMatchRoundID from tblTWL__MatchRound");
             if (s.next())
             {
                 m_fnMatchRoundID = s.getInt("fnMatchRoundID");

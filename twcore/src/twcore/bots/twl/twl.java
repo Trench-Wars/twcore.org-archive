@@ -683,7 +683,7 @@ public class twl extends SubspaceBot
                         ResultSet rs =
                             m_botAction.SQLQuery(
                                 dbConn,
-                                "select fnTeamID from tblTeam where fcTeamName = '" + Tools.addSlashesToString(nmySquad) + "' and (fdDeleted = 0 or fdDeleted IS NULL)");
+                                "SELECT fnTeamId FROM tblTeam WHERE tblTeam.fcTeamName = '" + Tools.addSlashesToString(nmySquad) + "' and (tblTeam.fdDeleted = 0 or tblTeam.fdDeleted IS NULL)");
                         if (rs.next())
                         {
                             // check if he is assistant or captain
@@ -1158,7 +1158,7 @@ public class twl extends SubspaceBot
 
     public String[] getTWLDetails(int m_TWLID) {
 	try {
-            ResultSet result = m_botAction.SQLQuery(dbConn, "SELECT * FROM tblMatch WHERE fnWebsiteMatchID = '" + m_TWLID + "'");
+            ResultSet result = m_botAction.SQLQuery(dbConn, "SELECT * FROM tblTWL__Match WHERE fnMatchID = '" + m_TWLID + "'");
             if (result.next())
             {
                 int fnMatchID = result.getInt("fnMatchID");

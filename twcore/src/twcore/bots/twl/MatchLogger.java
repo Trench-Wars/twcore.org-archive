@@ -139,7 +139,7 @@ public class MatchLogger
 				m_botAction.SQLBackgroundQuery(
 					mySQLHost,
 					"MatchLoggerAddRec",
-					"INSERT INTO tblMatchLog(fnMatchID, fcMessageType, fcMessage, fcPlayer, fnOrder)"
+					"INSERT INTO tblTWL__MatchLog(fnMatchID, fcMessageType, fcMessage, fcPlayer, fnOrder)"
 						+ "VALUES("
 						+ m_fnMatchID
 						+ ", '"
