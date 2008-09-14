@@ -177,14 +177,14 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					Integer.toString(m_fnLagouts),
 					Integer.toString(substituted)};
 
-			m_botAction.SQLInsertInto(dbConn, "tblMatchRoundUser", fields, values);
+			m_botAction.SQLInsertInto(dbConn, "tblTWL__MatchRoundUser", fields, values);
 
 			//get fnMatchRoundUserID
 			int fnMatchRoundUserID = 0;
 
 			try
 			{
-				ResultSet qryMatchRoundUserID = m_botAction.SQLQuery(dbConn, "SELECT MAX(fnMatchRoundUserID) as fnMatchRoundUserID " + "FROM tblMatchRoundUser");
+				ResultSet qryMatchRoundUserID = m_botAction.SQLQuery(dbConn, "SELECT MAX(fnMatchRoundUserID) as fnMatchRoundUserID " + "FROM tblTWL__MatchRoundUser");
 
 				if (qryMatchRoundUserID.next())
 				{
@@ -273,7 +273,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 						started,
 						ended };
 
-				m_botAction.SQLInsertInto(dbConn, "tblMatchRoundUserShip", shipFields, shipValues);
+				m_botAction.SQLInsertInto(dbConn, "tblTWL__MatchRoundUserShip", shipFields, shipValues);
 			}
 		}
 		catch (Exception e)

@@ -422,7 +422,7 @@ public class MatchTeam
             {
                 newCapt = parameters[0];
                 Player p;
-                p = m_botAction.getPlayer(newCapt);                
+                p = m_botAction.getPlayer(newCapt);
                 if( p == null )
                     p = m_botAction.getFuzzyPlayer(newCapt);
                 newCapt = p.getPlayerName();
@@ -478,7 +478,7 @@ public class MatchTeam
             {
                 Player p;
                 p = m_botAction.getPlayer(parameters[0]);
-                if( p == null )                    
+                if( p == null )
                     p = m_botAction.getFuzzyPlayer(parameters[0]);
                 parameters[0] = p.getPlayerName();
                 answer = addPlayer(p.getPlayerName(), fnShip, true, false);
@@ -1066,11 +1066,11 @@ public class MatchTeam
 	    if (m_rules.getInt("matchtype") < 4)
             {
 		try {
-			ResultSet s = m_botAction.SQLQuery(dbConn, "SELECT tblSiteVar.fcVarValue AS lockDate FROM tblSiteVar, tblTeamUser WHERE tblSiteVar.fcVarName = 'LockDate' AND tblTeamUser.fnUserID = '" + dbP.getUserID() + "' AND tblTeamUser.fdJoined < tblSiteVar.fcVarValue;");
+			ResultSet s = m_botAction.SQLQuery(dbConn, "SELECT tblTWL__LockDate.fdTWL__LockDate AS lockDate FROM tblTWL__LockDate, tblTeamUser WHERE tblTWL__LockDate.fcTWL__LockType = 'hard' AND tblTeamUser.fnUserID = '" + dbP.getUserID() + "' AND tblTeamUser.fdJoined < tblTWL__LockDate.fdTWL__LockDate;");
 			if (!s.next()) {
 			    return "Player was rostered after the roster lock and is ineligible for TWL games";
 			}
-			ResultSet s2 = m_botAction.SQLQuery(dbConn, "SELECT * FROM tblTeamUser WHERE fnUserID = '" + dbP.getUserID() + "' AND fnTWL = '1'");
+			ResultSet s2 = m_botAction.SQLQuery(dbConn, "SELECT * FROM tblTWL__Player WHERE fnUserID = '" + dbP.getUserID());
 			if (!s2.next()) {
 			    return "Player is not rostered as a TWL player";
 			}
