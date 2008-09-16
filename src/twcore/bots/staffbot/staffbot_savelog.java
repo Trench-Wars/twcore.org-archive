@@ -109,10 +109,14 @@ public class staffbot_savelog extends Module {
                 }
                 // !getAutologTime
                 if( message.toLowerCase().startsWith("!getautologtime") ){
-                    long time = getLogTask.scheduledExecutionTime();
+                    if(m_logArchivingEnabled) {
+                        long time = getLogTask.scheduledExecutionTime();
                     
-                    m_botAction.sendSmartPrivateMessage(name, "Log will automatically be backed up at: ");
-                    m_botAction.sendSmartPrivateMessage(name, new Date(time)+ "  [ETA: -"+Tools.getTimeDiffString(time, true)+"]");
+                        m_botAction.sendSmartPrivateMessage(name, "Log will automatically be backed up at: ");
+                        m_botAction.sendSmartPrivateMessage(name, new Date(time)+ "  [ETA: -"+Tools.getTimeDiffString(time, true)+"]");
+                    } else {
+                        m_botAction.sendSmartPrivateMessage(name, "Automatic archiving of server log is disabled.");
+                    }
                 }
             }
         }
