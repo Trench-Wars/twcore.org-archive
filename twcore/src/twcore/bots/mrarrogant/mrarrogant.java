@@ -437,7 +437,7 @@ public class mrarrogant extends SubspaceBot
         if(command.equals("!die"))
           doDieCmd();
       }
-      else
+      else if(!opList.isBotExact(sender))
         m_botAction.sendChatMessage(sender + " said: \"" + message + "\" in " + currentArena + ".");
     }
     catch(RuntimeException e)
