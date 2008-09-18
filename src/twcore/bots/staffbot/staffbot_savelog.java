@@ -18,7 +18,7 @@ import twcore.core.util.Tools;
 
 public class staffbot_savelog extends Module {
 	
-	private boolean 	m_logArchivingEnabled;
+	private boolean 	m_logArchivingEnabled = false;
 	boolean             m_logActive = false;
 	java.util.Date      m_logTimeStamp;
 	final String        m_LOGFILENAME = "subgame.log";
