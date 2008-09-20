@@ -210,12 +210,12 @@ public class MatchGame
 	public String getMatchTypeName(int matchType){
 		try{
 			ResultSet rs = m_botAction.SQLQuery(dbConn, "SELECT fcMatchTypeName FROM tblMatchType WHERE fnMatchTypeID = " + matchType);
+			String name = "TWD";
 			if(rs != null && rs.next()){
-				m_botAction.SQLClose(rs);
-				return rs.getString("fcMatchTypeName");
+				name = rs.getString("fcMatchTypeName");
 			}
 			m_botAction.SQLClose(rs);
-			return "TWD";
+			return name;
 		}catch(Exception e) {
 			System.out.println(e.getMessage());
 			return "TWD";
@@ -241,10 +241,10 @@ public class MatchGame
 							long lastZoner = rs.getLong("fnTimeInMillis");
 							if(now - lastZoner > (timeBetweenZones * Tools.TimeInMillis.MINUTE)){
 								m_botAction.sendZoneMessage("A " + getMatchTypeName(m_fnMatchTypeID) + " match between " +
-										                    m_fcTeam1Name + " (#" + rankTeam1 + ") and " +
-										                    m_fcTeam2Name + " (#" + rankTeam2 + ") " +
+										                    m_fcTeam1Name + "(#" + rankTeam1 + ") and " +
+										                    m_fcTeam2Name + "(#" + rankTeam2 + ") " +
 										                    "is starting. Type ?go " + m_botAction.getArenaName() +
-										                    "to see them battle it out! -" + m_botAction.getBotName(), Tools.Sound.BEEP1);
+										                    " to see them battle it out! -" + m_botAction.getBotName(), Tools.Sound.BEEP1);
 								m_botAction.SQLQueryAndClose(dbConn, "UPDATE tblTWDZoner SET fnTimeInMillis = " + now + " WHERE fnMatchTypeID = " + m_fnMatchTypeID);
 							}
 						}
