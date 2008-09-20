@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.TimerTask;
+import java.util.Date;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -174,14 +175,86 @@ public class MatchGame
 			return 0;
 		}
 	}
+	
+	public int getLadderPosition(int fnTeamID, int range)
+	{
+		try{
+			int ladderTimeout = -1;
+			switch(m_fnMatchTypeID){
+				case 4:ladderTimeout = 6;
+				case 5:ladderTimeout = 6;
+				case 6:ladderTimeout = 10;
+				case 13:ladderTimeout = 10;
+			}
+			if(ladderTimeout == -1)return -1;
+			long timeOut = System.currentTimeMillis() - (ladderTimeout * Tools.TimeInMillis.DAY);
+			timeOut /= 1000;//Put into seconds
+			ResultSet rs = m_botAction.SQLQuery(dbConn,
+					"SELECT tblTWDTeam.fnTeamID, tblTWDTeam.fnRating, tblTeam.fcTeamName FROM tblTWDTeam, tblTeam WHERE tblTWDTeam.fnMatchTypeID=" + m_fnMatchTypeID + " AND tblTeam.fnTeamID=tblTWDTeam.fnTeamID AND (tblTeam.fdDeleted=0 OR tblTeam.fdDeleted IS NULL) AND UNIX_TIMESTAMP(tblTWDTeam.fdLastRatingChange)>" + timeOut + " AND tblTWDTeam.fnGames>0 AND tblTWDTeam.fnTWDTeamState=1 ORDER BY tblTWDTeam.fnRating DESC limit " + range);
+			int rank = 0;
+			while(rs != null && rs.next()){
+				rank++;
+				if(fnTeamID == rs.getInt("fnTeamID")){
+					m_botAction.SQLClose(rs);
+					return rank;
+				}
+			}
+			m_botAction.SQLClose(rs);
+			return -1;
+		}catch(Exception e) {
+			System.out.println(e.getMessage());
+			return 0;
+		}
+	}
+	
+	public String getMatchTypeName(int matchType){
+		try{
+			ResultSet rs = m_botAction.SQLQuery(dbConn, "SELECT fcMatchTypeName FROM tblMatchType WHERE fnMatchTypeID = " + matchType);
+			if(rs != null && rs.next()){
+				m_botAction.SQLClose(rs);
+				return rs.getString("fcMatchTypeName");
+			}
+			m_botAction.SQLClose(rs);
+			return "TWD";
+		}catch(Exception e) {
+			System.out.println(e.getMessage());
+			return "TWD";
+		}
+	}
 
 	public void setupGame()
-	{
-		
-		if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0 && (m_rules.getInt("rosterjoined") == 1) || (m_rules.getInt("storegame") == 1)){
+	{		
+		if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0){
 			m_botAction.ipcSubscribe(PUBBOTS);
 			m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("twdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName()));
-		}
+			int zoneForTiers = m_rules.getInt("zoneforladder");
+			int timeBetweenZones = m_rules.getInt("zoneforladdertime");
+			if(zoneForTiers != 0 && timeBetweenZones != 0){
+				int rankTeam1 = getLadderPosition(m_fnTeam1ID, zoneForTiers);
+				int rankTeam2 = getLadderPosition(m_fnTeam2ID, zoneForTiers);
+				if(rankTeam1 > 0 && rankTeam2 > 0){
+					try{
+						ResultSet rs = m_botAction.SQLQuery(dbConn, "SELECT fnTimeInMillis FROM tblTWDZoner WHERE fnMatchTypeID = " + m_fnMatchTypeID);
+						if(rs != null && rs.next()){
+							Date date = new Date();
+							long now = date.getTime();
+							long lastZoner = rs.getLong("fnTimeInMillis");
+							if(now - lastZoner > (timeBetweenZones * Tools.TimeInMillis.MINUTE)){
+								m_botAction.sendZoneMessage("A " + getMatchTypeName(m_fnMatchTypeID) + " match between " +
+										                    m_fcTeam1Name + " (#" + rankTeam1 + ") and " +
+										                    m_fcTeam2Name + " (#" + rankTeam2 + ") " +
+										                    "is starting. Type ?go " + m_botAction.getArenaName() +
+										                    "to see them battle it out! -" + m_botAction.getBotName(), Tools.Sound.BEEP1);
+								m_botAction.SQLQueryAndClose(dbConn, "UPDATE tblTWDZoner SET fnTimeInMillis = " + now + " WHERE fnMatchTypeID = " + m_fnMatchTypeID);
+							}
+						}
+						m_botAction.SQLClose(rs);
+					}catch(Exception e){
+						System.out.println(e.getMessage());
+					}
+				}
+			}
+		}//From the start of setupGame() to here is milosh's work 9/19/2008.
 		String winBy = m_rules.getString("winby");
 		String title = m_rules.getString("name");
 
