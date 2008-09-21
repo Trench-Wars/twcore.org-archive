@@ -298,9 +298,13 @@ public class MatchRound
             m_logger.setFreq( event.getPlayerName(), NOT_PLAYING_FREQ);
         }
 
-        // TWSD ONLY:
+        // TWSDX ONLY:
         if(m_fnRoundState == 3 && m_game.m_fnMatchTypeID == 13 && flagClaimed) {
             m_botAction.showObjectForPlayer(event.getPlayerID(), 744);
+        }
+        // TWSDX ONLY: Let the player know about the !rules command
+        if(m_game.m_fnMatchTypeID == 13) {
+            m_botAction.sendPublicMessage("Private message me with \"!rules\" for an explanation on how to play TWSD");
         }
     }
 
@@ -633,6 +637,11 @@ public class MatchRound
             help.add("!rating <player>                         - provides realtime stats and rating of the player");
             help.add("!mvp                                     - provides the current mvp");
         };
+        
+        // TWSDX ONLY
+        if(m_game.m_fnMatchTypeID == 13) {
+            help.add("!rules                                   - How to play TWSD");
+        }
 
         // for staff
         if (isStaff)
@@ -699,7 +708,11 @@ public class MatchRound
 
         if (command.equals("!mvp") && (m_fnRoundState == 3))
             command_mvp(name, parameters);
-
+        
+        //TWSDX ONLY
+        if (command.equals("!rules") && m_game.m_fnMatchTypeID == 13)
+            command_rules(name, parameters);
+        
         if (command.length() > 3)
         {
             if (command.startsWith("!t1-") && (command.length() > 4))
@@ -1028,6 +1041,15 @@ public class MatchRound
     {
         m_botAction.sendPrivateMessage(name, m_lagHandler.getStatus());
     };
+    
+    public void command_rules(String name, String parameters[]) {
+        String[] rules = {
+                "TWSD rules / how to play:",
+                "-------------------------",
+                "Capture the flag to get more points on each kill. The team with the most points win."
+        };
+        m_botAction.privateMessageSpam(name, rules);
+    }
 
     public void handleLagReport(LagReport report)
     {
@@ -1274,6 +1296,11 @@ public class MatchRound
         
         m_timeStartedms = System.currentTimeMillis();
         flagClaimed = false;
+        
+        // TWSDX ONLY: Announce the !rules command after starting the game in public chat
+        if(m_game.m_fnMatchTypeID == 13) {
+            m_botAction.sendPublicMessage("Private message me with \"!rules\" for an explanation on how to play TWSD");
+        }
 
         //this is for timerace only
         if ((m_rules.getString("winby")).equals("timerace"))

@@ -204,11 +204,6 @@ public class MatchTeam
                 		m_round.m_team2.disownFlag();
                 		m_round.flagClaimed = false;
                 		m_botAction.hideObject(744);
-                		m_botAction.resetFlagGame();
-                		// Stop player spectating cycle and watch the flag
-                		m_botAction.stopReliablePositionUpdating();
-                		m_botAction.stopSpectatingPlayer();
-                		m_botAction.moveToTile(512, 512);
                 	}
                 }
             }
@@ -282,11 +277,6 @@ public class MatchTeam
                     m_round.m_team2.disownFlag();
                     m_round.flagClaimed = false;
                     m_botAction.hideObject(744);
-                    m_botAction.resetFlagGame();
-                    // Stop player spectating cycle and watch the flag
-                    m_botAction.stopReliablePositionUpdating();
-                    m_botAction.stopSpectatingPlayer();
-                    m_botAction.moveToTile(512, 512);
                 }
             }
         }
