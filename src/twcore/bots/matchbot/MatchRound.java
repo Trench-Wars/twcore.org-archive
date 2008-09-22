@@ -304,7 +304,7 @@ public class MatchRound
         }
         // TWSDX ONLY: Let the player know about the !rules command
         if(m_game.m_fnMatchTypeID == 13) {
-            m_botAction.sendPublicMessage("Private message me with \"!rules\" for an explanation on how to play TWSD");
+            m_botAction.sendPrivateMessage(event.getPlayerID(),"Private message me with \"!rules\" for an explanation on how to play TWSD");
         }
     }
 
