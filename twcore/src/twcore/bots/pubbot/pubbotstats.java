@@ -1,16 +1,13 @@
 package twcore.bots.pubbot;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.TimerTask;
-import java.util.Vector;
 
 import twcore.bots.PubBotModule;
-import twcore.bots.PubStatsPlayer;
-import twcore.bots.PubStatsScore;
 import twcore.core.EventRequester;
 import twcore.core.events.ArenaJoined;
+import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
@@ -18,29 +15,38 @@ import twcore.core.events.PlayerLeft;
 import twcore.core.events.ScoreReset;
 import twcore.core.events.ScoreUpdate;
 import twcore.core.game.Player;
+import twcore.core.helper.pubstats.PubStatsArena;
+import twcore.core.helper.pubstats.PubStatsPlayer;
+import twcore.core.util.Tools;
 
 public class pubbotstats extends PubBotModule {
   
-  protected Map<String, PubStatsScore> stats = Collections.synchronizedMap(new HashMap<String, PubStatsScore>());
-  // 			   <Ship#playerid, PubStats>
-  // F.ex:		   3:1234, PubStats <-- spider
-  // F.ex:         :1234, PubStats <-- total stats
-  
-  private Vector<String> infoBuffer = new Vector<String>(20);
-  // *info buffer, stores all arena messages that come from *info
-  private Map<String,Boolean> infoRequested = Collections.synchronizedMap(new HashMap<String, Boolean>());
-  // <Playername, PlayerID>
-  
-  protected final String IPCCHANNEL = "pubstats";
-  private final int SEND_STATS_TIME = 1000*60*15; // 15 minutes
-  
-  private boolean debug = false;
+    private PubStatsArena arenaStats;
+    
+    
+    private String[] infoBuffer = new String[8];
+    
+    protected final String IPCCHANNEL = "pubstats";
+    private final int SEND_STATS_TIME = Tools.TimeInMillis.MINUTE*15; // 15 minutes
+    
+    private boolean debug = false;
 
   public void initializeModule() {
+      arenaStats = new PubStatsArena(m_botAction.getArenaName());
+      
+      // Add all players from arena
+      // (it's needed to do this manually because the module is loaded after the bot has entered the arena)
+      Iterator<Player> it = m_botAction.getPlayerIterator();
+      while(it.hasNext()) {
+          Player p = it.next();
+          arenaStats.addPlayer(p);
+          m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(),"*info");
+      }
+      
       SendStatsTask sendstats = new SendStatsTask();
       m_botAction.scheduleTaskAtFixedRate(sendstats, SEND_STATS_TIME, SEND_STATS_TIME);
-      RequestInfo requestInfo = new RequestInfo(this);
-      m_botAction.scheduleTaskAtFixedRate(requestInfo , 1000, 1000);
+      RequestInfo requestInfo = new RequestInfo();
+      m_botAction.scheduleTaskAtFixedRate(requestInfo, Tools.TimeInMillis.MINUTE*5, Tools.TimeInMillis.MINUTE);
   }
 
   public void requestEvents(EventRequester eventRequester) {
@@ -49,6 +55,7 @@ public class pubbotstats extends PubBotModule {
 	  eventRequester.request(EventRequester.PLAYER_DEATH);
 	  eventRequester.request(EventRequester.SCORE_UPDATE);
 	  eventRequester.request(EventRequester.SCORE_RESET);
+	  eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
 	  eventRequester.request(EventRequester.ARENA_JOINED);
 	  eventRequester.request(EventRequester.MESSAGE);
   }
@@ -58,43 +65,102 @@ public class pubbotstats extends PubBotModule {
   }
   
   public void handleEvent( ScoreUpdate event ) {
-	  Player player = m_botAction.getPlayer(event.getPlayerID());
-	  if(player != null) {
-		  updateStats(player, "scoreupdate");
-	  }
+      // Update the score of the player
+      PubStatsPlayer player = arenaStats.getPlayer(event.getPlayerID());
+      if(player != null) {
+          
+          // Update the score of the ship the player is in
+          player.updateShipScore(
+                  player.getShip(), 
+                  event.getFlagPoints()-player.getFlagPoints(), 
+                  event.getKillPoints()-player.getKillPoints(), 
+                  event.getWins()-player.getWins(), 
+                  event.getLosses()-player.getLosses());    
+          
+          // Update the overall score of the player
+          player.setFlagPoints(event.getFlagPoints());
+          player.setKillPoints(event.getKillPoints());
+          player.setWins(event.getWins());
+          player.setLosses(event.getLosses());
+          player.updated();
+      }
   }
   
   public void handleEvent( ScoreReset event ) {
-	  Player player = m_botAction.getPlayer(event.getPlayerID());
-	  if(player != null) {
-		  updateStats(player, "scorereset");
-	  }
+      // Score reset the player
+      PubStatsPlayer player = arenaStats.getPlayer(event.getPlayerID());
+      if(player != null) {
+          player.scorereset();
+          player.updated();
+      }
   }
   
   public void handleEvent( PlayerEntered event ) {
-	  Player player = m_botAction.getPlayer(event.getPlayerID());
-	  if(player != null) {
-		  updateStats(player, "entered");
+      // A new player entered
+      // (this event is also fired after bot enters the arena)
+	  PubStatsPlayer player = arenaStats.getPlayer(event.getPlayerID());
+	  
+	  if(player == null) {
+		  arenaStats.addPlayer(
+		          event.getPlayerID(), 
+		          event.getPlayerName(),
+		          event.getSquadName(),
+		          event.getFlagPoints(),
+		          event.getKillPoints(),
+		          event.getLosses(),
+		          event.getWins(),
+		          event.getShipType());
+	  } else {
+	      player.seen();
 	  }
   }
   
   public void handleEvent( PlayerLeft event ) {
-	  /*Player player = m_botAction.getPlayer(event.getPlayerID());
-	  if(player != null) {
-		  updateStats(player, "left");
-	  }*/
+      arenaStats.getPlayer(event.getPlayerID()).seen();
   }
   
   public void handleEvent( PlayerDeath event ) {
       Player killee = m_botAction.getPlayer(event.getKilleeID());
-      if(killee != null) {
-          updateStats(killee, "killee");
-      }
       Player killer = m_botAction.getPlayer(event.getKillerID());
-      if(killer != null) {
-          updateStats(killer, "killer");
+      PubStatsPlayer killeeStats = arenaStats.getPlayer(event.getKilleeID());
+      PubStatsPlayer killerStats = arenaStats.getPlayer(event.getKillerID());
+      
+      if(killee != null) {
+          // Update ship stats
+          killeeStats.updateShipScore(
+                  killeeStats.getShip(), 
+                  killee.getFlagPoints()-killeeStats.getFlagPoints(), 
+                  killee.getKillPoints()-killeeStats.getKillPoints(), 
+                  killee.getWins()-killeeStats.getWins(), 
+                  killee.getLosses()-killeeStats.getLosses());
+          
+          // Update overall stats
+          killeeStats.setWins(killee.getWins());
+          killeeStats.setLosses(killee.getLosses());
+          killeeStats.setKillPoints(killee.getKillPoints());
+          killeeStats.setFlagPoints(killee.getFlagPoints());
       }
       
+      if(killer != null) {
+          // Update ship stats
+          killerStats.updateShipScore(
+                  killerStats.getShip(), 
+                  killer.getFlagPoints()-killerStats.getFlagPoints(), 
+                  killer.getKillPoints()-killerStats.getKillPoints(), 
+                  killer.getWins()-killerStats.getWins(), 
+                  killer.getLosses()-killerStats.getLosses());
+          
+          // Update overall stats
+          killerStats.setWins(killer.getWins());
+          killerStats.setLosses(killer.getLosses());
+          killerStats.setKillPoints(killer.getKillPoints());
+          killerStats.setFlagPoints(killer.getFlagPoints());
+      }
+      
+  }
+  
+  public void handleEvent( FrequencyShipChange event) {
+      arenaStats.getPlayer(event.getPlayerID()).shipchange(event.getShipType());
   }
   
   // Examples
@@ -124,92 +190,62 @@ public class pubbotstats extends PubBotModule {
   public void handleEvent( Message event ) {
 	  String message = event.getMessage();
 	  
-	  if(message != null && event.getMessageType() == Message.ARENA_MESSAGE && message.startsWith("IP:")) {
-	      infoBuffer.add(0, message);
-	      infoBuffer.setSize(20);
-		  
-	      String playerName = getInfo(message, "TypedName:");
-		  //String playerIP = getInfo(message, "IP:");
-		  //String timezone = getInfo(message, "TimeZoneBias:");
-	      
-	      if(infoRequested.containsKey(playerName)) {
-	          fillBlankPlayerInfo();
-	      } else {
-	          // fuzzy name player check
-	          for(String name:infoRequested.keySet()) {
-	              if(playerName.startsWith(name)) {
-	                  fillBlankPlayerInfo();
-	              }
-	          }
-	      }
-	      
-	      
-	  }
-	  if(message != null && event.getMessageType() == Message.ARENA_MESSAGE && message.startsWith("TIME: Session:")) {
-	      try {
-	          String latestInfo = infoBuffer.get(0);
-	          if(latestInfo != null && latestInfo.length()>0) {
-	              // Make sure this latestInfo doesn't already has this info
-	              if(latestInfo.indexOf("TIME: Session:")==-1) {
-	                  latestInfo = latestInfo+" "+message;
-	                  infoBuffer.set(0, latestInfo);
-	              }
-	          }
-	          //String usage = getInfo(message, "Total: ");
-	          
-	          String playerName = getInfo(latestInfo, "TypedName:");
-	          
-	          if(infoRequested.containsKey(playerName.trim())) {
-	              infoRequested.remove(playerName);
-	              fillBlankPlayerInfo();
-	          } else {
-	              // fuzzy name player check
-	              for(String name:infoRequested.keySet()) {
-	                  if(playerName.startsWith(name)) {
-	                      infoRequested.remove(name);
-	                      fillBlankPlayerInfo();
-	                  }
-	              }
-	          }
-	          
-	      } catch(IndexOutOfBoundsException ioobe) {
-	          // Probably received a wrong arena message
+	  if(message != null && event.getMessageType() == Message.ARENA_MESSAGE) {
+	      // Store *info results in infoBuffer
+	      if(message.startsWith("IP:") && message.indexOf("TypedName:") > 0) {
+	          Arrays.fill(infoBuffer, ""); // clear buffer
+	          infoBuffer[0] = message;     // *info 1st line
+	      } else
+	      if(message.startsWith("Ping:") && message.indexOf("HighPing:") > 0) {
+	          infoBuffer[1] = message;     // *info 2nd line
+	      } else
+	      if(message.startsWith("LOSS:") && message.indexOf("S2CWeapons:") > 0) {
+	          infoBuffer[2] = message;
+	      } else
+	      if(message.startsWith("S2C:") && message.indexOf("C2S:") > 0) {
+	          infoBuffer[3] = message;
+	      } else
+	      if(message.startsWith("C2S CURRENT: Slow:") && message.indexOf("TOTAL: Slow:") > 0) {
+	          infoBuffer[4] = message;
+	      } else
+	      if(message.startsWith("S2C CURRENT: Slow:") && message.indexOf("TOTAL: Slow:") > 0) {
+	          infoBuffer[5] = message;
+	      } else
+	      if(message.startsWith("TIME: Session:") && message.indexOf("Total:") > 0) {
+	          infoBuffer[6] = message;
+	      } else
+	      if(message.startsWith("Bytes/Sec:") && message.indexOf("ConnectType:") > 0 ) {
+	          infoBuffer[7] = message;
+	          processInfoBuffer(infoBuffer);
 	      }
 	  }
+	  
+	  // COMMANDS
 	  if(message != null && event.getMessageType() == Message.PRIVATE_MESSAGE) {
-	      // commands
+	      
 	      if(message.startsWith("!forcesave")) {
 	          m_botAction.sendPrivateMessage(event.getPlayerID(), "done");
-	          m_botAction.ipcTransmit(IPCCHANNEL, stats);   
+	          m_botAction.ipcTransmit(IPCCHANNEL, arenaStats);   
 	      }
+	      
 	      if(message.startsWith("!check")) {
-	          synchronized(stats) {
-	              m_botAction.sendTeamMessage("stats size: "+stats.size());
-	              for(PubStatsScore score:stats.values()) {
-	                  PubStatsPlayer player = score.getPlayer();
-	                  if(player.getIP() == null)
-	                      m_botAction.sendTeamMessage(player.getName() + " null IP");
-	                  if(player.getName() == null)
-	                      m_botAction.sendTeamMessage(player.getName() + " null name");
-	                  if(player.getTimezone() == 0)
-	                      m_botAction.sendTeamMessage(player.getName() + " 0 timezone");
-	                  if(player.getUsage() == null)
-	                      m_botAction.sendTeamMessage(player.getName() + " null usage");
-	              }
-	          }
-	      }
-	      if(message.startsWith("!request")) {
-	          synchronized(infoRequested) {
-	              m_botAction.sendTeamMessage("size: "+infoRequested.size());
-	              
-	              for(String name:infoRequested.keySet()) {
-	                  m_botAction.sendTeamMessage(name + ": " + infoRequested.get(name));
+	          
+	          m_botAction.sendTeamMessage("stats size: "+arenaStats.size());
+	          
+	          Iterator<Integer> it = m_botAction.getPlayerIDIterator();
+	          
+	          while(it.hasNext()) {
+	              short id = it.next().shortValue();
+	              PubStatsPlayer player = arenaStats.getPlayer(id);
+	              if(!player.isExtraInfoFilled()) {
+	                  m_botAction.sendTeamMessage("Player '"+player.getName()+"' not extrainfo filled.");
 	              }
 	          }
 	      }
 	  }
   }
 
+  @Override
   public void cancel() {
 	  //m_botAction.ipcTransmit(IPCCHANNEL, stats);
 	  m_botAction.cancelTasks();
@@ -217,212 +253,23 @@ public class pubbotstats extends PubBotModule {
   
   /**** Private Helper methods ****/
   
-  private synchronized void updateStats(Player player, String action) {
-	  PubStatsScore pubStatsScore;
-	  PubStatsPlayer pubStatsPlayer;
-	  
-	  boolean previousScoreAvailable = false;
-	  
-	  // Get total statistics
-	  if(stats.containsKey(":"+player.getPlayerID())) {
-		  pubStatsScore = stats.get(":" + player.getPlayerID());
-		  pubStatsPlayer = pubStatsScore.getPlayer();
-		  previousScoreAvailable = true;
-	  } else {
-		  // Create objects
-		  pubStatsPlayer = new PubStatsPlayer(	player.getPlayerName(),        // Save it with playername from %tickname first
-				  								player.getSquadName(),
-				  								getInfoFromBuffer(player.getPlayerName(), "IP"),		// IP is unknown
-				  								getInfoFromBuffer(player.getPlayerName(), "Timezone"),	// timezone is unknown
-				  								getInfoFromBuffer(player.getPlayerName(), "Usage")		// usage is unknown
-		                                      );
-		  
-		  if(pubStatsPlayer.getIP() == null) {
-		      // the IP wasn't found in the infoBuffer yet, request it ourselves then
-		      infoRequested.put(player.getPlayerName(),false);
-		      debug("Requesting *info of "+player.getPlayerName()+" myself");
-		  }
-		  
-		  pubStatsScore = new PubStatsScore(	pubStatsPlayer, 
-				  								0,    // Total statistics: ship is always 0
-				  								player.getFlagPoints(),
-				  								player.getKillPoints(),
-				  								player.getWins(),
-				  								player.getLosses(),
-				  								calculateRating(player.getKillPoints(), player.getWins(), player.getLosses()),
-				  								calculateAverage(player.getKillPoints(), player.getWins()));
-		  previousScoreAvailable = false;
-	  }
-	  
-	  
-	  if(player.getShipType() > 0 && (action.equals("scoreupdate") || action.equals("killee") || action.equals("killer"))) {
-		  PubStatsScore pubStatsScoreShip;
-		  if(stats.containsKey(player.getShipType()+":"+player.getPlayerID())) {
-			  pubStatsScoreShip = stats.get(player.getShipType()+":"+player.getPlayerID());
-		  } else {
-			  // Create new empty object
-			  pubStatsScoreShip = new PubStatsScore(	pubStatsPlayer, 
-					  									player.getShipType(),
-					  									0,		// Flag points
-					  									0,		// Kill points
-					  									0,		// Wins
-					  									0,		// Losses
-					  									0,		// Rating
-					  									0);		// Average
-		  }
-		  
-		  if(previousScoreAvailable) {
-			  pubStatsScoreShip.setFlagPoints(player.getFlagPoints()-pubStatsScore.getFlagPoints());
-			  pubStatsScoreShip.setKillPoints(player.getKillPoints()-pubStatsScore.getKillPoints());
-			  pubStatsScoreShip.setWins(player.getWins()-pubStatsScore.getWins());
-			  pubStatsScoreShip.setLosses(player.getLosses()-pubStatsScore.getLosses());
-			  pubStatsScoreShip.setRate(calculateRating(pubStatsScoreShip.getKillPoints(), pubStatsScoreShip.getWins(), pubStatsScoreShip.getLosses()));
-			  pubStatsScoreShip.setAverage(calculateAverage(pubStatsScoreShip.getKillPoints(), pubStatsScoreShip.getWins()));
-			  pubStatsScoreShip.resetLastUpdate();
-		  }
-		  
-		  // TODO: Update total score aswell?
-		  pubStatsScore.resetLastUpdate();
-		  // etc
-		  
-		  stats.put(player.getShipType()+":"+player.getPlayerID(), pubStatsScoreShip);
-	  } else if(action.equals("entered")) {
-		  // No update necessary here
-	  } else if(action.equals("left")) {
-		  // No update necessary here
-	  } else if(action.equals("scorereset")) {
-		  // Player scoreresets or gets scorereset
-		  // Set the scorereset property of the total score and each ship score
-		  pubStatsScore.setScorereset(true);
-		  for(int i = 1 ; i <= 8; i++) {
-			  if(stats.containsKey(i+":"+player.getPlayerID())) {
-				  stats.get(i+":"+player.getPlayerID()).setScorereset(true);
-			  } else {
-				  PubStatsScore ship = new PubStatsScore(pubStatsPlayer, i, 0, 0, 0, 0, 0, 0);
-				  ship.setScorereset(true);
-				  stats.put(i+":"+player.getPlayerID(), ship);
-			  }
-		  }
-	  }
-	  
-	  stats.put(":"+player.getPlayerID(), pubStatsScore);
-	  debug("Stats size: "+stats.size()); 
-  }
-  
-  private int calculateRating(int killPoints, int wins, int losses) {
-	  return (killPoints*10 + (wins-losses)*100) / (wins +100);
-  }
-  
-  private float calculateAverage(int killPoints, int wins) {
-	  if(wins > 0)
-		  return killPoints / wins;
-	  else 
-		  return 0;
-  }
-
-  /**
-   * Cycle the stats HashMap and check if a player has IP and Usage
-   */
-  private synchronized void fillBlankPlayerInfo() {
-      synchronized(stats) {
-          for(PubStatsScore score:stats.values()) {
-              PubStatsPlayer player = score.getPlayer();
-              if(player.getIP() == null) {
-                  String playerName = getInfoFromBuffer(player.getName(), "Name");
-                  String playerIP = getInfoFromBuffer(player.getName(), "IP"  );
-                  String playerTimezone = getInfoFromBuffer(player.getName(), "Timezone");
-                  
-                  if(playerName != null)
-                      player.setName(playerName);
-                  if(playerIP != null)
-                      player.setIP(playerIP);
-                  if(playerTimezone != null)
-                      player.setTimezone(playerTimezone);
-              }
-              if(player.getUsage() == null) {
-                  String playerUsage = getInfoFromBuffer(player.getName(), "Usage");
-                  
-                  if(playerUsage != null ) {
-                      player.setUsage(playerUsage);
-                  }
-              }
-          }
-      }
-  }
-  
-  /**
-   * Retrieve info from the *info buffer
-   * 
-   * @param playerName *info or %tickname player name
-   * @param infoPart what info to retrieve: choose from 'Name','IP', 'Timezone' and 'Usage'
-   * @return the requested info part from the info buffer or null if it isn't found
-   */
-  private String getInfoFromBuffer(String playerName, String infoPart) {
-      // WARNING: playerName is that from %tickname OR *info, infoBuffer contains playernames from %tickname OR *info
-      String result = null;
+  private void processInfoBuffer(String[] buffer) {
+      String name = getInfo(buffer[0], "TypedName:");
+      String IP = getInfo(buffer[0], "IP:");
+      String machineID = getInfo(buffer[0], "MachineId:");
+      String timezone = getInfo(buffer[0], "TimeZoneBias:");
+      String usage = getInfo(buffer[6], "Total:");
+      String dateCreated = getInfo(buffer[6], "Created:");
       
-      playerName = getFuzzyPlayerNameInfoBuffer(playerName);
-      if(playerName == null) {
-          // playername already isn't found
-          return null;
-      }
+      PubStatsPlayer player = arenaStats.getPlayer2(name);
       
-      for(String info:infoBuffer) {
-          if(info != null && info.toLowerCase().indexOf(playerName.toLowerCase()) > -1) {
-              // Found the player in the buffer!
-              if(infoPart.equals("Name")) {
-                  result = getInfo(info, "TypedName:");
-                  break;
-              }
-              if(infoPart.equals("IP")) {
-                  result = getInfo(info, "IP:");
-                  break;
-              }
-              if(infoPart.equals("Timezone")) {
-                  result = getInfo(info, "TimeZoneBias:");
-                  break;
-              }
-              if(infoPart.equals("Usage")) {
-                  result = getInfo(info, "Total: ");
-                  break;
-              }
-          }
+      if(player != null) {
+          player.setIP(IP);
+          player.setMachineID(machineID);
+          player.setTimezone(timezone);
+          player.setUsage(usage);
+          player.setDateCreated(dateCreated);
       }
-      
-      return result;
-  }
-  
-  /**
-   * Searches the infoBuffer for the best match for the given playerName considering
-   * that this name can be of 23 to 19 characters maximum length
-   * 
-   * @param playerName
-   * @return
-   */
-  private String getFuzzyPlayerNameInfoBuffer(String playerName) {
-      // Assume the given playerName is 23 characters maximum length
-      
-      if(playerName == null) {
-          return playerName;
-      }
-      if(playerName.length() <= 19) {
-          return playerName;
-      }
-      
-      for(int i = 23; i > 19; i--) {
-          for(String info:infoBuffer) {
-              try {
-                  if(info.indexOf(playerName.toLowerCase().substring(0,i))>-1) {
-                      // found playername
-                      return playerName.substring(0,i);
-                  }
-              } catch(IndexOutOfBoundsException ioobe) {
-                  // substring's endindex is larger then the playerName
-              }
-          }
-      }
-      
-      return null; //not found
   }
   
   /**
@@ -459,6 +306,7 @@ public class pubbotstats extends PubBotModule {
   }
   
   
+  @SuppressWarnings("unused")
   private void debug(String message) {
       if(debug)
           m_botAction.sendChatMessage(message);
@@ -471,27 +319,21 @@ public class pubbotstats extends PubBotModule {
   
   private class SendStatsTask extends TimerTask {
 	public void run() {
-		m_botAction.ipcTransmit(IPCCHANNEL, stats);
+		m_botAction.ipcTransmit(IPCCHANNEL, arenaStats);
 	}
   }
   
   private class RequestInfo extends TimerTask {
-      private pubbotstats bot;
-      
-      public RequestInfo(pubbotstats bot) {
-          this.bot = bot;
-      }
       
       public void run() {
           
-          if(bot.infoRequested.size() == 0)
-              return;
-          
-          for(String playername:bot.infoRequested.keySet()) {
-              if(bot.infoRequested.get(playername)==false) {
-                  m_botAction.sendUnfilteredPrivateMessage(playername, "*info");
-                  bot.infoRequested.put(playername, true);
-                  bot.debug("info of "+playername+" queried");
+          // Loop through all players in arena and check if we have their *info
+          Iterator<Integer> it = m_botAction.getPlayerIDIterator();
+          while(it.hasNext()) {
+              short id = it.next().shortValue();
+              PubStatsPlayer player = arenaStats.getPlayer(id);
+              if(player != null && !player.isExtraInfoFilled()) {
+                  m_botAction.sendUnfilteredPrivateMessage(id, "*info");
               }
           }
       }
