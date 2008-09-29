@@ -24,7 +24,6 @@ import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.events.BallPosition;
 import twcore.core.events.FlagClaimed;
-import twcore.core.events.FlagPosition;
 import twcore.core.events.FlagReward;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.Message;
@@ -1043,12 +1042,11 @@ public class MatchRound
     };
     
     public void command_rules(String name, String parameters[]) {
-        String[] rules = {
-                "TWSD rules / how to play:",
-                "-------------------------",
-                "Capture the flag to get more points on each kill. The team with the most points win."
-        };
-        m_botAction.privateMessageSpam(name, rules);
+        String rules_output = m_rules.getString("rules_command");
+        
+        if(rules_output != null && rules_output.length() > 0) {
+            m_botAction.privateMessageSpam(name, rules_output.split("##"));
+        }
     }
 
     public void handleLagReport(LagReport report)
