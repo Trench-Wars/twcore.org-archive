@@ -39,8 +39,10 @@ public class pubbotstats extends PubBotModule {
       Iterator<Player> it = m_botAction.getPlayerIterator();
       while(it.hasNext()) {
           Player p = it.next();
-          arenaStats.addPlayer(p);
-          m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(),"*info");
+          if(!m_botAction.getOperatorList().isBotExact(p.getPlayerName())) {
+              arenaStats.addPlayer(p);
+              m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(),"*info");
+          }
       }
       
       SendStatsTask sendstats = new SendStatsTask();
@@ -96,6 +98,9 @@ public class pubbotstats extends PubBotModule {
   }
   
   public void handleEvent( PlayerEntered event ) {
+      if(m_botAction.getOperatorList().isBotExact(event.getPlayerName()))
+          return;
+      
       // A new player entered
       // (this event is also fired after bot enters the arena)
 	  PubStatsPlayer player = arenaStats.getPlayer(event.getPlayerID());
@@ -116,7 +121,8 @@ public class pubbotstats extends PubBotModule {
   }
   
   public void handleEvent( PlayerLeft event ) {
-      arenaStats.getPlayer(event.getPlayerID()).seen();
+      if(arenaStats.getPlayer(event.getPlayerID()) != null)
+          arenaStats.getPlayer(event.getPlayerID()).seen();
   }
   
   public void handleEvent( PlayerDeath event ) {
@@ -160,7 +166,8 @@ public class pubbotstats extends PubBotModule {
   }
   
   public void handleEvent( FrequencyShipChange event) {
-      arenaStats.getPlayer(event.getPlayerID()).shipchange(event.getShipType());
+      if(arenaStats.getPlayer(event.getPlayerID()) != null)
+          arenaStats.getPlayer(event.getPlayerID()).shipchange(event.getShipType());
   }
   
   // Examples
@@ -237,7 +244,7 @@ public class pubbotstats extends PubBotModule {
 	          while(it.hasNext()) {
 	              short id = it.next().shortValue();
 	              PubStatsPlayer player = arenaStats.getPlayer(id);
-	              if(!player.isExtraInfoFilled()) {
+	              if(player != null && !player.isExtraInfoFilled()) {
 	                  m_botAction.sendTeamMessage("Player '"+player.getName()+"' not extrainfo filled.");
 	              }
 	          }
@@ -261,9 +268,16 @@ public class pubbotstats extends PubBotModule {
       String usage = getInfo(buffer[6], "Total:");
       String dateCreated = getInfo(buffer[6], "Created:");
       
-      PubStatsPlayer player = arenaStats.getPlayer2(name);
+      PubStatsPlayer player = arenaStats.getPlayer(name);
+      
+      // The long name is longer then the registered name from %tickname
+      // try searching for the name where each registered name can be the start of this name 
+      if(player == null) {
+          player = arenaStats.getPlayerOnPartialName2(name);
+      }
       
       if(player != null) {
+          player.setName(name);
           player.setIP(IP);
           player.setMachineID(machineID);
           player.setTimezone(timezone);
@@ -287,17 +301,11 @@ public class pubbotstats extends PubBotModule {
 		  return null;
 	  beginIndex = beginIndex + infoName.length();
 	  
-	  // Custom beginIndex for "Total:" (Usage)
-	  /*if(infoName.startsWith("Total:")) {
-	      // TIME: Session:    0:39:00  Total:    0:39:00  Created: 1-4-2008 09:01:41
-	      // TIME: Session:   20:28:00  Total:36510:02:00  Created: 10-26-2002 10:23:34
-	      while(beginIndex < message.length() && message.charAt(beginIndex) == ' ') {
-	          beginIndex++;
-	      }
-	  }
-	  Removed because moving the beginIndex doesn't work for high usage numbers (see 2nd example above)
-	  Furthermore, the trim() removes any left spaces (below).
-	  */
+	  // TIME: Session:    0:39:00  Total:    0:39:00  Created: 1-4-2008 09:01:41
+      // TIME: Session:   20:28:00  Total:36510:02:00  Created: 10-26-2002 10:23:34
+	  while(beginIndex < message.length() && message.charAt(beginIndex) == ' ') {
+          beginIndex++;
+      }
 	  
 	  endIndex = message.indexOf("  ", beginIndex);
 	  if(endIndex == -1)
@@ -326,7 +334,6 @@ public class pubbotstats extends PubBotModule {
   private class RequestInfo extends TimerTask {
       
       public void run() {
-          
           // Loop through all players in arena and check if we have their *info
           Iterator<Integer> it = m_botAction.getPlayerIDIterator();
           while(it.hasNext()) {
