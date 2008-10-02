@@ -230,11 +230,13 @@ public class pubbotstats extends PubBotModule {
 	  // COMMANDS
 	  if(message != null && event.getMessageType() == Message.PRIVATE_MESSAGE) {
 	      
+	      // debug command, force save
 	      if(message.startsWith("!forcesave")) {
 	          m_botAction.sendPrivateMessage(event.getPlayerID(), "done");
 	          m_botAction.ipcTransmit(IPCCHANNEL, arenaStats);   
 	      }
 	      
+	      // debug command, check statistics map
 	      if(message.startsWith("!check")) {
 	          
 	          m_botAction.sendTeamMessage("stats size: "+arenaStats.size());
@@ -246,7 +248,6 @@ public class pubbotstats extends PubBotModule {
 	              PubStatsPlayer player = arenaStats.getPlayer(id);
 	              if(player != null && !player.isExtraInfoFilled()) {
 	                  m_botAction.sendTeamMessage("Player '"+player.getName()+"' not extrainfo filled.");
-	                  m_botAction.sendTeamMessage("IP: "+player.getIP()+", MID: "+player.getMachineID()+", usage: "+player.getUsage()+", date:"+player.getDateCreated());
 	              }
 	          }
 	      }
