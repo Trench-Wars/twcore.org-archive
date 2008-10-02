@@ -246,6 +246,7 @@ public class pubbotstats extends PubBotModule {
 	              PubStatsPlayer player = arenaStats.getPlayer(id);
 	              if(player != null && !player.isExtraInfoFilled()) {
 	                  m_botAction.sendTeamMessage("Player '"+player.getName()+"' not extrainfo filled.");
+	                  m_botAction.sendTeamMessage("IP: "+player.getIP()+", MID: "+player.getMachineID()+", usage: "+player.getUsage()+", date:"+player.getDateCreated());
 	              }
 	          }
 	      }
