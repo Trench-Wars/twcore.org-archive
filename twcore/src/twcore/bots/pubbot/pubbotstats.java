@@ -48,7 +48,7 @@ public class pubbotstats extends PubBotModule {
       SendStatsTask sendstats = new SendStatsTask();
       m_botAction.scheduleTaskAtFixedRate(sendstats, SEND_STATS_TIME, SEND_STATS_TIME);
       RequestInfo requestInfo = new RequestInfo();
-      m_botAction.scheduleTaskAtFixedRate(requestInfo, Tools.TimeInMillis.MINUTE*5, Tools.TimeInMillis.MINUTE);
+      m_botAction.scheduleTaskAtFixedRate(requestInfo, Tools.TimeInMillis.MINUTE, Tools.TimeInMillis.SECOND*10);
   }
 
   public void requestEvents(EventRequester eventRequester) {
@@ -336,12 +336,16 @@ public class pubbotstats extends PubBotModule {
       
       public void run() {
           // Loop through all players in arena and check if we have their *info
+          // if one player is found without extra info, request it and then quit
+          // This task is repeated in a short time so a time delay is between each *info
+          // We have to do it this way because doing multiple *info's at once will result in that one *info request falls away
           Iterator<Integer> it = m_botAction.getPlayerIDIterator();
           while(it.hasNext()) {
               short id = it.next().shortValue();
               PubStatsPlayer player = arenaStats.getPlayer(id);
               if(player != null && !player.isExtraInfoFilled()) {
                   m_botAction.sendUnfilteredPrivateMessage(id, "*info");
+                  break;
               }
           }
       }

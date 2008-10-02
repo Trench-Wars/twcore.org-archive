@@ -129,6 +129,10 @@ public class pubhubstats extends PubBotModule {
 	            PubStatsPlayer player = playerIterator.next();
 	            if(stop) break;
 	            
+	            // If the player hasn't got the required fields filled, skip the player
+	            // Note: the player might have gone offline before the required fields could be filled, thus the player will never be saved
+	            if(!player.isExtraInfoFilled()) continue;
+	            
 	            // Get the playerid from the database if it's unknown
 	            if(player.getDatabaseID() == -1) {
 	                player.setDatabaseID(this.getPlayerID(player.getName()));
