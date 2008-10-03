@@ -29,7 +29,7 @@ public class pubbotstats extends PubBotModule {
     protected final String IPCCHANNEL = "pubstats";
     private final int SEND_STATS_TIME = Tools.TimeInMillis.MINUTE*15; // 15 minutes
     
-    private boolean debug = false;
+    private boolean debug = true;
 
   public void initializeModule() {
       arenaStats = new PubStatsArena(m_botAction.getArenaName());
@@ -41,14 +41,13 @@ public class pubbotstats extends PubBotModule {
           Player p = it.next();
           if(!m_botAction.getOperatorList().isBotExact(p.getPlayerName())) {
               arenaStats.addPlayer(p);
-              m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(),"*info");
           }
       }
       
       SendStatsTask sendstats = new SendStatsTask();
       m_botAction.scheduleTaskAtFixedRate(sendstats, SEND_STATS_TIME, SEND_STATS_TIME);
       RequestInfo requestInfo = new RequestInfo();
-      m_botAction.scheduleTaskAtFixedRate(requestInfo, Tools.TimeInMillis.MINUTE, Tools.TimeInMillis.SECOND*10);
+      m_botAction.scheduleTaskAtFixedRate(requestInfo, Tools.TimeInMillis.MINUTE, Tools.TimeInMillis.SECOND*5);
   }
 
   public void requestEvents(EventRequester eventRequester) {
@@ -239,17 +238,25 @@ public class pubbotstats extends PubBotModule {
 	      // debug command, check statistics map
 	      if(message.startsWith("!check")) {
 	          
-	          m_botAction.sendTeamMessage("stats size: "+arenaStats.size());
+	          int good = 0;
+	          String names = "";
 	          
 	          Iterator<Integer> it = m_botAction.getPlayerIDIterator();
 	          
 	          while(it.hasNext()) {
 	              short id = it.next().shortValue();
 	              PubStatsPlayer player = arenaStats.getPlayer(id);
-	              if(player != null && !player.isExtraInfoFilled()) {
-	                  m_botAction.sendTeamMessage("Player '"+player.getName()+"' not extrainfo filled.");
+	              if(player != null && player.isExtraInfoFilled()) {
+	                  good++;
+	              } else if(!player.isExtraInfoFilled()) {
+	                  names += player.getName() +", ";
 	              }
 	          }
+	       
+	          debug("Stats: "+ good +" / "+ (m_botAction.getArenaSize()-1) + " (" + arenaStats.size() + ")");
+	          
+	          if(names.length() > 0)
+	              debug(names);
 	      }
 	  }
   }
@@ -285,6 +292,8 @@ public class pubbotstats extends PubBotModule {
           player.setTimezone(timezone);
           player.setUsage(usage);
           player.setDateCreated(dateCreated);
+          
+          debug("Received info of player '"+name+"'");
       }
   }
   
@@ -316,10 +325,9 @@ public class pubbotstats extends PubBotModule {
   }
   
   
-  @SuppressWarnings("unused")
   private void debug(String message) {
       if(debug)
-          m_botAction.sendChatMessage(message);
+          m_botAction.sendChatMessage(2,message);
   }
   
   
