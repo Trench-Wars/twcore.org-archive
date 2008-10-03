@@ -2,7 +2,6 @@ package twcore.bots.pubbot;
 
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Timer;
 import java.util.TimerTask;
 
 import twcore.bots.PubBotModule;
@@ -67,7 +66,9 @@ public class pubbotstats extends PubBotModule {
   
   public void handleEvent( ScoreUpdate event ) {
       // Update the score of the player
-      PubStatsPlayer player = arenaStats.getPlayer(event.getPlayerID());
+      Player p = m_botAction.getPlayer(event.getPlayerID());
+      
+      PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
       if(player != null) {
           
           // Update the score of the ship the player is in
@@ -89,7 +90,9 @@ public class pubbotstats extends PubBotModule {
   
   public void handleEvent( ScoreReset event ) {
       // Score reset the player
-      PubStatsPlayer player = arenaStats.getPlayer(event.getPlayerID());
+      Player p = m_botAction.getPlayer(event.getPlayerID());
+      
+      PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
       if(player != null) {
           player.scorereset();
           player.updated();
@@ -102,11 +105,10 @@ public class pubbotstats extends PubBotModule {
       
       // A new player entered
       // (this event is also fired after bot enters the arena)
-	  PubStatsPlayer player = arenaStats.getPlayer(event.getPlayerID());
+	  PubStatsPlayer player = arenaStats.getPlayer(event.getPlayerName());
 	  
 	  if(player == null) {
 		  arenaStats.addPlayer(
-		          event.getPlayerID(), 
 		          event.getPlayerName(),
 		          event.getSquadName(),
 		          event.getFlagPoints(),
@@ -120,15 +122,17 @@ public class pubbotstats extends PubBotModule {
   }
   
   public void handleEvent( PlayerLeft event ) {
-      if(arenaStats.getPlayer(event.getPlayerID()) != null)
-          arenaStats.getPlayer(event.getPlayerID()).seen();
+      Player p = m_botAction.getPlayer(event.getPlayerID());
+      
+      if(arenaStats.getPlayer(p.getPlayerName()) != null)
+          arenaStats.getPlayer(p.getPlayerName()).seen();
   }
   
   public void handleEvent( PlayerDeath event ) {
       Player killee = m_botAction.getPlayer(event.getKilleeID());
       Player killer = m_botAction.getPlayer(event.getKillerID());
-      PubStatsPlayer killeeStats = arenaStats.getPlayer(event.getKilleeID());
-      PubStatsPlayer killerStats = arenaStats.getPlayer(event.getKillerID());
+      PubStatsPlayer killeeStats = arenaStats.getPlayer(killee.getPlayerName());
+      PubStatsPlayer killerStats = arenaStats.getPlayer(killer.getPlayerName());
       
       if(killee != null) {
           // Update ship stats
@@ -165,8 +169,10 @@ public class pubbotstats extends PubBotModule {
   }
   
   public void handleEvent( FrequencyShipChange event) {
-      if(arenaStats.getPlayer(event.getPlayerID()) != null)
-          arenaStats.getPlayer(event.getPlayerID()).shipchange(event.getShipType());
+      Player p = m_botAction.getPlayer(event.getPlayerID());
+      
+      if(arenaStats.getPlayer(p.getPlayerName()) != null)
+          arenaStats.getPlayer(p.getPlayerName()).shipchange(event.getShipType());
   }
   
   // Examples
@@ -241,11 +247,11 @@ public class pubbotstats extends PubBotModule {
 	          int good = 0;
 	          String names = "";
 	          
-	          Iterator<Integer> it = m_botAction.getPlayerIDIterator();
+	          Iterator<Player> it = m_botAction.getPlayerIterator();
 	          
 	          while(it.hasNext()) {
-	              short id = it.next().shortValue();
-	              PubStatsPlayer player = arenaStats.getPlayer(id);
+	              Player p = it.next();
+	              PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
 	              if(player != null && player.isExtraInfoFilled()) {
 	                  good++;
 	              } else if(player != null && !player.isExtraInfoFilled()) {
@@ -348,12 +354,14 @@ public class pubbotstats extends PubBotModule {
           // if one player is found without extra info, request it and then quit
           // This task is repeated in a short time so a time delay is between each *info
           // We have to do it this way because doing multiple *info's at once will result in that one *info request falls away
-          Iterator<Integer> it = m_botAction.getPlayerIDIterator();
+          Iterator<Player> it = m_botAction.getPlayerIterator();
+          
           while(it.hasNext()) {
-              short id = it.next().shortValue();
-              PubStatsPlayer player = arenaStats.getPlayer(id);
+              Player p = it.next();
+              PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
+              
               if(player != null && !player.isExtraInfoFilled()) {
-                  m_botAction.sendUnfilteredPrivateMessage(id, "*info");
+                  m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*info");
                   debug("Requesting info of '"+player.getName()+"'");
                   break;
               }
