@@ -248,7 +248,7 @@ public class pubbotstats extends PubBotModule {
 	              PubStatsPlayer player = arenaStats.getPlayer(id);
 	              if(player != null && player.isExtraInfoFilled()) {
 	                  good++;
-	              } else if(!player.isExtraInfoFilled()) {
+	              } else if(player != null && !player.isExtraInfoFilled()) {
 	                  names += player.getName() +", ";
 	              }
 	          }
