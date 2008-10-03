@@ -2,6 +2,7 @@ package twcore.bots.pubbot;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Timer;
 import java.util.TimerTask;
 
 import twcore.bots.PubBotModule;
@@ -43,7 +44,6 @@ public class pubbotstats extends PubBotModule {
               arenaStats.addPlayer(p);
           }
       }
-      
       SendStatsTask sendstats = new SendStatsTask();
       m_botAction.scheduleTaskAtFixedRate(sendstats, SEND_STATS_TIME, SEND_STATS_TIME);
       RequestInfo requestInfo = new RequestInfo();
@@ -354,6 +354,7 @@ public class pubbotstats extends PubBotModule {
               PubStatsPlayer player = arenaStats.getPlayer(id);
               if(player != null && !player.isExtraInfoFilled()) {
                   m_botAction.sendUnfilteredPrivateMessage(id, "*info");
+                  debug("Requesting info of '"+player.getName()+"'");
                   break;
               }
           }
