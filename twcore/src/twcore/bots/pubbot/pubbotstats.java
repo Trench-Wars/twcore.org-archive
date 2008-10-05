@@ -163,11 +163,17 @@ public class pubbotstats extends PubBotModule {
                   killer.getWins()-killerStats.getWins(), 
                   killer.getLosses()-killerStats.getLosses());
           
+          if(killer.getFrequency() == killee.getFrequency()) {  // killer made a teamkill
+              killerStats.addTeamkill(killerStats.getShip());
+          }
+          
           // Update overall stats
           killerStats.setWins(killer.getWins());
           killerStats.setLosses(killer.getLosses());
           killerStats.setKillPoints(killer.getKillPoints());
           killerStats.setFlagPoints(killer.getFlagPoints());
+          
+          
       }
       
   }
