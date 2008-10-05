@@ -29,7 +29,7 @@ public class pubbotstats extends PubBotModule {
     protected final String IPCCHANNEL = "pubstats";
     private final int SEND_STATS_TIME = Tools.TimeInMillis.MINUTE*15; // 15 minutes
     
-    private boolean debug = true;
+    private boolean debug = false;
 
   public void initializeModule() {
       arenaStats = new PubStatsArena(m_botAction.getArenaName());
