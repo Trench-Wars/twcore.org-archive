@@ -119,6 +119,10 @@ public class pubbotstats extends PubBotModule {
 	  } else {
 	      player.seen();
 	  }
+	  
+	  // Request *einfo
+	  m_botAction.sendUnfilteredPrivateMessage(event.getPlayerID(), "*einfo");
+	  // Request *info doesn't need to be done because alias module already does this
   }
   
   public void handleEvent( PlayerLeft event ) {
@@ -175,9 +179,9 @@ public class pubbotstats extends PubBotModule {
           arenaStats.getPlayer(p.getPlayerName()).shipchange(event.getShipType());
   }
   
-  // Examples
-  
   /*
+  Examples
+  
   PubBot9> *info
   IP:24.22.176.33  TimeZoneBias:420  Freq:9999  TypedName:eN.yoU.Tee.Zee.  Demo:0  MachineId:1828021299
   Ping:130ms  LowPing:130ms  HighPing:160ms  AvePing:130ms
@@ -188,8 +192,6 @@ public class pubbotstats extends PubBotModule {
   TIME: Session:    0:57:00  Total: 2160:31:00  Created: 5-16-2006 06:44:09
   Bytes/Sec:241  LowBandwidth:0  MessageLogging:0  ConnectType:UnknownNotRAS
 
-
-
   IP:72.232.237.74  TimeZoneBias:480  Freq:9999  TypedName:Mr. Arrogant 2  Demo:0  MachineId:1693149144
   Ping:0ms  LowPing:0ms  HighPing:0ms  AvePing:0ms
   LOSS: S2C:0.1%  C2S:0.1%  S2CWeapons:0.0%  S2C_RelOut:32(245)
@@ -197,7 +199,12 @@ public class pubbotstats extends PubBotModule {
   C2S CURRENT: Slow:0 Fast:117 0.0%   TOTAL: Slow:0 Fast:501 0.0%
   S2C CURRENT: Slow:0 Fast:0 0.0%   TOTAL: Slow:0 Fast:0 0.0%
   TIME: Session:   20:28:00  Total:36510:02:00  Created: 10-26-2002 10:23:34
-  Bytes/Sec:1615  LowBandwidth:0  MessageLogging:0  ConnectType:UnknownNotRAS*/
+  Bytes/Sec:1615  LowBandwidth:0  MessageLogging:0  ConnectType:UnknownNotRAS
+  
+  Maverick: UserId: 1  Res: 1024x768  Client: Continuum 0.40  Proxy: Using proxy at localhost  Idle: 0 s  Timer drift: 0 
+  Mervbot1: UserId: 29  Res: 1280x1024  Client: VIE 1.34  Proxy: Undetermined  Idle: 3120 s  Timer drift: -5123 
+
+  */
   
   public void handleEvent( Message event ) {
 	  String message = event.getMessage();
@@ -229,6 +236,10 @@ public class pubbotstats extends PubBotModule {
 	      if(message.startsWith("Bytes/Sec:") && message.indexOf("ConnectType:") > 0 ) {
 	          infoBuffer[7] = message;
 	          processInfoBuffer(infoBuffer);
+	      } else
+	      if(message.indexOf("UserId:") > 0 && message.indexOf("Timer drift:") > 0) {
+	          // *einfo results
+	          processEInfoResults(message);
 	      }
 	  }
 	  
@@ -303,6 +314,25 @@ public class pubbotstats extends PubBotModule {
       }
   }
   
+  private void processEInfoResults(String message) {
+      //Maverick: UserId: 1  Res: 1024x768  Client: Continuum 0.40  Proxy: Using proxy at localhost  Idle: 0 s  Timer drift: 0 
+      //Mervbot1: UserId: 29  Res: 1280x1024  Client: VIE 1.34  Proxy: Undetermined  Idle: 3120 s  Timer drift: -5123
+      String name = message.substring(0, message.indexOf(':'));
+      String userid = getInfo(message, "UserId:");
+      String resolution = getInfo(message, "Res:");
+      String client = getInfo(message, "Client:");
+      
+      PubStatsPlayer player = arenaStats.getPlayer(name);
+      
+      if(player != null && userid != null && userid.length() > 0) {
+          player.setUserID(Integer.parseInt(userid));
+          player.setResolution(resolution);
+          player.setClient(client);
+          
+          debug("Received einfo of player '"+name+"'");
+      }
+  }
+  
   /**
    * Gets the info parameters from the *info response
    * 
@@ -362,6 +392,7 @@ public class pubbotstats extends PubBotModule {
               
               if(player != null && !player.isExtraInfoFilled()) {
                   m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*info");
+                  m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*einfo");
                   debug("Requesting info of '"+player.getName()+"'");
                   break;
               }
