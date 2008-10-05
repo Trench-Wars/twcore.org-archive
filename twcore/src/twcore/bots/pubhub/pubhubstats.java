@@ -21,7 +21,7 @@ public class pubhubstats extends PubBotModule {
 	private String uniqueConnectionID = "pubstats";
 
 	// PreparedStatements
-	private PreparedStatement psUpdatePlayer, psReplaceScore, psUpdateScore, psUpdateAddScore, psScoreExists;
+	private PreparedStatement psUpdatePlayer, psReplaceScore, psUpdateScore, psUpdateAddScore, psScoreExists, psScoreReset;
 
 	// boolean to immediately stop execution
 	private boolean stop = false;
@@ -38,12 +38,14 @@ public class pubhubstats extends PubBotModule {
 	    psUpdateScore = m_botAction.createPreparedStatement(database, uniqueConnectionID, "UPDATE tblScore SET fnFlagPoints = ?, fnKillPoints = ?, fnWins = ?, fnLosses = ?, fnRate = ?, fnAverage = ?, ftLastUpdate = ? WHERE fnPlayerId = ? AND fnShip = ?"); 
 	    psUpdateAddScore = m_botAction.createPreparedStatement(database, uniqueConnectionID, "UPDATE tblScore SET fnFlagPoints = fnFlagPoints + ?, fnKillPoints = fnKillPoints + ?, fnWins = fnWins + ?, fnLosses = fnLosses + ?, fnRate = ?, fnAverage = ?, ftLastUpdate = ? WHERE fnPlayerId = ? AND fnShip = ?");
 	    
+	    psScoreReset = m_botAction.createPreparedStatement(database, uniqueConnectionID, "DELETE FROM tblScore WHERE fnPlayerId = ?");
+	    
         //psGetPlayerID =  m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnID FROM tblPlayer WHERE fcName = ? LIMIT 0,1");
 	    //psGetScoreCalc = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnKillPoints, fnWins, fnLosses FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
 	    //psUpdateScoreCalc = m_botAction.createPreparedStatement(database, uniqueConnectionID, "UPDATE tblSCORE SET fnRate = ?, fnAverage = ? WHERE fnPlayerId = ? AND fnShip = ?");
 	    
 	    
-	    if(psUpdatePlayer == null || psReplaceScore == null || psUpdateScore == null || psUpdateAddScore == null || psScoreExists == null) {
+	    if(psUpdatePlayer == null || psReplaceScore == null || psUpdateScore == null || psUpdateAddScore == null || psScoreExists == null || psScoreReset == null) {
 	        Tools.printLog("pubhubstats: One or more PreparedStatements are null! Module pubhubstats disabled.");
 	        m_botAction.sendChatMessage(2, "pubhubstats: One or more PreparedStatements are null! Module pubhubstats disabled.");
 	        this.cancel();
@@ -100,6 +102,7 @@ public class pubhubstats extends PubBotModule {
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psUpdateAddScore);
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psUpdateScore);
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psScoreExists);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psScoreReset);
 	}
 
 	/**
@@ -141,6 +144,12 @@ public class pubhubstats extends PubBotModule {
                 psUpdatePlayer.setString(6, player.getUsage());
                 psUpdatePlayer.setTimestamp(7, new Timestamp(player.getLastSeen()));
                 psUpdatePlayer.execute();
+                
+                if(player.isScorereset()) {
+                    psScoreReset.setInt(1, player.getUserID());
+                    psScoreReset.execute();
+                    player.setScorereset(false);
+                }
                 
                 // Update scores
                 // overall scores
@@ -208,8 +217,6 @@ public class pubhubstats extends PubBotModule {
                     
                     player.removeShipScore(ship);   // remove score statistics for this ship as it's already saved
                     
-                    if(player.isScorereset())
-                        player.setScorereset(false);
                 }
 	            
 	            
