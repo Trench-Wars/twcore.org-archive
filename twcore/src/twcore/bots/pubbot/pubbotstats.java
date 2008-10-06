@@ -130,6 +130,8 @@ public class pubbotstats extends PubBotModule {
       
       if(arenaStats.getPlayer(p.getPlayerName()) != null)
           arenaStats.getPlayer(p.getPlayerName()).seen();
+      else
+          arenaStats.addPlayer(p);
   }
   
   public void handleEvent( PlayerDeath event ) {
@@ -139,6 +141,11 @@ public class pubbotstats extends PubBotModule {
       PubStatsPlayer killerStats = arenaStats.getPlayer(killer.getPlayerName());
       
       if(killee != null) {
+          if(killeeStats == null) { // in case player has been removed because of idling too long
+              arenaStats.addPlayer(killee);
+              killeeStats = arenaStats.getPlayer(killee.getPlayerName());
+          }
+          
           // Update ship stats
           killeeStats.updateShipScore(
                   killeeStats.getShip(), 
@@ -155,6 +162,11 @@ public class pubbotstats extends PubBotModule {
       }
       
       if(killer != null) {
+          if(killerStats == null) { // in case player has been removed because of idling too long
+              arenaStats.addPlayer(killer);
+              killerStats = arenaStats.getPlayer(killer.getPlayerName());
+          }
+          
           // Update ship stats
           killerStats.updateShipScore(
                   killerStats.getShip(), 
@@ -183,6 +195,8 @@ public class pubbotstats extends PubBotModule {
       
       if(arenaStats.getPlayer(p.getPlayerName()) != null)
           arenaStats.getPlayer(p.getPlayerName()).shipchange(event.getShipType());
+      else
+          arenaStats.addPlayer(p);
   }
   
   /*
