@@ -137,10 +137,10 @@ public class pubbotstats extends PubBotModule {
   public void handleEvent( PlayerDeath event ) {
       Player killee = m_botAction.getPlayer(event.getKilleeID());
       Player killer = m_botAction.getPlayer(event.getKillerID());
-      PubStatsPlayer killeeStats = arenaStats.getPlayer(killee.getPlayerName());
-      PubStatsPlayer killerStats = arenaStats.getPlayer(killer.getPlayerName());
       
       if(killee != null) {
+          PubStatsPlayer killeeStats = arenaStats.getPlayer(killee.getPlayerName());
+          
           if(killeeStats == null) { // in case player has been removed because of idling too long
               arenaStats.addPlayer(killee);
               killeeStats = arenaStats.getPlayer(killee.getPlayerName());
@@ -162,6 +162,8 @@ public class pubbotstats extends PubBotModule {
       }
       
       if(killer != null) {
+          PubStatsPlayer killerStats = arenaStats.getPlayer(killer.getPlayerName());
+          
           if(killerStats == null) { // in case player has been removed because of idling too long
               arenaStats.addPlayer(killer);
               killerStats = arenaStats.getPlayer(killer.getPlayerName());
