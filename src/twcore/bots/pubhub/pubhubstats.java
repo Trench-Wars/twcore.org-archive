@@ -31,7 +31,7 @@ public class pubhubstats extends PubBotModule {
 	 * m_botAction has been initialized.
 	 */
 	public void initializeModule() {
-	    psUpdatePlayer = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblPlayer(fnId, fcName, fcSquad, fcIP, fnTimezone, fcUsage, fdLastSeen) VALUES (?,?,?,?,?,?,?)", true);
+	    psUpdatePlayer = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblPlayer(fnId, fcName, fcSquad, fcIP, fnTimezone, fcUsage, fcResolution, fdLastSeen) VALUES (?,?,?,?,?,?,?,?)", true);
 	    
 	    psScoreExists = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
 	    psReplaceScore = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblScore(fnPlayerId, fnShip, fnFlagPoints, fnKillPoints, fnWins, fnLosses, fnRate, fnAverage, ftLastUpdate) VALUES (?,?,?,?,?,?,?,?,?)");
@@ -142,7 +142,8 @@ public class pubhubstats extends PubBotModule {
                 psUpdatePlayer.setString(4, player.getIP());
                 psUpdatePlayer.setInt(   5, player.getTimezone());
                 psUpdatePlayer.setString(6, player.getUsage());
-                psUpdatePlayer.setTimestamp(7, new Timestamp(player.getLastSeen()));
+                psUpdatePlayer.setString(7, player.getResolution());
+                psUpdatePlayer.setTimestamp(8, new Timestamp(player.getLastSeen()));
                 psUpdatePlayer.execute();
                 
                 if(player.isScorereset()) {
