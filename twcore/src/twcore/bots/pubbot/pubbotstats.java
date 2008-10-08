@@ -100,6 +100,7 @@ public class pubbotstats extends PubBotModule {
   }
   
   public void handleEvent( PlayerEntered event ) {
+      // ignore bots
       if(m_botAction.getOperatorList().isBotExact(event.getPlayerName()))
           return;
       
@@ -127,6 +128,10 @@ public class pubbotstats extends PubBotModule {
   
   public void handleEvent( PlayerLeft event ) {
       Player p = m_botAction.getPlayer(event.getPlayerID());
+      
+      // ignore bots
+      if(m_botAction.getOperatorList().isBotExact(p.getPlayerName()))
+          return;
       
       if(arenaStats.getPlayer(p.getPlayerName()) != null)
           arenaStats.getPlayer(p.getPlayerName()).seen();
@@ -194,6 +199,10 @@ public class pubbotstats extends PubBotModule {
   
   public void handleEvent( FrequencyShipChange event) {
       Player p = m_botAction.getPlayer(event.getPlayerID());
+      
+      // ignore bots
+      if(m_botAction.getOperatorList().isBotExact(p.getPlayerName()))
+          return;
       
       if(arenaStats.getPlayer(p.getPlayerName()) != null)
           arenaStats.getPlayer(p.getPlayerName()).shipchange(event.getShipType());
