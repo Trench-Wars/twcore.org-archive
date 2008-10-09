@@ -1,5 +1,7 @@
 package twcore.bots.pubbot;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.TimerTask;
@@ -339,7 +341,9 @@ public class pubbotstats extends PubBotModule {
           player.setMachineID(machineID);
           player.setTimezone(timezone);
           player.setUsage(usage);
-          player.setDateCreated(dateCreated);
+          try {
+              player.setDateCreated(new SimpleDateFormat("MM-dd-yyyy HH:mm:ss").parse(dateCreated));
+          } catch(ParseException pe) {}
           
           debug("Received info of player '"+name+"'");
       }

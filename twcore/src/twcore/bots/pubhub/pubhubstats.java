@@ -31,7 +31,7 @@ public class pubhubstats extends PubBotModule {
 	 * m_botAction has been initialized.
 	 */
 	public void initializeModule() {
-	    psUpdatePlayer = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblPlayer(fnId, fcName, fcSquad, fcIP, fnTimezone, fcUsage, fcResolution, fdLastSeen) VALUES (?,?,?,?,?,?,?,?)", true);
+	    psUpdatePlayer = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblPlayer(fnId, fcName, fcSquad, fcIP, fnTimezone, fcUsage, fcResolution, fdCreated, fdLastSeen) VALUES (?,?,?,?,?,?,?,?,?)", true);
 	    
 	    psScoreExists = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
 	    psReplaceScore = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblScore(fnPlayerId, fnShip, fnFlagPoints, fnKillPoints, fnWins, fnLosses, fnRate, fnAverage, ftLastUpdate) VALUES (?,?,?,?,?,?,?,?,?)");
@@ -134,16 +134,20 @@ public class pubhubstats extends PubBotModule {
 	            if(!player.isExtraInfoFilled()) continue;
 	            
 	            // Insert/Update Player information to the database
-                // fnId, fcName, fcSquad, fcIP, fnTimezone, fcUsage, fdLastSeen
+                // fnId, fcName, fcSquad, fcIP, fnTimezone, fcUsage, fcResolution, fdCreated, fdLastSeen
 	            psUpdatePlayer.clearParameters();
                 psUpdatePlayer.setInt(1, player.getUserID());
                 psUpdatePlayer.setString(2, player.getName());
-                psUpdatePlayer.setString(3, player.getSquad());
+                if(player.getSquad().trim().length() > 0)
+                    psUpdatePlayer.setString(3, player.getSquad());
+                else   
+                    psUpdatePlayer.setNull(3, java.sql.Types.VARCHAR);
                 psUpdatePlayer.setString(4, player.getIP());
                 psUpdatePlayer.setInt(   5, player.getTimezone());
                 psUpdatePlayer.setString(6, player.getUsage());
                 psUpdatePlayer.setString(7, player.getResolution());
-                psUpdatePlayer.setTimestamp(8, new Timestamp(player.getLastSeen()));
+                psUpdatePlayer.setTimestamp(8, new Timestamp(player.getDateCreated().getTime()));
+                psUpdatePlayer.setTimestamp(9, new Timestamp(player.getLastSeen()));
                 psUpdatePlayer.execute();
                 
                 if(player.isScorereset()) {
@@ -198,7 +202,7 @@ public class pubhubstats extends PubBotModule {
                         psUpdateAddScore.setInt(4, shipScore.getLosses());
                         psUpdateAddScore.setInt(5, this.calculateRating(shipScore.getKillPoints(), shipScore.getWins(), shipScore.getLosses()));
                         psUpdateAddScore.setFloat(6, this.calculateAverage(shipScore.getKillPoints(), shipScore.getWins()));
-                        psUpdateAddScore.setTimestamp(7, new Timestamp(player.getLastUpdate()));
+                        psUpdateAddScore.setDate(7, new java.sql.Date(player.getLastUpdate()));
                         psUpdateAddScore.setInt(8, player.getUserID());
                         psUpdateAddScore.setInt(9, ship);
                         psUpdateAddScore.addBatch();
@@ -212,7 +216,7 @@ public class pubhubstats extends PubBotModule {
                         psReplaceScore.setInt(6, shipScore.getLosses());
                         psReplaceScore.setInt(7, this.calculateRating(shipScore.getKillPoints(), shipScore.getWins(), shipScore.getLosses()));
                         psReplaceScore.setFloat(8, this.calculateAverage(shipScore.getKillPoints(), shipScore.getWins()));
-                        psReplaceScore.setTimestamp(9, new Timestamp(player.getLastUpdate()));
+                        psReplaceScore.setDate(9, new java.sql.Date(player.getLastUpdate()));
                         psReplaceScore.addBatch();
                     }
                     
