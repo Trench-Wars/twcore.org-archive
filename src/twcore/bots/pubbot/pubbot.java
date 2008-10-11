@@ -23,6 +23,7 @@ import twcore.core.events.InterProcessEvent;
 import twcore.core.events.KotHReset;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
+import twcore.core.events.PlayerBanner;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
@@ -438,6 +439,11 @@ public class pubbot extends SubspaceBot
   public void handleEvent(PlayerDeath event)
   {
     moduleHandler.handleEvent(event);
+  }
+  
+  public void handleEvent(PlayerBanner event)
+  {
+      moduleHandler.handleEvent(event);
   }
 
   public void handleEvent(Prize event)

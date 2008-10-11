@@ -11,6 +11,7 @@ import twcore.core.EventRequester;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.Message;
+import twcore.core.events.PlayerBanner;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
@@ -57,6 +58,7 @@ public class pubbotstats extends PubBotModule {
 	  eventRequester.request(EventRequester.PLAYER_DEATH);
 	  eventRequester.request(EventRequester.SCORE_UPDATE);
 	  eventRequester.request(EventRequester.SCORE_RESET);
+	  eventRequester.request(EventRequester.PLAYER_BANNER);
 	  eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
 	  eventRequester.request(EventRequester.ARENA_JOINED);
 	  eventRequester.request(EventRequester.MESSAGE);
@@ -98,6 +100,16 @@ public class pubbotstats extends PubBotModule {
       if(player != null) {
           player.scorereset();
           player.updated();
+      }
+  }
+  
+  public void handleEvent( PlayerBanner event ) {
+      Player p = m_botAction.getPlayer(event.getPlayerID());
+      
+      PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
+      if(player != null) {
+          player.setBanner(getBannerString(event.getBanner()));
+          player.setBannerReceived(true);
       }
   }
   
@@ -393,6 +405,20 @@ public class pubbotstats extends PubBotModule {
 	  if(endIndex == -1)
 		  endIndex = message.length();
 	  return message.substring(beginIndex, endIndex).trim();
+  }
+  
+  
+  private String getBannerString( byte[] banner ) {
+
+      String b = "";
+      for( int i = 0; i < 96; i++ ) {
+          if( (banner[i] & 0xf0) == 0 ){
+              b += 0 + Integer.toHexString( banner[i] & 0xFF );
+          } else {
+              b += Integer.toHexString( banner[i] & 0xFF );
+          }
+      }
+      return b;
   }
   
   
