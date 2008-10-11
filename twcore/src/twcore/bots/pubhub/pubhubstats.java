@@ -21,7 +21,7 @@ public class pubhubstats extends PubBotModule {
 	private String uniqueConnectionID = "pubstats";
 
 	// PreparedStatements
-	private PreparedStatement psUpdatePlayer, psReplaceScore, psUpdateScore, psUpdateAddScore, psScoreExists, psScoreReset;
+	private PreparedStatement psUpdatePlayer, psReplaceScore, psUpdateScore, psUpdateAddScore, psScoreExists, psScoreReset, psGetBanner;
 
 	// boolean to immediately stop execution
 	private boolean stop = false;
@@ -31,7 +31,7 @@ public class pubhubstats extends PubBotModule {
 	 * m_botAction has been initialized.
 	 */
 	public void initializeModule() {
-	    psUpdatePlayer = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblPlayer(fnId, fcName, fcSquad, fcIP, fnTimezone, fcUsage, fcResolution, fdCreated, fdLastSeen) VALUES (?,?,?,?,?,?,?,?,?)", true);
+	    psUpdatePlayer = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblPlayer(fnId, fcName, fcSquad, fcBanner, fcIP, fnTimezone, fcUsage, fcResolution, fdCreated, fdLastSeen) VALUES (?,?,?,?,?,?,?,?,?,?)", true);
 	    
 	    psScoreExists = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
 	    psReplaceScore = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblScore(fnPlayerId, fnShip, fnFlagPoints, fnKillPoints, fnWins, fnLosses, fnRate, fnAverage, ftLastUpdate) VALUES (?,?,?,?,?,?,?,?,?)");
@@ -39,13 +39,14 @@ public class pubhubstats extends PubBotModule {
 	    psUpdateAddScore = m_botAction.createPreparedStatement(database, uniqueConnectionID, "UPDATE tblScore SET fnFlagPoints = fnFlagPoints + ?, fnKillPoints = fnKillPoints + ?, fnWins = fnWins + ?, fnLosses = fnLosses + ?, fnRate = ?, fnAverage = ?, ftLastUpdate = ? WHERE fnPlayerId = ? AND fnShip = ?");
 	    
 	    psScoreReset = m_botAction.createPreparedStatement(database, uniqueConnectionID, "DELETE FROM tblScore WHERE fnPlayerId = ?");
+	    psGetBanner = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fcBanner FROM tblPlayer WHERE fnId = ?");
 	    
         //psGetPlayerID =  m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnID FROM tblPlayer WHERE fcName = ? LIMIT 0,1");
 	    //psGetScoreCalc = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnKillPoints, fnWins, fnLosses FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
 	    //psUpdateScoreCalc = m_botAction.createPreparedStatement(database, uniqueConnectionID, "UPDATE tblSCORE SET fnRate = ?, fnAverage = ? WHERE fnPlayerId = ? AND fnShip = ?");
 	    
 	    
-	    if(psUpdatePlayer == null || psReplaceScore == null || psUpdateScore == null || psUpdateAddScore == null || psScoreExists == null || psScoreReset == null) {
+	    if(psUpdatePlayer == null || psReplaceScore == null || psUpdateScore == null || psUpdateAddScore == null || psScoreExists == null || psScoreReset == null || psGetBanner == null) {
 	        Tools.printLog("pubhubstats: One or more PreparedStatements are null! Module pubhubstats disabled.");
 	        m_botAction.sendChatMessage(2, "pubhubstats: One or more PreparedStatements are null! Module pubhubstats disabled.");
 	        this.cancel();
@@ -103,6 +104,7 @@ public class pubhubstats extends PubBotModule {
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psUpdateScore);
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psScoreExists);
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psScoreReset);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psGetBanner);
 	}
 
 	/**
@@ -133,8 +135,14 @@ public class pubhubstats extends PubBotModule {
 	            // Note: the player might have gone offline before the required fields could be filled, thus the player will never be saved
 	            if(!player.isExtraInfoFilled()) continue;
 	            
+	            if(!player.isBannerReceived()) {
+                    player.setBanner(getBanner(player.getUserID()));
+	                player.setBannerReceived(true);
+	            }
+	            
 	            // Insert/Update Player information to the database
-                // fnId, fcName, fcSquad, fcIP, fnTimezone, fcUsage, fcResolution, fdCreated, fdLastSeen
+	            // fnId, fcName, fcSquad, fcBanner, fcIP, fnTimezone, fcUsage, fcResolution, fdCreated, fdLastSeen
+	            // 1     2       3        4         5     6           7        8             9          10
 	            psUpdatePlayer.clearParameters();
                 psUpdatePlayer.setInt(1, player.getUserID());
                 psUpdatePlayer.setString(2, player.getName());
@@ -142,12 +150,16 @@ public class pubhubstats extends PubBotModule {
                     psUpdatePlayer.setString(3, player.getSquad());
                 else   
                     psUpdatePlayer.setNull(3, java.sql.Types.VARCHAR);
-                psUpdatePlayer.setString(4, player.getIP());
-                psUpdatePlayer.setInt(   5, player.getTimezone());
-                psUpdatePlayer.setString(6, player.getUsage());
-                psUpdatePlayer.setString(7, player.getResolution());
-                psUpdatePlayer.setTimestamp(8, new Timestamp(player.getDateCreated().getTime()));
-                psUpdatePlayer.setTimestamp(9, new Timestamp(player.getLastSeen()));
+                if(player.getBanner() != null)
+                    psUpdatePlayer.setString(4, player.getBanner());
+                else
+                    psUpdatePlayer.setNull(4, java.sql.Types.VARCHAR);
+                psUpdatePlayer.setString(5, player.getIP());
+                psUpdatePlayer.setInt(   6, player.getTimezone());
+                psUpdatePlayer.setString(7, player.getUsage());
+                psUpdatePlayer.setString(8, player.getResolution());
+                psUpdatePlayer.setTimestamp(9, new Timestamp(player.getDateCreated().getTime()));
+                psUpdatePlayer.setTimestamp(10, new Timestamp(player.getLastSeen()));
                 psUpdatePlayer.execute();
                 
                 if(player.isScorereset()) {
@@ -249,6 +261,24 @@ public class pubhubstats extends PubBotModule {
             Tools.printStackTrace(sqle);
 	    }
 	    return false;
+	}
+	
+	private String getBanner(int playerID) {
+	    String banner = null;
+	    
+	    try {
+	    	    psGetBanner.setInt(1, playerID);
+	    	    ResultSet rs = psGetBanner.executeQuery();
+	    
+	    	    if(rs != null && rs.next()) {
+	    	        banner = rs.getString(1);
+	    	    }
+	    } catch(SQLException sqle) {
+	        Tools.printLog("SQLException occured while getting the banner of playerID '"+playerID+"': "+sqle.getMessage());
+            Tools.printStackTrace(sqle);
+	    }
+	    
+	    return banner;
 	}
 	
 	
