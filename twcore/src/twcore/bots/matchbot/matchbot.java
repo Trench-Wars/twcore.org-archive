@@ -307,9 +307,10 @@ public class matchbot extends SubspaceBot
     public void handleEvent(Message event)
     {
         boolean isStaff, isRestrictedStaff;
+        int messageType = event.getMessageType();
         String message = event.getMessage();
 
-        if ((event.getMessageType() == Message.ARENA_MESSAGE)
+        if ((messageType == Message.ARENA_MESSAGE)
             && (event.getMessage().equals("WARNING: You have been disconnected because server has not been receiving data from you.")))
         {
             if (m_game != null)
@@ -317,9 +318,9 @@ public class matchbot extends SubspaceBot
             m_botAction.die();
         }
 
-        if ((event.getMessageType() == Message.PRIVATE_MESSAGE)
-            || ((event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) && (message.toLowerCase().startsWith("!accept")))
-            || ((event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) && (message.toLowerCase().startsWith("!off")))
+        if ((messageType == Message.PRIVATE_MESSAGE)
+            || ((messageType == Message.REMOTE_PRIVATE_MESSAGE) && (message.toLowerCase().startsWith("!accept")))
+            || ((messageType == Message.REMOTE_PRIVATE_MESSAGE) && (message.toLowerCase().startsWith("!off")))
             )
         {
             String name = m_botAction.getPlayerName(event.getPlayerID());
@@ -370,7 +371,7 @@ public class matchbot extends SubspaceBot
                 parseCommand(name, command, parameters, isStaff, isRestrictedStaff);
             }
         }
-        else if (event.getMessageType() == Message.ARENA_MESSAGE)
+        else if (messageType == Message.ARENA_MESSAGE)
         {
             String msg = event.getMessage();
             if (msg.startsWith("Arena UNLOCKED"))
@@ -378,6 +379,10 @@ public class matchbot extends SubspaceBot
         }
 
         // Send to spy to check for racist comments
+        if(messageType == Message.PUBLIC_MESSAGE        ||
+				messageType == Message.TEAM_MESSAGE          ||
+				messageType == Message.OPPOSING_TEAM_MESSAGE ||
+				messageType == Message.PUBLIC_MACRO_MESSAGE)
         racismSpy.handleEvent( event );
 
         if (m_game != null) {
