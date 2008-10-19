@@ -4,13 +4,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.Map;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
 import twcore.core.events.InterProcessEvent;
+import twcore.core.events.Message;
 import twcore.core.helper.pubstats.PubStatsArena;
 import twcore.core.helper.pubstats.PubStatsPlayer;
 import twcore.core.helper.pubstats.PubStatsScore;
@@ -19,9 +22,13 @@ import twcore.core.util.Tools;
 public class pubhubstats extends PubBotModule {
 	private String database = "pubstats";
 	private String uniqueConnectionID = "pubstats";
+	
+	protected final String IPCCHANNEL = "pubstats";
 
 	// PreparedStatements
 	private PreparedStatement psUpdatePlayer, psReplaceScore, psUpdateScore, psUpdateAddScore, psScoreExists, psScoreReset, psGetBanner;
+	private PreparedStatement psSRGetPeriodID, psSRClosePeriods, psSRNewPeriod, psSRPeriodResult, psSRPurgeScores;
+	private PreparedStatement psSRGetResult_rating, psSRGetResult_wins, psSRGetResult_losses, psSRGetResult_average, psSRGetResult_flagPoints, psSRGetResult_killPoints, psSRGetResult_totalPoints;
 
 	// boolean to immediately stop execution
 	private boolean stop = false;
@@ -41,12 +48,47 @@ public class pubhubstats extends PubBotModule {
 	    psScoreReset = m_botAction.createPreparedStatement(database, uniqueConnectionID, "DELETE FROM tblScore WHERE fnPlayerId = ?");
 	    psGetBanner = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fcBanner FROM tblPlayer WHERE fnId = ?");
 	    
+	    psSRGetPeriodID = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fcPeriodID FROM tblPeriod WHERE fdEnd IS NULL");
+	    psSRClosePeriods = m_botAction.createPreparedStatement(database, uniqueConnectionID, "UPDATE tblPeriod SET fdEnd = NOW() WHERE fdEnd IS NULL");
+	    psSRNewPeriod = m_botAction.createPreparedStatement(database, uniqueConnectionID, "INSERT INTO tblPeriod(fcPeriodID, fdStart) VALUES(?,NOW())");
+	    
+	    psSRGetResult_rating = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId, fnRate FROM tblScore s WHERE s.fnShip = ? ORDER BY fnRate DESC LIMIT 0,1");
+	    psSRGetResult_wins =   m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId, fnWins FROM tblScore s WHERE s.fnShip = ? ORDER BY fnWins DESC LIMIT 0,1");
+	    psSRGetResult_losses = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId, fnLosses FROM tblScore s WHERE s.fnShip = ? ORDER BY fnLosses DESC LIMIT 0,1");
+	    psSRGetResult_average= m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId, fnAverage FROM tblScore s WHERE s.fnShip = ? ORDER BY fnAverage DESC LIMIT 0,1");
+	    psSRGetResult_flagPoints =  m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId, fnFlagPoints FROM tblScore s WHERE s.fnShip = ? ORDER BY fnFlagPoints DESC LIMIT 0,1");
+	    psSRGetResult_killPoints =  m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId, fnKillPoints FROM tblScore s WHERE s.fnShip = ? ORDER BY fnKillPoints DESC LIMIT 0,1");
+	    psSRGetResult_totalPoints = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId, fnTotalPoints FROM tblScore s WHERE s.fnShip = ? ORDER BY fnTotalPoints DESC LIMIT 0,1");
+	    
+	    psSRPeriodResult = m_botAction.createPreparedStatement(database, uniqueConnectionID, "INSERT INTO tblPeriodResults(fcPeriodID, fnShipID, fnPlayerID, fcStatistic, fnStatisticResult) VALUES(?,?,?,?,?)");
+	    
+	    psSRPurgeScores = m_botAction.createPreparedStatement(database, uniqueConnectionID, "TRUNCATE TABLE tblScore");
+	    
         //psGetPlayerID =  m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnID FROM tblPlayer WHERE fcName = ? LIMIT 0,1");
 	    //psGetScoreCalc = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnKillPoints, fnWins, fnLosses FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
 	    //psUpdateScoreCalc = m_botAction.createPreparedStatement(database, uniqueConnectionID, "UPDATE tblSCORE SET fnRate = ?, fnAverage = ? WHERE fnPlayerId = ? AND fnShip = ?");
 	    
 	    
-	    if(psUpdatePlayer == null || psReplaceScore == null || psUpdateScore == null || psUpdateAddScore == null || psScoreExists == null || psScoreReset == null || psGetBanner == null) {
+	    if(     psUpdatePlayer == null || 
+	            psReplaceScore == null || 
+	            psUpdateScore == null || 
+	            psUpdateAddScore == null || 
+	            psScoreExists == null || 
+	            psScoreReset == null || 
+	            psGetBanner == null ||
+	            psSRGetPeriodID == null ||
+	            psSRClosePeriods == null ||
+	            psSRNewPeriod == null ||
+	            psSRGetResult_rating == null ||
+	            psSRGetResult_wins == null ||
+	            psSRGetResult_losses == null ||
+	            psSRGetResult_average == null ||
+	            psSRGetResult_flagPoints == null ||
+	            psSRGetResult_killPoints == null ||
+	            psSRGetResult_totalPoints == null ||
+	            psSRPeriodResult == null ||
+	            psSRPurgeScores == null) {
+	        
 	        Tools.printLog("pubhubstats: One or more PreparedStatements are null! Module pubhubstats disabled.");
 	        m_botAction.sendChatMessage(2, "pubhubstats: One or more PreparedStatements are null! Module pubhubstats disabled.");
 	        this.cancel();
@@ -91,7 +133,28 @@ public class pubhubstats extends PubBotModule {
     		    Tools.printStackTrace(sqle);
     		}
 		}
-  }
+	}
+	
+	/* (non-Javadoc)
+	 * @see twcore.bots.Module#handleEvent(twcore.core.events.Message)
+	 */
+	public void handleEvent(Message event) {
+	    // NOTICE: Public scores reset
+	    // Periodic scorereset triggered
+	    if(event.getMessageType() == Message.ARENA_MESSAGE && "NOTICE: Public scores reset".equals(event.getMessage())) {
+	        try {
+	            stop = true;
+	            
+	            m_botAction.ipcTransmit(IPCCHANNEL, "globalScorereset");
+	            globalScorereset();
+	            
+	            stop = false;
+	        } catch(SQLException sqle) {
+	            Tools.printLog("SQLException occured while ending the score reset period: "+sqle.getMessage());
+	            Tools.printStackTrace(sqle);
+	        }
+	    }
+	}
 
 	/**
 	 * cancel() is called when this module is unloaded
@@ -105,6 +168,19 @@ public class pubhubstats extends PubBotModule {
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psScoreExists);
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psScoreReset);
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psGetBanner);
+	    
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRGetPeriodID);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRClosePeriods);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRNewPeriod);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRGetResult_rating);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRGetResult_wins);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRGetResult_losses);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRGetResult_average);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRGetResult_flagPoints);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRGetResult_killPoints);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRGetResult_totalPoints);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRPeriodResult);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRPurgeScores);
 	}
 
 	/**
@@ -134,6 +210,9 @@ public class pubhubstats extends PubBotModule {
 	            // If the player hasn't got the required fields filled, skip the player
 	            // Note: the player might have gone offline before the required fields could be filled, thus the player will never be saved
 	            if(!player.isExtraInfoFilled()) continue;
+	            // If the player's score got globally scoreresetted, don't save his scores anymore
+	            // until he re-enters
+	            if(player.isPeriodReset()) continue;
 	            
 	            if(!player.isBannerReceived()) {
                     player.setBanner(getBanner(player.getUserID()));
@@ -245,6 +324,10 @@ public class pubhubstats extends PubBotModule {
 	    psUpdateScore.executeBatch();
 	    psUpdateAddScore.executeBatch();
 	    
+	    psReplaceScore.clearBatch();
+	    psUpdateScore.clearBatch();
+	    psUpdateAddScore.clearBatch();
+	    
 	}
 	
 	private boolean scoreExists(int playerID, short ship) {
@@ -291,5 +374,184 @@ public class pubhubstats extends PubBotModule {
 	        return killPoints / wins;
 	    else 
 	        return 0;
+	}
+	
+	private void globalScorereset() throws SQLException {
+	    // 0. Get current fcPeriodID
+	    // 1. Write results of this period to tblPeriodResults
+	    // 2. Purge tblScore
+	    // 3. Close current period         --> tblPeriod 
+	    // 4. Start a new period           --> tblPeriod
+	    
+	    String thisPeriodID = "";
+	            // yyyy-mm
+	    String nextPeriodID = "";
+	    
+	    // 0. Get current fcPeriodID
+	    // psSRGetPeriodID
+	    ResultSet rs = psSRGetPeriodID.executeQuery();
+	    if(rs != null && rs.next()) {
+	        thisPeriodID = rs.getString(1);
+	    } else {
+	        // Fatal error: unable to retrieve the period id
+	        String msg = "ERROR: Unable to retrieve the current periodID while ending the current scorereset period! Human intervention required!!";
+	        Tools.printLog(msg);
+	        m_botAction.sendChatMessage(msg);
+	        return;
+	    }
+	    
+	    // Create new period id
+	    int year = new GregorianCalendar().get(Calendar.YEAR);
+	    if(thisPeriodID.startsWith(String.valueOf(year))) {
+	        // thisPeriodID starts with current year
+	        String[] pieces = thisPeriodID.split("-");
+	        int nextNumber = Integer.parseInt(pieces[1])+1;
+	        
+	        nextPeriodID = pieces[0] + "-" + (nextNumber < 10 ? "0" : "") + nextNumber;
+	    } else {
+	        nextPeriodID = String.valueOf(year) + "-01";
+	    }
+	    
+	    // 1. Write results of this period to tblPeriodResults
+	    // psSRGetResult_ -> 1-playerID, 2-amount
+	    // psSRPeriodResult -> 1-fcPeriodID, 2-fnShipID, 3-fnPlayerID, 4-fcStatistic, 5-fnStatisticResult
+	    for(int ship = 0 ; ship < 9 ; ship++) {
+	        int player, amount;
+	        String type;
+	        
+	        // Highest Rating
+	        psSRGetResult_rating.setInt(1, ship);
+	        ResultSet rsRating = psSRGetResult_rating.executeQuery();
+	        if(rsRating != null && rsRating.next()) {
+	            player = rsRating.getInt(1);
+	            amount = rsRating.getInt(2);
+	            type = "RATE";
+	            
+	            // Save results of this period to tblPeriodResults
+                psSRPeriodResult.setString(1, thisPeriodID);
+                psSRPeriodResult.setInt(2, ship);
+                psSRPeriodResult.setInt(3, player);
+                psSRPeriodResult.setString(4, type);
+                psSRPeriodResult.setInt(5, amount);
+                psSRPeriodResult.addBatch();
+	        }
+	        
+	        // Most Wins
+	        psSRGetResult_wins.setInt(1, ship);
+	        ResultSet rsWins = psSRGetResult_wins.executeQuery();
+	        if(rsWins != null && rsWins.next()) {
+	            player = rsWins.getInt(1);
+	            amount = rsWins.getInt(2);
+	            type = "WINS";
+	            
+	            // Save results of this period to tblPeriodResults
+                psSRPeriodResult.setString(1, thisPeriodID);
+                psSRPeriodResult.setInt(2, ship);
+                psSRPeriodResult.setInt(3, player);
+                psSRPeriodResult.setString(4, type);
+                psSRPeriodResult.setInt(5, amount);
+                psSRPeriodResult.addBatch();
+	        }
+	        
+	        // Most Losses
+	        psSRGetResult_losses.setInt(1, ship);
+	        ResultSet rsLosses = psSRGetResult_losses.executeQuery();
+	        if(rsLosses != null && rsLosses.next()) {
+	            player = rsLosses.getInt(1);
+	            amount = rsLosses.getInt(2);
+	            type = "LOSSES";
+	            
+	            // Save results of this period to tblPeriodResults
+                psSRPeriodResult.setString(1, thisPeriodID);
+                psSRPeriodResult.setInt(2, ship);
+                psSRPeriodResult.setInt(3, player);
+                psSRPeriodResult.setString(4, type);
+                psSRPeriodResult.setInt(5, amount);
+                psSRPeriodResult.addBatch();
+	        }
+	        
+	        // Highest Average
+	        psSRGetResult_average.setInt(1, ship);
+	        ResultSet rsAverage = psSRGetResult_average.executeQuery();
+	        if(rsAverage != null && rsAverage.next()) {
+	            player = rsAverage.getInt(1);
+	            amount = rsAverage.getInt(2);
+	            type = "AVERAGE";
+	            
+	            // Save results of this period to tblPeriodResults
+                psSRPeriodResult.setString(1, thisPeriodID);
+                psSRPeriodResult.setInt(2, ship);
+                psSRPeriodResult.setInt(3, player);
+                psSRPeriodResult.setString(4, type);
+                psSRPeriodResult.setInt(5, amount);
+                psSRPeriodResult.addBatch();
+	        }
+	        
+	        // Most FlagPoints
+	        psSRGetResult_flagPoints.setInt(1, ship);
+            ResultSet rsFlagPoints = psSRGetResult_flagPoints.executeQuery();
+            if(rsFlagPoints != null && rsFlagPoints.next()) {
+                player = rsFlagPoints.getInt(1);
+                amount = rsFlagPoints.getInt(2);
+                type = "FLAGPOINTS";
+                
+                // Save results of this period to tblPeriodResults
+                psSRPeriodResult.setString(1, thisPeriodID);
+                psSRPeriodResult.setInt(2, ship);
+                psSRPeriodResult.setInt(3, player);
+                psSRPeriodResult.setString(4, type);
+                psSRPeriodResult.setInt(5, amount);
+                psSRPeriodResult.addBatch();
+            }
+	        
+	        // Most KillPoints
+            psSRGetResult_killPoints.setInt(1, ship);
+            ResultSet rsKillPoints = psSRGetResult_killPoints.executeQuery();
+            if(rsKillPoints != null && rsKillPoints.next()) {
+                player = rsKillPoints.getInt(1);
+                amount = rsKillPoints.getInt(2);
+                type = "KILLPOINTS";
+                
+                // Save results of this period to tblPeriodResults
+                psSRPeriodResult.setString(1, thisPeriodID);
+                psSRPeriodResult.setInt(2, ship);
+                psSRPeriodResult.setInt(3, player);
+                psSRPeriodResult.setString(4, type);
+                psSRPeriodResult.setInt(5, amount);
+                psSRPeriodResult.addBatch();
+            }
+	        
+	        // Most TotalPoints
+            psSRGetResult_totalPoints.setInt(1, ship);
+            ResultSet rsTotalPoints = psSRGetResult_totalPoints.executeQuery();
+            if(rsTotalPoints != null && rsTotalPoints.next()) {
+                player = rsTotalPoints.getInt(1);
+                amount = rsTotalPoints.getInt(2);
+                type = "TOTALPOINTS";
+                
+                // Save results of this period to tblPeriodResults
+                psSRPeriodResult.setString(1, thisPeriodID);
+                psSRPeriodResult.setInt(2, ship);
+                psSRPeriodResult.setInt(3, player);
+                psSRPeriodResult.setString(4, type);
+                psSRPeriodResult.setInt(5, amount);
+                psSRPeriodResult.addBatch();
+            }
+            
+	    }
+	    
+	    psSRPeriodResult.executeBatch();
+	    psSRPeriodResult.clearBatch();
+	    
+        
+	    // 2. Purge tblScore
+	    psSRPurgeScores.execute();
+	    
+	    // 3. Close current period
+	    psSRClosePeriods.execute();
+	    
+	    // 4. Start a new period
+	    psSRNewPeriod.setString(1, nextPeriodID);
+	    psSRNewPeriod.execute();
 	}
 }

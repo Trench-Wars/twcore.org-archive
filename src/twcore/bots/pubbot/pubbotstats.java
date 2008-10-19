@@ -10,6 +10,7 @@ import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerBanner;
 import twcore.core.events.PlayerDeath;
@@ -89,6 +90,7 @@ public class pubbotstats extends PubBotModule {
           player.setWins(event.getWins());
           player.setLosses(event.getLosses());
           player.updated();
+          player.seen();
       }
   }
   
@@ -100,6 +102,7 @@ public class pubbotstats extends PubBotModule {
       if(player != null) {
           player.scorereset();
           player.updated();
+          player.seen();
       }
   }
   
@@ -110,6 +113,7 @@ public class pubbotstats extends PubBotModule {
       if(player != null) {
           player.setBanner(getBannerString(event.getBanner()));
           player.setBannerReceived(true);
+          player.seen();
       }
   }
   
@@ -132,6 +136,19 @@ public class pubbotstats extends PubBotModule {
 		          event.getWins(),
 		          event.getShipType());
 	  } else {
+	      // is player's score globally scoreresetted and he re-entered?
+	      if(player.isPeriodReset() && event.getKillPoints() == 0 && 
+	                                   event.getFlagPoints() == 0 &&
+	                                   event.getWins() == 0 &&
+	                                   event.getLosses() == 0) {
+	          player.removeShipScores();
+	          player.setKillPoints(event.getKillPoints());
+	          player.setFlagPoints(event.getFlagPoints());
+	          player.setWins(event.getWins());
+	          player.setLosses(event.getLosses());
+	          player.setShip(event.getShipType());
+	          player.setPeriodReset(false);
+	      }
 	      player.seen();
 	  }
 	  
@@ -164,6 +181,7 @@ public class pubbotstats extends PubBotModule {
               arenaStats.addPlayer(killee);
               killeeStats = arenaStats.getPlayer(killee.getPlayerName());
           }
+          killeeStats.seen();
           
           // Update ship stats
           killeeStats.updateShipScore(
@@ -187,6 +205,7 @@ public class pubbotstats extends PubBotModule {
               arenaStats.addPlayer(killer);
               killerStats = arenaStats.getPlayer(killer.getPlayerName());
           }
+          killerStats.seen();
           
           // Update ship stats
           killerStats.updateShipScore(
@@ -218,10 +237,13 @@ public class pubbotstats extends PubBotModule {
       if(m_botAction.getOperatorList().isBotExact(p.getPlayerName()))
           return;
       
-      if(arenaStats.getPlayer(p.getPlayerName()) != null)
-          arenaStats.getPlayer(p.getPlayerName()).shipchange(event.getShipType());
-      else
+      PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
+      if(player != null) {
+          player.shipchange(event.getShipType());
+          player.seen();
+      } else {
           arenaStats.addPlayer(p);
+      }
   }
   
   /*
@@ -322,7 +344,23 @@ public class pubbotstats extends PubBotModule {
 	      }
 	  }
   }
+  
+  /* (non-Javadoc)
+  * @see twcore.bots.Module#handleEvent(twcore.core.events.InterProcessEvent)
+  */
+  @Override
+  public void handleEvent(InterProcessEvent event) {
 
+      // Have we received the "globalScorereset" notification from pubhub?
+      if(   event.getChannel().equals(IPCCHANNEL) && 
+            event.getSenderName() != null && 
+            event.getSenderName().equalsIgnoreCase("pubhub") &&
+            event.getObject() instanceof String &&
+            ((String)event.getObject()).equals("globalScorereset")) {
+          arenaStats.globalScorereset();
+      }
+  }
+  
   @Override
   public void cancel() {
 	  //m_botAction.ipcTransmit(IPCCHANNEL, stats);
