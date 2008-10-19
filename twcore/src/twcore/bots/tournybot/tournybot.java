@@ -2531,11 +2531,11 @@ public class tournybot extends SubspaceBot {
 		String dName;
 		String player;
 		String killer;
-		HashMap delayers;
+		HashMap<String, duelDelay> delayers;
 		long timeStamp;
 		boolean silent;
 
-		public duelDelay( String tName, String name, String name2, HashMap d, boolean s, long time ) {
+		public duelDelay( String tName, String name, String name2, HashMap<String, duelDelay> d, boolean s, long time ) {
 			dName = tName;
 			player = name;
 			killer = name2;
@@ -2585,9 +2585,9 @@ public class tournybot extends SubspaceBot {
 
 	class Lagger extends TimerTask {
 		String player;
-		HashMap laggers;
+		HashMap<String, Lagger> laggers;
 
-		public Lagger( String name, HashMap l ) {
+		public Lagger( String name, HashMap<String, Lagger> l ) {
 			player = name;
 			laggers = l;
 		}
