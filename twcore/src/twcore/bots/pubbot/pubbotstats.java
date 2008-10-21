@@ -22,6 +22,7 @@ import twcore.core.game.Player;
 import twcore.core.helper.pubstats.PubStatsArena;
 import twcore.core.helper.pubstats.PubStatsPlayer;
 import twcore.core.util.Tools;
+import twcore.core.util.ipc.IPCMessage;
 
 public class pubbotstats extends PubBotModule {
   
@@ -51,6 +52,8 @@ public class pubbotstats extends PubBotModule {
       m_botAction.scheduleTaskAtFixedRate(sendstats, SEND_STATS_TIME, SEND_STATS_TIME);
       RequestInfo requestInfo = new RequestInfo();
       m_botAction.scheduleTaskAtFixedRate(requestInfo, Tools.TimeInMillis.MINUTE, Tools.TimeInMillis.SECOND*5);
+      
+      m_botAction.ipcSubscribe(IPCCHANNEL);
   }
 
   public void requestEvents(EventRequester eventRequester) {
@@ -355,8 +358,8 @@ public class pubbotstats extends PubBotModule {
       if(   event.getChannel().equals(IPCCHANNEL) && 
             event.getSenderName() != null && 
             event.getSenderName().equalsIgnoreCase("pubhub") &&
-            event.getObject() instanceof String &&
-            ((String)event.getObject()).equals("globalScorereset")) {
+            event.getObject() instanceof IPCMessage &&
+            ((IPCMessage)event.getObject()).getMessage().equals("globalScorereset")) {
           arenaStats.globalScorereset();
       }
   }

@@ -18,6 +18,7 @@ import twcore.core.helper.pubstats.PubStatsArena;
 import twcore.core.helper.pubstats.PubStatsPlayer;
 import twcore.core.helper.pubstats.PubStatsScore;
 import twcore.core.util.Tools;
+import twcore.core.util.ipc.IPCMessage;
 
 public class pubhubstats extends PubBotModule {
 	private String database = "pubstats";
@@ -58,7 +59,7 @@ public class pubhubstats extends PubBotModule {
 	    psSRGetResult_average= m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId, fnAverage FROM tblScore s WHERE s.fnShip = ? ORDER BY fnAverage DESC LIMIT 0,1");
 	    psSRGetResult_flagPoints =  m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId, fnFlagPoints FROM tblScore s WHERE s.fnShip = ? ORDER BY fnFlagPoints DESC LIMIT 0,1");
 	    psSRGetResult_killPoints =  m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId, fnKillPoints FROM tblScore s WHERE s.fnShip = ? ORDER BY fnKillPoints DESC LIMIT 0,1");
-	    psSRGetResult_totalPoints = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId, fnTotalPoints FROM tblScore s WHERE s.fnShip = ? ORDER BY fnTotalPoints DESC LIMIT 0,1");
+	    psSRGetResult_totalPoints = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId, (fnFlagPoints + fnKillPoints) AS fnTotalPoints FROM tblScore s WHERE s.fnShip = ? ORDER BY fnTotalPoints DESC LIMIT 0,1");
 	    
 	    psSRPeriodResult = m_botAction.createPreparedStatement(database, uniqueConnectionID, "INSERT INTO tblPeriodResults(fcPeriodID, fnShipID, fnPlayerID, fcStatistic, fnStatisticResult) VALUES(?,?,?,?,?)");
 	    
@@ -145,7 +146,7 @@ public class pubhubstats extends PubBotModule {
 	        try {
 	            stop = true;
 	            
-	            m_botAction.ipcTransmit(IPCCHANNEL, "globalScorereset");
+	            m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("globalScorereset"));
 	            globalScorereset();
 	            
 	            stop = false;
