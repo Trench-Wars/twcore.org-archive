@@ -25,20 +25,20 @@ import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
 public class pubbotstats extends PubBotModule {
-  
+
     private PubStatsArena arenaStats;
-    
-    
+
+
     private String[] infoBuffer = new String[8];
-    
+
     protected final String IPCCHANNEL = "pubstats";
     private final int SEND_STATS_TIME = Tools.TimeInMillis.MINUTE*15; // 15 minutes
-    
+
     private boolean debug = false;
 
   public void initializeModule() {
       arenaStats = new PubStatsArena(m_botAction.getArenaName());
-      
+
       // Add all players from arena
       // (it's needed to do this manually because the module is loaded after the bot has entered the arena)
       Iterator<Player> it = m_botAction.getPlayerIterator();
@@ -52,7 +52,7 @@ public class pubbotstats extends PubBotModule {
       m_botAction.scheduleTaskAtFixedRate(sendstats, SEND_STATS_TIME, SEND_STATS_TIME);
       RequestInfo requestInfo = new RequestInfo();
       m_botAction.scheduleTaskAtFixedRate(requestInfo, Tools.TimeInMillis.MINUTE, Tools.TimeInMillis.SECOND*5);
-      
+
       m_botAction.ipcSubscribe(IPCCHANNEL);
   }
 
@@ -67,26 +67,26 @@ public class pubbotstats extends PubBotModule {
 	  eventRequester.request(EventRequester.ARENA_JOINED);
 	  eventRequester.request(EventRequester.MESSAGE);
   }
-  
+
   public void handleEvent( ArenaJoined event ) {
 	  m_botAction.receiveAllPlayerDeaths();
   }
-  
+
   public void handleEvent( ScoreUpdate event ) {
       // Update the score of the player
       Player p = m_botAction.getPlayer(event.getPlayerID());
-      
+
       PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
       if(player != null) {
-          
+
           // Update the score of the ship the player is in
           player.updateShipScore(
-                  player.getShip(), 
-                  event.getFlagPoints()-player.getFlagPoints(), 
-                  event.getKillPoints()-player.getKillPoints(), 
-                  event.getWins()-player.getWins(), 
-                  event.getLosses()-player.getLosses());    
-          
+                  player.getShip(),
+                  event.getFlagPoints()-player.getFlagPoints(),
+                  event.getKillPoints()-player.getKillPoints(),
+                  event.getWins()-player.getWins(),
+                  event.getLosses()-player.getLosses());
+
           // Update the overall score of the player
           player.setFlagPoints(event.getFlagPoints());
           player.setKillPoints(event.getKillPoints());
@@ -96,22 +96,24 @@ public class pubbotstats extends PubBotModule {
           player.seen();
       }
   }
-  
+
   public void handleEvent( ScoreReset event ) {
       // Score reset the player
       Player p = m_botAction.getPlayer(event.getPlayerID());
-      
-      PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
-      if(player != null) {
-          player.scorereset();
-          player.updated();
-          player.seen();
+
+      if( p != null ) {
+          PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
+          if(player != null) {
+              player.scorereset();
+              player.updated();
+              player.seen();
+          }
       }
   }
-  
+
   public void handleEvent( PlayerBanner event ) {
       Player p = m_botAction.getPlayer(event.getPlayerID());
-      
+
       PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
       if(player != null) {
           player.setBanner(getBannerString(event.getBanner()));
@@ -119,16 +121,16 @@ public class pubbotstats extends PubBotModule {
           player.seen();
       }
   }
-  
+
   public void handleEvent( PlayerEntered event ) {
       // ignore bots
       if(m_botAction.getOperatorList().isBotExact(event.getPlayerName()))
           return;
-      
+
       // A new player entered
       // (this event is also fired after bot enters the arena)
 	  PubStatsPlayer player = arenaStats.getPlayer(event.getPlayerName());
-	  
+
 	  if(player == null) {
 		  arenaStats.addPlayer(
 		          event.getPlayerName(),
@@ -140,7 +142,7 @@ public class pubbotstats extends PubBotModule {
 		          event.getShipType());
 	  } else {
 	      // is player's score globally scoreresetted and he re-entered?
-	      if(player.isPeriodReset() && event.getKillPoints() == 0 && 
+	      if(player.isPeriodReset() && event.getKillPoints() == 0 &&
 	                                   event.getFlagPoints() == 0 &&
 	                                   event.getWins() == 0 &&
 	                                   event.getLosses() == 0) {
@@ -154,92 +156,92 @@ public class pubbotstats extends PubBotModule {
 	      }
 	      player.seen();
 	  }
-	  
+
 	  // Request *einfo
 	  m_botAction.sendUnfilteredPrivateMessage(event.getPlayerID(), "*einfo");
 	  // Request *info doesn't need to be done because alias module already does this
   }
-  
+
   public void handleEvent( PlayerLeft event ) {
       Player p = m_botAction.getPlayer(event.getPlayerID());
-      
+
       // ignore bots
       if(m_botAction.getOperatorList().isBotExact(p.getPlayerName()))
           return;
-      
+
       if(arenaStats.getPlayer(p.getPlayerName()) != null)
           arenaStats.getPlayer(p.getPlayerName()).seen();
       else
           arenaStats.addPlayer(p);
   }
-  
+
   public void handleEvent( PlayerDeath event ) {
       Player killee = m_botAction.getPlayer(event.getKilleeID());
       Player killer = m_botAction.getPlayer(event.getKillerID());
-      
+
       if(killee != null) {
           PubStatsPlayer killeeStats = arenaStats.getPlayer(killee.getPlayerName());
-          
+
           if(killeeStats == null) { // in case player has been removed because of idling too long
               arenaStats.addPlayer(killee);
               killeeStats = arenaStats.getPlayer(killee.getPlayerName());
           }
           killeeStats.seen();
-          
+
           // Update ship stats
           killeeStats.updateShipScore(
-                  killeeStats.getShip(), 
-                  killee.getFlagPoints()-killeeStats.getFlagPoints(), 
-                  killee.getKillPoints()-killeeStats.getKillPoints(), 
-                  killee.getWins()-killeeStats.getWins(), 
+                  killeeStats.getShip(),
+                  killee.getFlagPoints()-killeeStats.getFlagPoints(),
+                  killee.getKillPoints()-killeeStats.getKillPoints(),
+                  killee.getWins()-killeeStats.getWins(),
                   killee.getLosses()-killeeStats.getLosses());
-          
+
           // Update overall stats
           killeeStats.setWins(killee.getWins());
           killeeStats.setLosses(killee.getLosses());
           killeeStats.setKillPoints(killee.getKillPoints());
           killeeStats.setFlagPoints(killee.getFlagPoints());
       }
-      
+
       if(killer != null) {
           PubStatsPlayer killerStats = arenaStats.getPlayer(killer.getPlayerName());
-          
+
           if(killerStats == null) { // in case player has been removed because of idling too long
               arenaStats.addPlayer(killer);
               killerStats = arenaStats.getPlayer(killer.getPlayerName());
           }
           killerStats.seen();
-          
+
           // Update ship stats
           killerStats.updateShipScore(
-                  killerStats.getShip(), 
-                  killer.getFlagPoints()-killerStats.getFlagPoints(), 
-                  killer.getKillPoints()-killerStats.getKillPoints(), 
-                  killer.getWins()-killerStats.getWins(), 
+                  killerStats.getShip(),
+                  killer.getFlagPoints()-killerStats.getFlagPoints(),
+                  killer.getKillPoints()-killerStats.getKillPoints(),
+                  killer.getWins()-killerStats.getWins(),
                   killer.getLosses()-killerStats.getLosses());
-          
+
           if(killer.getFrequency() == killee.getFrequency()) {  // killer made a teamkill
               killerStats.addTeamkill(killerStats.getShip());
           }
-          
+
           // Update overall stats
           killerStats.setWins(killer.getWins());
           killerStats.setLosses(killer.getLosses());
           killerStats.setKillPoints(killer.getKillPoints());
           killerStats.setFlagPoints(killer.getFlagPoints());
-          
-          
+
+
       }
-      
+
   }
-  
+
   public void handleEvent( FrequencyShipChange event) {
       Player p = m_botAction.getPlayer(event.getPlayerID());
-      
+
       // ignore bots
       if(m_botAction.getOperatorList().isBotExact(p.getPlayerName()))
           return;
-      
+
       PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
       if(player != null) {
           player.shipchange(event.getShipType());
@@ -248,10 +250,10 @@ public class pubbotstats extends PubBotModule {
           arenaStats.addPlayer(p);
       }
   }
-  
+
   /*
   Examples
-  
+
   PubBot9> *info
   IP:24.22.176.33  TimeZoneBias:420  Freq:9999  TypedName:eN.yoU.Tee.Zee.  Demo:0  MachineId:1828021299
   Ping:130ms  LowPing:130ms  HighPing:160ms  AvePing:130ms
@@ -270,15 +272,15 @@ public class pubbotstats extends PubBotModule {
   S2C CURRENT: Slow:0 Fast:0 0.0%   TOTAL: Slow:0 Fast:0 0.0%
   TIME: Session:   20:28:00  Total:36510:02:00  Created: 10-26-2002 10:23:34
   Bytes/Sec:1615  LowBandwidth:0  MessageLogging:0  ConnectType:UnknownNotRAS
-  
-  Maverick: UserId: 1  Res: 1024x768  Client: Continuum 0.40  Proxy: Using proxy at localhost  Idle: 0 s  Timer drift: 0 
-  Mervbot1: UserId: 29  Res: 1280x1024  Client: VIE 1.34  Proxy: Undetermined  Idle: 3120 s  Timer drift: -5123 
+
+  Maverick: UserId: 1  Res: 1024x768  Client: Continuum 0.40  Proxy: Using proxy at localhost  Idle: 0 s  Timer drift: 0
+  Mervbot1: UserId: 29  Res: 1280x1024  Client: VIE 1.34  Proxy: Undetermined  Idle: 3120 s  Timer drift: -5123
 
   */
-  
+
   public void handleEvent( Message event ) {
 	  String message = event.getMessage();
-	  
+
 	  if(message != null && event.getMessageType() == Message.ARENA_MESSAGE) {
 	      // Store *info results in infoBuffer
 	      if(message.startsWith("IP:") && message.indexOf("TypedName:") > 0) {
@@ -312,24 +314,24 @@ public class pubbotstats extends PubBotModule {
 	          processEInfoResults(message);
 	      }
 	  }
-	  
+
 	  // COMMANDS
 	  if(message != null && event.getMessageType() == Message.PRIVATE_MESSAGE) {
-	      
+
 	      // debug command, force save
 	      if(message.startsWith("!forcesave")) {
 	          m_botAction.sendPrivateMessage(event.getPlayerID(), "done");
-	          m_botAction.ipcTransmit(IPCCHANNEL, arenaStats);   
+	          m_botAction.ipcTransmit(IPCCHANNEL, arenaStats);
 	      }
-	      
+
 	      // debug command, check statistics map
 	      if(message.startsWith("!check")) {
-	          
+
 	          int good = 0;
 	          String names = "";
-	          
+
 	          Iterator<Player> it = m_botAction.getPlayerIterator();
-	          
+
 	          while(it.hasNext()) {
 	              Player p = it.next();
 	              PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
@@ -339,15 +341,15 @@ public class pubbotstats extends PubBotModule {
 	                  names += player.getName() +", ";
 	              }
 	          }
-	       
+
 	          debug("Stats: "+ good +" / "+ (m_botAction.getArenaSize()-1) + " (" + arenaStats.size() + ")");
-	          
+
 	          if(names.length() > 0)
 	              debug(names);
 	      }
 	  }
   }
-  
+
   /* (non-Javadoc)
   * @see twcore.bots.Module#handleEvent(twcore.core.events.InterProcessEvent)
   */
@@ -355,23 +357,23 @@ public class pubbotstats extends PubBotModule {
   public void handleEvent(InterProcessEvent event) {
 
       // Have we received the "globalScorereset" notification from pubhub?
-      if(   event.getChannel().equals(IPCCHANNEL) && 
-            event.getSenderName() != null && 
+      if(   event.getChannel().equals(IPCCHANNEL) &&
+            event.getSenderName() != null &&
             event.getSenderName().equalsIgnoreCase("pubhub") &&
             event.getObject() instanceof IPCMessage &&
             ((IPCMessage)event.getObject()).getMessage().equals("globalScorereset")) {
           arenaStats.globalScorereset();
       }
   }
-  
+
   @Override
   public void cancel() {
 	  //m_botAction.ipcTransmit(IPCCHANNEL, stats);
 	  m_botAction.cancelTasks();
   }
-  
+
   /**** Private Helper methods ****/
-  
+
   private void processInfoBuffer(String[] buffer) {
       String name = getInfo(buffer[0], "TypedName:");
       String IP = getInfo(buffer[0], "IP:");
@@ -379,15 +381,15 @@ public class pubbotstats extends PubBotModule {
       String timezone = getInfo(buffer[0], "TimeZoneBias:");
       String usage = getInfo(buffer[6], "Total:");
       String dateCreated = getInfo(buffer[6], "Created:");
-      
+
       PubStatsPlayer player = arenaStats.getPlayer(name);
-      
+
       // The long name is longer then the registered name from %tickname
-      // try searching for the name where each registered name can be the start of this name 
+      // try searching for the name where each registered name can be the start of this name
       if(player == null) {
           player = arenaStats.getPlayerOnPartialName2(name);
       }
-      
+
       if(player != null) {
           player.setName(name);
           player.setIP(IP);
@@ -397,33 +399,33 @@ public class pubbotstats extends PubBotModule {
           try {
               player.setDateCreated(new SimpleDateFormat("MM-dd-yyyy HH:mm:ss").parse(dateCreated));
           } catch(ParseException pe) {}
-          
+
           debug("Received info of player '"+name+"'");
       }
   }
-  
+
   private void processEInfoResults(String message) {
-      //Maverick: UserId: 1  Res: 1024x768  Client: Continuum 0.40  Proxy: Using proxy at localhost  Idle: 0 s  Timer drift: 0 
+      //Maverick: UserId: 1  Res: 1024x768  Client: Continuum 0.40  Proxy: Using proxy at localhost  Idle: 0 s  Timer drift: 0
       //Mervbot1: UserId: 29  Res: 1280x1024  Client: VIE 1.34  Proxy: Undetermined  Idle: 3120 s  Timer drift: -5123
       String name = message.substring(0, message.indexOf(':'));
       String userid = getInfo(message, "UserId:");
       String resolution = getInfo(message, "Res:");
       String client = getInfo(message, "Client:");
-      
+
       PubStatsPlayer player = arenaStats.getPlayer(name);
-      
+
       if(player != null && userid != null && userid.length() > 0) {
           player.setUserID(Integer.parseInt(userid));
           player.setResolution(resolution);
           player.setClient(client);
-          
+
           debug("Received einfo of player '"+name+"'");
       }
   }
-  
+
   /**
    * Gets the info parameters from the *info response
-   * 
+   *
    * @param message
    * @param infoName
    * @return
@@ -435,20 +437,20 @@ public class pubbotstats extends PubBotModule {
 	  if(beginIndex == -1)
 		  return null;
 	  beginIndex = beginIndex + infoName.length();
-	  
+
 	  // TIME: Session:    0:39:00  Total:    0:39:00  Created: 1-4-2008 09:01:41
       // TIME: Session:   20:28:00  Total:36510:02:00  Created: 10-26-2002 10:23:34
 	  while(beginIndex < message.length() && message.charAt(beginIndex) == ' ') {
           beginIndex++;
       }
-	  
+
 	  endIndex = message.indexOf("  ", beginIndex);
 	  if(endIndex == -1)
 		  endIndex = message.length();
 	  return message.substring(beginIndex, endIndex).trim();
   }
-  
-  
+
+
   private String getBannerString( byte[] banner ) {
 
       String b = "";
@@ -461,37 +463,37 @@ public class pubbotstats extends PubBotModule {
       }
       return b;
   }
-  
-  
+
+
   private void debug(String message) {
       if(debug)
           m_botAction.sendChatMessage(2,message);
   }
-  
-  
-  
-  
+
+
+
+
   /*********************** TimerTask classes ****************************/
-  
+
   private class SendStatsTask extends TimerTask {
 	public void run() {
 		m_botAction.ipcTransmit(IPCCHANNEL, arenaStats);
 	}
   }
-  
+
   private class RequestInfo extends TimerTask {
-      
+
       public void run() {
           // Loop through all players in arena and check if we have their *info
           // if one player is found without extra info, request it and then quit
           // This task is repeated in a short time so a time delay is between each *info
           // We have to do it this way because doing multiple *info's at once will result in that one *info request falls away
           Iterator<Player> it = m_botAction.getPlayerIterator();
-          
+
           while(it.hasNext()) {
               Player p = it.next();
               PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
-              
+
               if(player != null && !player.isExtraInfoFilled()) {
                   m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*info");
                   m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*einfo");
