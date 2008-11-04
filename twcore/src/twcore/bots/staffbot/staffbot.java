@@ -39,9 +39,9 @@ import twcore.core.events.WeaponFired;
 import twcore.core.util.Tools;
 
 public class staffbot extends SubspaceBot {
-	
+
 	private ModuleHandler moduleHandler;
-	
+
     OperatorList        m_opList;
     BotAction           m_botAction;
     BotSettings         m_botSettings;
@@ -49,9 +49,9 @@ public class staffbot extends SubspaceBot {
     /* Initialization code */
     public staffbot( BotAction botAction ) {
         super( botAction );
-        
+
         moduleHandler = new ModuleHandler(botAction, botAction.getGeneralSettings().getString("Core Location") + "/twcore/bots/staffbot", "staffbot");
-        
+
         m_botAction = botAction;
         m_botSettings = m_botAction.getBotSettings();
 
@@ -59,7 +59,7 @@ public class staffbot extends SubspaceBot {
         EventRequester req = botAction.getEventRequester();
         req.requestAll();
     }
-    
+
     @Override
     public void handleDisconnect() {
     	moduleHandler.unloadAllModules();
@@ -69,14 +69,14 @@ public class staffbot extends SubspaceBot {
 	public void handleEvent(LoggedOn event) {
 		// join arena
 		m_botAction.joinArena(m_botSettings.getString("InitialArena"));
-		
+
 		// join chats
 		// 1 = staff chat
 		// 2 = smod chat
 		String staffchat = m_botAction.getGeneralSettings().getString("Staff Chat");
 		String smodchat = m_botAction.getGeneralSettings().getString("Smod Chat");
 		m_botAction.sendUnfilteredPublicMessage("?chat="+staffchat+","+smodchat);
-		
+
 		// load modules
 		moduleHandler.loadModule("_serverwarningecho");
 		moduleHandler.loadModule("_warnings");
@@ -85,7 +85,7 @@ public class staffbot extends SubspaceBot {
 
 	@Override
 	public void handleEvent(Message event) {
-		if( ( event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) && 
+		if( ( event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) &&
 				event.getMessage().startsWith("!")
 			 ) {
 			// Commands
@@ -93,25 +93,26 @@ public class staffbot extends SubspaceBot {
 			short sender = event.getPlayerID();
 			String senderName = event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ? event.getMessager() :  m_botAction.getPlayerName(sender);
 			int operatorLevel = m_botAction.getOperatorList().getAccessLevel(senderName);;
-			
+
 			// Ignore player's commands
 			if(operatorLevel == OperatorList.PLAYER_LEVEL) {
 				return;
 			}
-			
+
 			// !help
 			if(message.startsWith("!help")) {
 				String[] help = {
 						" Op: "+senderName+" ("+Tools.staffName(operatorLevel)+")",
-						"-----------------------[ Staff Bot ]-----------------------"
+						"-----------------------[ Staff Bot ]-----------------------",
+                        " !isStaff <name>           - Checks if <name> is a member of staff"
 				};
-				
+
 				String[] smodHelp = {
 						" !die                      - Disconnects Staffbot"
 				};
-				
+
 				m_botAction.smartPrivateMessageSpam(senderName, help);
-				
+
 				if(m_botAction.getOperatorList().isSmod(senderName)) {
 					m_botAction.smartPrivateMessageSpam(senderName, smodHelp);
 				}
@@ -121,11 +122,28 @@ public class staffbot extends SubspaceBot {
 				this.handleDisconnect();
 				m_botAction.die();
 			}
+
+            if( message.toLowerCase().startsWith("!isstaff") ) {
+                String[] parse = message.split(" ", 2);
+                if( parse.length == 2 ) {
+                    int accessLevel = m_botAction.getOperatorList().getAccessLevel( parse[1] );
+                    if( accessLevel == 0 ) {
+                        m_botAction.sendSmartPrivateMessage( senderName, "'" + parse[1] + "' is not a member of staff, or the name was not found (use exact case, i.e., 'DoCk>')." );
+                    } else {
+                        if( m_botAction.getOperatorList().isHighmod(senderName) ) {
+                            m_botAction.sendSmartPrivateMessage( senderName, "'" + parse[1] + "' is staff: " + m_botAction.getOperatorList().getAccessLevelName(accessLevel) );
+                        } else {
+                            m_botAction.sendSmartPrivateMessage( senderName, "'" + parse[1] + "' is a member of staff." );
+                        }
+
+                    }
+                }
+            }
 		}
-		
+
 		moduleHandler.handleEvent(event);
 	}
-	
+
 	@Override
 	public void handleEvent(SubspaceEvent event) {
 		moduleHandler.handleEvent(event);
@@ -265,5 +283,5 @@ public class staffbot extends SubspaceBot {
 	public void handleEvent(WeaponFired event) {
 		moduleHandler.handleEvent(event);
 	}
-	
+
 }
