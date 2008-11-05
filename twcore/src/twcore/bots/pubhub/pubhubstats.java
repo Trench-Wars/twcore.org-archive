@@ -30,6 +30,8 @@ public class pubhubstats extends PubBotModule {
 	private PreparedStatement psUpdatePlayer, psReplaceScore, psUpdateScore, psUpdateAddScore, psScoreExists, psScoreReset, psGetBanner;
 	private PreparedStatement psSRGetPeriodID, psSRClosePeriods, psSRNewPeriod, psSRPeriodResult, psSRPurgeScores;
 	private PreparedStatement psSRGetResult_rating, psSRGetResult_wins, psSRGetResult_losses, psSRGetResult_average, psSRGetResult_flagPoints, psSRGetResult_killPoints, psSRGetResult_totalPoints;
+	
+	// SELECT fcName AS name, fnId AS id, SUBSTRING_INDEX( fcUsage, ':', 1 ) AS usageHours, SUBSTRING_INDEX( fcUsage, ':', -2 ) AS usageMinutes, fcUsage AS usageHoursMins FROM tblPlayer ORDER BY ABS( usageHours ) ASC, ABS( usageMinutes) ASC LIMIT 0,100
 
 	// boolean to immediately stop execution
 	private boolean stop = false;
@@ -245,7 +247,6 @@ public class pubhubstats extends PubBotModule {
                 if(player.isScorereset()) {
                     psScoreReset.setInt(1, player.getUserID());
                     psScoreReset.execute();
-                    player.setScorereset(false);
                 }
                 
                 // Update scores
@@ -287,19 +288,28 @@ public class pubhubstats extends PubBotModule {
                         continue;
                     
                     if(scoreExists(player.getUserID(), ship) && !player.isScorereset()) {
-                        // +fnFlagPoints, +fnKillPoints, +fnWins, +fnLosses, fnRate, fnAverage, fnPlayerId, fnShip
+                        // +fnFlagPoints, +fnKillPoints, +fnWins, +fnLosses, fnRate, fnAverage, ftLastUpdate, fnPlayerId, fnShip
+                        
+                        if(shipScore.getFlagPoints() < 0 || shipScore.getKillPoints() < 0 || shipScore.getWins() < 0 || shipScore.getLosses() < 0) {
+                            Tools.printLog("Pubstats: Updating ship scores of player '"+player.getName()+"' on ship "+ship+": One of FlagPoints ("+shipScore.getFlagPoints()+") / KillPoints ("+shipScore.getKillPoints()+") / Wins ("+shipScore.getWins()+") / Losses ("+shipScore.getLosses()+") is negative!");
+                        }
                         psUpdateAddScore.setInt(1, shipScore.getFlagPoints());
                         psUpdateAddScore.setInt(2, shipScore.getKillPoints());
                         psUpdateAddScore.setInt(3, shipScore.getWins());
                         psUpdateAddScore.setInt(4, shipScore.getLosses());
                         psUpdateAddScore.setInt(5, this.calculateRating(shipScore.getKillPoints(), shipScore.getWins(), shipScore.getLosses()));
                         psUpdateAddScore.setFloat(6, this.calculateAverage(shipScore.getKillPoints(), shipScore.getWins()));
-                        psUpdateAddScore.setDate(7, new java.sql.Date(player.getLastUpdate()));
+                        psUpdateAddScore.setTimestamp(7, new Timestamp(player.getLastUpdate()));
                         psUpdateAddScore.setInt(8, player.getUserID());
                         psUpdateAddScore.setInt(9, ship);
                         psUpdateAddScore.addBatch();
                     } else {
                         // fnPlayerID, fnShip, fnFlagPoints, fnKillPoints, fnWins, fnLosses, fnRate, fnAverage, ftLastUpdate
+                        
+                        if(shipScore.getFlagPoints() < 0 || shipScore.getKillPoints() < 0 || shipScore.getWins() < 0 || shipScore.getLosses() < 0) {
+                            Tools.printLog("Pubstats: Replacing ship scores of player '"+player.getName()+"' on ship "+ship+": One of FlagPoints ("+shipScore.getFlagPoints()+") / KillPoints ("+shipScore.getKillPoints()+") / Wins ("+shipScore.getWins()+") / Losses ("+shipScore.getLosses()+") is negative!");
+                        }
+                        
                         psReplaceScore.setInt(1, player.getUserID());
                         psReplaceScore.setInt(2, ship);
                         psReplaceScore.setInt(3, shipScore.getFlagPoints());
@@ -308,7 +318,7 @@ public class pubhubstats extends PubBotModule {
                         psReplaceScore.setInt(6, shipScore.getLosses());
                         psReplaceScore.setInt(7, this.calculateRating(shipScore.getKillPoints(), shipScore.getWins(), shipScore.getLosses()));
                         psReplaceScore.setFloat(8, this.calculateAverage(shipScore.getKillPoints(), shipScore.getWins()));
-                        psReplaceScore.setDate(9, new java.sql.Date(player.getLastUpdate()));
+                        psReplaceScore.setTimestamp(9, new Timestamp(player.getLastUpdate()));
                         psReplaceScore.addBatch();
                     }
                     
@@ -316,7 +326,9 @@ public class pubhubstats extends PubBotModule {
                     
                 }
 	            
-	            
+                if(player.isScorereset())
+                    player.setScorereset(false);
+                
 	            player.setLastSave(System.currentTimeMillis());
 	        }
 	    }
