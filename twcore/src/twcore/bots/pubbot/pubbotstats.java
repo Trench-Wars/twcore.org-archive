@@ -79,13 +79,20 @@ public class pubbotstats extends PubBotModule {
       PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
       if(player != null) {
           
+          // The new scores from the ScoreUpdate packet may be lower then what we have already stored
+          // thus calculating the difference here and if it's < 0, do not update the specific score (update with 0)
+          int diffFlagPoints = event.getFlagPoints()-player.getFlagPoints();
+          int diffKillPoints = event.getKillPoints()-player.getKillPoints();
+          int diffWins = event.getWins()-player.getWins();
+          int diffLosses = event.getLosses()-player.getLosses();
+          
           // Update the score of the ship the player is in
           player.updateShipScore(
                   player.getShip(), 
-                  event.getFlagPoints()-player.getFlagPoints(), 
-                  event.getKillPoints()-player.getKillPoints(), 
-                  event.getWins()-player.getWins(), 
-                  event.getLosses()-player.getLosses());    
+                  (diffFlagPoints < 0 ? 0 : diffFlagPoints), 
+                  (diffKillPoints < 0 ? 0 : diffKillPoints), 
+                  (diffWins < 0 ? 0 : diffWins), 
+                  (diffLosses < 0 ? 0 : diffLosses));    
           
           // Update the overall score of the player
           player.setFlagPoints(event.getFlagPoints());
@@ -190,29 +197,21 @@ public class pubbotstats extends PubBotModule {
           }
           killeeStats.seen();
           
-          if(killee.getFlagPoints() < killeeStats.getFlagPoints()) {
-              Tools.printLog("Pubstats: New flag points of player '"+killee.getPlayerName()+"' is lower then what is stored! old: "+killeeStats.getFlagPoints()+" new: "+killee.getFlagPoints()+".");
-          }
-          if(killee.getKillPoints() < killeeStats.getKillPoints()) {
-              Tools.printLog("Pubstats: New kill points of player '"+killee.getPlayerName()+"' is lower then what is stored! old: "+killeeStats.getKillPoints()+" new: "+killee.getKillPoints()+".");
-          }
-          if(killee.getWins() < killeeStats.getWins()) {
-              Tools.printLog("Pubstats: New wins of player '"+killee.getPlayerName()+"' is lower then what is stored! old: "+killeeStats.getWins()+" new: "+killee.getWins()+".");
-          }
-          if(killee.getLosses() < killeeStats.getLosses()) {
-              Tools.printLog("Pubstats: New losses of player '"+killee.getPlayerName()+"' is lower then what is stored! old: "+killeeStats.getLosses()+" new: "+killee.getLosses()+".");
-          }
+          // The new scores may be lower then what we have already stored (because of an update of the scoreupdate packet)
+          // thus calculating the difference here and if it's < 0, do not update the specific score (update with 0)
+          int diffFlagPoints = killee.getFlagPoints()-killeeStats.getFlagPoints();
+          int diffKillPoints = killee.getKillPoints()-killeeStats.getKillPoints();
+          int diffWins = killee.getWins()-killeeStats.getWins();
+          int diffLosses = killee.getLosses()-killeeStats.getLosses();
           
           // Update ship stats
           // Only store the difference in scores on each kill
           killeeStats.updateShipScore(
                   killeeStats.getShip(), 
-                  killee.getFlagPoints()-killeeStats.getFlagPoints(), 
-                  killee.getKillPoints()-killeeStats.getKillPoints(), 
-                  killee.getWins()-killeeStats.getWins(), 
-                  killee.getLosses()-killeeStats.getLosses());
-          
-          
+                  (diffFlagPoints < 0 ? 0 : diffFlagPoints), 
+                  (diffKillPoints < 0 ? 0 : diffKillPoints), 
+                  (diffWins < 0 ? 0 : diffWins), 
+                  (diffLosses < 0 ? 0 : diffLosses));
           
           // Update overall stats
           killeeStats.setWins(killee.getWins());
@@ -231,27 +230,21 @@ public class pubbotstats extends PubBotModule {
           }
           killerStats.seen();
           
-          if(killer.getFlagPoints() < killerStats.getFlagPoints()) {
-              Tools.printLog("Pubstats: New flag points of player '"+killer.getPlayerName()+"' is lower then what is stored! old: "+killerStats.getFlagPoints()+" new: "+killer.getFlagPoints()+".");
-          }
-          if(killer.getKillPoints() < killerStats.getKillPoints()) {
-              Tools.printLog("Pubstats: New kill points of player '"+killer.getPlayerName()+"' is lower then what is stored! old: "+killerStats.getKillPoints()+" new: "+killer.getKillPoints()+".");
-          }
-          if(killer.getWins() < killerStats.getWins()) {
-              Tools.printLog("Pubstats: New wins of player '"+killer.getPlayerName()+"' is lower then what is stored! old: "+killerStats.getWins()+" new: "+killer.getWins()+".");
-          }
-          if(killer.getLosses() < killerStats.getLosses()) {
-              Tools.printLog("Pubstats: New losses of player '"+killer.getPlayerName()+"' is lower then what is stored! old: "+killerStats.getLosses()+" new: "+killer.getLosses()+".");
-          }
+          // The new scores may be lower then what we have already stored (because of an update of the scoreupdate packet)
+          // thus calculating the difference here and if it's < 0, do not update the specific score (update with 0)
+          int diffFlagPoints = killer.getFlagPoints()-killerStats.getFlagPoints();
+          int diffKillPoints = killer.getKillPoints()-killerStats.getKillPoints();
+          int diffWins = killer.getWins()-killerStats.getWins();
+          int diffLosses = killer.getLosses()-killerStats.getLosses();
           
           // Update ship stats
           // Only store the difference in scores on each kill
           killerStats.updateShipScore(
                   killerStats.getShip(), 
-                  killer.getFlagPoints()-killerStats.getFlagPoints(), 
-                  killer.getKillPoints()-killerStats.getKillPoints(), 
-                  killer.getWins()-killerStats.getWins(), 
-                  killer.getLosses()-killerStats.getLosses());
+                  (diffFlagPoints < 0 ? 0 : diffFlagPoints), 
+                  (diffKillPoints < 0 ? 0 : diffKillPoints), 
+                  (diffWins < 0 ? 0 : diffWins), 
+                  (diffLosses < 0 ? 0 : diffLosses));
           
           if(killer.getFrequency() == killee.getFrequency()) {  // killer made a teamkill
               killerStats.addTeamkill(killerStats.getShip());
