@@ -118,6 +118,7 @@ public class pubbotstats extends PubBotModule {
       if(player != null) {
           player.setBanner(getBannerString(event.getBanner()));
           player.setBannerReceived(true);
+          player.updated();
           player.seen();
       }
   }
@@ -153,6 +154,7 @@ public class pubbotstats extends PubBotModule {
 	          player.setLosses(event.getLosses());
 	          player.setShip(event.getShipType());
 	          player.setPeriodReset(false);
+	          player.updated();
 	      }
 	      player.seen();
 	  }
@@ -190,25 +192,19 @@ public class pubbotstats extends PubBotModule {
           
           // Update ship stats
           // Only store the difference in scores on each kill
-          
-          int diffFlagPoints = killee.getFlagPoints()-killeeStats.getFlagPoints();
-          int diffKillPoints = killee.getKillPoints()-killeeStats.getKillPoints();
-          int diffWins = killee.getWins()-killeeStats.getWins();
-          int diffLosses = killee.getLosses()-killeeStats.getLosses();
-          
-          // If the difference is negative (seldom situation), pass a 0 as difference
           killeeStats.updateShipScore(
                   killeeStats.getShip(), 
-                  (diffFlagPoints < 0 ? 0 : diffFlagPoints), 
-                  (diffKillPoints < 0 ? 0 : diffKillPoints), 
-                  (diffWins < 0 ? 0 : diffWins), 
-                  (diffLosses < 0 ? 0 : diffLosses));
+                  killee.getFlagPoints()-killeeStats.getFlagPoints(), 
+                  killee.getKillPoints()-killeeStats.getKillPoints(), 
+                  killee.getWins()-killeeStats.getWins(), 
+                  killee.getLosses()-killeeStats.getLosses());
           
           // Update overall stats
           killeeStats.setWins(killee.getWins());
           killeeStats.setLosses(killee.getLosses());
           killeeStats.setKillPoints(killee.getKillPoints());
           killeeStats.setFlagPoints(killee.getFlagPoints());
+          killeeStats.updated();
       }
       
       if(killer != null) {
@@ -222,19 +218,12 @@ public class pubbotstats extends PubBotModule {
           
           // Update ship stats
           // Only store the difference in scores on each kill
-          
-          int diffFlagPoints = killer.getFlagPoints()-killerStats.getFlagPoints();
-          int diffKillPoints = killer.getKillPoints()-killerStats.getKillPoints();
-          int diffWins = killer.getWins()-killerStats.getWins();
-          int diffLosses = killer.getLosses()-killerStats.getLosses();
-          
-          // If the difference is negative (seldom situation), pass a 0 as difference 
           killerStats.updateShipScore(
                   killerStats.getShip(), 
-                  (diffFlagPoints < 0 ? 0 : diffFlagPoints), 
-                  (diffKillPoints < 0 ? 0 : diffKillPoints), 
-                  (diffWins < 0 ? 0 : diffWins), 
-                  (diffLosses < 0 ? 0 : diffLosses));
+                  killer.getFlagPoints()-killerStats.getFlagPoints(), 
+                  killer.getKillPoints()-killerStats.getKillPoints(), 
+                  killer.getWins()-killerStats.getWins(), 
+                  killer.getLosses()-killerStats.getLosses());
           
           if(killer.getFrequency() == killee.getFrequency()) {  // killer made a teamkill
               killerStats.addTeamkill(killerStats.getShip());
@@ -245,7 +234,7 @@ public class pubbotstats extends PubBotModule {
           killerStats.setLosses(killer.getLosses());
           killerStats.setKillPoints(killer.getKillPoints());
           killerStats.setFlagPoints(killer.getFlagPoints());
-          
+          killerStats.updated();
           
       }
       
@@ -262,6 +251,7 @@ public class pubbotstats extends PubBotModule {
       if(player != null) {
           player.shipchange(event.getShipType());
           player.seen();
+          player.updated();
       } else {
           arenaStats.addPlayer(p);
       }
