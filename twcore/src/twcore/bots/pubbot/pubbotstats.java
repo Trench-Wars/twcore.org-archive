@@ -190,6 +190,19 @@ public class pubbotstats extends PubBotModule {
           }
           killeeStats.seen();
           
+          if(killee.getFlagPoints() < killeeStats.getFlagPoints()) {
+              Tools.printLog("Pubstats: New flag points of player '"+killee.getPlayerName()+"' is lower then what is stored! old: "+killeeStats.getFlagPoints()+" new: "+killee.getFlagPoints()+".");
+          }
+          if(killee.getKillPoints() < killeeStats.getKillPoints()) {
+              Tools.printLog("Pubstats: New kill points of player '"+killee.getPlayerName()+"' is lower then what is stored! old: "+killeeStats.getKillPoints()+" new: "+killee.getKillPoints()+".");
+          }
+          if(killee.getWins() < killeeStats.getWins()) {
+              Tools.printLog("Pubstats: New wins of player '"+killee.getPlayerName()+"' is lower then what is stored! old: "+killeeStats.getWins()+" new: "+killee.getWins()+".");
+          }
+          if(killee.getLosses() < killeeStats.getLosses()) {
+              Tools.printLog("Pubstats: New losses of player '"+killee.getPlayerName()+"' is lower then what is stored! old: "+killeeStats.getLosses()+" new: "+killee.getLosses()+".");
+          }
+          
           // Update ship stats
           // Only store the difference in scores on each kill
           killeeStats.updateShipScore(
@@ -198,6 +211,8 @@ public class pubbotstats extends PubBotModule {
                   killee.getKillPoints()-killeeStats.getKillPoints(), 
                   killee.getWins()-killeeStats.getWins(), 
                   killee.getLosses()-killeeStats.getLosses());
+          
+          
           
           // Update overall stats
           killeeStats.setWins(killee.getWins());
@@ -215,6 +230,19 @@ public class pubbotstats extends PubBotModule {
               killerStats = arenaStats.getPlayer(killer.getPlayerName());
           }
           killerStats.seen();
+          
+          if(killer.getFlagPoints() < killerStats.getFlagPoints()) {
+              Tools.printLog("Pubstats: New flag points of player '"+killer.getPlayerName()+"' is lower then what is stored! old: "+killerStats.getFlagPoints()+" new: "+killer.getFlagPoints()+".");
+          }
+          if(killer.getKillPoints() < killerStats.getKillPoints()) {
+              Tools.printLog("Pubstats: New kill points of player '"+killer.getPlayerName()+"' is lower then what is stored! old: "+killerStats.getKillPoints()+" new: "+killer.getKillPoints()+".");
+          }
+          if(killer.getWins() < killerStats.getWins()) {
+              Tools.printLog("Pubstats: New wins of player '"+killer.getPlayerName()+"' is lower then what is stored! old: "+killerStats.getWins()+" new: "+killer.getWins()+".");
+          }
+          if(killer.getLosses() < killerStats.getLosses()) {
+              Tools.printLog("Pubstats: New losses of player '"+killer.getPlayerName()+"' is lower then what is stored! old: "+killerStats.getLosses()+" new: "+killer.getLosses()+".");
+          }
           
           // Update ship stats
           // Only store the difference in scores on each kill
