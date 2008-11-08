@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TimerTask;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
@@ -25,14 +26,16 @@ public class pubhubstats extends PubBotModule {
 	private String uniqueConnectionID = "pubstats";
 	
 	protected final String IPCCHANNEL = "pubstats";
-
+	
 	// PreparedStatements
 	private PreparedStatement psUpdatePlayer, psReplaceScore, psUpdateScore, psUpdateAddScore, psScoreExists, psScoreReset, psGetBanner;
 	private PreparedStatement psSRGetPeriodID, psSRClosePeriods, psSRNewPeriod, psSRPeriodResult, psSRPurgeScores;
 	private PreparedStatement psSRGetResult_rating, psSRGetResult_wins, psSRGetResult_losses, psSRGetResult_average, psSRGetResult_flagPoints, psSRGetResult_killPoints, psSRGetResult_totalPoints;
+	private PreparedStatement psLowestUsages, psPlayerReset1, psPlayerReset2;
 	
-	// SELECT fcName AS name, fnId AS id, SUBSTRING_INDEX( fcUsage, ':', 1 ) AS usageHours, SUBSTRING_INDEX( fcUsage, ':', -2 ) AS usageMinutes, fcUsage AS usageHoursMins FROM tblPlayer ORDER BY ABS( usageHours ) ASC, ABS( usageMinutes) ASC LIMIT 0,100
-
+	
+	private FindPlayerTask findPlayer;
+	
 	// boolean to immediately stop execution
 	private boolean stop = false;
 
@@ -49,6 +52,8 @@ public class pubhubstats extends PubBotModule {
 	    psUpdateAddScore = m_botAction.createPreparedStatement(database, uniqueConnectionID, "UPDATE tblScore SET fnFlagPoints = fnFlagPoints + ?, fnKillPoints = fnKillPoints + ?, fnWins = fnWins + ?, fnLosses = fnLosses + ?, fnRate = ?, fnAverage = ?, ftLastUpdate = ? WHERE fnPlayerId = ? AND fnShip = ?");
 	    
 	    psScoreReset = m_botAction.createPreparedStatement(database, uniqueConnectionID, "DELETE FROM tblScore WHERE fnPlayerId = ?");
+	    psPlayerReset1 = m_botAction.createPreparedStatement(database, uniqueConnectionID, "DELETE FROM tblPlayer WHERE fnPlayerId = ?");
+	    psPlayerReset2 = m_botAction.createPreparedStatement(database, uniqueConnectionID, "DELETE FROM tblPeriodResults WHERE fnPlayerID = ?");
 	    psGetBanner = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fcBanner FROM tblPlayer WHERE fnId = ?");
 	    
 	    psSRGetPeriodID = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fcPeriodID FROM tblPeriod WHERE fdEnd IS NULL");
@@ -67,6 +72,8 @@ public class pubhubstats extends PubBotModule {
 	    
 	    psSRPurgeScores = m_botAction.createPreparedStatement(database, uniqueConnectionID, "TRUNCATE TABLE tblScore");
 	    
+	    psLowestUsages = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fcName AS name, fnId AS id, SUBSTRING_INDEX( fcUsage, ':', 1 ) AS usageHours, SUBSTRING_INDEX( fcUsage, ':', -2 ) AS usageMinutes, fcUsage AS usageHoursMins FROM tblPlayer ORDER BY ABS( usageHours ) ASC, ABS( usageMinutes) ASC LIMIT ?,?");
+	    
         //psGetPlayerID =  m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnID FROM tblPlayer WHERE fcName = ? LIMIT 0,1");
 	    //psGetScoreCalc = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnKillPoints, fnWins, fnLosses FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
 	    //psUpdateScoreCalc = m_botAction.createPreparedStatement(database, uniqueConnectionID, "UPDATE tblSCORE SET fnRate = ?, fnAverage = ? WHERE fnPlayerId = ? AND fnShip = ?");
@@ -78,6 +85,8 @@ public class pubhubstats extends PubBotModule {
 	            psUpdateAddScore == null || 
 	            psScoreExists == null || 
 	            psScoreReset == null || 
+	            psPlayerReset1 == null ||
+	            psPlayerReset2 == null ||
 	            psGetBanner == null ||
 	            psSRGetPeriodID == null ||
 	            psSRClosePeriods == null ||
@@ -90,11 +99,15 @@ public class pubhubstats extends PubBotModule {
 	            psSRGetResult_killPoints == null ||
 	            psSRGetResult_totalPoints == null ||
 	            psSRPeriodResult == null ||
-	            psSRPurgeScores == null) {
+	            psSRPurgeScores == null ||
+	            psLowestUsages == null) {
 	        
 	        Tools.printLog("pubhubstats: One or more PreparedStatements are null! Module pubhubstats disabled.");
 	        m_botAction.sendChatMessage(2, "pubhubstats: One or more PreparedStatements are null! Module pubhubstats disabled.");
 	        this.cancel();
+	    } else {
+	        findPlayer = new FindPlayerTask(psLowestUsages);
+	        m_botAction.scheduleTask(findPlayer, Tools.TimeInMillis.SECOND, 2*Tools.TimeInMillis.MINUTE);
 	    }
 	    
 	}
@@ -157,6 +170,36 @@ public class pubhubstats extends PubBotModule {
 	            Tools.printStackTrace(sqle);
 	        }
 	    }
+	    
+	    // ?find responses
+	    if(event.getMessageType() == Message.ARENA_MESSAGE && findPlayer.isFindCommandExecuted()) {
+	        // Not online, last seen xxx ago
+	        // <name> - <arena>
+	        if(event.getMessage() != null && 
+	                ( event.getMessage().startsWith("Not online, last seen ") ||
+	                  event.getMessage().startsWith(findPlayer.getCurrentPlayerName()+" - ")
+	                ) ) {
+	            findPlayer.resetCurrentName();
+	        } else
+	        // Unknown user.
+	        if(event.getMessage() != null && event.getMessage().equals("Unknown user.")) {
+	            Tools.printLog("Pubstats: Name '"+findPlayer.getCurrentPlayerName()+"' has been reset. Deleting the name from the database.");
+	            
+	            try {
+    	            psScoreReset.setInt(1, findPlayer.getCurrentPlayerID());
+    	            psScoreReset.execute();
+    	            psPlayerReset1.setInt(1, findPlayer.getCurrentPlayerID());
+    	            psPlayerReset1.execute();
+    	            psPlayerReset2.setInt(1, findPlayer.getCurrentPlayerID());
+                    psPlayerReset2.execute();
+	            } catch(SQLException sqle) {
+	                Tools.printLog("SQLException occurred while deleting player '"+findPlayer.getCurrentPlayerName()+"' from database (name reset): "+sqle.getMessage());
+	                Tools.printStackTrace(sqle);
+	            }
+	            findPlayer.resetCurrentName();
+	        }
+	    }
+	    
 	}
 
 	/**
@@ -170,6 +213,8 @@ public class pubhubstats extends PubBotModule {
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psUpdateScore);
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psScoreExists);
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psScoreReset);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psPlayerReset1);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psPlayerReset2);
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psGetBanner);
 	    
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRGetPeriodID);
@@ -184,6 +229,9 @@ public class pubhubstats extends PubBotModule {
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRGetResult_totalPoints);
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRPeriodResult);
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRPurgeScores);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psLowestUsages);
+	    
+	    m_botAction.cancelTasks();
 	}
 
 	/**
@@ -566,5 +614,85 @@ public class pubhubstats extends PubBotModule {
 	    // 4. Start a new period
 	    psSRNewPeriod.setString(1, nextPeriodID);
 	    psSRNewPeriod.execute();
+	}
+	
+	
+	private class FindPlayerTask extends TimerTask {
+	    PreparedStatement psLowestUsages;
+	    ResultSet usages;
+	    int range = 0;
+	    int currentrow = 0;
+	    
+	    String currentName = null;
+	    int currentID = -1;
+	    
+	    public FindPlayerTask(PreparedStatement ps) {
+	        psLowestUsages = ps;
+	        query();
+	    }
+	    
+	    public void run() {
+	        if(this.isFindCommandExecuted()) {
+	            // No response from biller yet, wait another cycle
+	            Tools.printLog("Pubstats: No response from ?find command (player '"+currentName+"').");
+	            this.resetCurrentName();
+	            return;
+	        }
+	        
+	        try {
+    	        if(usages.next()) {
+    	            currentName = usages.getString(1);
+    	            currentID = usages.getInt(2);
+    	            currentrow = usages.getRow();
+    	            m_botAction.sendUnfilteredPublicMessage("?find "+currentName);
+    	            
+    	        } else if(currentrow > 0) {
+    	            range = range + 100;
+    	            query();
+    	            currentrow = 0;
+    	        } else if(range > 0 && currentrow == 0) {
+    	            range = 0;
+    	            query();
+    	        } else if(range == 0 && currentrow == 0) {
+    	            // something went wrong, no results from query
+    	            Tools.printLog("No results from query for lowest usages: Aborting task for ?finding players every 2 minutes.");
+    	            this.cancel();
+    	        }
+	        } catch (SQLException sqle) {
+	            Tools.printLog("SQLException occured when retrieving results from lowest usages query to issue ?find: "+ sqle.getMessage());
+                Tools.printStackTrace(sqle);
+                this.cancel();
+	        }
+	            
+	    }
+	    
+	    
+	    // SELECT fcName AS name, fnId AS id, SUBSTRING_INDEX( fcUsage, ':', 1 ) AS usageHours, SUBSTRING_INDEX( fcUsage, ':', -2 ) AS usageMinutes, fcUsage AS usageHoursMins FROM tblPlayer ORDER BY ABS( usageHours ) ASC, ABS( usageMinutes) ASC LIMIT ?,?
+	    private void query() {
+	        try {
+	            psLowestUsages.setInt(1, range);
+	            psLowestUsages.setInt(2, range+100);
+	            usages = psLowestUsages.executeQuery();
+	        } catch(SQLException sqle) {
+	            Tools.printLog("SQLException occured when executing query to retrieve the lowest usages for ?find checking: "+ sqle.getMessage());
+	            Tools.printStackTrace(sqle);
+	            this.cancel();
+	        }
+	    }
+	    
+	    
+	    public String getCurrentPlayerName() {
+	        return this.currentName;
+	    }
+	    public int getCurrentPlayerID() {
+	        return this.currentID;
+	    }
+	    public void resetCurrentName() {
+	        this.currentName = null;
+	        this.currentID = -1;
+	    }
+	    public boolean isFindCommandExecuted() {
+	        return this.currentName != null || this.currentID != -1;
+	    }
 	}
 }
