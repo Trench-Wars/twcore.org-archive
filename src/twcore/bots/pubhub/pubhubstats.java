@@ -171,13 +171,13 @@ public class pubhubstats extends PubBotModule {
 	        }
 	    }
 	    
-	    // ?find responses
+	    // ?find= responses
 	    if(event.getMessageType() == Message.ARENA_MESSAGE && findPlayer.isFindCommandExecuted()) {
 	        // Not online, last seen xxx ago
-	        // <name> - <arena>
+	        // <name> is in <zone>
 	        if(event.getMessage() != null && 
 	                ( event.getMessage().startsWith("Not online, last seen ") ||
-	                  event.getMessage().startsWith(findPlayer.getCurrentPlayerName()+" - ")
+	                  event.getMessage().startsWith(findPlayer.getCurrentPlayerName()+" is in ")
 	                ) ) {
 	            findPlayer.resetCurrentName();
 	        } else
@@ -644,7 +644,7 @@ public class pubhubstats extends PubBotModule {
     	            currentName = usages.getString(1);
     	            currentID = usages.getInt(2);
     	            currentrow = usages.getRow();
-    	            m_botAction.sendUnfilteredPublicMessage("?find "+currentName);
+    	            m_botAction.sendUnfilteredPublicMessage("?find="+currentName);
     	            
     	        } else if(currentrow > 0) {
     	            range = range + 100;
