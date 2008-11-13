@@ -286,7 +286,11 @@ public class pubhubstats extends PubBotModule {
 	                    player.setCountryCode(storedCountryCode);
 	                } else {
 	                    // Nothing stored yet, use information from tblCountryIPs to get the country code
-	                    player.setCountryCode(getCountryCode(player.getIP()));
+	                    String countryCode = getCountryCode(player.getIP());
+	                    if(countryCode != null)
+	                        player.setCountryCode(countryCode);
+	                    else   // if no country can be found (unknown IP)
+	                        player.setCountryCode("");
 	                }
 	            }
 	            
