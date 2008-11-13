@@ -28,7 +28,7 @@ public class pubhubstats extends PubBotModule {
 	protected final String IPCCHANNEL = "pubstats";
 	
 	// PreparedStatements
-	private PreparedStatement psUpdatePlayer, psReplaceScore, psUpdateScore, psUpdateAddScore, psScoreExists, psScoreReset, psGetBanner;
+	private PreparedStatement psUpdatePlayer, psReplaceScore, psUpdateScore, psUpdateAddScore, psScoreExists, psScoreReset, psGetBanner, psGetStoredCountryCode, psGetCountryCode;
 	private PreparedStatement psSRGetPeriodID, psSRClosePeriods, psSRNewPeriod, psSRPeriodResult, psSRPurgeScores;
 	private PreparedStatement psSRGetResult_rating, psSRGetResult_wins, psSRGetResult_losses, psSRGetResult_average, psSRGetResult_flagPoints, psSRGetResult_killPoints, psSRGetResult_totalPoints;
 	private PreparedStatement psLowestUsages, psPlayerReset1, psPlayerReset2;
@@ -44,7 +44,7 @@ public class pubhubstats extends PubBotModule {
 	 * m_botAction has been initialized.
 	 */
 	public void initializeModule() {
-	    psUpdatePlayer = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblPlayer(fnId, fcName, fcSquad, fcBanner, fcIP, fnTimezone, fcUsage, fcResolution, fdCreated, fdLastSeen) VALUES (?,?,?,?,?,?,?,?,?,?)", true);
+	    psUpdatePlayer = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblPlayer(fnId, fcName, fcSquad, fcBanner, fcIP, fnTimezone, fcCountryCode, fcUsage, fcResolution, fdCreated, fdLastSeen) VALUES (?,?,?,?,?,?,?,?,?,?,?)", true);
 	    
 	    psScoreExists = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
 	    psReplaceScore = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblScore(fnPlayerId, fnShip, fnFlagPoints, fnKillPoints, fnWins, fnLosses, fnRate, fnAverage, ftLastUpdate) VALUES (?,?,?,?,?,?,?,?,?)");
@@ -55,6 +55,8 @@ public class pubhubstats extends PubBotModule {
 	    psPlayerReset1 = m_botAction.createPreparedStatement(database, uniqueConnectionID, "DELETE FROM tblPlayer WHERE fnPlayerId = ?");
 	    psPlayerReset2 = m_botAction.createPreparedStatement(database, uniqueConnectionID, "DELETE FROM tblPeriodResults WHERE fnPlayerID = ?");
 	    psGetBanner = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fcBanner FROM tblPlayer WHERE fnId = ?");
+	    psGetStoredCountryCode = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fcCountryCode from tblPlayer WHERE fnId = ?");
+	    psGetCountryCode = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT country_code3 FROM tblCountryIPs WHERE INET_ATON(?) >= ip_from AND INET_ATON(?) <= ip_to");
 	    
 	    psSRGetPeriodID = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fcPeriodID FROM tblPeriod WHERE fdEnd IS NULL");
 	    psSRClosePeriods = m_botAction.createPreparedStatement(database, uniqueConnectionID, "UPDATE tblPeriod SET fdEnd = NOW() WHERE fdEnd IS NULL");
@@ -87,7 +89,9 @@ public class pubhubstats extends PubBotModule {
 	            psScoreReset == null || 
 	            psPlayerReset1 == null ||
 	            psPlayerReset2 == null ||
-	            psGetBanner == null ||
+	            psGetBanner == null || 
+	            psGetStoredCountryCode == null ||
+	            psGetCountryCode == null ||
 	            psSRGetPeriodID == null ||
 	            psSRClosePeriods == null ||
 	            psSRNewPeriod == null ||
@@ -216,6 +220,8 @@ public class pubhubstats extends PubBotModule {
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psPlayerReset1);
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psPlayerReset2);
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psGetBanner);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psGetStoredCountryCode);
+	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psGetCountryCode);
 	    
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRGetPeriodID);
 	    m_botAction.closePreparedStatement(database, uniqueConnectionID, psSRClosePeriods);
@@ -265,14 +271,28 @@ public class pubhubstats extends PubBotModule {
 	            // until he re-enters
 	            if(player.isPeriodReset()) continue;
 	            
+	            // Banner
 	            if(!player.isBannerReceived()) {
                     player.setBanner(getBanner(player.getUserID()));
 	                player.setBannerReceived(true);
 	            }
 	            
+	            // CountryCode
+	            if(player.getCountryCode() == null) {
+	                // Just get the already stored countryCode from tblPlayer, doesn't matter if the player's IP changed or not
+	                String storedCountryCode = getStoredCountryCode(player.getUserID());
+	                
+	                if(storedCountryCode != null) {
+	                    player.setCountryCode(storedCountryCode);
+	                } else {
+	                    // Nothing stored yet, use information from tblCountryIPs to get the country code
+	                    player.setCountryCode(getCountryCode(player.getIP()));
+	                }
+	            }
+	            
 	            // Insert/Update Player information to the database
-	            // fnId, fcName, fcSquad, fcBanner, fcIP, fnTimezone, fcUsage, fcResolution, fdCreated, fdLastSeen
-	            // 1     2       3        4         5     6           7        8             9          10
+	            // fnId, fcName, fcSquad, fcBanner, fcIP, fnTimezone, fcCountryCode, fcUsage, fcResolution, fdCreated, fdLastSeen
+	            // 1     2       3        4         5     6           7              8        9             10         11
 	            psUpdatePlayer.clearParameters();
                 psUpdatePlayer.setInt(1, player.getUserID());
                 psUpdatePlayer.setString(2, player.getName());
@@ -286,10 +306,11 @@ public class pubhubstats extends PubBotModule {
                     psUpdatePlayer.setNull(4, java.sql.Types.VARCHAR);
                 psUpdatePlayer.setString(5, player.getIP());
                 psUpdatePlayer.setInt(   6, player.getTimezone());
-                psUpdatePlayer.setString(7, player.getUsage());
-                psUpdatePlayer.setString(8, player.getResolution());
-                psUpdatePlayer.setTimestamp(9, new Timestamp(player.getDateCreated().getTime()));
-                psUpdatePlayer.setTimestamp(10, new Timestamp(player.getLastSeen()));
+                psUpdatePlayer.setString(7, player.getCountryCode());
+                psUpdatePlayer.setString(8, player.getUsage());
+                psUpdatePlayer.setString(9, player.getResolution());
+                psUpdatePlayer.setTimestamp(10, new Timestamp(player.getDateCreated().getTime()));
+                psUpdatePlayer.setTimestamp(11, new Timestamp(player.getLastSeen()));
                 psUpdatePlayer.execute();
                 
                 if(player.isScorereset()) {
@@ -411,18 +432,56 @@ public class pubhubstats extends PubBotModule {
 	    String banner = null;
 	    
 	    try {
-	    	    psGetBanner.setInt(1, playerID);
-	    	    ResultSet rs = psGetBanner.executeQuery();
-	    
-	    	    if(rs != null && rs.next()) {
-	    	        banner = rs.getString(1);
-	    	    }
+    	    psGetBanner.setInt(1, playerID);
+    	    ResultSet rs = psGetBanner.executeQuery();
+    
+    	    if(rs != null && rs.next()) {
+    	        banner = rs.getString(1);
+    	    }
 	    } catch(SQLException sqle) {
 	        Tools.printLog("SQLException occured while getting the banner of playerID '"+playerID+"': "+sqle.getMessage());
             Tools.printStackTrace(sqle);
 	    }
 	    
 	    return banner;
+	}
+	
+	
+	private String getStoredCountryCode(int playerID) {
+	    String countryCode = null;
+	    
+	    try {
+	        psGetStoredCountryCode.setInt(1, playerID);
+	        ResultSet rs = psGetStoredCountryCode.executeQuery();
+	        
+	        if(rs != null && rs.next()) {
+	            countryCode = rs.getString(1);
+	        }
+	    } catch(SQLException sqle) {
+	        Tools.printLog("SQLException occured while getting the countryCode of playerID '"+playerID+"' from tblPlayer: "+sqle.getMessage());
+            Tools.printStackTrace(sqle);
+	    }
+	    
+	    return countryCode;
+	}
+	
+	private String getCountryCode(String ip) {
+	    String countryCode = null;
+	    
+	    try {
+	        psGetCountryCode.setString(1, ip);
+	        psGetCountryCode.setString(2, ip);
+	        ResultSet rs = psGetCountryCode.executeQuery();
+	        
+	        if(rs != null && rs.next()) {
+	            countryCode = rs.getString(1);
+	        }
+	    } catch(SQLException sqle) {
+	        Tools.printLog("SQLException occured while getting the countryCode of IP '"+ip+"' from tblCountryIPs: "+sqle.getMessage());
+            Tools.printStackTrace(sqle);
+	    }
+	    
+	    return countryCode;
 	}
 	
 	
