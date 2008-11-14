@@ -254,6 +254,8 @@ public class pubhubstats extends PubBotModule {
 	    // loop over available shipscores and save each one to database (batch)
 	    // execute batches
 	    
+	    long startTime = System.currentTimeMillis();
+	    
 	    Map<String, PubStatsPlayer>  playerMap = stats.getPlayers();
 	    
 	    Collection<PubStatsPlayer> players = playerMap.values();
@@ -413,6 +415,8 @@ public class pubhubstats extends PubBotModule {
 	    psReplaceScore.clearBatch();
 	    psUpdateScore.clearBatch();
 	    psUpdateAddScore.clearBatch();
+	    
+	    Tools.printLog("Pubstats: Updated database in "+(System.currentTimeMillis()-startTime)+" ms");
 	    
 	}
 	
