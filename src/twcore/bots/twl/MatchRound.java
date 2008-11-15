@@ -1502,7 +1502,7 @@ public class MatchRound
             team1Score = "" + m_team1.getTeamScore();
             team2Score = "" + m_team2.getTeamScore();
 
-	  	//If lb display twlb scoreboard
+            //If lb display twlb scoreboard
             if( m_rules.getString("winby").equals("timerace") ) {
                 int t1s = Integer.parseInt( team1Score );
                 int t2s = Integer.parseInt( team2Score );
@@ -1523,11 +1523,15 @@ public class MatchRound
                 m_myObjects.showObject( 210 + (team2Seconds - team2Seconds % 10)/10 );
                 m_myObjects.showObject( 230 + team2Minutes % 10 );
                 m_myObjects.showObject( 240 + (team2Minutes - team2Minutes % 10)/10 );
-	    	    } else { //Else display ld lj on normal scoreboard
+	    	} 
+            //Else display ld lj on normal scoreboard
+            // Note: Scoreboard is not logical, scores for team 1 are object ids 200+, scores for team 2 are object ids 100+
+            //       This is only caused in TWLD and TWLJ arenas as they are using the lvz 'twl.lvz'
+            else { 
                 for (int i = team1Score.length() - 1; i > -1; i--)
-                    m_myObjects.showObject(Integer.parseInt("" + team1Score.charAt(i)) + 100 + (team1Score.length() - 1 - i) * 10);
+                    m_myObjects.showObject(Integer.parseInt("" + team1Score.charAt(i)) + 200 + (team1Score.length() - 1 - i) * 10);
                 for (int i = team2Score.length() - 1; i > -1; i--)
-                    m_myObjects.showObject(Integer.parseInt("" + team2Score.charAt(i)) + 200 + (team2Score.length() - 1 - i) * 10);
+                    m_myObjects.showObject(Integer.parseInt("" + team2Score.charAt(i)) + 100 + (team2Score.length() - 1 - i) * 10);
             }
             if (m_generalTime >= 0)
             {
