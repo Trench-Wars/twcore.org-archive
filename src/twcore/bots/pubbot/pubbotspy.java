@@ -11,6 +11,7 @@ import twcore.core.EventRequester;
 import twcore.core.events.ArenaList;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
+import twcore.core.events.PlayerEntered;
 import twcore.core.util.Spy;
 import twcore.core.util.ipc.IPCMessage;
 
@@ -43,6 +44,7 @@ public class pubbotspy extends PubBotModule
   {
     eventRequester.request(EventRequester.MESSAGE);
     eventRequester.request(EventRequester.ARENA_LIST);
+    eventRequester.request(EventRequester.PLAYER_ENTERED);
   }
 
   public void handleEvent(Message event)
@@ -227,6 +229,18 @@ public class pubbotspy extends PubBotModule
     {
       m_botAction.sendChatMessage(e.getMessage());
     }
+  }
+  
+  public void handleEvent(PlayerEntered event) {
+      String name = event.getPlayerName();
+      String nameLC = name.toLowerCase();
+
+      // Check for bot / staff impersonation
+      if(m_botAction.getOperatorList().isBot(name) == false &&
+              ( nameLC.contains("<er>") || nameLC.contains("<zh>") || nameLC.startsWith("matchbot")) ) {
+          m_botAction.sendUnfilteredPublicMessage("?cheater Possible bot/staff impersonator: " + name);
+      }
+      
   }
 
   public void cancel()
