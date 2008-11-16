@@ -233,12 +233,12 @@ public class pubbotspy extends PubBotModule
   
   public void handleEvent(PlayerEntered event) {
       String name = event.getPlayerName();
-      String nameLC = name.toLowerCase();
+      String nameLC = name.toLowerCase().trim();
 
       // Check for bot / staff impersonation
       if(m_botAction.getOperatorList().isBot(name) == false &&
-              ( nameLC.contains("<er>") || nameLC.contains("<zh>") || nameLC.startsWith("matchbot")) ) {
-          m_botAction.sendUnfilteredPublicMessage("?cheater Possible bot/staff impersonator: " + name);
+              ( nameLC.endsWith("<er>") || nameLC.endsWith("<zh>") || nameLC.startsWith("matchbot")) ) {
+          m_botAction.sendUnfilteredPublicMessage("?cheater Possible bot/staff impersonator entered: " + name);
       }
       
   }
