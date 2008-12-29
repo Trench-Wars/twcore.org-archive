@@ -251,13 +251,23 @@ public class pubbottk extends PubBotModule {
                 }
             }
             if( searchPlayer == null ) {
-    			m_botAction.sendSmartPrivateMessage( staffname, "Player not found.  Please verify the person is in the arena." );
-                return;
+                tker = oldtkers.get( tkname );
+                if( tker == null ) {
+                    m_botAction.sendSmartPrivateMessage( staffname, "Player not found in either current arena records or backlog.  If you're searching in the backlog, use the full name." );
+                    return;
+                } else {
+                    m_botAction.sendSmartPrivateMessage( staffname, "Player found in backlog (NOT presently in arena):" );                    
+                }
             } else {
                 tker = tkers.get( searchPlayer.getPlayerName().toLowerCase());
                 if( tker == null ) {
-        			m_botAction.sendSmartPrivateMessage( staffname, "Teamkill record not found.  Please check the name and verify they have teamkilled." );
-                    return;
+                    tker = oldtkers.get( tkname );
+                    if( tker == null ) {
+                        m_botAction.sendSmartPrivateMessage( staffname, "Player found in arena (" + searchPlayer.getPlayerName() + "), but no TK record found.  If you're searching in the backlog & this isn't the player you want, use the full name instead." );
+                        return;
+                    } else {
+                        m_botAction.sendSmartPrivateMessage( staffname, "Player found in backlog (NOT presently in arena):" );                    
+                    }
                 }
             }
         }
