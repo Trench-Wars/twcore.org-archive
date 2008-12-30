@@ -25,6 +25,25 @@ public class staffbot_warnings extends Module {
 	private TimerTask getLog;
 	private Vector<String> lastWarnings = new Vector<String>(20);	// Holds track of last 20 warnings
 	
+	// Helps (strange to redefine each time someone types !help)
+    final String[] helpER = {
+            "--------------------[ Warnings: ER+ ]----------------------",
+            " !warnings <player>        - Checks valid red warnings on specified player",
+            " ! <player>                - (shortcut for above)",
+            " !allwarnings <player>     - Shows all warnings on player, including expired.",
+            " !fuzzyname <player>       - Checks for names similar to <player> in database."
+    };
+
+    final String[] helpMod = {
+            "--------------------[ Warnings: Mod+ ]--------------------",
+            " !deletelast <player>      - Deletes last warning given to a player."
+    };
+    
+    final String[] helpSmod = {
+            "--------------------[ Warnings: SMod+ ]--------------------",
+            " !warningsfrom <player>    - Displays a list of recent warns given to a player."
+    };
+	
 	@Override
 	public void initializeModule() {
 		
@@ -106,22 +125,12 @@ public class staffbot_warnings extends Module {
         if( !m_opList.isBot(name)) return;
         
         if( message.toLowerCase().startsWith("!help") ){
-	        final String[] helpER = {
-	        		"--------------------[ Warnings: ER+ ]----------------------",
-	        		" !warnings <player>        - Checks valid red warnings on specified player",
-	        		" ! <player>                - (shortcut for above)",
-	        		" !allwarnings <player>     - Shows all warnings on player, including expired.",
-	        		" !fuzzyname <player>       - Checks for names similar to <player> in database."
-	        };
-
-	        final String[] helpSmod = {
-	        		"--------------------[ Warnings: SMod+ ]--------------------",
-	        		" !warningsfrom <player>    - Displays a list of recent warns given to a player."
-	        };
-
 	        if( m_opList.isER( name ) ){
 	            m_botAction.smartPrivateMessageSpam( name, helpER );
 	        }
+            if( m_opList.isModerator( name ) ){
+                m_botAction.smartPrivateMessageSpam( name, helpMod );
+            }
 	        if( m_opList.isSmod( name ) ){
 	            m_botAction.smartPrivateMessageSpam( name, helpSmod );
 	        }
@@ -144,6 +153,11 @@ public class staffbot_warnings extends Module {
                 getFuzzyNames( name, message.substring( 11 ) );
             }
         }
+        
+        if( m_opList.isModerator( name ) ) {
+            if( message.toLowerCase().startsWith( "!deletelast " ))
+                deleteLastWarning( name, message.substring( 12 ) );            
+        }
 
         if( m_opList.isSmod( name ) ){
             if( message.toLowerCase().startsWith( "!warningsfrom " ))
@@ -158,7 +172,7 @@ public class staffbot_warnings extends Module {
      * @param message Player to query
      * @param showExpired Whether or not to display expired warnings
      */
-    public void queryWarnings( String name, String message, boolean showExpired ){
+    public void queryWarnings( String name, String message, boolean showExpired ) {
         String      query = "SELECT * FROM tblWarnings WHERE name = '" + Tools.addSlashes(message.toLowerCase()) + "' ORDER BY timeofwarning ASC";
         ArrayList<String> warnings = new ArrayList<String>();
 
@@ -215,8 +229,7 @@ public class staffbot_warnings extends Module {
                         m_botAction.sendRemotePrivateMessage( name, "There are "+numExpired+" expired warnings. PM !allwarnings to display these.");
                     }
                     
-                }
-                
+                }                
             } else {
                 m_botAction.sendRemotePrivateMessage( name, "No warnings found for '" + message + "'.");
                 
@@ -231,6 +244,44 @@ public class staffbot_warnings extends Module {
         } catch( SQLException e ){
             Tools.printStackTrace( e );
         }
+    }
+    
+    /**
+     * Deletes a player's last warning by overwriting its text with relevant data. 
+     * @param name Staffer requesting
+     * @param message Name of player whose l
+     * @param showExpired
+     */
+    public void deleteLastWarning( String name, String message ) {
+        String query = "SELECT * FROM tblWarnings WHERE name = '" + Tools.addSlashes(message.toLowerCase()) + "' ORDER BY timeofwarning DESC";
+        try {
+            ResultSet set = m_botAction.SQLQuery( sqlHost, query );
+            if( set.next() ) {
+                String warner = set.getString( "staffmember" );
+                if( !name.toLowerCase().equals(warner) ) {
+                    if( !opList.isSmod(name) ) {
+                        m_botAction.sendRemotePrivateMessage(name, "You must be SMod+ to delete warnings that you didn't issue yourself." );                        
+                    }
+                }
+                String warningText = set.getString( "warning" );
+                java.sql.Date date = new java.sql.Date(System.currentTimeMillis());
+                m_botAction.SQLQueryAndClose( sqlHost, "UPDATE tblWarnings SET warning='DEL:(Warning deleted by " + name + " on " + new SimpleDateFormat("dd MMM yyyy").format( date ) + ")' WHERE warning='" + warningText + "'" );
+                String[] text;
+                if( warningText.contains("Ext: "))
+                    text = warningText.split( "Ext: ", 2);
+                else
+                    text = warningText.split( ": ", 2);
+                if( text.length == 2 )
+                    m_botAction.sendRemotePrivateMessage(name, "Warning deleted: " + text[1] );
+                else
+                    m_botAction.sendRemotePrivateMessage(name, "Warning deleted." );
+            } else {
+                m_botAction.sendRemotePrivateMessage(name, "No warnings found for '" + message + "'.  Use the exact name." );                
+            }
+        } catch( SQLException e ) {
+            Tools.printStackTrace( e );            
+        }
+        
     }
     
     /**
