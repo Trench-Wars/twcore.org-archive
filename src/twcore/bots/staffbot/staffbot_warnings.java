@@ -223,7 +223,7 @@ public class staffbot_warnings extends Module {
                     if(warnings.size() > 0) {
                         m_botAction.sendRemotePrivateMessage( name, "Warnings in database for " + message + ":" );
                         m_botAction.remotePrivateMessageSpam( name, warnings.toArray(new String[warnings.size()]));
-                        m_botAction.sendRemotePrivateMessage( name, "Displayed " + warnings.size() + " valid warnings (suppressed " + numExpired + " expired). PM !allwarnings to display all." );
+                        m_botAction.sendRemotePrivateMessage( name, "Displayed " + warnings.size() + " valid warnings (suppressed " + numExpired + " expired)." + (numExpired > 0?" PM !allwarnings to display all.":"") );
                     } else {
                         m_botAction.sendRemotePrivateMessage( name, "No active warnings for "+ message +".");
                         m_botAction.sendRemotePrivateMessage( name, "There are "+numExpired+" expired warnings. PM !allwarnings to display these.");
@@ -265,7 +265,7 @@ public class staffbot_warnings extends Module {
                 }
                 String warningText = set.getString( "warning" );
                 java.sql.Date date = new java.sql.Date(System.currentTimeMillis());
-                m_botAction.SQLQueryAndClose( sqlHost, "UPDATE tblWarnings SET warning='DEL:(Warning deleted by " + name + " on " + new SimpleDateFormat("dd MMM yyyy").format( date ) + ")' WHERE warning='" + warningText + "'" );
+                m_botAction.SQLQueryAndClose( sqlHost, "UPDATE tblWarnings SET warning='DEL: (Warning deleted by " + name + " on " + new SimpleDateFormat("dd MMM yyyy").format( date ) + ")' WHERE warning='" + warningText + "'" );
                 String[] text;
                 if( warningText.contains("Ext: "))
                     text = warningText.split( "Ext: ", 2);
