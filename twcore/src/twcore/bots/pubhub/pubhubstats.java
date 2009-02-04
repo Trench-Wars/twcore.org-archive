@@ -737,9 +737,14 @@ public class pubhubstats extends PubBotModule {
 	    // SELECT fcName AS name, fnId AS id, SUBSTRING_INDEX( fcUsage, ':', 1 ) AS usageHours, SUBSTRING_INDEX( fcUsage, ':', -2 ) AS usageMinutes, fcUsage AS usageHoursMins FROM tblPlayer ORDER BY ABS( usageHours ) ASC, ABS( usageMinutes) ASC LIMIT ?,?
 	    private void query() {
 	        try {
-	            psLowestUsages.setInt(1, range);
-	            psLowestUsages.setInt(2, range+100);
-	            usages = psLowestUsages.executeQuery();
+	            if(psLowestUsages != null) {
+	                psLowestUsages.setInt(1, range);
+	                psLowestUsages.setInt(2, range+100);
+	                usages = psLowestUsages.executeQuery();
+	            } else {
+	                Tools.printLog("Prepared Statement is NULL in the FindPlayerTask.query() of pubhubstats.java! Aborting task.");
+	                this.cancel();
+	            }
 	        } catch(SQLException sqle) {
 	            Tools.printLog("SQLException occured when executing query to retrieve the lowest usages for ?find checking: "+ sqle.getMessage());
 	            Tools.printStackTrace(sqle);
