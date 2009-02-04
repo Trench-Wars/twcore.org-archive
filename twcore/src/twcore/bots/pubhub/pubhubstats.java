@@ -176,7 +176,8 @@ public class pubhubstats extends PubBotModule {
 	    }
 	    
 	    // ?find= responses
-	    if(event.getMessageType() == Message.ARENA_MESSAGE && findPlayer.isFindCommandExecuted()) {
+	    // findPlayer task can be null if prepared statements aren't initialized
+	    if(event.getMessageType() == Message.ARENA_MESSAGE && findPlayer != null && findPlayer.isFindCommandExecuted()) {
 	        // Not online, last seen xxx ago
 	        // <name> is in <zone>
 	        if(event.getMessage() != null && 
