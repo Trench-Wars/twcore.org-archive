@@ -52,7 +52,7 @@ public class pubhubstats extends PubBotModule {
 	    psUpdateAddScore = m_botAction.createPreparedStatement(database, uniqueConnectionID, "UPDATE tblScore SET fnFlagPoints = fnFlagPoints + ?, fnKillPoints = fnKillPoints + ?, fnWins = fnWins + ?, fnLosses = fnLosses + ?, fnRate = ?, fnAverage = ?, ftLastUpdate = ? WHERE fnPlayerId = ? AND fnShip = ?");
 	    
 	    psScoreReset = m_botAction.createPreparedStatement(database, uniqueConnectionID, "DELETE FROM tblScore WHERE fnPlayerId = ?");
-	    psPlayerReset1 = m_botAction.createPreparedStatement(database, uniqueConnectionID, "DELETE FROM tblPlayer WHERE fnPlayerId = ?");
+	    psPlayerReset1 = m_botAction.createPreparedStatement(database, uniqueConnectionID, "DELETE FROM tblPlayer WHERE fnId = ?");
 	    psPlayerReset2 = m_botAction.createPreparedStatement(database, uniqueConnectionID, "DELETE FROM tblPeriodResults WHERE fnPlayerID = ?");
 	    psGetBanner = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fcBanner FROM tblPlayer WHERE fnId = ?");
 	    psGetStoredCountryCode = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fcCountryCode from tblPlayer WHERE fnId = ?");
