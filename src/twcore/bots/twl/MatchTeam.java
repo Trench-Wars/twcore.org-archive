@@ -868,6 +868,10 @@ public class MatchTeam
                         subdelaytime = m_rules.getInt("subdelaytime");
                         if (subdelaytime > 5)
                             subdelaytime = 5;
+                        
+                        // Randomize delay with +(0-3) seconds
+                        subdelaytime = subdelaytime + Math.round(new Float(Math.random()*3));
+                        
                         if (subdelaytime > 0)
                         {
                             m_logger.sendPrivateMessage(name, "Your substitute request will be processed in a few seconds");
