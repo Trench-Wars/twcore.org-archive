@@ -929,7 +929,7 @@ public class MatchTeam
                 if (pA != null)
                 {
                     pA.setAboutToBeSubbed(true);
-                    if ((pA.getPlayerState() == 1) || (pA.getPlayerState() == 3))
+                    if ((pA.getPlayerState() == 1 || pA.getPlayerState() == 3) && pA.getPlayerState() != 4)
                     {
                         ppB = m_botAction.getFuzzyPlayer(playerB);
                         if (ppB != null)
