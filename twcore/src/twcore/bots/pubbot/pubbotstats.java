@@ -134,6 +134,10 @@ public class pubbotstats extends PubBotModule {
       // ignore bots
       if(m_botAction.getOperatorList().isBotExact(event.getPlayerName()))
           return;
+      
+      // ignore players when biller is down
+      if(event.getPlayerName().startsWith("^"))
+          return;
 
       // A new player entered
       // (this event is also fired after bot enters the arena)
@@ -176,6 +180,10 @@ public class pubbotstats extends PubBotModule {
 
       // ignore bots & nulls
       if(p == null || m_botAction.getOperatorList().isBotExact(p.getPlayerName()))
+          return;
+      
+      // ignore players when biller is down
+      if(p.getPlayerName().startsWith("^"))
           return;
 
       if(arenaStats.getPlayer(p.getPlayerName()) != null)
@@ -266,6 +274,10 @@ public class pubbotstats extends PubBotModule {
 
       // ignore bots
       if(m_botAction.getOperatorList().isBotExact(p.getPlayerName()))
+          return;
+      
+      // ignore players when biller is down
+      if(p.getPlayerName().startsWith("^"))
           return;
 
       PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
