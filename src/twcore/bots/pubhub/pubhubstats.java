@@ -21,6 +21,18 @@ import twcore.core.helper.pubstats.PubStatsScore;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
+/**
+ * Public Statistics module for PubHub
+ * Statistics are gathered from players in publics and stored in database every 15 minutes. Results are shown on trenchwars.org/?v=pubstats
+ * 
+ * TODO's:
+ *  - Add a !removeplayer command for those seldom cases that people want to be removed
+ *  - Add a !ignoreplayer command for those seldom cases that people want to be ignored by the pubstats
+ *
+ * 
+ * @author Koen
+ *
+ */
 public class pubhubstats extends PubBotModule {
 	private String database = "pubstats";
 	private String uniqueConnectionID = "pubstats";
