@@ -707,7 +707,8 @@ public class tournybot extends SubspaceBot {
             {
 				m_botAction.sendPrivateMessage(report.getRequester(), report.getLagReport());
 			}
-			if (m_botAction.getPlayer(report.getName()).getShipType() != 0)
+			Player p = m_botAction.getPlayer(report.getName());
+			if (p != null && p.getShipType() != 0)
 			{
 				m_botAction.sendPrivateMessage(report.getName(), report.getLagReport());
 				m_botAction.spec(report.getName());
