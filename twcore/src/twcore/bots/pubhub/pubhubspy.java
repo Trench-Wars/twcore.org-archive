@@ -58,15 +58,7 @@ public class pubhubspy extends PubBotModule
 
     if(messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE){
     	if(!opList.isSmod(sender))return;
-    	if(message.equalsIgnoreCase("!help")){
-    		String[] help = {
-    				"PRIVATE SPY COMMANDS:",
-    				"!pwatch <player>    - Relays any chat messages from <player> to you privately",
-    				"!pwatchlist         - Shows players being !pwatch'ed",
-    		};
-    		m_botAction.smartPrivateMessageSpam(sender, help);
-    	}
-    	else if(message.startsWith("!pwatch ")) {
+    	if(message.startsWith("!pwatch ")) {
     		String playerName = message.substring(8).toLowerCase();
 
             if(pWatchList.containsKey(playerName) && pWatchList.get(playerName).contains(sender)){
@@ -118,13 +110,15 @@ public class pubhubspy extends PubBotModule
     if(messageType == Message.CHAT_MESSAGE) {
         
         // !help
-        if(message.startsWith("!help ")) {
+        if(message.startsWith("!help")) {
             String[] help = { 
                     "SPY CHAT COMMANDS:",
                     "!watch <player>                - Relays any chat messages from <player> to chat",
                     "!watchlist                     - Shows players being !watch'ed",
                     "!ignore <player>               - Changes ?cheater notification of <player> on racist words to a chat notification only",
-                    "!ignorelist                    - Shows players being !ignore'ed"
+                    "!ignorelist                    - Shows players being !ignore'ed",
+                    "!pwatch <player>               - Relays any chat messages from <player> to you privately",
+                    "!pwatchlist                    - Shows players being !pwatch'ed"
             };
             m_botAction.smartPrivateMessageSpam(sender, help);
         }
