@@ -642,6 +642,10 @@ public class MatchTeam
                         m_logger.sendPrivateMessage(name, "You can't set me as a captain!");
                         return;
                     }
+                    if( m_botAction.getOperatorList().isBotExact(newCapt)) {
+                        m_logger.sendPrivateMessage(name, "You can't set a bot as a captain!");
+                        return;
+                    }
 
                     if (!isCaptain(newCapt))
                     {
