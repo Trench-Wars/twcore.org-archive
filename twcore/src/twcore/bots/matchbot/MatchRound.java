@@ -700,8 +700,8 @@ public class MatchRound
             if(m_rules.getInt("playerclaimcaptain") == 1 &&
                     !m_team1.isCaptain(name) &&
                     !m_team2.isCaptain(name) &&
-                    (m_team1.getCaptainsList().isEmpty() || (m_team1.getCaptainsList().size() > 0 && m_botAction.getPlayer(m_team1.getCaptainsList().get(0)) == null)) &&
-                    (m_team2.getCaptainsList().isEmpty() || (m_team2.getCaptainsList().size() > 0 && m_botAction.getPlayer(m_team2.getCaptainsList().get(0)) == null))
+                    ((m_team1.getCaptainsList().isEmpty() || (m_team1.getCaptainsList().size() > 0 && m_botAction.getPlayer(m_team1.getCaptainsList().get(0)) == null)) ||
+                    (m_team2.getCaptainsList().isEmpty() || (m_team2.getCaptainsList().size() > 0 && m_botAction.getPlayer(m_team2.getCaptainsList().get(0)) == null)))
                     ) {
                 // - Can players claim captainship with the !cap command?
                 // - Is the requesting player not a captain already?
