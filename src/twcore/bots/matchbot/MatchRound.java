@@ -625,8 +625,13 @@ public class MatchRound
         ArrayList<String> help = new ArrayList<String>();
 
         // for everybody
-        help.add("!cap                                     - Show the captains of both teams");
+        if(m_rules.getInt("playerclaimcaptain") == 1)
+            help.add("!cap                                     - Claim captainship of a team / shows current captains");
+        else
+            help.add("!cap                                     - Show the captains of both teams");
+        
         help.add("!myfreq                                  - sets you on your team's frequency");
+        
         if ((m_fnRoundState <= 1) && (m_rules.getInt("pickbyturn") == 1))
             help.add("!notplaying                              - Indicate that you won't play this round");
         help.add("!notplaylist                             - Show all the players who have turned '!notplaying' on");
@@ -690,11 +695,33 @@ public class MatchRound
         if ((command.equals("!lagstatus")) && isStaff)
             command_lagstatus(name, parameters);
 
-        if (command.equals("!cap"))
-        {
-            m_logger.sendPrivateMessage(name, m_team1.getCaptains() + " is/are captain(s) of " + m_team1.getTeamName());
-            m_logger.sendPrivateMessage(name, m_team2.getCaptains() + " is/are captain(s) of " + m_team2.getTeamName());
-        };
+        if (command.equals("!cap")) {
+            
+            if(m_rules.getInt("playerclaimcaptain") == 1 &&
+                    !m_team1.isCaptain(name) && 
+                    !m_team2.isCaptain(name) &&
+                    (m_team1.getCaptainsList().isEmpty() || m_team2.getCaptainsList().isEmpty())) {
+                // - Can players claim captainship with the !cap command?
+                // - Is the requesting player not a captain already?
+                // - Is there an empty captain spot on one of the teams?
+                
+                if(m_team1.getCaptainsList().isEmpty()) {
+                    m_team1.command_setcaptain(name, new String[]{ name });
+                } else
+                if(m_team2.getCaptainsList().isEmpty()) {
+                    m_team2.command_setcaptain(name, new String[]{ name });
+                }
+                
+                // if both teams have a captain, start the picking
+                if(m_team1.getCaptainsList().size() > 0 && m_team2.getCaptainsList().size() > 0) {
+                    command_startpick(name, null);
+                }
+            } else {
+                m_logger.sendPrivateMessage(name, m_team1.getCaptains() + " is/are captain(s) of " + m_team1.getTeamName());
+                m_logger.sendPrivateMessage(name, m_team2.getCaptains() + " is/are captain(s) of " + m_team2.getTeamName());
+            }
+            
+        }
 
         if (command.equals("!myfreq"))
             command_myfreq(name, parameters);
