@@ -533,14 +533,30 @@ public class matchbot extends SubspaceBot
 
             }
         }
-        if ((m_rules != null) && (m_rules.getInt("captain_can_start_game") == 1))
-        {
-            if (command.equals("!challenge"))
-                command_challenge(name, parameters);
-            if (command.equals("!removechallenge"))
-                command_removechallenge(name, parameters);
-            if (command.equals("!accept"))
-                command_accept(name, parameters);
+        
+        // Non-staff commands
+        if (m_rules != null) {
+
+            if(m_rules.getInt("captain_can_start_game") == 1) {
+                if (command.equals("!challenge"))
+                    command_challenge(name, parameters);
+                if (command.equals("!removechallenge"))
+                    command_removechallenge(name, parameters);
+                if (command.equals("!accept"))
+                    command_accept(name, parameters);
+            }
+            if(m_rules.getInt("playerclaimcaptain") == 1) {
+                if (command.equals("!cap")) {
+                    
+                    // Start game if there is none
+                    if(m_game == null) {
+                        createGame(name, parameters);
+                        //m_botAction.sendPrivateMessage(m_botAction.getBotNumber(), "!t1-setcaptain "+name);
+                        m_botAction.sendPrivateMessage(name, "Game started. Please PM !cap again to claim captainship of a team.");
+                        
+                    }
+                }
+            }
 
         }
         if (command.equals("!help"))

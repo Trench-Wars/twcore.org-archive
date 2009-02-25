@@ -1946,6 +1946,10 @@ public class MatchTeam
         }
         return answ;
     }
+    
+    public LinkedList<String> getCaptainsList() {
+        return m_captains;
+    }
 
     public String getTeamName()
     {
