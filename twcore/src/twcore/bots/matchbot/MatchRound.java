@@ -698,22 +698,24 @@ public class MatchRound
         if (command.equals("!cap")) {
             
             if(m_rules.getInt("playerclaimcaptain") == 1 &&
-                    !m_team1.isCaptain(name) && 
+                    !m_team1.isCaptain(name) &&
                     !m_team2.isCaptain(name) &&
-                    (m_team1.getCaptainsList().isEmpty() || m_team2.getCaptainsList().isEmpty())) {
+                    (m_team1.getCaptainsList().isEmpty() || (m_team1.getCaptainsList().size() > 0 && m_botAction.getPlayer(m_team1.getCaptainsList().get(0)) == null)) &&
+                    (m_team2.getCaptainsList().isEmpty() || (m_team2.getCaptainsList().size() > 0 && m_botAction.getPlayer(m_team2.getCaptainsList().get(0)) == null))
+                    ) {
                 // - Can players claim captainship with the !cap command?
                 // - Is the requesting player not a captain already?
-                // - Is there an empty captain spot on one of the teams?
+                // - Is there an empty captain spot on one of the teams OR is the captain of the team not in the arena ?
                 
-                if(m_team1.getCaptainsList().isEmpty()) {
+                if((m_team1.getCaptainsList().isEmpty() || (m_team1.getCaptainsList().size() > 0 && m_botAction.getPlayer(m_team1.getCaptainsList().get(0)) == null))) {
                     m_team1.command_setcaptain(name, new String[]{ name });
                 } else
-                if(m_team2.getCaptainsList().isEmpty()) {
+                if(m_team2.getCaptainsList().isEmpty() || (m_team2.getCaptainsList().size() > 0 && m_botAction.getPlayer(m_team2.getCaptainsList().get(0)) == null)) {
                     m_team2.command_setcaptain(name, new String[]{ name });
                 }
                 
                 // if both teams have a captain, start the picking
-                if(m_team1.getCaptainsList().size() > 0 && m_team2.getCaptainsList().size() > 0) {
+                if(m_fnRoundState == 0 && m_team1.getCaptainsList().size() > 0 && m_team2.getCaptainsList().size() > 0) {
                     command_startpick(name, null);
                 }
             } else {
