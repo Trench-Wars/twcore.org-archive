@@ -550,9 +550,18 @@ public class matchbot extends SubspaceBot
                     
                     // Start game if there is none
                     if(m_game == null) {
+                        
+                        // Start game
                         createGame(name, parameters);
-                        //m_botAction.sendPrivateMessage(m_botAction.getBotNumber(), "!t1-setcaptain "+name);
-                        m_botAction.sendPrivateMessage(name, "Game started. Please PM !cap again to claim captainship of a team.");
+                        
+                        // Assign captain after starting game
+                        final String nm = name;
+                        TimerTask setcaptain = new TimerTask() {
+                            public void run() {
+                                m_game.parseCommand(nm, "!cap", null, false);
+                            }
+                        };
+                        m_botAction.scheduleTask(setcaptain, 1500);
                         
                     }
                 }
