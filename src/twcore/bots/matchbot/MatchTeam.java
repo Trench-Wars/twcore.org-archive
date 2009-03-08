@@ -1932,6 +1932,10 @@ public class MatchTeam
 
     public String getCaptains()
     {
+        if(m_captains.isEmpty()) {
+            return "[nobody]";
+        }
+        
         ListIterator<String> i = m_captains.listIterator();
         String answ = "", temp;
         boolean isFirst = true;

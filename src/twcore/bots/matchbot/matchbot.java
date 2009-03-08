@@ -80,6 +80,9 @@ public class matchbot extends SubspaceBot
 
     //private static Pattern parseInfoRE = Pattern.compile("^IP:(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})  TimeZoneBias:\\d+  Freq:\\d+  TypedName:(.*)  Demo:\\d  MachineId:(\\d+)$");
     //private static Pattern cruncherRE = Pattern.compile("\\s+");
+    
+    protected String previousCaptain1 = null;
+    protected String previousCaptain2 = null;
 
     /** Creates a new instance of Matchtwl */
     public matchbot(BotAction botAction)
