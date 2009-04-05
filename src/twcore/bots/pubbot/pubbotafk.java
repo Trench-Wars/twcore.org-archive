@@ -95,10 +95,8 @@ public class pubbotafk extends PubBotModule {
     public void handleEvent(ArenaJoined event) {
         players.clear();
         
-        if (m_botAction.getArenaName() != AFK_ARENA) {
-            for (Iterator<Player> it = m_botAction.getPlayerIterator(); it.hasNext();)
+        for (Iterator<Player> it = m_botAction.getPlayerIterator(); it.hasNext();)
                 add(it.next());
-        }
     }
     
     public void handleEvent(FrequencyChange event) {
