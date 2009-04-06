@@ -19,7 +19,7 @@ import twcore.core.util.Tools;
 
 /**
  * Move players to the AFK_ARENA when they are idle for too long.
- * 
+ * The bots checks their idle time each 5 minutes
  * 
  * @author fantus
  */
@@ -34,17 +34,28 @@ public class pubbotafk extends PubBotModule {
     
     private OperatorList opList;
     private String sendtoCmd;
-    private TreeMap<String, IdlePlayer> players;
+    private TreeMap<String, Long> players;
 
     public void add(Player p) {
         if (!opList.isBotExact(p.getPlayerName()) && p.getShipType() == Tools.Ship.SPECTATOR)
-             players.put(p.getPlayerName(), new IdlePlayer(p.getPlayerName()));
+             players.put(p.getPlayerName(), System.currentTimeMillis());
     }
     
     public void cancel() {
         players.clear();
     }
 
+    public void check() {
+        if (!players.isEmpty()) {
+            for (String name : players.keySet()) {
+                if (getIdleTime(name) >= (WARNING_TIME + MOVE_TIME))
+                    m_botAction.sendUnfilteredPrivateMessage(name, sendtoCmd);
+                else if (getIdleTime(name) >= WARNING_TIME)
+                    m_botAction.sendPrivateMessage(name, WARNING_MESSAGE);
+            }
+        }
+    }
+    
     public void cmdHelp(String messager) {
         m_botAction.sendSmartPrivateMessage(messager, "Pubbot AFK Module");
         m_botAction.sendSmartPrivateMessage(messager,
@@ -56,8 +67,8 @@ public class pubbotafk extends PubBotModule {
     public void cmdListidle(String messager) {
         ArrayList<String> out = new ArrayList<String>();
         out.add(Tools.formatString("<Name>", 23) + " - <idle time>");
-        for (IdlePlayer p : players.values())
-            out.add(Tools.formatString(p.name, 23) + " - " + p.idleTime);
+        for (String name : players.keySet())
+            out.add(Tools.formatString(name, 23) + " - " + getIdleTime(name));
         m_botAction.smartPrivateMessageSpam(messager, out.toArray(new String[out.size()]));
     }
     
@@ -73,6 +84,10 @@ public class pubbotafk extends PubBotModule {
         }
     }
     
+    public long getIdleTime(String name) {
+        return (System.currentTimeMillis() - players.get(name)) / Tools.TimeInMillis.MINUTE;
+    }
+    
     public void initializeModule() {
         String zoneIP = m_botAction.getGeneralSettings().getString( "Server" );
         String zonePort = m_botAction.getGeneralSettings().getString( "Port" );
@@ -80,7 +95,14 @@ public class pubbotafk extends PubBotModule {
         
         opList = m_botAction.getOperatorList();
         
-        players = new TreeMap<String, IdlePlayer>();
+        players = new TreeMap<String, Long>();
+        
+        TimerTask check = new TimerTask() {
+            public void run() {
+                check();
+            }
+        };
+        m_botAction.scheduleTaskAtFixedRate(check, 2000, 5 * Tools.TimeInMillis.MINUTE);
     }
 
     public void requestEvents(EventRequester eventRequester) {
@@ -96,7 +118,7 @@ public class pubbotafk extends PubBotModule {
         players.clear();
         
         for (Iterator<Player> it = m_botAction.getPlayerIterator(); it.hasNext();)
-                add(it.next());
+            add(it.next());
     }
     
     public void handleEvent(FrequencyChange event) {
@@ -106,7 +128,7 @@ public class pubbotafk extends PubBotModule {
         if (players.containsKey(name) && p.getShipType() != Tools.Ship.SPECTATOR)
             players.remove(name);
         else if (players.containsKey(name))
-            players.get(name).reset();
+            players.put(name, System.currentTimeMillis());
         else if (p.getShipType() == Tools.Ship.SPECTATOR)
             add(p);
     }
@@ -118,7 +140,7 @@ public class pubbotafk extends PubBotModule {
         if (players.containsKey(name) && p.getShipType() != Tools.Ship.SPECTATOR)
             players.remove(name);
         else if (players.containsKey(name))
-            players.get(name).reset();
+            players.put(name, System.currentTimeMillis());
         else if (p.getShipType() == Tools.Ship.SPECTATOR) 
             add(p);
     }
@@ -131,7 +153,7 @@ public class pubbotafk extends PubBotModule {
         if (name != null) {
             //Do not count private messages, because with ?away a player could fool the bot as if he was still here.
             if (players.containsKey(name) && event.getMessageType() != Message.PRIVATE_MESSAGE)
-                players.get(name).reset();
+                players.put(name, System.currentTimeMillis());
         }
         
         if (type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE) {
@@ -157,40 +179,5 @@ public class pubbotafk extends PubBotModule {
         String name = m_botAction.getPlayerName(event.getPlayerID());
         if (players.containsKey(name))
             players.remove(name);
-    }
-    
-    private class IdlePlayer {
-        private boolean warned;
-        private Short idleTime; //In minutes
-        private TimerTask updater;
-        private String name;
-        
-        public IdlePlayer(String name) {
-            this.name = name;
-            idleTime = 0;
-            warned = false;
-            
-            updater = new TimerTask() {
-              public void run() {
-                  idleTime++;
-                  check();
-              }
-            };
-            m_botAction.scheduleTaskAtFixedRate(updater, Tools.TimeInMillis.MINUTE, Tools.TimeInMillis.MINUTE);  
-        }
-        
-        public void check() {
-            if (!warned && idleTime >= WARNING_TIME) {
-                warned = true;
-                m_botAction.sendPrivateMessage(name, WARNING_MESSAGE);
-            }
-            else if (warned && idleTime >= (WARNING_TIME + MOVE_TIME))
-                m_botAction.sendUnfilteredPrivateMessage(name, sendtoCmd);
-        }
-        
-        public void reset() {
-            warned = false;
-            idleTime = 0;
-        }
     }
 }
