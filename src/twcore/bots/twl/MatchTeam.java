@@ -666,13 +666,13 @@ public class MatchTeam
                                 m_logger.sendPrivateMessage(name, pB.getPlayerName() + " is not in the game (subbed or is out)");
                         }
                         else
-                            m_logger.sendPrivateMessage(name, pB.getPlayerName() + " is not on your team");
+                            m_logger.sendPrivateMessage(name, "Cannot find player " + parameters[1] + " for your team");
                     }
                     else
                         m_logger.sendPrivateMessage(name, pA.getPlayerName() + " is not in the game (subbed or is out)");
                 }
                 else
-                    m_logger.sendPrivateMessage(name, pA.getPlayerName() + " is not on your team");
+                    m_logger.sendPrivateMessage(name, "Cannot find player " + parameters[0] + " for your team");
             }
             else
                 m_logger.sendPrivateMessage(name, "Specify the players to switch ships with");
