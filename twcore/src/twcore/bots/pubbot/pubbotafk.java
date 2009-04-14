@@ -24,9 +24,17 @@ import twcore.core.util.Tools;
  * @author fantus
  */
 public class pubbotafk extends PubBotModule {
-    private final static int WARNING_TIME = 10;     //(Time in minutes)
-    private final static int MOVE_TIME = 5;         //Time the player gets to get active
-                                                    //after the warning (Time in minutes)
+    // Current settings:
+    // - Warn normal players after 8 minutes
+    // - Kick normal players after +2 minutes (= 10 minutes)
+    // - Warn staffers after 15 minutes
+    // - Kick staffers after +5 minutes (= 20 minutes)
+    
+    private final static int WARNING_TIME = 8;      // (Time in minutes)
+    private final static int MOVE_TIME = 2;         // Time the player gets to get active
+                                                    // after the warning (Time in minutes)
+    private final static int STAFF_WARNING_TIME = 15;
+    private final static int STAFF_MOVE_TIME = 5;
     private final static String AFK_ARENA = "afk";  //Arena to where the players get moved
     private final static String WARNING_MESSAGE = "NOTICE: In order to keep the gameplay high in public arena's " +
     		"being idle for too long is not allowed. If you intend to go afk, please type \"?go " + AFK_ARENA + "\"." +
@@ -48,10 +56,21 @@ public class pubbotafk extends PubBotModule {
     public void check() {
         if (!players.isEmpty()) {
             for (String name : players.keySet()) {
-                if (getIdleTime(name) >= (WARNING_TIME + MOVE_TIME))
-                    m_botAction.sendUnfilteredPrivateMessage(name, sendtoCmd);
-                else if (getIdleTime(name) >= WARNING_TIME)
-                    m_botAction.sendPrivateMessage(name, WARNING_MESSAGE);
+                if(opList.isER(name)) {
+                    // Staffers
+                    if (getIdleTime(name) >= (STAFF_WARNING_TIME + STAFF_MOVE_TIME))
+                        m_botAction.sendUnfilteredPrivateMessage(name, sendtoCmd);
+                    else if (getIdleTime(name) == STAFF_WARNING_TIME)
+                        m_botAction.sendPrivateMessage(name, WARNING_MESSAGE);
+                    
+                } else {
+                    
+                    // Normal players
+                    if (getIdleTime(name) >= (WARNING_TIME + MOVE_TIME))
+                        m_botAction.sendUnfilteredPrivateMessage(name, sendtoCmd);
+                    else if (getIdleTime(name) == WARNING_TIME)
+                        m_botAction.sendPrivateMessage(name, WARNING_MESSAGE);
+                }
             }
         }
     }
@@ -66,9 +85,41 @@ public class pubbotafk extends PubBotModule {
     
     public void cmdListidle(String messager) {
         ArrayList<String> out = new ArrayList<String>();
-        out.add(Tools.formatString("<Name>", 23) + " - <idle time>");
-        for (String name : players.keySet())
-            out.add(Tools.formatString(name, 23) + " - " + getIdleTime(name));
+        
+        out.add(Tools.formatString("<Name>", 23) + " - <idle time/mins>");
+        for (String name : players.keySet()) {
+            long idleTime = getIdleTime(name);
+            String actionIn = "";
+            long diff = 0;
+            
+            if(opList.isER(name)) {
+                // staffers
+
+                if(idleTime < (STAFF_WARNING_TIME + STAFF_MOVE_TIME)) {
+                    actionIn = "Moving in ";
+                    diff = (STAFF_WARNING_TIME + STAFF_MOVE_TIME) - idleTime;
+                }
+                if(idleTime < STAFF_WARNING_TIME) {
+                    actionIn = "Warning in ";
+                    diff = STAFF_WARNING_TIME - idleTime;
+                }
+                
+            } else {
+                // normal players
+                
+                if(idleTime < (WARNING_TIME + MOVE_TIME)) {
+                    actionIn = "Moving in ";
+                    diff = (WARNING_TIME + MOVE_TIME) - idleTime;
+                }
+                if(idleTime < WARNING_TIME) {
+                    actionIn = "Warning in ";
+                    diff = WARNING_TIME - idleTime;
+                }
+                
+            }
+            out.add(Tools.formatString(name, 23) + " - " + Tools.formatString(String.valueOf(idleTime),2) + "  " + actionIn + diff + " minute(s)");
+        }
+        
         m_botAction.smartPrivateMessageSpam(messager, out.toArray(new String[out.size()]));
     }
     
@@ -102,7 +153,7 @@ public class pubbotafk extends PubBotModule {
                 check();
             }
         };
-        m_botAction.scheduleTaskAtFixedRate(check, 2000, 5 * Tools.TimeInMillis.MINUTE);
+        m_botAction.scheduleTaskAtFixedRate(check, 1000, Tools.TimeInMillis.MINUTE);
     }
 
     public void requestEvents(EventRequester eventRequester) {
@@ -177,6 +228,7 @@ public class pubbotafk extends PubBotModule {
     
     public void handleEvent(PlayerLeft event) {
         String name = m_botAction.getPlayerName(event.getPlayerID());
+        
         if (players.containsKey(name))
             players.remove(name);
     }
