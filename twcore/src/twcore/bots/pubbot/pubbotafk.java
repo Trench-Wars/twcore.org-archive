@@ -89,35 +89,26 @@ public class pubbotafk extends PubBotModule {
         out.add(Tools.formatString("<Name>", 23) + " - <idle time/mins>");
         for (String name : players.keySet()) {
             long idleTime = getIdleTime(name);
-            String actionIn = "";
-            long diff = 0;
+            String action = "";
             
             if(opList.isER(name)) {
                 // staffers
-
-                if(idleTime < (STAFF_WARNING_TIME + STAFF_MOVE_TIME)) {
-                    actionIn = "Moving in ";
-                    diff = (STAFF_WARNING_TIME + STAFF_MOVE_TIME) - idleTime;
-                }
                 if(idleTime < STAFF_WARNING_TIME) {
-                    actionIn = "Warning in ";
-                    diff = STAFF_WARNING_TIME - idleTime;
+                    action += "Warning in " + (STAFF_WARNING_TIME - idleTime) + " minute(s), ";
                 }
-                
+                if(idleTime < (STAFF_WARNING_TIME + STAFF_MOVE_TIME)) {
+                    action += "Moving in " + ((STAFF_WARNING_TIME + STAFF_MOVE_TIME) - idleTime) + " minute(s)";
+                }
             } else {
                 // normal players
-                
-                if(idleTime < (WARNING_TIME + MOVE_TIME)) {
-                    actionIn = "Moving in ";
-                    diff = (WARNING_TIME + MOVE_TIME) - idleTime;
-                }
                 if(idleTime < WARNING_TIME) {
-                    actionIn = "Warning in ";
-                    diff = WARNING_TIME - idleTime;
+                    action += "Warning in " + (WARNING_TIME - idleTime) + " minute(s), ";
                 }
-                
+                if(idleTime < (WARNING_TIME + MOVE_TIME)) {
+                    action = "Moving in " + ((WARNING_TIME + MOVE_TIME) - idleTime) + " minute(s)";
+                }
             }
-            out.add(Tools.formatString(name, 23) + " - " + Tools.formatString(String.valueOf(idleTime),2) + "  " + actionIn + diff + " minute(s)");
+            out.add(Tools.formatString(name, 23) + " - " + Tools.formatString(String.valueOf(idleTime),2) + "  " + action);
         }
         
         m_botAction.smartPrivateMessageSpam(messager, out.toArray(new String[out.size()]));
