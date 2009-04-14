@@ -105,7 +105,7 @@ public class pubbotafk extends PubBotModule {
                     action += "Warning in " + (WARNING_TIME - idleTime) + " minute(s), ";
                 }
                 if(idleTime < (WARNING_TIME + MOVE_TIME)) {
-                    action = "Moving in " + ((WARNING_TIME + MOVE_TIME) - idleTime) + " minute(s)";
+                    action += "Moving in " + ((WARNING_TIME + MOVE_TIME) - idleTime) + " minute(s)";
                 }
             }
             out.add(Tools.formatString(name, 23) + " - " + Tools.formatString(String.valueOf(idleTime),2) + "  " + action);
