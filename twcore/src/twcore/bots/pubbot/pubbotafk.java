@@ -38,7 +38,7 @@ public class pubbotafk extends PubBotModule {
     private final static String AFK_ARENA = "afk";  //Arena to where the players get moved
     private final static String WARNING_MESSAGE = "NOTICE: In order to keep the gameplay high in public arena's " +
     		"being idle for too long is not allowed. If you intend to go away, please type \"?go " + AFK_ARENA + "\"." +
-    		" (If you stay inactive you will be moved to the subarena " + AFK_ARENA + " automatically.)";
+    		" (If you stay inactive you will be moved to the subarena '" + AFK_ARENA + "' automatically.)";
     private final static String WARNING_MESSAGE2 = "To declare yourself not-idle, please talk in either public or team chat. " +
                                                     "Private messages are ignored.";
     private final static String MOVE_MESSAGE = "You've been moved to the away-from-keyboard subarena - 'afk'. Type \"?go\" to return.";
