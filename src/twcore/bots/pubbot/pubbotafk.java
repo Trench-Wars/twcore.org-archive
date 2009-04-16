@@ -39,6 +39,8 @@ public class pubbotafk extends PubBotModule {
     private final static String WARNING_MESSAGE = "NOTICE: In order to keep the gameplay high in public arena's " +
     		"being idle for too long is not allowed. If you intend to go afk, please type \"?go " + AFK_ARENA + "\"." +
     		" (If you stay inactive you will be moved to ?go " + AFK_ARENA + ".)";
+    private final static String WARNING_MESSAGE2 = "To declare yourself not-idle, please talk in either public or team chat. " +
+                                                    "Private messages are ignored.";
     
     private OperatorList opList;
     private String sendtoCmd;
@@ -60,16 +62,20 @@ public class pubbotafk extends PubBotModule {
                     // Staffers
                     if (getIdleTime(name) >= (STAFF_WARNING_TIME + STAFF_MOVE_TIME))
                         m_botAction.sendUnfilteredPrivateMessage(name, sendtoCmd);
-                    else if (getIdleTime(name) == STAFF_WARNING_TIME)
+                    else if (getIdleTime(name) == STAFF_WARNING_TIME) {
                         m_botAction.sendPrivateMessage(name, WARNING_MESSAGE);
+                        m_botAction.sendPrivateMessage(name, WARNING_MESSAGE2);
+                    }
                     
                 } else {
                     
                     // Normal players
                     if (getIdleTime(name) >= (WARNING_TIME + MOVE_TIME))
                         m_botAction.sendUnfilteredPrivateMessage(name, sendtoCmd);
-                    else if (getIdleTime(name) == WARNING_TIME)
+                    else if (getIdleTime(name) == WARNING_TIME) {
                         m_botAction.sendPrivateMessage(name, WARNING_MESSAGE);
+                        m_botAction.sendPrivateMessage(name, WARNING_MESSAGE2);
+                    }
                 }
             }
         }
