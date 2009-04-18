@@ -267,6 +267,8 @@ public class pubhubstats extends PubBotModule {
 	    // loop over available shipscores and save each one to database (batch)
 	    // execute batches
 	    
+	    if(stop) return;
+	    
 	    long startTime = System.currentTimeMillis();
 	    
 	    Map<String, PubStatsPlayer>  playerMap = stats.getPlayers();
