@@ -1028,6 +1028,16 @@ public class twdbot extends SubspaceBot {
     {
 
         String[] pieces = message.split("  ");
+
+        //Log the *info message that used to make the bot crash
+        if ( pieces.length < 5 ) { 
+            Tools.printLog( "TWDBOT ERROR: " + message);
+            
+            //Make sure that the bot wont crash on it again
+            return;
+        }
+            
+        
         String name = pieces[3].substring(10);
         String ip = pieces[0].substring(3);
         String mid = pieces[5].substring(10);
