@@ -1360,8 +1360,6 @@ public class tournybot extends SubspaceBot {
 				trState = -1;
 				stopped = false;
 				m_botAction.sendArenaMessage("TournyBot disabled (" + tournyCount + " tournaments hosted)");
-				m_botAction.sendSmartPrivateMessage("lnx", "Turnaus loppu!!");
-
 			} else {
 				m_botAction.sendChatMessage(1, "Tourny over. Next tourny starting soon.");
 				m_botAction.sendChatMessage(2, "Tourny over. Next tourny starting soon.");
