@@ -30,7 +30,6 @@ import twcore.core.util.Tools;
 public class octabot extends SubspaceBot {
 
 	private HashMap<String, OctaPlayer> players;
-	//private	HashMap access;
 	private boolean running = false;
 	private boolean prestart = false;
 	
@@ -38,12 +37,19 @@ public class octabot extends SubspaceBot {
     
 	java.util.Date d;
 	int timeStart;
+	
+	private final static int LVZ_RULES = 10;
+	private final static int LVZ_GETREADY = 11;
+	private final static int LVZ_GAMESTARTED = 12;
+	private final static int LVZ_GAMEOVER = 13;
+	private final static int LVZ_FREQ1WON = 14;
+	private final static int LVZ_FREQ2WON = 15;
+	
 
 	public octabot( BotAction botAction ) {
 		super( botAction );
 
 		players = new HashMap<String, OctaPlayer>();
-		//access = new HashMap();
 
 		EventRequester events = m_botAction.getEventRequester();
                 events.request( EventRequester.MESSAGE );
@@ -68,13 +74,12 @@ public class octabot extends SubspaceBot {
 		String name = m_botAction.getPlayerName( event.getPlayerID() );
 
 		if( message.startsWith( "!rules" ) )
-			m_botAction.sendUnfilteredPrivateMessage( name, "*objon 10" );
+			m_botAction.showObjectForPlayer(event.getPlayerID(), LVZ_RULES);
 		else if( message.startsWith( "Arena LOCKED" ) )
 			handleLockedState( true );
 		else if( message.startsWith( "Arena UNLOCKED" ) )
 			handleLockedState( false );
 
-//                if(!m_botAction.getOperatorList().isER(name)) return;
 		message = event.getMessage().toLowerCase();
 		if( message.startsWith( "!start" ) && m_botAction.getOperatorList().isER( name ))
 			startGame();
@@ -136,9 +141,6 @@ public class octabot extends SubspaceBot {
 	}
 
 	public void handleEvent( ArenaJoined event ) {
-		//m_botAction.toggleLocked();
-		//m_botAction.specAll();
-		m_botAction.sendArenaMessage( "OctaBot is here!!!", 11 );
 		running = true;
 	}
 
@@ -148,7 +150,6 @@ public class octabot extends SubspaceBot {
 
 		m_botAction.joinArena( m_botSettings.getString("Arena") );
 
-//		readPermit( m_botSettings.getString("PathToPermit") );
  	}
 
  	public void handleEvent( FlagVictory event ) {
@@ -158,16 +159,24 @@ public class octabot extends SubspaceBot {
 
  		storeGameResult( event.getFrequency(), event.getReward() );
  		players.clear();
+ 		m_botAction.showObject( LVZ_GAMEOVER ); 
+ 		
+ 		final short winFreq = event.getFrequency();
 
+ 		// Timertask to end the game
  		TimerTask endGame = new TimerTask() {
  			public void run() {
- 				m_botAction.showObject( 13 );
+ 			    if( winFreq == 1)
+ 			        m_botAction.showObject( LVZ_FREQ1WON );
+ 			    if( winFreq == 2)
+ 			        m_botAction.showObject( LVZ_FREQ2WON );
+ 			    
  				m_botAction.specAll();
  				running = false;
  				m_botAction.toggleLocked();
  			}
  		};
- 		m_botAction.scheduleTask( endGame, 5000 );
+ 		m_botAction.scheduleTask( endGame, 5 * Tools.TimeInMillis.SECOND );
 
  	}
 
@@ -179,7 +188,7 @@ public class octabot extends SubspaceBot {
  			say = "Welcome to OctaBase. The game is currently IN PROGRESS. Enter if you would like to play. "+
  			      "Type :OctaBot:!rules to see the rules of the game";
 
- 		m_botAction.sendPrivateMessage( event.getPlayerID(), say );
+ 			m_botAction.sendPrivateMessage( event.getPlayerID(), say );
 		}
 
 	}
@@ -296,14 +305,6 @@ public class octabot extends SubspaceBot {
 		}
 	}
 
-	/*
-	public boolean hasAccess( int playerId ) {
-		if( access.containsKey( m_botAction.getPlayerName( playerId ) ) )
-			return true;
-		else return false;
-	}
-	*/
-
 	public void startGame() {
 
 		if( running ) return;
@@ -311,14 +312,14 @@ public class octabot extends SubspaceBot {
 		m_botAction.resetFlagGame();
 		prestart = true;
 		running = true;
-		m_botAction.showObject( 11 );
-		m_botAction.sendArenaMessage( "GET READY", 2 );
+		m_botAction.showObject( LVZ_GETREADY );
+		m_botAction.sendArenaMessage( "GET READY", LVZ_GETREADY );
 
 
 		TimerTask startGame = new TimerTask() {
 			public void run() {
-				m_botAction.showObject( 12 );
-				m_botAction.sendArenaMessage( "GAME STARTED!", 104 );
+				m_botAction.showObject( LVZ_GAMESTARTED );
+				m_botAction.sendArenaMessage( "GAME STARTED!", Tools.Sound.GOGOGO );
 				prestart = false;
 				timeStart = (int)(System.currentTimeMillis()/1000);
 				d = new java.util.Date();
@@ -344,53 +345,19 @@ public class octabot extends SubspaceBot {
 		if( !running && !locked )
 			m_botAction.toggleLocked();
 	}
-	/*
-	public void showAccessList( String name ) {
-
-		Iterator it = access.keySet().iterator();
-		Vector v = new Vector();
-		String list = "Access: ";
-		while( it.hasNext() ) {
-			list += it.next() + "  ";
-			if( list.length() > 80 ) {
-				v.addElement( list );
-				list = "Access: ";
-			}
-		}
-		for( int i = 0; i < v.size(); i++ )
-			m_botAction.sendPrivateMessage( name, (String)v.elementAt(i) );
-
-	}
-	*/
+	
 	public void displayAccessHelp( String name ) {
 
 		String help[] = {
 			"-------------- OctaBot v1.0 ----------------------------",
 			"| !start               - starts an Octabase game!!!    |",
 			"| !cancel              - stops a game if running       |",
-			"| !access              - displays the access list      |",
 			"| !rules               - displays game 'quick rules'   |",
 			"--------------------------------------------------------"
 		};
 		m_botAction.privateMessageSpam( name, help );
 	}
-	/*
-	public void readPermit( String file ) {
-
-		try {
-			BufferedReader in = new BufferedReader( new FileReader( file ) );
-			String line = in.readLine();
-			while( line != null ) {
-				access.put( line, line );
-				line = in.readLine();
-			}
-		} catch (FileNotFoundException e) {
-			Tools.printLog( "Permit.txt not found." );
-		} catch (IOException e) {
-			Tools.printLog( "Error reading Permit.txt" );
-		}
-	}
-	*/
+	
 	public void warpPlayer( Player p ) {
 
 		if( p.getFrequency() == 0 )
