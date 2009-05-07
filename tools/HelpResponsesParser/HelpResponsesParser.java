@@ -135,7 +135,8 @@ public class HelpResponsesParser {
             PrintWriter out = new PrintWriter(ostream);
             String line;
             
-            out.println("<html><head></head><body>");
+            out.println("<html><head><link type=\"text/css\" rel=\"stylesheet\" href=\"robohelp.css\" />");
+            out.println("<script type=\"text/javascript\" src=\"robohelp.js\" /></head><body>");
             out.println("<div id=\"topbar\"><a href=\"\" onClick=\"closebar(); return false\">[X]</a>");
             out.println("<b>Keywords</b> <font color=\"blue\">Extra keywords</font> &nbsp;&nbsp; <font color=\"red\">Not matching keywords</font>");
             out.println("</div>");
