@@ -1366,7 +1366,10 @@ public class tournybot extends SubspaceBot {
 				m_botAction.sendChatMessage(3, "Tourny over, the winner was " + fWin.getNames() + ". Next tourny starting soon, ?go tourny now!");
 
 				if ((tournyCount%2 == 0 || fZoner) && !zonerLock) {
-					m_botAction.sendZoneMessage("Next automated tournament is starting. Type ?go tourny to play");
+				    if ( fWin.getNames().indexOf(" and ") != -1)
+				        m_botAction.sendZoneMessage("Next automated tournament is starting. Last round's winners were " + fWin.getNames() + "! Type ?go tourny to play");
+				    else
+				        m_botAction.sendZoneMessage("Next automated tournament is starting. Last round's winner was " + fWin.getNames() + "! Type ?go tourny to play");
 					fZoner = false;
 				}
 
