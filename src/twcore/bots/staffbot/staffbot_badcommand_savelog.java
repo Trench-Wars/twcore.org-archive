@@ -19,7 +19,7 @@ import twcore.core.events.Message;
 import twcore.core.util.Tools;
 
 /**
- * This module reports bad commands that are shown on the *log
+ * This module reports bad commands (and player kicks for message flooding) that are shown on the *log
  * This module also logs all *log lines to a file. The functionality is copied from the mrarrogant bot.
  * 
  * @author MMaverick
@@ -99,10 +99,19 @@ public class staffbot_badcommand_savelog extends Module {
                 if(lastLogDate == null)
                     lastLogDate = date;
                 
-                if(date.after(lastLogDate) && message.indexOf("Ext: ") == 22) {
-                    handleLogCommand(date, message.substring(27));  
-                }
+                // Fri May 01 01:06:44:  Played kicked off for message flooding: nliE
+                // Ext: MMaverick (#robopark): *arena jkshdfs
+
                 if(date.after(lastLogDate)) {
+                    String logmessage = message.substring(22);  // Remove the timestamp
+                    
+                    if(logmessage.startsWith("Ext: ")) {
+                        handleLogCommand(date, logmessage.substring(5));  
+                    }
+                    if(logmessage.startsWith("Played kicked off for message flooding:")) {
+                        m_botAction.sendChatMessage(2,logmessage);
+                    }
+                    
                     writeLog(message, date);
                     lastLogDate = date;
                 }
