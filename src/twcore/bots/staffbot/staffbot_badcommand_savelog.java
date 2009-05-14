@@ -108,7 +108,7 @@ public class staffbot_badcommand_savelog extends Module {
                     if(logmessage.startsWith("Ext: ")) {
                         handleLogCommand(date, logmessage.substring(5));  
                     }
-                    if(logmessage.startsWith("Played kicked off for message flooding:")) {
+                    if(logmessage.startsWith("Player kicked off for message flooding:")) {
                         m_botAction.sendChatMessage(2,logmessage);
                     }
                     
