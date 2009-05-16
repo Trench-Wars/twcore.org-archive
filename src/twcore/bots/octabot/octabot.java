@@ -72,21 +72,36 @@ public class octabot extends SubspaceBot {
 
 		String message = event.getMessage();
 		String name = m_botAction.getPlayerName( event.getPlayerID() );
+		
+		// Arena messages
+        if( message.startsWith( "Arena LOCKED" ) ) {
+            handleLockedState( true );
+            return;
+        }
+        else if( message.startsWith( "Arena UNLOCKED" ) ) {
+            handleLockedState( false );
+            return;
+        }
+        
+        message = event.getMessage().toLowerCase();
 
-		if( message.startsWith( "!rules" ) )
+		// Player commands
+		if( message.startsWith( "!rules" ) ) {
 			m_botAction.showObjectForPlayer(event.getPlayerID(), LVZ_RULES);
-		else if( message.startsWith( "Arena LOCKED" ) )
-			handleLockedState( true );
-		else if( message.startsWith( "Arena UNLOCKED" ) )
-			handleLockedState( false );
-
-		message = event.getMessage().toLowerCase();
-		if( message.startsWith( "!start" ) && m_botAction.getOperatorList().isER( name ))
-			startGame();
-		else if( message.startsWith( "!cancel" ) && m_botAction.getOperatorList().isER( name ) )
-			stopGame();
-		else if( message.startsWith( "!help" ) && m_botAction.getOperatorList().isER( name ) )
-			displayAccessHelp( name );
+		} else
+		// Staff commands
+		if(m_botAction.getOperatorList().isER( name )) {
+		    if( message.startsWith( "!start" ))
+		        startGame();
+		    else if( message.startsWith( "!cancel" ))
+		        stopGame();
+		    else if( message.startsWith( "!help" ))
+		        displayAccessHelp( name );
+		    else if( message.startsWith ( "!die" ) && running)
+		        m_botAction.sendPrivateMessage(event.getPlayerID(), "The game is still running, !cancel the game first.");
+		    else if( message.startsWith ( "!die" ) && !running)
+		        m_botAction.die();
+		}
 
 	}
 
@@ -260,8 +275,7 @@ public class octabot extends SubspaceBot {
             if( event.getIdentifier().startsWith( "%octa" ) )
                 m_botAction.SQLClose( event.getResultSet() );
         }
-
-
+        
  	public void setToLowerTeam( int playerId, int playerFreq ) {
 
  		Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
