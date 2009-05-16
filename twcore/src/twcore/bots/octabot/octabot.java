@@ -367,6 +367,7 @@ public class octabot extends SubspaceBot {
 			"| !start               - starts an Octabase game!!!    |",
 			"| !cancel              - stops a game if running       |",
 			"| !rules               - displays game 'quick rules'   |",
+			"| !die                 - disconnects bot               |",
 			"--------------------------------------------------------"
 		};
 		m_botAction.privateMessageSpam( name, help );
