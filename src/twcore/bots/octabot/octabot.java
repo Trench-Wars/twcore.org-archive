@@ -89,7 +89,7 @@ public class octabot extends SubspaceBot {
 		if( message.startsWith( "!rules" ) ) {
 			m_botAction.showObjectForPlayer(event.getPlayerID(), LVZ_RULES);
 		} else
-		// Staff commands
+		// Staff commands (ER+)
 		if(m_botAction.getOperatorList().isER( name )) {
 		    if( message.startsWith( "!start" ))
 		        startGame();
