@@ -135,7 +135,6 @@ public class duelbot extends SubspaceBot {
     	m_commandInterpreter.registerCommand( "!disableuser", acceptedMessages, this, "do_opDisableName" );
         m_commandInterpreter.registerCommand( "!shutdowndie", acceptedMessages, this, "do_shutDownDie" );
     	m_commandInterpreter.registerCommand( "!die", acceptedMessages, this, "do_die" );
-    	m_commandInterpreter.registerCommand( "!zone", acceptedMessages, this, "do_twelZoner" );
 
 
     	m_commandInterpreter.registerDefaultCommand( Message.ARENA_MESSAGE, this, "do_checkArena" );
@@ -862,6 +861,12 @@ public class duelbot extends SubspaceBot {
                 "|      !shutdowndie  (prevents new games, kills bot when no duels are active)|",
 				"------------------------------------------------------------------------------"
 				};
+			
+			// hidden commands: (probably hidden because they are very error sensitive and powerful)
+			// !limit        - sets BotAction.setMessageLimit(msgsPerMin)
+			// !version      - returns 1.40
+			// !setgreet     - sets arena greet message
+			
 			m_botAction.privateMessageSpam( name, help2 );
 		}
 
@@ -875,11 +880,6 @@ public class duelbot extends SubspaceBot {
     	if( !(leagueOps.containsKey( name.toLowerCase() ) || m_botAction.getOperatorList().isSmod(name)) ) return;
 		//Removes the bot from the server.
     	m_botAction.die();
-    }
-
-    public void do_twelZoner( String name, String message ) {
-    	if( !(leagueOps.containsKey( name.toLowerCase() ) || m_botAction.getOperatorList().isSmod(name)) ) return;
-    	m_botAction.sendZoneMessage(message + " -TWEL Staff",2);
     }
 
     public void do_setMessageLimit(String name, String message) {
