@@ -124,6 +124,11 @@ public class pubhubalias extends PubBotModule
 
 	private void doAltMacIdCmd(String playerMid)
 	{
+	    if(!Tools.isAllDigits(playerMid)) {
+	        m_botAction.sendChatMessage("Command syntax error: Please use !altmid <number>");
+	        return;
+	    }
+	    
 		try
 		{
 			String[] headers = {NAME_FIELD, IP_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD};
