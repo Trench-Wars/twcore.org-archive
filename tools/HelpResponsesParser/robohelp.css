@@ -1,8 +1,6 @@
 #topbar{ 
-	position:absolute; 
 	border: 1px solid black; 
 	padding: 2px; 
 	background-color: lightyellow; 
-	width: 620px; visibility: 
-	hidden; z-index: 100; 
+	width: 620px; 
 }
