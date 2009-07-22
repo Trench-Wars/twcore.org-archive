@@ -9,6 +9,7 @@ import java.util.TimerTask;
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
 import twcore.core.events.ArenaJoined;
+import twcore.core.events.FlagReward;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
@@ -66,6 +67,7 @@ public class pubbotstats extends PubBotModule {
 	  eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
 	  eventRequester.request(EventRequester.ARENA_JOINED);
 	  eventRequester.request(EventRequester.MESSAGE);
+	  eventRequester.request(EventRequester.FLAG_REWARD);
   }
 
   public void handleEvent( ArenaJoined event ) {
@@ -101,6 +103,28 @@ public class pubbotstats extends PubBotModule {
           player.setLosses(event.getLosses());
           player.updated();
           player.seen();
+      }
+  }
+  
+  public void handleEvent( FlagReward event ) {
+      // Update the score for all players in the team gaining the flag reward
+      
+      for(Player p : m_botAction.getPlayingPlayers()) {
+          if(p.getFrequency() == event.getFrequency()) {
+              PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
+              
+              int diffFlagPoints = p.getFlagPoints()-player.getFlagPoints();
+              if(diffFlagPoints < 0)
+                  diffFlagPoints = 0;
+              
+              // Update ship stats
+              // Only store the difference in scores on each kill
+              player.updateShipScore(player.getShip(), diffFlagPoints,0,0,0);
+
+              // Update overall stats
+              player.setFlagPoints(p.getFlagPoints());
+              player.updated();
+          }
       }
   }
 
