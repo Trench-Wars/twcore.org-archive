@@ -101,6 +101,8 @@ public class staffbot_badcommand_savelog extends Module {
                 
                 // Fri May 01 01:06:44:  Played kicked off for message flooding: nliE
                 // Ext: MMaverick (#robopark): *arena jkshdfs
+                
+                // Sat Jul 25 18:09:29:  Ext: Played kicked off for message flooding: Velcromancer
 
                 if(date.after(lastLogDate)) {
                     String logmessage = message.substring(22);  // Remove the timestamp
@@ -108,7 +110,8 @@ public class staffbot_badcommand_savelog extends Module {
                     if(logmessage.startsWith("Ext: ")) {
                         handleLogCommand(date, logmessage.substring(5));  
                     }
-                    if(logmessage.startsWith("Played kicked off for message flooding:")) {
+                    if(logmessage.startsWith("Played kicked off for message flooding:") ||
+                       logmessage.startsWith("Ext: Played kicked off for message flooding:")) {
                         m_botAction.sendChatMessage(2,logmessage.replaceFirst("Played", "Player")); // Fix typo
                     }
                     
