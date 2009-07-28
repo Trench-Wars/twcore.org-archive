@@ -113,17 +113,19 @@ public class pubbotstats extends PubBotModule {
           if(p.getFrequency() == event.getFrequency()) {
               PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
               
-              int diffFlagPoints = p.getFlagPoints()-player.getFlagPoints();
-              if(diffFlagPoints < 0)
-                  diffFlagPoints = 0;
-              
-              // Update ship stats
-              // Only store the difference in scores on each kill
-              player.updateShipScore(player.getShip(), diffFlagPoints,0,0,0);
-
-              // Update overall stats
-              player.setFlagPoints(p.getFlagPoints());
-              player.updated();
+              if(player != null) {  // in case the player can't be found
+                  int diffFlagPoints = p.getFlagPoints()-player.getFlagPoints();
+                  if(diffFlagPoints < 0)
+                      diffFlagPoints = 0;
+                  
+                  // Update ship stats
+                  // Only store the difference in scores on each kill
+                  player.updateShipScore(player.getShip(), diffFlagPoints,0,0,0);
+    
+                  // Update overall stats
+                  player.setFlagPoints(p.getFlagPoints());
+                  player.updated();
+              }
           }
       }
   }
