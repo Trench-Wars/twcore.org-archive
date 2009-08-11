@@ -72,9 +72,6 @@ public class matchbot extends SubspaceBot
     // The last time (in ms) that an advert was done for this game
     protected long lastAdvertTime = 0;
     
-    /** The required ?obscene status */
-    private boolean obsceneStatus = false;
-
     // --- temporary
     String m_team1 = null, m_team2 = null;
 
@@ -196,8 +193,6 @@ public class matchbot extends SubspaceBot
     {
         m_botAction.ipcSubscribe("MatchBot");
         
-        m_botAction.sendUnfilteredPublicMessage("?obscene");
-
         String def = m_botSettings.getString("Default" + getBotNumber());
         int typeNumber = getGameTypeNumber(def);
 
@@ -318,13 +313,6 @@ public class matchbot extends SubspaceBot
         int messageType = event.getMessageType();
         String message = event.getMessage();
         
-        if(messageType == Message.ARENA_MESSAGE && message.equals("Obscenity block ON") && !obsceneStatus) {
-            m_botAction.sendUnfilteredPublicMessage("?obscene");
-        }
-        if(messageType == Message.ARENA_MESSAGE && message.equals("Obscenity block OFF") && obsceneStatus) {
-            m_botAction.sendUnfilteredPublicMessage("?obscene");
-        }
-
         if ((messageType == Message.ARENA_MESSAGE)
             && (event.getMessage().equals("WARNING: You have been disconnected because server has not been receiving data from you.")))
         {
