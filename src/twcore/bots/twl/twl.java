@@ -1152,7 +1152,7 @@ public class twl extends SubspaceBot
         if (parameters != null && parameters.length == 5) {
             createGame(name, parameters);
         } else {
-            m_botAction.sendPrivateMessage(name, "GameID does not exist");
+            m_botAction.sendPrivateMessage(name, "Corrupted game details or game ID does not exist");
         }
     };
 
