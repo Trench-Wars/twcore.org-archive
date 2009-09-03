@@ -140,7 +140,7 @@ public class MatchGame
 		}
 		catch (Exception e)
 		{
-			System.out.println(e.getMessage());
+			Tools.printStackTrace(e);
 			return 0;
 		}
 	};
