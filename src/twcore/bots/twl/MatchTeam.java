@@ -252,15 +252,28 @@ public class MatchTeam
 
                 if( event.getMessageType() == Message.ARENA_MESSAGE ){
                     String msg = event.getMessage();
-                    if( msg.indexOf( "Idle:" ) != -1 ){
-                        String      name;
-                        int         idleTime;
-                        name = msg.substring( 0, msg.indexOf( ":" ) );
-
-                        idleTime = getIdleTime( msg );
-                        if( isPlayerOnTeam( name ) ){
-                            sendPrivateMessageToCaptains( name + " has been idle for " + idleTime + " seconds." );
-                        }
+                    // Check resolution against rules
+                    if( msg.indexOf( "Res:" ) != -1 && m_rules.getInt("resolutionxmax") != 0 && m_rules.getInt("resolutionymax") != 0) {
+                    	int start = msg.indexOf("Res: ")+5;
+                    	String name = msg.substring( 0, msg.indexOf( ":" ) );
+                    	String resolution = msg.substring(start, msg.indexOf(" ", start));
+                    	
+                    	// Maverick: UserId: 14  Res: 1024x768  Client: Continuum 0.40  Proxy: Using proxy at localhost  Idle: 0 s  Timer drift: 0
+                    	// Parse resolution x and y
+                    	int xResolution = Integer.parseInt(resolution.split("x")[0]);
+                    	int yResolution = Integer.parseInt(resolution.split("x")[1]);
+                    	int xResolutionMax = m_rules.getInt("resolutionxmax");
+                    	int yResolutionMax = m_rules.getInt("resolutionymax");
+                    	
+                    	if(xResolution > xResolutionMax && yResolution > yResolutionMax) {
+                    		MatchPlayer p = getPlayer( name );
+                    		if( p != null ) {
+                    			p.getOutOfGame();
+                    			m_players.remove( p );
+                    			sendPrivateMessageToCaptains( name + " has a resolution ("+xResolution+"x"+yResolution+") that is higher then resolution limits. Player removed from your team." );
+                    			m_botAction.sendPrivateMessage( name , "You've been put to spectator because your resolution is violating the resolution limits. Please change your resolution.");
+                    		}
+                    	}
                     }
 
                     return;
@@ -965,6 +978,9 @@ public class MatchTeam
 
                                     if (m_rules.getInt("substitutes") != -1)
                                         m_logger.sendPrivateMessage(name, "You have " + (m_rules.getInt("substitutes") - m_fnSubstitutes) + " substitutes left");
+                                    
+                                    // Check resolution limits
+                                    m_botAction.sendUnfilteredPrivateMessage( pB.getPlayerName(), "*einfo" );
                                 }
                                 else
                                     m_logger.sendPrivateMessage(name, pB.getPlayerName() + " is already in the game");
@@ -1713,17 +1729,6 @@ public class MatchTeam
         }
 
         return false;
-    }
-
-    private int getIdleTime( String message ){
-        int beginIndex = message.indexOf("Idle: ") + 6;
-        int endIndex = message.indexOf(" s", beginIndex);
-
-        if( beginIndex > -1 && endIndex > -1 ){
-            return Integer.parseInt(message.substring(beginIndex, endIndex));
-        } else {
-            return 0;
-        }
     }
 
     public ArrayList<String> getDScores(boolean duelG, boolean wbG) {
