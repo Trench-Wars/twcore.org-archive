@@ -53,11 +53,12 @@ public class pubhubsilence extends PubBotModule {
     				event.getMessageType() == Message.PRIVATE_MESSAGE ||
     				event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE
     			) && message.startsWith("!help")) {
-		        m_botAction.sendSmartPrivateMessage( name, "!silence <name>         - Permanent silence the specified player even when he tries to bypass." );
-		        m_botAction.sendSmartPrivateMessage( name, "                          Notice: The player isn't given a warning that he is silenced." );
-		        m_botAction.sendSmartPrivateMessage( name, "!silence <name>:<time>  - Permanent silences specified player for <time> minutes.");
-		        m_botAction.sendSmartPrivateMessage( name, "!removesilence <name>   - Remove the auto-silence on the specified player.");
-		        m_botAction.sendSmartPrivateMessage( name, "!listsilence            - List all silenced players and the amount of time left.");
+    		    m_botAction.sendSmartPrivateMessage( name, "SILENCE CHAT COMMANDS: " );
+		        m_botAction.sendSmartPrivateMessage( name, "!silence <name>                - Permanent silence the specified player even when he tries to bypass." );
+		        m_botAction.sendSmartPrivateMessage( name, "                                 Notice: The player isn't given a warning that he is silenced." );
+		        m_botAction.sendSmartPrivateMessage( name, "!silence <name>:<time>         - Permanent silences specified player for <time> minutes.");
+		        m_botAction.sendSmartPrivateMessage( name, "!removesilence <name>          - Remove the auto-silence on the specified player.");
+		        m_botAction.sendSmartPrivateMessage( name, "!listsilence                   - List all silenced players and the amount of time left.");
 		    }
     		
     		if(	event.getMessageType() == Message.CHAT_MESSAGE ||
