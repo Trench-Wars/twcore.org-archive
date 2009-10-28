@@ -65,6 +65,8 @@ public class pubhubalias extends PubBotModule
 
 	private int m_maxRecords = 15;
 	private boolean m_sortByName = false;
+	
+	private HashMap<String,String> twdops = new HashMap<String,String>();
 
 	/**
 	 * This method initializes the module.
@@ -81,6 +83,16 @@ public class pubhubalias extends PubBotModule
 		m_botAction.scheduleTaskAtFixedRate(clearRecordTask, CLEAR_DELAY, CLEAR_DELAY);
 		
 		loadWatches();
+		
+		updateTWDOps();
+	}
+	
+	private boolean isTWDOp(String name) {
+	    if (twdops.containsKey(name.toLowerCase())) {
+	        return true;
+	    } else {
+	        return false;
+	    }
 	}
 
 	public void requestEvents(EventRequester eventRequester)
@@ -449,7 +461,8 @@ public class pubhubalias extends PubBotModule
 				"!ClearIPWatch                  - Clears all login watches for IPs",
 				"!ClearMIDWatch                 - Clears all login watches for MIDs",
 				"!ShowWatches                   - Shows all current login watches",
-				"!SortByName / !SortByDate      - Selects sorting method"
+				"!SortByName / !SortByDate      - Selects sorting method",
+				"!update                        - Updates TWDOps list"   
 		};
 		m_botAction.smartPrivateMessageSpam(sender, message);
 	}
@@ -653,6 +666,16 @@ public class pubhubalias extends PubBotModule
 	public void handleChatMessage(String sender, String message)
 	{
 		String command = message.toLowerCase();
+		
+		/*
+		 * Extra check for smod and twdop added
+		 * -fantus
+		 */
+		if (!m_botAction.getOperatorList().isSmod(sender) && !isTWDOp(sender)) {
+		    return;
+		}
+		
+		
 
 		try
 		{
@@ -695,6 +718,9 @@ public class pubhubalias extends PubBotModule
 			else if(command.equals("!sortbydate")) {
 				m_sortByName = false;
 				m_botAction.sendChatMessage( "Sorting !alt cmds by date first." );
+			}
+			else if(command.equals("!update")) {
+			    updateTWDOps();
 			}
 		}
 		catch(Exception e)
@@ -901,6 +927,27 @@ public class pubhubalias extends PubBotModule
 		{
 			throw new RuntimeException("ERROR: Unable to update alias entry.");
 		}
+	}
+	
+	private void updateTWDOps() {
+	    try {
+	        ResultSet r = m_botAction.SQLQuery(DATABASE, "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '14' AND tblUser.fnUserID = tblUserRank.fnUserID");
+	        
+	        if (r == null) {
+	            return;
+	        }
+	        
+	        twdops.clear();
+	        
+	        while(r.next()) {
+	            String name = r.getString("fcUsername");
+	            twdops.put(name.toLowerCase(), name);
+	        }
+	        
+	        m_botAction.SQLClose( r );
+	    } catch (SQLException e) {
+	        throw new RuntimeException("ERROR: Unable to update twdop list.");
+	    }
 	}
 	
 	
