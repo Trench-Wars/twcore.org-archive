@@ -263,31 +263,22 @@ public class pubbot extends SubspaceBot
   public void handleEvent(InterProcessEvent event)
   {
 	  // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
-	  if(event.getObject() instanceof IPCMessage == false) {
-		  return;
+	  if(event.getObject() instanceof IPCMessage) {
+		  IPCMessage ipcMessage = (IPCMessage) event.getObject();
+		  String message = ipcMessage.getMessage();
+		  String recipient = ipcMessage.getRecipient();
+		  String sender = ipcMessage.getSender();
+		  String botSender = event.getSenderName();
+
+		  if(recipient == null || recipient.equals(botName)) {
+			  if(sender == null)
+				  handleBotIPC(botSender, recipient, sender, message);
+			  else
+				  handlePlayerIPC(botSender, sender, message);
+		  }
 	  }
-
-    IPCMessage ipcMessage = (IPCMessage) event.getObject();
-    String message = ipcMessage.getMessage();
-    String recipient = ipcMessage.getRecipient();
-    String sender = ipcMessage.getSender();
-    String botSender = event.getSenderName();
-
-    try
-    {
-      if(recipient == null || recipient.equals(botName))
-      {
-        if(sender == null)
-          handleBotIPC(botSender, recipient, sender, message);
-        else
-          handlePlayerIPC(botSender, sender, message);
-      }
-    }
-    catch(Exception e)
-    {
-      m_botAction.sendChatMessage(e.getMessage());
-    }
-    moduleHandler.handleEvent(event);
+	  
+	  moduleHandler.handleEvent(event);
   }
 
   /**

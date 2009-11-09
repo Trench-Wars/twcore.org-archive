@@ -739,14 +739,11 @@ public class pubhubalias extends PubBotModule
 			handleChatMessage(sender, message);
 	}
 
-	public void gotEntered(String botSender, String argString)
-	{
-		if(!justAdded.contains(argString.toLowerCase()) && !deleteNextTime.contains(argString.toLowerCase()))
-			m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("notrecorded " + argString, botSender));
-	}
-
 	public void gotRecord(String argString)
 	{
+		if(justAdded.contains(argString.toLowerCase()) || deleteNextTime.contains(argString.toLowerCase()))
+			return;
+			
 		StringTokenizer recordArgs = new StringTokenizer(argString, ":");
 		if(recordArgs.countTokens() != 3)
 			throw new IllegalArgumentException("ERROR: Could not write player information.");
@@ -810,20 +807,6 @@ public class pubhubalias extends PubBotModule
 	}
 
 	/**
-	 * This method handles an IPC message.
-	 *
-	 * @param botSender is the bot that sent the command.
-	 * @param message is the message that is being sent via IPC.
-	 */
-	public void handleIPCMessage(String botSender, String message)
-	{
-		if(message.startsWith("entered "))
-			gotEntered(botSender, message.substring(8));
-		if(message.startsWith("record "))
-			gotRecord(message.substring(7));
-	}
-
-	/**
 	 * This method handles an InterProcess event.
 	 *
 	 * @param event is the IPC event to handle.
@@ -838,12 +821,13 @@ public class pubhubalias extends PubBotModule
 		IPCMessage ipcMessage = (IPCMessage) event.getObject();
 		String botName = m_botAction.getBotName();
 		String message = ipcMessage.getMessage();
-		String botSender = event.getSenderName();
 
 		try
 		{
-			if(botName.equals(ipcMessage.getRecipient()))
-				handleIPCMessage(botSender, message);
+			if(botName.equals(ipcMessage.getRecipient())) {
+				if(message.startsWith("info "))
+					gotRecord(message.substring(5));
+			}
 		}
 		catch(Exception e)
 		{
@@ -904,8 +888,7 @@ public class pubhubalias extends PubBotModule
 					"(fnUserID, fcIPString, fnIP, fnMachineID, fnTimesUpdated, fdRecorded, fdUpdated) " +
 					"VALUES (" + userID + ", '" + playerIP + "', " + ip32Bit + ", " + playerMacID + ", 1, NOW(), NOW())";
 			ResultSet r = m_botAction.SQLQuery(DATABASE, query);
-
-                        m_botAction.SQLClose( r );
+			m_botAction.SQLClose( r );
 		}
 		catch(SQLException e)
 		{
@@ -921,7 +904,7 @@ public class pubhubalias extends PubBotModule
 					"UPDATE tblAlias " +
 					"SET fnTimesUpdated = fnTimesUpdated + 1, fdUpdated = NOW() " +
 					"WHERE fnAliasID = " + aliasID);
-                        m_botAction.SQLClose( r );
+			m_botAction.SQLClose( r );
 		}
 		catch(SQLException e)
 		{
