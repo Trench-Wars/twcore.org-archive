@@ -1,32 +1,18 @@
-// 604 271 8507
-
 package twcore.bots.pubbot;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
-import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
-import twcore.core.util.ipc.IPCMessage;
 
-public class pubbotalias extends PubBotModule
-{
-  private String botName;
+public class pubbotalias extends PubBotModule {
 
-  public void initializeModule()
-  {
-    botName = m_botAction.getBotName();
-  }
+  public void initializeModule() {}
 
   public void requestEvents(EventRequester eventRequester)
   {
     eventRequester.request(EventRequester.MESSAGE);
     eventRequester.request(EventRequester.PLAYER_ENTERED);
-  }
-
-  public void handlePlayerIPC(String botSender, String sender, String message)
-  {
-
   }
 
   public void sendPlayerInfo(String message)
@@ -35,8 +21,7 @@ public class pubbotalias extends PubBotModule
     String playerIP = getInfo(message, "IP:");
     String playerMacID = getInfo(message, "MachineId:");
 
-//    m_botAction.sendSmartPrivateMessage("Cpt.Guano!", playerName + ": " + playerIP + ", " + playerMacID + ".");
-    m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("record " + playerName + ":" + playerIP + ":" + playerMacID, getPubHubName()));
+    m_botAction.ipcSendMessage(getIPCChannel(), "info " + playerName + ":" + playerIP + ":" + playerMacID, getPubHubName(), "pubbotalias");
   }
 
   public void handleArenaMessage(String message)
@@ -51,75 +36,18 @@ public class pubbotalias extends PubBotModule
     int messageType = event.getMessageType();
 
     if(messageType == Message.ARENA_MESSAGE)
-      handleArenaMessage(message);
-  }
-
-  public void gotNotRecordedCmd(String argString)
-  {
-    m_botAction.sendUnfilteredPrivateMessage(argString, "*info");
-  }
-
-  public void handleBotIPC(String botSender, String recipient, String sender, String message)
-  {
-    String command = message.toLowerCase();
-
-    try
-    {
-      if(command.startsWith("notrecorded "))
-        gotNotRecordedCmd(message.substring(12));
-    }
-    catch(Exception e)
-    {
-      m_botAction.sendChatMessage(e.getMessage());
-    }
-  }
-
-  /**
-   * This method handles an InterProcessEvent.
-   *
-   * @param event is the InterProcessEvent to handle.
-   */
-
-  public void handleEvent(InterProcessEvent event)
-  {
-	  // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
-	  if(event.getObject() instanceof IPCMessage == false) { 
-		  return;
-	  }
-	  
-    IPCMessage ipcMessage = (IPCMessage) event.getObject();
-    String message = ipcMessage.getMessage();
-    String recipient = ipcMessage.getRecipient();
-    String sender = ipcMessage.getSender();
-    String botSender = event.getSenderName();
-
-    try
-    {
-      if(recipient == null || recipient.equals(botName))
-      {
-        if(sender == null)
-          handleBotIPC(botSender, recipient, sender, message);
-        else
-          handlePlayerIPC(botSender, sender, message);
-      }
-    }
-    catch(Exception e)
-    {
-      m_botAction.sendChatMessage(e.getMessage());
-    }
+    	handleArenaMessage(message);
   }
 
   public void handleEvent(PlayerEntered event)
   {
     String playerName = event.getPlayerName();
     if(playerName.startsWith("^") == false) {
-    	m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("entered " + playerName, getPubHubName()));
+    	m_botAction.sendUnfilteredPrivateMessage(playerName, "*info");
     }
   }
 
-  public void cancel()
-  {
-  }
+  public void cancel() {}
 
   private String getInfo(String message, String infoName)
   {
