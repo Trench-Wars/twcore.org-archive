@@ -81,6 +81,7 @@ public class staffbot extends SubspaceBot {
 		moduleHandler.loadModule("_serverwarningecho");
 		moduleHandler.loadModule("_warnings");
 		moduleHandler.loadModule("_badcommand_savelog");
+		moduleHandler.loadModule("_banc");
 	}
 
 	@Override
