@@ -78,7 +78,7 @@ public class staffbot_banc extends Module {
     	SILENCE, SPEC, KICK
     }
     private final String botsDatabase = "bots";
-    private final String trenchDatabase = "trench";
+    private final String trenchDatabase = "website";
     private final String uniqueConnectionID = "banc";
     private final String IPCBANC = "banc";
     private final String IPCALIAS = "pubBots";
