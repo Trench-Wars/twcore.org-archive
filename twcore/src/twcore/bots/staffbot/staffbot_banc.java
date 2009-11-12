@@ -110,12 +110,12 @@ public class staffbot_banc extends Module {
 	public void initializeModule() {
     	
     	// Initialize Prepared Statements
-    	psActiveBanCs = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT * FROM tblbanc WHERE DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0");
-    	//psListBanCs = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT * FROM tblbanc LIMIT 0,?");
-    	psCheckAccessReq = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT fcMinAccess FROM tblbanc WHERE fnID = ?");
-    	psAddBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "INSERT INTO tblbanc(fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())", true);
-    	psUpdateComment = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "UPDATE tblbanc SET fcComment = ? WHERE fnID = ?");
-    	psRemoveBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "DELETE FROM tblbanc WHERE fnID = ?");
+    	psActiveBanCs = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT * FROM tblBanc WHERE DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0");
+    	//psListBanCs = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT * FROM tblBanc LIMIT 0,?");
+    	psCheckAccessReq = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT fcMinAccess FROM tblBanc WHERE fnID = ?");
+    	psAddBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "INSERT INTO tblBanc(fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())", true);
+    	psUpdateComment = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "UPDATE tblBanc SET fcComment = ? WHERE fnID = ?");
+    	psRemoveBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "DELETE FROM tblBanc WHERE fnID = ?");
     	psLookupIPMID = m_botAction.createPreparedStatement(trenchDatabase, uniqueConnectionID, "SELECT fcIpString, fnMachineId FROM tblAlias INNER JOIN tblUser ON tblAlias.fnUserID = tblUser.fnUserID WHERE fcUserName = ? ORDER BY fdUpdated DESC LIMIT 0,1");
     	
     	if( psActiveBanCs == null || psCheckAccessReq == null || psAddBanC == null || psUpdateComment == null || psRemoveBanC == null || psLookupIPMID == null ) {
@@ -642,7 +642,7 @@ public class staffbot_banc extends Module {
 		
 		try {
 			if(sqlWhere.contains("fnID")) {
-				sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fcComment, fbNotification, fdCreated FROM tblbanc WHERE "+sqlWhere+" LIMIT 0,1";
+				sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fcComment, fbNotification, fdCreated FROM tblBanc WHERE "+sqlWhere+" LIMIT 0,1";
 				ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
 				
 				if(rs.next()) {
@@ -692,7 +692,7 @@ public class staffbot_banc extends Module {
 				if(sqlWhere.length() > 0) {
 					sqlWhere = "WHERE "+sqlWhere;
 				}
-				sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated FROM tblbanc "+sqlWhere+" ORDER BY fnID DESC LIMIT 0,"+viewcount;
+				sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated FROM tblBanc "+sqlWhere+" ORDER BY fnID DESC LIMIT 0,"+viewcount;
 				ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
 				
 				rs.afterLast();
@@ -904,7 +904,7 @@ public class staffbot_banc extends Module {
 				}
 			}
 			
-			sqlUpdate = "UPDATE tblbanc SET "+sqlSet+" WHERE fnID="+banID;
+			sqlUpdate = "UPDATE tblBanc SET "+sqlSet+" WHERE fnID="+banID;
 			m_botAction.SQLQueryAndClose(botsDatabase, sqlUpdate);
 			
 			// Retrieve active banc if it exists and let expire if it by changes becomes expired
@@ -959,7 +959,7 @@ public class staffbot_banc extends Module {
 		// failsafe
 		if(id == -1 || comments.isEmpty()) return;
 		
-		// "UPDATE tblbanc SET fcComment = ? WHERE fnID = ?"
+		// "UPDATE tblBanc SET fcComment = ? WHERE fnID = ?"
 		try {
 			psUpdateComment.setString(1, comments);
 			psUpdateComment.setInt(2, id);
@@ -1136,7 +1136,7 @@ public class staffbot_banc extends Module {
 	private void dbAddBan(BanC banc) {
 		
 		try {
-			// INSERT INTO tblbanc(fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+			// INSERT INTO tblBanc(fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
 			//                       1         2         3     4         5           6           7          
 			psAddBanC.setString(1, banc.type.name());
 			psAddBanC.setString(2, banc.playername);

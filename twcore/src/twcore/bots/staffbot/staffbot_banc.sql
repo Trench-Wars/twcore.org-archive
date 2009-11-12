@@ -13,9 +13,9 @@ MySQL - 5.1.32-community : Database - twcore
 
 CREATE DATABASE /*!32312 IF NOT EXISTS*/`twcore` /*!40100 DEFAULT CHARACTER SET latin1 */;
 
-/*Table structure for table `tblbanc` */
+/*Table structure for table `tblBanc` */
 
-CREATE TABLE `tblbanc` (
+CREATE TABLE `tblBanc` (
   `fnID` int(11) NOT NULL AUTO_INCREMENT,
   `fcType` varchar(7) NOT NULL,
   `fcUsername` varchar(255) NOT NULL,
