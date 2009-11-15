@@ -66,6 +66,11 @@ public class staffbot_banc extends Module {
             " !reload                        - Reloads the list of active bancs from the database"
     };
     
+    final String[] helpDisabled = {
+    		"----------------------[ BanC: ER+ ]-----------------------",
+    		" BanC has been temporarily disabled because of database problems. Please check again later."
+    };
+    
     final String[] shortcutKeys = {
     		"Available shortcut keys:",
     		" !silence  -> !s   |  !listban    -> !lb",
@@ -102,7 +107,10 @@ public class staffbot_banc extends Module {
     boolean stop = false;
     
     // PreparedStatements
-	private PreparedStatement psListBanCs, psCheckAccessReq, psActiveBanCs, psAddBanC, psUpdateComment, psRemoveBanC, psLookupIPMID;
+	private PreparedStatement psListBanCs, psCheckAccessReq, psActiveBanCs, psAddBanC, psUpdateComment, psRemoveBanC, psLookupIPMID, psKeepAlive1, psKeepAlive2;
+	
+	// Keep database connection alive workaround
+	private KeepAliveConnection keepAliveConnection = new KeepAliveConnection();
     
     
     
@@ -117,8 +125,10 @@ public class staffbot_banc extends Module {
     	psUpdateComment = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "UPDATE tblBanc SET fcComment = ? WHERE fnID = ?");
     	psRemoveBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "DELETE FROM tblBanc WHERE fnID = ?");
     	psLookupIPMID = m_botAction.createPreparedStatement(trenchDatabase, uniqueConnectionID, "SELECT fcIpString, fnMachineId FROM tblAlias INNER JOIN tblUser ON tblAlias.fnUserID = tblUser.fnUserID WHERE fcUserName = ? ORDER BY fdUpdated DESC LIMIT 0,1");
+    	psKeepAlive1 = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SHOW DATABASES");
+    	psKeepAlive2 = m_botAction.createPreparedStatement(trenchDatabase, uniqueConnectionID, "SHOW DATABASES");
     	
-    	if( psActiveBanCs == null || psCheckAccessReq == null || psAddBanC == null || psUpdateComment == null || psRemoveBanC == null || psLookupIPMID == null ) {
+    	if( psActiveBanCs == null || psCheckAccessReq == null || psAddBanC == null || psUpdateComment == null || psRemoveBanC == null || psLookupIPMID == null || psKeepAlive1 == null || psKeepAlive2 == null) {
     		Tools.printLog("BanC: One or more PreparedStatements are null! Module BanC disabled.");
 	        m_botAction.sendChatMessage(2, "BanC: One or more connections (prepared statements) couldn't be made! Module BanC disabled.");
 	        this.cancel();
@@ -137,6 +147,9 @@ public class staffbot_banc extends Module {
     		// Start TimerTasks
     		CheckExpiredBanCs checkExpiredBanCs = new CheckExpiredBanCs();
     		m_botAction.scheduleTaskAtFixedRate(checkExpiredBanCs, Tools.TimeInMillis.MINUTE, Tools.TimeInMillis.MINUTE);
+    		
+    		//Schedule the timertask to keep alive the database connection
+            m_botAction.scheduleTaskAtFixedRate(keepAliveConnection, 5 * Tools.TimeInMillis.MINUTE, 5 * Tools.TimeInMillis.MINUTE);
     	}
 	}
     
@@ -154,6 +167,8 @@ public class staffbot_banc extends Module {
 	    m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psUpdateComment);
 	    m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psRemoveBanC);
 	    m_botAction.closePreparedStatement(trenchDatabase, uniqueConnectionID, psLookupIPMID);
+	    m_botAction.closePreparedStatement(trenchDatabase, uniqueConnectionID, psKeepAlive1);
+	    m_botAction.closePreparedStatement(trenchDatabase, uniqueConnectionID, psKeepAlive2);
 	    
 	    m_botAction.cancelTasks();
 	}
@@ -329,10 +344,15 @@ public class staffbot_banc extends Module {
 	 * @param parameters any command parameters
 	 */
 	private void cmdHelp(String name, String parameters) {
-		m_botAction.smartPrivateMessageSpam(name, helpER);
-    	
-    	if(opList.isSmod(name))
-    		m_botAction.smartPrivateMessageSpam(name, helpSmod);
+		if(stop) {
+			m_botAction.smartPrivateMessageSpam(name, helpDisabled);
+			
+		} else {
+			m_botAction.smartPrivateMessageSpam(name, helpER);
+	    	
+	    	if(opList.isSmod(name))
+	    		m_botAction.smartPrivateMessageSpam(name, helpSmod);
+		}
 	}
 	
 	/**
@@ -1207,7 +1227,20 @@ public class staffbot_banc extends Module {
 			}
 		}
 	}
-	  
+	
+	/**
+     * This TimerTask executes psKeepAlive which just sends a query to the database to keep the connection alive  
+     */
+    private class KeepAliveConnection extends TimerTask {
+        public void run() {
+        	try {
+        		psKeepAlive1.execute();
+        		psKeepAlive2.execute();
+        	} catch(SQLException sqle) {
+    			Tools.printStackTrace("SQLException encountered while executing queries to keep alive the database connection", sqle);
+        	}
+        }
+    }
 	
 	public class BanC {
 		
