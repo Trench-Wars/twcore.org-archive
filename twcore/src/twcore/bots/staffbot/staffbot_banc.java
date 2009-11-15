@@ -66,11 +66,6 @@ public class staffbot_banc extends Module {
             " !reload                        - Reloads the list of active bancs from the database"
     };
     
-    final String[] helpDisabled = {
-    		"----------------------[ BanC: ER+ ]-----------------------",
-    		" BanC has been temporarily disabled because of database problems. Please check again later."
-    };
-    
     final String[] shortcutKeys = {
     		"Available shortcut keys:",
     		" !silence  -> !s   |  !listban    -> !lb",
@@ -344,15 +339,10 @@ public class staffbot_banc extends Module {
 	 * @param parameters any command parameters
 	 */
 	private void cmdHelp(String name, String parameters) {
-		if(stop) {
-			m_botAction.smartPrivateMessageSpam(name, helpDisabled);
-			
-		} else {
-			m_botAction.smartPrivateMessageSpam(name, helpER);
-	    	
-	    	if(opList.isSmod(name))
-	    		m_botAction.smartPrivateMessageSpam(name, helpSmod);
-		}
+		m_botAction.smartPrivateMessageSpam(name, helpER);
+    	
+    	if(opList.isSmod(name))
+    		m_botAction.smartPrivateMessageSpam(name, helpSmod);
 	}
 	
 	/**
