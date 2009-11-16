@@ -90,8 +90,8 @@ public class pubbotbanc extends PubBotModule {
     	// IPCMessage.recipient "PubBotX" 	==> Specific Pubbot X
     	
     	if(IPCBANC.equals(event.getChannel()) && event.getObject() != null && event.getObject() instanceof IPCMessage && 
-    			((IPCMessage)event.getObject()).getSender().equalsIgnoreCase("banc") &&
-    			((IPCMessage)event.getObject()).getRecipient() == null ||((IPCMessage)event.getObject()).getRecipient().equalsIgnoreCase(m_botAction.getBotName())) {
+    			((IPCMessage)event.getObject()).getSender() != null && ((IPCMessage)event.getObject()).getSender().equalsIgnoreCase("banc") &&
+    			(((IPCMessage)event.getObject()).getRecipient() == null ||((IPCMessage)event.getObject()).getRecipient().equalsIgnoreCase(m_botAction.getBotName()))) {
 
     		IPCMessage ipc = (IPCMessage) event.getObject();
     		String command = ipc.getMessage();
