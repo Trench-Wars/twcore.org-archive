@@ -273,7 +273,7 @@ public class staffbot_banc extends Module {
 				
 				// Look trough active bans if it matches
 				for(BanC banc : this.activeBanCs) {
-					if((banc.playername == null || banc.playername.equalsIgnoreCase(playerName)) &&
+					if((banc.playername == null || banc.playername.equalsIgnoreCase(playerName)) ||
 					   (banc.IP == null || banc.IP.equals(playerIP)) &&
 					   (banc.MID == null || banc.MID.equals(playerMID)) ) {
 						// Match found on one or more properties
@@ -705,23 +705,27 @@ public class staffbot_banc extends Module {
 				sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated FROM tblBanc "+sqlWhere+" ORDER BY fnID DESC LIMIT 0,"+viewcount;
 				ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
 				
-				rs.afterLast();
-				if(rs.previous()) {
-					do {
-						String result = "";
-						result += (rs.getBoolean("active")?"#":"^");
-						result += Tools.formatString(rs.getString("fnID"), 4) + " ";
-						result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
-						result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + " ";
-						result += Tools.formatString(rs.getString("fcType"),7) + " ";
-						result += " mins:"+Tools.formatString(rs.getString("fnDuration"), 3) + " ";
-						if(m_botAction.getOperatorList().isModerator(name))
-							result += " "+Tools.formatString(rs.getString("fcIP"), 15) + "  ";
-						result += rs.getString("fcUsername");
-						
-						m_botAction.sendSmartPrivateMessage(name, result);
-					} while(rs.previous());
-					
+				if(rs != null) {
+					rs.afterLast();
+					if(rs.previous()) {
+						do {
+							String result = "";
+							result += (rs.getBoolean("active")?"#":"^");
+							result += Tools.formatString(rs.getString("fnID"), 4) + " ";
+							result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
+							result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + " ";
+							result += Tools.formatString(rs.getString("fcType"),7) + " ";
+							result += " mins:"+Tools.formatString(rs.getString("fnDuration"), 3) + " ";
+							if(m_botAction.getOperatorList().isModerator(name))
+								result += " "+Tools.formatString(rs.getString("fcIP"), 15) + "  ";
+							result += rs.getString("fcUsername");
+							
+							m_botAction.sendSmartPrivateMessage(name, result);
+						} while(rs.previous());
+					} else {
+						// Empty resultset - nothing found
+						m_botAction.sendSmartPrivateMessage(name, "No BanCs matching given arguments found.");
+					}
 				} else {
 					// Empty resultset - nothing found
 					m_botAction.sendSmartPrivateMessage(name, "No BanCs matching given arguments found.");
