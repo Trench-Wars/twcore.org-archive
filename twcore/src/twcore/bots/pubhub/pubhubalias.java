@@ -67,6 +67,7 @@ public class pubhubalias extends PubBotModule
 	private boolean m_sortByName = false;
 	
 	private HashMap<String,String> twdops = new HashMap<String,String>();
+	private HashMap<String,String> aliasops = new HashMap<String,String>();
 
 	/**
 	 * This method initializes the module.
@@ -85,6 +86,7 @@ public class pubhubalias extends PubBotModule
 		loadWatches();
 		
 		updateTWDOps();
+		updateAliasOps();
 	}
 	
 	private boolean isTWDOp(String name) {
@@ -94,6 +96,14 @@ public class pubhubalias extends PubBotModule
 	        return false;
 	    }
 	}
+	
+	private boolean isAliasOp(String name) {
+        if (aliasops.containsKey(name.toLowerCase())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
 	public void requestEvents(EventRequester eventRequester)
 	{
@@ -462,7 +472,11 @@ public class pubhubalias extends PubBotModule
 				"!ClearMIDWatch                 - Clears all login watches for MIDs",
 				"!ShowWatches                   - Shows all current login watches",
 				"!SortByName / !SortByDate      - Selects sorting method",
-				"!update                        - Updates TWDOps list"   
+				"!update                        - Updates TWDOps list",
+				"!aliasop <name>                - Gives <name> alias access",
+				"!aliasdeop <name>              - Removes alias access for <name>",     
+				"!listaliasops (!lao)           - Lists current alias-ops"      
+				
 		};
 		m_botAction.smartPrivateMessageSpam(sender, message);
 	}
@@ -553,6 +567,89 @@ public class pubhubalias extends PubBotModule
 			watchedIPs.put( IP, sender + ": "+comment );
 			saveWatches();
 		}
+	}
+	
+	public void doAddAliasOp(String sender, String message) {
+	    if (!m_botAction.getOperatorList().isSmod(sender)){
+	        m_botAction.sendChatMessage( "Only Smods or higher can add alias-ops.");
+	        return;
+	    }
+	    
+	    if (aliasops.containsKey(message.toLowerCase())) {
+	        m_botAction.sendChatMessage( message + " is already on the alias-ops list.");
+	        return;
+	    } else {
+	        aliasops.put(message.toLowerCase(), message);
+	    }
+	    
+	    try
+        {
+            String query = "INSERT INTO tblAliasOps " +
+                    "(User) " +
+                    "VALUES (" + Tools.addSlashes(message) + ")";
+            ResultSet r = m_botAction.SQLQuery(DATABASE, query);
+            m_botAction.SQLClose( r );
+            m_botAction.sendChatMessage(message + " has been added to the alias-ops list.");
+        }
+        catch(SQLException e)
+        {
+            throw new RuntimeException("ERROR: Unable to add " + message + " to the alias-ops list on the database.");
+        }
+	}
+	
+	public void doRemAliasOp(String sender, String message) {
+        if (!m_botAction.getOperatorList().isSmod(sender)){
+            m_botAction.sendChatMessage( "Only Smods or higher can remove alias-ops.");
+            return;
+        }
+        
+        if (!aliasops.containsKey(message.toLowerCase())) {
+            m_botAction.sendChatMessage( message + " could not be found on the alias-ops list.");
+            return;
+        } else {
+            aliasops.remove(message.toLowerCase());
+        }
+        
+        try
+        {
+            String query = "DELETE FROM tblAliasOps WHERE User = '" + Tools.addSlashes(message) + "'";
+            ResultSet r = m_botAction.SQLQuery(DATABASE, query);
+            m_botAction.SQLClose( r );
+            m_botAction.sendChatMessage(message + " has been removed from the alias-ops list.");
+        }
+        catch(SQLException e)
+        {
+            throw new RuntimeException("ERROR: Unable to remove " + message + " from the alias-ops list on the database.");
+        }
+    }
+	
+	public void doListAliasOps() {
+	    int counter = 0;
+	    int x = 1;
+	    String[] output = new String[(aliasops.size() / 6 + 1)];
+	    
+	    m_botAction.sendChatMessage("AliasOps:");
+	    for(String i : aliasops.values()) {
+	        output[counter] += i + ", ";
+	        x++;
+	        
+	        if (x == 6) {
+	            counter++;
+	            x = 1;
+	        }
+	    }
+	    
+	    if (output[counter].isEmpty())
+	        output[counter - 1] = output[counter - 1].substring(0, output[counter - 1].length() - 2);
+	    else 
+	        output[counter] = output[counter].substring(0, output[counter].length() - 2);
+	    
+	    for (int i = 0; i < output.length; i++) {
+	        if (!output[i].isEmpty()) {
+	            m_botAction.sendChatMessage(output[i]);
+	        }
+	    }
+	    
 	}
 
 	/**
@@ -671,7 +768,7 @@ public class pubhubalias extends PubBotModule
 		 * Extra check for smod and twdop added
 		 * -fantus
 		 */
-		if (!m_botAction.getOperatorList().isSmod(sender) && !isTWDOp(sender)) {
+		if (!m_botAction.getOperatorList().isSmod(sender) && !isTWDOp(sender) && !isAliasOp(sender)) {
 		    return;
 		}
 		
@@ -721,7 +818,15 @@ public class pubhubalias extends PubBotModule
 			}
 			else if(command.equals("!update")) {
 			    updateTWDOps();
+			    updateAliasOps();
+			    m_botAction.sendChatMessage( "Updating twdop & alias-op lists." );
 			}
+			else if(command.equals("!listaliasops") || command.equals("!lao"))
+			    doListAliasOps();
+			else if(command.startsWith("!aliasop "))
+			    doAddAliasOp(sender, message.substring(8).trim());
+			else if(command.startsWith("!aliasdeop "))
+			    doRemAliasOp(sender, message.substring(10).trim());
 		}
 		catch(Exception e)
 		{
@@ -933,6 +1038,26 @@ public class pubhubalias extends PubBotModule
 	    }
 	}
 	
+	private void updateAliasOps() {
+        try {
+            ResultSet r = m_botAction.SQLQuery(DATABASE, "SELECT User FROM `tblAliasOps`");
+            
+            if (r == null) {
+                return;
+            }
+            
+            aliasops.clear();
+            
+            while(r.next()) {
+                String name = r.getString("User");
+                aliasops.put(name.toLowerCase(), name);
+            }
+            
+            m_botAction.SQLClose( r );
+        } catch (SQLException e) {
+            throw new RuntimeException("ERROR: Unable to update alias-op list.");
+        }
+    }	
 	
 	private void loadWatches() {
 	    BotSettings cfg = m_botAction.getBotSettings();
