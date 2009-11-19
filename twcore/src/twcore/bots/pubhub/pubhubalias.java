@@ -586,7 +586,7 @@ public class pubhubalias extends PubBotModule
         {
             String query = "INSERT INTO tblAliasOps " +
                     "(User) " +
-                    "VALUES (" + Tools.addSlashes(message) + ")";
+                    "VALUES ('" + Tools.addSlashes(message) + "')";
             ResultSet r = m_botAction.SQLQuery(DATABASE, query);
             m_botAction.SQLClose( r );
             m_botAction.sendChatMessage(message + " has been added to the alias-ops list.");
@@ -623,32 +623,28 @@ public class pubhubalias extends PubBotModule
         }
     }
 	
-	public void doListAliasOps() {
+	public void doListAliasOps() { 
 	    int counter = 0;
-	    int x = 1;
-	    String[] output = new String[(aliasops.size() / 6 + 1)];
+	    String output = "";
 	    
 	    m_botAction.sendChatMessage("AliasOps:");
+	    
 	    for(String i : aliasops.values()) {
-	        output[counter] += i + ", ";
-	        x++;
+	        output += i + ", ";
+	        counter++;
 	        
-	        if (x == 6) {
-	            counter++;
-	            x = 1;
+	        if (counter == 6) {
+	            counter = 0;
+	            if (aliasops.size() <= 6)
+	                m_botAction.sendChatMessage(output.substring(0, output.length() - 2));
+	            else
+	                m_botAction.sendChatMessage(output);
+	            output = "";
 	        }
 	    }
 	    
-	    if (output[counter].isEmpty())
-	        output[counter - 1] = output[counter - 1].substring(0, output[counter - 1].length() - 2);
-	    else 
-	        output[counter] = output[counter].substring(0, output[counter].length() - 2);
-	    
-	    for (int i = 0; i < output.length; i++) {
-	        if (!output[i].isEmpty()) {
-	            m_botAction.sendChatMessage(output[i]);
-	        }
-	    }
+	    if (!output.isEmpty())
+	        m_botAction.sendChatMessage(output.substring(0, output.length() - 2));
 	    
 	}
 
