@@ -502,6 +502,7 @@ public class staffbot_banc extends Module {
 			m_botAction.sendChatMessage( name+" initiated an infinite/permanent "+bancName+" on '"+target+"'." );
 			m_botAction.sendSmartPrivateMessage(name, "BanC #"+banc.id+": "+bancName+" on '"+target+"' for infinite amount of time initiated.");
 		}
+		m_botAction.sendSmartPrivateMessage(name, "Please do not forget to add comments to your BanC with !bancomment <#id> <comments>.");
 		m_botAction.ipcSendMessage(IPCBANC, bancType.toString()+" "+time+":"+target, null, "banc");
 	}
 	
