@@ -89,8 +89,8 @@ public class staffbot_banc extends Module {
     private final String MINACCESS_SYSOP = "SYSOP";
     
     private final Integer[][] BANCLIMITS = {
-    		{ 10,  60, 240, 0},	// BanC limits
-    		{ 30,  60, 120, 0},	// [BanCType] [Accesslevel]
+    		{ 60,  60, 240, 0},	// BanC limits
+    		{ 120,  60, 120, 0},	// [BanCType] [Accesslevel]
     		{ null,30, 60,  0}
     }; 
     private SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
