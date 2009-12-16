@@ -273,9 +273,31 @@ public class staffbot_banc extends Module {
 				
 				// Look trough active bans if it matches
 				for(BanC banc : this.activeBanCs) {
-					if((banc.playername == null || banc.playername.equalsIgnoreCase(playerName)) ||
-					   (banc.IP == null || banc.IP.equals(playerIP)) &&
-					   (banc.MID == null || banc.MID.equals(playerMID)) ) {
+					boolean match = false;
+					
+					if(banc.playername != null && banc.playername.equalsIgnoreCase(playerName)) {
+						// username match
+						match = true;
+						
+						//Tools.printLog("BanC username match on '"+playerName+"', IP:"+playerIP+", MID:"+playerMID+". BanC #"+banc.id+" ; ("+banc.playername+","+banc.IP+","+banc.MID+") duration="+banc.duration+", start="+banc.created.getTime());
+					} else if((banc.IP != null && banc.IP.equals(playerIP)) && (banc.MID != null && banc.MID.equals(playerMID))) {
+						// IP and MID match
+						match = true;
+						
+						//Tools.printLog("BanC IP & MID match on '"+playerName+"', IP:"+playerIP+", MID:"+playerMID+". BanC #"+banc.id+" ; ("+banc.playername+","+banc.IP+","+banc.MID+") duration="+banc.duration+", start="+banc.created.getTime());
+					} else if((banc.IP != null && banc.IP.equals(playerIP)) && banc.MID == null) {
+						// IP and unknown MID match
+						match = true;
+						
+						//Tools.printLog("BanC IP & ?MID? match on '"+playerName+"', IP:"+playerIP+", MID:"+playerMID+". BanC #"+banc.id+" ; ("+banc.playername+","+banc.IP+","+banc.MID+") duration="+banc.duration+", start="+banc.created.getTime());
+					} else if(banc.IP == null && (banc.MID != null && banc.MID.equals(playerMID))) {
+						// unknown IP and MID match
+						match = true;
+						
+						//Tools.printLog("BanC ?IP? & MID match on '"+playerName+"', IP:"+playerIP+", MID:"+playerMID+". BanC #"+banc.id+" ; ("+banc.playername+","+banc.IP+","+banc.MID+") duration="+banc.duration+", start="+banc.created.getTime());
+					}
+					
+					if(match) {
 						// Match found on one or more properties
 						// Send BanC object to pubbotbanc to BanC the player
 						banc.calculateExpired();
@@ -835,7 +857,7 @@ public class staffbot_banc extends Module {
 						if(!sqlSet.isEmpty())
 							sqlSet += ", ";
 						sqlSet += "fcIP=NULL";
-						banChange.setIP(null);
+						banChange.setIP("NULL");
 						
 					} else
 					// -mid=#
@@ -851,7 +873,7 @@ public class staffbot_banc extends Module {
 						if(!sqlSet.isEmpty())
 							sqlSet += ", ";
 						sqlSet += "fcMID=NULL";
-						banChange.setMID(null);
+						banChange.setMID("NULL");
 						
 					} else
 					// -notif=
@@ -1275,24 +1297,22 @@ public class staffbot_banc extends Module {
 		}
 		
 		public void applyChanges(BanC changes) {
-			if(changes.playername != null) {
+			if(changes.playername != null)
 				this.playername = changes.playername;
-			}
-			if(changes.IP != null) {
+			if(changes.IP != null)
 				this.IP = changes.IP;
-			}
-			if(changes.MID != null) {
+			if(changes.IP != null && changes.IP.equals("NULL"))
+				this.IP = null;
+			if(changes.MID != null)
 				this.MID = changes.MID;
-			}
-			if(changes.duration > 0) {
+			if(changes.MID != null && changes.MID.equals("NULL"))
+				this.MID = null;
+			if(changes.duration > 0)
 				this.duration = changes.duration;
-			}
-			if(changes.notification != null) {
+			if(changes.notification != null)
 				this.notification = changes.notification;
-			}
-			if(changes.comment != null) {
+			if(changes.comment != null)
 				this.comment = changes.comment;
-			}
 		}
 		
 		/**
