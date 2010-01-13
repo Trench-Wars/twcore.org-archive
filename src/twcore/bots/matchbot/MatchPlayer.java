@@ -161,6 +161,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			String[] fields =
 				{
 					"fnMatchRoundID",
+					"fnTeamUserID",
 					"fnUserID",
 					"fcUserName",
 					"fnTeam",
@@ -174,6 +175,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			String[] values =
 				{
 					Integer.toString(fnMatchRoundID),
+					Integer.toString(m_dbPlayer.getTeamUserID()),
 					Integer.toString(m_dbPlayer.getUserID()),
 					Tools.addSlashesToString(m_fcPlayerName),
 					Integer.toString(fnTeam),
