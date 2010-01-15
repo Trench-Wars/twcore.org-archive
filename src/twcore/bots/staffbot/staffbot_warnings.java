@@ -35,7 +35,7 @@ public class staffbot_warnings extends Module {
     };
 
     final String[] helpMod = {
-            "--------------------[ Warnings: Mod+ ]--------------------",
+            "--------------------[ Warnings: Mod+ ]---------------------",
             " !deletelast <player>      - Deletes last warning given to a player."
     };
     
