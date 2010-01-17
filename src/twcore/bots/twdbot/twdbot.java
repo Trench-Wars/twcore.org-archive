@@ -500,7 +500,7 @@ public class twdbot extends SubspaceBot {
                         m_botAction.sendSmartPrivateMessage(name, "This is your account information: ");
                         m_botAction.sendSmartPrivateMessage(name, "Username: " + thisP.getUserName());
                         m_botAction.sendSmartPrivateMessage(name, "Password: " + thisP.getPassword());
-                        m_botAction.sendSmartPrivateMessage(name, "To join your squad roster, go to http://twd.trenchwars.org . Log in, click on 'Roster', select your squad, click on main and then click on 'Apply for this squad'");
+                        m_botAction.sendSmartPrivateMessage(name, "To join your squad roster, go to http://twd.trenchwars.org . Log in, click on 'My Profile', select your squad and then click on 'Apply to this squad'");
                         m_players.add(thisP);
                     } else {
                         m_botAction.sendSmartPrivateMessage(name, "Couldn't create/update your user account.  Contact a TWDOp with the ?help command for assistance.");
