@@ -123,7 +123,6 @@ public class pubbotchatlog extends PubBotModule{
 	}
 	
 	public void cancel() {
-		// TODO Auto-generated method stub
 		
 	}
 
