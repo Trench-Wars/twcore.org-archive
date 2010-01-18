@@ -1,23 +1,17 @@
 package twcore.bots.pubbot;
 
-import java.util.Iterator;
 import java.util.Stack;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
 import twcore.core.events.Message;
-import twcore.core.game.Player;
 import twcore.core.util.Tools;
-import twcore.core.util.ipc.IPCChatMessage;
 
 public class pubbotchatlog extends PubBotModule{
 
 	private Stack<String> chat = new Stack<String>();
 	
 	private int maxSize = 50;
-	
-	private String currentArena = "";
-	private String botName = "";
 	
 	public void handleEvent(Message event){
 		
@@ -82,9 +76,6 @@ public class pubbotchatlog extends PubBotModule{
 			
 			String sender = getSender(event);
 		
-			IPCChatMessage ipc = new IPCChatMessage(currentArena, event.getMessageType(), sender, event.getMessage(), botName, this.getPubHubName());
-			m_botAction.ipcTransmit(pubbot.IPCCHAT, ipc);
-			
 			chat.insertElementAt(getMessageTypeString(event.getMessageType()) + "  " + (sender==null ? "" : sender+"> ") + message,0);
 			chat.setSize(maxSize);
 		}	
@@ -129,12 +120,6 @@ public class pubbotchatlog extends PubBotModule{
 	@Override
 	public void initializeModule() {
 	
-		this.currentArena = m_botAction.getArenaName();
-		this.botName = m_botAction.getBotName();
-		
-		Iterator<Player> i = m_botAction.getPlayerIterator();
-		while(i.hasNext())
-			m_botAction.ipcTransmit(pubbot.IPCCHAT, i.next());
 	
 	}
 
