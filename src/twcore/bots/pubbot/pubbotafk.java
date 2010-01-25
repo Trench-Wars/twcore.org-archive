@@ -48,7 +48,7 @@ public class pubbotafk extends PubBotModule {
     private TreeMap<String, Long> players;
 
     public void add(Player p) {
-        if (!opList.isBotExact(p.getPlayerName()) && p.getShipType() == Tools.Ship.SPECTATOR)
+        if (!opList.isBotExact(p.getPlayerName()) && !opList.isSysopExact(p.getPlayerName()) && p.getShipType() == Tools.Ship.SPECTATOR)
              players.put(p.getPlayerName(), System.currentTimeMillis());
     }
     
