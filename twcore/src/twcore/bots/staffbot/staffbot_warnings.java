@@ -89,7 +89,7 @@ public class staffbot_warnings extends Module {
                 warnedPlayer = temp.substring( 0, temp.indexOf( ":" ) );
                 temp = message.substring( message.indexOf( "Ext: " ) + 5 );
                 staffMember = temp.substring( 0, temp.indexOf( " (" ) ).trim();
-                warning = message.substring(message.indexOf(" *warn ") + 7);
+                warning = message.substring(message.toLowerCase().indexOf(" *warn ") + 7);
                 if(warning.length() > 50) {
                 	warning = warning.substring(0,49).trim();
                 	warning += "...";
