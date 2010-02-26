@@ -58,7 +58,7 @@ public class pubbotchatlog extends PubBotModule{
 							message.toLowerCase().startsWith("ip:")																		 ||
 							message.toLowerCase().startsWith("machineid:")														 ||
 							message.toLowerCase().startsWith("ping:")																	 ||
-							message.toLowerCase().startsWith("loss: S2C:")														 ||
+							message.toLowerCase().startsWith("loss: s2c:")														 ||
 							message.toLowerCase().startsWith("s2c:")																	 ||
 							message.toLowerCase().startsWith("c2s current: slow:")										 ||
 							message.toLowerCase().startsWith("s2c current: slow:")										 ||
