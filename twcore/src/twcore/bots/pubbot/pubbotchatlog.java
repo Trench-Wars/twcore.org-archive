@@ -55,15 +55,15 @@ public class pubbotchatlog extends PubBotModule{
 				(
 							message.equals("Message has been sent to online moderators") ||
 							message.equals("Reliable kill messages ON")									 ||
-							message.startsWith("IP:")																		 ||
-							message.startsWith("MachineId:")														 ||
-							message.startsWith("Ping:")																	 ||
-							message.startsWith("LOSS: S2C:")														 ||
-							message.startsWith("S2C:")																	 ||
-							message.startsWith("C2S CURRENT: Slow:")										 ||
-							message.startsWith("S2C CURRENT: Slow:")										 ||
-							message.startsWith("TIME: Session: ")												 ||
-							message.startsWith("Bytes/Sec:") 
+							message.toLowerCase().startsWith("ip:")																		 ||
+							message.toLowerCase().startsWith("machineid:")														 ||
+							message.toLowerCase().startsWith("ping:")																	 ||
+							message.toLowerCase().startsWith("loss: S2C:")														 ||
+							message.toLowerCase().startsWith("s2c:")																	 ||
+							message.toLowerCase().startsWith("c2s current: slow:")										 ||
+							message.toLowerCase().startsWith("s2c current: slow:")										 ||
+							message.toLowerCase().startsWith("time: session: ")												 ||
+							message.toLowerCase().startsWith("bytes/sec:") 							
 																								)) return ;
 		
 		if(     event.getMessageType() == Message.ARENA_MESSAGE ||
