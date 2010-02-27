@@ -63,7 +63,8 @@ public class pubbotchatlog extends PubBotModule{
 							message.startsWith("C2S CURRENT: Slow:")										 ||
 							message.startsWith("S2C CURRENT: Slow:")										 ||
 							message.startsWith("TIME: Session: ")												 ||
-							message.startsWith("Bytes/Sec:") 							
+							message.startsWith("Bytes/Sec:") 														 ||
+							message.contains("UserId:")					
 																								)) return ;
 		
 		if(     event.getMessageType() == Message.ARENA_MESSAGE ||
