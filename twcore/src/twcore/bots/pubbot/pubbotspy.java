@@ -240,6 +240,9 @@ public class pubbotspy extends PubBotModule
               ( nameLC.endsWith("<er>") || nameLC.endsWith("<zh>") || nameLC.startsWith("matchbot")) ) {
           m_botAction.sendUnfilteredPublicMessage("?cheater Possible bot/staff impersonator entered: " + name);
       }
+      if(racismCheck.isRacist(event.getSquadName())) {
+    	  m_botAction.sendUnfilteredPublicMessage("?cheater Possible illegal squad name of player "+name+": " + event.getSquadName());
+      }
       
   }
 
