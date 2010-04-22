@@ -144,7 +144,7 @@ public class staffbot_banc extends Module {
     		m_botAction.scheduleTaskAtFixedRate(checkExpiredBanCs, Tools.TimeInMillis.MINUTE, Tools.TimeInMillis.MINUTE);
     		
     		//Schedule the timertask to keep alive the database connection
-            m_botAction.scheduleTaskAtFixedRate(keepAliveConnection, 5 * Tools.TimeInMillis.MINUTE, 5 * Tools.TimeInMillis.MINUTE);
+            m_botAction.scheduleTaskAtFixedRate(keepAliveConnection, 5 * Tools.TimeInMillis.MINUTE, 2 * Tools.TimeInMillis.MINUTE);
     	}
 	}
     
