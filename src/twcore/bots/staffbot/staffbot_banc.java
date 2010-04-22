@@ -63,7 +63,8 @@ public class staffbot_banc extends Module {
 
     final String[] helpSmod = {
             "----------------------[ BanC: SMod+ ]---------------------",
-            " !reload                        - Reloads the list of active bancs from the database"
+            " !reload                           - Reloads the list of active bancs from the database",
+            " !forcedb                          - Forces to connect to the database"
     };
     
     final String[] shortcutKeys = {
@@ -249,6 +250,10 @@ public class staffbot_banc extends Module {
 	        
 	        else if( messageLc.startsWith("!listactive") && opList.isDeveloper(name)) {
 	        	cmdListActiveBanCs(name);
+	        }
+	        
+	        else if( messageLc.startsWith("!forcedb") && opList.isSmod(name) ){
+	            doForceDBConnection(name);
 	        }
 
 		}
@@ -1020,6 +1025,24 @@ public class staffbot_banc extends Module {
 		
 	}
 	
+	private void doForceDBConnection(String name){
+	    try{
+	        
+	        this.psKeepAlive1.execute();
+	        this.psKeepAlive2.execute();
+	        
+	        if( !psKeepAlive1.isClosed() && !psKeepAlive2.isClosed() ){
+	            m_botAction.sendPrivateMessage(name, "Force-Connected to the database successfuly,");
+	            m_botAction.sendPrivateMessage(name, "now try to !lb, !bc and others banc commands to check");
+	        }
+	        
+	    }catch(SQLException e){
+	        m_botAction.sendPrivateMessage(name, "I had a problem to force the DB Connection, try again in some minutes. StackTrace:" +
+	        		" "+e.toString());
+	        e.printStackTrace();
+	    }
+	}
+	
 	private void cmdLiftban(String name, String message) {
 		// !liftban <#id>                 - Removes ban with #id.
 		int id = -1;
@@ -1259,6 +1282,7 @@ public class staffbot_banc extends Module {
         }
     }
 	
+    
 	public class BanC {
 		
 		public BanC() {}
