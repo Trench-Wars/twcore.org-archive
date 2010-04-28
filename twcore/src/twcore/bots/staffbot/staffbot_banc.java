@@ -77,7 +77,10 @@ public class staffbot_banc extends Module {
     // Definition variables
     public enum BanCType {
     	SILENCE, SPEC, KICK
-    }
+    }       
+    
+    private staffbot_dataaccessobject database = new staffbot_dataaccessobject();
+    
     private final String botsDatabase = "bots";
     private final String trenchDatabase = "website";
     private final String uniqueConnectionID = "banc";
@@ -1276,6 +1279,7 @@ public class staffbot_banc extends Module {
         	try {
         		psKeepAlive1.execute();
         		psKeepAlive2.execute();
+        		psLookupIPMID.execute();
         	} catch(SQLException sqle) {
     			Tools.printStackTrace("SQLException encountered while executing queries to keep alive the database connection", sqle);
         	}
