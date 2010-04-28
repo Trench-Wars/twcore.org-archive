@@ -22,6 +22,7 @@ import java.util.TimerTask;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.events.Message;
+import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.stats.DBPlayerData;
 import twcore.core.stats.Statistics;
@@ -252,6 +253,10 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 						"fnFlagClaimed",
 						"fnRating",
 						"fnRepelsUsed",
+						"fnBombsFired",
+						"fnBulletsFired",
+						"fnBurstsFired",
+						"fnMinesFired",
 						"ftTimeStarted",
 						"ftTimeEnded" };
 
@@ -280,6 +285,10 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 						Integer.toString(MPS.getStatistic(Statistics.FLAG_CLAIMED)),
 						Integer.toString(MPS.getStatistic(Statistics.RATING)),
 						Integer.toString(MPS.getStatistic(Statistics.REPELS_USED)),
+						Integer.toString(MPS.getStatistic(Statistics.BOMBS_FIRED)),
+						Integer.toString(MPS.getStatistic(Statistics.BULLETS_FIRED)),
+						Integer.toString(MPS.getStatistic(Statistics.BURSTS_FIRED)),
+						Integer.toString(MPS.getStatistic(Statistics.MINES_FIRED)),
 						started,
 						ended };
 
@@ -339,16 +348,15 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 
 		m_statTracker.reportKill(fnPoints, killeeID, m_fnFrequency, shipType, killeeFreq);
 	};
-
+	
 	/**
-	 *
-	 * Adds repelUsed to stats
+	 * Adds weaponFired to stats
 	 */
-	public void reportRepelUsed()
+	public void reportWeaponFired(int type)
 	{
-		m_statTracker.reportRepelUsed();
+		m_statTracker.reportWeaponFired(type);
 	}
-
+	
 	/**
 	 * Method reportFlagClaimed.
 	 *
@@ -875,14 +883,14 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		}
 
 		/**
-		* Method reportRepelUsed.
+		* Method reportWeaponFired.
 		*/
-		public void reportRepelUsed()
+		public void reportWeaponFired(int type)
 		{
 			if (m_currentShip != null)
-				m_currentShip.reportRepelUsed();
+				m_currentShip.reportWeaponFired(type);
 		}
-
+		
 		/**
 		* Method reportDeath.
 		*/
@@ -1106,11 +1114,20 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		}
 
 		/**
-		* Method reportRepelUsed.
+		* Method reportWeaponFired.
 		*/
-		public void reportRepelUsed()
+		public void reportWeaponFired(int type)
 		{
-			m_statisticTracker.setStatistic(Statistics.REPELS_USED);
+			if (type == WeaponFired.WEAPON_REPEL)
+				m_statisticTracker.setStatistic(Statistics.REPELS_USED);
+			else if (type == WeaponFired.WEAPON_BOMB)
+				m_statisticTracker.setStatistic(Statistics.BOMBS_FIRED);
+			else if (type == WeaponFired.WEAPON_BULLET)
+				m_statisticTracker.setStatistic(Statistics.BULLETS_FIRED);
+			else if (type == WeaponFired.WEAPON_BURST)
+				m_statisticTracker.setStatistic(Statistics.BURSTS_FIRED);
+			else if (type == WeaponFired.WEAPON_MINE)
+				m_statisticTracker.setStatistic(Statistics.MINES_FIRED);
 		}
 
 		/**

@@ -15,10 +15,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.TimerTask;
-import java.util.HashMap;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -169,11 +169,16 @@ public class MatchTeam
         String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
         MatchPlayer p = getPlayer(playerName);
 
-        if (event.getWeaponType() == WeaponFired.WEAPON_REPEL)
-            p.reportRepelUsed();
-
+        if (event.getWeaponType() == WeaponFired.WEAPON_REPEL ||
+        		event.getWeaponType() == WeaponFired.WEAPON_BOMB ||
+        		event.getWeaponType() == WeaponFired.WEAPON_BULLET ||
+        		event.getWeaponType() == WeaponFired.WEAPON_BURST ||
+        		event.getWeaponType() == WeaponFired.WEAPON_MINE)
+        {
+        	p.reportWeaponFired(event.getWeaponType());
+        }
     }
-
+    
     // when somebody lags out
     public void handleEvent(FrequencyShipChange event)
     {
