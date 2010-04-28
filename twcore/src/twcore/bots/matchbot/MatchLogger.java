@@ -19,6 +19,7 @@ import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
+import twcore.core.events.Prize;
 import twcore.core.events.ScoreReset;
 import twcore.core.events.WeaponFired;
 import twcore.core.util.Tools;
@@ -42,6 +43,11 @@ public class MatchLogger
 	public void logEvent(WeaponFired event)
 	{
 		createLogRecord("weaponFired", "used a weapon", m_botAction.getPlayerName(event.getPlayerID()));
+	}
+	
+	public void logEvent(Prize event)
+	{
+		createLogRecord("prize", "got prize #",event.getPrizeType()+"");
 	}
 
 	public void logEvent(Message event)

@@ -4,10 +4,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.TimerTask;
-import java.util.Date;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
