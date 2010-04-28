@@ -254,11 +254,14 @@ public class MatchRound
 	public void handleEvent(WeaponFired event)
 	{
 	    try {
-	        String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
-	        if (m_team1.getPlayer(playerName, true) != null)
-	            m_team1.handleEvent(event);
-	        if (m_team2.getPlayer(playerName, true) != null)
-	            m_team2.handleEvent(event);
+	    	if (m_fnRoundState == 3)
+	    	{
+		        String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+		        if (m_team1.getPlayer(playerName, true) != null)
+		            m_team1.handleEvent(event);
+		        if (m_team2.getPlayer(playerName, true) != null)
+		            m_team2.handleEvent(event);
+	    	}
 	    } catch ( Exception e ) {
 	    }
 	}
