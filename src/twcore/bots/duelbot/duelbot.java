@@ -399,7 +399,7 @@ public class duelbot extends SubspaceBot {
     	if( gameType == 1 ) type = "Warbird";
     	else if( gameType == 2 ) type = "Javelin";
     	else if( gameType == 3 ) type = "Spider";
-    	String rules = "Rules: First to " + 20;
+    	String rules = "Rules: First to " + 10;
     	rules += ", Win By 2";
     	rules += ", No Count (nc) Double Kills";
     	rules += ", Warp On Deaths";

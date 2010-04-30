@@ -81,7 +81,7 @@ public class Duel {
 		m_winBy2 = true;
 		m_noCount = true;
 		m_deathWarp = true;
-		m_toWin = 20;
+		m_toWin = 10;
 		m_startTime = (int)System.currentTimeMillis();
 
 		//Create stat tracking objects
