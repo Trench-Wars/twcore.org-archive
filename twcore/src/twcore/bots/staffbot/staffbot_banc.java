@@ -1033,14 +1033,7 @@ public class staffbot_banc extends Module {
 	        
 	        this.psKeepAlive1.execute();
 	        this.psKeepAlive2.execute();
-
-            psKeepAlive1.execute();
-            psKeepAlive2.execute();
-            psListBanCs.execute();
-            psActiveBanCs.execute();
-            psAddBanC.execute();
-            psRemoveBanC.execute();
-            psLookupIPMID.execute();
+	        this.psLookupIPMID.execute();
         
 	        if( !psKeepAlive1.isClosed() && !psKeepAlive2.isClosed() ){
 	            m_botAction.sendPrivateMessage(name, "Force-Connected to the database successfuly,");
@@ -1287,10 +1280,6 @@ public class staffbot_banc extends Module {
         	try {
         		psKeepAlive1.execute();
         		psKeepAlive2.execute();
-        		psListBanCs.execute();
-        		psActiveBanCs.execute();
-        		psAddBanC.execute();
-        		psRemoveBanC.execute();
         		psLookupIPMID.execute();
         	} catch(SQLException sqle) {
     			Tools.printStackTrace("SQLException encountered while executing queries to keep alive the database connection", sqle);
