@@ -1505,8 +1505,8 @@ public class duelbot extends SubspaceBot {
 				}
 			}
 		}
-		//if( message.startsWith( "!yes " ) && event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE )
-		//	do_checkTournyDuel( event.getMessager(), message.substring( 5, message.length() ) );
+		if( message.startsWith( "!yes " ) && event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE )
+			do_checkTournyDuel( event.getMessager(), message.substring( 5, message.length() ) );
     }
 
     public void handleEvent( LoggedOn event ) {
