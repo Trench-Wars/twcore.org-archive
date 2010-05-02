@@ -723,6 +723,10 @@ public class twdbot extends SubspaceBot {
             }
             if( !resetPRegistration(dbP.getUserID()) )
                 m_botAction.sendSmartPrivateMessage( name, "Unable to reset name.  Please contact a TWD Op for assistance." );
+            
+            else if(isBeingReseted(name, message))
+                return ;
+            
             else {
                 try {
                     m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblTWDPlayerMID WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'");
@@ -783,6 +787,19 @@ public class twdbot extends SubspaceBot {
         }
     }
 
+    public boolean isBeingReseted( String name, String message){
+        DBPlayerData database = new DBPlayerData( m_botAction, webdb, message);
+        try{
+            String query = "SELECT DATE_ADD(fdResetTime, INTERVAL 1 DAY) as resettime FROM tblAliasSuppression WHERE fnUserId = '"+database.getUserID()+"' && fdResetTime IS NOT NULL";
+            ResultSet rs = m_botAction.SQLQuery( webdb , query);
+            if(rs.next()){ //then it'll be really reseted
+                String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+                m_botAction.sendPrivateMessage(name, "Your name will be reseted  at "+rs.getShort("resettime")+" already. Current time: "+time+" ..So please wait a bit more!");
+                return true;
+            }
+        }catch(SQLException e){}
+        return false;
+    }
     public void commandGetResetTime( String name, String message, boolean player, boolean silent )
     {
         DBPlayerData dbP = new DBPlayerData( m_botAction, webdb, message );
