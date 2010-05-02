@@ -794,7 +794,7 @@ public class twdbot extends SubspaceBot {
             ResultSet rs = m_botAction.SQLQuery( webdb , query);
             if(rs.next()){ //then it'll be really reseted
                 String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
-                m_botAction.sendPrivateMessage(name, "Your name will be reseted  at "+rs.getShort("resettime")+" already. Current time: "+time+" ..So please wait a bit more!");
+                m_botAction.sendPrivateMessage(name, "Your name will be reseted  at "+rs.getString("resettime")+" already. Current time: "+time+" ..So please wait a bit more!");
                 return true;
             }
         }catch(SQLException e){}
