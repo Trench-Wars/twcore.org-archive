@@ -266,6 +266,8 @@ public class hockeybot
     //data access object - DAO
     private class HZSQL{
         
+        private String connectionName = "website";
+        private String uniqueId = "hz";
         private PreparedStatement psGetUserId;
         //private PreparedStatement psGetTeamId;
         private PreparedStatement psPutExtendedLogTeamSignup;
@@ -276,10 +278,10 @@ public class hockeybot
         private PreparedStatement psKeepAlive;
         
         private HZSQL() throws SQLException{
-            psGetUserId = m_botAction.createPreparedStatement("bots", "hz", "SELECT fnUserId FROM tblUser where fcUserName = ?");
+            psGetUserId = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, "SELECT fnUserId FROM tblUser where fcUserName = ?");
         
             psPutExtendedLogTeamSignup = 
-                m_botAction.createPreparedStatement("bots", "hz", 
+                m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, 
                     "INSERT INTO tblTWHT__Team ("+
                     "fsName, " +
                     "fnCaptainID, " +
@@ -287,21 +289,21 @@ public class hockeybot
                     "fdApproved) " +
                     "VALUES( ?,?,NOW(),NOW() )" );
             
-            psGetCurrentSquads = m_botAction.createPreparedStatement("bots", "hz",
+            psGetCurrentSquads = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, 
                     "SELECT fsName from tblTWHT__Team");
             
             
-            psGetTeamName = m_botAction.createPreparedStatement("bots", "hz", 
+            psGetTeamName = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, 
                     "SELECT fsName FROM tblTWHT__Match where fnTWHTTeamId = ?");
             
-            psGetMatchId = m_botAction.createPreparedStatement("bots", "hz", 
+            psGetMatchId = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,  
                     "SELECT fnTeam1ID, fnTeam2ID FROM tblTWHT__Match where fnMatchId = ?");
             
-            psGetTeamUserId = m_botAction.createPreparedStatement("bots", "hz", 
+            psGetTeamUserId = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,  
                     "SELECT fnTeamUserId FROM tblTWHT__TeamUser where fnUserId = ? " +
             		"AND fdQuit IS NULL");
             
-            psKeepAlive = m_botAction.createPreparedStatement("bots", "hz", "SHOW DATABASES");
+            psKeepAlive = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,  "SHOW DATABASES");
         }
         
         private int getCaptainUserId(String captainName){
