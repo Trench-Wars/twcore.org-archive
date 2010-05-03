@@ -1602,7 +1602,12 @@ public class duelbot extends SubspaceBot {
                 m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuelTournyGame SET fdLastCall = NOW() WHERE fnGameID = "+gid);
     			TournyGame tg = new TournyGame( gid, pOne, pTwo, idOne, idTwo, leagueId, realGameId, players );
     			tournyGames.put( new Integer( gid ), tg );
-                if( tg != null ) {
+                if( tg != null
+                        && //Bug 3/5/2010 being fixed by not (botaction.getplayer.isplaying) - Dexter
+                          //It used to still message players if they were playing in. Now if they're playing in ?go duel, it won't inform them anymore about the #gameid.
+                        !m_botAction.getPlayer( tg.getPlayerOne() ).isPlaying() 
+                        &&
+                        !m_botAction.getPlayer( tg.getPlayerTwo() ).isPlaying() ) {
                     m_botAction.sendSmartPrivateMessage( pOne, "You have a "+tg.getType()+" Tournament duel versus "+pTwo+". If you are available please reply with '!yes "+gid+"'" );
                     m_botAction.sendSmartPrivateMessage( pTwo, "You have a "+tg.getType()+" Tournament duel versus "+pOne+". If you are available please reply with '!yes "+gid+"'" );
                 } else {
@@ -2353,7 +2358,7 @@ public class duelbot extends SubspaceBot {
                 advancePlayer(userNum, winner, winnerNext, league);
                 m_botAction.sendPrivateMessage(loser, "Sorry, you have been eliminated.");
                 m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblMessageSystem (fnID, fcName, fcMessage, fcSender, fnRead, fdTimeStamp) VALUES (0, '"+Tools.addSlashesToString(loser.toLowerCase())+"', 'You have been eliminated from the TWEL Playoffs. Thanks for playing.', 'TWEL Staff', 0, NOW())");
-            } else {
+            } /*else { //Removed by Dexter: It used to zoneMessage after any tournament game, not really the finals.
                 String leagueName = "";
                 switch(league) {
                     case 1:
@@ -2367,7 +2372,7 @@ public class duelbot extends SubspaceBot {
                         break;
                 };
                 m_botAction.sendZoneMessage(winner + " has just won the " + leagueName + " TWEL Championship. Congratulate him/her next time you see him/her. -TWEL Staff", 2);
-            }
+            }*/
             m_botAction.SQLClose( results );
         } catch(Exception e) { e.printStackTrace(); }
     }
