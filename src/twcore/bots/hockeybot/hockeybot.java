@@ -48,11 +48,15 @@ public class hockeybot
     //private HockeyRegistrator registrator;
 
     private String pubHelp [] = {
-      "Hi, I'm a bot in development to the TW-Hockey-Tournament,",
-      "you can register your squad already!",
-      "| Commands --------------------------------------------------------",
-      "| !teamsignup <squadName>    -  Registers your squad on TWHT's site",
-      "| check TWHT'S Site: www.trenchwars.org/twht"
+            "Hi, I'm a bot in development to the TW-Hockey-Tournament,",
+            "you can register your squad already!",
+            "| Commands --------------------------------------------------------",
+            "| !teamsignup <squadName>    -  Registers your squad on TWHT's site",
+            "| check TWHT'S Site: www.trenchwars.org/twht"
+    };
+    
+    private String smodHelp [] = {
+            "| !die                        -  Kills the bot "
     };
     
     public void requestEvents(EventRequester eventRequester){
@@ -140,14 +144,22 @@ public class hockeybot
     }
     
     private void handleCommand(String name, String message) {
+        int levelSmod = op.SMOD_LEVEL;
+        int nameLevel = op.getAccessLevel(name);
         
-        if(message.startsWith("!help"))
+        if(message.startsWith("!help")){
             m_botAction.privateMessageSpam(name, this.pubHelp);
-        
+            if(levelSmod == nameLevel)
+                m_botAction.privateMessageSpam(name, this.smodHelp);
+        }
         if(message.startsWith("!loadgame"))
             doLoadGame(name, message);
+        
         else if(message.startsWith("!teamsignup"))
             doCreateTeam(name, message);
+        
+        else if(message.startsWith("!die") && levelSmod == nameLevel)
+            doDie(name, message);
         //else if(message.startsWith("!squads"))
           //  doDisplaySquads(name, message);
     }
@@ -199,6 +211,12 @@ public class hockeybot
 
     public void doDisplaySquads(String name, String message){
         hzsql.getCurrentSquads();
+    }
+    
+    public void doDie(String name, String message){
+        m_botAction.sendPrivateMessage(name, "Bot disconnecting.");
+        m_botAction.die();
+        
     }
     
     //data access object - DAO
