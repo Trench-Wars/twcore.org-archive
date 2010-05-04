@@ -232,7 +232,7 @@ public class hockeybot
             
             
             psGetTeam = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, 
-                    "SELECT * FROM tblTWHT__Team where fsName = ?");
+                    "SELECT fnTWHTTeamId FROM tblTWHT__Team where fsName = ?");
             
             psGetMatchId = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,  
                     "SELECT fnTeam1ID, fnTeam2ID FROM tblTWHT__Match where fnMatchId = ?");
