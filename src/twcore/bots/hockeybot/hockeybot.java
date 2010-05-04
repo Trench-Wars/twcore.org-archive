@@ -165,7 +165,7 @@ public class hockeybot
             return;
         }
         
-        String squadName = message.substring(11);
+        String squadName = message.substring(12);
         
         if(isAlreadyRegistered(squadName)){
             m_botAction.sendPrivateMessage(squadName, squadName+" has been registered on the site already. Please try an other one.");
