@@ -180,7 +180,7 @@ public class hockeybot
         String squadName = message.substring(12);
         
         if(isAlreadyRegistered(squadName)){
-            m_botAction.sendPrivateMessage(squadName, squadName+" has been registered on the site already. Please try an other one.");
+            m_botAction.sendPrivateMessage(name, squadName+" has been registered on the site already. Please try an other one.");
             return;
         }
         
