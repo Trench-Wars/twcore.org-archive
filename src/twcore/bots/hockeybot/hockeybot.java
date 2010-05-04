@@ -40,8 +40,6 @@ public class hockeybot
     
     private HZSQL hzsql;
     
-    private ArrayList<SquadOwner> squadOwners;
-    
     private HZTeam hzTeams[];
     
     private String team1 = "";
@@ -52,8 +50,9 @@ public class hockeybot
     private String pubHelp [] = {
       "Hi, I'm a bot in development to the TW-Hockey-Tournament,",
       "you can register your squad already!",
-      "| Commands --------------------------------------------------",
-      "| !teamsignup      -       Registers your squad on TWHT's site"
+      "| Commands --------------------------------------------------------",
+      "| !teamsignup <squadName>    -  Registers your squad on TWHT's site",
+      "| check TWHT'S Site: www.trenchwars.org/twht"
     };
     
     public void requestEvents(EventRequester eventRequester){
@@ -74,7 +73,6 @@ public class hockeybot
         this.requestEvents(events);
         this.op = m_botAction.getOperatorList();
         this.hzsql = new HZSQL();
-        this.squadOwners = new ArrayList<SquadOwner>();
         this.hzTeams = new HZTeam[2];
         m_botAction.scheduleTask(new KeepAliveConnection(), 2* Tools.TimeInMillis.MINUTE, 5*Tools.TimeInMillis.MINUTE);
         // if(m_botAction.)
@@ -91,7 +89,6 @@ public class hockeybot
         int matchId = Integer.parseInt( message.substring(6) );
         this.hzTeams[0] = new HZTeam(0);
         this.hzTeams[1] = new HZTeam(1);
-        hzsql.getMatch(matchId);//ive stopped here!
         HZGame hzGame = new HZGame( hzTeams[0], hzTeams[1] );
     }
 
@@ -133,16 +130,6 @@ public class hockeybot
         String message = event.getMessage();
         int messageType = event.getMessageType();
         
-        if( messageType == Message.ARENA_MESSAGE){
-            
-            if (event.getMessage().startsWith("Owner is ")){ 
-            
-                String squadOwnerName = event.getMessage().substring(9);
-                this.checkArenaMessageOwnerIs(name, squadOwnerName);
-            
-            }
-        }
-        
         if( messageType == Message.PRIVATE_MESSAGE){
             if(name == null)
                 return;
@@ -159,108 +146,59 @@ public class hockeybot
         
         if(message.startsWith("!loadgame"))
             doLoadGame(name, message);
-        else if(message.equals("!teamsignup"))
+        else if(message.startsWith("!teamsignup"))
             doCreateTeam(name, message);
         //else if(message.startsWith("!squads"))
           //  doDisplaySquads(name, message);
     }
 
     public void doCreateTeam(String name, String message){
-        
-        Player player = m_botAction.getPlayer(name);
-        
-        if(player.getSquadName().equals(""))
-        {
-            m_botAction.sendPrivateMessage(name, "You're not in a squad. Use ?squadcreate=squadname:password to create one,");
-            m_botAction.sendPrivateMessage(name, "then come back and !teamsignup please!");
-            
+        //!teamsignup squadname
+        //0123456789TE
+        //123456789DOD
+        if(message.length() <= 12 ){
+            m_botAction.sendPrivateMessage(name, "Please, use the command !teamsignup <squadName> to register a squad into TWHT.");
+            return;
+        }
+        if(isRostered(name)){
+            m_botAction.sendPrivateMessage(name, "You're in a squad already. Leave this one first please.");
+            return;
         }
         
-        else if(isNotRostered(name))
-            CheckSquadOwner(name, player.getPlayerID(),  player.getSquadName());
+        String squadName = message.substring(11);
         
-        else
-            m_botAction.sendPrivateMessage(name, "You're in a squad already. Leave this one first or contact a TWHT-Op / or the coders.");
-    }
-    
-    public void CheckSquadOwner(String name, int playerId, String squadName){
-        
-        squadOwners.add(
-                new SquadOwner(
-                        name,
-                        squadName,
-                        playerId ) );
-        
-        m_botAction.sendUnfilteredPublicMessage("?squadowner " +squadName);
-
-    }
-    
-    
-    public void checkArenaMessageOwnerIs(String name, String squadOwnerName){
-    
-         for(SquadOwner t : squadOwners){
-             /*
-              * method used in case of lots of people !teamsignup 'ing
-             it'll catch the right capt to the right squad ( since lots are doing !teamsignup and bot is doing lots of ?squadowners
-            */
-            if (t.getOwner().equalsIgnoreCase(squadOwnerName)){
-                hzsql.putTeamSignup( t.getOwner(), t.getSquad());
-                break;
-            }
-            else 
-                m_botAction.sendSmartPrivateMessage(t.getOwner(), "You are not the owner of the squad " + t.getSquad());
-            
+        if(isAlreadyRegistered(squadName)){
+            m_botAction.sendPrivateMessage(squadName, squadName+" has been registered on the site already. Please try an other one.");
+            return;
         }
+        
+        signupSquad(name, squadName);
+        
+  }
+    
+    public boolean isAlreadyRegistered(String squadName){
+            if(hzsql.isTeam(squadName))
+                return true;
+            
+        return false;
+    }
+    
+    public void signupSquad(String name, String squadName){
+        hzsql.putTeam( name, squadName);
     }
 
-    public boolean isNotRostered(String name){
+    public boolean isRostered(String name){
        
         int userId = hzsql.getCaptainUserId(name);
         
-        if(hzsql.getTeamUserIdIsNotRostered(userId))
+        if(hzsql.getTeamUserIdIsRostered(userId))
             return true;
-            /*for(SquadOwner i:squadOwners)
-            if( i.getOwner().equals(name) )
-                return true;
-        *///checks if he has already created a nickname (list that bot keeps while online..) temporarily method / should be worked with query-db
+      
         return false;
     }
 
     public void doDisplaySquads(String name, String message){
         hzsql.getCurrentSquads();
-    }
-    
-    private class SquadOwner{
-        
-        private String owner = "";
-        private String squad = "";
-        private int id;
-        
-        public SquadOwner(String owner, String squad, int id){
-            setOwner(owner);
-            setSquad(squad);
-            setId(id);
-        }
-        public String getSquad() {
-            return squad;
-        }
-        public void setSquad(String squad) {
-            this.squad = squad;
-        }
-        public void setOwner(String owner) {
-            this.owner = owner;
-        }
-        public String getOwner() {
-            return owner;
-        }
-       
-        public void setId(int id) {
-            this.id = id;
-        }
-        public int getId() {
-            return id;
-        }
-        
     }
     
     //data access object - DAO
@@ -273,7 +211,7 @@ public class hockeybot
         private PreparedStatement psPutExtendedLogTeamSignup;
         private PreparedStatement psGetCurrentSquads;
         private PreparedStatement psGetMatchId;
-        private PreparedStatement psGetTeamName;
+        private PreparedStatement psGetTeam;
         private PreparedStatement psGetTeamUserId;
         private PreparedStatement psKeepAlive;
         
@@ -293,8 +231,8 @@ public class hockeybot
                     "SELECT fsName from tblTWHT__Team");
             
             
-            psGetTeamName = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, 
-                    "SELECT fsName FROM tblTWHT__Match where fnTWHTTeamId = ?");
+            psGetTeam = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, 
+                    "SELECT * FROM tblTWHT__Team where fsName = ?");
             
             psGetMatchId = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,  
                     "SELECT fnTeam1ID, fnTeam2ID FROM tblTWHT__Match where fnMatchId = ?");
@@ -304,6 +242,22 @@ public class hockeybot
             		"AND fdQuit IS NULL");
             
             psKeepAlive = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,  "SHOW DATABASES");
+        }
+        
+        private boolean isTeam(String squadName){
+            
+            try{
+                psGetTeam.setString(1, squadName);
+                ResultSet rs = psGetTeam.executeQuery();
+                
+                if(rs.next())
+                    return true;
+            
+            }catch(SQLException e){
+                Tools.printLog(e.toString());
+            }
+            
+            return false;
         }
         
         private int getCaptainUserId(String captainName){
@@ -322,63 +276,22 @@ public class hockeybot
             }
             
             return userId;
-        }
-       /* private int getTeamId(String squadName){
-            try{
-                
-            }catch(SQLException e){
-                Tools.printLog(e.toString());
-                }
-            return 0;
-            this should be used to don't allow a capt teamsignup a 2nd squad.
-        }*/
-        
-        private String getTeamName(int teamId){
-            
-            String teamName = "";
-            
-            try{
-                
-                psGetTeamName.setInt(1, teamId);
-                ResultSet rs = psGetTeamName.executeQuery();
-                
-                while(rs.next())
-                    teamName = rs.getString(1);
-                
-                
-            }catch(SQLException e){
-                Tools.printLog(e.toString());
-            }
-            return teamName;
-        }
-        private boolean getTeamUserIdIsNotRostered(int userId){
+        } 
+
+        private boolean getTeamUserIdIsRostered(int userId){
                 try{
                     psGetTeamUserId.setInt(1, userId);
                     ResultSet rs = psGetTeamUserId.executeQuery();
                     
                     if(rs.next())
-                        return false; //already rostered
+                        return true; //already rostered
                     
                 }catch(SQLException e){
                     Tools.printLog(e.toString());
                 }
-            return true;
+            return false;
         }
-        private void getMatch(int matchId){
-            try{
-                psGetMatchId.setInt(1, matchId);
-                ResultSet rs = psGetMatchId.executeQuery();
-                
-                if(rs.next()){
-                    
-                    team1 = getTeamName(rs.getInt(1));
-                    team2 = getTeamName(rs.getInt(2));   
-                }
-                
-            }catch(SQLException e){
-                Tools.printLog(e.toString());
-            }
-        }
+
         private void getCurrentSquads(){
         
             try{
@@ -392,14 +305,14 @@ public class hockeybot
                 }
         }
 
-        private void putTeamSignup(String name, String teamName){
+        private void putTeam(String name, String teamName){
                 
             try{
             
                 psPutExtendedLogTeamSignup.setString(1, teamName);
                 psPutExtendedLogTeamSignup.setInt(2, getCaptainUserId(name));
                 psPutExtendedLogTeamSignup.executeUpdate();
-                m_botAction.sendPrivateMessage(name, "Your new squad "+ teamName+" got signed up successfuly!");
+                m_botAction.sendPrivateMessage(name, "You've applied "+ teamName+" on the site successfuly! Just wait a TWH-Op to accept it.");
                 
                 
             }catch(SQLException e){
