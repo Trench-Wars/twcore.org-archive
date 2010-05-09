@@ -331,13 +331,17 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	// report start of game
 	public void reportStartOfGame()
 	{
-		if (m_fnPlayerState == 0)
-		{
+		m_statTracker.startNow();
+		
+		// m_fnPlayerState always = 1 at this point 
+		// because getInGame() set it to 1 as soon as the player get in before the start of the game.
+		if (m_fnPlayerState == 0) {
 			m_fnPlayerState = 1;
 			m_statTracker.startNow();
 			lagRequestTask = new LagRequestTask();
 			m_botAction.scheduleTaskAtFixedRate(lagRequestTask, 0, m_rules.getInt("lagcheckdelay") * 1000);
 		};
+
 	};
 
 	// report kill
@@ -501,7 +505,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		}
 	};
 
-	// get out of game
+	// get in, but not started yet
 	public void getInGame(boolean fbSilent)
 	{
 		resetOutOfBorderTime();
