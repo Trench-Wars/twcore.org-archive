@@ -382,6 +382,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				if (lagRequestTask != null)
                     m_botAction.cancelTask(lagRequestTask);
 			}
+			m_statTracker.endNow();
 			m_logger.specAndSetFreq(m_fcPlayerName, m_team.getFrequency());
 			m_logger.sendArenaMessage(getPlayerName() + " is out. " + getKills() + " wins " + getDeaths() + " losses");
 		};
