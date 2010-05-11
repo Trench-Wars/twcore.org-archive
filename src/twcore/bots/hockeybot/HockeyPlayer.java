@@ -2,7 +2,7 @@ package twcore.bots.hockeybot;
 
 import twcore.core.BotAction;
 
-public class HockeyPlayer {
+public class HockeyPlayer{
 
     BotAction playerHandler;
     
@@ -21,12 +21,12 @@ public class HockeyPlayer {
     private static final int IN = 0;
     private static final int LAGOUT = 1;
     
-    public HockeyPlayer(String name, int ship, int frequency){
+    public HockeyPlayer(String name, int ship, int frequency, BotAction botAction){
+        playerHandler = botAction;
         setName(name);
         setRegisteredShip(ship);
         setFrequency(frequency);
         playerHandler.scoreReset(name);
-        
         playerPoints = new HockeyPoints();
         
     }
