@@ -1125,7 +1125,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		{
 			if (type == WeaponFired.WEAPON_REPEL)
 				m_statisticTracker.setStatistic(Statistics.REPELS_USED);
-			else if (type == WeaponFired.WEAPON_BOMB)
+			else if (type == WeaponFired.WEAPON_BOMB || type == WeaponFired.WEAPON_EMP_BOMB)
 				m_statisticTracker.setStatistic(Statistics.BOMBS_FIRED);
 			else if (type == WeaponFired.WEAPON_BULLET)
 				m_statisticTracker.setStatistic(Statistics.BULLETS_FIRED);
