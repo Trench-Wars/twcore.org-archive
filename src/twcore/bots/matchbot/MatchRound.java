@@ -305,6 +305,11 @@ public class MatchRound
 	    try {
 	    	if (m_fnRoundState == 3)
 	    	{
+				System.out.println("WatchDamage event received.." +
+						" type:" + event.getWeaponType() +
+						" nrgL:" + event.getEnergyLost() +
+						" nrgO:" + event.getOldEnergy());
+	    		
 		        String playerName = m_botAction.getPlayer(event.getAttacker()).getPlayerName();
 		        if (m_team1.getPlayer(playerName, true) != null)
 		            m_team1.handleEvent(event);
