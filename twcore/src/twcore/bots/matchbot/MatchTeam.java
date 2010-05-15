@@ -202,7 +202,7 @@ public class MatchTeam
     public void handleEvent(WatchDamage event)
     {
     	// Did someone died? if not do nothing
-        if (event.getEnergyLost() < event.getOldEnergy()) {
+        if (event.getEnergyLost() > event.getOldEnergy()) {
             return;
         }
         
