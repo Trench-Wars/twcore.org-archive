@@ -1283,19 +1283,19 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		{
 			if (distance < KILL_SHORT_RANGE) {
 			    // short distance (rush)
-				m_statisticTracker.setStatistic(Statistics.PRIZE_SHRAPNEL);
+				m_statisticTracker.setStatistic(Statistics.KILL_SHORT_RANGE);
 			}
 			else if (distance < KILL_NORMAL_RANGE) {
 				// normal range
-				m_statisticTracker.setStatistic(Statistics.PRIZE_SHRAPNEL);
+				m_statisticTracker.setStatistic(Statistics.KILL_NORMAL_RANGE);
 			}
 			else if (distance < KILL_LONG_RANGE) {
 				// high range
-				m_statisticTracker.setStatistic(Statistics.PRIZE_SHRAPNEL);
+				m_statisticTracker.setStatistic(Statistics.KILL_LONG_RANGE);
 			}
 			else {
 				// out of the screen mostly, luck
-				m_statisticTracker.setStatistic(Statistics.PRIZE_SHRAPNEL);
+				m_statisticTracker.setStatistic(Statistics.KILL_ULTRA_LONG_RANGE);
 			}
 		}
 
