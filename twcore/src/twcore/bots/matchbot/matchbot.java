@@ -27,8 +27,11 @@ import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
+import twcore.core.events.Prize;
 import twcore.core.events.ScoreReset;
 import twcore.core.events.SoccerGoal;
+import twcore.core.events.TurretEvent;
+import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.stats.DBPlayerData;
@@ -169,6 +172,9 @@ public class matchbot extends SubspaceBot
         req.request(EventRequester.WEAPON_FIRED);
         req.request(EventRequester.SOCCER_GOAL);
         req.request(EventRequester.BALL_POSITION);
+        req.request(EventRequester.PRIZE);
+        req.request(EventRequester.TURRET_EVENT);
+        req.request(EventRequester.WATCH_DAMAGE);
     }
 
     /**
@@ -307,6 +313,24 @@ public class matchbot extends SubspaceBot
     }
 
     public void handleEvent(BallPosition event)
+    {
+    	if (m_game != null)
+    		m_game.handleEvent(event);
+    }
+    
+    public void handleEvent(Prize event)
+    {
+    	if (m_game != null)
+    		m_game.handleEvent(event);
+    }
+    
+    public void handleEvent(TurretEvent event)
+    {
+    	if (m_game != null)
+    		m_game.handleEvent(event);
+    }
+    
+    public void handleEvent(WatchDamage event)
     {
     	if (m_game != null)
     		m_game.handleEvent(event);

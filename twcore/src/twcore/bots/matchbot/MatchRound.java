@@ -31,7 +31,10 @@ import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
+import twcore.core.events.Prize;
 import twcore.core.events.SoccerGoal;
+import twcore.core.events.TurretEvent;
+import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.lvz.Objset;
@@ -265,6 +268,53 @@ public class MatchRound
 	    } catch ( Exception e ) {
 	    }
 	}
+	
+	public void handleEvent(Prize event)
+	{
+	    try {
+	    	if (m_fnRoundState == 3)
+	    	{
+		        String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+		        if (m_team1.getPlayer(playerName, true) != null)
+		            m_team1.handleEvent(event);
+		        if (m_team2.getPlayer(playerName, true) != null)
+		            m_team2.handleEvent(event);
+	    	}
+	    } catch ( Exception e ) {
+	    }
+	}
+	
+	public void handleEvent(TurretEvent event)
+	{
+	    try {
+	    	if (m_fnRoundState == 3 && event.isAttaching())
+	    	{
+	    		
+		        String playerName = m_botAction.getPlayer(event.getAttacherID()).getPlayerName();
+		        if (m_team1.getPlayer(playerName, true) != null)
+		            m_team1.handleEvent(event);
+		        if (m_team2.getPlayer(playerName, true) != null)
+		            m_team2.handleEvent(event);
+	    	}
+	    } catch ( Exception e ) {
+	    }
+	}
+	
+	public void handleEvent(WatchDamage event)
+	{
+	    try {
+	    	if (m_fnRoundState == 3)
+	    	{
+		        String playerName = m_botAction.getPlayer(event.getAttacker()).getPlayerName();
+		        if (m_team1.getPlayer(playerName, true) != null)
+		            m_team1.handleEvent(event);
+		        if (m_team2.getPlayer(playerName, true) != null)
+		            m_team2.handleEvent(event);
+	    	}
+	    } catch ( Exception e ) {
+	    }
+
+	}
 
     /**
      * Parses the FrequencyShipChange event to the team in which the player is
@@ -438,7 +488,7 @@ public class MatchRound
 	        {
 	            String killeeName = m_botAction.getPlayer(event.getKilleeID()).getPlayerName();
 	            String killerName = m_botAction.getPlayer(event.getKillerID()).getPlayerName();
-	
+
 	            if (m_team1.getPlayer(killeeName, true) != null)
 	                m_team1.handleEvent(event);
 	            if (m_team2.getPlayer(killeeName, true) != null)

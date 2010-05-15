@@ -26,6 +26,9 @@ import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
+import twcore.core.events.Prize;
+import twcore.core.events.TurretEvent;
+import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.stats.DBPlayerData;
@@ -177,6 +180,56 @@ public class MatchTeam
         {
         	p.reportWeaponFired(event.getWeaponType());
         }
+    }
+    
+    public void handleEvent(Prize event)
+    {
+        String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+        MatchPlayer p = getPlayer(playerName);
+        
+        p.reportPrize(event.getPrizeType());
+    }
+    
+    public void handleEvent(TurretEvent event)
+    {
+    	if (event.isAttaching()) {
+	        String playerName = m_botAction.getPlayer(event.getAttacherID()).getPlayerName();
+	        MatchPlayer p = getPlayer(playerName);
+	        p.reportAttach();
+    	}
+    }
+    
+    public void handleEvent(WatchDamage event)
+    {
+    	// Did someone died? if not do nothing
+        if (event.getEnergyLost() < event.getOldEnergy()) {
+            return;
+        }
+        
+        // Did someone shot himself? if yes do nothing
+        if (event.getVictim() == event.getAttacker()) {
+            return;
+        }
+        
+		Player killee = m_botAction.getPlayer(event.getVictim());
+		Player killer = m_botAction.getPlayer(event.getAttacker());
+
+		// Just in case..
+	    if (killee == null || killer == null) {
+	        return;
+	    }
+	    
+	    // Distance between the killer and killee
+	    double distance = Math.sqrt(
+	    		Math.pow(killer.getXLocation()-killee.getXLocation(),2) +
+	    		Math.pow(killer.getYLocation()-killee.getYLocation(),2))/16;
+	    
+        String playerName = m_botAction.getPlayer(killer.getPlayerID()).getPlayerName();
+        MatchPlayer p = getPlayer(playerName);
+	    
+        p.reportKillShotDistance(distance);
+	    
+ 
     }
     
     // when somebody lags out
@@ -2163,5 +2216,6 @@ public class MatchTeam
 
         return result;
     }
+        
 }
 
