@@ -22,15 +22,17 @@ import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
+import twcore.core.events.Prize;
 import twcore.core.events.ScoreReset;
 import twcore.core.events.SoccerGoal;
+import twcore.core.events.TurretEvent;
+import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
 public class MatchGame
 {
-
 	Connection m_connection;
 	BotAction m_botAction;
 
@@ -401,11 +403,10 @@ public class MatchGame
 		}
 	}
 
-	public void handleEvent(PlayerDeath event)
+	public void handleEvent(PlayerDeath event) 
 	{
 		m_logger.logEvent(event);
-		if (m_curRound != null)
-		{
+		if (m_curRound != null) {
 			m_curRound.handleEvent(event);
 		}
 	}
@@ -413,44 +414,54 @@ public class MatchGame
 	public void handleEvent(PlayerEntered event)
 	{
 		m_botAction.sendPrivateMessage(event.getPlayerID(), shortStatus());
-	        if( m_curRound != null ){
-  	                     m_curRound.handleEvent( event );
-                }
-        }
-
-	public void handleEvent(PlayerLeft event)
-	{
-		if (m_curRound != null)
-		{
-			m_curRound.handleEvent(event);
-		}
+        if (m_curRound != null ) {
+        	m_curRound.handleEvent( event );
+    	}
 	}
-
-	public void handleEvent(PlayerPosition event)
-	{
-		if (m_curRound != null)
-		{
-			m_curRound.handleEvent(event);
-		}
-	}
-
-	public void handleEvent(ScoreReset event)
-	{
+	
+	public void handleEvent(ScoreReset event) {
 		m_logger.logEvent(event);
 	}
 
-	public void handleEvent(SoccerGoal event)
-	{
-		if (m_curRound != null)
-		{
+	public void handleEvent(PlayerLeft event) {
+		if (m_curRound != null) {
 			m_curRound.handleEvent(event);
 		}
 	}
 
-	public void handleEvent(BallPosition event)
-	{
-		if (m_curRound != null)
-		{
+	public void handleEvent(PlayerPosition event) {
+		if (m_curRound != null) {
+			m_curRound.handleEvent(event);
+		}
+	}
+
+	public void handleEvent(SoccerGoal event) {
+		if (m_curRound != null) {
+			m_curRound.handleEvent(event);
+		}
+	}
+
+	public void handleEvent(BallPosition event) {
+		if (m_curRound != null) {
+			m_curRound.handleEvent(event);
+		}
+	}
+	
+	public void handleEvent(Prize event) {
+		if (m_curRound != null) {
+			m_curRound.handleEvent(event);
+		}
+	}
+	
+	public void handleEvent(TurretEvent event) {
+		if (m_curRound != null) {
+			m_curRound.handleEvent(event);
+		}
+	}
+	
+	public void handleEvent(WatchDamage event) {
+		// only used for DD.. testing purpose.
+		if (m_curRound != null && m_fnMatchTypeID==4) {
 			m_curRound.handleEvent(event);
 		}
 	}
