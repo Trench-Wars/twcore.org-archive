@@ -22,8 +22,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.TimerTask;
 
-import org.json.simple.JSONValue;
-
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.events.Message;
@@ -367,9 +365,12 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					Integer.toString(fnMatchRoundUserID),
 					Integer.toString(m_dbPlayer.getUserID()),
 					Integer.toString(MPS.getShipType()),
-					JSONValue.toJSONString(MPS.killers),
-					JSONValue.toJSONString(MPS.killees) };
+					"TEST",
+					"TEST" };
 							
+				/*JSONValue.toJSONString(MPS.killers)*/
+				/*JSONValue.toJSONString(MPS.killees)*/
+				
 				m_botAction.SQLInsertInto(dbConn, "tblMatchRoundUserExtra", extraFields, extraValues);
 				
 			}
