@@ -9,8 +9,6 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.TimerTask;
 
-import com.sun.org.apache.bcel.internal.generic.FNEG;
-
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.events.ArenaJoined;
