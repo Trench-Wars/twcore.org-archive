@@ -305,11 +305,6 @@ public class MatchRound
 	    try {
 	    	if (m_fnRoundState == 3)
 	    	{
-				System.out.println("WatchDamage event received.." +
-						" type:" + event.getWeaponType() +
-						" nrgL:" + event.getEnergyLost() +
-						" nrgO:" + event.getOldEnergy());
-	    		
 		        String playerName = m_botAction.getPlayer(event.getAttacker()).getPlayerName();
 		        if (m_team1.getPlayer(playerName, true) != null)
 		            m_team1.handleEvent(event);
@@ -1347,6 +1342,8 @@ public class MatchRound
     // gets called by m_startGame TimerTask.
     public void startGame()
     {
+    	m_game.spectateSomeone();
+    	
         m_generalTime = m_rules.getInt("time") * 60;
         m_scoreBoard = m_botAction.getObjectSet();
         updateScores = new TimerTask()
@@ -1385,6 +1382,8 @@ public class MatchRound
         m_botAction.receiveAllPlayerDeaths();
         m_logger.scoreResetAll();
         m_logger.shipResetAll();
+        
+        
         
         // TWSDX ONLY
         if(m_game.m_fnMatchTypeID != 13) {

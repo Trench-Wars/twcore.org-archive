@@ -9,6 +9,8 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.TimerTask;
 
+import com.sun.org.apache.bcel.internal.generic.FNEG;
+
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.events.ArenaJoined;
@@ -56,6 +58,9 @@ public class MatchGame
 
 	int m_gameState = 0;
 	int playersNum = 0;
+	
+    // bot spec
+    MatchPlayer playerSpectating;
 	
 	int settings_FlaggerKillMultiplier = 0;
 
@@ -449,7 +454,9 @@ public class MatchGame
 	
 	public void handleEvent(Prize event) {
 		if (m_curRound != null) {
-			m_curRound.handleEvent(event);
+			if (m_fnMatchTypeID==6)
+				m_curRound.handleEvent(event);
+			
 		}
 	}
 	
@@ -460,9 +467,10 @@ public class MatchGame
 	}
 	
 	public void handleEvent(WatchDamage event) {
-		// only used for DD.. testing purpose.
-		if (m_curRound != null && m_fnMatchTypeID==4) {
-			m_curRound.handleEvent(event);
+
+		if (m_curRound != null) {
+			if (m_fnMatchTypeID==4 || m_fnMatchTypeID==5 || m_fnMatchTypeID==13)
+				m_curRound.handleEvent(event);
 		}
 	}
 
@@ -755,6 +763,42 @@ public class MatchGame
 	public void setPlayersNum(int n)
 	{
 		playersNum = n;
+	}
+	
+	// Used to have a more accurate WATCH_DAMAGE but also better PlayerPosition
+	public void spectateSomeone()
+	{
+		if (m_curRound != null)
+		{
+			if ((m_curRound.m_fnRoundState == 2) || (m_curRound.m_fnRoundState == 3)) {
+
+		        ListIterator<MatchPlayer> i = m_curRound.m_team1.m_players.listIterator();
+
+		        while (i.hasNext()) {
+		        	
+		        	MatchPlayer player = i.next();
+		        	
+		        	if (playerSpectating == null || playerSpectating.m_fnPlayerState != 1)
+		        	{
+		        		if (m_fnMatchTypeID == 6 && player.getShipType() == 5) {
+			            	// Only if ter
+		        			m_botAction.spectatePlayer(player.m_player.getPlayerID());
+		        			playerSpectating = player;
+		        			System.out.println("Now spectating : " + player.getPlayerName());
+			            }
+		        		else {
+		        			// First to find
+		        			m_botAction.spectatePlayer(player.m_player.getPlayerID());
+		        			playerSpectating = player;
+		        			System.out.println("Now spectating : " + player.getPlayerName());
+		        		}
+		        	}
+
+		        }
+				
+			}
+		}
+
 	}
 
 	public void cancel()

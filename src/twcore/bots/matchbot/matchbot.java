@@ -81,6 +81,7 @@ public class matchbot extends SubspaceBot
     // --- temporary
     String m_team1 = null, m_team2 = null;
 
+
     //private static Pattern parseInfoRE = Pattern.compile("^IP:(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})  TimeZoneBias:\\d+  Freq:\\d+  TypedName:(.*)  Demo:\\d  MachineId:(\\d+)$");
     //private static Pattern cruncherRE = Pattern.compile("\\s+");
     
