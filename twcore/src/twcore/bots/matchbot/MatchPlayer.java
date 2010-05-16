@@ -14,12 +14,15 @@ package twcore.bots.matchbot;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.TimerTask;
+
+import org.json.simple.JSONValue;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -102,13 +105,25 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	static final int OUT = 4;
 	
 	// Kill shot range (value and less)
-	static final int KILL_SHORT_RANGE = 15;       // 0 to 15 pixel (16x16)
-	static final int KILL_NORMAL_RANGE = 40;      // 15 to 40 pixel (16x16)
-	static final int KILL_LONG_RANGE = 80;        // 40 to 80 pixel (16x16)
-	static final int KILL_ULTRA_LONG_RANGE = 120; // 80 and more
+	static final int DD_KILL_SHORT_RANGE = 15;       // 0 to 15 pixel (16x16)
+	static final int DD_KILL_NORMAL_RANGE = 40;      // 15 to 40 pixel (16x16)
+	static final int DD_KILL_LONG_RANGE = 80;        // 40 to 80 pixel (16x16)
+	static final int JD_KILL_SHORT_RANGE = 10; 
+	static final int JD_KILL_NORMAL_RANGE = 30;    
+	static final int JD_KILL_LONG_RANGE = 50;   
+	static final int SD_KILL_SHORT_RANGE = 15;       
+	static final int SD_KILL_NORMAL_RANGE = 40;      
+	static final int SD_KILL_LONG_RANGE = 80;       
 	
-	private static long DEATH_ON_ATTACH = 1000; // ms
-	private long lastAttach = 0; // for BD
+	// Death-On-Attach stats
+	private static long DEATH_ON_ATTACH = 2000; // ms
+	private long lastAttach = 0;
+	
+	// Spawn stats
+	// Spawn kill if time between 2 deaths is less than SPAWN_TIME
+	// SPAWN_TIME also add the time before you respawn
+	private static long SPAWN_TIME = 6000;
+	private long lastDeath = 0;
 
 	/** Creates a new instance of MatchPlayer */
 	public MatchPlayer(String fcPlayerName, MatchTeam Matchteam)
@@ -133,7 +148,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		maxNumSpikes = m_rules.getInt("maxnumspikes");
 		
 		watchDamagePlayerEnabled = new HashSet<String>();
-		
+				
 		m_statTracker = new TotalStatistics();
 
 		if ((m_rules.getInt("storegame") != 0) || (m_rules.getInt("rosterjoined") != 0))
@@ -251,6 +266,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 						"fnShipTypeID",
 						"fnScore",
 						"fnDeaths",
+						"fnSpawnDeaths",
 						"fnWarbirdKill",
 						"fnJavelinKill",
 						"fnSpiderKill",
@@ -285,6 +301,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 						"fnKillLongRange",
 						"fnKillUltraLongRange",
 						"fnDeathOnAttach",
+						"fnTimePlayed",
 						"ftTimeStarted",
 						"ftTimeEnded" };
 
@@ -294,6 +311,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 						Integer.toString(MPS.getShipType()),
 						Integer.toString(MPS.getStatistic(Statistics.SCORE)),
 						Integer.toString(MPS.getStatistic(Statistics.DEATHS)),
+						Integer.toString(MPS.getStatistic(Statistics.SPAWN_DEATHS)),
 						Integer.toString(MPS.getStatistic(Statistics.WARBIRD_KILL)),
 						Integer.toString(MPS.getStatistic(Statistics.JAVELIN_KILL)),
 						Integer.toString(MPS.getStatistic(Statistics.SPIDER_KILL)),
@@ -328,10 +346,32 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 						Integer.toString(MPS.getStatistic(Statistics.KILL_LONG_RANGE)),
 						Integer.toString(MPS.getStatistic(Statistics.KILL_ULTRA_LONG_RANGE)),
 						Integer.toString(MPS.getStatistic(Statistics.DEATH_ON_ATTACH)),
+						Long.toString(MPS.timePlayed/1000),
 						started,
 						ended };
-				
+								
 				m_botAction.SQLInsertInto(dbConn, "tblMatchRoundUserShip", shipFields, shipValues);
+				
+				// EXTRA INFO!
+
+				String[] extraFields =
+				{
+					"fnMatchRoundUserID",
+					"fnUserID",
+					"fnShipTypeID",
+					"fcKillers",
+					"fcKillees" };
+
+				String[] extraValues =
+				{
+					Integer.toString(fnMatchRoundUserID),
+					Integer.toString(m_dbPlayer.getUserID()),
+					Integer.toString(MPS.getShipType()),
+					JSONValue.toJSONString(MPS.killers),
+					JSONValue.toJSONString(MPS.killees) };
+							
+				m_botAction.SQLInsertInto(dbConn, "tblMatchRoundUserExtra", extraFields, extraValues);
+				
 			}
 		}
 		catch (Exception e)
@@ -370,8 +410,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	public void startWatchDamage() {
 		// Only for DD (testing purpose)
 		if (m_rules.getInt("matchtype") == 4) {
-			System.out.println("Starting WATCH_DAMAGE for : " + getPlayerName());
 			if (!watchDamagePlayerEnabled.contains(getPlayerName())) {
+				System.out.println("Starting WATCH_DAMAGE for : " + getPlayerName());
 				m_botAction.toggleWatchDamage(getPlayerName());
 				watchDamagePlayerEnabled.add(getPlayerName());
 			}
@@ -381,8 +421,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	public void stopWatchDamage() {
 		// Only for DD (testing purpose)
 		if (m_rules.getInt("matchtype") == 4) {
-			System.out.println("Stopping WATCH_DAMAGE for : " + getPlayerName());
 			if (watchDamagePlayerEnabled.contains(getPlayerName())) {
+				System.out.println("Stopping WATCH_DAMAGE for : " + getPlayerName());
 				m_botAction.toggleWatchDamage(getPlayerName());
 				watchDamagePlayerEnabled.remove(getPlayerName());
 			}
@@ -457,7 +497,15 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	{
 		resetOutOfBorderTime();
 		m_statTracker.reportDeath();
-
+		
+		// Spawn kill?
+		if (lastDeath != 0) {
+			if (System.currentTimeMillis() - lastDeath < SPAWN_TIME) {
+				m_statTracker.reportSpawnDeath();
+			}
+		}
+		lastDeath = System.currentTimeMillis();
+		
 		//lag check timer cancel
 		if ((m_statTracker.getStatistic(Statistics.DEATHS) >= m_fnSpecAt) && (m_rules.getString("winby").equals("kills")))
 		{
@@ -468,14 +516,26 @@ public class MatchPlayer implements Comparable<MatchPlayer>
                     m_botAction.cancelTask(lagRequestTask);
 			}
 			m_statTracker.endNow();
+			m_team.m_round.m_game.spectateSomeone();
 			m_logger.specAndSetFreq(m_fcPlayerName, m_team.getFrequency());
 			m_logger.sendArenaMessage(getPlayerName() + " is out. " + getKills() + " wins " + getDeaths() + " losses");
 		};
 	}
 	
-	public void reportKillShotDistance(double distance) {
-		m_statTracker.reportKillShotDistance(distance);
-				
+	// report death
+	public void reportKiller(MatchPlayer killer)
+	{
+		m_statTracker.reportKiller(killer);
+	}
+	
+	public void reportKillee(MatchPlayer killee)
+	{
+		m_statTracker.reportKillee(killee);
+	}
+
+	public void reportKillShotDistance(double distance) 
+	{
+		m_statTracker.reportKillShotDistance(distance);		
 	}
 
 	// report lagout
@@ -495,6 +555,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		resetOutOfBorderTime();
 		m_fnPlayerState = 2;
 
+		m_team.m_round.m_game.spectateSomeone();
+		
 		//cancel lag checks
 		if (lagRequestTask != null)
             m_botAction.cancelTask(lagRequestTask);
@@ -1003,6 +1065,19 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				m_currentShip.reportPrize(type);
 		}
 		
+		public void updateTimePlayed()
+		{
+			if (m_currentShip != null)
+				m_currentShip.updateTimePlayed();
+		}
+		
+		public void updateLastTimeCheck()
+		{
+			if (m_currentShip != null)
+				m_currentShip.updateLastTimeCheck();
+		}
+		
+		
 		/**
 		* Method reportDeathOnAttach.
 		*/
@@ -1010,6 +1085,18 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		{
 			if (m_currentShip != null)
 				m_currentShip.reportDeathOnAttach();
+		}
+		
+		public void reportKiller(MatchPlayer killer)
+		{
+			if (m_currentShip != null)
+				m_currentShip.reportKiller(killer);
+		}
+		
+		public void reportKillee(MatchPlayer killee)
+		{
+			if (m_currentShip != null)
+				m_currentShip.reportKillee(killee);
 		}
 
 		/**
@@ -1019,6 +1106,15 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		{
 			if (m_currentShip != null)
 				m_currentShip.reportDeath();
+		}
+		
+		/**
+		* Method reportSpawnDeath.
+		*/
+		public void reportSpawnDeath()
+		{
+			if (m_currentShip != null)
+				m_currentShip.reportSpawnDeath();
 		}
 
 		/**
@@ -1144,13 +1240,25 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 
 		private java.util.Date m_ftTimeStarted;
 		private java.util.Date m_ftTimeEnded;
-
+		
+		// Killers/Killees stats
+		private Map<Integer,Integer> killers;
+		private Map<Integer,Integer> killees;
+		
+		// Time played
+		private long timePlayed = 0;
+		private long lastTimeCheck = 0;
+		
 		public MatchPlayerShip(int fnShipType)
 		{
 			m_ftTimeStarted = new java.util.Date();
 
 			//statistics tracker
 			m_statisticTracker = new Statistics(fnShipType);
+			
+			killers = new HashMap<Integer,Integer>();
+			killees = new HashMap<Integer,Integer>();
+			
 		};
 
 		// report kill
@@ -1281,21 +1389,52 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 
 		public void reportKillShotDistance(double distance) 
 		{
-			if (distance < KILL_SHORT_RANGE) {
-			    // short distance (rush)
-				m_statisticTracker.setStatistic(Statistics.KILL_SHORT_RANGE);
+			
+			if (m_rules.getInt("matchtype") == 4) {
+				
+				if (distance < DD_KILL_SHORT_RANGE) {
+					m_statisticTracker.setStatistic(Statistics.KILL_SHORT_RANGE);
+				}
+				else if (distance < DD_KILL_NORMAL_RANGE) {
+					m_statisticTracker.setStatistic(Statistics.KILL_NORMAL_RANGE);
+				}
+				else if (distance < DD_KILL_LONG_RANGE) {
+					m_statisticTracker.setStatistic(Statistics.KILL_LONG_RANGE);
+				}
+				else {
+					m_statisticTracker.setStatistic(Statistics.KILL_ULTRA_LONG_RANGE);
+				}
 			}
-			else if (distance < KILL_NORMAL_RANGE) {
-				// normal range
-				m_statisticTracker.setStatistic(Statistics.KILL_NORMAL_RANGE);
-			}
-			else if (distance < KILL_LONG_RANGE) {
-				// high range
-				m_statisticTracker.setStatistic(Statistics.KILL_LONG_RANGE);
-			}
-			else {
-				// out of the screen mostly, luck
-				m_statisticTracker.setStatistic(Statistics.KILL_ULTRA_LONG_RANGE);
+			else if(m_rules.getInt("matchtype") == 5) {
+				
+				if (distance < JD_KILL_SHORT_RANGE) {
+					m_statisticTracker.setStatistic(Statistics.KILL_SHORT_RANGE);
+				}
+				else if (distance < JD_KILL_NORMAL_RANGE) {
+					m_statisticTracker.setStatistic(Statistics.KILL_NORMAL_RANGE);
+				}
+				else if (distance < JD_KILL_LONG_RANGE) {
+					m_statisticTracker.setStatistic(Statistics.KILL_LONG_RANGE);
+				}
+				else {
+					m_statisticTracker.setStatistic(Statistics.KILL_ULTRA_LONG_RANGE);
+				}
+			}	
+			else if(m_rules.getInt("matchtype") == 13) {
+					
+				if (distance < SD_KILL_SHORT_RANGE) {
+					m_statisticTracker.setStatistic(Statistics.KILL_SHORT_RANGE);
+				}
+				else if (distance < SD_KILL_NORMAL_RANGE) {
+					m_statisticTracker.setStatistic(Statistics.KILL_NORMAL_RANGE);
+				}
+				else if (distance < SD_KILL_LONG_RANGE) {
+					m_statisticTracker.setStatistic(Statistics.KILL_LONG_RANGE);
+				}
+				else {
+					m_statisticTracker.setStatistic(Statistics.KILL_ULTRA_LONG_RANGE);
+				}
+				
 			}
 		}
 
@@ -1308,11 +1447,30 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		{
 			m_statisticTracker.setStatistic(Statistics.FLAG_CLAIMED);
 		}
+		
+		public void updateLastTimeCheck()
+		{
+			lastTimeCheck = System.currentTimeMillis();
+		}
+		
+		public void updateTimePlayed()
+		{
+			if (lastTimeCheck != 0) {
+				timePlayed += System.currentTimeMillis() - lastTimeCheck;
+			}
+			lastTimeCheck = System.currentTimeMillis();
+		}
 
 		// report death
 		public void reportDeath()
 		{
 			m_statisticTracker.setStatistic(Statistics.DEATHS);
+		}
+		
+		// report spawn death
+		public void reportSpawnDeath()
+		{
+			m_statisticTracker.setStatistic(Statistics.SPAWN_DEATHS);
 		}
 
 		public void flagReward(int points)
@@ -1320,6 +1478,30 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			m_statisticTracker.setStatistic(Statistics.SCORE, points);
 		}
 
+		public void reportKiller(MatchPlayer killer)
+		{
+			int fnUserID = killer.m_dbPlayer.getUserID();
+			
+			if (!killers.containsKey(fnUserID)) {
+				killers.put(fnUserID, 1);
+			}
+			else {
+				killers.put(fnUserID, killers.get(fnUserID)+1);
+			}
+		}
+		
+		public void reportKillee(MatchPlayer killee)
+		{
+			int fnUserID = killee.m_dbPlayer.getUserID();
+			
+			if (!killers.containsKey(fnUserID)) {
+				killers.put(fnUserID, 1);
+			}
+			else {
+				killers.put(fnUserID, killers.get(fnUserID)+1);
+			}
+		}
+		
 		/**
 		 * Method changeDeaths.
 		 * @param deaths
@@ -1333,12 +1515,14 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		public void endNow()
 		{
 			m_ftTimeEnded = new java.util.Date();
+			updateTimePlayed();
 		}
 
 		// report start of playership
 		public void startNow()
 		{
 			m_ftTimeStarted = new java.util.Date();
+			updateTimePlayed();
 		}
 
 		public int getShipType()

@@ -171,15 +171,7 @@ public class MatchTeam
     {
         String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
         MatchPlayer p = getPlayer(playerName);
-
-        if (event.getWeaponType() == WeaponFired.WEAPON_REPEL ||
-        		event.getWeaponType() == WeaponFired.WEAPON_BOMB ||
-        		event.getWeaponType() == WeaponFired.WEAPON_BULLET ||
-        		event.getWeaponType() == WeaponFired.WEAPON_BURST ||
-        		event.getWeaponType() == WeaponFired.WEAPON_MINE)
-        {
-        	p.reportWeaponFired(event.getWeaponType());
-        }
+        p.reportWeaponFired(event.getWeaponType());
     }
     
     public void handleEvent(Prize event)
@@ -202,7 +194,7 @@ public class MatchTeam
     public void handleEvent(WatchDamage event)
     {
     	// Did someone died? if not do nothing
-        if (event.getEnergyLost() > event.getOldEnergy()) {
+        if (Math.abs(event.getEnergyLost()) < event.getOldEnergy()) {
             return;
         }
         
@@ -277,9 +269,14 @@ public class MatchTeam
         {
             try
             {
-                String playerName = m_botAction.getPlayer(event.getKilleeID()).getPlayerName();
-                MatchPlayer p = getPlayer(playerName);
-                p.reportDeath();
+            	MatchPlayer killeePlayer = getPlayer(m_botAction.getPlayer(event.getKilleeID()).getPlayerName());
+            	MatchPlayer killerPlayer = getPlayer(m_botAction.getPlayer(event.getKillerID()).getPlayerName());
+            	
+            	killeePlayer.reportDeath();
+            	
+            	killeePlayer.reportKiller(killerPlayer);
+            	killerPlayer.reportKillee(killeePlayer);
+
             }
             catch (Exception e)
             {
@@ -1922,8 +1919,12 @@ public class MatchTeam
     {
         ListIterator<MatchPlayer> i = m_players.listIterator();
 
-        while (i.hasNext())
-            i.next().reportStartOfGame();
+        while (i.hasNext()) {
+        	MatchPlayer player = i.next();
+
+            player.reportStartOfGame();
+        }
+            
     }
 
     // send end signal to all players
