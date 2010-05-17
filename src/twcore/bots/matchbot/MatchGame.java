@@ -764,6 +764,7 @@ public class MatchGame
 	}
 	
 	// Used to have a more accurate WATCH_DAMAGE but also better PlayerPosition
+	// Not used.. maybe cause lag
 	public void spectateSomeone()
 	{
 		if (m_curRound != null)

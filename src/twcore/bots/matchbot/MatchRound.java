@@ -1342,8 +1342,6 @@ public class MatchRound
     // gets called by m_startGame TimerTask.
     public void startGame()
     {
-    	m_game.spectateSomeone();
-    	
         m_generalTime = m_rules.getInt("time") * 60;
         m_scoreBoard = m_botAction.getObjectSet();
         updateScores = new TimerTask()
