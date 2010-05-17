@@ -938,9 +938,6 @@ public class MatchTeam
                             		m_botAction.setFreq(pA.getPlayerName(), freq);
                             		m_botAction.setFreq(pB.getPlayerName(), freq);
 
-                                    //spectate a new player in case there is a new ter
-                                    if (m_round.m_game.m_fnMatchTypeID == 6)
-                                    	m_round.m_game.spectateSomeone();
 
                             		//this indicates that the player has switched ships during the game
                             		//currently it voids the player from getting mvp in time race games
@@ -1028,10 +1025,6 @@ public class MatchTeam
                                             //this indicates that the player has switched ships during the game
                                             //currently it voids the player from getting mvp in time race games
                                             pA.m_switchedShip = true;
-                                            
-                                            //spectate a new player in case there is a new ter
-                                            if (m_round.m_game.m_fnMatchTypeID == 6)
-                                            	m_round.m_game.spectateSomeone();
 
                                             m_logger.sendArenaMessage(pA.m_fcPlayerName + " changed from ship "
                                                     + oldShip + " to ship " + newShip);

@@ -175,9 +175,7 @@ public class matchbot extends SubspaceBot
         req.request(EventRequester.BALL_POSITION);
         req.request(EventRequester.PRIZE);
         req.request(EventRequester.TURRET_EVENT);
-        // After a test, in rare case, the bot lag and doesn't handle the deaths correct
-        // See: http://twd.trenchwars.org/showgame/90026327
-        //req.request(EventRequester.WATCH_DAMAGE);
+        req.request(EventRequester.WATCH_DAMAGE);
     }
 
     /**
