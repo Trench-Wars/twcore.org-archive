@@ -435,7 +435,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	{
 		m_statTracker.startNow();
 		
-		startWatchDamage();
+		//startWatchDamage();
 		
 		// m_fnPlayerState always = 1 at this point 
 		// because getInGame() set it to 1 as soon as the player get in before the start of the game.
@@ -652,7 +652,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	// report end of game
 	public void reportEndOfGame()
 	{
-		stopWatchDamage();
+		//stopWatchDamage();
 		
 		if (m_fnPlayerState == 1)
 		{
