@@ -776,7 +776,7 @@ public class MatchGame
 		        	
 		        	MatchPlayer player = i.next();
 		        	
-		        	if (playerSpectating == null || playerSpectating.m_fnPlayerState != 1)
+		        	if (playerSpectating == null || playerSpectating.m_fnPlayerState != 1 || (m_fnMatchTypeID == 6 && playerSpectating.getShipType() != 5))
 		        	{
 		        		if (m_fnMatchTypeID == 6 && player.getShipType() == 5) {
 			            	// Only if ter
