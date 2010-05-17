@@ -31,6 +31,7 @@ import twcore.core.stats.DBPlayerData;
 import twcore.core.stats.Statistics;
 import twcore.core.util.Tools;
 import twcore.core.util.Tools.Prize;
+import twcore.core.util.json.JSONValue;
 
 public class MatchPlayer implements Comparable<MatchPlayer>
 {
@@ -365,10 +366,10 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					Integer.toString(fnMatchRoundUserID),
 					Integer.toString(m_dbPlayer.getUserID()),
 					Integer.toString(MPS.getShipType()),
-					"TEST",
-					"TEST" };
+					JSONValue.toJSONString(MPS.killers),
+					JSONValue.toJSONString(MPS.killers) };
 							
-				/*JSONValue.toJSONString(MPS.killers)*/
+				/*)*/
 				/*JSONValue.toJSONString(MPS.killees)*/
 				
 				m_botAction.SQLInsertInto(dbConn, "tblMatchRoundUserExtra", extraFields, extraValues);
@@ -409,8 +410,10 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	};
 	
 	public void startWatchDamage() {
-		// Only for DD (testing purpose)
-		if (m_rules.getInt("matchtype") == 4) {
+
+		if (m_rules.getInt("matchtype") == 4
+				|| m_rules.getInt("matchtype") == 5
+				|| m_rules.getInt("matchtype") == 13) {
 			if (!watchDamagePlayerEnabled.contains(getPlayerName())) {
 				System.out.println("Starting WATCH_DAMAGE for : " + getPlayerName());
 				m_botAction.toggleWatchDamage(getPlayerName());
@@ -420,13 +423,10 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	}
 	
 	public void stopWatchDamage() {
-		// Only for DD (testing purpose)
-		if (m_rules.getInt("matchtype") == 4) {
-			if (watchDamagePlayerEnabled.contains(getPlayerName())) {
-				System.out.println("Stopping WATCH_DAMAGE for : " + getPlayerName());
-				m_botAction.toggleWatchDamage(getPlayerName());
-				watchDamagePlayerEnabled.remove(getPlayerName());
-			}
+		if (watchDamagePlayerEnabled.contains(getPlayerName())) {
+			System.out.println("Stopping WATCH_DAMAGE for : " + getPlayerName());
+			m_botAction.toggleWatchDamage(getPlayerName());
+			watchDamagePlayerEnabled.remove(getPlayerName());
 		}
 	}
 
@@ -601,8 +601,10 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					{
 						if (m_player.getShipType() == 0)
 						{
-							if (fnRoundState == 3)
+							if (fnRoundState == 3) {
 								m_fnLagouts++;
+								m_statTracker.m_currentShip.updateLastTimeCheck();
+							}
 							// if the player lagged out for over 5 minutes, create a new ship record:
 							/*
 							if (System.currentTimeMillis() - m_fnLaggedTime > 5*60*1000) {
@@ -1065,20 +1067,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			if (m_currentShip != null)
 				m_currentShip.reportPrize(type);
 		}
-		
-		public void updateTimePlayed()
-		{
-			if (m_currentShip != null)
-				m_currentShip.updateTimePlayed();
-		}
-		
-		public void updateLastTimeCheck()
-		{
-			if (m_currentShip != null)
-				m_currentShip.updateLastTimeCheck();
-		}
-		
-		
+				
 		/**
 		* Method reportDeathOnAttach.
 		*/
@@ -1259,6 +1248,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			
 			killers = new HashMap<Integer,Integer>();
 			killees = new HashMap<Integer,Integer>();
+			
+			lastTimeCheck = System.currentTimeMillis();
 			
 		};
 
@@ -1456,9 +1447,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		
 		public void updateTimePlayed()
 		{
-			if (lastTimeCheck != 0) {
-				timePlayed += System.currentTimeMillis() - lastTimeCheck;
-			}
+			timePlayed += System.currentTimeMillis() - lastTimeCheck;
 			lastTimeCheck = System.currentTimeMillis();
 		}
 
