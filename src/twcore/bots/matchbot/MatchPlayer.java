@@ -365,8 +365,12 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					Integer.toString(fnMatchRoundUserID),
 					Integer.toString(m_dbPlayer.getUserID()),
 					Integer.toString(MPS.getShipType()),
+					Integer.toString(MPS.killers.size()),
+					Integer.toString(MPS.killees.size()) };
+					/*
 					JSONValue.toJSONString(MPS.killers),
 					JSONValue.toJSONString(MPS.killers) };
+					*/
 							
 				/*)*/
 				/*JSONValue.toJSONString(MPS.killees)*/
@@ -1566,6 +1570,23 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		{
 			checkLag();
 		}
+	}
+	
+	public static void main(String[] args) {
+		
+		Map<Integer,Integer> test = new HashMap<Integer,Integer>();
+
+		int fnUserID = 100;
+		
+		if (!test.containsKey(fnUserID)) {
+			test.put(fnUserID, 1);
+		}
+		else {
+			test.put(fnUserID, test.get(fnUserID)+1);
+		}
+		
+		System.out.println(JSONValue.toJSONString(test));
+		
 	}
 
 };
