@@ -24,6 +24,7 @@ import java.util.TimerTask;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
+import twcore.core.EventRequester;
 import twcore.core.events.Message;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
@@ -94,7 +95,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
     boolean m_checkedIPMID = false;
     
     // List of who have watchdamage enabled, toggle is evil..
-    private static HashSet<String> watchDamagePlayerEnabled;
+    private static HashSet<String> watchDamagePlayerEnabled = new HashSet<String>();
 
 	// Constants
 	static final int NOT_IN_GAME = 0;
@@ -146,8 +147,6 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		maxStandardDeviation = m_rules.getDouble("maxstandarddeviation");
 		maxNumSpikes = m_rules.getInt("maxnumspikes");
 		
-		watchDamagePlayerEnabled = new HashSet<String>();
-				
 		m_statTracker = new TotalStatistics();
 
 		if ((m_rules.getInt("storegame") != 0) || (m_rules.getInt("rosterjoined") != 0))
@@ -411,18 +410,23 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	
 	public void startWatchDamage() {
 
-		if (m_rules.getInt("matchtype") == 4
-				|| m_rules.getInt("matchtype") == 5
-				|| m_rules.getInt("matchtype") == 13) {
-			if (!watchDamagePlayerEnabled.contains(getPlayerName())) {
-				System.out.println("Starting WATCH_DAMAGE for : " + getPlayerName());
-				m_botAction.toggleWatchDamage(getPlayerName());
-				watchDamagePlayerEnabled.add(getPlayerName());
-			}
+		// ToggleWatchDamage only if we request this event
+		if (!m_botAction.getEventRequester().check(EventRequester.WATCH_DAMAGE))
+			return;
+			
+		if (!watchDamagePlayerEnabled.contains(getPlayerName())) {
+			System.out.println("Starting WATCH_DAMAGE for : " + getPlayerName());
+			m_botAction.toggleWatchDamage(getPlayerName());
+			watchDamagePlayerEnabled.add(getPlayerName());
 		}
 	}
 	
 	public void stopWatchDamage() {
+		
+		// ToggleWatchDamage only if we request this event
+		if (!m_botAction.getEventRequester().check(EventRequester.WATCH_DAMAGE))
+			return;
+		
 		if (watchDamagePlayerEnabled.contains(getPlayerName())) {
 			System.out.println("Stopping WATCH_DAMAGE for : " + getPlayerName());
 			m_botAction.toggleWatchDamage(getPlayerName());
@@ -1475,17 +1479,18 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			else {
 				killers.put(fnUserID, killers.get(fnUserID)+1);
 			}
+			
 		}
 		
 		public void reportKillee(MatchPlayer killee)
 		{
 			int fnUserID = killee.m_dbPlayer.getUserID();
 			
-			if (!killers.containsKey(fnUserID)) {
-				killers.put(fnUserID, 1);
+			if (!killees.containsKey(fnUserID)) {
+				killees.put(fnUserID, 1);
 			}
 			else {
-				killers.put(fnUserID, killers.get(fnUserID)+1);
+				killees.put(fnUserID, killees.get(fnUserID)+1);
 			}
 		}
 		
