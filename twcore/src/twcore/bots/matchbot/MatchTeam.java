@@ -280,6 +280,7 @@ public class MatchTeam
             }
             catch (Exception e)
             {
+            	Tools.printStackTrace(e);
             }
         }
     }
