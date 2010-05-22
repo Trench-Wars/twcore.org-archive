@@ -275,9 +275,10 @@ public class twdbot extends SubspaceBot {
     			Tools.printStackTrace(e);
     		}
     }
-
-    public void handleEvent( SQLResultEvent event ){
-        // NOP.
+    
+    public void handleEvent(SQLResultEvent event) {
+    	if (event.getIdentifier().equals("twdbot"))
+    		m_botAction.SQLClose( event.getResultSet() );
     }
 
     public void commandAddMIDIP(String staffname, String info) {
@@ -758,7 +759,7 @@ public class twdbot extends SubspaceBot {
             ResultSet s = m_botAction.SQLQuery( webdb, "SELECT * FROM tblAliasSuppression WHERE fnUserID = '" + dbP.getUserID() + "' && fdResetTime IS NOT NULL");
             if (s.next())
             {
-                m_botAction.SQLBackgroundQuery( webdb, null, "UPDATE tblAliasSuppression SET fdResetTime = NULL WHERE fnUserID = '" + dbP.getUserID() + "'");
+                m_botAction.SQLBackgroundQuery( webdb, "twdbot", "UPDATE tblAliasSuppression SET fdResetTime = NULL WHERE fnUserID = '" + dbP.getUserID() + "'");
 
                 if (player)
                 {
@@ -1108,7 +1109,7 @@ public class twdbot extends SubspaceBot {
 
         try {
             String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
-            m_botAction.SQLBackgroundQuery( webdb, null, "UPDATE tblAliasSuppression SET fdResetTime = '"+time+"' WHERE fnUserID = '" + id + "'");
+            m_botAction.SQLBackgroundQuery( webdb, "twdbot", "UPDATE tblAliasSuppression SET fdResetTime = '"+time+"' WHERE fnUserID = '" + id + "'");
             return true;
         } catch (Exception e) {
             return false;
@@ -1117,7 +1118,7 @@ public class twdbot extends SubspaceBot {
 
     public void checkNamesToReset() {
         try {
-            m_botAction.SQLBackgroundQuery(webdb, null, "DELETE FROM tblAliasSuppression WHERE fdResetTime < DATE_SUB(NOW(), INTERVAL 1 DAY);");
+            m_botAction.SQLBackgroundQuery(webdb, "twdbot", "DELETE FROM tblAliasSuppression WHERE fdResetTime < DATE_SUB(NOW(), INTERVAL 1 DAY);");
         } catch (Exception e) {
             System.out.println("Can't check for new names to reset...");
         };
