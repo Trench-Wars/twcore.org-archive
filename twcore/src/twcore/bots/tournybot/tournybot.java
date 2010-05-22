@@ -606,6 +606,7 @@ public class tournybot extends SubspaceBot {
 					m_botAction.SQLBackgroundQuery(dbConn, event.getIdentifier(), "SELECT player_id, rating FROM tblTournyPlayerStats WHERE playerName = '" + Tools.addSlashesToString(rand.getName1()) + "'");
 				}
 			} catch (Exception e) {
+				Tools.printStackTrace(e);
 				dbAvailable = false;
 			}
                         m_botAction.SQLClose( event.getResultSet() );
@@ -2362,6 +2363,7 @@ public class tournybot extends SubspaceBot {
 			m_botAction.SQLInsertInto(dbConn, "tblTournyTournaments", fields, values);
 			dbAvailable = true;
 		} catch (Exception e) {
+			Tools.printStackTrace(e);
 			dbAvailable = false;
 		};
 
