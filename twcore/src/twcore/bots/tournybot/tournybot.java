@@ -1,6 +1,7 @@
 package twcore.bots.tournybot;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -545,7 +546,9 @@ public class tournybot extends SubspaceBot {
 						m_botAction.sendSmartPrivateMessage(ranks[1], "No record of " + ranks[2]);
 					}
 				}
-			} catch (Exception e) {}
+			} catch (Exception e) {
+			    Tools.printLog(e.toString());
+			}
                         m_botAction.SQLClose( event.getResultSet() );
 			return;
 		} else if (ranks.length == 5 && ranks[0].equals("tRank")) {
@@ -608,6 +611,7 @@ public class tournybot extends SubspaceBot {
 			} catch (Exception e) {
 				Tools.printStackTrace(e);
 				dbAvailable = false;
+				
 			}
                         m_botAction.SQLClose( event.getResultSet() );
 		} else {
@@ -655,6 +659,7 @@ public class tournybot extends SubspaceBot {
 					}
 				} catch (Exception e) {
 					dbAvailable = false;
+					Tools.printLog(e.toString());
 				}
                                 m_botAction.SQLClose( event.getResultSet() );
 			} else {
@@ -1103,7 +1108,12 @@ public class tournybot extends SubspaceBot {
 		{
 			public void run()
 			{
-				announcePlayers();
+				try {
+                    announcePlayers();
+                } catch (SQLException e) {
+                    // TODO Auto-generated catch block
+                    Tools.printStackTrace(e);
+                }
 			};
 		};
 
@@ -1693,7 +1703,7 @@ public class tournybot extends SubspaceBot {
 	 * Also assigns random number for each freq to make the seedings more random
 	 */
 
-	public void announcePlayers() {
+	public void announcePlayers() throws SQLException {
 		createTournament(playersNum);
 
 		qSent = 0;
@@ -2353,19 +2363,19 @@ public class tournybot extends SubspaceBot {
 	 * Creates a record of the tournament to database
 	 */
 
-	public void createTournament(int num) {
+	public void createTournament(int num) throws SQLException {
 		try {
-			String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+			//String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
 			String typeTxt = ship + " tournament to " + deaths + " death(s)";
 			String fields[] = {	"type", "typeTxt", "players", "started", "trState" };
-			String values[] = { Integer.toString(maxPerFreq), typeTxt, Integer.toString(num), time, Integer.toString(0) };
+			String values[] = { Integer.toString(maxPerFreq), typeTxt, Integer.toString(num), "NOW()", Integer.toString(0) };
 
 			m_botAction.SQLInsertInto(dbConn, "tblTournyTournaments", fields, values);
 			dbAvailable = true;
-		} catch (Exception e) {
+	    }catch (Exception e) {
 			Tools.printStackTrace(e);
 			dbAvailable = false;
-		};
+		}
 
 		trPrize = 0;
 
