@@ -1,13 +1,11 @@
-package twcore.bots.hockeybot;
+package twcore.bots.hockeybot.hockeyregistrator;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.TimerTask;
 
+import twcore.bots.hockeybot.hockeybot;
+import twcore.bots.hockeybot.hockeydatabase.HockeyDatabase;
 import twcore.core.BotAction;
-import twcore.core.util.Tools;
 
 public class HockeyRegistrator extends hockeybot{
 
@@ -22,11 +20,7 @@ public class HockeyRegistrator extends hockeybot{
       
        
     }
-      
-    public void putPlayer(String name, String message){
-        
-    }
-    
+     
     @Override
     public void createTeam(String name, String message){
         //!teamsignup squadname
@@ -36,7 +30,8 @@ public class HockeyRegistrator extends hockeybot{
             m_botAction.sendPrivateMessage(name, "Please, use the command !teamsignup <squadName> to register a squad into TWHT.");
             return;
         }
-        if(isRostered(name)){
+        String squadName = message.substring(12);
+        /*if(isRostered(name)){
             m_botAction.sendPrivateMessage(name, "You're in a squad already. Leave this one first please.");
             return;
         }
@@ -46,7 +41,7 @@ public class HockeyRegistrator extends hockeybot{
         if(isAlreadyRegistered(squadName)){
             m_botAction.sendPrivateMessage(name, squadName+" has been registered on the site already. Please try an other one.");
             return;
-        }
+        }*/
         
         signupSquad(name, squadName);
         
@@ -89,20 +84,19 @@ public class HockeyRegistrator extends hockeybot{
         m_botAction.sendPrivateMessage(name, "HockeyRegistrator talking...");
     }
     
-    @Override
+    
     public void requestGame(String name, String message){
         
-        String squadName = getCaptainTeamName(name);
+        String squadName = "Bots";//getCaptainTeamName(name);
         
         if(squadName == null){
             m_botAction.sendPrivateMessage(name, "You're not rostered in a squad.");
-            return;
+            
         }
-        
-        m_botAction.sendPrivateMessage(name, squadName+" added into the request list. Wait for other captain to accept it.");
-        
-       GameRequest.addRequest(squadName);
-        
+        else{
+            m_botAction.sendPrivateMessage(name, squadName+" added into the request list. Wait for other captain to accept it.");
+            GameRequest.addRequest(squadName);
+        }
     }
  
     
