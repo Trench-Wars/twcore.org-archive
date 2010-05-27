@@ -27,6 +27,9 @@ public class HockeyTeam {
         this.isReady = false;
     }
 
+    public HockeyPlayer getPlayerInstance(String name){
+    	return hockeyPlayers.get(name);
+    }
     public void setCaptainName(String name){
         this.captainName = name;
     }
@@ -46,6 +49,23 @@ public class HockeyTeam {
             hockeyTeam_botAction.sendPrivateMessage(hockeyPlayerName, "You got registered at "+shipType+" successfuly.");
             hockeyTeam_botAction.sendArenaMessage(hockeyPlayerName+" is in for "+teamName+" as ship #"+shipType);
         //}
+    }
+    
+   
+    public void addSavePoint(String namePlayer){
+    	HockeyPlayer p = this.hockeyPlayers.get(namePlayer);
+    	p.addSavePoint();
+    	
+    }
+    
+    public void addGoalPoint(String namePlayer){
+    	HockeyPlayer p = this.hockeyPlayers.get(namePlayer);
+    	p.addGoalPoint();
+    }
+    
+    public void addAssistPoint(String namePlayer){
+    	HockeyPlayer p = this.hockeyPlayers.get(namePlayer);
+    	p.addAssistPoint();
     }
     /*
     public int getSavePoints(String name){
