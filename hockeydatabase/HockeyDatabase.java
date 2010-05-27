@@ -1,4 +1,4 @@
-package twcore.bots.hockeybot;
+package twcore.bots.hockeybot.hockeydatabase;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,8 +23,6 @@ public class HockeyDatabase {
     
     public HockeyDatabase(BotAction botAction) throws SQLException{
         this.m_botAction = botAction;
-        
-    
      
         psGetCurrentSquads = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, 
                 "SELECT fsName from tblTWHT__Team");
