@@ -17,11 +17,7 @@ public class HockeyPlayer{
     private HockeyPlayerPoint playerPoint;
     private HockeyPlayerState playerState;
     private HockeyTeam  playerTeam;
-    
-    /*private int point [][];
-    private int p = 0;
-    */
-    
+
     public HockeyPlayer(HockeyTeam team, String name, int ship, int frequency, BotAction botAction){
         
         this.playerTeam = team;
@@ -34,13 +30,11 @@ public class HockeyPlayer{
         
         this.playerPoint = new HockeyPlayerPoint();
         this.playerState = new HockeyPlayerState();
-        
-        /*
-        point = new int[4][4];
-        point[0][0] = 0;
-        point[0][1] = 0;
-        point[1][0] = 0;
-        point[1][1] = 0;*/
+ 
+    }
+    
+    public int getTeamIndex(){
+    	return playerTeam.getTeamFreq();
     }
     
     public void lagout(){
@@ -74,6 +68,26 @@ public class HockeyPlayer{
         playerHandler.setShip(getName(), getRegisteredShip());
         playerHandler.setFreq(getName(), getFrequency());
         
+    }
+    
+    public void addGoalPoint()
+    {
+    	this.playerPoint.setNumberOfGoals(this.playerPoint.getNumberOfGoals()+1);
+    	this.playerPoint.setPoint(this.playerPoint.getPoint()+ HockeyPlayerPoint.goal);
+    }
+    
+    public void addAssistPoint()
+    {
+
+    	this.playerPoint.setNumberOfAssists(this.playerPoint.getNumberOfAssists()+1);
+    	this.playerPoint.setPoint(this.playerPoint.getPoint()+ HockeyPlayerPoint.assist);
+    }
+    
+    public void addSavePoint()
+    {
+
+    	this.playerPoint.setNumberOfSaves(this.playerPoint.getNumberOfSaves()+1);
+    	this.playerPoint.setPoint(this.playerPoint.getPoint()+ HockeyPlayerPoint.save);
     }
     
     /*public int getGoalPoints(){
@@ -151,10 +165,18 @@ public class HockeyPlayer{
         public static final int goal = 2;
         public static final int save = 1;
         public static final double assist = 0.5;
+        
         private double point;
+        
+        private int numberOfGoals;
+        private int numberOfSaves;
+        private int numberOfAssists;
         
         public HockeyPlayerPoint(){
             setPoint(0);
+            setNumberOfGoals(0);
+            setNumberOfAssists(0);
+            setNumberOfSaves(0);
             
         }
         public void setPoint(double point) {
@@ -163,6 +185,24 @@ public class HockeyPlayer{
         public double getPoint() {
             return point;
         }
+		public void setNumberOfGoals(int numberOfGoals) {
+			this.numberOfGoals = numberOfGoals;
+		}
+		public int getNumberOfGoals() {
+			return numberOfGoals;
+		}
+		public void setNumberOfSaves(int numberOfSaves) {
+			this.numberOfSaves = numberOfSaves;
+		}
+		public int getNumberOfSaves() {
+			return numberOfSaves;
+		}
+		public void setNumberOfAssists(int numberOfAssists) {
+			this.numberOfAssists = numberOfAssists;
+		}
+		public int getNumberOfAssists() {
+			return numberOfAssists;
+		}
         
                 
     }

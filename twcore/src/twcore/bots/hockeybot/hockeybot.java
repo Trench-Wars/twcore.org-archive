@@ -90,6 +90,7 @@ public class hockeybot
                 String p_Goal = null;
                 String p_A1 = null;
                 String p_A2 = null;
+                int freq = event.getFrequency();
                 
                 p_Goal = list.pop();
                 
@@ -102,13 +103,19 @@ public class hockeybot
                 }
                 if(list.getSize() == 1)
                     p_A2 = list.pop();
-                m_botAction.sendArenaMessage("Goal by: "+p_Goal);
-                if(p_A1 != null)
-                    m_botAction.sendArenaMessage("Assist: "+p_A1);
-                if(p_A2 != null)
-                    m_botAction.sendArenaMessage("2nd Assist: "+p_A2);
                 
-                giveGoalPoint(p_Goal, event.getFrequency());
+                m_botAction.sendArenaMessage("Goal by: "+p_Goal);
+                
+                if(p_A1 != null){
+                    m_botAction.sendArenaMessage("Assist: "+p_A1);
+                    this.addPlayerPoint(p_A1, freq, 2);
+                }
+                if(p_A2 != null){
+                    m_botAction.sendArenaMessage("2nd Assist: "+p_A2);
+                    this.addPlayerPoint(p_A2, freq, 2);
+                }
+                
+                this.addPlayerPoint(p_Goal, freq, 1);
                 setFaceOffState();
                 list.clear();
             }
@@ -141,7 +148,7 @@ public class hockeybot
             if(p.getShipType() == 7 || p.getShipType() == 8){
                 list.clear();
                 m_botAction.sendArenaMessage("Save! "+p.getPlayerName());
-                giveGoalPoint(p.getPlayerName(), p.getFrequency());
+                
             }
             else{
                 try{
@@ -304,13 +311,9 @@ public class hockeybot
     public void doReadyTeam(String name, String message){
         
     }
-    public void giveSavePoint(String hockeyPlayerName, int freq){
-        //mediator = HockeyConcreteMediator.getInstance(m_botAction);
-        //mediator.giveSavePoint(hockeyPlayerName, freq);
-    }
-    public void giveGoalPoint(String hockeyPlayerName, int freq){
-        //mediator = HockeyConcreteMediator.getInstance(m_botAction);
-        //mediator.giveGoalPoint(hockeyPlayerName, freq); 
+    
+    public void addPlayerPoint(String namePlayer, int freq, int pointType){
+    	mediator.addPlayerPoint(namePlayer, freq, pointType);
     }
     
     private void doAcceptGame(String name, String squadAccepted){
@@ -345,7 +348,7 @@ public class hockeybot
     */
     private void setFaceOffState() {
         //mediator = HockeyConcreteMediator.getInstance(m_botAction);
-        mediator.setState(HockeyState.FaceOff);
+        mediator.setState(HockeyState.Face_Off);
         
         
     }
