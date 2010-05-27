@@ -27,10 +27,12 @@ public class HockeyConcreteMediator implements HockeyMediator {
     private     HockeyTeam      team0;
     private     HockeyTeam      teams[];
     
+    
     private BotAction m_botAction;
     
     private static HockeyConcreteMediator mediator;
     
+  
     /**
      * Singleton of hockeymediator
      * */
@@ -150,7 +152,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
     }
 
-    public void notifyTime(long i, long j){
+    public void notifyTime(short i, short j){
         //i mins
         //j secs
         m_botAction.showObject((int)i);
@@ -233,5 +235,34 @@ public class HockeyConcreteMediator implements HockeyMediator {
         teams[freq].addPlayer(name, ship);
         m_botAction.sendArenaMessage(name+" is registered on ship "+ship);
     }
+
+	@Override
+	public void addPlayerPoint(String namePlayer, int freq, int pointType) {
+		// TODO Auto-generated method stub
+		final int typeGoal = 1;
+		final int typeAssist = 2;
+		final int typeSave = 3;
+			
+		switch (pointType){
+			case typeGoal: addGoalPoint(namePlayer, freq);
+			case typeAssist: addAssistPoint(namePlayer, freq);
+			case typeSave: addSavePoint(namePlayer, freq);
+		}
+	}
+
+	private void addSavePoint(String namePlayer, int freq) {
+		// TODO Auto-generated method stub
+		teams[freq].addSavePoint(namePlayer);
+	}
+
+	private void addAssistPoint(String namePlayer, int freq) {
+		// TODO Auto-generated method stub
+		teams[freq].addAssistPoint(namePlayer);
+	}
+
+	private void addGoalPoint(String namePlayer, int freq) {
+		// TODO Auto-generated method stub
+		teams[freq].addGoalPoint(namePlayer);
+	}
 
 }
