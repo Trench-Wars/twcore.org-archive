@@ -274,8 +274,8 @@ public class MatchTeam
             	
             	killeePlayer.reportDeath();
             	
-            	killeePlayer.reportKiller(killerPlayer);
-            	killerPlayer.reportKillee(killeePlayer);
+            	//killeePlayer.reportKiller(killerPlayer);
+            	//killerPlayer.reportKillee(killeePlayer);
 
             }
             catch (Exception e)

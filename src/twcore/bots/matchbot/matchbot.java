@@ -192,6 +192,7 @@ public class matchbot extends SubspaceBot
             m_game.handleEvent(event);
         }
         
+        m_botAction.setReliableKills(1);  //Reliable kills so the bot receives every packet
         m_botAction.sendUnfilteredPublicMessage("?obscene");
     }
 
