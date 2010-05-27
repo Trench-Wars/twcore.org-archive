@@ -20,16 +20,16 @@ import twcore.core.util.Tools;
  * */    
 public class HockeyConcreteMediator implements HockeyMediator {
 
-    private     HockeyState     hState;
-    private     HockeyPractice  hPractice;
-    private     HockeyClock     hClock;
-    private     HockeyTeam      hTeam1;
-    private     HockeyTeam      hTeam0;
-    private     HockeyTeam      hTeams[];
+    private     HockeyState     state;
+    private     HockeyPractice  practice;
+    private     HockeyTicker    ticker;
+    private     HockeyTeam      team1;
+    private     HockeyTeam      team0;
+    private     HockeyTeam      teams[];
     
     private BotAction m_botAction;
     
-    private static HockeyConcreteMediator mymediator = null;
+    private static HockeyConcreteMediator mediator;
     
     /**
      * Singleton of hockeymediator
@@ -38,105 +38,106 @@ public class HockeyConcreteMediator implements HockeyMediator {
        
         this.m_botAction = botAction;
 
-        hState = new HockeyState();
-        hState.setState(HockeyState.OFF);
-        hState.setMediator(this);
+        state = new HockeyState();
+        state.setState(HockeyState.OFF);
+        state.setMediator(this);
     }
     
     public static HockeyConcreteMediator getInstance(BotAction botAction){
-        if(mymediator == null)
-            mymediator = new HockeyConcreteMediator(botAction);
+        if(mediator == null)
+            mediator = new HockeyConcreteMediator(botAction);
         
-        return mymediator;
+        return mediator;
     }
     
     public void startPractice(String name, String squadAccepted){
         
-        hPractice = HockeyPractice.getInstance(m_botAction);
-        hPractice.setMediator(this);
-        hPractice.doAcceptGame(name, squadAccepted);
+        practice = HockeyPractice.getInstance(m_botAction);
+        practice.setMediator(this);
+        practice.doAcceptGame(name, squadAccepted);
         
-        hState.setState(HockeyState.PreStartPeriod);
+        state.setState(HockeyState.Pre_Start);
         
-        hClock = new HockeyClock();
-        hClock.sethMediator(this);
-        hClock.doStart(0);
-        m_botAction.scheduleTask( hClock , 100, Tools.TimeInMillis.SECOND);
+        ticker = new HockeyTicker();
+        ticker.sethMediator(this);
+        ticker.doStart((short) 0);
+        m_botAction.scheduleTask( ticker , 100, Tools.TimeInMillis.SECOND);
         
-        hTeam1 = new HockeyTeam(1, "Bots", m_botAction);
-        hTeam0 = new HockeyTeam(0, "Andre", m_botAction);
-        hTeams = new HockeyTeam[2]  ;
-        hTeams[0] = hTeam0;
-        hTeams[1] = hTeam1;
+        team1 = new HockeyTeam(1, "Bots", m_botAction);
+        team0 = new HockeyTeam(0, "Andre", m_botAction);
+        teams = new HockeyTeam[2]  ;
+        teams[0] = team0;
+        teams[1] = team1;
         
     }
     public boolean gameIsRunning(){
-        return hState.getCurrentState() != HockeyState.OFF && hState.getCurrentState() != HockeyState.FaceOff;
+        return state.getCurrentState() != HockeyState.OFF && state.getCurrentState() != HockeyState.Face_Off;
     }
     public void checkTeamReady(){
-        //if(gethTeam().getTeamSize(1)) ;
+        //if(getteam().getTeamSize(1)) ;
     }
     
     /*
     public int getSavePoint(String name){
-        return hTeams[0].getSavePoints(name);
+        return teams[0].getSavePoints(name);
     }
     
     public int getNSave(String name){
-        return hTeams[0].getNumberSave(name);
+        return teams[0].getNumberSave(name);
     }
     public void giveSavePoint(String name, int freq){
-        hTeams[0].givePointGoal(name);
+        teams[0].givePointGoal(name);
     }
     public void giveGoalPoint(String name, int freq){
-        hTeams[0].givePointGoal(name);
+        teams[0].givePointGoal(name);
     }
     
     
     public int doGetGoalPoints(String name){
-        return hTeams[0].getGoalPoints(name);
+        return teams[0].getGoalPoints(name);
     }
     
     public int doGetNGoalPoints(String name){
-        return hTeams[0].getNPoint(name);
+        return teams[0].getNPoint(name);
     }
     */
     public void doReadyTeam(String name, String message){
         
     }
     public boolean isReady(int frequence){
-        return hTeams[frequence].isReady();
+        return teams[frequence].isReady();
     }
     
     public void cancelGame() throws Throwable{
-        //hPractice.cancelGame();
+        //practice.cancelGame();
         
-        m_botAction.cancelTask(gethClock());
+        m_botAction.cancelTask(getTicker());
     }
+    
     @Override
     public void setState(int state) {
         // TODO Auto-generated method stub
-        if(state == HockeyState.Period_In_Progress){
+        if(state == HockeyState.Game_In_Progress){
             
             if(isReady(0) && isReady(1)){
-                hState.setState(state);
+                this.state.setState(state);
                 m_botAction.sendArenaMessage("State set to "+state);
             }
             else{
                 try {
                     cancelGame();
-                    hState.setState(HockeyState.OFF);
+                    this.state.setState(HockeyState.OFF);
                     m_botAction.sendArenaMessage("Not enough players to start");
                 } catch (Throwable e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
-            //hTeam1.setReady(true);
-            //hTeam2.setReady(true);
+            //team1.setReady(true);
+            //team2.setReady(true);
         }
-        else if(state == HockeyState.FaceOff){
-            hState.setState(state);
+        else if(state == HockeyState.Face_Off){
+            this.state.setState(state);
             doPauseGame();  
             TimerTask getBack = new TimerTask(){
                 public void run(){
@@ -158,15 +159,15 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
     }
     public void doStartBack(){
-        hState.setState(HockeyState.Period_In_Progress);
-        hClock.doStartBack();
+        state.setState(HockeyState.Game_In_Progress);
+        ticker.doStartBack();
     }
     public void doPauseGame(){
-        hClock.doPause();
+        ticker.doPause();
         
     }
     public int getCurrentState(){
-        return hState.getCurrentState();
+        return state.getCurrentState();
     }
     @Override
     public void setTeamReady() {
@@ -180,56 +181,56 @@ public class HockeyConcreteMediator implements HockeyMediator {
 
     }
     
-    public void sethState(HockeyState hState) {
-        this.hState = hState;
+    public void setState(HockeyState state) {
+        this.state = state;
     }
-    public HockeyState gethState() {
-        return hState;
+    public HockeyState getState() {
+        return state;
     }
-    public void sethPractice(HockeyPractice hPractice) {
-        this.hPractice = hPractice;
+    public void setPractice(HockeyPractice practice) {
+        this.practice = practice;
     }
-    public HockeyPractice gethPractice() {
-        return hPractice;
+    public HockeyPractice getPractice() {
+        return practice;
     }
-    public void sethClock(HockeyClock hClock) {
-        this.hClock = hClock;
+    public void setTicker(HockeyTicker ticker) {
+        this.ticker = ticker;
     }
-    public HockeyClock gethClock() {
-        return hClock;
-    }
-
-    public void sethTeam1(HockeyTeam hTeam) {
-        this.hTeam1 = hTeam;
-       // this.hTeams[1]  ;//new HockeyTeam();
+    public HockeyTicker getTicker() {
+        return ticker;
     }
 
-    public HockeyTeam gethTeam1() {
-        return hTeam1;
+    public void setTeam1(HockeyTeam team) {
+        this.team1 = team;
+       // this.teams[1]  ;//new HockeyTeam();
     }
 
-    public void sethTeam0(HockeyTeam hTeam0) {
-        this.hTeam0 = hTeam0;
+    public HockeyTeam getTeam1() {
+        return team1;
     }
 
-    public HockeyTeam gethTeam0() {
-        return hTeam0;
+    public void setTeam0(HockeyTeam team0) {
+        this.team0 = team0;
+    }
+
+    public HockeyTeam getTeam0() {
+        return team0;
     }
 
     public void addPlayer(String name, int ship, int freq) { 
         // TODO Auto-generated method stub
-        if(hTeams[freq].isFull())
+        if(teams[freq].isFull())
         {
             m_botAction.sendPrivateMessage(name, "Team has 6 players already.");
             return;
         }
-        if(hTeams[freq].Contains(name)){
+        if(teams[freq].Contains(name)){
             m_botAction.sendPrivateMessage(name, "You're already registered in...wtf are you doing?");
             return;
         }
         m_botAction.setShip(name, ship);
         //check if the teams are made - prac bot
-        hTeams[freq].addPlayer(name, ship);
+        teams[freq].addPlayer(name, ship);
         m_botAction.sendArenaMessage(name+" is registered on ship "+ship);
     }
 

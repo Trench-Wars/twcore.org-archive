@@ -4,19 +4,19 @@ import java.util.TimerTask;
 
 import twcore.core.BotAction;
 
-public class HockeyClock
+public class HockeyTicker
         extends TimerTask{
     
-    private HockeyMediator hMediator;
+    private HockeyMediator mediator;
     
     /**
      * looks up for each second*/
-    private long secs = 0;
+    private short secs = 0;
     
     /**
      * looks up for each minute
      * */
-    private long mins = 0;
+    private short mins = 0;
     
     /**
      * to Pause the game
@@ -27,31 +27,15 @@ public class HockeyClock
      * Constructor to handle the timer, if ER wants to start it by a custom timer
      * 
      * */
-    public HockeyClock(/*BotAction botAction, */){
-        //game_action = botAction;
-        
-        /**
-         * sets the mediator that'll handle the game
-         * 
-         * */
-        
-        /*if(time == 0){
-            secs = 0;
-            mins = 0;
-        }
-        else{
-            if(time > 60){
-                mins = time / 60;
-                secs = time % 60;
-            }
-        }*/
+    public HockeyTicker(){
+    
     }
     
     /**
      * Pauses the current game
      * */
     
-    public void doStart(int time){
+    public void doStart(short time){
         
         if(time == 0){
             secs = 0;
@@ -59,8 +43,8 @@ public class HockeyClock
         }
         
         else if(time > 60){
-                mins = time / 60;
-                secs = time % 60;
+                mins = (short) (time / 60);
+                secs = (short) (time % 60);
             }
         
     }
@@ -93,7 +77,7 @@ public class HockeyClock
             else if(secs == 0)
                 gethMediator().setState(1);
             
-            else if(mins == 1 && gethMediator().getCurrentState() != HockeyState.Period_In_Progress ){
+            else if(mins == 1 && gethMediator().getCurrentState() != HockeyState.Game_In_Progress ){
                     gethMediator().setState(2); //Starts the game
             }
             
@@ -112,11 +96,11 @@ public class HockeyClock
     }
 
     public void sethMediator(HockeyMediator hMediator) {
-        this.hMediator = hMediator;
+        this.mediator = hMediator;
     }
 
     public HockeyMediator gethMediator() {
-        return hMediator;
+        return mediator;
     }
     
     
