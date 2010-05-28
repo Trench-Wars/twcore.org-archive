@@ -263,25 +263,17 @@ public class MatchTeam
     }
 
     // when somebody dies
-    public void handleEvent(PlayerDeath event)
+    public void handleEvent(PlayerDeath event, String killerName)
     {
         if (m_round.m_fnRoundState == 3)
         {
             try
             {
-            	MatchPlayer killeePlayer = getPlayer(m_botAction.getPlayer(event.getKilleeID()).getPlayerName());
+            	MatchPlayer p = getPlayer(m_botAction.getPlayer(event.getKilleeID()).getPlayerName());
 
-            	killeePlayer.reportDeath();
+            	p.reportDeath();
             	
-            	
-            	MatchTeam killerTeam = m_round.m_team1;
-            	if (this.m_fnFrequency==0)
-            		killerTeam = m_round.m_team2;
-            	
-            	MatchPlayer killerPlayer = killerTeam.getPlayer(m_botAction.getPlayer(event.getKillerID()).getPlayerName());
-            	
-            	killeePlayer.reportKiller(killerPlayer);
-            	killerPlayer.reportKillee(killeePlayer);
+            	p.reportKiller(killerName);
 
             }
             catch (Exception e)
@@ -292,7 +284,7 @@ public class MatchTeam
     }
 
     // not officially an event, but it's treated like one.
-    public void reportKill(PlayerDeath event)
+    public void reportKill(PlayerDeath event, String killeeName)
     {
         if (m_round.m_fnRoundState == 3)
         {
@@ -307,6 +299,7 @@ public class MatchTeam
                 	score = score * (m_round.m_game.settings_FlaggerKillMultiplier+1);
                 }
                 p.reportKill(score, event.getKilleeID());
+                p.reportKillee(killeeName);
             }
             catch (Exception e)
             {

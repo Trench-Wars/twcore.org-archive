@@ -490,13 +490,13 @@ public class MatchRound
 	            String killerName = m_botAction.getPlayer(event.getKillerID()).getPlayerName();
 
 	            if (m_team1.getPlayer(killeeName, true) != null)
-	                m_team1.handleEvent(event);
+	                m_team1.handleEvent(event, killerName);
 	            if (m_team2.getPlayer(killeeName, true) != null)
-	                m_team2.handleEvent(event);
+	                m_team2.handleEvent(event, killerName);
 	            if (m_team1.getPlayer(killerName, true) != null)
-	                m_team1.reportKill(event);
+	                m_team1.reportKill(event, killeeName);
 	            if (m_team2.getPlayer(killerName, true) != null)
-	                m_team2.reportKill(event);
+	                m_team2.reportKill(event, killeeName);
 	
 	            if (m_team1.isDead() || m_team2.isDead())
 	                endGame();
