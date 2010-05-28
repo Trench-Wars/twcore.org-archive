@@ -175,7 +175,7 @@ public class matchbot extends SubspaceBot
         req.request(EventRequester.BALL_POSITION);
         req.request(EventRequester.PRIZE);
         req.request(EventRequester.TURRET_EVENT);
-        //req.request(EventRequester.WATCH_DAMAGE);
+        req.request(EventRequester.WATCH_DAMAGE);
     }
 
     /**

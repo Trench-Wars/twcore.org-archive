@@ -270,12 +270,18 @@ public class MatchTeam
             try
             {
             	MatchPlayer killeePlayer = getPlayer(m_botAction.getPlayer(event.getKilleeID()).getPlayerName());
-            	MatchPlayer killerPlayer = getPlayer(m_botAction.getPlayer(event.getKillerID()).getPlayerName());
-            	
+
             	killeePlayer.reportDeath();
             	
-            	//killeePlayer.reportKiller(killerPlayer);
-            	//killerPlayer.reportKillee(killeePlayer);
+            	
+            	MatchTeam killerTeam = m_round.m_team1;
+            	if (this.m_fnFrequency==0)
+            		killerTeam = m_round.m_team2;
+            	
+            	MatchPlayer killerPlayer = killerTeam.getPlayer(m_botAction.getPlayer(event.getKillerID()).getPlayerName());
+            	
+            	killeePlayer.reportKiller(killerPlayer);
+            	killerPlayer.reportKillee(killeePlayer);
 
             }
             catch (Exception e)
