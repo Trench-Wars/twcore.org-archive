@@ -95,7 +95,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
     boolean m_checkedIPMID = false;
     
     // List of who have watchdamage enabled, toggle is evil..
-    private static HashSet<String> watchDamagePlayerEnabled = new HashSet<String>();
+    private HashSet<String> watchDamagePlayerEnabled = new HashSet<String>();
 
 	// Constants
 	static final int NOT_IN_GAME = 0;
@@ -208,6 +208,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					Integer.toString(fnMatchRoundID),
 					Integer.toString(m_dbPlayer.getTeamUserID()),
 					Integer.toString(m_dbPlayer.getUserID()),
+
 					Tools.addSlashesToString(m_fcPlayerName),
 					Integer.toString(fnTeam),
 					Integer.toString(m_statTracker.getShipType()),
@@ -365,11 +366,12 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					Integer.toString(fnMatchRoundUserID),
 					Integer.toString(m_dbPlayer.getUserID()),
 					Integer.toString(MPS.getShipType()),
-					Integer.toString(MPS.killers.size()),
-					Integer.toString(MPS.killees.size()) };
-					/*
 					JSONValue.toJSONString(MPS.killers),
 					JSONValue.toJSONString(MPS.killers) };
+					
+					/*
+					Integer.toString(MPS.killers.size()),
+					Integer.toString(MPS.killees.size()) };
 					*/
 							
 				/*)*/
@@ -419,7 +421,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			return;
 			
 		if (!watchDamagePlayerEnabled.contains(getPlayerName())) {
-			System.out.println("Starting WATCH_DAMAGE for : " + getPlayerName());
+			//System.out.println("Starting WATCH_DAMAGE for : " + getPlayerName());
 			m_botAction.toggleWatchDamage(getPlayerName());
 			watchDamagePlayerEnabled.add(getPlayerName());
 		}
@@ -432,7 +434,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			return;
 		
 		if (watchDamagePlayerEnabled.contains(getPlayerName())) {
-			System.out.println("Stopping WATCH_DAMAGE for : " + getPlayerName());
+			//System.out.println("Stopping WATCH_DAMAGE for : " + getPlayerName());
 			m_botAction.toggleWatchDamage(getPlayerName());
 			watchDamagePlayerEnabled.remove(getPlayerName());
 		}
@@ -608,7 +610,9 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 						{
 							if (fnRoundState == 3) {
 								m_fnLagouts++;
-								m_statTracker.m_currentShip.updateLastTimeCheck();
+								
+								if (m_statTracker.m_currentShip != null)
+									m_statTracker.m_currentShip.updateLastTimeCheck();
 							}
 							// if the player lagged out for over 5 minutes, create a new ship record:
 							/*
@@ -1253,9 +1257,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			
 			killers = new HashMap<Integer,Integer>();
 			killees = new HashMap<Integer,Integer>();
-			
-			lastTimeCheck = System.currentTimeMillis();
-			
+
 		};
 
 		// report kill
@@ -1453,7 +1455,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		public void updateTimePlayed()
 		{
 			timePlayed += System.currentTimeMillis() - lastTimeCheck;
-			lastTimeCheck = System.currentTimeMillis();
+			updateLastTimeCheck();
 		}
 
 		// report death
