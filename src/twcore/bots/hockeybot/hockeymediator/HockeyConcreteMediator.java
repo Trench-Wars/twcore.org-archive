@@ -2,8 +2,6 @@ package twcore.bots.hockeybot.hockeymediator;
 
 import java.util.TimerTask;
 
-import twcore.bots.hockeybot.hockeybot;
-import twcore.bots.hockeybot.hockeyteam.HockeyPlayer;
 import twcore.bots.hockeybot.hockeyteam.HockeyTeam;
 import twcore.core.BotAction;
 import twcore.core.util.Tools;
