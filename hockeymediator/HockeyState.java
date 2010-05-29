@@ -1,7 +1,5 @@
 package twcore.bots.hockeybot.hockeymediator;
 
-import java.util.Observable;
-import java.util.Observer;
 
 public class HockeyState extends HockeyColleague {
 

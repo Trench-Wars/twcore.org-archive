@@ -13,7 +13,7 @@ public class HockeyTeam {
     private     String      captainName;
     private     int         teamFreqNumber;
     private     int         teamGoals;
-    private     String       teamName;
+    private     String      teamName;
     
     private final int teamMaxPlayers = 6;
     private final int teamMinPlayers = 4;
