@@ -1,5 +1,6 @@
 package twcore.bots.hockeybot.hockeyteam;
 
+import java.util.ArrayList;
 import java.util.TreeMap;
 
 import twcore.core.BotAction;
@@ -18,6 +19,7 @@ public class HockeyTeam {
     private final int teamMinPlayers = 4;
     
     private TreeMap<String, HockeyPlayer> hockeyPlayers;
+    private ArrayList<String> waitingList;
     
     public HockeyTeam(int frequence, String teamName, BotAction botAction){
         hockeyTeam_botAction = botAction;
@@ -25,8 +27,17 @@ public class HockeyTeam {
         this.hockeyPlayers = new TreeMap<String, HockeyPlayer>();
         this.setTeamName(teamName);
         this.isReady = false;
+        waitingList = new ArrayList<String>();
     }
-
+    
+    public void addWaitingTeam(String waitingTeamName){
+        waitingList.add(waitingTeamName);
+    }
+    
+    public void removeWaitingTeam(String waitingTeamName){
+        waitingList.remove(waitingTeamName);
+    }
+    
     public HockeyPlayer getPlayerInstance(String name){
     	return hockeyPlayers.get(name);
     }
@@ -55,17 +66,33 @@ public class HockeyTeam {
     public void addSavePoint(String namePlayer){
     	HockeyPlayer p = this.hockeyPlayers.get(namePlayer);
     	p.addSavePoint();
-    	
+    	hockeyPlayers.put(namePlayer, p);
     }
     
     public void addGoalPoint(String namePlayer){
     	HockeyPlayer p = this.hockeyPlayers.get(namePlayer);
     	p.addGoalPoint();
+    	hockeyPlayers.put(namePlayer, p);
+    	
     }
     
     public void addAssistPoint(String namePlayer){
     	HockeyPlayer p = this.hockeyPlayers.get(namePlayer);
     	p.addAssistPoint();
+    	hockeyPlayers.put(namePlayer, p);
+    }
+    
+    public void displayResult(){
+        //String s[] = new String[6];
+        //int i = 0;
+        if(this.Contains("Dexter"))
+            System.out.println("GOALS: "+hockeyPlayers.get("Dexter").getNumberOfGoals() + " "+hockeyPlayers.get("Dexter").getPoint()+ " Points");
+        /*for(HockeyPlayer p: hockeyPlayers.values())
+        {   
+            s[i] = "Number of Goals: "+ p.getGoalPoint();
+            i++;
+        }*/
+        
     }
     /*
     public int getSavePoints(String name){

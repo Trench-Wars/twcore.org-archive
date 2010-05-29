@@ -17,6 +17,8 @@ import twcore.core.util.Tools;
  * hockey concrete mediator is the heart of the game. 
  * 
  * It communicates to all the other classes: teams, practice, clock, states
+ * 
+ * ERRO: faltou break; nos switch pra adicionar pontos
  * */    
 public class HockeyConcreteMediator implements HockeyMediator {
 
@@ -54,17 +56,20 @@ public class HockeyConcreteMediator implements HockeyMediator {
     
     public void startPractice(String name, String squadAccepted){
         
-        practice = HockeyPractice.getInstance(m_botAction);
+        practice = new HockeyPractice(m_botAction);
         practice.setMediator(this);
         practice.doAcceptGame(name, squadAccepted);
         
         state.setState(HockeyState.Pre_Start);
         
         ticker = new HockeyTicker();
-        ticker.sethMediator(this);
-        ticker.doStart((short) 0);
+        ticker.setMediator(this);
+        ticker.doStart(0);
         m_botAction.scheduleTask( ticker , 100, Tools.TimeInMillis.SECOND);
         
+        /**
+         * falta Selecionar a squad por uma query
+         * */
         team1 = new HockeyTeam(1, "Bots", m_botAction);
         team0 = new HockeyTeam(0, "Andre", m_botAction);
         teams = new HockeyTeam[2]  ;
@@ -73,7 +78,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
     }
     public boolean gameIsRunning(){
-        return state.getCurrentState() != HockeyState.OFF && state.getCurrentState() != HockeyState.Face_Off;
+        return state.getCurrentState() != HockeyState.In_Interval && state.getCurrentState() != HockeyState.OFF && state.getCurrentState() != HockeyState.Face_Off;
     }
     public void checkTeamReady(){
         //if(getteam().getTeamSize(1)) ;
@@ -140,7 +145,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         }
         else if(state == HockeyState.Face_Off){
             this.state.setState(state);
-            doPauseGame();  
+            doPauseGame();
             TimerTask getBack = new TimerTask(){
                 public void run(){
                     doStartBack();
@@ -152,7 +157,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
     }
 
-    public void notifyTime(short i, short j){
+    public void notifyTime(long i, long j){
         //i mins
         //j secs
         m_botAction.showObject((int)i);
@@ -183,11 +188,8 @@ public class HockeyConcreteMediator implements HockeyMediator {
 
     }
     
-    public void setState(HockeyState state) {
-        this.state = state;
-    }
-    public HockeyState getState() {
-        return state;
+    public int getState() {
+        return state.getCurrentState();
     }
     public void setPractice(HockeyPractice practice) {
         this.practice = practice;
@@ -231,11 +233,22 @@ public class HockeyConcreteMediator implements HockeyMediator {
             return;
         }
         m_botAction.setShip(name, ship);
+        
+        /**
+         * Falta selecionar o time certo do jogador por uma query
+         * 
+         * */
+        
         //check if the teams are made - prac bot
         teams[freq].addPlayer(name, ship);
         m_botAction.sendArenaMessage(name+" is registered on ship "+ship);
     }
 
+    public void displayResult(){
+        teams[0].displayResult();
+        teams[1].displayResult();
+        
+    }
 	@Override
 	public void addPlayerPoint(String namePlayer, int freq, int pointType) {
 		// TODO Auto-generated method stub
@@ -244,9 +257,9 @@ public class HockeyConcreteMediator implements HockeyMediator {
 		final int typeSave = 3;
 			
 		switch (pointType){
-			case typeGoal: addGoalPoint(namePlayer, freq);
-			case typeAssist: addAssistPoint(namePlayer, freq);
-			case typeSave: addSavePoint(namePlayer, freq);
+			case typeGoal: addGoalPoint(namePlayer, freq); break;
+			case typeAssist: addAssistPoint(namePlayer, freq); break;
+			case typeSave: addSavePoint(namePlayer, freq); break;
 		}
 	}
 

@@ -16,12 +16,12 @@ public class HockeyPractice extends HockeyColleague{
 
     private HockeyDatabase database;
     private BotAction game_action;
-    private static HockeyPractice practice;
+    //private static HockeyPractice practice;
     
     //protected HockeyTeam hockeyTeams[];
    // private GameHandler gameTicker;
     
-    private HockeyPractice(BotAction botAction){
+    public HockeyPractice(BotAction botAction){
        
         //state = new HockeyState();
     //    gameTicker = new GameHandler();
@@ -36,12 +36,12 @@ public class HockeyPractice extends HockeyColleague{
     }
 
     /**
-     * Singleton*/
+     * Singleton
     public static HockeyPractice getInstance(BotAction botAction){
         if(practice == null)
             practice = new HockeyPractice(botAction);
         return practice;
-    }
+    }*/
     
     protected void giveGoalPoint(Player hockeyPlayer){
         

@@ -99,7 +99,9 @@ public class HockeyRegistrator extends hockeybot{
         }
     }
  
-    
+    /**
+     * Mudar essa classe, arrumar o 'Game Request'
+     * */
     public static class GameRequest{
         
         public static LinkedList<String> squadRequests = new LinkedList<String>();

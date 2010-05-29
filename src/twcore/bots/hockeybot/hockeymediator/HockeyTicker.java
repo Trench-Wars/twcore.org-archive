@@ -11,12 +11,12 @@ public class HockeyTicker
     
     /**
      * looks up for each second*/
-    private short secs = 0;
+    private long secs = 0;
     
     /**
      * looks up for each minute
      * */
-    private short mins = 0;
+    private long mins = 0;
     
     /**
      * to Pause the game
@@ -35,7 +35,7 @@ public class HockeyTicker
      * Pauses the current game
      * */
     
-    public void doStart(short time){
+    public void doStart(long time){
         
         if(time == 0){
             secs = 0;
@@ -43,8 +43,8 @@ public class HockeyTicker
         }
         
         else if(time > 60){
-                mins = (short) (time / 60);
-                secs = (short) (time % 60);
+                mins = (time / 60);
+                secs = (time % 60);
             }
         
     }
@@ -52,7 +52,7 @@ public class HockeyTicker
     public void doPause(){
         
         isPaused = true;
-        //gethMediator().setState(0);
+        //getMediator().setState(0);
         
     }
     
@@ -75,31 +75,39 @@ public class HockeyTicker
             }
             
             else if(secs == 0)
-                gethMediator().setState(1);
+                getMediator().setState(1);
             
-            else if(mins == 1 && gethMediator().getCurrentState() != HockeyState.Game_In_Progress ){
-                    gethMediator().setState(2); //Starts the game
+            else if(secs == 40 && getMediator().getCurrentState() == HockeyState.Pre_Start ){
+                    getMediator().setState(HockeyState.Game_In_Progress); //Starts the game
             }
             
-            /*else if(mins == 10 && gethMediator().getCurrentState() != HockeyState.FaceOff)
+            /**
+             * Falta colocar o intervalo
+             * 
+             * Falta colocar o final do jogo - game over
+             * 
+             * 
+             * */
+            //else if(secs ==)
+            /*else if(mins == 10 && getMediator().getCurrentState() != HockeyState.FaceOff)
             {
                 
-                gethMediator().setState(3);
+                getMediator().setState(3);
                 
             }*/
             
             secs++;
-            gethMediator().notifyTime(mins, secs);
+            getMediator().notifyTime(mins, secs);
             //game_action.sendArenaMessage("Current Time: "+mins+":"+secs+" mins");
             
         }
     }
 
-    public void sethMediator(HockeyMediator hMediator) {
+    public void setMediator(HockeyMediator hMediator) {
         this.mediator = hMediator;
     }
 
-    public HockeyMediator gethMediator() {
+    public HockeyMediator getMediator() {
         return mediator;
     }
     
