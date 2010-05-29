@@ -17,7 +17,7 @@ public interface HockeyMediator {
     */
     
     public void doReadyTeam(String name, String message);
-    public void notifyTime(short mins, short secs);
+    public void notifyTime(long mins, long secs);
     public void startPractice(String name, String squadAccepted);
     
     

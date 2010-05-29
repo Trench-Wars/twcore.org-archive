@@ -4,6 +4,12 @@ import twcore.core.BotAction;
 
 public class HockeyPlayer{
 
+    /**
+     * Falta trabalhar os estados do jogador: se ele sair, diminuir a quantidade de jogadores no time ( remover do mapa )
+     * Substituições, tackle e save.
+     * Falta adicionar os pontos na tabela
+     *
+     * */
     BotAction playerHandler;
     
     private String name;
@@ -33,6 +39,12 @@ public class HockeyPlayer{
  
     }
     
+    public double getPoint(){
+        return this.playerPoint.getPoint();
+    }
+    public int getNumberOfGoals(){
+        return this.playerPoint.getNumberOfGoals();
+    }
     public int getTeamIndex(){
     	return playerTeam.getTeamFreq();
     }
@@ -73,12 +85,14 @@ public class HockeyPlayer{
     public void addGoalPoint()
     {
     	this.playerPoint.setNumberOfGoals(this.playerPoint.getNumberOfGoals()+1);
-    	this.playerPoint.setPoint(this.playerPoint.getPoint()+ HockeyPlayerPoint.goal);
+    	this.playerPoint.setPoint(playerPoint.getPoint()+ HockeyPlayerPoint.goal);
+    	System.out.println("Passei por aqui, adicionei mais um gol!");
     }
     
     public void addAssistPoint()
     {
-
+        System.out.println("Passei por aqui, adicionei mais um assist!");
+        
     	this.playerPoint.setNumberOfAssists(this.playerPoint.getNumberOfAssists()+1);
     	this.playerPoint.setPoint(this.playerPoint.getPoint()+ HockeyPlayerPoint.assist);
     }
@@ -86,6 +100,7 @@ public class HockeyPlayer{
     public void addSavePoint()
     {
 
+        System.out.println("Passei por aqui, adicionei mais um save!");
     	this.playerPoint.setNumberOfSaves(this.playerPoint.getNumberOfSaves()+1);
     	this.playerPoint.setPoint(this.playerPoint.getPoint()+ HockeyPlayerPoint.save);
     }
@@ -162,8 +177,8 @@ public class HockeyPlayer{
     
     private class HockeyPlayerPoint{
         
-        public static final int goal = 2;
-        public static final int save = 1;
+        public static final int goal = 20;
+        public static final int save = 100;
         public static final double assist = 0.5;
         
         private double point;
