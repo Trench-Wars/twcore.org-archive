@@ -1035,6 +1035,11 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				m_currentShip.endNow();
 			m_currentShip = new MatchPlayerShip(fnShipType);
 			m_ships.add(m_currentShip);
+			
+			if (m_team.m_round.m_fnRoundState == 3) {
+				m_currentShip.updateTimePlayed();
+			}
+			
 		}
 
 		/**
@@ -1571,6 +1576,18 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			checkLag();
 		}
 	}
+	
+	public MatchPlayer() { };
 
+	public static void main(String[] args) {
+		
+	
+		MatchPlayer p = new MatchPlayer();
+		p.reportKillee("test");
+		p.reportKillee("test");
+		p.reportKillee("test");
+		p.reportKiller("test");
+		
+	}
 
 };
