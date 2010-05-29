@@ -28,6 +28,7 @@ public class HockeyTeam {
         this.setTeamName(teamName);
         this.isReady = false;
         waitingList = new ArrayList<String>();
+        this.setTeamGoals(0);
     }
     
     public void addWaitingTeam(String waitingTeamName){
@@ -94,6 +95,22 @@ public class HockeyTeam {
         }*/
         
     }
+    
+    public void displayStatistics(){
+    	ArrayList<String> display = new ArrayList<String>();
+    	display.add("--------------------------------------------------------------------");
+    	for (HockeyPlayer p : hockeyPlayers.values()) {
+			display.add(p.getName());
+			display.add(Integer.toString(p.getNumberOfGoals()));
+			display.add(Integer.toString(p.getNumberOfAssists()));
+			display.add(Integer.toString(p.getNumbersOfSaves()));
+			display.add(Double.toString(p.getPoint()));
+		}
+    	display.add("--------------------------------------------------------------------");
+    	for (String string : display) {
+			System.out.println(string);
+		}
+    }
     /*
     public int getSavePoints(String name){
         HockeyPlayer hp = hockeyPlayers.get(name);
@@ -143,8 +160,15 @@ public class HockeyTeam {
         return hockeyPlayers.containsKey(name);
     }
     public int getTeamMaxPlayers() {
-        // TODO Auto-generated method stub
         return this.teamMaxPlayers;
+    }
+    
+    public int getTeamMinPlayers(){
+    	return this.teamMinPlayers;
+    }
+    
+    public boolean hasMin(){
+    	return hockeyPlayers.size() >= getTeamMinPlayers();
     }
 
     public void setTeamName(String teamName) {
@@ -166,5 +190,13 @@ public class HockeyTeam {
     public int getTeamFreq(){
         return teamFreqNumber;
     }
+
+	public void setTeamGoals(int teamGoals) {
+		this.teamGoals = teamGoals;
+	}
+
+	public int getTeamGoals() {
+		return teamGoals;
+	}
     
 }
