@@ -30,13 +30,13 @@ public class HockeyConcreteMediator implements HockeyMediator {
     
     private BotAction m_botAction;
     
-    private static HockeyConcreteMediator mediator;
+    //private static HockeyConcreteMediator mediator;
     
   
     /**
      * Singleton of hockeymediator
      * */
-    private HockeyConcreteMediator(BotAction botAction){
+    public HockeyConcreteMediator(BotAction botAction){
        
         this.m_botAction = botAction;
 
@@ -44,13 +44,13 @@ public class HockeyConcreteMediator implements HockeyMediator {
         state.setState(HockeyState.OFF);
         state.setMediator(this);
     }
-    
+    /*
     public static HockeyConcreteMediator getInstance(BotAction botAction){
         if(mediator == null)
             mediator = new HockeyConcreteMediator(botAction);
         
         return mediator;
-    }
+    }*/
     
     public void startPractice(String name, String squadAccepted){
         
@@ -274,6 +274,10 @@ public class HockeyConcreteMediator implements HockeyMediator {
 	private void addGoalPoint(String namePlayer, int freq) {
 		// TODO Auto-generated method stub
 		teams[freq].addGoalPoint(namePlayer);
+	}
+	
+	public void cancelTasks(){
+	    this.m_botAction.cancelTasks();
 	}
 
 }

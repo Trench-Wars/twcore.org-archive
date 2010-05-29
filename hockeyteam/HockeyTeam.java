@@ -58,7 +58,7 @@ public class HockeyTeam {
             hockeyPlayers.put(hockeyPlayerName, new HockeyPlayer(this, hockeyPlayerName, shipType, teamFreqNumber, hockeyTeam_botAction));
             
             hockeyTeam_botAction.sendPrivateMessage(hockeyPlayerName, "You got registered at "+shipType+" successfuly.");
-            hockeyTeam_botAction.sendArenaMessage(hockeyPlayerName+" is in for "+teamName+" as ship #"+shipType);
+            //hockeyTeam_botAction.sendArenaMessage(hockeyPlayerName+" is in for "+teamName+" as ship #"+shipType);
         //}
     }
     
