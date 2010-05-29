@@ -10,7 +10,4 @@ public class HockeyCaptain
         super(team, name, ship, frequency, botAction);
         // TODO Auto-generated constructor stub
     }
-    
-    
-
 }

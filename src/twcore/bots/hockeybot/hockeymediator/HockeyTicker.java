@@ -2,7 +2,6 @@ package twcore.bots.hockeybot.hockeymediator;
 
 import java.util.TimerTask;
 
-import twcore.core.BotAction;
 
 public class HockeyTicker
         extends TimerTask{

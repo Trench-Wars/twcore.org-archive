@@ -1,16 +1,12 @@
 package twcore.bots.hockeybot.hockeymediator;
 
 import java.sql.SQLException;
-import java.util.TimerTask;
 
-import twcore.bots.hockeybot.hockeybot;
 import twcore.bots.hockeybot.hockeydatabase.HockeyDatabase;
 import twcore.bots.hockeybot.hockeyregistrator.HockeyRegistrator;
-import twcore.bots.hockeybot.hockeyregistrator.HockeyRegistrator.GameRequest;
-import twcore.bots.hockeybot.hockeyteam.HockeyTeam;
 import twcore.core.BotAction;
 import twcore.core.game.Player;
-import twcore.core.util.Tools;
+
 
 public class HockeyPractice extends HockeyColleague{
 

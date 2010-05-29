@@ -1,6 +1,5 @@
 package twcore.bots.hockeybot.hockeymediator;
 
-import twcore.bots.hockeybot.hockeyteam.HockeyPlayer;
 
 public interface HockeyMediator {
     
