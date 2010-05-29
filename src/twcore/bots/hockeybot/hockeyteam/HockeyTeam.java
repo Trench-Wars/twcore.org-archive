@@ -98,13 +98,15 @@ public class HockeyTeam {
     
     public void displayStatistics(){
     	ArrayList<String> display = new ArrayList<String>();
-    	display.add("--------------------------------------------------------------------");
+    	display.add("-------|-------|-------|-------|");
+    	display.add(getTeamName());
     	for (HockeyPlayer p : hockeyPlayers.values()) {
-			display.add(p.getName());
-			display.add(Integer.toString(p.getNumberOfGoals()));
-			display.add(Integer.toString(p.getNumberOfAssists()));
-			display.add(Integer.toString(p.getNumbersOfSaves()));
-			display.add(Double.toString(p.getPoint()));
+			display.add(p.getName() + "\t" + 
+					Integer.toString(p.getNumberOfGoals()) + "\t" + 
+					Integer.toString(p.getNumberOfAssists()) + "\t" +
+					Integer.toString(p.getNumbersOfSaves()) + "\t" +
+					Double.toString(p.getPoint())
+					);
 		}
     	display.add("--------------------------------------------------------------------");
     	for (String string : display) {
