@@ -3,7 +3,14 @@ package twcore.bots.hockeybot.hockeymediator;
 
 public class HockeyState extends HockeyColleague {
 
-
+/**
+ * STATES ;
+ * FACE OFF = AVOID GOALS - ADDS GOALS
+ * PRE START = AVOID GOALS - ALLOW REGISTRATIONS - CREATES TEAM
+ * GAME IN PROGRESS = ALLOW GOALS - ALLOW REGISTRATIONS IF ( HANDLE LAGOUT SUB ) 
+ * IN INTERVAL = AVOID GOOALS
+ * 
+ * */
     private int state;
     private long stateTimeStamp;
     

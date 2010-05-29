@@ -280,4 +280,17 @@ public class HockeyConcreteMediator implements HockeyMediator {
 	    this.m_botAction.cancelTasks();
 	}
 
+	@Override
+	public void updateScore(int freq) {
+		// TODO Auto-generated method stub
+		teams[freq].setTeamGoals(teams[freq].getTeamGoals()+1);
+	}
+
+	@Override
+	public void displayStatistics() {
+		// TODO Auto-generated method stub
+		teams[0].displayStatistics();
+		teams[1].displayStatistics();
+	}
+
 }
