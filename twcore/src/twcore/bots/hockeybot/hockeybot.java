@@ -29,6 +29,8 @@ import twcore.core.util.Tools;
  * Bot project to Hockey - !teamsignup ready to signup squads on the trenchwars.org/twht site
  *
  * Façade design pattern as a bot / application
+ * 
+ * falta combinar os estados de jogo com os eventos
  * */
 
 public class hockeybot
@@ -60,7 +62,6 @@ public class hockeybot
     public hockeybot(BotAction botAction) {
         super(botAction);
         doStartBot(); 
-       
     }
     
     public void doStartBot(){
@@ -96,6 +97,7 @@ public class hockeybot
             /**
              * Trabalhar aqui para adicionar pontos a cada jogador
              * */
+            updateScore(event.getFrequency());
             
             try{
                 String p_Goal = null;
@@ -146,7 +148,11 @@ public class hockeybot
         }
     //}
     
-    @Override
+    private void updateScore(short frequency) {
+    	
+	}
+
+	@Override
     public void handleEvent(BallPosition event){
         //gets the carrier and keeps getting him in a loop..
         //if(getClass().isInstance(practice)){

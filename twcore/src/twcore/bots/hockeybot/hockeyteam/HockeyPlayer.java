@@ -45,6 +45,12 @@ public class HockeyPlayer{
     public int getNumberOfGoals(){
         return this.playerPoint.getNumberOfGoals();
     }
+    public int getNumberOfAssists(){
+    	return this.playerPoint.getNumberOfAssists();
+    }
+    public int getNumbersOfSaves(){
+    	return this.playerPoint.getNumberOfSaves();
+    }
     public int getTeamIndex(){
     	return playerTeam.getTeamFreq();
     }
