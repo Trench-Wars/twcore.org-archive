@@ -35,7 +35,7 @@ public class hockeybot
         extends SubspaceBot{
 
     /* Mediator pattern - the 'heart' of the game*/
-    private HockeyConcreteMediator mediator = HockeyConcreteMediator.getInstance(m_botAction);
+    private HockeyConcreteMediator mediator;
     
     /*
      * List to stats: save, goal, assist ( 1st, 2nd )*/
@@ -64,6 +64,8 @@ public class hockeybot
     }
     
     public void doStartBot(){
+        
+        this.mediator = HockeyConcreteMediator.getInstance(m_botAction);
         this.events = m_botAction.getEventRequester();
         this.requestEvents(events);
         this.op = m_botAction.getOperatorList();
@@ -83,14 +85,20 @@ public class hockeybot
      * */
     public void handleEvent(SoccerGoal event){
         //m_botAction.getEventRequester().notify();
-        if(mediator.gameIsRunning()){
+       // if(mediator.gameIsRunning()){
             m_botAction.sendArenaMessage("Goal by freq "+event.getFrequency()+" !", 2);
             System.out.println("GOAL!");
+            
+            /**
+             * Trabalhar aqui para adicionar pontos a cada jogador
+             * */
+            
             try{
                 String p_Goal = null;
                 String p_A1 = null;
                 String p_A2 = null;
                 int freq = event.getFrequency();
+                
                 
                 p_Goal = list.pop();
                 
@@ -114,7 +122,11 @@ public class hockeybot
                     m_botAction.sendArenaMessage("2nd Assist: "+p_A2);
                     this.addPlayerPoint(p_A2, freq, 2);
                 }
-                
+                /*if(!p_Goal.equals(p_A1) && !p_A1.equals(p_A2) && p_A2 != null && p_A1 != null){
+                    this.addPlayerPoint(p_A2, freq, 2);
+                    this.addPlayerPoint(p_A1, freq, 2);
+                    System.out.println("Entrei aqui");
+                }*/
                 this.addPlayerPoint(p_Goal, freq, 1);
                 setFaceOffState();
                 list.clear();
@@ -128,7 +140,7 @@ public class hockeybot
                 e.printStackTrace();
             }
         }
-    }
+    //}
     
     @Override
     public void handleEvent(BallPosition event){
@@ -215,6 +227,9 @@ public class hockeybot
          * Façade
          * */
       
+        else if( message.startsWith("!result") && mediator.gameIsRunning())
+            mediator.displayResult();
+        
         else if( message.startsWith("!teamsignup")){
             
             hockeybot registrator;
