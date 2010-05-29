@@ -65,7 +65,7 @@ public class hockeybot
     
     public void doStartBot(){
         
-        this.mediator = HockeyConcreteMediator.getInstance(m_botAction);
+        this.mediator = new HockeyConcreteMediator(m_botAction);
         this.events = m_botAction.getEventRequester();
         this.requestEvents(events);
         this.op = m_botAction.getOperatorList();
@@ -85,8 +85,12 @@ public class hockeybot
      * */
     public void handleEvent(SoccerGoal event){
         //m_botAction.getEventRequester().notify();
-       // if(mediator.gameIsRunning()){
-            m_botAction.sendArenaMessage("Goal by freq "+event.getFrequency()+" !", 2);
+       
+        
+        /** 
+         * if(mediator.gameIsRunning()){
+           */ 
+        m_botAction.sendArenaMessage("Goal by freq "+event.getFrequency()+" !", 2);
             System.out.println("GOAL!");
             
             /**
@@ -146,7 +150,11 @@ public class hockeybot
     public void handleEvent(BallPosition event){
         //gets the carrier and keeps getting him in a loop..
         //if(getClass().isInstance(practice)){
-           Player p; 
+        
+        /**
+         * IF STATE == GAME IN PROGRESS
+        */
+        Player p; 
            String p_name;
            String pprevious_name;
            int p_freq;
@@ -251,6 +259,8 @@ public class hockeybot
         }
         
         else if (message.startsWith("!register")){
+            /**
+             * IF GAME IN PROGRESS*/
             if(mediator.gameIsRunning()){
                 registerPlayer(name, message);
                 m_botAction.sendPrivateMessage(name, "Registering you into the ship");
@@ -278,6 +288,8 @@ public class hockeybot
             try{
                 String squadAccepted;
                 
+                /**
+                 * IF GAME IN PROGRESS*/
                 if(mediator.gameIsRunning()){
                     m_botAction.sendPrivateMessage(name, "A game is already running. Please wait");
                     return;
@@ -380,6 +392,7 @@ public class hockeybot
     
     private void doDie(String name, String message){
         m_botAction.sendPrivateMessage(name, "Bot disconnecting.");
+        mediator.cancelTasks();
         m_botAction.cancelTasks();
         m_botAction.die();
         
