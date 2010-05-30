@@ -119,12 +119,12 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
     }
 
-    public void notifyTime(long i, long j){
+    public void notifyTime(long mins, long secs){
         //i mins
         //j secs
-        m_botAction.showObject((int)i);
-        m_botAction.showObject((int) (30+j));
-        m_botAction.sendArenaMessage("Mins: "+i+" Secs: "+j);
+        //m_botAction.showObject((int)mins);
+        //m_botAction.showObject((int) (30+secs));
+        m_botAction.sendArenaMessage("Mins: "+mins+" Secs: "+secs);
         
     }
     public void doStartBack(){
