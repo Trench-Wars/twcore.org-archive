@@ -1,5 +1,6 @@
 package twcore.bots.hockeybot.hockeymediator;
 
+import java.util.ArrayList;
 import java.util.TimerTask;
 
 import twcore.bots.hockeybot.hockeyteam.HockeyTeam;
@@ -243,6 +244,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
     }
 
     public void displayResult(){
+        
         teams[0].displayResult();
         teams[1].displayResult();
         
@@ -289,8 +291,31 @@ public class HockeyConcreteMediator implements HockeyMediator {
 	@Override
 	public void displayStatistics() {
 		// TODO Auto-generated method stub
-		teams[0].displayStatistics();
-		teams[1].displayStatistics();
+		ArrayList<String> spam = new ArrayList<String>();
+		spam.add(" _______________________________________________________________");
+		spam.add("|                   Results / Statistics                        |");
+		spam.add("|                                                               |");
+		spam.add("|Team 1________/************************************************|");
+		spam.add("|                       |Goals  |Saves  |Assists|  Total Points |");
+		         //0123456789DODTQQDDDDVUDT0123456712345678        123456789DODTQQD
+		spam.add("|"+teams[0].getTeamName());
+		spam.add("|---------------------------------------------------------------|");
+		spam.addAll(teams[0].displayStatistics());
+		spam.add("|---------------------------------------------------------------|");
+		
+		///spam.add("|                                                               |");
+        spam.add("|Team 2________/************************************************|");
+        spam.add("|                       |Goals  |Saves  |Assists|  Total Points |");
+        spam.add("|"+teams[1].getTeamName());
+        //spam.add("|                                                               |");
+        spam.add("|---------------------------------------------------------------|");
+        
+		spam.addAll(teams[1].displayStatistics());
+		spam.add("|---------------------------------------------------------------|");
+		spam.add("________________________________________________________________");
+	    m_botAction.arenaMessageSpam(spam.toArray(new String[spam.size()]));
+		//m_botAction.arenaMessageSpam(teams[0].displayStatistics().toArray(new String[teams[0].displayStatistics().size()]) ) ;
+		//teams[1].displayStatistics();
 	}
 
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 
 import twcore.core.BotAction;
+import twcore.core.util.Tools;
 
 public class HockeyTeam {
 
@@ -96,22 +97,22 @@ public class HockeyTeam {
         
     }
     
-    public void displayStatistics(){
+    public ArrayList<String> displayStatistics(){
     	ArrayList<String> display = new ArrayList<String>();
-    	display.add("-------|-------|-------|-------|");
-    	display.add(getTeamName());
+    	//display.add("-------|-------|-------|-------|");
+    	//__________
+    	//0123456789
+    	//partialnam
+    	//display.add("| Team: "+getTeamName());
     	for (HockeyPlayer p : hockeyPlayers.values()) {
-			display.add(p.getName() + "\t" + 
-					Integer.toString(p.getNumberOfGoals()) + "\t" + 
-					Integer.toString(p.getNumberOfAssists()) + "\t" +
-					Integer.toString(p.getNumbersOfSaves()) + "\t" +
-					Double.toString(p.getPoint())
-					);
+			display.add("| "+(p.getName()) +  
+					Tools.rightString( Integer.toString(p.getNumberOfGoals()), 20) + 
+					Tools.rightString( Integer.toString(p.getNumbersOfSaves()), 8) +
+					Tools.rightString( Integer.toString(p.getNumberOfAssists()), 8) +
+					Tools.rightString( Double.toString(p.getPoint()), 15)
+					+"     |");
 		}
-    	display.add("--------------------------------------------------------------------");
-    	for (String string : display) {
-			System.out.println(string);
-		}
+    	return display;
     }
     /*
     public int getSavePoints(String name){
