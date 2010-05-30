@@ -493,13 +493,13 @@ public class MatchRound
 	    		String killerName = killer.getPlayerName();
 	            
 	            if (m_team1.getPlayer(killeeName, true) != null)
-	                m_team1.handleEvent(event, killerName);
+	                m_team1.handleEvent(event, killerName, killer.getShipType());
 	            if (m_team2.getPlayer(killeeName, true) != null)
-	                m_team2.handleEvent(event, killerName);
+	                m_team2.handleEvent(event, killerName, killer.getShipType());
 	            if (m_team1.getPlayer(killerName, true) != null)
-	                m_team1.reportKill(event, killeeName);
+	                m_team1.reportKill(event, killeeName, killee.getShipType());
 	            if (m_team2.getPlayer(killerName, true) != null)
-	                m_team2.reportKill(event, killeeName);
+	                m_team2.reportKill(event, killeeName, killee.getShipType());
 	
 	            if (m_team1.isDead() || m_team2.isDead())
 	                endGame();
@@ -545,15 +545,9 @@ public class MatchRound
 	    	    		Math.pow(killer.getXLocation()-killee.getXLocation(),2) +
 	    	    		Math.pow(killer.getYLocation()-killee.getYLocation(),2))/16;
 
-	    	    MatchPlayer p1;
-	    	    MatchPlayer p2;
-	    	    p1 = m_team1.getPlayer(killerName);
-	    	    p2 = m_team1.getPlayer(killeeName);
-	    	    if (p1 == null)
-	    	    	p1 = m_team2.getPlayer(killerName);
-	    	    if (p2 == null)
-	    	    	p2 = m_team2.getPlayer(killeeName);
-	    	    
+	    	    MatchPlayer p1 = getPlayer(killerName);
+	    	    MatchPlayer p2 = getPlayer(killeeName);
+
 	    	    // count only if not on the same team
 	    	    if (p1 != null && p2 != null) {
 		    	    if (p1.m_team.m_fnTeamNumber != p2.m_team.m_fnTeamNumber) {
@@ -704,6 +698,23 @@ public class MatchRound
             };
         };
     };
+    
+    public MatchPlayer getPlayer(String playerName) {
+    	
+    	if (m_fnRoundState == 3) {
+    		
+    		MatchPlayer p;
+    		p = m_team1.getPlayer(playerName);
+    		if (p == null)
+    			p = m_team2.getPlayer(playerName);
+    		
+    		return p;
+    		
+    	}
+    	
+    	return null;
+    	
+    }
 
     /*
      * Collects the available help messages for the player of this class and
