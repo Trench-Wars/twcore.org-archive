@@ -32,6 +32,17 @@ import twcore.core.util.Tools;
  * 
  * falta combinar os estados de jogo com os eventos
  * */
+/**
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * */
 
 public class hockeybot
         extends SubspaceBot{
@@ -243,6 +254,9 @@ public class hockeybot
       
         else if( message.startsWith("!result") && mediator.gameIsRunning())
             mediator.displayResult();
+        
+        else if( message.startsWith("!score"))
+            mediator.displayStatistics();
         
         else if( message.startsWith("!teamsignup")){
             
