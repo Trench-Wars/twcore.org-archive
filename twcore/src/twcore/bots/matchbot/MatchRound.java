@@ -1380,9 +1380,7 @@ public class MatchRound
         m_botAction.receiveAllPlayerDeaths();
         m_logger.scoreResetAll();
         m_logger.shipResetAll();
-        
-        
-        
+
         // TWSDX ONLY
         if(m_game.m_fnMatchTypeID != 13) {
             m_logger.resetFlagGame(); 
@@ -1454,6 +1452,7 @@ public class MatchRound
             };
             m_botAction.scheduleTask(m_endGame, 60000 * m_rules.getInt("time"));
         };
+        
         m_fnRoundState = 3;
     };
 

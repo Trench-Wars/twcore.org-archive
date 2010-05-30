@@ -1029,11 +1029,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				m_currentShip.endNow();
 			m_currentShip = new MatchPlayerShip(fnShipType);
 			m_ships.add(m_currentShip);
-			
-			if (m_team.m_round.m_fnRoundState == 3) {
-				m_currentShip.updateTimePlayed();
-			}
-			
+
 		}
 
 		/**
@@ -1256,6 +1252,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			
 			killers = new HashMap<String,Integer>();
 			killees = new HashMap<String,Integer>();
+			
+			updateTimePlayed();
 
 		};
 
@@ -1453,12 +1451,15 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		
 		public void updateTimePlayed()
 		{
-			
+			if (m_team.m_round.m_fnRoundState!=3 || m_team.m_round.m_fnRoundState!=4) {
+				return;
+			}
 			
 			if (lastTimeCheck != 0) {
 				timePlayed += System.currentTimeMillis() - lastTimeCheck;
 			}
-			updateLastTimeCheck();
+			
+			lastTimeCheck = System.currentTimeMillis();
 		}
 
 		// report death
