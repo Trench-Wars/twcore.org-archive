@@ -84,26 +84,9 @@ public class HockeyTeam {
     	hockeyPlayers.put(namePlayer, p);
     }
     
-    public void displayResult(){
-        //String s[] = new String[6];
-        //int i = 0;
-        if(this.Contains("Dexter"))
-            System.out.println("GOALS: "+hockeyPlayers.get("Dexter").getNumberOfGoals() + " "+hockeyPlayers.get("Dexter").getPoint()+ " Points");
-        /*for(HockeyPlayer p: hockeyPlayers.values())
-        {   
-            s[i] = "Number of Goals: "+ p.getGoalPoint();
-            i++;
-        }*/
-        
-    }
-    
     public ArrayList<String> displayStatistics(){
     	ArrayList<String> display = new ArrayList<String>();
-    	//display.add("-------|-------|-------|-------|");
-    	//__________
-    	//0123456789
-    	//partialnam
-    	//display.add("| Team: "+getTeamName());
+    	
     	for (HockeyPlayer p : hockeyPlayers.values()) {
 			display.add("| "+(p.getName()) +  
 					Tools.rightString( Integer.toString(p.getNumberOfGoals()), 20) + 
@@ -114,39 +97,6 @@ public class HockeyTeam {
 		}
     	return display;
     }
-    /*
-    public int getSavePoints(String name){
-        HockeyPlayer hp = hockeyPlayers.get(name);
-        return hp.getSavePoint();
-    }
-    
-    public int getNumberSave(String name){
-        HockeyPlayer hp = hockeyPlayers.get(name);
-        return hp.getNumberSaves();
-    }
-    public void giveSavePoint(String name){
-        if(Contains(name)){
-            HockeyPlayer hPlayer = hockeyPlayers.get(name);
-            hPlayer.addGoalPoint(2);
-            hockeyPlayers.put(name, hPlayer);
-        }
-    }
-    public void givePointGoal(String name){
-        if(Contains(name)){
-            HockeyPlayer hPlayer = hockeyPlayers.get(name);
-            hPlayer.addGoalPoint( 5 );
-            hockeyPlayers.put(name, hPlayer);
-        }
-    }
-    
-    public int getGoalPoints(String name){
-        HockeyPlayer hp = hockeyPlayers.get(name);
-        return hp.getGoalPoints();
-    }
-    public int getNPoint(String name){
-        HockeyPlayer hp = hockeyPlayers.get(name);
-        return hp.getNumberGoals();
-    }*/
     
     public boolean Contains(String hockeyPlayerName){
         return hockeyPlayers.containsKey(hockeyPlayerName);
