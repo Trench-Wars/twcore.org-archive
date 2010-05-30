@@ -106,17 +106,19 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	
 	// Kill shot range (value and less)
 	static final int DD_KILL_SHORT_RANGE = 15;       // 0 to 15 pixel (16x16)
-	static final int DD_KILL_NORMAL_RANGE = 40;      // 15 to 40 pixel (16x16)
-	static final int DD_KILL_LONG_RANGE = 80;        // 40 to 80 pixel (16x16)
-	static final int JD_KILL_SHORT_RANGE = 10; 
-	static final int JD_KILL_NORMAL_RANGE = 30;    
-	static final int JD_KILL_LONG_RANGE = 50;   
+	static final int DD_KILL_NORMAL_RANGE = 40;
+	static final int DD_KILL_LONG_RANGE = 80; 
+	
+	static final int JD_KILL_SHORT_RANGE = 8; 
+	static final int JD_KILL_NORMAL_RANGE = 20;    
+	static final int JD_KILL_LONG_RANGE = 34; 
+	
 	static final int SD_KILL_SHORT_RANGE = 15;       
-	static final int SD_KILL_NORMAL_RANGE = 40;      
-	static final int SD_KILL_LONG_RANGE = 80;       
+	static final int SD_KILL_NORMAL_RANGE = 35;      
+	static final int SD_KILL_LONG_RANGE = 60;       
 	
 	// Death-On-Attach stats
-	private static long DEATH_ON_ATTACH = 2000; // ms
+	private static long DEATH_ON_ATTACH = 1500; // ms
 	private long lastAttach = 0;
 	
 	// Spawn stats
@@ -366,8 +368,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					Integer.toString(fnMatchRoundUserID),
 					Integer.toString(m_dbPlayer.getUserID()),
 					Integer.toString(MPS.getShipType()),
-					JSONValue.toJSONString(MPS.killers),
-					JSONValue.toJSONString(MPS.killers) };
+					JSONValue.escape(JSONValue.toJSONString(MPS.killers)),
+					JSONValue.escape(JSONValue.toJSONString(MPS.killers)) };
 					
 					/*
 					Integer.toString(MPS.killers.size()),
@@ -1459,6 +1461,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		
 		public void updateTimePlayed()
 		{
+			
+			
 			if (lastTimeCheck != 0) {
 				timePlayed += System.currentTimeMillis() - lastTimeCheck;
 			}
@@ -1577,17 +1581,18 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		}
 	}
 	
-	public MatchPlayer() { };
+	
 
 	public static void main(String[] args) {
 		
 	
-		MatchPlayer p = new MatchPlayer();
-		p.reportKillee("test");
-		p.reportKillee("test");
-		p.reportKillee("test");
-		p.reportKiller("test");
+		HashMap<String, Integer> test = new HashMap<String, Integer>();
+		test.put("test1",0);
+		test.put("test2",5);
+		
+		System.out.println(JSONValue.escape(JSONValue.toJSONString(test)));
 		
 	}
+
 
 };
