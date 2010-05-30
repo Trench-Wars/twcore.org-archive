@@ -1487,7 +1487,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				killers.put(killerName, v);
 			}
 			else {
-				if (!killers.get(killerName).containsKey(shipType))
+				if (!killers.get(killerName).containsKey((int)shipType))
 					killers.get(killerName).put((int)shipType,1);
 				else
 					killers.get(killerName).put((int)shipType,killers.get(killerName).get((int)shipType)+1);
@@ -1502,7 +1502,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				killees.put(killeeName, v);
 			}
 			else {
-				if (!killees.get(killeeName).containsKey(shipType))
+				if (!killees.get(killeeName).containsKey((int)shipType))
 					killees.get(killeeName).put((int)shipType,1);
 				else
 					killees.get(killeeName).put((int)shipType,killees.get(killeeName).get((int)shipType)+1);

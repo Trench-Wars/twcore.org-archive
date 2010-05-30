@@ -219,7 +219,7 @@ public class matchbot extends SubspaceBot
             command_lock(m_botAction.getBotName(), param);
         }
         m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
-        m_botAction.setPlayerPositionUpdating(200);
+        m_botAction.setPlayerPositionUpdating(300);
     }
 
     public void handleEvent(FlagClaimed event)
