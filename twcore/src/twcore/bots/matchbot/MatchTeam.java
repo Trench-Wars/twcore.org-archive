@@ -267,7 +267,7 @@ public class MatchTeam
     }
 
     // when somebody dies
-    public void handleEvent(PlayerDeath event, String killerName)
+    public void handleEvent(PlayerDeath event, String killerName, byte shipType)
     {
         if (m_round.m_fnRoundState == 3)
         {
@@ -277,7 +277,7 @@ public class MatchTeam
 
             	p.reportDeath();
             	
-            	p.reportKiller(killerName);
+            	p.reportKiller(killerName, shipType);
 
             }
             catch (Exception e)
@@ -288,7 +288,7 @@ public class MatchTeam
     }
 
     // not officially an event, but it's treated like one.
-    public void reportKill(PlayerDeath event, String killeeName)
+    public void reportKill(PlayerDeath event, String killeeName, byte shipType)
     {
         if (m_round.m_fnRoundState == 3)
         {
@@ -303,7 +303,7 @@ public class MatchTeam
                 	score = score * (m_round.m_game.settings_FlaggerKillMultiplier+1);
                 }
                 p.reportKill(score, event.getKilleeID());
-                p.reportKillee(killeeName);
+                p.reportKillee(killeeName, shipType);
             }
             catch (Exception e)
             {

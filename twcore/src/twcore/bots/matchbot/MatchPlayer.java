@@ -527,14 +527,14 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	}
 	
 	// report death
-	public void reportKiller(String killerName)
+	public void reportKiller(String killerName, byte shipType)
 	{
-		m_statTracker.reportKiller(killerName);
+		m_statTracker.reportKiller(killerName, shipType);
 	}
 	
-	public void reportKillee(String killeeName)
+	public void reportKillee(String killeeName, byte shipType)
 	{
-		m_statTracker.reportKillee(killeeName);
+		m_statTracker.reportKillee(killeeName, shipType);
 	}
 
 	public void reportKillShotDistance(double distance) 
@@ -1081,16 +1081,16 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				m_currentShip.reportDeathOnAttach();
 		}
 		
-		public void reportKiller(String killerName)
+		public void reportKiller(String killerName, byte shipType)
 		{
 			if (m_currentShip != null)
-				m_currentShip.reportKiller(killerName);
+				m_currentShip.reportKiller(killerName, shipType);
 		}
 		
-		public void reportKillee(String killeeName)
+		public void reportKillee(String killeeName, byte shipType)
 		{
 			if (m_currentShip != null)
-				m_currentShip.reportKillee(killeeName);
+				m_currentShip.reportKillee(killeeName, shipType);
 		}
 
 		/**
@@ -1236,8 +1236,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		private java.util.Date m_ftTimeEnded;
 		
 		// Killers/Killees stats
-		private Map<String,Integer> killers;
-		private Map<String,Integer> killees;
+		private Map<String,Map<Integer, Integer>> killers;
+		private Map<String,Map<Integer, Integer>> killees;
 		
 		// Time played
 		private long timePlayed = 0;
@@ -1250,8 +1250,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			//statistics tracker
 			m_statisticTracker = new Statistics(fnShipType);
 			
-			killers = new HashMap<String,Integer>();
-			killees = new HashMap<String,Integer>();
+			killers = new HashMap<String,Map<Integer, Integer>>();
+			killees = new HashMap<String,Map<Integer, Integer>>();
 			
 			updateTimePlayed();
 
@@ -1479,24 +1479,33 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			m_statisticTracker.setStatistic(Statistics.SCORE, points);
 		}
 
-		public void reportKiller(String killerName)
+		public void reportKiller(String killerName, byte shipType)
 		{
 			if (!killers.containsKey(killerName)) {
-				killers.put(killerName, 1);
+				HashMap<Integer, Integer> v = new HashMap<Integer, Integer>();
+				v.put((int)shipType, 1);
+				killers.put(killerName, v);
 			}
 			else {
-				killers.put(killerName, killers.get(killerName)+1);
+				if (!killers.get(killerName).containsKey(shipType))
+					killers.get(killerName).put((int)shipType,1);
+				else
+					killers.get(killerName).put((int)shipType,killers.get(killerName).get((int)shipType)+1);
 			}
-			
 		}
 		
-		public void reportKillee(String killeeName)
+		public void reportKillee(String killeeName, byte shipType)
 		{
 			if (!killees.containsKey(killeeName)) {
-				killees.put(killeeName, 1);
+				HashMap<Integer, Integer> v = new HashMap<Integer, Integer>();
+				v.put((int)shipType, 1);
+				killees.put(killeeName, v);
 			}
 			else {
-				killees.put(killeeName, killees.get(killeeName)+1);
+				if (!killees.get(killeeName).containsKey(shipType))
+					killees.get(killeeName).put((int)shipType,1);
+				else
+					killees.get(killeeName).put((int)shipType,killees.get(killeeName).get((int)shipType)+1);
 			}
 		}
 		
