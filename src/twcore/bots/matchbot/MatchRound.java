@@ -486,9 +486,12 @@ public class MatchRound
     	if(m_fnRoundState == 3) {
 	        try
 	        {
-	            String killeeName = m_botAction.getPlayer(event.getKilleeID()).getPlayerName();
-	            String killerName = m_botAction.getPlayer(event.getKillerID()).getPlayerName();
+	    		Player killee = m_botAction.getPlayer(event.getKilleeID());
+	    		Player killer = m_botAction.getPlayer(event.getKillerID());
 
+	    		String killeeName = killee.getPlayerName();
+	    		String killerName = killer.getPlayerName();
+	            
 	            if (m_team1.getPlayer(killeeName, true) != null)
 	                m_team1.handleEvent(event, killerName);
 	            if (m_team2.getPlayer(killeeName, true) != null)
@@ -505,6 +508,7 @@ public class MatchRound
 	            
 	            // TWSD ONLY:
 	            if(m_game.m_fnMatchTypeID == 13) {
+	            	
 	            	if(m_team1.hasFlag() && m_team1.getPlayer(killeeName, true) != null && event.getKilleeID() == m_team1.getFlagCarrier()) {
 	            		// team1 had the flag and the killed one was from team1 and it was the flagcarrier, now the killer is the flagcarrier.
 	            		m_team1.disownFlag();
@@ -535,9 +539,35 @@ public class MatchRound
 	            	}
 	            	
 	            }
+	            
+	    	    // Distance between the killer and killee
+	    	    double distance = Math.sqrt(
+	    	    		Math.pow(killer.getXLocation()-killee.getXLocation(),2) +
+	    	    		Math.pow(killer.getYLocation()-killee.getYLocation(),2))/16;
+
+	    	    MatchPlayer p1;
+	    	    MatchPlayer p2;
+	    	    p1 = m_team1.getPlayer(killerName);
+	    	    p2 = m_team1.getPlayer(killeeName);
+	    	    if (p1 == null)
+	    	    	p1 = m_team2.getPlayer(killerName);
+	    	    if (p2 == null)
+	    	    	p2 = m_team2.getPlayer(killeeName);
+	    	    
+	    	    // count only if not on the same team
+	    	    if (p1 != null && p2 != null) {
+		    	    if (p1.m_team.m_fnTeamNumber != p2.m_team.m_fnTeamNumber) {
+		    	    	p1.reportKillShotDistance(distance);
+		    	    }
+	    	    }
+	    	    else {
+	    	    	System.out.println("null player distance shot");
+	    	    }
+	            
 	        }
 	        catch (Exception e)
 	        {
+	        	Tools.printStackTrace(e);
 	        };
     	}
     };

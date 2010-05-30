@@ -193,6 +193,9 @@ public class MatchTeam
     
     public void handleEvent(WatchDamage event)
     {
+    	/*
+    	 * Using PlayerDeath instead
+    	 * 
     	// Did someone died? if not do nothing
         if (Math.abs(event.getEnergyLost()) <= event.getOldEnergy()) {
             return;
@@ -220,6 +223,7 @@ public class MatchTeam
         MatchPlayer p = getPlayer(playerName);
 	    
         p.reportKillShotDistance(distance);
+        */
 	    
  
     }
