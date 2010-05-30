@@ -30,13 +30,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
     
     
     private BotAction m_botAction;
-    
-    //private static HockeyConcreteMediator mediator;
-    
-  
-    /**
-     * Singleton of hockeymediator
-     * */
+
     public HockeyConcreteMediator(BotAction botAction){
        
         this.m_botAction = botAction;
