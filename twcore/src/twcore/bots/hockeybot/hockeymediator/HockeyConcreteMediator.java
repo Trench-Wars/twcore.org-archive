@@ -45,14 +45,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         state.setState(HockeyState.OFF);
         state.setMediator(this);
     }
-    /*
-    public static HockeyConcreteMediator getInstance(BotAction botAction){
-        if(mediator == null)
-            mediator = new HockeyConcreteMediator(botAction);
-        
-        return mediator;
-    }*/
-    
+ 
     public void startPractice(String name, String squadAccepted){
         
         practice = new HockeyPractice(m_botAction);
