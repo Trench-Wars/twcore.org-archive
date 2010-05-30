@@ -83,30 +83,6 @@ public class HockeyConcreteMediator implements HockeyMediator {
         //if(getteam().getTeamSize(1)) ;
     }
     
-    /*
-    public int getSavePoint(String name){
-        return teams[0].getSavePoints(name);
-    }
-    
-    public int getNSave(String name){
-        return teams[0].getNumberSave(name);
-    }
-    public void giveSavePoint(String name, int freq){
-        teams[0].givePointGoal(name);
-    }
-    public void giveGoalPoint(String name, int freq){
-        teams[0].givePointGoal(name);
-    }
-    
-    
-    public int doGetGoalPoints(String name){
-        return teams[0].getGoalPoints(name);
-    }
-    
-    public int doGetNGoalPoints(String name){
-        return teams[0].getNPoint(name);
-    }
-    */
     public void doReadyTeam(String name, String message){
         
     }
