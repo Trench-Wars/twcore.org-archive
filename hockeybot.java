@@ -252,9 +252,6 @@ public class hockeybot
          * Façade
          * */
       
-        else if( message.startsWith("!result") && mediator.gameIsRunning())
-            mediator.displayResult();
-        
         else if( message.startsWith("!score"))
             mediator.displayStatistics();
         
