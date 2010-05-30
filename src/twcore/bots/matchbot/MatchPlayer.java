@@ -369,16 +369,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					Integer.toString(m_dbPlayer.getUserID()),
 					Integer.toString(MPS.getShipType()),
 					JSONValue.escape(JSONValue.toJSONString(MPS.killers)),
-					JSONValue.escape(JSONValue.toJSONString(MPS.killers)) };
-					
-					/*
-					Integer.toString(MPS.killers.size()),
-					Integer.toString(MPS.killees.size()) };
-					*/
-							
-				/*)*/
-				/*JSONValue.toJSONString(MPS.killees)*/
-				
+					JSONValue.escape(JSONValue.toJSONString(MPS.killees)) };
+
 				m_botAction.SQLInsertInto(dbConn, "tblMatchRoundUserExtra", extraFields, extraValues);
 				
 			}
