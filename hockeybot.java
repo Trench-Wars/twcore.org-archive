@@ -34,9 +34,9 @@ import twcore.core.util.Tools;
  * */
 /**
  * 
- * 
- * 
- * 
+ * Need to work on queries: !register, !put, !accept
+ * Need to work on if(states)
+ * Need to work on mediator.setstate()
  * 
  * 
  * 
@@ -52,7 +52,7 @@ public class hockeybot
     
     /*
      * List to stats: save, goal, assist ( 1st, 2nd )*/
-    private HockeyAssistGoalStack<String> list ;
+    private HockeyAssistGoalStack<String> list;
     
     private OperatorList op;
     private EventRequester events;
@@ -60,8 +60,12 @@ public class hockeybot
     private String pubHelp [] = {
             "Hi, I'm a bot in development to the TW-Hockey-Tournament,",
             "you can register your squad already!",
-            "| Commands --------------------------------------------------------",
-            "| !teamsignup <squadName>    -  Registers your squad on TWHT's site",
+            "| Commands -----------------------------------------------------------------------",
+            "| !teamsignup <squadName>    -  Registers your squad on TWHT's site              |",
+            "| !put                       -  Puts your team into the Requesting List          |",
+            "| !accept <SquadName>        -  To a accept a squad from the List of request     |",
+            "| !remove                    -  To remove your squad from requesting game's list |",
+            "| !register                  -  To register a ship if a game is running          |",
             "| check TWHT'S Site: www.trenchwars.org/twht"
     };
     
@@ -76,15 +80,13 @@ public class hockeybot
     }
     
     public void doStartBot(){
-        
         this.mediator = new HockeyConcreteMediator(m_botAction);
         this.events = m_botAction.getEventRequester();
         this.requestEvents(events);
         this.op = m_botAction.getOperatorList();
         this.list = new HockeyAssistGoalStack<String>();
-        //this.mediator = new HockeyConcreteMediator(m_botAction);
-    }
 
+    }
     public void doLoadGame(String name, String message){
         //this.hzsql.
         //!load id
@@ -102,13 +104,10 @@ public class hockeybot
         /** 
          * if(mediator.gameIsRunning()){
            */ 
-        m_botAction.sendArenaMessage("Goal by freq "+event.getFrequency()+" !", 2);
-            System.out.println("GOAL!");
-            
             /**
              * Trabalhar aqui para adicionar pontos a cada jogador
              * */
-            updateScore(event.getFrequency());
+        if(mediator.gameIsRunning()){
             
             try{
                 String p_Goal = null;
@@ -133,18 +132,14 @@ public class hockeybot
                 
                 if(p_A1 != null){
                     m_botAction.sendArenaMessage("Assist: "+p_A1);
-                    this.addPlayerPoint(p_A1, freq, 2);
+                    addPlayerPoint(p_A1, freq, 2);
                 }
                 if(p_A2 != null){
                     m_botAction.sendArenaMessage("2nd Assist: "+p_A2);
-                    this.addPlayerPoint(p_A2, freq, 2);
+                    addPlayerPoint(p_A2, freq, 2);
                 }
-                /*if(!p_Goal.equals(p_A1) && !p_A1.equals(p_A2) && p_A2 != null && p_A1 != null){
-                    this.addPlayerPoint(p_A2, freq, 2);
-                    this.addPlayerPoint(p_A1, freq, 2);
-                    System.out.println("Entrei aqui");
-                }*/
-                this.addPlayerPoint(p_Goal, freq, 1);
+                
+                addPlayerPoint(p_Goal, freq, 1);
                 setFaceOffState();
                 list.clear();
             }
@@ -157,57 +152,54 @@ public class hockeybot
                 e.printStackTrace();
             }
         }
+    }
     //}
     
-    private void updateScore(short frequency) {
-    	
-	}
-
 	@Override
     public void handleEvent(BallPosition event){
         //gets the carrier and keeps getting him in a loop..
-        //if(getClass().isInstance(practice)){
         
         /**
          * IF STATE == GAME IN PROGRESS
         */
-        Player p; 
-           String p_name;
-           String pprevious_name;
-           int p_freq;
-           int p_freq2 = -1;
-           
-           if(event.getCarrier() == -1)
-               return;
-           
-           p = m_botAction.getPlayer(event.getPlayerID());
-            
-            if(p.getShipType() == 7 || p.getShipType() == 8){
-                list.clear();
-                m_botAction.sendArenaMessage("Save! "+p.getPlayerName());
+	    if(mediator.gameIsRunning()){
+    	       Player p; 
+               String p_name;
+               int p_freq;
+               int p_freq2 = -1;
+               
+               if(event.getCarrier() == -1)
+                   return;
+               
+               p = m_botAction.getPlayer(event.getPlayerID());
                 
-            }
-            else{
-                try{
-                    p = m_botAction.getPlayer(event.getPlayerID());
-                    p_freq = p.getFrequency();
-                    p_name = m_botAction.getPlayerName(event.getPlayerID());
-                    m_botAction.sendArenaMessage("Ball: "+p_name);
-                    if(!list.isEmpty())
-                        p_freq2 = m_botAction.getPlayer(list.getLast()).getFrequency();
-                    
-                    if(p_freq != p_freq2)
-                        list.clear();
-                        
-                    list.push(p_name);
-                        
-                }catch(HockeyListEmptyException e){
-                    Tools.printLog(e.toString());
-                }catch(Exception e){
-                    Tools.printLog(e.toString());
+               if(p.getShipType() == 7 || p.getShipType() == 8){
+                    list.clear();
+                    m_botAction.sendArenaMessage("Save! "+p.getPlayerName());
                 }
-            }}
-    
+                
+               else{
+                   try{
+                        p = m_botAction.getPlayer(event.getPlayerID());
+                        p_freq = p.getFrequency();
+                        p_name = m_botAction.getPlayerName(event.getPlayerID());
+                        
+                        if(!list.isEmpty())
+                            p_freq2 = m_botAction.getPlayer(list.getLast()).getFrequency();
+                        
+                        if(p_freq != p_freq2)
+                            list.clear();
+                            
+                        list.push(p_name);
+                            
+                    }catch(HockeyListEmptyException e){
+                        Tools.printLog(e.toString());
+                    }catch(Exception e){
+                        Tools.printLog(e.toString());
+                    }
+                }
+            }
+	}
     @Override
     public void handleEvent(LoggedOn event){
         BotSettings botSettings = m_botAction.getBotSettings();
@@ -223,9 +215,7 @@ public class hockeybot
         int messageType = event.getMessageType();
         
         if( messageType == Message.PRIVATE_MESSAGE){
-            /*if(name == null)
-                return;
-            */
+            
             try {
                 handleCommand(name, message);
             } catch (SQLException e) {
@@ -251,7 +241,7 @@ public class hockeybot
         /**
          * Façade
          * */
-      
+        
         else if( message.startsWith("!score"))
             mediator.displayStatistics();
         
@@ -292,11 +282,6 @@ public class hockeybot
                 m_botAction.sendPrivateMessage(name, st);
         }
         
-        else if(message.startsWith("!gpoints"))
-        {}//doGetGoalPoints(name);
-        else if(message.startsWith("!spoints")){
-            
-        }
         else if(message.startsWith("!ready")){
             doReadyTeam(name, message);
         }
@@ -344,12 +329,6 @@ public class hockeybot
         m_botAction.splitTeam(0, 470, 474, 470, 594);
         m_botAction.splitTeam(1, 553, 474, 553, 549);
         
-        /*m_botAction.getShip().setShip(0);
-        m_botAction.getShip().setFreq(555);
-        m_botAction.warpTo(p.getPlayerName(), 512, 512);
-        
-        m_botAction.getShip().move(512, 512);
-    */
     }
 
     public void doReadyTeam(String name, String message){
@@ -378,18 +357,7 @@ public class hockeybot
         //HockeyConcreteMediator.getInstance(m_botAction).addPlayer(name, ship);
         
     }
-    /*
-    public void doGetSavePoints(String name){
-        int i = mediator.getSavePoint(name);
-        int j = mediator.getNSave(name);
-        m_botAction.sendArenaMessage("Name: "+name+" Points: "+i+" SAVES: "+j);
-    }
-    public void doGetGoalPoints(String name){
-        int i = mediator.doGetGoalPoints(name);
-        int j = mediator.doGetNGoalPoints(name);
-        m_botAction.sendArenaMessage("Name: "+name+" Points: "+i+" goals: "+j);
-    }
-    */
+    
     private void setFaceOffState() {
         //mediator = HockeyConcreteMediator.getInstance(m_botAction);
         mediator.setState(HockeyState.Face_Off);
@@ -402,7 +370,6 @@ public class hockeybot
     public void doRegister(String name, String message){}
 
     private void requestGame(String name, String message) throws SQLException{
-        m_botAction.sendPrivateMessage(name, "Adding...");
         HockeyRegistrator hockey = new HockeyRegistrator(m_botAction);
         hockey.requestGame(name, message);
     }
