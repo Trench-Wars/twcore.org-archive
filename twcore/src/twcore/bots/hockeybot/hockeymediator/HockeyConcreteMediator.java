@@ -21,7 +21,7 @@ import twcore.core.util.Tools;
  * */    
 public class HockeyConcreteMediator implements HockeyMediator {
 
-    private     HockeyState     state;
+    private     HockeyState     stateController;
     private     HockeyPractice  practice;
     private     HockeyTicker    ticker;
     private     HockeyTeam      team1;
@@ -31,13 +31,19 @@ public class HockeyConcreteMediator implements HockeyMediator {
     
     private BotAction m_botAction;
 
+    private  TimerTask getBack = new TimerTask(){
+        public void run(){
+            doStartBack();
+        }
+    };
+    
     public HockeyConcreteMediator(BotAction botAction){
        
         this.m_botAction = botAction;
 
-        state = new HockeyState();
-        state.setState(HockeyState.OFF);
-        state.setMediator(this);
+        stateController = new HockeyState();
+        stateController.setState(HockeyState.OFF);
+        stateController.setMediator(this);
     }
  
     public void startPractice(String name, String squadAccepted){
@@ -46,7 +52,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         practice.setMediator(this);
         practice.doAcceptGame(name, squadAccepted);
         
-        state.setState(HockeyState.Pre_Start);
+        stateController.setState(HockeyState.Pre_Start);
         
         ticker = new HockeyTicker();
         ticker.setMediator(this);
@@ -64,7 +70,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
     }
     public boolean gameIsRunning(){
-        return state.getCurrentState() != HockeyState.In_Interval && state.getCurrentState() != HockeyState.OFF && state.getCurrentState() != HockeyState.Face_Off;
+        return stateController.getCurrentState() != HockeyState.In_Interval && stateController.getCurrentState() != HockeyState.OFF && stateController.getCurrentState() != HockeyState.Face_Off;
     }
     public void checkTeamReady(){
         //if(getteam().getTeamSize(1)) ;
@@ -80,6 +86,8 @@ public class HockeyConcreteMediator implements HockeyMediator {
     public void cancelGame() throws Throwable{
    
         m_botAction.cancelTask(getTicker());
+        m_botAction.cancelTasks();
+        
     }
     
     @Override
@@ -87,14 +95,15 @@ public class HockeyConcreteMediator implements HockeyMediator {
         // TODO Auto-generated method stub
         if(state == HockeyState.Game_In_Progress){
             
-            if(isReady(0) && isReady(1)){
-                this.state.setState(state);
+            if(isReady(0) && isReady(1) || ( teams[0].hasMin() && teams[1].hasMin() ) ){
+                stateController.setState(state);
                 m_botAction.sendArenaMessage("State set to "+state);
             }
+            
             else{
                 try {
                     cancelGame();
-                    this.state.setState(HockeyState.OFF);
+                    stateController.setState(HockeyState.OFF);
                     m_botAction.sendArenaMessage("Not enough players to start");
                 } catch (Throwable e) {
                     // TODO Auto-generated catch block
@@ -104,20 +113,49 @@ public class HockeyConcreteMediator implements HockeyMediator {
             //team1.setReady(true);
             //team2.setReady(true);
         }
+        
+        else if(state == HockeyState.In_Interval){
+            stateController.setState(state);
+            m_botAction.scheduleTask(getBack, Tools.TimeInMillis.MINUTE*2);
+            m_botAction.sendArenaMessage("INTERVAL! 2 mins and game starts back!", 2);
+            //INVERT TEAMS POSITIONS
+            
+        }
+        
         else if(state == HockeyState.Face_Off){
-            this.state.setState(state);
-            doPauseGame();
-            TimerTask getBack = new TimerTask(){
-                public void run(){
-                    doStartBack();
-                }
-            }   ;
+            stateController.setState(state);
             m_botAction.scheduleTask(getBack, Tools.TimeInMillis.SECOND*30);
             m_botAction.sendArenaMessage("Face off! 30 secs and time runs again!", 2);
         }
         
+        else if(state == HockeyState.End_Game){
+            stateController.setState(state);
+            displayStatistics();
+            doCleanTeams();
+            stateController.setState(HockeyState.OFF);
+        }
+        
+    }
+    
+    public void doReady(String name, int freq){
+        if(teams[freq].getCaptainName().equals(name) || isAssistant(teams[freq].getTeamName(), name))
+            teams[freq].setReady(true);
+        
+        else
+            m_botAction.sendPrivateMessage(name, "You're not captain / assistant to ready your team.");
+        
+    }
+    private boolean isAssistant(String teamName, String name) {
+        // TODO Auto-generated method stub
+        //make a query
+        return true;
     }
 
+    public void doCleanTeams(){
+        teams[0].resetPlayers();
+        teams[1].resetPlayers();
+    }
+    
     public void notifyTime(long mins, long secs){
     
         //m_botAction.showObject((int)mins);
@@ -125,16 +163,17 @@ public class HockeyConcreteMediator implements HockeyMediator {
         m_botAction.sendArenaMessage("Mins: "+mins+" Secs: "+secs);
         
     }
+    
     public void doStartBack(){
-        state.setState(HockeyState.Game_In_Progress);
-        ticker.doStartBack();
+        stateController.setState(HockeyState.Game_In_Progress);
+       
     }
     public void doPauseGame(){
         ticker.doPause();
         
     }
     public int getCurrentState(){
-        return state.getCurrentState();
+        return stateController.getCurrentState();
     }
     @Override
     public void setTeamReady() {
@@ -148,9 +187,6 @@ public class HockeyConcreteMediator implements HockeyMediator {
 
     }
     
-    public int getState() {
-        return state.getCurrentState();
-    }
     public void setPractice(HockeyPractice practice) {
         this.practice = practice;
     }

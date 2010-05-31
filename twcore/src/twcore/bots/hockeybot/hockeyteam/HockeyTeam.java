@@ -151,5 +151,9 @@ public class HockeyTeam {
 	public int getTeamGoals() {
 		return teamGoals;
 	}
+	
+	public void resetPlayers(){
+	    hockeyPlayers.clear();
+	}
     
 }
