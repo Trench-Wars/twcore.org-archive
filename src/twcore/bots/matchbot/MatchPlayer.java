@@ -212,7 +212,6 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					Integer.toString(fnMatchRoundID),
 					Integer.toString(m_dbPlayer.getTeamUserID()),
 					Integer.toString(m_dbPlayer.getUserID()),
-
 					Tools.addSlashesToString(m_fcPlayerName),
 					Integer.toString(fnTeam),
 					Integer.toString(m_statTracker.getShipType()),
