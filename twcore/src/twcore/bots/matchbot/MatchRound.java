@@ -491,6 +491,23 @@ public class MatchRound
 
 	    		String killeeName = killee.getPlayerName();
 	    		String killerName = killer.getPlayerName();
+	    		
+	            
+	    	    // Distance between the killer and killee
+	    	    double distance = Math.sqrt(
+	    	    		Math.pow(killer.getXLocation()-killee.getXLocation(),2) +
+	    	    		Math.pow(killer.getYLocation()-killee.getYLocation(),2))/16;
+
+	    	    MatchPlayer p1 = getPlayer(killerName);
+	    	    MatchPlayer p2 = getPlayer(killeeName);
+
+	    	    // count only if not on the same team
+	    	    if (p1 != null && p2 != null) {
+		    	    if (p1.m_team.m_fnTeamNumber != p2.m_team.m_fnTeamNumber) {
+		    	    	p1.reportKillShotDistance(distance);
+		    	    }
+	    	    }
+	    	    
 	            
 	            if (m_team1.getPlayer(killeeName, true) != null)
 	                m_team1.handleEvent(event, killerName, killer.getShipType());
@@ -501,6 +518,12 @@ public class MatchRound
 	            if (m_team2.getPlayer(killerName, true) != null)
 	                m_team2.reportKill(event, killeeName, killee.getShipType());
 	
+	            
+	            // player out?
+	            if (p1 != null && p2 != null && p2.m_fnPlayerState == 4) {
+	            	p2.reportKO(killerName);
+	            }
+
 	            if (m_team1.isDead() || m_team2.isDead())
 	                endGame();
 	            if (m_team1.wonRace() || m_team2.wonRace())
@@ -539,24 +562,6 @@ public class MatchRound
 	            	}
 	            	
 	            }
-	            
-	    	    // Distance between the killer and killee
-	    	    double distance = Math.sqrt(
-	    	    		Math.pow(killer.getXLocation()-killee.getXLocation(),2) +
-	    	    		Math.pow(killer.getYLocation()-killee.getYLocation(),2))/16;
-
-	    	    MatchPlayer p1 = getPlayer(killerName);
-	    	    MatchPlayer p2 = getPlayer(killeeName);
-
-	    	    // count only if not on the same team
-	    	    if (p1 != null && p2 != null) {
-		    	    if (p1.m_team.m_fnTeamNumber != p2.m_team.m_fnTeamNumber) {
-		    	    	p1.reportKillShotDistance(distance);
-		    	    }
-	    	    }
-	    	    else {
-	    	    	System.out.println("null player distance shot");
-	    	    }
 	            
 	        }
 	        catch (Exception e)
