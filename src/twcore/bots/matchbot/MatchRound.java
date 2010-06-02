@@ -16,9 +16,11 @@ import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.TimerTask;
+import java.util.Vector;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -41,6 +43,9 @@ import twcore.core.lvz.Objset;
 import twcore.core.stats.LagReport;
 import twcore.core.stats.lagHandler;
 import twcore.core.util.Tools;
+import twcore.core.util.json.JSONArray;
+import twcore.core.util.json.JSONObject;
+import twcore.core.util.json.JSONValue;
 
 public class MatchRound
 {
@@ -86,6 +91,8 @@ public class MatchRound
     TimerTask m_secondWarp;
     TimerTask updateScores;
     ArrayList<String> m_notPlaying;
+    
+    JSONArray events; // array of MatchRoundEvent
 
     private Objset m_scoreBoard;
     private int m_generalTime = 0;
@@ -129,6 +136,8 @@ public class MatchRound
         m_timeStarted = new java.util.Date();
         m_logger = m_game.m_logger;
 
+        events = new JSONArray();
+        
         if(!m_rules.getString("name").equalsIgnoreCase("strikeball")) {
 	        m_team1 = new MatchTeam(fcTeam1Name, (int)Math.floor(Math.random()*8000+1000), 1, this);
 	        m_team2 = new MatchTeam(fcTeam2Name, (int)Math.floor(Math.random()*8000+1000), 2, this);
@@ -228,11 +237,24 @@ public class MatchRound
                 roundstate = 1;
             String started = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(m_timeStarted);
             String ended = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(m_timeEnded);
-            String[] fields = { "fnMatchID", "fnRoundStateID", "ftTimeStarted", "ftTimeEnded", "fnTeam1Score", "fnTeam2Score" };
-            String[] values =
-                { Integer.toString(fnMatchID), Integer.toString(roundstate), started, ended, Integer.toString(m_fnTeam1Score), Integer.toString(m_fnTeam2Score)};
-            m_botAction.SQLInsertInto(dbConn, "tblMatchRound", fields, values);
-            //            ResultSet s = m_botAction.SQLQuery(dbConn, "select fnMatchRoundID from tblMatchRound where ftTimeStarted = '"+started+"' and ftTimeEnded = '"+ended+"' and fnTeam1Score = "+m_fnTeam1Score+" and fnTeam2Score = "+m_fnTeam2Score);
+            String[] fields = {
+            		"fnMatchID", 
+            		"fnRoundStateID", 
+            		"ftTimeStarted", 
+            		"ftTimeEnded", 
+            		"fnTeam1Score", 
+            		"fnTeam2Score" };
+            
+            String[] values = { 
+            		Integer.toString(fnMatchID), 
+            		Integer.toString(roundstate),
+            		started,
+            		ended, 
+            		Integer.toString(m_fnTeam1Score), 
+            		Integer.toString(m_fnTeam2Score) };
+            
+            m_botAction.SQLInsertInto(dbConn, "tblMatchRound", fields, values);         
+            
             ResultSet s = m_botAction.SQLQuery(dbConn, "select MAX(fnMatchRoundID) as fnMatchRoundID from tblMatchRound");
             if (s.next())
             {
@@ -241,6 +263,23 @@ public class MatchRound
                 m_team2.storePlayerResults();
             };
             m_botAction.SQLClose( s );
+            
+            String created = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+            
+            String[] fields2 = {
+            		"fnMatchID", 
+            		"fnMatchRoundID", 
+            		"fcEvent", 
+            		"fdCreated" };
+            
+            String[] values2 = { 
+            		Integer.toString(fnMatchID), 
+            		Integer.toString(m_fnMatchRoundID),
+            		JSONValue.escape(JSONValue.toJSONString(events)),
+            		created };
+            
+            m_botAction.SQLBackgroundInsertInto(dbConn, "tblMatchRoundExtra", fields2, values2);    
+            
         }
         catch (Exception e)
         {
@@ -501,8 +540,13 @@ public class MatchRound
 	    	    MatchPlayer p1 = getPlayer(killerName);
 	    	    MatchPlayer p2 = getPlayer(killeeName);
 
-	    	    // count only if not on the same team
+	    	    
 	    	    if (p1 != null && p2 != null) {
+	    	    	synchronized (events) {
+	    	    		events.add(MatchRoundEvent.death(p2.m_dbPlayer.getUserID(), p1.m_dbPlayer.getUserID()));
+	    	    		events.add(MatchRoundEvent.kill(p1.m_dbPlayer.getUserID(), p2.m_dbPlayer.getUserID()));
+	    	    	}
+	    	    	// count only if not on the same team
 		    	    if (p1.m_team.m_fnTeamNumber != p2.m_team.m_fnTeamNumber) {
 		    	    	p1.reportKillShotDistance(distance);
 		    	    }
@@ -521,6 +565,9 @@ public class MatchRound
 	            
 	            // player out?
 	            if (p1 != null && p2 != null && p2.m_fnPlayerState == 4) {
+	            	synchronized (events) {
+	            		events.add(MatchRoundEvent.eliminated(p2.m_dbPlayer.getUserID(), p1.m_dbPlayer.getUserID()));
+					}
 	            	p2.reportKO(killerName);
 	            }
 
@@ -2062,6 +2109,91 @@ public class MatchRound
     
     public MatchGame getGame() {
     	return this.m_game;
+    }
+    
+    /**
+     * This class is used to store event statistics about the current round
+     * It used JSONArray because it is already serializable, PHP-compatible and lightweight
+     * This information will be only used to produce a graphic
+     * 
+     * EventType number must be in sync with those on the website..
+     * Don't even change one.
+     * 
+     * If you need to add a new event, use the last number and do +1
+     * 
+     * See Arobas+
+     */
+    public static class MatchRoundEvent extends JSONArray {
+    	
+    	public final static int KILL = 1;
+    	public final static int DEATH = 2;
+    	public final static int SUB_PLAYER = 3;
+    	public final static int ADD_PLAYER = 4;
+    	public final static int SWITCH_PLAYER = 5; // BD only
+    	public final static int LAGOUT = 6;
+    	public final static int LAGIN = 7;
+    	public final static int ELIMINATED = 8;
+
+    	private MatchRoundEvent(int eventType) {
+    		this.add(System.currentTimeMillis()); // timestamp
+    		this.add(eventType); // event type
+    	}
+    	
+    	public static  MatchRoundEvent kill(int fnUserIDKiller, int fnUserIDKillee) {
+    		MatchRoundEvent event = new MatchRoundEvent(KILL);
+    		event.add(fnUserIDKiller); 
+    		event.add(fnUserIDKillee);
+    		return event;
+    	}
+    	
+    	public static  MatchRoundEvent death(int fnUserIDKillee, int fnUserIDKiller) {
+    		MatchRoundEvent event = new MatchRoundEvent(DEATH);
+    		event.add(fnUserIDKillee);
+    		event.add(fnUserIDKiller);
+    		return event;
+    	}
+    	
+    	public static  MatchRoundEvent subPlayer(int fnUserIDSubbed, int fnUserIDAdded) {
+    		MatchRoundEvent event = new MatchRoundEvent(SUB_PLAYER);
+    		event.add(fnUserIDSubbed);
+    		event.add(fnUserIDAdded);
+    		return event;
+    	}
+    	
+    	public static  MatchRoundEvent addPlayer(int fnUserIDAdded,  int shipTypeID) {
+    		MatchRoundEvent event = new MatchRoundEvent(ADD_PLAYER);
+    		event.add(fnUserIDAdded);
+    		event.add(shipTypeID);
+    		return event;
+    	}
+    	
+    	public static  MatchRoundEvent switchPlayer(int fnUserIDPlayer1, int fnUserIDPlayer2) {
+    		MatchRoundEvent event = new MatchRoundEvent(SWITCH_PLAYER);
+    		event.add(fnUserIDPlayer1);
+    		event.add(fnUserIDPlayer2);
+    		return event;
+    	}
+    	
+    	public static  MatchRoundEvent lagout(int fnUserID, boolean fbOutOfArena) {
+    		MatchRoundEvent event = new MatchRoundEvent(SWITCH_PLAYER);
+    		event.add(fnUserID);
+    		event.add(fbOutOfArena);
+    		return event;
+    	} 
+    	
+    	public static  MatchRoundEvent lagin(int fnUserID) {
+    		MatchRoundEvent event = new MatchRoundEvent(SWITCH_PLAYER);
+    		event.add(fnUserID);
+    		return event;
+    	}   
+    	
+    	public static MatchRoundEvent eliminated(int fnUserIDEliminated, int fnUserIDKiller) {
+    		MatchRoundEvent event = new MatchRoundEvent(SWITCH_PLAYER);
+    		event.add(fnUserIDEliminated);
+    		event.add(fnUserIDKiller);
+    		return event;
+    	}
+    	
     }
 
 }
