@@ -202,6 +202,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					"fnScore",
 					"fnWins",
 					"fnLosses",
+					"fcUserNameKO",
 					"fnLagout",
 					"fnSubstituted" };
 
@@ -217,6 +218,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					Integer.toString(m_statTracker.getTotalStatistic(Statistics.SCORE)),
 					Integer.toString(m_statTracker.getTotalStatistic(Statistics.TOTAL_KILLS)),
 					Integer.toString(m_statTracker.getTotalStatistic(Statistics.DEATHS)),
+					Tools.addSlashesToString(m_statTracker.getKOUserName()),
 					Integer.toString(m_fnLagouts),
 					Integer.toString(substituted)};
 
@@ -540,6 +542,11 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	public void reportKillShotDistance(double distance) 
 	{
 		m_statTracker.reportKillShotDistance(distance);		
+	}
+	
+	public void reportKO(String killerName)
+	{
+		m_statTracker.reportKO(killerName);
 	}
 
 	// report lagout
@@ -1063,6 +1070,11 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				m_currentShip.reportKillShotDistance(distance);
 		}
 		
+		public void reportKO(String killerName) {
+			if (m_currentShip != null)
+				m_currentShip.reportKO(killerName);
+		}
+		
 		/**
 		* Method reportPrize.
 		*/
@@ -1226,6 +1238,14 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			else
 				return 0; //error
 		}
+		
+		public String getKOUserName()
+		{
+			if (m_currentShip != null)
+				return m_currentShip.killerNameKO;
+			else
+				return "err"; //error
+		}
 	}
 
 	private class MatchPlayerShip
@@ -1242,6 +1262,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		// Time played
 		private long timePlayed = 0;
 		private long lastTimeCheck = 0;
+		
+		private String killerNameKO = "";
 		
 		public MatchPlayerShip(int fnShipType)
 		{
@@ -1380,6 +1402,11 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		public void reportDeathOnAttach()
 		{
 			m_statisticTracker.setStatistic(Statistics.DEATH_ON_ATTACH);
+		}
+		
+		public void reportKO(String killerName)
+		{
+			this.killerNameKO = killerName;
 		}
 		
 
