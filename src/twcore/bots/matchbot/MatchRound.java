@@ -269,14 +269,12 @@ public class MatchRound
             String[] fields2 = {
             		"fnMatchID", 
             		"fnMatchRoundID", 
-            		"fcEvent", 
-            		"fdCreated" };
+            		"fcEvent" };
             
             String[] values2 = { 
             		Integer.toString(fnMatchID), 
             		Integer.toString(m_fnMatchRoundID),
-            		JSONValue.escape(JSONValue.toJSONString(events)),
-            		created };
+            		JSONValue.escape(JSONValue.toJSONString(events)) };
             
             m_botAction.SQLBackgroundInsertInto(dbConn, "tblMatchRoundExtra", fields2, values2);    
             
