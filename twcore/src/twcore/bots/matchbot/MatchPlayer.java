@@ -22,6 +22,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.TimerTask;
 
+import twcore.bots.matchbot.MatchRound.MatchRoundEvent;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
@@ -218,7 +219,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					Integer.toString(m_statTracker.getTotalStatistic(Statistics.SCORE)),
 					Integer.toString(m_statTracker.getTotalStatistic(Statistics.TOTAL_KILLS)),
 					Integer.toString(m_statTracker.getTotalStatistic(Statistics.DEATHS)),
-					Tools.addSlashesToString(m_statTracker.getKOUserName()),
+					Tools.addSlashesToString(m_statTracker.getUserNameKO()),
 					Integer.toString(m_fnLagouts),
 					Integer.toString(substituted)};
 
@@ -657,6 +658,11 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		if (m_fnPlayerState == 1)
 			m_fnPlayerState = 3;
 		m_fnLaggedTime = System.currentTimeMillis();
+		
+ 		synchronized (m_team.m_round.events) {
+ 			m_team.m_round.events.add(MatchRoundEvent.lagout(m_dbPlayer.getUserID(), fbOutOfArena));
+ 	    }
+		
 	};
 
 	// report end of game
@@ -1239,12 +1245,12 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				return 0; //error
 		}
 		
-		public String getKOUserName()
+		public String getUserNameKO()
 		{
 			if (m_currentShip != null)
 				return m_currentShip.killerNameKO;
 			else
-				return "err"; //error
+				return ""; //error
 		}
 	}
 

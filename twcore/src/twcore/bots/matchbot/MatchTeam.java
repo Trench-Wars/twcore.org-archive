@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.TimerTask;
 
+import twcore.bots.matchbot.MatchRound.MatchRoundEvent;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.events.FrequencyShipChange;
@@ -763,6 +764,8 @@ public class MatchTeam
                 answer = addPlayer(p.getPlayerName(), fnShip, true, false);
                 if (answer.equals("yes"))
                 {
+                	
+                	
                     m_logger.sendPrivateMessage(name, "Player " + p.getPlayerName() + " added to " + m_fcTeamName);
                     m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game");
 
@@ -947,7 +950,11 @@ public class MatchTeam
                             		//currently it voids the player from getting mvp in time race games
                             		pA.m_switchedShip = true;
                             		pB.m_switchedShip = true;
-
+                                   
+                            		synchronized (m_round.events) {
+                                    	m_round.events.add(MatchRoundEvent.switchPlayer(pA.m_dbPlayer.getUserID(), pB.m_dbPlayer.getUserID()));
+                                	}
+                            		 
                             		m_logger.sendArenaMessage(pA.m_fcPlayerName + " (" + pB.getShipType() + ") and "
                             				+ pB.m_fcPlayerName + " (" + pA.getShipType() + ") switched ships.");
                             		if (m_round.m_fnRoundState == 3)
@@ -1122,6 +1129,10 @@ public class MatchTeam
             message = p.lagin();
             if (message.equals("yes"))
             {
+            	synchronized (m_round.events) {
+            		m_round.events.add(MatchRoundEvent.lagin(p.m_dbPlayer.getUserID()));
+				}
+   
                 if (commandByOther)
                     m_logger.sendPrivateMessage(name, "Player is back in, " + p.getLagoutsLeft() + " lagouts left");
             }
@@ -1271,6 +1282,10 @@ public class MatchTeam
                                         m_logger.sendArenaMessage(
                                             pA.getPlayerName() + " has been substituted by " + pB.getPlayerName() + ", with " + subDeathsLeft + " deaths left");
 
+                                    synchronized (m_round.events) {
+                                    	m_round.events.add(MatchRoundEvent.subPlayer(pA.m_dbPlayer.getUserID(), pB.m_dbPlayer.getUserID()));
+                                    }
+                                	
                                     if (m_rules.getInt("substitutes") != -1)
                                         m_logger.sendPrivateMessage(name, "You have "
                                                 + (m_rules.getInt("substitutes") - m_fnSubstitutes)
@@ -1552,8 +1567,16 @@ public class MatchTeam
         {
             p = new MatchPlayer(fcPlayerName, this);
             p.setShipAndFreq(fnShipType, m_fnFrequency);
-            if( getInGame )
+            if( getInGame ) {
+            	
+            	if (m_round.m_fnRoundState == 3) {
+                    synchronized (m_round.events) {
+                    	m_round.events.add(MatchRoundEvent.addPlayer(p.m_dbPlayer.getUserID(), fnShipType));	
+                    }
+            	}
+            	
                 p.getInGame(fbSilent);
+            }
             m_players.add(p);
             // Unfortunately due to how *info and MatchBot work, we have to do this at the end.
             // If MID and IP don't match up, then the player will be removed from the game.
