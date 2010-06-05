@@ -357,7 +357,6 @@ public class HockeyConcreteMediator implements HockeyMediator {
                  m_botAction.sendArenaMessage("GO GO GO ( Period 2 )", 104);
             }
         };
-        ticker.pause();
         m_botAction.scheduleTask(getBack, Tools.TimeInMillis.MINUTE*2);
         m_botAction.sendArenaMessage("INTERVAL! 2 mins and game starts back!", 2);
         //INVERT TEAMS POSITIONS
@@ -375,7 +374,6 @@ public class HockeyConcreteMediator implements HockeyMediator {
                  m_botAction.sendArenaMessage("GO GO GO", 104);
             }
         };
-        ticker.pause();
         m_botAction.scheduleTask(getBack, Tools.TimeInMillis.SECOND*30);
         m_botAction.sendArenaMessage("Face off! 30 secs and time runs again!", 2);
     }
