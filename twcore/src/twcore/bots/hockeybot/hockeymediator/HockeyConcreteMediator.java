@@ -246,7 +246,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         m_botAction.resetTimer();
         m_botAction.toggleLocked();
         m_botAction.cancelTask(ticker);
-        m_botAction.cancelTasks();
+        stateController.setState(HockeyState.OFF);
         //cleanTeams();
         
     }
