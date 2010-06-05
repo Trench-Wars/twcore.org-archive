@@ -68,9 +68,9 @@ public class HockeyConcreteMediator implements HockeyMediator {
             if( sqdChallenger.toLowerCase().equals(sqdChallenged.toLowerCase()))
                 m_botAction.sendPrivateMessage(challenger, "You can't challenge your own squad...");
             
-            /*else if( !sql.isTeam(sqdChallenged))
+            else if( !sql.isTeam(sqdChallenged))
                 m_botAction.sendPrivateMessage(challenger, sqdChallenged+" is not a TWHT Squad.");
-            */
+            
             else{
                 gameRequest.add(new GameRequest( challenger, sqdChallenger, sqdChallenged ) );
                 m_botAction.sendSquadMessage(sqdChallenged, challenger+" from "+sqdChallenger + " is challenging you for a Hockey Game, come !accept "+sqdChallenger);
