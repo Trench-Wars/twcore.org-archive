@@ -141,16 +141,16 @@ public class HockeyConcreteMediator implements HockeyMediator {
         if( teamReadyCapt.equals(null) )
             m_botAction.sendPrivateMessage(captainName, "You're not captain / assistant to !ready");
     
-        else if( isPlaying(teamReadyCapt) ){
-            freq = getTeamPlayingFrequency(teamReadyCapt);
-            teams[freq].setReady(true);
-            m_botAction.sendPrivateMessage(captainName, "You've ready your team.");
-            checkReady();
+        else {
+            if( isPlaying(teamReadyCapt) ){
+                freq = getTeamPlayingFrequency(teamReadyCapt);
+                teams[freq].setReady(true);
+                m_botAction.sendPrivateMessage(captainName, "You've ready your team.");
+                checkReady();
+                }
+            else
+                m_botAction.sendPrivateMessage(captainName, "Your squad is not playing this match at the moment");
         }
-        
-        else
-            m_botAction.sendPrivateMessage(captainName, "Your squad is not playing this match at the moment");
-        
         
     }
     
@@ -162,7 +162,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         }
     }
     public boolean isPlaying(String teamName){
-        return teams[0].getTeamName().toLowerCase().equals(teamName) || teams[1].getTeamName().toLowerCase().equals(teamName);
+        return teams[0].getTeamName().toLowerCase().equals(teamName.toLowerCase()) || teams[1].getTeamName().toLowerCase().equals(teamName.toLowerCase());
     }
 
     public int getTeamPlayingFrequency(String teamName){
