@@ -1,11 +1,12 @@
 package twcore.bots.hockeybot;
 
 
+import java.io.File;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import twcore.bots.hockeybot.hockeymediator.*;
 import twcore.bots.hockeybot.hockeyregistrator.HockeyRegistrator;
-import twcore.bots.hockeybot.hockeyregistrator.HockeyRegistrator.GameRequest;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
@@ -54,25 +55,51 @@ public class hockeybot
      * List to stats: save, goal, assist ( 1st, 2nd )*/
     private HockeyAssistGoalStack<String> list;
     
+    private ArrayList<String> twhtOps;
+    
     private OperatorList op;
+    private BotSettings m_botSettings;
+    
     private EventRequester events;
- 
+    
+    private String twhtHead;
+    
+    private String shortCmds[] = {
+            "| Dee Dee's way:                                                                   |",
+            "| !a <SquadName>               - to Accept a squad challenge                       |",
+            "| !c <SquadName>               - to Challenge a squad                              |",
+            "| !t <SquadName>               - to Create a Team                                  |",
+            "| !r <Ship>                    - to register a ship in a game                      |",
+            "| -------------------------------------------------------------------------------- |"
+    };
     private String pubHelp [] = {
             "Hi, I'm a bot in development to the TW-Hockey-Tournament,",
             "you can register your squad already!",
             "| Commands -----------------------------------------------------------------------",
-            "| !teamsignup <squadName>    -  Registers your squad on TWHT's site              |",
-            "| !put                       -  Puts your team into the Requesting List          |",
-            "| !accept <SquadName>        -  To a accept a squad from the List of request     |",
-            "| !remove                    -  To remove your squad from requesting game's list |",
-            "| !register                  -  To register a ship if a game is running          |",
+            "| !teamsignup <squadName>      -  Registers your squad on TWHT's site              |",
+            "| !accept <SquadName>          -  To a accept a squad from the List of request     |",
+            "| !challenge <SquadName>       -  To challenge a squad if you're capt/assist       |",
+            "| !remove                      -  To remove your squad from requesting game's list |",
+            "| !register                    -  To register a ship if a game is running          |",
+            "| !twhtops                     - Shows you the list of TWHTOperators and Dev       |", 
             "| check TWHT'S Site: www.trenchwars.org/twht"
     };
     
-    private String smodHelp [] = {
-            "| !die                        -  Kills the bot "
+    private String erHelp [] = {
+            "| Mod Commands                                                                     |",
+            "| !go <arena>                                                                      |"
     };
     
+    private String twhtOpHelp [] = {
+            "| TWHTOp Commands                                                                  |",  
+            "| !cancelgame                  -  Cancels the current game                         |",
+            "| !die                         -  Kills the bot                                    |"
+    };
+    
+    private String twhtHeadHelp [] = {
+            "| TWHTHead Commands                                                                |",
+            "| !addop <opName>                                                                  |"
+    };
 
     public hockeybot(BotAction botAction) {
         super(botAction);
@@ -80,13 +107,24 @@ public class hockeybot
     }
     
     public void doStartBot(){
+        
         this.mediator = new HockeyConcreteMediator(m_botAction);
         this.events = m_botAction.getEventRequester();
         this.requestEvents(events);
         this.op = m_botAction.getOperatorList();
         this.list = new HockeyAssistGoalStack<String>();
-
+        this.twhtOps = new ArrayList<String>();
+        this.m_botSettings = m_botAction.getBotSettings();
+        
+        String [] ops = m_botSettings.getString("TWHTOps").split(",");
+        
+        for( String st:ops )
+            twhtOps.add(st.toLowerCase());
+        
+        this.twhtHead = m_botSettings.getString("TWHTHead");
+        
     }
+    
     public void doLoadGame(String name, String message){
         //this.hzsql.
         //!load id
@@ -173,12 +211,16 @@ public class hockeybot
                
                p = m_botAction.getPlayer(event.getPlayerID());
                 
-               if(p.getShipType() == 7 || p.getShipType() == 8){
+               /*if(p.getShipType() == 7 || p.getShipType() == 8){
                     list.clear();
                     m_botAction.sendArenaMessage("Save! "+p.getPlayerName());
+                    addPlayerPoint(p.getPlayerName(), p.getFrequency(), 3);
                 }
-                
-               else{
+                */
+               //else{
+               if( p.getShipType() == 1 || p.getShipType() == 2 || p.getShipType() == 3 || p.getShipType() == 4
+                       || p.getShipType() == 5 || p.getShipType() == 6 ){
+                   
                    try{
                         p = m_botAction.getPlayer(event.getPlayerID());
                         p_freq = p.getFrequency();
@@ -198,8 +240,19 @@ public class hockeybot
                         Tools.printLog(e.toString());
                     }
                 }
-            }
-	}
+               
+	            else if (p.getShipType() == 7 || p.getShipType() == 8)
+               {
+                   list.clear();
+                   m_botAction.sendArenaMessage("Save! "+p.getPlayerName()) ;
+                   addPlayerPoint(p.getPlayerName(), p.getFrequency(), 3);
+               }
+	        }
+	    }
+           // }
+	    //else
+	      //  return;
+	//}
     @Override
     public void handleEvent(LoggedOn event){
         BotSettings botSettings = m_botAction.getBotSettings();
@@ -228,150 +281,234 @@ public class hockeybot
     
     private void handleCommand(String name, String message) throws SQLException {
        
-        if(message.startsWith("!help"))
+        if(message.startsWith("!help")){
             m_botAction.privateMessageSpam(name, this.pubHelp);
-        
-        else if(message.startsWith("!help") && op.isModerator(name))
-            m_botAction.privateMessageSpam(name, this.smodHelp);
-        
-        else if(message.startsWith("!loadgame"))
-            doLoadGame(name, message);
-        else if (message.startsWith("!faceoff"))
-            doFaceOff();
+            if( op.isER(name) )
+                m_botAction.privateMessageSpam(name, this.erHelp);
+         
+            if( twhtOps.contains(name.toLowerCase()) ){
+                m_botAction.privateMessageSpam(name, this.twhtOpHelp);
+            }
+            
+            if( this.twhtHead.equals(name.toLowerCase()) )
+                m_botAction.privateMessageSpam(name, this.twhtHeadHelp);
+
+            m_botAction.privateMessageSpam(name, this.shortCmds);
+        }
+        /**Players commands
+         * */
+        else if( message.startsWith("!twhtops"))
+            showOps(name);
+
+        //else if( message.startsWith("!status"))
+          //  showStatus(name);
         /**
-         * Façade
+         * Mod commands*/
+        else if ( message.startsWith("!go") && op.isER(name)){
+            //!go <>
+            //01234
+            if(message.length() < 4)
+                m_botAction.sendPrivateMessage(name, "Please specify what arena: !go <arena>");
+            else
+                go(name, message.substring(4));
+                
+        }
+        
+        /**
+         * Challenge, accept and register commands
          * */
         
-        else if( message.startsWith("!score"))
-            mediator.displayStatistics();
-        
-        else if( message.startsWith("!teamsignup")){
-            
-            hockeybot registrator;
-            
-            try{
-                registrator = new HockeyRegistrator(m_botAction);
-                registrator.createTeam(name, message);
-                
-            }catch(SQLException e){
-                e.printStackTrace();
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-            
-        }
-        
-        else if (message.startsWith("!put")){
-            requestGame(name, message);
-        }
-        
-        else if (message.startsWith("!register")){
-            /**
-             * IF GAME IN PROGRESS*/
-            if(mediator.gameIsRunning()){
-                registerPlayer(name, message);
-                m_botAction.sendPrivateMessage(name, "Registering you into the ship");
-            }
-            else
-                m_botAction.sendPrivateMessage(name, "Couldn't register you in because there are no games running.");
-        }
-            
-        else if(message.startsWith("!challenges"))
+        //Short Cut Key to !accept
+        else if( message.charAt(1) == 'a' && message.charAt(2) == ' ')
         {
-            for(String st: GameRequest.squadRequests)
-                m_botAction.sendPrivateMessage(name, st);
-        }
-        
-        else if(message.startsWith("!ready")){
-            doReadyTeam(name, message);
+            //!a <squadname>
+            //0123
+            if( message.length() <= 2)
+                m_botAction.sendPrivateMessage(name, "The shortcut key !a should be used with a <SquadName>: Eg.: !a DexterSquad");
+            else
+                this.acceptChallenge(name, message.substring(3) );
+            
         }
         
         else if(message.startsWith("!accept")){
-            try{
-                String squadAccepted;
-                
-                /**
-                 * IF GAME IN PROGRESS*/
-                if(mediator.gameIsRunning()){
-                    m_botAction.sendPrivateMessage(name, "A game is already running. Please wait");
-                    return;
-                }
-                
-                squadAccepted = message.substring(8);
-                
-                if(!GameRequest.squadRequests.contains(squadAccepted)){
-                    m_botAction.sendPrivateMessage(name, "The squad "+squadAccepted+" is not on the list, try to accept other one: look !challenges");
-                    return;
-                }
-                
-               doAcceptGame(name, squadAccepted);
-         
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-            //else m_botAction.sendPrivateMessage(name, "A game is running already. Please wait");
+            //!accept <>
+            //012345678
+            if(message.length() <= 8)
+                m_botAction.sendPrivateMessage(name, "Please use the command !accept <Squadname>");
+            else
+                acceptChallenge(name, message.substring(8));
+            
         }
         
+        //ShortCut Key to !register
+        else if( message.charAt(1) == 'r' && message.charAt(2) == ' '){
+            //!r <>
+            //0123
+            if( message.length() <= 2)
+                m_botAction.sendPrivateMessage(name, "The shortcut key !r should be used with <Ship>: Eg.: !r 3 to register as spider");
+            else
+                registerPlayer(name, message.substring(3) );
+                
+        }
+        else if (message.startsWith("!register")){
+            /**
+             * IF GAME IN PROGRESS*/
+            if(message.length() <= 9)
+                m_botAction.sendPrivateMessage(name, "Use !register <ship> please.");
+            
+            else
+                registerPlayer(name, message.substring(10));
+        }
+        
+        //ShortCut Key to !challenge
+        else if( message.charAt(1) == 'c' && message.charAt(2) == ' '){
+            //!c <>
+            //0123
+            if( message.length() <= 2)
+                m_botAction.sendPrivateMessage(name, "The shortkut key !c should be used with <SquadName>: Eg.: !c DexterSquad");
+            else
+                challengeTeam( name, message.substring(3) );
+                
+        }
+        else if( message.startsWith("!challenge") ){
+            //!challenge <squadname>
+            //0123456789TE
+            if(message.length() < 11)
+                m_botAction.sendPrivateMessage(name, "...");
+            else
+                challengeTeam(name, message.substring(11));
+        }   
+        /**---------------------------------------------*/
+        
+        /**
+         * TWHT-OP Commands
+         * */
+        else if(message.startsWith("!cancelgame") && this.twhtOps.contains(name.toLowerCase()))
+            cancelGame(name, message);
+        
+        else if( message.startsWith("!score") && this.twhtOps.contains(name.toLowerCase()) )
+            mediator.displayStatistics();
+        
+        else if ( message.startsWith("!addop"))
+            //!addop
+            //01234567
+            this.addOp(name, message.substring(7) );
+        /**
+         * Registering squad commands
+         * */
+        //ShortCut Key to !TeamSignup
+        else if( message.charAt(1) == 't' && message.charAt(2) == ' ')
+        {
+            if( message.length() <= 2)
+                m_botAction.sendPrivateMessage(name, "Please, the shortcut to create a team is !t <TeamName>..Eg: !t DexterSquad");
+            else
+                registerSquad(name, message.substring(3) );
+                
+        }
+        else if( message.startsWith("!teamsignup")){
+            if(message.length() <= 12 )
+                m_botAction.sendPrivateMessage(name, "Please, use the command !teamsignup <squadName> to register a squad into TWHT.");
+            else
+                registerSquad(name, message.substring(12));
+        }
+        
+  
+        /**
+         * During game commands */
+        else if(message.startsWith("!ready")){
+            readyTeam(name, message);
+        }
+        
+                
         else if(message.startsWith("!die") && op.isModerator(name))
             doDie(name, message);
         
         else if(message.startsWith("!stop"));
-            //this.practice = null;
-        //else if(message.startsWith("!squads"))
-          //  doDisplaySquads(name, message);
     }
 
-    private void doFaceOff() {
-        // TODO Auto-generated method stub
-        //Player p = m_botAction.getPlayer( m_botAction.getBotName() );
-        Player p = m_botAction.getFuzzyPlayer(m_botAction.getBotName());
-        
-        m_botAction.splitTeam(0, 470, 474, 470, 594);
-        m_botAction.splitTeam(1, 553, 474, 553, 549);
-        
-    }
+    public void acceptChallenge(String name, String squadAccepted){
 
-    public void doReadyTeam(String name, String message){
+        try{
+            /**
+             * IF GAME IN PROGRESS*/
+            if(mediator.gameIsRunning() || mediator.isInRegisterTime() )
+                m_botAction.sendPrivateMessage(name, "A game is already running. Please wait");
+            
+            else{
+                mediator.acceptGame(name, squadAccepted);
+            }
+        }catch(SQLException e){
+            Tools.printLog(e.toString());
+        }
+        catch(Exception e){
+            Tools.printLog(e.toString());
+        }
+    }
+    public void challengeTeam(String name, String squadName) throws SQLException{
         
+        if( mediator.gameIsRunning() || mediator.isInRegisterTime() )
+            m_botAction.sendPrivateMessage(name, "Couldn't challenge, a game is running on here already!");
+        else
+            mediator.challenge(name, squadName);
+    }
+    
+    public void readyTeam(String name, String message) throws SQLException{
+        mediator.readyTeam(name, message);
     }
     
     public void addPlayerPoint(String namePlayer, int freq, int pointType){
     	mediator.addPlayerPoint(namePlayer, freq, pointType);
     }
     
-    private void doAcceptGame(String name, String squadAccepted){
-        mediator.startPractice(name, squadAccepted);
-        
-        
+    private void registerSquad(String name, String squadName){
+        try{
+            //!teamsignup squadname
+            //0123456789TE
+            //0123456789DOD
+            HockeyRegistrator registrator;
+            registrator = new HockeyRegistrator(m_botAction);
+            registrator.createTeam(name, squadName);
+            
+        }catch(SQLException e){
+            e.printStackTrace();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
     }
-    
-    private void registerPlayer(String name, String message){
+
+    private void registerPlayer(String name, String ship) throws SQLException{
         //!register <ship>
         //0123456789S
-        if(message.length() <= 9){
-            m_botAction.sendPrivateMessage(name, "Use !register <ship> please.");
-            return;
+        if(mediator.isInRegisterTime()){
+            int shipNumber = Integer.parseInt(ship);//check if hes in the squad
+            mediator.addPlayer(name, shipNumber);
+            m_botAction.sendPrivateMessage(name, "Registering you into the ship");
         }
-        int ship = Integer.parseInt(message.substring(10));//check if hes in the squad
-        mediator.addPlayer(name, ship, 0);
-        //HockeyConcreteMediator.getInstance(m_botAction).addPlayer(name, ship);
         
+        else
+            m_botAction.sendPrivateMessage(name, "Couldn't register you in because there are no games running.");
+
     }
     
     private void setFaceOffState() {
-        //mediator = HockeyConcreteMediator.getInstance(m_botAction);
         mediator.setState(HockeyState.Face_Off);
-        
-        
     }
     
-    public void createTeam(String name, String message){}
+    private void cancelGame(String name, String message){
+        
+        if(mediator.gameIsRunning()){
+            mediator.cancelGame();
+            m_botAction.sendArenaMessage("Game canceled by "+name);
+        }
+        else
+            m_botAction.sendPrivateMessage(name, "TWHT-Op, don't cancel a game if there is no one running!");
+    }
     
-    public void doRegister(String name, String message){}
-
-    private void requestGame(String name, String message) throws SQLException{
-        HockeyRegistrator hockey = new HockeyRegistrator(m_botAction);
-        hockey.requestGame(name, message);
+    private void go(String name, String arena){
+        m_botAction.sendRemotePrivateMessage(name, "Going to "+arena);
+        m_botAction.cancelTasks();
+        mediator.cancelGame();
+        m_botAction.changeArena(arena);
     }
     
     private void doDie(String name, String message){
@@ -388,5 +525,29 @@ public class hockeybot
         eventRequester.request(EventRequester.LOGGED_ON);
         eventRequester.request(EventRequester.BALL_POSITION);
         
+    }
+    
+    public void addOp(String name, String opName){
+        m_botSettings.put("TWHTOps", opName);
+        this.twhtOps.add(opName);
+        m_botAction.sendPrivateMessage(name, "Added "+opName+" to the TWH-OPList");
+        
+    }
+    public void showStatus(String name){
+        
+        if(mediator.gameIsRunning() || mediator.isInRegisterTime())
+            mediator.showStatus(name);
+        else
+            m_botAction.sendPrivateMessage(name, "There is no game happening atm.");
+        
+    }
+    public void showOps(String name){
+
+        m_botAction.sendPrivateMessage(name, "=============================");
+        m_botAction.sendPrivateMessage(name, "| TWH-Operators");
+        for(String st:this.twhtOps)
+            m_botAction.sendPrivateMessage(name, "| "+st);
+
+        m_botAction.sendPrivateMessage(name, "=============================");
     }
 }

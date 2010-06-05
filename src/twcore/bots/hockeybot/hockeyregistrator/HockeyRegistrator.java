@@ -7,44 +7,24 @@ import twcore.bots.hockeybot.hockeybot;
 import twcore.bots.hockeybot.hockeydatabase.HockeyDatabase;
 import twcore.core.BotAction;
 
-public class HockeyRegistrator extends hockeybot{
+public class HockeyRegistrator {
 
     private HockeyDatabase hockeyDatabase;
     
     private final int second = 1000;
     private final int minutes = 60*second;
     
+    private BotAction m_botAction;
+    
     public HockeyRegistrator(BotAction botAction) throws SQLException {
-        super(botAction);
         this.hockeyDatabase = new HockeyDatabase(botAction);
-      
+        m_botAction = botAction;
        
     }
      
-    @Override
-    public void createTeam(String name, String message){
-        //!teamsignup squadname
-        //0123456789TE
-        //123456789DOD
-        if(message.length() <= 12 ){
-            m_botAction.sendPrivateMessage(name, "Please, use the command !teamsignup <squadName> to register a squad into TWHT.");
-            return;
-        }
-        String squadName = message.substring(12);
-        /*if(isRostered(name)){
-            m_botAction.sendPrivateMessage(name, "You're in a squad already. Leave this one first please.");
-            return;
-        }
-        
-        String squadName = message.substring(12);
-        
-        if(isAlreadyRegistered(squadName)){
-            m_botAction.sendPrivateMessage(name, squadName+" has been registered on the site already. Please try an other one.");
-            return;
-        }*/
-        
+    public void createTeam(String name, String squadName){
+      
         signupSquad(name, squadName);
-        
     }
     
     public boolean isAlreadyRegistered(String squadName){
@@ -80,46 +60,4 @@ public class HockeyRegistrator extends hockeybot{
         hockeyDatabase.getCurrentSquads();
     }
     
-    public void talk(String name){
-        m_botAction.sendPrivateMessage(name, "HockeyRegistrator talking...");
-    }
-    
-    
-    public void requestGame(String name, String message){
-        
-        String squadName = "Bots";//getCaptainTeamName(name);
-        
-        if(squadName == null){
-            m_botAction.sendPrivateMessage(name, "You're not rostered in a squad.");
-            
-        }
-        else{
-            m_botAction.sendPrivateMessage(name, squadName+" added into the request list. Wait for other captain to accept it.");
-            GameRequest.addRequest(squadName);
-        }
-    }
- 
-    /**
-     * Mudar essa classe, arrumar o 'Game Request'
-     * */
-    public static class GameRequest{
-        
-        public static LinkedList<String> squadRequests = new LinkedList<String>();
-        
-        public static void addRequest(String squadName){
-            squadRequests.addLast(squadName);
-        }
-        
-        public static String deque(){
-            if(!squadRequests.isEmpty()){
-                return squadRequests.pollFirst(); 
-            }
-            return null;
-        }
-        
-        public static void removeRequest(String squadName){
-            squadRequests.remove(squadName);
-        }
-    }
-
 }

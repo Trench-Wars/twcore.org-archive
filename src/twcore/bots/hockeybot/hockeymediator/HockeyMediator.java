@@ -1,23 +1,28 @@
 package twcore.bots.hockeybot.hockeymediator;
 
+import java.sql.SQLException;
+
 
 public interface HockeyMediator {
     
     public void setState(int state);
-    public void setTeamReady();
-    public void updatePlayerPoint();
-    public int getCurrentState();
-    public void addPlayer(String name, int ship, int freq);
-    public void addPlayerPoint(String namePlayer, int freq, int numberPoint);
    
-    /*public void giveSavePoint(String name, int freq);
-    public void giveGoalPoint(String name, int freq);
-    public int doGetGoalPoints(String name);
-    */
+    public int getCurrentState();
+    public void addPlayer(String name, int ship) throws SQLException;
+    public void addPlayerPoint(String namePlayer, int freq, int numberPoint);
+
     
-    public void doReadyTeam(String name, String message);
+    public void readyTeam(String name, String message) throws SQLException;
     public void notifyTime(long mins, long secs);
-    public void startPractice(String name, String squadAccepted);
+    public void startGame(String captainTeamAccepter, String requester, String teamAccepter, String squadAccepted);
     public void updateScore(int freq); 
     public void displayStatistics();
+
+    /**
+     * news
+     * @throws SQLException 
+     * */
+    
+    public void acceptGame(String captainAccepter, String teamAccepted) throws SQLException;
+    
 }
