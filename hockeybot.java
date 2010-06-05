@@ -501,7 +501,7 @@ public class hockeybot
     
     private void cancelGame(String name, String message){
         
-        if(mediator.gameIsRunning()){
+        if(mediator.gameIsRunning() || mediator.isInFaceOffOrInterval()){
             mediator.cancelGame();
             m_botAction.sendArenaMessage("Game canceled by "+name);
         }
