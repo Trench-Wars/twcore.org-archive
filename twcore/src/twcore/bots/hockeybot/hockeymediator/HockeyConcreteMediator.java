@@ -326,7 +326,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         if(isReady(0) && isReady(1) || ( teams[0].hasMin() && teams[1].hasMin() ) ){
             TimerTask t;
             m_botAction.sendArenaMessage("Hockey game will start in 15 secs");
-            m_botAction.sendArenaMessage("Get someone to get the puck and face off during it!", 1);
+            m_botAction.sendArenaMessage("Get the puck and face off during it!", 1);
             stateController.setState(HockeyState.Game_In_Progress);
             
             t = new TimerTask(){
