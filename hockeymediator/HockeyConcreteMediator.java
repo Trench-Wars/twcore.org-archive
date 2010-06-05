@@ -1,8 +1,11 @@
 package twcore.bots.hockeybot.hockeymediator;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.TimerTask;
 
+import twcore.bots.hockeybot.hockeydatabase.HockeyDatabase;
+import twcore.bots.hockeybot.hockeyregistrator.HockeyRegistrator;
 import twcore.bots.hockeybot.hockeyteam.HockeyTeam;
 import twcore.core.BotAction;
 import twcore.core.util.Tools;
@@ -22,81 +25,247 @@ import twcore.core.util.Tools;
 public class HockeyConcreteMediator implements HockeyMediator {
 
     private     HockeyState     stateController;
-    private     HockeyPractice  practice;
+
     private     HockeyTicker    ticker;
     private     HockeyTeam      team1;
     private     HockeyTeam      team0;
     private     HockeyTeam      teams[];
     
+    private     ArrayList<GameRequest> gameRequest;
     
-    private BotAction m_botAction;
+    private     BotAction       m_botAction;
 
-    private  TimerTask getBack = new TimerTask(){
-        public void run(){
-            doStartBack();
-        }
-    };
+    private     TimerTask       getBack ;
+    
+    private HockeyDatabase sql;
     
     public HockeyConcreteMediator(BotAction botAction){
        
+        try {
+            sql = new HockeyDatabase(botAction);
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         this.m_botAction = botAction;
 
         stateController = new HockeyState();
         stateController.setState(HockeyState.OFF);
         stateController.setMediator(this);
-    }
- 
-    public void startPractice(String name, String squadAccepted){
         
-        practice = new HockeyPractice(m_botAction);
-        practice.setMediator(this);
-        practice.doAcceptGame(name, squadAccepted);
+        gameRequest = new ArrayList<GameRequest>();
         
-        stateController.setState(HockeyState.Pre_Start);
-        
-        ticker = new HockeyTicker();
-        ticker.setMediator(this);
-        ticker.doStart(0);
-        m_botAction.scheduleTask( ticker , 100, Tools.TimeInMillis.SECOND);
-        
-        /**
-         * falta Selecionar a squad por uma query
-         * */
-        team1 = new HockeyTeam(1, "Bots", m_botAction);
-        team0 = new HockeyTeam(0, "Andre", m_botAction);
-        teams = new HockeyTeam[2]  ;
-        teams[0] = team0;
-        teams[1] = team1;
-        
-    }
-    public boolean gameIsRunning(){
-        return stateController.getCurrentState() != HockeyState.In_Interval && stateController.getCurrentState() != HockeyState.OFF && stateController.getCurrentState() != HockeyState.Face_Off;
-    }
-    public void checkTeamReady(){
-        //if(getteam().getTeamSize(1)) ;
     }
     
-    public void doReadyTeam(String name, String message){
+    //------------------------------------------------------------------
+    
+    public void challenge(String challenger, String sqdChallenged) throws SQLException{
+        String sqdChallenger = null;
+        sqdChallenger = /*"Dex";*/getCaptainTeamName(challenger);
+        
+        if( !sqdChallenger.equals(null) ){       
+            
+            if( sqdChallenger.toLowerCase().equals(sqdChallenged.toLowerCase()))
+                m_botAction.sendPrivateMessage(challenger, "You can't challenge your own squad...");
+            
+            /*else if( !sql.isTeam(sqdChallenged))
+                m_botAction.sendPrivateMessage(challenger, sqdChallenged+" is not a TWHT Squad.");
+            */
+            else{
+                gameRequest.add(new GameRequest( challenger, sqdChallenger, sqdChallenged ) );
+                m_botAction.sendSquadMessage(sqdChallenged, sqdChallenger + " is challenging you for a Hockey Game, come !accept "+sqdChallenger);
+                m_botAction.sendPrivateMessage(challenger, "You challenged "+sqdChallenged+"!");
+                }
+        }
+        
+        else
+            m_botAction.sendPrivateMessage(challenger, "Couldn't challenge, you are not Assistant / Captain of a squad");
+    }
+
+    /**
+     * Commands
+     * 
+     * !accept <team>
+     * !ready
+     * !add (put)
+     * !register <ship>
+     * 
+     * should be made:
+     * !challenge <team>
+     * @throws SQLException 
+     * */
+    
+    //team 1 accepting team 2
+    public void acceptGame(String captainTeamAccepter, String teamAccepted) throws SQLException{
+        //!accept <team>
+        String teamAccepter = /*"eumesmo";*/getCaptainTeamName(captainTeamAccepter).toLowerCase();
+        
+        //startGame(captainTeamAccepter, teamAccepter, teamAccepted);
+        if(teamAccepter.equals(null))
+            m_botAction.sendPrivateMessage(captainTeamAccepter, "You're not captain/assistant to accept a challenge");
+        
+        else{
+            
+            int i = 0;
+            teamAccepted = teamAccepted.toLowerCase();
+            
+            for(GameRequest gr: gameRequest){
+            
+                if( gr.getSqdChallenged().toLowerCase().equals(teamAccepter) && gr.getSqdChallenger().toLowerCase().equals(teamAccepted)){
+                    gameRequest.remove(gr);
+                    i++;
+                    startGame(captainTeamAccepter, gr.getRequester(), gr.getSqdChallenged(), gr.getSqdChallenger());
+                    break;
+                } 
+            }
+            
+            if( i == 0 )
+                m_botAction.sendPrivateMessage(captainTeamAccepter, teamAccepted+" has not challenged your squad...");
+        }
         
     }
+    
     public boolean isReady(int frequence){
         return teams[frequence].isReady();
     }
+
+    /*
+     * To ready 
+     * ---------------------------------------------------------------
+     * */
+    public void readyTeam(String captainName, String message) throws SQLException{
+        
+        String teamReadyCapt = /*"Dex";*/getCaptainTeamName(captainName);
+        int freq = -1;
+        
+        if( teamReadyCapt.equals(null) )
+            m_botAction.sendPrivateMessage(captainName, "You're not captain / assistant to !ready");
     
-    public void cancelGame() throws Throwable{
-   
-        m_botAction.cancelTask(getTicker());
+        else if( isPlaying(teamReadyCapt) ){
+            freq = getTeamPlayingFrequency(teamReadyCapt);
+            teams[freq].setReady(true);
+            m_botAction.sendPrivateMessage(captainName, "You've ready your team.");
+            checkReady();
+        }
+        
+        else
+            m_botAction.sendPrivateMessage(captainName, "Your squad is not playing this match at the moment");
+        
+        
+    }
+    
+    private void checkReady(){
+        if( teams[0].isReady() && teams[1].isReady())
+        {
+            
+            setState(HockeyState.Game_In_Progress);
+        }
+    }
+    public boolean isPlaying(String teamName){
+        return teams[0].getTeamName().equals(teamName) || teams[1].getTeamName().equals("teamName");
+    }
+
+    public int getTeamPlayingFrequency(String teamName){
+        if( teams[0].getTeamName().equals(teamName) )
+            return 0;
+        
+        else if ( teams[1].getTeamName().equals(teamName) )
+            return 1;
+        
+        return -1;
+    }
+
+    /*
+     * To ready*/
+    
+    public String getCaptainTeamName(String playerName) throws SQLException{
+        //do the query
+        
+        return sql.getCaptainTeamName(playerName);
+    }
+    
+    public String getPlayerTeamName(String playerName) throws SQLException{
+        return sql.getPlayerTeamName(playerName);
+    }
+    
+    
+    //------------------------------------------------------------------
+
+    public void startGame(String captainTeamAccepter, String requester, String teamAccepter, String teamAccepted){
+
+        m_botAction.specAll();
         m_botAction.cancelTasks();
+        m_botAction.clearArenaData();
+        m_botAction.resetTimer();
+        m_botAction.toggleLocked();
+            
+        stateController.setState(HockeyState.Pre_Start);
+       
+        m_botAction.sendArenaMessage("A game between "+teamAccepter+" and "+teamAccepted+" is starting!", 2);
+        m_botAction.sendArenaMessage("Pre Start: players from those squads, use !register or !r <ship> to play", 2);
+        
+        ticker = new HockeyTicker();
+        ticker.setMediator(this);
+        m_botAction.scheduleTask( ticker , 100, Tools.TimeInMillis.SECOND);
+        
+        /**falta APENAS O !REGISTER
+         * falta Selecionar a squad por uma query
+         * */
+        
+        teams = new HockeyTeam[2];
+        
+        teams[0] = new HockeyTeam(0, teamAccepter, m_botAction);
+        teams[0].setCaptainName(captainTeamAccepter);
+        
+        teams[1] = new HockeyTeam(1, teamAccepted, m_botAction);
+        teams[1].setCaptainName(requester);
+        
+        //teams[1].setReady(true);
+        //teams[0].setReady(true);
+        
+    }
+    
+    public void showStatus(String name){
+        
+        int time = (int) ticker.getTime();
+        int mins = time / 60;
+        int secs = time % 60;
+        
+        if(gameIsRunning()){
+            m_botAction.sendPrivateMessage(name, "Current game: "+teams[0].getTeamName()+" ( "+teams[0].getTeamGoals()+" goals) vs "+teams[1].getTeamName()+" ( "+teams[1].getTeamGoals()+" goals)");}
+        else if(isInRegisterTime())
+            m_botAction.sendPrivateMessage(name, "Pre Start: players are still registering in ( Time: "+mins+":"+secs+" )");
+        else
+            m_botAction.sendPrivateMessage(name, "Error");
+    }
+    public void cancelGame() {
+   
+        //m_botAction.specAll();
+        m_botAction.cancelTasks();
+        //m_botAction.clearArenaData();
+        m_botAction.resetTimer();
+        m_botAction.toggleLocked();
+        m_botAction.cancelTask(ticker);
+        m_botAction.cancelTasks();
+        //cleanTeams();
         
     }
     
     @Override
     public void setState(int state) {
-        // TODO Auto-generated method stub
+        // TO  Auto-generated method stub
+        switch(state){
+            case HockeyState.Game_In_Progress: doGameInProgress(); break;
+            case HockeyState.In_Interval: doInterval(); break;
+            case HockeyState.Face_Off: doFaceOff(); break;
+            case HockeyState.End_Game: doEndGame(); break;
+        }
+        /*
         if(state == HockeyState.Game_In_Progress){
             
             if(isReady(0) && isReady(1) || ( teams[0].hasMin() && teams[1].hasMin() ) ){
                 stateController.setState(state);
+                ticker.resetTime();
                 m_botAction.sendArenaMessage("State set to "+state);
             }
             
@@ -106,7 +275,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
                     stateController.setState(HockeyState.OFF);
                     m_botAction.sendArenaMessage("Not enough players to start");
                 } catch (Throwable e) {
-                    // TODO Auto-generated catch block
+                    // TO  Auto-generated catch block
                     e.printStackTrace();
                 }
             }
@@ -116,14 +285,28 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
         else if(state == HockeyState.In_Interval){
             stateController.setState(state);
-            m_botAction.scheduleTask(getBack, Tools.TimeInMillis.MINUTE*2);
-            m_botAction.sendArenaMessage("INTERVAL! 2 mins and game starts back!", 2);
+            
+            getBack = new TimerTask(){
+                public void run(){
+                     startBack();
+                }
+            };
+            
+            m_botAction.scheduleTask(getBack, Tools.TimeInMillis.MINUTE*1);
+            m_botAction.sendArenaMessage("INTERVAL! 1 min and game starts back!", 2);
             //INVERT TEAMS POSITIONS
             
         }
         
         else if(state == HockeyState.Face_Off){
             stateController.setState(state);
+            
+            getBack = new TimerTask(){
+                public void run(){
+                     startBack();
+                }
+            };
+            
             m_botAction.scheduleTask(getBack, Tools.TimeInMillis.SECOND*30);
             m_botAction.sendArenaMessage("Face off! 30 secs and time runs again!", 2);
         }
@@ -131,29 +314,97 @@ public class HockeyConcreteMediator implements HockeyMediator {
         else if(state == HockeyState.End_Game){
             stateController.setState(state);
             displayStatistics();
-            doCleanTeams();
+            cleanTeams();
             stateController.setState(HockeyState.OFF);
-        }
+        }*/
         
     }
     
-    public void doReady(String name, int freq){
-        if(teams[freq].getCaptainName().equals(name) || isAssistant(teams[freq].getTeamName(), name))
-            teams[freq].setReady(true);
+    /// states ///
+    //===============================================
+    private void doGameInProgress(){
         
-        else
-            m_botAction.sendPrivateMessage(name, "You're not captain / assistant to ready your team.");
+        if(isReady(0) && isReady(1) || ( teams[0].hasMin() && teams[1].hasMin() ) ){
+            TimerTask t;
+            m_botAction.sendArenaMessage("Hockey game will start in 15 secs");
+            m_botAction.sendArenaMessage("Get someone to get the puck and face off during it!", 1);
+            stateController.setState(HockeyState.Game_In_Progress);
+            
+            t = new TimerTask(){
+              public void run(){
+                  ticker.resetTime();
+                  m_botAction.scoreResetAll();
+                  m_botAction.shipResetAll();
+                  m_botAction.sendArenaMessage("GO GO GO", 104);
+              }
+            };
+            m_botAction.scheduleTask(t, Tools.TimeInMillis.SECOND*15);
+        }
+        else{
+            cancelGame();
+            stateController.setState(HockeyState.OFF);
+            m_botAction.sendArenaMessage("Not enough players to start! :(");
+            }
+    }
+    
+    private void doInterval(){
+
+        TimerTask getBack;
+        stateController.setState(HockeyState.In_Interval);
+        
+        getBack = new TimerTask(){
+            public void run(){
+                 startBack();
+            }
+        };
+        
+        m_botAction.scheduleTask(getBack, Tools.TimeInMillis.MINUTE*2);
+        m_botAction.sendArenaMessage("INTERVAL! 2 mins and game starts back!", 2);
+        //INVERT TEAMS POSITIONS
         
     }
-    private boolean isAssistant(String teamName, String name) {
-        // TODO Auto-generated method stub
-        //make a query
-        return true;
+    
+    private void doFaceOff(){
+        
+        TimerTask getBack;
+        stateController.setState(HockeyState.Face_Off);
+        
+        getBack = new TimerTask(){
+            public void run(){
+                 startBack();
+            }
+        };
+        
+        m_botAction.scheduleTask(getBack, Tools.TimeInMillis.SECOND*30);
+        m_botAction.sendArenaMessage("Face off! 30 secs and time runs again!", 2);
+    }
+    
+    private void doEndGame(){
+        
+        stateController.setState(HockeyState.End_Game);
+        displayStatistics();
+        cleanTeams();
+        stateController.setState(HockeyState.OFF);
+    }
+    //==================================================
+    
+    public int getCurrentState(){
+        return stateController.getCurrentState();
     }
 
-    public void doCleanTeams(){
+    public boolean isInRegisterTime(){
+        return stateController.getCurrentState() == HockeyState.Pre_Start;
+    }
+
+    public boolean gameIsRunning(){
+        return stateController.getCurrentState() == HockeyState.Game_In_Progress;
+    }
+
+    public void cleanTeams(){
         teams[0].resetPlayers();
         teams[1].resetPlayers();
+        teams[0] = null;
+        teams[1] = null;
     }
     
     public void notifyTime(long mins, long secs){
@@ -164,85 +415,48 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
     }
     
-    public void doStartBack(){
+    public void startBack(){
         stateController.setState(HockeyState.Game_In_Progress);
+        ticker.startBack();
        
     }
-    public void doPauseGame(){
-        ticker.doPause();
+    public void pauseGame(){
+        ticker.pause();
         
     }
-    public int getCurrentState(){
-        return stateController.getCurrentState();
-    }
-    @Override
-    public void setTeamReady() {
-        // TODO Auto-generated method stub
+    public void addPlayer(String name, int ship) throws SQLException { 
+        // TO  Auto-generated method stub
+        int freq = getTeamPlayingFrequency( getPlayerTeamName(name) );
         
-    }
-
-    @Override
-    public void updatePlayerPoint() {
-        // TODO Auto-generated method stub
-
-    }
-    
-    public void setPractice(HockeyPractice practice) {
-        this.practice = practice;
-    }
-    public HockeyPractice getPractice() {
-        return practice;
-    }
-    public void setTicker(HockeyTicker ticker) {
-        this.ticker = ticker;
-    }
-    public HockeyTicker getTicker() {
-        return ticker;
-    }
-
-    public void setTeam1(HockeyTeam team) {
-        this.team1 = team;
-       // this.teams[1]  ;//new HockeyTeam();
-    }
-
-    public HockeyTeam getTeam1() {
-        return team1;
-    }
-
-    public void setTeam0(HockeyTeam team0) {
-        this.team0 = team0;
-    }
-
-    public HockeyTeam getTeam0() {
-        return team0;
-    }
-
-    public void addPlayer(String name, int ship, int freq) { 
-        // TODO Auto-generated method stub
-        if(teams[freq].isFull())
-        {
-            m_botAction.sendPrivateMessage(name, "Team has 6 players already.");
-            return;
+        if(freq == -1){
+            m_botAction.sendPrivateMessage(name, "Your hockey squad is not playing this match...");
         }
-        if(teams[freq].Contains(name)){
-            m_botAction.sendPrivateMessage(name, "You're already registered in...wtf are you doing?");
-            return;
+        
+        else{
+            if(teams[freq].isFull())
+                m_botAction.sendPrivateMessage(name, "Team has 6 players already.");
+
+            else if(teams[freq].Contains(name))
+                m_botAction.sendPrivateMessage(name, "You're already registered in...wtf are you  ing?");
+                
+            else{
+                m_botAction.setShip(name, ship);
+            
+            /**
+             * Falta selecionar o time certo   joga r por uma query
+             * 
+             * */
+            
+            //check if the teams are made - prac bot
+                teams[freq].addPlayer(name, ship);
+                m_botAction.sendArenaMessage(name+" is registered on ship "+ship);
+            }
         }
-        m_botAction.setShip(name, ship);
-        
-        /**
-         * Falta selecionar o time certo do jogador por uma query
-         * 
-         * */
-        
-        //check if the teams are made - prac bot
-        teams[freq].addPlayer(name, ship);
-        m_botAction.sendArenaMessage(name+" is registered on ship "+ship);
     }
 
 	@Override
 	public void addPlayerPoint(String namePlayer, int freq, int pointType) {
-		// TODO Auto-generated method stub
+		// TO  Auto-generated method stub
 		final int typeGoal = 1;
 		final int typeAssist = 2;
 		final int typeSave = 3;
@@ -255,17 +469,17 @@ public class HockeyConcreteMediator implements HockeyMediator {
 	}
 
 	private void addSavePoint(String namePlayer, int freq) {
-		// TODO Auto-generated method stub
+		// TO  Auto-generated method stub
 		teams[freq].addSavePoint(namePlayer);
 	}
 
 	private void addAssistPoint(String namePlayer, int freq) {
-		// TODO Auto-generated method stub
+		// TO  Auto-generated method stub
 		teams[freq].addAssistPoint(namePlayer);
 	}
 
 	private void addGoalPoint(String namePlayer, int freq) {
-		// TODO Auto-generated method stub
+		// TO  Auto-generated method stub
 		teams[freq].addGoalPoint(namePlayer);
 	}
 	
@@ -275,7 +489,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
 
 	@Override
 	public void updateScore(int freq) {
-		// TODO Auto-generated method stub
+		// TO  Auto-generated method stub
 		teams[freq].setTeamGoals(teams[freq].getTeamGoals()+1);
 	}
 
@@ -286,7 +500,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
     	spam.add(" _______________________________________________________________");
     	spam.add("|                   Results / Statistics                        |");
     	spam.add("|                                                               |");
-    	spam.add("|Team 1________/************************************************|");
+    	spam.add("|Team 1______ "+teams[0].getTeamGoals()+"/************************************************|");
     	spam.add("|                       |Goals  |Saves  |Assists|  Total Points |");
     	        
     	spam.add("|"+teams[0].getTeamName());
@@ -297,7 +511,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
     	
     	spam.add("|---------------------------------------------------------------|");
     	
-        spam.add("|Team 2________/************************************************|");
+        spam.add("|Team 2______ "+ teams[1].getTeamGoals()+"/************************************************|");
         spam.add("|                       |Goals  |Saves  |Assists|  Total Points |");
         spam.add("|"+teams[1].getTeamName());
         
@@ -310,5 +524,4 @@ public class HockeyConcreteMediator implements HockeyMediator {
         m_botAction.arenaMessageSpam(spam.toArray(new String[spam.size()]));
     	
     }
-
 }
