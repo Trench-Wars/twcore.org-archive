@@ -73,7 +73,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
             */
             else{
                 gameRequest.add(new GameRequest( challenger, sqdChallenger, sqdChallenged ) );
-                m_botAction.sendSquadMessage(sqdChallenged, sqdChallenger + " is challenging you for a Hockey Game, come !accept "+sqdChallenger);
+                m_botAction.sendSquadMessage(sqdChallenged, challenger+" from "+sqdChallenger + " is challenging you for a Hockey Game, come !accept "+sqdChallenger);
                 m_botAction.sendPrivateMessage(challenger, "You challenged "+sqdChallenged+"!");
                 }
         }
@@ -162,14 +162,14 @@ public class HockeyConcreteMediator implements HockeyMediator {
         }
     }
     public boolean isPlaying(String teamName){
-        return teams[0].getTeamName().equals(teamName) || teams[1].getTeamName().equals("teamName");
+        return teams[0].getTeamName().toLowerCase().equals(teamName) || teams[1].getTeamName().toLowerCase().equals(teamName);
     }
 
     public int getTeamPlayingFrequency(String teamName){
-        if( teams[0].getTeamName().equals(teamName) )
+        if( teams[0].getTeamName().toLowerCase().equals(teamName.toLowerCase()) )
             return 0;
         
-        else if ( teams[1].getTeamName().equals(teamName) )
+        else if ( teams[1].getTeamName().toLowerCase().equals(teamName.toLowerCase()) )
             return 1;
         
         return -1;
@@ -181,7 +181,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
     public String getCaptainTeamName(String playerName) throws SQLException{
         //do the query
         
-        return sql.getCaptainTeamName(playerName);
+        return /*"Dex";*/sql.getCaptainTeamName(playerName);
     }
     
     public String getPlayerTeamName(String playerName) throws SQLException{
@@ -195,7 +195,6 @@ public class HockeyConcreteMediator implements HockeyMediator {
 
         m_botAction.specAll();
         m_botAction.cancelTasks();
-        m_botAction.clearArenaData();
         m_botAction.resetTimer();
         m_botAction.toggleLocked();
             
