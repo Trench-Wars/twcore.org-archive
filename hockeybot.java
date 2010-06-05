@@ -540,7 +540,7 @@ public class hockeybot
     }
     public void showStatus(String name){
         
-        if(mediator.gameIsRunning() || mediator.isInRegisterTime())
+        if(mediator.gameIsRunning() || mediator.isInRegisterTime() || mediator.isInFaceOffOrInterval())
             mediator.showStatus(name);
         else
             m_botAction.sendPrivateMessage(name, "There is no game happening atm.");
