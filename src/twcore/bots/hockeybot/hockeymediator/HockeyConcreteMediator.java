@@ -226,9 +226,8 @@ public class HockeyConcreteMediator implements HockeyMediator {
     
     public void showStatus(String name){
         
-        int time = (int) ticker.getTime();
-        int mins = time / 60;
-        int secs = time % 60;
+        int mins = (int) ticker.getMins();
+        int secs = (int) ticker.getSecs();
         
         if(gameIsRunning() || isInFaceOffOrInterval() ){
             m_botAction.sendPrivateMessage(name, "Current game: "+teams[0].getTeamName()+" ( "+teams[0].getTeamGoals()+" goals) vs "+teams[1].getTeamName()+" ( "+teams[1].getTeamGoals()+" goals) "+"( Time: "+mins+":"+secs+" )");}
