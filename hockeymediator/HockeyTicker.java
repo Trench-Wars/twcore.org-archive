@@ -121,9 +121,13 @@ public class HockeyTicker
          * 
          * */
 
-    public long getTime(){
-        return mins+secs;
+    public long getMins(){
+        return mins;
     }
+    public long getSecs(){
+        return secs;
+    }
+    
     public void resetTime(){
         mins = 0;
         secs = 0;
