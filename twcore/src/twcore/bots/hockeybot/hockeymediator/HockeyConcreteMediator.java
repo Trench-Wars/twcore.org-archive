@@ -230,8 +230,9 @@ public class HockeyConcreteMediator implements HockeyMediator {
         int mins = time / 60;
         int secs = time % 60;
         
-        if(gameIsRunning()){
-            m_botAction.sendPrivateMessage(name, "Current game: "+teams[0].getTeamName()+" ( "+teams[0].getTeamGoals()+" goals) vs "+teams[1].getTeamName()+" ( "+teams[1].getTeamGoals()+" goals)");}
+        if(gameIsRunning() || isInFaceOffOrInterval() ){
+            m_botAction.sendPrivateMessage(name, "Current game: "+teams[0].getTeamName()+" ( "+teams[0].getTeamGoals()+" goals) vs "+teams[1].getTeamName()+" ( "+teams[1].getTeamGoals()+" goals) "+"( Time: "+mins+":"+secs+" )");}
+        
         else if(isInRegisterTime())
             m_botAction.sendPrivateMessage(name, "Pre Start: players are still registering in ( Time: "+mins+":"+secs+" )");
         else
@@ -400,7 +401,10 @@ public class HockeyConcreteMediator implements HockeyMediator {
     public boolean gameIsRunning(){
         return stateController.getCurrentState() == HockeyState.Game_In_Progress;
     }
-
+    
+    public boolean isInFaceOffOrInterval(){
+        return stateController.getCurrentState() == HockeyState.Face_Off || stateController.getCurrentState() == HockeyState.In_Interval; 
+    }
     public void cleanTeams(){
         teams[0].resetPlayers();
         teams[1].resetPlayers();
@@ -493,6 +497,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
 		// TO  Auto-generated method stub
 		teams[freq].setTeamGoals(teams[freq].getTeamGoals()+1);
 	}
+
 
 	@Override
 	public void displayStatistics() {
