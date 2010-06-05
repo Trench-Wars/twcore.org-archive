@@ -183,9 +183,9 @@ public class HockeyPlayer{
     
     private class HockeyPlayerPoint{
         
-        public static final int goal = 20;
-        public static final int save = 100;
-        public static final double assist = 0.5;
+        public static final int goal = 5;
+        public static final int save = 4;
+        public static final double assist = 3;
         
         private double point;
         
