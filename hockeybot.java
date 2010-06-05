@@ -179,6 +179,7 @@ public class hockeybot
                 
                 addPlayerPoint(p_Goal, freq, 1);
                 setFaceOffState();
+                updateScore(freq);
                 list.clear();
             }
             catch(HockeyListEmptyException e){
@@ -488,6 +489,10 @@ public class hockeybot
         else
             m_botAction.sendPrivateMessage(name, "Couldn't register you in because there are no games running.");
 
+    }
+    
+    private void updateScore(int freq){
+        mediator.updateScore(freq);
     }
     
     private void setFaceOffState() {

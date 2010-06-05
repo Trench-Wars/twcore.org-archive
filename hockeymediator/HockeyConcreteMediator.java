@@ -354,6 +354,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         getBack = new TimerTask(){
             public void run(){
                  startBack();
+                 m_botAction.sendArenaMessage("GO GO GO ( Period 2 )", 104);
             }
         };
         
@@ -371,6 +372,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         getBack = new TimerTask(){
             public void run(){
                  startBack();
+                 m_botAction.sendArenaMessage("GO GO GO", 104);
             }
         };
         
