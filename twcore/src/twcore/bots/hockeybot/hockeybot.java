@@ -300,8 +300,8 @@ public class hockeybot
         else if( message.startsWith("!twhtops"))
             showOps(name);
 
-        //else if( message.startsWith("!status"))
-          //  showStatus(name);
+        else if( message.startsWith("!status"))
+            showStatus(name);
         /**
          * Mod commands*/
         else if ( message.startsWith("!go") && op.isER(name)){
