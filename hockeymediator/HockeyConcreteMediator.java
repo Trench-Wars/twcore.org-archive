@@ -33,10 +33,14 @@ public class HockeyConcreteMediator implements HockeyMediator {
     private     ArrayList<GameRequest> gameRequest;
     private     HashMap<String, Integer> freqteam;
 
+    private     KeepAliveConnection keepAliveConnection;
+    
+    
     public HockeyConcreteMediator(BotAction botAction){
        
         try {
             sql = new HockeyDatabase(botAction);
+            
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -50,6 +54,9 @@ public class HockeyConcreteMediator implements HockeyMediator {
         freqteam = new HashMap<String, Integer>();
         
         gameRequest = new ArrayList<GameRequest>();
+        
+        keepAliveConnection = new KeepAliveConnection();
+        m_botAction.scheduleTaskAtFixedRate( keepAliveConnection, 100, Tools.TimeInMillis.MINUTE*2);
         
     }
     
@@ -557,4 +564,10 @@ public class HockeyConcreteMediator implements HockeyMediator {
         m_botAction.arenaMessageSpam(spam.toArray(new String[spam.size()]));
     	
     }
+	
+	private class KeepAliveConnection extends TimerTask{   
+	    public void run(){
+	        sql.keepAlive();
+	    }
+	}
 }
