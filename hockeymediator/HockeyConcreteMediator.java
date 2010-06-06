@@ -63,28 +63,25 @@ public class HockeyConcreteMediator implements HockeyMediator {
     //------------------------------------------------------------------
     
     public void challenge(String challenger, String sqdChallenged) throws SQLException{
-        String sqdChallenger = null;
+        String sqdChallenger;
         sqdChallenger = /*"Dex";*/getCaptainTeamName(challenger);
         
-        if( sqdChallenger != null ){       
-            
-            if( sqdChallenger.toLowerCase().equals(sqdChallenged.toLowerCase()))
-                m_botAction.sendPrivateMessage(challenger, "You can't challenge your own squad...");
-            
-            else if( !sql.isTeam(sqdChallenged))
-                m_botAction.sendPrivateMessage(challenger, sqdChallenged+" is not a TWHT Squad.");
-            
-            else{
-                gameRequest.add(new GameRequest( challenger, sqdChallenger, sqdChallenged ) );
-                m_botAction.sendSquadMessage(sqdChallenged, challenger+" from "+sqdChallenger + " is challenging you for a Hockey Game in ?go "+m_botAction.getArenaName()+" ... come !accept "+sqdChallenger);
-                m_botAction.sendPrivateMessage(challenger, "You challenged "+sqdChallenged+"!");
-                }
-        }
-        
-        else{
+        if( sqdChallenger == null)
+        {    
             m_botAction.sendPrivateMessage(challenger, "Couldn't challenge, you are not Assistant / Captain of a squad");
             return ; 
         }
+        if( sqdChallenger.toLowerCase().equals(sqdChallenged.toLowerCase()))
+            m_botAction.sendPrivateMessage(challenger, "You can't challenge your own squad...");
+        
+        else if( !sql.isTeam(sqdChallenged))
+            m_botAction.sendPrivateMessage(challenger, sqdChallenged+" is not a TWHT Squad.");
+            
+        else{
+            gameRequest.add(new GameRequest( challenger, sqdChallenger, sqdChallenged ) );
+            m_botAction.sendSquadMessage(sqdChallenged, challenger+" from "+sqdChallenger + " is challenging you for a Hockey Game in ?go "+m_botAction.getArenaName()+" ... come !accept "+sqdChallenger);
+            m_botAction.sendPrivateMessage(challenger, "You challenged "+sqdChallenged+"!");
+            }
     }
 
     /**
