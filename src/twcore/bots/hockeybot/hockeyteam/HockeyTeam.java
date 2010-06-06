@@ -10,6 +10,7 @@ public class HockeyTeam {
 
     private BotAction hockeyTeam_botAction;
     
+    private     int         teamId;
     private     boolean     isReady;
     private     String      captainName;
     private     int         teamFreqNumber;
@@ -22,8 +23,9 @@ public class HockeyTeam {
     private TreeMap<String, HockeyPlayer> hockeyPlayers;
     private ArrayList<String> waitingList;
     
-    public HockeyTeam(int frequence, String teamName, BotAction botAction){
+    public HockeyTeam(int teamId, int frequence, String teamName, BotAction botAction){
         hockeyTeam_botAction = botAction;
+        this.teamId = teamId;
         this.teamFreqNumber = frequence;
         this.hockeyPlayers = new TreeMap<String, HockeyPlayer>();
         this.setTeamName(teamName);
