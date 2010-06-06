@@ -19,8 +19,7 @@ import twcore.core.util.Tools;
  * hockey concrete mediator is the heart of the game. 
  * 
  * It communicates to all the other classes: teams, practice, clock, states
- * 
- * ERRO: faltou break; nos switch pra adicionar pontos
+ *  
  * */    
 public class HockeyConcreteMediator implements HockeyMediator {
 
@@ -78,8 +77,10 @@ public class HockeyConcreteMediator implements HockeyMediator {
                 }
         }
         
-        else
+        else{
             m_botAction.sendPrivateMessage(challenger, "Couldn't challenge, you are not Assistant / Captain of a squad");
+            return ;
+        }
     }
 
     /**
@@ -238,15 +239,13 @@ public class HockeyConcreteMediator implements HockeyMediator {
     }
     public void cancelGame() {
    
-        //m_botAction.specAll();
         m_botAction.cancelTasks();
-        //m_botAction.clearArenaData();
         m_botAction.resetTimer();
         m_botAction.toggleLocked();
         m_botAction.cancelTask(ticker);
         stateController.setState(HockeyState.OFF);
         freqteam.clear();
-        //cleanTeams();
+        cleanTeams();
         
     }
     
@@ -429,19 +428,20 @@ public class HockeyConcreteMediator implements HockeyMediator {
     }
     public void addPlayer(String name, int ship) throws SQLException { 
         // TO  Auto-generated method stub
-        String teamNamePlaying = getPlayerTeamName(name).toLowerCase();
+        String teamNamePlaying = getPlayerTeamName(name);
         
         if( !freqteam.containsKey(teamNamePlaying) ){
             m_botAction.sendPrivateMessage("Dexter", "team "+teamNamePlaying+" not in, lower case problem?");
-            m_botAction.sendPrivateMessage(name, "Your squad is not playing this match...");
+            m_botAction.sendPrivateMessage(name, teamNamePlaying+" is not playing this match, "+name+".");
             return;
         }
-        int freq = freqteam.get(teamNamePlaying);
+        int freq = freqteam.get(teamNamePlaying.toLowerCase());
         
         //int freq = getTeamPlayingFrequency( getPlayerTeamName(name) );
         
         if(freq == -1){
             m_botAction.sendPrivateMessage(name, "Your hockey squad is not playing this match...");
+            return ;
         }
         
         else{
@@ -457,16 +457,14 @@ public class HockeyConcreteMediator implements HockeyMediator {
                 m_botAction.setShip(name, ship);
                 m_botAction.setFreq(name, freq);
             
-            /**
-             * Falta selecionar o time certo   joga r por uma query
-             * 
-             * */
-            
-            //check if the teams are made - prac bot
                 teams[freq].addPlayer(name, ship);
                 m_botAction.sendArenaMessage(name+" is registered on ship "+ship+ " for "+teams[freq].getTeamName());
             }
         }
+    }
+    
+    public void lagout(String name){
+        
     }
 
 	@Override
