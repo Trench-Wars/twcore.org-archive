@@ -1433,6 +1433,10 @@ public class MatchRound
     // gets called by m_startGame TimerTask.
     public void startGame()
     {
+    	synchronized (events) {
+    		events.add(MatchRoundEvent.roundStart());
+		}
+    	
         m_generalTime = m_rules.getInt("time") * 60;
         m_scoreBoard = m_botAction.getObjectSet();
         updateScores = new TimerTask()
@@ -1748,6 +1752,9 @@ public class MatchRound
     // Signal end of round
     public void signalEndOfRound()
     {
+    	synchronized (events) {
+    		events.add(MatchRoundEvent.roundEnd());
+		}
         m_game.reportEndOfRound(m_fbAffectsEntireGame);
     };
 
@@ -2131,6 +2138,8 @@ public class MatchRound
     	public final static int LAGOUT = 6;
     	public final static int LAGIN = 7;
     	public final static int ELIMINATED = 8;
+    	public final static int ROUND_START = 9;
+    	public final static int ROUND_END = 10;
 
     	private MatchRoundEvent(int eventType) {
     		this.add(System.currentTimeMillis()); // timestamp
@@ -2173,22 +2182,32 @@ public class MatchRound
     	}
     	
     	public static  MatchRoundEvent lagout(int fnUserID, boolean fbOutOfArena) {
-    		MatchRoundEvent event = new MatchRoundEvent(SWITCH_PLAYER);
+    		MatchRoundEvent event = new MatchRoundEvent(LAGOUT);
     		event.add(fnUserID);
     		event.add(fbOutOfArena);
     		return event;
     	} 
     	
     	public static  MatchRoundEvent lagin(int fnUserID) {
-    		MatchRoundEvent event = new MatchRoundEvent(SWITCH_PLAYER);
+    		MatchRoundEvent event = new MatchRoundEvent(LAGIN);
     		event.add(fnUserID);
     		return event;
     	}   
     	
     	public static MatchRoundEvent eliminated(int fnUserIDEliminated, int fnUserIDKiller) {
-    		MatchRoundEvent event = new MatchRoundEvent(SWITCH_PLAYER);
+    		MatchRoundEvent event = new MatchRoundEvent(ELIMINATED);
     		event.add(fnUserIDEliminated);
     		event.add(fnUserIDKiller);
+    		return event;
+    	}
+    	
+    	public static MatchRoundEvent roundStart() {
+    		MatchRoundEvent event = new MatchRoundEvent(ROUND_START);
+    		return event;
+    	}
+    	
+    	public static MatchRoundEvent roundEnd() {
+    		MatchRoundEvent event = new MatchRoundEvent(ROUND_END);
     		return event;
     	}
     	
