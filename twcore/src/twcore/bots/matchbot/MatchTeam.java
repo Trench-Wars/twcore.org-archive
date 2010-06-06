@@ -11,6 +11,8 @@ package twcore.bots.matchbot;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -32,6 +34,7 @@ import twcore.core.events.TurretEvent;
 import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
+import twcore.core.helper.pubstats.PubStatsPlayer;
 import twcore.core.stats.DBPlayerData;
 import twcore.core.stats.Statistics;
 import twcore.core.util.Tools;
@@ -90,6 +93,8 @@ public class MatchTeam
 
     private boolean m_threeMinuteWarning = true;
     private boolean m_oneMinuteWarning = true;
+    
+    private String[] infoBuffer = new String[8];
 
     /** Creates a new instance of MatchTeam */
     public MatchTeam(String fcTeamName, int fnFrequency, int fnTeamNumber, MatchRound Matchround)
@@ -383,6 +388,46 @@ public class MatchTeam
                     tellPlayer = false;
 				checkPlayerIPMID(name, macID, IP, tellPlayer);
 			}
+            // Store *info results in infoBuffer
+            else if(msg.startsWith("IP:") && msg.indexOf("TypedName:") > 0) {
+      	          Arrays.fill(infoBuffer, ""); // clear buffer
+      	          infoBuffer[0] = msg;     // *info 1st line
+      	      } else
+      	      if(msg.startsWith("Ping:") && msg.indexOf("HighPing:") > 0) {
+      	          infoBuffer[1] = msg;     // *info 2nd line
+      	      } else
+      	      if(msg.startsWith("LOSS:") && msg.indexOf("S2CWeapons:") > 0) {
+      	          infoBuffer[2] = msg;
+      	      } else
+      	      if(msg.startsWith("S2C:") && msg.indexOf("C2S:") > 0) {
+      	          infoBuffer[3] = msg;
+      	      } else
+      	      if(msg.startsWith("C2S CURRENT: Slow:") && msg.indexOf("TOTAL: Slow:") > 0) {
+      	          infoBuffer[4] = msg;
+      	      } else
+      	      if(msg.startsWith("S2C CURRENT: Slow:") && msg.indexOf("TOTAL: Slow:") > 0) {
+      	          infoBuffer[5] = msg;
+      	      } else
+      	      if(msg.startsWith("TIME: Session:") && msg.indexOf("Total:") > 0) {
+      	          infoBuffer[6] = msg;
+      	      } else
+      	      if(msg.startsWith("Bytes/Sec:") && msg.indexOf("ConnectType:") > 0 ) {
+      	          infoBuffer[7] = msg;
+      	          processInfoBuffer(infoBuffer);
+      	      }
+            // *einfo
+            else if(msg.indexOf("UserId:") > 0 && msg.indexOf("Timer drift:") > 0) {
+            	
+                String name = msg.substring(0, msg.indexOf(':'));
+                String userid = getInfo(msg, "UserId:");
+                String resolution = getInfo(msg, "Res:");
+                
+                MatchPlayer player = getPlayer(name);
+
+                if(player != null && userid != null && userid.length() > 0) {
+                    player.resolution = resolution;
+                }
+            }
 
             return;
         }
@@ -393,6 +438,40 @@ public class MatchTeam
             matchPlayer.handleEvent(event);
         }
     }
+    
+	// see pubbotstats
+	private String getInfo(String message, String infoName) {
+		int beginIndex = message.indexOf(infoName);
+		int endIndex;
+
+		if (beginIndex == -1)
+			return null;
+		beginIndex = beginIndex + infoName.length();
+
+		while (beginIndex < message.length()
+				&& message.charAt(beginIndex) == ' ') {
+			beginIndex++;
+		}
+
+		endIndex = message.indexOf("  ", beginIndex);
+		if (endIndex == -1)
+			endIndex = message.length();
+		return message.substring(beginIndex, endIndex).trim();
+	}
+    
+	private void processInfoBuffer(String[] buffer) {
+		
+		String name = getInfo(buffer[0], "TypedName:");
+		String IP = getInfo(buffer[0], "IP:");
+		String machineID = getInfo(buffer[0], "MachineId:");
+
+		MatchPlayer player = getPlayer(name);
+
+		if (player != null) {
+			player.IPAddress = IP;
+			player.MID = machineID;
+		}
+	}
 
     /**
      * Check current MID & IP against records.
@@ -1544,6 +1623,10 @@ public class MatchTeam
                 if (answer.equals("yes"))
                 {
                     addPlayerFinal(p.getPlayerName(), fnShip, getInGame, fbSilent);
+                    
+                    m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*info");
+                    m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*einfo");
+                    
                     return "yes";
                 }
                 else
@@ -1567,6 +1650,7 @@ public class MatchTeam
         {
             p = new MatchPlayer(fcPlayerName, this);
             p.setShipAndFreq(fnShipType, m_fnFrequency);
+            
             if( getInGame ) {
             	
             	if (m_round.m_fnRoundState == 3) {

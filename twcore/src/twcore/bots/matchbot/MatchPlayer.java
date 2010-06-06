@@ -55,6 +55,10 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	BotAction m_botAction;
 	Player m_player;
 	BotSettings m_rules;
+	
+	String resolution = "";
+	String MID = "";
+	String IPAddress = "";
 
 	String dbConn = "website";
 
@@ -204,6 +208,9 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					"fnWins",
 					"fnLosses",
 					"fcUserNameKO",
+					"fcResolution",
+					"fcIP",
+					"fnMachineID",
 					"fnLagout",
 					"fnSubstituted" };
 
@@ -219,6 +226,9 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					Integer.toString(m_statTracker.getTotalStatistic(Statistics.TOTAL_KILLS)),
 					Integer.toString(m_statTracker.getTotalStatistic(Statistics.DEATHS)),
 					Tools.addSlashesToString(m_statTracker.getUserNameKO()),
+					Tools.addSlashesToString(resolution),
+					Tools.addSlashesToString(IPAddress),
+					Tools.addSlashesToString(MID),
 					Integer.toString(m_fnLagouts),
 					Integer.toString(substituted)};
 
