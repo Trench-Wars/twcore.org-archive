@@ -66,7 +66,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         String sqdChallenger = null;
         sqdChallenger = /*"Dex";*/getCaptainTeamName(challenger);
         
-        if( !sqdChallenger.equals(null) ){       
+        if( sqdChallenger != null ){       
             
             if( sqdChallenger.toLowerCase().equals(sqdChallenged.toLowerCase()))
                 m_botAction.sendPrivateMessage(challenger, "You can't challenge your own squad...");
