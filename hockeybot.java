@@ -33,13 +33,9 @@ import twcore.core.util.Tools;
  * */
 /**
  * 
- * Need to work on queries: !register, !put, !accept
+ * Need to work on Player states
  * Need to work on if(states)
- * Need to work on mediator.setstate()
- * 
- * 
- * 
- * 
+ * Need to work on !pause ( face off pause state )
  * 
  * */
 
@@ -117,7 +113,7 @@ public class hockeybot
         String [] ops = m_botSettings.getString("TWHTOps").split(",");
         
         for( String st:ops )
-            twhtOps.add(st.toLowerCase());
+            twhtOps.add(st);
         
         this.twhtHead = m_botSettings.getString("TWHTHead");
         
@@ -279,21 +275,17 @@ public class hockeybot
     }
     
     private void handleCommand(String name, String message) throws SQLException {
-       
-        if( message.length() < 4){
-            return;
-        }
         
-        else if(message.startsWith("!help")){
+         if(message.startsWith("!help")){
             m_botAction.privateMessageSpam(name, this.pubHelp);
             if( op.isER(name) )
                 m_botAction.privateMessageSpam(name, this.erHelp);
          
-            if( twhtOps.contains(name.toLowerCase()) ){
+            if( twhtOps.contains(name) ){
                 m_botAction.privateMessageSpam(name, this.twhtOpHelp);
             }
             
-            if( this.twhtHead.equals(name.toLowerCase()) )
+            if( this.twhtHead.equalsIgnoreCase(name) )
                 m_botAction.privateMessageSpam(name, this.twhtHeadHelp);
 
             m_botAction.privateMessageSpam(name, this.shortCmds);
@@ -310,8 +302,10 @@ public class hockeybot
         else if ( message.startsWith("!go") && op.isER(name)){
             //!go <>
             //01234
-            if(message.length() < 4)
+            if(message.length() < 4){
                 m_botAction.sendPrivateMessage(name, "Please specify what arena: !go <arena>");
+                return ;
+            }
             else
                 go(name, message.substring(4));
                 
@@ -326,9 +320,10 @@ public class hockeybot
         {
             //!a <squadname>
             //0123
-            if( message.length() <= 3)
+            if( message.length() <= 3){
                 m_botAction.sendPrivateMessage(name, "The shortcut key !a should be used with a <SquadName>: Eg.: !a DexterSquad");
-            else
+                return ;
+            }else
                 this.acceptChallenge(name, message.substring(3) );
             
         }
@@ -336,9 +331,10 @@ public class hockeybot
         else if(message.startsWith("!accept")){
             //!accept <>
             //012345678
-            if(message.length() <= 8)
+            if(message.length() <= 8){
                 m_botAction.sendPrivateMessage(name, "Please use the command !accept <Squadname>");
-            else
+                return ;
+            }else
                 acceptChallenge(name, message.substring(8));
             
         }
@@ -347,18 +343,20 @@ public class hockeybot
         else if( message.charAt(1) == 'r' && message.charAt(2) == ' '){
             //!r <>
             //0123
-            if( message.length() <= 3)
+            if( message.length() <= 3){
                 m_botAction.sendPrivateMessage(name, "The shortcut key !r should be used with <Ship>: Eg.: !r 3 to register as spider");
-            else
+                return;
+            }else
                 registerPlayer(name, message.substring(3) );
                 
         }
         else if (message.startsWith("!register")){
             /**
              * IF GAME IN PROGRESS*/
-            if(message.length() <= 9)
+            if(message.length() <= 9){
                 m_botAction.sendPrivateMessage(name, "Use !register <ship> please.");
-            
+                return ;
+            } 
             else
                 registerPlayer(name, message.substring(10));
         }
@@ -367,18 +365,20 @@ public class hockeybot
         else if( message.charAt(1) == 'c' && message.charAt(2) == ' '){
             //!c <>
             //0123
-            if( message.length() <= 3)
+            if( message.length() <= 3){
                 m_botAction.sendPrivateMessage(name, "The shortkut key !c should be used with <SquadName>: Eg.: !c DexterSquad");
-            else
+                return ;
+            }else
                 challengeTeam( name, message.substring(3) );
                 
         }
         else if( message.startsWith("!challenge") ){
             //!challenge <squadname>
             //0123456789TE
-            if(message.length() < 11)
-                m_botAction.sendPrivateMessage(name, "...");
-            else
+            if(message.length() < 11){
+                m_botAction.sendPrivateMessage(name, "...Use !challenge <squadname> please, the full command that is.");
+                return ;
+            }else
                 challengeTeam(name, message.substring(11));
         }   
         /**---------------------------------------------*/
@@ -402,16 +402,18 @@ public class hockeybot
         //ShortCut Key to !TeamSignup
         else if( message.charAt(1) == 't' && message.charAt(2) == ' ')
         {
-            if( message.length() <= 4)
+            if( message.length() <= 3){
                 m_botAction.sendPrivateMessage(name, "Please, the shortcut to create a team is !t <TeamName>..Eg: !t DexterSquad");
-            else
+                return ;
+            }else
                 registerSquad(name, message.substring(3) );
                 
         }
         else if( message.startsWith("!teamsignup")){
-            if(message.length() <= 12 )
+            if(message.length() <= 12 ){
                 m_botAction.sendPrivateMessage(name, "Please, use the command !teamsignup <squadName> to register a squad into TWHT.");
-            else
+                return ;
+            }else
                 registerSquad(name, message.substring(12));
         }
         
@@ -456,10 +458,11 @@ public class hockeybot
     }
     
     public void readyTeam(String name, String message) throws SQLException{
+       
         if(mediator.isInRegisterTime())
             mediator.readyTeam(name, message);
         else
-            m_botAction.sendPrivateMessage(name, "Just use !ready in pre start please");
+            m_botAction.sendPrivateMessage(name, "Just use !ready in PRE Start please");
         
     }
     
@@ -489,12 +492,12 @@ public class hockeybot
         if(mediator.isInRegisterTime()){
             int shipNumber = Integer.parseInt(ship);//check if hes in the squad
             mediator.addPlayer(name, shipNumber);
-            m_botAction.sendPrivateMessage(name, "Registering you into the ship");
         }
         
-        else
-            m_botAction.sendPrivateMessage(name, "Couldn't register you in.");
-
+        else{
+            m_botAction.sendPrivateMessage(name, "Couldn't register you in. Register time has expired.");
+            return;
+        }
     }
     
     private void updateScore(int freq){
@@ -507,7 +510,7 @@ public class hockeybot
     
     private void cancelGame(String name, String message){
         
-        if(mediator.gameIsRunning() || mediator.isInFaceOffOrInterval()){
+        if(mediator.gameIsRunning() || mediator.isInFaceOffOrInterval() || mediator.isInRegisterTime()){
             mediator.cancelGame();
             m_botAction.sendArenaMessage("Game canceled by "+name);
         }
