@@ -323,15 +323,15 @@ private String twhtHeadHelp [] = {
          * */
         
         //Short Cut Key to !accept
-        else if( message.charAt(1) == 'a' && message.charAt(2) == ' ')
+        else if( message.startsWith("!a") && !message.startsWith("!accept"))
         {
             //!a <squadname>
             //0123
-            if( message.length() <= 3){
+            if( message.length() < 4){
                 m_botAction.sendPrivateMessage(name, "The shortcut key !a should be used with a <SquadName>: Eg.: !a DexterSquad");
                 return ;
             }else
-                this.acceptChallenge(name, message.substring(3) );
+                acceptChallenge(name, message.substring(3) );
             
         }
         
@@ -347,10 +347,10 @@ private String twhtHeadHelp [] = {
         }
         
         //ShortCut Key to !register
-        else if( message.charAt(1) == 'r' && message.charAt(2) == ' '){
+        else if( message.startsWith("!r") && !message.startsWith("!register")){
             //!r <>
             //0123
-            if( message.length() <= 3){
+            if( message.length() < 4){
                 m_botAction.sendPrivateMessage(name, "The shortcut key !r should be used with <Ship>: Eg.: !r 3 to register as spider");
                 return;
             }else
@@ -369,15 +369,17 @@ private String twhtHeadHelp [] = {
         }
         
         //ShortCut Key to !challenge
-        else if( message.charAt(1) == 'c' && message.charAt(2) == ' '){
+        else if( message.startsWith("!c") && !message.startsWith("!challenge") ){
             //!c <>
             //0123
-            if( message.length() <= 3){
+            if(  message.length() < 4)
+            {
                 m_botAction.sendPrivateMessage(name, "The shortkut key !c should be used with <SquadName>: Eg.: !c DexterSquad");
                 return ;
-            }else
+            }
+            else
                 challengeTeam( name, message.substring(3) );
-                
+            
         }
         else if( message.startsWith("!challenge") ){
             //!challenge <squadname>
@@ -407,7 +409,7 @@ private String twhtHeadHelp [] = {
          * Registering squad commands
          * */
         //ShortCut Key to !TeamSignup
-        else if( message.charAt(1) == 't' && message.charAt(2) == ' ')
+        else if( message.startsWith("!t") && !message.startsWith("!teamsignup"))
         {
             if( message.length() <= 3){
                 m_botAction.sendPrivateMessage(name, "Please, the shortcut to create a team is !t <TeamName>..Eg: !t DexterSquad");

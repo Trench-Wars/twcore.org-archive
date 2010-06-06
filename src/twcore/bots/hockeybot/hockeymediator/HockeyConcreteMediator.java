@@ -439,6 +439,8 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
         //int freq = getTeamPlayingFrequency( getPlayerTeamName(name) );
         
+        
+        //This if is not needed if I keep the hashmap. just in future case
         if(freq == -1){
             m_botAction.sendPrivateMessage(name, "Your hockey squad is not playing this match...");
             return ;
