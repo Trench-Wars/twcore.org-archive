@@ -438,9 +438,11 @@ public class HockeyConcreteMediator implements HockeyMediator {
         // TO  Auto-generated method stub
         String teamNamePlaying = getPlayerTeamName(name).toLowerCase();
         
-        if(!freqteam.containsKey(teamNamePlaying))
+        if(!freqteam.containsKey(teamNamePlaying)){
             m_botAction.sendPrivateMessage("Dexter", "team "+teamNamePlaying+" not in, lower case problem?");
-        
+            m_botAction.sendPrivateMessage(name, "Your squad is not playing this match...");
+            return;
+        }
         int freq = freqteam.get(teamNamePlaying);
         
         //int freq = getTeamPlayingFrequency( getPlayerTeamName(name) );
