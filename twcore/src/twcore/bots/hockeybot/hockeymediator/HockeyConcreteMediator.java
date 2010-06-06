@@ -175,6 +175,11 @@ public class HockeyConcreteMediator implements HockeyMediator {
         return -1;
     }
 
+
+    public String getSquadChat(String teamName) throws SQLException{
+        return sql.getChat(teamName);
+    }
+    
     /*
      * To ready*/
     
@@ -191,13 +196,34 @@ public class HockeyConcreteMediator implements HockeyMediator {
     
     //------------------------------------------------------------------
 
-    public void startGame(String captainTeamAccepter, String requester, String teamAccepter, String teamAccepted){
+    public void startGame(String captainTeamAccepter, String requester, String teamAccepter, String teamAccepted) throws SQLException{
 
+        String chatTeamAccepter = getSquadChat( teamAccepter );
+        String chatTeamAccepted = getSquadChat( teamAccepted );
+        
+        //3 cases for chat game starting tells
+        if( chatTeamAccepter != null && chatTeamAccepted != null){
+            m_botAction.sendUnfilteredPublicMessage("?chat="+chatTeamAccepted+","+chatTeamAccepter);
+            m_botAction.sendChatMessage(1, "GO GO GO! Your squad has a match now against "+teamAccepter+" .. come ?go "+m_botAction.getArenaName()+" to play!");
+            m_botAction.sendChatMessage(2, "GO GO GO! Your squad has a match now against "+teamAccepted+" .. come ?go "+m_botAction.getArenaName()+" to play!");
+        }
+        
+        else if( chatTeamAccepter != null)
+        {
+            m_botAction.sendUnfilteredPublicMessage("?chat="+chatTeamAccepter);
+            m_botAction.sendChatMessage("GO GO GO! Your squad has a match now against "+teamAccepted+" .. come ?go "+m_botAction.getArenaName()+" to play!");
+        }
+        
+        else if( chatTeamAccepted != null){
+            m_botAction.sendUnfilteredPublicMessage("?chat="+chatTeamAccepted);
+            m_botAction.sendChatMessage("GO GO GO! Your squad has a match now against "+teamAccepter+" .. come ?go "+m_botAction.getArenaName()+" to play!");
+        }
+        
         m_botAction.specAll();
         m_botAction.cancelTasks();
         m_botAction.resetTimer();
         m_botAction.toggleLocked();
-            
+        
         stateController.setState(HockeyState.Pre_Start);
        
         m_botAction.sendArenaMessage("A game between "+teamAccepter+" and "+teamAccepted+" is starting!", 2);
