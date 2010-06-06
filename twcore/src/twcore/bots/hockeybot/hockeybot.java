@@ -494,8 +494,15 @@ public class hockeybot
         }
         
         else{
-            m_botAction.sendPrivateMessage(name, "Couldn't register you in. Register time has expired.");
-            return;
+            
+            if(!mediator.gameIsRunning())
+                m_botAction.sendPrivateMessage(name, "Couldn't register you in. No games happening atm.");
+            else if(mediator.isInFaceOffOrInterval())
+                m_botAction.sendPrivateMessage(name, "We're in the faceoff / interval now. You should've registered at start.");
+            else if(mediator.gameIsRunning())
+                m_botAction.sendPrivateMessage(name,"We're on a game now, registration just works in the Pre Start");
+            
+            return ;
         }
     }
     
