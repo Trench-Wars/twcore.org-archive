@@ -34,7 +34,6 @@ import twcore.core.events.TurretEvent;
 import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
-import twcore.core.helper.pubstats.PubStatsPlayer;
 import twcore.core.stats.DBPlayerData;
 import twcore.core.stats.Statistics;
 import twcore.core.util.Tools;
