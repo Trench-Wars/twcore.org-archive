@@ -315,7 +315,7 @@ public class hockeybot
          * */
         
         //Short Cut Key to !accept
-        else if( message.startsWith("!a") && !message.startsWith("!accept"))
+        else if( message.startsWith("!a") && !message.startsWith("!accept") && !message.startsWith("!addop"))
         {
             //!a <squadname>
             //0123
@@ -339,7 +339,7 @@ public class hockeybot
         }
         
         //ShortCut Key to !register
-        else if( message.startsWith("!r") && !message.startsWith("!register")){
+        else if( message.startsWith("!r") && !message.startsWith("!register") && !message.startsWith("!ready") && !message.startsWith("!remove")){
             //!r <>
             //0123
             if( message.length() < 4){
