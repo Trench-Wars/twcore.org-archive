@@ -87,6 +87,13 @@ public class HockeyConcreteMediator implements HockeyMediator {
             sqdChallengedChat = getSquadChat(sqdChallengedId);
             sqdChallengerChat = getSquadChat(sqdChallengerId);
             gameRequest.add(new GameRequest( challenger, sqdChallenger, sqdChallenged, sqdChallengerId, sqdChallengedId, sqdChallengerChat, sqdChallengedChat ) );
+            
+            if( sqdChallengedChat != null )
+            {
+                m_botAction.sendUnfilteredPublicMessage("?chat="+sqdChallengedChat);
+                m_botAction.sendChatMessage( challenger+" from "+sqdChallenger + " is challenging you for a Hockey Game in ?go "+m_botAction.getArenaName()+" ... come !accept "+sqdChallenger);
+            }
+            
             m_botAction.sendSquadMessage(sqdChallenged, challenger+" from "+sqdChallenger + " is challenging you for a Hockey Game in ?go "+m_botAction.getArenaName()+" ... come !accept "+sqdChallenger);
             m_botAction.sendPrivateMessage(challenger, "You challenged "+sqdChallenged+"!");
             }
@@ -123,7 +130,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
             if( gr.getSqdChallenged().equalsIgnoreCase(teamAccepter) && gr.getSqdChallenger().equalsIgnoreCase(teamAccepted) ){
                 gameRequest.remove(gr);
                 i++;
-                startGame(captainTeamAccepter, gr.getRequester(), gr.getSqdChallenged(), gr.getSqdChallenger(), gr.getChatSqdChallenged(), gr.getChatSqdChallenger());
+                startGame(gr.getIdSqdChallenged(), gr.getIdsqdChallenger(), captainTeamAccepter, gr.getRequester(), gr.getSqdChallenged(), gr.getSqdChallenger(), gr.getChatSqdChallenged(), gr.getChatSqdChallenger());
                 break;
             }
         }      
@@ -207,25 +214,24 @@ public class HockeyConcreteMediator implements HockeyMediator {
     
     //------------------------------------------------------------------
 
-    public void startGame(String captainTeamAccepter, String requester, String teamAccepter, String teamAccepted, String chatTeamAccepter, String chatTeamAccepted) throws SQLException{
+    public void startGame(int idTeamAccepter, int idTeamAccepted, String captainTeamAccepter, String requester, String teamAccepter, String teamAccepted, String chatTeamAccepter, String chatTeamAccepted) throws SQLException{
         
         //3 cases for chat game starting tells
         if( chatTeamAccepter != null && chatTeamAccepted != null){
             m_botAction.sendUnfilteredPublicMessage("?chat="+chatTeamAccepted+","+chatTeamAccepter);
-            m_botAction.sendChatMessage(1, "GO GO GO! Your squad has a match now against "+teamAccepter+" .. come ?go "+m_botAction.getArenaName()+" to play!");
-            m_botAction.sendChatMessage(2, "GO GO GO! Your squad has a match now against "+teamAccepted+" .. come ?go "+m_botAction.getArenaName()+" to play!");
-            
+            m_botAction.sendChatMessage(1, "GO GO GO! A Hockeymatch against "+teamAccepter+" is now starting .. come ?go "+m_botAction.getArenaName()+" to play!");
+            m_botAction.sendChatMessage(2, "GO GO GO! A Hockeymatch against "+teamAccepted+" is now starting .. come ?go "+m_botAction.getArenaName()+" to play!");
         }
         
         else if( chatTeamAccepter != null)
         {
             m_botAction.sendUnfilteredPublicMessage("?chat="+chatTeamAccepter);
-            m_botAction.sendChatMessage("GO GO GO! Your squad has a match now against "+teamAccepted+" .. come ?go "+m_botAction.getArenaName()+" to play!");
+            m_botAction.sendChatMessage("GO GO GO! A Hockeymatch against "+teamAccepted+" is now starting .. come ?go "+m_botAction.getArenaName()+" to play!");
         }
         
         else if( chatTeamAccepted != null){
             m_botAction.sendUnfilteredPublicMessage("?chat="+chatTeamAccepted);
-            m_botAction.sendChatMessage("GO GO GO! Your squad has a match now against "+teamAccepter+" .. come ?go "+m_botAction.getArenaName()+" to play!");
+            m_botAction.sendChatMessage("GO GO GO! A Hockeymatch against "+teamAccepter+" is now starting .. come ?go "+m_botAction.getArenaName()+" to play!");
         }
         
         m_botAction.sendUnfilteredPublicMessage("?chat=");
@@ -245,11 +251,11 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
         teams = new HockeyTeam[2];
         
-        teams[0] = new HockeyTeam(0, teamAccepter, m_botAction);
+        teams[0] = new HockeyTeam(idTeamAccepter, 0, teamAccepter, m_botAction);
         teams[0].setCaptainName(captainTeamAccepter);
         freqteam.put(teamAccepter.toLowerCase(), 0);
         
-        teams[1] = new HockeyTeam(1, teamAccepted, m_botAction);
+        teams[1] = new HockeyTeam(idTeamAccepted, 1, teamAccepted, m_botAction);
         teams[1].setCaptainName(requester);
         freqteam.put(teamAccepted.toLowerCase(), 1);
         
