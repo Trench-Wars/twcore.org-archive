@@ -189,13 +189,14 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	 */
 	public void storePlayerResult(int fnMatchRoundID, int fnTeam)
 	{
-		System.out.println("Storing player result of " + getPlayerName());
-		
 		try
 		{
 			int substituted = 0;
 			if (m_fnPlayerState == 2)
 				substituted = 1;
+			
+			if (MID == "")
+				MID = "0";
 
 			//first put stats into table: tblMatchRoundUser
 			String[] fields =
@@ -266,8 +267,6 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				m_ftTimeStarted = MPS.getTimeStarted();
 				m_ftTimeEnded = MPS.getTimeEnded();
 
-				System.out.println("Storing player ship ("+MPS.getShipType()+") result of " + getPlayerName());
-				
 				if (m_ftTimeStarted == null)
 					m_ftTimeStarted = new java.util.Date();
 				if (m_ftTimeEnded == null)

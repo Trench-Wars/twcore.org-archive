@@ -404,7 +404,8 @@ public class MatchTeam
                 MatchPlayer player = getPlayer(name);
 
                 if(player != null && userid != null && userid.length() > 0) {
-                    player.resolution = resolution;
+                	if (player.resolution == "")
+                		player.resolution = resolution;
                 }
             }
 
@@ -447,8 +448,10 @@ public class MatchTeam
 		MatchPlayer player = getPlayer(name);
 
 		if (player != null) {
-			player.IPAddress = IP;
-			player.MID = machineID;
+			if (player.IPAddress == "")
+				player.IPAddress = IP;
+			if (player.MID == "")
+				player.MID = machineID;
 		}
 		
 		if (m_rules.getInt("squadjoined") == 1) {
