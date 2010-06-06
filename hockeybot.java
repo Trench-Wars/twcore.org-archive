@@ -1,7 +1,5 @@
 package twcore.bots.hockeybot;
 
-
-import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -282,7 +280,11 @@ public class hockeybot
     
     private void handleCommand(String name, String message) throws SQLException {
        
-        if(message.startsWith("!help")){
+        if( message.length() < 4){
+            return;
+        }
+        
+        else if(message.startsWith("!help")){
             m_botAction.privateMessageSpam(name, this.pubHelp);
             if( op.isER(name) )
                 m_botAction.privateMessageSpam(name, this.erHelp);
@@ -324,7 +326,7 @@ public class hockeybot
         {
             //!a <squadname>
             //0123
-            if( message.length() <= 4)
+            if( message.length() <= 3)
                 m_botAction.sendPrivateMessage(name, "The shortcut key !a should be used with a <SquadName>: Eg.: !a DexterSquad");
             else
                 this.acceptChallenge(name, message.substring(3) );
@@ -345,7 +347,7 @@ public class hockeybot
         else if( message.charAt(1) == 'r' && message.charAt(2) == ' '){
             //!r <>
             //0123
-            if( message.length() <= 4)
+            if( message.length() <= 3)
                 m_botAction.sendPrivateMessage(name, "The shortcut key !r should be used with <Ship>: Eg.: !r 3 to register as spider");
             else
                 registerPlayer(name, message.substring(3) );
@@ -365,7 +367,7 @@ public class hockeybot
         else if( message.charAt(1) == 'c' && message.charAt(2) == ' '){
             //!c <>
             //0123
-            if( message.length() <= 4)
+            if( message.length() <= 3)
                 m_botAction.sendPrivateMessage(name, "The shortkut key !c should be used with <SquadName>: Eg.: !c DexterSquad");
             else
                 challengeTeam( name, message.substring(3) );
