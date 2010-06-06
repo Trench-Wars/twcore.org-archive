@@ -35,7 +35,23 @@ public class HockeyDatabase {
      
         
     }
-    
+    public int getTeamId(String squadName){
+        try{
+            PreparedStatement psGetTeamId;
+            psGetTeamId = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, 
+                    "SELECT fnTWHTTeamId FROM tblTWHT__Team where fsName = ?");
+            psGetTeamId.setString(1, squadName);
+            ResultSet rs = psGetTeamId.executeQuery();
+            while(rs.next()){
+                int id = rs.getInt(1);
+                return id;
+            }
+        }catch (SQLException e){
+            Tools.printLog(e.toString());
+        }
+        
+        return -1;
+    }
     public boolean isTeam(String squadName){
         
         try{
@@ -214,12 +230,12 @@ public class HockeyDatabase {
         
     }
     
-    public String getChat(String teamName){
+    public String getChat(int id){
         try{
             PreparedStatement psGetTeamChat;
             psGetTeamChat = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,
-                    "SELECT fsChat from tblTWHT__Team WHERE fsName = ?");
-            psGetTeamChat.setString(1, teamName);
+                    "SELECT fsChat from tblTWHT__Team WHERE fnTWHTTeamId = ?");
+            psGetTeamChat.setInt(1, id);
             ResultSet rs = psGetTeamChat.executeQuery();
             while(rs.next()){
                 String chat = rs.getString(1);

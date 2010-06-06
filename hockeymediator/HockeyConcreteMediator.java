@@ -65,6 +65,10 @@ public class HockeyConcreteMediator implements HockeyMediator {
     public void challenge(String challenger, String sqdChallenged) throws SQLException{
         String sqdChallenger;
         sqdChallenger = /*"Dex";*/getCaptainTeamName(challenger);
+        int sqdChallengerId;
+        int sqdChallengedId;
+        String sqdChallengedChat;
+        String sqdChallengerChat;
         
         if( sqdChallenger == null)
         {    
@@ -78,7 +82,11 @@ public class HockeyConcreteMediator implements HockeyMediator {
             m_botAction.sendPrivateMessage(challenger, sqdChallenged+" is not a TWHT Squad.");
             
         else{
-            gameRequest.add(new GameRequest( challenger, sqdChallenger, sqdChallenged ) );
+            sqdChallengerId = getTeamId(sqdChallenger);
+            sqdChallengedId = getTeamId(sqdChallenged);
+            sqdChallengedChat = getSquadChat(sqdChallengedId);
+            sqdChallengerChat = getSquadChat(sqdChallengerId);
+            gameRequest.add(new GameRequest( challenger, sqdChallenger, sqdChallenged, sqdChallengerId, sqdChallengedId, sqdChallengerChat, sqdChallengedChat ) );
             m_botAction.sendSquadMessage(sqdChallenged, challenger+" from "+sqdChallenger + " is challenging you for a Hockey Game in ?go "+m_botAction.getArenaName()+" ... come !accept "+sqdChallenger);
             m_botAction.sendPrivateMessage(challenger, "You challenged "+sqdChallenged+"!");
             }
@@ -115,7 +123,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
             if( gr.getSqdChallenged().equalsIgnoreCase(teamAccepter) && gr.getSqdChallenger().equalsIgnoreCase(teamAccepted) ){
                 gameRequest.remove(gr);
                 i++;
-                startGame(captainTeamAccepter, gr.getRequester(), gr.getSqdChallenged(), gr.getSqdChallenger());
+                startGame(captainTeamAccepter, gr.getRequester(), gr.getSqdChallenged(), gr.getSqdChallenger(), gr.getChatSqdChallenged(), gr.getChatSqdChallenger());
                 break;
             }
         }      
@@ -176,8 +184,11 @@ public class HockeyConcreteMediator implements HockeyMediator {
     }
 
 
-    public String getSquadChat(String teamName) throws SQLException{
-        return sql.getChat(teamName);
+    public int getTeamId(String teamName){
+        return sql.getTeamId(teamName);
+    }
+    public String getSquadChat(int id) throws SQLException{
+        return sql.getChat(id);
     }
     
     /*
@@ -196,10 +207,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
     
     //------------------------------------------------------------------
 
-    public void startGame(String captainTeamAccepter, String requester, String teamAccepter, String teamAccepted) throws SQLException{
-
-        String chatTeamAccepter = getSquadChat( teamAccepter );
-        String chatTeamAccepted = getSquadChat( teamAccepted );
+    public void startGame(String captainTeamAccepter, String requester, String teamAccepter, String teamAccepted, String chatTeamAccepter, String chatTeamAccepted) throws SQLException{
         
         //3 cases for chat game starting tells
         if( chatTeamAccepter != null && chatTeamAccepted != null){
