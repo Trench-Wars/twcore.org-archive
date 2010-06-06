@@ -389,32 +389,30 @@ public class MatchTeam
 				checkPlayerIPMID(name, macID, IP, tellPlayer);
 			}
             // Store *info results in infoBuffer
-            else if(msg.startsWith("IP:") && msg.indexOf("TypedName:") > 0) {
-      	          Arrays.fill(infoBuffer, ""); // clear buffer
-      	          infoBuffer[0] = msg;     // *info 1st line
-      	      } else
-      	      if(msg.startsWith("Ping:") && msg.indexOf("HighPing:") > 0) {
-      	          infoBuffer[1] = msg;     // *info 2nd line
-      	      } else
-      	      if(msg.startsWith("LOSS:") && msg.indexOf("S2CWeapons:") > 0) {
-      	          infoBuffer[2] = msg;
-      	      } else
-      	      if(msg.startsWith("S2C:") && msg.indexOf("C2S:") > 0) {
-      	          infoBuffer[3] = msg;
-      	      } else
-      	      if(msg.startsWith("C2S CURRENT: Slow:") && msg.indexOf("TOTAL: Slow:") > 0) {
-      	          infoBuffer[4] = msg;
-      	      } else
-      	      if(msg.startsWith("S2C CURRENT: Slow:") && msg.indexOf("TOTAL: Slow:") > 0) {
-      	          infoBuffer[5] = msg;
-      	      } else
-      	      if(msg.startsWith("TIME: Session:") && msg.indexOf("Total:") > 0) {
-      	          infoBuffer[6] = msg;
-      	      } else
-      	      if(msg.startsWith("Bytes/Sec:") && msg.indexOf("ConnectType:") > 0 ) {
-      	          infoBuffer[7] = msg;
-      	          processInfoBuffer(infoBuffer);
-      	      }
+            if(msg.startsWith("IP:") && msg.indexOf("TypedName:") > 0) {
+				Arrays.fill(infoBuffer, ""); // clear buffer
+				infoBuffer[0] = msg; // *info 1st line
+			} else if (msg.startsWith("Ping:") && msg.indexOf("HighPing:") > 0) {
+				infoBuffer[1] = msg; // *info 2nd line
+			} else if (msg.startsWith("LOSS:")
+					&& msg.indexOf("S2CWeapons:") > 0) {
+				infoBuffer[2] = msg;
+			} else if (msg.startsWith("S2C:") && msg.indexOf("C2S:") > 0) {
+				infoBuffer[3] = msg;
+			} else if (msg.startsWith("C2S CURRENT: Slow:")
+					&& msg.indexOf("TOTAL: Slow:") > 0) {
+				infoBuffer[4] = msg;
+			} else if (msg.startsWith("S2C CURRENT: Slow:")
+					&& msg.indexOf("TOTAL: Slow:") > 0) {
+				infoBuffer[5] = msg;
+			} else if (msg.startsWith("TIME: Session:")
+					&& msg.indexOf("Total:") > 0) {
+				infoBuffer[6] = msg;
+			} else if (msg.startsWith("Bytes/Sec:")
+					&& msg.indexOf("ConnectType:") > 0) {
+				infoBuffer[7] = msg;
+				processInfoBuffer(infoBuffer);
+			}
             // *einfo
             else if(msg.indexOf("UserId:") > 0 && msg.indexOf("Timer drift:") > 0) {
             	
