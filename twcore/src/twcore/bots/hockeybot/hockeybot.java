@@ -26,13 +26,6 @@ import twcore.core.util.Tools;
 /**
  * @author: Dexter
  * Bot project to Hockey - !teamsignup ready to signup squads on the trenchwars.org/twht site
- *
- * Façade design pattern as a bot / application
- * 
- * falta combinar os estados de jogo com os eventos
- * */
-/**
- * 
  * Need to work on Player states
  * Need to work on if(states)
  * Need to work on !pause ( face off pause state )
@@ -43,20 +36,18 @@ public class hockeybot
         extends SubspaceBot{
 
     /* Mediator pattern - the 'heart' of the game*/
-    private HockeyConcreteMediator mediator;
+    private     HockeyConcreteMediator          mediator;
     
     /*
      * List to stats: save, goal, assist ( 1st, 2nd )*/
-    private HockeyAssistGoalStack<String> list;
+    private     HockeyAssistGoalStack<String>   list;
+    private     ArrayList<String>               twhtOps;
+    private     OperatorList                    op;
+    private     BotSettings                     m_botSettings;
     
-    private ArrayList<String> twhtOps;
+    private     EventRequester                  events;
     
-    private OperatorList op;
-    private BotSettings m_botSettings;
-    
-    private EventRequester events;
-    
-    private String twhtHead;
+    private     String                          twhtHead;
     
     private String shortCmds[] = {
     "+----------------------------------------------------------------------------------+",
@@ -66,8 +57,8 @@ public class hockeybot
     "| !t <SquadName>               - to Create a Team                                  |",
     "| !r <Ship>                    - to register a ship in a game                      |",
     "+----------------------------------------------------------------------------------+"
-};
-  private String pubHelp [] = {
+    };
+    private String pubHelp [] = {
     "Hi, I'm a bot that is designed for the Trenchwars Hockey Tournament! (TWHT)",
     "+-----------------------------------Commands---------------------------------------+",
     "| !teamsignup <SquadName>      -  Registers your squad on TWHT's site              |",
@@ -79,28 +70,28 @@ public class hockeybot
     "+----------------------------------------------------------------------------------+",
     "| Trenchwars Hockey's Website: http://www.trenchwars.org/twht                      |",
     "+----------------------------------------------------------------------------------+"
-};
+   };
 
-private String erHelp [] = {
+    private String erHelp [] = {
     "| Mod Commands                                                                     |",
     "| !go <arena>                                                                      |",
     "+----------------------------------------------------------------------------------+"
-};
+      };
 
-private String twhtOpHelp [] = {
-    "+----------------------------------------------------------------------------------+",
-    "| TWHTOp Commands:                                                                 |",  
-    "| !cancelgame                  -  Cancels the current game                         |",
-    "| !die                         -  Kills the bot                                    |",
-    "+----------------------------------------------------------------------------------+"
-};
+    private String twhtOpHelp [] = {
+      "+----------------------------------------------------------------------------------+",
+      "| TWHTOp Commands:                                                                 |",  
+      "| !cancelgame                  -  Cancels the current game                         |",
+      "| !die                         -  Kills the bot                                    |",
+      "+----------------------------------------------------------------------------------+"
+      };
 
-private String twhtHeadHelp [] = {
-    "+----------------------------------------------------------------------------------+",
-    "| Head Operator Commands:                                                          |",
-    "| !addop <opName>                                                                  |",
-    "+----------------------------------------------------------------------------------+"
-};
+    private String twhtHeadHelp [] = {
+      "+----------------------------------------------------------------------------------+",
+      "| Head Operator Commands:                                                          |",
+      "| !addop <opName>                                                                  |",
+      "+----------------------------------------------------------------------------------+"
+    };
 
     public hockeybot(BotAction botAction) {
         super(botAction);
