@@ -98,7 +98,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
     //team 1 accepting team 2
     public void acceptGame(String captainTeamAccepter, String teamAccepted) throws SQLException{
         //!accept <team>
-        String teamAccepter = /*"eumesmo";*/getCaptainTeamName(captainTeamAccepter).toLowerCase();
+        String teamAccepter = /*"eumesmo";*/getCaptainTeamName(captainTeamAccepter);
         
         //startGame(captainTeamAccepter, teamAccepter, teamAccepted);
         if(teamAccepter.equals(null))
@@ -107,11 +107,10 @@ public class HockeyConcreteMediator implements HockeyMediator {
         else{
             
             int i = 0;
-            teamAccepted = teamAccepted.toLowerCase();
-            
+           
             for(GameRequest gr: gameRequest){
             
-                if( gr.getSqdChallenged().toLowerCase().equals(teamAccepter) && gr.getSqdChallenger().toLowerCase().equals(teamAccepted)){
+                if( gr.getSqdChallenged().equalsIgnoreCase(teamAccepter) && gr.getSqdChallenger().equalsIgnoreCase(teamAccepted) ){
                     gameRequest.remove(gr);
                     i++;
                     startGame(captainTeamAccepter, gr.getRequester(), gr.getSqdChallenged(), gr.getSqdChallenger());
@@ -166,10 +165,10 @@ public class HockeyConcreteMediator implements HockeyMediator {
     }
 
     public int getTeamPlayingFrequency(String teamName){
-        if( teams[0].getTeamName().toLowerCase().equals(teamName.toLowerCase()) )
+        if( teams[0].getTeamName().equalsIgnoreCase(teamName) )
             return 0;
         
-        else if ( teams[1].getTeamName().toLowerCase().equals(teamName.toLowerCase()) )
+        else if ( teams[1].getTeamName().equalsIgnoreCase(teamName.toLowerCase()) )
             return 1;
         
         return -1;
@@ -451,7 +450,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
             
             //check if the teams are made - prac bot
                 teams[freq].addPlayer(name, ship);
-                m_botAction.sendArenaMessage(name+" is registered on ship "+ship);
+                m_botAction.sendArenaMessage(name+" is registered on ship "+ship+ " for "+teams[freq].getTeamName());
             }
         }
     }
