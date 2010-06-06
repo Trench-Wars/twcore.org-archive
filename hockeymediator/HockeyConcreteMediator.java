@@ -92,8 +92,9 @@ public class HockeyConcreteMediator implements HockeyMediator {
             {
                 m_botAction.sendUnfilteredPublicMessage("?chat="+sqdChallengedChat);
                 m_botAction.sendChatMessage( challenger+" from "+sqdChallenger + " is challenging you for a Hockey Game in ?go "+m_botAction.getArenaName()+" ... come !accept "+sqdChallenger);
+                
             }
-            
+            m_botAction.sendUnfilteredPublicMessage("?chat=");
             m_botAction.sendSquadMessage(sqdChallenged, challenger+" from "+sqdChallenger + " is challenging you for a Hockey Game in ?go "+m_botAction.getArenaName()+" ... come !accept "+sqdChallenger);
             m_botAction.sendPrivateMessage(challenger, "You challenged "+sqdChallenged+"!");
             }
