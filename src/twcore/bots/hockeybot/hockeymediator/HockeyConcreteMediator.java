@@ -76,7 +76,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
             
             else{
                 gameRequest.add(new GameRequest( challenger, sqdChallenger, sqdChallenged ) );
-                m_botAction.sendSquadMessage(sqdChallenged, challenger+" from "+sqdChallenger + " is challenging you for a Hockey Game, come !accept "+sqdChallenger);
+                m_botAction.sendSquadMessage(sqdChallenged, challenger+" from "+sqdChallenger + " is challenging you for a Hockey Game in ?go "+m_botAction.getArenaName()+" ... come !accept "+sqdChallenger);
                 m_botAction.sendPrivateMessage(challenger, "You challenged "+sqdChallenged+"!");
                 }
         }
@@ -442,7 +442,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         // TO  Auto-generated method stub
         String teamNamePlaying = getPlayerTeamName(name);
         
-        if( !freqteam.containsKey(teamNamePlaying) ){
+        if( !freqteam.containsKey(teamNamePlaying.toLowerCase()) ){
             m_botAction.sendPrivateMessage("Dexter", "team "+teamNamePlaying+" not in, lower case problem?");
             m_botAction.sendPrivateMessage(name, teamNamePlaying+" is not playing this match, "+name+".");
             return;
