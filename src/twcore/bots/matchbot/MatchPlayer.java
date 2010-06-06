@@ -189,6 +189,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	 */
 	public void storePlayerResult(int fnMatchRoundID, int fnTeam)
 	{
+		System.out.println("Storing player result of " + getPlayerName());
+		
 		try
 		{
 			int substituted = 0;
@@ -237,18 +239,17 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			//get fnMatchRoundUserID
 			int fnMatchRoundUserID = 0;
 
-			try
-			{
-				ResultSet qryMatchRoundUserID = m_botAction.SQLQuery(dbConn, "SELECT MAX(fnMatchRoundUserID) as fnMatchRoundUserID " + "FROM tblMatchRoundUser");
+			try {
+				ResultSet qryMatchRoundUserID = m_botAction.SQLQuery(dbConn,
+						"SELECT MAX(fnMatchRoundUserID) as fnMatchRoundUserID "
+								+ "FROM tblMatchRoundUser");
 
-				if (qryMatchRoundUserID.next())
-				{
-					fnMatchRoundUserID = qryMatchRoundUserID.getInt("fnMatchRoundUserID");
+				if (qryMatchRoundUserID.next()) {
+					fnMatchRoundUserID = qryMatchRoundUserID
+							.getInt("fnMatchRoundUserID");
 				}
-                                m_botAction.SQLClose( qryMatchRoundUserID );
-			}
-			catch (Exception e)
-			{
+				m_botAction.SQLClose(qryMatchRoundUserID);
+			} catch (Exception e) {
 				Tools.printStackTrace(e);
 			}
 
@@ -265,6 +266,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				m_ftTimeStarted = MPS.getTimeStarted();
 				m_ftTimeEnded = MPS.getTimeEnded();
 
+				System.out.println("Storing player ship ("+MPS.getShipType()+") result of " + getPlayerName());
+				
 				if (m_ftTimeStarted == null)
 					m_ftTimeStarted = new java.util.Date();
 				if (m_ftTimeEnded == null)
@@ -1050,8 +1053,6 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				m_currentShip.endNow();
 			m_currentShip = new MatchPlayerShip(fnShipType);
 			m_ships.add(m_currentShip);
-			System.out.println("Ship " + fnShipType + " added to " + getPlayerName() + ", roundID: " + m_team.m_round.m_game.m_fnMatchID);
-
 		}
 
 		/**
