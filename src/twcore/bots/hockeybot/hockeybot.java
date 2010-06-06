@@ -394,9 +394,7 @@ public class hockeybot
             mediator.displayStatistics();
         
         else if ( message.startsWith("!addop"))
-            //!addop
-            //01234567
-            this.addOp(name, message.substring(7) );
+            addOp(name, message.substring(7) );
         /**
          * Registering squad commands
          * */
@@ -499,6 +497,10 @@ public class hockeybot
             m_botAction.sendPrivateMessage(name, "Couldn't register you in. Register time has expired.");
             return;
         }
+    }
+    
+    private void faceOffPlayer(String name, String playerName){
+        
     }
     
     private void updateScore(int freq){

@@ -8,6 +8,7 @@ import java.util.TimerTask;
 import twcore.bots.hockeybot.hockeydatabase.HockeyDatabase;
 import twcore.bots.hockeybot.hockeyteam.HockeyTeam;
 import twcore.core.BotAction;
+import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
 
@@ -24,18 +25,14 @@ import twcore.core.util.Tools;
 public class HockeyConcreteMediator implements HockeyMediator {
 
     private     HockeyState     stateController;
-
     private     HockeyTicker    ticker;
     private     HockeyTeam      teams[];
-    
-    private     ArrayList<GameRequest> gameRequest;
-    
     private     BotAction       m_botAction;
+    private     HockeyDatabase  sql;
+    private     String          faceOffPlayer;
+    private     ArrayList<GameRequest> gameRequest;
+    private     HashMap<String, Integer> freqteam;
 
-    private HockeyDatabase sql;
-    
-    private HashMap<String, Integer> freqteam;
-    
     public HockeyConcreteMediator(BotAction botAction){
        
         try {
@@ -245,7 +242,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         m_botAction.cancelTask(ticker);
         stateController.setState(HockeyState.OFF);
         freqteam.clear();
-        cleanTeams();
+        //cleanTeams();
         
     }
     
@@ -371,6 +368,14 @@ public class HockeyConcreteMediator implements HockeyMediator {
             public void run(){
                  startBack();
                  m_botAction.sendArenaMessage("GO GO GO", 104);
+
+                 if(faceOffPlayer == null)
+                     return;
+                 Player p = m_botAction.getPlayer(faceOffPlayer);
+                 int ship = p.getShipType();
+                 m_botAction.setShip(faceOffPlayer, 0);
+                 m_botAction.setShip(faceOffPlayer, ship);
+                 
             }
         };
         m_botAction.scheduleTask(getBack, Tools.TimeInMillis.SECOND*30);
@@ -381,7 +386,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
         stateController.setState(HockeyState.End_Game);
         displayStatistics();
-        cleanTeams();
+        //cleanTeams();
         freqteam.clear();
         stateController.setState(HockeyState.OFF);
     }
@@ -405,8 +410,8 @@ public class HockeyConcreteMediator implements HockeyMediator {
     public void cleanTeams(){
         teams[0].resetPlayers();
         teams[1].resetPlayers();
-        teams[0] = null;
-        teams[1] = null;
+        //teams[0] = null;
+        //teams[1] = null;
     }
     
     public void notifyTime(long mins, long secs){
@@ -465,6 +470,19 @@ public class HockeyConcreteMediator implements HockeyMediator {
         }
     }
     
+    public void putPlayerFaceOff(){
+        
+        if(faceOffPlayer == null)
+            return;
+        
+        m_botAction.warpTo(faceOffPlayer, 512, 512);
+        m_botAction.sendArenaMessage(faceOffPlayer+" get the puck and face off please");
+        Player p = m_botAction.getPlayer(faceOffPlayer);
+        int ship = p.getShipType();
+        m_botAction.setShip(faceOffPlayer, 0);
+        m_botAction.setShip(faceOffPlayer, ship);
+    
+    }
     public void lagout(String name){
         
     }
