@@ -384,6 +384,7 @@ public class matchbot extends SubspaceBot
                         isRestrictedStaff = true;
                     }
                     } catch (Exception e) {
+                    	Tools.printStackTrace(e);
                     }
                 }
             }
@@ -813,7 +814,9 @@ public class matchbot extends SubspaceBot
                 }
             }
         }
-        catch (Exception e) {}
+        catch (Exception e) {
+        	Tools.printStackTrace(e);
+        }
     }
 
     public void command_accept(String name, String[] parameters)
@@ -910,6 +913,7 @@ public class matchbot extends SubspaceBot
         }
         catch (Exception e)
         {
+        	Tools.printStackTrace(e);
         }
     }
 
@@ -938,7 +942,9 @@ public class matchbot extends SubspaceBot
                 }
             }
         }
-        catch (Exception e) {}
+        catch (Exception e) {
+        	Tools.printStackTrace(e);
+        }
     }
 
     public void command_setoff(String name)

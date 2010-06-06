@@ -342,6 +342,7 @@ public class MatchGame
 		}
 		catch (Exception e)
 		{
+			Tools.printStackTrace(e);
 		}
 	}
 
@@ -816,6 +817,7 @@ public class MatchGame
 			}
 			catch (Exception e)
 			{
+				Tools.printStackTrace(e);
 			}
 		}
 	}
