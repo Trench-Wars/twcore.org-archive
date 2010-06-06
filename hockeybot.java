@@ -59,41 +59,48 @@ public class hockeybot
     private String twhtHead;
     
     private String shortCmds[] = {
-            "| Dee Dee's way:                                                                   |",
-            "| !a <SquadName>               - to Accept a squad challenge                       |",
-            "| !c <SquadName>               - to Challenge a squad                              |",
-            "| !t <SquadName>               - to Create a Team                                  |",
-            "| !r <Ship>                    - to register a ship in a game                      |",
-            "| -------------------------------------------------------------------------------- |"
-    };
-    private String pubHelp [] = {
-            "Hi, I'm a bot in development to the TW-Hockey-Tournament,",
-            "you can register your squad already!",
-            "| Commands -----------------------------------------------------------------------",
-            "| !teamsignup <squadName>      -  Registers your squad on TWHT's site              |",
-            "| !accept <SquadName>          -  To a accept a squad from the List of request     |",
-            "| !challenge <SquadName>       -  To challenge a squad if you're capt/assist       |",
-            "| !remove                      -  To remove your squad from requesting game's list |",
-            "| !register                    -  To register a ship if a game is running          |",
-            "| !twhtops                     - Shows you the list of TWHTOperators and Dev       |", 
-            "| check TWHT'S Site: www.trenchwars.org/twht"
-    };
-    
-    private String erHelp [] = {
-            "| Mod Commands                                                                     |",
-            "| !go <arena>                                                                      |"
-    };
-    
-    private String twhtOpHelp [] = {
-            "| TWHTOp Commands                                                                  |",  
-            "| !cancelgame                  -  Cancels the current game                         |",
-            "| !die                         -  Kills the bot                                    |"
-    };
-    
-    private String twhtHeadHelp [] = {
-            "| TWHTHead Commands                                                                |",
-            "| !addop <opName>                                                                  |"
-    };
+    "+----------------------------------------------------------------------------------+",
+    "| Dee Dee's way:                                                                   |",
+    "| !a <SquadName>               - to Accept a squad challenge                       |",
+    "| !c <SquadName>               - to Challenge a squad                              |",
+    "| !t <SquadName>               - to Create a Team                                  |",
+    "| !r <Ship>                    - to register a ship in a game                      |",
+    "+----------------------------------------------------------------------------------+"
+};
+  private String pubHelp [] = {
+    "Hi, I'm a bot that is designed for the Trenchwars Hockey Tournament! (TWHT)",
+    "+-----------------------------------Commands---------------------------------------+",
+    "| !teamsignup <SquadName>      -  Registers your squad on TWHT's site              |",
+    "| !accept <SquadName>          -  To a accept a squad from the List of request     |",
+    "| !challenge <SquadName>       -  To challenge a squad if you're capt/assist       |",
+    "| !remove                      -  To remove your squad from requesting game's list |",
+    "| !register                    -  To register a ship if a game is running          |",
+    "| !twhtops                     -  Shows you the list of TWHTOperators and Dev       |",
+    "+----------------------------------------------------------------------------------+",
+    "| Trenchwars Hockey's Website: http://www.trenchwars.org/twht                      |",
+    "+----------------------------------------------------------------------------------+"
+};
+
+private String erHelp [] = {
+    "| Mod Commands                                                                     |",
+    "| !go <arena>                                                                      |",
+    "+----------------------------------------------------------------------------------+"
+};
+
+private String twhtOpHelp [] = {
+    "+----------------------------------------------------------------------------------+",
+    "| TWHTOp Commands:                                                                 |",  
+    "| !cancelgame                  -  Cancels the current game                         |",
+    "| !die                         -  Kills the bot                                    |",
+    "+----------------------------------------------------------------------------------+"
+};
+
+private String twhtHeadHelp [] = {
+    "+----------------------------------------------------------------------------------+",
+    "| Head Operator Commands:                                                          |",
+    "| !addop <opName>                                                                  |",
+    "+----------------------------------------------------------------------------------+"
+};
 
     public hockeybot(BotAction botAction) {
         super(botAction);
