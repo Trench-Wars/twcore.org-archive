@@ -80,7 +80,10 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
         else if( !sql.isTeam(sqdChallenged))
             m_botAction.sendPrivateMessage(challenger, sqdChallenged+" is not a TWHT Squad.");
-            
+
+        else if(isChallengedAlready(sqdChallenger, sqdChallenged))
+            m_botAction.sendPrivateMessage(challenger, "You've challenged "+sqdChallenged+" already.");
+        
         else{
             sqdChallengerId = getTeamId(sqdChallenger);
             sqdChallengedId = getTeamId(sqdChallenged);
@@ -112,7 +115,13 @@ public class HockeyConcreteMediator implements HockeyMediator {
      * !challenge <team>
      * @throws SQLException 
      * */
-    
+    public boolean isChallengedAlready(String sqdChallenger, String sqdChallenged){
+        for(GameRequest gr: gameRequest){
+            if( gr.getSqdChallenged().equalsIgnoreCase(sqdChallenged) && gr.getSqdChallenger().equalsIgnoreCase(sqdChallenger) )
+                return true;
+        }
+        return false;
+    }
     //team 1 accepting team 2
     public void acceptGame(String captainTeamAccepter, String teamAccepted) throws SQLException{
         //!accept <team>
