@@ -214,6 +214,24 @@ public class HockeyDatabase {
         
     }
     
+    public String getChat(String teamName){
+        try{
+            PreparedStatement psGetTeamChat;
+            psGetTeamChat = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,
+                    "SELECT fsChat from tblTWHT__Team WHERE fsName = ?");
+            psGetTeamChat.setString(1, teamName);
+            ResultSet rs = psGetTeamChat.executeQuery();
+            while(rs.next()){
+                String chat = rs.getString(1);
+                return chat;
+            }
+            
+        }catch(SQLException e){
+            Tools.printLog(e.getMessage());
+        }
+        return null;
+    }
+    
     private void closePreparedStatements(){
         try{
             psGetCurrentSquads.close();
