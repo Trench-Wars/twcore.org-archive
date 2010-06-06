@@ -324,7 +324,7 @@ public class hockeybot
         {
             //!a <squadname>
             //0123
-            if( message.length() <= 2)
+            if( message.length() <= 3)
                 m_botAction.sendPrivateMessage(name, "The shortcut key !a should be used with a <SquadName>: Eg.: !a DexterSquad");
             else
                 this.acceptChallenge(name, message.substring(3) );
@@ -345,7 +345,7 @@ public class hockeybot
         else if( message.charAt(1) == 'r' && message.charAt(2) == ' '){
             //!r <>
             //0123
-            if( message.length() <= 2)
+            if( message.length() <= 3)
                 m_botAction.sendPrivateMessage(name, "The shortcut key !r should be used with <Ship>: Eg.: !r 3 to register as spider");
             else
                 registerPlayer(name, message.substring(3) );
@@ -365,7 +365,7 @@ public class hockeybot
         else if( message.charAt(1) == 'c' && message.charAt(2) == ' '){
             //!c <>
             //0123
-            if( message.length() <= 2)
+            if( message.length() <= 3)
                 m_botAction.sendPrivateMessage(name, "The shortkut key !c should be used with <SquadName>: Eg.: !c DexterSquad");
             else
                 challengeTeam( name, message.substring(3) );
@@ -400,7 +400,7 @@ public class hockeybot
         //ShortCut Key to !TeamSignup
         else if( message.charAt(1) == 't' && message.charAt(2) == ' ')
         {
-            if( message.length() <= 2)
+            if( message.length() <= 3)
                 m_botAction.sendPrivateMessage(name, "Please, the shortcut to create a team is !t <TeamName>..Eg: !t DexterSquad");
             else
                 registerSquad(name, message.substring(3) );
@@ -487,7 +487,7 @@ public class hockeybot
         }
         
         else
-            m_botAction.sendPrivateMessage(name, "Couldn't register you in because there are no games running.");
+            m_botAction.sendPrivateMessage(name, "Couldn't register you in.");
 
     }
     
