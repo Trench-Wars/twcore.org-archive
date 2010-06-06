@@ -33,7 +33,7 @@ public class HockeyDatabase {
                 "SELECT fnTeam1ID, fnTeam2ID FROM tblTWHT__Match where fnMatchId = ?");
         
      
-        psKeepAlive = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,  "SHOW DATABASES");
+        
     }
     
     public boolean isTeam(String squadName){
@@ -224,6 +224,7 @@ public class HockeyDatabase {
     
     public void keepAlive(){
         try{
+            psKeepAlive = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,  "SHOW DATABASES");
             psKeepAlive.execute();
         }catch(SQLException e){
             Tools.printLog(e.toString());
