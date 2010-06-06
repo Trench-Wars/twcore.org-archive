@@ -83,6 +83,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
         else{
             m_botAction.sendPrivateMessage(challenger, "Couldn't challenge, you are not Assistant / Captain of a squad");
+            return ; 
         }
     }
 
