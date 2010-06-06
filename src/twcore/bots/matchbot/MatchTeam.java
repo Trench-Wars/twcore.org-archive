@@ -370,24 +370,6 @@ public class MatchTeam
                 }
             }
 
-            if(msg.indexOf("TypedName") != -1 && m_rules.getInt("squadjoined") == 1) {
-            	String name = "";
-            	String macID = "";
-            	String IP = "";
-				String pieces[] = msg.split("  ");
-				for(int k = 0;k < pieces.length;k++) {
-					if(pieces[k].startsWith("TypedName"))
-						name = pieces[k].split(":")[1];
-					else if(pieces[k].startsWith("MachineId"))
-						macID = pieces[k].split(":")[1];
-					else if(pieces[k].startsWith("IP"))
-						IP = pieces[k].split(":")[1];
-				}
-				Boolean tellPlayer = checkPlayerMID.remove(name);
-				if(tellPlayer == null)
-                    tellPlayer = false;
-				checkPlayerIPMID(name, macID, IP, tellPlayer);
-			}
             // Store *info results in infoBuffer
             if(msg.startsWith("IP:") && msg.indexOf("TypedName:") > 0) {
 				Arrays.fill(infoBuffer, ""); // clear buffer
@@ -468,6 +450,13 @@ public class MatchTeam
 		if (player != null) {
 			player.IPAddress = IP;
 			player.MID = machineID;
+		}
+		
+		if (m_rules.getInt("squadjoined") == 1) {
+			Boolean tellPlayer = checkPlayerMID.remove(name);
+			if(tellPlayer == null)
+                tellPlayer = false;
+			checkPlayerIPMID(name, machineID, IP, tellPlayer);
 		}
 	}
 
@@ -1621,10 +1610,7 @@ public class MatchTeam
                 if (answer.equals("yes"))
                 {
                     addPlayerFinal(p.getPlayerName(), fnShip, getInGame, fbSilent);
-                    
-                    m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*info");
-                    m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*einfo");
-                    
+
                     return "yes";
                 }
                 else
