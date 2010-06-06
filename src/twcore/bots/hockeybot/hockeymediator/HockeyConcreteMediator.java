@@ -369,13 +369,13 @@ public class HockeyConcreteMediator implements HockeyMediator {
                  startBack();
                  m_botAction.sendArenaMessage("GO GO GO", 104);
 
-                 if(faceOffPlayer == null)
+                 /*if(faceOffPlayer == null)
                      return;
                  Player p = m_botAction.getPlayer(faceOffPlayer);
                  int ship = p.getShipType();
                  m_botAction.setShip(faceOffPlayer, 0);
                  m_botAction.setShip(faceOffPlayer, ship);
-                 
+                 */
             }
         };
         m_botAction.scheduleTask(getBack, Tools.TimeInMillis.SECOND*30);
