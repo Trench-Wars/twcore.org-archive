@@ -363,7 +363,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 						started,
 						ended };
 								
-				m_botAction.SQLInsertInto(dbConn, "tblMatchRoundUserShip", shipFields, shipValues);
+				m_botAction.SQLBackgroundInsertInto(dbConn, "tblMatchRoundUserShip", shipFields, shipValues);
 				
 				// EXTRA INFO!
 
@@ -383,14 +383,13 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					JSONValue.escape(JSONValue.toJSONString(MPS.killers)),
 					JSONValue.escape(JSONValue.toJSONString(MPS.killees)) };
 
-				m_botAction.SQLInsertInto(dbConn, "tblMatchRoundUserExtra", extraFields, extraValues);
+				m_botAction.SQLBackgroundInsertInto(dbConn, "tblMatchRoundUserExtra", extraFields, extraValues);
 				
 			}
 		}
 		catch (Exception e)
 		{
-			System.out.println("Error: " + e.getMessage() + e.getLocalizedMessage());
-			e.printStackTrace();
+			Tools.printStackTrace(e);
 		};
 	};
 
