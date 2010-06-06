@@ -14,7 +14,7 @@ public interface HockeyMediator {
     
     public void readyTeam(String name, String message) throws SQLException;
     public void notifyTime(long mins, long secs);
-    public void startGame(String captainTeamAccepter, String requester, String teamAccepter, String squadAccepted);
+    public void startGame(String captainTeamAccepter, String requester, String teamAccepter, String squadAccepted) throws SQLException;
     public void updateScore(int freq); 
     public void displayStatistics();
 
