@@ -668,9 +668,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			m_fnPlayerState = 3;
 		m_fnLaggedTime = System.currentTimeMillis();
 		
- 		synchronized (m_team.m_round.events) {
- 			m_team.m_round.events.add(MatchRoundEvent.lagout(m_dbPlayer.getUserID(), fbOutOfArena));
- 	    }
+ 		m_team.m_round.events.add(MatchRoundEvent.lagout(m_dbPlayer.getUserID(), fbOutOfArena));
+ 	    
 		
 	};
 
@@ -1010,6 +1009,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		}
 		catch (Exception e)
 		{
+			Tools.printStackTrace(e);
 		}
 	}
 
