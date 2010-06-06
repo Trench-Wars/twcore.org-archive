@@ -1050,6 +1050,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				m_currentShip.endNow();
 			m_currentShip = new MatchPlayerShip(fnShipType);
 			m_ships.add(m_currentShip);
+			System.out.println("Ship " + fnShipType + " added to " + getPlayerName() + ", roundID: " + m_team.m_round.m_game.m_fnMatchID);
 
 		}
 
