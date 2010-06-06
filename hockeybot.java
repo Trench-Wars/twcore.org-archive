@@ -490,6 +490,13 @@ public class hockeybot
         //0123456789S
         if(mediator.isInRegisterTime()){
             int shipNumber = Integer.parseInt(ship);//check if hes in the squad
+            
+            if( shipNumber > 9 || shipNumber < 1)
+            {
+                m_botAction.sendPrivateMessage(name, "Register in a ship 1-8 please");
+                return;
+            }
+            
             mediator.addPlayer(name, shipNumber);
         }
         
