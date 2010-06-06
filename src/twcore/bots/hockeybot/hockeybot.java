@@ -456,7 +456,11 @@ public class hockeybot
     }
     
     public void readyTeam(String name, String message) throws SQLException{
-        mediator.readyTeam(name, message);
+        if(mediator.isInRegisterTime())
+            mediator.readyTeam(name, message);
+        else
+            m_botAction.sendPrivateMessage(name, "Just use !ready in pre start please");
+        
     }
     
     public void addPlayerPoint(String namePlayer, int freq, int pointType){

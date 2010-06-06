@@ -2,6 +2,7 @@ package twcore.bots.hockeybot.hockeymediator;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.TimerTask;
 
 import twcore.bots.hockeybot.hockeydatabase.HockeyDatabase;
@@ -39,6 +40,8 @@ public class HockeyConcreteMediator implements HockeyMediator {
     
     private HockeyDatabase sql;
     
+    private HashMap<String, Integer> freqteam;
+    
     public HockeyConcreteMediator(BotAction botAction){
        
         try {
@@ -52,6 +55,8 @@ public class HockeyConcreteMediator implements HockeyMediator {
         stateController = new HockeyState();
         stateController.setState(HockeyState.OFF);
         stateController.setMediator(this);
+        
+        freqteam = new HashMap<String, Integer>();
         
         gameRequest = new ArrayList<GameRequest>();
         
@@ -214,9 +219,11 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
         teams[0] = new HockeyTeam(0, teamAccepter, m_botAction);
         teams[0].setCaptainName(captainTeamAccepter);
+        freqteam.put(teamAccepter, 0);
         
         teams[1] = new HockeyTeam(1, teamAccepted, m_botAction);
         teams[1].setCaptainName(requester);
+        freqteam.put(teamAccepted, 1);
         
         //teams[1].setReady(true);
         //teams[0].setReady(true);
@@ -245,6 +252,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         m_botAction.toggleLocked();
         m_botAction.cancelTask(ticker);
         stateController.setState(HockeyState.OFF);
+        freqteam.clear();
         //cleanTeams();
         
     }
@@ -382,6 +390,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         stateController.setState(HockeyState.End_Game);
         displayStatistics();
         cleanTeams();
+        freqteam.clear();
         stateController.setState(HockeyState.OFF);
     }
     //==================================================
@@ -427,7 +436,13 @@ public class HockeyConcreteMediator implements HockeyMediator {
     }
     public void addPlayer(String name, int ship) throws SQLException { 
         // TO  Auto-generated method stub
-        int freq = getTeamPlayingFrequency( getPlayerTeamName(name) );
+        String teamNamePlaying = getPlayerTeamName(name);
+        if(!freqteam.containsKey(teamNamePlaying))
+            m_botAction.sendPrivateMessage("Dexter", "team "+teamNamePlaying+" not in, lower case problem?");
+        
+        int freq = freqteam.get(teamNamePlaying);
+        
+        //int freq = getTeamPlayingFrequency( getPlayerTeamName(name) );
         
         if(freq == -1){
             m_botAction.sendPrivateMessage(name, "Your hockey squad is not playing this match...");
