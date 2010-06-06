@@ -66,7 +66,8 @@ public class hockeybot
     "| !challenge <SquadName>       -  To challenge a squad if you're capt/assist       |",
     "| !remove                      -  To remove your squad from requesting game's list |",
     "| !register                    -  To register a ship if a game is running          |",
-    "| !twhtops                     -  Shows you the list of TWHTOperators and Dev       |",
+    "| !twhtops                     -  Shows you the list of TWHTOperators and Dev      |",
+    "| !status                      -  Shows current state of the game                  |",
     "+----------------------------------------------------------------------------------+",
     "| Trenchwars Hockey's Website: http://www.trenchwars.org/twht                      |",
     "+----------------------------------------------------------------------------------+"
