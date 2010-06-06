@@ -458,6 +458,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
                 
             else{
                 m_botAction.setShip(name, ship);
+                m_botAction.setFreq(name, freq);
             
             /**
              * Falta selecionar o time certo   joga r por uma query
