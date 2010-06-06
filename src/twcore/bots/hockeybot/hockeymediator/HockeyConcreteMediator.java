@@ -219,11 +219,11 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
         teams[0] = new HockeyTeam(0, teamAccepter, m_botAction);
         teams[0].setCaptainName(captainTeamAccepter);
-        freqteam.put(teamAccepter, 0);
+        freqteam.put(teamAccepter.toLowerCase(), 0);
         
         teams[1] = new HockeyTeam(1, teamAccepted, m_botAction);
         teams[1].setCaptainName(requester);
-        freqteam.put(teamAccepted, 1);
+        freqteam.put(teamAccepted.toLowerCase(), 1);
         
         //teams[1].setReady(true);
         //teams[0].setReady(true);
@@ -436,7 +436,8 @@ public class HockeyConcreteMediator implements HockeyMediator {
     }
     public void addPlayer(String name, int ship) throws SQLException { 
         // TO  Auto-generated method stub
-        String teamNamePlaying = getPlayerTeamName(name);
+        String teamNamePlaying = getPlayerTeamName(name).toLowerCase();
+        
         if(!freqteam.containsKey(teamNamePlaying))
             m_botAction.sendPrivateMessage("Dexter", "team "+teamNamePlaying+" not in, lower case problem?");
         
