@@ -281,7 +281,7 @@ public class MatchRound
         }
         catch (Exception e)
         {
-            System.out.println("Error: " + e.getMessage());
+        	Tools.printStackTrace(e);
         }
     }
 
@@ -303,6 +303,7 @@ public class MatchRound
 		            m_team2.handleEvent(event);
 	    	}
 	    } catch ( Exception e ) {
+	    	Tools.printStackTrace(e);
 	    }
 	}
 	
@@ -318,6 +319,7 @@ public class MatchRound
 		            m_team2.handleEvent(event);
 	    	}
 	    } catch ( Exception e ) {
+	    	Tools.printStackTrace(e);
 	    }
 	}
 	
@@ -334,6 +336,7 @@ public class MatchRound
 		            m_team2.handleEvent(event);
 	    	}
 	    } catch ( Exception e ) {
+	    	Tools.printStackTrace(e);
 	    }
 	}
 	
@@ -349,6 +352,7 @@ public class MatchRound
 		            m_team2.handleEvent(event);
 	    	}
 	    } catch ( Exception e ) {
+	    	Tools.printStackTrace(e);
 	    }
 
 	}
@@ -370,6 +374,7 @@ public class MatchRound
         	if ((m_team1.isDead() || m_team2.isDead()) && (m_fnRoundState == 3))
             	endGame();
 	    } catch ( Exception e ) {
+	    	Tools.printStackTrace(e);
 	    }
     }
 
@@ -540,10 +545,10 @@ public class MatchRound
 
 	    	    
 	    	    if (p1 != null && p2 != null) {
-	    	    	synchronized (events) {
-	    	    		events.add(MatchRoundEvent.death(p2.m_dbPlayer.getUserID(), p1.m_dbPlayer.getUserID()));
-	    	    		events.add(MatchRoundEvent.kill(p1.m_dbPlayer.getUserID(), p2.m_dbPlayer.getUserID()));
-	    	    	}
+
+    	    		events.add(MatchRoundEvent.death(p2.m_dbPlayer.getUserID(), p1.m_dbPlayer.getUserID()));
+    	    		events.add(MatchRoundEvent.kill(p1.m_dbPlayer.getUserID(), p2.m_dbPlayer.getUserID()));
+    	
 	    	    	// count only if not on the same team
 		    	    if (p1.m_team.m_fnTeamNumber != p2.m_team.m_fnTeamNumber) {
 		    	    	p1.reportKillShotDistance(distance);
@@ -563,9 +568,7 @@ public class MatchRound
 	            
 	            // player out?
 	            if (p1 != null && p2 != null && p2.m_fnPlayerState == 4) {
-	            	synchronized (events) {
-	            		events.add(MatchRoundEvent.eliminated(p2.m_dbPlayer.getUserID(), p1.m_dbPlayer.getUserID()));
-					}
+	            	events.add(MatchRoundEvent.eliminated(p2.m_dbPlayer.getUserID(), p1.m_dbPlayer.getUserID()));
 	            	p2.reportKO(killerName);
 	            }
 
@@ -636,7 +639,9 @@ public class MatchRound
     		}
     		System.out.println("Goal by: " + freq);
     		System.out.println("Score: " + m_fnTeam1Score + "-" + m_fnTeam2Score);
-    	} catch(Exception e) {}
+    	} catch(Exception e) {
+    		Tools.printStackTrace(e);    		
+    	}
     }
 
     public void handleEvent(BallPosition event)
@@ -1286,6 +1291,7 @@ public class MatchRound
                     m_botAction.spec(report.getName());
                 }
             } catch (Exception e ) {
+            	Tools.printStackTrace(e);
             }
         }
     }
@@ -1433,9 +1439,7 @@ public class MatchRound
     // gets called by m_startGame TimerTask.
     public void startGame()
     {
-    	synchronized (events) {
-    		events.add(MatchRoundEvent.roundStart());
-		}
+    	events.add(MatchRoundEvent.roundStart());
     	
         m_generalTime = m_rules.getInt("time") * 60;
         m_scoreBoard = m_botAction.getObjectSet();
@@ -1752,9 +1756,7 @@ public class MatchRound
     // Signal end of round
     public void signalEndOfRound()
     {
-    	synchronized (events) {
-    		events.add(MatchRoundEvent.roundEnd());
-		}
+    	events.add(MatchRoundEvent.roundEnd());
         m_game.reportEndOfRound(m_fbAffectsEntireGame);
     };
 
