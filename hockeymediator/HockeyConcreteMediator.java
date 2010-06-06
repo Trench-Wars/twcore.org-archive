@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.TimerTask;
 
 import twcore.bots.hockeybot.hockeydatabase.HockeyDatabase;
-import twcore.bots.hockeybot.hockeyregistrator.HockeyRegistrator;
 import twcore.bots.hockeybot.hockeyteam.HockeyTeam;
 import twcore.core.BotAction;
 import twcore.core.util.Tools;
@@ -28,16 +27,12 @@ public class HockeyConcreteMediator implements HockeyMediator {
     private     HockeyState     stateController;
 
     private     HockeyTicker    ticker;
-    private     HockeyTeam      team1;
-    private     HockeyTeam      team0;
     private     HockeyTeam      teams[];
     
     private     ArrayList<GameRequest> gameRequest;
     
     private     BotAction       m_botAction;
 
-    private     TimerTask       getBack ;
-    
     private HockeyDatabase sql;
     
     private HashMap<String, Integer> freqteam;
@@ -106,9 +101,10 @@ public class HockeyConcreteMediator implements HockeyMediator {
         String teamAccepter = /*"eumesmo";*/getCaptainTeamName(captainTeamAccepter);
         
         //startGame(captainTeamAccepter, teamAccepter, teamAccepted);
-        if(teamAccepter.equals(null))
+        if(teamAccepter.equals(null)){
             m_botAction.sendPrivateMessage(captainTeamAccepter, "You're not captain/assistant to accept a challenge");
-        
+            return;
+        }
         else{
             
             int i = 0;
@@ -142,9 +138,10 @@ public class HockeyConcreteMediator implements HockeyMediator {
         String teamReadyCapt = /*"Dex";*/getCaptainTeamName(captainName);
         int freq = -1;
         
-        if( teamReadyCapt.equals(null) )
+        if( teamReadyCapt == null ){
             m_botAction.sendPrivateMessage(captainName, "You're not captain / assistant to !ready");
-    
+            return;
+        }
         else {
             if( isPlaying(teamReadyCapt) ){
                 freq = getTeamPlayingFrequency(teamReadyCapt);
@@ -210,10 +207,6 @@ public class HockeyConcreteMediator implements HockeyMediator {
         ticker = new HockeyTicker();
         ticker.setMediator(this);
         m_botAction.scheduleTask( ticker , 100, Tools.TimeInMillis.SECOND);
-        
-        /**falta APENAS O !REGISTER
-         * falta Selecionar a squad por uma query
-         * */
         
         teams = new HockeyTeam[2];
         
@@ -438,7 +431,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
         // TO  Auto-generated method stub
         String teamNamePlaying = getPlayerTeamName(name).toLowerCase();
         
-        if(!freqteam.containsKey(teamNamePlaying)){
+        if( !freqteam.containsKey(teamNamePlaying) ){
             m_botAction.sendPrivateMessage("Dexter", "team "+teamNamePlaying+" not in, lower case problem?");
             m_botAction.sendPrivateMessage(name, "Your squad is not playing this match...");
             return;
@@ -452,12 +445,14 @@ public class HockeyConcreteMediator implements HockeyMediator {
         }
         
         else{
-            if(teams[freq].isFull())
+            if(teams[freq].isFull()){
                 m_botAction.sendPrivateMessage(name, "Team has 6 players already.");
-
-            else if(teams[freq].Contains(name))
+                return;
+            }
+            else if(teams[freq].Contains(name)){
                 m_botAction.sendPrivateMessage(name, "You're already registered in...wtf are you  ing?");
-                
+                return;
+            }
             else{
                 m_botAction.setShip(name, ship);
                 m_botAction.setFreq(name, freq);
