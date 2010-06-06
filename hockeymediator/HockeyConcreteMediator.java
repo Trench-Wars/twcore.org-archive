@@ -103,27 +103,25 @@ public class HockeyConcreteMediator implements HockeyMediator {
         String teamAccepter = /*"eumesmo";*/getCaptainTeamName(captainTeamAccepter);
         
         //startGame(captainTeamAccepter, teamAccepter, teamAccepted);
-        if(teamAccepter.equals(null)){
+        if(teamAccepter == null){
             m_botAction.sendPrivateMessage(captainTeamAccepter, "You're not captain/assistant to accept a challenge");
             return;
         }
-        else{
-            
-            int i = 0;
-           
-            for(GameRequest gr: gameRequest){
-            
-                if( gr.getSqdChallenged().equalsIgnoreCase(teamAccepter) && gr.getSqdChallenger().equalsIgnoreCase(teamAccepted) ){
-                    gameRequest.remove(gr);
-                    i++;
-                    startGame(captainTeamAccepter, gr.getRequester(), gr.getSqdChallenged(), gr.getSqdChallenger());
-                    break;
-                } 
+      
+        int i = 0;
+       
+        for(GameRequest gr: gameRequest){
+        
+            if( gr.getSqdChallenged().equalsIgnoreCase(teamAccepter) && gr.getSqdChallenger().equalsIgnoreCase(teamAccepted) ){
+                gameRequest.remove(gr);
+                i++;
+                startGame(captainTeamAccepter, gr.getRequester(), gr.getSqdChallenged(), gr.getSqdChallenger());
+                break;
             }
-            
-            if( i == 0 )
-                m_botAction.sendPrivateMessage(captainTeamAccepter, teamAccepted+" has not challenged your squad...");
-        }
+        }      
+        if( i == 0 )
+            m_botAction.sendPrivateMessage(captainTeamAccepter, teamAccepted+" has not challenged your squad...");
+        
         
     }
     
@@ -144,16 +142,15 @@ public class HockeyConcreteMediator implements HockeyMediator {
             m_botAction.sendPrivateMessage(captainName, "You're not captain / assistant to !ready");
             return;
         }
-        else {
-            if( isPlaying(teamReadyCapt) ){
-                freq = getTeamPlayingFrequency(teamReadyCapt);
-                teams[freq].setReady(true);
-                m_botAction.sendPrivateMessage(captainName, "You've ready your team.");
-                checkReady();
-                }
-            else
-                m_botAction.sendPrivateMessage(captainName, "Your squad is not playing this match at the moment");
-        }
+      
+        if( isPlaying(teamReadyCapt) ){
+            freq = getTeamPlayingFrequency(teamReadyCapt);
+            teams[freq].setReady(true);
+            m_botAction.sendPrivateMessage(captainName, "You've ready your team.");
+            checkReady();
+            }
+        else
+            m_botAction.sendPrivateMessage(captainName, "Your squad is not playing this match at the moment");
         
     }
     
