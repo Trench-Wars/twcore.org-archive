@@ -127,7 +127,7 @@ public class HockeyDatabase {
         return squadName;
     }
     public String getCaptainTeamName(String captainName){
-        String squadName = null;
+        
         try{
          
             PreparedStatement psGetTeamName;
@@ -145,13 +145,14 @@ public class HockeyDatabase {
             
             ResultSet rs = psGetTeamName.executeQuery();
             while(rs.next()){
-                squadName = rs.getString(1);
+                String squadName = rs.getString(1);
                 return squadName;
             }
         }catch(SQLException e){
             Tools.printLog(e.toString());
         }
-        return squadName;
+        
+        return null;
     }
     public boolean getTeamUserIdIsRostered(int userId){
             try{
