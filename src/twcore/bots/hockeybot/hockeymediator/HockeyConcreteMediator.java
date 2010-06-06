@@ -206,6 +206,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
             m_botAction.sendUnfilteredPublicMessage("?chat="+chatTeamAccepted+","+chatTeamAccepter);
             m_botAction.sendChatMessage(1, "GO GO GO! Your squad has a match now against "+teamAccepter+" .. come ?go "+m_botAction.getArenaName()+" to play!");
             m_botAction.sendChatMessage(2, "GO GO GO! Your squad has a match now against "+teamAccepted+" .. come ?go "+m_botAction.getArenaName()+" to play!");
+            
         }
         
         else if( chatTeamAccepter != null)
@@ -219,6 +220,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
             m_botAction.sendChatMessage("GO GO GO! Your squad has a match now against "+teamAccepter+" .. come ?go "+m_botAction.getArenaName()+" to play!");
         }
         
+        m_botAction.sendUnfilteredPublicMessage("?chat=");
         m_botAction.specAll();
         m_botAction.cancelTasks();
         m_botAction.resetTimer();
