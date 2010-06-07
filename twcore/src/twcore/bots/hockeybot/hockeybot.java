@@ -124,6 +124,7 @@ public class hockeybot
         //123456
         int matchId = Integer.parseInt( message.substring(6) );
     }
+    /*
     public void testWarpBot(){
         m_botAction.getShip().setShip(8);
         m_botAction.getShip().setFreq(322);
@@ -132,7 +133,7 @@ public class hockeybot
         m_botAction.getShip().fire(5);
         m_botAction.getBall();
     }
-
+*/
     /**
      * Events being worked on still.
      * */
@@ -299,10 +300,10 @@ public class hockeybot
             m_botAction.privateMessageSpam(name, this.shortCmds);
         }
         /**Players commands
-         * */
+         * *//*
          else if(message.startsWith("!b"))
-             testWarpBot();
-
+             //testWarpBot();
+          */
          else if( message.startsWith("!twhtops"))
             showOps(name);
 
