@@ -361,7 +361,7 @@ public class hockeybot
         }
         
         //ShortCut Key to !challenge
-        else if( message.startsWith("!c") && !message.startsWith("!challenge") ){
+        else if( message.startsWith("!c") && !message.startsWith("!challenge") &&!message.startsWith("!cancel") ){
             //!c <>
             //0123
             if(  message.length() < 4)
