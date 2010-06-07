@@ -442,8 +442,9 @@ public class hockeybot
             
             else if(message.startsWith("!stop"));
             }catch(Exception e){
-             Tools.printLog(e.toString());
-             return;
+                Tools.printLog(e.toString());
+                m_botAction.sendPrivateMessage(name, "You've typed a wrong command, congratulations, sigh. !help to check the right commands...");
+                return;
          }
     }
 
@@ -532,6 +533,7 @@ public class hockeybot
             
             }catch(Exception e){
                 Tools.printLog(e.toString());
+                m_botAction.sendPrivateMessage(name, "Wtf you're doing? It's !r <SHIPNUMBER> ...LOL!");
                 return ;
            }
     }
