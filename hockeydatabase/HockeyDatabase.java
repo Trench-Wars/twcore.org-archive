@@ -4,6 +4,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import twcore.bots.hockeybot.hockeyteam.HockeyPlayer;
+import twcore.bots.hockeybot.hockeyteam.HockeyTeam;
 import twcore.core.BotAction;
 import twcore.core.util.Tools;
 
@@ -248,6 +250,44 @@ public class HockeyDatabase {
         return null;
     }
     
+    /**
+     * MATCH QUERIES
+     * */
+    public void putMatch(int idTeamOne, int idTeamTwo){
+        try{
+            PreparedStatement psPutExtendedLogMatchInfo;
+            String query = "INSERT INTO tblTWHT__Match (fnTeam1ID, fnTeam2ID) VALUES (?,?)";
+            psPutExtendedLogMatchInfo = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, query);
+            
+            psPutExtendedLogMatchInfo.setInt(1, idTeamOne);
+            psPutExtendedLogMatchInfo.setInt(2, idTeamTwo);
+            psPutExtendedLogMatchInfo.executeUpdate();
+            psPutExtendedLogMatchInfo.close();
+        }catch(SQLException e){
+            Tools.printLog(e.toString());
+        }
+        
+    }
+    
+    public void putPlayer(HockeyTeam []t){
+        try{
+        String query = "INSERT INTO tblTWHT__MatchGoal (fnScorerID, fdTimeOfGoal, fnMatchID, fnTeamID) VALUES (?,?,?,?)";
+        PreparedStatement psPutExtendedLogPlayerInfo;
+        psPutExtendedLogPlayerInfo = m_botAction.createPreparedStatement(this.connectionName, uniqueId, query);
+        for(HockeyTeam team: t)
+            for(HockeyPlayer p: team.hockeyPlayers.values())
+            {
+                psPutExtendedLogPlayerInfo.clearParameters();
+               // psPutExtendedLogPlayerInfo.setInt(parameterIndex, x)
+            }
+        
+        }catch(SQLException e){
+            Tools.printLog(e.toString());
+        }
+        
+    }
+    
+    /*****************************************************/
     private void closePreparedStatements(){
         try{
             psGetCurrentSquads.close();
