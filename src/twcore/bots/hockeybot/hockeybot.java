@@ -124,6 +124,14 @@ public class hockeybot
         //123456
         int matchId = Integer.parseInt( message.substring(6) );
     }
+    public void testWarpBot(){
+        m_botAction.getShip().setShip(8);
+        m_botAction.getShip().setFreq(322);
+        m_botAction.warpFreqToLocation(322, 512, 513);
+        
+        m_botAction.getShip().fire(5);
+        m_botAction.getBall();
+    }
 
     /**
      * Events being worked on still.
@@ -275,6 +283,7 @@ public class hockeybot
     
     private void handleCommand(String name, String message) throws SQLException {
         
+        
          if(message.startsWith("!help")){
             m_botAction.privateMessageSpam(name, this.pubHelp);
             if( op.isER(name) )
@@ -291,7 +300,10 @@ public class hockeybot
         }
         /**Players commands
          * */
-        else if( message.startsWith("!twhtops"))
+         else if(message.startsWith("!b"))
+             testWarpBot();
+
+         else if( message.startsWith("!twhtops"))
             showOps(name);
 
         else if( message.startsWith("!status"))
@@ -345,9 +357,13 @@ public class hockeybot
             if( message.length() < 4){
                 m_botAction.sendPrivateMessage(name, "The shortcut key !r should be used with <Ship>: Eg.: !r 3 to register as spider");
                 return;
-            }else
+            }else{
+                if(message.substring(3) instanceof String){
+                    m_botAction.sendArenaMessage("Caught.."+name+"> "+message);
+                    return;
+                }
                 registerPlayer(name, message.substring(3) );
-                
+            }
         }
         else if (message.startsWith("!register")){
             /**
@@ -581,4 +597,13 @@ public class hockeybot
 
         m_botAction.sendPrivateMessage(name, "=============================");
     }
+    
+  /*  public void doTest(){
+        Player p = m_botAction.getPlayer("Dexter");
+        try{
+            m_botAction.getBall(p.getPlayerID(), 2);
+        }catch(Exception e){
+            Tools.printLog(e.toString());
+        }
+    }*/
 }
