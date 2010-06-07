@@ -2,6 +2,7 @@ package twcore.bots.hockeybot;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.TimerTask;
 
 import twcore.bots.hockeybot.hockeymediator.*;
 import twcore.bots.hockeybot.hockeyregistrator.HockeyRegistrator;
@@ -40,6 +41,8 @@ public class hockeybot
     
     /*
      * List to stats: save, goal, assist ( 1st, 2nd )*/
+    
+    private     boolean                         allowedToZone = true;
     private     HockeyAssistGoalStack<String>   list;
     private     ArrayList<String>               twhtOps;
     private     OperatorList                    op;
@@ -304,6 +307,9 @@ public class hockeybot
              else if(message.startsWith("!b"))
                  //testWarpBot();
               */
+             else if( message.startsWith("!zone") && this.twhtHead.equalsIgnoreCase(name))
+                 zoneMessage(name, message);
+             
              else if( message.startsWith("!twhtops"))
                 showOps(name);
     
@@ -328,7 +334,7 @@ public class hockeybot
              * */
             
             //Short Cut Key to !accept
-            else if( message.startsWith("!a") && !message.startsWith("!accept") && !message.startsWith("!addop"))
+            else if( message.charAt(1) == 'a' && message.charAt(2) == ' ')//message.startsWith("!a") && !message.startsWith("!accept") && !message.startsWith("!addop"))
             {
                 //!a <squadname>
                 //0123
@@ -352,7 +358,7 @@ public class hockeybot
             }
             
             //ShortCut Key to !register
-            else if( message.startsWith("!r") && !message.startsWith("!register") && !message.startsWith("!ready") && !message.startsWith("!remove")){
+            else if( message.charAt(1) == 'r' && message.charAt(2) == ' ' ){//&& !message.startsWith("!register") && !message.startsWith("!ready") && !message.startsWith("!remove")){
                 //!r <>
                 //0123
                 if( message.length() < 4){
@@ -374,7 +380,7 @@ public class hockeybot
             }
             
             //ShortCut Key to !challenge
-            else if( message.startsWith("!c") && !message.startsWith("!challenge") &&!message.startsWith("!cancel") ){
+            else if( message.charAt(1) == 'c' && message.charAt(2) == ' ' ){//&& !message.startsWith("!challenge") &&!message.startsWith("!cancel") ){
                 //!c <>
                 //0123
                 if(  message.length() < 4)
@@ -412,7 +418,7 @@ public class hockeybot
              * Registering squad commands
              * */
             //ShortCut Key to !TeamSignup
-            else if( message.startsWith("!t") && !message.startsWith("!teamsignup"))
+            else if( message.charAt(1) == 't' && message.charAt(2) == ' ')//&& !message.startsWith("!teamsignup"))
             {
                 if( message.length() <= 3){
                     m_botAction.sendPrivateMessage(name, "Please, the shortcut to create a team is !t <TeamName>..Eg: !t DexterSquad");
@@ -443,10 +449,29 @@ public class hockeybot
             else if(message.startsWith("!stop"));
             }catch(Exception e){
                 Tools.printLog(e.toString());
-                m_botAction.sendPrivateMessage(name, "You've typed a wrong command, congratulations, sigh. !help to check the right commands...");
+                Tools.printLog("Error by command: "+name+"> "+message);
+                m_botAction.sendPrivateMessage(name, "You've typed a wrong command, "+message+" is not right. Check !help");
                 return;
          }
     }
+
+    private void zoneMessage(String name, String message) {/*
+        // TODO Auto-generated method stub
+        //!zone <
+        //0123456
+        String zoneMsg = message.substring(6);
+        if(allowedToZone){
+            m_botAction.sendZoneMessage(zoneMsg);
+            allowedToZone = false;
+        }
+        
+        TimerTask allowZone = new TimerTask(){
+            public void run(){
+                allowedToZone = true;
+            }
+        };m_botAction.scheduleTask(allowZone, Tools.TimeInMillis.MINUTE*5);
+    */
+        }
 
     public void acceptChallenge(String name, String squadAccepted){
 
@@ -533,7 +558,8 @@ public class hockeybot
             
             }catch(Exception e){
                 Tools.printLog(e.toString());
-                m_botAction.sendPrivateMessage(name, "Wtf you're doing? It's !r <SHIPNUMBER> ...LOL!");
+                Tools.printLog("Error - String put instead of a int - by "+name+"> "+ " !r "+ship);
+                m_botAction.sendPrivateMessage(name, "Wtf you are doing? It's !r <SHIPNUMBER> ...LOL!");
                 return ;
            }
     }
