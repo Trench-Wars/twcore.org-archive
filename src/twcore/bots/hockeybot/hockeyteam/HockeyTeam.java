@@ -20,7 +20,8 @@ public class HockeyTeam {
     private final int teamMaxPlayers = 6;
     private final int teamMinPlayers = 4;
     
-    private TreeMap<String, HockeyPlayer> hockeyPlayers;
+    public TreeMap<String, HockeyPlayer> hockeyPlayers;
+    
     private ArrayList<String> waitingList;
     
     public HockeyTeam(int teamId, int frequence, String teamName, BotAction botAction){

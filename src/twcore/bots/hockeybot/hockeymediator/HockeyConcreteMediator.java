@@ -33,7 +33,7 @@ public class HockeyConcreteMediator implements HockeyMediator {
     private     ArrayList<GameRequest> gameRequest;
     private     HashMap<String, Integer> freqteam;
 
-    private     KeepAliveConnection keepAliveConnection;
+    //private     KeepAliveConnection keepAliveConnection;
     
     
     public HockeyConcreteMediator(BotAction botAction){
@@ -55,8 +55,8 @@ public class HockeyConcreteMediator implements HockeyMediator {
         
         gameRequest = new ArrayList<GameRequest>();
         
-        keepAliveConnection = new KeepAliveConnection();
-        m_botAction.scheduleTaskAtFixedRate( keepAliveConnection, 100, Tools.TimeInMillis.MINUTE*2);
+        //keepAliveConnection = new KeepAliveConnection();
+        //m_botAction.scheduleTaskAtFixedRate( keepAliveConnection, 100, Tools.TimeInMillis.MINUTE*2);
         
     }
     
