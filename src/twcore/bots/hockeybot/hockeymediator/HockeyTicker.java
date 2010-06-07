@@ -82,7 +82,7 @@ public class HockeyTicker
     public void run() {
      
         
-        if(mins == time_to_start && !isInProgress()){
+        if(mins == time_to_start && !isInProgress() &&!isInFaceOff() && !isInInterval()){
             mediator.setState(HockeyState.Game_In_Progress);
             mins = 0;
             secs = 0;
