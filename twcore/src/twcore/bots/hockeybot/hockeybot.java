@@ -283,168 +283,168 @@ public class hockeybot
     }
     
     private void handleCommand(String name, String message) throws SQLException {
-        
-        
-         if(message.startsWith("!help")){
-            m_botAction.privateMessageSpam(name, this.pubHelp);
-            if( op.isER(name) )
-                m_botAction.privateMessageSpam(name, this.erHelp);
-         
-            if( twhtOps.contains(name) ){
-                m_botAction.privateMessageSpam(name, this.twhtOpHelp);
-            }
+        try{
             
-            if( this.twhtHead.equalsIgnoreCase(name) )
-                m_botAction.privateMessageSpam(name, this.twhtHeadHelp);
-
-            m_botAction.privateMessageSpam(name, this.shortCmds);
-        }
-        /**Players commands
-         * *//*
-         else if(message.startsWith("!b"))
-             //testWarpBot();
-          */
-         else if( message.startsWith("!twhtops"))
-            showOps(name);
-
-        else if( message.startsWith("!status"))
-            showStatus(name);
-        /**
-         * Mod commands*/
-        else if ( message.startsWith("!go") && op.isER(name)){
-            //!go <>
-            //01234
-            if(message.length() < 4){
-                m_botAction.sendPrivateMessage(name, "Please specify what arena: !go <arena>");
-                return ;
-            }
-            else
-                go(name, message.substring(4));
-                
-        }
-        
-        /**
-         * Challenge, accept and register commands
-         * */
-        
-        //Short Cut Key to !accept
-        else if( message.startsWith("!a") && !message.startsWith("!accept") && !message.startsWith("!addop"))
-        {
-            //!a <squadname>
-            //0123
-            if( message.length() < 4){
-                m_botAction.sendPrivateMessage(name, "The shortcut key !a should be used with a <SquadName>: Eg.: !a DexterSquad");
-                return ;
-            }else
-                acceptChallenge(name, message.substring(3) );
-            
-        }
-        
-        else if(message.startsWith("!accept")){
-            //!accept <>
-            //012345678
-            if(message.length() <= 8){
-                m_botAction.sendPrivateMessage(name, "Please use the command !accept <Squadname>");
-                return ;
-            }else
-                acceptChallenge(name, message.substring(8));
-            
-        }
-        
-        //ShortCut Key to !register
-        else if( message.startsWith("!r") && !message.startsWith("!register") && !message.startsWith("!ready") && !message.startsWith("!remove")){
-            //!r <>
-            //0123
-            if( message.length() < 4){
-                m_botAction.sendPrivateMessage(name, "The shortcut key !r should be used with <Ship>: Eg.: !r 3 to register as spider");
-                return;
-            }else{
-                if(message.substring(3) instanceof String){
-                    m_botAction.sendArenaMessage("Caught.."+name+"> "+message);
-                    return;
+             if(message.startsWith("!help")){
+                m_botAction.privateMessageSpam(name, this.pubHelp);
+                if( op.isER(name) )
+                    m_botAction.privateMessageSpam(name, this.erHelp);
+             
+                if( twhtOps.contains(name) ){
+                    m_botAction.privateMessageSpam(name, this.twhtOpHelp);
                 }
-                registerPlayer(name, message.substring(3) );
+                
+                if( this.twhtHead.equalsIgnoreCase(name) )
+                    m_botAction.privateMessageSpam(name, this.twhtHeadHelp);
+    
+                m_botAction.privateMessageSpam(name, this.shortCmds);
             }
-        }
-        else if (message.startsWith("!register")){
+            /**Players commands
+             * *//*
+             else if(message.startsWith("!b"))
+                 //testWarpBot();
+              */
+             else if( message.startsWith("!twhtops"))
+                showOps(name);
+    
+            else if( message.startsWith("!status"))
+                showStatus(name);
             /**
-             * IF GAME IN PROGRESS*/
-            if(message.length() <= 9){
-                m_botAction.sendPrivateMessage(name, "Use !register <ship> please.");
-                return ;
-            } 
-            else
-                registerPlayer(name, message.substring(10));
-        }
-        
-        //ShortCut Key to !challenge
-        else if( message.startsWith("!c") && !message.startsWith("!challenge") &&!message.startsWith("!cancel") ){
-            //!c <>
-            //0123
-            if(  message.length() < 4)
-            {
-                m_botAction.sendPrivateMessage(name, "The shortkut key !c should be used with <SquadName>: Eg.: !c DexterSquad");
-                return ;
+             * Mod commands*/
+            else if ( message.startsWith("!go") && op.isER(name)){
+                //!go <>
+                //01234
+                if(message.length() < 4){
+                    m_botAction.sendPrivateMessage(name, "Please specify what arena: !go <arena>");
+                    return ;
+                }
+                else
+                    go(name, message.substring(4));
+                    
             }
-            else
-                challengeTeam( name, message.substring(3) );
             
-        }
-        else if( message.startsWith("!challenge") ){
-            //!challenge <squadname>
-            //0123456789TE
-            if(message.length() < 11){
-                m_botAction.sendPrivateMessage(name, "...Use !challenge <squadname> please, the full command that is.");
-                return ;
-            }else
-                challengeTeam(name, message.substring(11));
-        }   
-        /**---------------------------------------------*/
-        
-        /**
-         * TWHT-OP Commands
-         * */
-        else if(message.startsWith("!cancelgame") && this.twhtOps.contains(name.toLowerCase()))
-            cancelGame(name, message);
-        
-        else if( message.startsWith("!score") && this.twhtOps.contains(name.toLowerCase()) )
-            mediator.displayStatistics();
-        
-        else if ( message.startsWith("!addop"))
-            addOp(name, message.substring(7) );
-        /**
-         * Registering squad commands
-         * */
-        //ShortCut Key to !TeamSignup
-        else if( message.startsWith("!t") && !message.startsWith("!teamsignup"))
-        {
-            if( message.length() <= 3){
-                m_botAction.sendPrivateMessage(name, "Please, the shortcut to create a team is !t <TeamName>..Eg: !t DexterSquad");
-                return ;
-            }else
-                registerSquad(name, message.substring(3) );
+            /**
+             * Challenge, accept and register commands
+             * */
+            
+            //Short Cut Key to !accept
+            else if( message.startsWith("!a") && !message.startsWith("!accept") && !message.startsWith("!addop"))
+            {
+                //!a <squadname>
+                //0123
+                if( message.length() < 4){
+                    m_botAction.sendPrivateMessage(name, "The shortcut key !a should be used with a <SquadName>: Eg.: !a DexterSquad");
+                    return ;
+                }else
+                    acceptChallenge(name, message.substring(3) );
                 
-        }
-        else if( message.startsWith("!teamsignup")){
-            if(message.length() <= 12 ){
-                m_botAction.sendPrivateMessage(name, "Please, use the command !teamsignup <squadName> to register a squad into TWHT.");
-                return ;
-            }else
-                registerSquad(name, message.substring(12));
-        }
-        
-  
-        /**
-         * During game commands */
-        else if(message.startsWith("!ready")){
-            readyTeam(name, message);
-        }
-        
+            }
+            
+            else if(message.startsWith("!accept")){
+                //!accept <>
+                //012345678
+                if(message.length() <= 8){
+                    m_botAction.sendPrivateMessage(name, "Please use the command !accept <Squadname>");
+                    return ;
+                }else
+                    acceptChallenge(name, message.substring(8));
                 
-        else if(message.startsWith("!die") && op.isModerator(name))
-            doDie(name, message);
-        
-        else if(message.startsWith("!stop"));
+            }
+            
+            //ShortCut Key to !register
+            else if( message.startsWith("!r") && !message.startsWith("!register") && !message.startsWith("!ready") && !message.startsWith("!remove")){
+                //!r <>
+                //0123
+                if( message.length() < 4){
+                    m_botAction.sendPrivateMessage(name, "The shortcut key !r should be used with <Ship>: Eg.: !r 3 to register as spider");
+                    return;
+                }else{
+                    registerPlayer(name, message.substring(3) );
+                }
+            }
+            else if (message.startsWith("!register")){
+                /**
+                 * IF GAME IN PROGRESS*/
+                if(message.length() <= 9){
+                    m_botAction.sendPrivateMessage(name, "Use !register <ship> please.");
+                    return ;
+                } 
+                else
+                    registerPlayer(name, message.substring(10));
+            }
+            
+            //ShortCut Key to !challenge
+            else if( message.startsWith("!c") && !message.startsWith("!challenge") &&!message.startsWith("!cancel") ){
+                //!c <>
+                //0123
+                if(  message.length() < 4)
+                {
+                    m_botAction.sendPrivateMessage(name, "The shortkut key !c should be used with <SquadName>: Eg.: !c DexterSquad");
+                    return ;
+                }
+                else
+                    challengeTeam( name, message.substring(3) );
+                
+            }
+            else if( message.startsWith("!challenge") ){
+                //!challenge <squadname>
+                //0123456789TE
+                if(message.length() < 11){
+                    m_botAction.sendPrivateMessage(name, "...Use !challenge <squadname> please, the full command that is.");
+                    return ;
+                }else
+                    challengeTeam(name, message.substring(11));
+            }   
+            /**---------------------------------------------*/
+            
+            /**
+             * TWHT-OP Commands
+             * */
+            else if(message.startsWith("!cancelgame") && this.twhtOps.contains(name.toLowerCase()))
+                cancelGame(name, message);
+            
+            else if( message.startsWith("!score") && this.twhtOps.contains(name.toLowerCase()) )
+                mediator.displayStatistics();
+            
+            else if ( message.startsWith("!addop"))
+                addOp(name, message.substring(7) );
+            /**
+             * Registering squad commands
+             * */
+            //ShortCut Key to !TeamSignup
+            else if( message.startsWith("!t") && !message.startsWith("!teamsignup"))
+            {
+                if( message.length() <= 3){
+                    m_botAction.sendPrivateMessage(name, "Please, the shortcut to create a team is !t <TeamName>..Eg: !t DexterSquad");
+                    return ;
+                }else
+                    registerSquad(name, message.substring(3) );
+                    
+            }
+            else if( message.startsWith("!teamsignup")){
+                if(message.length() <= 12 ){
+                    m_botAction.sendPrivateMessage(name, "Please, use the command !teamsignup <squadName> to register a squad into TWHT.");
+                    return ;
+                }else
+                    registerSquad(name, message.substring(12));
+            }
+            
+      
+            /**
+             * During game commands */
+            else if(message.startsWith("!ready")){
+                readyTeam(name, message);
+            }
+            
+                    
+            else if(message.startsWith("!die") && op.isModerator(name))
+                doDie(name, message);
+            
+            else if(message.startsWith("!stop"));
+            }catch(Exception e){
+             Tools.printLog(e.toString());
+             return;
+         }
     }
 
     public void acceptChallenge(String name, String squadAccepted){
@@ -505,29 +505,35 @@ public class hockeybot
     private void registerPlayer(String name, String ship) throws SQLException{
         //!register <ship>
         //0123456789S
-        if(mediator.isInRegisterTime()){
-            int shipNumber = Integer.parseInt(ship);//check if hes in the squad
-            
-            if( shipNumber > 9 || shipNumber < 1)
-            {
-                m_botAction.sendPrivateMessage(name, "Register in a ship 1-8 please");
-                return;
+        try{
+            if(mediator.isInRegisterTime()){
+                int shipNumber = Integer.parseInt(ship);//check if hes in the squad
+              
+                if( shipNumber > 9 || shipNumber < 1)
+                {
+                    m_botAction.sendPrivateMessage(name, "Register in a ship 1-8 please");
+                    return;
+                }
+                
+                mediator.addPlayer(name, shipNumber);
             }
             
-            mediator.addPlayer(name, shipNumber);
-        }
-        
-        else{
+            else{
+                
+                if(!mediator.gameIsRunning())
+                    m_botAction.sendPrivateMessage(name, "Couldn't register you in. No games happening atm.");
+                else if(mediator.isInFaceOffOrInterval())
+                    m_botAction.sendPrivateMessage(name, "We're in the faceoff / interval now. You should've registered at start.");
+                else if(mediator.gameIsRunning())
+                    m_botAction.sendPrivateMessage(name,"We're on a game now, registration just works in the Pre Start");
+                
+                return ;
+            }
             
-            if(!mediator.gameIsRunning())
-                m_botAction.sendPrivateMessage(name, "Couldn't register you in. No games happening atm.");
-            else if(mediator.isInFaceOffOrInterval())
-                m_botAction.sendPrivateMessage(name, "We're in the faceoff / interval now. You should've registered at start.");
-            else if(mediator.gameIsRunning())
-                m_botAction.sendPrivateMessage(name,"We're on a game now, registration just works in the Pre Start");
-            
-            return ;
-        }
+            }catch(Exception e){
+                Tools.printLog(e.toString());
+                return ;
+           }
     }
     
     private void faceOffPlayer(String name, String playerName){
