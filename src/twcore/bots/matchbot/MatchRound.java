@@ -449,12 +449,20 @@ public class MatchRound
             {
                 m_team2.disownFlag();                 // Disown flag before reowning
                 m_team1.ownFlag(event.getPlayerID()); // .. or else own will not register. -qan 10/04
+                
+                MatchPlayer p = getPlayer(player.getPlayerName());
+                if (p != null)
+                	events.add(MatchRoundEvent.flagTouch(1, p.m_dbPlayer.getUserID()));
             }
 
             if (m_team2.getFrequency() == freq)
             {
                 m_team1.disownFlag();
                 m_team2.ownFlag(event.getPlayerID());
+                
+                MatchPlayer p = getPlayer(player.getPlayerName());
+                if (p != null)
+                	events.add(MatchRoundEvent.flagTouch(2, p.m_dbPlayer.getUserID()));
             }
         }
     }
@@ -1607,6 +1615,7 @@ public class MatchRound
             }
             else
             {
+            	
                 m_game.reportEndOfRound(m_fbAffectsEntireGame);
 				m_botAction.showObject(m_rules.getInt("obj_gameover"));
                 return;
@@ -1756,8 +1765,7 @@ public class MatchRound
     // Signal end of round
     public void signalEndOfRound()
     {
-    	events.add(MatchRoundEvent.roundEnd());
-        m_game.reportEndOfRound(m_fbAffectsEntireGame);
+    	m_game.reportEndOfRound(m_fbAffectsEntireGame);
     };
 
     // for turnbased picking
@@ -2142,6 +2150,7 @@ public class MatchRound
     	public final static int ELIMINATED = 8;
     	public final static int ROUND_START = 9;
     	public final static int ROUND_END = 10;
+    	public final static int FLAG_TOUCH = 11;
 
     	private MatchRoundEvent(int eventType) {
     		this.add(System.currentTimeMillis()); // timestamp
@@ -2210,6 +2219,13 @@ public class MatchRound
     	
     	public static MatchRoundEvent roundEnd() {
     		MatchRoundEvent event = new MatchRoundEvent(ROUND_END);
+    		return event;
+    	}
+    	
+    	public static MatchRoundEvent flagTouch(int team, int fnUserID) {
+    		MatchRoundEvent event = new MatchRoundEvent(FLAG_TOUCH);
+    		event.add(team);
+    		event.add(fnUserID);
     		return event;
     	}
     	
