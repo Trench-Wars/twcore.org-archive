@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.TimerTask;
 
+import twcore.bots.matchbot.MatchRound.MatchRoundEvent;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.events.ArenaJoined;
@@ -657,7 +658,9 @@ public class MatchGame
 	{
 		// remove/disable any possible timers
 		m_curRound.cancel();
-
+		
+		m_curRound.events.add(MatchRoundEvent.roundEnd());
+        
 		int rounds = m_rules.getInt("rounds");
 
 		if (m_curRound.m_team1.isForfeit() || m_curRound.m_team2.isForfeit())
