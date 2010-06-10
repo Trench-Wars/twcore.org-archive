@@ -404,7 +404,7 @@ public class MatchTeam
                 MatchPlayer player = getPlayer(name);
 
                 if(player != null && userid != null && userid.length() > 0) {
-                	if (player.resolution == "")
+                	if (!resolution.isEmpty())
                 		player.resolution = resolution;
                 }
             }

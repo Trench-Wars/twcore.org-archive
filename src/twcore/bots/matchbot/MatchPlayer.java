@@ -476,7 +476,6 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			}
 		}
 		
-		
 		int shipType = m_botAction.getPlayer(killeeID).getShipType();
 		int killeeFreq = m_botAction.getPlayer(killeeID).getFrequency();
 
