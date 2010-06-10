@@ -524,7 +524,11 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		}
 		lastDeath = System.currentTimeMillis();
 		
-		//lag check timer cancel
+		// Get *einfo on first death to get a proper resolution
+		if (m_statTracker.getStatistic(Statistics.DEATHS) == 1)
+			m_botAction.sendUnfilteredPrivateMessage(getPlayerName(), "*einfo");
+		
+		// Lag check timer cancel
 		if ((m_statTracker.getStatistic(Statistics.DEATHS) >= m_fnSpecAt) && (m_rules.getString("winby").equals("kills")))
 		{
 			if (m_fnPlayerState != 2)
