@@ -666,10 +666,17 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		resetOutOfBorderTime();
 		if (fbOutOfArena)
 			m_player = null;
+		
 		if (lagRequestTask != null)
             m_botAction.cancelTask(lagRequestTask);
-		//if (m_fnPlayerState == 1)
-			//m_fnPlayerState = 3;
+		
+		if (m_fnPlayerState == 1)
+			m_fnPlayerState = 3;
+		
+		if(m_player == null){
+		    m_botAction.sendPrivateMessage("Dexter", "m_player is null, dex");
+		    return;
+		}
 		m_fnLaggedTime = System.currentTimeMillis();
 		
  		m_team.m_round.events.add(MatchRoundEvent.lagout(m_dbPlayer.getUserID(), fbOutOfArena));
