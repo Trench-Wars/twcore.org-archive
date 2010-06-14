@@ -668,8 +668,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			m_player = null;
 		if (lagRequestTask != null)
             m_botAction.cancelTask(lagRequestTask);
-		if (m_fnPlayerState == 1)
-			m_fnPlayerState = 3;
+		//if (m_fnPlayerState == 1)
+			//m_fnPlayerState = 3;
 		m_fnLaggedTime = System.currentTimeMillis();
 		
  		m_team.m_round.events.add(MatchRoundEvent.lagout(m_dbPlayer.getUserID(), fbOutOfArena));
