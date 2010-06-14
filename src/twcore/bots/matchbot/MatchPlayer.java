@@ -661,6 +661,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	// lagout event (when a player lags out to spec)
 	public void lagout(boolean fbOutOfArena)
 	{
+	    try{
 		m_statTracker.endNow();
 
 		resetOutOfBorderTime();
@@ -680,7 +681,11 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		m_fnLaggedTime = System.currentTimeMillis();
 		
  		m_team.m_round.events.add(MatchRoundEvent.lagout(m_dbPlayer.getUserID(), fbOutOfArena));
- 	    
+	    
+	    }catch(Exception e){
+	       Tools.printLog(e.toString()); 
+	       return;
+	    }
 		
 	};
 
