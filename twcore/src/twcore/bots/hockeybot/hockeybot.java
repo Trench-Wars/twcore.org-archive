@@ -4,8 +4,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.TimerTask;
 
-import twcore.bots.hockeybot.hockeymediator.*;
 import twcore.bots.hockeybot.hockeyregistrator.HockeyRegistrator;
+import twcore.bots.hockeybot.hockeystate.HockeyState;
+import twcore.bots.hockeybot.ticker.*;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
@@ -34,10 +35,10 @@ import twcore.core.util.Tools;
  * */
 
 public class hockeybot
-        extends SubspaceBot{
+        extends HockeyGame{
 
     /* Mediator pattern - the 'heart' of the game*/
-    private     HockeyConcreteMediator          mediator;
+   // private     HockeyConcreteMediator          mediator;
     
     /*
      * List to stats: save, goal, assist ( 1st, 2nd )*/
@@ -104,7 +105,7 @@ public class hockeybot
     
     public void doStartBot(){
         
-        this.mediator = new HockeyConcreteMediator(m_botAction);
+        //this.mediator = new HockeyConcreteMediator(m_botAction);
         this.events = m_botAction.getEventRequester();
         this.requestEvents(events);
         this.op = m_botAction.getOperatorList();
@@ -121,12 +122,12 @@ public class hockeybot
         
     }
     
-    public void doLoadGame(String name, String message){
+    /*public void doLoadGame(String name, String message){
         //this.hzsql.
         //!load id
         //123456
         int matchId = Integer.parseInt( message.substring(6) );
-    }
+    }*/
     /*
     public void testWarpBot(){
         m_botAction.getShip().setShip(8);
@@ -150,7 +151,7 @@ public class hockeybot
             /**
              * Trabalhar aqui para adicionar pontos a cada jogador
              * */
-        if(mediator.gameIsRunning()){
+        //if(mediator.gameIsRunning()){
             
             try{
                 String p_Goal = null;
@@ -175,16 +176,16 @@ public class hockeybot
                 
                 if(p_A1 != null){
                     m_botAction.sendArenaMessage("Assist: "+p_A1);
-                    addPlayerPoint(p_A1, freq, 2);
+            //        addPlayerPoint(p_A1, freq, 2);
                 }
                 if(p_A2 != null){
                     m_botAction.sendArenaMessage("2nd Assist: "+p_A2);
-                    addPlayerPoint(p_A2, freq, 2);
+          //          addPlayerPoint(p_A2, freq, 2);
                 }
                 
-                addPlayerPoint(p_Goal, freq, 1);
-                setFaceOffState();
-                updateScore(freq);
+      //          addPlayerPoint(p_Goal, freq, 1);
+       //         setFaceOffState();
+        //        updateScore(freq);
                 list.clear();
             }
             catch(HockeyListEmptyException e){
@@ -196,17 +197,19 @@ public class hockeybot
                 e.printStackTrace();
             }
         }
-    }
+    
+    //}
     //}
     
+    /*
 	@Override
     public void handleEvent(BallPosition event){
         //gets the carrier and keeps getting him in a loop..
         
         /**
          * IF STATE == GAME IN PROGRESS
-        */
-	    if(mediator.gameIsRunning()){
+        
+	   // if(mediator.gameIsRunning()){
     	       Player p; 
                String p_name;
                int p_freq;
@@ -222,7 +225,7 @@ public class hockeybot
                     m_botAction.sendArenaMessage("Save! "+p.getPlayerName());
                     addPlayerPoint(p.getPlayerName(), p.getFrequency(), 3);
                 }
-                */
+                
                //else{
                if( p.getShipType() == 1 || p.getShipType() == 2 || p.getShipType() == 3 || p.getShipType() == 4
                        || p.getShipType() == 5 || p.getShipType() == 6 ){
@@ -254,11 +257,12 @@ public class hockeybot
                    addPlayerPoint(p.getPlayerName(), p.getFrequency(), 3);
                }
 	        }
-	    }
+	   // }
            // }
 	    //else
 	      //  return;
-	//}
+	//}*/
+    
     @Override
     public void handleEvent(LoggedOn event){
         BotSettings botSettings = m_botAction.getBotSettings();
@@ -272,11 +276,11 @@ public class hockeybot
         String name = m_botAction.getPlayerName( event.getPlayerID() );
         String message = event.getMessage();
         int messageType = event.getMessageType();
-        
+    }/*
         if( messageType == Message.PRIVATE_MESSAGE){
             
             try {
-                handleCommand(name, message);
+             //   handleCommand(name, message);
             } catch (SQLException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -284,7 +288,7 @@ public class hockeybot
         }
         
     }
-    
+    /*
     private void handleCommand(String name, String message) throws SQLException {
         try{
             
@@ -306,7 +310,6 @@ public class hockeybot
              * *//*
              else if(message.startsWith("!b"))
                  //testWarpBot();
-              */
              else if( message.startsWith("!zone") && this.twhtHead.equalsIgnoreCase(name))
                  zoneMessage(name, message);
              
@@ -316,7 +319,7 @@ public class hockeybot
             else if( message.startsWith("!status"))
                 showStatus(name);
             /**
-             * Mod commands*/
+             * Mod commands
             else if ( message.startsWith("!go") && op.isER(name)){
                 //!go <>
                 //01234
@@ -331,7 +334,7 @@ public class hockeybot
             
             /**
              * Challenge, accept and register commands
-             * */
+             * 
             
             //Short Cut Key to !accept
             else if( message.charAt(1) == 'a' && message.charAt(2) == ' ')//message.startsWith("!a") && !message.startsWith("!accept") && !message.startsWith("!addop"))
@@ -370,7 +373,7 @@ public class hockeybot
             }
             else if (message.startsWith("!register")){
                 /**
-                 * IF GAME IN PROGRESS*/
+                 * IF GAME IN PROGRESS
                 if(message.length() <= 9){
                     m_botAction.sendPrivateMessage(name, "Use !register <ship> please.");
                     return ;
@@ -401,11 +404,11 @@ public class hockeybot
                 }else
                     challengeTeam(name, message.substring(11));
             }   
-            /**---------------------------------------------*/
+            /**---------------------------------------------
             
             /**
              * TWHT-OP Commands
-             * */
+             * 
             else if(message.startsWith("!cancelgame") && this.twhtOps.contains(name.toLowerCase()))
                 cancelGame(name, message);
             
@@ -416,7 +419,7 @@ public class hockeybot
                 addOp(name, message.substring(7) );
             /**
              * Registering squad commands
-             * */
+             * 
             //ShortCut Key to !TeamSignup
             else if( message.charAt(1) == 't' && message.charAt(2) == ' ')//&& !message.startsWith("!teamsignup"))
             {
@@ -437,7 +440,7 @@ public class hockeybot
             
       
             /**
-             * During game commands */
+             * During game commands 
             else if(message.startsWith("!ready")){
                 readyTeam(name, message);
             }
@@ -454,7 +457,7 @@ public class hockeybot
                 return;
          }
     }
-
+*/
     private void zoneMessage(String name, String message) {/*
         // TODO Auto-generated method stub
         //!zone <
@@ -478,38 +481,38 @@ public class hockeybot
         try{
             /**
              * IF GAME IN PROGRESS*/
-            if(mediator.gameIsRunning() || mediator.isInRegisterTime() )
+         //   if(mediator.gameIsRunning() || mediator.isInRegisterTime() )
                 m_botAction.sendPrivateMessage(name, "A game is already running. Please wait");
             
-            else{
-                mediator.acceptGame(name, squadAccepted);
-            }
-        }catch(SQLException e){
+           // else{
+                //mediator.acceptGame(name, squadAccepted);
+           // }
+        }/*catch(SQLException e){
             Tools.printLog(e.toString());
-        }
+        }*/
         catch(Exception e){
             Tools.printLog(e.toString());
         }
     }
     public void challengeTeam(String name, String squadName) throws SQLException{
         
-        if( mediator.gameIsRunning() || mediator.isInRegisterTime() )
+       // if( mediator.gameIsRunning() || mediator.isInRegisterTime() )
             m_botAction.sendPrivateMessage(name, "Couldn't challenge, a game is running on here already!");
-        else
-            mediator.challenge(name, squadName);
+        //else
+          //  mediator.challenge(name, squadName);
     }
     
     public void readyTeam(String name, String message) throws SQLException{
        
-        if(mediator.isInRegisterTime())
-            mediator.readyTeam(name, message);
-        else
+        //if(mediator.isInRegisterTime())
+          //  mediator.readyTeam(name, message);
+        //else
             m_botAction.sendPrivateMessage(name, "Just use !ready in PRE Start please");
         
     }
     
     public void addPlayerPoint(String namePlayer, int freq, int pointType){
-    	mediator.addPlayerPoint(namePlayer, freq, pointType);
+    	//mediator.addPlayerPoint(namePlayer, freq, pointType);
     }
     
     private void registerSquad(String name, String squadName){
@@ -528,11 +531,12 @@ public class hockeybot
         }
     }
 
+    /*
     private void registerPlayer(String name, String ship) throws SQLException{
         //!register <ship>
         //0123456789S
         try{
-            if(mediator.isInRegisterTime()){
+     //       if(mediator.isInRegisterTime()){
                 int shipNumber = Integer.parseInt(ship);//check if hes in the squad
               
                 if( shipNumber > 9 || shipNumber < 1)
@@ -544,11 +548,11 @@ public class hockeybot
                 mediator.addPlayer(name, shipNumber);
             }
             
-            else{
+      //      else{
                 
-                if(!mediator.gameIsRunning())
+          //      if(!mediator.gameIsRunning())
                     m_botAction.sendPrivateMessage(name, "Couldn't register you in. No games happening atm.");
-                else if(mediator.isInFaceOffOrInterval())
+        //        else if(mediator.isInFaceOffOrInterval())
                     m_botAction.sendPrivateMessage(name, "We're in the faceoff / interval now. You should've registered at start.");
                 else if(mediator.gameIsRunning())
                     m_botAction.sendPrivateMessage(name,"We're on a game now, registration just works in the Pre Start");
@@ -562,20 +566,21 @@ public class hockeybot
                 m_botAction.sendPrivateMessage(name, "Wtf you are doing? It's !r <SHIPNUMBER> ...LOL!");
                 return ;
            }
-    }
+    }*/
     
     private void faceOffPlayer(String name, String playerName){
         
     }
     
     private void updateScore(int freq){
-        mediator.updateScore(freq);
+       // mediator.updateScore(freq);
     }
     
-    private void setFaceOffState() {
+    /*private void setFaceOffState() {
         mediator.setState(HockeyState.Face_Off);
     }
-    
+    */
+    /*
     private void cancelGame(String name, String message){
         
         if(mediator.gameIsRunning() || mediator.isInFaceOffOrInterval() || mediator.isInRegisterTime()){
@@ -585,17 +590,17 @@ public class hockeybot
         else
             m_botAction.sendPrivateMessage(name, "TWHT-Op, don't cancel a game if there is no one running!");
     }
-    
+    */
     private void go(String name, String arena){
         m_botAction.sendRemotePrivateMessage(name, "Going to "+arena);
         m_botAction.cancelTasks();
-        mediator.cancelGame();
+        //mediator.cancelGame();
         m_botAction.changeArena(arena);
     }
     
     private void doDie(String name, String message){
         m_botAction.sendPrivateMessage(name, "Bot disconnecting.");
-        mediator.cancelTasks();
+       // mediator.cancelTasks();
         m_botAction.cancelTasks();
         m_botAction.die();
         
@@ -615,6 +620,7 @@ public class hockeybot
         m_botAction.sendPrivateMessage(name, "Added "+opName+" to the TWH-OPList");
         
     }
+    /*
     public void showStatus(String name){
         
         if(mediator.gameIsRunning() || mediator.isInRegisterTime() || mediator.isInFaceOffOrInterval())
@@ -623,6 +629,7 @@ public class hockeybot
             m_botAction.sendPrivateMessage(name, "There is no game happening atm.");
         
     }
+    */
     public void showOps(String name){
 
         m_botAction.sendPrivateMessage(name, "=============================");
@@ -631,6 +638,84 @@ public class hockeybot
             m_botAction.sendPrivateMessage(name, "| "+st);
 
         m_botAction.sendPrivateMessage(name, "=============================");
+    }
+
+    @Override
+    public void endGame() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public boolean recordAssist() {
+        // TODO Auto-generated method stub
+        game.savePlayerAssist();
+        return true;
+    }
+
+    @Override
+    public boolean recordGoal() {
+        // TODO Auto-generated method stub
+        game.savePlayerGoal();
+        return true;
+    }
+
+    @Override
+    public boolean recordSave() {
+        // TODO Auto-generated method stub
+        game.savePlayerSave();
+        return true;
+    }
+
+    @Override
+    public boolean recordTackle() {
+        // TODO Auto-generated method stub
+        game.savePlayerTackle();
+        return true;
+    }
+
+    @Override
+    public void registerPlayer() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public boolean acceptChallenge() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean challengeTeam() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public void lagoutPlayer() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public boolean removeChallenge() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean readyTeam() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public void startGame(String name, String teamName1, int teamId1,
+            int teamId2, String teamName2) {
+        // TODO Auto-generated method stub
+        game.startGame(name, teamName1, teamId1, teamId2, teamName2);
+        
     }
     
   /*  public void doTest(){
