@@ -661,31 +661,20 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	// lagout event (when a player lags out to spec)
 	public void lagout(boolean fbOutOfArena)
 	{
-	    try{
 		m_statTracker.endNow();
 
 		resetOutOfBorderTime();
 		if (fbOutOfArena)
 			m_player = null;
-		
 		if (lagRequestTask != null)
             m_botAction.cancelTask(lagRequestTask);
-		
 		if (m_fnPlayerState == 1)
 			m_fnPlayerState = 3;
-		
-		if(m_player == null){
-		    m_botAction.sendPrivateMessage("Dexter", "m_player is null, dex");
-		    return;
-		}
 		m_fnLaggedTime = System.currentTimeMillis();
 		
- 		m_team.m_round.events.add(MatchRoundEvent.lagout(m_dbPlayer.getUserID(), fbOutOfArena));
-	    
-	    }catch(Exception e){
-	       Tools.printLog(e.toString()); 
-	       return;
-	    }
+		if (m_rules.getInt("storegame") != 0)
+			m_team.m_round.events.add(MatchRoundEvent.lagout(m_dbPlayer.getUserID(), fbOutOfArena));
+ 	    
 		
 	};
 

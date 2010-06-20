@@ -659,7 +659,8 @@ public class MatchGame
 		// remove/disable any possible timers
 		m_curRound.cancel();
 		
-		m_curRound.events.add(MatchRoundEvent.roundEnd());
+		if (m_rules.getInt("storegame") != 0)
+			m_curRound.events.add(MatchRoundEvent.roundEnd());
         
 		int rounds = m_rules.getInt("rounds");
 
