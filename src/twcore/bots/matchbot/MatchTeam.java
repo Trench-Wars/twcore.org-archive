@@ -1019,7 +1019,8 @@ public class MatchTeam
                             		pA.m_switchedShip = true;
                             		pB.m_switchedShip = true;
                                    
-                            		m_round.events.add(MatchRoundEvent.switchPlayer(pA.m_dbPlayer.getUserID(), pB.m_dbPlayer.getUserID()));
+                            		if (m_rules.getInt("storegame") != 0)
+                            			m_round.events.add(MatchRoundEvent.switchPlayer(pA.m_dbPlayer.getUserID(), pB.m_dbPlayer.getUserID()));
                             		 
                             		m_logger.sendArenaMessage(pA.m_fcPlayerName + " (" + pB.getShipType() + ") and "
                             				+ pB.m_fcPlayerName + " (" + pA.getShipType() + ") switched ships.");
@@ -1195,7 +1196,8 @@ public class MatchTeam
             message = p.lagin();
             if (message.equals("yes"))
             {
-            	m_round.events.add(MatchRoundEvent.lagin(p.m_dbPlayer.getUserID()));
+            	if (m_rules.getInt("storegame") != 0)
+            		m_round.events.add(MatchRoundEvent.lagin(p.m_dbPlayer.getUserID()));
    
                 if (commandByOther)
                     m_logger.sendPrivateMessage(name, "Player is back in, " + p.getLagoutsLeft() + " lagouts left");
@@ -1346,7 +1348,8 @@ public class MatchTeam
                                         m_logger.sendArenaMessage(
                                             pA.getPlayerName() + " has been substituted by " + pB.getPlayerName() + ", with " + subDeathsLeft + " deaths left");
 
-                                    m_round.events.add(MatchRoundEvent.subPlayer(pA.m_dbPlayer.getUserID(), pB.m_dbPlayer.getUserID()));
+                                    if (m_rules.getInt("storegame") != 0)
+                                    	m_round.events.add(MatchRoundEvent.subPlayer(pA.m_dbPlayer.getUserID(), pB.m_dbPlayer.getUserID()));
                                 	
                                     if (m_rules.getInt("substitutes") != -1)
                                         m_logger.sendPrivateMessage(name, "You have "
@@ -1634,7 +1637,8 @@ public class MatchTeam
             if( getInGame ) {
             	
             	if (m_round.m_fnRoundState == 3) {
-                    m_round.events.add(MatchRoundEvent.addPlayer(p.m_dbPlayer.getUserID(), fnShipType));	
+            		if (m_rules.getInt("storegame") != 0)
+            			m_round.events.add(MatchRoundEvent.addPlayer(p.m_dbPlayer.getUserID(), fnShipType));	
             	}
             	
                 p.getInGame(fbSilent);

@@ -451,7 +451,7 @@ public class MatchRound
                 m_team1.ownFlag(event.getPlayerID()); // .. or else own will not register. -qan 10/04
                 
                 MatchPlayer p = getPlayer(player.getPlayerName());
-                if (p != null)
+                if (p != null && m_rules.getInt("storegame") != 0)
                 	events.add(MatchRoundEvent.flagTouch(1, p.m_dbPlayer.getUserID()));
             }
 
@@ -554,9 +554,11 @@ public class MatchRound
 	    	    
 	    	    if (p1 != null && p2 != null) {
 
-    	    		events.add(MatchRoundEvent.death(p2.m_dbPlayer.getUserID(), p1.m_dbPlayer.getUserID()));
-    	    		events.add(MatchRoundEvent.kill(p1.m_dbPlayer.getUserID(), p2.m_dbPlayer.getUserID()));
-    	
+	    	    	if (m_rules.getInt("storegame") != 0) {
+	    	    		events.add(MatchRoundEvent.death(p2.m_dbPlayer.getUserID(), p1.m_dbPlayer.getUserID()));
+	    	    		events.add(MatchRoundEvent.kill(p1.m_dbPlayer.getUserID(), p2.m_dbPlayer.getUserID()));
+	    	    	}
+	    	    	
 	    	    	// count only if not on the same team
 		    	    if (p1.m_team.m_fnTeamNumber != p2.m_team.m_fnTeamNumber) {
 		    	    	p1.reportKillShotDistance(distance);
@@ -576,7 +578,8 @@ public class MatchRound
 	            
 	            // player out?
 	            if (p1 != null && p2 != null && p2.m_fnPlayerState == 4) {
-	            	events.add(MatchRoundEvent.eliminated(p2.m_dbPlayer.getUserID(), p1.m_dbPlayer.getUserID()));
+	            	if (m_rules.getInt("storegame") != 0)
+	            		events.add(MatchRoundEvent.eliminated(p2.m_dbPlayer.getUserID(), p1.m_dbPlayer.getUserID()));
 	            	p2.reportKO(killerName);
 	            }
 
@@ -1447,7 +1450,8 @@ public class MatchRound
     // gets called by m_startGame TimerTask.
     public void startGame()
     {
-    	events.add(MatchRoundEvent.roundStart());
+    	if (m_rules.getInt("storegame") != 0)
+    		events.add(MatchRoundEvent.roundStart());
     	
         m_generalTime = m_rules.getInt("time") * 60;
         m_scoreBoard = m_botAction.getObjectSet();
