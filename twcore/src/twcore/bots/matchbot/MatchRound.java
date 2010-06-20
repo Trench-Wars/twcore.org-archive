@@ -461,7 +461,7 @@ public class MatchRound
                 m_team2.ownFlag(event.getPlayerID());
                 
                 MatchPlayer p = getPlayer(player.getPlayerName());
-                if (p != null)
+                if (p != null && m_rules.getInt("storegame") != 0)
                 	events.add(MatchRoundEvent.flagTouch(2, p.m_dbPlayer.getUserID()));
             }
         }
