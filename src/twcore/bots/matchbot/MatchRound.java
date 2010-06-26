@@ -555,8 +555,8 @@ public class MatchRound
 	    	    if (p1 != null && p2 != null) {
 
 	    	    	if (m_rules.getInt("storegame") != 0) {
-	    	    		events.add(MatchRoundEvent.death(p2.m_dbPlayer.getUserID(), p1.m_dbPlayer.getUserID()));
-	    	    		events.add(MatchRoundEvent.kill(p1.m_dbPlayer.getUserID(), p2.m_dbPlayer.getUserID()));
+	    	    		events.add(MatchRoundEvent.death(p2.m_dbPlayer.getUserID(), p1.m_dbPlayer.getUserID(), p2.getShipType(), p1.getShipType()));
+	    	    		events.add(MatchRoundEvent.kill(p1.m_dbPlayer.getUserID(), p2.m_dbPlayer.getUserID(), p1.getShipType(), p2.getShipType()));
 	    	    	}
 	    	    	
 	    	    	// count only if not on the same team
@@ -2161,17 +2161,21 @@ public class MatchRound
     		this.add(eventType); // event type
     	}
     	
-    	public static  MatchRoundEvent kill(int fnUserIDKiller, int fnUserIDKillee) {
+    	public static  MatchRoundEvent kill(int fnUserIDKiller, int fnUserIDKillee, int fnShipIDKiller, int fnShipIDKillee) {
     		MatchRoundEvent event = new MatchRoundEvent(KILL);
     		event.add(fnUserIDKiller); 
     		event.add(fnUserIDKillee);
+    		event.add(fnShipIDKiller);
+    		event.add(fnShipIDKillee);
     		return event;
     	}
     	
-    	public static  MatchRoundEvent death(int fnUserIDKillee, int fnUserIDKiller) {
+    	public static  MatchRoundEvent death(int fnUserIDKillee, int fnUserIDKiller, int fnShipIDKillee, int fnShipIDKiller) {
     		MatchRoundEvent event = new MatchRoundEvent(DEATH);
     		event.add(fnUserIDKillee);
     		event.add(fnUserIDKiller);
+    		event.add(fnShipIDKillee);
+    		event.add(fnShipIDKiller);
     		return event;
     	}
     	
