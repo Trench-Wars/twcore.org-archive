@@ -4,6 +4,8 @@ package twcore.bots.duelbot;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -2062,7 +2064,8 @@ public class duelbot extends SubspaceBot {
 
     public boolean sql_banPlayer( String name, String comment ) {
         try {
-            m_botAction.SQLQueryAndClose( mySQLHost, "INSERT INTO tblDuelBan (fcUserName, fcComment) VALUES ('"+Tools.addSlashesToString(name)+"', '"+Tools.addSlashesToString(comment)+"')" );
+            String time = new SimpleDateFormat("yyyy-MM").format( Calendar.getInstance().getTime() ) + "-01";
+            m_botAction.SQLQueryAndClose( mySQLHost, "INSERT INTO tblDuelBan (fcUserName AND fdDate = '"+time+"' AND fcComment ) VALUES ('"+Tools.addSlashesToString(name)+"', '"+Tools.addSlashesToString(comment)+"')" );
             return true;
         } catch (Exception e) { return false; }
     }
@@ -2078,8 +2081,9 @@ public class duelbot extends SubspaceBot {
 
     public void sql_recommentBan( String name, String player, String comment ) {
         try {
+            String time = new SimpleDateFormat("yyyy-MM").format( Calendar.getInstance().getTime() ) + "-01";
             if(sql_banned(player)) {
-                m_botAction.SQLQueryAndClose( mySQLHost, "UPDATE tblDuelBan SET fcComment = '"+Tools.addSlashesToString(comment)+"' WHERE fcUserName = '"+Tools.addSlashesToString(player)+"'");
+                m_botAction.SQLQueryAndClose( mySQLHost, "UPDATE tblDuelBan SET fcComment = '"+Tools.addSlashesToString(comment)+"' WHERE fcUserName = '"+Tools.addSlashesToString(player)+"' AND fdDate = '"+time+"'" );
                 m_botAction.sendPrivateMessage(name, "Set " + player + "'s ban comment to: " + comment);
             }
             else
@@ -2092,7 +2096,8 @@ public class duelbot extends SubspaceBot {
             if(sql_banned(player)) {
                 ResultSet results = m_botAction.SQLQuery( mySQLHost, "SELECT * FROM tblDuelBan WHERE fcUserName = '"+Tools.addSlashesToString(player)+"'");
                 if(results.next())
-                    m_botAction.sendPrivateMessage(name, "Ban comment: " + results.getString("fcComment"));
+                    m_botAction.sendPrivateMessage(name, "Ban comment: " + results.getString("fcComment") + "Date Set: " + results.getString("fdDate"));
+                  
                 else
                     m_botAction.sendPrivateMessage(name, "Sorry, I could not find that comment.");
                 m_botAction.SQLClose( results );
