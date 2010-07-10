@@ -148,11 +148,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		m_fnPlayerState = 0;
 		playerLagInfo = new PlayerLagInfo(m_botAction, fcPlayerName, m_rules.getInt("spikesize"));
 		playerLagInfo.updateLag();
-		maxCurrPing = m_rules.getInt("maxcurrping");
-		maxPacketLoss = m_rules.getDouble("maxploss");
-		maxSlowPackets = m_rules.getDouble("maxslowpackets");
-		maxStandardDeviation = m_rules.getDouble("maxstandarddeviation");
-		maxNumSpikes = m_rules.getInt("maxnumspikes");
+		updateLagThreshold();
 		
 		m_statTracker = new TotalStatistics();
 
@@ -160,6 +156,34 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			m_dbPlayer = new DBPlayerData(m_botAction, dbConn, m_fcPlayerName);
 
 		m_logger.scoreReset(m_fcPlayerName);
+	}
+	
+	public void updateLagThreshold() {
+		
+		// Default threshold
+		maxCurrPing = m_rules.getInt("maxcurrping");
+		maxPacketLoss = m_rules.getDouble("maxploss");
+		maxSlowPackets = m_rules.getDouble("maxslowpackets");
+		maxStandardDeviation = m_rules.getDouble("maxstandarddeviation");
+		maxNumSpikes = m_rules.getInt("maxnumspikes");
+		
+		// Ship specific threshold ? (ex.: maxcurrping8 for shark)
+		if (m_statTracker.m_currentShip != null) {
+			
+			int ship = m_statTracker.m_currentShip.getShipType();
+			
+			if (m_rules.getInt("maxcurrping" + ship) != 0)
+				maxCurrPing = m_rules.getInt("maxcurrping" + ship);
+			if (m_rules.getDouble("maxploss" + ship) != 0)
+				maxPacketLoss = m_rules.getDouble("maxploss" + ship);
+			if (m_rules.getDouble("maxslowpackets" + ship) != 0)
+				maxSlowPackets = m_rules.getDouble("maxslowpackets" + ship);
+			if (m_rules.getDouble("maxstandarddeviation" + ship) != 0)
+				maxStandardDeviation = m_rules.getDouble("maxstandarddeviation" + ship);
+			if (m_rules.getInt("maxnumspikes" + ship) != 0)
+				maxNumSpikes = m_rules.getInt("maxnumspikes" + ship);
+		}
+		
 	}
 
 	/**
@@ -404,8 +428,10 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	// set ship and freq
 	public void setShipAndFreq(int fnShipType, int fnFrequency)
 	{
-		if (m_statTracker.getShipType() != fnShipType)
+		if (m_statTracker.getShipType() != fnShipType) {
 			m_statTracker.createNewShip(fnShipType);
+			updateLagThreshold();
+		}
 		m_fnFrequency = fnFrequency;
 	};
 
@@ -741,6 +767,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		if (ship != m_statTracker.getShipType())
 		{
 			m_statTracker.createNewShip(ship);
+			updateLagThreshold();
 		};
 		m_logger.setShip(m_fcPlayerName, m_statTracker.getShipType());
 
