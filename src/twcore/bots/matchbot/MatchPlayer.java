@@ -1611,7 +1611,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			try
 			{
 				playerLagInfo.updateLag();
-				m_botAction.scheduleTask(new LagCheckTask(), 3000);
+				m_botAction.scheduleTask(new LagCheckTask(), 20000);
 			}
 			catch (Exception e)
 			{
@@ -1627,19 +1627,6 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		{
 			checkLag();
 		}
-	}
-	
-	
-
-	public static void main(String[] args) {
-		
-	
-		HashMap<String, Integer> test = new HashMap<String, Integer>();
-		test.put("test1",0);
-		test.put("test2",5);
-		
-		System.out.println(JSONValue.escape(JSONValue.toJSONString(test)));
-		
 	}
 
 
