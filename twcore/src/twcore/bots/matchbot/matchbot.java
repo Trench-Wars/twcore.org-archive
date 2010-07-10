@@ -719,7 +719,7 @@ public class matchbot extends SubspaceBot
                             players = m_rules.getInt("minplayers");
                     }
                     DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
-                    if( !dp.isRankAssistantMinimum() ) {
+                    if( !dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game")!=1 ) {
                         m_botAction.sendPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
                         return;
                     }
@@ -778,7 +778,7 @@ public class matchbot extends SubspaceBot
                 Player p = m_botAction.getPlayer(name);
 
                 DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
-                if( !dp.isRankAssistantMinimum() ) {
+                if( !dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game")!=1 ) {
                     m_botAction.sendPrivateMessage(name, "You must be a captain or assistant to remove challenges.");
                     return;
                 }
@@ -848,7 +848,7 @@ public class matchbot extends SubspaceBot
                             if (r != null)
                             {
                                 // check if he is assistant or captain
-                                if (dp.isRankAssistantMinimum())
+                                if (dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game")!=1)
                                 {
                                     m_isStartingUp = true;
                                     m_botAction.sendSquadMessage(
@@ -931,7 +931,7 @@ public class matchbot extends SubspaceBot
                     {
                         if (dp.getTeamName().equalsIgnoreCase(m_team1) || dp.getTeamName().equalsIgnoreCase(m_team2))
                         {
-                            if (dp.isRankAssistantMinimum())
+                            if (dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game")!=1)
                             {
                                 m_cancelGame = true;
                                 m_botAction.sendSquadMessage( m_team1, "The " + m_rules.getString("name") + " game versus " + m_team2 + " has been cancelled by " + name + ".");
