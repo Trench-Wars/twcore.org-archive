@@ -148,10 +148,9 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		m_fnPlayerState = 0;
 		playerLagInfo = new PlayerLagInfo(m_botAction, fcPlayerName, m_rules.getInt("spikesize"));
 		playerLagInfo.updateLag();
+		m_statTracker = new TotalStatistics();
 		updateLagThreshold();
 		
-		m_statTracker = new TotalStatistics();
-
 		if ((m_rules.getInt("storegame") != 0) || (m_rules.getInt("rosterjoined") != 0))
 			m_dbPlayer = new DBPlayerData(m_botAction, dbConn, m_fcPlayerName);
 
@@ -168,7 +167,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		maxNumSpikes = m_rules.getInt("maxnumspikes");
 		
 		// Ship specific threshold ? (ex.: maxcurrping8 for shark)
-		if (m_statTracker.m_currentShip != null) {
+		if (m_statTracker != null && m_statTracker.m_currentShip != null) {
 			
 			int ship = m_statTracker.m_currentShip.getShipType();
 			
