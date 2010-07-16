@@ -561,6 +561,12 @@ public class matchbot extends SubspaceBot
                     if (startMessage != null)
                         m_botAction.sendPrivateMessage(name,startMessage);
                 }
+                if (command.equals("!blueout"))
+                {
+                    if (m_game.m_curRound != null) {
+                    	m_game.m_curRound.toggleBlueout(m_game.m_curRound.m_blueoutState==0?true:false);
+                    }
+                }
 
             }
         }
