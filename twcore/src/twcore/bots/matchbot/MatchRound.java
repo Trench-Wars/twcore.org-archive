@@ -472,7 +472,7 @@ public class MatchRound
      */
     public void handleEvent(Message event)
     {
-        if ((event.getMessageType() == Message.PUBLIC_MESSAGE) && (m_blueoutState == 1) && (m_endGame != null) && (System.currentTimeMillis() - m_timeBOEnabled > 5000))
+        if ((event.getMessageType() == Message.PUBLIC_MESSAGE) && (m_blueoutState == 1) && (m_endGame != null) )//&& (System.currentTimeMillis() - m_timeBOEnabled > 5000))
         {
             String name = m_botAction.getPlayerName(event.getPlayerID());
             m_botAction.sendCheaterMessage(name + " talking in blueout: " + name + "> " + event.getMessage());
