@@ -563,8 +563,18 @@ public class matchbot extends SubspaceBot
                 }
                 if (command.equals("!blueout"))
                 {
+                	
                     if (m_game.m_curRound != null) {
-                    	m_game.m_curRound.toggleBlueout(m_game.m_curRound.m_blueoutState==0?true:false);
+                    	
+                    	boolean isCaptain = false;
+                    	if (m_game.m_curRound.m_team1 != null && m_game.m_curRound.m_team2 != null) {
+                    		isCaptain = m_game.m_curRound.m_team1.isCaptain(name);
+                    		if (!isCaptain)
+                    			isCaptain = m_game.m_curRound.m_team2.isCaptain(name);
+                    	}
+                    	
+                    	if (!isCaptain)
+                    		m_game.m_curRound.toggleBlueout(m_game.m_curRound.m_blueoutState==0?true:false);
                     }
                 }
 
