@@ -112,7 +112,13 @@ public class pubbotbanc extends PubBotModule {
         
     }
     public void handleEvent(FrequencyShipChange event){
-        m_botAction.sendPrivateMessage("Dexter", "Someone changed ship: "+m_botAction.getPlayerName( event.getPlayerID() ));
+        try{
+            m_botAction.sendPrivateMessage("Dexter", "Someone changed ship: "+m_botAction.getPlayerName( event.getPlayerID() ));
+            if(event.getShipType() == 2 || event.getShipType() == 4 || event.getShipType() == 8)
+                ;
+        }catch(Exception e){
+            e.printStackTrace();
+        }
     }
     
     private void handleIPCMessage(String command) {
