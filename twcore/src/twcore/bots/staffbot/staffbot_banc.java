@@ -210,7 +210,7 @@ public class staffbot_banc extends Module {
 	        // !spec <player>:<time/mins>
 	        // !kick <player>:<time/mins>	[mod+]
 	        else if( messageLc.startsWith("!silence") || messageLc.startsWith("!s") ||
-	        		messageLc.startsWith("!spec") || messageLc.startsWith("!sp") ||
+	        		messageLc.startsWith("!spec") || messageLc.startsWith("!sp ") ||
 	        		messageLc.startsWith("!superspec") ||
 			   (messageLc.startsWith("!kick") && opList.isModerator(name)) ||
 			   (messageLc.startsWith("!k") && opList.isModerator(name))) {
