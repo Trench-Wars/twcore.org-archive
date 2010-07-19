@@ -76,7 +76,7 @@ public class staffbot_banc extends Module {
     
     // Definition variables
     public enum BanCType {
-    	SILENCE, SPEC, KICK
+    	SILENCE, SPEC, KICK, SUPERSPEC
     }       
     
    // private staffbot_database Database = new staffbot_database();
@@ -211,6 +211,7 @@ public class staffbot_banc extends Module {
 	        // !kick <player>:<time/mins>	[mod+]
 	        else if( messageLc.startsWith("!silence") || messageLc.startsWith("!s") ||
 	        		messageLc.startsWith("!spec") || messageLc.startsWith("!sp") ||
+	        		messageLc.startsWith("!superspec") ||
 			   (messageLc.startsWith("!kick") && opList.isModerator(name)) ||
 			   (messageLc.startsWith("!k") && opList.isModerator(name))) {
 				cmdSilenceSpecKick(name, message);
@@ -459,7 +460,14 @@ public class staffbot_banc extends Module {
 			parameters = message.substring(3).trim();
 			bancType = BanCType.SPEC;
 			bancName = "auto-speclock";
-			
+		
+		} else if(messageLc.startsWith("!superspec")){
+		    //!superspec
+		    //0123456789T
+		    parameters = message.substring(10).trim();
+		    bancType = BanCType.SUPERSPEC;
+		    bancName = "auto-superspec";
+		    
 		} else if(messageLc.startsWith("!kick")) {
 			parameters = message.substring(5).trim();
 			bancType = BanCType.KICK;
