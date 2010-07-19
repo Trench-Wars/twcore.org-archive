@@ -95,7 +95,8 @@ public class staffbot_banc extends Module {
     private final Integer[][] BANCLIMITS = {
     		{ 60,  120, 240, 0},	// BanC limits
     		{ 30,  60, 120, 0},		// [BanCType] [Accesslevel]
-    		{ null,30, 60,  0}
+    		{ null,30, 60,  0},
+    		{30, 60, 120, 0}
     }; 
     private SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private final int BANC_MAX_DURATION = 525600;	// (365 days in minutes)
