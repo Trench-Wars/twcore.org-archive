@@ -135,7 +135,7 @@ public class pubbotbanc extends PubBotModule {
     private void superLockMethod(String namePlayer, String shipName){
         m_botAction.sendPrivateMessage(namePlayer, "You're banned from "+shipName);
         m_botAction.sendPrivateMessage(namePlayer, "Choose other ship, like: warbird, spider, weasel, lancaster...");
-        m_botAction.spec(namePlayer);
+        m_botAction.setShip(namePlayer, 3);
     }
     
     private void handleIPCMessage(String command) {
