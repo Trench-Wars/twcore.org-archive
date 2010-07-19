@@ -13,6 +13,7 @@ import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.OperatorList;
+import twcore.core.Reloadable;
 import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.BallPosition;
@@ -42,7 +43,7 @@ import twcore.core.util.Tools;
 /**
  * Runs automated squad vs. squad TWD matches.
  */
-public class matchbot extends SubspaceBot
+public class matchbot extends SubspaceBot implements Reloadable
 {
 
     MatchGame m_game;
@@ -1258,6 +1259,10 @@ public class matchbot extends SubspaceBot
         m_botAction.cancelTasks();
         m_botAction.ipcUnSubscribe("MatchBot");
     }
+
+	public void reload() {
+		m_botSettings.reloadFile();
+	}
 }
 
 
