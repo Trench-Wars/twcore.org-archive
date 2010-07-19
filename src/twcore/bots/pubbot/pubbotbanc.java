@@ -119,23 +119,19 @@ public class pubbotbanc extends PubBotModule {
             m_botAction.sendPrivateMessage("Dexter", "Someone changed ship: "+m_botAction.getPlayerName( event.getPlayerID() ));
             if(banCSuperLocked.contains(namePlayer) && ( event.getShipType() == 2 || event.getShipType() == 4 || event.getShipType() == 8 ))
             {
-                String shipName = null;
-                switch(event.getShipType()){
-                    case 2: shipName = "javelin"; break;
-                    case 4: shipName = "leviathan"; break;
-                    case 8: shipName = "shark"; break;
-                }
-                superLockMethod(namePlayer, shipName);
+                
+                superLockMethod(namePlayer, event.getShipType());
+            
             }
         }catch(Exception e){
             e.printStackTrace();
         }
     }
     
-    private void superLockMethod(String namePlayer, String shipName){
-        m_botAction.sendPrivateMessage(namePlayer, "You're banned from "+shipName);
+    private void superLockMethod(String namePlayer, int shipNumber){
+        m_botAction.sendPrivateMessage(namePlayer, "You're banned from ship"+shipNumber);
         m_botAction.sendPrivateMessage(namePlayer, "Choose other ship, like: warbird, spider, weasel, lancaster...");
-        m_botAction.setShip(namePlayer, 3);
+        m_botAction.specWithoutLock(namePlayer);
     }
     
     private void handleIPCMessage(String command) {
@@ -171,9 +167,10 @@ public class pubbotbanc extends PubBotModule {
 		    //0123456789T
 		    tempBanCTime = command.substring(10).split(":")[0];
 		    tempBanCPlayer = command.substring(10).split(":")[1];
-		    m_botAction.setShip(tempBanCPlayer, 3);
+		    m_botAction.specWithoutLock(tempBanCPlayer);
 		    banCSuperLocked.add(tempBanCPlayer);
-		}
+		    System.out.println("Super specced "+tempBanCPlayer+" for "+tempBanCTime);
+		} else
 		if(command.startsWith("REMOVE "+BanCType.SPEC.toString())) {
 			// remove speclock of player in arena
 			tempBanCCommand = "REMOVE "+BanCType.SPEC.toString();
