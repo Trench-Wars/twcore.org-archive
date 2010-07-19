@@ -43,6 +43,8 @@ import twcore.core.util.ipc.IPCMessage;
  */
 public class pubbotbanc extends PubBotModule {
 	
+    private Vector<String> banCSuperLocked;
+    
 	private String tempBanCCommand = null;
 	private String tempBanCTime = null;
 	private String tempBanCPlayer = null;
@@ -75,7 +77,7 @@ public class pubbotbanc extends PubBotModule {
     		}
     	};
     	m_botAction.scheduleTaskAtFixedRate(checkIPCQueue, 5*Tools.TimeInMillis.SECOND, 5*Tools.TimeInMillis.SECOND);
-    	
+    	banCSuperLocked = new Vector<String>();
     }
 
     public void cancel(){
@@ -143,6 +145,19 @@ public class pubbotbanc extends PubBotModule {
 			tempBanCPlayer = command.substring(5).split(":")[1];
 			
 			m_botAction.spec(tempBanCPlayer);
+		} else
+		if(command.startsWith(BanCType.SUPERSPEC.toString())){
+		    //superspec lock player in arena
+		    tempBanCCommand = BanCType.SUPERSPEC.toString();
+		    //!spec player:time
+		    //SPEC time:target
+		    //012345
+		    //SUPERSPEC time:target
+		    //0123456789T
+		    tempBanCTime = command.substring(10).split(":")[0];
+		    tempBanCPlayer = command.substring(10).split(":")[1];
+		    m_botAction.setShip(tempBanCPlayer, 3);
+		    banCSuperLocked.add(tempBanCPlayer);
 		}
 		if(command.startsWith("REMOVE "+BanCType.SPEC.toString())) {
 			// remove speclock of player in arena
