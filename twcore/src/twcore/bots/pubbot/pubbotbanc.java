@@ -121,9 +121,9 @@ public class pubbotbanc extends PubBotModule {
             {
                 String shipName = null;
                 switch(event.getShipType()){
-                    case 2: shipName = "javelin";
-                    case 4: shipName = "leviathan";
-                    case 8: shipName = "shark";
+                    case 2: shipName = "javelin"; break;
+                    case 4: shipName = "leviathan"; break;
+                    case 8: shipName = "shark"; break;
                 }
                 superLockMethod(namePlayer, shipName);
             }
