@@ -117,7 +117,7 @@ public class pubbotbanc extends PubBotModule {
         try{
             String namePlayer = m_botAction.getPlayerName(event.getPlayerID());
             m_botAction.sendPrivateMessage("Dexter", "Someone changed ship: "+m_botAction.getPlayerName( event.getPlayerID() ));
-            if(banCSuperLocked.contains(namePlayer) && (event.getShipType() == 2 || event.getShipType() == 4 || event.getShipType() == 8))
+            if(banCSuperLocked.contains(namePlayer) && ( event.getShipType() == 2 || event.getShipType() == 4 || event.getShipType() == 8 ))
             {
                 String shipName = null;
                 switch(event.getShipType()){
@@ -125,13 +125,17 @@ public class pubbotbanc extends PubBotModule {
                     case 4: shipName = "leviathan";
                     case 8: shipName = "shark";
                 }
-                m_botAction.sendPrivateMessage(namePlayer, "You're banned from "+shipName);
-                m_botAction.sendPrivateMessage(namePlayer, "Choose other ship, like: warbird, spider, weasel, lancaster...");
-                m_botAction.spec(namePlayer);
+                superLockMethod(namePlayer, shipName);
             }
         }catch(Exception e){
             e.printStackTrace();
         }
+    }
+    
+    private void superLockMethod(String namePlayer, String shipName){
+        m_botAction.sendPrivateMessage(namePlayer, "You're banned from "+shipName);
+        m_botAction.sendPrivateMessage(namePlayer, "Choose other ship, like: warbird, spider, weasel, lancaster...");
+        m_botAction.spec(namePlayer);
     }
     
     private void handleIPCMessage(String command) {
