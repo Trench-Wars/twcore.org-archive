@@ -1,13 +1,16 @@
 package twcore.bots.pubbot;
 
+import java.util.ArrayList;
 import java.util.TimerTask;
 import java.util.Vector;
 
 import twcore.bots.PubBotModule;
 import twcore.bots.staffbot.staffbot_banc.BanCType;
 import twcore.core.EventRequester;
+import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
+import twcore.core.events.PlayerEntered;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
@@ -48,10 +51,12 @@ public class pubbotbanc extends PubBotModule {
 	
 	private final static String INFINTE_DURATION = "0";
 	
-	private Vector<String> IPCQueue = new Vector<String>(); 
+	private ArrayList<String> IPCQueue = new ArrayList<String>(); 
 	
 	private TimerTask checkIPCQueue;
 	private TimerTask initActiveBanCs;
+	
+	private ArrayList<String> tempBanCPlayers = new ArrayList<String>();
 	
     public void initializeModule(){
     	m_botAction.ipcSubscribe(IPCBANC);
@@ -105,6 +110,12 @@ public class pubbotbanc extends PubBotModule {
     		
     	}
     }
+    public void handleEvent(PlayerEntered event){
+        
+    }
+    public void handleEvent(FrequencyShipChange event){
+        m_botAction.sendPrivateMessage("Dexter", "Someone changed ship: "+m_botAction.getPlayerName( event.getPlayerID() ));
+    }
     
     private void handleIPCMessage(String command) {
     	if(command.startsWith(BanCType.SILENCE.toString())) {
@@ -113,7 +124,7 @@ public class pubbotbanc extends PubBotModule {
 			tempBanCTime = command.substring(8).split(":")[0];
 			tempBanCPlayer = command.substring(8).split(":")[1];
 			m_botAction.sendUnfilteredPrivateMessage(tempBanCPlayer, "*shutup");
-			
+			this.tempBanCPlayers.add(tempBanCPlayer);
 		} else
 		if(command.startsWith("REMOVE "+BanCType.SILENCE.toString())) {
 			// unsilence player in arena
@@ -121,7 +132,7 @@ public class pubbotbanc extends PubBotModule {
 			tempBanCTime = null;
 			tempBanCPlayer = command.substring(15);
 			m_botAction.sendUnfilteredPrivateMessage(tempBanCPlayer, "*shutup");
-			
+			this.tempBanCPlayers.remove(tempBanCPlayer);
 		} else
 		if(command.startsWith(BanCType.SPEC.toString())) {
 			// speclock player in arena
@@ -130,29 +141,29 @@ public class pubbotbanc extends PubBotModule {
 			tempBanCPlayer = command.substring(5).split(":")[1];
 			
 			m_botAction.spec(tempBanCPlayer);
-		    
+			this.tempBanCPlayers.add(tempBanCPlayer);
 		}
 		if(command.startsWith("REMOVE "+BanCType.SPEC.toString())) {
 			// remove speclock of player in arena
 			tempBanCCommand = "REMOVE "+BanCType.SPEC.toString();
 			tempBanCTime = null;
 			tempBanCPlayer = command.substring(12);
-			
+			tempBanCPlayers.add(tempBanCPlayer);
 			m_botAction.spec(tempBanCPlayer);
-		    
+			this.tempBanCPlayers.remove(tempBanCPlayer);
 		} else
 		if(command.startsWith(BanCType.KICK.toString())) {
 			// kick player from arena
 			tempBanCCommand = BanCType.KICK.toString();
 			tempBanCTime = command.substring(5).split(":")[0];
 			tempBanCPlayer = command.substring(5).split(":")[1];
-			
+			this.tempBanCPlayers.add(tempBanCPlayer);
 			if(tempBanCTime.equals(INFINTE_DURATION))
     			m_botAction.sendPrivateMessage(tempBanCPlayer, "You're permanently not allowed from Trench Wars because of abuse and/or violation of Trench Wars rules.");
     		else
     			m_botAction.sendPrivateMessage(tempBanCPlayer, "You're not allowed in Trench Wars for "+tempBanCTime+" minutes because of abuse and/or violation of Trench Wars rules.");
     		
-			
+		//handle re-silence	
 			m_botAction.sendUnfilteredPrivateMessage(tempBanCPlayer, "*kill");
 		}
     }
