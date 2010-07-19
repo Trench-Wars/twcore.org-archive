@@ -346,8 +346,19 @@ public class staffbot_banc extends Module {
 					m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)locked in spectator.");
 				} else if(banc == null) {
 					m_botAction.sendChatMessage("Player '"+command.substring(5)+"' has been (re)locked in spectator.");
-				}
-			}  else if(command.startsWith("REMOVE "+BanCType.SPEC.toString())) {
+				}//SPEC PLAYER
+				 //012345
+			} else if(command.startsWith(BanCType.SUPERSPEC.toString())){
+			    //SUPERSPEC PLAYER
+			    //0123456789T
+			    BanC banc = lookupActiveBanC(BanCType.SUPERSPEC, command.substring(10));
+			    if(banc != null && banc.isNotification()){
+			        m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)superlocked in spectator");
+			    } else if(banc == null){
+			        m_botAction.sendChatMessage("Player '"+command.substring(10)+"' has been (re)superlocked in spectator");
+			    }
+			}
+			else if(command.startsWith("REMOVE "+BanCType.SPEC.toString())) {
 				BanC banc = lookupActiveBanC(BanCType.SPEC, command.substring(12));
 				if(banc != null && banc.isNotification()) {
 					m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has had the speclock removed.");
@@ -1211,7 +1222,12 @@ public class staffbot_banc extends Module {
 		try {
 			// INSERT INTO tblBanc(fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
 			//                       1         2         3     4         5           6           7          
-			psAddBanC.setString(1, banc.type.name());
+			if(banc.type.name().equals("SUPERSPEC"))
+			    psAddBanC.setString(1, "SPEC");
+            
+			else
+			    psAddBanC.setString(1, banc.type.name());
+			
 			psAddBanC.setString(2, banc.playername);
 			psAddBanC.setString(3, banc.IP);
 			psAddBanC.setString(4, banc.MID);
