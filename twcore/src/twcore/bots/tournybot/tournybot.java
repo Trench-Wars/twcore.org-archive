@@ -266,7 +266,6 @@ public class tournybot extends SubspaceBot {
 					m_botAction.sendPrivateMessage(name, "Bot's lag checking enabled.");
 				}
 			} else if (message.startsWith("!go")){
-			    if(this.stopped)
 			        doGo(name, message);
 			}
 		}
