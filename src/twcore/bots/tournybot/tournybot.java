@@ -265,9 +265,22 @@ public class tournybot extends SubspaceBot {
 					lagWorks = true;
 					m_botAction.sendPrivateMessage(name, "Bot's lag checking enabled.");
 				}
+			} else if (message.startsWith("!go")){
+			    if(this.stopped)
+			        doGo(name, message);
 			}
 		}
 	}
+
+	private void doGo(String name, String message) {
+        // TODO Auto-generated method stub
+        //!go <arena>
+	    //01234
+	    message = message.substring(4);
+	    m_botAction.sendPrivateMessage(name, "Going to "+message);
+	    m_botAction.changeArena(message);
+	    
+    }
 
 	public void handleEvent(PlayerLeft event) {
 		String name = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
