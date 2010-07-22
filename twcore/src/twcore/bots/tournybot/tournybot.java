@@ -985,7 +985,7 @@ public class tournybot extends SubspaceBot {
 		    return 512;
 		}
 
-		pStats tPos = players.get( name );    
+		pStats tPos = players.get( name );
 		fStats pPos = freqs.get( tPos.getFreq() );
 
 		int nroer = pPos.getPlayerNro();
@@ -1005,14 +1005,11 @@ public class tournybot extends SubspaceBot {
 		int x;
 
 		// If it is a base-tournament, the boxes on the right are used.
-		
-		x = x2 + (127 * box1);
-	        
-		/*if (base) {
+		if (base) {
 			x = x2 + (127 * box1) + 517;
 		} else {
 			x = x2 + (127 * box1);
-		}*/
+		}
 
 		if (tPos.getPlayerState() == 0) {
 
@@ -1027,7 +1024,7 @@ public class tournybot extends SubspaceBot {
 
 
 	/*
-	 * Calculates the Y coord for name based on the 2 coordinates in .cfg
+	 * Calculates the X coord for name based on the 2 coordinates in .cfg
 	 */
 
 	public int playerYPos(String name) {
@@ -1035,7 +1032,7 @@ public class tournybot extends SubspaceBot {
 		if (!playerStillIn( name )) {
 		    return 512;
 		}
-		                                                                                                                                                                                                                                                                                                                        
+
 		pStats tPos = players.get( name );
 		fStats pPos = freqs.get( tPos.getFreq() );
 
@@ -1268,7 +1265,7 @@ public class tournybot extends SubspaceBot {
 					m_botAction.sendArenaMessage("Registrations locked! Skipping first round due to lack of players.", 2);
 				} else {
 					firstRound = 1;
-					maxBox = 64;//32;
+					maxBox = 32;
 					m_botAction.sendArenaMessage("Registartions locked!", 2);
 				}
 
