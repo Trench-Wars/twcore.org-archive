@@ -116,7 +116,7 @@ public class pubbotbanc extends PubBotModule {
     public void handleEvent(FrequencyShipChange event){
         try{
             String namePlayer = m_botAction.getPlayerName(event.getPlayerID());
-            m_botAction.sendPrivateMessage("Dexter", "Someone changed ship: "+m_botAction.getPlayerName( event.getPlayerID() ));
+            //m_botAction.sendPrivateMessage("Dexter", "Someone changed ship: "+m_botAction.getPlayerName( event.getPlayerID() ));
             if(banCSuperLocked.contains(namePlayer) && ( event.getShipType() == 2 || event.getShipType() == 4 || event.getShipType() == 8 ))
             {
                 
