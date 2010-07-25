@@ -396,11 +396,16 @@ public class pubbot extends SubspaceBot
 
   private class ArenaDyingTask extends TimerTask
   {
-    public void run()
-    {
-      if(m_botAction.getArenaSize() == 1)
-        doDieCmd(true);
-    }
+	  public void run()
+	  {
+		  if(m_botAction.getArenaSize() == 1) {
+    	  
+			  // The arena "trench" must always have a pubbot there
+			  // to avoid players to evade banc
+			  if (!m_botAction.getArenaName().equals("trench"))
+				  doDieCmd(true);
+		  }
+	  }
   }
 
 
