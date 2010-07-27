@@ -500,10 +500,11 @@ public class staffbot_banc extends Module {
 			return;
 		}
 		
-		if( !timeStr.contains("d") ){//|| !Tools.isAllDigits(timeStr) ) {
+		if( !Tools.isAllDigits(timeStr) ){//|| !Tools.isAllDigits(timeStr) ) {
 			m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please specify <playername>:<time/mins> or PM !help for more information.");
 			return;
-		} else if(timeStr.length() > 6) {
+		}
+		else if(timeStr.length() > 6) {
 			timeStr = timeStr.substring(0,5);
 		}
 
