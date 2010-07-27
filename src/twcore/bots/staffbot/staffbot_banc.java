@@ -515,7 +515,7 @@ public class staffbot_banc extends Module {
 		{
 		    String justTime = timeStr.substring(0, timeStr.indexOf("d"));
 		    timeToTell = Integer.parseInt(justTime);
-		    time = Integer.parseInt(justTime)*Tools.TimeInMillis.DAY;
+		    time = Integer.parseInt(justTime)*1440;
 		    
 		}
 		else
@@ -559,7 +559,7 @@ public class staffbot_banc extends Module {
 		
 		if(timeToTell > 0){
 		    m_botAction.sendChatMessage( name+" initiated an "+bancName+" on '"+target+"' for "+timeToTell+" days." );
-		    m_botAction.sendSmartPrivateMessage(name, "BanC #"+banc.id+": "+bancName+" on '"+target+"' for "+timeToTell+" days initiated.");
+		    m_botAction.sendSmartPrivateMessage(name, "BanC #"+banc.id+": "+bancName+" on '"+target+"' for "+timeToTell+" days("+time+" mins) initiated.");
 		}
 		else if(time > 0) {
 			m_botAction.sendChatMessage( name+" initiated an "+bancName+" on '"+target+"' for "+time+" minutes." );
