@@ -512,7 +512,7 @@ public class staffbot_banc extends Module {
 		int timeToTell = 0;
 		if(timeStr.contains("d"))
 		{
-		    String justTime = timeStr.substring(0,timeStr.lastIndexOf("d")-1);
+		    String justTime = timeStr.substring(0, timeStr.indexOf("d")-1);
 		    timeToTell = Integer.parseInt(justTime);
 		    time = Integer.parseInt(justTime)*Tools.TimeInMillis.DAY;
 		    
