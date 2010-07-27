@@ -500,7 +500,7 @@ public class staffbot_banc extends Module {
 			return;
 		}
 		
-		if( !Tools.isAllDigits(timeStr) ){//|| !Tools.isAllDigits(timeStr) ) {
+		if( !Tools.isAllDigits(timeStr) && !timeStr.contains("d")){//|| !Tools.isAllDigits(timeStr) ) {
 			m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please specify <playername>:<time/mins> or PM !help for more information.");
 			return;
 		}
@@ -1248,7 +1248,7 @@ public class staffbot_banc extends Module {
 			psAddBanC.setString(3, banc.IP);
 			psAddBanC.setString(4, banc.MID);
 			psAddBanC.setString(5, MINACCESS_ER);
-			psAddBanC.setInt(6, banc.duration);
+			psAddBanC.setLong(6, banc.duration);
 			psAddBanC.setString(7, banc.staffer);
 			psAddBanC.execute();
 			
@@ -1347,7 +1347,7 @@ public class staffbot_banc extends Module {
 		private String MID;
 		private Date created;
 		/** Duration of the BanC in minutes */
-		private int duration = -1;
+		private long duration = -1;
 		private Boolean notification = true;
 		
 		private String staffer;
@@ -1472,14 +1472,14 @@ public class staffbot_banc extends Module {
 		/**
          * @return the duration
          */
-        public int getDuration() {
+        public long getDuration() {
         	return duration;
         }
 
 		/**
          * @param duration the duration to set
          */
-        public void setDuration(int duration) {
+        public void setDuration(long duration) {
         	this.duration = duration;
         }
 
@@ -1580,7 +1580,7 @@ public class staffbot_banc extends Module {
 	        result = prime * result + (applied ? 1231 : 1237);
 	        result = prime * result
 	                + ((created == null) ? 0 : created.hashCode());
-	        result = prime * result + duration;
+	        result = (int) (prime * result + duration);
 	        result = prime * result + id;
 	        result = prime * result
 	                + ((notification == null) ? 0 : notification.hashCode());
