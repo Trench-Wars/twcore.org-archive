@@ -500,7 +500,7 @@ public class staffbot_banc extends Module {
 			return;
 		}
 		
-		if(!Tools.isAllDigits(timeStr)) {
+		if(!Tools.isAllDigits(timeStr) || !timeStr.contains("d")) {
 			m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please specify <playername>:<time/mins> or PM !help for more information.");
 			return;
 		} else if(timeStr.length() > 6) {
@@ -508,7 +508,18 @@ public class staffbot_banc extends Module {
 		}
 
 		final String target = parameters;
-		int time = Integer.parseInt(timeStr);
+		int time;
+		int timeToTell = 0;
+		if(timeStr.contains("d"))
+		{
+		    String justTime = timeStr.substring(0,timeStr.lastIndexOf("d")-1);
+		    timeToTell = Integer.parseInt(justTime);
+		    time = Integer.parseInt(justTime)*Tools.TimeInMillis.DAY;
+		    
+		}
+		else
+		    time = Integer.parseInt(timeStr);
+		
 		if(time > BANC_MAX_DURATION) {
 			m_botAction.sendSmartPrivateMessage(name, "The maximum amount of minutes for a BanC is "+BANC_MAX_DURATION+" minutes (365 days). Duration changed to this maximum.");
 			time = BANC_MAX_DURATION;
@@ -545,7 +556,11 @@ public class staffbot_banc extends Module {
 		dbAddBan(banc);
 		activeBanCs.add(banc);
 		
-		if(time > 0) {
+		if(timeToTell > 0){
+		    m_botAction.sendChatMessage( name+" initiated an "+bancName+" on '"+target+"' for "+timeToTell+" days." );
+		    m_botAction.sendSmartPrivateMessage(name, "BanC #"+banc.id+": "+bancName+" on '"+target+"' for "+timeToTell+" days initiated.");
+		}
+		else if(time > 0) {
 			m_botAction.sendChatMessage( name+" initiated an "+bancName+" on '"+target+"' for "+time+" minutes." );
 			m_botAction.sendSmartPrivateMessage(name, "BanC #"+banc.id+": "+bancName+" on '"+target+"' for "+time+" minutes initiated.");
 		} else {
