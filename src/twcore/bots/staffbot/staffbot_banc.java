@@ -520,11 +520,11 @@ public class staffbot_banc extends Module {
 		else
 		    time = Integer.parseInt(timeStr);
 		
-		if(time > BANC_MAX_DURATION) {
+		/*if(time > BANC_MAX_DURATION) {
 			m_botAction.sendSmartPrivateMessage(name, "The maximum amount of minutes for a BanC is "+BANC_MAX_DURATION+" minutes (365 days). Duration changed to this maximum.");
 			time = BANC_MAX_DURATION;
 		}
-		
+		*/
 		// Check target
 		// Already banced?
 		if(isBanCed(target, bancType)) {
