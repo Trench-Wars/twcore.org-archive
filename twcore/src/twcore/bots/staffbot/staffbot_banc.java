@@ -524,6 +524,7 @@ public class staffbot_banc extends Module {
 		if(time > BANC_MAX_DURATION) {
 			m_botAction.sendSmartPrivateMessage(name, "The maximum amount of minutes for a BanC is "+BANC_MAX_DURATION+" minutes (365 days). Duration changed to this maximum.");
 			time = BANC_MAX_DURATION;
+			timeToTell = (BANC_MAX_DURATION/24)/60;
 		}
 		
 		// Check target
@@ -591,7 +592,7 @@ public class staffbot_banc extends Module {
                     	-a=<...>           - Specifies access requirement, options; mod / smod / sysop
                     	-ip=<#.#.#.#> -ir  - Specifies IP or remove IP (-ir) so banc is not matched by IP
                     	-mid=#  -mr        - Specifies MID or remove MID (-mr) so banc is not matched by MID
-                    	-notif=<yes/no>    - Specifies wether a notification is sent on staff chat
+                    	-notif=<yes/no>    - S pecifies wether a notification is sent on staff chat
         */
         
 		if(parameters.length() > 0) {
