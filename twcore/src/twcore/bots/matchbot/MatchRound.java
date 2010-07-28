@@ -756,7 +756,17 @@ public class MatchRound
                             }
                             else if ((sysTime - pSysTime) > outofbordertime)
                             {
-                                p.kickOutOfGame();
+                                try	{
+                                	if (m_rules.getInt("outifexceed") == 0)	{
+                                		p.reportDeath();
+                                	}
+                                	else	{
+                                		p.kickOutOfGame();
+                                	}
+                                } catch (Exception e)	{
+                                	p.kickOutOfGame();
+                                }
+
                             };
                         };
                     };
