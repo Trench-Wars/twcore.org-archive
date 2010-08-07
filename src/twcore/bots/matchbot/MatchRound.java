@@ -755,18 +755,14 @@ public class MatchRound
                                     26);
                             }
                             else if ((sysTime - pSysTime) > outofbordertime)
-                            {
-                                try	{
-                                	if (m_rules.getInt("outifexceed") == 0)	{
-                                		p.reportDeath();
-                                	}
-                                	else	{
-                                		p.kickOutOfGame();
-                                	}
-                                } catch (Exception e)	{
-                                	p.kickOutOfGame();
-                                }
-
+                            {  
+                            	// m_rules.getInt() will return 0 by default if the rule doesn't exist.
+                            	// But 1 is the default value wanted, this is why we check if the rule is not null
+                            	if (m_rules.getString("outifexceed") != null && m_rules.getInt("outifexceed") == 0)	{
+                            		p.reportDeath();
+                            	} else {
+                            		p.kickOutOfGame();
+                            	}
                             };
                         };
                     };
