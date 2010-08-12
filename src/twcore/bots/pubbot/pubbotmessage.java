@@ -1,6 +1,8 @@
 package twcore.bots.pubbot;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
@@ -12,18 +14,25 @@ public class pubbotmessage extends PubBotModule
 {
   private String botName;
   Queue<String> checkQueue;
+  Timer queueTimer;
+  private long CHECKTIME = 2; // Time in seconds how fast names are passed to MessageBot
+  private long START_IDLE = 10; // Time in seconds how long bot waits before passing names to MessageBot after module loaded
+  queueTimerTask tTask;
 
   public void initializeModule()
   {
   	checkQueue = new Queue<String>();
     botName = m_botAction.getBotName();
+    queueTimer = new Timer();
+    queueTimer.schedule(tTask, START_IDLE * 1000);
   }
 
   public void requestEvents(EventRequester eventRequester)
   {
-    eventRequester.request(EventRequester.MESSAGE);
+  //  eventRequester.request(EventRequester.MESSAGE);
+    eventRequester.request(EventRequester.PLAYER_ENTERED);
   }
-
+/*
   public void handleEvent(Message event)
   {
     String message = event.getMessage();
@@ -41,7 +50,7 @@ public class pubbotmessage extends PubBotModule
     			m_botAction.ipcTransmit("messages", new IPCMessage(name, "MessageBot"));
     	}
   }
-
+*/
 
   public void gotNotRecordedCmd(String argString)
   {
@@ -97,6 +106,17 @@ public class pubbotmessage extends PubBotModule
 
   public void cancel()
   {
+  }
+  private class queueTimerTask extends TimerTask {
+      public void run() {
+          String name = checkQueue.next();
+          if(name == null){
+              queueTimer.schedule(tTask, CHECKTIME * 1000);
+              return; 
+          }
+          m_botAction.ipcTransmit("messages", new IPCMessage(name, "MessageBot"));
+          queueTimer.schedule(tTask, CHECKTIME * 1000);
+      }
   }
 }
 
