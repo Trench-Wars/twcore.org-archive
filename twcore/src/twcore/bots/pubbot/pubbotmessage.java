@@ -64,7 +64,6 @@ public class pubbotmessage extends PubBotModule {
 		public void run() {
 			String name = checkQueue.next();
 			if (name == null) {
-				queueTimer.schedule(tTask, CHECKTIME * 1000);
 				return;
 			}
 			m_botAction.ipcTransmit("messages", new IPCMessage(name, "MessageBot"));
