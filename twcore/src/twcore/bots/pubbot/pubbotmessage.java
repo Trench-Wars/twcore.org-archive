@@ -24,6 +24,7 @@ public class pubbotmessage extends PubBotModule {
 	public void initializeModule() {
 		checkQueue = new Queue<String>();
 		botName = m_botAction.getBotName();
+		tTask = new queueTimerTask();
 		queueTimer = new Timer();
 		queueTimer.schedule(tTask, START_IDLE * 1000);
 	}
