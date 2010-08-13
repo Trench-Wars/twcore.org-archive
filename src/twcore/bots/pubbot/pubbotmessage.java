@@ -25,8 +25,7 @@ public class pubbotmessage extends PubBotModule {
 		checkQueue = new Queue<String>();
 		botName = m_botAction.getBotName();
 		tTask = new queueTimerTask();
-		queueTimer = new Timer();
-		queueTimer.schedule(tTask, START_IDLE * 1000);
+		m_botAction.scheduleTaskAtFixedRate(tTask, START_IDLE * 1000, 60 * 1000);
 	}
 
 	public void requestEvents(EventRequester eventRequester) {
@@ -69,7 +68,6 @@ public class pubbotmessage extends PubBotModule {
 				return;
 			}
 			m_botAction.ipcTransmit("messages", new IPCMessage(name, "MessageBot"));
-			queueTimer.schedule(tTask, CHECKTIME * 1000);
 		}
 	}
 	
