@@ -31,6 +31,7 @@ public class pubbotmessage extends PubBotModule {
 		checkQueue = new Queue<String>();
 		botName = m_botAction.getBotName();
 		tTask = new queueTimerTask();
+		playersPMed = new HashSet<String>();
 		m_botAction.scheduleTaskAtFixedRate(tTask, START_IDLE * 1000, CHECK_TIME * 1000);
 	}
 
