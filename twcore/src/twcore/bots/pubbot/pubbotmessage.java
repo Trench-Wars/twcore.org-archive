@@ -7,7 +7,7 @@ import java.util.TimerTask;
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
 import twcore.core.events.InterProcessEvent;
-import twcore.core.events.Message;
+import twcore.core.events.PlayerEntered;
 import twcore.core.util.ipc.IPCMessage;
 
 public class pubbotmessage extends PubBotModule
@@ -103,7 +103,11 @@ public class pubbotmessage extends PubBotModule
       m_botAction.sendChatMessage(e.getMessage());
     }
   }
-
+  public void handleEvent(PlayerEntered event){
+      String name = m_botAction.getPlayerName(event.getPlayerID()).toLowerCase();
+      if(name == null)
+          checkQueue.add(name);
+      }
   public void cancel()
   {
   }
