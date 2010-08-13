@@ -1,6 +1,7 @@
 package twcore.bots.pubbot;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -14,18 +15,23 @@ public class pubbotmessage extends PubBotModule {
 	private String botName;
 	private Queue<String> checkQueue;
 	Timer queueTimer;
-	private long CHECKTIME = 2; // Time in seconds how fast names are passed to
+	private long CHECK_TIME = 2; // Time in seconds how fast names are passed to
 								// MessageBot
 	private long START_IDLE = 10; // Time in seconds how long bot waits before
 									// passing names to MessageBot after module
 									// loaded
 	private queueTimerTask tTask;
+	
+	// Anti-spam features
+	private int ANTISPAM_TIME = 600; // 10 minutes
+	private HashSet<String> playersPMed;
+	private int counter = 0;
 
 	public void initializeModule() {
 		checkQueue = new Queue<String>();
 		botName = m_botAction.getBotName();
 		tTask = new queueTimerTask();
-		m_botAction.scheduleTaskAtFixedRate(tTask, START_IDLE * 1000, CHECKTIME * 1000);
+		m_botAction.scheduleTaskAtFixedRate(tTask, START_IDLE * 1000, CHECK_TIME * 1000);
 	}
 
 	public void requestEvents(EventRequester eventRequester) {
@@ -63,9 +69,15 @@ public class pubbotmessage extends PubBotModule {
 	private class queueTimerTask extends TimerTask {
 		public void run() {
 			String name = checkQueue.next();
-			if (name == null) {
+			counter++;
+			if (counter%(ANTISPAM_TIME/2)==0) {
+				playersPMed.clear();
+				counter = 0;
+			}
+			if (name == null || playersPMed.contains(name)) {
 				return;
 			}
+			playersPMed.add(name);
 			m_botAction.ipcTransmit("messages", new IPCMessage(name, "MessageBot"));
 		}
 	}
