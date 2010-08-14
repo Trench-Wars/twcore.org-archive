@@ -1515,8 +1515,16 @@ public class MatchRound
         if(m_game.m_fnMatchTypeID == 13) {
             m_botAction.sendPublicMessage("Private message me with \"!rules\" for an explanation on how to play TWSD");
         }
-
-        //this is for timerace only
+        
+    	// Open special doors if needed
+        if (m_rules.getInt("door") > 0) {
+        	
+        	if (m_rules.getInt("dooropen_at") >= m_game.getPlayersNum()) {
+        		m_botAction.setDoors(m_rules.getInt("door"));
+        	}
+        }
+        
+        // This is for timerace only
         if ((m_rules.getString("winby")).equals("timerace"))
         {
             m_raceTimer = new TimerTask()
