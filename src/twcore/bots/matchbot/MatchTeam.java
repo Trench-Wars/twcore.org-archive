@@ -873,6 +873,13 @@ public class MatchTeam
                     m_botAction.sendPrivateMessage(name,
                             "Your request of adding an extra player has been sent to opposing team.");
                 }
+                else {
+                	// Open special doors if needed
+                	if (m_rules.getInt("dooropen_at") >= m_round.m_game.getPlayersNum()) {
+                		if (m_rules.getInt("door") > 0)
+                			m_botAction.setDoors(m_rules.getInt("door"));
+                	}
+                }
             }
             else
             {
