@@ -29,8 +29,8 @@ public class staffbot_staffchat_savelog extends Module {
     
     public static final int CHECK_LOG_TIME = 5 * Tools.TimeInMillis.MINUTE;
 
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm", Locale.US);
-
+    private SimpleDateFormat chatDateFormat = new SimpleDateFormat("HH:mm", Locale.US);
+    private SimpleDateFormat fileNameFormat = new SimpleDateFormat("yyyyMMdd", Locale.US);
     private FileWriter logFile;
     private File path;
     private File currentFile;
@@ -48,8 +48,7 @@ public class staffbot_staffchat_savelog extends Module {
         path = new File(botSettings.getString("logpath_staffchat"));
         buffer = new StringBuffer();
         
-    	SimpleDateFormat fileNameFormat = new SimpleDateFormat("yyyymmdd");
-        currentFile = new File(path, fileNameFormat.format(new Date())+".log");
+    	currentFile = new File(path, fileNameFormat.format(new Date())+".log");
         try {
 			logFile = new FileWriter(currentFile, true);
 		} catch (IOException e) {
@@ -85,6 +84,7 @@ public class staffbot_staffchat_savelog extends Module {
 		StringBuilder builder = new StringBuilder();
 		String line = event.getMessage();
         if( event.getMessageType() == Message.ARENA_MESSAGE ) {
+        	System.out.println(line);
         	if (line.startsWith("(staff) staff: ")) {
         		builder.append(",");
         		builder.append(line.substring(15));
@@ -115,8 +115,7 @@ public class staffbot_staffchat_savelog extends Module {
         public void run() {
             try {
 
-            	SimpleDateFormat fileNameFormat = new SimpleDateFormat("yyyymmdd");
-                File newFile = new File(path, fileNameFormat.format(new Date())+".log");
+            	File newFile = new File(path, fileNameFormat.format(new Date())+".log");
             	
                 if (!currentFile.getAbsolutePath().equals(newFile.getAbsolutePath())) {
                 	
@@ -127,9 +126,10 @@ public class staffbot_staffchat_savelog extends Module {
                     logFile = new FileWriter(currentFile, true);
                 }
                 
-                String line = dateFormat.format(new Date()) + " : ";
+                String line = chatDateFormat.format(new Date()) + " : ";
                 
-                logFile.write(line+buffer.toString().substring(1) + '\n');
+                if (buffer.toString().length()>0)
+                	logFile.write(line+buffer.toString().substring(1) + '\n');
                 logFile.flush();
                 buffer = new StringBuffer();
                 
