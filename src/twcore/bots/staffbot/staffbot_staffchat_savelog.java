@@ -49,7 +49,7 @@ public class staffbot_staffchat_savelog extends Module {
         buffer = new StringBuffer();
         
     	SimpleDateFormat fileNameFormat = new SimpleDateFormat("yyyymmdd");
-        currentFile = new File(path, fileNameFormat.format(new Date()+".log"));
+        currentFile = new File(path, fileNameFormat.format(new Date())+".log");
         try {
 			logFile = new FileWriter(currentFile, true);
 		} catch (IOException e) {
@@ -116,7 +116,7 @@ public class staffbot_staffchat_savelog extends Module {
             try {
 
             	SimpleDateFormat fileNameFormat = new SimpleDateFormat("yyyymmdd");
-                File newFile = new File(path, fileNameFormat.format(new Date()+".log"));
+                File newFile = new File(path, fileNameFormat.format(new Date())+".log");
             	
                 if (!currentFile.getAbsolutePath().equals(newFile.getAbsolutePath())) {
                 	
