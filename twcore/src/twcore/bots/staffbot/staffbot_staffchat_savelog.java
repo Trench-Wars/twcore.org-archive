@@ -27,7 +27,7 @@ import twcore.core.util.Tools;
  */
 public class staffbot_staffchat_savelog extends Module {
     
-	public static final int MINUTE = 2;
+	public static final int MINUTE = 5;
     public static final int CHECK_LOG_TIME = MINUTE * Tools.TimeInMillis.MINUTE;
 
     private SimpleDateFormat chatDateFormat = new SimpleDateFormat("HH:mm", Locale.US);
@@ -82,13 +82,11 @@ public class staffbot_staffchat_savelog extends Module {
 	
 	public void handleEvent(Message event) {
 
-		StringBuilder builder = new StringBuilder();
 		String line = event.getMessage();
         if( event.getMessageType() == Message.ARENA_MESSAGE ) {
         	if (line.contains("(staff) staff: ")) {
-        		builder.append(",");
-        		builder.append(line.substring(15));
-        		System.out.println(builder.toString());
+        		buffer.append(",");
+        		buffer.append(line.substring(15));
         	}
         }        
 	}
