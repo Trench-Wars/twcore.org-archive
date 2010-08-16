@@ -71,8 +71,8 @@ public class staffbot_staffchat_savelog extends Module {
         diff += 20; // Just to make sure
         
         // Must be executed 10 seconds before "writeToLog"
-        m_botAction.scheduleTaskAtFixedRate(checkStaffChat, diff-10, CHECK_LOG_TIME);
-        m_botAction.scheduleTaskAtFixedRate(writeToLog, diff, CHECK_LOG_TIME);
+        m_botAction.scheduleTaskAtFixedRate(checkStaffChat, (diff-10)*Tools.TimeInMillis.SECOND, CHECK_LOG_TIME);
+        m_botAction.scheduleTaskAtFixedRate(writeToLog, diff*Tools.TimeInMillis.SECOND, CHECK_LOG_TIME);
     }
 
 	@Override
