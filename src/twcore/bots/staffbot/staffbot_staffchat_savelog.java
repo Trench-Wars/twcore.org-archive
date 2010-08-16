@@ -27,7 +27,8 @@ import twcore.core.util.Tools;
  */
 public class staffbot_staffchat_savelog extends Module {
     
-    public static final int CHECK_LOG_TIME = 5 * Tools.TimeInMillis.MINUTE;
+	public static final int MINUTE = 2;
+    public static final int CHECK_LOG_TIME = MINUTE * Tools.TimeInMillis.MINUTE;
 
     private SimpleDateFormat chatDateFormat = new SimpleDateFormat("HH:mm", Locale.US);
     private SimpleDateFormat fileNameFormat = new SimpleDateFormat("yyyyMMdd", Locale.US);
@@ -61,12 +62,12 @@ public class staffbot_staffchat_savelog extends Module {
         // We must synch our timerTasks!
         SimpleDateFormat format = new SimpleDateFormat("mm:ss", Locale.US);
         String[] split = format.format(new Date()).split(":");
-        int min = Integer.parseInt(split[0])%5;
+        int min = Integer.parseInt(split[0])%MINUTE;
         int sec = Integer.parseInt(split[1]);
         
-        int diff = 5*60-(min+1)*60+60-sec;
+        int diff = MINUTE*60-(min+1)*60+60-sec;
         if (diff<=10)
-        	diff += 5*60;
+        	diff += MINUTE*60;
         
         // Must be executed 10 seconds before "writeToLog"
         m_botAction.scheduleTaskAtFixedRate(checkStaffChat, diff-10, CHECK_LOG_TIME);
@@ -84,10 +85,10 @@ public class staffbot_staffchat_savelog extends Module {
 		StringBuilder builder = new StringBuilder();
 		String line = event.getMessage();
         if( event.getMessageType() == Message.ARENA_MESSAGE ) {
-        	System.out.println(line);
-        	if (line.startsWith("(staff) staff: ")) {
+        	if (line.contains("(staff) staff: ")) {
         		builder.append(",");
         		builder.append(line.substring(15));
+        		System.out.println(builder.toString());
         	}
         }        
 	}
