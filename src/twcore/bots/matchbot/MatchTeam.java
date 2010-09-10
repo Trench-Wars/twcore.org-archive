@@ -61,6 +61,32 @@ public class MatchTeam
     int m_fnSubstitutes;
     int m_fnShipSwitches;
     int m_fnShipChanges;
+    
+    //twfd variables
+    boolean increase;
+    boolean t1_lineCheck;
+    boolean t2_lineCheck;
+    String twfd_squadName;
+    int twfd_ship;
+    int twfd_changeShip;
+    String twfd_playerName;
+    String t1;
+    String t1_twfdHandler;
+    int[] t1Ships = new int[2];
+    int t1Counter_Ship1 = 0;
+    int t1Counter_Ship3 = 0;
+    int t1Counter_Ship7 = 0;    
+    int t1Counter = 0;
+    String t2;
+    String t2_twfdHandler;
+    int[] t2Ships = new int[2];
+    int t2Counter_Ship1 = 0;
+    int t2Counter_Ship3 = 0;
+    int t2Counter_Ship7 = 0;
+    int t2Counter = 0;
+    
+
+    
 
 	int m_lagID = 0;
 
@@ -830,9 +856,39 @@ public class MatchTeam
                     p = m_botAction.getFuzzyPlayer(parameters[0]);
                 parameters[0] = p.getPlayerName();
                 answer = addPlayer(p.getPlayerName(), fnShip, true, false);
+                
+                //if twfd gametype
+            	if (m_rules.getInt("matchtype") == 2113)	{
+            		twfd_playerName = parameters[0];
+                	fnShip = twfd_ship;
+                	m_fcTeamName.toLowerCase();
+                	twfd_squadName = m_fcTeamName;
+                	increase = true;
+                	TWFDShipHandler(twfd_squadName,twfd_ship,twfd_playerName);
+	                	if(t1_twfdHandler == "under minimum")	{
+	                		t1_lineCheck = false;
+	                	}
+	                	if(t2_twfdHandler == "under minimum")	{
+	                		t2_lineCheck = false;
+	                	}
+	                	if(t1_twfdHandler == "invalid lineup")	{
+	                		m_logger.sendPrivateMessage(name, "Your line must contain at least one Warbird, one Spider, and one Lancaster to be valid.");
+	                		t1_lineCheck = false;
+	                		return;
+	                	}
+	                	if(t2_twfdHandler == "invalid lineup")	{
+	                		m_logger.sendPrivateMessage(name, "Your line must contain at least one Warbird, one Spider, and one Lancaster to be valid.");
+	                		t2_lineCheck = false;
+	                		return;
+	                	}
+            	}
+            	
+            	
                 if (answer.equals("yes"))
                 {
                 	
+                	
+
                 	
                     m_logger.sendPrivateMessage(name, "Player " + p.getPlayerName() + " added to " + m_fcTeamName);
                     m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game");
@@ -844,6 +900,7 @@ public class MatchTeam
                         m_turn = !m_turn;
                         m_round.determineNextPick();
                     }
+                    
                 }
                 else
                 {
@@ -906,9 +963,39 @@ public class MatchTeam
             }
 
             p = getPlayer(parameters[0]);
-
+            
+            
+            //if twfd gametype
+        	if (m_rules.getInt("matchtype") == 2113)	{
+        		twfd_playerName = parameters[0];
+        		twfd_ship = p.getShipType();
+            	//fnShip = twfd_ship;
+            	m_fcTeamName.toLowerCase();
+            	twfd_squadName = m_fcTeamName;
+            	increase = false;
+            	TWFDShipHandler(twfd_squadName,twfd_ship,twfd_playerName);
+                	if(t1_twfdHandler == "under minimum")	{
+                		t1_lineCheck = false;
+                	}
+                	if(t2_twfdHandler == "under minimum")	{
+                		t2_lineCheck = false;
+                	}
+                	if(t1_twfdHandler == "invalid lineup")	{
+                		m_logger.sendPrivateMessage(name, "Your line must contain at least one Warbird, one Spider, and one Lancaster to be valid.");
+                		t1_lineCheck = false;
+                		return;
+                	}
+                	if(t2_twfdHandler == "invalid lineup")	{
+                		m_logger.sendPrivateMessage(name, "Your line must contain at least one Warbird, one Spider, and one Lancaster to be valid.");
+                		t2_lineCheck = false;
+                		return;
+                	}
+        	}
+            
             if (p != null)
             {
+            	
+            	
                 p.getOutOfGame();
                 m_players.remove(p);
                 m_logger.sendPrivateMessage(name, "Player removed from the game");
@@ -1075,6 +1162,7 @@ public class MatchTeam
             if (parameters.length == 2)
             {
                 pA = getPlayer(parameters[0]);
+
                 try
                 {
                     newShip = Integer.parseInt(parameters[1]);
@@ -1106,6 +1194,9 @@ public class MatchTeam
                                                 || (m_rules.getInt("maxship" + newShip) > getPlayersRosteredInShip(newShip)))
                                         {
                                             pA.setShip(newShip);
+                                            if(m_rules.getInt("matchtype") == 2133)	{
+                                            	
+                                            }
 
                                             //this indicates that the player has switched ships during the game
                                             //currently it voids the player from getting mvp in time race games
@@ -1564,8 +1655,9 @@ public class MatchTeam
             // 2. the minimum amount of ships for each shiptype should be met
             return minimumShipAmountsMet();
         }
-        else
+        else	{
             return "Team doesn't have enough players, need at least " + m_rules.getInt("minplayers");
+        }
     }
 
     // setReadyToGo
@@ -2002,6 +2094,9 @@ public class MatchTeam
     // checks if all minimum numbers of ships are met
     public String minimumShipAmountsMet()
     {
+    	if(m_rules.getInt("matchtype") == 2113)	{
+    		
+    	}
         int minShips, curShips;
         for (int i = 1; i <= 8; i++)
         {
@@ -2011,7 +2106,7 @@ public class MatchTeam
                 return "You need at least " + minShips + " of type " + i + ", there are currently " + curShips;
         }
         return "yes";
-    }
+    }    
 
     // send start signal to all players
     public void signalStartToPlayers()
@@ -2316,6 +2411,170 @@ public class MatchTeam
 
         return result;
     }
-        
+    
+    public String TWFDShipHandler(String twfd_squadName, int twfd_ship, String twfd_playerName)	{
+    	//invokes the first if/else if statement when its the first person being added for that squad.
+    	if(t1 == null)	{
+    	    t1Ships[0] = t1Counter_Ship1;
+    	    t1Ships[1] = t1Counter_Ship3;
+    	    t1Ships[2] = t1Counter_Ship7;
+    		t1 = twfd_squadName;
+    		if(increase == true)	{
+    			t1Counter++;
+	    		if(twfd_ship == 1)	{
+	    			t1Counter_Ship1++;
+	    		}
+	    		else if(twfd_ship == 3)	{
+	    			t1Counter_Ship3++;
+	    		}
+	    		else if(twfd_ship == 7)	{
+	    			t1Counter_Ship7++;
+	    		}
+	    		t1_twfdHandler = "under minimum";
+	    		return t1_twfdHandler;
+    		}
+    	} else if(t2 == null)	{
+    		t2 = twfd_squadName;
+    		t2Ships[0] = t2Counter_Ship1;
+    	    t2Ships[1] = t2Counter_Ship3;
+    	    t2Ships[2] = t2Counter_Ship7;
+    		if(increase == true)	{
+    			t2Counter++;
+	    		if(twfd_ship == 1)	{
+	    			t2Counter_Ship1++;
+	    		}
+	    		else if(twfd_ship == 3)	{
+	    			t2Counter_Ship3++;
+	    		}
+	    		else if(twfd_ship == 7)	{
+	    			t2Counter_Ship7++;
+	    		}
+	    		t2_twfdHandler = "under minimum";
+	    		return t2_twfdHandler;
+    		}
+    	/**
+    	 * If the person is not the first person to be added for their team,
+    	 * this else statement will begin. The real "juice" of the checking
+    	 * will be invoked within this else statement as the number of players
+    	 * for a team reaches the minimum number needed to play (3).
+    	 */
+    	} else {
+    		if(twfd_squadName == t1)	{
+    			if(increase == true)	{
+        			t1Counter++;
+    	    		if(twfd_ship == 1)	{
+    	    			t1Counter_Ship1++;
+    	    		}
+    	    		else if(twfd_ship == 3)	{
+    	    			t1Counter_Ship3++;
+    	    		}
+    	    		else if(twfd_ship == 7)	{
+    	    			t1Counter_Ship7++;
+    	    		}
+    	    		
+    	    		if(t1Counter >= 3)	{
+    	    			if (t1Counter_Ship1 >= 1 && t1Counter_Ship3 >= 1 && t1Counter_Ship7 >= 1)	{
+    	        		t1_twfdHandler = "ok";
+    	        		t1_lineCheck = true;
+    	        		return t1_twfdHandler;
+    	        		
+    	    			} else	{
+    	    				t1_twfdHandler = "invalid lineup";
+    	    				return t1_twfdHandler;
+    	    			}
+    	        	} else	{
+    	        		t1_twfdHandler = "under minimum";
+    	        		return t1_twfdHandler;
+    	        	}
+    	    		
+    	    		
+        		}
+        		else if(increase == false)	{
+        			t1Counter--;
+        			if(twfd_ship == 1)	{
+        				t1Counter_Ship1--;
+    	    		}
+    	    		else if(twfd_ship == 3)	{
+    	    			t1Counter_Ship3--;
+    	    		}
+    	    		else if(twfd_ship == 7)	{
+    	    			t1Counter_Ship7--;
+    	    		}
+        			if(t1Counter >= 3)	{
+    	    			if (t1Counter_Ship1 >= 1 && t1Counter_Ship3 >= 1 && t1Counter_Ship7 >= 1)	{
+    	        		t1_twfdHandler = "ok";
+    	        		t1_lineCheck = true;
+    	        		return t1_twfdHandler;
+    	    			} else	{
+    	    				t1_twfdHandler = "invalid lineup";
+    	    				return t1_twfdHandler;
+    	    			}
+    	        	} else	{
+    	        		t1_twfdHandler = "under minimum";
+    	        		return t1_twfdHandler;
+    	        	}
+        		}
+    		}
+    		else if(twfd_squadName == t2)	{
+    			if(increase == true)	{
+        			t2Counter++;
+    	    		if(twfd_ship == 1)	{
+    	    			t2Counter_Ship1++;
+    	    		}
+    	    		else if(twfd_ship == 3)	{
+    	    			t2Counter_Ship3++;
+    	    		}
+    	    		else if(twfd_ship == 7)	{
+    	    			t2Counter_Ship7++;
+    	    		}
+    	    		if(t2Counter >= 3)	{
+    	    			if (t2Counter_Ship1 >= 1 && t2Counter_Ship3 >= 1 && t2Counter_Ship7 >= 1)	{
+    	        		t2_twfdHandler = "ok";
+    	        		t2_lineCheck = true;
+    	        		return t2_twfdHandler;
+    	    			} else	{
+    	    				t2_twfdHandler = "invalid lineup";
+    	    				return t2_twfdHandler;
+    	    			}
+    	        	} else	{
+    	        		t2_twfdHandler = "under minimum";
+    	        		return t2_twfdHandler;
+    	        	}
+        		}
+        		else if(increase == false)	{
+        			t2Counter--;
+        			if(twfd_ship == 1)	{
+        				t2Counter_Ship1--;
+    	    		}
+    	    		else if(twfd_ship == 3)	{
+    	    			t2Counter_Ship3--;
+    	    		}
+    	    		else if(twfd_ship == 7)	{
+    	    			t2Counter_Ship7--;
+    	    		}
+        			if(t2Counter >= 3)	{
+    	    			if (t2Counter_Ship1 >= 1 && t2Counter_Ship3 >= 1 && t2Counter_Ship7 >= 1)	{
+    	        		t2_twfdHandler = "ok";
+    	        		t2_lineCheck = true;
+    	        		return t2_twfdHandler;
+    	    			} else	{
+    	    				t2_twfdHandler = "invalid lineup";
+    	    				return t2_twfdHandler;
+    	    			}
+    	        	} else	{
+    	        		t2_twfdHandler = "under minimum";
+    	        		return t2_twfdHandler;
+    	        	}
+        		}
+    		}
+    	}
+    String error = "error";
+	return error;
+    }
+    
+    public void TWFDShipChecker()	{
+    
+    }
+    	
 }
 
