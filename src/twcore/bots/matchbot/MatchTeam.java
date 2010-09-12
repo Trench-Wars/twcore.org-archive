@@ -85,7 +85,14 @@ public class MatchTeam
     int t2Counter_Ship7 = 0;
     int t2Counter = 0;
     
-
+    //twfd attempt 2 variables
+    boolean add;
+    boolean remove;
+    boolean change;
+    boolean check;
+    int shipCounter;
+    String[] minShipStr;
+	String[] playerShip;
     
 
 	int m_lagID = 0;
@@ -2572,8 +2579,121 @@ public class MatchTeam
 	return error;
     }
     
-    public void TWFDShipChecker()	{
-    
+    public boolean CheckLine()	{
+    	
+    	
+    	
+    	/**
+    	 * Creates the array that will be referenced for the number of 
+    	 * each ship allowed based on the rules file and stores it in
+    	 * the int array.
+    	 * minShipStr used for reading the rules file (must read as a string)
+    	 * minShipInt used to store the values as ints to be compared later
+    	 */
+    	String[] minShipStr;
+    	minShipStr = m_rules.getString("minship").split(",");
+    	int[] minShipInt = new int[minShipStr.length];
+    	int i = 0;
+    	for(i=0;i<minShipStr.length;i++)	{
+    		 minShipInt[i] = Integer.parseInt(minShipStr[i]);
+    	}
+    	
+    	
+    	/**
+    	 * This part of the method will take in player ships and store them 
+    	 * in the correct variable.
+    	 */
+    	int counter0 = 0;//for specced players previously subbed/removed
+    	int counter1 = 0;
+		int counter2 = 0;
+		int counter3 = 0;
+		int counter4 = 0;
+		int counter5 = 0;
+		int counter6 = 0;
+		int counter7 = 0;
+		int counter8 = 0;
+		int[] playerShip = {counter0,counter1,counter2,counter3,counter4,
+							counter5,counter6,counter7,counter8};
+		
+    	int ShipNumber;
+		String[] playerStr = new String[m_players.size()];
+		m_players.toArray(playerStr);
+    	
+		i = 0;
+    	for(i=0;i<playerStr.length;i++)	{
+        	Player p;
+            p = m_botAction.getPlayer(playerStr[i]);
+            p = m_botAction.getFuzzyPlayer(playerStr[i]);
+        	ShipNumber = p.getShipType();
+        		if(ShipNumber == 0)	{
+        			counter0++;
+        		}
+        		else if(ShipNumber == 1) {
+        			counter1++;
+        		}
+        		else if(ShipNumber == 2) {
+        			counter2++;
+        		}
+        		else if(ShipNumber == 3) {
+        			counter3++;
+        		}
+        		else if(ShipNumber == 4) {
+        			counter4++;
+        		}
+        		else if(ShipNumber == 5) {
+        			counter5++;
+        		}
+        		else if(ShipNumber == 6) {
+        			counter6++;
+        		}
+        		else if(ShipNumber == 7) {
+        			counter7++;
+        		}
+        		else if(ShipNumber == 8) {
+        			counter8++;
+        		}
+    	}
+    	
+    	
+
+    	
+    	
+    	/**
+    	 * Finally we will test that all the ship amounts are greater than
+    	 * the numbers stored within the rules file. To reiterate, the check 
+    	 * will be good if each array position int[] playerShip is greater 
+    	 * than the corresponding array position in the rule (in this case the
+    	 * array is minShipInt)
+    	 */
+
+    	boolean goodLine = false;
+    	i = 0;
+    	for(i=0;i<playerShip.length;i++)	{
+    		if(!(minShipInt[i]<playerShip[i]))	{
+    			goodLine = false;
+    		} else	{
+    			goodLine = true;
+    		}
+    	}
+    	
+    	/**
+    	 * Now we must set the used variables back to zero to be used for
+    	 * the next time the check comes in. The counter variables
+    	 * would remain at their previous state if we didn't set them to zero,
+    	 * thus distorting the actual ships in.
+    	 */
+    	
+    	counter0 = 0;
+    	counter1 = 0;
+		counter2 = 0;
+		counter3 = 0;
+		counter4 = 0;
+		counter5 = 0;
+		counter6 = 0;
+		counter7 = 0;
+		counter8 = 0;
+		return goodLine;
+    	
     }
     	
 }
