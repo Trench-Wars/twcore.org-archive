@@ -1,8 +1,10 @@
 package twcore.bots.pubhub;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -136,13 +138,21 @@ public class pubhub extends SubspaceBot {
      * @param event is the ArenaList event.
      */
     public void handleEvent(ArenaList event) {
-        String[] arenas = event.getArenaNames();
+    	
+    	HashSet<String> arenaList = new HashSet(Arrays.asList(event.getArenaNames()));
+    	
         boolean startup = pubbots.size()==0;
 
         if(countUnspawnedArenas() > 0) {
             // Spawn the pubbot
             m_botAction.sendSmartPrivateMessage(cfg_hubbot, "!spawn PubBot");
         }
+        
+        // Inter-zone arena, always put a bot there
+        arenaList.add("tw");
+        arenaList.add("trenchwars");
+        
+        String[] arenas = arenaList.toArray(new String[arenaList.size()]);
         
         for (int i = 0; i < arenas.length; i++) {
             String arena = arenas[i].toLowerCase();
