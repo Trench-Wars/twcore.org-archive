@@ -35,7 +35,7 @@ public class pubbotgatekeeper extends PubBotModule {
 			// Received from a *lag
 			if (message.startsWith("PING Current:"))
 			{
-				m_botAction.sendPublicMessage("Lag check!");
+				m_botAction.sendPublicMessage(message);
 				// If the player is from another zone, the lag info will say 0 ms
 				String pieces[] = message.split(" ");
 				if (pieces.length>3 && pieces[4].equals("0")) {
