@@ -164,7 +164,7 @@ public class pubbot extends SubspaceBot
   {
     if(moduleHandler.isModule(argString)) {
         PubBotModule module;
-
+    	System.out.println("("+m_botAction.getBotName()+") Loading: " + argString);
         moduleHandler.loadModule(argString);
         module = (PubBotModule) moduleHandler.getModule(argString);
         module.initializeModule(IPCCHANNEL, pubHubBot);
