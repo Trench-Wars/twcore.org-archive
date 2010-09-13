@@ -63,36 +63,16 @@ public class MatchTeam
     int m_fnShipChanges;
     
     //twfd variables
-    boolean increase;
-    boolean t1_lineCheck;
-    boolean t2_lineCheck;
-    String twfd_squadName;
-    int twfd_ship;
-    int twfd_changeShip;
-    String twfd_playerName;
-    String t1;
-    String t1_twfdHandler;
-    int[] t1Ships = new int[2];
-    int t1Counter_Ship1 = 0;
-    int t1Counter_Ship3 = 0;
-    int t1Counter_Ship7 = 0;    
-    int t1Counter = 0;
-    String t2;
-    String t2_twfdHandler;
-    int[] t2Ships = new int[2];
-    int t2Counter_Ship1 = 0;
-    int t2Counter_Ship3 = 0;
-    int t2Counter_Ship7 = 0;
-    int t2Counter = 0;
-    
-    //twfd attempt 2 variables
-    boolean add;
-    boolean remove;
-    boolean change;
-    boolean check;
+	boolean twfd_add;
+	boolean twfd_remChg;
+	boolean goodLine;
+	boolean belowMinLine;
     int shipCounter;
     String[] minShipStr;
 	String[] playerShip;
+	String ship1Needed;//instantiated inside add command
+	String ship3Needed;//instantiated inside add command
+	String ship7Needed;//instantiated inside add command
     
 
 	int m_lagID = 0;
@@ -1202,7 +1182,7 @@ public class MatchTeam
                                         {
                                             pA.setShip(newShip);
                                             if(m_rules.getInt("matchtype") == 2133)	{
-                                            	
+                                            	CheckLine(newShip);
                                             }
 
                                             //this indicates that the player has switched ships during the game
@@ -2579,7 +2559,22 @@ public class MatchTeam
 	return error;
     }
     
-    public boolean CheckLine()	{
+    public void CheckLine(int newShip)	{
+
+    	/** 
+    	 * TODO:
+    	 * - Add the check into the correct place in each method.
+    	 * - Catch the goodLine = false with a return that will break the 
+    	 * 		method and warn the player of this.
+    	 * - Catch the goodLine = true and allow them to proceed with the 
+    	 * 		action.
+    	 * - Create a newShip variable wherever this method is called;
+    	 * 		there is already one in the !change method, now we need
+    	 * 		one in the !add/!remove methods. The only time it actually
+    	 * 		matters what it is, is when the player is removed/changed.
+    	 * - Insert a final check when the players send !ready to the bot
+    	 * 		and also send a final check before the game starts.
+    	 */
     	
     	
     	
@@ -2587,6 +2582,8 @@ public class MatchTeam
     	 * Creates the array that will be referenced for the number of 
     	 * each ship allowed based on the rules file and stores it in
     	 * the int array.
+    	 * 
+    	 * 
     	 * minShipStr used for reading the rules file (must read as a string)
     	 * minShipInt used to store the values as ints to be compared later
     	 */
@@ -2602,6 +2599,12 @@ public class MatchTeam
     	/**
     	 * This part of the method will take in player ships and store them 
     	 * in the correct variable.
+    	 * 
+    	 * int counter variables are used to count the number of each ship type
+    	 * int[] playerShip stores these variables in an array
+    	 * playerStr will take in the m_players LinkedList
+    	 * ShipNumber will return the shipnumber for each player from playerStr
+    	 *      and add it to the proper counter.
     	 */
     	int counter0 = 0;//for specced players previously subbed/removed
     	int counter1 = 0;
@@ -2618,7 +2621,7 @@ public class MatchTeam
     	int ShipNumber;
 		String[] playerStr = new String[m_players.size()];
 		m_players.toArray(playerStr);
-    	
+		
 		i = 0;
     	for(i=0;i<playerStr.length;i++)	{
         	Player p;
@@ -2655,44 +2658,94 @@ public class MatchTeam
     	}
     	
     	
-
+		/**
+		 * We need to check to make sure that the team has at least 3 players in
+		 * before we start testing their line. This also presents a slight loophole
+		 * because teams could theoretically add one ship and then two of another
+		 * kind before they will be checked because they are not checked until the
+		 * fourth ship is added. This was necessary because the method checks to
+		 * see that there is at least one of each ship type BEFORE the add goes 
+		 * through so it must wait until there's at least 3 in before the check 
+		 * begins. This area attempts to catch this and at least warn the player
+		 * which ship(s) they need to have a correct the line.
+		 * 
+		 * ship1Needed,ship3Needed,ship7Needed are self explanatory. If they do not
+		 * 		have one of these ships, their line is invalid and they are
+		 * 		notified when they add the 3rd player.
+		 */
+		if (playerStr.length < 3)	{
+			if(playerStr.length == 2)	{
+				if(counter1==0)	{
+					ship1Needed = "Warbird";
+				}
+				if(counter3==0)	{
+					ship3Needed = "Spider";
+				}
+				if(counter7==0)	{
+					ship7Needed = "Lancaster";
+				}
+			}
+			belowMinLine = true;
+			return;
+		}
     	
     	
     	/**
     	 * Finally we will test that all the ship amounts are greater than
     	 * the numbers stored within the rules file. To reiterate, the check 
-    	 * will be good if each array position int[] playerShip is greater 
+    	 * will be good if each array position int[i] playerShip is greater 
     	 * than the corresponding array position in the rule (in this case the
-    	 * array is minShipInt)
+    	 * array is minShipInt). Here we must also differentiate between adding 
+    	 * and removes/changes. 
+    	 * Consider this change scenario: if a team had 1 of each ship, this 
+    	 * method would return goodLine to be true because it checks prior to
+    	 * the ship change and would then allow them to do so. To catch this, 
+    	 * they must have at least 2 of a ship before they can make the change 
+    	 * (twfd_remChg would be true and it would enter into that part of 
+    	 * the statement). While in the adding method, we can simply just add
+    	 * and assure that they have at least 1 of each ship with a for loop
+    	 * but a remove or change becomes more complicated because a for loop
+    	 * would mean for example they must have 2 of each ship to allow the
+    	 * change which won't be the case in a 4s or 5s game, so now we must
+    	 * figure out exactly what ship the player is in that they want to 
+    	 * perform the action on (luckily there's only 3 to look for in twfd).
     	 */
-
-    	boolean goodLine = false;
     	i = 0;
     	for(i=0;i<playerShip.length;i++)	{
-    		if(!(minShipInt[i]<playerShip[i]))	{
-    			goodLine = false;
-    		} else	{
-    			goodLine = true;
+    		if(twfd_add = true)	{
+    			if(!(minShipInt[i]<=playerShip[i]))	{
+        			goodLine = false;
+        		} else	{
+        			goodLine = true;
+        		}
+    		}
+    		if(twfd_remChg = true)	{
+    			if(!(minShipInt[i]<=playerShip[i]))	{
+        			goodLine = false;
+        		} else	{
+        			if(newShip==1)	{
+        				if(!(1<counter1)){
+        					goodLine = false;
+        				}
+        			}
+        			else if(newShip==3)	{
+        				if(!(1<counter3)){
+        					goodLine = false;
+        				}
+        			}
+        			else if(newShip==7)	{
+        				if(!(1<counter7)){
+        					goodLine = false;
+        				}
+        			}
+        			goodLine = true;
+        		}
     		}
     	}
-    	
-    	/**
-    	 * Now we must set the used variables back to zero to be used for
-    	 * the next time the check comes in. The counter variables
-    	 * would remain at their previous state if we didn't set them to zero,
-    	 * thus distorting the actual ships in.
-    	 */
-    	
-    	counter0 = 0;
-    	counter1 = 0;
-		counter2 = 0;
-		counter3 = 0;
-		counter4 = 0;
-		counter5 = 0;
-		counter6 = 0;
-		counter7 = 0;
-		counter8 = 0;
-		return goodLine;
+    }
+    
+    
+    public void CheckLineFinal()	{
     	
     }
     	
