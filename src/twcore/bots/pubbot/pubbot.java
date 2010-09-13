@@ -400,9 +400,10 @@ public class pubbot extends SubspaceBot
 	  {
 		  if(m_botAction.getArenaSize() == 1) {
     	  
-			  // The arena "trench" must always have a pubbot there
-			  // to avoid players to evade banc
-			  if (!m_botAction.getArenaName().equals("trench"))
+			  // The arena "tw/trenchwars" must always have a pubbot there
+			  // to avoid players to evade banc and other stuff
+			  if (!m_botAction.getArenaName().equals("tw")
+					  || !m_botAction.getArenaName().equals("trenchwars"))
 				  doDieCmd(true);
 		  }
 	  }
