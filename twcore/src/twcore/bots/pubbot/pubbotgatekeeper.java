@@ -34,7 +34,6 @@ public class pubbotgatekeeper extends PubBotModule {
 			// Received from a *info
 			if (message.startsWith("Ping:0ms"))
 			{
-				m_botAction.sendPublicMessage("Inter-zone!");
 				m_botAction.sendChatMessage(2, "INTER-ZONE: " + lastPlayer + " (" + m_botAction.getArenaName() + ")");
 			}
 		}
