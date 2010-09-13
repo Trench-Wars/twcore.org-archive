@@ -31,12 +31,15 @@ public class pubbotgatekeeper extends PubBotModule {
 		
 		if (event.getMessageType() == Message.ARENA_MESSAGE)
 		{
+			m_botAction.sendPublicMessage("Arena message!");
 			// Received from a *lag
 			if (message.startsWith("PING Current:"))
 			{
+				m_botAction.sendPublicMessage("Lag check!");
 				// If the player is from another zone, the lag info will say 0 ms
 				String pieces[] = message.split(" ");
 				if (pieces.length>3 && pieces[4].equals("0")) {
+					m_botAction.sendPublicMessage("Inter-zone!");
 					m_botAction.sendChatMessage(2, "INTER-ZONE: " + lastPlayer + " (" + m_botAction.getArenaName() + ")");
 				}
 			}
@@ -48,6 +51,7 @@ public class pubbotgatekeeper extends PubBotModule {
 		Player player = m_botAction.getPlayer(event.getPlayerID());
 		m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*lag");
 		lastPlayer = player.getPlayerName();
+		m_botAction.sendPublicMessage("Check!");
 	}
 
 	@Override
