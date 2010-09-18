@@ -1151,18 +1151,24 @@ public class MatchTeam
                                         if ((m_rules.getInt("maxship" + newShip) == 0)
                                                 || (m_rules.getInt("maxship" + newShip) > getPlayersRosteredInShip(newShip)))
                                         {
-                                            pA.setShip(newShip);
+                                            
                                             //if twfd gametype
                                         	if (m_rules.getInt("matchtype") == 2113)	{
-                                        		twfd_add = true;
                                         		twfd_rem = true;
-                                        		CheckLine(newShip, oldShip);
+                                        		CheckLine(0, oldShip);
+                                        		if(goodLine = false)	{
+                                        			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
+                                        			return;
+                                        		}
+                                        		twfd_add = true;
+                                        		CheckLine(newShip, 0);
                                         		if(goodLine = false)	{
                                         			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
                                         			return;
                                         		}
                                         	}
-
+                                        	
+                                        	pA.setShip(newShip);
                                             //this indicates that the player has switched ships during the game
                                             //currently it voids the player from getting mvp in time race games
                                             pA.m_switchedShip = true;
