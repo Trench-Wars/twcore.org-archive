@@ -2449,8 +2449,10 @@ public class MatchTeam
             p = m_botAction.getPlayer(playerStr[i]);
             p = m_botAction.getFuzzyPlayer(playerStr[i]);
         	ShipNumber = p.getShipType();
-        		if(ShipNumber == 0)	{
-        			counter0++;
+        		if(ShipNumber == 0 || newShip == 0 || oldShip == 0)	{
+        			if(ShipNumber == 0)	{
+            			counter0++;
+        			}
                 	if(newShip == 0)	{
                     	if(twfd_add)	{
             				counter0++;
@@ -2468,8 +2470,10 @@ public class MatchTeam
             			}
                 	}
                 }
-        		else if(ShipNumber == 1) {
-        			counter1++;
+        		else if(ShipNumber == 1 || newShip == 1 || oldShip == 1) {
+        			if(ShipNumber == 1)	{
+            			counter1++;
+        			}
                 	if(newShip == 1)	{
                     	if(twfd_add)	{
             				counter1++;
@@ -2487,8 +2491,10 @@ public class MatchTeam
                     	}
                 	}
         		}
-        		else if(ShipNumber == 2) {
-        			counter2++;
+        		else if(ShipNumber == 2 || newShip == 2 || oldShip == 2) {
+        			if(ShipNumber == 2)	{
+            			counter2++;
+        			}
                 	if(newShip == 2)	{
                     	if(twfd_add) 	{
             				counter2++;
@@ -2506,8 +2512,10 @@ public class MatchTeam
                         }
                 	}
         		}
-        		else if(ShipNumber == 3) {
-        			counter3++;
+        		else if(ShipNumber == 3 || newShip == 3 || oldShip == 3) {
+        			if(ShipNumber == 3)	{
+            			counter3++;
+        			}
                 	if(newShip == 3)	{
                     	if(twfd_add) 	{
             				counter3++;
@@ -2525,8 +2533,10 @@ public class MatchTeam
                         }
                 	}
         		}
-        		else if(ShipNumber == 4) {
-        			counter4++;
+        		else if(ShipNumber == 4 || newShip == 4 || oldShip == 4) {
+        			if(ShipNumber == 4)	{
+            			counter4++;
+        			}
                 	if(newShip == 4)	{
                     	if(twfd_add) 	{
             				counter4++;
@@ -2544,8 +2554,10 @@ public class MatchTeam
                         }
                 	}
         		}
-        		else if(ShipNumber == 5) {
-        			counter5++;
+        		else if(ShipNumber == 5 || newShip == 5 || oldShip == 5) {
+        			if(ShipNumber == 5)	{
+            			counter5++;
+        			}
                 	if(newShip == 5)	{
                     	if(twfd_add) 	{
             				counter5++;
@@ -2563,8 +2575,10 @@ public class MatchTeam
                         }
                 	}
         		}
-        		else if(ShipNumber == 6) {
-        			counter6++;
+        		else if(ShipNumber == 6 || newShip == 6 || oldShip == 6) {
+        			if(ShipNumber == 6)	{
+            			counter6++;
+        			}
                 	if(newShip == 6)	{
                     	if(twfd_add) 	{
             				counter6++;
@@ -2582,11 +2596,13 @@ public class MatchTeam
                         }
                 	}
         		}
-        		else if(ShipNumber == 7) {
-        			counter7++;
+        		else if(ShipNumber == 7 || newShip == 7 || oldShip == 7) {
+        			if(ShipNumber == 7)	{
+            			counter7++;
+        			}
                 	if(newShip == 7)	{
                     	if(twfd_add) 	{
-            				counter0++;
+            				counter7++;
             			}
             			if(twfd_rem)	{
             				counter7--;
@@ -2601,8 +2617,10 @@ public class MatchTeam
                         }
                 	}
         		}
-        		else if(ShipNumber == 8) {
-        			counter8++;
+        		else if(ShipNumber == 8 || newShip == 8 || oldShip == 8) {
+        			if(ShipNumber == 8)	{
+            			counter8++;
+        			}
                 	if(newShip == 8)	{
                     	if(twfd_add) 	{
             				counter8++;
