@@ -64,7 +64,7 @@ public class MatchTeam
     
     //twfd variables
 	boolean twfd_add;
-	boolean twfd_remChg;
+	boolean twfd_rem;
 	boolean goodLine;
 	boolean belowMinLine;
     int shipCounter;
@@ -846,28 +846,12 @@ public class MatchTeam
                 
                 //if twfd gametype
             	if (m_rules.getInt("matchtype") == 2113)	{
-            		twfd_playerName = parameters[0];
-                	fnShip = twfd_ship;
-                	m_fcTeamName.toLowerCase();
-                	twfd_squadName = m_fcTeamName;
-                	increase = true;
-                	TWFDShipHandler(twfd_squadName,twfd_ship,twfd_playerName);
-	                	if(t1_twfdHandler == "under minimum")	{
-	                		t1_lineCheck = false;
-	                	}
-	                	if(t2_twfdHandler == "under minimum")	{
-	                		t2_lineCheck = false;
-	                	}
-	                	if(t1_twfdHandler == "invalid lineup")	{
-	                		m_logger.sendPrivateMessage(name, "Your line must contain at least one Warbird, one Spider, and one Lancaster to be valid.");
-	                		t1_lineCheck = false;
-	                		return;
-	                	}
-	                	if(t2_twfdHandler == "invalid lineup")	{
-	                		m_logger.sendPrivateMessage(name, "Your line must contain at least one Warbird, one Spider, and one Lancaster to be valid.");
-	                		t2_lineCheck = false;
-	                		return;
-	                	}
+            		twfd_add = true;
+            		CheckLine(fnShip, 0);
+            		if(goodLine = false)	{
+            			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
+            			return;
+            		}
             	}
             	
             	
@@ -951,32 +935,19 @@ public class MatchTeam
 
             p = getPlayer(parameters[0]);
             
-            
             //if twfd gametype
         	if (m_rules.getInt("matchtype") == 2113)	{
-        		twfd_playerName = parameters[0];
-        		twfd_ship = p.getShipType();
-            	//fnShip = twfd_ship;
-            	m_fcTeamName.toLowerCase();
-            	twfd_squadName = m_fcTeamName;
-            	increase = false;
-            	TWFDShipHandler(twfd_squadName,twfd_ship,twfd_playerName);
-                	if(t1_twfdHandler == "under minimum")	{
-                		t1_lineCheck = false;
-                	}
-                	if(t2_twfdHandler == "under minimum")	{
-                		t2_lineCheck = false;
-                	}
-                	if(t1_twfdHandler == "invalid lineup")	{
-                		m_logger.sendPrivateMessage(name, "Your line must contain at least one Warbird, one Spider, and one Lancaster to be valid.");
-                		t1_lineCheck = false;
-                		return;
-                	}
-                	if(t2_twfdHandler == "invalid lineup")	{
-                		m_logger.sendPrivateMessage(name, "Your line must contain at least one Warbird, one Spider, and one Lancaster to be valid.");
-                		t2_lineCheck = false;
-                		return;
-                	}
+        		Player p2;
+        		int fnShip;
+                p2 = m_botAction.getPlayer(parameters[0]);
+                p2 = m_botAction.getFuzzyPlayer(parameters[0]);
+            	fnShip = p2.getShipType();
+            	twfd_rem = true;
+            	CheckLine(fnShip, 0);
+            	if(goodLine = false)	{
+            		m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
+            		return;
+            	}
         	}
             
             if (p != null)
@@ -1181,9 +1152,16 @@ public class MatchTeam
                                                 || (m_rules.getInt("maxship" + newShip) > getPlayersRosteredInShip(newShip)))
                                         {
                                             pA.setShip(newShip);
-                                            if(m_rules.getInt("matchtype") == 2133)	{
-                                            	CheckLine(newShip);
-                                            }
+                                            //if twfd gametype
+                                        	if (m_rules.getInt("matchtype") == 2113)	{
+                                        		twfd_add = true;
+                                        		twfd_rem = true;
+                                        		CheckLine(newShip, oldShip);
+                                        		if(goodLine = false)	{
+                                        			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
+                                        			return;
+                                        		}
+                                        	}
 
                                             //this indicates that the player has switched ships during the game
                                             //currently it voids the player from getting mvp in time race games
@@ -2399,167 +2377,8 @@ public class MatchTeam
         return result;
     }
     
-    public String TWFDShipHandler(String twfd_squadName, int twfd_ship, String twfd_playerName)	{
-    	//invokes the first if/else if statement when its the first person being added for that squad.
-    	if(t1 == null)	{
-    	    t1Ships[0] = t1Counter_Ship1;
-    	    t1Ships[1] = t1Counter_Ship3;
-    	    t1Ships[2] = t1Counter_Ship7;
-    		t1 = twfd_squadName;
-    		if(increase == true)	{
-    			t1Counter++;
-	    		if(twfd_ship == 1)	{
-	    			t1Counter_Ship1++;
-	    		}
-	    		else if(twfd_ship == 3)	{
-	    			t1Counter_Ship3++;
-	    		}
-	    		else if(twfd_ship == 7)	{
-	    			t1Counter_Ship7++;
-	    		}
-	    		t1_twfdHandler = "under minimum";
-	    		return t1_twfdHandler;
-    		}
-    	} else if(t2 == null)	{
-    		t2 = twfd_squadName;
-    		t2Ships[0] = t2Counter_Ship1;
-    	    t2Ships[1] = t2Counter_Ship3;
-    	    t2Ships[2] = t2Counter_Ship7;
-    		if(increase == true)	{
-    			t2Counter++;
-	    		if(twfd_ship == 1)	{
-	    			t2Counter_Ship1++;
-	    		}
-	    		else if(twfd_ship == 3)	{
-	    			t2Counter_Ship3++;
-	    		}
-	    		else if(twfd_ship == 7)	{
-	    			t2Counter_Ship7++;
-	    		}
-	    		t2_twfdHandler = "under minimum";
-	    		return t2_twfdHandler;
-    		}
-    	/**
-    	 * If the person is not the first person to be added for their team,
-    	 * this else statement will begin. The real "juice" of the checking
-    	 * will be invoked within this else statement as the number of players
-    	 * for a team reaches the minimum number needed to play (3).
-    	 */
-    	} else {
-    		if(twfd_squadName == t1)	{
-    			if(increase == true)	{
-        			t1Counter++;
-    	    		if(twfd_ship == 1)	{
-    	    			t1Counter_Ship1++;
-    	    		}
-    	    		else if(twfd_ship == 3)	{
-    	    			t1Counter_Ship3++;
-    	    		}
-    	    		else if(twfd_ship == 7)	{
-    	    			t1Counter_Ship7++;
-    	    		}
-    	    		
-    	    		if(t1Counter >= 3)	{
-    	    			if (t1Counter_Ship1 >= 1 && t1Counter_Ship3 >= 1 && t1Counter_Ship7 >= 1)	{
-    	        		t1_twfdHandler = "ok";
-    	        		t1_lineCheck = true;
-    	        		return t1_twfdHandler;
-    	        		
-    	    			} else	{
-    	    				t1_twfdHandler = "invalid lineup";
-    	    				return t1_twfdHandler;
-    	    			}
-    	        	} else	{
-    	        		t1_twfdHandler = "under minimum";
-    	        		return t1_twfdHandler;
-    	        	}
-    	    		
-    	    		
-        		}
-        		else if(increase == false)	{
-        			t1Counter--;
-        			if(twfd_ship == 1)	{
-        				t1Counter_Ship1--;
-    	    		}
-    	    		else if(twfd_ship == 3)	{
-    	    			t1Counter_Ship3--;
-    	    		}
-    	    		else if(twfd_ship == 7)	{
-    	    			t1Counter_Ship7--;
-    	    		}
-        			if(t1Counter >= 3)	{
-    	    			if (t1Counter_Ship1 >= 1 && t1Counter_Ship3 >= 1 && t1Counter_Ship7 >= 1)	{
-    	        		t1_twfdHandler = "ok";
-    	        		t1_lineCheck = true;
-    	        		return t1_twfdHandler;
-    	    			} else	{
-    	    				t1_twfdHandler = "invalid lineup";
-    	    				return t1_twfdHandler;
-    	    			}
-    	        	} else	{
-    	        		t1_twfdHandler = "under minimum";
-    	        		return t1_twfdHandler;
-    	        	}
-        		}
-    		}
-    		else if(twfd_squadName == t2)	{
-    			if(increase == true)	{
-        			t2Counter++;
-    	    		if(twfd_ship == 1)	{
-    	    			t2Counter_Ship1++;
-    	    		}
-    	    		else if(twfd_ship == 3)	{
-    	    			t2Counter_Ship3++;
-    	    		}
-    	    		else if(twfd_ship == 7)	{
-    	    			t2Counter_Ship7++;
-    	    		}
-    	    		if(t2Counter >= 3)	{
-    	    			if (t2Counter_Ship1 >= 1 && t2Counter_Ship3 >= 1 && t2Counter_Ship7 >= 1)	{
-    	        		t2_twfdHandler = "ok";
-    	        		t2_lineCheck = true;
-    	        		return t2_twfdHandler;
-    	    			} else	{
-    	    				t2_twfdHandler = "invalid lineup";
-    	    				return t2_twfdHandler;
-    	    			}
-    	        	} else	{
-    	        		t2_twfdHandler = "under minimum";
-    	        		return t2_twfdHandler;
-    	        	}
-        		}
-        		else if(increase == false)	{
-        			t2Counter--;
-        			if(twfd_ship == 1)	{
-        				t2Counter_Ship1--;
-    	    		}
-    	    		else if(twfd_ship == 3)	{
-    	    			t2Counter_Ship3--;
-    	    		}
-    	    		else if(twfd_ship == 7)	{
-    	    			t2Counter_Ship7--;
-    	    		}
-        			if(t2Counter >= 3)	{
-    	    			if (t2Counter_Ship1 >= 1 && t2Counter_Ship3 >= 1 && t2Counter_Ship7 >= 1)	{
-    	        		t2_twfdHandler = "ok";
-    	        		t2_lineCheck = true;
-    	        		return t2_twfdHandler;
-    	    			} else	{
-    	    				t2_twfdHandler = "invalid lineup";
-    	    				return t2_twfdHandler;
-    	    			}
-    	        	} else	{
-    	        		t2_twfdHandler = "under minimum";
-    	        		return t2_twfdHandler;
-    	        	}
-        		}
-    		}
-    	}
-    String error = "error";
-	return error;
-    }
     
-    public void CheckLine(int newShip)	{
+    public boolean CheckLine(int newShip, int oldShip)	{
 
     	/** 
     	 * TODO:
@@ -2570,8 +2389,7 @@ public class MatchTeam
     	 * 		action.
     	 * - Create a newShip variable wherever this method is called;
     	 * 		there is already one in the !change method, now we need
-    	 * 		one in the !add/!remove methods. The only time it actually
-    	 * 		matters what it is, is when the player is removed/changed.
+    	 * 		one in the !add/!remove methods.
     	 * - Insert a final check when the players send !ready to the bot
     	 * 		and also send a final check before the game starts.
     	 */
@@ -2598,7 +2416,9 @@ public class MatchTeam
     	
     	/**
     	 * This part of the method will take in player ships and store them 
-    	 * in the correct variable.
+    	 * in the correct variable. We will get the newShip number and the
+    	 * oldShip number and throw these in to test as well.
+    	 * 
     	 * 
     	 * int counter variables are used to count the number of each ship type
     	 * int[] playerShip stores these variables in an array
@@ -2617,8 +2437,9 @@ public class MatchTeam
 		int counter8 = 0;
 		int[] playerShip = {counter0,counter1,counter2,counter3,counter4,
 							counter5,counter6,counter7,counter8};
-		
-    	int ShipNumber;
+
+    	
+		int ShipNumber;
 		String[] playerStr = new String[m_players.size()];
 		m_players.toArray(playerStr);
 		
@@ -2630,123 +2451,208 @@ public class MatchTeam
         	ShipNumber = p.getShipType();
         		if(ShipNumber == 0)	{
         			counter0++;
-        		}
+                	if(newShip == 0)	{
+                    	if(twfd_add)	{
+            				counter0++;
+            			}
+            			if(twfd_rem)	{
+            				counter0--;
+            			}
+                	}
+                	if(oldShip == 0)	{
+                    	if(twfd_add) 	{
+            				counter0++;
+            			}
+            			if(twfd_rem)	{
+            				counter0--;
+            			}
+                	}
+                }
         		else if(ShipNumber == 1) {
         			counter1++;
+                	if(newShip == 1)	{
+                    	if(twfd_add)	{
+            				counter1++;
+            			}
+            			if(twfd_rem)	{
+            				counter1--;
+            			}
+            			if(oldShip == 1)	{
+            				if(twfd_add) 	{
+            					counter1++;
+            				}
+            				if(twfd_rem)	{
+            					counter1--;
+            				}
+                    	}
+                	}
         		}
         		else if(ShipNumber == 2) {
         			counter2++;
+                	if(newShip == 2)	{
+                    	if(twfd_add) 	{
+            				counter2++;
+            			}
+            			if(twfd_rem)	{
+            				counter2--;
+            			}
+                        if(oldShip == 2)	{
+                            if(twfd_add) 	{
+                    			counter2++;
+                    		}
+                    		if(twfd_rem)	{
+                    			counter2--;
+                    		}
+                        }
+                	}
         		}
         		else if(ShipNumber == 3) {
         			counter3++;
+                	if(newShip == 3)	{
+                    	if(twfd_add) 	{
+            				counter3++;
+            			}
+            			if(twfd_rem)	{
+            				counter3--;
+            			}
+                        if(oldShip == 3)	{
+                            if(twfd_add) 	{
+                    			counter3++;
+                    		}
+                    		if(twfd_rem)	{
+                    			counter3--;
+                    		}
+                        }
+                	}
         		}
         		else if(ShipNumber == 4) {
         			counter4++;
+                	if(newShip == 4)	{
+                    	if(twfd_add) 	{
+            				counter4++;
+            			}
+            			if(twfd_rem)	{
+            				counter4--;
+            			}
+                        if(oldShip == 4)	{
+                            if(twfd_add) 	{
+                    			counter4++;
+                    		}
+                    		if(twfd_rem)	{
+                    			counter4--;
+                    		}
+                        }
+                	}
         		}
         		else if(ShipNumber == 5) {
         			counter5++;
+                	if(newShip == 5)	{
+                    	if(twfd_add) 	{
+            				counter5++;
+            			}
+            			if(twfd_rem)	{
+            				counter5--;
+            			}
+                        if(oldShip == 5)	{
+                            if(twfd_add) 	{
+                    			counter5++;
+                    		}
+                    		if(twfd_rem)	{
+                    			counter5--;
+                    		}
+                        }
+                	}
         		}
         		else if(ShipNumber == 6) {
         			counter6++;
+                	if(newShip == 6)	{
+                    	if(twfd_add) 	{
+            				counter6++;
+            			}
+            			if(twfd_rem)	{
+            				counter6--;
+            			}
+                        if(oldShip == 6)	{
+                            if(twfd_add) 	{
+                    			counter6++;
+                    		}
+                    		if(twfd_rem)	{
+                    			counter6--;
+                    		}
+                        }
+                	}
         		}
         		else if(ShipNumber == 7) {
         			counter7++;
+                	if(newShip == 7)	{
+                    	if(twfd_add) 	{
+            				counter0++;
+            			}
+            			if(twfd_rem)	{
+            				counter7--;
+            			}
+                        if(oldShip == 7)	{
+                            if(twfd_add) 	{
+                    			counter7++;
+                    		}
+                    		if(twfd_rem)	{
+                    			counter7--;
+                    		}
+                        }
+                	}
         		}
         		else if(ShipNumber == 8) {
         			counter8++;
+                	if(newShip == 8)	{
+                    	if(twfd_add) 	{
+            				counter8++;
+            			}
+            			if(twfd_rem)	{
+            				counter8--;
+            			}
+                        if(oldShip == 8)	{
+                            if(twfd_add) 	{
+                    			counter8++;
+                    		}
+                    		if(twfd_rem)	{
+                    			counter8--;
+                    		}
+                        }
+                	}
         		}
     	}
-    	
+    	twfd_add = false;
+    	twfd_rem = false;
     	
 		/**
-		 * We need to check to make sure that the team has at least 3 players in
-		 * before we start testing their line. This also presents a slight loophole
-		 * because teams could theoretically add one ship and then two of another
-		 * kind before they will be checked because they are not checked until the
-		 * fourth ship is added. This was necessary because the method checks to
-		 * see that there is at least one of each ship type BEFORE the add goes 
-		 * through so it must wait until there's at least 3 in before the check 
-		 * begins. This area attempts to catch this and at least warn the player
-		 * which ship(s) they need to have a correct the line.
-		 * 
-		 * ship1Needed,ship3Needed,ship7Needed are self explanatory. If they do not
-		 * 		have one of these ships, their line is invalid and they are
-		 * 		notified when they add the 3rd player.
+		 * If the team has less than 3 players in, we must stop check.
 		 */
-		if (playerStr.length < 3)	{
-			if(playerStr.length == 2)	{
-				if(counter1==0)	{
-					ship1Needed = "Warbird";
-				}
-				if(counter3==0)	{
-					ship3Needed = "Spider";
-				}
-				if(counter7==0)	{
-					ship7Needed = "Lancaster";
-				}
-			}
-			belowMinLine = true;
-			return;
-		}
     	
+    	if(counter1+counter2+counter3+counter4+counter5+counter6+counter7+counter8 <= 2)	{
+    		goodLine=true;
+    		return goodLine;
+    	}
+
     	
     	/**
-    	 * Finally we will test that all the ship amounts are greater than
-    	 * the numbers stored within the rules file. To reiterate, the check 
-    	 * will be good if each array position int[i] playerShip is greater 
-    	 * than the corresponding array position in the rule (in this case the
-    	 * array is minShipInt). Here we must also differentiate between adding 
-    	 * and removes/changes. 
-    	 * Consider this change scenario: if a team had 1 of each ship, this 
-    	 * method would return goodLine to be true because it checks prior to
-    	 * the ship change and would then allow them to do so. To catch this, 
-    	 * they must have at least 2 of a ship before they can make the change 
-    	 * (twfd_remChg would be true and it would enter into that part of 
-    	 * the statement). While in the adding method, we can simply just add
-    	 * and assure that they have at least 1 of each ship with a for loop
-    	 * but a remove or change becomes more complicated because a for loop
-    	 * would mean for example they must have 2 of each ship to allow the
-    	 * change which won't be the case in a 4s or 5s game, so now we must
-    	 * figure out exactly what ship the player is in that they want to 
-    	 * perform the action on (luckily there's only 3 to look for in twfd).
+    	 * Finally we will test that all the ship amounts are greater than or
+    	 * equal to the numbers stored within the rules file. To reiterate, the 
+    	 * check will be good if each array position int[i] playerShip is greater 
+    	 * than or equal to the corresponding array position in the rule (in this 
+    	 * case the array is minShipInt).
     	 */
+
     	i = 0;
     	for(i=0;i<playerShip.length;i++)	{
-    		if(twfd_add = true)	{
-    			if(!(minShipInt[i]<=playerShip[i]))	{
-        			goodLine = false;
-        		} else	{
-        			goodLine = true;
-        		}
-    		}
-    		if(twfd_remChg = true)	{
-    			if(!(minShipInt[i]<=playerShip[i]))	{
-        			goodLine = false;
-        		} else	{
-        			if(newShip==1)	{
-        				if(!(1<counter1)){
-        					goodLine = false;
-        				}
-        			}
-        			else if(newShip==3)	{
-        				if(!(1<counter3)){
-        					goodLine = false;
-        				}
-        			}
-        			else if(newShip==7)	{
-        				if(!(1<counter7)){
-        					goodLine = false;
-        				}
-        			}
-        			goodLine = true;
-        		}
+    		if(!(minShipInt[i]<=playerShip[i]))	{
+    			goodLine = false;
+    			return goodLine;
     		}
     	}
-    }
-    
-    
-    public void CheckLineFinal()	{
     	
+    	
+    	goodLine = true;
+    	return goodLine;
     }
     	
 }
