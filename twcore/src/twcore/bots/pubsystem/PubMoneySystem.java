@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -32,21 +33,16 @@ import twcore.core.util.Point;
 import twcore.core.util.PointLocation;
 import twcore.core.util.Tools;
 
-/**
- * This class wrap the money system to keep the PurePubBot clean
- * Everything related to the money system should be implemented here.
- */
 public class PubMoneySystem {
 
 	private OperatorList opList;
 	private BotAction m_botAction;
 	private BotSettings m_botSettings;
-	
-	private String DATABASE = "local";
-	
+
 	private PubStore store;
-	private PubPlayerManager manager;
 	private PubLottery pubLottery;
+	
+	private PubPlayerManager playerManager;
     
     private Map<PubPlayer, PubItemDuration> playersWithDurationItem;
     
@@ -55,21 +51,18 @@ public class PubMoneySystem {
     private Map<Integer, Integer> shipKilledPoints;
     private LinkedHashMap<PubLocation, Integer> locationPoints;
     
-    private LvzMoneyPanel lvzPubPointsHandler;
-    
     private FileWriter itemsLog;
     private FileWriter moneyLog;
 	
-    public PubMoneySystem(BotAction botAction) {
+    public PubMoneySystem(BotAction botAction, PubPlayerManager manager) {
 
     	this.m_botAction = botAction;
     	this.m_botSettings = botAction.getBotSettings();
     	this.opList = m_botAction.getOperatorList();
     	
-    	this.lvzPubPointsHandler = new LvzMoneyPanel(m_botAction);
+    	this.playerManager = manager;
 
         this.store = new PubStore();
-        this.manager = new PubPlayerManager(botAction, m_botSettings.getString("database"));
         this.pubLottery = new PubLottery(m_botAction);
         try {
         	initializeStore();
@@ -231,30 +224,23 @@ public class PubMoneySystem {
     	
         try{
 
-            if (manager.isPlayerExists(playerName)){
+            if (playerManager.isPlayerExists(playerName)){
             	
             	Player player = m_botAction.getPlayer(playerName);
-            	PubPlayer pubPlayer = manager.getPlayer(playerName);
+            	PubPlayer pubPlayer = playerManager.getPlayer(playerName);
             	
-            	
-            	int moneyBeforeBuy = manager.getPlayer(playerName).getMoney();
-                PubItem item = store.buy(itemName, pubPlayer, shipType);
-                int moneyAfterBuy = pubPlayer.getMoney();
+            	PubItem item = store.buy(itemName, pubPlayer, shipType);
 
                 // PRIZE ITEM
                 if (item instanceof PubPrizeItem) {
-                	
                 	m_botAction.specificPrize(pubPlayer.getPlayerName(), ((PubPrizeItem) item).getPrizeNumber());
-               
                 }
                 
                 // COMMAND ITEM
                 else if (item instanceof PubCommandItem) {
-                	
                 	String command = ((PubCommandItem)item).getCommand();
             		Method method = this.getClass().getDeclaredMethod("itemCommand"+command, String.class, String.class);
             		method.invoke(this, playerName, params);
-                
                 } 
                 
                 // SHIP ITEM
@@ -304,9 +290,29 @@ public class PubMoneySystem {
         }
         
     }
+    
+    public void doCmdSetMoney(String sender, String command) {
+    	
+    	command = command.substring(10).trim();
+    	if (command.contains(":")) {
+    		String[] split = command.split("\\s*:\\s*");
+    		String name = split[0];
+    		String money = split[1];
+    		PubPlayer pubPlayer = playerManager.getPlayer(name,false);
+    		if (pubPlayer != null) {
+    			pubPlayer.setMoney(Integer.valueOf(money));
+    			m_botAction.sendPrivateMessage(sender, name + " has now $" + money);
+    		} else {
+    			m_botAction.sendPrivateMessage(sender, "Player not found.");
+    		}
+    	}
+    	else {
+    		m_botAction.sendPrivateMessage(sender, "Invalid argument");
+    	}
+    }
 
     private void sendMoneyToPlayer(String playerName, int amount, String message) {
-    	PubPlayer player = manager.getPlayer(playerName);
+    	PubPlayer player = playerManager.getPlayer(playerName);
     	player.addMoney(amount);
         if (message!=null) {
         	m_botAction.sendPrivateMessage(playerName, message);
@@ -407,7 +413,8 @@ public class PubMoneySystem {
         
     }
 
-    private void doCmdBuy(String sender, String command){
+    private void doCmdBuy(String sender, String command) 
+    {
         Player p = m_botAction.getPlayer(sender);
         if(p == null)
             return;
@@ -421,12 +428,24 @@ public class PubMoneySystem {
         }
     }
     
-    private void doCmdDisplayMoney(String sender){
-        if(manager.isPlayerExists(sender)){
-            PubPlayer pubPlayer = manager.getPlayer(sender);
+    private void doCmdDisplayMoney(String sender, String command)
+    {
+    	String name = sender;
+    	if (command.contains(" ")) {
+    		name = command.substring(command.indexOf(" ")).trim();
+			PubPlayer pubPlayer = playerManager.getPlayer(name,false);
+			if (pubPlayer != null) {
+				m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " has $"+pubPlayer.getMoney() + ".");
+			} else {
+				m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " does not exist on the system. Oh noes!!!");
+			}
+    	}
+    	else if(playerManager.isPlayerExists(name)) {
+            PubPlayer pubPlayer = playerManager.getPlayer(sender);
             m_botAction.sendPrivateMessage(sender, "You have $"+pubPlayer.getMoney() + " in your bank.");
-        }else
+        } else {
             m_botAction.sendPrivateMessage(sender, "You're still not in the system. Wait a bit to be added.");
+        }
     }
     
     public boolean isStoreOpened() {
@@ -465,7 +484,7 @@ public class PubMoneySystem {
 
         try{
 
-            final PubPlayer pubPlayerKilled = manager.getPlayer(killed.getPlayerName());
+            final PubPlayer pubPlayerKilled = playerManager.getPlayer(killed.getPlayerName());
             pubPlayerKilled.handleDeath(event);
             
             // Duration check for Ship Item
@@ -506,7 +525,7 @@ public class PubMoneySystem {
             }
 
             String playerName = killer.getPlayerName();
-            PubPlayer pubPlayer = manager.getPlayer(playerName);
+            PubPlayer pubPlayer = playerManager.getPlayer(playerName);
             pubPlayer.addMoney(money);
             
             if (moneyLog != null) {
@@ -521,15 +540,15 @@ public class PubMoneySystem {
     }
     
     public void handleEvent(PlayerEntered event) {
-    	manager.handleEvent(event);
+    	playerManager.handleEvent(event);
     }
     
     public void handleEvent(FrequencyShipChange event) {
-		manager.handleEvent(event);
+		playerManager.handleEvent(event);
     }
     
     public void handleEvent(ArenaJoined event){
-    	manager.handleEvent(event);
+    	playerManager.handleEvent(event);
     }
 
     public void handlePublicCommand(String sender, String command) {
@@ -540,14 +559,14 @@ public class PubMoneySystem {
             else if(command.trim().equals("!buy") || command.trim().equals("!b")){
             	doCmdItems(sender);
             }
-            else if(command.startsWith("!dexter")) {
-            	//sendMoneyToPlayer(sender,1000000,"You are rich now!");
-            }
-            else if(command.equals("!$")) {
-                doCmdDisplayMoney(sender);
+            else if(command.startsWith("!$") || command.startsWith("!money") || command.startsWith("!cash")) {
+                doCmdDisplayMoney(sender, command);
             }
             else if(command.startsWith("!buy") || command.startsWith("!b")){
             	doCmdBuy(sender, command);
+            }
+            else if(opList.isOwner(sender) && command.startsWith("!setmoney")) {
+            	doCmdSetMoney(sender,command);
             }
             //else if(command.startsWith("!lottery ") || command.startsWith("!l ")) {
             //    pubLottery.handleTicket(sender, command);
@@ -572,11 +591,11 @@ public class PubMoneySystem {
     }
     
     public void handleDisconnect() {
-    	manager.handleDisconnect();
+    	playerManager.handleDisconnect();
     }
     
     public void handleEvent(SQLResultEvent event){
-        manager.handleEvent(event);
+        playerManager.handleEvent(event);
     }
     
     private String getSender(Message event)
@@ -586,6 +605,17 @@ public class PubMoneySystem {
 
         int senderID = event.getPlayerID();
         return m_botAction.getPlayerName(senderID);
+    }
+    
+    /**
+     * Format a number to currency with the dollar sign
+     * 100000 -> $100,000
+     */
+    public static String formatMoney(int money) {
+    	NumberFormat nf = NumberFormat.getCurrencyInstance();
+    	String result =  nf.format(money);
+    	result = result.substring(0, result.length()-3);
+        return result;
     }
     
     /**
@@ -628,7 +658,6 @@ public class PubMoneySystem {
 
     }
     
-    
     private void itemCommandNukeBase(String sender, String params) {
 
 	   	Player p = m_botAction.getPlayer(sender);
@@ -664,5 +693,4 @@ public class PubMoneySystem {
     	
     }
 
-    
 }
