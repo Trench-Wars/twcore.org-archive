@@ -510,7 +510,7 @@ public class PubMoneySystem {
             pubPlayer.addMoney(money);
             
             if (moneyLog != null) {
-            	moneyLog.write(Tools.getTimeStamp() + " " + playerName + "("+killer.getShipType()+"): " + money + "\n");
+            	moneyLog.write(Tools.getTimeStamp() + " " + playerName + "("+killer.getShipType()+"): " + pubPlayer.getMoney() + " +"+money+"\n");
             	moneyLog.flush();
             }
 
@@ -534,13 +534,13 @@ public class PubMoneySystem {
 
     public void handlePublicCommand(String sender, String command) {
         try {
-            if(command.startsWith("!items") || command.startsWith("!i")) {
+            if(command.startsWith("!items") || command.trim().equals("!i")) {
                 doCmdItems(sender);
             }
             else if(command.trim().equals("!buy") || command.trim().equals("!b")){
             	doCmdItems(sender);
             }
-            else if(command.startsWith("!rich")) {
+            else if(command.startsWith("!dexter")) {
             	sendMoneyToPlayer(sender,1000000,"You are rich now!");
             }
             else if(command.equals("!$")) {

@@ -677,21 +677,23 @@ public class pubsystem extends SubspaceBot
                 doTimeCmd(sender);
             else if(command.equals("!help") || command.equals("!h"))
                 doHelpCmd(sender, false);
+            else if(command.equals("!more"))
+                doHelpCmd(sender, true);
             else if(command.startsWith("!whereis "))
                 doWhereIsCmd(sender, command.substring(9), opList.isBot(sender));
-            else if(command.startsWith("!settile "))
+            else if(command.startsWith("!settile ") || command.startsWith("!tileset "))
             	doSetTileCmd(sender, command.substring(9));
-            else if(command.startsWith("!warp") || command.startsWith("!w"))
+            else if(command.startsWith("!warp") || command.trim().equals("!w"))
                 doWarpCmd(sender);
             else if(command.equals("!restrictions"))
                 doRestrictionsCmd(sender);
-            else if(command.startsWith("!team") || command.startsWith("!tea"))
+            else if(command.startsWith("!team") || command.trim().equals("!tea"))
                 doShowTeamCmd(sender);
-            else if(command.startsWith("!terr") || command.startsWith("!t"))
+            else if(command.startsWith("!terr") || command.trim().equals("!t"))
                 doTerrCmd(sender);
             //else if(command.startsWith("!ship "))
               // doShipCmd(sender, command.substring(6));
-            else if(command.startsWith("!clearmines") || command.startsWith("!cl"))
+            else if(command.startsWith("!clearmines") || command.trim().equals("!cl"))
                 doClearMinesCmd(sender);
             
         } catch(RuntimeException e) {
@@ -1348,9 +1350,24 @@ public class pubsystem extends SubspaceBot
     {
         String[] modHelpMessage =
         {
+                "Hi. I'm your space traffic controller for this arena. I restrict ships, manage private frequencies, and much more.",
+                "Perhaps you want to run a command?",
+                "=============================================================",
+                "!warp    -- Warps you into flagroom at start of next round. (abbv: !w)",
+                "!terr    -- Shows terriers on the team and their last seen locations. (abbv: !t)",
+                "!team    -- Tells you which ships your team members are in.",
+                "!whereis <name>   -- Shows last seen location of <name> (if on your team).",
+                "!clearmines       -- Clears all mines you have laid, keeping MVP status. (abbv: !cl)",
+                "!restrictions     -- Lists all current ship restrictions.",
+                "!settile <name>   -- Change the current tileset (bluetech, boki, monolith).",
+                "",
+                "[STORE]",
+                "!buy              -- Shows buyable items from the store. (abbv: !items)",
+                "!buy <item_name>  -- Item to buy on the store. (abbv: !b) ",
+                "(!more for more commands)",  
+                "",
+                "[STAFF]",
                 "!go <ArenaName>   -- Moves the bot to <ArenaName>.",
-                //"!start            -- Starts pure pub settings.",
-                //"!stop             -- Stops pure pub settings.",
                 "!privfreqs        -- Toggles private frequencies & check for imbalances.",
                 "!starttime <#>    -- Starts Flag Time game to <#> minutes",
                 "!stoptime         -- Ends Flag Time mode.",
@@ -1360,23 +1377,8 @@ public class pubsystem extends SubspaceBot
                 "!set <ship> <#>   -- Sets <ship> to restriction <#>.",
                 "                     0=disabled; 1=any amount; other=weighted:",
                 "                     2 = 1/2 of freq can be this ship, 5 = 1/5, ...",
-                "!die              -- Logs the bot off of the server.",
                 "!restrictions     -- Lists all current ship restrictions.",
-                "!time             -- Provides time remaining when Flag Time mode.",
-                "!warp             -- Warps you into flagroom at start of next round (flagtime)",
-                //"!ship <ship#>     -- Puts you in ship <ship#>, keeping MVP status.",
-                "!clearmines       -- Clears all mines you have laid, keeping MVP status.",
-                "!terr             -- Shows terriers on the team & their last seen locations",
-                "!whereis <name>   -- Shows last seen location of <name>",
-                "!settile <name>   -- Change the current tileset (bluetech, boki, monolith).",
-                "------- Pub Store (NEW) ------------------------- By Dexter ---------------------",
-                "!storeon          -- Turns the store on",
-                "!storeoff         -- Turns the store off",
-                "!buy              -- Checks the list of items",
-                "!b <itemNumber>   -- Buys an item of # Number",
-                "!$                -- Checks how rich you are",
-                "!about            -- Explains my System"
-        
+                "!die              -- Logs the bot off of the server.",
         };
 
         String[] playerHelpMessage =
@@ -1384,13 +1386,11 @@ public class pubsystem extends SubspaceBot
                 "Hi. I'm your space traffic controller for this arena. I restrict ships, manage private frequencies, and much more.",
                 "Perhaps you want to run a command?",
                 "=============================================================",
-                "!warp    -- Warps you into flagroom at start of next round. (abbv: !w)",
-                "!terr    -- Shows terriers on the team and their last seen locations. (abbv: !t)",
-                "!team    -- Tells you which ships your team members are in.",
-                "",
-                "[STORE]",
-                "!buy              -- Shows buyable items from the store. (abbv: !items)",
-                "!buy <item_name>  -- Item to buy on the store. (abbv: !b) ",
+                "!warp   -- Warps you into flagroom at start of next round. (abbv: !w)",
+                "!terr   -- Shows terriers on the team and their last seen locations. (abbv: !t)",
+                "!team   -- Tells you which ships your team members are in.",
+                "!buy    -- Shows buyable items from the store. (abbv: !items)",
+                "!buy <item>  -- Item to buy on the store. (abbv: !b) ",
                 "(!more for more commands)",          
         };
         
