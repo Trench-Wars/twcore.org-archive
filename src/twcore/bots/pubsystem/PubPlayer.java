@@ -15,8 +15,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
 	private static final int MAX_ITEM_HISTORY = 25;
 	
 	private BotAction m_botAction;
-	private int playerID; // As seen by BotAction
-	
+
     private String name;
     private int money;
     private LinkedList<PubItem> itemsBought;
@@ -31,6 +30,8 @@ public class PubPlayer implements Comparable<PubPlayer>{
     // Epoch time
     private long lastMoneyUpdate = 0;
     private long lastSavedState = 0;
+    
+    private boolean isOnline = false; // If online, on the same arena
 
     public PubPlayer(BotAction m_botAction, String name) {
     	this(m_botAction, name, 0);
@@ -108,6 +109,14 @@ public class PubPlayer implements Comparable<PubPlayer>{
     	return ((int)m_botAction.getPlayer(name).getShipType()) == 0;
     }
     
+    public boolean isOnline() {
+    	return isOnline;
+    }
+    
+    public void setIsOnline(boolean b) {
+    	this.isOnline = b;
+    }
+    
     public void handleShipChange(FrequencyShipChange event) {
     	resetItems();
     	if (shipItem != null && event.getShipType() != shipItem.getShipNumber())
@@ -118,7 +127,6 @@ public class PubPlayer implements Comparable<PubPlayer>{
     	resetItems();
     	if (shipItem != null) {
     		deathsOnShipItem++;
-    		System.out.println("death: " + deathsOnShipItem);
     	}
     }
     

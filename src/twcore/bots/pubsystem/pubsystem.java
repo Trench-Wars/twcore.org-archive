@@ -76,7 +76,11 @@ import twcore.core.util.Tools.Weapon;
  */
 public class pubsystem extends SubspaceBot
 {
-    private PubMoneySystem moneySystem;
+	
+	private PubPlayerManager playerManager;				// Player manager
+    private PubMoneySystem moneySystem;					// Money system
+    private PubTileset pubTileset;						// Change the current tileset
+    private PubStreak pubStreak;						// Streak system
 
     private BotSettings m_botSettings;
 
@@ -154,8 +158,6 @@ public class pubsystem extends SubspaceBot
     private List <String>mineClearedPlayers;            // Players who have already cleared mines this round
     private Objset objs;                                // For keeping track of counter
 
-    private PubTileset pubTileset;						// Change the current tileset
-    
     // X and Y coords for warp points.  Note that the first X and Y should be
     // the "standard" warp; in TW this is the earwarp.  These coords are used in
     // strict flag time mode.
@@ -172,7 +174,7 @@ public class pubsystem extends SubspaceBot
 
 
     /**
-     * Creates a new instance of purepub bot and initializes necessary data.
+     * Creates a new instance of pubsystem bot and initializes necessary data.
      *
      * @param Reference to bot utility class
      */
@@ -182,8 +184,10 @@ public class pubsystem extends SubspaceBot
         requestEvents();
         m_botSettings = m_botAction.getBotSettings();
 
-        moneySystem = new PubMoneySystem(m_botAction);
+        playerManager = new PubPlayerManager(botAction, m_botSettings.getString("database"));
+        moneySystem = new PubMoneySystem(m_botAction, playerManager);
         pubTileset = new PubTileset(m_botAction);
+        pubStreak = new PubStreak(m_botAction, playerManager);
         
         opList = m_botAction.getOperatorList();
         freq0List = new HashSet<String>();
@@ -590,6 +594,9 @@ public class pubsystem extends SubspaceBot
         removeFromWarpList(playerName);
         playerTimes.remove( playerName );
         checkFreqSizes();
+        
+        playerManager.handleEvent(event);
+        pubStreak.handleEvent(event);
 
     }
 
@@ -634,7 +641,7 @@ public class pubsystem extends SubspaceBot
     public void handleEvent(PlayerDeath event) {
     	
         moneySystem.handleEvent(event);
-  
+        pubStreak.handleEvent(event);
     }
 
     /**
