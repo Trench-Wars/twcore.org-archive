@@ -144,6 +144,7 @@ public class pubsystem extends SubspaceBot
     private TimerTask entranceWaitTask;
     private int flagMinutesRequired;                    // Flag minutes required to win
     private int freq0Score, freq1Score;                 // # rounds won
+    private boolean roamPub = true;						// True if bots auto-roam to public
     private boolean initLogin = true;                   // True if first arena login
     private int initialPub;                             // Order of pub arena to defaultjoin
     private String initialSpawn;                        // Arena initially spawned in
@@ -250,10 +251,19 @@ public class pubsystem extends SubspaceBot
  
         initialSpawn = botSettings.getString("InitialArena");
         initialPub = (botSettings.getInt(m_botAction.getBotName() + "Pub") - 1);
+        
+        String arena = initialSpawn;
+        int botNumber = botSettings.getInt(m_botAction.getBotName() + "Pub");
+        
+        if (botSettings.getString("Arena"+botNumber) != null) {
+        	roamPub = false;
+        	arena = botSettings.getString("Arena"+botNumber);
+        }
+        
         try {
-			m_botAction.joinArena(initialSpawn,(short)3392,(short)3392); // Max resolution
+			m_botAction.joinArena(arena,(short)3392,(short)3392); // Max resolution
 		} catch (Exception e) {
-			m_botAction.joinArena(initialSpawn);
+			m_botAction.joinArena(arena);
 		}
         shipWeights.add( new Integer(1) );		// Allow unlimited number of spec players
         for( int i = 1; i < 9; i++ )
@@ -276,11 +286,16 @@ public class pubsystem extends SubspaceBot
      */
     public void handleEvent(ArenaJoined event)
     {
-    	if(!initLogin)
+    	if(!initLogin && roamPub)
     		return;
 
-    	initLogin = false;
-    	m_botAction.requestArenaList();
+    	if (roamPub) {
+    		m_botAction.requestArenaList();
+    		initLogin = false;
+    	} else {
+    		startBot();
+    	}
+
     	m_botAction.setReliableKills(1); 
     	moneySystem.handleEvent(event);
     }
@@ -293,15 +308,11 @@ public class pubsystem extends SubspaceBot
      */
     public void handleEvent(ArenaList event)
     {
+    	if (!roamPub)
+    		return;
+
     	String[] arenaNames = event.getArenaNames();
 
-    	// TEMP
-    	if (m_botAction.getBotName().equals("GammaBot5")) {
-    		m_botAction.changeArena("PubTest");
-    		startBot();
-    		return;
-    	}
-    	
         Comparator <String>a = new Comparator<String>()
         {
             public int compare(String a, String b)
