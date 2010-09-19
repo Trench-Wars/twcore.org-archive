@@ -541,7 +541,7 @@ public class PubMoneySystem {
             	doCmdItems(sender);
             }
             else if(command.startsWith("!dexter")) {
-            	sendMoneyToPlayer(sender,1000000,"You are rich now!");
+            	//sendMoneyToPlayer(sender,1000000,"You are rich now!");
             }
             else if(command.equals("!$")) {
                 doCmdDisplayMoney(sender);
