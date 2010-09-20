@@ -14,30 +14,17 @@ import twcore.core.BotAction;
 public class PubLottery {
 
     private BotAction m_botAction;
+
+    private int ticketSize = 2; // amount of entry numbers per ticket; default is 2
+    private int numberMax = 50; // interval of number options; default is 1-50
+    private int jackpot;  // default jackpot is $1000; if you change this value, also change it in resetJackpot()
+    private int price; // default ticket price is $100; if you change this value, also change it in resetPrice()
+    private int entries; // counts the number of lottery tickets submitted
+    private int[] winningNum = new int[ticketSize]; // lottery's winning numbers
     
-    // amount of entry numbers per ticket; default is 2
-    private int ticketSize = 2;
+    private String matchingNumbers; // change 'store' to display?  // stores and displays the player's numbers that match the winning numbers
     
-    // interval of number options; default is 1-50
-    private int numberMax = 50;
-    
-    // default jackpot is $1000; if you change this value, also change it in resetJackpot()
-    private int jackpot;
-    
-    // default ticket price is $100; if you change this value, also change it in resetPrice()
-    private int price;
-    
-    // counts the number of lottery tickets submitted
-    private int entries;
-    
-    // lottery's winning numbers
-    private int[] winningNum = new int[ticketSize];
-    
-    // stores and displays the player's numbers that match the winning numbers
-    private String matchingNumbers; // change 'store' to display?
-    
-    // status for lottery; true = enabled, false = disabled
-    private boolean lotteryOn;
+    private boolean lotteryOn; // status for lottery; true = enabled, false = disabled
     
     
     /* TODO
@@ -149,7 +136,7 @@ public class PubLottery {
      * @param pieces
      * @return
      */
-    public boolean isValid(String sender, String[] pieces) {
+    private boolean isValid(String sender, String[] pieces) {
         for(int i = 0; i < ticketSize; i++)
             for( int j = 0; j < ticketSize; j++ ) {
                 if( i == j )

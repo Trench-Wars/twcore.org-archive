@@ -47,7 +47,6 @@ public class PubTileset {
 				for(int object: tilesetObjects.values()) {
 					m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objoff " + object);
 				}
-				System.out.println("*objon " + tilesetObjects.get(tileset));
 				m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objon " + tilesetObjects.get(tileset));
 			}
 		}
