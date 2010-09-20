@@ -149,8 +149,18 @@ public class PubPlayer implements Comparable<PubPlayer>{
     public long getLastSavedState() {
     	return lastSavedState;
     }
-    
+
     @Override
+	public boolean equals(Object obj) {
+		return name.equals(((PubPlayer)obj).name);
+	}
+
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
+
+	@Override
     public int compareTo(PubPlayer o) {
         // TODO Auto-generated method stub
         if(o.getMoney() > getMoney()) return 1;

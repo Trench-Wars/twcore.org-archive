@@ -62,13 +62,8 @@ public class PubMoneySystem {
     	
     	this.playerManager = manager;
 
-        this.store = new PubStore();
+        this.store = new PubStore(m_botAction);
         this.pubLottery = new PubLottery(m_botAction);
-        try {
-        	initializeStore();
-        } catch (Exception e) {
-			Tools.printStackTrace("Error while initializing the store", e);
-		}
 
         this.playersWithDurationItem = new HashMap<PubPlayer, PubItemDuration>();
         
@@ -98,93 +93,6 @@ public class PubMoneySystem {
     	
     }
 
-    private void initializeStore() {
-    	
-        if (m_botSettings.getInt("store_enabled")==0) {
-        	store.turnOff();
-    	}
-        
-        String[] itemTypes = { "item_prize", "item_ship", "item_command" };
-        for(String type: itemTypes) {
-        	
-	    	String[] items = m_botSettings.getString(type).split(",");
-	    	for(String number: items) {
-	    		
-	    		String[] data = m_botSettings.getString(type+number).split(",");
-	    		
-	    		if (data.length<=1)
-	    			continue;
-	    		
-	    		int optionPointer = 0;
-	    		PubItem item = null;
-	    		if ("item_prize".equals(type)) {
-	    			item = new PubPrizeItem(data[0], data[1], Integer.parseInt(data[2]), Integer.parseInt(data[3]));
-	    			optionPointer = 4;
-	    		} 
-	    		else if ("item_ship".equals(type)) {
-	    			item = new PubShipItem(data[0], data[1], Integer.parseInt(data[2]), Integer.parseInt(data[3]));
-	    			optionPointer = 4;
-	    		}
-	    		else if ("item_command".equals(type)) {
-	    			item = new PubCommandItem(data[0], data[1], Integer.parseInt(data[2]), data[3]);
-	    			optionPointer = 4;
-	    		}
-	    		store.addItem(item, data[0]);
-	
-	    		// Options?
-	    		if (data.length > optionPointer) {
-	    			
-	    			PubItemRestriction r = new PubItemRestriction();
-	    			PubItemDuration d = new PubItemDuration();
-	    			
-	    			boolean hasRestriction = false;
-	    			boolean hasDuration = false;
-	    			
-	    			for(int i=optionPointer; i<data.length; i++) {
-	    				String option = data[i];
-	    				if(option.startsWith("!s")) {
-	    					int ship = Integer.parseInt(option.substring(2));
-	    					r.addShip(ship);
-	    					hasRestriction = true;
-	    				} else if(option.startsWith("!mp")) {
-	    					int max = Integer.parseInt(option.substring(3));
-	    					r.setMaxPerLife(max);
-	    					hasRestriction = true;
-	    				} else if(option.startsWith("!mc")) {
-	    					int max = Integer.parseInt(option.substring(3));
-	    					r.setMaxConsecutive(max);
-	    					hasRestriction = true;
-	    				} else if(option.startsWith("!adm")) {
-	    					int max = Integer.parseInt(option.substring(4));
-	    					r.setMaxArenaPerMinute(max);
-	    					hasRestriction = true;
-	    				} else if(option.startsWith("!arena")) {
-	    					item.setArenaItem(true);
-	    				} else if(option.startsWith("!fromspec")) {
-	    					r.buyableFromSpec(true);
-	    				} else if(option.startsWith("!dd")) {
-	    					int death = Integer.parseInt(option.substring(3));
-	    					d.setDeaths(death);
-	    					hasDuration = true;
-	    				} else if(option.startsWith("!dm")) {
-	    					int minutes = Integer.parseInt(option.substring(3));
-	    					d.setMinutes(minutes);
-	    					hasDuration = true;
-	    				} else if(option.startsWith("!abbv")) {
-	    					String abbv = option.substring(6);
-	    					item.addAbbreviation(abbv);
-	    				}
-	    			}
-	    			
-	    			if (hasRestriction)
-	    				item.setRestriction(r);
-	    			if (hasDuration)
-	    				item.setDuration(d);
-	    		}
-	    	}
-        }
-        
-    }
     
     /**
      * Gets default settings for the points: area and ship
@@ -568,12 +476,12 @@ public class PubMoneySystem {
             else if(opList.isOwner(sender) && command.startsWith("!setmoney")) {
             	doCmdSetMoney(sender,command);
             }
-            //else if(command.startsWith("!lottery ") || command.startsWith("!l ")) {
-            //    pubLottery.handleTicket(sender, command);
-            //}
-            //else if(command.equals("!jackpot") || command.equals("!jp")) {
-            //    pubLottery.displayJackpot(sender);
-            //}
+            else if(command.startsWith("!lottery ") || command.startsWith("!l ")) {
+                pubLottery.handleTicket(sender, command);
+            }
+            else if(command.equals("!jackpot") || command.equals("!jp")) {
+                pubLottery.displayJackpot(sender);
+            }
         } catch(RuntimeException e) {
             if( e != null && e.getMessage() != null )
                 m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
