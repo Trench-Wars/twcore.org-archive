@@ -66,13 +66,9 @@ public class MatchTeam
 	boolean twfd_add;
 	boolean twfd_rem;
 	boolean goodLine;
-	boolean belowMinLine;
     int shipCounter;
     String[] minShipStr;
 	String[] playerShip;
-	String ship1Needed;//instantiated inside add command
-	String ship3Needed;//instantiated inside add command
-	String ship7Needed;//instantiated inside add command
     
 
 	int m_lagID = 0;
@@ -2065,9 +2061,6 @@ public class MatchTeam
     // checks if all minimum numbers of ships are met
     public String minimumShipAmountsMet()
     {
-    	if(m_rules.getInt("matchtype") == 2113)	{
-    		
-    	}
         int minShips, curShips;
         for (int i = 1; i <= 8; i++)
         {
@@ -2389,13 +2382,6 @@ public class MatchTeam
     	/** 
     	 * TODO:
     	 * - Add the check into the correct place in each method.
-    	 * - Catch the goodLine = false with a return that will break the 
-    	 * 		method and warn the player of this.
-    	 * - Catch the goodLine = true and allow them to proceed with the 
-    	 * 		action.
-    	 * - Create a newShip variable wherever this method is called;
-    	 * 		there is already one in the !change method, now we need
-    	 * 		one in the !add/!remove methods.
     	 * - Insert a final check when the players send !ready to the bot
     	 * 		and also send a final check before the game starts.
     	 */
@@ -2644,7 +2630,12 @@ public class MatchTeam
                         }
                 	}
         		}
+            	//need to set oldship/newship to zero cause they only should be counted
+            	//during the first time this for loop runs.
+            	oldShip = 0;
+            	newShip = 0;
     	}
+
     	twfd_add = false;
     	twfd_rem = false;
     	
