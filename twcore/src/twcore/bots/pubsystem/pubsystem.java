@@ -1,26 +1,19 @@
 package twcore.bots.pubsystem;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
 import java.util.TimerTask;
-import java.util.Vector;
 
-import twcore.bots.pubsystem.PubTileset.Tileset;
 import twcore.bots.pubsystem.game.AbstractGame;
-import twcore.bots.pubsystem.game.GameContext;
 import twcore.bots.pubsystem.game.GameFlagTime;
 import twcore.bots.pubsystem.game.NoGame;
-import twcore.bots.pubsystem.game.GameContext.Mode;
+import twcore.bots.pubsystem.module.PubMoneySystemModule;
+import twcore.bots.pubsystem.module.PubPlayerManagerModule;
+import twcore.bots.pubsystem.module.PubStreakModule;
+import twcore.bots.pubsystem.module.PubTilesetModule;
+import twcore.bots.pubsystem.module.PubTilesetModule.Tileset;
+import twcore.bots.pubsystem.util.PubLocation;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
@@ -38,13 +31,8 @@ import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.SQLResultEvent;
-import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
-import twcore.core.lvz.Objset;
-import twcore.core.util.Point;
-import twcore.core.util.PointLocation;
 import twcore.core.util.Tools;
-import twcore.core.util.Tools.Weapon;
 
 /**
  * "Pure" pub bot that can enforce ship restrictions, freq restrictions, and run
@@ -81,13 +69,7 @@ import twcore.core.util.Tools.Weapon;
  */
 public class pubsystem extends SubspaceBot
 {	
-	private GameContext context;								// Context of the game
-	
-	private PubPlayerManager playerManager;				// Player manager
-    private PubMoneySystem moneySystem;					// Money system
-    private PubTileset pubTileset;						// Change the current tileset
-    private PubStreak pubStreak;						// Streak system
-    private PubWarp pubWarp;							// Warp system
+	private PubContext context;								// Context of the game
 
     private BotSettings m_botSettings;
 
@@ -116,21 +98,17 @@ public class pubsystem extends SubspaceBot
     {
         super(botAction);
         requestEvents();
+        
         m_botSettings = m_botAction.getBotSettings();
+        
         opList = m_botAction.getOperatorList();
         
-        context = new GameContext(m_botAction);
-        
-        playerManager = context.getPlayerManager();
-        moneySystem = context.getMoneySystem();
-        pubTileset = context.getPutTileset();
-        pubStreak = context.getPubStreak();
-        pubWarp = context.getPubWarp();
-        
-        playerTimes = new HashMap<String,Integer>();
+        context = new PubContext(m_botAction);
         context.setPrivFreqEnabled(true);
         
-        game = new NoGame();
+        playerTimes = new HashMap<String,Integer>();
+ 
+        game = new GameFlagTime(m_botAction, context);
     }
 
     public boolean isIdle() {
@@ -210,7 +188,7 @@ public class pubsystem extends SubspaceBot
     	}
 
     	m_botAction.setReliableKills(1); 
-    	moneySystem.handleEvent(event);
+    	context.handleEvent(event);
     }
 
 
@@ -256,6 +234,8 @@ public class pubsystem extends SubspaceBot
     		m_botAction.changeArena(arenaToJoin);
     		startBot();
     	}
+    	
+    	context.handleEvent(event);
     }
 
 
@@ -268,10 +248,8 @@ public class pubsystem extends SubspaceBot
      */
     public void handleEvent(FrequencyShipChange event)
     {
-    	moneySystem.handleEvent(event);
-    	playerManager.handleEvent(event);
-    	
     	game.handleEvent(event);
+    	context.handleEvent(event);
     }
 
 
@@ -283,8 +261,8 @@ public class pubsystem extends SubspaceBot
      */
     public void handleEvent(FrequencyChange event)
     {
-    	playerManager.handleEvent(event);
     	game.handleEvent(event);
+    	context.handleEvent(event);
     }
 
 
@@ -307,35 +285,32 @@ public class pubsystem extends SubspaceBot
             	String message = 
             		//"Welcome to Pub.  " +
             		"Private freqs:[" + (context.isPrivFreqEnabled() ? "YES" : "NO") + "]  " + 
-            		"Streak:[" + (pubStreak.isEnabled() ? "ON" : "OFF") + "]  " +
-            		"Store:[" + (moneySystem.isStoreOpened() ? "ON" : "OFF") + "]";
+            		"Streak:[" + (context.getPubStreak().isEnabled() ? "ON" : "OFF") + "]  " +
+            		"Store:[" + (context.getMoneySystem().isStoreOpened() ? "ON" : "OFF") + "]";
             	
             	
                 m_botAction.sendPrivateMessage(playerName, message );
   
                 String cmds = "!terr !team !clearmines";
-                if( pubWarp.isWarpEnabled() )
-                    cmds += " !warp";
-                m_botAction.sendPrivateMessage(playerName, "Commands:  " + cmds + "  (!help for more)");
- 
                 
+                // TODO
+                //if( pubWarp.isWarpEnabled() )
+                //    cmds += " !warp";
+                
+                m_botAction.sendPrivateMessage(playerName, "Commands:  " + cmds + "  (!help for more)");
+
                 if (game.isStarted()) {
-                	m_botAction.sendPrivateMessage(playerName, "Current game: " + game.getName());
+                	m_botAction.sendPrivateMessage(playerName, "Current game: " + game.getName() + " [ON]");
                 } else if (game instanceof NoGame) {
                 	m_botAction.sendPrivateMessage(playerName, "There is no game running.");
                 } else {
-                	m_botAction.sendPrivateMessage(playerName, "Current game: " + game.getName());
+                	m_botAction.sendPrivateMessage(playerName, "Current game: " + game.getName() + " [OFF]");
                 }
                 
-                
             }
-            
-            moneySystem.handleEvent(event);
-            playerManager.handleEvent(event);
-            pubWarp.handleEvent(event);
-            
-            // If a game is running, announce the status of the game
+
             game.statusMessage(playerName);
+            context.handleEvent(event);
 
         } catch (Exception e) {
         	Tools.printStackTrace(e);
@@ -356,16 +331,9 @@ public class pubsystem extends SubspaceBot
 
         playerTimes.remove( playerName );
         
-        playerManager.handleEvent(event);
-        pubStreak.handleEvent(event);
-        pubWarp.handleEvent(event);
+        context.handleEvent(event);
     }
 
-    /**
-     * Handles restarting of the KOTH game
-     *
-     * @param event is the event to handle.
-     */
     public void handleEvent(KotHReset event) {
         if(event.isEnabled() && event.getPlayerID()==-1) {
             // Make the bot ignore the KOTH game (send that he's out immediately after restarting the game)
@@ -373,35 +341,18 @@ public class pubsystem extends SubspaceBot
         }
     }
 
-    /**
-     * If flag time mode is running, register with the flag time game that the
-     * flag has been claimed.
-     *
-     * @param event is the event to handle.
-     */
     public void handleEvent(FlagClaimed event) {
         game.handleEvent(event);
+        context.handleEvent(event);
     }
 
-    /**
-     * Handles deaths in player challenges.
-     *
-     * @param event is the event to handle.
-     */
     public void handleEvent(PlayerDeath event) {
-    	
-        moneySystem.handleEvent(event);
-        pubStreak.handleEvent(event);
+    	context.handleEvent(event);
     }
 
-    /**
-     * Handles all messages received.
-     *
-     * @param event is the message event to handle.
-     */
     public void handleEvent(Message event) {
     	
-    	moneySystem.handleEvent(event);
+    	context.handleEvent(event);
     	
         String sender = getSender(event);
         int messageType = event.getMessageType();
@@ -436,15 +387,11 @@ public class pubsystem extends SubspaceBot
                 doHelpCmd(sender, true);
             else if(command.startsWith("!whereis "))
                 doWhereIsCmd(sender, command.substring(9), opList.isBot(sender));
-            else if(command.startsWith("!settile ") || command.startsWith("!tileset "))
-            	doSetTileCmd(sender, command.substring(9));
-            else if(command.startsWith("!warp") || command.trim().equals("!w"))
-                pubWarp.doWarpCmd(sender);
             else if(command.equals("!restrictions"))
-                playerManager.doRestrictionsCmd(sender);
-
+            	context.getPlayerManager().doRestrictionsCmd(sender);
             else {
             	game.handleCommand(sender, command);
+            	context.handleCommand(sender, command);
             }
             
         } catch(RuntimeException e) {
@@ -466,20 +413,14 @@ public class pubsystem extends SubspaceBot
                 doGoCmd(sender, command.substring(4));
             else if(command.equals("!privfreqs"))
                 doPrivFreqsCmd(sender);
-            else if(command.startsWith("!starttime "))
-                doStartTimeCmd(sender, command.substring(11));
-            else if(command.equals("!stricttime"))
-                doStrictTimeCmd(sender);
-            else if(command.equals("!stoptime"))
-                doStopTimeCmd(sender);
             else if(command.startsWith("!set "))
-                playerManager.doSetCmd(sender, command.substring(5));
-            else if(command.equals("!autowarp"))
-                pubWarp.doAutowarpCmd(sender);
-            else if(command.equals("!allowwarp"))
-            	pubWarp.doAllowWarpCmd(sender);
+                context.getPlayerManager().doSetCmd(sender, command.substring(5));
             else if(command.equals("!die"))
                 doDieCmd(sender);
+            else {
+            	game.handleModCommand(sender, command);
+            	context.handleModCommand(sender, command);
+            }
             
         } catch(RuntimeException e) {
             m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
@@ -487,11 +428,11 @@ public class pubsystem extends SubspaceBot
     }
 
     public void handleDisconnect() {
-    	moneySystem.handleDisconnect();
+    	context.getMoneySystem().handleDisconnect();
     }
     
     public void handleEvent(SQLResultEvent event){
-        moneySystem.handleEvent(event);
+    	context.getMoneySystem().handleEvent(event);
     }
 
     /**
@@ -507,7 +448,7 @@ public class pubsystem extends SubspaceBot
     {
         String currentArena = m_botAction.getArenaName();
 
-        if(context.isStarted() || context.isFlagTimeStarted())
+        if(context.isStarted())
             throw new RuntimeException("Bot is currently running pub settings in " + currentArena + ".  Please !Stop and/or !Endtime before trying to move.");
         if(currentArena.equalsIgnoreCase(argString))
             throw new IllegalArgumentException("Bot is already in that arena.");
@@ -530,7 +471,7 @@ public class pubsystem extends SubspaceBot
         }
         else
         {
-            playerManager.fixFreqs();
+            context.getPlayerManager().fixFreqs();
             m_botAction.sendArenaMessage("Private Frequencies disabled.", 2);
             m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully disabled.");
         }
@@ -538,53 +479,6 @@ public class pubsystem extends SubspaceBot
     }
 
 
-    /**
-     * Starts a "flag time" mode in which a team must hold the flag for a certain
-     * consecutive number of minutes in order to win the round.
-     *
-     * @param sender is the person issuing the command.
-     * @param argString is the number of minutes to hold the game to.
-     */
-    public void doStartTimeCmd(String sender, String argString )
-    {
-    	game = new GameFlagTime(m_botAction, context);
-    	game.start(argString);
-    }
-
-
-    /**
-     * Toggles "strict" flag time mode in which all players are first warped
-     * automatically into safe (must be set), and then warped into base.
-     *
-     * @param sender is the person issuing the command.
-     */
-    public void doStrictTimeCmd(String sender ) {
-        if( context.isMode(Mode.STRICT_FLAG_TIME) ) {
-            context.setMode(Mode.FLAG_TIME);
-            if( context.isFlagTimeStarted() )
-                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode disabled.  Changes will go into effect next round.");
-            else
-                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode disabled.  !startflagtime <minutes> to begin a normal flag time game.");
-        } else {
-            context.setMode(Mode.STRICT_FLAG_TIME);
-            if( context.isFlagTimeStarted()) {
-                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode enabled.  All players will be warped into base next round.");
-            } else {
-                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode enabled.  !startflagtime <minutes> to begin a strict flag time game.");
-            }
-        }
-    }
-
-
-    /**
-     * Ends "flag time" mode.
-     *
-     * @param sender is the person issuing the command.
-     */
-    public void doStopTimeCmd(String sender )
-    {
-        game.stop();
-    }
 
     /**
      * Logs the bot off if not enabled.
@@ -619,21 +513,6 @@ public class pubsystem extends SubspaceBot
             throw new RuntimeException(p2.getPlayerName() + " is not on your team!");
         m_botAction.sendPrivateMessage( sender, p2.getPlayerName() + " last seen: " + PubLocation.getPlayerLocation( p2, isStaff ));
     }
-    
-    /**
-     * Change the current tileset for a player
-     */
-    public void doSetTileCmd( String sender, String tileName ) {
-
-    	try {
-    		Tileset tileset = Tileset.valueOf(tileName.toUpperCase());
-    		pubTileset.setTileset(tileset, sender);
-    	} catch (IllegalArgumentException e) {
-    		m_botAction.sendPrivateMessage(sender, "The tileset '" + tileName + "' does not exists.");
-    	}
-
-    }
-
 
     /**
      * Displays a help message depending on access level.
@@ -759,8 +638,9 @@ public class pubsystem extends SubspaceBot
         }catch(Exception e){
             e.printStackTrace();
         }
-        
+
         context.start();
+        
     }
 
 

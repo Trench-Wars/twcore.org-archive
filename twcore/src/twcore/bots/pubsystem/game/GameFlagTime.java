@@ -11,13 +11,16 @@ import java.util.Random;
 import java.util.TimerTask;
 import java.util.Vector;
 
-import twcore.bots.pubsystem.PubLocation;
-import twcore.bots.pubsystem.game.GameContext.Mode;
+import twcore.bots.pubsystem.PubContext;
+import twcore.bots.pubsystem.module.player.PubPlayer;
+import twcore.bots.pubsystem.util.PubLocation;
 import twcore.core.BotAction;
 import twcore.core.OperatorList;
 import twcore.core.events.FlagClaimed;
 import twcore.core.events.FrequencyChange;
 import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.PlayerEntered;
+import twcore.core.events.PlayerLeft;
 import twcore.core.game.Player;
 import twcore.core.lvz.Objset;
 import twcore.core.util.Tools;
@@ -30,7 +33,7 @@ public class GameFlagTime extends AbstractGame {
 	
 		
 	private BotAction m_botAction;
-	private GameContext context;
+	private PubContext context;
 	
     private OperatorList opList;                        // Admin rights info obj
     private HashMap <String,Integer>playerTimes;        // Roundtime of player on freq
@@ -49,7 +52,29 @@ public class GameFlagTime extends AbstractGame {
     
     private Objset objs;                                // For keeping track of counter
 	
-	public GameFlagTime(BotAction botAction, GameContext context) {
+	private HashMap<String,PubPlayer> warpPlayers;
+	
+    // X and Y coords for warp points.  Note that the first X and Y should be
+    // the "standard" warp; in TW this is the earwarp.  These coords are used in
+    // strict flag time mode.
+    private int warpPtsLeftX[];
+    private int warpPtsLeftY[];
+    private int warpPtsRightX[];
+    private int warpPtsRightY[];
+    
+    // Warp coords for safes (for use in strict flag time mode)
+    private int warpSafeLeftX;
+    private int warpSafeLeftY;
+    private int warpSafeRightX;
+    private int warpSafeRightY;
+
+    private boolean warpEnabled = false;
+    private boolean autoWarp = false;
+    
+    private boolean flagTimeStarted = false;
+    private boolean strictFlagTimeMode = false;
+    
+	public GameFlagTime(BotAction botAction, PubContext context) {
 		super("Flag Time");
 		
 		this.m_botAction = botAction;
@@ -57,9 +82,37 @@ public class GameFlagTime extends AbstractGame {
 		
 		mineClearedPlayers = Collections.synchronizedList(new LinkedList<String>());
 		objs = m_botAction.getObjectSet();
+		
+		this.warpPlayers = new HashMap<String,PubPlayer>();
+		
+        warpPtsLeftX = m_botAction.getBotSettings().getIntArray("warp_leftX", ",");
+        warpPtsLeftY = m_botAction.getBotSettings().getIntArray("warp_leftY", ",");
+        warpPtsRightX = m_botAction.getBotSettings().getIntArray("warp_rightX", ",");
+        warpPtsRightY = m_botAction.getBotSettings().getIntArray("warp_rightY", ",");
+        
+        warpSafeLeftX = m_botAction.getBotSettings().getInt("warp_safe_leftX");
+        warpSafeLeftY = m_botAction.getBotSettings().getInt("warp_safe_leftY");
+        warpSafeRightX = m_botAction.getBotSettings().getInt("warp_safe_rightX");
+        warpSafeRightY = m_botAction.getBotSettings().getInt("warp_safe_rightY");
+        
+		if (m_botAction.getBotSettings().getInt("auto_warp")==1) {
+			autoWarp = true;
+		}
 	}
 	
+	public void startFlagTimeStarted() {
+		this.flagTimeStarted = true;
+	}
+	
+	public void stopFlagTimeStarted() {
+		this.flagTimeStarted = false;
+	}
+	
+	public boolean isFlagTimeStarted() {
+		return flagTimeStarted;
+	}
 
+	
     /**
      * Formats an integer time as a String.
      * @param time Time in seconds.
@@ -95,6 +148,11 @@ public class GameFlagTime extends AbstractGame {
         }
     }
     
+	public void handleEvent(PlayerLeft event) {
+		String playerName = m_botAction.getPlayerName(event.getPlayerID());
+		warpPlayers.remove(playerName);
+	}
+    
 	public void handleEvent(FrequencyShipChange event) 
 	{
         int playerID = event.getPlayerID();
@@ -102,21 +160,41 @@ public class GameFlagTime extends AbstractGame {
 		int ship = event.getShipType();
 
         Player p = m_botAction.getPlayer( playerID );
-
+        String playerName = p.getPlayerName();
+        
         if( p == null )
             return;
+        
+        // Do nothing if the player is dueling
+        if( context.getPubChallenge().isEnabled() ) {
+        	if (context.getPubChallenge().isDueling(playerName))
+        		return;
+        }
         
         if(ship == 5)
             m_botAction.sendOpposingTeamMessageByFrequency(freq, "Player "+p.getPlayerName()+" is now a terr; you may attach");
         
         try {
-            if( context.isFlagTimeStarted() && flagTimer != null && flagTimer.isRunning() ) {
+            if( isFlagTimeStarted() && flagTimer != null && flagTimer.isRunning() ) {
                 // Remove player if spec'ing
                 if( ship == Tools.Ship.SPECTATOR ) {
                     String pname = p.getPlayerName();
                 	playerTimes.remove( pname );
                 } 
             }
+            
+            if (autoWarp && !warpPlayers.containsKey(playerName)) {
+    	        if(ship != Tools.Ship.SPECTATOR)
+    	        	doWarpCmd(playerName); 
+            }
+
+            // Terrs and Levis can't warp into base if Levis are enabled
+            if (!context.getPlayerManager().isShipRestricted(Tools.Ship.LEVIATHAN)) {
+    	        if (ship == Tools.Ship.LEVIATHAN || ship == Tools.Ship.TERRIER) {         
+    	        	warpPlayers.remove(playerName);
+    	        }   
+            }     
+            
         } catch (Exception e) {
         }
 	}
@@ -124,10 +202,22 @@ public class GameFlagTime extends AbstractGame {
 	public void handleEvent(FrequencyChange event) {
 		
 	}
+	
+    public void handleEvent(PlayerEntered event) {
+    	
+        int playerID = event.getPlayerID();
+        Player player = m_botAction.getPlayer(playerID);
+        String playerName = m_botAction.getPlayerName(playerID);
+    	
+        if(isFlagTimeStarted() && isAutoWarpEnabled()) {
+        	if( player.getShipType() != Tools.Ship.SPECTATOR )
+        		doWarpCmd(playerName);
+        }
+    }
     
     public void handleEvent(FlagClaimed event) 
     {
-    	if(!context.isFlagTimeStarted())
+    	if(!isFlagTimeStarted())
             return;
 
         int playerID = event.getPlayerID();
@@ -164,7 +254,7 @@ public class GameFlagTime extends AbstractGame {
      * Displays rules and pauses for intermission.
      */
     private void doIntermission() {
-        if(!context.isFlagTimeStarted())
+        if(!isFlagTimeStarted())
             return;
 
         int roundNum = freq0Score + freq1Score + 1;
@@ -182,7 +272,7 @@ public class GameFlagTime extends AbstractGame {
             roundTitle = "Round " + roundNum;
         }
 
-        m_botAction.sendArenaMessage( roundTitle + " begins in " + getTimeString( INTERMISSION_SECS ) + ".  (Score: " + freq0Score + " - " + freq1Score + ")" + (context.isMode(Mode.STRICT_FLAG_TIME)?"":("  Type !warp to set warp status, or send !help")) );
+        m_botAction.sendArenaMessage( roundTitle + " begins in " + getTimeString( INTERMISSION_SECS ) + ".  (Score: " + freq0Score + " - " + freq1Score + ")" + (strictFlagTimeMode?"":("  Type !warp to set warp status, or send !help")) );
 
         m_botAction.cancelTask(startTimer);
 
@@ -275,7 +365,7 @@ public class GameFlagTime extends AbstractGame {
      */
     public void doTimeCmd( String sender )
     {
-        if( context.isFlagTimeStarted() )
+        if( isFlagTimeStarted() )
             if( flagTimer != null )
                 flagTimer.sendTimeRemaining( sender );
             else
@@ -305,7 +395,7 @@ public class GameFlagTime extends AbstractGame {
      * Starts a game of flag time mode.
      */
     private void doStartRound() {
-        if(!context.isFlagTimeStarted())
+        if(!isFlagTimeStarted())
             return;
 
         try {
@@ -327,7 +417,7 @@ public class GameFlagTime extends AbstractGame {
      * After, sets up an intermission, followed by a new round.
      */
     private void doEndRound( ) {
-        if( !context.isFlagTimeStarted() || flagTimer == null )
+        if( !isFlagTimeStarted() || flagTimer == null )
             return;
 
         HashSet <String>MVPs = new HashSet<String>();
@@ -822,18 +912,20 @@ public class GameFlagTime extends AbstractGame {
                 int roundNum = freq0Score + freq1Score + 1;
                 if( preTimeCount == 0 ) {
                     m_botAction.sendArenaMessage( "Next round begins in 10 seconds . . ." );
-                    if( context.isMode(Mode.STRICT_FLAG_TIME) )
-                        context.getPubWarp().safeWarp();
+                    if( strictFlagTimeMode )
+                        safeWarp();
                 }
                 preTimeCount++;
 
                 if( preTimeCount >= 10 ) {
                     isStarted = true;
                     isRunning = true;
-                    m_botAction.sendArenaMessage( ( roundNum == MAX_FLAGTIME_ROUNDS ? "FINAL ROUND" : "ROUND " + roundNum) + " START!  Hold flag for " + flagMinutesRequired + " consecutive minute" + (flagMinutesRequired == 1 ? "" : "s") + " to win the round.", 1 );
+                    String message = ( roundNum == MAX_FLAGTIME_ROUNDS ? "FINAL ROUND" : "ROUND " + roundNum) + " START!  Hold flag for " + flagMinutesRequired + " consecutive minute" + (flagMinutesRequired == 1 ? "" : "s") + " to win the round.";
+                    int sound = strictFlagTimeMode ? Tools.Sound.GOGOGO : Tools.Sound.BEEP1;
+                    m_botAction.sendArenaMessage( message, sound );
                     m_botAction.resetFlagGame();
                     setupPlayerTimes();
-                    context.getPubWarp().warpPlayers(context.isMode(Mode.STRICT_FLAG_TIME));
+                    warpPlayers(strictFlagTimeMode);
                     return;
                 }
             }
@@ -965,7 +1057,7 @@ public class GameFlagTime extends AbstractGame {
 	@Override
 	public void start(String argument) 
 	{
-		if(context.isFlagTimeStarted())
+		if(isFlagTimeStarted())
             throw new RuntimeException( "Flag Time mode has already been started." );
 
         int min = 0;
@@ -984,15 +1076,15 @@ public class GameFlagTime extends AbstractGame {
         m_botAction.sendArenaMessage( "Flag Time mode has been enabled." );
 
         m_botAction.sendArenaMessage( "Object: Hold flag for " + flagMinutesRequired + " consecutive minute" + (flagMinutesRequired == 1 ? "" : "s") + " to win a round.  Best " + ( MAX_FLAGTIME_ROUNDS + 1) / 2 + " of "+ MAX_FLAGTIME_ROUNDS + " wins the game." );
-        if( context.isMode(Mode.STRICT_FLAG_TIME) )
+        if( strictFlagTimeMode )
             m_botAction.sendArenaMessage( "Round 1 begins in 60 seconds.  All players will be warped at round start." );
         else
-            if(context.getPubWarp().isAutoWarpEnabled())
+            if(isAutoWarpEnabled())
                 m_botAction.sendArenaMessage( "Round 1 begins in 60 seconds.  You will be warped into flagroom at round start (type !warp to change). -" + m_botAction.getBotName() );
             else
                 m_botAction.sendArenaMessage( "Round 1 begins in 60 seconds.  PM me with !warp to warp into flagroom at round start. -" + m_botAction.getBotName() );
 
-        context.startFlagTimeStarted();
+        startFlagTimeStarted();
         freq0Score = 0;
         freq1Score = 0;
 
@@ -1003,7 +1095,7 @@ public class GameFlagTime extends AbstractGame {
 	@Override
 	public void stop()
 	{
-		if(!context.isFlagTimeStarted())
+		if(!isFlagTimeStarted())
             throw new RuntimeException( "Flag Time mode is not currently running." );
 
         m_botAction.sendArenaMessage( "Flag Time mode has been disabled." );
@@ -1016,8 +1108,8 @@ public class GameFlagTime extends AbstractGame {
         } catch (Exception e ) {
         }
 
-        context.stopFlagTimeStarted();
-        context.setMode(Mode.FLAG_TIME);
+        stopFlagTimeStarted();
+        strictFlagTimeMode = false;
 	}
 
 
@@ -1033,6 +1125,8 @@ public class GameFlagTime extends AbstractGame {
                 doTerrCmd(sender);
             else if(command.startsWith("!clearmines") || command.trim().equals("!cl"))
                 doClearMinesCmd(sender);
+            else if(command.startsWith("!warp") || command.trim().equals("!w"))
+                doWarpCmd(sender);
             
         } catch(RuntimeException e) {
             if( e != null && e.getMessage() != null )
@@ -1040,11 +1134,80 @@ public class GameFlagTime extends AbstractGame {
         }
 		
 	}
+	
+	@Override
+	public void handleModCommand(String sender, String command) {
+		
+		 try {
+            if(command.startsWith("!starttime "))
+                doStartTimeCmd(sender, command.substring(11));
+            else if(command.equals("!stricttime"))
+                doStrictTimeCmd(sender);
+            else if(command.equals("!stoptime"))
+                doStopTimeCmd(sender);
+            else if (command.equals("!autowarp"))
+            	doAutowarpCmd(sender);
+			else if (command.equals("!allowwarp"))
+				doAllowWarpCmd(sender);
+            
+        } catch(RuntimeException e) {
+            if( e != null && e.getMessage() != null )
+                m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
+        }
+		
+	}
+	
 
+    /**
+     * Starts a "flag time" mode in which a team must hold the flag for a certain
+     * consecutive number of minutes in order to win the round.
+     *
+     * @param sender is the person issuing the command.
+     * @param argString is the number of minutes to hold the game to.
+     */
+    public void doStartTimeCmd(String sender, String argString )
+    {
+    	start(argString);
+    }
+
+
+    /**
+     * Toggles "strict" flag time mode in which all players are first warped
+     * automatically into safe (must be set), and then warped into base.
+     *
+     * @param sender is the person issuing the command.
+     */
+    public void doStrictTimeCmd(String sender ) {
+        if( strictFlagTimeMode ) {
+        	strictFlagTimeMode = false;
+            if( isFlagTimeStarted() )
+                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode disabled.  Changes will go into effect next round.");
+            else
+                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode disabled.  !startflagtime <minutes> to begin a normal flag time game.");
+        } else {
+        	strictFlagTimeMode = true;
+            if( isFlagTimeStarted()) {
+                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode enabled.  All players will be warped into base next round.");
+            } else {
+                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode enabled.  !startflagtime <minutes> to begin a strict flag time game.");
+            }
+        }
+    }
+
+
+    /**
+     * Ends "flag time" mode.
+     *
+     * @param sender is the person issuing the command.
+     */
+    public void doStopTimeCmd(String sender )
+    {
+        stop();
+    }
 
 	@Override
 	public void statusMessage(String playerName) {
-        if(context.isFlagTimeStarted()) {
+        if(isFlagTimeStarted()) {
             if( flagTimer != null)
                 m_botAction.sendPrivateMessage(playerName, flagTimer.getTimeInfo() );
         }
@@ -1060,5 +1223,255 @@ public class GameFlagTime extends AbstractGame {
 		if (flagTimer == null)
 			return false;
 		return flagTimer.isStarted;
+	}
+	
+	/** WARP METHODS **/
+	
+	public void autoWarpEnable() {
+		this.autoWarp = true;
+	}
+	
+	public void autoWarpDisable() {
+		this.autoWarp = false;
+	}
+	
+	public void warpEnable() {
+		this.warpEnabled = true;
+	}
+	
+	public void warpDisable() {
+		this.warpEnabled = false;
+	}
+	
+	public boolean isWarpEnabled() {
+		return warpEnabled;
+	}
+	
+	public boolean isAutoWarpEnabled() {
+		return autoWarp;
+	}
+	
+    /**
+     * Turns on or off "autowarp" mode, where players opt out of warping into base,
+     * rather than opting in.
+     *
+     * @param sender is the person issuing the command.
+     */
+    public void doAutowarpCmd(String sender) {
+        if( autoWarp ) {
+            m_botAction.sendPrivateMessage(sender, "Players will no longer automatically be added to the !warp list when they enter the arena.");
+            autoWarpDisable();
+        } else {
+            m_botAction.sendPrivateMessage(sender, "Players will be automatically added to the !warp list when they enter the arena.");
+            autoWarpEnable();
+        }
+    }
+    
+    /**
+     * Turns on or off allowing players to use !warp to get into base at the start of a round.
+     *
+     * @param sender is the person issuing the command.
+     */
+    public void doAllowWarpCmd(String sender) {
+        if( isWarpEnabled() ) {
+            m_botAction.sendPrivateMessage(sender, "Players will no longer be able to use !warp.");
+            warpPlayers.clear();
+            warpDisable();
+        } else {
+            m_botAction.sendPrivateMessage(sender, "Players will be allowed to use !warp.");
+            warpEnable();
+        }
+    }
+	
+	public void doWarpCmd(String sender) {
+		PubPlayer player = context.getPlayerManager().getPlayer(sender);
+		if (player == null)
+			return;
+
+		if (!isFlagTimeStarted()) {
+			m_botAction.sendSmartPrivateMessage(sender,
+					"Flag Time mode is not currently running.");
+			return;
+		} 
+		else if (strictFlagTimeMode) {
+			m_botAction.sendSmartPrivateMessage(sender,"Strict Flag mode is currently running, !warp has no effect. You will automatically be warped.");
+			return;
+		} 
+		else if (warpEnabled) {
+			m_botAction.sendSmartPrivateMessage(sender,"Warping into base at round start is not currently allowed.");
+			return;
+		}
+
+		// Terrs and Levis can't warp into base if Levis are enabled
+		if (context.getPlayerManager().isShipRestricted(Tools.Ship.LEVIATHAN)) {
+			Player p = m_botAction.getPlayer(sender);
+			if (p.getShipType() == Tools.Ship.LEVIATHAN) {
+				m_botAction.sendSmartPrivateMessage(sender,"Leviathans can not warp in to base at round start.");
+				return;
+			}
+			if (p.getShipType() == Tools.Ship.TERRIER) {
+				m_botAction
+						.sendSmartPrivateMessage(sender,
+								"Terriers can not warp into base at round start while Leviathans are enabled.");
+				return;
+			}
+		}
+
+		if (warpPlayers.containsKey(sender)) {
+			warpPlayers.remove(sender);
+			m_botAction.sendSmartPrivateMessage(sender,"You will NOT be warped inside FR at every round start. !warp again to turn back on.");
+		} else {
+			warpPlayers.put(sender, player);
+			m_botAction.sendSmartPrivateMessage(sender,"You will be warped inside FR at every round start. Type !warp to turn off.");
+		}
+	}
+	    
+	/**
+	 * Warps a player within a radius of 2 tiles to provided coord.
+	 * 
+	 * @param playerName
+	 * @param xCoord
+	 * @param yCoord
+	 * @param radius
+	 * @author Cpt.Guano!
+	 */
+	private void doPlayerWarp(String playerName, int xCoord, int yCoord) {
+		
+		// Don't warp a player dueling
+		if (context.getPubChallenge().isEnabled()) {
+			if (context.getPubChallenge().isDueling(playerName))
+				return;
+		}
+		
+		int radius = 2;
+		double randRadians;
+		double randRadius;
+		int xWarp = -1;
+		int yWarp = -1;
+
+		randRadians = Math.random() * 2 * Math.PI;
+		randRadius = Math.random() * radius;
+		xWarp = calcXCoord(xCoord, randRadians, randRadius);
+		yWarp = calcYCoord(yCoord, randRadians, randRadius);
+
+		m_botAction.warpTo(playerName, xWarp, yWarp);
+	}
+
+	/**
+	 * Warps all players who have PMed with !warp into FR at start. Ensures
+	 * !warpers on freqs are warped all to 'their' side, but not predictably.
+	 */
+	public void warpPlayers(boolean allPlayers) {
+
+		Iterator<?> i;
+
+		if (allPlayers)
+			i = m_botAction.getPlayingPlayerIterator();
+		else
+			i = warpPlayers.keySet().iterator();
+
+		Random r = new Random();
+		int rand;
+		Player p;
+		String pname;
+		LinkedList<String> nullPlayers = new LinkedList<String>();
+
+		int randomside = r.nextInt(2);
+
+		while (i.hasNext()) {
+			if (allPlayers) {
+				p = (Player) i.next();
+				pname = p.getPlayerName();
+			} else {
+				pname = (String) i.next();
+				p = m_botAction.getPlayer(pname);
+			}
+
+			if (p != null) {
+				if (allPlayers)
+					rand = 0; // Warp freqmates to same spot in strict mode.
+				// The warppoints @ index 0 must be set up
+				// to default/earwarps for this to work properly.
+				else
+					rand = r.nextInt(warpPtsLeftX.length);
+				if (p.getFrequency() % 2 == randomside)
+					doPlayerWarp(pname, warpPtsLeftX[rand], warpPtsLeftY[rand]);
+				else
+					doPlayerWarp(pname, warpPtsRightX[rand],
+							warpPtsRightY[rand]);
+			} else {
+				if (!allPlayers) {
+					nullPlayers.add(pname);
+				}
+			}
+		}
+
+		if (!nullPlayers.isEmpty()) {
+			i = nullPlayers.iterator();
+			while (i.hasNext()) {
+				warpPlayers.remove((String) i.next());
+			}
+		}
+	}
+
+	/**
+	 * In Strict Flag Time mode, warp all players to a safe 10 seconds before
+	 * starting. This gives a semi-official feeling to the game, and resets all
+	 * mines, etc.
+	 */
+	public void safeWarp() {
+		// Prevent pre-laid mines and portals in strict flag time by setting to
+		// WB and back again (slightly hacky)
+		HashMap<String, Integer> players = new HashMap<String, Integer>();
+		HashMap<String, Integer> bounties = new HashMap<String, Integer>();
+		Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
+		Player p;
+		while (it.hasNext()) {
+			p = it.next();
+			if (p != null) {
+				if (p.getShipType() == Tools.Ship.SHARK
+						|| p.getShipType() == Tools.Ship.TERRIER
+						|| p.getShipType() == Tools.Ship.LEVIATHAN) {
+					players
+							.put(p.getPlayerName(),
+									new Integer(p.getShipType()));
+					bounties.put(p.getPlayerName(), new Integer(p.getBounty()));
+					m_botAction.setShip(p.getPlayerName(), 1);
+				}
+			}
+		}
+		Iterator<String> it2 = players.keySet().iterator();
+		String name;
+		Integer ship, bounty;
+		while (it2.hasNext()) {
+			name = it2.next();
+			ship = players.get(name);
+			bounty = bounties.get(name);
+			if (ship != null)
+				m_botAction.setShip(name, ship.intValue());
+			if (bounty != null)
+				m_botAction.giveBounty(name, bounty.intValue() - 3);
+		}
+
+		Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
+		while (i.hasNext()) {
+			p = i.next();
+			if (p != null) {
+				if (p.getFrequency() % 2 == 0)
+					m_botAction.warpTo(p.getPlayerID(), warpSafeLeftX,
+							warpSafeLeftY);
+				else
+					m_botAction.warpTo(p.getPlayerID(), warpSafeRightX,
+							warpSafeRightY);
+			}
+		}
+	}
+
+	private int calcXCoord(int xCoord, double randRadians, double randRadius) {
+		return xCoord + (int) Math.round(randRadius * Math.sin(randRadians));
+	}
+
+	private int calcYCoord(int yCoord, double randRadians, double randRadius) {
+		return yCoord + (int) Math.round(randRadius * Math.cos(randRadians));
 	}
 }

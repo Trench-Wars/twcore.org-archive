@@ -1,10 +1,10 @@
-package twcore.bots.pubsystem.item;
+package twcore.bots.pubsystem.module.moneysystem.item;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import twcore.bots.pubsystem.PubException;
-import twcore.bots.pubsystem.PubPlayer;
+import twcore.bots.pubsystem.module.player.PubPlayer;
+import twcore.bots.pubsystem.util.PubException;
 
 
 public abstract class PubItem {
