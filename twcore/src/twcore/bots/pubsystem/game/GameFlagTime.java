@@ -1088,7 +1088,7 @@ public class GameFlagTime extends AbstractGame {
         freq0Score = 0;
         freq1Score = 0;
 
-        m_botAction.scheduleTask( new StartRoundTask(), 11000 );
+        m_botAction.scheduleTask( new StartRoundTask(), 60000 );
 	}
 
 

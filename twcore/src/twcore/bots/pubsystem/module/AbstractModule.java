@@ -24,6 +24,19 @@ import twcore.core.events.SoccerGoal;
 import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 
+/*
+ * A module is something that can be disabled/enabled.
+ * It has a functionnality to the pub system.
+ * 
+ * Some are more importants than others like :
+ * - MoneySystem
+ * - PlayerManager
+ * 
+ * Also, some modules are dependants to another module
+ * Dependencies:
+ * - TO BE COMPLETED
+ * 
+ */
 public abstract class AbstractModule {
 
 	protected boolean enabled = false;
