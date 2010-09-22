@@ -202,13 +202,26 @@ public class PubLotteryModule extends AbstractModule {
 
 	@Override
 	public void handleCommand(String sender, String command) {
-		// TODO Auto-generated method stub
+		/*
+        else if(command.startsWith("!lottery ") || command.startsWith("!l ")) {
+            pubLottery.handleTicket(sender, command);
+        }
+        else if(command.equals("!jackpot") || command.equals("!jp")) {
+            pubLottery.displayJackpot(sender);
+        }
+        */
 		
 	}
 
 	@Override
 	public void handleModCommand(String sender, String command) {
-		// TODO Auto-generated method stub
+        try {
+            if(command.startsWith("!lprice ")){
+                setTicketPrice(sender, command);
+            }
+        } catch(RuntimeException e) {
+            m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
+        }
 		
 	}
     

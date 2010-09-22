@@ -104,7 +104,7 @@ public class PubContext {
 	
 	public PubMoneySystemModule getMoneySystem() {
 		if (moneySystem == null) {
-			moneySystem = new PubMoneySystemModule(m_botAction, getPlayerManager());
+			moneySystem = new PubMoneySystemModule(m_botAction, this);
 		}
 		return moneySystem;
 	}

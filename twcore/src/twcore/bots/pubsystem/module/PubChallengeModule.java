@@ -336,9 +336,9 @@ public class PubChallengeModule extends AbstractModule {
             
         if (announceNew && amount >= announceWinnerAt) {
         	if (ship == 0)
-        		m_botAction.sendArenaMessage("A duel is starting between " + p_chall.getPlayerName() + "("+p_chall.getShipType()+") and " + p_acc.getPlayerName() + "("+p_acc.getShipType()+") for $"+ amount + ".");
+        		m_botAction.sendArenaMessage("A duel is starting between " + p_chall.getPlayerName() + "("+p_chall.getShipType()+") and " + p_acc.getPlayerName() + "("+p_acc.getShipType()+") for $"+ amount + ".", Tools.Sound.BEEP1);
         	else
-        		m_botAction.sendArenaMessage("A duel is starting between " + p_chall.getPlayerName() + " and " + p_acc.getPlayerName() + " in " + Tools.shipName(ship) + " for $"+ amount + ".");
+        		m_botAction.sendArenaMessage("A duel is starting between " + p_chall.getPlayerName() + " and " + p_acc.getPlayerName() + " in " + Tools.shipName(ship) + " for $"+ amount + ".", Tools.Sound.BEEP1);
         }
         
         // Prepare the duel right now since we know the dueling ship
@@ -365,11 +365,10 @@ public class PubChallengeModule extends AbstractModule {
     }
     private void announceWinner(String winner, String loser, int winnerKills, int loserKills ,int amount, boolean lagout){
         warpToSafe(winner);
-        String realWinner = winner;
-        String realLoser = loser;
-        winner = winner;
-        loser = loser;
-        if(laggers.containsKey(realWinner) & laggers.containsKey(realLoser)) {
+        String realWinner = getDueler(winner).name;
+        String realLoser = getDueler(loser).name;
+
+        if(laggers.containsKey(winner.toLowerCase()) & laggers.containsKey(winner.toLowerCase())) {
         	//if (announceWinner && announceWinnerAt == 0)
         	//	m_botAction.sendArenaMessage("Duel between "+realWinner+" and "+realLoser+" has been declared as void since both lagged out.");
             duelers.remove(winner.toLowerCase());
@@ -382,7 +381,7 @@ public class PubChallengeModule extends AbstractModule {
             
         if(lagout){
         	if (announceWinner && amount >= announceWinnerAt)
-        		m_botAction.sendArenaMessage("[PUB DUEL] " + realWinner+" has beaten "+realLoser+" by lagout in duel for $"+amount+".");
+        		m_botAction.sendArenaMessage("[PUB DUEL] " + realWinner + " has beaten "+realLoser+" by lagout in duel for $"+amount+".");
         	else {
         		m_botAction.sendPrivateMessage(realWinner,"You have beaten "+realLoser+" by lagout in duel for $"+amount+".");
         		m_botAction.sendPrivateMessage(realLoser,"You have lost to " + realLoser+" by lagout in duel for $"+amount+".");
@@ -411,37 +410,40 @@ public class PubChallengeModule extends AbstractModule {
         Dueler d1 = duelers.remove(winner.toLowerCase());
         Dueler d2 = duelers.remove(loser.toLowerCase());
         
-        String[] fields = {
-        	"fcNameChallenger",
-        	"fcNameAccepter",
-        	"fcWinner",
-        	"fnScoreChallenger",
-        	"fnScoreAccepter",
-        	"fnShipChallenger",
-        	"fnShipAccepter",
-        	"fnShip",
-        	"fnWinByLagout",
-        	"fnDuration",
-        	"fnMoney",
-        	"fdDate"
-        };
+        if (saveDuel) {
         
-        String[] values = {
-        		Tools.addSlashes(d1.mode==Dueler.DUEL_CHALLENGER?d1.name:d2.name),
-        		Tools.addSlashes(d2.mode==Dueler.DUEL_ACCEPTER?d2.name:d1.name),
-        		Tools.addSlashes(realWinner),
-        		String.valueOf(d1.mode==Dueler.DUEL_CHALLENGER?d1.kills:d2.kills),
-        		String.valueOf(d2.mode==Dueler.DUEL_ACCEPTER?d2.kills:d1.kills),
-        		String.valueOf(d1.mode==Dueler.DUEL_CHALLENGER?d1.ship:d2.ship),
-        		String.valueOf(d2.mode==Dueler.DUEL_ACCEPTER?d2.ship:d1.ship),
-        		String.valueOf(d1.ship==d2.ship?d1.ship:0),
-        		String.valueOf(lagout?1:0),
-        		String.valueOf((int)((System.currentTimeMillis()-d1.start)/1000)),
-        		String.valueOf(amount),
-        		new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())
-        };
-        
-    	m_botAction.SQLBackgroundInsertInto(database, "tblDuel", fields, values);
+	        String[] fields = {
+	        	"fcNameChallenger",
+	        	"fcNameAccepter",
+	        	"fcWinner",
+	        	"fnScoreChallenger",
+	        	"fnScoreAccepter",
+	        	"fnShipChallenger",
+	        	"fnShipAccepter",
+	        	"fnShip",
+	        	"fnWinByLagout",
+	        	"fnDuration",
+	        	"fnMoney",
+	        	"fdDate"
+	        };
+	        
+	        String[] values = {
+	        		Tools.addSlashes(d1.mode==Dueler.DUEL_CHALLENGER?d1.name:d2.name),
+	        		Tools.addSlashes(d2.mode==Dueler.DUEL_ACCEPTER?d2.name:d1.name),
+	        		Tools.addSlashes(realWinner),
+	        		String.valueOf(d1.mode==Dueler.DUEL_CHALLENGER?d1.kills:d2.kills),
+	        		String.valueOf(d2.mode==Dueler.DUEL_ACCEPTER?d2.kills:d1.kills),
+	        		String.valueOf(d1.mode==Dueler.DUEL_CHALLENGER?d1.ship:d2.ship),
+	        		String.valueOf(d2.mode==Dueler.DUEL_ACCEPTER?d2.ship:d1.ship),
+	        		String.valueOf(d1.ship==d2.ship?d1.ship:0),
+	        		String.valueOf(lagout?1:0),
+	        		String.valueOf((int)((System.currentTimeMillis()-d1.start)/1000)),
+	        		String.valueOf(amount),
+	        		new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())
+	        };
+	        
+	    	m_botAction.SQLBackgroundInsertInto(database, "tblDuel", fields, values);
+        }
     	        
     }
     
@@ -520,8 +522,8 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.setFreq(accepter, 1);
             m_botAction.warpTo(challenger, dArea.warp1x, dArea.warp1y);
             m_botAction.warpTo(accepter, dArea.warp2x, dArea.warp2y);
-            m_botAction.sendPrivateMessage(challenger, "GO GO GO!");
-            m_botAction.sendPrivateMessage(accepter, "GO GO GO!");
+            m_botAction.sendPrivateMessage(challenger, "GO GO GO!", Tools.Sound.GOGOGO);
+            m_botAction.sendPrivateMessage(accepter, "GO GO GO!", Tools.Sound.GOGOGO);
 
         }
     }
