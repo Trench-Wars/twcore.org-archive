@@ -138,19 +138,19 @@ public class PubChallengeModule extends AbstractModule {
         if(!duelers.containsKey(name.toLowerCase()))
             return;
         if(event.getShipType() == 0){
-            getDueler(name).lagouts++;
-            if(getDueler(name).lagouts > 2){
-                announceWinner(getDueler(name).opponent,name,0,0,getDueler(name).amount,true);
+            duelers.get(name).lagouts++;
+            if(duelers.get(name).lagouts > 2){
+                announceWinner(duelers.get(name).opponent,name,0,0,duelers.get(name).amount,true);
                 return;
             }
             laggers.put(name.toLowerCase(), new StartLagout(name));
             m_botAction.scheduleTask(laggers.get(name.toLowerCase()), 60*1000);
-            m_botAction.sendPrivateMessage(name, "You have lagged out. You have 60 seconds to return to the game. Use !lagout to return. You have "+(2-getDueler(name).lagouts)+" lagouts left.");
-            m_botAction.sendPrivateMessage(getDueler(name).opponent, "Your opponent has lagged out. He has 60 seconds to return to the game.");
+            m_botAction.sendPrivateMessage(name, "You have lagged out. You have 60 seconds to return to the game. Use !lagout to return. You have "+(2-duelers.get(name).lagouts)+" lagouts left.");
+            m_botAction.sendPrivateMessage(duelers.get(name).opponent, "Your opponent has lagged out. He has 60 seconds to return to the game.");
             return;
         }
-        if(event.getShipType() != getDueler(name).ship) {
-            m_botAction.setShip(name, getDueler(name).ship);
+        if(event.getShipType() != duelers.get(name).ship) {
+            m_botAction.setShip(name, duelers.get(name).ship);
             m_botAction.sendPrivateMessage(name, "Shipchange during duel is not permitted.");
         }
         
@@ -165,8 +165,8 @@ public class PubChallengeModule extends AbstractModule {
         int x = event.getXLocation()/16;
         int y = event.getYLocation()/16;
         if(y > 225 & y < 700 & x > 225 & x < 700){
-            DuelArea area = areas.get(getDueler(name).area);
-            if(getDueler(name).mode == 1){
+            DuelArea area = areas.get(duelers.get(name).area);
+            if(duelers.get(name).mode == 1){
                 m_botAction.warpTo(name, area.warp1x, area.warp1y);
                 if(laggers.containsKey(name.toLowerCase())){
                     m_botAction.cancelTask(laggers.get(name.toLowerCase()));
@@ -193,8 +193,8 @@ public class PubChallengeModule extends AbstractModule {
         String killee = m_botAction.getPlayerName(event.getKilleeID());
         if(!duelers.containsKey(killer.toLowerCase()) & !duelers.containsKey(killee.toLowerCase()))
             return;
-        Dueler w = getDueler(killer);
-        Dueler l = getDueler(killee);
+        Dueler w = duelers.get(killer);
+        Dueler l = duelers.get(killee);
         w.kills++;
         l.deaths++;
         if(l.deaths == deaths) {
@@ -226,14 +226,14 @@ public class PubChallengeModule extends AbstractModule {
     }
     
     public void playerLeftRemoveChallenge(String name){
-        if(!challenges.containsKey((name.toLowerCase())))
+        if(!challenges.containsKey((name)))
             return;
-        challenges.remove(name.toLowerCase());
+        challenges.remove(name);
     }
     
     public void issueChallenge(String challenger, String challenged, int amount, int ship) {
-        if(challenges.containsKey(challenger.toLowerCase())){
-            Challenge pending = getChallenge(challenger);
+        if(challenges.containsKey(challenger)){
+            Challenge pending = challenges.get(challenger);
             m_botAction.sendPrivateMessage(challenger, "You have already a pending challenge with "+pending.challenged+". Please remove it before challengin more.");
             return;
         }
@@ -268,13 +268,13 @@ public class PubChallengeModule extends AbstractModule {
         }
             
         m_botAction.sendPrivateMessage(challenged, challenger +" has challenged you to duel for amount of $"+amount+" in " + shipMessage + ". To accept reply !accept "+challenger);
-        challenges.put(challenger.toLowerCase(), new Challenge(challenged,amount,ship));
+        challenges.put(challenger, new Challenge(challenged,amount,ship));
         m_botAction.sendPrivateMessage(challenger, "Challenge sent to "+challenged+" for $"+amount+".");
         
     }
     
     public void acceptChallenge(String accepter, String challenger) {
-        if(duelers.containsKey(accepter.toLowerCase())) {
+        if(duelers.containsKey(accepter)) {
             m_botAction.sendPrivateMessage(accepter, "You are already dueling.");
             return;
         }
@@ -289,7 +289,7 @@ public class PubChallengeModule extends AbstractModule {
         }
         
         try {
-            if(!getChallenge(challenger).challenged.equalsIgnoreCase(accepter)){
+            if(!challenges.get(challenger).challenged.equalsIgnoreCase(accepter)){
                 m_botAction.sendPrivateMessage(accepter, "You dont have a challenge from "+challenger+".");
                 return;
             }
@@ -298,13 +298,13 @@ public class PubChallengeModule extends AbstractModule {
             return;
         }
         
-        int amount = getChallenge(challenger).amount;
-        int ship = getChallenge(challenger).ship;
+        int amount = challenges.get(challenger).amount;
+        int ship = challenges.get(challenger).ship;
         
         if(context.getPlayerManager().getPlayer(accepter).getMoney() < amount){
             m_botAction.sendPrivateMessage(accepter, "You don't have enough money to accept the challenge. Challenge removed.");
             m_botAction.sendPrivateMessage(challenger, accepter+" doesn't have enough money to accept the challenge. Challenge removed.");
-            challenges.remove(challenger.toLowerCase());
+            challenges.remove(challenger);
             return;
         }
         int area = getEmptyDuelArea();
@@ -343,20 +343,20 @@ public class PubChallengeModule extends AbstractModule {
         
         // Prepare the duel right now since we know the dueling ship
         if (ship > 0) {
-        	duelers.put(challenger.toLowerCase(), new Dueler(challenger,area,1,getChallenge(challenger).amount,ship,accepter));
-        	duelers.put(accepter.toLowerCase(), new Dueler(accepter,area,2,getChallenge(challenger).amount,ship,challenger));
+        	duelers.put(challenger, new Dueler(challenger,area,1,challenges.get(challenger).amount,ship,accepter));
+        	duelers.put(accepter, new Dueler(accepter,area,2,challenges.get(challenger).amount,ship,challenger));
         }
         
     }
     public void removeChallenge(String name){
-        if(!challenges.containsKey(name.toLowerCase())){
+        if(!challenges.containsKey(name)){
             m_botAction.sendPrivateMessage(name, "You don't have a pending challenge to remove.");
             return;
         }
             
         try{
-            String challengee = getChallenge(name).challenged;
-            challenges.remove(name.toLowerCase());
+            String challengee = challenges.get(name).challenged;
+            challenges.remove(name);
             m_botAction.sendPrivateMessage(name, "Challenge removed.");
             m_botAction.sendPrivateMessage(challengee, name+" has removed the challenge against you.");
         }catch(NullPointerException e){
@@ -365,17 +365,17 @@ public class PubChallengeModule extends AbstractModule {
     }
     private void announceWinner(String winner, String loser, int winnerKills, int loserKills ,int amount, boolean lagout){
         warpToSafe(winner);
-        String realWinner = getDueler(winner).name;
-        String realLoser = getDueler(loser).name;
+        String realWinner = duelers.get(winner).name;
+        String realLoser = duelers.get(loser).name;
 
-        if(laggers.containsKey(winner.toLowerCase()) & laggers.containsKey(winner.toLowerCase())) {
+        if(laggers.containsKey(winner) & laggers.containsKey(winner)) {
         	//if (announceWinner && announceWinnerAt == 0)
         	//	m_botAction.sendArenaMessage("Duel between "+realWinner+" and "+realLoser+" has been declared as void since both lagged out.");
-            duelers.remove(winner.toLowerCase());
-            duelers.remove(loser.toLowerCase());
-            m_botAction.cancelTask(laggers.get(realWinner.toLowerCase()));
-            laggers.remove(realWinner.toLowerCase());
-            laggers.remove(realLoser.toLowerCase());
+            duelers.remove(winner);
+            duelers.remove(loser);
+            m_botAction.cancelTask(laggers.get(realWinner));
+            laggers.remove(realWinner);
+            laggers.remove(realLoser);
             return;
         }
             
@@ -387,7 +387,7 @@ public class PubChallengeModule extends AbstractModule {
         		m_botAction.sendPrivateMessage(realLoser,"You have lost to " + realLoser+" by lagout in duel for $"+amount+".");
             }
 
-            laggers.remove(realLoser.toLowerCase());
+            laggers.remove(realLoser);
         }
         if(!lagout){
         	if (announceWinner && amount >= announceZoneWinnerAt)
@@ -399,16 +399,16 @@ public class PubChallengeModule extends AbstractModule {
         		m_botAction.sendPrivateMessage(realLoser,"You have lost to " + realLoser+" by "+winnerKills+"-"+loserKills+" in duel for $"+amount+".");
             }
         		
-        	DuelArea dArea = areas.get(getDueler(winner).area);
+        	DuelArea dArea = areas.get(duelers.get(winner).area);
             dArea.inUse = false;
         }
-        DuelArea dArea = areas.get(getDueler(winner).area);
+        DuelArea dArea = areas.get(duelers.get(winner).area);
         dArea.inUse = false;
         context.getPlayerManager().getPlayer(realWinner).addMoney(amount);
         context.getPlayerManager().getPlayer(realLoser).removeMoney(amount);
         
-        Dueler d1 = duelers.remove(winner.toLowerCase());
-        Dueler d2 = duelers.remove(loser.toLowerCase());
+        Dueler d1 = duelers.remove(winner);
+        Dueler d2 = duelers.remove(loser);
         
         if (saveDuel) {
         
@@ -455,12 +455,12 @@ public class PubChallengeModule extends AbstractModule {
 
         @Override
         public void run() {
-            if(getDueler(name).mode == 1){
-                m_botAction.warpTo(name, areas.get(getDueler(name).area).warp1x, areas.get(getDueler(name).area).warp1y);
+            if(duelers.get(name).mode == 1){
+                m_botAction.warpTo(name, areas.get(duelers.get(name).area).warp1x, areas.get(duelers.get(name).area).warp1y);
                 m_botAction.shipReset(name);
             }
-            if(getDueler(name).mode == 2){
-                m_botAction.warpTo(name, areas.get(getDueler(name).area).warp2x, areas.get(getDueler(name).area).warp2y);
+            if(duelers.get(name).mode == 2){
+                m_botAction.warpTo(name, areas.get(duelers.get(name).area).warp2x, areas.get(duelers.get(name).area).warp2y);
                 m_botAction.shipReset(name);
             }
         }     
@@ -471,7 +471,7 @@ public class PubChallengeModule extends AbstractModule {
             this.name = name;
         }
         public void run(){
-            announceWinner(getDueler(name).opponent,name,0,0,getDueler(name).amount,true);
+            announceWinner(duelers.get(name).opponent,name,0,0,duelers.get(name).amount,true);
             
         }
     }
@@ -514,10 +514,10 @@ public class PubChallengeModule extends AbstractModule {
                     
             // Let's prepare the duel if it's a "Any ship" kind of duel.
             if (ship==0) {
-            	duelers.put(challenger.toLowerCase(), new Dueler(challenger,area,1,getChallenge(challenger).amount,ichalship,accepter));
-            	duelers.put(accepter.toLowerCase(), new Dueler(accepter,area,2,getChallenge(challenger).amount,iaccship,challenger));
+            	duelers.put(challenger, new Dueler(challenger,area,1,challenges.get(challenger).amount,ichalship,accepter));
+            	duelers.put(accepter, new Dueler(accepter,area,2,challenges.get(challenger).amount,iaccship,challenger));
             }
-            challenges.remove(challenger.toLowerCase());
+            challenges.remove(challenger);
             m_botAction.setFreq(challenger, 0);
             m_botAction.setFreq(accepter, 1);
             m_botAction.warpTo(challenger, dArea.warp1x, dArea.warp1y);
@@ -533,42 +533,29 @@ public class PubChallengeModule extends AbstractModule {
     }
     
     public boolean isDueling(String name) {
-        return duelers.containsKey(name.toLowerCase());
+        return duelers.containsKey(name);
     }
 
     public void returnFromLagout(String name){
-        if(!laggers.containsKey(name.toLowerCase())){
+        if(!laggers.containsKey(name)){
             m_botAction.sendPrivateMessage(name, "You have not lagged out from a duel.");
             return;
         }
-        m_botAction.cancelTask(laggers.get(name.toLowerCase()));
-        laggers.remove(name.toLowerCase());
-        if(getDueler(name).mode == 1){
-            m_botAction.setShip(name, getDueler(name).ship);
-            m_botAction.warpTo(name, areas.get(getDueler(name).area).warp1x, areas.get(getDueler(name).area).warp1y);
+        m_botAction.cancelTask(laggers.get(name));
+        laggers.remove(name);
+        if(duelers.get(name).mode == 1){
+            m_botAction.setShip(name, duelers.get(name).ship);
+            m_botAction.warpTo(name, areas.get(duelers.get(name).area).warp1x, areas.get(duelers.get(name).area).warp1y);
             m_botAction.setFreq(name, 0);
             return;
         }
-        if(getDueler(name).mode == 2){
-            m_botAction.setShip(name, getDueler(name).ship);
-            m_botAction.warpTo(name, areas.get(getDueler(name).area).warp2x, areas.get(getDueler(name).area).warp2y);
+        if(duelers.get(name).mode == 2){
+            m_botAction.setShip(name, duelers.get(name).ship);
+            m_botAction.warpTo(name, areas.get(duelers.get(name).area).warp2x, areas.get(duelers.get(name).area).warp2y);
             m_botAction.setFreq(name, 1);
         }
     }
-    
-    public Challenge getChallenge(String name) {
-    	Challenge challenge = challenges.get(name);
-    	if (challenge == null)
-    		challenge = challenges.get(name.toLowerCase());
-    	return challenge;
-    }
-    
-    public Dueler getDueler(String name) {
-    	Dueler dueler = duelers.get(name);
-    	if (dueler == null)
-    		dueler = duelers.get(name.toLowerCase());
-    	return dueler;
-    }
+
     
 	@Override
 	public void handleCommand(String sender, String command) {

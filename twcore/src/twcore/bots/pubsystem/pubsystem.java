@@ -157,6 +157,11 @@ public class pubsystem extends SubspaceBot
         	arena = botSettings.getString("Arena"+botNumber);
         }
         
+        if (botSettings.getString("Chat"+botNumber) != null) {
+        	String chats = botSettings.getString("Chat"+botNumber);
+        	m_botAction.sendUnfilteredPublicMessage("?chat=" + chats);
+        }
+        
         try {
 			m_botAction.joinArena(arena,(short)3392,(short)3392); // Max resolution
 		} catch (Exception e) {
