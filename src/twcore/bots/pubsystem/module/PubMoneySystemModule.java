@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.TimerTask;
 import java.util.Vector;
 
+import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.module.moneysystem.PubStore;
 import twcore.bots.pubsystem.module.moneysystem.item.PubCommandItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItem;
@@ -42,9 +43,9 @@ public class PubMoneySystemModule extends AbstractModule {
 	private OperatorList opList;
 	private BotAction m_botAction;
 	private BotSettings m_botSettings;
+	private PubContext context;
 
 	private PubStore store;
-	private PubLotteryModule pubLottery;
 	
 	private PubPlayerManagerModule playerManager;
     
@@ -58,16 +59,16 @@ public class PubMoneySystemModule extends AbstractModule {
     private FileWriter itemsLog;
     private FileWriter moneyLog;
 	
-    public PubMoneySystemModule(BotAction botAction, PubPlayerManagerModule manager) {
+    public PubMoneySystemModule(BotAction botAction, PubContext context) {
 
     	this.m_botAction = botAction;
     	this.m_botSettings = botAction.getBotSettings();
     	this.opList = m_botAction.getOperatorList();
     	
-    	this.playerManager = manager;
+    	this.playerManager = context.getPlayerManager();
 
         this.store = new PubStore(m_botAction);
-        this.pubLottery = new PubLotteryModule(m_botAction);
+        this.context = context;
 
         this.playersWithDurationItem = new HashMap<PubPlayer, PubItemDuration>();
         
@@ -375,6 +376,15 @@ public class PubMoneySystemModule extends AbstractModule {
        
         if( killer == null || killed == null )
             return;
+        
+        // Disable if the player is dueling
+        if (!context.getPubChallenge().isEnabled()) {
+        	if (context.getPubChallenge().isDueling(killer.getPlayerName())) {
+        		return;
+        	} else if (context.getPubChallenge().isDueling(killed.getPlayerName())) {
+        		return;
+        	}
+        }
 
         try{
 
@@ -462,12 +472,6 @@ public class PubMoneySystemModule extends AbstractModule {
             else if(opList.isOwner(sender) && command.startsWith("!setmoney")) {
             	doCmdSetMoney(sender,command);
             }
-            else if(command.startsWith("!lottery ") || command.startsWith("!l ")) {
-                pubLottery.handleTicket(sender, command);
-            }
-            else if(command.equals("!jackpot") || command.equals("!jp")) {
-                pubLottery.displayJackpot(sender);
-            }
         } catch(RuntimeException e) {
             if( e != null && e.getMessage() != null )
                 m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
@@ -475,13 +479,7 @@ public class PubMoneySystemModule extends AbstractModule {
     }
     
     public void handleModCommand(String sender, String command) {
-        try {
-            if(command.startsWith("!lprice ")){
-                pubLottery.setTicketPrice(sender, command);
-            }
-        } catch(RuntimeException e) {
-            m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
-        }
+
     }
     
     public void handleDisconnect() {
