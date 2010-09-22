@@ -33,6 +33,12 @@ public class NoGame extends AbstractGame {
 		// TODO Auto-generated method stub
 		
 	}
+	
+	@Override
+	public void handleModCommand(String sender, String command) {
+		// TODO Auto-generated method stub
+		
+	}
 
 	@Override
 	public void statusMessage(String playerName) {

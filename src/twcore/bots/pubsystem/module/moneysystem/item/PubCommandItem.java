@@ -1,4 +1,4 @@
-package twcore.bots.pubsystem.item;
+package twcore.bots.pubsystem.module.moneysystem.item;
 
 public class PubCommandItem extends PubItem {
 
