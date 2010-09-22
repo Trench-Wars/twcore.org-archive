@@ -4,6 +4,12 @@ import twcore.core.events.FlagClaimed;
 import twcore.core.events.FrequencyChange;
 import twcore.core.events.FrequencyShipChange;
 
+/* 
+ * A game is like a module (AbstractModule),
+ * the difference is that there is only 1 game running at a time in pub.
+ * 
+ * See a game like an event.
+ */
 public abstract class AbstractGame {
 
 	protected String name;
