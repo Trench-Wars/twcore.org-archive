@@ -31,6 +31,7 @@ import twcore.core.events.ScoreUpdate;
 import twcore.core.events.SoccerGoal;
 import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
+import twcore.core.util.Tools;
 
 public class PubContext {
 	
@@ -131,128 +132,262 @@ public class PubContext {
 	}
 	
 	public void handleCommand(String sender, String command) {
-		for(AbstractModule m: modules)
-			m.handleCommand(sender, command);
+
+		for(AbstractModule m: modules) {
+			try {
+				m.handleCommand(sender, command);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 	
 	public void handleModCommand(String sender, String command) {
 		for(AbstractModule m: modules)
-			m.handleModCommand(sender, command);
+		 {
+			try {
+				m.handleModCommand(sender, command);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 	
 	public void handleEvent(Message event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 	
 	public void handleEvent(PlayerLeft event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 	
 	public void handleEvent(ArenaList event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 	
 	public void handleEvent(PlayerEntered event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(PlayerPosition event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(PlayerDeath event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(PlayerBanner event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(Prize event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(ScoreUpdate event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(WeaponFired event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(FrequencyChange event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(FrequencyShipChange event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(FileArrived event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(ArenaJoined event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(FlagVictory event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(FlagReward event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(ScoreReset event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(WatchDamage event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(SoccerGoal event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(BallPosition event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(FlagPosition event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(FlagDropped event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
 	}
 
 	public void handleEvent(FlagClaimed event) {
-		for(AbstractModule m: modules)
-			m.handleEvent(event);
+		for(AbstractModule m: modules) {
+			try {
+				m.handleEvent(event);
+			} catch (Exception e) {
+				displayException(e);
+			}
+		}
+	}
+	
+	private void displayException(Exception e) {
+		String method = e.getStackTrace()[0].getMethodName();
+		int line = e.getStackTrace()[0].getLineNumber();
+		m_botAction.sendChatMessage(1, e.getClass().getSimpleName() + " caught, " + method + " at line " + line);
+		Tools.printStackTrace(e);
 	}
 		
 }
