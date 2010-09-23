@@ -1,23 +1,19 @@
 package twcore.bots.pubsystem;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.TimerTask;
+import java.util.Vector;
 
-import twcore.bots.pubsystem.game.AbstractGame;
-import twcore.bots.pubsystem.game.GameFlagTime;
-import twcore.bots.pubsystem.game.NoGame;
-import twcore.bots.pubsystem.module.PubMoneySystemModule;
-import twcore.bots.pubsystem.module.PubPlayerManagerModule;
-import twcore.bots.pubsystem.module.PubStreakModule;
-import twcore.bots.pubsystem.module.PubTilesetModule;
-import twcore.bots.pubsystem.module.PubTilesetModule.Tileset;
+import twcore.bots.pubsystem.module.AbstractModule;
+import twcore.bots.pubsystem.module.GameFlagTimeModule;
 import twcore.bots.pubsystem.util.PubLocation;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
-import twcore.core.OperatorList;
 import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.ArenaList;
@@ -90,7 +86,6 @@ public class pubsystem extends SubspaceBot
     public static final int FREQ_0 = 0;                 // Frequency 0
     public static final int FREQ_1 = 1;                 // Frequency 1
  
-    private OperatorList opList;                        // Admin rights info obj
     private HashMap <String,Integer>playerTimes;        // Roundtime of player on freq
 
     private ToggleTask toggleTask;                      // Toggles commands on and off at a specified interval
@@ -99,8 +94,6 @@ public class pubsystem extends SubspaceBot
     private boolean initLogin = true;                   // True if first arena login
     private int initialPub;                             // Order of pub arena to defaultjoin
     private String initialSpawn;                        // Arena initially spawned in
-
-    private AbstractGame game;							// Current game
 
     /**
      * Creates a new instance of pubsystem bot and initializes necessary data.
@@ -114,18 +107,11 @@ public class pubsystem extends SubspaceBot
         
         m_botSettings = m_botAction.getBotSettings();
         
-        opList = m_botAction.getOperatorList();
-        
         context = new PubContext(m_botAction);
         context.setPrivFreqEnabled(true);
         
         playerTimes = new HashMap<String,Integer>();
- 
-        game = new GameFlagTime(m_botAction, context);
-    }
 
-    public boolean isIdle() {
-        return game.isIdle();
     }
 
     /**
@@ -258,31 +244,6 @@ public class pubsystem extends SubspaceBot
     }
 
 
-    /**
-     * Handles the FrequencyShipChange event.
-     * Checks players for appropriate ships/freqs.
-     * Resets their MVP timer if they spec or change ships (new rule).
-     *
-     * @param event is the event to process.
-     */
-    public void handleEvent(FrequencyShipChange event)
-    {
-    	game.handleEvent(event);
-    	context.handleEvent(event);
-    }
-
-
-    /**
-     * Checks if freq is valid (if private frequencies are disabled), and prevents
-     * freq-hoppers from switching freqs for end round prizes.
-     *
-     * @param event is the event to handle.
-     */
-    public void handleEvent(FrequencyChange event)
-    {
-    	game.handleEvent(event);
-    	context.handleEvent(event);
-    }
 
 
     /**
@@ -303,9 +264,11 @@ public class pubsystem extends SubspaceBot
             	
             	String message = 
             		//"Welcome to Pub.  " +
-            		"Private freqs:[" + (context.isPrivFreqEnabled() ? "YES" : "NO") + "]  " + 
+            		"Private freqs:[" + (context.isPrivFreqEnabled() ? "ON" : "OFF") + "]  " + 
             		"Streak:[" + (context.getPubStreak().isEnabled() ? "ON" : "OFF") + "]  " +
-            		"Store:[" + (context.getMoneySystem().isStoreOpened() ? "ON" : "OFF") + "]";
+            		"Store:[" + (context.getMoneySystem().isStoreOpened() ? "ON" : "OFF") + "]  " + 
+            		"Kill-o-thon:[" + (context.getPubKillSession().isRunning() ? "ON" : "OFF") + "]"; 
+            		//"Lottery:[" + (context.getP().isRunning() ? "ON" : "OFF") + "]; 
             	
             	
                 m_botAction.sendPrivateMessage(playerName, message );
@@ -318,6 +281,7 @@ public class pubsystem extends SubspaceBot
                 
                 m_botAction.sendPrivateMessage(playerName, "Commands:  " + cmds + "  (!help for more)");
 
+                /*
                 if (game.isStarted()) {
                 	m_botAction.sendPrivateMessage(playerName, "Current game: " + game.getName() + " [ON]");
                 } else if (game instanceof NoGame) {
@@ -325,10 +289,10 @@ public class pubsystem extends SubspaceBot
                 } else {
                 	m_botAction.sendPrivateMessage(playerName, "Current game: " + game.getName() + " [OFF]");
                 }
+                */
                 
             }
-
-            game.statusMessage(playerName);
+            
             context.handleEvent(event);
 
         } catch (Exception e) {
@@ -374,7 +338,7 @@ public class pubsystem extends SubspaceBot
         message = message.toLowerCase();
         if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.PUBLIC_MESSAGE ) )
             handlePublicCommand(sender, message);
-        if ( opList.isHighmod(sender) || sender.equals(m_botAction.getBotName()) )
+        if ( m_botAction.getOperatorList().isHighmod(sender) || sender.equals(m_botAction.getBotName()) )
             if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) )
                 handleModCommand(sender, message);
     }
@@ -390,21 +354,16 @@ public class pubsystem extends SubspaceBot
      * @param command is the command that is being sent.
      */
     public void handlePublicCommand(String sender, String command) {
+    	
         try {
             if(command.equals("!help") || command.equals("!h"))
-                doHelpCmd(sender, false);
-            else if(command.equals("!more"))
-                doHelpCmd(sender, true);
-            else if(command.startsWith("!whereis "))
-                doWhereIsCmd(sender, command.substring(9), opList.isBot(sender));
-            else if(command.equals("!restrictions"))
-            	context.getPlayerManager().doRestrictionsCmd(sender);
+                doHelpCmd(sender);
             else {
-            	game.handleCommand(sender, command);
             	context.handleCommand(sender, command);
             }
             
         } catch(RuntimeException e) {
+        	e.printStackTrace();
             if( e != null && e.getMessage() != null )
                 m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
@@ -419,109 +378,20 @@ public class pubsystem extends SubspaceBot
      */
     public void handleModCommand(String sender, String command) {
         try {
-            if(command.startsWith("!go "))
-                doGoCmd(sender, command.substring(4));
-            else if(command.equals("!privfreqs"))
-                doPrivFreqsCmd(sender);
-            else if(command.startsWith("!set "))
-                context.getPlayerManager().doSetCmd(sender, command.substring(5));
-            else if(command.equals("!die"))
-                doDieCmd(sender);
-            else {
-            	game.handleModCommand(sender, command);
-            	context.handleModCommand(sender, command);
-            }
-            
+            context.handleModCommand(sender, command);
         } catch(RuntimeException e) {
             m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
     }
 
-    /**
-     * Moves the bot from one arena to another.  The bot must not be
-     * started for it to move.
-     *
-     * @param sender is the person issuing the command.
-     * @param argString is the new arena to go to.
-     * @throws RuntimeException if the bot is currently running.
-     * @throws IllegalArgumentException if the bot is already in that arena.
-     */
-    public void doGoCmd(String sender, String argString)
-    {
-        String currentArena = m_botAction.getArenaName();
 
-        if(context.isStarted())
-            throw new RuntimeException("Bot is currently running pub settings in " + currentArena + ".  Please !Stop and/or !Endtime before trying to move.");
-        if(currentArena.equalsIgnoreCase(argString))
-            throw new IllegalArgumentException("Bot is already in that arena.");
-
-        m_botAction.changeArena(argString);
-        m_botAction.sendSmartPrivateMessage(sender, "Bot going to: " + argString);
-    }
-
-    /**
-     * Toggles if private frequencies are allowed or not.
-     *
-     * @param sender is the sender of the command.
-     */
-    public void doPrivFreqsCmd(String sender)
-    {
-        if(!context.isPrivFreqEnabled())
-        {
-            m_botAction.sendArenaMessage("Private Frequencies enabled.", 2);
-            m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully enabled.");
-        }
-        else
-        {
-            context.getPlayerManager().fixFreqs();
-            m_botAction.sendArenaMessage("Private Frequencies disabled.", 2);
-            m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully disabled.");
-        }
-        context.setPrivFreqEnabled(!context.isPrivFreqEnabled());
-    }
-
-
-
-    /**
-     * Logs the bot off if not enabled.
-     *
-     * @param sender is the person issuing the command.
-     * @throws RuntimeException if the bot is running pure pub settings.
-     */
-    public void doDieCmd(String sender)
-    {
-        m_botAction.sendSmartPrivateMessage(sender, "Bot logging off.");
-        m_botAction.setObjects();
-        m_botAction.scheduleTask(new DieTask(), 300);
-    }
-
-
-    /**
-     * Shows last seen location of a given individual.
-     */
-    public void doWhereIsCmd( String sender, String argString, boolean isStaff ) {
-        Player p = m_botAction.getPlayer(sender);
-        if( p == null )
-            throw new RuntimeException("Can't find you.  Please report this to staff.");
-        if( p.getShipType() == 0 && !isStaff )
-            throw new RuntimeException("You must be in a ship for this command to work.");
-        Player p2;
-        p2 = m_botAction.getPlayer( argString );
-        if( p2 == null )
-            p2 = m_botAction.getFuzzyPlayer( argString );
-        if( p2 == null )
-            throw new RuntimeException("I can't find the player '" + argString + "'.  Tough shit, bucko.");
-        if( p.getFrequency() != p2.getFrequency() && !isStaff )
-            throw new RuntimeException(p2.getPlayerName() + " is not on your team!");
-        m_botAction.sendPrivateMessage( sender, p2.getPlayerName() + " last seen: " + PubLocation.getPlayerLocation( p2, isStaff ));
-    }
 
     /**
      * Displays a help message depending on access level.
      *
      * @param sender is the person issuing the command.
      */
-    public void doHelpCmd(String sender, boolean advanced)
+    public void doHelpCmd(String sender)
     {
         String[] modHelpMessage =
         {
@@ -569,20 +439,45 @@ public class pubsystem extends SubspaceBot
                 "(!more for more commands)",          
         };
         
-        String[] advancedPlayerHelpMessage =
-        {
-                "!whereis <name>   -- Shows last seen location of <name> (if on your team).",
-                "!clearmines       -- Clears all mines you have laid, keeping MVP status. (abbv: !cl)",
-                "!restrictions     -- Lists all current ship restrictions.",
-                "!settile <name>   -- Change the current tileset (bluetech, boki, monolith).",
-        };
+        Vector<String> messages = new Vector<String>();
+        Vector<String> modMessages = new Vector<String>();
+        
+        for(AbstractModule module: context.getModules()) {
+        	
+        	List<String> m1 = new ArrayList<String>();
+        	List<String> m2 = new ArrayList<String>();
+        	
+        	if (module.getHelpMessage().length>0 || module.getModHelpMessage().length>0) {
+        		m1.add(getModuleHelpHeader(module.getName()));
+        		m2.add(getModuleHelpHeader(module.getName()));
+        	}
+        	
+        	if (module.getHelpMessage().length>0) {
+        		m1.addAll(Arrays.asList(module.getHelpMessage()));
+        		m2.addAll(Arrays.asList(module.getHelpMessage()));
+        	}
+        	
+        	if (module.getModHelpMessage().length>0) {
+        		m2.add("-- Mod+ --");
+        		m2.addAll(Arrays.asList(module.getModHelpMessage()));
+        	}
+        	
+        	messages.addAll(m1);
+        	modMessages.addAll(m2);
+        }
 
-        if( opList.isHighmod( sender ) )
-            m_botAction.smartPrivateMessageSpam(sender, modHelpMessage);
-        else if (!advanced)
-            m_botAction.smartPrivateMessageSpam(sender, playerHelpMessage);
+        if( m_botAction.getOperatorList().isHighmod( sender ) )
+            m_botAction.smartPrivateMessageSpam(sender, (String[])modMessages.toArray(new String[modMessages.size()]));
         else
-        	m_botAction.smartPrivateMessageSpam(sender, advancedPlayerHelpMessage);
+            m_botAction.smartPrivateMessageSpam(sender, (String[])messages.toArray(new String[messages.size()]));
+    }
+    
+    public static String getHelpLine(String line) {
+    	return " " + line;
+    }
+    
+    public static String getModuleHelpHeader(String headerName) {
+    	return "== " + Tools.formatString(headerName + " ", 25, "=");
     }
 
 
@@ -654,7 +549,6 @@ public class pubsystem extends SubspaceBot
     }
     
     public void handleEvent(FlagClaimed event) {
-        game.handleEvent(event);
         context.handleEvent(event);
     }
 
@@ -714,24 +608,17 @@ public class pubsystem extends SubspaceBot
         context.handleEvent(event);
     }
 
+    public void handleEvent(FrequencyShipChange event) {
+    	context.handleEvent(event);
+    }
+
+    public void handleEvent(FrequencyChange event) {
+    	context.handleEvent(event);
+    }
+
 
     /* **********************************  TIMERTASK CLASSES  ************************************ */
 
-    /**
-     * This private class logs the bot off.  It is used to give a slight delay
-     * to the log off process.
-     */
-    private class DieTask extends TimerTask
-    {
-
-        /**
-         * This method logs the bot off.
-         */
-        public void run()
-        {
-            m_botAction.die();
-        }
-    }
 
     /**
      * Task used to toggle bot options on or off.  (Define toggles inside CFG.)

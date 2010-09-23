@@ -1,8 +1,5 @@
 package twcore.bots.pubsystem.module;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -13,6 +10,9 @@ import java.util.TimerTask;
 import java.util.Vector;
 
 import twcore.bots.pubsystem.PubContext;
+import twcore.bots.pubsystem.PubLogSystem;
+import twcore.bots.pubsystem.pubsystem;
+import twcore.bots.pubsystem.PubLogSystem.LogType;
 import twcore.bots.pubsystem.module.moneysystem.PubStore;
 import twcore.bots.pubsystem.module.moneysystem.item.PubCommandItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItem;
@@ -27,12 +27,8 @@ import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.OperatorList;
-import twcore.core.events.ArenaJoined;
-import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
-import twcore.core.events.PlayerEntered;
-import twcore.core.events.SQLResultEvent;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.util.Point;
@@ -43,7 +39,6 @@ public class PubMoneySystemModule extends AbstractModule {
 
 	private OperatorList opList;
 	private BotSettings m_botSettings;
-	private PubContext context;
 
 	private PubStore store;
 	
@@ -55,13 +50,10 @@ public class PubMoneySystemModule extends AbstractModule {
     private Map<Integer, Integer> shipKillerPoints;
     private Map<Integer, Integer> shipKilledPoints;
     private LinkedHashMap<PubLocation, Integer> locationPoints;
-    
-    private FileWriter itemsLog;
-    private FileWriter moneyLog;
-	
+
     public PubMoneySystemModule(BotAction botAction, PubContext context) {
     	
-    	super(botAction);
+    	super(botAction, context, "Store");
     	
     	this.m_botSettings = botAction.getBotSettings();
     	this.opList = m_botAction.getOperatorList();
@@ -81,21 +73,6 @@ public class PubMoneySystemModule extends AbstractModule {
 	    } catch (Exception e) {
 	    	Tools.printStackTrace("Error while initializing the money system", e);
 		}
-	    
-	    if (m_botSettings.getString("store_log") != null)
-	    {
-		    File file = new File(m_botSettings.getString("store_log"));
-		    if (file.isDirectory()) {
-		    	try {
-			    	moneyLog = new FileWriter(new File(file, "money.log"), true);
-			    	itemsLog = new FileWriter(new File(file, "items.log"), true);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-		    } else {
-		    	Tools.printLog("Cannot store logs for the pub system, " + file + " does not exist.");
-		    }
-	    }
     	
     }
     
@@ -187,10 +164,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 	
                 } 
                 
-                if (itemsLog != null) {
-        		    itemsLog.write(Tools.getTimeStamp() + " " + playerName + "("+player.getShipType()+"): " + item.getName() + " " + item.getPrice() + "\n");
-                	itemsLog.flush();
-                }
+                PubLogSystem.write(LogType.ITEM, playerName + "("+player.getShipType()+"): " + item.getName() + " " + item.getPrice() + "\n");
                 
                 if (item.isArenaItem()) {
                 	 m_botAction.sendArenaMessage(playerName + " just bought a " + item.getDisplayName() + " for $" + item.getPrice() + ".",21);
@@ -222,6 +196,9 @@ public class PubMoneySystemModule extends AbstractModule {
     		if (pubPlayer != null) {
     			pubPlayer.setMoney(Integer.valueOf(money));
     			m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $" + money);
+    		
+    			PubLogSystem.write(LogType.MOD, "!setmoney " + pubPlayer.getPlayerName() + ":" + money + " by " + sender + "\n");
+    		
     		} else {
     			m_botAction.sendPrivateMessage(sender, "Player not found.");
     		}
@@ -439,10 +416,7 @@ public class PubMoneySystemModule extends AbstractModule {
             PubPlayer pubPlayer = playerManager.getPlayer(playerName);
             pubPlayer.addMoney(money);
             
-            if (moneyLog != null) {
-            	moneyLog.write(Tools.getTimeStamp() + " " + playerName + "("+killer.getShipType()+"): " + pubPlayer.getMoney() + " +"+money+"\n");
-            	moneyLog.flush();
-            }
+            PubLogSystem.write(LogType.MONEY, playerName + "("+killer.getShipType()+"): " + pubPlayer.getMoney() + " +"+money+"\n");
 
         } catch(Exception e){
             Tools.printStackTrace(e);
@@ -464,7 +438,7 @@ public class PubMoneySystemModule extends AbstractModule {
             else if(command.startsWith("!buy") || command.startsWith("!b")){
             	doCmdBuy(sender, command);
             }
-            else if(opList.isOwner(sender) && command.startsWith("!setmoney")) {
+            else if(opList.isSmod(sender) && command.startsWith("!setmoney")) {
             	doCmdSetMoney(sender,command);
             }
         } catch(RuntimeException e) {
@@ -476,6 +450,22 @@ public class PubMoneySystemModule extends AbstractModule {
     public void handleModCommand(String sender, String command) {
 
     }
+    
+	@Override
+	public String[] getHelpMessage() {
+		return new String[] {
+			pubsystem.getHelpLine("!buy              -- Shows buyable items from the store. (also !items)"),
+	        pubsystem.getHelpLine("!buy <item_name>  -- Item to buy on the store. (also !b)"),
+	        pubsystem.getHelpLine("!money <name>     -- Display your money or for a given player name (also !$, !cash)"),
+        };
+	}
+
+	@Override
+	public String[] getModHelpMessage() {
+		return new String[] {
+				pubsystem.getHelpLine("!setmoney <name>:<amount>  -- Set the money for a given player name (Smod+ only)."),
+        };
+	}
 
     private String getSender(Message event)
     {

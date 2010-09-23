@@ -35,8 +35,6 @@ public class PubPlayerManagerModule extends AbstractModule {
 
     private static final int NICEGUY_BOUNTY_AWARD = 25; // Bounty given to those that even freqs/ships
 
-	private PubContext context;
-	
     private HashMap<String, PubPlayer> players;         // Always lowercase!
     private HashSet<String> freq0;                   // Players on freq 0
     private HashSet<String> freq1;                   // Players on freq 1
@@ -53,7 +51,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 	
 	public PubPlayerManagerModule(BotAction m_botAction, PubContext context) 
 	{
-		super(m_botAction);
+		super(m_botAction, context, "PlayerManager");
 
 		this.context = context;
 		this.databaseName = m_botAction.getBotSettings().getString("database");
@@ -604,6 +602,16 @@ public class PubPlayerManagerModule extends AbstractModule {
 	public void handleModCommand(String sender, String command) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	@Override
+	public String[] getHelpMessage() {
+		return new String[]{};
+	}
+
+	@Override
+	public String[] getModHelpMessage() {
+		return new String[]{};
 	}
 
 
