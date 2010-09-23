@@ -9,6 +9,7 @@ import java.util.TimerTask;
 import java.util.Map.Entry;
 
 import twcore.bots.pubsystem.PubContext;
+import twcore.bots.pubsystem.pubsystem;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.FrequencyShipChange;
@@ -26,8 +27,6 @@ import twcore.core.util.Tools;
  */
 public class PubChallengeModule extends AbstractModule {
 
-    private PubContext context;
-    
     private Map<Integer,DuelArea> areas;
     private Map<String,Dueler> duelers;
     private Map<String,Challenge> challenges;
@@ -44,7 +43,7 @@ public class PubChallengeModule extends AbstractModule {
     
         
     public PubChallengeModule (BotAction m_botAction, PubContext context){
-        super(m_botAction);
+        super(m_botAction, context, "Challenge");
         
         this.context = context;
         this.areas = new HashMap<Integer, DuelArea>();
@@ -576,6 +575,22 @@ public class PubChallengeModule extends AbstractModule {
 	public void handleModCommand(String sender, String command) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	@Override
+	public String[] getHelpMessage() {
+		return new String[] {
+			pubsystem.getHelpLine("!challenge <name>:<$>         -- Challenge a player for a duel in any ship for $X."),
+			pubsystem.getHelpLine("!challenge <name>:<ship>:<$>  -- Challenge a player for a duel in a specific ship (1-8) for $X."),
+			pubsystem.getHelpLine("!challenges                   -- Current challenge(s) going on."),
+        };
+	}
+
+	@Override
+	public String[] getModHelpMessage() {
+		return new String[] {
+			pubsystem.getHelpLine("!challenge_cancel <name>      -- Cancel a challenge (specify one of the player)."),
+        };
 	}
 
 	@Override

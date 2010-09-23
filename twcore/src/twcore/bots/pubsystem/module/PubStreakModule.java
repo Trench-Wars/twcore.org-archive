@@ -1,9 +1,9 @@
 package twcore.bots.pubsystem.module;
 
 import java.util.HashMap;
-import java.util.HashSet;
 
 import twcore.bots.pubsystem.PubContext;
+import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
@@ -16,9 +16,7 @@ public class PubStreakModule extends AbstractModule {
 
 	public final static int ARENA_TIMEOUT = 30 * Tools.TimeInMillis.SECOND;
 	public final static int ZONE_TIMEOUT = 15 * Tools.TimeInMillis.MINUTE;
-	
-	private PubContext context;
-	
+
 	private HashMap<String,Integer> winStreaks;
 	private HashMap<String,Integer> loseStreaks;
 	
@@ -40,7 +38,7 @@ public class PubStreakModule extends AbstractModule {
 	
 	public PubStreakModule(BotAction botAction, PubContext context) {
 		
-		super(botAction);
+		super(botAction, context, "Streak");
 		
 		this.context = context;
 		
@@ -218,16 +216,101 @@ public class PubStreakModule extends AbstractModule {
     	return 0;    	
     }
     
+    public void doStreakCmd( String sender, String name ) {
+
+    	if (name.isEmpty()) {
+    		
+    		if (winStreaks.containsKey(sender))
+    			m_botAction.sendPrivateMessage(sender, "Current streak: " + winStreaks.get(sender) + " kill(s).");
+    		else
+    			m_botAction.sendPrivateMessage(sender, "You don't have any streak yet.");
+    	}
+    	else {
+    		
+    		PubPlayer player = context.getPlayerManager().getPlayer(name);
+    		if (player != null) {
+    		
+    			name = player.getPlayerName();
+	    		if (winStreaks.containsKey(name))
+	    			m_botAction.sendPrivateMessage(sender, "Current streak of " + name + ": " + winStreaks.get(name) + " kill(s).");
+	    		else
+	    			m_botAction.sendPrivateMessage(sender, name + " has not streak yet.");
+	    		}
+    		
+    		else {
+    			m_botAction.sendPrivateMessage(sender, "Player not found.");
+    		}
+    		
+    	}
+    }
+
+    public void doBestSessionStreakCmd( String sender ) {
+
+    	if (bestWinStreakPlayer != null) {
+    		m_botAction.sendPrivateMessage(sender, "Best streak of the session: " + bestWinStreakPlayer.getPlayerName() + " with " + bestWinStreak + " kills.");
+    	} else {
+    		m_botAction.sendPrivateMessage(sender, "There is no streak recorded yet.");
+    	}
+    }
+    
+    public void doStreakResetCmd( String sender ) {
+
+    	bestWinStreak = 0;
+    	bestWinStreakPlayer = null;
+    	
+    	worstLoseStreak = 0;
+    	worstLoseStreakPlayer = null;
+    	
+		winStreaks = new HashMap<String,Integer>();
+		loseStreaks = new HashMap<String,Integer>();
+    	
+    	m_botAction.sendArenaMessage("[STREAK] The streak session has been reset.", Tools.Sound.BEEP2);
+    }
+    
 	@Override
 	public void handleCommand(String sender, String command) {
-		// TODO Auto-generated method stub
-		
+
+        try {
+        	
+            if(command.trim().equals("!streak") || command.startsWith("!streak "))
+            	doStreakCmd(sender, command.substring(7).trim());
+            else if(command.trim().equals("!streak_bestsession"))
+                	doBestSessionStreakCmd(sender);
+            
+        } catch(RuntimeException e) {
+            if( e != null && e.getMessage() != null )
+                m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
+        }
 	}
 
 	@Override
 	public void handleModCommand(String sender, String command) {
-		// TODO Auto-generated method stub
 		
+        try {
+        	
+            if(command.equals("!streakreset"))
+            	doStreakResetCmd(sender);
+            
+        } catch(RuntimeException e) {
+            if( e != null && e.getMessage() != null )
+                m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
+        }
+	}
+	
+	@Override
+	public String[] getHelpMessage() {
+		return new String[] {
+			pubsystem.getHelpLine("!streak                -- Your current streak."),
+			pubsystem.getHelpLine("!streak <name>         -- Current streak of a given player name."),
+			pubsystem.getHelpLine("!streak_bestsession    -- Current best streak of the session."),
+        };
+	}
+
+	@Override
+	public String[] getModHelpMessage() {
+		return new String[] {
+			pubsystem.getHelpLine("!streakreset           -- Reset the current session (with *arena)."),
+        };
 	}
 
 	@Override

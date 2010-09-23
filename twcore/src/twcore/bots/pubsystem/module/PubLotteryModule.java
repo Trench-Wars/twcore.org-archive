@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import twcore.bots.pubsystem.PubContext;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 
@@ -34,8 +35,8 @@ public class PubLotteryModule extends AbstractModule {
      * - lotteryOn if neccessary > enables/disables this lottery game
      */
     
-    public PubLotteryModule(BotAction botAction) {
-    	super(botAction);
+    public PubLotteryModule(BotAction botAction, PubContext context) {
+    	super(botAction, context, "Lottery");
         jackpot = 1000;
         price = 100;
         entries = 0;
@@ -228,6 +229,16 @@ public class PubLotteryModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
 		
+	}
+	
+	@Override
+	public String[] getHelpMessage() {
+		return new String[]{};
+	}
+
+	@Override
+	public String[] getModHelpMessage() {
+		return new String[]{};
 	}
 
 

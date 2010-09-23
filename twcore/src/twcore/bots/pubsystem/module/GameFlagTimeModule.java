@@ -1,4 +1,4 @@
-package twcore.bots.pubsystem.game;
+package twcore.bots.pubsystem.module;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,9 +12,11 @@ import java.util.TimerTask;
 import java.util.Vector;
 
 import twcore.bots.pubsystem.PubContext;
+import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.bots.pubsystem.util.PubLocation;
 import twcore.core.BotAction;
+import twcore.core.EventRequester;
 import twcore.core.OperatorList;
 import twcore.core.events.FlagClaimed;
 import twcore.core.events.FrequencyChange;
@@ -25,17 +27,15 @@ import twcore.core.game.Player;
 import twcore.core.lvz.Objset;
 import twcore.core.util.Tools;
 
-public class GameFlagTime extends AbstractGame {
+public class GameFlagTimeModule extends AbstractModule {
 
     private static final int FLAG_CLAIM_SECS = 3;		// Seconds it takes to fully claim a flag
 	private static final int INTERMISSION_SECS = 90;	// Seconds between end of round and start of next
 	private static final int MAX_FLAGTIME_ROUNDS = 5;   // Max # rounds (odd numbers only)
 	
-		
-	private BotAction m_botAction;
+
 	private PubContext context;
-	
-    private OperatorList opList;                        // Admin rights info obj
+
     private HashMap <String,Integer>playerTimes;        // Roundtime of player on freq
 
     private FlagCountTask flagTimer;                    // Flag time main class
@@ -74,10 +74,9 @@ public class GameFlagTime extends AbstractGame {
     private boolean flagTimeStarted = false;
     private boolean strictFlagTimeMode = false;
     
-	public GameFlagTime(BotAction botAction, PubContext context) {
-		super("Flag Time");
+	public GameFlagTimeModule(BotAction botAction, PubContext context) {
+		super(botAction, context, "Game FlagTime");
 		
-		this.m_botAction = botAction;
 		this.context = context;
 		
 		mineClearedPlayers = Collections.synchronizedList(new LinkedList<String>());
@@ -213,6 +212,8 @@ public class GameFlagTime extends AbstractGame {
         	if( player.getShipType() != Tools.Ship.SPECTATOR )
         		doWarpCmd(playerName);
         }
+        
+        statusMessage(playerName);
     }
     
     public void handleEvent(FlagClaimed event) 
@@ -1046,53 +1047,6 @@ public class GameFlagTime extends AbstractGame {
         }
     }
 
-	@Override
-	public boolean isIdle() {
-		if( flagTimer != null && flagTimer.isRunning() )
-            return false;
-        return true;
-	}
-
-
-	@Override
-	public void start(String argument) 
-	{
-		if(isFlagTimeStarted())
-            throw new RuntimeException( "Flag Time mode has already been started." );
-
-        int min = 0;
-
-        try {
-            min = (Integer.valueOf( argument )).intValue();
-        } catch (Exception e) {
-            throw new RuntimeException( "Bad input.  Please supply a number." );
-        }
-
-        if( min < 1 || min > 120 )
-            throw new RuntimeException( "The number of minutes required must be between 1 and 120." );
-
-        flagMinutesRequired = min;
-
-        m_botAction.sendArenaMessage( "Flag Time mode has been enabled." );
-
-        m_botAction.sendArenaMessage( "Object: Hold flag for " + flagMinutesRequired + " consecutive minute" + (flagMinutesRequired == 1 ? "" : "s") + " to win a round.  Best " + ( MAX_FLAGTIME_ROUNDS + 1) / 2 + " of "+ MAX_FLAGTIME_ROUNDS + " wins the game." );
-        if( strictFlagTimeMode )
-            m_botAction.sendArenaMessage( "Round 1 begins in 60 seconds.  All players will be warped at round start." );
-        else
-            if(isAutoWarpEnabled())
-                m_botAction.sendArenaMessage( "Round 1 begins in 60 seconds.  You will be warped into flagroom at round start (type !warp to change). -" + m_botAction.getBotName() );
-            else
-                m_botAction.sendArenaMessage( "Round 1 begins in 60 seconds.  PM me with !warp to warp into flagroom at round start. -" + m_botAction.getBotName() );
-
-        startFlagTimeStarted();
-        freq0Score = 0;
-        freq1Score = 0;
-
-        m_botAction.scheduleTask( new StartRoundTask(), 60000 );
-	}
-
-
-	@Override
 	public void stop()
 	{
 		if(!isFlagTimeStarted())
@@ -1119,13 +1073,13 @@ public class GameFlagTime extends AbstractGame {
 		 try {
             if(command.equals("!time"))
                 doTimeCmd(sender);
-            else if(command.startsWith("!team") || command.trim().equals("!tea"))
+            else if(command.trim().equals("!team") || command.trim().equals("!tea"))
                 doShowTeamCmd(sender);
-            else if(command.startsWith("!terr") || command.trim().equals("!t"))
+            else if(command.trim().equals("!terr") || command.trim().equals("!t"))
                 doTerrCmd(sender);
-            else if(command.startsWith("!clearmines") || command.trim().equals("!cl"))
+            else if(command.trim().equals("!clearmines") || command.trim().equals("!cl"))
                 doClearMinesCmd(sender);
-            else if(command.startsWith("!warp") || command.trim().equals("!w"))
+            else if(command.trim().equals("!warp") || command.trim().equals("!w"))
                 doWarpCmd(sender);
             
         } catch(RuntimeException e) {
@@ -1157,6 +1111,40 @@ public class GameFlagTime extends AbstractGame {
 		
 	}
 	
+	@Override
+	public String[] getHelpMessage() {
+		return new String[] {
+			pubsystem.getHelpLine("!warp    -- Warps you into flagroom at start of next round. (abbv: !w)"),
+            pubsystem.getHelpLine("!terr    -- Shows terriers on the team and their last seen locations. (abbv: !t)"),
+            pubsystem.getHelpLine("!team    -- Tells you which ships your team members are in."),
+            pubsystem.getHelpLine("!time    -- Displays info about time remaining in flag time round."),
+        	pubsystem.getHelpLine("!clearmines       -- Clears all mines you have laid, keeping MVP status. (abbv: !cl)"),
+        };
+	}
+
+	@Override
+	public String[] getModHelpMessage() {
+		return new String[] {
+			pubsystem.getHelpLine("!starttime <#>    -- Starts Flag Time game to <#> minutes"),
+			pubsystem.getHelpLine("!stoptime         -- Ends Flag Time mode."),
+			pubsystem.getHelpLine("!stricttime       -- Toggles strict mode (all players warped)"),
+			pubsystem.getHelpLine("!autowarp         -- Enables and disables 'opt out' warping style"),
+			pubsystem.getHelpLine("!allowwarp        -- Allow/Disallow the !warp command"),
+        };
+	}
+
+	@Override
+	public void requestEvents(EventRequester eventRequester) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void start() {
+		// TODO Auto-generated method stub
+		
+	}
+	
 
     /**
      * Starts a "flag time" mode in which a team must hold the flag for a certain
@@ -1167,7 +1155,38 @@ public class GameFlagTime extends AbstractGame {
      */
     public void doStartTimeCmd(String sender, String argString )
     {
-    	start(argString);
+		if(isFlagTimeStarted())
+            throw new RuntimeException( "Flag Time mode has already been started." );
+
+        int min = 0;
+
+        try {
+            min = (Integer.valueOf( argString )).intValue();
+        } catch (Exception e) {
+            throw new RuntimeException( "Bad input.  Please supply a number." );
+        }
+
+        if( min < 1 || min > 120 )
+            throw new RuntimeException( "The number of minutes required must be between 1 and 120." );
+
+        flagMinutesRequired = min;
+
+        m_botAction.sendArenaMessage( "Flag Time mode has been enabled." );
+
+        m_botAction.sendArenaMessage( "Object: Hold flag for " + flagMinutesRequired + " consecutive minute" + (flagMinutesRequired == 1 ? "" : "s") + " to win a round.  Best " + ( MAX_FLAGTIME_ROUNDS + 1) / 2 + " of "+ MAX_FLAGTIME_ROUNDS + " wins the game." );
+        if( strictFlagTimeMode )
+            m_botAction.sendArenaMessage( "Round 1 begins in 60 seconds.  All players will be warped at round start." );
+        else
+            if(isAutoWarpEnabled())
+                m_botAction.sendArenaMessage( "Round 1 begins in 60 seconds.  You will be warped into flagroom at round start (type !warp to change). -" + m_botAction.getBotName() );
+            else
+                m_botAction.sendArenaMessage( "Round 1 begins in 60 seconds.  PM me with !warp to warp into flagroom at round start. -" + m_botAction.getBotName() );
+
+        startFlagTimeStarted();
+        freq0Score = 0;
+        freq1Score = 0;
+
+        m_botAction.scheduleTask( new StartRoundTask(), 60000 );
     }
 
 
@@ -1205,7 +1224,6 @@ public class GameFlagTime extends AbstractGame {
         stop();
     }
 
-	@Override
 	public void statusMessage(String playerName) {
         if(isFlagTimeStarted()) {
             if( flagTimer != null)
@@ -1215,7 +1233,7 @@ public class GameFlagTime extends AbstractGame {
 
 
 	@Override
-	public void die() {
+	public void handleDisconnect() {
 		objs.hideAllObjects();
 	}
 	
@@ -1474,4 +1492,6 @@ public class GameFlagTime extends AbstractGame {
 	private int calcYCoord(int yCoord, double randRadians, double randRadius) {
 		return yCoord + (int) Math.round(randRadius * Math.cos(randRadians));
 	}
+
+	
 }

@@ -1,45 +1,19 @@
 package twcore.bots.pubsystem;
 
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Vector;
 
-import twcore.bots.Module;
-import twcore.bots.pubsystem.game.AbstractGame;
 import twcore.bots.pubsystem.module.AbstractModule;
+import twcore.bots.pubsystem.module.GameFlagTimeModule;
 import twcore.bots.pubsystem.module.PubChallengeModule;
 import twcore.bots.pubsystem.module.PubKillSessionModule;
 import twcore.bots.pubsystem.module.PubMoneySystemModule;
 import twcore.bots.pubsystem.module.PubPlayerManagerModule;
 import twcore.bots.pubsystem.module.PubStreakModule;
-import twcore.bots.pubsystem.module.PubTilesetModule;
 import twcore.bots.pubsystem.module.PubUtilModule;
 import twcore.core.BotAction;
-import twcore.core.events.ArenaJoined;
-import twcore.core.events.ArenaList;
-import twcore.core.events.BallPosition;
-import twcore.core.events.FileArrived;
-import twcore.core.events.FlagClaimed;
-import twcore.core.events.FlagDropped;
-import twcore.core.events.FlagPosition;
-import twcore.core.events.FlagReward;
-import twcore.core.events.FlagVictory;
-import twcore.core.events.FrequencyChange;
-import twcore.core.events.FrequencyShipChange;
-import twcore.core.events.Message;
-import twcore.core.events.PlayerBanner;
-import twcore.core.events.PlayerDeath;
-import twcore.core.events.PlayerEntered;
-import twcore.core.events.PlayerLeft;
-import twcore.core.events.PlayerPosition;
-import twcore.core.events.Prize;
 import twcore.core.events.SQLResultEvent;
-import twcore.core.events.ScoreReset;
-import twcore.core.events.ScoreUpdate;
-import twcore.core.events.SoccerGoal;
 import twcore.core.events.SubspaceEvent;
-import twcore.core.events.WatchDamage;
-import twcore.core.events.WeaponFired;
 import twcore.core.util.Tools;
 
 public class PubContext {
@@ -49,18 +23,20 @@ public class PubContext {
 	private boolean started = false;
 
 	private boolean privFreqEnabled = false;
-
+	
+	private Vector<AbstractModule> modules;
+	
+	// Modules
 	private PubPlayerManagerModule playerManager;
 	private PubMoneySystemModule moneySystem;
 	private PubChallengeModule pubChallenge;
 	private PubKillSessionModule pubKillSession;
-	private PubTilesetModule pubTileset;
 	private PubStreakModule pubStreak;
 	private PubUtilModule pubUtil;
 	
-	private AbstractGame game;
-	
-	private Vector<AbstractModule> modules;
+	// Game module
+	private GameFlagTimeModule gameFlagTime;
+
 	
 	public PubContext(BotAction botAction) 
 	{
@@ -69,13 +45,13 @@ public class PubContext {
 		this.modules = new Vector<AbstractModule>();
 		
 		// Instanciate (order matter)
+		modules.add(getGameFlagTime());
 		modules.add(getPlayerManager());
 		modules.add(getMoneySystem());
 		modules.add(getPubChallenge());
 		modules.add(getPubStreak());
-		modules.add(getPubUtil());
-		modules.add(getPutTileset());
 		modules.add(getPubKillSession());
+		modules.add(getPubUtil());
 		
 	}
 	
@@ -93,17 +69,24 @@ public class PubContext {
 	public boolean isStarted() {
 		return started;
 	}
-
-	public AbstractGame getGame() {
-		return game;
-	}
 	
+	public Vector<AbstractModule> getModules() {
+		return modules;
+	}
+
 	public boolean isPrivFreqEnabled() {
 		return privFreqEnabled;
 	}
 	
 	public void setPrivFreqEnabled(boolean b) {
 		this.privFreqEnabled = b;
+	}
+	
+	public GameFlagTimeModule getGameFlagTime() {
+		if (gameFlagTime == null) {
+			gameFlagTime = new GameFlagTimeModule(m_botAction, this);
+		}
+		return gameFlagTime;
 	}
 	
 	public PubPlayerManagerModule getPlayerManager() {
@@ -118,13 +101,6 @@ public class PubContext {
 			moneySystem = new PubMoneySystemModule(m_botAction, this);
 		}
 		return moneySystem;
-	}
-	
-	public PubTilesetModule getPutTileset() {
-		if (pubTileset == null) {
-			pubTileset = new PubTilesetModule(m_botAction);
-		}
-		return pubTileset;
 	}
 	
 	public PubKillSessionModule getPubKillSession() {

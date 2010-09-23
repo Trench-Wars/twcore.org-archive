@@ -1,5 +1,6 @@
 package twcore.bots.pubsystem.module;
 
+import twcore.bots.pubsystem.PubContext;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.ArenaJoined;
@@ -46,12 +47,16 @@ import twcore.core.events.WeaponFired;
 public abstract class AbstractModule {
 
 	protected BotAction m_botAction;
+	protected PubContext context;
+	
+	protected String name;
 	
 	protected boolean enabled = false;
 	
-	
-	public AbstractModule(BotAction botAction) {
+	public AbstractModule(BotAction botAction, PubContext context, String name) {
 		this.m_botAction = botAction;
+		this.context = context;
+		this.name = name;
 		requestEvents(m_botAction.getEventRequester());
 	}
 	
@@ -67,12 +72,19 @@ public abstract class AbstractModule {
 		return enabled;
 	}
 	
+	public String getName() {
+		return name;
+	}
+	
 	public abstract void start();
 	
 	public abstract void requestEvents(EventRequester eventRequester);
 	
 	public abstract void handleCommand(String sender, String command);
 	public abstract void handleModCommand(String sender, String command);
+	
+	public abstract String[] getHelpMessage();
+	public abstract String[] getModHelpMessage();
 	
     /**
      * This method distributes the events to the appropriate event handlers.
