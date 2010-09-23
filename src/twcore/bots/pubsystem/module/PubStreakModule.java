@@ -6,6 +6,7 @@ import java.util.HashSet;
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
+import twcore.core.EventRequester;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
 import twcore.core.game.Player;
@@ -16,7 +17,6 @@ public class PubStreakModule extends AbstractModule {
 	public final static int ARENA_TIMEOUT = 30 * Tools.TimeInMillis.SECOND;
 	public final static int ZONE_TIMEOUT = 15 * Tools.TimeInMillis.MINUTE;
 	
-	public BotAction m_botAction;
 	private PubContext context;
 	
 	private HashMap<String,Integer> winStreaks;
@@ -39,13 +39,21 @@ public class PubStreakModule extends AbstractModule {
 	private boolean moneyEnabled = false;
 	
 	public PubStreakModule(BotAction botAction, PubContext context) {
-		this.m_botAction = botAction;
+		
+		super(botAction);
+		
 		this.context = context;
 		
 		this.winStreaks = new HashMap<String,Integer>();
 		this.loseStreaks = new HashMap<String,Integer>();
 
 		initialize();
+	}
+	
+	public void requestEvents(EventRequester eventRequester)
+	{
+		eventRequester.request(EventRequester.PLAYER_DEATH);
+		eventRequester.request(EventRequester.PLAYER_LEFT);
 	}
 	
 	public void initialize() {
@@ -183,7 +191,7 @@ public class PubStreakModule extends AbstractModule {
     		// No *arena for a streak in the last interval or best streak?
     		// We may want to remove "if best streak", someone could easily spam the arena with tons of message
     		if (System.currentTimeMillis()-lastArena > ARENA_TIMEOUT || bestWinStreak==streak) {
-    			String message = "[STREAK!] " + player.getPlayerName() + " with " + streak + " kills! " + moneyMessage;
+    			String message = "[STREAK] " + player.getPlayerName() + " with " + streak + " kills! " + moneyMessage;
     			if (bestWinStreak==streak)
     				message += " Best Streak of the Session!";
     			m_botAction.sendArenaMessage(message);
@@ -218,6 +226,12 @@ public class PubStreakModule extends AbstractModule {
 
 	@Override
 	public void handleModCommand(String sender, String command) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void start() {
 		// TODO Auto-generated method stub
 		
 	}

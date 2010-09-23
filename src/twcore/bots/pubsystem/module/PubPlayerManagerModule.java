@@ -15,6 +15,7 @@ import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
+import twcore.core.EventRequester;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.FrequencyChange;
 import twcore.core.events.FrequencyShipChange;
@@ -34,7 +35,6 @@ public class PubPlayerManagerModule extends AbstractModule {
 
     private static final int NICEGUY_BOUNTY_AWARD = 25; // Bounty given to those that even freqs/ships
 
-	private BotAction m_botAction;
 	private PubContext context;
 	
     private HashMap<String, PubPlayer> players;         // Always lowercase!
@@ -43,7 +43,6 @@ public class PubPlayerManagerModule extends AbstractModule {
     
     private boolean teamsUneven;                        // True if teams are uneven as given in MAX_FREQSIZE_DIFF
     private int[] freqSizeInfo = {0, 0};                // Index 0: size difference; 1: # of smaller freq
-   
     
     private Vector<Integer> shipWeight; //
 	
@@ -54,7 +53,8 @@ public class PubPlayerManagerModule extends AbstractModule {
 	
 	public PubPlayerManagerModule(BotAction m_botAction, PubContext context) 
 	{
-		this.m_botAction = m_botAction;
+		super(m_botAction);
+
 		this.context = context;
 		this.databaseName = m_botAction.getBotSettings().getString("database");
 		this.players = new HashMap<String, PubPlayer>();
@@ -68,6 +68,16 @@ public class PubPlayerManagerModule extends AbstractModule {
         for(int i = 1; i < 9; i++) {
             shipWeight.add( new Integer(m_botAction.getBotSettings().getInt(m_botAction.getBotName() + "Ship" + i)));
         }
+	}
+	
+    
+	public void requestEvents(EventRequester eventRequester)
+	{
+		eventRequester.request(EventRequester.ARENA_JOINED);
+		eventRequester.request(EventRequester.FREQUENCY_CHANGE);
+		eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
+		eventRequester.request(EventRequester.PLAYER_LEFT);
+		eventRequester.request(EventRequester.PLAYER_ENTERED);
 	}
 
 	/**
@@ -592,6 +602,13 @@ public class PubPlayerManagerModule extends AbstractModule {
 
 	@Override
 	public void handleModCommand(String sender, String command) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void start() {
 		// TODO Auto-generated method stub
 		
 	}

@@ -25,6 +25,7 @@ import twcore.bots.pubsystem.util.PubException;
 import twcore.bots.pubsystem.util.PubLocation;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
+import twcore.core.EventRequester;
 import twcore.core.OperatorList;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.FrequencyShipChange;
@@ -41,7 +42,6 @@ import twcore.core.util.Tools;
 public class PubMoneySystemModule extends AbstractModule {
 
 	private OperatorList opList;
-	private BotAction m_botAction;
 	private BotSettings m_botSettings;
 	private PubContext context;
 
@@ -60,8 +60,9 @@ public class PubMoneySystemModule extends AbstractModule {
     private FileWriter moneyLog;
 	
     public PubMoneySystemModule(BotAction botAction, PubContext context) {
-
-    	this.m_botAction = botAction;
+    	
+    	super(botAction);
+    	
     	this.m_botSettings = botAction.getBotSettings();
     	this.opList = m_botAction.getOperatorList();
     	
@@ -97,6 +98,12 @@ public class PubMoneySystemModule extends AbstractModule {
 	    }
     	
     }
+    
+    
+	public void requestEvents(EventRequester eventRequester)
+	{
+		eventRequester.request(EventRequester.PLAYER_DEATH);
+	}
 
     
     /**
@@ -442,18 +449,6 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     	
     }
-    
-    public void handleEvent(PlayerEntered event) {
-    	playerManager.handleEvent(event);
-    }
-    
-    public void handleEvent(FrequencyShipChange event) {
-		playerManager.handleEvent(event);
-    }
-    
-    public void handleEvent(ArenaJoined event){
-    	playerManager.handleEvent(event);
-    }
 
     public void handleCommand(String sender, String command) {
         try {
@@ -481,15 +476,7 @@ public class PubMoneySystemModule extends AbstractModule {
     public void handleModCommand(String sender, String command) {
 
     }
-    
-    public void handleDisconnect() {
-    	playerManager.handleDisconnect();
-    }
-    
-    public void handleEvent(SQLResultEvent event){
-        playerManager.handleEvent(event);
-    }
-    
+
     private String getSender(Message event)
     {
         if(event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE)
@@ -584,6 +571,13 @@ public class PubMoneySystemModule extends AbstractModule {
         m_botAction.scheduleTask(timer, 13000);
     	
     }
+
+
+	@Override
+	public void start() {
+		// TODO Auto-generated method stub
+		
+	}
 
 
 }

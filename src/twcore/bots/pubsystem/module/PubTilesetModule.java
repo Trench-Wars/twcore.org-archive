@@ -3,6 +3,7 @@ package twcore.bots.pubsystem.module;
 import java.util.HashMap;
 
 import twcore.core.BotAction;
+import twcore.core.EventRequester;
 import twcore.core.game.Player;
 
 /* This class is used to set a particular tileset via an object
@@ -26,11 +27,14 @@ public class PubTilesetModule extends AbstractModule {
 		tilesetObjects.put(Tileset.BOKI, 0);
 		tilesetObjects.put(Tileset.MONOLITH, 1);
 	}
-	
-	public BotAction m_botAction;
-	
+
 	public PubTilesetModule(BotAction botAction) {
-		this.m_botAction = botAction;
+		super(botAction);
+	}
+	
+	public void requestEvents(EventRequester eventRequester)
+	{
+
 	}
 	
 	public void setTileset(Tileset tileset, String playerName) 
@@ -97,6 +101,12 @@ public class PubTilesetModule extends AbstractModule {
 
 	@Override
 	public void handleModCommand(String sender, String command) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void start() {
 		// TODO Auto-generated method stub
 		
 	}
