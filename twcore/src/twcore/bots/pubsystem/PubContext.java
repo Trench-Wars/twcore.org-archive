@@ -1,12 +1,19 @@
 package twcore.bots.pubsystem;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Vector;
+
+import twcore.bots.Module;
 import twcore.bots.pubsystem.game.AbstractGame;
 import twcore.bots.pubsystem.module.AbstractModule;
 import twcore.bots.pubsystem.module.PubChallengeModule;
+import twcore.bots.pubsystem.module.PubKillSessionModule;
 import twcore.bots.pubsystem.module.PubMoneySystemModule;
 import twcore.bots.pubsystem.module.PubPlayerManagerModule;
 import twcore.bots.pubsystem.module.PubStreakModule;
 import twcore.bots.pubsystem.module.PubTilesetModule;
+import twcore.bots.pubsystem.module.PubUtilModule;
 import twcore.core.BotAction;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.ArenaList;
@@ -26,9 +33,11 @@ import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
 import twcore.core.events.Prize;
+import twcore.core.events.SQLResultEvent;
 import twcore.core.events.ScoreReset;
 import twcore.core.events.ScoreUpdate;
 import twcore.core.events.SoccerGoal;
+import twcore.core.events.SubspaceEvent;
 import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 import twcore.core.util.Tools;
@@ -44,36 +53,37 @@ public class PubContext {
 	private PubPlayerManagerModule playerManager;
 	private PubMoneySystemModule moneySystem;
 	private PubChallengeModule pubChallenge;
+	private PubKillSessionModule pubKillSession;
 	private PubTilesetModule pubTileset;
 	private PubStreakModule pubStreak;
+	private PubUtilModule pubUtil;
 	
 	private AbstractGame game;
 	
-	private AbstractModule[] modules;
+	private Vector<AbstractModule> modules;
 	
 	public PubContext(BotAction botAction) 
 	{
 		this.m_botAction = botAction;
 		
-		// Instanciate
-		getPlayerManager();
-		getMoneySystem();
-		getPutTileset();
-		getPubStreak();
-		getPubChallenge();
+		this.modules = new Vector<AbstractModule>();
 		
-		// Order matter (espically for challenge and streak)
-		modules = new AbstractModule[] { 
-				playerManager,
-				moneySystem,
-				pubStreak,
-				pubChallenge, 
-				pubTileset 
-		};
+		// Instanciate (order matter)
+		modules.add(getPlayerManager());
+		modules.add(getMoneySystem());
+		modules.add(getPubChallenge());
+		modules.add(getPubStreak());
+		modules.add(getPubUtil());
+		modules.add(getPutTileset());
+		modules.add(getPubKillSession());
+		
 	}
 	
 	public void start() {
 		this.started = true;
+		for(AbstractModule module: modules) {
+			module.start();
+		}
 	}
 	
 	public void stop() {
@@ -117,11 +127,25 @@ public class PubContext {
 		return pubTileset;
 	}
 	
+	public PubKillSessionModule getPubKillSession() {
+		if (pubKillSession == null) {
+			pubKillSession = new PubKillSessionModule(m_botAction, this);
+		}
+		return pubKillSession;
+	}
+	
 	public PubStreakModule getPubStreak() {
 		if (pubStreak == null) {
 			pubStreak = new PubStreakModule(m_botAction, this);
 		}
 		return pubStreak;
+	}
+	
+	public PubUtilModule getPubUtil() {
+		if (pubUtil == null) {
+			pubUtil = new PubUtilModule(m_botAction, this);
+		}
+		return pubUtil;
 	}
 	
 	public PubChallengeModule getPubChallenge() {
@@ -131,256 +155,80 @@ public class PubContext {
 		return pubChallenge;
 	}
 	
+    public void handleEvent(SubspaceEvent event) {
+    	
+        Iterator<AbstractModule> iterator = modules.iterator();
+        AbstractModule module;
+
+        try {
+            while(iterator.hasNext()) {
+                module = (AbstractModule) iterator.next();
+                module.handleEvent(event);
+            }
+        } catch (Exception e) {
+        	displayException(e);
+        }
+    }
+	
 	public void handleCommand(String sender, String command) {
 
-		for(AbstractModule m: modules) {
-			try {
-				m.handleCommand(sender, command);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
+        Iterator<AbstractModule> iterator = modules.iterator();
+        AbstractModule module;
+
+        try {
+            while(iterator.hasNext()) {
+                module = (AbstractModule) iterator.next();
+                module.handleCommand(sender, command);
+            }
+        } catch (Exception e) {
+        	displayException(e);
+        }
 	}
 	
 	public void handleModCommand(String sender, String command) {
-		for(AbstractModule m: modules)
-		 {
-			try {
-				m.handleModCommand(sender, command);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
+		
+        Iterator<AbstractModule> iterator = modules.iterator();
+        AbstractModule module;
+
+        try {
+            while(iterator.hasNext()) {
+                module = (AbstractModule) iterator.next();
+                module.handleModCommand(sender, command);
+            }
+        } catch (Exception e) {
+        	displayException(e);
+        }
 	}
 	
-	public void handleEvent(Message event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
+	public void handleEvent(SQLResultEvent event) {
+		
+        Iterator<AbstractModule> iterator = modules.iterator();
+        AbstractModule module;
+
+        try {
+            while(iterator.hasNext()) {
+                module = (AbstractModule) iterator.next();
+                module.handleEvent(event);
+            }
+        } catch (Exception e) {
+        	displayException(e);
+        }
 	}
+
 	
-	public void handleEvent(PlayerLeft event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-	
-	public void handleEvent(ArenaList event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-	
-	public void handleEvent(PlayerEntered event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
+	public void handleDisconnect() {
+		
+        Iterator<AbstractModule> iterator = modules.iterator();
+        AbstractModule module;
 
-	public void handleEvent(PlayerPosition event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(PlayerDeath event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(PlayerBanner event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(Prize event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(ScoreUpdate event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(WeaponFired event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(FrequencyChange event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(FrequencyShipChange event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(FileArrived event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(ArenaJoined event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(FlagVictory event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(FlagReward event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(ScoreReset event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(WatchDamage event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(SoccerGoal event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(BallPosition event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(FlagPosition event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(FlagDropped event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
-	}
-
-	public void handleEvent(FlagClaimed event) {
-		for(AbstractModule m: modules) {
-			try {
-				m.handleEvent(event);
-			} catch (Exception e) {
-				displayException(e);
-			}
-		}
+        try {
+            while(iterator.hasNext()) {
+                module = (AbstractModule) iterator.next();
+                module.handleDisconnect();
+            }
+        } catch (Exception e) {
+        	displayException(e);
+        }
 	}
 	
 	private void displayException(Exception e) {
@@ -389,5 +237,7 @@ public class PubContext {
 		m_botAction.sendChatMessage(1, e.getClass().getSimpleName() + " caught, " + method + " at line " + line);
 		Tools.printStackTrace(e);
 	}
+
+
 		
 }

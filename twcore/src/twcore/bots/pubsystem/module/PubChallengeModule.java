@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.core.BotAction;
+import twcore.core.EventRequester;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
@@ -25,7 +26,6 @@ import twcore.core.util.Tools;
  */
 public class PubChallengeModule extends AbstractModule {
 
-    private BotAction m_botAction;
     private PubContext context;
     
     private Map<Integer,DuelArea> areas;
@@ -44,7 +44,8 @@ public class PubChallengeModule extends AbstractModule {
     
         
     public PubChallengeModule (BotAction m_botAction, PubContext context){
-        this.m_botAction = m_botAction;
+        super(m_botAction);
+        
         this.context = context;
         this.areas = new HashMap<Integer, DuelArea>();
         this.duelers = new HashMap<String, Dueler>();
@@ -81,6 +82,15 @@ public class PubChallengeModule extends AbstractModule {
         announceZoneWinnerAt = m_botAction.getBotSettings().getInt("duel_announce_zone_winner_at");
         deaths = m_botAction.getBotSettings().getInt("duel_deaths");
     }
+    
+	public void requestEvents(EventRequester eventRequester)
+	{
+		eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
+		eventRequester.request(EventRequester.MESSAGE);
+		eventRequester.request(EventRequester.PLAYER_DEATH);
+		eventRequester.request(EventRequester.PLAYER_LEFT);
+		eventRequester.request(EventRequester.PLAYER_POSITION);
+	}
     
     public void handleEvent(PlayerLeft event) {
         if(!enabled)
@@ -564,6 +574,12 @@ public class PubChallengeModule extends AbstractModule {
 	}
 	@Override
 	public void handleModCommand(String sender, String command) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void start() {
 		// TODO Auto-generated method stub
 		
 	}

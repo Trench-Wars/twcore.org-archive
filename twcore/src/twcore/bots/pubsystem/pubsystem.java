@@ -21,7 +21,13 @@ import twcore.core.OperatorList;
 import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.ArenaList;
+import twcore.core.events.BallPosition;
+import twcore.core.events.FileArrived;
 import twcore.core.events.FlagClaimed;
+import twcore.core.events.FlagDropped;
+import twcore.core.events.FlagPosition;
+import twcore.core.events.FlagReward;
+import twcore.core.events.FlagVictory;
 import twcore.core.events.FrequencyChange;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.KotHReset;
@@ -30,7 +36,14 @@ import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
+import twcore.core.events.PlayerPosition;
+import twcore.core.events.Prize;
 import twcore.core.events.SQLResultEvent;
+import twcore.core.events.ScoreReset;
+import twcore.core.events.ScoreUpdate;
+import twcore.core.events.SoccerGoal;
+import twcore.core.events.WatchDamage;
+import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
@@ -117,6 +130,7 @@ public class pubsystem extends SubspaceBot
 
     /**
      * Requests all of the appropriate events.
+     * You don't need to bother about the events requested by the modules here
      */
     private void requestEvents()
     {
@@ -346,15 +360,6 @@ public class pubsystem extends SubspaceBot
         }
     }
 
-    public void handleEvent(FlagClaimed event) {
-        game.handleEvent(event);
-        context.handleEvent(event);
-    }
-
-    public void handleEvent(PlayerDeath event) {
-    	context.handleEvent(event);
-    }
-
     public void handleEvent(Message event) {
     	
     	context.handleEvent(event);
@@ -430,14 +435,6 @@ public class pubsystem extends SubspaceBot
         } catch(RuntimeException e) {
             m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
-    }
-
-    public void handleDisconnect() {
-    	context.getMoneySystem().handleDisconnect();
-    }
-    
-    public void handleEvent(SQLResultEvent event){
-    	context.getMoneySystem().handleEvent(event);
     }
 
     /**
@@ -646,6 +643,75 @@ public class pubsystem extends SubspaceBot
 
         context.start();
         
+    }
+	
+    public void handleDisconnect() {
+    	context.handleDisconnect();
+    }
+    
+    public void handleEvent(SQLResultEvent event){
+    	context.handleEvent(event);
+    }
+    
+    public void handleEvent(FlagClaimed event) {
+        game.handleEvent(event);
+        context.handleEvent(event);
+    }
+
+    public void handleEvent(PlayerDeath event) {
+    	context.handleEvent(event);
+    }
+
+    public void handleEvent(Prize event) {
+        context.handleEvent(event);
+    }
+
+    public void handleEvent(ScoreUpdate event) {
+        context.handleEvent(event);
+    }
+
+    public void handleEvent(WeaponFired event) {
+        context.handleEvent(event);
+    }
+
+    public void handleEvent(FileArrived event) {
+        context.handleEvent(event);
+    }
+
+    public void handleEvent(FlagVictory event) {
+        context.handleEvent(event);
+    }
+
+    public void handleEvent(FlagReward event) {
+        context.handleEvent(event);
+    }
+
+    public void handleEvent(ScoreReset event) {
+        context.handleEvent(event);
+    }
+
+    public void handleEvent(WatchDamage event) {
+        context.handleEvent(event);
+    }
+
+    public void handleEvent(SoccerGoal event) {
+        context.handleEvent(event);
+    }
+
+    public void handleEvent(BallPosition event) {
+        context.handleEvent(event);
+    }
+
+    public void handleEvent(FlagPosition event) {
+        context.handleEvent(event);
+    }
+
+    public void handleEvent(FlagDropped event) {
+        context.handleEvent(event);
+    }
+    
+    public void handleEvent(PlayerPosition event) {
+        context.handleEvent(event);
     }
 
 

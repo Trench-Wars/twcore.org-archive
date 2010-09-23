@@ -6,14 +6,13 @@ import java.util.List;
 import java.util.Set;
 
 import twcore.core.BotAction;
+import twcore.core.EventRequester;
 
 /*
  * By Eria
  */
 
 public class PubLotteryModule extends AbstractModule {
-
-    private BotAction m_botAction;
 
     private int ticketSize = 2; // amount of entry numbers per ticket; default is 2
     private int numberMax = 50; // interval of number options; default is 1-50
@@ -36,12 +35,18 @@ public class PubLotteryModule extends AbstractModule {
      */
     
     public PubLotteryModule(BotAction botAction) {
-        this.m_botAction = botAction;
+    	super(botAction);
         jackpot = 1000;
         price = 100;
         entries = 0;
         lotteryOn = false;
     }
+    
+    
+	public void requestEvents(EventRequester eventRequester)
+	{
+
+	}
     
     /**
      * Checks the player's submitted ticket.
@@ -222,6 +227,13 @@ public class PubLotteryModule extends AbstractModule {
         } catch(RuntimeException e) {
             m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
+		
+	}
+
+
+	@Override
+	public void start() {
+		// TODO Auto-generated method stub
 		
 	}
     
