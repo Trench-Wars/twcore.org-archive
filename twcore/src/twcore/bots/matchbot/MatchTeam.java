@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.TimerTask;
@@ -65,6 +66,7 @@ public class MatchTeam
     //twfd variables
 	boolean twfd_add;
 	boolean twfd_rem;
+	boolean twfd_chg;
 	boolean goodLine;
     int shipCounter;
     String[] minShipStr;
@@ -2381,9 +2383,12 @@ public class MatchTeam
 
     	/** 
     	 * TODO:
-    	 * - Add the check into the correct place in each method.
     	 * - Insert a final check when the players send !ready to the bot
     	 * 		and also send a final check before the game starts.
+    	 * - Maybe a better way of taking in player ships. My worry is that
+    	 * 		a team could have a player spec and when it goes through the
+    	 * 		check, it would register them as ship 0 (even though they might
+    	 * 		be ship 1 when playing for example) and throw off things. 
     	 */
     	
     	
@@ -2397,6 +2402,7 @@ public class MatchTeam
     	 * minShipStr used for reading the rules file (must read as a string)
     	 * minShipInt used to store the values as ints to be compared later
     	 */
+
     	String[] minShipStr;
     	minShipStr = m_rules.getString("minship").split(",");
     	int[] minShipInt = new int[minShipStr.length];
@@ -2410,14 +2416,6 @@ public class MatchTeam
     	 * This part of the method will take in player ships and store them 
     	 * in the correct variable. We will get the newShip number and the
     	 * oldShip number and throw these in to test as well.
-    	 * 
-    	 * A ship change will leave both twfd_add and twfd_remove true. This
-    	 * could pose a problem because the way the method is set up will cause
-    	 * the method to add the newShip/oldShip and also remove it because the
-    	 * variables are both true. So, it's necessary to catch this by setting
-    	 * either twfd_add or twfd_remove to false when it catches that oldShip/
-    	 * newShip add or removed action, so that it doesn't happen again when it
-    	 * shouldn't.
     	 * 
     	 * int counter variables are used to count the number of each ship type
     	 * int[] playerShip stores these variables in an array
@@ -2441,6 +2439,12 @@ public class MatchTeam
 		int ShipNumber;
 		String[] playerStr = new String[m_players.size()];
 		m_players.toArray(playerStr);
+		
+		
+    	Hashtable<Integer, Boolean> changeOld = new Hashtable<Integer, Boolean>();
+    	changeOld.put(oldShip, twfd_rem);
+    	Hashtable<Integer, Boolean> changeNew = new Hashtable<Integer, Boolean>();
+    	changeNew.put(newShip, twfd_add);
 
 		i = 0;
     	for(i=0;i<playerStr.length;i++)	{
@@ -2452,24 +2456,20 @@ public class MatchTeam
         			if(ShipNumber == 0)	{
             			counter0++;
         			}
-                	if(newShip == 0)	{
+                	if(newShip == 0)	{                    	
                     	if(twfd_add)	{
             				counter0++;
-            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter0--;
-            				twfd_rem = false;
             			}
                 	}
                 	if(oldShip == 0)	{
                     	if(twfd_add) 	{
             				counter0++;
-            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter0--;
-            				twfd_rem = false;
             			}
                 	}
                 }
@@ -2480,23 +2480,19 @@ public class MatchTeam
                 	if(newShip == 1)	{
                     	if(twfd_add)	{
             				counter1++;
-            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter1--;
-            				twfd_rem = false;
             			}
-            			if(oldShip == 1)	{
-            				if(twfd_add) 	{
-            					counter1++;
-                				twfd_add = false;
-            				}
-            				if(twfd_rem)	{
-            					counter1--;
-                				twfd_rem = false;
-            				}
-                    	}
                 	}
+            		if(oldShip == 1)	{
+            			if(twfd_add) 	{
+            				counter1++;
+            			}
+            			if(twfd_rem)	{
+            				counter1--;
+            			}
+                    }
         		}
         		else if(ShipNumber == 2 || newShip == 2 || oldShip == 2) {
         			if(ShipNumber == 2)	{
@@ -2505,23 +2501,19 @@ public class MatchTeam
                 	if(newShip == 2)	{
                     	if(twfd_add) 	{
             				counter2++;
-            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter2--;
-            				twfd_rem = false;
             			}
-                        if(oldShip == 2)	{
-                            if(twfd_add) 	{
-                    			counter2++;
-                				twfd_add = false;
-                    		}
-                    		if(twfd_rem)	{
-                    			counter2--;
-                				twfd_rem = false;
-                    		}
-                        }
                 	}
+                    if(oldShip == 2)	{
+                    	if(twfd_add) 	{
+                    		counter2++;
+                    	}
+                    	if(twfd_rem)	{
+                    		counter2--;
+                    	}
+                    }
         		}
         		else if(ShipNumber == 3 || newShip == 3 || oldShip == 3) {
         			if(ShipNumber == 3)	{
@@ -2530,23 +2522,19 @@ public class MatchTeam
                 	if(newShip == 3)	{
                     	if(twfd_add) 	{
             				counter3++;
-            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter3--;
-            				twfd_rem = false;
             			}
-                        if(oldShip == 3)	{
-                            if(twfd_add) 	{
-                    			counter3++;
-                				twfd_add = false;
-                    		}
-                    		if(twfd_rem)	{
-                    			counter3--;
-                				twfd_rem = false;
-                    		}
-                        }
                 	}
+                    if(oldShip == 3)	{
+                    	if(twfd_add) 	{
+                    		counter3++;
+                    	}
+                    	if(twfd_rem)	{
+                    		counter3--;
+                    	}
+                    }
         		}
         		else if(ShipNumber == 4 || newShip == 4 || oldShip == 4) {
         			if(ShipNumber == 4)	{
@@ -2555,23 +2543,19 @@ public class MatchTeam
                 	if(newShip == 4)	{
                     	if(twfd_add) 	{
             				counter4++;
-            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter4--;
-            				twfd_rem = false;
             			}
-                        if(oldShip == 4)	{
-                            if(twfd_add) 	{
-                    			counter4++;
-                				twfd_add = false;
-                    		}
-                    		if(twfd_rem)	{
-                    			counter4--;
-                				twfd_rem = false;
-                    		}
-                        }
                 	}
+                    if(oldShip == 4)	{
+                        if(twfd_add) 	{
+                    		counter4++;
+                    		}
+                        if(twfd_rem)	{
+                    		counter4--;
+                    		}
+                    }
         		}
         		else if(ShipNumber == 5 || newShip == 5 || oldShip == 5) {
         			if(ShipNumber == 5)	{
@@ -2580,23 +2564,20 @@ public class MatchTeam
                 	if(newShip == 5)	{
                     	if(twfd_add) 	{
             				counter5++;
-            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter5--;
-            				twfd_rem = false;
             			}
-                        if(oldShip == 5)	{
-                            if(twfd_add) 	{
-                    			counter5++;
-                				twfd_add = false;
-                    		}
-                    		if(twfd_rem)	{
-                    			counter5--;
-                				twfd_rem = false;
-                    		}
-                        }
                 	}
+                    if(oldShip == 5)	{
+                    	if(twfd_add) 	{
+                    		counter5++;
+                    	}
+                    	if(twfd_rem)	{
+                    		counter5--;
+                    	}
+                    }
+
         		}
         		else if(ShipNumber == 6 || newShip == 6 || oldShip == 6) {
         			if(ShipNumber == 6)	{
@@ -2605,23 +2586,19 @@ public class MatchTeam
                 	if(newShip == 6)	{
                     	if(twfd_add) 	{
             				counter6++;
-            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter6--;
-            				twfd_rem = false;
             			}
-                        if(oldShip == 6)	{
-                            if(twfd_add) 	{
-                    			counter6++;
-                				twfd_add = false;
-                    		}
-                    		if(twfd_rem)	{
-                    			counter6--;
-                				twfd_rem = false;
-                    		}
-                        }
                 	}
+                    if(oldShip == 6)	{
+                    	if(twfd_add) 	{
+                    		counter6++;
+                    	}
+                    	if(twfd_rem)	{
+                    		counter6--;
+                    	}
+                    }
         		}
         		else if(ShipNumber == 7 || newShip == 7 || oldShip == 7) {
         			if(ShipNumber == 7)	{
@@ -2630,23 +2607,19 @@ public class MatchTeam
                 	if(newShip == 7)	{
                     	if(twfd_add) 	{
             				counter7++;
-            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter7--;
-            				twfd_rem = false;
             			}
-                        if(oldShip == 7)	{
-                            if(twfd_add) 	{
-                    			counter7++;
-                				twfd_add = false;
-                    		}
-                    		if(twfd_rem)	{
-                    			counter7--;
-                				twfd_rem = false;
-                    		}
-                        }
                 	}
+                    if(oldShip == 7)	{
+                        if(twfd_add) 	{
+                        	counter7++;
+                    	}
+                    	if(twfd_rem)	{
+                    		counter7--;
+                    	}
+                    }
         		}
         		else if(ShipNumber == 8 || newShip == 8 || oldShip == 8) {
         			if(ShipNumber == 8)	{
@@ -2655,33 +2628,37 @@ public class MatchTeam
                 	if(newShip == 8)	{
                     	if(twfd_add) 	{
             				counter8++;
-            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter8--;
-            				twfd_rem = false;
             			}
-                        if(oldShip == 8)	{
-                            if(twfd_add) 	{
-                    			counter8++;
-                				twfd_add = false;
-                    		}
-                    		if(twfd_rem)	{
-                    			counter8--;
-                				twfd_rem = false;
-                    		}
-                        }
+                	}
+                    if(oldShip == 8)	{
+                         if(twfd_add) 	{
+                    		counter8++;
+                         }
+                    	 if(twfd_rem)	{
+                    		 counter8--;
+                    	 }
                 	}
         		}
-            	//need to set oldship/newship to zero cause they only should be counted
-            	//during the first time this for loop runs.
+            	/**
+            	 * We need to set these variables back to values that won't affect
+            	 * the test. This must be done because method is designed to 
+            	 * add/remove/change the ships the player WANTS to have (but 
+            	 * doesn't already) using these variables below. During the first 
+            	 * time it goes through the for loop, it will add/remove their 
+            	 * newShip/oldShip (respectively) and then continue through the loop
+            	 * as it adds playerships already in.
+            	 */
             	oldShip = 0;
             	newShip = 0;
+            	twfd_add = false;
+            	twfd_rem = false;            	
     	}
 		
 
-    	twfd_add = false;
-    	twfd_rem = false;
+
     	
 		/**
 		 * If the team has less than 3 players in, we must stop check.
