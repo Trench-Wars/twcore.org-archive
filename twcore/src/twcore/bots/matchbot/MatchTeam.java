@@ -2411,6 +2411,13 @@ public class MatchTeam
     	 * in the correct variable. We will get the newShip number and the
     	 * oldShip number and throw these in to test as well.
     	 * 
+    	 * A ship change will leave both twfd_add and twfd_remove true. This
+    	 * could pose a problem because the way the method is set up will cause
+    	 * the method to add the newShip/oldShip and also remove it because the
+    	 * variables are both true. So, it's necessary to catch this by setting
+    	 * either twfd_add or twfd_remove to false when it catches that oldShip/
+    	 * newShip add or removed action, so that it doesn't happen again when it
+    	 * shouldn't.
     	 * 
     	 * int counter variables are used to count the number of each ship type
     	 * int[] playerShip stores these variables in an array
@@ -2434,7 +2441,7 @@ public class MatchTeam
 		int ShipNumber;
 		String[] playerStr = new String[m_players.size()];
 		m_players.toArray(playerStr);
-		
+
 		i = 0;
     	for(i=0;i<playerStr.length;i++)	{
         	Player p;
@@ -2448,17 +2455,21 @@ public class MatchTeam
                 	if(newShip == 0)	{
                     	if(twfd_add)	{
             				counter0++;
+            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter0--;
+            				twfd_rem = false;
             			}
                 	}
                 	if(oldShip == 0)	{
                     	if(twfd_add) 	{
             				counter0++;
+            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter0--;
+            				twfd_rem = false;
             			}
                 	}
                 }
@@ -2469,16 +2480,20 @@ public class MatchTeam
                 	if(newShip == 1)	{
                     	if(twfd_add)	{
             				counter1++;
+            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter1--;
+            				twfd_rem = false;
             			}
             			if(oldShip == 1)	{
             				if(twfd_add) 	{
             					counter1++;
+                				twfd_add = false;
             				}
             				if(twfd_rem)	{
             					counter1--;
+                				twfd_rem = false;
             				}
                     	}
                 	}
@@ -2490,16 +2505,20 @@ public class MatchTeam
                 	if(newShip == 2)	{
                     	if(twfd_add) 	{
             				counter2++;
+            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter2--;
+            				twfd_rem = false;
             			}
                         if(oldShip == 2)	{
                             if(twfd_add) 	{
                     			counter2++;
+                				twfd_add = false;
                     		}
                     		if(twfd_rem)	{
                     			counter2--;
+                				twfd_rem = false;
                     		}
                         }
                 	}
@@ -2511,16 +2530,20 @@ public class MatchTeam
                 	if(newShip == 3)	{
                     	if(twfd_add) 	{
             				counter3++;
+            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter3--;
+            				twfd_rem = false;
             			}
                         if(oldShip == 3)	{
                             if(twfd_add) 	{
                     			counter3++;
+                				twfd_add = false;
                     		}
                     		if(twfd_rem)	{
                     			counter3--;
+                				twfd_rem = false;
                     		}
                         }
                 	}
@@ -2532,16 +2555,20 @@ public class MatchTeam
                 	if(newShip == 4)	{
                     	if(twfd_add) 	{
             				counter4++;
+            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter4--;
+            				twfd_rem = false;
             			}
                         if(oldShip == 4)	{
                             if(twfd_add) 	{
                     			counter4++;
+                				twfd_add = false;
                     		}
                     		if(twfd_rem)	{
                     			counter4--;
+                				twfd_rem = false;
                     		}
                         }
                 	}
@@ -2553,16 +2580,20 @@ public class MatchTeam
                 	if(newShip == 5)	{
                     	if(twfd_add) 	{
             				counter5++;
+            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter5--;
+            				twfd_rem = false;
             			}
                         if(oldShip == 5)	{
                             if(twfd_add) 	{
                     			counter5++;
+                				twfd_add = false;
                     		}
                     		if(twfd_rem)	{
                     			counter5--;
+                				twfd_rem = false;
                     		}
                         }
                 	}
@@ -2574,16 +2605,20 @@ public class MatchTeam
                 	if(newShip == 6)	{
                     	if(twfd_add) 	{
             				counter6++;
+            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter6--;
+            				twfd_rem = false;
             			}
                         if(oldShip == 6)	{
                             if(twfd_add) 	{
                     			counter6++;
+                				twfd_add = false;
                     		}
                     		if(twfd_rem)	{
                     			counter6--;
+                				twfd_rem = false;
                     		}
                         }
                 	}
@@ -2595,16 +2630,20 @@ public class MatchTeam
                 	if(newShip == 7)	{
                     	if(twfd_add) 	{
             				counter7++;
+            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter7--;
+            				twfd_rem = false;
             			}
                         if(oldShip == 7)	{
                             if(twfd_add) 	{
                     			counter7++;
+                				twfd_add = false;
                     		}
                     		if(twfd_rem)	{
                     			counter7--;
+                				twfd_rem = false;
                     		}
                         }
                 	}
@@ -2616,16 +2655,20 @@ public class MatchTeam
                 	if(newShip == 8)	{
                     	if(twfd_add) 	{
             				counter8++;
+            				twfd_add = false;
             			}
             			if(twfd_rem)	{
             				counter8--;
+            				twfd_rem = false;
             			}
                         if(oldShip == 8)	{
                             if(twfd_add) 	{
                     			counter8++;
+                				twfd_add = false;
                     		}
                     		if(twfd_rem)	{
                     			counter8--;
+                				twfd_rem = false;
                     		}
                         }
                 	}
@@ -2635,6 +2678,7 @@ public class MatchTeam
             	oldShip = 0;
             	newShip = 0;
     	}
+		
 
     	twfd_add = false;
     	twfd_rem = false;
