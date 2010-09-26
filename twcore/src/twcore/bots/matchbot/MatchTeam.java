@@ -66,7 +66,6 @@ public class MatchTeam
     //twfd variables
 	boolean twfd_add;
 	boolean twfd_rem;
-	boolean twfd_chg;
 	boolean goodLine;
     int shipCounter;
     String[] minShipStr;
@@ -2441,10 +2440,10 @@ public class MatchTeam
 		m_players.toArray(playerStr);
 		
 		
-    	Hashtable<Integer, Boolean> changeOld = new Hashtable<Integer, Boolean>();
-    	changeOld.put(oldShip, twfd_rem);
-    	Hashtable<Integer, Boolean> changeNew = new Hashtable<Integer, Boolean>();
-    	changeNew.put(newShip, twfd_add);
+    	//Hashtable<Integer, Boolean> changeOld = new Hashtable<Integer, Boolean>();
+    	//changeOld.put(oldShip, twfd_rem);
+    	//Hashtable<Integer, Boolean> changeNew = new Hashtable<Integer, Boolean>();
+    	//changeNew.put(newShip, twfd_add);
 
 		i = 0;
     	for(i=0;i<playerStr.length;i++)	{
