@@ -465,7 +465,13 @@ public class twdbot extends SubspaceBot {
 
     public void command_signup(String name, String command, String[] parameters) {
         try {
-            if (parameters.length > 0 && passwordIsValid(parameters[0])) {
+        	
+        	DBPlayerData data = new DBPlayerData(m_botAction, webdb, name, false);
+        	
+        	// Special if captain or staff
+        	boolean specialPlayer = m_botAction.getOperatorList().isER(name) || data.hasRank(4);
+        	
+            if (parameters.length > 0 && passwordIsValid(parameters[0], specialPlayer)) {
                 boolean success = false;
                 boolean can_continue = true;
 
@@ -510,7 +516,10 @@ public class twdbot extends SubspaceBot {
                     m_botAction.sendSmartPrivateMessage(name, "You can only signup / change passwords once every 5 minutes");
                 }
             } else {
-                m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup mypass'. The password must contain a number and needs to be at least 5 characters long.");
+            	if (specialPlayer)
+            		m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup mypass'. The password must contain at least 1 number, 1 uppercase and 1 special character, and needs to be at least 10 characters long. ");
+            	else
+            		m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup mypass'. The password must contain a number and needs to be at least 8 characters long.");
             }
 
         }
@@ -519,19 +528,43 @@ public class twdbot extends SubspaceBot {
         }
     };
 
-    public boolean passwordIsValid(String pw) {
+    public boolean passwordIsValid(String password, boolean specialPlayer) {
 
-        if (pw.length() < 5) {
-            return false;
-        } else {
-            for (int i = 0; i < pw.length(); i++) {
+		boolean digit = false;
+		boolean uppercase = false;
+		boolean length = false;
+		boolean specialcharacter = false;
+		
+        for (int i = 0; i < password.length(); i++) {
 
-                if (Character.isDigit(pw.charAt(i))) {
-                    return true;
-                }
+        	if (Character.isDigit(password.charAt(i))) {
+                digit = true;
             }
-            return false;
+        	if (Character.isUpperCase(password.charAt(i))) {
+        		uppercase = true;
+            }
+        	if (!Character.isLetterOrDigit(password.charAt(i))) {
+        		specialcharacter = true;
+            }
         }
+        
+    	if (specialPlayer) {
+            if (password.length() < 10) {
+            	length = true;
+            } 
+            return length && digit && uppercase && specialcharacter;
+    		
+    	}
+    	else {
+    		
+            if (password.length() < 8) {
+            	length = true;
+            } 
+    		
+    		return length && digit;
+    		
+    	}
+
     }
 
     public void command_squadsignup(String name, String command) {
