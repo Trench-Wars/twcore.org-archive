@@ -393,7 +393,7 @@ public class twl extends SubspaceBot
             if (isStaff)
             {
                 help.add("!killgame                                - stops a game _immediately_");
-            };
+            }
             help.addAll(m_game.getHelpMessages(name, isStaff));
         }
         else
@@ -402,33 +402,34 @@ public class twl extends SubspaceBot
             {
                 if (!m_isLocked)
                 {
-                    if (!isRestrictedStaff)
+                    if (!isRestrictedStaff || name.toLowerCase().equals("humid")){
                         help.add("!listgames                               - list all available game types");
                         help.add("!game <typenumber>                       - start a game of <type>");
                         help.add("!game <typenumber>:<teamA>:<teamB>       - start a game of <type>");
                         help.add("!twlgame <game ID>                       - load a TWL game");
-
-                    if (!isRestrictedStaff)
+                    }
+                    if (!isRestrictedStaff || name.toLowerCase().equals("humid"))
                     {
                         help.add("!go <arena>                              - makes the bot go to the specified arena");
                         help.add("!lock <typenumber>                       - lock at a free arena where the event can be hosted");
-                    };
+                    }
                 }
                 else
                 {
                     help.add("!game <squadA>:<squadB>                  - start a game of " + m_rules.getString("name") + " between teamA and teamB");
-                    if (!isRestrictedStaff)
+                    if (name.toLowerCase().equals("humid") || !isRestrictedStaff)
                     {
                         help.add("!unlock                                  - unlock the bot, makes it go back to ?go twl");
-                        if (m_opList.isSmod(name))
+                        if (m_opList.isSmod(name) || name.toLowerCase().equals("humid") )
                         {
                             help.add("!listaccess                              - list all the players who have special access to this game");
                             help.add("!addaccess <name>                        - add a player to the list");
                             help.add("!removeaccess <name>                     - remove a player from the list");
-                        };
-                    };
+                        }
+                    }
                 }
-            };
+            }
+            
             if (m_isLocked)
             {
                 if (m_rules.getInt("captain_can_start_game") == 1)
@@ -438,9 +439,9 @@ public class twl extends SubspaceBot
                     help.add("!challenge <squad>:<players>             - request a game of " + m_rules.getString("name") + " against <squad> with <players> number of players");
 					help.add("!removechallenge <squad>                 - removes the challenge of " + m_rules.getString("name") + " game against <squad>");
                     help.add("!accept <squad>                          - accept the !challenge made by the challenging squad");
-                };
-            };
-        };
+                }
+            }
+        }
 
         return help.toArray(new String[help.size()]);
     }
@@ -449,36 +450,38 @@ public class twl extends SubspaceBot
     {
         if (isStaff)
         {
-            if (command.equals("!game"))
-                createGame(name, parameters);
+        if (command.equals("!game"))
+            createGame(name, parameters);
 	    if (command.equals("!twlgame"))
-		createTWLGame(name, parameters);
-            if (!isRestrictedStaff)
-            {
-                if (command.equals("!listgames"))
-                    listGames(name);
-                if (command.equals("!go"))
-                    command_go(name, parameters);
-                if (command.equals("!lock"))
-                    command_lock(name, parameters);
-                if (command.equals("!unlock"))
-                    command_unlock(name, parameters);
-                if ((command.equals("!die")) && (m_opList.isSmod(name)))
-                    m_botAction.die();
-                if ((command.equals("!off")) && (m_opList.isSmod(name)))
-                if (m_game == null)	{
-                    command_unlock(name, parameters);
-                } else {
-                    command_setoff(name);
-                }
-                if ((command.equals("!listaccess")) && (m_opList.isSmod(name)))
-                    command_listaccess(name, parameters);
-                if ((command.equals("!addaccess")) && (m_opList.isSmod(name)))
-                    command_addaccess(name, parameters);
-                if ((command.equals("!removeaccess")) && (m_opList.isSmod(name)))
-                    command_removeaccess(name, parameters);
-            };
-            if (m_game != null)
+	        createTWLGame(name, parameters);
+            
+	    if (!isRestrictedStaff || name.toLowerCase().equals("humid"))
+        {
+            if (command.equals("!listgames"))
+                listGames(name);
+            if (command.equals("!go"))
+                command_go(name, parameters);
+            if (command.equals("!lock"))
+                command_lock(name, parameters);
+            if (command.equals("!unlock"))
+                command_unlock(name, parameters);
+            if ((command.equals("!die")) && (m_opList.isSmod(name)))
+                m_botAction.die();
+            if ((command.equals("!off")) && (m_opList.isSmod(name)))
+            if (m_game == null)	{
+                command_unlock(name, parameters);
+            } else {
+                command_setoff(name);
+            }
+            if ((command.equals("!listaccess")) && (m_opList.isSmod(name)))
+                command_listaccess(name, parameters);
+            if ((command.equals("!addaccess")) && (m_opList.isSmod(name)))
+                command_addaccess(name, parameters);
+            if ((command.equals("!removeaccess")) && (m_opList.isSmod(name)))
+                command_removeaccess(name, parameters);
+        }
+	    
+        if (m_game != null)
             {
                 if (command.equals("!killgame"))
                 {
@@ -492,7 +495,7 @@ public class twl extends SubspaceBot
                         m_off = false;
                         command_unlock(name, parameters);
                     }
-                };
+                }
                 if (command.equals("!endgameverysilently"))
                 {
                     m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
@@ -504,15 +507,16 @@ public class twl extends SubspaceBot
                         m_off = false;
                         command_unlock(name, parameters);
                     }
-                };
+                }
                 if (command.equals("!startinfo"))
                 {
                     if (startMessage != null)
                         m_botAction.sendPrivateMessage(name,startMessage);
                 }
 
-            };
-        };
+            }
+        }
+        
         if ((m_rules != null) && (m_rules.getInt("captain_can_start_game") == 1))
         {
             if (command.equals("!challenge"))
@@ -522,7 +526,8 @@ public class twl extends SubspaceBot
             if (command.equals("!accept"))
                 command_accept(name, parameters);
 
-        };
+        }
+        
         if (command.equals("!help"))
             m_botAction.privateMessageSpam(name, getHelpMessages(name, isStaff, isRestrictedStaff));
 
@@ -531,7 +536,7 @@ public class twl extends SubspaceBot
 
         if (m_game != null)
             m_game.parseCommand(name, command, parameters, isStaff);
-    };
+    }
 
     public void parseInfo(String message) {
 
@@ -1146,15 +1151,20 @@ public class twl extends SubspaceBot
     // create TWL game
     public void createTWLGame(String name, String[] parameters)
     {
-        if (parameters.length == 1 && Tools.isAllDigits(parameters[0])) {
-            parameters = getTWLDetails(Integer.parseInt(parameters[0]));
+        try{
+    
+            if (parameters.length == 1 && Tools.isAllDigits(parameters[0])) {
+                parameters = getTWLDetails(Integer.parseInt(parameters[0]));
+            }
+            if (parameters != null && parameters.length == 5) {
+                createGame(name, parameters);
+            } else {
+                m_botAction.sendPrivateMessage(name, "Corrupted game details or game ID does not exist");
+            }
+        }catch(Exception e){
+            e.printStackTrace();
         }
-        if (parameters != null && parameters.length == 5) {
-            createGame(name, parameters);
-        } else {
-            m_botAction.sendPrivateMessage(name, "Corrupted game details or game ID does not exist");
-        }
-    };
+    }
 
     public String[] getTWLDetails(int m_TWLID) {
 	try {
