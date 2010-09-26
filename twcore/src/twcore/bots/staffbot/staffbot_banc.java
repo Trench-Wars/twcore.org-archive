@@ -249,7 +249,7 @@ public class staffbot_banc extends Module {
 	        }
 	        
 	        // !reload [Smod+]
-	        else if( messageLc.startsWith("!reload") && opList.isSmod(name)) {
+	        else if( messageLc.startsWith("!reload") && opList.isDeveloper(name)) {
 	        	cmdReload(name);
 	        }
 	        
@@ -257,7 +257,7 @@ public class staffbot_banc extends Module {
 	        	cmdListActiveBanCs(name);
 	        }
 	        
-	        else if( messageLc.startsWith("!forcedb") && opList.isSmod(name) ){
+	        else if( messageLc.startsWith("!forcedb") && opList.isDeveloper(name) ){
 	            doForceDBConnection(name);
 	        }
 
