@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -83,6 +84,7 @@ public class tournybot extends SubspaceBot {
 	boolean base = false;
 
 	boolean forced = false;
+	boolean forcedByStaff = false;
 	int fShipType = 0;
 	int fDeaths = 0;
 	String forcer;
@@ -1294,6 +1296,7 @@ public class tournybot extends SubspaceBot {
 			}
 
 			forced = false;
+			forcedByStaff = false;
 		} else {
 			m_botAction.sendArenaMessage("Vote: 1vs1: 1-Warbird  2-Javelin  3-Spider  4-Any Fighter Ship  5-Any Base Ship");
 			m_botAction.sendArenaMessage("      2vs2: 6-Warbird  7-Javelin  8-Any Fighter ship  9-Any Base Ship  10-LevTerr");
@@ -1882,6 +1885,9 @@ public class tournybot extends SubspaceBot {
 
 		if (ok) {
 			forced = true;
+			if (!f.equals(m_botAction.getBotName())) {
+				forcedByStaff = true;
+			}
 			fShipType = fT;
 			fDeaths = fD;
 			forcer = f;
@@ -2380,7 +2386,12 @@ public class tournybot extends SubspaceBot {
 			//String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
 			String typeTxt = ship + " tournament to " + deaths + " death(s)";
 			String fields[] = {	"type", "typeTxt", "players", "started", "trState" };
-			String values[] = { Integer.toString(maxPerFreq), typeTxt, Integer.toString(num), "NOW()", Integer.toString(0) };
+			String values[] = { 
+					Integer.toString(maxPerFreq), 
+					typeTxt, 
+					Integer.toString(num), 
+					new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()), 
+					Integer.toString(0) };
 
 			m_botAction.SQLInsertInto(dbConn, "tblTournyTournaments", fields, values);
 			dbAvailable = true;
