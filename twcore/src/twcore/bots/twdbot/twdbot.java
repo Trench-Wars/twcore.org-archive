@@ -524,9 +524,9 @@ public class twdbot extends SubspaceBot {
                 }
             } else {
             	if (specialPlayer)
-            		m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup mypass'. The password must contain at least 1 number, 1 uppercase and 1 special character, and needs to be at least 10 characters long. ");
+            		m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup MySuperPass11!'. The password must contain at least 1 number, 1 uppercase, and needs to be at least 10 characters long. ");
             	else
-            		m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup mypass'. The password must contain a number and needs to be at least 8 characters long.");
+            		m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup MyPass11'. The password must contain a number and needs to be at least 8 characters long.");
             }
 
         }
@@ -535,7 +535,7 @@ public class twdbot extends SubspaceBot {
         }
     };
 
-    public static boolean passwordIsValid(String password, boolean specialPlayer) {
+    public boolean passwordIsValid(String password, boolean specialPlayer) {
 
 		boolean digit = false;
 		boolean uppercase = false;
@@ -559,7 +559,7 @@ public class twdbot extends SubspaceBot {
             if (password.length() >= 10) {
             	length = true;
             } 
-            return length && digit && uppercase && specialcharacter;
+            return length && digit && uppercase;
     		
     	}
     	else {
