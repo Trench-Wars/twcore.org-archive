@@ -316,7 +316,7 @@ public class staffbot_banc extends Module {
 				}
 			}
 		}
-		if(IPCBANC.equals(event.getChannel()) && event.getSenderName().toLowerCase().startsWith("pubbot")) {
+		if(IPCBANC.equals(event.getChannel()) && event.getSenderName().toLowerCase().startsWith("tw-guard")) {
 			IPCMessage ipc = (IPCMessage)event.getObject();
 			String command = ipc.getMessage();
 			
