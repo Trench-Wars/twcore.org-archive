@@ -112,7 +112,10 @@ public class twdbot extends SubspaceBot {
             String message = event.getMessage();
             if( event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ){
                 String name = m_botAction.getPlayerName( event.getPlayerID() );
-                if( m_opList.isER( name )) isStaff = true; else isStaff= false;
+                if( m_opList.isER( name )) 
+                	isStaff = true; 
+                else 
+                	isStaff= false;
 
                 if( m_opList.isSysop( name ) || isTWDOp(name) )
                 {
@@ -157,6 +160,10 @@ public class twdbot extends SubspaceBot {
                         commandRemoveIPMID(name, message.substring(13));
                     else if( message.startsWith("!listipmid "))
                         commandListIPMID(name, message.substring(11));
+                    else if( message.equalsIgnoreCase("!die")) {
+        				this.handleDisconnect();
+        				m_botAction.die();
+        			}
                 }
                 else
                 {
