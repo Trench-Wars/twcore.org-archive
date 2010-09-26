@@ -535,7 +535,7 @@ public class twdbot extends SubspaceBot {
         }
     };
 
-    public boolean passwordIsValid(String password, boolean specialPlayer) {
+    public static boolean passwordIsValid(String password, boolean specialPlayer) {
 
 		boolean digit = false;
 		boolean uppercase = false;
@@ -556,7 +556,7 @@ public class twdbot extends SubspaceBot {
         }
         
     	if (specialPlayer) {
-            if (password.length() < 10) {
+            if (password.length() >= 10) {
             	length = true;
             } 
             return length && digit && uppercase && specialcharacter;
@@ -564,7 +564,7 @@ public class twdbot extends SubspaceBot {
     	}
     	else {
     		
-            if (password.length() < 8) {
+            if (password.length() >= 8) {
             	length = true;
             } 
     		
@@ -1178,4 +1178,6 @@ public class twdbot extends SubspaceBot {
         m_botAction.sendUnfilteredPrivateMessage( target, "*info" );
         m_requesters.put( target, name );
     }
+    
+
 }
