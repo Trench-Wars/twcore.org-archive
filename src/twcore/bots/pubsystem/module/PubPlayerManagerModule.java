@@ -154,7 +154,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 
         if (context.isStarted()) {
 	        checkPlayer(event.getPlayerID());
-	        if(!context.isPrivFreqEnabled()) {
+	        if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
 	            checkFreq(event.getPlayerID(), p.getFrequency(), false);
 	            checkFreqSizes();
 	        }
@@ -181,7 +181,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 
         if(context.isStarted()) {
             checkPlayer(playerID);
-            if(!context.isPrivFreqEnabled()) {
+            if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
                 checkFreq(playerID, freq, true);
                 checkFreqSizes();
             }
@@ -202,7 +202,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 
 		if (context.isStarted()) {
 			checkPlayer(playerID);
-			if (!context.isPrivFreqEnabled()) {
+			if (!context.getPubUtil().isPrivateFrequencyEnabled()) {
 				checkFreq(playerID, freq, true);
 			}
 		}
@@ -312,7 +312,8 @@ public class PubPlayerManagerModule extends AbstractModule {
     /**
      * Lists any ship restrictions in effect.
      */
-    public void doRestrictionsCmd(String sender) {
+    public void doRestrictionsCmd(String sender) 
+    {
         int weight;
         m_botAction.sendSmartPrivateMessage(sender, "Ship limitations/restrictions (if any)" );
         for( int i = 1; i < 9; i++ ) {
@@ -322,7 +323,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             else if( weight > 1 )
                 m_botAction.sendSmartPrivateMessage(sender, Tools.shipName( i ) + "s limited to 1/" + weight + " of the size of a frequency (but 1 always allowed).");
         }
-        m_botAction.sendSmartPrivateMessage(sender, "Private frequencies are " + (context.isPrivFreqEnabled() ? "enabled." : "disabled.") );
+        m_botAction.sendSmartPrivateMessage(sender, "Private frequencies are " + (context.getPubUtil().isPrivateFrequencyEnabled() ? "enabled." : "disabled.") );
     }
     
     /**
@@ -477,7 +478,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                 else
                     newFreq = pubsystem.FREQ_1;
                 if(changeMessage)
-                    m_botAction.sendSmartPrivateMessage(playerName, "Private Frequencies are currently disabled.  You have been placed on a public Frequency.");
+                    m_botAction.sendSmartPrivateMessage(playerName, "Private frequencies are currently disabled. You have been placed on a public frequency.");
                 m_botAction.setFreq(playerName, newFreq);
             }
             addToLists(playerName, newFreq);
@@ -490,8 +491,9 @@ public class PubPlayerManagerModule extends AbstractModule {
      * Checks for imbalance in frequencies, and requests the stacked freq to even it up
      * if there's a significant gap.
      */
-    private void checkFreqSizes() {
-        if( MSG_AT_FREQSIZE_DIFF == -1 || context.isPrivFreqEnabled() )
+    private void checkFreqSizes() 
+    {
+        if( MSG_AT_FREQSIZE_DIFF == -1 || context.getPubUtil().isPrivateFrequencyEnabled() )
             return;
         int freq0 = m_botAction.getPlayingFrequencySize(0);
         int freq1 = m_botAction.getPlayingFrequencySize(1);

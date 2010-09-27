@@ -1,11 +1,11 @@
 package twcore.bots.pubsystem.module;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.TimerTask;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
-import twcore.bots.pubsystem.util.PubLocation;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.PlayerEntered;
@@ -15,46 +15,89 @@ import twcore.core.util.Tools;
 
 public class PubUtilModule extends AbstractModule {
 
-	// TILESET
+	// LOCATION
+	public static enum Location {
+		FLAGROOM,
+		MID,
+		LOWER,
+		ROOF,
+		SPACE,
+		UNKNOWN,
+		SPAWN
+	}
+	private HashMap<String,Location> locations;
 	
+	// TILESET
 	public static Tileset DEFAULT_TILESET = Tileset.BLUETECH;
 	public static enum Tileset { 
 		BOKI,
 		MONOLITH,
 		BLUETECH
 	};
+	public HashMap<Tileset,Integer> tilesetObjects;
 	
-	public static HashMap<Tileset,Integer> tilesetObjects;
-	static {
-		tilesetObjects = new HashMap<Tileset,Integer>();
-		tilesetObjects.put(Tileset.BOKI, 0);
-		tilesetObjects.put(Tileset.MONOLITH, 1);
-	}
-	
+
 	// DOORS
-	
 	private static enum DoorMode { CLOSED, OPENED, IN_OPERATION, UNKNOW };
 	private DoorMode doorStatus = DoorMode.UNKNOW;
-	
 	private int doorModeDefault;
 	private int doorModeThreshold;
 	private int doorModeThresholdSetting;
 	private boolean doorArenaOnChange = false;
-	
 	private boolean doorModeManual = false;
+	
+	// PRIV FREQ
+	private boolean privFreqEnabled = true;
+	
 	
 	public PubUtilModule(BotAction botAction, PubContext context) {
 		super(botAction, context, "Utility");
+
+		this.locations = new LinkedHashMap<String, Location>();
 		
-		this.context = context;
+        String[] pointsLocation = m_botAction.getBotSettings().getString("location").split(",");
+        for(String number: pointsLocation) {
+        	String[] data = m_botAction.getBotSettings().getString("location"+number).split(",");
+        	String name = data[0];
+        	Location loc = Location.valueOf(name.toUpperCase());
+        	for(int i=1; i<data.length; i++) {
+        		String[] coords = data[i].split(":");
+        		int x = Integer.parseInt(coords[0]);
+        		int y = Integer.parseInt(coords[1]);
+        		locations.put(coordToString(x,y), loc);
+        	}
+
+        }
 		
 		doorModeDefault = m_botAction.getBotSettings().getInt("doormode_default");
 		doorModeThreshold = m_botAction.getBotSettings().getInt("doormode_threshold");
 		doorModeThresholdSetting = m_botAction.getBotSettings().getInt("doormode_threshold_setting");
 		
+		tilesetObjects = new HashMap<Tileset,Integer>();
+		tilesetObjects.put(Tileset.BOKI, 0);
+		tilesetObjects.put(Tileset.MONOLITH, 1);
+		
 		if (m_botAction.getBotSettings().getInt("door_arena_on_change")==1) {
 			doorArenaOnChange = true;
 		}
+	}
+	
+	private String coordToString(int x, int y) {
+		return x + ":" + y;
+	}
+	
+	public Location getLocation(int x, int y) {
+		Location location = locations.get(coordToString(x, y));
+		if (location!=null)
+			return location;
+		else
+			return Location.UNKNOWN;
+	}
+	
+	public boolean isInside(int x, int y, Location location) {
+		if (getLocation(x, y).equals(location))
+			return true;
+		return false;
 	}
 
 	public void handleEvent(PlayerEntered event) {
@@ -199,7 +242,7 @@ public class PubUtilModule extends AbstractModule {
      */
     public void doPrivFreqsCmd(String sender)
     {
-        if(!context.isPrivFreqEnabled())
+        if(!privFreqEnabled)
         {
             m_botAction.sendArenaMessage("[SETTING] Private Frequencies enabled.", 2);
             m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully enabled.");
@@ -210,7 +253,7 @@ public class PubUtilModule extends AbstractModule {
             m_botAction.sendArenaMessage("[SETTING] Private Frequencies disabled.", 2);
             m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully disabled.");
         }
-        context.setPrivFreqEnabled(!context.isPrivFreqEnabled());
+        privFreqEnabled = !privFreqEnabled;
     }
 
 
@@ -234,7 +277,7 @@ public class PubUtilModule extends AbstractModule {
     public void doWhereIsCmd( String sender, String argString, boolean isStaff ) {
         Player p = m_botAction.getPlayer(sender);
         if( p == null )
-            throw new RuntimeException("Can't find you.  Please report this to staff.");
+            throw new RuntimeException("Can't find you. Please report this to staff.");
         if( p.getShipType() == 0 && !isStaff )
             throw new RuntimeException("You must be in a ship for this command to work.");
         Player p2;
@@ -242,10 +285,34 @@ public class PubUtilModule extends AbstractModule {
         if( p2 == null )
             p2 = m_botAction.getFuzzyPlayer( argString );
         if( p2 == null )
-            throw new RuntimeException("I can't find the player '" + argString + "'.  Tough shit, bucko.");
+            throw new RuntimeException("I can't find the player '" + argString + "'. ough shit, bucko.");
         if( p.getFrequency() != p2.getFrequency() && !isStaff )
             throw new RuntimeException(p2.getPlayerName() + " is not on your team!");
-        m_botAction.sendPrivateMessage( sender, p2.getPlayerName() + " last seen: " + PubLocation.getPlayerLocation( p2, isStaff ));
+        m_botAction.sendPrivateMessage( sender, p2.getPlayerName() + " last seen: " + getPlayerLocation( p2.getXTileLocation(), p2.getYTileLocation() ));
+    }
+    
+    public String getPlayerLocation(int x, int y) {
+
+        String exact = "";
+
+    	String position = "Outside base";
+    	
+    	Location location = getLocation(x, y);
+    	
+        if( Location.UNKNOWN.equals(location) )
+            return "Not yet spotted" + exact;
+        if( Location.FLAGROOM.equals(location) )
+            return "in Flagroom" + exact;
+        if( Location.MID.equals(location) )
+            return "in Mid Base" + exact;
+        if( Location.LOWER.equals(location) )
+            return "in Lower Base" + exact;
+        if( Location.ROOF.equals(location) )
+            return "on Roof" + exact;
+        if( Location.SPAWN.equals(location) )
+            return "in Spawn" + exact;
+        
+        return "Not yet spotted" + exact;
     }
 
 	@Override
@@ -295,6 +362,10 @@ public class PubUtilModule extends AbstractModule {
         }
 	}
 	
+	public boolean isPrivateFrequencyEnabled() {
+		return privFreqEnabled;
+	}
+
 	@Override
 	public String[] getHelpMessage() {
 		return new String[]{

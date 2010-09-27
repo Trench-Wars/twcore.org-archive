@@ -22,8 +22,6 @@ public class PubContext {
 	
 	private boolean started = false;
 
-	private boolean privFreqEnabled = false;
-	
 	private Vector<AbstractModule> modules;
 	
 	// Modules
@@ -74,14 +72,6 @@ public class PubContext {
 		return modules;
 	}
 
-	public boolean isPrivFreqEnabled() {
-		return privFreqEnabled;
-	}
-	
-	public void setPrivFreqEnabled(boolean b) {
-		this.privFreqEnabled = b;
-	}
-	
 	public GameFlagTimeModule getGameFlagTime() {
 		if (gameFlagTime == null) {
 			gameFlagTime = new GameFlagTimeModule(m_botAction, this);

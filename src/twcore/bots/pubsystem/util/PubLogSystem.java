@@ -1,4 +1,4 @@
-package twcore.bots.pubsystem;
+package twcore.bots.pubsystem.util;
 
 import java.io.File;
 import java.io.FileWriter;
