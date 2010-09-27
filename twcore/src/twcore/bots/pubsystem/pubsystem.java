@@ -10,7 +10,6 @@ import java.util.Vector;
 
 import twcore.bots.pubsystem.module.AbstractModule;
 import twcore.bots.pubsystem.module.GameFlagTimeModule;
-import twcore.bots.pubsystem.util.PubLocation;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
@@ -85,8 +84,6 @@ public class pubsystem extends SubspaceBot
     public static final int SPEC = 0;                   // Number of the spec ship
     public static final int FREQ_0 = 0;                 // Frequency 0
     public static final int FREQ_1 = 1;                 // Frequency 1
- 
-    private HashMap <String,Integer>playerTimes;        // Roundtime of player on freq
 
     private ToggleTask toggleTask;                      // Toggles commands on and off at a specified interval
 
@@ -108,10 +105,6 @@ public class pubsystem extends SubspaceBot
         m_botSettings = m_botAction.getBotSettings();
         
         context = new PubContext(m_botAction);
-        context.setPrivFreqEnabled(true);
-        
-        playerTimes = new HashMap<String,Integer>();
-
     }
 
     /**
@@ -264,7 +257,7 @@ public class pubsystem extends SubspaceBot
             	
             	String message = 
             		//"Welcome to Pub.  " +
-            		"Private freqs:[" + (context.isPrivFreqEnabled() ? "ON" : "OFF") + "]  " + 
+            		"Private freqs:[" + (context.getPubUtil().isPrivateFrequencyEnabled() ? "ON" : "OFF") + "]  " + 
             		"Streak:[" + (context.getPubStreak().isEnabled() ? "ON" : "OFF") + "]  " +
             		"Store:[" + (context.getMoneySystem().isStoreOpened() ? "ON" : "OFF") + "]  " + 
             		"Kill-o-thon:[" + (context.getPubKillSession().isRunning() ? "ON" : "OFF") + "]"; 
@@ -301,21 +294,6 @@ public class pubsystem extends SubspaceBot
 
     }
 
-
-    /**
-     * Removes a player from all tracking lists when they leave the arena.
-     *
-     * @param event is the event to handle.
-     */
-    public void handleEvent(PlayerLeft event)
-    {
-        int playerID = event.getPlayerID();
-        String playerName = m_botAction.getPlayerName(playerID);
-
-        playerTimes.remove( playerName );
-        
-        context.handleEvent(event);
-    }
 
     public void handleEvent(KotHReset event) {
         if(event.isEnabled() && event.getPlayerID()==-1) {
@@ -538,6 +516,10 @@ public class pubsystem extends SubspaceBot
 
         context.start();
         
+    }
+	
+    public void handleEvent(PlayerLeft event) {
+        context.handleEvent(event);
     }
 	
     public void handleDisconnect() {

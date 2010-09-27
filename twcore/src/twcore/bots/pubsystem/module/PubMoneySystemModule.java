@@ -10,9 +10,8 @@ import java.util.TimerTask;
 import java.util.Vector;
 
 import twcore.bots.pubsystem.PubContext;
-import twcore.bots.pubsystem.PubLogSystem;
 import twcore.bots.pubsystem.pubsystem;
-import twcore.bots.pubsystem.PubLogSystem.LogType;
+import twcore.bots.pubsystem.module.PubUtilModule.Location;
 import twcore.bots.pubsystem.module.moneysystem.PubStore;
 import twcore.bots.pubsystem.module.moneysystem.item.PubCommandItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItem;
@@ -22,7 +21,8 @@ import twcore.bots.pubsystem.module.moneysystem.item.PubPrizeItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.bots.pubsystem.util.PubException;
-import twcore.bots.pubsystem.util.PubLocation;
+import twcore.bots.pubsystem.util.PubLogSystem;
+import twcore.bots.pubsystem.util.PubLogSystem.LogType;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
@@ -49,7 +49,8 @@ public class PubMoneySystemModule extends AbstractModule {
     // These variables are used to calculate the money earned for a kill
     private Map<Integer, Integer> shipKillerPoints;
     private Map<Integer, Integer> shipKilledPoints;
-    private LinkedHashMap<PubLocation, Integer> locationPoints;
+    // Money earned by location
+    private Map<Location, Integer> locationPoints;
 
     public PubMoneySystemModule(BotAction botAction, PubContext context) {
     	
@@ -67,7 +68,7 @@ public class PubMoneySystemModule extends AbstractModule {
         
         this.shipKillerPoints = new HashMap<Integer, Integer>();
         this.shipKilledPoints = new HashMap<Integer, Integer>();
-        this.locationPoints = new LinkedHashMap<PubLocation, Integer>();
+        this.locationPoints = new HashMap<Location, Integer>();
         try {
         	initializePoints();
 	    } catch (Exception e) {
@@ -88,24 +89,14 @@ public class PubMoneySystemModule extends AbstractModule {
      * By points, we mean "money".
      * */
     private void initializePoints(){
-
-        String[] pointsLocation = m_botSettings.getString("point_location").split(",");
-        for(String number: pointsLocation) {
-        	String[] data = m_botSettings.getString("point_location"+number).split(",");
-        	String name = data[0];
-        	int points = Integer.parseInt(data[1]);
-        	Vector<Point> listPoints = new Vector<Point>();
-        	for(int i=2; i<data.length; i++) {
-        		String[] coords = data[i].split(":");
-        		int x = Integer.parseInt(coords[0]);
-        		int y = Integer.parseInt(coords[1]);
-        		listPoints.add(new Point(x, y));
-        	}
-        	PointLocation p = new PointLocation(listPoints, false);
-        	PubLocation location = new PubLocation(p, name);
-        	locationPoints.put(location, points);
-        }
         
+    	String[] locations = m_botSettings.getString("point_location").split(",");
+    	for(String loc: locations) {
+    		String[] split = m_botSettings.getString("point_location" + loc).split(",");
+    		Location location = Location.valueOf(split[0].toUpperCase());
+    		locationPoints.put(location, Integer.parseInt(split[1]));
+    	}
+    	
         String[] pointsKiller = m_botSettings.getString("point_killer").split(",");
         String[] pointsKilled = m_botSettings.getString("point_killed").split(",");
         
@@ -400,16 +391,19 @@ public class PubMoneySystemModule extends AbstractModule {
             int money = 0;
 
             // Money from the ship
-            money += shipKillerPoints.get((int)killer.getShipType());
-            money += shipKilledPoints.get((int)killed.getShipType());
+            int moneyKiller = shipKillerPoints.get((int)killer.getShipType());
+            int moneyKilled = shipKillerPoints.get((int)killed.getShipType());
+            money += moneyKiller;
+            money += moneyKilled;
             
             // Money from the location
-            Point pointXY = new Point(killer.getXTileLocation(), killer.getYTileLocation());
-            for(PubLocation location: locationPoints.keySet()) {
-            	if (location.isInside(pointXY)) {
-            		money += locationPoints.get(location);
-            		break;
-            	}
+            int x = killer.getXTileLocation();
+            int y = killer.getYTileLocation();
+            Location location = context.getPubUtil().getLocation(x, y);
+            int moneyByLocation = 0;
+            if (locationPoints.containsKey(location)) {
+            	moneyByLocation = locationPoints.get(location);
+            	money += moneyByLocation;
             }
 
             String playerName = killer.getPlayerName();
@@ -561,7 +555,6 @@ public class PubMoneySystemModule extends AbstractModule {
         m_botAction.scheduleTask(timer, 13000);
     	
     }
-
 
 	@Override
 	public void start() {

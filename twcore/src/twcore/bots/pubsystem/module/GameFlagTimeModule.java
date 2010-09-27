@@ -14,13 +14,12 @@ import java.util.Vector;
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
-import twcore.bots.pubsystem.util.PubLocation;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
-import twcore.core.OperatorList;
 import twcore.core.events.FlagClaimed;
 import twcore.core.events.FrequencyChange;
 import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.game.Player;
@@ -33,15 +32,14 @@ public class GameFlagTimeModule extends AbstractModule {
 	private static final int INTERMISSION_SECS = 90;	// Seconds between end of round and start of next
 	private static final int MAX_FLAGTIME_ROUNDS = 5;   // Max # rounds (odd numbers only)
 	
-
-	private PubContext context;
-
-    private HashMap <String,Integer>playerTimes;        // Roundtime of player on freq
-
+    private HashMap<String,Integer> playerTimes;        // Roundtime of player on freq
+    private HashMap<String,Integer> flagClaims;
+    private HashMap<String,Integer> kills;
+    private HashMap<String,Integer> deaths;
+    
     private FlagCountTask flagTimer;                    // Flag time main class
     private StartRoundTask startTimer;                  // TimerTask to start round
     private IntermissionTask intermissionTimer;         // TimerTask for round intermission
-
     private AuxLvzTask scoreDisplay;					// Displays score lvz
     private AuxLvzTask scoreRemove;						// Removes score lvz
 
@@ -198,8 +196,24 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 	}
 	
-	public void handleEvent(FrequencyChange event) {
+	public void handleEvent(FrequencyChange event) 
+	{
+		// Reset the time of a player for MVP purpose
+		if (flagTimer.isRunning()) {
+			Player player = m_botAction.getPlayer(event.getPlayerID());
+			playerTimes.put(player.getPlayerName(), new Integer(0));
+		}
+	}
+	
+	public void handleEvent(PlayerDeath event) {
 		
+		int killerID = event.getKillerID();
+		int killedID = event.getKilleeID();
+		Player killer = m_botAction.getPlayer(killerID);
+		Player killed = m_botAction.getPlayer(killedID);
+		
+		flagTimer.addPlayerKill(killer.getPlayerName());
+		flagTimer.addPlayerDeath(killed.getPlayerName());
 	}
 	
     public void handleEvent(PlayerEntered event) {
@@ -281,39 +295,6 @@ public class GameFlagTimeModule extends AbstractModule {
         m_botAction.scheduleTask( startTimer, INTERMISSION_SECS * 1000 );
     }
     
-
-
-    /**
-     * Clears all of player's mines, and restores any MVP status, but only once per round.
-     * @param sender Sender of command
-     */
-    public void doClearMinesCmd(String sender ) 
-    {
-        Player p = m_botAction.getPlayer(sender);
-        if( p == null )
-            throw new RuntimeException("Can't find you.  Please report this to staff.");
-        if( mineClearedPlayers.contains(p.getPlayerName()))
-            throw new RuntimeException("You've already cleared your mines once, and can't do it again until next round (except, of course, manually).");
-        if( p.getShipType() != Tools.Ship.SHARK && p.getShipType() != Tools.Ship.LEVIATHAN )
-            throw new RuntimeException("You must be in a mine-laying ship in order for me to clear your mines.");
-        boolean easyClear = false;
-        if( flagTimer == null || !flagTimer.isRunning() )
-            easyClear = true;
-
-        int bounty = p.getBounty();
-        int ship = p.getShipType();
-
-        m_botAction.setShip( sender, 1 );
-
-        m_botAction.setShip( sender, ship );
-        m_botAction.giveBounty( sender, bounty - 3 );
-        if( !easyClear) {
-            mineClearedPlayers.add(p.getPlayerName());
-            m_botAction.sendPrivateMessage( sender, "Your mines have been reset without changing MVP status.  You may only do this once per round." );
-        }
-    }
-    
-
     /**
      * Shows who on the team is in which ship.
      *
@@ -357,7 +338,7 @@ public class GameFlagTimeModule extends AbstractModule {
         while( i.hasNext() ) {
             Player terr = (Player)i.next();
             if( terr.getShipType() == Tools.Ship.TERRIER )
-                m_botAction.sendPrivateMessage( sender, Tools.formatString(terr.getPlayerName(), 25) + PubLocation.getPlayerLocation(terr, false) );
+                m_botAction.sendPrivateMessage( sender, Tools.formatString(terr.getPlayerName(), 25) + context.getPubUtil().getPlayerLocation(terr.getXTileLocation(), terr.getYTileLocation()) );
         }
     }
 
@@ -699,7 +680,6 @@ public class GameFlagTimeModule extends AbstractModule {
         int secondsHeld, totalSecs, claimSecs, preTimeCount;
         int claimerID;
         boolean isStarted, isRunning, isBeingClaimed;
-        HashMap <String,Integer>flagClaims;
 
         /**
          * FlagCountTask Constructor
@@ -713,6 +693,8 @@ public class GameFlagTimeModule extends AbstractModule {
             isRunning = false;
             isBeingClaimed = false;
             flagClaims = new HashMap<String,Integer>();
+            kills = new HashMap<String,Integer>();
+            deaths = new HashMap<String,Integer>();
         }
 
         /**
@@ -723,7 +705,8 @@ public class GameFlagTimeModule extends AbstractModule {
          * @param freq Frequency of flag claimer
          * @param pid PlayerID of flag claimer
          */
-        public void flagClaimed( int freq, int pid ) {
+        public void flagClaimed( int freq, int pid )
+        {
             if( isRunning == false || freq == -1 )
                 return;
 
@@ -744,16 +727,34 @@ public class GameFlagTimeModule extends AbstractModule {
                 }
             }
         }
+        
+        public void addPlayerKill(String player) {
+        	Integer count = kills.get( player );
+            if( count == null ) {
+            	kills.put( player, new Integer(1) );
+            } else {
+            	kills.put( player, new Integer( count.intValue() + 1) );
+            }
+        }
+        
+        public void addPlayerDeath(String player) {
+        	Integer count = deaths.get( player );
+            if( count == null ) {
+            	deaths.put( player, new Integer(1) );
+            } else {
+            	deaths.put( player, new Integer( count.intValue() + 1) );
+            }
+        }
 
         /**
          * Assigns flag (internally) to the claiming frequency.
          *
          */
-        public void assignFlag() {
+        public void assignFlag() 
+        {
             flagHoldingFreq = flagClaimingFreq;
 
-            int remain = (flagMinutesRequired * 60) - secondsHeld;
-
+            int remain = getTimeRemaining();
 
             Player p = m_botAction.getPlayer( claimerID );
             if( p != null ) {
@@ -777,6 +778,10 @@ public class GameFlagTimeModule extends AbstractModule {
             flagClaimingFreq = -1;
             secondsHeld = 0;
 
+        }
+        
+        public int getTimeRemaining() {
+        	return (flagMinutesRequired * 60) - secondsHeld;
         }
 
         /**
@@ -1077,8 +1082,6 @@ public class GameFlagTimeModule extends AbstractModule {
                 doShowTeamCmd(sender);
             else if(command.trim().equals("!terr") || command.trim().equals("!t"))
                 doTerrCmd(sender);
-            else if(command.trim().equals("!clearmines") || command.trim().equals("!cl"))
-                doClearMinesCmd(sender);
             else if(command.trim().equals("!warp") || command.trim().equals("!w"))
                 doWarpCmd(sender);
             
@@ -1118,7 +1121,6 @@ public class GameFlagTimeModule extends AbstractModule {
             pubsystem.getHelpLine("!terr    -- Shows terriers on the team and their last seen locations. (abbv: !t)"),
             pubsystem.getHelpLine("!team    -- Tells you which ships your team members are in."),
             pubsystem.getHelpLine("!time    -- Displays info about time remaining in flag time round."),
-        	pubsystem.getHelpLine("!clearmines       -- Clears all mines you have laid, keeping MVP status. (abbv: !cl)"),
         };
 	}
 
@@ -1200,15 +1202,15 @@ public class GameFlagTimeModule extends AbstractModule {
         if( strictFlagTimeMode ) {
         	strictFlagTimeMode = false;
             if( isFlagTimeStarted() )
-                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode disabled.  Changes will go into effect next round.");
+                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode disabled. Changes will go into effect next round.");
             else
-                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode disabled.  !startflagtime <minutes> to begin a normal flag time game.");
+                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode disabled. !starttime <minutes> to begin a normal flag time game.");
         } else {
         	strictFlagTimeMode = true;
             if( isFlagTimeStarted()) {
-                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode enabled.  All players will be warped into base next round.");
+                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode enabled. All players will be warped into base next round.");
             } else {
-                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode enabled.  !startflagtime <minutes> to begin a strict flag time game.");
+                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode enabled. !starttime <minutes> to begin a strict flag time game.");
             }
         }
     }
