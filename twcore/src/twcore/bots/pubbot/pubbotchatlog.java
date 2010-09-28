@@ -26,6 +26,7 @@ public class pubbotchatlog extends PubBotModule{
 		
 				if(message.startsWith("!help") )
 					m_botAction.sendPrivateMessage(name, "!last #      - returns # previous recorded chat lines (max. is "+maxSize+")");
+				    
 	
 				else if(message.startsWith("!last")){
 					
@@ -53,18 +54,25 @@ public class pubbotchatlog extends PubBotModule{
 		
 		if(event.getMessageType() == Message.ARENA_MESSAGE &&
 				(
-							message.equals("Message has been sent to online moderators") ||
-							message.equals("Reliable kill messages ON")									 ||
-							message.startsWith("IP:")																		 ||
-							message.startsWith("MachineId:")														 ||
-							message.startsWith("Ping:")																	 ||
-							message.startsWith("LOSS: S2C:")														 ||
-							message.startsWith("S2C:")																	 ||
-							message.startsWith("C2S CURRENT: Slow:")										 ||
-							message.startsWith("S2C CURRENT: Slow:")										 ||
-							message.startsWith("TIME: Session: ")												 ||
-							message.startsWith("Bytes/Sec:") 														 ||
-							message.contains("UserId:")					
+                        message.equals("Message has been sent to online moderators") ||
+                        message.equals("Reliable kill messages ON")                                  ||
+                        message.startsWith("IP:")                                                                        ||
+                        message.startsWith("MachineId:")                                                         ||
+                        message.startsWith("Ping:")                                                                  ||
+                        message.startsWith("LOSS: S2C:")                                                         ||
+                        message.startsWith("S2C:")                                                                   ||
+                        message.startsWith("C2S CURRENT: Slow:")                                         ||
+                        message.startsWith("S2C CURRENT: Slow:")                                         ||
+                        message.startsWith("TIME: Session: ")                                                ||
+                        message.startsWith("Bytes/Sec:")                                                         ||
+                        message.contains("UserId:") ||  
+                        message.startsWith("Res:") ||
+                        message.startsWith("Client:")||
+                        message.startsWith("Proxy:")||
+                        message.startsWith("Idle:")||
+                        message.startsWith("Timer drift:")||
+                        message.startsWith("This arena is Continuum-only.")||
+                        message.startsWith("Welcome")				
 																								)) return ;
 		
 		if(     event.getMessageType() == Message.ARENA_MESSAGE ||
