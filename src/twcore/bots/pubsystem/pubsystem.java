@@ -260,33 +260,16 @@ public class pubsystem extends SubspaceBot
             		"Private freqs:[" + (context.getPubUtil().isPrivateFrequencyEnabled() ? "ON" : "OFF") + "]  " + 
             		"Streak:[" + (context.getPubStreak().isEnabled() ? "ON" : "OFF") + "]  " +
             		"Store:[" + (context.getMoneySystem().isStoreOpened() ? "ON" : "OFF") + "]  " + 
-            		"Kill-o-thon:[" + (context.getPubKillSession().isRunning() ? "ON" : "OFF") + "]"; 
+            		"Kill-o-thon:[" + (context.getPubKillSession().isRunning() ? "ON" : "OFF") + "]  " +
+            		"Duel:[" + (context.getPubChallenge().isEnabled() ? "ON" : "OFF") + "]"; 
             		//"Lottery:[" + (context.getP().isRunning() ? "ON" : "OFF") + "]; 
             	
             	
                 m_botAction.sendPrivateMessage(playerName, message );
-  
-                String cmds = "!terr !team !clearmines";
-                
-                // TODO
-                //if( pubWarp.isWarpEnabled() )
-                //    cmds += " !warp";
-                
-                m_botAction.sendPrivateMessage(playerName, "Commands:  " + cmds + "  (!help for more)");
+                m_botAction.sendPrivateMessage(playerName, "Type !help for a list of commands.");
 
-                /*
-                if (game.isStarted()) {
-                	m_botAction.sendPrivateMessage(playerName, "Current game: " + game.getName() + " [ON]");
-                } else if (game instanceof NoGame) {
-                	m_botAction.sendPrivateMessage(playerName, "There is no game running.");
-                } else {
-                	m_botAction.sendPrivateMessage(playerName, "Current game: " + game.getName() + " [OFF]");
-                }
-                */
-                
+                context.handleEvent(event);
             }
-            
-            context.handleEvent(event);
 
         } catch (Exception e) {
         	Tools.printStackTrace(e);
