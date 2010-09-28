@@ -91,7 +91,7 @@ public class PubUtilModule extends AbstractModule {
 		if (location!=null)
 			return location;
 		else
-			return Location.UNKNOWN;
+			return Location.SPACE;
 	}
 	
 	public boolean isInside(int x, int y, Location location) {
@@ -311,6 +311,8 @@ public class PubUtilModule extends AbstractModule {
             return "on Roof" + exact;
         if( Location.SPAWN.equals(location) )
             return "in Spawn" + exact;
+        if( Location.SPACE.equals(location) )
+            return "in Space" + exact;
         
         return "Not yet spotted" + exact;
     }

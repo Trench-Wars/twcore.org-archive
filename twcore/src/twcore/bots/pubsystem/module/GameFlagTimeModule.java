@@ -5,14 +5,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.TimerTask;
+import java.util.TreeSet;
 import java.util.Vector;
+import java.util.Map.Entry;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
+import twcore.bots.pubsystem.module.PubUtilModule.Location;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
@@ -32,10 +36,26 @@ public class GameFlagTimeModule extends AbstractModule {
 	private static final int INTERMISSION_SECS = 90;	// Seconds between end of round and start of next
 	private static final int MAX_FLAGTIME_ROUNDS = 5;   // Max # rounds (odd numbers only)
 	
+	// HashMaps to calculte MVPs after each round
     private HashMap<String,Integer> playerTimes;        // Roundtime of player on freq
-    private HashMap<String,Integer> flagClaims;
-    private HashMap<String,Integer> kills;
-    private HashMap<String,Integer> deaths;
+    private HashMap<String,Integer> flagClaims;			// Flag claimed during a round
+    private HashMap<String,Integer> killsWeigth;		// Total of kill-weight after a round
+    private HashMap<String,Integer> terrKills;			// Number of terr-kill during a round
+    private HashMap<String,Integer> kills;				// Number of kills during a round
+    private HashMap<String,Integer> deaths;				// Number of deaths during a round
+    private HashMap<String,HashSet<Integer>> ships;		// Type of ships used during a round
+    
+    // Kill weight per location
+    private static HashMap<Location,Integer> locationWeight;
+    static {
+    	locationWeight = new HashMap<Location,Integer>();
+    	locationWeight.put(Location.FLAGROOM, 20);
+    	locationWeight.put(Location.MID, 10);
+    	locationWeight.put(Location.LOWER, 5);
+    	locationWeight.put(Location.ROOF, 5);
+    	locationWeight.put(Location.SPACE, 1);
+    	locationWeight.put(Location.SPAWN, 1);
+    }
     
     private FlagCountTask flagTimer;                    // Flag time main class
     private StartRoundTask startTimer;                  // TimerTask to start round
@@ -46,8 +66,6 @@ public class GameFlagTimeModule extends AbstractModule {
     private int flagMinutesRequired;                    // Flag minutes required to win
     private int freq0Score, freq1Score;                 // # rounds won
 
-    private List <String> mineClearedPlayers;           // Players who have already cleared mines this round
-    
     private Objset objs;                                // For keeping track of counter
 	
 	private HashMap<String,PubPlayer> warpPlayers;
@@ -72,15 +90,17 @@ public class GameFlagTimeModule extends AbstractModule {
     private boolean flagTimeStarted = false;
     private boolean strictFlagTimeMode = false;
     
+    private int moneyRoundWin = 0;
+    private int moneyGameWin = 0;
+    
 	public GameFlagTimeModule(BotAction botAction, PubContext context) {
 		super(botAction, context, "Game FlagTime");
 		
 		this.context = context;
-		
-		mineClearedPlayers = Collections.synchronizedList(new LinkedList<String>());
+
 		objs = m_botAction.getObjectSet();
 		
-		this.warpPlayers = new HashMap<String,PubPlayer>();
+		warpPlayers = new HashMap<String,PubPlayer>();
 		
         warpPtsLeftX = m_botAction.getBotSettings().getIntArray("warp_leftX", ",");
         warpPtsLeftY = m_botAction.getBotSettings().getIntArray("warp_leftY", ",");
@@ -92,9 +112,13 @@ public class GameFlagTimeModule extends AbstractModule {
         warpSafeRightX = m_botAction.getBotSettings().getInt("warp_safe_rightX");
         warpSafeRightY = m_botAction.getBotSettings().getInt("warp_safe_rightY");
         
+        moneyRoundWin = m_botAction.getBotSettings().getInt("flagtime_round_won");
+        moneyGameWin = m_botAction.getBotSettings().getInt("flagtime_game_won");
+        
 		if (m_botAction.getBotSettings().getInt("auto_warp")==1) {
 			autoWarp = true;
 		}
+
 	}
 	
 	public void startFlagTimeStarted() {
@@ -168,6 +192,10 @@ public class GameFlagTimeModule extends AbstractModule {
         		return;
         }
         
+        if (flagTimer != null) {
+        	flagTimer.newShip(playerName, ship);
+        }
+        
         if(ship == 5)
             m_botAction.sendOpposingTeamMessageByFrequency(freq, "Player "+p.getPlayerName()+" is now a terr; you may attach");
         
@@ -212,7 +240,7 @@ public class GameFlagTimeModule extends AbstractModule {
 		Player killer = m_botAction.getPlayer(killerID);
 		Player killed = m_botAction.getPlayer(killedID);
 		
-		flagTimer.addPlayerKill(killer.getPlayerName());
+		flagTimer.addPlayerKill(killer.getPlayerName(), killed.getShipType(), killer.getXTileLocation(), killer.getYTileLocation());
 		flagTimer.addPlayerDeath(killed.getPlayerName());
 	}
 	
@@ -303,7 +331,7 @@ public class GameFlagTimeModule extends AbstractModule {
     public void doShowTeamCmd(String sender) {
         Player p = m_botAction.getPlayer(sender);
         if( p == null )
-            throw new RuntimeException("Can't find you.  Please report this to staff.");
+            throw new RuntimeException("Can't find you. Please report this to staff.");
         if( p.getShipType() == 0 )
             throw new RuntimeException("You must be in a ship for this command to work.");
         ArrayList<Vector<String>>  team = getTeamData( p.getFrequency() );
@@ -318,8 +346,6 @@ public class GameFlagTimeModule extends AbstractModule {
             }
             m_botAction.sendPrivateMessage(sender, text);
         }
-
-        m_botAction.sendPrivateMessage(sender, "->  Use !ship <ship#> to change ships & keep MVP.  <-");
     }
     
     /**
@@ -386,7 +412,6 @@ public class GameFlagTimeModule extends AbstractModule {
         } catch (Exception e ) {
         }
 
-        mineClearedPlayers.clear();
         flagTimer = new FlagCountTask();
         m_botAction.showObject(2300); //Turns on coutdown lvz
         m_botAction.hideObject(1000); //Turns off intermission lvz
@@ -394,11 +419,66 @@ public class GameFlagTimeModule extends AbstractModule {
 
     }
 
+    private void doEndRoundNew() {
+    	
+        if( !isFlagTimeStarted() || flagTimer == null )
+            return;
+        
+        // Sort every list ASC or DESC
+        // By most kill, most death, etc..
+    	// High weight = better
+    	LinkedHashMap<HashMap<String,Integer>, Integer> sortedList = new LinkedHashMap<HashMap<String,Integer>, Integer>();
+        sortedList.put(sort(deaths,true), 15);
+        sortedList.put(sort(kills,false), 10);
+        sortedList.put(sort(terrKills,false), 30);
+        sortedList.put(sort(killsWeigth,false), 20);
+        sortedList.put(sort(flagClaims,false), 20);
+        sortedList.put(sort(playerTimes,false), 30);
+ 
+        // MVP Algorithm
+        // -------------
+        // For each list, a weight is attached
+        // This weight is multiplied by the position of the player on a list
+        // Example : A player is the top 2 for terr kills on a list of 15 players
+        //           The weight is 5, he's 2 on 15
+        //           5 * (15-2) = 65
+        // The player with most points is MVP, etc..
+
+        HashMap<String,Integer> playerWeight = new HashMap<String,Integer>();
+        for(Entry<HashMap<String,Integer>, Integer> entry: sortedList.entrySet()) {
+        	Iterator<String> players = entry.getKey().keySet().iterator();
+        	int i = 0;
+        	while(players.hasNext()) {
+        		String player = players.next();
+        		Integer currentWeight = playerWeight.get(player);
+        		if (currentWeight == null) {
+        			currentWeight = 0;
+        		}
+        		int weight = (playerWeight.size()-i) * entry.getValue();
+        		playerWeight.put(player, currentWeight.intValue() + weight);
+        		i++;
+        	}
+        }
+        
+        HashMap<String,Integer> topPlayers = sort(playerWeight,false);
+
+        Iterator<String> iterator = topPlayers.keySet().iterator();
+        m_botAction.sendArenaMessage("MVP:");
+        int position = 0;
+        while(iterator.hasNext()) {
+        	position++;
+        	String playerName = iterator.next();
+        	//System.out.println(position + ". " + playerName + " with " + topPlayers.get(playerName) + " points.");
+        	m_botAction.sendArenaMessage(position + ". " + playerName + " with " + topPlayers.get(playerName) + " points.");
+        }
+    }
+    
     /**
      * Ends a round of Flag Time mode & awards prizes.
      * After, sets up an intermission, followed by a new round.
      */
     private void doEndRound( ) {
+    	
         if( !isFlagTimeStarted() || flagTimer == null )
             return;
 
@@ -694,7 +774,10 @@ public class GameFlagTimeModule extends AbstractModule {
             isBeingClaimed = false;
             flagClaims = new HashMap<String,Integer>();
             kills = new HashMap<String,Integer>();
+            terrKills = new HashMap<String,Integer>();
             deaths = new HashMap<String,Integer>();
+            killsWeigth = new HashMap<String,Integer>();
+            ships = new HashMap<String,HashSet<Integer>>();
         }
 
         /**
@@ -728,13 +811,50 @@ public class GameFlagTimeModule extends AbstractModule {
             }
         }
         
-        public void addPlayerKill(String player) {
-        	Integer count = kills.get( player );
+        public void newShip(String player, int shipType) {
+        	
+        	HashSet<Integer> list = ships.get(player);
+        	if (list == null) {
+        		list = new HashSet<Integer>();
+        	}
+        	list.add(shipType);
+        	ships.put(player, list);
+        	
+        }
+        
+        public void addPlayerKill(String player, int shipTypeKilled, int x, int y) {
+        	
+        	// +1 kill
+        	Integer count = kills.get(player);
             if( count == null ) {
-            	kills.put( player, new Integer(1) );
+            	kills.put(player, new Integer(1));
             } else {
-            	kills.put( player, new Integer( count.intValue() + 1) );
+            	kills.put(player, new Integer(count.intValue() + 1));
             }
+            
+            // Terr kill ?
+            if (shipTypeKilled == Tools.Ship.TERRIER) {
+                Integer terrKill = terrKills.get(player);
+                if( terrKill == null ) {
+                	terrKills.put( player, new Integer(1) );
+                } else {
+                	terrKills.put( player, new Integer(terrKill.intValue() + 1));
+                }
+            }
+            
+            // Weight of the kill
+            Location location = context.getPubUtil().getLocation(x, y);
+            int weight = 0;
+            if (locationWeight.containsKey(location)) {
+            	weight = locationWeight.get(location);
+                Integer currentWeight = killsWeigth.get(player);
+                if( currentWeight == null ) {
+                	killsWeigth.put( player, new Integer(weight) );
+                } else {
+                	killsWeigth.put( player, new Integer(currentWeight.intValue() + weight));
+                }
+            }
+
         }
         
         public void addPlayerDeath(String player) {
@@ -877,6 +997,71 @@ public class GameFlagTimeModule extends AbstractModule {
             else
                 return grabs;
         }
+        
+        /**
+         * Returns number of kill for given player.
+         * @param name Name of player
+         * @return Flag grabs
+         */
+        public int getTotalKill( String name ) {
+            Integer count = kills.get( name );
+            if( count == null )
+                return 0;
+            else
+                return count;
+        }
+        
+        /**
+         * Returns number of death for given player.
+         * @param name Name of player
+         * @return Flag grabs
+         */
+        public int getTotalDeath( String name ) {
+            Integer count = deaths.get( name );
+            if( count == null )
+                return 0;
+            else
+                return count;
+        }
+        
+        /**
+         * Returns number of terr kill for given player.
+         * @param name Name of player
+         * @return Flag grabs
+         */
+        public int getTotalTerrKill( String name ) {
+            Integer count = terrKills.get( name );
+            if( count == null )
+                return 0;
+            else
+                return count;
+        }
+        
+        /**
+         * Returns kill weight for given player.
+         * @param name Name of player
+         * @return Flag grabs
+         */
+        public int getKillWeight( String name ) {
+            Integer count = killsWeigth.get( name );
+            if( count == null )
+                return 0;
+            else
+                return count;
+        }
+        
+        /**
+         * Returns number of ship change for given player.
+         * @param name Name of player
+         * @return Flag grabs
+         */
+        public int getTotalShipChange( String name ) {
+            HashSet<Integer> count = ships.get( name );
+            if( count == null )
+                return 0;
+            else
+                return count.size();
+        }
 
         /**
          * @return Time-based status of game
@@ -906,6 +1091,8 @@ public class GameFlagTimeModule extends AbstractModule {
         public int getHoldingFreq() {
             return flagHoldingFreq;
         }
+        
+        
 
         /**
          * Timer running once per second that handles the starting of a round,
@@ -965,7 +1152,7 @@ public class GameFlagTimeModule extends AbstractModule {
             int flagSecsReq = flagMinutesRequired * 60;
             if( secondsHeld >= flagSecsReq ) {
                 endGame();
-                doEndRound();
+                doEndRoundNew();
             } else if( flagSecsReq - secondsHeld == 60 ) {
                 m_botAction.sendArenaMessage( (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "Private freq" ) + " will win in 60 seconds." );
             } else if( flagSecsReq - secondsHeld == 10 ) {
@@ -1495,5 +1682,88 @@ public class GameFlagTimeModule extends AbstractModule {
 		return yCoord + (int) Math.round(randRadius * Math.cos(randRadians));
 	}
 
-	
+	public LinkedHashMap sort(HashMap passedMap, boolean ascending) {
+
+		List mapKeys = new ArrayList(passedMap.keySet());
+		List mapValues = new ArrayList(passedMap.values());
+		Collections.sort(mapValues);
+		Collections.sort(mapKeys);
+
+		if (!ascending)
+			Collections.reverse(mapValues);
+
+		LinkedHashMap someMap = new LinkedHashMap();
+		Iterator valueIt = mapValues.iterator();
+		while (valueIt.hasNext()) {
+			Object val = valueIt.next();
+			Iterator keyIt = mapKeys.iterator();
+			while (keyIt.hasNext()) {
+				Object key = keyIt.next();
+				if (passedMap.get(key).toString().equals(val.toString())) {
+					passedMap.remove(key);
+					mapKeys.remove(key);
+					someMap.put(key, val);
+					break;
+				}
+			}
+		}
+		return someMap;
+	}
+    
+    public void test() {
+    	
+        flagClaims = new HashMap<String,Integer>();
+        kills = new HashMap<String,Integer>();
+        terrKills = new HashMap<String,Integer>();
+        deaths = new HashMap<String,Integer>();
+        killsWeigth = new HashMap<String,Integer>();
+        playerTimes = new HashMap<String,Integer>();
+
+        flagClaims.put("Roger", 5);
+        flagClaims.put("Pierre", 2);
+        flagClaims.put("JF", 1);
+        flagClaims.put("Gaston", 6);
+        
+        kills.put("Roger", 20);
+        kills.put("Pierre", 10);
+        kills.put("JF", 20);
+        kills.put("Gaston", 15);
+        
+        terrKills.put("Roger", 2);
+        terrKills.put("Pierre", 5);
+        terrKills.put("JF", 1);
+        terrKills.put("Gaston", 3);
+        
+        deaths.put("Roger", 10);
+        deaths.put("Pierre", 1);
+        deaths.put("JF", 10);
+        deaths.put("Gaston", 1);
+        
+        killsWeigth.put("Roger", 500);
+        killsWeigth.put("Pierre", 250);
+        killsWeigth.put("JF", 100);
+        killsWeigth.put("Gaston", 500);
+        
+        playerTimes.put("Roger", 100);
+        playerTimes.put("Pierre", 250);
+        playerTimes.put("JF", 500);
+        playerTimes.put("Gaston", 1000);
+
+        System.out.println("Kills:  " + kills);
+        System.out.println("Death:  " + deaths);
+        System.out.println("TEK:    " + terrKills);
+        System.out.println("Flag:   " + flagClaims);
+        System.out.println("Weight: " + killsWeigth);
+        System.out.println("Time:   " + playerTimes);
+        System.out.println();
+        
+        doEndRoundNew();
+
+    }
+    
+    public static void main(String[] args) {
+		
+    	GameFlagTimeModule module = new GameFlagTimeModule(null, null);
+    	module.test();
+	}
 }
