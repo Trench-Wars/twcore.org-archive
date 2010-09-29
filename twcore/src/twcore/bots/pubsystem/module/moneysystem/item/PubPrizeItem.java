@@ -1,16 +1,19 @@
 package twcore.bots.pubsystem.module.moneysystem.item;
 
+import java.util.List;
+
+
 public class PubPrizeItem extends PubItem {
 
-	private int prizeNumber;
+	private List<Integer> prizes;
 
-	public PubPrizeItem(String name, String displayName, int price, int prizeNumber) {
-		super(name, displayName, price);
-		this.prizeNumber = prizeNumber;
+	public PubPrizeItem(String name, String displayName, String description, int price, List<Integer> prizes) {
+		super(name, displayName, description, price);
+		this.prizes = prizes;
 	}
 	
-	public int getPrizeNumber() {
-		return prizeNumber;
+	public List<Integer> getPrizes() {
+		return prizes;
 	}
 
 }

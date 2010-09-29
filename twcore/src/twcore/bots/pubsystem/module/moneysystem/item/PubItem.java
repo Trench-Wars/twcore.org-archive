@@ -3,25 +3,26 @@ package twcore.bots.pubsystem.module.moneysystem.item;
 import java.util.ArrayList;
 import java.util.List;
 
-import twcore.bots.pubsystem.module.player.PubPlayer;
-import twcore.bots.pubsystem.util.PubException;
-
 
 public abstract class PubItem {
     
     protected String name;
     protected String displayName;
+    protected String description;
     protected int price;
     protected boolean arenaItem;
     protected PubItemDuration duration;
     protected PubItemRestriction restriction;
     protected long lastTimeUsed = 0;
     protected List<String> abbreviations;
+    protected boolean playerOptional = false;
+    protected boolean playerStrict = false;
 
-    public PubItem(String name, String displayName, int price) {
+    public PubItem(String name, String displayName, String description, int price) {
         this.name = name;
         this.displayName = displayName;
         this.price = price;
+        this.description = description;
         this.arenaItem = false;
         this.abbreviations = new ArrayList<String>();
     }
@@ -36,6 +37,10 @@ public abstract class PubItem {
     
     public int getPrice() {
         return price;
+    }
+    
+    public String getDescription() {
+    	return description;
     }
     
     public void addAbbreviation(String abbv) {
@@ -56,6 +61,14 @@ public abstract class PubItem {
 
 	public void setRestriction(PubItemRestriction r) {
 		this.restriction = r;
+	}
+	
+	public void setPlayerStrict(boolean b) {
+		this.playerStrict = b;
+	}
+	
+	public void setPlayerOptional(boolean b) {
+		this.playerOptional = b;
 	}
 	
 	public boolean isRestricted() {
@@ -84,6 +97,14 @@ public abstract class PubItem {
 	
 	public long getLastTimeUsed() {
 		return lastTimeUsed;
+	}
+	
+	public boolean isPlayerOptional() {
+		return playerOptional;
+	}
+	
+	public boolean isPlayerStrict() {
+		return playerStrict;
 	}
 
 }

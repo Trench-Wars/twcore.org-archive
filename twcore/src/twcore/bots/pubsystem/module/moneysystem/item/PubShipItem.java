@@ -4,8 +4,8 @@ public class PubShipItem extends PubItem {
 
 	private int shipNumber;
 
-	public PubShipItem(String name, String displayName, int price, int shipNumber) {
-		super(name, displayName, price);
+	public PubShipItem(String name, String displayName, String description, int price, int shipNumber) {
+		super(name, displayName, description, price);
 		this.shipNumber = shipNumber;
 	}
 	
