@@ -1,7 +1,10 @@
 package twcore.bots.pubsystem.module.moneysystem;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 
+import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.module.moneysystem.item.PubCommandItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItemDuration;
@@ -16,13 +19,15 @@ import twcore.core.util.Tools;
 public class PubStore {
 	
 	private BotAction m_botAction;
+	private PubContext context;
 
     private LinkedHashMap<String, PubItem> items;
     
     private boolean opened = true;
 
-    public PubStore(BotAction botAction) {
+    public PubStore(BotAction botAction, PubContext context) {
     	this.m_botAction = botAction;
+    	this.context = context;
         this.items = new LinkedHashMap<String, PubItem>();
         try {
         	initializeStore();
@@ -51,15 +56,25 @@ public class PubStore {
 	    		int optionPointer = 0;
 	    		PubItem item = null;
 	    		if ("item_prize".equals(type)) {
-	    			item = new PubPrizeItem(data[0], data[1], Integer.parseInt(data[2]), Integer.parseInt(data[3]));
+	    			List<Integer> prizes = new ArrayList<Integer>();
+	    			if (data[4].trim().startsWith("{")) {
+	    				String[] split = data[4].trim().substring(1, data[4].trim().length()-1).split(";");
+	    				for(String prize: split) {
+	    					prizes.add(Integer.parseInt(prize));
+	    				}
+	    			}
+	    			else {
+	    				prizes.add(Integer.parseInt(data[4].trim()));
+	    			}
+	    			item = new PubPrizeItem(data[0].trim(), data[1].trim(), data[2].trim(), Integer.parseInt(data[3].trim()), prizes);
 	    			optionPointer = 4;
 	    		} 
 	    		else if ("item_ship".equals(type)) {
-	    			item = new PubShipItem(data[0], data[1], Integer.parseInt(data[2]), Integer.parseInt(data[3]));
+	    			item = new PubShipItem(data[0].trim(), data[1].trim(), data[2].trim(),Integer.parseInt(data[3].trim()), Integer.parseInt(data[4].trim()));
 	    			optionPointer = 4;
 	    		}
 	    		else if ("item_command".equals(type)) {
-	    			item = new PubCommandItem(data[0], data[1], Integer.parseInt(data[2]), data[3]);
+	    			item = new PubCommandItem(data[0].trim(), data[1].trim(), data[2].trim(), Integer.parseInt(data[3].trim()), data[5]);
 	    			optionPointer = 4;
 	    		}
 	    		addItem(item, data[0]);
@@ -75,7 +90,7 @@ public class PubStore {
 	    			
 	    			for(int i=optionPointer; i<data.length; i++) {
 	    				String option = data[i];
-	    				if(option.startsWith("!s")) {
+	    				if(option.startsWith("!s") && option.trim().length()==2) {
 	    					int ship = Integer.parseInt(option.substring(2));
 	    					r.addShip(ship);
 	    					hasRestriction = true;
@@ -106,6 +121,10 @@ public class PubStore {
 	    				} else if(option.startsWith("!abbv")) {
 	    					String abbv = option.substring(6);
 	    					item.addAbbreviation(abbv);
+	    				} else if(option.startsWith("!player")) {
+	    					item.setPlayerOptional(true);
+	    				} else if(option.startsWith("!strictplayer")) {
+	    					item.setPlayerStrict(true);
 	    				}
 	    			}
 	    			
@@ -119,27 +138,38 @@ public class PubStore {
         
     }
     
-    public PubItem buy(String itemName, PubPlayer player, int shipType) throws PubException {
+    public PubItem buy(String itemName, PubPlayer buyer, String params) throws PubException {
 
     	if (!opened)
     		throw new PubException("The store is closed!");
     	
+    	PubPlayer player = buyer;
         PubItem item = items.get(itemName);
-
+        
         if (item == null)
         	throw new PubException("This item does not exist.");
         
+        if (item.isPlayerStrict() || (item.isPlayerOptional() && !params.trim().isEmpty())) {
+        	player = context.getPlayerManager().getPlayer(params.trim());
+        	if (player == null)
+        		throw new PubException("Player not found.");
+        }
+        
         if (item.isRestricted()) {
         	PubItemRestriction restriction = item.getRestriction();
-        	restriction.check(item, player, shipType);
+        	restriction.check(item, buyer, m_botAction.getPlayer(player.getPlayerName()).getShipType());
         }
 
-        if (player.getMoney() < item.getPrice())
+        if (buyer.getMoney() < item.getPrice())
         	throw new PubException("You do not have enough money to buy this item.");
         
         if (item != null) {
-	        player.setMoney(player.getMoney() - item.getPrice());
-	        player.addItem(item);
+        	buyer.setMoney(buyer.getMoney() - item.getPrice());
+        	player.addItem(item);
+        }
+        
+        if (buyer != player) {
+        	m_botAction.sendPrivateMessage(player.getPlayerName(), buyer.getPlayerName() + " has bought you '" + item.getName() + "' for $" + item.getPrice() + ".");
         }
         
         item.hasBeenBought();

@@ -4,10 +4,9 @@ import java.lang.reflect.Method;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
-import java.util.Vector;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
@@ -31,8 +30,6 @@ import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
-import twcore.core.util.Point;
-import twcore.core.util.PointLocation;
 import twcore.core.util.Tools;
 
 public class PubMoneySystemModule extends AbstractModule {
@@ -61,7 +58,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	
     	this.playerManager = context.getPlayerManager();
 
-        this.store = new PubStore(m_botAction);
+        this.store = new PubStore(m_botAction, context);
         this.context = context;
 
         this.playersWithDurationItem = new HashMap<PubPlayer, PubItemDuration>();
@@ -108,20 +105,33 @@ public class PubMoneySystemModule extends AbstractModule {
     }
     
 
-    private void buyItem(final String playerName, String itemName, String params, int shipType){
+    private void buyItem(final String playerName, String itemName, String params){
     	
         try{
 
             if (playerManager.isPlayerExists(playerName)){
             	
             	Player player = m_botAction.getPlayer(playerName);
-            	PubPlayer pubPlayer = playerManager.getPlayer(playerName);
+            	PubPlayer buyer = playerManager.getPlayer(playerName);
+            	PubPlayer receiver = buyer;
             	
-            	PubItem item = store.buy(itemName, pubPlayer, shipType);
+            	PubItem item = store.buy(itemName, buyer, params);
 
+            	// Is it an item bought for someone else?
+            	// If yes, change the receiver for this player and not the buyer
+                if (item.isPlayerStrict() || (item.isPlayerOptional() && !params.trim().isEmpty())) {
+                	receiver = context.getPlayerManager().getPlayer(params.trim());
+                	if (receiver == null) {
+                		receiver = buyer; 
+                	}
+                }
+            	
                 // PRIZE ITEM
                 if (item instanceof PubPrizeItem) {
-                	m_botAction.specificPrize(pubPlayer.getPlayerName(), ((PubPrizeItem) item).getPrizeNumber());
+                	List<Integer> prizes = ((PubPrizeItem) item).getPrizes();
+                	for(int prizeNumber: prizes) {
+                		m_botAction.specificPrize(receiver.getPlayerName(), prizeNumber);
+                	}
                 }
                 
                 // COMMAND ITEM
@@ -146,11 +156,11 @@ public class PubMoneySystemModule extends AbstractModule {
                             m_botAction.scheduleTask(timer, duration.getSeconds()*1000);
                     	}
                     	else if (duration.hasDeaths()) {
-                    		playersWithDurationItem.put(pubPlayer, duration);
+                    		playersWithDurationItem.put(receiver, duration);
                     	}
                     }
                     
-                    pubPlayer.setShipItem((PubShipItem)item);
+                    receiver.setShipItem((PubShipItem)item);
                     m_botAction.setShip(playerName, ((PubShipItem) item).getShipNumber());
                 	
                 } 
@@ -236,22 +246,17 @@ public class PubMoneySystemModule extends AbstractModule {
 	        			lines.add("== SPECIALS =========================================================");
 	        		currentClass = PubCommandItem.class;
 	        	}
+
+	        	String line = " !buy " + item.getName();
+	        	if (item.isPlayerOptional()) {
+	        		line += " <name>";
+	        	} else if (item.isPlayerStrict()) {
+	        		line += " <name>";
+	        	}
+		        line = Tools.formatString(line, 23);
+	        	line += " -- " + (item.getDescription() + " ($" + item.getPrice() + ")");
 	        	
 	        	/*
-	        	String abbv = "";
-		        if (item.getAbbreviations().size()>0) {
-		        	abbv+="  (";
-		        	for(String str: item.getAbbreviations()) {
-		        		abbv += "!"+str+",";
-		        	}
-		        	abbv=abbv.substring(0,abbv.length()-1)+")";
-	        	}
-	        	*/
-	        	
-		        String line = Tools.formatString("!buy "+item.getName(), 20);
-		        //line += Tools.formatString(abbv, 12);
-	        	line += Tools.formatString("$"+item.getPrice()+"", 10);
-	        	
 	        	String info = "";
 	        	
 	        	if (item.isRestricted()) {
@@ -292,8 +297,9 @@ public class PubMoneySystemModule extends AbstractModule {
 	        		}
 	        		
 	        	}
+	        	*/
 	        	
-	        	lines.add(line+info);
+	        	lines.add(line);
 	        }
 	    } 
 
@@ -310,9 +316,9 @@ public class PubMoneySystemModule extends AbstractModule {
         if (command.indexOf(" ")!=-1) {
         	String params = command.substring(command.indexOf(" ")).trim();
         	command = command.substring(0, command.indexOf(" ")).trim();
-        	buyItem(sender, command, params, p.getShipType());
+        	buyItem(sender, command, params);
         } else {
-        	buyItem(sender, command, "", p.getShipType());
+        	buyItem(sender, command, "");
         }
     }
     
@@ -352,6 +358,21 @@ public class PubMoneySystemModule extends AbstractModule {
         if( killer == null || killed == null )
             return;
         
+        // A TK, do nothing for now
+        if ( killer.getFrequency() == killed.getFrequency() ) {
+
+        	/*
+        	if ( killer.getShipType() == Tools.Ship.SHARK )
+        		return;
+
+        	PubPlayer pubPlayerKiller = playerManager.getPlayer(killer.getPlayerName());
+        	if (pubPlayerKiller != null) {
+        		pubPlayerKiller.removeMoney(10);
+        	}
+        	*/
+        	return;
+        }
+
         // Disable if the player is dueling
         if (!context.getPubChallenge().isEnabled()) {
         	if (context.getPubChallenge().isDueling(killer.getPlayerName())) {

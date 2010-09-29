@@ -10,7 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.TimerTask;
-import java.util.TreeSet;
 import java.util.Vector;
 import java.util.Map.Entry;
 
@@ -39,7 +38,8 @@ public class GameFlagTimeModule extends AbstractModule {
 	// HashMaps to calculte MVPs after each round
     private HashMap<String,Integer> playerTimes;        // Roundtime of player on freq
     private HashMap<String,Integer> flagClaims;			// Flag claimed during a round
-    private HashMap<String,Integer> killsWeigth;		// Total of kill-weight after a round
+    private HashMap<String,Integer> killsLocationWeigth;// Total of kill-location-weight after a round
+    private HashMap<String,Integer> killsBounty;		// Total of bounty collected by kill after a round
     private HashMap<String,Integer> terrKills;			// Number of terr-kill during a round
     private HashMap<String,Integer> kills;				// Number of kills during a round
     private HashMap<String,Integer> deaths;				// Number of deaths during a round
@@ -239,8 +239,7 @@ public class GameFlagTimeModule extends AbstractModule {
 		int killedID = event.getKilleeID();
 		Player killer = m_botAction.getPlayer(killerID);
 		Player killed = m_botAction.getPlayer(killedID);
-		
-		flagTimer.addPlayerKill(killer.getPlayerName(), killed.getShipType(), killer.getXTileLocation(), killer.getYTileLocation());
+		flagTimer.addPlayerKill(killer.getPlayerName(), killed.getShipType(),event.getKilledPlayerBounty(), killer.getXTileLocation(), killer.getYTileLocation());
 		flagTimer.addPlayerDeath(killed.getPlayerName());
 	}
 	
@@ -424,16 +423,76 @@ public class GameFlagTimeModule extends AbstractModule {
         if( !isFlagTimeStarted() || flagTimer == null )
             return;
         
+        // Internal variables
+        boolean gameOver = false;
+        int winnerFreq  = flagTimer.getHoldingFreq();
+        int maxScore = (MAX_FLAGTIME_ROUNDS + 1) / 2;  // Score needed to win
+        int secs = flagTimer.getTotalSecs();
+        int mins = secs / 60;
+
+        // A normal frequency (0 or 1) won the round?
+        if(winnerFreq == 0 || winnerFreq == 1) 
+        {
+            if(winnerFreq == 0 )
+                freq0Score++;
+            else
+                freq1Score++;
+
+            if(freq0Score >= maxScore || freq1Score >= maxScore) {
+                gameOver = true;
+            } 
+            else {
+                int roundNumber = freq0Score + freq1Score;
+                m_botAction.sendArenaMessage(
+                		"END OF ROUND " + roundNumber + ": " +
+                		"Freq " + winnerFreq + " wins after " + getTimeString( flagTimer.getTotalSecs() ) + " " +
+                        "Score: " + freq0Score + " - " + freq1Score, 
+                        Tools.Sound.BEEP1);
+            }
+        
+        } else {
+        	// A public freq (<100) won the round?
+            if( winnerFreq < 100 )
+                m_botAction.sendArenaMessage( "END ROUND: Freq " + winnerFreq + " wins the round after " + getTimeString( flagTimer.getTotalSecs() ), Tools.Sound.BEEP1);
+            // A private freq won the round
+            else
+                m_botAction.sendArenaMessage( "END ROUND: A private freq wins the round after " + getTimeString( flagTimer.getTotalSecs() ), Tools.Sound.BEEP1);
+        }
+        
+
+        //  NOW, LET'S COMPUTE THE MVPs
+        
+        // Prepare some list
+        for(String playerName: killsBounty.keySet()) {
+        	killsBounty.put(playerName, (int)(killsBounty.get(playerName)/kills.get(playerName)));
+        }
+ 
+        HashMap<String,Integer> topPlayers = getTopPlayers();
+
+        Iterator<String> iterator = topPlayers.keySet().iterator();
+        m_botAction.sendArenaMessage("MVP:");
+        int position = 0;
+        while(iterator.hasNext()) {
+        	position++;
+        	String playerName = iterator.next();
+        	//System.out.println(position + ". " + playerName + " with " + topPlayers.get(playerName) + " points.");
+        	m_botAction.sendArenaMessage(position + ". " + playerName + " with " + topPlayers.get(playerName) + " points.");
+        }
+    }
+    
+    public HashMap<String,Integer> getTopPlayers() {
+    	
         // Sort every list ASC or DESC
-        // By most kill, most death, etc..
+        // By most kill, less death, etc..
     	// High weight = better
     	LinkedHashMap<HashMap<String,Integer>, Integer> sortedList = new LinkedHashMap<HashMap<String,Integer>, Integer>();
         sortedList.put(sort(deaths,true), 15);
         sortedList.put(sort(kills,false), 10);
         sortedList.put(sort(terrKills,false), 30);
-        sortedList.put(sort(killsWeigth,false), 20);
+        sortedList.put(sort(killsLocationWeigth,false), 20);
         sortedList.put(sort(flagClaims,false), 20);
         sortedList.put(sort(playerTimes,false), 30);
+        sortedList.put(sort(killsBounty,false), 30);
  
         // MVP Algorithm
         // -------------
@@ -460,17 +519,8 @@ public class GameFlagTimeModule extends AbstractModule {
         	}
         }
         
-        HashMap<String,Integer> topPlayers = sort(playerWeight,false);
-
-        Iterator<String> iterator = topPlayers.keySet().iterator();
-        m_botAction.sendArenaMessage("MVP:");
-        int position = 0;
-        while(iterator.hasNext()) {
-        	position++;
-        	String playerName = iterator.next();
-        	//System.out.println(position + ". " + playerName + " with " + topPlayers.get(playerName) + " points.");
-        	m_botAction.sendArenaMessage(position + ". " + playerName + " with " + topPlayers.get(playerName) + " points.");
-        }
+        return sort(playerWeight,false);
+    	
     }
     
     /**
@@ -776,8 +826,9 @@ public class GameFlagTimeModule extends AbstractModule {
             kills = new HashMap<String,Integer>();
             terrKills = new HashMap<String,Integer>();
             deaths = new HashMap<String,Integer>();
-            killsWeigth = new HashMap<String,Integer>();
+            killsLocationWeigth = new HashMap<String,Integer>();
             ships = new HashMap<String,HashSet<Integer>>();
+            killsBounty = new HashMap<String,Integer>(); 
         }
 
         /**
@@ -822,7 +873,7 @@ public class GameFlagTimeModule extends AbstractModule {
         	
         }
         
-        public void addPlayerKill(String player, int shipTypeKilled, int x, int y) {
+        public void addPlayerKill(String player, int shipTypeKilled, int bountyKilled, int x, int y) {
         	
         	// +1 kill
         	Integer count = kills.get(player);
@@ -842,16 +893,24 @@ public class GameFlagTimeModule extends AbstractModule {
                 }
             }
             
+            // Bounty of the killed
+        	Integer bountyTotal = killsBounty.get(player);
+            if( count == null ) {
+            	killsBounty.put(player, new Integer(bountyKilled));
+            } else {
+            	killsBounty.put(player, new Integer(bountyTotal.intValue() + bountyKilled));
+            }
+            
             // Weight of the kill
             Location location = context.getPubUtil().getLocation(x, y);
             int weight = 0;
             if (locationWeight.containsKey(location)) {
             	weight = locationWeight.get(location);
-                Integer currentWeight = killsWeigth.get(player);
+                Integer currentWeight = killsLocationWeigth.get(player);
                 if( currentWeight == null ) {
-                	killsWeigth.put( player, new Integer(weight) );
+                	killsLocationWeigth.put( player, new Integer(weight) );
                 } else {
-                	killsWeigth.put( player, new Integer(currentWeight.intValue() + weight));
+                	killsLocationWeigth.put( player, new Integer(currentWeight.intValue() + weight));
                 }
             }
 
@@ -1043,7 +1102,7 @@ public class GameFlagTimeModule extends AbstractModule {
          * @return Flag grabs
          */
         public int getKillWeight( String name ) {
-            Integer count = killsWeigth.get( name );
+            Integer count = killsLocationWeigth.get( name );
             if( count == null )
                 return 0;
             else
@@ -1362,7 +1421,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
         m_botAction.sendArenaMessage( "Flag Time mode has been enabled." );
 
-        m_botAction.sendArenaMessage( "Object: Hold flag for " + flagMinutesRequired + " consecutive minute" + (flagMinutesRequired == 1 ? "" : "s") + " to win a round.  Best " + ( MAX_FLAGTIME_ROUNDS + 1) / 2 + " of "+ MAX_FLAGTIME_ROUNDS + " wins the game." );
+        m_botAction.sendArenaMessage( "Objective: Hold flag for " + flagMinutesRequired + " consecutive minute" + (flagMinutesRequired == 1 ? "" : "s") + " to win a round.  Best " + ( MAX_FLAGTIME_ROUNDS + 1) / 2 + " of "+ MAX_FLAGTIME_ROUNDS + " wins the game." );
         if( strictFlagTimeMode )
             m_botAction.sendArenaMessage( "Round 1 begins in 60 seconds.  All players will be warped at round start." );
         else
@@ -1716,8 +1775,9 @@ public class GameFlagTimeModule extends AbstractModule {
         kills = new HashMap<String,Integer>();
         terrKills = new HashMap<String,Integer>();
         deaths = new HashMap<String,Integer>();
-        killsWeigth = new HashMap<String,Integer>();
+        killsLocationWeigth = new HashMap<String,Integer>();
         playerTimes = new HashMap<String,Integer>();
+        killsBounty = new HashMap<String,Integer>();
 
         flagClaims.put("Roger", 5);
         flagClaims.put("Pierre", 2);
@@ -1739,22 +1799,28 @@ public class GameFlagTimeModule extends AbstractModule {
         deaths.put("JF", 10);
         deaths.put("Gaston", 1);
         
-        killsWeigth.put("Roger", 500);
-        killsWeigth.put("Pierre", 250);
-        killsWeigth.put("JF", 100);
-        killsWeigth.put("Gaston", 500);
+        killsLocationWeigth.put("Roger", 500);
+        killsLocationWeigth.put("Pierre", 250);
+        killsLocationWeigth.put("JF", 100);
+        killsLocationWeigth.put("Gaston", 500);
         
         playerTimes.put("Roger", 100);
         playerTimes.put("Pierre", 250);
         playerTimes.put("JF", 500);
         playerTimes.put("Gaston", 1000);
+        
+        killsBounty.put("Roger", 5000);
+        killsBounty.put("Pierre", 3000);
+        killsBounty.put("JF", 2000);
+        killsBounty.put("Gaston", 1000);
 
         System.out.println("Kills:  " + kills);
         System.out.println("Death:  " + deaths);
         System.out.println("TEK:    " + terrKills);
         System.out.println("Flag:   " + flagClaims);
-        System.out.println("Weight: " + killsWeigth);
+        System.out.println("Weight: " + killsLocationWeigth);
         System.out.println("Time:   " + playerTimes);
+        System.out.println("Bounty: " + killsBounty);
         System.out.println();
         
         doEndRoundNew();
