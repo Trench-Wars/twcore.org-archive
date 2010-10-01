@@ -203,7 +203,7 @@ public class GameFlagTimeModule extends AbstractModule {
             m_botAction.sendOpposingTeamMessageByFrequency(freq, "Player "+p.getPlayerName()+" is now a terr; you may attach");
         
         try {
-            if( isFlagTimeStarted() && flagTimer != null && flagTimer.isRunning() ) {
+            if( isFlagTimeStarted() && isRunning() ) {
                 // Remove player if spec'ing
                 if( ship == Tools.Ship.SPECTATOR ) {
                     String pname = p.getPlayerName();
@@ -227,10 +227,14 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 	}
 	
+	public boolean isRunning() {
+		return flagTimer!=null && flagTimer.isRunning();
+	}
+	
 	public void handleEvent(FrequencyChange event) 
 	{
 		// Reset the time of a player for MVP purpose
-		if (flagTimer.isRunning()) {
+		if (isRunning()) {
 			Player player = m_botAction.getPlayer(event.getPlayerID());
 			playerTimes.put(player.getPlayerName(), new Integer(0));
 		}
@@ -238,7 +242,7 @@ public class GameFlagTimeModule extends AbstractModule {
 	
 	public void handleEvent(PlayerDeath event) {
 		
-		if (flagTimer.isRunning()) {
+		if (isRunning()) {
 			int killerID = event.getKillerID();
 			int killedID = event.getKilleeID();
 			Player killer = m_botAction.getPlayer(killerID);

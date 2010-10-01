@@ -69,15 +69,15 @@ public class PubStore {
 	    				prizes.add(Integer.parseInt(data[4].trim()));
 	    			}
 	    			item = new PubPrizeItem(data[0].trim(), data[1].trim(), data[2].trim(), Integer.parseInt(data[3].trim()), prizes);
-	    			optionPointer = 4;
+	    			optionPointer = 5;
 	    		} 
 	    		else if ("item_ship".equals(type)) {
 	    			item = new PubShipItem(data[0].trim(), data[1].trim(), data[2].trim(),Integer.parseInt(data[3].trim()), Integer.parseInt(data[4].trim()));
-	    			optionPointer = 4;
+	    			optionPointer = 5;
 	    		}
 	    		else if ("item_command".equals(type)) {
-	    			item = new PubCommandItem(data[0].trim(), data[1].trim(), data[2].trim(), Integer.parseInt(data[3].trim()), data[5]);
-	    			optionPointer = 4;
+	    			item = new PubCommandItem(data[0].trim(), data[1].trim(), data[2].trim(), Integer.parseInt(data[3].trim()), data[4]);
+	    			optionPointer = 5;
 	    		}
 	    		addItem(item, data[0]);
 	
