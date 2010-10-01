@@ -119,7 +119,7 @@ public class PubChallengeModule extends AbstractModule {
         }
         if(event.getShipType() != duelers.get(name).ship) {
             m_botAction.setShip(name, duelers.get(name).ship);
-            m_botAction.sendPrivateMessage(name, "Shipchange during duel is not permitted.");
+            m_botAction.sendPrivateMessage(name, "Ship change during duel is not permitted.");
         }
         
     }
@@ -205,6 +205,12 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendPrivateMessage(challenger, "You have already a pending challenge with "+pending.challenged+". Please remove it before challengin more.");
             return;
         }
+        
+        if(ship!=0 && context.getPlayerManager().isShipRestricted(ship)) {
+            m_botAction.sendPrivateMessage(challenger, "This ship is currently restricted on this arena, you cannot duel a player in this ship.");
+            return;
+        }
+        
         boolean validChallenge = false;
         Iterator<Player> arena = m_botAction.getPlayerIterator();
         while(arena.hasNext()){
@@ -367,7 +373,7 @@ public class PubChallengeModule extends AbstractModule {
         		m_botAction.sendArenaMessage("[PUB DUEL] " + realWinner + " has beaten "+realLoser+" by lagout in duel for $"+amount+".");
         	else {
         		m_botAction.sendPrivateMessage(realWinner,"You have beaten "+realLoser+" by lagout in duel for $"+amount+".");
-        		m_botAction.sendPrivateMessage(realLoser,"You have lost to " + realLoser+" by lagout in duel for $"+amount+".");
+        		m_botAction.sendPrivateMessage(realLoser,"You have lost to " + realWinner+" by lagout in duel for $"+amount+".");
             }
 
             laggers.remove(realLoser);
@@ -376,10 +382,10 @@ public class PubChallengeModule extends AbstractModule {
         	if (announceWinner && amount >= announceZoneWinnerAt) {
         		m_botAction.sendZoneMessage("[PUB DUEL] " + realWinner+" has beaten "+realLoser+" "+winnerKills+"-"+loserKills+" in duel for $"+amount+".", Tools.Sound.CROWD_OOO);
         	} else if (announceWinner && amount >= announceWinnerAt)
-        		m_botAction.sendArenaMessage("[PUB DUEL] " + realWinner+" has beaten "+realLoser+" "+winnerKills+"-"+loserKills+" in duel for $"+amount+".");
+        		m_botAction.sendArenaMessage("[PUB DUEL] " + realWinner+" has beaten "+realLoser+" "+loserKills+"-"+winnerKills+" in duel for $"+amount+".");
         	else {
         		m_botAction.sendPrivateMessage(realWinner,"You have beaten "+realLoser+" "+winnerKills+"-"+loserKills+" in duel for $"+amount+".");
-        		m_botAction.sendPrivateMessage(realLoser,"You have lost to " + realLoser+" "+winnerKills+"-"+loserKills+" in duel for $"+amount+".");
+        		m_botAction.sendPrivateMessage(realLoser,"You have lost to " + realWinner+" "+loserKills+"-"+winnerKills+" in duel for $"+amount+".");
             }
         		
         	DuelArea dArea = areas.get(duelers.get(winner).area);

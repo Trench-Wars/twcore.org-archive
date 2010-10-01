@@ -166,6 +166,12 @@ public class PubStore {
         	}
         	if (player == null)
         		throw new PubException("Player '" + params.trim()+ "' not found.");
+        	
+        	if (player.getPlayerName().equals(buyer.getPlayerName()))
+        		throw new PubException("You cannot specify your own name.");
+
+        	if (context.getPubChallenge().isDueling(player.getPlayerName()))
+        		throw new PubException("'" + params.trim()+ "' is currently dueling. You cannot buy an item for this player.");
         }
         
         if (item.isRestricted()) {

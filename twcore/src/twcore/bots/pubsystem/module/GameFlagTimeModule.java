@@ -473,7 +473,7 @@ public class GameFlagTimeModule extends AbstractModule {
         	killsInBase.put(playerName, (int)(killsInBase.get(playerName)/kills.get(playerName)));
         }
         
-        LinkedHashMap<String,Integer> deaths = sort(this.deaths,true);
+        LinkedHashMap<String,Integer> deaths = sort(this.deaths,false);
         LinkedHashMap<String,Integer> kills = sort(this.kills,false);
         LinkedHashMap<String,Integer> terrKills = sort(this.terrKills,false);
         LinkedHashMap<String,Integer> flagClaims = sort(this.flagClaims,false);
@@ -500,7 +500,7 @@ public class GameFlagTimeModule extends AbstractModule {
         String mostKillInBase = getPosition(killsInBase, 1);
         String mostDeath = getPosition(deaths, 1);
         m_botAction.sendArenaMessage("Distinctions:");
-        if (mostKill != null && mostKillInBase != null && mostDeath != null) {
+        if (mostKill != null || mostKillInBase != null || mostDeath != null) {
         	if (mostKill != null)
         		m_botAction.sendArenaMessage(" - Most kills         : " + mostKill + " with " + kills.get(mostKill) + " kills (ship(s): " + getShips(ships, mostKill) + ")");
         	if (mostKillInBase != null)

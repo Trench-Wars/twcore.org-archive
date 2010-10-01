@@ -192,7 +192,7 @@ public class PubUtilModule extends AbstractModule {
 		m_botAction.setDoors(255);
 		m_botAction.sendSmartPrivateMessage(sender, "Doors closed.");
 		if (doorArenaOnChange) {
-			m_botAction.sendArenaMessage("[SETTING] Doors are now lock.", Tools.Sound.BEEP1);
+			m_botAction.sendArenaMessage("[SETTING] Doors are now locked.", Tools.Sound.BEEP1);
 		}
 		doorStatus = DoorMode.CLOSED;
 	}
