@@ -307,6 +307,10 @@ public class PubMoneySystemModule extends AbstractModule {
         Player p = m_botAction.getPlayer(sender);
         if(p == null)
             return;
+        if (!command.contains(" ")) {
+        	m_botAction.sendPrivateMessage(sender, "You need to supply a item.");
+        	return;
+        }
         String itemName = command.substring(command.indexOf(" ")).trim();
         PubItem item = store.getItem(itemName);
         if (item == null) {

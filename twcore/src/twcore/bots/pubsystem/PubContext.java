@@ -199,8 +199,9 @@ public class PubContext {
 	
 	private void displayException(Exception e) {
 		String method = e.getStackTrace()[0].getMethodName();
+		String className = e.getStackTrace()[0].getClassName();
 		int line = e.getStackTrace()[0].getLineNumber();
-		m_botAction.sendChatMessage(1, e.getClass().getSimpleName() + " caught, " + method + " at line " + line);
+		m_botAction.sendChatMessage(1, e.getClass().getSimpleName() + " caught on " + className + ", " + method + " at line " + line);
 		Tools.printStackTrace(e);
 	}
 
