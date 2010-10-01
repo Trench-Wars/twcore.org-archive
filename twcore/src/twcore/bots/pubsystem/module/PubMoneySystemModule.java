@@ -292,6 +292,10 @@ public class PubMoneySystemModule extends AbstractModule {
         Player p = m_botAction.getPlayer(sender);
         if(p == null)
             return;
+        if (!command.contains(" ")) {
+        	doCmdItems(sender);
+        	return;
+        }
         command = command.substring(command.indexOf(" ")).trim();
         if (command.indexOf(":")!=-1) {
         	String params = command.substring(command.indexOf(":")+1).trim();
@@ -648,7 +652,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
 	@Override
 	public void reloadConfig() {
-		reloadConfig();
+		store.reloadConfig();
 	}
 
 

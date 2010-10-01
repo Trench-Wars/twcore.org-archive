@@ -194,7 +194,7 @@ public class PubStore {
         
         if (buyer != player) {
         	m_botAction.sendPrivateMessage(player.getPlayerName(), buyer.getPlayerName() + " has bought you '" + item.getName() + "' for $" + item.getPrice() + ".");
-        	m_botAction.sendPrivateMessage(buyer.getPlayerName(), buyer.getPlayerName() + " has received the item '" + item.getName() + "'.");
+        	m_botAction.sendPrivateMessage(buyer.getPlayerName(), player.getPlayerName() + " has received the item '" + item.getName() + "'.");
         }
         
         item.hasBeenBought();
