@@ -62,9 +62,9 @@ public class PubStreakModule extends AbstractModule {
 			moneyEnabled = true;
 		}
 		streakJump = m_botAction.getBotSettings().getInt("streak_jump");
-		winsStreakArenaAt = m_botAction.getBotSettings().getInt("wins_streak_arena_at");
-		winsStreakZoneAt = m_botAction.getBotSettings().getInt("wins_streak_zone_at");
-		winsStreakMoneyMultiplicator = m_botAction.getBotSettings().getInt("wins_streak_money_multiplicator");
+		winsStreakArenaAt = m_botAction.getBotSettings().getInt("streak_wins_arena_at");
+		winsStreakZoneAt = m_botAction.getBotSettings().getInt("streak_wins_zone_at");
+		winsStreakMoneyMultiplicator = m_botAction.getBotSettings().getInt("streak_wins_money_multiplicator");
 		streakBrokerBonus = m_botAction.getBotSettings().getInt("streak_broker_bonus");
 	}
 
@@ -220,9 +220,10 @@ public class PubStreakModule extends AbstractModule {
 
     	if (name.isEmpty()) {
     		
-    		if (winStreaks.containsKey(sender))
+    		if (winStreaks.containsKey(sender)) {
     			m_botAction.sendPrivateMessage(sender, "Current streak: " + winStreaks.get(sender) + " kill(s).");
-    		else
+    			m_botAction.sendPrivateMessage(sender, "Your next kill will get you $" + getMoney(winStreaks.get(sender)+1) + ".");
+    		} else
     			m_botAction.sendPrivateMessage(sender, "You don't have any streak yet.");
     	}
     	else {

@@ -1,25 +1,30 @@
 package twcore.bots.pubsystem.module.player;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import twcore.bots.pubsystem.module.moneysystem.LvzMoneyPanel;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItem;
+import twcore.bots.pubsystem.module.moneysystem.item.PubItemUsed;
+import twcore.bots.pubsystem.module.moneysystem.item.PubPrizeItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
 import twcore.core.BotAction;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerDeath;
+import twcore.core.game.Player;
+import twcore.core.util.Tools;
 
 
 public class PubPlayer implements Comparable<PubPlayer>{
     
-	private static final int MAX_ITEM_HISTORY = 25;
+	private static final int MAX_ITEM_USED_HISTORY = 30 * Tools.TimeInMillis.MINUTE;
 	
 	private BotAction m_botAction;
 
     private String name;
     private int money;
-    private LinkedList<PubItem> itemsBought;
+    private LinkedList<PubItemUsed> itemsBought;
     private LinkedList<PubItem> itemsBoughtThisLife;
     
     private LvzMoneyPanel cashPanel;
@@ -42,7 +47,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     	this.m_botAction = m_botAction;
         this.name = name;
         this.money = money;
-        this.itemsBought = new LinkedList<PubItem>();
+        this.itemsBought = new LinkedList<PubItemUsed>();
         this.itemsBoughtThisLife = new LinkedList<PubItem>();
         this.cashPanel = new LvzMoneyPanel(m_botAction);
         reloadPanel();
@@ -79,17 +84,52 @@ public class PubPlayer implements Comparable<PubPlayer>{
     }
 
     public void addItem(PubItem item) {
-    	if (itemsBought.size() > MAX_ITEM_HISTORY)
-    		itemsBought.removeFirst();
-        this.itemsBought.add(item);
+    	purgeItemBoughtHistory();
+        this.itemsBought.add(new PubItemUsed(item));
         this.itemsBoughtThisLife.add(item);
+    }
+    
+    private void purgeItemBoughtHistory() 
+    {
+    	Iterator<PubItemUsed> it = itemsBought.iterator();
+    	while(it.hasNext()) {
+    		PubItemUsed item = it.next();
+    		if (System.currentTimeMillis()-item.getTime() > MAX_ITEM_USED_HISTORY) {
+    			it.remove();
+    		} else {
+    			break;
+    		}
+    	}
+    }
+    
+    public boolean hasItemActive(PubItem itemToCheck) {
+    	if (itemToCheck==null)
+    		return false;
+
+    	Iterator<PubItemUsed> it = itemsBought.descendingIterator();
+    	
+    	while(it.hasNext()) {
+    		PubItemUsed item = it.next();
+    		if (!item.getItem().getClass().equals(itemToCheck.getClass()))
+    			continue;
+
+    		if (itemToCheck.hasDuration() && itemToCheck.getDuration().getSeconds()!=-1) {
+	    		int duration = itemToCheck.getDuration().getSeconds();
+	    		if (duration*1000 > System.currentTimeMillis()-item.getTime()) {
+	    			return true;
+	    		} else {
+	    			return false;
+	    		}
+    		}
+    	}
+    	return false;
     }
     
     private void resetItems() {
     	this.itemsBoughtThisLife.clear();
     }
 
-    public List<PubItem> getItemsBought() {
+    public List<PubItemUsed> getItemsBought() {
     	return itemsBought;
     }
     

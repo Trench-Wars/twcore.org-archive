@@ -90,7 +90,7 @@ public class PubStore {
 	    			
 	    			for(int i=optionPointer; i<data.length; i++) {
 	    				String option = data[i];
-	    				if(option.startsWith("!s") && option.trim().length()==2) {
+	    				if(option.startsWith("!s") && option.trim().length()==3) {
 	    					int ship = Integer.parseInt(option.substring(2));
 	    					r.addShip(ship);
 	    					hasRestriction = true;
@@ -118,9 +118,17 @@ public class PubStore {
 	    					int minutes = Integer.parseInt(option.substring(3));
 	    					d.setMinutes(minutes);
 	    					hasDuration = true;
+	    				} else if(option.startsWith("!ds")) {
+	    					int seconds = Integer.parseInt(option.substring(3));
+	    					d.setSeconds(seconds);
+	    					hasDuration = true;
 	    				} else if(option.startsWith("!abbv")) {
 	    					String abbv = option.substring(6);
 	    					item.addAbbreviation(abbv);
+	    				} else if(option.startsWith("!ri")) {
+	    					String itemName = option.substring(4);
+	    					r.addItemNotSameTime(itemName);
+	    					hasRestriction = true;
 	    				} else if(option.startsWith("!player")) {
 	    					item.setPlayerOptional(true);
 	    				} else if(option.startsWith("!strictplayer")) {
@@ -144,20 +152,34 @@ public class PubStore {
     		throw new PubException("The store is closed!");
     	
     	PubPlayer player = buyer;
-        PubItem item = items.get(itemName);
+        PubItem item = getItem(itemName);
         
         if (item == null)
         	throw new PubException("This item does not exist.");
         
         if (item.isPlayerStrict() || (item.isPlayerOptional() && !params.trim().isEmpty())) {
         	player = context.getPlayerManager().getPlayer(params.trim());
+        	if (item.isPlayerStrict() && params.isEmpty()) {
+        		throw new PubException("You must specify a player name for this item (!buy " + itemName + ":PlayerName).");
+        	}
         	if (player == null)
-        		throw new PubException("Player not found.");
+        		throw new PubException("Player '" + params.trim()+ "' not found.");
         }
         
         if (item.isRestricted()) {
         	PubItemRestriction restriction = item.getRestriction();
         	restriction.check(item, buyer, m_botAction.getPlayer(player.getPlayerName()).getShipType());
+        
+        	// Let's do another check
+        	List<String> itemNotSameTime = restriction.getItemNotSameTime();
+        	if (!itemNotSameTime.isEmpty()) {
+        		for(String name: itemNotSameTime) {
+        			PubItem itemToCheck = getItem(name);
+        			if (player.hasItemActive(itemToCheck)) {
+        				throw new PubException("You cannot buy this item while you have '" + itemToCheck.getName() + "' active.");
+        			}
+        		}
+        	}
         }
 
         if (buyer.getMoney() < item.getPrice())
@@ -178,10 +200,14 @@ public class PubStore {
     }
     
     public void addItem(PubItem item, String itemName) {
-    	items.put(itemName, item);
+    	items.put(itemName.toLowerCase(), item);
     	for(String abbv: item.getAbbreviations()) {
-    		items.put(abbv, item);
+    		items.put(abbv.toLowerCase(), item);
     	}
+    }
+    
+    public PubItem getItem(String itemName) {
+    	return items.get(itemName.toLowerCase());
     }
     
     public LinkedHashMap<String, PubItem> getItems() {

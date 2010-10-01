@@ -15,13 +15,19 @@ public class PubItemRestriction {
 	private int maxConsecutive = -1;
 	private int maxArenaPerMinute = -1;
 	private boolean buyableFromSpec = false;
+	private List<String> itemNotSameTime;
 	
 	public PubItemRestriction() {
 		ships = new ArrayList<Integer>();
+		itemNotSameTime = new ArrayList<String>();
 	}
 	
 	public void addShip(int shipType) {
 		ships.add(shipType);
+	}
+	
+	public void addItemNotSameTime(String item) {
+		itemNotSameTime.add(item);
 	}
 	
 	public void setMaxPerLife(int max) {
@@ -40,6 +46,10 @@ public class PubItemRestriction {
 		this.buyableFromSpec = b;
 	}
 	
+	public boolean isBuyableFromSpec() {
+		return buyableFromSpec;
+	}
+	
 	public int getMaxArenaPerMinute() {
 		return maxArenaPerMinute;
 	}
@@ -50,6 +60,10 @@ public class PubItemRestriction {
 	
 	public int getMaxConsecutive() {
 		return maxConsecutive;
+	}
+	
+	public List<String> getItemNotSameTime() {
+		return itemNotSameTime;
 	}
 	
 	public List<Integer> getRestrictedShips() {

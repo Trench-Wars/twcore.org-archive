@@ -43,6 +43,7 @@ public class GameFlagTimeModule extends AbstractModule {
     private HashMap<String,Integer> terrKills;			// Number of terr-kill during a round
     private HashMap<String,Integer> kills;				// Number of kills during a round
     private HashMap<String,Integer> deaths;				// Number of deaths during a round
+    private HashMap<String,Integer> killsInBase;		// Number of kills inside the base (mid+flagroom)
     private HashMap<String,HashSet<Integer>> ships;		// Type of ships used during a round
     
     // Kill weight per location
@@ -92,6 +93,7 @@ public class GameFlagTimeModule extends AbstractModule {
     
     private int moneyRoundWin = 0;
     private int moneyGameWin = 0;
+    private int moneyMVP = 0;
     
 	public GameFlagTimeModule(BotAction botAction, PubContext context) {
 		super(botAction, context, "Game FlagTime");
@@ -112,8 +114,9 @@ public class GameFlagTimeModule extends AbstractModule {
         warpSafeRightX = m_botAction.getBotSettings().getInt("warp_safe_rightX");
         warpSafeRightY = m_botAction.getBotSettings().getInt("warp_safe_rightY");
         
-        moneyRoundWin = m_botAction.getBotSettings().getInt("flagtime_round_won");
-        moneyGameWin = m_botAction.getBotSettings().getInt("flagtime_game_won");
+        moneyRoundWin = m_botAction.getBotSettings().getInt("flagtime_round_money_won");
+        moneyGameWin = m_botAction.getBotSettings().getInt("flagtime_game_money_won");
+        moneyMVP = m_botAction.getBotSettings().getInt("flagtime_mvp_money");
         
 		if (m_botAction.getBotSettings().getInt("auto_warp")==1) {
 			autoWarp = true;
@@ -462,37 +465,89 @@ public class GameFlagTimeModule extends AbstractModule {
 
         //  NOW, LET'S COMPUTE THE MVPs
         
-        // Prepare some list
+        // Prepare some list, get the % instead of a number
         for(String playerName: killsBounty.keySet()) {
         	killsBounty.put(playerName, (int)(killsBounty.get(playerName)/kills.get(playerName)));
         }
+        for(String playerName: killsInBase.keySet()) {
+        	killsInBase.put(playerName, (int)(killsInBase.get(playerName)/kills.get(playerName)));
+        }
+        
+        LinkedHashMap<String,Integer> deaths = sort(this.deaths,true);
+        LinkedHashMap<String,Integer> kills = sort(this.kills,false);
+        LinkedHashMap<String,Integer> terrKills = sort(this.terrKills,false);
+        LinkedHashMap<String,Integer> flagClaims = sort(this.flagClaims,false);
+        LinkedHashMap<String,Integer> killsInBase = sort(this.killsInBase,false);
  
         HashMap<String,Integer> topPlayers = getTopPlayers();
 
         Iterator<String> iterator = topPlayers.keySet().iterator();
         m_botAction.sendArenaMessage("MVP:");
         int position = 0;
-        while(iterator.hasNext()) {
+        // Show MVP top 3
+        while(iterator.hasNext() && position < 3) {
         	position++;
+        	int moneyBonus = (int)(moneyMVP/position);
         	String playerName = iterator.next();
-        	//System.out.println(position + ". " + playerName + " with " + topPlayers.get(playerName) + " points.");
-        	m_botAction.sendArenaMessage(position + ". " + playerName + " with " + topPlayers.get(playerName) + " points.");
+        	//m_botAction.sendArenaMessage(position + ". " + playerName + " with " + topPlayers.get(playerName) + " points. (bonus: $"+moneyBonus+")");
+        	m_botAction.sendArenaMessage(" " + position + ". " + playerName + " (bonus: $"+moneyBonus+")");
+        	PubPlayer player = context.getPlayerManager().getPlayer(playerName);
+        	if (player != null) {
+        		player.addMoney(moneyBonus);
+        	}
         }
+        String mostKill = getPosition(kills, 1);
+        String mostKillInBase = getPosition(killsInBase, 1);
+        String mostDeath = getPosition(deaths, 1);
+        m_botAction.sendArenaMessage("Distinctions:");
+        m_botAction.sendArenaMessage(" - Most kills         : " + mostKill + " with " + kills.get(mostKill) + " kills (ship(s): " + getShips(ships, mostKill) + ")");
+        m_botAction.sendArenaMessage(" - Most kills in base : " + mostKillInBase + " with " + killsInBase.get(mostKillInBase) + "% (ship(s): " + getShips(ships, mostKillInBase) + ")");
+        m_botAction.sendArenaMessage(" - Most deaths        : " + mostDeath + " with " + deaths.get(mostDeath) + " deaths (ship(s): " + getShips(ships, mostDeath) + ")");
     }
     
+    public String getShips(HashMap<String,HashSet<Integer>> ships, String playerName) {
+    	if (ships.containsKey(playerName)) {
+    		String ship = "";
+    		for(int shipNumber: ships.get(playerName)) {
+    			ship += "," + shipNumber;
+    		}
+    		return ship.substring(1);
+    	}
+    	else {
+    		return "";
+    	}
+    }
+    
+    public String getPosition(LinkedHashMap<String,Integer> map, int position) 
+    {
+    	int i = 1;
+    	Iterator<String> it = map.keySet().iterator();
+    	while(it.hasNext()) {
+    		String player = it.next();
+    		if (i==position) {
+    			return player;
+    		}
+    		i++;
+    	}
+    	return "none";
+    }
+    
+    /*
+     *
+     */
     public HashMap<String,Integer> getTopPlayers() {
     	
         // Sort every list ASC or DESC
         // By most kill, less death, etc..
     	// High weight = better
     	LinkedHashMap<HashMap<String,Integer>, Integer> sortedList = new LinkedHashMap<HashMap<String,Integer>, Integer>();
-        sortedList.put(sort(deaths,true), 15);
-        sortedList.put(sort(kills,false), 10);
+        sortedList.put(sort(deaths,true), 25);
+        sortedList.put(sort(kills,false), 20);
         sortedList.put(sort(terrKills,false), 30);
-        sortedList.put(sort(killsLocationWeigth,false), 20);
-        sortedList.put(sort(flagClaims,false), 20);
-        sortedList.put(sort(playerTimes,false), 30);
-        sortedList.put(sort(killsBounty,false), 30);
+        sortedList.put(sort(killsLocationWeigth,false), 40);
+        sortedList.put(sort(flagClaims,false), 35);
+        sortedList.put(sort(playerTimes,false), 50);
+        sortedList.put(sort(killsBounty,false), 25);
  
         // MVP Algorithm
         // -------------
@@ -827,8 +882,9 @@ public class GameFlagTimeModule extends AbstractModule {
             terrKills = new HashMap<String,Integer>();
             deaths = new HashMap<String,Integer>();
             killsLocationWeigth = new HashMap<String,Integer>();
+            killsInBase = new HashMap<String,Integer>();
             ships = new HashMap<String,HashSet<Integer>>();
-            killsBounty = new HashMap<String,Integer>(); 
+            killsBounty = new HashMap<String,Integer>();
         }
 
         /**
@@ -911,6 +967,17 @@ public class GameFlagTimeModule extends AbstractModule {
                 	killsLocationWeigth.put( player, new Integer(weight) );
                 } else {
                 	killsLocationWeigth.put( player, new Integer(currentWeight.intValue() + weight));
+                }
+            }
+            
+            // Kill inside the base
+            if (killsInBase.containsKey(location) && 
+            		(location.equals(Location.FLAGROOM) || location.equals(Location.MID))) {
+                Integer total = killsInBase.get(player);
+                if( total == null ) {
+                	killsInBase.put( player, new Integer(1) );
+                } else {
+                	killsInBase.put( player, new Integer(total.intValue() + 1));
                 }
             }
 
@@ -1741,7 +1808,7 @@ public class GameFlagTimeModule extends AbstractModule {
 		return yCoord + (int) Math.round(randRadius * Math.cos(randRadians));
 	}
 
-	public LinkedHashMap sort(HashMap passedMap, boolean ascending) {
+	public LinkedHashMap<String,Integer> sort(HashMap passedMap, boolean ascending) {
 
 		List mapKeys = new ArrayList(passedMap.keySet());
 		List mapValues = new ArrayList(passedMap.values());
