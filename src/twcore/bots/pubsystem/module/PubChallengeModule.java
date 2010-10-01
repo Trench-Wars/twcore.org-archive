@@ -374,12 +374,12 @@ public class PubChallengeModule extends AbstractModule {
         }
         if(!lagout){
         	if (announceWinner && amount >= announceZoneWinnerAt) {
-        		m_botAction.sendZoneMessage("[PUB DUEL] " + realWinner+" has beaten "+realLoser+" by "+winnerKills+"-"+loserKills+" in duel for $"+amount+".", Tools.Sound.CROWD_OOO);
+        		m_botAction.sendZoneMessage("[PUB DUEL] " + realWinner+" has beaten "+realLoser+" "+winnerKills+"-"+loserKills+" in duel for $"+amount+".", Tools.Sound.CROWD_OOO);
         	} else if (announceWinner && amount >= announceWinnerAt)
-        		m_botAction.sendArenaMessage("[PUB DUEL] " + realWinner+" has beaten "+realLoser+" by "+winnerKills+"-"+loserKills+" in duel for $"+amount+".");
+        		m_botAction.sendArenaMessage("[PUB DUEL] " + realWinner+" has beaten "+realLoser+" "+winnerKills+"-"+loserKills+" in duel for $"+amount+".");
         	else {
-        		m_botAction.sendPrivateMessage(realWinner,"You have beaten "+realLoser+" by "+winnerKills+"-"+loserKills+" in duel for $"+amount+".");
-        		m_botAction.sendPrivateMessage(realLoser,"You have lost to " + realLoser+" by "+winnerKills+"-"+loserKills+" in duel for $"+amount+".");
+        		m_botAction.sendPrivateMessage(realWinner,"You have beaten "+realLoser+" "+winnerKills+"-"+loserKills+" in duel for $"+amount+".");
+        		m_botAction.sendPrivateMessage(realLoser,"You have lost to " + realLoser+" "+winnerKills+"-"+loserKills+" in duel for $"+amount+".");
             }
         		
         	DuelArea dArea = areas.get(duelers.get(winner).area);

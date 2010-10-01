@@ -14,7 +14,7 @@ import twcore.core.util.Tools;
 
 public class PubStreakModule extends AbstractModule {
 
-	public final static int ARENA_TIMEOUT = 30 * Tools.TimeInMillis.SECOND;
+	public final static int ARENA_TIMEOUT = 2 * Tools.TimeInMillis.MINUTE;
 	public final static int ZONE_TIMEOUT = 15 * Tools.TimeInMillis.MINUTE;
 
 	private HashMap<String,Integer> winStreaks;
