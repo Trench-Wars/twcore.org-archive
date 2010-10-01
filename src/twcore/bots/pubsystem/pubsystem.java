@@ -296,7 +296,6 @@ public class pubsystem extends SubspaceBot
         if( message == null || sender == null )
             return;
 
-        message = message.toLowerCase();
         if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.PUBLIC_MESSAGE ) )
             handlePublicCommand(sender, message);
         if ( m_botAction.getOperatorList().isHighmod(sender) || sender.equals(m_botAction.getBotName()) )
@@ -319,8 +318,14 @@ public class pubsystem extends SubspaceBot
         try {
             if(command.equals("!help") || command.equals("!h"))
                 doHelpCmd(sender);
+            if(command.equals("!algorithm") || command.equals("!algo"))
+                doAlgorithmCmd(sender);
+            if(command.startsWith("!greetmessage"))
+                doGreetMessageCmd(sender, command);
+            if(command.equals("!about"))
+                doAboutCmd(sender);
             else {
-            	context.handleCommand(sender, command);
+            	context.handleCommand(sender, command.toLowerCase());
             }
             
         } catch(RuntimeException e) {
@@ -338,14 +343,42 @@ public class pubsystem extends SubspaceBot
      * @param command is the command that is being sent.
      */
     public void handleModCommand(String sender, String command) {
+    	
+    	command = command.toLowerCase();
+    	
         try {
-            context.handleModCommand(sender, command);
+        	if (command.equals("!setuparena") && m_botAction.getOperatorList().isOwner(sender)) {
+        		setupArenaSetting();
+        		m_botAction.sendSmartPrivateMessage(sender, "Setting changed!");
+        	}
+        	else {
+        		context.handleModCommand(sender, command);
+        	}
         } catch(RuntimeException e) {
             m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
     }
 
-
+    public void doAboutCmd(String sender) {
+    	String text = "This bot is an updated version of purepubbot, formerly known as RoboBoy/Girl.";
+    	m_botAction.sendPrivateMessage(sender, text);
+    	m_botAction.sendPrivateMessage(sender, "");
+    	m_botAction.sendPrivateMessage(sender, "Credits: Arobas+ and Dexter (main update)");
+    	m_botAction.sendPrivateMessage(sender, "         Subby and Eria (challenge/lottery feature)");
+    	m_botAction.sendPrivateMessage(sender, "         Diakka and Flared (for the map and setting)");
+    	m_botAction.sendPrivateMessage(sender, "         Witness, Dezmond and Cheese! (for their support)");
+    	m_botAction.sendPrivateMessage(sender, "         Qan and Cpt. Guano (authors of purepubbot)");
+    	m_botAction.sendPrivateMessage(sender, "         And many more...");
+    }
+    
+    public void doAlgorithmCmd(String sender) {
+    	m_botAction.sendPrivateMessage(sender, "This is a secret!");
+    }
+    
+    public void doGreetMessageCmd(String sender, String command) {
+    	m_botAction.sendUnfilteredPublicMacro("?set Misc:GreetMessage:" + command.substring(14).trim());
+    	m_botAction.sendPrivateMessage(sender, "Greeting message changed, reconnect to see the effect.");
+    }
 
     /**
      * Displays a help message depending on access level.
@@ -354,52 +387,6 @@ public class pubsystem extends SubspaceBot
      */
     public void doHelpCmd(String sender)
     {
-        String[] modHelpMessage =
-        {
-                "Hi. I'm your space traffic controller for this arena. I restrict ships, manage private frequencies, and much more.",
-                "Perhaps you want to run a command?",
-                "=============================================================",
-                "!warp    -- Warps you into flagroom at start of next round. (abbv: !w)",
-                "!terr    -- Shows terriers on the team and their last seen locations. (abbv: !t)",
-                "!team    -- Tells you which ships your team members are in.",
-                "!whereis <name>   -- Shows last seen location of <name> (if on your team).",
-                "!clearmines       -- Clears all mines you have laid, keeping MVP status. (abbv: !cl)",
-                "!restrictions     -- Lists all current ship restrictions.",
-                "!settile <name>   -- Change the current tileset (bluetech, boki, monolith).",
-                "",
-                "[STORE]",
-                "!buy              -- Shows buyable items from the store. (abbv: !items)",
-                "!buy <item_name>  -- Item to buy on the store. (abbv: !b) ",
-                "(!more for more commands)",  
-                "",
-                "[STAFF]",
-                "!go <ArenaName>   -- Moves the bot to <ArenaName>.",
-                "!privfreqs        -- Toggles private frequencies & check for imbalances.",
-                "!starttime <#>    -- Starts Flag Time game to <#> minutes",
-                "!stoptime         -- Ends Flag Time mode.",
-                "!stricttime       -- Toggles strict mode (all players warped)",
-                "!autowarp         -- Enables and disables 'opt out' warping style",
-                "!restrictions     -- Lists all current ship restrictions.",
-                "!set <ship> <#>   -- Sets <ship> to restriction <#>.",
-                "                     0=disabled; 1=any amount; other=weighted:",
-                "                     2 = 1/2 of freq can be this ship, 5 = 1/5, ...",
-                "!restrictions     -- Lists all current ship restrictions.",
-                "!die              -- Logs the bot off of the server.",
-        };
-
-        String[] playerHelpMessage =
-        {
-                "Hi. I'm your space traffic controller for this arena. I restrict ships, manage private frequencies, and much more.",
-                "Perhaps you want to run a command?",
-                "=============================================================",
-                "!warp   -- Warps you into flagroom at start of next round. (abbv: !w)",
-                "!terr   -- Shows terriers on the team and their last seen locations. (abbv: !t)",
-                "!team   -- Tells you which ships your team members are in.",
-                "!buy    -- Shows buyable items from the store. (abbv: !items)",
-                "!buy <item>  -- Item to buy on the store. (abbv: !b) ",
-                "(!more for more commands)",          
-        };
-        
         Vector<String> messages = new Vector<String>();
         Vector<String> modMessages = new Vector<String>();
         
@@ -422,6 +409,14 @@ public class pubsystem extends SubspaceBot
         		m2.add("-- Mod+ --");
         		m2.addAll(Arrays.asList(module.getModHelpMessage()));
         	}
+        	
+        	String[] others = new String[] {
+        			getModuleHelpHeader("Others"),
+        			getHelpLine("!algorithm    -- How the robot calculate the money you earn for each kill."),
+        			getHelpLine("!about        -- About this bot."),
+        	};
+        	m1.addAll(Arrays.asList(others));
+        	m2.addAll(Arrays.asList(others));
         	
         	messages.addAll(m1);
         	modMessages.addAll(m2);
@@ -579,6 +574,34 @@ public class pubsystem extends SubspaceBot
 
     public void handleEvent(FrequencyChange event) {
     	context.handleEvent(event);
+    }
+    
+    /*
+     * This method should be called only once to change the current setting of the arena
+     * The bot needs to be sysop of course.
+     */
+    public void setupArenaSetting() {
+    	
+    	String[] ships = new String[] {
+    		"Warbird",
+    		"Javelin",
+    		"Spider",
+    		"Leviathan",
+    		"Terrier",
+    		"Weasel",
+    		"Lancaster",
+    		"Shark"
+    	};
+    	
+    	// Engine ShutDown Time set to 5 seconds
+    	m_botAction.sendUnfilteredPublicMessage("?set Prize:EngineShutDownTime:500");
+    	
+    	for(String shipName: ships) {
+    		m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":ShieldTime:50000");
+    		m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":SuperTime:50000");
+    		m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":ThorMax:1");
+    	}
+    	
     }
 
 

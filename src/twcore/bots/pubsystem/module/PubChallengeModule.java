@@ -78,7 +78,7 @@ public class PubChallengeModule extends AbstractModule {
         
         database = m_botAction.getBotSettings().getString("database"); 
         
-        announceWinnerAt = m_botAction.getBotSettings().getInt("duel_announce_winner_at"); 
+        announceWinnerAt = m_botAction.getBotSettings().getInt("duel_announce_arena_winner_at"); 
         announceZoneWinnerAt = m_botAction.getBotSettings().getInt("duel_announce_zone_winner_at");
         deaths = m_botAction.getBotSettings().getInt("duel_deaths");
     }

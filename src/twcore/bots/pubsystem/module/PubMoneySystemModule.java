@@ -111,19 +111,23 @@ public class PubMoneySystemModule extends AbstractModule {
 
             if (playerManager.isPlayerExists(playerName)){
             	
+            	// Wait, is this player dueling?
+            	if (context.getPubChallenge().isDueling(playerName)) {
+            		m_botAction.sendPrivateMessage(playerName, "You cannot buy an item while dueling.");
+            		return;
+            	}
+            	
             	Player player = m_botAction.getPlayer(playerName);
             	PubPlayer buyer = playerManager.getPlayer(playerName);
-            	PubPlayer receiver = buyer;
-            	
-            	PubItem item = store.buy(itemName, buyer, params);
+            	final PubItem item = store.buy(itemName, buyer, params);
+            	final PubPlayer receiver;
 
             	// Is it an item bought for someone else?
             	// If yes, change the receiver for this player and not the buyer
                 if (item.isPlayerStrict() || (item.isPlayerOptional() && !params.trim().isEmpty())) {
                 	receiver = context.getPlayerManager().getPlayer(params.trim());
-                	if (receiver == null) {
-                		receiver = buyer; 
-                	}
+                } else {
+                	receiver = buyer;
                 }
             	
                 // PRIZE ITEM
@@ -131,6 +135,19 @@ public class PubMoneySystemModule extends AbstractModule {
                 	List<Integer> prizes = ((PubPrizeItem) item).getPrizes();
                 	for(int prizeNumber: prizes) {
                 		m_botAction.specificPrize(receiver.getPlayerName(), prizeNumber);
+                	}
+                	if (item.hasDuration()) {
+                    	PubItemDuration duration = item.getDuration();
+                    	m_botAction.sendPrivateMessage(receiver.getPlayerName(), "You have " + duration.getSeconds() + " seconds to use your item.");
+                    	if (duration.hasTime()) {
+                    		TimerTask timer = new TimerTask() {
+                                public void run() {
+                                	m_botAction.sendUnfilteredPrivateMessage(receiver.getPlayerName(), "*shipreset");
+                                	m_botAction.sendPrivateMessage(receiver.getPlayerName(), "Item '" + item.getName() + "' lost.");
+                                }
+                            };
+                            m_botAction.scheduleTask(timer, duration.getSeconds()*1000);
+                    	}
                 	}
                 }
                 
@@ -195,8 +212,9 @@ public class PubMoneySystemModule extends AbstractModule {
     		String money = split[1];
     		PubPlayer pubPlayer = playerManager.getPlayer(name,false);
     		if (pubPlayer != null) {
+    			int currentMoney = pubPlayer.getMoney();
     			pubPlayer.setMoney(Integer.valueOf(money));
-    			m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $" + money);
+    			m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $" + money + " (before: $" + currentMoney + ")");
     		
     			PubLogSystem.write(LogType.MOD, "!setmoney " + pubPlayer.getPlayerName() + ":" + money + " by " + sender + "\n");
     		
@@ -231,74 +249,36 @@ public class PubMoneySystemModule extends AbstractModule {
     	} 
         else 
     	{
+        	lines.add("List of items you can buy. Each items has a set of restrictions/durations.");
+        	lines.add(" *Target optional **Target required (!buy item:PlayerName)");
+        	lines.add("");
+        	
 	        for(PubItem item: store.getItems().values()) {
 	        	
 	        	if (item instanceof PubPrizeItem) {
 	        		if (!currentClass.equals(PubPrizeItem.class))
-	        			lines.add("== PRIZES ===========================================================");
+	        			lines.add("Prizes:");
 	        		currentClass = PubPrizeItem.class;
 	        	} else if (item instanceof PubShipItem) {
+	        		lines.add("");
 	        		if (!currentClass.equals(PubShipItem.class))
-	        			lines.add("== SHIPS ============================================================");
+	        			lines.add("Ships:");
 	        		currentClass = PubShipItem.class;
 	        	} else if (item instanceof PubCommandItem) {
+	        		lines.add("");
 	        		if (!currentClass.equals(PubCommandItem.class))
-	        			lines.add("== SPECIALS =========================================================");
+	        			lines.add("Specials:");
 	        		currentClass = PubCommandItem.class;
 	        	}
 
 	        	String line = " !buy " + item.getName();
 	        	if (item.isPlayerOptional()) {
-	        		line += " <name>";
+	        		line += "*";
 	        	} else if (item.isPlayerStrict()) {
-	        		line += " <name>";
+	        		line += "**";
 	        	}
-		        line = Tools.formatString(line, 23);
+		        line = Tools.formatString(line, 21);
 	        	line += " -- " + (item.getDescription() + " ($" + item.getPrice() + ")");
-	        	
-	        	/*
-	        	String info = "";
-	        	
-	        	if (item.isRestricted()) {
-	        		PubItemRestriction r = item.getRestriction();
-	        		if (r.getRestrictedShips().size()==0) 
-	        			info += "All ships";
-	        		else if (r.getRestrictedShips().size()==8) {
-		        		info += "None"; // Just in case
-	        		} else {
-	        			String ships = "Ships:";
-	        			for(int i=1; i<9; i++) {
-	        				if (!r.getRestrictedShips().contains(i)) {
-	        					ships += i+",";
-	        				}
-	        			}
-	        			info += ships.substring(0, ships.length()-1);
-	        		}
-	        		info = Tools.formatString(info, 20);
-	        		if (r.getMaxPerLife()!=-1) {
-	        			info += r.getMaxPerLife()+" per life. ";
-	        		}
-	        		if (r.getMaxArenaPerMinute()!=-1) {
-	        			info += "1 every "+r.getMaxArenaPerMinute()+" minutes. ";
-	        		}
-	        		
-	        	}
-	        	
-	        	if (item.hasDuration()) {
-	        		PubItemDuration d = item.getDuration();
-	        		if (d.getDeaths()!=-1 && d.getSeconds()!=-1) {
-	        			info += "Last "+d.getDeaths()+" life(s) or "+(int)(d.getSeconds()/60)+" minute(s). ";
-	        		}
-	        		else if (d.getDeaths()!=-1) {
-	        			info += "Last "+d.getDeaths()+" life(s). ";
-	        		}
-	        		else if (d.getSeconds()!=-1) {
-	        			info += "Last "+(int)(d.getSeconds()/60)+" minute(s). ";
-	        		}
-	        		
-	        	}
-	        	*/
-	        	
 	        	lines.add(line);
 	        }
 	    } 
@@ -313,12 +293,89 @@ public class PubMoneySystemModule extends AbstractModule {
         if(p == null)
             return;
         command = command.substring(command.indexOf(" ")).trim();
-        if (command.indexOf(" ")!=-1) {
-        	String params = command.substring(command.indexOf(" ")).trim();
-        	command = command.substring(0, command.indexOf(" ")).trim();
+        if (command.indexOf(":")!=-1) {
+        	String params = command.substring(command.indexOf(":")+1).trim();
+        	command = command.substring(0, command.indexOf(":")).trim();
         	buyItem(sender, command, params);
         } else {
         	buyItem(sender, command, "");
+        }
+    }
+    
+    private void doCmdItemInfo(String sender, String command) 
+    {
+        Player p = m_botAction.getPlayer(sender);
+        if(p == null)
+            return;
+        String itemName = command.substring(command.indexOf(" ")).trim();
+        PubItem item = store.getItem(itemName);
+        if (item == null) {
+        	m_botAction.sendPrivateMessage(sender, "Item '" + itemName + "' not found.");
+        }
+        else {
+        	
+        	m_botAction.sendPrivateMessage(sender, "Item: " + item.getName() + " (" + item.getDescription() + ")");
+        	m_botAction.sendPrivateMessage(sender, "Price: $" + item.getPrice());
+        	
+        	if (item.isPlayerOptional()) {
+        		m_botAction.sendPrivateMessage(sender, "Targetable: Optional");
+        	} else if (item.isPlayerStrict()) {
+        		m_botAction.sendPrivateMessage(sender, "Targetable: Required");
+        	} else {
+        		m_botAction.sendPrivateMessage(sender, "Targetable: No");
+        	}
+
+        	if (item.isRestricted()) {
+        		m_botAction.sendPrivateMessage(sender, "Restrictions:");
+        		String info = "";
+        		PubItemRestriction r = item.getRestriction();
+        		if (r.getRestrictedShips().size()==8) {
+	        		info += "Cannot be bought while playing"; 
+	        		m_botAction.sendPrivateMessage(sender, "  - Cannot be bought while playing");
+        		} else {
+        			String ships = "";
+        			for(int i=1; i<9; i++) {
+        				if (!r.getRestrictedShips().contains(i)) {
+        					ships += i+",";
+        				}
+        			}
+        			m_botAction.sendPrivateMessage(sender, "  - Available only for ship(s) : " + ships.substring(0, ships.length()-1));
+        		}
+        		if (r.getMaxConsecutive()!=-1) {
+        			m_botAction.sendPrivateMessage(sender, "  - Maximum of " + r.getMaxConsecutive()+" purchase(s) consecutive");
+        		}
+        		if (r.getMaxPerLife()!=-1) {
+        			m_botAction.sendPrivateMessage(sender, "  - Maximum of " + r.getMaxPerLife()+" per life");
+        		}
+        		if (r.getMaxArenaPerMinute()!=-1) {
+        			m_botAction.sendPrivateMessage(sender, "  - Maximum of 1 every "+r.getMaxArenaPerMinute()+" minutes for the whole arena");
+        		}
+        		if (!r.isBuyableFromSpec()) {
+        			m_botAction.sendPrivateMessage(sender, "  - Cannot be bought while spectating");
+        		}
+        	}
+
+        	if (item.hasDuration()) {
+        		m_botAction.sendPrivateMessage(sender, "Durations:");
+        		PubItemDuration d = item.getDuration();
+        		if (d.getDeaths()!=-1 && d.getSeconds()!=-1 && d.getSeconds() > 60) {
+        			m_botAction.sendPrivateMessage(sender, "  - " + d.getDeaths()+" life(s) or "+(int)(d.getSeconds()/60)+" minutes");
+        		}
+        		else if (d.getDeaths()!=-1 && d.getSeconds()!=-1 && d.getSeconds() <= 60) {
+        			m_botAction.sendPrivateMessage(sender, "  - " + d.getDeaths()+" life(s) or "+(int)(d.getSeconds())+" seconds");
+        		}
+        		else if (d.getDeaths()!=-1) {
+        			m_botAction.sendPrivateMessage(sender, "  - " + d.getDeaths()+" life(s)");
+        		}
+        		else if (d.getSeconds()!=-1 && d.getSeconds() > 60) {
+        			m_botAction.sendPrivateMessage(sender, "  - " + (int)(d.getSeconds()/60)+" minutes");
+        		}
+        		else if (d.getSeconds()!=-1 && d.getSeconds() <= 60) {
+        			m_botAction.sendPrivateMessage(sender, "  - " + (int)(d.getSeconds())+" seconds");
+        		}
+
+        	}
+
         }
     }
     
@@ -440,26 +497,26 @@ public class PubMoneySystemModule extends AbstractModule {
     }
 
     public void handleCommand(String sender, String command) {
-        try {
-            if(command.startsWith("!items") || command.trim().equals("!i")) {
-                doCmdItems(sender);
-            }
-            else if(command.trim().equals("!buy") || command.trim().equals("!b")){
-            	doCmdItems(sender);
-            }
-            else if(command.startsWith("!$") || command.startsWith("!money") || command.startsWith("!cash")) {
-                doCmdDisplayMoney(sender, command);
-            }
-            else if(command.startsWith("!buy") || command.startsWith("!b")){
-            	doCmdBuy(sender, command);
-            }
-            else if(opList.isSmod(sender) && command.startsWith("!setmoney")) {
-            	doCmdSetMoney(sender,command);
-            }
-        } catch(RuntimeException e) {
-            if( e != null && e.getMessage() != null )
-                m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
+    	
+        if(command.startsWith("!items") || command.trim().equals("!i")) {
+            doCmdItems(sender);
         }
+        else if(command.trim().equals("!buy") || command.trim().equals("!b")){
+        	doCmdItems(sender);
+        }
+        else if(command.startsWith("!$") || command.startsWith("!money") || command.startsWith("!cash")) {
+            doCmdDisplayMoney(sender, command);
+        }
+        else if(command.startsWith("!iteminfo") || command.startsWith("!buyinfo")){
+        	doCmdItemInfo(sender, command);
+        }
+        else if(command.startsWith("!buy") || command.startsWith("!b")){
+        	doCmdBuy(sender, command);
+        }
+        else if(opList.isSmod(sender) && command.startsWith("!setmoney")) {
+        	doCmdSetMoney(sender,command);
+        }
+
     }
     
     public void handleModCommand(String sender, String command) {
@@ -469,16 +526,17 @@ public class PubMoneySystemModule extends AbstractModule {
 	@Override
 	public String[] getHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!buy              -- Shows buyable items from the store. (also !items)"),
-	        pubsystem.getHelpLine("!buy <item_name>  -- Item to buy on the store. (also !b)"),
-	        pubsystem.getHelpLine("!money <name>     -- Display your money or for a given player name (also !$, !cash)"),
+			pubsystem.getHelpLine("!buy                   -- Display the list of items. (also !items)"),
+			pubsystem.getHelpLine("!buy <item_name>       -- Item to buy. (also !b)"),
+			pubsystem.getHelpLine("!iteminfo <item_name>  -- Information about this item. (restriction, duration, etc.)"),
+	        pubsystem.getHelpLine("!money <name>          -- Display your money or for a given player name. (also !$, !cash)"),
         };
 	}
 
 	@Override
 	public String[] getModHelpMessage() {
 		return new String[] {
-				pubsystem.getHelpLine("!setmoney <name>:<amount>  -- Set the money for a given player name (Smod+ only)."),
+				pubsystem.getHelpLine("!setmoney <name>:<amount>  -- Set the money for a given player name. (Smod+ only)."),
         };
 	}
 
