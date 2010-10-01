@@ -387,8 +387,10 @@ public class PubChallengeModule extends AbstractModule {
         }
         DuelArea dArea = areas.get(duelers.get(winner).area);
         dArea.inUse = false;
-        context.getPlayerManager().getPlayer(realWinner).addMoney(amount);
-        context.getPlayerManager().getPlayer(realLoser).removeMoney(amount);
+        if (context.getPlayerManager().getPlayer(realWinner) != null)
+        	context.getPlayerManager().getPlayer(realWinner).addMoney(amount);
+        if (context.getPlayerManager().getPlayer(realLoser) != null)
+        	context.getPlayerManager().getPlayer(realLoser).removeMoney(amount);
         
         Dueler d1 = duelers.remove(winner);
         Dueler d2 = duelers.remove(loser);

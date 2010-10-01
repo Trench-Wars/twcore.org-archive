@@ -500,9 +500,14 @@ public class GameFlagTimeModule extends AbstractModule {
         String mostKillInBase = getPosition(killsInBase, 1);
         String mostDeath = getPosition(deaths, 1);
         m_botAction.sendArenaMessage("Distinctions:");
-        m_botAction.sendArenaMessage(" - Most kills         : " + mostKill + " with " + kills.get(mostKill) + " kills (ship(s): " + getShips(ships, mostKill) + ")");
-        m_botAction.sendArenaMessage(" - Most kills in base : " + mostKillInBase + " with " + killsInBase.get(mostKillInBase) + "% (ship(s): " + getShips(ships, mostKillInBase) + ")");
-        m_botAction.sendArenaMessage(" - Most deaths        : " + mostDeath + " with " + deaths.get(mostDeath) + " deaths (ship(s): " + getShips(ships, mostDeath) + ")");
+        if (mostKill != null && mostKillInBase != null && mostDeath != null) {
+        	if (mostKill != null)
+        		m_botAction.sendArenaMessage(" - Most kills         : " + mostKill + " with " + kills.get(mostKill) + " kills (ship(s): " + getShips(ships, mostKill) + ")");
+        	if (mostKillInBase != null)
+        		m_botAction.sendArenaMessage(" - Most kills in base : " + mostKillInBase + " with " + killsInBase.get(mostKillInBase) + "% (ship(s): " + getShips(ships, mostKillInBase) + ")");
+        	if (mostDeath != null)
+        		m_botAction.sendArenaMessage(" - Most deaths        : " + mostDeath + " with " + deaths.get(mostDeath) + " deaths (ship(s): " + getShips(ships, mostDeath) + ")");
+        }
     }
     
     public String getShips(HashMap<String,HashSet<Integer>> ships, String playerName) {
@@ -529,7 +534,7 @@ public class GameFlagTimeModule extends AbstractModule {
     		}
     		i++;
     	}
-    	return "none";
+    	return null;
     }
     
     /*
