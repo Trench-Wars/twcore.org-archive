@@ -409,18 +409,18 @@ public class pubsystem extends SubspaceBot
         		m2.add("-- Mod+ --");
         		m2.addAll(Arrays.asList(module.getModHelpMessage()));
         	}
-        	
-        	String[] others = new String[] {
-        			getModuleHelpHeader("Others"),
-        			getHelpLine("!algorithm    -- How the robot calculate the money you earn for each kill."),
-        			getHelpLine("!about        -- About this bot."),
-        	};
-        	m1.addAll(Arrays.asList(others));
-        	m2.addAll(Arrays.asList(others));
-        	
+
         	messages.addAll(m1);
         	modMessages.addAll(m2);
         }
+        
+    	String[] others = new String[] {
+    			getModuleHelpHeader("Others"),
+    			getHelpLine("!algorithm    -- How the robot calculate the money you earn for each kill."),
+    			getHelpLine("!about        -- About this bot."),
+    	};
+    	modMessages.addAll(Arrays.asList(others));
+    	messages.addAll(Arrays.asList(others));
 
         if( m_botAction.getOperatorList().isHighmod( sender ) )
             m_botAction.smartPrivateMessageSpam(sender, (String[])modMessages.toArray(new String[modMessages.size()]));
