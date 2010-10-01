@@ -209,7 +209,7 @@ public class PubStreakModule extends AbstractModule {
     		return 0;
 
     	if (streak >= winsStreakArenaAt) {
-    		int diff = streak-winsStreakArenaAt;
+    		int diff = streak-winsStreakArenaAt+1;
     		return diff*winsStreakMoneyMultiplicator;
     	}
     	
