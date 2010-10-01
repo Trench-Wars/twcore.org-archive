@@ -238,12 +238,14 @@ public class GameFlagTimeModule extends AbstractModule {
 	
 	public void handleEvent(PlayerDeath event) {
 		
-		int killerID = event.getKillerID();
-		int killedID = event.getKilleeID();
-		Player killer = m_botAction.getPlayer(killerID);
-		Player killed = m_botAction.getPlayer(killedID);
-		flagTimer.addPlayerKill(killer.getPlayerName(), killed.getShipType(),event.getKilledPlayerBounty(), killer.getXTileLocation(), killer.getYTileLocation());
-		flagTimer.addPlayerDeath(killed.getPlayerName());
+		if (flagTimer.isRunning()) {
+			int killerID = event.getKillerID();
+			int killedID = event.getKilleeID();
+			Player killer = m_botAction.getPlayer(killerID);
+			Player killed = m_botAction.getPlayer(killedID);
+			flagTimer.addPlayerKill(killer.getPlayerName(), killed.getShipType(),event.getKilledPlayerBounty(), killer.getXTileLocation(), killer.getYTileLocation());
+			flagTimer.addPlayerDeath(killed.getPlayerName());
+		}
 	}
 	
     public void handleEvent(PlayerEntered event) {
