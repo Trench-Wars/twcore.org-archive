@@ -1899,4 +1899,10 @@ public class GameFlagTimeModule extends AbstractModule {
     	GameFlagTimeModule module = new GameFlagTimeModule(null, null);
     	module.test();
 	}
+
+	@Override
+	public void reloadConfig() {
+		// TODO Auto-generated method stub
+		
+	}
 }

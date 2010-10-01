@@ -205,8 +205,15 @@ public class PubKillSessionModule extends AbstractModule {
     	stopSession(false);
     }
     
-    public void doLeaderCmd( String sender ) {
+    public void doStatCmd( String sender ) {
     	if (sessionStarted) {
+    		
+    		if (kills.containsKey(sender)) {
+    			m_botAction.sendPrivateMessage(sender, "You have " + kills.get(sender) + " kills.");
+    		}
+    		else {
+    			m_botAction.sendPrivateMessage(sender, "You have 0 kill, what are you waiting for?");
+    		}
     		
     		// Sort by number of kills order descending
     		List<Integer> nums = new ArrayList<Integer>(kills.values());
@@ -243,23 +250,6 @@ public class PubKillSessionModule extends AbstractModule {
     			m_botAction.sendPrivateMessage(sender, "There is no leader at this moment.");
     		}
     		
-    		
-    	}
-    	else {
-    		m_botAction.sendPrivateMessage(sender, "There is no session running at this moment.");
-    	}
-    }
-    
-    public void doStatCmd( String sender ) {
-    	if (sessionStarted) {
-    		
-    		if (kills.containsKey(sender)) {
-    			m_botAction.sendPrivateMessage(sender, "You have " + kills.get(sender) + " kills.");
-    		}
-    		else {
-    			m_botAction.sendPrivateMessage(sender, "You have 0 kill, what are you waiting for?");
-    		}
-    		
     	}
     	else {
     		m_botAction.sendPrivateMessage(sender, "There is no session running at this moment.");
@@ -273,8 +263,6 @@ public class PubKillSessionModule extends AbstractModule {
         	
             if(command.trim().equals("!killothon"))
             	doStatCmd(sender);
-            else if(command.trim().equals("!killothon_leader"))
-            	doLeaderCmd(sender);
             
         } catch(RuntimeException e) {
             if( e != null && e.getMessage() != null )
@@ -306,8 +294,7 @@ public class PubKillSessionModule extends AbstractModule {
 	@Override
 	public String[] getHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!killothon             -- Your current stat."),
-			pubsystem.getHelpLine("!killothon_leader      -- Stop the current session with winner announcement."),
+			pubsystem.getHelpLine("!killothon             -- Your current stat + current leader."),
         };
 	}
 
@@ -329,6 +316,12 @@ public class PubKillSessionModule extends AbstractModule {
 	@Override
 	public void start() {
 		startSession();
+	}
+
+	@Override
+	public void reloadConfig() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

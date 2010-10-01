@@ -236,6 +236,7 @@ public class PubChallengeModule extends AbstractModule {
         }
             
         m_botAction.sendPrivateMessage(challenged, challenger +" has challenged you to duel for amount of $"+amount+" in " + shipMessage + ". To accept reply !accept "+challenger);
+        m_botAction.sendPrivateMessage(challenged, "Duel to " + deaths + ".");
         challenges.put(challenger, new Challenge(challenged,amount,ship));
         m_botAction.sendPrivateMessage(challenger, "Challenge sent to "+challenged+" for $"+amount+".");
         
@@ -297,7 +298,7 @@ public class PubChallengeModule extends AbstractModule {
         dArea.inUse = true;
         if (ship==0) {
         	m_botAction.sendPrivateMessage(challenger, accepter+" has accepted your challenge. You have 10 seconds to get into your dueling ship.");
-        	m_botAction.sendPrivateMessage(challenger, "Duel to " + deaths + ", has accepted your challenge. You have 10 seconds to get into your dueling ship.");
+        	m_botAction.sendPrivateMessage(challenger, "Duel to " + deaths + ".");
         	m_botAction.sendPrivateMessage(accepter, "Challenge accepted. You have 10 seconds to get into your dueling ship.");
         } else {
         	m_botAction.sendPrivateMessage(challenger, accepter+" has accepted your challenge. The duel will start in 10 seconds.");
@@ -609,7 +610,7 @@ public class PubChallengeModule extends AbstractModule {
         if(command.startsWith("!accept "))
             if(command.length() > 8)
                 acceptChallenge(sender, command.substring(8));
-        if(command.equalsIgnoreCase("!challenge_remove"))
+        if(command.equalsIgnoreCase("!removechallenge"))
             removeChallenge(sender);
         if(command.equalsIgnoreCase("!lagout"))
             returnFromLagout(sender);
@@ -634,7 +635,7 @@ public class PubChallengeModule extends AbstractModule {
 		return new String[] {
 			pubsystem.getHelpLine("!challenge <name>:<$>         -- Challenge a player for a duel in any ship for $X."),
 			pubsystem.getHelpLine("!challenge <name>:<ship>:<$>  -- Challenge a player for a duel in a specific ship (1-8) for $X."),
-			pubsystem.getHelpLine("Also: !challenge_remove, !accept <name>, !lagout"),
+			pubsystem.getHelpLine("Also: !removechallenge, !accept <name>, !lagout"),
         };
 	}
 
@@ -647,6 +648,12 @@ public class PubChallengeModule extends AbstractModule {
 
 	@Override
 	public void start() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void reloadConfig() {
 		// TODO Auto-generated method stub
 		
 	}

@@ -353,6 +353,8 @@ public class PubUtilModule extends AbstractModule {
                 doGoCmd(sender, command.substring(4));
             else if(command.equals("!privfreqs"))
                 doPrivFreqsCmd(sender);
+            else if(command.startsWith("!reloadconfig"))
+            	context.reloadConfig();
             else if(command.startsWith("!set "))
                 context.getPlayerManager().doSetCmd(sender, command.substring(5));
             else if(command.equals("!die"))
@@ -381,16 +383,17 @@ public class PubUtilModule extends AbstractModule {
 	@Override
 	public String[] getModHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!privfreqs   -- Toggles private frequencies & check for imbalances."),
-            pubsystem.getHelpLine("!dooropen    -- Open doors."),
-            pubsystem.getHelpLine("!doorclose   -- Close doors."),
-            pubsystem.getHelpLine("!doortoggle  -- In operation doors."),
-            pubsystem.getHelpLine("!doorauto    -- Auto mode (close if # of players below " + doorModeThreshold + "."),
+			pubsystem.getHelpLine("!privfreqs    -- Toggles private frequencies & check for imbalances."),
+            pubsystem.getHelpLine("!dooropen     -- Open doors."),
+            pubsystem.getHelpLine("!doorclose    -- Close doors."),
+            pubsystem.getHelpLine("!doortoggle   -- In operation doors."),
+            pubsystem.getHelpLine("!doorauto     -- Auto mode (close if # of players below " + doorModeThreshold + "."),
 			pubsystem.getHelpLine("!set <ship> <#>   -- Sets <ship> to restriction <#>."),
             pubsystem.getHelpLine("                     0=disabled; 1=any amount; other=weighted:"),
             pubsystem.getHelpLine("                     2 = 1/2 of freq can be this ship, 5 = 1/5, ..."),
-            pubsystem.getHelpLine("!go <arena>  -- Moves the bot to <arena>."),
-            pubsystem.getHelpLine("!die         -- Logs the bot off of the server."),
+            pubsystem.getHelpLine("!go <arena>   -- Moves the bot to <arena>."),
+            pubsystem.getHelpLine("!reloadconfig -- In operation doors."),
+            pubsystem.getHelpLine("!die          -- Logs the bot off of the server."),
 		};
 	}
 
@@ -420,6 +423,12 @@ public class PubUtilModule extends AbstractModule {
             m_botAction.die();
         }
     }
+
+	@Override
+	public void reloadConfig() {
+		// TODO Auto-generated method stub
+		
+	}
 
 
 }

@@ -79,6 +79,7 @@ public abstract class AbstractModule {
 	public abstract void start();
 	
 	public abstract void requestEvents(EventRequester eventRequester);
+	public abstract void reloadConfig();
 	
 	public abstract void handleCommand(String sender, String command);
 	public abstract void handleModCommand(String sender, String command);

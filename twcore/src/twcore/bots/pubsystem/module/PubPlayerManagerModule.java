@@ -622,6 +622,13 @@ public class PubPlayerManagerModule extends AbstractModule {
 		// TODO Auto-generated method stub
 		
 	}
+
+
+	@Override
+	public void reloadConfig() {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }
 

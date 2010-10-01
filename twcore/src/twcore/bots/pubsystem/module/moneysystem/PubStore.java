@@ -42,6 +42,8 @@ public class PubStore {
         	turnOff();
     	}
         
+        this.items = new LinkedHashMap<String, PubItem>();
+        
         String[] itemTypes = { "item_prize", "item_ship", "item_command" };
         for(String type: itemTypes) {
         	
@@ -192,6 +194,7 @@ public class PubStore {
         
         if (buyer != player) {
         	m_botAction.sendPrivateMessage(player.getPlayerName(), buyer.getPlayerName() + " has bought you '" + item.getName() + "' for $" + item.getPrice() + ".");
+        	m_botAction.sendPrivateMessage(buyer.getPlayerName(), buyer.getPlayerName() + " has received the item '" + item.getName() + "'.");
         }
         
         item.hasBeenBought();
@@ -224,5 +227,9 @@ public class PubStore {
     
     public boolean isOpened() {
     	return opened;
+    }
+    
+    public void reloadConfig() {
+    	initializeStore();
     }
 }
