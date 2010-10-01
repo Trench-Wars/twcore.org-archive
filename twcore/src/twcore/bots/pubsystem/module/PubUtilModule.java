@@ -392,7 +392,7 @@ public class PubUtilModule extends AbstractModule {
             pubsystem.getHelpLine("                     0=disabled; 1=any amount; other=weighted:"),
             pubsystem.getHelpLine("                     2 = 1/2 of freq can be this ship, 5 = 1/5, ..."),
             pubsystem.getHelpLine("!go <arena>   -- Moves the bot to <arena>."),
-            pubsystem.getHelpLine("!reloadconfig -- In operation doors."),
+            pubsystem.getHelpLine("!reloadconfig -- Reload the configuration (may not update everything)."),
             pubsystem.getHelpLine("!die          -- Logs the bot off of the server."),
 		};
 	}
