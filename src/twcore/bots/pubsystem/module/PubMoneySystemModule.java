@@ -308,7 +308,7 @@ public class PubMoneySystemModule extends AbstractModule {
         if(p == null)
             return;
         if (!command.contains(" ")) {
-        	m_botAction.sendPrivateMessage(sender, "You need to supply a item.");
+        	m_botAction.sendPrivateMessage(sender, "You need to supply an item.");
         	return;
         }
         String itemName = command.substring(command.indexOf(" ")).trim();
@@ -643,6 +643,12 @@ public class PubMoneySystemModule extends AbstractModule {
 	public void start() {
 		// TODO Auto-generated method stub
 		
+	}
+
+
+	@Override
+	public void reloadConfig() {
+		reloadConfig();
 	}
 
 

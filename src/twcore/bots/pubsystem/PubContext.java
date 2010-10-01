@@ -64,6 +64,13 @@ public class PubContext {
 		this.started = false;
 	}
 	
+	public void reloadConfig() {
+		m_botAction.getBotSettings().reloadFile();
+		for(AbstractModule module: modules) {
+			module.reloadConfig();
+		}
+	}
+	
 	public boolean isStarted() {
 		return started;
 	}

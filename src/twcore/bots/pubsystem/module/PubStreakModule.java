@@ -275,7 +275,7 @@ public class PubStreakModule extends AbstractModule {
         	
             if(command.trim().equals("!streak") || command.startsWith("!streak "))
             	doStreakCmd(sender, command.substring(7).trim());
-            else if(command.trim().equals("!streak_bestsession"))
+            else if(command.trim().equals("!streakbest"))
                 	doBestSessionStreakCmd(sender);
             
         } catch(RuntimeException e) {
@@ -301,21 +301,27 @@ public class PubStreakModule extends AbstractModule {
 	@Override
 	public String[] getHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!streak                -- Your current streak."),
-			pubsystem.getHelpLine("!streak <name>         -- Current streak of a given player name."),
-			pubsystem.getHelpLine("!streak_bestsession    -- Current best streak of the session."),
+			pubsystem.getHelpLine("!streak            -- Your current streak."),
+			pubsystem.getHelpLine("!streak <name>     -- Current streak of a given player name."),
+			pubsystem.getHelpLine("!streakbest        -- Current best streak of the session."),
         };
 	}
 
 	@Override
 	public String[] getModHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!streakreset           -- Reset the current session (with *arena)."),
+			pubsystem.getHelpLine("!streakreset       -- Reset the current session (with *arena)."),
         };
 	}
 
 	@Override
 	public void start() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void reloadConfig() {
 		// TODO Auto-generated method stub
 		
 	}
