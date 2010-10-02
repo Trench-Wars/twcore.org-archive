@@ -43,6 +43,7 @@ public class GameFlagTimeModule extends AbstractModule {
     private HashMap<String,Integer> terrKills;			// Number of terr-kill during a round
     private HashMap<String,Integer> kills;				// Number of kills during a round
     private HashMap<String,Integer> deaths;				// Number of deaths during a round
+    private HashMap<String,Integer> tks;				// Number of tk
     private HashMap<String,Integer> killsInBase;		// Number of kills inside the base (mid+flagroom)
     private HashMap<String,HashSet<Integer>> ships;		// Type of ships used during a round
     
@@ -150,6 +151,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 playerTimes.put( player.getPlayerName(), new Integer(0) );
             }
         } catch (Exception e) {
+        	Tools.printStackTrace(e);
         }
     }
     
@@ -205,6 +207,7 @@ public class GameFlagTimeModule extends AbstractModule {
             }     
             
         } catch (Exception e) {
+        	Tools.printStackTrace(e);
         }
 	}
 	
@@ -228,6 +231,9 @@ public class GameFlagTimeModule extends AbstractModule {
 			int killedID = event.getKilleeID();
 			Player killer = m_botAction.getPlayer(killerID);
 			Player killed = m_botAction.getPlayer(killedID);
+			if (killer.getFrequency()==killed.getFrequency()) {
+				flagTimer.addTk(killer.getPlayerName());
+			}
 			flagTimer.addPlayerKill(killer.getPlayerName(), killed.getShipType(),event.getKilledPlayerBounty(), killer.getXTileLocation(), killer.getYTileLocation());
 			flagTimer.addPlayerDeath(killed.getPlayerName());
 		}
@@ -239,9 +245,10 @@ public class GameFlagTimeModule extends AbstractModule {
         Player player = m_botAction.getPlayer(playerID);
         String playerName = m_botAction.getPlayerName(playerID);
     	
-        if(isFlagTimeStarted() && isAutoWarpEnabled()) {
+        if(isRunning() && isAutoWarpEnabled()) {
         	if( player.getShipType() != Tools.Ship.SPECTATOR )
         		doWarpCmd(playerName);
+        	flagTimer.newShip(playerName, player.getShipType());
         }
         
         statusMessage(playerName);
@@ -260,6 +267,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 flagTimer.flagClaimed( p.getFrequency(), playerID );
             }
         } catch (Exception e) {
+        	Tools.printStackTrace(e);
         }
     }
 
@@ -461,40 +469,57 @@ public class GameFlagTimeModule extends AbstractModule {
         }
         
         LinkedHashMap<String,Integer> deaths = sort(this.deaths,false);
+        LinkedHashMap<String,Integer> lessdeaths = sort(this.deaths,true);
         LinkedHashMap<String,Integer> kills = sort(this.kills,false);
-        LinkedHashMap<String,Integer> terrKills = sort(this.terrKills,false);
+        LinkedHashMap<String,Integer> teks = sort(this.terrKills,false);
         LinkedHashMap<String,Integer> flagClaims = sort(this.flagClaims,false);
         LinkedHashMap<String,Integer> killsInBase = sort(this.killsInBase,false);
+        LinkedHashMap<String,Integer> tks = sort(this.tks,false);
  
+        // Achievements
+        
+        String mostKill = getPosition(kills, 1);
+        String mostKillInBase = getPosition(killsInBase, 1);
+        String mostDeath = getPosition(deaths, 1, 8, false);
+        String lessDeath = getPosition(lessdeaths, 1, 5, true);
+        String mostFlagClaimed = getPosition(flagClaims, 1);
+        String mostTk = getPosition(tks, 1, 8, false);
+        String mostTek = getPosition(teks, 1);
+        
+    	m_botAction.sendArenaMessage("Achievements:");
+    	if (mostKill != null)
+    		m_botAction.sendArenaMessage(" - Most Veteran Like    : " + mostKill);
+    	if (mostKillInBase != null)
+    		m_botAction.sendArenaMessage(" - Basing King          : " + mostKillInBase);
+    	if (mostDeath != null)
+    		m_botAction.sendArenaMessage(" - Life Giver           : " + mostDeath);
+    	if (lessDeath != null)
+    		m_botAction.sendArenaMessage(" - Most Careful Fighter : " + lessDeath);
+    	if (mostFlagClaimed != null)
+    		m_botAction.sendArenaMessage(" - Flag Savior          : " + mostFlagClaimed);
+    	if (mostTk != null)
+    		m_botAction.sendArenaMessage(" - Least Honorable      : " + mostTk);
+    	if (mostTek != null)
+    		m_botAction.sendArenaMessage(" - Most Terrier Kills   : " + mostTek);
+        
+        // MVP TOP 3
+        
         HashMap<String,Integer> topPlayers = getTopPlayers();
-
         Iterator<String> iterator = topPlayers.keySet().iterator();
         m_botAction.sendArenaMessage("MVP:");
         int position = 0;
-        // Show MVP top 3
+        int div[] = new int[]{ 1,2,4,5,10 };
         while(iterator.hasNext() && position < 3) {
         	position++;
-        	int moneyBonus = (int)(moneyMVP/position);
+        	int moneyBonus = (int)(moneyMVP/div[position-1]);
         	String playerName = iterator.next();
-        	//m_botAction.sendArenaMessage(position + ". " + playerName + " with " + topPlayers.get(playerName) + " points. (bonus: $"+moneyBonus+")");
-        	m_botAction.sendArenaMessage(" " + position + ". " + playerName + " (bonus: $"+moneyBonus+")");
+        	m_botAction.sendArenaMessage(" " + position + ". " + playerName + " (+$"+moneyBonus+")");
         	PubPlayer player = context.getPlayerManager().getPlayer(playerName);
         	if (player != null) {
         		player.addMoney(moneyBonus);
         	}
         }
-        String mostKill = getPosition(kills, 1);
-        String mostKillInBase = getPosition(killsInBase, 1);
-        String mostDeath = getPosition(deaths, 1);
-        m_botAction.sendArenaMessage("Distinctions:");
-        if (mostKill != null || mostKillInBase != null || mostDeath != null) {
-        	if (mostKill != null)
-        		m_botAction.sendArenaMessage(" - Most kills         : " + mostKill + " with " + kills.get(mostKill) + " kills (ship(s): " + getShips(ships, mostKill) + ")");
-        	if (mostKillInBase != null)
-        		m_botAction.sendArenaMessage(" - Most kills in base : " + mostKillInBase + " with " + killsInBase.get(mostKillInBase) + "% (ship(s): " + getShips(ships, mostKillInBase) + ")");
-        	if (mostDeath != null)
-        		m_botAction.sendArenaMessage(" - Most deaths        : " + mostDeath + " with " + deaths.get(mostDeath) + " deaths (ship(s): " + getShips(ships, mostDeath) + ")");
-        }
+
     }
     
     public String getShips(HashMap<String,HashSet<Integer>> ships, String playerName) {
@@ -510,18 +535,28 @@ public class GameFlagTimeModule extends AbstractModule {
     	}
     }
     
-    public String getPosition(LinkedHashMap<String,Integer> map, int position) 
+    public String getPosition(LinkedHashMap<String,Integer> map, int position, int excludeShip, boolean fullRound) 
     {
     	int i = 1;
     	Iterator<String> it = map.keySet().iterator();
     	while(it.hasNext()) {
     		String player = it.next();
-    		if (i==position) {
-    			return player;
+            int time = flagTimer.getTotalSecs() - playerTimes.get(player).intValue();
+    		if (!ships.get(player).contains(excludeShip) && (!fullRound || time==flagTimer.getTotalSecs())) {
+	    		if (i==position) {
+	    			return player;
+	    		} else if (i>position) {
+	    			return player;
+	    		}
     		}
     		i++;
     	}
     	return null;
+    }
+    
+    public String getPosition(LinkedHashMap<String,Integer> map, int position) 
+    {
+    	return getPosition(map, position, 0, false);
     }
     
     /*
@@ -840,6 +875,7 @@ public class GameFlagTimeModule extends AbstractModule {
             m_botAction.cancelTask(flagTimer);
             m_botAction.cancelTask(intermissionTimer);
         } catch (Exception e ) {
+        	Tools.printStackTrace(e);
         }
 
         intermissionTimer = new IntermissionTask();
@@ -877,6 +913,7 @@ public class GameFlagTimeModule extends AbstractModule {
             killsInBase = new HashMap<String,Integer>();
             ships = new HashMap<String,HashSet<Integer>>();
             killsBounty = new HashMap<String,Integer>();
+            tks = new HashMap<String,Integer>();
         }
 
         /**
@@ -923,6 +960,8 @@ public class GameFlagTimeModule extends AbstractModule {
         
         public void addPlayerKill(String player, int shipTypeKilled, int bountyKilled, int x, int y) {
         	
+        	Location location = context.getPubUtil().getLocation(x, y);
+        	
         	// +1 kill
         	Integer count = kills.get(player);
             if( count == null ) {
@@ -932,7 +971,10 @@ public class GameFlagTimeModule extends AbstractModule {
             }
             
             // Terr kill ?
-            if (shipTypeKilled == Tools.Ship.TERRIER) {
+            if (shipTypeKilled == Tools.Ship.TERRIER 
+            		&& !location.equals(Location.SPACE)
+            		&& !location.equals(Location.SPAWN)
+            		&& !location.equals(Location.ROOF)) {
                 Integer terrKill = terrKills.get(player);
                 if( terrKill == null ) {
                 	terrKills.put( player, new Integer(1) );
@@ -950,7 +992,6 @@ public class GameFlagTimeModule extends AbstractModule {
             }
             
             // Weight of the kill
-            Location location = context.getPubUtil().getLocation(x, y);
             int weight = 0;
             if (locationWeight.containsKey(location)) {
             	weight = locationWeight.get(location);
@@ -963,8 +1004,7 @@ public class GameFlagTimeModule extends AbstractModule {
             }
             
             // Kill inside the base
-            if (killsInBase.containsKey(location) && 
-            		(location.equals(Location.FLAGROOM) || location.equals(Location.MID))) {
+            if (location.equals(Location.FLAGROOM) || location.equals(Location.MID)) {
                 Integer total = killsInBase.get(player);
                 if( total == null ) {
                 	killsInBase.put( player, new Integer(1) );
@@ -981,6 +1021,15 @@ public class GameFlagTimeModule extends AbstractModule {
             	deaths.put( player, new Integer(1) );
             } else {
             	deaths.put( player, new Integer( count.intValue() + 1) );
+            }
+        }
+        
+        public void addTk(String player) {
+        	Integer count = tks.get( player );
+            if( count == null ) {
+            	tks.put( player, new Integer(1) );
+            } else {
+            	tks.put( player, new Integer( count.intValue() + 1) );
             }
         }
 
@@ -1000,14 +1049,18 @@ public class GameFlagTimeModule extends AbstractModule {
                 addFlagClaim( p.getPlayerName() );
 
                 if( remain < 60 ) {
-                    if( remain < 4 )
-                        {m_botAction.sendArenaMessage( "INCONCIEVABLE!!: " + p.getPlayerName() + " claims flag for " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq" ) + " with just " + remain + " second" + (remain == 1 ? "" : "s") + " left!", 65 );m_botAction.showObject(2500);m_botAction.showObject(2600);} //'Hot Freaking Daym!!' lvz
-                    else if( remain < 11 )
-                        {m_botAction.sendArenaMessage( "AMAZING!: " + p.getPlayerName() + " claims flag for " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq" ) + " with just " + remain + " sec. left!" );m_botAction.showObject(2600);} // 'Daym!' lvz
-                    else if( remain < 25 )
+                    if( remain < 4 ) {
+                        m_botAction.sendArenaMessage( "INCONCIEVABLE!!: " + p.getPlayerName() + " claims flag for " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq" ) + " with just " + remain + " second" + (remain == 1 ? "" : "s") + " left!", 65 );
+                        m_botAction.showObject(2500);
+                        m_botAction.showObject(2600);
+                    } else if( remain < 11 ) {
+                        m_botAction.sendArenaMessage( "AMAZING!: " + p.getPlayerName() + " claims flag for " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq" ) + " with just " + remain + " sec. left!" );
+                        m_botAction.showObject(2600); // 'Daym!' lvz
+                    } else if( remain < 25 ) {
                         m_botAction.sendArenaMessage( "SAVE!: " + p.getPlayerName() + " claims flag for " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq" ) + " with " + remain + " sec. left!" );
-                    else
+                    } else {
                         m_botAction.sendArenaMessage( "Save: " + p.getPlayerName() + " claims flag for " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq" ) + " with " + remain + " sec. left." );
+                    }
                 }
             }
 
@@ -1375,6 +1428,7 @@ public class GameFlagTimeModule extends AbstractModule {
             m_botAction.cancelTask(intermissionTimer);
             m_botAction.cancelTask(startTimer);
         } catch (Exception e ) {
+        	Tools.printStackTrace(e);
         }
 
         stopFlagTimeStarted();
@@ -1396,6 +1450,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 doWarpCmd(sender);
             
         } catch(RuntimeException e) {
+        	Tools.printStackTrace(e);
             if( e != null && e.getMessage() != null )
                 m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
@@ -1418,6 +1473,7 @@ public class GameFlagTimeModule extends AbstractModule {
 				doAllowWarpCmd(sender);
             
         } catch(RuntimeException e) {
+        	Tools.printStackTrace(e);
             if( e != null && e.getMessage() != null )
                 m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
@@ -1427,10 +1483,10 @@ public class GameFlagTimeModule extends AbstractModule {
 	@Override
 	public String[] getHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!warp    -- Warps you into flagroom at start of next round. (abbv: !w)"),
-            pubsystem.getHelpLine("!terr    -- Shows terriers on the team and their last seen locations. (abbv: !t)"),
+			pubsystem.getHelpLine("!warp    -- Warps you into flagroom at start of next round. (!w)"),
+            pubsystem.getHelpLine("!terr    -- Shows terriers on the team and their last seen locations. (!t)"),
             pubsystem.getHelpLine("!team    -- Tells you which ships your team members are in."),
-            pubsystem.getHelpLine("!time    -- Displays info about time remaining in flag time round."),
+            pubsystem.getHelpLine("!time    -- Displays info about time remaining in flag time."),
         };
 	}
 
@@ -1649,10 +1705,10 @@ public class GameFlagTimeModule extends AbstractModule {
 
 		if (warpPlayers.containsKey(sender)) {
 			warpPlayers.remove(sender);
-			m_botAction.sendSmartPrivateMessage(sender,"You will NOT be warped inside FR at every round start. !warp again to turn back on.");
+			m_botAction.sendSmartPrivateMessage(sender,"You will NOT be warped inside the FR at the start of each round. Type !warp again to turn back on.");
 		} else {
 			warpPlayers.put(sender, player);
-			m_botAction.sendSmartPrivateMessage(sender,"You will be warped inside FR at every round start. Type !warp to turn off.");
+			m_botAction.sendSmartPrivateMessage(sender,"You WILL be warped inside the FR at the start of each round. Type !warp again to turn off.");
 		}
 	}
 	    

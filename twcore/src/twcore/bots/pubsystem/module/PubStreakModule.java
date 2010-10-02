@@ -269,31 +269,18 @@ public class PubStreakModule extends AbstractModule {
 	@Override
 	public void handleCommand(String sender, String command) {
 
-        try {
-        	
-            if(command.trim().equals("!streak") || command.startsWith("!streak "))
-            	doStreakCmd(sender, command.substring(7).trim());
-            else if(command.trim().equals("!streakbest"))
-                	doBestSessionStreakCmd(sender);
-            
-        } catch(RuntimeException e) {
-            if( e != null && e.getMessage() != null )
-                m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
-        }
+        if(command.trim().equals("!streak") || command.startsWith("!streak "))
+        	doStreakCmd(sender, command.substring(7).trim());
+        else if(command.trim().equals("!streakbest"))
+            	doBestSessionStreakCmd(sender);
+
 	}
 
 	@Override
 	public void handleModCommand(String sender, String command) {
 		
-        try {
-        	
-            if(command.equals("!streakreset"))
-            	doStreakResetCmd(sender);
-            
-        } catch(RuntimeException e) {
-            if( e != null && e.getMessage() != null )
-                m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
-        }
+        if(command.equals("!streakreset"))
+            doStreakResetCmd(sender);
 	}
 	
 	@Override

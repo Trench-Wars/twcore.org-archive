@@ -255,6 +255,7 @@ public class PubKillSessionModule extends AbstractModule {
             	doStatCmd(sender);
             
         } catch(RuntimeException e) {
+        	Tools.printStackTrace(e);
             if( e != null && e.getMessage() != null )
                 m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
@@ -276,6 +277,7 @@ public class PubKillSessionModule extends AbstractModule {
             	doCancelCmd(sender);
             
         } catch(RuntimeException e) {
+        	Tools.printStackTrace(e);
             if( e != null && e.getMessage() != null )
                 m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }

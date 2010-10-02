@@ -96,7 +96,7 @@ public class PubUtilModule extends AbstractModule {
 		} else if (!doorStatus.equals(DoorMode.CLOSED)) {
 			m_botAction.setDoors(doorModeDefault);
 			if (doorArenaOnChange) {
-				m_botAction.sendArenaMessage("[SETTING] Doors are now lock.", Tools.Sound.BEEP1);
+				m_botAction.sendArenaMessage("[SETTING] Doors are now locked.", Tools.Sound.BEEP1);
 			}
 			doorStatus = DoorMode.CLOSED;
 		}
@@ -258,7 +258,11 @@ public class PubUtilModule extends AbstractModule {
         if( p2 == null )
             p2 = m_botAction.getFuzzyPlayer( argString );
         if( p2 == null )
-            throw new RuntimeException("I can't find the player '" + argString + "'. ough shit, bucko.");
+            throw new RuntimeException("Player '" + argString + "' not found.");
+        if (p2.isPlaying()) {
+        	m_botAction.sendPrivateMessage( sender, p2.getPlayerName() + " last seen: In Spec");
+        	return;
+        }
         if( p.getFrequency() != p2.getFrequency() && !isStaff )
             throw new RuntimeException(p2.getPlayerName() + " is not on your team!");
         m_botAction.sendPrivateMessage( sender, p2.getPlayerName() + " last seen: " + getPlayerLocation( p2.getXTileLocation(), p2.getYTileLocation() ));
@@ -293,50 +297,38 @@ public class PubUtilModule extends AbstractModule {
 	@Override
 	public void handleCommand(String sender, String command) {
 
-        try {
-        	
-            if(command.startsWith("!settile ") || command.startsWith("!tileset "))
-            	doSetTileCmd(sender, command.substring(9));
-            else if(command.startsWith("!whereis "))
-                doWhereIsCmd(sender, command.substring(9), m_botAction.getOperatorList().isBot(sender));
-            else if(command.equals("!restrictions"))
-            	context.getPlayerManager().doRestrictionsCmd(sender);
-            
-        } catch(RuntimeException e) {
-            if( e != null && e.getMessage() != null )
-                m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
-        }
+        if(command.startsWith("!settile ") || command.startsWith("!tileset "))
+        	doSetTileCmd(sender, command.substring(9));
+        else if(command.startsWith("!whereis "))
+            doWhereIsCmd(sender, command.substring(9), m_botAction.getOperatorList().isBot(sender));
+        else if(command.equals("!restrictions"))
+        	context.getPlayerManager().doRestrictionsCmd(sender);
+
 	}
 	
 	
 	@Override
 	public void handleModCommand(String sender, String command) {
-		
-        try {
-        	
-            if(command.startsWith("!dooropen"))
-            	doOpenDoorCmd(sender);
-            else if(command.startsWith("!doorclose"))
-            	doCloseDoorCmd(sender);
-            else if(command.startsWith("!doortoggle"))
-            	doToggleDoorCmd(sender);
-            else if(command.startsWith("!doorauto"))
-            	doAutoDoorCmd(sender);
-            else if(command.startsWith("!go "))
-                doGoCmd(sender, command.substring(4));
-            else if(command.equals("!privfreqs"))
-                doPrivFreqsCmd(sender);
-            else if(command.startsWith("!reloadconfig"))
-            	context.reloadConfig();
-            else if(command.startsWith("!set "))
-                context.getPlayerManager().doSetCmd(sender, command.substring(5));
-            else if(command.equals("!die"))
-                doDieCmd(sender);
-            
-        } catch(RuntimeException e) {
-            if( e != null && e.getMessage() != null )
-                m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
-        }
+
+        if(command.startsWith("!dooropen"))
+        	doOpenDoorCmd(sender);
+        else if(command.startsWith("!doorclose"))
+        	doCloseDoorCmd(sender);
+        else if(command.startsWith("!doortoggle"))
+        	doToggleDoorCmd(sender);
+        else if(command.startsWith("!doorauto"))
+        	doAutoDoorCmd(sender);
+        else if(command.startsWith("!go "))
+            doGoCmd(sender, command.substring(4));
+        else if(command.equals("!privfreqs"))
+            doPrivFreqsCmd(sender);
+        else if(command.startsWith("!reloadconfig"))
+        	context.reloadConfig();
+        else if(command.startsWith("!set "))
+            context.getPlayerManager().doSetCmd(sender, command.substring(5));
+        else if(command.equals("!die"))
+            doDieCmd(sender);
+
 	}
 	
 	public boolean isPrivateFrequencyEnabled() {
@@ -402,19 +394,25 @@ public class PubUtilModule extends AbstractModule {
 
 		this.locations = new LinkedHashMap<String, Location>();
 		
-        String[] pointsLocation = m_botAction.getBotSettings().getString("location").split(",");
-        for(String number: pointsLocation) {
-        	String[] data = m_botAction.getBotSettings().getString("location"+number).split(",");
-        	String name = data[0];
-        	Location loc = Location.valueOf(name.toUpperCase());
-        	for(int i=1; i<data.length; i++) {
-        		String[] coords = data[i].split(":");
-        		int x = Integer.parseInt(coords[0]);
-        		int y = Integer.parseInt(coords[1]);
-        		locations.put(coordToString(x,y), loc);
-        	}
-
-        }
+		try {
+			if (!m_botAction.getBotSettings().getString("location").isEmpty()) {
+		        String[] pointsLocation = m_botAction.getBotSettings().getString("location").split(",");
+		        for(String number: pointsLocation) {
+		        	String[] data = m_botAction.getBotSettings().getString("location"+number).split(",");
+		        	String name = data[0];
+		        	Location loc = Location.valueOf(name.toUpperCase());
+		        	for(int i=1; i<data.length; i++) {
+		        		String[] coords = data[i].split(":");
+		        		int x = Integer.parseInt(coords[0]);
+		        		int y = Integer.parseInt(coords[1]);
+		        		locations.put(coordToString(x,y), loc);
+		        	}
+		
+		        }
+			}
+		} catch (Exception e) {
+			Tools.printStackTrace(e);
+		}
 		
 		doorModeDefault = m_botAction.getBotSettings().getInt("doormode_default");
 		doorModeThreshold = m_botAction.getBotSettings().getInt("doormode_threshold");

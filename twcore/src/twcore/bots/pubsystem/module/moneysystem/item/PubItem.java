@@ -17,6 +17,7 @@ public abstract class PubItem {
     protected List<String> abbreviations;
     protected boolean playerOptional = false;
     protected boolean playerStrict = false;
+    protected boolean hidden = false;
 
     public PubItem(String name, String displayName, String description, int price) {
         this.name = name;
@@ -35,6 +36,10 @@ public abstract class PubItem {
     	return displayName;
     }
     
+    public boolean isHidden() {
+    	return hidden;
+    }
+    
     public int getPrice() {
         return price;
     }
@@ -49,6 +54,10 @@ public abstract class PubItem {
     
     public List<String> getAbbreviations() {
     	return abbreviations;
+    }
+    
+    public void setHidden() {
+    	this.hidden = true;
     }
     
     public void setArenaItem(boolean b) {
