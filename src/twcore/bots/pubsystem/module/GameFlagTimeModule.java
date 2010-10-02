@@ -541,7 +541,9 @@ public class GameFlagTimeModule extends AbstractModule {
     	Iterator<String> it = map.keySet().iterator();
     	while(it.hasNext()) {
     		String player = it.next();
-            int time = flagTimer.getTotalSecs() - playerTimes.get(player).intValue();
+    		int time = 0;
+    		if (playerTimes.get(player) != null)
+    			time = flagTimer.getTotalSecs() - playerTimes.get(player).intValue();
     		if (!ships.get(player).contains(excludeShip) && (!fullRound || time==flagTimer.getTotalSecs())) {
 	    		if (i==position) {
 	    			return player;
@@ -1450,7 +1452,6 @@ public class GameFlagTimeModule extends AbstractModule {
                 doWarpCmd(sender);
             
         } catch(RuntimeException e) {
-        	Tools.printStackTrace(e);
             if( e != null && e.getMessage() != null )
                 m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
@@ -1473,7 +1474,6 @@ public class GameFlagTimeModule extends AbstractModule {
 				doAllowWarpCmd(sender);
             
         } catch(RuntimeException e) {
-        	Tools.printStackTrace(e);
             if( e != null && e.getMessage() != null )
                 m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
