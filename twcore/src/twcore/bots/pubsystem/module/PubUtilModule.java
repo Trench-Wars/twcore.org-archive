@@ -259,7 +259,7 @@ public class PubUtilModule extends AbstractModule {
             p2 = m_botAction.getFuzzyPlayer( argString );
         if( p2 == null )
             throw new RuntimeException("Player '" + argString + "' not found.");
-        if (p2.isPlaying()) {
+        if (!p2.isPlaying()) {
         	m_botAction.sendPrivateMessage( sender, p2.getPlayerName() + " last seen: In Spec");
         	return;
         }
