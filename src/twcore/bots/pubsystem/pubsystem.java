@@ -79,8 +79,6 @@ public class pubsystem extends SubspaceBot
 {	
 	private PubContext context;								// Context of the game
 
-    private BotSettings m_botSettings;
-
     public static final int SPEC = 0;                   // Number of the spec ship
     public static final int FREQ_0 = 0;                 // Frequency 0
     public static final int FREQ_1 = 1;                 // Frequency 1
@@ -101,10 +99,7 @@ public class pubsystem extends SubspaceBot
     {
         super(botAction);
         requestEvents();
-        
-        m_botSettings = m_botAction.getBotSettings();
-        
-        context = new PubContext(m_botAction);
+
     }
 
     /**
@@ -137,32 +132,37 @@ public class pubsystem extends SubspaceBot
      */
     public void handleEvent(LoggedOn event)
     {
-        BotSettings botSettings = m_botAction.getBotSettings();
- 
-        initialSpawn = botSettings.getString("InitialArena");
-        initialPub = (botSettings.getInt(m_botAction.getBotName() + "Pub") - 1);
-        
-        String arena = initialSpawn;
-        int botNumber = botSettings.getInt(m_botAction.getBotName() + "Pub");
-        
-        if (botSettings.getString("Arena"+botNumber) != null) {
-        	roamPub = false;
-        	arena = botSettings.getString("Arena"+botNumber);
-        }
-        
-        if (botSettings.getString("Chat"+botNumber) != null) {
-        	String chats = botSettings.getString("Chat"+botNumber);
-        	m_botAction.sendUnfilteredPublicMessage("?chat=" + chats);
-        }
-        
-        try {
-			m_botAction.joinArena(arena,(short)3392,(short)3392); // Max resolution
-		} catch (Exception e) {
-			m_botAction.joinArena(arena);
-		}
+    	try {
+	        initialSpawn = m_botAction.getBotSettings().getString("InitialArena");
+	        initialPub = (m_botAction.getBotSettings().getInt(m_botAction.getBotName() + "Pub") - 1);
+	        
+	        String arena = initialSpawn;
+	        int botNumber = m_botAction.getBotSettings().getInt(m_botAction.getBotName() + "Pub");
+	        
+	        if (m_botAction.getBotSettings().getString("Arena"+botNumber) != null) {
+	        	roamPub = false;
+	        	arena = m_botAction.getBotSettings().getString("Arena"+botNumber);
+	        }
+	        
+	        if (m_botAction.getBotSettings().getString("Chat"+botNumber) != null) {
+	        	String chats = m_botAction.getBotSettings().getString("Chat"+botNumber);
+	        	m_botAction.sendUnfilteredPublicMessage("?chat=" + chats);
+	        }
+	        
+	        try {
+				m_botAction.joinArena(arena,(short)3392,(short)3392); // Max resolution
+			} catch (Exception e) {
+				m_botAction.joinArena(arena);
+			}
+			
+	        context = new PubContext(m_botAction);
 
-        m_botAction.setPlayerPositionUpdating(500);
-        m_botAction.receiveAllPlayerDeaths();
+	        m_botAction.setPlayerPositionUpdating(500);
+	        m_botAction.receiveAllPlayerDeaths();
+	        
+    	} catch (Exception e) {
+    		Tools.printStackTrace(e);
+    	}
 
     }
 
@@ -199,39 +199,43 @@ public class pubsystem extends SubspaceBot
     {
     	if (!roamPub)
     		return;
-
-    	String[] arenaNames = event.getArenaNames();
-
-        Comparator <String>a = new Comparator<String>()
-        {
-            public int compare(String a, String b)
-            {
-                if (Tools.isAllDigits(a) && !a.equals("") ) {
-                    if (Tools.isAllDigits(b) && !b.equals("") ) {
-                        if (Integer.parseInt(a) < Integer.parseInt(b)) {
-                            return -1;
-                        } else {
-                            return 1;
-                        }
-                    } else {
-                        return -1;
-                    }
-                } else if (Tools.isAllDigits(b)) {
-                    return 1;
-                } else {
-                    return a.compareToIgnoreCase(b);
-				}
-            };
-        };
-
-        Arrays.sort(arenaNames, a);
-        
-    	String arenaToJoin = arenaNames[initialPub];// initialPub+1 if you spawn it in # arena
-    	if(Tools.isAllDigits(arenaToJoin))
-    	{
-    		m_botAction.changeArena(arenaToJoin);
-    		startBot();
-    	}
+    	
+    	try {
+	    	String[] arenaNames = event.getArenaNames();
+	
+	        Comparator <String>a = new Comparator<String>()
+	        {
+	            public int compare(String a, String b)
+	            {
+	                if (Tools.isAllDigits(a) && !a.equals("") ) {
+	                    if (Tools.isAllDigits(b) && !b.equals("") ) {
+	                        if (Integer.parseInt(a) < Integer.parseInt(b)) {
+	                            return -1;
+	                        } else {
+	                            return 1;
+	                        }
+	                    } else {
+	                        return -1;
+	                    }
+	                } else if (Tools.isAllDigits(b)) {
+	                    return 1;
+	                } else {
+	                    return a.compareToIgnoreCase(b);
+					}
+	            };
+	        };
+	
+	        Arrays.sort(arenaNames, a);
+	        
+	    	String arenaToJoin = arenaNames[initialPub];// initialPub+1 if you spawn it in # arena
+	    	if(Tools.isAllDigits(arenaToJoin))
+	    	{
+	    		m_botAction.changeArena(arenaToJoin);
+	    		startBot();
+	    	}
+		} catch (Exception e) {
+			Tools.printStackTrace(e);
+		}
     	
     	context.handleEvent(event);
     }
@@ -329,7 +333,7 @@ public class pubsystem extends SubspaceBot
             }
             
         } catch(RuntimeException e) {
-        	e.printStackTrace();
+        	Tools.printStackTrace(e);
             if( e != null && e.getMessage() != null )
                 m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
@@ -355,6 +359,7 @@ public class pubsystem extends SubspaceBot
         		context.handleModCommand(sender, command);
         	}
         } catch(RuntimeException e) {
+        	Tools.printStackTrace(e);
             m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
     }
@@ -464,7 +469,7 @@ public class pubsystem extends SubspaceBot
     {
         try{
         	
-            String commands[] = m_botSettings.getString(m_botAction.getBotName() + "Setup").split(",");
+            String commands[] = m_botAction.getBotSettings().getString(m_botAction.getBotName() + "Setup").split(",");
         	for(int k = 0; k < commands.length; k++) {
         		handleModCommand(m_botAction.getBotName(), commands[k]);
     		}
@@ -489,7 +494,7 @@ public class pubsystem extends SubspaceBot
                 }
             }
         }catch(Exception e){
-            e.printStackTrace();
+            Tools.printStackTrace(e);
         }
 
         context.start();

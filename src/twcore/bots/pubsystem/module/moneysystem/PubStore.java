@@ -14,6 +14,7 @@ import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.bots.pubsystem.util.PubException;
 import twcore.core.BotAction;
+import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
 public class PubStore {
@@ -31,8 +32,8 @@ public class PubStore {
         this.items = new LinkedHashMap<String, PubItem>();
         try {
         	initializeStore();
-        } catch (Exception e) {
-			Tools.printStackTrace("Error while initializing the store", e);
+        } catch (Throwable e) {
+			e.printStackTrace();
 		}
     }
     
@@ -49,7 +50,7 @@ public class PubStore {
         	
 	    	String[] items = m_botAction.getBotSettings().getString(type).split(",");
 	    	for(String number: items) {
-	    		
+
 	    		String[] data = m_botAction.getBotSettings().getString(type+number).split(",");
 	    		
 	    		if (data.length<=1)
@@ -69,11 +70,11 @@ public class PubStore {
 	    				prizes.add(Integer.parseInt(data[4].trim()));
 	    			}
 	    			item = new PubPrizeItem(data[0].trim(), data[1].trim(), data[2].trim(), Integer.parseInt(data[3].trim()), prizes);
-	    			optionPointer = 4;
+	    			optionPointer = 5;
 	    		} 
 	    		else if ("item_ship".equals(type)) {
 	    			item = new PubShipItem(data[0].trim(), data[1].trim(), data[2].trim(),Integer.parseInt(data[3].trim()), Integer.parseInt(data[4].trim()));
-	    			optionPointer = 4;
+	    			optionPointer = 5;
 	    		}
 	    		else if ("item_command".equals(type)) {
 	    			item = new PubCommandItem(data[0].trim(), data[1].trim(), data[2].trim(), Integer.parseInt(data[3].trim()), data[4]);
@@ -91,7 +92,9 @@ public class PubStore {
 	    			boolean hasDuration = false;
 	    			
 	    			for(int i=optionPointer; i<data.length; i++) {
+
 	    				String option = data[i];
+
 	    				if(option.startsWith("!s") && option.trim().length()==3) {
 	    					int ship = Integer.parseInt(option.substring(2));
 	    					r.addShip(ship);
@@ -124,6 +127,8 @@ public class PubStore {
 	    					int seconds = Integer.parseInt(option.substring(3));
 	    					d.setSeconds(seconds);
 	    					hasDuration = true;
+	    				} else if(option.startsWith("!hidden")) {
+	    					item.setHidden();
 	    				} else if(option.startsWith("!abbv")) {
 	    					String abbv = option.substring(6);
 	    					item.addAbbreviation(abbv);
@@ -170,6 +175,11 @@ public class PubStore {
         	if (player.getPlayerName().equals(buyer.getPlayerName()))
         		throw new PubException("You cannot specify your own name.");
 
+        	Player p = m_botAction.getPlayer(player.getPlayerName());
+        	if (!p.isPlaying()) {
+        		throw new PubException("You cannot buy an item for a spectator.");
+        	}
+        	
         	if (context.getPubChallenge().isDueling(player.getPlayerName()))
         		throw new PubException("'" + params.trim()+ "' is currently dueling. You cannot buy an item for this player.");
         }

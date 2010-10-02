@@ -29,7 +29,7 @@ public class PubLogSystem {
 		    			writers.put(log, new FileWriter(new File(file, filename), true));
 		    		}
 				} catch (IOException e) {
-					e.printStackTrace();
+					Tools.printStackTrace(e);
 				}
 		    } else {
 		    	Tools.printLog("Cannot store logs for the pub system.");
@@ -51,7 +51,7 @@ public class PubLogSystem {
 						writer.write(Tools.getTimeStamp() + " " + text);
 						writer.flush();
 					} catch (IOException e) { 
-						
+						Tools.printStackTrace(e);
 					}
 				}
 			}

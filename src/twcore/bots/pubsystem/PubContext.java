@@ -43,13 +43,19 @@ public class PubContext {
 		this.modules = new Vector<AbstractModule>();
 		
 		// Instanciate (order matter)
-		modules.add(getGameFlagTime());
-		modules.add(getPlayerManager());
-		modules.add(getMoneySystem());
-		modules.add(getPubChallenge());
-		modules.add(getPubStreak());
-		modules.add(getPubKillSession());
-		modules.add(getPubUtil());
+		
+		long start = System.currentTimeMillis();
+		
+		getGameFlagTime();
+		getPlayerManager();
+		getMoneySystem();
+		getPubChallenge();
+		getPubStreak();
+		getPubKillSession();
+		getPubUtil();
+		
+		int seconds = (int)(System.currentTimeMillis()-start)/1000;
+		Tools.printLog("Modules (" + modules.size() + ") for pubsystem loaded in " + seconds + " seconds.");
 		
 	}
 	
@@ -67,7 +73,11 @@ public class PubContext {
 	public void reloadConfig() {
 		m_botAction.getBotSettings().reloadFile();
 		for(AbstractModule module: modules) {
-			module.reloadConfig();
+			try {
+				module.reloadConfig();
+			} catch (Exception e) {
+				displayException(e);
+			}
 		}
 	}
 	
@@ -82,6 +92,7 @@ public class PubContext {
 	public GameFlagTimeModule getGameFlagTime() {
 		if (gameFlagTime == null) {
 			gameFlagTime = new GameFlagTimeModule(m_botAction, this);
+			modules.add(gameFlagTime);
 		}
 		return gameFlagTime;
 	}
@@ -89,6 +100,7 @@ public class PubContext {
 	public PubPlayerManagerModule getPlayerManager() {
 		if (playerManager == null) {
 			playerManager = new PubPlayerManagerModule(m_botAction, this);
+			modules.add(playerManager);
 		}
 		return playerManager;
 	}
@@ -96,6 +108,7 @@ public class PubContext {
 	public PubMoneySystemModule getMoneySystem() {
 		if (moneySystem == null) {
 			moneySystem = new PubMoneySystemModule(m_botAction, this);
+			modules.add(moneySystem);
 		}
 		return moneySystem;
 	}
@@ -103,6 +116,7 @@ public class PubContext {
 	public PubKillSessionModule getPubKillSession() {
 		if (pubKillSession == null) {
 			pubKillSession = new PubKillSessionModule(m_botAction, this);
+			modules.add(pubKillSession);
 		}
 		return pubKillSession;
 	}
@@ -110,6 +124,7 @@ public class PubContext {
 	public PubStreakModule getPubStreak() {
 		if (pubStreak == null) {
 			pubStreak = new PubStreakModule(m_botAction, this);
+			modules.add(pubStreak);
 		}
 		return pubStreak;
 	}
@@ -117,6 +132,7 @@ public class PubContext {
 	public PubUtilModule getPubUtil() {
 		if (pubUtil == null) {
 			pubUtil = new PubUtilModule(m_botAction, this);
+			modules.add(pubUtil);
 		}
 		return pubUtil;
 	}
@@ -124,6 +140,7 @@ public class PubContext {
 	public PubChallengeModule getPubChallenge() {
 		if (pubChallenge == null) {
 			pubChallenge = new PubChallengeModule(m_botAction, this);
+			modules.add(pubChallenge);
 		}
 		return pubChallenge;
 	}
@@ -133,14 +150,15 @@ public class PubContext {
         Iterator<AbstractModule> iterator = modules.iterator();
         AbstractModule module;
 
-        try {
-            while(iterator.hasNext()) {
-                module = (AbstractModule) iterator.next();
-                module.handleEvent(event);
+        while(iterator.hasNext()) {
+            module = (AbstractModule) iterator.next();
+            try {
+            	module.handleEvent(event);
+            } catch (Exception e) {
+            	displayException(e);
             }
-        } catch (Exception e) {
-        	displayException(e);
         }
+
     }
 	
 	public void handleCommand(String sender, String command) {
@@ -148,14 +166,15 @@ public class PubContext {
         Iterator<AbstractModule> iterator = modules.iterator();
         AbstractModule module;
 
-        try {
-            while(iterator.hasNext()) {
-                module = (AbstractModule) iterator.next();
-                module.handleCommand(sender, command);
+        while(iterator.hasNext()) {
+            module = (AbstractModule) iterator.next();
+            try {
+            	module.handleCommand(sender, command);
+            } catch (Exception e) {
+            	displayException(e);
             }
-        } catch (Exception e) {
-        	displayException(e);
         }
+
 	}
 	
 	public void handleModCommand(String sender, String command) {
@@ -163,14 +182,15 @@ public class PubContext {
         Iterator<AbstractModule> iterator = modules.iterator();
         AbstractModule module;
 
-        try {
-            while(iterator.hasNext()) {
-                module = (AbstractModule) iterator.next();
-                module.handleModCommand(sender, command);
+        while(iterator.hasNext()) {
+            module = (AbstractModule) iterator.next();
+            try {
+            	module.handleModCommand(sender, command);
+            } catch (Exception e) {
+            	displayException(e);
             }
-        } catch (Exception e) {
-        	displayException(e);
         }
+       
 	}
 	
 	public void handleEvent(SQLResultEvent event) {
@@ -178,14 +198,15 @@ public class PubContext {
         Iterator<AbstractModule> iterator = modules.iterator();
         AbstractModule module;
 
-        try {
-            while(iterator.hasNext()) {
-                module = (AbstractModule) iterator.next();
-                module.handleEvent(event);
+        while(iterator.hasNext()) {
+            module = (AbstractModule) iterator.next();
+            try {
+            	module.handleEvent(event);
+            } catch (Exception e) {
+            	displayException(e);
             }
-        } catch (Exception e) {
-        	displayException(e);
         }
+  
 	}
 
 	
@@ -194,14 +215,15 @@ public class PubContext {
         Iterator<AbstractModule> iterator = modules.iterator();
         AbstractModule module;
 
-        try {
-            while(iterator.hasNext()) {
-                module = (AbstractModule) iterator.next();
-                module.handleDisconnect();
+        while(iterator.hasNext()) {
+            module = (AbstractModule) iterator.next();
+            try {
+            	module.handleDisconnect();
+            } catch (Exception e) {
+            	displayException(e);
             }
-        } catch (Exception e) {
-        	displayException(e);
         }
+     
 	}
 	
 	private void displayException(Exception e) {
@@ -211,7 +233,5 @@ public class PubContext {
 		m_botAction.sendChatMessage(1, e.getClass().getSimpleName() + " caught on " + className + ", " + method + " at line " + line);
 		Tools.printStackTrace(e);
 	}
-
-
-		
+	
 }

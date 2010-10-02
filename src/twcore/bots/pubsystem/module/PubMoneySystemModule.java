@@ -34,9 +34,6 @@ import twcore.core.util.Tools;
 
 public class PubMoneySystemModule extends AbstractModule {
 
-	private OperatorList opList;
-	private BotSettings m_botSettings;
-
 	private PubStore store;
 	
 	private PubPlayerManagerModule playerManager;
@@ -53,20 +50,15 @@ public class PubMoneySystemModule extends AbstractModule {
     	
     	super(botAction, context, "Store");
     	
-    	this.m_botSettings = botAction.getBotSettings();
-    	this.opList = m_botAction.getOperatorList();
-    	
     	this.playerManager = context.getPlayerManager();
 
-        this.store = new PubStore(m_botAction, context);
-        this.context = context;
-
         this.playersWithDurationItem = new HashMap<PubPlayer, PubItemDuration>();
-        
         this.shipKillerPoints = new HashMap<Integer, Integer>();
         this.shipKilledPoints = new HashMap<Integer, Integer>();
         this.locationPoints = new HashMap<Location, Integer>();
+        
         try {
+        	this.store = new PubStore(m_botAction, context);
         	initializePoints();
 	    } catch (Exception e) {
 	    	Tools.printStackTrace("Error while initializing the money system", e);
@@ -87,15 +79,15 @@ public class PubMoneySystemModule extends AbstractModule {
      * */
     private void initializePoints(){
         
-    	String[] locations = m_botSettings.getString("point_location").split(",");
+    	String[] locations = m_botAction.getBotSettings().getString("point_location").split(",");
     	for(String loc: locations) {
-    		String[] split = m_botSettings.getString("point_location" + loc).split(",");
+    		String[] split =  m_botAction.getBotSettings().getString("point_location" + loc).split(",");
     		Location location = Location.valueOf(split[0].toUpperCase());
     		locationPoints.put(location, Integer.parseInt(split[1]));
     	}
     	
-        String[] pointsKiller = m_botSettings.getString("point_killer").split(",");
-        String[] pointsKilled = m_botSettings.getString("point_killed").split(",");
+        String[] pointsKiller =  m_botAction.getBotSettings().getString("point_killer").split(",");
+        String[] pointsKilled =  m_botAction.getBotSettings().getString("point_killed").split(",");
         
         for(int i=1; i<=8; i++) {
         	shipKillerPoints.put(i, Integer.parseInt(pointsKiller[i-1]));
@@ -249,10 +241,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	} 
         else 
     	{
-        	lines.add("List of items you can buy. Each items has a set of restrictions/durations.");
-        	lines.add(" *Target optional **Target required (!buy item:PlayerName)");
-        	lines.add("");
-        	
+        	lines.add("List of items you can buy. Each item has a set of restrictions.");
 	        for(PubItem item: store.getItems().values()) {
 	        	
 	        	if (item instanceof PubPrizeItem) {
@@ -282,6 +271,10 @@ public class PubMoneySystemModule extends AbstractModule {
 	        	lines.add(line);
 	        }
 	    } 
+        
+        lines.add("*Target optional **Target required (!buy item:PlayerName)");
+    	lines.add("Use !iteminfo <item> for more info about the specified item and its restrictions.");
+    	
 
         m_botAction.smartPrivateMessageSpam(sender, lines.toArray(new String[lines.size()]));
         
@@ -350,7 +343,7 @@ public class PubMoneySystemModule extends AbstractModule {
         			m_botAction.sendPrivateMessage(sender, "  - Available only for ship(s) : " + ships.substring(0, ships.length()-1));
         		}
         		if (r.getMaxConsecutive()!=-1) {
-        			m_botAction.sendPrivateMessage(sender, "  - Maximum of " + r.getMaxConsecutive()+" purchase(s) consecutive");
+        			m_botAction.sendPrivateMessage(sender, "  - Maximum of " + r.getMaxConsecutive()+" consecutive purchase(s)");
         		}
         		if (r.getMaxPerLife()!=-1) {
         			m_botAction.sendPrivateMessage(sender, "  - Maximum of " + r.getMaxPerLife()+" per life");
@@ -396,7 +389,7 @@ public class PubMoneySystemModule extends AbstractModule {
 			if (pubPlayer != null) {
 				m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " has $"+pubPlayer.getMoney() + ".");
 			} else {
-				m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " does not exist on the system. Oh noes!!!");
+				m_botAction.sendPrivateMessage(sender, "Player '" + name + "' not found.");
 			}
     	}
     	else if(playerManager.isPlayerExists(name)) {
@@ -412,7 +405,7 @@ public class PubMoneySystemModule extends AbstractModule {
     }
     
     public boolean isDatabaseOn() {
-    	return m_botSettings.getString("database") != null;
+    	return  m_botAction.getBotSettings().getString("database") != null;
     }
 
     public void handleEvent(PlayerDeath event) {
@@ -512,7 +505,7 @@ public class PubMoneySystemModule extends AbstractModule {
         else if(command.trim().equals("!buy") || command.trim().equals("!b")){
         	doCmdItems(sender);
         }
-        else if(command.startsWith("!$") || command.startsWith("!money") || command.startsWith("!cash")) {
+        else if(command.startsWith("!$") || command.startsWith("!money") ) {
             doCmdDisplayMoney(sender, command);
         }
         else if(command.startsWith("!iteminfo") || command.startsWith("!buyinfo")){
@@ -521,7 +514,7 @@ public class PubMoneySystemModule extends AbstractModule {
         else if(command.startsWith("!buy") || command.startsWith("!b")){
         	doCmdBuy(sender, command);
         }
-        else if(opList.isSmod(sender) && command.startsWith("!setmoney")) {
+        else if( m_botAction.getOperatorList().isSmod(sender) && command.startsWith("!setmoney")) {
         	doCmdSetMoney(sender,command);
         }
 
@@ -534,10 +527,10 @@ public class PubMoneySystemModule extends AbstractModule {
 	@Override
 	public String[] getHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!buy                   -- Display the list of items. (also !items)"),
-			pubsystem.getHelpLine("!buy <item_name>       -- Item to buy. (also !b)"),
+			pubsystem.getHelpLine("!buy                   -- Display the list of items. (!items, !i)"),
+			pubsystem.getHelpLine("!buy <item_name>       -- Item to buy. (!b)"),
 			pubsystem.getHelpLine("!iteminfo <item_name>  -- Information about this item. (restriction, duration, etc.)"),
-	        pubsystem.getHelpLine("!money <name>          -- Display your money or for a given player name. (also !$, !cash)"),
+	        pubsystem.getHelpLine("!money <name>          -- Display your money or for a given player name. (!$)"),
         };
 	}
 

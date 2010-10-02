@@ -223,9 +223,14 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendPrivateMessage(challenger, "Please remove it using !removechallenge before challengin more.");
             return;
         }
-        
+
         if(context.getPlayerManager().isShipRestricted(ship)) {
-            m_botAction.sendPrivateMessage(challenger, "This ship is currently restricted on this arena, you cannot duel a player in this ship.");
+            m_botAction.sendPrivateMessage(challenger, "This ship is restricted in this arena, you cannot duel a player in this ship.");
+            return;
+        }
+        
+        if(amount < 50) {
+            m_botAction.sendPrivateMessage(challenger, "This ship is restricted in this arena, you cannot duel a player in this ship.");
             return;
         }
         
