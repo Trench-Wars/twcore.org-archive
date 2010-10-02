@@ -97,30 +97,11 @@ public class GameFlagTimeModule extends AbstractModule {
     
 	public GameFlagTimeModule(BotAction botAction, PubContext context) {
 		super(botAction, context, "Game FlagTime");
-		
-		this.context = context;
 
 		objs = m_botAction.getObjectSet();
-		
 		warpPlayers = new HashMap<String,PubPlayer>();
 		
-        warpPtsLeftX = m_botAction.getBotSettings().getIntArray("warp_leftX", ",");
-        warpPtsLeftY = m_botAction.getBotSettings().getIntArray("warp_leftY", ",");
-        warpPtsRightX = m_botAction.getBotSettings().getIntArray("warp_rightX", ",");
-        warpPtsRightY = m_botAction.getBotSettings().getIntArray("warp_rightY", ",");
-        
-        warpSafeLeftX = m_botAction.getBotSettings().getInt("warp_safe_leftX");
-        warpSafeLeftY = m_botAction.getBotSettings().getInt("warp_safe_leftY");
-        warpSafeRightX = m_botAction.getBotSettings().getInt("warp_safe_rightX");
-        warpSafeRightY = m_botAction.getBotSettings().getInt("warp_safe_rightY");
-        
-        moneyRoundWin = m_botAction.getBotSettings().getInt("flagtime_round_money_won");
-        moneyGameWin = m_botAction.getBotSettings().getInt("flagtime_game_money_won");
-        moneyMVP = m_botAction.getBotSettings().getInt("flagtime_mvp_money");
-        
-		if (m_botAction.getBotSettings().getInt("auto_warp")==1) {
-			autoWarp = true;
-		}
+		reloadConfig();
 
 	}
 	
@@ -1256,6 +1237,11 @@ public class GameFlagTimeModule extends AbstractModule {
                     m_botAction.resetFlagGame();
                     setupPlayerTimes();
                     warpPlayers(strictFlagTimeMode);
+            		Iterator<?> i = m_botAction.getPlayingPlayerIterator();
+            		while (i.hasNext()) {
+            			Player p = (Player) i.next();
+            			flagTimer.newShip(p.getPlayerName(), p.getShipType());
+            		}
                     return;
                 }
             }
@@ -1912,8 +1898,24 @@ public class GameFlagTimeModule extends AbstractModule {
 	}
 
 	@Override
-	public void reloadConfig() {
-		// TODO Auto-generated method stub
-		
+	public void reloadConfig() 
+	{
+		warpPtsLeftX = m_botAction.getBotSettings().getIntArray("warp_leftX", ",");
+	    warpPtsLeftY = m_botAction.getBotSettings().getIntArray("warp_leftY", ",");
+	    warpPtsRightX = m_botAction.getBotSettings().getIntArray("warp_rightX", ",");
+	    warpPtsRightY = m_botAction.getBotSettings().getIntArray("warp_rightY", ",");
+	    
+	    warpSafeLeftX = m_botAction.getBotSettings().getInt("warp_safe_leftX");
+	    warpSafeLeftY = m_botAction.getBotSettings().getInt("warp_safe_leftY");
+	    warpSafeRightX = m_botAction.getBotSettings().getInt("warp_safe_rightX");
+	    warpSafeRightY = m_botAction.getBotSettings().getInt("warp_safe_rightY");
+	    
+	    moneyRoundWin = m_botAction.getBotSettings().getInt("flagtime_round_money_won");
+	    moneyGameWin = m_botAction.getBotSettings().getInt("flagtime_game_money_won");
+	    moneyMVP = m_botAction.getBotSettings().getInt("flagtime_mvp_money");
+	    
+		if (m_botAction.getBotSettings().getInt("auto_warp")==1) {
+			autoWarp = true;
+		}
 	}
 }

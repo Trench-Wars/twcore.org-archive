@@ -5,8 +5,6 @@ CREATE TABLE IF NOT EXISTS `tblduel` (
   `fcWinner` varchar(23) NOT NULL,
   `fnScoreChallenger` int(11) NOT NULL,
   `fnScoreAccepter` int(11) NOT NULL,
-  `fnShipChallenger` int(11) NOT NULL,
-  `fnShipAccepter` int(11) NOT NULL,
   `fnShip` int(11) NOT NULL COMMENT '0=any ship',
   `fnWinByLagout` int(1) NOT NULL DEFAULT '0',
   `fnDuration` int(11) NOT NULL COMMENT 'in seconds',

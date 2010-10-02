@@ -543,8 +543,8 @@ public class PubMoneySystemModule extends AbstractModule {
 
 	@Override
 	public String[] getModHelpMessage() {
-		return new String[] {
-				pubsystem.getHelpLine("!setmoney <name>:<amount>  -- Set the money for a given player name. (Smod+ only)."),
+		return new String[] {    
+				pubsystem.getHelpLine("!setmoney <name>:<$>   -- Set the money for a given player name. (Smod+ only)."),
         };
 	}
 

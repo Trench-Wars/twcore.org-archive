@@ -39,9 +39,7 @@ public class PubStreakModule extends AbstractModule {
 	public PubStreakModule(BotAction botAction, PubContext context) {
 		
 		super(botAction, context, "Streak");
-		
-		this.context = context;
-		
+
 		this.winStreaks = new HashMap<String,Integer>();
 		this.loseStreaks = new HashMap<String,Integer>();
 

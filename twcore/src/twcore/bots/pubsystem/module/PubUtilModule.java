@@ -52,34 +52,7 @@ public class PubUtilModule extends AbstractModule {
 	
 	public PubUtilModule(BotAction botAction, PubContext context) {
 		super(botAction, context, "Utility");
-
-		this.locations = new LinkedHashMap<String, Location>();
-		
-        String[] pointsLocation = m_botAction.getBotSettings().getString("location").split(",");
-        for(String number: pointsLocation) {
-        	String[] data = m_botAction.getBotSettings().getString("location"+number).split(",");
-        	String name = data[0];
-        	Location loc = Location.valueOf(name.toUpperCase());
-        	for(int i=1; i<data.length; i++) {
-        		String[] coords = data[i].split(":");
-        		int x = Integer.parseInt(coords[0]);
-        		int y = Integer.parseInt(coords[1]);
-        		locations.put(coordToString(x,y), loc);
-        	}
-
-        }
-		
-		doorModeDefault = m_botAction.getBotSettings().getInt("doormode_default");
-		doorModeThreshold = m_botAction.getBotSettings().getInt("doormode_threshold");
-		doorModeThresholdSetting = m_botAction.getBotSettings().getInt("doormode_threshold_setting");
-		
-		tilesetObjects = new HashMap<Tileset,Integer>();
-		tilesetObjects.put(Tileset.BOKI, 0);
-		tilesetObjects.put(Tileset.MONOLITH, 1);
-		
-		if (m_botAction.getBotSettings().getInt("door_arena_on_change")==1) {
-			doorArenaOnChange = true;
-		}
+		reloadConfig();
 	}
 	
 	private String coordToString(int x, int y) {
@@ -426,8 +399,34 @@ public class PubUtilModule extends AbstractModule {
 
 	@Override
 	public void reloadConfig() {
-		// TODO Auto-generated method stub
+
+		this.locations = new LinkedHashMap<String, Location>();
 		
+        String[] pointsLocation = m_botAction.getBotSettings().getString("location").split(",");
+        for(String number: pointsLocation) {
+        	String[] data = m_botAction.getBotSettings().getString("location"+number).split(",");
+        	String name = data[0];
+        	Location loc = Location.valueOf(name.toUpperCase());
+        	for(int i=1; i<data.length; i++) {
+        		String[] coords = data[i].split(":");
+        		int x = Integer.parseInt(coords[0]);
+        		int y = Integer.parseInt(coords[1]);
+        		locations.put(coordToString(x,y), loc);
+        	}
+
+        }
+		
+		doorModeDefault = m_botAction.getBotSettings().getInt("doormode_default");
+		doorModeThreshold = m_botAction.getBotSettings().getInt("doormode_threshold");
+		doorModeThresholdSetting = m_botAction.getBotSettings().getInt("doormode_threshold_setting");
+		
+		tilesetObjects = new HashMap<Tileset,Integer>();
+		tilesetObjects.put(Tileset.BOKI, 0);
+		tilesetObjects.put(Tileset.MONOLITH, 1);
+		
+		if (m_botAction.getBotSettings().getInt("door_arena_on_change")==1) {
+			doorArenaOnChange = true;
+		}
 	}
 
 

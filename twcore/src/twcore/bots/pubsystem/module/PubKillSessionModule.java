@@ -27,19 +27,9 @@ public class PubKillSessionModule extends AbstractModule {
 
 	public PubKillSessionModule(BotAction botAction, PubContext context) {
 		super(botAction,context,"Kill-o-thon");
-		
-		this.context = context;
-		
-		length = m_botAction.getBotSettings().getInt("killsession_length");
-		interval = m_botAction.getBotSettings().getInt("killsession_interval");
-		winnerMoney = m_botAction.getBotSettings().getInt("killsession_winner_money");
-		
-		if (m_botAction.getBotSettings().getInt("killsession_enabled")==1) {
-			enabled = true;
-		}
-		
+
 		kills = new HashMap<String,Integer>();
-		
+		reloadConfig();
 	}
 	
 	public boolean isRunning() {
@@ -320,7 +310,14 @@ public class PubKillSessionModule extends AbstractModule {
 
 	@Override
 	public void reloadConfig() {
-		// TODO Auto-generated method stub
+		
+		length = m_botAction.getBotSettings().getInt("killsession_length");
+		interval = m_botAction.getBotSettings().getInt("killsession_interval");
+		winnerMoney = m_botAction.getBotSettings().getInt("killsession_winner_money");
+		
+		if (m_botAction.getBotSettings().getInt("killsession_enabled")==1) {
+			enabled = true;
+		}
 		
 	}
 
