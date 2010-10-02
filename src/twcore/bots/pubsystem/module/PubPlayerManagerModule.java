@@ -53,19 +53,13 @@ public class PubPlayerManagerModule extends AbstractModule {
 	{
 		super(m_botAction, context, "PlayerManager");
 
-		this.context = context;
-		this.databaseName = m_botAction.getBotSettings().getString("database");
 		this.players = new HashMap<String, PubPlayer>();
-		this.shipWeight = new Vector<Integer>();
 		this.freq0 = new HashSet<String>();
 		this.freq1 = new HashSet<String>();
 		
 		m_botAction.scheduleTaskAtFixedRate(saveTask, SAVETASK_INTERVAL * Tools.TimeInMillis.MINUTE, SAVETASK_INTERVAL * Tools.TimeInMillis.MINUTE);
 		
-        shipWeight.add(new Integer(1));		// Allow unlimited number of spec players
-        for(int i = 1; i < 9; i++) {
-            shipWeight.add( new Integer(m_botAction.getBotSettings().getInt(m_botAction.getBotName() + "Ship" + i)));
-        }
+		reloadConfig();
 	}
 	
     
@@ -625,9 +619,14 @@ public class PubPlayerManagerModule extends AbstractModule {
 
 
 	@Override
-	public void reloadConfig() {
-		// TODO Auto-generated method stub
-		
+	public void reloadConfig() 
+	{
+		this.databaseName = m_botAction.getBotSettings().getString("database");
+		this.shipWeight = new Vector<Integer>();
+        shipWeight.add(new Integer(1));		// Allow unlimited number of spec players
+        for(int i = 1; i < 9; i++) {
+            shipWeight.add( new Integer(m_botAction.getBotSettings().getInt(m_botAction.getBotName() + "Ship" + i)));
+        }
 	}
 	
 }
