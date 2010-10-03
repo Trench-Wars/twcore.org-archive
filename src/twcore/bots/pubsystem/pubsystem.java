@@ -265,7 +265,8 @@ public class pubsystem extends SubspaceBot
             		"Streak:[" + (context.getPubStreak().isEnabled() ? "ON" : "OFF") + "]  " +
             		"Store:[" + (context.getMoneySystem().isStoreOpened() ? "ON" : "OFF") + "]  " + 
             		"Kill-o-thon:[" + (context.getPubKillSession().isRunning() ? "ON" : "OFF") + "]  " +
-            		"Duel:[" + (context.getPubChallenge().isEnabled() ? "ON" : "OFF") + "]"; 
+            		"Duel:[" + (context.getPubChallenge().isEnabled() ? "ON" : "OFF") + "] " +
+            		"Hunt:[" + (context.getPubHunt().isEnabled() ? "ON" : "OFF") + "]";
             		//"Lottery:[" + (context.getP().isRunning() ? "ON" : "OFF") + "]; 
             	
             	
@@ -434,11 +435,11 @@ public class pubsystem extends SubspaceBot
     }
     
     public static String getHelpLine(String line) {
-    	return " " + line;
+    	return "- " + line;
     }
     
     public static String getModuleHelpHeader(String headerName) {
-    	return "== " + Tools.formatString(headerName + " ", 25, "=");
+    	return "[" + Tools.formatString(headerName + " ", 25, "]");
     }
 
 

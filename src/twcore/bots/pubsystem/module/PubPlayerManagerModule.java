@@ -13,6 +13,7 @@ import java.util.Vector;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
+import twcore.bots.pubsystem.module.PubHuntModule.HuntPlayer;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
@@ -170,14 +171,23 @@ public class PubPlayerManagerModule extends AbstractModule {
 	
 	public void handleEvent(FrequencyChange event) {
 		
+		Player player = m_botAction.getPlayer(event.getPlayerID());
         int playerID = event.getPlayerID();
         int freq = event.getFrequency();
 
         if(context.isStarted()) {
-            checkPlayer(playerID);
-            if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
-                checkFreq(playerID, freq, true);
-                checkFreqSizes();
+        	HuntPlayer huntPlayer = context.getPubHunt().getPlayerPlaying(player.getPlayerName());
+            if (huntPlayer != null) {
+            	if (huntPlayer.freq != event.getFrequency()) {
+            		m_botAction.setFreq(playerID, huntPlayer.freq);
+            		m_botAction.sendPrivateMessage(playerID, "You cannot change your frequency during a game of hunt.");
+            	}
+            } else {
+            	checkPlayer(playerID);
+                if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
+                    checkFreq(playerID, freq, true);
+                    checkFreqSizes();
+                }
             }
         }
         

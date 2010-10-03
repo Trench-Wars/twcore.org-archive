@@ -23,6 +23,9 @@ public class PubKillSessionModule extends AbstractModule {
 	
 	private boolean sessionStarted = false;
 	
+	private TimerTask startSessionTask;
+	private TimerTask endSessionTask;
+	
 	private HashMap<String,Integer> kills;
 
 	public PubKillSessionModule(BotAction botAction, PubContext context) {
@@ -45,13 +48,13 @@ public class PubKillSessionModule extends AbstractModule {
 		
 		m_botAction.sendArenaMessage("[KILL-O-THON] A new session has started. Kill the most in " + length + " minutes and win $" + winnerMoney + ".");
 		
-		TimerTask startSessionTask = new TimerTask() {
+		startSessionTask = new TimerTask() {
 			public void run() {
 				startSession();
 			}
 		};
 		
-		TimerTask endSessionTask = new TimerTask() {
+		endSessionTask = new TimerTask() {
 			public void run() {
 				stopSession(true);
 			}
@@ -127,6 +130,8 @@ public class PubKillSessionModule extends AbstractModule {
 		}
 		
 		if (!withWinner) {
+			endSessionTask.cancel();
+			startSessionTask.cancel();
 			m_botAction.sendArenaMessage("[KILL-O-THON] The session has been cancelled.");
 		}
 		
@@ -184,6 +189,11 @@ public class PubKillSessionModule extends AbstractModule {
     }
 
     public void doStartCmd( String sender ) {
+    	
+    	if (sessionStarted) {
+    		m_botAction.sendPrivateMessage(sender, "A session of kill-o-thon is already running. Use !killothon_stop to stop it.");
+    		return;
+    	}
     	startSession();
     }
     

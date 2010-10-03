@@ -6,6 +6,7 @@ import java.util.Vector;
 import twcore.bots.pubsystem.module.AbstractModule;
 import twcore.bots.pubsystem.module.GameFlagTimeModule;
 import twcore.bots.pubsystem.module.PubChallengeModule;
+import twcore.bots.pubsystem.module.PubHuntModule;
 import twcore.bots.pubsystem.module.PubKillSessionModule;
 import twcore.bots.pubsystem.module.PubMoneySystemModule;
 import twcore.bots.pubsystem.module.PubPlayerManagerModule;
@@ -31,6 +32,7 @@ public class PubContext {
 	private PubKillSessionModule pubKillSession;
 	private PubStreakModule pubStreak;
 	private PubUtilModule pubUtil;
+	private PubHuntModule pubHunt;
 	
 	// Game module
 	private GameFlagTimeModule gameFlagTime;
@@ -53,6 +55,7 @@ public class PubContext {
 		getPubStreak();
 		getPubKillSession();
 		getPubUtil();
+		getPubHunt();
 		
 		int seconds = (int)(System.currentTimeMillis()-start)/1000;
 		Tools.printLog("Modules(" + modules.size() + ") for pubsystem loaded in " + seconds + " seconds.");
@@ -111,6 +114,14 @@ public class PubContext {
 			modules.add(moneySystem);
 		}
 		return moneySystem;
+	}
+	
+	public PubHuntModule getPubHunt() {
+		if (pubHunt == null) {
+			pubHunt = new PubHuntModule(m_botAction, this);
+			modules.add(pubHunt);
+		}
+		return pubHunt;
 	}
 	
 	public PubKillSessionModule getPubKillSession() {

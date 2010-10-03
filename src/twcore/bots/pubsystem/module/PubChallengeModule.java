@@ -220,7 +220,7 @@ public class PubChallengeModule extends AbstractModule {
         {
             Challenge pending = challenges.get(challenger);
             m_botAction.sendPrivateMessage(challenger, "You have already a pending challenge with "+pending.getOppositeDueler(challenged)+".");
-            m_botAction.sendPrivateMessage(challenger, "Please remove it using !removechallenge before challengin more.");
+            m_botAction.sendPrivateMessage(challenger, "Please remove it using !removechallenge before challenging more.");
             return;
         }
 
@@ -240,7 +240,7 @@ public class PubChallengeModule extends AbstractModule {
             return;
         }
             
-        if(challenger.equals(challenged)){
+        if(challenger.equalsIgnoreCase(challenged)){
             m_botAction.sendPrivateMessage(challenger, "I pity the fool who challenges himself for a duel.");
             return;
         }
@@ -358,10 +358,11 @@ public class PubChallengeModule extends AbstractModule {
         Challenge challenge = challenges.get(name);
         if (challenge == null) {
         	m_botAction.sendPrivateMessage(name, "You don't have a pending challenge to remove.");
+        } else if (challenge.isStarted()) {
+        	m_botAction.sendPrivateMessage(name, "You cannot remove a challenge already started.");
         } else {
             challenges.remove(name);
             m_botAction.sendPrivateMessage(name, "Challenge removed.");
-            m_botAction.sendPrivateMessage(challenge.getOppositeDueler(name).name, name+" has removed the challenge against you.");
         }
 
     }
