@@ -80,26 +80,29 @@ public class PubStreakModule extends AbstractModule {
     	Player killer = m_botAction.getPlayer(event.getKillerID());
         Player killed = m_botAction.getPlayer(event.getKilleeID());
 
+        // Already on the system?
+        if (winStreaks.get(killer.getPlayerName()) == null) {
+        	winStreaks.put(killer.getPlayerName(),0);
+        	loseStreaks.put(killer.getPlayerName(),0);
+        }
+        if (winStreaks.get(killed.getPlayerName()) == null) {
+        	winStreaks.put(killed.getPlayerName(),0);
+        	loseStreaks.put(killed.getPlayerName(),0);
+        }
+        
+
         PubPlayer pubPlayerKiller = context.getPlayerManager().getPlayer(killer.getPlayerName());
         PubPlayer pubPlayerKilled = context.getPlayerManager().getPlayer(killed.getPlayerName());
-        
-        // Already on the system?
-        if (winStreaks.get(pubPlayerKiller.getPlayerName()) == null) {
-        	winStreaks.put(pubPlayerKiller.getPlayerName(),0);
-        	loseStreaks.put(pubPlayerKiller.getPlayerName(),0);
-        }
-        if (winStreaks.get(pubPlayerKilled.getPlayerName()) == null) {
-        	winStreaks.put(pubPlayerKilled.getPlayerName(),0);
-        	loseStreaks.put(pubPlayerKilled.getPlayerName(),0);
-        }
         
         boolean streakBroker = false;
         
         // Streak breaker??
-        if (winStreaks.get(pubPlayerKilled.getPlayerName()) >= winsStreakArenaAt) {
-        	announceStreakBreaker(pubPlayerKiller, pubPlayerKilled, winStreaks.get(pubPlayerKilled.getPlayerName()));
-        	if (streakBrokerBonus > 0) {
-        		pubPlayerKiller.addMoney(streakBrokerBonus);
+        if (winStreaks.get(killed.getPlayerName()) >= winsStreakArenaAt) {
+        	if (pubPlayerKiller != null) {
+	        	announceStreakBreaker(pubPlayerKiller, pubPlayerKilled, winStreaks.get(killed.getPlayerName()));
+	        	if (streakBrokerBonus > 0) {
+	        		pubPlayerKiller.addMoney(streakBrokerBonus);
+	        	}
         	}
         	
         	streakBroker = true;
@@ -108,12 +111,12 @@ public class PubStreakModule extends AbstractModule {
         int streak;
         
         // Updating stats for the killed (if not dueling)
-        if (!context.getPubChallenge().isDueling(pubPlayerKilled.getPlayerName())) 
+        if (!context.getPubChallenge().isDueling(killed.getPlayerName())) 
         {
-	        winStreaks.put(pubPlayerKilled.getPlayerName(), 0);
-	        loseStreaks.put(pubPlayerKilled.getPlayerName(), loseStreaks.get(pubPlayerKilled.getPlayerName())+1);
+	        winStreaks.put(killed.getPlayerName(), 0);
+	        loseStreaks.put(killed.getPlayerName(), loseStreaks.get(killed.getPlayerName())+1);
 	        
-	        streak = loseStreaks.get(pubPlayerKilled.getPlayerName());
+	        streak = loseStreaks.get(killed.getPlayerName());
 	        if (streak > worstLoseStreak) {
 	        	worstLoseStreak = streak;
 	        	worstLoseStreakPlayer = pubPlayerKilled;
@@ -121,12 +124,12 @@ public class PubStreakModule extends AbstractModule {
         }
         
         // Updating stats for the killer (if not dueling)
-        if (!context.getPubChallenge().isDueling(pubPlayerKiller.getPlayerName())) 
+        if (!context.getPubChallenge().isDueling(killer.getPlayerName())) 
         {
-	        loseStreaks.put(pubPlayerKiller.getPlayerName(), 0);
-	        winStreaks.put(pubPlayerKiller.getPlayerName(), winStreaks.get(pubPlayerKiller.getPlayerName())+1);
+	        loseStreaks.put(killer.getPlayerName(), 0);
+	        winStreaks.put(killer.getPlayerName(), winStreaks.get(killer.getPlayerName())+1);
 	        
-	        streak = winStreaks.get(pubPlayerKiller.getPlayerName());
+	        streak = winStreaks.get(killer.getPlayerName());
 	        
 	        // Is a streak worth to be said?
 	        if (streak >= winsStreakArenaAt) {
@@ -145,7 +148,7 @@ public class PubStreakModule extends AbstractModule {
 	        }
 	        
 	        // Money gains by the killer?
-	        int money = getMoney(winStreaks.get(pubPlayerKiller.getPlayerName()));
+	        int money = getMoney(winStreaks.get(killer.getPlayerName()));
 	        if (money > 0 && moneyEnabled) {
 	        	pubPlayerKiller.addMoney(money);
 	        }
