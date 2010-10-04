@@ -352,6 +352,8 @@ public class PubHuntModule extends AbstractModule {
     }
     
     public boolean isPlayerPlaying(String playerName) {
+    	if (!isRunning)
+    		return false;
     	return getPlayerPlaying(playerName) != null;
     }
     
@@ -360,6 +362,8 @@ public class PubHuntModule extends AbstractModule {
     }
     
     public HuntPlayer getPlayerPlaying(String playerName) {
+    	if (!isRunning)
+    		return null;
     	HuntPlayer player = players.get(playerName);
     	if (player != null && player.isPlaying()) {
     		return player;
@@ -448,7 +452,7 @@ public class PubHuntModule extends AbstractModule {
         while(it.hasNext()) {
         	Player player = it.next();
         	String playerName = player.getPlayerName();
-        	if (!playersNotPlaying.contains(playerName)) {
+        	if (!playersNotPlaying.contains(playerName) && !context.getPubChallenge().isDueling(playerName)) {
         		players.put(playerName, new HuntPlayer(playerName));
         	}
         }
@@ -473,8 +477,6 @@ public class PubHuntModule extends AbstractModule {
 		if (!enabled) {
 			return;
 		}
-		
-		isRunning = true;
 
 		preyToHunter = new HashMap<String, HuntPlayer>();
 		preyWaitingList = new TreeSet<String>();
@@ -524,6 +526,8 @@ public class PubHuntModule extends AbstractModule {
 		
 		m_botAction.sendArenaMessage("[HUNT] GO GO GO!", Tools.Sound.GOGOGO);
 
+		isRunning = true;
+		
 		// Set preys!
 		Iterator<HuntPlayer> it = players.values().iterator();
 		while(it.hasNext()) {

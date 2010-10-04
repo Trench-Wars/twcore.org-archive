@@ -318,11 +318,13 @@ public class GameFlagTimeModule extends AbstractModule {
 
         String roundTitle = "";
         int intermission = INTERMISSION_SECS;
+        boolean endOfGame = false;
         switch( roundNum ) {
         case 1:
             m_botAction.sendArenaMessage( "Object: Hold flag for " + flagMinutesRequired + " consecutive minute" + (flagMinutesRequired == 1 ? "" : "s") + " to win a round.  Best " + ( MAX_FLAGTIME_ROUNDS + 1) / 2 + " of "+ MAX_FLAGTIME_ROUNDS + " wins the game." );
             roundTitle = "The next game";
             intermission = INTERMISSION_GAME_SECS;
+            endOfGame = true;
             break;
         case MAX_FLAGTIME_ROUNDS:
             roundTitle = "Final Round";
@@ -336,7 +338,7 @@ public class GameFlagTimeModule extends AbstractModule {
         m_botAction.cancelTask(startTimer);
         
         // A game of hunt between
-        if (context.getPubHunt().isEnabled()) {
+        if (context.getPubHunt().isEnabled() && endOfGame) {
 	        TimerTask timer = new TimerTask() {
 				public void run() {
 					context.getPubHunt().prepareGame();
