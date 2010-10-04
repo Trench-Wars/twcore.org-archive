@@ -188,7 +188,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 
         if(context.isStarted()) {
         	HuntPlayer huntPlayer = context.getPubHunt().getPlayerPlaying(player.getPlayerName());
-            if (huntPlayer != null) {
+            if (huntPlayer != null && context.getPubHunt().isRunning()) {
             	if (huntPlayer.freq != event.getFrequency()) {
             		m_botAction.setFreq(playerID, huntPlayer.freq);
             		m_botAction.sendPrivateMessage(playerID, "You cannot change your frequency during a game of hunt.");
