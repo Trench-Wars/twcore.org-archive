@@ -622,8 +622,12 @@ public class PubPlayerManagerModule extends AbstractModule {
 
 	@Override
 	public void handleModCommand(String sender, String command) {
-		// TODO Auto-generated method stub
 		
+        if(command.equals("!debug")) {
+            for(PubPlayer p: players.values()) {
+            	m_botAction.sendPrivateMessage(sender, p.getPlayerName());
+            }
+        }
 	}
 	
 	@Override

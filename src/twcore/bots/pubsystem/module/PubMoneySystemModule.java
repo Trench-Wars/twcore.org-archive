@@ -487,10 +487,9 @@ public class PubMoneySystemModule extends AbstractModule {
             }
 
             String playerName = killer.getPlayerName();
-            PubPlayer pubPlayer = playerManager.getPlayer(playerName);
-            pubPlayer.addMoney(money);
+            context.getPlayerManager().addMoney(playerName, money);
             
-            PubLogSystem.write(LogType.MONEY, playerName + "("+killer.getShipType()+"): " + pubPlayer.getMoney() + " +"+money+"\n");
+            //PubLogSystem.write(LogType.MONEY, playerName + "("+killer.getShipType()+"): " + pubPlayer.getMoney() + " +"+money+"\n");
 
         } catch(Exception e){
             Tools.printStackTrace(e);
@@ -515,7 +514,7 @@ public class PubMoneySystemModule extends AbstractModule {
         else if(command.startsWith("!buy") || command.startsWith("!b")){
         	doCmdBuy(sender, command);
         }
-        else if( m_botAction.getOperatorList().isSmod(sender) && command.startsWith("!setmoney")) {
+        else if( m_botAction.getOperatorList().isOwner(sender) && command.startsWith("!setmoney")) {
         	doCmdSetMoney(sender,command);
         }
 
@@ -538,7 +537,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	@Override
 	public String[] getModHelpMessage() {
 		return new String[] {    
-				pubsystem.getHelpLine("!setmoney <name>:<$>   -- Set the money for a given player name. (Smod+ only)."),
+			pubsystem.getHelpLine("!setmoney <name>:<$>   -- Set the money for a given player name. (Owner only)."),
         };
 	}
 
@@ -611,7 +610,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	m_botAction.sendUnfilteredPrivateMessage(m_botAction.getBotName(), "*super");
     	m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
 
-    	m_botAction.sendArenaMessage(sender + " has sent a nuke in the direction of the flagroom! Impact is imminent!",17);
+    	m_botAction.sendArenaMessage(sender + " has sent a blast of bomb inside the flagroom!", Tools.Sound.UNDER_ATTACK);
         final TimerTask timerFire = new TimerTask() {
             public void run() {
             	m_botAction.getShip().move(512*16+8, 270*16+8);

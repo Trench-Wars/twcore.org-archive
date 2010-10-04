@@ -226,6 +226,8 @@ public class GameFlagTimeModule extends AbstractModule {
 		// Reset the time of a player for MVP purpose
 		if (isRunning()) {
 			Player player = m_botAction.getPlayer(event.getPlayerID());
+			if (player.getPlayerName().equals(m_botAction.getBotName()))
+				return;
 			playerTimes.put(player.getPlayerName(), new Integer(0));
 		}
 	}
@@ -237,6 +239,10 @@ public class GameFlagTimeModule extends AbstractModule {
 			int killedID = event.getKilleeID();
 			Player killer = m_botAction.getPlayer(killerID);
 			Player killed = m_botAction.getPlayer(killedID);
+			
+			if (killer.getPlayerName().equals(m_botAction.getBotName()))
+				return;
+			
 			if (killer.getFrequency()==killed.getFrequency()) {
 				flagTimer.addTk(killer.getPlayerName());
 			}
@@ -268,6 +274,9 @@ public class GameFlagTimeModule extends AbstractModule {
         int playerID = event.getPlayerID();
         Player p = m_botAction.getPlayer(playerID);
 
+		if (p.getPlayerName().equals(m_botAction.getBotName()))
+			return;
+        
         try {
             if( p != null && flagTimer != null ) {
                 flagTimer.flagClaimed( p.getFrequency(), playerID );
