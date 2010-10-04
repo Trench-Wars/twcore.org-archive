@@ -50,7 +50,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
         this.itemsBought = new LinkedList<PubItemUsed>();
         this.itemsBoughtThisLife = new LinkedList<PubItem>();
         this.cashPanel = new LvzMoneyPanel(m_botAction);
-        reloadPanel();
+        reloadPanel(false);
     }
 
 
@@ -62,13 +62,19 @@ public class PubPlayer implements Comparable<PubPlayer>{
         return money;
     }
     
-    public void reloadPanel() {
-    	cashPanel.reset(name, money);
-    	cashPanel.update(m_botAction.getPlayerID(name), String.valueOf(0), String.valueOf(money), true);
+    public void reloadPanel(boolean fullReset) {
+    	if (fullReset) {
+    		cashPanel.reset(name);
+    	} else {
+    		cashPanel.reset(name, money);
+    		cashPanel.update(m_botAction.getPlayerID(name), String.valueOf(0), String.valueOf(money), true);
+    	}
     }
     
     public void setMoney(int money) {
     	int before = this.money;
+    	if (money < 0)
+    		money = 0;
         this.money = money;
         boolean gained = before > money ? false : true;
         cashPanel.update(m_botAction.getPlayerID(name), String.valueOf(before), String.valueOf(money), gained);

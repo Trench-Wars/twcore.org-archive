@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
@@ -23,9 +24,7 @@ import twcore.bots.pubsystem.util.PubException;
 import twcore.bots.pubsystem.util.PubLogSystem;
 import twcore.bots.pubsystem.util.PubLogSystem.LogType;
 import twcore.core.BotAction;
-import twcore.core.BotSettings;
 import twcore.core.EventRequester;
-import twcore.core.OperatorList;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.WeaponFired;
@@ -134,7 +133,9 @@ public class PubMoneySystemModule extends AbstractModule {
                     	if (duration.hasTime()) {
                     		TimerTask timer = new TimerTask() {
                                 public void run() {
+                                	int bounty = m_botAction.getPlayer(receiver.getPlayerName()).getBounty();
                                 	m_botAction.sendUnfilteredPrivateMessage(receiver.getPlayerName(), "*shipreset");
+                                	m_botAction.giveBounty(receiver.getPlayerName(), bounty);
                                 	m_botAction.sendPrivateMessage(receiver.getPlayerName(), "Item '" + item.getName() + "' lost.");
                                 }
                             };
@@ -527,10 +528,10 @@ public class PubMoneySystemModule extends AbstractModule {
 	@Override
 	public String[] getHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!buy                   -- Display the list of items. (!items, !i)"),
-			pubsystem.getHelpLine("!buy <item_name>       -- Item to buy. (!b)"),
-			pubsystem.getHelpLine("!iteminfo <item_name>  -- Information about this item. (restriction, duration, etc.)"),
-	        pubsystem.getHelpLine("!money <name>          -- Display your money or for a given player name. (!$)"),
+			pubsystem.getHelpLine("!buy              -- Display the list of items. (!items, !i)"),
+			pubsystem.getHelpLine("!buy <item>       -- Item to buy. (!b)"),
+			pubsystem.getHelpLine("!iteminfo <item>  -- Information about this item. (restriction, duration, etc.)"),
+	        pubsystem.getHelpLine("!money <name>     -- Display your money or for a given player name. (!$)"),
         };
 	}
 
@@ -601,16 +602,49 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
     
+    private void itemCommandBombBlast(String sender, String params) {
+
+	   	Player p = m_botAction.getPlayer(sender);
+
+    	m_botAction.getShip().setShip(0);
+    	m_botAction.getShip().setFreq(p.getFrequency());
+    	m_botAction.sendUnfilteredPrivateMessage(m_botAction.getBotName(), "*super");
+    	m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
+
+    	m_botAction.sendArenaMessage(sender + " has sent a nuke in the direction of the flagroom! Impact is imminent!",17);
+        final TimerTask timerFire = new TimerTask() {
+            public void run() {
+            	m_botAction.getShip().move(512*16+8, 270*16+8);
+            	for(int i=0; i<360/5; i++) {
+            		
+                	m_botAction.getShip().rotateDegrees(i*5);
+                	m_botAction.getShip().sendPositionPacket();
+	            	m_botAction.getShip().fire(WeaponFired.WEAPON_EMP_BOMB);
+	            	try { Thread.sleep(10); } catch (InterruptedException e) {}
+            	}
+            }
+        };
+    	timerFire.run();
+    	
+    	TimerTask timer = new TimerTask() {
+            public void run() {
+            	m_botAction.specWithoutLock(m_botAction.getBotName());
+            }
+        };
+        m_botAction.scheduleTask(timer, 7500);
+    	
+    }
+    
     private void itemCommandNukeBase(String sender, String params) {
 
 	   	Player p = m_botAction.getPlayer(sender);
-	   	
-	    //m_botAction.setFreq(m_botAction.getBotName(),(int)p.getFrequency());
+
     	m_botAction.getShip().setShip(1);
-    	//m_botAction.getShip().setFreq(9999);
+    	m_botAction.getShip().setFreq(p.getFrequency());
+    	m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
     	m_botAction.getShip().rotateDegrees(90);
     	m_botAction.getShip().sendPositionPacket();
-    	//m_botAction.setThorAdjust(5);
+
     	m_botAction.sendArenaMessage(sender + " has sent a nuke in the direction of the flagroom! Impact is imminent!",17);
         final TimerTask timerFire = new TimerTask() {
             public void run() {
@@ -618,6 +652,8 @@ public class PubMoneySystemModule extends AbstractModule {
 	            	for(int j=0; j<7; j++) {
 		            	m_botAction.getShip().move((482+(j*10))*16+8, 100*16);
 		            	m_botAction.getShip().sendPositionPacket();
+		            	m_botAction.getShip().fire(WeaponFired.WEAPON_THOR);
+		            	m_botAction.getShip().fire(WeaponFired.WEAPON_THOR);
 		            	m_botAction.getShip().fire(WeaponFired.WEAPON_THOR);
 		            	try { Thread.sleep(50); } catch (InterruptedException e) {}
 	            	}
@@ -632,8 +668,47 @@ public class PubMoneySystemModule extends AbstractModule {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
             }
         };
-        m_botAction.scheduleTask(timer, 13000);
+        m_botAction.scheduleTask(timer, 14000);
     	
+    }
+    
+    private void itemCommandFlagSaver(String sender, String params) {
+
+	   	Player p = m_botAction.getPlayer(sender);
+	   	
+    	m_botAction.getShip().setShip(1);
+    	m_botAction.getShip().setFreq(p.getFrequency());
+    	m_botAction.getShip().rotateDegrees(270);
+    	m_botAction.getShip().sendPositionPacket();
+    	m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
+    	m_botAction.getShip().move(512*16+8, 265*16+8);
+	   	
+    	TimerTask timer = new TimerTask() {
+            public void run() {
+            	m_botAction.specWithoutLock(m_botAction.getBotName());
+            }
+        };
+        m_botAction.scheduleTask(timer, 2000);
+        m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for freq " + p.getFrequency() + ", thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
+	   	
+    }
+    
+    private void itemCommandEpidemic(String sender, String params) {
+
+	   	Player p = m_botAction.getPlayer(sender);
+	   	
+	   	final int freq = p.getFrequency()==0? 1 : 0;
+	   	
+	   	m_botAction.sendArenaMessage(sender + " has started an epidemic on freq " + freq + ". Stay away from everyone!",17);
+	   	
+	   	int timeElapsed = 0;
+		for(int i=1; i<10; i++) {
+			timeElapsed += 2300-(int)(Math.log(i)*1000);
+	   		m_botAction.scheduleTask(new EnergyDeplitedTask(freq), timeElapsed);
+		}
+		m_botAction.scheduleTask(new EngineShutdownExtendedTask(freq), timeElapsed);
+		
+	   	
     }
 
 	@Override
@@ -647,6 +722,25 @@ public class PubMoneySystemModule extends AbstractModule {
 	public void reloadConfig() {
 		store.reloadConfig();
 	}
-
-
+	
+   	private class EnergyDeplitedTask extends TimerTask {
+   		private int freq;
+   		public EnergyDeplitedTask(int freq) {
+   			this.freq = freq;
+   		}
+		public void run() {
+	   		m_botAction.prizeFreq(freq, Tools.Prize.ENERGY_DEPLETED);
+		}
+	};
+	
+ 	private class EngineShutdownExtendedTask extends TimerTask {
+   		private int freq;
+   		public EngineShutdownExtendedTask(int freq) {
+   			this.freq = freq;
+   		}
+		public void run() {
+	   		m_botAction.prizeFreq(freq, Tools.Prize.ENGINE_SHUTDOWN_EXTENDED);
+		}
+	};
+	
 }

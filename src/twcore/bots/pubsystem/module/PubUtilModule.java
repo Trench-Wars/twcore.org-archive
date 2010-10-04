@@ -90,13 +90,13 @@ public class PubUtilModule extends AbstractModule {
 		if (m_botAction.getNumPlayers() >= doorModeThreshold && !doorStatus.equals(DoorMode.IN_OPERATION)) {
 			m_botAction.setDoors(doorModeThresholdSetting);
 			if (doorArenaOnChange) {
-				m_botAction.sendArenaMessage("[SETTING] Doors are now in operation.", Tools.Sound.BEEP1);
+				//m_botAction.sendArenaMessage("[SETTING] Doors are now in operation.", Tools.Sound.BEEP1);
 			}
 			doorStatus = DoorMode.IN_OPERATION;
 		} else if (!doorStatus.equals(DoorMode.CLOSED)) {
 			m_botAction.setDoors(doorModeDefault);
 			if (doorArenaOnChange) {
-				m_botAction.sendArenaMessage("[SETTING] Doors are now locked.", Tools.Sound.BEEP1);
+				//m_botAction.sendArenaMessage("[SETTING] Doors are now locked.", Tools.Sound.BEEP1);
 			}
 			doorStatus = DoorMode.CLOSED;
 		}
@@ -139,7 +139,7 @@ public class PubUtilModule extends AbstractModule {
     /**
      * Change the current tileset for a player
      */
-    public void doSetTileCmd( String sender, String tileName ) {
+	private void doSetTileCmd( String sender, String tileName ) {
 
     	try {
     		Tileset tileset = Tileset.valueOf(tileName.toUpperCase());
@@ -195,7 +195,7 @@ public class PubUtilModule extends AbstractModule {
      * @throws RuntimeException if the bot is currently running.
      * @throws IllegalArgumentException if the bot is already in that arena.
      */
-    public void doGoCmd(String sender, String argString)
+	private void doGoCmd(String sender, String argString)
     {
         String currentArena = m_botAction.getArenaName();
 
@@ -213,17 +213,19 @@ public class PubUtilModule extends AbstractModule {
      *
      * @param sender is the sender of the command.
      */
-    public void doPrivFreqsCmd(String sender)
+    private void doPrivFreqsCmd(String sender)
     {
         if(!privFreqEnabled)
         {
-            m_botAction.sendArenaMessage("[SETTING] Private Frequencies enabled.", 2);
+        	if (!context.hasJustStarted())
+        		m_botAction.sendArenaMessage("[SETTING] Private Frequencies enabled.", 2);
             m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully enabled.");
         }
         else
         {
             context.getPlayerManager().fixFreqs();
-            m_botAction.sendArenaMessage("[SETTING] Private Frequencies disabled.", 2);
+            if (!context.hasJustStarted())
+            	m_botAction.sendArenaMessage("[SETTING] Private Frequencies disabled.", 2);
             m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully disabled.");
         }
         privFreqEnabled = !privFreqEnabled;
@@ -237,7 +239,7 @@ public class PubUtilModule extends AbstractModule {
      * @param sender is the person issuing the command.
      * @throws RuntimeException if the bot is running pure pub settings.
      */
-    public void doDieCmd(String sender)
+    private void doDieCmd(String sender)
     {
         m_botAction.sendSmartPrivateMessage(sender, "Bot logging off.");
         m_botAction.setObjects();
@@ -247,7 +249,7 @@ public class PubUtilModule extends AbstractModule {
     /**
      * Shows last seen location of a given individual.
      */
-    public void doWhereIsCmd( String sender, String argString, boolean isStaff ) {
+    private void doWhereIsCmd( String sender, String argString, boolean isStaff ) {
         Player p = m_botAction.getPlayer(sender);
         if( p == null )
             throw new RuntimeException("Can't find you. Please report this to staff.");

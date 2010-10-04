@@ -73,6 +73,15 @@ public class PubPlayerManagerModule extends AbstractModule {
 		eventRequester.request(EventRequester.PLAYER_ENTERED);
 	}
 
+	public boolean addMoney(String playerName, int money) {
+		PubPlayer player = players.get(playerName.toLowerCase());
+		if (player != null) {
+			player.addMoney(money);
+			return true;
+		}
+		return false;
+	}
+	
 	/**
 	 * Retrieve a player on the cache only (if the player is currently playing)
 	 * or by requesting the database. You may only want to request the database
@@ -97,6 +106,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 						String name = rs.getString("fcName");
 						int money = rs.getInt("fnMoney");
 						players.put(name.toLowerCase(), new PubPlayer(m_botAction, name, money));
+						players.get(name.toLowerCase()).reloadPanel(false);
 					}
 					rs.close();
 				} catch (SQLException e) {
@@ -128,6 +138,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 
     	Player p = m_botAction.getPlayer(event.getPlayerID());
     	String playerName = p.getPlayerName();
+    	
     	PubPlayer pubPlayer = addPlayerToSystem(playerName);
     	
     	if (pubPlayer != null)
@@ -226,6 +237,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 					String name = rs.getString("fcName");
 					int money = rs.getInt("fnMoney");
 					players.put(name.toLowerCase(), new PubPlayer(m_botAction, name, money));
+					players.get(name.toLowerCase()).reloadPanel(false);
 				} else {
 					players.put(playerName.toLowerCase(), new PubPlayer(m_botAction, playerName));
 				}
@@ -251,7 +263,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     	
     	PubPlayer player = players.get(playerName.toLowerCase());
     	if (player != null) {
-    		player.reloadPanel();
+    		player.reloadPanel(false);
     		return player;
     	}
     	else if (databaseName != null) {
@@ -464,6 +476,10 @@ public class PubPlayerManagerModule extends AbstractModule {
         String playerName = player.getPlayerName();
         if( player == null )
             return;
+        
+        if (context.getPubHunt().isPlayerPlaying(playerName)) {
+        	return;
+        }
 
         int ship = player.getShipType();
         int newFreq = freq;

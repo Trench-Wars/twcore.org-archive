@@ -60,17 +60,15 @@ public class LvzMoneyPanel {
     	for(int i = 0; i < value.length(); i++) {
     		botAction.sendUnfilteredPrivateMessage(playerName, "*objoff "+502+(value.length()-i-1)+value.charAt(i));
     	}
-    		
     	
     }
     
     public void reset(String playerName){
-        for(int i = 0; i < 7; i++){
-           for(int j = 0; j < 10; j++){
-            botAction.sendUnfilteredPrivateMessage(playerName, "*objoff "+502+i+j);
-            System.out.println("Objoff: "+502+i+j);
-           }
-       }
+		for (int i = 0; i < 7; i++) {
+			for (int j = 0; j < 10; j++) {
+				botAction.sendUnfilteredPrivateMessage(playerName, "*objoff " + 502 + i + j);
+			}
+		}
     }
 
     
