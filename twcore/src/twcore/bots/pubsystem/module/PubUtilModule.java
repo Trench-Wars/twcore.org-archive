@@ -427,6 +427,11 @@ public class PubUtilModule extends AbstractModule {
 		if (m_botAction.getBotSettings().getInt("door_arena_on_change")==1) {
 			doorArenaOnChange = true;
 		}
+		
+		if (m_botAction.getBotSettings().getInt("utility_enabled")==1) {
+			enabled = true;
+		}
+		
 	}
 
 

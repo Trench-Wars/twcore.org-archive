@@ -273,11 +273,11 @@ public class PubMoneySystemModule extends AbstractModule {
 	        	line += " -- " + (item.getDescription() + " ($" + item.getPrice() + ")");
 	        	lines.add(line);
 	        }
+	        
+	        lines.add(" *Target optional **Target required (!buy item:PlayerName)");
+	    	lines.add("Use !iteminfo <item> for more info about the specified item and its restrictions.");
+	    	
 	    } 
-        
-        lines.add("*Target optional **Target required (!buy item:PlayerName)");
-    	lines.add("Use !iteminfo <item> for more info about the specified item and its restrictions.");
-    	
 
         m_botAction.smartPrivateMessageSpam(sender, lines.toArray(new String[lines.size()]));
         
