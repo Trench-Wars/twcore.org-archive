@@ -126,10 +126,15 @@ public class PubHuntModule extends AbstractModule {
  
     	int money = winners[0].preyKilled * moneyWinner;
     	
+    	String moneyMessage = "";
+    	if (context.getMoneySystem().isEnabled()) {
+    		moneyMessage = ", +$" + money;
+    	}
+    	
     	if (winners.length > 1)
-    		m_botAction.sendArenaMessage("[HUNT] Winners (freq " + freq + "): " + winnersText + " (" + winners[0].preyKilled + " preys each, +$" + money + ")", Tools.Sound.HALLELUJAH);
+    		m_botAction.sendArenaMessage("[HUNT] Winners (freq " + freq + "): " + winnersText + " (" + winners[0].preyKilled + " preys each" + moneyMessage + ")", Tools.Sound.HALLELUJAH);
     	else
-    		m_botAction.sendArenaMessage("[HUNT] Winner (freq " + freq + "): " + winnersText + " (" + winners[0].preyKilled + " preys, +$" + money + ")", Tools.Sound.HALLELUJAH);
+    		m_botAction.sendArenaMessage("[HUNT] Winner (freq " + freq + "): " + winnersText + " (" + winners[0].preyKilled + " preys" + moneyMessage + ")", Tools.Sound.HALLELUJAH);
     	
     	for(HuntPlayer p: winners)
     		context.getPlayerManager().addMoney(p.name, money);
@@ -144,12 +149,19 @@ public class PubHuntModule extends AbstractModule {
     public void announceWinner(HuntPlayer huntPlayer, boolean byForfeit) {
     	
 		int money = huntPlayer.preyKilled * moneyWinner;
-		if (byForfeit)
-			m_botAction.sendArenaMessage("[HUNT] Winner by forfeit: " + huntPlayer.name + " (" + huntPlayer.preyKilled + " preys, +$" + money + ")", Tools.Sound.HALLELUJAH);
-		else
-			m_botAction.sendArenaMessage("[HUNT] Winner: " + huntPlayer.name + " (" + huntPlayer.preyKilled + " preys, +$" + money + ")", Tools.Sound.HALLELUJAH);
 		
-		context.getPlayerManager().addMoney(huntPlayer.name, money);
+    	String moneyMessage = "";
+    	if (context.getMoneySystem().isEnabled()) {
+    		moneyMessage = ", +$" + money;
+    	}
+		
+		if (byForfeit)
+			m_botAction.sendArenaMessage("[HUNT] Winner by forfeit: " + huntPlayer.name + " (" + huntPlayer.preyKilled + " preys" + moneyMessage + ")", Tools.Sound.HALLELUJAH);
+		else
+			m_botAction.sendArenaMessage("[HUNT] Winner: " + huntPlayer.name + " (" + huntPlayer.preyKilled + " preys" + moneyMessage + ")", Tools.Sound.HALLELUJAH);
+		
+		if (context.getMoneySystem().isEnabled())
+			context.getPlayerManager().addMoney(huntPlayer.name, money);
 		
 		stopGame();
     }
@@ -196,7 +208,7 @@ public class PubHuntModule extends AbstractModule {
         		m_botAction.sendArenaMessage("[HUNT] " + killed + " has been hunted by " + killer + " and is out!");
         		
         		int money = huntKilled.preyKilled * moneyPerPrey;
-        		if (money != 0) {
+        		if (money != 0 && context.getMoneySystem().isEnabled()) {
         			m_botAction.sendPrivateMessage(killed, "Thank you for playing!. You have earned $" + money + " to have killed " + huntKilled.preyKilled + " prey(s).");
         			context.getPlayerManager().addMoney(killed, money);
         		} else {
