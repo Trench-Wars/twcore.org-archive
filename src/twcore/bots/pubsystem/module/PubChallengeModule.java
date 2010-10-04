@@ -230,7 +230,7 @@ public class PubChallengeModule extends AbstractModule {
         }
         
         if(amount < 50) {
-            m_botAction.sendPrivateMessage(challenger, "This ship is restricted in this arena, you cannot duel a player in this ship.");
+            m_botAction.sendPrivateMessage(challenger, "You must.");
             return;
         }
         
