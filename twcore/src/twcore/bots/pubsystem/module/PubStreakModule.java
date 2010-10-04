@@ -43,7 +43,7 @@ public class PubStreakModule extends AbstractModule {
 		this.winStreaks = new HashMap<String,Integer>();
 		this.loseStreaks = new HashMap<String,Integer>();
 
-		initialize();
+		reloadConfig();
 	}
 	
 	public void requestEvents(EventRequester eventRequester)
@@ -51,20 +51,7 @@ public class PubStreakModule extends AbstractModule {
 		eventRequester.request(EventRequester.PLAYER_DEATH);
 		eventRequester.request(EventRequester.PLAYER_LEFT);
 	}
-	
-	public void initialize() {
-		if (m_botAction.getBotSettings().getInt("streak_enabled")==1) {
-			enabled = true;
-		}
-		if (m_botAction.getBotSettings().getInt("streak_money_enabled")==1) {
-			moneyEnabled = true;
-		}
-		streakJump = m_botAction.getBotSettings().getInt("streak_jump");
-		winsStreakArenaAt = m_botAction.getBotSettings().getInt("streak_wins_arena_at");
-		winsStreakZoneAt = m_botAction.getBotSettings().getInt("streak_wins_zone_at");
-		winsStreakMoneyMultiplicator = m_botAction.getBotSettings().getInt("streak_wins_money_multiplicator");
-		streakBrokerBonus = m_botAction.getBotSettings().getInt("streak_broker_bonus");
-	}
+
 
 	public void handleEvent(PlayerLeft event) {
 		Player player = m_botAction.getPlayer(event.getPlayerID());
@@ -315,8 +302,17 @@ public class PubStreakModule extends AbstractModule {
 
 	@Override
 	public void reloadConfig() {
-		// TODO Auto-generated method stub
-		
+		if (m_botAction.getBotSettings().getInt("streak_enabled")==1) {
+			enabled = true;
+		}
+		if (m_botAction.getBotSettings().getInt("streak_money_enabled")==1) {
+			moneyEnabled = true;
+		}
+		streakJump = m_botAction.getBotSettings().getInt("streak_jump");
+		winsStreakArenaAt = m_botAction.getBotSettings().getInt("streak_wins_arena_at");
+		winsStreakZoneAt = m_botAction.getBotSettings().getInt("streak_wins_zone_at");
+		winsStreakMoneyMultiplicator = m_botAction.getBotSettings().getInt("streak_wins_money_multiplicator");
+		streakBrokerBonus = m_botAction.getBotSettings().getInt("streak_broker_bonus");
 	}
     
 }

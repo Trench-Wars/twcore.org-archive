@@ -62,6 +62,8 @@ public class PubMoneySystemModule extends AbstractModule {
 	    } catch (Exception e) {
 	    	Tools.printStackTrace("Error while initializing the money system", e);
 		}
+	    
+	    reloadConfig();
     	
     }
     
@@ -720,6 +722,11 @@ public class PubMoneySystemModule extends AbstractModule {
 	@Override
 	public void reloadConfig() {
 		store.reloadConfig();
+		if (m_botAction.getBotSettings().getInt("money_enabled")==1) {
+			enabled = true;
+		} else {
+			store.turnOff();
+		}
 	}
 	
    	private class EnergyDeplitedTask extends TimerTask {

@@ -61,8 +61,16 @@ public class PubChallengeModule extends AbstractModule {
     public void handleEvent(PlayerLeft event) {
         if(!enabled)
             return;
-        playerLeftRemoveChallenge(m_botAction.getPlayerName(event.getPlayerID()));
         
+        Player p = m_botAction.getPlayer(event.getPlayerID());
+        String name = p.getPlayerName();
+        
+        Challenge challenge = challenges.get(name);
+        if (challenge != null) {
+	        laggers.put(name, new StartLagout(name));
+	        m_botAction.scheduleTask(laggers.get(name), 60*1000);
+	        m_botAction.sendPrivateMessage(challenge.getOppositeDueler(name).name, "Your opponent has lagged out. He has 60 seconds to return to the game.");
+    	}
     }
 
     public void handleEvent(FrequencyShipChange event) {
@@ -116,7 +124,6 @@ public class PubChallengeModule extends AbstractModule {
         int x = event.getXLocation()/16;
         int y = event.getYLocation()/16;
         
-        // Warp the loser after the last death
         Challenge challenge = challenges.get(name);
         if (challenge.hasEnded()) {
         	challenges.remove(name);
@@ -206,12 +213,6 @@ public class PubChallengeModule extends AbstractModule {
             }
         }
         return null;
-    }
-    
-    public void playerLeftRemoveChallenge(String name){
-        if(!challenges.containsKey((name)))
-            return;
-        challenges.remove(name);
     }
     
     public void issueChallenge(String challenger, String challenged, int amount, int ship) {
@@ -444,6 +445,9 @@ public class PubChallengeModule extends AbstractModule {
         Dueler d1 = duelers.remove(winner.name);
         Dueler d2 = duelers.get(loser.name);
         challenges.remove(d1.name);
+        if (laggers.containsKey(d2.name)) {
+        	challenges.remove(d2.name);
+        }
         laggers.remove(d1.name);
         laggers.remove(d2.name);
         
@@ -653,7 +657,7 @@ public class PubChallengeModule extends AbstractModule {
             String pieces[] = command.substring(11).split(":");
             String opponent = "";
             // Get the real player name
-            if (pieces.length == 3 || (pieces.length == 2 && context.getMoneySystem().isEnabled())) {
+            if (pieces.length == 3 || (pieces.length == 2 && !context.getMoneySystem().isEnabled())) {
 	            PubPlayer player = context.getPlayerManager().getPlayer(pieces[0]);
 	            if (player==null) {
 	            	m_botAction.sendPrivateMessage(sender, "Player not found.");
@@ -662,7 +666,7 @@ public class PubChallengeModule extends AbstractModule {
 	            	opponent = player.getPlayerName();
 	            }
             }
-            if(pieces.length == 3 || (pieces.length == 2 && context.getMoneySystem().isEnabled())) {
+            if(pieces.length == 3 || (pieces.length == 2 && !context.getMoneySystem().isEnabled())) {
                 try {
                 	int ship = Integer.parseInt(pieces[1]);
                     int amount = pieces.length == 3 ? Integer.parseInt(pieces[2]) : 0;
