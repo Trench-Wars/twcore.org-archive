@@ -671,7 +671,7 @@ public class PubChallengeModule extends AbstractModule {
 
         try {
         	
-            if(command.startsWith("!challenge_cancel"))
+            if(command.startsWith("!cancelchallenge"))
             	doCancelDuelCmd(sender, command.substring(17).trim());
            
         } catch(RuntimeException e) {
@@ -683,15 +683,15 @@ public class PubChallengeModule extends AbstractModule {
 	@Override
 	public String[] getHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!challenge <name>:<ship>:<$>  -- Challenge a player for a duel in a specific ship (1-8) for $X."),
-			pubsystem.getHelpLine("Also: !removechallenge, !accept <name>, !lagout"),
+			pubsystem.getHelpLine("!challenge <name>:<ship>:<$>  -- Challenge a player to " + deaths + " in a specific ship (1-8) for $X."),
+			pubsystem.getHelpLine("!removechallenge              -- Cancel a challenge sent to someone."),
         };
 	}
 
 	@Override
 	public String[] getModHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!challenge_cancel <name>      -- Cancel a challenge (specify one of the player)."),
+			pubsystem.getHelpLine("!cancelchallenge <name>      -- Cancel a challenge (specify one of the player)."),
         };
 	}
 

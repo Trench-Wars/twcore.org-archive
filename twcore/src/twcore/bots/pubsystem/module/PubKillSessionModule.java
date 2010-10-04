@@ -46,7 +46,8 @@ public class PubKillSessionModule extends AbstractModule {
 		
 		kills = new HashMap<String,Integer>();
 		
-		m_botAction.sendArenaMessage("[KILL-O-THON] A new session has started. Kill the most in " + length + " minutes and win $" + winnerMoney + ".");
+		if (!context.hasJustStarted())
+			m_botAction.sendArenaMessage("[KILL-O-THON] A new session has started. Kill the most in " + length + " minutes and win $" + winnerMoney + ".");
 		
 		startSessionTask = new TimerTask() {
 			public void run() {
@@ -296,7 +297,7 @@ public class PubKillSessionModule extends AbstractModule {
 	@Override
 	public String[] getHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!killothon             -- Your current stat + current leader."),
+			pubsystem.getHelpLine("!killothon        -- Your current stat + current leader."),
         };
 	}
 

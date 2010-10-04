@@ -89,7 +89,7 @@ public class pubsystem extends SubspaceBot
     private boolean initLogin = true;                   // True if first arena login
     private int initialPub;                             // Order of pub arena to defaultjoin
     private String initialSpawn;                        // Arena initially spawned in
-
+    
     /**
      * Creates a new instance of pubsystem bot and initializes necessary data.
      *
@@ -265,7 +265,7 @@ public class pubsystem extends SubspaceBot
             		"Streak:[" + (context.getPubStreak().isEnabled() ? "ON" : "OFF") + "]  " +
             		"Store:[" + (context.getMoneySystem().isStoreOpened() ? "ON" : "OFF") + "]  " + 
             		"Kill-o-thon:[" + (context.getPubKillSession().isRunning() ? "ON" : "OFF") + "]  " +
-            		"Duel:[" + (context.getPubChallenge().isEnabled() ? "ON" : "OFF") + "] " +
+            		"Duel:[" + (context.getPubChallenge().isEnabled() ? "ON" : "OFF") + "]  " +
             		"Hunt:[" + (context.getPubHunt().isEnabled() ? "ON" : "OFF") + "]";
             		//"Lottery:[" + (context.getP().isRunning() ? "ON" : "OFF") + "]; 
             	
@@ -322,7 +322,7 @@ public class pubsystem extends SubspaceBot
     	
         try {
             if(command.equals("!help") || command.equals("!h"))
-                doHelpCmd(sender);
+                doHelpCmd(sender, false);
             if(command.equals("!algorithm") || command.equals("!algo"))
                 doAlgorithmCmd(sender);
             if(command.startsWith("!greetmessage"))
@@ -356,6 +356,8 @@ public class pubsystem extends SubspaceBot
         		setupArenaSetting();
         		m_botAction.sendSmartPrivateMessage(sender, "Setting changed!");
         	}
+        	else if(command.equals("!modhelp") || command.equals("!helpmod"))
+                doHelpCmd(sender, true);
         	else {
         		context.handleModCommand(sender, command);
         	}
@@ -391,47 +393,56 @@ public class pubsystem extends SubspaceBot
      *
      * @param sender is the person issuing the command.
      */
-    public void doHelpCmd(String sender)
+    public void doHelpCmd(String sender, boolean modHelp)
     {
-        Vector<String> messages = new Vector<String>();
-        Vector<String> modMessages = new Vector<String>();
-        
-        for(AbstractModule module: context.getModules()) {
-        	
-        	List<String> m1 = new ArrayList<String>();
-        	List<String> m2 = new ArrayList<String>();
-        	
-        	if (module.getHelpMessage().length>0 || module.getModHelpMessage().length>0) {
-        		m1.add(getModuleHelpHeader(module.getName()));
-        		m2.add(getModuleHelpHeader(module.getName()));
-        	}
-        	
-        	if (module.getHelpMessage().length>0) {
-        		m1.addAll(Arrays.asList(module.getHelpMessage()));
-        		m2.addAll(Arrays.asList(module.getHelpMessage()));
-        	}
-        	
-        	if (module.getModHelpMessage().length>0) {
-        		m2.add("-- Mod+ --");
-        		m2.addAll(Arrays.asList(module.getModHelpMessage()));
-        	}
+        Vector<String> lines = new Vector<String>();
 
-        	messages.addAll(m1);
-        	modMessages.addAll(m2);
+        if (!modHelp) {
+        	
+			for(AbstractModule module: context.getModules()) {
+				List<String> m = new ArrayList<String>();
+				if (module.getHelpMessage().length>0) {
+					m.add(getModuleHelpHeader(module.getName()));
+				}
+				if (module.getHelpMessage().length>0) {
+					m.addAll(Arrays.asList(module.getHelpMessage()));
+					m.add(" ");
+				}
+				lines.addAll(m);
+			}
+             
+	     	String[] others = new String[] {
+	     			getModuleHelpHeader("Others"),
+	     			getHelpLine("!algorithm        -- How the robot calculate the money you earn for each kill."),
+	     			getHelpLine("!about            -- About this bot."),
+	     	};
+	     	
+	    	lines.addAll(Arrays.asList(others));
+ 			if( m_botAction.getOperatorList().isHighmod( sender ) )
+ 				lines.add(getHelpLine("!helpmod          -- Show the !help menu for Mod+."));
+	     	
+	    	m_botAction.smartPrivateMessageSpam(sender, (String[])lines.toArray(new String[lines.size()]));
+        	
+        } else {
+        	
+            for(AbstractModule module: context.getModules()) {
+            	
+            	List<String> m = new ArrayList<String>();
+            	if (module.getModHelpMessage().length>0) {
+            		m.add(getModuleHelpHeader(module.getName()));
+            	}
+            	if (module.getModHelpMessage().length>0) {
+            		m.addAll(Arrays.asList(module.getModHelpMessage()));
+            		m.add(" ");
+            	}
+            	lines.addAll(m);
+            }
+            
+            if( m_botAction.getOperatorList().isHighmod( sender ) )
+                m_botAction.smartPrivateMessageSpam(sender, (String[])lines.toArray(new String[lines.size()]));
+
         }
-        
-    	String[] others = new String[] {
-    			getModuleHelpHeader("Others"),
-    			getHelpLine("!algorithm    -- How the robot calculate the money you earn for each kill."),
-    			getHelpLine("!about        -- About this bot."),
-    	};
-    	modMessages.addAll(Arrays.asList(others));
-    	messages.addAll(Arrays.asList(others));
 
-        if( m_botAction.getOperatorList().isHighmod( sender ) )
-            m_botAction.smartPrivateMessageSpam(sender, (String[])modMessages.toArray(new String[modMessages.size()]));
-        else
-            m_botAction.smartPrivateMessageSpam(sender, (String[])messages.toArray(new String[messages.size()]));
     }
     
     public static String getHelpLine(String line) {
@@ -439,7 +450,7 @@ public class pubsystem extends SubspaceBot
     }
     
     public static String getModuleHelpHeader(String headerName) {
-    	return "[" + Tools.formatString(headerName + " ", 25, "]");
+    	return "[" + Tools.formatString(headerName + "] ", 25, " ");
     }
 
 

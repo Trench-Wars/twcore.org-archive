@@ -1,6 +1,7 @@
 package twcore.bots.pubsystem;
 
 import java.util.Iterator;
+import java.util.TimerTask;
 import java.util.Vector;
 
 import twcore.bots.pubsystem.module.AbstractModule;
@@ -22,6 +23,10 @@ public class PubContext {
 	private BotAction m_botAction;
 	
 	private boolean started = false;
+	
+	// True during the first 5 seconds
+	// Reason: to avoid spamming the arena when the bot spawn
+	private boolean hasJustStarted = true; 
 
 	private Vector<AbstractModule> modules;
 	
@@ -48,14 +53,16 @@ public class PubContext {
 		
 		long start = System.currentTimeMillis();
 		
+		// Order matter (!help)
 		getGameFlagTime();
 		getPlayerManager();
 		getMoneySystem();
 		getPubChallenge();
+		getPubHunt();
 		getPubStreak();
 		getPubKillSession();
 		getPubUtil();
-		getPubHunt();
+		
 		
 		int seconds = (int)(System.currentTimeMillis()-start)/1000;
 		Tools.printLog("Modules(" + modules.size() + ") for pubsystem loaded in " + seconds + " seconds.");
@@ -67,6 +74,12 @@ public class PubContext {
 		for(AbstractModule module: modules) {
 			module.start();
 		}
+		TimerTask timer = new TimerTask() {
+			public void run() {
+				hasJustStarted = false;
+			}
+		};
+		m_botAction.scheduleTask(timer, 5*Tools.TimeInMillis.SECOND);
 	}
 	
 	public void stop() {
@@ -82,6 +95,10 @@ public class PubContext {
 				displayException(e);
 			}
 		}
+	}
+	
+	public boolean hasJustStarted() {
+		return hasJustStarted;
 	}
 	
 	public boolean isStarted() {

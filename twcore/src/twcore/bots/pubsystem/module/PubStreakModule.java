@@ -289,9 +289,9 @@ public class PubStreakModule extends AbstractModule {
 	@Override
 	public String[] getHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!streak            -- Your current streak."),
-			pubsystem.getHelpLine("!streak <name>     -- Current streak of a given player name."),
-			pubsystem.getHelpLine("!streakbest        -- Current best streak of the session."),
+			pubsystem.getHelpLine("!streak           -- Your current streak."),
+			pubsystem.getHelpLine("!streak <name>    -- Current streak of a given player name."),
+			pubsystem.getHelpLine("!streakbest       -- Current best streak of the session."),
         };
 	}
 

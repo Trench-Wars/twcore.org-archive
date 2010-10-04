@@ -162,6 +162,7 @@ public class GameFlagTimeModule extends AbstractModule {
     
 	public void handleEvent(FrequencyShipChange event) 
 	{
+		
         int playerID = event.getPlayerID();
         int freq = event.getFrequency();
 		int ship = event.getShipType();
@@ -171,6 +172,11 @@ public class GameFlagTimeModule extends AbstractModule {
         
         if( p == null )
             return;
+        
+        // Do nothing if the player is hunting
+        if (context.getPubHunt().isPlayerPlaying(playerName)) {
+        	return;
+        }
         
         // Do nothing if the player is dueling
         if( context.getPubChallenge().isEnabled() ) {
@@ -294,6 +300,7 @@ public class GameFlagTimeModule extends AbstractModule {
      * Displays rules and pauses for intermission.
      */
     private void doIntermission() {
+    	
         if(!isFlagTimeStarted())
             return;
 
@@ -519,6 +526,66 @@ public class GameFlagTimeModule extends AbstractModule {
         		player.addMoney(moneyBonus);
         	}
         }
+        
+        // Is gameover?
+        
+        int intermissionTime = 10000;
+
+        if( gameOver ) {
+        	
+            intermissionTime = 20000;
+            doScores(intermissionTime);
+
+            int diff = 0;
+            String winMsg = "";
+            if( freq0Score >= maxScore ) {
+                if( freq1Score == 0 )
+                    diff = -1;
+                else
+                    diff = freq0Score - freq1Score;
+            } else if( freq1Score >= maxScore ) {
+                if( freq0Score == 0 )
+                    diff = -1;
+                else
+                    diff = freq1Score - freq0Score;
+            }
+            switch(diff) {
+	            case -1:
+	                winMsg = " for their masterful victory!";
+	                break;
+	            case 1:
+	                winMsg = " for their close win!";
+	                break;
+	            case 2:
+	                winMsg = " for a well-executed victory!";
+	                break;
+	            default:
+	                winMsg = " for their win!";
+	                break;
+            }
+            m_botAction.sendArenaMessage( "GAME OVER!  Freq " + winnerFreq + " has won the game after " + getTimeString( flagTimer.getTotalSecs() ) +
+                    " Final score: " + freq0Score + " - " + freq1Score, 2 );
+            
+            m_botAction.sendArenaMessage( "Give congratulations to FREQ " + winnerFreq + winMsg );
+
+            freq0Score = 0;
+            freq1Score = 0;
+            
+        }
+        else {
+        	doScores(intermissionTime);
+        }
+
+
+        try {
+            flagTimer.endGame();
+            m_botAction.cancelTask(flagTimer);
+            m_botAction.cancelTask(intermissionTimer);
+        } catch (Exception e ) {
+        }
+
+        intermissionTimer = new IntermissionTask();
+        m_botAction.scheduleTask( intermissionTimer, intermissionTime );
 
     }
     
@@ -1486,7 +1553,7 @@ public class GameFlagTimeModule extends AbstractModule {
 			pubsystem.getHelpLine("!warp    -- Warps you into flagroom at start of next round. (!w)"),
             pubsystem.getHelpLine("!terr    -- Shows terriers on the team and their last seen locations. (!t)"),
             pubsystem.getHelpLine("!team    -- Tells you which ships your team members are in."),
-            pubsystem.getHelpLine("!time    -- Displays info about time remaining in flag time."),
+            pubsystem.getHelpLine("!time    -- Displays info about time remaining in flag time.")
         };
 	}
 
@@ -1497,7 +1564,7 @@ public class GameFlagTimeModule extends AbstractModule {
 			pubsystem.getHelpLine("!stoptime         -- Ends Flag Time mode."),
 			pubsystem.getHelpLine("!stricttime       -- Toggles strict mode (all players warped)"),
 			pubsystem.getHelpLine("!autowarp         -- Enables and disables 'opt out' warping style"),
-			pubsystem.getHelpLine("!allowwarp        -- Allow/Disallow the !warp command"),
+			pubsystem.getHelpLine("!allowwarp        -- Allow/Disallow the !warp command")
         };
 	}
 
@@ -1539,7 +1606,8 @@ public class GameFlagTimeModule extends AbstractModule {
 
         flagMinutesRequired = min;
 
-        m_botAction.sendArenaMessage( "Flag Time mode has been enabled." );
+        if (!context.hasJustStarted())
+        	m_botAction.sendArenaMessage( "Flag Time mode has been enabled." );
 
         m_botAction.sendArenaMessage( "Objective: Hold flag for " + flagMinutesRequired + " consecutive minute" + (flagMinutesRequired == 1 ? "" : "s") + " to win a round.  Best " + ( MAX_FLAGTIME_ROUNDS + 1) / 2 + " of "+ MAX_FLAGTIME_ROUNDS + " wins the game." );
         if( strictFlagTimeMode )
@@ -1670,6 +1738,7 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 	
 	public void doWarpCmd(String sender) {
+		
 		PubPlayer player = context.getPlayerManager().getPlayer(sender);
 		if (player == null)
 			return;
