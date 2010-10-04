@@ -77,7 +77,6 @@ public class PubHuntModule extends AbstractModule {
     }
     
     public void doToggleNotPlayingCmd(String name) {
-    	System.out.println(name);
     	boolean playing = false;
         if (playersNotPlaying.contains(name)) {
         	playersNotPlaying.remove(name);
@@ -363,7 +362,6 @@ public class PubHuntModule extends AbstractModule {
 			HuntPlayer prey = players.get(name);
 			if (player.freq != prey.freq && prey.isPlaying()) {
 				player.setPrey(prey.name);
-				System.out.println(player.name + ": " + prey.name);
 				player.tellPrey();
 				it.remove();
 				return true;
@@ -569,9 +567,6 @@ public class PubHuntModule extends AbstractModule {
         }
         
         public void setPlaying(boolean playing) {
-        	if (!playing) {
-        		System.out.println(name + " is not playing anymore.");
-        	}
         	this.playing = playing;
         }
 

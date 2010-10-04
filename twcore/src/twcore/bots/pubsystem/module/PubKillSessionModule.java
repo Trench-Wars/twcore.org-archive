@@ -124,7 +124,8 @@ public class PubKillSessionModule extends AbstractModule {
 	
 				// Winner(s) money		
 				for(String name: names) {
-					context.getPlayerManager().getPlayer(name).addMoney(winnerMoney);
+					if (context.getPlayerManager().getPlayer(name) != null)
+						context.getPlayerManager().getPlayer(name).addMoney(winnerMoney);
 				}
 			}
 			
