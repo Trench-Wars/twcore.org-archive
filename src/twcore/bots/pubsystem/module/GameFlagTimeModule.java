@@ -32,7 +32,8 @@ import twcore.core.util.Tools;
 public class GameFlagTimeModule extends AbstractModule {
 
     private static final int FLAG_CLAIM_SECS = 3;		// Seconds it takes to fully claim a flag
-	private static final int INTERMISSION_SECS = 90;	// Seconds between end of round and start of next
+    private static final int INTERMISSION_SECS = 90;	// Seconds between end of round and start of next
+    private static final int INTERMISSION_GAME_SECS = 300;	// Seconds between end of game and start of next
 	private static final int MAX_FLAGTIME_ROUNDS = 5;   // Max # rounds (odd numbers only)
 	
 	// HashMaps to calculte MVPs after each round
@@ -316,10 +317,12 @@ public class GameFlagTimeModule extends AbstractModule {
         int roundNum = freq0Score + freq1Score + 1;
 
         String roundTitle = "";
+        int intermission = INTERMISSION_SECS;
         switch( roundNum ) {
         case 1:
             m_botAction.sendArenaMessage( "Object: Hold flag for " + flagMinutesRequired + " consecutive minute" + (flagMinutesRequired == 1 ? "" : "s") + " to win a round.  Best " + ( MAX_FLAGTIME_ROUNDS + 1) / 2 + " of "+ MAX_FLAGTIME_ROUNDS + " wins the game." );
             roundTitle = "The next game";
+            intermission = INTERMISSION_GAME_SECS;
             break;
         case MAX_FLAGTIME_ROUNDS:
             roundTitle = "Final Round";
@@ -328,12 +331,22 @@ public class GameFlagTimeModule extends AbstractModule {
             roundTitle = "Round " + roundNum;
         }
 
-        m_botAction.sendArenaMessage( roundTitle + " begins in " + getTimeString( INTERMISSION_SECS ) + ".  (Score: " + freq0Score + " - " + freq1Score + ")" + (strictFlagTimeMode?"":("  Type !warp to set warp status, or send !help")) );
+        m_botAction.sendArenaMessage( roundTitle + " begins in " + getTimeString( intermission ) + ".  (Score: " + freq0Score + " - " + freq1Score + ")" + (strictFlagTimeMode?"":("  Type !warp to set warp status, or send !help")) );
 
         m_botAction.cancelTask(startTimer);
+        
+        // A game of hunt between
+        if (context.getPubHunt().isEnabled()) {
+	        TimerTask timer = new TimerTask() {
+				public void run() {
+					context.getPubHunt().prepareGame();
+				}
+			};
+			m_botAction.scheduleTask(timer, 10*Tools.TimeInMillis.SECOND);
+        }
 
         startTimer = new StartRoundTask();
-        m_botAction.scheduleTask( startTimer, INTERMISSION_SECS * 1000 );
+        m_botAction.scheduleTask( startTimer, intermission * 1000 );
     }
     
     /**

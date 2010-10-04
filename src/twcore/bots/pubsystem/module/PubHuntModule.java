@@ -114,29 +114,7 @@ public class PubHuntModule extends AbstractModule {
     		return;
     	}
     	
-    	players = new HashMap<String, HuntPlayer>();
-    	
-        Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
-        while(it.hasNext()) {
-        	Player player = it.next();
-        	String playerName = player.getPlayerName();
-        	if (!playersNotPlaying.contains(playerName)) {
-        		players.put(playerName, new HuntPlayer(playerName));
-        	}
-        }
-        
-        if (players.size() > 1) {
-	        m_botAction.sendArenaMessage("[HUNT] A game of hunt is starting in 10 seconds (!huntnp if not playing).");
-	        TimerTask timer = new TimerTask() {
-				public void run() {
-					startGame();
-				}
-			};
-			m_botAction.scheduleTask(timer, 10*Tools.TimeInMillis.SECOND);
-        }
-        else {
-        	m_botAction.sendPrivateMessage(name, "You need more players to start a hunt game.");
-        }
+    	prepareGame();
     }
     
     public void announceWinner(HuntPlayer[] winners, int freq) {
@@ -314,7 +292,7 @@ public class PubHuntModule extends AbstractModule {
     	
         if (!enabled || !isRunning)
             return;
-        
+
         Player player = m_botAction.getPlayer(event.getPlayerID());
         HuntPlayer huntPlayer = players.get(player.getPlayerName());
         
@@ -461,6 +439,34 @@ public class PubHuntModule extends AbstractModule {
 	public void start() {
 		
 	}
+	
+	public void prepareGame() {
+		
+    	players = new HashMap<String, HuntPlayer>();
+    	
+        Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
+        while(it.hasNext()) {
+        	Player player = it.next();
+        	String playerName = player.getPlayerName();
+        	if (!playersNotPlaying.contains(playerName)) {
+        		players.put(playerName, new HuntPlayer(playerName));
+        	}
+        }
+        
+        if (players.size() > 1) {
+	        m_botAction.sendArenaMessage("[HUNT] A game of hunt is starting in 10 seconds (!huntnp if not playing).");
+	        TimerTask timer = new TimerTask() {
+				public void run() {
+					startGame();
+				}
+			};
+			m_botAction.scheduleTask(timer, 10*Tools.TimeInMillis.SECOND);
+        }
+        else {
+        	m_botAction.sendPrivateMessage(name, "You need more players to start a hunt game.");
+        }
+		
+	}
 
 	public void startGame() {
 		
@@ -532,7 +538,7 @@ public class PubHuntModule extends AbstractModule {
 	
 	public void stopGame() {
 		try {
-		preyTask.cancel();
+			preyTask.cancel();
 		} catch(Exception e) {		
 		}
 		isRunning = false;
