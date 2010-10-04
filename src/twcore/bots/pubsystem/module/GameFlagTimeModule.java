@@ -544,11 +544,12 @@ public class GameFlagTimeModule extends AbstractModule {
         	position++;
         	int moneyBonus = (int)(moneyMVP/div[position-1]);
         	String playerName = iterator.next();
-        	m_botAction.sendArenaMessage(" " + position + ". " + playerName + " (+$"+moneyBonus+")");
-        	PubPlayer player = context.getPlayerManager().getPlayer(playerName);
-        	if (player != null) {
-        		player.addMoney(moneyBonus);
+        	String moneyMessage = "";
+        	if (context.getMoneySystem().isEnabled()) {
+        		moneyMessage = " (+$"+moneyBonus+")";
+        		context.getPlayerManager().addMoney(playerName, moneyBonus);
         	}
+        	m_botAction.sendArenaMessage(" " + position + ". " + playerName + moneyMessage);
         }
         
         // Is gameover?

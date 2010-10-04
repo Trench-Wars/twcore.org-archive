@@ -148,9 +148,11 @@ public class PubStreakModule extends AbstractModule {
 	        }
 	        
 	        // Money gains by the killer?
-	        int money = getMoney(winStreaks.get(killer.getPlayerName()));
-	        if (money > 0 && moneyEnabled) {
-	        	pubPlayerKiller.addMoney(money);
+	        if (context.getMoneySystem().isEnabled()) {
+		        int money = getMoney(winStreaks.get(killer.getPlayerName()));
+		        if (money > 0 && moneyEnabled) {
+		        	pubPlayerKiller.addMoney(money);
+		        }
 	        }
         }
         
@@ -158,7 +160,7 @@ public class PubStreakModule extends AbstractModule {
     
     private void announceStreakBreaker(PubPlayer killer, PubPlayer killed, int streak) {
     	String message = "[STREAK BREAKER!] " + killed.getPlayerName() + " (" + streak + " kills) broken by " + killer.getPlayerName() + "!";
-    	if (streakBrokerBonus > 0) {
+    	if (streakBrokerBonus > 0 && context.getMoneySystem().isEnabled()) {
     		message += " (+$" + streakBrokerBonus + ")";
     	}
     	m_botAction.sendArenaMessage(message, Tools.Sound.INCONCEIVABLE);
@@ -168,21 +170,23 @@ public class PubStreakModule extends AbstractModule {
     	
     	int money = getMoney(winStreaks.get(player.getPlayerName()));
     	String moneyMessage = "";
-    	if (moneyEnabled) {
+    	if (context.getMoneySystem().isEnabled()) {
     		moneyMessage = "(+$" + String.valueOf(money) + ")";
     	}
     	
     	// Zone?
-    	if (streak >= winsStreakZoneAt) {
+    	if (streak == winsStreakZoneAt) {
     		
     		if ((streak-winsStreakZoneAt)%streakJump!=0) {
     			return;
     		}
     		
+    		/*
     		if (System.currentTimeMillis()-lastZone > ZONE_TIMEOUT) {
-    			m_botAction.sendArenaMessage("[MASSIVE STREAK in pub!] " + player.getPlayerName() + " with " + streak + " kills.");
+    			m_botAction.sendZoneMessage("[PUB: Streak!] " + player.getPlayerName() + " with " + streak + " kills in a row. Stop him!");
     			lastZone = System.currentTimeMillis();
     		}
+    		*/
     	}
     	// Arena?
     	else if (streak >= winsStreakArenaAt || bestWinStreak==streak) {
@@ -223,7 +227,8 @@ public class PubStreakModule extends AbstractModule {
     		
     		if (winStreaks.containsKey(sender)) {
     			m_botAction.sendPrivateMessage(sender, "Current streak: " + winStreaks.get(sender) + " kill(s).");
-    			m_botAction.sendPrivateMessage(sender, "Your next kill will get you $" + getMoney(winStreaks.get(sender)+1) + ".");
+    			if (context.getMoneySystem().isEnabled())
+    				m_botAction.sendPrivateMessage(sender, "Your next kill will get you $" + getMoney(winStreaks.get(sender)+1) + ".");
     		} else
     			m_botAction.sendPrivateMessage(sender, "You don't have any streak yet.");
     	}
@@ -274,7 +279,7 @@ public class PubStreakModule extends AbstractModule {
 
         if(command.trim().equals("!streak") || command.startsWith("!streak "))
         	doStreakCmd(sender, command.substring(7).trim());
-        else if(command.trim().equals("!streakbest"))
+        else if(command.trim().equals("!streakbest") || command.trim().equals("!beststreak"))
             	doBestSessionStreakCmd(sender);
 
 	}

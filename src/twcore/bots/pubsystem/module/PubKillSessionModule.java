@@ -46,8 +46,12 @@ public class PubKillSessionModule extends AbstractModule {
 		
 		kills = new HashMap<String,Integer>();
 		
-		if (!context.hasJustStarted())
-			m_botAction.sendArenaMessage("[KILL-O-THON] A new session has started. Kill the most in " + length + " minutes and win $" + winnerMoney + ".");
+		if (!context.hasJustStarted()) {
+			if (context.getMoneySystem().isEnabled())
+				m_botAction.sendArenaMessage("[KILL-O-THON] A new session has started. Kill the most in " + length + " minutes and win $" + winnerMoney + ".");
+			else
+				m_botAction.sendArenaMessage("[KILL-O-THON] A new session has started. Kill the most in " + length + " minutes.");
+		}
 		
 		startSessionTask = new TimerTask() {
 			public void run() {
@@ -117,15 +121,22 @@ public class PubKillSessionModule extends AbstractModule {
 			
 			if (withWinner)
 			{
+				String moneyMessage = "";
+				if (context.getMoneySystem().isEnabled()) {
+					moneyMessage = " of $" + winnerMoney;
+				}
+				
 				if (names.size()==1)
-					m_botAction.sendArenaMessage("[KILL-O-THON] End of the session. Winner of $" + winnerMoney+ " with " + killNumber + " kills : " + namesString);
+					m_botAction.sendArenaMessage("[KILL-O-THON] End of the session. Winner" + moneyMessage + " with " + killNumber + " kills : " + namesString);
 				else
-					m_botAction.sendArenaMessage("[KILL-O-THON] End of the session. Winners of $" + winnerMoney+ " with " + killNumber + " kills : " + namesString);
+					m_botAction.sendArenaMessage("[KILL-O-THON] End of the session. Winners" + moneyMessage + " with " + killNumber + " kills : " + namesString);
 	
-				// Winner(s) money		
-				for(String name: names) {
-					if (context.getPlayerManager().getPlayer(name) != null)
-						context.getPlayerManager().getPlayer(name).addMoney(winnerMoney);
+				// Winner(s) money	
+				if (context.getMoneySystem().isEnabled()) {
+					for(String name: names) {
+						if (context.getPlayerManager().getPlayer(name) != null)
+							context.getPlayerManager().getPlayer(name).addMoney(winnerMoney);
+					}
 				}
 			}
 			

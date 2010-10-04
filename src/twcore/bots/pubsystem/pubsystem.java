@@ -400,6 +400,10 @@ public class pubsystem extends SubspaceBot
         if (!modHelp) {
         	
 			for(AbstractModule module: context.getModules()) {
+				
+            	if (!module.isEnabled())
+            		continue;
+            	
 				List<String> m = new ArrayList<String>();
 				if (module.getHelpMessage().length>0) {
 					m.add(getModuleHelpHeader(module.getName()));
@@ -426,7 +430,6 @@ public class pubsystem extends SubspaceBot
         } else {
         	
             for(AbstractModule module: context.getModules()) {
-            	
             	List<String> m = new ArrayList<String>();
             	if (module.getModHelpMessage().length>0) {
             		m.add(getModuleHelpHeader(module.getName()));

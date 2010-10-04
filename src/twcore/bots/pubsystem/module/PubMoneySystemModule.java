@@ -511,7 +511,7 @@ public class PubMoneySystemModule extends AbstractModule {
         else if(command.startsWith("!iteminfo") || command.startsWith("!buyinfo")){
         	doCmdItemInfo(sender, command);
         }
-        else if(command.startsWith("!buy") || command.startsWith("!b")){
+        else if(command.startsWith("!buy") || command.equals("!b")){
         	doCmdBuy(sender, command);
         }
         else if( m_botAction.getOperatorList().isOwner(sender) && command.startsWith("!setmoney")) {
