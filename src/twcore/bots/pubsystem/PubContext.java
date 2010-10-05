@@ -1,10 +1,9 @@
 package twcore.bots.pubsystem;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.TimerTask;
-import java.util.Vector;
 
 import twcore.bots.pubsystem.module.AbstractModule;
 import twcore.bots.pubsystem.module.GameFlagTimeModule;
@@ -30,7 +29,7 @@ public class PubContext {
 	// Reason: to avoid spamming the arena when the bot spawn
 	private boolean hasJustStarted = true; 
 
-	private HashMap<String,AbstractModule> modules;
+	private LinkedHashMap<String,AbstractModule> modules;
 	
 	// Modules
 	private PubPlayerManagerModule playerManager;
@@ -49,7 +48,7 @@ public class PubContext {
 	{
 		this.m_botAction = botAction;
 		
-		this.modules = new HashMap<String,AbstractModule>();
+		this.modules = new LinkedHashMap<String,AbstractModule>();
 		
 		// Instanciate (order matter)
 		
