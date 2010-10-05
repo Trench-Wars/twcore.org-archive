@@ -330,7 +330,7 @@ public class PubKillSessionModule extends AbstractModule {
 
 	@Override
 	public void start() {
-		startSession();
+
 	}
 
 	@Override

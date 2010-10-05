@@ -157,8 +157,11 @@ public class PubHuntModule extends AbstractModule {
     	else
     		m_botAction.sendArenaMessage("[HUNT] Winner (freq " + freq + "): " + winnersText + " (" + winners[0].preyKilled + " preys" + moneyMessage + ")", Tools.Sound.HALLELUJAH);
     	
-    	for(HuntPlayer p: winners)
-    		context.getPlayerManager().addMoney(p.name, money);
+    	for(HuntPlayer p: winners) {
+    		if (context.getMoneySystem().isEnabled())
+    			context.getPlayerManager().addMoney(p.name, money);
+    		playerOut(p);
+    	}
     	
     	stopGame();
     }
@@ -184,6 +187,8 @@ public class PubHuntModule extends AbstractModule {
 		if (context.getMoneySystem().isEnabled())
 			context.getPlayerManager().addMoney(huntPlayer.name, money);
 		
+		playerOut(huntPlayer);
+		
 		stopGame();
     }
     
@@ -194,7 +199,7 @@ public class PubHuntModule extends AbstractModule {
     	preyToHunter.remove(player.prey);
     	preyToHunter.remove(player.name);
     	HuntPlayer hunter = preyToHunter.remove(player.name);
-    	if (players.get(hunter.name).isPlaying())
+    	if (hunter != null && players.get(hunter.name).isPlaying())
     		hunterWaitingList.add(hunter.name);
     	if (players.get(player.prey).isPlaying())
     		preyWaitingList.add(player.prey);
