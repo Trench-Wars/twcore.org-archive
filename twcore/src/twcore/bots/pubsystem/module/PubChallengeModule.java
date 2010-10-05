@@ -182,15 +182,21 @@ public class PubChallengeModule extends AbstractModule {
         
         if(!duelers.containsKey(killer) || !duelers.containsKey(killee))
             return;
-        
+
         Dueler w = duelers.get(killer);
         Dueler l = duelers.get(killee);
+        
+        Challenge challenge = challenges.get(killer);
+        if (challenge == null 
+        		|| !challenge.getOppositeDueler(w).name.equals(l.name)
+        		|| !challenge.isStarted())
+        	return;
+        
         w.kills++;
         l.deaths++;
         l.lastDeath = System.currentTimeMillis();
         
         if(l.deaths == deaths) {
-        	Challenge challenge = challenges.get(killer);
         	challenge.setWinner(duelers.get(killer));
             announceWinner(challenge);
             return;
