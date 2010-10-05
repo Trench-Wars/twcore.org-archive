@@ -2067,5 +2067,9 @@ public class GameFlagTimeModule extends AbstractModule {
 		if (m_botAction.getBotSettings().getInt("auto_warp")==1) {
 			autoWarp = true;
 		}
+		
+		if (m_botAction.getBotSettings().getInt("flattime_enabled")==1) {
+			enabled = true;
+		}
 	}
 }

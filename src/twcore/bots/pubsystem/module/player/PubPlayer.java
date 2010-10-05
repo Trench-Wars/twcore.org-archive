@@ -36,6 +36,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     // Epoch time
     private long lastMoneyUpdate = 0;
     private long lastSavedState = 0;
+    private long lastDeath = 0;
     
     private boolean isOnline = false; // If online, on the same arena
 
@@ -93,6 +94,14 @@ public class PubPlayer implements Comparable<PubPlayer>{
     	purgeItemBoughtHistory();
         this.itemsBought.add(new PubItemUsed(item));
         this.itemsBoughtThisLife.add(item);
+    }
+    
+    public void addDeath() {
+    	this.lastDeath = System.currentTimeMillis();
+    }
+    
+    public long getLastDeath() {
+    	return lastDeath;
     }
     
     private void purgeItemBoughtHistory() 

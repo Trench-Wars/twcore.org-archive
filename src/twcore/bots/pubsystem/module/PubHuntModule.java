@@ -90,6 +90,27 @@ public class PubHuntModule extends AbstractModule {
         	m_botAction.sendSmartPrivateMessage(name, "You won't be in the list of players playing.");
     }
     
+    public void doHuntDebugCmd(String name) {
+    	
+		for(HuntPlayer player: players.values()) {
+			if (player.isPlaying())
+				m_botAction.sendPrivateMessage(name, "isPlaying: " + player.name);
+		}
+    	
+		for(HuntPlayer player: preyToHunter.values()) {
+			m_botAction.sendPrivateMessage(name, "preyToHunter: " + player.name + " hunting " + player.name);
+		}
+		
+		for(String player: preyWaitingList) {
+			m_botAction.sendPrivateMessage(name, "preyWaitingList: " + player);
+		}
+    	
+		for(String player: hunterWaitingList) {
+			m_botAction.sendPrivateMessage(name, "hunterWaitingList: " + player);
+		}
+    	
+    }
+    
     public void doStopCmd(String name) {
     	
     	if (!isRunning) {
@@ -165,10 +186,24 @@ public class PubHuntModule extends AbstractModule {
 		
 		stopGame();
     }
+    
+    public void playerOut(HuntPlayer player) {
+    	
+    	preyWaitingList.remove(player.name);
+    	hunterWaitingList.remove(player.name);
+    	preyToHunter.remove(player.prey);
+    	preyToHunter.remove(player.name);
+    	HuntPlayer hunter = preyToHunter.remove(player.name);
+    	if (players.get(hunter.name).isPlaying())
+    		hunterWaitingList.add(hunter.name);
+    	if (players.get(player.prey).isPlaying())
+    		preyWaitingList.add(player.prey);
+    	player.setPlaying(false);
+    }
 
     public void handleEvent(PlayerDeath event) {
     	
-        if (!enabled || !isRunning)
+        if (!isRunning)
             return;
         
         String killer = m_botAction.getPlayerName(event.getKillerID());
@@ -176,50 +211,46 @@ public class PubHuntModule extends AbstractModule {
         
         if (players.containsKey(killer) && players.containsKey(killed)) {
         	
-        	HuntPlayer huntKiller = players.get(killer);
-        	HuntPlayer huntKilled = players.get(killed);
+        	HuntPlayer hunter = players.get(killer);
+        	HuntPlayer hunted = players.get(killed);
         	
-        	huntKiller.kills++;
-        	huntKilled.deaths++;
+        	hunter.kills++;
+        	hunted.deaths++;
+        	
+        	if (hunter.prey.equals(killed)) {
+        		hunter.preyKilled++;
+        	}
         	
         	// We have a winner?
-        	if (huntKiller.prey.equals(killed) && huntKilled.prey.equals(killer) && hunterWaitingList.isEmpty()) {
+        	if (hunter.prey.equals(killed) && hunted.prey.equals(killer) && hunterWaitingList.isEmpty()) {
         		
-        		huntKiller.preyKilled++;
-
         		m_botAction.sendArenaMessage("[HUNT] " + killed + " has been hunted by " + killer + " and is out!");
-  
-        		huntKiller.setPlaying(false);
-        		huntKilled.setPlaying(false);
-        		preyToHunter.remove(killer);
-        		preyToHunter.remove(killed);
-        		
-        		announceWinner(huntKiller);
+        		playerOut(hunted);
+        		playerOut(hunter);
+        		announceWinner(hunter);
 
         	}
-        	else if (huntKiller.prey.equals(killed) && huntKiller.isPlaying()) {
+        	else if (hunter.prey.equals(killed) && hunter.isPlaying()) {
         		
-        		huntKiller.preyKilled++;
-        		preyWaitingList.add(huntKilled.prey);
-        		setPrey(huntKiller);
+        		hunted.killer = killer;
+        		playerOut(hunted);
+        		setPrey(hunter);
         		
-        		huntKilled.setPlaying(false);
-        		huntKilled.killer = killer;
         		m_botAction.sendArenaMessage("[HUNT] " + killed + " has been hunted by " + killer + " and is out!");
         		
-        		int money = huntKilled.preyKilled * moneyPerPrey;
+        		int money = hunted.preyKilled * moneyPerPrey;
         		if (money != 0 && context.getMoneySystem().isEnabled()) {
-        			m_botAction.sendPrivateMessage(killed, "Thank you for playing!. You have earned $" + money + " to have killed " + huntKilled.preyKilled + " prey(s).");
+        			m_botAction.sendPrivateMessage(killed, "Thank you for playing!. You have earned $" + money + " to have killed " + hunted.preyKilled + " prey(s).");
         			context.getPlayerManager().addMoney(killed, money);
         		} else {
         			m_botAction.sendPrivateMessage(killed, "Thank you for playing!");
         		}
         		
         	} 
-        	else if (huntKilled.prey.equals(killer) && huntKiller.isPlaying()) {
+        	else if (hunted.prey.equals(killer) && hunter.isPlaying()) {
         		m_botAction.sendSmartPrivateMessage(killer, "You killed your hunter!");
         	} 
-        	else if (huntKiller.isPlaying()) {
+        	else if (hunter.isPlaying()) {
         		m_botAction.sendSmartPrivateMessage(killer, "You killed an innocent bystander!");
         	}
         	
@@ -229,20 +260,14 @@ public class PubHuntModule extends AbstractModule {
     
     public void handleEvent(PlayerLeft event) {
     	
-        if (!enabled || !isRunning)
+        if (!isRunning)
             return;
         
         Player player = m_botAction.getPlayer(event.getPlayerID());
         HuntPlayer huntPlayerLeft = players.get(player.getPlayerName());
         if (huntPlayerLeft != null) {
-        	huntPlayerLeft.setPlaying(false);
-        	HuntPlayer hunter = preyToHunter.remove(huntPlayerLeft.name);
-        	hunterWaitingList.add(hunter.name);
-        	preyToHunter.remove(huntPlayerLeft.prey);
-        	if (hunter.prey.equals(huntPlayerLeft.name)) {
-        		preyToHunter.remove(hunter.prey);
-        	}
-        	//m_botAction.sendArenaMessage("[HUNT] " + huntPlayerLeft.name + " is out!");
+        	HuntPlayer hunter = preyToHunter.get(huntPlayerLeft.name);
+        	playerOut(huntPlayerLeft);
         	m_botAction.sendPrivateMessage(hunter.name, "Your prey has left, please wait for a new prey.");
         	checkForWinner();
         }
@@ -302,32 +327,27 @@ public class PubHuntModule extends AbstractModule {
 
     public void handleEvent(FrequencyShipChange event) {
     	
-        if (!enabled || !isRunning)
+        if (!isRunning)
             return;
 
         Player player = m_botAction.getPlayer(event.getPlayerID());
-        HuntPlayer huntPlayer = players.get(player.getPlayerName());
+        HuntPlayer hunted = players.get(player.getPlayerName());
         
-        if (huntPlayer != null && huntPlayer.isPlaying()) {
-        	if (huntPlayer.ship != 0 && player.getShipType() != 0) 
+        if (hunted != null && hunted.isPlaying()) {
+        	if (hunted.ship != 0 && player.getShipType() != 0) 
         	{
-        		if (huntPlayer.ship != event.getShipType()) {
-        			m_botAction.setShip(event.getPlayerID(), huntPlayer.ship);
-        			m_botAction.sendPrivateMessage(huntPlayer.ship, "You cannot change your ship during a game of hunt.");
+        		if (hunted.ship != event.getShipType()) {
+        			m_botAction.setShip(event.getPlayerID(), hunted.ship);
+        			m_botAction.sendPrivateMessage(hunted.ship, "You cannot change your ship during a game of hunt.");
         		}
         	} 
         	else if (player.getShipType() == 0)
         	{
-            	preyWaitingList.add(huntPlayer.prey);
-            	HuntPlayer hunter = preyToHunter.remove(huntPlayer.name);
-            	hunterWaitingList.add(hunter.name);
-            	preyToHunter.remove(huntPlayer.prey);
-            	if (hunter.prey.equals(huntPlayer.name)) {
-            		preyToHunter.remove(hunter.prey);
-            	}
+            	HuntPlayer hunter = preyToHunter.get(hunted.name);
+            	playerOut(hunted);
+            	setPrey(hunter);
             	m_botAction.sendPrivateMessage(hunter.name, "Your prey is now a spectator, please wait for a new prey.");
-            	m_botAction.sendPrivateMessage(huntPlayer.name, "You cannot be a spectator during a game of hunt, you are out.");
-            	huntPlayer.setPlaying(false);
+            	m_botAction.sendPrivateMessage(hunted.name, "You cannot be a spectator during a game of hunt, you are out.");
             	checkForWinner();
         	}
         }
@@ -347,16 +367,23 @@ public class PubHuntModule extends AbstractModule {
     	else
     		it = preyWaitingList.iterator();
     	
+    	String nameToRemove = null;
 		while(it.hasNext()) {
 			String name = it.next();
 			HuntPlayer prey = players.get(name);
 			if (player.freq != prey.freq && prey.isPlaying()) {
 				player.setPrey(prey.name);
 				player.tellPrey();
-				it.remove();
-				return true;
+				nameToRemove = name;
+				break;
 			}
 		}
+		
+		if (nameToRemove != null) {
+			preyWaitingList.remove(nameToRemove);
+			return true;
+		}
+		
 		if (newGame)
 			m_botAction.sendPrivateMessage(player.name, "You don't have a prey yet, please wait.");
     	hunterWaitingList.add(player.name);
@@ -422,6 +449,9 @@ public class PubHuntModule extends AbstractModule {
         }
 		else if(command.startsWith("!stophunt")) {
             doStopCmd(sender);
+        }
+		else if(command.startsWith("!huntdebug")) {
+            doHuntDebugCmd(sender);
         }
 	}
 
@@ -639,5 +669,10 @@ public class PubHuntModule extends AbstractModule {
 		}
     	
     }
+
+	@Override
+	public void stop() {
+		stopGame();
+	}
 
 }

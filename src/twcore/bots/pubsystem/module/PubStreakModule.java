@@ -283,7 +283,7 @@ public class PubStreakModule extends AbstractModule {
 		return new String[] {
 			pubsystem.getHelpLine("!streak           -- Your current streak."),
 			pubsystem.getHelpLine("!streak <name>    -- Current streak of a given player name."),
-			pubsystem.getHelpLine("!streakbest       -- Current best streak of the session."),
+			pubsystem.getHelpLine("!beststreak       -- Current best streak of the session."),
         };
 	}
 
@@ -313,6 +313,11 @@ public class PubStreakModule extends AbstractModule {
 		winsStreakZoneAt = m_botAction.getBotSettings().getInt("streak_wins_zone_at");
 		winsStreakMoneyMultiplicator = m_botAction.getBotSettings().getInt("streak_wins_money_multiplicator");
 		streakBrokerBonus = m_botAction.getBotSettings().getInt("streak_broker_bonus");
+	}
+
+	@Override
+	public void stop() {
+		
 	}
     
 }

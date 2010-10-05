@@ -254,6 +254,13 @@ public class PubLotteryModule extends AbstractModule {
 		// TODO Auto-generated method stub
 		
 	}
+
+
+	@Override
+	public void stop() {
+		// TODO Auto-generated method stub
+		
+	}
     
     /*public boolean isEnabled() {
         return lotteryOn;
