@@ -1,5 +1,7 @@
 package twcore.bots.pubsystem;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -28,7 +30,7 @@ public class PubContext {
 	// Reason: to avoid spamming the arena when the bot spawn
 	private boolean hasJustStarted = true; 
 
-	private Vector<AbstractModule> modules;
+	private HashMap<String,AbstractModule> modules;
 	
 	// Modules
 	private PubPlayerManagerModule playerManager;
@@ -47,7 +49,7 @@ public class PubContext {
 	{
 		this.m_botAction = botAction;
 		
-		this.modules = new Vector<AbstractModule>();
+		this.modules = new HashMap<String,AbstractModule>();
 		
 		// Instanciate (order matter)
 		
@@ -71,7 +73,7 @@ public class PubContext {
 	
 	public void start() {
 		this.started = true;
-		for(AbstractModule module: modules) {
+		for(AbstractModule module: modules.values()) {
 			module.start();
 		}
 		TimerTask timer = new TimerTask() {
@@ -88,7 +90,7 @@ public class PubContext {
 	
 	public void reloadConfig() {
 		m_botAction.getBotSettings().reloadFile();
-		for(AbstractModule module: modules) {
+		for(AbstractModule module: modules.values()) {
 			try {
 				module.reloadConfig();
 			} catch (Exception e) {
@@ -105,14 +107,14 @@ public class PubContext {
 		return started;
 	}
 	
-	public Vector<AbstractModule> getModules() {
-		return modules;
+	public Collection<AbstractModule> getModules() {
+		return modules.values();
 	}
 
 	public GameFlagTimeModule getGameFlagTime() {
 		if (gameFlagTime == null) {
 			gameFlagTime = new GameFlagTimeModule(m_botAction, this);
-			modules.add(gameFlagTime);
+			modules.put("flagtime",gameFlagTime);
 		}
 		return gameFlagTime;
 	}
@@ -120,7 +122,7 @@ public class PubContext {
 	public PubPlayerManagerModule getPlayerManager() {
 		if (playerManager == null) {
 			playerManager = new PubPlayerManagerModule(m_botAction, this);
-			modules.add(playerManager);
+			modules.put("playermanager",playerManager);
 		}
 		return playerManager;
 	}
@@ -128,7 +130,7 @@ public class PubContext {
 	public PubMoneySystemModule getMoneySystem() {
 		if (moneySystem == null) {
 			moneySystem = new PubMoneySystemModule(m_botAction, this);
-			modules.add(moneySystem);
+			modules.put("moneysystem",moneySystem);
 		}
 		return moneySystem;
 	}
@@ -136,7 +138,7 @@ public class PubContext {
 	public PubHuntModule getPubHunt() {
 		if (pubHunt == null) {
 			pubHunt = new PubHuntModule(m_botAction, this);
-			modules.add(pubHunt);
+			modules.put("hunt",pubHunt);
 		}
 		return pubHunt;
 	}
@@ -144,7 +146,7 @@ public class PubContext {
 	public PubKillSessionModule getPubKillSession() {
 		if (pubKillSession == null) {
 			pubKillSession = new PubKillSessionModule(m_botAction, this);
-			modules.add(pubKillSession);
+			modules.put("killothon",pubKillSession);
 		}
 		return pubKillSession;
 	}
@@ -152,7 +154,7 @@ public class PubContext {
 	public PubStreakModule getPubStreak() {
 		if (pubStreak == null) {
 			pubStreak = new PubStreakModule(m_botAction, this);
-			modules.add(pubStreak);
+			modules.put("streak",pubStreak);
 		}
 		return pubStreak;
 	}
@@ -160,7 +162,7 @@ public class PubContext {
 	public PubUtilModule getPubUtil() {
 		if (pubUtil == null) {
 			pubUtil = new PubUtilModule(m_botAction, this);
-			modules.add(pubUtil);
+			modules.put("utility",pubUtil);
 		}
 		return pubUtil;
 	}
@@ -168,18 +170,20 @@ public class PubContext {
 	public PubChallengeModule getPubChallenge() {
 		if (pubChallenge == null) {
 			pubChallenge = new PubChallengeModule(m_botAction, this);
-			modules.add(pubChallenge);
+			modules.put("challenge",pubChallenge);
 		}
 		return pubChallenge;
 	}
 	
     public void handleEvent(SubspaceEvent event) {
     	
-        Iterator<AbstractModule> iterator = modules.iterator();
+        Iterator<AbstractModule> iterator = modules.values().iterator();
         AbstractModule module;
 
         while(iterator.hasNext()) {
             module = (AbstractModule) iterator.next();
+            if (!module.isEnabled())
+            	continue;
             try {
             	module.handleEvent(event);
             } catch (Exception e) {
@@ -191,11 +195,13 @@ public class PubContext {
 	
 	public void handleCommand(String sender, String command) {
 
-        Iterator<AbstractModule> iterator = modules.iterator();
+        Iterator<AbstractModule> iterator = modules.values().iterator();
         AbstractModule module;
 
         while(iterator.hasNext()) {
             module = (AbstractModule) iterator.next();
+            if (!module.isEnabled())
+            	continue;
             try {
             	module.handleCommand(sender, command);
             } catch (Exception e) {
@@ -207,11 +213,35 @@ public class PubContext {
 	
 	public void handleModCommand(String sender, String command) {
 		
-        Iterator<AbstractModule> iterator = modules.iterator();
+        Iterator<AbstractModule> iterator = modules.values().iterator();
         AbstractModule module;
+        
+        if (command.startsWith("!enable_") || command.startsWith("!disable_")) {
+        	boolean enable = command.startsWith("!enable") ? true : false;
+        	String moduleName = command.substring(command.indexOf("_")+1).toLowerCase();
+        	if (modules.containsKey(moduleName)) {
+        		if (enable) {
+        			modules.get(moduleName).enable();
+        			m_botAction.sendPrivateMessage(sender, "Module '" + moduleName + "' enabled.");
+        		} else {
+        			modules.get(moduleName).disable();
+        			m_botAction.sendPrivateMessage(sender, "Module '" + moduleName + "' disabled.");
+        		}
+        	}
+        	else {
+        		m_botAction.sendPrivateMessage(sender, "Module '" + moduleName + "' not found.");
+        		String moduleNames = "";
+        		for(String name: modules.keySet()) {
+        			moduleNames += ", " + name;
+        		}
+        		m_botAction.sendPrivateMessage(sender, "Avalaible: " + moduleNames.substring(1));
+        	}
+        }
 
         while(iterator.hasNext()) {
             module = (AbstractModule) iterator.next();
+            if (!module.isEnabled())
+            	continue;
             try {
             	module.handleModCommand(sender, command);
             } catch (Exception e) {
@@ -223,11 +253,13 @@ public class PubContext {
 	
 	public void handleEvent(SQLResultEvent event) {
 		
-        Iterator<AbstractModule> iterator = modules.iterator();
+        Iterator<AbstractModule> iterator = modules.values().iterator();
         AbstractModule module;
 
         while(iterator.hasNext()) {
             module = (AbstractModule) iterator.next();
+            if (!module.isEnabled())
+            	continue;
             try {
             	module.handleEvent(event);
             } catch (Exception e) {
@@ -240,7 +272,7 @@ public class PubContext {
 	
 	public void handleDisconnect() {
 		
-        Iterator<AbstractModule> iterator = modules.iterator();
+        Iterator<AbstractModule> iterator = modules.values().iterator();
         AbstractModule module;
 
         while(iterator.hasNext()) {

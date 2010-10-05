@@ -130,14 +130,16 @@ public class PubMoneySystemModule extends AbstractModule {
                 		m_botAction.specificPrize(receiver.getPlayerName(), prizeNumber);
                 	}
                 	if (item.hasDuration()) {
-                    	PubItemDuration duration = item.getDuration();
+                    	final PubItemDuration duration = item.getDuration();
                     	m_botAction.sendPrivateMessage(receiver.getPlayerName(), "You have " + duration.getSeconds() + " seconds to use your item.");
                     	if (duration.hasTime()) {
                     		TimerTask timer = new TimerTask() {
                                 public void run() {
                                 	int bounty = m_botAction.getPlayer(receiver.getPlayerName()).getBounty();
-                                	m_botAction.sendUnfilteredPrivateMessage(receiver.getPlayerName(), "*shipreset");
-                                	m_botAction.giveBounty(receiver.getPlayerName(), bounty);
+                                	if (System.currentTimeMillis()-receiver.getLastDeath() > duration.getSeconds()*1000) {
+	                                	m_botAction.sendUnfilteredPrivateMessage(receiver.getPlayerName(), "*shipreset");
+	                                	m_botAction.giveBounty(receiver.getPlayerName(), bounty);
+                                	}
                                 	m_botAction.sendPrivateMessage(receiver.getPlayerName(), "Item '" + item.getName() + "' lost.");
                                 }
                             };
@@ -603,6 +605,62 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
     
+    private void itemCommandMegaWarp(String sender, String params) {
+
+	   	Player p = m_botAction.getPlayer(sender);
+	   	
+	   	String message = "";
+	   	int privFreqs = 0;
+	   	
+	   	List<Integer> freqList = new ArrayList<Integer>();
+	   	for(int i=0; i<10000; i++) {
+	   		int size = m_botAction.getPlayingFrequencySize(i);
+	   		if (size>0 && i!=p.getFrequency()) {
+	   			freqList.add(i);
+	   			if (i<100) {
+	   				message += ","+i;
+	   			} else {
+	   				privFreqs++;
+	   			}
+	   		}
+	   	}
+	   	
+	   	if (privFreqs > 0) {
+	   		message += " and " + privFreqs + " private freq(s)";
+	   	}
+	   	message = message.substring(1);
+	   	
+	   	final Integer[] freqs = freqList.toArray(new Integer[freqList.size()]);
+	   	
+	   	m_botAction.sendArenaMessage(sender + " has warped to death freq " + message + ".",17);
+	   	
+	   	int toExclude = m_botAction.getPlayingFrequencySize(p.getFrequency());
+	   	int total = m_botAction.getNumPlaying()-toExclude;
+	   	int jump = (int)(360/total);
+	   	Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
+	   	
+	   	// Center of the circle (wormhole) + diameter
+	   	int x = 640;
+	   	int y = 610;
+	   	int d = 25;
+	   	
+	   	int i = 0;
+	   	while(it.hasNext()) {
+	   		Player player = it.next();
+	   		if (p.getFrequency()==player.getFrequency())
+	   			continue;
+	   		
+	   		int posX = x+(int)(d*Math.cos(i*jump));
+	   		int posY = y+(int)(d*Math.sin(i*jump));
+
+	   		m_botAction.warpTo(player.getPlayerName(), posX, posY);
+	   		m_botAction.specificPrize(player.getPlayerName(), Tools.Prize.ENERGY_DEPLETED);
+	   		
+	   		i++;
+	   	}
+    	
+    }
+    
     private void itemCommandBombBlast(String sender, String params) {
 
 	   	Player p = m_botAction.getPlayer(sender);
@@ -698,16 +756,37 @@ public class PubMoneySystemModule extends AbstractModule {
 
 	   	Player p = m_botAction.getPlayer(sender);
 	   	
-	   	final int freq = p.getFrequency()==0? 1 : 0;
+	   	String message = "";
+	   	int privFreqs = 0;
 	   	
-	   	m_botAction.sendArenaMessage(sender + " has started an epidemic on freq " + freq + ". Stay away from everyone!",17);
+	   	List<Integer> freqList = new ArrayList<Integer>();
+	   	for(int i=0; i<10000; i++) {
+	   		int size = m_botAction.getPlayingFrequencySize(i);
+	   		if (size>0 && i!=p.getFrequency()) {
+	   			freqList.add(i);
+	   			if (i<100) {
+	   				message += ","+i;
+	   			} else {
+	   				privFreqs++;
+	   			}
+	   		}
+	   	}
+	   	
+	   	if (privFreqs > 0) {
+	   		message += " and " + privFreqs + " private freq(s)";
+	   	}
+	   	message = message.substring(1);
+	   	
+	   	final Integer[] freqs = freqList.toArray(new Integer[freqList.size()]);
+	   	
+	   	m_botAction.sendArenaMessage(sender + " has started an epidemic on freq " + message + ".",17);
 	   	
 	   	int timeElapsed = 0;
 		for(int i=1; i<10; i++) {
 			timeElapsed += 2300-(int)(Math.log(i)*1000);
-	   		m_botAction.scheduleTask(new EnergyDeplitedTask(freq), timeElapsed);
+	   		m_botAction.scheduleTask(new EnergyDeplitedTask(freqs), timeElapsed);
 		}
-		m_botAction.scheduleTask(new EngineShutdownExtendedTask(freq), timeElapsed);
+		m_botAction.scheduleTask(new EngineShutdownExtendedTask(freqs), timeElapsed);
 		
 	   	
     }
@@ -730,23 +809,31 @@ public class PubMoneySystemModule extends AbstractModule {
 	}
 	
    	private class EnergyDeplitedTask extends TimerTask {
-   		private int freq;
-   		public EnergyDeplitedTask(int freq) {
-   			this.freq = freq;
+   		private Integer[] freqs;
+   		public EnergyDeplitedTask(Integer[] freqs) {
+   			this.freqs = freqs;
    		}
 		public void run() {
-	   		m_botAction.prizeFreq(freq, Tools.Prize.ENERGY_DEPLETED);
+			for(int freq: freqs)
+				m_botAction.prizeFreq(freq, Tools.Prize.ENERGY_DEPLETED);
 		}
 	};
 	
  	private class EngineShutdownExtendedTask extends TimerTask {
-   		private int freq;
-   		public EngineShutdownExtendedTask(int freq) {
-   			this.freq = freq;
+   		private Integer[] freqs;
+   		public EngineShutdownExtendedTask(Integer[] freqs) {
+   			this.freqs = freqs;
    		}
 		public void run() {
-	   		m_botAction.prizeFreq(freq, Tools.Prize.ENGINE_SHUTDOWN_EXTENDED);
+			for(int freq: freqs)
+				m_botAction.prizeFreq(freq, Tools.Prize.ENGINE_SHUTDOWN_EXTENDED);
 		}
+	}
+
+	@Override
+	public void stop() {
+		// TODO Auto-generated method stub
+		
 	};
 	
 }

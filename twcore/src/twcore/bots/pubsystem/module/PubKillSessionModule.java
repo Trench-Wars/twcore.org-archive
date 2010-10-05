@@ -346,4 +346,9 @@ public class PubKillSessionModule extends AbstractModule {
 		
 	}
 
+	@Override
+	public void stop() {
+		stopSession(false);
+	}
+
 }

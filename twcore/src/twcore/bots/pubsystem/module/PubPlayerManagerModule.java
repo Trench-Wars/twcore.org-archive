@@ -20,6 +20,7 @@ import twcore.core.EventRequester;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.FrequencyChange;
 import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.SQLResultEvent;
@@ -59,6 +60,9 @@ public class PubPlayerManagerModule extends AbstractModule {
 		this.freq1 = new HashSet<String>();
 		
 		m_botAction.scheduleTaskAtFixedRate(saveTask, SAVETASK_INTERVAL * Tools.TimeInMillis.MINUTE, SAVETASK_INTERVAL * Tools.TimeInMillis.MINUTE);
+		
+		// Always enabled!
+		enabled = true;
 		
 		reloadConfig();
 	}
@@ -202,6 +206,18 @@ public class PubPlayerManagerModule extends AbstractModule {
             }
         }
         
+	}
+	
+	public void handleEvent(PlayerDeath event) {
+		
+        int playerID = event.getKilleeID();
+        Player p = m_botAction.getPlayer(playerID);
+    	
+		PubPlayer pubPlayer = players.get(p.getPlayerName().toLowerCase());
+		if (pubPlayer!=null) {
+			pubPlayer.addDeath();
+		}
+		
 	}
 	
     public void handleEvent(FrequencyShipChange event) {
@@ -657,6 +673,13 @@ public class PubPlayerManagerModule extends AbstractModule {
         for(int i = 1; i < 9; i++) {
             shipWeight.add( new Integer(m_botAction.getBotSettings().getInt(m_botAction.getBotName() + "Ship" + i)));
         }
+	}
+
+
+	@Override
+	public void stop() {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

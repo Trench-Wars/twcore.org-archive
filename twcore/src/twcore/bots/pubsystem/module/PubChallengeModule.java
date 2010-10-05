@@ -781,6 +781,12 @@ public class PubChallengeModule extends AbstractModule {
 	        deaths = m_botAction.getBotSettings().getInt("duel_deaths");
 		}
 	}
+
+	@Override
+	public void stop() {
+		// TODO Auto-generated method stub
+		
+	}
     
 }
 class DuelArea {
