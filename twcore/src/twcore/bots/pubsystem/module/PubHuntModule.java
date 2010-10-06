@@ -98,7 +98,7 @@ public class PubHuntModule extends AbstractModule {
 		}
     	
 		for(HuntPlayer player: preyToHunter.values()) {
-			m_botAction.sendPrivateMessage(name, "preyToHunter: " + player.name + " hunting " + player.name);
+			m_botAction.sendPrivateMessage(name, "preyToHunter: " + player.name + " hunting " + preyToHunter.get(player.name).name);
 		}
 		
 		for(String player: preyWaitingList) {

@@ -138,7 +138,8 @@ public class PubChallengeModule extends AbstractModule {
 
             if (System.currentTimeMillis()-dueler.lastDeath > 6000 
             		&& System.currentTimeMillis()-dueler.backFromLagout > 1000
-            		&& !laggers.containsKey(name)) {
+            		&& !laggers.containsKey(name)
+            		&& System.currentTimeMillis()-dueler.lastDeath > 6 * Tools.TimeInMillis.SECOND) {
 	            dueler.warps++;
 	            if (MAX_WARP-dueler.warps==1) {
 	            	m_botAction.sendPrivateMessage(name, "You cannot warp during a duel. If you do it one more time, you lose.");
@@ -192,9 +193,16 @@ public class PubChallengeModule extends AbstractModule {
         		|| !challenge.isStarted())
         	return;
         
+        if (System.currentTimeMillis()-l.lastDeath < 6 * Tools.TimeInMillis.SECOND) {
+        	m_botAction.sendPrivateMessage(w.name, "Spawning is illegal, no count.");
+        	m_botAction.sendPrivateMessage(l.name, "No count.");
+        	return;
+        }
+        
         w.kills++;
         l.deaths++;
         l.lastDeath = System.currentTimeMillis();
+        l.updateDeath();
         
         if(l.deaths == deaths) {
         	challenge.setWinner(duelers.get(killer));
@@ -234,6 +242,11 @@ public class PubChallengeModule extends AbstractModule {
         if(context.getPlayerManager().isShipRestricted(ship)) {
             m_botAction.sendPrivateMessage(challenger, "This ship is restricted in this arena, you cannot duel a player in this ship.");
             return;
+        }
+        
+        if (getEmptyDuelArea()==null) {
+        	m_botAction.sendPrivateMessage(challenger, "There is no duel area avalaible. Please try later.");
+        	return;
         }
         
         if (context.getMoneySystem().isEnabled()) {
@@ -416,9 +429,9 @@ public class PubChallengeModule extends AbstractModule {
         else if(challenge.winByLagout)
         {
         	if (announceWinner && challenge.amount >= announceWinnerAt)
-        		m_botAction.sendArenaMessage("[PUB DUEL] " + winner.name + " has beaten "+loser.name+" by lagout in duel" + moneyMessage + ".");
+        		m_botAction.sendArenaMessage("[PUB DUEL] " + winner.name + " has defeated "+loser.name+" by lagout in duel" + moneyMessage + ".");
         	else {
-        		m_botAction.sendPrivateMessage(winner.name,"You have beaten "+loser.name+" by lagout in duel" + moneyMessage + ".");
+        		m_botAction.sendPrivateMessage(winner.name,"You have defeated "+loser.name+" by lagout in duel" + moneyMessage + ".");
         		m_botAction.sendPrivateMessage(loser.name,"You have lost to " + winner.name+" by lagout in duel" + moneyMessage + ".");
             }
 
@@ -428,11 +441,11 @@ public class PubChallengeModule extends AbstractModule {
         else
         {
         	if (announceWinner && money >= announceZoneWinnerAt) {
-        		m_botAction.sendZoneMessage("[PUB DUEL] " + winner.name+" has beaten "+loser.name+" "+winnerKills+"-"+loserKills+" in duel" + moneyMessage + ".", Tools.Sound.CROWD_OOO);
+        		m_botAction.sendZoneMessage("[PUB DUEL] " + winner.name+" has defeated "+loser.name+" "+winnerKills+"-"+loserKills+" in duel" + moneyMessage + ".", Tools.Sound.CROWD_OOO);
         	} else if (announceWinner && money >= announceWinnerAt)
-        		m_botAction.sendArenaMessage("[PUB DUEL] " + winner.name+" has beaten "+loser.name+" "+loserKills+"-"+winnerKills+" in duel" + moneyMessage + ".");
+        		m_botAction.sendArenaMessage("[PUB DUEL] " + winner.name+" has defeated "+loser.name+" "+loserKills+"-"+winnerKills+" in duel" + moneyMessage + ".");
         	else {
-        		m_botAction.sendPrivateMessage(winner.name,"You have beaten "+loser.name+" "+winnerKills+"-"+loserKills+" in duel" + moneyMessage + ".");
+        		m_botAction.sendPrivateMessage(winner.name,"You have defeated "+loser.name+" "+winnerKills+"-"+loserKills+" in duel" + moneyMessage + ".");
         		m_botAction.sendPrivateMessage(loser.name,"You have lost to " + winner.name+" "+loserKills+"-"+winnerKills+" in duel" + moneyMessage + ".");
             }
         }
@@ -638,6 +651,7 @@ public class PubChallengeModule extends AbstractModule {
     	
     	if (challenge!=null) {
     		String opponent = challenge.getOppositeDueler(name).name;
+    		challenge.area.free();
     		challenges.remove(name);
     		challenges.remove(opponent);
         	duelers.remove(name);
@@ -847,6 +861,13 @@ class Dueler {
         this.name = name;
         this.type = type;
     }
+    
+    
+    public void updateDeath() {
+    	this.lastDeath = System.currentTimeMillis();
+    }
+    
+    
 }
 
 class Challenge {
@@ -909,7 +930,7 @@ class Challenge {
     public boolean hasEnded() {
     	return duelEnded;
     }
-    
+
     public void setWinByLagout() {
     	this.winByLagout = true;
     }

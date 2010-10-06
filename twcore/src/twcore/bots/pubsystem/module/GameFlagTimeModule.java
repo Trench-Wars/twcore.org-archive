@@ -1575,7 +1575,7 @@ public class GameFlagTimeModule extends AbstractModule {
 	@Override
 	public String[] getHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!warp    -- Warps you into flagroom at start of next round. (!w)"),
+			pubsystem.getHelpLine("!warp    -- Warps you inside base at start of next round. (!w)"),
             pubsystem.getHelpLine("!terr    -- Shows terriers on the team and their last seen locations. (!t)"),
             pubsystem.getHelpLine("!team    -- Tells you which ships your team members are in."),
             pubsystem.getHelpLine("!time    -- Displays info about time remaining in flag time.")
@@ -1639,9 +1639,9 @@ public class GameFlagTimeModule extends AbstractModule {
             m_botAction.sendArenaMessage( "Round 1 begins in 60 seconds.  All players will be warped at round start." );
         else
             if(isAutoWarpEnabled())
-                m_botAction.sendArenaMessage( "Round 1 begins in 60 seconds.  You will be warped into flagroom at round start (type !warp to change). -" + m_botAction.getBotName() );
+                m_botAction.sendArenaMessage( "Round 1 begins in 60 seconds.  You will be warped inside base at round start (type !warp to change). -" + m_botAction.getBotName() );
             else
-                m_botAction.sendArenaMessage( "Round 1 begins in 60 seconds.  PM me with !warp to warp into flagroom at round start. -" + m_botAction.getBotName() );
+                m_botAction.sendArenaMessage( "Round 1 begins in 60 seconds.  PM me with !warp to warp inside base at round start. -" + m_botAction.getBotName() );
 
         startFlagTimeStarted();
         freq0Score = 0;

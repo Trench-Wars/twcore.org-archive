@@ -276,7 +276,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	        	lines.add(line);
 	        }
 	        
-	        lines.add(" *Target optional **Target required (!buy item:PlayerName)");
+	        lines.add("Legeng: *Target optional **Target required (!buy item:PlayerName)");
 	    	lines.add("Use !iteminfo <item> for more info about the specified item and its restrictions.");
 	    	
 	    } 
@@ -670,7 +670,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	m_botAction.sendUnfilteredPrivateMessage(m_botAction.getBotName(), "*super");
     	m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
 
-    	m_botAction.sendArenaMessage(sender + " has sent a blast of bomb inside the flagroom!", Tools.Sound.UNDER_ATTACK);
+    	m_botAction.sendArenaMessage(sender + " has sent a blast of bombs inside the flagroom!", Tools.Sound.UNDER_ATTACK);
         final TimerTask timerFire = new TimerTask() {
             public void run() {
             	m_botAction.getShip().move(512*16+8, 270*16+8);
@@ -678,7 +678,10 @@ public class PubMoneySystemModule extends AbstractModule {
             		
                 	m_botAction.getShip().rotateDegrees(i*5);
                 	m_botAction.getShip().sendPositionPacket();
-	            	m_botAction.getShip().fire(WeaponFired.WEAPON_EMP_BOMB);
+                	m_botAction.getShip().fire(WeaponFired.WEAPON_BOMB);
+                	m_botAction.getShip().fire(WeaponFired.WEAPON_BULLET_BOUNCING);
+                	m_botAction.getShip().fire(WeaponFired.WEAPON_BULLET_BOUNCING);
+                	m_botAction.getShip().fire(WeaponFired.WEAPON_BULLET_BOUNCING);
 	            	try { Thread.sleep(10); } catch (InterruptedException e) {}
             	}
             }
