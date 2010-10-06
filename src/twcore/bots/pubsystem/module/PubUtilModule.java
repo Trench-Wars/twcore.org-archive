@@ -250,23 +250,33 @@ public class PubUtilModule extends AbstractModule {
      * Shows last seen location of a given individual.
      */
     private void doWhereIsCmd( String sender, String argString, boolean isStaff ) {
-        Player p = m_botAction.getPlayer(sender);
-        if( p == null )
-            throw new RuntimeException("Can't find you. Please report this to staff.");
-        if( p.getShipType() == 0 && !isStaff )
-            throw new RuntimeException("You must be in a ship for this command to work.");
-        Player p2;
-        p2 = m_botAction.getPlayer( argString );
-        if( p2 == null )
-            p2 = m_botAction.getFuzzyPlayer( argString );
-        if( p2 == null )
-            throw new RuntimeException("Player '" + argString + "' not found.");
+        
+    	Player p = m_botAction.getPlayer(sender);
+        
+        if( p == null ) {
+        	m_botAction.sendPrivateMessage(sender, "Can't find you. Please report this to staff.");
+        	return;
+        }
+        
+        if( p.getShipType() == 0 && !isStaff ) {
+        	m_botAction.sendPrivateMessage(sender, "You must be in a ship for this command to work.");
+        	return;
+        }
+
+        Player p2 = m_botAction.getFuzzyPlayer( argString );
+        if( p2 == null ) {
+        	m_botAction.sendPrivateMessage(sender, "Player '" + argString + "' not found.");
+        	return;
+        }
+
         if (!p2.isPlaying()) {
         	m_botAction.sendPrivateMessage( sender, p2.getPlayerName() + " last seen: In Spec");
         	return;
         }
-        if( p.getFrequency() != p2.getFrequency() && !isStaff )
-            throw new RuntimeException(p2.getPlayerName() + " is not on your team!");
+        if( p.getFrequency() != p2.getFrequency() && !isStaff ) {
+        	m_botAction.sendPrivateMessage(sender, p2.getPlayerName() + " is not on your team.");
+        	return;
+        }
         m_botAction.sendPrivateMessage( sender, p2.getPlayerName() + " last seen: " + getPlayerLocation( p2.getXTileLocation(), p2.getYTileLocation() ));
     }
     

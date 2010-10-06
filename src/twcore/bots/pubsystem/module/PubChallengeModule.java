@@ -187,33 +187,40 @@ public class PubChallengeModule extends AbstractModule {
         Dueler w = duelers.get(killer);
         Dueler l = duelers.get(killee);
         
+        if(w == null || l == null)
+        	return;
+        
         Challenge challenge = challenges.get(killer);
         if (challenge == null 
         		|| !challenge.getOppositeDueler(w).name.equals(l.name)
         		|| !challenge.isStarted())
         	return;
         
-        if (System.currentTimeMillis()-l.lastDeath < 6 * Tools.TimeInMillis.SECOND) {
-        	m_botAction.sendPrivateMessage(w.name, "Spawning is illegal, no count.");
-        	m_botAction.sendPrivateMessage(l.name, "No count.");
-        	return;
+        if (challenge.getOppositeDueler(w.name).equals(l.name)) {
+  
+	        if (System.currentTimeMillis()-l.lastDeath < 6 * Tools.TimeInMillis.SECOND) {
+	        	m_botAction.sendPrivateMessage(w.name, "Spawning is illegal, no count.");
+	        	m_botAction.sendPrivateMessage(l.name, "No count.");
+	        	return;
+	        }
+	        
+	        w.kills++;
+	        l.deaths++;
+	        l.lastDeath = System.currentTimeMillis();
+	        l.updateDeath();
+	        
+	        if(l.deaths == deaths) {
+	        	challenge.setWinner(duelers.get(killer));
+	            announceWinner(challenge);
+	            return;
+	        }
+	        
+	        m_botAction.sendPrivateMessage(killer, w.kills+"-"+l.kills);
+	        m_botAction.sendPrivateMessage(killee, l.kills+"-"+w.kills);
+	        m_botAction.scheduleTask(new SpawnBack(killer), 5*1000);
+	        m_botAction.scheduleTask(new SpawnBack(killee), 5*1000);
+	      	
         }
-        
-        w.kills++;
-        l.deaths++;
-        l.lastDeath = System.currentTimeMillis();
-        l.updateDeath();
-        
-        if(l.deaths == deaths) {
-        	challenge.setWinner(duelers.get(killer));
-            announceWinner(challenge);
-            return;
-        }
-        
-        m_botAction.sendPrivateMessage(killer, w.kills+"-"+l.kills);
-        m_botAction.sendPrivateMessage(killee, l.kills+"-"+w.kills);
-        m_botAction.scheduleTask(new SpawnBack(killer), 5*1000);
-        m_botAction.scheduleTask(new SpawnBack(killee), 5*1000);
                 
     }
     
@@ -517,14 +524,16 @@ public class PubChallengeModule extends AbstractModule {
         	
         	Challenge challenge = challenges.get(name);
         	
-            if(duelers.get(name).type == 1){
-                m_botAction.warpTo(name, challenge.area.warp1x, challenge.area.warp1y);
-                m_botAction.shipReset(name);
-            }
-            if(duelers.get(name).type == 2){
-                m_botAction.warpTo(name, challenge.area.warp2x, challenge.area.warp2y);
-                m_botAction.shipReset(name);
-            }
+        	if (duelers.get(name) != null) {
+	            if(duelers.get(name).type == 1){
+	                m_botAction.warpTo(name, challenge.area.warp1x, challenge.area.warp1y);
+	                m_botAction.shipReset(name);
+	            }
+	            else if(duelers.get(name).type == 2){
+	                m_botAction.warpTo(name, challenge.area.warp2x, challenge.area.warp2y);
+	                m_botAction.shipReset(name);
+	            }
+        	}
         }     
     }
     
