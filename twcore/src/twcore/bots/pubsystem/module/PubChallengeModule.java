@@ -66,7 +66,7 @@ public class PubChallengeModule extends AbstractModule {
         String name = p.getPlayerName();
         
         Challenge challenge = challenges.get(name);
-        if (challenge != null) {
+        if (challenge != null && challenge.isStarted()) {
 	        laggers.put(name, new StartLagout(name));
 	        m_botAction.scheduleTask(laggers.get(name), 60*1000);
 	        m_botAction.sendPrivateMessage(challenge.getOppositeDueler(name).name, "Your opponent has lagged out. He has 60 seconds to return to the game.");
