@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import twcore.bots.pubsystem.module.PubUtilModule.Tileset;
 import twcore.bots.pubsystem.module.moneysystem.LvzMoneyPanel;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItemUsed;
@@ -22,6 +23,8 @@ public class PubPlayer implements Comparable<PubPlayer>{
 	
 	private BotAction m_botAction;
 
+	private Tileset tileset = Tileset.MONOLITH;
+	
     private String name;
     private int money;
     private LinkedList<PubItemUsed> itemsBought;
@@ -36,6 +39,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     // Epoch time
     private long lastMoneyUpdate = 0;
     private long lastSavedState = 0;
+    private long lastOptionsUpdate = 0;
     private long lastDeath = 0;
     
     private boolean isOnline = false; // If online, on the same arena
@@ -54,9 +58,19 @@ public class PubPlayer implements Comparable<PubPlayer>{
         reloadPanel(false);
     }
 
-
     public String getPlayerName() {
         return name;
+    }
+    
+    public Tileset getTileset() {
+    	return tileset;
+    }
+    
+    public void setTileset(Tileset tileset) {
+    	if (!this.tileset.equals(tileset)) {
+    		lastOptionsUpdate = System.currentTimeMillis();
+    	}
+    	this.tileset = tileset;
     }
 
     public int getMoney() {
@@ -200,6 +214,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     public long getLastMoneyUpdate() {
     	return lastMoneyUpdate;
+    }
+    
+    public long getLastOptionsUpdate() {
+    	return lastOptionsUpdate;
     }
     
     public long getLastSavedState() {

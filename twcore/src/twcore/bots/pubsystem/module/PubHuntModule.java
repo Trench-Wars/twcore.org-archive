@@ -455,7 +455,7 @@ public class PubHuntModule extends AbstractModule {
 		else if(command.startsWith("!stophunt")) {
             doStopCmd(sender);
         }
-		else if(command.startsWith("!huntdebug")) {
+		else if(command.startsWith("!debughunt")) {
             doHuntDebugCmd(sender);
         }
 	}

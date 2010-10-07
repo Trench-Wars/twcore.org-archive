@@ -173,7 +173,7 @@ public class GameFlagTimeModule extends AbstractModule {
 		if (p == null)
 			return;
 		
-        if(isRunning()) {
+        if(isRunning() && p.getShipType() == Tools.Ship.TERRIER) {
         	flagTimer.newAttachee(p.getPlayerName());
         }
 		
@@ -536,7 +536,7 @@ public class GameFlagTimeModule extends AbstractModule {
         String mostFlagClaimed = getPosition(flagClaims, 1);
         String mostTk = getPosition(tks, 1, 8, false);
         String mostTek = getPosition(teks, 1);
-        String mostAttach = getPosition(teks, 1);
+        String mostAttach = getPosition(attaches, 1);
         
     	m_botAction.sendArenaMessage("Achievements:");
     	if (mostKill != null)
@@ -686,12 +686,13 @@ public class GameFlagTimeModule extends AbstractModule {
     	// High weight = better
     	LinkedHashMap<HashMap<String,Integer>, Integer> sortedList = new LinkedHashMap<HashMap<String,Integer>, Integer>();
         sortedList.put(sort(deaths,true), 25);
-        sortedList.put(sort(kills,false), 20);
-        sortedList.put(sort(terrKills,false), 30);
-        sortedList.put(sort(killsLocationWeigth,false), 40);
-        sortedList.put(sort(flagClaims,false), 35);
-        sortedList.put(sort(playerTimes,false), 50);
+        sortedList.put(sort(kills,false), 25);
         sortedList.put(sort(killsBounty,false), 25);
+        sortedList.put(sort(terrKills,false), 40);
+        sortedList.put(sort(killsLocationWeigth,false), 40);
+        sortedList.put(sort(flagClaims,false), 50);
+        sortedList.put(sort(playerTimes,false), 50);
+        sortedList.put(sort(attaches,false), 50);
  
         // MVP Algorithm
         // -------------
@@ -1071,8 +1072,7 @@ public class GameFlagTimeModule extends AbstractModule {
         	if (count == null) {
         		count = new Integer(0);
         	}
-        	count++;
-        	attaches.put(player, count);
+        	attaches.put(player, count.intValue() + 1);
         	
         }
         
