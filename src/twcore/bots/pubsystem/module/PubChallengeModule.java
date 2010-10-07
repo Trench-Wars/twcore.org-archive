@@ -17,6 +17,7 @@ import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
+import twcore.core.events.TurretEvent;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
@@ -57,7 +58,7 @@ public class PubChallengeModule extends AbstractModule {
 		eventRequester.request(EventRequester.PLAYER_LEFT);
 		eventRequester.request(EventRequester.PLAYER_POSITION);
 	}
-    
+
     public void handleEvent(PlayerLeft event) {
         if(!enabled)
             return;
@@ -136,11 +137,13 @@ public class PubChallengeModule extends AbstractModule {
         {
             DuelArea area = challenge.area;
 
-            if (System.currentTimeMillis()-dueler.lastDeath > 6000 
-            		&& System.currentTimeMillis()-dueler.backFromLagout > 1000
-            		&& !laggers.containsKey(name)
-            		&& System.currentTimeMillis()-dueler.lastDeath > 6 * Tools.TimeInMillis.SECOND) {
+            if (!laggers.containsKey(name)
+        		&& System.currentTimeMillis()-dueler.backFromLagout > 1 * Tools.TimeInMillis.SECOND
+        		&& System.currentTimeMillis()-challenge.startAt > 6 * Tools.TimeInMillis.SECOND
+        		&& System.currentTimeMillis()-dueler.lastDeath > 6 * Tools.TimeInMillis.SECOND) 
+            {
 	            dueler.warps++;
+	            
 	            if (MAX_WARP-dueler.warps==1) {
 	            	m_botAction.sendPrivateMessage(name, "You cannot warp during a duel. If you do it one more time, you lose.");
 	            }
@@ -240,6 +243,11 @@ public class PubChallengeModule extends AbstractModule {
             Challenge pending = challenges.get(challenger);
             m_botAction.sendPrivateMessage(challenger, "You have already a pending challenge with "+pending.getOppositeDueler(challenged)+".");
             m_botAction.sendPrivateMessage(challenger, "Please remove it using !removechallenge before challenging more.");
+            return;
+        }
+        
+        if(ship == Tools.Ship.TERRIER) {
+            m_botAction.sendPrivateMessage(challenger, "You cannot duel someone in Terrier.");
             return;
         }
 

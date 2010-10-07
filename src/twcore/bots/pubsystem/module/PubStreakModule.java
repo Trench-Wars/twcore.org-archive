@@ -66,6 +66,17 @@ public class PubStreakModule extends AbstractModule {
     	
     	Player killer = m_botAction.getPlayer(event.getKillerID());
         Player killed = m_botAction.getPlayer(event.getKilleeID());
+        
+        // Dueling? do nothing
+        if (context.getPubChallenge().isDueling(killer.getPlayerName())
+        		|| context.getPubChallenge().isDueling(killed.getPlayerName())) {
+        		return;
+        }
+        
+        // Same team? do nothing
+        if (killer.getFrequency() == killed.getFrequency()) {
+        	return;
+        }
 
         // Already on the system?
         if (winStreaks.get(killer.getPlayerName()) == null) {
@@ -98,51 +109,45 @@ public class PubStreakModule extends AbstractModule {
         int streak;
         
         // Updating stats for the killed (if not dueling)
-        if (!context.getPubChallenge().isDueling(killed.getPlayerName())) 
-        {
-	        winStreaks.put(killed.getPlayerName(), 0);
-	        loseStreaks.put(killed.getPlayerName(), loseStreaks.get(killed.getPlayerName())+1);
-	        
-	        streak = loseStreaks.get(killed.getPlayerName());
-	        if (streak > worstLoseStreak) {
-	        	worstLoseStreak = streak;
-	        	worstLoseStreakPlayer = pubPlayerKilled;
-	        }
+        winStreaks.put(killed.getPlayerName(), 0);
+        loseStreaks.put(killed.getPlayerName(), loseStreaks.get(killed.getPlayerName())+1);
+        
+        streak = loseStreaks.get(killed.getPlayerName());
+        if (streak > worstLoseStreak) {
+        	worstLoseStreak = streak;
+        	worstLoseStreakPlayer = pubPlayerKilled;
         }
         
         // Updating stats for the killer (if not dueling)
-        if (!context.getPubChallenge().isDueling(killer.getPlayerName())) 
-        {
-	        loseStreaks.put(killer.getPlayerName(), 0);
-	        winStreaks.put(killer.getPlayerName(), winStreaks.get(killer.getPlayerName())+1);
-	        
-	        streak = winStreaks.get(killer.getPlayerName());
-	        
-	        // Is a streak worth to be said?
-	        if (streak >= winsStreakArenaAt) {
-	        	
-		        // Best of session?
-		        if (streak > bestWinStreak) {
-		        	bestWinStreak = streak;
-			        bestWinStreakPlayer = pubPlayerKiller;
-			        if (!streakBroker)
-			        	announceWinStreak(pubPlayerKiller, streak);		        
-		        }
-		        else {
-		        	if (!streakBroker)
-		        		announceWinStreak(pubPlayerKiller, streak);
-		        }
+        loseStreaks.put(killer.getPlayerName(), 0);
+        winStreaks.put(killer.getPlayerName(), winStreaks.get(killer.getPlayerName())+1);
+        
+        streak = winStreaks.get(killer.getPlayerName());
+        
+        // Is a streak worth to be said?
+        if (streak >= winsStreakArenaAt) {
+        	
+	        // Best of session?
+	        if (streak > bestWinStreak) {
+	        	bestWinStreak = streak;
+		        bestWinStreakPlayer = pubPlayerKiller;
+		        if (!streakBroker)
+		        	announceWinStreak(pubPlayerKiller, streak);		        
 	        }
-	        
-	        // Money gains by the killer?
-	        if (context.getMoneySystem().isEnabled()) {
-		        int money = getMoney(winStreaks.get(killer.getPlayerName()));
-		        if (money > 0 && moneyEnabled) {
-		        	pubPlayerKiller.addMoney(money);
-		        }
+	        else {
+	        	if (!streakBroker)
+	        		announceWinStreak(pubPlayerKiller, streak);
 	        }
         }
         
+        // Money gains by the killer?
+        if (context.getMoneySystem().isEnabled()) {
+	        int money = getMoney(winStreaks.get(killer.getPlayerName()));
+	        if (money > 0 && moneyEnabled) {
+	        	pubPlayerKiller.addMoney(money);
+	        }
+        }
+  
     }
     
     private void announceStreakBreaker(PubPlayer killer, PubPlayer killed, int streak) {

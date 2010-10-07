@@ -25,6 +25,7 @@ import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
+import twcore.core.events.TurretEvent;
 import twcore.core.game.Player;
 import twcore.core.lvz.Objset;
 import twcore.core.util.Tools;
@@ -45,6 +46,7 @@ public class GameFlagTimeModule extends AbstractModule {
     private HashMap<String,Integer> kills;				// Number of kills during a round
     private HashMap<String,Integer> deaths;				// Number of deaths during a round
     private HashMap<String,Integer> tks;				// Number of tk
+    private HashMap<String,Integer> attaches;			// Number of attachee (ter only)
     private HashMap<String,Integer> killsInBase;		// Number of kills inside the base (mid+flagroom)
     private HashMap<String,HashSet<Integer>> ships;		// Type of ships used during a round
     
@@ -160,6 +162,23 @@ public class GameFlagTimeModule extends AbstractModule {
 		String playerName = m_botAction.getPlayerName(event.getPlayerID());
 		warpPlayers.remove(playerName);
 	}
+	
+	
+	public void handleEvent(TurretEvent event) {
+		
+		if (!event.isAttaching())
+			return;
+		
+		Player p = m_botAction.getPlayer(event.getAttacheeID());
+		if (p == null)
+			return;
+		
+        if(isRunning()) {
+        	flagTimer.newAttachee(p.getPlayerName());
+        }
+		
+	}
+    
     
 	public void handleEvent(FrequencyShipChange event) 
 	{
@@ -506,6 +525,7 @@ public class GameFlagTimeModule extends AbstractModule {
         LinkedHashMap<String,Integer> flagClaims = sort(this.flagClaims,false);
         LinkedHashMap<String,Integer> killsInBase = sort(this.killsInBase,false);
         LinkedHashMap<String,Integer> tks = sort(this.tks,false);
+        LinkedHashMap<String,Integer> attaches = sort(this.attaches,false);
  
         // Achievements
         
@@ -516,22 +536,25 @@ public class GameFlagTimeModule extends AbstractModule {
         String mostFlagClaimed = getPosition(flagClaims, 1);
         String mostTk = getPosition(tks, 1, 8, false);
         String mostTek = getPosition(teks, 1);
+        String mostAttach = getPosition(teks, 1);
         
     	m_botAction.sendArenaMessage("Achievements:");
     	if (mostKill != null)
-    		m_botAction.sendArenaMessage(" - Most Veteran Like    : " + mostKill);
+    		m_botAction.sendArenaMessage(" - Most Veteran Like  : " + mostKill);
     	if (mostKillInBase != null)
-    		m_botAction.sendArenaMessage(" - Basing King          : " + mostKillInBase);
+    		m_botAction.sendArenaMessage(" - Basing King        : " + mostKillInBase);
+    	if (mostAttach != null)
+    		m_botAction.sendArenaMessage(" - Most Terrier Kills : " + mostAttach);
     	if (mostDeath != null)
-    		m_botAction.sendArenaMessage(" - Life Giver           : " + mostDeath);
+    		m_botAction.sendArenaMessage(" - Most Reckless      : " + mostDeath);
     	if (lessDeath != null)
-    		m_botAction.sendArenaMessage(" - Most Careful Fighter : " + lessDeath);
+    		m_botAction.sendArenaMessage(" - Most Cautious      : " + lessDeath);
     	if (mostFlagClaimed != null)
-    		m_botAction.sendArenaMessage(" - Flag Savior          : " + mostFlagClaimed);
+    		m_botAction.sendArenaMessage(" - Flag Savior        : " + mostFlagClaimed);
     	if (mostTk != null)
-    		m_botAction.sendArenaMessage(" - Least Honorable      : " + mostTk);
+    		m_botAction.sendArenaMessage(" - Least Honorable    : " + mostTk);
     	if (mostTek != null)
-    		m_botAction.sendArenaMessage(" - Most Terrier Kills   : " + mostTek);
+    		m_botAction.sendArenaMessage(" - Most Terrier Kills : " + mostTek);
         
         // MVP TOP 3
         
@@ -1007,6 +1030,7 @@ public class GameFlagTimeModule extends AbstractModule {
             killsInBase = new HashMap<String,Integer>();
             ships = new HashMap<String,HashSet<Integer>>();
             killsBounty = new HashMap<String,Integer>();
+            attaches = new HashMap<String,Integer>();
             tks = new HashMap<String,Integer>();
         }
 
@@ -1039,6 +1063,17 @@ public class GameFlagTimeModule extends AbstractModule {
                     claimSecs = 0;
                 }
             }
+        }
+        
+        public void newAttachee(String player) {
+        	
+        	Integer count = attaches.get(player);
+        	if (count == null) {
+        		count = new Integer(0);
+        	}
+        	count++;
+        	attaches.put(player, count);
+        	
         }
         
         public void newShip(String player, int shipType) {
@@ -1595,7 +1630,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
 	@Override
 	public void requestEvents(EventRequester eventRequester) {
-		// TODO Auto-generated method stub
+		eventRequester.request(EventRequester.TURRET_EVENT);
 		
 	}
 
@@ -1843,12 +1878,7 @@ public class GameFlagTimeModule extends AbstractModule {
 	 */
 	public void warpPlayers(boolean allPlayers) {
 
-		Iterator<?> i;
-
-		if (allPlayers)
-			i = m_botAction.getPlayingPlayerIterator();
-		else
-			i = warpPlayers.keySet().iterator();
+		Iterator<?> i = m_botAction.getPlayingPlayerIterator();
 
 		Random r = new Random();
 		int rand;
@@ -1859,26 +1889,37 @@ public class GameFlagTimeModule extends AbstractModule {
 		int randomside = r.nextInt(2);
 
 		while (i.hasNext()) {
-			if (allPlayers) {
-				p = (Player) i.next();
-				pname = p.getPlayerName();
-			} else {
-				pname = (String) i.next();
-				p = m_botAction.getPlayer(pname);
+			
+			p = (Player) i.next();
+			pname = p.getPlayerName();
+			
+			if (!allPlayers) 
+			{
+				if (p.getFrequency() != 0 && p.getFrequency() != 1) {
+					p = null;
+				} 
+				else if (!warpPlayers.containsKey(pname)) {
+						Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
+						// Warp the player if inside the flagroom
+						if (!loc.equals(Location.FLAGROOM)) {
+							p = null;
+						}
+				}
 			}
 
 			if (p != null) {
-				if (allPlayers)
-					rand = 0; // Warp freqmates to same spot in strict mode.
-				// The warppoints @ index 0 must be set up
-				// to default/earwarps for this to work properly.
-				else
+				
+				if (allPlayers) {
+					rand = 0;
+				} else {
 					rand = r.nextInt(warpPtsLeftX.length);
+				}
+				
 				if (p.getFrequency() % 2 == randomside)
 					doPlayerWarp(pname, warpPtsLeftX[rand], warpPtsLeftY[rand]);
 				else
-					doPlayerWarp(pname, warpPtsRightX[rand],
-							warpPtsRightY[rand]);
+					doPlayerWarp(pname, warpPtsRightX[rand], warpPtsRightY[rand]);
+				
 			} else {
 				if (!allPlayers) {
 					nullPlayers.add(pname);
