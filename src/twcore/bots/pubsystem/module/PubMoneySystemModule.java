@@ -418,7 +418,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	
     	Iterator<Entry<String,Integer>> it2 = richest.entrySet().iterator();
     	int count = 0;
-    	while(it2.hasNext() || count < 3) {
+    	while(it2.hasNext() && count < 3) {
     		Entry<String,Integer> entry = it2.next();
     		m_botAction.sendPrivateMessage(sender, ++count + ". " + entry.getKey() + " with $" + entry.getValue());
     	}
