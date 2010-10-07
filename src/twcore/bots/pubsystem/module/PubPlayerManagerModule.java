@@ -14,6 +14,7 @@ import java.util.Vector;
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.PubHuntModule.HuntPlayer;
+import twcore.bots.pubsystem.module.PubUtilModule.Tileset;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
@@ -105,12 +106,9 @@ public class PubPlayerManagerModule extends AbstractModule {
 			
 			if (databaseName != null) {
 	    		try {
-					ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT fcName, fnMoney FROM tblPlayerMoney WHERE fcName = '"+Tools.addSlashes(playerName)+"'");
+					ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT fcName, fnMoney, fcTileset FROM tblPlayerMoney LEFT JOIN tblPlayerOptions USING (fcName) WHERE fcName = '"+Tools.addSlashes(playerName)+"'");
 					if (rs.next()) {
-						String name = rs.getString("fcName");
-						int money = rs.getInt("fnMoney");
-						players.put(name.toLowerCase(), new PubPlayer(m_botAction, name, money));
-						players.get(name.toLowerCase()).reloadPanel(false);
+						return getPlayerByResultSet(rs);
 					}
 					rs.close();
 				} catch (SQLException e) {
@@ -250,10 +248,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     		String playerName = event.getIdentifier().substring(10);
     		try {
 				if (rs.next()) {
-					String name = rs.getString("fcName");
-					int money = rs.getInt("fnMoney");
-					players.put(name.toLowerCase(), new PubPlayer(m_botAction, name, money));
-					players.get(name.toLowerCase()).reloadPanel(false);
+					getPlayerByResultSet(rs);
 				} else {
 					players.put(playerName.toLowerCase(), new PubPlayer(m_botAction, playerName));
 				}
@@ -262,6 +257,41 @@ public class PubPlayerManagerModule extends AbstractModule {
 				Tools.printStackTrace(e);
 			}
     	}
+    	else {
+    		try {
+				event.getResultSet().close();
+			} catch (SQLException e) {
+
+			}
+    	}
+    }
+    
+    public PubPlayer getPlayerByResultSet(ResultSet rs) {
+    	
+    	PubPlayer player = null;
+    	try {
+    		
+			String name = rs.getString("fcName");
+			int money = rs.getInt("fnMoney");
+			Tileset tileset;
+			try {
+				tileset = Tileset.valueOf(rs.getString("fcTileset").toUpperCase());
+				if (!tileset.equals(Tileset.BLUETECH)) {
+					context.getPubUtil().setTileset(tileset, name);
+				}
+			} catch (Exception e) { 
+				tileset = Tileset.BLUETECH;
+			}
+			
+			player = new PubPlayer(m_botAction, name, money);
+			players.put(name.toLowerCase(), player);
+			player.reloadPanel(false);
+			player.setTileset(tileset);
+			
+    	} catch (Exception e) {	
+    	}
+		
+		return player;
     }
     
     public void handleEvent(ArenaJoined event)
@@ -283,7 +313,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     		return player;
     	}
     	else if (databaseName != null) {
-    		m_botAction.SQLBackgroundQuery(databaseName, "newplayer_"+playerName, "SELECT fcName, fnMoney FROM tblPlayerMoney WHERE fcName = '"+Tools.addSlashes(playerName)+"'");
+    		m_botAction.SQLBackgroundQuery(databaseName, "newplayer_"+playerName, "SELECT fcName, fnMoney, fcTileset FROM tblPlayerMoney LEFT JOIN tblPlayerOptions USING (fcName) WHERE fcName = '"+Tools.addSlashes(playerName)+"'");
     	}
     	else {
     		players.put(playerName.toLowerCase(), new PubPlayer(m_botAction, playerName));
@@ -611,16 +641,22 @@ public class PubPlayerManagerModule extends AbstractModule {
             	PubPlayer player = it2.next();
 
             	// No change since last save?
-            	if (player.getLastMoneyUpdate() < player.getLastSavedState())
-            		continue;
-
-            	if (databaseName != null) {
-                	// Update only if no save since 15 minutes
-                	long diff = System.currentTimeMillis()-player.getLastSavedState();
-                	if (diff > (SAVETASK_INTERVAL * Tools.TimeInMillis.MINUTE)) {
-                		m_botAction.SQLBackgroundQuery(databaseName, "", "INSERT INTO tblPlayerMoney VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+",NOW()) ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
-                	}
+            	if (player.getLastMoneyUpdate() > player.getLastSavedState())
+            	{
+	            	if (databaseName != null) {
+	                	// Update only if no save since 15 minutes
+	                	long diff = System.currentTimeMillis()-player.getLastSavedState();
+	                	if (diff > (SAVETASK_INTERVAL * Tools.TimeInMillis.MINUTE)) {
+	                		m_botAction.SQLBackgroundQuery(databaseName, "", "INSERT INTO tblPlayerMoney VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+",NOW()) ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
+	                	}
+	                	
+	            	}
             	}
+            	
+            	if (player.getLastOptionsUpdate() > player.getLastSavedState()) {
+                	String tilesetName = player.getTileset().toString().toLowerCase();
+                	m_botAction.SQLBackgroundQuery(databaseName, "", "INSERT INTO tblPlayerOptions VALUES ('"+Tools.addSlashes(player.getPlayerName())+"','"+Tools.addSlashes(tilesetName)+"',NOW()) ON DUPLICATE KEY UPDATE fcTileset='"+Tools.addSlashes(tilesetName)+"'");
+                }
     
             	// Not anymore on this arena? remove this player from the PubPlayerManager
             	if (!arenaPlayers.contains(player.getPlayerName())) {

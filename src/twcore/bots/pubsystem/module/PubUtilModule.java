@@ -6,6 +6,7 @@ import java.util.TimerTask;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
+import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.PlayerEntered;
@@ -105,8 +106,8 @@ public class PubUtilModule extends AbstractModule {
 	public void setTileset(Tileset tileset, String playerName) 
 	{
 		Player p = m_botAction.getPlayer(playerName);
+		PubPlayer pubPlayer = context.getPlayerManager().getPlayer(playerName);
 		if (p != null) {
-			
 			if (DEFAULT_TILESET == tileset) {
 				for(int object: tilesetObjects.values()) {
 					m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objoff " + object);
@@ -118,6 +119,7 @@ public class PubUtilModule extends AbstractModule {
 				}
 				m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objon " + tilesetObjects.get(tileset));
 			}
+			pubPlayer.setTileset(tileset);
 		}
 	}
 	

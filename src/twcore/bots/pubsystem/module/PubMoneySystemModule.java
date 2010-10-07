@@ -203,6 +203,59 @@ public class PubMoneySystemModule extends AbstractModule {
         
     }
     
+    public void doCmdDonate(String sender, String command) {
+    	
+    	command = command.substring(8).trim();
+    	if (command.contains(":")) {
+    		String[] split = command.split("\\s*:\\s*");
+    		String name = split[0];
+    		String money = split[1];
+    		
+    		try {
+    			Integer.valueOf(money);
+    		} catch (NumberFormatException e) {
+    			m_botAction.sendPrivateMessage(sender, "You must specify a number. !donate playerA:1000");
+    			return;
+    		}
+    		
+    		Player p = m_botAction.getFuzzyPlayer(name);
+    		if (p == null) {
+    			m_botAction.sendPrivateMessage(sender, "Player not found.");
+    			return;
+    		}
+    		name = p.getPlayerName();
+    		
+    		if (name.equals(sender)) {
+    			m_botAction.sendPrivateMessage(sender, "You cannot donate to yourself.");
+    			return;
+    		}
+
+    		PubPlayer pubPlayer = playerManager.getPlayer(name,false);
+    		PubPlayer pubPlayerDonater = playerManager.getPlayer(sender,false);
+    		if (pubPlayer != null && pubPlayerDonater != null) {
+    			
+    			if (pubPlayerDonater.getMoney() < Integer.valueOf(money)) {
+    				m_botAction.sendPrivateMessage(sender, "You don't have $" + Integer.valueOf(money) + " to donate.");
+    				return;
+    			}
+    			
+    			int currentMoney = pubPlayer.getMoney();
+    			int moneyToDonate = Integer.valueOf(money);
+    			
+    			pubPlayer.addMoney(moneyToDonate);
+    			pubPlayerDonater.removeMoney(moneyToDonate);
+    			m_botAction.sendPrivateMessage(sender, "$" + moneyToDonate + " sent to + " + pubPlayer.getPlayerName() + ".");
+    			m_botAction.sendPrivateMessage(pubPlayer.getPlayerName(), sender + " sent you $" + moneyToDonate + ", you have now $" + (moneyToDonate+currentMoney) + ".");
+    		
+    		} else {
+    			m_botAction.sendPrivateMessage(sender, "Player not found.");
+    		}
+    	}
+    	else {
+    		m_botAction.sendPrivateMessage(sender, "Invalid argument");
+    	}
+    }
+    
     public void doCmdSetMoney(String sender, String command) {
     	
     	command = command.substring(10).trim();
@@ -215,8 +268,6 @@ public class PubMoneySystemModule extends AbstractModule {
     			int currentMoney = pubPlayer.getMoney();
     			pubPlayer.setMoney(Integer.valueOf(money));
     			m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $" + money + " (before: $" + currentMoney + ")");
-    		
-    			PubLogSystem.write(LogType.MOD, "!setmoney " + pubPlayer.getPlayerName() + ":" + money + " by " + sender + "\n");
     		
     		} else {
     			m_botAction.sendPrivateMessage(sender, "Player not found.");
@@ -314,7 +365,9 @@ public class PubMoneySystemModule extends AbstractModule {
     		name = command.substring(command.indexOf(" ")).trim();
 			PubPlayer pubPlayer = playerManager.getPlayer(name,false);
 			if (pubPlayer != null) {
-				m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " has $"+pubPlayer.getMoney() + ".");
+				int money = pubPlayer.getMoney();
+				pubPlayer.setMoney(0);
+				m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $0 (before: $" + money + ")");
 			} else {
 				m_botAction.sendPrivateMessage(sender, "Player '" + name + "' not found.");
 			}
@@ -484,6 +537,11 @@ public class PubMoneySystemModule extends AbstractModule {
         try{
 
             final PubPlayer pubPlayerKilled = playerManager.getPlayer(killed.getPlayerName());
+            // Is the player not on the system? (happens when someone loggon and get killed in 1-2 seconds)
+            if (pubPlayerKilled == null) {
+            	return;
+            }
+            
             pubPlayerKilled.handleDeath(event);
             
             // Duration check for Ship Item
@@ -552,6 +610,9 @@ public class PubMoneySystemModule extends AbstractModule {
         else if(command.startsWith("!buy") || command.equals("!b")){
         	doCmdBuy(sender, command);
         }
+        else if(command.startsWith("!donate")){
+        	doCmdDonate(sender, command);
+        }
         else if(command.startsWith("!richest")){
         	doCmdRichest(sender, command);
         }
@@ -570,11 +631,12 @@ public class PubMoneySystemModule extends AbstractModule {
 	@Override
 	public String[] getHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!buy              -- Display the list of items. (!items, !i)"),
-			pubsystem.getHelpLine("!buy <item>       -- Item to buy. (!b)"),
-			pubsystem.getHelpLine("!iteminfo <item>  -- Information about this item. (restriction, duration, etc.)"),
-	        pubsystem.getHelpLine("!money <name>     -- Display your money or for a given player name. (!$)"),
-	        pubsystem.getHelpLine("!richest          -- Top 3 richest players currently playing."),
+			pubsystem.getHelpLine("!buy                -- Display the list of items. (!items, !i)"),
+			pubsystem.getHelpLine("!buy <item>         -- Item to buy. (!b)"),
+			pubsystem.getHelpLine("!iteminfo <item>    -- Information about this item. (restriction, duration, etc.)"),
+	        pubsystem.getHelpLine("!money <name>       -- Display your money or for a given player name. (!$)"),
+	        pubsystem.getHelpLine("!donate <name>:<$>  -- Donate money to a player."),
+	        pubsystem.getHelpLine("!richest            -- Top 3 richest players currently playing."),
         };
 	}
 
@@ -659,7 +721,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	   		if (size>0 && i!=p.getFrequency()) {
 	   			freqList.add(i);
 	   			if (i<100) {
-	   				message += ","+i;
+	   				message += ", "+i;
 	   			} else {
 	   				privFreqs++;
 	   			}
@@ -809,7 +871,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	   		if (size>0 && i!=p.getFrequency()) {
 	   			freqList.add(i);
 	   			if (i<100) {
-	   				message += ","+i;
+	   				message += ", "+i;
 	   			} else {
 	   				privFreqs++;
 	   			}
