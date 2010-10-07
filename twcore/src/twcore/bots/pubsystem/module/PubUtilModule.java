@@ -334,8 +334,11 @@ public class PubUtilModule extends AbstractModule {
             doGoCmd(sender, command.substring(4));
         else if(command.equals("!privfreqs"))
             doPrivFreqsCmd(sender);
-        else if(command.startsWith("!reloadconfig"))
+        else if(command.startsWith("!reloadconfig")) {
+        	m_botAction.sendPrivateMessage(sender, "Please wait..");
         	context.reloadConfig();
+        	m_botAction.sendPrivateMessage(sender, "Done.");
+        } 
         else if(command.startsWith("!set "))
             context.getPlayerManager().doSetCmd(sender, command.substring(5));
         else if(command.equals("!die"))

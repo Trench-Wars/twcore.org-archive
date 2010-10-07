@@ -3,11 +3,14 @@ package twcore.bots.pubsystem.module;
 import java.lang.reflect.Method;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
+import java.util.Map.Entry;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
@@ -276,7 +279,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	        	lines.add(line);
 	        }
 	        
-	        lines.add("Legeng: *Target optional **Target required (!buy item:PlayerName)");
+	        lines.add("Legend: *Target optional **Target required (!buy item:PlayerName)");
 	    	lines.add("Use !iteminfo <item> for more info about the specified item and its restrictions.");
 	    	
 	    } 
@@ -303,6 +306,21 @@ public class PubMoneySystemModule extends AbstractModule {
         	buyItem(sender, command, "");
         }
     }
+    
+    private void doCmdBankrupt(String sender, String command) {
+    	
+    	String name = sender;
+    	if (command.contains(" ")) {
+    		name = command.substring(command.indexOf(" ")).trim();
+			PubPlayer pubPlayer = playerManager.getPlayer(name,false);
+			if (pubPlayer != null) {
+				m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " has $"+pubPlayer.getMoney() + ".");
+			} else {
+				m_botAction.sendPrivateMessage(sender, "Player '" + name + "' not found.");
+			}
+    	}
+    }
+    
     
     private void doCmdItemInfo(String sender, String command) 
     {
@@ -385,6 +403,27 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
     
+    private void doCmdRichest(String sender, String command)
+    {
+    	HashMap<String,Integer> players = new HashMap<String,Integer>();
+    	
+    	Iterator<Player> it = m_botAction.getPlayerIterator();
+    	while(it.hasNext()) {
+    		PubPlayer player = playerManager.getPlayer(it.next().getPlayerName());
+    		if (player != null) {
+    			players.put(player.getPlayerName(), player.getMoney());
+    		}
+    	}
+    	LinkedHashMap<String,Integer> richest = sort(players,false);
+    	
+    	Iterator<Entry<String,Integer>> it2 = richest.entrySet().iterator();
+    	int count = 0;
+    	while(it2.hasNext() || count < 3) {
+    		Entry<String,Integer> entry = it2.next();
+    		m_botAction.sendPrivateMessage(sender, ++count + ". " + entry.getKey() + " with $" + entry.getValue());
+    	}
+    }
+    
     private void doCmdDisplayMoney(String sender, String command)
     {
     	String name = sender;
@@ -417,7 +456,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
     	final Player killer = m_botAction.getPlayer( event.getKillerID() );
         final Player killed = m_botAction.getPlayer( event.getKilleeID() );
-       
+
         if( killer == null || killed == null )
             return;
         
@@ -437,13 +476,10 @@ public class PubMoneySystemModule extends AbstractModule {
         }
 
         // Disable if the player is dueling
-        if (!context.getPubChallenge().isEnabled()) {
-        	if (context.getPubChallenge().isDueling(killer.getPlayerName())) {
-        		return;
-        	} else if (context.getPubChallenge().isDueling(killed.getPlayerName())) {
-        		return;
-        	}
-        }
+    	if (context.getPubChallenge().isDueling(killer.getPlayerName())
+    			|| context.getPubChallenge().isDueling(killed.getPlayerName())) {
+    		return;
+    	}
 
         try{
 
@@ -492,8 +528,6 @@ public class PubMoneySystemModule extends AbstractModule {
 
             String playerName = killer.getPlayerName();
             context.getPlayerManager().addMoney(playerName, money);
-            
-            //PubLogSystem.write(LogType.MONEY, playerName + "("+killer.getShipType()+"): " + pubPlayer.getMoney() + " +"+money+"\n");
 
         } catch(Exception e){
             Tools.printStackTrace(e);
@@ -518,6 +552,9 @@ public class PubMoneySystemModule extends AbstractModule {
         else if(command.startsWith("!buy") || command.equals("!b")){
         	doCmdBuy(sender, command);
         }
+        else if(command.startsWith("!richest")){
+        	doCmdRichest(sender, command);
+        }
         else if( m_botAction.getOperatorList().isOwner(sender) && command.startsWith("!setmoney")) {
         	doCmdSetMoney(sender,command);
         }
@@ -525,7 +562,9 @@ public class PubMoneySystemModule extends AbstractModule {
     }
     
     public void handleModCommand(String sender, String command) {
-
+        if(command.startsWith("!bankrupt")) {
+            doCmdBankrupt(sender, command);
+        }
     }
     
 	@Override
@@ -535,13 +574,15 @@ public class PubMoneySystemModule extends AbstractModule {
 			pubsystem.getHelpLine("!buy <item>       -- Item to buy. (!b)"),
 			pubsystem.getHelpLine("!iteminfo <item>  -- Information about this item. (restriction, duration, etc.)"),
 	        pubsystem.getHelpLine("!money <name>     -- Display your money or for a given player name. (!$)"),
+	        pubsystem.getHelpLine("!richest          -- Top 3 richest players currently playing."),
         };
 	}
 
 	@Override
 	public String[] getModHelpMessage() {
 		return new String[] {    
-			pubsystem.getHelpLine("!setmoney <name>:<$>   -- Set the money for a given player name. (Owner only)."),
+				pubsystem.getHelpLine("!bankrupt <name>       -- Set money to $0 for this player."),
+				pubsystem.getHelpLine("!setmoney <name>:<$>   -- Set the money for a given player name. (Owner only)."),
         };
 	}
 
@@ -831,6 +872,34 @@ public class PubMoneySystemModule extends AbstractModule {
 			for(int freq: freqs)
 				m_botAction.prizeFreq(freq, Tools.Prize.ENGINE_SHUTDOWN_EXTENDED);
 		}
+	}
+ 	
+	public LinkedHashMap<String,Integer> sort(HashMap passedMap, boolean ascending) {
+
+		List mapKeys = new ArrayList(passedMap.keySet());
+		List mapValues = new ArrayList(passedMap.values());
+		Collections.sort(mapValues);
+		Collections.sort(mapKeys);
+
+		if (!ascending)
+			Collections.reverse(mapValues);
+
+		LinkedHashMap someMap = new LinkedHashMap();
+		Iterator valueIt = mapValues.iterator();
+		while (valueIt.hasNext()) {
+			Object val = valueIt.next();
+			Iterator keyIt = mapKeys.iterator();
+			while (keyIt.hasNext()) {
+				Object key = keyIt.next();
+				if (passedMap.get(key).toString().equals(val.toString())) {
+					passedMap.remove(key);
+					mapKeys.remove(key);
+					someMap.put(key, val);
+					break;
+				}
+			}
+		}
+		return someMap;
 	}
 
 	@Override
