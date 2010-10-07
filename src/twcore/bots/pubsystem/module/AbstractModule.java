@@ -28,6 +28,7 @@ import twcore.core.events.ScoreReset;
 import twcore.core.events.ScoreUpdate;
 import twcore.core.events.SoccerGoal;
 import twcore.core.events.SubspaceEvent;
+import twcore.core.events.TurretEvent;
 import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 
@@ -130,6 +131,8 @@ public abstract class AbstractModule {
             handleEvent((FlagVictory) event);
         else if(event instanceof FlagReward)
             handleEvent((FlagReward) event);
+        else if(event instanceof TurretEvent)
+            handleEvent((TurretEvent) event);
         else if(event instanceof ScoreReset)
             handleEvent((ScoreReset) event);
         else if(event instanceof WatchDamage)

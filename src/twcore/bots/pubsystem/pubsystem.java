@@ -37,6 +37,7 @@ import twcore.core.events.SQLResultEvent;
 import twcore.core.events.ScoreReset;
 import twcore.core.events.ScoreUpdate;
 import twcore.core.events.SoccerGoal;
+import twcore.core.events.TurretEvent;
 import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
@@ -526,6 +527,10 @@ public class pubsystem extends SubspaceBot
     
     public void handleEvent(SQLResultEvent event){
     	context.handleEvent(event);
+    }
+    
+    public void handleEvent(TurretEvent event) {
+        context.handleEvent(event);
     }
     
     public void handleEvent(FlagClaimed event) {

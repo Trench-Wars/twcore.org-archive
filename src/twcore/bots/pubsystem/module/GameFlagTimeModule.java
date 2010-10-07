@@ -544,7 +544,7 @@ public class GameFlagTimeModule extends AbstractModule {
     	if (mostKillInBase != null)
     		m_botAction.sendArenaMessage(" - Basing King        : " + mostKillInBase);
     	if (mostAttach != null)
-    		m_botAction.sendArenaMessage(" - Most Terrier Kills : " + mostAttach);
+    		m_botAction.sendArenaMessage(" - Best Terrier       : " + mostAttach);
     	if (mostDeath != null)
     		m_botAction.sendArenaMessage(" - Most Reckless      : " + mostDeath);
     	if (lessDeath != null)
