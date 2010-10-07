@@ -199,7 +199,8 @@ public class PubChallengeModule extends AbstractModule {
         		|| !challenge.isStarted())
         	return;
     
-        if (System.currentTimeMillis()-l.lastDeath < 6 * Tools.TimeInMillis.SECOND) {
+        if (System.currentTimeMillis()-l.lastDeath < 6 * Tools.TimeInMillis.SECOND
+        		&& System.currentTimeMillis()-challenge.startAt > 6 * Tools.TimeInMillis.SECOND) {
         	m_botAction.sendPrivateMessage(w.name, "Spawning is illegal, no count.");
         	m_botAction.sendPrivateMessage(l.name, "No count.");
         	return;

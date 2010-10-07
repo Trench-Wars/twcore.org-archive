@@ -192,6 +192,8 @@ public abstract class AbstractModule {
     public void handleEvent(WatchDamage event){}
 
     public void handleEvent(BallPosition event){}
+    
+    public void handleEvent(TurretEvent event){}
 
     public void handleEvent(FlagPosition event){}
 
