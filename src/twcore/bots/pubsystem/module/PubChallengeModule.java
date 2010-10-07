@@ -474,14 +474,14 @@ public class PubChallengeModule extends AbstractModule {
 	        	context.getPlayerManager().getPlayer(loser.name).removeMoney(money);
         }
         
-        Dueler d1 = duelers.remove(winner.name);
-        Dueler d2 = duelers.get(loser.name);
-        challenges.remove(d1.name);
-        if (laggers.containsKey(d2.name)) {
-        	challenges.remove(d2.name);
+        duelers.remove(winner.name);
+        duelers.get(loser.name);
+        challenges.remove(winner.name);
+        if (laggers.containsKey(loser.name)) {
+        	challenges.remove(loser.name);
         }
-        laggers.remove(d1.name);
-        laggers.remove(d2.name);
+        laggers.remove(winner.name);
+        laggers.remove(loser.name);
         
     	warpToSafe(winner.name, true);
     	warpToSafe(loser.name, false);
@@ -502,11 +502,11 @@ public class PubChallengeModule extends AbstractModule {
 	        };
 	        
 	        String[] values = {
-	        		Tools.addSlashes(d1.type==Dueler.DUEL_CHALLENGER?d1.name:d2.name),
-	        		Tools.addSlashes(d2.type==Dueler.DUEL_ACCEPTER?d2.name:d1.name),
+	        		Tools.addSlashes(winner.type==Dueler.DUEL_CHALLENGER?winner.name:loser.name),
+	        		Tools.addSlashes(loser.type==Dueler.DUEL_ACCEPTER?loser.name:winner.name),
 	        		Tools.addSlashes(winner.name),
-	        		String.valueOf(d1.type==Dueler.DUEL_CHALLENGER?d1.kills:d2.kills),
-	        		String.valueOf(d2.type==Dueler.DUEL_ACCEPTER?d2.kills:d1.kills),
+	        		String.valueOf(winner.type==Dueler.DUEL_CHALLENGER?winner.kills:loser.kills),
+	        		String.valueOf(loser.type==Dueler.DUEL_ACCEPTER?loser.kills:winner.kills),
 	        		String.valueOf(challenge.ship),
 	        		String.valueOf(challenge.winByLagout?1:0),
 	        		String.valueOf((int)((System.currentTimeMillis()-challenge.startAt)/1000)),
