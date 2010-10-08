@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.PubUtilModule.Location;
+import twcore.bots.pubsystem.module.moneysystem.LvzMoneyPanel;
 import twcore.bots.pubsystem.module.moneysystem.PubStore;
 import twcore.bots.pubsystem.module.moneysystem.item.PubCommandItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItem;
@@ -244,7 +245,7 @@ public class PubMoneySystemModule extends AbstractModule {
     			
     			pubPlayer.addMoney(moneyToDonate);
     			pubPlayerDonater.removeMoney(moneyToDonate);
-    			m_botAction.sendPrivateMessage(sender, "$" + moneyToDonate + " sent to + " + pubPlayer.getPlayerName() + ".");
+    			m_botAction.sendPrivateMessage(sender, "$" + moneyToDonate + " sent to " + pubPlayer.getPlayerName() + ".");
     			m_botAction.sendPrivateMessage(pubPlayer.getPlayerName(), sender + " sent you $" + moneyToDonate + ", you have now $" + (moneyToDonate+currentMoney) + ".");
     		
     		} else {
@@ -356,6 +357,11 @@ public class PubMoneySystemModule extends AbstractModule {
         } else {
         	buyItem(sender, command, "");
         }
+    }
+    
+    private void doCmdDebugObj(String sender, String command) {
+    	
+    	m_botAction.sendPrivateMessage(sender, "Average of " + LvzMoneyPanel.totalObjSentPerMinute() + " *obj sent per minute.");
     }
     
     private void doCmdBankrupt(String sender, String command) {
@@ -625,6 +631,9 @@ public class PubMoneySystemModule extends AbstractModule {
     public void handleModCommand(String sender, String command) {
         if(command.startsWith("!bankrupt")) {
             doCmdBankrupt(sender, command);
+        }
+        else  if(command.startsWith("!debugobj")) {
+        	doCmdDebugObj(sender, command);
         }
     }
     

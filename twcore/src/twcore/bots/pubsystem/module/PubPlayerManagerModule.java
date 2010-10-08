@@ -310,6 +310,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     	PubPlayer player = players.get(playerName.toLowerCase());
     	if (player != null) {
     		player.reloadPanel(false);
+    		context.getPubUtil().setTileset(player.getTileset(), player.getPlayerName());
     		return player;
     	}
     	else if (databaseName != null) {
