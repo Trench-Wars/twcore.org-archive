@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.TimerTask;
 import java.util.Map.Entry;
 
@@ -146,8 +147,8 @@ public class PubChallengeModule extends AbstractModule {
 
             if (!laggers.containsKey(name)
         		&& System.currentTimeMillis()-dueler.backFromLagout > 1 * Tools.TimeInMillis.SECOND
-        		&& System.currentTimeMillis()-challenge.startAt > 6 * Tools.TimeInMillis.SECOND
-        		&& System.currentTimeMillis()-dueler.lastDeath > 6 * Tools.TimeInMillis.SECOND) 
+        		&& System.currentTimeMillis()-challenge.startAt > 7 * Tools.TimeInMillis.SECOND
+        		&& System.currentTimeMillis()-dueler.lastDeath > 7 * Tools.TimeInMillis.SECOND) 
             {
 	            dueler.warps++;
 	            
@@ -206,17 +207,18 @@ public class PubChallengeModule extends AbstractModule {
         		|| !challenge.isStarted())
         	return;
     
-        if (System.currentTimeMillis()-l.lastDeath < 6 * Tools.TimeInMillis.SECOND
-        		&& System.currentTimeMillis()-challenge.startAt > 6 * Tools.TimeInMillis.SECOND) {
+        if (System.currentTimeMillis()-l.lastDeath < 7 * Tools.TimeInMillis.SECOND
+        		&& System.currentTimeMillis()-challenge.startAt > 7 * Tools.TimeInMillis.SECOND) {
+        	w.spawns++;
         	m_botAction.sendPrivateMessage(w.name, "Spawning is illegal, no count.");
         	m_botAction.sendPrivateMessage(l.name, "No count.");
+        	l.lastDeath = System.currentTimeMillis();
         	return;
         }
         
         w.kills++;
         l.deaths++;
         l.lastDeath = System.currentTimeMillis();
-        l.updateDeath();
         
         if(l.deaths == deaths) {
         	challenge.setWinner(duelers.get(killer));
@@ -224,9 +226,17 @@ public class PubChallengeModule extends AbstractModule {
             return;
         }
         
+        m_botAction.shipReset(killer);
+        
+        
         m_botAction.sendPrivateMessage(killer, w.kills+"-"+l.kills);
         m_botAction.sendPrivateMessage(killee, l.kills+"-"+w.kills);
 	      	
+        m_botAction.scheduleTask(new EnergyDepletedTask(killer), 1*1000);
+        m_botAction.scheduleTask(new EnergyDepletedTask(killer), 2*1000);
+        m_botAction.scheduleTask(new EnergyDepletedTask(killer), 3*1000);
+        m_botAction.scheduleTask(new EnergyDepletedTask(killer), 4*1000);
+        
         m_botAction.scheduleTask(new SpawnBack(killer), 5*1000);
         m_botAction.scheduleTask(new SpawnBack(killee), 5*1000);
                 
@@ -253,13 +263,23 @@ public class PubChallengeModule extends AbstractModule {
         }
         challenged = playerChallenged.getPlayerName();
     	
+        if(isDueling(challenger)) {
+            m_botAction.sendPrivateMessage(challenger, "You are already dueling.");
+            return;
+        }
+        
+        if(isDueling(challenged)) {
+            m_botAction.sendPrivateMessage(challenger, "This player is already dueling.");
+            return;
+        }
+
         if(isChallengeAlreadySent(challenger, challenged))
         {
             m_botAction.sendPrivateMessage(challenger, "You have already a pending challenge with "+challenged+".");
             m_botAction.sendPrivateMessage(challenger, "Please remove it using !removechallenge before challenging more.");
             return;
         }
-        
+                
         if(ship == Tools.Ship.TERRIER) {
             m_botAction.sendPrivateMessage(challenger, "You cannot duel someone in Terrier.");
             return;
@@ -326,6 +346,7 @@ public class PubChallengeModule extends AbstractModule {
     public boolean isChallengeAlreadySent(String challenger, String challenged) {
     	return challenges.containsKey(challenger+"-"+challenged);
     }
+
     
     public void addChallenge(Challenge challenge) {
     	challenges.put(getKey(challenge), challenge);
@@ -562,7 +583,9 @@ public class PubChallengeModule extends AbstractModule {
     }
     
     private class SpawnBack extends TimerTask{
+    	
         String name;
+
         private SpawnBack(String name){
             this.name = name;
         }
@@ -574,14 +597,37 @@ public class PubChallengeModule extends AbstractModule {
         	Challenge challenge = dueler.challenge;
         	
         	if (dueler != null) {
-	            if(dueler.type == 1){
+	            
+        		if(dueler.type == 1){
 	                m_botAction.warpTo(name, challenge.area.warp1x, challenge.area.warp1y);
+	                m_botAction.specificPrize(name, Tools.Prize.FULLCHARGE);
 	                m_botAction.shipReset(name);
 	            }
 	            else if(dueler.type == 2){
 	                m_botAction.warpTo(name, challenge.area.warp2x, challenge.area.warp2y);
+	                m_botAction.specificPrize(name, Tools.Prize.FULLCHARGE);
 	                m_botAction.shipReset(name);
 	            }
+        	}
+        }     
+    }
+    
+    private class EnergyDepletedTask extends TimerTask{
+    	
+        String name;
+
+        private EnergyDepletedTask(String name){
+            this.name = name;
+        }
+
+        @Override
+        public void run() {
+        	
+        	Dueler dueler = duelers.get(name);
+        	Challenge challenge = dueler.challenge;
+        	
+        	if (dueler != null) {
+	            m_botAction.specificPrize(name, Tools.Prize.ENERGY_DEPLETED);
         	}
         }     
     }
@@ -777,11 +823,16 @@ public class PubChallengeModule extends AbstractModule {
         if(command.startsWith("!challenge ")){
             String pieces[] = command.substring(11).split(":");
             String opponent = "";
+
+            Player p = m_botAction.getFuzzyPlayer(pieces[0]);
+            if (p != null)
+            	opponent = p.getPlayerName();
+            
             // Get the real player name
             if (pieces.length == 3 || (pieces.length == 2 && !context.getMoneySystem().isEnabled())) {
-	            PubPlayer player = context.getPlayerManager().getPlayer(pieces[0]);
+	            PubPlayer player = context.getPlayerManager().getPlayer(opponent);
 	            if (player==null) {
-	            	m_botAction.sendPrivateMessage(sender, "Player not found.");
+	            	m_botAction.sendPrivateMessage(sender, "Player not on the system yet.");
 	            	return;
 	            } else {
 	            	opponent = player.getPlayerName();
@@ -919,7 +970,7 @@ class DuelArea {
 	public boolean inUse = false;
 	 
     public int warp1y,warp1x,warp2y,warp2x;
-   
+    
     public DuelArea(int number, int warp1x, int warp1y, int warp2x, int warp2y) {
     	this.number = number;
         this.warp1x = warp1x;
@@ -927,7 +978,7 @@ class DuelArea {
         this.warp2x = warp2x;
         this.warp2y = warp2y;
     }
-    
+
     public boolean inUse() {
     	return inUse;
     }
@@ -957,6 +1008,7 @@ class Dueler {
     public int deaths = 0;
     public int kills = 0;
     public int warps = 0;
+    public int spawns = 0;
 
     public long lastDeath = 0; // To detect warp vs death
     public long backFromLagout = 0; // To detect warp vs lagout
@@ -966,11 +1018,7 @@ class Dueler {
         this.type = type;
         this.challenge = challenge;
     }
-    
-    public void updateDeath() {
-    	this.lastDeath = System.currentTimeMillis();
-    }
-    
+
     
 }
 

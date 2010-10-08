@@ -6,6 +6,10 @@ public class LvzMoneyPanel {
 
     private BotAction botAction;
     
+    // debug purpose only
+    private static long startedAt = System.currentTimeMillis();
+    public static long totalObjSent = 0;
+    
     public LvzMoneyPanel(BotAction botAction){
         this.botAction = botAction;
     }
@@ -24,15 +28,14 @@ public class LvzMoneyPanel {
         } else if (afterMoney.length() < beforeMoney.length()) {
         	afterMoney = String.format("%1$#" + beforeMoney.length() + "s", afterMoney); 
         }
-        
-        //System.out.println("Cash panel updated: '" + beforeMoney + "' to '" + afterMoney +"'");
+
+        String playerName = botAction.getPlayerName(playerId);
         
         int length = afterMoney.length();
         
         for(int i = 0; i < afterMoney.length(); i++)
         {
-        	String playerName = botAction.getPlayerName(playerId);
-        	
+ 
         	if (beforeMoney.charAt(i) == afterMoney.charAt(i)) {
         		continue;
         	}
@@ -40,18 +43,21 @@ public class LvzMoneyPanel {
         		botAction.sendUnfilteredPrivateMessage(playerName, "*objoff "+502+(length-i-1)+beforeMoney.charAt(i));
         	}
         	else {
-        		if (beforeMoney.charAt(i) != ' ')
+        		if (beforeMoney.charAt(i) != ' ') {
         			botAction.sendUnfilteredPrivateMessage(playerName, "*objoff "+502+(length-i-1)+beforeMoney.charAt(i));
+        			totalObjSent++;
+        		}
         		botAction.sendUnfilteredPrivateMessage(playerName, "*objon "+502+(length-i-1)+afterMoney.charAt(i));
         	}
-
-            if(gainedMoney)
-                botAction.sendUnfilteredPrivateMessage(playerName, "*objon 50100");
-            else
-                botAction.sendUnfilteredPrivateMessage(playerName, "*objon 50101");
+        	totalObjSent++;
 
         }
-       
+        
+        if(gainedMoney)
+            botAction.sendUnfilteredPrivateMessage(playerName, "*objon 50100");
+        else
+            botAction.sendUnfilteredPrivateMessage(playerName, "*objon 50101");
+        totalObjSent++;
     }
     
     public void reset(String playerName, int oldValue) {
@@ -61,6 +67,12 @@ public class LvzMoneyPanel {
     		botAction.sendUnfilteredPrivateMessage(playerName, "*objoff "+502+(value.length()-i-1)+value.charAt(i));
     	}
     	
+    }
+    
+    public static int totalObjSentPerMinute() {
+    	long minute = System.currentTimeMillis()-startedAt;
+    	minute /= 1000*60;
+    	return (int)(totalObjSent/minute);
     }
     
     public void reset(String playerName){

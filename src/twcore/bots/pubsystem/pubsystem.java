@@ -303,7 +303,7 @@ public class pubsystem extends SubspaceBot
             return;
 
         if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.PUBLIC_MESSAGE ) )
-            handlePublicCommand(sender, message);
+            handlePublicCommand(sender, message, messageType);
         if ( m_botAction.getOperatorList().isHighmod(sender) || sender.equals(m_botAction.getBotName()) )
             if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) )
                 handleModCommand(sender, message);
@@ -319,7 +319,7 @@ public class pubsystem extends SubspaceBot
      * @param sender is the person issuing the command.
      * @param command is the command that is being sent.
      */
-    public void handlePublicCommand(String sender, String command) {
+    public void handlePublicCommand(String sender, String command, int messageType) {
     	
         try {
             if(command.equals("!help") || command.equals("!h"))
@@ -330,7 +330,7 @@ public class pubsystem extends SubspaceBot
                 doGreetMessageCmd(sender, command);
             if(command.equals("!about"))
                 doAboutCmd(sender);
-            else {
+            else if (messageType != Message.PUBLIC_MESSAGE){
             	context.handleCommand(sender, command.toLowerCase());
             }
             
@@ -397,7 +397,7 @@ public class pubsystem extends SubspaceBot
     public void doHelpCmd(String sender, boolean modHelp)
     {
         Vector<String> lines = new Vector<String>();
-
+        
         if (!modHelp) {
         	
 			for(AbstractModule module: context.getModules()) {
@@ -426,6 +426,9 @@ public class pubsystem extends SubspaceBot
  			if( m_botAction.getOperatorList().isHighmod( sender ) )
  				lines.add(getHelpLine("!helpmod          -- Show the !help menu for Mod+."));
 	     	
+ 			lines.add(" ");
+ 	        lines.add("Note: Commands must be sent in private.");
+ 			
 	    	m_botAction.smartPrivateMessageSpam(sender, (String[])lines.toArray(new String[lines.size()]));
         	
         } else {
@@ -627,6 +630,31 @@ public class pubsystem extends SubspaceBot
     		m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":ThorMax:1");
     	}
     	
+    	// No ?buy
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Energy:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Rotation:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Stealth:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Cloak:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:XRadar:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Gun:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Bomb:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Bounce:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Thrust:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Speed:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:MultiFire:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Prox:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Super:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Shield:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Shrap:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:AntiWarp:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Repel:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Burst:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Decoy:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Thor:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Brick:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Rocket:0");
+    	m_botAction.sendUnfilteredPublicMessage("?set Cost:Portal:0");
+
     }
 
 
