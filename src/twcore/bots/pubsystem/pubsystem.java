@@ -274,6 +274,11 @@ public class pubsystem extends SubspaceBot
                 m_botAction.sendPrivateMessage(playerName, message );
                 m_botAction.sendPrivateMessage(playerName, "Type !help for a list of commands.");
 
+                if (player.getShipType() == Tools.Ship.SPECTATOR) {
+                	// Spectate the base
+                	m_botAction.warpTo(playerName, 512, 280);
+                }
+                
                 context.handleEvent(event);
             }
 
@@ -304,7 +309,7 @@ public class pubsystem extends SubspaceBot
 
         if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.PUBLIC_MESSAGE ) )
             handlePublicCommand(sender, message, messageType);
-        if ( m_botAction.getOperatorList().isHighmod(sender) || sender.equals(m_botAction.getBotName()) )
+        if ( m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) )
             if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) )
                 handleModCommand(sender, message);
     }
@@ -597,6 +602,16 @@ public class pubsystem extends SubspaceBot
     }
 
     public void handleEvent(FrequencyShipChange event) {
+    	
+        int playerID = event.getPlayerID();
+        Player player = m_botAction.getPlayer(playerID);
+        String playerName = m_botAction.getPlayerName(playerID);
+    	
+        if (player.getShipType() == Tools.Ship.SPECTATOR) {
+        	// Spectate the base
+        	m_botAction.warpTo(playerName, 512, 280);
+        }
+        
     	context.handleEvent(event);
     }
 
@@ -629,6 +644,10 @@ public class pubsystem extends SubspaceBot
     		m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":SuperTime:50000");
     		m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":ThorMax:1");
     	}
+    	
+    	//m_botAction.sendUnfilteredPublicMessage("?set Misc:MaxPlaying:60");
+    	//m_botAction.sendUnfilteredPublicMessage("?set Misc:MaxPerTeam:27");
+    	//m_botAction.sendUnfilteredPublicMessage("?set Misc:MaxPerPrivateTeam:20");
     	
     	// No ?buy
     	m_botAction.sendUnfilteredPublicMessage("?set Cost:Energy:0");

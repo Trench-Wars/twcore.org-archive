@@ -431,10 +431,11 @@ public class PubChallengeModule extends AbstractModule {
         }
         
         if (announceNew && amount >= announceWinnerAt) {
-        	if (ship == 0)
-        		m_botAction.sendArenaMessage("A duel is starting between " + challenger + "("+playerChallenger.getShipType()+") and " + accepter + "("+playerAccepter.getShipType()+")" + moneyMessage + ".", Tools.Sound.BEEP1);
+        	if (amount >= announceZoneWinnerAt)
+        		m_botAction.sendZoneMessage("[PUB] A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".", Tools.Sound.BEEP1);
         	else
-        		m_botAction.sendArenaMessage("A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".", Tools.Sound.BEEP1);
+        		m_botAction.sendArenaMessage("A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ". To watch !watchduel " + challenger, Tools.Sound.BEEP1);
+        		
         }
         
         removePendingChallenge(challenger, false);
@@ -443,6 +444,48 @@ public class PubChallengeModule extends AbstractModule {
         // Prepare the timer, in 10 seconds the game should starts
         m_botAction.scheduleTask(new StartDuel(challenge), 10*1000);
         
+    }
+    
+    public void watchDuel(String sender, String command) {
+    	
+    	if (command.contains(" ")) {
+    		
+    		String playerName = command.substring(command.indexOf(" ")+1).trim();
+    		Player player = m_botAction.getFuzzyPlayer(playerName);
+    		if (player == null) {
+    			m_botAction.sendPrivateMessage(sender, "Player not found.");
+    			return;
+    		}
+    		playerName = player.getPlayerName();
+    		
+    		Dueler dueler = duelers.get(playerName);
+    		if (dueler == null) {
+    			
+    			m_botAction.sendPrivateMessage(sender, playerName + " is not dueling.");
+    			
+    		} else if (dueler.challenge.area != null) {
+    			
+    			int posX = dueler.challenge.area.warp1x;
+    			int posY = dueler.challenge.area.warp1y;
+    			if (dueler.challenge.area.warp2x < posX)
+    				posX = dueler.challenge.area.warp2x;
+    			
+    			int diff = Math.abs((dueler.challenge.area.warp1x-dueler.challenge.area.warp2x)/2);
+    			
+    			m_botAction.specWithoutLock(playerName);
+    			m_botAction.warpTo(playerName, posX+diff, posY);
+ 
+    			if (dueler.challenge.accepter.kills == dueler.challenge.challenger.kills) {
+    				m_botAction.sendPrivateMessage(sender, "Current stat: " + dueler.challenge.accepter.kills + "-" + dueler.challenge.challenger.kills);
+    			} else if (dueler.challenge.accepter.kills < dueler.challenge.challenger.kills) {
+    				m_botAction.sendPrivateMessage(sender, "Current stat: " + dueler.challenge.challenger.kills + "-" + dueler.challenge.accepter.kills + ", " + dueler.challenge.challenger.kills + " leading.");
+    			} else {
+    				m_botAction.sendPrivateMessage(sender, "Current stat: " + dueler.challenge.accepter.kills + "-" + dueler.challenge.challenger.kills + ", " + dueler.challenge.accepter.kills + " leading.");
+    			}
+
+    		}
+    	}
+    	
     }
     
     public void removePendingChallenge(String name, boolean tellPlayer)
@@ -820,8 +863,13 @@ public class PubChallengeModule extends AbstractModule {
 	@Override
 	public void handleCommand(String sender, String command) {
 
-        if(command.startsWith("!challenge ")){
-            String pieces[] = command.substring(11).split(":");
+        if(command.startsWith("!challenge ") || command.startsWith("!duel ")){
+            String pieces[];
+            if (command.startsWith("!challenge "))
+            	pieces = command.substring(11).split(":");
+            else
+            	pieces = command.substring(7).split(":");
+            
             String opponent = "";
 
             Player p = m_botAction.getFuzzyPlayer(pieces[0]);
@@ -865,7 +913,9 @@ public class PubChallengeModule extends AbstractModule {
         if(command.startsWith("!accept "))
             if(command.length() > 8)
                 acceptChallenge(sender, command.substring(8));
-        if(command.equalsIgnoreCase("!removechallenge"))
+        if(command.startsWith("!watchduel") || command.startsWith("!wd"))
+            watchDuel(sender, command);
+        if(command.startsWith("!removechallenge") || command.equalsIgnoreCase("!rm"))
             removePendingChallenge(sender, true);
         if(command.equalsIgnoreCase("!lagout"))
             returnFromLagout(sender);
@@ -891,13 +941,15 @@ public class PubChallengeModule extends AbstractModule {
 	public String[] getHelpMessage() {
 		if (context.getMoneySystem().isEnabled())
 			return new String[] {
-				pubsystem.getHelpLine("!challenge <name>:<ship>:<$>  -- Challenge a player to " + deaths + " in a specific ship (1-8) for $X."),
-				pubsystem.getHelpLine("!removechallenge              -- Cancel a challenge sent to someone."),
+				pubsystem.getHelpLine("!challenge <name>:<ship>:<$>  -- Challenge a player to " + deaths + " in a specific ship (1-8) for $X. (!duel)"),
+				pubsystem.getHelpLine("!watchduel <name>             -- Watch the duel of this player. (!wd)"),
+				pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent."),
 	        };
 		else
 			return new String[] {
 				pubsystem.getHelpLine("!challenge <name>:<ship>      -- Challenge a player to " + deaths + " in a specific ship (1-8)."),
-				pubsystem.getHelpLine("!removechallenge              -- Cancel all your challenges sent."),
+				pubsystem.getHelpLine("!watchduel <name>             -- Watch the duel of this player. (!wd)"),
+				pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent. (!rm)"),
 	        };
 	}
 

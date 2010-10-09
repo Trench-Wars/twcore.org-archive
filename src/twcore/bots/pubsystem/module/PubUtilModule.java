@@ -217,20 +217,21 @@ public class PubUtilModule extends AbstractModule {
      */
     private void doPrivFreqsCmd(String sender)
     {
-        if(!privFreqEnabled)
+    	privFreqEnabled = !privFreqEnabled;
+    	
+        if(privFreqEnabled)
         {
+        	context.getPlayerManager().fixFreqs();
         	if (!context.hasJustStarted())
         		m_botAction.sendArenaMessage("[SETTING] Private Frequencies enabled.", 2);
             m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully enabled.");
         }
         else
         {
-            context.getPlayerManager().fixFreqs();
             if (!context.hasJustStarted())
             	m_botAction.sendArenaMessage("[SETTING] Private Frequencies disabled.", 2);
             m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully disabled.");
         }
-        privFreqEnabled = !privFreqEnabled;
     }
 
 
