@@ -111,6 +111,10 @@ public class PubStore {
 	    					int max = Integer.parseInt(option.substring(4));
 	    					r.setMaxArenaPerMinute(max);
 	    					hasRestriction = true;
+	    				} else if(option.startsWith("!dsm")) {
+	    					int max = Integer.parseInt(option.substring(4));
+	    					r.setMaxPerSecond(max);
+	    					hasRestriction = true;
 	    				} else if(option.startsWith("!arena")) {
 	    					item.setArenaItem(true);
 	    				} else if(option.startsWith("!fromspec")) {

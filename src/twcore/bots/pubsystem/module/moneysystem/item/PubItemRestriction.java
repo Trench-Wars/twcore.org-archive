@@ -5,15 +5,15 @@ import java.util.List;
 
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.bots.pubsystem.util.PubException;
+import twcore.core.util.Tools;
 
 public class PubItemRestriction {
 
-	private final static int MINUTE_MILLIS = 60*1000;
-	
 	private List<Integer> ships;
 	private int maxPerLife = -1;
 	private int maxConsecutive = -1;
 	private int maxArenaPerMinute = -1;
+	private int maxPerSecond = -1;
 	private boolean buyableFromSpec = false;
 	private List<String> itemNotSameTime;
 	
@@ -42,6 +42,10 @@ public class PubItemRestriction {
 		this.maxArenaPerMinute = max;
 	}
 	
+	public void setMaxPerSecond(int max) {
+		this.maxPerSecond = max;
+	}
+	
 	public void buyableFromSpec(boolean b) {
 		this.buyableFromSpec = b;
 	}
@@ -52,6 +56,10 @@ public class PubItemRestriction {
 	
 	public int getMaxArenaPerMinute() {
 		return maxArenaPerMinute;
+	}
+	
+	public int getMaxPerSecond() {
+		return maxPerSecond;
 	}
 	
 	public int getMaxPerLife() {
@@ -83,8 +91,21 @@ public class PubItemRestriction {
 		
 		if (maxArenaPerMinute!=-1) {
 			long diff = System.currentTimeMillis()-item.getLastTimeUsed();
-			if (diff < maxArenaPerMinute*MINUTE_MILLIS) {
+			if (diff < maxArenaPerMinute*Tools.TimeInMillis.MINUTE) {
 				throw new PubException("This item has been bought in the past " + maxArenaPerMinute + " minutes, please wait..");
+			}
+		}
+		
+		if (maxPerSecond!=-1) {
+			List<PubItemUsed> items = player.getItemsBought();
+			for(int i=0; i<items.size(); i++) {
+				PubItemUsed itemUsed = items.get(i);
+				if (!itemUsed.getItem().getName().equals(item.getName()))
+					continue;
+				long diff = System.currentTimeMillis()-itemUsed.getTime();
+				if (diff < maxPerSecond*Tools.TimeInMillis.SECOND) {
+					throw new PubException("You have bought this item in the past " + maxPerSecond + " seconds, please wait..");
+				}
 			}
 		}
 		
