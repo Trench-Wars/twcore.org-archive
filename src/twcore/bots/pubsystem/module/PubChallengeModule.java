@@ -472,8 +472,8 @@ public class PubChallengeModule extends AbstractModule {
     			
     			int diff = Math.abs((dueler.challenge.area.warp1x-dueler.challenge.area.warp2x)/2);
     			
-    			m_botAction.specWithoutLock(playerName);
-    			m_botAction.warpTo(playerName, posX+diff, posY);
+    			m_botAction.specWithoutLock(sender);
+    			m_botAction.warpTo(sender, posX+diff, posY);
  
     			if (dueler.challenge.accepter.kills == dueler.challenge.challenger.kills) {
     				m_botAction.sendPrivateMessage(sender, "Current stat: " + dueler.challenge.accepter.kills + "-" + dueler.challenge.challenger.kills);
