@@ -547,7 +547,7 @@ public class PubChallengeModule extends AbstractModule {
         else if(challenge.winByLagout)
         {
         	if (announceWinner && challenge.amount >= announceWinnerAt)
-        		m_botAction.sendArenaMessage("[PUB DUEL] " + winner.name + " has defeated "+loser.name+" by lagout in duel" + moneyMessage + ".");
+        		m_botAction.sendArenaMessage("[DUEL] " + winner.name + " has defeated "+loser.name+" by lagout in duel" + moneyMessage + ".");
         	else {
         		m_botAction.sendPrivateMessage(winner.name,"You have defeated "+loser.name+" by lagout in duel" + moneyMessage + ".");
         		m_botAction.sendPrivateMessage(loser.name,"You have lost to " + winner.name+" by lagout in duel" + moneyMessage + ".");
@@ -558,10 +558,8 @@ public class PubChallengeModule extends AbstractModule {
         
         else
         {
-        	if (announceWinner && money >= announceZoneWinnerAt) {
-        		m_botAction.sendZoneMessage("[PUB DUEL] " + winner.name+" has defeated "+loser.name+" "+winnerKills+"-"+loserKills+" in duel" + moneyMessage + ".", Tools.Sound.CROWD_OOO);
-        	} else if (announceWinner && money >= announceWinnerAt)
-        		m_botAction.sendArenaMessage("[PUB DUEL] " + winner.name+" has defeated "+loser.name+" "+loserKills+"-"+winnerKills+" in duel" + moneyMessage + ".");
+        	if (announceWinner && money >= announceWinnerAt)
+        		m_botAction.sendArenaMessage("[DUEL] " + winner.name+" has defeated "+loser.name+" "+loserKills+"-"+winnerKills+" in duel" + moneyMessage + ".");
         	else {
         		m_botAction.sendPrivateMessage(winner.name,"You have defeated "+loser.name+" "+winnerKills+"-"+loserKills+" in duel" + moneyMessage + ".");
         		m_botAction.sendPrivateMessage(loser.name,"You have lost to " + winner.name+" "+loserKills+"-"+winnerKills+" in duel" + moneyMessage + ".");
