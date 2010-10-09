@@ -272,9 +272,21 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendPrivateMessage(challenger, "This player is already dueling.");
             return;
         }
+        
+        PubPlayer pubChallenger = context.getPlayerManager().getPlayer(challenger);
+        PubPlayer pubChallenged = context.getPlayerManager().getPlayer(challenged);
+        
+        if (pubChallenger == null) {
+        	m_botAction.sendPrivateMessage(challenger, "Please wait, you are not in the system yet.");
+            return;
+        }
+        
+        if (pubChallenged == null) {
+        	m_botAction.sendPrivateMessage(challenger, "Please wait, " + challenged + " is not in the system yet.");
+            return;
+        }
 
-        if(isChallengeAlreadySent(challenger, challenged))
-        {
+        if(isChallengeAlreadySent(challenger, challenged)) {
             m_botAction.sendPrivateMessage(challenger, "You have already a pending challenge with "+challenged+".");
             m_botAction.sendPrivateMessage(challenger, "Please remove it using !removechallenge before challenging more.");
             return;
@@ -306,10 +318,14 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendPrivateMessage(challenger, "I pity the fool who challenges himself for a duel.");
             return;
         }
-        
+                
         if (context.getMoneySystem().isEnabled()) {
-	        if(context.getPlayerManager().getPlayer(challenger).getMoney() < amount){
+	        if(pubChallenger.getMoney() < amount){
 	            m_botAction.sendPrivateMessage(challenger, "You don't have enough money.");
+	            return;
+	        }
+	        if(pubChallenged.getMoney() < amount){
+	            m_botAction.sendPrivateMessage(challenger, challenged + " does not have enough money.");
 	            return;
 	        }
         }
@@ -369,10 +385,12 @@ public class PubChallengeModule extends AbstractModule {
         int amount = challenge.amount;
         int ship = challenge.ship;
                 
-        if(context.getMoneySystem().isEnabled() && context.getPlayerManager().getPlayer(accepter).getMoney() < amount){
-            m_botAction.sendPrivateMessage(accepter, "You don't have enough money to accept the challenge. Challenge removed.");
-            m_botAction.sendPrivateMessage(challenger, accepter+" doesn't have enough money to accept the challenge. Challenge removed.");
-            return;
+        if(context.getMoneySystem().isEnabled()) {
+        	if (context.getPlayerManager().getPlayer(accepter).getMoney() < amount) {
+	            m_botAction.sendPrivateMessage(accepter, "You don't have enough money to accept the challenge. Challenge removed.");
+	            m_botAction.sendPrivateMessage(challenger, accepter+" does not have enough money to accept the challenge. Challenge removed.");
+	            return;
+        	}
         }
         
         DuelArea area = getEmptyDuelArea();
@@ -474,9 +492,9 @@ public class PubChallengeModule extends AbstractModule {
     			if (dueler.challenge.accepter.kills == dueler.challenge.challenger.kills) {
     				m_botAction.sendPrivateMessage(sender, "Current stat: " + dueler.challenge.accepter.kills + "-" + dueler.challenge.challenger.kills);
     			} else if (dueler.challenge.accepter.kills < dueler.challenge.challenger.kills) {
-    				m_botAction.sendPrivateMessage(sender, "Current stat: " + dueler.challenge.challenger.kills + "-" + dueler.challenge.accepter.kills + ", " + dueler.challenge.challenger + " leading.");
+    				m_botAction.sendPrivateMessage(sender, "Current stat: " + dueler.challenge.challenger.kills + "-" + dueler.challenge.accepter.kills + ", " + dueler.challenge.challenger.name + " leading.");
     			} else {
-    				m_botAction.sendPrivateMessage(sender, "Current stat: " + dueler.challenge.accepter.kills + "-" + dueler.challenge.challenger.kills + ", " + dueler.challenge.accepter + " leading.");
+    				m_botAction.sendPrivateMessage(sender, "Current stat: " + dueler.challenge.accepter.kills + "-" + dueler.challenge.challenger.kills + ", " + dueler.challenge.accepter.name + " leading.");
     			}
 
     		}
@@ -628,6 +646,8 @@ public class PubChallengeModule extends AbstractModule {
     	}
     	
     	public void run() {
+    		if (challenge == null)
+    			return;
 			if (!challenge.isStarted()) {
 				challenges.remove(getKey(challenge));
 				m_botAction.sendPrivateMessage(challenge.challengerName, "Challenge against " + challenge.challengedName + " removed. (timeout)");
