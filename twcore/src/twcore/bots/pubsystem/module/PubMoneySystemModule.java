@@ -206,6 +206,11 @@ public class PubMoneySystemModule extends AbstractModule {
     
     public void doCmdDonate(String sender, String command) {
     	
+    	if (command.length()<8) {
+    		m_botAction.sendPrivateMessage(sender, "Try !donate <name>.");
+    		return;
+    	}
+    	
     	command = command.substring(8).trim();
     	if (command.contains(":")) {
     		String[] split = command.split("\\s*:\\s*");
@@ -216,6 +221,11 @@ public class PubMoneySystemModule extends AbstractModule {
     			Integer.valueOf(money);
     		} catch (NumberFormatException e) {
     			m_botAction.sendPrivateMessage(sender, "You must specify a number. !donate playerA:1000");
+    			return;
+    		}
+    		
+    		if (Integer.valueOf(money) < 0) {
+    			m_botAction.sendPrivateMessage(sender, "What are you trying to do here?");
     			return;
     		}
     		

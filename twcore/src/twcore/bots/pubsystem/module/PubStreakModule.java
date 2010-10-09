@@ -168,17 +168,14 @@ public class PubStreakModule extends AbstractModule {
     	
     	// Zone?
     	if (streak == winsStreakZoneAt) {
-    		
-    		if ((streak-winsStreakZoneAt)%streakJump!=0) {
-    			return;
-    		}
-    		
-    		/*
+
+    		/* too abused for now
     		if (System.currentTimeMillis()-lastZone > ZONE_TIMEOUT) {
-    			m_botAction.sendZoneMessage("[PUB: Streak!] " + player.getPlayerName() + " with " + streak + " kills in a row. Stop him!");
+    			m_botAction.sendZoneMessage("[PUB] " + player.getPlayerName() + " with " + streak + " kills in a row. Stop him!");
     			lastZone = System.currentTimeMillis();
     		}
     		*/
+
     	}
     	// Arena?
     	else if (streak >= winsStreakArenaAt || bestWinStreak==streak) {
