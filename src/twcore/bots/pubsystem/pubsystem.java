@@ -423,7 +423,7 @@ public class pubsystem extends SubspaceBot
 	     	};
 	     	
 	    	lines.addAll(Arrays.asList(others));
- 			if( m_botAction.getOperatorList().isHighmod( sender ) )
+ 			if( m_botAction.getOperatorList().isModerator( sender ) )
  				lines.add(getHelpLine("!helpmod          -- Show the !help menu for Mod+."));
 	     	
  			lines.add(" ");
@@ -445,7 +445,7 @@ public class pubsystem extends SubspaceBot
             	lines.addAll(m);
             }
             
-            if( m_botAction.getOperatorList().isHighmod( sender ) )
+            if( m_botAction.getOperatorList().isModerator( sender ) )
                 m_botAction.smartPrivateMessageSpam(sender, (String[])lines.toArray(new String[lines.size()]));
 
         }
