@@ -327,15 +327,7 @@ public class PubChallengeModule extends AbstractModule {
         final Challenge challenge = new Challenge(amount,ship,challenger,challenged);
         addChallenge(challenge);
         
-        TimerTask removeTask = new  TimerTask() {
-			public void run() {
-				if (!challenge.isStarted()) {
-					challenges.remove(getKey(challenge));
-					m_botAction.sendPrivateMessage(challenge.challengerName, "Challenge against " + challenge.challengedName + " removed. (timeout)");
-				}
-			}
-		};
-		m_botAction.scheduleTask(removeTask, 60*Tools.TimeInMillis.SECOND);
+		m_botAction.scheduleTask(new RemoveChallenge(challenge), 60*Tools.TimeInMillis.SECOND);
         
     }
     
@@ -446,7 +438,7 @@ public class PubChallengeModule extends AbstractModule {
         
     }
     
-    public void watchDuel(String sender, String command) {
+    public void watchDuel(final String sender, String command) {
     	
     	if (command.contains(" ")) {
     		
@@ -465,22 +457,26 @@ public class PubChallengeModule extends AbstractModule {
     			
     		} else if (dueler.challenge.area != null) {
     			
-    			int posX = dueler.challenge.area.warp1x;
-    			int posY = dueler.challenge.area.warp1y;
-    			if (dueler.challenge.area.warp2x < posX)
-    				posX = dueler.challenge.area.warp2x;
-    			
-    			int diff = Math.abs((dueler.challenge.area.warp1x-dueler.challenge.area.warp2x)/2);
+    			final int posX = Math.min(dueler.challenge.area.warp1x, dueler.challenge.area.warp2x);
+    			final int posY = dueler.challenge.area.warp1y;
+
+    			final int diff = Math.abs((dueler.challenge.area.warp1x-dueler.challenge.area.warp2x)/2);
     			
     			m_botAction.specWithoutLock(sender);
-    			m_botAction.warpTo(sender, posX+diff, posY);
+    			TimerTask timer = new TimerTask() {
+					public void run() {
+						m_botAction.warpTo(sender, posX+diff, posY);
+					}
+				};
+				m_botAction.scheduleTask(timer, 1000);
+    			
  
     			if (dueler.challenge.accepter.kills == dueler.challenge.challenger.kills) {
     				m_botAction.sendPrivateMessage(sender, "Current stat: " + dueler.challenge.accepter.kills + "-" + dueler.challenge.challenger.kills);
     			} else if (dueler.challenge.accepter.kills < dueler.challenge.challenger.kills) {
-    				m_botAction.sendPrivateMessage(sender, "Current stat: " + dueler.challenge.challenger.kills + "-" + dueler.challenge.accepter.kills + ", " + dueler.challenge.challenger.kills + " leading.");
+    				m_botAction.sendPrivateMessage(sender, "Current stat: " + dueler.challenge.challenger.kills + "-" + dueler.challenge.accepter.kills + ", " + dueler.challenge.challenger + " leading.");
     			} else {
-    				m_botAction.sendPrivateMessage(sender, "Current stat: " + dueler.challenge.accepter.kills + "-" + dueler.challenge.challenger.kills + ", " + dueler.challenge.accepter.kills + " leading.");
+    				m_botAction.sendPrivateMessage(sender, "Current stat: " + dueler.challenge.accepter.kills + "-" + dueler.challenge.challenger.kills + ", " + dueler.challenge.accepter + " leading.");
     			}
 
     		}
@@ -625,6 +621,22 @@ public class PubChallengeModule extends AbstractModule {
     	        
     }
     
+    private class RemoveChallenge extends TimerTask {
+    	
+    	private Challenge challenge;
+    	
+    	public RemoveChallenge(Challenge c) {
+    		this.challenge = c;
+    	}
+    	
+    	public void run() {
+			if (!challenge.isStarted()) {
+				challenges.remove(getKey(challenge));
+				m_botAction.sendPrivateMessage(challenge.challengerName, "Challenge against " + challenge.challengedName + " removed. (timeout)");
+			}
+    	}
+    }
+    
     private class SpawnBack extends TimerTask{
     	
         String name;
@@ -637,6 +649,8 @@ public class PubChallengeModule extends AbstractModule {
         public void run() {
         	
         	Dueler dueler = duelers.get(name);
+        	if (dueler.challenge == null)
+        		return;
         	Challenge challenge = dueler.challenge;
         	
         	if (dueler != null) {
@@ -667,9 +681,8 @@ public class PubChallengeModule extends AbstractModule {
         public void run() {
         	
         	Dueler dueler = duelers.get(name);
-        	Challenge challenge = dueler.challenge;
-        	
         	if (dueler != null) {
+        		Challenge challenge = dueler.challenge;
 	            m_botAction.specificPrize(name, Tools.Prize.ENERGY_DEPLETED);
         	}
         }     

@@ -274,11 +274,6 @@ public class pubsystem extends SubspaceBot
                 m_botAction.sendPrivateMessage(playerName, message );
                 m_botAction.sendPrivateMessage(playerName, "Type !help for a list of commands.");
 
-                if (player.getShipType() == Tools.Ship.SPECTATOR) {
-                	// Spectate the base
-                	m_botAction.warpTo(playerName, 512, 280);
-                }
-                
                 context.handleEvent(event);
             }
 
@@ -601,17 +596,7 @@ public class pubsystem extends SubspaceBot
         context.handleEvent(event);
     }
 
-    public void handleEvent(FrequencyShipChange event) {
-    	
-        int playerID = event.getPlayerID();
-        Player player = m_botAction.getPlayer(playerID);
-        String playerName = m_botAction.getPlayerName(playerID);
-    	
-        if (player.getShipType() == Tools.Ship.SPECTATOR) {
-        	// Spectate the base
-        	m_botAction.warpTo(playerName, 512, 280);
-        }
-        
+    public void handleEvent(FrequencyShipChange event) {        
     	context.handleEvent(event);
     }
 
