@@ -180,13 +180,17 @@ public class PubStreakModule extends AbstractModule {
     	// Arena?
     	else if (streak >= winsStreakArenaAt || bestWinStreak==streak) {
     		
-    		// No *arena for a streak in the last interval or best streak?
-    		// We may want to remove "if best streak", someone could easily spam the arena with tons of message
+    		/*
     		if (System.currentTimeMillis()-lastArena > ARENA_TIMEOUT || bestWinStreak==streak) {
     			String message = "[STREAK] " + player.getPlayerName() + " with " + streak + " kills! " + moneyMessage;
     			if (bestWinStreak==streak)
     				message += " Best Streak of the Session!";
     			m_botAction.sendArenaMessage(message);
+    			lastArena = System.currentTimeMillis();
+    		}
+    		*/
+    		if (bestWinStreak==streak) {
+    			m_botAction.sendArenaMessage("[STREAK] " + player.getPlayerName() + " with " + streak + " kills! Best Streak of the Session!");
     			lastArena = System.currentTimeMillis();
     		}
     	}

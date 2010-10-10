@@ -224,8 +224,18 @@ public class PubMoneySystemModule extends AbstractModule {
     			return;
     		}
     		
+    		if (context.getPubChallenge().isDueling(sender)) {
+    			m_botAction.sendPrivateMessage(sender, "You cannot donate while dueling.");
+    			return;
+    		}
+    		
     		if (Integer.valueOf(money) < 0) {
     			m_botAction.sendPrivateMessage(sender, "What are you trying to do here?");
+    			return;
+    		}
+    		
+    		if (Integer.valueOf(money) < 250) {
+    			m_botAction.sendPrivateMessage(sender, "You cannot donate for less than $250.");
     			return;
     		}
     		
