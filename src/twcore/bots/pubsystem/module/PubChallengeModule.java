@@ -667,8 +667,9 @@ public class PubChallengeModule extends AbstractModule {
         public void run() {
         	
         	Dueler dueler = duelers.get(name);
-        	if (dueler.challenge == null)
+        	if (dueler == null || dueler.challenge == null)
         		return;
+        	
         	Challenge challenge = dueler.challenge;
         	
         	if (dueler != null) {
