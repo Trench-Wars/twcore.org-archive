@@ -260,6 +260,9 @@ public class GameFlagTimeModule extends AbstractModule {
 			Player killer = m_botAction.getPlayer(killerID);
 			Player killed = m_botAction.getPlayer(killedID);
 			
+			if (killer == null || killed == null)
+				return;
+			
 			if (killer.getPlayerName().equals(m_botAction.getBotName()))
 				return;
 			

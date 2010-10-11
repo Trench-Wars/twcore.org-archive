@@ -67,6 +67,9 @@ public class PubStreakModule extends AbstractModule {
     	Player killer = m_botAction.getPlayer(event.getKillerID());
         Player killed = m_botAction.getPlayer(event.getKilleeID());
         
+		if (killer == null || killed == null)
+			return;
+        
         // Dueling? do nothing
         if (context.getPubChallenge().isDueling(killer.getPlayerName())
         		|| context.getPubChallenge().isDueling(killed.getPlayerName())) {

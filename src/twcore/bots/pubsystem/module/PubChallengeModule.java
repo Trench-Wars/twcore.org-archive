@@ -204,8 +204,10 @@ public class PubChallengeModule extends AbstractModule {
         Challenge challenge = w.challenge;
         if (challenge == null 
         		|| !challenge.getOppositeDueler(w).name.equals(l.name)
-        		|| !challenge.isStarted())
+        		|| !challenge.isStarted()) {
+        	l.lastDeath = System.currentTimeMillis();
         	return;
+        }
     
         if (System.currentTimeMillis()-l.lastDeath < 7 * Tools.TimeInMillis.SECOND
         		&& System.currentTimeMillis()-challenge.startAt > 7 * Tools.TimeInMillis.SECOND) {
@@ -391,6 +393,10 @@ public class PubChallengeModule extends AbstractModule {
 	            m_botAction.sendPrivateMessage(challenger, accepter+" does not have enough money to accept the challenge. Challenge removed.");
 	            return;
         	}
+        	if (context.getPlayerManager().getPlayer(challenger).getMoney() < amount) {
+	            m_botAction.sendPrivateMessage(accepter, challenger + " does not have the money.");
+	            return;
+        	}
         }
         
         DuelArea area = getEmptyDuelArea();
@@ -444,7 +450,7 @@ public class PubChallengeModule extends AbstractModule {
         	if (amount >= announceZoneWinnerAt)
         		m_botAction.sendZoneMessage("[PUB] A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".", Tools.Sound.BEEP1);
         	else
-        		m_botAction.sendArenaMessage("A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ". To watch !watchduel " + challenger, Tools.Sound.BEEP1);
+        		m_botAction.sendArenaMessage("A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".", Tools.Sound.BEEP1);
         		
         }
         
@@ -577,7 +583,7 @@ public class PubChallengeModule extends AbstractModule {
         else
         {
         	if (announceWinner && money >= announceWinnerAt)
-        		m_botAction.sendArenaMessage("[DUEL] " + winner.name+" has defeated "+loser.name+" "+loserKills+"-"+winnerKills+" in duel" + moneyMessage + ".");
+        		m_botAction.sendArenaMessage("[DUEL] " + winner.name+" has defeated "+loser.name+" "+winnerKills+"-"+loserKills+" in duel" + moneyMessage + ".");
         	else {
         		m_botAction.sendPrivateMessage(winner.name,"You have defeated "+loser.name+" "+winnerKills+"-"+loserKills+" in duel" + moneyMessage + ".");
         		m_botAction.sendPrivateMessage(loser.name,"You have lost to " + winner.name+" "+loserKills+"-"+winnerKills+" in duel" + moneyMessage + ".");
@@ -596,7 +602,8 @@ public class PubChallengeModule extends AbstractModule {
         }
         
         duelers.remove(winner.name);
-        duelers.get(loser.name);
+        if (challenge.winByLagout)
+        	duelers.remove(loser.name);
         challenges.remove(getKey(challenge));
         laggers.remove(winner.name);
         laggers.remove(loser.name);
@@ -974,13 +981,13 @@ public class PubChallengeModule extends AbstractModule {
 		if (context.getMoneySystem().isEnabled())
 			return new String[] {
 				pubsystem.getHelpLine("!challenge <name>:<ship>:<$>  -- Challenge a player to " + deaths + " in a specific ship (1-8) for $X. (!duel)"),
-				pubsystem.getHelpLine("!watchduel <name>             -- Watch the duel of this player. (!wd)"),
+				//pubsystem.getHelpLine("!watchduel <name>             -- Watch the duel of this player. (!wd)"),
 				pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent."),
 	        };
 		else
 			return new String[] {
 				pubsystem.getHelpLine("!challenge <name>:<ship>      -- Challenge a player to " + deaths + " in a specific ship (1-8)."),
-				pubsystem.getHelpLine("!watchduel <name>             -- Watch the duel of this player. (!wd)"),
+				//pubsystem.getHelpLine("!watchduel <name>             -- Watch the duel of this player. (!wd)"),
 				pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent. (!rm)"),
 	        };
 	}
