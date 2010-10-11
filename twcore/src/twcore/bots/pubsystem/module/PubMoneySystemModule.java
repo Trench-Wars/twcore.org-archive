@@ -239,6 +239,11 @@ public class PubMoneySystemModule extends AbstractModule {
     			return;
     		}
     		
+    		if (context.getPubChallenge().hasChallenged(sender)) {
+    			m_botAction.sendPrivateMessage(sender, "You cannot donate while challenging a player for a duel.");
+    			return;
+    		}
+    		
     		Player p = m_botAction.getFuzzyPlayer(name);
     		if (p == null) {
     			m_botAction.sendPrivateMessage(sender, "Player not found.");
