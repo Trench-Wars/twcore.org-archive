@@ -758,6 +758,20 @@ public class PubChallengeModule extends AbstractModule {
         	
             Player p_chall = m_botAction.getPlayer(challenger);
             Player p_acc = m_botAction.getPlayer(accepter);
+            
+            if (p_chall == null || p_acc == null) {
+                duelers.remove(challenge.challengerName);
+                duelers.remove(challenge.challengedName);
+                challenges.remove(getKey(challenge));
+                laggers.remove(challenge.challengerName);
+                laggers.remove(challenge.challengedName);
+                if (p_chall == null) 
+                	m_botAction.sendPrivateMessage(accepter, "The duel cannot start, " + challenger + " not found.");
+                else
+                	m_botAction.sendPrivateMessage(challenger, "The duel cannot start, " + accepter + " not found.");
+            	return;
+            }
+            
             int ichalship = p_chall.getShipType();
             int iaccship = p_acc.getShipType();
             
@@ -795,6 +809,16 @@ public class PubChallengeModule extends AbstractModule {
     		m_botAction.warpTo(name, 507, 730);
     	else
     		m_botAction.warpTo(name, 517, 730);
+    }
+    
+    public boolean hasChallenged(String name) {
+        Iterator<Challenge> it = challenges.values().iterator();
+        while(it.hasNext()) {
+        	Challenge c = it.next();
+        	if (!c.isStarted() && c.challengerName.equals(name))
+        		return true;
+        }
+        return false;
     }
     
     public boolean isDueling(String name) {
