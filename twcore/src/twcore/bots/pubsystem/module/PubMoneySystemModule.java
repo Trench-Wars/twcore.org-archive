@@ -451,7 +451,7 @@ public class PubMoneySystemModule extends AbstractModule {
         			m_botAction.sendPrivateMessage(sender, "  - Maximum of " + r.getMaxPerLife()+" per life");
         		}
         		if (r.getMaxPerSecond()!=-1) {
-        			m_botAction.sendPrivateMessage(sender, "  - Maximum of 1 every "+r.getMaxArenaPerMinute()+" seconds (player only)");
+        			m_botAction.sendPrivateMessage(sender, "  - Maximum of 1 every "+r.getMaxPerSecond()+" seconds (player only)");
         		}
         		if (r.getMaxArenaPerMinute()!=-1) {
         			m_botAction.sendPrivateMessage(sender, "  - Maximum of 1 every "+r.getMaxArenaPerMinute()+" minutes for the whole arena");
