@@ -208,12 +208,25 @@ public class PubPlayerManagerModule extends AbstractModule {
 	
 	public void handleEvent(PlayerDeath event) {
 		
-        int playerID = event.getKilleeID();
-        Player p = m_botAction.getPlayer(playerID);
+        Player killer = m_botAction.getPlayer(event.getKillerID());
+        Player killed = m_botAction.getPlayer(event.getKilleeID());
     	
-		PubPlayer pubPlayer = players.get(p.getPlayerName().toLowerCase());
-		if (pubPlayer!=null) {
-			pubPlayer.addDeath();
+		PubPlayer pubPlayerKiller = getPlayer(killer.getPlayerName());
+		PubPlayer pubPlayerKilled = getPlayer(killed.getPlayerName());
+		if (pubPlayerKilled != null) {
+			long diff = System.currentTimeMillis() - pubPlayerKilled.getLastDeath();
+			pubPlayerKilled.addDeath();
+			// Spawn check
+			if (diff < 6.5 * Tools.TimeInMillis.SECOND) {
+				if (pubPlayerKiller != null) {
+					if (pubPlayerKiller.getMoney() >= 200) {
+						pubPlayerKiller.removeMoney(200);
+						m_botAction.sendPrivateMessage(killer.getPlayerName(), "Spawning is uncool, $200 subtracted from your money.");
+					} else {
+						m_botAction.sendPrivateMessage(killer.getPlayerName(), "Spawning is uncool.");
+					}
+				}
+			}
 		}
 		
 	}
