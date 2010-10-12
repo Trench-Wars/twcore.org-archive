@@ -160,6 +160,7 @@ public class PubHuntModule extends AbstractModule {
     	for(HuntPlayer p: winners) {
     		if (context.getMoneySystem().isEnabled())
     			context.getPlayerManager().addMoney(p.name, money);
+    		updateWinnerDB(p.name);
     		playerOut(p);
     	}
     	
@@ -187,9 +188,23 @@ public class PubHuntModule extends AbstractModule {
 		if (context.getMoneySystem().isEnabled())
 			context.getPlayerManager().addMoney(huntPlayer.name, money);
 		
+		updateWinnerDB(huntPlayer.name);
+		
 		playerOut(huntPlayer);
 		
 		stopGame();
+    }
+    
+    private void updateWinnerDB(String playerName) {
+    	
+		String database = m_botAction.getBotSettings().getString("database");
+		
+		// The query will be closed by PlayerManagerModule
+		if (database!=null)
+		m_botAction.SQLBackgroundQuery(database, "", "UPDATE tblPlayerStats "
+			+ "SET fnHuntWinner = fnHuntWinner+1 "
+			+ "WHERE fcName='" + playerName + "'");
+    	
     }
     
     public void playerOut(HuntPlayer player) {
@@ -505,7 +520,8 @@ public class PubHuntModule extends AbstractModule {
         }
         
         if (players.size() > 1) {
-	        m_botAction.sendArenaMessage("[HUNT] A game of hunt is starting in 10 seconds (!huntnp if not playing).");
+        	m_botAction.sendArenaMessage("[HUNT] A game of hunt is starting in 10 seconds (!huntnp if not playing).");
+        	m_botAction.sendArenaMessage("[HUNT] Winners will earn $" + moneyWinner + ".");
 	        TimerTask timer = new TimerTask() {
 				public void run() {
 					startGame();

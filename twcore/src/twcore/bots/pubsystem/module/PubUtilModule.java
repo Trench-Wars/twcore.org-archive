@@ -50,9 +50,12 @@ public class PubUtilModule extends AbstractModule {
 	// PRIV FREQ
 	private boolean privFreqEnabled = true;
 	
+	private long uptime = 0;
+	
 	
 	public PubUtilModule(BotAction botAction, PubContext context) {
 		super(botAction, context, "Utility");
+		this.uptime = System.currentTimeMillis();
 		reloadConfig();
 	}
 	
@@ -233,6 +236,15 @@ public class PubUtilModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully disabled.");
         }
     }
+    
+    
+    private void doUptimeCmd(String sender)
+    {
+    	long diff = System.currentTimeMillis()-uptime;
+    	int minute = (int)(diff/(1000*60));
+    	
+    	m_botAction.sendSmartPrivateMessage(sender, "Uptime: " + minute + " minutes");
+    }
 
 
 
@@ -337,6 +349,8 @@ public class PubUtilModule extends AbstractModule {
             doGoCmd(sender, command.substring(4));
         else if(command.equals("!privfreqs"))
             doPrivFreqsCmd(sender);
+        else if(command.equals("!uptime"))
+            doUptimeCmd(sender);
         else if(command.startsWith("!reloadconfig")) {
         	m_botAction.sendPrivateMessage(sender, "Please wait..");
         	context.reloadConfig();
@@ -376,6 +390,7 @@ public class PubUtilModule extends AbstractModule {
             pubsystem.getHelpLine("                     2 = 1/2 of freq can be this ship, 5 = 1/5, ..."),
             pubsystem.getHelpLine("!go <arena>   -- Moves the bot to <arena>."),
             pubsystem.getHelpLine("!reloadconfig -- Reload the configuration (may not update everything)."),
+            pubsystem.getHelpLine("!uptime       -- Uptime of the bot in minutes."),
             pubsystem.getHelpLine("!die          -- Logs the bot off of the server."),
 		};
 	}

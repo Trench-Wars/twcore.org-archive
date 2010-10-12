@@ -430,6 +430,9 @@ public class PubChallengeModule extends AbstractModule {
         Player playerChallenger = m_botAction.getPlayer(challenger);
         Player playerAccepter = m_botAction.getPlayer(accepter);
         
+        duelerAccepter.oldFreq = playerAccepter.getFrequency();
+        duelerChallenger.oldFreq = playerChallenger.getFrequency();
+        
         if(playerChallenger.getShipType() == 0)
         {
             m_botAction.setShip(challenger, 1);
@@ -600,6 +603,10 @@ public class PubChallengeModule extends AbstractModule {
 	        if (context.getPlayerManager().getPlayer(loser.name) != null)
 	        	context.getPlayerManager().getPlayer(loser.name).removeMoney(money);
         }
+        
+        // Setting the frequency before
+        m_botAction.setFreq(winner.name, duelers.get(winner.name).oldFreq);
+        m_botAction.setFreq(loser.name, duelers.get(loser.name).oldFreq);
         
         duelers.remove(winner.name);
         if (challenge.winByLagout)
@@ -1124,7 +1131,9 @@ class Dueler {
     public int kills = 0;
     public int warps = 0;
     public int spawns = 0;
-
+    
+    public int oldFreq = 0;
+    
     public long lastDeath = 0; // To detect warp vs death
     public long backFromLagout = 0; // To detect warp vs lagout
     

@@ -209,7 +209,7 @@ public class PubStore {
         
         if (item != null) {
         	buyer.setMoney(buyer.getMoney() - item.getPrice());
-        	player.addItem(item);
+        	player.addItem(item, params);
         }
         
         if (buyer != player) {
