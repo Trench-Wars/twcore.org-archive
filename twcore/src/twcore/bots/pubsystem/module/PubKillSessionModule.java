@@ -48,7 +48,7 @@ public class PubKillSessionModule extends AbstractModule {
 		
 		if (!context.hasJustStarted()) {
 			if (context.getMoneySystem().isEnabled())
-				m_botAction.sendArenaMessage("[KILL-O-THON] A new session has started. Kill the most in " + length + " minutes and win $" + winnerMoney + ".", Tools.Sound.BEEP1);
+				m_botAction.sendArenaMessage("[KILL-O-THON] A new session has started. Kill the most in " + length + " minutes and win $" + winnerMoney + ". (score, type !killothon)", Tools.Sound.BEEP1);
 			else
 				m_botAction.sendArenaMessage("[KILL-O-THON] A new session has started. Kill the most in " + length + " minutes.", Tools.Sound.BEEP1);
 		}

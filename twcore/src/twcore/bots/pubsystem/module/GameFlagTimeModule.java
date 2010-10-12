@@ -511,17 +511,23 @@ public class GameFlagTimeModule extends AbstractModule {
         }
         
 
-        //  NOW, LET'S COMPUTE THE MVPs
+        //  NOW, LET'S COMPUTE THE ACHIEVEMENTS
         
-        // Prepare some list, get the % instead of a number
+        // Recompute some list
         for(String playerName: killsBounty.keySet()) {
         	killsBounty.put(playerName, (int)(killsBounty.get(playerName)/kills.get(playerName)));
         }
         for(String playerName: killsInBase.keySet()) {
         	killsInBase.put(playerName, (int)(killsInBase.get(playerName)/kills.get(playerName)));
         }
-        
-        /*
+        // Remove terriers not on the winning team for the variable 'attaches' (set weight to 0)
+        for(String playerName: attaches.keySet()) {
+        	Player p = m_botAction.getPlayer(playerName);
+        	if (p != null && p.getFrequency()!=winnerFreq) {
+        		attaches.put(playerName, 0);
+        	}
+        }
+ 
         LinkedHashMap<String,Integer> deaths = sort(this.deaths,false);
         LinkedHashMap<String,Integer> lessdeaths = sort(this.deaths,true);
         LinkedHashMap<String,Integer> kills = sort(this.kills,false);
@@ -531,8 +537,10 @@ public class GameFlagTimeModule extends AbstractModule {
         LinkedHashMap<String,Integer> tks = sort(this.tks,false);
         LinkedHashMap<String,Integer> attaches = sort(this.attaches,false);
  
-        // Achievements
-        
+        // Achievements composed of more than 1 variable
+        LinkedHashMap<String,Integer> bestTerrier = getBestOf(attaches, killsInBase);
+
+        // Achievements (get the #1 of each LinkedHashMap)
         String mostKill = getPosition(kills, 1);
         String mostKillInBase = getPosition(killsInBase, 1);
         String mostDeath = getPosition(deaths, 1, 8, false);
@@ -540,28 +548,44 @@ public class GameFlagTimeModule extends AbstractModule {
         String mostFlagClaimed = getPosition(flagClaims, 1);
         String mostTk = getPosition(tks, 1, 8, false);
         String mostTek = getPosition(teks, 1);
-        String mostAttach = getPosition(attaches, 1);
+        String bestTer = getPosition(bestTerrier, 1);
         
     	m_botAction.sendArenaMessage("Achievements:");
-    	if (mostKill != null)
-    		m_botAction.sendArenaMessage(" - Most Veteran Like  : " + mostKill);
-    	if (mostKillInBase != null)
-    		m_botAction.sendArenaMessage(" - Basing King        : " + mostKillInBase);
-    	if (mostAttach != null)
-    		m_botAction.sendArenaMessage(" - Best Terrier       : " + mostAttach);
-    	if (mostDeath != null)
+    	if (mostKillInBase != null) {
+    		m_botAction.sendArenaMessage(" - Basing King        : " + mostKillInBase + " (+$1000)");
+    		context.getPlayerManager().addMoney(mostKillInBase, 1000);
+    	}
+    	if (mostKill != null) {
+    		m_botAction.sendArenaMessage(" - Most Veteran Like  : " + mostKill + " (+$1000)");
+    		context.getPlayerManager().addMoney(mostKill, 1000);
+    	}
+    	if (mostFlagClaimed != null) {
+    		m_botAction.sendArenaMessage(" - Flag Savior        : " + mostFlagClaimed + " (+$1000)");
+    		context.getPlayerManager().addMoney(mostFlagClaimed, 1000);
+    	}
+    	if (lessDeath != null) {
+    		m_botAction.sendArenaMessage(" - Most Cautious      : " + lessDeath + " (+$500)");
+    		context.getPlayerManager().addMoney(lessDeath, 500);
+    	}
+    	if (bestTer != null) {
+    		m_botAction.sendArenaMessage(" - Best Terrier       : " + bestTer + " (+$500)");
+    		context.getPlayerManager().addMoney(bestTer, 500);
+    	}
+    	if (mostTek != null) {
+    		m_botAction.sendArenaMessage(" - Most Terrier Kills : " + mostTek + " (+$500)");
+    		context.getPlayerManager().addMoney(mostTek, 500);
+    	}
+    	if (mostDeath != null) {
     		m_botAction.sendArenaMessage(" - Most Reckless      : " + mostDeath);
-    	if (lessDeath != null)
-    		m_botAction.sendArenaMessage(" - Most Cautious      : " + lessDeath);
-    	if (mostFlagClaimed != null)
-    		m_botAction.sendArenaMessage(" - Flag Savior        : " + mostFlagClaimed);
-    	if (mostTk != null)
+    		//context.getPlayerManager().addMoney(mostDeath, 0);
+    	}
+    	if (mostTk != null) {
     		m_botAction.sendArenaMessage(" - Least Honorable    : " + mostTk);
-    	if (mostTek != null)
-    		m_botAction.sendArenaMessage(" - Most Terrier Kills : " + mostTek);
-        */
+    		//context.getPlayerManager().addMoney(mostTk, 0);
+    	}
+
         // MVP TOP 3
-        
+        /*
         HashMap<String,Integer> topPlayers = getTopPlayers();
         Iterator<String> iterator = topPlayers.keySet().iterator();
         m_botAction.sendArenaMessage("MVP:");
@@ -578,6 +602,7 @@ public class GameFlagTimeModule extends AbstractModule {
         	}
         	m_botAction.sendArenaMessage(" " + position + ". " + playerName + moneyMessage);
         }
+        */
         
         // Is gameover?
         
@@ -680,9 +705,30 @@ public class GameFlagTimeModule extends AbstractModule {
     	return getPosition(map, position, 0, false);
     }
     
-    /*
-     *
-     */
+   public LinkedHashMap<String,Integer> getBestOf(LinkedHashMap<String,Integer>... lists) {
+
+        HashMap<String,Integer> playerWeight = new HashMap<String,Integer>();
+        for(LinkedHashMap<String,Integer> list: lists) {
+        	Iterator<String> players = list.keySet().iterator();
+        	int i = 0;
+        	while(players.hasNext()) {
+        		String player = players.next();
+        		Integer currentWeight = playerWeight.get(player);
+        		if (currentWeight == null) {
+        			currentWeight = 0;
+        		}
+        		// Top1 (+6), Top2 (+4), Top3 (+2), rest normal weight
+        		int weight = (list.size()-i)+Math.max(0,(3-i))*2;
+        		playerWeight.put(player, currentWeight.intValue() + weight);
+        		i++;
+        	}
+        }
+        
+        return sort(playerWeight,false);
+    	
+    }
+    
+    
     public HashMap<String,Integer> getTopPlayers() {
     	
         // Sort every list ASC or DESC
@@ -2002,8 +2048,9 @@ public class GameFlagTimeModule extends AbstractModule {
 
 	public LinkedHashMap<String,Integer> sort(HashMap passedMap, boolean ascending) {
 
-		List mapKeys = new ArrayList(passedMap.keySet());
-		List mapValues = new ArrayList(passedMap.values());
+		HashMap clonedMap = (HashMap) passedMap.clone();
+		List mapKeys = new ArrayList(clonedMap.keySet());
+		List mapValues = new ArrayList(clonedMap.values());
 		Collections.sort(mapValues);
 		Collections.sort(mapKeys);
 
@@ -2017,8 +2064,8 @@ public class GameFlagTimeModule extends AbstractModule {
 			Iterator keyIt = mapKeys.iterator();
 			while (keyIt.hasNext()) {
 				Object key = keyIt.next();
-				if (passedMap.get(key).toString().equals(val.toString())) {
-					passedMap.remove(key);
+				if (clonedMap.get(key).toString().equals(val.toString())) {
+					clonedMap.remove(key);
 					mapKeys.remove(key);
 					someMap.put(key, val);
 					break;
