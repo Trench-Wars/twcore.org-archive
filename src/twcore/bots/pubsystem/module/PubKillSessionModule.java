@@ -138,6 +138,10 @@ public class PubKillSessionModule extends AbstractModule {
 							context.getPlayerManager().getPlayer(name).addMoney(winnerMoney);
 					}
 				}
+				
+				for(String name: names) {
+					updateWinnerDB(name);
+				}
 			}
 			
 		}
@@ -150,6 +154,18 @@ public class PubKillSessionModule extends AbstractModule {
 		
 		sessionStarted = false;
 	}
+	
+    private void updateWinnerDB(String playerName) {
+    	
+		String database = m_botAction.getBotSettings().getString("database");
+		
+		// The query will be closed by PlayerManagerModule
+		if (database!=null)
+		m_botAction.SQLBackgroundQuery(database, "", "UPDATE tblPlayerStats "
+			+ "SET fnKillothonWinner = fnKillothonWinner+1 "
+			+ "WHERE fcName='" + playerName + "'");
+    	
+    }
 	
 	public void handleEvent(PlayerDeath event) {
 		

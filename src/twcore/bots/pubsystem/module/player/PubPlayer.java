@@ -42,6 +42,9 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private long lastOptionsUpdate = 0;
     private long lastDeath = 0;
     
+    // Stats
+    private int bestStreak = 0;
+    
     private boolean isOnline = false; // If online, on the same arena
 
     public PubPlayer(BotAction m_botAction, String name) {
@@ -104,7 +107,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     	setMoney(this.money-money);
     }
 
-    public void addItem(PubItem item) {
+    public void addItem(PubItem item, String param) {
     	purgeItemBoughtHistory();
         this.itemsBought.add(new PubItemUsed(item));
         this.itemsBoughtThisLife.add(item);
@@ -116,6 +119,14 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     public long getLastDeath() {
     	return lastDeath;
+    }
+    
+    public int getBestStreak() {
+    	return bestStreak;
+    }
+    
+    public void setBestStreak(int bestStreak) {
+    	this.bestStreak = bestStreak;
     }
     
     private void purgeItemBoughtHistory() 

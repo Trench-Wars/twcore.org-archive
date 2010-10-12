@@ -188,6 +188,18 @@ public class PubMoneySystemModule extends AbstractModule {
                 if (item.isArenaItem()) {
                 	 m_botAction.sendArenaMessage(playerName + " just bought a " + item.getDisplayName() + " for $" + item.getPrice() + ".",21);
                 }
+                
+        		String database = m_botAction.getBotSettings().getString("database");
+        		
+        		// The query will be closed by PlayerManagerModule
+        		
+        		int shipType = m_botAction.getPlayer(receiver.getPlayerName()).getShipType();
+        		
+        		if (database!=null)
+        		m_botAction.SQLBackgroundQuery(database, "", "INSERT INTO tblPurchaseHistory "
+    				+ "(fcItemName, fcBuyerName, fcReceiverName, fcArguments, fnPrice, fnReceiverShipType, fdDate) "
+    				+ "VALUES ('"+Tools.addSlashes(item.getName())+"','"+Tools.addSlashes(buyer.getPlayerName())+"','"+Tools.addSlashes(receiver.getPlayerName())+"','"+Tools.addSlashes(params)+"','"+item.getPrice()+"','"+shipType+"',NOW())");
+        		
 
             } 
             else {
@@ -239,10 +251,12 @@ public class PubMoneySystemModule extends AbstractModule {
     			return;
     		}
     		
+    		/* Not needed
     		if (context.getPubChallenge().hasChallenged(sender)) {
     			m_botAction.sendPrivateMessage(sender, "You cannot donate while challenging a player for a duel.");
     			return;
     		}
+    		*/
     		
     		Player p = m_botAction.getFuzzyPlayer(name);
     		if (p == null) {
@@ -272,7 +286,16 @@ public class PubMoneySystemModule extends AbstractModule {
     			pubPlayerDonater.removeMoney(moneyToDonate);
     			m_botAction.sendPrivateMessage(sender, "$" + moneyToDonate + " sent to " + pubPlayer.getPlayerName() + ".");
     			m_botAction.sendPrivateMessage(pubPlayer.getPlayerName(), sender + " sent you $" + moneyToDonate + ", you have now $" + (moneyToDonate+currentMoney) + ".");
-    		
+
+        		String database = m_botAction.getBotSettings().getString("database");
+        		
+        		// The query will be closed by PlayerManagerModule
+        		if (database!=null)
+        		m_botAction.SQLBackgroundQuery(database, "", "INSERT INTO tblPlayerDonations "
+    				+ "(fcName, fcNameTo, fnMoney, fdDate) "
+    				+ "VALUES ('"+Tools.addSlashes(sender)+"','"+Tools.addSlashes(pubPlayer.getPlayerName())+"','"+moneyToDonate+"',NOW())");
+        		
+    			
     		} else {
     			m_botAction.sendPrivateMessage(sender, "Player not found.");
     		}
@@ -918,7 +941,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	   	if (privFreqs > 0) {
 	   		message += " and " + privFreqs + " private freq(s)";
 	   	}
-	   	message = message.substring(1);
+	   	message = message.substring(2);
 	   	
 	   	final Integer[] freqs = freqList.toArray(new Integer[freqList.size()]);
 	   	

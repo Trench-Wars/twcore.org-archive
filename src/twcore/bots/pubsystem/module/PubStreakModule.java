@@ -14,8 +14,7 @@ import twcore.core.util.Tools;
 
 public class PubStreakModule extends AbstractModule {
 
-	public final static int ARENA_TIMEOUT = 3 * Tools.TimeInMillis.MINUTE;
-	public final static int ZONE_TIMEOUT = 30 * Tools.TimeInMillis.MINUTE;
+	public final static int ARENA_TIMEOUT = 1 * Tools.TimeInMillis.MINUTE;
 
 	private HashMap<String,Integer> winStreaks;
 	private HashMap<String,Integer> loseStreaks;
@@ -95,6 +94,10 @@ public class PubStreakModule extends AbstractModule {
         PubPlayer pubPlayerKiller = context.getPlayerManager().getPlayer(killer.getPlayerName());
         PubPlayer pubPlayerKilled = context.getPlayerManager().getPlayer(killed.getPlayerName());
         
+        if (pubPlayerKiller == null || pubPlayerKilled == null) {
+        	return;
+        }
+        
         boolean streakBroker = false;
         
         // Streak breaker??
@@ -153,7 +156,27 @@ public class PubStreakModule extends AbstractModule {
   
     }
     
-    private void announceStreakBreaker(PubPlayer killer, PubPlayer killed, int streak) {
+    private void saveBestStreak(PubPlayer player, Integer streak) {
+		
+    	if (streak > player.getBestStreak()) {
+    		
+    		player.setBestStreak(streak);
+    		
+    		String database = m_botAction.getBotSettings().getString("database");
+    		
+    		// The query will be closed by PlayerManagerModule
+    		if (database!=null)
+    		m_botAction.SQLBackgroundQuery(database, "", "UPDATE tblPlayerStats "
+				+ "SET "
+				+ "fdBestStreak = IF("+streak+">fnBestStreak ,NOW(),fdBestStreak),"
+				+ "fnBestStreak = IF("+streak+">fnBestStreak,"+streak+",fnBestStreak) "
+				+ "WHERE fcName='" + player.getPlayerName() + "'");
+    		
+    	}
+    	
+	}
+
+	private void announceStreakBreaker(PubPlayer killer, PubPlayer killed, int streak) {
     	String message = "[STREAK BREAKER!] " + killed.getPlayerName() + " (" + streak + " kills) broken by " + killer.getPlayerName() + "!";
     	if (streakBrokerBonus > 0 && context.getMoneySystem().isEnabled()) {
     		message += " (+$" + streakBrokerBonus + ")";
@@ -169,19 +192,8 @@ public class PubStreakModule extends AbstractModule {
     		moneyMessage = "(+$" + String.valueOf(money) + ")";
     	}
     	
-    	// Zone?
-    	if (streak == winsStreakZoneAt) {
-
-    		/* too abused for now
-    		if (System.currentTimeMillis()-lastZone > ZONE_TIMEOUT) {
-    			m_botAction.sendZoneMessage("[PUB] " + player.getPlayerName() + " with " + streak + " kills in a row. Stop him!");
-    			lastZone = System.currentTimeMillis();
-    		}
-    		*/
-
-    	}
     	// Arena?
-    	else if (streak >= winsStreakArenaAt || bestWinStreak==streak) {
+    	if (streak >= winsStreakArenaAt) {
     		
     		/*
     		if (System.currentTimeMillis()-lastArena > ARENA_TIMEOUT || bestWinStreak==streak) {
@@ -192,7 +204,11 @@ public class PubStreakModule extends AbstractModule {
     			lastArena = System.currentTimeMillis();
     		}
     		*/
-    		if (bestWinStreak==streak) {
+    		
+    		saveBestStreak(player, streak);
+    		
+    		// Arena only if "BEST OF THE SESSION" and if first *arena since ARENA_TIMEOUT
+    		if (System.currentTimeMillis()-lastArena > ARENA_TIMEOUT && bestWinStreak==streak) {
     			m_botAction.sendArenaMessage("[STREAK] " + player.getPlayerName() + " with " + streak + " kills! Best Streak of the Session!");
     			lastArena = System.currentTimeMillis();
     		}
@@ -221,12 +237,14 @@ public class PubStreakModule extends AbstractModule {
 
     	if (name.isEmpty()) {
     		
+    		PubPlayer player = context.getPlayerManager().getPlayer(sender);
+    		
     		if (winStreaks.containsKey(sender)) {
     			m_botAction.sendPrivateMessage(sender, "Current streak: " + winStreaks.get(sender) + " kill(s).");
-    			if (context.getMoneySystem().isEnabled())
-    				m_botAction.sendPrivateMessage(sender, "Your next kill will get you $" + getMoney(winStreaks.get(sender)+1) + ".");
     		} else
-    			m_botAction.sendPrivateMessage(sender, "You don't have any streak yet.");
+    			m_botAction.sendPrivateMessage(sender, "Current streak: none");
+			if (player != null)
+				m_botAction.sendPrivateMessage(sender, "Best streak: " + player.getBestStreak() + " kill(s).");
     	}
     	else {
     		
@@ -234,13 +252,14 @@ public class PubStreakModule extends AbstractModule {
     		if (player != null) {
     		
     			name = player.getPlayerName();
-	    		if (winStreaks.containsKey(name))
+	    		if (winStreaks.containsKey(name)) {
 	    			m_botAction.sendPrivateMessage(sender, "Current streak of " + name + ": " + winStreaks.get(name) + " kill(s).");
-	    		else
+	    		} else {
 	    			m_botAction.sendPrivateMessage(sender, name + " has not streak yet.");
 	    		}
+    			m_botAction.sendPrivateMessage(sender, "Best streak: " + player.getBestStreak() + " kill(s).");
     		
-    		else {
+    		} else {
     			m_botAction.sendPrivateMessage(sender, "Player not found.");
     		}
     		
@@ -290,9 +309,9 @@ public class PubStreakModule extends AbstractModule {
 	@Override
 	public String[] getHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!streak           -- Your current streak."),
-			pubsystem.getHelpLine("!streak <name>    -- Current streak of a given player name."),
-			pubsystem.getHelpLine("!beststreak       -- Current best streak of the session."),
+			pubsystem.getHelpLine("!streak            -- Your current streak."),
+			pubsystem.getHelpLine("!streak <name>     -- Best and current streak of a given player name."),
+			pubsystem.getHelpLine("!beststreak        -- Current best streak of the session."),
         };
 	}
 
