@@ -216,7 +216,9 @@ public class PubPlayerManagerModule extends AbstractModule {
 		if (pubPlayerKilled != null) {
 			long diff = System.currentTimeMillis() - pubPlayerKilled.getLastDeath();
 			pubPlayerKilled.addDeath();
+			
 			// Spawn check
+			/* TODO: Add a attach to ter check
 			if (diff < 6.5 * Tools.TimeInMillis.SECOND) {
 				if (pubPlayerKiller != null) {
 					if (pubPlayerKiller.getMoney() >= 200) {
@@ -227,6 +229,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 					}
 				}
 			}
+			*/
 		}
 		
 	}
