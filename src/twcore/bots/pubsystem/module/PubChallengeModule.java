@@ -430,8 +430,8 @@ public class PubChallengeModule extends AbstractModule {
         Player playerChallenger = m_botAction.getPlayer(challenger);
         Player playerAccepter = m_botAction.getPlayer(accepter);
         
-        duelerAccepter.oldFreq = playerAccepter.getFrequency();
-        duelerChallenger.oldFreq = playerChallenger.getFrequency();
+        duelerAccepter.oldFreq = playerAccepter.isPlaying() ? playerAccepter.getFrequency() : 0;
+        duelerChallenger.oldFreq = playerChallenger.isPlaying() ? playerChallenger.getFrequency() : 0;
         
         if(playerChallenger.getShipType() == 0)
         {

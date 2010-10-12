@@ -521,6 +521,7 @@ public class GameFlagTimeModule extends AbstractModule {
         	killsInBase.put(playerName, (int)(killsInBase.get(playerName)/kills.get(playerName)));
         }
         
+        /*
         LinkedHashMap<String,Integer> deaths = sort(this.deaths,false);
         LinkedHashMap<String,Integer> lessdeaths = sort(this.deaths,true);
         LinkedHashMap<String,Integer> kills = sort(this.kills,false);
@@ -558,7 +559,7 @@ public class GameFlagTimeModule extends AbstractModule {
     		m_botAction.sendArenaMessage(" - Least Honorable    : " + mostTk);
     	if (mostTek != null)
     		m_botAction.sendArenaMessage(" - Most Terrier Kills : " + mostTek);
-        
+        */
         // MVP TOP 3
         
         HashMap<String,Integer> topPlayers = getTopPlayers();
