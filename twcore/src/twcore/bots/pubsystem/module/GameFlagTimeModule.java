@@ -268,9 +268,10 @@ public class GameFlagTimeModule extends AbstractModule {
 			
 			if (killer.getFrequency()==killed.getFrequency()) {
 				flagTimer.addTk(killer.getPlayerName());
+			} else {
+				flagTimer.addPlayerKill(killer.getPlayerName(), killed.getShipType(),event.getKilledPlayerBounty(), killer.getXTileLocation(), killer.getYTileLocation());
+				flagTimer.addPlayerDeath(killed.getPlayerName());
 			}
-			flagTimer.addPlayerKill(killer.getPlayerName(), killed.getShipType(),event.getKilledPlayerBounty(), killer.getXTileLocation(), killer.getYTileLocation());
-			flagTimer.addPlayerDeath(killed.getPlayerName());
 		}
 	}
 	
@@ -513,13 +514,16 @@ public class GameFlagTimeModule extends AbstractModule {
 
         //  NOW, LET'S COMPUTE THE ACHIEVEMENTS
         
-        // Recompute some list
+        LinkedHashMap<String,Integer> killsInBasePercent = new LinkedHashMap<String,Integer>();
+        
+        // Recompute some list (get the % instead)
         for(String playerName: killsBounty.keySet()) {
         	killsBounty.put(playerName, (int)(killsBounty.get(playerName)/kills.get(playerName)));
         }
         for(String playerName: killsInBase.keySet()) {
-        	killsInBase.put(playerName, (int)(killsInBase.get(playerName)/kills.get(playerName)));
+        	killsInBasePercent.put(playerName, (int)(killsInBase.get(playerName)/kills.get(playerName)));
         }
+        
         // Remove terriers not on the winning team for the variable 'attaches' (set weight to 0)
         for(String playerName: attaches.keySet()) {
         	Player p = m_botAction.getPlayer(playerName);
@@ -536,44 +540,54 @@ public class GameFlagTimeModule extends AbstractModule {
         LinkedHashMap<String,Integer> killsInBase = sort(this.killsInBase,false);
         LinkedHashMap<String,Integer> tks = sort(this.tks,false);
         LinkedHashMap<String,Integer> attaches = sort(this.attaches,false);
+        killsInBasePercent = sort(killsInBasePercent,false);
  
         // Achievements composed of more than 1 variable
-        LinkedHashMap<String,Integer> bestTerrier = getBestOf(attaches, killsInBase);
+        LinkedHashMap<String,Integer> bestTerrier = getBestOf(attaches, killsInBasePercent);
+        LinkedHashMap<String,Integer> basingKing = getBestOf(killsInBase, killsInBasePercent);
+        
+        // Make sure we have only terrer in bestTerrier
+        Iterator<String> it = bestTerrier.keySet().iterator();
+        while(it.hasNext()) {
+	        String name = it.next();
+	        if (!attaches.containsKey(name))
+	        	it.remove();
+        }
 
         // Achievements (get the #1 of each LinkedHashMap)
-        String mostKill = getPosition(kills, 1);
-        String mostKillInBase = getPosition(killsInBase, 1);
+        String mostKillName = getPosition(kills, 1);
+        String basingKingName = getPosition(basingKing, 1);
         String mostDeath = getPosition(deaths, 1, 8, false);
         String lessDeath = getPosition(lessdeaths, 1, 5, true);
         String mostFlagClaimed = getPosition(flagClaims, 1);
         String mostTk = getPosition(tks, 1, 8, false);
         String mostTek = getPosition(teks, 1);
-        String bestTer = getPosition(bestTerrier, 1);
+        String bestTerrierName = getPosition(bestTerrier, 1);
         
     	m_botAction.sendArenaMessage("Achievements:");
-    	if (mostKillInBase != null) {
-    		m_botAction.sendArenaMessage(" - Basing King        : " + mostKillInBase + " (+$1000)");
-    		context.getPlayerManager().addMoney(mostKillInBase, 1000);
+    	if (basingKingName != null) {
+    		m_botAction.sendArenaMessage(" - Basing King        : " + basingKingName + " (+$1000)");
+    		context.getPlayerManager().addMoney(basingKingName, 1000);
     	}
-    	if (mostKill != null) {
-    		m_botAction.sendArenaMessage(" - Most Veteran Like  : " + mostKill + " (+$1000)");
-    		context.getPlayerManager().addMoney(mostKill, 1000);
+    	if (mostKillName != null) {
+    		m_botAction.sendArenaMessage(" - Most Veteran Like  : " + mostKillName + " (+$1000)");
+    		context.getPlayerManager().addMoney(mostKillName, 1000);
     	}
     	if (mostFlagClaimed != null) {
     		m_botAction.sendArenaMessage(" - Flag Savior        : " + mostFlagClaimed + " (+$1000)");
     		context.getPlayerManager().addMoney(mostFlagClaimed, 1000);
     	}
-    	if (lessDeath != null) {
-    		m_botAction.sendArenaMessage(" - Most Cautious      : " + lessDeath + " (+$500)");
-    		context.getPlayerManager().addMoney(lessDeath, 500);
+    	if (bestTerrierName != null) {
+    		m_botAction.sendArenaMessage(" - Best Terrier       : " + bestTerrierName + " (+$500)");
+    		context.getPlayerManager().addMoney(bestTerrierName, 500);
     	}
-    	if (bestTer != null) {
-    		m_botAction.sendArenaMessage(" - Best Terrier       : " + bestTer + " (+$500)");
-    		context.getPlayerManager().addMoney(bestTer, 500);
+    	if (lessDeath != null) {
+    		m_botAction.sendArenaMessage(" - Most Cautious      : " + lessDeath + " (+$250)");
+    		context.getPlayerManager().addMoney(lessDeath, 250);
     	}
     	if (mostTek != null) {
-    		m_botAction.sendArenaMessage(" - Most Terrier Kills : " + mostTek + " (+$500)");
-    		context.getPlayerManager().addMoney(mostTek, 500);
+    		m_botAction.sendArenaMessage(" - Most Terrier Kills : " + mostTek + " (+$250)");
+    		context.getPlayerManager().addMoney(mostTek, 250);
     	}
     	if (mostDeath != null) {
     		m_botAction.sendArenaMessage(" - Most Reckless      : " + mostDeath);
@@ -1884,10 +1898,10 @@ public class GameFlagTimeModule extends AbstractModule {
 
 		if (warpPlayers.containsKey(sender)) {
 			warpPlayers.remove(sender);
-			m_botAction.sendSmartPrivateMessage(sender,"You will NOT be warped inside the FR at the start of each round. Type !warp again to turn back on.");
+			m_botAction.sendSmartPrivateMessage(sender,"You will NOT be warped inside the base at the start of each round. Type !warp again to turn back on.");
 		} else {
 			warpPlayers.put(sender, player);
-			m_botAction.sendSmartPrivateMessage(sender,"You WILL be warped inside the FR at the start of each round. Type !warp again to turn off.");
+			m_botAction.sendSmartPrivateMessage(sender,"You WILL be warped inside the base at the start of each round. Type !warp again to turn off.");
 		}
 	}
 	    
