@@ -78,11 +78,11 @@ public class PubPlayerManagerModule extends AbstractModule {
 	}
 	
 	public boolean addMoney(String playerName, int money) {
-		return removeMoney(playerName, money, false);
+		return addMoney(playerName, money, false);
 	}
 	
 	public boolean removeMoney(String playerName, int money) {
-		return addMoney(playerName, money, false);
+		return removeMoney(playerName, money, false);
 	}
 
 	public boolean addMoney(String playerName, int money, boolean forceToDB) {
@@ -106,7 +106,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 	public boolean removeMoney(String playerName, int money, boolean forceToDB) {
 		PubPlayer player = players.get(playerName.toLowerCase());
 		if (player != null) {
-			player.addMoney(money);
+			player.removeMoney(money);
 			return true;
 		} 
 		else if (forceToDB) {
