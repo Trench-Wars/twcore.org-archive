@@ -350,8 +350,15 @@ public class PubMoneySystemModule extends AbstractModule {
     	} 
         else 
     	{
+        	
+        	
+        	
         	lines.add("List of items you can buy. Each item has a set of restrictions.");
-	        for(PubItem item: store.getItems().values()) {
+	        for(String itemName: store.getItems().keySet()) {
+	        	
+	        	PubItem item = store.getItems().get(itemName);
+	        	if (item.getAbbreviations().contains(itemName))
+	        		continue;
 	        	
 	        	if (item instanceof PubPrizeItem) {
 	        		if (!currentClass.equals(PubPrizeItem.class))
