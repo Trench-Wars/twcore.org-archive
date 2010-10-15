@@ -598,16 +598,17 @@ public class PubChallengeModule extends AbstractModule {
         
         // Give/Remove money
         if (context.getMoneySystem().isEnabled()) {
-	        if (context.getPlayerManager().getPlayer(winner.name) != null)
-	        	context.getPlayerManager().getPlayer(winner.name).addMoney(money);
-	        if (context.getPlayerManager().getPlayer(loser.name) != null)
-	        	context.getPlayerManager().getPlayer(loser.name).removeMoney(money);
+	        context.getPlayerManager().addMoney(winner.name, money);
+	        context.getPlayerManager().removeMoney(loser.name, money, true);
         }
         
         // Setting the frequency before
-        m_botAction.setFreq(winner.name, duelers.get(winner.name).oldFreq);
-        m_botAction.setFreq(loser.name, duelers.get(loser.name).oldFreq);
+        if (duelers.containsKey(winner.name)) 
+        	m_botAction.setFreq(winner.name, duelers.get(winner.name).oldFreq);
+        if (duelers.containsKey(loser.name))
+        	m_botAction.setFreq(loser.name, duelers.get(loser.name).oldFreq);
         
+        // Removing stuff
         duelers.remove(winner.name);
         if (challenge.winByLagout)
         	duelers.remove(loser.name);
@@ -872,8 +873,8 @@ public class PubChallengeModule extends AbstractModule {
     public void doDebugCmd(String sender) {
     	
     	int count = 0;
-    	for(Entry<String,Challenge> entry: challenges.entrySet()) {
-    		Challenge c = entry.getValue();
+    	for(Challenge c: challenges.values()) {
+
     		String status = c.isStarted() ? "STARTED" : "PENDING";
     		
     		Dueler d1 = null;
@@ -886,7 +887,12 @@ public class PubChallengeModule extends AbstractModule {
     		int k1 = d1==null? -1 : d1.kills;
     		int k2 = d2==null? -1 : d2.kills;
     		
-    		m_botAction.sendPrivateMessage(sender, "["+status+"] " + entry.getKey() + "  (" + k1 + ":" + k2 + ")");
+    		m_botAction.sendPrivateMessage(sender, "Challenge ["+status+"] (" + k1 + ":" + k2 + ")");
+    		count++;
+    	}
+    	for(Dueler dueler: duelers.values()) {
+    		String status = dueler.challenge.isStarted() ? "STARTED" : "PENDING";
+    		m_botAction.sendPrivateMessage(sender, "Dueler ["+status+"] " + dueler.name);
     		count++;
     	}
     	if (count==0)

@@ -80,8 +80,7 @@ public class PubStore {
 	    			item = new PubCommandItem(data[0].trim(), data[1].trim(), data[2].trim(), Integer.parseInt(data[3].trim()), data[4]);
 	    			optionPointer = 4;
 	    		}
-	    		addItem(item, data[0]);
-	
+
 	    		// Options?
 	    		if (data.length > optionPointer) {
 	    			
@@ -151,6 +150,8 @@ public class PubStore {
 	    				item.setRestriction(r);
 	    			if (hasDuration)
 	    				item.setDuration(d);
+	    			
+	    			addItem(item, data[0]);
 	    		}
 	    	}
         }

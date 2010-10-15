@@ -305,7 +305,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	}
     }
     
-    public void doCmdSetMoney(String sender, String command) {
+    public void doCmdAddMoney(String sender, String command) {
     	
     	command = command.substring(10).trim();
     	if (command.contains(":")) {
@@ -315,11 +315,12 @@ public class PubMoneySystemModule extends AbstractModule {
     		PubPlayer pubPlayer = playerManager.getPlayer(name,false);
     		if (pubPlayer != null) {
     			int currentMoney = pubPlayer.getMoney();
-    			pubPlayer.setMoney(Integer.valueOf(money));
-    			m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $" + money + " (before: $" + currentMoney + ")");
+    			pubPlayer.addMoney(Integer.valueOf(money));
+    			m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $" + (currentMoney+Integer.valueOf(money)) + " (before: $" + currentMoney + ")");
     		
     		} else {
-    			m_botAction.sendPrivateMessage(sender, "Player not found.");
+    			playerManager.addMoney(name, Integer.valueOf(money), true);
+    			m_botAction.sendPrivateMessage(sender, name + " has now $" + money + " more money.");
     		}
     	}
     	else {
@@ -673,8 +674,8 @@ public class PubMoneySystemModule extends AbstractModule {
         else if(command.startsWith("!richest")){
         	doCmdRichest(sender, command);
         }
-        else if( m_botAction.getOperatorList().isOwner(sender) && command.startsWith("!setmoney")) {
-        	doCmdSetMoney(sender,command);
+        else if( m_botAction.getOperatorList().isOwner(sender) && command.startsWith("!addmoney")) {
+        	doCmdAddMoney(sender,command);
         }
 
     }
@@ -704,7 +705,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	public String[] getModHelpMessage() {
 		return new String[] {    
 				pubsystem.getHelpLine("!bankrupt <name>       -- Set money to $0 for this player."),
-				pubsystem.getHelpLine("!setmoney <name>:<$>   -- Set the money for a given player name. (Owner only)."),
+				pubsystem.getHelpLine("!addmoney <name>:<$>   -- Add money for a given player name. (Owner only)."),
         };
 	}
 
@@ -864,7 +865,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
 	   	Player p = m_botAction.getPlayer(sender);
 
-    	m_botAction.getShip().setShip(1);
+    	m_botAction.getShip().setShip(0);
     	m_botAction.getShip().setFreq(p.getFrequency());
     	m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
     	m_botAction.getShip().rotateDegrees(90);
@@ -877,7 +878,6 @@ public class PubMoneySystemModule extends AbstractModule {
 	            	for(int j=0; j<7; j++) {
 		            	m_botAction.getShip().move((482+(j*10))*16+8, 100*16);
 		            	m_botAction.getShip().sendPositionPacket();
-		            	m_botAction.getShip().fire(WeaponFired.WEAPON_THOR);
 		            	m_botAction.getShip().fire(WeaponFired.WEAPON_THOR);
 		            	m_botAction.getShip().fire(WeaponFired.WEAPON_THOR);
 		            	try { Thread.sleep(50); } catch (InterruptedException e) {}
@@ -893,8 +893,50 @@ public class PubMoneySystemModule extends AbstractModule {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
             }
         };
-        m_botAction.scheduleTask(timer, 14000);
+        m_botAction.scheduleTask(timer, 7500);
     	
+    }
+    
+    private void itemCommandBaseStrike(String sender, String params) {
+
+    	int[][] coords = new int[][] {
+    			new int[] { 500, 256 }, // Top right
+    			new int[] { 512, 253 }, // Top middle
+    			new int[] { 524, 256 }, // Top left
+    			new int[] { 538, 260 }, // Ear right
+    			new int[] { 486, 260 }, // Ear left
+    			new int[] { 500, 287 }, // Bottom right
+    			new int[] { 526, 287 }, // Bottom left
+    			new int[] { 492, 273 }, // Middle right
+    			new int[] { 532, 273 }, // Middle left
+    	};
+    	
+	   	Player p = m_botAction.getPlayer(sender);
+	   	Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
+	   	while(it.hasNext()) {
+	   		Player player = it.next();
+	   		if (player.getFrequency() != p.getFrequency())
+	   			continue;
+	   		if (context.getPubChallenge().isDueling(player.getPlayerName()))
+	   			continue;
+	   		// Ter always warped on the middle
+	   		if (p.getShipType() == Tools.Ship.TERRIER) {
+	   			m_botAction.warpTo(p.getPlayerName(), coords[1][0], coords[1][1]);
+	   		// Shark always warped on top
+	   		} else if (p.getShipType() == Tools.Ship.SHARK) {
+	   			int num = (int)Math.floor(Math.random()*3);
+	   			m_botAction.warpTo(p.getPlayerName(), coords[num][0], coords[num][1]);
+	   		// The rest is random..
+	   		} else {
+	   			int num = (int)Math.floor(Math.random()*coords.length);
+	   			m_botAction.warpTo(p.getPlayerName(), coords[num][0], coords[num][1]);
+	   		}
+	   	}
+	   	if (p.getFrequency() < 100)
+	   		m_botAction.sendArenaMessage("Freq " + p.getFrequency() + " is striking the flag room! Commanded by " + sender + ".", Tools.Sound.CROWD_OHH);
+	   	else
+	   		m_botAction.sendArenaMessage("A private freq is striking the flag room! Commanded by " + sender + ".", Tools.Sound.CROWD_OHH);
+	   	
     }
     
     private void itemCommandFlagSaver(String sender, String params) {
@@ -907,14 +949,18 @@ public class PubMoneySystemModule extends AbstractModule {
     	m_botAction.getShip().sendPositionPacket();
     	m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
     	m_botAction.getShip().move(512*16+8, 265*16+8);
+    	m_botAction.getShip().sendPositionPacket();
 	   	
     	TimerTask timer = new TimerTask() {
             public void run() {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
             }
         };
-        m_botAction.scheduleTask(timer, 2000);
-        m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for freq " + p.getFrequency() + ", thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
+        m_botAction.scheduleTask(timer, 4000);
+        if (p.getFrequency() < 100)
+        	m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for freq " + p.getFrequency() + ", thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
+        else
+        	m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for a private freq, thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
 	   	
     }
     
@@ -952,7 +998,12 @@ public class PubMoneySystemModule extends AbstractModule {
 			timeElapsed += 2300-(int)(Math.log(i)*1000);
 	   		m_botAction.scheduleTask(new EnergyDeplitedTask(freqs), timeElapsed);
 		}
-		m_botAction.scheduleTask(new EngineShutdownExtendedTask(freqs), timeElapsed);
+		m_botAction.scheduleTask(new EnergyDeplitedTask(freqs), timeElapsed+150);
+		m_botAction.scheduleTask(new EnergyDeplitedTask(freqs), timeElapsed+300);
+		m_botAction.scheduleTask(new EnergyDeplitedTask(freqs), timeElapsed+450);
+		m_botAction.scheduleTask(new EnergyDeplitedTask(freqs), timeElapsed+600);
+		m_botAction.scheduleTask(new EnergyDeplitedTask(freqs), timeElapsed+750);
+		m_botAction.scheduleTask(new EngineShutdownExtendedTask(freqs), timeElapsed+750);
 		
 	   	
     }
