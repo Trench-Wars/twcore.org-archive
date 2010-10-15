@@ -39,13 +39,12 @@ public class PubPlayerManagerModule extends AbstractModule {
     private static final int NICEGUY_BOUNTY_AWARD = 25; // Bounty given to those that even freqs/ships
 
     private HashMap<String, PubPlayer> players;         // Always lowercase!
-    private HashSet<String> freq0;                   // Players on freq 0
-    private HashSet<String> freq1;                   // Players on freq 1
+    private HashSet<String> freq0;                   	// Players on freq 0
+    private HashSet<String> freq1;                   	// Players on freq 1
     
-    private boolean teamsUneven;                        // True if teams are uneven as given in MAX_FREQSIZE_DIFF
     private int[] freqSizeInfo = {0, 0};                // Index 0: size difference; 1: # of smaller freq
     
-    private Vector<Integer> shipWeight; //
+    private Vector<Integer> shipWeight;
 	
 	private String databaseName;
 	
@@ -77,15 +76,51 @@ public class PubPlayerManagerModule extends AbstractModule {
 		eventRequester.request(EventRequester.PLAYER_LEFT);
 		eventRequester.request(EventRequester.PLAYER_ENTERED);
 	}
-
+	
 	public boolean addMoney(String playerName, int money) {
+		return removeMoney(playerName, money, false);
+	}
+	
+	public boolean removeMoney(String playerName, int money) {
+		return addMoney(playerName, money, false);
+	}
+
+	public boolean addMoney(String playerName, int money, boolean forceToDB) {
 		PubPlayer player = players.get(playerName.toLowerCase());
 		if (player != null) {
 			player.addMoney(money);
 			return true;
+		} 
+		else if (forceToDB) {
+			
+			String database = m_botAction.getBotSettings().getString("database");
+			// The query will be closed by PlayerManagerModule
+			if (database!=null) 
+				m_botAction.SQLBackgroundQuery(database, "", "UPDATE tblPlayerStats "
+						+ "SET fnMoney = fnMoney+" + Math.abs(money) + " "
+						+ "WHERE fcName='" + playerName + "'");
 		}
 		return false;
 	}
+	
+	public boolean removeMoney(String playerName, int money, boolean forceToDB) {
+		PubPlayer player = players.get(playerName.toLowerCase());
+		if (player != null) {
+			player.addMoney(money);
+			return true;
+		} 
+		else if (forceToDB) {
+			
+			String database = m_botAction.getBotSettings().getString("database");
+			if (database!=null) 
+				m_botAction.SQLBackgroundQuery(database, "", "UPDATE tblPlayerStats "
+						+ "SET fnMoney = IF(fnMoney-" + Math.abs(money) + "<0,0,fnMoney-" + Math.abs(money) + ") "
+						+ "WHERE fcName='" + playerName + "'");
+
+		}
+		return false;
+	}
+	
 	
 	/**
 	 * Retrieve a player on the cache only (if the player is currently playing)
@@ -594,10 +629,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                 freqSizeInfo[1] = 0;
             }
         }
-        if( freqSizeInfo[0] >= KEEP_MVP_FREQSIZE_DIFF )
-            teamsUneven = true;
-        else
-            teamsUneven = false;
+
     }
 
 

@@ -543,7 +543,7 @@ public class GameFlagTimeModule extends AbstractModule {
         killsInBasePercent = sort(killsInBasePercent,false);
  
         // Achievements composed of more than 1 variable
-        LinkedHashMap<String,Integer> bestTerrier = getBestOf(attaches, killsInBasePercent);
+        LinkedHashMap<String,Integer> bestTerrier = getBestOf(attaches, killsInBasePercent, lessdeaths);
         LinkedHashMap<String,Integer> basingKing = getBestOf(killsInBase, killsInBasePercent);
         
         // Make sure we have only terrer in bestTerrier
@@ -567,15 +567,15 @@ public class GameFlagTimeModule extends AbstractModule {
     	m_botAction.sendArenaMessage("Achievements:");
     	if (basingKingName != null) {
     		m_botAction.sendArenaMessage(" - Basing King        : " + basingKingName + " (+$1000)");
-    		context.getPlayerManager().addMoney(basingKingName, 1000);
+    		context.getPlayerManager().addMoney(basingKingName, 1000, true);
     	}
     	if (mostKillName != null) {
     		m_botAction.sendArenaMessage(" - Most Veteran Like  : " + mostKillName + " (+$1000)");
-    		context.getPlayerManager().addMoney(mostKillName, 1000);
+    		context.getPlayerManager().addMoney(mostKillName, 1000, true);
     	}
     	if (mostFlagClaimed != null) {
     		m_botAction.sendArenaMessage(" - Flag Savior        : " + mostFlagClaimed + " (+$1000)");
-    		context.getPlayerManager().addMoney(mostFlagClaimed, 1000);
+    		context.getPlayerManager().addMoney(mostFlagClaimed, 1000, true);
     	}
     	if (bestTerrierName != null) {
     		m_botAction.sendArenaMessage(" - Best Terrier       : " + bestTerrierName + " (+$500)");
