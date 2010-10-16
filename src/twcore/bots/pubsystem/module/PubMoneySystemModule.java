@@ -912,35 +912,39 @@ public class PubMoneySystemModule extends AbstractModule {
     			new int[] { 524, 256 }, // Top left
     			new int[] { 538, 260 }, // Ear right
     			new int[] { 486, 260 }, // Ear left
-    			new int[] { 500, 287 }, // Bottom right
-    			new int[] { 526, 287 }, // Bottom left
-    			new int[] { 492, 273 }, // Middle right
-    			new int[] { 532, 273 }, // Middle left
+    			//new int[] { 500, 287 }, // Bottom right
+    			//new int[] { 526, 287 }, // Bottom left
+    			//new int[] { 492, 273 }, // Middle right
+    			//new int[] { 532, 273 }, // Middle left
     	};
     	
-	   	Player p = m_botAction.getPlayer(sender);
+	   	Player commander = m_botAction.getPlayer(sender);
+	   	
 	   	Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
 	   	while(it.hasNext()) {
+	   		
 	   		Player player = it.next();
-	   		if (player.getFrequency() != p.getFrequency())
+
+	   		if (player.getFrequency() != commander.getFrequency())
 	   			continue;
 	   		if (context.getPubChallenge().isDueling(player.getPlayerName()))
 	   			continue;
 	   		// Ter always warped on the middle
-	   		if (p.getShipType() == Tools.Ship.TERRIER) {
-	   			m_botAction.warpTo(p.getPlayerName(), coords[1][0], coords[1][1]);
+	   		if (player.getShipType() == Tools.Ship.TERRIER) {
+	   			m_botAction.warpTo(player.getPlayerName(), coords[1][0], coords[1][1]);
 	   		// Shark always warped on top
-	   		} else if (p.getShipType() == Tools.Ship.SHARK) {
+	   		} else if (player.getShipType() == Tools.Ship.SHARK) {
 	   			int num = (int)Math.floor(Math.random()*3);
-	   			m_botAction.warpTo(p.getPlayerName(), coords[num][0], coords[num][1]);
+	   			m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1]);
 	   		// The rest is random..
 	   		} else {
 	   			int num = (int)Math.floor(Math.random()*coords.length);
-	   			m_botAction.warpTo(p.getPlayerName(), coords[num][0], coords[num][1]);
+	   			System.out.println(num);
+	   			m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1], 3);
 	   		}
 	   	}
-	   	if (p.getFrequency() < 100)
-	   		m_botAction.sendArenaMessage("Freq " + p.getFrequency() + " is striking the flag room! Commanded by " + sender + ".", Tools.Sound.CROWD_OHH);
+	   	if (commander.getFrequency() < 100)
+	   		m_botAction.sendArenaMessage("Freq " + commander.getFrequency() + " is striking the flag room! Commanded by " + sender + ".", Tools.Sound.CROWD_OHH);
 	   	else
 	   		m_botAction.sendArenaMessage("A private freq is striking the flag room! Commanded by " + sender + ".", Tools.Sound.CROWD_OHH);
 	   	
