@@ -22,6 +22,7 @@ public class PubKillSessionModule extends AbstractModule {
 	private int winnerMoney;
 	
 	private boolean sessionStarted = false;
+	public long startAt = 0;
 	
 	private TimerTask startSessionTask;
 	private TimerTask endSessionTask;
@@ -71,6 +72,7 @@ public class PubKillSessionModule extends AbstractModule {
 		m_botAction.scheduleTask(startSessionTask, interval * Tools.TimeInMillis.MINUTE);
 	
 		sessionStarted = true;
+		startAt = System.currentTimeMillis();
 	}
 	
 	public void stopSession(boolean withWinner) {
@@ -185,7 +187,12 @@ public class PubKillSessionModule extends AbstractModule {
 			count = 0;
 		}
 		count++;
+		
 		kills.put(killer.getPlayerName(), count);
+		
+		if (count%10==0) {
+			doStatCmd(killer.getPlayerName(), true);
+		}
 		
 	}
 	
@@ -233,14 +240,17 @@ public class PubKillSessionModule extends AbstractModule {
     	stopSession(false);
     }
     
-    public void doStatCmd( String sender ) {
+    public void doStatCmd( String sender, boolean messageSuffix ) {
+    	
     	if (sessionStarted) {
     		
+    		String message = "";
+    		
     		if (kills.containsKey(sender)) {
-    			m_botAction.sendPrivateMessage(sender, "You have " + kills.get(sender) + " kills.");
+    			message = "You have " + kills.get(sender) + " kills. ";
     		}
     		else {
-    			m_botAction.sendPrivateMessage(sender, "You have 0 kill, what are you waiting for?");
+    			message = "You have 0 kill, what are you waiting for? ";
     		}
     		
     		// Sort by number of kills order descending
@@ -268,20 +278,54 @@ public class PubKillSessionModule extends AbstractModule {
 					for(int i=1; i<names.size(); i++) {
 						namesString += ", " + names.get(i);
 					}
-					m_botAction.sendPrivateMessage(sender, "Current leaders: " + namesString + " with " + highest + " kills.");
+					message += "Current leaders: " + namesString + " with " + highest + " kills.";
+				} else if (namesString.equals(sender)) {
+					message += "You are the leader!";
 				} else {
-					m_botAction.sendPrivateMessage(sender, "Current leader: " + namesString + " with " + highest + " kills.");
+					message += "Current leader: " + namesString + " with " + highest + " kills.";
 				}
 
     		}
     		else {
-    			m_botAction.sendPrivateMessage(sender, "There is no leader at this moment.");
+    			message += "There is no leader at this moment.";
+    		}
+    		
+    		if (messageSuffix) {
+    			m_botAction.sendPrivateMessage(sender, "[KILL-O-THON] " + message);
+    			m_botAction.sendPrivateMessage(sender, "[KILL-O-THON] Time left: " + getTimeRemaining());
+    		} else {
+    			
     		}
     		
     	}
     	else {
-    		m_botAction.sendPrivateMessage(sender, "There is no session running at this moment.");
+    		m_botAction.sendPrivateMessage(sender, "There is no session running now. Next session: " + getNextSession());
     	}
+    }
+    
+    public String getNextSession() {
+    	
+    	if (sessionStarted) {
+    		return "Currently running";
+    	} else {
+    		if (startAt == 0) {
+    			return "Unknown";
+    		} else {
+    			return Tools.getTimeDiffString(startAt+interval*60000+length*60000, false);	
+    		}
+    	}
+    	
+    }
+    
+    public String getTimeRemaining() {
+    	
+    	if (sessionStarted) {
+    		long diff = System.currentTimeMillis()-startAt;
+    		return Tools.getTimeDiffString(System.currentTimeMillis()+length*60000-diff, false);
+    	} else {
+    		return "Not running";
+    	}
+    	
     }
     
 	@Override
@@ -290,7 +334,7 @@ public class PubKillSessionModule extends AbstractModule {
         try {
         	
             if(command.trim().equals("!killothon"))
-            	doStatCmd(sender);
+            	doStatCmd(sender,false);
             
         } catch(RuntimeException e) {
         	Tools.printStackTrace(e);
@@ -305,13 +349,13 @@ public class PubKillSessionModule extends AbstractModule {
 		
         try {
         	
-            if(command.startsWith("!killothon_setting"))
+            if(command.startsWith("!settingkillothon"))
             	doSettingCmd(sender, command.substring(18).trim());
-            else if(command.trim().equals("!killothon_start"))
+            else if(command.trim().equals("!startkillothon"))
             	doStartCmd(sender);
-            else if(command.trim().equals("!killothon_stop"))
+            else if(command.trim().equals("!stopkillothon"))
             	doStopCmd(sender);
-            else if(command.trim().equals("!killothon_cancel"))
+            else if(command.trim().equals("!cancelkillothon"))
             	doCancelCmd(sender);
             
         } catch(RuntimeException e) {
@@ -324,17 +368,17 @@ public class PubKillSessionModule extends AbstractModule {
 	@Override
 	public String[] getHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!killothon        -- Your current stat + current leader."),
+			pubsystem.getHelpLine("!killothon        -- Your current stat + current leader + time left or next session."),
         };
 	}
 
 	@Override
 	public String[] getModHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!killothon_setting <length>:<interval>:<money>   -- Change settings (in minutes)."),
-			pubsystem.getHelpLine("!killothon_start       -- Start a new session of kill-o-thon (" + length + " min. for $" + winnerMoney + ")."),
-			pubsystem.getHelpLine("!killothon_stop        -- Stop the current session with winner announcement."),
-			pubsystem.getHelpLine("!killothon_cancel      -- Cancel the current session without any announcement."),
+			pubsystem.getHelpLine("!settingkillothon <length>:<interval>:<money>   -- Change settings (in minutes)."),
+			pubsystem.getHelpLine("!startkillothon       -- Start a new session of kill-o-thon (" + length + " min. for $" + winnerMoney + ")."),
+			pubsystem.getHelpLine("!stopkillothon        -- Stop the current session with winner announcement."),
+			pubsystem.getHelpLine("!cancelkillothon      -- Cancel the current session without any announcement."),
         };
 	}
 
@@ -345,7 +389,7 @@ public class PubKillSessionModule extends AbstractModule {
 
 	@Override
 	public void start() {
-
+		startSession();
 	}
 
 	@Override
