@@ -312,10 +312,15 @@ public class PubMoneySystemModule extends AbstractModule {
     		String[] split = command.split("\\s*:\\s*");
     		String name = split[0];
     		String money = split[1];
+    		int moneyInt = Integer.valueOf(money);
     		PubPlayer pubPlayer = playerManager.getPlayer(name,false);
     		if (pubPlayer != null) {
     			int currentMoney = pubPlayer.getMoney();
-    			pubPlayer.addMoney(Integer.valueOf(money));
+    			if (moneyInt > 0)
+    				pubPlayer.addMoney(moneyInt);
+    			else
+    				pubPlayer.removeMoney(moneyInt);
+    			
     			m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $" + (currentMoney+Integer.valueOf(money)) + " (before: $" + currentMoney + ")");
     		
     		} else {

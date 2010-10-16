@@ -275,6 +275,32 @@ public class PubStreakModule extends AbstractModule {
     	}
     }
     
+    public void doSetStreakCmd( String sender, String command ) {
+    	
+    	command = command.substring(11).trim();
+    	if (command.contains(":")) 
+    	{
+    		String[] split = command.split("\\s*:\\s*");
+    		String name = split[0];
+    		try {
+	    		int streak = Integer.parseInt(split[1]);
+	    		PubPlayer pubPlayer = context.getPlayerManager().getPlayer(name);
+	    		if (pubPlayer != null) {
+	    			pubPlayer.setBestStreak(streak);
+	    		}
+	    		winStreaks.put(pubPlayer.getPlayerName(), streak);
+    		} catch (NumberFormatException e) {
+    			m_botAction.sendPrivateMessage(sender, "Error number!");
+    			return;
+    		}
+        	m_botAction.sendPrivateMessage(sender, "Done!");
+        	doStreakCmd(sender, name);
+    	} else {
+    		m_botAction.sendPrivateMessage(sender, "Error command!");
+    	}
+    	
+    }
+    
     public void doStreakResetCmd( String sender ) {
 
     	bestWinStreak = 0;
@@ -304,6 +330,9 @@ public class PubStreakModule extends AbstractModule {
 		
         if(command.equals("!streakreset"))
             doStreakResetCmd(sender);
+        
+        if(m_botAction.getOperatorList().isOwner(sender) && command.startsWith("!setstreak"))
+            doSetStreakCmd(sender, command);
 	}
 	
 	@Override
