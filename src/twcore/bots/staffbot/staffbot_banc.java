@@ -40,10 +40,10 @@ public class staffbot_banc extends Module {
             "----------------------[ BanC: ER+ ]-----------------------",
             " !silence <player>:<time/mins>  - Initiates an automatically enforced",
             "                                  silence on <player> for <time/mins>.",
+            " !silence <player>:<time>d        Trailing d in <time> will make it days.",    
             " !spec <player>:<time/mins>     - Initiates an automatically enforced",
             "                                  spectator-lock on <player> for <time/mins>.",
-            " !kick <player>:<time/mins>     - Initiates an automatically issued",
-            "                                  kick on <player> for <time/mins>. Mod+ only.",
+            " !spec <player>:<time>d           Trailing d in <time> will make it days.",
             " !listban [arg] [count]         - Shows last 10/[count] BanCs. Optional arguments see below.",
             " !listban [#id]                 - Shows information about BanC with <id>.",
             " !changeban <#id> <arguments>   - Changes banc with <id>. Arguments see below.",
@@ -733,7 +733,7 @@ public class staffbot_banc extends Module {
 					result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
 					result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + "  ";
 					result += Tools.formatString(rs.getString("fcType"),7) + "  ";
-					result += "mins:"+Tools.formatString(rs.getString("fnDuration"), 3) + "  ";
+					result += "mins:"+Tools.formatString(rs.getString("fnDuration"), 5) + "  ";
 					result += rs.getString("fcUsername");
 					m_botAction.sendSmartPrivateMessage(name, result);
 					
@@ -1347,7 +1347,7 @@ public class staffbot_banc extends Module {
 		private Date created;
 		/** Duration of the BanC in minutes */
 		private long duration = -1;
-		private Boolean notification = true;
+		private Boolean notification = false;
 		
 		private String staffer;
 		private String comment;
