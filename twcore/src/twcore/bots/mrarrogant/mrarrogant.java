@@ -233,6 +233,7 @@ public class mrarrogant extends SubspaceBot
     			"You won't be kicked if you idle in the arena 'afk' (type '?go afk' after logging in). Cya later."
     			};
     	m_botAction.smartPrivateMessageSpam(target, msg);
+    	m_botAction.sendChatMessage("The player "+target+" was afk and got kicked out of Trench Wars. I'm Arrogant!");
     	m_botAction.sendUnfilteredPrivateMessage(target, "*kill");
     }
       
