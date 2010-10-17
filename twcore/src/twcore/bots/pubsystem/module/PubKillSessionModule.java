@@ -295,7 +295,7 @@ public class PubKillSessionModule extends AbstractModule {
     			m_botAction.sendPrivateMessage(sender, "[KILL-O-THON] Time left: " + getTimeRemaining());
     		} else {
     			m_botAction.sendPrivateMessage(sender, message);
-    			m_botAction.sendPrivateMessage(sender, getTimeRemaining());
+    			m_botAction.sendPrivateMessage(sender, "Time left: " + getTimeRemaining());
     		}
     		
     	}
