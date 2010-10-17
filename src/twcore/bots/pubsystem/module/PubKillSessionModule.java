@@ -289,7 +289,7 @@ public class PubKillSessionModule extends AbstractModule {
     		else {
     			message += "There is no leader at this moment.";
     		}
-    		
+    		 
     		if (messageSuffix) {
     			m_botAction.sendPrivateMessage(sender, "[KILL-O-THON] " + message);
     			m_botAction.sendPrivateMessage(sender, "[KILL-O-THON] Time left: " + getTimeRemaining());

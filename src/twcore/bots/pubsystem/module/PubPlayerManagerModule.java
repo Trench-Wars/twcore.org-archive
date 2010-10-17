@@ -174,6 +174,9 @@ public class PubPlayerManagerModule extends AbstractModule {
 	public void handleEvent(PlayerEntered event) {
 
     	Player p = m_botAction.getPlayer(event.getPlayerID());
+    	if (p == null)
+    		return;
+    	
     	String playerName = p.getPlayerName();
     	
     	PubPlayer pubPlayer = addPlayerToSystem(playerName);
