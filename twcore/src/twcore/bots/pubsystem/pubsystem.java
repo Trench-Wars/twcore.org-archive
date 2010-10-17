@@ -252,35 +252,8 @@ public class pubsystem extends SubspaceBot
      */
     public void handleEvent(PlayerEntered event)
     {
-        try {
-        	
-            int playerID = event.getPlayerID();
-            Player player = m_botAction.getPlayer(playerID);
-            String playerName = m_botAction.getPlayerName(playerID);
-
-            if(context.isStarted()) {
-            	
-            	String message = 
-            		//"Welcome to Pub.  " +
-            		"Private freqs:[" + (context.getPubUtil().isPrivateFrequencyEnabled() ? "ON" : "OFF") + "]  " + 
-            		"Streak:[" + (context.getPubStreak().isEnabled() ? "ON" : "OFF") + "]  " +
-            		"Store:[" + (context.getMoneySystem().isStoreOpened() ? "ON" : "OFF") + "]  " + 
-            		"Kill-o-thon:[" + (context.getPubKillSession().isRunning() ? "ON" : "OFF") + "]  " +
-            		"Duel:[" + (context.getPubChallenge().isEnabled() ? "ON" : "OFF") + "]  " +
-            		"Hunt:[" + (context.getPubHunt().isEnabled() ? "ON" : "OFF") + "]";
-            		//"Lottery:[" + (context.getP().isRunning() ? "ON" : "OFF") + "]; 
-            	
-            	
-                m_botAction.sendPrivateMessage(playerName, message );
-                m_botAction.sendPrivateMessage(playerName, "Type !help for a list of commands.");
-
-                context.handleEvent(event);
-            }
-
-        } catch (Exception e) {
-        	Tools.printStackTrace(e);
-        }
-
+		m_botAction.scheduleTask(new PlayerEnteredTask(event), 2*Tools.TimeInMillis.SECOND);
+  
     }
 
 
@@ -668,6 +641,47 @@ public class pubsystem extends SubspaceBot
     /* **********************************  TIMERTASK CLASSES  ************************************ */
 
 
+    private class PlayerEnteredTask extends TimerTask {
+
+    	private PlayerEntered event;
+    	
+    	public PlayerEnteredTask(PlayerEntered event) {
+    		this.event = event;
+    	}
+		
+		public void run() {
+			try {
+	        	
+	            int playerID = event.getPlayerID();
+	            Player player = m_botAction.getPlayer(playerID);
+	            String playerName = m_botAction.getPlayerName(playerID);
+
+	            if(context.isStarted()) {
+	            	
+	            	String message = 
+	            		//"Welcome to Pub.  " +
+	            		"Private freqs:[" + (context.getPubUtil().isPrivateFrequencyEnabled() ? "ON" : "OFF") + "]  " + 
+	            		"Streak:[" + (context.getPubStreak().isEnabled() ? "ON" : "OFF") + "]  " +
+	            		"Store:[" + (context.getMoneySystem().isStoreOpened() ? "ON" : "OFF") + "]  " + 
+	            		"Kill-o-thon:[" + (context.getPubKillSession().isRunning() ? "ON" : "OFF") + "]  " +
+	            		"Duel:[" + (context.getPubChallenge().isEnabled() ? "ON" : "OFF") + "]  " +
+	            		"Hunt:[" + (context.getPubHunt().isEnabled() ? "ON" : "OFF") + "]";
+	            		//"Lottery:[" + (context.getP().isRunning() ? "ON" : "OFF") + "]; 
+	            	
+	            	
+	                m_botAction.sendPrivateMessage(playerName, message );
+	                m_botAction.sendPrivateMessage(playerName, "Type !help for a list of commands.");
+
+	                context.handleEvent(event);
+	            }
+
+	        } catch (Exception e) {
+	        	Tools.printStackTrace(e);
+	        }
+		}
+    	
+    }
+    
     /**
      * Task used to toggle bot options on or off.  (Define toggles inside CFG.)
      */

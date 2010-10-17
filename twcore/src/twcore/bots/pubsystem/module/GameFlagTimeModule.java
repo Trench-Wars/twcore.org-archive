@@ -226,7 +226,7 @@ public class GameFlagTimeModule extends AbstractModule {
             }
 
             // Terrs and Levis can't warp into base if Levis are enabled
-            if (!context.getPlayerManager().isShipRestricted(Tools.Ship.LEVIATHAN)) {
+            if (context.getPlayerManager().isShipRestricted(Tools.Ship.LEVIATHAN)) {
     	        if (ship == Tools.Ship.LEVIATHAN || ship == Tools.Ship.TERRIER) {         
     	        	warpPlayers.remove(playerName);
     	        }   
