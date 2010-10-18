@@ -595,15 +595,15 @@ public class PubMoneySystemModule extends AbstractModule {
     		
     		IPCMessage ipc = (IPCMessage)event.getObject();
     		String message = ipc.getMessage();
-    		
-    		// Protocol>   addmoney:<name>:<money>
-    		if(message.startsWith("addmoney")) {
+
+    		// Protocol>   coupon:<code>:<name>:<money>
+    		if(message.startsWith("coupon:")) {
     			String[] pieces = message.split(":");
-    			boolean result = context.getPlayerManager().addMoney(pieces[1], Integer.valueOf(pieces[2]), true);
+    			boolean result = context.getPlayerManager().addMoney(pieces[2], Integer.valueOf(pieces[3]), true);
     			if (result) {
-    				m_botAction.sendSmartPrivateMessage(pieces[1], "$" + pieces[2] + " has been added to your account.");
+    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponsuccess:" + pieces[1] + ":" + pieces[2], null, null);
     			} else {
-    				m_botAction.sendSmartPrivateMessage(pieces[1], "An error has occured, please contact a staff by using ?help");
+    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponerror:" + pieces[1] + ":" + pieces[2], null, null);
     			}
     		}
     		
