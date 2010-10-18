@@ -787,8 +787,12 @@ public class staffbot_banc extends Module {
 							result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + " ";
 							result += Tools.formatString(rs.getString("fcType"),7) + " ";
 							int time = Integer.parseInt( rs.getString("fnDuration") );
-							if(time >= 24*60)
-							    result += " days: "+(time/24)/60;
+							if(time >= 24*60){
+							    int days = (time/24)/60;
+							    String daysNumber = days+"";
+							    result += " days: "+Tools.formatString(daysNumber, 3);
+							    
+							}
 							else 
 							    result += " mins:"+Tools.formatString(rs.getString("fnDuration"), 3) + " ";
 							if(m_botAction.getOperatorList().isModerator(name))
