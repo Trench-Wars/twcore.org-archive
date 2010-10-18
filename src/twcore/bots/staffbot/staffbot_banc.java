@@ -1212,7 +1212,7 @@ public class staffbot_banc extends Module {
 	            m_botAction.sendPrivateMessage(stafferName, rs.getString(6)); //by fcMinAccess
 	            m_botAction.sendPrivateMessage(stafferName, "fnDuration: "+rs.getInt(7)); //fnDuration
 	            m_botAction.sendPrivateMessage(stafferName, rs.getString(8)); //by fcStaffer
-	            m_botAction.sendPrivateMessage(stafferName, rs.getString(9)); //fcComment
+	            //m_botAction.sendPrivateMessage(stafferName, rs.getString(9)); //fcComment
 	            m_botAction.sendPrivateMessage(stafferName, " ");
 	            
 	        }
