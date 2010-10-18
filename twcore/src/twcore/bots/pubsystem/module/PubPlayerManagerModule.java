@@ -98,7 +98,8 @@ public class PubPlayerManagerModule extends AbstractModule {
 			if (database!=null) 
 				m_botAction.SQLBackgroundQuery(database, "", "UPDATE tblPlayerStats "
 						+ "SET fnMoney = fnMoney+" + Math.abs(money) + " "
-						+ "WHERE fcName='" + playerName + "'");
+						+ "WHERE fcName='" + Tools.addSlashes(playerName) + "'");
+			return true;
 		}
 		return false;
 	}
@@ -196,7 +197,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         }
 
         if( restrictions != "" )
-            m_botAction.sendPrivateMessage(playerName, "Ship restrictions: " + restrictions );
+            m_botAction.sendSmartPrivateMessage(playerName, "Ship restrictions: " + restrictions );
 
         if (context.isStarted()) {
 	        checkPlayer(event.getPlayerID());
@@ -231,7 +232,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             if (huntPlayer != null && context.getPubHunt().isRunning()) {
             	if (huntPlayer.freq != event.getFrequency()) {
             		m_botAction.setFreq(playerID, huntPlayer.freq);
-            		m_botAction.sendPrivateMessage(playerID, "You cannot change your frequency during a game of hunt.");
+            		m_botAction.sendSmartPrivateMessage(player.getPlayerName(), "You cannot change your frequency during a game of hunt.");
             	}
             } else {
             	checkPlayer(playerID);
@@ -261,9 +262,9 @@ public class PubPlayerManagerModule extends AbstractModule {
 				if (pubPlayerKiller != null) {
 					if (pubPlayerKiller.getMoney() >= 200) {
 						pubPlayerKiller.removeMoney(200);
-						m_botAction.sendPrivateMessage(killer.getPlayerName(), "Spawning is uncool, $200 subtracted from your money.");
+						m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "Spawning is uncool, $200 subtracted from your money.");
 					} else {
-						m_botAction.sendPrivateMessage(killer.getPlayerName(), "Spawning is uncool.");
+						m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "Spawning is uncool.");
 					}
 				}
 			}
@@ -730,7 +731,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 		
         if(command.equals("!debug")) {
             for(PubPlayer p: players.values()) {
-            	m_botAction.sendPrivateMessage(sender, p.getPlayerName());
+            	m_botAction.sendSmartPrivateMessage(sender, p.getPlayerName());
             }
         }
 	}

@@ -240,11 +240,11 @@ public class PubStreakModule extends AbstractModule {
     		PubPlayer player = context.getPlayerManager().getPlayer(sender);
     		
     		if (winStreaks.containsKey(sender)) {
-    			m_botAction.sendPrivateMessage(sender, "Current streak: " + winStreaks.get(sender) + " kill(s).");
+    			m_botAction.sendSmartPrivateMessage(sender, "Current streak: " + winStreaks.get(sender) + " kill(s).");
     		} else
-    			m_botAction.sendPrivateMessage(sender, "Current streak: none");
+    			m_botAction.sendSmartPrivateMessage(sender, "Current streak: none");
 			if (player != null)
-				m_botAction.sendPrivateMessage(sender, "Best streak: " + player.getBestStreak() + " kill(s).");
+				m_botAction.sendSmartPrivateMessage(sender, "Best streak: " + player.getBestStreak() + " kill(s).");
     	}
     	else {
     		
@@ -253,14 +253,14 @@ public class PubStreakModule extends AbstractModule {
     		
     			name = player.getPlayerName();
 	    		if (winStreaks.containsKey(name)) {
-	    			m_botAction.sendPrivateMessage(sender, "Current streak of " + name + ": " + winStreaks.get(name) + " kill(s).");
+	    			m_botAction.sendSmartPrivateMessage(sender, "Current streak of " + name + ": " + winStreaks.get(name) + " kill(s).");
 	    		} else {
-	    			m_botAction.sendPrivateMessage(sender, name + " has not streak yet.");
+	    			m_botAction.sendSmartPrivateMessage(sender, name + " has not streak yet.");
 	    		}
-    			m_botAction.sendPrivateMessage(sender, "Best streak: " + player.getBestStreak() + " kill(s).");
+    			m_botAction.sendSmartPrivateMessage(sender, "Best streak: " + player.getBestStreak() + " kill(s).");
     		
     		} else {
-    			m_botAction.sendPrivateMessage(sender, "Player not found.");
+    			m_botAction.sendSmartPrivateMessage(sender, "Player not found.");
     		}
     		
     	}
@@ -269,9 +269,9 @@ public class PubStreakModule extends AbstractModule {
     public void doBestSessionStreakCmd( String sender ) {
 
     	if (bestWinStreakPlayer != null) {
-    		m_botAction.sendPrivateMessage(sender, "Best streak of the session: " + bestWinStreakPlayer.getPlayerName() + " with " + bestWinStreak + " kills.");
+    		m_botAction.sendSmartPrivateMessage(sender, "Best streak of the session: " + bestWinStreakPlayer.getPlayerName() + " with " + bestWinStreak + " kills.");
     	} else {
-    		m_botAction.sendPrivateMessage(sender, "There is no streak recorded yet.");
+    		m_botAction.sendSmartPrivateMessage(sender, "There is no streak recorded yet.");
     	}
     }
     
@@ -290,13 +290,13 @@ public class PubStreakModule extends AbstractModule {
 	    		}
 	    		winStreaks.put(pubPlayer.getPlayerName(), streak);
     		} catch (NumberFormatException e) {
-    			m_botAction.sendPrivateMessage(sender, "Error number!");
+    			m_botAction.sendSmartPrivateMessage(sender, "Error number!");
     			return;
     		}
-        	m_botAction.sendPrivateMessage(sender, "Done!");
+        	m_botAction.sendSmartPrivateMessage(sender, "Done!");
         	doStreakCmd(sender, name);
     	} else {
-    		m_botAction.sendPrivateMessage(sender, "Error command!");
+    		m_botAction.sendSmartPrivateMessage(sender, "Error command!");
     	}
     	
     }

@@ -25,6 +25,7 @@ import twcore.core.events.FlagReward;
 import twcore.core.events.FlagVictory;
 import twcore.core.events.FrequencyChange;
 import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.InterProcessEvent;
 import twcore.core.events.KotHReset;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
@@ -157,6 +158,7 @@ public class pubsystem extends SubspaceBot
 			}
 			
 	        context = new PubContext(m_botAction);
+	        context.handleEvent(event);
 
 	        m_botAction.setPlayerPositionUpdating(500);
 	        m_botAction.receiveAllPlayerDeaths();
@@ -271,8 +273,8 @@ public class pubsystem extends SubspaceBot
             		//"Lottery:[" + (context.getP().isRunning() ? "ON" : "OFF") + "]; 
             	
             	
-                m_botAction.sendPrivateMessage(playerName, message );
-                m_botAction.sendPrivateMessage(playerName, "Type !help for a list of commands.");
+                m_botAction.sendSmartPrivateMessage(playerName, message );
+                m_botAction.sendSmartPrivateMessage(playerName, "Type !help for a list of commands.");
 
                 context.handleEvent(event);
             }
@@ -370,23 +372,23 @@ public class pubsystem extends SubspaceBot
 
     public void doAboutCmd(String sender) {
     	String text = "This bot is an updated version of purepubbot, formerly known as RoboBoy/Girl.";
-    	m_botAction.sendPrivateMessage(sender, text);
-    	m_botAction.sendPrivateMessage(sender, "");
-    	m_botAction.sendPrivateMessage(sender, "Credits: Arobas+ and Dexter (main update)");
-    	m_botAction.sendPrivateMessage(sender, "         Subby and Eria (challenge/lottery feature)");
-    	m_botAction.sendPrivateMessage(sender, "         Diakka and Flared (for the map and setting)");
-    	m_botAction.sendPrivateMessage(sender, "         Witness, Dezmond and Cheese! (for their support)");
-    	m_botAction.sendPrivateMessage(sender, "         Qan and Cpt. Guano (authors of purepubbot)");
-    	m_botAction.sendPrivateMessage(sender, "         And many more...");
+    	m_botAction.sendSmartPrivateMessage(sender, text);
+    	m_botAction.sendSmartPrivateMessage(sender, "");
+    	m_botAction.sendSmartPrivateMessage(sender, "Credits: Arobas+ and Dexter (main update)");
+    	m_botAction.sendSmartPrivateMessage(sender, "         Subby and Eria (challenge/lottery feature)");
+    	m_botAction.sendSmartPrivateMessage(sender, "         Diakka and Flared (for the map and setting)");
+    	m_botAction.sendSmartPrivateMessage(sender, "         Witness, Dezmond and Cheese! (for their support)");
+    	m_botAction.sendSmartPrivateMessage(sender, "         Qan and Cpt. Guano (authors of purepubbot)");
+    	m_botAction.sendSmartPrivateMessage(sender, "         And many more...");
     }
     
     public void doAlgorithmCmd(String sender) {
-    	m_botAction.sendPrivateMessage(sender, "This is a secret!");
+    	m_botAction.sendSmartPrivateMessage(sender, "This is a secret!");
     }
     
     public void doGreetMessageCmd(String sender, String command) {
     	m_botAction.sendUnfilteredPublicMacro("?set Misc:GreetMessage:" + command.substring(14).trim());
-    	m_botAction.sendPrivateMessage(sender, "Greeting message changed, reconnect to see the effect.");
+    	m_botAction.sendSmartPrivateMessage(sender, "Greeting message changed, reconnect to see the effect.");
     }
 
     /**
@@ -526,6 +528,10 @@ public class pubsystem extends SubspaceBot
 	
     public void handleDisconnect() {
     	context.handleDisconnect();
+    }
+    
+    public void handleEvent(InterProcessEvent event){
+    	context.handleEvent(event);
     }
     
     public void handleEvent(SQLResultEvent event){

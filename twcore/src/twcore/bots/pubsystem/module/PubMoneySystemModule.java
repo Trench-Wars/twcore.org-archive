@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.TimerTask;
 import java.util.Map.Entry;
 
+import twcore.bots.pubbot.pubbot;
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.PubUtilModule.Location;
@@ -29,14 +30,19 @@ import twcore.bots.pubsystem.util.PubLogSystem;
 import twcore.bots.pubsystem.util.PubLogSystem.LogType;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
+import twcore.core.events.InterProcessEvent;
+import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
+import twcore.core.util.ipc.IPCMessage;
 
 public class PubMoneySystemModule extends AbstractModule {
 
+	private final static String IPC_CHANNEL = "pubmoney";
+	
 	private PubStore store;
 	
 	private PubPlayerManagerModule playerManager;
@@ -66,7 +72,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	    } catch (Exception e) {
 	    	Tools.printStackTrace("Error while initializing the money system", e);
 		}
-	    
+
 	    reloadConfig();
     	
     }
@@ -75,6 +81,10 @@ public class PubMoneySystemModule extends AbstractModule {
 	public void requestEvents(EventRequester eventRequester)
 	{
 		eventRequester.request(EventRequester.PLAYER_DEATH);
+	}
+	
+	public void handleEvent(LoggedOn event) {
+		m_botAction.ipcSubscribe(IPC_CHANNEL);
 	}
 
     
@@ -110,7 +120,7 @@ public class PubMoneySystemModule extends AbstractModule {
             	
             	// Wait, is this player dueling?
             	if (context.getPubChallenge().isDueling(playerName)) {
-            		m_botAction.sendPrivateMessage(playerName, "You cannot buy an item while dueling.");
+            		m_botAction.sendSmartPrivateMessage(playerName, "You cannot buy an item while dueling.");
             		return;
             	}
             	
@@ -135,7 +145,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 	}
                 	if (item.hasDuration()) {
                     	final PubItemDuration duration = item.getDuration();
-                    	m_botAction.sendPrivateMessage(receiver.getPlayerName(), "You have " + duration.getSeconds() + " seconds to use your item.");
+                    	m_botAction.sendSmartPrivateMessage(receiver.getPlayerName(), "You have " + duration.getSeconds() + " seconds to use your item.");
                     	if (duration.hasTime()) {
                     		TimerTask timer = new TimerTask() {
                                 public void run() {
@@ -144,7 +154,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	                                	m_botAction.sendUnfilteredPrivateMessage(receiver.getPlayerName(), "*shipreset");
 	                                	m_botAction.giveBounty(receiver.getPlayerName(), bounty);
                                 	}
-                                	m_botAction.sendPrivateMessage(receiver.getPlayerName(), "Item '" + item.getName() + "' lost.");
+                                	m_botAction.sendSmartPrivateMessage(receiver.getPlayerName(), "Item '" + item.getName() + "' lost.");
                                 }
                             };
                             m_botAction.scheduleTask(timer, duration.getSeconds()*1000);
@@ -203,12 +213,12 @@ public class PubMoneySystemModule extends AbstractModule {
 
             } 
             else {
-                m_botAction.sendPrivateMessage(playerName, "You're not in the system to use !buy.");
+                m_botAction.sendSmartPrivateMessage(playerName, "You're not in the system to use !buy.");
             }
             
         }
         catch(PubException e) {
-        	 m_botAction.sendPrivateMessage(playerName, e.getMessage());
+        	 m_botAction.sendSmartPrivateMessage(playerName, e.getMessage());
         }
         catch(Exception e){
             Tools.printStackTrace(e);
@@ -219,7 +229,7 @@ public class PubMoneySystemModule extends AbstractModule {
     public void doCmdDonate(String sender, String command) {
     	
     	if (command.length()<8) {
-    		m_botAction.sendPrivateMessage(sender, "Try !donate <name>.");
+    		m_botAction.sendSmartPrivateMessage(sender, "Try !donate <name>.");
     		return;
     	}
     	
@@ -232,41 +242,41 @@ public class PubMoneySystemModule extends AbstractModule {
     		try {
     			Integer.valueOf(money);
     		} catch (NumberFormatException e) {
-    			m_botAction.sendPrivateMessage(sender, "You must specify a number. !donate playerA:1000");
+    			m_botAction.sendSmartPrivateMessage(sender, "You must specify a number. !donate playerA:1000");
     			return;
     		}
     		
     		if (context.getPubChallenge().isDueling(sender)) {
-    			m_botAction.sendPrivateMessage(sender, "You cannot donate while dueling.");
+    			m_botAction.sendSmartPrivateMessage(sender, "You cannot donate while dueling.");
     			return;
     		}
     		
     		if (Integer.valueOf(money) < 0) {
-    			m_botAction.sendPrivateMessage(sender, "What are you trying to do here?");
+    			m_botAction.sendSmartPrivateMessage(sender, "What are you trying to do here?");
     			return;
     		}
     		
     		if (Integer.valueOf(money) < 250) {
-    			m_botAction.sendPrivateMessage(sender, "You cannot donate for less than $250.");
+    			m_botAction.sendSmartPrivateMessage(sender, "You cannot donate for less than $250.");
     			return;
     		}
     		
     		/* Not needed
     		if (context.getPubChallenge().hasChallenged(sender)) {
-    			m_botAction.sendPrivateMessage(sender, "You cannot donate while challenging a player for a duel.");
+    			m_botAction.sendSmartPrivateMessage(sender, "You cannot donate while challenging a player for a duel.");
     			return;
     		}
     		*/
     		
     		Player p = m_botAction.getFuzzyPlayer(name);
     		if (p == null) {
-    			m_botAction.sendPrivateMessage(sender, "Player not found.");
+    			m_botAction.sendSmartPrivateMessage(sender, "Player not found.");
     			return;
     		}
     		name = p.getPlayerName();
     		
     		if (name.equals(sender)) {
-    			m_botAction.sendPrivateMessage(sender, "You cannot donate to yourself.");
+    			m_botAction.sendSmartPrivateMessage(sender, "You cannot donate to yourself.");
     			return;
     		}
 
@@ -275,7 +285,7 @@ public class PubMoneySystemModule extends AbstractModule {
     		if (pubPlayer != null && pubPlayerDonater != null) {
     			
     			if (pubPlayerDonater.getMoney() < Integer.valueOf(money)) {
-    				m_botAction.sendPrivateMessage(sender, "You don't have $" + Integer.valueOf(money) + " to donate.");
+    				m_botAction.sendSmartPrivateMessage(sender, "You don't have $" + Integer.valueOf(money) + " to donate.");
     				return;
     			}
     			
@@ -284,8 +294,8 @@ public class PubMoneySystemModule extends AbstractModule {
     			
     			pubPlayer.addMoney(moneyToDonate);
     			pubPlayerDonater.removeMoney(moneyToDonate);
-    			m_botAction.sendPrivateMessage(sender, "$" + moneyToDonate + " sent to " + pubPlayer.getPlayerName() + ".");
-    			m_botAction.sendPrivateMessage(pubPlayer.getPlayerName(), sender + " sent you $" + moneyToDonate + ", you have now $" + (moneyToDonate+currentMoney) + ".");
+    			m_botAction.sendSmartPrivateMessage(sender, "$" + moneyToDonate + " sent to " + pubPlayer.getPlayerName() + ".");
+    			m_botAction.sendSmartPrivateMessage(pubPlayer.getPlayerName(), sender + " sent you $" + moneyToDonate + ", you have now $" + (moneyToDonate+currentMoney) + ".");
 
         		String database = m_botAction.getBotSettings().getString("database");
         		
@@ -297,11 +307,11 @@ public class PubMoneySystemModule extends AbstractModule {
         		
     			
     		} else {
-    			m_botAction.sendPrivateMessage(sender, "Player not found.");
+    			m_botAction.sendSmartPrivateMessage(sender, "Player not found.");
     		}
     	}
     	else {
-    		m_botAction.sendPrivateMessage(sender, "Invalid argument");
+    		m_botAction.sendSmartPrivateMessage(sender, "Invalid argument");
     	}
     }
     
@@ -321,15 +331,15 @@ public class PubMoneySystemModule extends AbstractModule {
     			else
     				pubPlayer.removeMoney(moneyInt);
     			
-    			m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $" + (currentMoney+Integer.valueOf(money)) + " (before: $" + currentMoney + ")");
+    			m_botAction.sendSmartPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $" + (currentMoney+Integer.valueOf(money)) + " (before: $" + currentMoney + ")");
     		
     		} else {
     			playerManager.addMoney(name, Integer.valueOf(money), true);
-    			m_botAction.sendPrivateMessage(sender, name + " has now $" + money + " more money.");
+    			m_botAction.sendSmartPrivateMessage(sender, name + " has now $" + money + " more money.");
     		}
     	}
     	else {
-    		m_botAction.sendPrivateMessage(sender, "Invalid argument");
+    		m_botAction.sendSmartPrivateMessage(sender, "Invalid argument");
     	}
     }
 
@@ -337,7 +347,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	PubPlayer player = playerManager.getPlayer(playerName);
     	player.addMoney(amount);
         if (message!=null) {
-        	m_botAction.sendPrivateMessage(playerName, message);
+        	m_botAction.sendSmartPrivateMessage(playerName, message);
         }
     }
     
@@ -422,7 +432,7 @@ public class PubMoneySystemModule extends AbstractModule {
     
     private void doCmdDebugObj(String sender, String command) {
     	
-    	m_botAction.sendPrivateMessage(sender, "Average of " + LvzMoneyPanel.totalObjSentPerMinute() + " *obj sent per minute.");
+    	m_botAction.sendSmartPrivateMessage(sender, "Average of " + LvzMoneyPanel.totalObjSentPerMinute() + " *obj sent per minute.");
     }
     
     private void doCmdBankrupt(String sender, String command) {
@@ -434,9 +444,9 @@ public class PubMoneySystemModule extends AbstractModule {
 			if (pubPlayer != null) {
 				int money = pubPlayer.getMoney();
 				pubPlayer.setMoney(0);
-				m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $0 (before: $" + money + ")");
+				m_botAction.sendSmartPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $0 (before: $" + money + ")");
 			} else {
-				m_botAction.sendPrivateMessage(sender, "Player '" + name + "' not found.");
+				m_botAction.sendSmartPrivateMessage(sender, "Player '" + name + "' not found.");
 			}
     	}
     }
@@ -448,34 +458,34 @@ public class PubMoneySystemModule extends AbstractModule {
         if(p == null)
             return;
         if (!command.contains(" ")) {
-        	m_botAction.sendPrivateMessage(sender, "You need to supply an item.");
+        	m_botAction.sendSmartPrivateMessage(sender, "You need to supply an item.");
         	return;
         }
         String itemName = command.substring(command.indexOf(" ")).trim();
         PubItem item = store.getItem(itemName);
         if (item == null) {
-        	m_botAction.sendPrivateMessage(sender, "Item '" + itemName + "' not found.");
+        	m_botAction.sendSmartPrivateMessage(sender, "Item '" + itemName + "' not found.");
         }
         else {
         	
-        	m_botAction.sendPrivateMessage(sender, "Item: " + item.getName() + " (" + item.getDescription() + ")");
-        	m_botAction.sendPrivateMessage(sender, "Price: $" + item.getPrice());
+        	m_botAction.sendSmartPrivateMessage(sender, "Item: " + item.getName() + " (" + item.getDescription() + ")");
+        	m_botAction.sendSmartPrivateMessage(sender, "Price: $" + item.getPrice());
         	
         	if (item.isPlayerOptional()) {
-        		m_botAction.sendPrivateMessage(sender, "Targetable: Optional");
+        		m_botAction.sendSmartPrivateMessage(sender, "Targetable: Optional");
         	} else if (item.isPlayerStrict()) {
-        		m_botAction.sendPrivateMessage(sender, "Targetable: Required");
+        		m_botAction.sendSmartPrivateMessage(sender, "Targetable: Required");
         	} else {
-        		m_botAction.sendPrivateMessage(sender, "Targetable: No");
+        		m_botAction.sendSmartPrivateMessage(sender, "Targetable: No");
         	}
 
         	if (item.isRestricted()) {
-        		m_botAction.sendPrivateMessage(sender, "Restrictions:");
+        		m_botAction.sendSmartPrivateMessage(sender, "Restrictions:");
         		String info = "";
         		PubItemRestriction r = item.getRestriction();
         		if (r.getRestrictedShips().size()==8) {
 	        		info += "Cannot be bought while playing"; 
-	        		m_botAction.sendPrivateMessage(sender, "  - Cannot be bought while playing");
+	        		m_botAction.sendSmartPrivateMessage(sender, "  - Cannot be bought while playing");
         		} else {
         			String ships = "";
         			for(int i=1; i<9; i++) {
@@ -483,42 +493,42 @@ public class PubMoneySystemModule extends AbstractModule {
         					ships += i+",";
         				}
         			}
-        			m_botAction.sendPrivateMessage(sender, "  - Available only for ship(s) : " + ships.substring(0, ships.length()-1));
+        			m_botAction.sendSmartPrivateMessage(sender, "  - Available only for ship(s) : " + ships.substring(0, ships.length()-1));
         		}
         		if (r.getMaxConsecutive()!=-1) {
-        			m_botAction.sendPrivateMessage(sender, "  - Maximum of " + r.getMaxConsecutive()+" consecutive purchase(s)");
+        			m_botAction.sendSmartPrivateMessage(sender, "  - Maximum of " + r.getMaxConsecutive()+" consecutive purchase(s)");
         		}
         		if (r.getMaxPerLife()!=-1) {
-        			m_botAction.sendPrivateMessage(sender, "  - Maximum of " + r.getMaxPerLife()+" per life");
+        			m_botAction.sendSmartPrivateMessage(sender, "  - Maximum of " + r.getMaxPerLife()+" per life");
         		}
         		if (r.getMaxPerSecond()!=-1) {
-        			m_botAction.sendPrivateMessage(sender, "  - Maximum of 1 every "+r.getMaxPerSecond()+" seconds (player only)");
+        			m_botAction.sendSmartPrivateMessage(sender, "  - Maximum of 1 every "+r.getMaxPerSecond()+" seconds (player only)");
         		}
         		if (r.getMaxArenaPerMinute()!=-1) {
-        			m_botAction.sendPrivateMessage(sender, "  - Maximum of 1 every "+r.getMaxArenaPerMinute()+" minutes for the whole arena");
+        			m_botAction.sendSmartPrivateMessage(sender, "  - Maximum of 1 every "+r.getMaxArenaPerMinute()+" minutes for the whole arena");
         		}
         		if (!r.isBuyableFromSpec()) {
-        			m_botAction.sendPrivateMessage(sender, "  - Cannot be bought while spectating");
+        			m_botAction.sendSmartPrivateMessage(sender, "  - Cannot be bought while spectating");
         		}
         	}
 
         	if (item.hasDuration()) {
-        		m_botAction.sendPrivateMessage(sender, "Durations:");
+        		m_botAction.sendSmartPrivateMessage(sender, "Durations:");
         		PubItemDuration d = item.getDuration();
         		if (d.getDeaths()!=-1 && d.getSeconds()!=-1 && d.getSeconds() > 60) {
-        			m_botAction.sendPrivateMessage(sender, "  - " + d.getDeaths()+" life(s) or "+(int)(d.getSeconds()/60)+" minutes");
+        			m_botAction.sendSmartPrivateMessage(sender, "  - " + d.getDeaths()+" life(s) or "+(int)(d.getSeconds()/60)+" minutes");
         		}
         		else if (d.getDeaths()!=-1 && d.getSeconds()!=-1 && d.getSeconds() <= 60) {
-        			m_botAction.sendPrivateMessage(sender, "  - " + d.getDeaths()+" life(s) or "+(int)(d.getSeconds())+" seconds");
+        			m_botAction.sendSmartPrivateMessage(sender, "  - " + d.getDeaths()+" life(s) or "+(int)(d.getSeconds())+" seconds");
         		}
         		else if (d.getDeaths()!=-1) {
-        			m_botAction.sendPrivateMessage(sender, "  - " + d.getDeaths()+" life(s)");
+        			m_botAction.sendSmartPrivateMessage(sender, "  - " + d.getDeaths()+" life(s)");
         		}
         		else if (d.getSeconds()!=-1 && d.getSeconds() > 60) {
-        			m_botAction.sendPrivateMessage(sender, "  - " + (int)(d.getSeconds()/60)+" minutes");
+        			m_botAction.sendSmartPrivateMessage(sender, "  - " + (int)(d.getSeconds()/60)+" minutes");
         		}
         		else if (d.getSeconds()!=-1 && d.getSeconds() <= 60) {
-        			m_botAction.sendPrivateMessage(sender, "  - " + (int)(d.getSeconds())+" seconds");
+        			m_botAction.sendSmartPrivateMessage(sender, "  - " + (int)(d.getSeconds())+" seconds");
         		}
 
         	}
@@ -543,7 +553,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	int count = 0;
     	while(it2.hasNext() && count < 3) {
     		Entry<String,Integer> entry = it2.next();
-    		m_botAction.sendPrivateMessage(sender, ++count + ". " + entry.getKey() + " with $" + entry.getValue());
+    		m_botAction.sendSmartPrivateMessage(sender, ++count + ". " + entry.getKey() + " with $" + entry.getValue());
     	}
     }
     
@@ -554,16 +564,16 @@ public class PubMoneySystemModule extends AbstractModule {
     		name = command.substring(command.indexOf(" ")).trim();
 			PubPlayer pubPlayer = playerManager.getPlayer(name,false);
 			if (pubPlayer != null) {
-				m_botAction.sendPrivateMessage(sender, pubPlayer.getPlayerName() + " has $"+pubPlayer.getMoney() + ".");
+				m_botAction.sendSmartPrivateMessage(sender, pubPlayer.getPlayerName() + " has $"+pubPlayer.getMoney() + ".");
 			} else {
-				m_botAction.sendPrivateMessage(sender, "Player '" + name + "' not found.");
+				m_botAction.sendSmartPrivateMessage(sender, "Player '" + name + "' not found.");
 			}
     	}
     	else if(playerManager.isPlayerExists(name)) {
             PubPlayer pubPlayer = playerManager.getPlayer(sender);
-            m_botAction.sendPrivateMessage(sender, "You have $"+pubPlayer.getMoney() + " in your bank.");
+            m_botAction.sendSmartPrivateMessage(sender, "You have $"+pubPlayer.getMoney() + " in your bank.");
         } else {
-            m_botAction.sendPrivateMessage(sender, "You're still not in the system. Wait a bit to be added.");
+            m_botAction.sendSmartPrivateMessage(sender, "You're still not in the system. Wait a bit to be added.");
         }
     }
     
@@ -573,6 +583,31 @@ public class PubMoneySystemModule extends AbstractModule {
     
     public boolean isDatabaseOn() {
     	return  m_botAction.getBotSettings().getString("database") != null;
+    }
+    
+    public void handleDisconnect() {
+    	m_botAction.ipcSubscribe(IPC_CHANNEL);
+    }
+    
+    public void handleEvent(InterProcessEvent event) {
+    	
+    	if(event.getObject() instanceof IPCMessage) {
+    		
+    		IPCMessage ipc = (IPCMessage)event.getObject();
+    		String message = ipc.getMessage();
+    		
+    		// Protocol>   addmoney:<name>:<money>
+    		if(message.startsWith("addmoney")) {
+    			String[] pieces = message.split(":");
+    			boolean result = context.getPlayerManager().addMoney(pieces[1], Integer.valueOf(pieces[2]), true);
+    			if (result) {
+    				m_botAction.sendSmartPrivateMessage(pieces[1], "$" + pieces[2] + " has been added to your account.");
+    			} else {
+    				m_botAction.sendSmartPrivateMessage(pieces[1], "An error has occured, please contact a staff by using ?help");
+    			}
+    		}
+    		
+    	}
     }
 
     public void handleEvent(PlayerDeath event) {
@@ -624,7 +659,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     		pubPlayerKilled.resetShipItem();
                     		m_botAction.setShip(killed.getPlayerName(), 1);
                     		playersWithDurationItem.remove(pubPlayerKilled);
-                    		m_botAction.sendPrivateMessage(killed.getPlayerName(), "You lost your ship after " + duration.getDeaths() + " death(s).",22);
+                    		m_botAction.sendSmartPrivateMessage(killed.getPlayerName(), "You lost your ship after " + duration.getDeaths() + " death(s).",22);
                         }
                     };
                     m_botAction.scheduleTask(timer, 4300);

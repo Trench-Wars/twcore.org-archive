@@ -221,19 +221,19 @@ public class PubContext {
         	if (modules.containsKey(moduleName)) {
         		if (enable) {
         			modules.get(moduleName).enable();
-        			m_botAction.sendPrivateMessage(sender, "Module '" + moduleName + "' enabled.");
+        			m_botAction.sendSmartPrivateMessage(sender, "Module '" + moduleName + "' enabled.");
         		} else {
         			modules.get(moduleName).disable();
-        			m_botAction.sendPrivateMessage(sender, "Module '" + moduleName + "' disabled.");
+        			m_botAction.sendSmartPrivateMessage(sender, "Module '" + moduleName + "' disabled.");
         		}
         	}
         	else {
-        		m_botAction.sendPrivateMessage(sender, "Module '" + moduleName + "' not found.");
+        		m_botAction.sendSmartPrivateMessage(sender, "Module '" + moduleName + "' not found.");
         		String moduleNames = "";
         		for(String name: modules.keySet()) {
         			moduleNames += ", " + name;
         		}
-        		m_botAction.sendPrivateMessage(sender, "Avalaible: " + moduleNames.substring(1));
+        		m_botAction.sendSmartPrivateMessage(sender, "Avalaible: " + moduleNames.substring(1));
         	}
         }
 

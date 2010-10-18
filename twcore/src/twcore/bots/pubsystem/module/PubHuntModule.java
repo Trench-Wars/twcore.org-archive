@@ -94,19 +94,19 @@ public class PubHuntModule extends AbstractModule {
     	
 		for(HuntPlayer player: players.values()) {
 			if (player.isPlaying())
-				m_botAction.sendPrivateMessage(name, "isPlaying: " + player.name);
+				m_botAction.sendSmartPrivateMessage(name, "isPlaying: " + player.name);
 		}
     	
 		for(HuntPlayer player: preyToHunter.values()) {
-			m_botAction.sendPrivateMessage(name, "preyToHunter: " + player.name + " hunting " + preyToHunter.get(player.name).name);
+			m_botAction.sendSmartPrivateMessage(name, "preyToHunter: " + player.name + " hunting " + preyToHunter.get(player.name).name);
 		}
 		
 		for(String player: preyWaitingList) {
-			m_botAction.sendPrivateMessage(name, "preyWaitingList: " + player);
+			m_botAction.sendSmartPrivateMessage(name, "preyWaitingList: " + player);
 		}
     	
 		for(String player: hunterWaitingList) {
-			m_botAction.sendPrivateMessage(name, "hunterWaitingList: " + player);
+			m_botAction.sendSmartPrivateMessage(name, "hunterWaitingList: " + player);
 		}
     	
     }
@@ -260,10 +260,10 @@ public class PubHuntModule extends AbstractModule {
         		
         		int money = hunted.preyKilled * moneyPerPrey;
         		if (money != 0 && context.getMoneySystem().isEnabled()) {
-        			m_botAction.sendPrivateMessage(killed, "Thank you for playing!. You have earned $" + money + " to have killed " + hunted.preyKilled + " prey(s).");
+        			m_botAction.sendSmartPrivateMessage(killed, "Thank you for playing!. You have earned $" + money + " to have killed " + hunted.preyKilled + " prey(s).");
         			context.getPlayerManager().addMoney(killed, money);
         		} else {
-        			m_botAction.sendPrivateMessage(killed, "Thank you for playing!");
+        			m_botAction.sendSmartPrivateMessage(killed, "Thank you for playing!");
         		}
         		
         	} 
@@ -288,7 +288,7 @@ public class PubHuntModule extends AbstractModule {
         if (huntPlayerLeft != null) {
         	HuntPlayer hunter = preyToHunter.get(huntPlayerLeft.name);
         	playerOut(huntPlayerLeft);
-        	m_botAction.sendPrivateMessage(hunter.name, "Your prey has left, please wait for a new prey.");
+        	m_botAction.sendSmartPrivateMessage(hunter.name, "Your prey has left, please wait for a new prey.");
         	checkForWinner();
         }
 
@@ -358,7 +358,7 @@ public class PubHuntModule extends AbstractModule {
         	{
         		if (hunted.ship != event.getShipType()) {
         			m_botAction.setShip(event.getPlayerID(), hunted.ship);
-        			m_botAction.sendPrivateMessage(hunted.ship, "You cannot change your ship during a game of hunt.");
+        			m_botAction.sendSmartPrivateMessage(hunted.name, "You cannot change your ship during a game of hunt.");
         		}
         	} 
         	else if (player.getShipType() == 0)
@@ -366,8 +366,8 @@ public class PubHuntModule extends AbstractModule {
             	HuntPlayer hunter = preyToHunter.get(hunted.name);
             	playerOut(hunted);
             	setPrey(hunter);
-            	m_botAction.sendPrivateMessage(hunter.name, "Your prey is now a spectator, please wait for a new prey.");
-            	m_botAction.sendPrivateMessage(hunted.name, "You cannot be a spectator during a game of hunt, you are out.");
+            	m_botAction.sendSmartPrivateMessage(hunter.name, "Your prey is now a spectator, please wait for a new prey.");
+            	m_botAction.sendSmartPrivateMessage(hunted.name, "You cannot be a spectator during a game of hunt, you are out.");
             	checkForWinner();
         	}
         }
@@ -405,7 +405,7 @@ public class PubHuntModule extends AbstractModule {
 		}
 		
 		if (newGame)
-			m_botAction.sendPrivateMessage(player.name, "You don't have a prey yet, please wait.");
+			m_botAction.sendSmartPrivateMessage(player.name, "You don't have a prey yet, please wait.");
     	hunterWaitingList.add(player.name);
 		return false;
     }
@@ -530,7 +530,7 @@ public class PubHuntModule extends AbstractModule {
 			m_botAction.scheduleTask(timer, 10*Tools.TimeInMillis.SECOND);
         }
         else {
-        	m_botAction.sendPrivateMessage(name, "You need more players to start a hunt game.");
+        	m_botAction.sendSmartPrivateMessage(name, "You need more players to start a hunt game.");
         }
 		
 	}
