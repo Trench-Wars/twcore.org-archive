@@ -178,7 +178,19 @@ public class pubbotbanc extends PubBotModule {
 			tempBanCPlayer = command.substring(12);
 			m_botAction.spec(tempBanCPlayer);
 			//need to make remove for super spec
-		} else
+			//REMOVE SPEC PLAYER
+			//0123456789TET
+	    } else
+        if(command.startsWith("REMOVE "+BanCType.SUPERSPEC.toString())){
+	            tempBanCCommand = "REMOVE "+BanCType.SUPERSPEC.toString();
+	            tempBanCTime = null;
+	            //REMOVE a
+	            //REMOVE SUPERSPEC PLAYER
+	            //0123456789DODTQQDD
+	            tempBanCPlayer = command.substring(17);
+	            this.banCSuperLocked.remove(tempBanCPlayer);
+	            //maybe pm the player here?
+	        }else
 		if(command.startsWith(BanCType.KICK.toString())) {
 			// kick player from arena
 			tempBanCCommand = BanCType.KICK.toString();
