@@ -1207,9 +1207,9 @@ public class staffbot_banc extends Module {
 	        while(rs.next()){
 	            
 	            String result = "";
-	            result += Tools.formatString(rs.getString("fcType"), 10);
 	            result += Tools.formatString(rs.getString("fcUsername"), 10);
-	            
+	            result += Tools.formatString(rs.getString("fcType"), 10);
+                
 	            String IP = rs.getString("fcIp");
 	            
 	            if(IP == null)
@@ -1224,12 +1224,14 @@ public class staffbot_banc extends Module {
 	            result += "MID: "+Tools.formatString(MID, 10);
 	            
 	            int duration = rs.getInt("fnDuration");
-	            boolean isDay = duration >= 24*60? true:false;
-	            if(isDay)
-	                result += Tools.formatString("Duration: "+duration+" days", 5);
-	            else
-	                result += Tools.formatString("Duration: "+duration+" mins", 5);
+	            boolean isDay = duration >= 1440? true:false;
 	            
+	            if(isDay)
+	                result += Tools.formatString(" Duration: "+duration+" days", 5);
+	            else
+	                result += Tools.formatString(" Duration: "+duration+" mins", 5);
+	            
+	            result += Tools.formatString(" by: " + rs.getString("fcStaffer"), 10);
 	            String comments = rs.getString("fcComment");
 	            
 	            if(comments == null)
