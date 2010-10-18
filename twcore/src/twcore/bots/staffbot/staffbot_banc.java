@@ -37,13 +37,13 @@ public class staffbot_banc extends Module {
     
 	// Helps screens
     final String[] helpER = {
-            "----------------------[ BanC: ER+ ]-----------------------",
-            " !silence <player>:<time>[mins][d]  - Initiates an automatically enforced",
-            "                                       silence on <player> for <time/mins/days>.",
-            " !superspec <player>:<time>[mins][d]     - Initiates an automatically enforced",
-            "                                       spec-lock on <player> the ships 2,4 and 8 for <time/mins/days>",
-            " !spec <player>:<time>[mins][d]     - Initiates an automatically enforced",
-            "                                       spectator-lock on <player> for <time/mins/days>.",
+            "---------------------- [ BanC: ER+ ] -------------------------------------------------------------------------",
+            " !silence <player>:<time>[mins][d]         - Initiates an automatically enforced",
+            "                                               silence on <player> for <time/mins/days>.",
+            " !superspec <player>:<time>[mins][d]       - Initiates an automatically enforced",
+            "                                               spec-lock on <player> the ships 2,4 and 8 for <time/mins/days>",
+            " !spec <player>:<time>[mins][d]            - Initiates an automatically enforced",
+            "                                               spectator-lock on <player> for <time/mins/days>.",
             " !listban [arg] [count]         - Shows last 10/[count] BanCs. Optional arguments see below.",
             " !listban [#id]                 - Shows information about BanC with <id>.",
             " !changeban <#id> <arguments>   - Changes banc with <id>. Arguments see below.",
@@ -1198,12 +1198,47 @@ public class staffbot_banc extends Module {
 	private void searchByName(String stafferName, String name){
 	    try
 	    {
+	        List<String> list = new ArrayList<String>();
 	        String query = "SELECT * from tblBanc WHERE fcUsername = '"+name+"' ORDER BY fdCreated";
 	        /*PreparedStatement psSearchPlayer = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, query);
 	        psSearchPlayer.setString(1, name);*/
 	        ResultSet rs = m_botAction.SQLQuery(botsDatabase, query);
             
 	        while(rs.next()){
+	            
+	            String result = "";
+	            result += Tools.formatString(rs.getString("fcType"), 10);
+	            result += Tools.formatString(rs.getString("fcUsername"), 10);
+	            
+	            String IP = rs.getString("fcIp");
+	            
+	            if(IP == null)
+	                IP = "(UNKNOWN)";
+	            
+	            result += "IP: "+Tools.formatString(IP, 15);
+	            
+	            String MID = rs.getString("fcMID");
+	            if(MID == null)
+	                MID = "(UNKNOWN)";
+	            
+	            result += "MID: "+Tools.formatString(MID, 10);
+	            
+	            int duration = rs.getInt("fnDuration");
+	            boolean isDay = duration >= 24*60? true:false;
+	            if(isDay)
+	                result += Tools.formatString("Duration: "+duration+" days", 5);
+	            else
+	                result += Tools.formatString("Duration: "+duration+" mins", 5);
+	            
+	            String comments = rs.getString("fcComment");
+	            
+	            if(comments == null)
+	                comments = "No Comments";
+	            
+	            list.add(result);
+	            list.add(comments);
+	            
+	            /*
 	            m_botAction.sendPrivateMessage(stafferName, "-------- Row "+rs.getRow()+ " -------");
 	            m_botAction.sendPrivateMessage(stafferName, rs.getString(2)); //fcType
 	            m_botAction.sendPrivateMessage(stafferName, rs.getString(3)); //fcUserName
@@ -1214,14 +1249,28 @@ public class staffbot_banc extends Module {
 	            m_botAction.sendPrivateMessage(stafferName, rs.getString(8)); //by fcStaffer
 	            //m_botAction.sendPrivateMessage(stafferName, rs.getString(9)); //fcComment
 	            m_botAction.sendPrivateMessage(stafferName, " ");
+	            */
 	            
 	        }
+	        
+	        String strSpam[] = list.toArray(new String[list.size()]);
+	        m_botAction.privateMessageSpam(stafferName, strSpam);
+	        
 	    }catch(SQLException e){
 	        e.printStackTrace();
 	        m_botAction.sendPrivateMessage("quiles", e.toString());
 	    }catch(Exception e){
 	        e.printStackTrace();
 	    }
+	    
+	}
+	
+	private String getQueryByArguments(String param){
+	    //!search <> <> <>
+	    String query = "";
+	    
+	    
+	    return query;
 	}
 	/**
 	 * Sends out all active BanCs trough IPC Messages to the pubbots so they are applied
