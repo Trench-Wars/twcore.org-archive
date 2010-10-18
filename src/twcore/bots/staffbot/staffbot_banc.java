@@ -1227,11 +1227,11 @@ public class staffbot_banc extends Module {
 	            boolean isDay = duration >= 1440? true:false;
 	            
 	            if(isDay)
-	                result += Tools.formatString(" Duration: "+duration+" days", 5);
+	                result += Tools.formatString(" Duration: "+duration+" days", 15);
 	            else
-	                result += Tools.formatString(" Duration: "+duration+" mins", 5);
+	                result += Tools.formatString(" Duration: "+duration+" mins", 15);
 	            
-	            result += Tools.formatString(" by: " + rs.getString("fcStaffer"), 10);
+	            result += Tools.formatString(" by: " + rs.getString("fcStaffer"), 20);
 	            String comments = rs.getString("fcComment");
 	            
 	            if(comments == null)
