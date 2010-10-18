@@ -202,7 +202,7 @@ public class staffbot_banc extends Module {
                 //012345678
                 System.out.println("Passei aqui");
                 String nameToSearch = messageLc.substring(8);
-                this.searchByName(nameToSearch);
+                this.searchByName(name, nameToSearch);
             }
         
 	        // !banaccesss
@@ -1195,24 +1195,25 @@ public class staffbot_banc extends Module {
 	}
 	
 	
-	private void searchByName(String name){
+	private void searchByName(String stafferName, String name){
 	    try
 	    {
 	        String query = "SELECT * from tblBanc WHERE fcUsername = ?";
 	        PreparedStatement psSearchPlayer = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, query);
 	        psSearchPlayer.setString(1, name);
 	        ResultSet rs = psSearchPlayer.executeQuery();
-	        
+            
 	        while(rs.next()){
-	            m_botAction.sendPrivateMessage("quiles", rs.getString(2)); //fcType
-	            m_botAction.sendPrivateMessage("quiles", rs.getString(3)); //fcUserName
-	            m_botAction.sendPrivateMessage("quiles", rs.getString(4)); //fcIp
-	            m_botAction.sendPrivateMessage("quiles", rs.getString(5)); //fcMid
-	            m_botAction.sendPrivateMessage("quiles", rs.getString(6)); //by fcMinAccess
-	            m_botAction.sendPrivateMessage("quiles", "fnDuration: "+rs.getInt(7)); //fnDuration
-	            m_botAction.sendPrivateMessage("quiles", rs.getString(8)); //by fcStaffer
-	            m_botAction.sendPrivateMessage("quiles", rs.getString(9)); //fcComment
-	            
+	            m_botAction.sendPrivateMessage(stafferName, "-------- Row "+rs.getRow()+ "-------");
+	            m_botAction.sendPrivateMessage(stafferName, rs.getString(2)); //fcType
+	            m_botAction.sendPrivateMessage(stafferName, rs.getString(3)); //fcUserName
+	            m_botAction.sendPrivateMessage(stafferName, rs.getString(4)); //fcIp
+	            m_botAction.sendPrivateMessage(stafferName, rs.getString(5)); //fcMid
+	            m_botAction.sendPrivateMessage(stafferName, rs.getString(6)); //by fcMinAccess
+	            m_botAction.sendPrivateMessage(stafferName, "fnDuration: "+rs.getInt(7)); //fnDuration
+	            m_botAction.sendPrivateMessage(stafferName, rs.getString(8)); //by fcStaffer
+	            m_botAction.sendPrivateMessage(stafferName, rs.getString(9)); //fcComment
+	            m_botAction.sendPrivateMessage(stafferName, " ");
 	        }
 	    }catch(SQLException e){
 	        e.printStackTrace();
