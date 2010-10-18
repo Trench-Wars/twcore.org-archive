@@ -210,15 +210,15 @@ public class PubKillSessionModule extends AbstractModule {
     			this.interval = interval;
     			this.winnerMoney = money;
     			
-    			m_botAction.sendPrivateMessage(sender, "New settings: Session of " + length + " mins. every " + interval + " mins.");
-    			m_botAction.sendPrivateMessage(sender, "              The winner will receive $" + money + ".");
+    			m_botAction.sendSmartPrivateMessage(sender, "New settings: Session of " + length + " mins. every " + interval + " mins.");
+    			m_botAction.sendSmartPrivateMessage(sender, "              The winner will receive $" + money + ".");
     			
     		} catch(NumberFormatException e) {
-    			m_botAction.sendPrivateMessage(sender, "You must type a number for any of the arguments.");
+    			m_botAction.sendSmartPrivateMessage(sender, "You must type a number for any of the arguments.");
     		}
     	}
     	else {
-    		m_botAction.sendPrivateMessage(sender, "Wrong arguments, must be <length>:<interval>:<money>.");
+    		m_botAction.sendSmartPrivateMessage(sender, "Wrong arguments, must be <length>:<interval>:<money>.");
     	}
     	
     }
@@ -226,7 +226,7 @@ public class PubKillSessionModule extends AbstractModule {
     public void doStartCmd( String sender ) {
     	
     	if (sessionStarted) {
-    		m_botAction.sendPrivateMessage(sender, "A session of kill-o-thon is already running. Use !killothon_stop to stop it.");
+    		m_botAction.sendSmartPrivateMessage(sender, "A session of kill-o-thon is already running. Use !killothon_stop to stop it.");
     		return;
     	}
     	startSession();
@@ -291,16 +291,16 @@ public class PubKillSessionModule extends AbstractModule {
     		}
     		 
     		if (messageSuffix) {
-    			m_botAction.sendPrivateMessage(sender, "[KILL-O-THON] " + message);
-    			m_botAction.sendPrivateMessage(sender, "[KILL-O-THON] Time left: " + getTimeRemaining());
+    			m_botAction.sendSmartPrivateMessage(sender, "[KILL-O-THON] " + message);
+    			m_botAction.sendSmartPrivateMessage(sender, "[KILL-O-THON] Time left: " + getTimeRemaining());
     		} else {
-    			m_botAction.sendPrivateMessage(sender, message);
-    			m_botAction.sendPrivateMessage(sender, "Time left: " + getTimeRemaining());
+    			m_botAction.sendSmartPrivateMessage(sender, message);
+    			m_botAction.sendSmartPrivateMessage(sender, "Time left: " + getTimeRemaining());
     		}
     		
     	}
     	else {
-    		m_botAction.sendPrivateMessage(sender, "There is no session running now. Next session: " + getNextSession());
+    		m_botAction.sendSmartPrivateMessage(sender, "There is no session running now. Next session: " + getNextSession());
     	}
     }
     

@@ -150,7 +150,7 @@ public class PubUtilModule extends AbstractModule {
     		Tileset tileset = Tileset.valueOf(tileName.toUpperCase());
     		setTileset(tileset, sender);
     	} catch (IllegalArgumentException e) {
-    		m_botAction.sendPrivateMessage(sender, "The tileset '" + tileName + "' does not exists.");
+    		m_botAction.sendSmartPrivateMessage(sender, "The tileset '" + tileName + "' does not exists.");
     	}
 
     }
@@ -269,30 +269,30 @@ public class PubUtilModule extends AbstractModule {
     	Player p = m_botAction.getPlayer(sender);
         
         if( p == null ) {
-        	m_botAction.sendPrivateMessage(sender, "Can't find you. Please report this to staff.");
+        	m_botAction.sendSmartPrivateMessage(sender, "Can't find you. Please report this to staff.");
         	return;
         }
         
         if( p.getShipType() == 0 && !isStaff ) {
-        	m_botAction.sendPrivateMessage(sender, "You must be in a ship for this command to work.");
+        	m_botAction.sendSmartPrivateMessage(sender, "You must be in a ship for this command to work.");
         	return;
         }
 
         Player p2 = m_botAction.getFuzzyPlayer( argString );
         if( p2 == null ) {
-        	m_botAction.sendPrivateMessage(sender, "Player '" + argString + "' not found.");
+        	m_botAction.sendSmartPrivateMessage(sender, "Player '" + argString + "' not found.");
         	return;
         }
 
         if (!p2.isPlaying()) {
-        	m_botAction.sendPrivateMessage( sender, p2.getPlayerName() + " last seen: In Spec");
+        	m_botAction.sendSmartPrivateMessage( sender, p2.getPlayerName() + " last seen: In Spec");
         	return;
         }
         if( p.getFrequency() != p2.getFrequency() && !isStaff ) {
-        	m_botAction.sendPrivateMessage(sender, p2.getPlayerName() + " is not on your team.");
+        	m_botAction.sendSmartPrivateMessage(sender, p2.getPlayerName() + " is not on your team.");
         	return;
         }
-        m_botAction.sendPrivateMessage( sender, p2.getPlayerName() + " last seen: " + getPlayerLocation( p2.getXTileLocation(), p2.getYTileLocation() ));
+        m_botAction.sendSmartPrivateMessage( sender, p2.getPlayerName() + " last seen: " + getPlayerLocation( p2.getXTileLocation(), p2.getYTileLocation() ));
     }
     
     public String getPlayerLocation(int x, int y) {
@@ -352,9 +352,9 @@ public class PubUtilModule extends AbstractModule {
         else if(command.equals("!uptime"))
             doUptimeCmd(sender);
         else if(command.startsWith("!reloadconfig")) {
-        	m_botAction.sendPrivateMessage(sender, "Please wait..");
+        	m_botAction.sendSmartPrivateMessage(sender, "Please wait..");
         	context.reloadConfig();
-        	m_botAction.sendPrivateMessage(sender, "Done.");
+        	m_botAction.sendSmartPrivateMessage(sender, "Done.");
         } 
         else if(command.startsWith("!set "))
             context.getPlayerManager().doSetCmd(sender, command.substring(5));

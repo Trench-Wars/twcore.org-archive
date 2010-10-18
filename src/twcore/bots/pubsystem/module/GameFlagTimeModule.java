@@ -395,7 +395,7 @@ public class GameFlagTimeModule extends AbstractModule {
                text += (j+1) + ") " + team.get(i).get(j) + "  ";
                players++;
             }
-            m_botAction.sendPrivateMessage(sender, text);
+            m_botAction.sendSmartPrivateMessage(sender, text);
         }
     }
     
@@ -411,11 +411,11 @@ public class GameFlagTimeModule extends AbstractModule {
         Iterator<Player> i = m_botAction.getFreqPlayerIterator(p.getFrequency());
         if( !i.hasNext() )
             throw new RuntimeException("ERROR: No players detected on your frequency!");
-        m_botAction.sendPrivateMessage(sender, "Name of Terrier          Last seen");
+        m_botAction.sendSmartPrivateMessage(sender, "Name of Terrier          Last seen");
         while( i.hasNext() ) {
             Player terr = (Player)i.next();
             if( terr.getShipType() == Tools.Ship.TERRIER )
-                m_botAction.sendPrivateMessage( sender, Tools.formatString(terr.getPlayerName(), 25) + context.getPubUtil().getPlayerLocation(terr.getXTileLocation(), terr.getYTileLocation()) );
+                m_botAction.sendSmartPrivateMessage( sender, Tools.formatString(terr.getPlayerName(), 25) + context.getPubUtil().getPlayerLocation(terr.getXTileLocation(), terr.getYTileLocation()) );
         }
     }
 
@@ -882,19 +882,19 @@ public class GameFlagTimeModule extends AbstractModule {
 
                             if( percentOnFreq == 100 ) {
                                 MVPs.add( playerName );
-                                m_botAction.sendPrivateMessage( playerName, "For staying with the same freq the entire match, you are an MVP and receive the full bonus: " + modbounty );
+                                m_botAction.sendSmartPrivateMessage( playerName, "For staying with the same freq the entire match, you are an MVP and receive the full bonus: " + modbounty );
                                 int grabs = flagTimer.getFlagGrabs( playerName );
                                 if( special == 4 ) {
-                                    m_botAction.sendPrivateMessage( playerName, "You also receive an additional " + weight + " bounty as a special prize!" );
+                                    m_botAction.sendSmartPrivateMessage( playerName, "You also receive an additional " + weight + " bounty as a special prize!" );
                                     modbounty *= 2;
                                 }
                                 if( grabs != 0 ) {
                                     modbounty += (modbounty * ((float)grabs / 10.0));
-                                    m_botAction.sendPrivateMessage( playerName, "For your " + grabs + " flag grabs, you also receive an additional " + grabs + "0% bounty, for a total of " + modbounty );
+                                    m_botAction.sendSmartPrivateMessage( playerName, "For your " + grabs + " flag grabs, you also receive an additional " + grabs + "0% bounty, for a total of " + modbounty );
                                 }
 
                             } else {
-                                m_botAction.sendPrivateMessage( playerName, "You were with the same freq and ship for the last " + getTimeString(timeOnFreq) + ", and receive " + percentOnFreq  + "% of the bounty reward: " + modbounty );
+                                m_botAction.sendSmartPrivateMessage( playerName, "You were with the same freq and ship for the last " + getTimeString(timeOnFreq) + ", and receive " + percentOnFreq  + "% of the bounty reward: " + modbounty );
                             }
 
                             m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize " + modbounty);
@@ -1787,7 +1787,7 @@ public class GameFlagTimeModule extends AbstractModule {
 	public void statusMessage(String playerName) {
         if(isFlagTimeStarted()) {
             if( flagTimer != null)
-                m_botAction.sendPrivateMessage(playerName, flagTimer.getTimeInfo() );
+                m_botAction.sendSmartPrivateMessage(playerName, flagTimer.getTimeInfo() );
         }
 	}
 
@@ -1837,10 +1837,10 @@ public class GameFlagTimeModule extends AbstractModule {
      */
     public void doAutowarpCmd(String sender) {
         if( autoWarp ) {
-            m_botAction.sendPrivateMessage(sender, "Players will no longer automatically be added to the !warp list when they enter the arena.");
+            m_botAction.sendSmartPrivateMessage(sender, "Players will no longer automatically be added to the !warp list when they enter the arena.");
             autoWarpDisable();
         } else {
-            m_botAction.sendPrivateMessage(sender, "Players will be automatically added to the !warp list when they enter the arena.");
+            m_botAction.sendSmartPrivateMessage(sender, "Players will be automatically added to the !warp list when they enter the arena.");
             autoWarpEnable();
         }
     }
@@ -1852,11 +1852,11 @@ public class GameFlagTimeModule extends AbstractModule {
      */
     public void doAllowWarpCmd(String sender) {
         if( isWarpEnabled() ) {
-            m_botAction.sendPrivateMessage(sender, "Players will no longer be able to use !warp.");
+            m_botAction.sendSmartPrivateMessage(sender, "Players will no longer be able to use !warp.");
             warpPlayers.clear();
             warpDisable();
         } else {
-            m_botAction.sendPrivateMessage(sender, "Players will be allowed to use !warp.");
+            m_botAction.sendSmartPrivateMessage(sender, "Players will be allowed to use !warp.");
             warpEnable();
         }
     }
