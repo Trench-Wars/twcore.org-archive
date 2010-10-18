@@ -38,12 +38,12 @@ public class staffbot_banc extends Module {
 	// Helps screens
     final String[] helpER = {
             "----------------------[ BanC: ER+ ]-----------------------",
-            " !silence <player>:<time/mins>  - Initiates an automatically enforced",
-            "                                  silence on <player> for <time/mins>.",
-            " !silence <player>:<time>d        Trailing d in <time> will make it days.",    
-            " !spec <player>:<time/mins>     - Initiates an automatically enforced",
-            "                                  spectator-lock on <player> for <time/mins>.",
-            " !spec <player>:<time>d           Trailing d in <time> will make it days.",
+            " !silence <player>:<time>[mins][d]  - Initiates an automatically enforced",
+            "                                       silence on <player> for <time/mins/days>.",
+            " !superspec <player>:<time>[mins][d]     - Initiates an automatically enforced",
+            "                                       spec-lock on <player> the ships 2,4 and 8 for <time/mins/days>",
+            " !spec <player>:<time>[mins][d]     - Initiates an automatically enforced",
+            "                                       spectator-lock on <player> for <time/mins/days>.",
             " !listban [arg] [count]         - Shows last 10/[count] BanCs. Optional arguments see below.",
             " !listban [#id]                 - Shows information about BanC with <id>.",
             " !changeban <#id> <arguments>   - Changes banc with <id>. Arguments see below.",
@@ -196,7 +196,15 @@ public class staffbot_banc extends Module {
 	        if(messageLc.startsWith("!help")) {
 	        	cmdHelp(name, message.substring(5).trim());
 	        }
-	        
+	        else if( messageLc.startsWith("!search"))
+            {
+                //!search name
+                //012345678
+                System.out.println("Passei aqui");
+                String nameToSearch = messageLc.substring(8);
+                this.searchByName(nameToSearch);
+            }
+        
 	        // !banaccesss
 	        else if(messageLc.startsWith("!banaccess")) {
 	        	cmdBanAccess(name, message.substring(10).trim());
@@ -247,7 +255,6 @@ public class staffbot_banc extends Module {
 	        else if( messageLc.startsWith("!liftban")) {
 	        	cmdLiftban(name, message.substring(8).trim());
 	        }
-	        
 	        // !reload [Smod+]
 	        else if( messageLc.startsWith("!reload") && opList.isDeveloper(name)) {
 	        	cmdReload(name);
@@ -1187,6 +1194,33 @@ public class staffbot_banc extends Module {
 	    }
 	}
 	
+	
+	private void searchByName(String name){
+	    try
+	    {
+	        String query = "SELECT * from tblbanc WHERE fcUsername = ?";
+	        PreparedStatement psSearchPlayer = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, query);
+	        psSearchPlayer.setString(1, name);
+	        ResultSet rs = psSearchPlayer.executeQuery();
+	        
+	        while(rs.next()){
+	            m_botAction.sendPrivateMessage("quiles", rs.getString(2)); //fcType
+	            m_botAction.sendPrivateMessage("quiles", rs.getString(3)); //fcUserName
+	            m_botAction.sendPrivateMessage("quiles", rs.getString(4)); //fcIp
+	            m_botAction.sendPrivateMessage("quiles", rs.getString(5)); //fcMid
+	            m_botAction.sendPrivateMessage("quiles", rs.getString(6)); //by fcMinAccess
+	            m_botAction.sendPrivateMessage("quiles", "fnDuration: "+rs.getInt(7)); //fnDuration
+	            m_botAction.sendPrivateMessage("quiles", rs.getString(8)); //by fcStaffer
+	            m_botAction.sendPrivateMessage("quiles", rs.getString(9)); //fcComment
+	            
+	        }
+	    }catch(SQLException e){
+	        e.printStackTrace();
+	        m_botAction.sendPrivateMessage("quiles", e.toString());
+	    }catch(Exception e){
+	        e.printStackTrace();
+	    }
+	}
 	/**
 	 * Sends out all active BanCs trough IPC Messages to the pubbots so they are applied
 	 * @param receiver Receiving bot in case a certain pubbot needs to be initialized, else NULL for all pubbots
