@@ -167,7 +167,7 @@ public class pubbotbanc extends PubBotModule {
 		    //0123456789T
 		    tempBanCTime = command.substring(10).split(":")[0];
 		    tempBanCPlayer = command.substring(10).split(":")[1];
-		    m_botAction.specWithoutLock(tempBanCPlayer);
+		    m_botAction.setShip(tempBanCPlayer, 3);
 		    banCSuperLocked.add(tempBanCPlayer);
 		    System.out.println("Super specced "+tempBanCPlayer+" for "+tempBanCTime);
 		} else
@@ -189,8 +189,9 @@ public class pubbotbanc extends PubBotModule {
 	            //0123456789DODTQQDD
 	            tempBanCPlayer = command.substring(17);
 	            this.banCSuperLocked.remove(tempBanCPlayer);
+	            m_botAction.sendPrivateMessage("quiles", "player "+tempBanCPlayer+" un superspec locked");
 	            //maybe pm the player here?
-	        }else
+        } else
 		if(command.startsWith(BanCType.KICK.toString())) {
 			// kick player from arena
 			tempBanCCommand = BanCType.KICK.toString();
