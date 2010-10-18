@@ -1198,13 +1198,13 @@ public class staffbot_banc extends Module {
 	private void searchByName(String stafferName, String name){
 	    try
 	    {
-	        String query = "SELECT * from tblBanc WHERE fcUsername = ? ORDER BY fdCreated";
-	        PreparedStatement psSearchPlayer = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, query);
-	        psSearchPlayer.setString(1, name);
-	        ResultSet rs = psSearchPlayer.executeQuery();
+	        String query = "SELECT * from tblBanc WHERE fcUsername = '"+name+"' ORDER BY fdCreated";
+	        /*PreparedStatement psSearchPlayer = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, query);
+	        psSearchPlayer.setString(1, name);*/
+	        ResultSet rs = m_botAction.SQLQuery(botsDatabase, query);
             
 	        while(rs.next()){
-	            m_botAction.sendPrivateMessage(stafferName, "-------- Row "+rs.getRow()+ "-------");
+	            m_botAction.sendPrivateMessage(stafferName, "-------- Row "+rs.getRow()+ " -------");
 	            m_botAction.sendPrivateMessage(stafferName, rs.getString(2)); //fcType
 	            m_botAction.sendPrivateMessage(stafferName, rs.getString(3)); //fcUserName
 	            m_botAction.sendPrivateMessage(stafferName, rs.getString(4)); //fcIp
@@ -1214,6 +1214,7 @@ public class staffbot_banc extends Module {
 	            m_botAction.sendPrivateMessage(stafferName, rs.getString(8)); //by fcStaffer
 	            m_botAction.sendPrivateMessage(stafferName, rs.getString(9)); //fcComment
 	            m_botAction.sendPrivateMessage(stafferName, " ");
+	            
 	        }
 	    }catch(SQLException e){
 	        e.printStackTrace();
