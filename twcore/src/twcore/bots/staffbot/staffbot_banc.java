@@ -1198,7 +1198,7 @@ public class staffbot_banc extends Module {
 	private void searchByName(String stafferName, String name){
 	    try
 	    {
-	        String query = "SELECT * from tblBanc WHERE fcUsername = '"+name+"' ORDER BY fdCreated";
+	        String query = "SELECT * from tblBanc WHERE fcUsername = '"+name+"' ORDER BY fdCreated LIMIT 0,1";
 	        /*PreparedStatement psSearchPlayer = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, query);
 	        psSearchPlayer.setString(1, name);*/
 	        ResultSet rs = m_botAction.SQLQuery(botsDatabase, query);
