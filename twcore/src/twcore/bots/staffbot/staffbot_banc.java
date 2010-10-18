@@ -525,6 +525,7 @@ public class staffbot_banc extends Module {
 			m_botAction.sendSmartPrivateMessage(name, "The maximum amount of minutes for a BanC is "+BANC_MAX_DURATION+" minutes (365 days). Duration changed to this maximum.");
 			time = BANC_MAX_DURATION;
 			timeToTell = (BANC_MAX_DURATION/24)/60;
+			
 		}
 		
 		// Check target
@@ -550,6 +551,7 @@ public class staffbot_banc extends Module {
 			time = getBanCAccessDurationLimit(bancType, opList.getAccessLevel(name));
 			m_botAction.sendSmartPrivateMessage(name, "You are not allowed to issue an "+bancName+" of that duration.");
 			m_botAction.sendSmartPrivateMessage(name, "The duration has been changed to the maximum duration of your access level: "+time+" mins.");
+			timeToTell = 7;
 		}
 		
 		BanC banc = new BanC(bancType, target, time);
@@ -559,6 +561,7 @@ public class staffbot_banc extends Module {
 		activeBanCs.add(banc);
 		
 		if(timeToTell > 0){
+		    
 		    m_botAction.sendChatMessage( name+" initiated an "+bancName+" on '"+target+"' for "+timeToTell+" days("+time+" mins)." );
 		    m_botAction.sendSmartPrivateMessage(name, "BanC #"+banc.id+": "+bancName+" on '"+target+"' for "+timeToTell+" days("+time+" mins) initiated.");
 		}
