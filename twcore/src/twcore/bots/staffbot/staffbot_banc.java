@@ -93,10 +93,10 @@ public class staffbot_banc extends Module {
     private final String MINACCESS_SYSOP = "SYSOP";
     
     private final Integer[][] BANCLIMITS = {
-    		{ 60,  120, 240, 0},	// BanC limits
-    		{ 30,  60, 120, 0},		// [BanCType] [Accesslevel]
+    		{ 120,  60*24*7, 60*24*7, 0},	// BanC limits
+    		{ 120,  60*24*7, 60*24*7, 0},		// [BanCType] [Accesslevel]
     		{ null,30, 60,  0},
-    		{30, 60, 120, 0}
+    		{120, 60*24*7, 60*24*7, 0}
     }; 
     private SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private final int BANC_MAX_DURATION = 525600;	// (365 days in minutes)
@@ -592,7 +592,7 @@ public class staffbot_banc extends Module {
                     	-a=<...>           - Specifies access requirement, options; mod / smod / sysop
                     	-ip=<#.#.#.#> -ir  - Specifies IP or remove IP (-ir) so banc is not matched by IP
                     	-mid=#  -mr        - Specifies MID or remove MID (-mr) so banc is not matched by MID
-                    	-notif=<yes/no>    - S pecifies wether a notification is sent on staff chat
+                    	-notif=<yes/no>    - Specifies wether a notification is sent on staff chat
         */
         
 		if(parameters.length() > 0) {
