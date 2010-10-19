@@ -1226,12 +1226,14 @@ public class staffbot_banc extends Module {
 	            int duration = rs.getInt("fnDuration");
 	            boolean isDay = duration >= 1440? true:false;
 	            
-	            if(isDay)
+	            if(isDay){
+	                duration = (duration/60)/24;
 	                result += Tools.formatString(" Duration: "+duration+" days", 15);
+	                }
 	            else
-	                result += Tools.formatString(" Duration: "+duration+" mins", 20);
+	                result += Tools.formatString(" Duration: "+duration+" mins", 17);
 	            
-	            result += Tools.formatString(" by: " + rs.getString("fcStaffer"), 20);
+	            result += Tools.formatString(" by: " + rs.getString("fcStaffer"), 17);
 	            String comments = rs.getString("fcComment");
 	            
 	            if(comments == null)
@@ -1337,7 +1339,7 @@ public class staffbot_banc extends Module {
 			// INSERT INTO tblBanc(fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
 			//                       1         2         3     4         5           6           7          
 			if(banc.type.name().equals("SUPERSPEC"))
-			    psAddBanC.setString(1, "SPEC");
+			    psAddBanC.setString(1, "SUPERSPEC");
             
 			else
 			    psAddBanC.setString(1, banc.type.name());
@@ -1402,6 +1404,7 @@ public class staffbot_banc extends Module {
 							case SILENCE : 	m_botAction.sendChatMessage("Auto-silence BanC #"+banc.id+" ("+banc.playername+") has expired."); break;
 							case SPEC : 	m_botAction.sendChatMessage("Auto-speclock BanC #"+banc.id+" ("+banc.playername+") has expired."); break;
 							case KICK : 	m_botAction.sendChatMessage("Auto-kick BanC #"+banc.id+" ("+banc.playername+") has expired."); break;
+							case SUPERSPEC: m_botAction.sendChatMessage("Auto-superspec BanC #"+banc.id+" ("+banc.playername+") has expired."); break;
 						}
 						m_botAction.ipcSendMessage(IPCBANC, "REMOVE "+banc.type.toString()+" "+banc.playername, null, "banc");
 						iterator.remove();
