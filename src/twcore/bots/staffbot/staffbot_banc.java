@@ -44,6 +44,7 @@ public class staffbot_banc extends Module {
             "                                               spec-lock on <player> the ships 2,4 and 8 for <time/mins/days>",
             " !spec <player>:<time>[mins][d]            - Initiates an automatically enforced",
             "                                               spectator-lock on <player> for <time/mins/days>.",
+            " !listban -help                 - !listban command help guide",
             " !listban [arg] [count]         - Shows last 10/[count] BanCs. Optional arguments see below.",
             " !listban [#id]                 - Shows information about BanC with <id>.",
             " !changeban <#id> <arguments>   - Changes banc with <id>. Arguments see below.",
@@ -835,6 +836,7 @@ public class staffbot_banc extends Module {
 							result += rs.getString("fcUsername");
 							
 							m_botAction.sendSmartPrivateMessage(name, result);
+							m_botAction.sendSmartPrivateMessage(name, "!listban -help for more info");
 						} while(rs.previous());
 					} else {
 						// Empty resultset - nothing found
