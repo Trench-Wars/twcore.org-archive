@@ -313,7 +313,7 @@ public class staffbot_banc extends Module {
 	    helpStr = "    You can combine all those arguments above into:";
 	    listBanHelp.add(helpStr);
         	    
-	    helpStr = "    Check out !listban -player=Mime -staffer=Dexter to see all bancs done on Mime by Dexter.";
+	    helpStr = "    Check out !listban -player='Mime' -staffer='Dexter' to see all bancs done on Mime by Dexter.";
 	    listBanHelp.add(helpStr);
 	    
 	    helpStr = "    Good luck. -quiles";
