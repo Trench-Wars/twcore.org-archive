@@ -160,7 +160,7 @@ public class pubsystem extends SubspaceBot
 	        context = new PubContext(m_botAction);
 	        context.handleEvent(event);
 
-	        m_botAction.setPlayerPositionUpdating(500);
+	        m_botAction.setPlayerPositionUpdating(200);
 	        m_botAction.receiveAllPlayerDeaths();
 	        
     	} catch (Exception e) {
@@ -527,7 +527,8 @@ public class pubsystem extends SubspaceBot
     }
 	
     public void handleDisconnect() {
-    	context.handleDisconnect();
+    	if (context != null)
+    		context.handleDisconnect();
     }
     
     public void handleEvent(InterProcessEvent event){
