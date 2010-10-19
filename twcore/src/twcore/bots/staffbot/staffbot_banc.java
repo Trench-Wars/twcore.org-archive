@@ -1021,6 +1021,7 @@ public class staffbot_banc extends Module {
 								case SILENCE : 	m_botAction.sendChatMessage("Auto-silence BanC #"+banc.id+" ("+banc.playername+") has expired."); break;
 								case SPEC : 	m_botAction.sendChatMessage("Auto-speclock BanC #"+banc.id+" ("+banc.playername+") has expired."); break;
 								case KICK : 	m_botAction.sendChatMessage("Auto-kick BanC #"+banc.id+" ("+banc.playername+") has expired."); break;
+								case SUPERSPEC: m_botAction.sendChatMessage("Auto-superspeclock BanC #"+banc.id+" ("+banc.playername+") has expired."); break;
 							}
 							m_botAction.ipcSendMessage(IPCBANC, "REMOVE "+banc.type.toString()+" "+banc.playername, null, "banc");
 							iterator.remove();
@@ -1339,7 +1340,7 @@ public class staffbot_banc extends Module {
 			// INSERT INTO tblBanc(fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
 			//                       1         2         3     4         5           6           7          
 			if(banc.type.name().equals("SUPERSPEC"))
-			    psAddBanC.setString(1, "SUPERSPEC");
+			    psAddBanC.setString(1, "SPEC");
             
 			else
 			    psAddBanC.setString(1, banc.type.name());
