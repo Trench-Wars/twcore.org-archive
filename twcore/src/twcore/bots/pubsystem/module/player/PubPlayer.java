@@ -82,10 +82,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     public void reloadPanel(boolean fullReset) {
     	if (fullReset) {
-    		cashPanel.reset(name);
+    		//cashPanel.reset(name);
     	} else {
-    		cashPanel.reset(name, money);
-    		cashPanel.update(m_botAction.getPlayerID(name), String.valueOf(0), String.valueOf(money), true);
+    		//cashPanel.reset(name, money);
+    		//cashPanel.update(m_botAction.getPlayerID(name), String.valueOf(0), String.valueOf(money), true);
     	}
     }
     
@@ -95,7 +95,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     		money = 0;
         this.money = money;
         boolean gained = before > money ? false : true;
-        cashPanel.update(m_botAction.getPlayerID(name), String.valueOf(before), String.valueOf(money), gained);
+        //cashPanel.update(m_botAction.getPlayerID(name), String.valueOf(before), String.valueOf(money), gained);
         this.lastMoneyUpdate = System.currentTimeMillis();
     }
     
