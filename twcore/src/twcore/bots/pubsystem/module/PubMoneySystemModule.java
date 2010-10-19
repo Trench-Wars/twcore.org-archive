@@ -256,8 +256,8 @@ public class PubMoneySystemModule extends AbstractModule {
     			return;
     		}
     		
-    		if (Integer.valueOf(money) < 250) {
-    			m_botAction.sendSmartPrivateMessage(sender, "You cannot donate for less than $250.");
+    		if (Integer.valueOf(money) < 100) {
+    			m_botAction.sendSmartPrivateMessage(sender, "You cannot donate for less than $100.");
     			return;
     		}
     		
@@ -601,9 +601,9 @@ public class PubMoneySystemModule extends AbstractModule {
     			String[] pieces = message.split(":");
     			boolean result = context.getPlayerManager().addMoney(pieces[2], Integer.valueOf(pieces[3]), true);
     			if (result) {
-    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponsuccess:" + pieces[1] + ":" + pieces[2], null, null);
+    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponsuccess:" + pieces[1] + ":" + pieces[2], "couponbot", null);
     			} else {
-    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponerror:" + pieces[1] + ":" + pieces[2], null, null);
+    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponerror:" + pieces[1] + ":" + pieces[2], "couponbot", null);
     			}
     		}
     		

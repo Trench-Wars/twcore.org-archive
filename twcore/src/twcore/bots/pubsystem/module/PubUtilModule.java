@@ -24,7 +24,8 @@ public class PubUtilModule extends AbstractModule {
 		ROOF,
 		SPACE,
 		UNKNOWN,
-		SPAWN
+		SPAWN,
+		SAFE
 	}
 	private HashMap<String,Location> locations;
 	
@@ -315,6 +316,8 @@ public class PubUtilModule extends AbstractModule {
             return "on Roof" + exact;
         if( Location.SPAWN.equals(location) )
             return "in Spawn" + exact;
+        if( Location.SAFE.equals(location) )
+            return "in Safe" + exact;
         if( Location.SPACE.equals(location) )
             return "in Space" + exact;
         

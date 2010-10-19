@@ -75,7 +75,7 @@ public class PubKillSessionModule extends AbstractModule {
 		startAt = System.currentTimeMillis();
 	}
 	
-	public void stopSession(boolean withWinner) {
+	public void stopSession(boolean announce) {
 		
 		if (!enabled || !sessionStarted)
 			return;
@@ -104,7 +104,7 @@ public class PubKillSessionModule extends AbstractModule {
 		// Announce the winner(s)
 		if (reverseNums.size() == 0) {
 			
-			if (withWinner)
+			if (announce)
 				m_botAction.sendArenaMessage("[KILL-O-THON] End of the session. No winner.");
 			
 		} 
@@ -121,7 +121,7 @@ public class PubKillSessionModule extends AbstractModule {
 				}
 			}
 			
-			if (withWinner)
+			if (announce)
 			{
 				String moneyMessage = "";
 				if (context.getMoneySystem().isEnabled()) {
@@ -147,7 +147,7 @@ public class PubKillSessionModule extends AbstractModule {
 			
 		}
 		
-		if (!withWinner) {
+		if (!announce) {
 			endSessionTask.cancel();
 			startSessionTask.cancel();
 			m_botAction.sendArenaMessage("[KILL-O-THON] The session has been cancelled.");
