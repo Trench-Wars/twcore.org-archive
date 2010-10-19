@@ -662,18 +662,19 @@ public class staffbot_banc extends Module {
 						
 					} else
 					// -player='<..>'
-					if(argument.startsWith("-player='") || argument.startsWith("-player=")) {
+					if(/*argument.startsWith("-player='")*/argument.startsWith("-player=")) {
 						String playerString = argument.substring(9);
 						
 						if(!sqlWhere.isEmpty())
 							sqlWhere += " AND ";
-							
-						if(playerString.startsWith("'") && playerString.endsWith("'")) {
+						sqlWhere += "fcUsername='"+playerString+"'";
+						/*if(playerString.endsWith("'")) {
 							sqlWhere += "fcUsername='"+playerString.replace("'", "")+"'";
-						} else {
-							sqlWhere += "fcUsername='"+Tools.addSlashes(playerString)+"'";
+						*/
+						/*} else {
+							sqlWhere += "fcUsername='"+Tools.addSlashes(playerString);
 							playerArgument = true;
-						}
+						}*/
 						
 					} else
 					// -d=#
@@ -836,8 +837,9 @@ public class staffbot_banc extends Module {
 							result += rs.getString("fcUsername");
 							
 							m_botAction.sendSmartPrivateMessage(name, result);
-							m_botAction.sendSmartPrivateMessage(name, "!listban -help for more info");
 						} while(rs.previous());
+						  m_botAction.sendSmartPrivateMessage(name, "!listban -help for more info");
+	                        
 					} else {
 						// Empty resultset - nothing found
 						m_botAction.sendSmartPrivateMessage(name, "No BanCs matching given arguments found.");
