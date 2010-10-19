@@ -26,7 +26,7 @@ import twcore.core.util.ipc.IPCMessage;
  *  - automatic-silence
  *  - automatic-spec-lock
  *  - automatic-kick-lock
- *  
+ *  - automatic-super-spec-lock @author quiles/dexter
  *  TODO:
  *   - speclocking in a ship
  *   - Time left in !listban #ID
@@ -226,6 +226,9 @@ public class staffbot_banc extends Module {
 				cmdSilenceSpecKick(name, message);
 			}
 	        
+	        else if( messageLc.startsWith("!listban -help")) {
+                cmdListBanHelp(name);
+            }
 	        // !listban [arg] [count]
             // !listban [#id]
 	        else if( messageLc.startsWith("!listban")) {
@@ -271,7 +274,32 @@ public class staffbot_banc extends Module {
 		}
 	}
 	
-	/* (non-Javadoc)
+	private void cmdListBanHelp(String name) {
+        // TODO Auto-generated method stub
+        //!listban -player='name'
+	    List<String> listBanHelp = new ArrayList<String>();
+	    String helpStr = "";
+	    helpStr = "Hi, I'm your help guide. How to use !listban in the best way, so it can be useful?";
+	    listBanHelp.add(helpStr);
+	    helpStr = "There are few arguments you can do and model your own !listban: ";
+	    listBanHelp.add(helpStr);
+	    helpStr = "!listban -player=quiles        -   to search all bancS of the playername quiles, for example.";
+	    listBanHelp.add(helpStr);
+	    helpStr = "!listban -d=60                 -   to search lastest banCs with duration of 60. try !listban -d=30 too..you can change.";
+	    listBanHelp.add(helpStr);
+	    helpStr = "You can also combine those both above. Try !listban -player='quiles' -d=60";
+	    listBanHelp.add(helpStr);
+	    helpStr = "!listban -ip=74.243.233.254    -   to search all bancs of the ip 74.243.233.254. ";
+	    listBanHelp.add(helpStr);
+	    helpStr = "!listban -staffer=quiles       -   to search all bancs done by the staffer quiles.";
+	    listBanHelp.add(helpStr);
+	    helpStr = "You can combine all those arguments above. Check out !listban -player=Mime -staffer=Dexter to see all bancs done on Mime by Dexter.";
+	    listBanHelp.add(helpStr);
+	    String spamPM[] = listBanHelp.toArray(new String[listBanHelp.size()]);
+        m_botAction.remotePrivateMessageSpam(name, spamPM);
+	}
+
+    /* (non-Javadoc)
 	 * @see twcore.bots.Module#handleEvent(twcore.core.events.InterProcessEvent)
 	 */
 	@Override
@@ -633,16 +661,16 @@ public class staffbot_banc extends Module {
 						
 					} else
 					// -player='<..>'
-					if(argument.startsWith("-player='")) {
+					if(argument.startsWith("-player='") || argument.startsWith("-player=")) {
 						String playerString = argument.substring(9);
 						
 						if(!sqlWhere.isEmpty())
 							sqlWhere += " AND ";
 							
-						if(playerString.endsWith("'")) {
+						if(playerString.startsWith("'") && playerString.endsWith("'")) {
 							sqlWhere += "fcUsername='"+playerString.replace("'", "")+"'";
 						} else {
-							sqlWhere += "fcUsername='"+Tools.addSlashes(playerString);
+							sqlWhere += "fcUsername='"+Tools.addSlashes(playerString)+"'";
 							playerArgument = true;
 						}
 						
@@ -695,16 +723,16 @@ public class staffbot_banc extends Module {
 						
 					} else 
 					// -staffer='<..>'
-					if(argument.startsWith("-staffer='")) {
+					if(argument.startsWith("-staffer='") || argument.startsWith("-staffer=")) {
 						String stafferString = argument.substring(10);
 						
 						if(!sqlWhere.isEmpty())
 							sqlWhere += " AND ";
 							
-						if(stafferString.endsWith("'")) {
+						if(stafferString.startsWith("'") && stafferString.endsWith("'")) {
 							sqlWhere += "fcStaffer='"+stafferString.replace("'", "")+"'";;
 						} else {
-							sqlWhere += "fcStaffer='"+Tools.addSlashes(stafferString);
+							sqlWhere += "fcStaffer='"+Tools.addSlashes(stafferString)+"'";
 							stafferArgument = true;
 						}
 					}
