@@ -1229,10 +1229,10 @@ public class staffbot_banc extends Module {
 	            
 	            if(isDay){
 	                duration = (duration/60)/24;
-	                result += Tools.formatString(" Duration: "+duration+" days", 15);
+	                result += Tools.formatString(" Duration: "+duration+" days", 19);
 	                }
 	            else
-	                result += Tools.formatString(" Duration: "+duration+" mins", 17);
+	                result += Tools.formatString(" Duration: "+duration+" mins", 19);
 	            
 	            result += Tools.formatString(" by: " + rs.getString("fcStaffer"), 17);
 	            String comments = rs.getString("fcComment");
@@ -1340,7 +1340,7 @@ public class staffbot_banc extends Module {
 			// INSERT INTO tblBanc(fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
 			//                       1         2         3     4         5           6           7          
 			if(banc.type.name().equals("SUPERSPEC"))
-			    psAddBanC.setString(1, "SPEC");
+			    psAddBanC.setString(1, "S-SPEC");
             
 			else
 			    psAddBanC.setString(1, banc.type.name());
