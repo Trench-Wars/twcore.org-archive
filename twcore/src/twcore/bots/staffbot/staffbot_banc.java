@@ -286,13 +286,13 @@ public class staffbot_banc extends Module {
 	    helpStr = "    There are few arguments you can do and model your own !listban: ";
 	    listBanHelp.add(helpStr);
 	    
-	    helpStr = "!listban -player='quiles'        -   to search all bancS of the playername quiles, for example.";
+	    helpStr = "    !listban -player='quiles'        -   to search all bancS of the playername quiles, for example.";
 	    listBanHelp.add(helpStr);
 	    
 	    helpStr = "    Don't forget the ''";
 	    listBanHelp.add(helpStr);
 
-	    helpStr = "!listban -d=60                   -   to search lastest banCs with duration of 60.";
+	    helpStr = "    !listban -d=60                   -   to search lastest banCs with duration of 60.";
 	    listBanHelp.add(helpStr);
 
 	    helpStr = "    try !listban -d=30 too..you can change.";
@@ -301,10 +301,13 @@ public class staffbot_banc extends Module {
 	    helpStr = "    You can also combine those both above. Try !listban -player='quiles' -d=60";
 	    listBanHelp.add(helpStr);
 	    
-	    helpStr = "!listban -ip=74.243.233.254      -   to search all bancs of the ip 74.243.233.254. ";
+	    helpStr = "    !listban -ip=74.243.233.254      -   to search all bancs of the ip 74.243.233.254. ";
 	    listBanHelp.add(helpStr);
 	    
-	    helpStr = "!listban -staffer='quiles'       -   to search all bancs done by the staffer quiles. Don't forget the ''";
+	    helpStr = "    !listban -staffer='quiles'       -   to search all bancs done by the staffer quiles.";
+	    listBanHelp.add(helpStr);
+        
+	    helpStr = "    Don't forget the ''";
 	    listBanHelp.add(helpStr);
 	    
 	    helpStr = "    You can combine all those arguments above into:";
