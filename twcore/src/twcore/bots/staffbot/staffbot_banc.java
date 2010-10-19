@@ -662,19 +662,19 @@ public class staffbot_banc extends Module {
 						
 					} else
 					// -player='<..>'
-					if(/*argument.startsWith("-player='")*/argument.startsWith("-player=")) {
-						String playerString = argument.substring(8); //9->changed to 8 to go before of '
+					if(argument.startsWith("-player='")){//argument.startsWith("-player=")) {
+						String playerString = argument.substring(9);
 						
 						if(!sqlWhere.isEmpty())
 							sqlWhere += " AND ";
-						sqlWhere += "fcUsername='"+playerString+"'";
-						/*if(playerString.endsWith("'")) {
+						//sqlWhere += "fcUsername='"+playerString+"'";
+						if(playerString.endsWith("'")) {
 							sqlWhere += "fcUsername='"+playerString.replace("'", "")+"'";
-						*/
-						/*} else {
+						
+						} else {
 							sqlWhere += "fcUsername='"+Tools.addSlashes(playerString);
 							playerArgument = true;
-						}*/
+						}
 						
 					} else
 					// -d=#
@@ -725,16 +725,16 @@ public class staffbot_banc extends Module {
 						
 					} else 
 					// -staffer='<..>'
-					if(argument.startsWith("-staffer='") || argument.startsWith("-staffer=")) {
+					if(argument.startsWith("-staffer='")){//argument.startsWith("-staffer=")) {
 						String stafferString = argument.substring(10);
-						
 						if(!sqlWhere.isEmpty())
 							sqlWhere += " AND ";
-							
-						if(stafferString.startsWith("'") && stafferString.endsWith("'")) {
-							sqlWhere += "fcStaffer='"+stafferString.replace("'", "")+"'";;
+						//sqlWhere += "fcStaffer='"+stafferString+"'";
+						
+						if(stafferString.endsWith("'")) {
+							sqlWhere += "fcStaffer='"+stafferString.replace("'", "")+"'";
 						} else {
-							sqlWhere += "fcStaffer='"+Tools.addSlashes(stafferString)+"'";
+							sqlWhere += "fcStaffer='"+Tools.addSlashes(stafferString);
 							stafferArgument = true;
 						}
 					}
