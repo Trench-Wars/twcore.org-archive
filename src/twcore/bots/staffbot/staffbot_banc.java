@@ -797,11 +797,11 @@ public class staffbot_banc extends Module {
 							if(time >= 24*60){
 							    int days = (time/24)/60;
 							    String daysNumber = days+"";
-							    result += " days: "+Tools.formatString(daysNumber, 3);
+							    result += " days: "+Tools.formatString(daysNumber, 5);
 							    
 							}
 							else 
-							    result += " mins:"+Tools.formatString(rs.getString("fnDuration"), 3) + " ";
+							    result += " mins:"+Tools.formatString(rs.getString("fnDuration"), 5) + " ";
 							if(m_botAction.getOperatorList().isModerator(name))
 								result += " "+Tools.formatString(rs.getString("fcIP"), 15) + "  ";
 							result += rs.getString("fcUsername");
