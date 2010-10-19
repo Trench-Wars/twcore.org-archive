@@ -663,7 +663,7 @@ public class staffbot_banc extends Module {
 					} else
 					// -player='<..>'
 					if(/*argument.startsWith("-player='")*/argument.startsWith("-player=")) {
-						String playerString = argument.substring(9);
+						String playerString = argument.substring(8); //9->changed to 8 to go before of '
 						
 						if(!sqlWhere.isEmpty())
 							sqlWhere += " AND ";
