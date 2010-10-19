@@ -280,23 +280,40 @@ public class staffbot_banc extends Module {
         //!listban -player='name'
 	    List<String> listBanHelp = new ArrayList<String>();
 	    String helpStr = "";
-	    helpStr = "Hi, I'm your help guide. How to use !listban in the best way, so it can be useful?";
+	    helpStr = "    Hi, I'm your help guide. How to use !listban in the best way, so it can be useful?";
 	    listBanHelp.add(helpStr);
-	    helpStr = "There are few arguments you can do and model your own !listban: ";
+	    
+	    helpStr = "    There are few arguments you can do and model your own !listban: ";
 	    listBanHelp.add(helpStr);
-	    helpStr = "!listban -player='quiles'        -   to search all bancS of the playername quiles, for example. Don't forget the ''";
+	    
+	    helpStr = "!listban -player='quiles'        -   to search all bancS of the playername quiles, for example.";
 	    listBanHelp.add(helpStr);
-	    helpStr = "!listban -d=60                   -   to search lastest banCs with duration of 60. try !listban -d=30 too..you can change.";
+	    
+	    helpStr = "    Don't forget the ''";
 	    listBanHelp.add(helpStr);
-	    helpStr = "You can also combine those both above. Try !listban -player='quiles' -d=60";
+
+	    helpStr = "!listban -d=60                   -   to search lastest banCs with duration of 60.";
 	    listBanHelp.add(helpStr);
+
+	    helpStr = "    try !listban -d=30 too..you can change.";
+	    listBanHelp.add(helpStr);
+
+	    helpStr = "    You can also combine those both above. Try !listban -player='quiles' -d=60";
+	    listBanHelp.add(helpStr);
+	    
 	    helpStr = "!listban -ip=74.243.233.254      -   to search all bancs of the ip 74.243.233.254. ";
 	    listBanHelp.add(helpStr);
+	    
 	    helpStr = "!listban -staffer='quiles'       -   to search all bancs done by the staffer quiles. Don't forget the ''";
 	    listBanHelp.add(helpStr);
-	    helpStr = "You can combine all those arguments above. Check out !listban -player=Mime -staffer=Dexter to see all bancs done on Mime by Dexter.";
+	    
+	    helpStr = "    You can combine all those arguments above into:";
 	    listBanHelp.add(helpStr);
-	    helpStr = "Good luck. -quiles";
+        	    
+	    helpStr = "    Check out !listban -player=Mime -staffer=Dexter to see all bancs done on Mime by Dexter.";
+	    listBanHelp.add(helpStr);
+	    
+	    helpStr = "    Good luck. -quiles";
 	    listBanHelp.add(helpStr);
 	    String spamPM[] = listBanHelp.toArray(new String[listBanHelp.size()]);
         m_botAction.remotePrivateMessageSpam(name, spamPM);
