@@ -301,8 +301,14 @@ public class staffbot_banc extends Module {
 	private int[] getLimits(String commandSearch){
 	    int limits[] = {-1,-1};
 	    
+	    
 	    if( commandSearch.contains(":") )
         {
+	        String stPieces [] = commandSearch.split(":");
+	        if(stPieces.length == 3){
+	            limits[0] = Integer.parseInt(stPieces[1]);
+	            limits[1] = Integer.parseInt(stPieces[2]);
+	        }/*
 	        StringTokenizer token = new StringTokenizer(commandSearch);
             String limitBanc = token.nextToken(":");
             
@@ -314,7 +320,7 @@ public class staffbot_banc extends Module {
                 limits[0] = Integer.parseInt(limitBanc);
                 limits[0] = Integer.parseInt(limitWarning);
                 
-            }
+            }*/
         }
 	    return limits;
 	}
