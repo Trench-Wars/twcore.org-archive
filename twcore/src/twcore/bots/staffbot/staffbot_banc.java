@@ -397,12 +397,12 @@ public class staffbot_banc extends Module {
         if(lastestWarnings.size() > 0)
         {
             
-            m_botAction.sendSmartPrivateMessage(stafferName, "Lastest warnings: ");
+            m_botAction.sendSmartPrivateMessage(stafferName, " ------ Lastest warnings (last 2 weeks): ");
             m_botAction.remotePrivateMessageSpam(stafferName, lastestWarnings.toArray(new String[lastestWarnings.size()]));
         }
         
         if(expiredWarnings.size() > 0){
-            m_botAction.sendSmartPrivateMessage(stafferName, "Expired warnings: ");
+            m_botAction.sendSmartPrivateMessage(stafferName, " ------ Expired warnings (more than 2 weeks): ");
             m_botAction.remotePrivateMessageSpam(stafferName, expiredWarnings.toArray(new String[lastestWarnings.size()]));
         }
         
