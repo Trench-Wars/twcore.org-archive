@@ -605,16 +605,20 @@ public class PubMoneySystemModule extends AbstractModule {
     		
     		IPCMessage ipc = (IPCMessage)event.getObject();
     		String message = ipc.getMessage();
+    		if (ipc.getRecipient() == null || ipc.getSender() == null)
+    			return;
+    		if (ipc.getRecipient().equals("pubsystem") && ipc.getSender().equals("couponbot")) {
 
-    		// Protocol>   coupon:<code>:<name>:<money>
-    		if(message.startsWith("coupon:")) {
-    			String[] pieces = message.split(":");
-    			boolean result = context.getPlayerManager().addMoney(pieces[2], Integer.valueOf(pieces[3]), true);
-    			if (result) {
-    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponsuccess:" + pieces[1] + ":" + pieces[2], "couponbot", null);
-    			} else {
-    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponerror:" + pieces[1] + ":" + pieces[2], "couponbot", null);
-    			}
+	    		// Protocol>   coupon:<code>:<name>:<money>
+	    		if(message.startsWith("coupon:")) {
+	    			String[] pieces = message.split(":");
+	    			boolean result = context.getPlayerManager().addMoney(pieces[2], Integer.valueOf(pieces[3]), true);
+	    			if (result) {
+	    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponsuccess:" + pieces[1] + ":" + pieces[2], "couponbot", null);
+	    			} else {
+	    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponerror:" + pieces[1] + ":" + pieces[2], "couponbot", null);
+	    			}
+	    		}
     		}
     		
     	}
