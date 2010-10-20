@@ -204,9 +204,30 @@ public class staffbot_banc extends Module {
             {
                 //!search name
                 //012345678
-                System.out.println("Passei aqui");
-                String nameToSearch = messageLc.substring(8);
-                this.searchByName(name, nameToSearch);
+	            String commandTillName = messageLc.split(":")[0];
+                String nameToSearch = commandTillName.substring(8);
+                /*int limitBancs = -1;
+                int limitWarnings = -1;
+                if( messageLc.contains(":") )
+                {
+                    StringTokenizer token = new StringTokenizer(messageLc);
+                    String limitBanc = token.nextToken(":");
+                    if(token.countTokens() < 2){
+                        limitBancs = -1;
+                        limitWarnings = -1;
+                    }
+                    else{
+                    limitBanc = token.nextToken(":");
+                    
+                    String limitWarning = token.nextToken(":");
+                    
+                    limitBancs = Integer.parseInt(limitBanc);
+                    limitWarnings = Integer.parseInt(limitWarning);
+                    }
+                }*/
+                int limits[] = getLimits(messageLc);
+                this.searchByName(name, nameToSearch, limits[0], limits[1]);
+            
             }
         
 	        // !banaccesss
@@ -277,7 +298,29 @@ public class staffbot_banc extends Module {
 
 		}
 	}
-	
+	private int[] getLimits(String commandSearch){
+	    int limits[] = new int[2];
+	    
+	    if( commandSearch.contains(":") )
+        {
+	        StringTokenizer token = new StringTokenizer(commandSearch);
+            String limitBanc = token.nextToken(":");
+            if(token.countTokens() < 2){
+                limits[0] = -1;
+                limits[0] = -1;
+            }
+            else{
+                limitBanc = token.nextToken(":");
+                
+                String limitWarning = token.nextToken(":");
+                
+                limits[0] = Integer.parseInt(limitBanc);
+                limits[0] = Integer.parseInt(limitWarning);
+                
+            }
+        }
+	    return limits;
+	}
 	private void cmdListBanHelp(String name) {
         // TODO Auto-generated method stub
         //!listban -player='name'
@@ -1258,56 +1301,117 @@ public class staffbot_banc extends Module {
 	}
 	
 	
-	private void searchByName(String stafferName, String name){
+	private boolean sendBanCs(String stafferName, String name, int limit) throws SQLException{
+        List<String> list = new ArrayList<String>();
+        
+        String query;
+        
+        if(limit == -1)
+            query = "SELECT * from tblBanc WHERE fcUsername = '"+name+"' ORDER BY fdCreated ASC";
+        else
+            query = "SELECT * from tblBanc WHERE fcUsername = '"+name+"' ORDER BY fdCreated ASC "+" LIMIT 0,"+limit;
+            
+        ResultSet rs = m_botAction.SQLQuery(botsDatabase, query);
+
+        if(rs == null )
+            m_botAction.sendSmartPrivateMessage(stafferName, "No banCs made on the player "+name);
+    
+        else{
+            String result = "BanCs: ";
+            
+            while(rs.next()){
+                result += Tools.formatString(rs.getString("fcUsername"), 10);
+                result += Tools.formatString(rs.getString("fcType"), 10);
+                
+                String IP = rs.getString("fcIp");
+                
+                if(IP == null)
+                    IP = "(UNKNOWN)";
+                
+                result += "IP: "+Tools.formatString(IP, 15);
+                
+                String MID = rs.getString("fcMID");
+                if(MID == null)
+                    MID = "(UNKNOWN)";
+                
+                result += "MID: "+Tools.formatString(MID, 10);
+                
+                int duration = rs.getInt("fnDuration");
+                boolean isDay = duration >= 1440? true:false;
+                
+                if(isDay){
+                    duration = (duration/60)/24;
+                    result += Tools.formatString(" Duration: "+duration+" days", 19);
+                    }
+                else
+                    result += Tools.formatString(" Duration: "+duration+" mins", 19);
+                
+                result += Tools.formatString(" by: " + rs.getString("fcStaffer"), 17);
+                String comments = rs.getString("fcComment");
+                
+                if(comments == null)
+                    comments = "No Comments";
+                
+                list.add(result);
+                list.add(comments);
+            }
+            String strSpam[] = list.toArray(new String[list.size()]);
+            m_botAction.remotePrivateMessageSpam(stafferName, strSpam);
+            return true;
+        }
+        return false;
+	}
+	
+	private boolean sendWarnings(String stafferName, String name, int limit) throws SQLException{
+	    
+	    String query;
+	    
+	    if(limit == -1)
+	        query = "SELECT * FROM tblWarnings WHERE name = '"+name+"' ORDER BY timeofwarning ASC";
+	    else
+	        query  = "SELECT * FROM tblWarnings WHERE name = '"+name+"' ORDER BY timeofwarning ASC LIMIT 0,"+limit;
+	    
+        ResultSet rs = m_botAction.SQLQuery(this.trenchDatabase, query);
+        
+        List<String> lastestWarnings = new LinkedList<String>();
+        List<String> expiredWarnings = new LinkedList<String>();
+        
+        while(rs.next()){
+            
+            String warningStr = rs.getString("warning");
+            int expiredTime = Tools.TimeInMillis.WEEK*2; //last month
+            Date date = rs.getDate("timeofwarning");
+            Date expireDate = new Date(System.currentTimeMillis() - expiredTime);
+            
+            if(date.before(expireDate)){
+                expiredWarnings.add(warningStr);
+            }else
+                lastestWarnings.add(warningStr);
+            
+        }
+        
+        if(lastestWarnings.size() > 0)
+        {
+            
+            m_botAction.sendSmartPrivateMessage(stafferName, "Lastest warnings: ");
+            m_botAction.remotePrivateMessageSpam(stafferName, lastestWarnings.toArray(new String[lastestWarnings.size()]));
+        }
+        
+        if(expiredWarnings.size() > 0){
+            m_botAction.sendSmartPrivateMessage(stafferName, "Expired warnings: ");
+            m_botAction.remotePrivateMessageSpam(stafferName, expiredWarnings.toArray(new String[lastestWarnings.size()]));
+        }
+        
+        return true;
+	}
+	
+	private void searchByName(String stafferName, String name, int limitBanCs, int limitWarnings){
 	    try
 	    {
-	        List<String> list = new ArrayList<String>();
-	        String query = "SELECT * from tblBanc WHERE fcUsername = '"+name+"' ORDER BY fdCreated";
 	        /*PreparedStatement psSearchPlayer = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, query);
 	        psSearchPlayer.setString(1, name);*/
-	        ResultSet rs = m_botAction.SQLQuery(botsDatabase, query);
-            
-	        if(rs == null)
-                m_botAction.sendSmartPrivateMessage(stafferName, "No banCs made on the player "+name);
 	        
-	        else{
-	            String result = "BanCs: ";
-    	        while(rs.next()){
-    	            
-    	            result += Tools.formatString(rs.getString("fcUsername"), 10);
-    	            result += Tools.formatString(rs.getString("fcType"), 10);
-                    
-    	            String IP = rs.getString("fcIp");
-    	            
-    	            if(IP == null)
-    	                IP = "(UNKNOWN)";
-    	            
-    	            result += "IP: "+Tools.formatString(IP, 15);
-    	            
-    	            String MID = rs.getString("fcMID");
-    	            if(MID == null)
-    	                MID = "(UNKNOWN)";
-    	            
-    	            result += "MID: "+Tools.formatString(MID, 10);
-    	            
-    	            int duration = rs.getInt("fnDuration");
-    	            boolean isDay = duration >= 1440? true:false;
-    	            
-    	            if(isDay){
-    	                duration = (duration/60)/24;
-    	                result += Tools.formatString(" Duration: "+duration+" days", 19);
-    	                }
-    	            else
-    	                result += Tools.formatString(" Duration: "+duration+" mins", 19);
-    	            
-    	            result += Tools.formatString(" by: " + rs.getString("fcStaffer"), 17);
-    	            String comments = rs.getString("fcComment");
-    	            
-    	            if(comments == null)
-    	                comments = "No Comments";
-    	            
-    	            list.add(result);
-    	            list.add(comments);
+	               
     	            
     	            /*
     	            m_botAction.sendPrivateMessage(stafferName, "-------- Row "+rs.getRow()+ " -------");
@@ -1321,43 +1425,9 @@ public class staffbot_banc extends Module {
     	            //m_botAction.sendPrivateMessage(stafferName, rs.getString(9)); //fcComment
     	            m_botAction.sendPrivateMessage(stafferName, " ");
     	            */
-    	        }
-	        }
-	        String strSpam[] = list.toArray(new String[list.size()]);
-	        m_botAction.remotePrivateMessageSpam(stafferName, strSpam);
-	        
-	        
-	        query = "SELECT * FROM tblWarnings WHERE name = '"+name+"' ORDER BY timeofwarning ASC";
-	        rs = m_botAction.SQLQuery(this.trenchDatabase, query);
-	        
-	        List<String> lastestWarnings = new LinkedList<String>();
-	        List<String> expiredWarnings = new LinkedList<String>();
-	        
-	        while(rs.next()){
-	            
-	            String warningStr = rs.getString("warning");
-	            int expiredTime = Tools.TimeInMillis.WEEK*2; //last month
-	            Date date = rs.getDate("timeofwarning");
-	            Date expireDate = new Date(System.currentTimeMillis() - expiredTime);
-	            
-	            if(date.before(expireDate)){
-	                expiredWarnings.add(warningStr);
-	            }else
-	                lastestWarnings.add(warningStr);
-	            
-	        }
-	        
-	        if(lastestWarnings.size() > 0)
-	        {
-	            
-	            m_botAction.sendSmartPrivateMessage(stafferName, "Lastest warnings: ");
-	            m_botAction.remotePrivateMessageSpam(stafferName, lastestWarnings.toArray(new String[lastestWarnings.size()]));
-	        }
-	        
-	        if(expiredWarnings.size() > 0){
-	            m_botAction.sendSmartPrivateMessage(stafferName, "Expired warnings: ");
-	            m_botAction.remotePrivateMessageSpam(stafferName, expiredWarnings.toArray(new String[lastestWarnings.size()]));
-	        }
+    	        
+	        sendBanCs(stafferName, name, limitBanCs);
+	        sendWarnings(stafferName, name, limitWarnings);
 	        
 	    }catch(SQLException e){
 	        e.printStackTrace();
