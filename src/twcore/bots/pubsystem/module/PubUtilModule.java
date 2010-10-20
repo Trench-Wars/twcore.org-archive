@@ -9,6 +9,7 @@ import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
+import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.game.Player;
@@ -38,6 +39,7 @@ public class PubUtilModule extends AbstractModule {
 	};
 	public HashMap<Tileset,Integer> tilesetObjects;
 	
+	private String currentInfoName = "";
 
 	// DOORS
 	private static enum DoorMode { CLOSED, OPENED, IN_OPERATION, UNKNOW };
@@ -77,13 +79,43 @@ public class PubUtilModule extends AbstractModule {
 			return true;
 		return false;
 	}
+	
+	public void handleEvent(Message event) {
+		
+		String message = event.getMessage();
+		if (event.getMessageType() == Message.ARENA_MESSAGE)
+		{
+			if (message.contains("TypedName:")) {
+				currentInfoName = message.substring(message.indexOf("TypedName:")+10);
+				currentInfoName = currentInfoName.substring(0, currentInfoName.indexOf("Demo:")).trim();
+			}
+			if (message.startsWith("TIME: Session:")) {
+				String time = message.substring(message.indexOf("Total:")+6);
+				time = time.substring(0, time.indexOf("Created")).trim();
+				String[] pieces = time.split(":");
+				if (pieces.length==3) {
+					if (pieces[0].equals("0") || pieces[0].equals("1")) {
+						int hour = Integer.valueOf(pieces[0]);
+						int min = Integer.valueOf(pieces[1]);
+						m_botAction.sendChatMessage(2, ">>>>>> New player: " + currentInfoName + " (" + hour +"h " + min + "m)");
+					}
+				}
+			}
+		}
+	}
 
 	public void handleEvent(PlayerEntered event) {
-		checkForDoors();
+		//checkForDoors();
+		
+		Player player = m_botAction.getPlayer(event.getPlayerID());
+	    if(player.getPlayerName().startsWith("^") == false) {
+	    	m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*info");
+	    }
+
 	}
 	
 	public void handleEvent(PlayerLeft event) {
-		checkForDoors();
+		//checkForDoors();
 	}
 
 	private void checkForDoors() {
@@ -296,6 +328,28 @@ public class PubUtilModule extends AbstractModule {
         m_botAction.sendSmartPrivateMessage( sender, p2.getPlayerName() + " last seen: " + getPlayerLocation( p2.getXTileLocation(), p2.getYTileLocation() ));
     }
     
+    public String getLocationName(Location location) {
+
+        if( Location.UNKNOWN.equals(location) )
+            return "Unknown";
+        if( Location.FLAGROOM.equals(location) )
+            return "Flagroom";
+        if( Location.MID.equals(location) )
+            return "Mid Base";
+        if( Location.LOWER.equals(location) )
+            return "Lower Base";
+        if( Location.ROOF.equals(location) )
+            return "Roof";
+        if( Location.SPAWN.equals(location) )
+            return "Spawn";
+        if( Location.SAFE.equals(location) )
+            return "Safe";
+        if( Location.SPACE.equals(location) )
+            return "Space";
+        
+        return "Unknown";
+    }
+    
     public String getPlayerLocation(int x, int y) {
 
         String exact = "";
@@ -305,23 +359,23 @@ public class PubUtilModule extends AbstractModule {
     	Location location = getLocation(x, y);
     	
         if( Location.UNKNOWN.equals(location) )
-            return "Not yet spotted" + exact;
+            return "Not yet spotted";
         if( Location.FLAGROOM.equals(location) )
-            return "in Flagroom" + exact;
+            return "in Flagroom";
         if( Location.MID.equals(location) )
-            return "in Mid Base" + exact;
+            return "in Mid Base";
         if( Location.LOWER.equals(location) )
-            return "in Lower Base" + exact;
+            return "in Lower Base";
         if( Location.ROOF.equals(location) )
-            return "on Roof" + exact;
+            return "on Roof";
         if( Location.SPAWN.equals(location) )
-            return "in Spawn" + exact;
+            return "in Spawn";
         if( Location.SAFE.equals(location) )
-            return "in Safe" + exact;
+            return "in Safe";
         if( Location.SPACE.equals(location) )
-            return "in Space" + exact;
+            return "in Space";
         
-        return "Not yet spotted" + exact;
+        return "Not yet spotted";
     }
 
 	@Override

@@ -1,9 +1,13 @@
 package twcore.bots.pubsystem.module;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.TimerTask;
+import java.util.Map.Entry;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
+import twcore.bots.pubsystem.module.PubUtilModule.Location;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
@@ -34,7 +38,7 @@ public class PubStreakModule extends AbstractModule {
 	private long lastZone = 0;
 	
 	private boolean moneyEnabled = false;
-	
+
 	public PubStreakModule(BotAction botAction, PubContext context) {
 		
 		super(botAction, context, "Streak");
@@ -42,6 +46,8 @@ public class PubStreakModule extends AbstractModule {
 		this.winStreaks = new HashMap<String,Integer>();
 		this.loseStreaks = new HashMap<String,Integer>();
 
+		m_botAction.scheduleTask(new SafeChecker(context), 10*Tools.TimeInMillis.SECOND, 3*Tools.TimeInMillis.SECOND);
+		
 		reloadConfig();
 	}
 	
@@ -103,7 +109,11 @@ public class PubStreakModule extends AbstractModule {
         // Streak breaker??
         if (winStreaks.get(killed.getPlayerName()) >= winsStreakArenaAt) {
         	if (pubPlayerKiller != null) {
-	        	announceStreakBreaker(pubPlayerKiller, pubPlayerKilled, winStreaks.get(killed.getPlayerName()));
+        		
+        		int streak = winStreaks.get(killed.getPlayerName());
+        		int moneybroker = streakBrokerBonus + streak*winsStreakMoneyMultiplicator;
+        		
+	        	announceStreakBreaker(pubPlayerKiller, pubPlayerKilled, streak, moneybroker);
 	        	if (streakBrokerBonus > 0) {
 	        		pubPlayerKiller.addMoney(streakBrokerBonus);
 	        	}
@@ -130,9 +140,16 @@ public class PubStreakModule extends AbstractModule {
         
         streak = winStreaks.get(killer.getPlayerName());
         
+        // Time to tell the player that SAFE are not allowed
+        // Else, the player will lose his streak
+        if (streak == winsStreakArenaAt) {
+        	m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "You have kill " + winsStreakArenaAt + " times in a row, you are now not allowed to go in safe.");
+        	m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "If you do, you will lose your streak. May the force be with you.");
+        }
+        
         // Is a streak worth to be said?
         if (streak >= winsStreakArenaAt) {
-        	
+
 	        // Best of session?
 	        if (streak > bestWinStreak) {
 	        	bestWinStreak = streak;
@@ -176,10 +193,10 @@ public class PubStreakModule extends AbstractModule {
     	
 	}
 
-	private void announceStreakBreaker(PubPlayer killer, PubPlayer killed, int streak) {
+	private void announceStreakBreaker(PubPlayer killer, PubPlayer killed, int streak, int money) {
     	String message = "[STREAK BREAKER!] " + killed.getPlayerName() + " (" + streak + " kills) broken by " + killer.getPlayerName() + "!";
-    	if (streakBrokerBonus > 0 && context.getMoneySystem().isEnabled()) {
-    		message += " (+$" + streakBrokerBonus + ")";
+    	if (context.getMoneySystem().isEnabled()) {
+    		message += " (+$" + money + ")";
     	}
     	m_botAction.sendArenaMessage(message, Tools.Sound.INCONCEIVABLE);
     }
@@ -376,5 +393,33 @@ public class PubStreakModule extends AbstractModule {
 	public void stop() {
 		
 	}
-    
+	
+	private class SafeChecker extends TimerTask {
+
+		private PubContext context;
+		
+		public SafeChecker(PubContext context) {
+			this.context = context;
+		}
+		
+		public void run() {
+			Iterator<Entry<String,Integer>> it = winStreaks.entrySet().iterator();
+			while(it.hasNext()) {
+				Entry<String,Integer> entry = it.next();
+				if (entry.getValue() >= winsStreakArenaAt) {
+					Player p = m_botAction.getPlayer(entry.getKey());
+					if (p != null) {
+						Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
+						if (loc.equals(Location.SAFE)) {
+							
+							m_botAction.sendSmartPrivateMessage(entry.getKey(), "You cannot go in safe with a streak higher than " + winsStreakArenaAt + " kills. You have lost your streak.");
+							winStreaks.put(entry.getKey(), 0);
+							
+						}
+					}
+				}
+			}
+		}
+	};
+
 }

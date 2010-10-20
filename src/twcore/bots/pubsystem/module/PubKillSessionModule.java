@@ -3,11 +3,14 @@ package twcore.bots.pubsystem.module;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.TimerTask;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
+import twcore.bots.pubsystem.module.PubUtilModule.Location;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.PlayerDeath;
@@ -28,12 +31,19 @@ public class PubKillSessionModule extends AbstractModule {
 	private TimerTask endSessionTask;
 	
 	private HashMap<String,Integer> kills;
+	private HashMap<String,Long> lastDeaths;
+	private LinkedHashSet<Location> locations;
+	private HashSet<String> notplaying;
 
 	public PubKillSessionModule(BotAction botAction, PubContext context) {
 		super(botAction,context,"Kill-o-thon");
 
+		notplaying = new HashSet<String>();
+		locations = new LinkedHashSet<Location>();
 		kills = new HashMap<String,Integer>();
+		
 		reloadConfig();
+		
 	}
 	
 	public boolean isRunning() {
@@ -46,12 +56,23 @@ public class PubKillSessionModule extends AbstractModule {
 			return;
 		
 		kills = new HashMap<String,Integer>();
-		
+		lastDeaths = new HashMap<String,Long>();
+
 		if (!context.hasJustStarted()) {
 			if (context.getMoneySystem().isEnabled())
 				m_botAction.sendArenaMessage("[KILL-O-THON] A new session has started. Kill the most in " + length + " minutes and win $" + winnerMoney + ". (score, type !killothon)", Tools.Sound.BEEP1);
 			else
 				m_botAction.sendArenaMessage("[KILL-O-THON] A new session has started. Kill the most in " + length + " minutes.", Tools.Sound.BEEP1);
+		}
+		
+		if (locations.size() > 0) {
+			
+			String message = "";
+			for(Location loc: locations) {
+				message += ", " + context.getPubUtil().getLocationName(loc);
+			}
+			m_botAction.sendArenaMessage("[KILL-O-THON] The kill must be inside: " + message.substring(2));
+			
 		}
 		
 		startSessionTask = new TimerTask() {
@@ -174,25 +195,39 @@ public class PubKillSessionModule extends AbstractModule {
 			return;
 		
 		Player killer = m_botAction.getPlayer(event.getKillerID());
-		Player killee = m_botAction.getPlayer(event.getKilleeID());
+		Player killed = m_botAction.getPlayer(event.getKilleeID());
 		
-		if (killer == null || killee == null)
+		if (killer == null || killed == null)
 			return;
 		
-		if (killer.getFrequency() == killee.getFrequency())
+		if (killer.getFrequency() == killed.getFrequency())
 			return;
 		
-		Integer count = kills.get(killer.getPlayerName());
-		if (count == null) {
-			count = 0;
-		}
-		count++;
+		Location location = context.getPubUtil().getLocation(killer.getXTileLocation(), killer.getYTileLocation());
 		
-		kills.put(killer.getPlayerName(), count);
-		
-		if (count%10==0) {
-			doStatCmd(killer.getPlayerName(), true);
+		// If locations is not empty, 
+		// It means that the kill must be done inside of one of the location on this list to count
+		if (locations.size() == 0 || locations.contains(location)) {
+			
+			Integer count = kills.get(killer.getPlayerName());
+			if (count == null) {
+				count = 0;
+			}
+			count++;
+			kills.put(killer.getPlayerName(), count);
+			if (count%10==0) {
+				doStatCmd(killer.getPlayerName(), true);
+			}
+			
+		} else {
+			
+			m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "");
+			
 		}
+		
+
+		
+		lastDeaths.put(killed.getPlayerName(), System.currentTimeMillis());
 		
 	}
 	
@@ -240,6 +275,17 @@ public class PubKillSessionModule extends AbstractModule {
     	stopSession(false);
     }
     
+    public void doNotPlayingCmd( String sender ) {
+    	
+    	if (notplaying.contains(sender)) {
+    		notplaying.remove(sender);
+    		m_botAction.sendSmartPrivateMessage(sender, "You have been removed from the not playing list.");
+    	} else {
+    		notplaying.add(sender);
+    		m_botAction.sendSmartPrivateMessage(sender, "You have been added to the not playing list. Type !npkill again to play.");
+    	}
+    }
+    
     public void doStatCmd( String sender, boolean messageSuffix ) {
     	
     	if (sessionStarted) {
@@ -251,6 +297,10 @@ public class PubKillSessionModule extends AbstractModule {
     		}
     		else {
     			message = "You have 0 kill, what are you waiting for? ";
+    		}
+    		
+    		if (notplaying.contains(sender)) {
+    			message = "You have are currently on the not playing list. ";
     		}
     		
     		// Sort by number of kills order descending
@@ -312,7 +362,7 @@ public class PubKillSessionModule extends AbstractModule {
     		if (startAt == 0) {
     			return "Unknown";
     		} else {
-    			return Tools.getTimeDiffString(startAt+interval*60000+length*60000, false);	
+    			return Tools.getTimeDiffString(startAt+interval*60000, false);	
     		}
     	}
     	
@@ -336,6 +386,8 @@ public class PubKillSessionModule extends AbstractModule {
         	
             if(command.trim().equals("!killothon"))
             	doStatCmd(sender,false);
+            if(command.trim().equals("!npkillothon") || command.trim().equals("!npkill"))
+            	doNotPlayingCmd(sender);
             
         } catch(RuntimeException e) {
         	Tools.printStackTrace(e);
@@ -369,7 +421,8 @@ public class PubKillSessionModule extends AbstractModule {
 	@Override
 	public String[] getHelpMessage() {
 		return new String[] {
-			pubsystem.getHelpLine("!killothon        -- Your current stat + current leader + time left or next session."),
+				pubsystem.getHelpLine("!killothon        -- Your current stat + current leader + time left or next session."),
+				pubsystem.getHelpLine("!npkillothon      -- Toggles not playing mode. (!npkill)"),
         };
 	}
 
@@ -396,14 +449,24 @@ public class PubKillSessionModule extends AbstractModule {
 	@Override
 	public void reloadConfig() {
 		
-		length = m_botAction.getBotSettings().getInt("killsession_length");
-		interval = m_botAction.getBotSettings().getInt("killsession_interval");
-		winnerMoney = m_botAction.getBotSettings().getInt("killsession_winner_money");
+		length = m_botAction.getBotSettings().getInt("killothon_length");
+		interval = m_botAction.getBotSettings().getInt("killothon_interval");
+		winnerMoney = m_botAction.getBotSettings().getInt("killothon_winner_money");
 		
-		if (m_botAction.getBotSettings().getInt("killsession_enabled")==1) {
+		if (m_botAction.getBotSettings().getInt("killothon_enabled")==1) {
 			enabled = true;
-		}
+		} 
 		
+		String locationsString = m_botAction.getBotSettings().getString("killothon_locations");
+		String[] pieces = locationsString.split(",");
+		for(String piece: pieces) {
+			try {
+				Location location = Location.valueOf(piece.trim().toUpperCase());
+				locations.add(location);
+			} catch (Exception e) {
+				
+			}
+		}
 	}
 
 	@Override

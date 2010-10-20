@@ -632,19 +632,20 @@ public class pubsystem extends SubspaceBot
     	m_botAction.sendUnfilteredPublicMessage("?set Prize:EngineShutDownTime:400");
     	
     	for(String shipName: ships) {
-    		m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":ShieldTime:50000");
-    		m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":SuperTime:50000");
-    		m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":ThorMax:1");
-    		m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":XRadarStatus:1");
-    		m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":AntiWarpStatus:1");
-    		m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":BrickMax:1");
+    		//m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":ShieldTime:50000");
+    		//m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":SuperTime:50000");
+    		//m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":ThorMax:1");
+    		//m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":XRadarStatus:1");
+    		//m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":AntiWarpStatus:1");
+    		//m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":BrickMax:1");
     	}
     	
     	// Specific
-    	m_botAction.sendUnfilteredPublicMessage("?set Javelin:XRadarStatus:2");
-    	m_botAction.sendUnfilteredPublicMessage("?set Terrier:XRadarStatus:2");
+    	//m_botAction.sendUnfilteredPublicMessage("?set Javelin:XRadarStatus:2");
+    	//m_botAction.sendUnfilteredPublicMessage("?set Terrier:XRadarStatus:2");
 
     	// No ?buy
+    	/*
     	m_botAction.sendUnfilteredPublicMessage("?set Cost:Energy:0");
     	m_botAction.sendUnfilteredPublicMessage("?set Cost:Rotation:0");
     	m_botAction.sendUnfilteredPublicMessage("?set Cost:Stealth:0");
@@ -668,6 +669,7 @@ public class pubsystem extends SubspaceBot
     	m_botAction.sendUnfilteredPublicMessage("?set Cost:Brick:0");
     	m_botAction.sendUnfilteredPublicMessage("?set Cost:Rocket:0");
     	m_botAction.sendUnfilteredPublicMessage("?set Cost:Portal:0");
+    	*/
 
     }
 
