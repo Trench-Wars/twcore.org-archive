@@ -226,7 +226,7 @@ public class staffbot_banc extends Module {
                     }
                 }*/
                 int limits[] = getLimits(messageLc);
-                this.searchByName(name, nameToSearch, limits[0], limits[1]);
+                this.searchByName(name, nameToSearch, -1, -1);
             
             }
         
