@@ -387,10 +387,18 @@ public class staffbot_banc extends Module {
             Date date = rs.getDate("timeofwarning");
             Date expireDate = new Date(System.currentTimeMillis() - expiredTime);
             
-            if(date.before(expireDate)){
-                expiredWarnings.add(warningStr);
-            }else
-                lastestWarnings.add(warningStr);
+            String stringDateNotExpired = new SimpleDateFormat("dd MM yyyy").format(date);
+            String stringDateExpired = new SimpleDateFormat("dd MM yyyy").format(expireDate);
+            String warningSplitBecauseOfExt[];
+            
+            if(warningStr.contains("Ext :"))
+                warningSplitBecauseOfExt = warningStr.split("Ext:",2);
+            else
+                warningSplitBecauseOfExt = warningStr.split(": ",2);
+            if(date.before(expireDate) && warningSplitBecauseOfExt.length == 2){ //expired warnings AND warnings done correctly in database
+                expiredWarnings.add(stringDateExpired + " " + warningSplitBecauseOfExt[1]);
+            }else if( warningSplitBecauseOfExt.length == 2) //lastest warnings AND warnings done correctly in database
+                lastestWarnings.add(stringDateNotExpired + " " + warningSplitBecauseOfExt[1]);
             
         }
         
