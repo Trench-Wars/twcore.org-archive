@@ -47,19 +47,19 @@ public class staffbot_banc extends Module {
             " !listban -help                 - !listban command help guide",
             " !listban [arg] [count]         - Shows last 10/[count] BanCs. Optional arguments see below.",
             " !listban [#id]                 - Shows information about BanC with <id>.",
-            " !changeban <#id> <arguments>   - Changes banc with <id>. Arguments see below.",
-            " Arguments:",
+            " !changeban <#id> <arguments>   - Changes banc with <id>. Arguments see below. Don't forget the #",
+            /*" Arguments:",
             "             -player='<..>'     - Specifies player name",
             "             -d=#               - Specifies duration in minutes",
             "             -a=<...>           - Specifies access requirement, options; mod / smod / sysop",
             "             -ip=<#.#.#.#> -ir  - Specifies IP or remove IP (-ir) so banc is not matched by IP",
             "             -mid=#  -mr        - Specifies MID or remove MID (-mr) so banc is not matched by MID",
             "             -notif=<yes/no>    - Specifies wether a notification is sent on staff chat",
-            "             -staffer='<..>'    - Specifies the name who issued the ban. [Only avail. on !listban]",
-            " !bancomment <#id> <comments>   - Adds / changes comments on BanC with specified #id.",
+            "             -staffer='<..>'    - Specifies the name who issued the ban. [Only avail. on !listban]",*/
+            " !bancomment <#id> <comments>   - Adds / Changes comments on BanC with specified #id.",
             " !liftban <#id>                 - Removes ban with #id.",
             " !banaccess                     - Returns the access level restrictions",
-            " !shortcutkeys                  - Shows the available shortcut keys for the commands above"
+            //" !shortcutkeys                  - Shows the available shortcut keys for the commands above"
     };
 
     final String[] helpSmod = {
@@ -295,7 +295,7 @@ public class staffbot_banc extends Module {
 	    helpStr = "    !listban -d=60                   -   to search lastest banCs with duration of 60.";
 	    listBanHelp.add(helpStr);
 
-	    helpStr = "    try !listban -d=30 too..you can change.";
+	    helpStr = "    try !listban -d=30 too, 20, 15, etc!";
 	    listBanHelp.add(helpStr);
 
 	    helpStr = "    You can also combine those both above. Try !listban -player='quiles' -d=60";
@@ -316,8 +316,9 @@ public class staffbot_banc extends Module {
 	    helpStr = "    Check out !listban -player='Mime' -staffer='Dexter' to see all bancs done on Mime by Dexter.";
 	    listBanHelp.add(helpStr);
 	    
-	    helpStr = "    Good luck. -quiles";
+	    helpStr = "    Some examples of !listban combinations: !listban -ip=x.x.x -player='playername' -d=mins -staffer='staffername'";
 	    listBanHelp.add(helpStr);
+	    
 	    String spamPM[] = listBanHelp.toArray(new String[listBanHelp.size()]);
         m_botAction.remotePrivateMessageSpam(name, spamPM);
 	}
