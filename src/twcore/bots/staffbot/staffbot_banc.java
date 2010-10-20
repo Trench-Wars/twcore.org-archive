@@ -48,7 +48,7 @@ public class staffbot_banc extends Module {
             " !spec <player>:<time>[mins][d]            - Initiates an automatically enforced",
             "                                               spectator-lock on <player>",
             "                                               for <time/mins/days>.",
-            " !search <player>[:<#banC>][:<#Warnings>]  - Search the players history in the database.",
+            " !search <player>[:<#banC>][:<#Warnings>]  - Search the players history",
             " !listban -help                 - !listban command help guide",
             " !listban [arg] [count]         - Shows last 10/[count] BanCs. Optional arguments see below.",
             " !listban [#id]                 - Shows information about BanC with <id>.",
