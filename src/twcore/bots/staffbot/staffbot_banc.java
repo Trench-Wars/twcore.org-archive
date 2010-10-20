@@ -41,9 +41,11 @@ public class staffbot_banc extends Module {
             " !silence <player>:<time>[mins][d]         - Initiates an automatically enforced",
             "                                               silence on <player> for <time/mins/days>.",
             " !superspec <player>:<time>[mins][d]       - Initiates an automatically enforced",
-            "                                               spec-lock on <player> the ships 2,4 and 8 for <time/mins/days>",
+            "                                               spec-lock on <player> the ships 2,4 and 8",
+            "                                               for <time/mins/days>",
             " !spec <player>:<time>[mins][d]            - Initiates an automatically enforced",
-            "                                               spectator-lock on <player> for <time/mins/days>.",
+            "                                               spectator-lock on <player>",
+            "                                               for <time/mins/days>.",
             " !listban -help                 - !listban command help guide",
             " !listban [arg] [count]         - Shows last 10/[count] BanCs. Optional arguments see below.",
             " !listban [#id]                 - Shows information about BanC with <id>.",
@@ -283,7 +285,7 @@ public class staffbot_banc extends Module {
 	    helpStr = "    Hi, I'm your help guide. How to use !listban in the best way, so it can be useful?";
 	    listBanHelp.add(helpStr);
 	    
-	    helpStr = "    There are few arguments you can do and model your own !listban: ";
+	    helpStr = "    There are few arguments you can do and model your own !listban, instead of just !listban alone. ";
 	    listBanHelp.add(helpStr);
 	    
 	    helpStr = "    !listban -player='quiles'        -   to search all bancS of the playername quiles, for example.";
@@ -316,7 +318,10 @@ public class staffbot_banc extends Module {
 	    helpStr = "    Check out !listban -player='Mime' -staffer='Dexter' to see all bancs done on Mime by Dexter.";
 	    listBanHelp.add(helpStr);
 	    
-	    helpStr = "    Some examples of !listban combinations: !listban -ip=x.x.x -player='playername' -d=mins -staffer='staffername'";
+	    helpStr = "    Some examples of !listban combinations: ";
+	    listBanHelp.add(helpStr);
+        
+	    helpStr = "    !listban -ip=x.x.x -player='playername' -d=mins -staffer='staffername'";
 	    listBanHelp.add(helpStr);
 	    
 	    String spamPM[] = listBanHelp.toArray(new String[listBanHelp.size()]);
