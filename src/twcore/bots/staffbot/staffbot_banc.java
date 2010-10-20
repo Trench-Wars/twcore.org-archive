@@ -283,10 +283,11 @@ public class staffbot_banc extends Module {
         //!listban -player='name'
 	    List<String> listBanHelp = new ArrayList<String>();
 	    String helpStr = "";
+	    
 	    helpStr = "    Hi, I'm your help guide. How to use !listban in the best way, so it can be useful?";
 	    listBanHelp.add(helpStr);
 	    
-	    helpStr = "    There are few arguments you can do and model your own !listban, instead of just !listban alone. ";
+	    helpStr = "    There are few arguments you can do and model your own !listban: ";
 	    listBanHelp.add(helpStr);
 	    
 	    helpStr = "    !listban -player='quiles'        -   to search all bancS of the playername quiles, for example.";
