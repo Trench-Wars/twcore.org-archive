@@ -250,6 +250,9 @@ public class PubPlayerManagerModule extends AbstractModule {
         Player killer = m_botAction.getPlayer(event.getKillerID());
         Player killed = m_botAction.getPlayer(event.getKilleeID());
     	
+        if (killer == null || killed == null)
+        	return;
+        
 		PubPlayer pubPlayerKiller = getPlayer(killer.getPlayerName());
 		PubPlayer pubPlayerKilled = getPlayer(killed.getPlayerName());
 		if (pubPlayerKilled != null) {

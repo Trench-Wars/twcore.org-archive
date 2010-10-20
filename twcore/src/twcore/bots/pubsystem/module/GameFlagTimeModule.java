@@ -480,7 +480,7 @@ public class GameFlagTimeModule extends AbstractModule {
         int winnerFreq  = flagTimer.getHoldingFreq();
         int maxScore = (MAX_FLAGTIME_ROUNDS + 1) / 2;  // Score needed to win
         int secs = flagTimer.getTotalSecs();
-        int mins = secs / 60;
+        int mins = (int)(secs/60);
 
         // A normal frequency (0 or 1) won the round?
         if(winnerFreq == 0 || winnerFreq == 1) 
@@ -564,30 +564,34 @@ public class GameFlagTimeModule extends AbstractModule {
         String mostTek = getPosition(teks, 1);
         String bestTerrierName = getPosition(bestTerrier, 1);
         
+        int m1000 = 1000 + (int)Math.max(0,(mins-10)*0.2*500);
+        int m500 = 500 + (int)Math.max(0,(mins-10)*0.1*500);
+        int m250 = 250 + (int)Math.max(0,(mins-10)*0.1*250);
+        
     	m_botAction.sendArenaMessage("Achievements:");
     	if (basingKingName != null) {
-    		m_botAction.sendArenaMessage(" - Basing King        : " + basingKingName + " (+$1000)");
-    		context.getPlayerManager().addMoney(basingKingName, 1000, true);
+    		m_botAction.sendArenaMessage(" - Basing King        : " + basingKingName + " (+$" + m1000 + ")");
+    		context.getPlayerManager().addMoney(basingKingName, m1000, true);
     	}
     	if (mostKillName != null) {
-    		m_botAction.sendArenaMessage(" - Most Veteran Like  : " + mostKillName + " (+$1000)");
-    		context.getPlayerManager().addMoney(mostKillName, 1000, true);
+    		m_botAction.sendArenaMessage(" - Most Veteran Like  : " + mostKillName + " (+$" + m1000 + ")");
+    		context.getPlayerManager().addMoney(mostKillName, m1000, true);
     	}
     	if (mostFlagClaimed != null) {
-    		m_botAction.sendArenaMessage(" - Flag Savior        : " + mostFlagClaimed + " (+$1000)");
-    		context.getPlayerManager().addMoney(mostFlagClaimed, 1000, true);
+    		m_botAction.sendArenaMessage(" - Flag Savior        : " + mostFlagClaimed + " (+$" + m1000 + ")");
+    		context.getPlayerManager().addMoney(mostFlagClaimed, m1000, true);
     	}
     	if (bestTerrierName != null) {
-    		m_botAction.sendArenaMessage(" - Best Terrier       : " + bestTerrierName + " (+$500)");
-    		context.getPlayerManager().addMoney(bestTerrierName, 500);
+    		m_botAction.sendArenaMessage(" - Best Terrier       : " + bestTerrierName + " (+$" + m500 + ")");
+    		context.getPlayerManager().addMoney(bestTerrierName, m500);
     	}
     	if (lessDeath != null) {
-    		m_botAction.sendArenaMessage(" - Most Cautious      : " + lessDeath + " (+$250)");
-    		context.getPlayerManager().addMoney(lessDeath, 250);
+    		m_botAction.sendArenaMessage(" - Most Cautious      : " + lessDeath + " (+$" + m250 + ")");
+    		context.getPlayerManager().addMoney(lessDeath, m250);
     	}
     	if (mostTek != null) {
-    		m_botAction.sendArenaMessage(" - Most Terrier Kills : " + mostTek + " (+$250)");
-    		context.getPlayerManager().addMoney(mostTek, 250);
+    		m_botAction.sendArenaMessage(" - Most Terrier Kills : " + mostTek + " (+$" + m250 + ")");
+    		context.getPlayerManager().addMoney(mostTek, m250);
     	}
     	if (mostDeath != null) {
     		m_botAction.sendArenaMessage(" - Most Reckless      : " + mostDeath);
@@ -597,6 +601,81 @@ public class GameFlagTimeModule extends AbstractModule {
     		m_botAction.sendArenaMessage(" - Least Honorable    : " + mostTk);
     		//context.getPlayerManager().addMoney(mostTk, 0);
     	}
+    	
+    	
+        Iterator<Player> iterator = m_botAction.getPlayingPlayerIterator();
+        while(iterator.hasNext()) {
+        	
+        	Player player = (Player) iterator.next();
+            
+            if (player == null)
+                continue;
+            if (player.getFrequency()!=winnerFreq)
+            	continue;
+            if (context.getPubChallenge().isDueling(player.getPlayerName()))
+            	continue;
+            
+            // Prizes only for the winner team (most not be dueling)
+   
+            if (mins>=60) { // New: 1 thor
+            	 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #6"); // xradar
+                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #15"); // multifire
+                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #20"); // antiwarp
+                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // repel
+                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // ..
+                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // ..
+                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #22"); // burst
+                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #24"); // thor
+                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #26"); // brick
+                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #27"); // rocket
+                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #28"); // portal
+
+            } else if (mins>=45) { // New: antiwarp
+	           	m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #6"); // xradar
+	            m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #15"); // multifire
+	            m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #20"); // antiwarp
+	            m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // repel
+	            m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // ..
+	            m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // ..
+	            m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #22"); // burst
+	            m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #26"); // brick
+	            m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #27"); // rocket
+	            m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #28"); // portal
+
+            } else if (mins>=30) { // New: xradar
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #6"); // xradar
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #15"); // multifire
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // repel
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // ..
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // ..
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #22"); // burst
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #27"); // rocket
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #28"); // portal
+				
+            } else if (mins>=15) { // New: burst + rocket
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #15"); // multifire
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // repel
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // ..
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // ..
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #22"); // burst
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #27"); // rocket
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #28"); // portal
+				
+            } else if (mins>=10) { // New: repel + portal
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #15"); // multifire
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // repel
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // ..
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // ..
+				m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #28"); // portal
+
+            } else {
+            	m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #15"); // multifire
+
+            }
+
+        }
+    	
+    	
 
         // MVP TOP 3
         /*
@@ -1237,6 +1316,7 @@ public class GameFlagTimeModule extends AbstractModule {
             int remain = getTimeRemaining();
 
             Player p = m_botAction.getPlayer( claimerID );
+
             if( p != null ) {
 
                 addFlagClaim( p.getPlayerName() );
@@ -1246,11 +1326,18 @@ public class GameFlagTimeModule extends AbstractModule {
                         m_botAction.sendArenaMessage( "INCONCIEVABLE!!: " + p.getPlayerName() + " claims flag for " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq" ) + " with just " + remain + " second" + (remain == 1 ? "" : "s") + " left!", 65 );
                         m_botAction.showObject(2500);
                         m_botAction.showObject(2600);
+                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Wow!! I give you $2000 for this.");
+                        context.getPlayerManager().addMoney(p.getPlayerName(), 2000);
+                        
                     } else if( remain < 11 ) {
                         m_botAction.sendArenaMessage( "AMAZING!: " + p.getPlayerName() + " claims flag for " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq" ) + " with just " + remain + " sec. left!" );
                         m_botAction.showObject(2600); // 'Daym!' lvz
+                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Not bad at all! I give you $1000 for this.");
+                        context.getPlayerManager().addMoney(p.getPlayerName(), 1000);
+                    
                     } else if( remain < 25 ) {
                         m_botAction.sendArenaMessage( "SAVE!: " + p.getPlayerName() + " claims flag for " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq" ) + " with " + remain + " sec. left!" );
+                        
                     } else {
                         m_botAction.sendArenaMessage( "Save: " + p.getPlayerName() + " claims flag for " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq" ) + " with " + remain + " sec. left." );
                     }

@@ -124,7 +124,6 @@ public class PubMoneySystemModule extends AbstractModule {
             		return;
             	}
             	
-            	Player player = m_botAction.getPlayer(playerName);
             	PubPlayer buyer = playerManager.getPlayer(playerName);
             	final PubItem item = store.buy(itemName, buyer, params);
             	final PubPlayer receiver;
@@ -137,79 +136,22 @@ public class PubMoneySystemModule extends AbstractModule {
                 	receiver = buyer;
                 }
             	
-                // PRIZE ITEM
-                if (item instanceof PubPrizeItem) {
-                	List<Integer> prizes = ((PubPrizeItem) item).getPrizes();
-                	for(int prizeNumber: prizes) {
-                		m_botAction.specificPrize(receiver.getPlayerName(), prizeNumber);
-                	}
-                	if (item.hasDuration()) {
-                    	final PubItemDuration duration = item.getDuration();
-                    	m_botAction.sendSmartPrivateMessage(receiver.getPlayerName(), "You have " + duration.getSeconds() + " seconds to use your item.");
-                    	if (duration.hasTime()) {
-                    		TimerTask timer = new TimerTask() {
-                                public void run() {
-                                	int bounty = m_botAction.getPlayer(receiver.getPlayerName()).getBounty();
-                                	if (System.currentTimeMillis()-receiver.getLastDeath() > duration.getSeconds()*1000) {
-	                                	m_botAction.sendUnfilteredPrivateMessage(receiver.getPlayerName(), "*shipreset");
-	                                	m_botAction.giveBounty(receiver.getPlayerName(), bounty);
-                                	}
-                                	m_botAction.sendSmartPrivateMessage(receiver.getPlayerName(), "Item '" + item.getName() + "' lost.");
-                                }
-                            };
-                            m_botAction.scheduleTask(timer, duration.getSeconds()*1000);
-                    	}
-                	}
-                }
+                // Execute the item!!
+                executeItem(item, receiver, params);
                 
-                // COMMAND ITEM
-                else if (item instanceof PubCommandItem) {
-                	String command = ((PubCommandItem)item).getCommand();
-            		Method method = this.getClass().getDeclaredMethod("itemCommand"+command, String.class, String.class);
-            		method.invoke(this, playerName, params);
-                } 
-                
-                // SHIP ITEM
-                else if (item instanceof PubShipItem) {
-                	
-                    if (item.hasDuration()) {
-                    	PubItemDuration duration = item.getDuration();
-                    	if (duration.hasTime()) {
-                    		final int currentShip = (int)player.getShipType();
-                        	TimerTask timer = new TimerTask() {
-                                public void run() {
-                                	m_botAction.setShip(playerName, currentShip);
-                                }
-                            };
-                            m_botAction.scheduleTask(timer, duration.getSeconds()*1000);
-                    	}
-                    	else if (duration.hasDeaths()) {
-                    		playersWithDurationItem.put(receiver, duration);
-                    	}
-                    }
-                    
-                    receiver.setShipItem((PubShipItem)item);
-                    m_botAction.setShip(playerName, ((PubShipItem) item).getShipNumber());
-                	
-                } 
-                
-                PubLogSystem.write(LogType.ITEM, playerName + "("+player.getShipType()+"): " + item.getName() + " " + item.getPrice() + "\n");
-                
+                // Tell the world?
                 if (item.isArenaItem()) {
                 	 m_botAction.sendArenaMessage(playerName + " just bought a " + item.getDisplayName() + " for $" + item.getPrice() + ".",21);
                 }
                 
+                // Save this purchase
         		String database = m_botAction.getBotSettings().getString("database");
-        		
-        		// The query will be closed by PlayerManagerModule
-        		
         		int shipType = m_botAction.getPlayer(receiver.getPlayerName()).getShipType();
-        		
+        		// The query will be closed by PlayerManagerModule
         		if (database!=null)
         		m_botAction.SQLBackgroundQuery(database, "", "INSERT INTO tblPurchaseHistory "
     				+ "(fcItemName, fcBuyerName, fcReceiverName, fcArguments, fnPrice, fnReceiverShipType, fdDate) "
     				+ "VALUES ('"+Tools.addSlashes(item.getName())+"','"+Tools.addSlashes(buyer.getPlayerName())+"','"+Tools.addSlashes(receiver.getPlayerName())+"','"+Tools.addSlashes(params)+"','"+item.getPrice()+"','"+shipType+"',NOW())");
-        		
 
             } 
             else {
@@ -224,6 +166,74 @@ public class PubMoneySystemModule extends AbstractModule {
             Tools.printStackTrace(e);
         }
         
+    }
+    
+    public void executeItem(final PubItem item, final PubPlayer receiver, final String params) {
+    	
+    	Player player = m_botAction.getPlayer(receiver.getPlayerName());
+    	
+    	try {
+    	
+	    	// PRIZE ITEM
+	        if (item instanceof PubPrizeItem) {
+	        	List<Integer> prizes = ((PubPrizeItem) item).getPrizes();
+	        	for(int prizeNumber: prizes) {
+	        		m_botAction.specificPrize(receiver.getPlayerName(), prizeNumber);
+	        	}
+	        	if (item.hasDuration()) {
+	            	final PubItemDuration duration = item.getDuration();
+	            	m_botAction.sendSmartPrivateMessage(receiver.getPlayerName(), "You have " + duration.getSeconds() + " seconds to use your item.");
+	            	if (duration.hasTime()) {
+	            		TimerTask timer = new TimerTask() {
+	                        public void run() {
+	                        	int bounty = m_botAction.getPlayer(receiver.getPlayerName()).getBounty();
+	                        	if (System.currentTimeMillis()-receiver.getLastDeath() > duration.getSeconds()*1000) {
+	                            	m_botAction.sendUnfilteredPrivateMessage(receiver.getPlayerName(), "*shipreset");
+	                            	m_botAction.giveBounty(receiver.getPlayerName(), bounty);
+	                        	}
+	                        	m_botAction.sendSmartPrivateMessage(receiver.getPlayerName(), "Item '" + item.getName() + "' lost.");
+	                        }
+	                    };
+	                    m_botAction.scheduleTask(timer, duration.getSeconds()*1000);
+	            	}
+	        	}
+	        }
+	        
+	        // COMMAND ITEM
+	        else if (item instanceof PubCommandItem) {
+	        	String command = ((PubCommandItem)item).getCommand();
+	    		Method method = this.getClass().getDeclaredMethod("itemCommand"+command, String.class, String.class);
+	    		method.invoke(this, receiver.getPlayerName(), params);
+	        } 
+	        
+	        // SHIP ITEM
+	        else if (item instanceof PubShipItem) {
+	        	
+	            if (item.hasDuration()) {
+	            	PubItemDuration duration = item.getDuration();
+	            	if (duration.hasTime()) {
+	            		final int currentShip = (int)player.getShipType();
+	                	TimerTask timer = new TimerTask() {
+	                        public void run() {
+	                        	m_botAction.setShip(receiver.getPlayerName(), currentShip);
+	                        }
+	                    };
+	                    m_botAction.scheduleTask(timer, duration.getSeconds()*1000);
+	            	}
+	            	else if (duration.hasDeaths()) {
+	            		playersWithDurationItem.put(receiver, duration);
+	            	}
+	            }
+	            
+	            receiver.setShipItem((PubShipItem)item);
+	            m_botAction.setShip(receiver.getPlayerName(), ((PubShipItem) item).getShipNumber());
+	        	
+	        } 
+	        
+    	} catch (Exception e) {
+    		Tools.printStackTrace(e);
+    	}
+    	
     }
     
     public void doCmdDonate(String sender, String command) {
