@@ -226,7 +226,7 @@ public class staffbot_banc extends Module {
                     }
                 }*/
                 int limits[] = getLimits(messageLc);
-                this.searchByName(name, nameToSearch, -1, -1);
+                this.searchByName(name, nameToSearch, limits[0], limits[1]);
             
             }
         
@@ -299,17 +299,14 @@ public class staffbot_banc extends Module {
 		}
 	}
 	private int[] getLimits(String commandSearch){
-	    int limits[] = new int[2];
+	    int limits[] = {-1,-1};
 	    
 	    if( commandSearch.contains(":") )
         {
 	        StringTokenizer token = new StringTokenizer(commandSearch);
             String limitBanc = token.nextToken(":");
-            if(token.countTokens() < 2){
-                limits[0] = -1;
-                limits[0] = -1;
-            }
-            else{
+            
+            if(token.countTokens() > 2){
                 limitBanc = token.nextToken(":");
                 
                 String limitWarning = token.nextToken(":");
