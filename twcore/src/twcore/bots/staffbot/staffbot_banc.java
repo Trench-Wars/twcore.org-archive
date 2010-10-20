@@ -391,8 +391,8 @@ public class staffbot_banc extends Module {
             String stringDateExpired = new SimpleDateFormat("dd MM yyyy").format(expireDate);
             String warningSplitBecauseOfExt[];
             
-            if(warningStr.contains("Ext :"))
-                warningSplitBecauseOfExt = warningStr.split("Ext:",2);
+            if(warningStr.contains("Ext: "))
+                warningSplitBecauseOfExt = warningStr.split("Ext: ",2);
             else
                 warningSplitBecauseOfExt = warningStr.split(": ",2);
             if(date.before(expireDate) && warningSplitBecauseOfExt.length == 2){ //expired warnings AND warnings done correctly in database
