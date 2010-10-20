@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.TimerTask;
@@ -1265,61 +1266,97 @@ public class staffbot_banc extends Module {
 	        psSearchPlayer.setString(1, name);*/
 	        ResultSet rs = m_botAction.SQLQuery(botsDatabase, query);
             
+	        if(rs == null)
+                m_botAction.sendSmartPrivateMessage(stafferName, "No banCs made on the player "+name);
+	        
+	        else{
+	            String result = "BanCs: ";
+    	        while(rs.next()){
+    	            
+    	            result += Tools.formatString(rs.getString("fcUsername"), 10);
+    	            result += Tools.formatString(rs.getString("fcType"), 10);
+                    
+    	            String IP = rs.getString("fcIp");
+    	            
+    	            if(IP == null)
+    	                IP = "(UNKNOWN)";
+    	            
+    	            result += "IP: "+Tools.formatString(IP, 15);
+    	            
+    	            String MID = rs.getString("fcMID");
+    	            if(MID == null)
+    	                MID = "(UNKNOWN)";
+    	            
+    	            result += "MID: "+Tools.formatString(MID, 10);
+    	            
+    	            int duration = rs.getInt("fnDuration");
+    	            boolean isDay = duration >= 1440? true:false;
+    	            
+    	            if(isDay){
+    	                duration = (duration/60)/24;
+    	                result += Tools.formatString(" Duration: "+duration+" days", 19);
+    	                }
+    	            else
+    	                result += Tools.formatString(" Duration: "+duration+" mins", 19);
+    	            
+    	            result += Tools.formatString(" by: " + rs.getString("fcStaffer"), 17);
+    	            String comments = rs.getString("fcComment");
+    	            
+    	            if(comments == null)
+    	                comments = "No Comments";
+    	            
+    	            list.add(result);
+    	            list.add(comments);
+    	            
+    	            /*
+    	            m_botAction.sendPrivateMessage(stafferName, "-------- Row "+rs.getRow()+ " -------");
+    	            m_botAction.sendPrivateMessage(stafferName, rs.getString(2)); //fcType
+    	            m_botAction.sendPrivateMessage(stafferName, rs.getString(3)); //fcUserName
+    	            m_botAction.sendPrivateMessage(stafferName, rs.getString(4)); //fcIp
+    	            m_botAction.sendPrivateMessage(stafferName, rs.getString(5)); //fcMid
+    	            m_botAction.sendPrivateMessage(stafferName, rs.getString(6)); //by fcMinAccess
+    	            m_botAction.sendPrivateMessage(stafferName, "fnDuration: "+rs.getInt(7)); //fnDuration
+    	            m_botAction.sendPrivateMessage(stafferName, rs.getString(8)); //by fcStaffer
+    	            //m_botAction.sendPrivateMessage(stafferName, rs.getString(9)); //fcComment
+    	            m_botAction.sendPrivateMessage(stafferName, " ");
+    	            */
+    	        }
+	        }
+	        String strSpam[] = list.toArray(new String[list.size()]);
+	        m_botAction.privateMessageSpam(stafferName, strSpam);
+	        
+	        
+	        query = "SELECT * FROM tblWarnings WHERE name = '"+name+"' ORDER BY timeofwarning ASC";
+	        rs = m_botAction.SQLQuery(this.trenchDatabase, query);
+	        
+	        List<String> lastestWarnings = new LinkedList<String>();
+	        List<String> expiredWarnings = new LinkedList<String>();
+	        
 	        while(rs.next()){
 	            
-	            String result = "";
-	            result += Tools.formatString(rs.getString("fcUsername"), 10);
-	            result += Tools.formatString(rs.getString("fcType"), 10);
-                
-	            String IP = rs.getString("fcIp");
+	            String warningStr = rs.getString("warning");
+	            int expiredTime = Tools.TimeInMillis.WEEK*4; //last month
+	            Date date = rs.getDate("timeofwarning");
+	            Date expireDate = new Date(System.currentTimeMillis() - expiredTime);
 	            
-	            if(IP == null)
-	                IP = "(UNKNOWN)";
-	            
-	            result += "IP: "+Tools.formatString(IP, 15);
-	            
-	            String MID = rs.getString("fcMID");
-	            if(MID == null)
-	                MID = "(UNKNOWN)";
-	            
-	            result += "MID: "+Tools.formatString(MID, 10);
-	            
-	            int duration = rs.getInt("fnDuration");
-	            boolean isDay = duration >= 1440? true:false;
-	            
-	            if(isDay){
-	                duration = (duration/60)/24;
-	                result += Tools.formatString(" Duration: "+duration+" days", 19);
-	                }
-	            else
-	                result += Tools.formatString(" Duration: "+duration+" mins", 19);
-	            
-	            result += Tools.formatString(" by: " + rs.getString("fcStaffer"), 17);
-	            String comments = rs.getString("fcComment");
-	            
-	            if(comments == null)
-	                comments = "No Comments";
-	            
-	            list.add(result);
-	            list.add(comments);
-	            
-	            /*
-	            m_botAction.sendPrivateMessage(stafferName, "-------- Row "+rs.getRow()+ " -------");
-	            m_botAction.sendPrivateMessage(stafferName, rs.getString(2)); //fcType
-	            m_botAction.sendPrivateMessage(stafferName, rs.getString(3)); //fcUserName
-	            m_botAction.sendPrivateMessage(stafferName, rs.getString(4)); //fcIp
-	            m_botAction.sendPrivateMessage(stafferName, rs.getString(5)); //fcMid
-	            m_botAction.sendPrivateMessage(stafferName, rs.getString(6)); //by fcMinAccess
-	            m_botAction.sendPrivateMessage(stafferName, "fnDuration: "+rs.getInt(7)); //fnDuration
-	            m_botAction.sendPrivateMessage(stafferName, rs.getString(8)); //by fcStaffer
-	            //m_botAction.sendPrivateMessage(stafferName, rs.getString(9)); //fcComment
-	            m_botAction.sendPrivateMessage(stafferName, " ");
-	            */
+	            if(date.before(expireDate)){
+	                expiredWarnings.add(warningStr);
+	            }else
+	                lastestWarnings.add(warningStr);
 	            
 	        }
 	        
-	        String strSpam[] = list.toArray(new String[list.size()]);
-	        m_botAction.privateMessageSpam(stafferName, strSpam);
+	        if(lastestWarnings.size() > 0)
+	        {
+	            
+	            m_botAction.sendSmartPrivateMessage(stafferName, "Lastest warnings: ");
+	            m_botAction.remotePrivateMessageSpam(stafferName, lastestWarnings.toArray(new String[lastestWarnings.size()]));
+	        }
+	        
+	        if(expiredWarnings.size() > 0){
+	            m_botAction.sendSmartPrivateMessage(stafferName, "Expired warnings: ");
+	            m_botAction.remotePrivateMessageSpam(stafferName, expiredWarnings.toArray(new String[lastestWarnings.size()]));
+	        }
 	        
 	    }catch(SQLException e){
 	        e.printStackTrace();
