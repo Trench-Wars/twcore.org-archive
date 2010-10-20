@@ -1323,7 +1323,7 @@ public class staffbot_banc extends Module {
     	        }
 	        }
 	        String strSpam[] = list.toArray(new String[list.size()]);
-	        m_botAction.privateMessageSpam(stafferName, strSpam);
+	        m_botAction.remotePrivateMessageSpam(stafferName, strSpam);
 	        
 	        
 	        query = "SELECT * FROM tblWarnings WHERE name = '"+name+"' ORDER BY timeofwarning ASC";
@@ -1335,7 +1335,7 @@ public class staffbot_banc extends Module {
 	        while(rs.next()){
 	            
 	            String warningStr = rs.getString("warning");
-	            int expiredTime = Tools.TimeInMillis.WEEK*4; //last month
+	            int expiredTime = Tools.TimeInMillis.WEEK*2; //last month
 	            Date date = rs.getDate("timeofwarning");
 	            Date expireDate = new Date(System.currentTimeMillis() - expiredTime);
 	            
