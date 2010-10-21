@@ -74,7 +74,8 @@ public class staffbot_banc extends Module {
     final String[] helpSmod = {
             "----------------------[ BanC: SMod+ ]---------------------",
             " !reload                           - Reloads the list of active bancs from the database",
-            " !forcedb                          - Forces to connect to the database"
+            " !forcedb                          - Forces to connect to the database",
+            " !searchip <ip>                    - where ip can be the x. or x.x. or full x.x.x"  
     };
     
     final String[] shortcutKeys = {
@@ -304,7 +305,7 @@ public class staffbot_banc extends Module {
 	    helpSearch = "The main functionality is to search the whole player's history with this command.";
 	    list.add(helpSearch);
 	    
-	    helpSearch = "Try !search quiles:-1:-1 to search everything about quiles (All banCs and warnings - lastests and expireds)";
+	    helpSearch = "Try !search quiles:-1:-1 to search everything about quiles (All banCs and warnings - latests and expireds)";
 	    list.add(helpSearch);
 	    
 	    helpSearch = "But you can customizable it: Try !search quiles:5:5 (Lastest 5 banCs and 5 warnings)";
