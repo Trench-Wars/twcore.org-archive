@@ -219,6 +219,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
     	return shipItem != null;
     }
     
+    public PubShipItem getShipItem() {
+    	return shipItem;
+    }
+    
     public void setShipItem(PubShipItem item) {
     	this.shipItem = item;
     }

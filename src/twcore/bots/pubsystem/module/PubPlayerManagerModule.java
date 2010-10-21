@@ -15,6 +15,7 @@ import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.PubHuntModule.HuntPlayer;
 import twcore.bots.pubsystem.module.PubUtilModule.Tileset;
+import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
@@ -95,10 +96,19 @@ public class PubPlayerManagerModule extends AbstractModule {
 			
 			String database = m_botAction.getBotSettings().getString("database");
 			// The query will be closed by PlayerManagerModule
-			if (database!=null) 
-				m_botAction.SQLBackgroundQuery(database, "", "UPDATE tblPlayerStats "
-						+ "SET fnMoney = fnMoney+" + Math.abs(money) + " "
-						+ "WHERE fcName='" + Tools.addSlashes(playerName) + "'");
+			if (database!=null)
+				try {
+					ResultSet rs = m_botAction.SQLQuery(database, "UPDATE tblPlayerStats "
+							+ "SET fnMoney = fnMoney+" + Math.abs(money) + " "
+							+ "WHERE fcName='" + Tools.addSlashes(playerName) + "'");
+					if (rs.getStatement().getUpdateCount() < 1) {
+						rs.close();
+						return false;
+					}
+					rs.close();
+				} catch (SQLException e) {
+					return false;
+				}
 			return true;
 		}
 		return false;
@@ -499,9 +509,19 @@ public class PubPlayerManagerModule extends AbstractModule {
                 if(randomShip == 0)
                     randomShip = player.getShipType();
             }
+            
+            PubPlayer pubPlayer = context.getPlayerManager().getPlayer(player.getPlayerName());
+            if (pubPlayer != null && pubPlayer.hasShipItem()) {
+            	PubShipItem item = pubPlayer.getShipItem();
+            	if (item.getShipNumber() == player.getShipType()) {
+            		return;
+            	}
+            }
+
             m_botAction.setShip(playerID, randomShip);
        	    m_botAction.sendSmartPrivateMessage(m_botAction.getPlayerName(playerID), "That ship has been restricted in this arena.");  
        	    m_botAction.sendSmartPrivateMessage(m_botAction.getPlayerName(playerID), "Please choose another, or type ?arena to select another arena. You've been put randomly in ship "+randomShip);
+       
        	    return;
         }
 

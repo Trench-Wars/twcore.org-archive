@@ -564,34 +564,34 @@ public class GameFlagTimeModule extends AbstractModule {
         String mostTek = getPosition(teks, 1);
         String bestTerrierName = getPosition(bestTerrier, 1);
         
-        int m1000 = 1000 + (int)Math.max(0,(mins-10)*0.2*500);
-        int m500 = 500 + (int)Math.max(0,(mins-10)*0.1*500);
-        int m250 = 250 + (int)Math.max(0,(mins-10)*0.1*250);
+        int m10 = 100 + (int)Math.max(0,(mins-10)*0.5*10);
+        int m5 = 50 + (int)Math.max(0,(mins-10)*0.5*5);
+        int m2 = 20 + (int)Math.max(0,(mins-10)*0.5*2);
         
     	m_botAction.sendArenaMessage("Achievements:");
     	if (basingKingName != null) {
-    		m_botAction.sendArenaMessage(" - Basing King        : " + basingKingName + " (+$" + m1000 + ")");
-    		context.getPlayerManager().addMoney(basingKingName, m1000, true);
+    		m_botAction.sendArenaMessage(" - Basing King        : " + basingKingName + " (+$" + m10 + ")");
+    		context.getPlayerManager().addMoney(basingKingName, m10, true);
     	}
     	if (mostKillName != null) {
-    		m_botAction.sendArenaMessage(" - Most Veteran Like  : " + mostKillName + " (+$" + m1000 + ")");
-    		context.getPlayerManager().addMoney(mostKillName, m1000, true);
+    		m_botAction.sendArenaMessage(" - Most Veteran Like  : " + mostKillName + " (+$" + m5 + ")");
+    		context.getPlayerManager().addMoney(mostKillName, m5, true);
     	}
     	if (mostFlagClaimed != null) {
-    		m_botAction.sendArenaMessage(" - Flag Savior        : " + mostFlagClaimed + " (+$" + m1000 + ")");
-    		context.getPlayerManager().addMoney(mostFlagClaimed, m1000, true);
+    		m_botAction.sendArenaMessage(" - Flag Savior        : " + mostFlagClaimed + " (+$" + m5 + ")");
+    		context.getPlayerManager().addMoney(mostFlagClaimed, m5, true);
     	}
     	if (bestTerrierName != null) {
-    		m_botAction.sendArenaMessage(" - Best Terrier       : " + bestTerrierName + " (+$" + m500 + ")");
-    		context.getPlayerManager().addMoney(bestTerrierName, m500);
+    		m_botAction.sendArenaMessage(" - Best Terrier       : " + bestTerrierName + " (+$" + m2 + ")");
+    		context.getPlayerManager().addMoney(bestTerrierName, m2);
     	}
     	if (lessDeath != null) {
-    		m_botAction.sendArenaMessage(" - Most Cautious      : " + lessDeath + " (+$" + m250 + ")");
-    		context.getPlayerManager().addMoney(lessDeath, m250);
+    		m_botAction.sendArenaMessage(" - Most Cautious      : " + lessDeath + " (+$" + m2 + ")");
+    		context.getPlayerManager().addMoney(lessDeath, m2);
     	}
     	if (mostTek != null) {
-    		m_botAction.sendArenaMessage(" - Most Terrier Kills : " + mostTek + " (+$" + m250 + ")");
-    		context.getPlayerManager().addMoney(mostTek, m250);
+    		m_botAction.sendArenaMessage(" - Most Terrier Kills : " + mostTek + " (+$" + m2 + ")");
+    		context.getPlayerManager().addMoney(mostTek, m2);
     	}
     	if (mostDeath != null) {
     		m_botAction.sendArenaMessage(" - Most Reckless      : " + mostDeath);
@@ -1969,16 +1969,14 @@ public class GameFlagTimeModule extends AbstractModule {
 		}
 
 		// Terrs and Levis can't warp into base if Levis are enabled
-		if (context.getPlayerManager().isShipRestricted(Tools.Ship.LEVIATHAN)) {
+		if (!context.getPlayerManager().isShipRestricted(Tools.Ship.LEVIATHAN)) {
 			Player p = m_botAction.getPlayer(sender);
 			if (p.getShipType() == Tools.Ship.LEVIATHAN) {
 				m_botAction.sendSmartPrivateMessage(sender,"Leviathans can not warp in to base at round start.");
 				return;
 			}
 			if (p.getShipType() == Tools.Ship.TERRIER) {
-				m_botAction
-						.sendSmartPrivateMessage(sender,
-								"Terriers can not warp into base at round start while Leviathans are enabled.");
+				m_botAction.sendSmartPrivateMessage(sender,"Terriers can not warp into base at round start while Leviathans are enabled.");
 				return;
 			}
 		}
