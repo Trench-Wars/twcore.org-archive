@@ -110,9 +110,7 @@ public class pubbotbanc extends PubBotModule {
     		
     	}
     }
-    public void handleEvent(PlayerEntered event){
-        
-    }
+  
     public void handleEvent(FrequencyShipChange event){
         try{
             String namePlayer = m_botAction.getPlayerName(event.getPlayerID());
@@ -130,8 +128,8 @@ public class pubbotbanc extends PubBotModule {
     
     private void superLockMethod(String namePlayer, int shipNumber){
         m_botAction.sendPrivateMessage(namePlayer, "You're banned from ship"+shipNumber);
-        m_botAction.sendPrivateMessage(namePlayer, "Choose other ship, like: warbird, spider, weasel, lancaster...");
-        m_botAction.specWithoutLock(namePlayer);
+        m_botAction.sendPrivateMessage(namePlayer, "You'be been put in spider. But you can change to: warbird, spider, weasel or lancaster.");
+        m_botAction.setShip(namePlayer,3);
     }
     
     private void handleIPCMessage(String command) {
