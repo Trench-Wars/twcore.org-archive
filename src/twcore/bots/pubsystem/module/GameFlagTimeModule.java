@@ -564,9 +564,9 @@ public class GameFlagTimeModule extends AbstractModule {
         String mostTek = getPosition(teks, 1);
         String bestTerrierName = getPosition(bestTerrier, 1);
         
-        int m10 = 100 + (int)Math.max(0,(mins-10)*0.5*10);
-        int m5 = 50 + (int)Math.max(0,(mins-10)*0.5*5);
-        int m2 = 20 + (int)Math.max(0,(mins-10)*0.5*2);
+        int m10 = 200 + (int)Math.max(0,(mins-10)*0.5*10);
+        int m5 = 100 + (int)Math.max(0,(mins-10)*0.5*5);
+        int m2 =  + (int)Math.max(0,(mins-10)*0.5*5);
         
     	m_botAction.sendArenaMessage("Achievements:");
     	if (basingKingName != null) {
