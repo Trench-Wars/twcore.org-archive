@@ -306,7 +306,8 @@ public class staffbot_banc extends Module {
     }
 
     private boolean sendBanCs(String stafferName, String name, int limit) throws SQLException{
-        List<String> list = new ArrayList<String>();
+        this.cmdListBan(stafferName, "-player='"+name+"'");
+        /* List<String> list = new ArrayList<String>();
         
         String query;
         
@@ -361,9 +362,10 @@ public class staffbot_banc extends Module {
             }
             String strSpam[] = list.toArray(new String[list.size()]);
             m_botAction.remotePrivateMessageSpam(stafferName, strSpam);
+            
             return true;
-        }
-        return false;
+        }*/
+        return true;
     }
 
     private boolean sendWarnings(String stafferName, String name, int limit) throws SQLException{
@@ -383,8 +385,9 @@ public class staffbot_banc extends Module {
         while(rs.next()){
             
             String warningStr = rs.getString("warning");
-            int expiredTime = Tools.TimeInMillis.WEEK*2; //last month
             Date date = rs.getDate("timeofwarning");
+            int expiredTime = Tools.TimeInMillis.WEEK*2; //last month
+            
             Date expireDate = new Date(System.currentTimeMillis() - expiredTime);
             
             String stringDateNotExpired = new SimpleDateFormat("dd MMM yyyy").format(date);
@@ -395,6 +398,7 @@ public class staffbot_banc extends Module {
                 warningSplitBecauseOfExt = warningStr.split("Ext: ",2);
             else
                 warningSplitBecauseOfExt = warningStr.split(": ",2);
+            
             if(date.before(expireDate) && warningSplitBecauseOfExt.length == 2){ //expired warnings AND warnings done correctly in database
                 expiredWarnings.add(stringDateExpired + " " + warningSplitBecauseOfExt[1]);
             }else if( warningSplitBecauseOfExt.length == 2) //lastest warnings AND warnings done correctly in database
