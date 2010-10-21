@@ -387,8 +387,8 @@ public class staffbot_banc extends Module {
             Date date = rs.getDate("timeofwarning");
             Date expireDate = new Date(System.currentTimeMillis() - expiredTime);
             
-            String stringDateNotExpired = new SimpleDateFormat("dd MMM yyyy").format(date);
-            String stringDateExpired = new SimpleDateFormat("dd MMM yyyy").format(expireDate);
+            String stringDateNotExpired = new SimpleDateFormat("dd MM yyyy").format(date);
+            String stringDateExpired = new SimpleDateFormat("dd MM yyyy").format(expireDate);
             String warningSplitBecauseOfExt[];
             
             if(warningStr.contains("Ext: "))
