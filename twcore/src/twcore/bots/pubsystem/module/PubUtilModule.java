@@ -1,6 +1,9 @@
 package twcore.bots.pubsystem.module;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.TimerTask;
 
@@ -107,10 +110,12 @@ public class PubUtilModule extends AbstractModule {
 	public void handleEvent(PlayerEntered event) {
 		//checkForDoors();
 		
+		/*
 		Player player = m_botAction.getPlayer(event.getPlayerID());
 	    if(player.getPlayerName().startsWith("^") == false) {
 	    	m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*info");
 	    }
+	    */
 
 	}
 	
@@ -527,6 +532,5 @@ public class PubUtilModule extends AbstractModule {
 		// TODO Auto-generated method stub
 		
 	}
-
-
+	
 }

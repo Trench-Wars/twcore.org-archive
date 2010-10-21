@@ -614,9 +614,9 @@ public class PubMoneySystemModule extends AbstractModule {
 	    			String[] pieces = message.split(":");
 	    			boolean result = context.getPlayerManager().addMoney(pieces[2], Integer.valueOf(pieces[3]), true);
 	    			if (result) {
-	    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponsuccess:" + pieces[1] + ":" + pieces[2], "couponbot", null);
+	    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponsuccess:" + pieces[1] + ":" + pieces[2], "couponbot", "pubsystem");
 	    			} else {
-	    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponerror:" + pieces[1] + ":" + pieces[2], "couponbot", null);
+	    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponerror:" + pieces[1] + ":" + pieces[2], "couponbot", "pubsystem");
 	    			}
 	    		}
     		}
