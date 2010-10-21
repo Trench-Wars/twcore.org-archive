@@ -48,6 +48,7 @@ public class staffbot_banc extends Module {
             " !spec <player>:<time>[mins][d]            - Initiates an automatically enforced",
             "                                               spectator-lock on <player>",
             "                                               for <time/mins/days>.",
+            " !search -help                             - !search command help guide",
             " !search <player>[:<#banC>][:<#Warnings>]  - Search the players history",
             " !listban -help                 - !listban command help guide",
             " !listban [arg] [count]         - Shows last 10/[count] BanCs. Optional arguments see below.",
@@ -205,6 +206,9 @@ public class staffbot_banc extends Module {
 	        if(messageLc.startsWith("!help")) {
 	        	cmdHelp(name, message.substring(5).trim());
 	        }
+	        else if( messageLc.startsWith("!search -help"))
+	            searchByNameHelp(name);
+	        
 	        else if( messageLc.startsWith("!search"))
             {
                 String commandTillName = messageLc.split(":")[0];
@@ -283,7 +287,36 @@ public class staffbot_banc extends Module {
 		}
 	}
 	
-	/**
+	/***
+	 * !search -help command explaining how to use it.
+	 * @author quiles
+	 */
+	private void searchByNameHelp(String name) {
+        // TODO Auto-generated method stub
+	    ArrayList<String> list = new ArrayList<String>();
+	    
+	    String helpSearch = "Hi, I'll explain you how to use !search feature.";
+	    list.add(helpSearch);
+	    
+	    helpSearch = "The main functionality is to search the whole player's history with this command.";
+	    list.add(helpSearch);
+	    
+	    helpSearch = "Try !search quiles:-1:-1 to search everything about quiles (All banCs and warnings - lastests and expireds)";
+	    list.add(helpSearch);
+	    
+	    helpSearch = "But you can customizable it: Try !search quiles:5:5 (Lastest 5 banCs and 5 warnings)";
+	    list.add(helpSearch);
+	    
+	    helpSearch = "And then if you just use !search quiles, it'll give you all banCs and just the active warnings.";
+	    list.add(helpSearch);
+	    
+	    helpSearch = "Simple like that, enjoy!";
+	    list.add(helpSearch);
+	    
+	    m_botAction.remotePrivateMessageSpam(name, list.toArray(new String[list.size()]));
+	}
+
+    /**
 	 * 
 	 * @author quiles/dexter
 	 * Search feature
@@ -420,8 +453,10 @@ public class staffbot_banc extends Module {
             m_botAction.remotePrivateMessageSpam(stafferName, lastestWarnings.toArray(new String[lastestWarnings.size()]));
         }
         
-        if(limit == 0)
-            m_botAction.sendRemotePrivateMessage(stafferName, "There are "+expiredWarnings.size()+" expired warnings. Use !search <player>[limits][limitWarning] to see");
+        if(limit == 0){
+            m_botAction.sendRemotePrivateMessage(stafferName, "There are "+expiredWarnings.size()+" expired warnings. Use !search <player>:[limits]:[limitWarning] to see");
+            m_botAction.sendRemotePrivateMessage(stafferName, "You can see all the player's history too typing !search player:-1:-1");
+        }
         else if(expiredWarnings.size() > 0){
             m_botAction.sendRemotePrivateMessage(stafferName, " ------ Expired warnings (more than 2 weeks): ");
             m_botAction.remotePrivateMessageSpam(stafferName, expiredWarnings.toArray(new String[lastestWarnings.size()]));
