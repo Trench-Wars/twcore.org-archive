@@ -1400,7 +1400,13 @@ public class staffbot_banc extends Module {
 	            while(rs.next()) {
 	                BanC banc = new BanC();
 	                banc.id = rs.getInt("fnID");
-	                banc.type = BanCType.valueOf(rs.getString("fcType"));
+	                String banCType = rs.getString("fcType");
+	                
+	                if(banCType.equals("S-SPEC"))
+	                    banc.type = BanCType.valueOf("SUPERSPEC");
+	                else
+	                    banc.type = BanCType.valueOf(rs.getString("fcType"));
+	                
 	                banc.playername = rs.getString("fcUsername");
 	                banc.IP = rs.getString("fcIP");
 	                banc.MID = rs.getString("fcMID");
