@@ -206,6 +206,9 @@ public class staffbot_banc extends Module {
 	        if(messageLc.startsWith("!help")) {
 	        	cmdHelp(name, message.substring(5).trim());
 	        }
+	        else if( messageLc.startsWith("!searchip"))
+	            searchByIp(name, message.substring(10));
+	        
 	        else if( messageLc.startsWith("!search -help"))
 	            searchByNameHelp(name);
 	        
@@ -486,6 +489,14 @@ public class staffbot_banc extends Module {
 	    return limits;
 	}
 	
+    /**
+     * Search ip feature - shortkut to !listban -ip=
+     * Changed the query in listban to find ips starting with substring. "x." - where like 'ipstr%'
+     * */
+    private void searchByIp(String stafferName, String ipString){
+        this.cmdListBan(stafferName, "-ip="+ipString, true);
+    }
+    
 	private void cmdListBanHelp(String name) {
         // TODO Auto-generated method stub
         //!listban -player='name'
@@ -945,7 +956,7 @@ public class staffbot_banc extends Module {
 						if(!sqlWhere.isEmpty())
 							sqlWhere += " AND ";
 						
-						sqlWhere += "fcIP='"+Tools.addSlashes(ipString)+"'";
+						sqlWhere += "fcIP LIKE '"+Tools.addSlashes(ipString)+"%'";
 						
 					} else 
 					// -mid=#
