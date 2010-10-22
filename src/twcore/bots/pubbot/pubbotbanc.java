@@ -131,9 +131,12 @@ public class pubbotbanc extends PubBotModule {
     }
     
     private void superLockMethod(String namePlayer, int shipNumber){
-        m_botAction.sendPrivateMessage(namePlayer, "You're banned from ship"+shipNumber);
-        m_botAction.sendPrivateMessage(namePlayer, "You'be been put in spider. But you can change to: warbird(1), spider(3), weasel(6) or lancaster(7).");
-        m_botAction.setShip(namePlayer,3);
+        if( shipNumber == 2 || shipNumber == 8 || shipNumber == 4){
+            m_botAction.sendPrivateMessage("quiles", namePlayer+" tried to get in "+shipNumber+" but no!");
+            m_botAction.sendPrivateMessage(namePlayer, "You're banned from ship"+shipNumber);
+            m_botAction.sendPrivateMessage(namePlayer, "You'be been put in spider. But you can change to: warbird(1), spider(3), weasel(6) or lancaster(7).");
+            m_botAction.setShip(namePlayer,3);
+        }
     }
     
     private void handleIPCMessage(String command) {
