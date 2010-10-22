@@ -846,7 +846,7 @@ public class staffbot_banc extends Module {
 		dbAddBan(banc);
 		activeBanCs.add(banc);
 		
-		if(timeToTell > 0){
+		if(time >= 24*60*7 && timeToTell > 0){
 		    
 		    m_botAction.sendChatMessage( name+" initiated an "+bancName+" on '"+target+"' for "+timeToTell+" days("+time+" mins)." );
 		    m_botAction.sendRemotePrivateMessage(name, "BanC #"+banc.id+": "+bancName+" on '"+target+"' for "+timeToTell+" days("+time+" mins) initiated.");
