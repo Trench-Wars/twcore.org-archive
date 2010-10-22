@@ -126,7 +126,7 @@ public class pubbotbanc extends PubBotModule {
     
     private void superLockMethod(String namePlayer, int shipNumber){
         m_botAction.sendPrivateMessage(namePlayer, "You're banned from ship"+shipNumber);
-        m_botAction.sendPrivateMessage(namePlayer, "You'be been put in spider. But you can change to: warbird, spider, weasel or lancaster.");
+        m_botAction.sendPrivateMessage(namePlayer, "You'be been put in spider. But you can change to: warbird(1), spider(3), weasel(6) or lancaster(7).");
         m_botAction.setShip(namePlayer,3);
     }
     
@@ -277,6 +277,8 @@ public class pubbotbanc extends PubBotModule {
             	tempBanCCommand = null;
                 tempBanCPlayer = null;
         	}
+        	else
+        	    this.banCSuperLocked.remove(tempBanCPlayer);
         	
         	if(tempBanCCommand == null && IPCQueue.size() != 0) {
         		handleIPCMessage(IPCQueue.remove(0));
