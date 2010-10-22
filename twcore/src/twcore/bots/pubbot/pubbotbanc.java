@@ -1,6 +1,7 @@
 package twcore.bots.pubbot;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TimerTask;
 import java.util.Vector;
 
@@ -43,7 +44,7 @@ import twcore.core.util.ipc.IPCMessage;
  */
 public class pubbotbanc extends PubBotModule {
 	
-    private Vector<String> banCSuperLocked;
+    private List<String> banCSuperLocked;
     
 	private String tempBanCCommand = null;
 	private String tempBanCTime = null;
@@ -77,7 +78,7 @@ public class pubbotbanc extends PubBotModule {
     		}
     	};
     	m_botAction.scheduleTaskAtFixedRate(checkIPCQueue, 5*Tools.TimeInMillis.SECOND, 5*Tools.TimeInMillis.SECOND);
-    	banCSuperLocked = new Vector<String>();
+    	banCSuperLocked = new ArrayList<String>();
     }
 
     public void cancel(){
@@ -115,7 +116,7 @@ public class pubbotbanc extends PubBotModule {
         try{
             String namePlayer = m_botAction.getPlayerName(event.getPlayerID());
             //m_botAction.sendPrivateMessage("Dexter", "Someone changed ship: "+m_botAction.getPlayerName( event.getPlayerID() ));
-            if(banCSuperLocked.contains(namePlayer) && ( event.getShipType() == 2 || event.getShipType() == 4 || event.getShipType() == 8 ))
+            if(banCSuperLocked.contains(namePlayer.toLowerCase()) && ( event.getShipType() == 2 || event.getShipType() == 4 || event.getShipType() == 8 ))
                 superLockMethod(namePlayer, event.getShipType());
             
             
@@ -164,8 +165,8 @@ public class pubbotbanc extends PubBotModule {
 		    tempBanCTime = command.substring(10).split(":")[0];
 		    tempBanCPlayer = command.substring(10).split(":")[1];
 		    m_botAction.setShip(tempBanCPlayer, 3);
-		    banCSuperLocked.add(tempBanCPlayer);
-		    System.out.println("Super specced "+tempBanCPlayer+" for "+tempBanCTime);
+		    banCSuperLocked.add(tempBanCPlayer.toLowerCase());
+		    m_botAction.sendPrivateMessage("quiles","Super specced "+tempBanCPlayer+" for "+tempBanCTime);
 		} else
 		if(command.startsWith("REMOVE "+BanCType.SPEC.toString())) {
 			// remove speclock of player in arena
@@ -184,7 +185,7 @@ public class pubbotbanc extends PubBotModule {
 	            //REMOVE SUPERSPEC PLAYER
 	            //0123456789DODTQQDD
 	            tempBanCPlayer = command.substring(17);
-	            this.banCSuperLocked.remove(tempBanCPlayer);
+	            this.banCSuperLocked.remove(tempBanCPlayer.toLowerCase());
 	            m_botAction.sendPrivateMessage("quiles", "player "+tempBanCPlayer+" un superspec locked");
 	            //maybe pm the player here?
         } else
