@@ -146,9 +146,9 @@ public class PubChallengeModule extends AbstractModule {
             DuelArea area = challenge.area;
 
             if (!laggers.containsKey(name)
-        		&& System.currentTimeMillis()-dueler.backFromLagout > 1 * Tools.TimeInMillis.SECOND
+        		&& System.currentTimeMillis()-dueler.backFromLagout > 2 * Tools.TimeInMillis.SECOND
         		&& System.currentTimeMillis()-challenge.startAt > 7 * Tools.TimeInMillis.SECOND
-        		&& System.currentTimeMillis()-dueler.lastDeath > 7 * Tools.TimeInMillis.SECOND) 
+        		&& System.currentTimeMillis()-dueler.lastDeath > 7 * Tools.TimeInMillis.SECOND)
             {
 	            dueler.warps++;
 	            
@@ -218,21 +218,11 @@ public class PubChallengeModule extends AbstractModule {
         	return;
         }
         
-        w.kills++;
-        l.deaths++;
         l.lastDeath = System.currentTimeMillis();
-        
-        if(l.deaths == deaths) {
-        	challenge.setWinner(duelers.get(killer));
-            announceWinner(challenge);
-            return;
-        }
-        
+                
         m_botAction.shipReset(killer);
         
-        
-        m_botAction.sendSmartPrivateMessage(killer, w.kills+"-"+l.kills);
-        m_botAction.sendSmartPrivateMessage(killee, l.kills+"-"+w.kills);
+        m_botAction.scheduleTask(new UpdateScore(w,l), 1*Tools.TimeInMillis.SECOND);
 	      	
         m_botAction.scheduleTask(new EnergyDepletedTask(killer), 1*1000);
         m_botAction.scheduleTask(new EnergyDepletedTask(killer), 2*1000);
@@ -244,12 +234,12 @@ public class PubChallengeModule extends AbstractModule {
                 
     }
     
-    public DuelArea getEmptyDuelArea() {
+    public DuelArea getEmptyDuelArea(int shipType) {
         Iterator<Entry<Integer,DuelArea>> iter = areas.entrySet().iterator();
         while(iter.hasNext()){
             Entry<Integer,DuelArea> entry = iter.next();
             DuelArea area = entry.getValue();
-            if(!area.inUse){
+            if(!area.inUse && area.isShipAllowed(shipType)){
                 return area;
             }
         }
@@ -304,14 +294,14 @@ public class PubChallengeModule extends AbstractModule {
             return;
         }
         
-        if (getEmptyDuelArea()==null) {
+        if (getEmptyDuelArea(ship)==null) {
         	m_botAction.sendSmartPrivateMessage(challenger, "There is no duel area avalaible. Please try later.");
         	return;
         }
         
         if (context.getMoneySystem().isEnabled()) {
-	        if(amount < 100) {
-	            m_botAction.sendSmartPrivateMessage(challenger, "You must challenge someone for $100 or more.");
+	        if(amount < 10) {
+	            m_botAction.sendSmartPrivateMessage(challenger, "You must challenge someone for $10 or more.");
 	            return;
 	        }
         }
@@ -399,7 +389,7 @@ public class PubChallengeModule extends AbstractModule {
         	}
         }
         
-        DuelArea area = getEmptyDuelArea();
+        DuelArea area = getEmptyDuelArea(ship);
         if(area == null){
             m_botAction.sendSmartPrivateMessage(accepter, "Unfortunately there is no available duel area. Try again later.");
             m_botAction.sendSmartPrivateMessage(challenger, accepter+"has accepted your challenge. Unfortunately there is no available duel area. Try again later.");
@@ -720,6 +710,42 @@ public class PubChallengeModule extends AbstractModule {
 	            m_botAction.specificPrize(name, Tools.Prize.ENERGY_DEPLETED);
         	}
         }     
+    }
+    
+    private class UpdateScore extends TimerTask 
+    {
+        private Dueler killer;
+        private Dueler killed;
+        
+        private UpdateScore(Dueler killer, Dueler killed) {
+            this.killer = killer;
+            this.killed = killed;
+        }
+        
+        public void run()
+        {
+        	
+            if (Math.abs(killer.lastDeath-killed.lastDeath) < 2*Tools.TimeInMillis.SECOND) {
+            	m_botAction.sendSmartPrivateMessage(killer.name, "No count");
+            	return;
+            
+            } else {
+            	
+                killer.kills++;
+                killed.deaths++;
+            	
+                m_botAction.sendSmartPrivateMessage(killer.name, killer.kills+"-"+killed.kills);
+                m_botAction.sendSmartPrivateMessage(killed.name, killed.kills+"-"+killer.kills);
+
+                if(killed.deaths == deaths) {
+                	killed.challenge.setWinner(killer);
+                    announceWinner(killed.challenge);
+                    return;
+                }
+            }
+            
+
+        }
     }
     
     private class StartLagout extends TimerTask 
@@ -1056,7 +1082,12 @@ public class PubChallengeModule extends AbstractModule {
 	        for(int i=1; i<m_botAction.getBotSettings().getInt("duel_area")+1; i++) {
 	        	int pos1[] = m_botAction.getBotSettings().getIntArray("duel_area"+i+"_pos1", " ");
 	        	int pos2[] = m_botAction.getBotSettings().getIntArray("duel_area"+i+"_pos2", " ");
-	        	areas.put(i, new DuelArea(i, pos1[0],pos1[1],pos2[0],pos2[1]));
+	        	int shipArray[] = m_botAction.getBotSettings().getIntArray("duel_area"+i+"_ship", ",");
+	        	boolean[] ships = { false,false,false,false,false,false,false,false };
+	        	for(int ship: shipArray) {
+	        		ships[ship-1] = true;
+	        	}
+	        	areas.put(i, new DuelArea(i, pos1[0],pos1[1],pos2[0],pos2[1], ships));
 	        }
 	        
 	        // Setting Misc.        
@@ -1099,12 +1130,26 @@ class DuelArea {
 	 
     public int warp1y,warp1x,warp2y,warp2x;
     
-    public DuelArea(int number, int warp1x, int warp1y, int warp2x, int warp2y) {
+    public boolean[] shipAllowed; // 0=wb, 7=shark
+    
+    public DuelArea(int number, int warp1x, int warp1y, int warp2x, int warp2y, boolean[] shipAllowed) {
     	this.number = number;
         this.warp1x = warp1x;
         this.warp1y = warp1y;
         this.warp2x = warp2x;
         this.warp2y = warp2y;
+        this.shipAllowed = shipAllowed;
+    }
+    
+    public boolean isShipAllowed(int shipType) {
+    	if (shipType==0) {
+    		return false;
+    	}
+    	if (shipAllowed.length >= shipType) {
+    		return shipAllowed[shipType-1];
+    	} else {
+    		return false;
+    	}
     }
 
     public boolean inUse() {
