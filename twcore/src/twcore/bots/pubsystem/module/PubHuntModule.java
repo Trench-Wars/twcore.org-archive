@@ -237,12 +237,12 @@ public class PubHuntModule extends AbstractModule {
         	hunter.kills++;
         	hunted.deaths++;
         	
-        	if (hunter.prey.equals(killed)) {
+        	if (hunter.hasPrey() && hunter.prey.equals(killed)) {
         		hunter.preyKilled++;
         	}
         	
         	// We have a winner?
-        	if (hunter.prey.equals(killed) && hunted.prey.equals(killer) && hunterWaitingList.isEmpty()) {
+        	if (hunter.hasPrey() && hunter.prey.equals(killed) && hunted.hasPrey() && hunted.prey.equals(killer) && hunterWaitingList.isEmpty()) {
         		
         		m_botAction.sendArenaMessage("[HUNT] " + killed + " has been hunted by " + killer + " and is out!");
         		playerOut(hunted);
@@ -250,7 +250,7 @@ public class PubHuntModule extends AbstractModule {
         		announceWinner(hunter);
 
         	}
-        	else if (hunter.prey.equals(killed) && hunter.isPlaying()) {
+        	else if (hunter.hasPrey() && hunter.prey.equals(killed) && hunter.isPlaying()) {
         		
         		hunted.killer = killer;
         		playerOut(hunted);
@@ -267,7 +267,7 @@ public class PubHuntModule extends AbstractModule {
         		}
         		
         	} 
-        	else if (hunted.prey.equals(killer) && hunter.isPlaying()) {
+        	else if (hunted.hasPrey() && hunted.prey.equals(killer) && hunter.isPlaying()) {
         		m_botAction.sendSmartPrivateMessage(killer, "You killed your hunter!");
         	} 
         	else if (hunter.isPlaying()) {
@@ -404,8 +404,7 @@ public class PubHuntModule extends AbstractModule {
 			return true;
 		}
 		
-		if (newGame)
-			m_botAction.sendSmartPrivateMessage(player.name, "You don't have a prey yet, please wait.");
+		m_botAction.sendSmartPrivateMessage(player.name, "You don't have a prey yet, please wait..");
     	hunterWaitingList.add(player.name);
 		return false;
     }
@@ -641,6 +640,10 @@ public class PubHuntModule extends AbstractModule {
         
         public void setPlaying(boolean playing) {
         	this.playing = playing;
+        }
+        
+        public boolean hasPrey() {
+        	return prey != null;
         }
 
         public void setPrey(String prey) {

@@ -11,11 +11,11 @@ import twcore.bots.pubsystem.module.moneysystem.item.PubItemDuration;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItemRestriction;
 import twcore.bots.pubsystem.module.moneysystem.item.PubPrizeItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
+import twcore.bots.pubsystem.module.moneysystem.item.PubShipUpgradeItem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.bots.pubsystem.util.PubException;
 import twcore.core.BotAction;
 import twcore.core.game.Player;
-import twcore.core.util.Tools;
 
 public class PubStore {
 	
@@ -30,11 +30,6 @@ public class PubStore {
     	this.m_botAction = botAction;
     	this.context = context;
         this.items = new LinkedHashMap<String, PubItem>();
-        try {
-        	initializeStore();
-        } catch (Throwable e) {
-			e.printStackTrace();
-		}
     }
     
     private void initializeStore() {
@@ -45,7 +40,7 @@ public class PubStore {
         
         this.items = new LinkedHashMap<String, PubItem>();
         
-        String[] itemTypes = { "item_prize", "item_ship", "item_command" };
+        String[] itemTypes = { "item_prize", "item_ship_upgrade", "item_ship", "item_command" };
         for(String type: itemTypes) {
         	
 	    	String[] items = m_botAction.getBotSettings().getString(type).split(",");
@@ -72,6 +67,20 @@ public class PubStore {
 	    			item = new PubPrizeItem(data[0].trim(), data[1].trim(), data[2].trim(), Integer.parseInt(data[3].trim()), prizes);
 	    			optionPointer = 5;
 	    		} 
+	    		else if ("item_ship_upgrade".equals(type)) {
+	    			List<Integer> prizes = new ArrayList<Integer>();
+	    			if (data[4].trim().startsWith("{")) {
+	    				String[] split = data[4].trim().substring(1, data[4].trim().length()-1).split(";");
+	    				for(String prize: split) {
+	    					prizes.add(Integer.parseInt(prize));
+	    				}
+	    			}
+	    			else {
+	    				prizes.add(Integer.parseInt(data[4].trim()));
+	    			}
+	    			item = new PubShipUpgradeItem(data[0].trim(), data[1].trim(), data[2].trim(),Integer.parseInt(data[3].trim()), prizes);
+	    			optionPointer = 5;
+	    		}
 	    		else if ("item_ship".equals(type)) {
 	    			item = new PubShipItem(data[0].trim(), data[1].trim(), data[2].trim(),Integer.parseInt(data[3].trim()), Integer.parseInt(data[4].trim()));
 	    			optionPointer = 5;
@@ -150,9 +159,10 @@ public class PubStore {
 	    				item.setRestriction(r);
 	    			if (hasDuration)
 	    				item.setDuration(d);
-	    			
-	    			addItem(item, data[0]);
+
 	    		}
+	    		
+	    		addItem(item, data[0]);
 	    	}
         }
         

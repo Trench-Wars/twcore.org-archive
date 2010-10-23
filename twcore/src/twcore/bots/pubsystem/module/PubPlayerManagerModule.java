@@ -355,7 +355,6 @@ public class PubPlayerManagerModule extends AbstractModule {
 			players.put(name.toLowerCase(), player);
 			player.reloadPanel(false);
 			player.setBestStreak(rs.getInt("fnBestStreak"));
-			player.setTileset(tileset);
 			
     	} catch (Exception e) {	
     	}
@@ -717,23 +716,22 @@ public class PubPlayerManagerModule extends AbstractModule {
             	
             	PubPlayer player = it2.next();
 
-            	// No change since last save?
-            	if (player.getLastMoneyUpdate() > player.getLastSavedState())
-            	{
-	            	if (databaseName != null) {
-	                	// Update only if no save since 15 minutes
-	                	long diff = System.currentTimeMillis()-player.getLastSavedState();
-	                	if (diff > (SAVETASK_INTERVAL * Tools.TimeInMillis.MINUTE)) {
-	                		m_botAction.SQLBackgroundQuery(databaseName, "", "INSERT INTO tblPlayerStats (fcName,fnMoney) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
-	                	}
-	                	
-	            	}
+            	// Money is always saved
+            	if (databaseName != null) {
+                	// Update only if no save since 15 minutes
+                	long diff = System.currentTimeMillis()-player.getLastSavedState();
+                	if (diff > (SAVETASK_INTERVAL * Tools.TimeInMillis.MINUTE)) {
+                		m_botAction.SQLBackgroundQuery(databaseName, "", "INSERT INTO tblPlayerStats (fcName,fnMoney) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
+                	}
+                	
             	}
             	
             	if (player.getLastOptionsUpdate() > player.getLastSavedState()) {
                 	String tilesetName = player.getTileset().toString().toLowerCase();
                 	m_botAction.SQLBackgroundQuery(databaseName, "", "INSERT INTO tblPlayerStats (fcName,fcTileset) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"','"+Tools.addSlashes(tilesetName)+"') ON DUPLICATE KEY UPDATE fcTileset='"+Tools.addSlashes(tilesetName)+"'");
-                }
+                	System.out.println("INSERT INTO tblPlayerStats (fcName,fcTileset) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"','"+Tools.addSlashes(tilesetName)+"') ON DUPLICATE KEY UPDATE fcTileset='"+Tools.addSlashes(tilesetName)+"'");
+                	player.savedState();
+            	}
     
             	// Not anymore on this arena? remove this player from the PubPlayerManager
             	if (!arenaPlayers.contains(player.getPlayerName())) {

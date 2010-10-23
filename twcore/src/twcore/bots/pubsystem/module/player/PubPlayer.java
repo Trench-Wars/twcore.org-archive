@@ -100,10 +100,12 @@ public class PubPlayer implements Comparable<PubPlayer>{
     }
     
     public void addMoney(int money) {
+    	money = Math.abs(money);
     	setMoney(this.money+money);
     }
     
     public void removeMoney(int money) {
+    	money = Math.abs(money);
     	setMoney(this.money-money);
     }
 
@@ -199,7 +201,6 @@ public class PubPlayer implements Comparable<PubPlayer>{
     }
     
     public void handleShipChange(FrequencyShipChange event) {
-    	resetItems();
     	if (shipItem != null && event.getShipType() != shipItem.getShipNumber())
     		resetShipItem();
     }

@@ -564,9 +564,9 @@ public class GameFlagTimeModule extends AbstractModule {
         String mostTek = getPosition(teks, 1);
         String bestTerrierName = getPosition(bestTerrier, 1);
         
-        int m10 = 200 + (int)Math.max(0,(mins-10)*0.5*10);
-        int m5 = 100 + (int)Math.max(0,(mins-10)*0.5*5);
-        int m2 =  + (int)Math.max(0,(mins-10)*0.5*5);
+        int m10 = 300 + (int)Math.max(0,(mins-5)*0.5*10);
+        int m5 = 150 + (int)Math.max(0,(mins-5)*0.5*5);
+        int m2 = 50 + (int)Math.max(0,(mins-5)*0.5*5);
         
     	m_botAction.sendArenaMessage("Achievements:");
     	if (basingKingName != null) {
@@ -582,8 +582,8 @@ public class GameFlagTimeModule extends AbstractModule {
     		context.getPlayerManager().addMoney(mostFlagClaimed, m5, true);
     	}
     	if (bestTerrierName != null) {
-    		m_botAction.sendArenaMessage(" - Best Terrier       : " + bestTerrierName + " (+$" + m2 + ")");
-    		context.getPlayerManager().addMoney(bestTerrierName, m2);
+    		m_botAction.sendArenaMessage(" - Best Terrier       : " + bestTerrierName + " (+$" + m5 + ")");
+    		context.getPlayerManager().addMoney(bestTerrierName, m5);
     	}
     	if (lessDeath != null) {
     		m_botAction.sendArenaMessage(" - Most Cautious      : " + lessDeath + " (+$" + m2 + ")");
@@ -2048,11 +2048,11 @@ public class GameFlagTimeModule extends AbstractModule {
 					p = null;
 				} 
 				else if (!warpPlayers.containsKey(pname)) {
-						Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
-						// Warp the player if inside the flagroom
-						if (!loc.equals(Location.FLAGROOM)) {
-							p = null;
-						}
+					Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
+					// Warp the player if inside the flagroom
+					if (!loc.equals(Location.FLAGROOM)) {
+						p = null;
+					}
 				}
 			}
 
@@ -2250,11 +2250,7 @@ public class GameFlagTimeModule extends AbstractModule {
 	    warpSafeLeftY = m_botAction.getBotSettings().getInt("warp_safe_leftY");
 	    warpSafeRightX = m_botAction.getBotSettings().getInt("warp_safe_rightX");
 	    warpSafeRightY = m_botAction.getBotSettings().getInt("warp_safe_rightY");
-	    
-	    moneyRoundWin = m_botAction.getBotSettings().getInt("flagtime_round_money_won");
-	    moneyGameWin = m_botAction.getBotSettings().getInt("flagtime_game_money_won");
-	    moneyMVP = m_botAction.getBotSettings().getInt("flagtime_mvp_money");
-	    
+
 		if (m_botAction.getBotSettings().getInt("auto_warp")==1) {
 			autoWarp = true;
 		}

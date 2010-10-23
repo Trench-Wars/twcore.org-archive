@@ -1,9 +1,12 @@
 package twcore.bots.pubsystem.module;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.TimerTask;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
@@ -20,8 +23,8 @@ public class PubStreakModule extends AbstractModule {
 
 	public final static int ARENA_TIMEOUT = 1 * Tools.TimeInMillis.MINUTE;
 
-	private HashMap<String,Integer> winStreaks;
-	private HashMap<String,Integer> loseStreaks;
+	private ConcurrentHashMap<String,Integer> winStreaks;
+	private ConcurrentHashMap<String,Integer> loseStreaks;
 	
 	private int streakJump;
 	private int winsStreakArenaAt;
@@ -43,8 +46,8 @@ public class PubStreakModule extends AbstractModule {
 		
 		super(botAction, context, "Streak");
 
-		this.winStreaks = new HashMap<String,Integer>();
-		this.loseStreaks = new HashMap<String,Integer>();
+		this.winStreaks = new ConcurrentHashMap<String,Integer>();
+		this.loseStreaks = new ConcurrentHashMap<String,Integer>();
 
 		m_botAction.scheduleTask(new SafeChecker(context), 10*Tools.TimeInMillis.SECOND, 3*Tools.TimeInMillis.SECOND);
 		
@@ -243,7 +246,7 @@ public class PubStreakModule extends AbstractModule {
     		return 0;
 
     	if (streak >= winsStreakArenaAt) {
-    		int diff = streak-winsStreakArenaAt+1;
+    		int diff = Math.min(100, streak)-winsStreakArenaAt+1;
     		return diff*winsStreakMoneyMultiplicator;
     	}
     	
@@ -326,8 +329,8 @@ public class PubStreakModule extends AbstractModule {
     	worstLoseStreak = 0;
     	worstLoseStreakPlayer = null;
     	
-		winStreaks = new HashMap<String,Integer>();
-		loseStreaks = new HashMap<String,Integer>();
+		winStreaks = new ConcurrentHashMap<String,Integer>();
+		loseStreaks = new ConcurrentHashMap<String,Integer>();
     	
     	m_botAction.sendArenaMessage("[STREAK] The streak session has been reset.", Tools.Sound.BEEP2);
     }

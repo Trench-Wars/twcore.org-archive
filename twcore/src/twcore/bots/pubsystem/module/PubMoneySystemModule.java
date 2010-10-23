@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.TimerTask;
 import java.util.Map.Entry;
 
-import twcore.bots.pubbot.pubbot;
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.PubUtilModule.Location;
@@ -24,16 +23,17 @@ import twcore.bots.pubsystem.module.moneysystem.item.PubItemDuration;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItemRestriction;
 import twcore.bots.pubsystem.module.moneysystem.item.PubPrizeItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
+import twcore.bots.pubsystem.module.moneysystem.item.PubShipUpgradeItem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.bots.pubsystem.util.PubException;
-import twcore.bots.pubsystem.util.PubLogSystem;
-import twcore.bots.pubsystem.util.PubLogSystem.LogType;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
+import twcore.core.events.FrequencyChange;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
+import twcore.core.events.PlayerLeft;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
@@ -52,8 +52,15 @@ public class PubMoneySystemModule extends AbstractModule {
     // These variables are used to calculate the money earned for a kill
     private Map<Integer, Integer> shipKillerPoints;
     private Map<Integer, Integer> shipKilledPoints;
+    
     // Money earned by location
     private Map<Location, Integer> locationPoints;
+    
+    // Time passed on the same frequency
+    private HashMap<String, Long> frequencyTimes;
+    
+    // To avoid spam of the same IPC Message (bug)
+    private HashMap<String, Long> ipcHistory; 
 
     public PubMoneySystemModule(BotAction botAction, PubContext context) {
     	
@@ -65,6 +72,8 @@ public class PubMoneySystemModule extends AbstractModule {
         this.shipKillerPoints = new HashMap<Integer, Integer>();
         this.shipKilledPoints = new HashMap<Integer, Integer>();
         this.locationPoints = new HashMap<Location, Integer>();
+        this.frequencyTimes = new HashMap<String, Long>();
+        this.ipcHistory = new HashMap<String,Long>();
         
         try {
         	this.store = new PubStore(m_botAction, context);
@@ -199,6 +208,31 @@ public class PubMoneySystemModule extends AbstractModule {
 	        	}
 	        }
 	        
+	    	// SHIP UPGRADE ITEM (same as PubPrizeItem)
+	        if (item instanceof PubShipUpgradeItem) {
+	        	List<Integer> prizes = ((PubShipUpgradeItem) item).getPrizes();
+	        	for(int prizeNumber: prizes) {
+	        		m_botAction.specificPrize(receiver.getPlayerName(), prizeNumber);
+	        	}
+	        	if (item.hasDuration()) {
+	            	final PubItemDuration duration = item.getDuration();
+	            	m_botAction.sendSmartPrivateMessage(receiver.getPlayerName(), "You have " + duration.getSeconds() + " seconds to use your item.");
+	            	if (duration.hasTime()) {
+	            		TimerTask timer = new TimerTask() {
+	                        public void run() {
+	                        	int bounty = m_botAction.getPlayer(receiver.getPlayerName()).getBounty();
+	                        	if (System.currentTimeMillis()-receiver.getLastDeath() > duration.getSeconds()*1000) {
+	                            	m_botAction.sendUnfilteredPrivateMessage(receiver.getPlayerName(), "*shipreset");
+	                            	m_botAction.giveBounty(receiver.getPlayerName(), bounty);
+	                        	}
+	                        	m_botAction.sendSmartPrivateMessage(receiver.getPlayerName(), "Item '" + item.getName() + "' lost.");
+	                        }
+	                    };
+	                    m_botAction.scheduleTask(timer, duration.getSeconds()*1000);
+	            	}
+	        	}
+	        }
+	        
 	        // COMMAND ITEM
 	        else if (item instanceof PubCommandItem) {
 	        	String command = ((PubCommandItem)item).getCommand();
@@ -266,8 +300,8 @@ public class PubMoneySystemModule extends AbstractModule {
     			return;
     		}
     		
-    		if (Integer.valueOf(money) < 100) {
-    			m_botAction.sendSmartPrivateMessage(sender, "You cannot donate for less than $100.");
+    		if (Integer.valueOf(money) < 10) {
+    			m_botAction.sendSmartPrivateMessage(sender, "You cannot donate for less than $10.");
     			return;
     		}
     		
@@ -389,6 +423,11 @@ public class PubMoneySystemModule extends AbstractModule {
 	        		if (!currentClass.equals(PubPrizeItem.class))
 	        			lines.add("Prizes:");
 	        		currentClass = PubPrizeItem.class;
+	        	} else if (item instanceof PubShipUpgradeItem) {
+	        		lines.add("");
+	        		if (!currentClass.equals(PubShipUpgradeItem.class))
+	        			lines.add("Ship Upgrades:");
+	        		currentClass = PubShipUpgradeItem.class;
 	        	} else if (item instanceof PubShipItem) {
 	        		lines.add("");
 	        		if (!currentClass.equals(PubShipItem.class))
@@ -599,6 +638,22 @@ public class PubMoneySystemModule extends AbstractModule {
     	m_botAction.ipcSubscribe(IPC_CHANNEL);
     }
     
+    public void handleEvent(FrequencyChange event) {
+    	Player p = m_botAction.getPlayer(event.getPlayerID());
+    	if (p == null)
+    		return;
+    	
+    	frequencyTimes.put(p.getPlayerName(), System.currentTimeMillis());
+    }
+    
+    public void handleEvent(PlayerLeft event) {
+    	Player p = m_botAction.getPlayer(event.getPlayerID());
+    	if (p == null)
+    		return;
+    	
+    	frequencyTimes.remove(p.getPlayerName());
+    }
+    
     public void handleEvent(InterProcessEvent event) {
     	
     	if(event.getObject() instanceof IPCMessage) {
@@ -607,6 +662,13 @@ public class PubMoneySystemModule extends AbstractModule {
     		String message = ipc.getMessage();
     		if (ipc.getRecipient() == null || ipc.getSender() == null)
     			return;
+    		
+    		// Spam check (workaround when the method receive the same message twice or more)
+    		if (ipcHistory.containsKey(message)) {
+    			if (System.currentTimeMillis()-ipcHistory.get(message) < 2*Tools.TimeInMillis.SECOND)
+    				return;
+    		}
+    		
     		if (ipc.getRecipient().equals("pubsystem") && ipc.getSender().equals("couponbot")) {
 
 	    		// Protocol>   coupon:<code>:<name>:<money>
@@ -619,6 +681,8 @@ public class PubMoneySystemModule extends AbstractModule {
 	    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponerror:" + pieces[1] + ":" + pieces[2], "couponbot", "pubsystem");
 	    			}
 	    		}
+	    		
+	    		ipcHistory.put(message, System.currentTimeMillis());
     		}
     		
     	}

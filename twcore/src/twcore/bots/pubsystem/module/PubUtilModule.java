@@ -97,7 +97,7 @@ public class PubUtilModule extends AbstractModule {
 				time = time.substring(0, time.indexOf("Created")).trim();
 				String[] pieces = time.split(":");
 				if (pieces.length==3) {
-					if (pieces[0].equals("0") || pieces[0].equals("1")) {
+					if (pieces[0].equals("0")) {
 						int hour = Integer.valueOf(pieces[0]);
 						int min = Integer.valueOf(pieces[1]);
 						m_botAction.sendChatMessage(2, ">>>>>> New player: " + currentInfoName + " (" + hour +"h " + min + "m)");
@@ -109,13 +109,11 @@ public class PubUtilModule extends AbstractModule {
 
 	public void handleEvent(PlayerEntered event) {
 		//checkForDoors();
-		
-		/*
+
 		Player player = m_botAction.getPlayer(event.getPlayerID());
 	    if(player.getPlayerName().startsWith("^") == false) {
 	    	m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*info");
 	    }
-	    */
 
 	}
 	
