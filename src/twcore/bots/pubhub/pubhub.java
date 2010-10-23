@@ -58,7 +58,8 @@ public class pubhub extends SubspaceBot {
     private ModuleHandler moduleHandler;
     private OperatorList opList;
     private String cfg_hubbot;
-    private String cfg_chat;
+    private String cfg_chat_hub;
+    private String cfg_chat_pub;
     private String pubhub;
     private HashSet<String> cfg_arenas = new HashSet<String>();
     private HashSet<String> cfg_autoloadModules = new HashSet<String>();
@@ -121,7 +122,7 @@ public class pubhub extends SubspaceBot {
         m_botAction.ipcSubscribe(IPCSILENCE);
         m_botAction.ipcSubscribe(IPCPUBSTATS);
         // Join chat
-        m_botAction.sendUnfilteredPublicMessage("?chat=" + cfg_chat );
+        m_botAction.sendUnfilteredPublicMessage("?chat=" + cfg_chat_hub );
 
         // Request events
         EventRequester eventRequester = m_botAction.getEventRequester();
@@ -343,8 +344,9 @@ public class pubhub extends SubspaceBot {
     private void loadConfiguration() {
         BotSettings botSettings = m_botAction.getBotSettings();
         cfg_hubbot = m_botAction.getGeneralSettings().getString("Main Login");
-        cfg_chat =   botSettings.getString("chat");
-
+        cfg_chat_hub =   botSettings.getString("chathub");
+        cfg_chat_pub =   botSettings.getString("chatpub");
+        
         cfg_arenas.clear();
         cfg_autoloadModules.clear();
         cfg_arenaModules.clear();
@@ -587,7 +589,7 @@ public class pubhub extends SubspaceBot {
                 // Kill the pubbot if no arena is found
                 killPubbot(pubBot);
             } else {
-                m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("joinchat " + cfg_chat, pubBot));
+                m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("joinchat " + cfg_chat_pub, pubBot));
                 m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("go " + destinationArena, pubBot));
 
                 removeUnspawnedArena(destinationArena);
