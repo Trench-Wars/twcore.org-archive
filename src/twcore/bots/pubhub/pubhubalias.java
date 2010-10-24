@@ -175,6 +175,20 @@ public class pubhubalias extends PubBotModule
 		return "ORDER BY fdUpdated DESC";
 	}
 
+	private void doAltIpCmdPartial(String stringPlayerIP){
+	    try{
+	        String [] headers = {NAME_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD};
+	        String query = "SELECT * FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID "+
+	        " WHERE fcIPString LIKE "+stringPlayerIP+"%"+" "+getOrderBy();
+	        
+	        displayAltNickResults(query, headers, "fcUserName");
+	        
+	    }catch(SQLException e){
+	        throw new RuntimeException("SQL Error: "+e.getMessage(), e);
+	    }catch(Exception e){
+	        e.printStackTrace();
+	    }
+	}
 	private void doAltIpCmd(String playerIp)
 	{
 		try
@@ -185,7 +199,7 @@ public class pubhubalias extends PubBotModule
 			displayAltNickResults(
 					"SELECT * " +
 					"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-					"WHERE fnIp LIKE '" + ip32Bit + " %'" +
+					"WHERE fnIp LIKE " + ip32Bit + " " +
 					getOrderBy(), headers, "fcUserName"
 			);
 		}
@@ -457,6 +471,7 @@ public class pubhubalias extends PubBotModule
 		        "ALIAS CHAT COMMANDS: ",
 				"!AltNick  <PlayerName>         - Alias by <PlayerName>",
 				"!AltIP    <IP>                 - Alias by <IP>",
+				"!PartialIP <IP>                - Alias by <PARTIALIP>",  
 				"!AltMID   <MacID>              - Alias by <MacID>",
 				"!Info     <PlayerName>         - Shows stored info of <PlayerName>",
 				"!Compare  <Player1>:<Player2>  - Compares and shows matches",
@@ -774,6 +789,9 @@ public class pubhubalias extends PubBotModule
 		{
 			if(command.equals("!recordinfo"))
 				doRecordInfoCmd(sender);
+			else if(command.startsWith("!partialip"))
+			    doAltIpCmdPartial(command.substring(11));
+			
 			else if(command.equals("!help"))
 				doHelpCmd(sender);
 			else if(command.startsWith("!altnick "))
