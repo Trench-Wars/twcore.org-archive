@@ -180,7 +180,7 @@ public class pubhubalias extends PubBotModule
 	        String [] headers = {NAME_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD};
 	        String query = "SELECT * " +
             "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-            "WHERE fcIPString LIKE " + stringPlayerIP;
+            "WHERE fcIPString LIKE '" + stringPlayerIP+"%'";
             
 	        
 	        displayAltNickResults(query, headers, "fcUserName");
