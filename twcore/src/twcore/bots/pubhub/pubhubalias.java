@@ -178,9 +178,10 @@ public class pubhubalias extends PubBotModule
 	private void doAltIpCmdPartial(String stringPlayerIP){
 	    try{
 	        String [] headers = {NAME_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD};
-	        String query = "SELECT * FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID "+
-	        " WHERE fcIPString LIKE "+stringPlayerIP+"%";
-	        
+	        String query = "SELECT * " +
+            "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+            "WHERE fnIp LIKE " + stringPlayerIP + " " + getOrderBy();
+            
 	        
 	        displayAltNickResults(query, headers, "fcUserName");
 	        
