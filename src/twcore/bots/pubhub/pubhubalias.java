@@ -179,12 +179,14 @@ public class pubhubalias extends PubBotModule
 	    try{
 	        String [] headers = {NAME_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD};
 	        String query = "SELECT * FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID "+
-	        " WHERE fcIPString LIKE "+stringPlayerIP+"%"+" "+getOrderBy();
+	        " WHERE fcIPString LIKE "+stringPlayerIP+"%";
+	        
 	        
 	        displayAltNickResults(query, headers, "fcUserName");
 	        
 	    }catch(SQLException e){
-	        throw new RuntimeException("SQL Error: "+e.getMessage(), e);
+	        m_botAction.sendPrivateMessage("quiles", e.getMessage());
+	        //throw new RuntimeException("SQL Error: "+e.getMessage(), e);
 	    }catch(Exception e){
 	        e.printStackTrace();
 	    }
