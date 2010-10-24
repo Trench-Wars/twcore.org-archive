@@ -185,7 +185,7 @@ public class pubhubalias extends PubBotModule
 			displayAltNickResults(
 					"SELECT * " +
 					"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-					"WHERE fnIp = " + ip32Bit + " " +
+					"WHERE fnIp LIKE '" + ip32Bit + " %'" +
 					getOrderBy(), headers, "fcUserName"
 			);
 		}
