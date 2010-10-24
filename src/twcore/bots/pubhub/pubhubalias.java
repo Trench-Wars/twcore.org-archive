@@ -177,7 +177,7 @@ public class pubhubalias extends PubBotModule
 
 	private void doAltIpCmdPartial(String stringPlayerIP){
 	    try{
-	        String [] headers = {NAME_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD};
+	        String [] headers = {NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD};
 	        String query = "SELECT * " +
             "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
             "WHERE fcIPString LIKE '" + stringPlayerIP+"%'"+" "+getOrderBy();
@@ -303,7 +303,7 @@ public class pubhubalias extends PubBotModule
 			fieldHeader = getFieldHeader(displayField);
 
 			resultHeaders.append(padString(fieldHeader, padding));
-		}
+		} 
 		return resultHeaders.toString().trim();
 	}
 
