@@ -326,13 +326,16 @@ public class pubsystem extends SubspaceBot
         try {
             if(command.equals("!help") || command.equals("!h"))
                 doHelpCmd(sender, false);
-            if(command.equals("!algorithm") || command.equals("!algo"))
+            else if(command.equals("!algorithm") || command.equals("!algo"))
                 doAlgorithmCmd(sender);
-            if(command.startsWith("!greetmessage"))
+            else if(command.startsWith("!greetmessage"))
                 doGreetMessageCmd(sender, command);
-            if(command.equals("!about"))
+            else if(command.equals("!about"))
                 doAboutCmd(sender);
-            else if (messageType != Message.PUBLIC_MESSAGE){
+            else if (command.startsWith("!") && !command.contains(" ") && command.length()>1 && command.charAt(1)!='!' && messageType == Message.PUBLIC_MESSAGE) {
+            	m_botAction.sendSmartPrivateMessage(sender, "Please, send your command in private. Try :" + m_botAction.getBotName() + ":" + command);
+            }
+            else if (messageType != Message.PUBLIC_MESSAGE) {
             	context.handleCommand(sender, command.toLowerCase());
             }
             
