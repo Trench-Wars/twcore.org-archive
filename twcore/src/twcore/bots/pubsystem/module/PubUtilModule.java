@@ -100,7 +100,8 @@ public class PubUtilModule extends AbstractModule {
 					if (pieces[0].equals("0")) {
 						int hour = Integer.valueOf(pieces[0]);
 						int min = Integer.valueOf(pieces[1]);
-						m_botAction.sendChatMessage(2, ">>>>>> New player: " + currentInfoName + " (" + hour +"h " + min + "m)");
+						if (min <= 15)
+							m_botAction.sendChatMessage(2, ">>>>>> New player: " + currentInfoName + " (" + hour +"h " + min + "m)");
 					}
 				}
 			}

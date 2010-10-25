@@ -61,6 +61,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
         reloadPanel(false);
     }
 
+    public void setName(String name) {
+    	this.name = name;
+    }
+    
     public String getPlayerName() {
         return name;
     }

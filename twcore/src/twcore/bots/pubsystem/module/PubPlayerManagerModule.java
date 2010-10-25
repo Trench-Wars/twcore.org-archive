@@ -143,6 +143,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 		PubPlayer player = players.get(playerName.toLowerCase());
 		
 		if (cacheOnly) {
+			player.setName(playerName);
 			return player;
 		}
 		else {
@@ -154,7 +155,9 @@ public class PubPlayerManagerModule extends AbstractModule {
 	    		try {
 					ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT fcName, fnMoney, fcTileset, fnBestStreak FROM tblPlayerStats WHERE fcName = '"+Tools.addSlashes(playerName)+"'");
 					if (rs.next()) {
-						return getPlayerByResultSet(rs);
+						player = getPlayerByResultSet(rs);
+						player.setName(playerName);
+						return player;
 					}
 					rs.close();
 				} catch (SQLException e) {
@@ -729,7 +732,6 @@ public class PubPlayerManagerModule extends AbstractModule {
             	if (player.getLastOptionsUpdate() > player.getLastSavedState()) {
                 	String tilesetName = player.getTileset().toString().toLowerCase();
                 	m_botAction.SQLBackgroundQuery(databaseName, "", "INSERT INTO tblPlayerStats (fcName,fcTileset) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"','"+Tools.addSlashes(tilesetName)+"') ON DUPLICATE KEY UPDATE fcTileset='"+Tools.addSlashes(tilesetName)+"'");
-                	System.out.println("INSERT INTO tblPlayerStats (fcName,fcTileset) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"','"+Tools.addSlashes(tilesetName)+"') ON DUPLICATE KEY UPDATE fcTileset='"+Tools.addSlashes(tilesetName)+"'");
                 	player.savedState();
             	}
     

@@ -195,7 +195,10 @@ public class PubMoneySystemModule extends AbstractModule {
 	            	if (duration.hasTime()) {
 	            		TimerTask timer = new TimerTask() {
 	                        public void run() {
-	                        	int bounty = m_botAction.getPlayer(receiver.getPlayerName()).getBounty();
+	                        	Player player = m_botAction.getPlayer(receiver.getPlayerName());
+	                        	if (player == null)
+	                        		return;
+	                        	int bounty = player.getBounty();
 	                        	if (System.currentTimeMillis()-receiver.getLastDeath() > duration.getSeconds()*1000) {
 	                            	m_botAction.sendUnfilteredPrivateMessage(receiver.getPlayerName(), "*shipreset");
 	                            	m_botAction.giveBounty(receiver.getPlayerName(), bounty);
@@ -1057,7 +1060,6 @@ public class PubMoneySystemModule extends AbstractModule {
 	   		// The rest is random..
 	   		} else {
 	   			int num = (int)Math.floor(Math.random()*coords.length);
-	   			System.out.println(num);
 	   			m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1], 3);
 	   		}
 	   	}

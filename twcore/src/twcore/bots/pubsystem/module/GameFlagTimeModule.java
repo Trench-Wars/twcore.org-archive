@@ -781,7 +781,7 @@ public class GameFlagTimeModule extends AbstractModule {
     		int time = 0;
     		if (playerTimes.get(player) != null)
     			time = flagTimer.getTotalSecs() - playerTimes.get(player).intValue();
-    		if (!ships.get(player).contains(excludeShip) && (!fullRound || time==flagTimer.getTotalSecs())) {
+    		if (ships.get(player) != null && !ships.get(player).contains(excludeShip) && (!fullRound || time==flagTimer.getTotalSecs())) {
 	    		if (i==position) {
 	    			return player;
 	    		} else if (i>position) {
@@ -1326,14 +1326,14 @@ public class GameFlagTimeModule extends AbstractModule {
                         m_botAction.sendArenaMessage( "INCONCIEVABLE!!: " + p.getPlayerName() + " claims flag for " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq" ) + " with just " + remain + " second" + (remain == 1 ? "" : "s") + " left!", 65 );
                         m_botAction.showObject(2500);
                         m_botAction.showObject(2600);
-                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Wow!! I give you $2000 for this.");
-                        context.getPlayerManager().addMoney(p.getPlayerName(), 2000);
+                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Wow!! I give you $1000 for this.");
+                        context.getPlayerManager().addMoney(p.getPlayerName(), 1000);
                         
                     } else if( remain < 11 ) {
                         m_botAction.sendArenaMessage( "AMAZING!: " + p.getPlayerName() + " claims flag for " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq" ) + " with just " + remain + " sec. left!" );
                         m_botAction.showObject(2600); // 'Daym!' lvz
-                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Not bad at all! I give you $1000 for this.");
-                        context.getPlayerManager().addMoney(p.getPlayerName(), 1000);
+                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Not bad at all! I give you $500 for this.");
+                        context.getPlayerManager().addMoney(p.getPlayerName(), 500);
                     
                     } else if( remain < 25 ) {
                         m_botAction.sendArenaMessage( "SAVE!: " + p.getPlayerName() + " claims flag for " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq" ) + " with " + remain + " sec. left!" );
