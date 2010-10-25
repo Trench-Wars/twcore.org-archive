@@ -143,7 +143,8 @@ public class PubPlayerManagerModule extends AbstractModule {
 		PubPlayer player = players.get(playerName.toLowerCase());
 		
 		if (cacheOnly) {
-			player.setName(playerName);
+			if (player!=null)
+				player.setName(playerName);
 			return player;
 		}
 		else {
