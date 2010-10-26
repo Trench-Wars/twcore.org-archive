@@ -40,6 +40,7 @@ public class DuelBox {
 	public boolean gameType( int gameType ) {
 
 		if( d_type == 1 && gameType == 3 ) return true;
+		if( d_type == 1 && gameType == 7 ) return true;
 		else if( d_type == gameType ) return true;
 		else return false;
 	}
