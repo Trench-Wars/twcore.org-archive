@@ -269,6 +269,7 @@ public class duelbot extends SubspaceBot {
     	if( gameType == 1 ) type = "Warbird";
     	else if( gameType == 2 ) type = "Javelin";
     	else if( gameType == 3 ) type = "Spider";
+    	else if( gameType == 7 ) type = "Lancaster";
     	String rules = "Rules: First to " + player.getToWin();
     	if( player.getWinBy2() ) rules += ", Win By 2";
     	if( player.getNoCount() ) rules += ", No Count (nc) Double Kills";
