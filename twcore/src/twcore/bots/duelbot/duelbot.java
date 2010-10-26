@@ -401,6 +401,7 @@ public class duelbot extends SubspaceBot {
     	if( gameType == 1 ) type = "Warbird";
     	else if( gameType == 2 ) type = "Javelin";
     	else if( gameType == 3 ) type = "Spider";
+    	else if( gameType == 7 ) type = "Lancaster";
     	String rules = "Rules: First to " + 10;
     	rules += ", Win By 2";
     	rules += ", No Count (nc) Double Kills";
@@ -821,29 +822,29 @@ public class duelbot extends SubspaceBot {
 
     public void do_showHelp( String name, String message ) {
 		String help[] = {
-			"--Player commands-------------------------------------------------------------",
-			"| !signup                      - signs you up for the dueling league.        |",
-			"| !setrules <included rules>   - sets rules, include rules you wish to use   |",
-			"|   available rules: winby2, nc, warp, 5/10 : Ex  !setrules warp 5           |",
-			"| !challenge <name>:<type>     - challenges <name> to a duel wb=1/jav=2/sp=3 |",
-			"| !tchallenge <gID>            - challenges your opponent for game #<gID>    |",
-			"| !tchallenge <gN>:<league>    - challenges your opponent in playoffs        |",
-			"| !accept    <name>            - accepts a challenge from <name>             |",
-			"| !removechallenge <name>      - removes the challenge issued to <name>      |",
-			"| !notplaying <time>           - turns on notplaying for requested <time>    |",
-			"| !notplaying                  - toggles off notplaying                      |",
-			"| !lagout                      - puts you back in to your duel               |",
-			"| !cancel                      - toggles your decision to cancel your duel   |",
-			"| !lag <name>                  - returns the lag of player <name>            |",
-			"| !ops                         - shows list of league operators              |",
-			"| !score <box#> or <player>    - shows the score of a duel # or a player     |",
-			"| !duels                       - shows the current duels being played        |",
-			"| !scoreboard                  - turns the scoreboard on/off                 |",
-			"| !enable                      - enables your username                       |",
-			"| !disable                     - disables your username                      |",
-			"| !rank                        - displays your ranks for all leagues         |",
-			"| !rank <name>                 - displays <name>'s ranks for all leagues     |",
-			"------------------------------------------------------------------------------"
+			"--Player commands---------------------------------------------------------------------",
+			"| !signup                      - signs you up for the dueling league.                |",
+			"| !setrules <included rules>   - sets rules, include rules you wish to use           |",
+			"|   available rules: winby2, nc, warp, 5/10 : Ex  !setrules warp 5                   |",
+			"| !challenge <name>:<type>     - challenges <name> to a duel wb=1/jav=2/sp=3/lanc=7  |",
+			"| !tchallenge <gID>            - challenges your opponent for game #<gID>            |",
+			"| !tchallenge <gN>:<league>    - challenges your opponent in playoffs                |",
+			"| !accept    <name>            - accepts a challenge from <name>                     |",
+			"| !removechallenge <name>      - removes the challenge issued to <name>              |",
+			"| !notplaying <time>           - turns on notplaying for requested <time>            |",
+			"| !notplaying                  - toggles off notplaying                              |",
+			"| !lagout                      - puts you back in to your duel                       |",
+			"| !cancel                      - toggles your decision to cancel your duel           |",
+			"| !lag <name>                  - returns the lag of player <name>                    |",
+			"| !ops                         - shows list of league operators                      |",
+			"| !score <box#> or <player>    - shows the score of a duel # or a player             |",
+			"| !duels                       - shows the current duels being played                |",
+			"| !scoreboard                  - turns the scoreboard on/off                         |",
+			"| !enable                      - enables your username                               |",
+			"| !disable                     - disables your username                              |",
+			"| !rank                        - displays your ranks for all leagues                 |",
+			"| !rank <name>                 - displays <name>'s ranks for all leagues             |",
+			"--------------------------------------------------------------------------------------"
 
 			};
 		m_botAction.privateMessageSpam( name, help );
