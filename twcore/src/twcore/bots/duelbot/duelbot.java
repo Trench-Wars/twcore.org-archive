@@ -238,8 +238,8 @@ public class duelbot extends SubspaceBot {
 	    		return;
 	    	} else notPlaying.remove( opponent );
     	}
-    	if( gameType < 1 || gameType > 3 ) {
-    		m_botAction.sendPrivateMessage( _name, "Unable to issue challenge, invalid league entered, valid leagues: (1-warbird, 2-javelin, 3-spider.)" );
+    	if( gameType == 4 || gameType == 5 || gameType == 6 || gameType == 8) {
+    		m_botAction.sendPrivateMessage( _name, "Unable to issue challenge, invalid league entered, valid leagues: (1-warbird, 2-javelin, 3-spider, 7-lancaster.)" );
     		return;
     	}
     	if( playing.containsKey( _name ) ) {
