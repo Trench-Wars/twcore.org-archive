@@ -1043,8 +1043,12 @@ public class staffbot_banc extends Module {
 						sqlWhere += " " + Tools.addSlashes(argument);
 					}
 				}
-				if(!showLifted)
+				
+				if(!showLifted){
+				    if( !sqlWhere.isEmpty())
+				        sqlWhere += " AND ";
 				    sqlWhere += "fbLifted=0";
+				}
 			}
 			
 			if(playerArgument || stafferArgument) {
