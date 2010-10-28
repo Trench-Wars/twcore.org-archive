@@ -132,7 +132,7 @@ public class staffbot_banc extends Module {
     @Override
 	public void initializeModule() {
     	
-        BotSettings botSettings = m_botAction.getBotSettings();
+        /*BotSettings botSettings = m_botAction.getBotSettings();
         this.bancOps = new ArrayList<String>();
         
         String opsStr = botSettings.getString("BancOps");
@@ -141,7 +141,7 @@ public class staffbot_banc extends Module {
         
         for( String e: ops)
             bancOps.add( e.toLowerCase() );
-        
+        */
     	// Initialize Prepared Statements
     	psActiveBanCs = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT * FROM tblBanc WHERE DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0");
     	//psListBanCs = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT * FROM tblBanc LIMIT 0,?");
