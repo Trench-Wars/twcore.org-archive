@@ -232,12 +232,12 @@ public class PubLotteryModule extends AbstractModule {
 	}
 	
 	@Override
-	public String[] getHelpMessage() {
+	public String[] getHelpMessage(String sender) {
 		return new String[]{};
 	}
 
 	@Override
-	public String[] getModHelpMessage() {
+	public String[] getModHelpMessage(String sender) {
 		return new String[]{};
 	}
 

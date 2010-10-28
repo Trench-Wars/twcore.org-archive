@@ -1,10 +1,21 @@
 package twcore.bots.pubsystem.module;
 
 import java.lang.reflect.Method;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.DateFormat;
 import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,6 +26,7 @@ import java.util.Map.Entry;
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.PubUtilModule.Location;
+import twcore.bots.pubsystem.module.moneysystem.CouponCode;
 import twcore.bots.pubsystem.module.moneysystem.LvzMoneyPanel;
 import twcore.bots.pubsystem.module.moneysystem.PubStore;
 import twcore.bots.pubsystem.module.moneysystem.item.PubCommandItem;
@@ -29,20 +41,17 @@ import twcore.bots.pubsystem.util.PubException;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.FrequencyChange;
-import twcore.core.events.InterProcessEvent;
-import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
+import twcore.core.events.SQLResultEvent;
+import twcore.core.events.TurretEvent;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
-import twcore.core.util.ipc.IPCMessage;
 
 public class PubMoneySystemModule extends AbstractModule {
 
-	private final static String IPC_CHANNEL = "pubmoney";
-	
 	private PubStore store;
 	
 	private PubPlayerManagerModule playerManager;
@@ -59,12 +68,16 @@ public class PubMoneySystemModule extends AbstractModule {
     // Time passed on the same frequency
     private HashMap<String, Long> frequencyTimes;
     
-    // To avoid spam of the same IPC Message (bug)
-    private HashMap<String, Long> ipcHistory; 
+    // Coupon system
+    private HashSet<String> couponOperators;
+    private HashMap<String,CouponCode> coupons; // cache system
+    
+    private String database;
+    
 
     public PubMoneySystemModule(BotAction botAction, PubContext context) {
     	
-    	super(botAction, context, "Store");
+    	super(botAction, context, "Money/Store");
     	
     	this.playerManager = context.getPlayerManager();
 
@@ -73,8 +86,9 @@ public class PubMoneySystemModule extends AbstractModule {
         this.shipKilledPoints = new HashMap<Integer, Integer>();
         this.locationPoints = new HashMap<Location, Integer>();
         this.frequencyTimes = new HashMap<String, Long>();
-        this.ipcHistory = new HashMap<String,Long>();
         
+        this.coupons = new HashMap<String,CouponCode>();
+
         try {
         	this.store = new PubStore(m_botAction, context);
         	initializePoints();
@@ -91,11 +105,6 @@ public class PubMoneySystemModule extends AbstractModule {
 	{
 		eventRequester.request(EventRequester.PLAYER_DEATH);
 	}
-	
-	public void handleEvent(LoggedOn event) {
-		m_botAction.ipcSubscribe(IPC_CHANNEL);
-	}
-
     
     /**
      * Gets default settings for the points: area and ship
@@ -154,7 +163,6 @@ public class PubMoneySystemModule extends AbstractModule {
                 }
                 
                 // Save this purchase
-        		String database = m_botAction.getBotSettings().getString("database");
         		int shipType = m_botAction.getPlayer(receiver.getPlayerName()).getShipType();
         		// The query will be closed by PlayerManagerModule
         		if (database!=null)
@@ -273,7 +281,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	
     }
     
-    public void doCmdDonate(String sender, String command) {
+    private void doCmdDonate(String sender, String command) {
     	
     	if (command.length()<8) {
     		m_botAction.sendSmartPrivateMessage(sender, "Try !donate <name>.");
@@ -344,8 +352,6 @@ public class PubMoneySystemModule extends AbstractModule {
     			m_botAction.sendSmartPrivateMessage(sender, "$" + moneyToDonate + " sent to " + pubPlayer.getPlayerName() + ".");
     			m_botAction.sendSmartPrivateMessage(pubPlayer.getPlayerName(), sender + " sent you $" + moneyToDonate + ", you have now $" + (moneyToDonate+currentMoney) + ".");
 
-        		String database = m_botAction.getBotSettings().getString("database");
-        		
         		// The query will be closed by PlayerManagerModule
         		if (database!=null)
         		m_botAction.SQLBackgroundQuery(database, "", "INSERT INTO tblPlayerDonations "
@@ -609,6 +615,49 @@ public class PubMoneySystemModule extends AbstractModule {
     	}
     }
     
+    private void doCmdLastKill(String sender)
+    {
+    	PubPlayer player = playerManager.getPlayer(sender);
+    	if (player != null) {
+    		
+    		if (player.getLastKillKillerShip() == -1) {
+    			m_botAction.sendSmartPrivateMessage(sender, "You don't have killed anyone yet.");
+    			return;
+    		}
+    		
+    		int shipKiller = player.getLastKillKillerShip();
+    		int shipKilled = player.getLastKillKilledShip();
+    		Location location = player.getLastKillLocation();
+
+            // Money from the ship
+            int moneyKiller = shipKillerPoints.get(shipKiller);
+            int moneyKilled = shipKillerPoints.get(shipKilled);
+
+            int moneyByLocation = 0;
+            if (locationPoints.containsKey(location)) {
+            	moneyByLocation = locationPoints.get(location);
+            }
+            
+            int total = moneyKiller+moneyKilled+moneyByLocation;
+            
+            String msg = "You were a " + Tools.shipName(moneyKiller) + " (+$"+moneyKiller+")";
+            msg += ", killed a " + Tools.shipName(moneyKilled) + " (+$"+moneyKilled+"). ";
+            msg += "Location: " + context.getPubUtil().getLocationName(location) + " (+$"+moneyByLocation+").";
+            
+            // Overide if kill in space
+            if (location.equals(Location.SPACE)) {
+            	total = 0;
+            	msg = "Kills outside of the base are worthless.";
+            }
+            
+            m_botAction.sendSmartPrivateMessage(sender, "You earned $" + total + " by killing " + player.getLastKillKilledName() + ".");
+            m_botAction.sendSmartPrivateMessage(sender, msg);
+    		
+    	} else {
+    		m_botAction.sendSmartPrivateMessage(sender, "You're still not in the system. Wait a bit to be added.");
+    	}
+    }
+    
     private void doCmdDisplayMoney(String sender, String command)
     {
     	String name = sender;
@@ -629,6 +678,393 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
     
+	private void doCmdCouponListOps(String sender) {
+		
+		List<String> lines = new ArrayList<String>();
+		lines.add("List of Operators:");
+		for(String name: couponOperators) {
+			lines.add("- " + name);
+		}
+		m_botAction.smartPrivateMessageSpam(sender, lines.toArray(new String[lines.size()]));
+	}
+
+	private void doCmdCouponAddOp(String sender, String name) {
+		
+		if (!couponOperators.contains(name.toLowerCase())) {
+			couponOperators.add(name.toLowerCase());
+			m_botAction.sendSmartPrivateMessage(sender, name + " is now an operator (temporary until the bot respawn).");
+			
+			/*
+			String operatorsString = "";
+			for(String operator: operators) {
+				operatorsString += "," + operator;
+			}
+
+			m_botAction.getBotSettings().put("Operators", operatorsString.substring(1));
+			m_botAction.getBotSettings().save();
+			*/
+			
+		} else {
+			m_botAction.sendSmartPrivateMessage(sender, name + " is already an operator.");
+		}
+	}
+
+	private void doCmdCouponDisable(String sender, String codeString) {
+		
+		CouponCode code = getCouponCode(codeString);
+		if (code == null) {
+			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' not found.");
+		}
+		else if (!code.isEnabled()) {
+			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' is already disabled.");
+		} 
+		else if (!code.isValid()) {
+			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' is not valid anymore, useless.");
+		} 
+		else {
+			code.setEnabled(false);
+			updateCouponDB(code,"update:"+codeString+":"+sender);
+		}
+		
+	}
+
+	private void doCmdCouponEnable(String sender, String codeString) {
+		
+		CouponCode code = getCouponCode(codeString);
+		if (code == null) {
+			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' not found.");
+		}
+		else if (code.isEnabled()) {
+			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' is already enabled.");
+		} 
+		else if (!code.isValid()) {
+			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' is not valid anymore, useless.");
+		} 
+		else {
+			code.setEnabled(true);
+			updateCouponDB(code,"update:"+codeString+":"+sender);
+		}
+	}
+
+	private void doCmdCouponInfo(String sender, String codeString) {
+		
+		CouponCode code = getCouponCode(codeString);
+		if (code == null) {
+			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' not found.");
+		}
+		else {
+	    	String generation[] = new String[] {
+        		"Code: " + codeString.toUpperCase() + "  (Generated by " + code.getCreatedBy() + ", " + new SimpleDateFormat("yyyy-MM-dd").format(code.getCreatedAt()) + ")",
+        		" - Valid: " + (code.isValid()? "Yes" : "No (Reason: " + code.getInvalidReason() + ")"),
+        		" - Money: $" + code.getMoney(),
+        		" - " + (code.getUsed() > 0 ? "Used: " + code.getUsed() + " time(s)" : "Not used yet"),
+        		"[Limitation]",
+        		" - Maximum of use: " + code.getMaxUsed(),
+        		" - Start date: " + new SimpleDateFormat("yyyy-MM-dd HH:mm").format(code.getStartAt()),
+        		" - Expiration date: " + new SimpleDateFormat("yyyy-MM-dd HH:mm").format(code.getEndAt()),
+        	};
+	    	
+	    	m_botAction.smartPrivateMessageSpam(sender, generation);
+		}
+	}
+	
+	private void doCmdCouponUsers(String sender, String codeString) {
+		
+		CouponCode code = getCouponCode(codeString);
+		if (code == null) {
+			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' not found.");
+		}
+		else {
+	    	
+			try {
+				
+				ResultSet rs = m_botAction.SQLQuery(database, "SELECT * FROM tblMoneyCodeUsed WHERE fnMoneyCodeId = '" + code.getId() + "'");
+
+				int count = 0;
+				while (rs.next()) {
+					count++;
+					String name = count + ". " + rs.getString("fcName");
+					String date = new SimpleDateFormat("yyyy-MM-dd").format(rs.getDate("fdCreated"));
+					String message = Tools.formatString(name, 23, " ");
+					message += " " + date;
+					m_botAction.sendSmartPrivateMessage(sender, message);
+				}
+				rs.close();
+
+				if (count == 0) {
+					m_botAction.sendSmartPrivateMessage(sender, "This code has not been used yet.");
+				}
+				
+			} catch (SQLException e) {
+				Tools.printStackTrace(e);
+				m_botAction.sendSmartPrivateMessage(sender, "An error has occured.");
+			}
+
+		}
+	}
+
+	private void doCmdCouponExpireDate(String sender, String command) {
+		
+		String[] pieces = command.split(":");
+		if (pieces.length != 2) {
+			m_botAction.sendSmartPrivateMessage(sender, "Bad argument");
+			return;
+		}
+		
+		String codeString = pieces[0];
+		String dateString = pieces[1];
+		
+		CouponCode code = getCouponCode(codeString);
+		if (code == null) {
+			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' not found.");
+		}
+		else {
+	    	
+			DateFormat df = new SimpleDateFormat("yyyy/MM/dd");
+			java.util.Date date;
+			try {
+				date = df.parse(dateString);
+			} catch (ParseException e) {
+				m_botAction.sendSmartPrivateMessage(sender, "Bad date");
+				return;
+			}  
+			
+			code.setEndAt(date);
+			updateCouponDB(code,"update:"+codeString+":"+sender);
+			
+		}
+	}
+
+	private void doCmdCouponLimitUse(String sender, String command) {
+		
+		String[] pieces = command.split(":");
+		if (pieces.length != 2) {
+			m_botAction.sendSmartPrivateMessage(sender, "Bad argument");
+			return;
+		}
+		
+		String codeString = pieces[0];
+		String limitString = pieces[1];
+		int limit;
+		try {
+			limit = Integer.valueOf(limitString);
+		} catch (NumberFormatException e) {
+			m_botAction.sendSmartPrivateMessage(sender, "Bad number");
+			return;
+		}
+		
+		CouponCode code = getCouponCode(codeString);
+		if (code == null) {
+			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' not found.");
+		}
+		else {
+			if (limit > 0) {
+				code.setMaxUsed(limit);
+				updateCouponDB(code,"update:"+codeString+":"+sender);
+
+			} else {
+				m_botAction.sendSmartPrivateMessage(sender, "Must be a number higher than 0.");
+			}
+			
+		}
+	}
+
+	private void doCmdCouponCreate(String sender, String command) {
+		
+		String[] pieces = command.split("\\s*:\\s*");
+		
+		// Automatic code
+		if (pieces.length == 1) {
+		
+			int money;
+			try {
+				money = Integer.parseInt(pieces[0]);
+			} catch (NumberFormatException e) {
+				m_botAction.sendSmartPrivateMessage(sender, "Bad number.");
+				return;
+			}
+			
+			String codeString = null;
+			
+			while (codeString == null || getCouponCode(codeString) != null) {
+				// Genereate a random code using the date and md5
+				String s = (new java.util.Date()).toString();
+				MessageDigest m;
+				try {
+					m = MessageDigest.getInstance("MD5");
+					m.update(s.getBytes(), 0, s.length());
+					String codeTemp = new BigInteger(1, m.digest()).toString(16);
+					
+					if (getCouponCode(codeTemp) == null)
+						codeString = codeTemp.substring(0,8).toUpperCase();
+					
+				} catch (NoSuchAlgorithmException e) {
+					return;
+				}
+			}
+			
+			CouponCode code = new CouponCode(codeString, money, sender);
+			insertCouponDB(code,"create:"+codeString+":"+sender);
+			
+		// Custom code
+		} else if (pieces.length == 2) {
+			
+			String codeString = pieces[0];
+			
+			int money;
+			try {
+				money = Integer.parseInt(pieces[1]);
+			} catch (NumberFormatException e) {
+				m_botAction.sendSmartPrivateMessage(sender, "Bad number.");
+				return;
+			}
+			
+			if (getCouponCode(codeString) != null) {
+				m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' already exists.");
+				return;
+			}
+			
+			CouponCode code = new CouponCode(codeString, money, sender);
+			insertCouponDB(code,"create:"+codeString+":"+sender);
+			
+		} else {
+			m_botAction.sendSmartPrivateMessage(sender, "Bad argument.");
+			return;
+		}
+	}
+
+	private void doCmdCoupon(String sender, String codeString) {
+
+		CouponCode code = getCouponCode(codeString);
+		if (code == null) {
+			// no feedback to avoid bruteforce!!
+			// m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' not found.");
+		} 
+		else if (isPlayerRedeemAlready(sender, code)) {
+			m_botAction.sendSmartPrivateMessage(sender, "You have already used this code.");
+			return;
+		} 
+		else if (!code.isValid()) {
+			// no feedback to avoid bruteforce!!
+			return;
+		}
+		else {
+
+			code.gotUsed();
+			updateCouponDB(code,"updateredeem:"+codeString+":"+sender);
+			
+		}
+	}
+	
+	private boolean isPlayerRedeemAlready(String playerName, CouponCode code) {
+		
+		ResultSet rs;
+		try {
+			rs = m_botAction.SQLQuery(database, "SELECT * FROM tblMoneyCodeUsed WHERE fnMoneyCodeId = '" + code.getId() + "' AND fcName = '" + Tools.addSlashes(playerName) + "'");
+			if (rs.first()) {
+				rs.close();
+				return true;
+			} else {
+				rs.close();
+				return false;
+			}
+			
+		} catch (SQLException e) {
+			Tools.printStackTrace(e);
+			return false;
+		}
+		
+	}
+    
+	private CouponCode getCouponCode(String codeString) {
+    	
+		if (coupons.containsKey(codeString))
+			return coupons.get(codeString);
+		
+		try {
+			
+			ResultSet rs = m_botAction.SQLQuery(database, "SELECT * FROM tblMoneyCode WHERE fcCode = '" + Tools.addSlashes(codeString) + "'");
+
+			if (rs.next()) {
+	
+				int id = rs.getInt("fnMoneyCodeId");
+				String description = rs.getString("fcDescription");
+				String createdBy = rs.getString("fcCreatedBy");
+				int money = rs.getInt("fnMoney");
+				int used = rs.getInt("fnUsed");
+				int maxUsed = rs.getInt("fnMaxUsed");
+				boolean enabled = rs.getBoolean("fbEnabled");
+				Date startAt = rs.getDate("fdStartAt");
+				Date endAt = rs.getDate("fdEndAt");
+				Date createdAt = rs.getDate("fdCreated");
+				
+				CouponCode code = new CouponCode(codeString, money, createdAt, createdBy);
+				code.setId(id);
+				code.setDescription(description);
+				code.setEnabled(enabled);
+				code.setMaxUsed(maxUsed);
+				code.setStartAt(startAt);
+				code.setEndAt(endAt);
+				code.setUsed(used);
+				rs.close();
+				
+				coupons.put(codeString, code);
+				return code;
+			}
+			else {
+				rs.close();
+				return null;
+			}
+			
+		} catch (SQLException e) {
+			Tools.printStackTrace(e);
+			return null;
+		}
+
+    	
+    }
+	
+	private void insertCouponDB(CouponCode code, String params) {
+		
+		String startAtString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(code.getStartAt());
+		String endAtString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(code.getEndAt());
+		
+
+		m_botAction.SQLBackgroundQuery(database, "coupon:"+params,
+				"INSERT INTO tblMoneyCode " +
+				"(fcCode, fcDescription, fnMoney, fcCreatedBy, fnUsed, fnMaxUsed, fdStartAt, fdEndAt, fbEnabled, fdCreated) " +
+				"VALUES (" +
+				"'" + code.getCode() + "'," +
+				"'" + Tools.addSlashes(code.getDescription()) + "'," +
+				"'" + code.getMoney() + "'," +
+				"'" + Tools.addSlashes(code.getCreatedBy()) + "'," +
+				"'" + code.getUsed() + "'," +
+				"'" + code.getMaxUsed() + "'," +
+				"'" + startAtString + "'," +
+				"'" + endAtString + "'," +
+				"" + (code.isEnabled() ? 1 : 0) + "," +
+				"NOW()" +
+				")");
+		
+	}
+	
+	private void updateCouponDB(CouponCode code, String params) {
+		
+		String startAtString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(code.getStartAt());
+		String endAtString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(code.getEndAt());
+
+		m_botAction.SQLBackgroundQuery(database, "coupon:"+params,
+				"UPDATE tblMoneyCode SET " +
+				"fcDescription = '" + Tools.addSlashes(code.getDescription()) + "', " +
+				"fnUsed = " + code.getUsed() + ", " +
+				"fnMaxUsed = " + code.getMaxUsed() + ", " +
+				"fdStartAt = '" + startAtString + "', " +
+				"fdEndAt = '" + endAtString + "', " +
+				"fbEnabled = " + (code.isEnabled() ? 1 : 0) + " " +
+				"WHERE fnMoneyCodeId='" + code.getId() + "'");
+
+	}
+
     public boolean isStoreOpened() {
     	return store.isOpened();
     }
@@ -637,10 +1073,55 @@ public class PubMoneySystemModule extends AbstractModule {
     	return  m_botAction.getBotSettings().getString("database") != null;
     }
     
-    public void handleDisconnect() {
-    	m_botAction.ipcSubscribe(IPC_CHANNEL);
+    public void handleTK(Player killer) {
+    	
+    	
+    	
     }
     
+    public void handleDisconnect() {
+    	
+    }
+    
+    public void handleEvent(SQLResultEvent event) {
+    	
+    	// Coupon system
+    	if (event.getIdentifier().startsWith("coupon")) {
+
+    		String[] pieces = event.getIdentifier().split(":");
+    		if (pieces.length > 1) {
+    			
+    			if (pieces.length==4 && pieces[1].equals("update")) {
+    				m_botAction.sendSmartPrivateMessage(pieces[3], "Code '" + pieces[2] + "' updated.");
+    			}
+    		
+    			else if (pieces.length == 4 && pieces[1].equals("updateredeem")) {
+    				
+    				CouponCode code = getCouponCode(pieces[2]);
+    				if (code == null)
+    					return;
+    				
+    				m_botAction.SQLBackgroundQuery(database, null, "INSERT INTO tblMoneyCodeUsed "
+    						+ "(fnMoneyCodeId, fcName, fdCreated) "
+    						+ "VALUES ('" + code.getId() + "', '" + Tools.addSlashes(pieces[3]) + "', NOW())");
+    			
+    				if (context.getPlayerManager().addMoney(pieces[3], code.getMoney(), true)) {
+    					m_botAction.sendSmartPrivateMessage(pieces[3], "$" + code.getMoney() + " has been added to your account.");
+    				} else {
+    					m_botAction.sendSmartPrivateMessage(pieces[3], "A problem has occured. Please contact someone from the staff by using ?help. (err:03)");
+    				}
+
+    			}
+    			
+    			else if(pieces.length == 4 && pieces[1].equals("create")) {
+    				m_botAction.sendSmartPrivateMessage(pieces[3], "Code '" + pieces[2] + "' created.");
+    			}
+    		}
+    		
+    	}
+    	
+    }
+
     public void handleEvent(FrequencyChange event) {
     	Player p = m_botAction.getPlayer(event.getPlayerID());
     	if (p == null)
@@ -656,41 +1137,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	
     	frequencyTimes.remove(p.getPlayerName());
     }
-    
-    public void handleEvent(InterProcessEvent event) {
-    	
-    	if(event.getObject() instanceof IPCMessage) {
-    		
-    		IPCMessage ipc = (IPCMessage)event.getObject();
-    		String message = ipc.getMessage();
-    		if (ipc.getRecipient() == null || ipc.getSender() == null)
-    			return;
-    		
-    		// Spam check (workaround when the method receive the same message twice or more)
-    		if (ipcHistory.containsKey(message)) {
-    			if (System.currentTimeMillis()-ipcHistory.get(message) < 2*Tools.TimeInMillis.SECOND)
-    				return;
-    		}
-    		
-    		if (ipc.getRecipient().equals("pubsystem") && ipc.getSender().equals("couponbot")) {
-
-	    		// Protocol>   coupon:<code>:<name>:<money>
-	    		if(message.startsWith("coupon:")) {
-	    			String[] pieces = message.split(":");
-	    			boolean result = context.getPlayerManager().addMoney(pieces[2], Integer.valueOf(pieces[3]), true);
-	    			if (result) {
-	    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponsuccess:" + pieces[1] + ":" + pieces[2], "couponbot", "pubsystem");
-	    			} else {
-	    				m_botAction.ipcSendMessage(IPC_CHANNEL, "couponerror:" + pieces[1] + ":" + pieces[2], "couponbot", "pubsystem");
-	    			}
-	    		}
-	    		
-	    		ipcHistory.put(message, System.currentTimeMillis());
-    		}
-    		
-    	}
-    }
-
+   
     public void handleEvent(PlayerDeath event) {
 
     	final Player killer = m_botAction.getPlayer( event.getKillerID() );
@@ -701,16 +1148,7 @@ public class PubMoneySystemModule extends AbstractModule {
         
         // A TK, do nothing for now
         if ( killer.getFrequency() == killed.getFrequency() ) {
-
-        	/*
-        	if ( killer.getShipType() == Tools.Ship.SHARK )
-        		return;
-
-        	PubPlayer pubPlayerKiller = playerManager.getPlayer(killer.getPlayerName());
-        	if (pubPlayerKiller != null) {
-        		pubPlayerKiller.removeMoney(10);
-        	}
-        	*/
+        	handleTK(killer);
         	return;
         }
 
@@ -722,9 +1160,10 @@ public class PubMoneySystemModule extends AbstractModule {
 
         try{
 
-            final PubPlayer pubPlayerKilled = playerManager.getPlayer(killed.getPlayerName());
+        	final PubPlayer pubPlayerKilled = playerManager.getPlayer(killed.getPlayerName());
+        	PubPlayer pubPlayerKiller = playerManager.getPlayer(killer.getPlayerName());
             // Is the player not on the system? (happens when someone loggon and get killed in 1-2 seconds)
-            if (pubPlayerKilled == null) {
+            if (pubPlayerKiller == null || pubPlayerKilled == null) {
             	return;
             }
             
@@ -752,26 +1191,36 @@ public class PubMoneySystemModule extends AbstractModule {
             	}
             }
  
-            int money = 0;
-
-            // Money from the ship
-            int moneyKiller = shipKillerPoints.get((int)killer.getShipType());
-            int moneyKilled = shipKillerPoints.get((int)killed.getShipType());
-            money += moneyKiller;
-            money += moneyKilled;
-            
-            // Money from the location
             int x = killer.getXTileLocation();
-            int y = killer.getYTileLocation();
+            int y = killer.getYTileLocation(); 
             Location location = context.getPubUtil().getLocation(x, y);
-            int moneyByLocation = 0;
-            if (locationPoints.containsKey(location)) {
-            	moneyByLocation = locationPoints.get(location);
-            	money += moneyByLocation;
+            
+            // Add money if kill inside the base (aka not in space)
+            if (location != null) 
+            {
+	            int money = 0;
+	
+	            // Money from the ship
+	            int moneyKiller = shipKillerPoints.get((int)killer.getShipType());
+	            int moneyKilled = shipKillerPoints.get((int)killed.getShipType());
+	            money += moneyKiller;
+	            money += moneyKilled;
+	            
+	            // Money from the location
+	            int moneyByLocation = 0;
+	            if (locationPoints.containsKey(location)) {
+	            	moneyByLocation = locationPoints.get(location);
+	            	money += moneyByLocation;
+	            }
+	
+	            String playerName = killer.getPlayerName();
+	            if (!location.equals(Location.SPACE)) {
+	            	context.getPlayerManager().addMoney(playerName, money);
+	            }
+	            pubPlayerKiller.setLastKillShips((int)killer.getShipType(), (int)killed.getShipType());
+	            pubPlayerKiller.setLastKillLocation(location);
+	            pubPlayerKiller.setLastKillKilledName(killed.getPlayerName());
             }
-
-            String playerName = killer.getPlayerName();
-            context.getPlayerManager().addMoney(playerName, money);
 
         } catch(Exception e){
             Tools.printStackTrace(e);
@@ -799,6 +1248,12 @@ public class PubMoneySystemModule extends AbstractModule {
         else if(command.startsWith("!donate")){
         	doCmdDonate(sender, command);
         }
+        else  if (command.startsWith("!coupon")) {
+    		doCmdCoupon(sender, command.substring(8).trim());
+        }
+        else if(command.equals("!lastkill")){
+        	doCmdLastKill(sender);
+        }
         else if(command.startsWith("!richest")){
         	doCmdRichest(sender, command);
         }
@@ -806,35 +1261,98 @@ public class PubMoneySystemModule extends AbstractModule {
         	doCmdAddMoney(sender,command);
         }
 
-    }
-    
+	}
+
     public void handleModCommand(String sender, String command) {
-        if(command.startsWith("!bankrupt")) {
+    	
+		if (command.startsWith("!bankrupt")) {
             doCmdBankrupt(sender, command);
-        }
-        else  if(command.startsWith("!debugobj")) {
+        } else if(command.startsWith("!debugobj")) {
         	doCmdDebugObj(sender, command);
         }
+		
+		// Coupon System commands
+    	boolean operator = couponOperators.contains(sender.toLowerCase());
+    	boolean smod = m_botAction.getOperatorList().isSmod(sender);
+    	
+    	// (Operator/SMOD only)
+    	if (operator || smod) {
+    		
+			if (command.startsWith("!couponcreate ")) {
+				doCmdCouponCreate(sender, command.substring(14).trim());
+			} else if (command.startsWith("!couponlimituse ")) {
+				doCmdCouponLimitUse(sender, command.substring(16).trim());
+			} else if (command.startsWith("!couponexpiredate ")) {
+				doCmdCouponExpireDate(sender, command.substring(18).trim());
+			} else if (command.startsWith("!couponinfo ")) {
+				doCmdCouponInfo(sender, command.substring(12).trim());
+			} else if (command.startsWith("!couponusers ")) {
+				doCmdCouponUsers(sender, command.substring(13).trim());
+			} else if (command.startsWith("!couponenable ")) {
+				doCmdCouponEnable(sender, command.substring(14).trim());
+			} else if (command.startsWith("!coupondisable ")) {
+				doCmdCouponDisable(sender, command.substring(15).trim());
+			}
+			
+			// (SMOD only)
+			if (smod && command.startsWith("!couponaddop ")) {
+				doCmdCouponAddOp(sender, command.substring(12).trim());
+			} else if (smod && command.equals("!couponlistops")) {
+				doCmdCouponListOps(sender);
+			}
+    	}
+		
     }
     
 	@Override
-	public String[] getHelpMessage() {
+	public String[] getHelpMessage(String sender) {
 		return new String[] {
 			pubsystem.getHelpLine("!buy                -- Display the list of items. (!items, !i)"),
 			pubsystem.getHelpLine("!buy <item>         -- Item to buy. (!b)"),
 			pubsystem.getHelpLine("!iteminfo <item>    -- Information about this item. (restriction, duration, etc.)"),
 	        pubsystem.getHelpLine("!money <name>       -- Display your money or for a given player name. (!$)"),
 	        pubsystem.getHelpLine("!donate <name>:<$>  -- Donate money to a player."),
+	        pubsystem.getHelpLine("!coupon <code>      -- Redeem your <code>."),
 	        pubsystem.getHelpLine("!richest            -- Top 3 richest players currently playing."),
-        };
+	        pubsystem.getHelpLine("!lastkill           -- How much you earned for your last kill (+ algorithm)."),
+		};
 	}
 
 	@Override
-	public String[] getModHelpMessage() {
-		return new String[] {    
-				pubsystem.getHelpLine("!bankrupt <name>       -- Set money to $0 for this player."),
-				pubsystem.getHelpLine("!addmoney <name>:<$>   -- Add money for a given player name. (Owner only)."),
-        };
+	public String[] getModHelpMessage(String sender) {
+
+    	String generation[] = new String[] {
+    		pubsystem.getHelpLine("!couponcreate <money>            -- Create a random code for <money>. Use !limituse/!expiredate for more options."),
+    		pubsystem.getHelpLine("!couponcreate <code>:<money>     -- Create a custom code for <money>. Max of 32 characters."),
+    		pubsystem.getHelpLine("!couponlimituse <code>:<max>     -- Set how many players <max> can get this <code>."),
+    		pubsystem.getHelpLine("!couponexpiredate <code>:<date>  -- Set an expiration <date> (format: yyyy/mm/dd) for <code>."),
+    	};
+    	
+    	String maintenance[] = new String[] {
+    		pubsystem.getHelpLine("!couponinfo <code>               -- Information about this <code>."),
+    		pubsystem.getHelpLine("!couponusers <code>              -- Who used this code."),
+    		pubsystem.getHelpLine("!couponenable <code>             -- Enable a <code> previously disabled."),
+    		pubsystem.getHelpLine("!coupondisable <code>            -- Disable a <code>."),
+    	};
+    	
+    	String bot[] = new String[] {
+    		pubsystem.getHelpLine("!couponaddop <name>              -- Add an operator (an operator can generate a code to be used)."),
+    		pubsystem.getHelpLine("!couponlistops                   -- List of operators."),
+    	};
+    	
+    	List<String> lines = new ArrayList<String>();
+    	if (m_botAction.getOperatorList().isSmod(sender)) {
+    		lines.addAll(Arrays.asList(generation));
+    		lines.addAll(Arrays.asList(maintenance));
+    		lines.addAll(Arrays.asList(bot));
+    		
+    	} else if (couponOperators.contains(sender.toLowerCase())) {
+    		lines.addAll(Arrays.asList(generation));
+    		lines.addAll(Arrays.asList(maintenance));
+    	}
+	    	
+	    return lines.toArray(new String[lines.size()]);
+		
 	}
 
     private String getSender(Message event)
@@ -870,7 +1388,8 @@ public class PubMoneySystemModule extends AbstractModule {
 
     	m_botAction.spectatePlayerImmediately(playerName);
 
-        Player p = m_botAction.getPlayer(playerName);
+    	Player p = m_botAction.getPlayer(playerName);
+    	Player psender = m_botAction.getPlayer(sender);
     	int distance = 10*16; // distance from the player and the bot
     	
     	int x = p.getXLocation();
@@ -881,9 +1400,11 @@ public class PubMoneySystemModule extends AbstractModule {
     	int bot_y = y + (int)(distance*Math.cos(Math.toRadians(angle)));
 
     	m_botAction.getShip().setShip(0);
+    	m_botAction.getShip().setFreq(psender.getFrequency());
     	m_botAction.getShip().rotateDegrees(angle-90);
     	m_botAction.getShip().move(bot_x, bot_y);
     	m_botAction.getShip().sendPositionPacket();
+    	m_botAction.getShip().fire(WeaponFired.WEAPON_THOR);
     	m_botAction.getShip().fire(WeaponFired.WEAPON_THOR);
     	
     	TimerTask timer = new TimerTask() {
@@ -953,7 +1474,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	
     }
     
-    private void itemCommandBombBlast(String sender, String params) {
+    private void itemCommandBaseBlast(String sender, String params) {
 
 	   	Player p = m_botAction.getPlayer(sender);
 
@@ -962,19 +1483,20 @@ public class PubMoneySystemModule extends AbstractModule {
     	m_botAction.sendUnfilteredPrivateMessage(m_botAction.getBotName(), "*super");
     	m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
 
-    	m_botAction.sendArenaMessage(sender + " has sent a blast of bombs inside the flagroom!", Tools.Sound.UNDER_ATTACK);
+    	m_botAction.sendArenaMessage(sender + " has sent a blast of bombs inside the flagroom!", Tools.Sound.HALLELUJAH);
         final TimerTask timerFire = new TimerTask() {
             public void run() {
             	m_botAction.getShip().move(512*16+8, 270*16+8);
-            	for(int i=0; i<360/5; i++) {
-            		
-                	m_botAction.getShip().rotateDegrees(i*5);
-                	m_botAction.getShip().sendPositionPacket();
-                	m_botAction.getShip().fire(WeaponFired.WEAPON_BOMB);
-                	m_botAction.getShip().fire(WeaponFired.WEAPON_BULLET_BOUNCING);
-                	m_botAction.getShip().fire(WeaponFired.WEAPON_BULLET_BOUNCING);
-                	m_botAction.getShip().fire(WeaponFired.WEAPON_BULLET_BOUNCING);
-	            	try { Thread.sleep(10); } catch (InterruptedException e) {}
+            	for(int j=0; j<2; j++) {
+	            	for(int i=0; i<360/5; i++) {
+	            		
+	                	m_botAction.getShip().rotateDegrees(i*5);
+	                	m_botAction.getShip().sendPositionPacket();
+	                	m_botAction.getShip().fire(34);
+	                	try { Thread.sleep(5); } catch (InterruptedException e) {}
+	                	m_botAction.getShip().fire(35);
+		            	try { Thread.sleep(5); } catch (InterruptedException e) {}
+	            	}
             	}
             }
         };
@@ -1033,10 +1555,10 @@ public class PubMoneySystemModule extends AbstractModule {
     			new int[] { 524, 256 }, // Top left
     			new int[] { 538, 260 }, // Ear right
     			new int[] { 486, 260 }, // Ear left
-    			//new int[] { 500, 287 }, // Bottom right
-    			//new int[] { 526, 287 }, // Bottom left
-    			//new int[] { 492, 273 }, // Middle right
-    			//new int[] { 532, 273 }, // Middle left
+    			new int[] { 492, 273 }, // Middle right
+    			new int[] { 532, 273 }, // Middle left
+    			new int[] { 500, 287 }, // Bottom right
+    			new int[] { 526, 287 }, // Bottom left
     	};
     	
 	   	Player commander = m_botAction.getPlayer(sender);
@@ -1077,10 +1599,8 @@ public class PubMoneySystemModule extends AbstractModule {
     	m_botAction.getShip().setShip(1);
     	m_botAction.getShip().setFreq(p.getFrequency());
     	m_botAction.getShip().rotateDegrees(270);
-    	m_botAction.getShip().sendPositionPacket();
     	m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
     	m_botAction.getShip().move(512*16+8, 265*16+8);
-    	m_botAction.getShip().sendPositionPacket();
 	   	
     	TimerTask timer = new TimerTask() {
             public void run() {
@@ -1154,6 +1674,14 @@ public class PubMoneySystemModule extends AbstractModule {
 		} else {
 			store.turnOff();
 		}
+		couponOperators = new HashSet<String>();
+    	if (m_botAction.getBotSettings().getString("coupon_operators") != null) {
+    		List<String> list = Arrays.asList(m_botAction.getBotSettings().getString("coupon_operators").split("\\s*,\\s*"));
+    		for(String name: list) {
+    			couponOperators.add(name.toLowerCase());
+    		}
+    	}
+    	database = m_botAction.getBotSettings().getString("database");
 	}
 	
    	private class EnergyDeplitedTask extends TimerTask {

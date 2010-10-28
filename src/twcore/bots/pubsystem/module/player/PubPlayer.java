@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import twcore.bots.pubsystem.module.PubUtilModule.Location;
 import twcore.bots.pubsystem.module.PubUtilModule.Tileset;
 import twcore.bots.pubsystem.module.moneysystem.LvzMoneyPanel;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItem;
@@ -41,11 +42,16 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private long lastSavedState = 0;
     private long lastOptionsUpdate = 0;
     private long lastDeath = 0;
+    private long lastAttach = 0;
     
     // Stats
     private int bestStreak = 0;
     
-    private boolean isOnline = false; // If online, on the same arena
+    // History of the last kill
+	private int lastKillShipKiller = -1;
+	private int lastKillShipKilled = -1;
+	private Location lastKillLocation;
+	private String lastKillKilledName;
 
     public PubPlayer(BotAction m_botAction, String name) {
     	this(m_botAction, name, 0);
@@ -127,6 +133,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
     	return lastDeath;
     }
     
+    public long getLastAttach() {
+    	return lastAttach;
+    }
+    
     public int getBestStreak() {
     	return bestStreak;
     }
@@ -195,15 +205,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     public boolean isOnSpec() {
     	return ((int)m_botAction.getPlayer(name).getShipType()) == 0;
     }
-    
-    public boolean isOnline() {
-    	return isOnline;
-    }
-    
-    public void setIsOnline(boolean b) {
-    	this.isOnline = b;
-    }
-    
+
     public void handleShipChange(FrequencyShipChange event) {
     	if (shipItem != null && event.getShipType() != shipItem.getShipNumber())
     		resetShipItem();
@@ -262,5 +264,38 @@ public class PubPlayer implements Comparable<PubPlayer>{
         
         return -1;
     }
+
+	public void handleAttach() {
+		this.lastAttach = System.currentTimeMillis();
+	}
+
+	public int getLastKillKillerShip() {
+		return lastKillShipKiller;
+	}
+	
+	public int getLastKillKilledShip() {
+		return lastKillShipKilled;
+	}
+	
+	public Location getLastKillLocation() {
+		return lastKillLocation;
+	}
+	
+	public String getLastKillKilledName() {
+		return lastKillKilledName;
+	}
+	
+	public void setLastKillShips(int killer, int killed) {
+		this.lastKillShipKiller = killer;
+		this.lastKillShipKilled = killed;
+	}
+
+	public void setLastKillLocation(Location location) {
+		this.lastKillLocation = location;
+	}
+
+	public void setLastKillKilledName(String playerName) {
+		this.lastKillKilledName = playerName;
+	}
 
 }

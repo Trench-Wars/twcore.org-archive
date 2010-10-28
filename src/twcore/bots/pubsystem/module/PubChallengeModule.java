@@ -203,7 +203,7 @@ public class PubChallengeModule extends AbstractModule {
         
         Challenge challenge = w.challenge;
         if (challenge == null 
-        		|| !challenge.getOppositeDueler(w).name.equals(l.name)
+        		|| !challenge.getOppositeDueler(w).name.equals(w.name)
         		|| !challenge.isStarted()) {
         	l.lastDeath = System.currentTimeMillis();
         	return;
@@ -799,6 +799,7 @@ public class PubChallengeModule extends AbstractModule {
                 challenges.remove(getKey(challenge));
                 laggers.remove(challenge.challengerName);
                 laggers.remove(challenge.challengedName);
+                area.free();
                 if (p_chall == null) 
                 	m_botAction.sendSmartPrivateMessage(accepter, "The duel cannot start, " + challenger + " not found.");
                 else
@@ -1040,7 +1041,7 @@ public class PubChallengeModule extends AbstractModule {
 	}
 	
 	@Override
-	public String[] getHelpMessage() {
+	public String[] getHelpMessage(String sender) {
 		if (context.getMoneySystem().isEnabled())
 			return new String[] {
 				pubsystem.getHelpLine("!challenge <name>:<ship>:<$>  -- Challenge a player to " + deaths + " in a specific ship (1-8) for $X. (!duel)"),
@@ -1056,7 +1057,7 @@ public class PubChallengeModule extends AbstractModule {
 	}
 
 	@Override
-	public String[] getModHelpMessage() {
+	public String[] getModHelpMessage(String sender) {
 		return new String[] {
 			pubsystem.getHelpLine("!cancelchallenge <name>      -- Cancel a challenge (specify one of the player)."),
         };
@@ -1117,8 +1118,27 @@ public class PubChallengeModule extends AbstractModule {
 
 	@Override
 	public void stop() {
-		// TODO Auto-generated method stub
-		
+		Iterator<Challenge> it = challenges.values().iterator();
+		while (it.hasNext()) {
+			Challenge c = it.next();
+			if (!c.hasEnded() && c.isStarted()) {
+				it.remove();
+				c.duelEnded = true;
+		    	warpToSafe(c.challengerName, true);
+		    	warpToSafe(c.challengedName, false);
+		    	try {
+			    	duelers.remove(c.challenger);
+			    	duelers.remove(c.accepter);
+			    	laggers.remove(c.challengerName);
+			    	laggers.remove(c.challengedName);
+		    	} catch (Exception e) {
+		    		Tools.printStackTrace(e);
+		    	}
+		    	m_botAction.sendPrivateMessage(c.challengerName, "The bot stopped working due to a 'stop' request from a staff member. Your duel has been cancelled.");
+		    	m_botAction.sendPrivateMessage(c.challengedName, "The bot stopped working due to a 'stop' request from a staff member. Your duel has been cancelled.");
+			}
+		}
+
 	}
     
 }

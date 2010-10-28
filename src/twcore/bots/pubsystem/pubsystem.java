@@ -411,11 +411,11 @@ public class pubsystem extends SubspaceBot
             		continue;
             	
 				List<String> m = new ArrayList<String>();
-				if (module.getHelpMessage().length>0) {
+				if (module.getHelpMessage(sender).length>0) {
 					m.add(getModuleHelpHeader(module.getName()));
 				}
-				if (module.getHelpMessage().length>0) {
-					m.addAll(Arrays.asList(module.getHelpMessage()));
+				if (module.getHelpMessage(sender).length>0) {
+					m.addAll(Arrays.asList(module.getHelpMessage(null)));
 					m.add(" ");
 				}
 				lines.addAll(m);
@@ -440,11 +440,11 @@ public class pubsystem extends SubspaceBot
         	
             for(AbstractModule module: context.getModules()) {
             	List<String> m = new ArrayList<String>();
-            	if (module.getModHelpMessage().length>0) {
+            	if (module.getModHelpMessage(sender).length>0) {
             		m.add(getModuleHelpHeader(module.getName()));
             	}
-            	if (module.getModHelpMessage().length>0) {
-            		m.addAll(Arrays.asList(module.getModHelpMessage()));
+            	if (module.getModHelpMessage(sender).length>0) {
+            		m.addAll(Arrays.asList(module.getModHelpMessage(sender)));
             		m.add(" ");
             	}
             	lines.addAll(m);
@@ -492,6 +492,9 @@ public class pubsystem extends SubspaceBot
 	public void startBot()
     {
         try{
+        	
+        	if (context.isStarted())
+        		return;
         	
             String commands[] = m_botAction.getBotSettings().getString(m_botAction.getBotName() + "Setup").split(",");
         	for(int k = 0; k < commands.length; k++) {
@@ -632,7 +635,7 @@ public class pubsystem extends SubspaceBot
     	};
     	
     	// Engine ShutDown Time set to 5 seconds
-    	m_botAction.sendUnfilteredPublicMessage("?set Prize:EngineShutDownTime:400");
+    	m_botAction.sendUnfilteredPublicMessage("?set Prize:EngineShutDownTime:500");
     	
     	for(String shipName: ships) {
     		//m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":ShieldTime:50000");

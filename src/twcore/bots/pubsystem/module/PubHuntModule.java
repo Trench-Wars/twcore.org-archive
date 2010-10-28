@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.TimerTask;
 import java.util.TreeSet;
+import java.util.Map.Entry;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
@@ -30,7 +33,7 @@ public class PubHuntModule extends AbstractModule {
 	private HashSet<String> playersNotPlaying;
 	
 	private TreeSet<String> preyWaitingList;
-	private HashSet<String> hunterWaitingList;
+	private LinkedHashSet<String> hunterWaitingList;
 	
 	private PreyTask preyTask;
 	
@@ -44,7 +47,7 @@ public class PubHuntModule extends AbstractModule {
 	
 	// This variable make sure to random the selection of prey
 	private boolean setPreyReverse = false;
-	
+
 	public PubHuntModule(BotAction botAction, PubContext context) {
 		super(botAction, context, "Hunt");
 		players = new HashMap<String,HuntPlayer>();
@@ -96,9 +99,14 @@ public class PubHuntModule extends AbstractModule {
 			if (player.isPlaying())
 				m_botAction.sendSmartPrivateMessage(name, "isPlaying: " + player.name);
 		}
+		
+		System.out.println(preyToHunter.size());
+		System.out.println(preyToHunter.keySet().size());
     	
-		for(HuntPlayer player: preyToHunter.values()) {
-			m_botAction.sendSmartPrivateMessage(name, "preyToHunter: " + player.name + " hunting " + preyToHunter.get(player.name).name);
+		for(Entry<String, HuntPlayer> entry: preyToHunter.entrySet()) {
+			String playerName = entry.getKey();
+			m_botAction.sendSmartPrivateMessage(playerName, "preyToHunter: " + playerName);
+			//m_botAction.sendSmartPrivateMessage(playerName, "preyToHunter: " + playerName + " hunted by " + preyToHunter.get(playerName).name);
 		}
 		
 		for(String player: preyWaitingList) {
@@ -209,6 +217,8 @@ public class PubHuntModule extends AbstractModule {
     
     public void playerOut(HuntPlayer player) {
     	
+    	m_botAction.sendPublicMessage("Player out: " + player.name);
+    	
     	preyWaitingList.remove(player.name);
     	hunterWaitingList.remove(player.name);
     	preyToHunter.remove(player.prey);
@@ -216,7 +226,7 @@ public class PubHuntModule extends AbstractModule {
     	HuntPlayer hunter = preyToHunter.remove(player.name);
     	if (hunter != null && players.get(hunter.name).isPlaying())
     		hunterWaitingList.add(hunter.name);
-    	if (players.get(player.prey).isPlaying())
+    	if (player.prey != null && players.get(player.prey).isPlaying())
     		preyWaitingList.add(player.prey);
     	player.setPlaying(false);
     }
@@ -380,32 +390,28 @@ public class PubHuntModule extends AbstractModule {
     
     public boolean setPrey(HuntPlayer player, boolean newGame) {
     	
-    	setPreyReverse = !setPreyReverse;
     	Iterator<String> it;
-    	if (setPreyReverse)
-    		it = preyWaitingList.descendingIterator();
-    	else
-    		it = preyWaitingList.iterator();
-    	
+    	it = preyWaitingList.descendingIterator();
+
     	String nameToRemove = null;
 		while(it.hasNext()) {
 			String name = it.next();
 			HuntPlayer prey = players.get(name);
 			if (player.freq != prey.freq && prey.isPlaying()) {
 				player.setPrey(prey.name);
+				preyToHunter.put(prey.name, player);
 				player.tellPrey();
 				nameToRemove = name;
 				break;
 			}
 		}
-		
+
 		if (nameToRemove != null) {
 			preyWaitingList.remove(nameToRemove);
 			return true;
 		}
-		
-		m_botAction.sendSmartPrivateMessage(player.name, "You don't have a prey yet, please wait..");
-    	hunterWaitingList.add(player.name);
+		if (newGame)
+			m_botAction.sendSmartPrivateMessage(player.name, "You don't have a prey yet, please wait..");
 		return false;
     }
     
@@ -430,7 +436,7 @@ public class PubHuntModule extends AbstractModule {
     }
 
 	@Override
-	public String[] getHelpMessage() {
+	public String[] getHelpMessage(String sender) {
 		return new String[] {
 			pubsystem.getHelpLine("!prey             -- Show your current prey."),
 			pubsystem.getHelpLine("!huntnp           -- If you don't want to play the game of hunt."),
@@ -438,7 +444,7 @@ public class PubHuntModule extends AbstractModule {
 	}
 
 	@Override
-	public String[] getModHelpMessage() {
+	public String[] getModHelpMessage(String sender) {
 		return new String[] {    
 			pubsystem.getHelpLine("!starthunt        -- Start a game of hunt."),
 			pubsystem.getHelpLine("!stophunt         -- Stop a game of hunt (will be announced as cancelled)."),
@@ -542,7 +548,7 @@ public class PubHuntModule extends AbstractModule {
 
 		preyToHunter = new HashMap<String, HuntPlayer>();
 		preyWaitingList = new TreeSet<String>();
-		hunterWaitingList = new HashSet<String>();
+		hunterWaitingList = new LinkedHashSet<String>();
 		
 		HashSet<Integer> freqs = new HashSet<Integer>();
 		
@@ -560,6 +566,7 @@ public class PubHuntModule extends AbstractModule {
 				player.freq = freq;
 				m_botAction.setFreq(player.name, freq);
 				preyWaitingList.add(player.name);
+				hunterWaitingList.add(player.name);
 				freq++;
 			}
 		}
@@ -576,6 +583,7 @@ public class PubHuntModule extends AbstractModule {
 				player.freq = p.getFrequency();
 				freqs.add(player.freq);
 				preyWaitingList.add(player.name);
+				hunterWaitingList.add(player.name);
 			}
 		}
 		
@@ -589,15 +597,10 @@ public class PubHuntModule extends AbstractModule {
 		m_botAction.sendArenaMessage("[HUNT] GO GO GO!", Tools.Sound.GOGOGO);
 
 		isRunning = true;
+
+		new PreyTask(true).run();
 		
-		// Set preys!
-		Iterator<HuntPlayer> it = players.values().iterator();
-		while(it.hasNext()) {
-			HuntPlayer player = it.next();
-			setPrey(player, true);
-		}
-	
-		preyTask = new PreyTask();
+		preyTask = new PreyTask(false);
 		m_botAction.scheduleTask(preyTask, 2000, 3 * Tools.TimeInMillis.SECOND);
 		
 	}
@@ -648,13 +651,13 @@ public class PubHuntModule extends AbstractModule {
 
         public void setPrey(String prey) {
             this.prey = prey;
-            preyToHunter.put(prey, this);
         }
 
         public void tellPrey() {
             if (prey == null)
                 return;
             m_botAction.sendSmartPrivateMessage(getPlayerName(), "Prey: " + prey + ".");
+            m_botAction.sendPublicMessage(getPlayerName() + " -> " + prey);
         }
 
         public int getTotalPreyKilled() {
@@ -676,20 +679,26 @@ public class PubHuntModule extends AbstractModule {
      */
     private class PreyTask extends TimerTask {
     	
+    	private boolean newGame = false;
+    	
+    	public PreyTask(boolean newGame) {
+    		this.newGame = newGame;
+    	}
+    	
 		public void run() {
-			
+
 			if (!hunterWaitingList.isEmpty()) {
 				Iterator<String> it = hunterWaitingList.iterator();
 				while(it.hasNext()) {
 					String player = it.next();
 					HuntPlayer huntPlayer = players.get(player);
-					if (setPrey(huntPlayer)) {
+					if (setPrey(huntPlayer,newGame)) {
 						it.remove();
 						continue;
 					}
 				}
 			}
-			
+
 		}
     	
     }

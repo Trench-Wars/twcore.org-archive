@@ -26,6 +26,7 @@ import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.SQLResultEvent;
+import twcore.core.events.TurretEvent;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
@@ -195,10 +196,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     	String playerName = p.getPlayerName();
     	
     	PubPlayer pubPlayer = addPlayerToSystem(playerName);
-    	
-    	if (pubPlayer != null)
-    		pubPlayer.setIsOnline(true);
-    	
+
         String restrictions = "";
         int weight;
 
@@ -208,6 +206,10 @@ public class PubPlayerManagerModule extends AbstractModule {
                 restrictions += Tools.shipName( i ) + "s disabled.  ";
             if( weight > 1 )
                 restrictions += Tools.shipName( i ) + "s limited.  ";
+        }
+        
+        if (!context.getPubUtil().isLevAttachEnabled()) {
+        	restrictions += "Leviathan attach capability disabled on public frequencies.";
         }
 
         if( restrictions != "" )
@@ -227,10 +229,6 @@ public class PubPlayerManagerModule extends AbstractModule {
 		
     	Player p = m_botAction.getPlayer(event.getPlayerID());
     	String playerName = p.getPlayerName();
-    	PubPlayer pubPlayer = players.get(playerName.toLowerCase());
-    	if (pubPlayer != null)
-    		pubPlayer.setIsOnline(false);		
-    	
         removeFromLists(playerName);
         checkFreqSizes();
 	}
@@ -274,8 +272,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 			pubPlayerKilled.addDeath();
 			
 			// Spawn check
-			/* TODO: Add a attach to ter check
-			if (diff < 6.5 * Tools.TimeInMillis.SECOND) {
+			if (diff < 6.5 * Tools.TimeInMillis.SECOND && System.currentTimeMillis()-pubPlayerKilled.getLastAttach() < 1.5*Tools.TimeInMillis.SECOND) {
 				if (pubPlayerKiller != null) {
 					if (pubPlayerKiller.getMoney() >= 200) {
 						pubPlayerKiller.removeMoney(200);
@@ -285,7 +282,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 					}
 				}
 			}
-			*/
+
 		}
 		
 	}
@@ -372,8 +369,6 @@ public class PubPlayerManagerModule extends AbstractModule {
     	while(it.hasNext()) {
     		Player p = it.next();
     		PubPlayer pubPlayer = addPlayerToSystem(p.getPlayerName());
-    		if (pubPlayer != null)
-    			pubPlayer.setIsOnline(true);
     	}
     }
     
@@ -652,10 +647,10 @@ public class PubPlayerManagerModule extends AbstractModule {
         freqSizeInfo[0] = diff;
         if( freqSizeInfo[0] >= MSG_AT_FREQSIZE_DIFF ) {
             if( freq0 > freq1 ) {
-                m_botAction.sendOpposingTeamMessageByFrequency(0, "Teams unbalanced: " + freq0 + "v" + freq1 + ".  Volunteers requested; type =1 to switch to freq 1.  (Keep MVP status + earn " + NICEGUY_BOUNTY_AWARD + " bounty.)" );
+                m_botAction.sendOpposingTeamMessageByFrequency(0, "Teams unbalanced: " + freq0 + "v" + freq1 + ". Volunteers requested; type =1 to switch to freq 1." );
                 freqSizeInfo[1] = 1;
             } else {
-                m_botAction.sendOpposingTeamMessageByFrequency(1, "Teams unbalanced: " + freq1 + "v" + freq0 + ".  Volunteers requested; type =0 to switch to freq 0.  (Keep MVP status + earn " + NICEGUY_BOUNTY_AWARD + " bounty.)" );
+                m_botAction.sendOpposingTeamMessageByFrequency(1, "Teams unbalanced: " + freq1 + "v" + freq0 + ". Volunteers requested; type =0 to switch to freq 0." );
                 freqSizeInfo[1] = 0;
             }
         }
@@ -737,7 +732,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             	}
     
             	// Not anymore on this arena? remove this player from the PubPlayerManager
-            	if (!arenaPlayers.contains(player.getPlayerName())) {
+            	if (m_botAction.getPlayer(player.getPlayerName()) == null) {
             		it2.remove();
             	}
             }
@@ -761,12 +756,12 @@ public class PubPlayerManagerModule extends AbstractModule {
 	}
 	
 	@Override
-	public String[] getHelpMessage() {
+	public String[] getHelpMessage(String sender) {
 		return new String[]{};
 	}
 
 	@Override
-	public String[] getModHelpMessage() {
+	public String[] getModHelpMessage(String sender) {
 		return new String[]{};
 	}
 
