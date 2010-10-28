@@ -907,7 +907,7 @@ public class staffbot_banc extends Module {
 		int viewcount = 10;
 		parameters = parameters.toLowerCase();
 		String sqlWhere = "";
-		
+		boolean showLifted = false;
 		/*
 			!listban [arg] [#id] [count]   - Shows last 10/[count] BanCs or info about BanC with <id>. Arguments see below.
         	!listban <player>:[#]          - Shows the last [#]/10 BanCs applied on <player>
@@ -1029,18 +1029,22 @@ public class staffbot_banc extends Module {
 					        if(!sqlWhere.isEmpty())
 					            sqlWhere += " AND ";
 					        sqlWhere += "fbLifted=1";
+					        showLifted = true;
 					    }
-				}
+				}   
 				// -player='<...>' or -staffer='<...>' extra name parts	
 				else {
 					if(argument.endsWith("'")) {
 						playerArgument = false;
 						stafferArgument = false;
 						sqlWhere += " " + argument.replace("'", "") + "'";
+						
 					} else {
 						sqlWhere += " " + Tools.addSlashes(argument);
 					}
 				}
+				if(!showLifted)
+				    sqlWhere += "fbLifted=0";
 			}
 			
 			if(playerArgument || stafferArgument) {
@@ -1056,7 +1060,8 @@ public class staffbot_banc extends Module {
 				ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
 				
 				if(rs.next()) {
-					String result = "";
+					
+				    String result = "";
 					result += (rs.getBoolean("active")?"#":"^");
 					result += rs.getString("fnID") + " ";
 					if(rs.getString("fcMinAccess") != null) {
@@ -1067,6 +1072,7 @@ public class staffbot_banc extends Module {
 					result += Tools.formatString(rs.getString("fcType"),7) + "  ";
 					result += "mins:"+Tools.formatString(rs.getString("fnDuration"), 5) + "  ";
 					result += rs.getString("fcUsername");
+				
 					m_botAction.sendRemotePrivateMessage(name, result);
 					
 					if(m_botAction.getOperatorList().isModerator(name)) {
