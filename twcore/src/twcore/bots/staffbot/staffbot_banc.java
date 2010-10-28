@@ -1,5 +1,6 @@
 package twcore.bots.staffbot;
 
+import java.io.File;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,6 +15,7 @@ import java.util.StringTokenizer;
 import java.util.TimerTask;
 
 import twcore.bots.Module;
+import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.OperatorList;
 import twcore.core.events.InterProcessEvent;
@@ -92,6 +94,8 @@ public class staffbot_banc extends Module {
     
    // private staffbot_database Database = new staffbot_database();
     
+    private List<String> bancOps;
+    
     private final String botsDatabase = "bots";
     private final String trenchDatabase = "website";
     private final String uniqueConnectionID = "banc";
@@ -128,13 +132,24 @@ public class staffbot_banc extends Module {
     @Override
 	public void initializeModule() {
     	
+        BotSettings botSettings = m_botAction.getBotSettings();
+        this.bancOps = new ArrayList<String>();
+        
+        String opsStr = botSettings.getString("BancOps");
+        System.out.println(opsStr);
+        String ops[] = opsStr.split(",");
+        
+        for( String e: ops)
+            bancOps.add( e.toLowerCase() );
+        
     	// Initialize Prepared Statements
     	psActiveBanCs = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT * FROM tblBanc WHERE DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0");
     	//psListBanCs = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT * FROM tblBanc LIMIT 0,?");
     	psCheckAccessReq = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT fcMinAccess FROM tblBanc WHERE fnID = ?");
     	psAddBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "INSERT INTO tblBanc(fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())", true);
     	psUpdateComment = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "UPDATE tblBanc SET fcComment = ? WHERE fnID = ?");
-    	psRemoveBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "DELETE FROM tblBanc WHERE fnID = ?");
+    	//psRemoveBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "DELETE FROM tblBanc WHERE fnID = ?");
+    	psRemoveBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "UPDATE tblBanc SET fbLifted = 1 WHERE fnID = ?");
     	psLookupIPMID = m_botAction.createPreparedStatement(trenchDatabase, uniqueConnectionID, "SELECT fcIpString, fnMachineId FROM tblAlias INNER JOIN tblUser ON tblAlias.fnUserID = tblUser.fnUserID WHERE fcUserName = ? ORDER BY fdUpdated DESC LIMIT 0,1");
     	psKeepAlive1 = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SHOW DATABASES");
     	psKeepAlive2 = m_botAction.createPreparedStatement(trenchDatabase, uniqueConnectionID, "SHOW DATABASES");
@@ -142,7 +157,7 @@ public class staffbot_banc extends Module {
     	if( psActiveBanCs == null || psCheckAccessReq == null || psAddBanC == null || psUpdateComment == null || psRemoveBanC == null || psLookupIPMID == null || psKeepAlive1 == null || psKeepAlive2 == null) {
     		Tools.printLog("BanC: One or more PreparedStatements are null! Module BanC disabled.");
 	        m_botAction.sendChatMessage(2, "BanC: One or more connections (prepared statements) couldn't be made! Module BanC disabled.");
-	        this.cancel();
+	        //this.cancel();
 	        
     	} else {
     		// Join IPC channels
@@ -199,16 +214,19 @@ public class staffbot_banc extends Module {
 	        OperatorList opList = m_botAction.getOperatorList();
 	        
 	        // Minimum ER access requirement for all !commands
-	        if(!opList.isER(name)) {
+	        if(!opList.isER(name) || !bancOps.contains(name.toLowerCase())) {
 	            return;
 	        }
 	        
+	        if( messageLc.startsWith("!addop"))
+	            //!addop
+	            addBancOperator(name, messageLc.substring(7));
 	        // !help
 	        if(messageLc.startsWith("!help")) {
 	        	cmdHelp(name, message.substring(5).trim());
 	        }
 	        else if( messageLc.startsWith("!searchip"))
-	            searchByIp(name, message.substring(10));
+	            searchByIp(name, message.substring(9));
 	        
 	        else if( messageLc.startsWith("!search -help"))
 	            searchByNameHelp(name);
@@ -291,7 +309,22 @@ public class staffbot_banc extends Module {
 		}
 	}
 	
-	/***
+	private void addBancOperator(String name, String substring) {
+        // TODO Auto-generated method stub
+        BotSettings botSettings = m_botAction.getBotSettings();
+        String str = botSettings.getString("BancOps");
+        str+=","+substring;
+        botSettings.put("BancOps", str);
+        botSettings.save();
+        botSettings.reloadFile();
+        m_botAction.sendPrivateMessage(name,"added "+substring);
+        this.bancOps.add(substring);
+    }
+
+	private void searchByLiftedBancs(String name){
+	    cmdListBan(name, "-lifted", true);
+	}
+    /***
 	 * !search -help command explaining how to use it.
 	 * @author quiles
 	 */
@@ -988,6 +1021,12 @@ public class staffbot_banc extends Module {
 							stafferArgument = true;
 						}
 					}
+					else
+					    if(argument.startsWith("-lifted")){
+					        if(!sqlWhere.isEmpty())
+					            sqlWhere += " AND ";
+					        sqlWhere += "fbLifted=1";
+					    }
 				}
 				// -player='<...>' or -staffer='<...>' extra name parts	
 				else {
