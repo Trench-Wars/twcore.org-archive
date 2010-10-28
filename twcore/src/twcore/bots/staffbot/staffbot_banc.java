@@ -1044,11 +1044,7 @@ public class staffbot_banc extends Module {
 					}
 				}
 				
-				if(!showLifted){
-				    if( !sqlWhere.isEmpty() )
-				        sqlWhere += " AND ";
-				    sqlWhere += "fbLifted=0";
-				}
+			
 			}
 			
 			if(playerArgument || stafferArgument) {
@@ -1059,6 +1055,13 @@ public class staffbot_banc extends Module {
 		String sqlQuery;
 		
 		try {
+		    
+		    if(!showLifted){
+                if( !sqlWhere.isEmpty() )
+                    sqlWhere += " AND ";
+                sqlWhere += "fbLifted=0";
+            }
+		    
 			if(sqlWhere.contains("fnID")) {
 				sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fcComment, fbNotification, fdCreated, fbLifted FROM tblBanc WHERE "+sqlWhere+" LIMIT 0,1";
 				ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
