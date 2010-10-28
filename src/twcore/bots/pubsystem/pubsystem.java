@@ -160,7 +160,7 @@ public class pubsystem extends SubspaceBot
 	        context = new PubContext(m_botAction);
 	        context.handleEvent(event);
 
-	        m_botAction.setPlayerPositionUpdating(200);
+	        m_botAction.getShip().setSpectatorUpdateTime(100);
 	        m_botAction.receiveAllPlayerDeaths();
 	        
     	} catch (Exception e) {

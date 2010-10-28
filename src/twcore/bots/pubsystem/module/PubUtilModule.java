@@ -232,6 +232,11 @@ public class PubUtilModule extends AbstractModule {
      */
 	private void doSetTileCmd( String sender, String tileName ) {
 
+		if (!tilesetEnabled) {
+			m_botAction.sendSmartPrivateMessage(sender, "This command is disabled. It may be due to a special event/day/map.");
+			return;
+		}
+		
     	try {
     		Tileset tileset = Tileset.valueOf(tileName.toUpperCase());
     		setTileset(tileset, sender);
@@ -334,6 +339,19 @@ public class PubUtilModule extends AbstractModule {
         }
     }
     
+    private void doBotInfoCmd(String sender)
+    {
+    	long diff = System.currentTimeMillis()-uptime;
+    	int minute = (int)(diff/(1000*60));
+    	
+    	m_botAction.sendSmartPrivateMessage(sender, "Uptime: " + minute + " minutes");
+    	
+    	int x = m_botAction.getShip().getX()/16;
+    	int y = m_botAction.getShip().getY()/16;
+    	
+    	m_botAction.sendSmartPrivateMessage(sender, "Position: " + x + ", " + y);
+
+    }
     
     private void doUptimeCmd(String sender)
     {
@@ -389,6 +407,7 @@ public class PubUtilModule extends AbstractModule {
         	m_botAction.sendSmartPrivateMessage(sender, p2.getPlayerName() + " is not on your team.");
         	return;
         }
+
         m_botAction.sendSmartPrivateMessage( sender, p2.getPlayerName() + " last seen: " + getPlayerLocation( p2.getXTileLocation(), p2.getYTileLocation() ));
     }
     
@@ -476,6 +495,8 @@ public class PubUtilModule extends AbstractModule {
             doLevAttachCmd(sender);
         else if(command.equals("!uptime"))
             doUptimeCmd(sender);
+        else if(command.equals("!botinfo"))
+            doBotInfoCmd(sender);
         else if(command.startsWith("!reloadconfig")) {
         	m_botAction.sendSmartPrivateMessage(sender, "Please wait..");
         	context.reloadConfig();
