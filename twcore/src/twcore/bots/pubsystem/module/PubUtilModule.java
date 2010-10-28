@@ -15,6 +15,7 @@ import twcore.core.EventRequester;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
+import twcore.core.events.TurretEvent;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
@@ -34,13 +35,15 @@ public class PubUtilModule extends AbstractModule {
 	private HashMap<String,Location> locations;
 	
 	// TILESET
-	public static Tileset DEFAULT_TILESET = Tileset.BLUETECH;
 	public static enum Tileset { 
+		DEFAULT,
 		BOKI,
 		MONOLITH,
 		BLUETECH
 	};
 	public HashMap<Tileset,Integer> tilesetObjects;
+	public Tileset defaultTileSet = Tileset.BLUETECH;
+	public boolean tilesetEnabled = false;
 	
 	private String currentInfoName = "";
 
@@ -50,11 +53,13 @@ public class PubUtilModule extends AbstractModule {
 	private int doorModeDefault;
 	private int doorModeThreshold;
 	private int doorModeThresholdSetting;
-	private boolean doorArenaOnChange = false;
 	private boolean doorModeManual = false;
 	
 	// PRIV FREQ
 	private boolean privFreqEnabled = true;
+	
+	// Lev can attach on public freq
+	private boolean levAttachEnabled = true;
 	
 	private long uptime = 0;
 	
@@ -83,6 +88,10 @@ public class PubUtilModule extends AbstractModule {
 		return false;
 	}
 	
+	public boolean isLevAttachEnabled() {
+		return levAttachEnabled;
+	}
+
 	public void handleEvent(Message event) {
 		
 		String message = event.getMessage();
@@ -118,6 +127,38 @@ public class PubUtilModule extends AbstractModule {
 
 	}
 	
+	
+    
+    public void handleEvent(TurretEvent event) {
+
+    	Player p1 = m_botAction.getPlayer(event.getAttacheeID());
+    	Player p2 = m_botAction.getPlayer(event.getAttacherID());
+
+    	if (p1 != null) {
+	    	// Attacher stats
+	    	PubPlayer pubPlayer = context.getPlayerManager().getPlayer(p1.getPlayerName());
+	    	if (pubPlayer != null) {
+	    		pubPlayer.handleAttach();
+	    	}
+    	}
+
+    	if (p2 != null) {
+	    	// Attachee check up
+	    	if (!levAttachEnabled && p2.getShipType()==Tools.Ship.LEVIATHAN && event.isAttaching()) {
+
+	    		// Public freq?
+	    		if (p2.getFrequency()==0||p2.getFrequency()==1) {
+	    			m_botAction.specWithoutLock(p2.getPlayerName());
+	    			m_botAction.setShip(p2.getPlayerName(), Tools.Ship.LEVIATHAN);
+	    			m_botAction.setFreq(p2.getPlayerName(), p2.getFrequency());
+	    			m_botAction.sendSmartPrivateMessage(p2.getPlayerName(), "You cannot attach to a Terrier on a public frequency.");
+	    		}
+	    	}
+    	}
+    	
+    }
+    
+	
 	public void handleEvent(PlayerLeft event) {
 		//checkForDoors();
 	}
@@ -130,25 +171,27 @@ public class PubUtilModule extends AbstractModule {
 		
 		if (m_botAction.getNumPlayers() >= doorModeThreshold && !doorStatus.equals(DoorMode.IN_OPERATION)) {
 			m_botAction.setDoors(doorModeThresholdSetting);
-			if (doorArenaOnChange) {
-				//m_botAction.sendArenaMessage("[SETTING] Doors are now in operation.", Tools.Sound.BEEP1);
-			}
 			doorStatus = DoorMode.IN_OPERATION;
 		} else if (!doorStatus.equals(DoorMode.CLOSED)) {
 			m_botAction.setDoors(doorModeDefault);
-			if (doorArenaOnChange) {
-				//m_botAction.sendArenaMessage("[SETTING] Doors are now locked.", Tools.Sound.BEEP1);
-			}
 			doorStatus = DoorMode.CLOSED;
 		}
 	}
 
 	public void setTileset(Tileset tileset, String playerName) 
 	{
+		Tileset playerTileset = tileset;
+		
+		if (!tilesetEnabled)
+			return;
+		
+		if (tileset == Tileset.DEFAULT)
+			tileset = defaultTileSet;
+		
 		Player p = m_botAction.getPlayer(playerName);
 		PubPlayer pubPlayer = context.getPlayerManager().getPlayer(playerName);
 		if (p != null) {
-			if (DEFAULT_TILESET == tileset) {
+			if (Tileset.BLUETECH == tileset) {
 				for(int object: tilesetObjects.values()) {
 					m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objoff " + object);
 				}
@@ -159,22 +202,28 @@ public class PubUtilModule extends AbstractModule {
 				}
 				m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objon " + tilesetObjects.get(tileset));
 			}
-			pubPlayer.setTileset(tileset);
+			pubPlayer.setTileset(playerTileset);
 		}
 	}
 	
 	public void setArenaTileset(Tileset tileset) 
 	{
-		if (DEFAULT_TILESET == tileset) {
+		if (tileset == Tileset.DEFAULT)
+			tileset = defaultTileSet;
+		
+		if (!tilesetEnabled)
+			return;
+		
+		if (Tileset.BLUETECH == tileset) {
 			for(int object: tilesetObjects.values()) {
-				m_botAction.sendArenaMessage("*objoff " + object);
+				m_botAction.sendUnfilteredPublicMessage("*objoff " + object);
 			}
 		}
 		else {
 			for(int object: tilesetObjects.values()) {
-				m_botAction.sendArenaMessage("*objoff " + object);
+				m_botAction.sendUnfilteredPublicMessage("*objoff " + object);
 			}
-			m_botAction.sendArenaMessage("*objon " + tilesetObjects.get(tileset));
+			m_botAction.sendUnfilteredPublicMessage("*objon " + tilesetObjects.get(tileset));
 		}
 	}
 	
@@ -196,9 +245,6 @@ public class PubUtilModule extends AbstractModule {
 		doorModeManual = true;
 		m_botAction.setDoors(0);
 		m_botAction.sendSmartPrivateMessage(sender, "Doors opened.");
-		if (doorArenaOnChange) {
-			m_botAction.sendArenaMessage("[SETTING] Doors are now open.", Tools.Sound.BEEP1);
-		}
 		doorStatus = DoorMode.OPENED;
 	}
 	
@@ -206,9 +252,6 @@ public class PubUtilModule extends AbstractModule {
 		doorModeManual = true;
 		m_botAction.setDoors(255);
 		m_botAction.sendSmartPrivateMessage(sender, "Doors closed.");
-		if (doorArenaOnChange) {
-			m_botAction.sendArenaMessage("[SETTING] Doors are now locked.", Tools.Sound.BEEP1);
-		}
 		doorStatus = DoorMode.CLOSED;
 	}
 	
@@ -216,9 +259,6 @@ public class PubUtilModule extends AbstractModule {
 		doorModeManual = true;
 		m_botAction.setDoors(-2);
 		m_botAction.sendSmartPrivateMessage(sender, "Doors will be toggl.");
-		if (doorArenaOnChange) {
-			m_botAction.sendArenaMessage("[SETTING] Doors are now in operation.", Tools.Sound.BEEP1);
-		}
 		doorStatus = DoorMode.IN_OPERATION;
 	}
 	
@@ -242,9 +282,9 @@ public class PubUtilModule extends AbstractModule {
         String currentArena = m_botAction.getArenaName();
 
         if(context.isStarted())
-            throw new RuntimeException("Bot is currently running pub settings in " + currentArena + ".  Please !stop before trying to move.");
+            m_botAction.sendPrivateMessage(sender,"Bot is currently running pub settings in " + currentArena + ".  Please !stop before trying to move.");
         if(currentArena.equalsIgnoreCase(argString))
-            throw new IllegalArgumentException("Bot is already in that arena.");
+        	m_botAction.sendPrivateMessage(sender,"Bot is already in that arena.");
 
         m_botAction.changeArena(argString);
         m_botAction.sendSmartPrivateMessage(sender, "Bot going to: " + argString);
@@ -271,6 +311,26 @@ public class PubUtilModule extends AbstractModule {
             if (!context.hasJustStarted())
             	m_botAction.sendArenaMessage("[SETTING] Private Frequencies disabled.", 2);
             m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully disabled.");
+        }
+    }
+    
+    
+    private void doLevAttachCmd(String sender)
+    {
+    	levAttachEnabled = !levAttachEnabled;
+    	
+        if(levAttachEnabled)
+        {
+        	context.getPlayerManager().fixFreqs();
+        	if (!context.hasJustStarted())
+        		m_botAction.sendArenaMessage("[SETTING] Leviathan attach capability enabled on public frequencies.", 2);
+            m_botAction.sendSmartPrivateMessage(sender, "Leviathan can now attach on a ter in public freq.");
+        }
+        else
+        {
+            if (!context.hasJustStarted())
+            	m_botAction.sendArenaMessage("[SETTING] Leviathan attach capability disabled on public frequencies.", 2);
+            m_botAction.sendSmartPrivateMessage(sender, "Leviathan cannot attach anymore on a ter in public freq.");
         }
     }
     
@@ -408,8 +468,12 @@ public class PubUtilModule extends AbstractModule {
         	doAutoDoorCmd(sender);
         else if(command.startsWith("!go "))
             doGoCmd(sender, command.substring(4));
+        else if(command.equals("!stop"))
+            context.stop();
         else if(command.equals("!privfreqs"))
             doPrivFreqsCmd(sender);
+        else if(command.equals("!levattach"))
+            doLevAttachCmd(sender);
         else if(command.equals("!uptime"))
             doUptimeCmd(sender);
         else if(command.startsWith("!reloadconfig")) {
@@ -429,7 +493,7 @@ public class PubUtilModule extends AbstractModule {
 	}
 
 	@Override
-	public String[] getHelpMessage() {
+	public String[] getHelpMessage(String sender) {
 		return new String[]{
 			pubsystem.getHelpLine("!whereis <name>   -- Shows last seen location of <name> (if on your team)."),
             pubsystem.getHelpLine("!restrictions     -- Lists all current ship restrictions."),
@@ -439,19 +503,21 @@ public class PubUtilModule extends AbstractModule {
 	}
 
 	@Override
-	public String[] getModHelpMessage() {
+	public String[] getModHelpMessage(String sender) {
 		return new String[] {
 			pubsystem.getHelpLine("!privfreqs    -- Toggles private frequencies & check for imbalances."),
             pubsystem.getHelpLine("!dooropen     -- Open doors."),
             pubsystem.getHelpLine("!doorclose    -- Close doors."),
             pubsystem.getHelpLine("!doortoggle   -- In operation doors."),
             pubsystem.getHelpLine("!doorauto     -- Auto mode (close if # of players below " + doorModeThreshold + "."),
-			pubsystem.getHelpLine("!set <ship> <#>   -- Sets <ship> to restriction <#>."),
+			pubsystem.getHelpLine("!levattach    -- Toggles lev attach capability on public frequencies."),
+            pubsystem.getHelpLine("!set <ship> <#>   -- Sets <ship> to restriction <#>."),
             pubsystem.getHelpLine("                     0=disabled; 1=any amount; other=weighted:"),
             pubsystem.getHelpLine("                     2 = 1/2 of freq can be this ship, 5 = 1/5, ..."),
             pubsystem.getHelpLine("!go <arena>   -- Moves the bot to <arena>."),
-            pubsystem.getHelpLine("!reloadconfig -- Reload the configuration (may not update everything)."),
+            pubsystem.getHelpLine("!reloadconfig -- Reload the configuration (needed if .cfg has changed)."),
             pubsystem.getHelpLine("!uptime       -- Uptime of the bot in minutes."),
+            pubsystem.getHelpLine("!stop         -- Stop the bot (needed when !go)."),
             pubsystem.getHelpLine("!die          -- Logs the bot off of the server."),
 		};
 	}
@@ -464,7 +530,7 @@ public class PubUtilModule extends AbstractModule {
 
 	@Override
 	public void start() {
-
+		setArenaTileset(defaultTileSet);
 	}
 	
     /**
@@ -512,17 +578,25 @@ public class PubUtilModule extends AbstractModule {
 		doorModeThreshold = m_botAction.getBotSettings().getInt("doormode_threshold");
 		doorModeThresholdSetting = m_botAction.getBotSettings().getInt("doormode_threshold_setting");
 		
+		String tileSet = m_botAction.getBotSettings().getString("tileset_default");
+		try {
+			defaultTileSet = Tileset.valueOf(tileSet.toUpperCase());
+		} catch (Exception e) {
+			defaultTileSet = Tileset.BLUETECH;
+		}
+		
 		tilesetObjects = new HashMap<Tileset,Integer>();
 		tilesetObjects.put(Tileset.BOKI, 0);
 		tilesetObjects.put(Tileset.MONOLITH, 1);
-		
-		if (m_botAction.getBotSettings().getInt("door_arena_on_change")==1) {
-			doorArenaOnChange = true;
+
+		if (m_botAction.getBotSettings().getInt("tileset_enabled")==1) {
+			tilesetEnabled = true;
 		}
 		
 		if (m_botAction.getBotSettings().getInt("utility_enabled")==1) {
 			enabled = true;
 		}
+		
 		
 	}
 

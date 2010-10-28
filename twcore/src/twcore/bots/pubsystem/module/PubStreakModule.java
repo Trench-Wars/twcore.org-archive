@@ -246,7 +246,7 @@ public class PubStreakModule extends AbstractModule {
     		return 0;
 
     	if (streak >= winsStreakArenaAt) {
-    		int diff = Math.min(100, streak)-winsStreakArenaAt+1;
+    		int diff = Math.min(50, streak)-winsStreakArenaAt+1;
     		return diff*winsStreakMoneyMultiplicator;
     	}
     	
@@ -356,7 +356,7 @@ public class PubStreakModule extends AbstractModule {
 	}
 	
 	@Override
-	public String[] getHelpMessage() {
+	public String[] getHelpMessage(String sender) {
 		return new String[] {
 			pubsystem.getHelpLine("!streak            -- Your current streak."),
 			pubsystem.getHelpLine("!streak <name>     -- Best and current streak of a given player name."),
@@ -365,7 +365,7 @@ public class PubStreakModule extends AbstractModule {
 	}
 
 	@Override
-	public String[] getModHelpMessage() {
+	public String[] getModHelpMessage(String sender) {
 		return new String[] {
 			pubsystem.getHelpLine("!streakreset       -- Reset the current session (with *arena)."),
         };

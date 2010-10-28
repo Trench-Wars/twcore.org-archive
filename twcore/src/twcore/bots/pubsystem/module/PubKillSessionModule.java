@@ -27,7 +27,7 @@ public class PubKillSessionModule extends AbstractModule {
 	private boolean sessionStarted = false;
 	public long startAt = 0;
 	
-	private TimerTask startSessionTask;
+	private TimerTask pauseTask;
 	private TimerTask endSessionTask;
 	
 	private HashMap<String,Integer> kills;
@@ -71,11 +71,16 @@ public class PubKillSessionModule extends AbstractModule {
 			for(Location loc: locations) {
 				message += ", " + context.getPubUtil().getLocationName(loc);
 			}
-			m_botAction.sendArenaMessage("[KILL-O-THON] The kill must be inside: " + message.substring(2));
+			m_botAction.sendArenaMessage("[KILL-O-THON] To count, kills must be inside of: " + message.substring(2));
 			
 		}
 		
-		startSessionTask = new TimerTask() {
+		try {
+			endSessionTask.cancel();
+			pauseTask.cancel();
+		} catch (Exception e) { }
+		
+		pauseTask = new TimerTask() {
 			public void run() {
 				startSession();
 			}
@@ -84,13 +89,12 @@ public class PubKillSessionModule extends AbstractModule {
 		endSessionTask = new TimerTask() {
 			public void run() {
 				stopSession(true);
+				m_botAction.scheduleTask(pauseTask, interval * Tools.TimeInMillis.MINUTE);
 			}
 		};
 		
 		// Timer to end the session after "length" minutes
 		m_botAction.scheduleTask(endSessionTask, length * Tools.TimeInMillis.MINUTE);
-		// Prepare the next session in "interval" minutes
-		m_botAction.scheduleTask(startSessionTask, interval * Tools.TimeInMillis.MINUTE);
 	
 		sessionStarted = true;
 		startAt = System.currentTimeMillis();
@@ -98,8 +102,13 @@ public class PubKillSessionModule extends AbstractModule {
 	
 	public void stopSession(boolean announce) {
 		
-		if (!enabled || !sessionStarted)
+		if (!enabled || !sessionStarted) {
+			try {
+				endSessionTask.cancel();
+				pauseTask.cancel();
+			} catch (Exception e) { }
 			return;
+		}
 		
 		// Sort by number of kills order descending
 		List<Integer> nums = new ArrayList<Integer>(kills.values());
@@ -170,7 +179,7 @@ public class PubKillSessionModule extends AbstractModule {
 		
 		if (!announce) {
 			endSessionTask.cancel();
-			startSessionTask.cancel();
+			pauseTask.cancel();
 			m_botAction.sendArenaMessage("[KILL-O-THON] The session has been cancelled.");
 		}
 		
@@ -273,6 +282,7 @@ public class PubKillSessionModule extends AbstractModule {
     
     public void doCancelCmd( String sender ) {
     	stopSession(false);
+    	m_botAction.sendSmartPrivateMessage(sender, "No more kill-o-thon will");
     }
     
     public void doNotPlayingCmd( String sender ) {
@@ -362,7 +372,7 @@ public class PubKillSessionModule extends AbstractModule {
     		if (startAt == 0) {
     			return "Unknown";
     		} else {
-    			return Tools.getTimeDiffString(startAt+interval*60000, false);	
+    			return Tools.getTimeDiffString(startAt+(length+interval)*Tools.TimeInMillis.MINUTE, false);	
     		}
     	}
     	
@@ -372,7 +382,7 @@ public class PubKillSessionModule extends AbstractModule {
     	
     	if (sessionStarted) {
     		long diff = System.currentTimeMillis()-startAt;
-    		return Tools.getTimeDiffString(System.currentTimeMillis()+length*60000-diff, false);
+    		return Tools.getTimeDiffString(System.currentTimeMillis()+length*Tools.TimeInMillis.MINUTE-diff, false);
     	} else {
     		return "Not running";
     	}
@@ -406,11 +416,7 @@ public class PubKillSessionModule extends AbstractModule {
             	doSettingCmd(sender, command.substring(18).trim());
             else if(command.trim().equals("!startkillothon"))
             	doStartCmd(sender);
-            else if(command.trim().equals("!stopkillothon"))
-            	doStopCmd(sender);
-            else if(command.trim().equals("!cancelkillothon"))
-            	doCancelCmd(sender);
-            
+
         } catch(RuntimeException e) {
         	Tools.printStackTrace(e);
             if( e != null && e.getMessage() != null )
@@ -419,7 +425,7 @@ public class PubKillSessionModule extends AbstractModule {
 	}
 	
 	@Override
-	public String[] getHelpMessage() {
+	public String[] getHelpMessage(String sender) {
 		return new String[] {
 				pubsystem.getHelpLine("!killothon        -- Your current stat + current leader + time left or next session."),
 				pubsystem.getHelpLine("!npkillothon      -- Toggles not playing mode. (!npkill)"),
@@ -427,12 +433,11 @@ public class PubKillSessionModule extends AbstractModule {
 	}
 
 	@Override
-	public String[] getModHelpMessage() {
+	public String[] getModHelpMessage(String sender) {
 		return new String[] {
 			pubsystem.getHelpLine("!settingkillothon <length>:<interval>:<money>   -- Change settings (in minutes)."),
+			pubsystem.getHelpLine("                                                   Current:" + length + ":" + interval + ":" + winnerMoney),
 			pubsystem.getHelpLine("!startkillothon       -- Start a new session of kill-o-thon (" + length + " min. for $" + winnerMoney + ")."),
-			pubsystem.getHelpLine("!stopkillothon        -- Stop the current session with winner announcement."),
-			pubsystem.getHelpLine("!cancelkillothon      -- Cancel the current session without any announcement."),
         };
 	}
 

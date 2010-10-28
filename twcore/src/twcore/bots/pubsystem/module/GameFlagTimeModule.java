@@ -209,7 +209,7 @@ public class GameFlagTimeModule extends AbstractModule {
         }
         
         if(ship == 5)
-            m_botAction.sendOpposingTeamMessageByFrequency(freq, "Player "+p.getPlayerName()+" is now a terr; you may attach");
+            m_botAction.sendOpposingTeamMessageByFrequency(freq, "Player "+p.getPlayerName()+" is now a terr. You may attach.");
         
         try {
             if( isFlagTimeStarted() && isRunning() ) {
@@ -220,7 +220,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 } 
             }
             
-            if (autoWarp && !warpPlayers.containsKey(playerName)) {
+            if (warpEnabled && !strictFlagTimeMode && isFlagTimeStarted() && autoWarp && !warpPlayers.containsKey(playerName)) {
     	        if(ship != Tools.Ship.SPECTATOR)
     	        	doWarpCmd(playerName); 
             }
@@ -271,6 +271,42 @@ public class GameFlagTimeModule extends AbstractModule {
 			} else {
 				flagTimer.addPlayerKill(killer.getPlayerName(), killed.getShipType(),event.getKilledPlayerBounty(), killer.getXTileLocation(), killer.getYTileLocation());
 				flagTimer.addPlayerDeath(killed.getPlayerName());
+			}
+			
+			if (killed.getShipType()==Tools.Ship.TERRIER) {
+				
+				Location locKilled = context.getPubUtil().getLocation(killed.getXTileLocation(), killed.getYTileLocation());
+				if (locKilled == null || !locKilled.equals(Location.FLAGROOM))
+					return;
+				
+				String attachTo = "";
+				
+				Iterator<Player> it = m_botAction.getFreqPlayerIterator(killed.getFrequency());
+				while(it.hasNext()) {
+					Player p = it.next();
+					if (p.getShipType()!=Tools.Ship.TERRIER)
+						continue;
+					if (p.getPlayerName().equals(killed.getPlayerName()))
+						continue;
+					if (context.getPubChallenge().isDueling(p.getPlayerName()))
+						continue;
+					
+					PubPlayer pubPlayer = context.getPlayerManager().getPlayer(p.getPlayerName());
+					if (pubPlayer != null && System.currentTimeMillis()-pubPlayer.getLastDeath() > 5*Tools.TimeInMillis.SECOND) {
+						Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
+						if (loc != null) {
+							if (loc.equals(Location.FLAGROOM)) {
+								attachTo += ", " + p.getPlayerName() + " (" + context.getPubUtil().getLocationName(loc) + ")";
+							} else if (loc.equals(Location.MID)) {
+								attachTo += ", " + p.getPlayerName() + " (" + context.getPubUtil().getLocationName(loc) + ")";
+							}
+						}
+					}
+				}
+				
+				if (!attachTo.isEmpty())
+					m_botAction.sendOpposingTeamMessageByFrequency(killed.getFrequency(), 
+							 killed.getPlayerName() + " is dead. You may attach to " + attachTo.substring(2));
 			}
 		}
 	}
@@ -482,6 +518,8 @@ public class GameFlagTimeModule extends AbstractModule {
         int secs = flagTimer.getTotalSecs();
         int mins = (int)(secs/60);
 
+        int moneyBonus = (int)(flagTimer.freqsSecs.get(winnerFreq)/2);
+        
         // A normal frequency (0 or 1) won the round?
         if(winnerFreq == 0 || winnerFreq == 1) 
         {
@@ -498,17 +536,17 @@ public class GameFlagTimeModule extends AbstractModule {
                 m_botAction.sendArenaMessage(
                 		"END OF ROUND " + roundNumber + ": " +
                 		"Freq " + winnerFreq + " wins after " + getTimeString( flagTimer.getTotalSecs() ) + " " +
-                        "Score: " + freq0Score + " - " + freq1Score, 
+                        "Score: " + freq0Score + " - " + freq1Score + " (Bonus: +$" + moneyBonus + ")", 
                         Tools.Sound.BEEP1);
             }
         
         } else {
         	// A public freq (<100) won the round?
             if( winnerFreq < 100 )
-                m_botAction.sendArenaMessage( "END ROUND: Freq " + winnerFreq + " wins the round after " + getTimeString( flagTimer.getTotalSecs() ), Tools.Sound.BEEP1);
+                m_botAction.sendArenaMessage( "END ROUND: Freq " + winnerFreq + " wins the round after " + getTimeString( flagTimer.getTotalSecs()) + " (Bonus: +$" + moneyBonus + ")", Tools.Sound.BEEP1);
             // A private freq won the round
             else
-                m_botAction.sendArenaMessage( "END ROUND: A private freq wins the round after " + getTimeString( flagTimer.getTotalSecs() ), Tools.Sound.BEEP1);
+                m_botAction.sendArenaMessage( "END ROUND: A private freq wins the round after " + getTimeString( flagTimer.getTotalSecs()) + " (Bonus: +$" + moneyBonus + ")", Tools.Sound.BEEP1);
         }
         
 
@@ -564,9 +602,9 @@ public class GameFlagTimeModule extends AbstractModule {
         String mostTek = getPosition(teks, 1);
         String bestTerrierName = getPosition(bestTerrier, 1);
         
-        int m10 = 300 + (int)Math.max(0,(mins-5)*0.5*10);
-        int m5 = 150 + (int)Math.max(0,(mins-5)*0.5*5);
-        int m2 = 50 + (int)Math.max(0,(mins-5)*0.5*5);
+        int m10 = 300 + (int)Math.max(0,(mins-5)*10);
+        int m5 = 150 + (int)Math.max(0,(mins-5)*5);
+        int m2 = 50 + (int)Math.max(0,(mins-5)*5);
         
     	m_botAction.sendArenaMessage("Achievements:");
     	if (basingKingName != null) {
@@ -595,13 +633,13 @@ public class GameFlagTimeModule extends AbstractModule {
     	}
     	if (mostDeath != null) {
     		m_botAction.sendArenaMessage(" - Most Reckless      : " + mostDeath);
-    		//context.getPlayerManager().addMoney(mostDeath, 0);
     	}
+    	/*
     	if (mostTk != null) {
     		m_botAction.sendArenaMessage(" - Least Honorable    : " + mostTk);
     		//context.getPlayerManager().addMoney(mostTk, 0);
     	}
-    	
+    	*/
     	
         Iterator<Player> iterator = m_botAction.getPlayingPlayerIterator();
         while(iterator.hasNext()) {
@@ -615,8 +653,10 @@ public class GameFlagTimeModule extends AbstractModule {
             if (context.getPubChallenge().isDueling(player.getPlayerName()))
             	continue;
             
+            // Money bonus for the winner team
+            context.getPlayerManager().addMoney(player.getPlayerName(), moneyBonus);
+            
             // Prizes only for the winner team (most not be dueling)
-   
             if (mins>=60) { // New: 1 thor
             	 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #6"); // xradar
                  m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #15"); // multifire
@@ -736,7 +776,7 @@ public class GameFlagTimeModule extends AbstractModule {
             m_botAction.sendArenaMessage( "GAME OVER!  Freq " + winnerFreq + " has won the game after " + getTimeString( flagTimer.getTotalSecs() ) +
                     " Final score: " + freq0Score + " - " + freq1Score, 2 );
             
-            m_botAction.sendArenaMessage( "Give congratulations to FREQ " + winnerFreq + winMsg );
+            m_botAction.sendArenaMessage( "Give congratulations to FREQ " + winnerFreq + winMsg);
 
             freq0Score = 0;
             freq1Score = 0;
@@ -1153,6 +1193,9 @@ public class GameFlagTimeModule extends AbstractModule {
         int flagHoldingFreq, flagClaimingFreq;
         int secondsHeld, totalSecs, claimSecs, preTimeCount;
         int claimerID;
+        
+        HashMap<Integer,Integer> freqsSecs;
+        
         boolean isStarted, isRunning, isBeingClaimed;
 
         /**
@@ -1166,6 +1209,7 @@ public class GameFlagTimeModule extends AbstractModule {
             isStarted = false;
             isRunning = false;
             isBeingClaimed = false;
+            freqsSecs = new HashMap<Integer,Integer>();
             flagClaims = new HashMap<String,Integer>();
             kills = new HashMap<String,Integer>();
             terrKills = new HashMap<String,Integer>();
@@ -1597,6 +1641,12 @@ public class GameFlagTimeModule extends AbstractModule {
                 }
                 return;
             }
+            
+            Integer freqSecs = freqsSecs.get(flagHoldingFreq);
+            if (freqSecs == null) {
+            	freqSecs = new Integer(0);
+            }
+            freqsSecs.put(flagHoldingFreq, freqSecs+1);
 
             if( flagHoldingFreq == -1 )
                 return;
@@ -1694,16 +1744,17 @@ public class GameFlagTimeModule extends AbstractModule {
             }
         }
     }
-
-	public void stop()
+    
+	public void stopTime()
 	{
 		if(!isFlagTimeStarted())
-            throw new RuntimeException( "Flag Time mode is not currently running." );
+            return;
 
-        m_botAction.sendArenaMessage( "Flag Time mode has been disabled." );
+        m_botAction.sendArenaMessage("Flag Time mode has been disabled.");
 
         try {
-            flagTimer.endGame();
+        	if (flagTimer != null)
+        		flagTimer.endGame();
             m_botAction.cancelTask(flagTimer);
             m_botAction.cancelTask(intermissionTimer);
             m_botAction.cancelTask(startTimer);
@@ -1713,6 +1764,12 @@ public class GameFlagTimeModule extends AbstractModule {
 
         stopFlagTimeStarted();
         strictFlagTimeMode = false;
+	}
+
+	@Override
+	public void stop()
+	{
+		stopTime();
 	}
 
 
@@ -1759,7 +1816,7 @@ public class GameFlagTimeModule extends AbstractModule {
 	}
 	
 	@Override
-	public String[] getHelpMessage() {
+	public String[] getHelpMessage(String sender) {
 		return new String[] {
 			pubsystem.getHelpLine("!warp    -- Warps you inside base at start of next round. (!w)"),
             pubsystem.getHelpLine("!terr    -- Shows terriers on the team and their last seen locations. (!t)"),
@@ -1769,7 +1826,7 @@ public class GameFlagTimeModule extends AbstractModule {
 	}
 
 	@Override
-	public String[] getModHelpMessage() {
+	public String[] getModHelpMessage(String sender) {
 		return new String[] {
 			pubsystem.getHelpLine("!starttime <#>    -- Starts Flag Time game to <#> minutes"),
 			pubsystem.getHelpLine("!stoptime         -- Ends Flag Time mode."),
@@ -1868,7 +1925,7 @@ public class GameFlagTimeModule extends AbstractModule {
      */
     public void doStopTimeCmd(String sender )
     {
-        stop();
+        stopTime();
     }
 
 	public void statusMessage(String playerName) {
@@ -1955,8 +2012,7 @@ public class GameFlagTimeModule extends AbstractModule {
 			return;
 
 		if (!isFlagTimeStarted()) {
-			m_botAction.sendSmartPrivateMessage(sender,
-					"Flag Time mode is not currently running.");
+			m_botAction.sendSmartPrivateMessage(sender,"Flag Time mode is not currently running.");
 			return;
 		} 
 		else if (strictFlagTimeMode) {

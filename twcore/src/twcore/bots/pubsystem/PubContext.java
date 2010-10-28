@@ -55,6 +55,7 @@ public class PubContext {
 		long start = System.currentTimeMillis();
 		
 		// Order matter (!help)
+		
 		getGameFlagTime();
 		getPlayerManager();
 		getMoneySystem();
@@ -85,6 +86,9 @@ public class PubContext {
 	
 	public void stop() {
 		this.started = false;
+		for(AbstractModule module: modules.values()) {
+			module.stop();
+		}
 	}
 	
 	public void reloadConfig() {
