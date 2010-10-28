@@ -214,7 +214,7 @@ public class staffbot_banc extends Module {
 	        OperatorList opList = m_botAction.getOperatorList();
 	        
 	        // Minimum ER access requirement for all !commands
-	        if(!opList.isER(name) || !bancOps.contains(name.toLowerCase())) {
+	        if(!opList.isER(name)){ //|| !bancOps.contains(name.toLowerCase())) {
 	            return;
 	        }
 	        
