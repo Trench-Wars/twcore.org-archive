@@ -1119,7 +1119,10 @@ public class staffbot_banc extends Module {
 					rs.afterLast();
 					if(rs.previous()) {
 						do {
-							String result = "";
+						    int lifted = rs.getInt("fbLifted");
+                            
+						    if(!showLifted && lifted == 1){
+						    String result = "";
 							result += (rs.getBoolean("active")?"#":"^");
 							result += Tools.formatString(rs.getString("fnID"), 4) + " ";
 							result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
@@ -1139,6 +1142,10 @@ public class staffbot_banc extends Module {
 							result += rs.getString("fcUsername");
 							
 							m_botAction.sendRemotePrivateMessage(name, result);
+							
+							}
+						    
+						    
 						} while(rs.previous());
 						if(showLBHelp)  
 						    m_botAction.sendRemotePrivateMessage(name, "!listban -help for more info");
