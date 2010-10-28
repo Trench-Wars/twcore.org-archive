@@ -225,6 +225,9 @@ public class staffbot_banc extends Module {
 	        if(messageLc.startsWith("!help")) {
 	        	cmdHelp(name, message.substring(5).trim());
 	        }
+	        else if(messageLc.startsWith("!lifted"))
+	            searchByLiftedBancs(name);
+	        
 	        else if( messageLc.startsWith("!searchip"))
 	            searchByIp(name, message.substring(9));
 	        
