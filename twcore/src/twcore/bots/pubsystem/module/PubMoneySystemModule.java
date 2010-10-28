@@ -640,8 +640,8 @@ public class PubMoneySystemModule extends AbstractModule {
             
             int total = moneyKiller+moneyKilled+moneyByLocation;
             
-            String msg = "You were a " + Tools.shipName(moneyKiller) + " (+$"+moneyKiller+")";
-            msg += ", killed a " + Tools.shipName(moneyKilled) + " (+$"+moneyKilled+"). ";
+            String msg = "You were a " + Tools.shipName(shipKiller) + " (+$"+moneyKiller+")";
+            msg += ", killed a " + Tools.shipName(shipKilled) + " (+$"+moneyKilled+"). ";
             msg += "Location: " + context.getPubUtil().getLocationName(location) + " (+$"+moneyByLocation+").";
             
             // Overide if kill in space
@@ -1505,6 +1505,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	TimerTask timer = new TimerTask() {
             public void run() {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
+            	//m_botAction.move(512*16, 350*16);
             }
         };
         m_botAction.scheduleTask(timer, 7500);
@@ -1541,6 +1542,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	TimerTask timer = new TimerTask() {
             public void run() {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
+            	//m_botAction.move(512*16, 350*16);
             }
         };
         m_botAction.scheduleTask(timer, 7500);
@@ -1557,8 +1559,8 @@ public class PubMoneySystemModule extends AbstractModule {
     			new int[] { 486, 260 }, // Ear left
     			new int[] { 492, 273 }, // Middle right
     			new int[] { 532, 273 }, // Middle left
-    			new int[] { 500, 287 }, // Bottom right
-    			new int[] { 526, 287 }, // Bottom left
+    			//new int[] { 500, 287 }, // Bottom right
+    			//new int[] { 526, 287 }, // Bottom left
     	};
     	
 	   	Player commander = m_botAction.getPlayer(sender);

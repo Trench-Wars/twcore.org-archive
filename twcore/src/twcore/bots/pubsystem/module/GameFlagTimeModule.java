@@ -584,11 +584,13 @@ public class GameFlagTimeModule extends AbstractModule {
         LinkedHashMap<String,Integer> bestTerrier = getBestOf(attaches, killsInBasePercent, lessdeaths);
         LinkedHashMap<String,Integer> basingKing = getBestOf(killsInBase, killsInBasePercent);
         
-        // Make sure we have only terrer in bestTerrier
+        // Make sure we have only terrier in bestTerrier
         Iterator<String> it = bestTerrier.keySet().iterator();
         while(it.hasNext()) {
 	        String name = it.next();
 	        if (!attaches.containsKey(name))
+	        	it.remove();
+	        else if (ships.get(name) != null && !ships.get(name).contains(5))
 	        	it.remove();
         }
 
