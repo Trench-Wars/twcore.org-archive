@@ -1045,7 +1045,7 @@ public class staffbot_banc extends Module {
 				}
 				
 				if(!showLifted){
-				    if( !sqlWhere.isEmpty())
+				    if( !sqlWhere.isEmpty() )
 				        sqlWhere += " AND ";
 				    sqlWhere += "fbLifted=0";
 				}
@@ -1060,7 +1060,7 @@ public class staffbot_banc extends Module {
 		
 		try {
 			if(sqlWhere.contains("fnID")) {
-				sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fcComment, fbNotification, fdCreated FROM tblBanc WHERE "+sqlWhere+" LIMIT 0,1";
+				sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fcComment, fbNotification, fdCreated, fbLifted FROM tblBanc WHERE "+sqlWhere+" LIMIT 0,1";
 				ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
 				
 				if(rs.next()) {
@@ -1112,16 +1112,14 @@ public class staffbot_banc extends Module {
 				if(sqlWhere.length() > 0) {
 					sqlWhere = "WHERE "+sqlWhere;
 				}
-				sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated FROM tblBanc "+sqlWhere+" ORDER BY fnID DESC LIMIT 0,"+viewcount;
+				sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated, fbLifted FROM tblBanc "+sqlWhere+" ORDER BY fnID DESC LIMIT 0,"+viewcount;
 				ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
 				
 				if(rs != null) {
 					rs.afterLast();
 					if(rs.previous()) {
 						do {
-						    int lifted = rs.getInt("fbLifted");
-                            
-						    if(!showLifted && lifted == 1){
+						    
 						    String result = "";
 							result += (rs.getBoolean("active")?"#":"^");
 							result += Tools.formatString(rs.getString("fnID"), 4) + " ";
@@ -1142,9 +1140,6 @@ public class staffbot_banc extends Module {
 							result += rs.getString("fcUsername");
 							
 							m_botAction.sendRemotePrivateMessage(name, result);
-							
-							}
-						    
 						    
 						} while(rs.previous());
 						if(showLBHelp)  
