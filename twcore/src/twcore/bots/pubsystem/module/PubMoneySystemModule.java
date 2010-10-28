@@ -1506,6 +1506,7 @@ public class PubMoneySystemModule extends AbstractModule {
             public void run() {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
             	//m_botAction.move(512*16, 350*16);
+            	m_botAction.getShip().setSpectatorUpdateTime(100);
             }
         };
         m_botAction.scheduleTask(timer, 7500);
@@ -1543,6 +1544,7 @@ public class PubMoneySystemModule extends AbstractModule {
             public void run() {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
             	//m_botAction.move(512*16, 350*16);
+            	m_botAction.getShip().setSpectatorUpdateTime(100);
             }
         };
         m_botAction.scheduleTask(timer, 7500);
