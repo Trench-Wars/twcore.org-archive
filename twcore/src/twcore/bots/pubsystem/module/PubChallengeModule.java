@@ -192,20 +192,26 @@ public class PubChallengeModule extends AbstractModule {
         String killer = m_botAction.getPlayerName(event.getKillerID());
         String killee = m_botAction.getPlayerName(event.getKilleeID());
         
-        if(!duelers.containsKey(killer) || !duelers.containsKey(killee))
+        if(!duelers.containsKey(killer) || !duelers.containsKey(killee)) {
+        	if (duelers.containsKey(killee)) {
+        		duelers.get(killee).lastDeath = System.currentTimeMillis();
+        	}
             return;
-
+        }
+        
         Dueler w = duelers.get(killer);
         Dueler l = duelers.get(killee);
         
         if(w == null || l == null)
         	return;
         
+        
         Challenge challenge = w.challenge;
         if (challenge == null 
-        		|| !challenge.getOppositeDueler(w).name.equals(w.name)
+        		|| !challenge.getOppositeDueler(w).name.equals(l.name)
         		|| !challenge.isStarted()) {
         	l.lastDeath = System.currentTimeMillis();
+        	m_botAction.sendPublicMessage("Test2");
         	return;
         }
     
