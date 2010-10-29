@@ -1479,6 +1479,7 @@ public class staffbot_banc extends Module {
 			BanC activeBanc = lookupActiveBanC(id);
 			if(activeBanc != null) {
 				m_botAction.ipcSendMessage(IPCBANC, "REMOVE "+activeBanc.type.toString()+" "+activeBanc.playername, null, "banc");
+				m_botAction.sendSmartPrivateMessage("quiles", "REMOVE "+activeBanc.type.toString()+" "+activeBanc.playername);
 				activeBanCs.remove(activeBanc);
 			}
 		} catch(SQLException sqle) {
