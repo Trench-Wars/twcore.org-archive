@@ -641,6 +641,7 @@ public class staffbot_banc extends Module {
 						if(banc.type.equals(BanCType.SUPERSPEC) && !banc.playername.equals(altNickToSuperSpec)){
                             m_botAction.ipcSendMessage(IPCBANC, banc.getType().toString()+" "+banc.duration+":"+banc.playername+":"+altNickToSuperSpec, null, "banc");
                             m_botAction.sendSmartPrivateMessage("quiles", "ALT NICK: "+altNickToSuperSpec);
+                            banc.playername = altNickToSuperSpec; //updating last nickname to the !liftban
 						}else if(!banc.type.equals(BanCType.SUPERSPEC))
 						    m_botAction.ipcSendMessage(IPCBANC, banc.getType().toString()+" "+banc.duration+":"+playerName, null, "banc");
 					}
