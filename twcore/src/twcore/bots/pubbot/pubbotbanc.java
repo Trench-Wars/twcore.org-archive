@@ -219,7 +219,7 @@ public class pubbotbanc extends PubBotModule {
         // TODO Auto-generated method stub
         //SUPERSPEC TIME:OLDNICK:NEWNICK
         String cmdSplit[] = command.split(":");
-        
+        m_botAction.sendSmartPrivateMessage("quiles", command);
         if(cmdSplit.length == 3){
             String oldNickString = cmdSplit[1];
             String newNickString = cmdSplit[2];
