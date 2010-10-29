@@ -312,7 +312,13 @@ public class pubbotbanc extends PubBotModule {
             	tempBanCCommand = null;
                 tempBanCPlayer = null;
         	}
-        	
+        	else if( message.startsWith("REMOVE")){
+        	    //REMOVE SUPERSPEC PLAYER
+        	    //0123456789DODTQQDD
+        	    String playerName = message.substring(17);
+        	    this.hashSuperSpec.remove(playerName);
+        	    m_botAction.sendChatMessage("Player "+playerName+" may now play in bombs-ship");
+        	}
         	if(tempBanCCommand == null && IPCQueue.size() != 0) {
         		handleIPCMessage(IPCQueue.remove(0));
         	}
