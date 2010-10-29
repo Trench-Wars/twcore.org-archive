@@ -636,10 +636,10 @@ public class staffbot_banc extends Module {
 						// Match Ffound on one or more properties
 						// Send BanC object to pubbotbanc to BanC the player
 						banc.calculateExpired();
-						altNickToSuperSpec = banc.playername;
+						altNickToSuperSpec = playerName;//banc.playername;
 						//SUPERSPEC TIME:OLDNICK:NEWNICK
-						if(banc.type.equals(BanCType.SUPERSPEC) && !banc.playername.equals("altNickToSuperSpec")){
-                            m_botAction.ipcSendMessage(IPCBANC, banc.getType().toString()+" "+banc.duration+":"+playerName+":"+altNickToSuperSpec, null, "banc");
+						if(banc.type.equals(BanCType.SUPERSPEC) && !banc.playername.equals(altNickToSuperSpec)){
+                            m_botAction.ipcSendMessage(IPCBANC, banc.getType().toString()+" "+banc.duration+":"+banc.playername+":"+altNickToSuperSpec, null, "banc");
                             m_botAction.sendSmartPrivateMessage("quiles", "ALT NICK: "+altNickToSuperSpec);
 						}else if(!banc.type.equals(BanCType.SUPERSPEC))
 						    m_botAction.ipcSendMessage(IPCBANC, banc.getType().toString()+" "+banc.duration+":"+playerName, null, "banc");
