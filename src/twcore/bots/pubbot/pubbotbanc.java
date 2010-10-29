@@ -119,7 +119,7 @@ public class pubbotbanc extends PubBotModule {
             String namePlayer = m_botAction.getPlayerName(event.getPlayerID());
             m_botAction.sendPrivateMessage("quiles", "Someone changed ship: "+namePlayer);
             
-            if( this.hashSuperSpec.contains( namePlayer.toLowerCase() ) ){// && ( event.getShipType() == 2 || event.getShipType() == 4 || event.getShipType() == 8 )){
+            if( this.hashSuperSpec.contains( namePlayer ) ){// && ( event.getShipType() == 2 || event.getShipType() == 4 || event.getShipType() == 8 )){
                 superLockMethod(namePlayer, event.getShipType());
                 m_botAction.sendPrivateMessage("quiles", "List contains "+namePlayer);
             }
