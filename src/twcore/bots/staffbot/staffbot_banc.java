@@ -31,6 +31,8 @@ import twcore.core.util.ipc.IPCMessage;
  *  - automatic-kick-lock
  *  - automatic-super-spec-lock @author quiles/dexter
  *  - !search feature @author quiles/dexter
+ *  - !lifted feature @author quiles
+ *  changed lifted banc to a new field instead of deleting.
  *  TODO:
  *   - speclocking in a ship
  *   - Time left in !listban #ID
@@ -594,6 +596,7 @@ public class staffbot_banc extends Module {
 		if(stop) return;
 		if(!(event.getObject() instanceof IPCMessage)) return;
 		
+		String altNickToSuperSpec;
 		if(IPCALIAS.equals(event.getChannel()) && ((IPCMessage)event.getObject()).getMessage().startsWith("info ")) {
 			IPCMessage message = (IPCMessage)event.getObject();
 			StringTokenizer arguments = new StringTokenizer(message.getMessage().substring(5), ":");
@@ -630,10 +633,15 @@ public class staffbot_banc extends Module {
 					}
 					
 					if(match) {
-						// Match found on one or more properties
+						// Match Ffound on one or more properties
 						// Send BanC object to pubbotbanc to BanC the player
 						banc.calculateExpired();
-						m_botAction.ipcSendMessage(IPCBANC, banc.getType().toString()+" "+banc.duration+":"+playerName, null, "banc");
+						altNickToSuperSpec = banc.playername;
+						//SUPERSPEC TIME:OLDNICK:NEWNICK
+						if(banc.type.equals(BanCType.SUPERSPEC) && !banc.playername.equals("altNickToSuperSpec"))
+                            m_botAction.ipcSendMessage(IPCBANC, banc.getType().toString()+" "+banc.duration+":"+"OLD:"+playerName+" NEW:"+altNickToSuperSpec, null, "banc");
+						else if(!banc.type.equals(BanCType.SUPERSPEC))
+						    m_botAction.ipcSendMessage(IPCBANC, banc.getType().toString()+" "+banc.duration+":"+playerName, null, "banc");
 					}
 				}
 			}
@@ -876,7 +884,9 @@ public class staffbot_banc extends Module {
 			timeToTell = 7;
 		}
 		
-		BanC banc = new BanC(bancType, target, time);
+		BanC banc;
+	    banc = new BanC(bancType, target, time);
+		
 		banc.staffer = name;
 		dbLookupIPMID(banc);
 		dbAddBan(banc);
@@ -1524,8 +1534,8 @@ public class staffbot_banc extends Module {
 	                    banc.type = BanCType.valueOf("SUPERSPEC");
 	                else
 	                    banc.type = BanCType.valueOf(rs.getString("fcType"));
-	                
-	                banc.playername = rs.getString("fcUsername");
+	                String playerName = rs.getString("fcUsername");
+	                banc.addNickName(playerName);
 	                banc.IP = rs.getString("fcIP");
 	                banc.MID = rs.getString("fcMID");
 	                banc.notification = rs.getBoolean("fbNotification");
@@ -1692,7 +1702,6 @@ public class staffbot_banc extends Module {
         	}
         }
     }
-	
     
 	public class BanC {
 		
@@ -1730,7 +1739,9 @@ public class staffbot_banc extends Module {
 				expired = now.equals(expiration) || now.after(expiration);
 			}
 		}
-		
+		public void addNickName(String name){
+	            this.playername = name;
+        }
 		public void applyChanges(BanC changes) {
 			if(changes.playername != null)
 				this.playername = changes.playername;
