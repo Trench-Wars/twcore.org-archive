@@ -145,7 +145,7 @@ public class staffbot_banc extends Module {
             bancOps.add( e.toLowerCase() );
         */
     	// Initialize Prepared Statements
-    	psActiveBanCs = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT * FROM tblBanc WHERE DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0");
+    	psActiveBanCs = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT * FROM tblBanc WHERE DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() AND fbLifted = 0 OR fnDuration = 0");
     	//psListBanCs = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT * FROM tblBanc LIMIT 0,?");
     	psCheckAccessReq = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT fcMinAccess FROM tblBanc WHERE fnID = ?");
     	psAddBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "INSERT INTO tblBanc(fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())", true);
