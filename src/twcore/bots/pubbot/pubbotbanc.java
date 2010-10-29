@@ -223,12 +223,14 @@ public class pubbotbanc extends PubBotModule {
         if(cmdSplit.length == 3){
             String oldNickString = cmdSplit[1];
             String newNickString = cmdSplit[2];
+            m_botAction.sendSmartPrivateMessage("quiles", "New nick: "+newNickString);
             this.tempBanCPlayer = newNickString;
             this.hashSuperSpec.remove(oldNickString);
             this.hashSuperSpec.add(newNickString);
         }
         else{
            this.tempBanCPlayer = cmdSplit[1];
+           m_botAction.sendSmartPrivateMessage("quiles", "Same nick: "+cmdSplit[1]);
            if(!this.hashSuperSpec.contains(cmdSplit[1]))
                this.hashSuperSpec.add(cmdSplit[1]);
         }
