@@ -645,10 +645,10 @@ public class PubMoneySystemModule extends AbstractModule {
             msg += "Location: " + context.getPubUtil().getLocationName(location) + " (+$"+moneyByLocation+").";
             
             // Overide if kill in space
-            if (location.equals(Location.SPACE)) {
-            	total = 0;
-            	msg = "Kills outside of the base are worthless.";
-            }
+            //if (location.equals(Location.SPACE)) {
+            //	total = 0;
+            //	msg = "Kills outside of the base are worthless.";
+            //}
             
             m_botAction.sendSmartPrivateMessage(sender, "You earned $" + total + " by killing " + player.getLastKillKilledName() + ".");
             m_botAction.sendSmartPrivateMessage(sender, msg);
@@ -1214,9 +1214,9 @@ public class PubMoneySystemModule extends AbstractModule {
 	            }
 	
 	            String playerName = killer.getPlayerName();
-	            if (!location.equals(Location.SPACE)) {
+	            //if (!location.equals(Location.SPACE)) {
 	            	context.getPlayerManager().addMoney(playerName, money);
-	            }
+	            //}
 	            pubPlayerKiller.setLastKillShips((int)killer.getShipType(), (int)killed.getShipType());
 	            pubPlayerKiller.setLastKillLocation(location);
 	            pubPlayerKiller.setLastKillKilledName(killed.getPlayerName());
