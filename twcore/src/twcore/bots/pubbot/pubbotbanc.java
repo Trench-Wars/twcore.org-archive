@@ -44,7 +44,7 @@ import twcore.core.util.ipc.IPCMessage;
  */
 public class pubbotbanc extends PubBotModule {
 	
-    private List<String> banCSuperLocked;
+    private List<String> hashSuperSpec;
     
 	private String tempBanCCommand = null;
 	private String tempBanCTime = null;
@@ -78,8 +78,10 @@ public class pubbotbanc extends PubBotModule {
     		}
     	};
     	m_botAction.scheduleTaskAtFixedRate(checkIPCQueue, 5*Tools.TimeInMillis.SECOND, 5*Tools.TimeInMillis.SECOND);
-    	banCSuperLocked = new ArrayList<String>();
+    	hashSuperSpec = new ArrayList<String>();
+    	
     }
+    
 
     public void cancel(){
     	m_botAction.ipcUnSubscribe(IPCBANC);
@@ -117,11 +119,11 @@ public class pubbotbanc extends PubBotModule {
             String namePlayer = m_botAction.getPlayerName(event.getPlayerID());
             m_botAction.sendPrivateMessage("quiles", "Someone changed ship: "+namePlayer);
             
-            if( banCSuperLocked.contains( namePlayer.toLowerCase() ) ){// && ( event.getShipType() == 2 || event.getShipType() == 4 || event.getShipType() == 8 )){
+            if( this.hashSuperSpec.contains( namePlayer.toLowerCase() ) ){// && ( event.getShipType() == 2 || event.getShipType() == 4 || event.getShipType() == 8 )){
                 superLockMethod(namePlayer, event.getShipType());
                 m_botAction.sendPrivateMessage("quiles", "List contains "+namePlayer);
             }
-            else if(!banCSuperLocked.contains(namePlayer.toLowerCase()))
+            else if(!this.hashSuperSpec.contains(namePlayer.toLowerCase()))
                 m_botAction.sendPrivateMessage("quiles", "Doesn't contain "+namePlayer);
             
             
@@ -131,6 +133,7 @@ public class pubbotbanc extends PubBotModule {
     }
     
     private void superLockMethod(String namePlayer, int shipNumber){
+        
         if( shipNumber == 2 || shipNumber == 8 || shipNumber == 4){
             m_botAction.sendPrivateMessage("quiles", namePlayer+" tried to get in "+shipNumber+" but no!");
             m_botAction.sendPrivateMessage(namePlayer, "You're banned from ship"+shipNumber);
@@ -164,6 +167,7 @@ public class pubbotbanc extends PubBotModule {
 		} else
 		if(command.startsWith(BanCType.SUPERSPEC.toString())){
 		    //superspec lock player in arena
+		    handleSuperSpec(command);
 		    tempBanCCommand = BanCType.SUPERSPEC.toString();
 		    //!spec player:time
 		    //SPEC time:target
@@ -171,10 +175,10 @@ public class pubbotbanc extends PubBotModule {
 		    //SUPERSPEC time:target
 		    //0123456789T
 		    tempBanCTime = command.substring(10).split(":")[0];
-		    tempBanCPlayer = command.substring(10).split(":")[1];
+		    handleSuperSpec(command);
+		    //tempBanCPlayer = command.substring(10).split(":")[1];
+		    m_botAction.sendSmartPrivateMessage("quiles","Super specced "+tempBanCPlayer+" for "+tempBanCTime);
 		    m_botAction.setShip(tempBanCPlayer, 3);
-		    banCSuperLocked.add(tempBanCPlayer.toLowerCase());
-		    m_botAction.sendPrivateMessage("quiles","Super specced "+tempBanCPlayer+" for "+tempBanCTime);
 		} else
 		if(command.startsWith("REMOVE "+BanCType.SPEC.toString())) {
 			// remove speclock of player in arena
@@ -193,7 +197,7 @@ public class pubbotbanc extends PubBotModule {
 	            //REMOVE SUPERSPEC PLAYER
 	            //0123456789DODTQQDD
 	            tempBanCPlayer = command.substring(17);
-	            this.banCSuperLocked.remove(tempBanCPlayer.toLowerCase());
+	            hashSuperSpec.remove(tempBanCPlayer);
 	            m_botAction.sendPrivateMessage("quiles", "player "+tempBanCPlayer+" un superspec locked");
 	            //maybe pm the player here?
         } else
@@ -211,6 +215,26 @@ public class pubbotbanc extends PubBotModule {
 		}
     }
     
+    private void handleSuperSpec(String command) {
+        // TODO Auto-generated method stub
+        //SUPERSPEC TIME:OLDNICK:NEWNICK
+        String cmdSplit[] = command.split(":");
+        
+        if(cmdSplit.length == 3){
+            String oldNickString = cmdSplit[1];
+            String newNickString = cmdSplit[2];
+            this.tempBanCPlayer = newNickString;
+            this.hashSuperSpec.remove(oldNickString);
+            this.hashSuperSpec.add(newNickString);
+        }
+        else{
+           this.tempBanCPlayer = cmdSplit[1];
+           if(!this.hashSuperSpec.contains(cmdSplit[1]))
+               this.hashSuperSpec.add(cmdSplit[1]);
+        }
+    }
+
+
     public void handleEvent( Message event ) {
         String message = event.getMessage().trim();
         
@@ -286,8 +310,6 @@ public class pubbotbanc extends PubBotModule {
             	tempBanCCommand = null;
                 tempBanCPlayer = null;
         	}
-        	else
-        	    this.banCSuperLocked.remove(tempBanCPlayer);
         	
         	if(tempBanCCommand == null && IPCQueue.size() != 0) {
         		handleIPCMessage(IPCQueue.remove(0));
