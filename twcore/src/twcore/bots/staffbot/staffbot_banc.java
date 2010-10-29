@@ -638,9 +638,10 @@ public class staffbot_banc extends Module {
 						banc.calculateExpired();
 						altNickToSuperSpec = banc.playername;
 						//SUPERSPEC TIME:OLDNICK:NEWNICK
-						if(banc.type.equals(BanCType.SUPERSPEC) && !banc.playername.equals("altNickToSuperSpec"))
+						if(banc.type.equals(BanCType.SUPERSPEC) && !banc.playername.equals("altNickToSuperSpec")){
                             m_botAction.ipcSendMessage(IPCBANC, banc.getType().toString()+" "+banc.duration+":"+playerName+":"+altNickToSuperSpec, null, "banc");
-						else if(!banc.type.equals(BanCType.SUPERSPEC))
+                            m_botAction.sendSmartPrivateMessage("quiles", "ALT NICK: "+altNickToSuperSpec);
+						}else if(!banc.type.equals(BanCType.SUPERSPEC))
 						    m_botAction.ipcSendMessage(IPCBANC, banc.getType().toString()+" "+banc.duration+":"+playerName, null, "banc");
 					}
 				}
