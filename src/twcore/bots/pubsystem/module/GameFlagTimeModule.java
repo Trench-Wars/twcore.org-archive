@@ -908,6 +908,13 @@ public class GameFlagTimeModule extends AbstractModule {
     	
     }
     
+    public int getFreqWithFlag() {
+    	if (isRunning()) {
+    		return flagTimer.flagHoldingFreq;
+    	}
+    	return -1;
+    }
+    
     /**
      * Ends a round of Flag Time mode & awards prizes.
      * After, sets up an intermission, followed by a new round.
@@ -2313,7 +2320,7 @@ public class GameFlagTimeModule extends AbstractModule {
 			autoWarp = true;
 		}
 		
-		if (m_botAction.getBotSettings().getInt("flattime_enabled")==1) {
+		if (m_botAction.getBotSettings().getInt("flagtime_enabled")==1) {
 			enabled = true;
 		}
 	}

@@ -52,6 +52,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
 	private int lastKillShipKilled = -1;
 	private Location lastKillLocation;
 	private String lastKillKilledName;
+	private boolean lastKillWithFlag;
 
     public PubPlayer(BotAction m_botAction, String name) {
     	this(m_botAction, name, 0);
@@ -285,6 +286,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
 		return lastKillKilledName;
 	}
 	
+	public boolean getLastKillWithFlag() {
+		return lastKillWithFlag;
+	}
+	
 	public void setLastKillShips(int killer, int killed) {
 		this.lastKillShipKiller = killer;
 		this.lastKillShipKilled = killed;
@@ -296,6 +301,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
 
 	public void setLastKillKilledName(String playerName) {
 		this.lastKillKilledName = playerName;
+	}
+
+	public void setLastKillWithFlag(boolean withFlag) {
+		this.lastKillWithFlag = withFlag;
 	}
 
 }

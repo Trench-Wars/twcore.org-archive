@@ -549,6 +549,8 @@ public class PubChallengeModule extends AbstractModule {
     		throw new RuntimeException("You need to set a winner or a loser! setWinner()/setLoser()");
     	}
     	
+    	boolean cancelled = false;
+    	
     	Dueler winner = challenge.winner;
     	Dueler loser = challenge.loser;
     	
@@ -565,6 +567,9 @@ public class PubChallengeModule extends AbstractModule {
         if(laggers.containsKey(winner) && laggers.containsKey(loser)) 
         {
             m_botAction.cancelTask(laggers.get(winner.name));
+        	m_botAction.sendSmartPrivateMessage(winner.name,"Your duel against "+loser.name+" has been cancelled, both lagout/specced.");
+    		m_botAction.sendSmartPrivateMessage(loser.name,"Your duel against "+winner.name+" has been cancelled, both lagout/specced.");
+            cancelled = true;
         }
         
         else if(challenge.winByLagout)
@@ -593,7 +598,7 @@ public class PubChallengeModule extends AbstractModule {
         challenge.area.free();
         
         // Give/Remove money
-        if (context.getMoneySystem().isEnabled()) {
+        if (!cancelled && context.getMoneySystem().isEnabled()) {
 	        context.getPlayerManager().addMoney(winner.name, money);
 	        context.getPlayerManager().removeMoney(loser.name, money, true);
         }
@@ -615,7 +620,7 @@ public class PubChallengeModule extends AbstractModule {
     	warpToSafe(winner.name, true);
     	warpToSafe(loser.name, false);
         
-        if (saveDuel) {
+        if (saveDuel && !cancelled) {
         
 	        String[] fields = {
 	        	"fcNameChallenger",
@@ -687,14 +692,14 @@ public class PubChallengeModule extends AbstractModule {
 	            
         		if(dueler.type == 1){
 	                m_botAction.warpTo(name, challenge.area.warp1x, challenge.area.warp1y);
-	                m_botAction.specificPrize(name, Tools.Prize.FULLCHARGE);
-	                m_botAction.shipReset(name);
 	            }
 	            else if(dueler.type == 2){
 	                m_botAction.warpTo(name, challenge.area.warp2x, challenge.area.warp2y);
-	                m_botAction.specificPrize(name, Tools.Prize.FULLCHARGE);
-	                m_botAction.shipReset(name);
 	            }
+                m_botAction.shipReset(name);
+        		m_botAction.specificPrize(name, Tools.Prize.MULTIFIRE);
+        		m_botAction.specificPrize(name, Tools.Prize.FULLCHARGE);
+        		m_botAction.specificPrize(name, -27); // NEGATIVE ROCKET
         	}
         }     
     }

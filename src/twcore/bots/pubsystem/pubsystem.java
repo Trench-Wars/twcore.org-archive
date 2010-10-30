@@ -3,15 +3,12 @@ package twcore.bots.pubsystem;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.TimerTask;
 import java.util.Vector;
 
 import twcore.bots.pubsystem.module.AbstractModule;
-import twcore.bots.pubsystem.module.GameFlagTimeModule;
 import twcore.core.BotAction;
-import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaJoined;
