@@ -196,10 +196,10 @@ public class PubMoneySystemModule extends AbstractModule {
 	        	PubPrizeItem itemPrize = (PubPrizeItem)item;
 	        	
 	        	List<Integer> prizes = ((PubPrizeItem) item).getPrizes();
-	        	final TimerTask task = new PrizeTask(prizes, receiver.getPlayerName());
+	        	final TimerTask task = new PrizeTask(itemPrize, receiver.getPlayerName());
 	        	
 	        	// Prize items every X seconds? (super/shield)
-                if (itemPrize.getPrizeSeconds()!=0) {
+                if (itemPrize.getPrizeSeconds()!=0 && item.hasDuration()) {
                 	m_botAction.scheduleTask(task, 0, itemPrize.getPrizeSeconds()*Tools.TimeInMillis.SECOND);
                 // Or one shot?
                 } else {
@@ -219,9 +219,6 @@ public class PubMoneySystemModule extends AbstractModule {
 	                        	if (System.currentTimeMillis()-receiver.getLastDeath() > duration.getSeconds()*1000) {
 	                            	m_botAction.sendUnfilteredPrivateMessage(receiver.getPlayerName(), "*shipreset");
 	                            	m_botAction.giveBounty(receiver.getPlayerName(), bounty);
-	                            	try {
-	                            		task.cancel();
-	                            	} catch(Exception e) { }
 	                        	}
 	                        	m_botAction.sendSmartPrivateMessage(receiver.getPlayerName(), "Item '" + item.getName() + "' lost.");
 	                        }
@@ -633,7 +630,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	if (player != null) {
     		
     		if (player.getLastKillKillerShip() == -1) {
-    			m_botAction.sendSmartPrivateMessage(sender, "You don't have killed anyone yet.");
+    			m_botAction.sendSmartPrivateMessage(sender, "You haven't killed anyone yet.");
     			return;
     		}
     		
@@ -649,8 +646,12 @@ public class PubMoneySystemModule extends AbstractModule {
             if (locationPoints.containsKey(location)) {
             	moneyByLocation = locationPoints.get(location);
             }
+            int moneyByFlag = 0;
+            if (player.getLastKillWithFlag()) {
+            	moneyByFlag = 3;
+            }
             
-            int total = moneyKiller+moneyKilled+moneyByLocation;
+            int total = moneyKiller+moneyKilled+moneyByLocation+moneyByFlag;
             
             String msg = "You were a " + Tools.shipName(shipKiller) + " (+$"+moneyKiller+")";
             msg += ", killed a " + Tools.shipName(shipKilled) + " (+$"+moneyKilled+"). ";
@@ -1714,15 +1715,29 @@ public class PubMoneySystemModule extends AbstractModule {
 	}
 	
    	private class PrizeTask extends TimerTask {
+   		
+   		private PubPrizeItem item;
    		private String receiver;
    		private List<Integer> prizes;
-   		public PrizeTask(List<Integer> prizes, String receiver) {
-   			this.prizes = prizes;
+   		private long startAt = System.currentTimeMillis();
+   		
+   		public PrizeTask(PubPrizeItem item, String receiver) {
+   			this.item = item;
+   			this.prizes = item.getPrizes();
    			this.receiver = receiver;
    		}
 		public void run() {
         	for(int prizeNumber: prizes) {
         		m_botAction.specificPrize(receiver, prizeNumber);
+        	}
+        	if (item.hasDuration()) {
+        		if (System.currentTimeMillis()-startAt >= item.getDuration().getSeconds()*Tools.TimeInMillis.SECOND) {
+        			m_botAction.sendUnfilteredPrivateMessage(receiver, "*shipreset");
+        			cancel();
+        		}
+        	} else {
+        		m_botAction.sendUnfilteredPrivateMessage(receiver, "*shipreset");
+        		cancel();
         	}
 		}
 	};

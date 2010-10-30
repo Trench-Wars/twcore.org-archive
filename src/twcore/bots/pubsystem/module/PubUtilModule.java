@@ -145,6 +145,8 @@ public class PubUtilModule extends AbstractModule {
 			// GET IP + MID
 			if (event.getIdentifier().startsWith("alias:ip:")) {
 
+				System.out.println("Alias ip result: " + alias.getName());
+				
 				StringBuffer buffer = new StringBuffer("(");
 				try {
 					while(resultSet.next()) {
@@ -158,6 +160,8 @@ public class PubUtilModule extends AbstractModule {
 			}
 			else if (event.getIdentifier().equals("alias:mid:")) {
 
+				System.out.println("Alias mid result: " + alias.getName());
+				
 				StringBuffer buffer = new StringBuffer("(");
 				try {
 					while(resultSet.next()) {
@@ -173,7 +177,7 @@ public class PubUtilModule extends AbstractModule {
 			
 			// Retrieve the final query using IP+MID
 			if (event.getIdentifier().startsWith("alias:final:")) {
-				
+
 				HashSet<String> prevResults = new HashSet<String>();
 				int numResults = 0;
 
@@ -187,6 +191,8 @@ public class PubUtilModule extends AbstractModule {
 					}
 				} catch (Exception e) { }
 				
+				System.out.println("Alias FINAL result: " + alias.getName() + "(" + numResults + ")");
+				
 				alias.setAliasCount(numResults);
 				
 				sendNewPlayerAlert(alias);				
@@ -195,7 +201,7 @@ public class PubUtilModule extends AbstractModule {
 			// Send final query if we have IP+MID
 			else if (alias.getIpResults() != null && alias.getMidResults() != null) {
 				
-				String database = m_botAction.getBotSettings().getString("alias_database");
+				String database = m_botAction.getBotSettings().getString("database_alias");
 				
 				m_botAction.SQLBackgroundQuery(database, "alias:final:"+name,
 					"SELECT * " +
@@ -463,12 +469,13 @@ public class PubUtilModule extends AbstractModule {
     // Alias check using background queries
     private void doAliasCheck(AliasCheck alias)
     {
-    	String database = m_botAction.getBotSettings().getString("alias_database");
+    	String database = m_botAction.getBotSettings().getString("database_alias");
     	if (database==null) {
     		return;
     	}
     	
     	aliases.put(name, alias);
+    	System.out.println("Alias check starting for: " + alias.getName());
     	
 		m_botAction.SQLBackgroundQuery(database, "alias:ip:"+alias.getName(),
 				"SELECT DISTINCT(fnIP) " +
