@@ -326,7 +326,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 				Tools.printStackTrace(e);
 			}
     	}
-    	else {
+    	else if (event.getIdentifier()==null || event.getIdentifier().equals(""))  {
     		try {
 				event.getResultSet().close();
 			} catch (SQLException e) {

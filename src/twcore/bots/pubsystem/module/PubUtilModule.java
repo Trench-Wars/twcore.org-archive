@@ -136,7 +136,7 @@ public class PubUtilModule extends AbstractModule {
 			return;
 		
 		if (event.getIdentifier().startsWith("alias:")) {
-		
+
 			String name = event.getIdentifier().substring(event.getIdentifier().lastIndexOf(":")+1);
 			AliasCheck alias = aliases.get(name);
 			if (alias==null)
@@ -474,7 +474,7 @@ public class PubUtilModule extends AbstractModule {
     		return;
     	}
     	
-    	aliases.put(name, alias);
+    	aliases.put(alias.getName(), alias);
     	System.out.println("Alias check starting for: " + alias.getName());
     	
 		m_botAction.SQLBackgroundQuery(database, "alias:ip:"+alias.getName(),
