@@ -15,6 +15,7 @@ import twcore.core.EventRequester;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
+import twcore.core.events.SQLResultEvent;
 import twcore.core.events.TurretEvent;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
@@ -63,10 +64,13 @@ public class PubUtilModule extends AbstractModule {
 	
 	private long uptime = 0;
 	
+	private HashMap<String,AliasCheck> aliases;
+	
 	
 	public PubUtilModule(BotAction botAction, PubContext context) {
 		super(botAction, context, "Utility");
 		this.uptime = System.currentTimeMillis();
+		this.aliases = new HashMap<String,AliasCheck>();
 		reloadConfig();
 	}
 	
@@ -107,14 +111,103 @@ public class PubUtilModule extends AbstractModule {
 				String[] pieces = time.split(":");
 				if (pieces.length==3) {
 					if (pieces[0].equals("0")) {
+						
 						int hour = Integer.valueOf(pieces[0]);
 						int min = Integer.valueOf(pieces[1]);
-						if (min <= 15)
-							m_botAction.sendChatMessage(2, ">>>>>> New player: " + currentInfoName + " (" + hour +"h " + min + "m)");
+						
+						AliasCheck alias = new AliasCheck(currentInfoName,hour*60+min);
+						alias.setUsage(hour*60+min);
+						
+						if (aliases.containsKey(currentInfoName)) {
+							sendNewPlayerAlert(alias);
+						} else {
+							doAliasCheck(alias);
+						}
 					}
 				}
 			}
 		}
+	}
+	
+	public void handleEvent(SQLResultEvent event) {
+
+		ResultSet resultSet = event.getResultSet();
+		if(resultSet == null)
+			return;
+		
+		if (event.getIdentifier().startsWith("alias:")) {
+		
+			String name = event.getIdentifier().substring(event.getIdentifier().lastIndexOf(":")+1);
+			AliasCheck alias = aliases.get(name);
+			if (alias==null)
+				return;
+			
+			// GET IP + MID
+			if (event.getIdentifier().startsWith("alias:ip:")) {
+
+				StringBuffer buffer = new StringBuffer("(");
+				try {
+					while(resultSet.next()) {
+						buffer.append(resultSet.getString("fnIP"));
+						buffer.append(", ");
+					}
+				} catch (Exception e) { }
+				buffer.append(") ");
+				
+				alias.setIpResults(buffer.toString());
+			}
+			else if (event.getIdentifier().equals("alias:mid:")) {
+
+				StringBuffer buffer = new StringBuffer("(");
+				try {
+					while(resultSet.next()) {
+						buffer.append(resultSet.getString("fnMachineId"));
+						buffer.append(", ");
+					}
+				} catch (Exception e) { }
+				buffer.append(") ");
+				
+				alias.setMidResults(buffer.toString());
+
+			}
+			
+			// Retrieve the final query using IP+MID
+			if (event.getIdentifier().startsWith("alias:final:")) {
+				
+				HashSet<String> prevResults = new HashSet<String>();
+				int numResults = 0;
+
+				try {
+					while(resultSet.next()) {
+						String username = resultSet.getString("fcUserName");
+						if(!prevResults.contains(username)){
+							prevResults.add(username);
+							numResults++;
+						}
+					}
+				} catch (Exception e) { }
+				
+				alias.setAliasCount(numResults);
+				
+				sendNewPlayerAlert(alias);				
+				
+			}
+			// Send final query if we have IP+MID
+			else if (alias.getIpResults() != null && alias.getMidResults() != null) {
+				
+				String database = m_botAction.getBotSettings().getString("alias_database");
+				
+				m_botAction.SQLBackgroundQuery(database, "alias:final:"+name,
+					"SELECT * " +
+					"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+					"WHERE fnIP IN " + alias.getIpResults() + " " +
+					"AND fnMachineID IN " + alias.getMidResults());
+				
+			}
+		}
+		
+		m_botAction.SQLClose(resultSet);
+
 	}
 
 	public void handleEvent(PlayerEntered event) {
@@ -124,9 +217,7 @@ public class PubUtilModule extends AbstractModule {
 	    if(player.getPlayerName().startsWith("^") == false) {
 	    	m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*info");
 	    }
-
 	}
-	
 	
     
     public void handleEvent(TurretEvent event) {
@@ -360,7 +451,35 @@ public class PubUtilModule extends AbstractModule {
     	
     	m_botAction.sendSmartPrivateMessage(sender, "Uptime: " + minute + " minutes");
     }
+    
+    private void sendNewPlayerAlert(AliasCheck alias) {
+    	
+    	if (alias.getUsage() < 15 && alias.getAliasCount() <= 2) {
+    		m_botAction.sendChatMessage(2, ">>>>>> New player: " + currentInfoName);
+    	}
+    	
+    }
 
+    // Alias check using background queries
+    private void doAliasCheck(AliasCheck alias)
+    {
+    	String database = m_botAction.getBotSettings().getString("alias_database");
+    	if (database==null) {
+    		return;
+    	}
+    	
+    	aliases.put(name, alias);
+    	
+		m_botAction.SQLBackgroundQuery(database, "alias:ip:"+alias.getName(),
+				"SELECT DISTINCT(fnIP) " +
+				"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+				"WHERE fcUserName = '" + Tools.addSlashesToString(alias.getName()) + "'");
+		
+		m_botAction.SQLBackgroundQuery(database, "alias:mid:"+alias.getName(),
+				"SELECT DISTINCT(fnMachineId) " +
+				"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+				"WHERE fcUserName = '" + Tools.addSlashesToString(alias.getName()) + "'");
+    }
 
 
     /**
@@ -554,6 +673,59 @@ public class PubUtilModule extends AbstractModule {
 		setArenaTileset(defaultTileSet);
 	}
 	
+    private class AliasCheck
+    {
+    	private String name;
+    	
+    	private String ipResults;
+    	private String midResults;
+    	private int usage; // in minutes
+    	private int aliasCount = -1;
+
+    	public AliasCheck(String name, int usage) {
+    		this.name = name;
+    		this.usage = usage;
+    	}
+
+		public String getName() {
+			return name;
+		}
+
+		public int getUsage() {
+			return usage;
+		}
+		
+		public void setUsage(int usage) {
+			this.usage = usage;
+		}
+
+		public int getAliasCount() {
+			return aliasCount;
+		}
+		
+		public void setAliasCount(int count) {
+			this.aliasCount = count;
+		}
+
+		public String getIpResults() {
+			return ipResults;
+		}
+
+		public void setIpResults(String ipResults) {
+			this.ipResults = ipResults;
+		}
+
+		public String getMidResults() {
+			return midResults;
+		}
+
+		public void setMidResults(String midResults) {
+			this.midResults = midResults;
+		}
+
+    }
+
+	
     /**
      * This private class logs the bot off.  It is used to give a slight delay
      * to the log off process.
@@ -626,5 +798,6 @@ public class PubUtilModule extends AbstractModule {
 		// TODO Auto-generated method stub
 		
 	}
+
 	
 }
