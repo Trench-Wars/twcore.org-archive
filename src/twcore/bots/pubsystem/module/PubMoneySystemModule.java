@@ -1736,7 +1736,6 @@ public class PubMoneySystemModule extends AbstractModule {
         			cancel();
         		}
         	} else {
-        		m_botAction.sendUnfilteredPrivateMessage(receiver, "*shipreset");
         		cancel();
         	}
 		}
