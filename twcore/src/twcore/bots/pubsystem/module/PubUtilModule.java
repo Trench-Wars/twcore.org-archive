@@ -158,7 +158,7 @@ public class PubUtilModule extends AbstractModule {
 				
 				alias.setIpResults(buffer.toString());
 			}
-			else if (event.getIdentifier().equals("alias:mid:")) {
+			else if (event.getIdentifier().startsWith("alias:mid:")) {
 
 				System.out.println("Alias mid result: " + alias.getName());
 				
