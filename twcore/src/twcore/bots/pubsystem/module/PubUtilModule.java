@@ -145,33 +145,34 @@ public class PubUtilModule extends AbstractModule {
 			// GET IP + MID
 			if (event.getIdentifier().startsWith("alias:ip:")) {
 
-				System.out.println("Alias ip result: " + alias.getName());
-				
-				StringBuffer buffer = new StringBuffer("(");
+				StringBuffer buffer = new StringBuffer();
 				try {
 					while(resultSet.next()) {
-						buffer.append(resultSet.getString("fnIP"));
 						buffer.append(", ");
+						buffer.append(resultSet.getString("fnIP"));
 					}
 				} catch (Exception e) { }
-				buffer.append(") ");
 				
-				alias.setIpResults(buffer.toString());
+				if (buffer.length()>2)
+					alias.setIpResults("(" + buffer.toString().substring(2) + ") ");
+				else
+					alias.setIpResults("");
+				
 			}
 			else if (event.getIdentifier().startsWith("alias:mid:")) {
 
-				System.out.println("Alias mid result: " + alias.getName());
-				
-				StringBuffer buffer = new StringBuffer("(");
+				StringBuffer buffer = new StringBuffer();
 				try {
 					while(resultSet.next()) {
-						buffer.append(resultSet.getString("fnMachineId"));
 						buffer.append(", ");
+						buffer.append(resultSet.getString("fnMachineId"));
 					}
 				} catch (Exception e) { }
-				buffer.append(") ");
-				
-				alias.setMidResults(buffer.toString());
+
+				if (buffer.length()>2)
+					alias.setMidResults("(" + buffer.toString().substring(2) + ") ");
+				else
+					alias.setMidResults("");
 
 			}
 			
@@ -190,11 +191,8 @@ public class PubUtilModule extends AbstractModule {
 						}
 					}
 				} catch (Exception e) { }
-				
-				System.out.println("Alias FINAL result: " + alias.getName() + "(" + numResults + ")");
-				
+
 				alias.setAliasCount(numResults);
-				
 				sendNewPlayerAlert(alias);				
 				
 			}
@@ -203,11 +201,16 @@ public class PubUtilModule extends AbstractModule {
 				
 				String database = m_botAction.getBotSettings().getString("database_alias");
 				
-				m_botAction.SQLBackgroundQuery(database, "alias:final:"+name,
-					"SELECT * " +
-					"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-					"WHERE fnIP IN " + alias.getIpResults() + " " +
-					"AND fnMachineID IN " + alias.getMidResults());
+				if (alias.getIpResults().equals("") || alias.getMidResults().equals("")) {
+					alias.setAliasCount(0);
+					sendNewPlayerAlert(alias);		
+				} else {
+					m_botAction.SQLBackgroundQuery(database, "alias:final:"+name,
+							"SELECT * " +
+							"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+							"WHERE fnIP IN " + alias.getIpResults() + " " +
+							"AND fnMachineID IN " + alias.getMidResults());
+				}
 				
 			}
 		}
@@ -459,9 +462,11 @@ public class PubUtilModule extends AbstractModule {
     }
     
     private void sendNewPlayerAlert(AliasCheck alias) {
+
+    	System.out.println(alias.getName() + " " + alias.getAliasCount() + " " + alias.getUsage());
     	
-    	if (alias.getUsage() < 15 && alias.getAliasCount() <= 2) {
-    		m_botAction.sendChatMessage(2, ">>>>>> New player: " + currentInfoName);
+    	if (alias.getUsage() < 15 && alias.getAliasCount() <= 2 && alias.getAliasCount() >= 0) {
+    		m_botAction.sendChatMessage(2, ">>>>>> New player: " + alias.getName());
     	}
     	
     }
