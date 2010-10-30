@@ -45,7 +45,6 @@ import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.SQLResultEvent;
-import twcore.core.events.TurretEvent;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
@@ -86,7 +85,7 @@ public class PubMoneySystemModule extends AbstractModule {
         this.shipKilledPoints = new HashMap<Integer, Integer>();
         this.locationPoints = new HashMap<Location, Integer>();
         this.frequencyTimes = new HashMap<String, Long>();
-        
+
         this.coupons = new HashMap<String,CouponCode>();
 
         try {
@@ -193,10 +192,20 @@ public class PubMoneySystemModule extends AbstractModule {
     	
 	    	// PRIZE ITEM
 	        if (item instanceof PubPrizeItem) {
+	        	
+	        	PubPrizeItem itemPrize = (PubPrizeItem)item;
+	        	
 	        	List<Integer> prizes = ((PubPrizeItem) item).getPrizes();
-	        	for(int prizeNumber: prizes) {
-	        		m_botAction.specificPrize(receiver.getPlayerName(), prizeNumber);
-	        	}
+	        	final TimerTask task = new PrizeTask(prizes, receiver.getPlayerName());
+	        	
+	        	// Prize items every X seconds? (super/shield)
+                if (itemPrize.getPrizeSeconds()!=0) {
+                	m_botAction.scheduleTask(task, 0, itemPrize.getPrizeSeconds()*Tools.TimeInMillis.SECOND);
+                // Or one shot?
+                } else {
+                	m_botAction.scheduleTask(task, 0);
+                }
+	        	
 	        	if (item.hasDuration()) {
 	            	final PubItemDuration duration = item.getDuration();
 	            	m_botAction.sendSmartPrivateMessage(receiver.getPlayerName(), "You have " + duration.getSeconds() + " seconds to use your item.");
@@ -210,6 +219,9 @@ public class PubMoneySystemModule extends AbstractModule {
 	                        	if (System.currentTimeMillis()-receiver.getLastDeath() > duration.getSeconds()*1000) {
 	                            	m_botAction.sendUnfilteredPrivateMessage(receiver.getPlayerName(), "*shipreset");
 	                            	m_botAction.giveBounty(receiver.getPlayerName(), bounty);
+	                            	try {
+	                            		task.cancel();
+	                            	} catch(Exception e) { }
 	                        	}
 	                        	m_botAction.sendSmartPrivateMessage(receiver.getPlayerName(), "Item '" + item.getName() + "' lost.");
 	                        }
@@ -652,6 +664,9 @@ public class PubMoneySystemModule extends AbstractModule {
             
             m_botAction.sendSmartPrivateMessage(sender, "You earned $" + total + " by killing " + player.getLastKillKilledName() + ".");
             m_botAction.sendSmartPrivateMessage(sender, msg);
+            if (player.getLastKillWithFlag()) {
+            	m_botAction.sendSmartPrivateMessage(sender, "Bonus: Your team had the flag +$3.");
+            }
     		
     	} else {
     		m_botAction.sendSmartPrivateMessage(sender, "You're still not in the system. Wait a bit to be added.");
@@ -1195,11 +1210,20 @@ public class PubMoneySystemModule extends AbstractModule {
             int y = killer.getYTileLocation(); 
             Location location = context.getPubUtil().getLocation(x, y);
             
-            // Add money if kill inside the base (aka not in space)
             if (location != null) 
             {
 	            int money = 0;
+	            boolean withFlag = false;
 	
+	            // Money if team with flag
+	            if (context.getGameFlagTime().isRunning()) {
+	            	int freqWithFlag = context.getGameFlagTime().getFreqWithFlag();
+	            	if (freqWithFlag == killer.getFrequency()) {
+	            		money += 3;
+	            		withFlag = true;
+	            	}
+	            }
+	            
 	            // Money from the ship
 	            int moneyKiller = shipKillerPoints.get((int)killer.getShipType());
 	            int moneyKilled = shipKillerPoints.get((int)killed.getShipType());
@@ -1213,13 +1237,14 @@ public class PubMoneySystemModule extends AbstractModule {
 	            	money += moneyByLocation;
 	            }
 	
+	            // Add money	            
 	            String playerName = killer.getPlayerName();
-	            //if (!location.equals(Location.SPACE)) {
-	            	context.getPlayerManager().addMoney(playerName, money);
-	            //}
+	            context.getPlayerManager().addMoney(playerName, money);
+	            
 	            pubPlayerKiller.setLastKillShips((int)killer.getShipType(), (int)killed.getShipType());
 	            pubPlayerKiller.setLastKillLocation(location);
 	            pubPlayerKiller.setLastKillKilledName(killed.getPlayerName());
+	            pubPlayerKiller.setLastKillWithFlag(withFlag);
             }
 
         } catch(Exception e){
@@ -1248,7 +1273,7 @@ public class PubMoneySystemModule extends AbstractModule {
         else if(command.startsWith("!donate")){
         	doCmdDonate(sender, command);
         }
-        else  if (command.startsWith("!coupon")) {
+        else  if (command.startsWith("!coupon ")) {
     		doCmdCoupon(sender, command.substring(8).trim());
         }
         else if(command.equals("!lastkill")){
@@ -1687,6 +1712,20 @@ public class PubMoneySystemModule extends AbstractModule {
     	}
     	database = m_botAction.getBotSettings().getString("database");
 	}
+	
+   	private class PrizeTask extends TimerTask {
+   		private String receiver;
+   		private List<Integer> prizes;
+   		public PrizeTask(List<Integer> prizes, String receiver) {
+   			this.prizes = prizes;
+   			this.receiver = receiver;
+   		}
+		public void run() {
+        	for(int prizeNumber: prizes) {
+        		m_botAction.specificPrize(receiver, prizeNumber);
+        	}
+		}
+	};
 	
    	private class EnergyDeplitedTask extends TimerTask {
    		private Integer[] freqs;
