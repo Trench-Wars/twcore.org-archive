@@ -110,17 +110,18 @@ public class PubUtilModule extends AbstractModule {
 				time = time.substring(0, time.indexOf("Created")).trim();
 				String[] pieces = time.split(":");
 				if (pieces.length==3) {
-					if (pieces[0].equals("0")) {
+					if (pieces[0].equals("0")) { // if usage less than 1 hour
 						
 						int hour = Integer.valueOf(pieces[0]);
 						int min = Integer.valueOf(pieces[1]);
-						
-						AliasCheck alias = new AliasCheck(currentInfoName,hour*60+min);
-						alias.setUsage(hour*60+min);
-						
+
 						if (aliases.containsKey(currentInfoName)) {
+							AliasCheck alias = aliases.get(currentInfoName);
+							alias.setUsage(hour*60+min);
 							sendNewPlayerAlert(alias);
 						} else {
+							AliasCheck alias = new AliasCheck(currentInfoName,hour*60+min);
+							alias.setUsage(hour*60+min);
 							doAliasCheck(alias);
 						}
 					}
@@ -463,8 +464,6 @@ public class PubUtilModule extends AbstractModule {
     
     private void sendNewPlayerAlert(AliasCheck alias) {
 
-    	System.out.println(alias.getName() + " " + alias.getAliasCount() + " " + alias.getUsage());
-    	
     	if (alias.getUsage() < 15 && alias.getAliasCount() <= 2 && alias.getAliasCount() >= 0) {
     		m_botAction.sendChatMessage(2, ">>>>>> New player: " + alias.getName());
     	}
@@ -480,8 +479,7 @@ public class PubUtilModule extends AbstractModule {
     	}
     	
     	aliases.put(alias.getName(), alias);
-    	System.out.println("Alias check starting for: " + alias.getName());
-    	
+
 		m_botAction.SQLBackgroundQuery(database, "alias:ip:"+alias.getName(),
 				"SELECT DISTINCT(fnIP) " +
 				"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
