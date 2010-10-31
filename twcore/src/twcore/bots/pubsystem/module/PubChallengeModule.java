@@ -175,6 +175,7 @@ public class PubChallengeModule extends AbstractModule {
                 return;
             }
             m_botAction.warpTo(name, area.warp2x, area.warp2y);
+            givePrize(name);
             if(laggers.containsKey(name)){
                 m_botAction.cancelTask(laggers.get(name));
                 laggers.remove(name);
@@ -196,6 +197,9 @@ public class PubChallengeModule extends AbstractModule {
         	if (duelers.containsKey(killee)) {
         		duelers.get(killee).lastDeath = System.currentTimeMillis();
         	}
+        	try {
+        		switchShip(duelers.get(killee).challenge, killee);
+        	} catch (Exception e) { }
             return;
         }
         
@@ -205,6 +209,9 @@ public class PubChallengeModule extends AbstractModule {
         if(w == null || l == null)
         	return;
         
+    	try {
+    		switchShip(duelers.get(killee).challenge, killee);
+    	} catch (Exception e) { }
         
         Challenge challenge = w.challenge;
         if (challenge == null 
@@ -250,6 +257,13 @@ public class PubChallengeModule extends AbstractModule {
             }
         }
         return null;
+    }
+    
+    public void switchShip(Challenge challenge, String name) {
+        int shipChange = 1;
+        if (challenge.ship==1) shipChange = 2;
+        m_botAction.setShip(name, shipChange);
+        m_botAction.setShip(name, challenge.ship);
     }
     
     public void issueChallenge(String challenger, String challenged, int amount, int ship) {
@@ -429,15 +443,11 @@ public class PubChallengeModule extends AbstractModule {
         duelerAccepter.oldFreq = playerAccepter.isPlaying() ? playerAccepter.getFrequency() : 0;
         duelerChallenger.oldFreq = playerChallenger.isPlaying() ? playerChallenger.getFrequency() : 0;
         
-        if(playerChallenger.getShipType() == 0)
-        {
-            m_botAction.setShip(challenger, 1);
-            m_botAction.sendSmartPrivateMessage(challenger, "You have been set to default ship cause you were in spec.");
+        if(playerChallenger.getShipType() == 0) {
+            m_botAction.setShip(challenger, ship);
         }
-        if(playerAccepter.getShipType() == 0)
-        {
-            m_botAction.setShip(accepter, 1);
-            m_botAction.sendSmartPrivateMessage(accepter, "You have been set to default ship cause you were in spec.");
+        if(playerAccepter.getShipType() == 0){
+            m_botAction.setShip(accepter, ship);
         }
         
         String moneyMessage = "";
@@ -653,6 +663,21 @@ public class PubChallengeModule extends AbstractModule {
     	        
     }
     
+    private void givePrize(String name) {
+    	
+    	m_botAction.shipReset(name);
+		m_botAction.specificPrize(name, Tools.Prize.FULLCHARGE);
+		m_botAction.specificPrize(name, Tools.Prize.MULTIFIRE);
+		m_botAction.specificPrize(name, Tools.Prize.SHRAPNEL);
+		m_botAction.specificPrize(name, Tools.Prize.SHRAPNEL);
+		m_botAction.specificPrize(name, Tools.Prize.SHRAPNEL);
+		m_botAction.specificPrize(name, Tools.Prize.SHRAPNEL);
+		m_botAction.specificPrize(name, Tools.Prize.SHRAPNEL);
+		m_botAction.specificPrize(name, -27); // NEGATIVE ROCKET
+		m_botAction.specificPrize(name, -26); // NEGATIVE BRICK
+    	
+    }
+    
     private class RemoveChallenge extends TimerTask {
     	
     	private Challenge challenge;
@@ -696,10 +721,7 @@ public class PubChallengeModule extends AbstractModule {
 	            else if(dueler.type == 2){
 	                m_botAction.warpTo(name, challenge.area.warp2x, challenge.area.warp2y);
 	            }
-                m_botAction.shipReset(name);
-        		m_botAction.specificPrize(name, Tools.Prize.MULTIFIRE);
-        		m_botAction.specificPrize(name, Tools.Prize.FULLCHARGE);
-        		m_botAction.specificPrize(name, -27); // NEGATIVE ROCKET
+                givePrize(name);
         	}
         }     
     }
@@ -843,6 +865,8 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.setFreq(accepter, 1);
             m_botAction.warpTo(challenger, area.warp1x, area.warp1y);
             m_botAction.warpTo(accepter, area.warp2x, area.warp2y);
+            givePrize(challenger);
+            givePrize(accepter);
             m_botAction.sendSmartPrivateMessage(challenger, "GO GO GO!", Tools.Sound.GOGOGO);
             m_botAction.sendSmartPrivateMessage(accepter, "GO GO GO!", Tools.Sound.GOGOGO);
 

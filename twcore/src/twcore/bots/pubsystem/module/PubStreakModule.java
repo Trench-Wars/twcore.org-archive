@@ -275,7 +275,7 @@ public class PubStreakModule extends AbstractModule {
 	    		if (winStreaks.containsKey(name)) {
 	    			m_botAction.sendSmartPrivateMessage(sender, "Current streak of " + name + ": " + winStreaks.get(name) + " kill(s).");
 	    		} else {
-	    			m_botAction.sendSmartPrivateMessage(sender, name + " has not streak yet.");
+	    			m_botAction.sendSmartPrivateMessage(sender, name + " has no streak yet.");
 	    		}
     			m_botAction.sendSmartPrivateMessage(sender, "Best streak: " + player.getBestStreak() + " kill(s).");
     		
@@ -305,9 +305,6 @@ public class PubStreakModule extends AbstractModule {
     		try {
 	    		int streak = Integer.parseInt(split[1]);
 	    		PubPlayer pubPlayer = context.getPlayerManager().getPlayer(name);
-	    		if (pubPlayer != null) {
-	    			pubPlayer.setBestStreak(streak);
-	    		}
 	    		winStreaks.put(pubPlayer.getPlayerName(), streak);
     		} catch (NumberFormatException e) {
     			m_botAction.sendSmartPrivateMessage(sender, "Error number!");
