@@ -672,7 +672,7 @@ public class matchbot extends SubspaceBot {
                     int players;
                     if (parameters.length == 2) {
                         if (Integer.parseInt(parameters[1]) >= m_rules.getInt("minplayers")
-                                && Integer.parseInt(parameters[1]) < m_rules.getInt("players")) {
+                                && Integer.parseInt(parameters[1]) <= m_rules.getInt("players")) {
                             players = Integer.parseInt(parameters[1]);
                         } else {
                             m_botAction.sendPrivateMessage(name, "Minimum # of players is "
@@ -734,7 +734,7 @@ public class matchbot extends SubspaceBot {
                 int players;
                 if (parameters.length == 1) {
                     if (Integer.parseInt(parameters[0]) >= m_rules.getInt("minplayers")
-                            && Integer.parseInt(parameters[0]) < m_rules.getInt("players")) {
+                            && Integer.parseInt(parameters[0]) <= m_rules.getInt("players")) {
                         players = Integer.parseInt(parameters[0]);
                     } else {
                         m_botAction.sendPrivateMessage(name, "Minimum # of players is "
@@ -809,7 +809,7 @@ public class matchbot extends SubspaceBot {
                 int players;
                 if (parameters.length == 1) {
                     if (Integer.parseInt(parameters[0]) >= m_rules.getInt("minplayers")
-                            && Integer.parseInt(parameters[0]) < m_rules.getInt("players")) {
+                            && Integer.parseInt(parameters[0]) <= m_rules.getInt("players")) {
                         players = Integer.parseInt(parameters[0]);
                     } else {
                         m_botAction.sendPrivateMessage(name, "Minimum # of players is "
