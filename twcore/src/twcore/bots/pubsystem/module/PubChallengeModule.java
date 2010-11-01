@@ -109,8 +109,8 @@ public class PubChallengeModule extends AbstractModule {
 	            return;
 	        }
 	        if(event.getShipType() != challenge.ship) {
-	            m_botAction.setShip(name, challenge.ship);
-	            m_botAction.sendSmartPrivateMessage(name, "Ship change during duel is not permitted.");
+	        	dueler.lastShipChange = 1;
+	        	m_botAction.setShip(name, challenge.ship);
 	        }
         }
         
@@ -150,13 +150,18 @@ public class PubChallengeModule extends AbstractModule {
         		&& System.currentTimeMillis()-challenge.startAt > 7 * Tools.TimeInMillis.SECOND
         		&& System.currentTimeMillis()-dueler.lastDeath > 7 * Tools.TimeInMillis.SECOND)
             {
-	            dueler.warps++;
+            	
+            	if (dueler.lastShipChange!=1) {
+            		dueler.warps++;
+            	} else {
+            		dueler.lastShipChange=0;
+            	}
 	            
-	            if (MAX_WARP-dueler.warps==1) {
-	            	m_botAction.sendSmartPrivateMessage(name, "You cannot warp during a duel. If you do it one more time, you lose.");
+	            if (MAX_WARP-dueler.warps==1 && dueler.lastShipChange==0) {
+	            	m_botAction.sendSmartPrivateMessage(name, "You cannot warp/ship change during a duel. If you do it one more time, you lose.");
 	            }
 	            else if (MAX_WARP == dueler.warps) {
-	            	m_botAction.sendSmartPrivateMessage(name, "Maximum of warp reached during a duel.");
+	            	m_botAction.sendSmartPrivateMessage(name, "Maximum of warp/ship change reached during a duel.");
 	            	m_botAction.sendSmartPrivateMessage(challenge.getOppositeDueler(dueler).name, "Your opponent has warped too many times, you are the winner.");
 	            	challenge.setLoser(dueler);
 	            	challenge.getOppositeDueler(dueler).kills = deaths;
@@ -174,8 +179,7 @@ public class PubChallengeModule extends AbstractModule {
                 } 
                 return;
             }
-            m_botAction.warpTo(name, area.warp2x, area.warp2y);
-            givePrize(name);
+
             if(laggers.containsKey(name)){
                 m_botAction.cancelTask(laggers.get(name));
                 laggers.remove(name);
@@ -197,28 +201,21 @@ public class PubChallengeModule extends AbstractModule {
         	if (duelers.containsKey(killee)) {
         		duelers.get(killee).lastDeath = System.currentTimeMillis();
         	}
-        	try {
-        		switchShip(duelers.get(killee).challenge, killee);
-        	} catch (Exception e) { }
-            return;
         }
         
         Dueler w = duelers.get(killer);
         Dueler l = duelers.get(killee);
         
+        w.lastKill = System.currentTimeMillis();
+        
         if(w == null || l == null)
         	return;
-        
-    	try {
-    		switchShip(duelers.get(killee).challenge, killee);
-    	} catch (Exception e) { }
-        
+
         Challenge challenge = w.challenge;
         if (challenge == null 
         		|| !challenge.getOppositeDueler(w).name.equals(l.name)
         		|| !challenge.isStarted()) {
         	l.lastDeath = System.currentTimeMillis();
-        	m_botAction.sendPublicMessage("Test2");
         	return;
         }
     
@@ -258,14 +255,7 @@ public class PubChallengeModule extends AbstractModule {
         }
         return null;
     }
-    
-    public void switchShip(Challenge challenge, String name) {
-        int shipChange = 1;
-        if (challenge.ship==1) shipChange = 2;
-        m_botAction.setShip(name, shipChange);
-        m_botAction.setShip(name, challenge.ship);
-    }
-    
+
     public void issueChallenge(String challenger, String challenged, int amount, int ship) {
     	
         Player playerChallenged = m_botAction.getFuzzyPlayer(challenged);
@@ -762,6 +752,13 @@ public class PubChallengeModule extends AbstractModule {
             	m_botAction.sendSmartPrivateMessage(killer.name, "No count");
             	return;
             
+            } else if (Math.abs(killed.lastKill-killer.lastKill) < 5*Tools.TimeInMillis.SECOND) {
+                killed.kills--;
+                killer.deaths--;
+                m_botAction.sendSmartPrivateMessage(killer.name, "No count, back to " + killer.kills+"-"+killed.kills);
+                m_botAction.sendSmartPrivateMessage(killed.name, "No count, back to " + killed.kills+"-"+killer.kills);
+            	return;
+            
             } else {
             	
                 killer.kills++;
@@ -1240,8 +1237,10 @@ class Dueler {
     
     public int oldFreq = 0;
     
-    public long lastDeath = 0; // To detect warp vs death
-    public long backFromLagout = 0; // To detect warp vs lagout
+    public long lastDeath = 0; // To detect warp vs death and no count (timestamp)
+    public long lastKill = 0; // For no count (timestamp)
+    public long lastShipChange = 0; // To detect warp vs shipchange (value:0,1,2)
+    public long backFromLagout = 0; // To detect warp vs lagout (timestamp)
     
     public Dueler(String name, int type, Challenge challenge){
         this.name = name;
@@ -1249,7 +1248,6 @@ class Dueler {
         this.challenge = challenge;
     }
 
-    
 }
 
 class Challenge {
