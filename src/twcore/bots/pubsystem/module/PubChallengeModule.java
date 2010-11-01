@@ -205,12 +205,12 @@ public class PubChallengeModule extends AbstractModule {
         
         Dueler w = duelers.get(killer);
         Dueler l = duelers.get(killee);
-        
-        w.lastKill = System.currentTimeMillis();
-        
+
         if(w == null || l == null)
         	return;
 
+        w.lastKill = System.currentTimeMillis();
+        
         Challenge challenge = w.challenge;
         if (challenge == null 
         		|| !challenge.getOppositeDueler(w).name.equals(l.name)
