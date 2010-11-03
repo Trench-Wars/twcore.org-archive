@@ -63,6 +63,7 @@ public class matchbot extends SubspaceBot {
     String m_locker;
     int m_lockState = 0;
     int m_typeNumber;
+    int m_matchTypeID;
     //
     static int CHECKING_ARENAS = 1, LOCKED = 2;
     static int INACTIVE_MESSAGE_LIMIT = 3, ACTIVE_MESSAGE_LIMIT = 8;
@@ -443,6 +444,8 @@ public class matchbot extends SubspaceBot {
                     help.add("!challengetopteams <players>             - request a game of "
                             + m_rules.getString("name")
                             + " against the 8 highest rated squads with <players> number of players");
+                    help.add("!challenges                              - Lists all active challenges "
+                            + " made by your squad");
                     help.add("!removechallenge <squad>                 - removes the challenge of "
                             + m_rules.getString("name")
                             + " game against <squad>");
@@ -553,6 +556,8 @@ public class matchbot extends SubspaceBot {
                     command_challengeall(name, parameters);
                 if (command.equals("!challengetopteams"))
                     command_challengetopteams(name, parameters);
+                if (command.equals("!challenges"))
+                    command_challenges(name);
                 if (command.equals("!removechallenge"))
                     command_removechallenge(name, parameters);
                 if (command.equals("!accept"))
@@ -625,6 +630,7 @@ public class matchbot extends SubspaceBot {
                     m_rules = new BotSettings(m_rulesFileName);
                     m_isLocked = true;
                     m_typeNumber = typenumber;
+                    m_matchTypeID = m_rules.getInt("matchtype");
                     m_lockState = CHECKING_ARENAS;
                     m_locker = name;
                     m_arenaList = new LinkedList<String>();
@@ -759,7 +765,7 @@ public class matchbot extends SubspaceBot {
                     ResultSet squads = m_botAction.SQLQuery(dbConn, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
                             + "FROM tblTWDTeam, tblTeam "
                             + "WHERE tblTWDTeam.fnMatchTypeID="
-                            + m_typeNumber
+                            + m_matchTypeID
                             + " AND tblTeam.fnTeamID=tblTWDTeam.fnTeamID "
                             + "AND (tblTeam.fdDeleted=0 OR tblTeam.fdDeleted IS NULL) "
                             + "AND tblTWDTeam.fnGames>0 "
@@ -834,7 +840,7 @@ public class matchbot extends SubspaceBot {
                     ResultSet squads = m_botAction.SQLQuery(dbConn, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
                             + "FROM tblTWDTeam, tblTeam "
                             + "WHERE tblTWDTeam.fnMatchTypeID="
-                            + m_typeNumber
+                            + m_matchTypeID
                             + " AND tblTeam.fnTeamID=tblTWDTeam.fnTeamID "
                             + "AND (tblTeam.fdDeleted=0 OR tblTeam.fdDeleted IS NULL) "
                             + "AND tblTWDTeam.fnGames>0 "
@@ -1026,6 +1032,47 @@ public class matchbot extends SubspaceBot {
             Tools.printStackTrace(e);
         }
     }
+    public void command_challenges(String name) {
+        try {
+            if (m_isStartingUp == false) {
+                if (m_game == null) {
+                    DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
+                    Player p = m_botAction.getPlayer(name);
+                    if (p != null) {
+                        if ((dp.getTeamName() != null)
+                                && (!dp.getTeamName().equals(""))
+                                && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
+                                // check if he is assistant or captain
+                                if (dp.isRankAssistantMinimum()
+                                        && m_rules.getInt("anyone_can_start_game") != 1) { 
+                                GameRequest t = null;
+                                ListIterator<GameRequest> i = m_gameRequests.listIterator();
+                                while (i.hasNext()) {
+                                    t = (GameRequest) i.next();
+                                    if (t.getRequestAge() >= 300000)
+                                        i.remove();
+                                    else if (t.getChallenger().equalsIgnoreCase(p.getSquadName()))
+                                        m_botAction.sendPrivateMessage(name, t.toString());
+                                }
+                                if (t == null)
+                                    m_botAction.sendPrivateMessage(name, "No challenges found");                                    
+                            } else
+                                m_botAction.sendPrivateMessage(name, "You're not allowed to view challenges for your squad");
+                        } else 
+                            m_botAction.sendPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
+                    } else
+                        m_botAction.sendSmartPrivateMessage(name, "Please ?go "
+                                + m_botAction.getArenaName()
+                                + " and accept the challenge from there so I can check your ?squad. Thanks.");
+                } else
+                    m_botAction.sendPrivateMessage(name, "No challenges available, there's a game going on here already");
+            } else
+                m_botAction.sendPrivateMessage(name, "No challenges available because another game will start up here soon.");
+        } catch (Exception e) {
+            Tools.printStackTrace(e);
+        }
+    }
+
 
     public void command_cancel(String name) {
         try {
@@ -1337,6 +1384,10 @@ class GameRequest {
         m_timeRequest = System.currentTimeMillis();
         playersNum = players;
         m_requesterID = requesterID;
+    }
+    
+    public String toString() {
+        return "Squad: " + m_challenged + " was challenged to " + playersNum + "s by " + m_requester + " " + (System.currentTimeMillis() - m_timeRequest)/60000 + "." + (System.currentTimeMillis() - m_timeRequest)%60000/1000 + " minutes ago";
     }
 
     public String getChallenged() {
