@@ -910,8 +910,8 @@ public class matchbot extends SubspaceBot {
                             if ((t.getChallenger().equalsIgnoreCase(p.getSquadName()))
                                     && (removeAll || (t.getChallenged().equalsIgnoreCase(nmySquad)))) {
                                 m_botAction.sendPrivateMessage(name, "Your challenge vs. "
-                                        + nmySquad + " has been cancelled.");
-                                m_botAction.sendSquadMessage(nmySquad, name
+                                        + t.getChallenged() + " has been cancelled.");
+                                m_botAction.sendSquadMessage(t.getChallenged(), name
                                         + " has cancelled the challenge of "
                                         + m_rules.getString("name")
                                         + " game versus " + p.getSquadName()
