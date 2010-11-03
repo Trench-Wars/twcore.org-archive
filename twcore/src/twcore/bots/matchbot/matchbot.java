@@ -444,7 +444,7 @@ public class matchbot extends SubspaceBot {
                     help.add("!challengetopteams <players>             - request a game of "
                             + m_rules.getString("name")
                             + " against the 8 highest rated squads with <players> number of players");
-                    help.add("!challenges                              - Lists all active challenges "
+                    help.add("!challenges                              - lists all active challenges "
                             + " made by your squad");
                     help.add("!removechallenge <squad>                 - removes the challenge of "
                             + m_rules.getString("name")
@@ -1043,8 +1043,8 @@ public class matchbot extends SubspaceBot {
                                 && (!dp.getTeamName().equals(""))
                                 && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
                                 // check if he is assistant or captain
-                                if (dp.isRankAssistantMinimum()
-                                        && m_rules.getInt("anyone_can_start_game") != 1) { 
+                            if (dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) { 
+                                int numChalls = 0;
                                 GameRequest t = null;
                                 ListIterator<GameRequest> i = m_gameRequests.listIterator();
                                 while (i.hasNext()) {
@@ -1054,7 +1054,7 @@ public class matchbot extends SubspaceBot {
                                     else if (t.getChallenger().equalsIgnoreCase(p.getSquadName()))
                                         m_botAction.sendPrivateMessage(name, t.toString());
                                 }
-                                if (t == null)
+                                if (numChalls == 0)
                                     m_botAction.sendPrivateMessage(name, "No challenges found");                                    
                             } else
                                 m_botAction.sendPrivateMessage(name, "You're not allowed to view challenges for your squad");
