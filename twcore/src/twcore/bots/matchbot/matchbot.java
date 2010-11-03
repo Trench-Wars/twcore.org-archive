@@ -66,7 +66,7 @@ public class matchbot extends SubspaceBot {
     int m_matchTypeID;
     //
     static int CHECKING_ARENAS = 1, LOCKED = 2;
-    static int INACTIVE_MESSAGE_LIMIT = 3, ACTIVE_MESSAGE_LIMIT = 8;
+    static int INACTIVE_MESSAGE_LIMIT = 3, ACTIVE_MESSAGE_LIMIT = 16;
     // these variables are for when the bot is locked
     BotSettings m_rules;
     String m_rulesFileName;
