@@ -59,7 +59,7 @@ public class staffbot extends SubspaceBot {
         EventRequester req = botAction.getEventRequester();
         req.requestAll();
     }
-
+    
     @Override
     public void handleDisconnect() {
     	moduleHandler.unloadAllModules();
@@ -83,7 +83,7 @@ public class staffbot extends SubspaceBot {
 		moduleHandler.loadModule("_badcommand_savelog");
 		moduleHandler.loadModule("_banc");
 		moduleHandler.loadModule("_staffchat_savelog");
-		moduleHandler.loadModule("_commands");
+		//moduleHandler.loadModule("_commands");
 	}
 
 	@Override
