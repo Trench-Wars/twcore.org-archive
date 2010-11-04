@@ -1,9 +1,8 @@
 package twcore.bots.staffbot;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.TimerTask;
-import java.util.Vector;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import twcore.bots.Module;
 import twcore.core.EventRequester;
@@ -15,13 +14,19 @@ public class staffbot_commands extends Module {
 	private final static int CHECK_LOG_DELAY = 5000; // Delay when *log is checked for *warnings originally 30000
 	
 	private TimerTask getLog;
-	private Vector<String> lastCommands = new Vector<String>(20); //Holds the last 20 commands
 	private int[] m_commandWatch = { 0, 0, 0 }; // 0-ArenaCommands 1-StafferCommands 2-StafferArenaCommands
 	private LinkedList<CommandWatch> watches = new LinkedList<CommandWatch>();
 	private int nextID = 1;
 	private boolean m_watchAll = false;
 	private boolean m_timerStatus = true;
-	private String lastWatchAllChanger = "";
+	private boolean m_chat = false;
+	private String m_lastWatchAllUser = "";
+	private Date logDate;
+	private final static TimeZone CST = TimeZone.getTimeZone("CST"); 
+    private int YEAR;
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy EEE MMM dd HH:mm:ss", Locale.US);
+    private SimpleDateFormat chatFormat = new SimpleDateFormat("MM-dd HH:mm", Locale.US);
+
 	
 	// Helps (strange to redefine each time someone types !help)
     
@@ -51,14 +56,14 @@ public class staffbot_commands extends Module {
 	
 	@Override
 	public void initializeModule() {
-		
 		// TimerTask to check the logs for *commands
         getLog = new TimerTask() {
             public void run() {
+                GregorianCalendar c = new GregorianCalendar(CST);
+                YEAR = c.get(GregorianCalendar.YEAR);
                 m_botAction.sendUnfilteredPublicMessage( "*log" );
             }
         };
-
         m_botAction.scheduleTaskAtFixedRate( getLog, 0, CHECK_LOG_DELAY );
 	}
 	
@@ -76,11 +81,6 @@ public class staffbot_commands extends Module {
 	public void resetTimer() {
 	    if (!m_timerStatus && (m_watchAll || m_commandWatch[0] > 0 || m_commandWatch[1] > 0 || m_commandWatch[2] > 0)) {
 	        m_timerStatus = true;
-	        getLog = new TimerTask() {
-	            public void run() {
-	                m_botAction.sendUnfilteredPublicMessage("*log");
-	            }
-	        };
 	        m_botAction.scheduleTaskAtFixedRate( getLog, 0, CHECK_LOG_DELAY );
 	    } else if (m_timerStatus && !m_watchAll && m_commandWatch[0] < 1 && m_commandWatch[1] < 1 && m_commandWatch[2] < 1) {
 	        m_timerStatus = false;
@@ -90,10 +90,15 @@ public class staffbot_commands extends Module {
 	}
 	
 	public void handleEvent(Message event) {
-		short sender = event.getPlayerID();
         String message = event.getMessage();
-        boolean remote = event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE;
-        String name = remote ? event.getMessager() : m_botAction.getPlayerName(sender);
+        int messageType = event.getMessageType();
+        String name = event.getMessager();
+
+        if(name == null)  // try looking up the sender's name by playerid
+            name = m_botAction.getPlayerName(event.getPlayerID());
+        if(name == null)
+            name = "-";
+        
         OperatorList m_opList = m_botAction.getOperatorList();
         
         if( event.getMessageType() == Message.ARENA_MESSAGE && message.indexOf('*') >= 0 && message.toLowerCase().indexOf( " *warn " ) == -1){
@@ -101,49 +106,66 @@ public class staffbot_commands extends Module {
                 return;
             
             boolean toAlert = false;
-
-            String alertMessage = message.substring(message.indexOf(')') + 2);
-            String alertTime = message.substring(message.lastIndexOf(" ", message.indexOf(":  Ext:")), message.indexOf(":  Ext:")).trim();
-            String alertStaffer = message.substring(message.indexOf("Ext: ") + 5, message.indexOf('(')).trim();
-            String alertArena = message.substring(message.indexOf('(') + 1, message.indexOf(')'));
-
-            //if( !m_opList.isBot( alertStaffer ) ) return;
-            if (m_opList.isBotExact( alertStaffer )) return;
+            Date eventDate = null;
+            try {
+                eventDate = dateFormat.parse(YEAR + " " + message.substring(0, 19));
+            } catch(ParseException pe) {}
             
             
-            if (m_watchAll && !lastCommands.contains(message))
+            if (eventDate == null) {
+                m_botAction.sendChatMessage(2, "Time conversion problem, contact BotDev");
+                return;
+            } 
+           
+            String eventMessage = message.substring(message.indexOf(')') + 2);
+            String eventStaffer = message.substring(message.indexOf("Ext: ") + 5, message.indexOf('(')).trim();
+            String eventArena = message.substring(message.indexOf('(') + 1, message.indexOf(')'));
+            
+            if (m_opList.isBotExact( eventStaffer ) && eventMessage.indexOf("*log") > -1 && (logDate == null || eventDate.after(logDate))) {
+                logDate = eventDate;
+                return;
+            }
+            if (logDate == null) ;
+            else if (m_opList.isBotExact( eventStaffer ) || eventDate.before(logDate))
+                return;
+            
+            if (m_watchAll)
                 toAlert = true;
             else {
                 Iterator<CommandWatch> i = watches.iterator();
                 while (!toAlert && i.hasNext()) {
                     CommandWatch thisWatch = i.next();
-                    if (m_commandWatch[0] > 0 && alertArena.equals(thisWatch.getArena()))
+                    if (m_commandWatch[0] > 0 && eventArena.equalsIgnoreCase(thisWatch.getArena()))
                         toAlert = true;
-                    else if (m_commandWatch[1] > 0 && alertStaffer.equals(thisWatch.getStaffer()))
+                    else if (m_commandWatch[1] > 0 && eventStaffer.equalsIgnoreCase(thisWatch.getStaffer()))
                         toAlert = true; 
-                    else if (m_commandWatch[2] > 0 && alertStaffer.equals(thisWatch.getStaffer()) && alertArena.equals(thisWatch.getArena()))
+                    else if (m_commandWatch[2] > 0 && eventStaffer.equalsIgnoreCase(thisWatch.getStaffer()) && eventArena.equalsIgnoreCase(thisWatch.getArena()))
                         toAlert = true;
                 }
             }
             
-            if (toAlert && !lastCommands.contains(message)) {
+            if (toAlert) {
                 if (message.contains(") to"))
-                    alertArena += ") ";
+                    eventArena += ") ";
                 else
-                    alertArena += "):";
-                m_botAction.sendChatMessage(2, "["+alertTime+"] " + alertStaffer + " (" + alertArena + alertMessage);
-                // Add this command to the lastCommands Vector so it isn't inserted into the database on the next check
-                lastCommands.add(0, message);
-                lastCommands.setSize(30);
+                    eventArena += "):";
+                String eventTime = chatFormat.format(eventDate);
+                
+                m_botAction.sendChatMessage(2, eventTime+ " " + eventStaffer + " (" + eventArena + eventMessage);
             }
             return;
 	    }
         // Ignore non-private messages + Ignore non-commands + Ignore player's commands
-	    if( (event.getMessageType() != Message.PRIVATE_MESSAGE && event.getMessageType() != Message.REMOTE_PRIVATE_MESSAGE) || !message.startsWith("!") || !m_opList.isBot(name))	
+	    if( (messageType != Message.PRIVATE_MESSAGE && messageType != Message.REMOTE_PRIVATE_MESSAGE && messageType != Message.CHAT_MESSAGE) || !message.startsWith("!") || !m_opList.isBot(name))
 	        return;
 	    
+        if (messageType == Message.CHAT_MESSAGE) 
+            m_chat = true;
+        else if (messageType == Message.PRIVATE_MESSAGE)
+            m_chat = false;
+	    
         if( message.toLowerCase().startsWith("!help") && m_opList.isSmod(name) ) {
-	        m_botAction.smartPrivateMessageSpam( name, helpSmod );
+            prepareMessage(name, helpSmod);
 	        return;
         }
         
@@ -152,12 +174,12 @@ public class staffbot_commands extends Module {
             if (message.toLowerCase().startsWith("!watchall")) {
                 if (m_watchAll) {
                     m_watchAll = false;
-                    m_botAction.sendSmartPrivateMessage(name, "Watch all commands: [DISABLED]");
+                    prepareMessage(name, "Watch all commands: [DISABLED]");
                 } else {
                     m_watchAll = true;   
-                    m_botAction.sendSmartPrivateMessage(name, "Watch all commands: [ENABLED]");
+                    prepareMessage(name, "Watch all commands: [ENABLED]");
                 }     
-                lastWatchAllChanger = name;
+                m_lastWatchAllUser = name;
                 resetTimer();
             } else if (message.toLowerCase().startsWith("!watchstaffer ")) {
                 if (message.indexOf(':') != -1 
@@ -165,17 +187,17 @@ public class staffbot_commands extends Module {
                         && message.length() > message.indexOf(':')+2)  {
                     watch = createWatch(name, 1, message.substring(message.indexOf(' ') + 1, message.indexOf(':')), "_any", message.substring(message.indexOf(':') + 1));
                     if (watch != null)
-                        m_botAction.sendSmartPrivateMessage(name, "Command Watch " + watch.getID() + " created successfully");
+                        prepareMessage(name, "Command Watch " + watch.getID() + " created successfully");
                     else
-                        m_botAction.sendSmartPrivateMessage(name, "This command watch is all ready active.");
+                        prepareMessage(name, "This command watch is all ready active.");
                 } else if (message.indexOf(':') == -1 && message.indexOf(' ') < message.length() - 1){
                     watch = createWatch(name, 1, message.substring(message.indexOf(' ') + 1), "_any");
                     if (watch != null)
-                        m_botAction.sendSmartPrivateMessage(name, "Command Watch " + watch.getID() + " created successfully");
+                        prepareMessage(name, "Command Watch " + watch.getID() + " created successfully");
                     else
-                        m_botAction.sendSmartPrivateMessage(name, "This command watch is all ready active.");
+                        prepareMessage(name, "This command watch is all ready active.");
                 } else {
-                    m_botAction.sendSmartPrivateMessage(name, "Syntax error, please use the following format: !watchstaffer <Name> or !watchstaffer <Name>:<Reason>");
+                    prepareMessage(name, "Syntax error, please use the following format: !watchstaffer <Name> or !watchstaffer <Name>:<Reason>");
                     return;                          
                 }
             } else if (message.toLowerCase().startsWith("!watcharena ")) {
@@ -187,20 +209,20 @@ public class staffbot_commands extends Module {
                             message.substring(message.indexOf(' ') + 1, message.indexOf(':')), 
                             message.substring(message.indexOf(':') + 1));
                     if (watch != null)
-                        m_botAction.sendSmartPrivateMessage(name, "Command Watch " + watch.getID() + " created successfully");
+                        prepareMessage(name, "Command Watch " + watch.getID() + " created successfully");
                     else
-                        m_botAction.sendSmartPrivateMessage(name, "This command watch is all ready active.");
+                        prepareMessage(name, "This command watch is all ready active.");
                 // Syntax check !watcharena a
                 } else if (message.indexOf(':') == -1 
                         && message.length() > 12 
                         && (message.indexOf(' ') == message.lastIndexOf(' ', message.length()-1)) ||  message.toLowerCase().contains("public ")) {
                     watch = createWatch(name, 0, "~", message.substring(message.indexOf(' ') + 1));
                     if (watch != null)
-                        m_botAction.sendSmartPrivateMessage(name, "Command Watch " + watch.getID() + " created successfully");
+                        prepareMessage(name, "Command Watch " + watch.getID() + " created successfully");
                     else
-                        m_botAction.sendSmartPrivateMessage(name, "This command watch is all ready active.");
+                        prepareMessage(name, "This command watch is all ready active.");
                 } else {
-                    m_botAction.sendSmartPrivateMessage(name, "Syntax error, please use the following format: !watcharena <Arena> or !watcharena <Arena>:<Reason>");
+                    prepareMessage(name, "Syntax error, please use the following format: !watcharena <Arena> or !watcharena <Arena>:<Reason>");
                     return;                      
                 }
             } else if (message.toLowerCase().startsWith("!watch ")) {
@@ -214,9 +236,9 @@ public class staffbot_commands extends Module {
                         && message.length() > message.lastIndexOf(':') + 1) {
                     watch = createWatch(name, 2, message.substring(message.indexOf(' ') + 1, message.indexOf(':')), message.substring(message.indexOf(':') + 1, message.lastIndexOf(':', message.length()-1)), message.substring(message.lastIndexOf(':', message.length()-1) + 1));
                     if (watch != null)
-                        m_botAction.sendSmartPrivateMessage(name, "Command Watch " + watch.getID() + " created successfully");
+                        prepareMessage(name, "Command Watch " + watch.getID() + " created successfully");
                     else
-                        m_botAction.sendSmartPrivateMessage(name, "This command watch is all ready active.");
+                        prepareMessage(name, "This command watch is all ready active.");
                 // Syntax check !watch n:a
                 } else  if (message.indexOf(':') != -1 
                         && message.indexOf(':') + 1 < message.length() 
@@ -225,31 +247,31 @@ public class staffbot_commands extends Module {
                         && !" ".equals(message.substring(message.indexOf(':') - 1, message.indexOf(':')))){
                     watch = createWatch(name, 2, message.substring(message.indexOf(' ') + 1, message.indexOf(':')), message.substring(message.indexOf(':') + 1));
                     if (watch != null)
-                        m_botAction.sendSmartPrivateMessage(name, "Command Watch " + watch.getID() + " created successfully");
+                        prepareMessage(name, "Command Watch " + watch.getID() + " created successfully");
                     else
-                        m_botAction.sendSmartPrivateMessage(name, "This command watch is all ready active.");
+                        prepareMessage(name, "This command watch is all ready active.");
                 } else {
-                    m_botAction.sendSmartPrivateMessage(name, "Syntax error, please use the following format: !watch <Name>:<Arena> or !watch <Name>:<Arena>:<Reason>");
+                    prepareMessage(name, "Syntax error, please use the following format: !watch <Name>:<Arena> or !watch <Name>:<Arena>:<Reason>");
                     return;  
                 }
             } else if (message.toLowerCase().startsWith("!removewatch ")) {
                 if (message.length() < 12) {
-                    m_botAction.sendSmartPrivateMessage(name, "Syntax error, please use the following format: !removewatch <WatchID>");
+                    prepareMessage(name, "Syntax error, please use the following format: !removewatch <WatchID>");
                     return;
                 }
                 int id = -1;
                 try {
                     id = Integer.parseInt(message.substring(message.indexOf(' ') + 1));
                 } catch (Exception NumberFormatException) {
-                    m_botAction.sendSmartPrivateMessage(name, "Syntax error, please use the following format: !removewatch <WatchID>");
+                    prepareMessage(name, "Syntax error, please use the following format: !removewatch <WatchID>");
                     return;                    
                 }
                 if (id == 0) {
-                    m_botAction.sendSmartPrivateMessage(name, "Could not remove Command Watch 0 -- to enable/disable it, use !watchall");                    
+                    prepareMessage(name, "Could not remove Command Watch 0 -- to enable/disable it, use !watchall");                    
                 } else if(removeWatch(id))
-                    m_botAction.sendSmartPrivateMessage(name, "Command Watch " + id + " has been removed");
+                    prepareMessage(name, "Command Watch " + id + " has been removed");
                 else
-                    m_botAction.sendSmartPrivateMessage(name, "Command Watch " + id + " does not exist");
+                    prepareMessage(name, "Command Watch " + id + " does not exist");
             } else if (message.toLowerCase().startsWith("!watches"))
                 listWatches(name);
             else if (message.toLowerCase().startsWith("!watchinfo ")) {
@@ -257,20 +279,19 @@ public class staffbot_commands extends Module {
                 try {
                     id = Integer.parseInt(message.substring(11));
                 } catch (Exception NumberFormatException) {
-                    m_botAction.sendSmartPrivateMessage(name, "Syntax error, please use the following format: !watchinfo <WatchID>");
+                    prepareMessage(name, "Syntax error, please use the following format: !watchinfo <WatchID>");
                     return;                    
                 }
                 watchInfo(name, id);
             } else if (message.toLowerCase().startsWith("!forcecheck")) {
                 m_botAction.sendPublicMessage("*log");
-                m_botAction.sendSmartPrivateMessage(name, "" + Tools.getTimeStamp() + " Log force checked");
+                prepareMessage(name, "" + Tools.getTimeStamp() + " Log force checked");
             } else if (message.toLowerCase().startsWith("!clearwatches"))
                 clearWatches(name);
-            else
-                m_botAction.sendSmartPrivateMessage(name, "Command not recognized");
+            // else don't do shit
         }
 	} 
-	//**********
+
 	public CommandWatch createWatch(String requester, int type, String staffer, String arena) {
 	    boolean duplicate = false;
 	    
@@ -341,11 +362,11 @@ public class staffbot_commands extends Module {
 	public void clearWatches(String name) {
 	    watches.clear();
 	    m_watchAll = false;
-	    lastWatchAllChanger = name;
+	    m_lastWatchAllUser = name;
 	    nextID = 1;
 	    resetTimer();	
         refreshWatchList();    
-        m_botAction.sendSmartPrivateMessage(name, "All watches have been cleared and reset");
+        prepareMessage(name, "All watches have been cleared and reset");
 	}
 	
 	private void refreshWatchList() {
@@ -359,17 +380,17 @@ public class staffbot_commands extends Module {
 	}
 	
 	public void listWatches(String name) {
-        m_botAction.sendSmartPrivateMessage(name, "--------------------------------");
-	    m_botAction.sendSmartPrivateMessage(name, "ID - Command Watch Description -");
-        m_botAction.sendSmartPrivateMessage(name, "--------------------------------");
+        prepareMessage(name, "--------------------------------");
+	    prepareMessage(name, "ID - Command Watch Description -");
+        prepareMessage(name, "--------------------------------");
         if (m_watchAll)
-            m_botAction.sendSmartPrivateMessage(name, " 0 - Watch all commands: [ENABLED]");        
+            prepareMessage(name, " 0 - Watch all commands: [ENABLED]");        
         else
-            m_botAction.sendSmartPrivateMessage(name, " 0 - Watch all commands: [DISABLED]");    
+            prepareMessage(name, " 0 - Watch all commands: [DISABLED]");    
 
         Iterator<CommandWatch> i = watches.iterator();
         while (i.hasNext()) {
-            m_botAction.sendSmartPrivateMessage(name, i.next().toString());
+            prepareMessage(name, i.next().toString());
         } 
 	}
 	
@@ -381,12 +402,12 @@ public class staffbot_commands extends Module {
 	        else
                 reply += "[DISABLED] ";
             
-	        if (lastWatchAllChanger.length() > 0)
-	            reply += "and was last modified by: " + lastWatchAllChanger;
+	        if (m_lastWatchAllUser.length() > 0)
+	            reply += "and was last modified by: " + m_lastWatchAllUser;
 	        else
                 reply += "and has yet to be modified";
 
-            m_botAction.sendSmartPrivateMessage(name, reply);
+            prepareMessage(name, reply);
 	        return;
 	    }
 	    
@@ -400,13 +421,31 @@ public class staffbot_commands extends Module {
 	    if (watch != null && watch.getID() == id) {
 	        String[] info = watch.getInfo();
 	        for (int x = 0; x < info.length; x++) {
-	            m_botAction.sendSmartPrivateMessage(name, info[x]);
+	            prepareMessage(name, info[x]);
 	        }
 	    } else {
-	        m_botAction.sendSmartPrivateMessage(name, "Command Watch " + id + " not found");
+	        prepareMessage(name, "Command Watch " + id + " not found");
 	    }
-	    
 	}
+    
+    private void prepareMessage(String name, String[] message) {
+        if (m_chat) {
+            for (int i = 0; i < message.length; i++) {
+                m_botAction.sendChatMessage(2, message[i]);
+            }
+        } else {
+            m_botAction.smartPrivateMessageSpam(name, message);
+        }
+    }
+    
+    private void prepareMessage(String name, String message) {
+        if (m_chat) {
+            m_botAction.sendChatMessage(2, message);
+        } else {
+            m_botAction.sendSmartPrivateMessage(name, message);
+        }
+    }
+    
 }
 
 class CommandWatch {
@@ -423,7 +462,7 @@ class CommandWatch {
         m_staffer = staffer;
         m_arena = arena;
         m_reason = "None given";
-        m_date = Tools.getTimeStamp().toString();
+        m_date = Tools.getTimeStamp();
     }
     
     public CommandWatch(int id, String requester, int type, String staffer, String arena, String reason) {
@@ -433,7 +472,7 @@ class CommandWatch {
         m_staffer = staffer;
         m_arena = arena;
         m_reason = reason;
-        m_date = Tools.getTimeStamp().toString();
+        m_date = Tools.getTimeStamp();
     }
     
     public String toString() {
