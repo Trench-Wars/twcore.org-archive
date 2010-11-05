@@ -127,8 +127,8 @@ public class staffbot_commands extends Module {
                 logDate = eventDate;
                 return;
             }
-            if (logDate == null) ;
-            else if (m_opList.isBotExact( eventStaffer ) || eventDate.before(logDate))
+            
+            if (logDate == null || m_opList.isBotExact( eventStaffer ) || eventDate.before(logDate))
                 return;
             
             if (m_watchAll)
