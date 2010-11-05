@@ -20,7 +20,7 @@ public class staffbot_warnings extends Module {
 	private final static int MAX_NAME_SUGGESTIONS = 20;         // Max number of suggestions given
     															// for a name match in !warn
 	private final static int WARNING_EXPIRE_TIME = Tools.TimeInMillis.WEEK * 2;
-	private final static int CHECK_LOG_DELAY = 30000; // Delay when *log is checked for *warnings
+	// private final static int CHECK_LOG_DELAY = 30000; // Delay when *log is checked for *warnings UNNEEDED FOR RIGHT NOW
 	
 	private TimerTask getLog;
 	private Vector<String> lastWarnings = new Vector<String>(20);	// Holds track of last 20 warnings
@@ -47,7 +47,9 @@ public class staffbot_warnings extends Module {
 	@Override
 	public void initializeModule() {
 		
+	    // removed and added to staffbot
 		// TimerTask to check the logs for *warnings
+	    /*
         getLog = new TimerTask() {
             public void run() {
                 m_botAction.sendUnfilteredPublicMessage( "*log" );
@@ -55,6 +57,8 @@ public class staffbot_warnings extends Module {
         };
 
         m_botAction.scheduleTaskAtFixedRate( getLog, 0, CHECK_LOG_DELAY );
+        */
+        
 	}
 	
 	@Override
