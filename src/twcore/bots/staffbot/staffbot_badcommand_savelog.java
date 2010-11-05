@@ -46,7 +46,7 @@ public class staffbot_badcommand_savelog extends Module {
             logFile.close();
         } catch(IOException ioe) {}
         
-        m_botAction.cancelTask(checkLogTask);
+        m_botAction.cancelTask(checkLogTask);  
     }
 
     @Override
@@ -414,7 +414,7 @@ public class staffbot_badcommand_savelog extends Module {
             GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
             year = calendar.get(GregorianCalendar.YEAR);
 
-            m_botAction.sendUnfilteredPublicMessage("*log");
+            // m_botAction.sendUnfilteredPublicMessage("*log"); done inside staffbot class
             clearOldCommands();
         }
     }
