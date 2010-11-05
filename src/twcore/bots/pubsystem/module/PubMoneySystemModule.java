@@ -1116,6 +1116,7 @@ public class PubMoneySystemModule extends AbstractModule {
     
     public void handleEvent(SQLResultEvent event) {
     	
+
     	// Coupon system
     	if (event.getIdentifier().startsWith("coupon")) {
 

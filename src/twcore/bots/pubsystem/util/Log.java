@@ -3,7 +3,6 @@ package twcore.bots.pubsystem.util;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
 
 import twcore.core.BotAction;
 import twcore.core.util.Tools;
@@ -19,9 +18,11 @@ public class Log {
 	    	try {
 			    File file = new File(botAction.getBotSettings().getString("log_path"));
 			    writer = new FileWriter(new File(file, filename), true);
+			    write(Tools.getTimeStamp() + " --- Bot Reinstantiation ---");
 			} catch (IOException e) {
 				Tools.printStackTrace(e);
 			} 
+			
 	    }
 		
 	}
