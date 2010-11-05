@@ -56,15 +56,17 @@ public class staffbot_commands extends Module {
 	
 	@Override
 	public void initializeModule() {
+        GregorianCalendar c = new GregorianCalendar(CST);
+        YEAR = c.get(GregorianCalendar.YEAR);
 		// TimerTask to check the logs for *commands
+        /*
         getLog = new TimerTask() {
             public void run() {
-                GregorianCalendar c = new GregorianCalendar(CST);
-                YEAR = c.get(GregorianCalendar.YEAR);
                 m_botAction.sendUnfilteredPublicMessage( "*log" );
             }
         };
         m_botAction.scheduleTaskAtFixedRate( getLog, 0, CHECK_LOG_DELAY );
+        */
 	}
 	
 	@Override
