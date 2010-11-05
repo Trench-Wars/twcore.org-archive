@@ -1,5 +1,7 @@
 package twcore.bots.staffbot;
 
+import java.util.TimerTask;
+
 import twcore.bots.ModuleHandler;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -45,6 +47,8 @@ public class staffbot extends SubspaceBot {
     OperatorList        m_opList;
     BotAction           m_botAction;
     BotSettings         m_botSettings;
+    TimerTask           getLog;
+    private final static int CHECK_LOG_DELAY = 5000;
 
     /* Initialization code */
     public staffbot( BotAction botAction ) {
@@ -78,12 +82,23 @@ public class staffbot extends SubspaceBot {
 		m_botAction.sendUnfilteredPublicMessage("?chat="+staffchat+","+smodchat);
 
 		// load modules
-		moduleHandler.loadModule("_serverwarningecho");
+		//moduleHandler.loadModule("_serverwarningecho");
 		moduleHandler.loadModule("_warnings");
 		moduleHandler.loadModule("_badcommand_savelog");
 		moduleHandler.loadModule("_banc");
 		moduleHandler.loadModule("_staffchat_savelog");
 		moduleHandler.loadModule("_commands");
+		
+		// start the log checking timer task for all modules
+
+        // TimerTask to check the logs for *commands
+        getLog = new TimerTask() {
+            public void run() {
+                m_botAction.sendUnfilteredPublicMessage( "*log" );
+            }
+        };
+        m_botAction.scheduleTaskAtFixedRate( getLog, 0, CHECK_LOG_DELAY );
+        
 	}
 
 	@Override
