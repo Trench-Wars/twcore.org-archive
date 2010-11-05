@@ -20,8 +20,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimerTask;
 import java.util.Map.Entry;
+import java.util.TimerTask;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
@@ -37,6 +37,7 @@ import twcore.bots.pubsystem.module.moneysystem.item.PubPrizeItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipUpgradeItem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
+import twcore.bots.pubsystem.util.Log;
 import twcore.bots.pubsystem.util.PubException;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
@@ -71,13 +72,14 @@ public class PubMoneySystemModule extends AbstractModule {
     private HashSet<String> couponOperators;
     private HashMap<String,CouponCode> coupons; // cache system
     
-    private String database;
+    private boolean donationEnabled = false;
     
+    private String database;
 
     public PubMoneySystemModule(BotAction botAction, PubContext context) {
     	
     	super(botAction, context, "Money/Store");
-    	
+
     	this.playerManager = context.getPlayerManager();
 
         this.playersWithDurationItem = new HashMap<PubPlayer, PubItemDuration>();
@@ -292,6 +294,11 @@ public class PubMoneySystemModule extends AbstractModule {
     
     private void doCmdDonate(String sender, String command) {
     	
+    	if (!donationEnabled) {
+    		m_botAction.sendSmartPrivateMessage(sender, "You cannot donate at this time, feature disabled.");
+    		return;
+    	}
+    	
     	if (command.length()<8) {
     		m_botAction.sendSmartPrivateMessage(sender, "Try !donate <name>.");
     		return;
@@ -325,12 +332,6 @@ public class PubMoneySystemModule extends AbstractModule {
     			return;
     		}
     		
-    		/* Not needed
-    		if (context.getPubChallenge().hasChallenged(sender)) {
-    			m_botAction.sendSmartPrivateMessage(sender, "You cannot donate while challenging a player for a duel.");
-    			return;
-    		}
-    		*/
     		
     		Player p = m_botAction.getFuzzyPlayer(name);
     		if (p == null) {
@@ -518,6 +519,15 @@ public class PubMoneySystemModule extends AbstractModule {
     	}
     }
     
+    private void doCmdToggleDonation(String sender) {
+    	
+    	donationEnabled = !donationEnabled;
+    	if (donationEnabled) {
+    		m_botAction.sendSmartPrivateMessage(sender, "!donation is now enabled.");
+    	} else {
+    		m_botAction.sendSmartPrivateMessage(sender, "!donation is now disabled.");
+    	}
+    }
     
     private void doCmdItemInfo(String sender, String command) 
     {
@@ -689,6 +699,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	else if(playerManager.isPlayerExists(name)) {
             PubPlayer pubPlayer = playerManager.getPlayer(sender);
             m_botAction.sendSmartPrivateMessage(sender, "You have $"+pubPlayer.getMoney() + " in your bank.");
+            //m_botAction.sendSmartPrivateMessage(sender, "Your PubPal balance is : $"+pubPlayer.getMoney());
         } else {
             m_botAction.sendSmartPrivateMessage(sender, "You're still not in the system. Wait a bit to be added.");
         }
@@ -951,7 +962,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
 	private void doCmdCoupon(String sender, String codeString) {
 
-		CouponCode code = getCouponCode(codeString);
+		CouponCode code = getCouponCode(codeString, true);
 		if (code == null) {
 			// no feedback to avoid bruteforce!!
 			// m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' not found.");
@@ -993,8 +1004,12 @@ public class PubMoneySystemModule extends AbstractModule {
 	}
     
 	private CouponCode getCouponCode(String codeString) {
+		return getCouponCode(codeString,false);
+	}
+	
+	private CouponCode getCouponCode(String codeString, boolean forceUpdate) {
     	
-		if (coupons.containsKey(codeString))
+		if (!forceUpdate && coupons.containsKey(codeString))
 			return coupons.get(codeString);
 		
 		try {
@@ -1295,6 +1310,8 @@ public class PubMoneySystemModule extends AbstractModule {
             doCmdBankrupt(sender, command);
         } else if(command.startsWith("!debugobj")) {
         	doCmdDebugObj(sender, command);
+        } else 	if (command.equals("!toggledonation")) {
+			doCmdToggleDonation(sender);
         }
 		
 		// Coupon System commands
@@ -1347,6 +1364,10 @@ public class PubMoneySystemModule extends AbstractModule {
 	@Override
 	public String[] getModHelpMessage(String sender) {
 
+		String normal[] = new String[] {
+			pubsystem.getHelpLine("!toggledonation                 -- Toggle on/off !donation."),	
+		};
+		
     	String generation[] = new String[] {
     		pubsystem.getHelpLine("!couponcreate <money>            -- Create a random code for <money>. Use !limituse/!expiredate for more options."),
     		pubsystem.getHelpLine("!couponcreate <code>:<money>     -- Create a custom code for <money>. Max of 32 characters."),
@@ -1362,11 +1383,12 @@ public class PubMoneySystemModule extends AbstractModule {
     	};
     	
     	String bot[] = new String[] {
-    		pubsystem.getHelpLine("!couponaddop <name>              -- Add an operator (an operator can generate a code to be used)."),
+    		pubsystem.getHelpLine("!couponaddop <name>              -- Add an operator (temporary, permanant via .cfg)."),
     		pubsystem.getHelpLine("!couponlistops                   -- List of operators."),
     	};
     	
     	List<String> lines = new ArrayList<String>();
+    	lines.addAll(Arrays.asList(normal));
     	if (m_botAction.getOperatorList().isSmod(sender)) {
     		lines.addAll(Arrays.asList(generation));
     		lines.addAll(Arrays.asList(maintenance));
@@ -1703,6 +1725,9 @@ public class PubMoneySystemModule extends AbstractModule {
 			enabled = true;
 		} else {
 			store.turnOff();
+		}
+		if (m_botAction.getBotSettings().getInt("donation_enabled")==1) {
+			donationEnabled = true;
 		}
 		couponOperators = new HashSet<String>();
     	if (m_botAction.getBotSettings().getString("coupon_operators") != null) {

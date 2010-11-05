@@ -38,9 +38,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private int deathsOnShipItem = 0;
     
     // Epoch time
-    private long lastMoneyUpdate = 0;
-    private long lastSavedState = 0;
-    private long lastOptionsUpdate = 0;
+    private long lastMoneyUpdate = System.currentTimeMillis();
+    private long lastMoneySavedState = System.currentTimeMillis();
+    private long lastSavedState = System.currentTimeMillis();
+    private long lastOptionsUpdate = System.currentTimeMillis();
     private long lastDeath = 0;
     private long lastAttach = 0;
     
@@ -203,6 +204,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
     	this.lastSavedState = System.currentTimeMillis();
     }
     
+    public void moneySavedState() {
+    	this.lastMoneySavedState = System.currentTimeMillis();
+    }
+    
     public boolean isOnSpec() {
     	return ((int)m_botAction.getPlayer(name).getShipType()) == 0;
     }
@@ -241,6 +246,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     public long getLastOptionsUpdate() {
     	return lastOptionsUpdate;
+    }
+    
+    public long getLastMoneySavedState() {
+    	return lastMoneySavedState;
     }
     
     public long getLastSavedState() {

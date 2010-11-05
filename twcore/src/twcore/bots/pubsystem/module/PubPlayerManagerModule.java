@@ -17,6 +17,7 @@ import twcore.bots.pubsystem.module.PubHuntModule.HuntPlayer;
 import twcore.bots.pubsystem.module.PubUtilModule.Tileset;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
+import twcore.bots.pubsystem.util.Log;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.ArenaJoined;
@@ -52,11 +53,15 @@ public class PubPlayerManagerModule extends AbstractModule {
 	
 	private SavePlayersTask saveTask = new SavePlayersTask();
 	private int SAVETASK_INTERVAL = 1; // minutes
-	
+    
+    private Log logMoneyDBTransaction;
+
 	public PubPlayerManagerModule(BotAction m_botAction, PubContext context) 
 	{
 		super(m_botAction, context, "PlayerManager");
 
+    	logMoneyDBTransaction = new Log(m_botAction, "moneydb.log");
+		
 		this.players = new HashMap<String, PubPlayer>();
 		this.freq0 = new HashSet<String>();
 		this.freq1 = new HashSet<String>();
@@ -307,7 +312,8 @@ public class PubPlayerManagerModule extends AbstractModule {
     }
     
     public void handleDisconnect() {
-    	saveTask.run();
+    	saveTask.force();
+    	logMoneyDBTransaction.close();
     }
     
     public void handleEvent(SQLResultEvent event){
@@ -701,6 +707,13 @@ public class PubPlayerManagerModule extends AbstractModule {
     
     private class SavePlayersTask extends TimerTask {
     	
+    	private boolean force = false;
+    	
+    	public void force() {
+    		force = true;
+    		run();
+    	}
+    	
         public void run() {
         	
         	Collection<String> arenaPlayers = new ArrayList<String>();
@@ -717,25 +730,31 @@ public class PubPlayerManagerModule extends AbstractModule {
 
             	// Money is always saved
             	if (databaseName != null) {
-                	// Update only if no save since 15 minutes
-                	long diff = System.currentTimeMillis()-player.getLastSavedState();
-                	if (diff > (SAVETASK_INTERVAL * Tools.TimeInMillis.MINUTE)) {
+                	if (force || player.getLastMoneyUpdate() > player.getLastMoneySavedState()) {
                 		m_botAction.SQLBackgroundQuery(databaseName, "", "INSERT INTO tblPlayerStats (fcName,fnMoney) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
+                		if (force) {
+                			logMoneyDBTransaction.write(Tools.getTimeStamp() + " - (F) " + player.getPlayerName() + "> " + player.getMoney());
+                		} else {
+                			logMoneyDBTransaction.write(Tools.getTimeStamp() + " - " + player.getPlayerName() + "> " + player.getMoney());
+                		}
+                		player.moneySavedState();
+                	}
+                	
+                	if (player.getLastOptionsUpdate() > player.getLastSavedState()) {
+                    	String tilesetName = player.getTileset().toString().toLowerCase();
+                    	m_botAction.SQLBackgroundQuery(databaseName, "", "INSERT INTO tblPlayerStats (fcName,fcTileset) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"','"+Tools.addSlashes(tilesetName)+"') ON DUPLICATE KEY UPDATE fcTileset='"+Tools.addSlashes(tilesetName)+"'");
+                    	player.savedState();
                 	}
                 	
             	}
-            	
-            	if (player.getLastOptionsUpdate() > player.getLastSavedState()) {
-                	String tilesetName = player.getTileset().toString().toLowerCase();
-                	m_botAction.SQLBackgroundQuery(databaseName, "", "INSERT INTO tblPlayerStats (fcName,fcTileset) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"','"+Tools.addSlashes(tilesetName)+"') ON DUPLICATE KEY UPDATE fcTileset='"+Tools.addSlashes(tilesetName)+"'");
-                	player.savedState();
-            	}
-    
+            	    
             	// Not anymore on this arena? remove this player from the PubPlayerManager
             	if (m_botAction.getPlayer(player.getPlayerName()) == null) {
             		it2.remove();
             	}
             }
+            
+            force = false;
         }
     }
 

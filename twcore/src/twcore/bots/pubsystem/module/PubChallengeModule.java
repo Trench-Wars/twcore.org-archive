@@ -564,7 +564,7 @@ public class PubChallengeModule extends AbstractModule {
     		moneyMessage = " for $"+money;
     	}
 
-        if(laggers.containsKey(winner) && laggers.containsKey(loser)) 
+        if(laggers.containsKey(winner.name) && laggers.containsKey(loser.name)) 
         {
             m_botAction.cancelTask(laggers.get(winner.name));
         	m_botAction.sendSmartPrivateMessage(winner.name,"Your duel against "+loser.name+" has been cancelled, both lagout/specced.");
