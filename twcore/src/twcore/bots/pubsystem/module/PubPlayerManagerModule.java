@@ -52,7 +52,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 	private String databaseName;
 	
 	private SavePlayersTask saveTask = new SavePlayersTask();
-	private int SAVETASK_INTERVAL = 1; // minutes
+	private int SAVETASK_INTERVAL = 5; // minutes
     
     private Log logMoneyDBTransaction;
 
@@ -313,12 +313,16 @@ public class PubPlayerManagerModule extends AbstractModule {
     
     public void handleDisconnect() {
     	saveTask.force();
-    	logMoneyDBTransaction.close();
     }
     
     public void handleEvent(SQLResultEvent event){
-        
-    	if (event.getIdentifier().startsWith("newplayer")) {
+    	
+    	if (event.getIdentifier().startsWith("moneydb")) {
+    		String[] pieces = event.getIdentifier().split(":");
+    		logMoneyDBTransaction.write(Tools.getTimeStamp() + " - " + pieces[1] + "> " + pieces[2]);
+    	}
+    	
+    	else if (event.getIdentifier().startsWith("newplayer")) {
     		ResultSet rs = event.getResultSet();
     		String playerName = event.getIdentifier().substring(10);
     		try {
@@ -731,12 +735,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             	// Money is always saved
             	if (databaseName != null) {
                 	if (force || player.getLastMoneyUpdate() > player.getLastMoneySavedState()) {
-                		m_botAction.SQLBackgroundQuery(databaseName, "", "INSERT INTO tblPlayerStats (fcName,fnMoney) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
-                		if (force) {
-                			logMoneyDBTransaction.write(Tools.getTimeStamp() + " - (F) " + player.getPlayerName() + "> " + player.getMoney());
-                		} else {
-                			logMoneyDBTransaction.write(Tools.getTimeStamp() + " - " + player.getPlayerName() + "> " + player.getMoney());
-                		}
+                		m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney(), "INSERT INTO tblPlayerStats (fcName,fnMoney) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
                 		player.moneySavedState();
                 	}
                 	
