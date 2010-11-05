@@ -1,7 +1,6 @@
 package twcore.bots.pubsystem.module;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -341,6 +340,7 @@ public class PubUtilModule extends AbstractModule {
     	try {
     		Tileset tileset = Tileset.valueOf(tileName.toUpperCase());
     		setTileset(tileset, sender);
+    		m_botAction.sendSmartPrivateMessage(sender, "This setting has been saved in your account. Tileset: " + tileName);
     	} catch (IllegalArgumentException e) {
     		m_botAction.sendSmartPrivateMessage(sender, "The tileset '" + tileName + "' does not exists.");
     	}

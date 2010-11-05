@@ -559,7 +559,10 @@ public class GameFlagTimeModule extends AbstractModule {
         	killsBounty.put(playerName, (int)(killsBounty.get(playerName)/kills.get(playerName)));
         }
         for(String playerName: killsInBase.keySet()) {
-        	killsInBasePercent.put(playerName, (int)(killsInBase.get(playerName)/kills.get(playerName)));
+        	if (killsInBase.get(playerName)>=15)
+        		killsInBasePercent.put(playerName, (int)(killsInBase.get(playerName)/kills.get(playerName)));
+        	else
+        		killsInBasePercent.put(playerName, 0);
         }
         
         // Remove terriers not on the winning team for the variable 'attaches' (set weight to 0)
@@ -597,10 +600,10 @@ public class GameFlagTimeModule extends AbstractModule {
         // Achievements (get the #1 of each LinkedHashMap)
         String mostKillName = getPosition(kills, 1);
         String basingKingName = getPosition(basingKing, 1);
-        String mostDeath = getPosition(deaths, 1, 8, false);
+        //String mostDeath = getPosition(deaths, 1, 8, false);
         String lessDeath = getPosition(lessdeaths, 1, 5, true);
         String mostFlagClaimed = getPosition(flagClaims, 1);
-        String mostTk = getPosition(tks, 1, 8, false);
+        //String mostTk = getPosition(tks, 1, 8, false);
         String mostTek = getPosition(teks, 1);
         String bestTerrierName = getPosition(bestTerrier, 1);
         
@@ -633,10 +636,10 @@ public class GameFlagTimeModule extends AbstractModule {
     		m_botAction.sendArenaMessage(" - Most Terrier Kills : " + mostTek + " (+$" + m2 + ")");
     		context.getPlayerManager().addMoney(mostTek, m2);
     	}
+    	/*
     	if (mostDeath != null) {
     		m_botAction.sendArenaMessage(" - Most Reckless      : " + mostDeath);
     	}
-    	/*
     	if (mostTk != null) {
     		m_botAction.sendArenaMessage(" - Least Honorable    : " + mostTk);
     		//context.getPlayerManager().addMoney(mostTk, 0);
