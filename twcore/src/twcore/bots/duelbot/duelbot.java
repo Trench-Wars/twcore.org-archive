@@ -1676,7 +1676,7 @@ public class duelbot extends SubspaceBot {
     public void handleEvent( LoggedOn event ) {
     	//join initial arena
     	m_botSettings = m_botAction.getBotSettings();
-        m_botAction.joinArena( m_botSettings.getString( "Arena" ) );
+    	m_botAction.joinArena( m_botSettings.getString( "Arena" + m_botAction.getBotNumber()) );
 
         //Sets up all variables for new features that I can't think of a good comment for
         lastZoner = System.currentTimeMillis() - (30 * 60 * 1000);
