@@ -213,9 +213,9 @@ public class PubUtilModule extends AbstractModule {
 				}
 				
 			}
+			
+			m_botAction.SQLClose(event.getResultSet());
 		}
-		
-		m_botAction.SQLClose(resultSet);
 
 	}
 
@@ -287,20 +287,19 @@ public class PubUtilModule extends AbstractModule {
 		
 		if (tileset == Tileset.DEFAULT)
 			tileset = defaultTileSet;
-		
-		Player p = m_botAction.getPlayer(playerName);
+
 		PubPlayer pubPlayer = context.getPlayerManager().getPlayer(playerName);
-		if (p != null) {
+		if (pubPlayer != null) {
 			if (Tileset.BLUETECH == tileset) {
 				for(int object: tilesetObjects.values()) {
-					m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objoff " + object);
+					m_botAction.sendUnfilteredPrivateMessage(playerName, "*objoff " + object);
 				}
 			}
 			else {
 				for(int object: tilesetObjects.values()) {
-					m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objoff " + object);
+					m_botAction.sendUnfilteredPrivateMessage(playerName, "*objoff " + object);
 				}
-				m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objon " + tilesetObjects.get(tileset));
+				m_botAction.sendUnfilteredPrivateMessage(playerName, "*objon " + tilesetObjects.get(tileset));
 			}
 			pubPlayer.setTileset(playerTileset);
 		}
@@ -483,12 +482,12 @@ public class PubUtilModule extends AbstractModule {
 		m_botAction.SQLBackgroundQuery(database, "alias:ip:"+alias.getName(),
 				"SELECT DISTINCT(fnIP) " +
 				"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-				"WHERE fcUserName = '" + Tools.addSlashesToString(alias.getName()) + "'");
+				"WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
 		
 		m_botAction.SQLBackgroundQuery(database, "alias:mid:"+alias.getName(),
 				"SELECT DISTINCT(fnMachineId) " +
 				"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-				"WHERE fcUserName = '" + Tools.addSlashesToString(alias.getName()) + "'");
+				"WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
     }
 
 

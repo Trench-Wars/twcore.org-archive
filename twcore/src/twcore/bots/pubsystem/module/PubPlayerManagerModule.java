@@ -52,7 +52,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 	private String databaseName;
 	
 	private SavePlayersTask saveTask = new SavePlayersTask();
-	private int SAVETASK_INTERVAL = 5; // minutes
+	private int SAVETASK_INTERVAL = 1; // minutes
     
     private Log logMoneyDBTransaction;
 
@@ -108,10 +108,10 @@ public class PubPlayerManagerModule extends AbstractModule {
 							+ "SET fnMoney = fnMoney+" + Math.abs(money) + " "
 							+ "WHERE fcName='" + Tools.addSlashes(playerName) + "'");
 					if (rs.getStatement().getUpdateCount() < 1) {
-						rs.close();
+						m_botAction.SQLClose(rs);
 						return false;
 					}
-					rs.close();
+					m_botAction.SQLClose(rs);
 				} catch (SQLException e) {
 					return false;
 				}
@@ -130,7 +130,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 			
 			String database = m_botAction.getBotSettings().getString("database");
 			if (database!=null) 
-				m_botAction.SQLBackgroundQuery(database, "", "UPDATE tblPlayerStats "
+				m_botAction.SQLBackgroundQuery(database, null, "UPDATE tblPlayerStats "
 						+ "SET fnMoney = IF(fnMoney-" + Math.abs(money) + "<0,0,fnMoney-" + Math.abs(money) + ") "
 						+ "WHERE fcName='" + playerName + "'");
 
@@ -166,7 +166,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 						player.setName(playerName);
 						return player;
 					}
-					rs.close();
+					m_botAction.SQLClose(rs);
 				} catch (SQLException e) {
 					Tools.printStackTrace(e);
 				}
@@ -319,7 +319,9 @@ public class PubPlayerManagerModule extends AbstractModule {
     	
     	if (event.getIdentifier().startsWith("moneydb")) {
     		String[] pieces = event.getIdentifier().split(":");
-    		logMoneyDBTransaction.write(Tools.getTimeStamp() + " - " + pieces[1] + "> " + pieces[2]);
+    		String force = pieces[3].equals("1") ? "(F) " : "";
+    		logMoneyDBTransaction.write(Tools.getTimeStamp() + " - " + force + pieces[1] + "> " + pieces[2]);
+    		m_botAction.SQLClose(event.getResultSet());
     	}
     	
     	else if (event.getIdentifier().startsWith("newplayer")) {
@@ -331,17 +333,10 @@ public class PubPlayerManagerModule extends AbstractModule {
 				} else {
 					players.put(playerName.toLowerCase(), new PubPlayer(m_botAction, playerName));
 				}
-				rs.close();
 			} catch (SQLException e) {
 				Tools.printStackTrace(e);
 			}
-    	}
-    	else if (event.getIdentifier()==null || event.getIdentifier().equals(""))  {
-    		try {
-				event.getResultSet().close();
-			} catch (SQLException e) {
-
-			}
+			m_botAction.SQLClose(event.getResultSet());
     	}
     }
     
@@ -387,6 +382,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     	PubPlayer player = players.get(playerName.toLowerCase());
     	if (player != null) {
     		player.reloadPanel(false);
+    		player.setName(playerName);
     		context.getPubUtil().setTileset(player.getTileset(), player.getPlayerName());
     		return player;
     	}
@@ -735,13 +731,13 @@ public class PubPlayerManagerModule extends AbstractModule {
             	// Money is always saved
             	if (databaseName != null) {
                 	if (force || player.getLastMoneyUpdate() > player.getLastMoneySavedState()) {
-                		m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney(), "INSERT INTO tblPlayerStats (fcName,fnMoney) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
+                		m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney()+":"+(force?"1":"0"), "INSERT INTO tblPlayerStats (fcName,fnMoney) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
                 		player.moneySavedState();
                 	}
                 	
                 	if (player.getLastOptionsUpdate() > player.getLastSavedState()) {
                     	String tilesetName = player.getTileset().toString().toLowerCase();
-                    	m_botAction.SQLBackgroundQuery(databaseName, "", "INSERT INTO tblPlayerStats (fcName,fcTileset) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"','"+Tools.addSlashes(tilesetName)+"') ON DUPLICATE KEY UPDATE fcTileset='"+Tools.addSlashes(tilesetName)+"'");
+                    	m_botAction.SQLBackgroundQuery(databaseName, null, "INSERT INTO tblPlayerStats (fcName,fcTileset) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"','"+Tools.addSlashes(tilesetName)+"') ON DUPLICATE KEY UPDATE fcTileset='"+Tools.addSlashes(tilesetName)+"'");
                     	player.savedState();
                 	}
                 	

@@ -209,9 +209,9 @@ public class PubHuntModule extends AbstractModule {
 		
 		// The query will be closed by PlayerManagerModule
 		if (database!=null)
-		m_botAction.SQLBackgroundQuery(database, "", "UPDATE tblPlayerStats "
+		m_botAction.SQLBackgroundQuery(database, null, "UPDATE tblPlayerStats "
 			+ "SET fnHuntWinner = fnHuntWinner+1 "
-			+ "WHERE fcName='" + playerName + "'");
+			+ "WHERE fcName='" + Tools.addSlashes(playerName) + "'");
     	
     }
     

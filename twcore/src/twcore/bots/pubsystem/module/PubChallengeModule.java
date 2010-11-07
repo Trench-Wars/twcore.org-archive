@@ -658,11 +658,6 @@ public class PubChallengeModule extends AbstractModule {
     	m_botAction.shipReset(name);
 		m_botAction.specificPrize(name, Tools.Prize.FULLCHARGE);
 		m_botAction.specificPrize(name, Tools.Prize.MULTIFIRE);
-		m_botAction.specificPrize(name, -19); // NEGATIVE SHRAPNEL
-		m_botAction.specificPrize(name, -19); // NEGATIVE SHRAPNEL
-		m_botAction.specificPrize(name, -19); // NEGATIVE SHRAPNEL
-		m_botAction.specificPrize(name, -19); // NEGATIVE SHRAPNEL
-		m_botAction.specificPrize(name, -19); // NEGATIVE SHRAPNEL
 		m_botAction.specificPrize(name, -27); // NEGATIVE ROCKET
 		m_botAction.specificPrize(name, -26); // NEGATIVE BRICK
     	
