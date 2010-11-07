@@ -12,20 +12,18 @@ import twcore.core.util.Tools;
 
 public class staffbot_commands extends Module {
 	
-	private TimerTask getLog;
 	private int[] m_commandWatch = { 0, 0, 0 }; // 0-ArenaCommands 1-StafferCommands 2-StafferArenaCommands
 	private LinkedList<CommandWatch> watches = new LinkedList<CommandWatch>();
 	private int nextID = 1;
 	private boolean m_watchAll = false;
-	private boolean m_timerStatus = true;
+	private boolean m_reportStatus = true;
 	private boolean m_chat = false;
 	private String m_lastWatchAllUser = "";
-	private Date logDate;
 	private Vector<String> m_log = new Vector<String>(60);
 	private final static TimeZone CST = TimeZone.getTimeZone("CST"); 
     private int YEAR;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy EEE MMM dd HH:mm:ss", Locale.US);
-    private SimpleDateFormat chatFormat = new SimpleDateFormat("MM-dd HH:mm", Locale.US);
+    private SimpleDateFormat chatFormat = new SimpleDateFormat("MM-dd HH:mm:ss", Locale.US);
 
 	
 	// Helps (strange to redefine each time someone types !help)
@@ -70,14 +68,21 @@ public class staffbot_commands extends Module {
 	}
 	
 	@Override
-	public void cancel() {
-		m_botAction.cancelTask(getLog);
-	}
+	public void cancel() {}
 	
 
 	@Override
 	public void requestEvents(EventRequester eventRequester) {
 		eventRequester.request(EventRequester.MESSAGE);
+	}
+	
+	public void reportCheck() {
+        GregorianCalendar c = new GregorianCalendar(CST);
+        YEAR = c.get(GregorianCalendar.YEAR);
+	    if (m_reportStatus && !m_watchAll && m_commandWatch[0] < 1 && m_commandWatch[1] < 1 && m_commandWatch[2] < 1)
+	        m_reportStatus = false;
+	    else if (!m_reportStatus && (m_watchAll || m_commandWatch[0] > 0 || m_commandWatch[1] > 0 || m_commandWatch[2] > 0))
+            m_reportStatus = true;
 	}
 	
 	public void handleEvent(Message event) {
@@ -92,45 +97,33 @@ public class staffbot_commands extends Module {
         
         OperatorList m_opList = m_botAction.getOperatorList();
         
-        if( event.getMessageType() == Message.ARENA_MESSAGE && message.indexOf('*') >= 0 && message.toLowerCase().indexOf( " *warn " ) == -1){
-            if (!m_timerStatus)
-                return;
-            
+        if(m_reportStatus && event.getMessageType() == Message.ARENA_MESSAGE && message.indexOf('*') >= 0 && message.toLowerCase().indexOf( " *warn " ) == -1 && !m_log.contains(message)) {
             boolean toAlert = false;
+            
+            String eventMessage = message.substring(message.indexOf(')') + 2);
+            String eventStaffer = message.substring(message.indexOf("Ext: ") + 5, message.indexOf('(')).trim();
+            String eventArena = message.substring(message.indexOf('(') + 1, message.indexOf(')'));
+
             Date eventDate = null;
             try {
                 eventDate = dateFormat.parse(YEAR + " " + message.substring(0, 19));
             } catch(ParseException pe) {}
             
-            
             if (eventDate == null) {
                 m_botAction.sendChatMessage(2, "Time conversion problem, contact BotDev");
                 return;
             } 
-           
-            String eventMessage = message.substring(message.indexOf(')') + 2);
-            String eventStaffer = message.substring(message.indexOf("Ext: ") + 5, message.indexOf('(')).trim();
-            String eventArena = message.substring(message.indexOf('(') + 1, message.indexOf(')'));
-            
-            if (m_opList.isBotExact( eventStaffer ) && eventMessage.indexOf("*log") > -1 && (logDate == null || eventDate.after(logDate))) {
-                logDate = eventDate;
-                return;
-            }
-            
-            if (m_log.contains(message) || logDate == null || m_opList.isBotExact( eventStaffer ) || eventDate.before(logDate))
-                return;
-            
             if (m_watchAll)
                 toAlert = true;
-            else {
+            else if (!toAlert) {
                 Iterator<CommandWatch> i = watches.iterator();
                 while (!toAlert && i.hasNext()) {
                     CommandWatch thisWatch = i.next();
-                    if (m_commandWatch[0] > 0 && eventArena.equalsIgnoreCase(thisWatch.getArena()))
+                    if (!toAlert && m_commandWatch[0] > 0 && eventArena.equalsIgnoreCase(thisWatch.getArena()))
                         toAlert = true;
-                    else if (m_commandWatch[1] > 0 && eventStaffer.equalsIgnoreCase(thisWatch.getStaffer()))
+                    else if (!toAlert && m_commandWatch[1] > 0 && eventStaffer.equalsIgnoreCase(thisWatch.getStaffer()))
                         toAlert = true; 
-                    else if (m_commandWatch[2] > 0 && eventStaffer.equalsIgnoreCase(thisWatch.getStaffer()) && eventArena.equalsIgnoreCase(thisWatch.getArena()))
+                    else if (!toAlert && m_commandWatch[2] > 0 && eventStaffer.equalsIgnoreCase(thisWatch.getStaffer()) && eventArena.equalsIgnoreCase(thisWatch.getArena()))
                         toAlert = true;
                 }
             }
@@ -298,6 +291,7 @@ public class staffbot_commands extends Module {
     	    watches.add(watch);    	    
     	    nextID++;
             m_commandWatch[type]++;
+            reportCheck();
             return watch;
     	} else {
             return null;
@@ -318,6 +312,7 @@ public class staffbot_commands extends Module {
             watches.add(watch);         
             nextID++;
             m_commandWatch[type]++;
+            reportCheck();
             return watch;
         } else {
             return null;
@@ -353,7 +348,7 @@ public class staffbot_commands extends Module {
 	    m_watchAll = false;
 	    m_lastWatchAllUser = name;
 	    nextID = 1;
-        refreshWatchList();    
+        refreshWatchList();
         prepareMessage(name, "All watches have been cleared and reset");
 	}
 	
@@ -365,6 +360,7 @@ public class staffbot_commands extends Module {
             thisWatch.setID(currentID);
             currentID++;
         }
+        reportCheck();
 	}
 	
 	public void listWatches(String name) {
