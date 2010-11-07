@@ -103,7 +103,9 @@ public class staffbot_commands extends Module {
             String eventMessage = message.substring(message.indexOf(')') + 2);
             String eventStaffer = message.substring(message.indexOf("Ext: ") + 5, message.indexOf('(')).trim();
             String eventArena = message.substring(message.indexOf('(') + 1, message.indexOf(')'));
-
+            
+            if (m_opList.isBotExact(eventStaffer)) return;
+            
             Date eventDate = null;
             try {
                 eventDate = dateFormat.parse(YEAR + " " + message.substring(0, 19));
@@ -147,7 +149,7 @@ public class staffbot_commands extends Module {
 	    
         if (messageType == Message.CHAT_MESSAGE) 
             m_chat = true;
-        else if (messageType == Message.PRIVATE_MESSAGE)
+        else if (messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE)
             m_chat = false;
 	    
         if( message.toLowerCase().startsWith("!help") && m_opList.isSmod(name) ) {
