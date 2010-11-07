@@ -48,7 +48,7 @@ public class staffbot extends SubspaceBot {
     BotAction           m_botAction;
     BotSettings         m_botSettings;
     TimerTask           getLog;
-    private final static int CHECK_LOG_DELAY = 5000;
+    private final static int CHECK_LOG_DELAY = 2000;
 
     /* Initialization code */
     public staffbot( BotAction botAction ) {
@@ -82,7 +82,7 @@ public class staffbot extends SubspaceBot {
 		m_botAction.sendUnfilteredPublicMessage("?chat="+staffchat+","+smodchat);
 
 		// load modules
-		//moduleHandler.loadModule("_serverwarningecho");
+		moduleHandler.loadModule("_serverwarningecho");
 		moduleHandler.loadModule("_warnings");
 		moduleHandler.loadModule("_badcommand_savelog");
 		moduleHandler.loadModule("_banc");
