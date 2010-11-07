@@ -62,9 +62,11 @@ public class PubStreakModule extends AbstractModule {
 
 
 	public void handleEvent(PlayerLeft event) {
-		Player player = m_botAction.getPlayer(event.getPlayerID());
-		winStreaks.remove(player.getPlayerName());
-		loseStreaks.remove(player.getPlayerName());
+		Player p = m_botAction.getPlayer(event.getPlayerID());
+		if (p==null)
+			return;
+		winStreaks.remove(p.getPlayerName());
+		loseStreaks.remove(p.getPlayerName());
 	}
     
     public void handleEvent(PlayerDeath event) {
