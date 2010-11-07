@@ -64,6 +64,9 @@ public class PubChallengeModule extends AbstractModule {
             return;
         
         Player p = m_botAction.getPlayer(event.getPlayerID());
+        if (p==null)
+        	return;
+        
         String name = p.getPlayerName();
         
         Dueler dueler = duelers.get(name);

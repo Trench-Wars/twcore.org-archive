@@ -233,6 +233,8 @@ public class PubPlayerManagerModule extends AbstractModule {
 	public void handleEvent(PlayerLeft event) {
 		
     	Player p = m_botAction.getPlayer(event.getPlayerID());
+    	if (p==null)
+    		return;
     	String playerName = p.getPlayerName();
         removeFromLists(playerName);
         checkFreqSizes();
