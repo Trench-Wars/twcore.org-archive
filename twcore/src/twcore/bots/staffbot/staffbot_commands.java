@@ -22,6 +22,7 @@ public class staffbot_commands extends Module {
 	private boolean m_chat = false;
 	private String m_lastWatchAllUser = "";
 	private Date logDate;
+	private Vector<String> m_log = new Vector<String>(60);
 	private final static TimeZone CST = TimeZone.getTimeZone("CST"); 
     private int YEAR;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy EEE MMM dd HH:mm:ss", Locale.US);
@@ -128,7 +129,7 @@ public class staffbot_commands extends Module {
                 return;
             }
             
-            if (logDate == null || m_opList.isBotExact( eventStaffer ) || eventDate.before(logDate))
+            if (m_log.contains(message) || logDate == null || m_opList.isBotExact( eventStaffer ) || eventDate.before(logDate))
                 return;
             
             if (m_watchAll)
@@ -147,6 +148,8 @@ public class staffbot_commands extends Module {
             }
             
             if (toAlert) {
+                m_log.add(0, message);
+                m_log.setSize(60);
                 if (message.contains(") to"))
                     eventArena += ") ";
                 else
