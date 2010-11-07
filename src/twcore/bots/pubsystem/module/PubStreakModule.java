@@ -186,11 +186,11 @@ public class PubStreakModule extends AbstractModule {
     		
     		// The query will be closed by PlayerManagerModule
     		if (database!=null)
-    		m_botAction.SQLBackgroundQuery(database, "", "UPDATE tblPlayerStats "
+    		m_botAction.SQLBackgroundQuery(database, null, "UPDATE tblPlayerStats "
 				+ "SET "
 				+ "fdBestStreak = IF("+streak+">fnBestStreak ,NOW(),fdBestStreak),"
 				+ "fnBestStreak = IF("+streak+">fnBestStreak,"+streak+",fnBestStreak) "
-				+ "WHERE fcName='" + player.getPlayerName() + "'");
+				+ "WHERE fcName='" + Tools.addSlashes(player.getPlayerName()) + "'");
     		
     	}
     	

@@ -168,7 +168,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     	
     	while(it.hasNext()) {
     		PubItemUsed item = it.next();
-    		if (!item.getItem().getClass().equals(itemToCheck.getClass()))
+    		if (!item.getItem().getName().equals(itemToCheck.getName()))
     			continue;
 
     		if (itemToCheck.hasDuration() && itemToCheck.getDuration().getSeconds()!=-1) {

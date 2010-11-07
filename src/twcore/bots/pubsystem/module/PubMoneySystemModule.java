@@ -167,7 +167,7 @@ public class PubMoneySystemModule extends AbstractModule {
         		int shipType = m_botAction.getPlayer(receiver.getPlayerName()).getShipType();
         		// The query will be closed by PlayerManagerModule
         		if (database!=null)
-        		m_botAction.SQLBackgroundQuery(database, "", "INSERT INTO tblPurchaseHistory "
+        		m_botAction.SQLBackgroundQuery(database, null, "INSERT INTO tblPurchaseHistory "
     				+ "(fcItemName, fcBuyerName, fcReceiverName, fcArguments, fnPrice, fnReceiverShipType, fdDate) "
     				+ "VALUES ('"+Tools.addSlashes(item.getName())+"','"+Tools.addSlashes(buyer.getPlayerName())+"','"+Tools.addSlashes(receiver.getPlayerName())+"','"+Tools.addSlashes(params)+"','"+item.getPrice()+"','"+shipType+"',NOW())");
 
@@ -364,7 +364,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
         		// The query will be closed by PlayerManagerModule
         		if (database!=null)
-        		m_botAction.SQLBackgroundQuery(database, "", "INSERT INTO tblPlayerDonations "
+        		m_botAction.SQLBackgroundQuery(database, null, "INSERT INTO tblPlayerDonations "
     				+ "(fcName, fcNameTo, fnMoney, fdDate) "
     				+ "VALUES ('"+Tools.addSlashes(sender)+"','"+Tools.addSlashes(pubPlayer.getPlayerName())+"','"+moneyToDonate+"',NOW())");
         		
@@ -816,7 +816,7 @@ public class PubMoneySystemModule extends AbstractModule {
 					message += " " + date;
 					m_botAction.sendSmartPrivateMessage(sender, message);
 				}
-				rs.close();
+				m_botAction.SQLClose(rs);
 
 				if (count == 0) {
 					m_botAction.sendSmartPrivateMessage(sender, "This code has not been used yet.");
@@ -989,10 +989,10 @@ public class PubMoneySystemModule extends AbstractModule {
 		try {
 			rs = m_botAction.SQLQuery(database, "SELECT * FROM tblMoneyCodeUsed WHERE fnMoneyCodeId = '" + code.getId() + "' AND fcName = '" + Tools.addSlashes(playerName) + "'");
 			if (rs.first()) {
-				rs.close();
+				m_botAction.SQLClose(rs);
 				return true;
 			} else {
-				rs.close();
+				m_botAction.SQLClose(rs);
 				return false;
 			}
 			
@@ -1037,13 +1037,13 @@ public class PubMoneySystemModule extends AbstractModule {
 				code.setStartAt(startAt);
 				code.setEndAt(endAt);
 				code.setUsed(used);
-				rs.close();
+				m_botAction.SQLClose(rs);
 				
 				coupons.put(codeString, code);
 				return code;
 			}
 			else {
-				rs.close();
+				m_botAction.SQLClose(rs);
 				return null;
 			}
 			
@@ -1149,6 +1149,8 @@ public class PubMoneySystemModule extends AbstractModule {
     				m_botAction.sendSmartPrivateMessage(pieces[3], "Code '" + pieces[2] + "' created.");
     			}
     		}
+    		
+    		m_botAction.SQLClose(event.getResultSet());
     		
     	}
     	
@@ -1668,6 +1670,42 @@ public class PubMoneySystemModule extends AbstractModule {
 	   	
     }
     
+    private void itemCommandSphere(String sender, String params) {
+
+	   	Player p = m_botAction.getPlayer(sender);
+	   	
+	   	String message = "";
+	   	int privFreqs = 0;
+	   	
+	   	List<Integer> freqList = new ArrayList<Integer>();
+	   	for(int i=0; i<10000; i++) {
+	   		int size = m_botAction.getPlayingFrequencySize(i);
+	   		if (size>0 && i!=p.getFrequency()) {
+	   			freqList.add(i);
+	   			if (i<100) {
+	   				message += ", "+i;
+	   			} else {
+	   				privFreqs++;
+	   			}
+	   		}
+	   	}
+	   	
+	   	if (privFreqs > 0) {
+	   		message += " and " + privFreqs + " private freq(s)";
+	   	}
+	   	message = message.substring(2);
+	   	
+	   	final Integer[] freqs = freqList.toArray(new Integer[freqList.size()]);
+	   	
+	   	m_botAction.sendArenaMessage(sender + " has bough a Sphere of Seclusion for freq " + message + ".",17);
+	   	
+	   	// Turn on now
+		m_botAction.scheduleTask(new SphereSeclusionTask(freqs,true), 0);
+		// Turn off in 1 minute
+		m_botAction.scheduleTask(new SphereSeclusionTask(freqs,false), 1*Tools.TimeInMillis.MINUTE);
+
+    }
+    
     private void itemCommandEpidemic(String sender, String params) {
 
 	   	Player p = m_botAction.getPlayer(sender);
@@ -1764,6 +1802,25 @@ public class PubMoneySystemModule extends AbstractModule {
         	} else {
         		cancel();
         	}
+		}
+	};
+	
+   	private class SphereSeclusionTask extends TimerTask {
+   		private Integer[] freqs;
+   		private boolean enable= false;
+   		public SphereSeclusionTask(Integer[] freqs, boolean enable) {
+   			this.freqs = freqs;
+   			this.enable = enable;
+   		}
+		public void run() {
+			for(int freq: freqs) {
+	            for (Iterator<Integer> i = m_botAction.getFreqIDIterator(freq); i.hasNext();) {
+	            	if (enable)
+	            		m_botAction.sendUnfilteredPrivateMessage(i.next().intValue(), "*objon 561");
+	            	else
+	            		m_botAction.sendUnfilteredPrivateMessage(i.next().intValue(), "*objoff 561");
+	            }
+			}
 		}
 	};
 	
