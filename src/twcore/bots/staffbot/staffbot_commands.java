@@ -11,7 +11,6 @@ import twcore.core.events.Message;
 import twcore.core.util.Tools;
 
 public class staffbot_commands extends Module {
-	private final static int CHECK_LOG_DELAY = 5000; // Delay when *log is checked for *warnings originally 30000
 	
 	private TimerTask getLog;
 	private int[] m_commandWatch = { 0, 0, 0 }; // 0-ArenaCommands 1-StafferCommands 2-StafferArenaCommands
@@ -79,17 +78,6 @@ public class staffbot_commands extends Module {
 	@Override
 	public void requestEvents(EventRequester eventRequester) {
 		eventRequester.request(EventRequester.MESSAGE);
-	}
-	
-	public void resetTimer() {
-	    if (!m_timerStatus && (m_watchAll || m_commandWatch[0] > 0 || m_commandWatch[1] > 0 || m_commandWatch[2] > 0)) {
-	        m_timerStatus = true;
-	        m_botAction.scheduleTaskAtFixedRate( getLog, 0, CHECK_LOG_DELAY );
-	    } else if (m_timerStatus && !m_watchAll && m_commandWatch[0] < 1 && m_commandWatch[1] < 1 && m_commandWatch[2] < 1) {
-	        m_timerStatus = false;
-	        getLog.cancel();
-            m_botAction.sendUnfilteredPublicMessage("*log");
-	    }
 	}
 	
 	public void handleEvent(Message event) {
@@ -185,7 +173,6 @@ public class staffbot_commands extends Module {
                     prepareMessage(name, "Watch all commands: [ENABLED]");
                 }     
                 m_lastWatchAllUser = name;
-                resetTimer();
             } else if (message.toLowerCase().startsWith("!watchstaffer ")) {
                 if (message.indexOf(':') != -1 
                         && !" ".equals(message.substring(message.indexOf(':')-1, message.indexOf(':'))) 
@@ -311,7 +298,6 @@ public class staffbot_commands extends Module {
     	    watches.add(watch);    	    
     	    nextID++;
             m_commandWatch[type]++;
-            resetTimer();
             return watch;
     	} else {
             return null;
@@ -332,7 +318,6 @@ public class staffbot_commands extends Module {
             watches.add(watch);         
             nextID++;
             m_commandWatch[type]++;
-            resetTimer();
             return watch;
         } else {
             return null;
@@ -352,7 +337,6 @@ public class staffbot_commands extends Module {
 	                watches.remove(thisWatch);
 	                removed = true;
 	                nextID--;
-	                resetTimer();
 	                refreshWatchList();
 	            }
 	        }
@@ -369,7 +353,6 @@ public class staffbot_commands extends Module {
 	    m_watchAll = false;
 	    m_lastWatchAllUser = name;
 	    nextID = 1;
-	    resetTimer();	
         refreshWatchList();    
         prepareMessage(name, "All watches have been cleared and reset");
 	}
