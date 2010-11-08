@@ -83,6 +83,7 @@ public class MatchGame
 		playersNum = players;
 		m_rules = new BotSettings(m_fcRuleFile);
 		m_logger = new MatchLogger(m_botAction);
+		m_fcArena = m_botAction.getArenaName();
 
 		m_fnMatchTypeID = m_rules.getInt("matchtype");
 
@@ -294,7 +295,7 @@ public class MatchGame
 		try{
 			String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
 
-			String[] fields = { "fnMatchTypeID", "fnMatchStateID", "fnTeam1ID", "fcTeam1Name", "fnTeam2ID", "fcTeam2Name", "ftTimeStarted", "fnChallengerUserID", "fnAccepterUserID" };
+			String[] fields = { "fnMatchTypeID", "fnMatchStateID", "fnTeam1ID", "fcTeam1Name", "fnTeam2ID", "fcTeam2Name", "ftTimeStarted", "fnChallengerUserID", "fnAccepterUserID", "fcArenaName" };
 			String[] values =
 				{
 					Integer.toString(m_fnMatchTypeID),
@@ -305,7 +306,8 @@ public class MatchGame
 					Tools.addSlashesToString(m_fcTeam2Name),
 					time,
                     Integer.toString(challenger),
-                    Integer.toString(accepter)
+                    Integer.toString(accepter),
+                    m_fcArena
                 };
 			m_botAction.SQLInsertInto(dbConn, "tblMatch", fields, values);
 
