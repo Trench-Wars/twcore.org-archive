@@ -153,7 +153,7 @@ public class staffbot_commands extends Module {
             m_chat = false;
 	    
         if( message.toLowerCase().startsWith("!help") && m_opList.isSmod(name) ) {
-            prepareMessage(name, helpSmod);
+            m_botAction.smartPrivateMessageSpam(name, helpSmod);
 	        return;
         }
         
