@@ -83,6 +83,8 @@ public class duelbot extends SubspaceBot {
 	HashMap	<String,String>leagueOps    = new HashMap<String,String>();
     //Contains the list of league Head Operators
     HashMap <String,String>leagueHeadOps    = new HashMap<String,String>();
+    //Contains the list of hidden operators (bot developers)
+    HashMap <String,String>hiddenOps    = new HashMap<String,String>();
 	//Contains the list of tourny games
 	HashMap <Integer,TournyGame>tournyGames	= new HashMap<Integer,TournyGame>();
 	//Contains the list of tourny games running.
@@ -146,7 +148,8 @@ public class duelbot extends SubspaceBot {
         m_commandInterpreter.registerCommand( "!addop", acceptedMessages, this, "do_addOp" );
         m_commandInterpreter.registerCommand( "!removeop", acceptedMessages, this, "do_removeOp" );
         m_commandInterpreter.registerCommand( "!setgreet", acceptedMessages, this, "do_setGreetMessage" );
-
+        m_commandInterpreter.registerCommand( "!addhiddenop", acceptedMessages, this, "do_addHiddenOp" );
+        m_commandInterpreter.registerCommand( "!removehiddenop", acceptedMessages, this, "do_removeHiddenOp" );
 
     	m_commandInterpreter.registerDefaultCommand( Message.ARENA_MESSAGE, this, "do_checkArena" );
     }
@@ -663,6 +666,19 @@ public class duelbot extends SubspaceBot {
         ops = ops.substring(0, ops.length() - 2);
         m_botAction.sendPrivateMessage( name, hops );
     	m_botAction.sendPrivateMessage( name, ops );
+    	
+    	if(leagueHeadOps.containsKey(name.toLowerCase())) {
+            String hidden = "Hidden Ops (visible only to HeadOps): ";
+            Iterator<String> it3 = hiddenOps.values().iterator();
+            while( it3.hasNext() ) {
+                if( it3.hasNext() )
+                    hidden += (String)it3.next() + ", ";
+                else
+                    hidden += (String)it3.next();
+            }
+            hidden = hidden.substring(0, hidden.length() - 2);
+            m_botAction.sendPrivateMessage( name, hidden );  
+    	}
     }
 
     public void do_showLag( String name, String message ) {
@@ -902,6 +918,8 @@ public class duelbot extends SubspaceBot {
                 "--Head Operator commands--------------------------------------------------------------",
                 "| !addop <name>              - Adds <name> to the Duel Operators list (!ops)         |",
                 "| !removeop <name>           - Removes <name> from the Duel Operators list (!ops)    |",
+                "| !addhiddenop <name>        - Adds <name> to the Hidden Operators list (!ops)       |",
+                "| !removehiddenop <name>     - Removes <name> to the Hidden Operators list (!ops)    |",
                 "| !setgreet <greeting>       - Changes the arena greeting to <greeting>              |",
                 "--------------------------------------------------------------------------------------"
                 };
@@ -968,7 +986,7 @@ public class duelbot extends SubspaceBot {
     }
 
     public void do_allowUser( String name, String message ) {
-    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase())) return;
+    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase())) return;
     	try{
     	    ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuelPlayer WHERE fcUserName='" + Tools.addSlashesToString(message) + "'");
     	    if(result.next()){
@@ -990,7 +1008,7 @@ public class duelbot extends SubspaceBot {
     }
 
     public void do_banUser( String name, String message ) {
-    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase())) return;
+    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase())) return;
 
     	String pieces[] = message.split(":", 2);
     	if(pieces.length != 2) {
@@ -1010,7 +1028,7 @@ public class duelbot extends SubspaceBot {
     }
 
     public void do_unbanUser( String name, String message ) {
-        if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase())) return;
+        if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase())) return;
 
         String player = m_botAction.getFuzzyPlayerName( message );
         if( player == null ) player = message;
@@ -1021,14 +1039,14 @@ public class duelbot extends SubspaceBot {
     }
 
     public void do_sayBanned( String name, String message) {
-    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase())) return;
+    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase())) return;
 
     	m_botAction.sendPrivateMessage(name, "Banned players: ");
     	sql_bannedPlayers(name);
     }
 
     public void do_reComment( String name, String message) {
-    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase())) return;
+    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase())) return;
 
     	String pieces[] = message.split(":", 2);
     	if(pieces.length != 2) {
@@ -1043,7 +1061,7 @@ public class duelbot extends SubspaceBot {
     }
 
     public void do_getComment( String name, String message) {
-    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase())) return;
+    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase())) return;
 
     	String player = m_botAction.getFuzzyPlayerName( message );
     	if( player == null ) player = message;
@@ -1058,7 +1076,7 @@ public class duelbot extends SubspaceBot {
     }
 
     public void do_aliasCheck(String name, String message) {
-    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase())) return;
+    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase())) return;
 
     	if( sql_enabledUser( message ) ) {
     		m_botAction.sendSmartPrivateMessage( name, "This name is already enabled for play." );
@@ -1104,7 +1122,7 @@ public class duelbot extends SubspaceBot {
     }
 
     public void do_aliasCheckAll(String name, String message) {
-        if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase())) return;
+        if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase())) return;
 
         if( sql_enabledUser( message ) ) {
             m_botAction.sendSmartPrivateMessage( name, "This name is already enabled for play." );
@@ -1168,7 +1186,7 @@ public class duelbot extends SubspaceBot {
     }
 
     public void do_opDisableName(String name, String message) {
-    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase())) return;
+    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase())) return;
     	String player = m_botAction.getFuzzyPlayerName( message );
     	if(player == null) player = message;
     	sql_disableUser(player,false);
@@ -1278,7 +1296,7 @@ public class duelbot extends SubspaceBot {
         String ops = m_botSettings.getString("LeagueOps");
         int spot = ops.indexOf(message);
         if (spot == 0 && ops.length() == message.length()) {
-            ops = message;
+            ops = "";
             m_botAction.sendPrivateMessage(name, "Remove Op: " + message + " successful");
         }
         else if (spot == 0 && ops.length() > message.length()) {
@@ -1301,10 +1319,57 @@ public class duelbot extends SubspaceBot {
         m_botSettings.save();
         do_updateOps();
     }
+
+    public void do_addHiddenOp(String name, String message) {
+        if(!leagueHeadOps.containsKey(name.toLowerCase())) return;
+        
+        if (hiddenOps.containsKey(message.toLowerCase())) {
+            m_botAction.sendPrivateMessage(name, "Add Hidden Op: " + message + " failed, operator all ready exists");
+            return;
+        }
+        String ops = m_botSettings.getString("HiddenOps");
+        if (ops.length() < 1)
+            m_botSettings.put("HiddenOps", message);
+        else
+            m_botSettings.put("HiddenOps", ops + "," + message);
+        m_botAction.sendPrivateMessage(name, "Add Hidden Op: " + message + " successful");
+        m_botSettings.save();
+        do_updateOps();
+    }
+    
+    public void do_removeHiddenOp(String name, String message) {
+        if(!leagueHeadOps.containsKey(name.toLowerCase())) return;
+        String ops = m_botSettings.getString("HiddenOps");
+        int spot = ops.indexOf(message);
+        if (spot == 0 && ops.length() == message.length()) {
+            ops = "";
+            m_botAction.sendPrivateMessage(name, "Remove Hidden Op: " + message + " successful");
+        }
+        else if (spot == 0 && ops.length() > message.length()) {
+            ops = ops.substring(message.length() + 1);
+            m_botAction.sendPrivateMessage(name, "Remove Hidden Op: " + message + " successful");
+        } 
+        else if (spot > 0 && spot + message.length() < ops.length()) {
+            ops = ops.substring(0, spot) + ops.substring(spot + message.length() + 1);
+            m_botAction.sendPrivateMessage(name, "Remove Hidden Op: " + message + " successful");
+        }
+        else if (spot > 0 && spot == ops.length() - message.length()) {
+            ops = ops.substring(0, spot - 1);
+            m_botAction.sendPrivateMessage(name, "Remove Hidden Op: " + message + " successful");
+        }
+        else {
+            m_botAction.sendPrivateMessage(name, "Remove Hidden Op: " + message + " failed, operator doesn't exist");
+        }
+        
+        m_botSettings.put("HiddenOps", ops);
+        m_botSettings.save();
+        do_updateOps();
+    }
     
     public void do_updateOps() {
         leagueOps.clear();
         leagueHeadOps.clear();
+        hiddenOps.clear();
         //Reads in the league operators
         String ops[] = m_botSettings.getString( "LeagueOps" ).split( "," );
         for( int i = 0; i < ops.length; i++ )
@@ -1313,6 +1378,10 @@ public class duelbot extends SubspaceBot {
         String hops[] = m_botSettings.getString( "HeadOps" ).split( "," );
         for( int j = 0; j < hops.length; j++ )
             leagueHeadOps.put(hops[j].toLowerCase(), hops[j]);
+        //Reads in the hidden league operators
+        String hideops[] = m_botSettings.getString( "HiddenOps" ).split( "," );
+        for( int k = 0; k < hideops.length; k++ )
+            hiddenOps.put(hideops[k].toLowerCase(), hideops[k]);
     }
     
 	public boolean boxOpen( int gameType ) {
@@ -1676,7 +1745,7 @@ public class duelbot extends SubspaceBot {
     public void handleEvent( LoggedOn event ) {
     	//join initial arena
     	m_botSettings = m_botAction.getBotSettings();
-    	m_botAction.joinArena( m_botSettings.getString( "Arena" + m_botAction.getBotNumber()) );
+    	m_botAction.joinArena( m_botSettings.getString( "Arena" + m_botAction.getBotNumber())); // remove + m_botAction.getBotNumber() for dev zone functionality
 
         //Sets up all variables for new features that I can't think of a good comment for
         lastZoner = System.currentTimeMillis() - (30 * 60 * 1000);
