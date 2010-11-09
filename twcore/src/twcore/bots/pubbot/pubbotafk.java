@@ -42,6 +42,7 @@ public class pubbotafk extends PubBotModule {
     private final static String WARNING_MESSAGE2 = "To declare yourself not-idle, please talk in either public or team chat. " +
                                                     "Private messages are ignored.";
     private final static String MOVE_MESSAGE = "You've been moved to the away-from-keyboard subarena - 'afk'. Type \"?go\" to return.";
+    private final static String STAFF_MOVED_WARNING = "REMINDER: You have been logged out of BanG and your ?obscene has been reset as a result of being moved.";
     
     private OperatorList opList;
     private String sendtoCmd;
@@ -63,6 +64,7 @@ public class pubbotafk extends PubBotModule {
                     // Staffers
                     if (getIdleTime(name) >= (STAFF_WARNING_TIME + STAFF_MOVE_TIME)) {
                         m_botAction.sendPrivateMessage(name, MOVE_MESSAGE);
+                        m_botAction.sendPrivateMessage(name, STAFF_MOVED_WARNING);
                         m_botAction.sendUnfilteredPrivateMessage(name, sendtoCmd);
                     } else if (getIdleTime(name) == STAFF_WARNING_TIME) {
                         m_botAction.sendPrivateMessage(name, WARNING_MESSAGE);
