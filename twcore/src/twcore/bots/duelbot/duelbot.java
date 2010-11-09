@@ -934,7 +934,7 @@ public class duelbot extends SubspaceBot {
     ***********************************************/
 
     public void do_die( String name, String message ) {
-    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && m_botAction.getOperatorList().isSmod(name)) return;
+    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase()) && !m_botAction.getOperatorList().isSmod(name)) return;
 		//Removes the bot from the server.
     	m_botAction.die();
     }
@@ -951,7 +951,7 @@ public class duelbot extends SubspaceBot {
     }
 
     public void do_shutDown( String name, String message ) {
-    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && m_botAction.getOperatorList().isSmod(name)) return;
+    	if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase()) && !m_botAction.getOperatorList().isSmod(name)) return;
     	shutDownMessage = message;
     	if( shutDown ) {
     		m_botAction.sendPrivateMessage( name, "Shutdown mode turned off." );
@@ -963,7 +963,7 @@ public class duelbot extends SubspaceBot {
     }
 
     public void do_shutDownDie( String name, String message ) {
-        if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && m_botAction.getOperatorList().isSmod(name)) return;
+        if(!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase()) && !m_botAction.getOperatorList().isSmod(name)) return;
         shutDownMessage = message;
         if( shutDownDie ) {
             m_botAction.sendPrivateMessage( name, "Shutdown+Die mode turned off." );
@@ -1193,87 +1193,6 @@ public class duelbot extends SubspaceBot {
     	m_botAction.sendSmartPrivateMessage(name, player + " disabled.");
     }
 
-    /***********************************************
-    *          Various Bot Called Methods          *
-    ***********************************************/
-
-    public void do_checkArena( String name, String message ) {
-    	if( message.startsWith( "IP:" ) ) {
-	    	//Sorts information from *info
-	        String[] pieces = message.split("  ");
-	        String thisName = pieces[3].substring(10);
-	        String thisIP = pieces[0].substring(3);
-	        String thisID = pieces[5].substring(10);
-	        do_addPlayer( thisName, thisIP, thisID );
-	     } else if( message.equals( "Arena UNLOCKED" ) ) {
-	     	m_botAction.toggleLocked();
-	     } else if( message.startsWith( "PING Current:" ) ) {
-	     	String pieces[] = message.split(" ");
-	     	String output = pieces[4] + " ms  " + pieces[10] + " ms";
-	     	output = message.substring( 0, message.length()-16 );
-	     	if(to != null)
-	     		m_botAction.sendPrivateMessage( to, from + ":  " + output );
-	     	int average = Integer.parseInt(pieces[4].substring(pieces[4].indexOf(":") + 1));
-	     	sql_lagInfo(from, average);
-	     	to = "";
-	     	from = "";
-	     }
-    }
-
-    public void do_addPlayer( String name, String IP, String MID ) {
-    	try {
-    		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT fcUserName FROM tblDuelPlayer WHERE fnEnabled = 1 AND fcIP = '"+IP+"' OR fnMID = '"+MID+"' OR fcUserName = '"+Tools.addSlashesToString(name)+"'" );
-    		if( !result.next() ) {
-    			DBPlayerData player = new DBPlayerData( m_botAction, mySQLHost, name, true );
-    			m_botAction.SQLQueryAndClose( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"', 0, 0, NOW())" );
-
-    			//Removed as of season 2
-    			//sql_createLeagueData( player );
-    			if(aliasChecker.equals(""))
-    				m_botAction.sendPrivateMessage( name, "You have been registered to use this bot. It is advised you set your personal dueling rules, for further information use !help" );
-    			else {
-    				m_botAction.sendPrivateMessage(aliasChecker, "This player has no registered aliases.");
-    				aliasChecker = "";
-    			}
-    		} else {
-    			if( result.getString( "fcUserName" ).equalsIgnoreCase( name )) {
-    				if(aliasChecker.equals(""))
-    					m_botAction.sendSmartPrivateMessage( name, "You have already signed up." );
-    				else {
-    					m_botAction.sendSmartPrivateMessage( aliasChecker, "This player is already signed up.");
-    					aliasChecker = "";
-    				}
-    			} else {
-    				if( allowedNames.containsKey( name ) && aliasChecker.equals("") ) {
-    					DBPlayerData player = new DBPlayerData( m_botAction, mySQLHost, name, true );
-		    			m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"', 0, 0, NOW())" );
-
-		    			//Removed as of season 2
-		    			//sql_createLeagueData( player );
-
-		    			m_botAction.sendPrivateMessage( name, "You have been registered to use this bot. It is advised you set your personal dueling rules, for further information use !help" );
-                        allowedNames.remove( name );
-                        canEnableNames.add( name );
-    				} else {
-						String extras = "";
-    					do {
-    						extras += " " + result.getString( "fcUserName" ) + " ";
-    					} while( result.next() );
-    					if(aliasChecker.equals("")) {
-    					    m_botAction.sendSmartPrivateMessage( name, "It appears you already have other names signed up for TWEL or have registered this name already." );
-    						m_botAction.sendSmartPrivateMessage( name, "Please login with these names: ("+extras+") and use the command !disable, you will then be able to signup a new name." );
-    						m_botAction.sendSmartPrivateMessage( name, "All names disabled suffer a 300 point rating loss. If you have further problems please contact a league op." );
-    					} else {
-    						m_botAction.sendSmartPrivateMessage( aliasChecker, "Aliases registered: " + extras);
-    						aliasChecker = "";
-    					}
-    				}
-    			}
-    		}
-                m_botAction.SQLClose( result );
-    	} catch (Exception e) { Tools.printStackTrace( "Failed to signup new user", e ); }
-	}
-
     public void do_addOp(String name, String message) {
         if(!leagueHeadOps.containsKey(name.toLowerCase())) return;
         
@@ -1366,6 +1285,87 @@ public class duelbot extends SubspaceBot {
         do_updateOps();
     }
     
+    /***********************************************
+    *          Various Bot Called Methods          *
+    ***********************************************/
+
+    public void do_checkArena( String name, String message ) {
+    	if( message.startsWith( "IP:" ) ) {
+	    	//Sorts information from *info
+	        String[] pieces = message.split("  ");
+	        String thisName = pieces[3].substring(10);
+	        String thisIP = pieces[0].substring(3);
+	        String thisID = pieces[5].substring(10);
+	        do_addPlayer( thisName, thisIP, thisID );
+	     } else if( message.equals( "Arena UNLOCKED" ) ) {
+	     	m_botAction.toggleLocked();
+	     } else if( message.startsWith( "PING Current:" ) ) {
+	     	String pieces[] = message.split(" ");
+	     	String output = pieces[4] + " ms  " + pieces[10] + " ms";
+	     	output = message.substring( 0, message.length()-16 );
+	     	if(to != null)
+	     		m_botAction.sendPrivateMessage( to, from + ":  " + output );
+	     	int average = Integer.parseInt(pieces[4].substring(pieces[4].indexOf(":") + 1));
+	     	sql_lagInfo(from, average);
+	     	to = "";
+	     	from = "";
+	     }
+    }
+
+    public void do_addPlayer( String name, String IP, String MID ) {
+    	try {
+    		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT fcUserName FROM tblDuelPlayer WHERE fnEnabled = 1 AND fcIP = '"+IP+"' OR fnMID = '"+MID+"' OR fcUserName = '"+Tools.addSlashesToString(name)+"'" );
+    		if( !result.next() ) {
+    			DBPlayerData player = new DBPlayerData( m_botAction, mySQLHost, name, true );
+    			m_botAction.SQLQueryAndClose( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"', 0, 0, NOW())" );
+
+    			//Removed as of season 2
+    			//sql_createLeagueData( player );
+    			if(aliasChecker.equals(""))
+    				m_botAction.sendPrivateMessage( name, "You have been registered to use this bot. It is advised you set your personal dueling rules, for further information use !help" );
+    			else {
+    				m_botAction.sendPrivateMessage(aliasChecker, "This player has no registered aliases.");
+    				aliasChecker = "";
+    			}
+    		} else {
+    			if( result.getString( "fcUserName" ).equalsIgnoreCase( name )) {
+    				if(aliasChecker.equals(""))
+    					m_botAction.sendSmartPrivateMessage( name, "You have already signed up." );
+    				else {
+    					m_botAction.sendSmartPrivateMessage( aliasChecker, "This player is already signed up.");
+    					aliasChecker = "";
+    				}
+    			} else {
+    				if( allowedNames.containsKey( name ) && aliasChecker.equals("") ) {
+    					DBPlayerData player = new DBPlayerData( m_botAction, mySQLHost, name, true );
+		    			m_botAction.SQLQuery( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"', 0, 0, NOW())" );
+
+		    			//Removed as of season 2
+		    			//sql_createLeagueData( player );
+
+		    			m_botAction.sendPrivateMessage( name, "You have been registered to use this bot. It is advised you set your personal dueling rules, for further information use !help" );
+                        allowedNames.remove( name );
+                        canEnableNames.add( name );
+    				} else {
+						String extras = "";
+    					do {
+    						extras += " " + result.getString( "fcUserName" ) + " ";
+    					} while( result.next() );
+    					if(aliasChecker.equals("")) {
+    					    m_botAction.sendSmartPrivateMessage( name, "It appears you already have other names signed up for TWEL or have registered this name already." );
+    						m_botAction.sendSmartPrivateMessage( name, "Please login with these names: ("+extras+") and use the command !disable, you will then be able to signup a new name." );
+    						m_botAction.sendSmartPrivateMessage( name, "All names disabled suffer a 300 point rating loss. If you have further problems please contact a league op." );
+    					} else {
+    						m_botAction.sendSmartPrivateMessage( aliasChecker, "Aliases registered: " + extras);
+    						aliasChecker = "";
+    					}
+    				}
+    			}
+    		}
+                m_botAction.SQLClose( result );
+    	} catch (Exception e) { Tools.printStackTrace( "Failed to signup new user", e ); }
+	}
+
     public void do_updateOps() {
         leagueOps.clear();
         leagueHeadOps.clear();
@@ -1745,7 +1745,7 @@ public class duelbot extends SubspaceBot {
     public void handleEvent( LoggedOn event ) {
     	//join initial arena
     	m_botSettings = m_botAction.getBotSettings();
-    	m_botAction.joinArena( m_botSettings.getString( "Arena" + m_botAction.getBotNumber())); // remove + m_botAction.getBotNumber() for dev zone functionality
+    	m_botAction.joinArena( m_botSettings.getString( "Arena" + m_botAction.getBotNumber())); // remove + m_botAction.getBotNumber()
 
         //Sets up all variables for new features that I can't think of a good comment for
         lastZoner = System.currentTimeMillis() - (30 * 60 * 1000);
@@ -2141,7 +2141,6 @@ public class duelbot extends SubspaceBot {
 
     }
 
-
     /**
      * Returns idle status and enables shutdown mode to facilitate rapid restart of core..
      */
@@ -2351,7 +2350,6 @@ public class duelbot extends SubspaceBot {
                 m_botAction.sendPrivateMessage(name, "That player is not banned.");
         } catch(Exception e) { Tools.printStackTrace(e); }
     }
-
 
     public boolean sql_unbanPlayer( String name ) {
         try {
