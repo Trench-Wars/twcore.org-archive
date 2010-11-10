@@ -24,14 +24,13 @@ public class pubhubgamealert extends PubBotModule {
     private HashMap<String, SquadData> games;
     private HashSet<AlertedPlayer> alerted;
     private TimerTask getGames;
-    private String m_botName;
+    private String botName;
     private OperatorList opList;
-    private boolean debug = false;
-    
+
     @Override
     public void initializeModule() {
         scheduleTask();
-        m_botName = m_botAction.getBotName();
+        botName = m_botAction.getBotName();
         games = new HashMap<String, SquadData>();
         alerted = new HashSet<AlertedPlayer>();
         opList = m_botAction.getOperatorList();
@@ -39,14 +38,14 @@ public class pubhubgamealert extends PubBotModule {
 
     @Override
     public void cancel() {
-        m_botAction.cancelTask(getGames);        
+        m_botAction.cancelTask(getGames);
     }
 
     @Override
     public void requestEvents(EventRequester eventRequester) {
         eventRequester.request(EventRequester.MESSAGE);
     }
-    
+
     /**
      * Hidden SMOD commands for potential problem prevention
      */
@@ -58,70 +57,49 @@ public class pubhubgamealert extends PubBotModule {
 
         String message = event.getMessage();
         int type = event.getMessageType();
-        
-        if((type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE || type == Message.CHAT_MESSAGE) && (name.equals("WingZero") || opList.isSmod(name))) {
-            
-    
-            if(message.equals("!refreshmatches")) {
+
+        if ((type == Message.PRIVATE_MESSAGE
+                || type == Message.REMOTE_PRIVATE_MESSAGE || type == Message.CHAT_MESSAGE)
+                && opList.isSmod(name)) {
+
+            if (message.equals("!refreshmatches")) {
                 refreshMatches(name, type);
-            }
-            else if(message.equals("!cancelrefresh")) {
+            } else if (message.equals("!cancelrefresh")) {
                 cancelRefresh(name, type);
-            }
-            else if(message.equals("!restartrefresh")) {
-                restartRefresh(name, type);              
-            }
-            else if(message.equals("!debug")) {
-                debug(name, type);              
+            } else if (message.equals("!restartrefresh")) {
+                restartRefresh(name, type);
             }
         }
     }
-    
-    public void debug(String name, int type) {
-        if (!debug) {
-            debug = true;
-            if (type == Message.CHAT_MESSAGE)
-                m_botAction.sendChatMessage("Debug mode enabled.");
-            else                
-                m_botAction.sendSmartPrivateMessage(name, "Debug mode enabled.");
-        }
-        else {
-            debug = false;
-            if (type == Message.CHAT_MESSAGE)
-                m_botAction.sendChatMessage("Debug mode disabled.");
-            else                
-                m_botAction.sendSmartPrivateMessage(name, "Debug mode disabled.");
-        }
-    }
-    
+
     public void refreshMatches(String name, int messageType) {
-        if ((messageType == Message.PRIVATE_MESSAGE) || (messageType == Message.REMOTE_PRIVATE_MESSAGE)) {
+        if ((messageType == Message.PRIVATE_MESSAGE)
+                || (messageType == Message.REMOTE_PRIVATE_MESSAGE)) {
             refreshMatches();
             m_botAction.sendSmartPrivateMessage(name, "Matches refreshed.");
-        }
-        else if (messageType == Message.CHAT_MESSAGE){
+        } else if (messageType == Message.CHAT_MESSAGE) {
             refreshMatches();
             m_botAction.sendChatMessage("Matches refreshed.");
         }
     }
-    
+
     public void cancelRefresh(String name, int messageType) {
-        if ((messageType == Message.PRIVATE_MESSAGE) || (messageType == Message.REMOTE_PRIVATE_MESSAGE)) {
+        if ((messageType == Message.PRIVATE_MESSAGE)
+                || (messageType == Message.REMOTE_PRIVATE_MESSAGE)) {
             cancel();
-            m_botAction.sendSmartPrivateMessage(name, "TimerTask getGames cancelled.");        
-        }
-        else if (messageType == Message.CHAT_MESSAGE){
+            m_botAction.sendSmartPrivateMessage(name, "TimerTask getGames cancelled.");
+        } else if (messageType == Message.CHAT_MESSAGE) {
             cancel();
             m_botAction.sendChatMessage("TimerTask getGames cancelled.");
         }
     }
-    
+
     public void restartRefresh(String name, int messageType) {
-        if ((messageType == Message.PRIVATE_MESSAGE) || (messageType == Message.REMOTE_PRIVATE_MESSAGE)) {
+        if ((messageType == Message.PRIVATE_MESSAGE)
+                || (messageType == Message.REMOTE_PRIVATE_MESSAGE)) {
             scheduleTask();
-            m_botAction.sendSmartPrivateMessage(name, "TimerTask getGames restarted.");  
-        }
-        else if (messageType == Message.CHAT_MESSAGE){
+            m_botAction.sendSmartPrivateMessage(name, "TimerTask getGames restarted.");
+        } else if (messageType == Message.CHAT_MESSAGE) {
             scheduleTask();
             m_botAction.sendChatMessage("TimerTask getGames restarted.");
         }
@@ -131,36 +109,27 @@ public class pubhubgamealert extends PubBotModule {
      * This method handles an InterProcess event.
      * @param event is the IPC event to handle.
      */
-    public void handleEvent(InterProcessEvent event)
-    {
-        // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
-        if(event.getObject() instanceof IPCMessage == false) {
+    public void handleEvent(InterProcessEvent event) {
+        // If the event.getObject() is anything else then the IPCMessage
+        // (pubbotchatIPC f.ex) then return
+        if (event.getObject() instanceof IPCMessage == false) {
             return;
         }
 
         IPCMessage ipcMessage = (IPCMessage) event.getObject();
         String message = ipcMessage.getMessage();
+        String sender = ipcMessage.getSender();
 
-        try
-        {
-            if(message.startsWith("player ")) {
-                playerEntered(message.substring(message.indexOf(' ')+1, message.indexOf(':')), message.substring(message.indexOf(':')+1));
-            }
-        }
-        catch(Exception e)
-        {
-            m_botAction.sendChatMessage(e.getMessage());
+        if (message.startsWith("player ")) {
+            playerEntered(message.substring(message.indexOf(' ') + 1, message.indexOf(':')), message.substring(message.indexOf(':') + 1), sender);
         }
     }
-    
+
     /**
      * This method attends to player information received from pubbot
      * @param name
      */
-    public void playerEntered(String name, String squadName) {        
-        if (debug)
-            m_botAction.sendSmartPrivateMessage("WingZero", name + " of squad: " + squadName);
-        
+    public void playerEntered(String name, String squadName, String bot) {
         if (squadName.length() > 0) {
             if (games.containsKey(squadName.toLowerCase())) {
                 SquadData squad = games.get(squadName.toLowerCase());
@@ -169,27 +138,37 @@ public class pubhubgamealert extends PubBotModule {
                     try {
                         boolean toAlert = true;
                         String[] info = it.next();
-                        if (debug)
-                            m_botAction.smartPrivateMessageSpam("WingZero", info);
                         int matchID = Integer.parseInt(info[4]);
                         AlertedPlayer player = new AlertedPlayer(name.toLowerCase(), matchID);
                         Iterator<AlertedPlayer> i = alerted.iterator();
-                        while(toAlert && i.hasNext()) {
+                        while (toAlert && i.hasNext()) {
                             AlertedPlayer ap = i.next();
-                            if (name.equalsIgnoreCase(ap.getPlayer()) && ap.getMatchID() == matchID)
+                            if (name.equalsIgnoreCase(ap.getPlayer())
+                                    && ap.getMatchID() == matchID)
                                 toAlert = false;
                         }
-                        
+
                         if (toAlert) {
-                            m_botAction.ipcSendMessage(getIPCChannel(), "send " + name + ":Your squad is " + info[1].toLowerCase() + " a " + info[2] + " match against " + info[0] + " in ?go " + info[3], null, m_botName);
+                            m_botAction.ipcSendMessage(this.getIPCChannel(), "send "
+                                    + name
+                                    + ":Your squad is "
+                                    + info[1].toLowerCase()
+                                    + " a "
+                                    + info[2]
+                                    + " match against "
+                                    + info[0]
+                                    + " in ?go "
+                                    + info[3], bot, botName);
                             alerted.add(player);
                         }
-                    } catch (Exception e) { m_botAction.sendChatMessage("parseInt failed"); }
+                    } catch (Exception e) {
+                        m_botAction.sendChatMessage("parseInt failed");
+                    }
                 }
             }
         }
     }
-    
+
     /**
      * Match list refresh scheduler schedules for every 60 seconds
      */
@@ -201,7 +180,7 @@ public class pubhubgamealert extends PubBotModule {
         };
         m_botAction.scheduleTask(getGames, 0, 60000);
     }
-    
+
     /**
      * Clears the games list and updates it accordingly
      */
@@ -209,16 +188,16 @@ public class pubhubgamealert extends PubBotModule {
         games.clear();
         String[] data = new String[6];
         try {
-            String query = "SELECT *, UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(ftTimeStarted) time " +
-                    "FROM tblMatch, tblMatchType, tblMatchState " +
-                    "WHERE fnMatchID > 90034150 " +
-                    "AND DATE_SUB(NOW(), INTERVAL 60 MINUTE) < ftTimeStarted " +
-                    "AND (tblMatch.fnMatchStateID = 2 OR tblMatch.fnMatchStateID = 1) " +
-                    "AND tblMatch.fnMatchTypeID IN (4,5,6,13) " +
-                    "AND tblMatchType.fnMatchTypeID = tblMatch.fnMatchTypeID " +
-                    "AND tblMatchState.fnMatchStateID = tblMatch.fnMatchStateID " +
-                    "ORDER BY ftTimeStarted DESC";
-            
+            String query = "SELECT *, UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(ftTimeStarted) time "
+                    + "FROM tblMatch, tblMatchType, tblMatchState "
+                    + "WHERE fnMatchID > 90034150 "
+                    + "AND DATE_SUB(NOW(), INTERVAL 60 MINUTE) < ftTimeStarted "
+                    + "AND (tblMatch.fnMatchStateID = 2 OR tblMatch.fnMatchStateID = 1) "
+                    + "AND tblMatch.fnMatchTypeID IN (4,5,6,13) "
+                    + "AND tblMatchType.fnMatchTypeID = tblMatch.fnMatchTypeID "
+                    + "AND tblMatchState.fnMatchStateID = tblMatch.fnMatchStateID "
+                    + "ORDER BY ftTimeStarted DESC";
+
             ResultSet matches = m_botAction.SQLQuery(dbConn, query);
             while (matches.next()) {
                 data[0] = matches.getString("fcTeam1Name");
@@ -241,13 +220,13 @@ public class pubhubgamealert extends PubBotModule {
                 }
             }
             m_botAction.SQLClose(matches);
-        } catch (Exception e) { }
-        
+        } catch (Exception e) {
+        }
     }
 }
 
 /**
- * SquadData class holds match information by squad name 
+ * SquadData class holds match information by squad name
  */
 class SquadData {
     String name;
@@ -257,8 +236,9 @@ class SquadData {
         name = squad;
         matches = new ArrayList<String[]>();
     }
-    
-    public SquadData(String nme, String state, String type, String arena, String matchID, String squad) {
+
+    public SquadData(String nme, String state, String type, String arena,
+            String matchID, String squad) {
         name = squad;
         matches = new ArrayList<String[]>();
         String[] info = new String[6];
@@ -270,8 +250,9 @@ class SquadData {
         info[5] = squad;
         matches.add(info);
     }
-    
-    public void addMatch(String nme, String state, String type, String arena, String matchID, String squad) {
+
+    public void addMatch(String nme, String state, String type, String arena,
+            String matchID, String squad) {
         String[] info = new String[6];
         info[0] = nme;
         info[1] = state;
@@ -281,32 +262,29 @@ class SquadData {
         info[5] = squad;
         matches.add(info);
     }
-    
+
     public ArrayList<String[]> getMatches() {
         return matches;
     }
 }
 
-/** 
- * AlertedPlayer class keeps track of which players were alerted to what MatchID 
+/**
+ * AlertedPlayer class keeps track of which players were alerted to what MatchID
  */
 class AlertedPlayer {
     String player;
     int matchID;
-    
+
     public AlertedPlayer(String name, int ID) {
         player = name;
         matchID = ID;
     }
-    
+
     public String getPlayer() {
         return player;
     }
-    
+
     public int getMatchID() {
         return matchID;
     }
 }
-
-
-
