@@ -28,6 +28,7 @@ public class pubhubgamealert extends PubBotModule {
     private TimerTask getGames;
     private String m_botName;
     private OperatorList opList;
+    private boolean debug = false;
     
     @Override
     public void initializeModule() {
@@ -57,7 +58,7 @@ public class pubhubgamealert extends PubBotModule {
             name = event.getMessager();
         }
         
-        if(!opList.isSmod(name)) return;
+        if(!name.equals("WingZero") || !opList.isSmod(name)) return;
         
         String message = event.getMessage();
         int messageType = event.getMessageType();
@@ -71,6 +72,16 @@ public class pubhubgamealert extends PubBotModule {
         else if(message.equals("!restartrefresh")) {
             restartRefresh(name, messageType);              
         }
+        else if(message.equals("!debug")) {
+            debug();              
+        }
+    }
+    
+    public void debug() {
+        if (!debug)
+            debug = true;
+        else
+            debug = false;
     }
     
     public void refreshMatches(String name, int messageType) {
@@ -105,6 +116,10 @@ public class pubhubgamealert extends PubBotModule {
             m_botAction.sendChatMessage("TimerTask getGames restarted.");
         }
     }
+    
+    public void relayMessage(String msg) {
+        m_botAction.sendSmartPrivateMessage("WingZero", msg);
+    }
 
     /**
      * This method handles an InterProcess event.
@@ -124,6 +139,7 @@ public class pubhubgamealert extends PubBotModule {
         try
         {
             if(message.startsWith("player ")) {
+                relayMessage(message);
                 playerEntered(message.substring(message.indexOf(' ')+1));
             }
         }
@@ -142,6 +158,9 @@ public class pubhubgamealert extends PubBotModule {
         Player p = m_botAction.getPlayer(name);
         String squadName = p.getSquadName();
         
+        if (debug)
+            m_botAction.sendSmartPrivateMessage("WingZero", name + " of squad: " + squadName);
+        
         if (squadName.length() > 0) {
             if (games.containsKey(squadName.toLowerCase())) {
                 SquadData squad = games.get(squadName.toLowerCase());
@@ -150,6 +169,8 @@ public class pubhubgamealert extends PubBotModule {
                     try {
                         boolean toAlert = true;
                         String[] info = it.next();
+                        if (debug)
+                            m_botAction.smartPrivateMessageSpam("WingZero", info);
                         int matchID = Integer.parseInt(info[4]);
                         AlertedPlayer player = new AlertedPlayer(name.toLowerCase(), matchID);
                         Iterator<AlertedPlayer> i = alerted.iterator();
@@ -190,7 +211,7 @@ public class pubhubgamealert extends PubBotModule {
         try {
             String query = "SELECT *, UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(ftTimeStarted) time " +
                     "FROM tblMatch, tblMatchType, tblMatchState " +
-                    "WHERE fnMatchID > 1 " +
+                    "WHERE fnMatchID > 90034150 " +
                     "AND DATE_SUB(NOW(), INTERVAL 60 MINUTE) < ftTimeStarted " +
                     "AND (tblMatch.fnMatchStateID = 2 OR tblMatch.fnMatchStateID = 1) " +
                     "AND tblMatch.fnMatchTypeID IN (4,5,6,13) " +
