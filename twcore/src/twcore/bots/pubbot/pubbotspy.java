@@ -237,7 +237,7 @@ public class pubbotspy extends PubBotModule
 
       // Check for bot / staff impersonation
       if(m_botAction.getOperatorList().isBot(name) == false &&
-              ( nameLC.endsWith("<er>") || nameLC.endsWith("<zh>") || nameLC.startsWith("matchbot")) ) {
+              ( nameLC.endsWith("<er>") || nameLC.endsWith("<zh>") || nameLC.startsWith("matchbot") || nameLC.startsWith("tw-")) ) {
           m_botAction.sendUnfilteredPublicMessage("?cheater Possible bot/staff impersonator entered: " + name);
       }
       if(racismCheck.isRacist(event.getSquadName())) {

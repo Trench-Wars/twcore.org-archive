@@ -628,7 +628,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	
     	Iterator<Entry<String,Integer>> it2 = richest.entrySet().iterator();
     	int count = 0;
-    	while(it2.hasNext() && count < 3) {
+    	while(it2.hasNext() && count < 5) {
     		Entry<String,Integer> entry = it2.next();
     		m_botAction.sendSmartPrivateMessage(sender, ++count + ". " + entry.getKey() + " with $" + entry.getValue());
     	}
@@ -1359,7 +1359,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	        pubsystem.getHelpLine("!money <name>       -- Display your money or for a given player name. (!$)"),
 	        pubsystem.getHelpLine("!donate <name>:<$>  -- Donate money to a player."),
 	        pubsystem.getHelpLine("!coupon <code>      -- Redeem your <code>."),
-	        pubsystem.getHelpLine("!richest            -- Top 3 richest players currently playing."),
+	        pubsystem.getHelpLine("!richest            -- Top 5 richest players currently playing."),
 	        pubsystem.getHelpLine("!lastkill           -- How much you earned for your last kill (+ algorithm)."),
 		};
 	}
