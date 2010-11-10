@@ -113,6 +113,19 @@ public class pubbotbanc extends PubBotModule {
     		
     	}
     }
+    
+    public void handleEvent(PlayerEntered event){
+        try{
+            String namePlayer = m_botAction.getPlayerName(event.getPlayerID());
+
+            if( this.hashSuperSpec.contains( namePlayer ) ){// && ( event.getShipType() == 2 || event.getShipType() == 4 || event.getShipType() == 8 )){
+                superLockMethod(namePlayer, event.getShipType());
+            }
+
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
   
     public void handleEvent(FrequencyShipChange event){
         try{
