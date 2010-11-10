@@ -69,17 +69,21 @@ public class pubbotgamealert extends PubBotModule {
         int type = event.getMessageType();
         String msg = event.getMessage();
         String name = event.getMessager();
-        if (type == Message.PRIVATE_MESSAGE && name.equalsIgnoreCase("WingZero")) {
+        if ((type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE) && name.equalsIgnoreCase("WingZero")) {
             handleCommand(msg);
         }
     }
     
     public void handleCommand(String command) {
         if (command.equals("!debug")) {
-            if (!debug)
+            if (!debug) {
                 debug = true;
-            else
+                m_botAction.sendSmartPrivateMessage("WingZero", "Debug mode enabled.");
+            }
+            else {
                 debug = false;
+                m_botAction.sendSmartPrivateMessage("WingZero", "Debug mode disabled.");
+            }
         }
     }
     
