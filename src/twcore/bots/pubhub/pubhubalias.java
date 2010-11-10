@@ -797,8 +797,10 @@ public class pubhubalias extends PubBotModule
 			
 			else if(command.equals("!help"))
 				doHelpCmd(sender);
-			else if(command.startsWith("!altnick "))
+			else if(command.startsWith("!altnick ")){
 				doAltNickCmd(message.substring(9).trim());
+				Tools.printLog(command);
+			}
 			else if(command.startsWith("!altip "))
 				doAltIpCmd(message.substring(7).trim());
 			else if(command.startsWith("!altmid "))
