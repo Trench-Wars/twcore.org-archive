@@ -12,12 +12,10 @@ import twcore.core.EventRequester;
 import twcore.core.OperatorList;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
-import twcore.core.game.Player;
 import twcore.core.util.ipc.IPCMessage;
 
 /**
  * GameAlert sends a one time alert upon login if the player's squad is in a twd match
- * 
  * @author WingZero
  */
 public class pubhubgamealert extends PubBotModule {
@@ -57,35 +55,42 @@ public class pubhubgamealert extends PubBotModule {
         if (name == null) {
             name = event.getMessager();
         }
+
+        String message = event.getMessage();
+        int type = event.getMessageType();
         
-        if(name.equals("WingZero") || opList.isSmod(name)) {
+        if((type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE || type == Message.CHAT_MESSAGE) && (name.equals("WingZero") || opList.isSmod(name))) {
             
-            String message = event.getMessage();
-            int messageType = event.getMessageType();
     
             if(message.equals("!refreshmatches")) {
-                refreshMatches(name, messageType);
+                refreshMatches(name, type);
             }
             else if(message.equals("!cancelrefresh")) {
-                cancelRefresh(name, messageType);
+                cancelRefresh(name, type);
             }
             else if(message.equals("!restartrefresh")) {
-                restartRefresh(name, messageType);              
+                restartRefresh(name, type);              
             }
             else if(message.equals("!debug")) {
-                debug();              
+                debug(name, type);              
             }
         }
     }
     
-    public void debug() {
+    public void debug(String name, int type) {
         if (!debug) {
             debug = true;
-            m_botAction.sendSmartPrivateMessage("WingZero", "Debug mode enabled.");
+            if (type == Message.CHAT_MESSAGE)
+                m_botAction.sendChatMessage("Debug mode enabled.");
+            else                
+                m_botAction.sendSmartPrivateMessage(name, "Debug mode enabled.");
         }
         else {
             debug = false;
-            m_botAction.sendSmartPrivateMessage("WingZero", "Debug mode disabled.");
+            if (type == Message.CHAT_MESSAGE)
+                m_botAction.sendChatMessage("Debug mode disabled.");
+            else                
+                m_botAction.sendSmartPrivateMessage(name, "Debug mode disabled.");
         }
     }
     
@@ -124,7 +129,6 @@ public class pubhubgamealert extends PubBotModule {
 
     /**
      * This method handles an InterProcess event.
-     *
      * @param event is the IPC event to handle.
      */
     public void handleEvent(InterProcessEvent event)
@@ -140,7 +144,7 @@ public class pubhubgamealert extends PubBotModule {
         try
         {
             if(message.startsWith("player ")) {
-                playerEntered(message.substring(message.indexOf(' ')+1));
+                playerEntered(message.substring(message.indexOf(' ')+1, message.indexOf(':')), message.substring(message.indexOf(':')+1));
             }
         }
         catch(Exception e)
@@ -151,13 +155,9 @@ public class pubhubgamealert extends PubBotModule {
     
     /**
      * This method attends to player information received from pubbot
-     * 
      * @param name
      */
-    public void playerEntered(String name) {
-        Player p = m_botAction.getPlayer(name);
-        String squadName = p.getSquadName();
-        
+    public void playerEntered(String name, String squadName) {        
         if (debug)
             m_botAction.sendSmartPrivateMessage("WingZero", name + " of squad: " + squadName);
         
