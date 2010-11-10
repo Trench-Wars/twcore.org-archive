@@ -799,7 +799,7 @@ public class pubhubalias extends PubBotModule
 				doHelpCmd(sender);
 			else if(command.startsWith("!altnick ")){
 				doAltNickCmd(message.substring(9).trim());
-				Tools.printLog(command);
+				Tools.printLog(sender+" "+message);
 			}
 			else if(command.startsWith("!altip "))
 				doAltIpCmd(message.substring(7).trim());
