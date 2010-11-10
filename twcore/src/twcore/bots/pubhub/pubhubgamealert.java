@@ -58,30 +58,35 @@ public class pubhubgamealert extends PubBotModule {
             name = event.getMessager();
         }
         
-        if(!name.equals("WingZero") || !opList.isSmod(name)) return;
-        
-        String message = event.getMessage();
-        int messageType = event.getMessageType();
-
-        if(message.equals("!refreshmatches")) {
-            refreshMatches(name, messageType);
-        }
-        else if(message.equals("!cancelrefresh")) {
-            cancelRefresh(name, messageType);
-        }
-        else if(message.equals("!restartrefresh")) {
-            restartRefresh(name, messageType);              
-        }
-        else if(message.equals("!debug")) {
-            debug();              
+        if(name.equals("WingZero") || opList.isSmod(name)) {
+            
+            String message = event.getMessage();
+            int messageType = event.getMessageType();
+    
+            if(message.equals("!refreshmatches")) {
+                refreshMatches(name, messageType);
+            }
+            else if(message.equals("!cancelrefresh")) {
+                cancelRefresh(name, messageType);
+            }
+            else if(message.equals("!restartrefresh")) {
+                restartRefresh(name, messageType);              
+            }
+            else if(message.equals("!debug")) {
+                debug();              
+            }
         }
     }
     
     public void debug() {
-        if (!debug)
+        if (!debug) {
             debug = true;
-        else
+            m_botAction.sendSmartPrivateMessage("WingZero", "Debug mode enabled.");
+        }
+        else {
             debug = false;
+            m_botAction.sendSmartPrivateMessage("WingZero", "Debug mode disabled.");
+        }
     }
     
     public void refreshMatches(String name, int messageType) {
@@ -116,10 +121,6 @@ public class pubhubgamealert extends PubBotModule {
             m_botAction.sendChatMessage("TimerTask getGames restarted.");
         }
     }
-    
-    public void relayMessage(String msg) {
-        m_botAction.sendSmartPrivateMessage("WingZero", msg);
-    }
 
     /**
      * This method handles an InterProcess event.
@@ -139,7 +140,6 @@ public class pubhubgamealert extends PubBotModule {
         try
         {
             if(message.startsWith("player ")) {
-                relayMessage(message);
                 playerEntered(message.substring(message.indexOf(' ')+1));
             }
         }
@@ -154,7 +154,7 @@ public class pubhubgamealert extends PubBotModule {
      * 
      * @param name
      */
-    private void playerEntered(String name) {
+    public void playerEntered(String name) {
         Player p = m_botAction.getPlayer(name);
         String squadName = p.getSquadName();
         
