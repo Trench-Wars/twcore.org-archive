@@ -5,11 +5,11 @@ import twcore.core.EventRequester;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
+import twcore.core.game.Player;
 import twcore.core.util.ipc.IPCMessage;
 
 /**
- *  This class handles PlayerEntered events and sends the information to pubhub who then sends appropriate alerts back to pubbot  
- *  
+ *  This class handles PlayerEntered events and sends the information to pubhub who then sends appropriate alerts back to pubbot
  *  @author WingZero
  */
 public class pubbotgamealert extends PubBotModule {
@@ -62,28 +62,27 @@ public class pubbotgamealert extends PubBotModule {
     
     public void handleEvent(PlayerEntered event) {
         String name = m_botAction.getPlayerName(event.getPlayerID());
-        m_botAction.ipcSendMessage(getIPCChannel(), "player " + name, null, botName);
+        Player p = m_botAction.getPlayer(name);
+        String squad = p.getSquadName();
+        m_botAction.ipcSendMessage(getIPCChannel(), "player " + name + ":" + squad, null, botName);
     }
     
     public void handleEvent(Message event) {
         int type = event.getMessageType();
         String msg = event.getMessage();
-        String name = event.getMessager();
-        if ((type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE) && name.equalsIgnoreCase("WingZero")) {
-            handleCommand(msg);
-        }
+        String name = getSender(event);
+        if ((type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE) && "WingZero".equalsIgnoreCase(name) && msg.equalsIgnoreCase(msg))
+            setDebug(name);
     }
     
-    public void handleCommand(String command) {
-        if (command.equals("!debug")) {
-            if (!debug) {
-                debug = true;
-                m_botAction.sendSmartPrivateMessage("WingZero", "Debug mode enabled.");
-            }
-            else {
-                debug = false;
-                m_botAction.sendSmartPrivateMessage("WingZero", "Debug mode disabled.");
-            }
+    public void setDebug(String name) {
+        if (!debug) {
+            debug = true;
+            m_botAction.sendSmartPrivateMessage(name, "Debug mode enabled.");
+        }
+        else {
+            debug = false;
+            m_botAction.sendSmartPrivateMessage(name, "Debug mode disabled.");
         }
     }
     
@@ -93,5 +92,15 @@ public class pubbotgamealert extends PubBotModule {
     
     public void sendAlert(String name, String msg) {
         m_botAction.sendSmartPrivateMessage(name, msg);
+    }
+
+    private String getSender(Message event)
+    {
+        int messageType = event.getMessageType();
+
+        if(messageType == Message.REMOTE_PRIVATE_MESSAGE || messageType == Message.CHAT_MESSAGE)
+            return event.getMessager();
+        int senderID = event.getPlayerID();
+        return m_botAction.getPlayerName(senderID);
     }
 }
