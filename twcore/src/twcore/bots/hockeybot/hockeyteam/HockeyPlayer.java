@@ -5,10 +5,7 @@ import twcore.core.BotAction;
 public class HockeyPlayer{
 
     /**
-     * Falta trabalhar os estados do jogador: se ele sair, diminuir a quantidade de jogadores no time ( remover do mapa )
-     * Substituições, tackle e save.
-     * Falta adicionar os pontos na tabela
-     *
+
      * */
     BotAction playerHandler;
     
