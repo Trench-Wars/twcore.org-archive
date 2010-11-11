@@ -3,8 +3,6 @@ package twcore.bots.hockeybot;
 import twcore.bots.hockeybot.hockeystate.HockeyState;
 import twcore.bots.hockeybot.hockeyteam.HockeyPlayer;
 import twcore.bots.hockeybot.hockeyteam.HockeyTeam;
-import twcore.bots.hockeybot.queuehockeyplayer.FIFOQueueArrayList;
-import twcore.bots.hockeybot.queuehockeyplayer.QueueAbstraction;
 import twcore.core.BotAction;
 import twcore.core.events.BallPosition;
 import twcore.core.game.Player;
