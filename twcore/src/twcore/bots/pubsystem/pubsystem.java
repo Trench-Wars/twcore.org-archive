@@ -326,8 +326,11 @@ public class pubsystem extends SubspaceBot
     public void handlePublicCommand(String sender, String command, int messageType) {
     	
         try {
+            
             if(command.equals("!help") || command.equals("!h"))
                 doHelpCmd(sender, false);
+            else if(command.equals("!help -tutorial"))
+                doTutorialHelpCmd(sender);
             else if(command.equals("!algorithm") || command.equals("!algo"))
                 doAlgorithmCmd(sender);
             else if(command.startsWith("!greetmessage"))
@@ -355,6 +358,7 @@ public class pubsystem extends SubspaceBot
                 m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
     }
+
 
 
     /**
@@ -465,6 +469,23 @@ public class pubsystem extends SubspaceBot
 
         }
 
+    }
+    
+    public void doTutorialHelpCmd(String sender){
+        List<String> list = new ArrayList<String>();
+        String st = "This is your guide to use our tutorial.";
+        list.add(st);
+        st = "Use !tutorial to start it";
+        list.add(st);
+        st = "Use !next to see step by step";
+        list.add(st);
+        st = "Use !quickhelp to see the whole tutorial";
+        list.add(st);
+        st = "If you're done, try !end";
+        list.add(st);
+        st = "Thanks to Flared and WingZero for creating the tutorial in Trench Wars!";
+        list.add(st);
+        m_botAction.remotePrivateMessageSpam(sender, list.toArray(new String[list.size()]));
     }
     
     public static String getHelpLine(String line) {
