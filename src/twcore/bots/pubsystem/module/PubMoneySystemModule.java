@@ -1814,11 +1814,14 @@ public class PubMoneySystemModule extends AbstractModule {
    		}
 		public void run() {
 			for(int freq: freqs) {
-	            for (Iterator<Integer> i = m_botAction.getFreqIDIterator(freq); i.hasNext();) {
-	            	if (enable)
-	            		m_botAction.sendUnfilteredPrivateMessage(i.next().intValue(), "*objon 561");
-	            	else
-	            		m_botAction.sendUnfilteredPrivateMessage(i.next().intValue(), "*objoff 561");
+	            for (Iterator<Player> i = m_botAction.getFreqPlayerIterator(freq); i.hasNext();) {
+	            	Player p = i.next();
+	            	if (!context.getPubChallenge().isDueling(p.getPlayerName())) {
+		            	if (enable)
+		            		m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objon 561");
+		            	else
+		            		m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objoff 561");
+	            	}
 	            }
 			}
 		}
@@ -1830,8 +1833,15 @@ public class PubMoneySystemModule extends AbstractModule {
    			this.freqs = freqs;
    		}
 		public void run() {
-			for(int freq: freqs)
-				m_botAction.prizeFreq(freq, Tools.Prize.ENERGY_DEPLETED);
+			for(int freq: freqs) {
+		        try {
+		            for (Iterator<Player> i = m_botAction.getFreqPlayerIterator(freq); i.hasNext();) {
+		            	Player p = i.next();
+		            	if (!context.getPubChallenge().isDueling(p.getPlayerName()))
+		            		m_botAction.specificPrize(p.getPlayerID(), Tools.Prize.ENERGY_DEPLETED);
+		            }
+		        } catch (Exception e) { }
+			}
 		}
 	};
 	
@@ -1841,8 +1851,15 @@ public class PubMoneySystemModule extends AbstractModule {
    			this.freqs = freqs;
    		}
 		public void run() {
-			for(int freq: freqs)
-				m_botAction.prizeFreq(freq, Tools.Prize.ENGINE_SHUTDOWN_EXTENDED);
+			for(int freq: freqs) {
+		        try {
+		            for (Iterator<Player> i = m_botAction.getFreqPlayerIterator(freq); i.hasNext();) {
+		            	Player p = i.next();
+		            	if (!context.getPubChallenge().isDueling(p.getPlayerName()))
+		            		m_botAction.specificPrize(p.getPlayerID(), Tools.Prize.ENGINE_SHUTDOWN_EXTENDED);
+		            }
+		        } catch (Exception e) { }
+			}
 		}
 	}
  	
