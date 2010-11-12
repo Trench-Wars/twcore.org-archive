@@ -542,7 +542,7 @@ public class pubsystem extends SubspaceBot
     			Player p = it.next();
     			builder.append(p.getPlayerName()+":"+p.getXTileLocation()+":"+p.getYTileLocation()+":"+p.getShipType() + "$$:$$");
     		}
-    		m_botAction.sendPublicMessage(builder.toString());
+
     		event.setResponse(builder.toString());
     	}
     	
