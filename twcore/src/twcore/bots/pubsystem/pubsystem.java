@@ -3,6 +3,7 @@ package twcore.bots.pubsystem;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -35,11 +36,13 @@ import twcore.core.events.SQLResultEvent;
 import twcore.core.events.ScoreReset;
 import twcore.core.events.ScoreUpdate;
 import twcore.core.events.SoccerGoal;
+import twcore.core.events.SocketMessageEvent;
 import twcore.core.events.TurretEvent;
 import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
+import twcore.core.util.json.JSONValue;
 
 /**
  * "Pure" pub bot that can enforce ship restrictions, freq restrictions, and run
@@ -157,8 +160,10 @@ public class pubsystem extends SubspaceBot
 	        context = new PubContext(m_botAction);
 	        context.handleEvent(event);
 
-	        m_botAction.getShip().setSpectatorUpdateTime(100);
+	        m_botAction.getShip().setSpectatorUpdateTime(200);
 	        m_botAction.receiveAllPlayerDeaths();
+	        
+	        m_botAction.socketSubscribe("PUBSYSTEM");
 	        
     	} catch (Exception e) {
     		Tools.printStackTrace(e);
@@ -523,6 +528,25 @@ public class pubsystem extends SubspaceBot
 
         context.start();
         
+    }
+	
+    public void handleEvent(SocketMessageEvent event){
+
+    	if (event.getRequest().equals("GETPLAYERS")) {
+    		ArrayList<String> players = new ArrayList<String>();
+    		Iterator<Player> it = m_botAction.getPlayerIterator();
+    		
+    		// Building a JSON-format result
+    		StringBuilder builder = new StringBuilder();
+    		while(it.hasNext()) {
+    			Player p = it.next();
+    			builder.append(p.getPlayerName()+":"+p.getXTileLocation()+":"+p.getYTileLocation()+":"+p.getShipType() + "$$:$$");
+    		}
+    		m_botAction.sendPublicMessage(builder.toString());
+    		event.setResponse(builder.toString());
+    	}
+    	
+    	context.handleEvent(event);
     }
 	
     public void handleEvent(PlayerLeft event) {
