@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Stack;
 import java.util.TimerTask;
 
 import twcore.bots.pubsystem.PubContext;
@@ -65,6 +66,8 @@ public class PubUtilModule extends AbstractModule {
 	
 	private HashMap<String,AliasCheck> aliases;
 	
+    private HashMap<String, Stack<String[]>> tutorials = new HashMap<String, Stack<String[]>>();
+	
 	
 	public PubUtilModule(BotAction botAction, PubContext context) {
 		super(botAction, context, "Utility");
@@ -124,6 +127,9 @@ public class PubUtilModule extends AbstractModule {
 							doAliasCheck(alias);
 						}
 					}
+                    
+                    if (Integer.valueOf(pieces[0]) < 100)
+                        m_botAction.sendUnfilteredPrivateMessage(currentInfoName, "*objon 2010");
 				}
 			}
 		}
@@ -260,6 +266,7 @@ public class PubUtilModule extends AbstractModule {
     
 	
 	public void handleEvent(PlayerLeft event) {
+	    tutorials.remove(m_botAction.getPlayerName(event.getPlayerID()));
 		//checkForDoors();
 	}
 
@@ -588,19 +595,86 @@ public class PubUtilModule extends AbstractModule {
         
         return "Not yet spotted";
     }
+    
+    public void doTutorial(String player) {
+        if (!tutorials.containsKey(player)) {
+            if (m_botAction.getPlayer(player).getShipType() == 0)
+                m_botAction.setShip(player, 1);
+            m_botAction.sendUnfilteredPrivateMessage(player, "*objon 2011");
+            m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2010");
+            m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2020");
+            Stack<String[]> objons = new Stack<String[]>();
+            objons.push( new String[] { "*objoff 2017", "*objon 2018", "*objoff 2019" });
+            objons.push( new String[] { "*objoff 2016", "*objon 2017" });
+            objons.push( new String[] { "*objoff 2015", "*objon 2016" });
+            objons.push( new String[] { "*objoff 2014", "*objon 2015" });
+            objons.push( new String[] { "*objoff 2013", "*objon 2014" });
+            objons.push( new String[] { "*objoff 2012", "*objon 2013" });
+            objons.push( new String[] { "*objoff 2011", "*objon 2012", "*objon 2019", "" + player + ", to continue the tutorial, please type ::!next" });
+            tutorials.put(player, objons);
+        } else
+            m_botAction.sendPrivateMessage(player, "Use !next");
+    }
+    
+    public void doNext(String player) {
+        if (tutorials.containsKey(player)) {
+            Stack<String[]> objects = tutorials.get(player);
+            String[] objs = objects.pop();
+            m_botAction.sendUnfilteredPrivateMessage(player, objs[0]);
+            m_botAction.sendUnfilteredPrivateMessage(player, objs[1]);
+            if (objs.length > 2) {
+                m_botAction.sendUnfilteredPrivateMessage(player, objs[2]);
+            } 
+            if (objs.length > 3) {
+                m_botAction.sendPrivateMessage(player, objs[3]);
+            } 
+            tutorials.put(player, objects);
+            if (objects.empty())
+                tutorials.remove(player);
+        }
+        else
+            m_botAction.sendPrivateMessage(player, "You must first type !tutorial");
+    }
+    
+    public void doEnd(String player) {
+        if (tutorials.containsKey(player)) 
+            tutorials.remove(player);
+        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2010");
+        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2011");
+        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2012");
+        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2013");
+        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2014");
+        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2015");
+        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2016");
+        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2017");
+        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2018");
+        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2019");
+        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2020");
+    }
+    
+    public void doQuickHelp(String player) {
+        doEnd(player);
+        m_botAction.sendUnfilteredPrivateMessage(player, "*objon 2020");        
+    }
 
-	@Override
-	public void handleCommand(String sender, String command) {
+    @Override
+    public void handleCommand(String sender, String command) {
 
         if(command.startsWith("!settile ") || command.startsWith("!tileset "))
-        	doSetTileCmd(sender, command.substring(9));
+            doSetTileCmd(sender, command.substring(9));
         else if(command.startsWith("!whereis "))
             doWhereIsCmd(sender, command.substring(9), m_botAction.getOperatorList().isBot(sender));
         else if(command.equals("!restrictions"))
-        	context.getPlayerManager().doRestrictionsCmd(sender);
-
-	}
-	
+            context.getPlayerManager().doRestrictionsCmd(sender);
+        else if(command.equals("!tutorial"))
+            doTutorial(sender);
+        else if(command.equals("!next"))
+            doNext(sender);
+        else if(command.equals("!end"))
+            doEnd(sender);
+        else if(command.equals("!quickhelp"))
+            doQuickHelp(sender);
+    }    
 	
 	@Override
 	public void handleModCommand(String sender, String command) {
