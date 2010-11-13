@@ -689,7 +689,7 @@ public class staffbot_banc extends Module {
 			    if(!banc.isNotification())
                     m_botAction.sendSmartPrivateMessage("quiles", "banc not notification");
                 
-			    m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)superlocked in spectator. He tried to enter in ship: 2, 4 or 8.");
+			    m_botAction.sendChatMessage("Player '"+command.substring(10)+"' has been (re)superlocked in spectator. He tried to enter in ship: 2, 4 or 8.");
                 
 			    if(banc != null && banc.isNotification()){
 			        m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)superlocked in spectator. He tried to enter in ship: 2, 4 or 8.");
