@@ -47,6 +47,7 @@ public class PubUtilModule extends AbstractModule {
 	public boolean tilesetEnabled = false;
 	
 	private String currentInfoName = "";
+	private int currentPing = -1;
 
 	// DOORS
 	private static enum DoorMode { CLOSED, OPENED, IN_OPERATION, UNKNOW };
@@ -67,7 +68,7 @@ public class PubUtilModule extends AbstractModule {
 	private HashMap<String,AliasCheck> aliases;
 	
     private HashMap<String, Stack<String[]>> tutorials = new HashMap<String, Stack<String[]>>();
-	
+	private HashMap<String, ObjonTimer> objonTimers = new HashMap<String, ObjonTimer>();
 	
 	public PubUtilModule(BotAction botAction, PubContext context) {
 		super(botAction, context, "Utility");
@@ -99,13 +100,24 @@ public class PubUtilModule extends AbstractModule {
 	}
 
 	public void handleEvent(Message event) {
-		
+		String pingString = "";
 		String message = event.getMessage();
 		if (event.getMessageType() == Message.ARENA_MESSAGE)
 		{
 			if (message.contains("TypedName:")) {
 				currentInfoName = message.substring(message.indexOf("TypedName:")+10);
 				currentInfoName = currentInfoName.substring(0, currentInfoName.indexOf("Demo:")).trim();
+			}
+            if (message.startsWith("Ping:")) {
+                pingString = message.substring(message.indexOf(':')+1, message.indexOf('m'));
+                currentPing = Integer.valueOf(pingString);
+            }
+			if (!objonTimers.isEmpty() && objonTimers.containsKey(currentInfoName) && message.startsWith("PING Current")) {
+			    int pingCheck = Integer.valueOf(message.substring(message.indexOf(':') + 1, message.indexOf(" m")));
+			    if (pingCheck > 0) {
+	                m_botAction.sendUnfilteredPrivateMessage(currentInfoName, "*objon 2010");
+	                m_botAction.cancelTask(objonTimers.get(currentInfoName));
+			    }
 			}
 			if (message.startsWith("TIME: Session:")) {
 				String time = message.substring(message.indexOf("Total:")+6);
@@ -128,8 +140,15 @@ public class PubUtilModule extends AbstractModule {
 						}
 					}
                     
-                    if (Integer.valueOf(pieces[0]) < 100)
+                    if (Integer.valueOf(pieces[0]) < 100) {
                         m_botAction.sendUnfilteredPrivateMessage(currentInfoName, "*objon 2010");
+                        m_botAction.sendPrivateMessage(currentInfoName, "Welcome to Trench Wars! If you'd like to see a breif tutorial, please type !tutorial");
+                        if (currentPing == 0) {
+                            ObjonTimer lagCheck = new ObjonTimer(currentInfoName);
+                            m_botAction.scheduleTask(lagCheck, 45000, 15000);
+                            objonTimers.put(currentInfoName, lagCheck);
+                        }
+                    }
 				}
 			}
 		}
@@ -596,6 +615,24 @@ public class PubUtilModule extends AbstractModule {
         return "Not yet spotted";
     }
     
+    /**
+     * This class is used for checking the lag status of newbs in order
+     * to determine whether or not they will be able to see an objon
+     */
+    class ObjonTimer extends TimerTask {
+        String name;
+        public ObjonTimer(String p) {
+            name = p;
+        }
+
+        public void run() {
+            if (m_botAction.getFuzzyPlayerName(name) != null)
+                m_botAction.sendPrivateMessage(name, "checking lag");
+                currentInfoName = name;
+                m_botAction.sendUnfilteredPrivateMessage(name, "*lag");
+        }       
+    }
+    
     public void doTutorial(String player) {
         if (!tutorials.containsKey(player)) {
             if (m_botAction.getPlayer(player).getShipType() == 0)
@@ -610,13 +647,13 @@ public class PubUtilModule extends AbstractModule {
             objons.push( new String[] { "*objoff 2014", "*objon 2015" });
             objons.push( new String[] { "*objoff 2013", "*objon 2014" });
             objons.push( new String[] { "*objoff 2012", "*objon 2013" });
-            objons.push( new String[] { "*objoff 2011", "*objon 2012", "*objon 2019", "" + player + ", to continue the tutorial, please type ::!next" });
+            objons.push( new String[] { "*objoff 2011", "*objon 2012", "*objon 2019" });
             tutorials.put(player, objons);
         } else
             m_botAction.sendPrivateMessage(player, "Use !next");
     }
     
-    public void doNext(String player) {
+    public void doNext(String player, boolean pub) {
         if (tutorials.containsKey(player)) {
             Stack<String[]> objects = tutorials.get(player);
             String[] objs = objects.pop();
@@ -628,6 +665,8 @@ public class PubUtilModule extends AbstractModule {
             if (objs.length > 3) {
                 m_botAction.sendPrivateMessage(player, objs[3]);
             } 
+            if (pub && !objs[0].equals("*objoff 2017"))
+                m_botAction.sendPrivateMessage(player, "" + player + ", to continue the tutorial, please type ::!next"); 
             tutorials.put(player, objects);
             if (objects.empty())
                 tutorials.remove(player);
@@ -669,7 +708,7 @@ public class PubUtilModule extends AbstractModule {
         else if(command.equals("!tutorial"))
             doTutorial(sender);
         else if(command.equals("!next"))
-            doNext(sender);
+            doNext(sender, false);
         else if(command.equals("!end"))
             doEnd(sender);
         else if(command.equals("!quickhelp"))
