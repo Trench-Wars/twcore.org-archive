@@ -684,7 +684,7 @@ public class staffbot_banc extends Module {
 			    //SUPERSPEC PLAYER
 			    //0123456789T
 			    BanC banc = lookupActiveBanC(BanCType.SUPERSPEC, command.substring(10));
-			    if(banc == null && banc.isNotification())
+			    if(banc == null)
 			        m_botAction.sendSmartPrivateMessage("quiles", "banc null");
 			    if(banc != null && banc.isNotification()){
 			        m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)superlocked in spectator. He tried to enter in ship: 2, 4 or 8.");
