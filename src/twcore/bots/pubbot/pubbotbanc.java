@@ -1,7 +1,9 @@
 package twcore.bots.pubbot;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TimerTask;
 import java.util.Vector;
 
@@ -44,7 +46,7 @@ import twcore.core.util.ipc.IPCMessage;
  */
 public class pubbotbanc extends PubBotModule {
 	
-    private List<String> hashSuperSpec;
+    private Set<String> hashSuperSpec;
     
 	private String tempBanCCommand = null;
 	private String tempBanCTime = null;
@@ -78,7 +80,7 @@ public class pubbotbanc extends PubBotModule {
     		}
     	};
     	m_botAction.scheduleTaskAtFixedRate(checkIPCQueue, 5*Tools.TimeInMillis.SECOND, 5*Tools.TimeInMillis.SECOND);
-    	hashSuperSpec = new ArrayList<String>();
+    	hashSuperSpec = new HashSet<String>();
     	
     }
     
@@ -205,12 +207,12 @@ public class pubbotbanc extends PubBotModule {
 	    } else
         if(command.startsWith("REMOVE "+BanCType.SUPERSPEC.toString())){
 	            tempBanCCommand = "REMOVE "+BanCType.SUPERSPEC.toString();
+	            hashSuperSpec.remove(command.substring(17));
 	            tempBanCTime = null;
 	            //REMOVE a
 	            //REMOVE SUPERSPEC PLAYER
 	            //0123456789DODTQQDD
 	            tempBanCPlayer = command.substring(17);
-	            hashSuperSpec.remove(tempBanCPlayer);
 	            m_botAction.sendSmartPrivateMessage("quiles", "player "+tempBanCPlayer+" un superspec locked");
 	            for(String e: hashSuperSpec)
 	                m_botAction.sendSmartPrivateMessage("quiles", e);
