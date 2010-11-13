@@ -340,7 +340,7 @@ public class pubsystem extends SubspaceBot
             else if(command.equals("!tutorial"))
                 context.getPubUtil().doTutorial(sender);
             else if(command.equals("!next"))
-                context.getPubUtil().doNext(sender);
+                context.getPubUtil().doNext(sender, true);
             else if(command.equals("!end"))
                 context.getPubUtil().doEnd(sender);
             else if(command.equals("!quickhelp"))
