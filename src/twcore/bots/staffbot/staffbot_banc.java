@@ -888,7 +888,7 @@ public class staffbot_banc extends Module {
 		
 		BanC banc;
 	    banc = new BanC(bancType, target, time);
-		
+		banc.setNotification(true);
 		banc.staffer = name;
 		dbLookupIPMID(banc);
 		dbAddBan(banc);
