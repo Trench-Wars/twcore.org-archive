@@ -250,8 +250,8 @@ public class pubbotbanc extends PubBotModule {
         else{
            this.tempBanCPlayer = cmdSplit[1];
            m_botAction.sendSmartPrivateMessage("quiles", "Same nick: "+cmdSplit[1]);
-           if(!this.hashSuperSpec.contains(cmdSplit[1]))
-               this.hashSuperSpec.add(cmdSplit[1]);
+           //if(!this.hashSuperSpec.contains(cmdSplit[1]))
+           this.hashSuperSpec.add(cmdSplit[1]);
         }
     }
 
