@@ -212,6 +212,8 @@ public class pubbotbanc extends PubBotModule {
 	            tempBanCPlayer = command.substring(17);
 	            hashSuperSpec.remove(tempBanCPlayer);
 	            m_botAction.sendPrivateMessage("quiles", "player "+tempBanCPlayer+" un superspec locked");
+	            for(String e: hashSuperSpec)
+	                m_botAction.sendPrivateMessage("quiles", e);
 	            //maybe pm the player here?
         } else
 		if(command.startsWith(BanCType.KICK.toString())) {
@@ -238,8 +240,10 @@ public class pubbotbanc extends PubBotModule {
             String newNickString = cmdSplit[2];
             m_botAction.sendSmartPrivateMessage("quiles", "New nick: "+newNickString);
             this.tempBanCPlayer = newNickString;
-            this.hashSuperSpec.remove(oldNickString);
-            this.hashSuperSpec.add(newNickString);
+            if(!newNickString.equals(oldNickString)){
+                this.hashSuperSpec.add(newNickString);
+                this.hashSuperSpec.remove(oldNickString);
+            }
         }
         else{
            this.tempBanCPlayer = cmdSplit[1];
