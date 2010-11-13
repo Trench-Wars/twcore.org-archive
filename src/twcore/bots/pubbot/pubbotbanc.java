@@ -211,9 +211,9 @@ public class pubbotbanc extends PubBotModule {
 	            //0123456789DODTQQDD
 	            tempBanCPlayer = command.substring(17);
 	            hashSuperSpec.remove(tempBanCPlayer);
-	            m_botAction.sendPrivateMessage("quiles", "player "+tempBanCPlayer+" un superspec locked");
+	            m_botAction.sendSmartPrivateMessage("quiles", "player "+tempBanCPlayer+" un superspec locked");
 	            for(String e: hashSuperSpec)
-	                m_botAction.sendPrivateMessage("quiles", e);
+	                m_botAction.sendSmartPrivateMessage("quiles", e);
 	            //maybe pm the player here?
         } else
 		if(command.startsWith(BanCType.KICK.toString())) {
