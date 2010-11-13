@@ -207,7 +207,7 @@ public class pubbotbanc extends PubBotModule {
 	    } else
         if(command.startsWith("REMOVE "+BanCType.SUPERSPEC.toString())){
 	            tempBanCCommand = "REMOVE "+BanCType.SUPERSPEC.toString();
-	            hashSuperSpec.remove(command.substring(17));
+	            hashSuperSpec.remove(command.substring(17).toLowerCase());
 	            tempBanCTime = null;
 	            //REMOVE a
 	            //REMOVE SUPERSPEC PLAYER
@@ -238,8 +238,8 @@ public class pubbotbanc extends PubBotModule {
         String cmdSplit[] = command.split(":");
         m_botAction.sendSmartPrivateMessage("quiles", command);
         if(cmdSplit.length == 3){
-            String oldNickString = cmdSplit[1];
-            String newNickString = cmdSplit[2];
+            String oldNickString = cmdSplit[1].toLowerCase();
+            String newNickString = cmdSplit[2].toLowerCase();
             m_botAction.sendSmartPrivateMessage("quiles", "New nick: "+newNickString);
             this.tempBanCPlayer = newNickString;
             if(!newNickString.equals(oldNickString)){
@@ -248,10 +248,10 @@ public class pubbotbanc extends PubBotModule {
             }
         }
         else{
-           this.tempBanCPlayer = cmdSplit[1];
+           this.tempBanCPlayer = cmdSplit[1].toLowerCase();
            m_botAction.sendSmartPrivateMessage("quiles", "Same nick: "+cmdSplit[1]);
            //if(!this.hashSuperSpec.contains(cmdSplit[1]))
-           this.hashSuperSpec.add(cmdSplit[1]);
+           this.hashSuperSpec.add(cmdSplit[1].toLowerCase());
         }
     }
 
@@ -335,7 +335,7 @@ public class pubbotbanc extends PubBotModule {
         	    //REMOVE SUPERSPEC PLAYER
         	    //0123456789DODTQQDD
         	    String playerName = message.substring(17);
-        	    this.hashSuperSpec.remove(playerName);
+        	    this.hashSuperSpec.remove(playerName.toLowerCase());
         	    m_botAction.sendChatMessage("Player "+playerName+" may now play in bombs-ship");
         	}
         	if(tempBanCCommand == null && IPCQueue.size() != 0) {
