@@ -686,6 +686,9 @@ public class staffbot_banc extends Module {
 			    BanC banc = lookupActiveBanC(BanCType.SUPERSPEC, command.substring(10));
 			    if(banc == null)
 			        m_botAction.sendSmartPrivateMessage("quiles", "banc null");
+			    if(!banc.isNotification())
+                    m_botAction.sendSmartPrivateMessage("quiles", "banc not notification");
+                
 			    m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)superlocked in spectator. He tried to enter in ship: 2, 4 or 8.");
                 
 			    if(banc != null && banc.isNotification()){
@@ -892,7 +895,6 @@ public class staffbot_banc extends Module {
 		
 		BanC banc;
 	    banc = new BanC(bancType, target, time);
-		banc.setNotification(true);
 		banc.staffer = name;
 		dbLookupIPMID(banc);
 		dbAddBan(banc);
