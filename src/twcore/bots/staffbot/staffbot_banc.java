@@ -684,20 +684,20 @@ public class staffbot_banc extends Module {
 			    //SUPERSPEC PLAYER
 			    //0123456789T
 			    BanC banc = lookupActiveBanC(BanCType.SUPERSPEC, command.substring(10));
-			    if(banc == null)
-			        m_botAction.sendSmartPrivateMessage("quiles", "banc null");
-			    if(!banc.isNotification())
-                    m_botAction.sendSmartPrivateMessage("quiles", "banc not notification");
-                
-			    m_botAction.sendChatMessage("Player '"+command.substring(10)+"' has been (re)superlocked in spectator. He tried to enter in ship: 2, 4 or 8.");
-                
 			    if(banc != null && banc.isNotification()){
 			        m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)superlocked in spectator. He tried to enter in ship: 2, 4 or 8.");
 			    } else if(banc == null){
 			        m_botAction.sendChatMessage("Player '"+command.substring(10)+"' has been (re)superlocked in spectator. He tried to enter in ship: 2, 4 or 8.");
 			    }
-			}
-			else if(command.startsWith("REMOVE "+BanCType.SPEC.toString())) {
+			}else if(command.startsWith("REMOVE "+BanCType.SUPERSPEC.toString())) {
+			    //REMOVE SUPERSPEC
+                BanC banc = lookupActiveBanC(BanCType.SUPERSPEC, command.substring(17));
+                if(banc != null && banc.isNotification()) {
+                    m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been unsuper-specced.");
+                } else if(banc == null) {
+                    m_botAction.sendChatMessage("Player '"+command.substring(15)+"' has been unsuper-specced.");
+                }
+            } else if(command.startsWith("REMOVE "+BanCType.SPEC.toString())) {
 				BanC banc = lookupActiveBanC(BanCType.SPEC, command.substring(12));
 				if(banc != null && banc.isNotification()) {
 					m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has had the speclock removed.");
