@@ -676,6 +676,10 @@ public class PubUtilModule extends AbstractModule {
     public void doEnd(String player) {
         if (tutorials.containsKey(player)) 
             tutorials.remove(player);
+        if (objonTimers.containsKey(player)) {
+            ObjonTimer timer = objonTimers.remove(player);
+            m_botAction.cancelTask(timer);
+        }
         m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2010");
         m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2011");
         m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2012");
