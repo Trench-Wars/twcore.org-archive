@@ -627,9 +627,7 @@ public class PubUtilModule extends AbstractModule {
 
         public void run() {
             if (m_botAction.getFuzzyPlayerName(name) != null)
-                m_botAction.sendPrivateMessage(name, "checking lag");
                 currentInfoName = name;
-                m_botAction.sendUnfilteredPrivateMessage(name, "*lag");
         }       
     }
     
