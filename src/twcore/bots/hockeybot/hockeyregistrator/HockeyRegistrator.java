@@ -59,10 +59,5 @@ public class HockeyRegistrator {
     public void doDisplaySquads(String name, String message){
         hockeyDatabase.getCurrentSquads();
     }
-
-    public void forceDB(String name) {
-        hockeyDatabase.doForceDBConnection(name);
-        
-    }
     
 }
