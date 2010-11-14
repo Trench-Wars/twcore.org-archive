@@ -627,6 +627,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	{
 		m_fnSpecAt = newSpecAt;
         m_botAction.scoreReset( m_fcPlayerName );
+        m_statTracker.startNow();
 		getInGame(true);
 	};
 
