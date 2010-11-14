@@ -625,7 +625,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	// substitute (put yourself in)
 	public void substitute(int newSpecAt)
 	{
-		m_fnSpecAt = newSpecAt;
+		m_fnSpecAt = newSpecAt + m_statTracker.getStatistic(Statistics.DEATHS);
         m_botAction.scoreReset( m_fcPlayerName );
         m_statTracker.startNow();
 		getInGame(true);
