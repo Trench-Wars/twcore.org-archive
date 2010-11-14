@@ -3,9 +3,12 @@ package twcore.bots.hockeybot.hockeydatabase;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.TimerTask;
+
 
 import twcore.bots.hockeybot.hockeyteam.HockeyPlayer;
 import twcore.bots.hockeybot.hockeyteam.HockeyTeam;
+
 import twcore.core.BotAction;
 import twcore.core.util.Tools;
 
@@ -19,11 +22,13 @@ public class HockeyDatabase {
     
     
     //private PreparedStatement psGetTeamId;
-    private PreparedStatement psGetCurrentSquads;
-    private PreparedStatement psGetMatchId;
-    private PreparedStatement psKeepAlive;
+    private PreparedStatement psGetCurrentSquads, psGetMatchId, psKeepAlive, psPutExtendedLogTeamSignup;
+    
+    //
+    private KeepAliveConnection keepAliveConnection = new KeepAliveConnection();
     
     public HockeyDatabase(BotAction botAction) throws SQLException{
+        
         this.m_botAction = botAction;
      
         psGetCurrentSquads = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, 
@@ -34,6 +39,19 @@ public class HockeyDatabase {
         psGetMatchId = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,  
                 "SELECT fnTeam1ID, fnTeam2ID FROM tblTWHT__Match where fnMatchId = ?");
         
+        psPutExtendedLogTeamSignup = 
+            m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, 
+                "INSERT INTO tblTWHT__Team ("+
+                "fsName, " +
+                "fnCaptainID, " +
+                "fdCreated, " +
+                "fdApproved) " +
+                "VALUES( ?,?,NOW(),NOW() )" );
+        
+        psKeepAlive = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, "SHOW DATABASES");
+
+        m_botAction.scheduleTaskAtFixedRate(keepAliveConnection, 5 * Tools.TimeInMillis.MINUTE, 2 * Tools.TimeInMillis.MINUTE);
+
      
         
     }
@@ -151,13 +169,13 @@ public class HockeyDatabase {
             PreparedStatement psGetTeamName;
             
             String query = "SELECT DISTINCT t.fsName " +
-            		"FROM tblTWHT__Team t, tblTWHT__TeamUser tu, tblUser u, tblTWHT__UserRank ur " +
-            		"WHERE t.fnTWHTTeamID = tu.fnTeamID " +
-            		"AND tu.fnUserID = u.fnUserID " +
-            		"AND ur.fnUserID = tu.fnUserID " +
-            		"AND (ur.fnRankID = 3 OR ur.fnRankID = 4) "+
-            		"AND tu.fdQuit IS NULL "+
-            		"AND u.fcUserName = ?";
+                    "FROM tblTWHT__Team t, tblTWHT__TeamUser tu, tblUser u, tblTWHT__UserRank ur " +
+                    "WHERE t.fnTWHTTeamID = tu.fnTeamID " +
+                    "AND tu.fnUserID = u.fnUserID " +
+                    "AND ur.fnUserID = tu.fnUserID " +
+                    "AND (ur.fnRankID = 3 OR ur.fnRankID = 4) "+
+                    "AND tu.fdQuit IS NULL "+
+                    "AND u.fcUserName = ?";
             psGetTeamName = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, query);
             psGetTeamName.setString(1, captainName);
             
@@ -209,23 +227,14 @@ public class HockeyDatabase {
     public void putTeam(String name, String teamName){
             
         try{
-            PreparedStatement psPutExtendedLogTeamSignup;
-            
-            psPutExtendedLogTeamSignup = 
-                m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, 
-                    "INSERT INTO tblTWHT__Team ("+
-                    "fsName, " +
-                    "fnCaptainID, " +
-                    "fdCreated, " +
-                    "fdApproved) " +
-                    "VALUES( ?,?,NOW(),NOW() )" );
             
             psPutExtendedLogTeamSignup.setString(1, teamName);
             psPutExtendedLogTeamSignup.setInt(2, getPlayerUserId(name));
             psPutExtendedLogTeamSignup.executeUpdate();
             m_botAction.sendPrivateMessage(name, "You've applied "+ teamName+" on the site successfuly! Just wait a TWH-Op to accept it.");
-            
             psPutExtendedLogTeamSignup.close();
+        
+            
         }catch(SQLException e){
             Tools.printLog(e.getMessage());
         }
@@ -287,6 +296,33 @@ public class HockeyDatabase {
         
     }
     
+    public void doForceDBConnection(String name){
+        try{
+            
+            this.psKeepAlive.execute();
+
+            if( !psKeepAlive.isClosed()){
+                m_botAction.sendPrivateMessage(name, "Force-Connected to the database successfuly (Hockey).");
+
+            }
+            
+        }catch(SQLException e){
+            m_botAction.sendPrivateMessage(name, "ERROR: Cannot connect! StackTrace:" +
+                    " "+e.toString());
+            e.printStackTrace();
+        }
+    }
+    
+    private class KeepAliveConnection extends TimerTask {
+        public void run() {
+            try {
+                psKeepAlive.execute();
+            } catch(SQLException sqle) {
+                Tools.printStackTrace("SQLException encountered while executing queries to keep alive the database connection", sqle);
+            }
+        }
+    
+    
     /*****************************************************/
     private void closePreparedStatements(){
         try{
@@ -297,12 +333,16 @@ public class HockeyDatabase {
             }
     }
     
-    public void keepAlive(){
-        try{
-            psKeepAlive = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,  "SHOW DATABASES");
-            psKeepAlive.execute();
-        }catch(SQLException e){
-            Tools.printLog(e.toString());
+   // public void keepAlive(){
+        //try{
+           // psKeepAlive = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,  "SHOW DATABASES");
+           // psKeepAlive.execute();
+       // }catch(SQLException e){
+           // Tools.printLog(e.toString());
         }
+
+
+        
     }
-}
+    
+
