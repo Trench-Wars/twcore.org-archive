@@ -1314,7 +1314,7 @@ public class duelbot extends SubspaceBot {
 
     public void do_addPlayer( String name, String IP, String MID ) {
     	try {
-    		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT fcUserName FROM tblDuelPlayer WHERE fnEnabled = 1 AND fcIP = '"+IP+"' OR fnMID = '"+MID+"' OR fcUserName = '"+Tools.addSlashesToString(name)+"'" );
+    		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT fcUserName FROM tblDuelPlayer WHERE fnEnabled = 1 AND (fcIP = '"+IP+"' OR (fcIP = '"+IP+"' AND fnMID = '"+MID+"')) OR fcUserName = '"+Tools.addSlashesToString(name)+"'" );
     		if( !result.next() ) {
     			DBPlayerData player = new DBPlayerData( m_botAction, mySQLHost, name, true );
     			m_botAction.SQLQueryAndClose( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"', 0, 0, NOW())" );
@@ -1355,6 +1355,7 @@ public class duelbot extends SubspaceBot {
     					    m_botAction.sendSmartPrivateMessage( name, "It appears you already have other names signed up for TWEL or have registered this name already." );
     						m_botAction.sendSmartPrivateMessage( name, "Please login with these names: ("+extras+") and use the command !disable, you will then be able to signup a new name." );
     						m_botAction.sendSmartPrivateMessage( name, "All names disabled suffer a 300 point rating loss. If you have further problems please contact a league op." );
+                            m_botAction.sendSmartPrivateMessage( name, "If any of the names mentioned do not belong to you, please contact a league op for assistance." );
     					} else {
     						m_botAction.sendSmartPrivateMessage( aliasChecker, "Aliases registered: " + extras);
     						aliasChecker = "";
