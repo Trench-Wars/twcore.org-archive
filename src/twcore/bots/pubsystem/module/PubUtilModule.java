@@ -142,7 +142,7 @@ public class PubUtilModule extends AbstractModule {
                     
                     if (Integer.valueOf(pieces[0]) < 100) {
                         m_botAction.sendUnfilteredPrivateMessage(currentInfoName, "*objon 2010");
-                        m_botAction.sendPrivateMessage(currentInfoName, "Welcome to Trench Wars! If you'd like to see a breif tutorial, please type !tutorial");
+                        m_botAction.sendPrivateMessage(currentInfoName, "Welcome to Trench Wars! If you'd like to see a brief tutorial, please type !tutorial");
                         if (currentPing == 0) {
                             ObjonTimer lagCheck = new ObjonTimer(currentInfoName);
                             m_botAction.scheduleTask(lagCheck, 45000, 15000);
