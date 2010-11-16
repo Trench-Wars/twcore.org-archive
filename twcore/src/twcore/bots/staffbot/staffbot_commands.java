@@ -23,7 +23,7 @@ public class staffbot_commands extends Module {
 	private final static TimeZone CST = TimeZone.getTimeZone("CST"); 
     private int YEAR;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy EEE MMM dd HH:mm:ss", Locale.US);
-    private SimpleDateFormat chatFormat = new SimpleDateFormat("MM-dd HH:mm:ss", Locale.US);
+    private SimpleDateFormat chatFormat = new SimpleDateFormat("MM.dd HH:mm:ss", Locale.US);
 
 	
 	// Helps (strange to redefine each time someone types !help)
@@ -99,7 +99,8 @@ public class staffbot_commands extends Module {
         
         if(m_reportStatus && event.getMessageType() == Message.ARENA_MESSAGE && message.indexOf('*') >= 0 && message.toLowerCase().indexOf( " *warn " ) == -1 && !m_log.contains(message)) {
             boolean toAlert = false;
-            
+            if (message.indexOf(')') + 2 < 0 || message.indexOf("Ext: ") + 5 < 0 || message.indexOf('(') < 0 || message.indexOf('(') + 1 < 0 || message.indexOf(')') < 0)
+                return;
             String eventMessage = message.substring(message.indexOf(')') + 2);
             String eventStaffer = message.substring(message.indexOf("Ext: ") + 5, message.indexOf('(')).trim();
             String eventArena = message.substring(message.indexOf('(') + 1, message.indexOf(')'));
