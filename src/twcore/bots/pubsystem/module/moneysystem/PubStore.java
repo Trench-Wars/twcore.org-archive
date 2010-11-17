@@ -185,7 +185,12 @@ public class PubStore {
         	throw new PubException("This item does not exist.");
         
         if (item.isPlayerStrict() || (item.isPlayerOptional() && !params.trim().isEmpty())) {
-        	player = context.getPlayerManager().getPlayer(params.trim());
+        	
+        	Player receiver = m_botAction.getPlayer(params.trim());
+        	if (receiver == null)
+        		throw new PubException("Player '" + params.trim()+ "' not found.");
+        	
+        	player = context.getPlayerManager().getPlayer(receiver.getPlayerName());
         	if (item.isPlayerStrict() && params.isEmpty()) {
         		throw new PubException("You must specify a player name for this item (!buy " + itemName + ":PlayerName).");
         	}
@@ -199,9 +204,9 @@ public class PubStore {
         	if (!p.isPlaying()) {
         		throw new PubException("You cannot buy an item for a spectator.");
         	}
-        	
+
         	if (context.getPubChallenge().isDueling(player.getPlayerName()))
-        		throw new PubException("'" + params.trim()+ "' is currently dueling. You cannot buy an item for this player.");
+        		throw new PubException("'" + player.getPlayerName() + "' is currently dueling. You cannot buy an item for this player.");
         }
         
         if (item.isRestricted()) {
