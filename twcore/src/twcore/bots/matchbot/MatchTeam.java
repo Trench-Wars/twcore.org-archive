@@ -92,6 +92,7 @@ public class MatchTeam
 
     String m_fcLaggerName;
 
+    TimerTask m_changeDelay;
     TimerTask m_substituteDelay;
     String plA = "-ready-", plB = "-ready-", nme = "-ready-";
 
@@ -1111,6 +1112,7 @@ public class MatchTeam
     {
         MatchPlayer pA;
         int newShip;
+    	int changeDelayTime;
 
         if ((m_fnShipChanges < m_rules.getInt("shipchanges")) || (m_rules.getInt("shipchanges") == -1))
         {
@@ -1148,7 +1150,6 @@ public class MatchTeam
                                         if ((m_rules.getInt("maxship" + newShip) == 0)
                                                 || (m_rules.getInt("maxship" + newShip) > getPlayersRosteredInShip(newShip)))
                                         {
-                                            
                                             //if twfd gametype
                                         	if (m_rules.getInt("matchtype") == 2113)	{
                                         		twfd_rem = true;
@@ -1163,23 +1164,27 @@ public class MatchTeam
                                         			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
                                         			return;
                                         		}
+                                        	}                                        	
+                                        	changeDelayTime = m_rules.getInt("changedelaytime");                                        	
+	                                        	if(changeDelayTime > 0){
+	                                        		final MatchPlayer changee = pA;
+	                                        		final int newChgShip = newShip;
+	                                        		final int oldChgShip = oldShip;
+	                                        		final String cmdSender = name;
+	                                        		
+	                                        		m_logger.sendPrivateMessage(name, "Your change request will be processed in "+changeDelayTime+" seconds");
+	                                        		m_changeDelay = new TimerTask()	{
+	                                        			public void run()	{                                        				
+	                                        				doChange(changee,newChgShip,oldChgShip,cmdSender);
+	                                        			}
+	                                        		};
+	                                                m_botAction.scheduleTask(m_changeDelay, changeDelayTime * 1000);
+	
+	                                        	}
+	                                        	else {
+	                                        		doChange(pA,newShip,oldShip,name);
+	                                        	}
                                         	}
-                                        	
-                                        	pA.setShip(newShip);
-                                            //this indicates that the player has switched ships during the game
-                                            //currently it voids the player from getting mvp in time race games
-                                            pA.m_switchedShip = true;
-
-                                            m_logger.sendArenaMessage(pA.m_fcPlayerName + " changed from ship "
-                                                    + oldShip + " to ship " + newShip);
-                                            if ((m_rules.getInt("shipchanges") != -1) && (m_round.m_fnRoundState == 3))
-                                            {
-                                                m_fnShipChanges++;
-                                                m_logger.sendPrivateMessage(name, "You have "
-                                                        + (m_rules.getInt("shipchanges") - m_fnShipChanges)
-                                                        + " shipchanges left");
-                                            }
-                                        }
                                         else
                                             m_logger.sendPrivateMessage(name,
                                                     "Can't change ship, you are at the maximum amount of ship "
@@ -1210,6 +1215,24 @@ public class MatchTeam
         else
             m_logger.sendPrivateMessage(name, "There are no more changeships allowed");
     }
+    
+    
+	public void doChange(MatchPlayer pA, int newShip, int oldShip, String name)	{
+    	pA.setShip(newShip);
+        //this indicates that the player has switched ships during the game
+        //currently it voids the player from getting mvp in time race games
+        pA.m_switchedShip = true;
+
+        m_logger.sendArenaMessage(pA.m_fcPlayerName + " changed from ship "
+                + oldShip + " to ship " + newShip);
+        if ((m_rules.getInt("shipchanges") != -1) && (m_round.m_fnRoundState == 3))
+        {
+            m_fnShipChanges++;
+            m_logger.sendPrivateMessage(name, "You have "
+                    + (m_rules.getInt("shipchanges") - m_fnShipChanges)
+                    + " shipchanges left");
+        }
+	}
 
     // ready, toggles 'm_fbReadyToGo'
     public void command_ready(String name, String[] parameters)
