@@ -173,6 +173,7 @@ public class PubUtilModule extends AbstractModule {
 
 				StringBuffer buffer = new StringBuffer();
 				try {
+					
 					while(resultSet.next()) {
 						buffer.append(", ");
 						buffer.append(resultSet.getString("fnIP"));
@@ -181,8 +182,11 @@ public class PubUtilModule extends AbstractModule {
 				
 				if (buffer.length()>2)
 					alias.setIpResults("(" + buffer.toString().substring(2) + ") ");
-				else
+				else {
+					System.out.println("[ALIAS] " + event.getQuery());
+					System.out.println("[ALIAS] " + buffer.toString());
 					alias.setIpResults("");
+				}
 				
 			}
 			else if (event.getIdentifier().startsWith("alias:mid:")) {
@@ -497,10 +501,10 @@ public class PubUtilModule extends AbstractModule {
     	System.out.print("[ALIAS] " + alias.getName() + ":" + alias.getUsage() + ":" + alias.getAliasCount());
     	if (alias.getUsage() < 15 && alias.getAliasCount() <= 2 && alias.getAliasCount() >= 0) {
     		m_botAction.sendChatMessage(2, ">>>>>> New player: " + alias.getName());
-    		System.out.println(":NO");
+    		System.out.println(":YES");
     	}
     	else {
-    		System.out.println(":YES");
+    		System.out.println(":NO");
     	}
     	
     }
