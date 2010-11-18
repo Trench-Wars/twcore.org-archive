@@ -219,7 +219,6 @@ public class PubUtilModule extends AbstractModule {
 				} catch (Exception e) { }
 
 				alias.setAliasCount(numResults);
-				System.out.println("[ALIAS] " + alias.getName() + " (part 1)");
 				sendNewPlayerAlert(alias);				
 				
 			}
@@ -230,7 +229,10 @@ public class PubUtilModule extends AbstractModule {
 				
 				if (alias.getIpResults().equals("") || alias.getMidResults().equals("")) {
 					alias.setAliasCount(0);
-					System.out.println("[ALIAS] " + alias.getName() + " (part 2)");
+					String reason = alias.getIpResults().equals("") ? "ip" : "mid";
+					if (alias.getIpResults().equals("") && alias.getMidResults().equals(""))
+						reason = "ip&mid";
+					System.out.println("[ALIAS] " + alias.getName() + " (empty:" + reason + ")");
 					sendNewPlayerAlert(alias);		
 				} else {
 					m_botAction.SQLBackgroundQuery(database, "alias:final:"+name,
@@ -492,9 +494,13 @@ public class PubUtilModule extends AbstractModule {
     
     private void sendNewPlayerAlert(AliasCheck alias) {
 
-    	System.out.println("[ALIAS] " + alias.getName() + ":" + alias.getUsage() + ":" + alias.getAliasCount());
+    	System.out.print("[ALIAS] " + alias.getName() + ":" + alias.getUsage() + ":" + alias.getAliasCount());
     	if (alias.getUsage() < 15 && alias.getAliasCount() <= 2 && alias.getAliasCount() >= 0) {
     		m_botAction.sendChatMessage(2, ">>>>>> New player: " + alias.getName());
+    		System.out.println(":NO");
+    	}
+    	else {
+    		System.out.println(":YES");
     	}
     	
     }
