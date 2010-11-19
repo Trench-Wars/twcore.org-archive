@@ -173,17 +173,16 @@ public class PubUtilModule extends AbstractModule {
 
 				StringBuffer buffer = new StringBuffer();
 				try {
-					
+					resultSet.beforeFirst();
 					while(resultSet.next()) {
 						buffer.append(", ");
 						buffer.append(resultSet.getString("fnIP"));
 					}
-				} catch (Exception e) { }
+				} catch (Exception e) { e.printStackTrace(); }
 				
 				if (buffer.length()>2)
 					alias.setIpResults("(" + buffer.toString().substring(2) + ") ");
 				else {
-					System.out.println("[ALIAS] " + event.getQuery());
 					System.out.println("[ALIAS] " + buffer.toString());
 					alias.setIpResults("");
 				}
@@ -193,11 +192,12 @@ public class PubUtilModule extends AbstractModule {
 
 				StringBuffer buffer = new StringBuffer();
 				try {
+					resultSet.beforeFirst();
 					while(resultSet.next()) {
 						buffer.append(", ");
 						buffer.append(resultSet.getString("fnMachineId"));
 					}
-				} catch (Exception e) { }
+				} catch (Exception e) { e.printStackTrace(); }
 
 				if (buffer.length()>2)
 					alias.setMidResults("(" + buffer.toString().substring(2) + ") ");
