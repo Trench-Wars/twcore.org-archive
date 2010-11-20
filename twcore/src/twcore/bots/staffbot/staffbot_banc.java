@@ -244,6 +244,8 @@ public class staffbot_banc extends Module {
 	            showBancPeople(name);
 	        if( messageLc.startsWith("!deleteop"))
 	            deleteBancOperator(name, messageLc.substring(10));
+	        if( messageLc.startsWith("!isop"))
+	            isOp(name, messageLc.substring(6));
 	        if( messageLc.equals("!reloadops"))
 	            if(!opList.isOwner(name))
 	                return;
@@ -338,7 +340,23 @@ public class staffbot_banc extends Module {
 	        }}
 		
 	}
-	private void deleteBancOperator(String name, String message) {
+	private void isOp(String name, String substring) {
+        if(!opList.isSmod(name))
+            return;
+        restart_ops();
+        BotSettings m_botSettings = m_botAction.getBotSettings();
+        String ops = m_botSettings.getString("BancStaffers");
+        if(ops.contains(substring.toLowerCase())){
+            m_botAction.sendSmartPrivateMessage(name, "Staffer " +substring+ " is a Banc Operator");
+        } else
+                m_botAction.sendSmartPrivateMessage(name, "Sorry, " +substring+ " is not a Banc Operator");
+            }
+        
+
+        
+    
+
+    private void deleteBancOperator(String name, String message) {
 	    if(!opList.isSmod(name))
             return;
         restart_ops();
