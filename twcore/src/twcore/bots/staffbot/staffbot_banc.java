@@ -83,7 +83,8 @@ public class staffbot_banc extends Module {
             " !addop                            - Adds a Banc Operator",
             " !removeop                         - Removes a Banc Operator and adds them to Revoked list",
             " !listops                          - Displays all Banc Operators and Banc Revoked Operators",
-            " !deleteop                         - If removed from staff, use this."
+            " !deleteop                         - If removed from staff, use this.",
+            " !isop                             - Checks to see if name is an operator"
     };
     
     final String[] shortcutKeys = {
@@ -114,16 +115,17 @@ public class staffbot_banc extends Module {
     private final String IPCALIAS = "pubBots";
 
     
-    private final String MINACCESS_BANCSTAFFER = "BANCSTAFF";
-    //private final String MINACCESS_ER = "ER";
-    //private final String MINACCESS_MOD = "MOD";
+    //private final String MINACCESS_BANCSTAFFER = "OPS";
+    private final String MINACCESS_ER = "ER";
+    private final String MINACCESS_MOD = "MOD";
     private final String MINACCESS_SMOD = "SMOD";
     private final String MINACCESS_SYSOP = "SYSOP";
     
     private final Integer[][] BANCLIMITS = {
-    		{ 60*24*7, 60*24*7, 0},	// BanC limits
-    		{ 60*24*7, 60*24*7, 0},		// [BanCType] [Accesslevel]
-    		{ 60*24*7, 60*24*7, 0}
+    		{ 120, 60*24*7, 60*24*7, 0},	// BanC limits
+    		{ 120, 60*24*7, 60*24*7, 0},
+    		//{ null, 30, 60, 0 }, // [BanCType] [Accesslevel]
+    		{ 120, 60*24*7, 60*24*7, 0}
     }; 
     private SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private final int BANC_MAX_DURATION = 525600;	// (365 days in minutes)
@@ -287,8 +289,8 @@ public class staffbot_banc extends Module {
 	        // !kick <player>:<time/mins>	[mod+]
 	        else if( messageLc.startsWith("!silence") || messageLc.startsWith("!s") ||
 	        		messageLc.startsWith("!spec") || messageLc.startsWith("!sp ") ||
-	        		messageLc.startsWith("!superspec")) {
-			   //(messageLc.startsWith("!kick") && opList.isModerator(name)) ||
+	        		messageLc.startsWith("!superspec")){
+	                //messageLc.startsWith("!kick") && opList.isModerator(name)) ||
 			   //(messageLc.startsWith("!k") && opList.isModerator(name))) {
 				cmdSilenceSpecKick(name, message);
 			}
@@ -1002,7 +1004,7 @@ public class staffbot_banc extends Module {
 		
 		m_botAction.sendRemotePrivateMessage(name, "Limitations on BanC by access level");
     	m_botAction.sendRemotePrivateMessage(name, " ");
-    	m_botAction.sendRemotePrivateMessage(name, "                       OPS     SMOD    SYSOP");
+    	m_botAction.sendRemotePrivateMessage(name, "                       ER     MOD     SMOD    SYSOP");
     	
     	for(int type = 0 ; type < BANCLIMITS.length ; type++) {
     		String line = "";
@@ -1508,16 +1510,16 @@ public class staffbot_banc extends Module {
 					// -a=<...>
 					if(argument.startsWith("-a=")) {
 						String accessRequirement = argument.substring(3);
-						if( //(MINACCESS_ER.equalsIgnoreCase(accessRequirement) && !opList.isER(name)) ||
-							//(MINACCESS_MOD.equalsIgnoreCase(accessRequirement) && !opList.isModerator(name)) ||
-						    (MINACCESS_BANCSTAFFER.equalsIgnoreCase(accessRequirement) && !bancStaffers.containsKey(name.toLowerCase()))  ||
+						if( (MINACCESS_ER.equalsIgnoreCase(accessRequirement) && !opList.isER(name)) ||
+							(MINACCESS_MOD.equalsIgnoreCase(accessRequirement) && !opList.isModerator(name)) ||
+						    //(MINACCESS_BANCSTAFFER.equalsIgnoreCase(accessRequirement) && !bancStaffers.containsKey(name.toLowerCase()))  ||
 							(MINACCESS_SMOD.equalsIgnoreCase(accessRequirement) && !opList.isSmod(name)) ||
 							(MINACCESS_SYSOP.equalsIgnoreCase(accessRequirement) && !opList.isSysop(name))) {
 							m_botAction.sendRemotePrivateMessage(name, "You can't set the access requirement higher then your own access. (Argument ignored.)");
 						} else 
-						if(	!bancStaffers.containsKey(name.toLowerCase())  ||
-						    //MINACCESS_ER.equalsIgnoreCase(accessRequirement) ||
-							//MINACCESS_MOD.equalsIgnoreCase(accessRequirement) ||
+						if(	//MINACCESS_BANCSTAFFER.equalsIgnoreCase(accessRequirement)  ||
+						    MINACCESS_ER.equalsIgnoreCase(accessRequirement) ||
+							MINACCESS_MOD.equalsIgnoreCase(accessRequirement) ||
 							MINACCESS_SMOD.equalsIgnoreCase(accessRequirement) ||
 							MINACCESS_SYSOP.equalsIgnoreCase(accessRequirement)) {
 							if(!sqlSet.isEmpty())
@@ -1615,9 +1617,9 @@ public class staffbot_banc extends Module {
 			
 			if(rsAccessReq.next()) {
 				String accessReq = rsAccessReq.getString(1);
-				if(MINACCESS_BANCSTAFFER.equalsIgnoreCase(accessReq) && !bancStaffers.containsKey(name.toLowerCase())  ||
-				    //(MINACCESS_ER.equals(accessReq) && !opList.isER(name)) ||
-					//(MINACCESS_MOD.equals(accessReq) && !opList.isModerator(name)) || 
+				if(//MINACCESS_BANCSTAFFER.equalsIgnoreCase(accessReq) && !bancStaffers.containsKey(name.toLowerCase())  ||
+				    (MINACCESS_ER.equals(accessReq) && !opList.isER(name)) ||
+					(MINACCESS_MOD.equals(accessReq) && !opList.isModerator(name)) || 
 				   	(MINACCESS_SMOD.equals(accessReq) && !opList.isSmod(name)) ||
 				   	(MINACCESS_SYSOP.equals(accessReq) && !opList.isSysop(name))) {
 					m_botAction.sendRemotePrivateMessage(name, "You don't have enough access to modify this BanC.");
@@ -1894,7 +1896,7 @@ public class staffbot_banc extends Module {
 			psAddBanC.setString(2, banc.playername);
 			psAddBanC.setString(3, banc.IP);
 			psAddBanC.setString(4, banc.MID);
-			psAddBanC.setString(5, MINACCESS_BANCSTAFFER);
+			psAddBanC.setString(5, MINACCESS_ER);
 			psAddBanC.setLong(6, banc.duration);
 			psAddBanC.setString(7, banc.staffer);
 			psAddBanC.execute();
