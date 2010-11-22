@@ -440,10 +440,10 @@ public class matchbot extends SubspaceBot {
                             + " against <squad> with <players> number of players");
                     help.add("!challengeall <players>                  - request a game of "
                             + m_rules.getString("name")
-                            + " against the most active 8 squads with <players> number of players");
+                            + " against the most active 8 squads with <players>s");
                     help.add("!challengetopteams <players>             - request a game of "
                             + m_rules.getString("name")
-                            + " against the 8 highest rated squads with <players> number of players");
+                            + " against the 8 highest rated squads with <players>s");
                     help.add("!challenges                              - lists all active challenges "
                             + " made by your squad");
                     help.add("!removechallenge <squad>                 - removes the challenge of "
@@ -1051,8 +1051,10 @@ public class matchbot extends SubspaceBot {
                                     t = (GameRequest) i.next();
                                     if (t.getRequestAge() >= 300000)
                                         i.remove();
-                                    else if (t.getChallenger().equalsIgnoreCase(p.getSquadName()))
+                                    else if (t.getChallenger().equalsIgnoreCase(p.getSquadName())) {
                                         m_botAction.sendPrivateMessage(name, t.toString());
+                                        numChalls++;
+                                    }
                                 }
                                 if (numChalls == 0)
                                     m_botAction.sendPrivateMessage(name, "No challenges found");                                    
