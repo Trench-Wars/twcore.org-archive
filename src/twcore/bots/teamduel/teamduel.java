@@ -2447,8 +2447,8 @@ public class teamduel extends SubspaceBot {
     
     public void do_addPlayer(String name, String IP, String MID) {
         try {
-            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE fnEnabled = 1 AND fcIP = '"
-                    + IP + "' AND P.fnMID = '" + MID + "')");
+            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = '"
+                    + IP + "' AND P.fnMID = '" + MID + "'");
             if (!result.next()) {
                 m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
                         "SELECT fnUserID, '" + IP + "', '" + MID + "', 0, 0, NOW() FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'");
