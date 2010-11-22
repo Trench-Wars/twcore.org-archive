@@ -22,10 +22,10 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tblduel2ban`
+-- Table structure for table `tblduel__2ban`
 --
 
-CREATE TABLE `tblduel2ban` (
+CREATE TABLE `tblduel__2ban` (
   `fnBanID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `fnUserID` mediumint(11) NOT NULL DEFAULT '0',
   `fcComment` varchar(255) NOT NULL DEFAULT '',
@@ -35,10 +35,10 @@ CREATE TABLE `tblduel2ban` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tblduel2league`
+-- Table structure for table `tblduel__2league`
 --
 
-CREATE TABLE `tblduel2league` (
+CREATE TABLE `tblduel__2league` (
   `fnDuelLeagueID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `fnSeason` mediumint(9) NOT NULL DEFAULT '1',
   `fnTeamID` mediumint(9) NOT NULL DEFAULT '0',
@@ -61,10 +61,10 @@ CREATE TABLE `tblduel2league` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tblduel2match`
+-- Table structure for table `tblduel__2match`
 --
 
-CREATE TABLE `tblduel2match` (
+CREATE TABLE `tblduel__2match` (
   `fnMatchID` mediumint(11) NOT NULL AUTO_INCREMENT,
   `fnSeason` mediumint(9) NOT NULL DEFAULT '1',
   `fnLeagueTypeID` tinyint(4) NOT NULL DEFAULT '0',
@@ -98,10 +98,10 @@ CREATE TABLE `tblduel2match` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tblduel2player`
+-- Table structure for table `tblduel__2player`
 --
 
-CREATE TABLE `tblduel2player` (
+CREATE TABLE `tblduel__2player` (
   `fnDuelID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `fnUserID` int(11) NOT NULL DEFAULT '0',
   `fnGameDeaths` int(4) NOT NULL DEFAULT '5',
@@ -120,10 +120,10 @@ CREATE TABLE `tblduel2player` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tblduel2team`
+-- Table structure for table `tblduel__2team`
 --
 
-CREATE TABLE `tblduel2team` (
+CREATE TABLE `tblduel__2team` (
   `fnTeamID` int(10) NOT NULL AUTO_INCREMENT,
   `fnSeason` mediumint(9) NOT NULL DEFAULT '1',
   `fnLeagueTypeID` int(4) NOT NULL DEFAULT '0',
