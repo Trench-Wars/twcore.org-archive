@@ -976,7 +976,7 @@ public class teamduel extends SubspaceBot {
             if (sql_enabledUser(name)) {
                 try {
                     String query = "SELECT L.fnTeamID, L.fnLeagueTypeID, T.fnUser1ID, T.fnUser2ID, U2.fcUserName, U3.fcUserName " + 
-                    "FROM tblDuel_2league L JOIN tblDuel_2team T JOIN tblUser U JOIN tblUser U2 JOIN tblUser U3 " + 
+                    "FROM tblDuel__2league L JOIN tblDuel__2team T JOIN tblUser U JOIN tblUser U2 JOIN tblUser U3 " + 
                     "ON U.fnUserID = L.fnUserID AND L.fnTeamID = T.fnTeamID AND L.fnLeagueTypeID = T.fnLeagueTypeID AND U2.fnUserID = T.fnUser1ID AND U3.fnUserID = T.fnUser2ID " + 
                     "WHERE L.fnStatus = 1 AND L.fnSeason = " + s_season + " AND U.fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY T.fnLeagueTypeID";
                     ResultSet player = m_botAction.SQLQuery(mySQLHost, query);
@@ -1489,7 +1489,7 @@ public class teamduel extends SubspaceBot {
         int deaths = 5;
         boolean nc = true;
         if (message.isEmpty()) {
-            String query = "SELECT P.fnGameDeaths, P.fnNoCount FROM tblDuel_2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND U.fcUserName = '" + Tools.addSlashesToString(name) + "'";
+            String query = "SELECT P.fnGameDeaths, P.fnNoCount FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND U.fcUserName = '" + Tools.addSlashesToString(name) + "'";
             try {
                 ResultSet rules = m_botAction.SQLQuery(mySQLHost, query);
                 if (rules.next()) {
@@ -1525,7 +1525,7 @@ public class teamduel extends SubspaceBot {
             nc = false;
         }
         if (nc) {
-            String query = "UPDATE tblDuel_2player SET fnGameDeaths = " + deaths + ", fnNoCount = 1 WHERE fnEnabled = 1 AND fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "')";
+            String query = "UPDATE tblDuel__2player SET fnGameDeaths = " + deaths + ", fnNoCount = 1 WHERE fnEnabled = 1 AND fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "')";
             try {
                 m_botAction.SQLQueryAndClose(mySQLHost, query);
                 m_botAction.sendPrivateMessage(name, "Max deaths set to " + deaths + " and no count double kills (NC) set on");
@@ -1534,7 +1534,7 @@ public class teamduel extends SubspaceBot {
                 return;
             }
         } else {
-            String query = "UPDATE tblDuel_2player SET fnGameDeaths = " + deaths + ", fnNoCount = 0 WHERE fnEnabled = 1 AND fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "')";
+            String query = "UPDATE tblDuel__2player SET fnGameDeaths = " + deaths + ", fnNoCount = 0 WHERE fnEnabled = 1 AND fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "')";
             try {
                 m_botAction.SQLQueryAndClose(mySQLHost, query);
                 m_botAction.sendPrivateMessage(name, "Max deaths set to " + deaths + " and no count double kills (NC) set off");
@@ -1613,7 +1613,7 @@ public class teamduel extends SubspaceBot {
         try {
             String IP = info.getString("fcIP");
             String MID = info.getString("fnMID");
-            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT fcUserName FROM tblDuel_2player WHERE fnEnabled = 1 AND (fcIP = '"
+            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT fcUserName FROM tblDuel__2player WHERE fnEnabled = 1 AND (fcIP = '"
                     + IP + "' OR fnMID = '" + MID + "')");
             boolean okToEnable = canEnableNames.remove(name);
             if (result.next() && !okToEnable) {
@@ -1769,19 +1769,19 @@ public class teamduel extends SubspaceBot {
             if (division == 7)
                 division = 4;
             try {
-                String query = "SELECT * FROM tblDuel_2team WHERE fnSeason = " + s_season + " " +
+                String query = "SELECT * FROM tblDuel__2team WHERE fnSeason = " + s_season + " " +
                 		"AND fnStatus = 1 AND fnLeagueTypeID = " + division + " " +
                 				"AND (fnUser1ID = " + id + " OR fnUser2ID = " + id + ")";
                 ResultSet teams = m_botAction.SQLQuery(mySQLHost, query);
                 while (teams.next()) {
                     team = teams.getInt("fnTeamID");
-                    m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel_2league SET fnStatus = 0 " +
+                    m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2league SET fnStatus = 0 " +
                     		"WHERE fnSeason = " + s_season + 
                     		" AND fnStatus = 1 AND fnLeagueTypeID = " + division + " AND fnTeamID = " + team);
-                    m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel_2team SET fnStatus = 0 " +
+                    m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2team SET fnStatus = 0 " +
                             "WHERE fnSeason = " + s_season + 
                             " AND fnStatus = 1 AND fnLeagueTypeID = " + division + " AND fnTeamID = " + team);
-                    m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel_2team SET fnStatus = 0 " +
+                    m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2team SET fnStatus = 0 " +
                             "WHERE fnSeason = " + s_season + 
                             " AND fnStatus = 1 AND fnLeagueTypeID = " + division + " AND fnTeamID = " + team);
                 }
@@ -1804,7 +1804,7 @@ public class teamduel extends SubspaceBot {
             player = message; 
         ArrayList<String> info = new ArrayList<String>();
         try {
-            String query = "SELECT T.fnTeamID, T.fnLeagueTypeID, T.fnRating FROM tblDuel_2team T " + 
+            String query = "SELECT T.fnTeamID, T.fnLeagueTypeID, T.fnRating FROM tblDuel__2team T " + 
             "JOIN tblUser U1 JOIN tblUser U2 ON U1.fnUserID = T.fnUser1ID AND U2.fnUserID = T.fnUser2ID " + 
             "WHERE fnSeason = " + s_season + " AND fnStatus = 1 " + 
             "AND (U1.fcUserName = '" + Tools.addSlashesToString(player) + "' OR U2.fcUserName = '" + Tools.addSlashesToString(player) + "') ORDER BY fnLeagueTypeID";
@@ -1875,7 +1875,7 @@ public class teamduel extends SubspaceBot {
         if (!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase()))
             return;
         try {
-            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuel_2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE U.fcUserName='" + Tools.addSlashesToString(message) + "'");
+            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE U.fcUserName='" + Tools.addSlashesToString(message) + "'");
             if (result.next()) {
                 if (result.getInt("fnEnabled") == 1)
                     m_botAction.sendSmartPrivateMessage(name, "This user is already enabled to play.");
@@ -1935,7 +1935,7 @@ public class teamduel extends SubspaceBot {
 
         m_botAction.sendPrivateMessage(name, "Banned players: ");
         try {
-            ResultSet results = m_botAction.SQLQuery(mySQLHost, "SELECT B.*, U.fcUserName FROM tblDuel_2ban B JOIN tblUser U ON U.fnUserID = B.fnUserID");
+            ResultSet results = m_botAction.SQLQuery(mySQLHost, "SELECT B.*, U.fcUserName FROM tblDuel__2ban B JOIN tblUser U ON U.fnUserID = B.fnUserID");
             while (results.next())
                 m_botAction.sendPrivateMessage(name, results.getString("U.fcUserName"));
             m_botAction.SQLClose(results);
@@ -1964,7 +1964,7 @@ public class teamduel extends SubspaceBot {
             String banOnDate = "";
 
             if (sql_banned(player)) {
-                ResultSet getTime = m_botAction.SQLQuery(mySQLHost, "SELECT B.fcComment FROM tblDuel_2ban B JOIN tblUser U ON U.fnUserID = B.fnUserID WHERE U.fcUserName='"
+                ResultSet getTime = m_botAction.SQLQuery(mySQLHost, "SELECT B.fcComment FROM tblDuel__2ban B JOIN tblUser U ON U.fnUserID = B.fnUserID WHERE U.fcUserName='"
                         + Tools.addSlashesToString(player) + "'");
                 if (getTime.next()) {
                     lastCom = getTime.getString("B.fcComment");
@@ -1974,7 +1974,7 @@ public class teamduel extends SubspaceBot {
                 }
                 if (banOnDate.length() > 0) {
                     comment = banOnDate + Tools.addSlashesToString(pieces[1]);
-                    m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel_2ban SET fcComment = '"
+                    m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2ban SET fcComment = '"
                             + comment
                             + "' WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"
                             + Tools.addSlashesToString(player) + "')");
@@ -1982,7 +1982,7 @@ public class teamduel extends SubspaceBot {
                             + "'s ban comment to: " + comment);
                 } else {
                     comment = Tools.addSlashesToString(comment);
-                    m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel_2ban SET fcComment = '"
+                    m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2ban SET fcComment = '"
                             + comment
                             + "' WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"
                             + Tools.addSlashesToString(player) + "')");
@@ -2006,7 +2006,7 @@ public class teamduel extends SubspaceBot {
         
         try {
             if (sql_banned(player)) {
-                ResultSet results = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuel_2ban WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"
+                ResultSet results = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuel__2ban WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"
                         + Tools.addSlashesToString(player) + "')");
                 if (results.next())
                     m_botAction.sendPrivateMessage(name, "Ban comment: "
@@ -2031,7 +2031,7 @@ public class teamduel extends SubspaceBot {
         }
 
         try {
-            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel_2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = (SELECT P.fcIP FROM tblDuel_2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE U.fcUserName = '" + Tools.addSlashesToString(message) + "') AND P.fnMID = (SELECT P.fnMID FROM tblDuel_2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE U.fcUserName = '" + Tools.addSlashesToString(message) + "')");
+            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = (SELECT P.fcIP FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE U.fcUserName = '" + Tools.addSlashesToString(message) + "') AND P.fnMID = (SELECT P.fnMID FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE U.fcUserName = '" + Tools.addSlashesToString(message) + "')");
             if (result.next()) {
                 String extras = "";
                 do {
@@ -2068,7 +2068,7 @@ public class teamduel extends SubspaceBot {
         }
 
         try {
-            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel_2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = (SELECT P.fcIP FROM tblDuel_2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE U.fcUserName = '" + Tools.addSlashesToString(message) + "') AND P.fnMID = (SELECT P.fnMID FROM tblDuel_2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE U.fcUserName = '" + Tools.addSlashesToString(message) + "')");
+            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = (SELECT P.fcIP FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE U.fcUserName = '" + Tools.addSlashesToString(message) + "') AND P.fnMID = (SELECT P.fnMID FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE U.fcUserName = '" + Tools.addSlashesToString(message) + "')");
             if (result.next()) {
                 String extras = "";
                 do {
@@ -2086,7 +2086,7 @@ public class teamduel extends SubspaceBot {
                 m_botAction.sendUnfilteredPrivateMessage(player, "*info");
                 return;
             }
-            result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel_2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = (SELECT P.fcIP FROM tblDuel_2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE U.fcUserName = '" + Tools.addSlashesToString(message) + "')");
+            result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = (SELECT P.fcIP FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE U.fcUserName = '" + Tools.addSlashesToString(message) + "')");
             if (result.next()) {
                 String extras = "";
                 do {
@@ -2095,7 +2095,7 @@ public class teamduel extends SubspaceBot {
                 m_botAction.sendSmartPrivateMessage(name, "Aliases registered with the same IP: " + extras.substring(0, extras.length() - 2));
                 m_botAction.SQLClose(result);
             }
-            result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel_2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fnMID = (SELECT P.fnMID FROM tblDuel_2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE U.fcUserName = '" + Tools.addSlashesToString(message) + "')");
+            result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fnMID = (SELECT P.fnMID FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE U.fcUserName = '" + Tools.addSlashesToString(message) + "')");
             if (result.next()) {
                 String extras = "";
                 do {
@@ -2447,10 +2447,10 @@ public class teamduel extends SubspaceBot {
     
     public void do_addPlayer(String name, String IP, String MID) {
         try {
-            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel_2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE fnEnabled = 1 AND fcIP = '"
+            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE fnEnabled = 1 AND fcIP = '"
                     + IP + "' AND P.fnMID = '" + MID + "')");
             if (!result.next()) {
-                m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel_2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
+                m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
                         "SELECT fnUserID, '" + IP + "', '" + MID + "', 0, 0, NOW() FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'");
 
                 if (aliasChecker.equals(""))
@@ -2470,7 +2470,7 @@ public class teamduel extends SubspaceBot {
                 } else {
                     if (allowedNames.containsKey(name)
                             && aliasChecker.equals("")) {
-                        m_botAction.SQLQuery(mySQLHost, "INSERT INTO tblDuel_2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
+                        m_botAction.SQLQuery(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
                                 "SELECT fnUserID, '" + IP + "', '" + MID + "', 0, 0, NOW() FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'");
                         m_botAction.sendPrivateMessage(name, "You have been registered to use this bot. Find a partner, pick a division and have some fun. ");
                         allowedNames.remove(name);
@@ -2521,7 +2521,7 @@ public class teamduel extends SubspaceBot {
                 m_botAction.sendPrivateMessage(to, from + ":  " + output);
             int average = Integer.parseInt(pieces[4].substring(pieces[4].indexOf(":") + 1));
             try {
-                ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT p.fnUserID, p.fnLagCheckCount, p.fnLag FROM tblDuel_2player p JOIN tblUser u ON u.fnUserID = p.fnUserID " +
+                ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT p.fnUserID, p.fnLagCheckCount, p.fnLag FROM tblDuel__2player p JOIN tblUser u ON u.fnUserID = p.fnUserID " +
                         "WHERE u.fcUserName = '" + Tools.addSlashesToString(from) + "'");
                 if (result != null) {
                     if (result.next()) {
@@ -2530,7 +2530,7 @@ public class teamduel extends SubspaceBot {
                                 * result.getInt("fnLagCheckCount");
                         int average2 = (totalLag + average)
                                 / (result.getInt("fnLagCheckCount") + 1);
-                        m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel_2player SET fnLag = " + average2 + ", fnLagCheckCount = fnLagCheckCount + 1 " +
+                        m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2player SET fnLag = " + average2 + ", fnLagCheckCount = fnLagCheckCount + 1 " +
                                 "WHERE fnUserID = " + userID);
                     }
                 }
@@ -2771,7 +2771,7 @@ public class teamduel extends SubspaceBot {
         int loserRatingBefore = 0;
         int winnerRatingBefore = 0;
         try {
-            String query = "SELECT * FROM tblDuel_2team WHERE fnStatus = 1 AND fnSeason = " + s_season + " AND fnTeamID = " + loserTeam;
+            String query = "SELECT * FROM tblDuel__2team WHERE fnStatus = 1 AND fnSeason = " + s_season + " AND fnTeamID = " + loserTeam;
             ResultSet losers = m_botAction.SQLQuery(mySQLHost, query);
             if (losers.next()) {
                 loserStreak = losers.getInt("fnLossStreak");
@@ -2779,7 +2779,7 @@ public class teamduel extends SubspaceBot {
                 loserRatingBefore = losers.getInt("fnRating");
             }
             m_botAction.SQLClose(losers);
-            query = "SELECT * FROM tblDuel_2team WHERE fnStatus = 1 AND fnSeason = " + s_season + " AND fnTeamID = " + winnerTeam;
+            query = "SELECT * FROM tblDuel__2team WHERE fnStatus = 1 AND fnSeason = " + s_season + " AND fnTeamID = " + winnerTeam;
             ResultSet winners = m_botAction.SQLQuery(mySQLHost, query);
             if (winners.next()) {
                 winnerStreak = winners.getInt("fnWinStreak");
@@ -2834,7 +2834,7 @@ public class teamduel extends SubspaceBot {
             sql_storeTeamWin(winnerTeam, division, winnerStreak, winnerCurStreak, loserTeam, winnerRatingAfter, aced);
             
             
-            String query = "INSERT INTO `tblDuel_2match` (`fnSeason`, `fnLeagueTypeID`, `fnBoxType`, `fnWinnerScore`, `fnLoserScore`, `fnWinnerTeamID`, `fnLoserTeamID`, `fnWinner1Ship`, `fnWinner2Ship`, `fnLoser1Ship`, `fnLoser2Ship`, `fnCommentID`, `fnDeaths`, `fnDuration`, `fnWinnerRatingBefore`, `fnWinnerRatingAfter`, `fnLoserRatingBefore`, `fnLoserRatingAfter` ) VALUES (";
+            String query = "INSERT INTO `tblDuel__2match` (`fnSeason`, `fnLeagueTypeID`, `fnBoxType`, `fnWinnerScore`, `fnLoserScore`, `fnWinnerTeamID`, `fnLoserTeamID`, `fnWinner1Ship`, `fnWinner2Ship`, `fnLoser1Ship`, `fnLoser2Ship`, `fnCommentID`, `fnDeaths`, `fnDuration`, `fnWinnerRatingBefore`, `fnWinnerRatingAfter`, `fnLoserRatingBefore`, `fnLoserRatingAfter` ) VALUES (";
             query += s_season + ", " + division + ", " + d.getBoxType() + ", " + winnerScore + ", " + loserScore + ", ";
             query += "" + winnerTeam + ", " + loserTeam + ", ";
             query += winnerStats[0].getShip() + ", " + winnerStats[1].getShip() + ", " + loserStats[0].getShip() + ", " + loserStats[1].getShip() + ", ";
@@ -2847,10 +2847,10 @@ public class teamduel extends SubspaceBot {
             Tools.printStackTrace("Error ending duel", e);
         }
         try {
-            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel_2team SET fdLastPlayed = NOW() WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + winnerTeam + " AND fnLeagueTypeID = " + division);
-            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel_2team SET fdLastPlayed = NOW() WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + loserTeam + " AND fnLeagueTypeID = " + division);
-            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel_2player SET fdLastPlayed = NOW() WHERE (fnUserID = " + loserInfo[0].getUserID() + " OR fnUserID = " + loserInfo[1].getUserID() + ")");
-            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel_2player SET fdLastPlayed = NOW() WHERE (fnUserID = " + winnerInfo[0].getUserID() + " OR fnUserID = " + winnerInfo[1].getUserID() + ")");
+            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2team SET fdLastPlayed = NOW() WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + winnerTeam + " AND fnLeagueTypeID = " + division);
+            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2team SET fdLastPlayed = NOW() WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + loserTeam + " AND fnLeagueTypeID = " + division);
+            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2player SET fdLastPlayed = NOW() WHERE (fnUserID = " + loserInfo[0].getUserID() + " OR fnUserID = " + loserInfo[1].getUserID() + ")");
+            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2player SET fdLastPlayed = NOW() WHERE (fnUserID = " + winnerInfo[0].getUserID() + " OR fnUserID = " + winnerInfo[1].getUserID() + ")");
 
         } catch (Exception e) {
         }
@@ -2935,7 +2935,7 @@ public class teamduel extends SubspaceBot {
 
     public DuelPlayer sql_getPlayer(String name) {
         try {
-            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuel_2player p JOIN tblUser u ON u.fnUserID = p.fnUserID WHERE u.fcUserName = '"
+            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuel__2player p JOIN tblUser u ON u.fnUserID = p.fnUserID WHERE u.fcUserName = '"
                     + Tools.addSlashesToString(name) + "' AND p.fnEnabled = 1");
             DuelPlayer dp = null;
             if (result.next()) {
@@ -2957,10 +2957,10 @@ public class teamduel extends SubspaceBot {
     
     public void sql_verifyRecord(int userId, int divison) {
         try {
-            String query = "SELECT * FROM tblDuel_2league WHERE fnUserID = " + userId + " AND fnSeason = " + s_season + " AND fnStatus = 1 AND fnLeagueTypeID = " + divison;
+            String query = "SELECT * FROM tblDuel__2league WHERE fnUserID = " + userId + " AND fnSeason = " + s_season + " AND fnStatus = 1 AND fnLeagueTypeID = " + divison;
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
             if (!result.next())
-                m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel_2league (fnUserID, fnSeason, fnStatus, fnLeagueTypeID) VALUES (" + userId + ", " + s_season + ", 1, " + divison + ")");
+                m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2league (fnUserID, fnSeason, fnStatus, fnLeagueTypeID) VALUES (" + userId + ", " + s_season + ", 1, " + divison + ")");
             m_botAction.SQLClose(result);
         } catch (Exception e) {
             Tools.printStackTrace("Failed to verify account", e);
@@ -2973,7 +2973,7 @@ public class teamduel extends SubspaceBot {
         for (int i = 1; i <=5; i++)
             teams.add(i, -1);
         try {
-            String query = "SELECT l.fnUserID, l.fnTeamID, l.fnLeagueTypeID FROM tblDuel_2league l JOIN tblUser u ON u.fnUserID = l.fnUserID WHERE l.fnSeason = " + s_season + " AND l.fnStatus = 1 AND u.fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY l.fnLeagueTypeID";
+            String query = "SELECT l.fnUserID, l.fnTeamID, l.fnLeagueTypeID FROM tblDuel__2league l JOIN tblUser u ON u.fnUserID = l.fnUserID WHERE l.fnSeason = " + s_season + " AND l.fnStatus = 1 AND u.fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY l.fnLeagueTypeID";
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
             if (result.next()) {
                 teams.add(0, result.getInt("l.fnUserID"));
@@ -2989,7 +2989,7 @@ public class teamduel extends SubspaceBot {
     public int sql_getTeamDivision(int teamID) {
         int id = 0;
         try {
-            String query = "SELECT fnLeagueTypeID FROM tblDuel_2team WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID;
+            String query = "SELECT fnLeagueTypeID FROM tblDuel__2team WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID;
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
             if (result.next()) {
                 id = result.getInt("fnLeagueTypeID");
@@ -3002,7 +3002,7 @@ public class teamduel extends SubspaceBot {
     public String[] sql_getPartners(int teamID) {
         String[] info = new String[2];
         try {
-            String query = "SELECT u.fcUserName FROM tblUser u JOIN tblDuel_2team t ON (t.fnUser1ID = u.fnUserID OR t.fnUser2ID = u.fnUserID) WHERE t.fnSeason = " + s_season + " AND t.fnStatus = 1 AND t.fnTeamID = " + teamID;
+            String query = "SELECT u.fcUserName FROM tblUser u JOIN tblDuel__2team t ON (t.fnUser1ID = u.fnUserID OR t.fnUser2ID = u.fnUserID) WHERE t.fnSeason = " + s_season + " AND t.fnStatus = 1 AND t.fnTeamID = " + teamID;
             ResultSet team = m_botAction.SQLQuery(mySQLHost, query);
             if (team.next())
                 info[0] = team.getString("u.fcUserName");
@@ -3016,7 +3016,7 @@ public class teamduel extends SubspaceBot {
     public boolean sql_banned(String name) {
         try {
             boolean banned = false;
-            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuel_2ban b JOIN tblUser u ON u.fnUserID = b.fnUserID WHERE u.fcUserName = '"
+            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuel__2ban b JOIN tblUser u ON u.fnUserID = b.fnUserID WHERE u.fcUserName = '"
                     + Tools.addSlashesToString(name) + "'");
             if (result.next())
                 banned = true;
@@ -3029,7 +3029,7 @@ public class teamduel extends SubspaceBot {
     
     public boolean sql_banPlayer(String name, String comment) {
         try {
-            m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel_2ban (fnUserID, fcComment) SELECT fnUserID, '" + Tools.addSlashesToString(comment) + "' FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'");
+            m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2ban (fnUserID, fcComment) SELECT fnUserID, '" + Tools.addSlashesToString(comment) + "' FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'");
             return true;
         } catch (Exception e) {
             return false;
@@ -3038,7 +3038,7 @@ public class teamduel extends SubspaceBot {
     
     public boolean sql_unbanPlayer(String name) {
         try {
-            m_botAction.SQLQueryAndClose(mySQLHost, "DELETE FROM tblDuel_2ban WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "')");
+            m_botAction.SQLQueryAndClose(mySQLHost, "DELETE FROM tblDuel__2ban WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "')");
             return true;
         } catch (Exception e) {
             return false;
@@ -3048,7 +3048,7 @@ public class teamduel extends SubspaceBot {
     public boolean sql_enabledUser(String name) {
 
         try {
-            String query = "SELECT p.fnUserID FROM tblDuel_2player p JOIN tblUser u ON u.fnUserID = p.fnUserID WHERE p.fnEnabled = 1 AND u.fcUserName = '"
+            String query = "SELECT p.fnUserID FROM tblDuel__2player p JOIN tblUser u ON u.fnUserID = p.fnUserID WHERE p.fnEnabled = 1 AND u.fcUserName = '"
                     + Tools.addSlashesToString(name) + "'";
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
             boolean hasNext = result.next();
@@ -3062,7 +3062,7 @@ public class teamduel extends SubspaceBot {
     
     public void sql_enableUser(String name) {
         try {
-            String query = "UPDATE tblDuel_2player SET fnEnabled = 1 WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "')";
+            String query = "UPDATE tblDuel__2player SET fnEnabled = 1 WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "')";
             m_botAction.SQLQueryAndClose(mySQLHost, query);
         } catch (Exception e) {
             Tools.printStackTrace("Error enabling user", e);
@@ -3072,9 +3072,9 @@ public class teamduel extends SubspaceBot {
     // Disable not only disables the player, but disables all the teams player was on
     public void sql_disableUser(String name) {
         try {
-            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel_2player SET fnEnabled = 0 WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "')");
-            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel_2team SET fnStatus = 0 WHERE fnSeason=" + s_season + " AND fnStatus = 1 AND (fnUser1ID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "') OR fnUser2ID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'))");
-            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel_2league SET fnStatus=0 WHERE fnSeason=" + s_season + " AND fnStatus = 1 AND fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "')");           
+            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2player SET fnEnabled = 0 WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "')");
+            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2team SET fnStatus = 0 WHERE fnSeason=" + s_season + " AND fnStatus = 1 AND (fnUser1ID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "') OR fnUser2ID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'))");
+            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2league SET fnStatus=0 WHERE fnSeason=" + s_season + " AND fnStatus = 1 AND fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "')");           
         } catch (Exception e) {
             Tools.printStackTrace("Error disabling user", e);
         }
@@ -3085,14 +3085,14 @@ public class teamduel extends SubspaceBot {
             if (div == 7)
                 div = 4;
             try {
-                ResultSet user = m_botAction.SQLQuery(mySQLHost, "SELECT fnTeamID, fnStatus FROM tblDuel_2league WHERE fnSeason = " + s_season + " AND fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "') AND fnLeagueTypeID = " + div + " AND fnStatus = 1");
+                ResultSet user = m_botAction.SQLQuery(mySQLHost, "SELECT fnTeamID, fnStatus FROM tblDuel__2league WHERE fnSeason = " + s_season + " AND fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "') AND fnLeagueTypeID = " + div + " AND fnStatus = 1");
                 if (user.next()) {
                     m_botAction.sendPrivateMessage(name, "You are all ready registered for a team in that division.");
                     m_botAction.SQLClose(user);   
                     return false;
                 }
                 m_botAction.SQLClose(user);                
-                user = m_botAction.SQLQuery(mySQLHost, "SELECT fnTeamID, fnStatus FROM tblDuel_2league WHERE fnSeason = " + s_season + " AND fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(part) + "') AND fnLeagueTypeID = " + div + " AND fnStatus = 1");
+                user = m_botAction.SQLQuery(mySQLHost, "SELECT fnTeamID, fnStatus FROM tblDuel__2league WHERE fnSeason = " + s_season + " AND fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(part) + "') AND fnLeagueTypeID = " + div + " AND fnStatus = 1");
                 if (user.next()) {
                     m_botAction.sendPrivateMessage(name, part + " is all ready registered for a team in that division.");
                     m_botAction.SQLClose(user);                   
@@ -3110,16 +3110,16 @@ public class teamduel extends SubspaceBot {
     public int sql_createTeam(String a, String b, int div) {
         int id = -1;
         
-        String query = "INSERT INTO tblDuel_2team (fnSeason, fnLeagueTYpeID, fnUser1ID, fnUser2ID) SELECT " + s_season + ", " + div + ", p.fnUserID, p2.fnUserID FROM tblUser p, tblUser p2 WHERE p.fcUserName = '" + Tools.addSlashesToString(a) + "' AND p2.fcUserName = '" + Tools.addSlashesToString(b) + "'";
+        String query = "INSERT INTO tblDuel__2team (fnSeason, fnLeagueTYpeID, fnUser1ID, fnUser2ID) SELECT " + s_season + ", " + div + ", p.fnUserID, p2.fnUserID FROM tblUser p, tblUser p2 WHERE p.fcUserName = '" + Tools.addSlashesToString(a) + "' AND p2.fcUserName = '" + Tools.addSlashesToString(b) + "'";
         try {
             m_botAction.SQLQueryAndClose(mySQLHost, query);
-            ResultSet rs = m_botAction.SQLQuery(mySQLHost, "SELECT fnTeamID FROM tblDuel_2team WHERE fnSeason = " + s_season + " AND fnLeagueTypeID = " + div + " AND fnUser1ID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" +  Tools.addSlashesToString(a) + "') AND fnUser2ID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(b) + "') AND fnStatus = 1");
+            ResultSet rs = m_botAction.SQLQuery(mySQLHost, "SELECT fnTeamID FROM tblDuel__2team WHERE fnSeason = " + s_season + " AND fnLeagueTypeID = " + div + " AND fnUser1ID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" +  Tools.addSlashesToString(a) + "') AND fnUser2ID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(b) + "') AND fnStatus = 1");
             if (rs.next())
                 id = rs.getInt("fnTeamID");
             m_botAction.SQLClose(rs);
-            query = "INSERT INTO tblDuel_2league (fnSeason, fnTeamID, fnUserID, fnLeagueTypeID) SELECT " + s_season + ", " + id + ", fnUserID, " + div + " FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(a) + "'";
+            query = "INSERT INTO tblDuel__2league (fnSeason, fnTeamID, fnUserID, fnLeagueTypeID) SELECT " + s_season + ", " + id + ", fnUserID, " + div + " FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(a) + "'";
             m_botAction.SQLQueryAndClose(mySQLHost, query);
-            query = "INSERT INTO tblDuel_2league (fnSeason, fnTeamID, fnUserID, fnLeagueTypeID) SELECT " + s_season + ", " + id + ", fnUserID, " + div + " FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(b) + "'";
+            query = "INSERT INTO tblDuel__2league (fnSeason, fnTeamID, fnUserID, fnLeagueTypeID) SELECT " + s_season + ", " + id + ", fnUserID, " + div + " FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(b) + "'";
             m_botAction.SQLQueryAndClose(mySQLHost, query);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -3130,7 +3130,7 @@ public class teamduel extends SubspaceBot {
     public void sql_storeUserLoss(String name, int userID, int teamID, int division, int kills, int deaths, int spawns, int spawned, int lagouts, int time) {
 
         try {
-            String query = "UPDATE tblDuel_2league SET fnLosses = fnLosses + 1, fnKills = fnKills + " + kills + 
+            String query = "UPDATE tblDuel__2league SET fnLosses = fnLosses + 1, fnKills = fnKills + " + kills + 
             ", fnDeaths = fnDeaths + " + deaths + ", fnTimePlayed = fnTimePlayed + " + time + 
             ", fnSpawns = fnSpawns + " + spawns + ", fnSpawned = fnSpawned + " + spawned + 
             ", fnLagouts = fnLagouts + " + lagouts + 
@@ -3143,7 +3143,7 @@ public class teamduel extends SubspaceBot {
 
     public void sql_storeUserWin(String name, int userID, int teamID, int division, int kills, int deaths, int spawns, int spawned, int lagouts, int time) {
         try {
-            String query = "UPDATE tblDuel_2league SET fnWins = fnWins + 1, fnKills = fnKills + " + kills + 
+            String query = "UPDATE tblDuel__2league SET fnWins = fnWins + 1, fnKills = fnKills + " + kills + 
             ", fnDeaths = fnDeaths + " + deaths + ", fnTimePlayed = fnTimePlayed + " + time + 
             ", fnSpawns = fnSpawns + " + spawns + ", fnSpawned = fnSpawned + " + spawned + 
             ", fnLagouts = fnLagouts + " + lagouts + 
@@ -3158,12 +3158,12 @@ public class teamduel extends SubspaceBot {
         try {
             String query;
             if (aced)
-                query = "UPDATE tblDuel_2team SET fnWins = fnWins + 1, fnWinStreak = " + winnerStreak + 
+                query = "UPDATE tblDuel__2team SET fnWins = fnWins + 1, fnWinStreak = " + winnerStreak + 
                 ", fnCurrentWinStreak = " + winnerCurStreak + ", fnCurrentLossStreak = 0, fnAces = fnAces + 1, fnLastWin = " + wonAgainst + 
                 ", fnRating = " + rating + 
                 " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID + " AND fnLeagueTypeID = " + division;
             else
-                query = "UPDATE tblDuel_2team SET fnWins = fnWins + 1, fnWinStreak = " + winnerStreak + 
+                query = "UPDATE tblDuel__2team SET fnWins = fnWins + 1, fnWinStreak = " + winnerStreak + 
                 ", fnCurrentWinStreak = " + winnerCurStreak + ", fnCurrentLossStreak = 0, fnLastWin = " + wonAgainst + ", fnRating = " + rating + 
                 " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID + 
                 " AND fnLeagueTypeID = " + division;
@@ -3177,12 +3177,12 @@ public class teamduel extends SubspaceBot {
         try {
             String query;
             if (aced)
-                query = "UPDATE tblDuel_2team SET fnLosses = fnLosses + 1, fnLossStreak = " + loserStreak + 
+                query = "UPDATE tblDuel__2team SET fnLosses = fnLosses + 1, fnLossStreak = " + loserStreak + 
                 ", fnCurrentLossStreak = " + loserCurStreak + 
                 ", fnCurrentWinStreak = 0, fnAced = fnAced + 1, fnLastLoss = " + lostAgainst + ", fnRating = " + rating + 
                 " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID + " AND fnLeagueTypeID = " + division;
             else
-                query = "UPDATE tblDuel_2team SET fnLosses = fnLosses + 1, fnLossStreak = " + loserStreak + 
+                query = "UPDATE tblDuel__2team SET fnLosses = fnLosses + 1, fnLossStreak = " + loserStreak + 
                 ", fnCurrentLossStreak = " + loserCurStreak + ", fnCurrentWinStreak = 0, fnLastLoss = " + lostAgainst + ", fnRating = " + rating + 
                 " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID + " AND fnLeagueTypeID = " + division;
             m_botAction.SQLQueryAndClose( mySQLHost, query );
@@ -3194,7 +3194,7 @@ public class teamduel extends SubspaceBot {
     public ResultSet sql_getUserIPMID(String name) {
 
         try {
-            String query = "SELECT p.fcIP, p.fnMID FROM tblDuel_2player p JOIN tblUser u ON u.fnUserID = p.fnUserID WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'";
+            String query = "SELECT p.fcIP, p.fnMID FROM tblDuel__2player p JOIN tblUser u ON u.fnUserID = p.fnUserID WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'";
 
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
             boolean hasNext = result.next();
@@ -3208,7 +3208,7 @@ public class teamduel extends SubspaceBot {
     
     public boolean sql_gameLimitReached( int a, int b, int division ) {
         try {
-            String query = "SELECT COUNT(fnMatchID) AS count FROM `tblDuel_2match` WHERE"+
+            String query = "SELECT COUNT(fnMatchID) AS count FROM `tblDuel__2match` WHERE"+
             " ((fnWinnerTeamID = '" + a + "' AND fnLoserTeamID = '" + b + "')" +
             " OR (fnWinnerTeamID = '" + b + "' AND fnLoserTeamID = '" + a +"'))" +
             " AND TO_DAYS(NOW()) - TO_DAYS(ftUpdated ) <= " + s_duelDays +
