@@ -205,7 +205,7 @@ public class teamduel extends SubspaceBot {
     public void handleEvent(LoggedOn event) {
         // join initial arena
         m_botSettings = m_botAction.getBotSettings();
-        m_botAction.joinArena(m_botSettings.getString("Arena" + m_botAction.getBotNumber())); // remove +
+        m_botAction.joinArena(m_botSettings.getString("Arena")); // remove +
         // m_botAction.getBotNumber()
         // for dev zone functionality
 
