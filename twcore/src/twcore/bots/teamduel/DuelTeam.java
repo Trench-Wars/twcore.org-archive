@@ -2,10 +2,8 @@ package twcore.bots.teamduel;
 
 public class DuelTeam {
     int teamID;
-    String userName1;
-    String userName2;
-    int userID1;
-    int userID2;
+    String[] names;
+    int[] ids;
     int division;
     String divisionName;
     boolean notPlaying;
@@ -13,10 +11,8 @@ public class DuelTeam {
 
     public DuelTeam(int id, String name1, String name2, int nameid1, int nameid2, int div, String divis) {
         teamID = id;
-        userName1 = name1;
-        userName2 = name2;
-        userID1 = nameid1;
-        userID2 = nameid2;
+        names = new String[] {name1, name2};
+        ids = new int[] {nameid1, nameid2};
         division = div;
         notPlaying = false;
         nowPlaying = false;
@@ -44,7 +40,7 @@ public class DuelTeam {
             team += " " + divisionName + "| ";
         else if (division == 5)
             team += "  " + divisionName + "   | ";
-        team += userName1 + " and " + userName2;
+        team += names[0] + " and " + names[1];
         
         while (team.length() < 55) {
             team += " ";
@@ -57,20 +53,12 @@ public class DuelTeam {
         return teamID;
     }
 
-    public String getName1() {
-        return userName1;
+    public String[] getNames() {
+        return names;
     }
 
-    public String getName2() {
-        return userName2;
-    }
-
-    public int getUserID1() {
-        return userID1;
-    }
-
-    public int getUserID2() {
-        return userID2;
+    public int[] getIDs() {
+        return ids;
     }
 
     public int getDivision() {
