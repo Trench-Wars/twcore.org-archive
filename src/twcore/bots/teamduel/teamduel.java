@@ -517,10 +517,10 @@ public class teamduel extends SubspaceBot {
 
         int x = event.getXLocation();
         int y = event.getYLocation();
-        int maxx = 616*16;
-        int maxy = 616*16;
-        int minx = 407*16;
-        int miny = 407*16;
+        int maxx = 600*16;
+        int maxy = 600*16;
+        int minx = 420*16;
+        int miny = 420*16;
 
         if (x > minx && x < maxx && y > miny && y < maxy) {
 
@@ -1631,12 +1631,11 @@ public class teamduel extends SubspaceBot {
         }
         
         duels.put(new Integer(thisBox.getBoxNumber()), new Duel(thisBox, thisChallenge));
-
-        startDuel(duels.get(new Integer(thisBox.getBoxNumber())), challenger, challenged);
         playing.put(challenger[0], duels.get(new Integer(thisBox.getBoxNumber())));
         playing.put(challenger[1], duels.get(new Integer(thisBox.getBoxNumber())));
         playing.put(challenged[0], duels.get(new Integer(thisBox.getBoxNumber())));
         playing.put(challenged[1], duels.get(new Integer(thisBox.getBoxNumber())));
+        startDuel(duels.get(new Integer(thisBox.getBoxNumber())), challenger, challenged);
 
     }
 
@@ -2661,8 +2660,12 @@ public class teamduel extends SubspaceBot {
                     + IP + "' AND P.fnMID = '" + MID + "'");
             if (!result.next()) {
                 m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
-                        "SELECT fnUserID, '" + IP + "', '" + MID + "', 0, 0, NOW() FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'");
+                        "SELECT fnUserID, '" + IP + "', '" + MID + "', 0, 0, NOW() FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1");
 
+                if (newbies.contains(name))
+                    newbies.remove(name);
+                players.put(name, sql_buildPlayer(name));
+                
                 if (aliasChecker.equals(""))
                     m_botAction.sendPrivateMessage(name, "You have been registered to use this bot. It is advised you set your personal dueling rules, for further information use !help");
                 else {
@@ -2680,10 +2683,13 @@ public class teamduel extends SubspaceBot {
                 } else {
                     if (allowedNames.contains(name) && aliasChecker.equals("")) {
                         m_botAction.SQLQuery(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
-                                "SELECT fnUserID, '" + IP + "', '" + MID + "', 0, 0, NOW() FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'");
+                                "SELECT fnUserID, '" + IP + "', '" + MID + "', 0, 0, NOW() FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT !");
                         m_botAction.sendPrivateMessage(name, "You have been registered to use this bot. Find a partner, pick a division and have some fun. ");
                         allowedNames.remove(name);
                         canEnableNames.add(name);
+                        if (newbies.contains(name))
+                            newbies.remove(name);
+                        players.put(name, sql_buildPlayer(name));
                     } else {
                         String extras = "";
                         do {
@@ -2729,20 +2735,37 @@ public class teamduel extends SubspaceBot {
             if (to != null)
                 m_botAction.sendPrivateMessage(to, from + ":  " + output);
             int average = Integer.parseInt(pieces[4].substring(pieces[4].indexOf(":") + 1));
+            DuelPlayer dp = players.get(from);
             try {
-                ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT p.fnUserID, p.fnLagCheckCount, p.fnLag FROM tblDuel__2player p JOIN tblUser u ON u.fnUserID = p.fnUserID " +
-                        "WHERE u.fcUserName = '" + Tools.addSlashesToString(from) + "'");
-                if (result.next()) {
-                    int userID = result.getInt("p.fnUserID");
-                    int totalLag = result.getInt("p.fnLag")
-                    * result.getInt("p.fnLagCheckCount");
-                    int average2 = (totalLag + average)
-                    / (result.getInt("p.fnLagCheckCount") + 1);
-                    m_botAction.SQLClose(result);
-                    m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2player SET fnLag = " + average2 + ", fnLagCheckCount = fnLagCheckCount + 1 " +
-                            "WHERE fnUserID = " + userID);
-                } else
-                    m_botAction.SQLClose(result);
+                if (dp == null) {
+                    ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT p.fnUserID, p.fnLagCheckCount, p.fnLag FROM tblDuel__2player p JOIN tblUser u ON u.fnUserID = p.fnUserID " +
+                            "WHERE u.fcUserName = '" + Tools.addSlashesToString(from) + "'");
+                    if (result.next()) {
+                        int userID = result.getInt("p.fnUserID");
+                        int totalLag = result.getInt("p.fnLag")
+                        * result.getInt("p.fnLagCheckCount");
+                        int average2 = (totalLag + average)
+                        / (result.getInt("p.fnLagCheckCount") + 1);
+                        m_botAction.SQLClose(result);
+                        m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2player SET fnLag = " + average2 + ", fnLagCheckCount = fnLagCheckCount + 1 " +
+                                "WHERE fnUserID = " + userID);
+                    } else
+                        m_botAction.SQLClose(result);
+                } else {
+                    ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT fnUserID, fnLagCheckCount, fnLag FROM tblDuel__2player WHERE fnUserID = " + dp.getID());
+                    if (result.next()) {
+                        int userID = dp.getID();
+                        int totalLag = result.getInt("fnLag")
+                        * result.getInt("fnLagCheckCount");
+                        int average2 = (totalLag + average)
+                        / (result.getInt("fnLagCheckCount") + 1);
+                        m_botAction.SQLClose(result);
+                        m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2player SET fnLag = " + average2 + ", fnLagCheckCount = fnLagCheckCount + 1 " +
+                                "WHERE fnUserID = " + userID);
+                        dp.setLag(average2);
+                    } else
+                        m_botAction.SQLClose(result);
+                }
             } catch (Exception e) {
                 Tools.printStackTrace(e);
             }
@@ -2866,6 +2889,112 @@ public class teamduel extends SubspaceBot {
 
         m_botAction.sendTeamMessage("A " + d.getDivision() + " duel is starting: " + challenger[0] + " and " + challenger[1] + " VERSUS " + challenged[0] + " and " + challenged[1] + " in box #" + (d.getBoxFreq() / 2));
         // setScoreboard(d, 0);
+        int div = d.getDivisionID();
+        
+        // this should prevent the ship bug
+        if (div == 4) {
+            if (m_botAction.getPlayer(challenger[0]).getShipType() != 7) {
+                DuelPlayerStats p = d.getPlayerOne();
+                p.setWarpingOn();
+                m_botAction.setShip(challenger[0], 7);
+                p.setShip(7);
+            }
+            if (m_botAction.getPlayer(challenger[1]).getShipType() != 7) {
+                DuelPlayerStats p = d.getPlayerTwo();
+                p.setWarpingOn();
+                m_botAction.setShip(challenger[1], 7);
+                p.setShip(7);
+            }
+            if (m_botAction.getPlayer(challenged[0]).getShipType() != 7) {
+                DuelPlayerStats p = d.getPlayerThree();
+                p.setWarpingOn();
+                m_botAction.setShip(challenged[0], 7);
+                p.setShip(7);
+            }
+            if (m_botAction.getPlayer(challenged[0]).getShipType() != 7) {
+                DuelPlayerStats p = d.getPlayerFour();
+                p.setWarpingOn();
+                m_botAction.setShip(challenged[1], 7);
+                p.setShip(7);
+            }
+        } else if (div == 3) {
+            if (m_botAction.getPlayer(challenger[0]).getShipType() != 3) {
+                DuelPlayerStats p = d.getPlayerOne();
+                p.setWarpingOn();
+                m_botAction.setShip(challenger[0], 3);
+                p.setShip(3);
+            }
+            if (m_botAction.getPlayer(challenger[1]).getShipType() != 3) {
+                DuelPlayerStats p = d.getPlayerTwo();
+                p.setWarpingOn();
+                m_botAction.setShip(challenger[1], 3);
+                p.setShip(3);
+            }
+            if (m_botAction.getPlayer(challenged[0]).getShipType() != 3) {
+                DuelPlayerStats p = d.getPlayerThree();
+                p.setWarpingOn();
+                m_botAction.setShip(challenged[0], 3);
+                p.setShip(3);
+            }
+            if (m_botAction.getPlayer(challenged[0]).getShipType() != 3) {
+                DuelPlayerStats p = d.getPlayerFour();
+                p.setWarpingOn();
+                m_botAction.setShip(challenged[1], 3);
+                p.setShip(3);
+            }
+            
+        } else if (div == 2) {
+            if (m_botAction.getPlayer(challenger[0]).getShipType() != 2) {
+                DuelPlayerStats p = d.getPlayerOne();
+                p.setWarpingOn();
+                m_botAction.setShip(challenger[0], 2);
+                p.setShip(2);
+            }
+            if (m_botAction.getPlayer(challenger[1]).getShipType() != 2) {
+                DuelPlayerStats p = d.getPlayerTwo();
+                p.setWarpingOn();
+                m_botAction.setShip(challenger[1], 2);
+                p.setShip(2);
+            }
+            if (m_botAction.getPlayer(challenged[0]).getShipType() != 2) {
+                DuelPlayerStats p = d.getPlayerThree();
+                p.setWarpingOn();
+                m_botAction.setShip(challenged[0], 2);
+                p.setShip(2);
+            }
+            if (m_botAction.getPlayer(challenged[0]).getShipType() != 2) {
+                DuelPlayerStats p = d.getPlayerFour();
+                p.setWarpingOn();
+                m_botAction.setShip(challenged[1], 2);
+                p.setShip(2);
+            }
+        } else if (div == 1) {
+            if (m_botAction.getPlayer(challenger[0]).getShipType() != 1) {
+                DuelPlayerStats p = d.getPlayerOne();
+                p.setWarpingOn();
+                m_botAction.setShip(challenger[0], 1);
+                p.setShip(1);
+            }
+            if (m_botAction.getPlayer(challenger[1]).getShipType() != 1) {
+                DuelPlayerStats p = d.getPlayerTwo();
+                p.setWarpingOn();
+                m_botAction.setShip(challenger[1], 1);
+                p.setShip(1);
+            }
+            if (m_botAction.getPlayer(challenged[0]).getShipType() != 1) {
+                DuelPlayerStats p = d.getPlayerThree();
+                p.setWarpingOn();
+                m_botAction.setShip(challenged[0], 1);
+                p.setShip(1);
+            }
+            if (m_botAction.getPlayer(challenged[0]).getShipType() != 1) {
+                DuelPlayerStats p = d.getPlayerFour();
+                p.setWarpingOn();
+                m_botAction.setShip(challenged[1], 1);
+                p.setShip(1);
+            }
+        }
+        
     }
 
     public void endDuel(Duel d, String[] winner, String[] loser, int winnerTeam, int loserTeam, int type) {
