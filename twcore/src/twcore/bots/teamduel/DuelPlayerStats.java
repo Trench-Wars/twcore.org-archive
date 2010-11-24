@@ -48,6 +48,16 @@ public class DuelPlayerStats {
         m_coords = coord;
     }
 
+    public DuelPlayerStats(String name, int team, int div, int freq, int[] safe, int[] coord) {
+        m_name = name;
+        m_team = team;
+        m_division = div;
+        m_freq = freq;
+        m_isOut = false;
+        m_safeCoords = safe;
+        m_coords = coord;
+    }
+
     public String getName() {
         return m_name;
     }
