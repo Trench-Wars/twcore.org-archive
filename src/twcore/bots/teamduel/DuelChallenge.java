@@ -40,7 +40,7 @@ public class DuelChallenge {
         m_division = type;
         m_challengerShip = type;
         m_challengedShip = type;
-        m_toWin = player.getToWin();
+        m_toWin = player.getDeaths();
         m_noCount = player.getNoCount();
         m_boxType = box;
         initiater = player;
