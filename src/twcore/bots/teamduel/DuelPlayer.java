@@ -144,4 +144,9 @@ public class DuelPlayer {
     public void setLag(int lag) {
         m_lag = lag;
     }
+    
+    public void quitTeam(int div) {
+        teams[div] = -1;
+        partners[div] = null;
+    }
 }
