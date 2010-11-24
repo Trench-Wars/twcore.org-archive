@@ -140,4 +140,8 @@ public class DuelPlayer {
         }
         return false;
     }
+    
+    public void setLag(int lag) {
+        m_lag = lag;
+    }
 }
