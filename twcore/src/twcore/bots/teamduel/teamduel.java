@@ -1965,6 +1965,10 @@ public class teamduel extends SubspaceBot {
                         " AND fnStatus = 1 AND fnLeagueTypeID = " + division + " AND fnTeamID = " + team);
             } catch (Exception e) { }
             m_botAction.sendPrivateMessage(name, "Your team has been removed from division " + division + ".");
+            if (players.containsKey(dp.getPartner(division)))
+                players.get(dp.getPartner(division)).quitTeam(division);
+                
+            dp.quitTeam(division);
         } else
             m_botAction.sendPrivateMessage(name, "Please provide an appropriate divisionID: 1-Warbird 2-Javelin 3-Spider 4-Lancaster 5-Mixed");
         do_teamList();
