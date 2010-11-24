@@ -17,10 +17,6 @@ public class Duel {
     private int m_challengerFreq;
     private int m_challengedFreq;
 
-    // The ships in case its a Mixed duel
-    private int[] m_challengerShip = new int[2];
-    private int[] m_challengedShip = new int[2];
-
     // The team player names for the duel
     private String[] m_challenger = new String[2];
     private String[] m_challenged = new String[2];
@@ -71,33 +67,38 @@ public class Duel {
         m_division = challenge.getDivision();
         m_toWin = challenge.getToWin();
         m_noCount = challenge.getNoCount();
-
-        // Save Ships 
-        if (m_division == 4) {
-            m_challengerShip[0] = 7;
-            m_challengerShip[1] = 7;
-            m_challengedShip[0] = 7;
-            m_challengedShip[1] = 7;
-        } else if (m_division == 2) {
-            m_challengerShip[0] = 2;
-            m_challengerShip[1] = 2;
-            m_challengedShip[0] = 2;
-            m_challengedShip[1] = 2;            
-        } else {
-            m_challengerShip[0] = 1;
-            m_challengerShip[1] = 1;
-            m_challengedShip[0] = 1;
-            m_challengedShip[1] = 1;
-        }
-        
         m_challengerFreq = getBoxFreq();
         m_challengedFreq = getBoxFreq() + 1;
 
         // Create stat tracking objects
-        m_challengerStats[0] = new DuelPlayerStats(m_challenger[0], m_challengerTeam, m_division, m_division, m_challengerFreq, getSafeA1(), getA1());
-        m_challengerStats[1] = new DuelPlayerStats(m_challenger[1], m_challengerTeam, m_division, m_division, m_challengerFreq, getSafeA2(), getA2());
-        m_challengedStats[0] = new DuelPlayerStats(m_challenged[0], m_challengedTeam, m_division, m_division, m_challengedFreq, getSafeB1(), getB1());
-        m_challengedStats[1] = new DuelPlayerStats(m_challenged[1], m_challengedTeam, m_division, m_division, m_challengedFreq, getSafeB2(), getB2());
+        m_challengerStats[0] = new DuelPlayerStats(m_challenger[0], m_challengerTeam, m_division, m_challengerFreq, getSafeA1(), getA1());
+        m_challengerStats[1] = new DuelPlayerStats(m_challenger[1], m_challengerTeam, m_division, m_challengerFreq, getSafeA2(), getA2());
+        m_challengedStats[0] = new DuelPlayerStats(m_challenged[0], m_challengedTeam, m_division, m_challengedFreq, getSafeB1(), getB1());
+        m_challengedStats[1] = new DuelPlayerStats(m_challenged[1], m_challengedTeam, m_division, m_challengedFreq, getSafeB2(), getB2());
+
+        // Save Ships 
+        if (m_division == 4 || m_division == 7) {
+            m_challengerStats[0].setShip(7);
+            m_challengerStats[1].setShip(7);
+            m_challengedStats[0].setShip(7);
+            m_challengedStats[1].setShip(7);
+        } else if (m_division == 2) {
+            m_challengerStats[0].setShip(2);
+            m_challengerStats[1].setShip(2);
+            m_challengedStats[0].setShip(2);
+            m_challengedStats[1].setShip(2);
+        }else if (m_division == 3) {
+            m_challengerStats[0].setShip(3);
+            m_challengerStats[1].setShip(3);
+            m_challengedStats[0].setShip(3);
+            m_challengedStats[1].setShip(3);
+        } else {
+            m_challengerStats[0].setShip(1);
+            m_challengerStats[1].setShip(1);
+            m_challengedStats[0].setShip(1);
+            m_challengedStats[1].setShip(1);
+        }
+        
         m_locked = true;
     }
 
@@ -118,6 +119,8 @@ public class Duel {
             return "Lancaster";
         else if (m_division == 5)
             return "Mixed";
+        else if (m_division == 7)
+            return "Lancaster";
         else
             return "";
     }
@@ -347,21 +350,17 @@ public class Duel {
     }
 
     public int[] getChallengerShip() {
-        return m_challengerShip;
+        return new int[] {m_challengerStats[0].getShip(), m_challengerStats[1].getShip()};
     }
 
     public int[] getChallengedShip() {
-        return m_challengedShip;
+        return new int[] {m_challengedStats[0].getShip(), m_challengedStats[1].getShip()};
     }
     
     public void updateShips(int[] challenger, int[] challenged) {
-        m_challengerShip[0] = challenger[0];
         m_challengerStats[0].setShip(challenger[0]);
-        m_challengerShip[1] = challenger[1];
         m_challengerStats[1].setShip(challenger[1]);
-        m_challengedShip[0] = challenged[0];
         m_challengedStats[0].setShip(challenged[0]);
-        m_challengedShip[1] = challenged[1];
         m_challengedStats[1].setShip(challenged[1]);
     }
 
