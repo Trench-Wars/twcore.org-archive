@@ -103,12 +103,15 @@ public class staffbot_banc extends Module {
     
    // private List<String> bancOps;
     //private ArrayList<String> bancStaffers;
-    HashMap <String,String> bancStaffers   = new HashMap<String,String>();
+    HashMap <String,String> lvl1   = new HashMap<String,String>();
 
-    HashMap <String,String> bancRevoked   = new HashMap<String,String>();
+    HashMap <String,String> lvl2   = new HashMap<String,String>();
+    HashMap <String,String> lvl3  = new HashMap<String,String>();
+    HashMap <String,String> lvl4   = new HashMap<String,String>();
+    
    // private ArrayList<String> bancRevoked;
     
-    private final String botsDatabase = "bots";
+    private final String botsDatabase = "website";
     private final String trenchDatabase = "website";
     private final String uniqueConnectionID = "banc";
     private final String IPCBANC = "banc";
@@ -228,7 +231,7 @@ public class staffbot_banc extends Module {
 	                    // Minimum BANC STAFFER access requirement for all !commands
                         //Everytime a someone tries a command, reload the ops and see if they have access
 	                    restart_ops();
-	                 if(!bancStaffers.containsKey(name.toLowerCase())){
+	                 if(!lvl4.containsKey(name.toLowerCase())){
 	                      m_botAction.sendSmartPrivateMessage(name, "Sorry, Your access to BanC has been revoked");
 	                      return; 
 	                      
@@ -238,7 +241,7 @@ public class staffbot_banc extends Module {
 	        
 	        if( messageLc.startsWith("!addop"))
 	            //!addop
-	            addBancOperator(name, messageLc.substring(7));
+	            addBancOperator(name, message);
 	        if( messageLc.startsWith("!removeop"))
 	            //!revokeop
 	            removeBancStaffer(name, messageLc.substring(10));
@@ -391,7 +394,7 @@ public class staffbot_banc extends Module {
         m_botSettings.put("BancStaffers", ops);
         m_botSettings.save();
         m_botAction.sendChatMessage(2, "Staffer " +name+ " deleted operator " +message);
-        is_revoked(name, message);
+        //is_revoked(name, message, level);
         restart_ops();
         }
         
@@ -409,30 +412,51 @@ public class staffbot_banc extends Module {
 	        return;
         
 	    BotSettings m_botSettings = m_botAction.getBotSettings();
-        String ops = m_botSettings.getString("BancStaffers");
+        //String ops = m_botSettings.getString("BancStaffers");
+        String parameters = "";
+        String t = "";
+        String level = m_botSettings.getString(t);
+        String messageLc = substring.toLowerCase();
+        
+        if(messageLc.startsWith("!addop")) {
+            parameters = substring.substring(6).trim();
 
-
-        if(ops.contains(substring)){
-            m_botAction.sendSmartPrivateMessage(name, substring + " is already an operator.");
+            
+        if(parameters.length() > 2 && parameters.contains(":")) {
+            level = parameters.split(":")[1];
+            parameters = parameters.split(":")[0];
+        }  else {
+            m_botAction.sendRemotePrivateMessage(name, "Syntax error. Please specify <playername>:<access level #> or PM !help for more information.");
+            return;
+        }
+        if(level.length() > 6) {
+        level = level.substring(0,5);
+        }
+        final String target = parameters;
+        
+        
+        if(level.contains(target)){
+            m_botAction.sendSmartPrivateMessage(name, target + " is already an operator.");
             return;
             }
-        if (ops.length() < 1)
-            m_botSettings.put("BancStaffers", substring);
+        if (level.length() < 1)
+            m_botSettings.put(level, target);
         else
-            m_botSettings.put("BancStaffers", ops + "," + substring);
-        m_botAction.sendSmartPrivateMessage(name, "Add Op: " + substring + " successful");
+            m_botSettings.put(level, level + "," + target);
+        m_botAction.sendSmartPrivateMessage(name, "Add Op: " + target + " successful");
         m_botSettings.save();
-        m_botAction.sendChatMessage(2, "Staffer " +name+ " added operator " +substring);
-        is_revoked(name, substring);
-        restart_ops();
-        }
+        m_botAction.sendChatMessage(2, "Staffer " +name+ " added operator " +target);
+        is_revoked(name, target, level);
+        restart_ops();}}
+        
+        
     
         
     
-	private void is_revoked(String name, String substring) {
+	private void is_revoked(String name, String substring, String level) {
 	    //if they operator is on revoked list, remove them from it
 	    BotSettings m_botSettings = m_botAction.getBotSettings();
-        String ops = m_botSettings.getString("BancRevoked");
+        String ops = m_botSettings.getString(level);
          int spot = ops.indexOf(substring);
         if (spot == 0 && ops.length() == substring.length()) {
             ops = "";
@@ -450,7 +474,7 @@ public class staffbot_banc extends Module {
         else {
             m_botAction.sendSmartPrivateMessage(name, "This person was NOT revoked.");
         }
-        m_botSettings.put("BancRevoked", ops);
+        m_botSettings.put(level, ops);
         m_botSettings.save();
         restart_ops();
         return;
@@ -461,17 +485,27 @@ public class staffbot_banc extends Module {
         //Load the operators and add them
 	    try {
 	        BotSettings m_botSettings = m_botAction.getBotSettings();
-        bancStaffers.clear();
-        bancRevoked.clear();
+        lvl4.clear();
+        lvl3.clear();
+        lvl2.clear();
+        lvl1.clear();
         //
-        String ops[] = m_botSettings.getString( "BancStaffers" ).split( "," );
+        String ops[] = m_botSettings.getString( "1" ).split( "," );
         for( int i = 0; i < ops.length; i++ )
-           bancStaffers.put(ops[i].toLowerCase(), ops[i]);
+           lvl1.put(ops[i].toLowerCase(), ops[i]);
         
         //
-        String revoked[] = m_botSettings.getString( "BancRevoked" ).split( "," );
+        String revoked[] = m_botSettings.getString( "2" ).split( "," );
         for( int j = 0; j < revoked.length; j++ )
-            bancRevoked.put(revoked[j].toLowerCase(), revoked[j]);
+            lvl2.put(revoked[j].toLowerCase(), revoked[j]);
+        //
+        String b3[] = m_botSettings.getString( "3" ).split( "," );
+        for( int i = 0; i < b3.length; i++ )
+           lvl3.put(b3[i].toLowerCase(), b3[i]);
+        //
+        String b4[] = m_botSettings.getString( "4" ).split( "," );
+        for( int i = 0; i < b4.length; i++ )
+           lvl4.put(b4[i].toLowerCase(), b4[i]);
 	    } catch (Exception e) { Tools.printStackTrace( "Method Failed: ", e ); }
 	    
 
@@ -487,31 +521,55 @@ public class staffbot_banc extends Module {
 	     if(!opList.isSmod(name))
 	         return;
 	        restart_ops();
-            String bancs = "Banc Access: ";
-	        Iterator<String> list = bancStaffers.values().iterator();
+            String bancs1 = "Level 1: ";
+	        Iterator<String> list1 = lvl1.values().iterator();
 	        
 	        
-	        while( list.hasNext() ) {
-	            if( list.hasNext() )
-	                bancs += (String)list.next() + ", ";
+	        while( list1.hasNext() ) {
+	            if( list1.hasNext() )
+	                bancs1 += (String)list1.next() + ", ";
 	            else
-	                bancs += (String)list.next();
+	                bancs1 += (String)list1.next();
 	        }
-	        String bancs1 = "Revoked Access: ";
-	        Iterator<String> list1 = bancRevoked.values().iterator();
-	        
-            while( list1.hasNext() ) {
-                if( list1.hasNext() )
-                    bancs1 += (String)list1.next() + ", ";
+            String bancs2 = "Level 2: ";
+            Iterator<String> list2 = lvl2.values().iterator();
+            
+            
+            while( list2.hasNext() ) {
+                if( list2.hasNext() )
+                    bancs2 += (String)list2.next() + ", ";
                 else
-                    bancs1 += (String)list1.next();
+                    bancs2 += (String)list2.next();
+            }
+	        String bancs3 = "Level 3: ";
+	        Iterator<String> list3 = lvl3.values().iterator();
+	        
+            while( list3.hasNext() ) {
+                if( list3.hasNext() )
+                    bancs3 += (String)list3.next() + ", ";
+                else
+                    bancs3 += (String)list3.next();
+            }
+            String bancs4 = "Level 4: ";
+            Iterator<String> list4 = lvl4.values().iterator();
+            
+            
+            while( list4.hasNext() ) {
+                if( list4.hasNext() )
+                    bancs4 += (String)list4.next() + ", ";
+                else
+                    bancs4 += (String)list4.next();
             }
             
 	        
-	        bancs  = bancs.substring(0, bancs.length() - 2);
-	        bancs1 = bancs1.substring(0, bancs1.length() - 2);
-	        m_botAction.sendSmartPrivateMessage( name, bancs  );
-            m_botAction.sendSmartPrivateMessage( name, bancs1 );
+	        bancs1  = bancs1.substring(0, bancs1.length() - 2);
+	        bancs2 = bancs2.substring(0, bancs2.length() - 2);
+	        bancs2 = bancs3.substring(0, bancs3.length() - 2);
+	        bancs4 = bancs4.substring(0, bancs4.length() - 2);
+	        m_botAction.sendSmartPrivateMessage( name, bancs1  );
+            m_botAction.sendSmartPrivateMessage( name, bancs2 );
+            m_botAction.sendSmartPrivateMessage( name, bancs3 );
+            m_botAction.sendSmartPrivateMessage( name, bancs4 );
 	 }
 	 
 /**
