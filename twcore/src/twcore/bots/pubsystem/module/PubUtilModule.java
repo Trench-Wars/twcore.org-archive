@@ -66,6 +66,7 @@ public class PubUtilModule extends AbstractModule {
 	private long uptime = 0;
 	
 	private HashMap<String,AliasCheck> aliases;
+	private HashMap<String, Integer[]> loopCatcher = new HashMap<String, Integer[]>();
 	
     private HashMap<String, Stack<String[]>> tutorials = new HashMap<String, Stack<String[]>>();
 	private HashMap<String, ObjonTimer> objonTimers = new HashMap<String, ObjonTimer>();
@@ -184,7 +185,31 @@ public class PubUtilModule extends AbstractModule {
 					alias.setIpResults("(" + buffer.toString().substring(2) + ") ");
 				else {
 					System.out.println("[ALIAS] " + buffer.toString());
-					alias.setIpResults("");
+                    final String aliasIP = alias.getName();
+					Integer count = 0;
+					if (loopCatcher.containsKey(aliasIP)) {
+					    Integer[] tasks = loopCatcher.get(aliasIP);
+					    if (tasks.length < 2)
+					        tasks = new Integer[] {1, 0};
+					    else
+					        count = tasks[0] + 1;
+					}
+					if (count > 5)
+					    alias.setIpResults("");
+					final String database = m_botAction.getBotSettings().getString("database_alias");
+					if (alias.getIpResults() == null && database!=null) {
+					    TimerTask delayIP = new TimerTask() {
+					        @Override
+					        public void run() {
+					            System.out.println("[ALIAS] Blank IP: " + aliasIP + " Task Scheduled.");
+					            m_botAction.SQLBackgroundQuery(database, "alias:ip:"+aliasIP,
+					                    "SELECT DISTINCT(fnIP) " +
+					                    "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+					                    "WHERE fcUserName = '" + Tools.addSlashes(aliasIP) + "'");
+					        }
+					    };
+					    m_botAction.scheduleTask(delayIP, 10000);
+					}
 				}
 				
 			}
@@ -201,8 +226,33 @@ public class PubUtilModule extends AbstractModule {
 
 				if (buffer.length()>2)
 					alias.setMidResults("(" + buffer.toString().substring(2) + ") ");
-				else
-					alias.setMidResults("");
+				else {
+                    final String aliasMID = alias.getName();
+                    Integer count = 0;
+                    if (loopCatcher.containsKey(aliasMID)) {
+                        Integer[] tasks = loopCatcher.get(aliasMID);
+                        if (tasks.length < 2)
+                            tasks = new Integer[] {0, 1};
+                        else
+                            count = tasks[1] + 1;
+                    }
+                    if (count > 5)
+                        alias.setMidResults("");
+				    final String database = m_botAction.getBotSettings().getString("database_alias");
+				    if (alias.getMidResults() == null && database!=null) {
+				        TimerTask delayMID = new TimerTask() {
+				            @Override
+				            public void run() {
+				                System.out.println("[ALIAS] Blank MID: " + aliasMID + " Task Scheduled.");
+				                m_botAction.SQLBackgroundQuery(database, "alias:mid:"+aliasMID,
+				                        "SELECT DISTINCT(fnMachineId) " +
+				                        "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+				                        "WHERE fcUserName = '" + Tools.addSlashes(aliasMID) + "'");
+				            }
+				        };
+				        m_botAction.scheduleTask(delayMID, 13000);
+				    }
+				}
 
 			}
 			
@@ -243,7 +293,7 @@ public class PubUtilModule extends AbstractModule {
 							"SELECT * " +
 							"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
 							"WHERE fnIP IN " + alias.getIpResults() + " " +
-							"AND fnMachineID IN " + alias.getMidResults());
+							"AND fnMachineID IN " + alias.getMidResults() + " ORDER BY fdUpdated DESC");
 				}
 				
 			}
@@ -500,7 +550,7 @@ public class PubUtilModule extends AbstractModule {
 
     	System.out.print("[ALIAS] " + alias.getName() + ":" + alias.getUsage() + ":" + alias.getAliasCount());
     	if (alias.getUsage() < 15 && alias.getAliasCount() <= 2 && alias.getAliasCount() >= 0) {
-    		m_botAction.sendChatMessage(2, ">>>>>> New player: " + alias.getName());
+    		m_botAction.sendChatMessage(2, ">>>>>> New player: " + alias.getName() + " ALIAS COUNT(debug): " + alias.getAliasCount());
     		System.out.println(":YES");
     	}
     	else {
