@@ -39,6 +39,7 @@ public class Duel {
     private int m_startTime = 0;
     private int m_time = 0;
     private boolean m_locked;
+    private boolean m_settingUp;
 
     /**
      * Basic constructor for duel which holds information over a duel between
@@ -69,6 +70,8 @@ public class Duel {
         m_noCount = challenge.getNoCount();
         m_challengerFreq = getBoxFreq();
         m_challengedFreq = getBoxFreq() + 1;
+        
+        m_settingUp = true;
 
         // Create stat tracking objects
         m_challengerStats[0] = new DuelPlayerStats(m_challenger[0], m_challengerTeam, m_division, m_challengerFreq, getSafeA1(), getA1());
@@ -100,6 +103,18 @@ public class Duel {
         }
         
         m_locked = true;
+    }
+    
+    public boolean isSettingUp() {
+        return m_settingUp;
+    }
+    
+    public void settingUpOn() {
+        m_settingUp = true;
+    }
+    
+    public void settingUpOff() {
+        m_settingUp = false;
     }
 
     /**
@@ -135,6 +150,7 @@ public class Duel {
     }
 
     public void started() {
+        m_settingUp = false;
         m_gameStarted = true;
         m_startTime = (int) (System.currentTimeMillis() / 1000);
         m_locked = true;
@@ -203,7 +219,7 @@ public class Duel {
         
         duel += m_challenger[0] + " and " + m_challenger[1] + " vs " + m_challenged[0] + " and " + m_challenged[1];
         
-        while (duel.length() < 84) {
+        while (duel.length() < 82) {
             duel += " ";
         }
         
