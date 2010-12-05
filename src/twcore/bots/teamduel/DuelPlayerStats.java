@@ -26,6 +26,7 @@ public class DuelPlayerStats {
 
     // State variables for a player
     private boolean m_warping = false;
+    private boolean m_lagging = false;
     private boolean m_isOut;
 
     public DuelPlayerStats(String name, int team, int div, int ship, int freq) {
@@ -35,6 +36,8 @@ public class DuelPlayerStats {
         m_ship = ship;
         m_freq = freq;
         m_isOut = false;
+        m_warping = false;
+        m_lagging = false;
     }
 
     public DuelPlayerStats(String name, int team, int div, int ship, int freq, int[] safe, int[] coord) {
@@ -46,6 +49,8 @@ public class DuelPlayerStats {
         m_isOut = false;
         m_safeCoords = safe;
         m_coords = coord;
+        m_warping = false;
+        m_lagging = false;
     }
 
     public DuelPlayerStats(String name, int team, int div, int freq, int[] safe, int[] coord) {
@@ -56,6 +61,8 @@ public class DuelPlayerStats {
         m_isOut = false;
         m_safeCoords = safe;
         m_coords = coord;
+        m_warping = false;
+        m_lagging = false;
     }
 
     public String getName() {
@@ -169,6 +176,18 @@ public class DuelPlayerStats {
     
     public int getLastSpawn() {
         return m_timeOfLastSpawn;
+    }
+
+    public boolean isLagging() {
+        return m_lagging;
+    }
+
+    public void setLaggingOn() {
+        m_lagging = true;
+    }
+
+    public void setLaggingOff() {
+        m_lagging = false;
     }
 
     public boolean isWarping() {
