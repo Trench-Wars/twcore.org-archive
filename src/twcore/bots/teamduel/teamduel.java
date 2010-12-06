@@ -1171,8 +1171,7 @@ public class teamduel extends SubspaceBot {
     }
     
     public void do_joinTeam(String name, String message) {
-        message = m_botAction.getFuzzyPlayerName(message);
-        if (message == null) {
+        if (m_botAction.getFuzzyPlayerName(message) == null) {
             m_botAction.sendPrivateMessage(name, "Error joining team: player team invite not found");
             return;
         }
