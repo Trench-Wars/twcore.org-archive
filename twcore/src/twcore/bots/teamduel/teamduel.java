@@ -2698,7 +2698,6 @@ public class teamduel extends SubspaceBot {
                     if (alias.equalsIgnoreCase(name)) {
                         signedup = true;
                     }
-                    aliases.add(alias);
                 }
                 m_botAction.SQLClose(result);
                 
