@@ -55,6 +55,7 @@ public class teamduel extends SubspaceBot {
     // Disallows new duels and shuts bot down once all dueling has stopped
     boolean shutDownDie = false;
     String aliasChecker = "";
+    boolean aliasCheck = false;
 
     Objset objects = m_botAction.getObjectSet();
     LockSmith locksmith;
@@ -264,22 +265,20 @@ public class teamduel extends SubspaceBot {
             m_botAction.spec(name);
         }
         
-        // make SURE there is a UserID available in tblUser if not, create one
-        int id = sql_getUserID(name);
-        
-        DuelPlayer dp = sql_buildPlayer(name);
-        if (dp != null)
-            players.put(name, dp);
-        else
-            newbies.put(name, id);
-        
         if (laggers.containsKey(name))
             m_botAction.sendPrivateMessage(name, "To get back in your duel, PM me with !lagout");
         else 
             m_botAction.sendPrivateMessage(name, greet);
         
-        do_addListPlayer(p);        
-        do_addListTeams(name);
+        // make SURE there is a UserID available in tblUser if not, create one
+        int id = sql_getUserID(name);
+        
+        DuelPlayer dp = sql_buildPlayer(name, id);
+        if (dp != null) {
+            players.put(name, dp);
+            do_addListTeams(dp);
+        } else
+            newbies.put(name, id);        
     }
 
     public void handleEvent(PlayerLeft event) {
@@ -291,7 +290,7 @@ public class teamduel extends SubspaceBot {
             do_removeListTeams(name);
         }
 
-        if (!laggers.containsKey(name))
+        if (playing.containsKey(name) && !laggers.containsKey(name))
             handleLagout(name);
         
         if (!invites.isEmpty()) {
@@ -2067,11 +2066,8 @@ public class teamduel extends SubspaceBot {
         if (!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase()))
             return;
         DuelPlayer dp;
-        if (players.containsKey(message))
+        if (players.containsKey(message)) {
             dp = players.get(message);
-        else
-            dp = sql_buildPlayer(message);
-        if (dp != null) {
             if (dp.isEnabled())
                 m_botAction.sendSmartPrivateMessage(name, "This user is already enabled to play.");
             else {
@@ -2223,6 +2219,7 @@ public class teamduel extends SubspaceBot {
     public void do_aliasCheck(String name, String message) {
         if (!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase()))
             return;
+        
         boolean useName = false;
         int id = -1;
         DuelPlayer dp = null;
@@ -2231,6 +2228,8 @@ public class teamduel extends SubspaceBot {
             id = dp.getID();
         } else if (newbies.containsKey(message)) {
             id = newbies.get(message);
+            if (id < 1)
+                useName = true;
         } else {
             useName = true;
         }
@@ -2243,33 +2242,39 @@ public class teamduel extends SubspaceBot {
                 info = sql_getPlayerInfo(id);
             else
                 info = sql_getPlayerInfo(message);
-            if (info.next()) {
+            if (info != null && info.next()) {
                 MID = info.getInt("fnMID");
                 IP = info.getString("fcIP");
                 if (info.getInt("fnEnabled") == 1)
                     m_botAction.sendSmartPrivateMessage(name, "This name is enabled for play.");
                 m_botAction.SQLClose(info);
+                aliasChecker = name;
+                do_getAliases(message, IP, MID);                
             } else {
-                m_botAction.sendSmartPrivateMessage(name, "Error retrieving player's IP and MID information from the database.");
+                message = m_botAction.getFuzzyPlayerName(message);
+                if (message != null) {
+                    aliasCheck = true;
+                    aliasChecker = name;
+                    m_botAction.sendUnfilteredPrivateMessage(message, "*info");
+                } else
+                    m_botAction.sendSmartPrivateMessage(name, "Player must be in this arena if not signed up.");
                 m_botAction.SQLClose(info);
                 return;
             }
+        } catch (Exception e) {
+            Tools.printStackTrace(e);
+        }
+    }
+    
+    public void do_getAliases(String name, String IP, int MID) {
+        try {
             ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = '" + IP + "' AND P.fnMID = " + MID);
             if (result.next()) {
                 String extras = "";
                 do {
                     extras += "" + result.getString("U.fcUserName") + ", ";
                 } while (result.next());
-                m_botAction.sendSmartPrivateMessage(name, "Aliases registered with the same IP and MID: " + extras.substring(0, extras.length() - 2));
-            } else {
-                String player = m_botAction.getFuzzyPlayerName(message);
-                if (player == null) {
-                    m_botAction.sendSmartPrivateMessage(name, "This player is not in the arena right now.");
-                    return;
-                }
-                aliasChecker = name;
-                m_botAction.sendUnfilteredPrivateMessage(player, "*info");
-                return;
+                m_botAction.sendSmartPrivateMessage(aliasChecker, "Aliases registered with the same IP and MID: " + extras.substring(0, extras.length() - 2));
             }
             m_botAction.SQLClose(result);
             result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = '" + IP + "'");
@@ -2278,7 +2283,7 @@ public class teamduel extends SubspaceBot {
                 do {
                     extras += "" + result.getString("U.fcUserName") + ", ";
                 } while (result.next());
-                m_botAction.sendSmartPrivateMessage(name, "Aliases registered with the same IP: " + extras.substring(0, extras.length() - 2));
+                m_botAction.sendSmartPrivateMessage(aliasChecker, "Aliases registered with the same IP: " + extras.substring(0, extras.length() - 2));
             }
             m_botAction.SQLClose(result);
             result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fnMID = " + MID);
@@ -2287,11 +2292,10 @@ public class teamduel extends SubspaceBot {
                 do {
                     extras += "" + result.getString("U.fcUserName") + ", ";
                 } while (result.next());
-                m_botAction.sendSmartPrivateMessage(name, "Aliases registered with the same MID: " + extras.substring(0, extras.length() - 2));
+                m_botAction.sendSmartPrivateMessage(aliasChecker, "Aliases registered with the same MID: " + extras.substring(0, extras.length() - 2));
             }
             m_botAction.SQLClose(result);
-            return;
-
+            aliasChecker = "";
         } catch (Exception e) {
             // This exception is caught frequently. Removed stack trace print
             // Don't need to see it anymore until we take the time to deal w/
@@ -2558,6 +2562,10 @@ public class teamduel extends SubspaceBot {
             return true;
     }
     
+    public void do_addListPlayer(DuelPlayer dp) {
+        players.put(dp.getName(), dp);
+   }
+    
     public void do_addListPlayer(Player p) {
         String name = p.getPlayerName();
         if (name == null) 
@@ -2653,19 +2661,25 @@ public class teamduel extends SubspaceBot {
             System.out.println("[TEAMDUEL] Failed to convert MID " + sMID);
             return;
         }
+        
         try {
             ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = '"
                     + IP + "' AND P.fnMID = " + MID);
             if (!result.next()) {
                 m_botAction.SQLClose(result);
                 DuelPlayer dp = null;
-                if (newbies.containsKey(name))
-                    dp = sql_buildPlayer(name, newbies.remove(name));
-                else
+                if (newbies.containsKey(name)) {
+                    int id = newbies.remove(name);
+                    m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
+                            "VALUES(" + id + ", '" + IP + "', " + MID + ", 0, 0, NOW())");
+                    dp = sql_buildPlayer(name, id);
+                }
+                else {
+                    m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
+                            "VALUES((SELECT fnUserID FROM tblUser WHERE fcUserName = '" + name + "' ORDER BY fnUserID ASC LIMIT 1), '" + IP + "', " + MID + ", 0, 0, NOW())");
                     dp = sql_buildPlayer(name);
+                }
                 players.put(name, dp);
-                m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
-                        "VALUES(" + dp.getID() + ", '" + IP + "', " + MID + ", 0, 0, NOW())");
                 
                 if (aliasChecker.equals(""))
                     m_botAction.sendPrivateMessage(name, "You have been registered to use this bot. It is advised you set your personal dueling rules, for further information use !help");
@@ -2686,13 +2700,18 @@ public class teamduel extends SubspaceBot {
                     if (allowedNames.contains(name) && aliasChecker.equals("")) {
                         m_botAction.SQLClose(result);
                         DuelPlayer dp = null;
-                        if (newbies.containsKey(name))
-                            dp = sql_buildPlayer(name, newbies.remove(name));
-                        else
+                        if (newbies.containsKey(name)) {
+                            int id = newbies.remove(name);
+                            m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
+                                    "VALUES(" + id + ", '" + IP + "', " + MID + ", 0, 0, NOW())");
+                            dp = sql_buildPlayer(name, id);
+                        }
+                        else {
+                            m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
+                                    "VALUES((SELECT fnUserID FROM tblUser WHERE fcUserName = '" + name + "' ORDER BY fnUserID ASC LIMIT 1), '" + IP + "', " + MID + ", 0, 0, NOW())");
                             dp = sql_buildPlayer(name);
+                        }
                         players.put(name, dp);
-                        m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
-                                "VALUES(" + dp.getID() + ", '" + IP + "', " + MID + ", 0, 0, NOW())");
                         m_botAction.sendPrivateMessage(name, "You have been registered to use this bot. Find a partner, pick a division and have some fun. ");
                         allowedNames.remove(name);
                         canEnableNames.add(name);
@@ -2729,7 +2748,13 @@ public class teamduel extends SubspaceBot {
             String thisName = pieces[3].substring(10);
             String thisIP = pieces[0].substring(3);
             String thisID = pieces[5].substring(10);
-            do_addPlayer(thisName, thisIP, thisID);
+            if (aliasCheck) {
+                thisName = aliasChecker;
+                aliasChecker = "";
+                do_getAliases(thisName, thisIP, Integer.parseInt(thisID));
+            } else {
+                do_addPlayer(thisName, thisIP, thisID);
+            }
         } else if (message.equals("Arena UNLOCKED")) {
             locksmith.arenaUnlocked();
         } else if (message.equals("Arena LOCKED")) {
@@ -3237,7 +3262,64 @@ public class teamduel extends SubspaceBot {
             teams[i] = -1;
             partners[i] = null;
         }
-        // WOW IM A FUCKING GENIOUS... LOOK AT THIS MOTHER FUCKER
+
+        try {
+            // METHOD TWO
+            String q = "SELECT p.fnUserID, b.fnBanID, p.fnLag, p.fnGameDeaths, p.fnNoCount, p.fnEnabled FROM tblDuel__2player p LEFT JOIN tblDuel__2ban b ON p.fnUserID = b.fnUserID WHERE p.fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1) LIMIT 1";
+            ResultSet info = m_botAction.SQLQuery(mySQLHost, q);
+            if (info.next()) {
+                Integer tenabled = info.getInt("p.fnEnabled");
+                if (tenabled != null) {
+                    if (tenabled == 0)
+                        enabled = false;
+                    else
+                        enabled = true;
+                } else
+                    return null;
+                Integer tid = info.getInt("p.fnUserID");
+                if (tid != null && tid > 0)
+                    id = tid;
+                else
+                    return null;
+                Integer tban = info.getInt("b.fnBanID");
+                if (tban != null && tban > 0)
+                    banned = true;
+                Integer tlag = info.getInt("p.fnLag");
+                if (tlag != null && tlag > 0)
+                    lag = tlag;
+                Integer tdeaths = info.getInt("p.fnGameDeaths");
+                if (tdeaths != null)
+                    deaths = tdeaths;
+                Integer tnc = info.getInt("p.fnNoCount");
+                if (tnc != null && tnc == 0)
+                    nc = false;
+                m_botAction.SQLClose(info);
+            } else {
+                m_botAction.SQLClose(info);
+                return null;
+            }
+            
+            q = "SELECT t.fnTeamID, t.fnLeagueTypeID, u2.fnUserID, u2.fcUserName FROM tblDuel__2team t JOIN tblUser u JOIN tblUser u2 ON (u.fnUserID = t.fnUser1ID AND u2.fnUserID = t.fnUser2ID) OR (u.fnUserID = t.fnUser2ID AND u2.fnUserID = t.fnUser1ID) WHERE t.fnTeamID IN (SELECT fnTeamID FROM tblDuel__2league WHERE fnUserID = " + id + " AND fnStatus = 1 AND fnSeason = " + s_season + ") AND u.fnUserID = " + id + " AND t.fnStatus = 1 AND t.fnSeason = " + s_season;
+            info = m_botAction.SQLQuery(mySQLHost, q);
+            while (info.next()) {
+                Integer div = info.getInt("t.fnLeagueTypeID");
+                if (div != null && div > 0 && div < 6) {
+                    Integer team = info.getInt("t.fnTeamID");
+                    if (team != null && team > 0) {
+                        teams[div] = team;
+                        partners[div] = info.getString("u2.fcUserName");
+                        pids[div] = info.getInt("u2.fnUserID");
+
+                    }
+                }
+            }
+            m_botAction.SQLClose(info);
+            return new DuelPlayer(name, id, lag, deaths, nc, enabled, banned, teams, partners, pids);
+        } catch (Exception e) {
+            Tools.printStackTrace("Failed to get player information", e);
+        }
+        
+        /** old way which apparently doesn't work
         String query = "SELECT U.fnUserID, B.fnBanID, P.fnGameDeaths, P.fnNoCount, P.fnEnabled, P.fnLag, " + 
                 "L.fnLeagueTypeID, L.fnTeamID, T.fnTeamID, T.fnLeagueTypeID, U2.fnUserID, U2.fcUserName " + 
             "FROM tblUser U LEFT JOIN tblDuel__2player P ON U.fnUserID = P.fnUserID " + 
@@ -3295,11 +3377,13 @@ public class teamduel extends SubspaceBot {
                         
                     }
                 } while (result.next());
+                m_botAction.SQLClose(result);
                 return new DuelPlayer(name, id, lag, deaths, nc, enabled, banned, teams, partners, pids);
             }
         } catch (Exception e) {
             Tools.printStackTrace("Failed to get player information", e);
-        }
+        } 
+        **/
         return null;
     }
     
@@ -3316,7 +3400,62 @@ public class teamduel extends SubspaceBot {
             teams[i] = -1;
             partners[i] = null;
         }
-        // WOW IM A FUCKING GENIOUS... LOOK AT THIS MOTHER FUCKER
+
+        try {
+            // METHOD TWO
+            String q = "SELECT p.fnUserID, b.fnBanID, p.fnLag, p.fnGameDeaths, p.fnNoCount, p.fnEnabled FROM tblDuel__2player p LEFT JOIN tblDuel__2ban b ON p.fnUserID = b.fnUserID WHERE p.fnUserID = " + userID + " LIMIT 1";
+            ResultSet info = m_botAction.SQLQuery(mySQLHost, q);
+            if (info.next()) {
+                Integer tenabled = info.getInt("p.fnEnabled");
+                if (tenabled != null) {
+                    if (tenabled == 0)
+                        enabled = false;
+                    else
+                        enabled = true;
+                } else
+                    return null;
+                Integer tid = info.getInt("p.fnUserID");
+                if (tid != null && userID == tid);
+                else
+                    return null;
+                Integer tban = info.getInt("b.fnBanID");
+                if (tban != null && tban > 0)
+                    banned = true;
+                Integer tlag = info.getInt("p.fnLag");
+                if (tlag != null && tlag > 0)
+                    lag = tlag;
+                Integer tdeaths = info.getInt("p.fnGameDeaths");
+                if (tdeaths != null)
+                    deaths = tdeaths;
+                Integer tnc = info.getInt("p.fnNoCount");
+                if (tnc != null && tnc == 0)
+                    nc = false;
+                m_botAction.SQLClose(info);
+            } else {
+                m_botAction.SQLClose(info);
+                return null;
+            }
+            
+            q = "SELECT t.fnTeamID, t.fnLeagueTypeID, u2.fnUserID, u2.fcUserName FROM tblDuel__2team t JOIN tblUser u JOIN tblUser u2 ON (u.fnUserID = t.fnUser1ID AND u2.fnUserID = t.fnUser2ID) OR (u.fnUserID = t.fnUser2ID AND u2.fnUserID = t.fnUser1ID) WHERE t.fnTeamID IN (SELECT fnTeamID FROM tblDuel__2league WHERE fnUserID = " + userID + " AND fnStatus = 1 AND fnSeason = " + s_season + ") AND u.fnUserID = " + userID + " AND t.fnStatus = 1 AND t.fnSeason = " + s_season;
+            info = m_botAction.SQLQuery(mySQLHost, q);
+            while (info.next()) {
+                Integer div = info.getInt("t.fnLeagueTypeID");
+                if (div != null && div > 0 && div < 6) {
+                    Integer team = info.getInt("t.fnTeamID");
+                    if (team != null && team > 0) {
+                        teams[div] = team;
+                        partners[div] = info.getString("u2.fcUserName");
+                        pids[div] = info.getInt("u2.fnUserID");
+
+                    }
+                }
+            }
+            m_botAction.SQLClose(info);
+            return new DuelPlayer(name, userID, lag, deaths, nc, enabled, banned, teams, partners, pids);
+        } catch (Exception e) {
+            Tools.printStackTrace("Failed to get player information", e);
+        }
+        /** old way which apparently doesnt work
         String query = "SELECT U.fnUserID, B.fnBanID, P.fnGameDeaths, P.fnNoCount, P.fnEnabled, P.fnLag, " + 
                 "L.fnLeagueTypeID, L.fnTeamID, T.fnTeamID, T.fnLeagueTypeID, U2.fnUserID, U2.fcUserName " + 
             "FROM tblUser U LEFT JOIN tblDuel__2player P ON U.fnUserID = P.fnUserID " + 
@@ -3374,6 +3513,7 @@ public class teamduel extends SubspaceBot {
         } catch (Exception e) {
             Tools.printStackTrace("Failed to get player information", e);
         }
+        **/
         return null;
     }
     
@@ -3658,9 +3798,7 @@ public class teamduel extends SubspaceBot {
         try {
             String query = "SELECT fcIP, fnMID, fnEnabled FROM tblDuel__2player WHERE fnUserID = " + id;
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
-            boolean hasNext = result.next();
-            if (hasNext)
-                return result;
+            return result;
         } catch (Exception e) {
             Tools.printStackTrace("Problem getting user IP/MID", e);
         }
@@ -3669,11 +3807,9 @@ public class teamduel extends SubspaceBot {
     
     public ResultSet sql_getPlayerInfo(String name) {
         try {
-            String query = "SELECT fcIP, fnMID, fnEnabled FROM tblDuel__2player WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + name + "' ORDER BY fnUserID ASC LIMIT 1)";
+            String query = "SELECT fcIP, fnMID, fnEnabled FROM tblDuel__2player WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1)";
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
-            boolean hasNext = result.next();
-            if (hasNext)
-                return result;
+            return result;
         } catch (Exception e) {
             Tools.printStackTrace("Problem getting user IP/MID", e);
         }
