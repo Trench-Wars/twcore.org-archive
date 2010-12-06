@@ -1593,10 +1593,12 @@ public class teamduel extends SubspaceBot {
             thisChallenge.acceptTwo();
         }
         
-        Set<String> list = challenges.keySet();
-        for (String ch : list) {
-            if (ch.startsWith("" + challengerTeam) || ch.startsWith("" + challengedTeam) || ch.endsWith("" + challengerTeam) || ch.endsWith("" + challengedTeam))
-                challenges.remove(ch);
+        if (!challenges.isEmpty()) {
+            Set<String> list = challenges.keySet();
+            for (String ch : list) {
+                if (ch.startsWith("" + challengerTeam) || ch.startsWith("" + challengedTeam) || ch.endsWith("" + challengerTeam) || ch.endsWith("" + challengedTeam))
+                    challenges.remove(ch);
+            }
         }
         
         duels.put(new Integer(thisBox.getBoxNumber()), new Duel(thisBox, thisChallenge));
