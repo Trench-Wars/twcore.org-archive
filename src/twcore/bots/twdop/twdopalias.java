@@ -471,6 +471,9 @@ public class twdopalias extends Module
     {
         String[] message =
         {
+                "                                                       ",
+                " [TWDOP ALIAS MODULE]",
+                "                                                       ",
                 " !altnick  <PlayerName>         - Alias by <PlayerName>",
                 " !altIP    <IP>                 - Alias by <IP>",
                 " !partialIP <IP>                - Alias by <PARTIALIP>",  
