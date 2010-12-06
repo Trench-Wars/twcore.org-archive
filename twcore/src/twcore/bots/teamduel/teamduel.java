@@ -3120,8 +3120,8 @@ public class teamduel extends SubspaceBot {
                 winnerRatingAfter = 45;
             else
                 winnerRatingAfter = (int) Math.round((winnerRatingBefore + 32*(1 - (1 / (1 + Math.pow(10, (loserRatingBefore - winnerRatingBefore) / 400))))));
-            if (loserRatingBefore == 0)
-                loserRatingAfter = 45;
+            if (loserRatingBefore <= 0)
+                loserRatingAfter = 0;
             else
                 loserRatingAfter = (int) Math.round((loserRatingBefore + 32*(0 - (1 / (1 + Math.pow(10, (winnerRatingBefore - loserRatingBefore) / 400))))));
 
