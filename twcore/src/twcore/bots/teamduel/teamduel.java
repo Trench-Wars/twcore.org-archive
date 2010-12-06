@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.Set;
 import java.util.TimerTask;
 import java.util.Vector;
 
@@ -1590,6 +1591,12 @@ public class teamduel extends SubspaceBot {
         } else if ((name.equalsIgnoreCase(challenged[0]) && !accepted[0] && accepted[1]) || (name.equalsIgnoreCase(challenged[1]) && accepted[0] && !accepted[1])) {
             thisChallenge.acceptOne();
             thisChallenge.acceptTwo();
+        }
+        
+        Set<String> list = challenges.keySet();
+        for (String ch : list) {
+            if (ch.startsWith("" + challengerTeam) || ch.startsWith("" + challengedTeam) || ch.endsWith("" + challengerTeam) || ch.endsWith("" + challengedTeam))
+                challenges.remove(ch);
         }
         
         duels.put(new Integer(thisBox.getBoxNumber()), new Duel(thisBox, thisChallenge));
