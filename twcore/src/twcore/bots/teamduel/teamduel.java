@@ -2743,8 +2743,6 @@ public class teamduel extends SubspaceBot {
             String thisIP = pieces[0].substring(3);
             String thisID = pieces[5].substring(10);
             if (aliasCheck) {
-                thisName = aliasChecker;
-                aliasChecker = "";
                 do_getAliases(thisName, thisIP, Integer.parseInt(thisID));
             } else {
                 do_addPlayer(thisName, thisIP, thisID);
