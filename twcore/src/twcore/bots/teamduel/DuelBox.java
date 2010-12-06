@@ -23,13 +23,17 @@ public class DuelBox {
     int d_safeBx2    = 0;
     int d_safeBy1    = 0;
     int d_safeBy2    = 0;
+    int d_areaXmin = 0;
+    int d_areaXmax = 0;
+    int d_areaYmin = 0;
+    int d_areaYmax = 0;
 	boolean inUse   = false;
 	WarpPoint	last;
 
 	Random generator;
 	Vector<WarpPoint> randomWarpPoints = new Vector<WarpPoint>();
 
-    public DuelBox(String settings[], String randomPt[], int b) {
+    public DuelBox(String settings[], String randomPt[], String area[], int b) {
         d_box = b;
         d_type = Integer.parseInt(settings[0]);
         d_safeAx1 = Integer.parseInt(settings[1]);
@@ -48,6 +52,10 @@ public class DuelBox {
         d_By1 = Integer.parseInt(settings[14]);
         d_Bx2 = Integer.parseInt(settings[15]);
         d_By2 = Integer.parseInt(settings[16]);
+        d_areaXmin = Integer.parseInt(area[0]);
+        d_areaYmin = Integer.parseInt(area[1]);
+        d_areaXmax = Integer.parseInt(area[2]);
+        d_areaYmax = Integer.parseInt(area[3]);
         for (int i = 0; i < randomPt.length; i += 2)
             randomWarpPoints.add(new WarpPoint(randomPt[i], randomPt[i + 1]));
         generator = new Random();
@@ -94,6 +102,10 @@ public class DuelBox {
     public int getSafeBXTwo() { return d_safeBx2; }
     public int getSafeBYOne() { return d_safeBy1; }
     public int getSafeBYTwo() { return d_safeBy2; }
+    public int getAreaMinX() { return d_areaXmin; }
+    public int getAreaMinY() { return d_areaYmin; }
+    public int getAreaMaxX() { return d_areaXmax; }
+    public int getAreaMaxY() { return d_areaYmax; }
 	public int getBoxNumber() { return d_box; }
 	public void toggleUse() { inUse = !inUse; }
 	public boolean inUse() { return inUse; }
