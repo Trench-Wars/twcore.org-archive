@@ -2269,7 +2269,8 @@ public class teamduel extends SubspaceBot {
                     extras += "" + result.getString("U.fcUserName") + ", ";
                 } while (result.next());
                 m_botAction.sendSmartPrivateMessage(aliasChecker, "Aliases registered with the same IP and MID: " + extras.substring(0, extras.length() - 2));
-            }
+            } else
+                m_botAction.sendSmartPrivateMessage(aliasChecker, "No IP/MID matches for player " + name);
             m_botAction.SQLClose(result);
             result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = '" + IP + "'");
             if (result.next()) {
@@ -2278,7 +2279,8 @@ public class teamduel extends SubspaceBot {
                     extras += "" + result.getString("U.fcUserName") + ", ";
                 } while (result.next());
                 m_botAction.sendSmartPrivateMessage(aliasChecker, "Aliases registered with the same IP: " + extras.substring(0, extras.length() - 2));
-            }
+            } else
+                m_botAction.sendSmartPrivateMessage(aliasChecker, "No IP matches for player " + name);
             m_botAction.SQLClose(result);
             result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fnMID = " + MID);
             if (result.next()) {
@@ -2287,7 +2289,8 @@ public class teamduel extends SubspaceBot {
                     extras += "" + result.getString("U.fcUserName") + ", ";
                 } while (result.next());
                 m_botAction.sendSmartPrivateMessage(aliasChecker, "Aliases registered with the same MID: " + extras.substring(0, extras.length() - 2));
-            }
+            } else
+                m_botAction.sendSmartPrivateMessage(aliasChecker, "No MID matches for player " + name);
             m_botAction.SQLClose(result);
             aliasChecker = "";
         } catch (Exception e) {
