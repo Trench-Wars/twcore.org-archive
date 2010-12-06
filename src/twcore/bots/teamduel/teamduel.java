@@ -2335,7 +2335,7 @@ public class teamduel extends SubspaceBot {
                 && !hiddenOps.containsKey(name.toLowerCase())
                 && !m_botAction.getOperatorList().isSmod(name))
             return;
-        m_botAction.sendPrivateMessage(name, "Have a nice day, Goodbye!");
+        m_botAction.sendPrivateMessage(name, "Have a nice day, goodbye!");
         // Removes the bot from the server.
         TimerTask die = new TimerTask() {
             @Override
