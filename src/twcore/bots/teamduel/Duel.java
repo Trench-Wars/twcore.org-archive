@@ -186,8 +186,8 @@ public class Duel {
 
     public String showScore() {
         String score = m_challenger[0] + " and " + m_challenger[1] + " vs " + m_challenged[0] + " and " + m_challenged[1] + ": ";
-        int score1 = m_challengerStats[0].getDeaths() + m_challengerStats[1].getDeaths();
-        int score2 = m_challengedStats[0].getDeaths() + m_challengedStats[1].getDeaths();
+        int score1 = m_challengedStats[0].getDeaths() + m_challengedStats[1].getDeaths();
+        int score2 = m_challengerStats[0].getDeaths() + m_challengerStats[1].getDeaths();
         score += score1 + "-" + score2;
         return score;
     }
