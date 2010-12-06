@@ -17,16 +17,15 @@ public class DuelPlayerStats {
     private int m_spawned = 0;
     private int m_warps = 0;
 
+    // State variables for a player
     private int m_timeOfLastDeath;
     private int m_timeOfLastSpawn;
+    private int m_timeOfLastReturn = 0;
+    private int m_timeOfLastWarp = 0;
     private int m_time;
     private String m_lastKiller;
     private int[] m_safeCoords;
     private int[] m_coords;
-
-    // State variables for a player
-    private boolean m_warping = false;
-    private boolean m_lagging = false;
     private boolean m_isOut;
 
     public DuelPlayerStats(String name, int team, int div, int ship, int freq) {
@@ -36,8 +35,6 @@ public class DuelPlayerStats {
         m_ship = ship;
         m_freq = freq;
         m_isOut = false;
-        m_warping = false;
-        m_lagging = false;
     }
 
     public DuelPlayerStats(String name, int team, int div, int ship, int freq, int[] safe, int[] coord) {
@@ -49,8 +46,6 @@ public class DuelPlayerStats {
         m_isOut = false;
         m_safeCoords = safe;
         m_coords = coord;
-        m_warping = false;
-        m_lagging = false;
     }
 
     public DuelPlayerStats(String name, int team, int div, int freq, int[] safe, int[] coord) {
@@ -61,8 +56,6 @@ public class DuelPlayerStats {
         m_isOut = false;
         m_safeCoords = safe;
         m_coords = coord;
-        m_warping = false;
-        m_lagging = false;
     }
 
     public String getName() {
@@ -129,6 +122,14 @@ public class DuelPlayerStats {
     public int getTimeOfLastDeath() {
         return m_timeOfLastDeath;
     }
+    
+    public void setLastReturn(int time) {
+        m_timeOfLastReturn = time;
+    }
+    
+    public int getTimeFromLastReturn() {
+        return (int)(System.currentTimeMillis() / 1000) - m_timeOfLastReturn;
+    }
 
     public void removeDeath() {
         m_deaths--;
@@ -140,6 +141,14 @@ public class DuelPlayerStats {
 
     public int getTimeFromLastDeath() {
         return (int)(System.currentTimeMillis() / 1000) - m_timeOfLastDeath;
+    }
+
+    public void setLastWarp(int time) {
+        m_timeOfLastWarp = time;
+    }
+
+    public int getTimeFromLastWarp() {
+        return (int)(System.currentTimeMillis() / 1000) - m_timeOfLastWarp;
     }
 
     public void setLastKiller(String name) {
@@ -176,30 +185,6 @@ public class DuelPlayerStats {
     
     public int getLastSpawn() {
         return m_timeOfLastSpawn;
-    }
-
-    public boolean isLagging() {
-        return m_lagging;
-    }
-
-    public void setLaggingOn() {
-        m_lagging = true;
-    }
-
-    public void setLaggingOff() {
-        m_lagging = false;
-    }
-
-    public boolean isWarping() {
-        return m_warping;
-    }
-
-    public void setWarpingOn() {
-        m_warping = true;
-    }
-
-    public void setWarpingOff() {
-        m_warping = false;
     }
 
     public int getSpawns() {

@@ -491,6 +491,22 @@ public class Duel {
     public int getSafeBYTwo() {
         return m_duelBox.getSafeBYTwo();
     }
+    
+    public int getAreaMinX() {
+        return m_duelBox.getAreaMinX();
+    }
+    
+    public int getAreaMinY() {
+        return m_duelBox.getAreaMinY();
+    }
+    
+    public int getAreaMaxX() {
+        return m_duelBox.getAreaMaxX();
+    }
+    
+    public int getAreaMaxY() {
+        return m_duelBox.getAreaMaxY();
+    }
 
     public int toWin() {
         return m_toWin;
