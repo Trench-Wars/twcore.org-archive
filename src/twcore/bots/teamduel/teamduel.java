@@ -1103,6 +1103,8 @@ public class teamduel extends SubspaceBot {
     }
     
     public void do_signUp(String name, String message) {
+        aliasChecker = "";
+        aliasCheck = false;
         m_botAction.sendUnfilteredPrivateMessage(name, "*info");
     }
 
