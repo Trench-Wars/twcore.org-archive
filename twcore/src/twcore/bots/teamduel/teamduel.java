@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Random;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -521,7 +522,7 @@ public class teamduel extends SubspaceBot {
                 return;
             }
 
-            if (player.getTimeFromLastDeath() > 3 && player.getTimeFromLastReturn() > 3) {
+            if (player.getTimeFromLastWarp() > 3 && player.getTimeFromLastDeath() > 3 && player.getTimeFromLastReturn() > 3) {
                 // Increment the count of warpings
                 player.addWarp();
                 player.setLastWarp((int) (System.currentTimeMillis() / 1000));
@@ -2549,7 +2550,7 @@ public class teamduel extends SubspaceBot {
         }
         DuelPlayer dp = players.get(m_botAction.getFuzzyPlayerName(part));
         if (dp == null) {
-            m_botAction.sendPrivateMessage(name, part + " must be in this arena in order to join your team.");
+            m_botAction.sendPrivateMessage(name, part + " must be in this arena and signed up in order to join your team.");
             return false;
         } else if (dp.isBanned()) {
             m_botAction.sendPrivateMessage(name, part + " is not allowed to play in this league.");
@@ -2659,8 +2660,7 @@ public class teamduel extends SubspaceBot {
         }
         
         try {
-            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = '"
-                    + IP + "' AND P.fnMID = " + MID);
+            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND (P.fcIP = '"+IP+"' OR (P.fcIP = '"+IP+"' AND P.fnMID = "+MID+")) OR P.fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1)");
             if (!result.next()) {
                 m_botAction.SQLClose(result);
                 DuelPlayer dp = null;
@@ -2672,7 +2672,7 @@ public class teamduel extends SubspaceBot {
                 }
                 else {
                     m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
-                            "VALUES((SELECT fnUserID FROM tblUser WHERE fcUserName = '" + name + "' ORDER BY fnUserID ASC LIMIT 1), '" + IP + "', " + MID + ", 0, 0, NOW())");
+                            "VALUES((SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1), '" + IP + "', " + MID + ", 0, 0, NOW())");
                     dp = sql_buildPlayer(name);
                 }
                 players.put(name, dp);
@@ -2684,8 +2684,25 @@ public class teamduel extends SubspaceBot {
                     aliasChecker = "";
                 }
             } else {
-                if (result.getString("U.fcUserName").equalsIgnoreCase(name)) {
-                    m_botAction.SQLClose(result);
+                boolean signedup = false;
+                LinkedList<String> aliases = new LinkedList<String>();
+                String alias = result.getString("U.fcUserName");
+                aliases.add(alias);
+                if (alias.equalsIgnoreCase(name)) {
+                    signedup = true;
+                }
+                
+                while (result.next()) {
+                    alias = result.getString("U.fcUserName");
+                    aliases.add(alias);
+                    if (alias.equalsIgnoreCase(name)) {
+                        signedup = true;
+                    }
+                    aliases.add(alias);
+                }
+                m_botAction.SQLClose(result);
+                
+                if (signedup) {
                     if (aliasChecker.equals(""))
                         m_botAction.sendSmartPrivateMessage(name, "You have already signed up.");
                     else {
@@ -2694,7 +2711,6 @@ public class teamduel extends SubspaceBot {
                     }
                 } else {
                     if (allowedNames.contains(name) && aliasChecker.equals("")) {
-                        m_botAction.SQLClose(result);
                         DuelPlayer dp = null;
                         if (newbies.containsKey(name)) {
                             int id = newbies.remove(name);
@@ -2704,7 +2720,7 @@ public class teamduel extends SubspaceBot {
                         }
                         else {
                             m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
-                                    "VALUES((SELECT fnUserID FROM tblUser WHERE fcUserName = '" + name + "' ORDER BY fnUserID ASC LIMIT 1), '" + IP + "', " + MID + ", 0, 0, NOW())");
+                                    "VALUES((SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1), '" + IP + "', " + MID + ", 0, 0, NOW())");
                             dp = sql_buildPlayer(name);
                         }
                         players.put(name, dp);
@@ -2713,11 +2729,10 @@ public class teamduel extends SubspaceBot {
                         canEnableNames.add(name);
                     } else {
                         String extras = "";
-                        do {
-                            extras += " " + result.getString("U.fcUserName")
-                                    + " ";
-                        } while (result.next());
-                        m_botAction.SQLClose(result);
+                        Iterator<String> i = aliases.iterator();
+                        while (i.hasNext())
+                            extras += " " + i.next() + " ";
+
                         if (aliasChecker.equals("")) {
                             m_botAction.sendSmartPrivateMessage(name, "It appears you already have other names signed up for TeamDuel or have registered this name already.");
                             m_botAction.sendSmartPrivateMessage(name, "Please login with these names: ("
