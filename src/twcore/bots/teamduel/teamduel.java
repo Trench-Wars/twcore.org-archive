@@ -1595,7 +1595,7 @@ public class teamduel extends SubspaceBot {
         if (!challenges.isEmpty()) {
             Set<String> list = challenges.keySet();
             for (String ch : list) {
-                if (ch.startsWith("" + challengerTeam) || ch.startsWith("" + challengedTeam) || ch.endsWith("" + challengerTeam) || ch.endsWith("" + challengedTeam))
+                if (!ch.equals(key) && ch.startsWith("" + challengerTeam) || ch.startsWith("" + challengedTeam) || ch.endsWith("" + challengerTeam) || ch.endsWith("" + challengedTeam))
                     challenges.remove(ch);
             }
         }
