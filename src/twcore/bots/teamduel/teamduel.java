@@ -1272,13 +1272,13 @@ public class teamduel extends SubspaceBot {
         }
         
         int challengerTeam = dp.getTeam(division);
-        DuelTeam challer = teamList.get(challengerTeam);
         if (challengerTeam < 0) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, you do not have a team in this division.");
             return;
         }
+        DuelTeam challer = teamList.get(challengerTeam);
         String[] challenger = challer.getNames();
-        if (!notPlaying.isEmpty() && notPlaying.contains(challenger[0].toLowerCase()) || notPlaying.contains(challenger[1].toLowerCase())) {
+        if (!notPlaying.isEmpty() && (notPlaying.contains(challenger[0].toLowerCase()) || notPlaying.contains(challenger[1].toLowerCase()))) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, your partner has enabled 'notplaying', have him toggle it off in order to challenge.");
             return;            
         }
@@ -1346,7 +1346,7 @@ public class teamduel extends SubspaceBot {
         challengedPlayers[0] = players.get(challenged[0].toLowerCase());
         challengedPlayers[1] = players.get(challenged[1].toLowerCase());      
               
-        DuelPlayer challengingPlayer = players.get(initiater);
+        DuelPlayer challengingPlayer = players.get(initiater.toLowerCase());
         String rules;
         if (challengingPlayer.getNoCount())
             rules = "Rules: " + challengingPlayer.getDeaths() + " death elimination, no count double kills, box type " + boxType;
@@ -1408,7 +1408,7 @@ public class teamduel extends SubspaceBot {
             return;
         }
         
-        if (!players.containsKey(name.toLowerCase()))
+        if (players.isEmpty() || !players.containsKey(name.toLowerCase()))
             return;
         DuelPlayer dp = players.get(name.toLowerCase());
         if (teamChallenges.isEmpty()) {
@@ -1439,7 +1439,7 @@ public class teamduel extends SubspaceBot {
             return;
         }
         
-        if (notPlaying.contains(name.toLowerCase())) {
+        if (!notPlaying.isEmpty() && notPlaying.contains(name.toLowerCase())) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, you have enabled 'notplaying', toggle it off with !notplaying.");
             return;
         }
