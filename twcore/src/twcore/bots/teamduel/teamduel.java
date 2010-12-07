@@ -268,7 +268,7 @@ public class teamduel extends SubspaceBot {
             m_botAction.spec(name);
         }
         
-        if (laggers.containsKey(name.toLowerCase()))
+        if (!laggers.isEmpty() && laggers.containsKey(name.toLowerCase()))
             m_botAction.sendPrivateMessage(name, "To get back in your duel, PM me with !lagout");
         else 
             m_botAction.sendPrivateMessage(name, greet);
@@ -288,10 +288,10 @@ public class teamduel extends SubspaceBot {
         // Get the player name for this event
         String name = m_botAction.getPlayerName(event.getPlayerID());
 
-        if (players.containsKey(name.toLowerCase()))
+        if (!players.isEmpty() && players.containsKey(name.toLowerCase()))
             do_removeListTeams(players.remove(name.toLowerCase()));
 
-        if (playing.containsKey(name.toLowerCase()) && !laggers.containsKey(name.toLowerCase()))
+        if (!playing.isEmpty() && !laggers.isEmpty() && playing.containsKey(name.toLowerCase()) && !laggers.containsKey(name.toLowerCase()))
             handleLagout(name.toLowerCase());
         
         if (!invites.isEmpty()) {
@@ -368,8 +368,8 @@ public class teamduel extends SubspaceBot {
                     s_extra = 2;
                 // check for Double Kill
                 if (duel.getNoCount() && deathdx < s_noCount && killerStats.getLastKiller().equalsIgnoreCase(name)) {
-                    if (!killDelays.isEmpty() && killDelays.containsKey(killer)) {
-                        m_botAction.cancelTask(killDelays.remove(killer));
+                    if (!killDelays.isEmpty() && killDelays.containsKey(killer.toLowerCase())) {
+                        m_botAction.cancelTask(killDelays.remove(killer.toLowerCase()));
                     }
                     killerStats.removeDeath();
                     nameStats.removeKill();
@@ -389,7 +389,7 @@ public class teamduel extends SubspaceBot {
                         coord = nameStats.getCoords();
                         SpawnDelay warp = new SpawnDelay(name, coord[0], coord[1], System.currentTimeMillis());
                         try {
-                            spawnDelays.put(name, warp);
+                            spawnDelays.put(name.toLowerCase(), warp);
                             m_botAction.scheduleTask(warp, s_spawn * 1000);
                         } catch (Exception e) { }
                     }
@@ -426,11 +426,11 @@ public class teamduel extends SubspaceBot {
                         int[] coord = playing.get(name.toLowerCase()).getPlayer(name).getSafeCoords();
                         m_botAction.warpTo(name, coord[0], coord[1]);
                         
-                        killDelays.put(name, new KillDelay(name, killer, nameStats, killerStats, names, killers, duel));
-                        m_botAction.scheduleTask(killDelays.get(name), s_noCount * 1000);
+                        killDelays.put(name.toLowerCase(), new KillDelay(name, killer, nameStats, killerStats, names, killers, duel));
+                        m_botAction.scheduleTask(killDelays.get(name.toLowerCase()), s_noCount * 1000);
                         coord = nameStats.getCoords();
-                        spawnDelays.put(name, new SpawnDelay(name, coord[0], coord[1], System.currentTimeMillis()));
-                        m_botAction.scheduleTask(spawnDelays.get(name), (s_noCount + s_spawn) * 1000);
+                        spawnDelays.put(name.toLowerCase(), new SpawnDelay(name, coord[0], coord[1], System.currentTimeMillis()));
+                        m_botAction.scheduleTask(spawnDelays.get(name.toLowerCase()), (s_noCount + s_spawn) * 1000);
                         return;
                     }
                     nameStats.setLastKiller(killer);
@@ -544,7 +544,7 @@ public class teamduel extends SubspaceBot {
                     m_botAction.sendOpposingTeamMessageByFrequency(otherFreq, name + " is out due to warp abuse.", 26); 
                     player.setDeaths(duel.toWin());
                     player.setOut();
-                    playing.remove(name);
+                    playing.remove(name.toLowerCase());
                     m_botAction.spec(name);
                     m_botAction.spec(name);
                     m_botAction.setFreq(name, warperFreq);
@@ -650,7 +650,7 @@ public class teamduel extends SubspaceBot {
             m_botAction.spec(name);
             m_botAction.setFreq(name, laggerFreq);
             do_score(duel, 3);
-            if (laggers.containsKey(name.toLowerCase())) {
+            if (!laggers.isEmpty() && laggers.containsKey(name.toLowerCase())) {
                 m_botAction.cancelTask(laggers.get(name.toLowerCase()));
                 laggers.remove(name.toLowerCase());
             }
@@ -665,7 +665,7 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(names[0], "Your partner has lagged out and has 1 minute to return or will forfeit");
         m_botAction.sendPrivateMessage(name, "You have 1 minute to return to your duel or you forfeit (!lagout)");
 
-        if (laggers.containsKey(name.toLowerCase())) {
+        if (!laggers.isEmpty() && laggers.containsKey(name.toLowerCase())) {
             TimerTask t = laggers.remove(name.toLowerCase());
             try {
                 m_botAction.cancelTask(t);
@@ -673,7 +673,7 @@ public class teamduel extends SubspaceBot {
                 t = null;
             }
         }
-        laggers.put(name, new Lagger(name, duel));
+        laggers.put(name.toLowerCase(), new Lagger(name, duel));
         m_botAction.scheduleTask(laggers.get(name.toLowerCase()), 60000);
     }
     
@@ -3048,16 +3048,18 @@ public class teamduel extends SubspaceBot {
         to = null;
         from = challed[0];
         m_botAction.sendUnfilteredPrivateMessage(challed[0], "*lag");
-        DuelPlayer[] winners = new DuelPlayer[] {players.get(winner[0]), players.get(winner[1])};
-        DuelPlayer[] losers = new DuelPlayer[] {players.get(loser[0]), players.get(loser[1])};
-        if (spawnDelays.containsKey(loser[0]))
-            m_botAction.cancelTask(spawnDelays.get(loser[0]));
-        if (spawnDelays.containsKey(loser[1]))
-            m_botAction.cancelTask(spawnDelays.get(loser[1]));
-        if (spawnDelays.containsKey(winner[0]))
-            m_botAction.cancelTask(spawnDelays.get(winner[0]));
-        if (spawnDelays.containsKey(winner[1]))
-            m_botAction.cancelTask(spawnDelays.get(winner[1]));
+        DuelPlayer[] winners = new DuelPlayer[] {players.get(winner[0].toLowerCase()), players.get(winner[1].toLowerCase())};
+        DuelPlayer[] losers = new DuelPlayer[] {players.get(loser[0].toLowerCase()), players.get(loser[1].toLowerCase())};
+        if (!spawnDelays.isEmpty()) {
+            if (spawnDelays.containsKey(loser[0].toLowerCase()))
+                m_botAction.cancelTask(spawnDelays.get(loser[0].toLowerCase()));
+            if (spawnDelays.containsKey(loser[1].toLowerCase()))
+                m_botAction.cancelTask(spawnDelays.get(loser[1].toLowerCase()));
+            if (spawnDelays.containsKey(winner[0].toLowerCase()))
+                m_botAction.cancelTask(spawnDelays.get(winner[0].toLowerCase()));
+            if (spawnDelays.containsKey(winner[1].toLowerCase()))
+                m_botAction.cancelTask(spawnDelays.get(winner[1].toLowerCase()));
+        }
         // finalOff(d.getDivisionID(), d.getBoxNumber(), d.getPlayerOne().getDeaths() + d.getPlayerTwo().getDeaths(), d.getPlayerThree().getDeaths() + d.getPlayerFour().getDeaths());
 
         if (!laggers.isEmpty()) {
@@ -3946,19 +3948,20 @@ public class teamduel extends SubspaceBot {
         
         public void run() {
             duel.setLockOn();
-            if (!laggers.containsKey(challenger[0])) {
+            
+            if (!laggers.isEmpty() || !laggers.containsKey(challenger[0])) {
                 m_botAction.warpTo(challenger[0], a1[0], a1[1]);
                 m_botAction.sendPrivateMessage(challenger[0], "GO GO GO!!!", 104);
             }
-            if (!laggers.containsKey(challenger[1])) {
+            if (!laggers.isEmpty() || !laggers.containsKey(challenger[1])) {
                 m_botAction.warpTo(challenger[1], a2[0], a2[1]);
                 m_botAction.sendPrivateMessage(challenger[1], "GO GO GO!!!", 104);                
             }
-            if (!laggers.containsKey(challenged[0])) {
+            if (!laggers.isEmpty() || !laggers.containsKey(challenged[0])) {
                 m_botAction.warpTo(challenged[0], b1[0], b1[1]);
                 m_botAction.sendPrivateMessage(challenged[0], "GO GO GO!!!", 104);
             }
-            if (!laggers.containsKey(challenged[1])) {
+            if (!laggers.isEmpty() || !laggers.containsKey(challenged[1])) {
                 m_botAction.warpTo(challenged[1], b2[0], b2[1]);
                 m_botAction.sendPrivateMessage(challenged[1], "GO GO GO!!!", 104);
             }
@@ -4079,11 +4082,11 @@ public class teamduel extends SubspaceBot {
         }
 
         public void run() {
-            if (spawnDelays.containsKey(player))
-                spawnDelays.remove(player);
+            if (!spawnDelays.isEmpty() && spawnDelays.containsKey(player.toLowerCase()))
+                spawnDelays.remove(player.toLowerCase());
             m_botAction.warpTo(player, xCoord, yCoord);
             m_botAction.shipReset(player);
-            playing.get(player).getPlayer(player).setSpawn((int) (System.currentTimeMillis()/1000));
+            playing.get(player.toLowerCase()).getPlayer(player).setSpawn((int) (System.currentTimeMillis()/1000));
         }
     }
 
@@ -4112,13 +4115,13 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendOpposingTeamMessageByFrequency(otherFreq, lagger + " has been lagged out for over a minute and forfeits.", 26); 
             player.setDeaths(duel.toWin());
             player.setOut();
-            playing.remove(lagger);
+            playing.remove(lagger.toLowerCase());
             m_botAction.spec(lagger);
             m_botAction.spec(lagger);
             m_botAction.setFreq(lagger, laggerFreq);
             do_score(duel, 4);
-            if (laggers.containsKey(lagger)) {
-                m_botAction.cancelTask(laggers.remove(lagger));
+            if (!laggers.isEmpty() && laggers.containsKey(lagger.toLowerCase())) {
+                m_botAction.cancelTask(laggers.remove(lagger.toLowerCase()));
             }
         }
     }
@@ -4153,7 +4156,7 @@ public class teamduel extends SubspaceBot {
                 m_botAction.sendOpposingTeamMessageByFrequency(killerFreq, name + " is out with " + nameStats.getKills() + ":" + nameStats.getDeaths(), 26);
                 m_botAction.sendOpposingTeamMessageByFrequency(nameFreq, name + " is out with " + nameStats.getKills() + ":" + nameStats.getDeaths(), 26);                
                 nameStats.setOut();
-                playing.remove(name);
+                playing.remove(name.toLowerCase());
                 m_botAction.spec(name);
                 m_botAction.spec(name);
                 if (duel.getPlayerNumber(name) == 1)
@@ -4162,8 +4165,8 @@ public class teamduel extends SubspaceBot {
                     m_botAction.setFreq(name, duel.getBoxFreq() + 1);
             }
             
-            if (spawnDelays.containsKey(name)) {
-                m_botAction.cancelTask(spawnDelays.remove(name));
+            if (!spawnDelays.isEmpty() && spawnDelays.containsKey(name.toLowerCase())) {
+                m_botAction.cancelTask(spawnDelays.remove(name.toLowerCase()));
             }
             
             do_score(duel, 0);
