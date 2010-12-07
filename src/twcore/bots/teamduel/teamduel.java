@@ -932,8 +932,8 @@ public class teamduel extends SubspaceBot {
                 m_botAction.sendPrivateMessage(name, "No score available for requested duel (box is probably empty).");
             }
         } else {
-            if (playing.containsKey(player)) {
-                m_botAction.sendPrivateMessage(name, playing.get(player).showScore());
+            if (!playing.isEmpty() && playing.containsKey(player.toLowerCase())) {
+                m_botAction.sendPrivateMessage(name, playing.get(player.toLowerCase()).showScore());
             } else {
                 m_botAction.sendPrivateMessage(name, "No score available for requested duel (player is probably not playing).");
             }
@@ -1542,7 +1542,7 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "Unable to accept challenge, you have enabled 'notplaying', toggle it off with !notplaying.");
             return;
         }
-
+        
         int division = -1;
         DuelTeam challer;
         if (teamList.containsKey(challengerTeam)) {
@@ -1576,10 +1576,7 @@ public class teamduel extends SubspaceBot {
             return;
         }
         DuelChallenge thisChallenge = challenges.get(key);
-        if (thisChallenge == null) {
-            m_botAction.sendPrivateMessage(name, "Unable to accept challenge, team " + challengerTeam + " has not challenged you.");
-            return;
-        }
+        
         boolean[] accepted = thisChallenge.getAccepted();
         if (thisChallenge.getElapsedTime() > s_challengeTime) {
             challenges.remove(key);
@@ -1652,7 +1649,7 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "Invalid syntax, please use the following syntax: !removechallenge <teamID>");
             return;
         }
-        if (teamList.containsKey(challengedTeam)) {
+        if (!teamList.isEmpty() && teamList.containsKey(challengedTeam)) {
             DuelTeam challed = teamList.get(challengedTeam);
             int div = challed.getDivision();
             int challengerTeam = players.get(name.toLowerCase()).getTeam(div);
@@ -2290,7 +2287,7 @@ public class teamduel extends SubspaceBot {
                 info = sql_getPlayerInfo(id);
             else
                 info = sql_getPlayerInfo(message);
-            if (info != null && info.next()) {
+            if (info != null) {
                 MID = info.getInt("fnMID");
                 IP = info.getString("fcIP");
                 if (info.getInt("fnEnabled") == 1)
@@ -2955,7 +2952,7 @@ public class teamduel extends SubspaceBot {
         
         m_botAction.scheduleTask(new GameStartTimer(d, challenger, challenged, m_botAction, locksmith), 15000);
 
-        m_botAction.sendTeamMessage("A " + d.getDivision() + " duel is starting: " + challenger[0] + " and " + challenger[1] + " VERSUS " + challenged[0] + " and " + challenged[1] + " in box #" + (d.getBoxFreq() / 2));
+        m_botAction.sendTeamMessage("A " + d.getDivision() + " duel is starting in box #" + (d.getBoxFreq() / 2) + ":" + challenger[0] + " and " + challenger[1] + " VERSUS " + challenged[0] + " and " + challenged[1]);
         // setScoreboard(d, 0);
         int div = d.getDivisionID();
         
@@ -3867,7 +3864,10 @@ public class teamduel extends SubspaceBot {
         try {
             String query = "SELECT fcIP, fnMID, fnEnabled FROM tblDuel__2player WHERE fnUserID = " + id;
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
-            return result;
+            if (result.next())
+                return result;
+            else
+                return null;
         } catch (Exception e) {
             Tools.printStackTrace("Problem getting user IP/MID", e);
         }
