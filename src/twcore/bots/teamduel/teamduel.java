@@ -1621,10 +1621,10 @@ public class teamduel extends SubspaceBot {
         teamList.get(challengerTeam).setNowPlayingOn();
         teamList.get(challengedTeam).setNowPlayingOn();
         duels.put(new Integer(thisBox.getBoxNumber()), new Duel(thisBox, thisChallenge));
-        playing.put(challenger[0], duels.get(new Integer(thisBox.getBoxNumber())));
-        playing.put(challenger[1], duels.get(new Integer(thisBox.getBoxNumber())));
-        playing.put(challenged[0], duels.get(new Integer(thisBox.getBoxNumber())));
-        playing.put(challenged[1], duels.get(new Integer(thisBox.getBoxNumber())));
+        playing.put(challenger[0].toLowerCase(), duels.get(new Integer(thisBox.getBoxNumber())));
+        playing.put(challenger[1].toLowerCase(), duels.get(new Integer(thisBox.getBoxNumber())));
+        playing.put(challenged[0].toLowerCase(), duels.get(new Integer(thisBox.getBoxNumber())));
+        playing.put(challenged[1].toLowerCase(), duels.get(new Integer(thisBox.getBoxNumber())));
         startDuel(duels.get(new Integer(thisBox.getBoxNumber())), challenger, challenged);
 
     }
