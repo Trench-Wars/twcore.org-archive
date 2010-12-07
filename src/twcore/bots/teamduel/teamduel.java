@@ -1593,10 +1593,20 @@ public class teamduel extends SubspaceBot {
         }
         
         if (!challenges.isEmpty()) {
+            /* first attempt
             Set<String> list = challenges.keySet();
             for (String ch : list) {
                 if (!ch.equals(key) && ch.startsWith("" + challengerTeam) || ch.startsWith("" + challengedTeam) || ch.endsWith("" + challengerTeam) || ch.endsWith("" + challengedTeam))
                     challenges.remove(ch);
+            }
+            */
+            
+            Iterator<DuelChallenge> it = challenges.values().iterator();
+            while (it.hasNext()) {
+                DuelChallenge dc = it.next();
+                if (dc.getChallengedTeam() == challengedTeam && dc.getChallengerTeam() == challengerTeam);
+                else if (dc.getChallengedTeam() == challengedTeam || dc.getChallengedTeam() == challengerTeam || dc.getChallengerTeam() == challengedTeam || dc.getChallengerTeam() == challengerTeam)
+                    challenges.remove(dc.getKey());
             }
         }
         
