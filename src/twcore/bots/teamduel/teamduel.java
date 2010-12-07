@@ -319,7 +319,7 @@ public class teamduel extends SubspaceBot {
             return;
         String name = p1.getPlayerName();
         String killer = p2.getPlayerName();
-        if (playing.containsKey(name.toLowerCase())) {
+        if (!playing.isEmpty() && playing.containsKey(name.toLowerCase())) {
             Duel duel = playing.get(name.toLowerCase());
             int spawndx = (int) (System.currentTimeMillis()/1000) - duel.getPlayer(name).getLastSpawn();
             int deathdx = (int) (System.currentTimeMillis()/1000) - duel.getPlayer(killer).getTimeOfLastDeath();
@@ -368,7 +368,7 @@ public class teamduel extends SubspaceBot {
                     s_extra = 2;
                 // check for Double Kill
                 if (duel.getNoCount() && deathdx < s_noCount && killerStats.getLastKiller().equalsIgnoreCase(name)) {
-                    if (killDelays.containsKey(killer)) {
+                    if (!killDelays.isEmpty() && killDelays.containsKey(killer)) {
                         m_botAction.cancelTask(killDelays.remove(killer));
                     }
                     killerStats.removeDeath();
@@ -381,7 +381,7 @@ public class teamduel extends SubspaceBot {
                     m_botAction.sendOpposingTeamMessageByFrequency(killerFreq, "Score: " + scoreK + "-" + scoreD, 26);
                     m_botAction.sendOpposingTeamMessageByFrequency(nameFreq, "Score: " + scoreD + "-" + scoreK, 26);
                     
-                    if (playing.containsKey(name.toLowerCase())) {
+                    if (!playing.isEmpty() && playing.containsKey(name.toLowerCase())) {
                         m_botAction.shipReset(name);
                         int[] coord = nameStats.getSafeCoords();
                         m_botAction.warpTo(name, coord[0], coord[1]);
@@ -470,7 +470,7 @@ public class teamduel extends SubspaceBot {
             // redoBox(duel.getDivisionID(), duel.getBoxNumber(), duel.getPlayerOne().getDeaths() + duel.getPlayerTwo().getDeaths(), duel.getPlayerThree().getDeaths() + duel.getPlayerFour().getDeaths());
         }
         
-        if (playing.containsKey(name.toLowerCase())) {
+        if (!playing.isEmpty() && playing.containsKey(name.toLowerCase())) {
             DuelPlayerStats stats = playing.get(name.toLowerCase()).getPlayer(name);
             int[] coord = stats.getSafeCoords();
             m_botAction.warpTo(name, coord[0], coord[1]);
@@ -499,7 +499,7 @@ public class teamduel extends SubspaceBot {
 
         String name = ptest.getPlayerName();
             
-        if (!playing.containsKey(name.toLowerCase()))
+        if (playing.isEmpty() || !playing.containsKey(name.toLowerCase()))
             return;
 
         // Get the associated duel
@@ -577,13 +577,13 @@ public class teamduel extends SubspaceBot {
         // Get the player name for this event
         String name = m_botAction.getPlayerName(event.getPlayerID());
         // Make sure the player is playing and in spectator mode
-        if (!playing.containsKey(name.toLowerCase()) && event.getShipType() != 0) {
+        if (!playing.isEmpty() && !playing.containsKey(name.toLowerCase()) && event.getShipType() != 0) {
             m_botAction.spec(name);
             m_botAction.spec(name);
             return;
         }
 
-        if (!playing.containsKey(name.toLowerCase()))
+        if (playing.isEmpty() || !playing.containsKey(name.toLowerCase()))
             return;
         
         // Get the associated duel for this player
@@ -593,7 +593,7 @@ public class teamduel extends SubspaceBot {
         int ship = event.getShipType();
         
         if (ship != 0) {
-            if (!laggers.containsKey(name.toLowerCase()) && !duel.isLocked()) {
+            if ((laggers.isEmpty() || !laggers.containsKey(name.toLowerCase())) && !duel.isLocked()) {
                 if (ship == 6) {
                     m_botAction.setShip(name, player.getShip());
                 } else
@@ -1208,7 +1208,9 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "Currently in 'ShutDown' mode, no new duels may begin at this time: " + shutDownMessage);
             return;
         }
-        DuelPlayer dp = players.get(name.toLowerCase());
+        DuelPlayer dp = null;
+        if (!players.isEmpty())
+            dp = players.get(name.toLowerCase());
         if (dp == null) {
             m_botAction.sendPrivateMessage(name, "You must be signed up and registered to challenge teams.");
             return;
@@ -1241,12 +1243,13 @@ public class teamduel extends SubspaceBot {
             return;
         }
         // Notplaying challenger check
-        if (notPlaying.contains(name.toLowerCase())) {
+        if (!notPlaying.isEmpty() && notPlaying.contains(name.toLowerCase())) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, you have enabled 'notplaying', toggle it off with !notplaying.");
             return;
         }
-        
-        DuelTeam challed = teamList.get(challengedTeam);
+        DuelTeam challed = null;
+        if (!teamList.isEmpty())
+            challed = teamList.get(challengedTeam);
         if (challed == null) {
             m_botAction.sendPrivateMessage(name, "Invalid team, please select from the list of available teams by using !teams");
             return;            
@@ -1275,7 +1278,7 @@ public class teamduel extends SubspaceBot {
             return;
         }
         String[] challenger = challer.getNames();
-        if (notPlaying.contains(challenger[0].toLowerCase()) || notPlaying.contains(challenger[1].toLowerCase())) {
+        if (!notPlaying.isEmpty() && notPlaying.contains(challenger[0].toLowerCase()) || notPlaying.contains(challenger[1].toLowerCase())) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, your partner has enabled 'notplaying', have him toggle it off in order to challenge.");
             return;            
         }
@@ -1457,7 +1460,7 @@ public class teamduel extends SubspaceBot {
         }
         String key = "" + challengerTeam + ":" + challengedTeam;
         
-        if (!teamChallenges.containsKey(key)) {
+        if (teamChallenges.isEmpty() || !teamChallenges.containsKey(key)) {
             m_botAction.sendPrivateMessage(name, "Your partner has not tried to challenge the team you specified.");
             return;
         }
