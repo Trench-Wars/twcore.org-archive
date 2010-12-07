@@ -1137,7 +1137,7 @@ public class teamduel extends SubspaceBot {
                             typeID = Integer.parseInt(vars[1]);
                             if (dp.getTeam(typeID) == -1) {
                                 if (part.getTeam(typeID) == -1) {
-                                    if (invites.containsKey(name.toLowerCase())) {
+                                    if (!invites.isEmpty() && invites.containsKey(name.toLowerCase())) {
                                         m_botAction.sendPrivateMessage(name, "You are only allowed to send one team invite at a time.");
                                         return;
                                     }
@@ -1175,7 +1175,7 @@ public class teamduel extends SubspaceBot {
     }
     
     public void do_joinTeam(String name, String message) {
-        if (m_botAction.getFuzzyPlayerName(message) == null) {
+        if (invites.isEmpty() || m_botAction.getFuzzyPlayerName(message) == null) {
             m_botAction.sendPrivateMessage(name, "Error joining team: player team invite not found");
             return;
         }
@@ -1338,8 +1338,10 @@ public class teamduel extends SubspaceBot {
     }
     
     public void do_issueChallenge(int challengerTeam, int challengedTeam, String initiater, int division, int boxType) {
-        if (players.isEmpty() || teamList.isEmpty())
+        if (players.isEmpty() || teamList.isEmpty()) {
+            m_botAction.sendPrivateMessage(initiater, "Error issuing challenge, please try again otherwise, contact a TWEL Op");
             return;
+        }
         String[] challenger = teamList.get(challengerTeam).getNames();
         String[] challenged = teamList.get(challengedTeam).getNames();  
         
@@ -1406,15 +1408,21 @@ public class teamduel extends SubspaceBot {
     }
     
     public void do_teamAccept(String name, String message) {
-        if (players.isEmpty() || teamList.isEmpty())
-            return;
         if (shutDown) {
             m_botAction.sendPrivateMessage(name, "Currently in 'ShutDown' mode, no new duels may begin at this time: " + shutDownMessage);
             return;
         }
         
-        if (players.isEmpty() || !players.containsKey(name.toLowerCase()))
+        if (players.isEmpty() || teamList.isEmpty()) {
+            m_botAction.sendPrivateMessage(name, "There are no eligble teams.");
             return;
+        }
+        
+        if (players.isEmpty() || !players.containsKey(name.toLowerCase())) {
+            m_botAction.sendPrivateMessage(name, "Player information not found.");
+            return;
+        }
+            
         DuelPlayer dp = players.get(name.toLowerCase());
         if (teamChallenges.isEmpty()) {
             m_botAction.sendPrivateMessage(name, "Error: no team challenges found.");
@@ -1499,8 +1507,10 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "Currently in 'ShutDown' mode, no new duels may begin at this time: " + shutDownMessage);
             return;
         }
-        if (players.isEmpty() || challenges.isEmpty())
+        if (players.isEmpty() || challenges.isEmpty()) {
+            m_botAction.sendPrivateMessage(name, "No challenge found.");
             return;
+        }
         
         DuelPlayer dp;
         if (players.containsKey(name.toLowerCase()))
@@ -1662,8 +1672,8 @@ public class teamduel extends SubspaceBot {
             int division = sql_getTeamDivision(challengedTeam);
             int challengerTeam = sql_getTeams(name).get(division);
             String key = "" + challengerTeam + ":" + challengedTeam;
-            teamChallenges.remove(key);
-            challenges.remove(key);
+            if (teamChallenges.remove(key) == null && challenges.remove(key) == null) 
+                m_botAction.sendPrivateMessage(name, "No challenge found");
         }
         m_botAction.sendPrivateMessage(name, "Your challenge to team " + challengedTeam + " has been removed.");
     }
