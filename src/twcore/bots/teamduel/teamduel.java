@@ -640,14 +640,14 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "You have forfeited because you have no more lagouts left.");
             player.setDeaths(duel.toWin());
             player.setOut();
-            playing.remove(name);
+            playing.remove(name.toLowerCase());
             m_botAction.spec(name);
             m_botAction.spec(name);
             m_botAction.setFreq(name, laggerFreq);
             do_score(duel, 3);
-            if (laggers.containsKey(name)) {
-                m_botAction.cancelTask(laggers.get(name));
-                laggers.remove(name);
+            if (laggers.containsKey(name.toLowerCase())) {
+                m_botAction.cancelTask(laggers.get(name.toLowerCase()));
+                laggers.remove(name.toLowerCase());
             }
             return;
         }
@@ -1410,7 +1410,7 @@ public class teamduel extends SubspaceBot {
         
         if (!players.containsKey(name.toLowerCase()))
             return;
-        DuelPlayer dp = players.get(name);
+        DuelPlayer dp = players.get(name.toLowerCase());
         if (teamChallenges.isEmpty()) {
             m_botAction.sendPrivateMessage(name, "Error: no team challenges found.");
             return;
@@ -1801,7 +1801,7 @@ public class teamduel extends SubspaceBot {
             m_botAction.SQLClose(info);
             ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON P.fnUserID = U.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = '"
                     + IP + "' AND P.fnMID = " + MID);
-            boolean okToEnable = canEnableNames.remove(name);
+            boolean okToEnable = canEnableNames.remove(name.toLowerCase());
             if (result.next() && !okToEnable) {
                 String extras = "";
                 do {
@@ -2375,7 +2375,7 @@ public class teamduel extends SubspaceBot {
         if (!leagueOps.containsKey(name.toLowerCase())
                 && !leagueHeadOps.containsKey(name.toLowerCase())
                 && !hiddenOps.containsKey(name.toLowerCase())
-                && !m_botAction.getOperatorList().isSmod(name))
+                && !m_botAction.getOperatorList().isSmod(name.toLowerCase()))
             return;
         m_botAction.sendPrivateMessage(name, "Have a nice day, goodbye!");
         // Removes the bot from the server.
@@ -3869,10 +3869,12 @@ public class teamduel extends SubspaceBot {
     }
 
     public void sql_lagInfo(String name, int average) {
-        if (newbies.containsKey(name))
+        if (!newbies.isEmpty() && newbies.containsKey(name.toLowerCase()))
             return;
         int id = -1;
-        DuelPlayer dp = players.get(name); 
+        DuelPlayer dp = null;
+        if (!players.isEmpty())
+            dp = players.get(name.toLowerCase()); 
         if (dp != null)
             id = dp.getID();
         else
