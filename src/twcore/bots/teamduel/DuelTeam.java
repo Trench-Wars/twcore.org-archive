@@ -77,11 +77,12 @@ public class DuelTeam {
         notPlaying = false;
     }
 
-    public void setNowPlaying() {
-        if (!nowPlaying)
-            nowPlaying = true;
-        else
-            nowPlaying = false;
+    public void setNowPlayingOn() {
+        nowPlaying = true;
+    }
+
+    public void setNowPlayingOff() {
+        nowPlaying = false;
     }
 
     public boolean getNowPlaying() {
