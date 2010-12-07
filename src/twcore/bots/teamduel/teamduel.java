@@ -517,6 +517,8 @@ public class teamduel extends SubspaceBot {
 
             // Make sure it isn't a ship change allowed for mixed duel
             if (!duel.isLocked()) {
+                if (ptest.getFrequency() != player.getFreq())
+                    m_botAction.setFreq(name, player.getFreq());
                 int[] coords = player.getSafeCoords();
                 m_botAction.warpTo(name, coords[0], coords[1]);
                 return;
