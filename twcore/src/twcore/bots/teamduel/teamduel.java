@@ -1620,14 +1620,17 @@ public class teamduel extends SubspaceBot {
                     challenges.remove(ch);
             }
             */
-            
+            LinkedList<String> keys = new LinkedList<String>();
             Iterator<DuelChallenge> it = challenges.values().iterator();
             while (it.hasNext()) {
                 DuelChallenge dc = it.next();
                 if (dc.getChallengedTeam() == challengedTeam && dc.getChallengerTeam() == challengerTeam);
                 else if (dc.getChallengedTeam() == challengedTeam || dc.getChallengedTeam() == challengerTeam || dc.getChallengerTeam() == challengedTeam || dc.getChallengerTeam() == challengerTeam)
-                    challenges.remove(dc.getKey());
+                    keys.add(dc.getKey());
             }
+            
+            for (String k : keys)
+                challenges.remove(k);
         }
 
         teamList.get(challengerTeam).setNowPlayingOn();
