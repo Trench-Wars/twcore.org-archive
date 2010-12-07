@@ -1616,6 +1616,8 @@ public class teamduel extends SubspaceBot {
         playing.put(challenged[0], duels.get(new Integer(thisBox.getBoxNumber())));
         playing.put(challenged[1], duels.get(new Integer(thisBox.getBoxNumber())));
         startDuel(duels.get(new Integer(thisBox.getBoxNumber())), challenger, challenged);
+        teamList.get(challengerTeam).setNowPlayingOn();
+        teamList.get(challengedTeam).setNowPlayingOn();
 
     }
 
@@ -3015,6 +3017,8 @@ public class teamduel extends SubspaceBot {
         // 0 - normal, 1 - spawning, 2 - warping, 3 - lagouts, 4 - 1 min lagout
         d.endTime();
         String challed[] = d.getChallenged();
+        teamList.get(winnerTeam).setNowPlayingOff();
+        teamList.get(loserTeam).setNowPlayingOff();
         to = null;
         from = challed[0];
         m_botAction.sendUnfilteredPrivateMessage(challed[0], "*lag");
