@@ -21,6 +21,7 @@ public class DuelChallenge {
     private int m_toWin;
     private boolean m_noCount;
     private int m_boxType;
+    private String key;
 
     // Issued time of challenge
     private int m_issueTime;
@@ -34,6 +35,7 @@ public class DuelChallenge {
     public DuelChallenge(int team1, int team2, String challenger[], String challenged[], DuelPlayer player, int type, int box) {
         m_challengerTeam = team1;
         m_challengedTeam = team2;
+        key = "" + m_challengerTeam + ":" + m_challengedTeam + "";
         m_challenger = challenger;
         m_challenged = challenged;
 
@@ -50,6 +52,10 @@ public class DuelChallenge {
     
     public DuelPlayer getInitiater() {
         return initiater;
+    }
+    
+    public String getKey() {
+        return key;
     }
     
     public int getBoxType() {
