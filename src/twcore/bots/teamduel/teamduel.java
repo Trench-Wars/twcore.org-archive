@@ -425,12 +425,13 @@ public class teamduel extends SubspaceBot {
                         m_botAction.shipReset(name);
                         int[] coord = playing.get(name.toLowerCase()).getPlayer(name).getSafeCoords();
                         m_botAction.warpTo(name, coord[0], coord[1]);
-                        
-                        killDelays.put(name.toLowerCase(), new KillDelay(name, killer, nameStats, killerStats, names, killers, duel));
-                        m_botAction.scheduleTask(killDelays.get(name.toLowerCase()), s_noCount * 1000);
-                        coord = nameStats.getCoords();
-                        spawnDelays.put(name.toLowerCase(), new SpawnDelay(name, coord[0], coord[1], System.currentTimeMillis()));
-                        m_botAction.scheduleTask(spawnDelays.get(name.toLowerCase()), (s_noCount + s_spawn) * 1000);
+                        try {
+                            killDelays.put(name.toLowerCase(), new KillDelay(name, killer, nameStats, killerStats, names, killers, duel));
+                            m_botAction.scheduleTask(killDelays.get(name.toLowerCase()), s_noCount * 1000);
+                            coord = nameStats.getCoords();
+                            spawnDelays.put(name.toLowerCase(), new SpawnDelay(name, coord[0], coord[1], System.currentTimeMillis()));
+                            m_botAction.scheduleTask(spawnDelays.get(name.toLowerCase()), (s_noCount + s_spawn) * 1000);
+                        } catch (Exception e) { }
                         return;
                     }
                     nameStats.setLastKiller(killer);
@@ -4095,11 +4096,11 @@ public class teamduel extends SubspaceBot {
         }
 
         public void run() {
-            if (!spawnDelays.isEmpty() && spawnDelays.containsKey(player.toLowerCase()))
-                spawnDelays.remove(player.toLowerCase());
             m_botAction.warpTo(player, xCoord, yCoord);
             m_botAction.shipReset(player);
             playing.get(player.toLowerCase()).getPlayer(player).setSpawn((int) (System.currentTimeMillis()/1000));
+            if (!spawnDelays.isEmpty() && spawnDelays.containsKey(player.toLowerCase()))
+                spawnDelays.remove(player.toLowerCase());
         }
     }
 
