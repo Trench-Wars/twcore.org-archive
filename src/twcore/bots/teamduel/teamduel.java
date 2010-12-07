@@ -526,15 +526,18 @@ public class teamduel extends SubspaceBot {
                 // Increment the count of warpings
                 player.addWarp();
                 player.setLastWarp((int) (System.currentTimeMillis() / 1000));
+                int team = duel.getPlayerNumber(name);
+                int warperFreq = player.getFreq();
+                int otherFreq;
+                if (team == 1)
+                    otherFreq = duel.getChallengedFreq();
+                else 
+                    otherFreq = duel.getChallengerFreq();
+                
+                if (ptest.getFrequency() != warperFreq)
+                    m_botAction.setFreq(name, warperFreq);
 
                 if (duel.hasStarted() && player.getWarps() > 1) {
-                    int team = duel.getPlayerNumber(name);
-                    int warperFreq = player.getFreq();
-                    int otherFreq;
-                    if (team == 1)
-                        otherFreq = duel.getChallengedFreq();
-                    else 
-                        otherFreq = duel.getChallengerFreq();
                     m_botAction.sendOpposingTeamMessageByFrequency(warperFreq, name + " is out due to warp abuse.", 26);
                     m_botAction.sendOpposingTeamMessageByFrequency(otherFreq, name + " is out due to warp abuse.", 26); 
                     player.setDeaths(duel.toWin());
