@@ -14,7 +14,7 @@ import twcore.bots.Module;
 import twcore.core.EventRequester;
 import twcore.core.command.CommandInterpreter;
 import twcore.core.events.Message;
-import twcore.core.events.SQLResultEvent;
+
 
 /**
  * TWDOpStats bot is like Robohelp for "on it" gathering but only 
@@ -23,7 +23,6 @@ import twcore.core.events.SQLResultEvent;
  */
 public class twdopstats extends Module {
 
-    private EventRequester events; 
     private final String mySQLHost = "website";
     
     private Vector<EventData> callList = new Vector<EventData>();
@@ -38,6 +37,22 @@ public class twdopstats extends Module {
     private String updateTWDOpDelay = String.valueOf(24 * 60 * 60 * 1000); // once every day
     
     
+    public void initializeModule() {
+        
+        // Load the TWD Operators list
+        loadTWDOps();
+        
+        // Start the task to update the TWD Operator list
+        updateOpsList = new updateTWDOpsTask(this);
+        m_botAction.scheduleTaskAtFixedRate(updateOpsList, Long.valueOf(this.updateTWDOpDelay).longValue(), Long.valueOf(this.updateTWDOpDelay).longValue());
+        registerCommands();
+    }
+
+    
+    public void requestEvents(EventRequester eventRequester)
+    {
+        eventRequester.request(EventRequester.MESSAGE);
+    }
     /**
      * Registers the command to the CommandInterpreter
      */
@@ -60,37 +75,23 @@ public class twdopstats extends Module {
      * a background query
      */
     private void loadTWDOps() {
-        
-        String query = "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '14' AND tblUser.fnUserID = tblUserRank.fnUserID";
-        m_botAction.SQLBackgroundQuery(mySQLHost, "TWDOpsUpdate", query);
-    }
-    
-    /**
-     * Handle the background sql process once it's finished
-     * and update the TWD Operator list
-     * @see twcore.core.SubspaceBot.handleEvent(SQLResultEvent event)
-     */
-    public void handleEvent( SQLResultEvent event) {
-        if(event.getIdentifier().equals("TWDOpsUpdate")) {
-            ResultSet resultSet = event.getResultSet();
+        try {
+            ResultSet r = m_botAction.SQLQuery(mySQLHost, "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '14' AND tblUser.fnUserID = tblUserRank.fnUserID");
             
-            if(resultSet == null) {
-                throw new RuntimeException("ERROR: Null resultSet returned; the database connection might be down");
+            if (r == null) {
+                return;
             }
             
-            // Clear current list of TWD Operators
             twdops.clear();
             
-            // Iterate over all the TWD Operators from the database and add them to the hashmap
-            try {           
-                while(resultSet.next()) {
-                    String name = resultSet.getString("fcUsername");
-                    twdops.put( name.toLowerCase(), name );
-                }
-            } catch(SQLException sqle) {
-                throw new RuntimeException("SQL Error: " + sqle.getMessage(), sqle);
+            while(r.next()) {
+                String name = r.getString("fcUsername");
+                twdops.put(name.toLowerCase(), name);
             }
-            m_botAction.SQLClose(resultSet);
+            
+            m_botAction.SQLClose( r );
+        } catch (SQLException e) {
+            throw new RuntimeException("ERROR: Unable to update twdop list." + e);
         }
     }
     
@@ -141,8 +142,9 @@ public class twdopstats extends Module {
      */
     public void handleUpdateCommand( String name, String message) {
         if( m_botAction.getOperatorList().isSmod(name)) {
-            m_botAction.sendChatMessage("Module: Stats - Updating access levels at " +name+ "'s request.");
             loadTWDOps();
+            m_botAction.sendChatMessage("Module: Stats - Updating TWDOps at " +name+ "'s request.");
+            m_botAction.sendChatMessage(twdops.size() + " initaited.");
         }
     }
     
@@ -206,6 +208,7 @@ public class twdopstats extends Module {
                 m_botAction.SQLQueryAndClose( mySQLHost, "INSERT INTO tblTWDCall (`fcUserName`, `fnCount`, `fdDate`) VALUES ('"+name+"', '1', '"+time+"')" );
             }
             m_botAction.SQLClose(result);
+            m_botAction.sendSmartPrivateMessage(name, "TWD Call taken. (+1)");
             
         } catch ( SQLException e ) {
             m_botAction.sendChatMessage(2,"EXCEPTION: Unable to update the tblTWDCall table: " + e.getMessage() );
@@ -281,28 +284,9 @@ public class twdopstats extends Module {
         
     }
 
-    @Override
-    public void initializeModule() {
-        
-        // Load the TWD Operators list
-        loadTWDOps();
-        
-        // Start the task to update the TWD Operator list
-        updateOpsList = new updateTWDOpsTask(this);
-        m_botAction.scheduleTaskAtFixedRate(updateOpsList, Long.valueOf(this.updateTWDOpDelay).longValue(), Long.valueOf(this.updateTWDOpDelay).longValue());
-        registerCommands();
-    }
-    
-        
-    
+  
 
-    @Override
-    public void requestEvents(EventRequester eventRequester) {
-        events = m_botAction.getEventRequester();
-        events.request(EventRequester.MESSAGE);
+    
         
-        
-        
-    }
 
 }
