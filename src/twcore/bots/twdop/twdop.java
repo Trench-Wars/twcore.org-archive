@@ -86,7 +86,7 @@ public class twdop extends SubspaceBot {
 
         // load modules
         moduleHandler.loadModule("alias");
-        //moduleHandler.loadModule("stats");
+        moduleHandler.loadModule("stats");
         updateTWDOps();
 
         
