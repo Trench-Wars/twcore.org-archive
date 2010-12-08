@@ -115,7 +115,7 @@ public class twdopstats extends Module {
                         event.getMessage().toLowerCase().contains("twsd") ||
                         event.getMessage().toLowerCase().contains("twjd")
                     )) {
-                    m_botAction.sendChatMessage("...");
+                    m_botAction.sendChatMessage(2,"...");
                     callList.addElement( new EventData( new Date().getTime() ) );
                     // add:  twbd, twdd, twsd and twjd
                 }
@@ -141,6 +141,7 @@ public class twdopstats extends Module {
      */
     public void handleUpdateCommand( String name, String message) {
         if( m_botAction.getOperatorList().isSmod(name)) {
+            m_botAction.sendChatMessage("Module: Stats - Updating access levels at " +name+ "'s request.");
             loadTWDOps();
         }
     }
