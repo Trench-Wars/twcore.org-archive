@@ -268,7 +268,7 @@ public class teamduel extends SubspaceBot {
             m_botAction.spec(name);
         }
         
-        if (!laggers.isEmpty() && laggers.containsKey(name.toLowerCase()))
+        if (laggers.containsKey(name.toLowerCase()))
             m_botAction.sendPrivateMessage(name, "To get back in your duel, PM me with !lagout");
         else 
             m_botAction.sendPrivateMessage(name, greet);
@@ -2726,7 +2726,7 @@ public class teamduel extends SubspaceBot {
             if (!result.next()) {
                 m_botAction.SQLClose(result);
                 DuelPlayer dp = null;
-                if (!newbies.isEmpty() && newbies.containsKey(name.toLowerCase())) {
+                if (newbies.containsKey(name.toLowerCase())) {
                     int id = newbies.remove(name.toLowerCase());
                     m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
                             "VALUES(" + id + ", '" + IP + "', " + MID + ", 0, 0, NOW())");
@@ -2961,7 +2961,7 @@ public class teamduel extends SubspaceBot {
         
         m_botAction.scheduleTask(new GameStartTimer(d, challenger, challenged, m_botAction, locksmith), 15000);
 
-        m_botAction.sendTeamMessage("A " + d.getDivision() + " duel is starting in box #" + (d.getBoxFreq() / 2) + ":" + challenger[0] + " and " + challenger[1] + " VERSUS " + challenged[0] + " and " + challenged[1]);
+        m_botAction.sendTeamMessage("A " + d.getDivision() + " duel is starting in box #" + (d.getBoxFreq() / 2) + ": " + challenger[0] + " and " + challenger[1] + " VERSUS " + challenged[0] + " and " + challenged[1]);
         // setScoreboard(d, 0);
         int div = d.getDivisionID();
         
@@ -3873,10 +3873,7 @@ public class teamduel extends SubspaceBot {
         try {
             String query = "SELECT fcIP, fnMID, fnEnabled FROM tblDuel__2player WHERE fnUserID = " + id;
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
-            if (result.next())
-                return result;
-            else
-                return null;
+            return result;
         } catch (Exception e) {
             Tools.printStackTrace("Problem getting user IP/MID", e);
         }
