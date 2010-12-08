@@ -80,10 +80,13 @@ public class twdop extends SubspaceBot {
 
 
         String twdop = m_botSettings.getString("TWDOp Chat");
-        m_botAction.sendUnfilteredPublicMessage("?chat="+twdop);
+        String staff = m_botAction.getGeneralSettings().getString( "Staff Chat" );
+        //String dev = m_botAction.getGeneralSettings().getString( "Chat Name" );
+        m_botAction.sendUnfilteredPublicMessage("?chat="+twdop+","+staff);
 
         // load modules
         moduleHandler.loadModule("alias");
+        moduleHandler.loadModule("stats");
         updateTWDOps();
 
         
@@ -138,7 +141,7 @@ public class twdop extends SubspaceBot {
             }
             if(message.equalsIgnoreCase("!status")) {
                 m_botAction.sendChatMessage("[ONLINE]");
-                m_botAction.sendChatMessage("[TWDOps] - " +twdops.size()+ " stored.");
+                m_botAction.sendChatMessage("[TWDOps] - " +twdops.size()+ " TWDOp access.");
                 dbcheck();
             }
 
@@ -159,10 +162,10 @@ public class twdop extends SubspaceBot {
         
         try {
             m_botAction.SQLQueryAndClose( DATABASE, "SELECT * FROM tblCall LIMIT 0,1" );
-            m_botAction.sendChatMessage( "[DB] - Connection is online." );
+            m_botAction.sendChatMessage( "[DB] - DataBase connection is online." );
 
         } catch (Exception e ) {
-            m_botAction.sendChatMessage( "[DB] - Connection is down." );
+            m_botAction.sendChatMessage( "[DB] - DataBase connection is down." );
         }
     }
         
