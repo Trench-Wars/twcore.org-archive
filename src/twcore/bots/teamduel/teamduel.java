@@ -1809,14 +1809,14 @@ public class teamduel extends SubspaceBot {
             return;
         }
 
-        ResultSet info = sql_getPlayerInfo(dp.getID());
-
-        if (info == null) {
-            m_botAction.sendSmartPrivateMessage(name, "Problem accessing info from database.  Please make sure you have done !signup before !enable.");
-            return;
-        }
 
         try {
+            ResultSet info = sql_getPlayerInfo(dp.getID());
+            if (info == null) {
+                m_botAction.sendSmartPrivateMessage(name, "Problem accessing info from database.  Please make sure you have done !signup before !enable.");
+                m_botAction.SQLClose(info);
+                return;
+            }
             String IP = info.getString("fcIP");
             int MID = info.getInt("fnMID");
             m_botAction.SQLClose(info);
