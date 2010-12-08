@@ -1282,6 +1282,11 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, you do not have a team in this division.");
             return;
         }
+        
+        if (!teamList.containsKey(challengerTeam)) {
+            m_botAction.sendPrivateMessage(name, "Your team for the " + getDivision(division) + " division was not found. Both you and your partner must be present. If this is a mistake, please re-enter the arena or contact a TWEL Op.");
+            return;
+        }
         DuelTeam challer = teamList.get(challengerTeam);
         String[] challenger = challer.getNames();
         if (!notPlaying.isEmpty() && (notPlaying.contains(challenger[0].toLowerCase()) || notPlaying.contains(challenger[1].toLowerCase()))) {
