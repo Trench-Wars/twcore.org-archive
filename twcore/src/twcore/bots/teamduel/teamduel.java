@@ -1812,7 +1812,7 @@ public class teamduel extends SubspaceBot {
 
         try {
             ResultSet info = sql_getPlayerInfo(dp.getID());
-            if (info == null) {
+            if (!info.next()) {
                 m_botAction.sendSmartPrivateMessage(name, "Problem accessing info from database.  Please make sure you have done !signup before !enable.");
                 m_botAction.SQLClose(info);
                 return;
@@ -2296,7 +2296,7 @@ public class teamduel extends SubspaceBot {
                 info = sql_getPlayerInfo(id);
             else
                 info = sql_getPlayerInfo(message);
-            if (info != null) {
+            if (info.next()) {
                 MID = info.getInt("fnMID");
                 IP = info.getString("fcIP");
                 if (info.getInt("fnEnabled") == 1)
