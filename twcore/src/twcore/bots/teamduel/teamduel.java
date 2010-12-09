@@ -288,10 +288,11 @@ public class teamduel extends SubspaceBot {
         // Get the player name for this event
         String name = m_botAction.getPlayerName(event.getPlayerID());
 
-        if (!players.isEmpty() && players.containsKey(name.toLowerCase()))
+        if (players.containsKey(name.toLowerCase())) {
             do_removeListTeams(players.remove(name.toLowerCase()));
+        }
 
-        if (!playing.isEmpty() && !laggers.isEmpty() && playing.containsKey(name.toLowerCase()) && !laggers.containsKey(name.toLowerCase()))
+        if (playing.containsKey(name.toLowerCase()) && !laggers.containsKey(name.toLowerCase()))
             handleLagout(name.toLowerCase());
         
         if (!invites.isEmpty()) {
@@ -1844,7 +1845,7 @@ public class teamduel extends SubspaceBot {
     }
 
     public void do_cancelDuel(String name, String message) {
-        if (!playing.isEmpty() && !playing.containsKey(name.toLowerCase())) {
+        if (!playing.containsKey(name.toLowerCase())) {
             m_botAction.sendPrivateMessage(name, "You are not playing a duel.");
             return;
         }
@@ -2674,8 +2675,12 @@ public class teamduel extends SubspaceBot {
     public void do_removeListTeams(DuelPlayer player) {
         int[] teams = player.getTeams();
         for (int i = 1; i <= 5; i++)
-            if (teams[i] > -1 )
-                teamList.remove(teams[i]);
+            if (teams[i] > -1) {
+                if (teamList.containsKey(teams[i])) {
+                    if (!teamList.get(teams[i]).getNowPlaying())
+                        teamList.remove(teams[i]);
+                }
+            }
     }
     
     public void do_teamList() {
@@ -3059,8 +3064,6 @@ public class teamduel extends SubspaceBot {
         // 0 - normal, 1 - spawning, 2 - warping, 3 - lagouts, 4 - 1 min lagout
         d.endTime();
         String challed[] = d.getChallenged();
-        teamList.get(winnerTeam).setNowPlayingOff();
-        teamList.get(loserTeam).setNowPlayingOff();
         to = null;
         from = challed[0];
         m_botAction.sendUnfilteredPrivateMessage(challed[0], "*lag");
@@ -3226,8 +3229,14 @@ public class teamduel extends SubspaceBot {
         } catch (Exception e) {
             Tools.printStackTrace("Error ending duel", e);
         }
+        teamList.get(winnerTeam).setNowPlayingOff();
+        teamList.get(loserTeam).setNowPlayingOff();
+        
         m_botAction.SQLClose(loserSet);
         m_botAction.SQLClose(winnerSet);
+        
+        do_teamListUpdate(winnerTeam);
+        do_teamListUpdate(loserTeam);
 
         if (shutDownDie && duels.size() == 0) {
             m_botAction.sendArenaMessage("Shutting down for core maintenance.", 1);
@@ -3237,6 +3246,16 @@ public class teamduel extends SubspaceBot {
                 }
             };
             m_botAction.scheduleTask(dieTask, 5000);
+        }
+    }
+    
+    private void do_teamListUpdate(int team) {
+        if (teamList.containsKey(team)) {
+            DuelTeam t = teamList.get(team);
+            String[] names = t.getNames();
+            if (players.containsKey(names[0]) && players.containsKey(names[1])); // do nothing
+            else
+                teamList.remove(team);
         }
     }
     
