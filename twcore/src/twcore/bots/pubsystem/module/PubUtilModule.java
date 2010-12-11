@@ -550,7 +550,7 @@ public class PubUtilModule extends AbstractModule {
 
     	System.out.print("[ALIAS] " + alias.getName() + ":" + alias.getUsage() + ":" + alias.getAliasCount());
     	if (alias.getUsage() < 15 && alias.getAliasCount() <= 2 && alias.getAliasCount() >= 0) {
-    		m_botAction.sendChatMessage(2, ">>>>>> New player: " + alias.getName() + " ALIAS COUNT(debug): " + alias.getAliasCount());
+    		m_botAction.sendChatMessage(2, ">>>>>> New player: " + alias.getName() + " ALIASES: " + alias.getAliasCount());
     		System.out.println(":YES");
     	}
     	else {
