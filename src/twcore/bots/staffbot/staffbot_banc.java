@@ -57,7 +57,7 @@ public class staffbot_banc extends Module {
             " !listban -help                 - !listban command help guide",
             " !listban [arg] [count]         - Shows last 10/[count] BanCs. Optional arguments see below.",
             " !listban [#id]                 - Shows information about BanC with <id>.",
-            " !changeban <#id> <arguments>   - Changes banc with <id>. Arguments see below. Don't forget the #",
+            " !changeban <#id> <arguments>   - Changes banc with <id>. Type !arg to see Arguments. Don't forget the #",
             
             //arguments commented by quiles. because I coded the !listban -help to teach how to use !listban easily.
             /*" Arguments:",
@@ -284,6 +284,10 @@ public class staffbot_banc extends Module {
                 cmdShortcutkeys(name);
             }
             
+            else if(messageLc.equalsIgnoreCase("!arg")) {
+                cmdArgument(name);
+            }
+            
             // !silence <player>:<time/mins>
             // !spec <player>:<time/mins>
             // !kick <player>:<time/mins>   [mod+]
@@ -342,6 +346,21 @@ public class staffbot_banc extends Module {
             }}
         
     }
+    private void cmdArgument(String name) {
+         String Argument[] = { 
+            " Arguments:",
+            "             -player='<..>'     - Specifies player name",
+            "             -d=#               - Specifies duration in minutes",
+            "             -a=<...>           - Specifies access requirement, options; mod / smod / sysop",
+            "             -ip=<#.#.#.#> -ir  - Specifies IP or remove IP (-ir) so banc is not matched by IP",
+            "             -mid=#  -mr        - Specifies MID or remove MID (-mr) so banc is not matched by MID",
+            "             -notif=<yes/no>    - Specifies wether a notification is sent on staff chat",
+            "             -staffer='<..>'    - Specifies the name who issued the ban. [Only avail. on !listban]"};
+            
+            m_botAction.smartPrivateMessageSpam(name, Argument);
+        
+    }
+
     private void isOp(String name, String substring) {
         if(!opList.isSmod(name))
             return;
