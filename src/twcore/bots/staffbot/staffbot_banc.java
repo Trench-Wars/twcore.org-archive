@@ -1022,7 +1022,7 @@ public class staffbot_banc extends Module {
         if(opList.isSmod(name))
             m_botAction.smartPrivateMessageSpam(name, helpSmod);
         
-        if(bancOp.containsKey(name.toLowerCase()));
+        else if(bancOp.containsKey(name.toLowerCase()));
         m_botAction.smartPrivateMessageSpam(name, helpBancOp);
     }
     
