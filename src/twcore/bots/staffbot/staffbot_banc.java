@@ -1019,11 +1019,11 @@ public class staffbot_banc extends Module {
         
         m_botAction.smartPrivateMessageSpam(name, helpER);
         
-        if(opList.isSmod(name))
-            m_botAction.smartPrivateMessageSpam(name, helpSmod);
+        if(opList.isSmod(name)){
+            m_botAction.smartPrivateMessageSpam(name, helpSmod);}
         
-        else if(bancOp.containsKey(name.toLowerCase()));
-        m_botAction.smartPrivateMessageSpam(name, helpBancOp);
+        if(bancOp.containsKey(name.toLowerCase())){
+        m_botAction.smartPrivateMessageSpam(name, helpBancOp);}
     }
     
     /**
