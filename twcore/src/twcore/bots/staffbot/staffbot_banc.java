@@ -84,7 +84,17 @@ public class staffbot_banc extends Module {
             " !removeop                         - Removes a Banc Operator and adds them to Revoked list",
             " !listops                          - Displays all Banc Operators and Banc Revoked Operators",
             " !deleteop                         - If removed from staff, use this.",
-            " !isop                             - Checks to see if name is an operator"
+            " !isop                             - Checks to see if name is an operator",
+            
+    };
+    
+    final String[] helpBancOp = {
+            "---------------------[ BanC: Operator ]----------------------",
+            " !addop                            - Adds a Banc Operator",
+            " !removeop                         - Removes a Banc Operator and adds them to Revoked list",
+            " !listops                          - Displays all Banc Operators and Banc Revoked Operators",
+            " !deleteop                         - If removed from staff, use this.",
+            " !isop                             - Checks to see if name is an operator",
     };
     
     final String[] shortcutKeys = {
@@ -101,18 +111,18 @@ public class staffbot_banc extends Module {
     
    // private staffbot_database Database = new staffbot_database();
     
-   // private List<String> bancOps;
-    //private ArrayList<String> bancStaffers;
-    HashMap <String,String> bancStaffers   = new HashMap<String,String>();
 
+    HashMap <String,String> bancStaffers   = new HashMap<String,String>();
+    HashMap <String,String> bancOp = new HashMap<String,String>();
     HashMap <String,String> bancRevoked   = new HashMap<String,String>();
-   // private ArrayList<String> bancRevoked;
+
     
     private final String botsDatabase = "bots";
     private final String trenchDatabase = "website";
     private final String uniqueConnectionID = "banc";
     private final String IPCBANC = "banc";
     private final String IPCALIAS = "pubBots";
+    
 
     
     //private final String MINACCESS_BANCSTAFFER = "OPS";
@@ -188,6 +198,8 @@ public class staffbot_banc extends Module {
             restart_ops();
         }
     }
+    
+    
     
     @Override
     public void cancel() {
@@ -362,7 +374,7 @@ public class staffbot_banc extends Module {
     }
 
     private void isOp(String name, String substring) {
-        if(!opList.isSmod(name))
+        if(!opList.isSmod(name) && !bancOp.containsKey(name.toLowerCase()))
             return;
         restart_ops();
         BotSettings m_botSettings = m_botAction.getBotSettings();
@@ -378,7 +390,7 @@ public class staffbot_banc extends Module {
     
 
     private void deleteBancOperator(String name, String message) {
-        if(!opList.isSmod(name))
+        if(!opList.isSmod(name) && !bancOp.containsKey(name.toLowerCase()))
             return;
         restart_ops();
         BotSettings m_botSettings = m_botAction.getBotSettings();
@@ -424,7 +436,7 @@ public class staffbot_banc extends Module {
     
     private void addBancOperator(String name, String substring) {
         //SMod+ only command.
-        if(!opList.isSmod(name))
+        if(!opList.isSmod(name) && !bancOp.containsKey(name.toLowerCase()))
             return;
         
         BotSettings m_botSettings = m_botAction.getBotSettings();
@@ -491,6 +503,10 @@ public class staffbot_banc extends Module {
         String revoked[] = m_botSettings.getString( "BancRevoked" ).split( "," );
         for( int j = 0; j < revoked.length; j++ )
             bancRevoked.put(revoked[j].toLowerCase(), revoked[j]);
+        
+        String op[] = m_botSettings.getString( "BancOperators" ).split( "," );
+        for( int j = 0; j < op.length; j++ )
+            bancOp.put(op[j].toLowerCase(), op[j]);
         } catch (Exception e) { Tools.printStackTrace( "Method Failed: ", e ); }
         
 
@@ -503,7 +519,7 @@ public class staffbot_banc extends Module {
     
      public void showBancPeople( String name ) {
          //SMod Only command
-         if(!opList.isSmod(name))
+         if(!opList.isSmod(name) && !bancOp.containsKey(name.toLowerCase()))
              return;
             restart_ops();
             String bancs = "Banc Access: ";
@@ -540,7 +556,7 @@ public class staffbot_banc extends Module {
  */
     
     private void removeBancStaffer(String name, String message) {
-        if(!opList.isSmod(name))
+        if(!opList.isSmod(name) && !bancOp.containsKey(name.toLowerCase()))
             return;
         restart_ops();
         BotSettings m_botSettings = m_botAction.getBotSettings();
@@ -1005,6 +1021,9 @@ public class staffbot_banc extends Module {
         
         if(opList.isSmod(name))
             m_botAction.smartPrivateMessageSpam(name, helpSmod);
+        
+        if(bancOp.containsKey(name.toLowerCase()));
+        m_botAction.smartPrivateMessageSpam(name, helpBancOp);
     }
     
     /**
