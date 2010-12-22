@@ -522,17 +522,38 @@ public class staffbot_banc extends Module {
          if(!opList.isSmod(name) && !bancOp.containsKey(name.toLowerCase()))
              return;
             restart_ops();
-            String bancs = "Banc Access: ";
-            Iterator<String> list = bancStaffers.values().iterator();
-            
-            
-            while( list.hasNext() ) {
-                if( list.hasNext() )
-                    bancs += (String)list.next() + ", ";
-                else
-                    bancs += (String)list.next();
+            String bancs = "";
+            m_botAction.sendSmartPrivateMessage(name, "List of staff that have Banc Access: ");
+            Iterator<String> list = bancStaffers.keySet().iterator();
+            if( !list.hasNext() ) {
+                m_botAction.sendSmartPrivateMessage(name, "Banc Error: No staff found. Contact botdev." );
+                return;
             }
-            String bancs1 = "Revoked Access: ";
+            
+            
+            for(int k = 0;list.hasNext();)
+            {
+
+            String pName = (String)list.next();
+            if(m_botAction.getOperatorList().isSysop(pName))
+                bancs += pName + " (SysOp), ";
+            else if(m_botAction.getOperatorList().isSmodExact(pName))
+                bancs += pName + " (SMod), ";
+            else
+                bancs += pName + ", ";
+            k++;
+            if(k % 10 == 0 || !list.hasNext())
+            {
+                if( bancs.length() > 2 ) {
+                    m_botAction.sendSmartPrivateMessage(name, bancs.substring(0, bancs.length() - 2));
+                    bancs = "";
+                }
+            }
+        
+    
+
+            }
+            String bancs1 = "List of staffers that have no access: ";
             Iterator<String> list1 = bancRevoked.values().iterator();
             
             while( list1.hasNext() ) {
@@ -543,9 +564,7 @@ public class staffbot_banc extends Module {
             }
             
             
-            bancs  = bancs.substring(0, bancs.length() - 2);
             bancs1 = bancs1.substring(0, bancs1.length() - 2);
-            m_botAction.sendSmartPrivateMessage( name, bancs  );
             m_botAction.sendSmartPrivateMessage( name, bancs1 );
      }
      
