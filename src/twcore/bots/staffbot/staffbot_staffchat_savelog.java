@@ -20,22 +20,31 @@ import twcore.core.events.Message;
 import twcore.core.util.Tools;
 
 /**
- * This module reports bad commands (and player kicks for message flooding) that are shown on the *log
- * This module also logs all *log lines to a file. The functionality is copied from the mrarrogant bot.
+ * This module logs who is on the "staff" chat every 5 minutes on a file.
+ * Recently, this module has been tweaked to log also the whole chat (text)
  * 
- * @author MMaverick
+ * The name monitoring system uses a buffer and write to the file every 5 minutes
+ * while the whole chat is written as soon as a text is seen
+ * 
+ * @author Arobas+
  */
 public class staffbot_staffchat_savelog extends Module {
     
+	// static variable used for names monitoring
 	public static final int MINUTE = 5;
     public static final int CHECK_LOG_TIME = MINUTE * Tools.TimeInMillis.MINUTE;
 
     private SimpleDateFormat chatDateFormat = new SimpleDateFormat("HH:mm", Locale.US);
     private SimpleDateFormat fileNameFormat = new SimpleDateFormat("yyyyMMdd", Locale.US);
-    private FileWriter logFile;
+
     private File path;
-    private File currentFile;
-    private StringBuffer buffer;
+    
+    private File namesFile;
+    private FileWriter namesWriter;
+    private StringBuffer bufferName;
+    
+    private File textFile;
+    private FileWriter textWriter;
     
     // TimerTasks
     private CheckStaffChat checkStaffChat = new CheckStaffChat();
@@ -47,11 +56,15 @@ public class staffbot_staffchat_savelog extends Module {
     	
         BotSettings botSettings = m_botAction.getBotSettings();
         path = new File(botSettings.getString("logpath_staffchat"));
-        buffer = new StringBuffer();
         
-    	currentFile = new File(path, fileNameFormat.format(new Date())+".log");
+        bufferName = new StringBuffer();
+        namesFile = new File(path, fileNameFormat.format(new Date())+".log");
+
+        textFile = new File(path, fileNameFormat.format(new Date())+"_text.log");
+
         try {
-			logFile = new FileWriter(currentFile, true);
+        	namesWriter = new FileWriter(namesFile, true);
+        	textWriter = new FileWriter(textFile, true);
 		} catch (IOException e) {
 			Tools.printStackTrace(e);
 			cancel();
@@ -85,18 +98,71 @@ public class staffbot_staffchat_savelog extends Module {
 
 		String line = event.getMessage();
         if( event.getMessageType() == Message.ARENA_MESSAGE ) {
+        	
         	if (line.contains("(staff) staff: ")) {
-        		buffer.append(",");
-        		buffer.append(line.substring(15));
+        		bufferName.append(",");
+        		bufferName.append(line.substring(15));
         	}
-        }        
+        	
+        	// Logging to the staff chat log
+        	else if (line.startsWith("help:")) {
+        		String message = line.substring(6);
+        		writeText("(HELP) " + message);
+        	}
+        	else if (line.startsWith("advert:")) {
+        		String message = line.substring(8);
+        		writeText("(ADVERT) " + message);
+        	}
+        	else if (line.startsWith("cheater:")) {
+        		String message = line.substring(9);
+        		writeText("(CHEATER) " + message);
+        	}
+        }   
+        else if ( event.getMessageType() == Message.CHAT_MESSAGE ) {
+        	
+        	// Staff chat
+        	if (line.startsWith("1:")) {
+        		String message = line.substring(2);
+        		writeText(message);
+        	}
+        	
+        	// SMOD chat
+        	else if (line.startsWith("2:")) {
+        		// nothing
+        	}
+        }
+	}
+	
+	public void writeText(String line) {
+		
+        try {
+
+        	File newFile = new File(path, fileNameFormat.format(new Date())+"_text.log");
+        	
+            if (!textFile.getAbsolutePath().equals(newFile.getAbsolutePath())) {
+            	
+            	textFile = newFile;
+                textWriter.close();
+                
+                // Open new file
+                textWriter = new FileWriter(textFile, true);
+            }
+ 
+            textWriter.write(Tools.getTimeStamp() + " - " + line + "\n");
+            textWriter.flush();
+
+        } catch (IOException e) {
+            Tools.printStackTrace("IOException encountered while saving command to log file", e);
+            m_botAction.sendChatMessage("IOException encountered while saving command to log file: " + e.getMessage());
+        }
+		
 	}
 	
     @Override
     public void cancel() {
         try {
-        	if (logFile!=null)
-        		logFile.close();
+        	if (namesWriter!=null)
+        		namesWriter.close();
         } catch(IOException ioe) {}
         
         m_botAction.cancelTask(checkStaffChat);
@@ -117,21 +183,21 @@ public class staffbot_staffchat_savelog extends Module {
 
             	File newFile = new File(path, fileNameFormat.format(new Date())+".log");
             	
-                if (!currentFile.getAbsolutePath().equals(newFile.getAbsolutePath())) {
+                if (!namesFile.getAbsolutePath().equals(newFile.getAbsolutePath())) {
                 	
-                	currentFile = newFile;
-                    logFile.close();
+                	namesFile = newFile;
+                    namesWriter.close();
                     
                     // Open new file
-                    logFile = new FileWriter(currentFile, true);
+                    namesWriter = new FileWriter(namesFile, true);
                 }
                 
                 String line = chatDateFormat.format(new Date()) + " : ";
                 
-                if (buffer.toString().length()>0)
-                	logFile.write(line+buffer.toString().substring(1) + '\n');
-                logFile.flush();
-                buffer = new StringBuffer();
+                if (bufferName.toString().length()>0)
+                	namesWriter.write(line+bufferName.toString().substring(1) + '\n');
+                namesWriter.flush();
+                bufferName = new StringBuffer();
                 
             } catch (IOException e) {
                 Tools.printStackTrace("IOException encountered while saving command to log file", e);
