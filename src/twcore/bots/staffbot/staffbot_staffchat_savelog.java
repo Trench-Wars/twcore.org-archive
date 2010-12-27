@@ -120,6 +120,8 @@ public class staffbot_staffchat_savelog extends Module {
         }   
         else if ( event.getMessageType() == Message.CHAT_MESSAGE ) {
         	
+        	System.out.println(line);
+        	
         	// Staff chat
         	if (line.startsWith("1:")) {
         		String message = line.substring(2);
@@ -148,6 +150,8 @@ public class staffbot_staffchat_savelog extends Module {
                 textWriter = new FileWriter(textFile, true);
             }
  
+            System.out.println("Writing: " + line);
+            
             textWriter.write(Tools.getTimeStamp() + " - " + line + "\n");
             textWriter.flush();
 
