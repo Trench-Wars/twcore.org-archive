@@ -97,29 +97,26 @@ public class staffbot_staffchat_savelog extends Module {
 	public void handleEvent(Message event) {
 
 		String line = event.getMessage();
+		
         if( event.getMessageType() == Message.ARENA_MESSAGE ) {
 
-        	System.out.println(line);
-        	
         	if (line.contains("(staff) staff: ")) {
         		bufferName.append(",");
         		bufferName.append(line.substring(15));
         	}
-        	
-        	// Logging to the staff chat log
-        	else if (line.startsWith("help:")) {
-        		String message = line.substring(6);
-        		writeText("(HELP) " + message);
-        	}
-        	else if (line.startsWith("advert:")) {
-        		String message = line.substring(8);
-        		writeText("(ADVERT) " + message);
-        	}
-        	else if (line.startsWith("cheater:")) {
-        		String message = line.substring(9);
-        		writeText("(CHEATER) " + message);
-        	}
         }   
+        
+        else if( event.getMessageType() == Message.ALERT_MESSAGE ){
+            String command = event.getAlertCommandType().toLowerCase();
+            if( command.equals( "help" )){
+            	writeText("(HELP) " + line);
+            } else if( command.equals( "cheater" )){
+            	writeText("(ADVERT) " + line);
+            } else if( command.equals( "advert" )){
+            	writeText("(CHEATER) " + line);
+            }
+        }
+        
         else if ( event.getMessageType() == Message.CHAT_MESSAGE ) {
 
         	String playerName = event.getMessager();
@@ -147,9 +144,7 @@ public class staffbot_staffchat_savelog extends Module {
                 // Open new file
                 textWriter = new FileWriter(textFile, true);
             }
- 
-            System.out.println("Writing: " + line);
-            
+
             textWriter.write(Tools.getTimeStamp() + " - " + line + "\n");
             textWriter.flush();
 
