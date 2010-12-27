@@ -98,6 +98,8 @@ public class staffbot_staffchat_savelog extends Module {
 
 		String line = event.getMessage();
         if( event.getMessageType() == Message.ARENA_MESSAGE ) {
+
+        	System.out.println(line);
         	
         	if (line.contains("(staff) staff: ")) {
         		bufferName.append(",");
@@ -119,17 +121,13 @@ public class staffbot_staffchat_savelog extends Module {
         	}
         }   
         else if ( event.getMessageType() == Message.CHAT_MESSAGE ) {
-        	
-        	System.out.println(line);
-        	
-        	// Staff chat
-        	if (line.startsWith("1:")) {
-        		String message = line.substring(2);
-        		writeText(message);
+
+        	String playerName = event.getMessager();
+
+        	if (event.getChatNumber() == 1) { // Staff chat
+        		writeText(playerName + "> " + line);
         	}
-        	
-        	// SMOD chat
-        	else if (line.startsWith("2:")) {
+        	else if (event.getChatNumber() == 1) { // SMOD chat
         		// nothing
         	}
         }
