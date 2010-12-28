@@ -113,9 +113,9 @@ public class staffbot_staffchat_savelog extends Module {
             if( command.equals( "help" )){
             	writeText("help: " + "(" + playerName + ") " + line);
             } else if( command.equals( "cheater" )){
-            	writeText("advert: " + "(" + playerName + ") " + line);
-            } else if( command.equals( "advert" )){
             	writeText("cheater: " + "(" + playerName + ") " + line);
+            } else if( command.equals( "advert" )){
+            	writeText("advert: " + "(" + playerName + ") " + line);
             }
         }
         
