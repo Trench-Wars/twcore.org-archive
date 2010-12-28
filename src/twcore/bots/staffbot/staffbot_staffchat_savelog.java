@@ -97,6 +97,7 @@ public class staffbot_staffchat_savelog extends Module {
 	public void handleEvent(Message event) {
 
 		String line = event.getMessage();
+		String playerName = event.getMessager();
 		
         if( event.getMessageType() == Message.ARENA_MESSAGE ) {
 
@@ -107,19 +108,18 @@ public class staffbot_staffchat_savelog extends Module {
         }   
         
         else if( event.getMessageType() == Message.ALERT_MESSAGE ){
+
             String command = event.getAlertCommandType().toLowerCase();
             if( command.equals( "help" )){
-            	writeText("(HELP) " + line);
+            	writeText("help: " + "(" + playerName + ") " + line);
             } else if( command.equals( "cheater" )){
-            	writeText("(ADVERT) " + line);
+            	writeText("advert: " + "(" + playerName + ") " + line);
             } else if( command.equals( "advert" )){
-            	writeText("(CHEATER) " + line);
+            	writeText("cheater: " + "(" + playerName + ") " + line);
             }
         }
         
         else if ( event.getMessageType() == Message.CHAT_MESSAGE ) {
-
-        	String playerName = event.getMessager();
 
         	if (event.getChatNumber() == 1) { // Staff chat
         		writeText(playerName + "> " + line);
