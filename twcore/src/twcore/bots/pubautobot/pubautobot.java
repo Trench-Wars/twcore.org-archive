@@ -55,6 +55,7 @@ public class pubautobot extends SubspaceBot {
 	private boolean following = false;
 	private boolean killable = true;
 	private HashSet<String> locations; // array of x:y position
+
 	private int freq;
 	private int botX;
 	private int botY;
@@ -64,7 +65,7 @@ public class pubautobot extends SubspaceBot {
 	Vector<RepeatFireTimer> repeatFireTimers = new Vector<RepeatFireTimer>();
     
 	boolean isSpawning = false;
-	
+
 	private boolean enemyOnSight = false;
 	private String target;
 
@@ -198,6 +199,7 @@ public class pubautobot extends SubspaceBot {
     		doUnAttachCmd();
     		doAttachCmd(killer);
     	}
+
     }
     
     public void handleEvent(WeaponFired event) {
@@ -230,7 +232,7 @@ public class pubautobot extends SubspaceBot {
         		return;
         	}
         }
-        
+
         enemyOnSight = true;
         
         double diffY, diffX, angle;
@@ -690,7 +692,7 @@ private class RepeatFireTimer {
 		repeat = new TimerTask(){
 			public void run(){
 				if (!fireOnSight || (fireOnSight && enemyOnSight))
-				doFireCmd(Integer.toString(weapon));
+					doFireCmd(Integer.toString(weapon));
 			}
 		};
 		m_botAction.scheduleTaskAtFixedRate(this.repeat, this.delayms, this.repeatms);
