@@ -136,7 +136,7 @@ public class pubsystem extends SubspaceBot
     {
     	try {
 	        initialSpawn = m_botAction.getBotSettings().getString("InitialArena");
-	        initialPub = (m_botAction.getBotSettings().getInt(m_botAction.getBotName() + "Pub") - 1);
+	        initialPub = (m_botAction.getBotSettings().getInt("Pub" + m_botAction.getBotNumber()) - 1);
 	        
 	        String arena = initialSpawn;
 	        int botNumber = m_botAction.getBotSettings().getInt(m_botAction.getBotName() + "Pub");
@@ -202,7 +202,7 @@ public class pubsystem extends SubspaceBot
      */
     public void handleEvent(ArenaList event)
     {
-    	if (!roamPub)
+    	if (!roamPub || context.isStarted())
     		return;
     	
     	try {
@@ -527,11 +527,11 @@ public class pubsystem extends SubspaceBot
         	if (context.isStarted())
         		return;
         	
-            String commands[] = m_botAction.getBotSettings().getString(m_botAction.getBotName() + "Setup").split(",");
+            String commands[] = m_botAction.getBotSettings().getString("Setup" + m_botAction.getBotNumber()).split(",");
         	for(int k = 0; k < commands.length; k++) {
         		handleModCommand(m_botAction.getBotName(), commands[k]);
     		}
-            String toggleInfoString = m_botAction.getBotSettings().getString(m_botAction.getBotName() + "Toggle");
+            String toggleInfoString = m_botAction.getBotSettings().getString("ToggleOptions" + m_botAction.getBotNumber());
             if( toggleInfoString != null && !toggleInfoString.trim().equals("") ) {
                 String toggleSplit[] = toggleInfoString.split(":");
                 if( toggleSplit.length == 2 ) {

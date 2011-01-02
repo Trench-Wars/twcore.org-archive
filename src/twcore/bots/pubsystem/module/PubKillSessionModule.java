@@ -34,6 +34,8 @@ public class PubKillSessionModule extends AbstractModule {
 	private HashMap<String,Long> lastDeaths;
 	private LinkedHashSet<Location> locations;
 	private HashSet<String> notplaying;
+	
+	private int killLeader = 0;
 
 	public PubKillSessionModule(BotAction botAction, PubContext context) {
 		super(botAction,context,"Kill-o-thon");
@@ -186,6 +188,21 @@ public class PubKillSessionModule extends AbstractModule {
 		sessionStarted = false;
 	}
 	
+	/**
+	 * Case-sensitive
+	 */
+	public boolean isLeader(String playerName) {
+		
+		if (!sessionStarted)
+			return false;
+		
+		if (getLeaders().contains(playerName)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
     private void updateWinnerDB(String playerName) {
     	
 		String database = m_botAction.getBotSettings().getString("database");
@@ -233,9 +250,7 @@ public class PubKillSessionModule extends AbstractModule {
 			m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "");
 			
 		}
-		
 
-		
 		lastDeaths.put(killed.getPlayerName(), System.currentTimeMillis());
 		
 	}
@@ -270,7 +285,7 @@ public class PubKillSessionModule extends AbstractModule {
     public void doStartCmd( String sender ) {
     	
     	if (sessionStarted) {
-    		m_botAction.sendSmartPrivateMessage(sender, "A session of kill-o-thon is already running. Use !killothon_stop to stop it.");
+    		m_botAction.sendSmartPrivateMessage(sender, "A session of kill-o-thon is already running.");
     		return;
     	}
     	startSession();
@@ -314,35 +329,21 @@ public class PubKillSessionModule extends AbstractModule {
     		}
     		
     		// Sort by number of kills order descending
-    		List<Integer> nums = new ArrayList<Integer>(kills.values());
-    		Collections.sort(nums);
+    		List<String> leaders = getLeaders();
     		
-    		List<Integer> reverseNums = new ArrayList<Integer>();
-    		for(int i=nums.size()-1; i>=0; i--) {
-    			reverseNums.add(nums.get(i));
-    		}
-    		
-    		if (reverseNums.size() > 0) {
-	    		int highest = reverseNums.get(0);
-	    		
-	    		// Remapping by number of kills
-	    		List<String> names = new ArrayList<String>();
-	    		for(String playerName: kills.keySet()) {
-	    			int count = kills.get(playerName);
-	    			if (count == highest)
-	    				names.add(playerName);
-	    		}
-	    		
-				String namesString = names.get(0);
-				if (names.size() > 1) {
-					for(int i=1; i<names.size(); i++) {
-						namesString += ", " + names.get(i);
+    		if (!leaders.isEmpty()) {
+    			
+    			String namesString = "";
+    			
+				if (leaders.size() > 1) {
+					for(int i=1; i<leaders.size(); i++) {
+						namesString += ", " + leaders.get(i);
 					}
-					message += "Current leaders: " + namesString + " with " + highest + " kills.";
+					message += "Current leaders: " + namesString + " with " + killLeader + " kills.";
 				} else if (namesString.equals(sender)) {
 					message += "You are the leader!";
 				} else {
-					message += "Current leader: " + namesString + " with " + highest + " kills.";
+					message += "Current leader: " + namesString + " with " + killLeader + " kills.";
 				}
 
     		}
@@ -362,6 +363,35 @@ public class PubKillSessionModule extends AbstractModule {
     	else {
     		m_botAction.sendSmartPrivateMessage(sender, "There is no session running now. Next session: " + getNextSession());
     	}
+    }
+    
+    public List<String> getLeaders() {
+
+		// Sort by number of kills order descending
+		List<Integer> nums = new ArrayList<Integer>(kills.values());
+		Collections.sort(nums);
+		
+		List<Integer> reverseNums = new ArrayList<Integer>();
+		for(int i=nums.size()-1; i>=0; i--) {
+			reverseNums.add(nums.get(i));
+		}
+		
+		List<String> names = new ArrayList<String>();
+		
+		killLeader = 0;
+		
+		if (reverseNums.size() > 0) {
+    		int highest = reverseNums.get(0);
+    		// Remapping by number of kills
+    		for(String playerName: kills.keySet()) {
+    			int count = kills.get(playerName);
+    			if (count == highest)
+    				names.add(playerName);
+    		}
+    		killLeader = highest;
+		}
+		
+		return names;
     }
     
     public String getNextSession() {

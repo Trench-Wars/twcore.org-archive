@@ -37,11 +37,13 @@ import twcore.bots.pubsystem.module.moneysystem.item.PubPrizeItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipUpgradeItem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
-import twcore.bots.pubsystem.util.Log;
+import twcore.bots.pubsystem.util.IPCReceiver;
 import twcore.bots.pubsystem.util.PubException;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
+import twcore.core.events.ArenaList;
 import twcore.core.events.FrequencyChange;
+import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
@@ -49,6 +51,7 @@ import twcore.core.events.SQLResultEvent;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
+import twcore.core.util.ipc.IPCMessage;
 
 public class PubMoneySystemModule extends AbstractModule {
 
@@ -68,9 +71,16 @@ public class PubMoneySystemModule extends AbstractModule {
     // Time passed on the same frequency
     private HashMap<String, Long> frequencyTimes;
     
+    // IPC Receivers (used by autobots thread)
+    private List<IPCReceiver> ipcReceivers;
+    private String IPC_CHANNEL = "pubautobot";
+    
     // Coupon system
     private HashSet<String> couponOperators;
     private HashMap<String,CouponCode> coupons; // cache system
+    
+    // Arena
+    private String arenaNumber = "0";
     
     private boolean donationEnabled = false;
     
@@ -89,6 +99,8 @@ public class PubMoneySystemModule extends AbstractModule {
         this.frequencyTimes = new HashMap<String, Long>();
 
         this.coupons = new HashMap<String,CouponCode>();
+        
+        this.ipcReceivers = new ArrayList<IPCReceiver>();
 
         try {
         	this.store = new PubStore(m_botAction, context);
@@ -96,6 +108,8 @@ public class PubMoneySystemModule extends AbstractModule {
 	    } catch (Exception e) {
 	    	Tools.printStackTrace("Error while initializing the money system", e);
 		}
+	    
+	    m_botAction.ipcSubscribe(IPC_CHANNEL);
 
 	    reloadConfig();
     	
@@ -140,6 +154,12 @@ public class PubMoneySystemModule extends AbstractModule {
             	// Wait, is this player dueling?
             	if (context.getPubChallenge().isDueling(playerName)) {
             		m_botAction.sendSmartPrivateMessage(playerName, "You cannot buy an item while dueling.");
+            		return;
+            	}
+            	
+            	// Kill-o-thon running and he's the leader?
+            	if (context.getPubKillSession().isLeader(playerName)) {
+            		m_botAction.sendSmartPrivateMessage(playerName, "You cannot buy an item while being a leader of kill-o-thon.");
             		return;
             	}
             	
@@ -557,12 +577,23 @@ public class PubMoneySystemModule extends AbstractModule {
         	}
 
         	if (item.isRestricted()) {
+        		
+        		PubItemRestriction r = item.getRestriction();
+        		
+        		// Not really a restriction, that's why this is before.
+        		if (!r.isBuyableFromSpec()) {
+        			m_botAction.sendSmartPrivateMessage(sender, "Buyable from spec: No");
+        		} else {
+        			m_botAction.sendSmartPrivateMessage(sender, "Buyable from spec: Yes");
+        		}
+        		
+        		// Real restrictions
         		m_botAction.sendSmartPrivateMessage(sender, "Restrictions:");
         		String info = "";
-        		PubItemRestriction r = item.getRestriction();
+
         		if (r.getRestrictedShips().size()==8) {
 	        		info += "Cannot be bought while playing"; 
-	        		m_botAction.sendSmartPrivateMessage(sender, "  - Cannot be bought while playing");
+	        		m_botAction.sendSmartPrivateMessage(sender, " - Cannot be bought while playing");
         		} else {
         			String ships = "";
         			for(int i=1; i<9; i++) {
@@ -570,42 +601,40 @@ public class PubMoneySystemModule extends AbstractModule {
         					ships += i+",";
         				}
         			}
-        			m_botAction.sendSmartPrivateMessage(sender, "  - Available only for ship(s) : " + ships.substring(0, ships.length()-1));
+        			m_botAction.sendSmartPrivateMessage(sender, " - Available only for ship(s) : " + ships.substring(0, ships.length()-1));
         		}
         		if (r.getMaxConsecutive()!=-1) {
-        			m_botAction.sendSmartPrivateMessage(sender, "  - Maximum of " + r.getMaxConsecutive()+" consecutive purchase(s)");
+        			m_botAction.sendSmartPrivateMessage(sender, " - Maximum of " + r.getMaxConsecutive()+" consecutive purchase(s)");
         		}
         		if (r.getMaxPerLife()!=-1) {
-        			m_botAction.sendSmartPrivateMessage(sender, "  - Maximum of " + r.getMaxPerLife()+" per life");
+        			m_botAction.sendSmartPrivateMessage(sender, " - Maximum of " + r.getMaxPerLife()+" per life");
         		}
         		if (r.getMaxPerSecond()!=-1) {
-        			m_botAction.sendSmartPrivateMessage(sender, "  - Maximum of 1 every "+r.getMaxPerSecond()+" seconds (player only)");
+        			m_botAction.sendSmartPrivateMessage(sender, " - Maximum of 1 every "+r.getMaxPerSecond()+" seconds (player only)");
         		}
         		if (r.getMaxArenaPerMinute()!=-1) {
-        			m_botAction.sendSmartPrivateMessage(sender, "  - Maximum of 1 every "+r.getMaxArenaPerMinute()+" minutes for the whole arena");
+        			m_botAction.sendSmartPrivateMessage(sender, " - Maximum of 1 every "+r.getMaxArenaPerMinute()+" minutes for the whole arena");
         		}
-        		if (!r.isBuyableFromSpec()) {
-        			m_botAction.sendSmartPrivateMessage(sender, "  - Cannot be bought while spectating");
-        		}
+
         	}
 
         	if (item.hasDuration()) {
         		m_botAction.sendSmartPrivateMessage(sender, "Durations:");
         		PubItemDuration d = item.getDuration();
         		if (d.getDeaths()!=-1 && d.getSeconds()!=-1 && d.getSeconds() > 60) {
-        			m_botAction.sendSmartPrivateMessage(sender, "  - " + d.getDeaths()+" life(s) or "+(int)(d.getSeconds()/60)+" minutes");
+        			m_botAction.sendSmartPrivateMessage(sender, " - " + d.getDeaths()+" life(s) or "+(int)(d.getSeconds()/60)+" minutes");
         		}
         		else if (d.getDeaths()!=-1 && d.getSeconds()!=-1 && d.getSeconds() <= 60) {
-        			m_botAction.sendSmartPrivateMessage(sender, "  - " + d.getDeaths()+" life(s) or "+(int)(d.getSeconds())+" seconds");
+        			m_botAction.sendSmartPrivateMessage(sender, " - " + d.getDeaths()+" life(s) or "+(int)(d.getSeconds())+" seconds");
         		}
         		else if (d.getDeaths()!=-1) {
-        			m_botAction.sendSmartPrivateMessage(sender, "  - " + d.getDeaths()+" life(s)");
+        			m_botAction.sendSmartPrivateMessage(sender, " - " + d.getDeaths()+" life(s)");
         		}
         		else if (d.getSeconds()!=-1 && d.getSeconds() > 60) {
-        			m_botAction.sendSmartPrivateMessage(sender, "  - " + (int)(d.getSeconds()/60)+" minutes");
+        			m_botAction.sendSmartPrivateMessage(sender, " - " + (int)(d.getSeconds()/60)+" minutes");
         		}
         		else if (d.getSeconds()!=-1 && d.getSeconds() <= 60) {
-        			m_botAction.sendSmartPrivateMessage(sender, "  - " + (int)(d.getSeconds())+" seconds");
+        			m_botAction.sendSmartPrivateMessage(sender, " - " + (int)(d.getSeconds())+" seconds");
         		}
 
         	}
@@ -1155,6 +1184,12 @@ public class PubMoneySystemModule extends AbstractModule {
     	}
     	
     }
+    
+    public void handleEvent(InterProcessEvent event) {
+    	for(IPCReceiver receiver: ipcReceivers) {
+    		receiver.handleInterProcessEvent(event);
+    	}
+    }
 
     public void handleEvent(FrequencyChange event) {
     	Player p = m_botAction.getPlayer(event.getPlayerID());
@@ -1172,6 +1207,23 @@ public class PubMoneySystemModule extends AbstractModule {
     	frequencyTimes.remove(p.getPlayerName());
     }
    
+    public void handleEvent(ArenaList event) {
+    	
+    	String thisArena = m_botAction.getArenaName();
+    	if (thisArena.contains("Public")) 
+    	{
+	    	thisArena = thisArena.substring(8,9);
+	    	
+	    	int i=0;
+	    	for(String arena: event.getArenaNames()) {
+	    		if(arena.equals(thisArena)) {
+	    			this.arenaNumber = String.valueOf(i);
+	    		}
+	    	}
+    	}
+    	
+    }
+    
     public void handleEvent(PlayerDeath event) {
 
     	final Player killer = m_botAction.getPlayer( event.getKillerID() );
@@ -1425,7 +1477,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	result = result.substring(0, result.length()-3);
         return result;
     }
-    
+
     /**
      * Not always working.. need to find out why.
      */
@@ -1599,6 +1651,14 @@ public class PubMoneySystemModule extends AbstractModule {
             }
         };
         m_botAction.scheduleTask(timer, 7500);
+    	
+    }
+    
+    private void itemCommandRoofTurret(String sender, String params) {
+
+    	Thread t = new AutobotRoofThread(sender, params);
+    	ipcReceivers.add((IPCReceiver)t);
+    	t.start();
     	
     }
     
@@ -1804,6 +1864,85 @@ public class PubMoneySystemModule extends AbstractModule {
         	}
 		}
 	};
+	
+	private class AutobotRoofThread extends Thread implements IPCReceiver {
+
+		private String sender;
+		private String parameters;
+		
+		private boolean locked = false;
+		private String autobotName = null;
+		
+		public AutobotRoofThread(String sender, String parameters) {
+			this.sender = sender;
+			this.parameters = parameters;
+		}
+		
+		public void run() 
+		{
+			super.run();
+	    	String hubName = m_botAction.getBotSettings().getString("HubName");
+	    	m_botAction.requestArenaList();
+	    	m_botAction.sendSmartPrivateMessage(hubName, "!spawn pubautobot");
+	    	m_botAction.sendSmartPrivateMessage(sender, "Please wait while spawning the turret..");
+		}
+
+		public void handleInterProcessEvent(InterProcessEvent event) {
+			if (event.getChannel().equals(IPC_CHANNEL)) {
+				
+				IPCMessage object = (IPCMessage)event.getObject();
+				String message = object.getMessage();
+				String sender = object.getSender();
+				
+				if (!locked && message.equals("loggedon")) {
+					m_botAction.ipcSendMessage(IPC_CHANNEL, "looking", null, m_botAction.getBotName());
+					
+				} else if (!locked && message.equals("locked")) {
+					locked = true;
+					autobotName = sender;
+					m_botAction.ipcSendMessage(IPC_CHANNEL, "confirm_lock", null, m_botAction.getBotName()+":"+this.sender);
+					m_botAction.sendSmartPrivateMessage(this.sender, sender + " has spawned, setting up the turret..");
+					try { Thread.sleep(1*Tools.TimeInMillis.SECOND); } catch (InterruptedException e) {}
+					ready();
+				}
+				
+			}
+		}
+		
+		public void ready() {
+			
+			Player p = m_botAction.getPlayer(sender);
+			commandBot("!go " + arenaNumber);
+			try { Thread.sleep(2*Tools.TimeInMillis.SECOND); } catch (InterruptedException e) {}
+			commandBot("!setship 1");
+			try { Thread.sleep(250); } catch (InterruptedException e) {}
+			commandBot("!setfreq " + p.getFrequency());
+			try { Thread.sleep(250); } catch (InterruptedException e) {}
+			commandBot("!warpto 512 239");
+			commandBot("!rfonsight 65 500");
+			commandBot("!timeout 900");
+			commandBot("!aim");
+			
+			m_botAction.sendArenaMessage(sender + " has bought a turret that will occupy the roof for 15 minutes.",21);
+			
+			// The autobot needs to know what is the roof
+			if (!m_botAction.getBotSettings().getString("location").isEmpty()) {
+		        String[] pointsLocation = m_botAction.getBotSettings().getString("location").split(",");
+		        for(String number: pointsLocation) {
+		        	String data = m_botAction.getBotSettings().getString("location"+number);
+		        	if (data.startsWith("roof")) {
+		        		m_botAction.ipcSendMessage(IPC_CHANNEL, "locations:"+data.substring(5), autobotName, m_botAction.getBotName());
+		        	}
+		        }
+			}
+			
+		}
+		
+		public void commandBot(String command) {
+			m_botAction.sendSmartPrivateMessage(autobotName, command);
+		}
+	
+	}
 	
    	private class SphereSeclusionTask extends TimerTask {
    		private Integer[] freqs;
