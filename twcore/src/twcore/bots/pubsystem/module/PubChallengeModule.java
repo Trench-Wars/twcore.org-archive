@@ -662,6 +662,7 @@ public class PubChallengeModule extends AbstractModule {
 		m_botAction.specificPrize(name, Tools.Prize.FULLCHARGE);
 		m_botAction.specificPrize(name, Tools.Prize.MULTIFIRE);
 		m_botAction.specificPrize(name, -27); // NEGATIVE ROCKET
+		m_botAction.specificPrize(name, -21); // NEGATIVE REPEL
 		m_botAction.specificPrize(name, -26); // NEGATIVE BRICK
     	
     }
@@ -886,6 +887,9 @@ public class PubChallengeModule extends AbstractModule {
         return false;
     }
     
+	/**
+	 * Case-sensitive
+	 */
     public boolean isDueling(String name) {
         return duelers.containsKey(name);
     }

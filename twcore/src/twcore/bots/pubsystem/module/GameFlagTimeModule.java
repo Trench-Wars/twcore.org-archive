@@ -34,10 +34,11 @@ public class GameFlagTimeModule extends AbstractModule {
 
     private static final int FLAG_CLAIM_SECS = 3;		// Seconds it takes to fully claim a flag
     private static final int INTERMISSION_SECS = 90;	// Seconds between end of round and start of next
-    private static final int INTERMISSION_GAME_SECS = 300;	// Seconds between end of game and start of next
+    private static final int INTERMISSION_GAME_SECS = 90;	// Seconds between end of game and start of next
 	private static final int MAX_FLAGTIME_ROUNDS = 5;   // Max # rounds (odd numbers only)
 	
 	// HashMaps to calculte MVPs after each round
+	private HashMap<String,Long> playerTimeJoined;      // Time when the player joined this freq in EPOCH
     private HashMap<String,Integer> playerTimes;        // Roundtime of player on freq
     private HashMap<String,Integer> flagClaims;			// Flag claimed during a round
     private HashMap<String,Integer> killsLocationWeigth;// Total of kill-location-weight after a round
@@ -144,6 +145,7 @@ public class GameFlagTimeModule extends AbstractModule {
     public void setupPlayerTimes() {
     	
         playerTimes = new HashMap<String,Integer>();
+        playerTimeJoined = new HashMap<String,Long>();
 
         Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
         Player player;
@@ -151,7 +153,8 @@ public class GameFlagTimeModule extends AbstractModule {
         try {
             while( i.hasNext() ) {
                 player = (Player)i.next();
-                playerTimes.put( player.getPlayerName(), new Integer(0) );
+                playerTimes.put(player.getPlayerName(), new Integer(0));
+                playerTimeJoined.put(player.getPlayerName(), System.currentTimeMillis());
             }
         } catch (Exception e) {
         	Tools.printStackTrace(e);
@@ -190,7 +193,7 @@ public class GameFlagTimeModule extends AbstractModule {
         Player p = m_botAction.getPlayer( playerID );
         String playerName = p.getPlayerName();
         
-        if( p == null )
+        if(p == null)
             return;
         
         // Do nothing if the player is hunting
@@ -204,12 +207,15 @@ public class GameFlagTimeModule extends AbstractModule {
         		return;
         }
         
+        // Stat for a new ship
         if (flagTimer != null) {
         	flagTimer.newShip(playerName, ship);
         }
         
-        if(ship == 5)
+        // Tell the team chat if there is a new Terrier playing
+        if(ship == Tools.Ship.TERRIER) {
             m_botAction.sendOpposingTeamMessageByFrequency(freq, "Player "+p.getPlayerName()+" is now a terr. You may attach.");
+        }
         
         try {
             if( isFlagTimeStarted() && isRunning() ) {
@@ -246,9 +252,7 @@ public class GameFlagTimeModule extends AbstractModule {
 		// Reset the time of a player for MVP purpose
 		if (isRunning()) {
 			Player player = m_botAction.getPlayer(event.getPlayerID());
-			if (player.getPlayerName().equals(m_botAction.getBotName()))
-				return;
-			playerTimes.put(player.getPlayerName(), new Integer(0));
+			playerTimeJoined.put(player.getPlayerName(), System.currentTimeMillis());
 		}
 	}
 	
@@ -518,7 +522,7 @@ public class GameFlagTimeModule extends AbstractModule {
         int secs = flagTimer.getTotalSecs();
         int mins = (int)(secs/60);
 
-        int moneyBonus = (int)(flagTimer.freqsSecs.get(winnerFreq)/2);
+        int moneyBonus = (int)(flagTimer.freqsSecs.get(winnerFreq));
         
         // A normal frequency (0 or 1) won the round?
         if(winnerFreq == 0 || winnerFreq == 1) 
@@ -541,16 +545,21 @@ public class GameFlagTimeModule extends AbstractModule {
             }
         
         } else {
-        	// A public freq (<100) won the round?
             if( winnerFreq < 100 )
                 m_botAction.sendArenaMessage( "END ROUND: Freq " + winnerFreq + " wins the round after " + getTimeString( flagTimer.getTotalSecs()) + " (Bonus: +$" + moneyBonus + ")", Tools.Sound.BEEP1);
-            // A private freq won the round
             else
                 m_botAction.sendArenaMessage( "END ROUND: A private freq wins the round after " + getTimeString( flagTimer.getTotalSecs()) + " (Bonus: +$" + moneyBonus + ")", Tools.Sound.BEEP1);
         }
         
 
-        //  NOW, LET'S COMPUTE THE ACHIEVEMENTS
+        // Achievement part
+        // ---------------------------------------
+        
+        for(String playerName: playerTimeJoined.keySet()) {
+        	int timePlayed = (int)((System.currentTimeMillis()-playerTimeJoined.get(playerName))/1000);
+        	playerTimes.put(playerName, timePlayed);
+        }
+        
         
         LinkedHashMap<String,Integer> killsInBasePercent = new LinkedHashMap<String,Integer>();
         
@@ -607,6 +616,7 @@ public class GameFlagTimeModule extends AbstractModule {
         String mostTek = getPosition(teks, 1);
         String bestTerrierName = getPosition(bestTerrier, 1);
         
+        // Compute the money given
         int m10 = 300 + (int)Math.max(0,(mins-5)*10);
         int m5 = 150 + (int)Math.max(0,(mins-5)*5);
         int m2 = 50 + (int)Math.max(0,(mins-5)*5);
@@ -646,22 +656,27 @@ public class GameFlagTimeModule extends AbstractModule {
     	}
     	*/
     	
-        Iterator<Player> iterator = m_botAction.getPlayingPlayerIterator();
+        Iterator<Player> iterator = m_botAction.getFreqPlayerIterator(winnerFreq);
         while(iterator.hasNext()) {
         	
         	Player player = (Player) iterator.next();
             
             if (player == null)
                 continue;
-            if (player.getFrequency()!=winnerFreq)
-            	continue;
+
             if (context.getPubChallenge().isDueling(player.getPlayerName()))
+            	continue;
+            
+            // Wait, make sure this player is not a freq hopper
+            // Must have played at least 60 seconds on the winning freq
+            int time = playerTimes.get(player.getPlayerName());
+            if (time < 60)
             	continue;
             
             // Money bonus for the winner team
             context.getPlayerManager().addMoney(player.getPlayerName(), moneyBonus);
             
-            // Prizes only for the winner team (most not be dueling)
+            // Prizes only for the winner team
             if (mins>=60) { // New: 1 thor
             	 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #6"); // xradar
                  m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #15"); // multifire
@@ -781,7 +796,7 @@ public class GameFlagTimeModule extends AbstractModule {
             m_botAction.sendArenaMessage( "GAME OVER!  Freq " + winnerFreq + " has won the game after " + getTimeString( flagTimer.getTotalSecs() ) +
                     " Final score: " + freq0Score + " - " + freq1Score, 2 );
             
-            m_botAction.sendArenaMessage( "Give congratulations to FREQ " + winnerFreq + winMsg);
+            m_botAction.sendArenaMessage( "Give congratulations to FREQ " + winnerFreq + winMsg  + " (Bonus: +$" + moneyBonus + ")");
 
             freq0Score = 0;
             freq1Score = 0;
@@ -2242,70 +2257,6 @@ public class GameFlagTimeModule extends AbstractModule {
 		return someMap;
 	}
     
-    public void test() {
-    	
-        flagClaims = new HashMap<String,Integer>();
-        kills = new HashMap<String,Integer>();
-        terrKills = new HashMap<String,Integer>();
-        deaths = new HashMap<String,Integer>();
-        killsLocationWeigth = new HashMap<String,Integer>();
-        playerTimes = new HashMap<String,Integer>();
-        killsBounty = new HashMap<String,Integer>();
-
-        flagClaims.put("Roger", 5);
-        flagClaims.put("Pierre", 2);
-        flagClaims.put("JF", 1);
-        flagClaims.put("Gaston", 6);
-        
-        kills.put("Roger", 20);
-        kills.put("Pierre", 10);
-        kills.put("JF", 20);
-        kills.put("Gaston", 15);
-        
-        terrKills.put("Roger", 2);
-        terrKills.put("Pierre", 5);
-        terrKills.put("JF", 1);
-        terrKills.put("Gaston", 3);
-        
-        deaths.put("Roger", 10);
-        deaths.put("Pierre", 1);
-        deaths.put("JF", 10);
-        deaths.put("Gaston", 1);
-        
-        killsLocationWeigth.put("Roger", 500);
-        killsLocationWeigth.put("Pierre", 250);
-        killsLocationWeigth.put("JF", 100);
-        killsLocationWeigth.put("Gaston", 500);
-        
-        playerTimes.put("Roger", 100);
-        playerTimes.put("Pierre", 250);
-        playerTimes.put("JF", 500);
-        playerTimes.put("Gaston", 1000);
-        
-        killsBounty.put("Roger", 5000);
-        killsBounty.put("Pierre", 3000);
-        killsBounty.put("JF", 2000);
-        killsBounty.put("Gaston", 1000);
-
-        System.out.println("Kills:  " + kills);
-        System.out.println("Death:  " + deaths);
-        System.out.println("TEK:    " + terrKills);
-        System.out.println("Flag:   " + flagClaims);
-        System.out.println("Weight: " + killsLocationWeigth);
-        System.out.println("Time:   " + playerTimes);
-        System.out.println("Bounty: " + killsBounty);
-        System.out.println();
-        
-        doEndRoundNew();
-
-    }
-    
-    public static void main(String[] args) {
-		
-    	GameFlagTimeModule module = new GameFlagTimeModule(null, null);
-    	module.test();
-	}
-
 	@Override
 	public void reloadConfig() 
 	{

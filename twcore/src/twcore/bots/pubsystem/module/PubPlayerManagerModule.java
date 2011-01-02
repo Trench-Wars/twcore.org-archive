@@ -795,9 +795,11 @@ public class PubPlayerManagerModule extends AbstractModule {
 		this.databaseName = m_botAction.getBotSettings().getString("database");
 		this.shipWeight = new Vector<Integer>();
         shipWeight.add(new Integer(1));		// Allow unlimited number of spec players
-        for(int i = 1; i < 9; i++) {
-            shipWeight.add( new Integer(m_botAction.getBotSettings().getInt(m_botAction.getBotName() + "Ship" + i)));
+        String[] restrictions = m_botAction.getBotSettings().getString("ShipRestrictions" + m_botAction.getBotNumber()).split(",");
+        for(String r: restrictions) {
+        	shipWeight.add(new Integer(r));
         }
+
 	}
 
 
