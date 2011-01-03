@@ -302,13 +302,12 @@ public class pubsystem extends SubspaceBot
         String sender = getSender(event);
         int messageType = event.getMessageType();
         String message = event.getMessage().trim();
-
         if( message == null || sender == null )
             return;
 
         if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.PUBLIC_MESSAGE ) )
             handlePublicCommand(sender, message, messageType);
-        if ( m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) )
+        if ( m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) || m_botAction.getOperatorList().isBotExact(sender) )
             if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) )
                 handleModCommand(sender, message);
     }
@@ -369,9 +368,12 @@ public class pubsystem extends SubspaceBot
      */
     public void handleModCommand(String sender, String command) {
     	
-    	command = command.toLowerCase();
-    	
         try {
+            if(command.startsWith("New Player:")) {
+                context.getPubUtil().handleNewPlayer(command);
+                return;
+            }
+            command = command.toLowerCase();
         	if (command.equals("!setuparena") && m_botAction.getOperatorList().isOwner(sender)) {
         		setupArenaSetting();
         		m_botAction.sendSmartPrivateMessage(sender, "Setting changed!");
