@@ -670,6 +670,8 @@ public class GameFlagTimeModule extends AbstractModule {
             
             // Wait, make sure this player is not a freq hopper
             // Must have played at least 60 seconds on the winning freq
+            if (!playerTimes.containsKey(player.getPlayerName()))
+            	continue;
             int time = playerTimes.get(player.getPlayerName());
             if (time < 60)
             	continue;
