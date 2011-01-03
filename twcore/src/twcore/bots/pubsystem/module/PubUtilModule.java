@@ -1,8 +1,6 @@
 package twcore.bots.pubsystem.module;
 
-import java.sql.ResultSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Stack;
 import java.util.TimerTask;
@@ -13,9 +11,7 @@ import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.Message;
-import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
-import twcore.core.events.SQLResultEvent;
 import twcore.core.events.TurretEvent;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
@@ -65,16 +61,12 @@ public class PubUtilModule extends AbstractModule {
 	
 	private long uptime = 0;
 	
-	private HashMap<String,AliasCheck> aliases;
-	private HashMap<String, Integer[]> loopCatcher = new HashMap<String, Integer[]>();
-	
     private HashMap<String, Stack<String[]>> tutorials = new HashMap<String, Stack<String[]>>();
 	private HashMap<String, ObjonTimer> objonTimers = new HashMap<String, ObjonTimer>();
 	
 	public PubUtilModule(BotAction botAction, PubContext context) {
 		super(botAction, context, "Utility");
 		this.uptime = System.currentTimeMillis();
-		this.aliases = new HashMap<String,AliasCheck>();
 		reloadConfig();
 	}
 	
@@ -112,207 +104,33 @@ public class PubUtilModule extends AbstractModule {
             if (message.startsWith("Ping:")) {
                 pingString = message.substring(message.indexOf(':')+1, message.indexOf('m'));
                 currentPing = Integer.valueOf(pingString);
+                
+                m_botAction.sendUnfilteredPrivateMessage(currentInfoName, "*objon 2010");
+                m_botAction.sendPrivateMessage(currentInfoName, "Welcome to Trench Wars! If you'd like to see a brief tutorial, please type !tutorial");
+                if (currentPing == 0) {
+                    ObjonTimer lagCheck = new ObjonTimer(currentInfoName);
+                    m_botAction.scheduleTask(lagCheck, 45000, 15000);
+                    objonTimers.put(currentInfoName, lagCheck);
+                }
             }
-			if (!objonTimers.isEmpty() && objonTimers.containsKey(currentInfoName) && message.startsWith("PING Current")) {
+			if (objonTimers.containsKey(currentInfoName) && message.startsWith("PING Current")) {
 			    int pingCheck = Integer.valueOf(message.substring(message.indexOf(':') + 1, message.indexOf(" m")));
 			    if (pingCheck > 0) {
 	                m_botAction.sendUnfilteredPrivateMessage(currentInfoName, "*objon 2010");
 	                m_botAction.cancelTask(objonTimers.get(currentInfoName));
 			    }
 			}
-			if (message.startsWith("TIME: Session:")) {
-				String time = message.substring(message.indexOf("Total:")+6);
-				time = time.substring(0, time.indexOf("Created")).trim();
-				String[] pieces = time.split(":");
-				if (pieces.length==3) {
-					if (pieces[0].equals("0")) { // if usage less than 1 hour
-						
-						int hour = Integer.valueOf(pieces[0]);
-						int min = Integer.valueOf(pieces[1]);
-
-						if (aliases.containsKey(currentInfoName)) {
-							AliasCheck alias = aliases.get(currentInfoName);
-							alias.setUsage(hour*60+min);
-							System.out.println("[ALIAS] " + alias.getName() + " in array already.");
-							sendNewPlayerAlert(alias);
-						} else {
-							AliasCheck alias = new AliasCheck(currentInfoName,hour*60+min);
-							alias.setUsage(hour*60+min);
-							doAliasCheck(alias);
-						}
-					}
-                    
-                    if (Integer.valueOf(pieces[0]) < 100) {
-                        m_botAction.sendUnfilteredPrivateMessage(currentInfoName, "*objon 2010");
-                        m_botAction.sendPrivateMessage(currentInfoName, "Welcome to Trench Wars! If you'd like to see a brief tutorial, please type !tutorial");
-                        if (currentPing == 0) {
-                            ObjonTimer lagCheck = new ObjonTimer(currentInfoName);
-                            m_botAction.scheduleTask(lagCheck, 45000, 15000);
-                            objonTimers.put(currentInfoName, lagCheck);
-                        }
-                    }
-				}
-			}
 		}
 	}
 	
-	public void handleEvent(SQLResultEvent event) {
-
-		ResultSet resultSet = event.getResultSet();
-		if(resultSet == null)
-			return;
-		
-		if (event.getIdentifier().startsWith("alias:")) {
-
-			String name = event.getIdentifier().substring(event.getIdentifier().lastIndexOf(":")+1);
-			AliasCheck alias = aliases.get(name);
-			if (alias==null)
-				return;
-			
-			// GET IP + MID
-			if (event.getIdentifier().startsWith("alias:ip:")) {
-
-				StringBuffer buffer = new StringBuffer();
-				try {
-					resultSet.beforeFirst();
-					while(resultSet.next()) {
-						buffer.append(", ");
-						buffer.append(resultSet.getString("fnIP"));
-					}
-				} catch (Exception e) { e.printStackTrace(); }
-				
-				if (buffer.length()>2)
-					alias.setIpResults("(" + buffer.toString().substring(2) + ") ");
-				else {
-					System.out.println("[ALIAS] " + buffer.toString());
-                    final String aliasIP = alias.getName();
-					Integer count = 0;
-					if (loopCatcher.containsKey(aliasIP)) {
-					    Integer[] tasks = loopCatcher.get(aliasIP);
-					    if (tasks.length < 2)
-					        tasks = new Integer[] {1, 0};
-					    else
-					        count = tasks[0] + 1;
-					}
-					if (count > 5)
-					    alias.setIpResults("");
-					final String database = m_botAction.getBotSettings().getString("database_alias");
-					if (alias.getIpResults() == null && database!=null) {
-					    TimerTask delayIP = new TimerTask() {
-					        @Override
-					        public void run() {
-					            System.out.println("[ALIAS] Blank IP: " + aliasIP + " Task Scheduled.");
-					            m_botAction.SQLBackgroundQuery(database, "alias:ip:"+aliasIP,
-					                    "SELECT DISTINCT(fnIP) " +
-					                    "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-					                    "WHERE fcUserName = '" + Tools.addSlashes(aliasIP) + "'");
-					        }
-					    };
-					    m_botAction.scheduleTask(delayIP, 10000);
-					}
-				}
-				
-			}
-			else if (event.getIdentifier().startsWith("alias:mid:")) {
-
-				StringBuffer buffer = new StringBuffer();
-				try {
-					resultSet.beforeFirst();
-					while(resultSet.next()) {
-						buffer.append(", ");
-						buffer.append(resultSet.getString("fnMachineId"));
-					}
-				} catch (Exception e) { e.printStackTrace(); }
-
-				if (buffer.length()>2)
-					alias.setMidResults("(" + buffer.toString().substring(2) + ") ");
-				else {
-                    final String aliasMID = alias.getName();
-                    Integer count = 0;
-                    if (loopCatcher.containsKey(aliasMID)) {
-                        Integer[] tasks = loopCatcher.get(aliasMID);
-                        if (tasks.length < 2)
-                            tasks = new Integer[] {0, 1};
-                        else
-                            count = tasks[1] + 1;
-                    }
-                    if (count > 5)
-                        alias.setMidResults("");
-				    final String database = m_botAction.getBotSettings().getString("database_alias");
-				    if (alias.getMidResults() == null && database!=null) {
-				        TimerTask delayMID = new TimerTask() {
-				            @Override
-				            public void run() {
-				                System.out.println("[ALIAS] Blank MID: " + aliasMID + " Task Scheduled.");
-				                m_botAction.SQLBackgroundQuery(database, "alias:mid:"+aliasMID,
-				                        "SELECT DISTINCT(fnMachineId) " +
-				                        "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-				                        "WHERE fcUserName = '" + Tools.addSlashes(aliasMID) + "'");
-				            }
-				        };
-				        m_botAction.scheduleTask(delayMID, 13000);
-				    }
-				}
-
-			}
-			
-			// Retrieve the final query using IP+MID
-			if (event.getIdentifier().startsWith("alias:final:")) {
-
-				HashSet<String> prevResults = new HashSet<String>();
-				int numResults = 0;
-
-				try {
-					while(resultSet.next()) {
-						String username = resultSet.getString("fcUserName");
-						if(!prevResults.contains(username)){
-							prevResults.add(username);
-							numResults++;
-						}
-					}
-				} catch (Exception e) { }
-
-				alias.setAliasCount(numResults);
-				sendNewPlayerAlert(alias);				
-				
-			}
-			// Send final query if we have IP+MID
-			else if (alias.getIpResults() != null && alias.getMidResults() != null) {
-				
-				String database = m_botAction.getBotSettings().getString("database_alias");
-				
-				if (alias.getIpResults().equals("") || alias.getMidResults().equals("")) {
-					alias.setAliasCount(0);
-					String reason = alias.getIpResults().equals("") ? "ip" : "mid";
-					if (alias.getIpResults().equals("") && alias.getMidResults().equals(""))
-						reason = "ip&mid";
-					System.out.println("[ALIAS] " + alias.getName() + " (empty:" + reason + ")");
-					sendNewPlayerAlert(alias);		
-				} else {
-					m_botAction.SQLBackgroundQuery(database, "alias:final:"+name,
-							"SELECT * " +
-							"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-							"WHERE fnIP IN " + alias.getIpResults() + " " +
-							"AND fnMachineID IN " + alias.getMidResults() + " ORDER BY fdUpdated DESC");
-				}
-				
-			}
-			
-			m_botAction.SQLClose(event.getResultSet());
-		}
-
-	}
-
-	public void handleEvent(PlayerEntered event) {
-		//checkForDoors();
-
-		Player player = m_botAction.getPlayer(event.getPlayerID());
-	    if(player.getPlayerName().startsWith("^") == false) {
-	    	m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*info");
-	    }
+	public void handleNewPlayer(String message) {
+	    currentInfoName = m_botAction.getFuzzyPlayerName(message.substring(message.indexOf(":") + 2));
+	    if (currentInfoName != null)
+	        m_botAction.sendUnfilteredPrivateMessage(currentInfoName, "*info");
+	    else
+	        currentInfoName = "";
 	}
 	
-    
     public void handleEvent(TurretEvent event) {
 
     	Player p1 = m_botAction.getPlayer(event.getAttacheeID());
@@ -546,41 +364,6 @@ public class PubUtilModule extends AbstractModule {
     	m_botAction.sendSmartPrivateMessage(sender, "Uptime: " + minute + " minutes");
     }
     
-    private void sendNewPlayerAlert(AliasCheck alias) {
-
-    	System.out.print("[ALIAS] " + alias.getName() + ":" + alias.getUsage() + ":" + alias.getAliasCount());
-    	if (alias.getUsage() < 15 && alias.getAliasCount() <= 2 && alias.getAliasCount() >= 0) {
-    		m_botAction.sendChatMessage(2, ">>>>>> New player: " + alias.getName() + " ALIASES: " + alias.getAliasCount());
-    		System.out.println(":YES");
-    	}
-    	else {
-    		System.out.println(":NO");
-    	}
-    	
-    }
-
-    // Alias check using background queries
-    private void doAliasCheck(AliasCheck alias)
-    {
-    	String database = m_botAction.getBotSettings().getString("database_alias");
-    	if (database==null) {
-    		return;
-    	}
-    	
-    	aliases.put(alias.getName(), alias);
-
-		m_botAction.SQLBackgroundQuery(database, "alias:ip:"+alias.getName(),
-				"SELECT DISTINCT(fnIP) " +
-				"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-				"WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
-		
-		m_botAction.SQLBackgroundQuery(database, "alias:mid:"+alias.getName(),
-				"SELECT DISTINCT(fnMachineId) " +
-				"FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-				"WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
-    }
-
-
     /**
      * Logs the bot off if not enabled.
      *
@@ -690,8 +473,10 @@ public class PubUtilModule extends AbstractModule {
         }
 
         public void run() {
-            if (m_botAction.getFuzzyPlayerName(name) != null)
+            if (m_botAction.getFuzzyPlayerName(name) != null) {
                 currentInfoName = name;
+                m_botAction.sendUnfilteredPrivateMessage(name, "*lag");
+            }
         }       
     }
     
@@ -699,6 +484,7 @@ public class PubUtilModule extends AbstractModule {
         if (!tutorials.containsKey(player)) {
             if (m_botAction.getPlayer(player).getShipType() == 0)
                 m_botAction.setShip(player, 1);
+            m_botAction.warpTo(player, 512, 760);
             m_botAction.sendUnfilteredPrivateMessage(player, "*objon 2011");
             m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2010");
             m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2020");
@@ -854,65 +640,13 @@ public class PubUtilModule extends AbstractModule {
 	public void requestEvents(EventRequester eventRequester) {
 		eventRequester.request(EventRequester.PLAYER_LEFT);
 		eventRequester.request(EventRequester.PLAYER_ENTERED);
+        eventRequester.request(EventRequester.MESSAGE);
 	}
 
 	@Override
 	public void start() {
 		setArenaTileset(defaultTileSet);
 	}
-	
-    private class AliasCheck
-    {
-    	private String name;
-    	
-    	private String ipResults;
-    	private String midResults;
-    	private int usage; // in minutes
-    	private int aliasCount = -1;
-
-    	public AliasCheck(String name, int usage) {
-    		this.name = name;
-    		this.usage = usage;
-    	}
-
-		public String getName() {
-			return name;
-		}
-
-		public int getUsage() {
-			return usage;
-		}
-		
-		public void setUsage(int usage) {
-			this.usage = usage;
-		}
-
-		public int getAliasCount() {
-			return aliasCount;
-		}
-		
-		public void setAliasCount(int count) {
-			this.aliasCount = count;
-		}
-
-		public String getIpResults() {
-			return ipResults;
-		}
-
-		public void setIpResults(String ipResults) {
-			this.ipResults = ipResults;
-		}
-
-		public String getMidResults() {
-			return midResults;
-		}
-
-		public void setMidResults(String midResults) {
-			this.midResults = midResults;
-		}
-
-    }
-
 	
     /**
      * This private class logs the bot off.  It is used to give a slight delay
