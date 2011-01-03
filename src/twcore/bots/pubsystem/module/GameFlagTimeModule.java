@@ -105,6 +105,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
 		objs = m_botAction.getObjectSet();
 		warpPlayers = new HashMap<String,PubPlayer>();
+		playerTimes = new HashMap<String,Integer>();
 		
 		reloadConfig();
 
