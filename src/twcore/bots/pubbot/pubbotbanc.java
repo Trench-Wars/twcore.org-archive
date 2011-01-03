@@ -217,7 +217,7 @@ public class pubbotbanc extends PubBotModule {
 	            for(String e: hashSuperSpec)
 	                m_botAction.sendSmartPrivateMessage("quiles", e);
 	            //maybe pm the player here?
-        } else
+        } /*else
 		if(command.startsWith(BanCType.KICK.toString())) {
 			// kick player from arena
 			tempBanCCommand = BanCType.KICK.toString();
@@ -229,7 +229,7 @@ public class pubbotbanc extends PubBotModule {
     			m_botAction.sendPrivateMessage(tempBanCPlayer, "You're not allowed in Trench Wars for "+tempBanCTime+" minutes because of abuse and/or violation of Trench Wars rules.");
     		
 			m_botAction.sendUnfilteredPrivateMessage(tempBanCPlayer, "*kill");
-		}
+		} removed so i could compile without errors */ 
     }
     
     private void handleSuperSpec(String command) {
