@@ -59,11 +59,14 @@ public class pubautobot extends SubspaceBot {
 	private int freq;
 	private int botX;
 	private int botY;
+	private int angle = 0;
+	private int angleTo = 0;
 	
     private int turret = -1;
-	LinkedList<Projectile> fired = new LinkedList<Projectile>();
-	Vector<RepeatFireTimer> repeatFireTimers = new Vector<RepeatFireTimer>();
-    
+    private LinkedList<Projectile> fired = new LinkedList<Projectile>();
+	private Vector<RepeatFireTimer> repeatFireTimers = new Vector<RepeatFireTimer>();
+    private RotationTask rotationTask;
+	
 	boolean isSpawning = false;
 
 	private boolean enemyOnSight = false;
@@ -424,17 +427,7 @@ public class pubautobot extends SubspaceBot {
 			doSpecCmd(name);
 		else if (msg.equalsIgnoreCase("!help"))
 			m_botAction.smartPrivateMessageSpam( name, helpmsg );
-			
-		/*
-		if(msg.equalsIgnoreCase("!blah"))
-			doBlahCmd();
-		if(msg.equalsIgnoreCase("!blah"))
-			doBlahCmd();
-		if(msg.equalsIgnoreCase("!blah"))
-			doBlahCmd();
-		if(msg.equalsIgnoreCase("!blah"))
-			doBlahCmd();
-		*/
+
     }
     
     public void doAttachCmd(String msg) 
@@ -534,6 +527,7 @@ public class pubautobot extends SubspaceBot {
     	try{m_botAction.cancelTask(updateIt);}catch(Exception e){}
     	m_botAction.getShip().setShip(8);
     }
+    
     public void doWarpToCmd(String name, String message){
     	if(m_botAction.getShip().getShip() == 8)return;
     	String[] msg = message.split(" ");
@@ -545,14 +539,24 @@ public class pubautobot extends SubspaceBot {
     		botY = y;
     	}catch(Exception e){}
     }
+    
 	public void doFaceCmd(String name, String message){
 		if(m_botAction.getShip().getShip() == 8)return;
 		try{
 			float degree = Float.parseFloat(message);
 			int l = Math.round(degree);		
-			m_botAction.getShip().setRotation(l);
+
+			if (rotationTask == null) {
+				rotationTask = new RotationTask();
+				rotationTask.start();
+			}
+			angleTo = l;
+			//System.out.println(l);
+			//m_botAction.getShip().setRotation(l);
+			
 		}catch(Exception e){}
 	}
+	
 	public void doDropBrickCmd(String message){
 		if(m_botAction.getShip().getShip() == 8)return;
 		try{
@@ -562,9 +566,11 @@ public class pubautobot extends SubspaceBot {
 			m_botAction.getShip().dropBrick(x, y);
 		}catch(Exception e){}
 	}
+	
 	public void doDropBrickWhereBotIsCmd(){
 		m_botAction.getShip().dropBrick();
 	}
+	
 	public void doFireCmd(String msg){
 		if(m_botAction.getShip().getShip() == 8)return;
 		try{
@@ -676,6 +682,51 @@ public class pubautobot extends SubspaceBot {
         	}
         }
     }
+	
+	private class RotationTask extends Thread {
+
+		public RotationTask() {
+
+		}
+		
+        public void run() {
+        	
+        	boolean invert = false;
+        	
+        	while(true) {
+
+        		if (angle == angleTo) {
+        			//try { Thread.sleep(500); } catch (InterruptedException e) { }
+        			m_botAction.getShip().setRotation(angleTo);
+
+        		} else {
+        			if (angle-angleTo < -20 || (angle-angleTo > 0 && angle-angleTo < 20)) {
+        				invert = true;
+        			} else {
+        				invert = false;
+        			}
+
+	        		if (Math.abs(angle-angleTo) <= 2) {
+	        			m_botAction.getShip().setRotation(angleTo);
+	        		} else {
+	        			angle += 3 * (invert?-1:1);
+	        			if (angle > 39) {
+	        				angle = angle-40;
+	        			} else if (angle < 0) {
+	        				angle = 40+angle;
+	        			}
+	        			
+	            		m_botAction.getShip().setRotation(angle);
+	        		}
+        		}
+        		
+        		try { Thread.sleep(125); } catch (InterruptedException e) { }
+
+        	}
+
+        }
+    }
+
 	
 private class RepeatFireTimer {
 	private int SPAWN_TIME = 5005;

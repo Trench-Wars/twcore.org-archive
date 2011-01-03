@@ -37,6 +37,7 @@ import twcore.bots.pubsystem.module.moneysystem.item.PubPrizeItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipUpgradeItem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
+import twcore.bots.pubsystem.util.AutobotThread;
 import twcore.bots.pubsystem.util.IPCReceiver;
 import twcore.bots.pubsystem.util.PubException;
 import twcore.core.BotAction;
@@ -1209,6 +1210,7 @@ public class PubMoneySystemModule extends AbstractModule {
    
     public void handleEvent(ArenaList event) {
     	
+    	/*
     	String thisArena = m_botAction.getArenaName();
     	if (thisArena.contains("Public")) 
     	{
@@ -1216,11 +1218,14 @@ public class PubMoneySystemModule extends AbstractModule {
 	    	
 	    	int i=0;
 	    	for(String arena: event.getArenaNames()) {
+	    		System.out.println(i + ": " + arena);
 	    		if(arena.equals(thisArena)) {
 	    			this.arenaNumber = String.valueOf(i);
 	    		}
+	    		i++;
 	    	}
     	}
+    	*/
     	
     }
     
@@ -1656,7 +1661,7 @@ public class PubMoneySystemModule extends AbstractModule {
     
     private void itemCommandRoofTurret(String sender, String params) {
 
-    	Thread t = new AutobotRoofThread(sender, params);
+    	Thread t = new AutobotRoofThread(sender, params, m_botAction, IPC_CHANNEL);
     	ipcReceivers.add((IPCReceiver)t);
     	t.start();
     	
@@ -1865,54 +1870,16 @@ public class PubMoneySystemModule extends AbstractModule {
 		}
 	};
 	
-	private class AutobotRoofThread extends Thread implements IPCReceiver {
+	private class AutobotRoofThread extends AutobotThread {
 
-		private String sender;
-		private String parameters;
-		
-		private boolean locked = false;
-		private String autobotName = null;
-		
-		public AutobotRoofThread(String sender, String parameters) {
-			this.sender = sender;
-			this.parameters = parameters;
-		}
-		
-		public void run() 
-		{
-			super.run();
-	    	String hubName = m_botAction.getBotSettings().getString("HubName");
-	    	m_botAction.requestArenaList();
-	    	m_botAction.sendSmartPrivateMessage(hubName, "!spawn pubautobot");
-	    	m_botAction.sendSmartPrivateMessage(sender, "Please wait while spawning the turret..");
+		public AutobotRoofThread(String sender, String parameters, BotAction m_botAction, String ipcChannel) {
+			super(sender, parameters, m_botAction, ipcChannel);
 		}
 
-		public void handleInterProcessEvent(InterProcessEvent event) {
-			if (event.getChannel().equals(IPC_CHANNEL)) {
-				
-				IPCMessage object = (IPCMessage)event.getObject();
-				String message = object.getMessage();
-				String sender = object.getSender();
-				
-				if (!locked && message.equals("loggedon")) {
-					m_botAction.ipcSendMessage(IPC_CHANNEL, "looking", null, m_botAction.getBotName());
-					
-				} else if (!locked && message.equals("locked")) {
-					locked = true;
-					autobotName = sender;
-					m_botAction.ipcSendMessage(IPC_CHANNEL, "confirm_lock", null, m_botAction.getBotName()+":"+this.sender);
-					m_botAction.sendSmartPrivateMessage(this.sender, sender + " has spawned, setting up the turret..");
-					try { Thread.sleep(1*Tools.TimeInMillis.SECOND); } catch (InterruptedException e) {}
-					ready();
-				}
-				
-			}
-		}
-		
 		public void ready() {
 			
 			Player p = m_botAction.getPlayer(sender);
-			commandBot("!go " + arenaNumber);
+			commandBot("!go " + m_botAction.getArenaName().substring(8,9));
 			try { Thread.sleep(2*Tools.TimeInMillis.SECOND); } catch (InterruptedException e) {}
 			commandBot("!setship 1");
 			try { Thread.sleep(250); } catch (InterruptedException e) {}
