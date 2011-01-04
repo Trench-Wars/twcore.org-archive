@@ -196,7 +196,7 @@ public class PubKillSessionModule extends AbstractModule {
 		if (!sessionStarted)
 			return false;
 		
-		if (getLeaders().contains(playerName)) {
+		if (getLeadersList().contains(playerName)) {
 			return true;
 		} else {
 			return false;
@@ -329,11 +329,11 @@ public class PubKillSessionModule extends AbstractModule {
     		}
     		
     		// Sort by number of kills order descending
-    		List<String> leaders = getLeaders();
+    		List<String> leaders = getLeadersList();
     		
     		if (!leaders.isEmpty()) {
     			
-    			String namesString = "";
+    			String namesString = leaders.get(0);
     			
 				if (leaders.size() > 1) {
 					for(int i=1; i<leaders.size(); i++) {
@@ -364,8 +364,8 @@ public class PubKillSessionModule extends AbstractModule {
     		m_botAction.sendSmartPrivateMessage(sender, "There is no session running now. Next session: " + getNextSession());
     	}
     }
-    
-    public List<String> getLeaders() {
+
+    public List<String> getLeadersList() {
 
 		// Sort by number of kills order descending
 		List<Integer> nums = new ArrayList<Integer>(kills.values());
