@@ -11,7 +11,6 @@ import twcore.core.EventRequester;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
 //import twcore.core.events.SQLResultEvent;
-import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
 public class pubbotnewbie extends PubBotModule{
@@ -51,14 +50,9 @@ public class pubbotnewbie extends PubBotModule{
     
     public void handleEvent(PlayerEntered event) {
         pubCheck();
-        Player player = m_botAction.getPlayer(event.getPlayerID());
-        if(pub && player.getPlayerName().startsWith("^") == false) {
-            m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*info");
-        }
     }
 
     public void handleEvent(Message event) {
-        pubCheck();
         String message = event.getMessage();
         if (pub && event.getMessageType() == Message.ARENA_MESSAGE)
         {
@@ -247,9 +241,9 @@ public class pubbotnewbie extends PubBotModule{
     private void sendNewPlayerAlert(AliasCheck alias) {
 
         System.out.print("[ALIAS] " + alias.getName() + ":" + alias.getUsage() + ":" + alias.getAliasCount());
-        if (alias.getUsage() < 15 && alias.getAliasCount() < 2 && alias.getAliasCount() >= 0) {
+        if (alias.getUsage() < 15 && alias.getAliasCount() < 20 && alias.getAliasCount() >= 0) {
             m_botAction.sendSmartPrivateMessage(PUBSYSTEM, "New Player: " + alias.getName());
-            m_botAction.ipcSendMessage(ZONE_CHANNEL, "alert >>>>>> New player(" + alias.getAliasCount() + "): " + alias.getName(), PUBSYSTEM, m_botAction.getBotName());
+            m_botAction.ipcSendMessage(ZONE_CHANNEL, "alert >>>>>> New player alert(" + alias.getAliasCount() + "): " + alias.getName(), PUBSYSTEM, m_botAction.getBotName());
             System.out.println(":YES");
         } else {
             System.out.println(":NO");
