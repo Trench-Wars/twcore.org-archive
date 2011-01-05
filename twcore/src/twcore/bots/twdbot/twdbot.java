@@ -67,7 +67,8 @@ public class twdbot extends SubspaceBot {
     public void requestEvents() {
         EventRequester req = m_botAction.getEventRequester();
         req.request( EventRequester.MESSAGE );
-    };
+        m_botAction.sendUnfilteredPublicMessage("?chat=" + "robodev" );
+    }
 
 
     public static String[] stringChopper( String input, char deliniator ){
