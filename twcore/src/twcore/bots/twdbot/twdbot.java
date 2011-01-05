@@ -773,6 +773,7 @@ public class twdbot extends SubspaceBot {
                     m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblTWDPlayerMID WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'");
                 } catch (SQLException e) {}
                 m_botAction.sendSmartPrivateMessage( name, "Your name will be reset in 24 hours." );
+                m_botAction.sendChatMessage(name+" will be reseted in 24 hrs(testing reset func) - 1");
             }
         } else {
             if( dbP.hasBeenDisabled() ) {
@@ -786,6 +787,8 @@ public class twdbot extends SubspaceBot {
                     m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblTWDPlayerMID WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'");
                 } catch (SQLException e) {}
                 m_botAction.sendSmartPrivateMessage( name, "The name '"+message+"' has been reset, and all IP/MID entries have been removed." );
+                m_botAction.sendChatMessage(name+" is force-reseted(testing reset func) - 2");
+                
             }
         }
     }
