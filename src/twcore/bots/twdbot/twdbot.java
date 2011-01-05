@@ -58,7 +58,7 @@ public class twdbot extends SubspaceBot {
 
         m_waitingAction = new HashMap<String, String>();
         m_requesters = new HashMap<String, String>();
-        m_botAction.sendUnfilteredPublicMessage("?chat=robodev");
+        //m_botAction.sendUnfilteredPublicMessage("?chat=robodev");
         requestEvents();
     }
 
