@@ -60,7 +60,7 @@ public class pubbotafk extends PubBotModule {
     public void check() {
         if (!players.isEmpty()) {
             for (String name : players.keySet()) {
-                if(opList.isER(name)) {
+                if(opList.isER(name) && !opList.isSmod(name)) {
                     // Staffers
                     if (getIdleTime(name) >= (STAFF_WARNING_TIME + STAFF_MOVE_TIME)) {
                         m_botAction.sendPrivateMessage(name, MOVE_MESSAGE);
