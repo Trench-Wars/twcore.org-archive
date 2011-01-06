@@ -1806,7 +1806,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	   	
 	   	final Integer[] freqs = freqList.toArray(new Integer[freqList.size()]);
 	   	
-	   	m_botAction.sendArenaMessage(sender + " has bough a Sphere of Seclusion for freq " + message + ".",17);
+	   	m_botAction.sendArenaMessage(sender + " has bought a Sphere of Seclusion for freq " + message + ".",17);
 	   	
 		m_botAction.scheduleTask(new SphereSeclusionTask(freqs,true), 0);
 		m_botAction.scheduleTask(new SphereSeclusionTask(freqs,false), 30*Tools.TimeInMillis.SECOND);
