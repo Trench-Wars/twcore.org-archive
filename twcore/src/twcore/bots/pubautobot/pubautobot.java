@@ -42,30 +42,38 @@ public class pubautobot extends SubspaceBot {
 	// Inter-bot communication
 	private static final String IPC_CHANNEL = "pubautobot";
 
-	// Mode
-	private static enum Mode { STATIC, DYNAMIC };
-	private Mode mode = Mode.STATIC;
-	
-	// Bot settings
+	// Ownership
 	private boolean locked = false;
 	private String owner; // usually a bot
 	private String subowner; // usually a player
+	
+	// Settings
 	private boolean autoAiming = false;
+	private boolean enemyAimingOnly = true;
 	private boolean fireOnSight = false;
 	private boolean following = false;
-	private boolean killable = true;
+	private boolean killable = false;
+	private boolean quitOnDeath = false;
+	private boolean fastRotation = true;
+	private int timeoutAt = -1; // after timeout, bot disconnects
+	private int energyOnStart = 1; // one shot and dead
 	private HashSet<String> locations; // array of x:y position
-
+	private int dieAtXshots = 1; // if 1, first hit the bot dies
+	private long startedAt = 0;
+	
+	// In-game settings
 	private int freq;
 	private int botX;
 	private int botY;
 	private int angle = 0;
 	private int angleTo = 0;
+	private int numberOfShots = 0;
 	
-    private int turret = -1;
+    private int turretPlayerID = -1;
     private LinkedList<Projectile> fired = new LinkedList<Projectile>();
 	private Vector<RepeatFireTimer> repeatFireTimers = new Vector<RepeatFireTimer>();
     private RotationTask rotationTask;
+    private DisableEnemyOnSightTask disableEnemyOnSightTask;
 	
 	boolean isSpawning = false;
 
@@ -117,6 +125,7 @@ public class pubautobot extends SubspaceBot {
     public void loadConfig() {
     	
     	locations = new HashSet<String>();
+    	disableEnemyOnSightTask = new DisableEnemyOnSightTask();
     	
     }
     
@@ -131,31 +140,25 @@ public class pubautobot extends SubspaceBot {
 		m_botAction.setPlayerPositionUpdating(200);
     }
 
-    public void handleEvent(ArenaJoined event) {
-    	
-    	/*
-    	String onStart = m_botAction.getBotSettings().getString("OnStart"+m_botAction.getBotNumber());
-    	if (onStart != null) {
-    		
-    		String[] commands = onStart.split(",");
-    		for(String command: commands) {
-    			handleCommand("null", command.trim());
-    		}
-    		
-    	}
-    	*/
-    	
-    }
-    
-    public void handleEvent(InterProcessEvent event){
+    /* Step to request this bot
+     * 
+     * 1. RandomBot> Send a "looking"
+     * 2. Autobot> If not locked, send a "locked"
+     *    If not confirmation after 5 seconds, the bot is free'd
+     * 3. RandomBot> Confirm with "confirm_lock"
+     * 4. Setup the new owner of this bot
+     */
+    public void handleEvent(InterProcessEvent event)
+    {
     	IPCMessage ipc = (IPCMessage)event.getObject();
     	String message = ipc.getMessage();
+    	
     	if(message.equals("looking") && !locked) {
     		locked = true;
     		m_botAction.scheduleTask(new FreeTask(), 5*Tools.TimeInMillis.SECOND);
-    		m_botAction.ipcSendMessage(IPC_CHANNEL, "locked", null, m_botAction.getBotName());
+    		m_botAction.ipcSendMessage(IPC_CHANNEL, "locked", ipc.getSender(), m_botAction.getBotName());
     	}
-    	else if(message.equals("confirm_lock")) {
+    	else if(message.equals("confirm_lock") && ipc.getRecipient().equals(m_botAction.getBotName())) {
     		String[] owners = ipc.getSender().split(":");
     		owner = owners[0];
     		if (owners.length==2) {
@@ -181,26 +184,33 @@ public class pubautobot extends SubspaceBot {
         req.request(EventRequester.LOGGED_ON);
         req.request(EventRequester.PLAYER_POSITION);
         req.request(EventRequester.PLAYER_DEATH);
-        req.request(EventRequester.ARENA_JOINED);
         req.request(EventRequester.PLAYER_LEFT);
         req.request(EventRequester.FREQUENCY_SHIP_CHANGE);
     }
 
     public void handleEvent(PlayerLeft event){
-    	if(event.getPlayerID() == turret)doUnAttachCmd();
+    	if(event.getPlayerID() == turretPlayerID)unAttach();
     }
     
     public void handleEvent(FrequencyShipChange event){
-    	if(event.getPlayerID() == turret && event.getShipType() == 0)doUnAttachCmd();
+    	if(event.getPlayerID() == turretPlayerID && event.getShipType() == 0)unAttach();
     }
     
     public void handleEvent(PlayerDeath event) {
-    	if(turret == -1)return;
+
     	String killer = m_botAction.getPlayerName(event.getKillerID());
+    	String killee = m_botAction.getPlayerName(event.getKilleeID());
+    	
     	//TODO: Check to make sure the killer isn't a bot.
-    	if(turret == event.getKilleeID()){
-    		doUnAttachCmd();
-    		doAttachCmd(killer);
+    	if(turretPlayerID == event.getKilleeID()){
+    		unAttach();
+    		attach(killer);
+    	}
+    	if (killee.equals(m_botAction.getBotName())) {
+    		numberOfShots = 0;
+    	}
+    	if (quitOnDeath && killee.equals(m_botAction.getBotName())) {
+    		disconnect();
     	}
 
     }
@@ -208,7 +218,7 @@ public class pubautobot extends SubspaceBot {
     public void handleEvent(WeaponFired event) {
     	if(!killable) return;
     	if(m_botAction.getShip().getShip() == 8) return;
-    	if(turret != -1) return;
+    	if(turretPlayerID != -1) return;
     	Player p = m_botAction.getPlayer(event.getPlayerID());
         if(p == null || (p.getFrequency() == m_botAction.getShip().getAge()) || event.getWeaponType() > 8 || event.isType(5) || event.isType(6) || event.isType(7))return;
         double pSpeed = p.getWeaponSpeed();
@@ -218,35 +228,35 @@ public class pubautobot extends SubspaceBot {
     
     public void handleEvent(PlayerPosition event) {
     	
-    	if(m_botAction.getShip().getShip() == 8) {
-    		enemyOnSight = false;
-    		return;
-    	}
+    	if(m_botAction.getShip().getShip() == 8) return;
+    	
     	Player p = m_botAction.getPlayer(event.getPlayerID());
-        if(p == null || !autoAiming || (p.getFrequency() == freq)) {
-        	enemyOnSight = false;
+        if(p == null || !autoAiming || (enemyAimingOnly && p.getFrequency() == freq)) {
         	return;
         }
-        
+
         if (!locations.isEmpty()) {
         	String xy = event.getXLocation()/16 + ":" + event.getYLocation()/16;
         	if (!locations.contains(xy)) {
-        		enemyOnSight = false;
         		return;
         	}
         }
 
+        m_botAction.cancelTask(disableEnemyOnSightTask);
+        disableEnemyOnSightTask = new DisableEnemyOnSightTask();
+        m_botAction.scheduleTask(disableEnemyOnSightTask, 3*Tools.TimeInMillis.SECOND);
+        
         enemyOnSight = true;
         
         double diffY, diffX, angle;
-    	diffY = (event.getYLocation() + (event.getYVelocity() * REACTION_TIME)) - botY;
-    	diffX = (event.getXLocation() + (event.getXVelocity() * REACTION_TIME)) - botX;
+        diffX = (event.getXLocation() + (event.getXVelocity() * REACTION_TIME)) - m_botAction.getShip().getX();
+    	diffY = (event.getYLocation() + (event.getYVelocity() * REACTION_TIME)) - m_botAction.getShip().getY();
     	angle = (180 - (Math.atan2(diffX, diffY)*180/Math.PI)) * SS_CONSTANT;
-    	
-    	if (!following)
+
+    	if (!following) {
     		doFaceCmd(m_botAction.getBotName(), Double.toString(angle));
-    	
-    	if (following) {
+    	}
+    	else {
     		
     		if (target != null && !target.equals(p.getPlayerName()))
     			return;
@@ -292,37 +302,43 @@ public class pubautobot extends SubspaceBot {
     		int vX = (int)(1000*pctX*pctD);
     		int vY = (int)(1000*pctY*pctD);
 
+    		//System.out.println("Px:"+pX + "   Py:"+pY + "   Bx:"+bX + "   By:"+bY + "   BBx:"+botX + "   BBy:"+botY + "   Vx:"+vX + "   Vy:"+vY + "   A:"+angle);
+    		
     		m_botAction.getShip().setVelocitiesAndDir(vX, vY, (int)angle);
     		
     	}
     }
     
     public void update(){
+    	
     	botX = m_botAction.getShip().getX();
  		botY = m_botAction.getShip().getY();
 
-     	if(turret == -1){
+     	if(turretPlayerID == -1){
      		ListIterator<Projectile> it = fired.listIterator();
      		while (it.hasNext()) {
-     			Projectile b = (Projectile) it.next();     			
+     			Projectile b = (Projectile) it.next();   
      			if (b.isHitting(botX, botY)) {
-     				
+
      				if (m_botAction.getPlayer(b.getOwner()).getFrequency()==freq)
      					return;
-     			
+
      				if(!isSpawning){
+         				numberOfShots++;
      					spawned = new TimerTask(){
      						public void run(){
      							isSpawning = false;
      						}
      					};
-     					isSpawning = true;
-     					m_botAction.scheduleTask(spawned, SPAWN_TIME);
-     					m_botAction.sendDeath(m_botAction.getPlayerID(b.getOwner()), 0);
-     					Iterator<RepeatFireTimer> i = repeatFireTimers.iterator();
-     					while(i.hasNext())i.next().pause(); 				
-     					it.remove();
+     					if (numberOfShots >= dieAtXshots) {
+	     					isSpawning = true;
+	     					m_botAction.scheduleTask(spawned, SPAWN_TIME);
+	     					m_botAction.sendDeath(m_botAction.getPlayerID(b.getOwner()), 0);
+	     					Iterator<RepeatFireTimer> i = repeatFireTimers.iterator();
+	     					while(i.hasNext())i.next().pause(); 
+     					}
      				}
+     				it.remove();
      			} 
      			else if (b.getAge() > 5000) {
      				it.remove();
@@ -330,7 +346,7 @@ public class pubautobot extends SubspaceBot {
      		}
 		}
      	else{
-     		Player p = m_botAction.getPlayer(turret);
+     		Player p = m_botAction.getPlayer(turretPlayerID);
      		if(p == null)return;
 			int xVel = p.getXVelocity();
 			int yVel = p.getYVelocity();
@@ -356,25 +372,53 @@ public class pubautobot extends SubspaceBot {
     	{
     		if(m_botAction.getOperatorList().isSmod(playerName)){
     			if (m_botAction.getOperatorList().isSmod(playerName) && message.equalsIgnoreCase("!die"))
-    	            doDieCmd(playerName);
+    	            disconnect();
     				
     		}
     		
-    		if (locked && owner != null && (owner.equals(playerName) || subowner.equals(playerName))) {
-    			handleCommand(playerName, message);
+    		if (locked && owner != null && (owner.equals(playerName) || subowner.equals(playerName)) && handleCommand(playerName, message)) {
+    			// ok
     		}
     		else {
     			if (owner != null) {
     				String controllerBy = owner;
     				if (subowner != null) controllerBy += " and " + subowner;
-    				m_botAction.sendSmartPrivateMessage( playerName, "Hi! I'm controlled by " + controllerBy + ".");
+    				m_botAction.sendSmartPrivateMessage(playerName, "Hi " + playerName + ", I am controlled by " + controllerBy + ". ");
+    				
+    				String aboutMe  = "About me: ";
+    				String aboutMe2 = "";
+    				if (killable) 
+    				{
+    					aboutMe += "I can be killed. ";
+    					if (dieAtXshots > 1) {
+    						aboutMe += "I die after " + dieAtXshots + " shots, " + (dieAtXshots-numberOfShots) + " left. ";
+    					} else {
+    						aboutMe += "Hit me 1 time and I die. ";
+    					}
+    					if (timeoutAt != -1) {
+    						aboutMe2 += "I will disconnect in " + Tools.getTimeDiffString(startedAt+timeoutAt*1000, false) + ". ";
+    					}
+    				} 
+    				else {
+    					aboutMe += "I cannot be killed. ";
+    					if (timeoutAt != -1) {
+    						aboutMe += "I will disconnect in " + Tools.getTimeDiffString(startedAt+timeoutAt*1000, false) + ". ";
+    					}
+    				}
+    				
+    				m_botAction.sendSmartPrivateMessage(playerName, aboutMe);
+    				if (!aboutMe2.equals("")) {
+    					m_botAction.sendSmartPrivateMessage(playerName, aboutMe2);
+    				}
     			}
     		}
     	}
     }
     
-    public void handleCommand(String name, String msg){
+    public boolean handleCommand(String name, String msg){
 
+    	msg = msg.toLowerCase().trim();
+    	
     	if(msg.startsWith("!setship "))
 			doSetShipCmd(name,msg.substring(9));
     	else if(msg.startsWith("!setfreq "))
@@ -393,69 +437,116 @@ public class pubautobot extends SubspaceBot {
 			doRepeatFireCmd(name, msg.substring(7), false);
 		else if(msg.startsWith("!rfonsight "))
 			doRepeatFireCmd(name, msg.substring(11), true);
-		else if(msg.equalsIgnoreCase("!listfire"))
+		else if(msg.equals("!listfire"))
 			doFireListCmd(name);
 		else if(msg.startsWith("!stopfire "))
 			doStopRepeatFireCmd(msg.substring(10));
-		else if(msg.equalsIgnoreCase("!stopfire"))
+		else if(msg.equals("!stopfire"))
 			doStopRepeatFireCmd(null);
-		else if(msg.equalsIgnoreCase("!killable"))
-			doKillableCmd(name);
+    	
+		else if(msg.equals("!killable"))
+			setKillable(true);
+		else if(msg.equals("!notkillable"))
+			setKillable(false);
+		else if(msg.startsWith("!dieatxshots "))
+			doDieAtXShotsCmd(msg.substring(13));
+    	
+		else if(msg.equals("!quitondeath"))
+			setQuitOnDeath(true);
+    	
 		else if(msg.startsWith("!brick "))
 			doDropBrickCmd(msg.substring(7));
-		else if(msg.equalsIgnoreCase("!brick"))
-			doDropBrickWhereBotIsCmd();
+		else if(msg.equals("!brick"))
+			dropBrick();
+    	
 		else if(msg.startsWith("!follow"))
 			doFollowOnSightCmd(msg.substring(7));
-		else if(msg.equalsIgnoreCase("!aim"))
-			doAimCmd();
+    	
+		else if(msg.equals("!aim"))
+			setAiming(true);
+		else if(msg.equals("!noaim"))
+			setAiming(false);
+    	
+		else if(msg.equals("!fastrotation"))
+			setFastRotation(true);
+		else if(msg.equals("!softrotation"))
+			setFastRotation(false);
+
+    	
+		else if(msg.equals("!aimingatenemy"))
+			setEnemyAiming(true);
+		else if(msg.equals("!aimingateveryone"))
+			setEnemyAiming(false);
+    	
 		else if(msg.startsWith("!attach "))
-			doAttachCmd(msg.substring(8));
-		else if(msg.equalsIgnoreCase("!unattach"))
-			doUnAttachCmd();
+			attach(msg.substring(8));
+		else if(msg.equals("!unattach"))
+			unAttach();
+    	
 		else if(msg.startsWith("!setaccuracy "))
 			doSetAccuracyCmd(msg.substring(13));
 		else if(msg.startsWith("!timeout "))
 			doTimeoutDieCmd(msg.substring(9));
 		else if(msg.startsWith("!move "))
 			doMoveCmd(name,msg.substring(6));
+		else if(msg.equals("!free"))
+			free();
 		else if(msg.startsWith("!go "))
-			doGoCmd(name, msg.substring(4).trim());	
-		else if(msg.equalsIgnoreCase("!die"))
-			doDieCmd(name);
-		else if (msg.equalsIgnoreCase("!spec"))
-			doSpecCmd(name);
-		else if (msg.equalsIgnoreCase("!help"))
+			go(msg.substring(4).trim());	
+		else if(msg.equals("!die"))
+			disconnect();
+		else if(msg.equals("!testshots"))
+			testShots();
+		else if (msg.equals("!spec"))
+			spec();
+    	
+    	/*
+		else if (msg.equals("!help"))
 			m_botAction.smartPrivateMessageSpam( name, helpmsg );
+		*/
+		else {
+			return false;
+		}
+    	
+    	return true;
 
     }
     
-    public void doAttachCmd(String msg) 
+    public void attach(String playerName) 
     {
-    	String name = m_botAction.getFuzzyPlayerName(msg);
+    	String name = m_botAction.getFuzzyPlayerName(playerName);
     	if (name==null)
     		return;
     	
     	Player p = m_botAction.getPlayer(name);
     	if (p==null)
     		return;
-    	
+
     	m_botAction.getShip().setFreq(p.getFrequency());
     	freq = p.getFrequency();
-    	m_botAction.getShip().attach(m_botAction.getPlayerID(name));
-    	turret = m_botAction.getPlayerID(name);
+    	
+    	turretPlayerID = m_botAction.getPlayerID(name);
+    	m_botAction.getShip().attach(turretPlayerID);
     }
     
-    public void doUnAttachCmd(){
-    	if(turret == -1)return;
+    public void unAttach() {
+    	if(turretPlayerID == -1)return;
     	m_botAction.getShip().unattach();
-    	turret = -1;
+    	turretPlayerID = -1;
     }
     
-    public void doAimCmd(){
-    	autoAiming = !autoAiming;
+    /* Not accurate
+     * Case: If the player dettach the bot */
+    public boolean isAttached() {
+    	if (turretPlayerID != -1)
+    		return true;
+    	return false;
     }
     
+    private void setAiming(boolean aiming) {
+    	autoAiming = aiming;
+    }
+
     public void doFollowOnSightCmd(String name) {
     	following = !following;
     	if (following) {
@@ -465,41 +556,60 @@ public class pubautobot extends SubspaceBot {
     	}
     }
     
-    private void doKillableCmd(String sender) {
-        killable = !killable;
+    private void setQuitOnDeath(boolean quit) {
+        this.quitOnDeath = quit;
+    }
+    
+    private void setKillable(boolean killable) {
+        this.killable = killable;
+    }
+    
+    private void setEnemyAiming(boolean aiming) {
+        this.enemyAimingOnly = aiming;
+    }
+    
+    private void setFastRotation(boolean rotation) {
+        this.fastRotation = rotation;
+    }
+    
+    private void doDieAtXShotsCmd(String parameter) {
+    	dieAtXshots = Integer.valueOf(parameter);
     }
     
     private void doTimeoutDieCmd(String parameter) {
     	int seconds = Integer.valueOf(parameter);
-    	int minutes = (int)(seconds/60);
+    	timeoutAt = seconds;
         m_botAction.scheduleTask(new DieTask(), seconds * Tools.TimeInMillis.SECOND);
     }
     
-    private void doDieCmd(String sender) {
-        m_botAction.sendSmartPrivateMessage(sender, "Logging Off.");
-        m_botAction.scheduleTask(new DieTask(), 500);
+    private void free() {
+    	locked = false;
+    	owner = null;
+    	subowner = null;
+    	m_botAction.getShip().setShip(8);
+    	m_botAction.changeArena(m_botAction.getBotSettings().getString("Arena"));
     }
     
-    private void doGoCmd(String sender, String argString) {
-        String currentArena = m_botAction.getArenaName();
+    private void disconnect() {
+    	m_botAction.scheduleTask(new DieTask(), 500);
+    }
+    
+    private void testShots() {
+    	for(int i=1; i<98; i++) {
+    		fire(i);
+    		try {
+				Thread.sleep(700);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    }
 
-        //if (currentArena.equalsIgnoreCase(argString))
-        //    throw new IllegalArgumentException("Bot is already in that arena.");
-        //if (isPublicArena(argString))
-        //    throw new IllegalArgumentException("Bot can not go into public arenas.");
-       	m_botAction.changeArena(argString);
-        m_botAction.sendSmartPrivateMessage(sender, "Going to " + argString + ".");
+    public void go(String arena) {
+        m_botAction.changeArena(arena);
     }
-    
-    private boolean isPublicArena(String arenaName) {
-        try {
-            Integer.parseInt(arenaName);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-    
+
     public void doSetShipCmd(String name, String message){
     	try{
     		int ship = Integer.parseInt(message.trim());
@@ -508,8 +618,8 @@ public class pubautobot extends SubspaceBot {
     			botX = m_botAction.getShip().getX();
     			botY = m_botAction.getShip().getY();
     			m_botAction.getShip().setFreq(0);
-    			m_botAction.cancelTask(updateIt);
     			m_botAction.scheduleTaskAtFixedRate(updateIt, 100, 100);
+    			startedAt = System.currentTimeMillis();
     		}
     	}catch(Exception e){}    		
     }
@@ -521,8 +631,8 @@ public class pubautobot extends SubspaceBot {
     		this.freq = freq;
     	}catch(Exception e){}
     }
-    
-    public void doSpecCmd(String name){
+
+    public void spec() {
     	if(m_botAction.getShip().getShip() == 8)return;
     	try{m_botAction.cancelTask(updateIt);}catch(Exception e){}
     	m_botAction.getShip().setShip(8);
@@ -532,29 +642,44 @@ public class pubautobot extends SubspaceBot {
     	if(m_botAction.getShip().getShip() == 8)return;
     	String[] msg = message.split(" ");
     	try {
-    		int x = Integer.parseInt(msg[0]) * 16 + 8;
-    		int y = Integer.parseInt(msg[1]) * 16 + 8;
-    		m_botAction.getShip().move(x, y);
-    		botX = x;
-    		botY = y;
+    		int x = Integer.parseInt(msg[0]);
+    		int y = Integer.parseInt(msg[1]);
+    		warpTo(x,y);
     	}catch(Exception e){}
+    }
+    
+    /* 0-1024 */
+    public void warpTo(int x, int y) {
+		m_botAction.getShip().move(x * 16 + 8, y * 16 + 8);
+		botX = x * 16 + 8;
+		botY = y * 16 + 8;
     }
     
 	public void doFaceCmd(String name, String message){
 		if(m_botAction.getShip().getShip() == 8)return;
 		try{
 			float degree = Float.parseFloat(message);
-			int l = Math.round(degree);		
-
-			if (rotationTask == null) {
-				rotationTask = new RotationTask();
-				rotationTask.start();
-			}
-			angleTo = l;
-			//System.out.println(l);
-			//m_botAction.getShip().setRotation(l);
-			
+			int angle = Math.round(degree);		
+			face(angle);
 		}catch(Exception e){}
+	}
+	
+	/* 0-39 */
+	public void face(int angle) {
+		
+		if (rotationTask == null && !fastRotation && !following) {
+			rotationTask = new RotationTask();
+			rotationTask.start();
+		}
+		else if (fastRotation || following) {
+			if (rotationTask != null) {
+				rotationTask.stopRunning();
+				rotationTask = null;
+			}
+			m_botAction.getShip().setRotation(angle);
+		}
+		
+		angleTo = angle;
 	}
 	
 	public void doDropBrickCmd(String message){
@@ -563,20 +688,29 @@ public class pubautobot extends SubspaceBot {
 			String[] msg = message.split(" ");
 			int x = Integer.parseInt(msg[0]);
 			int y = Integer.parseInt(msg[1]);
-			m_botAction.getShip().dropBrick(x, y);
+			dropBrickAtPosition(x,y);
 		}catch(Exception e){}
 	}
 	
-	public void doDropBrickWhereBotIsCmd(){
+	public void dropBrick(){
 		m_botAction.getShip().dropBrick();
+	}
+	
+	/* 0-1024 */
+	public void dropBrickAtPosition(int x, int y){
+		m_botAction.getShip().dropBrick(x * 16 + 8, y * 16 + 8);
 	}
 	
 	public void doFireCmd(String msg){
 		if(m_botAction.getShip().getShip() == 8)return;
 		try{
 			int wep = Integer.parseInt(msg);
-			m_botAction.getShip().fire(wep);
+			fire(wep);
 		}catch(Exception e){}
+	}
+	
+	public void fire(int weapon) {
+		m_botAction.getShip().fire(weapon);
 	}
 
 	public void doRepeatFireCmd(String name, String message, boolean fireOnSight){
@@ -660,7 +794,7 @@ public class pubautobot extends SubspaceBot {
 	    }
 	}
 	
-	private StringTokenizer getArgTokens(String string)
+	public StringTokenizer getArgTokens(String string)
 	  {
 	    if(string.indexOf((int) ':') != -1)
 	      return new StringTokenizer(string, ":");
@@ -683,20 +817,27 @@ public class pubautobot extends SubspaceBot {
         }
     }
 	
+	private class DisableEnemyOnSightTask extends TimerTask {
+        public void run() {
+        	enemyOnSight = false;
+        }
+    }
+	
 	private class RotationTask extends Thread {
 
-		public RotationTask() {
-
+		private boolean running = true;
+		
+		public void stopRunning() {
+			running = false;
 		}
 		
         public void run() {
         	
         	boolean invert = false;
         	
-        	while(true) {
+        	while(running) {
 
         		if (angle == angleTo) {
-        			//try { Thread.sleep(500); } catch (InterruptedException e) { }
         			m_botAction.getShip().setRotation(angleTo);
 
         		} else {
@@ -719,11 +860,9 @@ public class pubautobot extends SubspaceBot {
 	            		m_botAction.getShip().setRotation(angle);
 	        		}
         		}
-        		
         		try { Thread.sleep(125); } catch (InterruptedException e) { }
 
         	}
-
         }
     }
 
