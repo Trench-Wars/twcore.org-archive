@@ -32,7 +32,7 @@ import twcore.core.util.Tools;
 
 public class GameFlagTimeModule extends AbstractModule {
 
-    private static final int FLAG_CLAIM_SECS = 3;		// Seconds it takes to fully claim a flag
+    private static final int FLAG_CLAIM_SECS = 4;		// Seconds it takes to fully claim a flag
     private static final int INTERMISSION_SECS = 90;	// Seconds between end of round and start of next
     private static final int INTERMISSION_GAME_SECS = 90;	// Seconds between end of game and start of next
 	private static final int MAX_FLAGTIME_ROUNDS = 5;   // Max # rounds (odd numbers only)
@@ -2054,17 +2054,19 @@ public class GameFlagTimeModule extends AbstractModule {
 			return;
 		}
 
-		// Terrs and Levis can't warp into base if Levis are enabled
+		// Levis can't warp into base if Levis are enabled
 		if (!context.getPlayerManager().isShipRestricted(Tools.Ship.LEVIATHAN)) {
 			Player p = m_botAction.getPlayer(sender);
 			if (p.getShipType() == Tools.Ship.LEVIATHAN) {
 				m_botAction.sendSmartPrivateMessage(sender,"Leviathans can not warp in to base at round start.");
 				return;
 			}
+			/*
 			if (p.getShipType() == Tools.Ship.TERRIER) {
 				m_botAction.sendSmartPrivateMessage(sender,"Terriers can not warp into base at round start while Leviathans are enabled.");
 				return;
 			}
+			*/
 		}
 
 		if (warpPlayers.containsKey(sender)) {
@@ -2127,7 +2129,7 @@ public class GameFlagTimeModule extends AbstractModule {
 			
 			p = (Player) i.next();
 			pname = p.getPlayerName();
-			
+						
 			if (!allPlayers) 
 			{
 				if (p.getFrequency() != 0 && p.getFrequency() != 1) {
@@ -2140,6 +2142,10 @@ public class GameFlagTimeModule extends AbstractModule {
 						p = null;
 					}
 				}
+			}
+			
+			if (p != null && p.getShipType() == Tools.Ship.LEVIATHAN) {
+				p = null;
 			}
 
 			if (p != null) {

@@ -79,7 +79,7 @@ public class PubMoneySystemModule extends AbstractModule {
     // Coupon system
     private HashSet<String> couponOperators;
     private HashMap<String,CouponCode> coupons; // cache system
-    
+
     // Arena
     private String arenaNumber = "0";
     
@@ -144,7 +144,6 @@ public class PubMoneySystemModule extends AbstractModule {
         }
 
     }
-    
 
     private void buyItem(final String playerName, String itemName, String params){
     	
@@ -1582,6 +1581,21 @@ public class PubMoneySystemModule extends AbstractModule {
     	
     }
     
+    private void itemCommandImmunity(final String sender, String params) {
+    	
+    	m_botAction.sendSmartPrivateMessage(sender, "You have now an immunity for 4 minutes.");
+    	
+    	store.addImmunity(sender);
+    	TimerTask task = new TimerTask() {
+			public void run() {
+				m_botAction.sendSmartPrivateMessage(sender, "Immunity lost.");
+				store.removeImmunity(sender);
+			}
+		};
+		m_botAction.scheduleTask(task, 4*Tools.TimeInMillis.MINUTE);
+    	
+    }
+    
     private void itemCommandBaseBlast(String sender, String params) {
 
 	   	Player p = m_botAction.getPlayer(sender);
@@ -1661,9 +1675,27 @@ public class PubMoneySystemModule extends AbstractModule {
     
     private void itemCommandRoofTurret(String sender, String params) {
 
+    	m_botAction.sendSmartPrivateMessage(sender, "Please wait while looking for a bot..");
+    	
     	Thread t = new AutobotRoofThread(sender, params, m_botAction, IPC_CHANNEL);
     	ipcReceivers.add((IPCReceiver)t);
     	t.start();
+    	
+    }
+    
+    private void itemCommandBaseTer(String sender, String params) {
+
+    	m_botAction.sendSmartPrivateMessage(sender, "Please wait while looking for a bot..");
+
+    	Thread t1 = new AutobotBaseTerThread(sender, params, m_botAction, IPC_CHANNEL);
+    	ipcReceivers.add((IPCReceiver)t1);
+    	t1.start();
+    	
+    	/*
+    	Thread t2 = new AutobotBaseTerThread(sender, params, m_botAction, IPC_CHANNEL);
+    	ipcReceivers.add((IPCReceiver)t2);
+    	t2.start();
+    	*/
     	
     }
     
@@ -1735,6 +1767,17 @@ public class PubMoneySystemModule extends AbstractModule {
 	   	
     }
     
+    private void itemCommandBlindness(String sender, String params) throws PubException{
+
+    	Player p1 = m_botAction.getPlayer(sender);
+    	Player p2 = m_botAction.getPlayer(params);
+
+    	m_botAction.sendPrivateMessage(params, "You will be soon struck with a mysterious case of sudden blindness gave by " + p1.getPlayerName() + ".",Tools.Sound.CRYING);
+    	m_botAction.sendPrivateMessage(sender, "Blindness gave to " + p2.getPlayerName() + ".");
+	   	m_botAction.scheduleTask(new BlindnessTask(params,15,m_botAction),4*Tools.TimeInMillis.SECOND);
+
+    }
+    
     private void itemCommandSphere(String sender, String params) {
 
 	   	Player p = m_botAction.getPlayer(sender);
@@ -1758,16 +1801,15 @@ public class PubMoneySystemModule extends AbstractModule {
 	   	if (privFreqs > 0) {
 	   		message += " and " + privFreqs + " private freq(s)";
 	   	}
-	   	message = message.substring(2);
+	   	if (message.length()>2)
+	   		message = message.substring(2);
 	   	
 	   	final Integer[] freqs = freqList.toArray(new Integer[freqList.size()]);
 	   	
 	   	m_botAction.sendArenaMessage(sender + " has bough a Sphere of Seclusion for freq " + message + ".",17);
 	   	
-	   	// Turn on now
 		m_botAction.scheduleTask(new SphereSeclusionTask(freqs,true), 0);
-		// Turn off in 1 minute
-		m_botAction.scheduleTask(new SphereSeclusionTask(freqs,false), 1*Tools.TimeInMillis.MINUTE);
+		m_botAction.scheduleTask(new SphereSeclusionTask(freqs,false), 30*Tools.TimeInMillis.SECOND);
 
     }
     
@@ -1870,27 +1912,65 @@ public class PubMoneySystemModule extends AbstractModule {
 		}
 	};
 	
+	private class AutobotBaseTerThread extends AutobotThread {
+
+		public AutobotBaseTerThread(String sender, String parameters, BotAction m_botAction, String ipcChannel) {
+			super(sender, parameters, m_botAction, ipcChannel);
+		}
+		
+		protected void ready() {
+			m_botAction.sendTeamMessage("");
+		}
+
+		protected void prepare() {
+			Player p = m_botAction.getPlayer(sender);
+			commandBot("!Go " + m_botAction.getArenaName().substring(8,9));
+			try { Thread.sleep(2*Tools.TimeInMillis.SECOND); } catch (InterruptedException e) {}
+			commandBot("!SetShip 5");
+			commandBot("!SetFreq " + p.getFrequency());
+			if (p.getFrequency()==0) {
+				commandBot("!WarpTo 486 260");
+				commandBot("!Face 15");
+			} else if (p.getFrequency()==1) {
+				commandBot("!WarpTo 538 260");
+				commandBot("!Face 25");
+			} else {
+				commandBot("!WarpTo 512 253");
+				commandBot("!Face 20");
+			}
+			commandBot("!Timeout 300");
+			commandBot("!Killable");
+			commandBot("!DieAtXShots 20");
+			commandBot("!QuitOnDeath");
+			
+		}
+	}
+	
 	private class AutobotRoofThread extends AutobotThread {
 
 		public AutobotRoofThread(String sender, String parameters, BotAction m_botAction, String ipcChannel) {
 			super(sender, parameters, m_botAction, ipcChannel);
 		}
+		
+		protected void ready() {
+			m_botAction.sendArenaMessage(sender + " has bought a turret that will occupy the roof for 15 minutes.",21);
+		}
 
-		public void ready() {
+		protected void prepare() {
 			
 			Player p = m_botAction.getPlayer(sender);
-			commandBot("!go " + m_botAction.getArenaName().substring(8,9));
+			commandBot("!Go " + m_botAction.getArenaName().substring(8,9));
 			try { Thread.sleep(2*Tools.TimeInMillis.SECOND); } catch (InterruptedException e) {}
-			commandBot("!setship 1");
+			commandBot("!SetShip 1");
 			try { Thread.sleep(250); } catch (InterruptedException e) {}
-			commandBot("!setfreq " + p.getFrequency());
+			commandBot("!SetFreq " + p.getFrequency());
 			try { Thread.sleep(250); } catch (InterruptedException e) {}
-			commandBot("!warpto 512 239");
-			commandBot("!rfonsight 65 500");
-			commandBot("!timeout 900");
-			commandBot("!aim");
-			
-			m_botAction.sendArenaMessage(sender + " has bought a turret that will occupy the roof for 15 minutes.",21);
+			commandBot("!WarpTo 512 239");
+			commandBot("!RepeatFireOnSight 65 500");
+			commandBot("!AimingAtEnemy");
+			commandBot("!FastRotation");
+			commandBot("!Timeout 300");
+			commandBot("!Aim");
 			
 			// The autobot needs to know what is the roof
 			if (!m_botAction.getBotSettings().getString("location").isEmpty()) {
@@ -1904,12 +1984,37 @@ public class PubMoneySystemModule extends AbstractModule {
 			}
 			
 		}
-		
-		public void commandBot(String command) {
-			m_botAction.sendSmartPrivateMessage(autobotName, command);
-		}
-	
+
 	}
+	
+   	private class BlindnessTask extends TimerTask {
+   		private BotAction m_botAction;
+   		private String playerName;
+   		private int durationSecond;
+   		private long startedAt;
+   		public BlindnessTask(String playerName, int durationSecond, BotAction m_botAction) {
+   			this.playerName = playerName;
+   			this.durationSecond = durationSecond;
+   			this.m_botAction = m_botAction;
+   			this.startedAt = System.currentTimeMillis();
+   		}
+		public void run() {
+			Runnable r = new Runnable() {
+				public void run() {
+					while(System.currentTimeMillis()-startedAt<durationSecond*1000) {
+					   	m_botAction.sendUnfilteredPrivateMessage(playerName, "*objon 562");
+						try {
+							Thread.sleep(1*Tools.TimeInMillis.SECOND);
+						} catch (InterruptedException e) {}
+					}
+					m_botAction.sendUnfilteredPrivateMessage(playerName, "*objoff 562");
+				}
+			};
+			Thread t = new Thread(r);
+			t.start();
+
+		}
+	};
 	
    	private class SphereSeclusionTask extends TimerTask {
    		private Integer[] freqs;
@@ -1922,12 +2027,15 @@ public class PubMoneySystemModule extends AbstractModule {
 			for(int freq: freqs) {
 	            for (Iterator<Player> i = m_botAction.getFreqPlayerIterator(freq); i.hasNext();) {
 	            	Player p = i.next();
-	            	if (!context.getPubChallenge().isDueling(p.getPlayerName())) {
-		            	if (enable)
-		            		m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objon 561");
-		            	else
-		            		m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objoff 561");
-	            	}
+	            	if (store.hasImmunity(p.getPlayerName()))
+	            		continue;
+	            	if (context.getPubChallenge().isDueling(p.getPlayerName()))
+	            		continue;
+	            	if (enable)
+	            		m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objon 561");
+	            	else
+	            		m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objoff 561");
+
 	            }
 			}
 		}
@@ -1943,8 +2051,11 @@ public class PubMoneySystemModule extends AbstractModule {
 		        try {
 		            for (Iterator<Player> i = m_botAction.getFreqPlayerIterator(freq); i.hasNext();) {
 		            	Player p = i.next();
-		            	if (!context.getPubChallenge().isDueling(p.getPlayerName()))
-		            		m_botAction.specificPrize(p.getPlayerID(), Tools.Prize.ENERGY_DEPLETED);
+		            	if (store.hasImmunity(p.getPlayerName()))
+		            		continue;
+		            	if (context.getPubChallenge().isDueling(p.getPlayerName()))
+		            		continue;
+		            	m_botAction.specificPrize(p.getPlayerID(), Tools.Prize.ENERGY_DEPLETED);
 		            }
 		        } catch (Exception e) { }
 			}
@@ -1961,8 +2072,11 @@ public class PubMoneySystemModule extends AbstractModule {
 		        try {
 		            for (Iterator<Player> i = m_botAction.getFreqPlayerIterator(freq); i.hasNext();) {
 		            	Player p = i.next();
-		            	if (!context.getPubChallenge().isDueling(p.getPlayerName()))
-		            		m_botAction.specificPrize(p.getPlayerID(), Tools.Prize.ENGINE_SHUTDOWN_EXTENDED);
+		            	if (store.hasImmunity(p.getPlayerName()))
+		            		continue;
+		            	if (context.getPubChallenge().isDueling(p.getPlayerName()))
+		            		continue;
+		            	m_botAction.specificPrize(p.getPlayerID(), Tools.Prize.ENGINE_SHUTDOWN_EXTENDED);
 		            }
 		        } catch (Exception e) { }
 			}

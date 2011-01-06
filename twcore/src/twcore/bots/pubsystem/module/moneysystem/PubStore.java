@@ -1,6 +1,7 @@
 package twcore.bots.pubsystem.module.moneysystem;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -21,14 +22,18 @@ public class PubStore {
 	
 	private BotAction m_botAction;
 	private PubContext context;
-
+	
+	private boolean opened = true;
     private LinkedHashMap<String, PubItem> items;
     
-    private boolean opened = true;
+    // Immunity list
+    private HashMap<String, Long> immunity;
+    
 
     public PubStore(BotAction botAction, PubContext context) {
     	this.m_botAction = botAction;
     	this.context = context;
+    	this.immunity = new HashMap<String, Long>();
         this.items = new LinkedHashMap<String, PubItem>();
     }
     
@@ -187,19 +192,27 @@ public class PubStore {
         if (item.isPlayerStrict() || (item.isPlayerOptional() && !params.trim().isEmpty())) {
         	
         	Player receiver = m_botAction.getPlayer(params.trim());
-        	if (receiver == null)
-        		throw new PubException("Player '" + params.trim()+ "' not found.");
+        	if (receiver == null) {
+        		if (item.isPlayerStrict() && params.trim().equals(""))
+        			throw new PubException("You must specify a player name (!buy " + item.getName() + ":PlayerA).");
+        		else
+        			throw new PubException("Player '" + params.trim()+ "' not found.");
+        	}
         	
         	player = context.getPlayerManager().getPlayer(receiver.getPlayerName());
         	if (item.isPlayerStrict() && params.isEmpty()) {
-        		throw new PubException("You must specify a player name for this item (!buy " + itemName + ":PlayerName).");
+        		throw new PubException("You must specify a player name for this item (!buy " + itemName + ":PlayerA).");
         	}
+        	
+        	if (item.isPlayerStrict() && immunity.containsKey(receiver.getPlayerName()))
+        		throw new PubException(receiver.getPlayerName()+ " has an immunity.");
+        	
         	if (player == null)
         		throw new PubException("Player '" + params.trim()+ "' not found.");
-        	
+
         	if (player.getPlayerName().equals(buyer.getPlayerName()))
         		throw new PubException("You cannot specify your own name.");
-
+        	
         	Player p = m_botAction.getPlayer(player.getPlayerName());
         	if (!p.isPlaying()) {
         		throw new PubException("You cannot buy an item for a spectator.");
@@ -241,6 +254,19 @@ public class PubStore {
         item.hasBeenBought();
 
         return item;
+    }
+    
+    
+    public void addImmunity(String playerName) {
+    	immunity.put(playerName, System.currentTimeMillis());
+    }
+    
+    public void removeImmunity(String playerName) {
+    	immunity.remove(playerName);
+    }
+    
+    public boolean hasImmunity(String playerName) {
+    	return immunity.containsKey(playerName);
     }
     
     public void addItem(PubItem item, String itemName) {
