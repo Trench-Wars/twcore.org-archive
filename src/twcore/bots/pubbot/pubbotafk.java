@@ -71,7 +71,7 @@ public class pubbotafk extends PubBotModule {
                         m_botAction.sendPrivateMessage(name, WARNING_MESSAGE2);
                     }
                     
-                } else {
+                } else if (!opList.isSmod(name)) {
                     
                     // Normal players
                     if (getIdleTime(name) >= (WARNING_TIME + MOVE_TIME)) {
