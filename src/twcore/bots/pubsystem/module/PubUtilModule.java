@@ -484,7 +484,6 @@ public class PubUtilModule extends AbstractModule {
         if (!tutorials.containsKey(player)) {
             if (m_botAction.getPlayer(player).getShipType() == 0)
                 m_botAction.setShip(player, 1);
-            m_botAction.warpTo(player, 512, 760);
             m_botAction.sendUnfilteredPrivateMessage(player, "*objon 2011");
             m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2010");
             m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2020");
