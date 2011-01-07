@@ -1,7 +1,9 @@
 package twcore.bots.pubbot;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.TimerTask;
 import java.util.TreeMap;
 
@@ -45,8 +47,10 @@ public class pubbotafk extends PubBotModule {
     private final static String STAFF_MOVED_WARNING = "REMINDER: You have been logged out of BanG and your ?obscene has been reset as a result of being moved.";
     
     private OperatorList opList;
+    private List<String> vipList;
     private String sendtoCmd;
     private TreeMap<String, Long> players;
+   
 
     public void add(Player p) {
         if (!opList.isBotExact(p.getPlayerName()) && !opList.isSysopExact(p.getPlayerName()) && p.getShipType() == Tools.Ship.SPECTATOR)
@@ -60,6 +64,8 @@ public class pubbotafk extends PubBotModule {
     public void check() {
         if (!players.isEmpty()) {
             for (String name : players.keySet()) {
+            	if(vipList.contains(name))
+            		continue;
                 if(opList.isER(name) && !opList.isSmod(name)) {
                     // Staffers
                     if (getIdleTime(name) >= (STAFF_WARNING_TIME + STAFF_MOVE_TIME)) {
@@ -146,7 +152,12 @@ public class pubbotafk extends PubBotModule {
         String zonePort = m_botAction.getGeneralSettings().getString( "Port" );
         sendtoCmd = "*sendto " + zoneIP + "," + zonePort + "," + AFK_ARENA;
         
+        vipList = new ArrayList<String>();
         opList = m_botAction.getOperatorList();
+        if (m_botAction.getBotSettings().getString("VIP") != null) {
+        	String[] names = m_botAction.getBotSettings().getString("VIP").split(",");
+        	vipList = Arrays.asList(names);
+        }
         
         players = new TreeMap<String, Long>();
         
