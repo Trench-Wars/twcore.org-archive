@@ -477,7 +477,7 @@ public class MatchRound
             String name = m_botAction.getPlayerName(event.getPlayerID());
             m_botAction.sendCheaterMessage(name + " talking in blueout: " + name + "> " + event.getMessage());
             
-            if(m_botAction.getOperatorList().isER(name)) {
+            if(m_botAction.getOperatorList().isZH(name)) {
             	m_botAction.warnPlayer(event.getPlayerID(), "Do not talk during blueout! Powers revoked, relogin to restore them.");
             	m_botAction.sendUnfilteredPrivateMessage(event.getPlayerID(), "*moderator");
             } else {
