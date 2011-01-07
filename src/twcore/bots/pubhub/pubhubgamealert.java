@@ -29,11 +29,11 @@ public class pubhubgamealert extends PubBotModule {
 
     @Override
     public void initializeModule() {
-        scheduleTask();
         botName = m_botAction.getBotName();
         games = new HashMap<String, SquadData>();
         alerted = new HashSet<AlertedPlayer>();
         opList = m_botAction.getOperatorList();
+        scheduleTask();
     }
 
     @Override
@@ -184,7 +184,7 @@ public class pubhubgamealert extends PubBotModule {
     /**
      * Clears the games list and updates it accordingly
      */
-    private void refreshMatches() {
+	private void refreshMatches() {
         games.clear();
         String[] data = new String[6];
         try {
