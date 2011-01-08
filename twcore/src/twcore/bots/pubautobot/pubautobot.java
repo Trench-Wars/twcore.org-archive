@@ -155,7 +155,7 @@ public class pubautobot extends SubspaceBot {
     	
     	if(message.equals("looking") && !locked) {
     		locked = true;
-    		m_botAction.scheduleTask(new FreeTask(), 5*Tools.TimeInMillis.SECOND);
+    		m_botAction.scheduleTask(new UnlockTask(), 5*Tools.TimeInMillis.SECOND);
     		m_botAction.ipcSendMessage(IPC_CHANNEL, "locked", ipc.getSender(), m_botAction.getBotName());
     	}
     	else if(message.equals("confirm_lock") && ipc.getRecipient().equals(m_botAction.getBotName())) {
@@ -210,7 +210,7 @@ public class pubautobot extends SubspaceBot {
     		numberOfShots = 0;
     	}
     	if (quitOnDeath && killee.equals(m_botAction.getBotName())) {
-    		disconnect();
+    		free();
     	}
 
     }
@@ -579,7 +579,7 @@ public class pubautobot extends SubspaceBot {
     private void doTimeoutDieCmd(String parameter) {
     	int seconds = Integer.valueOf(parameter);
     	timeoutAt = seconds;
-        m_botAction.scheduleTask(new DieTask(), seconds * Tools.TimeInMillis.SECOND);
+        m_botAction.scheduleTask(new FreeTask(), seconds * Tools.TimeInMillis.SECOND);
     }
     
     private void free() {
@@ -588,6 +588,22 @@ public class pubautobot extends SubspaceBot {
     	subowner = null;
     	m_botAction.getShip().setShip(8);
     	m_botAction.changeArena(m_botAction.getBotSettings().getString("Arena"));
+    	
+    	autoAiming = false;
+    	enemyAimingOnly = true;
+    	fireOnSight = false;
+    	following = false;
+    	killable = false;
+    	quitOnDeath = false;
+    	fastRotation = true;
+    	timeoutAt = -1;
+    	energyOnStart = 1;
+    	locations.clear();
+    	dieAtXshots = 1;
+    	startedAt = 0;
+    	isSpawning = false;
+    	enemyOnSight = false;
+    	target = null;
     }
     
     private void disconnect() {
@@ -809,11 +825,17 @@ public class pubautobot extends SubspaceBot {
         }
     }
 	
-	private class FreeTask extends TimerTask {
+	private class UnlockTask extends TimerTask {
         public void run() {
         	if (locked && owner == null) {
         		locked = false;
         	}
+        }
+    }
+	
+	private class FreeTask extends TimerTask {
+        public void run() {
+        	free();
         }
     }
 	
