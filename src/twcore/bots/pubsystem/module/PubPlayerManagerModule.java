@@ -3,10 +3,12 @@ package twcore.bots.pubsystem.module;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -44,7 +46,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     private HashMap<String, PubPlayer> players;         // Always lowercase!
     private HashSet<String> freq0;                   	// Players on freq 0
     private HashSet<String> freq1;                   	// Players on freq 1
-    
+
     private int[] freqSizeInfo = {0, 0};                // Index 0: size difference; 1: # of smaller freq
     
     private Vector<Integer> shipWeight;
@@ -186,19 +188,15 @@ public class PubPlayerManagerModule extends AbstractModule {
 	
 	public boolean isPlayerOnFreq(String name, int freq) {
 		if (freq == 0)
-			return freq0.contains(players.get(name));
+			return freq0.contains(players.get(name.toLowerCase()));
 		if (freq == 1)
-			return freq1.contains(players.get(name));
+			return freq1.contains(players.get(name.toLowerCase()));
 		return false;
 	}
 	
 	public void handleEvent(PlayerEntered event) {
 
-    	Player p = m_botAction.getPlayer(event.getPlayerID());
-    	if (p == null)
-    		return;
-    	
-    	String playerName = p.getPlayerName();
+    	String playerName = event.getPlayerName();
     	
     	PubPlayer pubPlayer = addPlayerToSystem(playerName);
 
@@ -223,7 +221,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         if (context.isStarted()) {
 	        checkPlayer(event.getPlayerID());
 	        if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
-	            checkFreq(event.getPlayerID(), p.getFrequency(), false);
+	            checkFreq(event.getPlayerID(), event.getTeam(), false);
 	            checkFreqSizes();
 	        }
         }
@@ -236,6 +234,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     	if (p==null)
     		return;
     	String playerName = p.getPlayerName();
+
         removeFromLists(playerName);
         checkFreqSizes();
 	}
@@ -263,7 +262,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         }
         
 	}
-	
+
 	public void handleEvent(PlayerDeath event) {
 		
         Player killer = m_botAction.getPlayer(event.getKillerID());
@@ -271,7 +270,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     	
         if (killer == null || killed == null)
         	return;
-        
+                
 		PubPlayer pubPlayerKiller = getPlayer(killer.getPlayerName());
 		PubPlayer pubPlayerKilled = getPlayer(killed.getPlayerName());
 		if (pubPlayerKilled != null) {
@@ -352,13 +351,11 @@ public class PubPlayerManagerModule extends AbstractModule {
 			Tileset tileset;
 			try {
 				tileset = Tileset.valueOf(rs.getString("fcTileset").toUpperCase());
-				if (!tileset.equals(Tileset.BLUETECH)) {
-					context.getPubUtil().setTileset(tileset, name);
-				}
+				context.getPubUtil().setTileset(tileset, name, false);
 			} catch (Exception e) { 
 				tileset = Tileset.BLUETECH;
 			}
-			
+
 			player = new PubPlayer(m_botAction, name, money);
 			players.put(name.toLowerCase(), player);
 			player.reloadPanel(false);
@@ -385,17 +382,18 @@ public class PubPlayerManagerModule extends AbstractModule {
     	if (player != null) {
     		player.reloadPanel(false);
     		player.setName(playerName);
-    		context.getPubUtil().setTileset(player.getTileset(), player.getPlayerName());
+    		context.getPubUtil().setTileset(player.getTileset(), player.getPlayerName(), false);
     		return player;
     	}
     	else if (databaseName != null) {
     		m_botAction.SQLBackgroundQuery(databaseName, "newplayer_"+playerName, "SELECT fcName, fnMoney, fcTileset, fnBestStreak FROM tblPlayerStats WHERE fcName = '"+Tools.addSlashes(playerName)+"'");
     	}
     	else {
-    		players.put(playerName.toLowerCase(), new PubPlayer(m_botAction, playerName));
+    		player = new PubPlayer(m_botAction, playerName);
+    		players.put(playerName.toLowerCase(), player);
     	}
     	
-    	return players.get(playerName.toLowerCase());
+    	return player;
     }
     
     public boolean isShipRestricted(int ship) {
@@ -707,6 +705,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         }
     }
     
+    
     private class SavePlayersTask extends TimerTask {
     	
     	private boolean force = false;
@@ -780,7 +779,6 @@ public class PubPlayerManagerModule extends AbstractModule {
 	public String[] getModHelpMessage(String sender) {
 		return new String[]{};
 	}
-
 
 	@Override
 	public void start() {
