@@ -51,6 +51,9 @@ public class GameFlagTimeModule extends AbstractModule {
     private HashMap<String,Integer> killsInBase;		// Number of kills inside the base (mid+flagroom)
     private HashMap<String,HashSet<Integer>> ships;		// Type of ships used during a round
     
+    private HashMap<String, LevTerr> levterrs;          // Current lev terrs
+    
+    
     // Kill weight per location
     private static HashMap<Location,Integer> locationWeight;
     static {
@@ -106,7 +109,7 @@ public class GameFlagTimeModule extends AbstractModule {
 		objs = m_botAction.getObjectSet();
 		warpPlayers = new HashMap<String,PubPlayer>();
 		playerTimes = new HashMap<String,Integer>();
-		
+		levterrs = new HashMap<String, LevTerr>();
 		reloadConfig();
 
 	}
@@ -163,24 +166,91 @@ public class GameFlagTimeModule extends AbstractModule {
     }
     
 	public void handleEvent(PlayerLeft event) {
-		String playerName = m_botAction.getPlayerName(event.getPlayerID());
-		warpPlayers.remove(playerName);
+		
+		Player p = m_botAction.getPlayer(event.getPlayerID());
+		if (p == null)
+			return;
+		
+		warpPlayers.remove(p.getPlayerName());
+		
+		// LevTerr check
+    	if (p.getShipType()==Tools.Ship.TERRIER) {
+    		if (levterrs.containsKey(p.getPlayerName())) {
+    			levterrs.remove(p.getPlayerName());
+    		}
+    	}
+        if (p.getShipType()==Tools.Ship.LEVIATHAN) {
+        	for(LevTerr lt: levterrs.values()) {
+        		if (lt.leviathans.contains(p.getPlayerName())) {
+        			lt.removeLeviathan(p.getPlayerName());
+        			if (lt.isEmpty()) {
+        				lt.allowAlert(true);
+        			}
+        		}
+        	}
+        }
 	}
 	
 	
 	public void handleEvent(TurretEvent event) {
-		
-		if (!event.isAttaching())
-			return;
-		
-		Player p = m_botAction.getPlayer(event.getAttacheeID());
-		if (p == null)
-			return;
-		
-        if(isRunning() && p.getShipType() == Tools.Ship.TERRIER) {
-        	flagTimer.newAttachee(p.getPlayerName());
+
+        final Player p1 = m_botAction.getPlayer(event.getAttacheeID());
+    	final Player p2 = m_botAction.getPlayer(event.getAttacherID());
+
+        if(p1 != null && isRunning() && event.isAttaching() && p1.getShipType() == Tools.Ship.TERRIER) {
+        	flagTimer.newAttachee(p1.getPlayerName());
         }
-		
+
+    	if (p2 != null) {
+    		
+	    	// Attachee check up
+	    	if (p2.getShipType()==Tools.Ship.LEVIATHAN) {
+
+	    		if (event.isAttaching()) {
+	    			
+		    		final LevTerr levTerr;
+		    		if (levterrs.containsKey(p1.getPlayerName())) {
+		    			levTerr = levterrs.get(p1.getPlayerName());
+		    		} else {
+		    			levTerr = new LevTerr(p1.getPlayerName());
+		    			levterrs.put(p1.getPlayerName(), levTerr);
+		    		}
+	    			
+	    			levTerr.addLeviathan(p2.getPlayerName());
+	    			
+	    			TimerTask task = new TimerTask() {
+						public void run() {
+							if (!levTerr.isEmpty() && levTerr.alertAllowed()) {
+								String message = "[LEVTER Alert] " + p1.getPlayerName() + " (Terrier) with ";
+								String lev = "";
+								for(String name : levTerr.getLeviathans()) {
+									lev += ", " + name;
+								}
+								message += lev.substring(2);
+								int freq = p1.getFrequency();
+								if (freq != 0)
+									m_botAction.sendOpposingTeamMessageByFrequency(0, message, 26);
+								if (freq != 1)
+									m_botAction.sendOpposingTeamMessageByFrequency(1, message, 26);
+								m_botAction.sendOpposingTeamMessageByFrequency(freq, message, 26);
+								levTerr.allowAlert(false);
+							}
+						}
+					};
+					m_botAction.scheduleTask(task, 5*Tools.TimeInMillis.SECOND);
+	    			
+	    		} else {
+	    			
+	    			// We can't use AttacheeID (bug)
+	    			for(LevTerr lt: levterrs.values()) {
+	    				if (lt.leviathans.contains(p2.getPlayerName())) {
+	    	    			lt.leviathans.remove(p2.getPlayerName());
+	    				}
+	    			}
+
+	    		}
+	    	}
+    	}
 	}
     
     
@@ -259,15 +329,37 @@ public class GameFlagTimeModule extends AbstractModule {
 	
 	public void handleEvent(PlayerDeath event) {
 		
+		int killerID = event.getKillerID();
+		int killedID = event.getKilleeID();
+		Player killer = m_botAction.getPlayer(killerID);
+		Player killed = m_botAction.getPlayer(killedID);
+		
+		if (killer == null || killed == null)
+			return;
+		
+		if (killed.getShipType()==Tools.Ship.TERRIER) {
+			if (levterrs.containsKey(killed.getPlayerName())) {
+				levterrs.get(killed).allowAlert(true);
+			}
+		}
+		
+        if (killed.getShipType()==Tools.Ship.LEVIATHAN) {
+        	for(LevTerr lt: levterrs.values()) {
+        		if (lt.leviathans.contains(killed.getPlayerName())) {
+        			lt.removeLeviathan(killed.getPlayerName());
+        			if (lt.isEmpty()) {
+        				lt.allowAlert(true);
+        			}
+        			if (event.getKilledPlayerBounty() > 30) {
+        				m_botAction.sendPrivateMessage(killer.getPlayerName(), "You killed the last Leviathan of this LevTerr, you get its bounty (x2) in money! +$" + (event.getKilledPlayerBounty()*2));
+        				context.getPlayerManager().addMoney(killer.getPlayerName(), event.getKilledPlayerBounty()*2);
+        			}
+        		}
+        	}
+        }
+		
 		if (isRunning()) {
-			int killerID = event.getKillerID();
-			int killedID = event.getKilleeID();
-			Player killer = m_botAction.getPlayer(killerID);
-			Player killed = m_botAction.getPlayer(killedID);
-			
-			if (killer == null || killed == null)
-				return;
-			
+
 			if (killer.getPlayerName().equals(m_botAction.getBotName()))
 				return;
 			
@@ -437,6 +529,64 @@ public class GameFlagTimeModule extends AbstractModule {
                players++;
             }
             m_botAction.sendSmartPrivateMessage(sender, text);
+        }
+    }
+    
+    /**
+     * Shows active levterrs.
+     */
+    public void doLevTerrCmd( String sender ) {
+        Player p = m_botAction.getPlayer(sender);
+        if( p == null )
+            throw new RuntimeException("Can't find you. Please report this to staff.");
+        
+        if (levterrs.isEmpty()) {
+        	m_botAction.sendSmartPrivateMessage( sender, "No active LevTerr.");
+        }
+        else {
+        	boolean active = false;
+        	int levNameLength = 15;
+        	int terNameLength = 19;
+        	for(LevTerr lt: levterrs.values()) {
+        		int length = 0;
+        		if (terNameLength < lt.terrierName.length())
+        			terNameLength = lt.terrierName.length();
+        		if (!lt.isEmpty()) {
+        			for(String name: lt.leviathans) {
+        				length += name.length();
+        			}
+        		}
+        		if (levNameLength < length)
+        			levNameLength = length;
+        	}
+        	for(LevTerr lt: levterrs.values()) {
+        		if (!lt.isEmpty()) {
+        			Player terr = m_botAction.getFuzzyPlayer(lt.terrierName); 
+        			if (!active) {
+        				String header = "Freq      " + Tools.formatString("Name of Terrier", terNameLength + 4);;
+        				header += Tools.formatString("Leviathan(s)", levNameLength + 4);
+        				header += "Since";
+        				m_botAction.sendSmartPrivateMessage(sender, header);
+        			}
+
+        			String freq = (terr.getFrequency() < 100) ? terr.getFrequency()+"" : "(P)";
+
+        			String message = Tools.formatString(freq, 10) + Tools.formatString(terr.getPlayerName(), terNameLength+4);
+        			String levs = "";
+        			for(String lev: lt.getLeviathans()) {
+        				levs += ", " + lev;
+        			}
+        			message += Tools.formatString(levs.substring(2), levNameLength + 4);
+        			message += Tools.getTimeDiffString(lt.levvingSince, true);
+        			m_botAction.sendSmartPrivateMessage(sender, message);
+        			active = true;
+        		}
+        	}
+        	
+        	if (!active) {
+        		m_botAction.sendSmartPrivateMessage( sender, "No active LevTerr.");
+        	}
+        	
         }
     }
     
@@ -1813,6 +1963,8 @@ public class GameFlagTimeModule extends AbstractModule {
                 doShowTeamCmd(sender);
             else if(command.trim().equals("!terr") || command.trim().equals("!t"))
                 doTerrCmd(sender);
+            else if(command.trim().equals("!lt") || command.trim().startsWith("!levter"))
+                doLevTerrCmd(sender);
             else if(command.trim().equals("!warp") || command.trim().equals("!w"))
                 doWarpCmd(sender);
             
@@ -1850,9 +2002,11 @@ public class GameFlagTimeModule extends AbstractModule {
 		return new String[] {
 			pubsystem.getHelpLine("!warp    -- Warps you inside base at start of next round. (!w)"),
             pubsystem.getHelpLine("!terr    -- Shows terriers on the team and their last seen locations. (!t)"),
+            pubsystem.getHelpLine("!lt      -- Shows active levterrs (ter + lev(s) attached)."),
             pubsystem.getHelpLine("!team    -- Tells you which ships your team members are in."),
-            pubsystem.getHelpLine("!time    -- Displays info about time remaining in flag time.")
-        };
+            pubsystem.getHelpLine("!time    -- Displays info about time remaining in flag time."),
+            
+		};
 	}
 
 	@Override
@@ -2287,4 +2441,48 @@ public class GameFlagTimeModule extends AbstractModule {
 			enabled = true;
 		}
 	}
+	
+	 private class LevTerr {
+	    	
+	    	public String terrierName;
+	    	public List<String> leviathans;
+	    	public boolean allowAlert = true;
+	    	public long levvingSince;
+	    	
+	    	public LevTerr(String terrierName) {
+	    		this.terrierName = terrierName;
+	    		leviathans = new ArrayList<String>();
+	    	}
+	    	
+	    	public void removeLeviathan(String name) {
+	    		leviathans.remove(name);
+	    	}
+	    	
+	    	public void addLeviathan(String name) {
+	    		if (isEmpty()) {
+	    			levvingSince = System.currentTimeMillis();
+	    		}
+	    		leviathans.add(name);
+	    	}
+	    	
+	    	public boolean isEmpty() {
+	    		return leviathans.isEmpty();
+	    	}
+	    	
+	    	public List<String> getLeviathans() {
+	    		return leviathans;
+	    	}
+	    	
+	    	public boolean alertAllowed() {
+	    		return allowAlert;
+	    	}
+	    	
+	    	public void allowAlert(boolean b) {
+	    		allowAlert = b;
+	    	}
+	    	
+	    	
+	    	
+	    }
+	
 }

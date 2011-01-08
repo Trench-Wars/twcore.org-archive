@@ -610,7 +610,7 @@ public class PubMoneySystemModule extends AbstractModule {
         			m_botAction.sendSmartPrivateMessage(sender, " - Maximum of " + r.getMaxPerLife()+" per life");
         		}
         		if (r.getMaxPerSecond()!=-1) {
-        			m_botAction.sendSmartPrivateMessage(sender, " - Maximum of 1 every "+r.getMaxPerSecond()+" seconds (player only)");
+        			m_botAction.sendSmartPrivateMessage(sender, " - Maximum of 1 every "+r.getMaxPerSecond()+" seconds");
         		}
         		if (r.getMaxArenaPerMinute()!=-1) {
         			m_botAction.sendSmartPrivateMessage(sender, " - Maximum of 1 every "+r.getMaxArenaPerMinute()+" minutes for the whole arena");
@@ -1924,6 +1924,9 @@ public class PubMoneySystemModule extends AbstractModule {
 
 		protected void prepare() {
 			Player p = m_botAction.getPlayer(sender);
+			if (p==null)
+				commandBot("!Die");
+			
 			commandBot("!Go " + m_botAction.getArenaName().substring(8,9));
 			try { Thread.sleep(2*Tools.TimeInMillis.SECOND); } catch (InterruptedException e) {}
 			commandBot("!SetShip 5");
@@ -1953,7 +1956,7 @@ public class PubMoneySystemModule extends AbstractModule {
 		}
 		
 		protected void ready() {
-			m_botAction.sendArenaMessage(sender + " has bought a turret that will occupy the roof for 15 minutes.",21);
+			m_botAction.sendArenaMessage(sender + " has bought a turret that will occupy the roof for 5 minutes.",21);
 		}
 
 		protected void prepare() {

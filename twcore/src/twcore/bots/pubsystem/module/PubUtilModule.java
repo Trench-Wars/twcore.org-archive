@@ -181,31 +181,44 @@ public class PubUtilModule extends AbstractModule {
 		}
 	}
 
-	public void setTileset(Tileset tileset, String playerName) 
+	public void setTileset(Tileset tileset, final String playerName, boolean instant) 
 	{
-		Tileset playerTileset = tileset;
+		final Tileset playerTileset;
 		
 		if (!tilesetEnabled)
 			return;
 		
 		if (tileset == Tileset.DEFAULT)
-			tileset = defaultTileSet;
+			playerTileset = defaultTileSet;
+		else
+			playerTileset = tileset;
 
-		PubPlayer pubPlayer = context.getPlayerManager().getPlayer(playerName);
-		if (pubPlayer != null) {
-			if (Tileset.BLUETECH == tileset) {
-				for(int object: tilesetObjects.values()) {
-					m_botAction.sendUnfilteredPrivateMessage(playerName, "*objoff " + object);
+		TimerTask task = new TimerTask() {
+			public void run() {
+				PubPlayer pubPlayer = context.getPlayerManager().getPlayer(playerName);
+				if (pubPlayer != null) {
+					if (Tileset.BLUETECH == playerTileset) {
+						for(int object: tilesetObjects.values()) {
+							m_botAction.sendUnfilteredPrivateMessage(playerName, "*objoff " + object);
+						}
+					}
+					else {
+						for(int object: tilesetObjects.values()) {
+							m_botAction.sendUnfilteredPrivateMessage(playerName, "*objoff " + object);
+						}
+						m_botAction.sendUnfilteredPrivateMessage(playerName, "*objon " + tilesetObjects.get(playerTileset));
+					}
+					pubPlayer.setTileset(playerTileset);
 				}
 			}
-			else {
-				for(int object: tilesetObjects.values()) {
-					m_botAction.sendUnfilteredPrivateMessage(playerName, "*objoff " + object);
-				}
-				m_botAction.sendUnfilteredPrivateMessage(playerName, "*objon " + tilesetObjects.get(tileset));
-			}
-			pubPlayer.setTileset(playerTileset);
+		};
+		
+		if (instant) {
+			task.run();
+		} else {
+			m_botAction.scheduleTask(task, 1*Tools.TimeInMillis.SECOND);
 		}
+
 	}
 	
 	public void setArenaTileset(Tileset tileset) 
@@ -241,7 +254,7 @@ public class PubUtilModule extends AbstractModule {
 		
     	try {
     		Tileset tileset = Tileset.valueOf(tileName.toUpperCase());
-    		setTileset(tileset, sender);
+    		setTileset(tileset, sender, true);
     		m_botAction.sendSmartPrivateMessage(sender, "This setting has been saved in your account. Tileset: " + tileName);
     	} catch (IllegalArgumentException e) {
     		m_botAction.sendSmartPrivateMessage(sender, "The tileset '" + tileName + "' does not exists.");
@@ -644,7 +657,7 @@ public class PubUtilModule extends AbstractModule {
 
 	@Override
 	public void start() {
-		setArenaTileset(defaultTileSet);
+		
 	}
 	
     /**

@@ -330,8 +330,8 @@ public class pubsystem extends SubspaceBot
                 doHelpCmd(sender, false);
             else if(command.equals("!help -tutorial"))
                 doTutorialHelpCmd(sender);
-            else if(command.equals("!algorithm") || command.equals("!algo"))
-                doAlgorithmCmd(sender);
+            //else if(command.equals("!algorithm") || command.equals("!algo"))
+            //    doAlgorithmCmd(sender);
             else if(command.startsWith("!greetmessage"))
                 doGreetMessageCmd(sender, command);
             else if(command.equals("!about"))
@@ -439,7 +439,7 @@ public class pubsystem extends SubspaceBot
              
 	     	String[] others = new String[] {
 	     			getModuleHelpHeader("Others"),
-	     			getHelpLine("!algorithm        -- How the robot calculate the money you earn for each kill."),
+	     			//getHelpLine("!algorithm        -- How the robot calculate the money you earn for each kill."),
 	     			getHelpLine("!about            -- About this bot."),
 	     	};
 	     	
@@ -581,92 +581,113 @@ public class pubsystem extends SubspaceBot
     }
 	
     public void handleEvent(PlayerLeft event) {
-        context.handleEvent(event);
+    	if (context!=null)
+    		context.handleEvent(event);
     }
 	
     public void handleDisconnect() {
-    	if (context != null)
+    	if (context!=null)
     		context.handleDisconnect();
     }
     
     public void handleEvent(InterProcessEvent event){
-    	context.handleEvent(event);
+    	if (context!=null)
+    		context.handleEvent(event);
     }
     
     public void handleEvent(SQLResultEvent event){
-    	context.handleEvent(event);
+    	if (context!=null)
+    		context.handleEvent(event);
     }
     
     public void handleEvent(TurretEvent event) {
-        context.handleEvent(event);
+    	if (context!=null)
+    		context.handleEvent(event);
     }
     
     public void handleEvent(FlagClaimed event) {
-        context.handleEvent(event);
+    	if (context!=null)
+    		context.handleEvent(event);
     }
 
     public void handleEvent(PlayerDeath event) {
-    	context.handleEvent(event);
+    	if (context!=null)
+    		context.handleEvent(event);
     }
 
     public void handleEvent(Prize event) {
-        context.handleEvent(event);
+    	if (context!=null)
+    		context.handleEvent(event);
     }
 
     public void handleEvent(ScoreUpdate event) {
-        context.handleEvent(event);
+    	if (context!=null)
+    		context.handleEvent(event);
     }
 
     public void handleEvent(WeaponFired event) {
-        context.handleEvent(event);
+    	if (context!=null)
+            context.handleEvent(event);
     }
 
     public void handleEvent(FileArrived event) {
-        context.handleEvent(event);
+    	if (context!=null)
+            context.handleEvent(event);
     }
 
     public void handleEvent(FlagVictory event) {
-        context.handleEvent(event);
+    	if (context!=null)
+            context.handleEvent(event);
     }
 
     public void handleEvent(FlagReward event) {
-        context.handleEvent(event);
+    	if (context!=null)
+            context.handleEvent(event);
     }
 
     public void handleEvent(ScoreReset event) {
-        context.handleEvent(event);
+    	if (context!=null)
+            context.handleEvent(event);
     }
 
     public void handleEvent(WatchDamage event) {
+    	if (context!=null)
         context.handleEvent(event);
     }
 
     public void handleEvent(SoccerGoal event) {
-        context.handleEvent(event);
+    	if (context!=null)
+            context.handleEvent(event);
     }
 
     public void handleEvent(BallPosition event) {
-        context.handleEvent(event);
+    	if (context!=null)
+            context.handleEvent(event);
     }
 
     public void handleEvent(FlagPosition event) {
-        context.handleEvent(event);
+    	if (context!=null)
+            context.handleEvent(event);
     }
 
     public void handleEvent(FlagDropped event) {
-        context.handleEvent(event);
+    	if (context!=null)
+            context.handleEvent(event);
     }
     
     public void handleEvent(PlayerPosition event) {
-        context.handleEvent(event);
+    	if (context!=null)
+            context.handleEvent(event);
     }
 
     public void handleEvent(FrequencyShipChange event) {        
-    	context.handleEvent(event);
+    	if (context!=null)
+            context.handleEvent(event);
     }
 
     public void handleEvent(FrequencyChange event) {
-    	context.handleEvent(event);
+    	if (context!=null)
+            context.handleEvent(event);
     }
     
     /*
