@@ -27,6 +27,7 @@ import twcore.core.util.Tools;
  */
 public class pubbotafk extends PubBotModule {
     // Current settings:
+    // - Turn on when arena size is > 89
     // - Warn normal players after 8 minutes
     // - Kick normal players after +2 minutes (= 10 minutes)
     // - Warn staffers after 15 minutes
@@ -45,6 +46,9 @@ public class pubbotafk extends PubBotModule {
                                                     "Private messages are ignored.";
     private final static String MOVE_MESSAGE = "You've been moved to the away-from-keyboard subarena - 'afk'. Type \"?go\" to return.";
     private final static String STAFF_MOVED_WARNING = "REMINDER: You have been logged out of BanG and your ?obscene has been reset as a result of being moved.";
+    
+    private boolean status;
+    private int size = 90;
     
     private OperatorList opList;
     private List<String> vipList;
@@ -98,6 +102,10 @@ public class pubbotafk extends PubBotModule {
                 "!listidle      -- Display spectating players and their idle times");
         m_botAction.sendSmartPrivateMessage(messager,
                 "!move <player> -- Move <player> to ?go " + AFK_ARENA);
+        m_botAction.sendSmartPrivateMessage(messager,
+                "!size <number> -- Set the arena size trigger to <number>");
+        m_botAction.sendSmartPrivateMessage(messager,
+                "!status        -- Display the status of the AFK module");
     }
     
     public void cmdListidle(String messager) {
@@ -147,6 +155,27 @@ public class pubbotafk extends PubBotModule {
         return (System.currentTimeMillis() - players.get(name)) / Tools.TimeInMillis.MINUTE;
     }
     
+    public void checkStatus() {
+        if (status && m_botAction.getArenaSize() < size) {
+            status = false;
+            cancel();
+        } else if (!status && m_botAction.getArenaSize() > size - 1) {
+            status = true;
+            
+            players.clear();
+            
+            for (Iterator<Player> it = m_botAction.getPlayerIterator(); it.hasNext();)
+                add(it.next());
+            
+            TimerTask check = new TimerTask() {
+                public void run() {
+                    check();
+                }
+            };
+            m_botAction.scheduleTaskAtFixedRate(check, 1000, Tools.TimeInMillis.MINUTE);
+        }
+    }
+    
     public void initializeModule() {
         String zoneIP = m_botAction.getGeneralSettings().getString( "Server" );
         String zonePort = m_botAction.getGeneralSettings().getString( "Port" );
@@ -160,13 +189,20 @@ public class pubbotafk extends PubBotModule {
         }
         
         players = new TreeMap<String, Long>();
-        
+        if (m_botAction.getArenaSize() < size)
+            status = false;
+        else
+            status = true;
+        checkStatus();
+
+        /**
         TimerTask check = new TimerTask() {
             public void run() {
                 check();
             }
         };
         m_botAction.scheduleTaskAtFixedRate(check, 1000, Tools.TimeInMillis.MINUTE);
+        **/
     }
 
     public void requestEvents(EventRequester eventRequester) {
@@ -186,6 +222,8 @@ public class pubbotafk extends PubBotModule {
     }
     
     public void handleEvent(FrequencyChange event) {
+        if (!status)
+            return;
         Player p = m_botAction.getPlayer(event.getPlayerID());
         String name = p.getPlayerName();
         
@@ -198,6 +236,8 @@ public class pubbotafk extends PubBotModule {
     }
     
     public void handleEvent(FrequencyShipChange event) {
+        if (!status)
+            return;
         Player p = m_botAction.getPlayer(event.getPlayerID());
         String name = p.getPlayerName();
         
@@ -228,11 +268,37 @@ public class pubbotafk extends PubBotModule {
                     cmdMoveidle(name, message);
                 else if (message.startsWith("!help"))
                     cmdHelp(name);
+                else if (message.startsWith("!status"))
+                    cmdStatus(name);
+                else if (message.startsWith("!size"))
+                    cmdSetSize(message);
             }
         }
     }
     
+    public void cmdSetSize(String num) {
+        int s = 0;
+        try {
+            s = Integer.valueOf(num.substring(6));
+        } catch (NumberFormatException e) {
+            return;
+        }
+        
+        this.size = s;
+        checkStatus();
+    }
+    
+    public void cmdStatus(String name) {
+        if (status)
+            m_botAction.sendSmartPrivateMessage(name, "AFK Status: ON & Size: " + size);
+        else
+            m_botAction.sendSmartPrivateMessage(name, "AFK Status: OFF & Size: " + size);            
+    }
+    
     public void handleEvent(PlayerEntered event) {
+        checkStatus();
+        if (!status)
+            return;
         Player p = m_botAction.getPlayer(event.getPlayerID());
         
         if (p.getShipType() == Tools.Ship.SPECTATOR)
@@ -240,6 +306,9 @@ public class pubbotafk extends PubBotModule {
     }
     
     public void handleEvent(PlayerLeft event) {
+        checkStatus();
+        if (!status)
+            return;
         String name = m_botAction.getPlayerName(event.getPlayerID());
         
         if (players.containsKey(name))
