@@ -40,6 +40,7 @@ import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
 import twcore.core.events.Prize;
+import twcore.core.events.SQLResultEvent;
 import twcore.core.events.ScoreReset;
 import twcore.core.events.ScoreUpdate;
 import twcore.core.events.SoccerGoal;
@@ -198,9 +199,7 @@ public class pubhub extends SubspaceBot {
         }
 
         // Chat commands
-        if (messageType == Message.CHAT_MESSAGE &&
-            (opList.isSmod(sender) || cfg_access.contains(sender.toLowerCase()))
-            ) {
+        if ((messageType == Message.CHAT_MESSAGE && (opList.isSmod(sender) || cfg_access.contains(sender.toLowerCase()))) || (messageType == Message.PRIVATE_MESSAGE && ((opList.isDeveloperExact(sender) && opList.isModerator(sender)) || opList.isSmod(sender)))) {
             if (message.equalsIgnoreCase("!respawn")) {
                 m_botAction.sendChatMessage("Respawning pub bots.");
                 m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("die"));
