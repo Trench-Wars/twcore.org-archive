@@ -322,6 +322,9 @@ public class staffbot_banc extends Module {
             else if( messageLc.startsWith("!lb")) {
                 cmdListBan(name, message.substring(3).trim(), true);
             }
+            else if( messageLc.startsWith("!banlist")) {
+                cmdListBan(name, message.substring(8).trim(), true);
+            }
             
             // !changeban <#id> <arguments>
             else if( messageLc.startsWith("!changeban")) {
