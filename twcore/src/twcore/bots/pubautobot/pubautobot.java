@@ -604,6 +604,7 @@ public class pubautobot extends SubspaceBot {
     	isSpawning = false;
     	enemyOnSight = false;
     	target = null;
+    	doStopRepeatFireCmd(null);
     }
     
     private void disconnect() {
