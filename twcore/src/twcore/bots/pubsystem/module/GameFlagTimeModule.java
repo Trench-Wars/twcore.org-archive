@@ -232,7 +232,6 @@ public class GameFlagTimeModule extends AbstractModule {
 									m_botAction.sendOpposingTeamMessageByFrequency(0, message, 26);
 								if (freq != 1)
 									m_botAction.sendOpposingTeamMessageByFrequency(1, message, 26);
-								m_botAction.sendOpposingTeamMessageByFrequency(freq, message, 26);
 								levTerr.allowAlert(false);
 							}
 						}
@@ -339,7 +338,7 @@ public class GameFlagTimeModule extends AbstractModule {
 		
 		if (killed.getShipType()==Tools.Ship.TERRIER) {
 			if (levterrs.containsKey(killed.getPlayerName())) {
-				levterrs.get(killed).allowAlert(true);
+				levterrs.get(killed.getPlayerName()).allowAlert(true);
 			}
 		}
 		
@@ -354,6 +353,7 @@ public class GameFlagTimeModule extends AbstractModule {
         				m_botAction.sendPrivateMessage(killer.getPlayerName(), "You killed the last Leviathan of this LevTerr, you get its bounty (x2) in money! +$" + (event.getKilledPlayerBounty()*2));
         				context.getPlayerManager().addMoney(killer.getPlayerName(), event.getKilledPlayerBounty()*2);
         			}
+        			break;
         		}
         	}
         }
