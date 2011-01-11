@@ -10,6 +10,7 @@ import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
+import twcore.core.events.SQLResultEvent;
 //import twcore.core.events.SQLResultEvent;
 import twcore.core.util.Tools;
 
@@ -20,14 +21,14 @@ public class pubbotnewbie extends PubBotModule{
     private String currentInfoName = "";
     private String database = "website";
 
-    private HashMap<String, Integer> loopCatcher;
+    private HashMap<String, Integer[]> loopCatcher;
     private HashMap<String, AliasCheck> aliases;
     private boolean pub;
 
     @Override
     public void initializeModule() {
         this.aliases = new HashMap<String, AliasCheck>();
-        this.loopCatcher = new HashMap<String, Integer>();
+        this.loopCatcher = new HashMap<String, Integer[]>();
         pubCheck();
     }
 
@@ -83,8 +84,7 @@ public class pubbotnewbie extends PubBotModule{
                             }
                         } else {
                             AliasCheck alias = new AliasCheck(currentInfoName, hour *  60 + min);
-                            alias.setUsage(hour * 60 + min);
-                            dataCheck(alias);
+                            doAliasCheck(alias);
                         }
                     }
                 }
@@ -92,10 +92,7 @@ public class pubbotnewbie extends PubBotModule{
         }
     }
     
-    /** old method
     public void handleEvent(SQLResultEvent event) {
-
-        m_botAction.sendSmartPrivateMessage("WingZero", "got SQLResultEvent");
         ResultSet resultSet = event.getResultSet();
         if(resultSet == null)
             return;
@@ -236,12 +233,11 @@ public class pubbotnewbie extends PubBotModule{
         }
 
     }
-    **/
 
     private void sendNewPlayerAlert(AliasCheck alias) {
 
         System.out.print("[ALIAS] " + alias.getName() + ":" + alias.getUsage() + ":" + alias.getAliasCount());
-        if (alias.getUsage() < 15 && alias.getAliasCount() < 3 && alias.getAliasCount() >= 0) {
+        if (alias.getUsage() < 15 && alias.getAliasCount() < 25 && alias.getAliasCount() >= 0) {
             m_botAction.sendSmartPrivateMessage(PUBSYSTEM, "New Player: " + alias.getName());
             m_botAction.ipcSendMessage(ZONE_CHANNEL, "alert >>>>>> New player alert(" + alias.getAliasCount() + "): " + alias.getName(), PUBSYSTEM, m_botAction.getBotName());
             System.out.println(":YES");
@@ -250,78 +246,14 @@ public class pubbotnewbie extends PubBotModule{
         }
 
     }
-    
-    private void dataCheck(AliasCheck alias) {
-        try {
-            if (alias.getUserID() < 0) {
-                ResultSet rs = m_botAction.SQLQuery(database, "SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(alias.getName()) + "' ORDER BY fnUserID ASC LIMIT 1");
-                if (rs.next()) {
-                    alias.setUserID(rs.getInt("fnUserID"));
-                }
-                m_botAction.SQLClose(rs);
-            }
-            
-            if (alias.getUserID() > 0) {
-                if (alias.getIpResults() == null) {
-                    ResultSet rs = m_botAction.SQLQuery(database, "SELECT DISTINCT(fnIP) FROM tblAlias WHERE fnUserID = " + alias.getUserID());
-
-                    StringBuffer buffer = new StringBuffer();
-                    rs.beforeFirst();
-                    while(rs.next()) {
-                        buffer.append(", ");
-                        buffer.append(rs.getString("fnIP"));
-                    }
-                    m_botAction.SQLClose(rs);
-                    
-                    if (buffer.length()>2)
-                        alias.setIpResults("(" + buffer.toString().substring(2) + ") ");
-                }
-                
-                if (alias.getMidResults() == null) {
-                    ResultSet rs = m_botAction.SQLQuery(database, "SELECT DISTINCT(fnMachineID) FROM tblAlias WHERE fnUserID = " + alias.getUserID());
-
-                    StringBuffer buffer = new StringBuffer();
-                    rs.beforeFirst();
-                    while(rs.next()) {
-                        buffer.append(", ");
-                        buffer.append(rs.getString("fnMachineID"));
-                    }
-                    m_botAction.SQLClose(rs);
-                    
-                    if (buffer.length()>2)
-                        alias.setMidResults("(" + buffer.toString().substring(2) + ") ");
-                }
-            }
-        } catch (Exception e) { e.printStackTrace(); }
-        
-        if (alias.getUserID() < 0 || alias.getIpResults() == null || alias.getMidResults() == null) {
-            int count = 1;
-            if (loopCatcher.containsKey(alias.getName()))
-                count = loopCatcher.get(alias.getName()) + 1;
-            else
-                loopCatcher.put(alias.getName(), count);
-            
-            if (count < 5) {
-                final AliasCheck ac = alias;
-                TimerTask delay = new TimerTask() {
-                    @Override
-                    public void run() {
-                        dataCheck(ac);
-                    }
-                };
-                m_botAction.scheduleTask(delay, 10000);
-            } else
-                loopCatcher.remove(alias.getName());
-        } else {
-            doAliasCheck(alias);
-        }
-    }
 
     // Alias check using background queries
     private void doAliasCheck(AliasCheck alias) {
         aliases.put(alias.getName(), alias);
-        //m_botAction.SQLBackgroundQuery(database, "alias:ip:" + alias.getName(), "SELECT DISTINCT(fnIP) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
-        //m_botAction.SQLBackgroundQuery(database, "alias:mid:" + alias.getName(), "SELECT DISTINCT(fnMachineId) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
+        m_botAction.SQLBackgroundQuery(database, "alias:ip:" + alias.getName(), "SELECT DISTINCT(fnIP) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
+        m_botAction.SQLBackgroundQuery(database, "alias:mid:" + alias.getName(), "SELECT DISTINCT(fnMachineId) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
+
+        /** old new way
         if (alias.getIpResults() != null && alias.getMidResults() != null) {
             try {
                 ResultSet rs = m_botAction.SQLQuery(database, "SELECT * FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID WHERE fnIP IN " + alias.getIpResults() + "AND fnMachineID IN " + alias.getMidResults() + " ORDER BY fdUpdated DESC");
@@ -342,12 +274,11 @@ public class pubbotnewbie extends PubBotModule{
 
             } catch (Exception e) { e.printStackTrace(); }
         }
-        
+        **/
     }
 
     private class AliasCheck {
         private String name;
-        private int userID = -1;
         private String ipResults;
         private String midResults;
         private int usage; // in minutes
@@ -366,14 +297,6 @@ public class pubbotnewbie extends PubBotModule{
         
         public void resetTime() {
             time = System.currentTimeMillis();
-        }
-        
-        public int getUserID() {
-            return userID;
-        }
-        
-        public void setUserID(int id) {
-            this.userID = id;
         }
 
         public String getName() {
