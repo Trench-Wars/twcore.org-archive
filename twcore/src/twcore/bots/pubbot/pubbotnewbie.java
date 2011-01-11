@@ -145,7 +145,6 @@ public class pubbotnewbie extends PubBotModule{
                         m_botAction.scheduleTask(delayIP, 10000);
                     }
                 }
-                
             }
             else if (event.getIdentifier().startsWith("alias:mid:")) {
 
@@ -226,12 +225,9 @@ public class pubbotnewbie extends PubBotModule{
                             "WHERE fnIP IN " + alias.getIpResults() + " " +
                             "AND fnMachineID IN " + alias.getMidResults() + " ORDER BY fdUpdated DESC");
                 }
-                
             }
-            
             m_botAction.SQLClose(event.getResultSet());
         }
-
     }
 
     private void sendNewPlayerAlert(AliasCheck alias) {
@@ -244,7 +240,6 @@ public class pubbotnewbie extends PubBotModule{
         } else {
             System.out.println(":NO");
         }
-
     }
 
     // Alias check using background queries
@@ -252,29 +247,6 @@ public class pubbotnewbie extends PubBotModule{
         aliases.put(alias.getName(), alias);
         m_botAction.SQLBackgroundQuery(database, "alias:ip:" + alias.getName(), "SELECT DISTINCT(fnIP) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
         m_botAction.SQLBackgroundQuery(database, "alias:mid:" + alias.getName(), "SELECT DISTINCT(fnMachineId) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
-
-        /** old new way
-        if (alias.getIpResults() != null && alias.getMidResults() != null) {
-            try {
-                ResultSet rs = m_botAction.SQLQuery(database, "SELECT * FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID WHERE fnIP IN " + alias.getIpResults() + "AND fnMachineID IN " + alias.getMidResults() + " ORDER BY fdUpdated DESC");
-
-                HashSet<String> prevResults = new HashSet<String>();
-                int numResults = 0;
-                while(rs.next()) {
-                    String username = rs.getString("fcUserName");
-                    if(!prevResults.contains(username)){
-                        prevResults.add(username);
-                        numResults++;
-                    }
-                }
-                m_botAction.SQLClose(rs);
-
-                alias.setAliasCount(numResults);
-                sendNewPlayerAlert(alias); 
-
-            } catch (Exception e) { e.printStackTrace(); }
-        }
-        **/
     }
 
     private class AliasCheck {
@@ -335,5 +307,4 @@ public class pubbotnewbie extends PubBotModule{
             this.midResults = midResults;
         }
     }
-
 }
