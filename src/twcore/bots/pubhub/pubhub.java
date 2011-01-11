@@ -699,4 +699,8 @@ public class pubhub extends SubspaceBot {
     public void handleEvent(FlagClaimed event) {
         moduleHandler.handleEvent(event);
     }
+
+    public void handleEvent(SQLResultEvent event) {
+        moduleHandler.handleEvent(event);
+    }
 }
