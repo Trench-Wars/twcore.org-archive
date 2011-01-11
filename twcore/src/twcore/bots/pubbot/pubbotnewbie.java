@@ -237,7 +237,7 @@ public class pubbotnewbie extends PubBotModule{
     private void sendNewPlayerAlert(AliasCheck alias) {
 
         System.out.print("[ALIAS] " + alias.getName() + ":" + alias.getUsage() + ":" + alias.getAliasCount());
-        if (alias.getUsage() < 15 && alias.getAliasCount() < 25 && alias.getAliasCount() >= 0) {
+        if (alias.getUsage() < 15 && alias.getAliasCount() < 3 && alias.getAliasCount() >= 0) {
             m_botAction.sendSmartPrivateMessage(PUBSYSTEM, "New Player: " + alias.getName());
             m_botAction.ipcSendMessage(ZONE_CHANNEL, "alert >>>>>> New player alert(" + alias.getAliasCount() + "): " + alias.getName(), PUBSYSTEM, m_botAction.getBotName());
             System.out.println(":YES");
