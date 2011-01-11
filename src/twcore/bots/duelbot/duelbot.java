@@ -176,7 +176,7 @@ public class duelbot extends SubspaceBot {
     	for( int i = 0; i < pieces.length; i++ ){
     	    try{
     	        int numKills = Integer.parseInt(pieces[i]);
-    	        if(numKills <= 15 && numKills > 0)
+    	        if(numKills == 5 || numKills == 10)
     	            kills = numKills;
     	    }catch(NumberFormatException e){
     	        if( pieces[i].equals( "winby2" ) ) winby2 = 1;
