@@ -29,6 +29,7 @@ import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
 import twcore.core.events.Prize;
+import twcore.core.events.SQLResultEvent;
 import twcore.core.events.ScoreReset;
 import twcore.core.events.ScoreUpdate;
 import twcore.core.events.SoccerGoal;
@@ -522,6 +523,11 @@ public class pubbot extends SubspaceBot
   }
 
   public void handleEvent(FlagClaimed event)
+  {
+    moduleHandler.handleEvent(event);
+  }
+
+  public void handleEvent(SQLResultEvent event)
   {
     moduleHandler.handleEvent(event);
   }
