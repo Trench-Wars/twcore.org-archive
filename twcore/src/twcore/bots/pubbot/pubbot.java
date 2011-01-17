@@ -329,6 +329,8 @@ public class pubbot extends SubspaceBot
     eventRequester.request(EventRequester.ARENA_LIST);
     eventRequester.request(EventRequester.ARENA_JOINED);
     eventRequester.request(EventRequester.PLAYER_LEFT);
+    eventRequester.request(EventRequester.PLAYER_ENTERED);
+    eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
     eventRequester.request(EventRequester.MESSAGE);
     eventRequester.request(EventRequester.KOTH_RESET);
   }
