@@ -283,7 +283,7 @@ public class twdbot extends SubspaceBot {
                     	commandTWDOps( name );
                     else if( message.equals( "!help" ) )
                         commandDisplayHelp( name, true );
-                    else if( message.equals( "!help" ) )
+                    else if( message.equals( "!squads" ) )
                         commandsquads(name);
                 }
 
