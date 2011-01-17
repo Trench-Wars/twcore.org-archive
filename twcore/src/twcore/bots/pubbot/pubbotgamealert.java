@@ -4,8 +4,6 @@ import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
 import twcore.core.events.PlayerEntered;
 import twcore.core.game.Player;
-// import twcore.core.util.ipc.IPCMessage;
-// import twcore.core.events.InterProcessEvent;
 
 /**
  *  This class handles PlayerEntered events and sends the information to pubhub who then sends appropriate alerts back to pubbot
@@ -13,6 +11,8 @@ import twcore.core.game.Player;
  */
 public class pubbotgamealert extends PubBotModule {
 
+    private final String TWDBOT = "TWDBot";
+    
     @Override
     public void initializeModule() {
     }
@@ -31,6 +31,6 @@ public class pubbotgamealert extends PubBotModule {
         Player p = m_botAction.getPlayer(name);
         String squad = p.getSquadName();
         if (squad.length() > 0)
-            m_botAction.ipcTransmit("TWDInfo", "twdplayer " + name + ":" + squad);
+            m_botAction.sendSmartPrivateMessage(TWDBOT, "twdplayer " + name + ":" + squad);
     }
 }
