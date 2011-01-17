@@ -283,6 +283,8 @@ public class twdbot extends SubspaceBot {
                     	commandTWDOps( name );
                     else if( message.equals( "!help" ) )
                         commandDisplayHelp( name, true );
+                    else if( message.equals( "!help" ) )
+                        commandsquads(name);
                 }
 
                 // First: convert the command to a command with parameters
@@ -1128,6 +1130,15 @@ public class twdbot extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage( name, "Error doing MID check." );
         }
     }
+    
+    public void commandsquads(String name) {
+        String result = "Squads Playing: ";
+        for (Squad squad : m_squads.values()) {
+            result += squad.getName() + ", ";
+        }
+        result = result.substring(0, result.lastIndexOf(","));
+        m_botAction.sendSmartPrivateMessage(name, result);
+    }
 
     public void commandDisplayHelp( String name, boolean player )
     {
@@ -1293,6 +1304,10 @@ public class twdbot extends SubspaceBot {
         
         public HashMap<Integer, Game> getGames() {
             return games;
+        }
+        
+        public String getName() {
+            return name;
         }
         
         public void putGame(Game game) {
