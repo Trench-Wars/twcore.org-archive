@@ -221,12 +221,17 @@ public class PubMoneySystemModule extends AbstractModule {
 	        	final TimerTask task = new PrizeTask(itemPrize, receiver.getPlayerName());
 	        	
 	        	// Prize items every X seconds? (super/shield)
-                if (itemPrize.getPrizeSeconds()!=0 && item.hasDuration()) {
-                	m_botAction.scheduleTask(task, 0, itemPrize.getPrizeSeconds()*Tools.TimeInMillis.SECOND);
-                // Or one shot?
-                } else {
-                	m_botAction.scheduleTask(task, 0);
-                }
+	        	try {
+	                if (itemPrize.getPrizeSeconds()!=0 && item.hasDuration()) {
+	                	m_botAction.scheduleTask(task, 0, itemPrize.getPrizeSeconds()*Tools.TimeInMillis.SECOND);
+	                // Or one shot?
+	                } else {
+	                	m_botAction.scheduleTask(task, 0);
+	                }
+	        	} catch (IllegalStateException e) {
+	        		Tools.printLog("Exception ExecuteItem: " + item.getName() + " (params:" + params + ")");
+	        		return;
+	        	}
 	        	
 	        	if (item.hasDuration()) {
 	            	final PubItemDuration duration = item.getDuration();
@@ -1300,8 +1305,13 @@ public class PubMoneySystemModule extends AbstractModule {
 	            }
 	            
 	            // Money from the ship
-	            int moneyKiller = shipKillerPoints.get((int)killer.getShipType());
-	            int moneyKilled = shipKillerPoints.get((int)killed.getShipType());
+	            int moneyKiller = 0;
+	            int moneyKilled = 0;
+	            try {
+		            moneyKiller = shipKillerPoints.get((int)killer.getShipType());
+		            moneyKilled = shipKillerPoints.get((int)killed.getShipType());
+	            } catch(NullPointerException e) { }
+	            
 	            money += moneyKiller;
 	            money += moneyKilled;
 	            
@@ -1552,7 +1562,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	   	
 	   	final Integer[] freqs = freqList.toArray(new Integer[freqList.size()]);
 	   	
-	   	m_botAction.sendArenaMessage(sender + " has warped to death freq " + message + ".",17);
+	   	m_botAction.sendArenaMessage(sender + " has warped to death FREQ " + message + ".",17);
 	   	
 	   	int toExclude = m_botAction.getPlayingFrequencySize(p.getFrequency());
 	   	int total = m_botAction.getNumPlaying()-toExclude;
@@ -1738,7 +1748,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	   		}
 	   	}
 	   	if (commander.getFrequency() < 100)
-	   		m_botAction.sendArenaMessage("Freq " + commander.getFrequency() + " is striking the flag room! Commanded by " + sender + ".", Tools.Sound.CROWD_OHH);
+	   		m_botAction.sendArenaMessage("FREQ " + commander.getFrequency() + " is striking the flag room! Commanded by " + sender + ".", Tools.Sound.CROWD_OHH);
 	   	else
 	   		m_botAction.sendArenaMessage("A private freq is striking the flag room! Commanded by " + sender + ".", Tools.Sound.CROWD_OHH);
 	   	
@@ -1761,7 +1771,7 @@ public class PubMoneySystemModule extends AbstractModule {
         };
         m_botAction.scheduleTask(timer, 4000);
         if (p.getFrequency() < 100)
-        	m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for freq " + p.getFrequency() + ", thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
+        	m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for FREQ " + p.getFrequency() + ", thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
         else
         	m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for a private freq, thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
 	   	
@@ -1806,7 +1816,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	   	
 	   	final Integer[] freqs = freqList.toArray(new Integer[freqList.size()]);
 	   	
-	   	m_botAction.sendArenaMessage(sender + " has bought a Sphere of Seclusion for freq " + message + ".",17);
+	   	m_botAction.sendArenaMessage(sender + " has bought a Sphere of Seclusion for FREQ " + message + ".",17);
 	   	
 		m_botAction.scheduleTask(new SphereSeclusionTask(freqs,true), 0);
 		m_botAction.scheduleTask(new SphereSeclusionTask(freqs,false), 30*Tools.TimeInMillis.SECOND);
@@ -1840,7 +1850,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	   	
 	   	final Integer[] freqs = freqList.toArray(new Integer[freqList.size()]);
 	   	
-	   	m_botAction.sendArenaMessage(sender + " has started an epidemic on freq " + message + ".",17);
+	   	m_botAction.sendArenaMessage(sender + " has started an epidemic on FREQ " + message + ".",17);
 	   	
 	   	int timeElapsed = 0;
 		for(int i=1; i<10; i++) {
