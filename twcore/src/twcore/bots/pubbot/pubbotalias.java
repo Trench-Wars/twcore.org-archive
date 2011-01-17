@@ -57,12 +57,6 @@ public class pubbotalias extends PubBotModule {
     public void handleEvent(Message event) {
         String message = event.getMessage();
         int messageType = event.getMessageType();
-        
-        if (messageType == Message.PRIVATE_MESSAGE && event.getMessager().equals("WingZero")) {
-            if (message.startsWith("!specs")) {
-                sendSpecs();
-            }
-        }
 
         if (messageType == Message.ARENA_MESSAGE)
             handleArenaMessage(message);
@@ -89,7 +83,6 @@ public class pubbotalias extends PubBotModule {
     
     public void handleEvent(FrequencyShipChange event) {
         String name = m_botAction.getPlayerName(event.getPlayerID());
-        m_botAction.sendSmartPrivateMessage("WingZero", "fsc " + name);
         if (!name.startsWith("^") && specs.contains(name.toLowerCase()))
             m_botAction.sendUnfilteredPrivateMessage(name, "*info");
     }
