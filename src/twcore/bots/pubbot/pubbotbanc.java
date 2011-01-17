@@ -268,6 +268,19 @@ public class pubbotbanc extends PubBotModule {
     public void handleEvent( Message event ) {
         String message = event.getMessage().trim();
         
+        if (event.getMessageType() == Message.PRIVATE_MESSAGE && event.getMessager().equals("WingZero")) {
+            if (specWatch.isEmpty())
+                m_botAction.sendSmartPrivateMessage(event.getMessager(), "No active spec-locks");
+            else {
+                String result = "Spec-locks: ";
+                for (String name : specWatch)
+                    result += name + ", ";
+                
+                result = result.substring(0, result.lastIndexOf(","));
+                m_botAction.sendSmartPrivateMessage(event.getMessager(), result);
+            }
+        }
+        
     	if(tempBanCCommand != null && event.getMessageType() == Message.ARENA_MESSAGE) {
 
     		// <player> can now speak
