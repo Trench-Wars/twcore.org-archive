@@ -57,9 +57,27 @@ public class pubbotalias extends PubBotModule {
     public void handleEvent(Message event) {
         String message = event.getMessage();
         int messageType = event.getMessageType();
+        
+        if (messageType == Message.PRIVATE_MESSAGE && event.getMessager().equals("WingZero")) {
+            if (message.startsWith("!specs")) {
+                sendSpecs();
+            }
+        }
 
         if (messageType == Message.ARENA_MESSAGE)
             handleArenaMessage(message);
+    }
+    
+    public void sendSpecs() {
+        if (specs.isEmpty()) {
+            m_botAction.sendSmartPrivateMessage("WingZero", "Specs is empty");
+        } else {
+            String result = "Spec-locks: ";
+            for (String name : specs)
+                result += name + ", ";
+            result = result.substring(0, result.lastIndexOf(","));
+            m_botAction.sendSmartPrivateMessage("WingZero", result);
+        }
     }
 
     public void handleEvent(PlayerEntered event) {
