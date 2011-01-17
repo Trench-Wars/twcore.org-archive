@@ -16,6 +16,7 @@ import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.OperatorList;
 import twcore.core.SubspaceBot;
+import twcore.core.events.InterProcessEvent;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
 import twcore.core.events.SQLResultEvent;
@@ -40,6 +41,7 @@ public class twdbot extends SubspaceBot {
 
     private String register = "";
     private HashMap<String, String> m_waitingAction;
+    private HashMap<String, Squad> m_squads;
     private String webdb = "website";
 
     int ownerID;
@@ -58,6 +60,8 @@ public class twdbot extends SubspaceBot {
 
         m_waitingAction = new HashMap<String, String>();
         m_requesters = new HashMap<String, String>();
+        
+        m_squads = new HashMap<String, Squad>();
         //m_botAction.sendUnfilteredPublicMessage("?chat=robodev");
         requestEvents();
     }
@@ -106,7 +110,100 @@ public class twdbot extends SubspaceBot {
         }
     }
 
+    public void handleEvent(InterProcessEvent event) {
+        if (event.getChannel().equals("MatchBot")) {
+            if (event.getObject() instanceof String) {
+                String msg = (String) event.getObject();
+                if (msg.startsWith("twdinfo:newgame")) {
+                    //newgame matchID,squad,squad,type,state,arena
+                    String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
+                    if (args.length != 5)
+                        return;
+                    int id;
+                    try {
+                        id = Integer.valueOf(args[0]);
+                    } catch (NumberFormatException e) {
+                        return;
+                    }
+                    Game g1 = new Game(id, args[2], args[3], args[4]);
+                    Game g2 = new Game(id, args[1], args[3], args[4]);
 
+                    Squad squad;
+                    if (m_squads.containsKey(args[1].toLowerCase())) {
+                        squad = m_squads.get(args[1].toLowerCase());
+                        squad.putGame(g1);
+                    } else {
+                        m_squads.put(args[1].toLowerCase(), new Squad(args[1], g1));
+                    }
+                    if (m_squads.containsKey(args[2].toLowerCase())) {
+                        squad = m_squads.get(args[2].toLowerCase());
+                        squad.putGame(g2);
+                    } else {
+                        m_squads.put(args[2].toLowerCase(), new Squad(args[2], g2));
+                    }
+                } else if (msg.startsWith("twdinfo:gamestate")) {
+                    String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
+                    if (args.length != 4)
+                        return;
+                    int id, state;
+                    try {
+                        id = Integer.valueOf(args[0]);
+                        state = Integer.valueOf(args[3]);
+                    } catch (NumberFormatException e) {
+                        return;
+                    }
+                    if (m_squads.containsKey(args[1].toLowerCase()) && m_squads.containsKey(args[2].toLowerCase())) {
+                        Squad squad;
+                        squad = m_squads.get(args[1].toLowerCase());
+                        squad.setState(id, state);
+                        squad = m_squads.get(args[2].toLowerCase());
+                        squad.setState(id, state);
+                    }
+                } else if (msg.startsWith("twdinfo:endgame")) {
+                    String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
+                    if (args.length != 3)
+                        return;
+                    int id;
+                    try {
+                        id = Integer.valueOf(args[0]);
+                    } catch (NumberFormatException e) {
+                        return;
+                    }
+                    if (m_squads.containsKey(args[1].toLowerCase()) && m_squads.containsKey(args[2].toLowerCase())) {
+                        Squad squad;
+                        squad = m_squads.get(args[1].toLowerCase());
+                        if (squad.end(id))
+                            m_squads.remove(args[1].toLowerCase());
+                        squad = m_squads.get(args[2].toLowerCase());
+                        if (squad.end(id))
+                            m_squads.remove(args[2].toLowerCase());
+                    }
+                }
+            }
+        } else if (event.getChannel().equals("TWDInfo")) {
+            if (event.getObject() instanceof String) {
+                String msg = (String) event.getObject();
+                if (msg.startsWith("twdplayer")) {
+                    String[] args = msg.substring(msg.indexOf(" ") + 1).split(":");
+                    if (args.length == 2 && m_squads.containsKey(args[1].toLowerCase())) {
+                        Squad squad = m_squads.get(args[1].toLowerCase());
+                        HashMap<Integer, Game> games = squad.getGames();
+                        for (Game game : games.values()) {
+                            if (!game.alerted(args[0])) {
+                                String state;
+                                if (game.getState() == 0)
+                                    state = "preparing";
+                                else
+                                    state = "playing";
+                                m_botAction.sendSmartPrivateMessage(args[0], "Your squad is " + state + " a " + game.type() + " match against " + game.op() + " in ?go " + game.arena());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     public void handleEvent( Message event ){
             boolean isStaff;
             String message = event.getMessage();
@@ -461,6 +558,8 @@ public class twdbot extends SubspaceBot {
     public void handleEvent( LoggedOn event ) {
         m_botAction.joinArena( m_arena );
         ownerID = 0;
+        m_botAction.ipcSubscribe("MatchBot");
+        m_botAction.ipcSubscribe("TWDInfo");
         TimerTask checkMessages = new TimerTask() {
             public void run() {
                 checkMessages();
@@ -1182,5 +1281,98 @@ public class twdbot extends SubspaceBot {
         m_requesters.put( target, name );
     }
     
+    class Squad {
+        String name;
+        HashMap<Integer, Game> games;
 
+        public Squad(String squad, Game game) {
+            name = squad;
+            games = new HashMap<Integer, Game>();
+            games.put(game.getID(), game);
+        }
+        
+        public HashMap<Integer, Game> getGames() {
+            return games;
+        }
+        
+        public void putGame(Game game) {
+            games.put(game.getID(), game);
+        }
+        
+        public void setState(int id, int state) {
+            if (!games.containsKey((Integer) id))
+                return;
+            Game game = games.get((Integer) id);
+            game.setState(state);
+            games.put(id, game);
+        }
+        
+        public boolean end(int id) {
+            if (games.containsKey((Integer) id))
+                games.remove((Integer) id);
+            
+            return games.isEmpty();
+        }
+        
+    }
+
+    class Game {
+        int id;
+        int state;
+        String op;
+        String type;
+        String arena;
+        LinkedList<String> alerted;
+
+        //newgame matchID,squad,squad,type,state,arena
+        public Game(int matchid, String o, String t, String a) {
+            id = matchid;
+            type = t;
+            arena = a;
+            op = o;
+            state = 0;
+            alerted = new LinkedList<String>();
+        }
+        
+        public void setState(int s) {
+            state = s;
+        }
+        
+        public int getID() {
+            return id;
+        }
+        
+        public int getState() {
+            return state;
+        }
+        
+        public String type() {
+            return type;
+        }
+        
+        public String arena() {
+            return arena;
+        }
+        
+        public String op() {
+            return op;
+        }
+        
+        public boolean alerted(String name) {
+            if (alerted.contains(name.toLowerCase()))
+                return true;
+            else {
+                alerted.add(name.toLowerCase());
+                return false;
+            }
+        }
+        
+    }
+    
+    
+    
+    
+    
+    
+    
 }
