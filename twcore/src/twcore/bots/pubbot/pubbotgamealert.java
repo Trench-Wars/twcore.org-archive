@@ -2,10 +2,10 @@ package twcore.bots.pubbot;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
-import twcore.core.events.InterProcessEvent;
 import twcore.core.events.PlayerEntered;
 import twcore.core.game.Player;
-import twcore.core.util.ipc.IPCMessage;
+// import twcore.core.util.ipc.IPCMessage;
+// import twcore.core.events.InterProcessEvent;
 
 /**
  *  This class handles PlayerEntered events and sends the information to pubhub who then sends appropriate alerts back to pubbot
@@ -13,11 +13,8 @@ import twcore.core.util.ipc.IPCMessage;
  */
 public class pubbotgamealert extends PubBotModule {
 
-    String botName;
-    
     @Override
     public void initializeModule() {
-        botName = m_botAction.getBotName();
     }
 
     @Override
@@ -28,32 +25,12 @@ public class pubbotgamealert extends PubBotModule {
     public void requestEvents( EventRequester eventRequester ){
         eventRequester.request( EventRequester.PLAYER_ENTERED );
     }
-
-    /**
-     * This method handles an InterProcess event.
-     * @param event is the IPC event to handle.
-     */
-    public void handleEvent(InterProcessEvent event)
-    {
-        // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
-        if(event.getObject() instanceof IPCMessage == false)
-            return;
-
-        IPCMessage ipcMessage = (IPCMessage) event.getObject();
-        String message = ipcMessage.getMessage();
-
-        if(message.startsWith("send "))
-            sendAlert(message.substring(message.indexOf(' ')+1, message.indexOf(':')), message.substring(message.indexOf(':')+1));
-    }
     
     public void handleEvent(PlayerEntered event) {
         String name = m_botAction.getPlayerName(event.getPlayerID());
         Player p = m_botAction.getPlayer(name);
         String squad = p.getSquadName();
-        m_botAction.ipcSendMessage(this.getIPCChannel(), "player " + name + ":" + squad, this.getPubHubName(), botName);
-    }
-    
-    public void sendAlert(String name, String msg) {
-        m_botAction.sendSmartPrivateMessage(name, msg);
+        if (squad.length() > 0)
+            m_botAction.ipcTransmit("TWDInfo", "twdplayer " + name + ":" + squad);
     }
 }
