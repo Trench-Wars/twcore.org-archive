@@ -48,6 +48,7 @@ public class MatchGame
 	String m_fcTeam1Name;
 	String m_fcTeam2Name;
 	String m_fcArena;
+	String m_matchTypeName;
 	int m_fnTeam1Score = 0;
 	int m_fnTeam2Score = 0;
 	int m_fnMatchTypeID = 0;
@@ -105,6 +106,8 @@ public class MatchGame
 				m_logger.activate(m_fnMatchID);
 			}
 		}
+		
+        m_matchTypeName = getMatchTypeName(m_fnMatchTypeID);
 
 		/*
 		m_fcArena = m_rules.getString("arena");
@@ -121,6 +124,9 @@ public class MatchGame
 		};
 		m_botAction.scheduleTask(startup, 1000);
 
+        //Sends match info to TWDBot
+        m_botAction.ipcSubscribe("MatchBot");
+        m_botAction.ipcTransmit("MatchBot", "twdinfo:newgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_matchTypeName + "," + m_fcArena);
 	}
 
 	public void zone() {
@@ -247,7 +253,7 @@ public class MatchGame
 							long now = date.getTime();
 							long lastZoner = rs.getLong("fnTimeInMillis");
 							if(now - lastZoner > (timeBetweenZones * Tools.TimeInMillis.MINUTE)){
-								m_botAction.sendZoneMessage("A " + getMatchTypeName(m_fnMatchTypeID) + " match between " +
+								m_botAction.sendZoneMessage("A " + m_matchTypeName + " match between " +
 										                    m_fcTeam1Name + "(#" + rankTeam1 + ") and " +
 										                    m_fcTeam2Name + "(#" + rankTeam2 + ") " +
 										                    "is starting. Type ?go " + m_botAction.getArenaName() +
@@ -328,6 +334,10 @@ public class MatchGame
 	// store game results
 	public void storeGameResult()
 	{
+
+        //Sends match info to TWDBot
+        m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name);
+        
 		try
 		{
 			String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
@@ -411,14 +421,14 @@ public class MatchGame
 	}
 
 	public void handleEvent(PlayerDeath event) 
-	{
-		m_logger.logEvent(event);
-		if (m_curRound != null) {
-			m_curRound.handleEvent(event);
-		}
-	}
+    {
+    	m_logger.logEvent(event);
+    	if (m_curRound != null) {
+    		m_curRound.handleEvent(event);
+    	}
+    }
 
-	public void handleEvent(PlayerEntered event)
+    public void handleEvent(PlayerEntered event)
 	{
 		m_botAction.sendPrivateMessage(event.getPlayerID(), shortStatus());
         if (m_curRound != null ) {
@@ -700,6 +710,7 @@ public class MatchGame
 			if ((m_curRound.m_fnRoundNumber > 1) || (rounds > 1))
 			{
 				// Announce winner
+		        
 				m_logger.sendArenaMessage(" ------- GAME OVER ------- ", 5);
 				m_logger.sendArenaMessage(m_fcTeam1Name + " vs. " + m_fcTeam2Name + ": " + m_fnTeam1Score + " - " + m_fnTeam2Score);
 				if (m_fnTeam1Score > m_fnTeam2Score)
@@ -712,8 +723,11 @@ public class MatchGame
 				}
 				else
 					m_logger.sendArenaMessage("Draw. The game is declared void");
-				if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0)
+				if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0) {
 					m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("endtwdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName()));
+	                //Sends match info to TWDBot
+	                m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name);
+				}
 			}
 			if ((m_rules.getInt("storegame") == 1) && (m_fnTeam1Score != m_fnTeam2Score))
 				storeGameResult();
@@ -726,6 +740,9 @@ public class MatchGame
 			m_logger.sendArenaMessage("Current game standing of " + m_fcTeam1Name + " vs. " + m_fcTeam2Name + ": " + m_fnTeam1Score + " - " + m_fnTeam2Score);
 			m_logger.sendArenaMessage("Prepare for round " + (m_curRound.m_fnRoundNumber + 1), 2);
 			// start new round
+
+	        //Sends match info to TWDBot
+	        m_botAction.ipcTransmit("MatchBot", "twdinfo:gamestate " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + ",0");
 
 			int rn = m_curRound.m_fnRoundNumber + 1;
 			String t1 = m_curRound.m_team1.getTeamName();
@@ -809,8 +826,11 @@ public class MatchGame
 
 	public void cancel()
 	{
-		if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0)
+		if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0) {
 			m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("endtwdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName()));
+            //Sends match info to TWDBot
+            m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name);
+		}
 		if (m_curRound != null)
 			m_curRound.cancel();
 
