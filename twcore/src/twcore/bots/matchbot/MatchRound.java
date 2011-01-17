@@ -20,7 +20,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.TimerTask;
-import java.util.Vector;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -43,6 +42,7 @@ import twcore.core.lvz.Objset;
 import twcore.core.stats.LagReport;
 import twcore.core.stats.lagHandler;
 import twcore.core.util.Tools;
+import twcore.core.util.ipc.IPCMessage;
 import twcore.core.util.json.JSONArray;
 import twcore.core.util.json.JSONObject;
 import twcore.core.util.json.JSONValue;
@@ -1507,6 +1507,9 @@ public class MatchRound
         m_team2.disownFlag();
         m_logger.sendArenaMessage("Go go go!", 104);
         m_botAction.showObject(m_rules.getInt("obj_gogogo"));
+        
+        //Sends match info to TWDBot
+        m_botAction.ipcTransmit("MatchBot", "twdinfo:gamestate " + m_game.m_fnMatchID + "," + m_game.m_fcTeam1Name + "," + m_game.m_fcTeam2Name + ",1");
         
         m_timeStartedms = System.currentTimeMillis();
         flagClaimed = false;
