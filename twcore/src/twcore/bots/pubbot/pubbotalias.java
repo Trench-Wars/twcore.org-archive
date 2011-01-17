@@ -22,7 +22,7 @@ public class pubbotalias extends PubBotModule {
         String playerMacID = getInfo(message, "MachineId:");
 
         m_botAction.ipcSendMessage(getIPCChannel(), "info " + playerName + ":" + playerIP + ":" + playerMacID, getPubHubName(), "pubbotalias");
-        m_botAction.ipcTransmit("pubBots", new IPCMessage("info " + playerName + ":" + playerIP + ":" + playerMacID, "StaffBot", "pubbotalias"));
+        m_botAction.ipcTransmit("pubBots", new IPCMessage("info " + playerName + ":" + playerIP + ":" + playerMacID, null, "tw-guard"));
     }
 
     public void handleArenaMessage(String message) {
