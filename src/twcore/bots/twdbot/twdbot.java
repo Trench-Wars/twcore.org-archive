@@ -114,7 +114,6 @@ public class twdbot extends SubspaceBot {
         if (event.getChannel().equals("MatchBot")) {
             if (event.getObject() instanceof String) {
                 String msg = (String) event.getObject();
-                System.out.println(msg);
                 if (msg.startsWith("twdinfo:newgame")) {
                     //newgame matchID,squad,squad,type,state,arena
                     String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
