@@ -47,6 +47,7 @@ import twcore.core.util.ipc.IPCMessage;
 public class pubbotbanc extends PubBotModule {
 	
     private Set<String> hashSuperSpec;
+    private HashSet<String> specWatch;
     
 	private String tempBanCCommand = null;
 	private String tempBanCTime = null;
@@ -81,6 +82,7 @@ public class pubbotbanc extends PubBotModule {
     	};
     	m_botAction.scheduleTaskAtFixedRate(checkIPCQueue, 5*Tools.TimeInMillis.SECOND, 5*Tools.TimeInMillis.SECOND);
     	hashSuperSpec = new HashSet<String>();
+    	specWatch = new HashSet<String>();
     	
     }
     
@@ -134,6 +136,9 @@ public class pubbotbanc extends PubBotModule {
             String namePlayer = m_botAction.getPlayerName(event.getPlayerID());
             m_botAction.sendPrivateMessage("quiles", "Someone changed ship: "+namePlayer);
             
+            if (specWatch.contains(namePlayer.toLowerCase()))
+                m_botAction.sendUnfilteredPrivateMessage(namePlayer, "*info");
+            
             if( this.hashSuperSpec.contains( namePlayer.toLowerCase() ) ){// && ( event.getShipType() == 2 || event.getShipType() == 4 || event.getShipType() == 8 )){
                 superLockMethod(namePlayer, event.getShipType());
                 m_botAction.sendPrivateMessage("quiles", "List contains "+namePlayer);
@@ -179,6 +184,7 @@ public class pubbotbanc extends PubBotModule {
 			tempBanCPlayer = command.substring(5).split(":")[1];
 			
 			m_botAction.spec(tempBanCPlayer);
+			specWatch.add(tempBanCPlayer.toLowerCase());
 		} else
 		if(command.startsWith(BanCType.SUPERSPEC.toString())){
 		    //superspec lock player in arena
@@ -201,6 +207,7 @@ public class pubbotbanc extends PubBotModule {
 			tempBanCTime = null;
 			tempBanCPlayer = command.substring(12);
 			m_botAction.spec(tempBanCPlayer);
+			specWatch.remove(tempBanCPlayer.toLowerCase());
 			//need to make remove for super spec
 			//REMOVE SPEC PLAYER
 			//0123456789TET
