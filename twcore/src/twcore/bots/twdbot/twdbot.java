@@ -183,9 +183,15 @@ public class twdbot extends SubspaceBot {
         }
     }
     
-    public void handleEvent( Message event ){
+    public void handleEvent( Message event )
+    {
             boolean isStaff;
             String message = event.getMessage();
+            
+            String messager = m_botAction.getPlayerName(event.getPlayerID());
+            if (messager == null)
+            	messager = event.getMessager();
+            
             if( event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ){
                 String name = m_botAction.getPlayerName( event.getPlayerID() );
                 if( m_opList.isER( name )) 
@@ -193,7 +199,7 @@ public class twdbot extends SubspaceBot {
                 else 
                 	isStaff= false;
                 
-                if (event.getMessager().startsWith("TW-Guard")) {
+                if (messager.startsWith("TW-Guard")) {
                     String msg = event.getMessage();
                     if (msg.startsWith("twdplayer") && !m_squads.isEmpty()) {
                         String[] args = msg.substring(msg.indexOf(" ") + 1).split(":");
