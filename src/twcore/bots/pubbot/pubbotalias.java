@@ -4,7 +4,6 @@ import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
-import twcore.core.util.ipc.IPCMessage;
 
 public class pubbotalias extends PubBotModule {
 
@@ -21,8 +20,7 @@ public class pubbotalias extends PubBotModule {
         String playerIP = getInfo(message, "IP:");
         String playerMacID = getInfo(message, "MachineId:");
 
-        m_botAction.ipcSendMessage(getIPCChannel(), "info " + playerName + ":" + playerIP + ":" + playerMacID, getPubHubName(), "pubbotalias");
-        m_botAction.ipcTransmit("pubBots", new IPCMessage("info " + playerName + ":" + playerIP + ":" + playerMacID, null, "tw-guard"));
+        m_botAction.ipcSendMessage(getIPCChannel(), "info " + playerName + ":" + playerIP + ":" + playerMacID, null, "pubbotalias");
     }
 
     public void handleArenaMessage(String message) {
