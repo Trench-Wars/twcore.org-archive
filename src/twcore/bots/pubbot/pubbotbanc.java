@@ -95,6 +95,8 @@ public class pubbotbanc extends PubBotModule {
 
     public void requestEvents( EventRequester eventRequester ){
         eventRequester.request( EventRequester.MESSAGE );
+        eventRequester.request( EventRequester.PLAYER_ENTERED );
+        eventRequester.request( EventRequester.FREQUENCY_SHIP_CHANGE );
     }
 
     public void handleEvent(InterProcessEvent event) {
