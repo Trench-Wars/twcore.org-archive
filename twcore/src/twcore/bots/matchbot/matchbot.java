@@ -433,23 +433,23 @@ public class matchbot extends SubspaceBot {
             if (m_isLocked) {
                 if (m_rules.getInt("captain_can_start_game") == 1) {
                     help.add("The following command only works for rostered captains and assistants:");
-                    help.add("!challenge <squad>                       - request a game of "
+                    help.add("!challenge <squad>                       - (!ch)request a game of "
                             + m_rules.getString("name") + " against <squad>");
-                    help.add("!challenge <squad>:<players>             - request a game of "
+                    help.add("!challenge <squad>:<players>             - (!ch)request a game of "
                             + m_rules.getString("name")
                             + " against <squad> with <players> number of players");
-                    help.add("!challengeall <players>                  - request a game of "
+                    help.add("!challengeall <players>                  - (!chall)request a game of "
                             + m_rules.getString("name")
                             + " against the most active 8 squads with <players>s");
-                    help.add("!challengetopteams <players>             - request a game of "
+                    help.add("!challengetopteams <players>             - (!chtop)request a game of "
                             + m_rules.getString("name")
                             + " against the 8 highest rated squads with <players>s");
-                    help.add("!challenges                              - lists all active challenges "
+                    help.add("!challenges                              - (!chals)lists all active challenges "
                             + " made by your squad");
-                    help.add("!removechallenge <squad>                 - removes the challenge of "
+                    help.add("!removechallenge <squad>                 - (!rc)removes the challenge of "
                             + m_rules.getString("name")
                             + " game against <squad>");
-                    help.add("!removechallenge *                       - removes all challenges sent out by your squad");
+                    help.add("!removechallenge *                       - (!rc *)removes all challenges sent out by your squad");
                     help.add("!accept <squad>                          - accept the !challenge made by the challenging squad");
                 }
             }
@@ -550,15 +550,15 @@ public class matchbot extends SubspaceBot {
         if (m_rules != null) {
 
             if (m_rules.getInt("captain_can_start_game") == 1) {
-                if (command.equals("!challenge"))
+                if (command.equals("!challenge") || command.equals("!ch"))
                     command_challenge(name, parameters);
-                if (command.equals("!challengeall"))
+                if (command.equals("!challengeall") || command.equals("!chall"))
                     command_challengeall(name, parameters);
-                if (command.equals("!challengetopteams"))
+                if (command.equals("!challengetopteams") || command.equals("!chtop"))
                     command_challengetopteams(name, parameters);
-                if (command.equals("!challenges"))
+                if (command.equals("!challenges") || command.equals("!challs") || command.equals("!chals"))
                     command_challenges(name);
-                if (command.equals("!removechallenge"))
+                if (command.equals("!removechallenge") || command.equals("!rc"))
                     command_removechallenge(name, parameters);
                 if (command.equals("!accept"))
                     command_accept(name, parameters);
