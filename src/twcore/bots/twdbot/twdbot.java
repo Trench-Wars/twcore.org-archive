@@ -114,6 +114,7 @@ public class twdbot extends SubspaceBot {
         if (event.getChannel().equals("MatchBot")) {
             if (event.getObject() instanceof String) {
                 String msg = (String) event.getObject();
+                System.out.println(msg);
                 if (msg.startsWith("twdinfo:newgame")) {
                     //newgame matchID,squad,squad,type,state,arena
                     String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
@@ -183,6 +184,7 @@ public class twdbot extends SubspaceBot {
         } else if (event.getChannel().equals("TWDInfo")) {
             if (event.getObject() instanceof String) {
                 String msg = (String) event.getObject();
+                System.out.println(msg);
                 if (msg.startsWith("twdplayer") && !m_squads.isEmpty()) {
                     String[] args = msg.substring(msg.indexOf(" ") + 1).split(":");
                     if (args.length == 2 && m_squads.containsKey(args[1].toLowerCase())) {
@@ -283,8 +285,6 @@ public class twdbot extends SubspaceBot {
                     	commandTWDOps( name );
                     else if( message.equals( "!help" ) )
                         commandDisplayHelp( name, true );
-                    else if( message.equals( "!squads" ) )
-                        commandsquads(name);
                 }
 
                 // First: convert the command to a command with parameters
@@ -529,6 +529,8 @@ public class twdbot extends SubspaceBot {
     public void parseCommand(String name, String command, String[] parameters, boolean isStaff) {
         try
         {
+            if( command.equals("!squads"))
+                command_squads(name);
             if (command.equals("!signup")) {
                 command_signup(name, command, parameters);
             }
@@ -1131,7 +1133,7 @@ public class twdbot extends SubspaceBot {
         }
     }
     
-    public void commandsquads(String name) {
+    public void command_squads(String name) {
         if (m_squads.isEmpty()) {
             m_botAction.sendSmartPrivateMessage(name, "No squads are playing at this time :(");
         } else {
