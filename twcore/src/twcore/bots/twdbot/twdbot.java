@@ -181,28 +181,6 @@ public class twdbot extends SubspaceBot {
                     }
                 }
             }
-        } else if (event.getChannel().equals("TWDInfo")) {
-            if (event.getObject() instanceof String) {
-                String msg = (String) event.getObject();
-                System.out.println(msg);
-                if (msg.startsWith("twdplayer") && !m_squads.isEmpty()) {
-                    String[] args = msg.substring(msg.indexOf(" ") + 1).split(":");
-                    if (args.length == 2 && m_squads.containsKey(args[1].toLowerCase())) {
-                        Squad squad = m_squads.get(args[1].toLowerCase());
-                        HashMap<Integer, Game> games = squad.getGames();
-                        for (Game game : games.values()) {
-                            if (!game.alerted(args[0])) {
-                                String state;
-                                if (game.getState() == 0)
-                                    state = "preparing";
-                                else
-                                    state = "playing";
-                                m_botAction.sendSmartPrivateMessage(args[0], "Your squad is " + state + " a " + game.type() + " match against " + game.op() + " in ?go " + game.arena());
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
     
@@ -215,6 +193,27 @@ public class twdbot extends SubspaceBot {
                 	isStaff = true; 
                 else 
                 	isStaff= false;
+                
+                if (m_opList.isBotExact(event.getMessager())) {
+                    String msg = event.getMessage();
+                    if (msg.startsWith("twdplayer") && !m_squads.isEmpty()) {
+                        String[] args = msg.substring(msg.indexOf(" ") + 1).split(":");
+                        if (args.length == 2 && m_squads.containsKey(args[1].toLowerCase())) {
+                            Squad squad = m_squads.get(args[1].toLowerCase());
+                            HashMap<Integer, Game> games = squad.getGames();
+                            for (Game game : games.values()) {
+                                if (!game.alerted(args[0])) {
+                                    String state;
+                                    if (game.getState() == 0)
+                                        state = "preparing";
+                                    else
+                                        state = "playing";
+                                    m_botAction.sendSmartPrivateMessage(args[0], "Your squad is " + state + " a " + game.type() + " match against " + game.op() + " in ?go " + game.arena());
+                                }
+                            }
+                        }
+                    }
+                }
 
                 if( m_opList.isSysop( name ) || isTWDOp(name) )
                 {
@@ -563,7 +562,6 @@ public class twdbot extends SubspaceBot {
         m_botAction.joinArena( m_arena );
         ownerID = 0;
         m_botAction.ipcSubscribe("MatchBot");
-        m_botAction.ipcSubscribe("TWDInfo");
         TimerTask checkMessages = new TimerTask() {
             public void run() {
                 checkMessages();
