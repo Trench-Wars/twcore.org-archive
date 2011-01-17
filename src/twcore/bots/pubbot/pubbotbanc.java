@@ -68,7 +68,7 @@ public class pubbotbanc extends PubBotModule {
     	// Request active BanCs from StaffBot
     	initActiveBanCs = new TimerTask() {
     		public void run() {
-    			m_botAction.ipcSendMessage(IPCBANC, "BANC PUBBOT INIT", "banc", m_botAction.getBotName());
+    			m_botAction.ipcSendMessage(IPCBANC, "BANC PUBBOT INIT", null, m_botAction.getBotName());
     		}
     	};
     	m_botAction.scheduleTask(initActiveBanCs, 1000);
