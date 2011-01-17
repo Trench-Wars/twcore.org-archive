@@ -183,7 +183,7 @@ public class twdbot extends SubspaceBot {
         } else if (event.getChannel().equals("TWDInfo")) {
             if (event.getObject() instanceof String) {
                 String msg = (String) event.getObject();
-                if (msg.startsWith("twdplayer")) {
+                if (msg.startsWith("twdplayer") && !m_squads.isEmpty()) {
                     String[] args = msg.substring(msg.indexOf(" ") + 1).split(":");
                     if (args.length == 2 && m_squads.containsKey(args[1].toLowerCase())) {
                         Squad squad = m_squads.get(args[1].toLowerCase());
@@ -1132,14 +1132,16 @@ public class twdbot extends SubspaceBot {
     }
     
     public void commandsquads(String name) {
-        if (m_squads.isEmpty())
-            return;
-        String result = "Squads Playing: ";
-        for (Squad squad : m_squads.values()) {
-            result += squad.getName() + ", ";
+        if (m_squads.isEmpty()) {
+            m_botAction.sendSmartPrivateMessage(name, "No squads are playing at this time :(");
+        } else {
+            String result = "Squads Playing: ";
+            for (Squad squad : m_squads.values()) {
+                result += squad.getName() + ", ";
+            }
+            result = result.substring(0, result.lastIndexOf(","));
+            m_botAction.sendSmartPrivateMessage(name, result);
         }
-        result = result.substring(0, result.lastIndexOf(","));
-        m_botAction.sendSmartPrivateMessage(name, result);
     }
 
     public void commandDisplayHelp( String name, boolean player )
