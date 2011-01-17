@@ -196,7 +196,6 @@ public class twdbot extends SubspaceBot {
                 
                 if (event.getMessager().startsWith("TW-Guard")) {
                     String msg = event.getMessage();
-                    System.out.println(msg);
                     if (msg.startsWith("twdplayer") && !m_squads.isEmpty()) {
                         String[] args = msg.substring(msg.indexOf(" ") + 1).split(":");
                         if (args.length == 2 && m_squads.containsKey(args[1].toLowerCase())) {
