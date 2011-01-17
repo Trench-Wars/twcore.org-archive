@@ -194,7 +194,7 @@ public class twdbot extends SubspaceBot {
                 else 
                 	isStaff= false;
                 
-                if (m_opList.isBotExact(event.getMessager())) {
+                if (event.getMessager().startsWith("TW-Guard")) {
                     String msg = event.getMessage();
                     System.out.println(msg);
                     if (msg.startsWith("twdplayer") && !m_squads.isEmpty()) {
