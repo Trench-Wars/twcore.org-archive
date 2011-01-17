@@ -54,7 +54,6 @@ public class pubhub extends SubspaceBot {
     public static final String IPCCHAT = "pubbotChat";
     public static final String IPCSILENCE = "pubbotsilence";
     public static final String IPCPUBSTATS = "pubstats";
-    public static final String IPCTWD = "TWDInfo";
 
     // Configuration
     private ModuleHandler moduleHandler;
@@ -101,7 +100,6 @@ public class pubhub extends SubspaceBot {
         m_botAction.ipcDestroyChannel(IPCCHAT);
         m_botAction.ipcDestroyChannel(IPCSILENCE);
         m_botAction.ipcDestroyChannel(IPCPUBSTATS);
-        m_botAction.ipcDestroyChannel(IPCTWD);
     }
 
     /**
@@ -124,7 +122,6 @@ public class pubhub extends SubspaceBot {
         m_botAction.ipcSubscribe(IPCCHAT);
         m_botAction.ipcSubscribe(IPCSILENCE);
         m_botAction.ipcSubscribe(IPCPUBSTATS);
-        m_botAction.ipcSubscribe(IPCTWD);
         // Join chat
         m_botAction.sendUnfilteredPublicMessage("?chat=" + cfg_chat_hub );
 
