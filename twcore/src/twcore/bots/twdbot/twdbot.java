@@ -1132,6 +1132,8 @@ public class twdbot extends SubspaceBot {
     }
     
     public void commandsquads(String name) {
+        if (m_squads.isEmpty())
+            return;
         String result = "Squads Playing: ";
         for (Squad squad : m_squads.values()) {
             result += squad.getName() + ", ";
