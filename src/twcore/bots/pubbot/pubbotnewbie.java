@@ -90,6 +90,7 @@ public class pubbotnewbie extends PubBotModule{
             
             // GET IP + MID
             if (event.getIdentifier().startsWith("alias:ip:")) {
+                m_botAction.sendSmartPrivateMessage("WingZero", "got IP rs for " + alias.getName());
                 StringBuffer buffer = new StringBuffer();
                 try {
                     resultSet.beforeFirst();
@@ -133,6 +134,7 @@ public class pubbotnewbie extends PubBotModule{
                 }
             }
             else if (event.getIdentifier().startsWith("alias:mid:")) {
+                m_botAction.sendSmartPrivateMessage("WingZero", "got MID rs for " + alias.getName());
                 StringBuffer buffer = new StringBuffer();
                 try {
                     resultSet.beforeFirst();
@@ -177,6 +179,7 @@ public class pubbotnewbie extends PubBotModule{
             }
             // Retrieve the final query using IP+MID
             if (event.getIdentifier().startsWith("alias:final:")) {
+                m_botAction.sendSmartPrivateMessage("WingZero", "got final rs for " + alias.getName());
                 HashSet<String> prevResults = new HashSet<String>();
                 int numResults = 0;
 
@@ -196,6 +199,7 @@ public class pubbotnewbie extends PubBotModule{
             }
             // Send final query if we have IP+MID
             else if (alias.getIpResults() != null && alias.getMidResults() != null) {
+                m_botAction.sendSmartPrivateMessage("WingZero", "send final rs for " + alias.getName());
                 if (alias.getIpResults().equals("") || alias.getMidResults().equals("")) {
                     alias.setAliasCount(0);
                     String reason = alias.getIpResults().equals("") ? "ip" : "mid";
