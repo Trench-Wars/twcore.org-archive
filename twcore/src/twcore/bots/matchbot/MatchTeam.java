@@ -1423,7 +1423,7 @@ public class MatchTeam
                             // if the adding of playerB didn't fail:
                             if (pB != null)
                             {
-                                if ((pB.getPlayerState() == 0) || (pB.getPlayerState() == 2))
+                                if ((pB.getPlayerState() == 0) || (m_rules.getInt("subcansub") == 1 && pB.getPlayerState() == 2))
                                 {
                                     int subDeathsLeft = pA.getSpecAt() - pA.getActualDeaths();
                                     pA.reportSubstituted();
@@ -1446,7 +1446,7 @@ public class MatchTeam
                                                 + " substitutes left");
                                 }
                                 else
-                                    m_logger.sendPrivateMessage(name, pB.getPlayerName() + " is already in the game");
+                                    m_logger.sendPrivateMessage(name, pB.getPlayerName() + " is or was already in the game");
                             }
 
                         }
