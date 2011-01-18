@@ -932,92 +932,95 @@ public class matchbot extends SubspaceBot {
                     DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
                     Player p = m_botAction.getPlayer(name);
                     if (p != null) {
-                        if (parameters.length > 0 && (dp.getTeamName() != null)
-                                && (!dp.getTeamName().equals(""))
-                                && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
-                            // check if the accepted challenge exists
-                            String nmySquad = parameters[0];
-                            GameRequest t, r = null;
-                            ListIterator<GameRequest> i = m_gameRequests.listIterator();
-                            while (i.hasNext()) {
-                                t = (GameRequest) i.next();
-                                if (t.getRequestAge() >= 300000)
-                                    i.remove();
-                                else if ((t.getChallenged().equalsIgnoreCase(p.getSquadName()))
-                                        && (t.getChallenger().equalsIgnoreCase(nmySquad)))
-                                    r = t;
-                            }
-                            if (r != null) {
-                                // check if he is assistant or captain
-                                if (dp.isRankAssistantMinimum()
-                                        && m_rules.getInt("anyone_can_start_game") != 1) {
-                                    m_isStartingUp = true;
-                                    m_botAction.sendSquadMessage(nmySquad, "A game of "
-                                            + r.getPlayersNum()
-                                            + "vs"
-                                            + r.getPlayersNum()
-                                            + " "
-                                            + m_rules.getString("name")
-                                            + " versus "
-                                            + dp.getTeamName()
-                                            + " will start in ?go "
-                                            + m_botAction.getArenaName()
-                                            + " in 30 seconds");
-                                    m_botAction.sendSquadMessage(p.getSquadName(), "A game of "
-                                            + r.getPlayersNum()
-                                            + "vs"
-                                            + r.getPlayersNum()
-                                            + " "
-                                            + m_rules.getString("name")
-                                            + " versus "
-                                            + r.getChallenger()
-                                            + " will start in ?go "
-                                            + m_botAction.getArenaName()
-                                            + " in 30 seconds");
-                                    m_botAction.sendArenaMessage(r.getChallenger()
-                                            + " vs. "
-                                            + dp.getTeamName()
-                                            + " will start here in 30 seconds", 2);
-                                    m_team1 = r.getChallenger();
-                                    m_team2 = dp.getTeamName();
-                                    startMessage = name + "("
-                                            + p.getSquadName()
-                                            + ") accepted challenge from "
-                                            + r.getRequester() + "("
-                                            + r.getChallenger() + ")";
-                                    final int pNum = r.getPlayersNum();
-                                    final int chID = r.getRequesterID();
-                                    final int acID = dp.getUserID();
+                        if (parameters.length > 0) {
+                            if ((dp.getTeamName() != null)
+                                    && (!dp.getTeamName().equals(""))
+                                    && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
+                                // check if the accepted challenge exists
+                                String nmySquad = parameters[0];
+                                GameRequest t, r = null;
+                                ListIterator<GameRequest> i = m_gameRequests.listIterator();
+                                while (i.hasNext()) {
+                                    t = (GameRequest) i.next();
+                                    if (t.getRequestAge() >= 300000)
+                                        i.remove();
+                                    else if ((t.getChallenged().equalsIgnoreCase(p.getSquadName()))
+                                            && (t.getChallenger().equalsIgnoreCase(nmySquad)))
+                                        r = t;
+                                }
+                                if (r != null) {
+                                    // check if he is assistant or captain
+                                    if (dp.isRankAssistantMinimum()
+                                            && m_rules.getInt("anyone_can_start_game") != 1) {
+                                        m_isStartingUp = true;
+                                        m_botAction.sendSquadMessage(nmySquad, "A game of "
+                                                + r.getPlayersNum()
+                                                + "vs"
+                                                + r.getPlayersNum()
+                                                + " "
+                                                + m_rules.getString("name")
+                                                + " versus "
+                                                + dp.getTeamName()
+                                                + " will start in ?go "
+                                                + m_botAction.getArenaName()
+                                                + " in 30 seconds");
+                                        m_botAction.sendSquadMessage(p.getSquadName(), "A game of "
+                                                + r.getPlayersNum()
+                                                + "vs"
+                                                + r.getPlayersNum()
+                                                + " "
+                                                + m_rules.getString("name")
+                                                + " versus "
+                                                + r.getChallenger()
+                                                + " will start in ?go "
+                                                + m_botAction.getArenaName()
+                                                + " in 30 seconds");
+                                        m_botAction.sendArenaMessage(r.getChallenger()
+                                                + " vs. "
+                                                + dp.getTeamName()
+                                                + " will start here in 30 seconds", 2);
+                                        m_team1 = r.getChallenger();
+                                        m_team2 = dp.getTeamName();
+                                        startMessage = name + "("
+                                        + p.getSquadName()
+                                        + ") accepted challenge from "
+                                        + r.getRequester() + "("
+                                        + r.getChallenger() + ")";
+                                        final int pNum = r.getPlayersNum();
+                                        final int chID = r.getRequesterID();
+                                        final int acID = dp.getUserID();
 
-                                    TimerTask m_startGameTimer = new TimerTask() {
-                                        public void run() {
-                                            m_isStartingUp = false;
-                                            if (m_cancelGame) {
-                                                m_botAction.sendArenaMessage(m_team1
-                                                        + " vs. "
-                                                        + m_team2
-                                                        + " has been cancelled.");
-                                                m_team1 = null;
-                                                m_team2 = null;
-                                                m_cancelGame = false;
-                                            } else {
-                                                String dta[] = { m_team1,
-                                                        m_team2,
-                                                        Integer.toString(pNum),
-                                                        Integer.toString(chID),
-                                                        Integer.toString(acID) };
-                                                createGame(m_botAction.getBotName(), dta);
+                                        TimerTask m_startGameTimer = new TimerTask() {
+                                            public void run() {
+                                                m_isStartingUp = false;
+                                                if (m_cancelGame) {
+                                                    m_botAction.sendArenaMessage(m_team1
+                                                            + " vs. "
+                                                            + m_team2
+                                                            + " has been cancelled.");
+                                                    m_team1 = null;
+                                                    m_team2 = null;
+                                                    m_cancelGame = false;
+                                                } else {
+                                                    String dta[] = { m_team1,
+                                                            m_team2,
+                                                            Integer.toString(pNum),
+                                                            Integer.toString(chID),
+                                                            Integer.toString(acID) };
+                                                    createGame(m_botAction.getBotName(), dta);
+                                                }
                                             }
-                                        }
-                                    };
+                                        };
 
-                                    m_botAction.scheduleTask(m_startGameTimer, 30000);
+                                        m_botAction.scheduleTask(m_startGameTimer, 30000);
+                                    } else
+                                        m_botAction.sendPrivateMessage(name, "You're not allowed to accept challenges for your squad");
                                 } else
-                                    m_botAction.sendPrivateMessage(name, "You're not allowed to accept challenges for your squad");
+                                    m_botAction.sendPrivateMessage(name, "The team you want to accept has not challenged you.");
                             } else
-                                m_botAction.sendPrivateMessage(name, "The team you want to accept has not challenged you.");
+                                m_botAction.sendPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
                         } else
-                            m_botAction.sendPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
+                            m_botAction.sendPrivateMessage(name, "You must specify a squad to accept.");                            
                     } else
                         m_botAction.sendSmartPrivateMessage(name, "Please ?go "
                                 + m_botAction.getArenaName()
