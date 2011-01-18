@@ -560,7 +560,7 @@ public class matchbot extends SubspaceBot {
                     command_challenges(name);
                 if (command.equals("!removechallenge") || command.equals("!rc"))
                     command_removechallenge(name, parameters);
-                if (command.equals("!accept"))
+                if (command.equals("!accept") || command.equals("!a"))
                     command_accept(name, parameters);
             }
             if (m_rules.getInt("playerclaimcaptain") == 1) {
@@ -893,9 +893,7 @@ public class matchbot extends SubspaceBot {
                     m_botAction.sendPrivateMessage(name, "You must be a captain or assistant to remove challenges.");
                     return;
                 }
-                if ((dp.getTeamName() != null)
-                        && (!dp.getTeamName().equals(""))
-                        && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
+                if (parameters.length > 0 && (dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
                     String nmySquad = parameters[0];
                     boolean removeAll = false;
                     if (nmySquad.equals("*"))
