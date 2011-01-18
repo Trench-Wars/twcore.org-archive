@@ -932,7 +932,7 @@ public class matchbot extends SubspaceBot {
                     DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
                     Player p = m_botAction.getPlayer(name);
                     if (p != null) {
-                        if ((dp.getTeamName() != null)
+                        if (parameters.length > 0 && (dp.getTeamName() != null)
                                 && (!dp.getTeamName().equals(""))
                                 && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
                             // check if the accepted challenge exists
