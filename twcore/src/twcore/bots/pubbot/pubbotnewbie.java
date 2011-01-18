@@ -9,9 +9,7 @@ import java.util.TimerTask;
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
 import twcore.core.events.Message;
-import twcore.core.events.PlayerEntered;
 import twcore.core.events.SQLResultEvent;
-//import twcore.core.events.SQLResultEvent;
 import twcore.core.util.Tools;
 
 public class pubbotnewbie extends PubBotModule{
@@ -23,13 +21,11 @@ public class pubbotnewbie extends PubBotModule{
 
     private HashMap<String, Integer[]> loopCatcher;
     private HashMap<String, AliasCheck> aliases;
-    private boolean pub;
 
     @Override
     public void initializeModule() {
         this.aliases = new HashMap<String, AliasCheck>();
         this.loopCatcher = new HashMap<String, Integer[]>();
-        pubCheck();
     }
 
     @Override
@@ -38,24 +34,12 @@ public class pubbotnewbie extends PubBotModule{
 
     @Override
     public void requestEvents(EventRequester eventRequester) {
-        eventRequester.request(EventRequester.PLAYER_ENTERED);
         eventRequester.request(EventRequester.MESSAGE);
-    }
-    
-    private void pubCheck() {
-        if (PUBSYSTEM.equals(m_botAction.getFuzzyPlayerName(PUBSYSTEM)))
-            this.pub = true;
-        else
-            this.pub = false;
-    }
-    
-    public void handleEvent(PlayerEntered event) {
-        pubCheck();
     }
 
     public void handleEvent(Message event) {
         String message = event.getMessage();
-        if (pub && event.getMessageType() == Message.ARENA_MESSAGE)
+        if (event.getMessageType() == Message.ARENA_MESSAGE)
         {
             if (message.contains("TypedName:")) {
                 currentInfoName = message.substring(message.indexOf("TypedName:")+10);
@@ -106,7 +90,6 @@ public class pubbotnewbie extends PubBotModule{
             
             // GET IP + MID
             if (event.getIdentifier().startsWith("alias:ip:")) {
-
                 StringBuffer buffer = new StringBuffer();
                 try {
                     resultSet.beforeFirst();
@@ -124,10 +107,13 @@ public class pubbotnewbie extends PubBotModule{
                     Integer count = 0;
                     if (loopCatcher.containsKey(aliasIP)) {
                         Integer[] tasks = loopCatcher.get(aliasIP);
-                        if (tasks.length < 2)
+                        if (tasks == null)
                             tasks = new Integer[] {1, 0};
-                        else
-                            count = tasks[0] + 1;
+                        else {
+                            tasks[0]++;
+                            count = tasks[0];
+                        }
+                        loopCatcher.put(aliasIP, tasks);
                     }
                     if (count > 5)
                         alias.setIpResults("");
@@ -147,7 +133,6 @@ public class pubbotnewbie extends PubBotModule{
                 }
             }
             else if (event.getIdentifier().startsWith("alias:mid:")) {
-
                 StringBuffer buffer = new StringBuffer();
                 try {
                     resultSet.beforeFirst();
@@ -164,10 +149,13 @@ public class pubbotnewbie extends PubBotModule{
                     Integer count = 0;
                     if (loopCatcher.containsKey(aliasMID)) {
                         Integer[] tasks = loopCatcher.get(aliasMID);
-                        if (tasks.length < 2)
+                        if (tasks == null)
                             tasks = new Integer[] {0, 1};
-                        else
-                            count = tasks[1] + 1;
+                        else {
+                            tasks[1]++;
+                            count = tasks[1];
+                        }
+                        loopCatcher.put(aliasMID, tasks);
                     }
                     if (count > 5)
                         alias.setMidResults("");
@@ -187,10 +175,8 @@ public class pubbotnewbie extends PubBotModule{
                 }
 
             }
-            
             // Retrieve the final query using IP+MID
             if (event.getIdentifier().startsWith("alias:final:")) {
-
                 HashSet<String> prevResults = new HashSet<String>();
                 int numResults = 0;
 
@@ -210,7 +196,6 @@ public class pubbotnewbie extends PubBotModule{
             }
             // Send final query if we have IP+MID
             else if (alias.getIpResults() != null && alias.getMidResults() != null) {
-                
                 if (alias.getIpResults().equals("") || alias.getMidResults().equals("")) {
                     alias.setAliasCount(0);
                     String reason = alias.getIpResults().equals("") ? "ip" : "mid";
@@ -233,7 +218,7 @@ public class pubbotnewbie extends PubBotModule{
     private void sendNewPlayerAlert(AliasCheck alias) {
 
         System.out.print("[ALIAS] " + alias.getName() + ":" + alias.getUsage() + ":" + alias.getAliasCount());
-        if (alias.getUsage() < 15 && alias.getAliasCount() < 3 && alias.getAliasCount() >= 0) {
+        if (alias.getUsage() < 15 && alias.getAliasCount() < 25 && alias.getAliasCount() >= 0) {
             m_botAction.sendSmartPrivateMessage(PUBSYSTEM, "New Player: " + alias.getName());
             m_botAction.ipcSendMessage(ZONE_CHANNEL, "alert >>>>>> New player alert(" + alias.getAliasCount() + "): " + alias.getName(), PUBSYSTEM, m_botAction.getBotName());
             System.out.println(":YES");
@@ -245,6 +230,7 @@ public class pubbotnewbie extends PubBotModule{
     // Alias check using background queries
     private void doAliasCheck(AliasCheck alias) {
         aliases.put(alias.getName(), alias);
+        loopCatcher.put(alias.getName(), new Integer[] {0, 0});
         m_botAction.SQLBackgroundQuery(database, "alias:ip:" + alias.getName(), "SELECT DISTINCT(fnIP) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
         m_botAction.SQLBackgroundQuery(database, "alias:mid:" + alias.getName(), "SELECT DISTINCT(fnMachineID) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
     }
