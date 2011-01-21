@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.TimerTask;
 import java.util.ArrayList;
+import java.util.Vector;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -19,6 +20,7 @@ import twcore.core.SubspaceBot;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
+import twcore.core.events.PlayerLeft;
 import twcore.core.events.SQLResultEvent;
 import twcore.core.game.Player;
 import twcore.core.stats.DBPlayerData;
@@ -36,6 +38,13 @@ public class twdbot extends SubspaceBot {
     OperatorList m_opList;
     LinkedList<DBPlayerData> m_players;
     LinkedList<SquadOwner> m_squadowner;
+    
+    HashMap<String, Boolean> arenas;
+    Vector<String> needsBot;
+    Vector<String> needsDie;
+    Vector<String> readyBots;
+    Vector<String> dying;
+    HashMap<String, Long> spawning;
 
     public HashMap<String, String> m_requesters;
 
@@ -43,6 +52,15 @@ public class twdbot extends SubspaceBot {
     private HashMap<String, String> m_waitingAction;
     private HashMap<String, Squad> m_squads;
     private String webdb = "website";
+    private boolean manualSpawnOverride;
+    private boolean startingUp;
+    private boolean shuttingDown;
+    private static final String HUB = "TWCore-League";
+    private static final String TWBD = "6";
+    private static final String TWDD = "8";
+    private static final String TWJD = "15";
+    private static final String TWSD = "19";
+    private static final long SPAWN_RETRY = 100000;
 
     int ownerID;
 
@@ -57,12 +75,21 @@ public class twdbot extends SubspaceBot {
 
         m_players = new LinkedList<DBPlayerData>();
         m_squadowner = new LinkedList<SquadOwner>();
+        
+        arenas = new HashMap<String, Boolean>();
+        readyBots = new Vector<String>();
+        needsBot = new Vector<String>();
+        needsDie = new Vector<String>();
+        dying = new Vector<String>();
+        spawning = new HashMap<String, Long>();
+        manualSpawnOverride = false;
+        startingUp = true;
+        shuttingDown = false;
 
         m_waitingAction = new HashMap<String, String>();
         m_requesters = new HashMap<String, String>();
         
         m_squads = new HashMap<String, Squad>();
-        //m_botAction.sendUnfilteredPublicMessage("?chat=robodev");
         requestEvents();
     }
 
@@ -71,6 +98,218 @@ public class twdbot extends SubspaceBot {
     public void requestEvents() {
         EventRequester req = m_botAction.getEventRequester();
         req.request( EventRequester.MESSAGE );
+        req.request( EventRequester.PLAYER_LEFT );
+    }
+    
+    public void handleEvent(PlayerLeft event) {
+        String name = m_botAction.getPlayerName(event.getPlayerID());
+        if (name == null)
+            return;
+        
+        if (m_opList.isBotExact(name)) {
+            readyBots.remove(name);
+        }
+    }
+    
+    public void checkIN() {
+        arenas.clear();
+        m_botAction.ipcTransmit("MatchBot", "twdmatchbots:checkin");
+        
+        TimerTask ch = new TimerTask() {
+            @Override
+            public void run() {
+                checkArenas();
+            }
+        };
+        m_botAction.scheduleTask(ch, 5000);
+    }
+    
+    public void spawn(String arena) {
+        if (manualSpawnOverride)
+            return;
+        // spawn bot
+        // add arena to the to-be-locked list
+
+        arena = arena.toLowerCase();
+        needsBot.add(arena);
+
+        if (!startingUp) {
+            String div = arena.substring(0, 4);
+            if (readyBots.isEmpty()) {
+                long time = System.currentTimeMillis();
+                if (spawning.containsKey(arena)) {
+                    if (time - spawning.get(arena) > SPAWN_RETRY) {
+                        spawning.put(arena, time);
+                        m_botAction.sendSmartPrivateMessage(HUB, "!spawn matchbot");
+                    }
+                } else {
+                    spawning.put(arena, time);
+                    m_botAction.sendSmartPrivateMessage(HUB, "!spawn matchbot");
+                }
+            } else {
+                String bot = readyBots.remove(0);
+                needsBot.removeElement(arena);
+                lockBot(bot, div);
+            }
+        }        
+    }
+    
+    public void lockBot(String bot, String arena) {
+        arenas.put(arena, null);
+        String div = arena.substring(0, 4);
+        m_botAction.sendChatMessage("Sending " + bot + " to " + arena + "...");
+        if (div.equalsIgnoreCase("twbd"))
+            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWBD);
+        else if (div.equalsIgnoreCase("twdd"))
+            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWDD);
+        else if (div.equalsIgnoreCase("twjd"))
+            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWJD);
+        else if (div.equalsIgnoreCase("twsd"))
+            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWSD);
+    }
+    
+    public void remove(String arena) {
+        if (manualSpawnOverride)
+            return;
+        arena = arena.toLowerCase();
+        if (arenas.containsKey(arena)) {
+            if (arenas.get(arena)) {
+                m_botAction.sendChatMessage("Adding " + arena + " to the kill queue..." + " (!manualspawn to stop spawn control)");
+                // add to the to-be-removed list
+                if (!needsDie.contains(arena))
+                    needsDie.add(arena);
+            } else {
+                m_botAction.sendChatMessage("Sending kill request to " + arena + "..." + " (!manualspawn to stop spawn control)");
+                // kill bot
+                arenas.remove(arena);
+                if (!needsDie.contains(arena))
+                    needsDie.add(arena);
+                m_botAction.ipcTransmit("MatchBot", "twdmatchbot:" + arena + " die");
+            }
+        }
+    }
+    
+    public void stay(String arena) {
+        arena = arena.toLowerCase();
+        needsDie.remove(arena);
+        m_botAction.ipcTransmit("MatchBot", "twdmatchbot:" + arena + " stay");
+    }
+    
+    public void checkArenas() {
+        if (manualSpawnOverride)
+            return;
+        checkDiv("twbd");
+        checkDiv("twdd");
+        checkDiv("twjd");
+        checkDiv("twsd");
+
+        m_botAction.sendChatMessage("Checking TWD arenas...");
+        
+        if (startingUp)
+            startLock();
+    }
+    
+    public void checkDiv(String div) {
+        if (manualSpawnOverride)
+            return;
+        
+        div = div.toLowerCase();
+        
+        if (arenas.containsKey(div) && arenas.get(div) != null) {
+            spawning.remove(div); // in case TWDBot didn't register a bot locked in this twd arena
+            if (arenas.get(div)) {
+                // a1 exists and has game
+                if (arenas.containsKey(div + "2") && arenas.get(div + "2") != null) {
+                    spawning.remove(div + "2"); // in case TWDBot didn't register a bot locked in this twd arena
+                    if (arenas.get(div + "2")) {
+                        // a1 & a2 exist and have games
+                        if (needsDie.contains(div + "2"))
+                            stay(div + "2");
+                        if (arenas.containsKey(div + "3") && arenas.get(div + "3") != null) {
+                            spawning.remove(div + "3"); // in case TWDBot didn't register a bot locked in this twd arena
+                            if (arenas.get(div + "3")) {
+                                if (needsDie.contains(div + "3"))
+                                    stay(div + "3");
+                                // a1, a2, a3 exist and have games
+                                // --> spawn a4 if no exist
+                                if (arenas.containsKey(div + "4") && arenas.get(div + "4") != null) {
+                                    spawning.remove(div + "4"); // in case TWDBot didn't register a bot locked in this twd arena
+                                    if (arenas.get(div + "4") && needsDie.contains(div + "3"))
+                                        stay(div + "3");
+                                } else {
+                                    if (arenas.get(div + "4") == null)
+                                        arenas.remove(div + "4");
+                                    // a4 does not exist
+                                    // --> spawn it  
+                                    spawn(div + "4");                                    
+                                }
+                            } else {
+                                // a3 exists, no game  
+                                // --> remove remaining arenas 
+                                remove(div + "4");     
+                            }
+                        } else {
+                            if (arenas.get(div + "3") == null)
+                                arenas.remove(div + "3");
+                            // a3 does not exist
+                            // --> spawn it
+                            // --> remove remaining arenas   
+                            spawn(div + "3");   
+                            remove(div + "4");             
+                        }
+                    } else {
+                        // a2 exists, no game  
+                        // --> remove remaining arenas  
+                        remove(div + "3");
+                        remove(div + "4");                    
+                    }
+                } else {
+                    if (arenas.get(div + "2") == null)
+                        arenas.remove(div + "2");
+                    // a2 does not exist
+                    // --> spawn it
+                    // --> remove remaining arenas
+                    spawn(div + "2");
+                    remove(div + "3");
+                    remove(div + "4");
+                }
+            } else {
+                // a1 exists, no game
+                // --> remove remaining arenas
+                remove(div + "2");
+                remove(div + "3");
+                remove(div + "4");
+            }
+        } else {
+            if (arenas.get(div) == null)
+                arenas.remove(div);
+            // a1 does not exist
+            // --> spawn it
+            // --> remove remaining arenas
+            spawn(div);
+            remove(div + "2");
+            remove(div + "3");
+            remove(div + "4");
+        }        
+    }
+    
+    public void startLock() {
+        while (!readyBots.isEmpty() && !needsBot.isEmpty()) {
+            String arena = needsBot.remove(0);
+            String div = arena.substring(0, 4);
+            String bot = readyBots.remove(0);
+            lockBot(bot, div);
+        }
+        
+        startingUp = false;
+        
+        if (!needsBot.isEmpty()) {
+            String[] aa = needsBot.toArray(new String[needsBot.size()]);
+            needsBot.clear();
+            for (String a : aa) {
+                spawn(a);
+            }
+        }
     }
 
 
@@ -117,6 +356,7 @@ public class twdbot extends SubspaceBot {
                 if (msg.startsWith("twdinfo:newgame")) {
                     //newgame matchID,squad,squad,type,state,arena
                     String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
+                    arenas.put(args[4].toLowerCase(), true);
                     if (args.length != 5)
                         return;
                     int id;
@@ -125,8 +365,10 @@ public class twdbot extends SubspaceBot {
                     } catch (NumberFormatException e) {
                         return;
                     }
-                    Game g1 = new Game(id, args[2], args[3], args[4]);
-                    Game g2 = new Game(id, args[1], args[3], args[4]);
+                    
+                    String arena = args[4].toLowerCase();
+                    Game g1 = new Game(id, args[2], args[3], arena);
+                    Game g2 = new Game(id, args[1], args[3], arena);
 
                     Squad squad;
                     if (m_squads.containsKey(args[1].toLowerCase())) {
@@ -141,6 +383,7 @@ public class twdbot extends SubspaceBot {
                     } else {
                         m_squads.put(args[2].toLowerCase(), new Squad(args[2], g2));
                     }
+                    checkDiv(arena.substring(0, 4));
                 } else if (msg.startsWith("twdinfo:gamestate")) {
                     String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
                     if (args.length != 4)
@@ -160,8 +403,9 @@ public class twdbot extends SubspaceBot {
                         squad.setState(id, state);
                     }
                 } else if (msg.startsWith("twdinfo:endgame")) {
+                    // matchID,squad,squad,arena
                     String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
-                    if (args.length != 3)
+                    if (args.length != 4)
                         return;
                     int id;
                     try {
@@ -169,6 +413,12 @@ public class twdbot extends SubspaceBot {
                     } catch (NumberFormatException e) {
                         return;
                     }
+                    
+                    String arena = args[3].toLowerCase();
+                    arenas.put(arena, false);
+                    
+                    checkDiv(arena.substring(0, 4));
+
                     if (m_squads.containsKey(args[1].toLowerCase()) && m_squads.containsKey(args[2].toLowerCase())) {
                         Squad squad;
                         squad = m_squads.get(args[1].toLowerCase());
@@ -177,6 +427,74 @@ public class twdbot extends SubspaceBot {
                         squad = m_squads.get(args[2].toLowerCase());
                         if (squad.end(id))
                             m_squads.remove(args[2].toLowerCase());
+                    }
+                    
+                    if (needsDie.contains(arena)) {
+                        remove(arena);                   
+                    }
+                    
+                } else if (msg.startsWith("twdmatchbot:checkin:")) {
+                    // twdmatchbot:checkin:bot:arena:game
+                    String[] args = msg.split(":");
+                    if (args.length == 4) {
+                        if (args[3].equalsIgnoreCase("twd"))
+                            readyBots.add(args[2]);
+                        else 
+                            arenas.put(args[3].toLowerCase(), false);
+                    } else if (args.length == 5) {
+                        arenas.put(args[3].toLowerCase(), true);
+                    } 
+                } else if (msg.startsWith("twdmatchbot:spawned")) {
+                    if (manualSpawnOverride)
+                        return;
+                    final String bot = msg.substring(msg.indexOf(" ") + 1);
+                    if (!needsBot.isEmpty()) {
+                        final String arena = needsBot.remove(0);
+                        TimerTask lock = new TimerTask() {
+                            @Override
+                            public void run() {
+                                lockBot(bot, arena);
+                            }
+                        };
+                        m_botAction.scheduleTask(lock, 2000);
+                    } else {
+                        readyBots.add(bot);
+                    }
+                } else if (msg.startsWith("twdmatchbot:locked ")) {
+                    String arena = msg.substring(msg.indexOf(" ") + 1).toLowerCase();
+                    arenas.put(arena, false);
+                } else if (msg.startsWith("twdmatchbot:dying ")) {
+                    // arena,bot
+                    String[] args  = msg.substring(msg.indexOf(" ") + 1).split(",");
+                    if (args.length == 2) {
+                        String arena = args[0].toLowerCase();
+                        String bot = args[1];
+                        if (!dying.contains(bot))
+                            dying.add(bot);   
+                        
+                        needsDie.remove(arena);                                             
+                    }
+                } else if (msg.startsWith("twdmatchbot:shuttingdown ")) {
+                    // arena,bot
+                    String[] args  = msg.substring(msg.indexOf(" ") + 1).split(",");
+                    if (args.length == 2) {
+                        String bot = args[1];
+                        String arena = args[0].toLowerCase();
+                        if (!dying.contains(bot))
+                            dying.add(bot);
+                        
+                        needsDie.remove(arena);                        
+                    }
+                } else if (msg.startsWith("twdmatchbot:staying ")) {
+                    // arena,bot
+                    String[] args  = msg.substring(msg.indexOf(" ") + 1).split(",");
+                    if (args.length == 2) {
+                        String arena = args[0].toLowerCase();
+                        String bot = args[1];
+                        needsDie.remove(arena);
+                        
+                        if (dying.removeElement(bot))
+                            m_botAction.sendChatMessage(bot + " has been prevented from dying in " + arena + " (!manualspawn to stop spawn control)");
                     }
                 }
             }
@@ -191,6 +509,18 @@ public class twdbot extends SubspaceBot {
             String messager = m_botAction.getPlayerName(event.getPlayerID());
             if (messager == null)
             	messager = event.getMessager();
+            
+            if (!manualSpawnOverride && event.getMessageType() == Message.CHAT_MESSAGE) {
+                if (message.contains("(matchbot)") && message.contains("disconnected")) {
+                    String bot = message.substring(0, message.indexOf("("));
+                    if (!shuttingDown && !dying.removeElement(bot)) {
+                        m_botAction.sendChatMessage("Unexpected disconnect detected - calling for checkIN...");
+                        checkIN();
+                    } else if (shuttingDown) {
+                        dying.removeElement(bot);
+                    }
+                }
+            }
             
             if( event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ){
                 String name = m_botAction.getPlayerName( event.getPlayerID() );
@@ -217,6 +547,28 @@ public class twdbot extends SubspaceBot {
                                 }
                             }
                         }
+                    }
+                }
+
+                if( m_opList.isSysop( name ) || isTWDOp(name) || m_opList.isOwner(name)) {
+                    if (message.startsWith("!manualspawn")) {
+                        commandManualSpawn(name);
+                        return;
+                    } else if (message.startsWith("!forcecheck")) {
+                        m_botAction.sendSmartPrivateMessage(name, "Initiating a check of TWD arenas.");
+                        checkArenas();
+                        return;
+                    } else if (message.startsWith("!shutdowntwd")) {
+                        m_botAction.sendSmartPrivateMessage(name, "Initiating shutdown of all matchbots.");
+                        m_botAction.sendChatMessage("Total MatchBot shutdown requested by " + name);
+                        m_botAction.cancelTasks();
+                        shuttingDown = true;
+                        m_botAction.ipcTransmit("MatchBot", "all twdbots die");
+                        arenas.clear();
+                        needsBot.clear();
+                        readyBots.clear();
+                        needsDie.clear();
+                        return;
                     }
                 }
 
@@ -321,6 +673,29 @@ public class twdbot extends SubspaceBot {
                     parseIP( message );
                 }
             }
+    }
+    
+    public void commandManualSpawn(String name) {
+        if (!manualSpawnOverride) {
+            manualSpawnOverride = true;
+            spawning.clear();
+            needsBot.clear();
+            needsDie.clear();
+            arenas.clear();
+            m_botAction.cancelTasks();
+            m_botAction.sendSmartPrivateMessage(name, "Manual spawn override has been ENABLED.");
+            m_botAction.sendChatMessage("Manual spawn override ENABLED by " + name);
+        } else {
+            manualSpawnOverride = false;
+            spawning.clear();
+            needsBot.clear();
+            needsDie.clear();
+            arenas.clear();
+            startingUp = true;
+            checkIN();
+            m_botAction.sendChatMessage("Manual spawn override DISABLED by " + name + ". MatchBot spawn control restarting.");
+            m_botAction.sendSmartPrivateMessage(name, "Manual spawn override has been DISABLED. Restarting the bot spawn control system.");
+        }
     }
     
     public boolean isTWDOp(String name){
@@ -574,6 +949,8 @@ public class twdbot extends SubspaceBot {
             };
         };
         m_botAction.scheduleTaskAtFixedRate(checkMessages, 5000, 30000);
+        m_botAction.sendUnfilteredPublicMessage("?chat=robodev");
+        checkIN();
     }
 
     public void command_signup(String name, String command, String[] parameters) {
