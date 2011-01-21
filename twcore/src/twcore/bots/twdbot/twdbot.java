@@ -174,16 +174,18 @@ public class twdbot extends SubspaceBot {
         arena = arena.toLowerCase();
         if (arenas.containsKey(arena)) {
             if (arenas.get(arena)) {
-                m_botAction.sendChatMessage("Adding " + arena + " to the kill queue..." + " (!manualspawn to stop spawn control)");
                 // add to the to-be-removed list
-                if (!needsDie.contains(arena))
+                if (!needsDie.contains(arena)) {
+                    m_botAction.sendChatMessage("Adding " + arena + " to the kill queue..." + " (!manualspawn to stop spawn control)");
                     needsDie.add(arena);
+                }
             } else {
-                m_botAction.sendChatMessage("Sending kill request to " + arena + "..." + " (!manualspawn to stop spawn control)");
                 // kill bot
                 arenas.remove(arena);
-                if (!needsDie.contains(arena))
+                if (!needsDie.contains(arena)) {
+                    m_botAction.sendChatMessage("Sending kill request to " + arena + "..." + " (!manualspawn to stop spawn control)");
                     needsDie.add(arena);
+                }
                 m_botAction.ipcTransmit("MatchBot", "twdmatchbot:" + arena + " die");
             }
         }
