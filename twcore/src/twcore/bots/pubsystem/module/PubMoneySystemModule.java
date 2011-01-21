@@ -1370,6 +1370,35 @@ public class PubMoneySystemModule extends AbstractModule {
         else if( m_botAction.getOperatorList().isOwner(sender) && command.startsWith("!addmoney")) {
         	doCmdAddMoney(sender,command);
         }
+        else if (command.startsWith("!coupon")) {
+        	  
+    		// Coupon System commands
+        	boolean operator = couponOperators.contains(sender.toLowerCase());
+        	boolean smod = m_botAction.getOperatorList().isSmod(sender);
+        	
+        	// (Operator/SMOD only)
+        	if (operator || smod) {
+        		
+    			if (command.startsWith("!couponcreate ")) {
+    				doCmdCouponCreate(sender, command.substring(14).trim());
+    			} else if (command.startsWith("!couponlimituse ")) {
+    				doCmdCouponLimitUse(sender, command.substring(16).trim());
+    			} else if (command.startsWith("!couponexpiredate ")) {
+    				doCmdCouponExpireDate(sender, command.substring(18).trim());
+    			} else if (command.startsWith("!couponinfo ")) {
+    				doCmdCouponInfo(sender, command.substring(12).trim());
+    			} else if (command.startsWith("!couponusers ")) {
+    				doCmdCouponUsers(sender, command.substring(13).trim());
+    			} else if (command.startsWith("!couponenable ")) {
+    				doCmdCouponEnable(sender, command.substring(14).trim());
+    			} else if (command.startsWith("!coupondisable ")) {
+    				doCmdCouponDisable(sender, command.substring(15).trim());
+    			}
+
+        	}
+        }
+      
+        
 
 	}
 
@@ -1382,34 +1411,11 @@ public class PubMoneySystemModule extends AbstractModule {
         } else 	if (command.equals("!toggledonation")) {
 			doCmdToggleDonation(sender);
         }
-		
-		// Coupon System commands
-    	boolean operator = couponOperators.contains(sender.toLowerCase());
-    	boolean smod = m_botAction.getOperatorList().isSmod(sender);
-    	
-    	// (Operator/SMOD only)
-    	if (operator || smod) {
-    		
-			if (command.startsWith("!couponcreate ")) {
-				doCmdCouponCreate(sender, command.substring(14).trim());
-			} else if (command.startsWith("!couponlimituse ")) {
-				doCmdCouponLimitUse(sender, command.substring(16).trim());
-			} else if (command.startsWith("!couponexpiredate ")) {
-				doCmdCouponExpireDate(sender, command.substring(18).trim());
-			} else if (command.startsWith("!couponinfo ")) {
-				doCmdCouponInfo(sender, command.substring(12).trim());
-			} else if (command.startsWith("!couponusers ")) {
-				doCmdCouponUsers(sender, command.substring(13).trim());
-			} else if (command.startsWith("!couponenable ")) {
-				doCmdCouponEnable(sender, command.substring(14).trim());
-			} else if (command.startsWith("!coupondisable ")) {
-				doCmdCouponDisable(sender, command.substring(15).trim());
-			}
-			
-			// (SMOD only)
-			if (smod && command.startsWith("!couponaddop ")) {
+
+    	if (m_botAction.getOperatorList().isSmod(sender)) {
+			if (command.startsWith("!couponaddop ")) {
 				doCmdCouponAddOp(sender, command.substring(12).trim());
-			} else if (smod && command.equals("!couponlistops")) {
+			} else if (command.equals("!couponlistops")) {
 				doCmdCouponListOps(sender);
 			}
     	}
