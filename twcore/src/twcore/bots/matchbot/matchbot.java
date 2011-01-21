@@ -60,6 +60,7 @@ public class matchbot extends SubspaceBot {
     boolean m_isStartingUp = false;
     boolean m_cancelGame = false;
     boolean m_off = false;
+    boolean m_die = false;
     String m_locker;
     int m_lockState = 0;
     int m_typeNumber;
@@ -185,6 +186,13 @@ public class matchbot extends SubspaceBot {
         m_botAction.setReliableKills(1); // Reliable kills so the bot receives
                                          // every packet
         m_botAction.sendUnfilteredPublicMessage("?obscene");
+        
+        String arena = m_botAction.getArenaName().toLowerCase(); 
+        if (arena.equalsIgnoreCase("twd")) {
+            m_botAction.ipcTransmit("MatchBot", "twdmatchbot:spawned " + m_botAction.getBotName());
+        } else if (isTWD() && m_isLocked) {
+            m_botAction.ipcTransmit("MatchBot", "twdmatchbot:locked " + arena);            
+        }
     }
 
     public void handleEvent(SoccerGoal event) {
@@ -250,8 +258,50 @@ public class matchbot extends SubspaceBot {
                     }
                     m_arenaList.add(s.substring(8).toLowerCase());
                 }
+
+                String arena = m_botAction.getArenaName().toLowerCase();
+                String bot = m_botAction.getBotName();
+                if (s.startsWith("twdmatchbots:checkin")) {
+                    if (isTWD()) {
+                        if (m_game != null) {
+                            m_botAction.ipcTransmit("MatchBot", "twdmatchbot:checkin:" + bot + ":" + arena + ":game");
+                        } else {
+                            m_botAction.ipcTransmit("MatchBot", "twdmatchbot:checkin:" + bot + ":" + arena);
+                        }
+                    } else if (arena.equalsIgnoreCase("twd")) {
+                        m_botAction.ipcTransmit("MatchBot", "twdmatchbot:checkin:" + bot + ":" + arena);                        
+                    }
+                } else if ((s.equals("all twdbots die")) || (s.equalsIgnoreCase("twdmatchbot:" + arena + " die"))) {
+                    if (!m_isLocked || m_game == null) {
+                        m_botAction.ipcTransmit("MatchBot", "twdmatchbot:shuttingdown " + arena + "," + m_botAction.getBotName());
+                        TimerTask d = new TimerTask() {
+                            @Override
+                            public void run() {
+                                m_botAction.die();
+                            }
+                        };
+                        m_botAction.scheduleTask(d, 3000);
+                    } else if (m_game != null) {
+                        m_die = true;
+                        m_off = true;
+                        m_botAction.ipcTransmit("MatchBot", "twdmatchbot:dying " + arena + "," + m_botAction.getBotName());
+                    }
+                } else if (s.equalsIgnoreCase("twdmatchbot:" + arena + " stay")) {
+                    m_botAction.ipcTransmit("MatchBot", "twdmatchbot:staying " + arena + "," + m_botAction.getBotName());
+                    m_die = false;
+                    m_off = false;
+                }
             }
         }
+    }
+    
+    private boolean isTWD() {
+        String arena = m_botAction.getArenaName().toLowerCase();
+        
+        if (((arena.length() == 4) || (arena.length() == 5)) && ((arena.startsWith("twbd")) || (arena.startsWith("twdd")) || (arena.startsWith("twjd")) || (arena.startsWith("twsd"))))
+            return true;
+        
+        return false;
     }
 
     public void handleEvent(PlayerDeath event) {
@@ -323,6 +373,18 @@ public class matchbot extends SubspaceBot {
                 m_game.cancel();
             m_botAction.die();
         }
+        
+        if (messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) {
+            String name = m_botAction.getPlayerName(event.getPlayerID());
+            if (name == null) {
+                name = event.getMessager();
+            }
+            
+            if (m_opList.isBotExact(name) && message.startsWith("!lock")) {
+                command_lock(name, new String[] { message.substring(message.indexOf(" ") + 1) });
+                return;
+            }
+        }
 
         if ((messageType == Message.PRIVATE_MESSAGE)
                 || ((messageType == Message.REMOTE_PRIVATE_MESSAGE) && (message.toLowerCase().startsWith("!accept")))
@@ -332,6 +394,7 @@ public class matchbot extends SubspaceBot {
                 name = event.getMessager();
             }
 
+            
             isStaff = false;
             isRestrictedStaff = false;
             if ((m_isLocked) && (m_rules != null)) {
@@ -1220,10 +1283,24 @@ public class matchbot extends SubspaceBot {
                             m_game = null;
                             m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
 
-                            if (m_off) {
+                            if (!m_die && m_off) {
                                 m_off = false;
                                 m_isLocked = false;
                                 m_botAction.changeArena("twd");
+                            }
+                            
+                            if (m_die) {
+                                m_die = false;
+                                m_off = false;
+                                m_isLocked = false;
+                                m_botAction.ipcTransmit("MatchBot", "twdmatchbot:shuttingdown " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
+                                TimerTask d = new TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        m_botAction.die();
+                                    }
+                                };
+                                m_botAction.scheduleTask(d, 000);
                             }
                         }
                     }
