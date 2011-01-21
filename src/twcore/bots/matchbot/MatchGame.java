@@ -336,7 +336,7 @@ public class MatchGame
 	{
 
         //Sends match info to TWDBot
-        m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name);
+        m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_botAction.getArenaName());
         
 		try
 		{
@@ -726,7 +726,7 @@ public class MatchGame
 				if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0) {
 					m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("endtwdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName()));
 	                //Sends match info to TWDBot
-	                m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name);
+	                m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_botAction.getArenaName());
 				}
 			}
 			if ((m_rules.getInt("storegame") == 1) && (m_fnTeam1Score != m_fnTeam2Score))
@@ -829,7 +829,7 @@ public class MatchGame
 		if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0) {
 			m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("endtwdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName()));
             //Sends match info to TWDBot
-            m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name);
+            m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_botAction.getArenaName());
 		}
 		if (m_curRound != null)
 			m_curRound.cancel();
