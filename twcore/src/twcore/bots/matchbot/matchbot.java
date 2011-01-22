@@ -261,16 +261,28 @@ public class matchbot extends SubspaceBot {
 
                 String arena = m_botAction.getArenaName().toLowerCase();
                 String bot = m_botAction.getBotName();
-                if (s.startsWith("twdmatchbots:checkin")) {
+                if (s.startsWith("twdmatchbots:newcheckin")) {
                     if (isTWD()) {
                         if (m_game != null) {
-                            m_botAction.ipcTransmit("MatchBot", "twdmatchbot:checkin:" + bot + ":" + arena + ":game");
+                            // checkin:bot:arena:matchID:squad:squad:type
+                            m_botAction.ipcTransmit("MatchBot", "twdmatchbot:checkingin:" + bot + ":" + arena + ":" + m_game.m_fnMatchID + ":" + m_game.m_fcTeam1Name + ":" + m_game.m_fcTeam2Name + ":" + m_game.m_matchTypeName);
                         } else {
-                            m_botAction.ipcTransmit("MatchBot", "twdmatchbot:checkin:" + bot + ":" + arena);
+                            m_botAction.ipcTransmit("MatchBot", "twdmatchbot:checkingin:" + bot + ":" + arena);
                         }
                     } else if (arena.equalsIgnoreCase("twd")) {
-                        m_botAction.ipcTransmit("MatchBot", "twdmatchbot:checkin:" + bot + ":" + arena);                        
+                        m_botAction.ipcTransmit("MatchBot", "twdmatchbot:checkingin:" + bot + ":" + arena);                        
                     }
+                } else if (s.startsWith("twdmatchbots:checkin")) {
+                    if (isTWD()) {
+                        if (m_game != null) {
+                            m_botAction.ipcTransmit("MatchBot", "twdmatchbot:checkingin:" + bot + ":game");
+                        } else {
+                            m_botAction.ipcTransmit("MatchBot", "twdmatchbot:checkingin:" + bot + ":" + arena);
+                        }
+                    } else if (arena.equalsIgnoreCase("twd")) {
+                        m_botAction.ipcTransmit("MatchBot", "twdmatchbot:checkingin:" + bot + ":" + arena);                        
+                    }
+                    
                 } else if ((s.equals("all twdbots die")) || (s.equalsIgnoreCase("twdmatchbot:" + arena + " die"))) {
                     if (!m_isLocked || m_game == null) {
                         m_botAction.ipcTransmit("MatchBot", "twdmatchbot:shuttingdown " + arena + "," + m_botAction.getBotName());
@@ -565,6 +577,18 @@ public class matchbot extends SubspaceBot {
                     try {
                         Thread.sleep(100);
                     } catch (Exception e) {
+                    }
+                    if (m_die && m_off) {
+                        m_off = false;
+                        m_die = false;
+                        m_botAction.ipcTransmit("MatchBot", "twdmatchbot:shuttingdown " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
+                        TimerTask d = new TimerTask() {
+                            @Override
+                            public void run() {
+                                m_botAction.die();
+                            }
+                        };
+                        m_botAction.scheduleTask(d, 1500);
                     }
                     if (m_off) {
                         m_off = false;
@@ -1016,6 +1040,7 @@ public class matchbot extends SubspaceBot {
                                     if (dp.isRankAssistantMinimum()
                                             && m_rules.getInt("anyone_can_start_game") != 1) {
                                         m_isStartingUp = true;
+                                        /**
                                         m_botAction.sendSquadMessage(nmySquad, "A game of "
                                                 + r.getPlayersNum()
                                                 + "vs"
@@ -1027,6 +1052,7 @@ public class matchbot extends SubspaceBot {
                                                 + " will start in ?go "
                                                 + m_botAction.getArenaName()
                                                 + " in 30 seconds");
+                                                **/
                                         m_botAction.sendSquadMessage(p.getSquadName(), "A game of "
                                                 + r.getPlayersNum()
                                                 + "vs"
@@ -1300,7 +1326,7 @@ public class matchbot extends SubspaceBot {
                                         m_botAction.die();
                                     }
                                 };
-                                m_botAction.scheduleTask(d, 000);
+                                m_botAction.scheduleTask(d, 1500);
                             }
                         }
                     }
