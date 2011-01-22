@@ -549,7 +549,7 @@ public class twdbot extends SubspaceBot {
                 else 
                 	isStaff= false;
                 
-                if (messager.startsWith("WingPubBot")) {
+                if (messager.startsWith("TW-Guard")) {
                     String msg = event.getMessage();
                     if (msg.startsWith("twdplayer") && !m_squads.isEmpty()) {
                         String[] args = msg.substring(msg.indexOf(" ") + 1).split(":");
@@ -568,14 +568,6 @@ public class twdbot extends SubspaceBot {
                             }
                         }
                     }
-                } else if (messager.equalsIgnoreCase(HUB) || message.contains("Bot of type matchbot failed to log in.")) {
-                    TimerTask s = new TimerTask() {
-                        @Override
-                        public void run() {
-                            m_botAction.sendSmartPrivateMessage(HUB, "!spawn matchbot");
-                        }
-                    };
-                    m_botAction.scheduleTask(s, 5000);
                 }
 
                 if( m_opList.isSysop( name ) || isTWDOp(name) || m_opList.isOwner(name)) {
