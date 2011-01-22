@@ -60,6 +60,7 @@ public class twdbot extends SubspaceBot {
     private static final String TWDD = "8";
     private static final String TWJD = "15";
     private static final String TWSD = "19";
+    private static final long SPAWN_RETRY = 100000;
 
     int ownerID;
 
@@ -143,8 +144,9 @@ public class twdbot extends SubspaceBot {
                 String bot = readyBots.remove(0);
                 needsBot.removeElement(arena);
                 lockBot(bot, div);
-            }
-        }        
+            }        
+
+        }
     }
     
     public void lockBot(String bot, String arena) {
@@ -537,8 +539,6 @@ public class twdbot extends SubspaceBot {
                     } else if (shuttingDown) {
                         dying.removeElement(bot);
                     }
-                } else if (message.contains("Bot failed to log in.")) {
-                    
                 }
             }
             
