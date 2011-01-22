@@ -1040,7 +1040,6 @@ public class matchbot extends SubspaceBot {
                                     if (dp.isRankAssistantMinimum()
                                             && m_rules.getInt("anyone_can_start_game") != 1) {
                                         m_isStartingUp = true;
-                                        /**
                                         m_botAction.sendSquadMessage(nmySquad, "A game of "
                                                 + r.getPlayersNum()
                                                 + "vs"
@@ -1052,7 +1051,6 @@ public class matchbot extends SubspaceBot {
                                                 + " will start in ?go "
                                                 + m_botAction.getArenaName()
                                                 + " in 30 seconds");
-                                                **/
                                         m_botAction.sendSquadMessage(p.getSquadName(), "A game of "
                                                 + r.getPlayersNum()
                                                 + "vs"
@@ -1326,7 +1324,7 @@ public class matchbot extends SubspaceBot {
                                         m_botAction.die();
                                     }
                                 };
-                                m_botAction.scheduleTask(d, 1500);
+                                m_botAction.scheduleTask(d, 2000);
                             }
                         }
                     }
