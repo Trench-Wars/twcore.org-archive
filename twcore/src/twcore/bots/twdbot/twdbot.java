@@ -31,6 +31,9 @@ import twcore.core.util.Tools;
  * Handles TWD administration tasks such as registration and deletion.
  * Prevents players from playing from any but registered IP/MID, unless
  * overridden by an Op.
+ * 
+ * Also handles and maintains MatchBot location and availability as well
+ * as game information for potential alerts to entering players
  */
 public class twdbot extends SubspaceBot {
 
@@ -155,7 +158,8 @@ public class twdbot extends SubspaceBot {
         // add arena to the to-be-locked list
 
         arena = arena.toLowerCase();
-        needsBot.add(arena);
+        if (!needsBot.contains(arena))
+            needsBot.add(arena);
 
         if (!startingUp) {
             String div = arena.substring(0, 4);
@@ -171,6 +175,10 @@ public class twdbot extends SubspaceBot {
     }
     
     public void lockBot(String bot, String arena) {
+        if (arenas.containsKey(arena)) {
+            m_botAction.sendChatMessage("Anomaly detected: lock attempt on " + bot + " for the pre-existing arena " + arena + " prevented");
+            return;
+        }
         arenas.put(arena, null);
         String div = arena.substring(0, 4);
         m_botAction.sendChatMessage("Sending " + bot + " to " + arena + "...");
@@ -450,11 +458,18 @@ public class twdbot extends SubspaceBot {
                         // twdmatchbot:checkingin:bot:arena:matchID:squad:squad:type
                         m_botAction.sendSmartPrivateMessage("WingZero", msg);
                         String[] args = msg.split(":");
+                        String arena = args[3].toLowerCase();
                         if (args.length == 4) {
                             if (args[3].equalsIgnoreCase("twd"))
                                 readyBots.add(args[2]);
-                            else 
-                                arenas.put(args[3].toLowerCase(), false);
+                            else {
+                                if (!arenas.containsKey(arena))
+                                    arenas.put(arena, false);
+                                else {
+                                    m_botAction.sendChatMessage("Extra bot reported in " + arena + ", sending kill request to " + args[2]);
+                                    m_botAction.ipcTransmit(IPC, "twdmatchbot:" + args[2] + " die");
+                                }
+                            }
                         } else if (args.length == 5) {
                             arenas.put(args[3].toLowerCase(), true);
                         } else if (args.length == 8) {
@@ -467,7 +482,6 @@ public class twdbot extends SubspaceBot {
                                 return;
                             }
 
-                            String arena = args[3].toLowerCase();
                             Game g1 = new Game(id, args[6], args[7], arena);
                             Game g2 = new Game(id, args[5], args[7], arena);
 
@@ -571,13 +585,19 @@ public class twdbot extends SubspaceBot {
                         if (arenas.containsKey(arena)) {
                             if (arenas.get(arena)) {
                                 m_botAction.sendSmartPrivateMessage(player, "Challenge denied: " + arena + " is currently being played in");
+                            } else if (challIPC.containsKey(arena) && !challIPC.get(arena).equals("sent")){
+                                m_botAction.sendSmartPrivateMessage(player, "Error completing request, please use the available bot in " + arena);
                             } else {
                                 m_botAction.ipcTransmit(IPC, ipc);
                             }
                         } else {
                             // create a new bot and store the arena with the ipc message/challenge
-                            challIPC.put(arena, ipc);
-                            spawn(arena);
+                            if (!challIPC.containsKey(arena)) {
+                                challIPC.put(arena, ipc);
+                                spawn(arena);
+                            } else {
+                                m_botAction.sendSmartPrivateMessage(player, "Error completing request, as someone else has also requested a challenge in " + arena + ". Please try again once the bot has spawned.");                                
+                            }
                         }
                     } else if (msg.startsWith("twd:expiredchallenge")) {
                         String[] args  = msg.substring(msg.indexOf(" ") + 1).split(",");
