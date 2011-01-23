@@ -20,6 +20,7 @@ import twcore.core.SubspaceBot;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
+import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.SQLResultEvent;
 import twcore.core.game.Player;
@@ -44,6 +45,7 @@ public class twdbot extends SubspaceBot {
     Vector<String> needsDie;
     Vector<String> readyBots;
     Vector<String> dying;
+    HashMap<String, String> challIPC;
     HashMap<String, Long> spawning;
 
     public HashMap<String, String> m_requesters;
@@ -55,12 +57,14 @@ public class twdbot extends SubspaceBot {
     private boolean manualSpawnOverride;
     private boolean startingUp;
     private boolean shuttingDown;
-    private static final String HUB = "TWCore-League";
+    private static final boolean DEBUG = false; 
+    private String HUB;
+    private static final String IPC = "MatchBot";
+    private static final String BOT_NAME = "MatchBot";
     private static final String TWBD = "6";
     private static final String TWDD = "8";
     private static final String TWJD = "15";
     private static final String TWSD = "19";
-    private static final long SPAWN_RETRY = 100000;
 
     int ownerID;
 
@@ -69,6 +73,11 @@ public class twdbot extends SubspaceBot {
         //Setup of necessary stuff for any bot.
         super( botAction );
 
+        if (!DEBUG)
+            HUB = "TWCore-League";
+        else
+            HUB = "WingHub";
+        
         m_botSettings   = m_botAction.getBotSettings();
         m_arena     = m_botSettings.getString("Arena");
         m_opList        = m_botAction.getOperatorList();
@@ -82,6 +91,7 @@ public class twdbot extends SubspaceBot {
         needsDie = new Vector<String>();
         dying = new Vector<String>();
         spawning = new HashMap<String, Long>();
+        challIPC = new HashMap<String, String>();
         manualSpawnOverride = false;
         startingUp = true;
         shuttingDown = false;
@@ -99,6 +109,7 @@ public class twdbot extends SubspaceBot {
         EventRequester req = m_botAction.getEventRequester();
         req.request( EventRequester.MESSAGE );
         req.request( EventRequester.PLAYER_LEFT );
+        req.request( EventRequester.PLAYER_ENTERED );
     }
     
     public void handleEvent(PlayerLeft event) {
@@ -111,12 +122,22 @@ public class twdbot extends SubspaceBot {
         }
     }
     
+    public void handleEvent(PlayerEntered event) {
+        String name = m_botAction.getPlayerName(event.getPlayerID());
+        if (name == null)
+            return;
+        
+        if (m_opList.isBotExact(name) && name.startsWith(BOT_NAME) && !readyBots.contains(name)) {
+            readyBots.add(name);
+        }
+    }
+    
     public void checkIN() {
         arenas.clear();
         if (startingUp)
-            m_botAction.ipcTransmit("MatchBot", "twdmatchbots:newcheckin");
+            m_botAction.ipcTransmit(IPC, "twdmatchbots:newcheckin");
         else
-            m_botAction.ipcTransmit("MatchBot", "twdmatchbots:checkin");
+            m_botAction.ipcTransmit(IPC, "twdmatchbots:checkin");
         
         TimerTask ch = new TimerTask() {
             @Override
@@ -154,23 +175,23 @@ public class twdbot extends SubspaceBot {
         String div = arena.substring(0, 4);
         m_botAction.sendChatMessage("Sending " + bot + " to " + arena + "...");
         if (div.equalsIgnoreCase("twbd"))
-            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWBD);
+            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWBD + ":" + arena);
         else if (div.equalsIgnoreCase("twdd"))
-            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWDD);
+            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWDD + ":" + arena);
         else if (div.equalsIgnoreCase("twjd"))
-            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWJD);
+            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWJD + ":" + arena);
         else if (div.equalsIgnoreCase("twsd"))
-            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWSD);
+            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWSD + ":" + arena);
     }
     
     public void remove(String arena) {
         if (manualSpawnOverride)
             return;
         arena = arena.toLowerCase();
-        if (arenas.containsKey(arena)) {
+        if (arenas.containsKey(arena) && !challIPC.containsKey(arena)) {
             if (!needsDie.contains(arena)) {
                 m_botAction.sendChatMessage("Sending kill request to " + arena + "..." + " (!manualspawn to stop spawn control)");
-                m_botAction.ipcTransmit("MatchBot", "twdmatchbot:" + arena + " die");
+                m_botAction.ipcTransmit(IPC, "twdmatchbot:" + arena + " die");
             }
         }
     }
@@ -178,16 +199,18 @@ public class twdbot extends SubspaceBot {
     public void stay(String arena) {
         arena = arena.toLowerCase();
         needsDie.remove(arena);
-        m_botAction.ipcTransmit("MatchBot", "twdmatchbot:" + arena + " stay");
+        m_botAction.ipcTransmit(IPC, "twdmatchbot:" + arena + " stay");
     }
     
     public void checkArenas() {
         if (manualSpawnOverride)
             return;
         checkDiv("twbd");
-        checkDiv("twdd");
-        checkDiv("twjd");
-        checkDiv("twsd");
+        if (!DEBUG) {
+            checkDiv("twdd");
+            checkDiv("twjd");
+            checkDiv("twsd");
+        }
 
         m_botAction.sendChatMessage("Checking TWD arenas...");
         
@@ -200,20 +223,19 @@ public class twdbot extends SubspaceBot {
             return;
         
         div = div.toLowerCase();
-        
         if (arenas.containsKey(div) && arenas.get(div) != null) {
             spawning.remove(div); // in case TWDBot didn't register a bot locked in this twd arena
-            if (arenas.get(div)) {
+            if (challIPC.containsKey(div) || arenas.get(div)) {
                 // a1 exists and has game
                 if (arenas.containsKey(div + "2") && arenas.get(div + "2") != null) {
                     spawning.remove(div + "2"); // in case TWDBot didn't register a bot locked in this twd arena
-                    if (arenas.get(div + "2")) {
+                    if (challIPC.containsKey(div + "2") || arenas.get(div + "2")) {
                         // a1 & a2 exist and have games
                         if (needsDie.contains(div + "2"))
                             stay(div + "2");
                         if (arenas.containsKey(div + "3") && arenas.get(div + "3") != null) {
                             spawning.remove(div + "3"); // in case TWDBot didn't register a bot locked in this twd arena
-                            if (arenas.get(div + "3")) {
+                            if (challIPC.containsKey(div + "3") || arenas.get(div + "3")) {
                                 if (needsDie.contains(div + "3"))
                                     stay(div + "3");
                                 // a1, a2, a3 exist and have games
@@ -339,198 +361,247 @@ public class twdbot extends SubspaceBot {
         if (event.getChannel().equals("MatchBot")) {
             if (event.getObject() instanceof String) {
                 String msg = (String) event.getObject();
-                if (msg.startsWith("twdinfo:newgame")) {
-                    //newgame matchID,squad,squad,type,state,arena
-                    String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
-                    arenas.put(args[4].toLowerCase(), true);
-                    if (args.length != 5)
-                        return;
-                    int id;
-                    try {
-                        id = Integer.valueOf(args[0]);
-                    } catch (NumberFormatException e) {
-                        return;
-                    }
-                    
-                    String arena = args[4].toLowerCase();
-                    Game g1 = new Game(id, args[2], args[3], arena);
-                    Game g2 = new Game(id, args[1], args[3], arena);
-
-                    Squad squad;
-                    if (m_squads.containsKey(args[1].toLowerCase())) {
-                        squad = m_squads.get(args[1].toLowerCase());
-                        squad.putGame(g1);
-                    } else {
-                        m_squads.put(args[1].toLowerCase(), new Squad(args[1], g1));
-                    }
-                    if (m_squads.containsKey(args[2].toLowerCase())) {
-                        squad = m_squads.get(args[2].toLowerCase());
-                        squad.putGame(g2);
-                    } else {
-                        m_squads.put(args[2].toLowerCase(), new Squad(args[2], g2));
-                    }
-                    checkDiv(arena.substring(0, 4));
-                } else if (msg.startsWith("twdinfo:gamestate")) {
-                    String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
-                    if (args.length != 4)
-                        return;
-                    int id, state;
-                    try {
-                        id = Integer.valueOf(args[0]);
-                        state = Integer.valueOf(args[3]);
-                    } catch (NumberFormatException e) {
-                        return;
-                    }
-                    if (m_squads.containsKey(args[1].toLowerCase()) && m_squads.containsKey(args[2].toLowerCase())) {
-                        Squad squad;
-                        squad = m_squads.get(args[1].toLowerCase());
-                        squad.setState(id, state);
-                        squad = m_squads.get(args[2].toLowerCase());
-                        squad.setState(id, state);
-                    }
-                } else if (msg.startsWith("twdinfo:endgame")) {
-                    // matchID,squad,squad,arena
-                    String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
-                    if (args.length != 4)
-                        return;
-                    int id;
-                    try {
-                        id = Integer.valueOf(args[0]);
-                    } catch (NumberFormatException e) {
-                        return;
-                    }
-                    
-                    String arena = args[3].toLowerCase();
-                    arenas.put(arena, false);
-                    
-                    checkDiv(arena.substring(0, 4));
-
-                    if (m_squads.containsKey(args[1].toLowerCase()) && m_squads.containsKey(args[2].toLowerCase())) {
-                        Squad squad;
-                        squad = m_squads.get(args[1].toLowerCase());
-                        if (squad.end(id))
-                            m_squads.remove(args[1].toLowerCase());
-                        squad = m_squads.get(args[2].toLowerCase());
-                        if (squad.end(id))
-                            m_squads.remove(args[2].toLowerCase());
-                    }
-                    
-                    if (needsDie.contains(arena)) {
-                        remove(arena);                   
-                    }
-                    
-                } else if (msg.startsWith("twdmatchbot:checkingin:")) {
-                    // twdmatchbot:checkingin:bot:arena
-                    // twdmatchbot:checkingin:bot:arena:game
-                    // twdmatchbot:checkingin:bot:arena:matchID:squad:squad:type
-                    m_botAction.sendSmartPrivateMessage("WingZero", msg);
-                    String[] args = msg.split(":");
-                    if (args.length == 4) {
-                        if (args[3].equalsIgnoreCase("twd"))
-                            readyBots.add(args[2]);
-                        else 
-                            arenas.put(args[3].toLowerCase(), false);
-                    } else if (args.length == 5) {
-                        arenas.put(args[3].toLowerCase(), true);
-                    } else if (args.length == 8) {
-                        arenas.put(args[3].toLowerCase(), true);
-                        // LOAD ALL GAME INFORMATION AS IF IT WERE A NEWGAME IPC
+                if (msg.startsWith("twdinfo:")) {
+                    if (msg.startsWith("twdinfo:newgame")) {
+                        //newgame matchID,squad,squad,type,state,arena
+                        String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
+                        arenas.put(args[4].toLowerCase(), true);
+                        if (args.length != 5)
+                            return;
                         int id;
                         try {
-                            id = Integer.valueOf(args[4]);
+                            id = Integer.valueOf(args[0]);
                         } catch (NumberFormatException e) {
                             return;
                         }
-                        
-                        String arena = args[3].toLowerCase();
-                        Game g1 = new Game(id, args[6], args[7], arena);
-                        Game g2 = new Game(id, args[5], args[7], arena);
+
+                        String arena = args[4].toLowerCase();
+                        Game g1 = new Game(id, args[2], args[3], arena);
+                        Game g2 = new Game(id, args[1], args[3], arena);
 
                         Squad squad;
-                        if (m_squads.containsKey(args[5].toLowerCase())) {
-                            squad = m_squads.get(args[5].toLowerCase());
+                        if (m_squads.containsKey(args[1].toLowerCase())) {
+                            squad = m_squads.get(args[1].toLowerCase());
                             squad.putGame(g1);
                         } else {
-                            m_squads.put(args[5].toLowerCase(), new Squad(args[5], g1));
+                            m_squads.put(args[1].toLowerCase(), new Squad(args[1], g1));
                         }
-                        if (m_squads.containsKey(args[6].toLowerCase())) {
-                            squad = m_squads.get(args[6].toLowerCase());
+                        if (m_squads.containsKey(args[2].toLowerCase())) {
+                            squad = m_squads.get(args[2].toLowerCase());
                             squad.putGame(g2);
                         } else {
-                            m_squads.put(args[6].toLowerCase(), new Squad(args[6], g2));
+                            m_squads.put(args[2].toLowerCase(), new Squad(args[2], g2));
+                        }
+                        checkDiv(arena.substring(0, 4));
+                    } else if (msg.startsWith("twdinfo:gamestate")) {
+                        String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
+                        if (args.length != 4)
+                            return;
+                        int id, state;
+                        try {
+                            id = Integer.valueOf(args[0]);
+                            state = Integer.valueOf(args[3]);
+                        } catch (NumberFormatException e) {
+                            return;
+                        }
+                        if (m_squads.containsKey(args[1].toLowerCase()) && m_squads.containsKey(args[2].toLowerCase())) {
+                            Squad squad;
+                            squad = m_squads.get(args[1].toLowerCase());
+                            squad.setState(id, state);
+                            squad = m_squads.get(args[2].toLowerCase());
+                            squad.setState(id, state);
+                        }
+                    } else if (msg.startsWith("twdinfo:endgame")) {
+                        // matchID,squad,squad,arena
+                        String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
+                        if (args.length != 4)
+                            return;
+                        int id;
+                        try {
+                            id = Integer.valueOf(args[0]);
+                        } catch (NumberFormatException e) {
+                            return;
+                        }
+
+                        String arena = args[3].toLowerCase();
+                        challIPC.remove(arena);
+                        arenas.put(arena, false);
+
+                        checkDiv(arena.substring(0, 4));
+
+                        if (m_squads.containsKey(args[1].toLowerCase()) && m_squads.containsKey(args[2].toLowerCase())) {
+                            Squad squad;
+                            squad = m_squads.get(args[1].toLowerCase());
+                            if (squad.end(id))
+                                m_squads.remove(args[1].toLowerCase());
+                            squad = m_squads.get(args[2].toLowerCase());
+                            if (squad.end(id))
+                                m_squads.remove(args[2].toLowerCase());
+                        }
+
+                        if (needsDie.contains(arena)) {
+                            remove(arena);                   
                         }
                     }
-                } else if (msg.startsWith("twdmatchbot:spawned")) {
-                    if (manualSpawnOverride)
-                        return;
-                    final String bot = msg.substring(msg.indexOf(" ") + 1);
-                    if (!needsBot.isEmpty()) {
-                        final String arena = needsBot.remove(0);
-                        TimerTask lock = new TimerTask() {
-                            @Override
-                            public void run() {
-                                lockBot(bot, arena);
+                } else if (msg.startsWith("twdmatchbot:")) {
+                    if (msg.startsWith("twdmatchbot:checkingin:")) {
+                        // twdmatchbot:checkingin:bot:arena
+                        // twdmatchbot:checkingin:bot:arena:game
+                        // twdmatchbot:checkingin:bot:arena:matchID:squad:squad:type
+                        m_botAction.sendSmartPrivateMessage("WingZero", msg);
+                        String[] args = msg.split(":");
+                        if (args.length == 4) {
+                            if (args[3].equalsIgnoreCase("twd"))
+                                readyBots.add(args[2]);
+                            else 
+                                arenas.put(args[3].toLowerCase(), false);
+                        } else if (args.length == 5) {
+                            arenas.put(args[3].toLowerCase(), true);
+                        } else if (args.length == 8) {
+                            arenas.put(args[3].toLowerCase(), true);
+                            // LOAD ALL GAME INFORMATION AS IF IT WERE A NEWGAME IPC
+                            int id;
+                            try {
+                                id = Integer.valueOf(args[4]);
+                            } catch (NumberFormatException e) {
+                                return;
                             }
-                        };
-                        m_botAction.scheduleTask(lock, 2000);
-                    } else {
-                        readyBots.add(bot);
-                    }
-                } else if (msg.startsWith("twdmatchbot:locked ")) {
-                    String arena = msg.substring(msg.indexOf(" ") + 1).toLowerCase();
-                    arenas.put(arena, false);
-                } else if (msg.startsWith("twdmatchbot:dying ")) {
-                    // arena,bot
-                    String[] args  = msg.substring(msg.indexOf(" ") + 1).split(",");
-                    if (args.length == 2) {
-                        String arena = args[0].toLowerCase();
-                        String bot = args[1];
-                        
-                        m_botAction.sendChatMessage(bot + " reports it will die when " + arena + " is over...");
-                        
-                        if (!dying.contains(bot))
-                            dying.add(bot);   
-                        
-                        if (!needsDie.contains(arena))
-                            needsDie.add(arena);
-                    }
-                } else if (msg.startsWith("twdmatchbot:shuttingdown ")) {
-                    // arena,bot
-                    String[] args  = msg.substring(msg.indexOf(" ") + 1).split(",");
-                    if (args.length == 2) {
-                        String bot = args[1];
-                        String arena = args[0].toLowerCase();
-                        if (!dying.contains(bot))
-                            dying.add(bot);
+
+                            String arena = args[3].toLowerCase();
+                            Game g1 = new Game(id, args[6], args[7], arena);
+                            Game g2 = new Game(id, args[5], args[7], arena);
+
+                            Squad squad;
+                            if (m_squads.containsKey(args[5].toLowerCase())) {
+                                squad = m_squads.get(args[5].toLowerCase());
+                                squad.putGame(g1);
+                            } else {
+                                m_squads.put(args[5].toLowerCase(), new Squad(args[5], g1));
+                            }
+                            if (m_squads.containsKey(args[6].toLowerCase())) {
+                                squad = m_squads.get(args[6].toLowerCase());
+                                squad.putGame(g2);
+                            } else {
+                                m_squads.put(args[6].toLowerCase(), new Squad(args[6], g2));
+                            }
+                        }
+                    } else if (msg.startsWith("twdmatchbot:spawned")) {
+                        if (manualSpawnOverride)
+                            return;
+                        final String bot = msg.substring(msg.indexOf(" ") + 1);
+                        if (!needsBot.isEmpty()) {
+                            final String arena = needsBot.remove(0);
+                            TimerTask lock = new TimerTask() {
+                                @Override
+                                public void run() {
+                                    lockBot(bot, arena);
+                                }
+                            };
+                            m_botAction.scheduleTask(lock, 2000);
+                        } else {
+                            readyBots.add(bot);
+                        }
+                    } else if (msg.startsWith("twdmatchbot:locked ")) {
+                        String arena = msg.substring(msg.indexOf(" ") + 1).toLowerCase();
+                        arenas.put(arena, false);
+                        if (challIPC.containsKey(arena)) {
+                            String ipc = challIPC.get(arena);
+                            if (!ipc.equals("sent")) {
+                                m_botAction.sendSmartPrivateMessage(ipc.substring(ipc.indexOf(" ") + 1, ipc.indexOf(",")), "Your challenge was sent as requested.");
+                                m_botAction.ipcTransmit(IPC, ipc);
+                                challIPC.put(arena, "sent");
+                            }
+                        }
+                    } else if (msg.startsWith("twdmatchbot:unlocked ")) {
+                        String arena = msg.substring(msg.indexOf(" ") + 1, msg.indexOf(",")).toLowerCase();
+                        String bot = msg.substring(msg.indexOf(",") + 1);
                         arenas.remove(arena);
-                        needsDie.remove(arena);                        
+                        m_botAction.sendChatMessage("Unexpected unlock occured from " + bot + " in " + arena + ". Responding appropriately...");
+                        checkArenas();                        
+                    } else if (msg.startsWith("twdmatchbot:dying ")) {
+                        // arena,bot
+                        String[] args  = msg.substring(msg.indexOf(" ") + 1).split(",");
+                        if (args.length == 2) {
+                            String arena = args[0].toLowerCase();
+                            String bot = args[1];
+
+                            m_botAction.sendChatMessage(bot + " reports it will die when " + arena + " is over...");
+
+                            if (!dying.contains(bot))
+                                dying.add(bot);   
+
+                            if (!needsDie.contains(arena))
+                                needsDie.add(arena);
+                        }
+                    } else if (msg.startsWith("twdmatchbot:shuttingdown ")) {
+                        // arena,bot
+                        String[] args  = msg.substring(msg.indexOf(" ") + 1).split(",");
+                        if (args.length == 2) {
+                            String bot = args[1];
+                            String arena = args[0].toLowerCase();
+                            if (!dying.contains(bot))
+                                dying.add(bot);
+                            arenas.remove(arena);
+                            needsDie.remove(arena);
+                            challIPC.remove(arena);
+                        }
+                    } else if (msg.startsWith("twdmatchbot:staying ")) {
+                        // arena,bot
+                        String[] args  = msg.substring(msg.indexOf(" ") + 1).split(",");
+                        if (args.length == 2) {
+                            String arena = args[0].toLowerCase();
+                            String bot = args[1];
+                            needsDie.remove(arena);
+
+                            if (dying.removeElement(bot))
+                                m_botAction.sendChatMessage(bot + " has been prevented from dying in " + arena + " (!manualspawn to stop spawn control)");
+                        }
                     }
-                } else if (msg.startsWith("twdmatchbot:staying ")) {
-                    // arena,bot
-                    String[] args  = msg.substring(msg.indexOf(" ") + 1).split(",");
-                    if (args.length == 2) {
+                } else if (msg.startsWith("twd:")) {
+                    if (msg.startsWith("twd:arena_request ")) {
+                        String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
+                        // (arena,squad_ch,squad_op,name,players,my_arena,my_botname)
+                        if (args.length != 7)
+                            return;
                         String arena = args[0].toLowerCase();
-                        String bot = args[1];
-                        needsDie.remove(arena);
-                        
-                        if (dying.removeElement(bot))
-                            m_botAction.sendChatMessage(bot + " has been prevented from dying in " + arena + " (!manualspawn to stop spawn control)");
+                        String player = args[3];
+                        // name,squad_ch,squad_op,players
+                        String ipc = "twd:" + arena + ":challenge " + player + "," + args[2] + "," + args[4];
+                        m_botAction.sendChatMessage("Arena challenge request made by " + player + " for " + arena );
+                        if (arenas.containsKey(arena)) {
+                            if (arenas.get(arena)) {
+                                m_botAction.sendSmartPrivateMessage(player, "Challenge denied: " + arena + " is currently being played in");
+                            } else {
+                                m_botAction.ipcTransmit(IPC, ipc);
+                            }
+                        } else {
+                            // create a new bot and store the arena with the ipc message/challenge
+                            challIPC.put(arena, ipc);
+                            spawn(arena);
+                        }
+                    } else if (msg.startsWith("twd:expiredchallenge")) {
+                        String[] args  = msg.substring(msg.indexOf(" ") + 1).split(",");
+                        if (args.length != 2)
+                            return;
+                        String arena = args[0].toLowerCase();
+                        challIPC.remove(arena);
+                        checkArenas();
                     }
                 }
             }
         }
     }
-    
+
     public void handleEvent( Message event )
     {
-            boolean isStaff;
-            String message = event.getMessage();
-            
-            String messager = m_botAction.getPlayerName(event.getPlayerID());
-            if (messager == null)
-            	messager = event.getMessager();
-            
-            if (!manualSpawnOverride && event.getMessageType() == Message.CHAT_MESSAGE) {
+        boolean isStaff;
+        String message = event.getMessage();
+
+        String messager = m_botAction.getPlayerName(event.getPlayerID());
+        if (messager == null)
+            messager = event.getMessager();
+
+        if (!manualSpawnOverride && event.getMessageType() == Message.CHAT_MESSAGE) {
                 if (message.contains("(matchbot)") && message.contains("disconnected")) {
                     String bot = message.substring(0, message.indexOf("("));
                     if (!shuttingDown && !dying.removeElement(bot)) {
@@ -575,11 +646,19 @@ public class twdbot extends SubspaceBot {
                         commandManualSpawn(name);
                         return;
                     } else if (message.startsWith("!forcecheck")) {
-                        m_botAction.sendSmartPrivateMessage(name, "Initiating a check of TWD arenas...");
+                        if (manualSpawnOverride) {
+                            m_botAction.sendSmartPrivateMessage(name, "Manual spawn override in effect.");
+                            return;
+                        }
+                        m_botAction.sendSmartPrivateMessage(name, "Initiating a check of all TWD arenas...");
                         checkArenas();
                         return;
                     } else if (message.startsWith("!fullcheck")) {
-                        m_botAction.sendSmartPrivateMessage(name, "Requesting a full checkin from TWD bots...");
+                        if (manualSpawnOverride) {
+                            m_botAction.sendSmartPrivateMessage(name, "Manual spawn override in effect.");
+                            return;
+                        }
+                        m_botAction.sendSmartPrivateMessage(name, "Requesting a checkin from all TWD bots...");
                         checkIN();
                         return;
                     } else if (message.startsWith("!shutdowntwd")) {
@@ -587,7 +666,7 @@ public class twdbot extends SubspaceBot {
                         m_botAction.sendChatMessage("Total MatchBot shutdown requested by " + name);
                         m_botAction.cancelTasks();
                         shuttingDown = true;
-                        m_botAction.ipcTransmit("MatchBot", "all twdbots die");
+                        m_botAction.ipcTransmit(IPC, "all twdbots die");
                         arenas.clear();
                         needsBot.clear();
                         readyBots.clear();
@@ -705,7 +784,6 @@ public class twdbot extends SubspaceBot {
             spawning.clear();
             needsBot.clear();
             needsDie.clear();
-            arenas.clear();
             m_botAction.cancelTasks();
             m_botAction.sendSmartPrivateMessage(name, "Manual spawn override has been ENABLED.");
             m_botAction.sendChatMessage("Manual spawn override ENABLED by " + name);
