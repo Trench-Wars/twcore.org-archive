@@ -284,7 +284,7 @@ public class matchbot extends SubspaceBot {
                         m_botAction.ipcTransmit(IPC, "twdmatchbot:checkingin:" + bot + ":" + arena);                        
                     }
                     
-                } else if ((s.equals("all twdbots die")) || (s.equalsIgnoreCase("twdmatchbot:" + arena + " die"))) {
+                } else if ((s.equals("all twdbots die")) || (s.equalsIgnoreCase("twdmatchbot:" + arena + " die")) || (s.equalsIgnoreCase("twdmatchbot:" + m_botAction.getBotName() + " die"))) {
                     if (!m_isLocked || m_game == null) {
                         m_botAction.ipcTransmit(IPC, "twdmatchbot:shuttingdown " + arena + "," + m_botAction.getBotName());
                         TimerTask d = new TimerTask() {
