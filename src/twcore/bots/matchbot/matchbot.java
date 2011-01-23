@@ -767,7 +767,7 @@ public class matchbot extends SubspaceBot {
                     if (Integer.parseInt(parameters[1]) >= m_rules.getInt("minplayers") && Integer.parseInt(parameters[1]) <= m_rules.getInt("players")) {
                         players = Integer.parseInt(parameters[1]);
                     } else {
-                        m_botAction.sendPrivateMessage(name, "Minimum # of players is " + m_rules.getInt("minplayers") + " and maximum is " + m_rules.getInt("players") + ".");
+                        m_botAction.sendSmartPrivateMessage(name, "Minimum # of players is " + m_rules.getInt("minplayers") + " and maximum is " + m_rules.getInt("players") + ".");
                         return;
                     }
                 } else {
@@ -775,14 +775,14 @@ public class matchbot extends SubspaceBot {
                 }
                 DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
                 if (!dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) {
-                    m_botAction.sendPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
+                    m_botAction.sendSmartPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
                     return;
                 }
 
                 String nmySquad = parameters[0];
                 m_gameRequests.add(new GameRequest(name, dp.getTeamName(), nmySquad, players, dp.getUserID()));
                 m_botAction.sendSquadMessage(nmySquad, name + " is challenging you for a game of " + players + "vs" + players + " " + m_rules.getString("name") + " versus " + dp.getTeamName() + ". Captains/assistants, ?go " + m_botAction.getArenaName() + " and pm me with '!accept " + dp.getTeamName() + "'");
-                m_botAction.sendPrivateMessage(name, "Your challenge has been sent out to " + nmySquad);
+                m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to " + nmySquad);
                 TimerTask exp = new TimerTask() {
                     @Override
                     public void run() {
@@ -791,9 +791,9 @@ public class matchbot extends SubspaceBot {
                 };
                 m_botAction.scheduleTask(exp, 300000);
             } else
-                m_botAction.sendPrivateMessage(name, "You can't challenge here, there is a game going on here already");
+                m_botAction.sendSmartPrivateMessage(name, "You can't challenge here, there is a game going on here already");
         } catch (Exception e) {
-            m_botAction.sendPrivateMessage(name, "Specify the squad you want to challenge");
+            m_botAction.sendSmartPrivateMessage(name, "Specify the squad you want to challenge");
         }
     }
 
@@ -823,7 +823,7 @@ public class matchbot extends SubspaceBot {
                 DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
                 if (!dp.isRankAssistantMinimum()
                         && m_rules.getInt("anyone_can_start_game") != 1) {
-                    m_botAction.sendPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
+                    m_botAction.sendSmartPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
                     return;
                 }
 
@@ -848,7 +848,7 @@ public class matchbot extends SubspaceBot {
                                     + m_botAction.getArenaName()
                                     + " and pm me with '!accept "
                                     + dp.getTeamName() + "'");
-                            m_botAction.sendPrivateMessage(name, "Your challenge has been sent out to "
+                            m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to "
                                     + nmySquad);
                         } else if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")) {
                             try {
@@ -865,17 +865,17 @@ public class matchbot extends SubspaceBot {
                                 m_botAction.sendSmartPrivateMessage(name, "Invalid arena requested.");
                             }
                         } else {
-                            m_botAction.sendPrivateMessage(name, "Please specify a valid TWD arena");                                
+                            m_botAction.sendSmartPrivateMessage(name, "Please specify a valid TWD arena");                                
                         }
                     } else
-                        m_botAction.sendPrivateMessage(name, "The team you want to challenge does NOT exist in TWD");
+                        m_botAction.sendSmartPrivateMessage(name, "The team you want to challenge does NOT exist in TWD");
                     m_botAction.SQLClose(rs);
                 } else
-                    m_botAction.sendPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
+                    m_botAction.sendSmartPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
             } else
-                m_botAction.sendPrivateMessage(name, "You can't challenge your own squad, silly :P");
+                m_botAction.sendSmartPrivateMessage(name, "You can't challenge your own squad, silly :P");
         } catch (Exception e) {
-            m_botAction.sendPrivateMessage(name, "Specify the squad you want to challenge");
+            m_botAction.sendSmartPrivateMessage(name, "Specify the squad you want to challenge");
         }
 
     }
@@ -907,7 +907,7 @@ public class matchbot extends SubspaceBot {
                                 && Integer.parseInt(parameters[1]) <= m_rules.getInt("players")) {
                             players = Integer.parseInt(parameters[1]);
                         } else {
-                            m_botAction.sendPrivateMessage(name, "Minimum # of players is "
+                            m_botAction.sendSmartPrivateMessage(name, "Minimum # of players is "
                                     + m_rules.getInt("minplayers")
                                     + " and maximum is "
                                     + m_rules.getInt("players") + ".");
@@ -942,19 +942,19 @@ public class matchbot extends SubspaceBot {
                                     + m_botAction.getArenaName()
                                     + " and pm me with '!accept "
                                     + dp.getTeamName() + "'");
-                            m_botAction.sendPrivateMessage(name, "Your challenge has been sent out to "
+                            m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to "
                                     + nmySquad);
                         } else
-                            m_botAction.sendPrivateMessage(name, "The team you want to challenge does NOT exist in TWD");
+                            m_botAction.sendSmartPrivateMessage(name, "The team you want to challenge does NOT exist in TWD");
                         m_botAction.SQLClose(rs);
                     } else
-                        m_botAction.sendPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
+                        m_botAction.sendSmartPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
                 } else
-                    m_botAction.sendPrivateMessage(name, "You can't challenge your own squad, silly :P");
+                    m_botAction.sendSmartPrivateMessage(name, "You can't challenge your own squad, silly :P");
             } else
-                m_botAction.sendPrivateMessage(name, "You can't challenge here, there is a game going on here already");
+                m_botAction.sendSmartPrivateMessage(name, "You can't challenge here, there is a game going on here already");
         } catch (Exception e) {
-            m_botAction.sendPrivateMessage(name, "Specify the squad you want to challenge");
+            m_botAction.sendSmartPrivateMessage(name, "Specify the squad you want to challenge");
         }
     }
 
