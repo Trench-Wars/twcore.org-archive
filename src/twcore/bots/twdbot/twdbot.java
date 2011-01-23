@@ -517,10 +517,6 @@ public class twdbot extends SubspaceBot {
                         }
                     } else if (msg.startsWith("twdmatchbot:locked ")) {
                         String arena = msg.substring(msg.indexOf(" ") + 1).toLowerCase();
-                        if (arenas.containsKey(arena) && !arenas.get(arena)) {
-                            m_botAction.sendChatMessage("Potentially multiple bots in one arena, calling for checkin...");
-                            checkIN();
-                        }
                         arenas.put(arena, false);
                         if (challIPC.containsKey(arena)) {
                             String ipc = challIPC.get(arena);
