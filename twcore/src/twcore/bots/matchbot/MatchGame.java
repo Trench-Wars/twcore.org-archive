@@ -725,12 +725,14 @@ public class MatchGame
 					m_logger.sendArenaMessage("Draw. The game is declared void");
 				if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0) {
 					m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("endtwdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName()));
-	                //Sends match info to TWDBot
-	                m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_botAction.getArenaName());
 				}
 			}
 			if ((m_rules.getInt("storegame") == 1) && (m_fnTeam1Score != m_fnTeam2Score))
 				storeGameResult();
+			else {
+		        //Sends match info to TWDBot
+		        m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_botAction.getArenaName());
+			}
 			m_curRound.cancel();
 			m_gameState = KILL_ME_PLEASE;
 		}
