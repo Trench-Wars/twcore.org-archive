@@ -335,9 +335,6 @@ public class MatchGame
 	public void storeGameResult()
 	{
 
-        //Sends match info to TWDBot
-        m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_botAction.getArenaName());
-        
 		try
 		{
 			String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
@@ -352,6 +349,8 @@ public class MatchGame
 					+ "' where fnMatchID = "
 					+ m_fnMatchID);
 			m_gameStored = true;
+	        //Sends match info to TWDBot
+	        m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_botAction.getArenaName());
 		}
 		catch (Exception e)
 		{
@@ -729,10 +728,7 @@ public class MatchGame
 			}
 			if ((m_rules.getInt("storegame") == 1) && (m_fnTeam1Score != m_fnTeam2Score))
 				storeGameResult();
-			else {
-		        //Sends match info to TWDBot
-		        m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_botAction.getArenaName());
-			}
+			
 			m_curRound.cancel();
 			m_gameState = KILL_ME_PLEASE;
 		}
@@ -830,8 +826,6 @@ public class MatchGame
 	{
 		if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0) {
 			m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("endtwdmatch " + m_botAction.getArenaName() + ":" + m_fnTeam1ID + ":" + m_fnTeam2ID + ":" + m_botAction.getBotName()));
-            //Sends match info to TWDBot
-            m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_botAction.getArenaName());
 		}
 		if (m_curRound != null)
 			m_curRound.cancel();
@@ -847,6 +841,10 @@ public class MatchGame
 			{
 				Tools.printStackTrace(e);
 			}
+		}
+		if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0) {
+		    //Sends match info to TWDBot
+		    m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_botAction.getArenaName());
 		}
 	}
 }
