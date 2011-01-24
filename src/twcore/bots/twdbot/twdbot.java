@@ -60,6 +60,7 @@ public class twdbot extends SubspaceBot {
     private boolean manualSpawnOverride;
     private boolean startingUp;
     private boolean shuttingDown;
+    private boolean endgameAlert = true;
     private static final boolean DEBUG = false; 
     private String HUB;
     private static final String IPC = "MatchBot";
@@ -430,6 +431,8 @@ public class twdbot extends SubspaceBot {
                         } catch (NumberFormatException e) {
                             return;
                         }
+                        if (endgameAlert)
+                            m_botAction.sendChatMessage("DEBUG: End game IPC received for match " + args[0] + " " + args[1] + " vs " + args[2] + " in " + args[3]);
 
                         String arena = args[3].toLowerCase();
                         challIPC.remove(arena);
@@ -692,6 +695,9 @@ public class twdbot extends SubspaceBot {
                         readyBots.clear();
                         needsDie.clear();
                         return;
+                    } else if (message.startsWith("!endgamealerts")) {
+                        command_endgame(name);
+                        return;
                     }
                 }
 
@@ -796,6 +802,16 @@ public class twdbot extends SubspaceBot {
                     parseIP( message );
                 }
             }
+    }
+    
+    public void command_endgame(String name) {
+        if (endgameAlert) {
+            endgameAlert = false;
+            m_botAction.sendChatMessage("End game alerts have been DISABLED by " + name);
+        } else {
+            endgameAlert = true;
+            m_botAction.sendChatMessage("End game alerts have been ENABLED by " + name);            
+        }
     }
     
     public void commandManualSpawn(String name) {
