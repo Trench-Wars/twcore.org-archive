@@ -842,7 +842,7 @@ public class MatchGame
 				Tools.printStackTrace(e);
 			}
 		}
-		if(m_fnTeam1ID > 0 && m_fnTeam2ID > 0) {
+		if(!m_gameStored && m_fnTeam1ID > 0 && m_fnTeam2ID > 0) {
 		    //Sends match info to TWDBot
 		    m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_botAction.getArenaName());
 		}
