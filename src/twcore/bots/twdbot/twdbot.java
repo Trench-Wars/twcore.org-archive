@@ -196,7 +196,7 @@ public class twdbot extends SubspaceBot {
         arena = arena.toLowerCase();
         if (arenas.containsKey(arena) && !challIPC.containsKey(arena)) {
             if (!needsDie.contains(arena)) {
-                m_botAction.sendChatMessage("Sending kill request to " + arena + "..." + " (!manualspawn to stop spawn control)");
+                m_botAction.sendChatMessage("Sending kill request to " + arena + "...");
                 m_botAction.ipcTransmit(IPC, "twdmatchbot:" + arena + " die");
             }
         }
@@ -574,7 +574,7 @@ public class twdbot extends SubspaceBot {
                             needsDie.remove(arena);
 
                             if (dying.removeElement(bot))
-                                m_botAction.sendChatMessage(bot + " has been prevented from dying in " + arena + " (!manualspawn to stop spawn control)");
+                                m_botAction.sendChatMessage(bot + " has been prevented from dying in " + arena);
                         }
                     }
                 } else if (msg.startsWith("twd:")) {
