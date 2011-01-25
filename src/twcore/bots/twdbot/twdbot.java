@@ -62,6 +62,7 @@ public class twdbot extends SubspaceBot {
     private boolean startingUp;
     private boolean shuttingDown;
     private boolean endgameAlert = true;
+    private boolean killAlert = true;
     private static final String HUB = "TWCore-League";
     private static final String IPC = "MatchBot";
     private static final String BOT_NAME = "MatchBot";
@@ -196,7 +197,8 @@ public class twdbot extends SubspaceBot {
         arena = arena.toLowerCase();
         if (arenas.containsKey(arena) && !challIPC.containsKey(arena)) {
             if (!needsDie.contains(arena)) {
-                m_botAction.sendChatMessage("Sending kill request to " + arena + "...");
+                if (killAlert)
+                    m_botAction.sendChatMessage("Sending kill request to " + arena + "...");
                 m_botAction.ipcTransmit(IPC, "twdmatchbot:" + arena + " die");
             }
         }
@@ -587,7 +589,7 @@ public class twdbot extends SubspaceBot {
                         String player = args[3];
                         // name,squad_ch,squad_op,players
                         String ipc = "twd:" + arena + ":challenge " + player + "," + args[2] + "," + args[4];
-                        m_botAction.sendChatMessage("Arena challenge request made by " + player + " for " + arena );
+                        m_botAction.sendChatMessage("Arena challenge request made by " + player + " for " + arena + " against " + args[2]);
                         if (arenas.containsKey(arena)) {
                             if (arenas.get(arena)) {
                                 m_botAction.sendSmartPrivateMessage(player, "Challenge denied: " + arena + " is currently being played in");
@@ -631,7 +633,7 @@ public class twdbot extends SubspaceBot {
             if (message.contains("(matchbot)") && message.contains("disconnected")) {
                 String bot = message.substring(0, message.indexOf("("));
                 if (!shuttingDown && !dying.removeElement(bot)) {
-                    m_botAction.sendChatMessage("Unexpected disconnect detected - calling for checkIN...");
+                    m_botAction.sendChatMessage("Unexpected disconnect detected - calling for MatchBot checkin...");
                     checkIN();
                 } else if (shuttingDown) {
                     dying.removeElement(bot);
@@ -639,36 +641,10 @@ public class twdbot extends SubspaceBot {
             }
         }
 
-        if( event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ){
+        if( event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE || event.getMessageType() == Message.CHAT_MESSAGE ){
             String name = m_botAction.getPlayerName( event.getPlayerID() );
             if (name == null)
                 name = event.getMessager();
-            
-            if( m_opList.isER( name )) 
-                isStaff = true; 
-            else 
-                isStaff= false;
-
-            if (message.startsWith("!games")) {
-                command_games(name);
-                return;
-            }
-
-            if (messager.startsWith(PUBBOT)) {
-                String msg = event.getMessage();
-                if (msg.startsWith("twdplayer") && !m_squads.isEmpty()) {
-                    String[] args = msg.substring(msg.indexOf(" ") + 1).split(":");
-                    if (args.length == 2 && m_squads.containsKey(args[1].toLowerCase())) {
-                        Squad squad = m_squads.get(args[1].toLowerCase());
-                        Vector<Integer> games = squad.getGames();
-                        for (Integer id : games) {
-                            if (m_games.containsKey(id)) {
-                                m_games.get(id).alert(args[0], args[1]);
-                            }
-                        }
-                    }
-                }
-            }
 
             if( m_opList.isSysop( name ) || isTWDOp(name) || m_opList.isOwner(name)) {
                 if (message.startsWith("!manualspawn")) {
@@ -704,6 +680,41 @@ public class twdbot extends SubspaceBot {
                 } else if (message.startsWith("!endgamealerts")) {
                     command_endgame(name);
                     return;
+                } else if (message.startsWith("!killalerts")) {
+                    command_killAlerts(name);
+                    return;
+                }
+            }
+        }
+
+        if( event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ){
+            String name = m_botAction.getPlayerName( event.getPlayerID() );
+            if (name == null)
+                name = event.getMessager();
+            
+            if( m_opList.isER( name )) 
+                isStaff = true; 
+            else 
+                isStaff= false;
+
+            if (message.startsWith("!games")) {
+                command_games(name);
+                return;
+            }
+
+            if (messager.startsWith(PUBBOT)) {
+                String msg = event.getMessage();
+                if (msg.startsWith("twdplayer") && !m_squads.isEmpty()) {
+                    String[] args = msg.substring(msg.indexOf(" ") + 1).split(":");
+                    if (args.length == 2 && m_squads.containsKey(args[1].toLowerCase())) {
+                        Squad squad = m_squads.get(args[1].toLowerCase());
+                        Vector<Integer> games = squad.getGames();
+                        for (Integer id : games) {
+                            if (m_games.containsKey(id)) {
+                                m_games.get(id).alert(args[0], args[1]);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -825,6 +836,16 @@ public class twdbot extends SubspaceBot {
         } else {
             endgameAlert = true;
             m_botAction.sendChatMessage("End game alerts have been ENABLED by " + name);            
+        }
+    }
+    
+    public void command_killAlerts(String name) {
+        if (killAlert) {
+            killAlert = false;
+            m_botAction.sendChatMessage("Kill request alerts have been DISABLED by " + name);
+        } else {
+            killAlert = true;
+            m_botAction.sendChatMessage("Kill request alerts have been ENABLED by " + name);            
         }
     }
     
@@ -1077,7 +1098,9 @@ public class twdbot extends SubspaceBot {
                         "                          password, you can use this to pick a new password",
                         "!squadsignup            - This command will sign up your current ?squad for TWD.",
                         "                          Note: You need to be the squadowner of the squad",
-                        "                          and !registered"
+                        "                          and !registered",
+                        "!games                  - This command will give you a list of the current matches",
+                        "                          Note: It will work from any arena!",
                 };
                 m_botAction.privateMessageSpam(name, help);
             }
@@ -1693,7 +1716,9 @@ public class twdbot extends SubspaceBot {
                 "!go <arena>             - moves the bot",
                 "--------- TWD BOT MANAGER -------------------------------------------------------------",
                 "!manualspawn            - toggles manual spawning (in case errors occur in placement)",
-                "                        - when toggled back it resets and starts spawning/placing bots",
+                "                          when toggled back it resets and starts spawning/placing bots",
+                "!endgamealerts          - turns on/off the end game alerts sent to bot chat",
+                "!killalerts             - turns on/off the kill request alerts sent to bot chat",
                 "!forcecheck             - forces the bot to re-evaluate bot placement",
                 "!fullcheck              - when forcecheck fails, this gives the bot more game info",
                 "!shutdowntwd            - kills all twd matchbots when they become idle (no undo)"
