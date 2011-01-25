@@ -628,182 +628,186 @@ public class twdbot extends SubspaceBot {
             messager = event.getMessager();
 
         if (!manualSpawnOverride && event.getMessageType() == Message.CHAT_MESSAGE) {
-                if (message.contains("(matchbot)") && message.contains("disconnected")) {
-                    String bot = message.substring(0, message.indexOf("("));
-                    if (!shuttingDown && !dying.removeElement(bot)) {
-                        m_botAction.sendChatMessage("Unexpected disconnect detected - calling for checkIN...");
-                        checkIN();
-                    } else if (shuttingDown) {
-                        dying.removeElement(bot);
-                    }
+            if (message.contains("(matchbot)") && message.contains("disconnected")) {
+                String bot = message.substring(0, message.indexOf("("));
+                if (!shuttingDown && !dying.removeElement(bot)) {
+                    m_botAction.sendChatMessage("Unexpected disconnect detected - calling for checkIN...");
+                    checkIN();
+                } else if (shuttingDown) {
+                    dying.removeElement(bot);
                 }
             }
+        }
+
+        if( event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ){
+            String name = m_botAction.getPlayerName( event.getPlayerID() );
+            if (name == null)
+                name = event.getMessager();
             
-            if( event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ){
-                String name = m_botAction.getPlayerName( event.getPlayerID() );
-                if( m_opList.isER( name )) 
-                	isStaff = true; 
-                else 
-                	isStaff= false;
-                
-                if (message.startsWith("!games")) {
-                    command_games(name);
-                }
-                
-                if (messager.startsWith(PUBBOT)) {
-                    String msg = event.getMessage();
-                    if (msg.startsWith("twdplayer") && !m_squads.isEmpty()) {
-                        String[] args = msg.substring(msg.indexOf(" ") + 1).split(":");
-                        if (args.length == 2 && m_squads.containsKey(args[1].toLowerCase())) {
-                            Squad squad = m_squads.get(args[1].toLowerCase());
-                            Vector<Integer> games = squad.getGames();
-                            for (Integer id : games) {
-                                if (m_games.containsKey(id)) {
-                                    m_games.get(id).alert(args[0], args[1]);
-                                }
+            if( m_opList.isER( name )) 
+                isStaff = true; 
+            else 
+                isStaff= false;
+
+            if (message.startsWith("!games")) {
+                command_games(name);
+                return;
+            }
+
+            if (messager.startsWith(PUBBOT)) {
+                String msg = event.getMessage();
+                if (msg.startsWith("twdplayer") && !m_squads.isEmpty()) {
+                    String[] args = msg.substring(msg.indexOf(" ") + 1).split(":");
+                    if (args.length == 2 && m_squads.containsKey(args[1].toLowerCase())) {
+                        Squad squad = m_squads.get(args[1].toLowerCase());
+                        Vector<Integer> games = squad.getGames();
+                        for (Integer id : games) {
+                            if (m_games.containsKey(id)) {
+                                m_games.get(id).alert(args[0], args[1]);
                             }
                         }
                     }
                 }
-
-                if( m_opList.isSysop( name ) || isTWDOp(name) || m_opList.isOwner(name)) {
-                    if (message.startsWith("!manualspawn")) {
-                        commandManualSpawn(name);
-                        return;
-                    } else if (message.startsWith("!forcecheck")) {
-                        if (manualSpawnOverride) {
-                            m_botAction.sendSmartPrivateMessage(name, "Manual spawn override in effect.");
-                            return;
-                        }
-                        m_botAction.sendSmartPrivateMessage(name, "Initiating a check of all TWD arenas...");
-                        checkArenas();
-                        return;
-                    } else if (message.startsWith("!fullcheck")) {
-                        if (manualSpawnOverride) {
-                            m_botAction.sendSmartPrivateMessage(name, "Manual spawn override in effect.");
-                            return;
-                        }
-                        m_botAction.sendSmartPrivateMessage(name, "Requesting a checkin from all TWD bots...");
-                        checkIN();
-                        return;
-                    } else if (message.startsWith("!shutdowntwd")) {
-                        m_botAction.sendSmartPrivateMessage(name, "Initiating shutdown of all matchbots.");
-                        m_botAction.sendChatMessage("Total MatchBot shutdown requested by " + name);
-                        m_botAction.cancelTasks();
-                        shuttingDown = true;
-                        m_botAction.ipcTransmit(IPC, "all twdbots die");
-                        arenas.clear();
-                        needsBot.clear();
-                        readyBots.clear();
-                        needsDie.clear();
-                        return;
-                    } else if (message.startsWith("!endgamealerts")) {
-                        command_endgame(name);
-                        return;
-                    }
-                }
-
-                if( m_opList.isSysop( name ) || isTWDOp(name) )
-                {
-                    //Operator commands
-                    if( message.startsWith( "!resetname " ) )
-                        commandResetName( name, message.substring( 11 ), false );
-                    else if( message.startsWith( "!cancelreset " ) )
-                        commandCancelResetName( name, message.substring( 13 ), false );
-                    else if( message.startsWith( "!resettime " ) )
-                        commandGetResetTime( name, message.substring( 11 ), false, false );
-                    else if( message.startsWith( "!enablename " ) )
-                        commandEnableName( name, message.substring( 12 ) );
-                    else if( message.startsWith( "!disablename " ) )
-                        commandDisableName( name, message.substring( 13 ) );
-                    else if( message.startsWith( "!info " ) )
-                        commandDisplayInfo( name, message.substring( 6 ), false );
-                    else if( message.startsWith( "!fullinfo " ) )
-                        commandDisplayInfo( name, message.substring( 10 ), true );
-                    else if( message.startsWith( "!register " ) )
-                        commandRegisterName( name, message.substring( 10 ), false );
-                    else if( message.startsWith( "!registered " ) )
-                        commandCheckRegistered( name, message.substring( 12 ) );
-                    else if( message.equals( "!twdops" ) )
-                    	commandTWDOps( name );
-                    else if( message.startsWith( "!altip " ) )
-                        commandIPCheck( name, message.substring( 7 ), true );
-                    else if( message.startsWith( "!altmid " ) )
-                        commandMIDCheck( name, message.substring( 8 ), true );
-                    else if( message.startsWith( "!check " ) )
-                        checkIP( name, message.substring( 7 ) );
-                    else if( message.startsWith( "!go " ) )
-                        m_botAction.changeArena( message.substring( 4 ) );
-                    else if( message.startsWith( "!help" ) )
-                        commandDisplayHelp( name, false );
-                    else if( message.startsWith("!add "))
-                        commandAddMIDIP(name, message.substring(5));
-                    else if( message.startsWith("!removeip "))
-                        commandRemoveIP(name, message.substring(10));
-                    else if( message.startsWith("!removemid "))
-                        commandRemoveMID(name, message.substring(11));
-                    else if( message.startsWith("!removeipmid "))
-                        commandRemoveIPMID(name, message.substring(13));
-                    else if( message.startsWith("!listipmid "))
-                        commandListIPMID(name, message.substring(11));
-                    else if( message.equalsIgnoreCase("!die")) {
-        				this.handleDisconnect();
-        				m_botAction.die();
-        			}
-                }
-                else
-                {
-                    if( ! (event.getMessageType() == Message.PRIVATE_MESSAGE) )
-                        return;
-                    //Player commands
-                    if( message.equals( "!resetname" ) )
-                        commandResetName( name, name, true);
-                    else if( message.equals( "!resettime" ) )
-                        commandGetResetTime( name, name, true, false );
-                    else if( message.equals( "!cancelreset" ) )
-                        commandCancelResetName( name, name, true );
-                    else if( message.equals( "!registered" ) )
-                        commandCheckRegistered( name, name );
-                    else if( message.startsWith( "!registered " ) )
-                        commandCheckRegistered( name, message.substring( 12 ) );
-                    else if( message.equals( "!register" ) )
-                        commandRegisterName( name, name, true );
-                    else if( message.equals( "!twdops" ) )
-                    	commandTWDOps( name );
-                    else if( message.equals( "!help" ) )
-                        commandDisplayHelp( name, true );
-                }
-
-                // First: convert the command to a command with parameters
-                String command = stringChopper(message, ' ')[0];
-                String[] parameters = stringChopper( message.substring( command.length() ).trim(), ':' );
-                for (int i=0; i < parameters.length; i++) parameters[i] = parameters[i].replace(':',' ').trim();
-                command = command.trim();
-
-                parseCommand( name, command, parameters, isStaff );
             }
 
-            if( event.getMessageType() == Message.ARENA_MESSAGE) {	// !squadsignup
-                if (event.getMessage().startsWith("Owner is ")) {
-                    String squadOwner = event.getMessage().substring(9);
-
-                    ListIterator<SquadOwner> i = m_squadowner.listIterator();
-                    while (i.hasNext())
-                    {
-                        SquadOwner t = i.next();
-                        if (t.getID() == ownerID) {
-                            if (t.getOwner().equalsIgnoreCase(squadOwner)) {
-                                storeSquad(t.getSquad(), t.getOwner());
-                            } else {
-                                m_botAction.sendSmartPrivateMessage(t.getOwner(), "You are not the owner of the squad " + t.getSquad());
-                            }
-                        }
+            if( m_opList.isSysop( name ) || isTWDOp(name) || m_opList.isOwner(name)) {
+                if (message.startsWith("!manualspawn")) {
+                    commandManualSpawn(name);
+                    return;
+                } else if (message.startsWith("!forcecheck")) {
+                    if (manualSpawnOverride) {
+                        m_botAction.sendSmartPrivateMessage(name, "Manual spawn override in effect.");
+                        return;
                     }
-                    ownerID++;
-                } else if (message.startsWith( "IP:" )) { // !register
-                    parseIP( message );
+                    m_botAction.sendSmartPrivateMessage(name, "Initiating a check of all TWD arenas...");
+                    checkArenas();
+                    return;
+                } else if (message.startsWith("!fullcheck")) {
+                    if (manualSpawnOverride) {
+                        m_botAction.sendSmartPrivateMessage(name, "Manual spawn override in effect.");
+                        return;
+                    }
+                    m_botAction.sendSmartPrivateMessage(name, "Requesting a checkin from all TWD bots...");
+                    checkIN();
+                    return;
+                } else if (message.startsWith("!shutdowntwd")) {
+                    m_botAction.sendSmartPrivateMessage(name, "Initiating shutdown of all matchbots.");
+                    m_botAction.sendChatMessage("Total MatchBot shutdown requested by " + name);
+                    m_botAction.cancelTasks();
+                    shuttingDown = true;
+                    m_botAction.ipcTransmit(IPC, "all twdbots die");
+                    arenas.clear();
+                    needsBot.clear();
+                    readyBots.clear();
+                    needsDie.clear();
+                    return;
+                } else if (message.startsWith("!endgamealerts")) {
+                    command_endgame(name);
+                    return;
                 }
             }
+
+            if( m_opList.isSysop( name ) || isTWDOp(name) )
+            {
+                //Operator commands
+                if( message.startsWith( "!resetname " ) )
+                    commandResetName( name, message.substring( 11 ), false );
+                else if( message.startsWith( "!cancelreset " ) )
+                    commandCancelResetName( name, message.substring( 13 ), false );
+                else if( message.startsWith( "!resettime " ) )
+                    commandGetResetTime( name, message.substring( 11 ), false, false );
+                else if( message.startsWith( "!enablename " ) )
+                    commandEnableName( name, message.substring( 12 ) );
+                else if( message.startsWith( "!disablename " ) )
+                    commandDisableName( name, message.substring( 13 ) );
+                else if( message.startsWith( "!info " ) )
+                    commandDisplayInfo( name, message.substring( 6 ), false );
+                else if( message.startsWith( "!fullinfo " ) )
+                    commandDisplayInfo( name, message.substring( 10 ), true );
+                else if( message.startsWith( "!register " ) )
+                    commandRegisterName( name, message.substring( 10 ), false );
+                else if( message.startsWith( "!registered " ) )
+                    commandCheckRegistered( name, message.substring( 12 ) );
+                else if( message.equals( "!twdops" ) )
+                    commandTWDOps( name );
+                else if( message.startsWith( "!altip " ) )
+                    commandIPCheck( name, message.substring( 7 ), true );
+                else if( message.startsWith( "!altmid " ) )
+                    commandMIDCheck( name, message.substring( 8 ), true );
+                else if( message.startsWith( "!check " ) )
+                    checkIP( name, message.substring( 7 ) );
+                else if( message.startsWith( "!go " ) )
+                    m_botAction.changeArena( message.substring( 4 ) );
+                else if( message.startsWith( "!help" ) )
+                    commandDisplayHelp( name, false );
+                else if( message.startsWith("!add "))
+                    commandAddMIDIP(name, message.substring(5));
+                else if( message.startsWith("!removeip "))
+                    commandRemoveIP(name, message.substring(10));
+                else if( message.startsWith("!removemid "))
+                    commandRemoveMID(name, message.substring(11));
+                else if( message.startsWith("!removeipmid "))
+                    commandRemoveIPMID(name, message.substring(13));
+                else if( message.startsWith("!listipmid "))
+                    commandListIPMID(name, message.substring(11));
+                else if( message.equalsIgnoreCase("!die")) {
+                    this.handleDisconnect();
+                    m_botAction.die();
+                }
+            }
+            else
+            {
+                if( ! (event.getMessageType() == Message.PRIVATE_MESSAGE) )
+                    return;
+                //Player commands
+                if( message.equals( "!resetname" ) )
+                    commandResetName( name, name, true);
+                else if( message.equals( "!resettime" ) )
+                    commandGetResetTime( name, name, true, false );
+                else if( message.equals( "!cancelreset" ) )
+                    commandCancelResetName( name, name, true );
+                else if( message.equals( "!registered" ) )
+                    commandCheckRegistered( name, name );
+                else if( message.startsWith( "!registered " ) )
+                    commandCheckRegistered( name, message.substring( 12 ) );
+                else if( message.equals( "!register" ) )
+                    commandRegisterName( name, name, true );
+                else if( message.equals( "!twdops" ) )
+                    commandTWDOps( name );
+                else if( message.equals( "!help" ) )
+                    commandDisplayHelp( name, true );
+            }
+
+            // First: convert the command to a command with parameters
+            String command = stringChopper(message, ' ')[0];
+            String[] parameters = stringChopper( message.substring( command.length() ).trim(), ':' );
+            for (int i=0; i < parameters.length; i++) parameters[i] = parameters[i].replace(':',' ').trim();
+            command = command.trim();
+
+            parseCommand( name, command, parameters, isStaff );
+        }
+
+        if( event.getMessageType() == Message.ARENA_MESSAGE) {	// !squadsignup
+            if (event.getMessage().startsWith("Owner is ")) {
+                String squadOwner = event.getMessage().substring(9);
+
+                ListIterator<SquadOwner> i = m_squadowner.listIterator();
+                while (i.hasNext())
+                {
+                    SquadOwner t = i.next();
+                    if (t.getID() == ownerID) {
+                        if (t.getOwner().equalsIgnoreCase(squadOwner)) {
+                            storeSquad(t.getSquad(), t.getOwner());
+                        } else {
+                            m_botAction.sendSmartPrivateMessage(t.getOwner(), "You are not the owner of the squad " + t.getSquad());
+                        }
+                    }
+                }
+                ownerID++;
+            } else if (message.startsWith( "IP:" )) { // !register
+                parseIP( message );
+            }
+        }
     }
     
     public void command_games(String name) {
