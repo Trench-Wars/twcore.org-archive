@@ -19,8 +19,10 @@ import java.util.Comparator;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.Set;
 import java.util.TimerTask;
 
 import twcore.bots.matchbot.MatchRound.MatchRoundEvent;
@@ -840,41 +842,37 @@ public class MatchTeam
                 if( p == null )
                     p = m_botAction.getFuzzyPlayer(parameters[0]);
                 parameters[0] = p.getPlayerName();
-                answer = addPlayer(p.getPlayerName(), fnShip, true, false);
                 
                 //if twfd gametype
-            	if (m_rules.getInt("matchtype") == 2113)	{
-            		twfd_add = true;
-            		CheckLine(fnShip, 0);
-            		if(goodLine = false)	{
-            			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
-            			return;
+            	if (m_round.getGame().m_fnMatchTypeID == 2133)	{
+            		if(!(CheckLine(fnShip,0)==true))	{
+                			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
+                			return;
             		}
             	}
             	
-            	
-                if (answer.equals("yes"))
-                {
-                	
-                	
-
-                	
-                    m_logger.sendPrivateMessage(name, "Player " + p.getPlayerName() + " added to " + m_fcTeamName);
-                    m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game");
-
-                    m_botAction.sendUnfilteredPrivateMessage(p.getPlayerName(), "*einfo");
-
-                    if (m_rules.getInt("pickbyturn") == 1)
-                    {
-                        m_turn = !m_turn;
-                        m_round.determineNextPick();
-                    }
-                    
-                }
-                else
-                {
-                    m_logger.sendPrivateMessage(name, "Could not add player " + parameters[0] + ": " + answer);
-                }
+                answer = addPlayer(p.getPlayerName(), fnShip, true, false);    
+                
+	            	if (answer.equals("yes"))
+	                {      	
+	
+	                	
+	                    m_logger.sendPrivateMessage(name, "Player " + p.getPlayerName() + " added to " + m_fcTeamName);
+	                    m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game");
+	
+	                    m_botAction.sendUnfilteredPrivateMessage(p.getPlayerName(), "*einfo");
+	
+	                    if (m_rules.getInt("pickbyturn") == 1)
+	                    {
+	                        m_turn = !m_turn;
+	                        m_round.determineNextPick();
+	                    }
+	                    
+	                }
+	                else
+	                {
+	                    m_logger.sendPrivateMessage(name, "Could not add player " + parameters[0] + ": " + answer);
+	                }
             }
             else
                 m_logger.sendPrivateMessage(name,
@@ -930,22 +928,17 @@ public class MatchTeam
                 m_logger.sendPrivateMessage(name, "Specify player");
                 return;
             }
-
+            
+            int oldShip;
             p = getPlayer(parameters[0]);
+            oldShip = p.getShipType();
             
             //if twfd gametype
-        	if (m_rules.getInt("matchtype") == 2113)	{
-        		Player p2;
-        		int fnShip;
-                p2 = m_botAction.getPlayer(parameters[0]);
-                p2 = m_botAction.getFuzzyPlayer(parameters[0]);
-            	fnShip = p2.getShipType();
-            	twfd_rem = true;
-            	CheckLine(fnShip, 0);
-            	if(goodLine = false)	{
-            		m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
-            		return;
-            	}
+        	if (m_round.getGame().m_fnMatchTypeID == 2133)	{
+        		if(!(CheckLine(0,oldShip)==true))	{
+            			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
+            			return;
+        		}
         	}
             
             if (p != null)
@@ -1151,21 +1144,13 @@ public class MatchTeam
                                                 || (m_rules.getInt("maxship" + newShip) > getPlayersRosteredInShip(newShip)))
                                         {
                                             //if twfd gametype
-                                        	if (m_rules.getInt("matchtype") == 2113)	{
-                                        		twfd_rem = true;
-                                        		CheckLine(0, oldShip);
-                                        		if(goodLine = false)	{
-                                        			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
-                                        			return;
+                                        	if (m_round.getGame().m_fnMatchTypeID == 2133)	{
+                                        		if(!(CheckLine(newShip,oldShip)==true))	{
+                                            			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
+                                            			return;
                                         		}
-                                        		twfd_add = true;
-                                        		CheckLine(newShip, 0);
-                                        		if(goodLine = false)	{
-                                        			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
-                                        			return;
-                                        		}
-                                        	}                                        	
-                                        	changeDelayTime = m_rules.getInt("changedelaytime");                                        	
+                                        	}                                     	
+                                        		changeDelayTime = m_rules.getInt("changedelaytime");                                        	
 	                                        	if(changeDelayTime > 0){
 	                                        		final MatchPlayer changee = pA;
 	                                        		final int newChgShip = newShip;
@@ -1242,6 +1227,7 @@ public class MatchTeam
         {
             // does the team meet the requirements to start:
             String message = isAllowedToBegin();
+            
             if (message.equals("yes"))
             {
                 m_fbReadyToGo = true;
@@ -2402,316 +2388,103 @@ public class MatchTeam
     
     
     public boolean CheckLine(int newShip, int oldShip)	{
-
+    	System.out.println("Successfully entered the method...");
     	/** 
     	 * TODO:
     	 * - Insert a final check when the players send !ready to the bot
     	 * 		and also send a final check before the game starts.
-    	 * - Maybe a better way of taking in player ships. My worry is that
-    	 * 		a team could have a player spec and when it goes through the
-    	 * 		check, it would register them as ship 0 (even though they might
-    	 * 		be ship 1 when playing for example) and throw off things. 
     	 */
-    	
-    	
     	
     	/**
-    	 * Creates the array that will be referenced for the number of 
-    	 * each ship allowed based on the rules file and stores it in
-    	 * the int array.
-    	 * 
-    	 * 
-    	 * minShipStr used for reading the rules file (must read as a string)
-    	 * minShipInt used to store the values as ints to be compared later
+    	 * construct the hashmap for the ship type(key) and minimum number(value)
     	 */
-
-    	String[] minShipStr;
-    	minShipStr = m_rules.getString("minship").split(",");
-    	int[] minShipInt = new int[minShipStr.length];
+    
+    
+    	int[] gShipNum = {0,1,2,3,4,5,6,7,8};
+    	String[] minShip = m_rules.getString("minship").split(",");	
+		HashMap<Integer, Integer> gameShips = new HashMap<Integer, Integer>();
+		int gameShip;
     	int i = 0;
-    	for(i=0;i<minShipStr.length;i++)	{
-    		 minShipInt[i] = Integer.parseInt(minShipStr[i]);
+    	for(i=0;i<gShipNum.length;i++)	{
+    		 gameShip = Integer.parseInt(minShip[i]);
+    		 gameShips.put(gShipNum[i], gameShip);
     	}
-    	
-    	
+		System.out.println("Hashmap created for the game...");
     	/**
-    	 * This part of the method will take in player ships and store them 
-    	 * in the correct variable. We will get the newShip number and the
-    	 * oldShip number and throw these in to test as well.
-    	 * 
-    	 * int counter variables are used to count the number of each ship type
-    	 * int[] playerShip stores these variables in an array
-    	 * playerStr will take in the m_players LinkedList
-    	 * ShipNumber will return the shipnumber for each player from playerStr
-    	 *      and add it to the proper counter.
+    	 * construct the hashmap for the shiptype(key) and number of each for the team (value)
     	 */
-    	int counter0 = 0;//for specced players previously subbed/removed
-    	int counter1 = 0;
-		int counter2 = 0;
-		int counter3 = 0;
-		int counter4 = 0;
-		int counter5 = 0;
-		int counter6 = 0;
-		int counter7 = 0;
-		int counter8 = 0;
-		int[] playerShip = {counter0,counter1,counter2,counter3,counter4,
-							counter5,counter6,counter7,counter8};
-
-    	
-		int ShipNumber;
-		String[] playerStr = new String[m_players.size()];
-		m_players.toArray(playerStr);
-		
-		
-    	//Hashtable<Integer, Boolean> changeOld = new Hashtable<Integer, Boolean>();
-    	//changeOld.put(oldShip, twfd_rem);
-    	//Hashtable<Integer, Boolean> changeNew = new Hashtable<Integer, Boolean>();
-    	//changeNew.put(newShip, twfd_add);
-
-		i = 0;
-    	for(i=0;i<playerStr.length;i++)	{
-        	Player p;
-            p = m_botAction.getPlayer(playerStr[i]);
-            p = m_botAction.getFuzzyPlayer(playerStr[i]);
-        	ShipNumber = p.getShipType();
-        		if(ShipNumber == 0 || newShip == 0 || oldShip == 0)	{
-        			if(ShipNumber == 0)	{
-            			counter0++;
-        			}
-                	if(newShip == 0)	{                    	
-                    	if(twfd_add)	{
-            				counter0++;
-            			}
-            			if(twfd_rem)	{
-            				counter0--;
-            			}
-                	}
-                	if(oldShip == 0)	{
-                    	if(twfd_add) 	{
-            				counter0++;
-            			}
-            			if(twfd_rem)	{
-            				counter0--;
-            			}
-                	}
-                }
-        		else if(ShipNumber == 1 || newShip == 1 || oldShip == 1) {
-        			if(ShipNumber == 1)	{
-            			counter1++;
-        			}
-                	if(newShip == 1)	{
-                    	if(twfd_add)	{
-            				counter1++;
-            			}
-            			if(twfd_rem)	{
-            				counter1--;
-            			}
-                	}
-            		if(oldShip == 1)	{
-            			if(twfd_add) 	{
-            				counter1++;
-            			}
-            			if(twfd_rem)	{
-            				counter1--;
-            			}
-                    }
-        		}
-        		else if(ShipNumber == 2 || newShip == 2 || oldShip == 2) {
-        			if(ShipNumber == 2)	{
-            			counter2++;
-        			}
-                	if(newShip == 2)	{
-                    	if(twfd_add) 	{
-            				counter2++;
-            			}
-            			if(twfd_rem)	{
-            				counter2--;
-            			}
-                	}
-                    if(oldShip == 2)	{
-                    	if(twfd_add) 	{
-                    		counter2++;
-                    	}
-                    	if(twfd_rem)	{
-                    		counter2--;
-                    	}
-                    }
-        		}
-        		else if(ShipNumber == 3 || newShip == 3 || oldShip == 3) {
-        			if(ShipNumber == 3)	{
-            			counter3++;
-        			}
-                	if(newShip == 3)	{
-                    	if(twfd_add) 	{
-            				counter3++;
-            			}
-            			if(twfd_rem)	{
-            				counter3--;
-            			}
-                	}
-                    if(oldShip == 3)	{
-                    	if(twfd_add) 	{
-                    		counter3++;
-                    	}
-                    	if(twfd_rem)	{
-                    		counter3--;
-                    	}
-                    }
-        		}
-        		else if(ShipNumber == 4 || newShip == 4 || oldShip == 4) {
-        			if(ShipNumber == 4)	{
-            			counter4++;
-        			}
-                	if(newShip == 4)	{
-                    	if(twfd_add) 	{
-            				counter4++;
-            			}
-            			if(twfd_rem)	{
-            				counter4--;
-            			}
-                	}
-                    if(oldShip == 4)	{
-                        if(twfd_add) 	{
-                    		counter4++;
-                    		}
-                        if(twfd_rem)	{
-                    		counter4--;
-                    		}
-                    }
-        		}
-        		else if(ShipNumber == 5 || newShip == 5 || oldShip == 5) {
-        			if(ShipNumber == 5)	{
-            			counter5++;
-        			}
-                	if(newShip == 5)	{
-                    	if(twfd_add) 	{
-            				counter5++;
-            			}
-            			if(twfd_rem)	{
-            				counter5--;
-            			}
-                	}
-                    if(oldShip == 5)	{
-                    	if(twfd_add) 	{
-                    		counter5++;
-                    	}
-                    	if(twfd_rem)	{
-                    		counter5--;
-                    	}
-                    }
-
-        		}
-        		else if(ShipNumber == 6 || newShip == 6 || oldShip == 6) {
-        			if(ShipNumber == 6)	{
-            			counter6++;
-        			}
-                	if(newShip == 6)	{
-                    	if(twfd_add) 	{
-            				counter6++;
-            			}
-            			if(twfd_rem)	{
-            				counter6--;
-            			}
-                	}
-                    if(oldShip == 6)	{
-                    	if(twfd_add) 	{
-                    		counter6++;
-                    	}
-                    	if(twfd_rem)	{
-                    		counter6--;
-                    	}
-                    }
-        		}
-        		else if(ShipNumber == 7 || newShip == 7 || oldShip == 7) {
-        			if(ShipNumber == 7)	{
-            			counter7++;
-        			}
-                	if(newShip == 7)	{
-                    	if(twfd_add) 	{
-            				counter7++;
-            			}
-            			if(twfd_rem)	{
-            				counter7--;
-            			}
-                	}
-                    if(oldShip == 7)	{
-                        if(twfd_add) 	{
-                        	counter7++;
-                    	}
-                    	if(twfd_rem)	{
-                    		counter7--;
-                    	}
-                    }
-        		}
-        		else if(ShipNumber == 8 || newShip == 8 || oldShip == 8) {
-        			if(ShipNumber == 8)	{
-            			counter8++;
-        			}
-                	if(newShip == 8)	{
-                    	if(twfd_add) 	{
-            				counter8++;
-            			}
-            			if(twfd_rem)	{
-            				counter8--;
-            			}
-                	}
-                    if(oldShip == 8)	{
-                         if(twfd_add) 	{
-                    		counter8++;
-                         }
-                    	 if(twfd_rem)	{
-                    		 counter8--;
-                    	 }
-                	}
-        		}
-            	/**
-            	 * We need to set these variables back to values that won't affect
-            	 * the test. This must be done because method is designed to 
-            	 * add/remove/change the ships the player WANTS to have (but 
-            	 * doesn't already) using these variables below. During the first 
-            	 * time it goes through the for loop, it will add/remove their 
-            	 * newShip/oldShip (respectively) and then continue through the loop
-            	 * as it adds playerships already in.
-            	 */
-            	oldShip = 0;
-            	newShip = 0;
-            	twfd_add = false;
-            	twfd_rem = false;            	
+    
+		int[] pShipNum = {0,1,2,3,4,5,6,7,8};
+		int[] playerShipCounter = {0,0,0,0,0,0,0,0,0};
+		int playerShip;
+		HashMap<Integer, Integer> playerShips = new HashMap<Integer, Integer>();
+		int h = 0;
+    	for(h=0;h<pShipNum.length;h++)	{
+   		 playerShip = playerShipCounter[h];
+   		 playerShips.put(pShipNum[h], playerShip);
     	}
 		
-
-
-    	
+		MatchPlayer Player;
+		ListIterator<MatchPlayer> j = m_players.listIterator();
+        int temp;
+        int counter=0;
+	    while (j.hasNext())	{
+	    	counter++;
+	    	Player = j.next();
+	        int shipNumber = Player.getShipType();
+	        if(playerShips.containsKey(shipNumber))	{
+	        	temp = playerShips.get(shipNumber);
+	        	playerShips.put(shipNumber,temp+1);
+	        }
+	        temp = 0;
+	    }
+	    
+	    System.out.println("Hashmap created for the team...");
+	    /**
+	     * Account for the old and new ships
+	     */	
+    
+	    if(oldShip != 0)	{
+	    	temp = playerShips.get(oldShip);
+	    	playerShips.put(oldShip,temp-1);
+	    	counter--;
+	    }
+	    if(newShip != 0)	{
+	    	temp = playerShips.get(newShip);
+	    	playerShips.put(newShip,temp+1);
+	    	counter++;
+	    }
+	    
+	    System.out.println("New ships accounted for...");
 		/**
 		 * If the team has less than 3 players in, we must stop check.
 		 */
-    	
-    	if(counter1+counter2+counter3+counter4+counter5+counter6+counter7+counter8 <= 2)	{
-    		goodLine=true;
-    		return goodLine;
-    	}
-
-    	
-    	/**
-    	 * Finally we will test that all the ship amounts are greater than or
-    	 * equal to the numbers stored within the rules file. To reiterate, the 
-    	 * check will be good if each array position int[i] playerShip is greater 
-    	 * than or equal to the corresponding array position in the rule (in this 
-    	 * case the array is minShipInt).
-    	 */
-
-    	i = 0;
-    	for(i=0;i<playerShip.length;i++)	{
-    		if(!(minShipInt[i]<=playerShip[i]))	{
-    			goodLine = false;
-    			return goodLine;
-    		}
-    	}
-    	
-    	
-    	goodLine = true;
-    	return goodLine;
-    }
-    	
+    
+	    String playerShipString;
+	    playerShipString = playerShips.toString();
+	    System.out.println(playerShipString);
+	    
+	    if(counter<m_rules.getInt("minplayers")){
+	    	return true;
+	    }
+	    
+	    /**
+	     * final comparison between the two hashmaps
+	     */
+    
+	    int k;
+	    
+	    for(k=0;k<gShipNum.length;k++)	{
+	    	temp = gShipNum[k];
+	    	playerShip = playerShips.get(temp);
+	    	gameShip = gameShips.get(temp);
+	    	if(!(playerShip>=gameShip))	{
+	    		System.out.println("Compare completed, returning false...");
+	    		return false;	    		
+	    	}
+	    }
+	    System.out.println("Compare completed, returning true...");
+	    return true;
+   }    	
 }
 
