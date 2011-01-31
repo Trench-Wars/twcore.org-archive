@@ -147,6 +147,8 @@ public class twdbot extends SubspaceBot {
     
     public void checkIN() {
         arenas.clear();
+        readyBots.clear();
+        needsBot.clear();
         if (startingUp)
             m_botAction.ipcTransmit(IPC, "twdmatchbots:newcheckin");
         else
@@ -712,7 +714,7 @@ public class twdbot extends SubspaceBot {
                 } else if (message.startsWith("!killalerts")) {
                     command_killAlerts(name);
                     return;
-                } else if (message.startsWith("!enabletwfd")) {
+                } else if (message.startsWith("!twfd")) {
                     command_TWFD(name);
                 }
             }
