@@ -553,7 +553,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			m_botAction.sendUnfilteredPrivateMessage(getPlayerName(), "*einfo");
 		
 		// Lag check timer cancel
-		if ((((m_team.m_round.getGame().m_fnMatchTypeID == 2133) && (m_statTracker.getTotalStatistic(getDeaths()) >= m_fnSpecAt)) || (m_statTracker.getStatistic(Statistics.DEATHS) >= m_fnSpecAt)) && (m_rules.getString("winby").equals("kills")))
+		if ((((m_team.m_round.getGame().m_fnMatchTypeID == 2133) && (m_statTracker.getTotalStatistic(Statistics.DEATHS) >= m_fnSpecAt)) || (m_statTracker.getStatistic(Statistics.DEATHS) >= m_fnSpecAt)) && (m_rules.getString("winby").equals("kills")))
 		{
 		    m_statTracker.getTotalStatistic(getDeaths());
 			if (m_fnPlayerState != 2)
