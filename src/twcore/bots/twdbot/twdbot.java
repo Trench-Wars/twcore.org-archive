@@ -57,12 +57,14 @@ public class twdbot extends SubspaceBot {
     private HashMap<String, String> m_waitingAction;
     private HashMap<String, Squad> m_squads;
     private HashMap<Integer, Game> m_games;
+    private ArrayList<String> enabledDivisions;
     private String webdb = "website";
     private boolean manualSpawnOverride;
     private boolean startingUp;
     private boolean shuttingDown;
     private boolean endgameAlert = true;
     private boolean killAlert = true;
+    private boolean twfd = false;
     private static final String HUB = "TWCore-League";
     private static final String IPC = "MatchBot";
     private static final String BOT_NAME = "MatchBot";
@@ -97,6 +99,14 @@ public class twdbot extends SubspaceBot {
         manualSpawnOverride = false;
         startingUp = true;
         shuttingDown = false;
+        
+        enabledDivisions = new ArrayList<String>();
+        enabledDivisions.add("twbd");
+        enabledDivisions.add("twdd");
+        enabledDivisions.add("twjd");
+        enabledDivisions.add("twsd");
+        if (twfd)
+            enabledDivisions.add("twfd");
 
         m_waitingAction = new HashMap<String, String>();
         m_requesters = new HashMap<String, String>();
@@ -189,6 +199,8 @@ public class twdbot extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWJD + ":" + arena);
         else if (div.equalsIgnoreCase("twsd"))
             m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWSD + ":" + arena);
+        else if (twfd && div.equalsIgnoreCase("twfd"))
+            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWFD + ":" + arena);
     }
     
     public void remove(String arena) {
@@ -381,6 +393,8 @@ public class twdbot extends SubspaceBot {
                         }
 
                         String arena = args[4].toLowerCase();
+                        if (!twfd && arena.startsWith("twfd"))
+                            return;
                         Game game = new Game(id, args[1], args[2], args[3], arena);
                         m_games.put(id, game);
 
@@ -438,6 +452,8 @@ public class twdbot extends SubspaceBot {
                             m_botAction.sendChatMessage("End game IPC received for match " + args[0] + " " + args[1] + " vs " + args[2] + " in " + args[3]);
 
                         String arena = args[3].toLowerCase();
+                        if (!twfd && arena.startsWith("twfd"))
+                            return;
                         challIPC.remove(arena);
                         arenas.put(arena, false);
 
@@ -467,6 +483,8 @@ public class twdbot extends SubspaceBot {
                         m_botAction.sendSmartPrivateMessage("WingZero", msg);
                         String[] args = msg.split(":");
                         String arena = args[3].toLowerCase();
+                        if (!twfd && arena.startsWith("twfd"))
+                            return;
                         if (args.length == 4) {
                             if (args[3].equalsIgnoreCase("twd"))
                                 readyBots.add(args[2]);
@@ -519,11 +537,17 @@ public class twdbot extends SubspaceBot {
                                 }
                             };
                             m_botAction.scheduleTask(lock, 2000);
-                        } else {
+                        } else if (!readyBots.contains(bot)) {
                             readyBots.add(bot);
                         }
                     } else if (msg.startsWith("twdmatchbot:locked ")) {
                         String arena = msg.substring(msg.indexOf(" ") + 1).toLowerCase();
+                        if (!twfd && arena.startsWith("twfd"))
+                            return;
+                        if (arenas.containsKey(arena) && arenas.get(arena) != null) {
+                            m_botAction.sendChatMessage("Potentially multiple matchbots in the same arena: " + arena);
+                            return;
+                        }
                         arenas.put(arena, false);
                         if (challIPC.containsKey(arena)) {
                             String ipc = challIPC.get(arena);
@@ -535,7 +559,11 @@ public class twdbot extends SubspaceBot {
                         }
                     } else if (msg.startsWith("twdmatchbot:unlocked ")) {
                         String arena = msg.substring(msg.indexOf(" ") + 1, msg.indexOf(",")).toLowerCase();
+                        if (!twfd && arena.startsWith("twfd"))
+                            return;
                         String bot = msg.substring(msg.indexOf(",") + 1);
+                        if (!arenas.containsKey(arena))
+                            return;
                         arenas.remove(arena);
                         m_botAction.sendChatMessage("Unexpected unlock occured from " + bot + " in " + arena + ". Responding appropriately...");
                         checkArenas();                        
@@ -597,14 +625,16 @@ public class twdbot extends SubspaceBot {
                             } else {
                                 m_botAction.ipcTransmit(IPC, ipc);
                             }
-                        } else {
+                        } else if ((!arena.startsWith("twfd")) || (twfd)) {
                             // create a new bot and store the arena with the ipc message/challenge
                             if (!challIPC.containsKey(arena)) {
                                 challIPC.put(arena, ipc);
                                 spawn(arena);
                             } else {
-                                m_botAction.sendSmartPrivateMessage(player, "Error completing request, as someone else has also requested a challenge in " + arena + ". Please try again once the bot has spawned.");                                
+                                m_botAction.sendSmartPrivateMessage(player, "A bot is being in the process of being spawned for " + arena + ". Please wait until it spawns to issue your challenge. If it does not spawn please use ?help");                                
                             }
+                        } else if (!twfd && arena.startsWith("twfd")) {
+                            m_botAction.sendSmartPrivateMessage(player, "TWFD is not currently enabled for league play");
                         }
                     } else if (msg.startsWith("twd:expiredchallenge")) {
                         String[] args  = msg.substring(msg.indexOf(" ") + 1).split(",");
@@ -682,6 +712,8 @@ public class twdbot extends SubspaceBot {
                 } else if (message.startsWith("!killalerts")) {
                     command_killAlerts(name);
                     return;
+                } else if (message.startsWith("!enabletwfd")) {
+                    command_TWFD(name);
                 }
             }
         }
@@ -817,6 +849,28 @@ public class twdbot extends SubspaceBot {
             } else if (message.startsWith( "IP:" )) { // !register
                 parseIP( message );
             }
+        }
+    }
+    
+    public void command_TWFD(String name) {
+        if (twfd) {
+            twfd = false;
+            m_botAction.sendSmartPrivateMessage(name, "TWFD has been DISABLED");
+            m_botAction.sendChatMessage("TWFD has been DISABLED by " + name);
+            String arena = "twfd";
+            if (arenas.containsKey(arena))
+                remove(arena);
+            if (arenas.containsKey(arena + "2"))
+                remove(arena + "2");
+            if (arenas.containsKey(arena + "3"))
+                remove(arena + "3");
+            if (arenas.containsKey(arena + "4"))
+                remove(arena + "4");
+        } else {
+            twfd = true;
+            m_botAction.sendSmartPrivateMessage(name, "TWFD has been ENABLED");
+            m_botAction.sendChatMessage("TWFD has been ENABLED by " + name);
+            checkDiv("twfd");
         }
     }
     
