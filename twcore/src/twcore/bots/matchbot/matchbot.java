@@ -764,9 +764,10 @@ public class matchbot extends SubspaceBot {
             if (m_game == null) {
                 int players;
                 if (parameters.length == 2) {
-                    if (Integer.parseInt(parameters[1]) >= m_rules.getInt("minplayers") && Integer.parseInt(parameters[1]) <= m_rules.getInt("players")) {
-                        players = Integer.parseInt(parameters[1]);
-                    } else {
+                    players = Integer.parseInt(parameters[1]);
+                    if (players == -1)
+                        players = m_rules.getInt("minplayers");
+                    else if (players < m_rules.getInt("minplayers") && players > m_rules.getInt("players")) {
                         m_botAction.sendSmartPrivateMessage(name, "Minimum # of players is " + m_rules.getInt("minplayers") + " and maximum is " + m_rules.getInt("players") + ".");
                         return;
                     }
@@ -805,20 +806,11 @@ public class matchbot extends SubspaceBot {
                 int players;
                 String arena;
                 if (args.length == 3) {
-                    if (Integer.parseInt(args[1]) >= m_rules.getInt("minplayers")
-                            && Integer.parseInt(args[1]) <= m_rules.getInt("players")) {
-                        players = Integer.parseInt(args[1]);
-                    } else {
-                        m_botAction.sendPrivateMessage(name, "Minimum # of players is "
-                                + m_rules.getInt("minplayers")
-                                + " and maximum is "
-                                + m_rules.getInt("players") + ".");
-                        return;
-                    }
+                    players = Integer.parseInt(args[1]);
                     arena = args[2].toLowerCase();
                 } else {
-                    players = m_rules.getInt("minplayers");
                     arena = args[1].toLowerCase();
+                    players = -1;
                 }
                 DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
                 if (!dp.isRankAssistantMinimum()
@@ -838,6 +830,8 @@ public class matchbot extends SubspaceBot {
                     if (rs.next()) {
                         // check to make sure the arena isn't this arena
                         if (arena.equalsIgnoreCase(m_botAction.getArenaName())) {
+                            if (players == -1)
+                                players = m_rules.getInt("minplayers");
                             m_gameRequests.add(new GameRequest(name, dp.getTeamName(), nmySquad, players, dp.getUserID()));
                             m_botAction.sendSquadMessage(nmySquad, name
                                     + " is challenging you for a game of "
