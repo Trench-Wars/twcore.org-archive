@@ -162,13 +162,12 @@ public class twdbot extends SubspaceBot {
             needsBot.add(arena);
 
         if (!startingUp) {
-            String div = arena.substring(0, 4);
             if (readyBots.isEmpty()) {
                 m_botAction.sendSmartPrivateMessage(HUB, "!spawn matchbot");
             } else {
                 String bot = readyBots.remove(0);
                 needsBot.removeElement(arena);
-                lockBot(bot, div);
+                lockBot(bot, arena);
             }        
 
         }
@@ -311,9 +310,8 @@ public class twdbot extends SubspaceBot {
     public void startLock() {
         while (!readyBots.isEmpty() && !needsBot.isEmpty()) {
             String arena = needsBot.remove(0);
-            String div = arena.substring(0, 4);
             String bot = readyBots.remove(0);
-            lockBot(bot, div);
+            lockBot(bot, arena);
         }
         
         startingUp = false;
