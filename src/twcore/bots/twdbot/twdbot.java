@@ -69,8 +69,9 @@ public class twdbot extends SubspaceBot {
     private static final String PUBBOT = "TW-Guard";
     private static final String TWBD = "6";
     private static final String TWDD = "8";
-    private static final String TWJD = "15";
-    private static final String TWSD = "19";
+    private static final String TWFD = "13";
+    private static final String TWJD = "16";
+    private static final String TWSD = "20";
 
     int ownerID;
 
