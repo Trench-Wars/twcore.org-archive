@@ -844,7 +844,7 @@ public class MatchTeam
                 parameters[0] = p.getPlayerName();
                 
                 //if twfd gametype
-            	if (m_round.getGame().m_fnMatchTypeID == 2133)	{
+            	if (m_round.getGame().m_fnMatchTypeID == 17)	{
             		if(!(CheckLine(fnShip,0)==true))	{
                 			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
                 			return;
@@ -934,7 +934,7 @@ public class MatchTeam
             oldShip = p.getShipType();
             
             //if twfd gametype
-        	if (m_round.getGame().m_fnMatchTypeID == 2133)	{
+        	if (m_round.getGame().m_fnMatchTypeID == 17)	{
         		if(!(CheckLine(0,oldShip)==true))	{
             			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
             			return;
@@ -1144,7 +1144,7 @@ public class MatchTeam
                                                 || (m_rules.getInt("maxship" + newShip) > getPlayersRosteredInShip(newShip)))
                                         {
                                             //if twfd gametype
-                                        	if (m_round.getGame().m_fnMatchTypeID == 2133)	{
+                                        	if (m_round.getGame().m_fnMatchTypeID == 17)	{
                                         		if(!(CheckLine(newShip,oldShip)==true))	{
                                             			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
                                             			return;
