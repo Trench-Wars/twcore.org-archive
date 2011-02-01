@@ -740,7 +740,10 @@ public class MatchGame
 			// start new round
 
 	        //Sends match info to TWDBot
-	        m_botAction.ipcTransmit("MatchBot", "twdinfo:gamestate " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + ",0");
+			if (m_matchTypeName.equals("TWD Basing"))
+			    m_botAction.ipcTransmit("MatchBot", "twdinfo:gamestate " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + ",0");
+			else
+                m_botAction.ipcTransmit("MatchBot", "twdinfo:gamestate " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_fnTeam1Score + "," + m_fnTeam2Score + ",0");
 
 			int rn = m_curRound.m_fnRoundNumber + 1;
 			String t1 = m_curRound.m_team1.getTeamName();
