@@ -2388,7 +2388,6 @@ public class MatchTeam
     
     
     public boolean CheckLine(int newShip, int oldShip)	{
-    	System.out.println("Successfully entered the method...");
     	/** 
     	 * TODO:
     	 * - Insert a final check when the players send !ready to the bot
@@ -2409,7 +2408,6 @@ public class MatchTeam
     		 gameShip = Integer.parseInt(minShip[i]);
     		 gameShips.put(gShipNum[i], gameShip);
     	}
-		System.out.println("Hashmap created for the game...");
     	/**
     	 * construct the hashmap for the shiptype(key) and number of each for the team (value)
     	 */
@@ -2439,7 +2437,6 @@ public class MatchTeam
 	        temp = 0;
 	    }
 	    
-	    System.out.println("Hashmap created for the team...");
 	    /**
 	     * Account for the old and new ships
 	     */	
@@ -2455,7 +2452,6 @@ public class MatchTeam
 	    	counter++;
 	    }
 	    
-	    System.out.println("New ships accounted for...");
 		/**
 		 * If the team has less than 3 players in, we must stop check.
 		 */
@@ -2479,11 +2475,9 @@ public class MatchTeam
 	    	playerShip = playerShips.get(temp);
 	    	gameShip = gameShips.get(temp);
 	    	if(!(playerShip>=gameShip))	{
-	    		System.out.println("Compare completed, returning false...");
 	    		return false;	    		
 	    	}
 	    }
-	    System.out.println("Compare completed, returning true...");
 	    return true;
    }    	
 }
