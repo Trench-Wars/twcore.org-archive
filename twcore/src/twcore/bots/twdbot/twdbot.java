@@ -57,14 +57,13 @@ public class twdbot extends SubspaceBot {
     private HashMap<String, String> m_waitingAction;
     private HashMap<String, Squad> m_squads;
     private HashMap<Integer, Game> m_games;
-    private ArrayList<String> enabledDivisions;
     private String webdb = "website";
     private boolean manualSpawnOverride;
     private boolean startingUp;
     private boolean shuttingDown;
     private boolean endgameAlert = false;
     private boolean killAlert = false;
-    private boolean twfd = true;
+    private boolean twfd = false;
     private static final String HUB = "TWCore-League";
     private static final String IPC = "MatchBot";
     private static final String BOT_NAME = "MatchBot";
@@ -99,14 +98,6 @@ public class twdbot extends SubspaceBot {
         manualSpawnOverride = false;
         startingUp = true;
         shuttingDown = false;
-        
-        enabledDivisions = new ArrayList<String>();
-        enabledDivisions.add("twbd");
-        enabledDivisions.add("twdd");
-        enabledDivisions.add("twjd");
-        enabledDivisions.add("twsd");
-        if (twfd)
-            enabledDivisions.add("twfd");
 
         m_waitingAction = new HashMap<String, String>();
         m_requesters = new HashMap<String, String>();
@@ -431,6 +422,8 @@ public class twdbot extends SubspaceBot {
                         if (m_games.containsKey(id)) {
                             Game game = m_games.get(id);
                             game.setState(state);
+                            if (state == 0)
+                                game.nextRound();
                             m_games.put(id, game);
                         } else if (!m_games.containsKey(id) && m_squads.containsKey(args[1].toLowerCase()) && m_squads.containsKey(args[2].toLowerCase())) {
                             Squad squad;
@@ -1936,6 +1929,7 @@ public class twdbot extends SubspaceBot {
     class Game {
         int id;
         int state;
+        int round;
         String op;
         String squad1;
         String squad2;
@@ -1952,6 +1946,7 @@ public class twdbot extends SubspaceBot {
             squad2 = s2;
             state = 0;
             alerted = new LinkedList<String>();
+            round = 1;
         }
         
         public void alert(String name, String squad) {
@@ -1971,6 +1966,10 @@ public class twdbot extends SubspaceBot {
             
             m_botAction.sendSmartPrivateMessage(name, "Your squad is " + stateS + " a " + type + " match against " + nme + " in ?go " + arena);
             alerted.add(name.toLowerCase());
+        }
+        
+        public void nextRound() {
+            round++;
         }
         
         public void setState(int s) {
@@ -2005,9 +2004,18 @@ public class twdbot extends SubspaceBot {
         }
         
         public String toString() {
-            String result = "";
+
+            String stateS;
+            if (state == 0)
+                stateS = "preparing";
+            else
+                stateS = "playing";
             
-            result += type + "(" + arena + "): " + squad1 + " vs " + squad2;
+            String result = "";
+            if (type.equals("TWD Basing"))
+                result += type + "(" + arena + "): " + squad1 + " vs " + squad2 + " (" + stateS + ")";
+            else
+                result += type + "(" + arena + "): " + squad1 + " vs " + squad2 + " (" + stateS + " round " + round + ")";                
             
             return result;
         }
