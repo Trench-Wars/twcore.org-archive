@@ -198,6 +198,7 @@ public class MatchGame
 				case 5:ladderTimeout = 6;
 				case 6:ladderTimeout = 10;
 				case 13:ladderTimeout = 10;
+				case 17:ladderTimeout = 10;
 			}
 			if(ladderTimeout == -1)return -1;
 			long timeOut = System.currentTimeMillis() - (ladderTimeout * Tools.TimeInMillis.DAY);
