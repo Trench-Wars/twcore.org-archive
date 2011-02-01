@@ -409,18 +409,30 @@ public class twdbot extends SubspaceBot {
                         checkDiv(arena.substring(0, 4));
                     } else if (msg.startsWith("twdinfo:gamestate")) {
                         String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
-                        if (args.length != 4)
+                        if (args.length != 6 && args.length != 4)
                             return;
                         int id, state;
+                        int s1 = -1;
+                        int s2 = -1;
                         try {
                             id = Integer.valueOf(args[0]);
-                            state = Integer.valueOf(args[3]);
+                            if (args.length == 6) {
+                                state = Integer.valueOf(args[5]);
+                                s1 = Integer.valueOf(args[3]);
+                                s2 = Integer.valueOf(args[4]);
+                            } else {
+                                state = Integer.valueOf(args[3]);                                
+                            }
                         } catch (NumberFormatException e) {
                             return;
                         }
                         
                         if (m_games.containsKey(id)) {
                             Game game = m_games.get(id);
+                            if (s1 > -1 && s2 > -1) {
+                                game.setScore1(s1);
+                                game.setScore2(s2);
+                            }
                             game.setState(state);
                             if (state == 0)
                                 game.nextRound();
@@ -1930,6 +1942,7 @@ public class twdbot extends SubspaceBot {
         int id;
         int state;
         int round;
+        int team1, team2;
         String op;
         String squad1;
         String squad2;
@@ -1947,6 +1960,8 @@ public class twdbot extends SubspaceBot {
             state = 0;
             alerted = new LinkedList<String>();
             round = 1;
+            team1 = 0;
+            team2 = 0;
         }
         
         public void alert(String name, String squad) {
@@ -1970,6 +1985,14 @@ public class twdbot extends SubspaceBot {
         
         public void nextRound() {
             round++;
+        }
+        
+        public void setScore1(int s) {
+            team1 = s;
+        }
+        
+        public void setScore2(int s) {
+            team2 = s;
         }
         
         public void setState(int s) {
@@ -2007,7 +2030,7 @@ public class twdbot extends SubspaceBot {
 
             String stateS;
             if (state == 0)
-                stateS = "preparing";
+                stateS = "starting";
             else
                 stateS = "playing";
             
@@ -2015,7 +2038,7 @@ public class twdbot extends SubspaceBot {
             if (type.equals("TWD Basing"))
                 result += type + "(" + arena + "): " + squad1 + " vs " + squad2 + " (" + stateS + ")";
             else
-                result += type + "(" + arena + "): " + squad1 + " vs " + squad2 + " (" + stateS + " round " + round + ")";                
+                result += type + "(" + arena + "): " + squad1 + " vs " + squad2 + " (" + team1 + "-" + team2 + " " + stateS + " round " + round + ")";                
             
             return result;
         }
