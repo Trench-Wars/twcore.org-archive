@@ -80,6 +80,7 @@ public class twdopalias extends Module
         watchedNames = Collections.synchronizedMap(new HashMap<String,String>());
         watchedMIDs = Collections.synchronizedMap(new HashMap<String,String>());
         clearRecordTask = new ClearRecordTask();
+        m_botAction.ipcSubscribe("TWDOp Alias");
 
         m_botAction.scheduleTaskAtFixedRate(clearRecordTask, CLEAR_DELAY, CLEAR_DELAY);
         
