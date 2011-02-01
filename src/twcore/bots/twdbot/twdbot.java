@@ -62,9 +62,9 @@ public class twdbot extends SubspaceBot {
     private boolean manualSpawnOverride;
     private boolean startingUp;
     private boolean shuttingDown;
-    private boolean endgameAlert = true;
-    private boolean killAlert = true;
-    private boolean twfd = false;
+    private boolean endgameAlert = false;
+    private boolean killAlert = false;
+    private boolean twfd = true;
     private static final String HUB = "TWCore-League";
     private static final String IPC = "MatchBot";
     private static final String BOT_NAME = "MatchBot";
@@ -72,8 +72,8 @@ public class twdbot extends SubspaceBot {
     private static final String TWBD = "6";
     private static final String TWDD = "8";
     private static final String TWFD = "13";
-    private static final String TWJD = "16";
-    private static final String TWSD = "20";
+    private static final String TWJD = "15";
+    private static final String TWSD = "19";
 
     int ownerID;
 
@@ -231,6 +231,7 @@ public class twdbot extends SubspaceBot {
         checkDiv("twdd");
         checkDiv("twjd");
         checkDiv("twsd");
+        checkDiv("twfd");
 
         m_botAction.sendChatMessage("Checking TWD arenas...");
         
