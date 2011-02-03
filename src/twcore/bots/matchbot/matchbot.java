@@ -82,6 +82,7 @@ public class matchbot extends SubspaceBot {
 
     // --- temporary
     String m_team1 = null, m_team2 = null;
+    String m_lock = "";
 
     // private static Pattern parseInfoRE =
     // Pattern.compile("^IP:(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})  TimeZoneBias:\\d+  Freq:\\d+  TypedName:(.*)  Demo:\\d  MachineId:(\\d+)$");
@@ -262,7 +263,21 @@ public class matchbot extends SubspaceBot {
 
                 String arena = m_botAction.getArenaName().toLowerCase();
                 String bot = m_botAction.getBotName();
-                if (s.startsWith("twdmatchbots:newcheckin")) {
+                if (s.startsWith("twdmatchbot:" + bot + ":denylock ")) {
+                    String name = s.substring(s.indexOf(" ") + 1);
+                    // name
+                    m_botAction.sendSmartPrivateMessage(name, "NO! You may NOT !lock while !manualspawn is DISABLED. READ MESSAGES!");
+                    
+                } else if (s.startsWith("twdmatchbot:" + bot + ":denyunlock ")) {
+                    String name = s.substring(s.indexOf(" ") + 1);
+                    // name
+                    m_botAction.sendSmartPrivateMessage(name, "NO! You may NOT !unlock while !manualspawn is DISABLED. READ MESSAGES!");
+
+                } else if (s.startsWith("twdmatchbot:" + bot + ":allowunlock ")) {
+                    String name = s.substring(s.indexOf(" ") + 1);
+                    // name
+                    command_unlock(name, null);
+                } else if (s.startsWith("twdmatchbots:newcheckin")) {
                     if (isTWD()) {
                         if (m_game != null) {
                             // checkin:bot:arena:matchID:squad:squad:type
@@ -393,6 +408,26 @@ public class matchbot extends SubspaceBot {
             m_botAction.die();
         }
         
+        if (messageType == Message.ARENA_MESSAGE){
+            if (message.equals("TWDBot is in SSCU Trench Wars") && m_lock.length() > 0) {
+                m_botAction.ipcTransmit(IPC, m_lock);
+                m_lock = "";
+                return;
+            } else if (message.startsWith("Not online, last seen") && m_lock.length() > 0) {
+                if (message.startsWith("twdmatchbot:manlock")) {
+                    String[] args = message.substring(message.indexOf(" ") + 1).split(",");
+                    if (args.length == 3) {
+                        if (args[2].contains(":"))
+                            command_lock(args[1], new String[] { args[2].substring(args[2].indexOf(":")), args[2].substring(args[2].indexOf(":") + 1) });
+                        else
+                            command_lock(args[1], new String[] { args[2].substring(args[2].indexOf(":")) });
+                    }
+                }
+                m_lock = "";
+                return;
+            }
+        }
+        
         if (messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) {
             String name = m_botAction.getPlayerName(event.getPlayerID());
             if (name == null) {
@@ -435,6 +470,18 @@ public class matchbot extends SubspaceBot {
             if (m_opList.isBot(name)) {
                 isStaff = true;
                 isRestrictedStaff = false;
+            }
+            
+            if (messageType == Message.PRIVATE_MESSAGE && m_opList.isModerator(name)) {
+                if (message.startsWith("!lock ")) {
+                    m_lock = "twdmatchbot:manlock " + m_botAction.getBotName() + "," + name + "," + message;
+                    m_botAction.sendUnfilteredPublicMessage("?find=TWDBot");
+                    return;
+                } else if (message.startsWith("!unlock")) {
+                    m_lock = "twdmatchbot:manunlock " + m_botAction.getBotName() + "," + name + "," + message + "," + m_botAction.getArenaName();
+                    m_botAction.sendUnfilteredPublicMessage("?find=TWDBot");
+                    return;
+                }
             }
 
             if (stringChopper(message, ' ') == null)
