@@ -587,6 +587,7 @@ public class twdbot extends SubspaceBot {
                             m_botAction.ipcTransmit(IPC, "twdmatchbot:" + args[0] + " die");
                             return;
                         } else {
+                            m_bots.put(args[0], arena);
                             Arena info = m_arenas.get(arena);
                             if (info.isWaiting()) {
                                 info.setBot(args[0]);
