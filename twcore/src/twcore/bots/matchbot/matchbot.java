@@ -55,6 +55,7 @@ public class matchbot extends SubspaceBot {
     String dbConn = "website";
 
     //
+    boolean ipcTimer = false;
     boolean m_isLocked = false;
     boolean m_aliasCheck = false;
     boolean m_isStartingUp = false;
@@ -69,6 +70,7 @@ public class matchbot extends SubspaceBot {
     static int CHECKING_ARENAS = 1, LOCKED = 2;
     static int INACTIVE_MESSAGE_LIMIT = 3, ACTIVE_MESSAGE_LIMIT = 16;
     final static String IPC = "MatchBot";
+    final static String TWDHUB = "TWDBot";
     // these variables are for when the bot is locked
     BotSettings m_rules;
     String m_rulesFileName;
@@ -83,6 +85,7 @@ public class matchbot extends SubspaceBot {
     // --- temporary
     String m_team1 = null, m_team2 = null;
     String m_lock = "";
+    TimerTask exp;
 
     // private static Pattern parseInfoRE =
     // Pattern.compile("^IP:(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})  TimeZoneBias:\\d+  Freq:\\d+  TypedName:(.*)  Demo:\\d  MachineId:(\\d+)$");
@@ -193,7 +196,7 @@ public class matchbot extends SubspaceBot {
         if (arena.equalsIgnoreCase("twd")) {
             m_botAction.ipcTransmit(IPC, "twdmatchbot:spawned " + m_botAction.getBotName());
         } else if (isTWD() && m_isLocked) {
-            m_botAction.ipcTransmit(IPC, "twdmatchbot:locked " + arena);            
+            m_botAction.ipcTransmit(IPC, "twdmatchbot:locked " + m_botAction.getBotName() + "," + arena);            
         }
     }
 
@@ -332,7 +335,7 @@ public class matchbot extends SubspaceBot {
     private boolean isTWD() {
         String arena = m_botAction.getArenaName().toLowerCase();
         
-        if (((arena.length() == 4) || (arena.length() == 5)) && ((arena.startsWith("twbd")) || (arena.startsWith("twdd")) || (arena.startsWith("twjd")) || (arena.startsWith("twsd"))))
+        if (((arena.length() == 4) || (arena.length() == 5)) && ((arena.startsWith("twbd")) || (arena.startsWith("twdd")) || (arena.startsWith("twjd")) || (arena.startsWith("twsd")) || (arena.startsWith("twfd"))))
             return true;
         
         return false;
@@ -409,19 +412,22 @@ public class matchbot extends SubspaceBot {
         }
         
         if (messageType == Message.ARENA_MESSAGE){
-            if (message.equals("TWDBot is in SSCU Trench Wars") && m_lock.length() > 0) {
+            if (message.startsWith(TWDHUB + " is in SSCU Trench Wars") && m_lock.length() > 0) {
                 m_botAction.ipcTransmit(IPC, m_lock);
                 m_lock = "";
                 return;
             } else if (message.startsWith("Not online, last seen") && m_lock.length() > 0) {
-                if (message.startsWith("twdmatchbot:manlock")) {
-                    String[] args = message.substring(message.indexOf(" ") + 1).split(",");
+                if (m_lock.startsWith("twdmatchbot:manlock")) {
+                    String[] args = m_lock.substring(m_lock.indexOf(" ") + 1).split(",");
                     if (args.length == 3) {
                         if (args[2].contains(":"))
-                            command_lock(args[1], new String[] { args[2].substring(args[2].indexOf(":")), args[2].substring(args[2].indexOf(":") + 1) });
+                            command_lock(args[1], new String[] { args[2].substring(0, args[2].indexOf(":")), args[2].substring(args[2].indexOf(":") + 1) });
                         else
-                            command_lock(args[1], new String[] { args[2].substring(args[2].indexOf(":")) });
+                            command_lock(args[1], new String[] { args[2].substring(args[2].indexOf(" ") + 1) });
                     }
+                } else if (m_lock.startsWith("twdmatchbot:manunlock")) {
+                    String[] args = m_lock.substring(m_lock.indexOf(" ") + 1).split(",");
+                    command_unlock(args[1], null);
                 }
                 m_lock = "";
                 return;
@@ -475,11 +481,11 @@ public class matchbot extends SubspaceBot {
             if (messageType == Message.PRIVATE_MESSAGE && m_opList.isModerator(name)) {
                 if (message.startsWith("!lock ")) {
                     m_lock = "twdmatchbot:manlock " + m_botAction.getBotName() + "," + name + "," + message;
-                    m_botAction.sendUnfilteredPublicMessage("?find=TWDBot");
+                    m_botAction.sendUnfilteredPublicMessage("?find=" + TWDHUB);
                     return;
                 } else if (message.startsWith("!unlock")) {
                     m_lock = "twdmatchbot:manunlock " + m_botAction.getBotName() + "," + name + "," + message + "," + m_botAction.getArenaName();
-                    m_botAction.sendUnfilteredPublicMessage("?find=TWDBot");
+                    m_botAction.sendUnfilteredPublicMessage("?find=" + TWDHUB);
                     return;
                 }
             }
@@ -831,13 +837,18 @@ public class matchbot extends SubspaceBot {
                 m_gameRequests.add(new GameRequest(name, dp.getTeamName(), nmySquad, players, dp.getUserID()));
                 m_botAction.sendSquadMessage(nmySquad, name + " is challenging you for a game of " + players + "vs" + players + " " + m_rules.getString("name") + " versus " + dp.getTeamName() + ". Captains/assistants, ?go " + m_botAction.getArenaName() + " and pm me with '!accept " + dp.getTeamName() + "'");
                 m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to " + nmySquad);
-                TimerTask exp = new TimerTask() {
-                    @Override
-                    public void run() {
-                        m_botAction.ipcTransmit(IPC, "twd:expiredchallenge " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
-                    }
-                };
-                m_botAction.scheduleTask(exp, 300000);
+                final String arena = m_botAction.getArenaName();
+                final String bot = m_botAction.getBotName();
+                if (!ipcTimer) {
+                    exp = new TimerTask() {
+                        @Override
+                        public void run() {
+                            m_botAction.ipcTransmit(IPC, "twd:expiredchallenge " + arena + "," + bot);
+                        }
+                    };
+                    m_botAction.scheduleTask(exp, 300000);
+                    ipcTimer = true;
+                }
             } else
                 m_botAction.sendSmartPrivateMessage(name, "You can't challenge here, there is a game going on here already");
         } catch (Exception e) {
@@ -891,7 +902,7 @@ public class matchbot extends SubspaceBot {
                                     + dp.getTeamName() + "'");
                             m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to "
                                     + nmySquad);
-                        } else if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")) {
+                        } else if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd") || arena.startsWith("twfd")) {
                             try {
                                 if (arena.length() > 4) {
                                     int n = Integer.valueOf(arena.substring(4));
@@ -901,7 +912,6 @@ public class matchbot extends SubspaceBot {
 
                                 // send this request to twdbot for analysis (arena,squad_ch,squad_op,name,players,my_arena,my_botname)
                                 m_botAction.ipcTransmit(IPC, "twd:arena_request " + arena + "," + dp.getTeamName() + "," + args[0] + "," + name + "," + players + "," + m_arena + "," + m_botAction.getBotName());
-                                m_botAction.sendSmartPrivateMessage(name, "Your request was sent to TWDBot to be handled further.");
                             } catch (NumberFormatException e) {
                                 m_botAction.sendSmartPrivateMessage(name, "Invalid arena requested.");
                             }
@@ -930,7 +940,7 @@ public class matchbot extends SubspaceBot {
             return;
         } else if (parameters.length == 2) {
             String arena = parameters[1].toLowerCase();
-            if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")) {
+            if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd") || arena.startsWith("twfd")) {
                 command_charena(name, parameters);
                 return;                
             }                
@@ -1256,7 +1266,7 @@ public class matchbot extends SubspaceBot {
                                         final int pNum = r.getPlayersNum();
                                         final int chID = r.getRequesterID();
                                         final int acID = dp.getUserID();
-
+                                        
                                         TimerTask m_startGameTimer = new TimerTask() {
                                             public void run() {
                                                 m_isStartingUp = false;
@@ -1517,6 +1527,11 @@ public class matchbot extends SubspaceBot {
 
     // create game
     public void createGame(String name, String[] parameters) {
+        if (ipcTimer) {
+            ipcTimer = false;
+            m_botAction.cancelTask(exp);
+        }
+            
         try {
             createKillChecker();
             String fcTeam1Name = null, fcTeam2Name = null, rulesName = null;
