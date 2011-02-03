@@ -895,7 +895,7 @@ public class matchbot extends SubspaceBot {
                             try {
                                 if (arena.length() > 4) {
                                     int n = Integer.valueOf(arena.substring(4));
-                                    if (n < 1 || n > 4)
+                                    if (n < 1 || n > 5)
                                         throw new NumberFormatException();
                                 }
 
