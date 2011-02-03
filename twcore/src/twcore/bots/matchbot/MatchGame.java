@@ -666,7 +666,7 @@ public class MatchGame
 		return answer;
 	}
 
-	public void reportEndOfRound(boolean m_fbAffectsEntireGame)
+    public void reportEndOfRound(boolean m_fbAffectsEntireGame)
 	{
 		// remove/disable any possible timers
 		m_curRound.cancel();
