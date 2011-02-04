@@ -302,7 +302,7 @@ public class matchbot extends SubspaceBot {
                         m_botAction.ipcTransmit(IPC, "twdmatchbot:checkingin:" + bot + ":" + arena);                        
                     }
                     
-                } else if ((s.equals("all twdbots die")) || (s.equalsIgnoreCase("twdmatchbot:" + arena + " die")) || (s.equalsIgnoreCase("twdmatchbot:" + m_botAction.getBotName() + " die"))) {
+                } else if ((s.equals("all twdbots die")) || (s.equalsIgnoreCase("twdmatchbot:" + arena + " die")) || (s.equalsIgnoreCase("twdmatchbot:" + bot + " die"))) {
                     if (!m_isLocked || m_game == null) {
                         m_botAction.ipcTransmit(IPC, "twdmatchbot:shuttingdown " + arena + "," + m_botAction.getBotName());
                         TimerTask d = new TimerTask() {
@@ -317,7 +317,7 @@ public class matchbot extends SubspaceBot {
                         m_off = true;
                         m_botAction.ipcTransmit(IPC, "twdmatchbot:dying " + arena + "," + m_botAction.getBotName());
                     }
-                } else if (s.equalsIgnoreCase("twdmatchbot:" + arena + " stay")) {
+                } else if (s.equalsIgnoreCase("twdmatchbot:" + bot + " stay")) {
                     m_botAction.ipcTransmit(IPC, "twdmatchbot:staying " + arena + "," + m_botAction.getBotName());
                     m_die = false;
                     m_off = false;
@@ -1266,7 +1266,7 @@ public class matchbot extends SubspaceBot {
                                         final int pNum = r.getPlayersNum();
                                         final int chID = r.getRequesterID();
                                         final int acID = dp.getUserID();
-                                        
+                                        m_botAction.ipcTransmit(IPC, "twdinfo:gamein30 " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
                                         TimerTask m_startGameTimer = new TimerTask() {
                                             public void run() {
                                                 m_isStartingUp = false;
