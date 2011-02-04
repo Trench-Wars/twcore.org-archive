@@ -126,7 +126,7 @@ public class MatchGame
 
         //Sends match info to TWDBot
         m_botAction.ipcSubscribe("MatchBot");
-        m_botAction.ipcTransmit("MatchBot", "twdinfo:newgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_matchTypeName + "," + m_fcArena);
+        m_botAction.ipcTransmit("MatchBot", "twdinfo:newgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_matchTypeName + "," + m_fcArena + "," + m_botAction.getBotName());
 	}
 
 	public void zone() {
