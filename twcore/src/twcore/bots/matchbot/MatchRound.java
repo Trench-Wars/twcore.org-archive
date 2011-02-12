@@ -866,8 +866,8 @@ public class MatchRound
             command_checklag(name, parameters);
         
         if(command.equals("!power") && isStaff)
-            m_botAction.sendUnfilteredPrivateMessage(name, "*mod");
-            m_botAction.sendPrivateMessage(name, "Your staff power has been deactivated/activated.");
+            command_power(name, parameters);
+            
             
 
         if ((command.equals("!lagstatus")) && isStaff)
@@ -951,6 +951,12 @@ public class MatchRound
                 m_team2.parseCommand(name, command, parameters, isStaff);
             };
         };
+    }
+
+    private void command_power(String name, String[] parameters) {
+        m_botAction.sendUnfilteredPrivateMessage(name, "*mod");
+        m_botAction.sendPrivateMessage(name, "Your staff power has been deactivated/activated.");
+        
     }
 
     /**
