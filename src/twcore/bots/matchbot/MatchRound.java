@@ -829,6 +829,7 @@ public class MatchRound
             }
             help.add("!lag <player>                            - show <player>'s lag");
             help.add("!startinfo                               - shows who started this game");
+            help.add("!power                                   - Enables/Disables staff power");
             if (m_team1 != null)
             {
                 help.add("-- Prepend your command with !t1- for '" + m_team1.getTeamName() + "', !t2- for '" + m_team2.getTeamName() + "' --");
@@ -863,6 +864,11 @@ public class MatchRound
 
         if (command.equals("!lag") && isStaff)
             command_checklag(name, parameters);
+        
+        if(command.equals("!power") && isStaff)
+            m_botAction.sendUnfilteredPrivateMessage(name, "*mod");
+            m_botAction.sendPrivateMessage(name, "Your staff power has been deactivated/activated.");
+            
 
         if ((command.equals("!lagstatus")) && isStaff)
             command_lagstatus(name, parameters);
