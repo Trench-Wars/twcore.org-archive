@@ -954,7 +954,7 @@ public class MatchRound
     }
 
     private void command_power(String name, String[] parameters) {
-        m_botAction.sendUnfilteredPrivateMessage(name, "*mod");
+        m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
         m_botAction.sendPrivateMessage(name, "Your staff power has been deactivated/activated.");
         
     }
