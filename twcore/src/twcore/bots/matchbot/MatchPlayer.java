@@ -156,7 +156,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 
 		m_logger.scoreReset(m_fcPlayerName);
 	}
-	
+
 	public void updateLagThreshold() {
 		
 		// Default threshold

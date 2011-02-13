@@ -64,15 +64,6 @@ public class MatchTeam
     int m_fnSubstitutes;
     int m_fnShipSwitches;
     int m_fnShipChanges;
-    
-    //twfd variables
-	boolean twfd_add;
-	boolean twfd_rem;
-	boolean goodLine;
-    int shipCounter;
-    String[] minShipStr;
-	String[] playerShip;
-    
 
 	int m_lagID = 0;
 
@@ -91,6 +82,7 @@ public class MatchTeam
     LinkedList<String> m_captains;
 
     boolean m_fbReadyToGo;
+    boolean m_teamCancel;
 
     String m_fcLaggerName;
 
@@ -122,6 +114,7 @@ public class MatchTeam
         checkPlayerMID = new HashMap<String,Boolean>();
         m_fnFrequency = fnFrequency;
         m_fbReadyToGo = false;
+        m_teamCancel = false;
         m_fnSubstitutes = 0;
         m_fnShipChanges = 0;
         m_fnShipSwitches = 0;
@@ -633,6 +626,7 @@ public class MatchTeam
                 help.add("!switch <player>:<player>                - exchanges the ship of both players");
                 help.add("!change <player>:<ship>                  - sets the player in the specified ship");
                 help.add("!ready                                   - use this when you're done setting your lineup");
+                help.add("!cancel                                  - request or agree to cancel the game");
                 help.add("!addplayer                               - request to add an extra player");
                 help.add("!lagout <player>                         - puts <player> back in the game");
                 if (m_rules.getInt("blueout") == 1)
@@ -700,6 +694,8 @@ public class MatchTeam
                         command_change(name, parameters);
                     if (command.equals("!ready"))
                         command_ready(name, parameters);
+                    if (command.equals("!cancel"))
+                    	command_cancel(name, parameters);
                     if (command.equals("!lagout"))
                         command_lagout(name, parameters);
                     if (command.equals("!blueout"))
@@ -1244,6 +1240,18 @@ public class MatchTeam
             m_fbReadyToGo = false;
             m_logger.sendArenaMessage(m_fcTeamName + " is NOT ready to begin");
         }
+    }
+    
+    public void command_cancel(String name, String[] parameters)	{
+    	if(!m_teamCancel)	{
+    		m_teamCancel = true;
+    		m_logger.sendPrivateMessage(name, "Your request to cancel the current game has been sent.");
+    		m_round.checkCancel(m_fcTeamName);
+    	}
+    	else	{
+    		m_teamCancel = false;
+    		m_logger.sendPrivateMessage(name, "Your request to cancel the current game has been removed.");
+    	}
     }
 
     // puts a player back in the game, IF ALLOWED TO
@@ -2199,6 +2207,11 @@ public class MatchTeam
     public boolean isReadyToGo()
     {
         return m_fbReadyToGo;
+    }
+    
+    public boolean requestsCancel()
+    {
+    	return m_teamCancel;
     }
 
     public boolean addEPlayer()
