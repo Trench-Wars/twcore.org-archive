@@ -3,6 +3,7 @@ package twcore.bots.twdbot;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -45,6 +46,8 @@ public class twdbot extends SubspaceBot {
 
     public HashMap<String, String> m_requesters;
 
+    private int arenaChallCount;
+    private String birthday;
     private String register = "";
     private HashMap<String, String> m_waitingAction;
     private String webdb = "website";
@@ -52,6 +55,7 @@ public class twdbot extends SubspaceBot {
     private boolean shuttingDown;
     private boolean endgameAlert = false;
     private boolean killAlert = false;
+    private boolean arenaChallAlert = true;
     private boolean otherAlerts = true;
     private boolean respawn = true;
     private static final String HUB = "TWCore-League";
@@ -99,6 +103,8 @@ public class twdbot extends SubspaceBot {
         m_waitingAction = new HashMap<String, String>();
         m_requesters = new HashMap<String, String>();
 
+        arenaChallCount = 0;
+        birthday = new SimpleDateFormat("HH:mm MM.dd.yy").format(Calendar.getInstance().getTime());
         m_arenas = new HashMap<String, Arena>();
         m_games = new HashMap<Integer, Game>();
         m_squads = new HashMap<String, Squad>();
@@ -737,7 +743,8 @@ public class twdbot extends SubspaceBot {
                         String player = args[3];
                         // name,squad_ch,squad_op,players
                         String ipc = "twd:" + arena + ":challenge " + player + "," + args[2] + "," + args[4];
-                        if (otherAlerts)
+                        arenaChallCount++;
+                        if (arenaChallAlert)
                             m_botAction.sendChatMessage("Arena challenge request made by " + player + " for " + arena + " against " + args[2]);
                         if (m_arenas.containsKey(arena)) {
                             Arena info = m_arenas.get(arena);
@@ -833,6 +840,9 @@ public class twdbot extends SubspaceBot {
                 } else if (message.startsWith("!otheralerts")) {
                     command_other(name);
                     return;
+                } else if (message.startsWith("!challalerts")) {
+                    command_challs(name);
+                    return;
                 }
             }
         }
@@ -849,6 +859,9 @@ public class twdbot extends SubspaceBot {
 
             if (message.startsWith("!games")) {
                 command_games(name);
+                return;
+            } else if (message.startsWith("!acrs")) {
+                command_acrs(name);
                 return;
             }
 
@@ -1013,6 +1026,16 @@ public class twdbot extends SubspaceBot {
         }
     }
     
+    public void command_challs(String name) {
+        if (arenaChallAlert) {
+            arenaChallAlert = false;
+            m_botAction.sendChatMessage("Arena challenge alerts have been DISABLED by " + name);
+        } else {
+            arenaChallAlert = true;
+            m_botAction.sendChatMessage("Arena challenge alerts have been ENABLED by " + name);
+        }
+    }
+    
     public void command_endgame(String name) {
         if (endgameAlert) {
             endgameAlert = false;
@@ -1054,6 +1077,10 @@ public class twdbot extends SubspaceBot {
             m_botAction.sendChatMessage("Manual spawn override DISABLED by " + name + ". MatchBot spawn control restarting.");
             m_botAction.sendSmartPrivateMessage(name, "Manual spawn override has been DISABLED. Restarting the bot spawn control system.");
         }
+    }
+    
+    public void command_acrs(String name) {
+        m_botAction.sendSmartPrivateMessage(name, arenaChallCount + " arena challenge requests since " + birthday);
     }
     
     public boolean isTWDOp(String name){
