@@ -556,6 +556,7 @@ public class matchbot extends SubspaceBot {
                     help.add("!game <squadA>:<squadB>                  - start a game of "
                             + m_rules.getString("name")
                             + " between teamA and teamB");
+                    help.add("!power                                   - Disables/Enables your staff power");
                     if (!isRestrictedStaff) {
                         help.add("!unlock                                  - unlock the bot, makes it go back to ?go twd");
                         if (m_opList.isSmod(name)) {
@@ -591,6 +592,8 @@ public class matchbot extends SubspaceBot {
         if (isStaff) {
             if (command.equals("!game"))
                 createGame(name, parameters);
+            if(command.equals("!power"))
+                command_power(name, parameters);
             if (!isRestrictedStaff) {
                 if (command.equals("!listgames"))
                     listGames(name);
@@ -731,6 +734,12 @@ public class matchbot extends SubspaceBot {
 
         if (m_game != null)
             m_game.parseCommand(name, command, parameters, isStaff);
+    }
+
+    private void command_power(String name, String[] parameters) {
+        m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
+        m_botAction.sendPrivateMessage(name, "Your staff power has been deactivated/activated.");
+        
     }
 
     public void command_go(String name, String[] parameters) {
