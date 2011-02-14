@@ -66,6 +66,7 @@ public class MatchGame
 
 	static int KILL_ME_PLEASE = 10;
 
+	boolean announced = false;
 	boolean m_gameStored = false;
 
 	LinkedList<MatchRound> m_rounds;
@@ -491,7 +492,8 @@ public class MatchGame
 		ArrayList<String> help = new ArrayList<String>();
 
 		help.add("!status                                  - Shows the current state of the entire game");
-
+		if (isStaff && m_rules.getInt("safezone") == 1)
+		    help.add("!zone                                - Announces game in *zone");
 		if (m_curRound != null)
 		{
 			help.addAll(m_curRound.getHelpMessages(name, isStaff));
@@ -504,6 +506,11 @@ public class MatchGame
 	{
 		if (command.equals("!status"))
 			command_status(name, parameters);
+		
+		if (isStaff) {
+            if (command.equals("!zone"))
+                command_zone(name, parameters);
+        }
 
 		if (m_curRound != null)
 		{
@@ -511,7 +518,24 @@ public class MatchGame
 		}
 	}
 
-	public void command_status(String name, String[] parameters)
+	private void command_zone(String name, String[] parameters) {
+
+        if (!announced) {
+            if (m_rules.getInt("staffzone") == 1) {
+                announced = true;
+                m_botAction.sendZoneMessage("TWDT Season 6: [" + m_rules.getString("name") + "] " + m_fcTeam1Name + " vs. " + m_fcTeam2Name + " Type ?go " + m_botAction.getArenaName());
+            } else {
+                m_botAction.sendPrivateMessage(name, "Only games with the Int 1 on staffzone in Rules may zone");
+            }
+        } else {
+            m_botAction.sendPrivateMessage(name, "A game may be !zone'd only once");
+        }
+    }
+
+        
+    
+
+    public void command_status(String name, String[] parameters)
 	{
 		m_logger.sendPrivateMessage(name, Tools.centerString("   " + m_rules.getString("name") + "   ", 65, '-'));
 		m_logger.sendPrivateMessage(name, "Teams    :" + Tools.centerString(m_fcTeam1Name, 25) + " vs. " + Tools.centerString(m_fcTeam2Name, 25));
