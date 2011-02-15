@@ -382,7 +382,9 @@ public class staffbot_banc extends Module {
 
                String line = null;
                while ((line=reader.readLine()) != null) {
-               writer.write(timestamp + name + " - " + message + "\n");
+               writer.write(timestamp + name + " - " + message + "\r\n");}
+               
+                   
                
                reader.close(); 
                writer.close();  
@@ -392,7 +394,7 @@ public class staffbot_banc extends Module {
 
            
         
-        Tools.printLog("Banc Record: Print File Successful!");}}
+        Tools.printLog("Banc Record: Print File Successful!");}
        
         
 
