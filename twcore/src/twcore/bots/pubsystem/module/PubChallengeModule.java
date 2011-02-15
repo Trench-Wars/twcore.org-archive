@@ -33,6 +33,9 @@ public class PubChallengeModule extends AbstractModule {
     private Map<String,Challenge> challenges;
     private Map<String,StartLagout> laggers;
     
+    // added this due to multiple people asking me to fix, 
+    // i didn't know if sharks should get shrap or not so i made it changeable
+    private boolean sharkShrap = false;
     private boolean saveDuel = false;
     private String database = "";
     
@@ -855,14 +858,30 @@ public class PubChallengeModule extends AbstractModule {
             }
             if (ship>0 && iaccship!=ship) {
             	m_botAction.setShip(accepter, ship);
-            }
-
+            }            
+            
             m_botAction.setFreq(challenger, 0);
             m_botAction.setFreq(accepter, 1);
             m_botAction.warpTo(challenger, area.warp1x, area.warp1y);
             m_botAction.warpTo(accepter, area.warp2x, area.warp2y);
             givePrize(challenger);
             givePrize(accepter);
+            
+            // putting this here for now, you can move it into givePrize later
+            if (ship == 8) {
+                if (!sharkShrap) {
+                    m_botAction.specificPrize(challenger, -19);
+                    m_botAction.specificPrize(challenger, -19);
+                    m_botAction.specificPrize(accepter, -19);
+                    m_botAction.specificPrize(accepter, -19);
+                } else {
+                    m_botAction.specificPrize(challenger, 19);
+                    m_botAction.specificPrize(challenger, 19);
+                    m_botAction.specificPrize(accepter, 19);
+                    m_botAction.specificPrize(accepter, 19);
+                }
+            }
+            
             m_botAction.sendSmartPrivateMessage(challenger, "GO GO GO!", Tools.Sound.GOGOGO);
             m_botAction.sendSmartPrivateMessage(accepter, "GO GO GO!", Tools.Sound.GOGOGO);
 
@@ -1058,6 +1077,16 @@ public class PubChallengeModule extends AbstractModule {
             returnFromLagout(sender);
 	}
 	
+	public void doSharkShrap(String name) {
+	    if (sharkShrap) {
+	        sharkShrap = false;
+	        m_botAction.sendSmartPrivateMessage(name, "Shark duels now have shrapnel DISABLED");
+	    } else {
+            sharkShrap = true;
+            m_botAction.sendSmartPrivateMessage(name, "Shark duels now have shrapnel ENABLED");
+	    }
+	}
+	
 	@Override
 	public void handleModCommand(String sender, String command) {
 
@@ -1067,6 +1096,8 @@ public class PubChallengeModule extends AbstractModule {
             	doCancelDuelCmd(sender, command.substring(17).trim());
         	else if(command.startsWith("!debugchallenge"))
             	doDebugCmd(sender);
+        	else if (command.startsWith("!sharkshrap"))
+        	    doSharkShrap(sender);
            
         } catch(RuntimeException e) {
             if( e != null && e.getMessage() != null )
