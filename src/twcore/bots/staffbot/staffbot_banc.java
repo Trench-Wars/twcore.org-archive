@@ -6,11 +6,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.TimerTask;
 
@@ -22,6 +24,9 @@ import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 
 /**
  * StaffBot BanC module
@@ -122,7 +127,8 @@ public class staffbot_banc extends Module {
     private final String uniqueConnectionID = "banc";
     private final String IPCBANC = "banc";
     private final String IPCALIAS = "pubBots";
-    
+   
+
 
     
     //private final String MINACCESS_BANCSTAFFER = "OPS";
@@ -329,9 +335,11 @@ public class staffbot_banc extends Module {
             // !changeban <#id> <arguments>
             else if( messageLc.startsWith("!changeban")) {
                 cmdChangeBan(name, message.substring(10).trim());
+                record(name, message);
             }
             else if( messageLc.startsWith("!cb")) {
                 cmdChangeBan(name, message.substring(3).trim());
+                record(name, message);
             }
             
             // !bancomment <#id> <comments>
@@ -345,6 +353,7 @@ public class staffbot_banc extends Module {
             // !liftban <#id>
             else if( messageLc.startsWith("!liftban")) {
                 cmdLiftban(name, message.substring(8).trim());
+                record(name, message);
             }
             // !reload [Smod+]
             else if( messageLc.startsWith("!reload") && opList.isDeveloper(name)) {
@@ -361,6 +370,29 @@ public class staffbot_banc extends Module {
             }}
         
     }
+    private void record(String name, String message) {
+       try{
+           Calendar c = Calendar.getInstance();
+           String timestamp = c.get( c.MONTH ) + "/" + c.get( c.DAY_OF_MONTH )
+           + "/" + c.get( c.YEAR ) + " - ";
+       
+           PrintWriter out = new PrintWriter( new FileWriter( "/home/bots/twcore/bin/logs/banc.txt" ));
+       
+        out.println( timestamp + " -------- " + name + "-" +  message );
+        out.close();
+        Tools.printLog("Banc Record: Print File Successful!");
+
+        
+       }catch(Exception e){
+           
+        Tools.printStackTrace( e );}
+        
+       
+        
+        }
+
+
+
     private void cmdArgument(String name) {
          String Argument[] = { 
             " Arguments:",
