@@ -376,15 +376,16 @@ public class staffbot_banc extends Module {
            String timestamp = c.get( c.MONTH ) + "/" + c.get( c.DAY_OF_MONTH )
            + "/" + c.get( c.YEAR ) + " - ";
        
-           PrintWriter out = new PrintWriter( new FileWriter( "/home/bots/twcore/bin/logs/banc.txt" ));
+           PrintWriter out = new PrintWriter( new FileWriter( "/home/bots/twcore/bin/logs/banc.log" ));
        
-        out.println( timestamp + " -------- " + name + "-" +  message );
-        out.close();
+        out.println( timestamp + name + "-" + message );
         Tools.printLog("Banc Record: Print File Successful!");
+        out.close();
+        
 
         
        }catch(Exception e){
-           
+           m_botAction.sendChatMessage(2, "I cannot log this to the banc.log! + "+name+ "-" + message);
         Tools.printStackTrace( e );}
         
        
