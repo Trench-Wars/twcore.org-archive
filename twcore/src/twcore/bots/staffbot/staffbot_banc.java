@@ -377,11 +377,12 @@ public class staffbot_banc extends Module {
            String timestamp = c.get( c.MONTH ) + "/" + c.get( c.DAY_OF_MONTH )
            + "/" + c.get( c.YEAR ) + " - ";
        
-           BufferedReader reader = new BufferedReader(new FileReader( "/home/bots/twcore/bin/logs/banc.log" ));
-           BufferedWriter writer = new BufferedWriter(new FileWriter( "/home/bots/twcore/bin/logs/banc.log" ));
+           BufferedReader reader = new BufferedReader(new FileReader( "/home/bots/twcore/bin/logs/banc.log" )); 
+           BufferedWriter writer = new BufferedWriter(new FileWriter( "/home/bots/twcore/bin/logs/banc.log",true ));
 
-               writer.newLine();
+               
                writer.write(timestamp + name + " - " + message);
+               writer.newLine();
                
                
                    
