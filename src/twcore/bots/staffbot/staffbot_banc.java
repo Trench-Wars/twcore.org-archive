@@ -380,8 +380,8 @@ public class staffbot_banc extends Module {
            BufferedReader reader = new BufferedReader(new FileReader( "/home/bots/twcore/bin/logs/banc.log" )); 
            BufferedWriter writer = new BufferedWriter(new FileWriter( "/home/bots/twcore/bin/logs/banc.log",true ));
 
-               writer.newLine();
-               writer.write(timestamp + name + " - " + message);
+               
+               writer.write(timestamp + name + " - " + message + "\n");
                
                
                
