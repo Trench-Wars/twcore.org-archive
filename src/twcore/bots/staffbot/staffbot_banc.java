@@ -381,7 +381,7 @@ public class staffbot_banc extends Module {
            BufferedWriter writer = new BufferedWriter(new FileWriter( "/home/bots/twcore/bin/logs/banc.log",true ));
 
                
-               writer.write("\n" + timestamp + name + " - " + message);
+               writer.write("\r\n" + timestamp + name + " - " + message);
                
                
                
