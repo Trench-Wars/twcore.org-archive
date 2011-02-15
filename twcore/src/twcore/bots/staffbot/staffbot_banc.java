@@ -380,15 +380,20 @@ public class staffbot_banc extends Module {
            BufferedReader reader = new BufferedReader(new FileReader( "/home/bots/twcore/bin/logs/banc.log" ));
            BufferedWriter writer = new BufferedWriter(new FileWriter( "/home/bots/twcore/bin/logs/banc.log" ));
 
-           
-          
+               String line = null;
+               while ((line=reader.readLine()) != null) {
                writer.write(timestamp + name + " - " + message + "\n");
-               writer.flush();
+               
+               reader.close(); 
+               writer.close();  
+           
+
+
 
            
         
-        Tools.printLog("Banc Record: Print File Successful!");
-       }
+        Tools.printLog("Banc Record: Print File Successful!");}}
+       
         
 
         
