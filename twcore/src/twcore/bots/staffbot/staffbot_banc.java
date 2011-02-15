@@ -383,13 +383,12 @@ public class staffbot_banc extends Module {
            
           
                writer.write(timestamp + name + " - " + message + "\n");
-               //writer.newLine();   
+               writer.flush();
 
            
         
         Tools.printLog("Banc Record: Print File Successful!");
-        reader.close();
-        writer.close();}
+       }
         
 
         
