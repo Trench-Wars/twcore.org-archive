@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.TimerTask;
 
@@ -24,9 +23,11 @@ import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
-import java.io.File;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.PrintWriter;
 
 /**
  * StaffBot BanC module
@@ -376,15 +377,24 @@ public class staffbot_banc extends Module {
            String timestamp = c.get( c.MONTH ) + "/" + c.get( c.DAY_OF_MONTH )
            + "/" + c.get( c.YEAR ) + " - ";
        
-           PrintWriter out = new PrintWriter( new FileWriter( "/home/bots/twcore/bin/logs/banc.log" ));
-       
-        out.println( timestamp + name + "-" + message );
+           BufferedReader reader = new BufferedReader(new FileReader( "/home/bots/twcore/bin/logs/banc.log" ));
+           BufferedWriter writer = new BufferedWriter(new FileWriter( "/home/bots/twcore/bin/logs/banc.log" ));
+
+           //... Loop as long as there are input lines.
+           String line = null;
+           while ((line=reader.readLine()) != null) {
+               writer.write( timestamp + name + " - " + message );
+               writer.newLine();   // Write system dependent end of line.
+
+           
+        
         Tools.printLog("Banc Record: Print File Successful!");
-        out.close();
+        reader.close();
+        writer.close();}}
         
 
         
-       }catch(Exception e){
+       catch(Exception e){
            m_botAction.sendChatMessage(2, "I cannot log this to the banc.log! + "+name+ "-" + message);
         Tools.printStackTrace( e );}
         
