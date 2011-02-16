@@ -106,6 +106,7 @@ public class MatchRound
     public static int BLUEOUT_OFF = 0;
     public static int BLUEOUT_ON = 1;
     boolean waitingOnBall = false;
+    private boolean power = false;
 
     // this is for lagchecking:
     String m_lagPlayerName;
@@ -954,10 +955,19 @@ public class MatchRound
     }
 
     private void command_power(String name, String[] parameters) {
-        m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
-        m_botAction.sendPrivateMessage(name, "Your staff power has been deactivated/activated.");
-        
+        if (power) {
+            power = false;
+            m_botAction.sendSmartPrivateMessage(name, "Your staff abilities have been DISABLED");
+            m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
+        } else {
+            power = true;
+            m_botAction.sendSmartPrivateMessage(name, name + ", Your staff abilities have been RE-ENABLED");
+            m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
+        }
     }
+        
+        
+    
 
     /**
      * Method command_mvp.
