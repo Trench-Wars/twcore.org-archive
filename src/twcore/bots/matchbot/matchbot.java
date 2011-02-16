@@ -62,6 +62,7 @@ public class matchbot extends SubspaceBot {
     boolean m_cancelGame = false;
     boolean m_off = false;
     boolean m_die = false;
+    boolean power = false;
     String m_locker;
     int m_lockState = 0;
     int m_typeNumber;
@@ -737,9 +738,15 @@ public class matchbot extends SubspaceBot {
     }
 
     private void command_power(String name, String[] parameters) {
-        m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
-        m_botAction.sendPrivateMessage(name, "Your staff power has been deactivated/activated.");
-        
+        if (power) {
+            power = false;
+            m_botAction.sendSmartPrivateMessage(name, name+", Your staff abilities have been DISABLED.");
+            m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
+        } else {
+            power = true;
+            m_botAction.sendSmartPrivateMessage(name, name + ", Your staff abilities have been RE-ENABLED.");
+            m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
+        }
     }
 
     public void command_go(String name, String[] parameters) {
