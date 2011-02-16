@@ -106,7 +106,7 @@ public class MatchRound
     public static int BLUEOUT_OFF = 0;
     public static int BLUEOUT_ON = 1;
     boolean waitingOnBall = false;
-    private boolean power = false;
+    private boolean power = true;
 
     // this is for lagchecking:
     String m_lagPlayerName;
