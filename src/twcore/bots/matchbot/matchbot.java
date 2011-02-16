@@ -62,7 +62,7 @@ public class matchbot extends SubspaceBot {
     boolean m_cancelGame = false;
     boolean m_off = false;
     boolean m_die = false;
-    boolean power = false;
+    boolean power = true;
     String m_locker;
     int m_lockState = 0;
     int m_typeNumber;
