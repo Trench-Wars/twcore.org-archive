@@ -479,7 +479,7 @@ public class matchbot extends SubspaceBot {
                 isRestrictedStaff = false;
             }
             
-            if (messageType == Message.PRIVATE_MESSAGE && m_opList.isModerator(name)) {
+            if (messageType == Message.PRIVATE_MESSAGE && m_opList.isER(name)) {
                 if (message.startsWith("!lock ")) {
                     m_lock = "twdmatchbot:manlock " + m_botAction.getBotName() + "," + name + "," + message;
                     m_botAction.sendUnfilteredPublicMessage("?find=" + TWDHUB);
@@ -597,10 +597,6 @@ public class matchbot extends SubspaceBot {
                     listGames(name);
                 if (command.equals("!go"))
                     command_go(name, parameters);
-                if (command.equals("!lock"))
-                    command_lock(name, parameters);
-                if (command.equals("!unlock"))
-                    command_unlock(name, parameters);
                 if ((command.equals("!die")) && (m_opList.isSmod(name))) {
                     if (m_game != null)
                         m_game.cancel();
