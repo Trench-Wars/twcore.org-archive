@@ -875,5 +875,10 @@ public class MatchGame
 		    m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_botAction.getArenaName());
 		}
 	}
+	
+	public void teamCancel()	{
+        String name = "teamCancel";
+		m_bot.player_unlock(name);
+	}
 }
 
