@@ -523,7 +523,7 @@ public class MatchGame
         if (!announced) {
             if (m_rules.getInt("staffzone") == 1) {
                 announced = true;
-                m_botAction.sendZoneMessage("TWDT Season 6: [" + m_rules.getString("name") + "] " + m_fcTeam1Name + " vs. " + m_fcTeam2Name + " Type ?go " + m_botAction.getArenaName());
+                m_botAction.sendZoneMessage("TWDT Season 6: [" + m_rules.getString("name") + "] " + m_fcTeam1Name + " vs. " + m_fcTeam2Name + " Type ?go " + m_botAction.getArenaName(),2);
             } else {
                 m_botAction.sendPrivateMessage(name, "Only games with the Int 1 on staffzone in Rules may zone");
             }
