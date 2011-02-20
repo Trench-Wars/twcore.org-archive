@@ -1477,7 +1477,7 @@ public class MatchRound
 			if(m_game != null)	{
 				m_botAction.setMessageLimit(matchbot.INACTIVE_MESSAGE_LIMIT);
                 m_game.cancel();
-                //m_game.teamCancel();
+                m_game.teamCancel();
                 m_game = null;
                 try {
                     Thread.sleep(100);
