@@ -108,8 +108,6 @@ public class MatchRound
     public static int BLUEOUT_ON = 1;
     boolean waitingOnBall = false;
     private boolean power = true;
-    private LinkedList<String> m_power;
-    private LinkedList<String> m_powerT;
 
     // this is for lagchecking:
     String m_lagPlayerName;
@@ -139,8 +137,7 @@ public class MatchRound
         m_fnRoundResult = 0;
         m_timeStarted = new java.util.Date();
         m_logger = m_game.m_logger;
-        m_power = new LinkedList<String>();
-        m_powerT = new LinkedList<String>();
+
 
         events = new JSONArray();
         
@@ -523,19 +520,7 @@ public class MatchRound
                             };
                         };
             */
-            if(msg.equals("Player Moderator Mode ON")) {
-                String name = m_power.removeFirst();
-                String namet = m_powerT.removeFirst();
-                if(power == false && namet != null) {
-                    //This will turn their staff power OFF
-                m_botAction.sendUnfilteredPrivateMessage(namet, "*moderator");
-            } else
-                if(msg.equals("Player Moderator Mode OFF")) {
-                if(power == true && name != null) {
-                    //This will turn their staff power ON
-                    m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");}
-                }
-            }
+            
                 
             if (msg.equals("Public Messages LOCKED"))
             {
@@ -852,13 +837,6 @@ public class MatchRound
             }
             help.add("!lag <player>                            - show <player>'s lag");
             help.add("!startinfo                               - shows who started this game");
-            help.add("!poweron                                 - Enables Staff power");
-            help.add("!poweroff                                - Disables Staff power");
-            
-            if(m_fnRoundState > 1){
-                help.add("!poweron                             - Enables Staff power");
-                help.add("!poweroff                            - Disables Staff power");
-            }
                 
             
             if (m_team1 != null)
@@ -896,10 +874,6 @@ public class MatchRound
         if (command.equals("!lag") && isStaff)
             command_checklag(name, parameters);
         
-        if(command.equals("!poweron") || (m_fnRoundState > 1) && isStaff)
-            command_power(name, parameters);
-        if(command.equals("!poweroff") || (m_fnRoundState > 1) && isStaff)
-            command_powerO(name, parameters);
             
         if ((command.equals("!lagstatus")) && isStaff)
             command_lagstatus(name, parameters);
@@ -984,19 +958,7 @@ public class MatchRound
         };
     }
 
-    private void command_powerO(String name, String[] parameters) {
-        power = false;
-        m_botAction.sendSmartPrivateMessage(name, name + ", Your staff abilities have been DISABLED");
-        m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
-        m_powerT.add(name.toLowerCase());
-        
-    }
 
-    private void command_power(String name, String[] parameters) {
-        power = true;
-         m_botAction.sendSmartPrivateMessage(name, "Your staff abilities have been ENABLED");
-            m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
-            m_power.add(name.toLowerCase());}
             
                 
            
@@ -1515,7 +1477,7 @@ public class MatchRound
 			if(m_game != null)	{
 				m_botAction.setMessageLimit(matchbot.INACTIVE_MESSAGE_LIMIT);
                 m_game.cancel();
-                m_game.teamCancel();
+                //m_game.teamCancel();
                 m_game = null;
                 try {
                     Thread.sleep(100);
