@@ -877,8 +877,7 @@ public class MatchGame
 	}
 	
 	public void teamCancel()	{
-        String name = "teamCancel";
-		m_bot.player_unlock(name);
+		m_bot.player_unlock();
 	}
 }
 

@@ -808,13 +808,13 @@ public class matchbot extends SubspaceBot {
         m_botAction.changeArena("twd");
     }
     
-    public void player_unlock(String name)	{
+    public void player_unlock()	{
     	if (m_game != null) {
             m_botAction.ipcTransmit(IPC, "twdmatchbot:unlockedPlayerError " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
             return;
         }
         m_isLocked = false;
-        m_botAction.ipcTransmit(IPC, "twdmatchbot:unlockedPlayer " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
+        m_botAction.ipcTransmit(IPC, "twdmatchbot:unlocked " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
         m_botAction.changeArena("twd");
     }
 
