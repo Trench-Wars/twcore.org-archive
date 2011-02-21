@@ -1474,16 +1474,7 @@ public class MatchRound
 	public void checkCancel(String team, String name)	{
 		if ((m_team1.requestsCancel()) && (m_team2.requestsCancel()))	{
 			m_logger.sendArenaMessage("Both teams have agreed to cancel the match. This game will be voided.");
-			if(m_game != null)	{
-				m_botAction.setMessageLimit(matchbot.INACTIVE_MESSAGE_LIMIT);
-                m_game.cancel();
-                m_game.teamCancel();
-                m_game = null;
-                try {
-                    Thread.sleep(100);
-                } catch (Exception e) {
-                }
-			}
+			m_botAction.ipcTransmit("MatchBot", "!teamCancel");
 		}
 		else {
 			if (team.toLowerCase() == m_team1.getTeamName().toLowerCase())	{

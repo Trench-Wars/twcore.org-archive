@@ -256,7 +256,11 @@ public class matchbot extends SubspaceBot {
                     m_botAction.ipcTransmit(IPC, "myArena:"
                             + m_botAction.getArenaName());
                 }
-
+                
+                if (s.equals("!playerCancel"))	{
+                	playerKillGame();
+                }
+                
                 if ((s.startsWith("myArena:")) && (m_isLocked)
                         && (m_lockState == CHECKING_ARENAS)) {
                     if (m_arenaList == null) {
@@ -729,6 +733,37 @@ public class matchbot extends SubspaceBot {
         if (m_game != null)
             m_game.parseCommand(name, command, parameters, isStaff);
     }
+    
+    public void playerKillGame()	{
+	    if (m_game != null) {
+	    	m_botAction.sendArenaMessage("Both teams have agreed to cancel. This game will be voided.");
+	        m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
+	        m_game.cancel();
+	        m_game = null;
+	        try {
+	            Thread.sleep(100);
+	        } catch (Exception e) {
+	        }
+	        if (m_die && m_off) {
+	        	m_off = false;
+	            m_die = false;
+	            m_botAction.ipcTransmit(IPC, "twdmatchbot:shuttingdown " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
+	            TimerTask d = new TimerTask() {
+	            @Override
+	            public void run() {
+	            	m_botAction.die();
+	                }
+	            };
+	            m_botAction.scheduleTask(d, 1500);
+	            }
+	            if (m_off) {
+	                m_off = false;
+	                String[] parameters = null;
+					String name = null;
+					command_unlock(name , parameters);
+	            }
+	    }
+    }
 
 
     public void command_go(String name, String[] parameters) {
@@ -799,22 +834,16 @@ public class matchbot extends SubspaceBot {
 
     public void command_unlock(String name, String[] parameters) {
         if (m_game != null) {
-            m_botAction.sendPrivateMessage(name, "Can't unlock, there's a game going on");
-            return;
+        	if(name != null) {
+        		m_botAction.sendPrivateMessage(name, "Can't unlock, there's a game going on");
+        	}
+        	return;
         }
         m_isLocked = false;
         m_botAction.ipcTransmit(IPC, "twdmatchbot:unlocked " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
-        m_botAction.sendPrivateMessage(name, "Unlocked, going to ?go twd");
-        m_botAction.changeArena("twd");
-    }
-    
-    public void player_unlock()	{
-    	if (m_game != null) {
-            m_botAction.ipcTransmit(IPC, "twdmatchbot:unlockedPlayerError " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
-            return;
-        }
-        m_isLocked = false;
-        m_botAction.ipcTransmit(IPC, "twdmatchbot:unlocked " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
+        if(name != null){
+        	m_botAction.sendPrivateMessage(name, "Unlocked, going to ?go twd");
+        }        
         m_botAction.changeArena("twd");
     }
 
@@ -1727,5 +1756,7 @@ class GameRequest {
     public int getRequesterID() {
         return m_requesterID;
     }
+    
+
 
 }
