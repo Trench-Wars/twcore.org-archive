@@ -1246,7 +1246,7 @@ public class MatchTeam
     	if(!m_teamCancel)	{
     		m_teamCancel = true;
     		m_logger.sendPrivateMessage(name, "Your request to cancel the current game has been sent.");
-    		//m_round.checkCancel(m_fcTeamName);
+    		m_round.checkCancel(m_fcTeamName,name);
     	}
     	else	{
     		m_teamCancel = false;
