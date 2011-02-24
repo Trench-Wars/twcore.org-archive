@@ -20,6 +20,7 @@ public class pubhubspy extends PubBotModule
   private HashSet<String> watchList;
   private TreeMap<String, ArrayList<String>> pWatchList;
   private HashMap<String, IgnoreTask> ignoreList;
+  private HashSet<String> away;
   private String botName;
 
   /**
@@ -32,6 +33,7 @@ public class pubhubspy extends PubBotModule
     watchList = new HashSet<String>();
     pWatchList = new TreeMap<String, ArrayList<String>>();
     ignoreList = new HashMap<String, IgnoreTask>();
+    away = new HashSet<String>();
     botName = m_botAction.getBotName();
   }
   
@@ -48,6 +50,7 @@ public class pubhubspy extends PubBotModule
       watchList.clear();
       pWatchList.clear();
       ignoreList.clear();
+      away.clear();
   }
 
   public void handleEvent(Message event)
@@ -56,7 +59,7 @@ public class pubhubspy extends PubBotModule
     String message = event.getMessage();
     int messageType = event.getMessageType();
 
-    if(messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE){
+    if(messageType == Message.CHAT_MESSAGE){
     	if(!opList.isSmod(sender))return;
     	if(message.startsWith("!pwatch ")) {
     		String playerName = message.substring(8).toLowerCase();
@@ -102,10 +105,26 @@ public class pubhubspy extends PubBotModule
             		if(s.equalsIgnoreCase(sender))
             			m_botAction.sendSmartPrivateMessage(sender, n);
             	}
+            }}
+            else if(message.startsWith("!stop ")) {
+                String playerName = message.substring(6).toLowerCase();
+
+                if(away.contains(playerName)){
+                       
+                        away.remove(playerName);
+                        m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("saway " + playerName));
+                        m_botAction.sendChatMessage("I have stopped ignoring "+playerName+" from entering Trench Wars.");
+                    } else {
+                       
+                        away.add(playerName);
+                        m_botAction.ipcTransmit(getIPCChannel(), new IPCMessage("away " + playerName));
+                        m_botAction.sendChatMessage("I will be ignoring "+playerName+" when entering Trench Wars.");
+                    }
+                }
             }
-        }
+        
     	
-    }
+    
     
     if(messageType == Message.CHAT_MESSAGE) {
         
