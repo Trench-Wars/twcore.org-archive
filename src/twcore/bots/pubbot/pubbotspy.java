@@ -22,6 +22,7 @@ public class pubbotspy extends PubBotModule
   private HashSet<String> watchList;
   private TreeMap<String, ArrayList<String>> pWatchList;
   private HashSet<String> ignoreList;
+  private HashSet<String> away;
   private String currentArena;
   private String botName;
   private boolean spying;
@@ -34,6 +35,7 @@ public class pubbotspy extends PubBotModule
     
     spying = false;
     ignoreList = new HashSet<String>();
+    away = new HashSet<String>();
     currentArena = m_botAction.getArenaName();
     watchList = new HashSet<String>();
     pWatchList = new TreeMap<String, ArrayList<String>>();
@@ -54,7 +56,7 @@ public class pubbotspy extends PubBotModule
     String message = event.getMessage();
     String messageTypeString = getMessageTypeString(messageType);
 
-    if(sender != null && messageType != Message.CHAT_MESSAGE && messageType != Message.PRIVATE_MESSAGE &&
+    if(sender != null && messageType != Message.PRIVATE_MESSAGE &&
                          messageType != Message.REMOTE_PRIVATE_MESSAGE)
     {
       if(racismCheck.isRacist(message))
@@ -188,6 +190,10 @@ public class pubbotspy extends PubBotModule
         gotUnignoreCmd(message.substring(9));
       if(command.startsWith("pwatch "))
     	gotPWatchCmd(message.substring(7));
+      if(command.startsWith("away "))
+         gotAway(message.substring(5));
+      if(command.startsWith("saway "))
+          gotUnAway(message.substring(6));
     	  
     }
     catch(Exception e)
@@ -196,7 +202,17 @@ public class pubbotspy extends PubBotModule
     }
   }
 
-  /**
+  private void gotUnAway(String substring) {
+    away.remove(substring.toLowerCase());
+    
+}
+
+private void gotAway(String substring) {
+    away.add(substring.toLowerCase());
+    
+}
+
+/**
    * This method handles an InterProcessEvent.
    *
    * @param event is the InterProcessEvent to handle.
@@ -236,7 +252,7 @@ public class pubbotspy extends PubBotModule
       String nameLC = name.toLowerCase().trim();
 
       // Check for bot / staff impersonation
-      if(m_botAction.getOperatorList().isBot(name) == false &&
+      if(m_botAction.getOperatorList().isBot(name) == false && !away.contains(name.toLowerCase()) &&
               ( nameLC.endsWith("<er>") || nameLC.endsWith("<zh>") || nameLC.startsWith("matchbot") || nameLC.startsWith("tw-")) ) {
           m_botAction.sendUnfilteredPublicMessage("?cheater Possible bot/staff impersonator entered: " + name);
       }
