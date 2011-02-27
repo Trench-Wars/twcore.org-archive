@@ -257,8 +257,10 @@ public class matchbot extends SubspaceBot {
                             + m_botAction.getArenaName());
                 }
                 
-                if (s.equals("!playerCancel"))	{
-                	playerKillGame();
+                if (s.startsWith("!playerCancel"))	{
+                	String cancelArena;
+                	cancelArena = s.substring(15).toLowerCase();
+                	playerKillGame(cancelArena);
                 }
                 
                 if ((s.startsWith("myArena:")) && (m_isLocked)
@@ -734,8 +736,8 @@ public class matchbot extends SubspaceBot {
             m_game.parseCommand(name, command, parameters, isStaff);
     }
     
-    public void playerKillGame()	{
-	    if (m_game != null) {
+    public void playerKillGame(String cancelArena)	{
+	    if (m_game != null && cancelArena == m_botAction.getArenaName().toLowerCase()) {
 	    	m_botAction.sendArenaMessage("Both teams have agreed to cancel. This game will be voided.");
 	        m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
 	        m_game.cancel();
