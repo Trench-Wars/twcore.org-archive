@@ -1242,16 +1242,15 @@ public class MatchTeam
         }
     }
     
-    public void command_cancel(String name, String[] parameters)	{
-    	if(!m_teamCancel)	{
-    		m_teamCancel = true;
-    		m_logger.sendPrivateMessage(name, "Your request to cancel the current game has been sent.");
-    		m_round.checkCancel(m_fcTeamName,name);
-    	}
-    	else	{
-    		m_teamCancel = false;
-    		m_logger.sendPrivateMessage(name, "Your request to cancel the current game has been removed.");
-    	}
+    public void command_cancel(String name, String[] parameters) {
+        if (!m_teamCancel) {
+            m_teamCancel = true;
+            m_logger.sendPrivateMessage(name, "Your request to cancel the current game has been sent.");
+            m_round.checkCancel(m_fcTeamName, name);
+        } else {
+            m_teamCancel = false;
+            m_logger.sendPrivateMessage(name, "Your request to cancel the current game has been removed.");
+        }
     }
 
     // puts a player back in the game, IF ALLOWED TO
