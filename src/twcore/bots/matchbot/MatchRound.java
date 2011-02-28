@@ -1471,20 +1471,18 @@ public class MatchRound
 		}
 	};
 	
-	public void checkCancel(String team, String name)	{
-		if ((m_team1.requestsCancel()) && (m_team2.requestsCancel()))	{
-			m_logger.sendArenaMessage("Both teams have agreed to cancel the match. This game will be voided.");
-			m_botAction.ipcTransmit("MatchBot", "!playerCancel "+m_botAction.getArenaName());
-		}
-		else {
-			if (team.toLowerCase() == m_team1.getTeamName().toLowerCase())	{
-			m_botAction.sendSquadMessage(m_team2.getTeamName(),m_team1.getTeamName()+" has requested to cancel the current game.");
-			}
-			else	{
-				m_botAction.sendSquadMessage(m_team1.getTeamName(),m_team2.getTeamName()+" has requested to cancel the current game.");
-			}
-		}
-	}
+    public void checkCancel(String team, String name) {
+        team = team.toLowerCase();
+        if ((m_team1.requestsCancel()) && (m_team2.requestsCancel())) {
+            m_game.m_bot.playerKillGame();
+        } else {
+            if (team.equals(m_team1.getTeamName().toLowerCase())) {
+                m_botAction.sendSquadMessage(m_team2.getTeamName(), m_team1.getTeamName() + " has requested to cancel the current game.");
+            } else {
+                m_botAction.sendSquadMessage(m_team1.getTeamName(), m_team2.getTeamName() + " has requested to cancel the current game.");
+            }
+        }
+    }
 
     // gets called by m_startGame TimerTask.
     public void startGame()
