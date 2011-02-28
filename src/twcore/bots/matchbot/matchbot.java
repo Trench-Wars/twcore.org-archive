@@ -257,12 +257,6 @@ public class matchbot extends SubspaceBot {
                             + m_botAction.getArenaName());
                 }
                 
-                if (s.startsWith("!playerCancel"))	{
-                	String cancelArena;
-                	cancelArena = s.substring(15).toLowerCase();
-                	playerKillGame(cancelArena);
-                }
-                
                 if ((s.startsWith("myArena:")) && (m_isLocked)
                         && (m_lockState == CHECKING_ARENAS)) {
                     if (m_arenaList == null) {
@@ -339,7 +333,7 @@ public class matchbot extends SubspaceBot {
         }
     }
     
-    private boolean isTWD() {
+    public boolean isTWD() {
         String arena = m_botAction.getArenaName().toLowerCase();
         
         if (((arena.length() == 4) || (arena.length() == 5)) && ((arena.startsWith("twbd")) || (arena.startsWith("twdd")) || (arena.startsWith("twjd")) || (arena.startsWith("twsd")) || (arena.startsWith("twfd"))))
@@ -736,37 +730,36 @@ public class matchbot extends SubspaceBot {
             m_game.parseCommand(name, command, parameters, isStaff);
     }
     
-    public void playerKillGame(String cancelArena)	{
-	    if (m_game != null && cancelArena == m_botAction.getArenaName().toLowerCase()) {
-	    	m_botAction.sendArenaMessage("Both teams have agreed to cancel. This game will be voided.");
-	        m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
-	        m_game.cancel();
-	        m_game = null;
-	        try {
-	            Thread.sleep(100);
-	        } catch (Exception e) {
-	        }
-	        if (m_die && m_off) {
-	        	m_off = false;
-	            m_die = false;
-	            m_botAction.ipcTransmit(IPC, "twdmatchbot:shuttingdown " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
-	            TimerTask d = new TimerTask() {
-	            @Override
-	            public void run() {
-	            	m_botAction.die();
-	                }
-	            };
-	            m_botAction.scheduleTask(d, 1500);
-	            }
-	            if (m_off) {
-	                m_off = false;
-	                String[] parameters = null;
-					String name = null;
-					command_unlock(name , parameters);
-	            }
-	    }
+    public void playerKillGame()	{
+        if (m_game != null) {
+            m_botAction.sendArenaMessage("Both teams have agreed to cancel. This game will be voided.");
+            m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
+            m_game.cancel();
+            m_game = null;
+            try {
+                Thread.sleep(100);
+            } catch (Exception e) {
+            }
+            if (m_die && m_off) {
+                m_off = false;
+                m_die = false;
+                m_botAction.ipcTransmit(IPC, "twdmatchbot:shuttingdown " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
+                TimerTask d = new TimerTask() {
+                    @Override
+                    public void run() {
+                        m_botAction.die();
+                    }
+                };
+                m_botAction.scheduleTask(d, 1500);
+            }
+            if (m_off) {
+                m_off = false;
+                String[] parameters = null;
+                String name = null;
+                command_unlock(name, parameters);
+            }
+        }
     }
-
 
     public void command_go(String name, String[] parameters) {
         if (m_game == null) {
