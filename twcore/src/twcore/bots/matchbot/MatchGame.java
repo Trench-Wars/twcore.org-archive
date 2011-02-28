@@ -125,9 +125,11 @@ public class MatchGame
 		};
 		m_botAction.scheduleTask(startup, 1000);
 
-        //Sends match info to TWDBot
-        m_botAction.ipcSubscribe("MatchBot");
-        m_botAction.ipcTransmit("MatchBot", "twdinfo:newgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_matchTypeName + "," + m_fcArena + "," + m_botAction.getBotName());
+        //Sends match info to TWDBot if TWD
+		if (m_bot.isTWD()) {
+		    m_botAction.ipcSubscribe("MatchBot");
+		    m_botAction.ipcTransmit("MatchBot", "twdinfo:newgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_matchTypeName + "," + m_fcArena + "," + m_botAction.getBotName());
+		}
 	}
 
 	public void zone() {
