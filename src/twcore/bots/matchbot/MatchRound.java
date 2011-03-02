@@ -758,7 +758,7 @@ public class MatchRound
                                 p.setHalfBorderWarning();
                                 m_logger.sendPrivateMessage(
                                     playerName,
-                                    "Go to base! You have " + outofbordertime / 2000 + " seconds before you'll get removed from the game",
+                                    "Go to base! You have " + outofbordertime / 2000 + " seconds before you'll get a +1 death added!",
                                     26);
                             }
                             else if ((sysTime - pSysTime) > outofbordertime)
