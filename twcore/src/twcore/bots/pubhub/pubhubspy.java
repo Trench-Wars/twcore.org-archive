@@ -122,16 +122,7 @@ public class pubhubspy extends PubBotModule
                     }
                 }
             }
-    else if(message.equalsIgnoreCase("!list")){
-        if(away.isEmpty())
-            m_botAction.sendChatMessage("Nobody on my ignore list, I want to add you tho");
-        else {
-        m_botAction.sendChatMessage("I'm ignoring:");
-        for(String ignore:away) {
-            m_botAction.sendChatMessage(" "+ignore);
-        }
-    }
-    }
+
         
     
         
@@ -151,7 +142,7 @@ public class pubhubspy extends PubBotModule
                     "!pwatch <player>               - Relays any chat messages from <player> to you privately",
                     "!pwatchlist                    - Shows players being !pwatch'ed",
                     "!impersonate                   - Stops the impersonation message on player",
-                    "!impersonatelist (!il)         - Shows people being ignored on ^"
+                    "!list                          - Shows people being ignored on ^"
             };
             m_botAction.smartPrivateMessageSpam(sender, help);
         }
@@ -184,6 +175,17 @@ public class pubhubspy extends PubBotModule
             }
         }
         
+        else if(message.equalsIgnoreCase("!list")){
+            if(away.isEmpty())
+                m_botAction.sendChatMessage("Nobody on my ignore list, I want to add you tho");
+            else {
+            m_botAction.sendChatMessage("I'm ignoring:");
+            for(String ignore:away) {
+                m_botAction.sendChatMessage(" "+ignore);
+            }
+        }
+        
+        
         // !ignore
         if(message.startsWith("!ignore ")) {
             String playerName = message.substring(8).toLowerCase();
@@ -215,6 +217,7 @@ public class pubhubspy extends PubBotModule
             }
         }
     }
+  }
   }
 
   /**
