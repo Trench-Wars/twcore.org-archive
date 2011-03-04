@@ -106,8 +106,8 @@ public class pubhubspy extends PubBotModule
             			m_botAction.sendSmartPrivateMessage(sender, n);
             	}
             }}
-            else if(message.startsWith("!stop ")) {
-                String playerName = message.substring(6).toLowerCase();
+            else if(message.startsWith("!impersonate ")) {
+                String playerName = message.substring(13).toLowerCase();
 
                 if(away.contains(playerName)){
                        
@@ -122,6 +122,18 @@ public class pubhubspy extends PubBotModule
                     }
                 }
             }
+    else if(message.equalsIgnoreCase("!impersonatelist") || message.equalsIgnoreCase("!il")){
+        if(away.isEmpty())
+            m_botAction.sendChatMessage("Nobody on my ignore list, I want to add you tho");
+        
+        m_botAction.sendChatMessage("I'm ignoring:");
+        for(String ignore:away) {
+            m_botAction.sendChatMessage(" "+ignore);
+        }
+    }
+        
+        
+    
         
     	
     
@@ -137,7 +149,9 @@ public class pubhubspy extends PubBotModule
                     "!ignore <player>               - Changes ?cheater notification of <player> on racist words to a chat notification only",
                     "!ignorelist                    - Shows players being !ignore'ed",
                     "!pwatch <player>               - Relays any chat messages from <player> to you privately",
-                    "!pwatchlist                    - Shows players being !pwatch'ed"
+                    "!pwatchlist                    - Shows players being !pwatch'ed",
+                    "!impersonate                   - Stops the impersonation message on player",
+                    "!impersonatelist (!il)         - Shows people being ignored on ^"
             };
             m_botAction.smartPrivateMessageSpam(sender, help);
         }
