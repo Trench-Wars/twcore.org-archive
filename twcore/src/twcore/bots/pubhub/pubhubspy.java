@@ -122,16 +122,16 @@ public class pubhubspy extends PubBotModule
                     }
                 }
             }
-    else if(message.equalsIgnoreCase("!impersonatelist") || message.equalsIgnoreCase("!il")){
+    else if(message.equalsIgnoreCase("!list")){
         if(away.isEmpty())
             m_botAction.sendChatMessage("Nobody on my ignore list, I want to add you tho");
-        
+        else {
         m_botAction.sendChatMessage("I'm ignoring:");
         for(String ignore:away) {
             m_botAction.sendChatMessage(" "+ignore);
         }
     }
-        
+    }
         
     
         
