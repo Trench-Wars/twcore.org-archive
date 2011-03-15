@@ -78,6 +78,8 @@ public class twdopracism extends Module
               return "Serv. Error";
             case Message.ALERT_MESSAGE:
               return "Alert";
+            case Message.CHAT_MESSAGE:
+            return "Chat Msg. (TWD)";
           }
           return "Other";
         }
