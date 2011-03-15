@@ -82,11 +82,13 @@ public class twdop extends SubspaceBot {
         String twdop = m_botSettings.getString("TWDOp Chat");
         String staff = m_botAction.getGeneralSettings().getString( "Staff Chat" );
         //String dev = m_botAction.getGeneralSettings().getString( "Chat Name" );
-        m_botAction.sendUnfilteredPublicMessage("?chat="+twdop+","+staff);
+        String twd = "twd";
+        m_botAction.sendUnfilteredPublicMessage("?chat="+twdop+","+staff+","+twd);
 
         // load modules
         moduleHandler.loadModule("alias");
         moduleHandler.loadModule("stats");
+        moduleHandler.loadModule("racism");
         updateTWDOps();
 
         
