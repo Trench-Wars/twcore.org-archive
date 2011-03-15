@@ -46,7 +46,7 @@ public class twdopracism extends Module
       String messageTypeString = getMessageTypeString(messageType);
 
       if(sender != null && messageType != Message.PRIVATE_MESSAGE &&
-                           messageType != Message.CHAT_MESSAGE)
+                           messageType != Message.REMOTE_PRIVATE_MESSAGE)
       {
         if(racismCheck.isRacist(message))
         {
