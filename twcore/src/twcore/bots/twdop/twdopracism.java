@@ -49,6 +49,7 @@ public class twdopracism extends Module
                            messageType != Message.REMOTE_PRIVATE_MESSAGE)
       {
         if(racismCheck.isRacist(message))
+            if(event.getChatNumber() == 3)
         {
 
             m_botAction.sendUnfilteredPublicMessage("?cheater " + messageTypeString + ": (" + sender + "): " + message);}}
