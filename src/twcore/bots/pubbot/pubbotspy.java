@@ -57,7 +57,7 @@ public class pubbotspy extends PubBotModule
     String messageTypeString = getMessageTypeString(messageType);
 
     if(sender != null && messageType != Message.PRIVATE_MESSAGE &&
-                         messageType != Message.REMOTE_PRIVATE_MESSAGE)
+                         messageType != Message.REMOTE_PRIVATE_MESSAGE && messageType != Message.CHAT_MESSAGE)
     {
       if(racismCheck.isRacist(message))
       {
