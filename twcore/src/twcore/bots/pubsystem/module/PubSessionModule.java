@@ -304,12 +304,12 @@ public class PubSessionModule extends AbstractModule {
 	    
 	    public void addKill( int wship, int lship ) {
 	        if( tracking && wship > 0 && wship < 9 && lship > 0 && lship < 9 )
-	            kills[ wship-- ][ lship-- ]++;
+	            kills[ --wship ][ --lship ]++;
 	    }
 
         public void addDeath( int wship, int lship ) {
             if( tracking && wship > 0 && wship < 9 && lship > 0 && lship < 9 )
-                killedby[ wship-- ][ lship-- ]++;
+                killedby[ --wship ][ --lship ]++;
         }
         
         public boolean setTracking( boolean t ) {
@@ -362,7 +362,7 @@ public class PubSessionModule extends AbstractModule {
 
             int amt = 0;
             for( int i=0; i<8; i++ )
-                amt += kills[ship--][i];
+                amt += kills[--ship][i];
             return amt;
         }
         
@@ -373,7 +373,7 @@ public class PubSessionModule extends AbstractModule {
 
             int amt = 0;
             for( int i=0; i<8; i++ )
-                amt += killedby[i][ship--];
+                amt += killedby[i][--ship];
             return amt;
         }
         
@@ -384,7 +384,7 @@ public class PubSessionModule extends AbstractModule {
 
             int amt = 0;
             for( int i=0; i<8; i++ )
-                amt += kills[ship--][i];
+                amt += kills[--ship][i];
             return amt;
         }
         
@@ -396,7 +396,7 @@ public class PubSessionModule extends AbstractModule {
 
             int amt = 0;
             for( int i=0; i<8; i++ )
-                amt += killedby[i][ship--];
+                amt += killedby[i][--ship];
             return amt;
         }
         
