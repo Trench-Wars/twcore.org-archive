@@ -21,7 +21,7 @@ public class PubSessionModule extends AbstractModule {
 	//private boolean moneyEnabled = false;
 	
 	public PubSessionModule(BotAction botAction, PubContext context) {
-		super(botAction, context, "Reward");
+		super(botAction, context, "Session");
 		
 		reloadConfig();
 	}
