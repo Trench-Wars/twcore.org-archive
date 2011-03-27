@@ -104,7 +104,7 @@ public class PubSessionModule extends AbstractModule {
         int k2, d2;
         String s, n;
         
-        m_botAction.sendPrivateMessage(  requester, "SESSION RECORD of: " + player + "    K: " + k + "  D: " + d + "  R: " + getRatio(k,d) );
+        m_botAction.sendPrivateMessage(  requester, "SESSION RECORD of: " + player + "    Kills: " + k + "  Deaths: " + d + "  Ratio: " + getRatio(k,d) );
         
         for( int i=1; i<9; i++ ) {
             n =  Tools.shipNameSlang( i ).toUpperCase();
@@ -113,12 +113,12 @@ public class PubSessionModule extends AbstractModule {
             k2 = p.getTotalKillsOfShip( i );
             d2 = p.getTotalDeathsToShip( i );
             // |  AS SHARK ...   k[10] d[30] r[2.30:1]            VS WB ...   k/d 34:20  r 2.30:1  |
-            s = Tools.formatString( "|  AS " + n + " ...   ", 18 );
-            s += Tools.formatString( "k/d " + k + ":" + d + "  ", 15 );
-            s += Tools.formatString( "r " + getRatio(k,d) + "   ", 10 );
-            s += Tools.formatString( "|  VS " + n + " ...   ", 18 );
-            s += Tools.formatString( "k/d " + k2 + ":" + d2 + "  ", 15 );
-            s += Tools.formatString( "r " + getRatio(k2,d2), 14 ) + "|";
+            s = Tools.formatString( "|  AS " + n + " ...   ", 16 );
+            s += Tools.formatString( "k/d " + k + ":" + d + "  ", 13 );
+            s += Tools.formatString( "r " + getRatio(k,d) + "   ", 9 );
+            s += Tools.formatString( "|  VS " + n + " ...   ", 16 );
+            s += Tools.formatString( "k/d " + k2 + ":" + d2 + "  ", 13 );
+            s += "r " + getRatio(k2,d2);
 
             m_botAction.sendPrivateMessage(  requester, s );            
         }
@@ -158,11 +158,11 @@ public class PubSessionModule extends AbstractModule {
 
             // |  AS SHARK ...   k[10] d[30] r[2.30:1]            VS WB ...   k/d 34:20  r 2.30:1  |
             
-            s = Tools.formatString( "|  " + n + "  |", 18 );
-            s += Tools.formatString( "k/d " + k + ":" + d + "  ", 15 );
-            s += Tools.formatString( "r " + getRatio(k,d) + "   ", 10 );
-            s += Tools.formatString( "|  VS " + n + " ...   ", 18 );
-            s += Tools.formatString( "k/d " + k2 + ":" + d2 + "  ", 15 );
+            s = Tools.formatString( "|  " + n + "  |", 16 );
+            s += Tools.formatString( "k/d " + k + ":" + d + "  ", 13 );
+            s += Tools.formatString( "r " + getRatio(k,d) + "   ", 9 );
+            s += Tools.formatString( "|  VS " + n + " ...   ", 16 );
+            s += Tools.formatString( "k/d " + k2 + ":" + d2 + "  ", 13 );
             s += "r " + getRatio(k2,d2);
 
             m_botAction.sendPrivateMessage( sender, s );            
@@ -204,8 +204,6 @@ public class PubSessionModule extends AbstractModule {
 
         if( command.equalsIgnoreCase("!session") ) {
             doSessionCmd( sender, sender );
-        } else if( command.startsWith("!session ") ) {
-            doSessionCmd( sender, command.substring(10) );
         } else if( command.startsWith( "!session ship " ) ) {
             try {
                 Integer ship = Integer.getInteger( command.substring(15) );
@@ -215,19 +213,19 @@ public class PubSessionModule extends AbstractModule {
                 }
                 doSessionShipCmd( sender, ship );
             } catch (Exception e) {
-                m_botAction.sendPrivateMessage( sender, "Usage:  !session ship [shipnum]  (e.g.  !session as 3  shows how well you've done as spider and vs spider in EVERY ship.)" );
+                m_botAction.sendPrivateMessage( sender, "Usage:  !session ship [shipnum]  (e.g.  !session ship 3  shows how well you've done as spider and vs spider in EVERY ship.)" );
                 return;
             }
-        }
-
-        if( command.equalsIgnoreCase("!session on") )
+        } else if( command.equalsIgnoreCase("!session on") ) {
             doSessionOnOffCmd( sender, true );
-        
-        if( command.equalsIgnoreCase("!session off") )
+	    } else if( command.equalsIgnoreCase("!session off") ) {
             doSessionOnOffCmd( sender, false );
-        
-        if( command.equalsIgnoreCase("!session reset") )
+        } else if( command.equalsIgnoreCase("!session reset") ) {
             doSessionResetCmd(sender);
+        } else if( command.startsWith("!session ") ) {
+	        doSessionCmd( command.substring(10), sender );
+	    }
+
 	}
 
 	@Override
