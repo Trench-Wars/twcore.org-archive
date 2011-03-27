@@ -65,6 +65,7 @@ public class PubContext {
 		getPubHunt();
 		getPubStreak();
 		getPubKillSession();
+		getPubSession();
 		getPubUtil();
 		
 		
@@ -189,7 +190,7 @@ public class PubContext {
     public PubSessionModule getPubSession() {
         if (pubSession == null) {
             pubSession = new PubSessionModule(m_botAction, this);
-            modules.put("challenge",pubSession);
+            modules.put("session",pubSession);
         }
         return pubSession;
     }
