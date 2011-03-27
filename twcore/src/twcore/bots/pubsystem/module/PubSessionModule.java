@@ -206,7 +206,7 @@ public class PubSessionModule extends AbstractModule {
             doSessionCmd( sender, sender );
         } else if( command.startsWith( "!session ship " ) ) {
             try {
-                Integer ship = Integer.getInteger( command.substring(15) );
+                Integer ship = Integer.getInteger( command.substring(14) );
                 if( ship < 1 || ship > 8 ) {
                     m_botAction.sendPrivateMessage( sender, "Ship number must be between 1 and 8." );
                     return;
@@ -223,7 +223,7 @@ public class PubSessionModule extends AbstractModule {
         } else if( command.equalsIgnoreCase("!session reset") ) {
             doSessionResetCmd(sender);
         } else if( command.startsWith("!session ") ) {
-	        doSessionCmd( command.substring(10), sender );
+	        doSessionCmd( command.substring(9), sender );
 	    }
 
 	}
