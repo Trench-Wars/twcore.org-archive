@@ -62,15 +62,15 @@ public class PubSessionModule extends AbstractModule {
         // TODO: TK
         if( killer.getFrequency() == killed.getFrequency() ) {
            // Count em up and display
-        }
-		
-        SessionPlayer sKiller = ps.get( killer.getPlayerName() );
-        if( sKiller != null )
-            sKiller.addKill( killer.getShipType(), killed.getShipType() );
+        } else {
+            SessionPlayer sKiller = ps.get( killer.getPlayerName() );
+            if( sKiller != null )
+                sKiller.addKill( killer.getShipType(), killed.getShipType() );
         
-        SessionPlayer sKilled = ps.get( killed.getPlayerName() );
-        if( sKilled != null )
-            sKilled.addDeath( killer.getShipType(), killed.getShipType() );
+            SessionPlayer sKilled = ps.get( killed.getPlayerName() );
+            if( sKilled != null )
+                sKilled.addDeath( killer.getShipType(), killed.getShipType() );
+        }
   
     }
     
@@ -204,11 +204,11 @@ public class PubSessionModule extends AbstractModule {
 
         if( command.equalsIgnoreCase("!session") ) {
             doSessionCmd( sender, sender );
-        }
-        
-        if( command.startsWith( "!session ship " ) ) {
+        } else if( command.startsWith("!session ") ) {
+            doSessionCmd( sender, command.substring(10) );
+        } else if( command.startsWith( "!session ship " ) ) {
             try {
-                Integer ship = Integer.getInteger( command.substring(12) );
+                Integer ship = Integer.getInteger( command.substring(15) );
                 if( ship < 1 || ship > 8 ) {
                     m_botAction.sendPrivateMessage( sender, "Ship number must be between 1 and 8." );
                     return;
@@ -334,7 +334,7 @@ public class PubSessionModule extends AbstractModule {
         }
         
         public int getDeathsRaw( int x, int y ) {
-            return kills[x][y];
+            return killedby[x][y];
         }
         
         // # kills
@@ -387,7 +387,7 @@ public class PubSessionModule extends AbstractModule {
             int amt = 0;
             ship--;
             for( int i=0; i<8; i++ )
-                amt += kills[ship][i];
+                amt += kills[i][ship];
             return amt;
         }
         
@@ -400,7 +400,7 @@ public class PubSessionModule extends AbstractModule {
             int amt = 0;
             ship--;
             for( int i=0; i<8; i++ )
-                amt += killedby[i][ship];
+                amt += killedby[ship][i];
             return amt;
         }
         
