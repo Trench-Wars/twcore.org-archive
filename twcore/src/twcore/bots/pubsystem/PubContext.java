@@ -14,6 +14,7 @@ import twcore.bots.pubsystem.module.PubMoneySystemModule;
 import twcore.bots.pubsystem.module.PubPlayerManagerModule;
 import twcore.bots.pubsystem.module.PubStreakModule;
 import twcore.bots.pubsystem.module.PubUtilModule;
+import twcore.bots.pubsystem.module.PubSessionModule;
 import twcore.core.BotAction;
 import twcore.core.events.SQLResultEvent;
 import twcore.core.events.SubspaceEvent;
@@ -39,6 +40,7 @@ public class PubContext {
 	private PubStreakModule pubStreak;
 	private PubUtilModule pubUtil;
 	private PubHuntModule pubHunt;
+    private PubSessionModule pubSession;
 	
 	// Game module
 	private GameFlagTimeModule gameFlagTime;
@@ -113,6 +115,12 @@ public class PubContext {
 	public Collection<AbstractModule> getModules() {
 		return modules.values();
 	}
+	
+	
+	// TODO: The code below must be modularized.  We need to read
+	//        from CFG modules to be loaded, rather than hard-coding.
+	//        Anything that can vary externally *must* be put in a
+	//        CFG, is basically the rule.
 
 	public GameFlagTimeModule getGameFlagTime() {
 		if (gameFlagTime == null) {
@@ -177,6 +185,15 @@ public class PubContext {
 		}
 		return pubChallenge;
 	}
+
+    public PubSessionModule getPubSession() {
+        if (pubSession == null) {
+            pubSession = new PubSessionModule(m_botAction, this);
+            modules.put("challenge",pubSession);
+        }
+        return pubSession;
+    }
+	
 	
     public void handleEvent(SubspaceEvent event) {
     	
