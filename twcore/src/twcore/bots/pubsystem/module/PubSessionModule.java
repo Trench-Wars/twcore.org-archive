@@ -361,8 +361,9 @@ public class PubSessionModule extends AbstractModule {
                 return 0;
 
             int amt = 0;
+            ship--;
             for( int i=0; i<8; i++ )
-                amt += kills[--ship][i];
+                amt += kills[ship][i];
             return amt;
         }
         
@@ -372,8 +373,9 @@ public class PubSessionModule extends AbstractModule {
                 return 0;
 
             int amt = 0;
+            ship--;
             for( int i=0; i<8; i++ )
-                amt += killedby[i][--ship];
+                amt += killedby[i][ship];
             return amt;
         }
         
@@ -383,8 +385,9 @@ public class PubSessionModule extends AbstractModule {
                 return 0;
 
             int amt = 0;
+            ship--;
             for( int i=0; i<8; i++ )
-                amt += kills[--ship][i];
+                amt += kills[ship][i];
             return amt;
         }
         
@@ -395,8 +398,9 @@ public class PubSessionModule extends AbstractModule {
                 return 0;
 
             int amt = 0;
+            ship--;
             for( int i=0; i<8; i++ )
-                amt += killedby[i][--ship];
+                amt += killedby[i][ship];
             return amt;
         }
         
