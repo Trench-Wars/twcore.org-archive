@@ -72,7 +72,15 @@ public class pubbotchatlog extends PubBotModule{
                         message.startsWith("Idle:")||
                         message.startsWith("Timer drift:")||
                         message.startsWith("This arena is Continuum-only.")||
-                        message.startsWith("Welcome")				
+                        message.startsWith("Welcome")	||
+                        message.startsWith("GAME OVER. Winner:") ||
+                        message.contains("out") ||
+                        message.startsWith("MVP:")||
+                        message.startsWith("Vote:") ||
+                        message.startsWith("NOTICE: To vote for a kill race add a 0 on the end of your vote.")||
+                        message.startsWith("This will be")
+                        
+                        
 																								)) return ;
 		
 		if(     event.getMessageType() == Message.ARENA_MESSAGE ||
