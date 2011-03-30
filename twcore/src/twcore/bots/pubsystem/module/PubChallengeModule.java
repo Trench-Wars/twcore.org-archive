@@ -45,6 +45,8 @@ public class PubChallengeModule extends AbstractModule {
     private int announceZoneWinnerAt = 100000000;
     private int deaths;
     
+    private int minBet = 100;
+    
         
     public PubChallengeModule (BotAction m_botAction, PubContext context){
         super(m_botAction, context, "Challenge");
@@ -455,14 +457,14 @@ public class PubChallengeModule extends AbstractModule {
         	if (amount >= announceZoneWinnerAt)
         		m_botAction.sendZoneMessage("[PUB] A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".", Tools.Sound.BEEP1);
         	else
-        		m_botAction.sendArenaMessage("A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".", Tools.Sound.BEEP1);
+        		m_botAction.sendArenaMessage("A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".  !beton <name>:<$> to place a bet on this duel.", Tools.Sound.BEEP1);
         		
         }
         
         removePendingChallenge(challenger, false);
         removePendingChallenge(accepter, false);
         
-        // Prepare the timer, in 10 seconds the game should starts
+        // Prepare the timer, in 15 seconds the game should starts (added 5s to allow more bets)
         m_botAction.scheduleTask(new StartDuel(challenge), 10*1000);
         
     }
@@ -513,6 +515,79 @@ public class PubChallengeModule extends AbstractModule {
     	
     }
     
+    public void placeBet( String name, String cmd ) {
+        
+        if( !context.getMoneySystem().isEnabled() ) {
+            m_botAction.sendPrivateMessage(name, "[ERROR]  Please provide both name and amount to bet.  Example:  !beton qan:299");
+            return;
+        }
+        
+        String[] cmds = cmd.split( ":" );
+        if( cmds.length != 2 )
+            m_botAction.sendPrivateMessage(name, "[ERROR]  Please provide both name and amount to bet.  Example:  !beton qan:299");
+        boolean bettingChallenger = false;
+        Challenge foundDuel = null;
+
+        String searchName = m_botAction.getFuzzyPlayerName( cmds[0] );
+        if( searchName == null ) {
+            m_botAction.sendPrivateMessage( name, "[SNARKY ERROR]  Sorry, the player you have dialed is either disconnected or is no longer in service.  Please check the name, then hang up and try again." );
+            return;
+        }
+        
+        for( Challenge c : challenges.values() ) {
+            if( c != null ) {
+                if( c.challengerName != null && c.challengedName != null ) {
+                    if( searchName.equalsIgnoreCase( c.challengerName ) ) {
+                        foundDuel = c;
+                        bettingChallenger = true;
+                        break;
+                    } else if( searchName.equalsIgnoreCase( c.challengedName ) ) {
+                        foundDuel = c;
+                        bettingChallenger = false;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if( foundDuel == null ) {
+            m_botAction.sendPrivateMessage( name, "[ERROR]  Either duel has not yet started, a player has not accepted the challenge, or the challenge does not exist." );
+            return;
+        }
+        
+        if( !foundDuel.canBet() ) {
+            m_botAction.sendPrivateMessage( name, "[ERROR]  Duel found, but either the betting time has passed (30 seconds after duel start) or the duel is already over." );
+            return;
+        }
+             
+        
+        Integer amt = 0;
+        try {
+            amt = Integer.decode( cmds[1] );
+            if( amt < minBet ) {
+                m_botAction.sendPrivateMessage( name, "[ERROR]  Your bet must be at least $" + minBet + "." );
+                return;
+            }
+        } catch (Exception e) {
+            m_botAction.sendPrivateMessage( name, "[ERROR]  Found player, but can't read the amount you have bet.  Usage: !beton <name>:<$amount>" );
+            return;
+        }
+        
+        PubPlayer bettor = context.getPlayerManager().getPlayer( name );
+        if( bettor != null && bettor.getMoney() >= amt ) {
+            bettor.addMoney( -amt );
+        } else {
+            m_botAction.sendPrivateMessage( name, "[ERROR]  You don't have the kind of cash to just throw around on idle bets, friend.  (You have $" + bettor.getMoney() + " available to bet.)" );
+            return;
+        }
+        
+        if( !foundDuel.betOnDueler( searchName, bettingChallenger, amt ) )
+            m_botAction.sendPrivateMessage( name, "[ERROR]  Couldn't finalize bet.  (You are not allowed to be in the duel you're betting on, or bet on both players.)" );
+        else
+            m_botAction.sendPrivateMessage( name, "[OK!]  Your bet for $" + amt + " has been deducted from your balance and placed on " + searchName + ".  Good luck!  (NOTE: you'll lose your bet if you leave the arena before the duel is finished.)");
+        
+    }
+    
     public void removePendingChallenge(String name, boolean tellPlayer)
     {
         Iterator<Challenge> it = challenges.values().iterator();
@@ -551,7 +626,7 @@ public class PubChallengeModule extends AbstractModule {
 
     private void announceWinner(Challenge challenge)
     {
-    	if (!challenge.hasEnded()) {
+    	if( challenge ==null || !challenge.hasEnded() ) {
     		throw new RuntimeException("You need to set a winner or a loser! setWinner()/setLoser()");
     	}
     	
@@ -576,6 +651,7 @@ public class PubChallengeModule extends AbstractModule {
         	m_botAction.sendSmartPrivateMessage(winner.name,"Your duel against "+loser.name+" has been cancelled, both lagout/specced.");
     		m_botAction.sendSmartPrivateMessage(loser.name,"Your duel against "+winner.name+" has been cancelled, both lagout/specced.");
             cancelled = true;
+            challenge.returnAllBets( context.getPlayerManager(), m_botAction );
         }
         
         else if(challenge.winByLagout)
@@ -588,6 +664,8 @@ public class PubChallengeModule extends AbstractModule {
             }
 
             laggers.remove(loser.name);
+            challenge.settleAllBets( winner.name, context.getPlayerManager(), m_botAction );
+
         }
         
         else
@@ -598,6 +676,7 @@ public class PubChallengeModule extends AbstractModule {
         		m_botAction.sendSmartPrivateMessage(winner.name,"You have defeated "+loser.name+" "+winnerKills+"-"+loserKills+" in duel" + moneyMessage + ".");
         		m_botAction.sendSmartPrivateMessage(loser.name,"You have lost to " + winner.name+" "+loserKills+"-"+winnerKills+" in duel" + moneyMessage + ".");
             }
+            challenge.settleAllBets( winner.name, context.getPlayerManager(), m_botAction );
         }
         
         // Free the area
@@ -1065,15 +1144,17 @@ public class PubChallengeModule extends AbstractModule {
             	else
             		m_botAction.sendSmartPrivateMessage(sender, "Proper use is !challenge name:ship");
             }
-        }
-        if(command.startsWith("!accept "))
+            
+        } else if(command.startsWith("!accept ")) {
             if(command.length() > 8)
                 acceptChallenge(sender, command.substring(8));
-        if(command.startsWith("!watchduel") || command.startsWith("!wd"))
+        } else if(command.startsWith("!watchduel") || command.startsWith("!wd"))
             watchDuel(sender, command);
-        if(command.startsWith("!removechallenge") || command.equalsIgnoreCase("!rm"))
+        else if(command.startsWith("!beton ") )
+            placeBet( sender, command.substring(7) );
+        else if(command.startsWith("!removechallenge") || command.equalsIgnoreCase("!rm"))
             removePendingChallenge(sender, true);
-        if(command.equalsIgnoreCase("!lagout"))
+        else if(command.equalsIgnoreCase("!lagout"))
             returnFromLagout(sender);
 	}
 	
@@ -1112,6 +1193,7 @@ public class PubChallengeModule extends AbstractModule {
 				pubsystem.getHelpLine("!challenge <name>:<ship>:<$>  -- Challenge a player to " + deaths + " in a specific ship (1-8) for $X. (!duel)"),
 				//pubsystem.getHelpLine("!watchduel <name>             -- Watch the duel of this player. (!wd)"),
 				pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent."),
+                pubsystem.getHelpLine("!beton <name>:<$>             -- Bet on <name> to win a duel."),
 	        };
 		else
 			return new String[] {
@@ -1302,11 +1384,21 @@ class Challenge {
     public Dueler loser;
     public boolean winByLagout = false;
     
+    public HashMap<String,Integer> challengerBets;
+    public HashMap<String,Integer> challengedBets;
+    
+    static int betTimeWindow = 30 * Tools.TimeInMillis.SECOND; // Time after duel start in which you can still bet
+    static float betWinMultiplier = 1.8f;   // How much the person wins with a bet (80% of original=default)
+
+    
     public Challenge(int amount, int ship, String challenger, String challenged){
         this.amount = amount;
         this.ship = ship;
         this.challengerName = challenger;
         this.challengedName = challenged;
+        
+        challengerBets = new HashMap<String,Integer>();
+        challengedBets = new HashMap<String,Integer>();
     }
     
     public Dueler getOppositeDueler(Dueler dueler) {
@@ -1363,6 +1455,98 @@ class Challenge {
     	this.loser = dueler;
     	this.winner = getOppositeDueler(dueler);
     	this.duelEnded = true;
+    }
+    
+    public boolean canBet() {
+        return (!duelEnded && startAt < betTimeWindow );
+    }
+    
+    public void returnAllBets( PubPlayerManagerModule ppmm, BotAction m_ba ) {
+        Integer bet = 0;;
+        PubPlayer p;
+        for( String n : challengerBets.keySet() ) {
+            p = ppmm.getPlayer( n );
+            if( p != null ) {
+                bet = challengerBets.get( n );
+                p.addMoney( bet );
+                m_ba.sendSmartPrivateMessage( n, "[BET INFO]  The duel you bet on has been cancelled.  $" + bet + " returned to your account." );
+            }
+        }
+        for( String n : challengedBets.keySet() ) {
+            p = ppmm.getPlayer( n );
+            if( p != null ) {
+                bet = challengedBets.get( n );
+                p.addMoney( bet );
+                m_ba.sendSmartPrivateMessage( n, "[BET INFO]  The duel you bet on has been cancelled.  $" + bet + " returned to your account." );
+            }
+        }
+        
+        challengerBets.clear();
+        challengedBets.clear();
+    }
+    
+    public void settleAllBets( String winner, PubPlayerManagerModule ppmm, BotAction m_ba ) {
+        Integer bet = 0;
+        PubPlayer p;
+        boolean challengerWon = false;
+        
+        if( winner.equalsIgnoreCase( challengerName ) )
+            challengerWon = true;
+        
+        for( String n : challengerBets.keySet() ) {
+            p = ppmm.getPlayer( n );
+            if( p != null ) {
+                bet = challengerBets.get( n );
+                if( bet != null ) {
+                    if( challengerWon ) {
+                        bet = Math.round( ((float)bet * betWinMultiplier) );
+                        p.addMoney( bet );
+                        m_ba.sendSmartPrivateMessage( n, "[BET WON]  " + challengerName + " defeated " + challengedName + ".  You win $" + bet + "!" );
+                    } else {
+                        m_ba.sendSmartPrivateMessage( n, "[BET LOST]  " + challengedName + " defeated " + challengerName + ".  You lost $" + bet + ".  Better luck next time." );                    
+                    }
+                }
+            }
+        }
+        for( String n : challengedBets.keySet() ) {
+            p = ppmm.getPlayer( n );
+            if( p != null ) {
+                bet = challengedBets.get( n );
+                if( bet != null ) {
+                    if( !challengerWon ) {
+                        bet = Math.round( ((float)bet * betWinMultiplier) );
+                        p.addMoney( bet );
+                        m_ba.sendSmartPrivateMessage( n, "[BET WON]  " + challengedName + " defeated " + challengerName + ".  You win $" + bet + "!" );
+                    } else {
+                        m_ba.sendSmartPrivateMessage( n, "[BET LOST]  " + challengerName + " defeated " + challengedName + ".  You lost $" + bet + ".  Better luck next time." );                    
+                    }
+                }
+            }
+        }
+        
+        challengerBets.clear();
+        challengedBets.clear();
+    }
+
+    
+    public boolean betOnDueler( String name, boolean bettingChallenger, int amount ) {
+        if( duelEnded || startAt > betTimeWindow )
+            return false;
+        
+        if( name.equals( challengerName ) || name.equals( challengedName ) )
+            return false;
+        
+        if( bettingChallenger ) {
+            if( challengedBets.containsKey( name ) )
+                return false;
+            challengerBets.put( name, amount );
+            return true;
+        } else {
+            if( challengerBets.containsKey( name ) )
+                return false;
+            challengedBets.put( name, amount );
+            return true;
+        }
     }
     
 }
