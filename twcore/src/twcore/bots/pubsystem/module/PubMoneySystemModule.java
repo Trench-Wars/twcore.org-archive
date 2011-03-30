@@ -332,6 +332,10 @@ public class PubMoneySystemModule extends AbstractModule {
     	command = command.substring(8).trim();
     	if (command.contains(":")) {
     		String[] split = command.split("\\s*:\\s*");
+    		if( split.length != 2 ) {
+                m_botAction.sendSmartPrivateMessage(sender, "You must specify both a player and an amount to donate. Example: !donate playerA:1000");
+                return;
+    		}
     		String name = split[0];
     		String money = split[1];
     		
@@ -710,7 +714,7 @@ public class PubMoneySystemModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(sender, "You earned $" + total + " by killing " + player.getLastKillKilledName() + ".");
             m_botAction.sendSmartPrivateMessage(sender, msg);
             if (player.getLastKillWithFlag()) {
-            	m_botAction.sendSmartPrivateMessage(sender, "Bonus: Your team had the flag +$3.");
+            	m_botAction.sendSmartPrivateMessage(sender, "Bonus: Your team had the flag (+$3).");
             }
     		
     	} else {
@@ -1324,7 +1328,15 @@ public class PubMoneySystemModule extends AbstractModule {
 	
 	            // Add money	            
 	            String playerName = killer.getPlayerName();
-	            context.getPlayerManager().addMoney(playerName, money);
+	            //context.getPlayerManager().addMoney(playerName, money);
+	            PubPlayer p = context.getPlayerManager().getPlayer( playerName );
+	            if( p != null ) {
+	                p.addMoney( money );
+	                // [SPACEBUX] $1000 milestone!  Balance ... $5002  Last kill ... +$10  (!lastkill for details)
+	                if( p.getMoney() % 1000 < money ) { 
+	                    m_botAction.sendPrivateMessage( playerName, "[SPACEBUX] $1000 milestone.  Balance ... $" + p.getMoney() + "  Last kill ... +$" + money + "  (!lastkill for details)");
+	                }
+	            }
 	            
 	            pubPlayerKiller.setLastKillShips((int)killer.getShipType(), (int)killed.getShipType());
 	            pubPlayerKiller.setLastKillLocation(location);
@@ -1453,8 +1465,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	String maintenance[] = new String[] {
     		pubsystem.getHelpLine("!couponinfo <code>               -- Information about this <code>."),
     		pubsystem.getHelpLine("!couponusers <code>              -- Who used this code."),
-    		pubsystem.getHelpLine("!couponenable <code>             -- Enable a <code> previously disabled."),
-    		pubsystem.getHelpLine("!coupondisable <code>            -- Disable a <code>."),
+    		pubsystem.getHelpLine("!couponenable / !coupondisable <code>  -- Enable/disable <code>."),
     	};
     	
     	String bot[] = new String[] {
