@@ -23,6 +23,8 @@ public class PubSessionModule extends AbstractModule {
 	
 	// LandMark system
     static int LM_COMP_KILLS_EQUAL = 0;
+    static int LM_COMP_RATIO_BETTER_THAN = 1;
+    static int LM_COMP_DEATHS_EQUAL = 2;
     static int LM_SHIP_ANY = -1;
 
     
@@ -203,6 +205,14 @@ public class PubSessionModule extends AbstractModule {
         if( d==0 )
             return k + ":0";
         return String.format( "%.2f", ((float)k / (float)d) ) + ":1";
+    }
+
+    public double getRatioFloat( int k, int d ) {
+        if( k==0 )
+            return 0.0;
+        if( d==0 )
+            return k;
+        return ( (double)k / (double)d );
     }
 
 	@Override
@@ -465,13 +475,27 @@ public class PubSessionModule extends AbstractModule {
                 }
             } else if( landmarks[8] == 0 ) {
                 if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 50 ) ) {
-                    send( "50 kills this session." );
+                    send( "50 kills this session.  (PM !session to see details.)" );
                     landmarks[8] = 1;
                 }
             }
 
+            if( landmarks[39] == 0 ) {
+                if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_DEATHS_EQUAL, 500 ) ) {
+                    send( "500 kills this session.  (Anyone can die.  But you?  You die with class.)" );
+                    landmarks[39] = 1;
+                }
+            } else if( landmarks[40] == 0 ) {
+                if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_DEATHS_EQUAL, 100 ) ) {
+                    send( "100 deaths this session.  Keep up the dead work!" );
+                    landmarks[40] = 1;
+                }
+            }
+            
             // ***  LANDMARKS for being in a certain ship  ***
             switch( playership ) {
+            
+            // WB
             case 1:
                 if( landmarks[9] == 0 ) {
                     if( landmarkEventCheck( 1, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 1000 ) ) {
@@ -492,16 +516,24 @@ public class PubSessionModule extends AbstractModule {
                     }
                 }
                 
-                if( landmarks[34] == 0 ) {
+                if( enemyship == 1 && landmarks[34] == 0 ) {
                     if( landmarkEventCheck( 1, 1, LM_COMP_KILLS_EQUAL, 100 ) ) {
                         send( "Killed 100 Warbirds while in a Warbird this session!" );
                         landmarks[34] = 1;
                     }
                 }
+                if( landmarks[38] == 0 ) {
+                    if( landmarkEventCheck( 1, LM_SHIP_ANY, LM_COMP_RATIO_BETTER_THAN, 2.0 ) ) {
+                        if( getTotalKills() > 100 ) {
+                            send( "Held at least a 2:1 ratio in WB with more than 100 kills." );
+                            landmarks[38] = 1;
+                        }
+                    }
+                }
 
                 break;
                 
-                
+            // JAV
             case 2:
                 if( landmarks[12] == 0 ) {
                     if( landmarkEventCheck( 2, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 1000 ) ) {
@@ -522,7 +554,8 @@ public class PubSessionModule extends AbstractModule {
                     }
                 }
                 break;
-                
+             
+            // SPIDER
             case 3:
                 if( landmarks[15] == 0 ) {
                     if( landmarkEventCheck( 3, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 1000 ) ) {
@@ -716,6 +749,7 @@ public class PubSessionModule extends AbstractModule {
         
         }
         
+        
         public boolean landmarkEventCheck( int pship, int eship, int comparison, int value ) {
             
             // Compare number of kills
@@ -734,15 +768,61 @@ public class PubSessionModule extends AbstractModule {
                                         
                     if( pship == LM_SHIP_ANY )
                         // as any ship
-                        return ( getTotalDeathsToShip( eship ) == value );
+                        return ( getTotalKillsOfShip( eship ) == value );
                     else
                         // as specific ship
                         return ( getKillsRaw( pship, eship ) == value );
                 }
-            }
-            
+            } else if( comparison == LM_COMP_DEATHS_EQUAL ) {
+                if( eship == LM_SHIP_ANY ) {
+                    // vs. any ship
+                    
+                    if( pship == LM_SHIP_ANY )
+                        // as any ship
+                        return ( getTotalDeaths() == value );
+                    else
+                        // as specific ship
+                        return ( getTotalDeathsInShip( pship ) == value );
+                } else {
+                    // vs. specific ship
+                                        
+                    if( pship == LM_SHIP_ANY )
+                        // as any ship
+                        return ( getTotalDeathsToShip( eship ) == value );
+                    else
+                        // as specific ship
+                        return ( getDeathsRaw( eship, pship ) == value );
+                }
+            } 
             return false;
         }
+
+        public boolean landmarkEventCheck( int pship, int eship, int comparison, double value ) {
+            if( comparison == LM_COMP_RATIO_BETTER_THAN ) {
+                if( eship == LM_SHIP_ANY ) {
+                    // vs. any ship
+                
+                    if( pship == LM_SHIP_ANY )
+                        // as any ship
+                        return ( getRatioFloat( getTotalKills(), getTotalDeaths() ) >= value );
+                    else
+                        // as specific ship
+                        return ( getRatioFloat( getTotalKillsInShip( pship ), getTotalDeathsInShip( pship ) ) >= value );
+                } else {
+                    // vs. specific ship
+                                    
+                    if( pship == LM_SHIP_ANY )
+                        // as any ship
+                        return ( getRatioFloat( getTotalKillsOfShip( eship ), getTotalDeathsToShip( eship ) ) >= value );
+                    else
+                        // as specific ship
+                        return ( getRatioFloat( getKillsRaw( pship, eship ), getDeathsRaw( pship, eship ) ) >= value );
+                }
+            }
+            return false;
+
+        }
+
         
         public void send( String msg ) {
             m_botAction.sendPrivateMessage( msg, "LANDMARK!  " + msg );
