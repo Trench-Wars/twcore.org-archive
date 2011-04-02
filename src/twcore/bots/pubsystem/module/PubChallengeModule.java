@@ -537,11 +537,11 @@ public class PubChallengeModule extends AbstractModule {
         for( Challenge c : challenges.values() ) {
             if( c != null ) {
                 if( c.challengerName != null && c.challengedName != null ) {
-                    if( searchName.equalsIgnoreCase( c.challengerName ) ) {
+                    if( searchName.equalsIgnoreCase( c.getChallenger() ) ) {
                         foundDuel = c;
                         bettingChallenger = true;
                         break;
-                    } else if( searchName.equalsIgnoreCase( c.challengedName ) ) {
+                    } else if( searchName.equalsIgnoreCase( c.getChallenged() ) ) {
                         foundDuel = c;
                         bettingChallenger = false;
                         break;
@@ -551,7 +551,7 @@ public class PubChallengeModule extends AbstractModule {
         }
         
         if( foundDuel == null ) {
-            m_botAction.sendPrivateMessage( name, "[ERROR]  Either duel has not yet started, a player has not accepted the challenge, or the challenge does not exist." );
+            m_botAction.sendPrivateMessage( name, "[ERROR]  Either duel for '" + searchName + "' has not yet started, a player has not accepted the challenge, or the challenge does not exist." );
             return;
         }
         
@@ -1403,6 +1403,14 @@ class Challenge {
     
     public Dueler getOppositeDueler(Dueler dueler) {
     	return getOppositeDueler(dueler.name);
+    }
+    
+    public String getChallenger() {
+        return challengerName;
+    }
+    
+    public String getChallenged() {
+        return challengedName;
     }
     
     public Dueler getOppositeDueler(String playerName) {
