@@ -1156,7 +1156,7 @@ public class PubChallengeModule extends AbstractModule {
             removePendingChallenge(sender, true);
         else if(command.equalsIgnoreCase("!lagout"))
             returnFromLagout(sender);
-        else if(command.equalsIgnoreCase("!duels"))
+        else if(command.equalsIgnoreCase("!ld"))
             listDuels(sender);
             
 	}
@@ -1390,6 +1390,7 @@ class Challenge {
     public int ship;         // Which ship? 0 = any
     public long startAt = 0; // Started at? Epoch in millis
     
+    public boolean started = false;
     public boolean duelEnded = false;
     public Dueler winner;
     public Dueler loser;
@@ -1445,6 +1446,7 @@ class Challenge {
     }
     
     public void start() {
+        started = true;
     	this.startAt = System.currentTimeMillis();
     	challenger.lastDeath = System.currentTimeMillis();
     	accepter.lastDeath = System.currentTimeMillis();
@@ -1453,7 +1455,7 @@ class Challenge {
     }
     
     public boolean isStarted() {
-    	return startAt!=0;
+    	return started;
     }
     
     public boolean hasEnded() {
