@@ -1156,6 +1156,17 @@ public class PubChallengeModule extends AbstractModule {
             removePendingChallenge(sender, true);
         else if(command.equalsIgnoreCase("!lagout"))
             returnFromLagout(sender);
+        else if(command.equalsIgnoreCase("!duels"))
+            listDuels(sender);
+            
+	}
+	
+	public void listDuels(String name) {
+	    for (Challenge c : challenges.values()) {
+	        if (c.isStarted()) {
+	            m_botAction.sendSmartPrivateMessage(name, "'" + c.getChallenger() + "' versus '" + c.getChallenged() + "'");
+	        }
+	    }
 	}
 	
 	public void doSharkShrap(String name) {
