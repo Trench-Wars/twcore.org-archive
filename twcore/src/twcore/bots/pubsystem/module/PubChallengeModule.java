@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.TimerTask;
 import java.util.Map.Entry;
+import java.util.Vector;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
@@ -33,6 +34,7 @@ public class PubChallengeModule extends AbstractModule {
     private Map<String,Dueler> duelers;
     private Map<String,Challenge> challenges;
     private Map<String,StartLagout> laggers;
+    private Map<String,Long> spam;
     
     // added this due to multiple people asking me to fix, 
     // i didn't know if sharks should get shrap or not so i made it changeable
@@ -284,6 +286,11 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(challenger, "This player is already dueling.");
             return;
         }
+        String key = challenger.toLowerCase() + "-" + challenged.toLowerCase(); 
+        if (spam.containsKey(key) && ((System.currentTimeMillis() - spam.get(key)) < 30*Tools.TimeInMillis.SECOND)) {
+            m_botAction.sendSmartPrivateMessage(challenger, "Please wait 30 seconds before challenging this player again.");
+            return;
+        }
         
         PubPlayer pubChallenger = context.getPlayerManager().getPlayer(challenger);
         PubPlayer pubChallenged = context.getPlayerManager().getPlayer(challenged);
@@ -354,7 +361,7 @@ public class PubChallengeModule extends AbstractModule {
         
         final Challenge challenge = new Challenge(amount,ship,challenger,challenged);
         addChallenge(challenge);
-        
+        spam.put(challenger.toLowerCase() + "-" + challenged.toLowerCase(), System.currentTimeMillis());
 		m_botAction.scheduleTask(new RemoveChallenge(challenge), 60*Tools.TimeInMillis.SECOND);
         
     }
@@ -781,6 +788,18 @@ public class PubChallengeModule extends AbstractModule {
     	}
     }
     
+    private void refreshSpamStopper() {
+        Long now = System.currentTimeMillis();
+        Vector<String> removes = new Vector<String>();
+        for(String k : spam.keySet()) {
+            if(now - spam.get(k) > Tools.TimeInMillis.MINUTE)
+                removes.add(k);
+        }
+        
+        while(!removes.isEmpty())
+            spam.remove(removes.remove(0));
+    }
+    
     private class SpawnBack extends TimerTask{
     	
         String name;
@@ -909,6 +928,7 @@ public class PubChallengeModule extends AbstractModule {
             this.area = challenge.area;
             this.challenger = challenge.challenger.name;
             this.accepter = challenge.accepter.name;
+            refreshSpamStopper();
         }
         
         public void run() 
@@ -1274,6 +1294,7 @@ public class PubChallengeModule extends AbstractModule {
 	        this.duelers = new HashMap<String, Dueler>();
 	        this.challenges = new HashMap<String, Challenge>();
 	        this.laggers = new HashMap<String,StartLagout>();
+	        this.spam = new HashMap<String,Long>();
 	
 	        // Setting Duel Areas
 	        for(int i=1; i<m_botAction.getBotSettings().getInt("duel_area")+1; i++) {
