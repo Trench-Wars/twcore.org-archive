@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
 import java.util.TimerTask;
@@ -534,18 +535,21 @@ public class PubChallengeModule extends AbstractModule {
             return;
         }
         
-        for( Challenge c : challenges.values() ) {
-            if( c != null ) {
-                if( c.challengerName != null && c.challengedName != null ) {
-                    if( searchName.equalsIgnoreCase( c.getChallenger() ) ) {
-                        foundDuel = c;
-                        bettingChallenger = true;
-                        break;
-                    } else if( searchName.equalsIgnoreCase( c.getChallenged() ) ) {
-                        foundDuel = c;
-                        bettingChallenger = false;
-                        break;
-                    }
+        if( !duelers.containsKey(searchName) ) {
+            m_botAction.sendPrivateMessage( name, "[ERROR]  Dueler not found." );
+            return;
+        }
+        
+        Challenge c = duelers.get(searchName).challenge;
+
+        if( c != null ) {
+            if( c.challengerName != null && c.challengedName != null ) {
+                if( searchName.equalsIgnoreCase( c.getChallenger() ) ) {
+                    foundDuel = c;
+                    bettingChallenger = true;
+                } else if( searchName.equalsIgnoreCase( c.getChallenged() ) ) {
+                    foundDuel = c;
+                    bettingChallenger = false;
                 }
             }
         }
@@ -581,7 +585,7 @@ public class PubChallengeModule extends AbstractModule {
             return;
         }
         
-        if( !foundDuel.betOnDueler( searchName, bettingChallenger, amt ) )
+        if( !foundDuel.betOnDueler( name, bettingChallenger, amt ) )
             m_botAction.sendPrivateMessage( name, "[ERROR]  Couldn't finalize bet.  (You are not allowed to be in the duel you're betting on, or bet on both players.)" );
         else
             m_botAction.sendPrivateMessage( name, "[OK!]  Your bet for $" + amt + " has been deducted from your balance and placed on " + searchName + ".  Good luck!  (NOTE: you'll lose your bet if you leave the arena before the duel is finished.)");
@@ -1156,18 +1160,26 @@ public class PubChallengeModule extends AbstractModule {
             removePendingChallenge(sender, true);
         else if(command.equalsIgnoreCase("!lagout"))
             returnFromLagout(sender);
-        else if(command.equalsIgnoreCase("!ld"))
+        else if(command.equalsIgnoreCase("!ld") || command.equalsIgnoreCase("!duels"))
             listDuels(sender);
             
 	}
 	
 	public void listDuels(String name) {
-	    for (Challenge c : challenges.values()) {
-	        if (c.isStarted()) {
-	            m_botAction.sendSmartPrivateMessage(name, "'" + c.getChallenger() + "' versus '" + c.getChallenged() + "'");
+	    LinkedList<String> ops = new LinkedList<String>();
+	    for (Dueler d : duelers.values()) {
+	        if (!ops.contains(d.name) && d.challenge.isStarted()) {
+	            ops.add(d.challenge.getOppositeDueler(d.name).name);
+	            ops.add(d.name);
+	            m_botAction.sendSmartPrivateMessage(name, "'" + d.challenge.challengerName + "' vs '" + d.challenge.challengedName + "' in " + Tools.shipName(d.challenge.ship));
 	        }
 	    }
-	}
+	    
+	    if (ops.isEmpty()) {
+            m_botAction.sendSmartPrivateMessage(name, "There are currently no active duels.");
+            return;	        
+	    }
+	}	
 	
 	public void doSharkShrap(String name) {
 	    if (sharkShrap) {
@@ -1208,8 +1220,9 @@ public class PubChallengeModule extends AbstractModule {
 	        };
 		else
 			return new String[] {
+		        pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played. (!ld)"),
 				pubsystem.getHelpLine("!challenge <name>:<ship>      -- Challenge a player to " + deaths + " in a specific ship (1-8)."),
-				//pubsystem.getHelpLine("!watchduel <name>             -- Watch the duel of this player. (!wd)"),
+				pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
 				pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent. (!rm)"),
 	        };
 	}
@@ -1390,7 +1403,6 @@ class Challenge {
     public int ship;         // Which ship? 0 = any
     public long startAt = 0; // Started at? Epoch in millis
     
-    public boolean started = false;
     public boolean duelEnded = false;
     public Dueler winner;
     public Dueler loser;
@@ -1446,7 +1458,6 @@ class Challenge {
     }
     
     public void start() {
-        started = true;
     	this.startAt = System.currentTimeMillis();
     	challenger.lastDeath = System.currentTimeMillis();
     	accepter.lastDeath = System.currentTimeMillis();
@@ -1455,7 +1466,7 @@ class Challenge {
     }
     
     public boolean isStarted() {
-    	return started;
+    	return startAt!=0;
     }
     
     public boolean hasEnded() {
@@ -1479,7 +1490,7 @@ class Challenge {
     }
     
     public boolean canBet() {
-        return (!duelEnded && startAt < betTimeWindow );
+        return (!duelEnded && (System.currentTimeMillis() - startAt) < betTimeWindow );
     }
     
     public void returnAllBets( PubPlayerManagerModule ppmm, BotAction m_ba ) {
@@ -1551,7 +1562,7 @@ class Challenge {
 
     
     public boolean betOnDueler( String name, boolean bettingChallenger, int amount ) {
-        if( duelEnded || startAt > betTimeWindow )
+        if( duelEnded || (System.currentTimeMillis() - startAt) > betTimeWindow )
             return false;
         
         if( name.equals( challengerName ) || name.equals( challengedName ) )
