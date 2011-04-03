@@ -456,10 +456,10 @@ public class PubChallengeModule extends AbstractModule {
         }
         
         if (announceNew && amount >= announceWinnerAt) {
-        	if (amount >= announceZoneWinnerAt)
+        	if (amount >= announceZoneWinnerAt || !allowBets)
         		m_botAction.sendZoneMessage("[PUB] A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".", Tools.Sound.BEEP1);
         	else
-        		m_botAction.sendArenaMessage("A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".  !beton <name>:<$> to place a bet on this duel.", Tools.Sound.BEEP1);
+        		m_botAction.sendArenaMessage("A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ". (In 10 seconds) You have 30 seconds to use !beton <name>:<$> to place a bet on this duel.", Tools.Sound.BEEP1);
         		
         }
         
@@ -1192,7 +1192,7 @@ public class PubChallengeModule extends AbstractModule {
 	        if (!ops.contains(d.name) && d.challenge.isStarted()) {
 	            ops.add(d.challenge.getOppositeDueler(d.name).name);
 	            ops.add(d.name);
-	            m_botAction.sendSmartPrivateMessage(name, "'" + d.challenge.challengerName + "' vs '" + d.challenge.challengedName + "' in " + Tools.shipName(d.challenge.ship));
+	            m_botAction.sendSmartPrivateMessage(name, "'" + d.challenge.challengerName + "'($" + d.challenge.totalC + ") vs '" + d.challenge.challengedName + "'($" + d.challenge.totalA + ") in " + Tools.shipName(d.challenge.ship));
 	        }
 	    }
 	    
@@ -1216,7 +1216,7 @@ public class PubChallengeModule extends AbstractModule {
 	public void handleModCommand(String sender, String command) {
 
         try {
-        	if(command.equalsIgnoreCase("!bets"))
+        	if(command.equalsIgnoreCase("!betting"))
         	    doToggleBets(sender);
         	if(command.startsWith("!cancelchallenge"))
             	doCancelDuelCmd(sender, command.substring(17).trim());
@@ -1238,11 +1238,13 @@ public class PubChallengeModule extends AbstractModule {
 				pubsystem.getHelpLine("!challenge <name>:<ship>:<$>  -- Challenge a player to " + deaths + " in a specific ship (1-8) for $X. (!duel)"),
 				//pubsystem.getHelpLine("!watchduel <name>             -- Watch the duel of this player. (!wd)"),
 				pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent."),
+                pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played and their bets. (!ld)"),
                 pubsystem.getHelpLine("!beton <name>:<$>             -- Bet on <name> to win a duel."),
+                pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
 	        };
 		else
 			return new String[] {
-		        pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played. (!ld)"),
+		        pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played and their bets. (!ld)"),
 				pubsystem.getHelpLine("!challenge <name>:<ship>      -- Challenge a player to " + deaths + " in a specific ship (1-8)."),
 				pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
 				pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent. (!rm)"),
@@ -1252,7 +1254,7 @@ public class PubChallengeModule extends AbstractModule {
 	@Override
 	public String[] getModHelpMessage(String sender) {
 		return new String[] {
-	        pubsystem.getHelpLine("!bets                        -- Toggles duel betting on or off."),
+	        pubsystem.getHelpLine("!betting                     -- Toggles duel betting on or off."),
 			pubsystem.getHelpLine("!cancelchallenge <name>      -- Cancel a challenge (specify one of the player)."),
         };
 	}
@@ -1433,6 +1435,8 @@ class Challenge {
     
     public HashMap<String,Integer> challengerBets;
     public HashMap<String,Integer> challengedBets;
+    public int totalC = 0;
+    public int totalA = 0;
     
     static int betTimeWindow = 30 * Tools.TimeInMillis.SECOND; // Time after duel start in which you can still bet
     static float betWinMultiplier = 1.8f;   // How much the person wins with a bet (80% of original=default)
@@ -1538,6 +1542,8 @@ class Challenge {
         
         challengerBets.clear();
         challengedBets.clear();
+        totalC = 0;
+        totalA = 0;
     }
     
     public void settleAllBets( String winner, PubPlayerManagerModule ppmm, BotAction m_ba ) {
@@ -1553,6 +1559,25 @@ class Challenge {
             if( p != null ) {
                 bet = challengerBets.get( n );
                 if( bet != null ) {
+                    if( totalC <= totalA ) {
+                        if( challengerWon ) {
+                            bet = bet * 2;
+                            p.addMoney( bet );
+                            m_ba.sendSmartPrivateMessage( n, "[BET WON]  " + challengerName + " defeated " + challengedName + ".  You win $" + bet + "!" );
+                        } else
+                            m_ba.sendSmartPrivateMessage( n, "[BET LOST]  " + challengedName + " defeated " + challengerName + ".  You lost $" + bet + ".  Better luck next time." );
+                    } else {
+                        if (challengerWon) {
+                            bet = bet + Math.round((float) totalA * (bet / totalC));
+                            p.addMoney( bet );
+                            m_ba.sendSmartPrivateMessage( n, "[BET WON]  " + challengerName + " defeated " + challengedName + ".  You win $" + bet + "!" );
+                        } else {
+                            Integer diff = (Math.round((float) totalA * (bet / totalC)));
+                            p.addMoney( bet - diff );
+                            m_ba.sendSmartPrivateMessage( n, "[BET LOST]  " + challengedName + " defeated " + challengerName + ".  You lost $" + diff + ".  Better luck next time." );
+                        }
+                    }
+                    /* old way
                     if( challengerWon ) {
                         bet = Math.round( ((float)bet * betWinMultiplier) );
                         p.addMoney( bet );
@@ -1560,6 +1585,7 @@ class Challenge {
                     } else {
                         m_ba.sendSmartPrivateMessage( n, "[BET LOST]  " + challengedName + " defeated " + challengerName + ".  You lost $" + bet + ".  Better luck next time." );                    
                     }
+                    */
                 }
             }
         }
@@ -1568,6 +1594,25 @@ class Challenge {
             if( p != null ) {
                 bet = challengedBets.get( n );
                 if( bet != null ) {
+                    if( totalA <= totalC ) {
+                        if( !challengerWon ) {
+                            bet = bet * 2;
+                            p.addMoney( bet );
+                            m_ba.sendSmartPrivateMessage( n, "[BET WON]  " + challengedName + " defeated " + challengerName + ".  You win $" + bet + "!" );
+                        } else
+                            m_ba.sendSmartPrivateMessage( n, "[BET LOST]  " + challengerName + " defeated " + challengedName + ".  You lost $" + bet + ".  Better luck next time." );
+                    } else {
+                        if ( !challengerWon ) {
+                            bet = bet + Math.round((float) totalC * (bet / totalA));
+                            p.addMoney( bet );
+                            m_ba.sendSmartPrivateMessage( n, "[BET WON]  " + challengedName + " defeated " + challengerName + ".  You win $" + bet + "!" );
+                        } else {
+                            Integer diff = (Math.round((float) totalC * (bet / totalA)));
+                            p.addMoney( bet - diff );
+                            m_ba.sendSmartPrivateMessage( n, "[BET LOST]  " + challengerName + " defeated " + challengedName + ".  You lost $" + diff + ".  Better luck next time." );
+                        }
+                    }
+                    /* old way
                     if( !challengerWon ) {
                         bet = Math.round( ((float)bet * betWinMultiplier) );
                         p.addMoney( bet );
@@ -1575,12 +1620,15 @@ class Challenge {
                     } else {
                         m_ba.sendSmartPrivateMessage( n, "[BET LOST]  " + challengerName + " defeated " + challengedName + ".  You lost $" + bet + ".  Better luck next time." );                    
                     }
+                    */
                 }
             }
         }
         
         challengerBets.clear();
         challengedBets.clear();
+        totalC = 0;
+        totalA = 0;
     }
 
     
@@ -1595,11 +1643,13 @@ class Challenge {
             if( challengedBets.containsKey( name ) )
                 return false;
             challengerBets.put( name, amount );
+            totalC += amount;
             return true;
         } else {
             if( challengerBets.containsKey( name ) )
                 return false;
             challengedBets.put( name, amount );
+            totalA += amount;
             return true;
         }
     }
