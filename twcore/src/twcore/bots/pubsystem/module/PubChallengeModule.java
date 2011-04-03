@@ -455,7 +455,7 @@ public class PubChallengeModule extends AbstractModule {
         	moneyMessage = " for $"+ amount;
         }
         
-        if (announceNew && amount >= announceWinnerAt) {
+        if (announceNew) { //  && amount >= announceWinnerAt  <-- removed for now, will put back later
         	if (amount >= announceZoneWinnerAt || !allowBets)
         		m_botAction.sendZoneMessage("[PUB] A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".", Tools.Sound.BEEP1);
         	else
@@ -1438,7 +1438,7 @@ class Challenge {
     public int totalC = 0;
     public int totalA = 0;
     
-    static int betTimeWindow = 30 * Tools.TimeInMillis.SECOND; // Time after duel start in which you can still bet
+    static int betTimeWindow = 60 * Tools.TimeInMillis.SECOND; // Time after duel start in which you can still bet
     static float betWinMultiplier = 1.8f;   // How much the person wins with a bet (80% of original=default)
 
     
