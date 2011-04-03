@@ -38,6 +38,7 @@ public class PubChallengeModule extends AbstractModule {
     // i didn't know if sharks should get shrap or not so i made it changeable
     private boolean sharkShrap = false;
     private boolean saveDuel = false;
+    private boolean allowBets = true;
     private String database = "";
     
     private boolean announceNew = false;
@@ -517,6 +518,10 @@ public class PubChallengeModule extends AbstractModule {
     }
     
     public void placeBet( String name, String cmd ) {
+        if(!allowBets) {
+            m_botAction.sendPrivateMessage(name, "Betting has been DISABLED for the time being.");
+            return;
+        }
         
         if( !context.getMoneySystem().isEnabled() ) {
             m_botAction.sendPrivateMessage(name, "[ERROR]  Please provide both name and amount to bet.  Example:  !beton qan:299");
@@ -1170,6 +1175,17 @@ public class PubChallengeModule extends AbstractModule {
             
 	}
 	
+	public void doToggleBets(String name) {
+	    if (allowBets) {
+	        allowBets = false;
+            m_botAction.sendPrivateMessage(name, "Betting has been DISABLED.");
+	    }
+	    else {
+            allowBets = true;
+            m_botAction.sendPrivateMessage(name, "Betting has been ENABLED.");
+        }
+	}
+	
 	public void listDuels(String name) {
 	    LinkedList<String> ops = new LinkedList<String>();
 	    for (Dueler d : duelers.values()) {
@@ -1200,7 +1216,8 @@ public class PubChallengeModule extends AbstractModule {
 	public void handleModCommand(String sender, String command) {
 
         try {
-        	
+        	if(command.equalsIgnoreCase("!bets"))
+        	    doToggleBets(sender);
         	if(command.startsWith("!cancelchallenge"))
             	doCancelDuelCmd(sender, command.substring(17).trim());
         	else if(command.startsWith("!debugchallenge"))
@@ -1235,6 +1252,7 @@ public class PubChallengeModule extends AbstractModule {
 	@Override
 	public String[] getModHelpMessage(String sender) {
 		return new String[] {
+	        pubsystem.getHelpLine("!bets                        -- Toggles duel betting on or off."),
 			pubsystem.getHelpLine("!cancelchallenge <name>      -- Cancel a challenge (specify one of the player)."),
         };
 	}
