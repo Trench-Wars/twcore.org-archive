@@ -459,7 +459,7 @@ public class PubChallengeModule extends AbstractModule {
         	if (amount >= announceZoneWinnerAt || !allowBets)
         		m_botAction.sendZoneMessage("[PUB] A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".", Tools.Sound.BEEP1);
         	else
-        		m_botAction.sendArenaMessage("A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ". (In 10 seconds) You have 30 seconds to use !beton <name>:<$> to place a bet on this duel.", Tools.Sound.BEEP1);
+        		m_botAction.sendArenaMessage("A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ". Soon, you have 1 min to use !beton <name>:<$> to place a bet on this duel.", Tools.Sound.BEEP1);
         		
         }
         
