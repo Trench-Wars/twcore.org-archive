@@ -542,6 +542,11 @@ public class PubChallengeModule extends AbstractModule {
         
         Challenge c = duelers.get(searchName).challenge;
 
+        if( c.challengerName.equalsIgnoreCase(name) || c.challengedName.equalsIgnoreCase(name) ) {
+            m_botAction.sendPrivateMessage( name, "[ERROR]  You can't bet on your own duel! Nice try though." );
+            return;
+        }
+        
         if( c != null ) {
             if( c.challengerName != null && c.challengedName != null ) {
                 if( searchName.equalsIgnoreCase( c.getChallenger() ) ) {
