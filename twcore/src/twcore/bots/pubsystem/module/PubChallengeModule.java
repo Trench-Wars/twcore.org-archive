@@ -464,7 +464,7 @@ public class PubChallengeModule extends AbstractModule {
         
         if (announceNew) { //  && amount >= announceWinnerAt  <-- removed for now, will put back later
         	if (amount >= announceZoneWinnerAt || !allowBets)
-        		m_botAction.sendZoneMessage("[PUB] A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".", Tools.Sound.BEEP1);
+        		m_botAction.sendArenaMessage("[PUB] A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".", Tools.Sound.BEEP1);
         	else
         		m_botAction.sendArenaMessage("A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ". Soon, you have 1 min to use !beton <name>:<$> to place a bet on this duel.", Tools.Sound.BEEP1);
         		
@@ -596,7 +596,7 @@ public class PubChallengeModule extends AbstractModule {
         
         PubPlayer bettor = context.getPlayerManager().getPlayer( name );
         if( bettor != null && bettor.getMoney() >= amt ) {
-            bettor.addMoney( -amt );
+            bettor.removeMoney( amt );
         } else {
             m_botAction.sendPrivateMessage( name, "[ERROR]  You don't have the kind of cash to just throw around on idle bets, friend.  (You have $" + bettor.getMoney() + " available to bet.)" );
             return;
