@@ -462,12 +462,8 @@ public class PubChallengeModule extends AbstractModule {
         	moneyMessage = " for $"+ amount;
         }
         
-        if (announceNew) { //  && amount >= announceWinnerAt  <-- removed for now, will put back later
-        	if (amount >= announceZoneWinnerAt || !allowBets)
-        		m_botAction.sendArenaMessage("[PUB] A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".", Tools.Sound.BEEP1);
-        	else
-        		m_botAction.sendArenaMessage("A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ". Soon, you have 1 min to use !beton <name>:<$> to place a bet on this duel.", Tools.Sound.BEEP1);
-        		
+        if (announceNew && amount >= announceZoneWinnerAt) {
+            m_botAction.sendZoneMessage("[PUB] A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".", Tools.Sound.BEEP1);
         }
         
         removePendingChallenge(challenger, false);
@@ -997,7 +993,10 @@ public class PubChallengeModule extends AbstractModule {
             
             m_botAction.sendSmartPrivateMessage(challenger, "GO GO GO!", Tools.Sound.GOGOGO);
             m_botAction.sendSmartPrivateMessage(accepter, "GO GO GO!", Tools.Sound.GOGOGO);
-
+            
+            if (allowBets) {
+                m_botAction.sendArenaMessage("A " + Tools.shipName(ship) + " duel is starting between " + challenger + " and " + accepter + ". You have 1 minute to use !beton <name>:<amount> to place a bet on this duel!");
+            }
         }
     }
     
@@ -1589,11 +1588,11 @@ class Challenge {
                             m_ba.sendSmartPrivateMessage( n, "[BET LOST]  " + challengedName + " defeated " + challengerName + ".  You lost $" + bet + ".  Better luck next time." );
                     } else {
                         if (challengerWon) {
-                            bet = bet + Math.round((float) totalA * (bet / totalC));
+                            bet = bet + Math.round(totalA * ((float) bet / totalC));
                             p.addMoney( bet );
                             m_ba.sendSmartPrivateMessage( n, "[BET WON]  " + challengerName + " defeated " + challengedName + ".  You win $" + bet + "!" );
                         } else {
-                            Integer diff = (Math.round((float) totalA * (bet / totalC)));
+                            Integer diff = (Math.round(totalA * ((float) bet / totalC)));
                             p.addMoney( bet - diff );
                             m_ba.sendSmartPrivateMessage( n, "[BET LOST]  " + challengedName + " defeated " + challengerName + ".  You lost $" + diff + ".  Better luck next time." );
                         }
@@ -1624,11 +1623,11 @@ class Challenge {
                             m_ba.sendSmartPrivateMessage( n, "[BET LOST]  " + challengerName + " defeated " + challengedName + ".  You lost $" + bet + ".  Better luck next time." );
                     } else {
                         if ( !challengerWon ) {
-                            bet = bet + Math.round((float) totalC * (bet / totalA));
+                            bet = bet + Math.round(totalC * ((float)bet / totalA));
                             p.addMoney( bet );
                             m_ba.sendSmartPrivateMessage( n, "[BET WON]  " + challengedName + " defeated " + challengerName + ".  You win $" + bet + "!" );
                         } else {
-                            Integer diff = (Math.round((float) totalC * (bet / totalA)));
+                            Integer diff = (Math.round(totalC * ((float)bet / totalA)));
                             p.addMoney( bet - diff );
                             m_ba.sendSmartPrivateMessage( n, "[BET LOST]  " + challengerName + " defeated " + challengedName + ".  You lost $" + diff + ".  Better luck next time." );
                         }
