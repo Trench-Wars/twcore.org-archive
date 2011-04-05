@@ -1211,7 +1211,7 @@ public class PubChallengeModule extends AbstractModule {
 	        if (!ops.contains(d.name) && d.challenge.isStarted()) {
 	            ops.add(d.challenge.getOppositeDueler(d.name).name);
 	            ops.add(d.name);
-	            m_botAction.sendSmartPrivateMessage(name, "'" + d.challenge.challengerName + "'($" + d.challenge.totalC + ") vs '" + d.challenge.challengedName + "'($" + d.challenge.totalA + ") in " + Tools.shipName(d.challenge.ship));
+	            m_botAction.sendSmartPrivateMessage(name, "" + d.challenge.challengerName + " vs " + d.challenge.challengedName + " in " + Tools.shipName(d.challenge.ship));
 	        }
 	    }
 	    
@@ -1257,13 +1257,13 @@ public class PubChallengeModule extends AbstractModule {
 				pubsystem.getHelpLine("!challenge <name>:<ship>:<$>  -- Challenge a player to " + deaths + " in a specific ship (1-8) for $X. (!duel)"),
 				//pubsystem.getHelpLine("!watchduel <name>             -- Watch the duel of this player. (!wd)"),
 				pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent."),
-                pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played and their bets. (!ld)"),
+                pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played. (!ld)"),
                 pubsystem.getHelpLine("!beton <name>:<$>             -- Bet on <name> to win a duel."),
                 pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
 	        };
 		else
 			return new String[] {
-		        pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played and their bets. (!ld)"),
+		        pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played. (!ld)"),
 				pubsystem.getHelpLine("!challenge <name>:<ship>      -- Challenge a player to " + deaths + " in a specific ship (1-8)."),
 				pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
 				pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent. (!rm)"),
