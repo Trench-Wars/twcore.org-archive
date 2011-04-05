@@ -594,6 +594,12 @@ public class PubUtilModule extends AbstractModule {
             doGoCmd(sender, command.substring(4));
         else if(command.equals("!stop"))
             context.stop();
+        else if(command.startsWith("!newplayer "))
+            doModNewplayer(sender, command.substring(command.indexOf(" ") + 1));
+        else if(command.startsWith("!next "))
+            doModNext(sender, command.substring(command.indexOf(" ") + 1));
+        else if(command.startsWith("!end "))
+            doModEnd(sender, command.substring(command.indexOf(" ") + 1));
         else if(command.equals("!privfreqs"))
             doPrivFreqsCmd(sender);
         else if(command.equals("!levattach"))
@@ -617,6 +623,36 @@ public class PubUtilModule extends AbstractModule {
 	public boolean isPrivateFrequencyEnabled() {
 		return privFreqEnabled;
 	}
+	
+	public void doModNewplayer(String mod, String name) {
+	    name = m_botAction.getFuzzyPlayerName(name);
+	    if (name != null) {
+	        m_botAction.sendUnfilteredPrivateMessage(name, "*objon 2025");
+	        m_botAction.sendSmartPrivateMessage(mod, "New player objon sent to: " + name);
+	    } else 
+            m_botAction.sendSmartPrivateMessage(mod, "Player not found!");
+	}
+	
+	public void doModNext(String mod, String name) {
+        name = m_botAction.getFuzzyPlayerName(name);
+        if (name != null) {
+            m_botAction.sendUnfilteredPrivateMessage(name, "*objoff 2025");
+            m_botAction.sendUnfilteredPrivateMessage(name, "*objon 2026");
+            m_botAction.sendSmartPrivateMessage(mod, "Next objon sent to: " + name);
+        } else 
+            m_botAction.sendSmartPrivateMessage(mod, "Player not found!");
+	}
+	
+	public void doModEnd(String mod, String name) {
+        name = m_botAction.getFuzzyPlayerName(name);
+        if (name != null) {
+            m_botAction.sendUnfilteredPrivateMessage(name, "*objoff 2025");
+            m_botAction.sendUnfilteredPrivateMessage(name, "*objoff 2026");
+            m_botAction.sendSmartPrivateMessage(mod, "All objons removed for: " + name);
+        } else 
+            m_botAction.sendSmartPrivateMessage(mod, "Player not found!");
+	    
+	}
 
 	@Override
 	public String[] getHelpMessage(String sender) {
@@ -631,20 +667,23 @@ public class PubUtilModule extends AbstractModule {
 	@Override
 	public String[] getModHelpMessage(String sender) {
 		return new String[] {
-			pubsystem.getHelpLine("!privfreqs    -- Toggles private frequencies & check for imbalances."),
-            pubsystem.getHelpLine("!dooropen     -- Open doors."),
-            pubsystem.getHelpLine("!doorclose    -- Close doors."),
-            pubsystem.getHelpLine("!doortoggle   -- In operation doors."),
-            pubsystem.getHelpLine("!doorauto     -- Auto mode (close if # of players below " + doorModeThreshold + "."),
-			pubsystem.getHelpLine("!levattach    -- Toggles lev attach capability on public frequencies."),
+			pubsystem.getHelpLine("!privfreqs        -- Toggles private frequencies & check for imbalances."),
+            pubsystem.getHelpLine("!dooropen         -- Open doors."),
+            pubsystem.getHelpLine("!doorclose        -- Close doors."),
+            pubsystem.getHelpLine("!doortoggle       -- In operation doors."),
+            pubsystem.getHelpLine("!doorauto         -- Auto mode (close if # of players below " + doorModeThreshold + "."),
+			pubsystem.getHelpLine("!levattach        -- Toggles lev attach capability on public frequencies."),
             pubsystem.getHelpLine("!set <ship> <#>   -- Sets <ship> to restriction <#>."),
             pubsystem.getHelpLine("                     0=disabled; 1=any amount; other=weighted:"),
             pubsystem.getHelpLine("                     2 = 1/2 of freq can be this ship, 5 = 1/5, ..."),
-            pubsystem.getHelpLine("!go <arena>   -- Moves the bot to <arena>."),
-            pubsystem.getHelpLine("!reloadconfig -- Reload the configuration (needed if .cfg has changed)."),
-            pubsystem.getHelpLine("!uptime       -- Uptime of the bot in minutes."),
-            pubsystem.getHelpLine("!stop         -- Stop the bot (needed when !go)."),
-            pubsystem.getHelpLine("!die          -- Logs the bot off of the server."),
+            pubsystem.getHelpLine("!go <arena>       -- Moves the bot to <arena>."),
+            pubsystem.getHelpLine("!reloadconfig     -- Reload the configuration (needed if .cfg has changed)."),
+            pubsystem.getHelpLine("!uptime           -- Uptime of the bot in minutes."),
+            pubsystem.getHelpLine("!stop             -- Stop the bot (needed when !go)."),
+            pubsystem.getHelpLine("!die              -- Logs the bot off of the server."),
+            pubsystem.getHelpLine("!newplayer <name> -- Sends new player helper objon to <name>."),
+            pubsystem.getHelpLine("!next <name>      -- Sends the next helper objon to <name>."),
+            pubsystem.getHelpLine("!end <name>       -- Removes all objons for <name>."),
 		};
 	}
 
