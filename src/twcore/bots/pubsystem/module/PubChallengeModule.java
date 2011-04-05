@@ -573,7 +573,7 @@ public class PubChallengeModule extends AbstractModule {
         }
         
         if( !foundDuel.canBet() ) {
-            m_botAction.sendPrivateMessage( name, "[ERROR]  Duel found, but either the betting time has passed (30 seconds after duel start) or the duel is already over." );
+            m_botAction.sendPrivateMessage( name, "[ERROR]  Duel found, but either the betting time has passed (1 minute after duel start) or the duel is already over." );
             return;
         }
              
