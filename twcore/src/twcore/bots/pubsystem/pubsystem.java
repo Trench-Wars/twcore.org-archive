@@ -307,7 +307,10 @@ public class pubsystem extends SubspaceBot
 
         if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.PUBLIC_MESSAGE ) )
             handlePublicCommand(sender, message, messageType);
-        if ( m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) || m_botAction.getOperatorList().isBotExact(sender) )
+        if (m_botAction.getOperatorList().isZH(sender) && (message.startsWith("!newplayer ") || message.startsWith("!next ") || message.startsWith("!end "))) {
+            if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) )
+                handleModCommand(sender, message);            
+        } else if ( m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) || m_botAction.getOperatorList().isBotExact(sender) )
             if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) )
                 handleModCommand(sender, message);
     }
