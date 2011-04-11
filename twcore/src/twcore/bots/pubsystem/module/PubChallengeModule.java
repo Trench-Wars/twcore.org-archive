@@ -1211,7 +1211,7 @@ public class PubChallengeModule extends AbstractModule {
 	        if (!ops.contains(d.name) && d.challenge.isStarted()) {
 	            ops.add(d.challenge.getOppositeDueler(d.name).name);
 	            ops.add(d.name);
-	            m_botAction.sendSmartPrivateMessage(name, "" + d.challenge.challengerName + " vs " + d.challenge.challengedName + " in " + Tools.shipName(d.challenge.ship));
+	            m_botAction.sendSmartPrivateMessage(name, "" + d.challenge.challengerName + " (" + d.challenge.challengerBets.size() + " bets) vs " + d.challenge.challengedName + "(" + d.challenge.challengedBets.size() + " bets) in " + Tools.shipName(d.challenge.ship) + " " + d.challenge.challenger.kills + "-" + d.challenge.accepter.kills);
 	        }
 	    }
 	    
@@ -1649,6 +1649,7 @@ class Challenge {
         challengedBets.clear();
         totalC = 0;
         totalA = 0;
+        
     }
 
     
