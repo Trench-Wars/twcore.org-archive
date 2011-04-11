@@ -243,6 +243,9 @@ public class PubChallengeModule extends AbstractModule {
         l.lastDeath = System.currentTimeMillis();
                 
         m_botAction.shipReset(killer);
+        m_botAction.shipReset(killee);
+        m_botAction.warpTo(killer, 512, 760);
+        m_botAction.warpTo(killee, 512, 760);
         
         m_botAction.scheduleTask(new UpdateScore(w,l), 1*Tools.TimeInMillis.SECOND);
 	      	
@@ -591,14 +594,12 @@ public class PubChallengeModule extends AbstractModule {
         }
         
         PubPlayer bettor = context.getPlayerManager().getPlayer( name );
-        if( bettor != null && bettor.getMoney() >= amt ) {
-            bettor.removeMoney( amt );
-        } else {
+        if (!(bettor != null && bettor.getMoney() >= amt)) {
             m_botAction.sendPrivateMessage( name, "[ERROR]  You don't have the kind of cash to just throw around on idle bets, friend.  (You have $" + bettor.getMoney() + " available to bet.)" );
             return;
         }
         
-        if( !foundDuel.betOnDueler( name, bettingChallenger, amt ) )
+        if( !foundDuel.betOnDueler( m_botAction, name, bettor, bettingChallenger, amt ) )
             m_botAction.sendPrivateMessage( name, "[ERROR]  Couldn't finalize bet.  (You are not allowed to be in the duel you're betting on, or bet on both players.)" );
         else
             m_botAction.sendPrivateMessage( name, "[OK!]  Your bet for $" + amt + " has been deducted from your balance and placed on " + searchName + ".  Good luck!  (NOTE: you'll lose your bet if you leave the arena before the duel is finished.)");
@@ -1211,7 +1212,14 @@ public class PubChallengeModule extends AbstractModule {
 	        if (!ops.contains(d.name) && d.challenge.isStarted()) {
 	            ops.add(d.challenge.getOppositeDueler(d.name).name);
 	            ops.add(d.name);
-	            m_botAction.sendSmartPrivateMessage(name, "" + d.challenge.challengerName + " (" + d.challenge.challengerBets.size() + " bets) vs " + d.challenge.challengedName + "(" + d.challenge.challengedBets.size() + " bets) in " + Tools.shipName(d.challenge.ship) + " " + d.challenge.challenger.kills + "-" + d.challenge.accepter.kills);
+	            
+	            String better = "";
+	            String betted = "";
+	            if (!d.challenge.challengerBets.isEmpty())
+	                better = " (bets)";
+                if (!d.challenge.challengedBets.isEmpty())
+                    betted = " (bets)";
+	            m_botAction.sendSmartPrivateMessage(name, "" + d.challenge.challengerName + better + " vs " + d.challenge.challengedName + betted + " in " + Tools.shipName(d.challenge.ship) + ": " + d.challenge.challenger.kills + "-" + d.challenge.accepter.kills);
 	        }
 	    }
 	    
@@ -1653,7 +1661,7 @@ class Challenge {
     }
 
     
-    public boolean betOnDueler( String name, boolean bettingChallenger, int amount ) {
+    public boolean betOnDueler( BotAction m_ba, String name, PubPlayer bettor, boolean bettingChallenger, int amount ) {
         if( duelEnded || (System.currentTimeMillis() - startAt) > betTimeWindow )
             return false;
         
@@ -1663,12 +1671,28 @@ class Challenge {
         if( bettingChallenger ) {
             if( challengedBets.containsKey( name ) )
                 return false;
+            
+            if( challengerBets.containsKey( name ) ) {
+                bettor.addMoney(challengerBets.get(name));
+                totalC -= challengerBets.get(name);
+                m_ba.sendSmartPrivateMessage(name, "[NOTE]  Your previous bet of $" + challengerBets.get(name) + " has been returned to you.");
+            }
+            
+            bettor.removeMoney(amount);
             challengerBets.put( name, amount );
             totalC += amount;
             return true;
         } else {
             if( challengerBets.containsKey( name ) )
                 return false;
+            
+            if( challengedBets.containsKey( name ) ) {
+                bettor.addMoney(challengedBets.get(name));
+                totalC -= challengedBets.get(name);
+                m_ba.sendSmartPrivateMessage(name, "[NOTE]  Your previous bet of $" + challengedBets.get(name) + " has been returned to you.");
+            }
+            
+            bettor.removeMoney(amount);
             challengedBets.put( name, amount );
             totalA += amount;
             return true;
