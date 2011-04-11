@@ -243,6 +243,10 @@ public class PubChallengeModule extends AbstractModule {
         l.lastDeath = System.currentTimeMillis();
                 
         m_botAction.shipReset(killer);
+        if (w.challenge.ship == 8) {
+            m_botAction.scheduleTask(new ResetMines(killer), 4300);
+            m_botAction.scheduleTask(new ResetMines(killee), 4300);
+        }
         
         m_botAction.scheduleTask(new UpdateScore(w,l), 1*Tools.TimeInMillis.SECOND);
 	      	
@@ -794,6 +798,29 @@ public class PubChallengeModule extends AbstractModule {
             spam.remove(removes.remove(0));
     }
     
+    private class ResetMines extends TimerTask{
+        
+        String name;
+
+        private ResetMines(String name){
+            this.name = name;
+        }
+
+        @Override
+        public void run() {
+            
+            Dueler dueler = duelers.get(name);
+            if (dueler == null || dueler.challenge == null)
+                return;
+            
+            if (dueler != null) {
+                m_botAction.shipReset(name);
+                m_botAction.warpTo(name, 512, 760);
+            }
+        }    
+        
+    }
+    
     private class SpawnBack extends TimerTask{
     	
         String name;
@@ -812,11 +839,6 @@ public class PubChallengeModule extends AbstractModule {
         	Challenge challenge = dueler.challenge;
         	
         	if (dueler != null) {
-        	    
-                if (challenge.ship == 8) {
-                    m_botAction.shipReset(name);
-                    m_botAction.warpTo(name, 512, 760);
-                }
 	            
         		if(dueler.type == 1){
 	                m_botAction.warpTo(name, challenge.area.warp1x, challenge.area.warp1y);
