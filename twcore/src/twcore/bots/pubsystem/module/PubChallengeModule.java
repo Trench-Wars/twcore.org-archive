@@ -1287,7 +1287,7 @@ public class PubChallengeModule extends AbstractModule {
         }
 	}
 	
-	private void doSuperInfo(String sender, String com) {
+	public void doSuperInfo(String sender, String com) {
 	    String player = "";
 	    if (com.contains(" ") && com.length() > 6)
 	        player = com.substring(com.indexOf(" ") + 1);
