@@ -1276,10 +1276,54 @@ public class PubChallengeModule extends AbstractModule {
             	doDebugCmd(sender);
         	else if (command.startsWith("!sharkshrap"))
         	    doSharkShrap(sender);
+        	else if (command.startsWith("!info ") && m_botAction.getOperatorList().isSmod(sender)) {
+        	    doSuperInfo(sender, command);
+        	}
+        	    
            
         } catch(RuntimeException e) {
             if( e != null && e.getMessage() != null )
                 m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
+        }
+	}
+	
+	private void doSuperInfo(String sender, String com) {
+	    String player = "";
+	    if (com.contains(" ") && com.length() > 6)
+	        player = com.substring(com.indexOf(" ") + 1);
+	    else {
+            m_botAction.sendSmartPrivateMessage(sender, "Invalid syntax! Please specify a player name.");
+            return;	        
+	    }
+	    
+	    player = m_botAction.getFuzzyPlayerName(player);
+	    if (player == null) {
+            m_botAction.sendSmartPrivateMessage(sender, "Player not found.");
+            return;         	        
+	    }
+	    
+        PubPlayer pubber = context.getPlayerManager().getPlayer(com, false);
+        if (pubber != null) {
+            m_botAction.sendSmartPrivateMessage(sender, pubber.getPlayerName() + ": $" + pubber.getMoney());
+            if (duelers.containsKey(player)) {
+                Dueler subject = duelers.get(player);
+                Challenge duel = subject.challenge;
+                Dueler op = duel.getOppositeDueler(player);
+                
+                m_botAction.sendSmartPrivateMessage(sender, "(" + subject.kills + "-" + op.kills + ") $" + duel.amount + " " + Tools.shipName(duel.ship) + " duel vs " + op.name + ": $" + context.getPlayerManager().getPlayer(op.name).getMoney());
+
+                m_botAction.sendSmartPrivateMessage(sender, "Bets on " + duel.challengerName + ": $" + duel.totalC);
+                if (duel.totalC > 0)
+                    for (String key : duel.challengerBets.keySet())
+                        m_botAction.sendSmartPrivateMessage(sender, "> $" + duel.challengerBets.get(key) + " " + key);
+                
+                m_botAction.sendSmartPrivateMessage(sender, "Bets on " + duel.challengedName + ": $" + duel.totalA);
+                if (duel.totalA > 0)
+                    for (String key : duel.challengedBets.keySet())
+                        m_botAction.sendSmartPrivateMessage(sender, "> $" + duel.challengedBets.get(key) + " " + key);
+            }
+        } else {
+            m_botAction.sendSmartPrivateMessage(sender, "Player profile for '" + player + "' not found.");            
         }
 	}
 	
