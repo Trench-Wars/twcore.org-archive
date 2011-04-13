@@ -1302,7 +1302,7 @@ public class PubChallengeModule extends AbstractModule {
             return;         	        
 	    }
 	    
-        PubPlayer pubber = context.getPlayerManager().getPlayer(com, false);
+        PubPlayer pubber = context.getPlayerManager().getPlayer(com);
         if (pubber != null) {
             m_botAction.sendSmartPrivateMessage(sender, pubber.getPlayerName() + ": $" + pubber.getMoney());
             if (duelers.containsKey(player)) {
