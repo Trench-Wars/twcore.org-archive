@@ -104,7 +104,7 @@ public class PubItemRestriction {
 					continue;
 				long diff = System.currentTimeMillis()-itemUsed.getTime();
 				if (diff < maxPerSecond*Tools.TimeInMillis.SECOND) {
-					throw new PubException("You have bought this item in the past " + maxPerSecond + " seconds, please wait..");
+					throw new PubException("You have bought this item in the past " + maxPerSecond + " seconds, please wait...");
 				}
 			}
 		}
