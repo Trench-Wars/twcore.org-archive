@@ -833,6 +833,10 @@ public class twdopalias extends Module
                 m_sortByName = true;
                 m_botAction.sendChatMessage( "Sorting !alt cmds by name first." );
             }
+            if(message.equalsIgnoreCase("!update")) {
+                updateTWDOps();
+                updateAliasOps();
+            }
             else if(command.equals("!sortbydate")) {
                 m_sortByName = false;
                 m_botAction.sendChatMessage( "Sorting !alt cmds by date first." );
