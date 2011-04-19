@@ -80,6 +80,7 @@ public class twdbot extends SubspaceBot {
     // list of free bots
     private Vector<String> m_idlers;
     private HashMap<String, KillRequest> m_killer;
+    private LinkedList<String> m_watches;
     
     TimerTask check, lock, messages;
 
@@ -112,6 +113,7 @@ public class twdbot extends SubspaceBot {
         m_killer = new HashMap<String, KillRequest>();
         m_spawner = new Vector<String>();
         m_idlers = new Vector<String>();
+        m_watches = new LinkedList<String>();
         requestEvents();
     }
 
@@ -242,10 +244,10 @@ public class twdbot extends SubspaceBot {
         if (manualSpawnOverride || shuttingDown)
             return;
         checkDiv("twbd");
-        checkDiv("twdd");
-        checkDiv("twjd");
-        checkDiv("twsd");
-        checkDiv("twfd");
+        //checkDiv("twdd");
+        //checkDiv("twjd");
+        //checkDiv("twsd");
+        //checkDiv("twfd");
         if (otherAlerts)
             m_botAction.sendChatMessage("Checking TWD arenas...");
         
@@ -741,6 +743,10 @@ public class twdbot extends SubspaceBot {
                             return;
                         String arena = args[0].toLowerCase();
                         String player = args[3];
+                        if (m_watches.contains(player.toLowerCase())) {
+                            m_botAction.sendChatMessage(1, "" + player + " arena challenged " + args[2] + " to " + args[4] + "s in " + arena);
+                            m_botAction.sendChatMessage(2, "" + player + " arena challenged " + args[2] + " to " + args[4] + "s in " + arena);
+                        }
                         // name,squad_ch,squad_op,players
                         String ipc = "twd:" + arena + ":challenge " + player + "," + args[2] + "," + args[4];
                         arenaChallCount++;
@@ -773,6 +779,27 @@ public class twdbot extends SubspaceBot {
                         String arena = args[0].toLowerCase();
                         m_arenas.get(arena).setIPC(false);
                         checkDiv(arena.substring(0, 4));
+                    } else if (msg.startsWith("twd:challenge ")) {
+                        // name,squad,players,arena
+                        String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
+                        if (m_watches.contains(args[0].toLowerCase())) {
+                            m_botAction.sendChatMessage(1, "" + args[0] + " challenged " + args[1] + " to " + args[2] + "s in " + args[3]);
+                            m_botAction.sendChatMessage(2, "" + args[0] + " challenged " + args[1] + " to " + args[2] + "s in " + args[3]);
+                        }
+                    } else if (msg.startsWith("twd:topchallenge ")) {
+                        // name,players,arena
+                        String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
+                        if (m_watches.contains(args[0].toLowerCase())) {
+                            m_botAction.sendChatMessage(1, "" + args[0] + " challenged top teams to " + args[1] + "s in " + args[2]);
+                            m_botAction.sendChatMessage(2, "" + args[0] + " challenged top teams to " + args[1] + "s in " + args[2]);
+                        }
+                    } else if (msg.startsWith("twd:allchallenge ")) {
+                        // name,players,arena
+                        String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
+                        if (m_watches.contains(args[0].toLowerCase())) {
+                            m_botAction.sendChatMessage(1, "" + args[0] + " challenged all to " + args[1] + "s in " + args[2]);
+                            m_botAction.sendChatMessage(2, "" + args[0] + " challenged all to " + args[1] + "s in " + args[2]);
+                        }
                     }
                 }
             }
@@ -829,7 +856,7 @@ public class twdbot extends SubspaceBot {
                     command_shutdown(name);
                     return;
                 } else if (message.startsWith("!endgamealerts")) {
-                    command_endgame(name);
+                    command_endgameAlerts(name);
                     return;
                 } else if (message.startsWith("!killalerts")) {
                     command_killAlerts(name);
@@ -843,7 +870,25 @@ public class twdbot extends SubspaceBot {
                 } else if (message.startsWith("!challalerts")) {
                     command_challs(name);
                     return;
+                } else if (message.startsWith("!ban ")) {
+                    command_challengeBan(name, message.substring(message.indexOf(" ") + 1));
+                    return;
+                } else if (event.getMessageType() != Message.CHAT_MESSAGE) {
+                    if (message.startsWith("!watch ")) {
+                        String player = message.substring(message.indexOf(" ") + 1);
+                        if (m_watches.contains(player.toLowerCase())) {
+                            m_watches.remove(player.toLowerCase());
+                            m_botAction.sendChatMessage(1, "" + player + " has been removed from challenge watch by " + name);
+                            m_botAction.sendChatMessage(2, "" + player + " has been removed from challenge watch by " + name);
+                        } else {
+                            m_watches.add(player.toLowerCase());
+                            m_botAction.sendChatMessage(1, "" + player + " has been added to challenge watch by " + name);
+                            m_botAction.sendChatMessage(2, "" + player + " has been added to challenge watch by " + name);                            
+                        }
+                    }
                 }
+                
+                
             }
         }
 
@@ -1006,6 +1051,16 @@ public class twdbot extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage(name, "No games are being played at the moment.");
     }
     
+    public void command_challenge(String name, String msg) {
+        if (!msg.contains(":")) {
+            m_botAction.sendSmartPrivateMessage(name, "Please use the following syntax: !ch Squad:Players:Arena");
+            return;
+        }
+        
+        String[] args = msg.substring(msg.indexOf(" ") + 1).split(":");
+        
+    }
+    
     public void command_respawn(String name) {
         if (respawn) {
             respawn = false;
@@ -1036,7 +1091,7 @@ public class twdbot extends SubspaceBot {
         }
     }
     
-    public void command_endgame(String name) {
+    public void command_endgameAlerts(String name) {
         if (endgameAlert) {
             endgameAlert = false;
             m_botAction.sendChatMessage("End game alerts have been DISABLED by " + name);
@@ -1053,6 +1108,25 @@ public class twdbot extends SubspaceBot {
         } else {
             killAlert = true;
             m_botAction.sendChatMessage("Kill request alerts have been ENABLED by " + name);            
+        }
+    }
+    
+    public void command_challengeBan(String name, String msg) {
+        DBPlayerData dbp = new DBPlayerData(m_botAction, webdb, msg, false);
+        if (dbp.checkPlayerExists()) {
+            try {
+                ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT * FROM tblChallengeBan WHERE fnUserID = " + dbp.getUserID() + " AND fnActive = 1");
+                if (rs.next()) {
+                    m_botAction.sendSmartPrivateMessage(name, "This ban already exists.");
+                    return;
+                }
+                m_botAction.SQLClose(rs);
+                m_botAction.SQLQueryAndClose(webdb, "INSERT INTO tblChallengeBan (fnUserID) VALUES(" + dbp.getUserID() + ")");
+                m_botAction.sendChatMessage(1, "" + dbp.getUserName() + " has been challenge banned by " + name);
+                m_botAction.sendChatMessage(2, "" + dbp.getUserName() + " has been challenge banned by " + name);
+            } catch (SQLException e) {
+                Tools.printStackTrace(e);
+            }
         }
     }
     
@@ -1334,7 +1408,7 @@ public class twdbot extends SubspaceBot {
             };
         };
         m_botAction.scheduleTaskAtFixedRate(checkMessages, 5000, 30000);
-        m_botAction.sendUnfilteredPublicMessage("?chat=robodev");
+        m_botAction.sendUnfilteredPublicMessage("?chat=robodev,twdstaff,executive lounge");
         checkIN();
     }
 
@@ -2040,6 +2114,7 @@ public class twdbot extends SubspaceBot {
     public void checkNamesToReset() {
         try {
             m_botAction.SQLBackgroundQuery(webdb, "twdbot", "DELETE FROM tblAliasSuppression WHERE fdResetTime < DATE_SUB(NOW(), INTERVAL 1 DAY);");
+            m_botAction.SQLBackgroundQuery(webdb, "twdbot", "UPDATE tblChallengeBan SET fnActive = 0 WHERE fnActive = 1 AND fdDateCreated < DATE_SUB(NOW(), INTERVAL 1 DAY)");
         } catch (Exception e) {
             System.out.println("Can't check for new names to reset...");
         };
