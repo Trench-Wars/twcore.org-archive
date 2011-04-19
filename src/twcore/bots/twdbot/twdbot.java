@@ -783,21 +783,21 @@ public class twdbot extends SubspaceBot {
                         // name,squad,players,arena
                         String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
                         if (m_watches.contains(args[0].toLowerCase())) {
-                            m_botAction.sendChatMessage(1, "" + args[0] + " challenged " + args[1] + " to " + args[2] + "s in " + args[3]);
+                            m_botAction.sendChatMessage(3, "" + args[0] + " challenged " + args[1] + " to " + args[2] + "s in " + args[3]);
                             m_botAction.sendChatMessage(2, "" + args[0] + " challenged " + args[1] + " to " + args[2] + "s in " + args[3]);
                         }
                     } else if (msg.startsWith("twd:topchallenge ")) {
                         // name,players,arena
                         String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
                         if (m_watches.contains(args[0].toLowerCase())) {
-                            m_botAction.sendChatMessage(1, "" + args[0] + " challenged top teams to " + args[1] + "s in " + args[2]);
+                            m_botAction.sendChatMessage(3, "" + args[0] + " challenged top teams to " + args[1] + "s in " + args[2]);
                             m_botAction.sendChatMessage(2, "" + args[0] + " challenged top teams to " + args[1] + "s in " + args[2]);
                         }
                     } else if (msg.startsWith("twd:allchallenge ")) {
                         // name,players,arena
                         String[] args = msg.substring(msg.indexOf(" ") + 1).split(",");
                         if (m_watches.contains(args[0].toLowerCase())) {
-                            m_botAction.sendChatMessage(1, "" + args[0] + " challenged all to " + args[1] + "s in " + args[2]);
+                            m_botAction.sendChatMessage(3, "" + args[0] + " challenged all to " + args[1] + "s in " + args[2]);
                             m_botAction.sendChatMessage(2, "" + args[0] + " challenged all to " + args[1] + "s in " + args[2]);
                         }
                     }
