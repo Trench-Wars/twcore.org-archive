@@ -878,11 +878,11 @@ public class twdbot extends SubspaceBot {
                         String player = message.substring(message.indexOf(" ") + 1);
                         if (m_watches.contains(player.toLowerCase())) {
                             m_watches.remove(player.toLowerCase());
-                            m_botAction.sendChatMessage(1, "" + player + " has been removed from challenge watch by " + name);
+                            m_botAction.sendChatMessage(3, "" + player + " has been removed from challenge watch by " + name);
                             m_botAction.sendChatMessage(2, "" + player + " has been removed from challenge watch by " + name);
                         } else {
                             m_watches.add(player.toLowerCase());
-                            m_botAction.sendChatMessage(1, "" + player + " has been added to challenge watch by " + name);
+                            m_botAction.sendChatMessage(3, "" + player + " has been added to challenge watch by " + name);
                             m_botAction.sendChatMessage(2, "" + player + " has been added to challenge watch by " + name);                            
                         }
                     }
