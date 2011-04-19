@@ -2,6 +2,7 @@ package twcore.bots.matchbot;
 
 import java.io.File;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -907,6 +908,11 @@ public class matchbot extends SubspaceBot {
                     m_botAction.sendSmartPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
                     return;
                 }
+                
+                if (isChallengeBanned(dp)) {
+                    m_botAction.sendPrivateMessage(name, "You have been banned for challenge abuse.");
+                    return;
+                }
 
                 if ((dp.getTeamName() != null)
                         && (!dp.getTeamName().equals(""))
@@ -1004,6 +1010,11 @@ public class matchbot extends SubspaceBot {
                         m_botAction.sendPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
                         return;
                     }
+                    
+                    if (isChallengeBanned(dp)) {
+                        m_botAction.sendPrivateMessage(name, "You have been banned for challenge abuse.");
+                        return;
+                    }
 
                     if ((dp.getTeamName() != null)
                             && (!dp.getTeamName().equals(""))
@@ -1026,6 +1037,8 @@ public class matchbot extends SubspaceBot {
                                     + dp.getTeamName() + "'");
                             m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to "
                                     + nmySquad);
+
+                            m_botAction.ipcTransmit(IPC, "twd:challenge " + name + "," + nmySquad + "," + players + "," + m_botAction.getArenaName());
                         } else
                             m_botAction.sendSmartPrivateMessage(name, "The team you want to challenge does NOT exist in TWD");
                         m_botAction.SQLClose(rs);
@@ -1066,10 +1079,17 @@ public class matchbot extends SubspaceBot {
                     m_botAction.sendPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
                     return;
                 }
+                
+                if (isChallengeBanned(dp)) {
+                    m_botAction.sendPrivateMessage(name, "You have been banned for challenge abuse.");
+                    return;
+                }
 
                 if ((dp.getTeamName() != null)
                         && (!dp.getTeamName().equals(""))
                         && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
+                    
+                    m_botAction.ipcTransmit(IPC, "twd:topchallenge " + name + "," + players + "," + m_botAction.getArenaName());
                     ResultSet squads = m_botAction.SQLQuery(dbConn, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
                             + "FROM tblTWDTeam, tblTeam "
                             + "WHERE tblTWDTeam.fnMatchTypeID="
@@ -1142,9 +1162,19 @@ public class matchbot extends SubspaceBot {
                     return;
                 }
 
+                
+                if (isChallengeBanned(dp)) {
+                    m_botAction.sendPrivateMessage(name, "You have been banned for challenge abuse.");
+                    return;
+                }
+                
+
                 if ((dp.getTeamName() != null)
                         && (!dp.getTeamName().equals(""))
                         && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
+
+                    m_botAction.ipcTransmit(IPC, "twd:allchallenge " + name + "," + players + "," + m_botAction.getArenaName());
+                    
                     ResultSet squads = m_botAction.SQLQuery(dbConn, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
                             + "FROM tblTWDTeam, tblTeam "
                             + "WHERE tblTWDTeam.fnMatchTypeID="
@@ -1415,6 +1445,25 @@ public class matchbot extends SubspaceBot {
         } catch (Exception e) {
             Tools.printStackTrace(e);
         }
+    }
+    
+    public boolean isChallengeBanned(DBPlayerData dbp) {
+        if (dbp.checkPlayerExists()) {
+            try {
+                ResultSet rs = m_botAction.SQLQuery(dbConn, "SELECT * FROM tblChallengeBan WHERE fnUserID = " + dbp.getUserID() + " AND fnActive = 1");
+                if (rs.next()) {
+                    m_botAction.SQLClose(rs);
+                    return true;
+                } else {
+                    m_botAction.SQLClose(rs);
+                    return false;
+                }
+            } catch (SQLException e) {
+                Tools.printStackTrace(e);
+                return false;
+            }
+        } else
+            return false;
     }
 
     public void command_setoff(String name) {
