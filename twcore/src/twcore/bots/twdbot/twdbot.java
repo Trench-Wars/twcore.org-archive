@@ -873,6 +873,23 @@ public class twdbot extends SubspaceBot {
                 } else if (message.startsWith("!ban ")) {
                     command_challengeBan(name, message.substring(message.indexOf(" ") + 1));
                     return;
+                } else if (message.startsWith("!unban ")) {
+                    command_challengeUnban(name, message.substring(message.indexOf(" ") + 1));
+                    return;  
+                } else if (message.startsWith("!chawas")) {
+                    command_watches(name);
+                    return;
+                } else if (message.startsWith("!chawa ")) {
+                    String player = message.substring(message.indexOf(" ") + 1);
+                    if (m_watches.contains(player.toLowerCase())) {
+                        m_watches.remove(player.toLowerCase());
+                        m_botAction.sendChatMessage(3, "" + player + " has been removed from challenge watch by " + name);
+                        m_botAction.sendChatMessage(2, "" + player + " has been removed from challenge watch by " + name);
+                    } else {
+                        m_watches.add(player.toLowerCase());
+                        m_botAction.sendChatMessage(3, "" + player + " has been added to challenge watch by " + name);
+                        m_botAction.sendChatMessage(2, "" + player + " has been added to challenge watch by " + name);                            
+                    }                    
                 } else if (event.getMessageType() != Message.CHAT_MESSAGE) {
                     if (message.startsWith("!watch ")) {
                         String player = message.substring(message.indexOf(" ") + 1);
@@ -885,6 +902,9 @@ public class twdbot extends SubspaceBot {
                             m_botAction.sendChatMessage(3, "" + player + " has been added to challenge watch by " + name);
                             m_botAction.sendChatMessage(2, "" + player + " has been added to challenge watch by " + name);                            
                         }
+                    } else if (message.startsWith("!watches")) {
+                        command_watches(name);
+                        return;
                     }
                 }
                 
@@ -1117,6 +1137,7 @@ public class twdbot extends SubspaceBot {
             try {
                 ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT * FROM tblChallengeBan WHERE fnUserID = " + dbp.getUserID() + " AND fnActive = 1");
                 if (rs.next()) {
+                    m_botAction.SQLClose(rs);
                     m_botAction.sendSmartPrivateMessage(name, "This ban already exists.");
                     return;
                 }
@@ -1127,7 +1148,41 @@ public class twdbot extends SubspaceBot {
             } catch (SQLException e) {
                 Tools.printStackTrace(e);
             }
+        } else
+            m_botAction.sendSmartPrivateMessage(name, "Player not found.");
+    }
+    
+    public void command_challengeUnban(String name, String msg) {
+        DBPlayerData dbp = new DBPlayerData(m_botAction, webdb, msg, false);
+        if (dbp.checkPlayerExists()) {
+            try {
+                ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT * FROM tblChallengeBan WHERE fnUserID = " + dbp.getUserID() + " AND fnActive = 1");
+                if (rs.next()) {
+                    m_botAction.SQLClose(rs);
+                    m_botAction.SQLQueryAndClose(webdb, "UPDATE tblChallengeBan SET fnActive = 0 WHERE fnUserID = " + dbp.getUserID());
+                    m_botAction.sendChatMessage(1, "" + dbp.getUserName() + " challenge ban removed by " + name);
+                    m_botAction.sendChatMessage(2, "" + dbp.getUserName() + " challenge ban removed by " + name);
+                    return;
+                } else {
+                    m_botAction.SQLClose(rs);
+                    m_botAction.sendSmartPrivateMessage(name, "No ban found for " + dbp.getUserName() + ".");                    
+                }
+            } catch (SQLException e) {
+                Tools.printStackTrace(e);
+            }
+        } else
+            m_botAction.sendSmartPrivateMessage(name, "Player not found.");        
+    }
+    
+    public void command_watches(String name) {
+        String watches = "Current challenge watches: ";
+        for (String p: m_watches) {
+            watches += p + ", ";
         }
+        
+        watches = watches.substring(0, watches.length() - 1);
+        m_botAction.sendChatMessage(1, watches);
+        m_botAction.sendChatMessage(2, watches);
     }
     
     public void commandManualSpawn(String name) {
