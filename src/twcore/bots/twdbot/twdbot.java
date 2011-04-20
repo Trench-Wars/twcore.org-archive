@@ -1143,7 +1143,7 @@ public class twdbot extends SubspaceBot {
                 }
                 m_botAction.SQLClose(rs);
                 m_botAction.SQLQueryAndClose(webdb, "INSERT INTO tblChallengeBan (fnUserID) VALUES(" + dbp.getUserID() + ")");
-                m_botAction.sendChatMessage(1, "" + dbp.getUserName() + " has been challenge banned by " + name);
+                m_botAction.sendChatMessage(3, "" + dbp.getUserName() + " has been challenge banned by " + name);
                 m_botAction.sendChatMessage(2, "" + dbp.getUserName() + " has been challenge banned by " + name);
             } catch (SQLException e) {
                 Tools.printStackTrace(e);
