@@ -1160,8 +1160,8 @@ public class twdbot extends SubspaceBot {
                 if (rs.next()) {
                     m_botAction.SQLClose(rs);
                     m_botAction.SQLQueryAndClose(webdb, "UPDATE tblChallengeBan SET fnActive = 0 WHERE fnUserID = " + dbp.getUserID());
-                    m_botAction.sendChatMessage(1, "" + dbp.getUserName() + " challenge ban removed by " + name);
-                    m_botAction.sendChatMessage(2, "" + dbp.getUserName() + " challenge ban removed by " + name);
+                    m_botAction.sendChatMessage(2, "" + dbp.getUserName() + "'s challenge ban has been removed by " + name);
+                    m_botAction.sendChatMessage(3, "" + dbp.getUserName() + "'s challenge ban has been removed by " + name);
                     return;
                 } else {
                     m_botAction.SQLClose(rs);
