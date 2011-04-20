@@ -1175,14 +1175,14 @@ public class twdbot extends SubspaceBot {
     }
     
     public void command_watches(String name) {
-        String watches = "Current challenge watches: ";
+        String watches = "Challenge watches: ";
         for (String p: m_watches) {
             watches += p + ", ";
         }
         
-        watches = watches.substring(0, watches.length() - 1);
-        m_botAction.sendChatMessage(1, watches);
+        watches = watches.substring(0, watches.length() - 2);
         m_botAction.sendChatMessage(2, watches);
+        m_botAction.sendChatMessage(3, watches);
     }
     
     public void commandManualSpawn(String name) {
