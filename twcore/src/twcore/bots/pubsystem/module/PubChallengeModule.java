@@ -35,6 +35,7 @@ public class PubChallengeModule extends AbstractModule {
     private Map<String,Challenge> challenges;
     private Map<String,StartLagout> laggers;
     private Map<String,Long> spam;
+    private LinkedList<String> noplay;
     
     // added this due to multiple people asking me to fix, 
     // i didn't know if sharks should get shrap or not so i made it changeable
@@ -77,6 +78,8 @@ public class PubChallengeModule extends AbstractModule {
         	return;
         
         String name = p.getPlayerName();
+        
+        noplay.remove(name.toLowerCase());
         
         Dueler dueler = duelers.get(name);
         if (dueler == null)
@@ -290,6 +293,12 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(challenger, "This player is already dueling.");
             return;
         }
+        
+        if(noplay.contains(challenged.toLowerCase())) {
+            m_botAction.sendSmartPrivateMessage(challenger, "This player is not accepting challenges.");
+            return;            
+        }
+        
         String key = challenger.toLowerCase() + "-" + challenged.toLowerCase(); 
         if (spam.containsKey(key) && ((System.currentTimeMillis() - spam.get(key)) < 30*Tools.TimeInMillis.SECOND)) {
             m_botAction.sendSmartPrivateMessage(challenger, "Please wait 30 seconds before challenging this player again.");
@@ -757,6 +766,15 @@ public class PubChallengeModule extends AbstractModule {
     	        
     }
     
+    private void notDueling(String name) {
+        if (noplay.remove(name.toLowerCase())) {
+            m_botAction.sendPrivateMessage(name, "You will now receive future dueling challenges.");
+        } else {
+            noplay.add(name.toLowerCase());
+            m_botAction.sendPrivateMessage(name, "You will no not receive future dueling challenges.");
+        }
+    }
+    
     private void givePrize(String name) {
     	
     	m_botAction.shipReset(name);
@@ -1217,6 +1235,8 @@ public class PubChallengeModule extends AbstractModule {
             returnFromLagout(sender);
         else if(command.equalsIgnoreCase("!ld") || command.equalsIgnoreCase("!duels"))
             listDuels(sender);
+        else if(command.equals("!npduel"))
+            notDueling(sender);
             
 	}
 	
@@ -1337,6 +1357,7 @@ public class PubChallengeModule extends AbstractModule {
                 pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played. (!ld)"),
                 pubsystem.getHelpLine("!beton <name>:<$>             -- Bet on <name> to win a duel."),
                 pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
+                pubsystem.getHelpLine("!npduel                       -- Enables or disables you from receiving duel challenges."),
 	        };
 		else
 			return new String[] {
@@ -1344,6 +1365,7 @@ public class PubChallengeModule extends AbstractModule {
 				pubsystem.getHelpLine("!challenge <name>:<ship>      -- Challenge a player to " + deaths + " in a specific ship (1-8)."),
 				pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
 				pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent. (!rm)"),
+                pubsystem.getHelpLine("!npduel                       -- Enables or disables you from receiving duel challenges."),
 	        };
 	}
 
@@ -1371,6 +1393,7 @@ public class PubChallengeModule extends AbstractModule {
 	        this.challenges = new HashMap<String, Challenge>();
 	        this.laggers = new HashMap<String,StartLagout>();
 	        this.spam = new HashMap<String,Long>();
+	        this.noplay = new LinkedList<String>();
 	
 	        // Setting Duel Areas
 	        for(int i=1; i<m_botAction.getBotSettings().getInt("duel_area")+1; i++) {
