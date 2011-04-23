@@ -1382,7 +1382,7 @@ public class PubMoneySystemModule extends AbstractModule {
         else if( m_botAction.getOperatorList().isOwner(sender) && command.startsWith("!addmoney")) {
         	doCmdAddMoney(sender,command);
         }
-        else if (command.startsWith("!c")) {
+        else if (command.startsWith("!coupon") || command.startsWith("!c")){
         	  
     		// Coupon System commands
         	boolean operator = couponOperators.contains(sender.toLowerCase());
@@ -1392,19 +1392,19 @@ public class PubMoneySystemModule extends AbstractModule {
         	if (operator || smod) {
         		
     			if (command.startsWith("!couponcreate ") || command.startsWith("!cc ")) {
-    				doCmdCouponCreate(sender, command.substring(14).trim());
+    				doCmdCouponCreate(sender, command.substring(command.indexOf(" ") + 1).trim());
     			} else if (command.startsWith("!couponlimituse ") || command.startsWith("!clu ")) {
-    				doCmdCouponLimitUse(sender, command.substring(16).trim());
+    				doCmdCouponLimitUse(sender, command.substring(command.indexOf(" ") + 1).trim());
     			} else if (command.startsWith("!couponexpiredate ") || command.startsWith("!ced ")) {
-    				doCmdCouponExpireDate(sender, command.substring(18).trim());
+    				doCmdCouponExpireDate(sender, command.substring(command.indexOf(" ") + 1).trim());
     			} else if (command.startsWith("!couponinfo ") || command.startsWith("!ci ")) {
-    				doCmdCouponInfo(sender, command.substring(12).trim());
+    				doCmdCouponInfo(sender, command.substring(command.indexOf(" ") + 1).trim());
     			} else if (command.startsWith("!couponusers ") || command.startsWith("!cu ")) {
-    				doCmdCouponUsers(sender, command.substring(13).trim());
+    				doCmdCouponUsers(sender, command.substring(command.indexOf(" ") + 1).trim());
     			} else if (command.startsWith("!couponenable ") || command.startsWith("!ce ")) {
-    				doCmdCouponEnable(sender, command.substring(14).trim());
+    				doCmdCouponEnable(sender, command.substring(command.indexOf(" ") + 1).trim());
     			} else if (command.startsWith("!coupondisable ") || command.startsWith("!cd ")) {
-    				doCmdCouponDisable(sender, command.substring(15).trim());
+    				doCmdCouponDisable(sender, command.substring(command.indexOf(" ") + 1).trim());
     			}
 
         	}
