@@ -768,10 +768,10 @@ public class PubChallengeModule extends AbstractModule {
     
     private void notDueling(String name) {
         if (noplay.remove(name.toLowerCase())) {
-            m_botAction.sendPrivateMessage(name, "You will now receive future dueling challenges.");
+            m_botAction.sendPrivateMessage(name, "You will now receive dueling challenges.");
         } else {
             noplay.add(name.toLowerCase());
-            m_botAction.sendPrivateMessage(name, "You will no not receive future dueling challenges.");
+            m_botAction.sendPrivateMessage(name, "You will no longer receive dueling challenges.");
         }
     }
     
