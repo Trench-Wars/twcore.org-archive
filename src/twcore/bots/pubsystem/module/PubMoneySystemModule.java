@@ -1382,7 +1382,7 @@ public class PubMoneySystemModule extends AbstractModule {
         else if( m_botAction.getOperatorList().isOwner(sender) && command.startsWith("!addmoney")) {
         	doCmdAddMoney(sender,command);
         }
-        else if (command.startsWith("!coupon")) {
+        else if (command.startsWith("!c")) {
         	  
     		// Coupon System commands
         	boolean operator = couponOperators.contains(sender.toLowerCase());
