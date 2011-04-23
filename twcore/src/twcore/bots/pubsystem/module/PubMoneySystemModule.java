@@ -166,7 +166,7 @@ public class PubMoneySystemModule extends AbstractModule {
             	PubPlayer buyer = playerManager.getPlayer(playerName);
             	final PubItem item = store.buy(itemName, buyer, params);
             	final PubPlayer receiver;
-
+            	
             	// Is it an item bought for someone else?
             	// If yes, change the receiver for this player and not the buyer
                 if (item.isPlayerStrict() || (item.isPlayerOptional() && !params.trim().isEmpty())) {
@@ -1391,19 +1391,19 @@ public class PubMoneySystemModule extends AbstractModule {
         	// (Operator/SMOD only)
         	if (operator || smod) {
         		
-    			if (command.startsWith("!couponcreate ")) {
+    			if (command.startsWith("!couponcreate ") || command.startsWith("!cc ")) {
     				doCmdCouponCreate(sender, command.substring(14).trim());
-    			} else if (command.startsWith("!couponlimituse ")) {
+    			} else if (command.startsWith("!couponlimituse ") || command.startsWith("!clu ")) {
     				doCmdCouponLimitUse(sender, command.substring(16).trim());
-    			} else if (command.startsWith("!couponexpiredate ")) {
+    			} else if (command.startsWith("!couponexpiredate ") || command.startsWith("!ced ")) {
     				doCmdCouponExpireDate(sender, command.substring(18).trim());
-    			} else if (command.startsWith("!couponinfo ")) {
+    			} else if (command.startsWith("!couponinfo ") || command.startsWith("!ci ")) {
     				doCmdCouponInfo(sender, command.substring(12).trim());
-    			} else if (command.startsWith("!couponusers ")) {
+    			} else if (command.startsWith("!couponusers ") || command.startsWith("!cu ")) {
     				doCmdCouponUsers(sender, command.substring(13).trim());
-    			} else if (command.startsWith("!couponenable ")) {
+    			} else if (command.startsWith("!couponenable ") || command.startsWith("!ce ")) {
     				doCmdCouponEnable(sender, command.substring(14).trim());
-    			} else if (command.startsWith("!coupondisable ")) {
+    			} else if (command.startsWith("!coupondisable ") || command.startsWith("!cd ")) {
     				doCmdCouponDisable(sender, command.substring(15).trim());
     			}
 
@@ -1456,16 +1456,16 @@ public class PubMoneySystemModule extends AbstractModule {
 		};
 		
     	String generation[] = new String[] {
-    		pubsystem.getHelpLine("!couponcreate <money>            -- Create a random code for <money>. Use !limituse/!expiredate for more options."),
-    		pubsystem.getHelpLine("!couponcreate <code>:<money>     -- Create a custom code for <money>. Max of 32 characters."),
-    		pubsystem.getHelpLine("!couponlimituse <code>:<max>     -- Set how many players <max> can get this <code>."),
-    		pubsystem.getHelpLine("!couponexpiredate <code>:<date>  -- Set an expiration <date> (format: yyyy/mm/dd) for <code>."),
+    		pubsystem.getHelpLine("!couponcreate <money>            -- (!cc) Create a random code for <money>. Use !limituse/!expiredate for more options."),
+    		pubsystem.getHelpLine("!couponcreate <code>:<money>     -- (!cc) Create a custom code for <money>. Max of 32 characters."),
+    		pubsystem.getHelpLine("!couponlimituse <code>:<max>     -- (!clu) Set how many players <max> can get this <code>."),
+    		pubsystem.getHelpLine("!couponexpiredate <code>:<date>  -- (!ced) Set an expiration <date> (format: yyyy/mm/dd) for <code>."),
     	};
     	
     	String maintenance[] = new String[] {
-    		pubsystem.getHelpLine("!couponinfo <code>               -- Information about this <code>."),
-    		pubsystem.getHelpLine("!couponusers <code>              -- Who used this code."),
-    		pubsystem.getHelpLine("!couponenable / !coupondisable <code>  -- Enable/disable <code>."),
+    		pubsystem.getHelpLine("!couponinfo <code>               -- (!ci) Information about this <code>."),
+    		pubsystem.getHelpLine("!couponusers <code>              -- (!cu) Who used this code."),
+    		pubsystem.getHelpLine("!couponenable / !coupondisable <code>  -- (!ce/!cd) Enable/disable <code>."),
     	};
     	
     	String bot[] = new String[] {
