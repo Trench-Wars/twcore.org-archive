@@ -3,8 +3,10 @@ package twcore.bots.matchbot;
 import java.io.File;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.TimerTask;
@@ -910,7 +912,7 @@ public class matchbot extends SubspaceBot {
                 }
                 
                 if (isChallengeBanned(dp)) {
-                    m_botAction.sendPrivateMessage(name, "You have been banned for challenge abuse.");
+                    m_botAction.sendPrivateMessage(name, "You have been challenge banned for spamming. Time remaining: " + getBanTime(dp.getUserID()));
                     return;
                 }
 
@@ -1012,7 +1014,7 @@ public class matchbot extends SubspaceBot {
                     }
                     
                     if (isChallengeBanned(dp)) {
-                        m_botAction.sendPrivateMessage(name, "You have been banned for challenge abuse.");
+                        m_botAction.sendPrivateMessage(name, "You have been challenge banned for spamming. Time remaining: " + getBanTime(dp.getUserID()));
                         return;
                     }
 
@@ -1081,7 +1083,7 @@ public class matchbot extends SubspaceBot {
                 }
                 
                 if (isChallengeBanned(dp)) {
-                    m_botAction.sendPrivateMessage(name, "You have been banned for challenge abuse.");
+                    m_botAction.sendPrivateMessage(name, "You have been challenge banned for spamming. Time remaining: " + getBanTime(dp.getUserID()));
                     return;
                 }
 
@@ -1164,7 +1166,7 @@ public class matchbot extends SubspaceBot {
 
                 
                 if (isChallengeBanned(dp)) {
-                    m_botAction.sendPrivateMessage(name, "You have been banned for challenge abuse.");
+                    m_botAction.sendPrivateMessage(name, "You have been challenge banned for spamming. Time remaining: " + getBanTime(dp.getUserID()));
                     return;
                 }
                 
@@ -1464,6 +1466,37 @@ public class matchbot extends SubspaceBot {
             }
         } else
             return false;
+    }
+    
+    public String getBanTime(int id) {
+        String end = "";
+        String now = "";
+        int days = 0;
+        int hours = 0;
+        int mins = 0;
+        try {
+            ResultSet rs = m_botAction.SQLQuery(dbConn, "SELECT NOW() as now, DATE_ADD(fdDateCreated, INTERVAL 1 DAY) as end FROM tblChallengeBan WHERE fnUserID = " + id + " AND fnActive = 1");
+            if (rs.next()) {
+                end = rs.getString("end");
+                now = rs.getString("now");
+                String[] etime = end.substring(end.indexOf(" ") + 1).split(":");
+                String[] ntime = now.substring(now.indexOf(" ") + 1).split(":");
+                
+                hours = Integer.valueOf(etime[0]) + (24 - Integer.valueOf(ntime[0]));
+                mins = Integer.valueOf(etime[1]) + (60 - Integer.valueOf(ntime[1]));
+                
+                etime = end.substring(0, end.indexOf(" ")).split("-");
+                ntime = now.substring(0, now.indexOf(" ")).split("-");
+                days = Integer.valueOf(etime[2]) - (Integer.valueOf(ntime[2]) + 1);
+                
+            }
+        } catch (SQLException e) {
+            Tools.printStackTrace(e);
+        }
+        
+        
+        
+        return "" + hours + " hours " + mins + " minutes";
     }
 
     public void command_setoff(String name) {
