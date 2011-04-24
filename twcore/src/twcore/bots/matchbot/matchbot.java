@@ -1482,7 +1482,7 @@ public class matchbot extends SubspaceBot {
                 String[] etime = end.substring(end.indexOf(" ") + 1).split(":");
                 String[] ntime = now.substring(now.indexOf(" ") + 1).split(":");
                 
-                hours = Integer.valueOf(etime[0]) + (24 - Integer.valueOf(ntime[0]));
+                hours = Integer.valueOf(etime[0]) + (23 - Integer.valueOf(ntime[0]));
                 mins = Integer.valueOf(etime[1]) + (60 - Integer.valueOf(ntime[1]));
                 
                 etime = end.substring(0, end.indexOf(" ")).split("-");
