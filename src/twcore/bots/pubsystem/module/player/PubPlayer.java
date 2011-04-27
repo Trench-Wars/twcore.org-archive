@@ -29,6 +29,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private String name;
     private int money;
     private LinkedList<PubItemUsed> itemsBought;
+    private LinkedList<PubItemUsed> itemsBoughtForOther;
     private LinkedList<PubItem> itemsBoughtThisLife;
     
     private LvzMoneyPanel cashPanel;
@@ -44,6 +45,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private long lastOptionsUpdate = System.currentTimeMillis();
     private long lastDeath = 0;
     private long lastAttach = 0;
+    private long lastThor = 0;
     
     // Stats
     private int bestStreak = 0;
@@ -64,6 +66,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
         this.name = name;
         this.money = money;
         this.itemsBought = new LinkedList<PubItemUsed>();
+        this.itemsBoughtForOther = new LinkedList<PubItemUsed>();
         this.itemsBoughtThisLife = new LinkedList<PubItem>();
         this.cashPanel = new LvzMoneyPanel(m_botAction);
         reloadPanel(false);
@@ -126,6 +129,11 @@ public class PubPlayer implements Comparable<PubPlayer>{
         this.itemsBought.add(new PubItemUsed(item));
         this.itemsBoughtThisLife.add(item);
     }
+
+    public void addItemForOther(PubItem item, String param) {
+        purgeItemBoughtForOtherHistory();
+        this.itemsBoughtForOther.add(new PubItemUsed(item));
+    }
     
     public void addDeath() {
     	this.lastDeath = System.currentTimeMillis();
@@ -160,6 +168,19 @@ public class PubPlayer implements Comparable<PubPlayer>{
     	}
     }
     
+    private void purgeItemBoughtForOtherHistory() 
+    {
+        Iterator<PubItemUsed> it = itemsBoughtForOther.iterator();
+        while(it.hasNext()) {
+            PubItemUsed item = it.next();
+            if (System.currentTimeMillis()-item.getTime() > MAX_ITEM_USED_HISTORY) {
+                it.remove();
+            } else {
+                break;
+            }
+        }
+    }
+    
     public boolean hasItemActive(PubItem itemToCheck) {
     	if (itemToCheck==null)
     		return false;
@@ -189,6 +210,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
 
     public List<PubItemUsed> getItemsBought() {
     	return itemsBought;
+    }
+
+    public List<PubItemUsed> getItemsBoughtForOther() {
+        return itemsBoughtForOther;
     }
     
     public List<PubItem> getItemsBoughtThisLife() {
@@ -254,6 +279,14 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     public long getLastSavedState() {
     	return lastSavedState;
+    }
+    
+    public long getLastThorUsed() { 
+        return lastThor;
+    }
+    
+    public void setLastThorUsed(long time) {
+        lastThor = time;
     }
 
     @Override
