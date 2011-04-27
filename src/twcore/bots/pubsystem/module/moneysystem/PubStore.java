@@ -236,8 +236,10 @@ public class PubStore {
         			}
         		}
         	}
+        	
+            restriction.checkForOther(item, buyer, m_botAction.getPlayer(player.getPlayerName()).getShipType());
         }
-
+        
         if (buyer.getMoney() < item.getPrice())
         	throw new PubException("You do not have enough money to buy this item.");
         
@@ -246,7 +248,9 @@ public class PubStore {
         	player.addItem(item, params);
         }
         
-        if (buyer != player) {
+        if (buyer != player) {   
+            buyer.addItemForOther(item, params);         
+            
         	m_botAction.sendSmartPrivateMessage(player.getPlayerName(), buyer.getPlayerName() + " has bought you '" + item.getName() + "' for $" + item.getPrice() + ".");
         	m_botAction.sendSmartPrivateMessage(buyer.getPlayerName(), player.getPlayerName() + " has received the item '" + item.getName() + "'.");
         }
