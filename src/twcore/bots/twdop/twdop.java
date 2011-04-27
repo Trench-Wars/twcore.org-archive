@@ -117,6 +117,8 @@ public class twdop extends SubspaceBot {
                 String[] help = {
                         "-----------------------[ TWDOp Bot ]-----------------------",
                         " !status                           - Recalls DB status and TWDOp count",
+                        " !report <player>:<comment>        - Claims a call for helping <player> with <comment>",
+                        "   or !r <player>:<comment>",
                         
                         
                 };
