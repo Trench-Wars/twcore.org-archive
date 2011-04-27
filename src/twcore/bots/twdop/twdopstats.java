@@ -155,9 +155,10 @@ public class twdopstats extends Module {
             m_botAction.sendSmartPrivateMessage(name, "Invalid syntax, please use !report <player>:<comment>");
             return;
         }
-        String[] args = msg.substring(msg.indexOf(" ") + 1).split(":");
+        String player = msg.substring(msg.indexOf(" ") + 1, msg.indexOf(":"));
+        String comment = msg.substring(msg.indexOf(":"));
         
-        if ((args.length != 2) || (args[0].trim().isEmpty()) || (args[1].trim().isEmpty())) {
+        if ((player.trim().isEmpty()) || (comment.trim().isEmpty())) {
             m_botAction.sendSmartPrivateMessage(name, "You must provide the player's name and a brief explanation of the call, use !report <player>:<comment>");
             return;            
         }
@@ -169,8 +170,8 @@ public class twdopstats extends Module {
         };
         String[] values = {
                 name,
-                args[0],
-                args[1]
+                player,
+                comment
         };
         m_botAction.SQLBackgroundInsertInto(mySQLHost, "tblTWDManualCall", fields, values);
         updateStatRecordsONIT(name);
