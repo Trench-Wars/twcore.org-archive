@@ -57,7 +57,7 @@ public class PubItemRestriction {
 	public int getMaxArenaPerMinute() {
 		return maxArenaPerMinute;
 	}
-	
+    
 	public int getMaxPerSecond() {
 		return maxPerSecond;
 	}
@@ -133,6 +133,39 @@ public class PubItemRestriction {
 			}
 		}
 
-	}
+	}	
+    
+    public void checkForOther(PubItem item, PubPlayer player, int shipType) throws PubException {
+        
+        if (ships.contains(shipType))
+            throw new PubException("You cannot buy this item with your current ship.");
+        
+        if (!buyableFromSpec) {
+            if (player.isOnSpec()) {
+                throw new PubException("You cannot buy this item if you are a spectator.");
+            }
+        }
+        
+        if (maxArenaPerMinute!=-1) {
+            long diff = System.currentTimeMillis()-item.getLastTimeUsed();
+            if (diff < maxArenaPerMinute*Tools.TimeInMillis.MINUTE) {
+                throw new PubException("This item has been bought in the past " + maxArenaPerMinute + " minutes, please wait..");
+            }
+        }
+        
+        if (maxPerSecond!=-1) {
+            List<PubItemUsed> items = player.getItemsBoughtForOther();
+            for(int i=0; i<items.size(); i++) {
+                PubItemUsed itemUsed = items.get(i);
+                if (!itemUsed.getItem().getName().equals(item.getName()))
+                    continue;
+                long diff = System.currentTimeMillis()-itemUsed.getTime();
+                if (diff < maxPerSecond*Tools.TimeInMillis.SECOND) {
+                    throw new PubException("You have bought this item for someone in the past " + maxPerSecond + " seconds, please wait...");
+                }
+            }
+        }
+        
+    }
 	
 }
