@@ -59,10 +59,9 @@ public class twdopstats extends Module {
     private void registerCommands(){
         m_commandInterpreter = new CommandInterpreter( m_botAction );
         m_commandInterpreter.registerCommand( "!update", Message.CHAT_MESSAGE, this, "handleUpdateCommand" );
+        m_commandInterpreter.registerCommand( "!report", Message.CHAT_MESSAGE | Message.PRIVATE_MESSAGE | Message.REMOTE_PRIVATE_MESSAGE, this, "handleReport" );
+        m_commandInterpreter.registerCommand( "!r", Message.CHAT_MESSAGE | Message.PRIVATE_MESSAGE | Message.REMOTE_PRIVATE_MESSAGE, this, "handleReport" );
     }
-
-
-
 
     
     /**
@@ -148,7 +147,34 @@ public class twdopstats extends Module {
         }
     }
     
-
+    public void handleReport(String name, String msg) {
+        if (!(twdops.containsKey(name.toLowerCase())) && !(m_botAction.getOperatorList().isOwner(name)))
+            return;
+        
+        if (!msg.contains(" ") || !msg.contains(":")) {
+            m_botAction.sendSmartPrivateMessage(name, "Invalid syntax, please use !report <player>:<comment>");
+            return;
+        }
+        String[] args = msg.substring(msg.indexOf(" ") + 1).split(":");
+        
+        if ((args.length != 2) || (args[0].trim().isEmpty()) || (args[1].trim().isEmpty())) {
+            m_botAction.sendSmartPrivateMessage(name, "You must provide the player's name and a brief explanation of the call, use !report <player>:<comment>");
+            return;            
+        }
+        
+        String[] fields = {
+                "fcOpName",
+                "fcUserName",
+                "fcComment"
+        };
+        String[] values = {
+                name,
+                args[0],
+                args[1]
+        };
+        m_botAction.SQLBackgroundInsertInto(mySQLHost, "tblTWDManualCall", fields, values);
+        updateStatRecordsONIT(name);
+    }
 
     
     
