@@ -224,6 +224,7 @@ public class twdopstats extends Module {
                     message += " (" + rs.getString("fcUserName") + ") - " + rs.getString("fcComment");
                 } while (rs.next());
             }
+            m_botAction.SQLClose(rs);
         } catch(SQLException e) {
             m_botAction.sendSmartPrivateMessage(sender, "Database error.");
             Tools.printStackTrace(e);
@@ -250,23 +251,25 @@ public class twdopstats extends Module {
         
         int num = 0;
         try {
-            num = Integer.valueOf(args[1]);
+            num = Integer.valueOf(args[1].trim());
         } catch(NumberFormatException e) {
             m_botAction.sendSmartPrivateMessage(sender, "Please specify the number of recent claims you want to see.");
             return;               
         }
-        
+        args[0] = args[0].trim();
         try {
             ResultSet rs = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblTWDManualCall WHERE fcUserName = '" + args[0] + "' ORDER BY fdDate DESC LIMIT " + num);
             if (rs.next()) {
                 m_botAction.sendSmartPrivateMessage(sender, "The last " + num + " claims by " + args[0] + ": ");
                 do {
                     String message = rs.getString("fdDate");
-                    message = message.substring(0, message.length() - 3);
                     message += " (" + rs.getString("fcOpName") + ") - " + rs.getString("fcComment");
                     m_botAction.sendSmartPrivateMessage(sender, message);
                 } while (rs.next());
+            } else {
+                m_botAction.sendSmartPrivateMessage(sender, "No records found.");                
             }
+            m_botAction.SQLClose(rs);
         } catch(SQLException e) {
             m_botAction.sendSmartPrivateMessage(sender, "Database error.");
             Tools.printStackTrace(e);
