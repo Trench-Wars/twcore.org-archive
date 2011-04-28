@@ -64,6 +64,8 @@ public class twdopstats extends Module {
         m_commandInterpreter.registerCommand( "!r", Message.CHAT_MESSAGE | Message.PRIVATE_MESSAGE | Message.REMOTE_PRIVATE_MESSAGE, this, "handleReportCommand" );
         m_commandInterpreter.registerCommand( "!claims", Message.PRIVATE_MESSAGE | Message.REMOTE_PRIVATE_MESSAGE, this, "viewClaimsFromOp" );
         m_commandInterpreter.registerCommand( "!calls", Message.PRIVATE_MESSAGE | Message.REMOTE_PRIVATE_MESSAGE, this, "viewClaimsForUser" );
+        m_commandInterpreter.registerCommand( "!claimsfrom", Message.PRIVATE_MESSAGE | Message.REMOTE_PRIVATE_MESSAGE, this, "viewClaimsFromOp" );
+        m_commandInterpreter.registerCommand( "!claimsfor", Message.PRIVATE_MESSAGE | Message.REMOTE_PRIVATE_MESSAGE, this, "viewClaimsForUser" );
     }
 
     
@@ -189,7 +191,11 @@ public class twdopstats extends Module {
     }
     
     
-
+    /**
+     * Displays a list of the most recent records reported from a certain TWDOp
+     * @param sender name of the SMOD+ using command
+     * @param msg contents of command which should be name:number
+     */
     public void viewClaimsFromOp(String sender, String msg) {
         if (!m_botAction.getOperatorList().isSmod(sender))
             return;
@@ -213,11 +219,17 @@ public class twdopstats extends Module {
             m_botAction.sendSmartPrivateMessage(sender, "Please specify the number of recent claims you want to see.");
             return;               
         }
+        
+        if (num < 1 || num > 40) {
+            m_botAction.sendSmartPrivateMessage(sender, "The maximum number of recent records to display is 40.");
+            return;
+        }
+        
         args[0] = args[0].trim();
         try {
             ResultSet rs = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblTWDManualCall WHERE fcOpName = '" + args[0] + "' ORDER BY fdDate DESC LIMIT " + num);
             if (rs.next()) {
-                m_botAction.sendSmartPrivateMessage(sender, "The last " + num + " claims by " + args[0] + ": ");
+                m_botAction.sendSmartPrivateMessage(sender, "Last " + num + " claims reported by " + rs.getString("fcOpName") + ": ");
                 do {
                     String message = rs.getString("fdDate");
                     message = message.substring(message.indexOf("-") + 1, message.lastIndexOf(":"));
@@ -234,6 +246,11 @@ public class twdopstats extends Module {
     
     
     
+    /**
+     * Displays a list of the most recent records reported by TWDOps about a player
+     * @param sender name of the SMOD+ using command
+     * @param msg contents of command which should be name:number
+     */
     public void viewClaimsForUser(String sender, String msg) {
         if (!m_botAction.getOperatorList().isSmod(sender))
             return;
@@ -257,11 +274,17 @@ public class twdopstats extends Module {
             m_botAction.sendSmartPrivateMessage(sender, "Please specify the number of recent claims you want to see.");
             return;               
         }
+        
+        if (num < 1 || num > 40) {
+            m_botAction.sendSmartPrivateMessage(sender, "The maximum number of recent records to display is 40.");
+            return;
+        }
+        
         args[0] = args[0].trim();
         try {
             ResultSet rs = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblTWDManualCall WHERE fcUserName = '" + args[0] + "' ORDER BY fdDate DESC LIMIT " + num);
             if (rs.next()) {
-                m_botAction.sendSmartPrivateMessage(sender, "The last " + num + " calls for " + args[0] + ": ");
+                m_botAction.sendSmartPrivateMessage(sender, "Last " + num + " calls reported about " + rs.getString("fcUserName") + ": ");
                 do {
                     String message = rs.getString("fdDate");
                     message = message.substring(message.indexOf("-") + 1, message.lastIndexOf(":"));
