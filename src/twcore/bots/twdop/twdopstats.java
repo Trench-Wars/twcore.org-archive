@@ -14,6 +14,7 @@ import twcore.bots.Module;
 import twcore.core.EventRequester;
 import twcore.core.command.CommandInterpreter;
 import twcore.core.events.Message;
+import twcore.core.util.Tools;
 
 
 /**
@@ -59,8 +60,10 @@ public class twdopstats extends Module {
     private void registerCommands(){
         m_commandInterpreter = new CommandInterpreter( m_botAction );
         m_commandInterpreter.registerCommand( "!update", Message.CHAT_MESSAGE, this, "handleUpdateCommand" );
-        m_commandInterpreter.registerCommand( "!report", Message.CHAT_MESSAGE | Message.PRIVATE_MESSAGE | Message.REMOTE_PRIVATE_MESSAGE, this, "handleReport" );
-        m_commandInterpreter.registerCommand( "!r", Message.CHAT_MESSAGE | Message.PRIVATE_MESSAGE | Message.REMOTE_PRIVATE_MESSAGE, this, "handleReport" );
+        m_commandInterpreter.registerCommand( "!report", Message.CHAT_MESSAGE | Message.PRIVATE_MESSAGE | Message.REMOTE_PRIVATE_MESSAGE, this, "handleReportCommand" );
+        m_commandInterpreter.registerCommand( "!r", Message.CHAT_MESSAGE | Message.PRIVATE_MESSAGE | Message.REMOTE_PRIVATE_MESSAGE, this, "handleReportCommand" );
+        m_commandInterpreter.registerCommand( "!claims", Message.PRIVATE_MESSAGE | Message.REMOTE_PRIVATE_MESSAGE, this, "viewClaimsFromOp" );
+        m_commandInterpreter.registerCommand( "!calls", Message.PRIVATE_MESSAGE | Message.REMOTE_PRIVATE_MESSAGE, this, "viewClaimsForUser" );
     }
 
     
@@ -147,7 +150,15 @@ public class twdopstats extends Module {
         }
     }
     
-    public void handleReport(String name, String msg) {
+    
+    
+    
+    /**
+     * Creates a record of the TWD Op's claim to help a player and increments stat points
+     * @param name the name of the TWD Op who used the command
+     * @param msg the contents of the command which should be player name:comment
+     */
+    public void handleReportCommand(String name, String msg) {
         if (!(twdops.containsKey(name.toLowerCase())) && !(m_botAction.getOperatorList().isOwner(name)))
             return;
         
@@ -176,7 +187,93 @@ public class twdopstats extends Module {
         m_botAction.SQLBackgroundInsertInto(mySQLHost, "tblTWDManualCall", fields, values);
         updateStatRecordsONIT(name);
     }
+    
+    
 
+    public void viewClaimsFromOp(String sender, String msg) {
+        if (!m_botAction.getOperatorList().isSmod(sender))
+            return;
+        
+        if (!msg.contains(":")) {
+            m_botAction.sendSmartPrivateMessage(sender, "Invalid syntax, please use !claims <name>:<# of recent claims>");
+            return;
+        }
+        
+        String[] args = msg.split(":");
+        
+        if ((args.length != 2) || (args[0].trim().isEmpty()) || (args[1].trim().isEmpty())) {
+            m_botAction.sendSmartPrivateMessage(sender, "Invalid syntax, please use !claims <name>:<# of recent claims>");
+            return;            
+        }
+        
+        int num = 0;
+        try {
+            num = Integer.valueOf(args[1]);
+        } catch(NumberFormatException e) {
+            m_botAction.sendSmartPrivateMessage(sender, "Please specify the number of recent claims you want to see.");
+            return;               
+        }
+        
+        try {
+            ResultSet rs = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblTWDManualCall WHERE fcOpName = '" + args[0] + "' ORDER BY fdDate DESC LIMIT " + num);
+            if (rs.next()) {
+                m_botAction.sendSmartPrivateMessage(sender, "The last " + num + " claims by " + args[0] + ": ");
+                do {
+                    String message = rs.getString("fdDate");
+                    message = message.substring(0, message.length() - 3);
+                    message += " (" + rs.getString("fcUserName") + ") - " + rs.getString("fcComment");
+                } while (rs.next());
+            }
+        } catch(SQLException e) {
+            m_botAction.sendSmartPrivateMessage(sender, "Database error.");
+            Tools.printStackTrace(e);
+        }
+    }
+    
+    
+    
+    public void viewClaimsForUser(String sender, String msg) {
+        if (!m_botAction.getOperatorList().isSmod(sender))
+            return;
+        
+        if (!msg.contains(":")) {
+            m_botAction.sendSmartPrivateMessage(sender, "Invalid syntax, please use !claimsfor <player>:<# of recent claims>");
+            return;
+        }
+        
+        String[] args = msg.split(":");
+        
+        if ((args.length != 2) || (args[0].trim().isEmpty()) || (args[1].trim().isEmpty())) {
+            m_botAction.sendSmartPrivateMessage(sender, "Invalid syntax, please use !claimsfor <player>:<# of recent claims>");
+            return;            
+        }
+        
+        int num = 0;
+        try {
+            num = Integer.valueOf(args[1]);
+        } catch(NumberFormatException e) {
+            m_botAction.sendSmartPrivateMessage(sender, "Please specify the number of recent claims you want to see.");
+            return;               
+        }
+        
+        try {
+            ResultSet rs = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblTWDManualCall WHERE fcUserName = '" + args[0] + "' ORDER BY fdDate DESC LIMIT " + num);
+            if (rs.next()) {
+                m_botAction.sendSmartPrivateMessage(sender, "The last " + num + " claims by " + args[0] + ": ");
+                do {
+                    String message = rs.getString("fdDate");
+                    message = message.substring(0, message.length() - 3);
+                    message += " (" + rs.getString("fcOpName") + ") - " + rs.getString("fcComment");
+                    m_botAction.sendSmartPrivateMessage(sender, message);
+                } while (rs.next());
+            }
+        } catch(SQLException e) {
+            m_botAction.sendSmartPrivateMessage(sender, "Database error.");
+            Tools.printStackTrace(e);
+        }
+        
+    }
+    
     
     
     
