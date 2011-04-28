@@ -125,7 +125,9 @@ public class twdop extends SubspaceBot {
 
                 String[] smodHelp = {
                         " !die                               - Disconnects TWDOp",
-                        " !update                            - Reloads TWDOps for use."
+                        " !update                            - Reloads TWDOps for use.",
+                        " !claims <TWD Op>:<#>               - Displays the last <#> calls reported by <TWD Op>.",
+                        " !calls <player>:<#>                - Displays the last <#> calls about <player>."
                 };
 
                 m_botAction.smartPrivateMessageSpam(senderName, help);
