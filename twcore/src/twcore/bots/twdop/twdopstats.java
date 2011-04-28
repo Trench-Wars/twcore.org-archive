@@ -208,20 +208,21 @@ public class twdopstats extends Module {
         
         int num = 0;
         try {
-            num = Integer.valueOf(args[1]);
+            num = Integer.valueOf(args[1].trim());
         } catch(NumberFormatException e) {
             m_botAction.sendSmartPrivateMessage(sender, "Please specify the number of recent claims you want to see.");
             return;               
         }
-        
+        args[0] = args[0].trim();
         try {
             ResultSet rs = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblTWDManualCall WHERE fcOpName = '" + args[0] + "' ORDER BY fdDate DESC LIMIT " + num);
             if (rs.next()) {
                 m_botAction.sendSmartPrivateMessage(sender, "The last " + num + " claims by " + args[0] + ": ");
                 do {
                     String message = rs.getString("fdDate");
-                    message = message.substring(0, message.length() - 3);
+                    message = message.substring(message.indexOf("-") + 1, message.lastIndexOf(":"));
                     message += " (" + rs.getString("fcUserName") + ") - " + rs.getString("fcComment");
+                    m_botAction.sendSmartPrivateMessage(sender, message);
                 } while (rs.next());
             }
             m_botAction.SQLClose(rs);
@@ -260,9 +261,10 @@ public class twdopstats extends Module {
         try {
             ResultSet rs = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblTWDManualCall WHERE fcUserName = '" + args[0] + "' ORDER BY fdDate DESC LIMIT " + num);
             if (rs.next()) {
-                m_botAction.sendSmartPrivateMessage(sender, "The last " + num + " claims by " + args[0] + ": ");
+                m_botAction.sendSmartPrivateMessage(sender, "The last " + num + " calls for " + args[0] + ": ");
                 do {
                     String message = rs.getString("fdDate");
+                    message = message.substring(message.indexOf("-") + 1, message.lastIndexOf(":"));
                     message += " (" + rs.getString("fcOpName") + ") - " + rs.getString("fcComment");
                     m_botAction.sendSmartPrivateMessage(sender, message);
                 } while (rs.next());
