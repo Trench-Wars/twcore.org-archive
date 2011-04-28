@@ -151,15 +151,15 @@ public class twdopstats extends Module {
         if (!(twdops.containsKey(name.toLowerCase())) && !(m_botAction.getOperatorList().isOwner(name)))
             return;
         
-        if (!msg.contains(" ") || !msg.contains(":")) {
-            m_botAction.sendSmartPrivateMessage(name, "Invalid syntax, please use !report <player>:<comment>");
+        if (!msg.contains(":")) {
+            m_botAction.sendSmartPrivateMessage(name, "Invalid syntax, please use !r <player>:<comment>");
             return;
         }
-        String player = msg.substring(msg.indexOf(" ") + 1, msg.indexOf(":"));
+        String player = msg.substring(msg.indexOf(":"));
         String comment = msg.substring(msg.indexOf(":") + 1);
         
         if ((player.trim().isEmpty()) || (comment.trim().isEmpty())) {
-            m_botAction.sendSmartPrivateMessage(name, "You must provide the player's name and a brief explanation of the call, use !report <player>:<comment>");
+            m_botAction.sendSmartPrivateMessage(name, "You must provide the player's name and a brief explanation of the call, use !r <player>:<comment>");
             return;            
         }
         
