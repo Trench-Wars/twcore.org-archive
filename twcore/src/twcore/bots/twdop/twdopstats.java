@@ -156,7 +156,7 @@ public class twdopstats extends Module {
             return;
         }
         String player = msg.substring(msg.indexOf(" ") + 1, msg.indexOf(":"));
-        String comment = msg.substring(msg.indexOf(":"));
+        String comment = msg.substring(msg.indexOf(":") + 1);
         
         if ((player.trim().isEmpty()) || (comment.trim().isEmpty())) {
             m_botAction.sendSmartPrivateMessage(name, "You must provide the player's name and a brief explanation of the call, use !report <player>:<comment>");
