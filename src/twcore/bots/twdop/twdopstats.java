@@ -155,7 +155,7 @@ public class twdopstats extends Module {
             m_botAction.sendSmartPrivateMessage(name, "Invalid syntax, please use !r <player>:<comment>");
             return;
         }
-        String player = msg.substring(msg.indexOf(":"));
+        String player = msg.substring(0, msg.indexOf(":"));
         String comment = msg.substring(msg.indexOf(":") + 1);
         
         if ((player.trim().isEmpty()) || (comment.trim().isEmpty())) {
