@@ -748,7 +748,7 @@ public class staffbot_banc extends Module {
 
     private boolean sendBanCs(String stafferName, String name, int limit) throws SQLException{
         this.cmdListBan(stafferName, "-player='"+name+"'",false);
-        /* List<String> list = new ArrayList<String>();
+         /*List<String> list = new ArrayList<String>();
         
         String query;
         
@@ -1025,7 +1025,7 @@ public class staffbot_banc extends Module {
             else if(command.startsWith(BanCType.SILENCE.toString())) {
                 BanC banc = lookupActiveBanC(BanCType.SILENCE, command.substring(8));
                 if(banc != null && banc.isNotification()) {
-                    m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)silenced.");
+                    m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)silenced. (Banc #"+banc.getId()+")");
                     
                 } else if(banc == null) {
                     m_botAction.sendChatMessage("Player '"+command.substring(8)+"' has been (re)silenced.");
@@ -1041,7 +1041,7 @@ public class staffbot_banc extends Module {
             } else if(command.startsWith(BanCType.SPEC.toString())) {
                 BanC banc = lookupActiveBanC(BanCType.SPEC, command.substring(5));
                 if(banc != null && banc.isNotification()) {
-                    m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)locked in spectator.");
+                    m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)locked in spectator. (Banc #"+banc.getId()+")");
                 } else if(banc == null) {
                     m_botAction.sendChatMessage("Player '"+command.substring(5)+"' has been (re)locked in spectator.");
                 }//SPEC PLAYER
@@ -1051,7 +1051,7 @@ public class staffbot_banc extends Module {
                 //0123456789T
                 BanC banc = lookupActiveBanC(BanCType.SUPERSPEC, command.substring(10));
                 if(banc != null && banc.isNotification()){
-                    m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)superlocked in spectator. He tried to enter in ship: 2, 4 or 8.");
+                    m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)superlocked in spectator. (Banc #"+banc.getId()+")");
                 } else if(banc == null){
                     m_botAction.sendChatMessage("Player '"+command.substring(10)+"' has been (re)superlocked in spectator. He tried to enter in ship: 2, 4 or 8.");
                 }
@@ -1456,20 +1456,22 @@ public class staffbot_banc extends Module {
                 ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
                 
                 if(rs.next()) {
-                    
+                    long now = System.currentTimeMillis() / 1000 / 60;
+                    int duration = rs.getInt("fnDuration");
                     String result = "";
                     result += (rs.getBoolean("active")?"#":"^");
                     result += rs.getString("fnID") + " ";
                     if(rs.getString("fcMinAccess") != null) {
-                        result += "access:" + rs.getString("fcMinAccess") + " ";
+                        result += "Access:" + rs.getString("fcMinAccess") + " ";
                     }
-                    result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
+                    result += "By " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
                     result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + "  ";
                     result += Tools.formatString(rs.getString("fcType"),7) + "  ";
-                    result += "mins:"+Tools.formatString(rs.getString("fnDuration"), 5) + "  ";
+                    result += "Duration:"+Tools.formatString(rs.getString("fnDuration"), 5) + "  ";
                     result += rs.getString("fcUsername");
+                    result +=  duration - now + " time remaining until expire.";
                 
-                    m_botAction.sendRemotePrivateMessage(name, result);
+                    m_botAction.sendSmartPrivateMessage(name, result);
                     
                     if(m_botAction.getOperatorList().isModerator(name)) {
                         String IP = rs.getString("fcIP");
