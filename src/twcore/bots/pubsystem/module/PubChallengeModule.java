@@ -960,6 +960,7 @@ public class PubChallengeModule extends AbstractModule {
         private String challenger, accepter;
         private DuelArea area;
         private int ship;
+        private Random random;
         
         private StartDuel(Challenge challenge)
         {
@@ -1011,10 +1012,17 @@ public class PubChallengeModule extends AbstractModule {
             }
             if (ship>0 && iaccship!=ship) {
             	m_botAction.setShip(accepter, ship);
-            }            
-            
-            m_botAction.setFreq(challenger, 0);
-            m_botAction.setFreq(accepter, 1);
+            }
+
+            random = new Random();
+
+            //private frequency range (minus 1 for other dueler)
+            long range = (long) 9997 - (long) 100 + 1;
+            long fraction = (long) (range * random.nextDouble());
+            int frequency = (int) (fraction + 100);
+
+            m_botAction.setFreq(challenger, frequency);
+            m_botAction.setFreq(accepter, frequency + 1);
             m_botAction.warpTo(challenger, area.warp1x, area.warp1y);
             m_botAction.warpTo(accepter, area.warp2x, area.warp2y);
             givePrize(challenger);
