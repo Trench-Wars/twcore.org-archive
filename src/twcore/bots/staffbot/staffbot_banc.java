@@ -1028,7 +1028,7 @@ public class staffbot_banc extends Module {
                     m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)silenced. (BanC #"+banc.getId()+")");
                     
                 } else if(banc == null) {
-                    m_botAction.sendChatMessage("Player '"+command.substring(8)+"' has been (re)silenced.");
+                    m_botAction.sendChatMessage("Player '"+command.substring(8)+"' has been (re)silenced. (BanC #"+banc.getId()+")");
                 }
                 
             } else if(command.startsWith("REMOVE "+BanCType.SILENCE.toString())) {
@@ -1043,7 +1043,7 @@ public class staffbot_banc extends Module {
                 if(banc != null && banc.isNotification()) {
                     m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)locked in spectator. (BanC #"+banc.getId()+")");
                 } else if(banc == null) {
-                    m_botAction.sendChatMessage("Player '"+command.substring(5)+"' has been (re)locked in spectator.");
+                    m_botAction.sendChatMessage("Player '"+command.substring(5)+"' has been (re)locked in spectator. (BanC #"+banc.getId()+")");
                 }//SPEC PLAYER
                  //012345
             } else if(command.startsWith(BanCType.SUPERSPEC.toString())){
@@ -1053,7 +1053,7 @@ public class staffbot_banc extends Module {
                 if(banc != null && banc.isNotification()){
                     m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)superlocked in spectator. (BanC #"+banc.getId()+")");
                 } else if(banc == null){
-                    m_botAction.sendChatMessage("Player '"+command.substring(10)+"' has been (re)superlocked in spectator. He tried to enter in ship: 2, 4 or 8.");
+                    m_botAction.sendChatMessage("Player '"+command.substring(10)+"' has been (re)superlocked in spectator. (BanC #"+banc.getId()+")");
                 }
             }else if(command.startsWith("REMOVE "+BanCType.SUPERSPEC.toString())) {
                 //REMOVE SUPERSPEC
