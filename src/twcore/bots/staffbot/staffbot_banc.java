@@ -1750,10 +1750,10 @@ public class staffbot_banc extends Module {
                         banc.calculateExpired();
                         if(banc.isExpired()) {
                             switch(banc.type) {
-                                case SILENCE :  m_botAction.sendChatMessage("Auto-silence BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " Authorized by "+banc.getStaffer()); break;
-                                case SPEC :     m_botAction.sendChatMessage("Auto-speclock BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " Authorized by "+banc.getStaffer()); break;
+                                case SILENCE :  m_botAction.sendChatMessage("Auto-silence BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " minute(s)." + " Authorized by "+banc.getStaffer()); break;
+                                case SPEC :     m_botAction.sendChatMessage("Auto-speclock BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " minute(s)." + " Authorized by "+banc.getStaffer()); break;
                                 //case KICK :   m_botAction.sendChatMessage("Auto-kick BanC #"+banc.id+" ("+banc.playername+") has expired."); break;
-                                case SUPERSPEC: m_botAction.sendChatMessage("Auto-superspeclock BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " Authorized by "+banc.getStaffer()); break;
+                                case SUPERSPEC: m_botAction.sendChatMessage("Auto-superspeclock BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " minute(s)." + " Authorized by "+banc.getStaffer()); break;
                             }
                             m_botAction.ipcSendMessage(IPCBANC, "REMOVE "+banc.type.toString()+" "+banc.playername, null, "banc");
                             iterator.remove();
@@ -2059,10 +2059,10 @@ public class staffbot_banc extends Module {
                     banc.calculateExpired();
                     if(banc.isExpired()) {
                         switch(banc.type) {
-                            case SILENCE :  m_botAction.sendChatMessage("Auto-silence BanC #"+banc.id+" ("+banc.playername+") has expired.  Duration: "+banc.getDuration() + " Authorized by "+banc.getStaffer()); break;
-                            case SPEC :     m_botAction.sendChatMessage("Auto-speclock BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " Authorized by "+banc.getStaffer()); break;
+                            case SILENCE :  m_botAction.sendChatMessage("Auto-silence BanC #"+banc.id+" ("+banc.playername+") has expired.  Duration: "+banc.getDuration() + " minute(s)." + " Authorized by "+banc.getStaffer()); break;
+                            case SPEC :     m_botAction.sendChatMessage("Auto-speclock BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " minute(s)." + " Authorized by "+banc.getStaffer()); break;
                             //case KICK :   m_botAction.sendChatMessage("Auto-kick BanC #"+banc.id+" ("+banc.playername+") has expired."); break;
-                            case SUPERSPEC: m_botAction.sendChatMessage("Auto-superspec BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " Authorized by "+banc.getStaffer()); break;
+                            case SUPERSPEC: m_botAction.sendChatMessage("Auto-superspec BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " minute(s)." + " Authorized by "+banc.getStaffer()); break;
                         }
                         m_botAction.ipcSendMessage(IPCBANC, "REMOVE "+banc.type.toString()+" "+banc.playername, null, "banc");
                         iterator.remove();
