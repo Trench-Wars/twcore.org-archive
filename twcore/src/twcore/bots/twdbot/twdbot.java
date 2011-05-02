@@ -2055,7 +2055,7 @@ public class twdbot extends SubspaceBot {
     public boolean resetPRegistration(int id) {
 
         try {
-            m_botAction.SQLBackgroundQuery(webdb, null, "INSERT INTO tblAliasSuppression (fdResetTime, fnUserID) VALUES(NOW(), " + id + ")");
+            m_botAction.SQLQueryAndClose(webdb, "UPDATE tblAliasSuppression SET fdResetTime = NOW() WHERE fnUserID = " + id);
             return true;
         } catch (Exception e) {
             return false;
