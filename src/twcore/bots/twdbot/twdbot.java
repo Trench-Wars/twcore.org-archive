@@ -1729,19 +1729,17 @@ public class twdbot extends SubspaceBot {
                 m_botAction.sendSmartPrivateMessage(name, "Unable to reset name.  Please contact a TWD Op for assistance.");
                 return;
             }
-
-            if (isBeingReset(name, message))
+            if (!resetPRegistration(dbP.getUserID()))
+                m_botAction.sendSmartPrivateMessage(name, "Unable to reset name.  Please contact a TWD Op for assistance.");
+            else if (isBeingReset(name, message))
                 return;
-            else if (resetPRegistration(dbP.getUserID())) {
+            else {
                 try {
                     m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblTWDPlayerMID WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'");
                 } catch (SQLException e) {
                     Tools.printStackTrace(e);
                 }
-                m_botAction.sendPrivateMessage(name, "Your name will be reset in 24 hours. Use !resettime to see the remaining time.");
-            } else {
-                m_botAction.sendSmartPrivateMessage(name, "Unable to reset name.  Please contact a TWD Op for assistance.");
-                m_botAction.sendChatMessage(2, name + " has encountered a problem while attempting to use !resetname.");
+                m_botAction.sendSmartPrivateMessage(name, "Your name will be reset in 24 hours.");
             }
         } else {
             if (dbP.hasBeenDisabled()) {
