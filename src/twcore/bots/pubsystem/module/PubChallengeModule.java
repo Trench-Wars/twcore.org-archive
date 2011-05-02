@@ -1016,13 +1016,30 @@ public class PubChallengeModule extends AbstractModule {
 
             random = new Random();
 
+
+
             //private frequency range (minus 1 for other dueler)
             long range = (long) 9997 - (long) 100 + 1;
-            long fraction = (long) (range * random.nextDouble());
-            int frequency = (int) (fraction + 100);
+            int freq1 = 0;
+            int freq2 = 0;
 
-            m_botAction.setFreq(challenger, frequency);
-            m_botAction.setFreq(accepter, frequency + 1);
+            while (freq1 == 0) {
+                long fraction = (long) (range * random.nextDouble());
+                freq1 = (int) (fraction + 100);
+                if (m_botAction.getFrequencySize(freq1) > 0)
+                    freq1 = 0;
+            }
+
+            while (freq2 == 0) {
+                long fraction = (long) (range * random.nextDouble());
+                freq2 = (int) (fraction + 100);
+                if (m_botAction.getFrequencySize(freq2) > 0)
+                    freq2 = 0;
+            }
+
+
+            m_botAction.setFreq(challenger, freq1);
+            m_botAction.setFreq(accepter, freq2);
             m_botAction.warpTo(challenger, area.warp1x, area.warp1y);
             m_botAction.warpTo(accepter, area.warp2x, area.warp2y);
             givePrize(challenger);
