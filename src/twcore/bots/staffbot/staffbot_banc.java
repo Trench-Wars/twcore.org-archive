@@ -139,10 +139,10 @@ public class staffbot_banc extends Module {
     private final String MINACCESS_SYSOP = "SYSOP";
     
     private final Integer[][] BANCLIMITS = {
-            { 120, 60*24*7, 60*24*7, 0},    // BanC limits
-            { 120, 60*24*7, 60*24*7, 0},
+            { 120, 60*24*7, 0, 0},    // BanC limits
+            { 120, 60*24*7, 0, 0},
             //{ null, 30, 60, 0 }, // [BanCType] [Accesslevel]
-            { 120, 60*24*7, 60*24*7, 0}
+            { 120, 60*24*7, 0, 0}
     }; 
     private SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private final int BANC_MAX_DURATION = 525600;   // (365 days in minutes)
