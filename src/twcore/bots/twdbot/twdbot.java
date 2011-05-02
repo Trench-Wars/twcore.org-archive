@@ -1047,6 +1047,13 @@ public class twdbot extends SubspaceBot {
             }
         }
     }
+    
+    public void command_flared() {
+        // list of teams in the division
+        // get ratings from recent matches
+        // 
+        
+    }
 
     public void command_shutdown(String name) {
         m_botAction.sendSmartPrivateMessage(name, "Initiating shutdown of all matchbots.");
@@ -2048,7 +2055,7 @@ public class twdbot extends SubspaceBot {
     public boolean resetPRegistration(int id) {
 
         try {
-            m_botAction.SQLBackgroundQuery(webdb, null, "UPDATE tblAliasSuppression SET fdResetTime = NOW() WHERE fnUserID = " + id);
+            m_botAction.SQLBackgroundQuery(webdb, null, "INSERT INTO tblAliasSuppression (fdResetTime, fnUserID) VALUES(NOW(), " + id + ")");
             return true;
         } catch (Exception e) {
             return false;
