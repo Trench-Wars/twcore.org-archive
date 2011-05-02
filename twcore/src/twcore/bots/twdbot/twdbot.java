@@ -244,11 +244,11 @@ public class twdbot extends SubspaceBot {
     public void checkArenas() {
         if (manualSpawnOverride || shuttingDown)
             return;
-        // checkDiv("twbd");
-        // checkDiv("twdd");
-        // checkDiv("twjd");
-        // checkDiv("twsd");
-        // checkDiv("twfd");
+        checkDiv("twbd");
+        checkDiv("twdd");
+        checkDiv("twjd");
+        checkDiv("twsd");
+        checkDiv("twfd");
         if (otherAlerts)
             m_botAction.sendChatMessage("Checking TWD arenas...");
 
