@@ -9,8 +9,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.Map;
+import java.util.SortedMap;
 import java.util.TimerTask;
 import java.util.ArrayList;
+import java.util.TreeMap;
 import java.util.Vector;
 
 import twcore.core.BotAction;
@@ -873,6 +876,10 @@ public class twdbot extends SubspaceBot {
                 } else if (message.startsWith("!challalerts")) {
                     command_challs(name);
                     return;
+                } else if (message.startsWith("!flared")) {
+                    m_botAction.sendSmartPrivateMessage(name, "received");
+                    command_flared(name);
+                    return;
                 } else if (message.startsWith("!ban ")) {
                     command_challengeBan(name, message.substring(message.indexOf(" ") + 1));
                     return;
@@ -1048,10 +1055,79 @@ public class twdbot extends SubspaceBot {
         }
     }
     
-    public void command_flared() {
+    public void command_flared(String name) {
         // list of teams in the division
         // get ratings from recent matches
         // 
+        HashMap<Integer, LinkedList<TeamInfo>> teamLadder = new HashMap<Integer, LinkedList<TeamInfo>>();
+        LinkedList<TeamInfo> teams = new LinkedList<TeamInfo>();
+        
+        try {
+            ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT * FROM tblTWDLadder l, tblTWDLadderTeam t WHERE l.fnTWDSeasonID = 21 AND l.fnCurrentLadder = 1 AND l.fnTWDLadderID = t.fnTWDLadderID LIMIT 60");
+
+            Integer teamID;
+            Integer ladder;
+            while (rs.next()) {
+                teamID = rs.getInt("t.fnTeamID");
+                ladder = rs.getInt("t.fnTWDLadderID");
+                TeamInfo ti = new TeamInfo(ladder, teamID);
+                if (teamLadder.containsKey(ladder)) {
+                    teamLadder.get(ladder).add(ti);
+                } else {
+                    teamLadder.put(ladder, teams);
+                    teamLadder.get(ladder).add(ti);
+                }
+            }
+            m_botAction.SQLClose(rs);
+            
+            // get latest match
+            for (Integer l: teamLadder.keySet()) {
+                teams = teamLadder.get(l);
+                ladder = l;                
+                for (TeamInfo info: teams) {
+                    teamID = info.ID();
+                    rs = m_botAction.SQLQuery(webdb, "SELECT fnTeam1RatingAfter, fnTeam2RatingAfter, m.fnTeam1ID, m.fnTeam2ID FROM tblMatch m, tblTWDLadder l, tblTWDMatch t WHERE ftTimeEnded IS NOT NULL AND ftTimeEnded < '2011-05-02 00:05:00' AND (fnTeam1ID = " + teamID + " OR fnTeam2ID = " + teamID + ") AND m.fnMatchID = t.fnMatchID ORDER BY fnTimeEnded DESC LIMIT 1");
+                    if (rs.next()) {
+                        if (teamID == rs.getInt("m.fnTeam1ID")) {
+                            info.rating(rs.getInt("fnTeam1RatingAfter"));
+                        } else {
+                            info.rating(rs.getInt("fnTeam2RatingAfter"));                            
+                        }
+                    }
+                }
+            }
+            m_botAction.SQLClose(rs);
+
+            String msg = "";
+            for (Integer l: teamLadder.keySet()) {
+                rs = m_botAction.SQLQuery(webdb, "SELECT fcMatchTypeName FROM tblMatchType t, tblTWDLadder l WHERE l.fnTWDLadderID = " + l + " AND l.fnMatchTypeID = t.fnMatchTypeID LIMIT 1");
+                if (rs.next())
+                    msg += rs.getString("fcMatchTypeName");
+                m_botAction.sendSmartPrivateMessage(name, msg);
+                m_botAction.SQLClose(rs);
+
+                Map<Integer, TeamInfo> ls = new TreeMap<Integer, TeamInfo>();
+                teams = teamLadder.get(l);
+                for (TeamInfo t: teams) {
+                    rs = m_botAction.SQLQuery(webdb, "SELECT fcTeamName FROM tblTeam WHERE fnTeamID = " + t.ID() + " LIMIT 1");
+                    if (rs.next())
+                        t.name(rs.getString("fcTeamName"));
+                    m_botAction.SQLClose(rs);
+                    ls.put(t.rating(), t);
+                }
+                
+                ArrayList<TeamInfo> ratings = (ArrayList<TeamInfo>)ls.values();
+                for (int n = ls.size(); n > 0; n--) {
+                    TeamInfo ti = ratings.get(n-1);
+                    m_botAction.sendSmartPrivateMessage(name, ti.name() + " - " + ti.rating());
+                }
+            }
+            
+            
+            
+        } catch(SQLException e) {
+            Tools.printStackTrace(e);
+        }
         
     }
 
@@ -2305,4 +2381,52 @@ public class twdbot extends SubspaceBot {
 
     }
 
+}
+
+class TeamInfo {
+    Integer league;
+    Integer id;
+    Integer rating;
+    boolean rated;
+    String name;
+    
+    public TeamInfo(Integer l, Integer i) {
+        league = l;
+        id = i;
+        rated = false;
+        rating = -1;
+        String name = "not found";
+    }
+    
+    public Integer league() {
+        return league;
+    }
+    
+    public Integer ID() {
+        return id;
+    }
+    
+    public boolean rated() {
+        return rated;
+    }
+    
+    public void rating(Integer r) {
+        if (!rated)
+            rating = r;
+        rated = true;
+    }
+    
+    public Integer rating() {
+        return rating;
+    }
+    
+    public String name() {
+        return name;
+    }
+    
+    public void name(String n) {
+        name = n;
+    }
+    
+    
 }
