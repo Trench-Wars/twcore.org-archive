@@ -1063,6 +1063,7 @@ public class twdbot extends SubspaceBot {
         LinkedList<TeamInfo> teams = new LinkedList<TeamInfo>();
         
         try {
+            m_botAction.sendSmartPrivateMessage(name, "Query 1");
             ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT * FROM tblTWDLadder l, tblTWDLadderTeam t WHERE l.fnTWDSeasonID = 21 AND l.fnCurrentLadder = 1 AND l.fnTWDLadderID = t.fnTWDLadderID LIMIT 60");
 
             Integer teamID;
@@ -1079,14 +1080,15 @@ public class twdbot extends SubspaceBot {
                 }
             }
             m_botAction.SQLClose(rs);
-            
+
+            m_botAction.sendSmartPrivateMessage(name, "Query 2");
             // get latest match
             for (Integer l: teamLadder.keySet()) {
                 teams = teamLadder.get(l);
                 ladder = l;                
                 for (TeamInfo info: teams) {
                     teamID = info.ID();
-                    rs = m_botAction.SQLQuery(webdb, "SELECT fnTeam1RatingAfter, fnTeam2RatingAfter, m.fnTeam1ID, m.fnTeam2ID FROM tblMatch m, tblTWDLadder l, tblTWDMatch t WHERE ftTimeEnded IS NOT NULL AND ftTimeEnded < '2011-05-02 00:05:00' AND (fnTeam1ID = " + teamID + " OR fnTeam2ID = " + teamID + ") AND m.fnMatchID = t.fnMatchID ORDER BY fnTimeEnded DESC LIMIT 1");
+                    rs = m_botAction.SQLQuery(webdb, "SELECT fnTeam1RatingAfter, fnTeam2RatingAfter, m.fnTeam1ID, m.fnTeam2ID FROM tblMatch m, tblTWDLadder l, tblTWDMatch t WHERE ftTimeEnded IS NOT NULL AND ftTimeEnded < '2011-05-02 00:05:00' AND (fnTeam1ID = " + teamID + " OR fnTeam2ID = " + teamID + ") AND m.fnMatchID = t.fnMatchID ORDER BY ftTimeEnded DESC LIMIT 1");
                     if (rs.next()) {
                         if (teamID == rs.getInt("m.fnTeam1ID")) {
                             info.rating(rs.getInt("fnTeam1RatingAfter"));
@@ -1098,6 +1100,7 @@ public class twdbot extends SubspaceBot {
             }
             m_botAction.SQLClose(rs);
 
+            m_botAction.sendSmartPrivateMessage(name, "Query 3");
             String msg = "";
             for (Integer l: teamLadder.keySet()) {
                 rs = m_botAction.SQLQuery(webdb, "SELECT fcMatchTypeName FROM tblMatchType t, tblTWDLadder l WHERE l.fnTWDLadderID = " + l + " AND l.fnMatchTypeID = t.fnMatchTypeID LIMIT 1");
