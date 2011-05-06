@@ -1064,14 +1064,65 @@ public class twdbot extends SubspaceBot {
         
         try {
             m_botAction.sendSmartPrivateMessage(name, "Query 1");
-            ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT * FROM tblTWDLadder l, tblTWDLadderTeam t WHERE l.fnTWDSeasonID = 21 AND l.fnCurrentLadder = 1 AND l.fnTWDLadderID = t.fnTWDLadderID LIMIT 60");
+            ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT t.fnTeamID, t.fnTWDLadderID, n.fcTeamName FROM tblTWDLadder l, tblTWDLadderTeam t LEFT JOIN tblTeam n ON t.fnTeamID = n.fnTeamID WHERE l.fnTWDSeasonID = 21 AND l.fnCurrentLadder = 1 AND l.fnTWDLadderID = t.fnTWDLadderID");
+            /*
+            (SELECT t.fnTeamID, t.fnTWDLadderID, n.fcTeamName 
+            FROM tblTWDLadder l, tblTWDLadderTeam t 
+             LEFT JOIN tblTeam n ON t.fnTeamID = n.fnTeamID 
+            WHERE l.fnTWDSeasonID = 21 
+             AND l.fnCurrentLadder = 1 
+             AND l.fnTWDLadderID = t.fnTWDLadderID) UNION 
 
+           SELECT twdm.fnTeam1RatingAfter, twdm.fnTeam2RatingAfter, mat.fnTeam1ID, mat.fnTeam2ID 
+           FROM tblMatch match, tblTWDLadder lad, tblTWDMatch twdm 
+           WHERE mat.ftTimeEnded IS NOT NULL AND mat.ftTimeEnded < '2011-05-02 00:05:00' 
+            AND (mat.fnTeam1ID = " + teamID + " OR mat.fnTeam2ID = " + teamID + ") 
+            AND mat.fnMatchID = twdm.fnMatchID 
+            ORDER BY mat.ftTimeEnded DESC LIMIT 1
+            
+            SELECT t.fnTeamID, t.fnTWDLadderID, n.fcTeamName, twdm.fnTeam1RatingAfter, twdm.fnTeam2RatingAfter, mat.fnTeam1ID, mat.fnTeam2ID 
+            FROM tblTWDLadder l, tblTWDLadderTeam t, tblTWDLadder lad 
+             LEFT JOIN tblTeam n ON t.fnTeamID = n.fnTeamID 
+             LEFT JOIN tblMatch match ON (mat.fnTeam1ID = t.fnTeamID OR mat.fnTeam2ID = t.fnTeamID)
+             LEFT JOIN tblTWDMatch twdm ON mat.fnMatchID = twdm.fnMatchID
+            WHERE l.fnTWDSeasonID = 21 
+             AND l.fnCurrentLadder = 1 
+             AND l.fnTWDLadderID = t.fnTWDLadderID
+             AND mat.ftTimeEnded IS NOT NULL AND mat.ftTimeEnded < '2011-05-02 00:05:00' 
+             LIMIT 10
+             
+             
+            SELECT t.fnTeamID, t.fnTWDLadderID, n.fcTeamName
+            FROM tblTWDLadder l, tblTWDLadderTeam t
+             LEFT JOIN tblTeam n ON t.fnTeamID = n.fnTeamID 
+            WHERE l.fnTWDSeasonID = 21 
+             AND l.fnCurrentLadder = 1 
+             AND l.fnTWDLadderID = t.fnTWDLadderID
+             
+             
+            (SELECT t.fnTeamID as teamID, t.fnTWDLadderID, n.fcTeamName 
+            FROM tblTWDLadder l, tblTWDLadderTeam t 
+             LEFT JOIN tblTeam n ON t.fnTeamID = n.fnTeamID 
+            WHERE l.fnTWDSeasonID = 21 
+             AND l.fnCurrentLadder = 1 
+             AND l.fnTWDLadderID = t.fnTWDLadderID) UNION 
+
+           (SELECT twdm.fnTeam1RatingAfter, twdm.fnTeam2RatingAfter, mat.fnTeam1ID, mat.fnTeam2ID 
+           FROM tblMatch match, tblTWDLadder lad, tblTWDMatch twdm 
+           WHERE mat.ftTimeEnded IS NOT NULL AND mat.ftTimeEnded < '2011-05-02 00:05:00' 
+            AND (mat.fnTeam1ID = teamID OR mat.fnTeam2ID teamID) 
+            AND mat.fnMatchID = twdm.fnMatchID 
+            ORDER BY mat.ftTimeEnded DESC LIMIT 1)
+            */
             Integer teamID;
             Integer ladder;
+            String teamName;
             while (rs.next()) {
                 teamID = rs.getInt("t.fnTeamID");
                 ladder = rs.getInt("t.fnTWDLadderID");
+                teamName = rs.getString("n.fcTeamName");
                 TeamInfo ti = new TeamInfo(ladder, teamID);
+                ti.name(teamName);
                 if (teamLadder.containsKey(ladder)) {
                     teamLadder.get(ladder).add(ti);
                 } else {
@@ -1096,9 +1147,9 @@ public class twdbot extends SubspaceBot {
                             info.rating(rs.getInt("fnTeam2RatingAfter"));                            
                         }
                     }
+                    m_botAction.SQLClose(rs);
                 }
             }
-            m_botAction.SQLClose(rs);
 
             m_botAction.sendSmartPrivateMessage(name, "Query 3");
             String msg = "";
@@ -1808,10 +1859,10 @@ public class twdbot extends SubspaceBot {
                 m_botAction.sendSmartPrivateMessage(name, "Unable to reset name.  Please contact a TWD Op for assistance.");
                 return;
             }
-            if (!resetPRegistration(dbP.getUserID()))
-                m_botAction.sendSmartPrivateMessage(name, "Unable to reset name.  Please contact a TWD Op for assistance.");
-            else if (isBeingReset(name, message))
+            if (isBeingReset(name, message))
                 return;
+            else if (!resetPRegistration(dbP.getUserID()))
+                m_botAction.sendSmartPrivateMessage(name, "Unable to reset name.  Please contact a TWD Op for assistance.");
             else {
                 try {
                     m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblTWDPlayerMID WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'");
