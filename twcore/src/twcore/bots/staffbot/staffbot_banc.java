@@ -1750,14 +1750,16 @@ public class staffbot_banc extends Module {
                         banc.applyChanges(banChange);
                         banc.calculateExpired();
                         if(banc.isExpired()) {
-                            String staffer = "SELECT fcStaffer FROM tblBanc WHERE fnID="+banc.id;
-                            m_botAction.SQLQueryAndClose(botsDatabase, staffer);
+                            ResultSet staffer = m_botAction.SQLQuery(botsDatabase, ("SELECT fcStaffer FROM tblBanc WHERE fnID="+banc.id));
                             switch(banc.type) {
-                                case SILENCE :  m_botAction.sendChatMessage("Auto-silence BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " minute(s)." + " Authorized by "+staffer); break;
-                                case SPEC :     m_botAction.sendChatMessage("Auto-speclock BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " minute(s)." + " Authorized by "+staffer); break;
+                                case SILENCE:
+                                    m_botAction.sendChatMessage("Auto-silence BanC #" + banc.id + " (" + banc.playername + ") has expired. Duration: " + banc.getDuration() + " minute(s)." + " Authorized by " + (staffer == null ? "Unknown" :staffer.getString(1)));
+                                    break;
+                                case SPEC :     m_botAction.sendChatMessage("Auto-speclock BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " minute(s)." + " Authorized by "+(staffer == null ? "Unknown" :staffer.getString(1))); break;
                                 //case KICK :   m_botAction.sendChatMessage("Auto-kick BanC #"+banc.id+" ("+banc.playername+") has expired."); break;
-                                case SUPERSPEC: m_botAction.sendChatMessage("Auto-superspeclock BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " minute(s)." + " Authorized by "+staffer); break;
+                                case SUPERSPEC: m_botAction.sendChatMessage("Auto-superspeclock BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " minute(s)." + " Authorized by "+(staffer == null ? "Unknown" :staffer.getString(1))); break;
                             }
+                            m_botAction.SQLClose(staffer);
                             m_botAction.ipcSendMessage(IPCBANC, "REMOVE "+banc.type.toString()+" "+banc.playername, null, "banc");
                             iterator.remove();
                         }
