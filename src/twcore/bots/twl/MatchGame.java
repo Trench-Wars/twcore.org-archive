@@ -428,7 +428,7 @@ public class MatchGame
 		if (!announced) {
 			if (m_rules.getInt("matchtype") > 0 && m_rules.getInt("matchtype") < 4) {
 				announced = true;
-				m_botAction.sendZoneMessage("TWL Season 14: [" + m_rules.getString("name") + "] " + m_fcTeam1Name + " vs. " + m_fcTeam2Name + " Type ?go " + m_botAction.getArenaName());
+				m_botAction.sendZoneMessage("TWL Season 15: [" + m_rules.getString("name") + "] " + m_fcTeam1Name + " vs. " + m_fcTeam2Name + " Type ?go " + m_botAction.getArenaName());
 			} else {
 				m_botAction.sendPrivateMessage(name, "Only TWL games may be !zone'd");
 			}
