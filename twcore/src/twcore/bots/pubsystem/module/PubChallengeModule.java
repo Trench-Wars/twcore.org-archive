@@ -1033,7 +1033,7 @@ public class PubChallengeModule extends AbstractModule {
             while (freq2 == 0) {
                 long fraction = (long) (range * random.nextDouble());
                 freq2 = (int) (fraction + 100);
-                if (m_botAction.getFrequencySize(freq2) > 0)
+                if (m_botAction.getFrequencySize(freq2) > 0 || freq2 == freq1)
                     freq2 = 0;
             }
 
