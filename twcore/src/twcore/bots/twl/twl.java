@@ -402,13 +402,13 @@ public class twl extends SubspaceBot
             {
                 if (!m_isLocked)
                 {
-                    if (!isRestrictedStaff || name.toLowerCase().equals("humid")){
+                    if (!isRestrictedStaff || name.toLowerCase().equals("flared")){
                         help.add("!listgames                               - list all available game types");
                         help.add("!game <typenumber>                       - start a game of <type>");
                         help.add("!game <typenumber>:<teamA>:<teamB>       - start a game of <type>");
                         help.add("!twlgame <game ID>                       - load a TWL game");
                     }
-                    if (!isRestrictedStaff || name.toLowerCase().equals("humid"))
+                    if (!isRestrictedStaff || name.toLowerCase().equals("flared"))
                     {
                         help.add("!go <arena>                              - makes the bot go to the specified arena");
                         help.add("!lock <typenumber>                       - lock at a free arena where the event can be hosted");
@@ -417,10 +417,10 @@ public class twl extends SubspaceBot
                 else
                 {
                     help.add("!game <squadA>:<squadB>                  - start a game of " + m_rules.getString("name") + " between teamA and teamB");
-                    if (name.toLowerCase().equals("humid") || !isRestrictedStaff)
+                    if (name.toLowerCase().equals("flared") || !isRestrictedStaff)
                     {
                         help.add("!unlock                                  - unlock the bot, makes it go back to ?go twl");
-                        if (m_opList.isSmod(name) || name.toLowerCase().equals("humid") )
+                        if (m_opList.isSmod(name) || name.toLowerCase().equals("flared") )
                         {
                             help.add("!listaccess                              - list all the players who have special access to this game");
                             help.add("!addaccess <name>                        - add a player to the list");
