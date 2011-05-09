@@ -1938,6 +1938,7 @@ public class staffbot_banc extends Module {
                     banc.notification = rs.getBoolean("fbNotification");
                     banc.created = rs.getTimestamp("fdCreated");
                     banc.duration = rs.getInt("fnDuration");
+                    banc.staffer = rs.getString("fcStaffer");
                     activeBanCs.add(banc);
                 }
             }
