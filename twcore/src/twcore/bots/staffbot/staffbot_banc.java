@@ -28,6 +28,8 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.util.HashSet;
+import java.util.LinkedList;
 
 /**
  * StaffBot BanC module
@@ -736,7 +738,7 @@ public class staffbot_banc extends Module {
         try{
             sendBanCs(stafferName, name, limitBanCs);
             sendWarnings(stafferName, name, limitWarnings);
-            
+            sendAltNicks(stafferName, name, limitBanCs, limitWarnings);
         }catch(SQLException e){
             e.printStackTrace();
             m_botAction.sendPrivateMessage("quiles", e.toString());
@@ -872,6 +874,83 @@ public class staffbot_banc extends Module {
         
         return true;
     }
+
+    private void sendAltNicks(String stafferName, String playerName, int limitBan, int limitWarn) {
+
+        try {
+            String ipResults = getSubQueryResultString(
+                    "SELECT DISTINCT(fnIP) " +
+                    "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+                    "WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "'", "fnIP");
+
+            String midResults = getSubQueryResultString(
+                    "SELECT DISTINCT(fnMachineId) " +
+                    "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+                    "WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "'", "fnMachineId");
+
+            String queryString =
+                    "SELECT * " +
+                    "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+                    "WHERE fnIP IN " + ipResults + " " +
+                    "AND fnMachineID IN " + midResults + " ORDER BY fcUserName";
+
+            if(ipResults != null || midResults != null) {
+                ResultSet resultSet = m_botAction.SQLQuery(trenchDatabase, queryString);
+		List<String> nicks = new LinkedList<String>();
+		String curResult = null;
+		int numResults = 0;
+
+		if(resultSet == null)
+			throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+
+		while(resultSet.next()) {
+                        curResult = resultSet.getString("fcUserName");
+
+			if(!nicks.contains(curResult)) {
+				nicks.add(curResult);
+				numResults++;
+			}
+		}
+
+                m_botAction.SQLClose( resultSet );
+
+                Iterator<String> i = nicks.iterator();
+
+                while (i.hasNext()) {
+                    String s = i.next();
+                    m_botAction.sendRemotePrivateMessage(stafferName, "Found Alias: " + s);
+                    sendBanCs(stafferName, s, limitBan);
+                    sendWarnings(stafferName, s, limitWarn);
+                }
+
+            }
+
+        } catch(SQLException e) {
+            throw new RuntimeException("SQL Error: " + e.getMessage(), e);
+        }
+    }
+
+    	private String getSubQueryResultString(String queryString, String columnName) throws SQLException
+	{
+		ResultSet resultSet = m_botAction.SQLQuery(trenchDatabase, queryString);
+		StringBuffer subQueryResultString = new StringBuffer("(");
+
+		if(resultSet == null)
+			throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+		if(!resultSet.next())
+			return null;
+		for(;;)
+		{
+			subQueryResultString.append(resultSet.getString(columnName));
+			if(!resultSet.next())
+				break;
+			subQueryResultString.append(", ");
+		}
+		subQueryResultString.append(") ");
+                m_botAction.SQLClose( resultSet );
+
+		return subQueryResultString.toString();
+	}
 
     private int[] getLimits(String commandSearch){
 
@@ -2127,7 +2206,7 @@ public class staffbot_banc extends Module {
         
         private boolean applied = false;
         private boolean expired = false;
-        
+
         public void calculateExpired() {
             if(duration == 0) {
                 expired = false;
