@@ -907,7 +907,7 @@ public class staffbot_banc extends Module {
 		while(resultSet.next()) {
                         curResult = resultSet.getString("fcUserName");
 
-			if(!nicks.contains(curResult)) {
+			if(!nicks.contains(curResult) && !curResult.equals(playerName)) {
 				nicks.add(curResult);
 				numResults++;
 			}
@@ -920,11 +920,9 @@ public class staffbot_banc extends Module {
                 while (i.hasNext()) {
                     String s = i.next();
 
-                    if (s != playerName) {
-                        m_botAction.sendRemotePrivateMessage(stafferName, "Found Alias: " + s);
-                        sendBanCs(stafferName, s, limitBan);
-                        sendWarnings(stafferName, s, limitWarn);
-                    }
+                    m_botAction.sendRemotePrivateMessage(stafferName, "Found Alias: " + s);
+                    sendBanCs(stafferName, s, limitBan);
+                    sendWarnings(stafferName, s, limitWarn);
                 }
 
             }
