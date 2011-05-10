@@ -918,9 +918,13 @@ public class staffbot_banc extends Module {
                 while (i.hasNext()) {
                     String s = i.next();
 
-                    m_botAction.sendRemotePrivateMessage(stafferName, "Alias: " + s);
-                    sendBanCs(stafferName, s, limitBan);
-                    sendWarnings(stafferName, s, limitWarn);
+                    for(BanC banc : this.activeBanCs) {
+                        if (banc.playername.toLowerCase().equals(s.toLowerCase())) {
+                            m_botAction.sendRemotePrivateMessage(stafferName, "Alias: " + s);
+                            sendBanCs(stafferName, s, limitBan);
+                            sendWarnings(stafferName, s, limitWarn);
+                        }
+                    }
                 }
 
             }
