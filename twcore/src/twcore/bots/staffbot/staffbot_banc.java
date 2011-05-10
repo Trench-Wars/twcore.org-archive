@@ -901,14 +901,11 @@ public class staffbot_banc extends Module {
 		if(resultSet == null)
 			throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
 
-                m_botAction.sendRemotePrivateMessage(stafferName,"DEBUG: looking nicks for " + playerName);
-
 		while(resultSet.next()) {
                         curResult = resultSet.getString("fcUserName");
 
-			if(!nicks.contains(curResult) && !playerName.equals(curResult)) {
+			if(!nicks.contains(curResult) && !playerName.toLowerCase().equals(curResult.toLowerCase())) {
 
-                            m_botAction.sendRemotePrivateMessage(stafferName,"DEBUG: adding " + curResult + " to nicks");
 				nicks.add(curResult);
 				numResults++;
 			}
