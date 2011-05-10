@@ -736,14 +736,11 @@ public class staffbot_banc extends Module {
      * */
     private void searchByName(String stafferName, String name, int limitBanCs, int limitWarnings){
         try{
-            sendBanCs(stafferName, name, limitBanCs);
-            sendWarnings(stafferName, name, limitWarnings);
+            //sendBanCs(stafferName, name, limitBanCs);
+            //sendWarnings(stafferName, name, limitWarnings);
             sendAltNicks(stafferName, name, limitBanCs, limitWarnings);
             if (limitBanCs == 0 && limitWarnings == 0)
                 m_botAction.sendRemotePrivateMessage(stafferName, "You can see all the player's history too typing !search player:-1:-1");
-        }catch(SQLException e){
-            e.printStackTrace();
-            m_botAction.sendPrivateMessage("quiles", e.toString());
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -907,7 +904,7 @@ public class staffbot_banc extends Module {
 		while(resultSet.next()) {
                         curResult = resultSet.getString("fcUserName");
 
-			if(!nicks.contains(curResult) && !curResult.equals(playerName)) {
+			if(!nicks.contains(curResult)) {
 				nicks.add(curResult);
 				numResults++;
 			}
@@ -920,7 +917,7 @@ public class staffbot_banc extends Module {
                 while (i.hasNext()) {
                     String s = i.next();
 
-                    m_botAction.sendRemotePrivateMessage(stafferName, "Found Alias: " + s);
+                    m_botAction.sendRemotePrivateMessage(stafferName, "Alias: " + s);
                     sendBanCs(stafferName, s, limitBan);
                     sendWarnings(stafferName, s, limitWarn);
                 }
