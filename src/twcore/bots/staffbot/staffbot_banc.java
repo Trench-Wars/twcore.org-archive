@@ -736,8 +736,8 @@ public class staffbot_banc extends Module {
      * */
     private void searchByName(String stafferName, String name, int limitBanCs, int limitWarnings){
         try{
-            //sendBanCs(stafferName, name, limitBanCs);
-            //sendWarnings(stafferName, name, limitWarnings);
+            sendBanCs(stafferName, name, limitBanCs);
+            sendWarnings(stafferName, name, limitWarnings);
             sendAltNicks(stafferName, name, limitBanCs, limitWarnings);
             if (limitBanCs == 0 && limitWarnings == 0)
                 m_botAction.sendRemotePrivateMessage(stafferName, "You can see all the player's history too typing !search player:-1:-1");
@@ -901,10 +901,14 @@ public class staffbot_banc extends Module {
 		if(resultSet == null)
 			throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
 
+                m_botAction.sendRemotePrivateMessage(stafferName,"DEBUG: looking nicks for " + playerName);
+
 		while(resultSet.next()) {
                         curResult = resultSet.getString("fcUserName");
 
-			if(!nicks.contains(curResult)) {
+			if(!nicks.contains(curResult) && !playerName.equals(curResult)) {
+
+                            m_botAction.sendRemotePrivateMessage(stafferName,"DEBUG: adding " + curResult + " to nicks");
 				nicks.add(curResult);
 				numResults++;
 			}
