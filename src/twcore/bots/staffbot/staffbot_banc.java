@@ -873,6 +873,13 @@ public class staffbot_banc extends Module {
         return true;
     }
 
+    /**
+     * Captures aliases for playerName during !search using provided limitBan and limitWarn
+     * @param stafferName Name of staff to respond to with data
+     * @param playerName Name of the player being !search 'ed
+     * @param limitBan Date limit for
+     * @param limitWarn
+     */
     private void sendAltNicks(String stafferName, String playerName, int limitBan, int limitWarn) {
 
         try {
@@ -915,15 +922,53 @@ public class staffbot_banc extends Module {
 
                 Iterator<String> i = nicks.iterator();
 
+                String query;
+                int expiredTime = Tools.TimeInMillis.WEEK * 2; //last month
+                Date expireDate = new java.sql.Date(System.currentTimeMillis() - expiredTime);
+
                 while (i.hasNext()) {
                     String s = i.next();
 
-                    for(BanC banc : this.activeBanCs) {
-                        if (banc.playername.toLowerCase().equals(s.toLowerCase())) {
-                            m_botAction.sendRemotePrivateMessage(stafferName, "Alias: " + s);
-                            sendBanCs(stafferName, s, limitBan);
-                            sendWarnings(stafferName, s, limitWarn);
+                    boolean hasWarning = false;
+
+                    query = "SELECT * FROM tblWarnings WHERE name = '"
+                            +s+"' ORDER BY timeofwarning ASC";
+
+                    ResultSet w = m_botAction.SQLQuery(this.trenchDatabase, query);
+
+                    while (w.next()) {
+                        Date date = w.getDate("timeofwarning");
+
+                        if(date.before(expireDate)) {
+                            hasWarning = true;
+                            break;
                         }
+                    }
+
+                    boolean hasBancs = false;
+
+                    query = "SELECT * FROM tblBanc WHERE name = '"
+                            +s+"' ORDER BY fdCreated ASC";
+
+                    ResultSet b = m_botAction.SQLQuery(this.trenchDatabase, query);
+
+                    while (b.next()) {
+                        Date date = b.getDate("fdCreated");
+
+                        if(date.before(expireDate)) {
+                            hasBancs = true;
+                            break;
+                        }
+                    }
+
+                    if(hasWarning) {
+                        m_botAction.sendRemotePrivateMessage(stafferName, "Warnings under Alias: " + s);
+                        sendWarnings(stafferName, s, limitWarn);
+                    }
+
+                    if (hasBancs) {
+                        m_botAction.sendRemotePrivateMessage(stafferName, "BanCs under Alias: " + s);
+                        sendBanCs(stafferName, s, limitBan);
                     }
                 }
 
