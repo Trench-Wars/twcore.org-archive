@@ -815,9 +815,9 @@ public class staffbot_banc extends Module {
         String query;
         
         if(limit == 0 || limit == -1)
-            query = "SELECT * FROM tblWarnings WHERE name LIKE '"+name+"' ORDER BY timeofwarning ASC";
+            query = "SELECT * FROM tblWarnings WHERE name = '"+name+"' ORDER BY timeofwarning ASC";
         else
-            query  = "SELECT * FROM tblWarnings WHERE name LIKE '"+name+"' ORDER BY timeofwarning ASC LIMIT 0,"+limit;
+            query  = "SELECT * FROM tblWarnings WHERE name = '"+name+"' ORDER BY timeofwarning ASC LIMIT 0,"+limit;
         
         ResultSet rs = m_botAction.SQLQuery(this.trenchDatabase, query);
         
@@ -921,38 +921,52 @@ public class staffbot_banc extends Module {
                 int expiredTime = Tools.TimeInMillis.WEEK * 2; //last month
                 Date expireDate = new java.sql.Date(System.currentTimeMillis() - expiredTime);
 
+                m_botAction.sendRemotePrivateMessage(stafferName, "DEBUG: set expired date to " + new SimpleDateFormat("dd MMM yyyy").format(expireDate));
+
                 Iterator<String> i = nicks.iterator();
                 while (i.hasNext()) {
                     String s = i.next();
 
+                    m_botAction.sendRemotePrivateMessage(stafferName, "DEBUG: has nick " + s);
+
                     boolean hasWarning = false;
 
                     ResultSet w = m_botAction.SQLQuery(this.trenchDatabase, 
-                            "SELECT * FROM tblWarnings WHERE name LIKE '"
+                            "SELECT * FROM tblWarnings WHERE name = '"
                             +s+"' ORDER BY timeofwarning ASC");
+
+                    m_botAction.sendRemotePrivateMessage(stafferName, "DEBUG: have resultset for warning of " +w.getFetchSize());
 
                     while (w.next()) {
                         Date date = w.getDate("timeofwarning");
 
+                        m_botAction.sendRemotePrivateMessage(stafferName, "DEBUG: found warning on " + new SimpleDateFormat("dd MMM yyyy").format(date));
+
                         if(date.after(expireDate)) {
                             hasWarning = true;
+                            m_botAction.sendRemotePrivateMessage(stafferName, "DEBUG: hasWarning is true");
                             break;
                         }
                     }
 
                     m_botAction.SQLClose(w);
 
-                    boolean hasBancs = false;
+                    boolean hasBanc = false;
 
                     ResultSet b = m_botAction.SQLQuery(this.trenchDatabase,
-                            "SELECT * FROM tblBanc WHERE name LIKE '"
+                            "SELECT * FROM tblBanc WHERE name = '"
                             +s+"' ORDER BY fdCreated ASC");
+
+                    m_botAction.sendRemotePrivateMessage(stafferName, "DEBUG: have resultset for banc of " +b.getFetchSize());
 
                     while (b.next()) {
                         Date date = b.getDate("fdCreated");
 
+                        m_botAction.sendRemotePrivateMessage(stafferName, "DEBUG: found banc on " + new SimpleDateFormat("dd MMM yyyy").format(date));
+
                         if(date.after(expireDate)) {
-                            hasBancs = true;
+                            hasBanc = true;
+                            m_botAction.sendRemotePrivateMessage(stafferName, "DEBUG: hasBanc is true");
                             break;
                         }
                     }
@@ -960,11 +974,13 @@ public class staffbot_banc extends Module {
                     m_botAction.SQLClose(b);
 
                     if(hasWarning) {
+                        m_botAction.sendRemotePrivateMessage(stafferName, "DEBUG: calling sendWarnings for " + s);
                         m_botAction.sendRemotePrivateMessage(stafferName, "Warnings under Alias: " + s);
                         sendWarnings(stafferName, s, limitWarn);
                     }
 
-                    if (hasBancs) {
+                    if (hasBanc) {
+                        m_botAction.sendRemotePrivateMessage(stafferName, "DEBUG: calling sendBanCs for " + s);
                         m_botAction.sendRemotePrivateMessage(stafferName, "BanCs under Alias: " + s);
                         sendBanCs(stafferName, s, limitBan);
                     }
