@@ -218,6 +218,7 @@ public class staffbot_banc extends Module {
         m_botAction.ipcUnSubscribe(IPCBANC);
         
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psCheckAccessReq);
+        m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psActiveBanCs);
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psListBanCs);
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psActiveBanCs);
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psAddBanC);
