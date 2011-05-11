@@ -905,61 +905,59 @@ public class staffbot_banc extends Module {
 		String curResult = null;
 		int numResults = 0;
 
-		if(resultSet == null)
-			throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
-
 		while(resultSet.next()) {
                         curResult = resultSet.getString("fcUserName");
 
-			if(!nicks.contains(curResult) && !playerName.toLowerCase().equals(curResult.toLowerCase())) {
+			if(!nicks.contains(curResult) &&
+                                !playerName.toLowerCase().equals(curResult.toLowerCase())) {
 
-				nicks.add(curResult);
-				numResults++;
+                            nicks.add(curResult);
+                            numResults++;
 			}
 		}
 
                 m_botAction.SQLClose( resultSet );
 
-                Iterator<String> i = nicks.iterator();
-
-                String query;
                 int expiredTime = Tools.TimeInMillis.WEEK * 2; //last month
                 Date expireDate = new java.sql.Date(System.currentTimeMillis() - expiredTime);
 
+                Iterator<String> i = nicks.iterator();
                 while (i.hasNext()) {
                     String s = i.next();
 
                     boolean hasWarning = false;
 
-                    query = "SELECT * FROM tblWarnings WHERE name LIKE '"
-                            +s+"' ORDER BY timeofwarning ASC";
-
-                    ResultSet w = m_botAction.SQLQuery(this.trenchDatabase, query);
+                    ResultSet w = m_botAction.SQLQuery(this.trenchDatabase, 
+                            "SELECT * FROM tblWarnings WHERE name LIKE '"
+                            +s+"' ORDER BY timeofwarning ASC");
 
                     while (w.next()) {
                         Date date = w.getDate("timeofwarning");
 
-                        if(date.before(expireDate)) {
+                        if(date.after(expireDate)) {
                             hasWarning = true;
                             break;
                         }
                     }
 
+                    m_botAction.SQLClose(w);
+
                     boolean hasBancs = false;
 
-                    query = "SELECT * FROM tblBanc WHERE name LIKE '"
-                            +s+"' ORDER BY fdCreated ASC";
-
-                    ResultSet b = m_botAction.SQLQuery(this.trenchDatabase, query);
+                    ResultSet b = m_botAction.SQLQuery(this.trenchDatabase,
+                            "SELECT * FROM tblBanc WHERE name LIKE '"
+                            +s+"' ORDER BY fdCreated ASC");
 
                     while (b.next()) {
                         Date date = b.getDate("fdCreated");
 
-                        if(date.before(expireDate)) {
+                        if(date.after(expireDate)) {
                             hasBancs = true;
                             break;
                         }
                     }
+
+                    m_botAction.SQLClose(b);
 
                     if(hasWarning) {
                         m_botAction.sendRemotePrivateMessage(stafferName, "Warnings under Alias: " + s);
