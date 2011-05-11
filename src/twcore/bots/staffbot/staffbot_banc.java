@@ -960,11 +960,13 @@ public class staffbot_banc extends Module {
                     m_botAction.SQLClose(b);
 
                     if(hasWarning) {
+                        m_botAction.sendRemotePrivateMessage(stafferName, " ");
                         m_botAction.sendRemotePrivateMessage(stafferName, "Warnings under Alias: " + s);
                         sendWarnings(stafferName, s, limitWarn);
                     }
 
                     if (hasBanc) {
+                        m_botAction.sendRemotePrivateMessage(stafferName, " ");
                         m_botAction.sendRemotePrivateMessage(stafferName, "BanCs under Alias: " + s);
                         sendBanCs(stafferName, s, limitBan);
                     }
