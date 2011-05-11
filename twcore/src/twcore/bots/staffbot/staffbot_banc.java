@@ -945,7 +945,7 @@ public class staffbot_banc extends Module {
                     boolean hasBanc = false;
 
                     ResultSet b = m_botAction.SQLQuery(this.botsDatabase,
-                            "SELECT * FROM tblBanc WHERE name = '"
+                            "SELECT * FROM tblBanc WHERE fcUsername = '"
                             +s+"' ORDER BY fdCreated ASC");
 
                     while (b.next()) {
