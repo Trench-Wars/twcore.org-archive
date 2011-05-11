@@ -815,9 +815,9 @@ public class staffbot_banc extends Module {
         String query;
         
         if(limit == 0 || limit == -1)
-            query = "SELECT * FROM tblWarnings WHERE name = '"+name+"' ORDER BY timeofwarning ASC";
+            query = "SELECT * FROM tblWarnings WHERE name LIKE '"+name+"' ORDER BY timeofwarning ASC";
         else
-            query  = "SELECT * FROM tblWarnings WHERE name = '"+name+"' ORDER BY timeofwarning ASC LIMIT 0,"+limit;
+            query  = "SELECT * FROM tblWarnings WHERE name LIKE '"+name+"' ORDER BY timeofwarning ASC LIMIT 0,"+limit;
         
         ResultSet rs = m_botAction.SQLQuery(this.trenchDatabase, query);
         
@@ -931,7 +931,7 @@ public class staffbot_banc extends Module {
 
                     boolean hasWarning = false;
 
-                    query = "SELECT * FROM tblWarnings WHERE name = '"
+                    query = "SELECT * FROM tblWarnings WHERE name LIKE '"
                             +s+"' ORDER BY timeofwarning ASC";
 
                     ResultSet w = m_botAction.SQLQuery(this.trenchDatabase, query);
@@ -947,7 +947,7 @@ public class staffbot_banc extends Module {
 
                     boolean hasBancs = false;
 
-                    query = "SELECT * FROM tblBanc WHERE name = '"
+                    query = "SELECT * FROM tblBanc WHERE name LIKE '"
                             +s+"' ORDER BY fdCreated ASC";
 
                     ResultSet b = m_botAction.SQLQuery(this.trenchDatabase, query);
