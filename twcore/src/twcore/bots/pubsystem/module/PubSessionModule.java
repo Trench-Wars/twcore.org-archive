@@ -5,11 +5,13 @@ import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
+import twcore.core.OperatorList;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
+import twcore.bots.pubsystem.module.player.PubPlayer;
 
 // Session module - provides info on player's current play session
 
@@ -19,18 +21,20 @@ public class PubSessionModule extends AbstractModule {
 	
 	HashMap <String,SessionPlayer>ps = new HashMap<String,SessionPlayer>();
 	//private boolean moneyEnabled = false;
-
 	
+	//default tax deduction for TKs
+	Integer tax = 100;
+		
 	// LandMark system
     static int LM_COMP_KILLS_EQUAL = 0;
     static int LM_COMP_RATIO_BETTER_THAN = 1;
     static int LM_COMP_DEATHS_EQUAL = 2;
     static int LM_SHIP_ANY = -1;
-
+    
+    private OperatorList oplist;
     
 	public PubSessionModule(BotAction botAction, PubContext context) {
-		super(botAction, context, "Session");
-		
+		super(botAction, context, "Session");		
 		reloadConfig();
 	}
 	
@@ -62,15 +66,29 @@ public class PubSessionModule extends AbstractModule {
     		return;
     	
     	Player killer = m_botAction.getPlayer(event.getKillerID());
-        Player killed = m_botAction.getPlayer(event.getKilleeID());
-        
+    	Player killed = m_botAction.getPlayer(event.getKilleeID());   	
+    	        
 		if( killer == null || killed == null )
 			return;
 		
-        // TODO: TK
+        // The following four if statements deduct the tax value from a player who TKs.
         if( killer.getFrequency() == killed.getFrequency() ) {
-           // Count em up and display
-        } else {
+        	PubPlayer tker = context.getPlayerManager().getPlayer(killer.getPlayerName());
+    			if (tker != null) {
+    			// Retrieves the value of the tax.
+    			getTeamKillTaxValue(tax);
+    				if ( tax > 0 ) {    		        	
+    					int money = tker.getMoney();
+    						if ( money < tax ){
+    							tker.removeMoney(tax);
+    							m_botAction.sendPrivateMessage(tker.getPlayerName(), "Your account has been deducted $" + tax + " for team-killing " + killed);
+    						}
+    				}
+    				else return;
+    		}
+    		else return;
+    	}
+        else {
             SessionPlayer sKiller = ps.get( killer.getPlayerName() );
             if( sKiller != null )
                 sKiller.addKill( killer.getShipType(), killed.getShipType() );
@@ -78,11 +96,8 @@ public class PubSessionModule extends AbstractModule {
             SessionPlayer sKilled = ps.get( killed.getPlayerName() );
             if( sKilled != null )
                 sKilled.addDeath( killer.getShipType(), killed.getShipType() );
-        }
-  
-    }
-    
-    
+        }  
+    }       
     
     public void doSessionCmd( String player, String requester ) {
         SessionPlayer p = ps.get( player );
@@ -240,8 +255,35 @@ public class PubSessionModule extends AbstractModule {
             doSessionResetCmd(sender);
         } else if( command.startsWith("!session ") ) {
 	        doSessionCmd( command.substring(9), sender );
+	    } else if( command.startsWith("!tax ") ) {
+	    	Integer tax = Integer.decode( command.substring(5));
+	    	doSetTeamKillTax(tax, sender);	    	
 	    }
-
+	}
+    
+	/**
+	 * This method sets the value to be deducted from a players account for TKing
+	 * @param tax
+	 * @param sender
+	 */
+	public void doSetTeamKillTax(Integer tax, String sender) {
+    		if (oplist.isModerator(sender)) {
+    			if (tax > 0) {
+    				this.tax = tax;
+    			}
+    			m_botAction.sendPrivateMessage( sender, "The tax deduction for team killing has been set to " + tax);
+    		}
+    		else return;
+    	}
+	
+	/**
+	 * This method returns the value of TK tax.
+	 * @param tax
+	 * @return
+	 */
+	public int getTeamKillTaxValue(Integer tax) {
+		int taxValue = tax.intValue();
+		return taxValue;
 	}
 
 	@Override
@@ -829,4 +871,37 @@ public class PubSessionModule extends AbstractModule {
         }
 
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
