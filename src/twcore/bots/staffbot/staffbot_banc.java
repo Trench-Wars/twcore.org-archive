@@ -739,7 +739,7 @@ public class staffbot_banc extends Module {
         try{
             sendBanCs(stafferName, name, limitBanCs);
             sendWarnings(stafferName, name, limitWarnings);
-            if(m_botAction.getOperatorList().isSmod(name)){
+            if(m_botAction.getOperatorList().isSmod(stafferName)){
             sendAltNicks(stafferName, name, limitBanCs, limitWarnings);
             if (limitBanCs == 0 && limitWarnings == 0)
                 m_botAction.sendRemotePrivateMessage(stafferName, "You can see all the player's history too typing !search player:-1:-1");}
