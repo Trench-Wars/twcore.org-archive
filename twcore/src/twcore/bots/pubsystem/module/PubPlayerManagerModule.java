@@ -47,7 +47,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     private HashSet<String> freq0;                   	// Players on freq 0
     private HashSet<String> freq1;                   	// Players on freq 1
     
-    private int tkTax = 200;                            // Amount to deduct for team kills
+    private int tkTax = 0;                            // Amount to deduct for team kills
 
     private int[] freqSizeInfo = {0, 0};                // Index 0: size difference; 1: # of smaller freq
     
@@ -294,7 +294,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 		}
 
         // The following four if statements deduct the tax value from a player who TKs.
-        if (killer.getFrequency() == killed.getFrequency()) {
+        if ((killer.getFrequency() == killed.getFrequency()) && (killer.getShipType() != 8)) {
             if (pubPlayerKiller != null) {
                 if (tkTax > 0) {
                     int money = pubPlayerKiller.getMoney();
