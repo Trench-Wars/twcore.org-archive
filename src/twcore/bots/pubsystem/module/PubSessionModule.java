@@ -23,7 +23,7 @@ public class PubSessionModule extends AbstractModule {
 	//private boolean moneyEnabled = false;
 	
 	//default tax deduction for TKs
-	Integer tax = 100;
+	int tax = 10;
 		
 	// LandMark system
     static int LM_COMP_KILLS_EQUAL = 0;
@@ -75,8 +75,6 @@ public class PubSessionModule extends AbstractModule {
         if( killer.getFrequency() == killed.getFrequency() ) {
         	PubPlayer tker = context.getPlayerManager().getPlayer(killer.getPlayerName());
     			if (tker != null) {
-    			// Retrieves the value of the tax.
-    			getTeamKillTaxValue(tax);
     				if ( tax > 0 ) {    		        	
     					int money = tker.getMoney();
     						if ( money < tax ){
@@ -84,9 +82,7 @@ public class PubSessionModule extends AbstractModule {
     							m_botAction.sendPrivateMessage(tker.getPlayerName(), "Your account has been deducted $" + tax + " for team-killing " + killed);
     						}
     				}
-    				else return;
     		}
-    		else return;
     	}
         else {
             SessionPlayer sKiller = ps.get( killer.getPlayerName() );
@@ -255,9 +251,8 @@ public class PubSessionModule extends AbstractModule {
             doSessionResetCmd(sender);
         } else if( command.startsWith("!session ") ) {
 	        doSessionCmd( command.substring(9), sender );
-	    } else if( command.startsWith("!tax ") ) {
-	    	Integer tax = Integer.decode( command.substring(5));
-	    	doSetTeamKillTax(tax, sender);	    	
+	    } else if( oplist.isModerator(sender) && command.startsWith("!tax ") ) {
+	    	doSetTeamKillTax(sender, command);
 	    }
 	}
     
@@ -266,25 +261,18 @@ public class PubSessionModule extends AbstractModule {
 	 * @param tax
 	 * @param sender
 	 */
-	public void doSetTeamKillTax(Integer tax, String sender) {
-    		if (oplist.isModerator(sender)) {
-    			if (tax > 0) {
-    				this.tax = tax;
+	public void doSetTeamKillTax(String sender, String command) {
+				try {
+    				tax = Integer.valueOf(command.substring(command.indexOf(" ") + 1));
+    			} catch (NumberFormatException e) {
+    				m_botAction.sendPrivateMessage( sender, "Invalid syntax. Please use use !tax <value>, where <value> is an integer greater than 0.");
+    				return;
     			}
-    			m_botAction.sendPrivateMessage( sender, "The tax deduction for team killing has been set to " + tax);
-    		}
-    		else return;
-    	}
-	
-	/**
-	 * This method returns the value of TK tax.
-	 * @param tax
-	 * @return
-	 */
-	public int getTeamKillTaxValue(Integer tax) {
-		int taxValue = tax.intValue();
-		return taxValue;
-	}
+				if (tax > 0) {
+    				m_botAction.sendPrivateMessage( sender, "The tax deduction for team killing has been set to " + tax);
+				}
+				else m_botAction.sendPrivateMessage( sender, "Invalid syntax. Please use use !tax <value>, where <value> is an integer greater than 0.");
+    	}	
 
 	@Override
 	public void handleModCommand(String sender, String command) {
