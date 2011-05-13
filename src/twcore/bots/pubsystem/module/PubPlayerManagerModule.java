@@ -46,6 +46,8 @@ public class PubPlayerManagerModule extends AbstractModule {
     private HashMap<String, PubPlayer> players;         // Always lowercase!
     private HashSet<String> freq0;                   	// Players on freq 0
     private HashSet<String> freq1;                   	// Players on freq 1
+    
+    private int tkTax = 200;                            // Amount to deduct for team kills
 
     private int[] freqSizeInfo = {0, 0};                // Index 0: size difference; 1: # of smaller freq
     
@@ -290,6 +292,19 @@ public class PubPlayerManagerModule extends AbstractModule {
 			}
 
 		}
+
+        // The following four if statements deduct the tax value from a player who TKs.
+        if (killer.getFrequency() == killed.getFrequency()) {
+            if (pubPlayerKiller != null) {
+                if (tkTax > 0) {
+                    int money = pubPlayerKiller.getMoney();
+                    if (money >= tkTax) {
+                        pubPlayerKiller.removeMoney(tkTax);
+                        m_botAction.sendPrivateMessage(pubPlayerKiller.getPlayerName(), "Your account has been deducted $" + tkTax + " for team-killing " + killed);
+                    }
+                }
+            }
+        } 
 		
 	}
 	
@@ -753,6 +768,30 @@ public class PubPlayerManagerModule extends AbstractModule {
             force = false;
         }
     }
+    
+    /**
+     * This method sets the value to be deducted from a players account for TKing
+     * @param tax
+     * @param sender
+     */
+    public void doSetTeamKillTax(String sender, String command) {
+        int newTkTax = 0;
+        try {
+            newTkTax = Integer.valueOf(command.substring(command.indexOf(" ") + 1));
+        } catch (NumberFormatException e) {
+            m_botAction.sendPrivateMessage( sender, "Invalid syntax. Please use use !tax <value>, where <value> is an integer greater than 0.");
+            return;
+        }
+        if (newTkTax > 0) {
+            tkTax = newTkTax;
+            m_botAction.sendPrivateMessage( sender, "The tax deduction for team killing has been set to " + tkTax);
+        } else 
+            m_botAction.sendPrivateMessage( sender, "Invalid syntax. Please use use !tax <value>, where <value> is an integer greater than 0.");
+    }
+    
+    public void doGetTeamKillTax(String sender, String command) {
+        m_botAction.sendSmartPrivateMessage(sender, "The current teamkill tax is $" + tkTax);
+    }
 
 	@Override
 	public void handleCommand(String sender, String command) {
@@ -767,6 +806,10 @@ public class PubPlayerManagerModule extends AbstractModule {
             for(PubPlayer p: players.values()) {
             	m_botAction.sendSmartPrivateMessage(sender, p.getPlayerName());
             }
+        } else if(command.trim().equals("!tax")) {
+            doGetTeamKillTax(sender, command);
+        } else if(command.trim().startsWith("!tax ")) {
+            doSetTeamKillTax(sender, command);
         }
 	}
 	
@@ -777,7 +820,11 @@ public class PubPlayerManagerModule extends AbstractModule {
 
 	@Override
 	public String[] getModHelpMessage(String sender) {
-		return new String[]{};
+		return new String[]{
+		        "- !tax <$>          --Sets <$> as the amount deducted for teamkills",
+		        "- !tax              --Shows the current teamkill tax"
+		        
+		};
 	}
 
 	@Override
