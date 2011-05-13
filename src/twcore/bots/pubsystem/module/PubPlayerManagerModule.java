@@ -782,7 +782,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             m_botAction.sendPrivateMessage( sender, "Invalid syntax. Please use use !tax <value>, where <value> is an integer greater than 0.");
             return;
         }
-        if (newTkTax > 0) {
+        if (newTkTax > -1) {
             tkTax = newTkTax;
             m_botAction.sendPrivateMessage( sender, "The tax deduction for team killing has been set to " + tkTax);
         } else 
