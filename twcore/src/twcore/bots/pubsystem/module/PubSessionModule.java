@@ -70,31 +70,30 @@ public class PubSessionModule extends AbstractModule {
     	        
 		if( killer == null || killed == null )
 			return;
-		
+
         // The following four if statements deduct the tax value from a player who TKs.
-        if( killer.getFrequency() == killed.getFrequency() ) {
-        	PubPlayer tker = context.getPlayerManager().getPlayer(killer.getPlayerName());
-    			if (tker != null) {
-    				if ( tax > 0 ) {    		        	
-    					int money = tker.getMoney();
-    						if ( money < tax ){
-    							tker.removeMoney(tax);
-    							m_botAction.sendPrivateMessage(tker.getPlayerName(), "Your account has been deducted $" + tax + " for team-killing " + killed);
-    						}
-    				}
-    		}
-    	}
-        else {
-            SessionPlayer sKiller = ps.get( killer.getPlayerName() );
-            if( sKiller != null )
-                sKiller.addKill( killer.getShipType(), killed.getShipType() );
-        
-            SessionPlayer sKilled = ps.get( killed.getPlayerName() );
-            if( sKilled != null )
-                sKilled.addDeath( killer.getShipType(), killed.getShipType() );
-        }  
-    }       
-    
+        if (killer.getFrequency() == killed.getFrequency()) {
+            PubPlayer tker = context.getPlayerManager().getPlayer(killer.getPlayerName());
+            if (tker != null) {
+                if (tax > 0) {
+                    int money = tker.getMoney();
+                    if (money >= tax) {
+                        tker.removeMoney(tax);
+                        m_botAction.sendPrivateMessage(tker.getPlayerName(), "Your account has been deducted $" + tax + " for team-killing " + killed);
+                    }
+                }
+            }
+        } else {
+            SessionPlayer sKiller = ps.get(killer.getPlayerName());
+            if (sKiller != null)
+                sKiller.addKill(killer.getShipType(), killed.getShipType());
+
+            SessionPlayer sKilled = ps.get(killed.getPlayerName());
+            if (sKilled != null)
+                sKilled.addDeath(killer.getShipType(), killed.getShipType());
+        }
+    }
+
     public void doSessionCmd( String player, String requester ) {
         SessionPlayer p = ps.get( player );
         if( p == null ) {
@@ -251,10 +250,15 @@ public class PubSessionModule extends AbstractModule {
             doSessionResetCmd(sender);
         } else if( command.startsWith("!session ") ) {
 	        doSessionCmd( command.substring(9), sender );
-	    } else if( oplist.isModerator(sender) && command.startsWith("!tax ") ) {
-	    	doSetTeamKillTax(sender, command);
-	    }
+	    } 
 	}
+
+    @Override
+    public void handleModCommand(String sender, String command) {
+        if(command.startsWith("!tax ")) {
+            doSetTeamKillTax(sender, command);
+        }
+    }
     
 	/**
 	 * This method sets the value to be deducted from a players account for TKing
@@ -262,21 +266,19 @@ public class PubSessionModule extends AbstractModule {
 	 * @param sender
 	 */
 	public void doSetTeamKillTax(String sender, String command) {
-				try {
-    				tax = Integer.valueOf(command.substring(command.indexOf(" ") + 1));
-    			} catch (NumberFormatException e) {
-    				m_botAction.sendPrivateMessage( sender, "Invalid syntax. Please use use !tax <value>, where <value> is an integer greater than 0.");
-    				return;
-    			}
-				if (tax > 0) {
-    				m_botAction.sendPrivateMessage( sender, "The tax deduction for team killing has been set to " + tax);
-				}
-				else m_botAction.sendPrivateMessage( sender, "Invalid syntax. Please use use !tax <value>, where <value> is an integer greater than 0.");
-    	}	
-
-	@Override
-	public void handleModCommand(String sender, String command) {
-	}
+	    int newTeamKillTax = 0;
+	    try {
+	        newTeamKillTax = Integer.valueOf(command.substring(command.indexOf(" ") + 1));
+	    } catch (NumberFormatException e) {
+	        m_botAction.sendPrivateMessage( sender, "Invalid syntax. Please use use !tax <value>, where <value> is an integer greater than 0.");
+	        return;
+	    }
+	    if (newTeamKillTax > 0) {
+	        tax = newTeamKillTax;
+	        m_botAction.sendPrivateMessage( sender, "The tax deduction for team killing has been set to " + tax);
+	    } else 
+	        m_botAction.sendPrivateMessage( sender, "Invalid syntax. Please use use !tax <value>, where <value> is an integer greater than 0.");
+	}	
 	
 	@Override
 	public String[] getHelpMessage(String sender) {
