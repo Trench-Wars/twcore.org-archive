@@ -276,10 +276,11 @@ public class PubPlayerManagerModule extends AbstractModule {
 		PubPlayer pubPlayerKiller = getPlayer(killer.getPlayerName());
 		PubPlayer pubPlayerKilled = getPlayer(killed.getPlayerName());
 		if (pubPlayerKilled != null) {
-			long diff = System.currentTimeMillis() - pubPlayerKilled.getLastDeath();
+			//long diff = System.currentTimeMillis() - pubPlayerKilled.getLastDeath();
 			pubPlayerKilled.addDeath();
 			
-			// Spawn check
+			// Spawn check (not working properly, the attach info isn't updating fast enough)
+			/*
 			if (diff < 8 * Tools.TimeInMillis.SECOND && System.currentTimeMillis()-pubPlayerKilled.getLastAttach() > 3.5*Tools.TimeInMillis.SECOND) {
 				if (pubPlayerKiller != null) {
 					if (pubPlayerKiller.getMoney() >= 200) {
@@ -290,6 +291,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 					}
 				}
 			}
+			*/
 
 		}
 
