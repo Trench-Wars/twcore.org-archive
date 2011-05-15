@@ -280,7 +280,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 			pubPlayerKilled.addDeath();
 			
 			// Spawn check
-			if (diff < 6.5 * Tools.TimeInMillis.SECOND && System.currentTimeMillis()-pubPlayerKilled.getLastAttach() < 1.5*Tools.TimeInMillis.SECOND) {
+			if (diff < 6.5 * Tools.TimeInMillis.SECOND && System.currentTimeMillis()-pubPlayerKilled.getLastAttach() > 1.5*Tools.TimeInMillis.SECOND) {
 				if (pubPlayerKiller != null) {
 					if (pubPlayerKiller.getMoney() >= 200) {
 						pubPlayerKiller.removeMoney(200);
