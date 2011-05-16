@@ -71,7 +71,7 @@ public class hockeybot extends SubspaceBot {
     private HockeyState currentState;
     private long timeStamp;
 
-    private enum HockeyPenalties {};
+    private enum HockeyPenalty {NONE, OFFSIDES, DEFENSE_CREASE};
 
     //Game ticker
     private Gameticker gameticker;
@@ -276,34 +276,40 @@ public class hockeybot extends SubspaceBot {
      */
     @Override
     public void handleEvent(PlayerPosition event) {
-        String name;    //Name of the player
-        HockeyTeam t = null;     //Team
-        name = m_botAction.getPlayerName(event.getPlayerID());
 
-        /* Null pointer exception check */
+        int playerID = event.getPlayerID();
+        String name = m_botAction.getPlayerName(playerID);
+
+        HockeyTeam team = null;
         if (name != null) {
-            t = getTeam(name);
+            team = getTeam(name);
         }
 
         /* Null pointer exception check */
-        if (t != null) {
+        if (team != null) {
 
             switch (currentState) {
                 case FACE_OFF:
                     int x_coord = event.getXLocation();
 
-                    if (t.frequency == 0 && x_coord > config.getPuckDropX()) {
-                        //player offsides
-                    } else if (t.frequency == 1 && x_coord < config.getPuckDropX()) {
-                        //player offsides
+                    if ((team.frequency == 0 && x_coord > config.getPuckDropX()) ||
+                            team.frequency == 1 && x_coord < config.getPuckDropX()) {
+                        HockeyPlayer player = team.getPlayer(name);
+                        if (!player.isWarned()) {
+                            player.warn(HockeyPenalty.OFFSIDES);
+                            m_botAction.sendPrivateMessage(name, "Warning: Stay"+
+                                    " on your side of neutral zone during faceoff!");
+                            m_botAction.sendPrivateMessage(name, "Team 0 "+
+                                    "<--- | ---> Team 1");
+                        }
                     } else {
 
                     }
 
                     break;
                 case GAME_IN_PROGRESS:
-                    if (t != null) {
-                        t.timestampLastPosition(name); //Timestamp last position update
+                    if (team != null) {
+                        team.timestampLastPosition(name); //Timestamp last position update
                     }
                     break;
             }
@@ -2373,7 +2379,9 @@ public class hockeybot extends SubspaceBot {
         private String p_name;
         private int[][] p_ship;
         private int p_currentShip;
+        
         private int p_state;
+
         private long p_timestampLagout;
         private long p_timestampChange;
         private long p_timestampSub;
@@ -2393,12 +2401,17 @@ public class hockeybot extends SubspaceBot {
         private static final int LAGOUT = 1;
         private static final int OUT_SUBABLE = 2;
         private static final int SUBBED = 3;
-        private static final int OUT = 4;
+        private static final int PENALTY = 4;
         //Static variables
         private static final int CHANGE_WAIT_TIME = 15; //In seconds
         private static final int SWITCH_WAIT_TIME = 15; //In seconds
         private static final int SUB_WAIT_TIME = 15; //In seconds
         private static final int LAGOUT_TIME = 15 * Tools.TimeInMillis.SECOND;  //In seconds
+        private static final int PENALTY_TIME = 120; //In seconds
+
+        private HockeyPenalty penalty = HockeyPenalty.NONE;
+        private boolean warned = false;
+        private long warnTimestamp = 0;
 
         /** Class constructor */
         private HockeyPlayer(String player, int shipType, int frequency) {
@@ -2476,13 +2489,13 @@ public class hockeybot extends SubspaceBot {
                 //Check if player is out due maximum of lagouts
                 if ((config.getMaxLagouts() != -1) && p_lagouts >= config.getMaxLagouts()) {
                     //Extra check if player is not already set to OUT, due death limit (the +1 death thing)
-                    if (p_state < OUT) {
+                    if (p_state < PENALTY) {
                         out("lagout limit");
                     }
                 }
 
                 //Message player how to get back in if he is not out
-                if (p_state != OUT) {
+                if (p_state != PENALTY) {
                     m_botAction.sendPrivateMessage(p_name, "PM me \"!lagout\" to get back in.");
                 }
             }
@@ -2500,7 +2513,7 @@ public class hockeybot extends SubspaceBot {
         private void out(String reason) {
             String arenaMessage = "";
 
-            p_state = OUT;
+            p_state = PENALTY;
 
             //Spectate the player if he is in the arena
             if (m_botAction.getPlayer(p_name) != null) {
@@ -2670,7 +2683,7 @@ public class hockeybot extends SubspaceBot {
                     return "LAGGED OUT";
                 case (SUBBED):
                     return "SUBSTITUTED";
-                case (OUT):
+                case (PENALTY):
                     return "OUT";
                 case (OUT_SUBABLE):
                     return "OUT (still substitutable)";
@@ -2720,6 +2733,26 @@ public class hockeybot extends SubspaceBot {
         private void switchPlayer() {
             addPlayer();
             p_timestampSwitch = System.currentTimeMillis();
+        }
+
+        private void warn(HockeyPenalty penalty) {
+            warned = true;
+            this.penalty = penalty;
+            warnTimestamp = System.currentTimeMillis();
+        }
+
+        public boolean isWarned() {
+            return warned;
+        }
+
+        public long getWarnTimestamp() {
+            return warnTimestamp;
+        }
+
+        public void unWarn() {
+            warned = false;
+            this.penalty = HockeyPenalty.NONE;
+            warnTimestamp = 0;
         }
     }
 
@@ -3531,6 +3564,10 @@ public class hockeybot extends SubspaceBot {
             }
 
             return lagouts;
+        }
+
+        public HockeyPlayer getPlayer(String name) {
+            return players.get(name);
         }
 
         /**
