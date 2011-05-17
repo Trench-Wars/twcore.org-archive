@@ -4,6 +4,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.StringTokenizer;
 import java.util.TimerTask;
 import java.util.Vector;
 
@@ -41,7 +43,8 @@ public class staffbot_warnings extends Module {
     
     final String[] helpSmod = {
             "--------------------[ Warnings: SMod+ ]--------------------",
-            " !warningsfrom <player>    - Displays a list of recent warns given to a player."
+            " !warningsfrom <player>    - Displays a list of recent warns given to a player.",
+            " !manual player:warning    - Adds a manual database warning to player. Use with caution!"
     };
 	
 	@Override
@@ -166,11 +169,37 @@ public class staffbot_warnings extends Module {
         if( m_opList.isSmod( name ) ){
             if( message.toLowerCase().startsWith( "!warningsfrom " ))
                 queryWarningsFrom( name, message.substring( 14 ) );
-        }
+            if( message.toLowerCase().startsWith("!manual "))
+                addManualWarning( name, message.substring(8).trim());}
+            
         
 	}
 	
-	 /**
+	 private void addManualWarning(String name, String message) {
+	     StringTokenizer argTokens = new StringTokenizer(message, ":");
+	       if(argTokens.countTokens() == 2){
+	     String player = argTokens.nextToken();
+         String warning = argTokens.nextToken();
+         String[] paramNames = { "name", "warning", "staffmember", "timeofwarning" };
+         Calendar thisTime = Calendar.getInstance();
+         java.util.Date day = thisTime.getTime();
+         String warntime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format( day );
+         String date = new java.sql.Date( System.currentTimeMillis() ).toString();
+         String[] data = { player.toLowerCase().trim(), new String( warntime + ": ("+name+") to ("+player+")"+" "+warning ), name.toLowerCase().trim(), date };
+         
+         m_botAction.SQLInsertInto( sqlHost, "tblWarnings", paramNames, data );
+         m_botAction.sendSmartPrivateMessage(name, "Inserted warning ("+warning+") to player ("+player+")");
+         m_botAction.sendChatMessage(2,"Staffer "+name+" has inserted a manual warning to player "+player);
+         } else {
+             m_botAction.sendSmartPrivateMessage(name, "Formatting Syntax Error: Please use PlayerName:Warning to proceed.");
+	     }
+	         
+	       
+	        
+        
+    }
+
+    /**
      * Queries the database for stored warnings on a player.
      * @param name Staffer requesting
      * @param message Player to query
