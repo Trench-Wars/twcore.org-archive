@@ -893,6 +893,8 @@ public class hockeybot extends SubspaceBot {
             help.add("ZH+ commands:");
             help.add("!start                            -- starts the bot");
             help.add("!stop                             -- stops the bot");
+            help.add("!ball                             -- retrieves the ball");
+            help.add("!drop                             -- drops the ball");
             if (!config.getAllowAutoCaps()) {
                 help.add("!zone <message>                   -- sends time-restricted advert, message is optional");
             }
@@ -1645,13 +1647,11 @@ public class hockeybot extends SubspaceBot {
         } else if (distance1 < config.getGoalRadius() && event.getFrequency() == 0) {
             m_botAction.sendArenaMessage("CREASE. No count.", Tools.Sound.CROWD_GEE);
         } else if (puck.veloX > 0 && event.getFrequency() == 1) {
-                m_botAction.sendArenaMessage("OWN GOAL! (Counts unless gamepoint)", Tools.Sound.GAME_SUCKS);
-                if (team0.getScore() < 6 || (team0.getScore() - team1.getScore() < 1))
-                    team0.increaseScore();
+                m_botAction.sendArenaMessage("OWN GOAL!", Tools.Sound.GAME_SUCKS);
+                team0.increaseScore();
         } else if (puck.veloX < 0 && event.getFrequency() == 0) {
-                m_botAction.sendArenaMessage("OWN GOAL! (Counts unless gamepoint)", Tools.Sound.GAME_SUCKS);
-                if (team1.getScore() < 6 && (team1.getScore() - team0.getScore() < 1))
-                    team1.increaseScore();
+                m_botAction.sendArenaMessage("OWN GOAL! (Counts unless gamepoint)", Tools.Sound.GAME_SUCKS);                
+                team1.increaseScore();
         } else {
             m_botAction.sendArenaMessage("Clean!");
             if (event.getFrequency() == 0) {
@@ -1662,9 +1662,9 @@ public class hockeybot extends SubspaceBot {
         }
 
 
-        if (team0.getScore() >= 7 && (team0.getScore() - team1.getScore() >= 2)) {
+        if (team0.getScore() == 7) {
             gameOver(0);
-        } else if (team1.getScore() >= 7 && (team1.getScore() - team0.getScore() >= 2)) {
+        } else if (team1.getScore() == 7) {
             gameOver(1);
             /*} else if (config.allowVote) {
             currentState = HockeyState.REVIEW;*/
