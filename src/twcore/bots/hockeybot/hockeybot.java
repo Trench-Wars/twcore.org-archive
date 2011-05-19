@@ -1298,7 +1298,7 @@ public class hockeybot extends SubspaceBot {
                 break;
             case FACE_OFF:
                 status[0] = "Teams: " + team0.getName() + " vs. " + team1.getName()
-                        + ". We are currently starting the game";
+                        + ". We are currently facing off";
                 break;
             case GAME_IN_PROGRESS:
                 status[0] = "Game is in progress.";
@@ -1563,13 +1563,9 @@ public class hockeybot extends SubspaceBot {
         lockDoors();
         setSpecAndFreq();
 
-        //start game ticker
-        if (gameticker != null) {
-            try {
-                gameticker.cancel();
-            } catch (Exception e) {
-            }
-        }
+        try {
+            gameticker.cancel();
+        } catch (Exception e) {}
 
         gameticker = new Gameticker();
         m_botAction.scheduleTask(gameticker, Tools.TimeInMillis.SECOND, Tools.TimeInMillis.SECOND);
@@ -1626,17 +1622,10 @@ public class hockeybot extends SubspaceBot {
      */
     private void startFaceOff() {
         currentState = HockeyState.FACE_OFF;
-        puck.carriers.clear();
-        puck.releases.clear();
 
-        team0.offside.clear();
-        team1.offside.clear();
-
-        team0.fCrease.clear();
-        team1.fCrease.clear();
-
-        team0.dCrease.clear();
-        team1.dCrease.clear();
+        puck.clear();
+        team0.clearUnsetPenalties();
+        team1.clearUnsetPenalties();
 
         m_botAction.sendArenaMessage("Lineup For FaceOff", Tools.Sound.CROWD_OOO);
 
@@ -3012,6 +3001,14 @@ public class hockeybot extends SubspaceBot {
             fCrease.clear();
         }
 
+        private void clearUnsetPenalties() {
+            try {
+                offside.clear();
+                dCrease.clear();
+                fCrease.clear();
+            } catch (Exception e) {}
+        }
+
         /**
          * Increases team score by 1.
          */
@@ -3866,8 +3863,10 @@ public class hockeybot extends SubspaceBot {
          */
         public void clear() {
             carrier = null;
-            carriers.clear();
-            releases.clear();
+            try {
+                carriers.clear();
+                releases.clear();
+            } catch (Exception e) {}
         }
 
         public byte getBallID() {
