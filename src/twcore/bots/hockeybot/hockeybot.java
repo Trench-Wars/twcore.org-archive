@@ -296,17 +296,19 @@ public class hockeybot extends SubspaceBot {
                     int x = event.getXLocation();
 
                     try {
-                    if (team.getFrequency() == 0 && x > config.getPuckDropX()) {
-                        if (!team.offside.contains(name)) {
-                            team.offside.push(name);
+                        if (team.getFrequency() == 0 && x > config.getPuckDropX()) {
+                            if (!team.offside.contains(name)) {
+                                team.offside.push(name);
+                            }
+                        } else if (team.getFrequency() == 1 && x < config.getPuckDropX()) {
+                            if (!team.offside.contains(name)) {
+                                team.offside.push(name);
+                            }
+                        } else if (team.offside.contains(name)) {
+                            team.offside.remove(name);
                         }
-                    } else if (team.getFrequency() == 1 && x < config.getPuckDropX()) {
-                        if (!team.offside.contains(name)) {
-                            team.offside.push(name);
-                        }
-                    } else if (team.offside.contains(name)) {
-                        team.offside.remove(name);
-                    }} catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
 
                     //check faceoff crease
                     int fX = Math.abs(config.getPuckDropX() - event.getXLocation());
@@ -314,13 +316,15 @@ public class hockeybot extends SubspaceBot {
                     double fDistance = Math.sqrt(Math.pow(fX, 2) + Math.pow(fY, 2));
 
                     try {
-                    if (fDistance < config.getPuckDropRadius()) {
-                        if (!team.fCrease.contains(name)) {
-                            team.fCrease.push(name);
+                        if (fDistance < config.getPuckDropRadius()) {
+                            if (!team.fCrease.contains(name)) {
+                                team.fCrease.push(name);
+                            }
+                        } else if (team.fCrease.contains(name)) {
+                            team.fCrease.remove(name);
                         }
-                    } else if (team.fCrease.contains(name)) {
-                        team.fCrease.remove(name);
-                    }} catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
 
                     break;
                 case GAME_IN_PROGRESS:
@@ -339,20 +343,22 @@ public class hockeybot extends SubspaceBot {
                     double dDistance = Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
 
                     try {
-                    if (dDistance < config.getGoalRadius()) {
-                        if (!team.dCrease.contains(name)) {
-                                team.dCrease.push(name);
-                            }
-                        //TODO test this more thoroughly
-                        /*if (event.getXLocation() > config.getTeam0GoalX()
-                                || event.getXLocation() < config.getTeam1GoalX()) {
+                        if (dDistance < config.getGoalRadius()) {
                             if (!team.dCrease.contains(name)) {
                                 team.dCrease.push(name);
                             }
-                        }*/
-                    } else if (team.dCrease.contains(name)) {
-                        team.dCrease.remove(name);
-                    }} catch (Exception e) {}
+                            //TODO test this more thoroughly
+                        /*if (event.getXLocation() > config.getTeam0GoalX()
+                            || event.getXLocation() < config.getTeam1GoalX()) {
+                            if (!team.dCrease.contains(name)) {
+                            team.dCrease.push(name);
+                            }
+                            }*/
+                        } else if (team.dCrease.contains(name)) {
+                            team.dCrease.remove(name);
+                        }
+                    } catch (Exception e) {
+                    }
                     break;
             }
         }
@@ -1940,14 +1946,17 @@ public class hockeybot extends SubspaceBot {
         }
 
         t.lagout(name); //Notify the team that a player lagged out
-        if (t.offside.contains(name)) {
-            t.offside.remove(name);
-        }
-        if (t.fCrease.contains(name)) {
-            t.offside.remove(name);
-        }
-        if (t.dCrease.contains(name)) {
-            t.offside.remove(name);
+        try {
+            if (t.offside.contains(name)) {
+                t.offside.remove(name);
+            }
+            if (t.fCrease.contains(name)) {
+                t.offside.remove(name);
+            }
+            if (t.dCrease.contains(name)) {
+                t.offside.remove(name);
+            }
+        } catch (Exception e) {
         }
     }
 
@@ -3052,8 +3061,11 @@ public class hockeybot extends SubspaceBot {
 
             playerState = -1;   //-1 if not found
 
-            if (players.containsKey(name)) {
-                playerState = players.get(name).getCurrentState();
+            try {
+                if (players.containsKey(name)) {
+                    playerState = players.get(name).getCurrentState();
+                }
+            } catch (Exception e) {
             }
 
             return playerState;
@@ -3066,16 +3078,19 @@ public class hockeybot extends SubspaceBot {
          * @return true if on team, false if not
          */
         private boolean isOnTeam(String name) {
-            boolean isOnTeam;
+            boolean isOnTeam = false;
 
             name = name.toLowerCase();
 
-            if (players.containsKey(name)) {
-                isOnTeam = true;
-            } else if (name.equalsIgnoreCase(captainName)) {
-                isOnTeam = true;
-            } else {
-                isOnTeam = false;
+            try {
+                if (players.containsKey(name)) {
+                    isOnTeam = true;
+                } else if (name.equalsIgnoreCase(captainName)) {
+                    isOnTeam = true;
+                } else {
+                    isOnTeam = false;
+                }
+            } catch (Exception e) {
             }
 
             return isOnTeam;
@@ -3088,14 +3103,17 @@ public class hockeybot extends SubspaceBot {
          * @return true if is a player, false if not
          */
         private boolean isPlayer(String name) {
-            boolean isPlayer;
+            boolean isPlayer = false;
 
             name = name.toLowerCase();
 
-            if (players.containsKey(name)) {
-                isPlayer = true;
-            } else {
-                isPlayer = false;
+            try {
+                if (players.containsKey(name)) {
+                    isPlayer = true;
+                } else {
+                    isPlayer = false;
+                }
+            } catch (Exception e) {
             }
 
             return isPlayer;
@@ -3113,10 +3131,13 @@ public class hockeybot extends SubspaceBot {
             name = name.toLowerCase();
             isIN = false;
 
-            if (players.containsKey(name)) {
-                if (players.get(name).getCurrentState() != HockeyPlayer.SUBBED) {
-                    isIN = true;
+            try {
+                if (players.containsKey(name)) {
+                    if (players.get(name).getCurrentState() != HockeyPlayer.SUBBED) {
+                        isIN = true;
+                    }
                 }
+            } catch (Exception e) {
             }
 
             return isIN;
@@ -3133,7 +3154,11 @@ public class hockeybot extends SubspaceBot {
             Player player;
             name = name.toLowerCase();
 
-            if (!players.containsKey(name)) {
+            try {
+                if (!players.containsKey(name)) {
+                    return false;
+                }
+            } catch (Exception e) {
                 return false;
             }
 
@@ -3168,8 +3193,11 @@ public class hockeybot extends SubspaceBot {
         private void lagout(String name) {
             name = name.toLowerCase();
 
-            if (players.containsKey(name)) {
-                players.get(name).lagout();
+            try {
+                if (players.containsKey(name)) {
+                    players.get(name).lagout();
+                }
+            } catch (Exception e) {
             }
 
             //Notify captain if captian is in the arena
@@ -3229,8 +3257,11 @@ public class hockeybot extends SubspaceBot {
          */
         private void timestampLastPosition(String name) {
             name = name.toLowerCase();
-            if (players.containsKey(name)) {
-                players.get(name).timestampLastPosition();
+            try {
+                if (players.containsKey(name)) {
+                    players.get(name).timestampLastPosition();
+                }
+            } catch (Exception e) {
             }
         }
 
