@@ -336,8 +336,11 @@ public class hockeybot extends SubspaceBot {
                     double dDistance = Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
 
                     if (dDistance < config.getGoalRadius()) {
-                        if (!team.dCrease.contains(name)) {
-                            team.dCrease.push(name);
+                        if (event.getXLocation() > config.getTeam0GoalX() ||
+                                event.getXLocation() < config.getTeam1GoalX()) {
+                            if (!team.dCrease.contains(name)) {
+                                team.dCrease.push(name);
+                            }
                         }
                     } else if (team.dCrease.contains(name)) {
                         team.dCrease.remove(name);
@@ -1625,6 +1628,15 @@ public class hockeybot extends SubspaceBot {
         puck.carriers.clear();
         puck.releases.clear();
 
+        team0.offside.clear();
+        team1.offside.clear();
+
+        team0.fCrease.clear();
+        team1.fCrease.clear();
+
+        team0.dCrease.clear();
+        team1.dCrease.clear();
+
         m_botAction.sendArenaMessage("Lineup For FaceOff", Tools.Sound.CROWD_OOO);
 
         timeStamp = System.currentTimeMillis();
@@ -1644,8 +1656,14 @@ public class hockeybot extends SubspaceBot {
 
         if (distance0 < config.getGoalRadius() && event.getFrequency() == 1) {
             m_botAction.sendArenaMessage("CREASE. No count.", Tools.Sound.CROWD_GEE);
+        } else if (distance0 < config.getGoalRadius() && event.getFrequency() == 0) {
+            m_botAction.sendArenaMessage("OWN GOAL!", Tools.Sound.GAME_SUCKS);
+            team1.increaseScore();
         } else if (distance1 < config.getGoalRadius() && event.getFrequency() == 0) {
             m_botAction.sendArenaMessage("CREASE. No count.", Tools.Sound.CROWD_GEE);
+        } else if (distance1 < config.getGoalRadius() && event.getFrequency() == 1) {
+            m_botAction.sendArenaMessage("OWN GOAL!", Tools.Sound.GAME_SUCKS);
+            team0.increaseScore();
         } else if (puck.veloX > 0 && event.getFrequency() == 1) {
             m_botAction.sendArenaMessage("OWN GOAL!", Tools.Sound.GAME_SUCKS);
             team0.increaseScore();
@@ -2595,13 +2613,11 @@ public class hockeybot extends SubspaceBot {
         private static final int OUT_SUBABLE = 2;
         private static final int SUBBED = 3;
         private static final int PENALTY = 4;
-
         //Static variables
         private static final int CHANGE_WAIT_TIME = 15; //In seconds
         private static final int SWITCH_WAIT_TIME = 15; //In seconds
         private static final int SUB_WAIT_TIME = 15; //In seconds
         private static final int LAGOUT_TIME = 15 * Tools.TimeInMillis.SECOND;  //In seconds
-
         //penalty handling
         private HockeyPenalty penalty = HockeyPenalty.NONE;
         private long penaltyTimestamp;  //in gametime which increments from 0 each second of gameplay
