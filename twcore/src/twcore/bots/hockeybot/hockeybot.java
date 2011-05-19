@@ -340,13 +340,16 @@ public class hockeybot extends SubspaceBot {
 
                     try {
                     if (dDistance < config.getGoalRadius()) {
+                        if (!team.dCrease.contains(name)) {
+                                team.dCrease.push(name);
+                            }
                         //TODO test this more thoroughly
-                        if (event.getXLocation() > config.getTeam0GoalX()
+                        /*if (event.getXLocation() > config.getTeam0GoalX()
                                 || event.getXLocation() < config.getTeam1GoalX()) {
                             if (!team.dCrease.contains(name)) {
                                 team.dCrease.push(name);
                             }
-                        }
+                        }*/
                     } else if (team.dCrease.contains(name)) {
                         team.dCrease.remove(name);
                     }} catch (Exception e) {}
