@@ -1461,7 +1461,8 @@ public class hockeybot extends SubspaceBot {
         HockeyPlayer playerA;
         HockeyPlayer playerB;
 
-        if (currentState == HockeyState.ADDING_PLAYERS || currentState == HockeyState.GAME_IN_PROGRESS) {
+        if (currentState == HockeyState.ADDING_PLAYERS || currentState == HockeyState.FACE_OFF ||
+                currentState == HockeyState.GAME_IN_PROGRESS) {
             t = getTeam(name, override); //Retrieve team number
 
             cmd = cmd.substring(7).trim(); //Cut off the !switch part of the command
