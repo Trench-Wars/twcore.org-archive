@@ -385,7 +385,7 @@ public class hockeybot extends SubspaceBot {
      * Drops the ball at current location
      */
     public void dropBall() {
-        m_botAction.getShip().setShip(8);        
+        m_botAction.getShip().setShip(8);
     }
 
     private void checkPenalty(PlayerPosition event) {
@@ -1647,11 +1647,11 @@ public class hockeybot extends SubspaceBot {
         } else if (distance1 < config.getGoalRadius() && event.getFrequency() == 0) {
             m_botAction.sendArenaMessage("CREASE. No count.", Tools.Sound.CROWD_GEE);
         } else if (puck.veloX > 0 && event.getFrequency() == 1) {
-                m_botAction.sendArenaMessage("OWN GOAL!", Tools.Sound.GAME_SUCKS);
-                team0.increaseScore();
+            m_botAction.sendArenaMessage("OWN GOAL!", Tools.Sound.GAME_SUCKS);
+            team0.increaseScore();
         } else if (puck.veloX < 0 && event.getFrequency() == 0) {
-                m_botAction.sendArenaMessage("OWN GOAL! (Counts unless gamepoint)", Tools.Sound.GAME_SUCKS);                
-                team1.increaseScore();
+            m_botAction.sendArenaMessage("OWN GOAL!", Tools.Sound.GAME_SUCKS);
+            team1.increaseScore();
         } else {
             m_botAction.sendArenaMessage("Clean!");
             if (event.getFrequency() == 0) {
@@ -1662,12 +1662,10 @@ public class hockeybot extends SubspaceBot {
         }
 
 
-        if (team0.getScore() == 7) {
+        if (team0.getScore() >= 7) {
             gameOver(0);
-        } else if (team1.getScore() == 7) {
+        } else if (team1.getScore() >= 7) {
             gameOver(1);
-            /*} else if (config.allowVote) {
-            currentState = HockeyState.REVIEW;*/
         } else {
             displayScores();
             startFaceOff();
@@ -2133,7 +2131,7 @@ public class hockeybot extends SubspaceBot {
         team0.resetVariables();
         team1.resetVariables();
         puck.clear();
-        
+
         setSpecAndFreq();
     }
 
@@ -2597,11 +2595,14 @@ public class hockeybot extends SubspaceBot {
         private static final int OUT_SUBABLE = 2;
         private static final int SUBBED = 3;
         private static final int PENALTY = 4;
+
         //Static variables
         private static final int CHANGE_WAIT_TIME = 15; //In seconds
         private static final int SWITCH_WAIT_TIME = 15; //In seconds
         private static final int SUB_WAIT_TIME = 15; //In seconds
         private static final int LAGOUT_TIME = 15 * Tools.TimeInMillis.SECOND;  //In seconds
+
+        //penalty handling
         private HockeyPenalty penalty = HockeyPenalty.NONE;
         private long penaltyTimestamp;  //in gametime which increments from 0 each second of gameplay
 
@@ -2930,10 +2931,11 @@ public class hockeybot extends SubspaceBot {
         private void setPenalty(HockeyPenalty pen) {
             this.penalty = pen;
             this.penaltyTimestamp = gameTime;
-            if (team0.isPlayer(p_name))
+            if (team0.isPlayer(p_name)) {
                 m_botAction.warpTo(p_name, config.getTeam0PenX() / 16, config.getTeam0PenY() / 16);
-            else
+            } else {
                 m_botAction.warpTo(p_name, config.getTeam1PenX() / 16, config.getTeam1PenY() / 16);
+            }
         }
     }
 
