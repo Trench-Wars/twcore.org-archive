@@ -855,7 +855,7 @@ public class MatchRound
         return help;
     };
 
-    public void parseCommand(String name, String command, String[] parameters, boolean isStaff)
+    public void parseCommand(String name, String command, String[] parameters, boolean isStaff, boolean isTWDOP)
     {
         if (m_rules.getInt("pickbyturn") == 1)
         {
@@ -940,20 +940,20 @@ public class MatchRound
             if (command.startsWith("!t1-") && (command.length() > 4))
             {
                 command = "!" + command.substring(4);
-                m_team1.parseCommand(name, command, parameters, isStaff);
+                m_team1.parseCommand(name, command, parameters, isTWDOP);
             }
             else if (command.startsWith("!t2-") && (command.length() > 4))
             {
                 command = "!" + command.substring(4);
-                m_team2.parseCommand(name, command, parameters, isStaff);
+                m_team2.parseCommand(name, command, parameters, isTWDOP);
             }
             else if ((m_team1.getPlayer(name, true) != null) || (m_team1.isCaptain(name)))
             {
-                m_team1.parseCommand(name, command, parameters, isStaff);
+                m_team1.parseCommand(name, command, parameters, isTWDOP);
             }
             else if ((m_team2.getPlayer(name, true) != null) || (m_team2.isCaptain(name)))
             {
-                m_team2.parseCommand(name, command, parameters, isStaff);
+                m_team2.parseCommand(name, command, parameters, isTWDOP);
             };
         };
     }

@@ -669,11 +669,11 @@ public class MatchTeam
     }
 
     // Process commands given by a player
-    public void parseCommand(String name, String command, String[] parameters, boolean isStaff)
+    public void parseCommand(String name, String command, String[] parameters, boolean isTWDOP)
     {
         try
         {
-            if ((isStaff) || (isCaptain(name)))
+            if ((isTWDOP) || (isCaptain(name)))
             {
                 if (m_rules.getInt("captainfixed") == 0)
                     if (command.equals("!setcaptain"))

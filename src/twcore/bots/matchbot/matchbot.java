@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.Stack;
 import java.util.TimerTask;
 import java.util.TreeSet;
 
@@ -98,6 +99,9 @@ public class matchbot extends SubspaceBot {
     protected String previousCaptain1 = null;
     protected String previousCaptain2 = null;
 
+    //list of twdops
+    private Stack<String> twdops;
+
     /** Creates a new instance of Matchtwl */
     public matchbot(BotAction botAction) {
         // Setup of necessary stuff for any bot.
@@ -108,8 +112,30 @@ public class matchbot extends SubspaceBot {
         m_opList = m_botAction.getOperatorList();
         m_gameRequests = new LinkedList<GameRequest>();
 
+        twdops = new Stack<String>();
+        loadTWDOps();
+
         requestEvents();
         racismSpy = new Spy(m_botAction);
+    }
+
+    private void loadTWDOps() {
+        try {
+	        ResultSet r = m_botAction.SQLQuery(dbConn, "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '14' AND tblUser.fnUserID = tblUserRank.fnUserID");
+
+	        if (r == null) {
+	            return;
+	        }
+
+	        twdops.clear();
+
+	        while(r.next()) {
+	            String name = r.getString("fcUsername");
+	            twdops.push(name);
+	        }
+
+	        m_botAction.SQLClose( r );
+	    } catch (Exception e) {}
     }
 
     public boolean isIdle() {
@@ -716,7 +742,7 @@ public class matchbot extends SubspaceBot {
                         final String nm = name;
                         TimerTask setcaptain = new TimerTask() {
                             public void run() {
-                                m_game.parseCommand(nm, "!cap", null, false);
+                                m_game.parseCommand(nm, "!cap", null, false, false);
                             }
                         };
                         m_botAction.scheduleTask(setcaptain, 1500);
@@ -729,8 +755,15 @@ public class matchbot extends SubspaceBot {
         if (command.equals("!help"))
             m_botAction.privateMessageSpam(name, getHelpMessages(name, isStaff, isRestrictedStaff));
 
+        boolean isTWDOP = m_opList.isHighmod(name);
+        if (!isTWDOP) {
+            try {
+                isTWDOP = twdops.contains(name);
+            }catch (Exception e) {}
+        }
+
         if (m_game != null)
-            m_game.parseCommand(name, command, parameters, isStaff);
+            m_game.parseCommand(name, command, parameters, isStaff, isTWDOP);
     }
     
     public void playerKillGame()	{
