@@ -504,7 +504,7 @@ public class MatchGame
 		return help;
 	}
 
-	public void parseCommand(String name, String command, String[] parameters, boolean isStaff)
+	public void parseCommand(String name, String command, String[] parameters, boolean isStaff, boolean isTWDOP)
 	{
 		if (command.equals("!status"))
 			command_status(name, parameters);
@@ -516,7 +516,7 @@ public class MatchGame
 
 		if (m_curRound != null)
 		{
-			m_curRound.parseCommand(name, command, parameters, isStaff);
+			m_curRound.parseCommand(name, command, parameters, isStaff, isTWDOP);
 		}
 	}
 
