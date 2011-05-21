@@ -53,6 +53,8 @@ public class hockeybot extends SubspaceBot {
     //Static variables
     private static final int ZONER_WAIT_TIME = 15;
 
+    private Stack<String> botCrease;
+
     //Game states
     private enum HockeyState {
 
@@ -105,6 +107,8 @@ public class hockeybot extends SubspaceBot {
 
         lockArena = false;
         lockLastGame = false;
+
+        botCrease = new Stack<String>();
     }
 
     /** Requests Subspace events */
@@ -310,13 +314,29 @@ public class hockeybot extends SubspaceBot {
                     } catch (Exception e) {
                     }
 
+                    //check bot crease (minimum faceoff distance)
+                    int bX = Math.abs(config.getPuckDropX() - event.getXLocation());
+                    int bY = Math.abs(config.getPuckDropY() - event.getYLocation());
+                    double bDistance = Math.sqrt(Math.pow(bX, 2) + Math.pow(bY, 2));
+
+                    try {
+                        if (bDistance < config.getPuckDropMinRad()) {
+                            if (!botCrease.contains(name)) {
+                                botCrease.push(name);
+                            }
+                        } else if (botCrease.contains(name)) {
+                            botCrease.remove(name);
+                        }
+                    } catch (Exception e) {}
+
+
                     //check faceoff crease
                     int fX = Math.abs(config.getPuckDropX() - event.getXLocation());
                     int fY = Math.abs(config.getPuckDropY() - event.getYLocation());
                     double fDistance = Math.sqrt(Math.pow(fX, 2) + Math.pow(fY, 2));
 
                     try {
-                        if (fDistance < config.getPuckDropRadius()) {
+                        if (fDistance < config.getPuckDropMaxRad()) {
                             if (!team.fCrease.contains(name)) {
                                 team.fCrease.push(name);
                             }
@@ -2257,7 +2277,8 @@ public class hockeybot extends SubspaceBot {
         //#Coordinate for puck drop
         private int puckDropX;
         private int puckDropY;
-        private int puckDropRadius;
+        private int puckDropMinRad;
+        private int puckDropMaxRad;
         //#X Coordinates for blue lines
         private int team0BlueLine;
         private int team1BlueLine;
@@ -2333,7 +2354,8 @@ public class hockeybot extends SubspaceBot {
             //#Coordinate for puck drop
             puckDropX = botSettings.getInt("PuckDropX");
             puckDropY = botSettings.getInt("PuckDropY");
-            puckDropRadius = botSettings.getInt("PuckDropRadius");
+            puckDropMinRad = botSettings.getInt("PuckDropMinRad");
+            puckDropMaxRad = botSettings.getInt("PuckDropMaxRad");
 
             //#X Coordinates for blue lines
             team0BlueLine = botSettings.getInt("Team0BlueLine");
@@ -2475,11 +2497,15 @@ public class hockeybot extends SubspaceBot {
             return puckDropY;
         }
 
+        public int getPuckDropMinRad() {
+            return puckDropMinRad;
+        }
+
         /**
          * @return the puckDropRadius
          */
-        public int getPuckDropRadius() {
-            return puckDropRadius;
+        public int getPuckDropMaxRad() {
+            return puckDropMaxRad;
         }
 
         /**
@@ -2663,6 +2689,12 @@ public class hockeybot extends SubspaceBot {
 
             m_botAction.setShip(p_name, p_currentShip);
             m_botAction.setFreq(p_name, p_frequency);
+
+            if (p_frequency == 0) {
+                m_botAction.warpTo(p_name, config.getTeam0ExtX() / 16, config.getTeam0ExtY() / 16);
+            }else {
+                m_botAction.warpTo(p_name, config.getTeam1ExtX() / 16, config.getTeam1ExtY() / 16);
+            }
         }
 
         /**
@@ -2865,6 +2897,11 @@ public class hockeybot extends SubspaceBot {
 
             if (m_botAction.getPlayer(p_name) != null) {
                 m_botAction.setShip(p_name, shipType);
+                if (p_frequency == 0) {
+                    m_botAction.warpTo(p_name, config.getTeam0ExtX() / 16 , config.getTeam0ExtY() / 16);
+                } else {
+                    m_botAction.warpTo(p_name, config.getTeam1ExtX() / 16 , config.getTeam1ExtY() / 16);
+                }
             }
 
             p_timestampChange = System.currentTimeMillis();
@@ -2901,7 +2938,7 @@ public class hockeybot extends SubspaceBot {
                 case (SUBBED):
                     return "SUBSTITUTED";
                 case (PENALTY):
-                    return "OUT";
+                    return "PENALTY";
                 case (OUT_SUBABLE):
                     return "OUT (still substitutable)";
                 default:
@@ -2960,6 +2997,8 @@ public class hockeybot extends SubspaceBot {
             } else {
                 m_botAction.warpTo(p_name, config.getTeam1PenX() / 16, config.getTeam1PenY() / 16);
             }
+            m_botAction.sendPrivateMessage(p_name, "You recieved a penalty for "
+                    + config.getPenaltyTime() + " seconds of game time.");
         }
     }
 
@@ -4104,6 +4143,18 @@ public class hockeybot extends SubspaceBot {
                     }
                 } catch (Exception e) {
                 }
+                try {
+                    if (!botCrease.empty()) {
+                        Iterator<String> i = botCrease.iterator();
+                        while(i.hasNext()) {
+                            String name = i.next();
+                            m_botAction.sendPrivateMessage(name, "WARNING: You are "
+                                    + "not allowed to sit inside the red crease during"
+                                    + " Face Off. Exit before drop or you will recieve"
+                                    + " a penalty.");
+                        }
+                    }
+                } catch (Exception e) {}
             }
 
             //CHECK PENALTIES AND DROP
@@ -4133,6 +4184,7 @@ public class hockeybot extends SubspaceBot {
                 try {
                     if (team0.fCrease.size() > 1) {
                         Iterator<String> i = team0.fCrease.iterator();
+                        i.next();
                         while (i.hasNext()) {
                             String name = i.next();
                             team0.searchPlayer(name).setPenalty(HockeyPenalty.FO_CREASE);
@@ -4144,6 +4196,7 @@ public class hockeybot extends SubspaceBot {
                 try {
                     if (team1.fCrease.size() > 1) {
                         Iterator<String> i = team1.fCrease.iterator();
+                        i.next();
                         while (i.hasNext()) {
                             String name = i.next();
                             team1.searchPlayer(name).setPenalty(HockeyPenalty.FO_CREASE);
@@ -4152,6 +4205,21 @@ public class hockeybot extends SubspaceBot {
                     }
                 } catch (Exception e) {
                 }
+                try {
+                    if (!botCrease.empty()) {
+                        Iterator<String> i = botCrease.iterator();
+                        HockeyPlayer player = null;
+                        while(i.hasNext()) {
+                            String name = i.next();
+                            player = team0.searchPlayer(name);
+                            if (player == null) {
+                                player = team1.searchPlayer(name);
+                            }
+                            player.setPenalty(HockeyPenalty.FO_CREASE);
+                            m_botAction.sendArenaMessage("FACEOFF CREASE PENALTY: " + name);
+                        }
+                    }
+                } catch (Exception e) {}
             }
 
             if (time >= 30) {
@@ -4167,8 +4235,8 @@ public class hockeybot extends SubspaceBot {
                     Iterator<String> i = team0.dCrease.iterator();
                     while (i.hasNext()) {
                         String name = i.next();
-                        if (name.equals(puck.carrier)) {
-                            team0.searchPlayer(name).setPenalty(HockeyPenalty.FO_CREASE);
+                        if (name.equals(puck.carrier) && team0.searchPlayer(name).getCurrentShipType() != 8) {
+                            team0.searchPlayer(name).setPenalty(HockeyPenalty.D_CREASE);
                             m_botAction.sendArenaMessage("DEFENSE CREASE PENALTY: " + name);
                             startFaceOff();
                         }
@@ -4181,8 +4249,8 @@ public class hockeybot extends SubspaceBot {
                     Iterator<String> i = team1.dCrease.iterator();
                     while (i.hasNext()) {
                         String name = i.next();
-                        if (name.equals(puck.carrier)) {
-                            team1.searchPlayer(name).setPenalty(HockeyPenalty.FO_CREASE);
+                        if (name.equals(puck.carrier) && team1.searchPlayer(name).getCurrentShipType() != 8) {
+                            team1.searchPlayer(name).setPenalty(HockeyPenalty.D_CREASE);
                             m_botAction.sendArenaMessage("DEFENSE CREASE PENALTY: " + name);
                             startFaceOff();
                         }
