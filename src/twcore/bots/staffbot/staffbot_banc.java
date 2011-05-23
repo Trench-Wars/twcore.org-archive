@@ -863,64 +863,58 @@ public class staffbot_banc extends Module {
             m_botAction.sendRemotePrivateMessage(stafferName, " ------ Lastest warnings (last 2 weeks): ");
             m_botAction.remotePrivateMessageSpam(stafferName, lastestWarnings.toArray(new String[lastestWarnings.size()]));
         }
-        
-        if(limit == 0){
-            m_botAction.sendRemotePrivateMessage(stafferName, "There are "+expiredWarnings.size()+" expired warnings. Use !search <player>:[limits]:[limitWarning] to see");
-        }
-        else if(expiredWarnings.size() > 0){
+
+        if (limit == 0) {
+            m_botAction.sendRemotePrivateMessage(stafferName, "There are " + expiredWarnings.size() + " expired warnings. Use !search <player>:[limits]:[limitWarning] to see");
+        } else if (expiredWarnings.size() > 0) {
             m_botAction.sendRemotePrivateMessage(stafferName, " ------ Expired warnings (more than 2 weeks): ");
             m_botAction.remotePrivateMessageSpam(stafferName, expiredWarnings.toArray(new String[lastestWarnings.size()]));
         }
-        
+
         return true;
     }
 
     /**
-     * Captures aliases for playerName during !search using provided limitBan and limitWarn
-     * @param stafferName Name of staff to respond to with data
-     * @param playerName Name of the player being !search 'ed
-     * @param limitBan Date limit for
+     * Captures aliases for playerName during !search using provided limitBan
+     * and limitWarn
+     * 
+     * @param stafferName
+     *            Name of staff to respond to with data
+     * @param playerName
+     *            Name of the player being !search 'ed
+     * @param limitBan
+     *            Date limit for
      * @param limitWarn
      */
-    private void sendAltNicks(String stafferName, String playerName, int limitBan, int limitWarn) {
+    private void sendAltNicks(String stafferName, String playerName,
+            int limitBan, int limitWarn) {
 
         try {
-            String ipResults = getSubQueryResultString(
-                    "SELECT DISTINCT(fnIP) " +
-                    "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-                    "WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "'", "fnIP");
+            String ipResults = getSubQueryResultString("SELECT DISTINCT(fnIP) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "'", "fnIP");
 
-            String midResults = getSubQueryResultString(
-                    "SELECT DISTINCT(fnMachineId) " +
-                    "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-                    "WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "'", "fnMachineId");
+            String midResults = getSubQueryResultString("SELECT DISTINCT(fnMachineId) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "'", "fnMachineId");
 
-            String queryString =
-                    "SELECT * " +
-                    "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-                    "WHERE fnIP IN " + ipResults + " " +
-                    "AND fnMachineID IN " + midResults + " ORDER BY fcUserName";
+            String queryString = "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnIP IN " + ipResults + " " + "AND fnMachineID IN " + midResults + " ORDER BY fcUserName";
 
-            if(ipResults != null || midResults != null) {
+            if (ipResults != null || midResults != null) {
                 ResultSet resultSet = m_botAction.SQLQuery(trenchDatabase, queryString);
-        List<String> nicks = new LinkedList<String>();
-        String curResult = null;
-        int numResults = 0;
+                List<String> nicks = new LinkedList<String>();
+                String curResult = null;
+                int numResults = 0;
 
-        while(resultSet.next()) {
-                        curResult = resultSet.getString("fcUserName");
+                while (resultSet.next()) {
+                    curResult = resultSet.getString("fcUserName");
 
-            if(!nicks.contains(curResult) &&
-                                !playerName.toLowerCase().equals(curResult.toLowerCase())) {
+                    if (!nicks.contains(curResult) && !playerName.toLowerCase().equals(curResult.toLowerCase())) {
 
-                            nicks.add(curResult);
-                            numResults++;
-            }
-        }
+                        nicks.add(curResult);
+                        numResults++;
+                    }
+                }
 
-                m_botAction.SQLClose( resultSet );
+                m_botAction.SQLClose(resultSet);
 
-                int expiredTime = Tools.TimeInMillis.WEEK * 2; //last month
+                int expiredTime = Tools.TimeInMillis.WEEK * 2; // last month
                 Date expireDate = new java.sql.Date(System.currentTimeMillis() - expiredTime);
 
                 Iterator<String> i = nicks.iterator();
@@ -929,14 +923,12 @@ public class staffbot_banc extends Module {
 
                     boolean hasWarning = false;
 
-                    ResultSet w = m_botAction.SQLQuery(this.trenchDatabase, 
-                            "SELECT * FROM tblWarnings WHERE name = '"
-                            +s+"' ORDER BY timeofwarning ASC");
+                    ResultSet w = m_botAction.SQLQuery(this.trenchDatabase, "SELECT * FROM tblWarnings WHERE name = '" + Tools.addSlashesToString(s) + "' ORDER BY timeofwarning ASC");
 
                     while (w.next()) {
                         Date date = w.getDate("timeofwarning");
 
-                        if(date.after(expireDate)) {
+                        if (date.after(expireDate)) {
                             hasWarning = true;
                             break;
                         }
@@ -946,14 +938,12 @@ public class staffbot_banc extends Module {
 
                     boolean hasBanc = false;
 
-                    ResultSet b = m_botAction.SQLQuery(this.botsDatabase,
-                            "SELECT * FROM tblBanc WHERE fcUsername = '"
-                            +s+"' ORDER BY fdCreated ASC");
+                    ResultSet b = m_botAction.SQLQuery(this.botsDatabase, "SELECT * FROM tblBanc WHERE fcUsername = '" + Tools.addSlashesToString(s) + "' ORDER BY fdCreated ASC");
 
                     while (b.next()) {
                         Date date = b.getDate("fdCreated");
 
-                        if(date.after(expireDate)) {
+                        if (date.after(expireDate)) {
                             hasBanc = true;
                             break;
                         }
@@ -961,7 +951,7 @@ public class staffbot_banc extends Module {
 
                     m_botAction.SQLClose(b);
 
-                    if(hasWarning) {
+                    if (hasWarning) {
                         m_botAction.sendRemotePrivateMessage(stafferName, " ");
                         m_botAction.sendRemotePrivateMessage(stafferName, "Warnings under Alias: " + s);
                         sendWarnings(stafferName, s, limitWarn);
@@ -976,29 +966,28 @@ public class staffbot_banc extends Module {
 
             }
 
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
     }
 
-        private String getSubQueryResultString(String queryString, String columnName) throws SQLException
-    {
+    private String getSubQueryResultString(String queryString, String columnName)
+            throws SQLException {
         ResultSet resultSet = m_botAction.SQLQuery(trenchDatabase, queryString);
         StringBuffer subQueryResultString = new StringBuffer("(");
 
-        if(resultSet == null)
+        if (resultSet == null)
             throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
-        if(!resultSet.next())
+        if (!resultSet.next())
             return null;
-        for(;;)
-        {
+        for (;;) {
             subQueryResultString.append(resultSet.getString(columnName));
-            if(!resultSet.next())
+            if (!resultSet.next())
                 break;
             subQueryResultString.append(", ");
         }
         subQueryResultString.append(") ");
-                m_botAction.SQLClose( resultSet );
+        m_botAction.SQLClose(resultSet);
 
         return subQueryResultString.toString();
     }
