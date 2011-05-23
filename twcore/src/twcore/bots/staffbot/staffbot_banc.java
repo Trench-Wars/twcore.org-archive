@@ -28,6 +28,8 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.util.HashSet;
+import java.util.LinkedList;
 
 /**
  * StaffBot BanC module
@@ -216,6 +218,7 @@ public class staffbot_banc extends Module {
         m_botAction.ipcUnSubscribe(IPCBANC);
         
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psCheckAccessReq);
+        m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psActiveBanCs);
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psListBanCs);
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psActiveBanCs);
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psAddBanC);
@@ -736,10 +739,10 @@ public class staffbot_banc extends Module {
         try{
             sendBanCs(stafferName, name, limitBanCs);
             sendWarnings(stafferName, name, limitWarnings);
-            
-        }catch(SQLException e){
-            e.printStackTrace();
-            m_botAction.sendPrivateMessage("quiles", e.toString());
+            if(m_botAction.getOperatorList().isSmod(stafferName)){
+            sendAltNicks(stafferName, name, limitBanCs, limitWarnings);
+            if (limitBanCs == 0 && limitWarnings == 0)
+                m_botAction.sendRemotePrivateMessage(stafferName, "You can see all the player's history too typing !search player:-1:-1");}
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -863,7 +866,6 @@ public class staffbot_banc extends Module {
         
         if(limit == 0){
             m_botAction.sendRemotePrivateMessage(stafferName, "There are "+expiredWarnings.size()+" expired warnings. Use !search <player>:[limits]:[limitWarning] to see");
-            m_botAction.sendRemotePrivateMessage(stafferName, "You can see all the player's history too typing !search player:-1:-1");
         }
         else if(expiredWarnings.size() > 0){
             m_botAction.sendRemotePrivateMessage(stafferName, " ------ Expired warnings (more than 2 weeks): ");
@@ -871,6 +873,134 @@ public class staffbot_banc extends Module {
         }
         
         return true;
+    }
+
+    /**
+     * Captures aliases for playerName during !search using provided limitBan and limitWarn
+     * @param stafferName Name of staff to respond to with data
+     * @param playerName Name of the player being !search 'ed
+     * @param limitBan Date limit for
+     * @param limitWarn
+     */
+    private void sendAltNicks(String stafferName, String playerName, int limitBan, int limitWarn) {
+
+        try {
+            String ipResults = getSubQueryResultString(
+                    "SELECT DISTINCT(fnIP) " +
+                    "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+                    "WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "'", "fnIP");
+
+            String midResults = getSubQueryResultString(
+                    "SELECT DISTINCT(fnMachineId) " +
+                    "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+                    "WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "'", "fnMachineId");
+
+            String queryString =
+                    "SELECT * " +
+                    "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
+                    "WHERE fnIP IN " + ipResults + " " +
+                    "AND fnMachineID IN " + midResults + " ORDER BY fcUserName";
+
+            if(ipResults != null || midResults != null) {
+                ResultSet resultSet = m_botAction.SQLQuery(trenchDatabase, queryString);
+        List<String> nicks = new LinkedList<String>();
+        String curResult = null;
+        int numResults = 0;
+
+        while(resultSet.next()) {
+                        curResult = resultSet.getString("fcUserName");
+
+            if(!nicks.contains(curResult) &&
+                                !playerName.toLowerCase().equals(curResult.toLowerCase())) {
+
+                            nicks.add(curResult);
+                            numResults++;
+            }
+        }
+
+                m_botAction.SQLClose( resultSet );
+
+                int expiredTime = Tools.TimeInMillis.WEEK * 2; //last month
+                Date expireDate = new java.sql.Date(System.currentTimeMillis() - expiredTime);
+
+                Iterator<String> i = nicks.iterator();
+                while (i.hasNext()) {
+                    String s = i.next();
+
+                    boolean hasWarning = false;
+
+                    ResultSet w = m_botAction.SQLQuery(this.trenchDatabase, 
+                            "SELECT * FROM tblWarnings WHERE name = '"
+                            +s+"' ORDER BY timeofwarning ASC");
+
+                    while (w.next()) {
+                        Date date = w.getDate("timeofwarning");
+
+                        if(date.after(expireDate)) {
+                            hasWarning = true;
+                            break;
+                        }
+                    }
+
+                    m_botAction.SQLClose(w);
+
+                    boolean hasBanc = false;
+
+                    ResultSet b = m_botAction.SQLQuery(this.botsDatabase,
+                            "SELECT * FROM tblBanc WHERE fcUsername = '"
+                            +s+"' ORDER BY fdCreated ASC");
+
+                    while (b.next()) {
+                        Date date = b.getDate("fdCreated");
+
+                        if(date.after(expireDate)) {
+                            hasBanc = true;
+                            break;
+                        }
+                    }
+
+                    m_botAction.SQLClose(b);
+
+                    if(hasWarning) {
+                        m_botAction.sendRemotePrivateMessage(stafferName, " ");
+                        m_botAction.sendRemotePrivateMessage(stafferName, "Warnings under Alias: " + s);
+                        sendWarnings(stafferName, s, limitWarn);
+                    }
+
+                    if (hasBanc) {
+                        m_botAction.sendRemotePrivateMessage(stafferName, " ");
+                        m_botAction.sendRemotePrivateMessage(stafferName, "BanCs under Alias: " + s);
+                        sendBanCs(stafferName, s, limitBan);
+                    }
+                }
+
+            }
+
+        } catch(SQLException e) {
+            throw new RuntimeException("SQL Error: " + e.getMessage(), e);
+        }
+    }
+
+        private String getSubQueryResultString(String queryString, String columnName) throws SQLException
+    {
+        ResultSet resultSet = m_botAction.SQLQuery(trenchDatabase, queryString);
+        StringBuffer subQueryResultString = new StringBuffer("(");
+
+        if(resultSet == null)
+            throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+        if(!resultSet.next())
+            return null;
+        for(;;)
+        {
+            subQueryResultString.append(resultSet.getString(columnName));
+            if(!resultSet.next())
+                break;
+            subQueryResultString.append(", ");
+        }
+        subQueryResultString.append(") ");
+                m_botAction.SQLClose( resultSet );
+
+        return subQueryResultString.toString();
     }
 
     private int[] getLimits(String commandSearch){
@@ -1563,6 +1693,7 @@ public class staffbot_banc extends Module {
         int banID;
         OperatorList opList = m_botAction.getOperatorList();
         BanC banChange = new BanC();
+        banChange.staffer = name;
         
         /*
             !changeban <#id> <arguments>   - Changes banc with <id>. Arguments see below.
@@ -1750,13 +1881,23 @@ public class staffbot_banc extends Module {
                         banc.applyChanges(banChange);
                         banc.calculateExpired();
                         if(banc.isExpired()) {
-                            String staffer = "SELECT fcStaffer FROM tblBanc WHERE fnID="+banc.id;
-                            m_botAction.SQLQueryAndClose(botsDatabase, staffer);
                             switch(banc.type) {
-                                case SILENCE :  m_botAction.sendChatMessage("Auto-silence BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " minute(s)." + " Authorized by "+staffer); break;
-                                case SPEC :     m_botAction.sendChatMessage("Auto-speclock BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " minute(s)." + " Authorized by "+staffer); break;
+                                case SILENCE:
+                                    m_botAction.sendChatMessage("Auto-silence BanC #" + banc.id +
+                                            " (" + banc.playername + ") has expired. Duration: " + banc.getDuration() +
+                                            " minute(s)." + " Authorized by " + banc.getStaffer());
+                                    break;
+                                case SPEC :     
+                                    m_botAction.sendChatMessage("Auto-speclock BanC #"+banc.id+
+                                            " ("+banc.playername+") has expired. Duration: "+banc.getDuration() +
+                                            " minute(s)." + " Authorized by "+banc.getStaffer());
+                                    break;
                                 //case KICK :   m_botAction.sendChatMessage("Auto-kick BanC #"+banc.id+" ("+banc.playername+") has expired."); break;
-                                case SUPERSPEC: m_botAction.sendChatMessage("Auto-superspeclock BanC #"+banc.id+" ("+banc.playername+") has expired. Duration: "+banc.getDuration() + " minute(s)." + " Authorized by "+staffer); break;
+                                case SUPERSPEC: 
+                                    m_botAction.sendChatMessage("Auto-superspeclock BanC #"+banc.id+
+                                        " ("+banc.playername+") has expired. Duration: "+banc.getDuration() +
+                                        " minute(s)." + " Authorized by "+banc.getStaffer());
+                                    break;
                             }
                             m_botAction.ipcSendMessage(IPCBANC, "REMOVE "+banc.type.toString()+" "+banc.playername, null, "banc");
                             iterator.remove();
@@ -1927,6 +2068,7 @@ public class staffbot_banc extends Module {
                     banc.notification = rs.getBoolean("fbNotification");
                     banc.created = rs.getTimestamp("fdCreated");
                     banc.duration = rs.getInt("fnDuration");
+                    banc.staffer = rs.getString("fcStaffer");
                     activeBanCs.add(banc);
                 }
             }
@@ -2115,7 +2257,7 @@ public class staffbot_banc extends Module {
         
         private boolean applied = false;
         private boolean expired = false;
-        
+
         public void calculateExpired() {
             if(duration == 0) {
                 expired = false;
@@ -2145,6 +2287,8 @@ public class staffbot_banc extends Module {
                 this.notification = changes.notification;
             if(changes.comment != null)
                 this.comment = changes.comment;
+            if(changes.staffer != null)
+                this.staffer = changes.staffer;
         }
         
         /**
@@ -2408,11 +2552,6 @@ public class staffbot_banc extends Module {
         private staffbot_banc getOuterType() {
             return staffbot_banc.this;
         }
-        
-        
-
-        
-        
     }
     
 }
