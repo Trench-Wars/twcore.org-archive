@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.SortedMap;
 import java.util.TimerTask;
 import java.util.ArrayList;
 import java.util.TreeMap;
@@ -876,10 +875,6 @@ public class twdbot extends SubspaceBot {
                 } else if (message.startsWith("!challalerts")) {
                     command_challs(name);
                     return;
-                } else if (message.startsWith("!flared")) {
-                    m_botAction.sendSmartPrivateMessage(name, "received");
-                    command_flared(name);
-                    return;
                 } else if (message.startsWith("!ban ")) {
                     command_challengeBan(name, message.substring(message.indexOf(" ") + 1));
                     return;
@@ -889,6 +884,8 @@ public class twdbot extends SubspaceBot {
                 } else if (message.startsWith("!chawas")) {
                     command_watches(name);
                     return;
+                } else if (message.equalsIgnoreCase("!help")) {
+                    command_help(name);
                 } else if (message.startsWith("!chawa ")) {
                     String player = message.substring(message.indexOf(" ") + 1);
                     if (m_watches.contains(player.toLowerCase())) {
@@ -1055,133 +1052,15 @@ public class twdbot extends SubspaceBot {
         }
     }
     
-    public void command_flared(String name) {
-        // list of teams in the division
-        // get ratings from recent matches
-        // 
-        HashMap<Integer, LinkedList<TeamInfo>> teamLadder = new HashMap<Integer, LinkedList<TeamInfo>>();
-        LinkedList<TeamInfo> teams = new LinkedList<TeamInfo>();
-        
-        try {
-            m_botAction.sendSmartPrivateMessage(name, "Query 1");
-            ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT t.fnTeamID, t.fnTWDLadderID, n.fcTeamName FROM tblTWDLadder l, tblTWDLadderTeam t LEFT JOIN tblTeam n ON t.fnTeamID = n.fnTeamID WHERE l.fnTWDSeasonID = 21 AND l.fnCurrentLadder = 1 AND l.fnTWDLadderID = t.fnTWDLadderID");
-            /*
-            (SELECT t.fnTeamID, t.fnTWDLadderID, n.fcTeamName 
-            FROM tblTWDLadder l, tblTWDLadderTeam t 
-             LEFT JOIN tblTeam n ON t.fnTeamID = n.fnTeamID 
-            WHERE l.fnTWDSeasonID = 21 
-             AND l.fnCurrentLadder = 1 
-             AND l.fnTWDLadderID = t.fnTWDLadderID) UNION 
-
-           SELECT twdm.fnTeam1RatingAfter, twdm.fnTeam2RatingAfter, mat.fnTeam1ID, mat.fnTeam2ID 
-           FROM tblMatch match, tblTWDLadder lad, tblTWDMatch twdm 
-           WHERE mat.ftTimeEnded IS NOT NULL AND mat.ftTimeEnded < '2011-05-02 00:05:00' 
-            AND (mat.fnTeam1ID = " + teamID + " OR mat.fnTeam2ID = " + teamID + ") 
-            AND mat.fnMatchID = twdm.fnMatchID 
-            ORDER BY mat.ftTimeEnded DESC LIMIT 1
-            
-            SELECT t.fnTeamID, t.fnTWDLadderID, n.fcTeamName, twdm.fnTeam1RatingAfter, twdm.fnTeam2RatingAfter, mat.fnTeam1ID, mat.fnTeam2ID 
-            FROM tblTWDLadder l, tblTWDLadderTeam t, tblTWDLadder lad 
-             LEFT JOIN tblTeam n ON t.fnTeamID = n.fnTeamID 
-             LEFT JOIN tblMatch match ON (mat.fnTeam1ID = t.fnTeamID OR mat.fnTeam2ID = t.fnTeamID)
-             LEFT JOIN tblTWDMatch twdm ON mat.fnMatchID = twdm.fnMatchID
-            WHERE l.fnTWDSeasonID = 21 
-             AND l.fnCurrentLadder = 1 
-             AND l.fnTWDLadderID = t.fnTWDLadderID
-             AND mat.ftTimeEnded IS NOT NULL AND mat.ftTimeEnded < '2011-05-02 00:05:00' 
-             LIMIT 10
-             
-             
-            SELECT t.fnTeamID, t.fnTWDLadderID, n.fcTeamName
-            FROM tblTWDLadder l, tblTWDLadderTeam t
-             LEFT JOIN tblTeam n ON t.fnTeamID = n.fnTeamID 
-            WHERE l.fnTWDSeasonID = 21 
-             AND l.fnCurrentLadder = 1 
-             AND l.fnTWDLadderID = t.fnTWDLadderID
-             
-             
-            (SELECT t.fnTeamID as teamID, t.fnTWDLadderID, n.fcTeamName 
-            FROM tblTWDLadder l, tblTWDLadderTeam t 
-             LEFT JOIN tblTeam n ON t.fnTeamID = n.fnTeamID 
-            WHERE l.fnTWDSeasonID = 21 
-             AND l.fnCurrentLadder = 1 
-             AND l.fnTWDLadderID = t.fnTWDLadderID) UNION 
-
-           (SELECT twdm.fnTeam1RatingAfter, twdm.fnTeam2RatingAfter, mat.fnTeam1ID, mat.fnTeam2ID 
-           FROM tblMatch match, tblTWDLadder lad, tblTWDMatch twdm 
-           WHERE mat.ftTimeEnded IS NOT NULL AND mat.ftTimeEnded < '2011-05-02 00:05:00' 
-            AND (mat.fnTeam1ID = teamID OR mat.fnTeam2ID teamID) 
-            AND mat.fnMatchID = twdm.fnMatchID 
-            ORDER BY mat.ftTimeEnded DESC LIMIT 1)
-            */
-            Integer teamID;
-            Integer ladder;
-            String teamName;
-            while (rs.next()) {
-                teamID = rs.getInt("t.fnTeamID");
-                ladder = rs.getInt("t.fnTWDLadderID");
-                teamName = rs.getString("n.fcTeamName");
-                TeamInfo ti = new TeamInfo(ladder, teamID);
-                ti.name(teamName);
-                if (teamLadder.containsKey(ladder)) {
-                    teamLadder.get(ladder).add(ti);
-                } else {
-                    teamLadder.put(ladder, teams);
-                    teamLadder.get(ladder).add(ti);
-                }
-            }
-            m_botAction.SQLClose(rs);
-
-            m_botAction.sendSmartPrivateMessage(name, "Query 2");
-            // get latest match
-            for (Integer l: teamLadder.keySet()) {
-                teams = teamLadder.get(l);
-                ladder = l;                
-                for (TeamInfo info: teams) {
-                    teamID = info.ID();
-                    rs = m_botAction.SQLQuery(webdb, "SELECT fnTeam1RatingAfter, fnTeam2RatingAfter, m.fnTeam1ID, m.fnTeam2ID FROM tblMatch m, tblTWDLadder l, tblTWDMatch t WHERE ftTimeEnded IS NOT NULL AND ftTimeEnded < '2011-05-02 00:05:00' AND (fnTeam1ID = " + teamID + " OR fnTeam2ID = " + teamID + ") AND m.fnMatchID = t.fnMatchID ORDER BY ftTimeEnded DESC LIMIT 1");
-                    if (rs.next()) {
-                        if (teamID == rs.getInt("m.fnTeam1ID")) {
-                            info.rating(rs.getInt("fnTeam1RatingAfter"));
-                        } else {
-                            info.rating(rs.getInt("fnTeam2RatingAfter"));                            
-                        }
-                    }
-                    m_botAction.SQLClose(rs);
-                }
-            }
-
-            m_botAction.sendSmartPrivateMessage(name, "Query 3");
-            String msg = "";
-            for (Integer l: teamLadder.keySet()) {
-                rs = m_botAction.SQLQuery(webdb, "SELECT fcMatchTypeName FROM tblMatchType t, tblTWDLadder l WHERE l.fnTWDLadderID = " + l + " AND l.fnMatchTypeID = t.fnMatchTypeID LIMIT 1");
-                if (rs.next())
-                    msg += rs.getString("fcMatchTypeName");
-                m_botAction.sendSmartPrivateMessage(name, msg);
-                m_botAction.SQLClose(rs);
-
-                Map<Integer, TeamInfo> ls = new TreeMap<Integer, TeamInfo>();
-                teams = teamLadder.get(l);
-                for (TeamInfo t: teams) {
-                    rs = m_botAction.SQLQuery(webdb, "SELECT fcTeamName FROM tblTeam WHERE fnTeamID = " + t.ID() + " LIMIT 1");
-                    if (rs.next())
-                        t.name(rs.getString("fcTeamName"));
-                    m_botAction.SQLClose(rs);
-                    ls.put(t.rating(), t);
-                }
-                
-                ArrayList<TeamInfo> ratings = (ArrayList<TeamInfo>)ls.values();
-                for (int n = ls.size(); n > 0; n--) {
-                    TeamInfo ti = ratings.get(n-1);
-                    m_botAction.sendSmartPrivateMessage(name, ti.name() + " - " + ti.rating());
-                }
-            }
-            
-            
-            
-        } catch(SQLException e) {
-            Tools.printStackTrace(e);
-        }
+    public void command_help(String name) {
+        String[] msg = {
+                "TWD Challenge Commands:",
+                " !chawa <name>                - Toggles challenge watch on or off for <name>",
+                " !chawas                      - Displays current challenge watches",
+                " !ban <name>                  - Prevents <name> from being able to do challenges for a day",
+                " !unban <name>                - Removes challenge ban for <name> if it exists"
+        };
+        m_botAction.smartPrivateMessageSpam(name, msg);
         
     }
 
@@ -1562,7 +1441,20 @@ public class twdbot extends SubspaceBot {
                 command_squadsignup(name, command);
             }
             if (command.equals("!help")) {
-                String help[] = { "--------- TWD/TWL COMMANDS -----------------------------------------------------------", "!signup <password>      - Replace <password> with a password which is hard to guess.", "                          You are safer if you choose a password that differs", "                          completely from your current SSCU Continuum password.", "                          Example: !signup mypass. This command will get you an", "                          useraccount for TWL and TWD. If you have forgotten your", "                          password, you can use this to pick a new password", "!squadsignup            - This command will sign up your current ?squad for TWD.", "                          Note: You need to be the squadowner of the squad", "                          and !registered", "!games                  - This command will give you a list of the current matches", "                          Note: It will work from any arena!", };
+                String help[] =
+                        {
+                                "--------- TWD/TWL COMMANDS -----------------------------------------------------------",
+                                "!signup <password>      - Replace <password> with a password which is hard to guess.",
+                                "                          You are safer if you choose a password that differs",
+                                "                          completely from your current SSCU Continuum password.",
+                                "                          Example: !signup mypass. This command will get you an",
+                                "                          useraccount for TWL and TWD. If you have forgotten your",
+                                "                          password, you can use this to pick a new password",
+                                "!squadsignup            - This command will sign up your current ?squad for TWD.",
+                                "                          Note: You need to be the squadowner of the squad",
+                                "                          and !registered",
+                                "!games                  - This command will give you a list of the current matches",
+                                "                          Note: It will work from any arena!", };
                 m_botAction.privateMessageSpam(name, help);
             }
         } catch (Exception e) {
