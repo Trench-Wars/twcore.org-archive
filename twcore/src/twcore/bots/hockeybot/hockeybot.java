@@ -2,8 +2,11 @@ package twcore.bots.hockeybot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Stack;
 import java.util.TimerTask;
 import java.util.TreeMap;
@@ -52,7 +55,6 @@ public class hockeybot extends SubspaceBot {
     private static final int FREQ_NOTPLAYING = 666;
     //Static variables
     private static final int ZONER_WAIT_TIME = 15;
-
     private Stack<String> botCrease;
 
     //Game states
@@ -65,6 +67,7 @@ public class hockeybot extends SubspaceBot {
     private long timeStamp;
     private long roundTime;
     private long gameTime;
+    private int carriersSize;
 
     private enum HockeyPenalty {
 
@@ -78,7 +81,7 @@ public class hockeybot extends SubspaceBot {
         NONE, CLEAN, PHASE
     };
 
-    private static enum Zone {
+    private static enum HockeyZone {
 
         LEFT, NEUTRAL, RIGHT
     };
@@ -109,6 +112,7 @@ public class hockeybot extends SubspaceBot {
         lockLastGame = false;
 
         botCrease = new Stack<String>();
+
     }
 
     /** Requests Subspace events */
@@ -327,7 +331,8 @@ public class hockeybot extends SubspaceBot {
                         } else if (botCrease.contains(name)) {
                             botCrease.remove(name);
                         }
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
 
 
                     //check faceoff crease
@@ -379,6 +384,36 @@ public class hockeybot extends SubspaceBot {
                         }
                     } catch (Exception e) {
                     }
+
+
+
+                    //check offside
+                    HockeyPlayer player = team.getPlayer(name.toLowerCase());
+                    if (player.getCurrentShipType() == Tools.Ship.SHARK) {
+                        try {
+                            if (team.getFrequency() == 0) {
+                                if (event.getXLocation() / 16 > config.getTeam0BlueLine() / 16) {
+                                    if (!team.offside.contains(name)) {
+                                        team.offside.push(name);
+                                        m_botAction.sendPrivateMessage(name, "WARNING: You're offside and not allowed to touch the puck. Return left (<-) of blue line or you may recieve a penalty.");
+                                    }
+                                } else if (team.offside.contains(name)) {
+                                    team.offside.remove(name);
+                                }
+                            } else {
+                                if (event.getXLocation() / 16 < config.getTeam1BlueLine() / 16) {
+                                    if (!team.offside.contains(name)) {
+                                        team.offside.push(name);
+                                        m_botAction.sendPrivateMessage(name, "WARNING: You're offside and not allowed to touch the puck. Return right (->) of blue line or you may recieve a penalty.");
+                                    }
+                                } else if (team.offside.contains(name)) {
+                                    team.offside.remove(name);
+                                }
+                            }
+                        } catch (Exception e) {
+                        }
+                    }
+
                     break;
             }
         }
@@ -437,20 +472,22 @@ public class hockeybot extends SubspaceBot {
         if (team != null) {
             HockeyPlayer player = team.searchPlayer(name);
             //check penalty
-            if (player.penalty != HockeyPenalty.NONE) {
+            if (player != null) {
+                if (player.penalty != HockeyPenalty.NONE) {
 
-                if (team.getFrequency() == 0 && event.getYLocation() > config.getTeam0ExtY()) {
-                    m_botAction.warpTo(name, config.getTeam0PenX() / 16, config.getTeam0PenY() / 16);
-                } else if (event.getYLocation() > config.getTeam1ExtY()) {
-                    m_botAction.warpTo(name, config.getTeam1PenX() / 16, config.getTeam1PenY() / 16);
-                }
+                    if (team.getFrequency() == 0 && event.getYLocation() > config.getTeam0ExtY()) {
+                        m_botAction.warpTo(name, config.getTeam0PenX() / 16, config.getTeam0PenY() / 16);
+                    } else if (event.getYLocation() > config.getTeam1ExtY()) {
+                        m_botAction.warpTo(name, config.getTeam1PenX() / 16, config.getTeam1PenY() / 16);
+                    }
 
-                if ((gameTime - player.penaltyTimestamp) >= config.getPenaltyTime()) {
-                    player.setPenalty(HockeyPenalty.NONE);
-                    if (team.getFrequency() == 0) {
-                        m_botAction.warpTo(name, config.getTeam0ExtX() / 16, config.getTeam0ExtY() / 16);
-                    } else {
-                        m_botAction.warpTo(name, config.getTeam1ExtX() / 16, config.getTeam1ExtY() / 16);
+                    if ((gameTime - player.penaltyTimestamp) >= config.getPenaltyTime()) {
+                        player.penalty = HockeyPenalty.NONE;
+                        if (team.getFrequency() == 0) {
+                            m_botAction.warpTo(name, config.getTeam0ExtX() / 16, config.getTeam0ExtY() / 16);
+                        } else {
+                            m_botAction.warpTo(name, config.getTeam1ExtX() / 16, config.getTeam1ExtY() / 16);
+                        }
                     }
                 }
             }
@@ -898,10 +935,10 @@ public class hockeybot extends SubspaceBot {
             }
             help.add("!lagout                   -- Puts you back into the game if you have lagged out");
             help.add("!list                     -- Lists all players on this team");
-            help.add("!myfreq                   -- Puts you on your team's frequency");
+            //help.add("!myfreq                   -- Puts you on your team's frequency");
             //help.add("!mvp                      -- Displays the current mvp");
-            help.add("!rating <player>          -- Displays your/<player> current rating");
-            help.add("!score <player>           -- Displays your/<player> current score");
+            //help.add("!rating <player>          -- Displays your/<player> current rating");
+            //help.add("!score <player>           -- Displays your/<player> current score");
             if (currentState == HockeyState.ADDING_PLAYERS && isCaptain(name)) {
                 help.add("!ready                    -- Use this when you're done setting your lineup");
                 help.add("!remove <player>          -- Removes specified player)");
@@ -1662,14 +1699,14 @@ public class hockeybot extends SubspaceBot {
         team0.clearUnsetPenalties();
         team1.clearUnsetPenalties();
 
-        m_botAction.sendArenaMessage("Lineup For FaceOff", Tools.Sound.CROWD_OOO);
+        m_botAction.sendArenaMessage("Prepare For FaceOff", Tools.Sound.CROWD_OOO);
 
         timeStamp = System.currentTimeMillis();
     }
 
     private void startReview(SoccerGoal event) {
 
-        Point release = puck.getLastReleasePoint();
+        Point release = puck.peekLastReleasePoint();
 
         int pX0 = Math.abs(config.team0GoalX - release.x);
         int pY0 = Math.abs(config.team0GoalY - release.y);
@@ -1684,33 +1721,42 @@ public class hockeybot extends SubspaceBot {
         } else if (distance0 < config.getGoalRadius() && event.getFrequency() == 0) {
             m_botAction.sendArenaMessage("OWN GOAL!", Tools.Sound.GAME_SUCKS);
             team1.increaseScore();
+            displayScores();
         } else if (distance1 < config.getGoalRadius() && event.getFrequency() == 0) {
             m_botAction.sendArenaMessage("CREASE. No count.", Tools.Sound.CROWD_GEE);
         } else if (distance1 < config.getGoalRadius() && event.getFrequency() == 1) {
             m_botAction.sendArenaMessage("OWN GOAL!", Tools.Sound.GAME_SUCKS);
             team0.increaseScore();
+            displayScores();
         } else if (puck.veloX > 0 && event.getFrequency() == 1) {
             m_botAction.sendArenaMessage("OWN GOAL!", Tools.Sound.GAME_SUCKS);
             team0.increaseScore();
+            displayScores();
         } else if (puck.veloX < 0 && event.getFrequency() == 0) {
             m_botAction.sendArenaMessage("OWN GOAL!", Tools.Sound.GAME_SUCKS);
             team1.increaseScore();
+            displayScores();
         } else {
             m_botAction.sendArenaMessage("Clean!");
             if (event.getFrequency() == 0) {
                 team0.increaseScore();
+                addPlayerGoalWithAssist();
+                displayScores();
+                team1.clearDCs();
             } else {
                 team1.increaseScore();
+                addPlayerGoalWithAssist();
+                displayScores();
+                team0.clearDCs();
             }
         }
 
-
+        //TODO cahnge this
         if (team0.getScore() >= 7) {
             gameOver(0);
         } else if (team1.getScore() >= 7) {
             gameOver(1);
         } else {
-            displayScores();
             startFaceOff();
         }
     }
@@ -1723,7 +1769,7 @@ public class hockeybot extends SubspaceBot {
         dropBall();
 
         timeStamp = System.currentTimeMillis();
-        m_botAction.sendArenaMessage("Go go go!!!", Tools.Sound.GOGOGO);
+        m_botAction.sendArenaMessage("Go Go Go !!!", Tools.Sound.VICTORY_BELL);
     }
 
     /**
@@ -1739,7 +1785,74 @@ public class hockeybot extends SubspaceBot {
         m_botAction.sendArenaMessage("Result of " + team0.getName() + " vs. "
                 + team1.getName(), Tools.Sound.HALLELUJAH);
 
-        displayScores();
+        //TODO fix score display
+        ArrayList<String> spam = new ArrayList<String>();
+        spam.add("+----------------------+-------+-------+---------+--------+-----------+");
+        spam.add("|        Freq 0        | Goals | Saves | Assists | Steals | Penalties |");
+        spam.add("+----------------------+-------+-------+---------+--------+-----------+");
+
+        ////////("01234567890123456789012345678901234567890123456789012345678901234567890");
+
+        StringBuilder stats;
+        for (HockeyPlayer p : team0.players.values()) {
+            stats = new StringBuilder();
+            stats.append("|                                                                      ");
+
+            String n = p.getName();
+            stats.insert(2, n.length() > 20 ? n.substring(0, 19) : n);
+            stats.insert(27, p.goals);
+            stats.insert(35, p.saves);
+            stats.insert(44, p.assists);
+            stats.insert(53, p.steals);
+            stats.insert(64, p.penalties);
+            stats.insert(70, "|");
+
+            spam.add(stats.substring(0, 70));
+        }
+
+        spam.add("+----------------------+-------+-------+---------+--------+-----------+");
+        spam.add("|        Freq 1        | Goals | Saves | Assists | Steals | Penalties |");
+        spam.add("+----------------------+-------+-------+---------+--------+-----------+");
+        for (HockeyPlayer p : team1.players.values()) {
+            stats = new StringBuilder();
+            stats.append("|                                                                      ");
+
+            String n = p.getName();
+            stats.insert(2, n.length() > 20 ? n.substring(0, 19) : n);
+            stats.insert(27, p.goals);
+            stats.insert(35, p.saves);
+            stats.insert(44, p.assists);
+            stats.insert(53, p.steals);
+            stats.insert(64, p.penalties);
+            stats.insert(70, "|");
+
+            spam.add(stats.substring(0, 70));
+        }
+        spam.add("+----------------------+-------+-------+---------+--------+-----------+");
+        //goals, saves, assists, steals, penalties
+
+        m_botAction.arenaMessageSpam(spam.toArray(new String[spam.size()]));
+    }
+
+    private void addPlayerGoalWithAssist() {
+        try {
+            String scorer = puck.getLastCarrierName();
+            if (team0.isOnTeam(scorer)) {
+                team0.getPlayer(scorer.toLowerCase()).madeGoal();
+                String assister = puck.getLastCarrierName();
+                if (team0.isOnTeam(assister)) {
+                    team0.getPlayer(assister.toLowerCase()).madeAssist();
+                }
+            } else {
+                team1.getPlayer(scorer.toLowerCase()).madeGoal();
+                String assister = puck.getLastCarrierName();
+                if (team1.isOnTeam(assister)) {
+                    team1.getPlayer(assister.toLowerCase()).madeAssist();
+                }
+            }
+        } catch (Exception e) {
+        }
+
     }
 
     /*
@@ -2039,10 +2152,10 @@ public class hockeybot extends SubspaceBot {
     }
 
     /**
-     * Returns BWJSTeam of the player with "name"
+     * Returns HockeyTeam of the player with "name"
      *
      * @param name name of the player
-     * @return BWJSTeam of the player, null if not on any team
+     * @return HockeyTeam of the player, null if not on any team
      */
     private HockeyTeam getTeam(String name) {
         HockeyTeam t;
@@ -2063,7 +2176,7 @@ public class hockeybot extends SubspaceBot {
      *
      * @param name name of the player
      * @param override override number 0 for Freq 0, 1 for Freq 1, -1 for normal
-     * @return BWJSTeam, null if player doesn't belong to any team
+     * @return HockeyTeam, null if player doesn't belong to any team
      */
     private HockeyTeam getOtherTeam(String name, int override) {
         if (override == -1) {
@@ -2082,7 +2195,7 @@ public class hockeybot extends SubspaceBot {
     }
 
     /**
-     * Returns the opposite team according to BWJSTeam
+     * Returns the opposite team according to HockeyTeam
      *
      * @param t current team
      * @return other team
@@ -2098,11 +2211,11 @@ public class hockeybot extends SubspaceBot {
     }
 
     /**
-     * Returns BWJSTeam of the player with "name" or according to the override
+     * Returns HockeyTeam of the player with "name" or according to the override
      *
      * @param name name of the player
      * @param override override number 0 for Freq 0, 1 for Freq 1, -1 for normal
-     * @return BWJSTeam, null if player doesn't belong to any team
+     * @return HockeyTeam, null if player doesn't belong to any team
      */
     private HockeyTeam getTeam(String name, int override) {
         if (override == -1) {
@@ -2161,10 +2274,10 @@ public class hockeybot extends SubspaceBot {
 
         if (team0.players.size() >= config.getMinPlayers() && team1.players.size() >= config.getMinPlayers()) {
             m_botAction.sendArenaMessage("Lineups are ok! Game will start in 30 seconds!", Tools.Sound.CROWD_OOO);
-
+            m_botAction.sendArenaMessage("Freq 0 <---  |  ---> Freq1");
             startFaceOff();
         } else {
-            m_botAction.sendArenaMessage("Lineups are NOT ok! :( Game has been reset.", Tools.Sound.CROWD_GEE);
+            m_botAction.sendArenaMessage("Lineups are NOT ok! Game has been reset.", Tools.Sound.CROWD_GEE);
             startWaitingForCaps();
         }
     }
@@ -2230,11 +2343,11 @@ public class hockeybot extends SubspaceBot {
     private void displayScores() {
         //TODO fix score display
         ArrayList<String> spam = new ArrayList<String>();
-        spam.add("----------------------------------+----");
-        spam.add("|     Freq 0      |       Freq 1       |");
-        spam.add("|       " + team0.getScore() + (team0.getScore() < 10 ? " " : "") + "        |         "
-                + team1.getScore() + (team1.getScore() < 10 ? " " : "") + "         |");
-        spam.add("---------------------------------------");
+        spam.add("+----------------+----------------+");
+        spam.add("|     Freq 0     |     Freq 1     |");
+        spam.add("|       " + team0.getScore() + "        |       "
+                + team1.getScore() + "        |");
+        spam.add("+----------------+----------------+");
 
         m_botAction.arenaMessageSpam(spam.toArray(new String[spam.size()]));
     }
@@ -2654,7 +2767,14 @@ public class hockeybot extends SubspaceBot {
         private static final int LAGOUT_TIME = 15 * Tools.TimeInMillis.SECOND;  //In seconds
         //penalty handling
         private HockeyPenalty penalty = HockeyPenalty.NONE;
-        private long penaltyTimestamp;  //in gametime which increments from 0 each second of gameplay
+        private long warnTimestamp = 0;     //timestamp
+        private long penaltyTimestamp = 0;  //in gametime which increments from 0 each second of gameplay
+        private int penalties = 0;          //penalites recieved
+        //stats
+        private int saves = 0;              //saves in defense crease
+        private int steals = 0;             //puck steals
+        private int assists = 0;            //clean goals assisted
+        private int goals = 0;              //clean goals made
 
         /** Class constructor */
         private HockeyPlayer(String player, int shipType, int frequency) {
@@ -2692,9 +2812,25 @@ public class hockeybot extends SubspaceBot {
 
             if (p_frequency == 0) {
                 m_botAction.warpTo(p_name, config.getTeam0ExtX() / 16, config.getTeam0ExtY() / 16);
-            }else {
+            } else {
                 m_botAction.warpTo(p_name, config.getTeam1ExtX() / 16, config.getTeam1ExtY() / 16);
             }
+        }
+
+        public void madeSave() {
+            this.saves++;
+        }
+
+        public void madeSteal() {
+            this.steals++;
+        }
+
+        public void madeAssist() {
+            this.assists++;
+        }
+
+        public void madeGoal() {
+            this.goals++;
         }
 
         /**
@@ -2898,9 +3034,9 @@ public class hockeybot extends SubspaceBot {
             if (m_botAction.getPlayer(p_name) != null) {
                 m_botAction.setShip(p_name, shipType);
                 if (p_frequency == 0) {
-                    m_botAction.warpTo(p_name, config.getTeam0ExtX() / 16 , config.getTeam0ExtY() / 16);
+                    m_botAction.warpTo(p_name, config.getTeam0ExtX() / 16, config.getTeam0ExtY() / 16);
                 } else {
-                    m_botAction.warpTo(p_name, config.getTeam1ExtX() / 16 , config.getTeam1ExtY() / 16);
+                    m_botAction.warpTo(p_name, config.getTeam1ExtX() / 16, config.getTeam1ExtY() / 16);
                 }
             }
 
@@ -2990,6 +3126,11 @@ public class hockeybot extends SubspaceBot {
         }
 
         private void setPenalty(HockeyPenalty pen) {
+            if (pen == HockeyPenalty.NONE) {
+                this.penalty = pen;
+                return;
+            }
+
             this.penalty = pen;
             this.penaltyTimestamp = gameTime;
             if (team0.isPlayer(p_name)) {
@@ -2997,6 +3138,7 @@ public class hockeybot extends SubspaceBot {
             } else {
                 m_botAction.warpTo(p_name, config.getTeam1PenX() / 16, config.getTeam1PenY() / 16);
             }
+            penalties++;
             m_botAction.sendPrivateMessage(p_name, "You recieved a penalty for "
                     + config.getPenaltyTime() + " seconds of game time.");
         }
@@ -3018,6 +3160,7 @@ public class hockeybot extends SubspaceBot {
         private long captainTimestamp;
         private int substitutesLeft;
         private int teamScore;
+        private String goalieName;
         //penalties
         private Stack<String> offside;
         private Stack<String> dCrease;
@@ -3047,6 +3190,7 @@ public class hockeybot extends SubspaceBot {
             turnToPick = false;
             captainName = "[NONE]";
             lastCaptainName = "[NONE]";
+            goalieName = "[NONE]";
             captains.clear();
             flagTime = 0;
             ready = false;
@@ -3059,7 +3203,6 @@ public class hockeybot extends SubspaceBot {
                 fCrease.clear();
             } catch (Exception e) {
             }
-            ;
         }
 
         private void clearUnsetPenalties() {
@@ -3068,6 +3211,19 @@ public class hockeybot extends SubspaceBot {
                 dCrease.clear();
                 fCrease.clear();
             } catch (Exception e) {
+            }
+        }
+
+        private void clearDCs() {
+            for (HockeyPlayer i : players.values()) {
+                if (i.penalty == HockeyPenalty.D_CREASE) {
+                    i.penalty = HockeyPenalty.NONE;
+                    if (frequency == 0) {
+                        m_botAction.warpTo(i.p_name, config.getTeam0ExtX() / 16, config.getTeam0ExtY() / 16);
+                    } else {
+                        m_botAction.warpTo(i.p_name, config.getTeam1ExtX() / 16, config.getTeam1ExtY() / 16);
+                    }
+                }
             }
         }
 
@@ -3244,7 +3400,7 @@ public class hockeybot extends SubspaceBot {
                 m_botAction.sendPrivateMessage(captainName, name + " lagged out!");
             }
 
-            //NOTE: the team is notified in the BWJSPlayer lagout() method
+            //NOTE: the team is notified in the HockeyPlayer lagout() method
         }
 
         /**
@@ -3311,6 +3467,10 @@ public class hockeybot extends SubspaceBot {
          */
         private boolean isTurn() {
             return turnToPick;
+        }
+
+        public boolean isGoalie(String name) {
+            return goalieName.equals(name);
         }
 
         /**
@@ -3387,6 +3547,10 @@ public class hockeybot extends SubspaceBot {
                 players.put(p_lc, new HockeyPlayer(p.getPlayerName(), shipType, frequency));
             } else {
                 players.get(p_lc).putIN(shipType);
+            }
+
+            if (shipType == Tools.Ship.SHARK) {
+                goalieName = p.getPlayerName();
             }
         }
 
@@ -3495,7 +3659,7 @@ public class hockeybot extends SubspaceBot {
          * Searches for name in team
          *
          * @param name name of the player that needs to get found
-         * @return BWJSPlayer if found, else null
+         * @return HockeyPlayer if found, else null
          */
         private HockeyPlayer searchPlayer(String name) {
             HockeyPlayer p;
@@ -3798,6 +3962,10 @@ public class hockeybot extends SubspaceBot {
                         + substitutesLeft + " substitutes left.");
             }
 
+            if (shipType == Tools.Ship.SHARK) {
+                goalieName = playerTwo.getPlayerName();
+            }
+
         }
 
         /**
@@ -3818,11 +3986,18 @@ public class hockeybot extends SubspaceBot {
 
             if (m_botAction.getPlayer(playerOne.p_name) != null) {
                 playerOne.switchPlayer();
+                if (playerOneShipType == Tools.Ship.SHARK) {
+                    goalieName = playerOne.p_name;
+                }
             }
 
             if (m_botAction.getPlayer(playerTwo.p_name) != null) {
                 playerTwo.switchPlayer();
+                if (playerTwoShipType == Tools.Ship.SHARK) {
+                    goalieName = playerTwo.p_name;
+                }
             }
+
         }
 
         /**
@@ -3890,7 +4065,7 @@ public class hockeybot extends SubspaceBot {
         private short veloX;
         private boolean carried;
         private String carrier;
-        private Stack<String> carriers;
+        private final Stack<String> carriers;
         private Stack<Point> releases;
         private boolean holding;
 
@@ -4146,7 +4321,7 @@ public class hockeybot extends SubspaceBot {
                 try {
                     if (!botCrease.empty()) {
                         Iterator<String> i = botCrease.iterator();
-                        while(i.hasNext()) {
+                        while (i.hasNext()) {
                             String name = i.next();
                             m_botAction.sendPrivateMessage(name, "WARNING: You are "
                                     + "not allowed to sit inside the red crease during"
@@ -4154,7 +4329,8 @@ public class hockeybot extends SubspaceBot {
                                     + " a penalty.");
                         }
                     }
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                }
             }
 
             //CHECK PENALTIES AND DROP
@@ -4209,7 +4385,7 @@ public class hockeybot extends SubspaceBot {
                     if (!botCrease.empty()) {
                         Iterator<String> i = botCrease.iterator();
                         HockeyPlayer player = null;
-                        while(i.hasNext()) {
+                        while (i.hasNext()) {
                             String name = i.next();
                             player = team0.searchPlayer(name);
                             if (player == null) {
@@ -4219,39 +4395,119 @@ public class hockeybot extends SubspaceBot {
                             m_botAction.sendArenaMessage("FACEOFF CREASE PENALTY: " + name);
                         }
                     }
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                }
             }
 
             if (time >= 30) {
                 startGame();
+                team0.clearUnsetPenalties();
+                team1.clearUnsetPenalties();
             }
         }
 
         private void doStartGame() {
             roundTime = ((System.currentTimeMillis() - timeStamp)
                     / Tools.TimeInMillis.SECOND);
+
+            //check for steals/saves
+            try {
+                int currentSize = puck.carriers.size();
+                if (currentSize != carriersSize) {
+                    carriersSize = currentSize;
+                    if (carriersSize > 1) {
+                        String carrier;
+                        String previous;
+                        synchronized (puck.carriers) {
+                            carrier = puck.carriers.elementAt(carriersSize - 1);
+                            previous = puck.carriers.elementAt(carriersSize - 2);
+                        }
+                        if (team0.isOnTeam(carrier) && team1.isOnTeam(previous)) {
+                            HockeyPlayer p = team0.getPlayer(carrier.toLowerCase());
+                            if (team0.dCrease.contains(carrier)) {
+                                p.madeSave();
+                                m_botAction.sendArenaMessage(carrier + " saves!");
+                            } else {
+                                p.madeSteal();
+                                m_botAction.sendArenaMessage(carrier + " steals!");
+                            }
+                        } else if (team1.isOnTeam(carrier) && team0.isOnTeam(previous)) {
+                            HockeyPlayer p = team1.getPlayer(carrier.toLowerCase());
+                            if (team1.dCrease.contains(carrier)) {
+                                p.madeSave();
+                                m_botAction.sendArenaMessage(carrier + " saves!");
+                            } else {
+                                p.madeSteal();
+                                m_botAction.sendArenaMessage(carrier + " steals!");
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println(e.getMessage() + e.getStackTrace());
+            }
+
+            //DEFENSE CREASE PENALTY TEAM 0
             try {
                 if (team0.dCrease.size() > 1) {
                     Iterator<String> i = team0.dCrease.iterator();
                     while (i.hasNext()) {
                         String name = i.next();
                         if (name.equals(puck.carrier) && team0.searchPlayer(name).getCurrentShipType() != 8) {
-                            team0.searchPlayer(name).setPenalty(HockeyPenalty.D_CREASE);
-                            m_botAction.sendArenaMessage("DEFENSE CREASE PENALTY: " + name);
-                            startFaceOff();
+                            if (team1.isOnTeam(puck.carriers.elementAt(puck.carriers.size() - 2))) {
+                                team0.searchPlayer(name).setPenalty(HockeyPenalty.D_CREASE);
+                                m_botAction.sendArenaMessage("DEFENSE CREASE PENALTY: " + name);
+                                startFaceOff();
+                            }
                         }
                     }
                 }
             } catch (Exception e) {
             }
+
+            //DEFENSE CREASE PENALTY TEAM 1
             try {
                 if (team1.dCrease.size() > 1) {
                     Iterator<String> i = team1.dCrease.iterator();
                     while (i.hasNext()) {
                         String name = i.next();
                         if (name.equals(puck.carrier) && team1.searchPlayer(name).getCurrentShipType() != 8) {
-                            team1.searchPlayer(name).setPenalty(HockeyPenalty.D_CREASE);
-                            m_botAction.sendArenaMessage("DEFENSE CREASE PENALTY: " + name);
+                            if (team0.isOnTeam(puck.carriers.elementAt(puck.carriers.size() - 2))) {
+                                team1.searchPlayer(name).setPenalty(HockeyPenalty.D_CREASE);
+                                m_botAction.sendArenaMessage("DEFENSE CREASE PENALTY: " + name);
+                                startFaceOff();
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+            }
+
+            //OFFSIDE PENALTY TEAM 0
+            try {
+                if (!team0.offside.empty()) {
+                    Iterator<String> i = team0.offside.iterator();
+                    while (i.hasNext()) {
+                        String name = i.next();
+                        if (name.equals(puck.carrier)) {
+                            team0.getPlayer(name.toLowerCase()).setPenalty(HockeyPenalty.OFFSIDE);
+                            m_botAction.sendArenaMessage("OFFSIDE PENALTY: " + name);
+                            startFaceOff();
+                        }
+                    }
+                }
+            } catch (Exception e) {
+            }
+
+            //OFFSIDE PENALTY TEAM 1
+            try {
+                if (!team1.offside.empty()) {
+                    Iterator<String> i = team1.offside.iterator();
+                    while (i.hasNext()) {
+                        String name = i.next();
+                        if (name.equals(puck.carrier)) {
+                            team1.getPlayer(name.toLowerCase()).setPenalty(HockeyPenalty.OFFSIDE);
+                            m_botAction.sendArenaMessage("OFFSIDE PENALTY: " + name);
                             startFaceOff();
                         }
                     }
@@ -4283,7 +4539,7 @@ public class hockeybot extends SubspaceBot {
         }
     }
 
-    /*private void debugMessage(String msg) {
-    m_botAction.sendPrivateMessage("Spook <ZH>", msg);
-    }*/
+    private void debugMessage(String msg) {
+        m_botAction.sendPrivateMessage("Spook <ZH>", msg);
+    }
 }
