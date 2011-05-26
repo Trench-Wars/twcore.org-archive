@@ -51,10 +51,10 @@ public class hockeybot extends SubspaceBot {
     private long zonerTimestamp;                            //Timestamp of the last zoner
     private long manualZonerTimestamp;                      //Timestamp of the last manualzoner
     //Frequencies
-    private static final int FREQ_SPEC = 9999;
-    private static final int FREQ_NOTPLAYING = 666;
+    private static final int FREQ_SPEC = 8025;
+    private static final int FREQ_NOTPLAYING = 2;
     //Static variables
-    private static final int ZONER_WAIT_TIME = 15;
+    private static final int ZONER_WAIT_TIME = 7;
     private Stack<String> botCrease;
 
     //Game states
@@ -448,6 +448,7 @@ public class hockeybot extends SubspaceBot {
         if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
             m_botAction.getShip().setShip(8);
             m_botAction.getShip().setShip(0);
+            m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
             m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
             m_botAction.getBall(puck.getBallID(), (int) puck.getTimeStamp());
         }
@@ -458,6 +459,7 @@ public class hockeybot extends SubspaceBot {
      */
     public void dropBall() {
         m_botAction.getShip().setShip(8);
+        m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
     }
 
     private void checkPenalty(PlayerPosition event) {
@@ -515,6 +517,10 @@ public class hockeybot extends SubspaceBot {
                 cmd_switch(name, cmd, override);
             } else if (cmd.startsWith("!add")) {
                 cmd_add(name, cmd, override);
+            /*} else if (cmd.startsWith("!mad")) {
+                //TODO REMOVE THIS
+                cmd_add("SpookBot1", cmd, override);
+                cmd_ready("SpookBot1", override);*/
             } else if (cmd.equals("!ready")) {
                 cmd_ready(name, override);
             } else if (cmd.equals("!removecap")) {
@@ -1787,16 +1793,16 @@ public class hockeybot extends SubspaceBot {
 
         //TODO fix score display
         ArrayList<String> spam = new ArrayList<String>();
-        spam.add("+----------------------+-------+-------+---------+--------+-----------+");
-        spam.add("|        Freq 0        | Goals | Saves | Assists | Steals | Penalties |");
-        spam.add("+----------------------+-------+-------+---------+--------+-----------+");
-
-        ////////("01234567890123456789012345678901234567890123456789012345678901234567890");
+        spam.add("+----------------------+-------+-------+---------+--------+-----------+-----------+");
+        spam.add("|        Freq 0        | Goals | Saves | Assists | Steals | Turnovers | Penalties |");
+        spam.add("+----------------------+-------+-------+---------+--------+-----------+-----------+");
+        ////////("01234567890123456789012345678901234567890123456789012345678901234567890123456789012");
 
         StringBuilder stats;
         for (HockeyPlayer p : team0.players.values()) {
             stats = new StringBuilder();
-            stats.append("|                                                                      ");
+
+            stats.append("|                                                                                 |");
 
             String n = p.getName();
             stats.insert(2, n.length() > 20 ? n.substring(0, 19) : n);
@@ -1804,18 +1810,21 @@ public class hockeybot extends SubspaceBot {
             stats.insert(35, p.saves);
             stats.insert(44, p.assists);
             stats.insert(53, p.steals);
-            stats.insert(64, p.penalties);
-            stats.insert(70, "|");
+            stats.insert(64, p.turnovers);
+            stats.insert(76, p.penalties);
 
-            spam.add(stats.substring(0, 70));
+            stats.insert(82, "|");
+
+            spam.add(stats.substring(0, 82));
         }
 
-        spam.add("+----------------------+-------+-------+---------+--------+-----------+");
-        spam.add("|        Freq 1        | Goals | Saves | Assists | Steals | Penalties |");
-        spam.add("+----------------------+-------+-------+---------+--------+-----------+");
+        spam.add("+----------------------+-------+-------+---------+--------+-----------+-----------+");
+        spam.add("|        Freq 1        | Goals | Saves | Assists | Steals | Turnovers | Penalties |");
+        spam.add("+----------------------+-------+-------+---------+--------+-----------+-----------+");
         for (HockeyPlayer p : team1.players.values()) {
             stats = new StringBuilder();
-            stats.append("|                                                                      ");
+
+            stats.append("|                                                                                 |");
 
             String n = p.getName();
             stats.insert(2, n.length() > 20 ? n.substring(0, 19) : n);
@@ -1823,12 +1832,14 @@ public class hockeybot extends SubspaceBot {
             stats.insert(35, p.saves);
             stats.insert(44, p.assists);
             stats.insert(53, p.steals);
-            stats.insert(64, p.penalties);
-            stats.insert(70, "|");
+            stats.insert(64, p.turnovers);
+            stats.insert(76, p.penalties);
 
-            spam.add(stats.substring(0, 70));
+            stats.insert(82, "|");
+
+            spam.add(stats.substring(0, 82));
         }
-        spam.add("+----------------------+-------+-------+---------+--------+-----------+");
+        spam.add("+----------------------+-------+-------+---------+--------+-----------+-----------+");
         //goals, saves, assists, steals, penalties
 
         m_botAction.arenaMessageSpam(spam.toArray(new String[spam.size()]));
@@ -2775,6 +2786,7 @@ public class hockeybot extends SubspaceBot {
         private int steals = 0;             //puck steals
         private int assists = 0;            //clean goals assisted
         private int goals = 0;              //clean goals made
+        private int turnovers = 0;
 
         /** Class constructor */
         private HockeyPlayer(String player, int shipType, int frequency) {
@@ -2831,6 +2843,10 @@ public class hockeybot extends SubspaceBot {
 
         public void madeGoal() {
             this.goals++;
+        }
+
+        public void madeTurnover() {
+            this.turnovers++;
         }
 
         /**
@@ -4068,6 +4084,7 @@ public class hockeybot extends SubspaceBot {
         private final Stack<String> carriers;
         private Stack<Point> releases;
         private boolean holding;
+        private Point lastPickup;
 
         public HockeyPuck() {
             carrier = null;
@@ -4075,6 +4092,7 @@ public class hockeybot extends SubspaceBot {
             releases = new Stack<Point>();
             carried = false;
             holding = false;
+            lastPickup = null;
         }
 
         /**
@@ -4099,6 +4117,7 @@ public class hockeybot extends SubspaceBot {
             if (carrier != null && !carrier.equals(m_botAction.getBotName())) {
                 if (!carried && currentState == HockeyState.GAME_IN_PROGRESS) {
                     carriers.push(carrier);
+                    lastPickup = new Point(ballX, ballY);
                 }
                 carried = true;
             } else if (carrier == null && carried) {
@@ -4125,6 +4144,7 @@ public class hockeybot extends SubspaceBot {
             try {
                 carriers.clear();
                 releases.clear();
+                lastPickup = null;
             } catch (Exception e) {
             }
         }
@@ -4413,32 +4433,30 @@ public class hockeybot extends SubspaceBot {
             //check for steals/saves
             try {
                 int currentSize = puck.carriers.size();
-                if (currentSize != carriersSize) {
-                    carriersSize = currentSize;
+                while (carriersSize < currentSize) {
+                    carriersSize++;
                     if (carriersSize > 1) {
                         String carrier;
                         String previous;
-                        synchronized (puck.carriers) {
-                            carrier = puck.carriers.elementAt(carriersSize - 1);
-                            previous = puck.carriers.elementAt(carriersSize - 2);
-                        }
+                        carrier = puck.carriers.elementAt(carriersSize - 1);
+                        previous = puck.carriers.elementAt(carriersSize - 2);
                         if (team0.isOnTeam(carrier) && team1.isOnTeam(previous)) {
-                            HockeyPlayer p = team0.getPlayer(carrier.toLowerCase());
+                            HockeyPlayer c = team0.getPlayer(carrier.toLowerCase());
+                            HockeyPlayer p = team1.getPlayer(previous.toLowerCase());
                             if (team0.dCrease.contains(carrier)) {
-                                p.madeSave();
-                                m_botAction.sendArenaMessage(carrier + " saves!");
+                                c.madeSave();
                             } else {
-                                p.madeSteal();
-                                m_botAction.sendArenaMessage(carrier + " steals!");
+                                c.madeSteal();
+                                p.madeTurnover();
                             }
                         } else if (team1.isOnTeam(carrier) && team0.isOnTeam(previous)) {
-                            HockeyPlayer p = team1.getPlayer(carrier.toLowerCase());
+                            HockeyPlayer c = team1.getPlayer(carrier.toLowerCase());
+                            HockeyPlayer p = team0.getPlayer(previous.toLowerCase());
                             if (team1.dCrease.contains(carrier)) {
-                                p.madeSave();
-                                m_botAction.sendArenaMessage(carrier + " saves!");
+                                c.madeSave();
                             } else {
-                                p.madeSteal();
-                                m_botAction.sendArenaMessage(carrier + " steals!");
+                                c.madeSteal();
+                                p.madeTurnover();
                             }
                         }
                     }
@@ -4450,12 +4468,28 @@ public class hockeybot extends SubspaceBot {
             //DEFENSE CREASE PENALTY TEAM 0
             try {
                 if (team0.dCrease.size() > 1) {
+                    int size;
+                    String carrier, previous;
+                    Point pickup;
+                    synchronized (puck.carriers) {
+                        size = puck.carriers.size();
+                        carrier = puck.carrier;
+                        previous = puck.carriers.elementAt(size-2);
+                        pickup = puck.lastPickup;
+                    }
+
+                    //check distance from goal puck picked up
+                    int x = Math.abs(config.getTeam0GoalX() - pickup.x);
+                    int y = Math.abs(config.getTeam0GoalY() - pickup.y);
+                    double distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+
                     Iterator<String> i = team0.dCrease.iterator();
                     while (i.hasNext()) {
                         String name = i.next();
-                        if (name.equals(puck.carrier) && team0.searchPlayer(name).getCurrentShipType() != 8) {
-                            if (team1.isOnTeam(puck.carriers.elementAt(puck.carriers.size() - 2))) {
-                                team0.searchPlayer(name).setPenalty(HockeyPenalty.D_CREASE);
+                        HockeyPlayer player = team0.getPlayer(name.toLowerCase());
+                        if (name.equals(carrier) && player.getCurrentShipType() != 8) {
+                            if (!team0.isOnTeam(previous) && distance < config.getGoalRadius()) {
+                                player.setPenalty(HockeyPenalty.D_CREASE);
                                 m_botAction.sendArenaMessage("DEFENSE CREASE PENALTY: " + name);
                                 startFaceOff();
                             }
@@ -4468,12 +4502,28 @@ public class hockeybot extends SubspaceBot {
             //DEFENSE CREASE PENALTY TEAM 1
             try {
                 if (team1.dCrease.size() > 1) {
+                    int size;
+                    String carrier, previous;
+                    Point pickup;
+                    synchronized (puck.carriers) {
+                        size = puck.carriers.size();
+                        carrier = puck.carrier;
+                        previous = puck.carriers.elementAt(size-2);
+                        pickup = puck.lastPickup;
+                    }
+
+                    //check distance from goal puck picked up
+                    int x = Math.abs(config.getTeam1GoalX() - pickup.x);
+                    int y = Math.abs(config.getTeam1GoalY() - pickup.y);
+                    double distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+
                     Iterator<String> i = team1.dCrease.iterator();
                     while (i.hasNext()) {
                         String name = i.next();
-                        if (name.equals(puck.carrier) && team1.searchPlayer(name).getCurrentShipType() != 8) {
-                            if (team0.isOnTeam(puck.carriers.elementAt(puck.carriers.size() - 2))) {
-                                team1.searchPlayer(name).setPenalty(HockeyPenalty.D_CREASE);
+                        HockeyPlayer player = team1.getPlayer(name.toLowerCase());
+                        if (name.equals(carrier) && player.getCurrentShipType() != 8) {
+                            if (!team1.isOnTeam(previous) && distance < config.getGoalRadius()) {
+                                player.setPenalty(HockeyPenalty.D_CREASE);
                                 m_botAction.sendArenaMessage("DEFENSE CREASE PENALTY: " + name);
                                 startFaceOff();
                             }
