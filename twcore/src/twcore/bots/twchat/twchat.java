@@ -17,7 +17,7 @@ import twcore.core.util.Tools;
 
 public class twchat extends SubspaceBot{
     
-        public static BotSettings m_botSettings;         
+        BotSettings m_botSettings;         
 
         public twchat(BotAction botAction) {
             super(botAction);
