@@ -65,13 +65,35 @@ public class twchat extends SubspaceBot{
                 m_botAction.getServerFile("vip.txt");
                 
             }else if(message.equalsIgnoreCase("!help")){
-                m_botAction.sendSmartPrivateMessage(name, "Hello, I'm a bot that enables you to chat online via the Trench Wars Chat App. The chat app was created by Arobas and Dezmond, made available on the web by Zazu. "
-                +"This bot was created by Dezmond.");
-                m_botAction.sendSmartPrivateMessage(name, "Available Commands: !signup");
+                String[] startCommands = 
+                {   "+-------------------------------------------------------------------------------+",
+                    "|                                 Trench Wars Chat                              |",  
+                    "|                                                                               |",
+                    "| Hello! I'm a bot that will allow you to chat on the web!                      |",
+                    "| Please look below for the available commands.                                 |"
+                };
+                String[] publicCommands = 
+                {   "|                                                                               |",
+                    "| !signup                     - Signs you up to be able to use the online TW    |",
+                    "|                               Chat App                                        |", };
+                String[] modCommands = 
+                {   "|-----------------------         Developer+             ------------------------|",
+                    "| !test                       - Retrieves the VIP text file from the server to  |",
+                    "|                               be accurate where it is placed.                 |",
+                    "| !die                        - Throw me off a bridge without a parachute       |",
+                    };
+                String[] endCommands =
+                {   "\\-------------------------------------------------------------------------------/"   };
+                
+                m_botAction.smartPrivateMessageSpam(name, startCommands);
+                m_botAction.smartPrivateMessageSpam(name, publicCommands);
+                
                 if(m_botAction.getOperatorList().isDeveloper(name)){
-                    m_botAction.sendSmartPrivateMessage(name, "" +
-                    		"Available Commands (Developer): !die       !test");
-                }
+                    m_botAction.smartPrivateMessageSpam(name, modCommands);}
+                
+                m_botAction.smartPrivateMessageSpam(name, endCommands);
+
+
                 
             }else if(message.equalsIgnoreCase("!die") && m_botAction.getOperatorList().isDeveloper(name)){
                 m_botAction.die();
