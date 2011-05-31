@@ -68,6 +68,7 @@ public class twchat extends SubspaceBot{
                 m_botAction.getServerFile("vip.txt");
                 String msg = message.substring(8).toLowerCase();
                 lastPlayer.add(msg);
+                m_botAction.sendSmartPrivateMessage(name, "Done.");
                 
             }else if(message.equalsIgnoreCase("!help")){
                 String[] startCommands = 
@@ -86,7 +87,7 @@ public class twchat extends SubspaceBot{
                     "| !test                       - Retrieves the VIP text file from the server to  |",
                     "|                               be accurate where it is placed.                 |",
                     "| !die                        - Throw me off a bridge without a parachute       |",
-                    "| !add                        - Manually add this person to VIP.                |",
+                    "| !vipadd                     - Manually add this person to VIP.                |",
                     };
                 String[] endCommands =
                 {   "\\-------------------------------------------------------------------------------/"   };
