@@ -56,7 +56,16 @@ public class twchat extends SubspaceBot{
             }else if(message.equalsIgnoreCase("!help")){
                 m_botAction.sendSmartPrivateMessage(name, "Hello, I'm a bot that enables you to chat online via the Trench Wars Chat App. The chat app was created by Arobas and Dezmond, made available on the web by Zazu. "
                 +"This bot was created by Dezmond.");
+                m_botAction.sendSmartPrivateMessage(name, "Available Commands: !signup");
+                if(m_botAction.getOperatorList().isDeveloper(name)){
+                    m_botAction.sendSmartPrivateMessage(name, "" +
+                    		"Available Commands (Developer): !die       !test");
+                }
+                
+            }else if(message.equalsIgnoreCase("!die") && m_botAction.getOperatorList().isDeveloper(name)){
+                m_botAction.die();
             }
+            
 
 
 
