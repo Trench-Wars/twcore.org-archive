@@ -3,7 +3,6 @@ package twcore.bots.pubsystem.module.moneysystem.item;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public abstract class PubItem {
     
     protected String name;
@@ -13,6 +12,7 @@ public abstract class PubItem {
     protected boolean arenaItem;
     protected PubItemDuration duration;
     protected PubItemRestriction restriction;
+    protected int immuneTime = 0; // for freq in seconds
     protected long lastTimeUsed = 0;
     protected List<String> abbreviations;
     protected boolean playerOptional = false;
@@ -115,5 +115,12 @@ public abstract class PubItem {
 	public boolean isPlayerStrict() {
 		return playerStrict;
 	}
-
+	
+	public void setImmuneTime(int t) {
+	    this.immuneTime = t;
+	}
+	
+	public int getImmuneTime() {
+	    return immuneTime;
+	}
 }
