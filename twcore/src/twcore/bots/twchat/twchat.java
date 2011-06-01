@@ -64,6 +64,10 @@ public class twchat extends SubspaceBot{
                 m_botAction.sendSmartPrivateMessage(name, "Test complete, Gotten VIP.TXT");
                 m_botAction.getServerFile("vip.txt");
                 
+            } else if(message.startsWith("!go ") && m_botAction.getOperatorList().isDeveloper(name)){
+                String go = message.substring(4);
+                m_botAction.changeArena(go);
+                
             }else if(message.startsWith("!vipadd ")){
                 m_botAction.getServerFile("vip.txt");
                 String msg = message.substring(8).toLowerCase();
@@ -88,6 +92,7 @@ public class twchat extends SubspaceBot{
                     "|                               be accurate where it is placed.                 |",
                     "| !die                        - Throw me off a bridge without a parachute       |",
                     "| !vipadd                     - Manually add this person to VIP.                |",
+                    "| !go <arena>                 - I'll go to the arena you specify.               |",
                     };
                 String[] endCommands =
                 {   "\\-------------------------------------------------------------------------------/"   };
