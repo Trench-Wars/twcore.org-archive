@@ -309,10 +309,13 @@ public class pubsystem extends SubspaceBot
             handlePublicCommand(sender, message, messageType);
         if (m_botAction.getOperatorList().isZH(sender) && (message.startsWith("!newplayer ") || message.startsWith("!next ") || message.startsWith("!end "))) {
             if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) )
-                handleModCommand(sender, message);            
-        } else if ( m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) || m_botAction.getOperatorList().isBotExact(sender) )
-            if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) )
                 handleModCommand(sender, message);
+        } else if ( m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) || m_botAction.getOperatorList().isBotExact(sender) )
+            if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) ) {
+                handleModCommand(sender, message);      
+                if (m_botAction.getOperatorList().isSmod(sender))
+                    handleSmodCommand(sender, message);
+            }
     }
 
 
@@ -391,6 +394,16 @@ public class pubsystem extends SubspaceBot
             m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
     }
+    
+    /**
+     * Handles smod-only commands sent to the bot.
+     *
+     * @param sender is the person issuing the command.
+     * @param command is the command that is being sent.
+     */
+    public void handleSmodCommand(String sender, String command) {
+        context.handleSmodCommand(sender, command);
+    }
 
     public void doAboutCmd(String sender) {
     	String text = "This bot is an updated version of purepubbot, formerly known as RoboBoy/Girl.";
@@ -456,6 +469,9 @@ public class pubsystem extends SubspaceBot
 	    	m_botAction.smartPrivateMessageSpam(sender, (String[])lines.toArray(new String[lines.size()]));
         	
         } else {
+        	boolean smod = false;
+        	if (m_botAction.getOperatorList().isSmod(sender))
+        	    smod = true;
         	
             for(AbstractModule module: context.getModules()) {
             	List<String> m = new ArrayList<String>();
@@ -465,6 +481,10 @@ public class pubsystem extends SubspaceBot
             	if (module.getModHelpMessage(sender).length>0) {
             		m.addAll(Arrays.asList(module.getModHelpMessage(sender)));
             		m.add(" ");
+            	}
+            	if (smod && module.getSmodHelpMessage(sender).length > 0) {
+                    m.addAll(Arrays.asList(module.getSmodHelpMessage(sender)));
+                    m.add(" ");            	    
             	}
             	lines.addAll(m);
             }

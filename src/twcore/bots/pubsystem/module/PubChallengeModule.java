@@ -200,8 +200,7 @@ public class PubChallengeModule extends AbstractModule {
                 laggers.remove(name);
                 m_botAction.sendSmartPrivateMessage(name, "You have returned from lagout.");
             }
-        }
-            
+        }            
     }
     
     public void handleEvent(PlayerDeath event) 
@@ -1037,7 +1036,8 @@ public class PubChallengeModule extends AbstractModule {
                     freq2 = 0;
             }
 
-
+            duelers.get(challenger).setFreq(freq1);
+            duelers.get(accepter).setFreq(freq2);
             m_botAction.setFreq(challenger, freq1);
             m_botAction.setFreq(accepter, freq2);
             m_botAction.warpTo(challenger, area.warp1x, area.warp1y);
@@ -1100,8 +1100,8 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(name, "You have not lagged out from a duel.");
             return;
         }
-        m_botAction.cancelTask(laggers.get(name));
-        laggers.remove(name);
+        //m_botAction.cancelTask(laggers.get(name));
+        //laggers.remove(name);
 
         Dueler dueler = duelers.get(name);
         if (dueler == null)
@@ -1115,9 +1115,7 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.setShip(name, challenge.ship);
             m_botAction.warpTo(name, challenge.area.warp1x, challenge.area.warp1y);
             m_botAction.setFreq(name, 0);
-            return;
-        }
-        if(dueler.type == Dueler.DUEL_ACCEPTER){
+        } else {
             m_botAction.setShip(name, challenge.ship);
             m_botAction.warpTo(name, challenge.area.warp2x, challenge.area.warp2y);
             m_botAction.setFreq(name, 1);
@@ -1321,9 +1319,6 @@ public class PubChallengeModule extends AbstractModule {
             	doDebugCmd(sender);
         	else if (command.startsWith("!sharkshrap"))
         	    doSharkShrap(sender);
-        	else if (command.startsWith("!info ") && m_botAction.getOperatorList().isSmod(sender)) {
-        	    doSuperInfo(sender, command);
-        	}
         	    
            
         } catch(RuntimeException e) {
@@ -1331,6 +1326,50 @@ public class PubChallengeModule extends AbstractModule {
                 m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
 	}
+
+    @Override
+    public void handleSmodCommand(String sender, String command) {
+        if (command.startsWith("!info ")) {
+            doSuperInfo(sender, command);
+        }        
+    }
+    
+    @Override
+    public String[] getHelpMessage(String sender) {
+        if (context.getMoneySystem().isEnabled())
+            return new String[] {
+                pubsystem.getHelpLine("!challenge <name>:<ship>:<$>  -- Challenge a player to " + deaths + " in a specific ship (1-8) for $X. (!duel)"),
+                //pubsystem.getHelpLine("!watchduel <name>             -- Watch the duel of this player. (!wd)"),
+                pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent."),
+                pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played. (!ld)"),
+                pubsystem.getHelpLine("!beton <name>:<$>             -- Bet on <name> to win a duel."),
+                pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
+                pubsystem.getHelpLine("!npduel                       -- Enables or disables you from receiving duel challenges."),
+            };
+        else
+            return new String[] {
+                pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played. (!ld)"),
+                pubsystem.getHelpLine("!challenge <name>:<ship>      -- Challenge a player to " + deaths + " in a specific ship (1-8)."),
+                pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
+                pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent. (!rm)"),
+                pubsystem.getHelpLine("!npduel                       -- Enables or disables you from receiving duel challenges."),
+            };
+    }
+
+    @Override
+    public String[] getModHelpMessage(String sender) {
+        return new String[] {
+            pubsystem.getHelpLine("!betting                     -- Toggles duel betting on or off."),
+            pubsystem.getHelpLine("!cancelchallenge <name>      -- Cancel a challenge (specify one of the player)."),
+        };
+    }
+
+    @Override
+    public String[] getSmodHelpMessage(String sender) {
+        return new String[]{
+                pubsystem.getHelpLine("!info <name>                  -- Displays detailed monetary information on duel bets for <name>."),
+        };
+    }
 	
 	public void doSuperInfo(String sender, String com) {
 	    String player = "";
@@ -1370,36 +1409,6 @@ public class PubChallengeModule extends AbstractModule {
         } else {
             m_botAction.sendSmartPrivateMessage(sender, "Player profile for '" + player + "' not found.");            
         }
-	}
-	
-	@Override
-	public String[] getHelpMessage(String sender) {
-		if (context.getMoneySystem().isEnabled())
-			return new String[] {
-				pubsystem.getHelpLine("!challenge <name>:<ship>:<$>  -- Challenge a player to " + deaths + " in a specific ship (1-8) for $X. (!duel)"),
-				//pubsystem.getHelpLine("!watchduel <name>             -- Watch the duel of this player. (!wd)"),
-				pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent."),
-                pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played. (!ld)"),
-                pubsystem.getHelpLine("!beton <name>:<$>             -- Bet on <name> to win a duel."),
-                pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
-                pubsystem.getHelpLine("!npduel                       -- Enables or disables you from receiving duel challenges."),
-	        };
-		else
-			return new String[] {
-		        pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played. (!ld)"),
-				pubsystem.getHelpLine("!challenge <name>:<ship>      -- Challenge a player to " + deaths + " in a specific ship (1-8)."),
-				pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
-				pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent. (!rm)"),
-                pubsystem.getHelpLine("!npduel                       -- Enables or disables you from receiving duel challenges."),
-	        };
-	}
-
-	@Override
-	public String[] getModHelpMessage(String sender) {
-		return new String[] {
-	        pubsystem.getHelpLine("!betting                     -- Toggles duel betting on or off."),
-			pubsystem.getHelpLine("!cancelchallenge <name>      -- Cancel a challenge (specify one of the player)."),
-        };
 	}
 
 	@Override
@@ -1545,6 +1554,7 @@ class Dueler {
     public int spawns = 0;
     
     public int oldFreq = 0;
+    public int freq = 0;
     
     public long lastDeath = 0; // To detect warp vs death and no count (timestamp)
     public long lastKill = 0; // For no count (timestamp)
@@ -1555,6 +1565,10 @@ class Dueler {
         this.name = name;
         this.type = type;
         this.challenge = challenge;
+    }
+    
+    public void setFreq(int f) {
+        freq = f;
     }
 
 }

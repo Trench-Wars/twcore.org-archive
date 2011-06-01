@@ -25,6 +25,7 @@ import twcore.core.EventRequester;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.FrequencyChange;
 import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
@@ -42,6 +43,8 @@ public class PubPlayerManagerModule extends AbstractModule {
                                                         //   for a player to keep MVP/get bonus on switching.
 
     private static final int NICEGUY_BOUNTY_AWARD = 25; // Bounty given to those that even freqs/ships
+    
+    private int SHUFFLE_SIZE = 1;
 
     private HashMap<String, PubPlayer> players;         // Always lowercase!
     private HashSet<String> freq0;                   	// Players on freq 0
@@ -59,6 +62,10 @@ public class PubPlayerManagerModule extends AbstractModule {
 	private int SAVETASK_INTERVAL = 1; // minutes
     
     private Log logMoneyDBTransaction;
+    
+    private boolean voting = false;
+    private Random r = new Random();
+    private HashMap<Integer, Integer> votes;
 
 	public PubPlayerManagerModule(BotAction m_botAction, PubContext context) 
 	{
@@ -78,6 +85,22 @@ public class PubPlayerManagerModule extends AbstractModule {
 		reloadConfig();
 	}
 	
+	public void handleEvent(Message event) {
+	    if (event.getMessageType() != Message.PRIVATE_MESSAGE || !voting)
+	        return;
+	    int id = event.getPlayerID();
+	    int vote = -1;
+	    try {
+	        vote = Integer.valueOf(event.getMessage());
+	    } catch (NumberFormatException e) {
+	        return;
+	    }
+	    if (vote == 1 || vote == 2) {
+	        votes.put(id, vote);
+	        m_botAction.sendPrivateMessage(id, "Your vote has been counted.");
+	    }
+	}
+	
     
 	public void requestEvents(EventRequester eventRequester)
 	{
@@ -86,6 +109,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 		eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
 		eventRequester.request(EventRequester.PLAYER_LEFT);
 		eventRequester.request(EventRequester.PLAYER_ENTERED);
+        eventRequester.request(EventRequester.MESSAGE);
 	}
 	
 	public boolean addMoney(String playerName, int money) {
@@ -679,10 +703,79 @@ public class PubPlayerManagerModule extends AbstractModule {
         }
 
     }
-
-
-
     
+    public void checkSizesAndShuffle(int dx) {
+        if (SHUFFLE_SIZE < 1 || dx < SHUFFLE_SIZE)
+            return;
+        int freq0 = m_botAction.getPlayingFrequencySize(0);
+        int freq1 = m_botAction.getPlayingFrequencySize(1);
+        int diff = java.lang.Math.abs( freq0 - freq1 );
+        if (diff >= SHUFFLE_SIZE)
+            doShuffleVote();
+    }
+    
+    public void doShuffleVote() {
+        voting = true;
+        votes = new HashMap<Integer, Integer>();
+        m_botAction.sendOpposingTeamMessageByFrequency(0, "[TEAM SHUFFLE POLL] Teams unbalanced: You have 20 seconds to Vote to shuffle teams! ");
+        m_botAction.sendOpposingTeamMessageByFrequency(0, " 1- Yes");
+        m_botAction.sendOpposingTeamMessageByFrequency(0, " 2- No");
+        m_botAction.sendOpposingTeamMessageByFrequency(0, "PM Your answers to " + m_botAction.getBotName() + " ( :TW-Pub1:<number> )");
+        m_botAction.sendOpposingTeamMessageByFrequency(1, "[TEAM SHUFFLE POLL] Teams unbalanced: You have 20 seconds to Vote to shuffle teams! ");
+        m_botAction.sendOpposingTeamMessageByFrequency(1, " 1- Yes");
+        m_botAction.sendOpposingTeamMessageByFrequency(1, " 2- No");
+        m_botAction.sendOpposingTeamMessageByFrequency(1, "PM Your answers to " + m_botAction.getBotName() + " ( :TW-Pub1:<number> )");
+        TimerTask count = new TimerTask() {
+            public void run() {
+                voting = false;
+                int[] results = {0, 0};
+                for (Integer v: votes.values())
+                    results[v-1]++;
+                int win = 0;
+                m_botAction.sendOpposingTeamMessageByFrequency(0, "[TEAM SHUFFLE POLL] Results!");
+                m_botAction.sendOpposingTeamMessageByFrequency(0, " 1- " + results[0]);
+                m_botAction.sendOpposingTeamMessageByFrequency(0, " 2- " + results[1]);
+                m_botAction.sendOpposingTeamMessageByFrequency(1, "[TEAM SHUFFLE POLL] Results!");
+                m_botAction.sendOpposingTeamMessageByFrequency(1, " 1- " + results[0]);
+                m_botAction.sendOpposingTeamMessageByFrequency(1, " 2- " + results[1]);
+                if (results[0] == results[1])
+                    win = r.nextInt(2);
+                else if (results[0] < results[1])
+                    win = 1;
+                if (win == 0) {
+                    m_botAction.sendOpposingTeamMessageByFrequency(0, "Shuffling teams!");
+                    m_botAction.sendOpposingTeamMessageByFrequency(1, "Shuffling teams!");
+                    shuffle(); 
+                }
+            }
+        };
+        m_botAction.scheduleTask(count, 20*Tools.TimeInMillis.SECOND);
+    }
+    
+    /**
+     * Shuffles the public frequencies
+     */
+    public void shuffle() {
+        ArrayList<Integer> plist = new ArrayList<Integer>();
+        Iterator<Integer> i = m_botAction.getFreqIDIterator(0);
+        int s = m_botAction.getFrequencySize(0);
+        while (s > 0 && i.hasNext())
+            plist.add(i.next());
+        i = m_botAction.getFreqIDIterator(1);
+        s = m_botAction.getFrequencySize(1);
+        while (s > 0 && i.hasNext())
+            plist.add(i.next());
+        int freqSize = plist.size()/2;
+        
+        for (int j = 0; j < freqSize; j++) {
+            if (!plist.isEmpty())
+                m_botAction.setFreq(plist.remove(r.nextInt(plist.size())), 0);
+        }
+        
+        while (!plist.isEmpty())
+            m_botAction.setFreq(plist.remove(0), 1);
+    }
+
     /**
      * Fixes the freq of each player.
      */
@@ -794,6 +887,19 @@ public class PubPlayerManagerModule extends AbstractModule {
     public void doGetTeamKillTax(String sender, String command) {
         m_botAction.sendSmartPrivateMessage(sender, "The current teamkill tax is $" + tkTax);
     }
+    
+    public void doSetShuffleSize(String name, String msg) {
+        msg = msg.substring(msg.indexOf(" ") + 1);
+        int n = -1;
+        try {
+            n = Integer.valueOf(msg);
+        } catch (NumberFormatException e) {
+            m_botAction.sendPrivateMessage(name, "Error converting " + msg);
+            return;
+        }
+        SHUFFLE_SIZE = n;
+        m_botAction.sendPrivateMessage(name, "Freq difference shuffle trigger = " + SHUFFLE_SIZE);
+    }
 
 	@Override
 	public void handleCommand(String sender, String command) {
@@ -803,17 +909,36 @@ public class PubPlayerManagerModule extends AbstractModule {
 
 	@Override
 	public void handleModCommand(String sender, String command) {
-		
-        if(command.equals("!debug")) {
-            for(PubPlayer p: players.values()) {
-            	m_botAction.sendSmartPrivateMessage(sender, p.getPlayerName());
-            }
-        } else if(command.trim().equals("!tax")) {
+		if(command.trim().equals("!tax")) {
             doGetTeamKillTax(sender, command);
         } else if(command.trim().startsWith("!tax ")) {
             doSetTeamKillTax(sender, command);
         }
 	}
+    
+    @Override
+    public void handleSmodCommand(String sender, String command) { 
+        if (command.trim().equals("!vote")) {
+            doShuffleVote();
+        } else if (command.trim().equals("!forceshuffle")) {
+            shuffle();
+        } else if (command.startsWith("!trigger ")) {
+            doSetShuffleSize(sender, command);
+        } else if(command.equals("!debug")) {
+            for(PubPlayer p: players.values()) {
+                m_botAction.sendSmartPrivateMessage(sender, p.getPlayerName());
+            }
+        } 
+    }
+
+    @Override
+    public String[] getSmodHelpMessage(String sender) {
+        return new String[]{
+                pubsystem.getHelpLine("!vote             -- Force a vote to shuffle teams."),
+                pubsystem.getHelpLine("!forceshuffle     -- Force shuffle teams."),
+                pubsystem.getHelpLine("!trigger          -- Set the freq size difference trigger for shuffle vote (0 is off)."),
+        };
+    }   
 	
 	@Override
 	public String[] getHelpMessage(String sender) {
@@ -823,9 +948,8 @@ public class PubPlayerManagerModule extends AbstractModule {
 	@Override
 	public String[] getModHelpMessage(String sender) {
 		return new String[]{
-		        "- !tax <$>          --Sets <$> as the amount deducted for teamkills",
-		        "- !tax              --Shows the current teamkill tax"
-		        
+		        "- !tax <$>          -- Sets <$> as the amount deducted for teamkills",
+		        "- !tax              -- Shows the current teamkill tax"
 		};
 	}
 
@@ -855,7 +979,6 @@ public class PubPlayerManagerModule extends AbstractModule {
 		// TODO Auto-generated method stub
 		
 	}
-	
 }
 
 

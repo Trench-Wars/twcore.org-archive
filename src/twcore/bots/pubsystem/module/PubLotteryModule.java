@@ -261,6 +261,19 @@ public class PubLotteryModule extends AbstractModule {
 		// TODO Auto-generated method stub
 		
 	}
+
+
+    @Override
+    public void handleSmodCommand(String sender, String command) {
+        // TODO Auto-generated method stub
+        
+    }
+
+
+    @Override
+    public String[] getSmodHelpMessage(String sender) {
+        return new String[]{};
+    }
     
     /*public boolean isEnabled() {
         return lotteryOn;

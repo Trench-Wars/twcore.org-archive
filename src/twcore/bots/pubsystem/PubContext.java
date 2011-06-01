@@ -70,10 +70,8 @@ public class PubContext {
 		getPubSession();
 		getPubUtil();
 		
-		
 		int seconds = (int)(System.currentTimeMillis()-start)/1000;
 		Tools.printLog("Modules(" + modules.size() + ") for pubsystem loaded in " + seconds + " seconds.");
-		
 	}
 	
 	public void start() {
@@ -282,6 +280,24 @@ public class PubContext {
         }
        
 	}
+    
+    public void handleSmodCommand(String sender, String command) {
+        
+        Iterator<AbstractModule> iterator = modules.values().iterator();
+        AbstractModule module;
+
+        while(iterator.hasNext()) {
+            module = (AbstractModule) iterator.next();
+            if (!module.isEnabled())
+                continue;
+            try {
+                module.handleSmodCommand(sender, command);
+            } catch (Exception e) {
+                displayException(e);
+            }
+        }
+       
+    }
 	
 	public void handleEvent(SQLResultEvent event) {
 		
