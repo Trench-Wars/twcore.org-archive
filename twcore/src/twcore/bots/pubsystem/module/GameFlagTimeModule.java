@@ -74,7 +74,11 @@ public class GameFlagTimeModule extends AbstractModule {
     private int flagMinutesRequired;                    // Flag minutes required to win
     private int freq0Score, freq1Score;                 // # rounds won
     private int minShuffleRound = 3;                    // Minimum number of played rounds before shuffle vote can occur
-
+    private boolean autoVote = true;                    // Automatically start shuffle vote if conditions are met
+    private boolean shuffleVote = false;                // True if player did !shufflevote
+    private boolean votePeriod = false;                 // Time after round in which !shufflevote can be used
+    private TimerTask voteWait;                         // Used after a round when waiting for someone to use !shufflevote
+    
     private Objset objs;                                // For keeping track of counter
 	
 	private HashMap<String,PubPlayer> warpPlayers;
@@ -637,7 +641,7 @@ public class GameFlagTimeModule extends AbstractModule {
     	m_botAction.scheduleTask(scoreDisplay, 1000);		// Do score display
     	m_botAction.scheduleTask(scoreRemove, time-1000);	// do score removal
     	m_botAction.showObject(2100);
-    	if (freq0Score + freq1Score >= minShuffleRound && Math.abs(freq0Score - freq1Score) > 0);
+    	if (autoVote && freq0Score + freq1Score >= minShuffleRound && Math.abs(freq0Score - freq1Score) > 0);
     	    context.getPlayerManager().checkSizesAndShuffle(Math.abs(freq0Score - freq1Score));
     	    
     }
@@ -666,6 +670,13 @@ public class GameFlagTimeModule extends AbstractModule {
     	
         if( !isFlagTimeStarted() || flagTimer == null )
             return;
+        votePeriod = true;
+        voteWait = new TimerTask() {
+            public void run() {
+                votePeriod = false;
+            }
+        };
+        m_botAction.scheduleTask(voteWait, 45*Tools.TimeInMillis.SECOND);
         
         // Internal variables
         boolean gameOver = false;
@@ -887,6 +898,11 @@ public class GameFlagTimeModule extends AbstractModule {
 
             }
 
+        }
+        
+        if (!autoVote) {
+            m_botAction.sendOpposingTeamMessageByFrequency(0, "[TEAM SHUFFLE] To start a poll for a pub freq shuffle, PM " + m_botAction.getBotName() + " with !shufflevote ");
+            m_botAction.sendOpposingTeamMessageByFrequency(1, "[TEAM SHUFFLE] To start a poll for a pub freq shuffle, PM " + m_botAction.getBotName() + " with !shufflevote ");
         }
     	
     	
@@ -1968,12 +1984,30 @@ public class GameFlagTimeModule extends AbstractModule {
                 doLevTerrCmd(sender);
             else if(command.trim().equals("!warp") || command.trim().equals("!w"))
                 doWarpCmd(sender);
+            else if (command.trim().equals("!shufflevote"))
+                doShuffleVote(sender);
             
         } catch(RuntimeException e) {
             if( e != null && e.getMessage() != null )
                 m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
-        }
-		
+        }	
+	}
+	
+	public void doShuffleVote(String name) {
+	    if (!autoVote) {
+	        if (votePeriod) {
+	            shuffleVote = false;
+	            votePeriod = false;
+	            m_botAction.cancelTask(voteWait);
+	            context.getPlayerManager().doShuffleVote();	            
+	        } else {
+	            m_botAction.sendSmartPrivateMessage(name, "!shufflevote may only be used immediately following the end of a round.");
+	            return;
+	        }
+	    } else {
+            m_botAction.sendSmartPrivateMessage(name, "Command disabled, shuffle vote is being handled automatically.");
+            return;	        
+	    }
 	}
 	
 	@Override
@@ -2014,22 +2048,33 @@ public class GameFlagTimeModule extends AbstractModule {
         m_botAction.sendSmartPrivateMessage(sender, "Minimum shuffle rounds set to " + r);   
 	    
 	}
+	
+	public void setAutoVote(String name) {
+	    autoVote = !autoVote;
+	    if (!autoVote)
+	        m_botAction.sendSmartPrivateMessage(name, "Auto shuffle vote has been DISABLED");
+	    else
+            m_botAction.sendSmartPrivateMessage(name, "Auto shuffle vote has been ENABLED");
+	}
 
     @Override
     public void handleSmodCommand(String sender, String command) {
         if (command.startsWith("!rounds "))
             setShuffleRound(sender, command);
+        else if (command.trim().equals("!autovote"))
+            setAutoVote(sender);
         
     }
 	
 	@Override
 	public String[] getHelpMessage(String sender) {
 		return new String[] {
-			pubsystem.getHelpLine("!warp    -- Warps you inside base at start of next round. (!w)"),
-            pubsystem.getHelpLine("!terr    -- Shows terriers on the team and their last seen locations. (!t)"),
-            pubsystem.getHelpLine("!lt      -- Shows active levterrs (ter + lev(s) attached)."),
-            pubsystem.getHelpLine("!team    -- Tells you which ships your team members are in."),
-            pubsystem.getHelpLine("!time    -- Displays info about time remaining in flag time."),
+	        pubsystem.getHelpLine("!shufflevote      -- Initiates shuffle teams poll after a round ends."),
+			pubsystem.getHelpLine("!warp             -- Warps you inside base at start of next round. (!w)"),
+            pubsystem.getHelpLine("!terr             -- Shows terriers on the team and their last seen locations. (!t)"),
+            pubsystem.getHelpLine("!lt               -- Shows active levterrs (ter + lev(s) attached)."),
+            pubsystem.getHelpLine("!team             -- Tells you which ships your team members are in."),
+            pubsystem.getHelpLine("!time             -- Displays info about time remaining in flag time."),
             
 		};
 	}
@@ -2048,7 +2093,8 @@ public class GameFlagTimeModule extends AbstractModule {
     @Override
     public String[] getSmodHelpMessage(String sender) {
         return new String[]{
-                pubsystem.getHelpLine("!rounds <#>      -- Sets the minumum number of rounds for shuffle vote to <#>"),
+                pubsystem.getHelpLine("!autovote         -- Toggles the shuffle vote between auto and manual (!shufflevote)"),
+                pubsystem.getHelpLine("!rounds <#>       -- Sets the minumum number of rounds for shuffle vote to <#>"),
         };
     }
 
