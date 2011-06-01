@@ -134,15 +134,10 @@ public class pubbotbanc extends PubBotModule {
     public void handleEvent(FrequencyShipChange event){
         try{
             String namePlayer = m_botAction.getPlayerName(event.getPlayerID());
-            m_botAction.sendPrivateMessage("quiles", "Someone changed ship: "+namePlayer);
             
             if( this.hashSuperSpec.contains( namePlayer.toLowerCase() ) ){// && ( event.getShipType() == 2 || event.getShipType() == 4 || event.getShipType() == 8 )){
                 superLockMethod(namePlayer, event.getShipType());
-                m_botAction.sendPrivateMessage("quiles", "List contains "+namePlayer);
             }
-            else if(!this.hashSuperSpec.contains(namePlayer.toLowerCase()))
-                m_botAction.sendPrivateMessage("quiles", "Doesn't contain "+namePlayer);
-            
             
         }catch(Exception e){
             e.printStackTrace();
@@ -152,7 +147,6 @@ public class pubbotbanc extends PubBotModule {
     private void superLockMethod(String namePlayer, int shipNumber){
         
         if( shipNumber == 2 || shipNumber == 8 || shipNumber == 4){
-            m_botAction.sendPrivateMessage("quiles", namePlayer+" tried to get in "+shipNumber+" but no!");
             m_botAction.sendPrivateMessage(namePlayer, "You're banned from ship"+shipNumber);
             m_botAction.sendPrivateMessage(namePlayer, "You'be been put in spider. But you can change to: warbird(1), spider(3), weasel(6) or lancaster(7).");
             m_botAction.setShip(namePlayer,3);
@@ -193,7 +187,6 @@ public class pubbotbanc extends PubBotModule {
 		    tempBanCTime = command.substring(10).split(":")[0];
 		    handleSuperSpec(command);
 		    //tempBanCPlayer = command.substring(10).split(":")[1];
-		    m_botAction.sendSmartPrivateMessage("quiles","Super specced "+tempBanCPlayer+" for "+tempBanCTime);
 		    m_botAction.setShip(tempBanCPlayer, 3);
 		} else
 		if(command.startsWith("REMOVE "+BanCType.SPEC.toString())) {
@@ -215,9 +208,6 @@ public class pubbotbanc extends PubBotModule {
 	            //REMOVE SUPERSPEC PLAYER
 	            //0123456789DODTQQDD
 	            tempBanCPlayer = command.substring(17);
-	            m_botAction.sendSmartPrivateMessage("quiles", "player "+tempBanCPlayer+" un superspec locked");
-	            for(String e: hashSuperSpec)
-	                m_botAction.sendSmartPrivateMessage("quiles", e);
 	            //maybe pm the player here?
         } /*else
 		if(command.startsWith(BanCType.KICK.toString())) {
@@ -238,11 +228,9 @@ public class pubbotbanc extends PubBotModule {
         // TODO Auto-generated method stub
         //SUPERSPEC TIME:OLDNICK:NEWNICK
         String cmdSplit[] = command.split(":");
-        m_botAction.sendSmartPrivateMessage("quiles", command);
         if(cmdSplit.length == 3){
             String oldNickString = cmdSplit[1].toLowerCase();
             String newNickString = cmdSplit[2].toLowerCase();
-            m_botAction.sendSmartPrivateMessage("quiles", "New nick: "+newNickString);
             this.tempBanCPlayer = newNickString;
             if(!newNickString.equals(oldNickString)){
                 this.hashSuperSpec.add(newNickString);
@@ -251,7 +239,6 @@ public class pubbotbanc extends PubBotModule {
         }
         else{
            this.tempBanCPlayer = cmdSplit[1].toLowerCase();
-           m_botAction.sendSmartPrivateMessage("quiles", "Same nick: "+cmdSplit[1]);
            //if(!this.hashSuperSpec.contains(cmdSplit[1]))
            this.hashSuperSpec.add(cmdSplit[1].toLowerCase());
         }
