@@ -422,6 +422,17 @@ public class PubStreakModule extends AbstractModule {
 				}
 			}
 		}
-	};
+	}
+
+    @Override
+    public void handleSmodCommand(String sender, String command) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public String[] getSmodHelpMessage(String sender) {
+        return new String[]{};
+    };
 
 }

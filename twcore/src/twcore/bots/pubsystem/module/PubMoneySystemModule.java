@@ -1429,14 +1429,22 @@ public class PubMoneySystemModule extends AbstractModule {
         }
 
     	if (m_botAction.getOperatorList().isSmod(sender)) {
-			if (command.startsWith("!couponaddop ")) {
-				doCmdCouponAddOp(sender, command.substring(12).trim());
-			} else if (command.equals("!couponlistops")) {
-				doCmdCouponListOps(sender);
-			}
     	}
 		
     }
+
+    public void handleSmodCommand(String sender, String command) {
+        if (command.startsWith("!couponaddop ")) {
+            doCmdCouponAddOp(sender, command.substring(12).trim());
+        } else if (command.equals("!couponlistops")) {
+            doCmdCouponListOps(sender);
+        }
+    }
+
+    @Override
+    public String[] getSmodHelpMessage(String sender) {
+        return new String[]{};
+    }   
     
 	@Override
 	public String[] getHelpMessage(String sender) {
@@ -2169,6 +2177,5 @@ public class PubMoneySystemModule extends AbstractModule {
 	public void stop() {
 		// TODO Auto-generated method stub
 		
-	};
-	
+	}
 }

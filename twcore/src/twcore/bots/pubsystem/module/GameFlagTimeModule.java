@@ -53,7 +53,6 @@ public class GameFlagTimeModule extends AbstractModule {
     
     private HashMap<String, LevTerr> levterrs;          // Current lev terrs
     
-    
     // Kill weight per location
     private static HashMap<Location,Integer> locationWeight;
     static {
@@ -74,6 +73,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
     private int flagMinutesRequired;                    // Flag minutes required to win
     private int freq0Score, freq1Score;                 // # rounds won
+    private int minShuffleRound = 3;                    // Minimum number of played rounds before shuffle vote can occur
 
     private Objset objs;                                // For keeping track of counter
 	
@@ -105,7 +105,6 @@ public class GameFlagTimeModule extends AbstractModule {
     
 	public GameFlagTimeModule(BotAction botAction, PubContext context) {
 		super(botAction, context, "Game FlagTime");
-
 		objs = m_botAction.getObjectSet();
 		warpPlayers = new HashMap<String,PubPlayer>();
 		playerTimes = new HashMap<String,Integer>();
@@ -638,7 +637,9 @@ public class GameFlagTimeModule extends AbstractModule {
     	m_botAction.scheduleTask(scoreDisplay, 1000);		// Do score display
     	m_botAction.scheduleTask(scoreRemove, time-1000);	// do score removal
     	m_botAction.showObject(2100);
-
+    	if (freq0Score + freq1Score >= minShuffleRound && Math.abs(freq0Score - freq1Score) > 0);
+    	    context.getPlayerManager().checkSizesAndShuffle(Math.abs(freq0Score - freq1Score));
+    	    
     }
     
     /**
@@ -1997,6 +1998,30 @@ public class GameFlagTimeModule extends AbstractModule {
 		
 	}
 	
+	public void setShuffleRound(String sender, String msg) {
+	    int r = 3;
+	    try {
+	        r = Integer.valueOf(msg.substring(msg.indexOf(" ") + 1));
+	    } catch (NumberFormatException e) {
+	        m_botAction.sendSmartPrivateMessage(sender, "Could not convert " + msg);
+	        return;
+	    }
+	    if (r < 1) {
+            m_botAction.sendSmartPrivateMessage(sender, "Rounds must be greater than 0");
+            return;
+	    }
+	    minShuffleRound = r;
+        m_botAction.sendSmartPrivateMessage(sender, "Minimum shuffle rounds set to " + r);   
+	    
+	}
+
+    @Override
+    public void handleSmodCommand(String sender, String command) {
+        if (command.startsWith("!rounds "))
+            setShuffleRound(sender, command);
+        
+    }
+	
 	@Override
 	public String[] getHelpMessage(String sender) {
 		return new String[] {
@@ -2019,6 +2044,13 @@ public class GameFlagTimeModule extends AbstractModule {
 			pubsystem.getHelpLine("!allowwarp        -- Allow/Disallow the !warp command")
         };
 	}
+
+    @Override
+    public String[] getSmodHelpMessage(String sender) {
+        return new String[]{
+                pubsystem.getHelpLine("!rounds <#>      -- Sets the minumum number of rounds for shuffle vote to <#>"),
+        };
+    }
 
 	@Override
 	public void requestEvents(EventRequester eventRequester) {
@@ -2438,51 +2470,47 @@ public class GameFlagTimeModule extends AbstractModule {
 		}
 		
 		if (m_botAction.getBotSettings().getInt("flagtime_enabled")==1) {
-			enabled = true;
+		    enabled = true;
 		}
 	}
-	
-	 private class LevTerr {
-	    	
-	    	public String terrierName;
-	    	public List<String> leviathans;
-	    	public boolean allowAlert = true;
-	    	public long levvingSince;
-	    	
-	    	public LevTerr(String terrierName) {
-	    		this.terrierName = terrierName;
-	    		leviathans = new ArrayList<String>();
-	    	}
-	    	
-	    	public void removeLeviathan(String name) {
-	    		leviathans.remove(name);
-	    	}
-	    	
-	    	public void addLeviathan(String name) {
-	    		if (isEmpty()) {
-	    			levvingSince = System.currentTimeMillis();
-	    		}
-	    		leviathans.add(name);
-	    	}
-	    	
-	    	public boolean isEmpty() {
-	    		return leviathans.isEmpty();
-	    	}
-	    	
-	    	public List<String> getLeviathans() {
-	    		return leviathans;
-	    	}
-	    	
-	    	public boolean alertAllowed() {
-	    		return allowAlert;
-	    	}
-	    	
-	    	public void allowAlert(boolean b) {
-	    		allowAlert = b;
-	    	}
-	    	
-	    	
-	    	
+
+	private class LevTerr {
+
+	    public String terrierName;
+	    public List<String> leviathans;
+	    public boolean allowAlert = true;
+	    public long levvingSince;
+
+	    public LevTerr(String terrierName) {
+	        this.terrierName = terrierName;
+	        leviathans = new ArrayList<String>();
 	    }
-	
+
+	    public void removeLeviathan(String name) {
+	        leviathans.remove(name);
+	    }
+
+	    public void addLeviathan(String name) {
+	        if (isEmpty()) {
+	            levvingSince = System.currentTimeMillis();
+	        }
+	        leviathans.add(name);
+	    }
+
+	    public boolean isEmpty() {
+	        return leviathans.isEmpty();
+	    }
+
+	    public List<String> getLeviathans() {
+	        return leviathans;
+	    }
+
+	    public boolean alertAllowed() {
+	        return allowAlert;
+	    }
+
+	    public void allowAlert(boolean b) {
+	        allowAlert = b;
+	    }
+	}	
 }

@@ -85,9 +85,11 @@ public abstract class AbstractModule {
 	
 	public abstract void handleCommand(String sender, String command);
 	public abstract void handleModCommand(String sender, String command);
+    public abstract void handleSmodCommand(String sender, String command);
 	
 	public abstract String[] getHelpMessage(String sender);
 	public abstract String[] getModHelpMessage(String sender);
+    public abstract String[] getSmodHelpMessage(String sender);
 	
     /**
      * This method distributes the events to the appropriate event handlers.
