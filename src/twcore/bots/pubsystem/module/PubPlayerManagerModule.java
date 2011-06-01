@@ -746,8 +746,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                 else if (results[0] < results[1])
                     win = 1;
                 if (win == 0) {
-                    m_botAction.sendOpposingTeamMessageByFrequency(0, "Shuffling teams!");
-                    m_botAction.sendOpposingTeamMessageByFrequency(1, "Shuffling teams!");
+                    m_botAction.sendArenaMessage("[TEAM SHUFFLE] Shuffling public freqs by popular demand!");
                     shuffle(); 
                 }
             }
