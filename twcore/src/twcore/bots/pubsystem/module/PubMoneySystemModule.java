@@ -72,6 +72,9 @@ public class PubMoneySystemModule extends AbstractModule {
     // Time passed on the same frequency
     private HashMap<String, Long> frequencyTimes;
     
+    // Last time sphere was used on freq
+    private HashMap<Integer, Long> immuneFreqs;
+    
     // IPC Receivers (used by autobots thread)
     private List<IPCReceiver> ipcReceivers;
     private String IPC_CHANNEL = "pubautobot";
@@ -98,6 +101,7 @@ public class PubMoneySystemModule extends AbstractModule {
         this.shipKilledPoints = new HashMap<Integer, Integer>();
         this.locationPoints = new HashMap<Location, Integer>();
         this.frequencyTimes = new HashMap<String, Long>();
+        this.immuneFreqs = new HashMap<Integer, Long>();
 
         this.coupons = new HashMap<String,CouponCode>();
         
@@ -1498,6 +1502,18 @@ public class PubMoneySystemModule extends AbstractModule {
         return m_botAction.getPlayerName(senderID);
     }
     
+    private void updateFreqImmunity() {
+        int immuneTime = store.getFreqImmuneTime();
+        Iterator<Integer> i = immuneFreqs.keySet().iterator();
+        long now = System.currentTimeMillis();
+        while (i.hasNext()) {
+            Integer freq = i.next();
+            Long t = immuneFreqs.get(freq);
+            if (now - t > immuneTime * Tools.TimeInMillis.SECOND)
+                i.remove();
+        }
+    }
+    
     /**
      * Format a number to currency with the dollar sign
      * 100000 -> $100,000
@@ -1807,16 +1823,20 @@ public class PubMoneySystemModule extends AbstractModule {
     
     private void itemCommandSphere(String sender, String params) {
 
+        updateFreqImmunity();
 	   	Player p = m_botAction.getPlayer(sender);
 	   	
 	   	String message = "";
 	   	int privFreqs = 0;
 	   	
+        long now = System.currentTimeMillis();
+	   	
 	   	List<Integer> freqList = new ArrayList<Integer>();
 	   	for(int i=0; i<10000; i++) {
 	   		int size = m_botAction.getPlayingFrequencySize(i);
-	   		if (size>0 && i!=p.getFrequency()) {
+	   		if (size>0 && i!=p.getFrequency() && !immuneFreqs.containsKey(i)) {
 	   			freqList.add(i);
+                immuneFreqs.put(i, now);
 	   			if (i<100) {
 	   				message += ", "+i;
 	   			} else {
@@ -1824,16 +1844,21 @@ public class PubMoneySystemModule extends AbstractModule {
 	   			}
 	   		}
 	   	}
+        if (message.length()>2) {
+            message = "FREQ " + message.substring(2);
+            if (privFreqs > 0)
+                message += " AND ";
+        }
 	   	
-	   	if (privFreqs > 0) {
-	   		message += " and " + privFreqs + " private freq(s)";
-	   	}
-	   	if (message.length()>2)
-	   		message = message.substring(2);
+	   	if (privFreqs > 0)
+	   		message += privFreqs + " private freq(s)";
 	   	
 	   	final Integer[] freqs = freqList.toArray(new Integer[freqList.size()]);
 	   	
-	   	m_botAction.sendArenaMessage(sender + " has bought a Sphere of Seclusion for FREQ " + message + ".",17);
+	   	if (!freqList.isEmpty() || privFreqs > 0)
+	   	    m_botAction.sendArenaMessage(sender + " has bought a Sphere of Seclusion for " + message + ".",17);
+	   	else
+            m_botAction.sendArenaMessage(sender + " has bought a Sphere of Seclusion DUD (all freqs immune).",17);
 	   	
 		m_botAction.scheduleTask(new SphereSeclusionTask(freqs,true), 0);
 		m_botAction.scheduleTask(new SphereSeclusionTask(freqs,false), 30*Tools.TimeInMillis.SECOND);
@@ -2065,8 +2090,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	            		m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objon 561");
 	            	else
 	            		m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objoff 561");
-
-	            }
+	            }	                
 			}
 		}
 	};
