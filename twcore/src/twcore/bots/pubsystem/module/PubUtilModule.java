@@ -581,18 +581,18 @@ public class PubUtilModule extends AbstractModule {
 	
 	@Override
 	public void handleModCommand(String sender, String command) {
-
-        if(command.startsWith("!dooropen"))
+        boolean dev = m_botAction.getOperatorList().isDeveloper(sender);
+        if(command.startsWith("!dooropen") && dev)
         	doOpenDoorCmd(sender);
-        else if(command.startsWith("!doorclose"))
+        else if(command.startsWith("!doorclose") && dev)
         	doCloseDoorCmd(sender);
-        else if(command.startsWith("!doortoggle"))
+        else if(command.startsWith("!doortoggle") && dev)
         	doToggleDoorCmd(sender);
-        else if(command.startsWith("!doorauto"))
+        else if(command.startsWith("!doorauto") && dev)
         	doAutoDoorCmd(sender);
-        else if(command.startsWith("!go "))
+        else if(command.startsWith("!go ") && dev)
             doGoCmd(sender, command.substring(4));
-        else if(command.equals("!stop"))
+        else if(command.equals("!stop") && dev)
             context.stop();
         else if(command.startsWith("!newplayer "))
             doModNewplayer(sender, command.substring(command.indexOf(" ") + 1));
@@ -600,22 +600,22 @@ public class PubUtilModule extends AbstractModule {
             doModNext(sender, command.substring(command.indexOf(" ") + 1));
         else if(command.startsWith("!end "))
             doModEnd(sender, command.substring(command.indexOf(" ") + 1));
-        else if(command.equals("!privfreqs"))
+        else if(command.equals("!privfreqs") && dev)
             doPrivFreqsCmd(sender);
-        else if(command.equals("!levattach"))
+        else if(command.equals("!levattach") && dev)
             doLevAttachCmd(sender);
         else if(command.equals("!uptime"))
             doUptimeCmd(sender);
-        else if(command.equals("!botinfo"))
+        else if(command.equals("!botinfo") && dev)
             doBotInfoCmd(sender);
-        else if(command.startsWith("!reloadconfig")) {
+        else if(command.startsWith("!reloadconfig") && dev) {
         	m_botAction.sendSmartPrivateMessage(sender, "Please wait..");
         	context.reloadConfig();
         	m_botAction.sendSmartPrivateMessage(sender, "Done.");
         } 
-        else if(command.startsWith("!set "))
+        else if(command.startsWith("!set ") && dev)
             context.getPlayerManager().doSetCmd(sender, command.substring(5));
-        else if(command.equals("!die"))
+        else if(command.equals("!die") && dev)
             doDieCmd(sender);
 
 	}
@@ -666,25 +666,35 @@ public class PubUtilModule extends AbstractModule {
 
 	@Override
 	public String[] getModHelpMessage(String sender) {
-		return new String[] {
-			pubsystem.getHelpLine("!privfreqs        -- Toggles private frequencies & check for imbalances."),
-            pubsystem.getHelpLine("!dooropen         -- Open doors."),
-            pubsystem.getHelpLine("!doorclose        -- Close doors."),
-            pubsystem.getHelpLine("!doortoggle       -- In operation doors."),
-            pubsystem.getHelpLine("!doorauto         -- Auto mode (close if # of players below " + doorModeThreshold + "."),
-			pubsystem.getHelpLine("!levattach        -- Toggles lev attach capability on public frequencies."),
-            pubsystem.getHelpLine("!set <ship> <#>   -- Sets <ship> to restriction <#>."),
-            pubsystem.getHelpLine("                     0=disabled; 1=any amount; other=weighted:"),
-            pubsystem.getHelpLine("                     2 = 1/2 of freq can be this ship, 5 = 1/5, ..."),
-            pubsystem.getHelpLine("!go <arena>       -- Moves the bot to <arena>."),
-            pubsystem.getHelpLine("!reloadconfig     -- Reload the configuration (needed if .cfg has changed)."),
-            pubsystem.getHelpLine("!uptime           -- Uptime of the bot in minutes."),
-            pubsystem.getHelpLine("!stop             -- Stop the bot (needed when !go)."),
-            pubsystem.getHelpLine("!die              -- Logs the bot off of the server."),
-            pubsystem.getHelpLine("!newplayer <name> -- Sends new player helper objon to <name>."),
-            pubsystem.getHelpLine("!next <name>      -- Sends the next helper objon to <name>."),
-            pubsystem.getHelpLine("!end <name>       -- Removes all objons for <name>."),
-		};
+            boolean dev = m_botAction.getOperatorList().isDeveloper(sender);
+            if (dev) {
+            String[] string = {
+                pubsystem.getHelpLine("!privfreqs        -- Toggles private frequencies & check for imbalances."),
+                pubsystem.getHelpLine("!dooropen         -- Open doors."),
+                pubsystem.getHelpLine("!doorclose        -- Close doors."),
+                pubsystem.getHelpLine("!doortoggle       -- In operation doors."),
+                pubsystem.getHelpLine("!doorauto         -- Auto mode (close if # of players below " + doorModeThreshold + "."),
+		pubsystem.getHelpLine("!levattach        -- Toggles lev attach capability on public frequencies."),
+                pubsystem.getHelpLine("!set <ship> <#>   -- Sets <ship> to restriction <#>."),
+                pubsystem.getHelpLine("                     0=disabled; 1=any amount; other=weighted:"),
+                pubsystem.getHelpLine("                     2 = 1/2 of freq can be this ship, 5 = 1/5, ..."),
+                pubsystem.getHelpLine("!go <arena>       -- Moves the bot to <arena>."),
+                pubsystem.getHelpLine("!reloadconfig     -- Reload the configuration (needed if .cfg has changed)."),
+                pubsystem.getHelpLine("!uptime           -- Uptime of the bot in minutes."),
+                pubsystem.getHelpLine("!stop             -- Stop the bot (needed when !go)."),
+                pubsystem.getHelpLine("!die              -- Logs the bot off of the server."),
+                pubsystem.getHelpLine("!newplayer <name> -- Sends new player helper objon to <name>."),
+                pubsystem.getHelpLine("!next <name>      -- Sends the next helper objon to <name>."),
+                pubsystem.getHelpLine("!end <name>       -- Removes all objons for <name>.")};
+                return string;
+            } else {
+                String[] string = {
+                pubsystem.getHelpLine("!uptime           -- Uptime of the bot in minutes."),
+                pubsystem.getHelpLine("!newplayer <name> -- Sends new player helper objon to <name>."),
+                pubsystem.getHelpLine("!next <name>      -- Sends the next helper objon to <name>."),
+                pubsystem.getHelpLine("!end <name>       -- Removes all objons for <name>.")};
+                return string;
+            }
 	}
 
 	@Override
