@@ -187,7 +187,6 @@ public class twdopalias extends Module
             displayAltNickResults(query, headers, "fcUserName");
             
         }catch(SQLException e){
-            m_botAction.sendPrivateMessage("quiles", e.getMessage());
             //throw new RuntimeException("SQL Error: "+e.getMessage(), e);
         }catch(Exception e){
             e.printStackTrace();
