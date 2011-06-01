@@ -15,6 +15,7 @@ import twcore.bots.pubsystem.module.PubPlayerManagerModule;
 import twcore.bots.pubsystem.module.PubStreakModule;
 import twcore.bots.pubsystem.module.PubUtilModule;
 import twcore.bots.pubsystem.module.PubSessionModule;
+import twcore.bots.pubsystem.module.PubAchievementsModule;
 import twcore.core.BotAction;
 import twcore.core.events.SQLResultEvent;
 import twcore.core.events.SubspaceEvent;
@@ -40,7 +41,8 @@ public class PubContext {
 	private PubStreakModule pubStreak;
 	private PubUtilModule pubUtil;
 	private PubHuntModule pubHunt;
-    private PubSessionModule pubSession;
+        private PubSessionModule pubSession;
+        private PubAchievementsModule pubAchievements;
 	
 	// Game module
 	private GameFlagTimeModule gameFlagTime;
@@ -154,7 +156,16 @@ public class PubContext {
 		}
 		return pubHunt;
 	}
-	
+
+        public PubAchievementsModule getPubAchievements() {
+		if (pubAchievements == null) {
+			pubAchievements = new PubAchievementsModule(m_botAction, this);
+			modules.put("achievements", pubAchievements);
+		}
+		return pubAchievements;
+	}
+
+
 	public PubKillSessionModule getPubKillSession() {
 		if (pubKillSession == null) {
 			pubKillSession = new PubKillSessionModule(m_botAction, this);
