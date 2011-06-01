@@ -63,6 +63,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     
     private Log logMoneyDBTransaction;
     
+    private boolean notify = false;
     private boolean voting = false;
     private Random r = new Random();
     private HashMap<Integer, Integer> votes;
@@ -715,6 +716,8 @@ public class PubPlayerManagerModule extends AbstractModule {
     }
     
     public void doShuffleVote() {
+        if (notify)
+            m_botAction.sendSmartPrivateMessage("WingZero", "Shuffle vote in progress...");
         voting = true;
         votes = new HashMap<Integer, Integer>();
         m_botAction.sendOpposingTeamMessageByFrequency(0, "[TEAM SHUFFLE POLL] Teams unbalanced: You have 20 seconds to Vote to shuffle teams! ");
@@ -756,6 +759,8 @@ public class PubPlayerManagerModule extends AbstractModule {
      * Shuffles the public frequencies
      */
     public void shuffle() {
+        if (notify)
+            m_botAction.sendSmartPrivateMessage("WingZero", "Shufflling teams!");
         ArrayList<Integer> plist = new ArrayList<Integer>();
         Iterator<Integer> i = m_botAction.getFreqIDIterator(0);
         int s = m_botAction.getFrequencySize(0);
@@ -928,7 +933,9 @@ public class PubPlayerManagerModule extends AbstractModule {
             for(PubPlayer p: players.values()) {
                 m_botAction.sendSmartPrivateMessage(sender, p.getPlayerName());
             }
-        } 
+        } else if (sender.equalsIgnoreCase("WingZero") && command.equals("!notify")) {
+            setNotify();
+        }
     }
 
     @Override
@@ -979,6 +986,14 @@ public class PubPlayerManagerModule extends AbstractModule {
 		// TODO Auto-generated method stub
 		
 	}
+    
+    private void setNotify() {
+        notify = !notify;
+        if (notify)
+            m_botAction.sendSmartPrivateMessage("WingZero", "Notify ENABLED");
+        else
+            m_botAction.sendSmartPrivateMessage("WingZero", "Notify DISABLED");
+    }
 }
 
 
