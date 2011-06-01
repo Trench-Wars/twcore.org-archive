@@ -128,6 +128,9 @@ public class PubStore {
 	    					int max = Integer.parseInt(option.substring(4));
 	    					r.setMaxPerSecond(max);
 	    					hasRestriction = true;
+	    				} else if (option.startsWith("!fit")) {
+	    				    int t = Integer.parseInt(option.substring(4));
+	    				    item.setImmuneTime(t);
 	    				} else if(option.startsWith("!arena")) {
 	    					item.setArenaItem(true);
 	    				} else if(option.startsWith("!fromspec")) {
@@ -302,5 +305,12 @@ public class PubStore {
     
     public void reloadConfig() {
     	initializeStore();
+    }
+    
+    public int getFreqImmuneTime() {
+        if (items.containsKey("sphere"))
+            return items.get("sphere").getImmuneTime();
+        else
+            return -1;
     }
 }
