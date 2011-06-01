@@ -44,7 +44,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 
     private static final int NICEGUY_BOUNTY_AWARD = 25; // Bounty given to those that even freqs/ships
     
-    private int SHUFFLE_SIZE = 1;
+    private int SHUFFLE_SIZE = 4;
 
     private HashMap<String, PubPlayer> players;         // Always lowercase!
     private HashSet<String> freq0;                   	// Players on freq 0
