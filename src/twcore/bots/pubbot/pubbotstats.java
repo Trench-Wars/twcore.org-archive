@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.TimerTask;
+import java.util.Vector;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
@@ -553,15 +554,23 @@ public class pubbotstats extends PubBotModule {
           // if one player is found without extra info, request it and then quit
           // This task is repeated in a short time so a time delay is between each *info
           // We have to do it this way because doing multiple *info's at once will result in that one *info request falls away
+          Vector<Short> players = new Vector<Short>();
           Iterator<Player> it = m_botAction.getPlayerIterator();
-
-          while(it.hasNext()) {
-              Player p = it.next();
+          while (it.hasNext())
+              players.add(it.next().getPlayerID());
+          
+          Iterator<Short> i = players.iterator();
+          while(i.hasNext()) {
+              short id = i.next();
+              Player p = m_botAction.getPlayer(id);
+              if (p == null)
+                  continue;
+              
               PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
 
               if(player != null && !player.isExtraInfoFilled()) {
-                  m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*info");
-                  m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*einfo");
+                  m_botAction.sendUnfilteredPrivateMessage(id, "*info");
+                  m_botAction.sendUnfilteredPrivateMessage(id, "*einfo");
                   debug("Requesting info of '"+player.getName()+"'");
                   break;
               }
