@@ -502,6 +502,8 @@ public class pubautobot extends SubspaceBot {
 			testShots();
 		else if (msg.equals("!spec"))
 			spec();
+		else if (msg.equals("!baseterr"))
+		    baseTerr();
 
     	/*
 		else if (msg.equals("!help"))
@@ -513,6 +515,10 @@ public class pubautobot extends SubspaceBot {
 
     	return true;
 
+    }
+    
+    public void baseTerr() {
+        m_botAction.sendTeamMessage("ATTACH! " + m_botAction.getBotName() + " BASETERR stationed in FLAGROOM but I can only take " + (dieAtXshots-numberOfShots) + " more hits!", Tools.Sound.CANT_LOG_IN);
     }
 
     public void attach(String playerName)

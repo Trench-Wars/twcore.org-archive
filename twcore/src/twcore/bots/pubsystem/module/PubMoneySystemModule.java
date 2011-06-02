@@ -1689,9 +1689,9 @@ public class PubMoneySystemModule extends AbstractModule {
     private void itemCommandNukeBase(String sender, String params) {
 
 	   	Player p = m_botAction.getPlayer(sender);
-
+	   	final int freq = p.getFrequency();
     	m_botAction.getShip().setShip(0);
-    	m_botAction.getShip().setFreq(p.getFrequency());
+    	m_botAction.getShip().setFreq(freq);
     	m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
     	m_botAction.getShip().rotateDegrees(90);
     	m_botAction.getShip().sendPositionPacket();
@@ -1704,7 +1704,6 @@ public class PubMoneySystemModule extends AbstractModule {
 		            	m_botAction.getShip().move((482+(j*10))*16+8, 100*16);
 		            	m_botAction.getShip().sendPositionPacket();
 		            	m_botAction.getShip().fire(WeaponFired.WEAPON_THOR);
-		            	m_botAction.getShip().fire(WeaponFired.WEAPON_THOR);
 		            	try { Thread.sleep(50); } catch (InterruptedException e) {}
 	            	}
 	            	try { Thread.sleep(50); } catch (InterruptedException e) {}
@@ -1713,11 +1712,21 @@ public class PubMoneySystemModule extends AbstractModule {
         };
     	timerFire.run();
     	
+    	TimerTask shields = new TimerTask() {
+    	    public void run() {
+                m_botAction.prizeFreq(freq, 18);
+    	    }
+    	};
+    	m_botAction.scheduleTask(shields, 4500);
+    	
     	TimerTask timer = new TimerTask() {
             public void run() {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
             	//m_botAction.move(512*16, 350*16);
             	m_botAction.getShip().setSpectatorUpdateTime(100);
+                Iterator<Integer> i = m_botAction.getFreqIDIterator(freq);
+                while (i.hasNext())
+                    m_botAction.shipReset(i.next());
             }
         };
         m_botAction.scheduleTask(timer, 7500);
@@ -1989,6 +1998,7 @@ public class PubMoneySystemModule extends AbstractModule {
 			
 			commandBot("!Go " + m_botAction.getArenaName().substring(8,9));
 			try { Thread.sleep(2*Tools.TimeInMillis.SECOND); } catch (InterruptedException e) {}
+            commandBot("!SetFreq " + p.getFrequency());
 			commandBot("!SetShip 5");
 			commandBot("!SetFreq " + p.getFrequency());
 			if (p.getFrequency()==0) {
@@ -2005,7 +2015,7 @@ public class PubMoneySystemModule extends AbstractModule {
 			commandBot("!Killable");
 			commandBot("!DieAtXShots 20");
 			commandBot("!QuitOnDeath");
-			
+			commandBot("!baseterr");			
 		}
 	}
 	

@@ -2,6 +2,7 @@ package twcore.bots.pubsystem.module.moneysystem.item;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.bots.pubsystem.util.PubException;
@@ -14,12 +15,15 @@ public class PubItemRestriction {
 	private int maxConsecutive = -1;
 	private int maxArenaPerMinute = -1;
 	private int maxPerSecond = -1;
+	private int maxFreqPerMinute = -1;
 	private boolean buyableFromSpec = false;
 	private List<String> itemNotSameTime;
+	private TreeMap<Short, Long> freqUsed;
 	
 	public PubItemRestriction() {
 		ships = new ArrayList<Integer>();
 		itemNotSameTime = new ArrayList<String>();
+		freqUsed = new TreeMap<Short, Long>();
 	}
 	
 	public void addShip(int shipType) {
@@ -28,6 +32,31 @@ public class PubItemRestriction {
 	
 	public void addItemNotSameTime(String item) {
 		itemNotSameTime.add(item);
+	}
+	
+	public boolean freqUsing(Short freq) {
+	    long now = System.currentTimeMillis();
+	    if (maxFreqPerMinute == -1)
+	        return true;
+	    else if (!freqUsed.containsKey(freq)) {
+	        freqUsed.put(freq, now);
+	        return true;
+	    } else if (now - freqUsed.get(freq) > maxFreqPerMinute * Tools.TimeInMillis.MINUTE) {
+	        freqUsed.put(freq, now);
+	        return true;
+	    } else
+	        return false;
+	}
+	
+	public boolean canFreqUse(Short freq) {
+        if (maxFreqPerMinute == -1)
+            return true;
+        else if (!freqUsed.containsKey(freq)) {
+            return true;
+        } else if (System.currentTimeMillis() - freqUsed.get(freq) > maxFreqPerMinute * Tools.TimeInMillis.MINUTE) {
+            return true;
+        } else
+            return false;
 	}
 	
 	public void setMaxPerLife(int max) {
@@ -46,6 +75,10 @@ public class PubItemRestriction {
 		this.maxPerSecond = max;
 	}
 	
+	public void setFreqPerMinute(int max) {
+	    this.maxFreqPerMinute = max;
+	}
+	
 	public void buyableFromSpec(boolean b) {
 		this.buyableFromSpec = b;
 	}
@@ -60,6 +93,10 @@ public class PubItemRestriction {
     
 	public int getMaxPerSecond() {
 		return maxPerSecond;
+	}
+	
+	public int getMaxFreqPerMinute() {
+	    return maxFreqPerMinute;
 	}
 	
 	public int getMaxPerLife() {
@@ -78,7 +115,7 @@ public class PubItemRestriction {
 		return ships;
 	}
 	
-	public void check(PubItem item, PubPlayer player, int shipType) throws PubException {
+	public void check(PubItem item, PubPlayer player, int shipType, Short freq) throws PubException {
 		
 		if (ships.contains(shipType))
 			throw new PubException("You cannot buy this item with your current ship.");
@@ -132,6 +169,9 @@ public class PubItemRestriction {
 					throw new PubException("Only " + maxConsecutive + " consecutive buy of this item allowed.");
 			}
 		}
+        
+        if (!canFreqUse(freq))
+            throw new PubException("Your freq has bought this item in the past " + maxFreqPerMinute + " minutes, please wait...");
 
 	}	
     
