@@ -657,7 +657,7 @@ public class PubHuntModule extends AbstractModule {
             if (prey == null)
                 return;
             m_botAction.sendSmartPrivateMessage(getPlayerName(), "Prey: " + prey + ".");
-            m_botAction.sendPublicMessage(getPlayerName() + " -> " + prey);
+            //m_botAction.sendPublicMessage(getPlayerName() + " -> " + prey);
         }
 
         public int getTotalPreyKilled() {
