@@ -128,6 +128,10 @@ public class PubStore {
 	    					int max = Integer.parseInt(option.substring(4));
 	    					r.setMaxPerSecond(max);
 	    					hasRestriction = true;
+	    				} else if (option.startsWith("!fdm")) {
+	    				    int max = Integer.parseInt(option.substring(4));
+	    				    r.setFreqPerMinute(max);
+	    				    hasRestriction = true;
 	    				} else if (option.startsWith("!fit")) {
 	    				    int t = Integer.parseInt(option.substring(4));
 	    				    item.setImmuneTime(t);
@@ -227,7 +231,7 @@ public class PubStore {
         
         if (item.isRestricted()) {
         	PubItemRestriction restriction = item.getRestriction();
-        	restriction.check(item, buyer, m_botAction.getPlayer(player.getPlayerName()).getShipType());
+        	restriction.check(item, buyer, m_botAction.getPlayer(player.getPlayerName()).getShipType(), m_botAction.getPlayer(player.getPlayerName()).getFrequency());
         
         	// Let's do another check
         	List<String> itemNotSameTime = restriction.getItemNotSameTime();
@@ -259,7 +263,9 @@ public class PubStore {
         }
         
         item.hasBeenBought();
-
+        if (item.isRestricted())
+            item.getRestriction().freqUsing(m_botAction.getPlayer(player.getPlayerName()).getFrequency());
+        
         return item;
     }
     
