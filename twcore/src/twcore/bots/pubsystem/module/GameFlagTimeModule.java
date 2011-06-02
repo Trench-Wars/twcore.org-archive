@@ -74,7 +74,7 @@ public class GameFlagTimeModule extends AbstractModule {
     private int flagMinutesRequired;                    // Flag minutes required to win
     private int freq0Score, freq1Score;                 // # rounds won
     private int minShuffleRound = 3;                    // Minimum number of played rounds before shuffle vote can occur
-    private boolean autoVote = true;                    // Automatically start shuffle vote if conditions are met
+    private boolean autoVote = false;                   // Automatically start shuffle vote if conditions are met
     private boolean shuffleVote = false;                // True if player did !shufflevote
     private boolean votePeriod = false;                 // Time after round in which !shufflevote can be used
     private TimerTask voteWait;                         // Used after a round when waiting for someone to use !shufflevote
