@@ -17,7 +17,9 @@ import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.PubHuntModule.HuntPlayer;
 import twcore.bots.pubsystem.module.PubUtilModule.Tileset;
+import twcore.bots.pubsystem.module.moneysystem.item.PubItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
+import twcore.bots.pubsystem.module.moneysystem.item.PubShipUpgradeItem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.bots.pubsystem.util.Log;
 import twcore.core.BotAction;
@@ -772,12 +774,30 @@ public class PubPlayerManagerModule extends AbstractModule {
         int freqSize = plist.size()/2;
         
         for (int j = 0; j < freqSize; j++) {
-            if (!plist.isEmpty())
-                m_botAction.setFreq(plist.remove(r.nextInt(plist.size())), 0);
+            if (!plist.isEmpty()) {
+                int id = plist.remove(r.nextInt(plist.size()));
+                m_botAction.setFreq(id, 0);
+                for (PubItem pi: getPlayer(m_botAction.getPlayerName(id)).getItemsBoughtThisLife()) {
+                    if (pi instanceof PubShipUpgradeItem) {
+                        for(int prizeNumber: ((PubShipUpgradeItem) pi).getPrizes()) {
+                            m_botAction.specificPrize(id, prizeNumber);
+                        }
+                    }
+                }
+            }
         }
         
-        while (!plist.isEmpty())
-            m_botAction.setFreq(plist.remove(0), 1);
+        while (!plist.isEmpty()) {
+            int id = plist.remove(r.nextInt(plist.size()));
+            m_botAction.setFreq(id, 1);
+            for (PubItem pi: getPlayer(m_botAction.getPlayerName(id)).getItemsBoughtThisLife()) {
+                if (pi instanceof PubShipUpgradeItem) {
+                    for(int prizeNumber: ((PubShipUpgradeItem) pi).getPrizes()) {
+                        m_botAction.specificPrize(id, prizeNumber);
+                    }
+                }
+            }
+        }
     }
 
     /**
