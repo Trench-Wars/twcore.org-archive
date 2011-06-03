@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 
 import twcore.core.BotAction;
@@ -15,13 +16,17 @@ import twcore.core.events.ArenaJoined;
 import twcore.core.events.FileArrived;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
+import twcore.core.events.PlayerEntered;
+import twcore.core.events.PlayerLeft;
+import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
 public class twchat extends SubspaceBot{
     
         BotSettings m_botSettings;
-        
+        private String info = "";
         public ArrayList<String> lastPlayer = new ArrayList<String>();
+        public ArrayList<String> show = new ArrayList<String>();
       
         
 
@@ -42,6 +47,8 @@ public class twchat extends SubspaceBot{
             req.request(EventRequester.ARENA_JOINED);
             req.request(EventRequester.LOGGED_ON);
             req.request(EventRequester.FILE_ARRIVED);
+            req.request(EventRequester.PLAYER_ENTERED);
+            req.request(EventRequester.PLAYER_LEFT);
         }
 
 
@@ -54,21 +61,63 @@ public class twchat extends SubspaceBot{
             String name = event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ? event.getMessager() :  m_botAction.getPlayerName(sender);
             String message = event.getMessage();
             
+            if (event.getMessageType() == Message.ARENA_MESSAGE){
+            
+                // Received from a *info
+                if (message.contains("Client: VIE 1.34")){
+                    if(m_botAction.getOperatorList().isBotExact(info))
+                        return;
+                    else 
+                    m_botAction.sendChatMessage("Non Continuum Client Detected! ("+info+")");
+                    show.add(info.toLowerCase());
+                    
+                } else if(message.startsWith("Not online")){
+                    show.remove(info.toLowerCase());
+                }
+                }
+                
+            
             if(message.equalsIgnoreCase("!signup")){
                 m_botAction.getServerFile("vip.txt");
                 name = name.toLowerCase();
                     lastPlayer.add(name);
+                    
+            } else if(message.equalsIgnoreCase("!show") && m_botAction.getOperatorList().isSmod(name)){
+                   String people = "";
+                   m_botAction.sendSmartPrivateMessage(name, "People ONLINE using TW Chat App:");
+                   Iterator<String> list = show.iterator();
+                   if(!list.hasNext())
+                       m_botAction.sendSmartPrivateMessage(name, "No-one! :(");
+                   
+                   for(int k = 0;list.hasNext();)
+                   {
+
+                   String pName = (String)list.next();
+                   if(m_botAction.getOperatorList().isSysop(pName))
+                       people += pName + " (SysOp), ";
+                   else if(m_botAction.getOperatorList().isSmodExact(pName))
+                       people += pName + " (SMod), ";
+                   else
+                       people += pName + ", ";
+                   k++;
+                   if(k % 10 == 0 || !list.hasNext())
+                   {
+                       if( people.length() > 2 ) {
+                           m_botAction.sendSmartPrivateMessage(name, people.substring(0, people.length() - 2));
+                           people = "";
+                       }}}
+                   
+            		
            
-                
-            } else if(message.equalsIgnoreCase("!test") && m_botAction.getOperatorList().isDeveloper(name)){
+            } else if(message.equalsIgnoreCase("!test") && m_botAction.getOperatorList().isSmod(name)){
                 m_botAction.sendSmartPrivateMessage(name, "Test complete, Gotten VIP.TXT");
                 m_botAction.getServerFile("vip.txt");
                 
-            } else if(message.startsWith("!go ") && m_botAction.getOperatorList().isDeveloper(name)){
+            } else if(message.startsWith("!go ") && m_botAction.getOperatorList().isSmod(name)){
                 String go = message.substring(4);
                 m_botAction.changeArena(go);
                 
-            }else if(message.startsWith("!vipadd ")){
+            }else if(message.startsWith("!vipadd ") && m_botAction.getOperatorList().isSmod(name)){
                 m_botAction.getServerFile("vip.txt");
                 String msg = message.substring(8).toLowerCase();
                 lastPlayer.add(msg);
@@ -87,12 +136,13 @@ public class twchat extends SubspaceBot{
                     "| !signup                     - Signs you up to be able to use the online TW    |",
                     "|                               Chat App                                        |", };
                 String[] modCommands = 
-                {   "|------------------------------- Developer+ ------------------------------------|",
+                {   "|------------------------------- SMod+ -----------------------------------------|",
                     "| !test                       - Retrieves the VIP text file from the server to  |",
                     "|                               be accurate where it is placed.                 |",
                     "| !die                        - Throw me off a bridge without a parachute       |",
                     "| !vipadd                     - Manually add this person to VIP.                |",
                     "| !go <arena>                 - I'll go to the arena you specify.               |",
+                    "| !show                       - Show people online using TWChat App             |",
                     };
                 String[] endCommands =
                 {   "\\-------------------------------------------------------------------------------/"   };
@@ -100,14 +150,14 @@ public class twchat extends SubspaceBot{
                 m_botAction.smartPrivateMessageSpam(name, startCommands);
                 m_botAction.smartPrivateMessageSpam(name, publicCommands);
                 
-                if(m_botAction.getOperatorList().isDeveloper(name)){
+                if(m_botAction.getOperatorList().isSmod(name)){
                     m_botAction.smartPrivateMessageSpam(name, modCommands);}
                 
                 m_botAction.smartPrivateMessageSpam(name, endCommands);
 
 
                 
-            }else if(message.equalsIgnoreCase("!die") && m_botAction.getOperatorList().isDeveloper(name)){
+            }else if(message.equalsIgnoreCase("!die") && m_botAction.getOperatorList().isSmod(name)){
                 m_botAction.die();
             }
             
@@ -150,6 +200,19 @@ public class twchat extends SubspaceBot{
         public void handleEvent(LoggedOn event) {
             m_botAction.joinArena(m_botSettings.getString("Arena"));
         }
+        
+        public void handleEvent(PlayerLeft Event){
+            m_botAction.sendUnfilteredPublicMessage("?find "+info);
+            
+        }
+        
+        public void handleEvent(PlayerEntered event) {
+            Player player = m_botAction.getPlayer(event.getPlayerID());
+            m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
+            info = player.getPlayerName();
+        }
+            
+        
 
 
 
