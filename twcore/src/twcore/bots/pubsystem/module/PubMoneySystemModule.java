@@ -628,6 +628,9 @@ public class PubMoneySystemModule extends AbstractModule {
         		if (r.getMaxArenaPerMinute()!=-1) {
         			m_botAction.sendSmartPrivateMessage(sender, " - Maximum of 1 every "+r.getMaxArenaPerMinute()+" minutes for the whole arena");
         		}
+        		if (r.getMaxFreqPerMinute() != -1) {
+                    m_botAction.sendSmartPrivateMessage(sender, " - Maximum of 1 every "+r.getMaxFreqPerMinute()+" minutes for the freq that bought it");        		    
+        		}
 
         	}
 
@@ -649,8 +652,10 @@ public class PubMoneySystemModule extends AbstractModule {
         		else if (d.getSeconds()!=-1 && d.getSeconds() <= 60) {
         			m_botAction.sendSmartPrivateMessage(sender, " - " + (int)(d.getSeconds())+" seconds");
         		}
-
         	}
+        	
+        	if (item.getImmuneTime() > 0)
+                m_botAction.sendSmartPrivateMessage(sender, " - The affected freq(s) become immune to this item for " + item.getImmuneTime() + " seconds");
 
         }
     }
@@ -1601,8 +1606,6 @@ public class PubMoneySystemModule extends AbstractModule {
 	   	}
 	   	message = message.substring(1);
 	   	
-	   	final Integer[] freqs = freqList.toArray(new Integer[freqList.size()]);
-	   	
 	   	m_botAction.sendArenaMessage(sender + " has warped to death FREQ " + message + ".",17);
 	   	
 	   	int toExclude = m_botAction.getPlayingFrequencySize(p.getFrequency());
@@ -1618,7 +1621,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	   	int i = 0;
 	   	while(it.hasNext()) {
 	   		Player player = it.next();
-	   		if (p.getFrequency()==player.getFrequency())
+	   		if (p.getFrequency()==player.getFrequency() || context.getPubChallenge().isDueling(player.getPlayerName()))
 	   			continue;
 	   		
 	   		int posX = x+(int)(d*Math.cos(i*jump));
