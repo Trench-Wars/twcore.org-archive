@@ -207,7 +207,8 @@ public class PubStreakModule extends AbstractModule {
     }
 
     private void announceWinStreak(PubPlayer player, int streak) {
-    	
+    	if (m_botAction.getOperatorList().isBotExact(player.getPlayerName()))
+    	    return;
     	int money = getMoney(winStreaks.get(player.getPlayerName()));
     	String moneyMessage = "";
     	if (context.getMoneySystem().isEnabled()) {
