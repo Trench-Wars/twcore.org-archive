@@ -378,6 +378,14 @@ public class pubhub extends SubspaceBot {
                 cfg_autoloadModules.add(module);
         }
 
+        // AutoloadModules
+        modules = new StringTokenizer(botSettings.getString("modules-pub"));
+        while (modules.hasMoreTokens()) {
+            String module = modules.nextToken().toLowerCase();
+            if (moduleHandler.isModule(module))
+                cfg_pubModules.add(module);
+        }
+
         // Modules-<arena>
         for (String arena : cfg_arenas) {
             String modulesSetting = botSettings.getString("Modules-" + arena);
