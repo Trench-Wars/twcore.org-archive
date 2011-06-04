@@ -73,11 +73,11 @@ public class pubhubwho extends PubBotModule {
         if (name == null || msg == null)
             return;
         if (type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE) {
+            if (msg.startsWith("!online "))
+                isOnline(name, msg);
             if (m_botAction.getOperatorList().isSmod(name)) {
                 if (msg.equals("!update"))
                     status(name);
-                else if (msg.startsWith("!online "))
-                    isOnline(name, msg);
                 else if (msg.startsWith("!info "))
                     getInfo(name, msg);
                 else if (msg.equals("!help"))
