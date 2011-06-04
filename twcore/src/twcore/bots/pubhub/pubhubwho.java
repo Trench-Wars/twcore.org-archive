@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.Vector;
 
@@ -112,6 +113,8 @@ public class pubhubwho extends PubBotModule {
                     getInfo(name, msg);
                 else if (msg.equals("!help"))
                     helpSmod(name);
+                else if (msg.equals("!refresh"))
+                    resetAll(name);
             } else if (msg.equals("!help"))
                 help(name);
         }
@@ -132,7 +135,8 @@ public class pubhubwho extends PubBotModule {
                 "!online <name>  - Shows if <name> is currently online according to list on bot",
                 "!squad <squad>  - Lists all the members of <squad> currently online",
                 "!update         - Toggles the online status update process on and off",
-                "!info <name>    - Shows detailed information from the bot's lists about <name>"                
+                "!info <name>    - Shows detailed information from the bot's lists about <name>", 
+                "!refresh        - Resets entire database and calls for bots to update all players"               
         };
         m_botAction.smartPrivateMessageSpam(name, msg);
     }
@@ -193,10 +197,10 @@ public class pubhubwho extends PubBotModule {
         synchronized(event.getObject()) {
             String[] msg = ((IPCMessage) event.getObject()).getMessage().split(":");
             String name = msg[1].toLowerCase();
-
+            
             if (msg[0].equals("enter")) {
                 if (check.containsKey(name)) {
-                    m_botAction.cancelTask(check.remove(name));
+                    check.remove(name).cancel();
                     queue.remove(name);
                     update.remove(name);
                 } else {
@@ -206,16 +210,31 @@ public class pubhubwho extends PubBotModule {
                 }
             } else {
                 if (!check.containsKey(name)) {
-                    TimerTask left = new CheckOut(name);
-                    check.put(name, left);
-                    m_botAction.scheduleTask(left, 5 * Tools.TimeInMillis.SECOND);
-                    queue.removeElement(name);
-                    queue.add(name);
+                    check.put(name, new CheckOut(name));
+                    m_botAction.scheduleTask(check.get(name), 5 * Tools.TimeInMillis.SECOND);
                     update.put(name, false);
-                } else if (!update.containsKey(name))
+                } else if (!update.containsKey(name) || update.get(name))
                     update.put(name, false);
             }
         }
+    }
+    
+    public void resetAll(String name) {
+        Iterator<TimerTask> i = check.values().iterator();
+        while (i.hasNext()) {
+            i.next().cancel();
+        }
+        queue.clear();
+        update.clear();
+        online.clear();
+        sqlReset();
+        TimerTask call = new TimerTask() {
+            public void run() {
+                m_botAction.ipcTransmit(IPC, new IPCMessage("who:refresh"));
+            }
+        };
+        m_botAction.scheduleTask(call, 4000);
+        m_botAction.sendSmartPrivateMessage(name, "Commencing reset...");
     }
     
     public void getSquad(String name, String msg) {
@@ -270,7 +289,6 @@ public class pubhubwho extends PubBotModule {
         @Override
         public void run() {
             check.remove(name);
-            queue.removeElement(name);
             queue.add(name);          
         }
     }
