@@ -63,6 +63,7 @@ public class pubhub extends SubspaceBot {
     private String cfg_chat_hub;
     private String cfg_chat_pub;
     private String pubhub;
+    private boolean cfg_allArenas = false;
     private HashSet<String> cfg_arenas = new HashSet<String>();
     private HashSet<String> cfg_autoloadModules = new HashSet<String>();
     private HashMap<String, HashSet<String>> cfg_arenaModules = new HashMap<String, HashSet<String>>();
@@ -162,7 +163,7 @@ public class pubhub extends SubspaceBot {
         for (int i = 0; i < arenas.length; i++) {
             String arena = arenas[i].toLowerCase();
 
-            if( Tools.isAllDigits(arena) || cfg_arenas.contains(arena)) {
+            if( Tools.isAllDigits(arena) || cfg_arenas.contains(arena) || (cfg_allArenas && !arena.contains("#"))) {
                 if(!pubbots.containsValue(arena)) {
                     String key = "SPAWNING"+(countUnspawnedArenas()+1);
                     pubbots.put(key, arena);
@@ -212,6 +213,8 @@ public class pubhub extends SubspaceBot {
                 arenaListTask = new ArenaListTask();
                 m_botAction.scheduleTaskAtFixedRate(arenaListTask, 10000, CHECKARENALIST_DELAY);
             }
+            if (message.equalsIgnoreCase("!allarenas"))
+                allArenas(sender);
             if (message.equalsIgnoreCase("!reloadconfig")) {
                 loadConfiguration();
                 m_botAction.sendChatMessage("Configuration reloaded.");
@@ -353,6 +356,11 @@ public class pubhub extends SubspaceBot {
         cfg_autoloadModules.clear();
         cfg_arenaModules.clear();
         cfg_access.clear();
+        
+        if (botSettings.getString("AllArenas").equals("1"))
+            cfg_allArenas = true;
+        else
+            cfg_allArenas = false;
 
         // AutoloadArenas
         StringTokenizer arenas = new StringTokenizer(botSettings.getString("AutoloadArenas"));
@@ -400,6 +408,14 @@ public class pubhub extends SubspaceBot {
             String name = accessUsers.nextToken().toLowerCase();
             cfg_access.add(name);
         }
+    }
+    
+    public void allArenas(String name) {
+        cfg_allArenas = !cfg_allArenas;
+        if (cfg_allArenas)
+            m_botAction.sendSmartPrivateMessage(name, "All arenas ENABLED");
+        else
+            m_botAction.sendSmartPrivateMessage(name, "All arenas DISABLED");
     }
 
     /**
