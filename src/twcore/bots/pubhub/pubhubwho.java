@@ -1,5 +1,6 @@
 package twcore.bots.pubhub;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TimerTask;
@@ -43,12 +44,8 @@ public class pubhubwho extends PubBotModule {
      * 
      */
     public void initializeModule() {
-        doUpdate = new TimerTask() {
-            public void run() {
-                update();
-            }
-        };
-        m_botAction.scheduleTask(doUpdate, 2000, INTERVAL);
+        startUpdates();
+        sqlReset();
     }
 
     /**
@@ -102,7 +99,7 @@ public class pubhubwho extends PubBotModule {
             m_botAction.sendSmartPrivateMessage(name, "Player online status update process STOPPED.");
         } else {
             status = true;
-            initializeModule();
+            startUpdates();
             m_botAction.sendSmartPrivateMessage(name, "Player online status update process STARTED.");
         }
     }
@@ -188,6 +185,23 @@ public class pubhubwho extends PubBotModule {
             else
                 query = "UPDATE tblPlayer SET fnOnline = 0 WHERE fcName = '" + Tools.addSlashesToString(n) + "'";
             m_botAction.SQLBackgroundQuery(db, null, query);
+        }
+    }
+    
+    private void startUpdates() {
+        doUpdate = new TimerTask() {
+            public void run() {
+                update();
+            }
+        };
+        m_botAction.scheduleTask(doUpdate, 4000, INTERVAL);
+    }
+    
+    private void sqlReset() {
+        try {
+            m_botAction.SQLQueryAndClose(db, "UPDATE tblPlayer SET fnOnline = 0");
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
