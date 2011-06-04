@@ -165,7 +165,7 @@ public class pubhub extends SubspaceBot {
         for (int i = 0; i < arenas.length; i++) {
             String arena = arenas[i].toLowerCase();
 
-            if( Tools.isAllDigits(arena) || cfg_arenas.contains(arena) || (cfg_allArenas && !arena.contains("#"))) {
+            if( Tools.isAllDigits(arena) || cfg_arenas.contains(arena) || (cfg_allArenas && !arena.contains("#") && event.getSizeOfArena(arena) > 2)) {
                 if(!pubbots.containsValue(arena)) {
                     String key = "SPAWNING"+(countUnspawnedArenas()+1);
                     pubbots.put(key, arena);
@@ -375,6 +375,7 @@ public class pubhub extends SubspaceBot {
         cfg_arenas.clear();
         cfg_autoloadModules.clear();
         cfg_arenaModules.clear();
+        cfg_pubModules.clear();
         cfg_access.clear();
         
         if (botSettings.getString("AllArenas").equals("1"))
@@ -398,9 +399,9 @@ public class pubhub extends SubspaceBot {
         }
 
         // AutoloadModules
-        modules = new StringTokenizer(botSettings.getString("modules-pub"));
-        while (modules.hasMoreTokens()) {
-            String module = modules.nextToken().toLowerCase();
+        StringTokenizer pubModules = new StringTokenizer(botSettings.getString("modules-pub"));
+        while (pubModules.hasMoreTokens()) {
+            String module = pubModules.nextToken().toLowerCase();
             if (moduleHandler.isModule(module))
                 cfg_pubModules.add(module);
         }
