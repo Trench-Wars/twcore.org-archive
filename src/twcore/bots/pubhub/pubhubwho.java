@@ -202,6 +202,7 @@ public class pubhubwho extends PubBotModule {
         @Override
         public void run() {
             check.remove(nl);
+            online.remove(nl);
             if (update.containsKey(nl)) {
                 if (update.get(nl)) {
                     update.remove(nl);
