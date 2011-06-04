@@ -160,10 +160,12 @@ public class pubhubwho extends PubBotModule {
                 if (!update.get(name)) {
                     update.remove(name);
                     queue.removeElement(name);
-                }
+                } else if (!queue.contains(name))
+                    queue.add(name);
             } else {
                 update.put(name, true);
-                queue.add(name);
+                if (!queue.contains(name))
+                    queue.add(name);
             }
 
             if (!online.contains(name))
@@ -185,7 +187,6 @@ public class pubhubwho extends PubBotModule {
                 query = "UPDATE tblPlayer SET fnOnline = 1 WHERE fcName = '" + Tools.addSlashesToString(n) + "'";
             else
                 query = "UPDATE tblPlayer SET fnOnline = 0 WHERE fcName = '" + Tools.addSlashesToString(n) + "'";
-
             m_botAction.SQLBackgroundQuery(db, null, query);
         }
     }
@@ -205,8 +206,9 @@ public class pubhubwho extends PubBotModule {
             online.remove(nl);
             if (update.containsKey(nl)) {
                 if (update.get(nl)) {
-                    update.remove(nl);
-                    queue.removeElement(nl);
+                    update.put(nl, false);
+                    if (!queue.contains(nl))
+                        queue.add(nl);
                 } else if (!queue.contains(nl))
                     queue.add(nl);
             } else {
