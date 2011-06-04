@@ -92,6 +92,10 @@ public class PubPlayerManagerModule extends AbstractModule {
 	    if (event.getMessageType() != Message.PRIVATE_MESSAGE || !voting)
 	        return;
 	    int id = event.getPlayerID();
+	    Player p = m_botAction.getPlayer(id);
+	    if ((p.getFrequency() != 0 && p.getFrequency() != 1) || p.getShipType() == 0)
+	        return;
+	    
 	    int vote = -1;
 	    try {
 	        vote = Integer.valueOf(event.getMessage());
