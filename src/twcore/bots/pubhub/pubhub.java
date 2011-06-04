@@ -66,6 +66,7 @@ public class pubhub extends SubspaceBot {
     private boolean cfg_allArenas = false;
     private HashSet<String> cfg_arenas = new HashSet<String>();
     private HashSet<String> cfg_autoloadModules = new HashSet<String>();
+    private HashSet<String> cfg_pubModules = new HashSet<String>();
     private HashMap<String, HashSet<String>> cfg_arenaModules = new HashMap<String, HashSet<String>>();
     private HashSet<String> cfg_access = new HashSet<String>();
 
@@ -498,6 +499,8 @@ public class pubhub extends SubspaceBot {
         if (arena != null) {
             if (cfg_arenaModules.containsKey(arena)) { // Autoload predefined specific modules
                 modules = cfg_arenaModules.get(arena);
+            } else if (Tools.isAllDigits(arena)) {
+                modules = cfg_pubModules;
             } else { // Autoload default modules
                 modules = cfg_autoloadModules;
             }
