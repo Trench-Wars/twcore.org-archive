@@ -1,5 +1,6 @@
 package twcore.bots.pubbot;
 
+import java.util.Iterator;
 import java.util.TimerTask;
 
 import twcore.bots.ModuleHandler;
@@ -35,6 +36,7 @@ import twcore.core.events.ScoreUpdate;
 import twcore.core.events.SoccerGoal;
 import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
+import twcore.core.game.Player;
 import twcore.core.util.ipc.IPCMessage;
 
 public class pubbot extends SubspaceBot
@@ -107,6 +109,11 @@ public class pubbot extends SubspaceBot
 
   public void doDieCmd(boolean notify)
   {
+      if (moduleHandler.isLoaded("who")) {
+          Iterator<Player> i = m_botAction.getPlayerIterator();
+          while (i.hasNext())
+              m_botAction.ipcTransmit(IPCWHO, new IPCMessage("left:" + i.next().getPlayerName()));   
+      }
     if(notify)
     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("dying", pubHubBot));
     moduleHandler.unloadAllModules();

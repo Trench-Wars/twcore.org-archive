@@ -69,6 +69,12 @@ public class pubbotwho extends PubBotModule {
                 m_botAction.ipcTransmit(IPC, new IPCMessage("enter:" + i.next().getPlayerName()));            
         }
     }
+    
+    public void doDie() {
+        Iterator<Player> i = m_botAction.getPlayerIterator();
+        while (i.hasNext())
+            m_botAction.ipcTransmit(IPC, new IPCMessage("left:" + i.next().getPlayerName()));
+    }
 
     @Override
     public void cancel() {
