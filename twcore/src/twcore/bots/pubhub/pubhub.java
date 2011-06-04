@@ -165,7 +165,7 @@ public class pubhub extends SubspaceBot {
         for (int i = 0; i < arenas.length; i++) {
             String arena = arenas[i].toLowerCase();
 
-            if( Tools.isAllDigits(arena) || cfg_arenas.contains(arena) || (cfg_allArenas && !arena.contains("#") && event.getSizeOfArena(arena) > 2)) {
+            if( Tools.isAllDigits(arena) || cfg_arenas.contains(arena) || (cfg_allArenas && !startup && !arena.contains("#") && event.getSizeOfArena(arena) > 2)) {
                 if(!pubbots.containsValue(arena)) {
                     String key = "SPAWNING"+(countUnspawnedArenas()+1);
                     pubbots.put(key, arena);
