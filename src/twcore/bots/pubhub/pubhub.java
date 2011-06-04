@@ -64,6 +64,7 @@ public class pubhub extends SubspaceBot {
     private String cfg_chat_hub;
     private String cfg_chat_pub;
     private String pubhub;
+    private boolean DEBUG = true;
     private boolean cfg_allArenas = false;
     private HashSet<String> cfg_arenas = new HashSet<String>();
     private HashSet<String> cfg_autoloadModules = new HashSet<String>();
@@ -165,7 +166,7 @@ public class pubhub extends SubspaceBot {
         for (int i = 0; i < arenas.length; i++) {
             String arena = arenas[i].toLowerCase();
 
-            if( Tools.isAllDigits(arena) || cfg_arenas.contains(arena) || (cfg_allArenas && !startup && !arena.contains("#") && event.getSizeOfArena(arena) > 2)) {
+            if( Tools.isAllDigits(arena) || cfg_arenas.contains(arena) || (cfg_allArenas && !startup && !arena.contains("#") && event.getSizeOfArena(arenas[i]) > 2)) {
                 if(!pubbots.containsValue(arena)) {
                     String key = "SPAWNING"+(countUnspawnedArenas()+1);
                     pubbots.put(key, arena);
@@ -235,6 +236,14 @@ public class pubhub extends SubspaceBot {
             }
             if (message.equalsIgnoreCase("!allarenas"))
                 allArenas(sender);
+            if (message.equalsIgnoreCase("!debug")) {
+                DEBUG = !DEBUG;
+                if (!DEBUG)
+                    m_botAction.sendSmartPrivateMessage("WingZero", "Notify DISABLED");
+                else
+                    m_botAction.sendSmartPrivateMessage("WingZero", "Notify ENABLED");
+            }
+                
             if (message.equalsIgnoreCase("!reloadconfig")) {
                 loadConfiguration();
                 m_botAction.sendChatMessage("Configuration reloaded.");
@@ -616,6 +625,8 @@ public class pubhub extends SubspaceBot {
                 
                 if( Tools.isAllDigits(arena) == false && cfg_arenas.contains(arena) == false) {
                     // This pubbot is in a wrong arena, disconnect it
+                    if (DEBUG)
+                        m_botAction.sendSmartPrivateMessage("WingZero", "killing " + bot + " in arena: " + arena);
                     killPubbot(bot);
                 }
             }
@@ -667,6 +678,8 @@ public class pubhub extends SubspaceBot {
             String destinationArena = getUnspawnedArena();
 
             if (destinationArena == null) {
+                if (DEBUG)
+                    m_botAction.sendSmartPrivateMessage("WingZero", "SpawnGoTask destinationArena was null so killing " + pubBot);
                 // Kill the pubbot if no arena is found
                 killPubbot(pubBot);
             } else {

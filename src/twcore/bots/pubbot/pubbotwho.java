@@ -7,6 +7,7 @@ import twcore.core.EventRequester;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
+import twcore.core.events.InterProcessEvent;
 import twcore.core.game.Player;
 import twcore.core.util.ipc.IPCMessage;
 
@@ -56,6 +57,17 @@ public class pubbotwho extends PubBotModule {
             return;
 
         m_botAction.ipcTransmit(IPC, new IPCMessage("left:" + p.getPlayerName()));
+    }
+    
+    public void handleEvent(InterProcessEvent event) {
+        if (!event.getChannel().equals(IPC))
+            return;
+        
+        if (((IPCMessage) event.getObject()).getMessage().equals("who:refresh")) {
+            Iterator<Player> i = m_botAction.getPlayerIterator();
+            while (i.hasNext())
+                m_botAction.ipcTransmit(IPC, new IPCMessage("enter:" + i.next().getPlayerName()));            
+        }
     }
 
     @Override
