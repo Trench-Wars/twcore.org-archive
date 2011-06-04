@@ -54,6 +54,7 @@ public class pubhub extends SubspaceBot {
     public static final String IPCCHAT = "pubbotChat";
     public static final String IPCSILENCE = "pubbotsilence";
     public static final String IPCPUBSTATS = "pubstats";
+    public static final String IPCWHO = "whoonline";
 
     // Configuration
     private ModuleHandler moduleHandler;
@@ -100,6 +101,7 @@ public class pubhub extends SubspaceBot {
         m_botAction.ipcDestroyChannel(IPCCHAT);
         m_botAction.ipcDestroyChannel(IPCSILENCE);
         m_botAction.ipcDestroyChannel(IPCPUBSTATS);
+        m_botAction.ipcDestroyChannel(IPCWHO);
     }
 
     /**
@@ -122,6 +124,7 @@ public class pubhub extends SubspaceBot {
         m_botAction.ipcSubscribe(IPCCHAT);
         m_botAction.ipcSubscribe(IPCSILENCE);
         m_botAction.ipcSubscribe(IPCPUBSTATS);
+        m_botAction.ipcSubscribe(IPCWHO);
         // Join chat
         m_botAction.sendUnfilteredPublicMessage("?chat=" + cfg_chat_hub );
 
@@ -199,7 +202,7 @@ public class pubhub extends SubspaceBot {
         }
 
         // Chat commands
-        if ((messageType == Message.CHAT_MESSAGE && (opList.isSmod(sender) || cfg_access.contains(sender.toLowerCase()))) || (messageType == Message.PRIVATE_MESSAGE && ((opList.isDeveloperExact(sender) && opList.isModerator(sender)) || opList.isSmod(sender)))) {
+        if ((messageType == Message.CHAT_MESSAGE && (opList.isSmod(sender) || cfg_access.contains(sender.toLowerCase()))) || ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) && ((opList.isDeveloperExact(sender) && opList.isModerator(sender)) || opList.isSmod(sender)))) {
             if (message.equalsIgnoreCase("!respawn")) {
                 m_botAction.sendChatMessage("Respawning pub bots.");
                 m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("die"));
@@ -254,11 +257,11 @@ public class pubhub extends SubspaceBot {
             }
             if (message.equalsIgnoreCase("!help")) {
                 m_botAction.sendSmartPrivateMessage(sender, "PUBHUB CHAT COMMANDS:");
-                m_botAction.sendSmartPrivateMessage(sender, "!respawn      - Respawns all PubBots.");
-                m_botAction.sendSmartPrivateMessage(sender, "!where        - Shows location of all PubBots.");
-                m_botAction.sendSmartPrivateMessage(sender, "!listmodules  - Gives a list of pub modules available.");
-                m_botAction.sendSmartPrivateMessage(sender, "!reloadconfig - Reloads pubhub configuration from .cfg file.");
-                m_botAction.sendSmartPrivateMessage(sender, "!off          - Disconnects the pubhub and pubbots.");
+                m_botAction.sendSmartPrivateMessage(sender, "!respawn        - Respawns all PubBots.");
+                m_botAction.sendSmartPrivateMessage(sender, "!where          - Shows location of all PubBots.");
+                m_botAction.sendSmartPrivateMessage(sender, "!listmodules    - Gives a list of pub modules available.");
+                m_botAction.sendSmartPrivateMessage(sender, "!reloadconfig   - Reloads pubhub configuration from .cfg file.");
+                m_botAction.sendSmartPrivateMessage(sender, "!off            - Disconnects the pubhub and pubbots.");
             }
         }
         
