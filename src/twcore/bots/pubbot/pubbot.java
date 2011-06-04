@@ -43,6 +43,7 @@ public class pubbot extends SubspaceBot
   public static final String IPCCHANNEL2 = "messages";
   public static final String IPCCHAT = "pubbotChat";
   public static final String IPCSILENCE = "pubbotsilence";
+  public static final String IPCWHO = "whoonline";
   public static final int UPDATE_CHECK_DELAY = 500;
   public static final int LOGOFF_TIMEOUT_DELAY = 5 * 1000;
   public static final int LOG_OFF_DELAY = 200;
@@ -77,6 +78,7 @@ public class pubbot extends SubspaceBot
       m_botAction.ipcUnSubscribe(IPCCHANNEL);
       m_botAction.ipcUnSubscribe(IPCCHANNEL2);
       m_botAction.ipcUnSubscribe(IPCSILENCE);
+      m_botAction.ipcUnSubscribe(IPCWHO);
   }
 
   /**
@@ -96,6 +98,7 @@ public class pubbot extends SubspaceBot
     botName = m_botAction.getBotName();
     m_botAction.ipcSubscribe(IPCCHANNEL);
     m_botAction.ipcSubscribe(IPCCHANNEL2);
+    m_botAction.ipcSubscribe(IPCWHO);
     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("spawned"));         // Let the pubhub know that this bot has spawned
     m_botAction.ipcSubscribe(IPCSILENCE);
     m_botAction.scheduleTask(new LogOffTimeoutTask(), LOGOFF_TIMEOUT_DELAY);
