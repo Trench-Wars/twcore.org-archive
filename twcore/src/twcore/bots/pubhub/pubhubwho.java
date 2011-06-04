@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -33,11 +34,7 @@ public class pubhubwho extends PubBotModule {
     public TimerTask doUpdate;
 
     // up to date list of who is online
-    public ArrayList<String> online = new ArrayList<String>();
-    // simple filo list for sql updates
-    public Vector<String> queue = new Vector<String>();
-    // ties in with queue for what to update to
-    public HashMap<String, Boolean> update = new HashMap<String, Boolean>();
+    public HashSet<String> online = new HashSet<String>();
     // list of checkout tasks
     public HashMap<String, TimerTask> check = new HashMap<String, TimerTask>();
 
@@ -47,7 +44,7 @@ public class pubhubwho extends PubBotModule {
      * 
      */
     public void initializeModule() {
-        startUpdates();
+        status = true;
         sqlReset();
     }
 
@@ -62,7 +59,6 @@ public class pubhubwho extends PubBotModule {
      * Cancel updates.
      */
     public void cancel() {
-        doUpdate.cancel();
         status = false;
     }
     
@@ -147,7 +143,6 @@ public class pubhubwho extends PubBotModule {
             m_botAction.sendSmartPrivateMessage(name, "Player online status update process STOPPED.");
         } else {
             status = true;
-            startUpdates();
             m_botAction.sendSmartPrivateMessage(name, "Player online status update process STARTED.");
         }
     }
@@ -172,6 +167,7 @@ public class pubhubwho extends PubBotModule {
             m_botAction.sendSmartPrivateMessage(sender, msg + "OFFLINE");
 
         msg = "";
+        /*
         if (queue.contains(name.toLowerCase())) {
             msg = " - QUEUED ";
         }
@@ -181,6 +177,7 @@ public class pubhubwho extends PubBotModule {
             else
                 msg += " - UPDATING to OFFLINE ";
         }
+        */
 
         if (check.containsKey(name.toLowerCase()))
             msg += " - CheckingOut ";
@@ -191,14 +188,22 @@ public class pubhubwho extends PubBotModule {
     }
 
     public void handleEvent(InterProcessEvent event) {
-        if (!event.getChannel().equals(IPC))
+        if (!event.getChannel().equals(IPC) || !status)
             return;
 
         synchronized(event.getObject()) {
             String[] msg = ((IPCMessage) event.getObject()).getMessage().split(":");
             String name = msg[1].toLowerCase();
+            if (m_botAction.getOperatorList().isBotExact(name))
+                return;
             
             if (msg[0].equals("enter")) {
+                if (check.containsKey(name))
+                    check.remove(name).cancel();
+
+                m_botAction.SQLBackgroundQuery(db, null, "UPDATE tblPlayer SET fnOnline = 1 WHERE fcName = '" + Tools.addSlashesToString(name) + "'");
+                online.add(name);
+                /*
                 if (check.containsKey(name)) {
                     check.remove(name).cancel();
                     queue.remove(name);
@@ -208,13 +213,24 @@ public class pubhubwho extends PubBotModule {
                     if (!queue.contains(name))
                         queue.add(name);
                 }
+                */
             } else {
+                if (!check.containsKey(name)) {
+                    check.put(name, new CheckOut(name));
+                    m_botAction.scheduleTask(check.get(name), 5 * Tools.TimeInMillis.SECOND);
+                } else {
+                    check.remove(name).cancel();
+                    check.put(name, new CheckOut(name));
+                    m_botAction.scheduleTask(check.get(name), 5 * Tools.TimeInMillis.SECOND);
+                }
+                /*
                 if (!check.containsKey(name)) {
                     check.put(name, new CheckOut(name));
                     m_botAction.scheduleTask(check.get(name), 5 * Tools.TimeInMillis.SECOND);
                     update.put(name, false);
                 } else if (!update.containsKey(name) || update.get(name))
                     update.put(name, false);
+                    */
             }
         }
     }
@@ -224,8 +240,6 @@ public class pubhubwho extends PubBotModule {
         while (i.hasNext()) {
             i.next().cancel();
         }
-        queue.clear();
-        update.clear();
         online.clear();
         sqlReset();
         TimerTask call = new TimerTask() {
@@ -242,33 +256,6 @@ public class pubhubwho extends PubBotModule {
         if (msg.length() < 1)
             return;
         m_botAction.SQLBackgroundQuery(db, "squad:" + msg + ":" + name, "SELECT fcName FROM tblPlayer WHERE fcSquad = '" + Tools.addSlashesToString(msg) + "' AND fnOnline = 1");
-    }
-
-    public void update() {
-        while (status && !queue.isEmpty()) {
-            String n = queue.remove(0);
-            if (update.containsKey(n)) {
-                String query = "";
-                if (update.remove(n)) {
-                    query = "UPDATE tblPlayer SET fnOnline = 1 WHERE fcName = '" + Tools.addSlashesToString(n) + "'";
-                    if (!online.contains(n))
-                        online.add(n);
-                } else {
-                    query = "UPDATE tblPlayer SET fnOnline = 0 WHERE fcName = '" + Tools.addSlashesToString(n) + "'";
-                    online.remove(n);
-                }
-                m_botAction.SQLBackgroundQuery(db, null, query);
-            }
-        }
-    }
-    
-    public void startUpdates() {
-        doUpdate = new TimerTask() {
-            public void run() {
-                update();
-            }
-        };
-        m_botAction.scheduleTask(doUpdate, 4000, INTERVAL);
     }
     
     public void sqlReset() {
@@ -288,8 +275,9 @@ public class pubhubwho extends PubBotModule {
 
         @Override
         public void run() {
-            check.remove(name);
-            queue.add(name);          
+            check.remove(name);  
+            m_botAction.SQLBackgroundQuery(db, null, "UPDATE tblPlayer SET fnOnline = 0 WHERE fcName = '" + Tools.addSlashesToString(name) + "'");
+            online.remove(name);            
         }
     }
 }
