@@ -1,5 +1,6 @@
 package twcore.bots.pubhub;
 
+import java.io.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -203,6 +204,24 @@ public class pubhub extends SubspaceBot {
             }
         }
 
+        if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) && ((opList.isDeveloperExact(sender) && opList
+                .isModerator(sender)) || opList.isSmod(sender)) && message.equalsIgnoreCase("!where")) {
+            Vector<String> botNames = new Vector<String>(pubbots.keySet());
+            Collections.sort(botNames);
+
+            for (int index = 0; index < botNames.size(); index++) {
+                String name = botNames.get(index);
+                String arena = pubbots.get(name);
+
+                if (Tools.isAllDigits(arena)) {
+                    m_botAction.sendSmartPrivateMessage(sender, " " + name + ": (Public " + arena + ")");
+                } else {
+                    m_botAction.sendSmartPrivateMessage(sender, " " + name + ": " + arena);
+                }
+            }
+            return;
+        }
+
         // Chat commands
         if ((messageType == Message.CHAT_MESSAGE && (opList.isSmod(sender) || cfg_access.contains(sender.toLowerCase()))) || ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) && ((opList.isDeveloperExact(sender) && opList.isModerator(sender)) || opList.isSmod(sender)))) {
             if (message.equalsIgnoreCase("!respawn")) {
@@ -220,7 +239,7 @@ public class pubhub extends SubspaceBot {
                 loadConfiguration();
                 m_botAction.sendChatMessage("Configuration reloaded.");
             }
-            if (message.equalsIgnoreCase("!where")) {
+            if (messageType == Message.CHAT_MESSAGE && message.equalsIgnoreCase("!where")) {
                 Vector<String> botNames = new Vector<String>(pubbots.keySet());
                 Collections.sort(botNames);
 
@@ -398,8 +417,9 @@ public class pubhub extends SubspaceBot {
                     String module = moduless.nextToken().toLowerCase();
                     if (moduleHandler.isModule(module)) {
                         HashSet<String> moduleSet;
-
-                        if (cfg_arenaModules.containsKey(arena)) {
+                        if (Tools.isAllDigits(arena)) {
+                            moduleSet = cfg_pubModules;
+                        } else if (cfg_arenaModules.containsKey(arena)) {
                             moduleSet = cfg_arenaModules.get(arena);
                         } else {
                             moduleSet = new HashSet<String>();
@@ -421,10 +441,41 @@ public class pubhub extends SubspaceBot {
     
     public void allArenas(String name) {
         cfg_allArenas = !cfg_allArenas;
-        if (cfg_allArenas)
+        if (cfg_allArenas) {
             m_botAction.sendSmartPrivateMessage(name, "All arenas ENABLED");
-        else
+        } else {
             m_botAction.sendSmartPrivateMessage(name, "All arenas DISABLED");
+        }
+        try {
+            File cfg = m_botAction.getBotSettingsPath();
+            File cfg2 = new File(cfg.getPath().substring(0, cfg.getPath().lastIndexOf(".")) + "2.cfg");
+            cfg.renameTo(cfg2);
+            cfg.createNewFile();
+            BufferedReader read = new BufferedReader(new FileReader(cfg2));
+            BufferedWriter write = new BufferedWriter(new FileWriter(cfg));
+            String line = read.readLine();
+            while (line != null) {
+                if (line.startsWith("AllArenas")) {
+                    if (cfg_allArenas)
+                        write.write("AllArenas=1");
+                    else
+                        write.write("AllArenas=0");
+                    write.newLine();
+                } else {
+                    write.write(line);
+                    write.newLine();
+                }
+                line = read.readLine();
+            }
+            read.close();
+            cfg2.delete();
+            write.close();
+            
+        } catch (FileNotFoundException e) {
+            Tools.printStackTrace(e);
+        } catch (IOException e) {
+            Tools.printStackTrace(e);
+        }
     }
 
     /**
