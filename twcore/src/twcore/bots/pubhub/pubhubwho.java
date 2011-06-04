@@ -1,5 +1,6 @@
 package twcore.bots.pubhub;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
+import twcore.core.events.SQLResultEvent;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
@@ -62,6 +64,35 @@ public class pubhubwho extends PubBotModule {
         doUpdate.cancel();
         status = false;
     }
+    
+    public void handleEvent(SQLResultEvent event) {
+        if (!event.getIdentifier().contains(":"))
+            return;
+        String[] id = event.getIdentifier().split(":");
+        String squad = id[1];
+        String name = id[2];
+        String mems = "";
+        int online = 0;
+        ResultSet rs = event.getResultSet();
+        try {
+            if (rs.next()) {
+                mems += rs.getString("fcName");
+                online++;
+                while (rs.next()) {
+                    mems += ", " + rs.getString("fcName");
+                    online++;
+                }
+            } else {
+                m_botAction.sendSmartPrivateMessage(name, squad + "(" + 0 + "): none found");
+                return;
+            }
+        } catch (SQLException e) {
+            Tools.printStackTrace(e);
+        }
+        m_botAction.SQLClose(rs);
+        m_botAction.sendSmartPrivateMessage(name, squad + "(" + online + "): " + mems);
+        
+    }
 
     public void handleEvent(Message event) {
         int type = event.getMessageType();
@@ -72,22 +103,35 @@ public class pubhubwho extends PubBotModule {
         if (type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE) {
             if (msg.startsWith("!online "))
                 isOnline(name, msg);
+            else if (msg.startsWith("!squad "))
+                getSquad(name, msg);
             if (m_botAction.getOperatorList().isSmod(name)) {
                 if (msg.equals("!update"))
                     status(name);
                 else if (msg.startsWith("!info "))
                     getInfo(name, msg);
                 else if (msg.equals("!help"))
-                    help(name);
-            }
+                    helpSmod(name);
+            } else if (msg.equals("!help"))
+                help(name);
         }
     }
     
     public void help(String name) {
         String[] msg = {
                 "PUBHUB WHO ONLINE COMMANDS:",
-                "!update         - Toggles the online status update process on and off",
+                "!online <name>  - Shows if <name> is currently online according to list on bot",   
+                "!squad <squad>  - Lists all the members of <squad> currently online"          
+        };
+        m_botAction.smartPrivateMessageSpam(name, msg);
+    }
+    
+    public void helpSmod(String name) {
+        String[] msg = {
+                "PUBHUB WHO ONLINE COMMANDS:",
                 "!online <name>  - Shows if <name> is currently online according to list on bot",
+                "!squad <squad>  - Lists all the members of <squad> currently online",
+                "!update         - Toggles the online status update process on and off",
                 "!info <name>    - Shows detailed information from the bot's lists about <name>"                
         };
         m_botAction.smartPrivateMessageSpam(name, msg);
@@ -146,49 +190,60 @@ public class pubhubwho extends PubBotModule {
         if (!event.getChannel().equals(IPC))
             return;
 
-        String[] msg = ((IPCMessage) event.getObject()).getMessage().split(":");
-        String name = msg[1].trim().toLowerCase();
+        synchronized(event.getObject()) {
+            String[] msg = ((IPCMessage) event.getObject()).getMessage().split(":");
+            String name = msg[1].toLowerCase();
 
-        if (msg[0].equals("enter")) {
-            if (check.containsKey(name))
-                m_botAction.cancelTask(check.remove(name));
-
-            if (update.containsKey(name)) {
-                if (!update.get(name)) {
+            if (msg[0].equals("enter")) {
+                if (check.containsKey(name)) {
+                    m_botAction.cancelTask(check.remove(name));
+                    queue.remove(name);
                     update.remove(name);
-                    queue.removeElement(name);
-                } else if (!queue.contains(name))
-                    queue.add(name);
+                } else {
+                    update.put(name, true);
+                    if (!queue.contains(name))
+                        queue.add(name);
+                }
             } else {
-                update.put(name, true);
-                if (!queue.contains(name))
+                if (!check.containsKey(name)) {
+                    TimerTask left = new CheckOut(name);
+                    check.put(name, left);
+                    m_botAction.scheduleTask(left, 5 * Tools.TimeInMillis.SECOND);
+                    queue.removeElement(name);
                     queue.add(name);
-            }
-
-            if (!online.contains(name))
-                online.add(name);
-        } else {
-            if (!check.containsKey(name)) {
-                TimerTask left = new CheckOut(name);
-                check.put(name, left);
-                m_botAction.scheduleTask(left, 3 * Tools.TimeInMillis.SECOND);
+                    update.put(name, false);
+                } else if (!update.containsKey(name))
+                    update.put(name, false);
             }
         }
+    }
+    
+    public void getSquad(String name, String msg) {
+        msg = msg.substring(7);
+        if (msg.length() < 1)
+            return;
+        m_botAction.SQLBackgroundQuery(db, "squad:" + msg + ":" + name, "SELECT fcName FROM tblPlayer WHERE fcSquad = '" + Tools.addSlashesToString(msg) + "' AND fnOnline = 1");
     }
 
     public void update() {
         while (status && !queue.isEmpty()) {
             String n = queue.remove(0);
-            String query = "";
-            if (update.remove(n))
-                query = "UPDATE tblPlayer SET fnOnline = 1 WHERE fcName = '" + Tools.addSlashesToString(n) + "'";
-            else
-                query = "UPDATE tblPlayer SET fnOnline = 0 WHERE fcName = '" + Tools.addSlashesToString(n) + "'";
-            m_botAction.SQLBackgroundQuery(db, null, query);
+            if (update.containsKey(n)) {
+                String query = "";
+                if (update.remove(n)) {
+                    query = "UPDATE tblPlayer SET fnOnline = 1 WHERE fcName = '" + Tools.addSlashesToString(n) + "'";
+                    if (!online.contains(n))
+                        online.add(n);
+                } else {
+                    query = "UPDATE tblPlayer SET fnOnline = 0 WHERE fcName = '" + Tools.addSlashesToString(n) + "'";
+                    online.remove(n);
+                }
+                m_botAction.SQLBackgroundQuery(db, null, query);
+            }
         }
     }
     
-    private void startUpdates() {
+    public void startUpdates() {
         doUpdate = new TimerTask() {
             public void run() {
                 update();
@@ -197,7 +252,7 @@ public class pubhubwho extends PubBotModule {
         m_botAction.scheduleTask(doUpdate, 4000, INTERVAL);
     }
     
-    private void sqlReset() {
+    public void sqlReset() {
         try {
             m_botAction.SQLQueryAndClose(db, "UPDATE tblPlayer SET fnOnline = 0");
         } catch (SQLException e) {
@@ -207,29 +262,16 @@ public class pubhubwho extends PubBotModule {
 
     public class CheckOut extends TimerTask {
         String name;
-        String nl;
 
         public CheckOut(String name) {
-            this.name = name;
-            nl = name.toLowerCase();
+            this.name = name.toLowerCase();
         }
 
         @Override
         public void run() {
-            check.remove(nl);
-            online.remove(nl);
-            if (update.containsKey(nl)) {
-                if (update.get(nl)) {
-                    update.put(nl, false);
-                    if (!queue.contains(nl))
-                        queue.add(nl);
-                } else if (!queue.contains(nl))
-                    queue.add(nl);
-            } else {
-                update.put(nl, false);
-                if (!queue.contains(nl))
-                    queue.add(nl);
-            }
+            check.remove(name);
+            queue.removeElement(name);
+            queue.add(name);          
         }
     }
 }
