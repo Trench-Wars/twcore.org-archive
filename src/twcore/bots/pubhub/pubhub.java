@@ -60,6 +60,7 @@ public class pubhub extends SubspaceBot {
     // Configuration
     private ModuleHandler moduleHandler;
     private OperatorList opList;
+    private HashSet<String> activeArenas = new HashSet<String>();
     private String cfg_hubbot;
     private String cfg_chat_hub;
     private String cfg_chat_pub;
@@ -167,11 +168,14 @@ public class pubhub extends SubspaceBot {
             String arena = arenas[i].toLowerCase();
 
             if( Tools.isAllDigits(arena) || cfg_arenas.contains(arena) || (cfg_allArenas && !startup && !arena.contains("#") && event.getSizeOfArena(arenas[i]) > 2)) {
+                if (!activeArenas.contains(arena))
+                    activeArenas.add(arena);
                 if(!pubbots.containsValue(arena)) {
                     String key = "SPAWNING"+(countUnspawnedArenas()+1);
                     pubbots.put(key, arena);
                 }
-            }
+            } else
+                activeArenas.remove(arena);
         }
         
         // Only spawn a pubbot after the arena check when bot is starting up
@@ -623,7 +627,7 @@ public class pubhub extends SubspaceBot {
                 String bot = pubbot.getKey();
                 String arena = pubbot.getValue();
                 
-                if( Tools.isAllDigits(arena) == false && cfg_arenas.contains(arena) == false) {
+                if( !Tools.isAllDigits(arena) && !cfg_arenas.contains(arena) && !activeArenas.contains(arena)) {
                     // This pubbot is in a wrong arena, disconnect it
                     if (DEBUG)
                         m_botAction.sendSmartPrivateMessage("WingZero", "killing " + bot + " in arena: " + arena);
