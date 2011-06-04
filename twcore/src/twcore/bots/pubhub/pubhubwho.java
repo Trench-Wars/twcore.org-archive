@@ -2,12 +2,10 @@ package twcore.bots.pubhub;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.TimerTask;
-import java.util.Vector;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
@@ -199,7 +197,7 @@ public class pubhubwho extends PubBotModule {
             
             if (msg[0].equals("enter")) {
                 if (check.containsKey(name))
-                    check.remove(name).cancel();
+                    m_botAction.cancelTask(check.remove(name));;
 
                 m_botAction.SQLBackgroundQuery(db, null, "UPDATE tblPlayer SET fnOnline = 1 WHERE fcName = '" + Tools.addSlashesToString(name) + "'");
                 online.add(name);
@@ -219,7 +217,7 @@ public class pubhubwho extends PubBotModule {
                     check.put(name, new CheckOut(name));
                     m_botAction.scheduleTask(check.get(name), 5 * Tools.TimeInMillis.SECOND);
                 } else {
-                    check.remove(name).cancel();
+                    m_botAction.cancelTask(check.remove(name));
                     check.put(name, new CheckOut(name));
                     m_botAction.scheduleTask(check.get(name), 5 * Tools.TimeInMillis.SECOND);
                 }
@@ -237,9 +235,8 @@ public class pubhubwho extends PubBotModule {
     
     public void resetAll(String name) {
         Iterator<TimerTask> i = check.values().iterator();
-        while (i.hasNext()) {
-            i.next().cancel();
-        }
+        while (i.hasNext())
+            m_botAction.cancelTask(check.remove(i.next()));
         online.clear();
         sqlReset();
         TimerTask call = new TimerTask() {
