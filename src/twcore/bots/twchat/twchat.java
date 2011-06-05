@@ -127,23 +127,27 @@ public class twchat extends SubspaceBot {
 
     private void help(String name, String message) {
         String[] startCommands =
-                { "+-------------------------------------------------------------------------------+",
+                {       "+-------------------------------------------------------------------------------+",
                         "|                                 Trench Wars Chat                              |",
                         "|                                                                               |",
                         "| Hello! I'm a bot that will allow you to chat on the web!                      |",
                         "| I also have the ability to look for online squad players!                     |",
                         "| Please look below for the available commands.                                 |" };
         String[] publicCommands =
-                { "|                                                                               |",
+                {       "|                                                                               |",
                         "| !signup                     - Signs you up to be able to use the online TW    |",
                         "|                               Chat App (DISABLED)                             |",
-                        "\\------------------------------------------------------------------------------/",
+                        "|-------------------------------------------------------------------------------|",
                         "|                                Who Is Online                                  |",
                         "|                                                                               |",
                         "| !online <name>  - Shows if <name> is currently online according to list on bot|",
-                        "| !squad <squad>  - Lists all the members of <squad> currently online           |", };
-        String[] modCommands =
-                { "|------------------------------- TWChat SMod+ ----------------------------------|",
+                        "| !squad <squad>  - Lists all the members of <squad> currently online           |",
+                        "|                                                                               |",
+                        };
+        String[] modCommands = {
+                
+                        "|------------------------------- TWChat SMod+ ----------------------------------|",
+                        "|                                                                               |",
                         "| !test                       - Retrieves the VIP text file from the server to  |",
                         "|                               be accurate where it is placed.                 |",
                         "| !die                        - Throw me off a bridge without a parachute       |",
@@ -158,8 +162,9 @@ public class twchat extends SubspaceBot {
                         "| !update         - Toggles the online status update process on and off         |",
                         "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
                         "| !refresh        - Resets entire database & calls for bots to update players   |", };
-        String[] endCommands = { "\\-------------------------------------------------------------------------------/" };
-
+        String[] endCommands = { 
+                        "\\------------------------------------------------------------------------------/" };
+        
         m_botAction.smartPrivateMessageSpam(name, startCommands);
         m_botAction.smartPrivateMessageSpam(name, publicCommands);
 
@@ -256,6 +261,7 @@ public class twchat extends SubspaceBot {
     public void handleEvent(LoggedOn event) {
         m_botAction.joinArena(m_botSettings.getString("Arena"));
         status = true;
+        m_botAction.ipcSubscribe(IPC);
         sqlReset();
     }
 
