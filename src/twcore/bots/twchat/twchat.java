@@ -91,69 +91,55 @@ public class twchat extends SubspaceBot{
                     
                 } else if(message.startsWith("Not online")){
                     show.remove(info.toLowerCase());
-                }
-                }
+                
+                
                 
             
-            if(message.equalsIgnoreCase("!signup") && m_botAction.getOperatorList().isSmod(name)){
-                m_botAction.getServerFile("vip.txt");
-                name = name.toLowerCase();
-                    lastPlayer.add(name);
-                    
-            } else if(message.equalsIgnoreCase("!show") && m_botAction.getOperatorList().isSmod(name)){
-                   String people = "";
-                   m_botAction.sendSmartPrivateMessage(name, "People ONLINE using TW Chat App:");
-                   Iterator<String> list = show.iterator();
-                   if(!list.hasNext())
-                       m_botAction.sendSmartPrivateMessage(name, "No-one! :(");
-                   
-                   for(int k = 0;list.hasNext();)
-                   {
-
-                   String pName = (String)list.next();
-                   if(m_botAction.getOperatorList().isSysop(pName))
-                       people += pName + " (SysOp), ";
-                   else if(m_botAction.getOperatorList().isSmodExact(pName))
-                       people += pName + " (SMod), ";
-                   else
-                       people += pName + ", ";
-                   k++;
-                   if(k % 10 == 0 || !list.hasNext())
-                   {
-                       if( people.length() > 2 ) {
-                           m_botAction.sendSmartPrivateMessage(name, people.substring(0, people.length() - 2));
-                           people = "";
-                       }}}
-                   
-            		
-           
-            } else if(message.equalsIgnoreCase("!test") && m_botAction.getOperatorList().isSmod(name)){
-                m_botAction.sendSmartPrivateMessage(name, "Test complete, Gotten VIP.TXT");
-                m_botAction.getServerFile("vip.txt");
                 
-            }else if (message.startsWith("!online "))
-                    isOnline(name, message);
-                else if (message.startsWith("!squad "))
+            
+            if(message.equalsIgnoreCase("!signup"))
+                signup(name, message);
+                
+            if (message.startsWith("!online "))
+                isOnline(name, message);
+     
+            if (message.startsWith("!squad "))
                     getSquad(name, message);
-                if (m_botAction.getOperatorList().isSmod(name)) {
-                    if (message.equals("!update"))
+                    
+            if(message.equalsIgnoreCase("!help"))
+                help(name, message);
+
+            if(m_botAction.getOperatorList().isSmod(name)){
+                
+            if(message.equalsIgnoreCase("!show"))
+                    show(name, message);
+                     		           
+            if(message.equalsIgnoreCase("!test"))
+                test(name, message);                           
+                    
+            if (message.equals("!update"))
                         status(name);
-                    else if (message.startsWith("!info "))
+                        
+            if (message.startsWith("!info "))
                         getInfo(name, message);
-                    else if (message.equals("!refresh"))
+                        
+            if (message.equals("!refresh"))
                         resetAll(name);
                 
-            } else if(message.startsWith("!go ") && m_botAction.getOperatorList().isSmod(name)){
-                String go = message.substring(4);
-                m_botAction.changeArena(go);
+            if(message.startsWith("!go "))
+                go(name, message);
                 
-            }else if(message.startsWith("!vipadd ") && m_botAction.getOperatorList().isSmod(name)){
-                m_botAction.getServerFile("vip.txt");
-                String vip = message.substring(8).toLowerCase();
-                lastPlayer.add(vip);
-                m_botAction.sendSmartPrivateMessage(name, "Done.");
+            if(message.startsWith("!vipadd "))
+                vipadd(name, message);
                 
-            }else if(message.equalsIgnoreCase("!help")){
+            if(message.equalsIgnoreCase("!die"))
+                m_botAction.die();
+            }}}}
+            
+
+
+
+            private void help(String name, String message){
                 String[] startCommands = 
                 {   "+-------------------------------------------------------------------------------+",
                     "|                                 Trench Wars Chat                              |",  
@@ -202,17 +188,67 @@ public class twchat extends SubspaceBot{
 
 
                 
-            }else if(message.equalsIgnoreCase("!die") && m_botAction.getOperatorList().isSmod(name)){
-                m_botAction.die();
             }
-            
+
+       private void vipadd(String name, String message) {
+           m_botAction.getServerFile("vip.txt");
+           String vip = message.substring(8).toLowerCase();
+           lastPlayer.add(vip);
+           m_botAction.sendSmartPrivateMessage(name, "Done.");            
+        }
+       
+       private void go(String name, String message) {
+           String go = message.substring(4);
+           m_botAction.changeArena(go);
+       
+   }
 
 
-
+    private void test(String name, String message) {
+        m_botAction.sendSmartPrivateMessage(name, "Test complete, Gotten VIP.TXT");
+        m_botAction.getServerFile("vip.txt");            
         }
 
 
-       public void handleEvent( FileArrived event ){
+
+    private void show(String name, String message) {
+        String people = "";
+        m_botAction.sendSmartPrivateMessage(name, "People ONLINE using TW Chat App:");
+        Iterator<String> list = show.iterator();
+        if(!list.hasNext())
+            m_botAction.sendSmartPrivateMessage(name, "No-one! :(");
+        
+        for(int k = 0;list.hasNext();)
+        {
+
+        String pName = (String)list.next();
+        if(m_botAction.getOperatorList().isSysop(pName))
+            people += pName + " (SysOp), ";
+        else if(m_botAction.getOperatorList().isSmodExact(pName))
+            people += pName + " (SMod), ";
+        else
+            people += pName + ", ";
+        k++;
+        if(k % 10 == 0 || !list.hasNext())
+        {
+            if( people.length() > 2 ) {
+                m_botAction.sendSmartPrivateMessage(name, people.substring(0, people.length() - 2));
+                people = "";
+            }}}            
+        }
+
+
+
+    private void signup(String name, String message) {
+        m_botAction.getServerFile("vip.txt");
+        name = name.toLowerCase();
+            lastPlayer.add(name);
+            
+        }
+
+
+
+    public void handleEvent( FileArrived event ){
             for (int i = 0; i < lastPlayer.size(); i++) {
             if( event.getFileName().equals( "vip.txt" )){
                 try{
