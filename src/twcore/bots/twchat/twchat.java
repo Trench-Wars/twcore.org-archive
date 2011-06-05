@@ -115,11 +115,9 @@ public class twchat extends SubspaceBot {
                         vipadd(name, message);
 
                     else if (message.equalsIgnoreCase("!die"))
-                        m_botAction.die();
+                        m_botAction.die();}
 
-                    else if (event.getMessageType() == Message.ARENA_MESSAGE) {
-
-                        // Received from a *info
+                        if (event.getMessageType() == Message.ARENA_MESSAGE) {
                         if (message.contains("Client: VIE 1.34")) {
                             if (m_botAction.getOperatorList().isBotExact(info))
                                 return;
@@ -129,7 +127,8 @@ public class twchat extends SubspaceBot {
 
                         } else if (message.startsWith("Not online")) {
                                 show.remove(info.toLowerCase());
-                            }}}}
+                            }}}
+    
 
     private void help(String name, String message) {
         String[] startCommands =
