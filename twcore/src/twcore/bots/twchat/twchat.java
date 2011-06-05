@@ -39,6 +39,7 @@ public class twchat extends SubspaceBot {
 
     private String db = "pubstats";
     private boolean status = true;
+    private boolean signup = true;
     public TimerTask doUpdate;
 
     // up to date list of who is online
@@ -76,6 +77,9 @@ public class twchat extends SubspaceBot {
 
                  if (message.startsWith("!online "))
                     isOnline(name, message);
+                 
+                 else if (message.equalsIgnoreCase("!signup"))
+                     signup(name, message);
 
                 else  if (message.startsWith("!squad "))
                     getSquad(name, message);
@@ -87,9 +91,6 @@ public class twchat extends SubspaceBot {
 
                     if (message.equalsIgnoreCase("!show"))
                         show(name, message);
-                    
-                    else if (message.equalsIgnoreCase("!signup"))
-                        signup(name, message);
 
                     else if (message.equalsIgnoreCase("!test"))
                         test(name, message);
@@ -112,14 +113,14 @@ public class twchat extends SubspaceBot {
                     else if (message.equalsIgnoreCase("!die"))
                         m_botAction.die();
 
-                    if (event.getMessageType() == Message.ARENA_MESSAGE) {
+                    else if (event.getMessageType() == Message.ARENA_MESSAGE) {
 
                         // Received from a *info
                         if (message.contains("Client: VIE 1.34")) {
                             if (m_botAction.getOperatorList().isBotExact(info))
                                 return;
                             else
-                                m_botAction.sendChatMessage("Non Continuum Client Detected! (" + info + ")");
+                                m_botAction.sendChatMessage(2,"Non Continuum Client Detected! (" + info + ")");
                             show.add(info.toLowerCase());
 
                         } else if (message.startsWith("Not online")) {
@@ -164,7 +165,7 @@ public class twchat extends SubspaceBot {
                         "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
                         "| !refresh        - Resets entire database & calls for bots to update players   |", };
         String[] endCommands = { 
-                        "\\------------------------------------------------------------------------------/" };
+                        "\\-------------------------------------------------------------------------------/" };
         
         m_botAction.smartPrivateMessageSpam(name, startCommands);
         m_botAction.smartPrivateMessageSpam(name, publicCommands);
@@ -222,10 +223,23 @@ public class twchat extends SubspaceBot {
     }
 
     public void signup(String name, String message) {
+        if(!signup)
+            m_botAction.sendSmartPrivateMessage(name, "You cannot signup to TWChat at this time.");
+        else
         m_botAction.getServerFile("vip.txt");
         name = name.toLowerCase();
         lastPlayer.add(name);
 
+    }
+    
+    public void toggle(String name, String message){
+        if(signup){
+            signup = false;
+            m_botAction.sendSmartPrivateMessage(name, "Signup DEACTIVATED");
+        } else {
+                signup = true;
+            m_botAction.sendSmartPrivateMessage(name, "Signup ACTIVATED");
+        }
     }
 
     public void handleEvent(FileArrived event) {
@@ -307,7 +321,8 @@ public class twchat extends SubspaceBot {
 
     public void handleEvent(ArenaJoined event) {
         m_botAction.setReliableKills(1);
-        m_botAction.sendUnfilteredPublicMessage("?chat=robodev");
+        String g = m_botSettings.getString("Chats");
+        m_botAction.sendUnfilteredPublicMessage("?chat="+g);
     }
 
     public void status(String name) {
