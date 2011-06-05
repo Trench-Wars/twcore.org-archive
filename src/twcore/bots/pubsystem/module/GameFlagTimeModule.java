@@ -900,7 +900,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
         }
         
-        if (!autoVote) {
+        if (!autoVote && context.getPlayerManager().checkSizes()) {
             m_botAction.sendOpposingTeamMessageByFrequency(0, "[TEAM SHUFFLE] To start a poll for a pub freq shuffle, PM " + m_botAction.getBotName() + " with !shufflevote ");
             m_botAction.sendOpposingTeamMessageByFrequency(1, "[TEAM SHUFFLE] To start a poll for a pub freq shuffle, PM " + m_botAction.getBotName() + " with !shufflevote ");
         }
@@ -1999,7 +1999,7 @@ public class GameFlagTimeModule extends AbstractModule {
 	            shuffleVote = false;
 	            votePeriod = false;
 	            m_botAction.cancelTask(voteWait);
-	            context.getPlayerManager().doShuffleVote();	            
+	            context.getPlayerManager().checkSizesAndShuffle(name);	            
 	        } else {
 	            m_botAction.sendSmartPrivateMessage(name, "!shufflevote may only be used immediately following the end of a round.");
 	            return;
