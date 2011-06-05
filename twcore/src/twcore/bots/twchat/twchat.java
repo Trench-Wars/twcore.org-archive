@@ -73,73 +73,74 @@ public class twchat extends SubspaceBot {
         short sender = event.getPlayerID();
         String name = event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ? event.getMessager() : m_botAction.getPlayerName(sender);
         String message = event.getMessage();
-                    
 
-                 if (message.startsWith("!online "))
-                    isOnline(name, message);
-                 
-                 else if (message.equalsIgnoreCase("!signup"))
-                     signup(name, message);
+        if (message.startsWith("!online "))
+            isOnline(name, message);
 
-                else  if (message.startsWith("!squad "))
-                    getSquad(name, message);
+        else if (message.equalsIgnoreCase("!signup"))
+            signup(name, message);
 
-                else if (message.equalsIgnoreCase("!help"))
-                    help(name, message);
+        else if (message.startsWith("!squad "))
+            getSquad(name, message);
 
-                if (m_botAction.getOperatorList().isSmod(name)) {
+        else if (message.equalsIgnoreCase("!help"))
+            help(name, message);
 
-                    if (message.equalsIgnoreCase("!show"))
-                        show(name, message);
-                    
-                    else if (message.equalsIgnoreCase("!toggle")){
-                        toggle(name, message);
-                    }
+        if (m_botAction.getOperatorList().isSmod(name)) {
 
-                    else if (message.equalsIgnoreCase("!test"))
-                        test(name, message);
+            if (message.equalsIgnoreCase("!show"))
+                show(name, message);
 
-                    else if (message.equals("!update"))
-                        status(name);
+            else if (message.equalsIgnoreCase("!toggle")) {
+                toggle(name, message);
+            }
 
-                    else if (message.startsWith("!info "))
-                        getInfo(name, message);
+            else if (message.equalsIgnoreCase("!test"))
+                test(name, message);
 
-                    else if (message.equals("!refresh"))
-                        resetAll(name);
+            else if (message.equals("!update"))
+                status(name);
 
-                    else if (message.startsWith("!go "))
-                        go(name, message);
+            else if (message.startsWith("!info "))
+                getInfo(name, message);
 
-                    else if (message.startsWith("!vipadd "))
-                        vipadd(name, message);
+            else if (message.equals("!refresh"))
+                resetAll(name);
 
-                    else if (message.equalsIgnoreCase("!die"))
-                        m_botAction.die();}
+            else if (message.startsWith("!go "))
+                go(name, message);
 
-                        if (event.getMessageType() == Message.ARENA_MESSAGE) {
-                        if (message.contains("Client: VIE 1.34")) {
-                            if (m_botAction.getOperatorList().isBotExact(info))
-                                return;
-                            else
-                                m_botAction.sendChatMessage(2,"Non Continuum Client Detected! (" + info + ")");
-                            show.add(info.toLowerCase());
+            else if (message.startsWith("!vipadd "))
+                vipadd(name, message);
 
-                        } else if (message.startsWith("Not online")) {
-                                show.remove(info.toLowerCase());
-                            }}}
-    
+            else if (message.equalsIgnoreCase("!die"))
+                m_botAction.die();
+        }
+
+        if (event.getMessageType() == Message.ARENA_MESSAGE) {
+            if (message.contains("Client: VIE 1.34")) {
+                if (m_botAction.getOperatorList().isBotExact(info))
+                    return;
+                else
+                    m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + info + ")");
+                show.add(info.toLowerCase());
+
+            } else if (message.startsWith("Not online")) {
+                show.remove(info.toLowerCase());
+            }
+        }
+    }
 
     private void help(String name, String message) {
         String[] startCommands =
-                {       "+-------------------------------------------------------------------------------+",
+                { "+-------------------------------------------------------------------------------+",
                         "|                                 Trench Wars Chat                              |",
                         "|                                                                               |",
                         "| Hello! I'm a bot that will allow you to chat on the web!                      |",
                         "| I also have the ability to look for online squad players!                     |",
                         "| Please look below for the available commands.                                 |" };
         String[] publicCommands =
-                {       "|                                                                               |",
+                { "|                                                                               |",
                         "| !signup                     - Signs you up to be able to use the online TW    |",
                         "|                               Chat App                                        |",
                         "|-------------------------------------------------------------------------------|",
@@ -147,11 +148,11 @@ public class twchat extends SubspaceBot {
                         "|                                                                               |",
                         "| !online <name>  - Shows if <name> is currently online according to list on bot|",
                         "| !squad <squad>  - Lists all the members of <squad> currently online           |",
-                        "|                                                                               |",
-                        };
-        String[] modCommands = {
-                
-                        "|------------------------------- TWChat SMod+ ----------------------------------|",
+                        "|                                                                               |", };
+        String[] modCommands =
+                {
+
+                "|------------------------------- TWChat SMod+ ----------------------------------|",
                         "|                                                                               |",
                         "| !test                       - Retrieves the VIP text file from the server to  |",
                         "|                               be accurate where it is placed.                 |",
@@ -168,9 +169,8 @@ public class twchat extends SubspaceBot {
                         "| !update         - Toggles the online status update process on and off         |",
                         "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
                         "| !refresh        - Resets entire database & calls for bots to update players   |", };
-        String[] endCommands = { 
-                        "\\-------------------------------------------------------------------------------/" };
-        
+        String[] endCommands = { "\\-------------------------------------------------------------------------------/" };
+
         m_botAction.smartPrivateMessageSpam(name, startCommands);
         m_botAction.smartPrivateMessageSpam(name, publicCommands);
 
@@ -227,21 +227,21 @@ public class twchat extends SubspaceBot {
     }
 
     public void signup(String name, String message) {
-        if(!signup)
+        if (!signup)
             m_botAction.sendSmartPrivateMessage(name, "You cannot signup to TWChat at this time.");
         else
-        m_botAction.getServerFile("vip.txt");
+            m_botAction.getServerFile("vip.txt");
         name = name.toLowerCase();
         lastPlayer.add(name);
 
     }
-    
-    public void toggle(String name, String message){
-        if(signup){
+
+    public void toggle(String name, String message) {
+        if (signup) {
             signup = false;
             m_botAction.sendSmartPrivateMessage(name, "Signup DEACTIVATED");
         } else {
-                signup = true;
+            signup = true;
             m_botAction.sendSmartPrivateMessage(name, "Signup ACTIVATED");
         }
     }
@@ -326,7 +326,7 @@ public class twchat extends SubspaceBot {
     public void handleEvent(ArenaJoined event) {
         m_botAction.setReliableKills(1);
         String g = m_botSettings.getString("Chats");
-        m_botAction.sendUnfilteredPublicMessage("?chat="+g);
+        m_botAction.sendUnfilteredPublicMessage("?chat=" + g);
     }
 
     public void status(String name) {
@@ -382,41 +382,24 @@ public class twchat extends SubspaceBot {
         if (!event.getChannel().equals(IPC) || !status)
             return;
 
-        synchronized (event.getObject()) {
-            String[] msg = ((IPCMessage) event.getObject()).getMessage().split(":");
-            String name = msg[1].toLowerCase();
-            if (m_botAction.getOperatorList().isBotExact(name))
-                return;
+        String[] msg = ((IPCMessage) event.getObject()).getMessage().split(":");
+        String name = msg[1].toLowerCase();
+        if (m_botAction.getOperatorList().isBotExact(name))
+            return;
 
-            if (msg[0].equals("enter")) {
-                if (check.containsKey(name))
-                    m_botAction.cancelTask(check.remove(name));
-                ;
-
-                m_botAction.SQLBackgroundQuery(db, null, "UPDATE tblPlayer SET fnOnline = 1 WHERE fcName = '" + Tools.addSlashesToString(name) + "'");
-                online.add(name);
-                /*
-                 * if (check.containsKey(name)) { check.remove(name).cancel();
-                 * queue.remove(name); update.remove(name); } else {
-                 * update.put(name, true); if (!queue.contains(name))
-                 * queue.add(name); }
-                 */
+        if (msg[0].equals("enter")) {
+            if (check.containsKey(name))
+                m_botAction.cancelTask(check.remove(name));
+            m_botAction.SQLBackgroundQuery(db, null, "UPDATE tblPlayer SET fnOnline = 1 WHERE fcName = '" + Tools.addSlashesToString(name) + "'");
+            online.add(name);
+        } else {
+            if (!check.containsKey(name)) {
+                check.put(name, new CheckOut(name));
+                m_botAction.scheduleTask(check.get(name), 5 * Tools.TimeInMillis.SECOND);
             } else {
-                if (!check.containsKey(name)) {
-                    check.put(name, new CheckOut(name));
-                    m_botAction.scheduleTask(check.get(name), 5 * Tools.TimeInMillis.SECOND);
-                } else {
-                    m_botAction.cancelTask(check.remove(name));
-                    check.put(name, new CheckOut(name));
-                    m_botAction.scheduleTask(check.get(name), 5 * Tools.TimeInMillis.SECOND);
-                }
-                /*
-                 * if (!check.containsKey(name)) { check.put(name, new
-                 * CheckOut(name)); m_botAction.scheduleTask(check.get(name), 5
-                 * * Tools.TimeInMillis.SECOND); update.put(name, false); } else
-                 * if (!update.containsKey(name) || update.get(name))
-                 * update.put(name, false);
-                 */
+                m_botAction.cancelTask(check.remove(name));
+                check.put(name, new CheckOut(name));
+                m_botAction.scheduleTask(check.get(name), 5 * Tools.TimeInMillis.SECOND);
             }
         }
     }
@@ -440,8 +423,8 @@ public class twchat extends SubspaceBot {
         msg = msg.substring(7);
         if (msg.length() < 1)
             return;
-        m_botAction.SQLBackgroundQuery(db, "squad:" + msg + ":" + name, "SELECT fcName FROM tblPlayer WHERE fcSquad = '"
-                + Tools.addSlashesToString(msg) + "' AND fnOnline = 1");
+        m_botAction.SQLBackgroundQuery(db, "squad:" + msg + ":" + name,
+                "SELECT fcName FROM tblPlayer WHERE fcSquad = '" + Tools.addSlashesToString(msg) + "' AND fnOnline = 1");
     }
 
     public void sqlReset() {
