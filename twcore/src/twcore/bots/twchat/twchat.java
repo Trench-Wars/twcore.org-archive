@@ -78,9 +78,7 @@ public class twchat extends SubspaceBot{
         public void handleEvent(Message event) {
             short sender = event.getPlayerID();
             String name = event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ? event.getMessager() :  m_botAction.getPlayerName(sender);
-            String message = event.getMessage();
-            String msg = message;
-            
+            String message = event.getMessage();            
             if (event.getMessageType() == Message.ARENA_MESSAGE){
             
                 // Received from a *info
@@ -133,16 +131,16 @@ public class twchat extends SubspaceBot{
                 m_botAction.sendSmartPrivateMessage(name, "Test complete, Gotten VIP.TXT");
                 m_botAction.getServerFile("vip.txt");
                 
-            }else if (msg.startsWith("!online "))
-                    isOnline(name, msg);
-                else if (msg.startsWith("!squad "))
-                    getSquad(name, msg);
+            }else if (message.startsWith("!online "))
+                    isOnline(name, message);
+                else if (message.startsWith("!squad "))
+                    getSquad(name, message);
                 if (m_botAction.getOperatorList().isSmod(name)) {
-                    if (msg.equals("!update"))
+                    if (message.equals("!update"))
                         status(name);
-                    else if (msg.startsWith("!info "))
-                        getInfo(name, msg);
-                    else if (msg.equals("!refresh"))
+                    else if (message.startsWith("!info "))
+                        getInfo(name, message);
+                    else if (message.equals("!refresh"))
                         resetAll(name);
                 
             } else if(message.startsWith("!go ") && m_botAction.getOperatorList().isSmod(name)){
