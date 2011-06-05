@@ -5,6 +5,7 @@ import java.util.Iterator;
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
 import twcore.core.events.ArenaJoined;
+import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.InterProcessEvent;
@@ -14,6 +15,7 @@ import twcore.core.util.ipc.IPCMessage;
 public class pubbotwho extends PubBotModule {
 
     protected final String IPC = "whoonline";
+    boolean notify = false;
 
     public void initializeModule() {
         m_botAction.ipcSubscribe(IPC);
@@ -23,6 +25,17 @@ public class pubbotwho extends PubBotModule {
         eventRequester.request(EventRequester.PLAYER_ENTERED);
         eventRequester.request(EventRequester.PLAYER_LEFT);
         eventRequester.request(EventRequester.ARENA_JOINED);
+        eventRequester.request(EventRequester.MESSAGE);
+    }
+    
+    public void handleEvent(Message event) {
+        String name = event.getMessager();
+        String msg = event.getMessage();
+        if (name == null || msg == null)
+            return;
+        if (m_botAction.getOperatorList().isSmod(name) && msg.equals("!notifyme"))
+            notify = !notify;
+        
     }
 
     public void handleEvent(ArenaJoined event) {
@@ -37,6 +50,8 @@ public class pubbotwho extends PubBotModule {
         // ignore bots & nulls
         if (p == null || m_botAction.getOperatorList().isBotExact(p.getPlayerName()))
             return;
+        if (notify)
+            m_botAction.sendSmartPrivateMessage("WingZero", "enter event for: " + event.getPlayerName());
 
         // ignore players when biller is down
         if (p.getPlayerName().startsWith("^"))
