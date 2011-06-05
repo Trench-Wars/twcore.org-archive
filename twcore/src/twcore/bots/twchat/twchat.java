@@ -72,31 +72,17 @@ public class twchat extends SubspaceBot {
         short sender = event.getPlayerID();
         String name = event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ? event.getMessager() : m_botAction.getPlayerName(sender);
         String message = event.getMessage();
-        if (event.getMessageType() == Message.ARENA_MESSAGE) {
-
-            // Received from a *info
-            if (message.contains("Client: VIE 1.34")) {
-                if (m_botAction.getOperatorList().isBotExact(info))
-                    return;
-                else
-                    m_botAction.sendChatMessage("Non Continuum Client Detected! (" + info + ")");
-                show.add(info.toLowerCase());
-
-                if (message.startsWith("Not online")) {
-                    show.remove(info.toLowerCase());
-                }
-                if(event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE){
                     
                 if (message.equalsIgnoreCase("!signup"))
                     signup(name, message);
 
-                if (message.startsWith("!online "))
+                else if (message.startsWith("!online "))
                     isOnline(name, message);
 
-                if (message.startsWith("!squad "))
+                else  if (message.startsWith("!squad "))
                     getSquad(name, message);
 
-                if (message.equalsIgnoreCase("!help"))
+                else if (message.equalsIgnoreCase("!help"))
                     help(name, message);
 
                 if (m_botAction.getOperatorList().isSmod(name)) {
@@ -104,31 +90,40 @@ public class twchat extends SubspaceBot {
                     if (message.equalsIgnoreCase("!show"))
                         show(name, message);
 
-                    if (message.equalsIgnoreCase("!test"))
+                    else if (message.equalsIgnoreCase("!test"))
                         test(name, message);
 
-                    if (message.equals("!update"))
+                    else if (message.equals("!update"))
                         status(name);
 
-                    if (message.startsWith("!info "))
+                    else if (message.startsWith("!info "))
                         getInfo(name, message);
 
-                    if (message.equals("!refresh"))
+                    else if (message.equals("!refresh"))
                         resetAll(name);
 
-                    if (message.startsWith("!go "))
+                    else if (message.startsWith("!go "))
                         go(name, message);
 
-                    if (message.startsWith("!vipadd "))
+                    else if (message.startsWith("!vipadd "))
                         vipadd(name, message);
 
-                    if (message.equalsIgnoreCase("!die"))
+                    else if (message.equalsIgnoreCase("!die"))
                         m_botAction.die();
-                }
-            }
-        }
-        }
-    }
+
+                    if (event.getMessageType() == Message.ARENA_MESSAGE) {
+
+                        // Received from a *info
+                        if (message.contains("Client: VIE 1.34")) {
+                            if (m_botAction.getOperatorList().isBotExact(info))
+                                return;
+                            else
+                                m_botAction.sendChatMessage("Non Continuum Client Detected! (" + info + ")");
+                            show.add(info.toLowerCase());
+
+                        } else if (message.startsWith("Not online")) {
+                                show.remove(info.toLowerCase());
+                            }}}}
 
     private void help(String name, String message) {
         String[] startCommands =
@@ -176,25 +171,25 @@ public class twchat extends SubspaceBot {
 
     }
 
-    private void vipadd(String name, String message) {
+    public void vipadd(String name, String message) {
         m_botAction.getServerFile("vip.txt");
         String vip = message.substring(8).toLowerCase();
         lastPlayer.add(vip);
         m_botAction.sendSmartPrivateMessage(name, "Done.");
     }
 
-    private void go(String name, String message) {
+    public void go(String name, String message) {
         String go = message.substring(4);
         m_botAction.changeArena(go);
 
     }
 
-    private void test(String name, String message) {
+    public void test(String name, String message) {
         m_botAction.sendSmartPrivateMessage(name, "Test complete, Gotten VIP.TXT");
         m_botAction.getServerFile("vip.txt");
     }
 
-    private void show(String name, String message) {
+    public void show(String name, String message) {
         String people = "";
         m_botAction.sendSmartPrivateMessage(name, "People ONLINE using TW Chat App:");
         Iterator<String> list = show.iterator();
@@ -220,7 +215,7 @@ public class twchat extends SubspaceBot {
         }
     }
 
-    private void signup(String name, String message) {
+    public void signup(String name, String message) {
         m_botAction.getServerFile("vip.txt");
         name = name.toLowerCase();
         lastPlayer.add(name);
@@ -318,7 +313,7 @@ public class twchat extends SubspaceBot {
         }
     }
 
-    private void cancel() {
+    public void cancel() {
         status = false;
     }
 
