@@ -35,9 +35,9 @@ public class twchat extends SubspaceBot {
     public ArrayList<String> lastPlayer = new ArrayList<String>();
     public ArrayList<String> show = new ArrayList<String>();
     private final String IPC = "whoonline";
-    private final int INTERVAL = 5 * Tools.TimeInMillis.SECOND;
 
     private String db = "pubstats";
+    private boolean DEBUG = false;
     private boolean status = true;
     private boolean signup = true;
     public TimerTask doUpdate;
@@ -90,6 +90,8 @@ public class twchat extends SubspaceBot {
 
             if (message.equalsIgnoreCase("!show"))
                 show(name, message);
+            else if (message.equals("!nwz"))
+                DEBUG = !DEBUG;
 
             else if (message.equalsIgnoreCase("!toggle"))
                 toggle(name, message);
@@ -395,7 +397,8 @@ public class twchat extends SubspaceBot {
         String name = msg[1].toLowerCase();
         if (m_botAction.getOperatorList().isBotExact(name))
             return;
-
+        if (DEBUG)
+            m_botAction.sendSmartPrivateMessage("WingZero", "received IPC for " + name);
         if (msg[0].equals("enter")) {
             if (check.containsKey(name))
                 m_botAction.cancelTask(check.remove(name));
