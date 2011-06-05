@@ -402,7 +402,11 @@ public class twchat extends SubspaceBot {
         if (msg[0].equals("enter")) {
             if (check.containsKey(name))
                 m_botAction.cancelTask(check.remove(name));
-            m_botAction.SQLBackgroundQuery(db, null, "UPDATE tblPlayer SET fnOnline = 1 WHERE fcName = '" + Tools.addSlashesToString(name) + "'");
+            try {
+                m_botAction.SQLQueryAndClose(db, "UPDATE tblPlayer SET fnOnline = 1 WHERE fcName = '" + Tools.addSlashesToString(name) + "'");
+            } catch (SQLException e) {
+                Tools.printStackTrace(e);
+            }
             online.add(name);
         } else {
             if (!check.containsKey(name)) {
@@ -457,7 +461,11 @@ public class twchat extends SubspaceBot {
         @Override
         public void run() {
             check.remove(name);
-            m_botAction.SQLBackgroundQuery(db, null, "UPDATE tblPlayer SET fnOnline = 0 WHERE fcName = '" + Tools.addSlashesToString(name) + "'");
+            try {
+                m_botAction.SQLQueryAndClose(db, "UPDATE tblPlayer SET fnOnline = 0 WHERE fcName = '" + Tools.addSlashesToString(name) + "'");
+            } catch (SQLException e) {
+                Tools.printStackTrace(e);
+            };
             online.remove(name);
         }
     }
