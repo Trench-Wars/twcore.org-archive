@@ -85,7 +85,8 @@ public class twchat extends SubspaceBot {
                 if (message.startsWith("Not online")) {
                     show.remove(info.toLowerCase());
                 }
-
+                if(event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE){
+                    
                 if (message.equalsIgnoreCase("!signup"))
                     signup(name, message);
 
@@ -125,6 +126,7 @@ public class twchat extends SubspaceBot {
                         m_botAction.die();
                 }
             }
+        }
         }
     }
 
