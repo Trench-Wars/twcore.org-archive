@@ -91,12 +91,14 @@ public class twchat extends SubspaceBot {
             if (message.equalsIgnoreCase("!show"))
                 show(name, message);
 
-            else if (message.equalsIgnoreCase("!toggle")) {
+            else if (message.equalsIgnoreCase("!toggle"))
                 toggle(name, message);
-            }
 
-            else if (message.equalsIgnoreCase("!test"))
+            else if (message.equalsIgnoreCase("!get"))
                 test(name, message);
+            
+            else if (message.equalsIgnoreCase("!put"))
+                put(name, message);
 
             else if (message.equals("!update"))
                 status(name);
@@ -131,6 +133,12 @@ public class twchat extends SubspaceBot {
         }
     }
 
+    private void put(String name, String message) {
+        m_botAction.putFile("vip.txt");
+        m_botAction.sendSmartPrivateMessage(name, "Done.");
+        
+    }
+
     private void help(String name, String message) {
         String[] startCommands =
                 { "+-------------------------------------------------------------------------------+",
@@ -161,6 +169,7 @@ public class twchat extends SubspaceBot {
                         "| !go <arena>                 - I'll go to the arena you specify.               |",
                         "| !show                       - Show people online using TWChat App             |",
                         "| !toggle                     - Disables/Enables ability to !signup             |",
+                        "| !put                        - Force putfile VIP.txt                           |",
                         "|-------------------------------------------------------------------------------|",
                         "|                                Who Is Online (SMod)                           |",
                         "|                                                                               |",
