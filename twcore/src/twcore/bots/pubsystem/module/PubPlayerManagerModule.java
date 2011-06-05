@@ -712,13 +712,36 @@ public class PubPlayerManagerModule extends AbstractModule {
     }
     
     public void checkSizesAndShuffle(int dx) {
-        if (SHUFFLE_SIZE < 1 || dx < SHUFFLE_SIZE)
+        if (SHUFFLE_SIZE < 0 || dx < SHUFFLE_SIZE)
             return;
         int freq0 = m_botAction.getPlayingFrequencySize(0);
         int freq1 = m_botAction.getPlayingFrequencySize(1);
         int diff = java.lang.Math.abs( freq0 - freq1 );
         if (diff >= SHUFFLE_SIZE)
             doShuffleVote();
+    }
+    
+    public void checkSizesAndShuffle(String name) {
+        if (SHUFFLE_SIZE < 0)
+            return;
+        int freq0 = m_botAction.getPlayingFrequencySize(0);
+        int freq1 = m_botAction.getPlayingFrequencySize(1);
+        int diff = java.lang.Math.abs( freq0 - freq1 );
+        if (diff >= SHUFFLE_SIZE)
+            doShuffleVote();
+        else
+            m_botAction.sendSmartPrivateMessage(name, "The teams are not uneven enough to constitute a shuffle vote.");
+    }
+    
+    public boolean checkSizes() {
+        int freq0 = m_botAction.getPlayingFrequencySize(0);
+        int freq1 = m_botAction.getPlayingFrequencySize(1);
+        int diff = java.lang.Math.abs( freq0 - freq1 );
+        if (diff >= SHUFFLE_SIZE)
+            return true;
+        else
+            return false;
+        
     }
     
     public void doShuffleVote() {
@@ -966,7 +989,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         return new String[]{
                 pubsystem.getHelpLine("!vote             -- Force a vote to shuffle teams."),
                 pubsystem.getHelpLine("!forceshuffle     -- Force shuffle teams."),
-                pubsystem.getHelpLine("!trigger          -- Set the freq size difference trigger for shuffle vote (0 is off)."),
+                pubsystem.getHelpLine("!trigger          -- Set the freq size difference trigger for shuffle vote (-1 is off)."),
         };
     }   
 	
