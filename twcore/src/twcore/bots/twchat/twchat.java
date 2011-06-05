@@ -91,6 +91,10 @@ public class twchat extends SubspaceBot {
 
                     if (message.equalsIgnoreCase("!show"))
                         show(name, message);
+                    
+                    else if (message.equalsIgnoreCase("!toggle")){
+                        toggle(name, message);
+                    }
 
                     else if (message.equalsIgnoreCase("!test"))
                         test(name, message);
@@ -138,7 +142,7 @@ public class twchat extends SubspaceBot {
         String[] publicCommands =
                 {       "|                                                                               |",
                         "| !signup                     - Signs you up to be able to use the online TW    |",
-                        "|                               Chat App (DISABLED)                             |",
+                        "|                               Chat App                                        |",
                         "|-------------------------------------------------------------------------------|",
                         "|                                Who Is Online                                  |",
                         "|                                                                               |",
@@ -156,6 +160,7 @@ public class twchat extends SubspaceBot {
                         "| !vipadd                     - Manually add this person to VIP.                |",
                         "| !go <arena>                 - I'll go to the arena you specify.               |",
                         "| !show                       - Show people online using TWChat App             |",
+                        "| !toggle                     - Disables/Enables ability to !signup             |",
                         "|-------------------------------------------------------------------------------|",
                         "|                                Who Is Online (SMod)                           |",
                         "|                                                                               |",
