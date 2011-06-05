@@ -73,10 +73,8 @@ public class twchat extends SubspaceBot {
         String name = event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ? event.getMessager() : m_botAction.getPlayerName(sender);
         String message = event.getMessage();
                     
-                if (message.equalsIgnoreCase("!signup"))
-                    signup(name, message);
 
-                else if (message.startsWith("!online "))
+                 if (message.startsWith("!online "))
                     isOnline(name, message);
 
                 else  if (message.startsWith("!squad "))
@@ -89,6 +87,9 @@ public class twchat extends SubspaceBot {
 
                     if (message.equalsIgnoreCase("!show"))
                         show(name, message);
+                    
+                    else if (message.equalsIgnoreCase("!signup"))
+                        signup(name, message);
 
                     else if (message.equalsIgnoreCase("!test"))
                         test(name, message);
