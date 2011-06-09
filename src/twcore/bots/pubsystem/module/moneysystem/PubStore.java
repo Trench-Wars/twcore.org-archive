@@ -17,11 +17,14 @@ import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.bots.pubsystem.util.PubException;
 import twcore.core.BotAction;
 import twcore.core.game.Player;
+import twcore.core.util.Tools;
 
 public class PubStore {
 	
 	private BotAction m_botAction;
 	private PubContext context;
+	
+	private int commandCooldown = 0;
 	
 	private boolean opened = true;
     private LinkedHashMap<String, PubItem> items;
@@ -44,6 +47,8 @@ public class PubStore {
     	}
         
         this.items = new LinkedHashMap<String, PubItem>();
+        
+        commandCooldown = Integer.valueOf(m_botAction.getBotSettings().getString("command_cd"));
         
         String[] itemTypes = { "item_prize", "item_ship_upgrade", "item_ship", "item_command" };
         for(String type: itemTypes) {
@@ -195,6 +200,14 @@ public class PubStore {
         
         if (item == null)
         	throw new PubException("This item does not exist.");
+        
+        if (item instanceof PubCommandItem) {
+            long timePassed = System.currentTimeMillis() - player.getLastBigItemUsed(); 
+            if (timePassed < commandCooldown * Tools.TimeInMillis.SECOND) {
+                timePassed = commandCooldown - (timePassed / 1000);
+                throw new PubException("You must wait at least " + timePassed + " seconds before buying another special item.");
+            }
+        }
         
         if (item.isPlayerStrict() || (item.isPlayerOptional() && !params.trim().isEmpty())) {
         	

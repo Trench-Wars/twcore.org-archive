@@ -11,6 +11,7 @@ import twcore.bots.pubsystem.module.moneysystem.item.PubItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItemUsed;
 import twcore.bots.pubsystem.module.moneysystem.item.PubPrizeItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
+import twcore.bots.pubsystem.module.moneysystem.item.PubCommandItem;
 import twcore.core.BotAction;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerDeath;
@@ -39,6 +40,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private int deathsOnShipItem = 0;
     
     // Epoch time
+    private long lastBigItemUsed = System.currentTimeMillis();
     private long lastMoneyUpdate = System.currentTimeMillis();
     private long lastMoneySavedState = System.currentTimeMillis();
     private long lastSavedState = System.currentTimeMillis();
@@ -126,6 +128,9 @@ public class PubPlayer implements Comparable<PubPlayer>{
 
     public void addItem(PubItem item, String param) {
     	purgeItemBoughtHistory();
+    	if (item instanceof PubCommandItem)
+    	    lastBigItemUsed = System.currentTimeMillis();
+    	
         this.itemsBought.add(new PubItemUsed(item));
         this.itemsBoughtThisLife.add(item);
     }
@@ -287,6 +292,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     public void setLastThorUsed(long time) {
         lastThor = time;
+    }
+    
+    public long getLastBigItemUsed() {
+        return lastBigItemUsed;
     }
 
     @Override
