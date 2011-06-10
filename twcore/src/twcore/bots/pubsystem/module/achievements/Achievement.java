@@ -1,74 +1,86 @@
 package twcore.bots.pubsystem.module.achievements;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import twcore.bots.pubsystem.module.achievements.Requirement.Type;
+import twcore.core.events.SubspaceEvent;
 
 /**
- * Holds Achievement information
+ * Achievement Class handles storing and validating player achievements in the
+ * PubAchievementsModule.
+ *
  * @author spookedone
  */
 public final class Achievement {
 
-    //generic variables
-    private final int id;
-    private String name = "", description = "";
-    private int ship = -1;
-    //time variables
-    private int timeMin = -1, timeMax = -1;
-    private int flagTimeMin = -1, flagTimeMax = -1;
-    //prize variables
-    private int prizeMin = -1, prizeMax = -1, prizeType = -1;
-    //turret booleans
-    private boolean turret = false;
-    //flagclaim variables
-    private int flagClaimMin = -1, flagClaimMax = -1;
-    //type bitmask
-    private int type = 0;
+    private final int id;                       //id used by database
+    private String name;
+    private String description;
+    private int typeMask = 0;
+    private boolean completed = false;
+    private List<Requirement> requirements =
+            new LinkedList<Requirement>();
 
-    //location variables
-    private final List<KillDeath> kills;
-    private final List<KillDeath> deaths;
-    private final List<Location> locations;
+    ;
 
-    private boolean complete;
-
-    public Achievement(int id) {
-        this.id = id;
-        kills = Collections.synchronizedList(new LinkedList<KillDeath>());
-        deaths = Collections.synchronizedList(new LinkedList<KillDeath>());
-        locations = Collections.synchronizedList(new LinkedList<Location>());
+    /*
+     * Hidden Default Class Constructor
+     */
+    private Achievement() {
+        this.id = -1;
     }
 
+    /**
+     * Constructor for creating achievement with id.
+     * @param id id for achievement
+     */
+    public Achievement(int id) {
+        this.id = id;
+    }
+
+    /**
+     * Copy Constructor
+     * @param achievement
+     */
     public Achievement(Achievement achievement) {
         this.id = achievement.id;
         this.name = achievement.name;
         this.description = achievement.description;
-        this.ship = achievement.ship;
-
-        this.timeMin = achievement.timeMin;
-        this.timeMax = achievement.timeMax;
-        this.flagTimeMin = achievement.flagTimeMin;
-        this.flagTimeMax = achievement.flagTimeMax;
-
-        this.prizeMin = achievement.prizeMin;
-        this.prizeMax = achievement.prizeMax;
-        this.prizeType = achievement.prizeType;
-
-        this.turret = achievement.turret;
-
-        this.flagClaimMin = achievement.flagClaimMin;
-        this.flagClaimMax = achievement.flagClaimMax;
-        
-        this.type = achievement.type;
-
-        kills = Collections.synchronizedList(new LinkedList<KillDeath>(achievement.kills));
-        deaths = Collections.synchronizedList(new LinkedList<KillDeath>(achievement.deaths));
-        locations = Collections.synchronizedList(new LinkedList<Location>(achievement.locations));
+        this.typeMask = achievement.typeMask;
+        for (Requirement r : achievement.requirements) {
+            requirements.add(r.deepCopy());
+        }
     }
 
-    public void checkIfComplete() {
+    /**
+     * Updates the requirements for achievement of this type and verifies in any achievements completed
+     * @param type
+     * @param event
+     */
+    public boolean update(Type type, SubspaceEvent event) {
+        boolean valid = false;
+        if ((typeMask & type.value()) == type.value() && !completed) {
+            valid = updateRequirements(type, event);
+            completed = valid;
+        }
+        return valid;
+    }
 
+    /**
+     * Updates sub requirements and returns all complete
+     * @param event Subspace event
+     * @return all completed
+     */
+    protected boolean updateRequirements(Type type, SubspaceEvent event) {
+        boolean valid = true;
+        for (Requirement r : requirements) {
+            if (!r.isComplete()) {
+                if (!r.update(type, event)) {
+                    valid = false;
+                }
+            }
+        }
+        return valid;
     }
 
     /**
@@ -106,220 +118,34 @@ public final class Achievement {
         this.description = description;
     }
 
-    /**
-     * @return the ship
-     */
-    public int getShip() {
-        return ship;
+    public int getTypeMask() {
+        return typeMask;
     }
 
-    /**
-     * @param ship the ship to set
-     */
-    public void setShip(int ship) {
-        this.ship = ship;
+    public void setTypeMask(int typeMask) {
+        this.typeMask = typeMask;
     }
 
-    /**
-     * @return the timeMin
-     */
-    public int getTimeMin() {
-        return timeMin;
-    }
-
-    /**
-     * @param timeMin the timeMin to set
-     */
-    public void setTimeMin(int timeMin) {
-        this.timeMin = timeMin;
-    }
-
-    /**
-     * @return the timeMax
-     */
-    public int getTimeMax() {
-        return timeMax;
-    }
-
-    /**
-     * @param timeMax the timeMax to set
-     */
-    public void setTimeMax(int timeMax) {
-        this.timeMax = timeMax;
-    }
-
-    /**
-     * @return the prizeMin
-     */
-    public int getPrizeMin() {
-        return prizeMin;
-    }
-
-    /**
-     * @param prizeMin the prizeMin to set
-     */
-    public void setPrizeMin(int prizeMin) {
-        this.prizeMin = prizeMin;
-    }
-
-    /**
-     * @return the prizeMax
-     */
-    public int getPrizeMax() {
-        return prizeMax;
-    }
-
-    /**
-     * @param prizeMax the prizeMax to set
-     */
-    public void setPrizeMax(int prizeMax) {
-        this.prizeMax = prizeMax;
-    }
-
-    /**
-     * @return the prizeType
-     */
-    public int getPrizeType() {
-        return prizeType;
-    }
-
-    /**
-     * @param prizeType the prizeType to set
-     */
-    public void setPrizeType(int prizeType) {
-        this.prizeType = prizeType;
-    }
-
-    /**
-     * @return the turret
-     */
-    public boolean isTurret() {
-        return turret;
-    }
-
-    /**
-     * @param turret the turret to set
-     */
-    public void setTurret(boolean turret) {
-        this.turret = turret;
-    }
-
-    /**
-     * @return the type
-     */
-    public int getType() {
-        return type;
-    }
-
-    /**
-     * @param type the type to set
-     */
-    public void setType(int type) {
-        this.type = type;
-    }
-
-    /**
-     * @return the flagTimeMin
-     */
-    public int getFlagTimeMin() {
-        return flagTimeMin;
-    }
-
-    /**
-     * @param flagTimeMin the flagTimeMin to set
-     */
-    public void setFlagTimeMin(int flagTimeMin) {
-        this.flagTimeMin = flagTimeMin;
-    }
-
-    /**
-     * @return the flagTimeMax
-     */
-    public int getFlagTimeMax() {
-        return flagTimeMax;
-    }
-
-    /**
-     * @param flagTimeMax the flagTimeMax to set
-     */
-    public void setFlagTimeMax(int flagTimeMax) {
-        this.flagTimeMax = flagTimeMax;
-    }
-
-    /**
-     * @return the flagClaimMin
-     */
-    public int getFlagClaimMin() {
-        return flagClaimMin;
-    }
-
-    /**
-     * @param flagClaimMin the flagClaimMin to set
-     */
-    public void setFlagClaimMin(int flagClaimMin) {
-        this.flagClaimMin = flagClaimMin;
-    }
-
-    /**
-     * @return the flagClaimMax
-     */
-    public int getFlagClaimMax() {
-        return flagClaimMax;
-    }
-
-    /**
-     * @param flagClaimMax the flagClaimMax to set
-     */
-    public void setFlagClaimMax(int flagClaimMax) {
-        this.flagClaimMax = flagClaimMax;
-    }
-
-    /**
-     * @param kill the kill to add
-     */
-    public void addKill(KillDeath kill) {
-        synchronized (kills) {
-            kills.add(kill);
+    public void reset() {
+        this.completed = false;
+        for (Requirement r : requirements) {
+            r.reset();
         }
     }
 
-    /**
-     * @return the kills
-     */
-    public List<KillDeath> getKills() {
-        return kills;
+    public void setComplete(boolean completed) {
+        this.completed = completed;
     }
 
-    /**
-     * @param death the death to add
-     */
-    public void addDeath(KillDeath death) {
-        synchronized (deaths) {
-            deaths.add(death);
-        }
+    public boolean isComplete() {
+        return completed;
     }
 
-    /**
-     * @return the deaths
-     */
-    public List<KillDeath> getDeaths() {
-        return deaths;
+    public void addRequirement(Requirement requirement) {
+        requirements.add(requirement);
     }
 
-    /**
-     * @param location the location to add
-     */
-    public void addLocation(Location location) {
-        synchronized (locations) {
-            locations.add(location);
-        }
+    public List<Requirement> getRequirements() {
+        return requirements;
     }
-
-    /**
-     * @return the locations
-     */
-    public List<Location> getLocations() {
-        return locations;
-    }
-
 }
