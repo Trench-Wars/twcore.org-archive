@@ -1,140 +1,202 @@
 package twcore.bots.pubsystem.module.achievements;
 
+import static twcore.bots.pubsystem.module.PubAchievementsModule.botAction;
+import twcore.core.events.PlayerDeath;
+import twcore.core.events.PlayerPosition;
+import twcore.core.events.SubspaceEvent;
+import twcore.core.game.Player;
+
 /**
- *
+ * Class Location handles storing and validating required locations for
+ * achievements in the PubAchievementModule.
+ * 
  * @author spookedone
  */
-public class Location {
-    private int x = -1;
-    private int y = -1;
-    private int radius = -1;
-    private int length = -1;
-    private int width = -1;
-    private int minDistance = -1;
-    private int maxDistance = -1;
+public class Location extends Requirement {
 
-    private boolean unique = false;
-
-    //time variables
-    private long timeStamp = -1;
-    private int timeMin = -1, timeMax = -1;
-    private long flagTimeStamp = -1;
-    private int flagTimeMin = -1, flagTimeMax = -1;
-    //prize variables
-    private int prizeCurrent = -1;
-    private int prizeMin = -1, prizeMax = -1, prizeType = -1;
-
-    private boolean achieved = false;
+    private int x = -1;                     //x coordinate
+    private int y = -1;                     //y coordinate
+    private int width = -1;                 //positive distance from x coord
+    private int height = -1;                //positive distance from y coord
+    private int minRange = -1;              //minimum distance from any two coords
+    private int maxRange = -1;              //maximum distance from any two coords
+    private int pX = -1;
+    private int pY = -1;
+    private boolean lastKnown = false;
 
     /**
-     * @return the x
+     * Default Constructor
      */
-    public int getX() {
-        return x;
+    public Location() {
+        super(Type.location);
     }
 
     /**
-     * @param x the x to set
+     * Type constructor (for kill/death locations)
+     * @param type
+     */
+    public Location(Type type) {
+        super(type);
+    }
+
+    /**
+     * Copy Constructor
+     * @param location location to copy
+     */
+    public Location(Location location) {
+        super(location);
+        this.x = location.x;
+        this.y = location.y;
+        this.width = location.width;
+        this.height = location.height;
+        this.minRange = location.minRange;
+        this.maxRange = location.maxRange;
+    }
+
+    /**
+     * Validates this location.
+     *
+     * @return is valid position
+     */
+    private boolean validLocation() {
+        boolean valid = false;
+
+        //player is on coordinate
+        if (x != -1 && y != -1) {
+            if (x == pX && y == pY) {
+                valid = true;
+            }
+        }
+
+        //player is within coordinate range
+        if (minRange != -1 || maxRange != -1) {
+            int absX = Math.abs(pX - x);
+            int absY = Math.abs(pY - y);
+            double distance = Math.sqrt(Math.pow(absX, 2) + Math.pow(absY, 2));
+
+
+            //test minimum range
+            if (minRange != -1) {
+                if (distance >= minRange) {
+                    valid = true;
+                } else {
+                    return false;
+                }
+            }
+
+            //test maximum range
+            if (maxRange != -1) {
+                if (distance <= maxRange) {
+                    valid = true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        //player is within coordinate box
+        if (width != -1 && height != -1) {
+            if ((pX >= x && pX <= x + width) && (pY >= y && pY <= y + height)) {
+                valid = true;
+            } else {
+                valid = false;
+            }
+        }
+
+        return valid;
+    }
+
+    @Override
+    public boolean update(Type type, SubspaceEvent event) {
+
+        boolean valid = false;
+
+        if (type == Type.location && this.type == Type.location) {
+            PlayerPosition positionEvent = (PlayerPosition) event;
+            pX = positionEvent.getXLocation();
+            pY = positionEvent.getYLocation();
+            valid = true;
+        } else if ((type == Type.kill && this.type == Type.kill)
+                || (type == Type.death && this.type == Type.death)) {
+            PlayerDeath deathEvent = (PlayerDeath) event;
+            Player killer = botAction.getPlayer(deathEvent.getKillerID());
+            Player killee = botAction.getPlayer(deathEvent.getKilleeID());
+            if (this.type == Type.kill) {
+                pX = killee.getXLocation();
+                pY = killee.getYLocation();
+            } else if (this.type == Type.death) {
+                pX = killer.getXLocation();
+                pY = killer.getYLocation();
+            }
+            valid = true;
+        }
+
+        if (valid) {
+        if (validLocation()) {
+            completed = updateRequirements(type, event);
+        } else {
+            reset();
+        }}
+
+        return completed;
+    }
+
+    @Override
+    public void reset() {
+        pX = -1;
+        pY = -1;
+        this.completed = false;
+        resetRequirements();
+    }
+
+    /**
+     * Sets the x coordinate and isCoordinate to true
+     * @param x the x coordinate to set
      */
     public void setX(int x) {
-        this.x = x;
+        this.x = x * 16;
     }
 
     /**
-     * @return the y
-     */
-    public int getY() {
-        return y;
-    }
-
-    /**
-     * @param y the y to set
+     * Sets the y coordinate and isCoordinate to true
+     * @param y the y coordinate to set
      */
     public void setY(int y) {
-        this.y = y;
-    }
-
-    /**
-     * @return the radius
-     */
-    public int getRadius() {
-        return radius;
-    }
-
-    /**
-     * @param radius the radius to set
-     */
-    public void setRadius(int radius) {
-        this.radius = radius;
-    }
-
-    /**
-     * @return the length
-     */
-    public int getLength() {
-        return length;
-    }
-
-    /**
-     * @param legnth the length to set
-     */
-    public void setLength(int length) {
-        this.length = length;
-    }
-
-    /**
-     * @return the width
-     */
-    public int getWidth() {
-        return width;
+        this.y = y * 16;
     }
 
     /**
      * @param width the width to set
      */
     public void setWidth(int width) {
-        this.width = width;
+        this.width = width * 16;
     }
 
     /**
-     * @return the achieved
+     * @param height the height to set
      */
-    public boolean isAchieved() {
-        return achieved;
+    public void setHeight(int height) {
+        this.height = height * 16;
     }
 
     /**
-     * @param achieved the achieved to set
+     * Sets minimum range and isRange to true
+     * @param minRange the minRange to set
      */
-    public void setAchieved(boolean achieved) {
-        this.achieved = achieved;
+    public void setMinRange(int minRange) {
+        this.minRange = minRange * 16;
     }
 
     /**
-     * @return the minDistance
+     * Sets maximum range and isRange to true
+     * @param maxRange the maxRange to set
      */
-    public int getMinDistance() {
-        return minDistance;
+    public void setMaxRange(int maxRange) {
+        this.maxRange = maxRange * 16;
     }
 
-    /**
-     * @param minDistance the minDistance to set
-     */
-    public void setMinDistance(int minDistance) {
-        this.minDistance = minDistance;
-    }
-
-    /**
-     * @return the maxDistance
-     */
-    public int getMaxDistance() {
-        return maxDistance;
-    }
-
-    /**
-     * @param maxDistance the maxDistance to set
-     */
-    public void setMaxDistance(int maxDistance) {
-        this.maxDistance = maxDistance;
+    @Override
+    public Requirement deepCopy() {
+        return new Location(this);
     }
 }

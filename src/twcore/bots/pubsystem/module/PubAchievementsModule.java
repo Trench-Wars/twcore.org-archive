@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,10 +25,17 @@ import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.module.achievements.Achievement;
 import twcore.bots.pubsystem.module.achievements.KillDeath;
 import twcore.bots.pubsystem.module.achievements.Location;
+import twcore.bots.pubsystem.module.achievements.Range;
+import twcore.bots.pubsystem.module.achievements.Requirement;
+import twcore.bots.pubsystem.module.achievements.Requirement.Type;
+import twcore.bots.pubsystem.module.achievements.Ship;
+import twcore.bots.pubsystem.module.achievements.Time;
+import twcore.bots.pubsystem.pubsystem;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.*;
 import twcore.core.game.Player;
+import twcore.core.util.ByteArray;
 
 /**
  *
@@ -37,35 +45,31 @@ public final class PubAchievementsModule extends AbstractModule {
 
     private static final String XML_FILE_NAME = "C:/subspace/Achievements.xml";
     private static final boolean XML_VALIDATION = false;
-
     private final List<Achievement> achievements;
-    private Map<Short, List<Achievement>> players;
-
-    private volatile long time = -1;
+    private final Map<Short, List<Achievement>> players;
     private boolean running = false;
-
-    private enum Type {
-        kill, death, location, time, flagclaim, flagtime, turret, prize;
-
-        public int value() {
-            return 1 << ordinal();
-        }
-    };
+    public static BotAction botAction;
 
     public PubAchievementsModule(BotAction m_botAction, PubContext context) {
         super(m_botAction, context, "Achievements");
 
+        botAction = m_botAction;
         achievements = new LinkedList<Achievement>();
         players = Collections.synchronizedMap(new HashMap<Short, List<Achievement>>());
 
         synchronized (achievements) {
             reloadConfig();
         }
-        
+
+        this.enabled = true;
+
+        m_botAction.setPlayerPositionUpdating(200);
     }
 
     @Override
     public void reloadConfig() {
+        achievements.clear();
+
         SAXParserFactory factory = SAXParserFactory.newInstance();
         factory.setValidating(XML_VALIDATION);
 
@@ -87,127 +91,179 @@ public final class PubAchievementsModule extends AbstractModule {
         }
     }
 
-    public void loadPlayer(String name) {
+    public void loadPlayer(short id) {
+        if (!players.containsKey(id)) {
+        synchronized (players) {
+            List<Achievement> playerAchievements = new LinkedList<Achievement>();
+
+            for (Achievement a : achievements) {
+                playerAchievements.add(new Achievement(a));
+            }
+
+            Player p = botAction.getPlayer(id);
+            for (Achievement a : playerAchievements) {
+                a.reset();  //forces time to update
+                if ((a.getTypeMask() & Type.ship.value()) == Type.ship.value()) {
+                    for (Requirement r : a.getRequirements()) {
+                        if (r instanceof Ship) {
+                            Ship s = (Ship) r;
+                            s.setCurrent(p.getShipType());
+                        }
+                    }
+                }
+            }
+            players.put(id, playerAchievements);
+        }}
+    }
+
+    public void handleAchievement(short id, Type type, SubspaceEvent event) {
+        if (!players.containsKey(id)) {
+            loadPlayer(id);
+        }
+
+        Stack<Integer> achieveIds = new Stack<Integer>();
+        for (Achievement a : players.get(id)) {
+            boolean complete = a.update(type, event);
+            if (complete) {
+                achieveIds.push(a.getId());
+                botAction.sendPrivateMessage(id, "[Achievement Completed] "
+                        + a.getName() + " - " + a.getDescription());
+            }
+        }
+
+        //set all achievements sharing ids to complete
+        while (!achieveIds.isEmpty()) {
+            int achieveId = achieveIds.pop();
+            for (Achievement a : players.get(id)) {
+                if (a.getId() == achieveId) {
+                    a.setComplete(true);
+                }
+            }
+        }
 
     }
 
     /* EVENT */
-
     @Override
-    public void handleEvent(Message event){
-    
+    public void handleEvent(ArenaList event) {
     }
 
     @Override
-    public void handleEvent(ArenaList event){}
+    public void handleEvent(PlayerEntered event) {
+        if (running) {
+            if (!players.containsKey(event.getPlayerID())) {
+                loadPlayer(event.getPlayerID());
+            }
+        }
+    }
 
     @Override
-    public void handleEvent(PlayerEntered event){}
+    public void handleEvent(PlayerPosition event) {
+        if (running) {
+            short id = event.getPlayerID();
+            handleAchievement(id, Type.location, event);
+        }
+    }
 
     @Override
-    public void handleEvent(PlayerPosition event){}
+    public void handleEvent(PlayerLeft event) {
+        if (running) {
+            if (players.containsKey(event.getPlayerID())) {
+                players.remove(event.getPlayerID());
+            }
+        }
+    }
 
     @Override
-    public void handleEvent(PlayerLeft event){}
+    public void handleEvent(PlayerDeath event) {
+        if (running) {
+            short killeeId = event.getKilleeID();
+            short killerId = event.getKillerID();
+
+            handleAchievement(killeeId, Type.death, event);
+            handleAchievement(killerId, Type.kill, event);
+        }
+    }
 
     @Override
-    public void handleEvent(PlayerDeath event){}
+    public void handleEvent(Prize event) {
+    }
 
     @Override
-    public void handleEvent(PlayerBanner event){}
+    public void handleEvent(WeaponFired event) {
+    }
 
     @Override
-    public void handleEvent(Prize event){}
+    public void handleEvent(FrequencyChange event) {
+    }
 
     @Override
-    public void handleEvent(ScoreUpdate event){}
+    public void handleEvent(FrequencyShipChange event) {
+        if (running) {
+            short id = event.getPlayerID();
+            handleAchievement(id, Type.ship, event);
+        }
+    }
 
     @Override
-    public void handleEvent(ScoreReset event){}
+    public void handleEvent(BallPosition event) {
+    }
 
     @Override
-    public void handleEvent(SoccerGoal event){}
+    public void handleEvent(TurretEvent event) {
+    }
 
     @Override
-    public void handleEvent(WeaponFired event){}
+    public void handleEvent(FlagPosition event) {
+    }
 
     @Override
-    public void handleEvent(FrequencyChange event){}
+    public void handleEvent(FlagVictory event) {
+    }
 
     @Override
-    public void handleEvent(FrequencyShipChange event){}
+    public void handleEvent(FlagClaimed event) {
+    }
 
     @Override
-    public void handleEvent(LoggedOn event){}
-
-    @Override
-    public void handleEvent(FileArrived event){}
-
-    @Override
-    public void handleEvent(ArenaJoined event){}
-
-    @Override
-    public void handleEvent(WatchDamage event){}
-
-    @Override
-    public void handleEvent(BallPosition event){}
-
-    @Override
-    public void handleEvent(TurretEvent event){}
-
-    @Override
-    public void handleEvent(FlagPosition event){}
-
-    @Override
-    public void handleEvent(FlagDropped event){}
-
-    @Override
-    public void handleEvent(FlagVictory event){}
-
-    @Override
-    public void handleEvent(FlagReward event){}
-
-    @Override
-    public void handleEvent(FlagClaimed event){}
-
-    @Override
-    public void handleEvent(InterProcessEvent event){}
-
-    @Override
-    public void handleEvent(SQLResultEvent event) {}
-
-    @Override
-    public void handleDisconnect() {}
+    public void handleDisconnect() {
+    }
 
     @Override
     public void start() {
         Iterator<Player> i = m_botAction.getPlayerIterator();
-        while(i.hasNext()) {
-        	Player player = i.next();
-        	players.put(player.getPlayerID(), Collections.synchronizedList(
-                        new LinkedList<Achievement>(achievements)));
+        while (i.hasNext()) {
+            Player player = i.next();
+            loadPlayer(player.getPlayerID());
         }
 
-        m_botAction.scheduleTaskAtFixedRate(new TimerTask(){
+        m_botAction.scheduleTaskAtFixedRate(new TimerTask() {
 
             @Override
             public void run() {
-                time++;
+                Time.increment();
+                try {
+                for (short id : players.keySet()) {
+                    for (Achievement a : players.get(id)) {
+                        handleAchievement(id, Type.time, null);
+                    }
+                }} catch (Exception e) {}
             }
         }, 0, 1000);
-    }
 
+        running = true;
+    }
 
     @Override
     public void stop() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        players.clear();
+        m_botAction.cancelTasks();
+        running = false;
     }
 
     @Override
     public void requestEvents(EventRequester eventRequester) {
-        eventRequester.request(EventRequester.MESSAGE);
         eventRequester.request(EventRequester.PLAYER_DEATH);
-        eventRequester.request(EventRequester.PLAYER_ENTERED);
         eventRequester.request(EventRequester.PLAYER_ENTERED);
         eventRequester.request(EventRequester.PLAYER_LEFT);
         eventRequester.request(EventRequester.PLAYER_POSITION);
@@ -219,34 +275,74 @@ public final class PubAchievementsModule extends AbstractModule {
 
     @Override
     public void handleCommand(String sender, String command) {
-        if (command.startsWith("!list")) {
-            sendAchievementList(sender);
+        if (command.equals("!list")) {
+            sendAchievementList(sender, sender);
+        } else if (command.startsWith("!list ") && command.length() - 6 > 0) {
+            String player = command.substring(6);
+            sendAchievementList(sender, player);
         }
     }
 
     @Override
     public void handleModCommand(String sender, String command) {
-        if(command.startsWith("!achieve")) {
-            start();
+        if (command.startsWith("!achieve")) {
+            if (running) {
+                stop();
+                m_botAction.sendSmartPrivateMessage(sender, "Achievements have been deactivated.");
+            } else {
+                start();
+                m_botAction.sendSmartPrivateMessage(sender, "Achievements have been activated.");
+            }
+        } else if (command.startsWith("!reload")) {
+            reloadConfig();
+
+            if (running) {
+                stop();
+                start();
+            }
         }
     }
 
     @Override
     public String[] getHelpMessage(String sender) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new String[]{
+                    pubsystem.getHelpLine("!list\t\t-- Lists achievements."),
+                    pubsystem.getHelpLine("!list <name>\t--Lists player's achievements")
+                };
     }
 
     @Override
     public String[] getModHelpMessage(String sender) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new String[]{
+                    pubsystem.getHelpLine("!achieve\t\t-- Toggles achievements."),
+                    pubsystem.getHelpLine("!reload\t\t-- Reload the achievements.")
+                };
     }
 
     /**
      * Command support methods
      */
-    public void sendAchievementList(String recipient) {
-        for (Achievement a: achievements) {
-            m_botAction.sendPrivateMessage(recipient, a.getName() + " - " + a.getDescription());
+    public void sendAchievementList(String recipient, String player) {
+        if (running) {
+            Stack<Integer> ids = new Stack<Integer>();
+            Player p = m_botAction.getFuzzyPlayer(player);
+            short id = p.getPlayerID();
+            if (!players.containsKey(id)) {
+                loadPlayer(id);
+            }
+                m_botAction.sendPrivateMessage(recipient, "Achievements for "
+                        + p.getPlayerName());
+                for (Achievement a : players.get(id)) {
+                    if (!ids.contains(a.getId())) {
+                        ids.push(a.getId());
+                        m_botAction.sendPrivateMessage(recipient, "["
+                                + (a.isComplete() ? "X] " : " ] ") + a.getName()
+                                + " - " + a.getDescription());
+                    }
+                
+            }
+        } else {
+            m_botAction.sendPrivateMessage(recipient, "Achievements are not activated.");
         }
     }
 
@@ -256,12 +352,9 @@ public final class PubAchievementsModule extends AbstractModule {
     private final class AchievementHandler extends DefaultHandler {
 
         private StringBuffer buffer = new StringBuffer();
-        private Achievement achievement;
-        private KillDeath kill;
-        private KillDeath death;
+        private Stack<Requirement> requirements = new Stack<Requirement>();
+        private Achievement achievement = null;
 
-        private boolean killTag = false, deathTag = false;
-        
         @Override
         public void characters(char[] buffer, int start, int length) {
             this.buffer.append(buffer, start, length);
@@ -270,147 +363,220 @@ public final class PubAchievementsModule extends AbstractModule {
         @Override
         public void startElement(String namespace, String name, String fullName, Attributes attributes) {
             buffer.setLength(0);
-            if (name.equals("achievement")) {
-                achievement = new Achievement(Integer.parseInt(attributes.getValue("uid")));
+            if (fullName.equals("achievements")) {
+            } else if (fullName.equals("achievement")) {
+                achievement = new Achievement(Integer.parseInt(attributes.getValue("id")));
                 achievement.setName(attributes.getValue("name"));
-                String ship = attributes.getValue("ship");
-                if (ship != null) achievement.setShip(Integer.parseInt(ship));
-            } else {
-                int type = achievement.getType();
-                switch (Type.valueOf(name)) {
-                    case kill:
-                        type |= Type.kill.value();
+            } else if (fullName.equals("description")) {
+            } else if (achievement != null) {
+                int typeMask = achievement.getTypeMask();
+                try {
+                    switch (Type.valueOf(fullName)) {
+                        case kill:
+                            typeMask |= Type.kill.value();
+                            KillDeath kill = new KillDeath(Type.kill);
 
-                        kill = new KillDeath();
+                            String kMin = attributes.getValue("minimum");
+                            String kMax = attributes.getValue("maximum");
 
-                        String kMin = attributes.getValue("minimum");
-                        String kMax = attributes.getValue("maximum");
-                        String kShip = attributes.getValue("ship");
+                            if (kMin != null) {
+                                kill.setMinimum(Integer.parseInt(kMin));
+                            }
+                            if (kMax != null) {
+                                kill.setMaximum(Integer.parseInt(kMax));
+                            }
 
-                        if (kMin != null) kill.setMinimum(Integer.parseInt(kMin));
-                        if (kMax != null) kill.setMaximum(Integer.parseInt(kMax));
-                        if (kShip != null) kill.setShip(Integer.parseInt(kShip));
+                            requirements.push(kill);
 
-                        killTag = true;
+                            break;
+                        case death:
+                            typeMask |= Type.death.value();
+                            KillDeath death = new KillDeath(Type.death);
 
-                        break;
-                    case death:
-                        type |= Type.death.value();
+                            String dMin = attributes.getValue("minimum");
+                            String dMax = attributes.getValue("maximum");
 
-                        death = new KillDeath();
+                            if (dMin != null) {
+                                death.setMinimum(Integer.parseInt(dMin));
+                            }
+                            if (dMax != null) {
+                                death.setMaximum(Integer.parseInt(dMax));
+                            }
 
-                        String dMin = attributes.getValue("minimum");
-                        String dMax = attributes.getValue("maximum");
-                        String dShip = attributes.getValue("ship");
+                            requirements.push(death);
 
-                        if (dMin != null) death.setMinimum(Integer.parseInt(dMin));
-                        if (dMax != null) death.setMaximum(Integer.parseInt(dMax));
-                        if (dShip != null) death.setShip(Integer.parseInt(dShip));
+                            break;
+                        case location:
+                            typeMask |= Type.location.value();
+                            Location location;
+                            if (requirements.isEmpty()) {
+                                location = new Location();
+                            } else {
+                                Type type = requirements.peek().getType();
+                                if (type == Type.kill || type == Type.death) {
+                                    location = new Location(type);
+                                } else {
+                                    location = new Location();
+                                }
+                            }
 
-                        deathTag = true;
+                            String x = attributes.getValue("x");
+                            String y = attributes.getValue("y");
+                            String width = attributes.getValue("width");
+                            String height = attributes.getValue("height");
+                            String minRange = attributes.getValue("minimumRange");
+                            String maxRange = attributes.getValue("maximumRange");
 
-                        break;
-                    case location:
-                        type |= Type.location.value();
+                            if (x != null) {
+                                location.setX(Integer.parseInt(x));
+                            }
+                            if (y != null) {
+                                location.setY(Integer.parseInt(y));
+                            }
+                            if (width != null) {
+                                location.setWidth(Integer.parseInt(width));
+                            }
+                            if (height != null) {
+                                location.setHeight(Integer.parseInt(height));
+                            }
+                            if (minRange != null) {
+                                location.setMinRange(Integer.parseInt(minRange));
+                            }
+                            if (maxRange != null) {
+                                location.setMaxRange(Integer.parseInt(maxRange));
+                            }
 
-                        Location location = new Location();
+                            requirements.push(location);
 
-                        String x = attributes.getValue("x");
-                        String y = attributes.getValue("y");
-                        String radius = attributes.getValue("radius");
-                        String width = attributes.getValue("width");
-                        String length = attributes.getValue("legnth");
-                        String minDistance = attributes.getValue("minimumDistance");
-                        String maxDistance = attributes.getValue("maximumDistance");
+                            break;
+                        case time:
+                            typeMask |= Type.time.value();
 
-                        if (x != null) location.setX(Integer.parseInt(x));
-                        if (y != null) location.setY(Integer.parseInt(y));
-                        if (radius != null) location.setRadius(Integer.parseInt(radius));
-                        if (width != null) location.setWidth(Integer.parseInt(width));
-                        if (length != null) location.setLength(Integer.parseInt(length));
-                        if (minDistance != null) location.setMinDistance(Integer.parseInt(minDistance));
-                        if (maxDistance != null) location.setMaxDistance(Integer.parseInt(maxDistance));
+                            Time time = new Time();
 
-                        if (killTag) {
-                            kill.setLocation(location);
-                        } else if (deathTag) {
-                            death.setLocation(location);
-                        } else {
-                            achievement.addLocation(location);
-                        }
+                            String timeMin = attributes.getValue("minimum");
+                            String timeMax = attributes.getValue("maximum");
 
-                        break;
-                    case time:
-                        type |= Type.time.value();
+                            if (timeMin != null) {
+                                time.setMinimum(Integer.parseInt(timeMin));
+                            }
+                            if (timeMax != null) {
+                                time.setMaximum(Integer.parseInt(timeMax));
+                            }
 
-                        String timeMin = attributes.getValue("minimum");
-                        String timeMax = attributes.getValue("maximum");
+                            requirements.push(time);
 
-                        if (timeMin != null) achievement.setTimeMin(Integer.parseInt(timeMin));
-                        if (timeMax != null) achievement.setTimeMax(Integer.parseInt(timeMax));
+                            break;
+                        case range:
+                            typeMask |= Type.range.value();
+                            Range range = new Range();
 
-                        break;
-                    case flagclaim:
-                        type |= Type.flagclaim.value();
+                            String rangeMin = attributes.getValue("minimum");
+                            String rangeMax = attributes.getValue("maximum");
+
+                            if (rangeMin != null) {
+                                range.setMinimum(Integer.parseInt(rangeMin));
+                            }
+                            if (rangeMax != null) {
+                                range.setMaximum(Integer.parseInt(rangeMax));
+                            }
+
+                            requirements.push(range);
+                            break;
+                        case flagclaim:
+                        /*type |= Type.flagclaim.value();
+
+                        ValueRequirement flagclaim = new ValueRequirement();
 
                         String flagClaimMin = attributes.getValue("minimum");
                         String flagClaimMax = attributes.getValue("maximum");
 
-                        if (flagClaimMin != null) achievement.setFlagClaimMin(Integer.parseInt(flagClaimMin));
-                        if (flagClaimMax != null) achievement.setFlagClaimMax(Integer.parseInt(flagClaimMax));
+                        if (flagClaimMin != null) {
+                        flagclaim.setMinimum(Integer.parseInt(flagClaimMin));
+                        }
+                        if (flagClaimMax != null) {
+                        flagclaim.setMaximum(Integer.parseInt(flagClaimMax));
+                        }
 
-                        break;
-                    case flagtime:
-                        type |= Type.flagtime.value();
+                        achievement.setFlagclaim(flagclaim);
+
+                        break;*/
+                        case flagtime:
+                        /*type |= Type.flagtime.value();
+
+                        ValueRequirement flagtime = new ValueRequirement();
 
                         String flagTimeMin = attributes.getValue("minimum");
                         String flagTimeMax = attributes.getValue("maximum");
 
-                        if (flagTimeMin != null) achievement.setFlagTimeMin(Integer.parseInt(flagTimeMin));
-                        if (flagTimeMax != null) achievement.setFlagTimeMax(Integer.parseInt(flagTimeMax));
-
-                        break;
-                    case turret:
-                        type |= Type.turret.value();
-
-                        if (killTag) {
-                            kill.setTurret(true);
-                        } else if (deathTag) {
-                            death.setTurret(true);
-                        } else {
-                            achievement.setTurret(true);
+                        if (flagTimeMin != null) {
+                        flagtime.setMinimum(Integer.parseInt(flagTimeMin));
+                        }
+                        if (flagTimeMax != null) {
+                        flagtime.setMaximum(Integer.parseInt(flagTimeMax));
                         }
 
-                        break;
-                    case prize:
-                        type |= Type.prize.value();
+                        break;*/
+                        case prize:
+                        /*type |= Type.prize.value();
+
+                        ValueRequirement prize = new ValueRequirement();
 
                         String prizeMin = attributes.getValue("minimum");
                         String prizeMax = attributes.getValue("maximum");
                         String prizeType = attributes.getValue("type");
 
-                        if (prizeMin != null) achievement.setPrizeMin(Integer.parseInt(prizeMin));
-                        if (prizeMax != null) achievement.setPrizeMax(Integer.parseInt(prizeMax));
-                        if (prizeType != null) achievement.setPrizeType(Integer.parseInt(prizeType));
+                        if (prizeMin != null) {
+                        prize.setMinimum(Integer.parseInt(prizeMin));
+                        }
+                        if (prizeMax != null) {
+                        prize.setMaximum(Integer.parseInt(prizeMax));
+                        }
+                        if (prizeType != null) {
+                        //achievement.setPrizeType(Integer.parseInt(prizeType));
+                        }
 
-                        break;
+                        break;*/
+                        case ship:
+                            typeMask |= Type.ship.value();
+                            Ship ship;
+                            if (requirements.isEmpty()) {
+                                ship = new Ship(Type.ship);
+                            } else {
+                                ship = new Ship(requirements.peek().getType());
+                            }
+
+                            String shipType = attributes.getValue("type");
+
+                            if (shipType != null) {
+                                ship.setType(Integer.parseInt(shipType));
+                            }
+
+                            requirements.push(ship);
+
+                            break;
+                    }
+                    achievement.setTypeMask(typeMask);
+                } catch (Exception e) {
+                    System.err.println("Warning: " + fullName + ": " + e.getMessage());
                 }
-                achievement.setType(type);
             }
         }
 
         @Override
         public void endElement(String namespace, String name, String fullName) {
-            if (name.equals("description")) {
+            if (fullName.equals("description")) {
                 achievement.setDescription(buffer.toString().trim());
-            } else if (name.equals("kill")) {
-                killTag = false;
-                achievement.addKill(kill);
-            } else if (name.equals("death")) {
-                deathTag = false;
-                achievement.addDeath(death);
-            } else if (name.equals("achievement")) {
+            } else if (fullName.equals("achievement")) {
                 achievements.add(achievement);
+            } else if (fullName.equals("achievements")) {
+            } else if (!requirements.isEmpty()) {
+                Requirement requirement = requirements.pop();
+                if (requirements.isEmpty()) {
+                    achievement.addRequirement(requirement);
+                } else {
+                    requirements.peek().addRequirement(requirement);
+                }
             }
         }
 
@@ -439,7 +605,6 @@ public final class PubAchievementsModule extends AbstractModule {
     @Override
     public void handleSmodCommand(String sender, String command) {
         // TODO Auto-generated method stub
-        
     }
 
     @Override

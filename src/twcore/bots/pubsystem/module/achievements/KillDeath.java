@@ -1,111 +1,43 @@
 package twcore.bots.pubsystem.module.achievements;
 
+import twcore.core.events.PlayerDeath;
+import twcore.core.events.SubspaceEvent;
+
 /**
- *
+ * KillDeath Class handles storing and validating required kills or deaths for
+ * achievements in the pubsystem's pubachievementmodule.
+ * 
  * @author spookedone
  */
-public class KillDeath {
-    private int current = 0;
-    private int minimum = -1, maximum = -1, ship = -1;
-    private boolean turret = false;
-    private Location location = null;
-    private boolean complete = false;
+public class KillDeath extends ValueRequirement {
 
     /**
-     * @return the current
+     * Default Constructor
+     * @param type type of requirement this is (kill or death)
      */
-    public int getCurrent() {
-        return current;
+    public KillDeath(Type type) {
+        super(type);
     }
 
-    /**
-     * @param current the current to set
-     */
-    public void setCurrent(int current) {
-        this.current = current;
+    public KillDeath(KillDeath killDeath) {
+        super(killDeath);
     }
 
-    /**
-     * @return the minimum
-     */
-    public int getMinimum() {
-        return minimum;
+    @Override
+    public boolean update(Type type, SubspaceEvent event) {
+        if (event instanceof PlayerDeath) {
+            boolean valid = updateRequirements(type, event);
+
+            if (valid && this.type == type) {
+                current++;
+            }
+        }
+
+        return super.update(type, event);
     }
 
-    /**
-     * @param minimum the minimum to set
-     */
-    public void setMinimum(int minimum) {
-        this.minimum = minimum;
-    }
-
-    /**
-     * @return the maximum
-     */
-    public int getMaximum() {
-        return maximum;
-    }
-
-    /**
-     * @param maximum the maximum to set
-     */
-    public void setMaximum(int maximum) {
-        this.maximum = maximum;
-    }
-
-    /**
-     * @return the ship
-     */
-    public int getShip() {
-        return ship;
-    }
-
-    /**
-     * @param ship the ship to set
-     */
-    public void setShip(int ship) {
-        this.ship = ship;
-    }
-
-    /**
-     * @return the turret
-     */
-    public boolean isTurret() {
-        return turret;
-    }
-
-    /**
-     * @param turret the turret to set
-     */
-    public void setTurret(boolean turret) {
-        this.turret = turret;
-    }
-
-    /**
-     * @return the location
-     */
-    public Location getLocation() {
-        return location;
-    }
-
-    /**
-     * @param location the location to set
-     */
-    public void setLocation(Location location) {
-        this.location = location;
-    }
-
-    /**
-     * @return the complete
-     */
-    public boolean isComplete() {
-        return complete;
-    }
-
-    /**
-     * @param complete the complete to set
-     */
-    public void setComplete(boolean complete) {
-        this.complete = complete;
+    @Override
+    public Requirement deepCopy() {
+        return new KillDeath(this);
     }
 }
