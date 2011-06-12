@@ -1746,7 +1746,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	
     }
     
-    private void itemCommandBaseTer(String sender, String params) {
+    private void itemCommandBaseTerr(String sender, String params) {
 
     	m_botAction.sendSmartPrivateMessage(sender, "Please wait while looking for a bot..");
 
