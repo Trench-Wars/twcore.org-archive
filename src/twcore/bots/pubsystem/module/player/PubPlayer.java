@@ -40,7 +40,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private int deathsOnShipItem = 0;
     
     // Epoch time
-    private long lastBigItemUsed = System.currentTimeMillis();
+    private long lastBigItemUsed = 0;
     private long lastMoneyUpdate = System.currentTimeMillis();
     private long lastMoneySavedState = System.currentTimeMillis();
     private long lastSavedState = System.currentTimeMillis();
