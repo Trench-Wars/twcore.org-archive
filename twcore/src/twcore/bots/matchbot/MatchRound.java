@@ -703,11 +703,11 @@ public class MatchRound
             if ((m_team1.getPlayer(playerName, true) != null)
                 && (event.getXLocation() / 16 != m_rules.getInt("safe1x"))
                 && (event.getYLocation() / 16 != m_rules.getInt("safe1y")))
-                m_botAction.warpTo(event.getPlayerID(), m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
+                ;//m_botAction.warpTo(event.getPlayerID(), m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
             if ((m_team2.getPlayer(playerName, true) != null)
                 && (event.getXLocation() / 16 != m_rules.getInt("safe2x"))
                 && (event.getYLocation() / 16 != m_rules.getInt("safe2y")))
-                m_botAction.warpTo(event.getPlayerID(), m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
+                ;//m_botAction.warpTo(event.getPlayerID(), m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
         }
         else if (m_fnRoundState == 3)
         {

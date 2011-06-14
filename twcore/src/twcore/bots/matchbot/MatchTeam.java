@@ -378,9 +378,10 @@ public class MatchTeam
                 idleTime = getIdleTime(msg);
                 if (isPlayerOnTeam(name))
                 {
-                    if (!resCheck.containsKey(name.toLowerCase()))
+                    if (!resCheck.containsKey(name.toLowerCase())) {
                         sendPrivateMessageToCaptains(name + " has been idle for " + idleTime + " seconds.");
-                    m_round.m_lagHandler.requestLag(name, "!" + m_fcTeamName);
+                        m_round.m_lagHandler.requestLag(name, "!" + m_fcTeamName);
+                    }
                 }
             }
 
