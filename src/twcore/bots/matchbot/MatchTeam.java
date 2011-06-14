@@ -427,7 +427,6 @@ public class MatchTeam
                         };
                         m_botAction.scheduleTask(t, 4000);                        
                     }
-                    return;
                 }
                 
                 MatchPlayer player = getPlayer(name);
