@@ -415,8 +415,12 @@ public class MatchTeam
                 String userid = getInfo(msg, "UserId:");
                 String resolution = getInfo(msg, "Res:");
                 if (!resolution.isEmpty()) {
-                    if (resCheck.containsKey(name.toLowerCase()))
+                    m_botAction.sendArenaMessage("got resolution " + resolution + " for " + name);
+                    if (resCheck.containsKey(name.toLowerCase())) {
+                        m_botAction.sendArenaMessage("resCheck exists");
                         resCheck.remove(name.toLowerCase()).check(resolution);
+                    } else
+                        m_botAction.sendArenaMessage("resCheck fail");
                 } else if (resCheck.containsKey(name.toLowerCase())) {
                     final String n = name;
                     TimerTask t = new TimerTask() {
@@ -1302,10 +1306,7 @@ public class MatchTeam
             lagger = parameters[0];
 
         p = getPlayer(lagger);
-        if (p != null
-                && (m_rules.getInt("rosterjoined") == 0 || getTeamName().equalsIgnoreCase(
-                        m_botAction.getPlayer(lagger).getSquadName())))
-        {
+        if (p != null && (m_rules.getInt("rosterjoined") == 0 || getTeamName().equalsIgnoreCase(m_botAction.getPlayer(lagger).getSquadName()))) {
             // put player back in, returns message to report if it's succesful
 
             //if twdd gametype
@@ -1314,7 +1315,7 @@ public class MatchTeam
                 if (commandByOther)
                     rc.cap = name;
                 resCheck.put(lagger.toLowerCase(), rc);
-                m_botAction.sendUnfilteredPrivateMessage(p.getPlayerName(), "*einfo");
+                m_botAction.sendUnfilteredPrivateMessage(lagger, "*einfo");
                 return;
             }
             
@@ -2654,17 +2655,15 @@ public class MatchTeam
                     } else if (type == LAG) {
                         MatchPlayer p = getPlayer(name);
                         String message = p.lagin();
-                        if (message.equals("yes"))
-                        {
+                        if (message.equals("yes")) {
                             if (m_rules.getInt("storegame") != 0)
                                 m_round.events.add(MatchRoundEvent.lagin(p.m_dbPlayer.getUserID()));
-               
+
                             if (cap.length() > 0)
                                 m_logger.sendPrivateMessage(cap, "Player is back in, " + p.getLagoutsLeft() + " lagouts left");
-                        }
-                        else
-                        {
-                            // if not succesful, inform either the host/captain or the player himself:
+                        } else {
+                            // if not succesful, inform either the host/captain
+                            // or the player himself:
                             if (cap.length() > 0)
                                 m_logger.sendPrivateMessage(cap, "Couldn't put player back in: " + message);
                             else
@@ -2672,7 +2671,6 @@ public class MatchTeam
                         }
                     }
                 }
-
             } catch (NumberFormatException e) {
                 resCheck.put(name.toLowerCase(), this);
                 TimerTask t = new TimerTask() {
