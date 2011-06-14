@@ -68,6 +68,13 @@ public class MatchTeam
 	int m_lagID = 0;
 
 	HashMap<String, Boolean> checkPlayerMID;
+	HashMap<String, ResCheck> resCheck;
+	
+	final static int ADD = 0;
+    final static int SUB = 1;
+    final static int LAG = 2;
+    final static int MAX_RES_X = 1440;
+    final static int MAX_RES_Y = 1024;
 
     // 0 - no forfeit, 1 - forfeitwin, 2 - forfeitloss
     int m_fnForfeit;
@@ -112,6 +119,7 @@ public class MatchTeam
         m_players = new LinkedList<MatchPlayer>();
         m_captains = new LinkedList<String>();
         checkPlayerMID = new HashMap<String,Boolean>();
+        resCheck = new HashMap<String, ResCheck>();
         m_fnFrequency = fnFrequency;
         m_fbReadyToGo = false;
         m_teamCancel = false;
@@ -406,9 +414,20 @@ public class MatchTeam
                 String name = msg.substring(0, msg.indexOf(':'));
                 String userid = getInfo(msg, "UserId:");
                 String resolution = getInfo(msg, "Res:");
-                
+                if (!resolution.isEmpty()) {
+                    if (resCheck.containsKey(name.toLowerCase()))
+                        resCheck.remove(name.toLowerCase()).check(resolution);
+                } else if (resCheck.containsKey(name.toLowerCase())) {
+                    final String n = name;
+                    TimerTask t = new TimerTask() {
+                        public void run() {
+                            m_botAction.sendUnfilteredPrivateMessage(n, "*einfo");
+                        }
+                    };
+                    m_botAction.scheduleTask(t, 4000);
+                }
                 MatchPlayer player = getPlayer(name);
-
+                
                 if(player != null && userid != null && userid.length() > 0) {
                 	if (!resolution.isEmpty())
                 		player.resolution = resolution;
@@ -700,6 +719,9 @@ public class MatchTeam
                         command_lagout(name, parameters);
                     if (command.equals("!blueout"))
                         command_blueout(name, parameters);
+                    if (command.equals("!pa")) {
+                        command_promoteTemp(name, parameters);
+                    }
                 }
                 else if (m_round.m_fnRoundState == 2)
                 {
@@ -845,6 +867,16 @@ public class MatchTeam
                 			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
                 			return;
             		}
+            	}
+            	
+            	//if twdd gametype
+            	if (m_round.getGame().m_fnMatchTypeID == 4) {
+            	    ResCheck rc = new ResCheck(p.getPlayerName(), ADD);
+            	    rc.cap = name;
+            	    rc.ship = fnShip;
+            	    resCheck.put(p.getPlayerName().toLowerCase(), rc);
+            	    m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*einfo");
+            	    return;
             	}
             	
                 answer = addPlayer(p.getPlayerName(), fnShip, true, false);    
@@ -1275,6 +1307,17 @@ public class MatchTeam
                         m_botAction.getPlayer(lagger).getSquadName())))
         {
             // put player back in, returns message to report if it's succesful
+
+            //if twdd gametype
+            if (m_round.getGame().m_fnMatchTypeID == 4) {
+                ResCheck rc = new ResCheck(lagger, LAG);
+                if (commandByOther)
+                    rc.cap = name;
+                resCheck.put(lagger.toLowerCase(), rc);
+                m_botAction.sendUnfilteredPrivateMessage(p.getPlayerName(), "*einfo");
+                return;
+            }
+            
             message = p.lagin();
             if (message.equals("yes"))
             {
@@ -1296,6 +1339,28 @@ public class MatchTeam
         else
             m_logger.sendPrivateMessage(name, "Player isn't in the game");
 
+    }
+    
+    public void command_promoteTemp(String name, String[] param) { 
+        String player = m_botAction.getFuzzyPlayerName(param[0]);
+        if (player == null) {
+            m_logger.sendPrivateMessage(name, "Player not found.");
+            return;            
+        }
+        
+        if (!isPlayerOnTeam(player)) {
+            m_logger.sendPrivateMessage(name, "The player you wish to temporarily promote must be on your squad.");
+            return;
+        }
+        
+        if (isCaptain(player)) {
+            m_logger.sendPrivateMessage(name, "The player you wish to temporarily promote is already a captain.");
+            return;            
+        }
+        
+        m_captains.add(player.toLowerCase());
+        m_botAction.sendSquadMessage(m_fcTeamName, player + " has been temporarily promoted to assisstant captain for one round.");
+        
     }
 
     // substitutes a player with another
@@ -1332,6 +1397,17 @@ public class MatchTeam
 
                 if (m_round.m_fnRoundState == 3)
                 {
+
+                    //if twdd gametype
+                    if (m_round.getGame().m_fnMatchTypeID == 4) {
+                        ResCheck rc = new ResCheck(playerB, SUB);
+                        rc.cap = name;
+                        rc.sub = playerA;
+                        resCheck.put(playerB.toLowerCase(), rc);
+                        m_botAction.sendUnfilteredPrivateMessage(playerB, "*einfo");
+                        return;
+                    }
+                    
                     pA = getPlayer(playerA);
                     if (pA != null)
                     {
@@ -1361,7 +1437,6 @@ public class MatchTeam
                             }
                             else
                                 m_logger.sendPrivateMessage(name, "There's already a substitute request being processed, please wait...");
-
                         }
                         else
                             dosubstitute(name, playerA, playerB);
@@ -2492,5 +2567,112 @@ public class MatchTeam
 	    }
 	    return true;
    }    	
+    
+    public class ResCheck {
+        String name;
+        int type;
+        String cap, sub;
+        int ship;
+        
+        public ResCheck(String name, int type) {
+            this.name = name; // can be subbing IN
+            this.type = type;
+            sub = "";
+            cap = "";
+            ship = 0;
+        }
+        
+        public void check(String res) {
+            int[] r = new int[2];
+            try {
+                String[] rx = res.split("x");
+                r[0] = Integer.valueOf(rx[0]);
+                r[1] = Integer.valueOf(rx[1]);
+                if (r[0] > MAX_RES_X || r[1] > MAX_RES_Y) {
+                    if (type == ADD) {
+                        m_botAction.sendSmartPrivateMessage(name, "Maximum resolution for this arena is " + MAX_RES_X + "x" + MAX_RES_Y + ". Until you change your resolution, you cannot be added.");
+                        if (!cap.equals(name))
+                            m_botAction.sendSmartPrivateMessage(cap, name + " exceeds the maximum resolution for this arena (" + MAX_RES_X + "x" + MAX_RES_Y + ") and cannot be added.");
+                        return;
+                    }
+                } else {
+                    if (type == ADD) {
+                        String answer = addPlayer(name, ship, true, false);
+
+                        if (answer.equals("yes")) {
+
+                            m_logger.sendPrivateMessage(cap, "Player " + name + " added to " + m_fcTeamName);
+                            m_logger.sendPrivateMessage(name, "You've been put in the game");
+
+                            if (m_rules.getInt("pickbyturn") == 1) {
+                                m_turn = !m_turn;
+                                m_round.determineNextPick();
+                            }
+
+                        } else {
+                            m_logger.sendPrivateMessage(cap, "Could not add player " + name + ": " + answer);
+                        }
+                    } else if (type == SUB) {
+                        MatchPlayer pA = getPlayer(sub);
+                        if (pA != null) {
+                            int subdelaytime = m_rules.getInt("subdelaytime");
+                            if (subdelaytime > 5)
+                                subdelaytime = 5;
+                            if (subdelaytime > 0) {
+                                m_logger.sendPrivateMessage(cap, "Your substitute request will be processed in a few seconds");
+                                // if the timertask isn't busy then create timertask
+                                if ((nme == "-ready-") && (plA == "-ready-") && (plB == "-ready-")) {
+                                    nme = cap;
+                                    plA = sub;
+                                    plB = this.name;
+                                    m_substituteDelay = new TimerTask() {
+                                        public void run() {
+                                            dosubstitute(nme, plA, plB);
+                                            nme = "-ready-";
+                                            plA = "-ready-";
+                                            plB = "-ready-";
+                                        }
+                                    };
+                                    m_botAction.scheduleTask(m_substituteDelay, subdelaytime * 1000);
+                                } else
+                                    m_logger.sendPrivateMessage(cap, "There's already a substitute request being processed, please wait...");
+                            } else
+                                dosubstitute(cap, sub, name);
+                        }
+                        if (pA != null)
+                            pA.setAboutToBeSubbed(false);
+                    } else if (type == LAG) {
+                        MatchPlayer p = getPlayer(name);
+                        String message = p.lagin();
+                        if (message.equals("yes"))
+                        {
+                            if (m_rules.getInt("storegame") != 0)
+                                m_round.events.add(MatchRoundEvent.lagin(p.m_dbPlayer.getUserID()));
+               
+                            if (cap.length() > 0)
+                                m_logger.sendPrivateMessage(cap, "Player is back in, " + p.getLagoutsLeft() + " lagouts left");
+                        }
+                        else
+                        {
+                            // if not succesful, inform either the host/captain or the player himself:
+                            if (cap.length() > 0)
+                                m_logger.sendPrivateMessage(cap, "Couldn't put player back in: " + message);
+                            else
+                                m_logger.sendPrivateMessage(name, "Couldn't put you back in: " + message);
+                        }
+                    }
+                }
+
+            } catch (NumberFormatException e) {
+                resCheck.put(name.toLowerCase(), this);
+                TimerTask t = new TimerTask() {
+                    public void run() {
+                        m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
+                    }
+                };
+                m_botAction.scheduleTask(t, 5000);
+            }
+        }
+    }
 }
 
