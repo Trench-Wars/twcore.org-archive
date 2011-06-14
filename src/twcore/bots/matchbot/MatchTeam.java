@@ -2594,6 +2594,14 @@ public class MatchTeam
                         if (!cap.equals(name))
                             m_botAction.sendSmartPrivateMessage(cap, name + " exceeds the maximum resolution for this arena (" + MAX_RES_X + "x" + MAX_RES_Y + ") and cannot be added.");
                         return;
+                    } else if (type == SUB) {
+                        m_botAction.sendSmartPrivateMessage(name, "Maximum resolution for this arena is " + MAX_RES_X + "x" + MAX_RES_Y + ". Until you change your resolution, you cannot be added or subbed in.");
+                        if (!cap.equals(name))
+                            m_botAction.sendSmartPrivateMessage(cap, name + " exceeds the maximum resolution for this arena (" + MAX_RES_X + "x" + MAX_RES_Y + ") and cannot be subbed in.");  
+                    } else if (type == LAG) {
+                        m_botAction.sendSmartPrivateMessage(name, "Maximum resolution for this arena is " + MAX_RES_X + "x" + MAX_RES_Y + ". Until you change your resolution, you cannot return to the game.");
+                        if (!cap.equals(name))
+                            m_botAction.sendSmartPrivateMessage(cap, name + " exceeds the maximum resolution for this arena (" + MAX_RES_X + "x" + MAX_RES_Y + ") and cannot be returned to the game.");
                     }
                 } else {
                     if (type == ADD) {
