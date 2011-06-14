@@ -414,22 +414,22 @@ public class MatchTeam
                 String name = msg.substring(0, msg.indexOf(':'));
                 String userid = getInfo(msg, "UserId:");
                 String resolution = getInfo(msg, "Res:");
-                if (!resolution.isEmpty()) {
-                    m_botAction.sendArenaMessage("got resolution " + resolution + " for " + name);
-                    if (resCheck.containsKey(name.toLowerCase())) {
-                        m_botAction.sendArenaMessage("resCheck exists");
+                
+                if (resCheck.containsKey(name.toLowerCase())) {
+                    if (!resolution.isEmpty()) {
                         resCheck.remove(name.toLowerCase()).check(resolution);
-                    } else
-                        m_botAction.sendArenaMessage("resCheck fail");
-                } else if (resCheck.containsKey(name.toLowerCase())) {
-                    final String n = name;
-                    TimerTask t = new TimerTask() {
-                        public void run() {
-                            m_botAction.sendUnfilteredPrivateMessage(n, "*einfo");
-                        }
-                    };
-                    m_botAction.scheduleTask(t, 4000);
+                    } else {
+                        final String n = name;
+                        TimerTask t = new TimerTask() {
+                            public void run() {
+                                m_botAction.sendUnfilteredPrivateMessage(n, "*einfo");
+                            }
+                        };
+                        m_botAction.scheduleTask(t, 4000);                        
+                    }
+                    return;
                 }
+                
                 MatchPlayer player = getPlayer(name);
                 
                 if(player != null && userid != null && userid.length() > 0) {
@@ -849,71 +849,59 @@ public class MatchTeam
     }
 
     // adds a player to the team (ship specified)
-    public void command_add(String name, String[] parameters)
-    {
-        try
-        {
+    public void command_add(String name, String[] parameters) {
+        try {
             String answer;
             int fnShip = m_rules.getInt("ship");
             if ((fnShip == 0) && (parameters.length == 2))
                 fnShip = Integer.parseInt(parameters[1]);
-            if (fnShip != 0)
-            {
+            if (fnShip != 0) {
                 Player p;
                 p = m_botAction.getPlayer(parameters[0]);
-                if( p == null )
+                if (p == null)
                     p = m_botAction.getFuzzyPlayer(parameters[0]);
                 parameters[0] = p.getPlayerName();
-                
-                //if twfd gametype
-            	if (m_round.getGame().m_fnMatchTypeID == 17)	{
-            		if(!(CheckLine(fnShip,0)==true))	{
-                			m_logger.sendPrivateMessage(name,"You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
-                			return;
-            		}
-            	}
-            	
-            	//if twdd gametype
-            	if (m_round.getGame().m_fnMatchTypeID == 4) {
-            	    ResCheck rc = new ResCheck(p.getPlayerName(), ADD);
-            	    rc.cap = name;
-            	    rc.ship = fnShip;
-            	    resCheck.put(p.getPlayerName().toLowerCase(), rc);
-            	    m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*einfo");
-            	    return;
-            	}
-            	
-                answer = addPlayer(p.getPlayerName(), fnShip, true, false);    
-                
-	            	if (answer.equals("yes"))
-	                {      	
-	
-	                	
-	                    m_logger.sendPrivateMessage(name, "Player " + p.getPlayerName() + " added to " + m_fcTeamName);
-	                    m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game");
-	
-	                    m_botAction.sendUnfilteredPrivateMessage(p.getPlayerName(), "*einfo");
-	
-	                    if (m_rules.getInt("pickbyturn") == 1)
-	                    {
-	                        m_turn = !m_turn;
-	                        m_round.determineNextPick();
-	                    }
-	                    
-	                }
-	                else
-	                {
-	                    m_logger.sendPrivateMessage(name, "Could not add player " + parameters[0] + ": " + answer);
-	                }
-            }
-            else
-                m_logger.sendPrivateMessage(name,
-                        "Specify ship, for example: !add Sphonk:3 to set the player is a spider");
-        }
-        catch (Exception e)
-        {
-            m_logger.sendPrivateMessage(name, "Could not add player " + parameters[0]
-                    + ": unknown error in command_add (" + e.getMessage() + ")");
+
+                // if twfd gametype
+                if (m_round.getGame().m_fnMatchTypeID == 17) {
+                    if (!(CheckLine(fnShip, 0) == true)) {
+                        m_logger.sendPrivateMessage(name,
+                                "You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
+                        return;
+                    }
+                }
+
+                // if twdd gametype
+                if (m_round.getGame().m_fnMatchTypeID == 4) {
+                    ResCheck rc = new ResCheck(p.getPlayerName(), ADD);
+                    rc.cap = name;
+                    rc.ship = fnShip;
+                    resCheck.put(p.getPlayerName().toLowerCase(), rc);
+                    m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*einfo");
+                    return;
+                }
+
+                answer = addPlayer(p.getPlayerName(), fnShip, true, false);
+
+                if (answer.equals("yes")) {
+
+                    m_logger.sendPrivateMessage(name, "Player " + p.getPlayerName() + " added to " + m_fcTeamName);
+                    m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game");
+
+                    m_botAction.sendUnfilteredPrivateMessage(p.getPlayerName(), "*einfo");
+
+                    if (m_rules.getInt("pickbyturn") == 1) {
+                        m_turn = !m_turn;
+                        m_round.determineNextPick();
+                    }
+
+                } else {
+                    m_logger.sendPrivateMessage(name, "Could not add player " + parameters[0] + ": " + answer);
+                }
+            } else
+                m_logger.sendPrivateMessage(name, "Specify ship, for example: !add Sphonk:3 to set the player is a spider");
+        } catch (Exception e) {
+            m_logger.sendPrivateMessage(name, "Could not add player " + parameters[0] + ": unknown error in command_add (" + e.getMessage() + ")");
         }
     }
 
@@ -1312,6 +1300,7 @@ public class MatchTeam
             //if twdd gametype
             if (m_round.getGame().m_fnMatchTypeID == 4) {
                 ResCheck rc = new ResCheck(lagger, LAG);
+                rc.p = p;
                 if (commandByOther)
                     rc.cap = name;
                 resCheck.put(lagger.toLowerCase(), rc);
@@ -1402,6 +1391,7 @@ public class MatchTeam
                     //if twdd gametype
                     if (m_round.getGame().m_fnMatchTypeID == 4) {
                         ResCheck rc = new ResCheck(playerB, SUB);
+                        rc.p = getPlayer(playerA);
                         rc.cap = name;
                         rc.sub = playerA;
                         resCheck.put(playerB.toLowerCase(), rc);
@@ -2574,6 +2564,7 @@ public class MatchTeam
         int type;
         String cap, sub;
         int ship;
+        MatchPlayer p;
         
         public ResCheck(String name, int type) {
             this.name = name; // can be subbing IN
@@ -2581,6 +2572,7 @@ public class MatchTeam
             sub = "";
             cap = "";
             ship = 0;
+            p = getPlayer(name);
         }
         
         public void check(String res) {
@@ -2614,6 +2606,8 @@ public class MatchTeam
 
                             m_logger.sendPrivateMessage(cap, "Player " + name + " added to " + m_fcTeamName);
                             m_logger.sendPrivateMessage(name, "You've been put in the game");
+                            
+                            m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
 
                             if (m_rules.getInt("pickbyturn") == 1) {
                                 m_turn = !m_turn;
@@ -2624,7 +2618,7 @@ public class MatchTeam
                             m_logger.sendPrivateMessage(cap, "Could not add player " + name + ": " + answer);
                         }
                     } else if (type == SUB) {
-                        MatchPlayer pA = getPlayer(sub);
+                        MatchPlayer pA = p;
                         if (pA != null) {
                             int subdelaytime = m_rules.getInt("subdelaytime");
                             if (subdelaytime > 5)
@@ -2649,9 +2643,8 @@ public class MatchTeam
                                     m_logger.sendPrivateMessage(cap, "There's already a substitute request being processed, please wait...");
                             } else
                                 dosubstitute(cap, sub, name);
-                        }
-                        if (pA != null)
                             pA.setAboutToBeSubbed(false);
+                        }
                     } else if (type == LAG) {
                         MatchPlayer p = getPlayer(name);
                         String message = p.lagin();
