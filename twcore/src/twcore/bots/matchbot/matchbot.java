@@ -479,6 +479,7 @@ public class matchbot extends SubspaceBot {
 
         if ((messageType == Message.PRIVATE_MESSAGE)
                 || ((messageType == Message.REMOTE_PRIVATE_MESSAGE) && (message.toLowerCase().startsWith("!accept")))
+                || ((messageType == Message.REMOTE_PRIVATE_MESSAGE) && (message.toLowerCase().startsWith("!ch")))
                 || ((messageType == Message.REMOTE_PRIVATE_MESSAGE) && (message.toLowerCase().startsWith("!off")))) {
             String name = m_botAction.getPlayerName(event.getPlayerID());
             if (name == null) {
@@ -1326,7 +1327,7 @@ public class matchbot extends SubspaceBot {
                                     if (dp.isRankAssistantMinimum()
                                             && m_rules.getInt("anyone_can_start_game") != 1) {
                                         m_isStartingUp = true;
-                                        m_botAction.sendSquadMessage(nmySquad, "A game of "
+                                        /*m_botAction.sendSquadMessage(nmySquad, "A game of "
                                                 + r.getPlayersNum()
                                                 + "vs"
                                                 + r.getPlayersNum()
@@ -1347,7 +1348,7 @@ public class matchbot extends SubspaceBot {
                                                 + r.getChallenger()
                                                 + " will start in ?go "
                                                 + m_botAction.getArenaName()
-                                                + " in 30 seconds");
+                                                + " in 30 seconds");*/
                                         m_botAction.sendArenaMessage(r.getChallenger()
                                                 + " vs. "
                                                 + dp.getTeamName()
@@ -1385,7 +1386,7 @@ public class matchbot extends SubspaceBot {
                                             }
                                         };
 
-                                        m_botAction.scheduleTask(m_startGameTimer, 30000);
+                                        m_botAction.scheduleTask(m_startGameTimer, 10000);
                                     } else
                                         m_botAction.sendPrivateMessage(name, "You're not allowed to accept challenges for your squad");
                                 } else
