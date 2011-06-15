@@ -549,7 +549,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		lastDeath = System.currentTimeMillis();
 		
 		// Get *einfo on first death to get a proper resolution
-		if (m_statTracker.getStatistic(Statistics.DEATHS) == 1)
+		if (m_team.m_round.m_game.m_fnMatchTypeID != 4 && m_statTracker.getStatistic(Statistics.DEATHS) == 1)
 			m_botAction.sendUnfilteredPrivateMessage(getPlayerName(), "*einfo");
 		
 		// Lag check timer cancel
@@ -688,7 +688,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	// lagout event (when a player lags out to spec)
 	public void lagout(boolean fbOutOfArena)
 	{
-		m_statTracker.endNow();
+		//m_statTracker.endNow();
 
 		resetOutOfBorderTime();
 		if (fbOutOfArena)
