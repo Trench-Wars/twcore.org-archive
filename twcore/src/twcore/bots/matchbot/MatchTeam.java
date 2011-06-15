@@ -416,10 +416,9 @@ public class MatchTeam
                 String resolution = getInfo(msg, "Res:");
                 
                 if (resCheck.containsKey(name.toLowerCase())) {
-                    if (!resolution.isEmpty()) {
+                    if (!resolution.isEmpty())
                         resCheck.remove(name.toLowerCase()).check(resolution);
-                        return;
-                    } else {
+                    else {
                         final String n = name;
                         TimerTask t = new TimerTask() {
                             public void run() {
