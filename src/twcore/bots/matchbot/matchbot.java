@@ -928,7 +928,9 @@ public class matchbot extends SubspaceBot {
         try {
             Player p = m_botAction.getPlayer(name);
             // check if he isn't challenging his own squad
-            if (!p.getSquadName().equalsIgnoreCase(args[0])) {
+
+            DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
+            if ((p.getPlayerName().equalsIgnoreCase(name) && !p.getSquadName().equalsIgnoreCase(args[0])) || (!dp.getTeamName().equalsIgnoreCase(args[0]))) {
                 int players;
                 String arena;
                 if (args.length == 3) {
@@ -938,7 +940,6 @@ public class matchbot extends SubspaceBot {
                     arena = args[1].toLowerCase();
                     players = -1;
                 }
-                DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
                 if (!dp.isRankAssistantMinimum()
                         && m_rules.getInt("anyone_can_start_game") != 1) {
                     m_botAction.sendSmartPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
