@@ -369,7 +369,7 @@ public class MatchTeam
         if (event.getMessageType() == Message.ARENA_MESSAGE)
         {
             String msg = event.getMessage();
-            if (msg.indexOf("Idle:") != -1)
+            if (msg.indexOf("Idle:") != -1 && !resCheck.containsKey(msg.substring(0, msg.indexOf(":")).toLowerCase()))
             {
                 String name;
                 int idleTime;
@@ -414,10 +414,11 @@ public class MatchTeam
                 String name = msg.substring(0, msg.indexOf(':'));
                 String userid = getInfo(msg, "UserId:");
                 String resolution = getInfo(msg, "Res:");
-                /*
+                
                 if (resCheck.containsKey(name.toLowerCase())) {
                     if (!resolution.isEmpty()) {
                         resCheck.remove(name.toLowerCase()).check(resolution);
+                        return;
                     } else {
                         final String n = name;
                         TimerTask t = new TimerTask() {
@@ -428,7 +429,7 @@ public class MatchTeam
                         m_botAction.scheduleTask(t, 4000);                        
                     }
                 }
-                */
+                
                 MatchPlayer player = getPlayer(name);
                 
                 if(player != null && userid != null && userid.length() > 0) {
@@ -869,7 +870,7 @@ public class MatchTeam
                         return;
                     }
                 }
-                /*
+
                 // if twdd gametype
                 if (m_round.getGame().m_fnMatchTypeID == 4) {
                     ResCheck rc = new ResCheck(p.getPlayerName(), ADD);
@@ -879,7 +880,6 @@ public class MatchTeam
                     m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*einfo");
                     return;
                 }
-                */
 
                 answer = addPlayer(p.getPlayerName(), fnShip, true, false);
 
@@ -1296,7 +1296,7 @@ public class MatchTeam
         p = getPlayer(lagger);
         if (p != null && (m_rules.getInt("rosterjoined") == 0 || getTeamName().equalsIgnoreCase(m_botAction.getPlayer(lagger).getSquadName()))) {
             // put player back in, returns message to report if it's succesful
-            /*
+
             //if twdd gametype
             if (m_round.getGame().m_fnMatchTypeID == 4) {
                 ResCheck rc = new ResCheck(lagger, LAG);
@@ -1307,7 +1307,6 @@ public class MatchTeam
                 m_botAction.sendUnfilteredPrivateMessage(lagger, "*einfo");
                 return;
             }
-            */
             
             message = p.lagin();
             if (message.equals("yes"))
@@ -1388,7 +1387,7 @@ public class MatchTeam
 
                 if (m_round.m_fnRoundState == 3)
                 {
-                    /*
+
                     //if twdd gametype
                     if (m_round.getGame().m_fnMatchTypeID == 4) {
                         ResCheck rc = new ResCheck(playerB, SUB);
@@ -1399,7 +1398,6 @@ public class MatchTeam
                         m_botAction.sendUnfilteredPrivateMessage(playerB, "*einfo");
                         return;
                     }
-                    */
                     
                     pA = getPlayer(playerA);
                     if (pA != null)
@@ -1834,7 +1832,7 @@ public class MatchTeam
 
         ListIterator<MatchPlayer> i = m_players.listIterator();
         int retval = 0;
-
+        
         while (i.hasNext())
         {
             p = i.next();

@@ -498,6 +498,10 @@ public class MatchRound
                 m_team2.handleEvent(event);
             }
             
+            if ((m_fnRoundState == 2 || m_fnRoundState == 3) && event.getMessage().contains("Res:")) {
+                m_team1.handleEvent(event);
+                m_team2.handleEvent(event);                
+            }
             
 
             m_lagHandler.handleLagMessage(msg);
