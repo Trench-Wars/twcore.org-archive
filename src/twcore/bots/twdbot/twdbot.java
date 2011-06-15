@@ -58,7 +58,7 @@ public class twdbot extends SubspaceBot {
     private boolean endgameAlert = false;
     private boolean killAlert = false;
     private boolean arenaChallAlert = true;
-    private boolean otherAlerts = true;
+    private boolean otherAlerts = false;
     private boolean respawn = true;
     private static final String HUB = "TWCore-League";
     private static final String IPC = "MatchBot";
@@ -836,8 +836,8 @@ public class twdbot extends SubspaceBot {
             String name = m_botAction.getPlayerName(event.getPlayerID());
             if (name == null)
                 name = event.getMessager();
-
-            if (m_opList.isSysop(name) || isTWDOp(name) || m_opList.isOwner(name)) {
+            
+            if (m_opList.isSmod(name)) {
                 if (message.startsWith("!manualspawn")) {
                     commandManualSpawn(name);
                     return;
@@ -857,7 +857,11 @@ public class twdbot extends SubspaceBot {
                     m_botAction.sendSmartPrivateMessage(name, "Requesting a checkin from all TWD bots...");
                     checkIN();
                     return;
-                } else if (message.startsWith("!shutdowntwd")) {
+                }
+            }
+
+            if (m_opList.isSysop(name) || isTWDOp(name) || m_opList.isOwner(name)) {
+                if (message.startsWith("!shutdowntwd")) {
                     command_shutdown(name);
                     return;
                 } else if (message.startsWith("!endgamealerts")) {
