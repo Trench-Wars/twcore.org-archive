@@ -320,7 +320,7 @@ public class twchat extends SubspaceBot {
         m_botAction.ipcSubscribe(IPC);
         sqlReset();
         update();
-        resetAll("twcore");
+        resetAll("WingZero");
     }
 
     public void handleEvent(SQLResultEvent event) {
@@ -356,12 +356,13 @@ public class twchat extends SubspaceBot {
         if (name == null)
             return;
         if (show.contains(name.toLowerCase()) && !online.contains(name.toLowerCase()))
-            show.remove(name.toLowerCase());           
-
+            show.remove(name.toLowerCase());
     }
 
     public void handleEvent(PlayerEntered event) {
         Player player = m_botAction.getPlayer(event.getPlayerID());
+        if (ba.getOperatorList().isBotExact(player.getPlayerName()))
+            return;
         m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
     }
 
