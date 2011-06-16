@@ -140,7 +140,7 @@ public class twchat extends SubspaceBot {
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
             if (message.contains("Client: VIE 1.34") && !notify) {
                 String nameFromMessage = message.substring(0, message.indexOf(":", 0));
-                if (m_botAction.getOperatorList().isBotExact(nameFromMessage))
+                if (m_botAction.getOperatorList().isSysopExact(nameFromMessage) && !nameFromMessage.equalsIgnoreCase("Pure_Luck") && !nameFromMessage.equalsIgnoreCase("Witness"))
                     return;
                 else
                     m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
