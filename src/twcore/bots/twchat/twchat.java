@@ -139,12 +139,10 @@ public class twchat extends SubspaceBot {
         }
 
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
-            if (message.contains("Client: VIE 1.34")) {
+            if (message.contains("Client: VIE 1.34") && !notify) {
                 if (m_botAction.getOperatorList().isBotExact(info))
-                    if(notify)
                     return;
                 else
-                    if(!notify)
                     m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + info + ")");
                     show.add(info.toLowerCase());
 
@@ -282,10 +280,10 @@ public class twchat extends SubspaceBot {
     public void toggleNotify(String name, String message) {
         if (notify) {
             notify = false;
-            m_botAction.sendSmartPrivateMessage(name, "Signup DEACTIVATED");
+            m_botAction.sendSmartPrivateMessage(name, "Notify DEACTIVATED");
         } else {
             notify = true;
-            m_botAction.sendSmartPrivateMessage(name, "Signup ACTIVATED");
+            m_botAction.sendSmartPrivateMessage(name, "Notify ACTIVATED");
         }
     }
 
