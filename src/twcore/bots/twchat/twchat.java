@@ -7,9 +7,11 @@ import java.io.FileWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.TimerTask;
 
 import twcore.core.BotAction;
@@ -51,7 +53,7 @@ public class twchat extends SubspaceBot {
     // up to date list of who is online
     public HashSet<String> online = new HashSet<String>();
     // queue of status updates
-    public HashMap<String, Boolean> updateQueue = new HashMap<String, Boolean>();
+    public Map<String, Boolean> updateQueue = Collections.synchronizedMap(new HashMap<String, Boolean>());
 
     public twchat(BotAction botAction) {
         super(botAction);
@@ -497,14 +499,16 @@ public class twchat extends SubspaceBot {
                     return;
                 String on = "(";
                 String off = "(";
-                Iterator<String> i = updateQueue.keySet().iterator();
-                while (i.hasNext()) {
-                    String name = i.next();
-                    if (updateQueue.get(name))
-                        on += "'" + Tools.addSlashesToString(name) + "',";
-                    else
-                        off += "'" + Tools.addSlashesToString(name) + "',";
-                    i.remove();
+                synchronized(updateQueue) {
+                    Iterator<String> i = updateQueue.keySet().iterator();
+                    while (i.hasNext()) {
+                        String name = i.next();
+                        if (updateQueue.get(name))
+                            on += "'" + Tools.addSlashesToString(name) + "',";
+                        else
+                            off += "'" + Tools.addSlashesToString(name) + "',";
+                        i.remove();
+                    }
                 }
                 on = on.substring(0, on.length()-1);
                 on += ")";
@@ -519,6 +523,7 @@ public class twchat extends SubspaceBot {
                     query = "UPDATE tblPlayer SET fnOnline = 0 WHERE fcName IN " + off;
                     ba.SQLBackgroundQuery(db, null, query);
                 }
+                
             }
         };
         status = true;
