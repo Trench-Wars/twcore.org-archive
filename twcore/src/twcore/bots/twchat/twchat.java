@@ -144,8 +144,8 @@ public class twchat extends SubspaceBot {
                 if (m_botAction.getOperatorList().isBotExact(nameFromMessage))
                     return;
                 else
-                    m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + info + ")");
-                    show.add(info.toLowerCase());
+                    m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
+                    show.add(nameFromMessage.toLowerCase());
 
             } else if (message.startsWith("Not online")) {
                 show.remove(info.toLowerCase());
