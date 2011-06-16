@@ -360,8 +360,8 @@ public class twchat extends SubspaceBot {
 
     public void handleEvent(PlayerEntered event) {
         Player player = m_botAction.getPlayer(event.getPlayerID());
-        m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
         info = player.getPlayerName();
+        m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
     }
 
     public void handleEvent(ArenaJoined event) {
