@@ -34,7 +34,6 @@ public class twchat extends SubspaceBot {
 
     BotSettings m_botSettings;
     BotAction ba;
-    private String info = "";
     public ArrayList<String> lastPlayer = new ArrayList<String>();
     public ArrayList<String> show = new ArrayList<String>();
     private final String IPC = "whoonline";
@@ -140,15 +139,12 @@ public class twchat extends SubspaceBot {
 
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
             if (message.contains("Client: VIE 1.34") && !notify) {
-                String nameFromMessage = message.substring(0, message.indexOf(":"));
+                String nameFromMessage = message.substring(0, message.indexOf(":", 0));
                 if (m_botAction.getOperatorList().isBotExact(nameFromMessage))
                     return;
                 else
                     m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
                     show.add(nameFromMessage.toLowerCase());
-
-            } else if (message.startsWith("Not online")) {
-                show.remove(info.toLowerCase());
             }
         }
     }
@@ -355,14 +351,17 @@ public class twchat extends SubspaceBot {
         m_botAction.sendSmartPrivateMessage(name, squad + "(" + online + "): " + mems);
     }
 
-    public void handleEvent(PlayerLeft Event) {
-        m_botAction.sendUnfilteredPublicMessage("?find " + info);
+    public void handleEvent(PlayerLeft event) {
+        String name = ba.getPlayerName(event.getPlayerID());
+        if (name == null)
+            return;
+        if (show.contains(name.toLowerCase()) && !online.contains(name.toLowerCase()))
+            show.remove(name.toLowerCase());           
 
     }
 
     public void handleEvent(PlayerEntered event) {
         Player player = m_botAction.getPlayer(event.getPlayerID());
-        info = player.getPlayerName();
         m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
     }
 
