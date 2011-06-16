@@ -1328,7 +1328,7 @@ public class matchbot extends SubspaceBot {
                                     if (dp.isRankAssistantMinimum()
                                             && m_rules.getInt("anyone_can_start_game") != 1) {
                                         m_isStartingUp = true;
-                                        /*m_botAction.sendSquadMessage(nmySquad, "A game of "
+                                        m_botAction.sendSquadMessage(nmySquad, "A game of "
                                                 + r.getPlayersNum()
                                                 + "vs"
                                                 + r.getPlayersNum()
@@ -1349,7 +1349,7 @@ public class matchbot extends SubspaceBot {
                                                 + r.getChallenger()
                                                 + " will start in ?go "
                                                 + m_botAction.getArenaName()
-                                                + " in 30 seconds");*/
+                                                + " in 30 seconds");
                                         m_botAction.sendArenaMessage(r.getChallenger()
                                                 + " vs. "
                                                 + dp.getTeamName()
