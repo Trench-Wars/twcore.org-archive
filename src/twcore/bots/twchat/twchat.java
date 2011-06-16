@@ -31,6 +31,7 @@ import twcore.core.util.ipc.IPCMessage;
 public class twchat extends SubspaceBot {
 
     BotSettings m_botSettings;
+    BotAction ba;
     private String info = "";
     public ArrayList<String> lastPlayer = new ArrayList<String>();
     public ArrayList<String> show = new ArrayList<String>();
@@ -38,19 +39,23 @@ public class twchat extends SubspaceBot {
 
     private String db = "pubstats";
     private boolean DEBUG = false;
-    private boolean status = true;
     private boolean signup = true;
-    public TimerTask doUpdate;
+    // status of the database update task sqlDump
+    private boolean status = false;
+    // number of seconds between database updates
+    private int delay = 60;
+    // updates player database periodically according to delay
+    private TimerTask sqlDump;
 
     // up to date list of who is online
     public HashSet<String> online = new HashSet<String>();
-    // list of checkout tasks
-    public HashMap<String, TimerTask> check = new HashMap<String, TimerTask>();
+    // queue of status updates
+    public HashMap<String, Boolean> updateQueue = new HashMap<String, Boolean>();
 
     public twchat(BotAction botAction) {
         super(botAction);
         requestEvents();
-
+        ba = m_botAction;
         m_botSettings = m_botAction.getBotSettings();
 
     }
@@ -92,7 +97,10 @@ public class twchat extends SubspaceBot {
                 show(name, message);
             else if (message.equals("!nwz"))
                 DEBUG = !DEBUG;
-
+            
+            else if (message.startsWith("!delay "))
+                setDelay(name, message);
+            
             else if (message.equalsIgnoreCase("!toggle"))
                 toggle(name, message);
 
@@ -110,6 +118,9 @@ public class twchat extends SubspaceBot {
 
             else if (message.equals("!refresh"))
                 resetAll(name);
+            
+            else if (message.equals("!whosonline"))
+                listOnline(name);
 
             else if (message.startsWith("!go "))
                 go(name, message);
@@ -179,6 +190,8 @@ public class twchat extends SubspaceBot {
                         "| !squad <squad>  - Lists all the members of <squad> currently online           |",
                         "| !update         - Toggles the online status update process on and off         |",
                         "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
+                        "| !delay <sec>    - Sets the delay between updates in seconds and restarts task |",
+                        "| !whosonline     - Lists every single player found in the online list          |",
                         "| !refresh        - Resets entire database & calls for bots to update players   |", };
         String[] endCommands = { "\\-------------------------------------------------------------------------------/" };
 
@@ -290,9 +303,9 @@ public class twchat extends SubspaceBot {
 
     public void handleEvent(LoggedOn event) {
         m_botAction.joinArena(m_botSettings.getString("Arena"));
-        status = true;
         m_botAction.ipcSubscribe(IPC);
         sqlReset();
+        update();
     }
 
     public void handleEvent(SQLResultEvent event) {
@@ -342,16 +355,30 @@ public class twchat extends SubspaceBot {
 
     public void status(String name) {
         if (status) {
-            cancel();
+            ba.cancelTask(sqlDump);
+            status = false;
             m_botAction.sendSmartPrivateMessage(name, "Player online status update process STOPPED.");
         } else {
-            status = true;
+            update();
             m_botAction.sendSmartPrivateMessage(name, "Player online status update process STARTED.");
         }
     }
-
-    public void cancel() {
-        status = false;
+    
+    public void listOnline(String name) {
+        if (online.size() < 101) {
+            String msg = "ONLINE: ";
+            for (String p : online) {
+                msg += p + ", ";
+                if (msg.length() > 200) {
+                    ba.sendSmartPrivateMessage(name, msg.substring(0, msg.length() - 2));
+                    msg = "ONLINE: ";
+                }
+            }
+            if (msg.length() > 9)
+                ba.sendSmartPrivateMessage(name, msg);
+        } else {
+            ba.sendSmartPrivateMessage(name, "Online list is too big to display.");
+        }
     }
 
     public void isOnline(String sender, String msg) {
@@ -374,18 +401,13 @@ public class twchat extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage(sender, msg + "OFFLINE");
 
         msg = "";
-        /*
-         * if (queue.contains(name.toLowerCase())) { msg = " - QUEUED "; } if
-         * (update.containsKey(name.toLowerCase())) { if
-         * (update.get(name.toLowerCase())) msg += " - UPDATING to ONLINE ";
-         * else msg += " - UPDATING to OFFLINE "; }
-         */
-
-        if (check.containsKey(name.toLowerCase()))
-            msg += " - CheckingOut ";
-
-        if (msg.length() > 0)
-            m_botAction.sendSmartPrivateMessage(sender, msg);
+        if (updateQueue.containsKey(name.toLowerCase())) {
+            if (updateQueue.get(name.toLowerCase()))
+                msg += "- QUEUED for ONLINE update";
+            else
+                msg += "- QUEUED for OFFLINE update";
+            ba.sendSmartPrivateMessage(sender, msg);
+        }
 
     }
 
@@ -400,30 +422,16 @@ public class twchat extends SubspaceBot {
         if (DEBUG)
             m_botAction.sendSmartPrivateMessage("WingZero", "received IPC for " + name);
         if (msg[0].equals("enter")) {
-            if (check.containsKey(name))
-                m_botAction.cancelTask(check.remove(name));
-            try {
-                m_botAction.SQLQueryAndClose(db, "UPDATE tblPlayer SET fnOnline = 1 WHERE fcName = '" + Tools.addSlashesToString(name) + "'");
-            } catch (SQLException e) {
-                Tools.printStackTrace(e);
-            }
+            updateQueue.put(name, true);
             online.add(name);
-        } else {
-            if (!check.containsKey(name)) {
-                check.put(name, new CheckOut(name));
-                m_botAction.scheduleTask(check.get(name), 5 * Tools.TimeInMillis.SECOND);
-            } else {
-                m_botAction.cancelTask(check.remove(name));
-                check.put(name, new CheckOut(name));
-                m_botAction.scheduleTask(check.get(name), 5 * Tools.TimeInMillis.SECOND);
-            }
+        } else if (msg[0].equals("left")) {
+            updateQueue.put(name, false);
+            online.remove(name);
         }
     }
 
     public void resetAll(String name) {
-        Iterator<TimerTask> i = check.values().iterator();
-        while (i.hasNext())
-            m_botAction.cancelTask(check.remove(i.next()));
+        updateQueue.clear();
         online.clear();
         sqlReset();
         TimerTask call = new TimerTask() {
@@ -450,23 +458,53 @@ public class twchat extends SubspaceBot {
             e.printStackTrace();
         }
     }
-
-    public class CheckOut extends TimerTask {
-        String name;
-
-        public CheckOut(String name) {
-            this.name = name.toLowerCase();
+    
+    public void setDelay(String name, String cmd) {
+        try {
+            int t = Integer.valueOf(cmd.substring(cmd.indexOf(" ")+1));
+            delay = t;
+            update();
+            ba.sendSmartPrivateMessage(name, "Database update rate set to " + delay + " seconds.");
+        } catch (NumberFormatException e) {
+            ba.sendSmartPrivateMessage(name, "Error processing request: " + cmd);
         }
-
-        @Override
-        public void run() {
-            check.remove(name);
-            try {
-                m_botAction.SQLQueryAndClose(db, "UPDATE tblPlayer SET fnOnline = 0 WHERE fcName = '" + Tools.addSlashesToString(name) + "'");
-            } catch (SQLException e) {
-                Tools.printStackTrace(e);
-            };
-            online.remove(name);
-        }
+    }
+    
+    public void update() {
+        if (status)
+            ba.cancelTask(sqlDump);
+        
+        sqlDump = new TimerTask() {
+            public void run() {
+                if (updateQueue.isEmpty())
+                    return;
+                String on = "(";
+                String off = "(";
+                Iterator<String> i = updateQueue.keySet().iterator();
+                while (i.hasNext()) {
+                    String name = i.next();
+                    if (updateQueue.get(name))
+                        on += "'" + Tools.addSlashesToString(name) + "',";
+                    else
+                        off += "'" + Tools.addSlashesToString(name) + "',";
+                    i.remove();
+                }
+                on = on.substring(0, on.length()-1);
+                on += ")";
+                off = off.substring(0, off.length()-1);
+                off += ")";
+                String query = "";
+                if (on.length() > 2) {
+                    query = "UPDATE tblPlayer SET fnOnline = 1 WHERE fcName IN " + on;
+                    ba.SQLBackgroundQuery(db, null, query);
+                }
+                if (off.length() > 2) {
+                    query = "UPDATE tblPlayer SET fnOnline = 0 WHERE fcName IN " + off;
+                    ba.SQLBackgroundQuery(db, null, query);
+                }
+            }
+        };
+        status = true;
+        ba.scheduleTask(sqlDump, 5000, delay * Tools.TimeInMillis.SECOND);
     }
 }
