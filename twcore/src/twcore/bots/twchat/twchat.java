@@ -39,7 +39,8 @@ public class twchat extends SubspaceBot {
 
     private String db = "pubstats";
     private boolean DEBUG = false;
-    private boolean signup = true;
+    private boolean signup = false;
+    private boolean notify = false;
     // status of the database update task sqlDump
     private boolean status = false;
     // number of seconds between database updates
@@ -119,6 +120,9 @@ public class twchat extends SubspaceBot {
             else if (message.equals("!refresh"))
                 resetAll(name);
             
+            else if (message.equals("!notify"))
+                toggleNotify(name, message);
+            
             else if (message.equals("!whosonline"))
                 listOnline(name);
 
@@ -135,10 +139,12 @@ public class twchat extends SubspaceBot {
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
             if (message.contains("Client: VIE 1.34")) {
                 if (m_botAction.getOperatorList().isBotExact(info))
+                    if(notify)
                     return;
                 else
+                    if(!notify)
                     m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + info + ")");
-                show.add(info.toLowerCase());
+                    show.add(info.toLowerCase());
 
             } else if (message.startsWith("Not online")) {
                 show.remove(info.toLowerCase());
@@ -182,6 +188,7 @@ public class twchat extends SubspaceBot {
                         "| !go <arena>                 - I'll go to the arena you specify.               |",
                         "| !show                       - Show people online using TWChat App             |",
                         "| !toggle                     - Disables/Enables ability to !signup             |",
+                        "| !notify                     - Toggles chat notify (stops !show)               |",
                         "| !put                        - Force putfile VIP.txt                           |",
                         "|-------------------------------------------------------------------------------|",
                         "|                                Who Is Online (SMod)                           |",
@@ -266,6 +273,16 @@ public class twchat extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage(name, "Signup DEACTIVATED");
         } else {
             signup = true;
+            m_botAction.sendSmartPrivateMessage(name, "Signup ACTIVATED");
+        }
+    }
+    
+    public void toggleNotify(String name, String message) {
+        if (notify) {
+            notify = false;
+            m_botAction.sendSmartPrivateMessage(name, "Signup DEACTIVATED");
+        } else {
+            notify = true;
             m_botAction.sendSmartPrivateMessage(name, "Signup ACTIVATED");
         }
     }
