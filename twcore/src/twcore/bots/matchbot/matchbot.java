@@ -594,10 +594,12 @@ public class matchbot extends SubspaceBot {
                         help.add("!listgames                               - list all available game types");
                     help.add("!game <typenumber>                       - start a game of <type>");
                     help.add("!game <typenumber>:<teamA>:<teamB>       - start a game of <type>");
+                    help.add("!power                                   - enables/disables your staff power");
 
                     if (!isRestrictedStaff) {
                         help.add("!go <arena>                              - makes the bot go to the specified arena");
                         help.add("!lock <typenumber>                       - lock at a free arena where the event can be hosted");
+                        help.add("!power                                   - disables/enables your staff power");
                     }
                 } else // Bot is locked in a specific arena / game but not
                        // started
@@ -605,7 +607,6 @@ public class matchbot extends SubspaceBot {
                     help.add("!game <squadA>:<squadB>                  - start a game of "
                             + m_rules.getString("name")
                             + " between teamA and teamB");
-                    help.add("!power                                   - disables/enables your staff power");
                     if (!isRestrictedStaff) {
                         help.add("!unlock                                  - unlock the bot, makes it go back to ?go twd");
                         if (m_opList.isSmod(name)) {
