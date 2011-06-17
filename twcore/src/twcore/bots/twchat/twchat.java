@@ -1,6 +1,5 @@
 package twcore.bots.twchat;
 
-import java.awt.Event;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -474,39 +473,39 @@ public class twchat extends SubspaceBot {
                     bug += "ipc " + (now - ipc.getTime()) + " ms ago";
                 if (!ipc.isAll()) {
                     String name = ipc.getName().toLowerCase();
-                    if (isBot(name)) 
-                        return;
-                    if (type == EventRequester.PLAYER_ENTERED) {
-                        if (events.containsKey(name)) {
-                            if (ipc.getTime() >= events.get(name)) {
+                    if (!isBot(name)) {
+                        if (type == EventRequester.PLAYER_ENTERED) {
+                            if (events.containsKey(name)) {
+                                if (ipc.getTime() >= events.get(name)) {
+                                    updateQueue.put(name, true);
+                                    events.put(name, ipc.getTime());
+                                    online.add(name);
+                                    if (DEBUG)
+                                        bug += " for " + name + " enters on time";
+                                }
+                            } else {
                                 updateQueue.put(name, true);
                                 events.put(name, ipc.getTime());
-                                online.add(name);
+                                online.add(name);   
                                 if (DEBUG)
-                                    bug += " for " + name + " enters on time";
+                                    bug += " for " + name + " enters, new record";                         
                             }
-                        } else {
-                            updateQueue.put(name, true);
-                            events.put(name, ipc.getTime());
-                            online.add(name);   
-                            if (DEBUG)
-                                bug += " for " + name + " enters, new record";                         
-                        }
-                    } else if (type == EventRequester.PLAYER_LEFT) {
-                        if (events.containsKey(name)) {
-                            if (ipc.getTime() > events.get(name)) {
+                        } else if (type == EventRequester.PLAYER_LEFT) {
+                            if (events.containsKey(name)) {
+                                if (ipc.getTime() > events.get(name)) {
+                                    updateQueue.put(name, false);
+                                    events.put(name, ipc.getTime());
+                                    online.remove(name);
+                                    if (DEBUG)
+                                        bug += " for " + name + " left on time";
+                                }
+                            } else {
                                 updateQueue.put(name, false);
                                 events.put(name, ipc.getTime());
                                 online.remove(name);
                                 if (DEBUG)
-                                    bug += " for " + name + " left on time";
+                                    bug += " for " + name + " left, new record";
                             }
-                        } else {
-                            updateQueue.put(name, false);
-                            events.put(name, ipc.getTime());
-                            online.remove(name);
-                            if (DEBUG)
-                                bug += " for " + name + " left, new record";
                         }
                     }
                 } else {
@@ -516,18 +515,18 @@ public class twchat extends SubspaceBot {
                         Iterator<Player> i = (Iterator<Player>)ipc.getList();
                         while (i.hasNext()) {
                             String name = i.next().getPlayerName().toLowerCase();
-                            if (isBot(name)) 
-                                continue;
-                            else if (events.containsKey(name)) {
-                                if (ipc.getTime() >= events.get(name)) {
-                                    updateQueue.put(name, true);
+                            if (!isBot(name)) {
+                                if (events.containsKey(name)) {
+                                    if (ipc.getTime() >= events.get(name)) {
+                                        updateQueue.put(name, true);
+                                        events.put(name, ipc.getTime());
+                                        online.add(name);                                    
+                                    }
+                                } else {
+                                    updateQueue.put(name, false);
                                     events.put(name, ipc.getTime());
-                                    online.add(name);                                    
+                                    online.remove(name);                                
                                 }
-                            } else {
-                                updateQueue.put(name, false);
-                                events.put(name, ipc.getTime());
-                                online.remove(name);                                
                             }
                         }
                     } else if (type == EventRequester.PLAYER_LEFT) {
@@ -536,18 +535,18 @@ public class twchat extends SubspaceBot {
                         Iterator<Player> i = (Iterator<Player>)ipc.getList();
                         while (i.hasNext()) {
                             String name = i.next().getPlayerName().toLowerCase();
-                            if (isBot(name)) 
-                                continue;
-                            else if (events.containsKey(name)) {
-                                if (ipc.getTime() > events.get(name)) {
+                            if (!isBot(name)) {
+                                if (events.containsKey(name)) {
+                                    if (ipc.getTime() > events.get(name)) {
+                                        updateQueue.put(name, false);
+                                        events.put(name, ipc.getTime());
+                                        online.remove(name);                                    
+                                    }
+                                } else {
                                     updateQueue.put(name, false);
                                     events.put(name, ipc.getTime());
-                                    online.remove(name);                                    
+                                    online.remove(name);                                 
                                 }
-                            } else {
-                                updateQueue.put(name, false);
-                                events.put(name, ipc.getTime());
-                                online.remove(name);                                 
                             }
                         }
                     }
