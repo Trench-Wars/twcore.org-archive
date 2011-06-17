@@ -53,6 +53,8 @@ public class matchbot extends SubspaceBot {
     OperatorList m_opList;
     LinkedList<String> m_arenaList;
     LinkedList<GameRequest> m_gameRequests;
+    ArrayList<String> powerOn;
+    ArrayList<String> powerOff;
     TimerTask m_gameKiller;
     String startMessage;
 
@@ -433,6 +435,21 @@ public class matchbot extends SubspaceBot {
                 && message.equals("Obscenity block OFF") && obsceneStatus) {
             m_botAction.sendUnfilteredPublicMessage("?obscene");
         }
+        
+        if (messageType == Message.ARENA_MESSAGE
+                && message.equals("Player Moderator OFF") && power) {
+                for (int i = 0; i < powerOn.size(); i++) {
+                    m_botAction.sendUnfilteredPrivateMessage(powerOn.get(i), "*moderator");
+                }
+
+        }
+        if (messageType == Message.ARENA_MESSAGE
+                && message.equals("Player Moderator ON") && !power) {
+                for (int i = 0; i < powerOff.size(); i++) {
+                    m_botAction.sendUnfilteredPrivateMessage(powerOff.get(i), "*moderator");
+                }
+
+        }
 
         if ((messageType == Message.ARENA_MESSAGE)
                 && (event.getMessage().equals("WARNING: You have been disconnected because server has not been receiving data from you."))) {
@@ -566,6 +583,7 @@ public class matchbot extends SubspaceBot {
         {
             if (isStaff) {
                 help.add("!killgame                                - stops a game _immediately_");
+                help.add("!power                                   - disables/enables your staff power");
             }
             help.addAll(m_game.getHelpMessages(name, isStaff));
         } else {
@@ -587,6 +605,7 @@ public class matchbot extends SubspaceBot {
                     help.add("!game <squadA>:<squadB>                  - start a game of "
                             + m_rules.getString("name")
                             + " between teamA and teamB");
+                    help.add("!power                                   - disables/enables your staff power");
                     if (!isRestrictedStaff) {
                         help.add("!unlock                                  - unlock the bot, makes it go back to ?go twd");
                         if (m_opList.isSmod(name)) {
@@ -619,6 +638,11 @@ public class matchbot extends SubspaceBot {
 
     public void parseCommand(String name, String command, String[] parameters,
             boolean isStaff, boolean isRestrictedStaff) {
+        if(m_opList.isZH(name) && command.equals("!power")){
+            power(name, parameters);
+            
+        }
+            
         if (isStaff) {
             if (command.equals("!game"))
                 createGame(name, parameters);
@@ -767,6 +791,22 @@ public class matchbot extends SubspaceBot {
             m_game.parseCommand(name, command, parameters, isStaff, isTWDOP);
     }
     
+    private void power(String name, String[] parameters) {
+        if(power){
+            m_botAction.sendUnfilteredPrivateMessage(name,"*moderator");
+            powerOff.add(name.toLowerCase());
+            power = false;
+        } else {
+            m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
+            powerOn.add(name.toLowerCase());
+            power = true;
+                
+            
+                
+        }
+        
+    }
+
     public void playerKillGame()	{
         if (m_game != null) {
             m_botAction.sendArenaMessage("Both teams have agreed to cancel. This game will be voided.");
