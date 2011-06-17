@@ -213,9 +213,10 @@ public class pubbotstats extends PubBotModule {
       if(p.getPlayerName().startsWith("^"))
           return;
 
-      if(arenaStats.getPlayer(p.getPlayerName()) != null)
+      if(arenaStats.getPlayer(p.getPlayerName()) != null) {
           arenaStats.getPlayer(p.getPlayerName()).seen();
-      else
+          arenaStats.getPlayer(p.getPlayerName()).setStatus(false);
+      } else
           arenaStats.addPlayer(p);
   }
 
