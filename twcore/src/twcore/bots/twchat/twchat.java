@@ -165,19 +165,232 @@ public class twchat extends SubspaceBot {
             }
         }
     }
-    
-    public void debug() {
-        DEBUG = !DEBUG;
-        if (DEBUG)
-            ba.sendSmartPrivateMessage("WingZero", "DEBUG ENABLED!");
-        else
-            ba.sendSmartPrivateMessage("WingZero", "DEBUG DISABLED!");
+
+    public void handleEvent(FileArrived event) {
+        for (int i = 0; i < lastPlayer.size(); i++) {
+            if (event.getFileName().equals("vip.txt")) {
+                try {
+                    BufferedReader reader = new BufferedReader(new FileReader(m_botAction.getDataFile("vip.txt")));
+                    BufferedWriter writer = new BufferedWriter(new FileWriter(m_botAction.getDataFile("vip.txt"), true));
+
+                    reader.readLine();
+                    writer.write("\r\n" + lastPlayer.get(i));
+
+                    // writer.write("\n"+name);
+
+                    reader.close();
+                    writer.close();
+
+                    m_botAction.putFile("vip.txt");
+                    m_botAction.sendSmartPrivateMessage(lastPlayer.get(i), "You have successfully signed up to TWChat!");
+                    Tools.printLog("Added player " + lastPlayer.get(i) + " to VIP.txt for TWChat");
+                    m_botAction.sendChatMessage("Good Day, I have added " + lastPlayer.get(i) + " to VIP for TWChat.");
+                    lastPlayer.remove(i);
+                }
+
+                catch (Exception e) {
+                    m_botAction.sendChatMessage("Error, Cannot edit VIP.txt for " + lastPlayer.get(i) + " " + e);
+                    Tools.printStackTrace(e);
+                }
+
+            }
+        }
     }
 
-    private void put(String name, String message) {
-        m_botAction.putFile("vip.txt");
-        m_botAction.sendSmartPrivateMessage(name, "Done.");
-        
+    public void handleEvent(LoggedOn event) {
+        m_botAction.joinArena(m_botSettings.getString("Arena"));
+        m_botAction.ipcSubscribe(IPC);
+    }
+
+    public void handleEvent(SQLResultEvent event) {
+        if (!event.getIdentifier().contains(":"))
+            return;
+        String[] id = event.getIdentifier().split(":");
+        String squad = id[1];
+        String name = id[2];
+        String mems = "";
+        int online = 0;
+        ResultSet rs = event.getResultSet();
+        try {
+            if (rs.next()) {
+                mems += rs.getString("fcName");
+                online++;
+                while (rs.next()) {
+                    mems += ", " + rs.getString("fcName");
+                    online++;
+                }
+            } else {
+                m_botAction.sendSmartPrivateMessage(name, squad + "(" + 0 + "): none found");
+                return;
+            }
+        } catch (SQLException e) {
+            Tools.printStackTrace(e);
+        }
+        m_botAction.SQLClose(rs);
+        m_botAction.sendSmartPrivateMessage(name, squad + "(" + online + "): " + mems);
+    }
+
+    public void handleEvent(PlayerLeft event) {
+        String name = ba.getPlayerName(event.getPlayerID());
+        if (name == null)
+            return;
+        if (show.contains(name.toLowerCase()) && !online.contains(name.toLowerCase()))
+            show.remove(name.toLowerCase());
+    }
+
+    public void handleEvent(PlayerEntered event) {
+        Player player = m_botAction.getPlayer(event.getPlayerID());
+        if (ba.getOperatorList().isBotExact(player.getPlayerName()))
+            return;
+        m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
+    }
+
+    public void handleEvent(ArenaJoined event) {
+        m_botAction.setReliableKills(1);
+        String g = m_botSettings.getString("Chats");
+        m_botAction.sendUnfilteredPublicMessage("?chat=" + g);
+        sqlReset();
+        update();
+        resetAll("WingZero");
+    }
+
+    public void handleEvent(InterProcessEvent event) {
+        if (!event.getChannel().equals(IPC) || !status)
+            return;
+        synchronized(event.getObject()) {
+            String bug = "";
+            if (event.getObject() instanceof IPCEvent) {
+                IPCEvent ipc = (IPCEvent)event.getObject();
+                int type = ipc.getType();
+                long now = System.currentTimeMillis();
+                if (DEBUG)
+                    bug += "ipc " + (now - ipc.getTime()) + " ms ago";
+                if (!ipc.isAll()) {
+                    String name = ipc.getName().toLowerCase();
+                    if (ops.isBotExact(name) || (ops.isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness")))
+                        return;
+                    if (type == EventRequester.PLAYER_ENTERED) {
+                        if (events.containsKey(name)) {
+                            if (ipc.getTime() >= events.get(name)) {
+                                updateQueue.put(name, true);
+                                events.put(name, ipc.getTime());
+                                online.add(name);
+                                if (DEBUG)
+                                    bug += " for " + name + " enters on time";
+                            }
+                        } else {
+                            updateQueue.put(name, true);
+                            events.put(name, ipc.getTime());
+                            online.add(name);   
+                            if (DEBUG)
+                                bug += " for " + name + " enters, new record";                         
+                        }
+                    } else if (type == EventRequester.PLAYER_LEFT) {
+                        if (events.containsKey(name)) {
+                            if (ipc.getTime() > events.get(name)) {
+                                updateQueue.put(name, false);
+                                events.put(name, ipc.getTime());
+                                online.remove(name);
+                                if (DEBUG)
+                                    bug += " for " + name + " left on time";
+                            }
+                        } else {
+                            updateQueue.put(name, false);
+                            events.put(name, ipc.getTime());
+                            online.remove(name);
+                            if (DEBUG)
+                                bug += " for " + name + " left, new record";
+                        }
+                    }
+                } else {
+                    if (type == EventRequester.PLAYER_ENTERED) {
+                        if (DEBUG)
+                            bug += " for bot entered new arena.";
+                        Iterator<Player> i = (Iterator<Player>)ipc.getList();
+                        while (i.hasNext()) {
+                            String name = i.next().getPlayerName().toLowerCase();
+                            if (!ops.isBotExact(name) && !(ops.isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness"))) {
+                                if (events.containsKey(name)) {
+                                    if (ipc.getTime() >= events.get(name)) {
+                                        updateQueue.put(name, true);
+                                        events.put(name, ipc.getTime());
+                                        online.add(name);                                    
+                                    }
+                                } else {
+                                    updateQueue.put(name, false);
+                                    events.put(name, ipc.getTime());
+                                    online.remove(name);                                
+                                }
+                            }
+                        }
+                    } else if (type == EventRequester.PLAYER_LEFT) {
+                        if (DEBUG)
+                            bug += " for bot left arena.";
+                        Iterator<Player> i = (Iterator<Player>)ipc.getList();
+                        while (i.hasNext()) {
+                            String name = i.next().getPlayerName().toLowerCase();
+                            if (!ops.isBotExact(name) && !(ops.isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness"))) {
+                                if (events.containsKey(name)) {
+                                    if (ipc.getTime() > events.get(name)) {
+                                        updateQueue.put(name, false);
+                                        events.put(name, ipc.getTime());
+                                        online.remove(name);                                    
+                                    }
+                                } else {
+                                    updateQueue.put(name, false);
+                                    events.put(name, ipc.getTime());
+                                    online.remove(name);                                 
+                                }
+                            }
+                        }
+                    }
+                    
+                }
+                if (DEBUG)
+                    ba.sendSmartPrivateMessage("WingZero", bug);
+                return;                
+            }
+            
+            
+            /*
+            String[] msg = ((IPCMessage) event.getObject()).getMessage().split(":");
+            String name = msg[1].toLowerCase();
+            if (m_botAction.getOperatorList().isBotExact(name))
+                return;
+            if (msg[0].equals("enter")) {
+                updateQueue.put(name, true);
+                online.add(name);
+            } else if (msg[0].equals("left")) {
+                updateQueue.put(name, false);
+                online.remove(name);
+            }
+            */
+        }
+    }
+    
+    public void handleEvent(ArenaList event) {
+        if (stater.length() < 1)
+            return;
+        String msg = "";
+        int pop = 0;
+        Map<String, Integer> arenas = event.getArenaList();
+        for (String a : arenas.keySet()) {
+            if (!a.contains("#"))
+                pop += arenas.get(a);
+        }
+        msg += "Pub Pop=" + pop + " | Online=" + online.size();
+        String query = "SELECT COUNT(*) as c FROM tblPlayer WHERE fnOnline = 1";
+        try {
+            ResultSet rs = ba.SQLQuery(db, query);
+            if (rs.next())
+                pop = rs.getInt("c");
+            ba.SQLClose(rs);
+        } catch (SQLException e) {
+            pop = -1;
+        }
+        msg += " | Database=" + pop + " | Queued=" + updateQueue.size() + " | Events=" + events.size() + " | Last update " + (System.currentTimeMillis() - lastUpdate) + " ms ago";
+        ba.sendSmartPrivateMessage(stater, msg);
+        stater = "";
     }
 
     private void help(String name, String message) {
@@ -195,8 +408,8 @@ public class twchat extends SubspaceBot {
                         "|-------------------------------------------------------------------------------|",
                         "|                                Who Is Online                                  |",
                         "|                                                                               |",
-                        "| !online <name>  - Shows if <name> is currently online according to list on bot|",
                         "| !squad <squad>  - Lists all the members of <squad> currently online           |",
+                        "| !online <name>  - Shows if <name> is currently online according to list on bot|",
                         "|                                                                               |", };
         String[] modCommands =
                 {
@@ -233,6 +446,20 @@ public class twchat extends SubspaceBot {
 
         m_botAction.smartPrivateMessageSpam(name, endCommands);
 
+    }
+    
+    public void debug() {
+        DEBUG = !DEBUG;
+        if (DEBUG)
+            ba.sendSmartPrivateMessage("WingZero", "DEBUG ENABLED!");
+        else
+            ba.sendSmartPrivateMessage("WingZero", "DEBUG DISABLED!");
+    }
+
+    private void put(String name, String message) {
+        m_botAction.putFile("vip.txt");
+        m_botAction.sendSmartPrivateMessage(name, "Done.");
+        
     }
 
     public void vipadd(String name, String message) {
@@ -310,94 +537,6 @@ public class twchat extends SubspaceBot {
         }
     }
 
-    public void handleEvent(FileArrived event) {
-        for (int i = 0; i < lastPlayer.size(); i++) {
-            if (event.getFileName().equals("vip.txt")) {
-                try {
-                    BufferedReader reader = new BufferedReader(new FileReader(m_botAction.getDataFile("vip.txt")));
-                    BufferedWriter writer = new BufferedWriter(new FileWriter(m_botAction.getDataFile("vip.txt"), true));
-
-                    reader.readLine();
-                    writer.write("\r\n" + lastPlayer.get(i));
-
-                    // writer.write("\n"+name);
-
-                    reader.close();
-                    writer.close();
-
-                    m_botAction.putFile("vip.txt");
-                    m_botAction.sendSmartPrivateMessage(lastPlayer.get(i), "You have successfully signed up to TWChat!");
-                    Tools.printLog("Added player " + lastPlayer.get(i) + " to VIP.txt for TWChat");
-                    m_botAction.sendChatMessage("Good Day, I have added " + lastPlayer.get(i) + " to VIP for TWChat.");
-                    lastPlayer.remove(i);
-                }
-
-                catch (Exception e) {
-                    m_botAction.sendChatMessage("Error, Cannot edit VIP.txt for " + lastPlayer.get(i) + " " + e);
-                    Tools.printStackTrace(e);
-                }
-
-            }
-        }
-    }
-
-    public void handleEvent(LoggedOn event) {
-        m_botAction.joinArena(m_botSettings.getString("Arena"));
-        m_botAction.ipcSubscribe(IPC);
-        sqlReset();
-        update();
-        resetAll("WingZero");
-    }
-
-    public void handleEvent(SQLResultEvent event) {
-        if (!event.getIdentifier().contains(":"))
-            return;
-        String[] id = event.getIdentifier().split(":");
-        String squad = id[1];
-        String name = id[2];
-        String mems = "";
-        int online = 0;
-        ResultSet rs = event.getResultSet();
-        try {
-            if (rs.next()) {
-                mems += rs.getString("fcName");
-                online++;
-                while (rs.next()) {
-                    mems += ", " + rs.getString("fcName");
-                    online++;
-                }
-            } else {
-                m_botAction.sendSmartPrivateMessage(name, squad + "(" + 0 + "): none found");
-                return;
-            }
-        } catch (SQLException e) {
-            Tools.printStackTrace(e);
-        }
-        m_botAction.SQLClose(rs);
-        m_botAction.sendSmartPrivateMessage(name, squad + "(" + online + "): " + mems);
-    }
-
-    public void handleEvent(PlayerLeft event) {
-        String name = ba.getPlayerName(event.getPlayerID());
-        if (name == null)
-            return;
-        if (show.contains(name.toLowerCase()) && !online.contains(name.toLowerCase()))
-            show.remove(name.toLowerCase());
-    }
-
-    public void handleEvent(PlayerEntered event) {
-        Player player = m_botAction.getPlayer(event.getPlayerID());
-        if (ba.getOperatorList().isBotExact(player.getPlayerName()))
-            return;
-        m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
-    }
-
-    public void handleEvent(ArenaJoined event) {
-        m_botAction.setReliableKills(1);
-        String g = m_botSettings.getString("Chats");
-        m_botAction.sendUnfilteredPublicMessage("?chat=" + g);
-    }
-
     public void status(String name) {
         if (status) {
             ba.cancelTask(sqlDump);
@@ -454,126 +593,6 @@ public class twchat extends SubspaceBot {
             ba.sendSmartPrivateMessage(sender, msg);
         }
 
-    }
-    
-    private boolean isBot(String name) {
-        if (ops.isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness"))
-            return true;
-        else
-            return false;
-    }
-
-    public void handleEvent(InterProcessEvent event) {
-        if (!event.getChannel().equals(IPC) || !status)
-            return;
-        synchronized(event.getObject()) {
-            String bug = "";
-            if (event.getObject() instanceof IPCEvent) {
-                IPCEvent ipc = (IPCEvent)event.getObject();
-                int type = ipc.getType();
-                long now = System.currentTimeMillis();
-                if (DEBUG)
-                    bug += "ipc " + (now - ipc.getTime()) + " ms ago";
-                if (!ipc.isAll()) {
-                    String name = ipc.getName().toLowerCase();
-                    if (!isBot(name)) {
-                        if (type == EventRequester.PLAYER_ENTERED) {
-                            if (events.containsKey(name)) {
-                                if (ipc.getTime() >= events.get(name)) {
-                                    updateQueue.put(name, true);
-                                    events.put(name, ipc.getTime());
-                                    online.add(name);
-                                    if (DEBUG)
-                                        bug += " for " + name + " enters on time";
-                                }
-                            } else {
-                                updateQueue.put(name, true);
-                                events.put(name, ipc.getTime());
-                                online.add(name);   
-                                if (DEBUG)
-                                    bug += " for " + name + " enters, new record";                         
-                            }
-                        } else if (type == EventRequester.PLAYER_LEFT) {
-                            if (events.containsKey(name)) {
-                                if (ipc.getTime() > events.get(name)) {
-                                    updateQueue.put(name, false);
-                                    events.put(name, ipc.getTime());
-                                    online.remove(name);
-                                    if (DEBUG)
-                                        bug += " for " + name + " left on time";
-                                }
-                            } else {
-                                updateQueue.put(name, false);
-                                events.put(name, ipc.getTime());
-                                online.remove(name);
-                                if (DEBUG)
-                                    bug += " for " + name + " left, new record";
-                            }
-                        }
-                    }
-                } else {
-                    if (type == EventRequester.PLAYER_ENTERED) {
-                        if (DEBUG)
-                            bug += " for bot entered new arena.";
-                        Iterator<Player> i = (Iterator<Player>)ipc.getList();
-                        while (i.hasNext()) {
-                            String name = i.next().getPlayerName().toLowerCase();
-                            if (!isBot(name)) {
-                                if (events.containsKey(name)) {
-                                    if (ipc.getTime() >= events.get(name)) {
-                                        updateQueue.put(name, true);
-                                        events.put(name, ipc.getTime());
-                                        online.add(name);                                    
-                                    }
-                                } else {
-                                    updateQueue.put(name, false);
-                                    events.put(name, ipc.getTime());
-                                    online.remove(name);                                
-                                }
-                            }
-                        }
-                    } else if (type == EventRequester.PLAYER_LEFT) {
-                        if (DEBUG)
-                            bug += " for bot left arena.";
-                        Iterator<Player> i = (Iterator<Player>)ipc.getList();
-                        while (i.hasNext()) {
-                            String name = i.next().getPlayerName().toLowerCase();
-                            if (!isBot(name)) {
-                                if (events.containsKey(name)) {
-                                    if (ipc.getTime() > events.get(name)) {
-                                        updateQueue.put(name, false);
-                                        events.put(name, ipc.getTime());
-                                        online.remove(name);                                    
-                                    }
-                                } else {
-                                    updateQueue.put(name, false);
-                                    events.put(name, ipc.getTime());
-                                    online.remove(name);                                 
-                                }
-                            }
-                        }
-                    }
-                    
-                }
-                if (DEBUG)
-                    ba.sendSmartPrivateMessage("WingZero", bug);
-                return;                
-            }
-            
-            
-            
-            String[] msg = ((IPCMessage) event.getObject()).getMessage().split(":");
-            String name = msg[1].toLowerCase();
-            if (m_botAction.getOperatorList().isBotExact(name))
-                return;
-            if (msg[0].equals("enter")) {
-                updateQueue.put(name, true);
-                online.add(name);
-            } else if (msg[0].equals("left")) {
-                updateQueue.put(name, false);
-                online.remove(name);
-            }
-        }
     }
 
     public void resetAll(String name) {
@@ -686,31 +705,6 @@ public class twchat extends SubspaceBot {
     private void stats(String name) {
         stater = name;
         ba.requestArenaList();
-    }
-    
-    public void handleEvent(ArenaList event) {
-        if (stater.length() < 1)
-            return;
-        String msg = "";
-        int pop = 0;
-        Map<String, Integer> arenas = event.getArenaList();
-        for (String a : arenas.keySet()) {
-            if (!a.contains("#"))
-                pop += arenas.get(a);
-        }
-        msg += "Pub Pop=" + pop + " | Online=" + online.size();
-        String query = "SELECT COUNT(*) as c FROM tblPlayer WHERE fnOnline = 1";
-        try {
-            ResultSet rs = ba.SQLQuery(db, query);
-            if (rs.next())
-                pop = rs.getInt("c");
-            ba.SQLClose(rs);
-        } catch (SQLException e) {
-            pop = -1;
-        }
-        msg += " | Database=" + pop + " | Queued=" + updateQueue.size() + " | Events=" + events.size() + " | Last update " + (System.currentTimeMillis() - lastUpdate) + " ms ago";
-        ba.sendSmartPrivateMessage(stater, msg);
-        stater = "";
     }
     
     private void truncate(String name) {
