@@ -799,12 +799,12 @@ public class matchbot extends SubspaceBot {
             m_botAction.sendUnfilteredPrivateMessage(name,"*moderator");
             powerOff.add(name.toLowerCase());
             power = false;
-            m_botAction.sendPrivateMessage(name, "Power OFF.");
+            m_botAction.sendPrivateMessage(name, "Power OFF/ON.");
         } else {
             m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
             powerOn.add(name.toLowerCase());
             power = true;
-            m_botAction.sendPrivateMessage(name, "Power ON.");
+            m_botAction.sendPrivateMessage(name, "Power ON/OFF.");
                 
             
                 
