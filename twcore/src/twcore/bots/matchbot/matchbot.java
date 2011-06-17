@@ -596,7 +596,6 @@ public class matchbot extends SubspaceBot {
                         help.add("!listgames                               - list all available game types");
                     help.add("!game <typenumber>                       - start a game of <type>");
                     help.add("!game <typenumber>:<teamA>:<teamB>       - start a game of <type>");
-                    help.add("!power                                   - enables/disables your staff power");
 
                     if (!isRestrictedStaff) {
                         help.add("!go <arena>                              - makes the bot go to the specified arena");
@@ -632,6 +631,7 @@ public class matchbot extends SubspaceBot {
                     help.add("!removechallenge <squad>                 - (!rc)removes the challenge of " + m_rules.getString("name") + " game against <squad>");
                     help.add("!removechallenge *                       - (!rc *)removes all challenges sent out by your squad");
                     help.add("!accept <squad>                          - (!a)accept the !challenge made by the challenging squad");
+                    help.add("!power                                   - disables/enables your staff power");
                 }
             }
         }
@@ -797,10 +797,12 @@ public class matchbot extends SubspaceBot {
             m_botAction.sendUnfilteredPrivateMessage(name,"*moderator");
             powerOff.add(name.toLowerCase());
             power = false;
+            m_botAction.sendPrivateMessage(name, "Staff Power DISABLED");
         } else {
             m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
             powerOn.add(name.toLowerCase());
             power = true;
+            m_botAction.sendPrivateMessage(name, "Staff Power (RE)ENABLED");
                 
             
                 
