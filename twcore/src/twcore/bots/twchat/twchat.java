@@ -54,6 +54,7 @@ public class twchat extends SubspaceBot {
     private TimerTask sqlDump;
     
     private String stater = "";
+    private long lastUpdate = 0;
 
     // up to date list of who is online
     public HashSet<String> online = new HashSet<String>();
@@ -146,6 +147,9 @@ public class twchat extends SubspaceBot {
 
             else if (message.equalsIgnoreCase("!die"))
                 m_botAction.die();
+            
+            else if (message.equals("!truncate"))
+                truncate(name);
         }
 
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
@@ -449,20 +453,29 @@ public class twchat extends SubspaceBot {
         }
 
     }
+    
+    private boolean isBot(String name) {
+        if (ba.getOperatorList().isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness"))
+            return true;
+        else
+            return false;
+    }
 
     public void handleEvent(InterProcessEvent event) {
         if (!event.getChannel().equals(IPC) || !status)
             return;
         synchronized(event.getObject()) {
-            
+            String bug = "";
             if (event.getObject() instanceof IPCEvent) {
                 IPCEvent ipc = (IPCEvent)event.getObject();
                 int type = ipc.getType();
                 long now = System.currentTimeMillis();
                 if (DEBUG)
-                    ba.sendSmartPrivateMessage("WingZero", "ipc " + (now - ipc.getTime()) + " ms ago");
+                    bug += "ipc " + (now - ipc.getTime()) + " ms ago";
                 if (!ipc.isAll()) {
                     String name = ipc.getName().toLowerCase();
+                    if (isBot(name)) 
+                        return;
                     if (type == EventRequester.PLAYER_ENTERED) {
                         if (events.containsKey(name)) {
                             if (ipc.getTime() >= events.get(name)) {
@@ -470,14 +483,14 @@ public class twchat extends SubspaceBot {
                                 events.put(name, ipc.getTime());
                                 online.add(name);
                                 if (DEBUG)
-                                    ba.sendSmartPrivateMessage("WingZero", name + " enters on time");
+                                    bug += " for " + name + " enters on time";
                             }
                         } else {
                             updateQueue.put(name, true);
                             events.put(name, ipc.getTime());
                             online.add(name);   
                             if (DEBUG)
-                                ba.sendSmartPrivateMessage("WingZero", name + " enters, new record");                         
+                                bug += " for " + name + " enters, new record";                         
                         }
                     } else if (type == EventRequester.PLAYER_LEFT) {
                         if (events.containsKey(name)) {
@@ -486,24 +499,26 @@ public class twchat extends SubspaceBot {
                                 events.put(name, ipc.getTime());
                                 online.remove(name);
                                 if (DEBUG)
-                                    ba.sendSmartPrivateMessage("WingZero", name + " left on time");
+                                    bug += " for " + name + " left on time";
                             }
                         } else {
                             updateQueue.put(name, false);
                             events.put(name, ipc.getTime());
                             online.remove(name);
                             if (DEBUG)
-                                ba.sendSmartPrivateMessage("WingZero", name + " left, new record");
+                                bug += " for " + name + " left, new record";
                         }
                     }
                 } else {
                     if (type == EventRequester.PLAYER_ENTERED) {
                         if (DEBUG)
-                            ba.sendSmartPrivateMessage("WingZero", "Entered arena.");
+                            bug += " for bot entered new arena.";
                         Iterator<Player> i = (Iterator<Player>)ipc.getList();
                         while (i.hasNext()) {
                             String name = i.next().getPlayerName().toLowerCase();
-                            if (events.containsKey(name)) {
+                            if (isBot(name)) 
+                                continue;
+                            else if (events.containsKey(name)) {
                                 if (ipc.getTime() >= events.get(name)) {
                                     updateQueue.put(name, true);
                                     events.put(name, ipc.getTime());
@@ -517,11 +532,13 @@ public class twchat extends SubspaceBot {
                         }
                     } else if (type == EventRequester.PLAYER_LEFT) {
                         if (DEBUG)
-                            ba.sendSmartPrivateMessage("WingZero", "Left arena.");
+                            bug += " for bot left arena.";
                         Iterator<Player> i = (Iterator<Player>)ipc.getList();
                         while (i.hasNext()) {
                             String name = i.next().getPlayerName().toLowerCase();
-                            if (events.containsKey(name)) {
+                            if (isBot(name)) 
+                                continue;
+                            else if (events.containsKey(name)) {
                                 if (ipc.getTime() > events.get(name)) {
                                     updateQueue.put(name, false);
                                     events.put(name, ipc.getTime());
@@ -536,6 +553,8 @@ public class twchat extends SubspaceBot {
                     }
                     
                 }
+                if (DEBUG)
+                    ba.sendSmartPrivateMessage("WingZero", bug);
                 return;                
             }
             
@@ -601,6 +620,7 @@ public class twchat extends SubspaceBot {
         
         sqlDump = new TimerTask() {
             public void run() {
+                lastUpdate = System.currentTimeMillis();
                 if (updateQueue.isEmpty())
                     return;
                 String on = "(";
@@ -676,7 +696,7 @@ public class twchat extends SubspaceBot {
             if (!a.contains("#"))
                 pop += arenas.get(a);
         }
-        msg += "Total Public Population=" + pop + " Queued Updates=" + updateQueue.size() + " ONLINE=" + online.size();
+        msg += "Pub Pop=" + pop + " | Online=" + online.size();
         String query = "SELECT COUNT(*) as c FROM tblPlayer WHERE fnOnline = 1";
         try {
             ResultSet rs = ba.SQLQuery(db, query);
@@ -686,8 +706,20 @@ public class twchat extends SubspaceBot {
         } catch (SQLException e) {
             pop = -1;
         }
-        msg += " Database=" + pop;
+        msg += " | Database=" + pop + " | Queued=" + updateQueue.size() + " | Events=" + events.size() + " | Last update " + (System.currentTimeMillis() - lastUpdate) + " ms ago";
         ba.sendSmartPrivateMessage(stater, msg);
         stater = "";
+    }
+    
+    private void truncate(String name) {
+        int size = events.size();
+        long now = System.currentTimeMillis();
+        Iterator<String> i = events.keySet().iterator();
+        while (i.hasNext()) {
+            String key = i.next();
+            if (now - events.get(key) > 60*Tools.TimeInMillis.SECOND)
+                i.remove();
+        }
+        ba.sendSmartPrivateMessage(name, "" + size + " event mappings reduced to " + events.size());
     }
 }
