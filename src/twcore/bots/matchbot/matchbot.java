@@ -442,7 +442,7 @@ public class matchbot extends SubspaceBot {
                 && message.equals("Player Moderator OFF") && power) {
                 for (int i = 0; i < powerOn.size(); i++) {
                     m_botAction.sendUnfilteredPrivateMessage(powerOn.get(i), "*moderator");
-                    powerCheck();               
+                    m_botAction.sendSmartPrivateMessage(powerOn.get(i), "Power ON.");
                     }
 
         }
@@ -450,7 +450,7 @@ public class matchbot extends SubspaceBot {
                 && message.equals("Player Moderator ON") && !power) {
                 for (int i = 0; i < powerOff.size(); i++) {
                     m_botAction.sendUnfilteredPrivateMessage(powerOff.get(i), "*moderator");
-                    powerCheck();             
+                    m_botAction.sendSmartPrivateMessage(powerOn.get(i), "Power OFF.");
                     }
 
         }
@@ -799,12 +799,12 @@ public class matchbot extends SubspaceBot {
             m_botAction.sendUnfilteredPrivateMessage(name,"*moderator");
             powerOff.add(name.toLowerCase());
             power = false;
-            powerCheck();
+            m_botAction.sendPrivateMessage(name, "Power OFF.");
         } else {
             m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
             powerOn.add(name.toLowerCase());
             power = true;
-            powerCheck();
+            m_botAction.sendPrivateMessage(name, "Power ON.");
                 
             
                 
@@ -812,16 +812,7 @@ public class matchbot extends SubspaceBot {
         
     }
 
-    private void powerCheck() {
-        if(!power){
-            for (int i = 0; i < powerOff.size(); i++) {
-            m_botAction.sendPrivateMessage(powerOff.get(i), "Staff Power DISABLED.");}
-            } else {
-                for (int i = 0; i < powerOn.size(); i++) {
-                m_botAction.sendPrivateMessage(powerOn.get(i), "Staff Power ENABLED");
-            }
-            }
-    }
+
 
     public void playerKillGame()	{
         if (m_game != null) {
