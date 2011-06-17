@@ -56,7 +56,7 @@ public class pubhubstats extends PubBotModule {
 	 * m_botAction has been initialized.
 	 */
 	public void initializeModule() {
-	    psUpdatePlayer = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblPlayer(fnId, fcName, fcSquad, fcBanner, fcIP, fnTimezone, fcCountryCode, fcUsage, fcResolution, fdCreated, fdLastSeen) VALUES (?,?,?,?,?,?,?,?,?,?,?)", true);
+        psUpdatePlayer = m_botAction.createPreparedStatement(database, uniqueConnectionID, "INSERT INTO tblPlayer (fnId, fcName, fcSquad, fcBanner, fcIP, fnTimezone, fcCountryCode, fcUsage, fcResolution, fdCreated, fdLastSeen) VALUES (?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE fcSquad = VALUES(fcSquad), fcBanner = VALUES(fcBanner), fcIP = VALUES(fcIP), fnTimezone = VALUES(fnTimezone), fcCountryCode = VALUES(fcCountryCode), fcUsage = VALUES(fcUsage), fcResolution = VALUES(fcResolution), fdLastSeen = VALUES(fdLastSeen)", true);
 	    
 	    psScoreExists = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
 	    psReplaceScore = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblScore(fnPlayerId, fnShip, fnFlagPoints, fnKillPoints, fnWins, fnLosses, fnRate, fnAverage, ftLastUpdate) VALUES (?,?,?,?,?,?,?,?,?)");
