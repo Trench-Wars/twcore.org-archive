@@ -639,10 +639,6 @@ public class matchbot extends SubspaceBot {
 
     public void parseCommand(String name, String command, String[] parameters,
             boolean isStaff, boolean isRestrictedStaff) {
-        if(m_opList.isZH(name) && command.equals("!power")){
-            power(name, parameters);
-            
-        }
             
         if (isStaff) {
             if (command.equals("!game"))
@@ -652,6 +648,8 @@ public class matchbot extends SubspaceBot {
                     listGames(name);
                 if (command.equals("!go"))
                     command_go(name, parameters);
+                if (command.equals("!power"))
+                    power(name, parameters);
                 if ((command.equals("!die")) && (m_opList.isSmod(name))) {
                     if (m_game != null)
                         m_game.cancel();
