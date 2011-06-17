@@ -113,6 +113,8 @@ public class matchbot extends SubspaceBot {
         m_arena = m_botSettings.getString("Arena");
         m_opList = m_botAction.getOperatorList();
         m_gameRequests = new LinkedList<GameRequest>();
+        powerOn = new ArrayList<String>();
+        powerOff = new ArrayList<String>();
 
         twdops = new Stack<String>();
         loadTWDOps();
