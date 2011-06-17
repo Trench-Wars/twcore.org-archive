@@ -10,6 +10,7 @@ import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.game.Player;
+import twcore.core.util.ipc.IPCEvent;
 import twcore.core.util.ipc.IPCMessage;
 
 public class pubbotwho extends PubBotModule {
@@ -39,9 +40,12 @@ public class pubbotwho extends PubBotModule {
     }
 
     public void handleEvent(ArenaJoined event) {
+        /*
         Iterator<Player> i = m_botAction.getPlayerIterator();
         while (i.hasNext())
-            m_botAction.ipcTransmit(IPC, new IPCMessage("enter:" + i.next().getPlayerName()));
+            m_botAction.ipcTransmit(IPC, new IPCEvent(p.getPlayerName(), System.currentTimeMillis(), EventRequester.PLAYER_ENTERED));
+        */
+        m_botAction.ipcTransmit(IPC, new IPCEvent(m_botAction.getPlayerIterator(), System.currentTimeMillis(), EventRequester.PLAYER_ENTERED));
     }
 
     public void handleEvent(PlayerEntered event) {
@@ -57,7 +61,9 @@ public class pubbotwho extends PubBotModule {
         if (p.getPlayerName().startsWith("^"))
             return;
 
-        m_botAction.ipcTransmit(IPC, new IPCMessage("enter:" + p.getPlayerName()));
+        //m_botAction.ipcTransmit(IPC, new IPCMessage("enter:" + p.getPlayerName()));
+        
+        m_botAction.ipcTransmit(IPC, new IPCEvent(p.getPlayerName(), System.currentTimeMillis(), EventRequester.PLAYER_ENTERED));
     }
 
     public void handleEvent(PlayerLeft event) {
@@ -71,24 +77,34 @@ public class pubbotwho extends PubBotModule {
         if (p.getPlayerName().startsWith("^"))
             return;
 
-        m_botAction.ipcTransmit(IPC, new IPCMessage("left:" + p.getPlayerName()));
+        //m_botAction.ipcTransmit(IPC, new IPCMessage("left:" + p.getPlayerName()));
+        m_botAction.ipcTransmit(IPC, new IPCEvent(p.getPlayerName(), System.currentTimeMillis(), EventRequester.PLAYER_LEFT));
     }
     
     public void handleEvent(InterProcessEvent event) {
-        if (!event.getChannel().equals(IPC))
+        if (!event.getChannel().equals(IPC) || !(event.getObject() instanceof IPCMessage))
             return;
         
         if (((IPCMessage) event.getObject()).getMessage().equals("who:refresh")) {
+            /*
             Iterator<Player> i = m_botAction.getPlayerIterator();
             while (i.hasNext())
-                m_botAction.ipcTransmit(IPC, new IPCMessage("enter:" + i.next().getPlayerName()));            
+                m_botAction.ipcTransmit(IPC, new IPCMessage("enter:" + i.next().getPlayerName()));
+            */        
+            m_botAction.ipcTransmit(IPC, new IPCEvent(m_botAction.getPlayerIterator(), System.currentTimeMillis(), EventRequester.PLAYER_ENTERED));
+            
         }
     }
     
     public void doDie() {
+        /*
         Iterator<Player> i = m_botAction.getPlayerIterator();
         while (i.hasNext())
             m_botAction.ipcTransmit(IPC, new IPCMessage("left:" + i.next().getPlayerName()));
+        */
+        m_botAction.ipcTransmit(IPC, new IPCEvent(m_botAction.getPlayerIterator(), System.currentTimeMillis(), EventRequester.PLAYER_LEFT));
+        
+        
     }
 
     @Override

@@ -1,5 +1,6 @@
 package twcore.bots.twchat;
 
+import java.awt.Event;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -13,12 +14,14 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TimerTask;
+import java.util.TreeMap;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaJoined;
+import twcore.core.events.ArenaList;
 import twcore.core.events.FileArrived;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.LoggedOn;
@@ -28,6 +31,7 @@ import twcore.core.events.PlayerLeft;
 import twcore.core.events.SQLResultEvent;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
+import twcore.core.util.ipc.IPCEvent;
 import twcore.core.util.ipc.IPCMessage;
 
 public class twchat extends SubspaceBot {
@@ -39,7 +43,7 @@ public class twchat extends SubspaceBot {
     private final String IPC = "whoonline";
 
     private String db = "pubstats";
-    private boolean DEBUG = false;
+    private boolean DEBUG = true;
     private boolean signup = false;
     private boolean notify = false;
     // status of the database update task sqlDump
@@ -48,11 +52,14 @@ public class twchat extends SubspaceBot {
     private int delay = 60;
     // updates player database periodically according to delay
     private TimerTask sqlDump;
+    
+    private String stater = "";
 
     // up to date list of who is online
     public HashSet<String> online = new HashSet<String>();
     // queue of status updates
     public Map<String, Boolean> updateQueue = Collections.synchronizedMap(new HashMap<String, Boolean>());
+    public Map<String, Long> events = Collections.synchronizedMap(new TreeMap<String, Long>());
 
     public twchat(BotAction botAction) {
         super(botAction);
@@ -66,6 +73,7 @@ public class twchat extends SubspaceBot {
         EventRequester req = m_botAction.getEventRequester();
         req.request(EventRequester.MESSAGE);
         req.request(EventRequester.ARENA_JOINED);
+        req.request(EventRequester.ARENA_LIST);
         req.request(EventRequester.LOGGED_ON);
         req.request(EventRequester.FILE_ARRIVED);
         req.request(EventRequester.PLAYER_ENTERED);
@@ -97,8 +105,8 @@ public class twchat extends SubspaceBot {
 
             if (message.equalsIgnoreCase("!show"))
                 show(name, message);
-            else if (message.equals("!nwz"))
-                DEBUG = !DEBUG;
+            else if (message.equals("!debug"))
+                debug();
             
             else if (message.startsWith("!delay "))
                 setDelay(name, message);
@@ -126,6 +134,9 @@ public class twchat extends SubspaceBot {
             
             else if (message.equals("!whosonline"))
                 listOnline(name);
+            
+            else if (message.equals("!stats"))
+                stats(name);
 
             else if (message.startsWith("!go "))
                 go(name, message);
@@ -147,6 +158,14 @@ public class twchat extends SubspaceBot {
                     show.add(nameFromMessage.toLowerCase());
             }
         }
+    }
+    
+    public void debug() {
+        DEBUG = !DEBUG;
+        if (DEBUG)
+            ba.sendSmartPrivateMessage("WingZero", "DEBUG ENABLED!");
+        else
+            ba.sendSmartPrivateMessage("WingZero", "DEBUG DISABLED!");
     }
 
     private void put(String name, String message) {
@@ -226,6 +245,7 @@ public class twchat extends SubspaceBot {
     public void test(String name, String message) {
         m_botAction.sendSmartPrivateMessage(name, "Test complete, Gotten VIP.TXT");
         m_botAction.getServerFile("vip.txt");
+       
     }
 
     public void show(String name, String message) {
@@ -433,19 +453,105 @@ public class twchat extends SubspaceBot {
     public void handleEvent(InterProcessEvent event) {
         if (!event.getChannel().equals(IPC) || !status)
             return;
-
-        String[] msg = ((IPCMessage) event.getObject()).getMessage().split(":");
-        String name = msg[1].toLowerCase();
-        if (m_botAction.getOperatorList().isBotExact(name))
-            return;
-        if (DEBUG)
-            m_botAction.sendSmartPrivateMessage("WingZero", "received IPC for " + name);
-        if (msg[0].equals("enter")) {
-            updateQueue.put(name, true);
-            online.add(name);
-        } else if (msg[0].equals("left")) {
-            updateQueue.put(name, false);
-            online.remove(name);
+        synchronized(event.getObject()) {
+            
+            if (event.getObject() instanceof IPCEvent) {
+                IPCEvent ipc = (IPCEvent)event.getObject();
+                int type = ipc.getType();
+                long now = System.currentTimeMillis();
+                if (DEBUG)
+                    ba.sendSmartPrivateMessage("WingZero", "ipc " + (now - ipc.getTime()) + " ms ago");
+                if (!ipc.isAll()) {
+                    String name = ipc.getName().toLowerCase();
+                    if (type == EventRequester.PLAYER_ENTERED) {
+                        if (events.containsKey(name)) {
+                            if (ipc.getTime() >= events.get(name)) {
+                                updateQueue.put(name, true);
+                                events.put(name, ipc.getTime());
+                                online.add(name);
+                                if (DEBUG)
+                                    ba.sendSmartPrivateMessage("WingZero", name + " enters on time");
+                            }
+                        } else {
+                            updateQueue.put(name, true);
+                            events.put(name, ipc.getTime());
+                            online.add(name);   
+                            if (DEBUG)
+                                ba.sendSmartPrivateMessage("WingZero", name + " enters, new record");                         
+                        }
+                    } else if (type == EventRequester.PLAYER_LEFT) {
+                        if (events.containsKey(name)) {
+                            if (ipc.getTime() > events.get(name)) {
+                                updateQueue.put(name, false);
+                                events.put(name, ipc.getTime());
+                                online.remove(name);
+                                if (DEBUG)
+                                    ba.sendSmartPrivateMessage("WingZero", name + " left on time");
+                            }
+                        } else {
+                            updateQueue.put(name, false);
+                            events.put(name, ipc.getTime());
+                            online.remove(name);
+                            if (DEBUG)
+                                ba.sendSmartPrivateMessage("WingZero", name + " left, new record");
+                        }
+                    }
+                } else {
+                    if (type == EventRequester.PLAYER_ENTERED) {
+                        if (DEBUG)
+                            ba.sendSmartPrivateMessage("WingZero", "Entered arena.");
+                        Iterator<Player> i = (Iterator<Player>)ipc.getList();
+                        while (i.hasNext()) {
+                            String name = i.next().getPlayerName().toLowerCase();
+                            if (events.containsKey(name)) {
+                                if (ipc.getTime() >= events.get(name)) {
+                                    updateQueue.put(name, true);
+                                    events.put(name, ipc.getTime());
+                                    online.add(name);                                    
+                                }
+                            } else {
+                                updateQueue.put(name, false);
+                                events.put(name, ipc.getTime());
+                                online.remove(name);                                
+                            }
+                        }
+                    } else if (type == EventRequester.PLAYER_LEFT) {
+                        if (DEBUG)
+                            ba.sendSmartPrivateMessage("WingZero", "Left arena.");
+                        Iterator<Player> i = (Iterator<Player>)ipc.getList();
+                        while (i.hasNext()) {
+                            String name = i.next().getPlayerName().toLowerCase();
+                            if (events.containsKey(name)) {
+                                if (ipc.getTime() > events.get(name)) {
+                                    updateQueue.put(name, false);
+                                    events.put(name, ipc.getTime());
+                                    online.remove(name);                                    
+                                }
+                            } else {
+                                updateQueue.put(name, false);
+                                events.put(name, ipc.getTime());
+                                online.remove(name);                                 
+                            }
+                        }
+                    }
+                    
+                }
+                return;                
+            }
+            
+            
+            
+            String[] msg = ((IPCMessage) event.getObject()).getMessage().split(":");
+            String name = msg[1].toLowerCase();
+            if (m_botAction.getOperatorList().isBotExact(name))
+                return;
+            if (msg[0].equals("enter")) {
+                updateQueue.put(name, true);
+                online.add(name);
+            } else if (msg[0].equals("left")) {
+                updateQueue.put(name, false);
+                online.remove(name);
+            }
         }
     }
 
@@ -528,5 +634,60 @@ public class twchat extends SubspaceBot {
         };
         status = true;
         ba.scheduleTask(sqlDump, 5000, delay * Tools.TimeInMillis.SECOND);
+    }
+    
+    private void forceOnline(String name) {
+        int count = 0;
+        String names = "(";
+        for (String n : online) {
+            count++;
+            names += "'" + Tools.addSlashesToString(name) + "',";
+        }
+        if (count > 0) {
+            names = names.substring(0, names.length()-1) + ")";
+            try {
+                ba.SQLQueryAndClose(db, "UPDATE tblPlayer SET fnOnline = 1 WHERE fcName IN " + names);
+            } catch (SQLException e) {
+                Tools.printStackTrace(e);
+            }
+            ba.sendSmartPrivateMessage(name, "" + count + " names updated to ONLINE");
+        } else {
+            ba.sendSmartPrivateMessage(name, "List empty.");
+        }       
+    }
+    
+    private void sync(String name) {
+        sqlReset();
+        forceOnline(name);
+    }
+    
+    private void stats(String name) {
+        stater = name;
+        ba.requestArenaList();
+    }
+    
+    public void handleEvent(ArenaList event) {
+        if (stater.length() < 1)
+            return;
+        String msg = "";
+        int pop = 0;
+        Map<String, Integer> arenas = event.getArenaList();
+        for (String a : arenas.keySet()) {
+            if (!a.contains("#"))
+                pop += arenas.get(a);
+        }
+        msg += "Total Public Population=" + pop + " Queued Updates=" + updateQueue.size() + " ONLINE=" + online.size();
+        String query = "SELECT COUNT(*) as c FROM tblPlayer WHERE fnOnline = 1";
+        try {
+            ResultSet rs = ba.SQLQuery(db, query);
+            if (rs.next())
+                pop = rs.getInt("c");
+            ba.SQLClose(rs);
+        } catch (SQLException e) {
+            pop = -1;
+        }
+        msg += " Database=" + pop;
+        ba.sendSmartPrivateMessage(stater, msg);
+        stater = "";
     }
 }
