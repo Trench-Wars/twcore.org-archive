@@ -18,6 +18,7 @@ import java.util.TreeMap;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
+import twcore.core.OperatorList;
 import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.ArenaList;
@@ -36,6 +37,7 @@ import twcore.core.util.ipc.IPCMessage;
 public class twchat extends SubspaceBot {
 
     BotSettings m_botSettings;
+    OperatorList ops;
     BotAction ba;
     public ArrayList<String> lastPlayer = new ArrayList<String>();
     public ArrayList<String> show = new ArrayList<String>();
@@ -66,6 +68,7 @@ public class twchat extends SubspaceBot {
         requestEvents();
         ba = m_botAction;
         m_botSettings = m_botAction.getBotSettings();
+        ops = m_botAction.getOperatorList();
 
     }
 
@@ -454,7 +457,7 @@ public class twchat extends SubspaceBot {
     }
     
     private boolean isBot(String name) {
-        if (ba.getOperatorList().isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness"))
+        if (ops.isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness"))
             return true;
         else
             return false;
