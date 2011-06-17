@@ -215,13 +215,13 @@ public class twchat extends SubspaceBot {
                         "|-------------------------------------------------------------------------------|",
                         "|                                Who Is Online (SMod)                           |",
                         "|                                                                               |",
-                        "| !online <name>  - Shows if <name> is currently online according to list on bot|",
-                        "| !squad <squad>  - Lists all the members of <squad> currently online           |",
                         "| !update         - Toggles the online status update process on and off         |",
                         "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
                         "| !delay <sec>    - Sets the delay between updates in seconds and restarts task |",
+                        "| !stats          - Displays population and player online status information    |",
                         "| !whosonline     - Lists every single player found in the online list          |",
-                        "| !refresh        - Resets entire database & calls for bots to update players   |", };
+                        "| !refresh        - Resets entire database & calls for bots to update players   |",
+                        "| !truncate       - Shrinks the events tree in case it gets large               |", };
         String[] endCommands = { "\\-------------------------------------------------------------------------------/" };
 
         m_botAction.smartPrivateMessageSpam(name, startCommands);
