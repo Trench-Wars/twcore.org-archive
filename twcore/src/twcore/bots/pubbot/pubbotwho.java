@@ -34,7 +34,7 @@ public class pubbotwho extends PubBotModule {
     }
     
     public void handleEvent(Message event) {
-        String name = event.getMessager();
+        String name = m_botAction.getPlayerName(event.getPlayerID());
         String msg = event.getMessage();
         int type = event.getMessageType();
         if (name == null || msg == null)
