@@ -1,6 +1,7 @@
 package twcore.bots.pubbot;
 
-import java.util.Iterator;
+import java.util.HashMap;
+import java.util.TimerTask;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
@@ -16,7 +17,10 @@ import twcore.core.util.ipc.IPCMessage;
 public class pubbotwho extends PubBotModule {
 
     protected final String IPC = "whoonline";
-    boolean notify = false;
+    
+    HashMap<String, Who> who = new HashMap<String, Who>();
+    
+    boolean debug = false;
 
     public void initializeModule() {
         m_botAction.ipcSubscribe(IPC);
@@ -32,11 +36,23 @@ public class pubbotwho extends PubBotModule {
     public void handleEvent(Message event) {
         String name = event.getMessager();
         String msg = event.getMessage();
+        int type = event.getMessageType();
         if (name == null || msg == null)
             return;
-        if (m_botAction.getOperatorList().isSmod(name) && msg.equals("!notifyme"))
-            notify = !notify;
-        
+        if (type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE) {
+            if (m_botAction.getOperatorList().isSmod(name) && msg.equals("!debug")) {
+                debug();
+            }
+        }
+
+    }
+    
+    private void debug() {
+        debug = !debug;
+        if (debug)
+            m_botAction.sendSmartPrivateMessage("WingZero", "Debug ON");
+        else
+            m_botAction.sendSmartPrivateMessage("WingZero", "Debug OFF");
     }
 
     public void handleEvent(ArenaJoined event) {
@@ -54,16 +70,22 @@ public class pubbotwho extends PubBotModule {
         // ignore bots & nulls
         if (p == null || m_botAction.getOperatorList().isBotExact(p.getPlayerName()))
             return;
-        if (notify)
-            m_botAction.sendSmartPrivateMessage("WingZero", "enter event for: " + event.getPlayerName());
 
         // ignore players when biller is down
         if (p.getPlayerName().startsWith("^"))
             return;
+        
+        if (debug)
+            m_botAction.sendSmartPrivateMessage("WingZero", "enter event for: " + p.getPlayerName());
 
         //m_botAction.ipcTransmit(IPC, new IPCMessage("enter:" + p.getPlayerName()));
-        
-        m_botAction.ipcTransmit(IPC, new IPCEvent(p.getPlayerName(), System.currentTimeMillis(), EventRequester.PLAYER_ENTERED));
+        String name = p.getPlayerName().toLowerCase();
+        if (who.containsKey(name)) {
+            m_botAction.cancelTask(who.remove(name));
+        }
+        Who u = new Who(p.getPlayerName(), System.currentTimeMillis());
+        who.put(name, u);
+        m_botAction.scheduleTask(u, 2000);
     }
 
     public void handleEvent(PlayerLeft event) {
@@ -76,8 +98,15 @@ public class pubbotwho extends PubBotModule {
         // ignore players when biller is down
         if (p.getPlayerName().startsWith("^"))
             return;
+        
+        if (debug)
+            m_botAction.sendSmartPrivateMessage("WingZero", "left event for: " + p.getPlayerName());
 
         //m_botAction.ipcTransmit(IPC, new IPCMessage("left:" + p.getPlayerName()));
+        String name = p.getPlayerName().toLowerCase();
+        if (who.containsKey(name))
+            m_botAction.cancelTask(who.remove(name));
+        
         m_botAction.ipcTransmit(IPC, new IPCEvent(p.getPlayerName(), System.currentTimeMillis(), EventRequester.PLAYER_LEFT));
     }
     
@@ -109,5 +138,23 @@ public class pubbotwho extends PubBotModule {
 
     @Override
     public void cancel() {
+    }
+    
+    class Who extends TimerTask {
+        
+        String name;
+        long time;
+        
+        public Who(String name, long time) {
+            this.name = name;
+            this.time = time;
+        }
+
+        @Override
+        public void run() {
+            who.remove(name.toLowerCase());
+            m_botAction.ipcTransmit(IPC, new IPCEvent(name, System.currentTimeMillis(), EventRequester.PLAYER_ENTERED));
+        }
+        
     }
 }
