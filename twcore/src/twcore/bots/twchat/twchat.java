@@ -101,6 +101,8 @@ public class twchat extends SubspaceBot {
             getSquad(name, message);
         else if (message.equalsIgnoreCase("!help"))
             help(name, message);
+        else if (message.startsWith("!whosgot "))
+            whosGot(name, message);
         
         if (ops.isDeveloperExact(name) || ops.isSmod(name)) {
             if (message.startsWith("!delay "))
@@ -240,7 +242,6 @@ public class twchat extends SubspaceBot {
         resetAll("WingZero");
     }
 
-    @SuppressWarnings("unchecked")
     public void handleEvent(InterProcessEvent event) {
         if (!event.getChannel().equals(IPC) || !status)
             return;
@@ -412,6 +413,7 @@ public class twchat extends SubspaceBot {
                         "|                                Who Is Online                                  |",
                         "|                                                                               |",
                         "| !squad <squad>  - Lists all the members of <squad> currently online           |",
+                        "| !whosgot <#>    - Lists all the squads who have <#> or more members online    |",
                         "| !online <name>  - Shows if <name> is currently online according to list on bot|",
                         "|                                                                               |", };
         String[] modCommands =
@@ -734,6 +736,34 @@ public class twchat extends SubspaceBot {
         } catch (SQLException e) {
             ba.sendSmartPrivateMessage(name, "SQL error.");
             Tools.printStackTrace(e);
+        }
+    }
+    
+    private void whosGot(String name, String cmd) {
+        if (cmd.indexOf(" ") < 0 || cmd.length() < 10)
+            return;
+        try {
+            int x = Integer.valueOf(cmd.substring(cmd.indexOf(" ")+1));
+            if (x < 2) {
+                ba.sendSmartPrivateMessage(name, "Number of players too small.");
+                return;
+            }
+            String result = "Squads(" + x + "+): ";
+            String query = "SELECT fcSquad, COUNT(fcSquad) as c FROM tblPlayer WHERE fnOnline = 1 GROUP BY fcSquad ORDER BY c DESC LIMIT 25";
+            ResultSet rs = ba.SQLQuery(db, query);
+            while (rs.next()) {
+                int c = rs.getInt("c");
+                if (c >= x) {
+                    result += rs.getString("fcSquad") + "(" + c + "), ";
+                } else {
+                    break;
+                }
+            }
+            ba.SQLClose(rs);
+            ba.sendSmartPrivateMessage(name, result);            
+        } catch (SQLException e) {
+            Tools.printStackTrace(e);
+        } catch (NumberFormatException e) {      
         }
     }
 }
