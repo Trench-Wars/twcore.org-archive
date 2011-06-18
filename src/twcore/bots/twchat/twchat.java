@@ -239,6 +239,7 @@ public class twchat extends SubspaceBot {
         m_botAction.setReliableKills(1);
         String g = m_botSettings.getString("Chats");
         m_botAction.sendUnfilteredPublicMessage("?chat=" + g);
+        update();
         resetAll("WingZero");
     }
 
@@ -619,13 +620,14 @@ public class twchat extends SubspaceBot {
         updateQueue.clear();
         online.clear();
         sqlReset();
+        final String p = name;
         TimerTask call = new TimerTask() {
             public void run() {
+                m_botAction.sendSmartPrivateMessage(p, "Commencing reset...");
                 m_botAction.ipcTransmit(IPC, new IPCMessage("who:refresh"));
             }
         };
         m_botAction.scheduleTask(call, 3000);
-        m_botAction.sendSmartPrivateMessage(name, "Commencing reset...");
     }
 
     public void getSquad(String name, String msg) {
@@ -694,7 +696,7 @@ public class twchat extends SubspaceBot {
             }
         };
         status = true;
-        ba.scheduleTask(sqlDump, 2000, delay * Tools.TimeInMillis.SECOND);
+        ba.scheduleTask(sqlDump, 1000, delay * Tools.TimeInMillis.SECOND);
     }
     
     private void stats(String name) {
@@ -740,7 +742,7 @@ public class twchat extends SubspaceBot {
     }
     
     private void whoHas(String name, String cmd) {
-        if (cmd.indexOf(" ") < 0 || cmd.length() < 10)
+        if (cmd.indexOf(" ") < 0 || cmd.length() < 9)
             return;
         try {
             int x = Integer.valueOf(cmd.substring(cmd.indexOf(" ")+1));
