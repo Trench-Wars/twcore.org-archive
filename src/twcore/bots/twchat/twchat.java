@@ -103,25 +103,11 @@ public class twchat extends SubspaceBot {
 
         else if (message.equalsIgnoreCase("!help"))
             help(name, message);
-
-        if (ops.isSmod(name) || ops.isDeveloper(name)) {
-
-            if (message.equalsIgnoreCase("!show"))
-                show(name, message);
-            else if (message.equals("!debug"))
-                debug();
+        
+        if (ops.isDeveloper(name)) {
             
-            else if (message.startsWith("!delay "))
+            if (message.startsWith("!delay "))
                 setDelay(name, message);
-            
-            else if (message.equalsIgnoreCase("!toggle"))
-                toggle(name, message);
-
-            else if (message.equalsIgnoreCase("!get"))
-                test(name, message);
-            
-            else if (message.equalsIgnoreCase("!put"))
-                put(name, message);
 
             else if (message.equals("!update"))
                 status(name);
@@ -132,14 +118,35 @@ public class twchat extends SubspaceBot {
             else if (message.equals("!refresh"))
                 resetAll(name);
             
-            else if (message.equals("!notify"))
-                toggleNotify(name, message);
-            
             else if (message.equals("!whosonline"))
                 listOnline(name);
             
             else if (message.equals("!stats"))
                 stats(name);
+            
+            else if (message.equals("!truncate"))
+                truncate(name);
+            
+        }
+
+        if (ops.isSmod(name)) {
+
+            if (message.equalsIgnoreCase("!show"))
+                show(name, message);
+            else if (message.equals("!debug"))
+                debug();
+            
+            else if (message.equalsIgnoreCase("!toggle"))
+                toggle(name, message);
+
+            else if (message.equalsIgnoreCase("!get"))
+                test(name, message);
+            
+            else if (message.equalsIgnoreCase("!put"))
+                put(name, message);
+            
+            else if (message.equals("!notify"))
+                toggleNotify(name, message);
 
             else if (message.startsWith("!go "))
                 go(name, message);
@@ -150,8 +157,6 @@ public class twchat extends SubspaceBot {
             else if (message.equalsIgnoreCase("!die"))
                 m_botAction.die();
             
-            else if (message.equals("!truncate"))
-                truncate(name);
         }
 
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
@@ -435,6 +440,18 @@ public class twchat extends SubspaceBot {
                         "| !whosonline     - Lists every single player found in the online list          |",
                         "| !refresh        - Resets entire database & calls for bots to update players   |",
                         "| !truncate       - Shrinks the events tree in case it gets large               |", };
+        String[] devCommands = {
+
+                "|-------------------------------------------------------------------------------|",
+                "|                                Who Is Online (Dev)                            |",
+                "|                                                                               |",
+                "| !update         - Toggles the online status update process on and off         |",
+                "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
+                "| !delay <sec>    - Sets the delay between updates in seconds and restarts task |",
+                "| !stats          - Displays population and player online status information    |",
+                "| !whosonline     - Lists every single player found in the online list          |",
+                "| !refresh        - Resets entire database & calls for bots to update players   |",
+                "| !truncate       - Shrinks the events tree in case it gets large               |" };
         String[] endCommands = { "\\-------------------------------------------------------------------------------/" };
 
         m_botAction.smartPrivateMessageSpam(name, startCommands);
@@ -442,7 +459,8 @@ public class twchat extends SubspaceBot {
 
         if (m_botAction.getOperatorList().isSmod(name)) {
             m_botAction.smartPrivateMessageSpam(name, modCommands);
-        }
+        } else if (ops.isDeveloper(name))
+            m_botAction.smartPrivateMessageSpam(name, devCommands);
 
         m_botAction.smartPrivateMessageSpam(name, endCommands);
 
