@@ -1918,6 +1918,7 @@ public class MatchRound
         {
             if (blueout){
                 m_logger.sendArenaMessage("Blueout has been enabled. Staff, don't speak in public from now on.");
+                m_logger.sendArenaMessage("Staff, Please enable the !power command before the match begins.");
 				m_timeBOEnabled = System.currentTimeMillis();
                 m_blueoutState = 1;
             }
