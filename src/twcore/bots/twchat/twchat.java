@@ -50,7 +50,7 @@ public class twchat extends SubspaceBot {
     // status of the database update task sqlDump
     private boolean status = false;
     // number of seconds between database updates
-    private int delay = 60;
+    private int delay = 30;
     // updates player database periodically according to delay
     private TimerTask sqlDump;
     
@@ -104,7 +104,7 @@ public class twchat extends SubspaceBot {
         else if (message.equalsIgnoreCase("!help"))
             help(name, message);
 
-        if (m_botAction.getOperatorList().isSmod(name)) {
+        if (ops.isSmod(name) || ops.isDeveloper(name)) {
 
             if (message.equalsIgnoreCase("!show"))
                 show(name, message);
