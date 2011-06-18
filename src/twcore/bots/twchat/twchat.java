@@ -729,10 +729,17 @@ public class twchat extends SubspaceBot {
         String query = "SELECT fcName FROM tblPlayer WHERE fcName NOT IN " + on + " AND fnOnline = 1";
         try {
             ResultSet rs = ba.SQLQuery(db, query);
+            String n = "";
             if (rs.next()) {
-                msg += rs.getString("fcName");
-                while (rs.next())
-                    msg += ", " + rs.getString("fcName");
+                n = rs.getString("fcName");
+                if (updateQueue.containsKey(n.toLowerCase()))
+                    n += "(Q)";
+                msg += n;
+                while (rs.next()) {
+                    if (updateQueue.containsKey(n.toLowerCase()))
+                        n += "(Q)";
+                    msg += ", " + n;
+                }
             }
             ba.sendSmartPrivateMessage(name, msg);
         } catch (SQLException e) {
@@ -750,7 +757,7 @@ public class twchat extends SubspaceBot {
                 ba.sendSmartPrivateMessage(name, "Number of players too small.");
                 return;
             }
-            String result = "Squads with " + x + " or more online: ";
+            String result = "Squads with " + x + "+: ";
             String query = "SELECT fcSquad, COUNT(fcSquad) as c FROM tblPlayer WHERE fnOnline = 1 GROUP BY fcSquad ORDER BY c DESC LIMIT 25";
             ResultSet rs = ba.SQLQuery(db, query);
             while (rs.next()) {
