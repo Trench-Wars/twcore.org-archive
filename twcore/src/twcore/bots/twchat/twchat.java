@@ -384,7 +384,7 @@ public class twchat extends SubspaceBot {
                 pop += arenas.get(a);
         }
         msg += "Pub Pop=" + pop + " | Online=" + online.size();
-        String query = "SELECT COUNT(fcName) as c FROM tblPlayer WHERE fnOnline = 1";
+        String query = "SELECT COUNT(DISTINCT fcName) as c FROM tblPlayer WHERE fnOnline = 1";
         try {
             ResultSet rs = ba.SQLQuery(db, query);
             if (rs.next())
