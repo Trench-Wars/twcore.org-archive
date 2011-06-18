@@ -384,7 +384,7 @@ public class twchat extends SubspaceBot {
                 pop += arenas.get(a);
         }
         msg += "Pub Pop=" + pop + " | Online=" + online.size();
-        String query = "SELECT COUNT(*) as c FROM tblPlayer WHERE fnOnline = 1";
+        String query = "SELECT COUNT(fcName) as c FROM tblPlayer WHERE fnOnline = 1";
         try {
             ResultSet rs = ba.SQLQuery(db, query);
             if (rs.next())
@@ -757,7 +757,7 @@ public class twchat extends SubspaceBot {
                 ba.sendSmartPrivateMessage(name, "Number of players too small.");
                 return;
             }
-            String result = "Squads with " + x + "+: ";
+            String result = "Squads with (" + x + "+): ";
             String query = "SELECT fcSquad, COUNT(fcSquad) as c FROM tblPlayer WHERE fnOnline = 1 GROUP BY fcSquad ORDER BY c DESC LIMIT 25";
             ResultSet rs = ba.SQLQuery(db, query);
             while (rs.next()) {
