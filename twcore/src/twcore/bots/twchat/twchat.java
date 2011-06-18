@@ -44,7 +44,7 @@ public class twchat extends SubspaceBot {
     private final String IPC = "whoonline";
 
     private String db = "pubstats";
-    private boolean DEBUG = true;
+    private boolean DEBUG = false;
     private boolean signup = false;
     private boolean notify = false;
     // status of the database update task sqlDump
@@ -56,6 +56,7 @@ public class twchat extends SubspaceBot {
     
     private String stater = "";
     private long lastUpdate = 0;
+    private int saves = 0;
 
     // up to date list of who is online
     public HashSet<String> online = new HashSet<String>();
@@ -94,69 +95,51 @@ public class twchat extends SubspaceBot {
 
         if (message.startsWith("!online "))
             isOnline(name, message);
-
         else if (message.equalsIgnoreCase("!signup"))
             signup(name, message);
-
         else if (message.startsWith("!squad "))
             getSquad(name, message);
-
         else if (message.equalsIgnoreCase("!help"))
             help(name, message);
         
         if (ops.isDeveloperExact(name) || ops.isSmod(name)) {
-            
             if (message.startsWith("!delay "))
                 setDelay(name, message);
-
             else if (message.equals("!update"))
                 status(name);
-
             else if (message.startsWith("!info "))
                 getInfo(name, message);
-
             else if (message.equals("!refresh"))
                 resetAll(name);
-            
             else if (message.equals("!whosonline"))
                 listOnline(name);
-            
             else if (message.equals("!stats"))
                 stats(name);
-            
             else if (message.equals("!truncate"))
                 truncate(name);
-            
+            else if (message.equals("!errors"))
+                errors(name);
         }
-
+        
         if (ops.isSmod(name)) {
-
             if (message.equalsIgnoreCase("!show"))
                 show(name, message);
             else if (message.equals("!debug"))
                 debug();
-            
             else if (message.equalsIgnoreCase("!toggle"))
                 toggle(name, message);
-
             else if (message.equalsIgnoreCase("!get"))
                 test(name, message);
-            
             else if (message.equalsIgnoreCase("!put"))
                 put(name, message);
-            
             else if (message.equals("!notify"))
                 toggleNotify(name, message);
-
             else if (message.startsWith("!go "))
                 go(name, message);
-
             else if (message.startsWith("!vipadd "))
                 vipadd(name, message);
-
             else if (message.equalsIgnoreCase("!die"))
                 m_botAction.die();
-            
         }
 
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
@@ -254,11 +237,10 @@ public class twchat extends SubspaceBot {
         m_botAction.setReliableKills(1);
         String g = m_botSettings.getString("Chats");
         m_botAction.sendUnfilteredPublicMessage("?chat=" + g);
-        sqlReset();
-        update();
         resetAll("WingZero");
     }
 
+    @SuppressWarnings("unchecked")
     public void handleEvent(InterProcessEvent event) {
         if (!event.getChannel().equals(IPC) || !status)
             return;
@@ -282,6 +264,10 @@ public class twchat extends SubspaceBot {
                                 online.add(name);
                                 if (DEBUG)
                                     bug += " for " + name + " enters on time";
+                            } else {
+                                saves++;
+                                if (DEBUG)
+                                    ba.sendSmartPrivateMessage("WingZero", "Saved " + name);
                             }
                         } else {
                             updateQueue.put(name, true);
@@ -298,6 +284,10 @@ public class twchat extends SubspaceBot {
                                 online.remove(name);
                                 if (DEBUG)
                                     bug += " for " + name + " left on time";
+                            } else {
+                                saves++;
+                                if (DEBUG)
+                                    ba.sendSmartPrivateMessage("WingZero", "Saved " + name);
                             }
                         } else {
                             updateQueue.put(name, false);
@@ -319,7 +309,11 @@ public class twchat extends SubspaceBot {
                                     if (ipc.getTime() >= events.get(name)) {
                                         updateQueue.put(name, true);
                                         events.put(name, ipc.getTime());
-                                        online.add(name);                                    
+                                        online.add(name);      
+                                    } else {
+                                        saves++;
+                                        if (DEBUG)
+                                            ba.sendSmartPrivateMessage("WingZero", "Saved " + name);
                                     }
                                 } else {
                                     updateQueue.put(name, false);
@@ -339,7 +333,11 @@ public class twchat extends SubspaceBot {
                                     if (ipc.getTime() > events.get(name)) {
                                         updateQueue.put(name, false);
                                         events.put(name, ipc.getTime());
-                                        online.remove(name);                                    
+                                        online.remove(name);        
+                                    } else {
+                                        saves++;
+                                        if (DEBUG)
+                                            ba.sendSmartPrivateMessage("WingZero", "Saved " + name);
                                     }
                                 } else {
                                     updateQueue.put(name, false);
@@ -393,7 +391,7 @@ public class twchat extends SubspaceBot {
         } catch (SQLException e) {
             pop = -1;
         }
-        msg += " | Database=" + pop + " | Queued=" + updateQueue.size() + " | Events=" + events.size() + " | Last update " + (System.currentTimeMillis() - lastUpdate) + " ms ago";
+        msg += " | Database=" + pop + " | Queued=" + updateQueue.size() + " | Events=" + events.size() + " | Saves: " + saves + " | Last update " + (System.currentTimeMillis() - lastUpdate) + " ms ago";
         ba.sendSmartPrivateMessage(stater, msg);
         stater = "";
     }
@@ -437,6 +435,7 @@ public class twchat extends SubspaceBot {
                         "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
                         "| !delay <sec>    - Sets the delay between updates in seconds and restarts task |",
                         "| !stats          - Displays population and player online status information    |",
+                        "| !errors         - Displays the inconsistencies between bot list and db list   |",
                         "| !whosonline     - Lists every single player found in the online list          |",
                         "| !refresh        - Resets entire database & calls for bots to update players   |",
                         "| !truncate       - Shrinks the events tree in case it gets large               |", };
@@ -449,6 +448,7 @@ public class twchat extends SubspaceBot {
                 "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
                 "| !delay <sec>    - Sets the delay between updates in seconds and restarts task |",
                 "| !stats          - Displays population and player online status information    |",
+                "| !errors         - Displays the inconsistencies between bot list and db list   |",
                 "| !whosonline     - Lists every single player found in the online list          |",
                 "| !refresh        - Resets entire database & calls for bots to update players   |",
                 "| !truncate       - Shrinks the events tree in case it gets large               |" };
@@ -567,7 +567,7 @@ public class twchat extends SubspaceBot {
     }
     
     public void listOnline(String name) {
-        if (online.size() < 101) {
+        if (online.size() < 150) {
             String msg = "ONLINE: ";
             for (String p : online) {
                 msg += p + ", ";
@@ -695,31 +695,6 @@ public class twchat extends SubspaceBot {
         ba.scheduleTask(sqlDump, 5000, delay * Tools.TimeInMillis.SECOND);
     }
     
-    private void forceOnline(String name) {
-        int count = 0;
-        String names = "(";
-        for (String n : online) {
-            count++;
-            names += "'" + Tools.addSlashesToString(name) + "',";
-        }
-        if (count > 0) {
-            names = names.substring(0, names.length()-1) + ")";
-            try {
-                ba.SQLQueryAndClose(db, "UPDATE tblPlayer SET fnOnline = 1 WHERE fcName IN " + names);
-            } catch (SQLException e) {
-                Tools.printStackTrace(e);
-            }
-            ba.sendSmartPrivateMessage(name, "" + count + " names updated to ONLINE");
-        } else {
-            ba.sendSmartPrivateMessage(name, "List empty.");
-        }       
-    }
-    
-    private void sync(String name) {
-        sqlReset();
-        forceOnline(name);
-    }
-    
     private void stats(String name) {
         stater = name;
         ba.requestArenaList();
@@ -735,5 +710,30 @@ public class twchat extends SubspaceBot {
                 i.remove();
         }
         ba.sendSmartPrivateMessage(name, "" + size + " event mappings reduced to " + events.size());
+    }
+    
+    private void errors(String name) {
+        if (online.isEmpty()) {
+            ba.sendSmartPrivateMessage(name, "Online list empty.");
+            return;
+        }
+        String on = "(";
+        for (String n : online)
+            on += "'" + n + "',";
+        on = on.substring(0, on.lastIndexOf(',')) + ")";
+        String msg = "Inconsistencies: ";
+        String query = "SELECT fcName FROM tblPlayer WHERE fcName NOT IN " + on + " AND fnOnline = 1";
+        try {
+            ResultSet rs = ba.SQLQuery(db, query);
+            if (rs.next()) {
+                msg += rs.getString("fcName");
+                while (rs.next())
+                    msg += ", " + rs.getString("fcName");
+            }
+            ba.sendSmartPrivateMessage(name, msg);
+        } catch (SQLException e) {
+            ba.sendSmartPrivateMessage(name, "SQL error.");
+            Tools.printStackTrace(e);
+        }
     }
 }
