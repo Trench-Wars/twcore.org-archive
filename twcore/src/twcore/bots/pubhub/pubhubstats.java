@@ -56,7 +56,7 @@ public class pubhubstats extends PubBotModule {
 	 * m_botAction has been initialized.
 	 */
 	public void initializeModule() {
-        psUpdatePlayer = m_botAction.createPreparedStatement(database, uniqueConnectionID, "INSERT INTO tblPlayer (fnId, fcName, fcSquad, fcBanner, fcIP, fnTimezone, fcCountryCode, fcUsage, fcResolution, fdCreated, fdLastSeen, fnOnline) VALUES (?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE fcSquad = VALUES(fcSquad), fcBanner = VALUES(fcBanner), fcIP = VALUES(fcIP), fnTimezone = VALUES(fnTimezone), fcCountryCode = VALUES(fcCountryCode), fcUsage = VALUES(fcUsage), fcResolution = VALUES(fcResolution), fdLastSeen = VALUES(fdLastSeen)", true);
+        psUpdatePlayer = m_botAction.createPreparedStatement(database, uniqueConnectionID, "INSERT INTO tblPlayer (fnId, fcName, fcSquad, fcBanner, fcIP, fnTimezone, fcCountryCode, fcUsage, fcResolution, fdCreated, fdLastSeen) VALUES (?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE fcSquad = VALUES(fcSquad), fcBanner = VALUES(fcBanner), fcIP = VALUES(fcIP), fnTimezone = VALUES(fnTimezone), fcCountryCode = VALUES(fcCountryCode), fcUsage = VALUES(fcUsage), fcResolution = VALUES(fcResolution), fdLastSeen = VALUES(fdLastSeen)", true);
 	    
 	    psScoreExists = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
 	    psReplaceScore = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblScore(fnPlayerId, fnShip, fnFlagPoints, fnKillPoints, fnWins, fnLosses, fnRate, fnAverage, ftLastUpdate) VALUES (?,?,?,?,?,?,?,?,?)");
@@ -332,10 +332,6 @@ public class pubhubstats extends PubBotModule {
                 psUpdatePlayer.setString(9, player.getResolution());
                 psUpdatePlayer.setTimestamp(10, new Timestamp(player.getDateCreated().getTime()));
                 psUpdatePlayer.setTimestamp(11, new Timestamp(player.getLastSeen()));
-                if (player.inArena())
-                    psUpdatePlayer.setInt(12, 1);
-                else
-                    psUpdatePlayer.setInt(12, 0);
                 psUpdatePlayer.execute();
                 
                 if(player.isScorereset()) {
