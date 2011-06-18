@@ -101,8 +101,8 @@ public class twchat extends SubspaceBot {
             getSquad(name, message);
         else if (message.equalsIgnoreCase("!help"))
             help(name, message);
-        else if (message.startsWith("!whosgot "))
-            whosGot(name, message);
+        else if (message.startsWith("!whohas "))
+            whoHas(name, message);
         
         if (ops.isDeveloperExact(name) || ops.isSmod(name)) {
             if (message.startsWith("!delay "))
@@ -413,7 +413,7 @@ public class twchat extends SubspaceBot {
                         "|                                Who Is Online                                  |",
                         "|                                                                               |",
                         "| !squad <squad>  - Lists all the members of <squad> currently online           |",
-                        "| !whosgot <#>    - Lists all the squads who have <#> or more members online    |",
+                        "| !whohas <#>     - Lists all the squads who have <#> or more members online    |",
                         "| !online <name>  - Shows if <name> is currently online according to list on bot|",
                         "|                                                                               |", };
         String[] modCommands =
@@ -739,7 +739,7 @@ public class twchat extends SubspaceBot {
         }
     }
     
-    private void whosGot(String name, String cmd) {
+    private void whoHas(String name, String cmd) {
         if (cmd.indexOf(" ") < 0 || cmd.length() < 10)
             return;
         try {
