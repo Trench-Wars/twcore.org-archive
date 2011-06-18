@@ -610,6 +610,7 @@ public class matchbot extends SubspaceBot {
                     help.add("!game <squadA>:<squadB>                  - start a game of "
                             + m_rules.getString("name")
                             + " between teamA and teamB");
+                    help.add("!power                                   - disables/enables your staff power");
                     if (!isRestrictedStaff) {
                         help.add("!unlock                                  - unlock the bot, makes it go back to ?go twd");
                         if (m_opList.isSmod(name)) {
@@ -633,7 +634,6 @@ public class matchbot extends SubspaceBot {
                     help.add("!removechallenge <squad>                 - (!rc)removes the challenge of " + m_rules.getString("name") + " game against <squad>");
                     help.add("!removechallenge *                       - (!rc *)removes all challenges sent out by your squad");
                     help.add("!accept <squad>                          - (!a)accept the !challenge made by the challenging squad");
-                    help.add("!power                                   - disables/enables your staff power");
                 }
             }
         }
