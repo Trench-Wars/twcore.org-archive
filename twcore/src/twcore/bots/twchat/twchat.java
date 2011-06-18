@@ -104,7 +104,7 @@ public class twchat extends SubspaceBot {
         else if (message.equalsIgnoreCase("!help"))
             help(name, message);
         
-        if (ops.isDeveloper(name)) {
+        if (ops.isDeveloperExact(name) || ops.isSmod(name)) {
             
             if (message.startsWith("!delay "))
                 setDelay(name, message);
