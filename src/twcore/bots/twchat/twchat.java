@@ -624,7 +624,7 @@ public class twchat extends SubspaceBot {
                 m_botAction.ipcTransmit(IPC, new IPCMessage("who:refresh"));
             }
         };
-        m_botAction.scheduleTask(call, 4000);
+        m_botAction.scheduleTask(call, 3000);
         m_botAction.sendSmartPrivateMessage(name, "Commencing reset...");
     }
 
@@ -694,7 +694,7 @@ public class twchat extends SubspaceBot {
             }
         };
         status = true;
-        ba.scheduleTask(sqlDump, 5000, delay * Tools.TimeInMillis.SECOND);
+        ba.scheduleTask(sqlDump, 2000, delay * Tools.TimeInMillis.SECOND);
     }
     
     private void stats(String name) {
@@ -748,13 +748,13 @@ public class twchat extends SubspaceBot {
                 ba.sendSmartPrivateMessage(name, "Number of players too small.");
                 return;
             }
-            String result = "Squads(" + x + "+): ";
+            String result = "Squads with " + x + " or more online: ";
             String query = "SELECT fcSquad, COUNT(fcSquad) as c FROM tblPlayer WHERE fnOnline = 1 GROUP BY fcSquad ORDER BY c DESC LIMIT 25";
             ResultSet rs = ba.SQLQuery(db, query);
             while (rs.next()) {
                 int c = rs.getInt("c");
                 if (c >= x) {
-                    result += rs.getString("fcSquad") + "(" + c + "), ";
+                    result += rs.getString("fcSquad") + "(" + c + ") ";
                 } else {
                     break;
                 }
