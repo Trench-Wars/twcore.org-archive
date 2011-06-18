@@ -65,7 +65,7 @@ public class pubhub extends SubspaceBot {
     private String cfg_chat_hub;
     private String cfg_chat_pub;
     private String pubhub;
-    private boolean DEBUG = true;
+    private boolean DEBUG = false;
     private boolean cfg_allArenas = false;
     private HashSet<String> cfg_arenas = new HashSet<String>();
     private HashSet<String> cfg_autoloadModules = new HashSet<String>();
@@ -167,7 +167,7 @@ public class pubhub extends SubspaceBot {
         for (int i = 0; i < arenas.length; i++) {
             String arena = arenas[i].toLowerCase();
 
-            if( Tools.isAllDigits(arena) || cfg_arenas.contains(arena) || (cfg_allArenas && !startup && !arena.contains("#") && event.getSizeOfArena(arenas[i]) > 2)) {
+            if( Tools.isAllDigits(arena) || cfg_arenas.contains(arena) || (cfg_allArenas && !startup && !arena.contains("#"))) {
                 if (!activeArenas.contains(arena))
                     activeArenas.add(arena);
                 if(!pubbots.containsValue(arena)) {
