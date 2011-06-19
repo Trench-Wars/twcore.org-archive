@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimerTask;
 import java.util.TreeMap;
 
@@ -41,9 +42,10 @@ public class twchat extends SubspaceBot {
     BotAction ba;
     public ArrayList<String> lastPlayer = new ArrayList<String>();
     public ArrayList<String> show = new ArrayList<String>();
-    private final String IPC = "whoonline";
+    private static final String IPC = "whoonline";
+    private static final String WHOBOT = "WingWho";
+    private static final String db = "pubstats";
 
-    private String db = "pubstats";
     private boolean DEBUG = false;
     private boolean signup = false;
     private boolean notify = false;
@@ -63,6 +65,7 @@ public class twchat extends SubspaceBot {
     // queue of status updates
     public Map<String, Boolean> updateQueue = Collections.synchronizedMap(new HashMap<String, Boolean>());
     public Map<String, Long> events = Collections.synchronizedMap(new TreeMap<String, Long>());
+    public Set<String> outsiders = Collections.synchronizedSet(new HashSet<String>());
 
     public twchat(BotAction botAction) {
         super(botAction);
@@ -249,12 +252,51 @@ public class twchat extends SubspaceBot {
         synchronized(event.getObject()) {
             String bug = "";
             if (event.getObject() instanceof IPCEvent) {
-                IPCEvent ipc = (IPCEvent)event.getObject();
+                IPCEvent ipc = (IPCEvent) event.getObject();
                 int type = ipc.getType();
                 long now = System.currentTimeMillis();
                 if (DEBUG)
                     bug += "ipc " + (now - ipc.getTime()) + " ms ago";
-                if (!ipc.isAll()) {
+                if (event.getSenderName().equals(WHOBOT)) {
+                    if (type == EventRequester.PLAYER_ENTERED) { 
+                        if (!ipc.isAll()) {
+                            String name = ipc.getName().toLowerCase();
+                            updateQueue.put(name, true);
+                            online.add(name);
+                            events.put(name, ipc.getTime());
+                            outsiders.add(name);
+                        } else {
+                            HashMap<String, Long> list = (HashMap<String, Long>) ipc.getList();
+                            for (String name : list.keySet()) {
+                                updateQueue.put(name, true);
+                                online.add(name);
+                                events.put(name, list.get(name));
+                                outsiders.add(name);
+                            }
+                        }
+                    } else if (type == EventRequester.PLAYER_LEFT) {
+                        if (!ipc.isAll()) {
+                            String name = ipc.getName().toLowerCase();
+                            if (ipc.getTime() > events.get(name)) {
+                                updateQueue.put(name, false);
+                                online.remove(name);
+                                events.put(name, ipc.getTime());
+                                outsiders.remove(name);
+                            }
+                        } else {
+                            Iterator<String> i = outsiders.iterator();
+                            while (i.hasNext()) {
+                                String name = i.next();
+                                if (ipc.getTime() > events.get(name)) {
+                                    updateQueue.put(name, false);
+                                    online.remove(name);
+                                    events.put(name, ipc.getTime());
+                                    i.remove();
+                                }
+                            }
+                        }
+                    }
+                } else if (!ipc.isAll()) {
                     String name = ipc.getName().toLowerCase();
                     if (ops.isBotExact(name) || (ops.isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness")))
                         return;
@@ -349,7 +391,6 @@ public class twchat extends SubspaceBot {
                             }
                         }
                     }
-                    
                 }
                 if (DEBUG)
                     ba.sendSmartPrivateMessage("WingZero", bug);
