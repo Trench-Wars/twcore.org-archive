@@ -124,6 +124,8 @@ public class twchat extends SubspaceBot {
                 truncate(name);
             else if (message.equals("!errors"))
                 errors(name);
+            else if (message.equals("!outsiders"))
+                outsiders(name);
         }
         
         if (ops.isSmod(name)) {
@@ -424,7 +426,7 @@ public class twchat extends SubspaceBot {
             if (!a.contains("#"))
                 pop += arenas.get(a);
         }
-        msg += "Pub Pop=" + pop + " | Online=" + online.size();
+        msg += "Pub Pop=" + pop + " | Online=" + online.size() + " | Outsiders=" + outsiders.size();
         String query = "SELECT COUNT(DISTINCT fcName) as c FROM tblPlayer WHERE fnOnline = 1";
         try {
             ResultSet rs = ba.SQLQuery(db, query);
@@ -787,6 +789,13 @@ public class twchat extends SubspaceBot {
             ba.sendSmartPrivateMessage(name, "SQL error.");
             Tools.printStackTrace(e);
         }
+    }
+    
+    private void outsiders(String name) {
+        String msg = "Outsiders: ";
+        for (String n : outsiders)
+            msg += n + ", ";
+        ba.sendSmartPrivateMessage(name, msg.substring(0, msg.length() - 1));
     }
     
     private void whoHas(String name, String cmd) {
