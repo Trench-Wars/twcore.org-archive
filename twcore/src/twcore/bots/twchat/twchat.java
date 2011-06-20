@@ -43,7 +43,7 @@ public class twchat extends SubspaceBot {
     public ArrayList<String> lastPlayer = new ArrayList<String>();
     public ArrayList<String> show = new ArrayList<String>();
     private static final String IPC = "whoonline";
-    private static final String WHOBOT = "TWBot";
+    private static final String WHOBOT = "TW-WhoBot";
     private static final String db = "pubstats";
 
     private boolean DEBUG = false;
