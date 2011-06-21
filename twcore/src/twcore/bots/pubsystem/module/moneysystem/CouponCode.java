@@ -20,11 +20,11 @@ public class CouponCode {
 	
 	private boolean enabled;
 	
-	public CouponCode(String code, int money, String createdBy) {
-		this(code, money, new Date(), createdBy);
+	public CouponCode(String code, int money, String createdBy, String description) {
+		this(code, money, new Date(), createdBy, description);
 	}
 	
-	public CouponCode(String code, int money, Date createdAt, String createdBy) {
+	public CouponCode(String code, int money, Date createdAt, String createdBy, String description) {
 		this.code = code;
 		this.money = money;
 		this.createdAt = createdAt;
@@ -32,7 +32,7 @@ public class CouponCode {
 		
 		this.used = 0;
 		this.maxUsed = 1;
-		this.description = "";
+		this.description = description;
 		this.startAt = new Date();
 		this.enabled = true;
 		

@@ -22,7 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimerTask;
+import java.util.Vector;
 
+import twcore.bots.bannerboy.bannerboy;
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.PubUtilModule.Location;
@@ -52,7 +54,6 @@ import twcore.core.events.SQLResultEvent;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
-import twcore.core.util.ipc.IPCMessage;
 
 public class PubMoneySystemModule extends AbstractModule {
 
@@ -946,9 +947,11 @@ public class PubMoneySystemModule extends AbstractModule {
 	private void doCmdCouponCreate(String sender, String command) {
 		
 		String[] pieces = command.split("\\s*:\\s*");
-		
+		if (pieces.length < 2) {
+		    m_botAction.sendSmartPrivateMessage(sender, "You must include a reason for creating this coupon. !cc <money>:<reason>");
+		    return;
 		// Automatic code
-		if (pieces.length == 1) {
+		} else if (pieces.length == 2) {
 		
 			int money;
 			try {
@@ -956,6 +959,11 @@ public class PubMoneySystemModule extends AbstractModule {
 			} catch (NumberFormatException e) {
 				m_botAction.sendSmartPrivateMessage(sender, "Bad number.");
 				return;
+			}
+			
+			if (pieces[1].length() < 5) {
+	            m_botAction.sendSmartPrivateMessage(sender, "Insufficient comment for <reason>.");
+	            return;			    
 			}
 			
 			String codeString = null;
@@ -977,11 +985,11 @@ public class PubMoneySystemModule extends AbstractModule {
 				}
 			}
 			
-			CouponCode code = new CouponCode(codeString, money, sender);
+			CouponCode code = new CouponCode(codeString, money, sender, pieces[1]);
 			insertCouponDB(code,"create:"+codeString+":"+sender);
 			
 		// Custom code
-		} else if (pieces.length == 2) {
+		} else if (pieces.length == 3) {
 			
 			String codeString = pieces[0];
 			
@@ -992,13 +1000,18 @@ public class PubMoneySystemModule extends AbstractModule {
 				m_botAction.sendSmartPrivateMessage(sender, "Bad number.");
 				return;
 			}
+            
+            if (pieces[2].length() < 5) {
+                m_botAction.sendSmartPrivateMessage(sender, "Insufficient comment for <reason>.");
+                return;             
+            }
 			
 			if (getCouponCode(codeString) != null) {
 				m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' already exists.");
 				return;
 			}
 			
-			CouponCode code = new CouponCode(codeString, money, sender);
+			CouponCode code = new CouponCode(codeString, money, sender, pieces[2]);
 			insertCouponDB(code,"create:"+codeString+":"+sender);
 			
 		} else {
@@ -1076,9 +1089,8 @@ public class PubMoneySystemModule extends AbstractModule {
 				Date endAt = rs.getDate("fdEndAt");
 				Date createdAt = rs.getDate("fdCreated");
 				
-				CouponCode code = new CouponCode(codeString, money, createdAt, createdBy);
+				CouponCode code = new CouponCode(codeString, money, createdAt, createdBy, description);
 				code.setId(id);
-				code.setDescription(description);
 				code.setEnabled(enabled);
 				code.setMaxUsed(maxUsed);
 				code.setStartAt(startAt);
@@ -1469,25 +1481,25 @@ public class PubMoneySystemModule extends AbstractModule {
 	public String[] getModHelpMessage(String sender) {
 
 		String normal[] = new String[] {
-			pubsystem.getHelpLine("!toggledonation                 -- Toggle on/off !donation."),	
+			pubsystem.getHelpLine("!toggledonation                        -- Toggle on/off !donation."),	
 		};
 		
     	String generation[] = new String[] {
-    		pubsystem.getHelpLine("!couponcreate <money>            -- (!cc) Create a random code for <money>. Use !limituse/!expiredate for more options."),
-    		pubsystem.getHelpLine("!couponcreate <code>:<money>     -- (!cc) Create a custom code for <money>. Max of 32 characters."),
-    		pubsystem.getHelpLine("!couponlimituse <code>:<max>     -- (!clu) Set how many players <max> can get this <code>."),
-    		pubsystem.getHelpLine("!couponexpiredate <code>:<date>  -- (!ced) Set an expiration <date> (format: yyyy/mm/dd) for <code>."),
+    		pubsystem.getHelpLine("!couponcreate <money>:<reason>         -- (!cc) Create a random code for <money> justified with a <reason>. Use !limituse/!expiredate for more options."),
+    		pubsystem.getHelpLine("!couponcreate <code>:<money>:<reason>  -- (!cc) Create a custom code for <money> justified with a <reason>. Max of 32 characters."),
+    		pubsystem.getHelpLine("!couponlimituse <code>:<max>           -- (!clu) Set how many players <max> can get this <code>."),
+    		pubsystem.getHelpLine("!couponexpiredate <code>:<date>        -- (!ced) Set an expiration <date> (format: yyyy/mm/dd) for <code>."),
     	};
     	
     	String maintenance[] = new String[] {
-    		pubsystem.getHelpLine("!couponinfo <code>               -- (!ci) Information about this <code>."),
-    		pubsystem.getHelpLine("!couponusers <code>              -- (!cu) Who used this code."),
+    		pubsystem.getHelpLine("!couponinfo <code>                     -- (!ci) Information about this <code>."),
+    		pubsystem.getHelpLine("!couponusers <code>                    -- (!cu) Who used this code."),
     		pubsystem.getHelpLine("!couponenable / !coupondisable <code>  -- (!ce/!cd) Enable/disable <code>."),
     	};
     	
     	String bot[] = new String[] {
-    		pubsystem.getHelpLine("!couponaddop <name>              -- Add an operator (temporary, permanant via .cfg)."),
-    		pubsystem.getHelpLine("!couponlistops                   -- List of operators."),
+    		pubsystem.getHelpLine("!couponaddop <name>                    -- Add an operator (temporary, permanant via .cfg)."),
+    		pubsystem.getHelpLine("!couponlistops                         -- List of operators."),
     	};
     	
     	List<String> lines = new ArrayList<String>();
@@ -1699,6 +1711,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	m_botAction.getShip().rotateDegrees(90);
     	m_botAction.getShip().sendPositionPacket();
 
+    	m_botAction.sendTeamMessage("Incoming nuke! Anyone inside the FLAGROOM will be WARPED for a moment and then returned when safe.", 9);
     	m_botAction.sendArenaMessage(sender + " has sent a nuke in the direction of the flagroom! Impact is imminent!",17);
         final TimerTask timerFire = new TimerTask() {
             public void run() {
@@ -1715,9 +1728,22 @@ public class PubMoneySystemModule extends AbstractModule {
         };
     	timerFire.run();
     	
+    	final Vector<Warper> warps = new Vector<Warper>();
+        Iterator<Integer> i = m_botAction.getFreqIDIterator(freq);
+        while (i.hasNext()) {
+            int id = i.next();
+            m_botAction.spectatePlayerImmediately(id);
+            Player pl = m_botAction.getPlayer(id);
+            int x = pl.getXTileLocation();
+            int y = pl.getYTileLocation();
+            if (x > 480 && x < 544 && y > 250 && y < 300)
+                warps.add(new Warper(id, x, y));
+        }
+    	
     	TimerTask shields = new TimerTask() {
     	    public void run() {
-                m_botAction.prizeFreq(freq, 18);
+    	        for (Warper w: warps)
+    	            w.save();    	
     	    }
     	};
     	m_botAction.scheduleTask(shields, 4500);
@@ -1727,13 +1753,31 @@ public class PubMoneySystemModule extends AbstractModule {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
             	//m_botAction.move(512*16, 350*16);
             	m_botAction.getShip().setSpectatorUpdateTime(100);
-                Iterator<Integer> i = m_botAction.getFreqIDIterator(freq);
-                while (i.hasNext())
-                    m_botAction.shipReset(i.next());
+                //Iterator<Integer> i = m_botAction.getFreqIDIterator(freq);
+                for (Warper w : warps)
+                    w.back();
             }
         };
-        m_botAction.scheduleTask(timer, 7500);
+        m_botAction.scheduleTask(timer, 7900);
     	
+    }
+    
+    private class Warper {
+        int id, x, y;
+        
+        public Warper(int id, int x, int y) {
+            this.id = id;
+            this.x = x;
+            this.y = y;
+        }
+        
+        public void save() {
+            m_botAction.warpTo(id, 512, 200);
+        }
+        
+        public void back() {
+            m_botAction.warpTo(id, x, y);
+        }
     }
     
     private void itemCommandRoofTurret(String sender, String params) {
