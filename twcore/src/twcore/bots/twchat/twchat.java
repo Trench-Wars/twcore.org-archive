@@ -593,10 +593,10 @@ public class twchat extends SubspaceBot {
     }
 
     public void signup(String name, String message) {
-        if (signup)
+        if (signup){
             m_botAction.sendSmartPrivateMessage(name, "You cannot signup to TWChat at this time.");
-        else
-            m_botAction.getServerFile("vip.txt");
+        } else
+        m_botAction.getServerFile("vip.txt");
         name = name.toLowerCase();
         lastPlayer.add(name);
 
@@ -604,10 +604,10 @@ public class twchat extends SubspaceBot {
 
     public void toggle(String name, String message) {
         if (signup) {
-            signup = false;
+            signup = true;
             m_botAction.sendSmartPrivateMessage(name, "Signup DEACTIVATED");
         } else {
-            signup = true;
+            signup = false;
             m_botAction.sendSmartPrivateMessage(name, "Signup ACTIVATED");
         }
     }
