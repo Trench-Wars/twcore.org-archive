@@ -145,6 +145,8 @@ public class twchat extends SubspaceBot {
                 go(name, message);
             else if (message.startsWith("!vipadd "))
                 vipadd(name, message);
+            else if (message.equalsIgnoreCase("!recal"))
+                recalculate(name);
             else if (message.equalsIgnoreCase("!die"))
                 m_botAction.die();
         }
@@ -160,6 +162,7 @@ public class twchat extends SubspaceBot {
             }
         }
     }
+
 
     public void handleEvent(FileArrived event) {
         for (int i = 0; i < lastPlayer.size(); i++) {
@@ -526,6 +529,18 @@ public class twchat extends SubspaceBot {
         
     }
 
+    private void recalculate(String name) {
+        Iterator<String> list = show.iterator();
+        if (!list.hasNext())
+            m_botAction.sendSmartPrivateMessage(name, "No-one is online!");
+
+            String pName = (String) list.next();
+            m_botAction.sendUnfilteredPublicMessage("?find "+pName);
+            
+        }
+
+        
+    
     public void vipadd(String name, String message) {
         m_botAction.getServerFile("vip.txt");
         String vip = message.substring(8).toLowerCase();
@@ -572,7 +587,7 @@ public class twchat extends SubspaceBot {
     }
 
     public void signup(String name, String message) {
-        if (!signup)
+        if (signup)
             m_botAction.sendSmartPrivateMessage(name, "You cannot signup to TWChat at this time.");
         else
             m_botAction.getServerFile("vip.txt");
