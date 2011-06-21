@@ -160,8 +160,13 @@ public class twchat extends SubspaceBot {
                     m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
                     show.add(nameFromMessage.toLowerCase());
             }
+            if (message.startsWith("Not online")){
+                for (int i = 0; i < show.size(); i++) {
+                    show.remove(i);
+
+            }
         }
-    }
+    }}
 
 
     public void handleEvent(FileArrived event) {
@@ -477,6 +482,7 @@ public class twchat extends SubspaceBot {
                         "| !toggle                     - Disables/Enables ability to !signup             |",
                         "| !notify                     - Toggles chat notify (stops !show)               |",
                         "| !put                        - Force putfile VIP.txt                           |",
+                        "| !recal                      - Recalculate people online or off on TWChat      |",
                         "|-------------------------------------------------------------------------------|",
                         "|                                Who Is Online (SMod)                           |",
                         "|                                                                               |",
