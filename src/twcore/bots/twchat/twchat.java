@@ -171,7 +171,7 @@ public class twchat extends SubspaceBot {
 
     public void handleEvent(FileArrived event) {
         for (int i = 0; i < lastPlayer.size(); i++) {
-            if (event.getFileName().equals("vip.txt")) {
+            if (event.getFileName().equals("vip.txt") && !signup) {
                 try {
                     BufferedReader reader = new BufferedReader(new FileReader(m_botAction.getDataFile("vip.txt")));
                     BufferedWriter writer = new BufferedWriter(new FileWriter(m_botAction.getDataFile("vip.txt"), true));
@@ -203,6 +203,7 @@ public class twchat extends SubspaceBot {
     public void handleEvent(LoggedOn event) {
         m_botAction.joinArena(m_botSettings.getString("Arena"));
         m_botAction.ipcSubscribe(IPC);
+        signup = false;
     }
 
     public void handleEvent(SQLResultEvent event) {
@@ -593,7 +594,7 @@ public class twchat extends SubspaceBot {
     }
 
     public void signup(String name, String message) {
-        if (signup){
+        if (signup == false){
             m_botAction.sendSmartPrivateMessage(name, "You cannot signup to TWChat at this time.");
         } else {
         m_botAction.getServerFile("vip.txt");
