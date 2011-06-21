@@ -24,7 +24,6 @@ import java.util.Map.Entry;
 import java.util.TimerTask;
 import java.util.Vector;
 
-import twcore.bots.bannerboy.bannerboy;
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.PubUtilModule.Location;
@@ -53,6 +52,7 @@ import twcore.core.events.PlayerLeft;
 import twcore.core.events.SQLResultEvent;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
+import twcore.core.game.Ship;
 import twcore.core.util.Tools;
 
 public class PubMoneySystemModule extends AbstractModule {
@@ -1698,37 +1698,14 @@ public class PubMoneySystemModule extends AbstractModule {
             }
         };
         m_botAction.scheduleTask(timer, 7500);
-    	
     }
     
     private void itemCommandNukeBase(String sender, String params) {
-
+        final Vector<Shot> shots = getShots();
 	   	Player p = m_botAction.getPlayer(sender);
 	   	final int freq = p.getFrequency();
-    	m_botAction.getShip().setShip(0);
-    	m_botAction.getShip().setFreq(freq);
-    	m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
-    	m_botAction.getShip().rotateDegrees(90);
-    	m_botAction.getShip().sendPositionPacket();
-
-    	m_botAction.sendTeamMessage("Incoming nuke! Anyone inside the FLAGROOM will be WARPED for a moment and then returned when safe.", 9);
-    	m_botAction.sendArenaMessage(sender + " has sent a nuke in the direction of the flagroom! Impact is imminent!",17);
-        final TimerTask timerFire = new TimerTask() {
-            public void run() {
-            	//for(int i=0; i<2; i++) { // Number of waves
-	            	for(int j=0; j<7; j++) {
-		            	m_botAction.getShip().move((482+(j*10))*16+8, 100*16);
-		            	m_botAction.getShip().sendPositionPacket();
-		            	m_botAction.getShip().fire(WeaponFired.WEAPON_THOR);
-		            	try { Thread.sleep(50); } catch (InterruptedException e) {}
-	            	}
-	            	try { Thread.sleep(50); } catch (InterruptedException e) {}
-            	//}
-            }
-        };
-    	timerFire.run();
-    	
-    	final Vector<Warper> warps = new Vector<Warper>();
+        
+        final Vector<Warper> warps = new Vector<Warper>();
         Iterator<Integer> i = m_botAction.getFreqIDIterator(freq);
         while (i.hasNext()) {
             int id = i.next();
@@ -1739,6 +1716,26 @@ public class PubMoneySystemModule extends AbstractModule {
             if (x > 480 && x < 544 && y > 250 && y < 300)
                 warps.add(new Warper(id, x, y));
         }
+    	m_botAction.getShip().setShip(0);
+    	m_botAction.getShip().setFreq(freq);
+    	m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
+
+    	m_botAction.sendTeamMessage("Incoming nuke! Anyone inside the FLAGROOM will be WARPED for a moment and then returned when safe.");
+    	m_botAction.sendArenaMessage(sender + " has sent a nuke in the direction of the flagroom! Impact is imminent!",17);
+        final TimerTask timerFire = new TimerTask() {
+            public void run() {
+                while (!shots.isEmpty()) {
+                    Shot s = shots.remove(0);
+                    m_botAction.getShip().rotateDegrees(s.a);
+                    m_botAction.getShip().sendPositionPacket();
+                    m_botAction.getShip().move(s.x, s.y);
+                    m_botAction.getShip().sendPositionPacket();
+                    m_botAction.getShip().fire(WeaponFired.WEAPON_THOR);
+                    try { Thread.sleep(75); } catch (InterruptedException e) {}
+                }
+            }
+        };
+    	timerFire.run();
     	
     	TimerTask shields = new TimerTask() {
     	    public void run() {
@@ -1746,7 +1743,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	            w.save();    	
     	    }
     	};
-    	m_botAction.scheduleTask(shields, 4500);
+    	m_botAction.scheduleTask(shields, 3300);
     	
     	TimerTask timer = new TimerTask() {
             public void run() {
@@ -1758,7 +1755,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     w.back();
             }
         };
-        m_botAction.scheduleTask(timer, 7900);
+        m_botAction.scheduleTask(timer, 5500);
     	
     }
     
@@ -1772,12 +1769,39 @@ public class PubMoneySystemModule extends AbstractModule {
         }
         
         public void save() {
-            m_botAction.warpTo(id, 512, 200);
+            m_botAction.warpTo(id, 512, 205);
         }
         
         public void back() {
             m_botAction.warpTo(id, x, y);
         }
+    }
+    
+    class Shot {
+        int a, x, y;
+        
+        public Shot(int a, int x, int y) {
+            this.a = a;
+            this.x = x*16;
+            this.y = y*16;
+        }
+    }
+    
+    private Vector<Shot> getShots() {
+        Vector<Shot> s = new Vector<Shot>();
+        s.add(new Shot(15, 396, 219));
+        s.add(new Shot(165, 628, 219));
+        s.add(new Shot(30, 407, 198));
+        s.add(new Shot(150, 617, 198));
+        s.add(new Shot(47, 425, 180));
+        s.add(new Shot(135, 599, 180));
+        s.add(new Shot(65, 450, 160));
+        s.add(new Shot(115, 575, 160));
+        s.add(new Shot(80, 472, 150));
+        s.add(new Shot(100, 552, 150));
+        s.add(new Shot(90, 492, 147));
+        s.add(new Shot(90, 531, 147));
+        return s;
     }
     
     private void itemCommandRoofTurret(String sender, String params) {
