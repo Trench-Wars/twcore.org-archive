@@ -1769,7 +1769,7 @@ public class PubMoneySystemModule extends AbstractModule {
         }
         
         public void save() {
-            m_botAction.warpTo(id, 512, 205);
+            m_botAction.warpTo(id, 503, 222);
         }
         
         public void back() {
@@ -1894,7 +1894,7 @@ public class PubMoneySystemModule extends AbstractModule {
         if (p.getFrequency() < 100)
         	m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for FREQ " + p.getFrequency() + ", thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
         else
-        	m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for a private freq, thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
+        	m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag fo/r a private freq, thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
 	   	
     }
     
