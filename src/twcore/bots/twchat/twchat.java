@@ -47,8 +47,8 @@ public class twchat extends SubspaceBot {
     private static final String db = "pubstats";
 
     private boolean DEBUG = false;
-    private boolean signup = false;
-    private boolean notify = false;
+    public boolean signup = false;
+    public boolean notify = false;
     // status of the database update task sqlDump
     private boolean status = false;
     // number of seconds between database updates
@@ -595,20 +595,20 @@ public class twchat extends SubspaceBot {
     public void signup(String name, String message) {
         if (signup){
             m_botAction.sendSmartPrivateMessage(name, "You cannot signup to TWChat at this time.");
-        } else
+        } else {
         m_botAction.getServerFile("vip.txt");
         name = name.toLowerCase();
         lastPlayer.add(name);
 
-    }
+    }}
 
     public void toggle(String name, String message) {
         if (signup) {
             signup = true;
-            m_botAction.sendSmartPrivateMessage(name, "Signup DEACTIVATED");
+            m_botAction.sendSmartPrivateMessage(name, "Signup ACTIVATED");
         } else {
             signup = false;
-            m_botAction.sendSmartPrivateMessage(name, "Signup ACTIVATED");
+            m_botAction.sendSmartPrivateMessage(name, "Signup DEACTIVATED");
         }
     }
     
