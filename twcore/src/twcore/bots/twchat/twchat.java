@@ -784,6 +784,8 @@ public class twchat extends SubspaceBot {
                     msg += ", " + n;
                 }
             }
+            
+            ba.SQLClose(rs);
             ba.sendSmartPrivateMessage(name, msg);
         } catch (SQLException e) {
             ba.sendSmartPrivateMessage(name, "SQL error.");
