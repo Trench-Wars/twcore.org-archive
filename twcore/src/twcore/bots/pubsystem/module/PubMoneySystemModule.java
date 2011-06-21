@@ -1701,21 +1701,27 @@ public class PubMoneySystemModule extends AbstractModule {
     }
     
     private void itemCommandNukeBase(String sender, String params) {
-        final Vector<Shot> shots = getShots();
+        Ship s = m_botAction.getShip();
+        m_botAction.setPlayerPositionUpdating(0);
+        m_botAction.stopSpectatingPlayer();
+        s.move(512*16, 280*16);
+        s.setMovingUpdateTime(100);
+        s.setUnmovingUpdateTime(100);
+        s.setSpectatorUpdateTime(100);
 	   	Player p = m_botAction.getPlayer(sender);
 	   	final int freq = p.getFrequency();
-        
+	   	final Vector<Shot> shots = getShots();
         final Vector<Warper> warps = new Vector<Warper>();
         Iterator<Integer> i = m_botAction.getFreqIDIterator(freq);
         while (i.hasNext()) {
             int id = i.next();
-            m_botAction.spectatePlayerImmediately(id);
             Player pl = m_botAction.getPlayer(id);
             int x = pl.getXTileLocation();
             int y = pl.getYTileLocation();
             if (x > 480 && x < 544 && y > 250 && y < 300)
-                warps.add(new Warper(id, x, y));
+                warps.add(new Warper(id, x, y));                
         }
+        
     	m_botAction.getShip().setShip(0);
     	m_botAction.getShip().setFreq(freq);
     	m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
@@ -1748,7 +1754,8 @@ public class PubMoneySystemModule extends AbstractModule {
     	TimerTask timer = new TimerTask() {
             public void run() {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
-            	//m_botAction.move(512*16, 350*16);
+            	m_botAction.move(512*16, 350*16);
+            	m_botAction.resetReliablePositionUpdating();
             	m_botAction.getShip().setSpectatorUpdateTime(100);
                 //Iterator<Integer> i = m_botAction.getFreqIDIterator(freq);
                 for (Warper w : warps)
@@ -1756,7 +1763,6 @@ public class PubMoneySystemModule extends AbstractModule {
             }
         };
         m_botAction.scheduleTask(timer, 5500);
-    	
     }
     
     private class Warper {
