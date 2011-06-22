@@ -100,15 +100,15 @@ public class twchat extends SubspaceBot {
         String name = event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ? event.getMessager() : m_botAction.getPlayerName(sender);
         String message = event.getMessage();
 
-        if (name.equals(CORE) && message.startsWith("Total: ")) {
+        if (countBots && name.equals(CORE) && message.startsWith("Total: ")) {
             debug("Received: " + message + " from " + name);
             botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
             ba.sendSmartPrivateMessage(ECORE, "!totalbots");
-        } else if (name.equals(ECORE) && message.startsWith("Total: ")) {
+        } else if (countBots && name.equals(ECORE) && message.startsWith("Total: ")) {
             debug("Received: " + message + " from " + name);
             botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
             ba.sendSmartPrivateMessage(LCORE, "!totalbots");
-        } else if (name.equals(LCORE) && message.startsWith("Total: ")) {
+        } else if (countBots && name.equals(LCORE) && message.startsWith("Total: ")) {
             debug("Received: " + message + " from " + name);
             botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
             ba.requestArenaList();
