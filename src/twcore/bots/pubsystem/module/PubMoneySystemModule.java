@@ -423,21 +423,30 @@ public class PubMoneySystemModule extends AbstractModule {
     		PubPlayer pubPlayer = playerManager.getPlayer(name,false);
     		if (pubPlayer != null) {
     			int currentMoney = pubPlayer.getMoney();
-    			if (moneyInt > 0)
+    			if (moneyInt > 0) {
     				pubPlayer.addMoney(moneyInt);
-    			else
+    				sqlMoney(moneyInt);
+    			} else {
     				pubPlayer.removeMoney(moneyInt);
+                    sqlMoney(-Math.abs(moneyInt));
+    			}
     			
     			m_botAction.sendSmartPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $" + (currentMoney+Integer.valueOf(money)) + " (before: $" + currentMoney + ")");
     		
     		} else {
     			playerManager.addMoney(name, Integer.valueOf(money), true);
+                sqlMoney(Integer.valueOf(money));
     			m_botAction.sendSmartPrivateMessage(sender, name + " has now $" + money + " more money.");
     		}
     	}
     	else {
     		m_botAction.sendSmartPrivateMessage(sender, "Invalid argument");
     	}
+    }
+    
+    private void sqlMoney(int money) {
+        String query = "UPDATE tblMoneyCode SET fnMoney = (fnMoney + " + money + ") WHERE fcCode = 'OWNER'";
+        m_botAction.SQLBackgroundQuery(database, null, query);
     }
 
     private void sendMoneyToPlayer(String playerName, int amount, String message) {
