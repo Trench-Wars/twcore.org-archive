@@ -1711,14 +1711,14 @@ public class PubMoneySystemModule extends AbstractModule {
     
     private void itemCommandNukeBase(String sender, String params) {
         Ship s = m_botAction.getShip();
-        m_botAction.setPlayerPositionUpdating(0);
         m_botAction.stopSpectatingPlayer();
         s.move(512*16, 280*16);
+        Player p = m_botAction.getPlayer(sender);
+        final int freq = p.getFrequency();
+        m_botAction.focusFreqUpdate(freq);
         s.setMovingUpdateTime(100);
         s.setUnmovingUpdateTime(100);
         s.setSpectatorUpdateTime(100);
-	   	Player p = m_botAction.getPlayer(sender);
-	   	final int freq = p.getFrequency();
 	   	final Vector<Shot> shots = getShots();
         final Vector<Warper> warps = new Vector<Warper>();
         Iterator<Integer> i = m_botAction.getFreqIDIterator(freq);
@@ -1766,6 +1766,7 @@ public class PubMoneySystemModule extends AbstractModule {
             	m_botAction.move(512*16, 350*16);
             	m_botAction.resetReliablePositionUpdating();
             	m_botAction.getShip().setSpectatorUpdateTime(100);
+                m_botAction.resetPlayerTracker();
                 //Iterator<Integer> i = m_botAction.getFreqIDIterator(freq);
                 for (Warper w : warps)
                     w.back();
