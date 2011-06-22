@@ -32,6 +32,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private LinkedList<PubItemUsed> itemsBought;
     private LinkedList<PubItemUsed> itemsBoughtForOther;
     private LinkedList<PubItem> itemsBoughtThisLife;
+    private LinkedList<String> ignoreList;
     
     private LvzMoneyPanel cashPanel;
     
@@ -71,6 +72,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
         this.itemsBoughtForOther = new LinkedList<PubItemUsed>();
         this.itemsBoughtThisLife = new LinkedList<PubItem>();
         this.cashPanel = new LvzMoneyPanel(m_botAction);
+        this.ignoreList = new LinkedList<String>();
         reloadPanel(false);
     }
 
@@ -356,6 +358,30 @@ public class PubPlayer implements Comparable<PubPlayer>{
 
 	public void setLastKillWithFlag(boolean withFlag) {
 		this.lastKillWithFlag = withFlag;
+	}
+	
+	public void ignorePlayer(String player) {
+	    if (!ignoreList.contains(player.toLowerCase())) {
+	        ignoreList.add(player.toLowerCase());
+	        m_botAction.sendPrivateMessage(this.name, "" + player + " has been added to your ignore list.");
+	    } else {
+	        ignoreList.remove(player.toLowerCase());
+            m_botAction.sendPrivateMessage(this.name, "" + player + " has been removed from your ignore list.");
+	    }
+	}
+	
+	public boolean isIgnored(String player) {
+	    if (ignoreList.contains(player.toLowerCase()))
+	        return true;
+	    else return false;
+	}
+	
+	public void getIgnores() {
+	    String msg = "Ignoring: ";
+	    for (String i : ignoreList)
+	        msg += i + ", ";
+	    msg = msg.substring(0, msg.length() - 2);
+	    m_botAction.sendPrivateMessage(name, msg);
 	}
 
 }
