@@ -168,13 +168,13 @@ public class twchat extends SubspaceBot {
         }
 
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
-            if (message.contains("Client: VIE 1.34") && !notify) {
+            if (!message.contains("Client: Continuum 0.40") && !notify) {
                 String nameFromMessage = message.substring(0, message.indexOf(":", 0));
                 if (m_botAction.getOperatorList().isSysopExact(nameFromMessage) && !nameFromMessage.equalsIgnoreCase("Pure_Luck") && !nameFromMessage.equalsIgnoreCase("Witness"))
                     return;
                 else
                     m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
-                    if(!show.equals(nameFromMessage)){
+                    if(!show.equals(nameFromMessage.toLowerCase())){
                     show.add(nameFromMessage.toLowerCase());}
             if (message.startsWith("Not online")){
                 for (int i = 0; i < show.size(); i++) {
@@ -220,6 +220,7 @@ public class twchat extends SubspaceBot {
         m_botAction.joinArena(m_botSettings.getString("Arena"));
         m_botAction.ipcSubscribe(IPC);
         signup = false;
+        notify = false;
     }
 
     public void handleEvent(SQLResultEvent event) {
@@ -472,8 +473,8 @@ public class twchat extends SubspaceBot {
 
     private void recalculate(String name) {
         Iterator<String> list = show.iterator();
-        if (!list.hasNext())
-            m_botAction.sendSmartPrivateMessage(name, "No-one is online!");
+        if (!list.hasNext()){
+            m_botAction.sendSmartPrivateMessage(name, "No-one is online!");}
 
             String pName = (String) list.next();
             m_botAction.sendUnfilteredPublicMessage("?find "+pName);
@@ -550,11 +551,11 @@ public class twchat extends SubspaceBot {
     
     public void toggleNotify(String name, String message) {
         if (notify) {
-            notify = false;
-            m_botAction.sendSmartPrivateMessage(name, "Notify DEACTIVATED");
-        } else {
             notify = true;
             m_botAction.sendSmartPrivateMessage(name, "Notify ACTIVATED");
+        } else {
+            notify = false;
+            m_botAction.sendSmartPrivateMessage(name, "Notify DEACTIVATED");
         }
     }
 
