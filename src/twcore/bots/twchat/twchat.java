@@ -109,7 +109,7 @@ public class twchat extends SubspaceBot {
                 ba.sendSmartPrivateMessage(LCORE, "!totalbots");
             } else if (name.equals(LCORE) && message.startsWith("Total: ") ){
                 botCount += Integer.valueOf(message.substring(message.indexOf(" ")+1));
-                
+                ba.requestArenaList();
             }
                 
         }
@@ -368,7 +368,7 @@ public class twchat extends SubspaceBot {
     private void stats(String name) {
         stater = name;
         countBots = true;
-        ba.sendSmartPrivateMessage(name, "!totalbots");
+        ba.sendSmartPrivateMessage(CORE, "!totalbots");
     }
     
     public void handleEvent(ArenaList event) {
