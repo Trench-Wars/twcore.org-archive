@@ -99,21 +99,21 @@ public class twchat extends SubspaceBot {
         short sender = event.getPlayerID();
         String name = event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ? event.getMessager() : m_botAction.getPlayerName(sender);
         String message = event.getMessage();
-        
-        if (!isNotBot(name)) {
-            if (name.equals(CORE) && message.startsWith("Total: ")) {
-                botCount += Integer.valueOf(message.substring(message.indexOf(" ")+1));
-                ba.sendSmartPrivateMessage(ECORE, "!totalbots");
-            } else if (name.equals(ECORE) && message.startsWith("Total: ")) {
-                botCount += Integer.valueOf(message.substring(message.indexOf(" ")+1));
-                ba.sendSmartPrivateMessage(LCORE, "!totalbots");
-            } else if (name.equals(LCORE) && message.startsWith("Total: ") ){
-                botCount += Integer.valueOf(message.substring(message.indexOf(" ")+1));
-                ba.requestArenaList();
-            }
-                
+
+        if (name.equals(CORE) && message.startsWith("Total: ")) {
+            debug("Received: " + message + " from " + name);
+            botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
+            ba.sendSmartPrivateMessage(ECORE, "!totalbots");
+        } else if (name.equals(ECORE) && message.startsWith("Total: ")) {
+            debug("Received: " + message + " from " + name);
+            botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
+            ba.sendSmartPrivateMessage(LCORE, "!totalbots");
+        } else if (name.equals(LCORE) && message.startsWith("Total: ")) {
+            debug("Received: " + message + " from " + name);
+            botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
+            ba.requestArenaList();
         }
-        
+
         if (message.startsWith("!online "))
             isOnline(name, message);
         else if (message.equalsIgnoreCase("!signup"))
@@ -124,7 +124,7 @@ public class twchat extends SubspaceBot {
             help(name, message);
         else if (message.startsWith("!whohas "))
             whoHas(name, message);
-        
+
         if (ops.isDeveloperExact(name) || ops.isSmod(name)) {
             if (message.startsWith("!delay "))
                 setDelay(name, message);
@@ -145,7 +145,7 @@ public class twchat extends SubspaceBot {
             else if (message.equals("!debug"))
                 debugger(name);
         }
-        
+
         if (ops.isSmod(name)) {
             if (message.equalsIgnoreCase("!show"))
                 show(name, message);
@@ -170,20 +170,23 @@ public class twchat extends SubspaceBot {
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
             if (message.contains("Client: VIE 1.34") && notify == true) {
                 String nameFromMessage = message.substring(0, message.indexOf(":", 0));
-                if (m_botAction.getOperatorList().isSysopExact(nameFromMessage) && !nameFromMessage.equalsIgnoreCase("Pure_Luck") && !nameFromMessage.equalsIgnoreCase("Witness"))
+                if (m_botAction.getOperatorList().isSysopExact(nameFromMessage) && !nameFromMessage.equalsIgnoreCase("Pure_Luck")
+                        && !nameFromMessage.equalsIgnoreCase("Witness"))
                     return;
                 else
                     m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
-                    if(!show.equals(nameFromMessage.toLowerCase())){
-                    show.add(nameFromMessage.toLowerCase());}
-            if (message.startsWith("Not online")){
-                for (int i = 0; i < show.size(); i++) {
-                    show.remove(i);
+                if (!show.equals(nameFromMessage.toLowerCase())) {
+                    show.add(nameFromMessage.toLowerCase());
+                }
+                if (message.startsWith("Not online")) {
+                    for (int i = 0; i < show.size(); i++) {
+                        show.remove(i);
 
+                    }
+                }
             }
-            }}}
+        }
     }
-
 
     public void handleEvent(FileArrived event) {
         for (int i = 0; i < lastPlayer.size(); i++) {
@@ -367,6 +370,7 @@ public class twchat extends SubspaceBot {
     private void stats(String name) {
         stater = name;
         countBots = true;
+        debug("Calculating stats...");
         ba.sendSmartPrivateMessage(CORE, "!totalbots");
     }
     
@@ -391,6 +395,7 @@ public class twchat extends SubspaceBot {
         msg += " | Database=" + pop + " | Queued=" + updateQueue.size() + " | Last update " + (System.currentTimeMillis() - lastUpdate) + " ms ago";
         ba.sendSmartPrivateMessage(stater, msg);
         stater = "";
+        countBots = false;
     }
 
     private void help(String name, String message) {
