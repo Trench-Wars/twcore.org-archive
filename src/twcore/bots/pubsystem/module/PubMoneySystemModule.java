@@ -1784,7 +1784,7 @@ public class PubMoneySystemModule extends AbstractModule {
         }
         
         public void save() {
-            m_botAction.warpTo(id, 503, 222);
+            m_botAction.warpTo(id, 512, 205);
         }
         
         public void back() {
