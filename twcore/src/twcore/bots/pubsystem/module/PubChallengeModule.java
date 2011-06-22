@@ -316,6 +316,11 @@ public class PubChallengeModule extends AbstractModule {
         	m_botAction.sendSmartPrivateMessage(challenger, "Please wait, " + challenged + " is not in the system yet.");
             return;
         }
+        
+        if (pubChallenged.isIgnored(challenger)) {
+            m_botAction.sendSmartPrivateMessage(challenger, "This player is not accepting challenges from you.");
+            return;
+        }
 
         if(isChallengeAlreadySent(challenger, challenged)) {
             m_botAction.sendSmartPrivateMessage(challenger, "You have already a pending challenge with "+challenged+".");
@@ -1260,7 +1265,29 @@ public class PubChallengeModule extends AbstractModule {
             listDuels(sender);
         else if(command.equals("!npduel"))
             notDueling(sender);
-            
+        else if(command.startsWith("!ignore "))
+            doIgnorePlayer(sender, command);
+        else if(command.equals("!ignores"))
+            getIgnoredPlayers(sender);
+        
+	}
+	
+	public void getIgnoredPlayers(String name) {
+	    PubPlayer p = context.getPlayerManager().getPlayer(name);
+	    if (p != null)
+	        p.getIgnores();
+	}
+	
+	public void doIgnorePlayer(String sender, String cmd) {
+	    cmd = cmd.substring(cmd.indexOf(" ")+1);
+	    if (cmd.length() < 1)
+	        return;
+	    PubPlayer p = context.getPlayerManager().getPlayer(sender);
+	    if (p != null) {
+	        p.ignorePlayer(cmd);
+	    } else {
+	        m_botAction.sendPrivateMessage(sender, "Error processing your request.");
+	    }
 	}
 	
 	public void doToggleBets(String name) {
@@ -1345,6 +1372,8 @@ public class PubChallengeModule extends AbstractModule {
                 pubsystem.getHelpLine("!beton <name>:<$>             -- Bet on <name> to win a duel."),
                 pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
                 pubsystem.getHelpLine("!npduel                       -- Enables or disables you from receiving duel challenges."),
+                pubsystem.getHelpLine("!ignore <name>                -- Prevents/allows <name> from challenging you to duels."),
+                pubsystem.getHelpLine("!ignores                      -- Lists who you are currently ignoring challenges from."),
             };
         else
             return new String[] {
@@ -1353,6 +1382,8 @@ public class PubChallengeModule extends AbstractModule {
                 pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
                 pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent. (!rm)"),
                 pubsystem.getHelpLine("!npduel                       -- Enables or disables you from receiving duel challenges."),
+                pubsystem.getHelpLine("!ignore <name>                -- Prevents/allows <name> from challenging you to duels."),
+                pubsystem.getHelpLine("!ignores                      -- Lists who you are currently ignoring challenges from."),
             };
     }
 
