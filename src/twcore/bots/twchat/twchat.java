@@ -125,6 +125,8 @@ public class twchat extends SubspaceBot {
             help(name, message);
         else if (message.startsWith("!whohas "))
             whoHas(name, message);
+        else if (message.equals("!stats"))
+            stats(name);
 
         if (ops.isDeveloperExact(name) || ops.isSmod(name)) {
             if (message.startsWith("!delay "))
@@ -137,8 +139,6 @@ public class twchat extends SubspaceBot {
                 resetAll(name);
             else if (message.equals("!whosonline"))
                 listOnline(name);
-            else if (message.equals("!stats"))
-                stats(name);
             else if (message.equals("!errors"))
                 errors(name);
             else if (message.equals("!outsiders"))
