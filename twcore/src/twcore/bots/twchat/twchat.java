@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.TimerTask;
 import java.util.TreeMap;
 
+import javax.tools.Tool;
+
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
@@ -43,7 +45,7 @@ public class twchat extends SubspaceBot {
     public ArrayList<String> lastPlayer = new ArrayList<String>();
     public ArrayList<String> show = new ArrayList<String>();
     private static final String IPC = "whoonline";
-    private static final String WHOBOT = "TW-WhoBot";
+    private static final String WHOBOT = "WhoBot";
     private static final String db = "pubstats";
 
     private boolean DEBUG = false;
@@ -788,7 +790,7 @@ public class twchat extends SubspaceBot {
         }
         String on = "(";
         for (String n : online)
-            on += "'" + n + "',";
+            on += "'" + Tools.addSlashesToString(n) + "',";
         on = on.substring(0, on.lastIndexOf(',')) + ")";
         String msg = "Inconsistencies: ";
         String query = "SELECT fcName FROM tblPlayer WHERE fcName NOT IN " + on + " AND fnOnline = 1";
