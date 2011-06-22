@@ -538,7 +538,7 @@ public class twchat extends SubspaceBot {
     }}
 
     public void toggle(String name, String message) {
-        if (signup) {
+        if (signup == false) {
             signup = true;
             m_botAction.sendSmartPrivateMessage(name, "Signup ACTIVATED");
         } else {
@@ -548,7 +548,7 @@ public class twchat extends SubspaceBot {
     }
     
     public void toggleNotify(String name, String message) {
-        if (notify) {
+        if (notify == false) {
             notify = true;
             m_botAction.sendSmartPrivateMessage(name, "Notify ACTIVATED");
         } else {
