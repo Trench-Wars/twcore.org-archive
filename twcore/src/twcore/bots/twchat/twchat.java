@@ -174,15 +174,15 @@ public class twchat extends SubspaceBot {
                     return;
                 else
                     m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
-                    show.add(nameFromMessage.toLowerCase());
-            }
+                    if(!show.equals(nameFromMessage)){
+                    show.add(nameFromMessage.toLowerCase());}
             if (message.startsWith("Not online")){
                 for (int i = 0; i < show.size(); i++) {
                     show.remove(i);
 
             }
-        }
-    }}
+            }}}
+    }
 
 
     public void handleEvent(FileArrived event) {
@@ -477,6 +477,7 @@ public class twchat extends SubspaceBot {
 
             String pName = (String) list.next();
             m_botAction.sendUnfilteredPublicMessage("?find "+pName);
+            m_botAction.sendSmartPrivateMessage(name, "Recalculated.");
             
         }
 
