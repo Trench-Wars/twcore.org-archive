@@ -101,6 +101,7 @@ public class twchat extends SubspaceBot {
         String message = event.getMessage();
 
         if (countBots && name.equals(CORE) && message.startsWith("Total: ")) {
+            botCount = 0;
             debug("Received: " + message + " from " + name);
             botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
             ba.sendSmartPrivateMessage(ECORE, "!totalbots");
