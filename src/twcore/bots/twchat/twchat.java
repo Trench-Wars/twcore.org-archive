@@ -219,8 +219,6 @@ public class twchat extends SubspaceBot {
     public void handleEvent(LoggedOn event) {
         m_botAction.joinArena(m_botSettings.getString("Arena"));
         m_botAction.ipcSubscribe(IPC);
-        signup = false;
-        notify = false;
     }
 
     public void handleEvent(SQLResultEvent event) {
