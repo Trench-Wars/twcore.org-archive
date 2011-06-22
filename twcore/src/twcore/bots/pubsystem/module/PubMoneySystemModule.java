@@ -1727,7 +1727,7 @@ public class PubMoneySystemModule extends AbstractModule {
             Player pl = m_botAction.getPlayer(id);
             int x = pl.getXTileLocation();
             int y = pl.getYTileLocation();
-            if (x > 480 && x < 544 && y > 250 && y < 300)
+            if (x > 475 && x < 549 && y > 248 && y < 300)
                 warps.add(new Warper(id, x, y));                
         }
         
@@ -1758,7 +1758,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	            w.save();    	
     	    }
     	};
-    	m_botAction.scheduleTask(shields, 3300);
+    	m_botAction.scheduleTask(shields, 3200);
     	
     	TimerTask timer = new TimerTask() {
             public void run() {
