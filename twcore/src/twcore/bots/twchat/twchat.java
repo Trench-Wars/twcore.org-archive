@@ -168,7 +168,7 @@ public class twchat extends SubspaceBot {
         }
 
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
-            if (!message.contains("Client: Continuum 0.40") && !notify) {
+            if (message.contains("Client: VIE 1.34") && notify == true) {
                 String nameFromMessage = message.substring(0, message.indexOf(":", 0));
                 if (m_botAction.getOperatorList().isSysopExact(nameFromMessage) && !nameFromMessage.equalsIgnoreCase("Pure_Luck") && !nameFromMessage.equalsIgnoreCase("Witness"))
                     return;
