@@ -417,6 +417,7 @@ public class twchat extends SubspaceBot {
                         "| !whohas <#>     - Lists all the squads who have <#> or more members online    |",
                         "| !squad <squad>  - Lists all the members of <squad> currently online           |",
                         "| !online <name>  - Shows if <name> is currently online according to list on bot|",
+                        "| !stats          - Displays population and player online status information    |",
                         "|                                                                               |", };
         String[] modCommands =
                 {
@@ -439,7 +440,6 @@ public class twchat extends SubspaceBot {
                         "| !update         - Toggles the online status update process on and off         |",
                         "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
                         "| !delay <sec>    - Sets the delay between updates in seconds and restarts task |",
-                        "| !stats          - Displays population and player online status information    |",
                         "| !errors         - Displays the inconsistencies between bot list and db list   |",
                         "| !whosonline     - Lists every single player found in the online list          |",
                         "| !refresh        - Resets entire database & calls for bots to update players   |",};
