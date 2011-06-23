@@ -101,16 +101,18 @@ public class twchat extends SubspaceBot {
         String message = event.getMessage();
 
         if (countBots && name.equals(CORE) && message.startsWith("Total: ")) {
-            botCount = 0;
+            botCount = 1;
             debug("Received: " + message + " from " + name);
             botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
             ba.sendSmartPrivateMessage(ECORE, "!totalbots");
         } else if (countBots && name.equals(ECORE) && message.startsWith("Total: ")) {
             debug("Received: " + message + " from " + name);
+            botCount++;
             botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
             ba.sendSmartPrivateMessage(LCORE, "!totalbots");
         } else if (countBots && name.equals(LCORE) && message.startsWith("Total: ")) {
             debug("Received: " + message + " from " + name);
+            botCount++;
             botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
             ba.requestArenaList();
         }
