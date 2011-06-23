@@ -60,9 +60,9 @@ public class twdbot extends SubspaceBot {
     private boolean arenaChallAlert = true;
     private boolean otherAlerts = false;
     private boolean respawn = true;
-    private static final String HUB = "WingHub";
+    private static final String HUB = "TWCore-League";
     private static final String IPC = "MatchBot";
-    private static final String BOT_NAME = "WingMatch";
+    private static final String BOT_NAME = "MatchBot";
     private static final String PUBBOT = "TW-Guard";
     private static final String TWBD = "6";
     private static final String TWDD = "8";
@@ -246,11 +246,11 @@ public class twdbot extends SubspaceBot {
     public void checkArenas() {
         if (manualSpawnOverride || shuttingDown)
             return;
-        //checkDiv("twbd");
+        checkDiv("twbd");
         checkDiv("twdd");
-        //checkDiv("twjd");
-        //checkDiv("twsd");
-        //checkDiv("twfd");
+        checkDiv("twjd");
+        checkDiv("twsd");
+        checkDiv("twfd");
         if (otherAlerts)
             m_botAction.sendChatMessage("Checking TWD arenas...");
 
