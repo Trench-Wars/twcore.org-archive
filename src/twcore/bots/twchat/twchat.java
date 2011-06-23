@@ -96,28 +96,31 @@ public class twchat extends SubspaceBot {
      * an example of how you can handle a message event.
      */
     public void handleEvent(Message event) {
-        String name = event.getMessager();
-        if (name == null || name.length() < 1) name = m_botAction.getPlayerName(event.getPlayerID());
-        String message = event.getMessage();
         int type = event.getMessageType();
+        String message = event.getMessage();
 
         if (type == Message.REMOTE_PRIVATE_MESSAGE || type == Message.PRIVATE_MESSAGE) {
+            String name = m_botAction.getPlayerName(event.getPlayerID());
+            if (name == null || name.length() < 1) 
+                name = event.getMessager();
 
-            if (countBots && name.equals(CORE) && message.startsWith("Total: ")) {
-                botCount = 1;
-                debug("Received: " + message + " from " + name);
-                botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
-                ba.sendSmartPrivateMessage(ECORE, "!totalbots");
-            } else if (countBots && name.equals(ECORE) && message.startsWith("Total: ")) {
-                debug("Received: " + message + " from " + name);
-                botCount++;
-                botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
-                ba.sendSmartPrivateMessage(LCORE, "!totalbots");
-            } else if (countBots && name.equals(LCORE) && message.startsWith("Total: ")) {
-                debug("Received: " + message + " from " + name);
-                botCount++;
-                botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
-                ba.requestArenaList();
+            if (countBots && message.startsWith("Total: ")) {
+                if (name.equals(CORE)) {
+                    botCount = 1;
+                    debug("Received: " + message + " from " + name);
+                    botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
+                    ba.sendSmartPrivateMessage(ECORE, "!totalbots");
+                } else if (name.equals(ECORE)) {
+                    debug("Received: " + message + " from " + name);
+                    botCount++;
+                    botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
+                    ba.sendSmartPrivateMessage(LCORE, "!totalbots");
+                } else if (name.equals(LCORE)) {
+                    debug("Received: " + message + " from " + name);
+                    botCount++;
+                    botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
+                    ba.requestArenaList();
+                }
             }
 
             if (message.startsWith("!online "))
@@ -130,7 +133,8 @@ public class twchat extends SubspaceBot {
                 help(name, message);
             else if (message.startsWith("!whohas "))
                 whoHas(name, message);
-            else if (message.equals("!stats")) stats(name);
+            else if (message.equals("!stats")) 
+                stats(name);
 
             if (ops.isDeveloperExact(name) || ops.isSmod(name)) {
                 if (message.startsWith("!delay "))
@@ -149,7 +153,8 @@ public class twchat extends SubspaceBot {
                     outsiders(name);
                 else if (message.equals("!debug"))
                     debugger(name);
-                else if (message.startsWith("!dev")) deviates(name);
+                else if (message.startsWith("!dev")) 
+                    deviates(name);
             }
 
             if (ops.isSmod(name)) {
