@@ -96,81 +96,86 @@ public class twchat extends SubspaceBot {
      * an example of how you can handle a message event.
      */
     public void handleEvent(Message event) {
-        short sender = event.getPlayerID();
-        String name = event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ? event.getMessager() : m_botAction.getPlayerName(sender);
+        String name = event.getMessager();
+        if (name == null || name.length() < 1)
+            name = m_botAction.getPlayerName(event.getPlayerID());
         String message = event.getMessage();
+        int type = event.getMessageType();
 
-        if (countBots && name.equals(CORE) && message.startsWith("Total: ")) {
-            botCount = 1;
-            debug("Received: " + message + " from " + name);
-            botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
-            ba.sendSmartPrivateMessage(ECORE, "!totalbots");
-        } else if (countBots && name.equals(ECORE) && message.startsWith("Total: ")) {
-            debug("Received: " + message + " from " + name);
-            botCount++;
-            botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
-            ba.sendSmartPrivateMessage(LCORE, "!totalbots");
-        } else if (countBots && name.equals(LCORE) && message.startsWith("Total: ")) {
-            debug("Received: " + message + " from " + name);
-            botCount++;
-            botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
-            ba.requestArenaList();
+        if (type == Message.REMOTE_PRIVATE_MESSAGE || type == Message.PRIVATE_MESSAGE) {
+
+            if (countBots && name.equals(CORE) && message.startsWith("Total: ")) {
+                botCount = 1;
+                debug("Received: " + message + " from " + name);
+                botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
+                ba.sendSmartPrivateMessage(ECORE, "!totalbots");
+            } else if (countBots && name.equals(ECORE) && message.startsWith("Total: ")) {
+                debug("Received: " + message + " from " + name);
+                botCount++;
+                botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
+                ba.sendSmartPrivateMessage(LCORE, "!totalbots");
+            } else if (countBots && name.equals(LCORE) && message.startsWith("Total: ")) {
+                debug("Received: " + message + " from " + name);
+                botCount++;
+                botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
+                ba.requestArenaList();
+            }
+
+            if (message.startsWith("!online "))
+                isOnline(name, message);
+            else if (message.equalsIgnoreCase("!signup"))
+                signup(name, message);
+            else if (message.startsWith("!squad "))
+                getSquad(name, message);
+            else if (message.equalsIgnoreCase("!help"))
+                help(name, message);
+            else if (message.startsWith("!whohas "))
+                whoHas(name, message);
+            else if (message.equals("!stats"))
+                stats(name);
+
+            if (ops.isDeveloperExact(name) || ops.isSmod(name)) {
+                if (message.startsWith("!delay "))
+                    setDelay(name, message);
+                else if (message.equals("!update"))
+                    status(name);
+                else if (message.startsWith("!info "))
+                    getInfo(name, message);
+                else if (message.equals("!refresh"))
+                    resetAll(name);
+                else if (message.equals("!whosonline"))
+                    listOnline(name);
+                else if (message.equals("!errors"))
+                    errors(name);
+                else if (message.equals("!outsiders"))
+                    outsiders(name);
+                else if (message.equals("!debug"))
+                    debugger(name);
+            }
+
+            if (ops.isSmod(name)) {
+                if (message.equalsIgnoreCase("!show"))
+                    show(name, message);
+                else if (message.equalsIgnoreCase("!toggle"))
+                    toggle(name, message);
+                else if (message.equalsIgnoreCase("!get"))
+                    test(name, message);
+                else if (message.equalsIgnoreCase("!put"))
+                    put(name, message);
+                else if (message.equals("!notify"))
+                    toggleNotify(name, message);
+                else if (message.startsWith("!go "))
+                    go(name, message);
+                else if (message.startsWith("!vipadd "))
+                    vipadd(name, message);
+                else if (message.equalsIgnoreCase("!recal"))
+                    recalculate(name);
+                else if (message.equalsIgnoreCase("!die"))
+                    m_botAction.die();
+            }
         }
 
-        if (message.startsWith("!online "))
-            isOnline(name, message);
-        else if (message.equalsIgnoreCase("!signup"))
-            signup(name, message);
-        else if (message.startsWith("!squad "))
-            getSquad(name, message);
-        else if (message.equalsIgnoreCase("!help"))
-            help(name, message);
-        else if (message.startsWith("!whohas "))
-            whoHas(name, message);
-        else if (message.equals("!stats"))
-            stats(name);
-
-        if (ops.isDeveloperExact(name) || ops.isSmod(name)) {
-            if (message.startsWith("!delay "))
-                setDelay(name, message);
-            else if (message.equals("!update"))
-                status(name);
-            else if (message.startsWith("!info "))
-                getInfo(name, message);
-            else if (message.equals("!refresh"))
-                resetAll(name);
-            else if (message.equals("!whosonline"))
-                listOnline(name);
-            else if (message.equals("!errors"))
-                errors(name);
-            else if (message.equals("!outsiders"))
-                outsiders(name);
-            else if (message.equals("!debug"))
-                debugger(name);
-        }
-
-        if (ops.isSmod(name)) {
-            if (message.equalsIgnoreCase("!show"))
-                show(name, message);
-            else if (message.equalsIgnoreCase("!toggle"))
-                toggle(name, message);
-            else if (message.equalsIgnoreCase("!get"))
-                test(name, message);
-            else if (message.equalsIgnoreCase("!put"))
-                put(name, message);
-            else if (message.equals("!notify"))
-                toggleNotify(name, message);
-            else if (message.startsWith("!go "))
-                go(name, message);
-            else if (message.startsWith("!vipadd "))
-                vipadd(name, message);
-            else if (message.equalsIgnoreCase("!recal"))
-                recalculate(name);
-            else if (message.equalsIgnoreCase("!die"))
-                m_botAction.die();
-        }
-
-        if (event.getMessageType() == Message.ARENA_MESSAGE) {
+        if (type == Message.ARENA_MESSAGE) {
             if (message.contains("Client: VIE 1.34") && notify == true) {
                 String nameFromMessage = message.substring(0, message.indexOf(":", 0));
                 if (m_botAction.getOperatorList().isSysopExact(nameFromMessage) && !nameFromMessage.equalsIgnoreCase("Pure_Luck")
