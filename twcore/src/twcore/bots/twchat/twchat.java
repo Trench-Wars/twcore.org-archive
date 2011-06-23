@@ -104,24 +104,22 @@ public class twchat extends SubspaceBot {
             if (name == null || name.length() < 1) 
                 name = event.getMessager();
 
-            if (countBots && message.startsWith("Total: ")) {
-                if (CORE.equals(name)) {
+                if (countBots && message.startsWith("Total: ") && name.equals(CORE)) {
                     botCount = 1;
                     debug("Received: " + message + " from " + name);
                     botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
                     ba.sendSmartPrivateMessage(ECORE, "!totalbots");
-                } else if (ECORE.equals(name)) {
+                } else if (countBots && message.startsWith("Total: ") && name.equals(ECORE)) {
                     debug("Received: " + message + " from " + name);
                     botCount++;
                     botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
                     ba.sendSmartPrivateMessage(LCORE, "!totalbots");
-                } else if (LCORE.equals(name)) {
+                } else if (countBots && message.startsWith("Total: ") && name.equals(LCORE)) {
                     debug("Received: " + message + " from " + name);
                     botCount++;
                     botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
                     ba.requestArenaList();
                 }
-            }
 
             if (message.startsWith("!online "))
                 isOnline(name, message);
