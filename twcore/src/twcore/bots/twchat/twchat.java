@@ -344,10 +344,12 @@ public class twchat extends SubspaceBot {
                     if (type == EventRequester.PLAYER_ENTERED) {
                         updateQueue.put(name, true);
                         online.add(name);
+                        outsiders.remove(name);
                         bug += "" + name + " online";
                     } else if (type == EventRequester.PLAYER_LEFT) {
                         updateQueue.put(name, false);
                         online.remove(name);
+                        outsiders.remove(name);
                         bug += "" + name + " offline";
                     }
                 } else {
@@ -360,6 +362,7 @@ public class twchat extends SubspaceBot {
                                     && !(ops.isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness"))) {
                                 updateQueue.put(name, true);
                                 online.add(name);
+                                outsiders.remove(name);
                             }
                         }
                     } else if (type == EventRequester.PLAYER_LEFT) {
@@ -371,6 +374,7 @@ public class twchat extends SubspaceBot {
                                     && !(ops.isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness"))) {
                                 updateQueue.put(name, false);
                                 online.remove(name);
+                                outsiders.remove(name);
                             }
                         }
                     }
