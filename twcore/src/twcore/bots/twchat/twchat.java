@@ -99,27 +99,49 @@ public class twchat extends SubspaceBot {
         int type = event.getMessageType();
         String message = event.getMessage();
 
+        if (type == Message.ARENA_MESSAGE) {
+            if (message.contains("Client: VIE 1.34") && notify == true) {
+                String nameFromMessage = message.substring(0, message.indexOf(":", 0));
+                if (m_botAction.getOperatorList().isSysopExact(nameFromMessage) && !nameFromMessage.equalsIgnoreCase("Pure_Luck")
+                        && !nameFromMessage.equalsIgnoreCase("Witness"))
+                    return;
+                else
+                    m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
+                if (!show.equals(nameFromMessage.toLowerCase())) {
+                    show.add(nameFromMessage.toLowerCase());
+                }
+                if (message.startsWith("Not online")) {
+                    for (int i = 0; i < show.size(); i++) {
+                        show.remove(i);
+
+                    }
+                }
+            }
+        }
+        
         if (type == Message.REMOTE_PRIVATE_MESSAGE || type == Message.PRIVATE_MESSAGE) {
             String name = m_botAction.getPlayerName(event.getPlayerID());
             if (name == null || name.length() < 1) 
                 name = event.getMessager();
 
-                if (countBots && message.startsWith("Total: ") && name.equals(CORE)) {
+            if (countBots && message.startsWith("Total: ")) {
+                if (name.equals(CORE)) {
                     botCount = 1;
                     debug("Received: " + message + " from " + name);
                     botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
                     ba.sendSmartPrivateMessage(ECORE, "!totalbots");
-                } else if (countBots && message.startsWith("Total: ") && name.equals(ECORE)) {
+                } else if (name.equals(ECORE)) {
                     debug("Received: " + message + " from " + name);
                     botCount++;
                     botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
                     ba.sendSmartPrivateMessage(LCORE, "!totalbots");
-                } else if (countBots && message.startsWith("Total: ") && name.equals(LCORE)) {
+                } else if (name.equals(LCORE)) {
                     debug("Received: " + message + " from " + name);
                     botCount++;
                     botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
                     ba.requestArenaList();
                 }
+            }
 
             if (message.startsWith("!online "))
                 isOnline(name, message);
@@ -173,26 +195,6 @@ public class twchat extends SubspaceBot {
                 else if (message.equalsIgnoreCase("!recal"))
                     recalculate(name);
                 else if (message.equalsIgnoreCase("!die")) m_botAction.die();
-            }
-        }
-
-        if (type == Message.ARENA_MESSAGE) {
-            if (message.contains("Client: VIE 1.34") && notify == true) {
-                String nameFromMessage = message.substring(0, message.indexOf(":", 0));
-                if (m_botAction.getOperatorList().isSysopExact(nameFromMessage) && !nameFromMessage.equalsIgnoreCase("Pure_Luck")
-                        && !nameFromMessage.equalsIgnoreCase("Witness"))
-                    return;
-                else
-                    m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
-                if (!show.equals(nameFromMessage.toLowerCase())) {
-                    show.add(nameFromMessage.toLowerCase());
-                }
-                if (message.startsWith("Not online")) {
-                    for (int i = 0; i < show.size(); i++) {
-                        show.remove(i);
-
-                    }
-                }
             }
         }
     }
