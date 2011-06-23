@@ -1386,21 +1386,27 @@ public class MatchTeam
 
                 if (m_round.m_fnRoundState == 3)
                 {
-
-                    //if twdd gametype
-                    if (m_round.getGame().m_fnMatchTypeID == 4) {
-                        ResCheck rc = new ResCheck(playerB, SUB);
-                        rc.p = getPlayer(playerA);
-                        rc.cap = name;
-                        rc.sub = playerA;
-                        resCheck.put(playerB.toLowerCase(), rc);
-                        m_botAction.sendUnfilteredPrivateMessage(playerB, "*einfo");
-                        return;
-                    }
                     
                     pA = getPlayer(playerA);
                     if (pA != null)
                     {
+                        //if twdd gametype
+                        if (m_round.getGame().m_fnMatchTypeID == 4) {
+                            playerB = m_botAction.getFuzzyPlayerName(playerB);
+                            if (playerB != null) {
+                                ResCheck rc = new ResCheck(playerB, SUB);
+                                rc.p = getPlayer(playerA);
+                                rc.cap = name;
+                                rc.sub = playerA;
+                                resCheck.put(playerB.toLowerCase(), rc);
+                                m_botAction.sendUnfilteredPrivateMessage(playerB, "*einfo");
+                                return;
+                            } else {
+                                m_botAction.sendPrivateMessage(name, parameters[1] + " not found in arena");
+                                return;
+                            }
+                        }
+                        
                         subdelaytime = m_rules.getInt("subdelaytime");
                         if (subdelaytime > 5)
                             subdelaytime = 5;
@@ -2628,7 +2634,7 @@ public class MatchTeam
                                 if ((nme == "-ready-") && (plA == "-ready-") && (plB == "-ready-")) {
                                     nme = cap;
                                     plA = sub;
-                                    plB = this.name;
+                                    plB = name;
                                     m_substituteDelay = new TimerTask() {
                                         public void run() {
                                             dosubstitute(nme, plA, plB);
