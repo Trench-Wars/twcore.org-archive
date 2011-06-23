@@ -325,7 +325,7 @@ public class twchat extends SubspaceBot {
                             }
                         }
                     } else if (type == EventRequester.PLAYER_POSITION) {
-                        HashSet<String> who = (HashSet<String>) ipc.getList();
+                        Set<String> who = (Set<String>) ipc.getList();
                         HashSet<String> twc = (HashSet<String>) outsiders;
                         String[] msg = { "Deviates(TWC): ", "Deviates(WHO): " };
                         for (String p : twc)
