@@ -96,8 +96,11 @@ public class twchat extends SubspaceBot {
      * an example of how you can handle a message event.
      */
     public void handleEvent(Message event) {
-        int type = event.getMessageType();
+        String name = event.getMessager();
+        if (name == null || name.length() < 1) 
+            name = m_botAction.getPlayerName(event.getPlayerID());
         String message = event.getMessage();
+        int type = event.getMessageType();
 
         if (type == Message.ARENA_MESSAGE) {
             if (message.contains("Client: VIE 1.34") && notify == true) {
@@ -120,9 +123,6 @@ public class twchat extends SubspaceBot {
         }
         
         if (type == Message.REMOTE_PRIVATE_MESSAGE || type == Message.PRIVATE_MESSAGE) {
-            String name = m_botAction.getPlayerName(event.getPlayerID());
-            if (name == null || name.length() < 1) 
-                name = event.getMessager();
 
             if (countBots && message.startsWith("Total: ")) {
                 if (name.equals(CORE)) {
