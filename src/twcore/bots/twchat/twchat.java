@@ -336,6 +336,19 @@ public class twchat extends SubspaceBot {
                         msg[1] = msg[1].substring(0, msg[1].length() - 2);
                         ba.smartPrivateMessageSpam(stater, msg);
                         stater = "";
+                    } else if (type == EventRequester.MESSAGE) {
+                        String name = ipc.getName();
+                        String cmd = name.substring(name.indexOf(":") + 1);
+                        name = name.substring(0, name.indexOf(":"));
+
+                        if (cmd.startsWith("!squad "))
+                            getSquad(name, cmd);
+                        else if (cmd.startsWith("!whohas "))
+                            whoHas(name, cmd);
+                        else if (cmd.equalsIgnoreCase("!stats"))
+                            stats(name);
+                        else if (cmd.equalsIgnoreCase("!help"))
+                            help(name, cmd);
                     }
                 } else if (!ipc.isAll()) {
                     String name = ipc.getName().toLowerCase();
