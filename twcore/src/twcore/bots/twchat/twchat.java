@@ -60,7 +60,7 @@ public class twchat extends SubspaceBot {
     // status of the database update task sqlDump
     private boolean status = false;
     // number of seconds between database updates
-    private int delay = 20;
+    private int delay = 45;
     // updates player database periodically according to delay
     private TimerTask sqlDump;
     private TimerTask locater;
@@ -137,7 +137,8 @@ public class twchat extends SubspaceBot {
                         tstates.put(p, true);
                     else
                         tstates.put(p, false);
-                }
+                } else
+                    locates.remove(0);
                 
                 if (!locates.isEmpty())
                     locate();
