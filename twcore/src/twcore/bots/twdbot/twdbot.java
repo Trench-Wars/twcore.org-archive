@@ -1108,27 +1108,6 @@ public class twdbot extends SubspaceBot {
         }
     }
     
-    public void commandeinfo(String name, String msg) {
-        String p = msg.substring(msg.indexOf(" ") + 1);
-        if (m_botAction.getFuzzyPlayerName(p) != null) {
-            einfoer = name;
-            einfoee = p;
-            m_botAction.sendUnfilteredPrivateMessage(p, "*einfo");
-        } else {
-            einfoer = name;
-            einfoee = p;
-            m_botAction.sendUnfilteredPublicMessage("*locate " + p);
-            einfo = new TimerTask() {
-                public void run() {
-                    m_botAction.sendSmartPrivateMessage(einfoer, "Could not locate " + einfoee);
-                    einfoer = "";
-                    einfoee = "";
-                }
-            };
-            m_botAction.scheduleTask(einfo, 2000);
-        }
-    }
-    
     public void command_help(String name) {
         String[] msg = {
                 "TWD Challenge Commands:",
@@ -2057,7 +2036,7 @@ public class twdbot extends SubspaceBot {
     }
 
     public void commandDisplayHelp(String name, boolean player) {
-        String help[] = { "--------- ACCOUNT MANAGEMENT COMMANDS ------------------------------------------------", "!resetname <name>       - resets the name (unregisters it)", "!resettime <name>       - returns the time when the name will be reset", "!cancelreset <name>     - cancels the !reset a player has issued", "!enablename <name>      - enables the name so it can be used in TWD/TWL games", "!disablename <name>     - disables the name so it can not be used in TWD/TWL games", "!register <name>        - force registers that name, that player must be in the arena", "!registered <name>      - checks if the name is registered", "!add name:<name>  ip:<IP>  mid:<MID> - Adds <name> to DB with <IP> and/or <MID>", "!removeip <name>:<IP>                - Removes <IP> associated with <name>", "!removemid <name>:<MID>              - Removes <MID> associated with <name>", "!removeipmid <name>                  - Removes all IPs and MIDs for <name>", "!listipmid <name>                    - Lists IP's and MID's associated with <name>", "--------- ALIAS CHECK COMMANDS -------------------------------------------------------", "!info <name>            - displays the IP/MID that was used to register this name", "!fullinfo <name>        - displays IP/MID, squad name, and date squad was reg'd", "!altip <IP>             - looks for matching records based on <IP>", "!altmid <MID>           - looks for matching records based on <MID>", "!ipidcheck <IP> <MID>   - looks for matching records based on <IP> and <MID>", "         <IP> can be partial address - ie:  192.168.0.", "--------- MISC COMMANDS --------------------------------------------------------------", "!check <name>           - checks live IP and MID of <name> (through *info, NOT the DB)", "!twdops                 - displays a list of the current TWD Ops", "!go <arena>             - moves the bot", "--------- TWD BOT MANAGER -------------------------------------------------------------", "!manualspawn            - toggles manual spawning (in case errors occur in placement)", "                          when toggled back it resets and starts spawning/placing bots", "!respawn                - turns on/off TWDBot's respawn attempt when a bot fails to login", "!endgamealerts          - turns on/off the end game alerts sent to bot chat", "!killalerts             - turns on/off the kill request alerts sent to bot chat", "!otheralerts            - turns on/off all other alerts sent to bot chat", "!forcecheck             - forces the bot to re-evaluate bot placement", "!fullcheck              - when forcecheck fails, this gives the bot more game info", "!shutdowntwd            - kills all twd matchbots when they become idle (no undo)" };
+        String help[] = { "--------- ACCOUNT MANAGEMENT COMMANDS ------------------------------------------------", "!resetname <name>       - resets the name (unregisters it)", "!resettime <name>       - returns the time when the name will be reset", "!cancelreset <name>     - cancels the !reset a player has issued", "!enablename <name>      - enables the name so it can be used in TWD/TWL games", "!disablename <name>     - disables the name so it can not be used in TWD/TWL games", "!register <name>        - force registers that name, that player must be in the arena", "!registered <name>      - checks if the name is registered", "!add name:<name>  ip:<IP>  mid:<MID> - Adds <name> to DB with <IP> and/or <MID>", "!removeip <name>:<IP>                - Removes <IP> associated with <name>", "!removemid <name>:<MID>              - Removes <MID> associated with <name>", "!removeipmid <name>                  - Removes all IPs and MIDs for <name>", "!listipmid <name>                    - Lists IP's and MID's associated with <name>", "--------- ALIAS CHECK COMMANDS -------------------------------------------------------", "!info <name>            - displays the IP/MID that was used to register this name", "!fullinfo <name>        - displays IP/MID, squad name, and date squad was reg'd", "!altip <IP>             - looks for matching records based on <IP>", "!altmid <MID>           - looks for matching records based on <MID>", "!ipidcheck <IP> <MID>   - looks for matching records based on <IP> and <MID>", "         <IP> can be partial address - ie:  192.168.0.", "--------- MISC COMMANDS --------------------------------------------------------------", "!check <name>           - checks live IP and MID of <name> (through *info [no !go] works any arena, NOT the DB)", "!twdops                 - displays a list of the current TWD Ops", "!go <arena>             - moves the bot", "--------- TWD BOT MANAGER -------------------------------------------------------------", "!manualspawn            - toggles manual spawning (in case errors occur in placement)", "                          when toggled back it resets and starts spawning/placing bots", "!respawn                - turns on/off TWDBot's respawn attempt when a bot fails to login", "!endgamealerts          - turns on/off the end game alerts sent to bot chat", "!killalerts             - turns on/off the kill request alerts sent to bot chat", "!otheralerts            - turns on/off all other alerts sent to bot chat", "!forcecheck             - forces the bot to re-evaluate bot placement", "!fullcheck              - when forcecheck fails, this gives the bot more game info", "!shutdowntwd            - kills all twd matchbots when they become idle (no undo)" };
         String SModHelp[] = { "--------- SMOD COMMANDS --------------------------------------------------------------", " TWD Operators are determined by levels on the website which can be modified at www.trenchwars.org/staff" };
         String help2[] = { "--------- ACCOUNT MANAGEMENT COMMANDS ------------------------------------------------", "!resetname              - resets your name", "!resettime              - returns the time when your name will be reset", "!cancelreset            - cancels the !resetname", "!register               - registers your name", "!registered <name>      - checks if the name is registered", "!twdops                 - displays a list of the current TWD Ops" };
 
@@ -2122,7 +2101,11 @@ public class twdbot extends SubspaceBot {
         } else {
             if (m_requesters != null) {
                 String response = name + "  IP:" + ip + "  MID:" + mid;
-                String requester = m_requesters.remove(name);
+                String requester = "";
+                if (m_requesters.containsKey(name))
+                    requester = m_requesters.remove(name);
+                else
+                    requester = m_requesters.remove(name.toLowerCase());
                 if (requester != null)
                     m_botAction.sendSmartPrivateMessage(requester, response);
             }
@@ -2154,13 +2137,43 @@ public class twdbot extends SubspaceBot {
     public void checkIP(String name, String message) {
 
         String target = m_botAction.getFuzzyPlayerName(message);
-        if (target == null) {
-            m_botAction.sendSmartPrivateMessage(name, "Unable to find " + message + " in this arena.");
-            return;
+        if (target != null) {
+            m_requesters.put(target, name);
+            m_botAction.sendUnfilteredPrivateMessage(target, "*info");
+        } else {
+            m_requesters.put(message.toLowerCase(), name);
+            final String n = name;
+            final String p = message;
+            m_botAction.sendUnfilteredPublicMessage("*locate " + message);
+            einfo = new TimerTask() {
+                public void run() {
+                    m_botAction.sendSmartPrivateMessage(n, "Could not locate " + p);
+                    m_requesters.remove(n.toLowerCase());
+                }
+            };
+            m_botAction.scheduleTask(einfo, 2000);
         }
-
-        m_botAction.sendUnfilteredPrivateMessage(target, "*info");
-        m_requesters.put(target, name);
+    }
+    
+    public void commandeinfo(String name, String msg) {
+        String p = msg.substring(msg.indexOf(" ") + 1);
+        if (m_botAction.getFuzzyPlayerName(p) != null) {
+            einfoer = name;
+            einfoee = p;
+            m_botAction.sendUnfilteredPrivateMessage(p, "*einfo");
+        } else {
+            einfoer = name;
+            einfoee = p;
+            m_botAction.sendUnfilteredPublicMessage("*locate " + p);
+            einfo = new TimerTask() {
+                public void run() {
+                    m_botAction.sendSmartPrivateMessage(einfoer, "Could not locate " + einfoee);
+                    einfoer = "";
+                    einfoee = "";
+                }
+            };
+            m_botAction.scheduleTask(einfo, 2000);
+        }
     }
 
     class Arena {
