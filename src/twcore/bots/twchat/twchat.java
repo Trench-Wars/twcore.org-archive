@@ -174,7 +174,7 @@ public class twchat extends SubspaceBot {
 
             if (countBots && message.startsWith("Total: ")) {
                 if (name.equals(CORE)) {
-                    m_botAction.cancelTask(nocore);
+                    ba.cancelTask(nocore);
                     botCount = 1;
                     debug("Received: " + message + " from " + name);
                     botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
@@ -187,7 +187,7 @@ public class twchat extends SubspaceBot {
                     };
                     ba.scheduleTask(nocore, 2000);                    
                 } else if (name.equals(ECORE)) {
-                    m_botAction.cancelTask(nocore);
+                    ba.cancelTask(nocore);
                     debug("Received: " + message + " from " + name);
                     botCount++;
                     botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
@@ -200,6 +200,7 @@ public class twchat extends SubspaceBot {
                     };
                     ba.scheduleTask(nocore, 2000);   
                 } else if (name.equals(LCORE)) {
+                    ba.cancelTask(nocore);
                     debug("Received: " + message + " from " + name);
                     botCount++;
                     botCount += Integer.valueOf(message.substring(message.indexOf(" ") + 1));
@@ -315,10 +316,16 @@ public class twchat extends SubspaceBot {
         try {
             if (rs.next()) {
                 if (!afk) {
-                    mems += rs.getString("fcName");
+                    String p = rs.getString("fcName");
+                    mems += p;
+                    if (outsiders.contains(p.toLowerCase()))
+                        mems += "*";
                     online++;
                     while (rs.next()) {
-                        mems += ", " + rs.getString("fcName");
+                        p = rs.getString("fcName");
+                        mems += ", " + p;
+                        if (outsiders.contains(p.toLowerCase()))
+                            mems += "*";
                         online++;
                     }
                 } else {
@@ -532,7 +539,7 @@ public class twchat extends SubspaceBot {
                         "|                                Who Is Online                                  |",
                         "|                                                                               |",
                         "| !whohas <#>     - Lists all the squads who have <#> or more members online    |",
-                        "| !squad <squad>  - Lists all the members of <squad> currently online           |",
+                        "| !squad <squad>  - Lists online members of <squad>, * means potentially afk    |",
                         "| !online <name>  - Shows if <name> is currently online according to list on bot|",
                         "| !stats          - Displays population and player online status information    |",
                         "|                                                                               |", };
@@ -554,6 +561,7 @@ public class twchat extends SubspaceBot {
                         "|                                                                               |",
                         "| !update         - Toggles the online status update process on and off         |",
                         "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
+                        "| !si <squad>     - Lists members of <squad>, * means potentially afk by *locate|",
                         "| !delay <sec>    - Sets the delay between updates in seconds and restarts task |",
                         "| !errors         - Displays the inconsistencies between bot list and db list   |",
                         "| !deviates       - Compares outsiders list to WhoBot's and returns deviations  |",
@@ -565,6 +573,7 @@ public class twchat extends SubspaceBot {
                         "|                                                                               |",
                         "| !update         - Toggles the online status update process on and off         |",
                         "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
+                        "| !si <squad>     - Lists members of <squad>, * means potentially afk by *locate|",
                         "| !delay <sec>    - Sets the delay between updates in seconds and restarts task |",
                         "| !stats          - Displays population and player online status information    |",
                         "| !errors         - Displays the inconsistencies between bot list and db list   |",
@@ -909,6 +918,7 @@ public class twchat extends SubspaceBot {
         }
     }
 
+    @SuppressWarnings("unused")
     private boolean isNotBot(String name) {
         if (ops.isBotExact(name)
                 || (!ops.isOwner(name) && ops.isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness")))
