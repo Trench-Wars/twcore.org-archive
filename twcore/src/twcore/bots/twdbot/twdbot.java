@@ -126,16 +126,32 @@ public class twdbot extends SubspaceBot {
 
     public void requestEvents() {
         EventRequester req = m_botAction.getEventRequester();
+        req.request(EventRequester.LOGGED_ON);
+        req.request(EventRequester.ARENA_JOINED);
         req.request(EventRequester.MESSAGE);
         req.request(EventRequester.PLAYER_LEFT);
         req.request(EventRequester.PLAYER_ENTERED);
-        req.request(EventRequester.ARENA_JOINED);
     }
     
     public void handleEvent(ArenaJoined event) {
         if (einfoer.length() > 1 && einfoee.length() > 1) {
             m_botAction.sendUnfilteredPrivateMessage(einfoee, "*einfo");
         }
+    }
+
+    public void handleEvent(LoggedOn event) {
+        m_botAction.joinArena(m_arena);
+        ownerID = 0;
+        m_botAction.ipcSubscribe("MatchBot");
+        TimerTask checkMessages = new TimerTask() {
+            public void run() {
+                checkMessages();
+                checkNamesToReset();
+            };
+        };
+        m_botAction.scheduleTaskAtFixedRate(checkMessages, 5000, 30000);
+        m_botAction.sendUnfilteredPublicMessage("?chat=robodev,twdstaff,executive lounge");
+        checkIN();
     }
 
     public void handleEvent(PlayerLeft event) {
@@ -158,257 +174,9 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public void checkIN() {
-        m_bots.clear();
-        m_idlers.clear();
-        m_arenas.clear();
-        m_spawner.clear();
-
-        m_botAction.ipcTransmit(IPC, "twdmatchbots:newcheckin");
-
-        check = new TimerTask() {
-            @Override
-            public void run() {
-                checkArenas();
-            }
-        };
-        m_botAction.scheduleTask(check, 5000);
-    }
-
-    public void spawn(String arena) {
-        if (manualSpawnOverride || shuttingDown)
-            return;
-        // spawn bot
-        // add arena to the to-be-locked list
-
-        arena = arena.toLowerCase();
-        if (!m_spawner.contains(arena))
-            m_spawner.add(arena);
-        if (!m_idlers.isEmpty()) {
-            String bot = m_idlers.remove(0);
-            arena = m_spawner.remove(0);
-            if (!m_arenas.containsKey(arena))
-                m_arenas.put(arena, new Arena(arena));
-            lockBot(bot, arena);
-        } else {
-            m_botAction.sendSmartPrivateMessage(HUB, "!spawn matchbot");
-        }
-    }
-
-    public void lockBot(String bot, String arena) {
-        if (m_bots.containsValue(arena)) {
-            m_botAction.sendChatMessage("Anomaly detected: lock attempt on " + bot + " for the pre-existing arena " + arena + " prevented");
-            return;
-        }
-        if (!m_arenas.containsKey(arena))
-            m_arenas.put(arena, new Arena(arena));
-        m_arenas.get(arena).setBot(bot);
-        String div = arena.substring(0, 4);
-        if (otherAlerts)
-            m_botAction.sendChatMessage("Sending " + bot + " to " + arena + "...");
-        if (div.equalsIgnoreCase("twbd"))
-            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWBD + ":" + arena);
-        else if (div.equalsIgnoreCase("twdd"))
-            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWDD + ":" + arena);
-        else if (div.equalsIgnoreCase("twjd"))
-            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWJD + ":" + arena);
-        else if (div.equalsIgnoreCase("twsd"))
-            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWSD + ":" + arena);
-        else if (div.equalsIgnoreCase("twfd"))
-            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWFD + ":" + arena);
-    }
-
-    public void remove(String arena) {
-        if (manualSpawnOverride)
-            return;
-        arena = arena.toLowerCase();
-        if (m_arenas.containsKey(arena)) {
-            Arena info = m_arenas.get(arena);
-            if (info.isIPC())
-                return;
-            String bot = info.getBot();
-            if (!m_killer.containsKey(bot) && m_bots.containsKey(bot) && killAlert)
-                m_botAction.sendChatMessage("Sending kill request to " + bot + " in " + arena + "...");
-
-            if (!m_killer.containsKey(bot)) {
-                KillRequest die = new KillRequest(bot);
-                m_killer.put(bot, die);
-                m_botAction.scheduleTask(die, 32000);
-            }
-        }
-    }
-
-    public void stay(String arena) {
-        arena = arena.toLowerCase();
-        if (m_arenas.containsKey(arena)) {
-            Arena info = m_arenas.get(arena);
-            String bot = info.getBot();
-            m_botAction.ipcTransmit(IPC, "twdmatchbot:" + bot + " stay");
-            if (m_killer.containsKey(bot)) {
-                if (m_killer.get(bot).cancel() && killAlert)
-                    m_botAction.sendChatMessage("Scheduled kill request for " + bot + " has been cancelled.");
-                m_killer.remove(bot);
-            }
-        } else {
-            spawn(arena);
-        }
-    }
-
-    public void checkArenas() {
-        if (manualSpawnOverride || shuttingDown)
-            return;
-        checkDiv("twbd");
-        checkDiv("twdd");
-        checkDiv("twjd");
-        checkDiv("twsd");
-        checkDiv("twfd");
-        if (otherAlerts)
-            m_botAction.sendChatMessage("Checking TWD arenas...");
-
-    }
-
-    public void checkDiv(String div) {
-        if (manualSpawnOverride || shuttingDown)
-            return;
-        div = div.toLowerCase();
-        Arena arena;
-        if (m_arenas.containsKey(div)) {
-            arena = m_arenas.get(div);
-            if (arena.isGame() || arena.isIPC()) {
-                // continue on, need to make sure 1 arena is free
-                if (m_arenas.containsKey(div + "2")) {
-                    arena = m_arenas.get(div + "2");
-                    if (arena.isGame() || arena.isIPC()) {
-                        // make sure it stays and remove remaining
-                        if (!m_bots.containsKey(arena.getBot()))
-                            stay(div + "2");
-                        // continue on, need to make sure 1 arena is free
-                        if (m_arenas.containsKey(div + "3")) {
-                            arena = m_arenas.get(div + "3");
-                            if (arena.isGame() || arena.isIPC()) {
-                                // make sure it stays and remove remaining
-                                if (!m_bots.containsKey(arena.getBot()))
-                                    stay(div + "3");
-                                // continue on, need to make sure 1 arena is
-                                // free
-                                if (m_arenas.containsKey(div + "4")) {
-                                    arena = m_arenas.get(div + "4");
-                                    if (arena.isGame() || arena.isIPC()) {
-                                        // make sure it stays and remove
-                                        // remaining
-                                        if (!m_bots.containsKey(arena.getBot()))
-                                            stay(div + "4");
-                                        // continue on, need to make sure 1
-                                        // arena is free
-                                        if (m_arenas.containsKey(div + "5")) {
-                                            arena = m_arenas.get(div + "5");
-                                            // all previous arenas have games
-                                            // make sure this one isn't dying
-                                            if (!m_bots.containsKey(arena.getBot()))
-                                                stay(div + "5");
-
-                                        } else {
-                                            // all previous arenas have games so
-                                            // this needs a bot
-                                            m_arenas.put(div + "5", new Arena(div + "5"));
-                                            spawn(div + "5");
-                                        }
-                                    } else {
-                                        // arena4 does not have a game
-                                        remove(div + "5");
-                                    }
-                                } else {
-                                    // arena4 missing, spawn it, remove rest
-                                    m_arenas.put(div + "4", new Arena(div + "4"));
-                                    spawn(div + "4");
-                                    remove(div + "5");
-                                }
-                            } else {
-                                // arena3 does not have a game
-                                remove(div + "4");
-                                remove(div + "5");
-                            }
-                        } else {
-                            // arena3 missing, spawn it, remove rest
-                            m_arenas.put(div + "3", new Arena(div + "3"));
-                            spawn(div + "3");
-                            remove(div + "4");
-                            remove(div + "5");
-                        }
-                    } else {
-                        // arena2 does not have a game
-                        remove(div + "3");
-                        remove(div + "4");
-                        remove(div + "5");
-                    }
-                } else {
-                    // arena2 missing, spawn it, remove rest
-                    m_arenas.put(div + "2", new Arena(div + "2"));
-                    spawn(div + "2");
-                    remove(div + "3");
-                    remove(div + "4");
-                    remove(div + "5");
-
-                }
-            } else {
-                // no game in here, kill remaining bots
-                remove(div + "2");
-                remove(div + "3");
-                remove(div + "4");
-                remove(div + "5");
-            }
-        } else {
-            // this arena should never be without a bot
-            if (m_bots.containsValue(div)) {
-                // something must be wrong with it
-                remove(div);
-            }
-            m_arenas.put(div, new Arena(div));
-            spawn(div);
-        }
-    }
-
-    public void startLock() {
-        while (!m_idlers.isEmpty() && !m_spawner.isEmpty()) {
-            String arena = m_spawner.remove(0);
-            String bot = m_idlers.remove(0);
-            m_arenas.put(arena, new Arena(arena));
-            lockBot(bot, arena);
-        }
-    }
-
-    public static String[] stringChopper(String input, char deliniator) {
-        try {
-            LinkedList<String> list = new LinkedList<String>();
-
-            int nextSpace = 0;
-            int previousSpace = 0;
-
-            if (input == null) {
-                return null;
-            }
-
-            do {
-                previousSpace = nextSpace;
-                nextSpace = input.indexOf(deliniator, nextSpace + 1);
-
-                if (nextSpace != -1) {
-                    String stuff = input.substring(previousSpace, nextSpace).trim();
-                    if (stuff != null && !stuff.equals(""))
-                        list.add(stuff);
-                }
-
-            } while (nextSpace != -1);
-            String stuff = input.substring(previousSpace);
-            stuff = stuff.trim();
-            if (stuff.length() > 0) {
-                list.add(stuff);
-            }
-            ;
-            return list.toArray(new String[list.size()]);
-        } catch (Exception e) {
-            throw new RuntimeException("Error in stringChopper.");
-        }
+    public void handleEvent(SQLResultEvent event) {
+        if (event.getIdentifier().equals("twdbot"))
+            m_botAction.SQLClose(event.getResultSet());
     }
 
     public void handleEvent(InterProcessEvent event) {
@@ -1070,13 +838,266 @@ public class twdbot extends SubspaceBot {
                 einfoer = "";
                 einfoee = "";
                 m_botAction.changeArena("TWD");
-            } else if (message.substring(0, message.indexOf(" - ")).equalsIgnoreCase(einfoee)) {
+            } else if (message.substring(0, message.lastIndexOf(" - ")).equalsIgnoreCase(einfoee)) {
                 m_botAction.cancelTask(einfo);
                 String arena = message.substring(message.lastIndexOf("- ") + 2);
                 if (arena.startsWith("Public"))
                     arena = arena.substring(arena.indexOf(" ") + 1);
                 m_botAction.changeArena(arena);
             }
+        }
+    }
+
+    public void checkIN() {
+        m_bots.clear();
+        m_idlers.clear();
+        m_arenas.clear();
+        m_spawner.clear();
+
+        m_botAction.ipcTransmit(IPC, "twdmatchbots:newcheckin");
+
+        check = new TimerTask() {
+            @Override
+            public void run() {
+                checkArenas();
+            }
+        };
+        m_botAction.scheduleTask(check, 5000);
+    }
+
+    public void spawn(String arena) {
+        if (manualSpawnOverride || shuttingDown)
+            return;
+        // spawn bot
+        // add arena to the to-be-locked list
+
+        arena = arena.toLowerCase();
+        if (!m_spawner.contains(arena))
+            m_spawner.add(arena);
+        if (!m_idlers.isEmpty()) {
+            String bot = m_idlers.remove(0);
+            arena = m_spawner.remove(0);
+            if (!m_arenas.containsKey(arena))
+                m_arenas.put(arena, new Arena(arena));
+            lockBot(bot, arena);
+        } else {
+            m_botAction.sendSmartPrivateMessage(HUB, "!spawn matchbot");
+        }
+    }
+
+    public void lockBot(String bot, String arena) {
+        if (m_bots.containsValue(arena)) {
+            m_botAction.sendChatMessage("Anomaly detected: lock attempt on " + bot + " for the pre-existing arena " + arena + " prevented");
+            return;
+        }
+        if (!m_arenas.containsKey(arena))
+            m_arenas.put(arena, new Arena(arena));
+        m_arenas.get(arena).setBot(bot);
+        String div = arena.substring(0, 4);
+        if (otherAlerts)
+            m_botAction.sendChatMessage("Sending " + bot + " to " + arena + "...");
+        if (div.equalsIgnoreCase("twbd"))
+            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWBD + ":" + arena);
+        else if (div.equalsIgnoreCase("twdd"))
+            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWDD + ":" + arena);
+        else if (div.equalsIgnoreCase("twjd"))
+            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWJD + ":" + arena);
+        else if (div.equalsIgnoreCase("twsd"))
+            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWSD + ":" + arena);
+        else if (div.equalsIgnoreCase("twfd"))
+            m_botAction.sendSmartPrivateMessage(bot, "!lock " + TWFD + ":" + arena);
+    }
+
+    public void remove(String arena) {
+        if (manualSpawnOverride)
+            return;
+        arena = arena.toLowerCase();
+        if (m_arenas.containsKey(arena)) {
+            Arena info = m_arenas.get(arena);
+            if (info.isIPC())
+                return;
+            String bot = info.getBot();
+            if (!m_killer.containsKey(bot) && m_bots.containsKey(bot) && killAlert)
+                m_botAction.sendChatMessage("Sending kill request to " + bot + " in " + arena + "...");
+
+            if (!m_killer.containsKey(bot)) {
+                KillRequest die = new KillRequest(bot);
+                m_killer.put(bot, die);
+                m_botAction.scheduleTask(die, 32000);
+            }
+        }
+    }
+
+    public void stay(String arena) {
+        arena = arena.toLowerCase();
+        if (m_arenas.containsKey(arena)) {
+            Arena info = m_arenas.get(arena);
+            String bot = info.getBot();
+            m_botAction.ipcTransmit(IPC, "twdmatchbot:" + bot + " stay");
+            if (m_killer.containsKey(bot)) {
+                if (m_killer.get(bot).cancel() && killAlert)
+                    m_botAction.sendChatMessage("Scheduled kill request for " + bot + " has been cancelled.");
+                m_killer.remove(bot);
+            }
+        } else {
+            spawn(arena);
+        }
+    }
+
+    public void checkArenas() {
+        if (manualSpawnOverride || shuttingDown)
+            return;
+        checkDiv("twbd");
+        checkDiv("twdd");
+        checkDiv("twjd");
+        checkDiv("twsd");
+        checkDiv("twfd");
+        if (otherAlerts)
+            m_botAction.sendChatMessage("Checking TWD arenas...");
+
+    }
+
+    public void checkDiv(String div) {
+        if (manualSpawnOverride || shuttingDown)
+            return;
+        div = div.toLowerCase();
+        Arena arena;
+        if (m_arenas.containsKey(div)) {
+            arena = m_arenas.get(div);
+            if (arena.isGame() || arena.isIPC()) {
+                // continue on, need to make sure 1 arena is free
+                if (m_arenas.containsKey(div + "2")) {
+                    arena = m_arenas.get(div + "2");
+                    if (arena.isGame() || arena.isIPC()) {
+                        // make sure it stays and remove remaining
+                        if (!m_bots.containsKey(arena.getBot()))
+                            stay(div + "2");
+                        // continue on, need to make sure 1 arena is free
+                        if (m_arenas.containsKey(div + "3")) {
+                            arena = m_arenas.get(div + "3");
+                            if (arena.isGame() || arena.isIPC()) {
+                                // make sure it stays and remove remaining
+                                if (!m_bots.containsKey(arena.getBot()))
+                                    stay(div + "3");
+                                // continue on, need to make sure 1 arena is
+                                // free
+                                if (m_arenas.containsKey(div + "4")) {
+                                    arena = m_arenas.get(div + "4");
+                                    if (arena.isGame() || arena.isIPC()) {
+                                        // make sure it stays and remove
+                                        // remaining
+                                        if (!m_bots.containsKey(arena.getBot()))
+                                            stay(div + "4");
+                                        // continue on, need to make sure 1
+                                        // arena is free
+                                        if (m_arenas.containsKey(div + "5")) {
+                                            arena = m_arenas.get(div + "5");
+                                            // all previous arenas have games
+                                            // make sure this one isn't dying
+                                            if (!m_bots.containsKey(arena.getBot()))
+                                                stay(div + "5");
+
+                                        } else {
+                                            // all previous arenas have games so
+                                            // this needs a bot
+                                            m_arenas.put(div + "5", new Arena(div + "5"));
+                                            spawn(div + "5");
+                                        }
+                                    } else {
+                                        // arena4 does not have a game
+                                        remove(div + "5");
+                                    }
+                                } else {
+                                    // arena4 missing, spawn it, remove rest
+                                    m_arenas.put(div + "4", new Arena(div + "4"));
+                                    spawn(div + "4");
+                                    remove(div + "5");
+                                }
+                            } else {
+                                // arena3 does not have a game
+                                remove(div + "4");
+                                remove(div + "5");
+                            }
+                        } else {
+                            // arena3 missing, spawn it, remove rest
+                            m_arenas.put(div + "3", new Arena(div + "3"));
+                            spawn(div + "3");
+                            remove(div + "4");
+                            remove(div + "5");
+                        }
+                    } else {
+                        // arena2 does not have a game
+                        remove(div + "3");
+                        remove(div + "4");
+                        remove(div + "5");
+                    }
+                } else {
+                    // arena2 missing, spawn it, remove rest
+                    m_arenas.put(div + "2", new Arena(div + "2"));
+                    spawn(div + "2");
+                    remove(div + "3");
+                    remove(div + "4");
+                    remove(div + "5");
+
+                }
+            } else {
+                // no game in here, kill remaining bots
+                remove(div + "2");
+                remove(div + "3");
+                remove(div + "4");
+                remove(div + "5");
+            }
+        } else {
+            // this arena should never be without a bot
+            if (m_bots.containsValue(div)) {
+                // something must be wrong with it
+                remove(div);
+            }
+            m_arenas.put(div, new Arena(div));
+            spawn(div);
+        }
+    }
+
+    public void startLock() {
+        while (!m_idlers.isEmpty() && !m_spawner.isEmpty()) {
+            String arena = m_spawner.remove(0);
+            String bot = m_idlers.remove(0);
+            m_arenas.put(arena, new Arena(arena));
+            lockBot(bot, arena);
+        }
+    }
+
+    public static String[] stringChopper(String input, char deliniator) {
+        try {
+            LinkedList<String> list = new LinkedList<String>();
+
+            int nextSpace = 0;
+            int previousSpace = 0;
+
+            if (input == null) {
+                return null;
+            }
+
+            do {
+                previousSpace = nextSpace;
+                nextSpace = input.indexOf(deliniator, nextSpace + 1);
+
+                if (nextSpace != -1) {
+                    String stuff = input.substring(previousSpace, nextSpace).trim();
+                    if (stuff != null && !stuff.equals(""))
+                        list.add(stuff);
+                }
+
+            } while (nextSpace != -1);
+            String stuff = input.substring(previousSpace);
+            stuff = stuff.trim();
+            if (stuff.length() > 0) {
+                list.add(stuff);
+            }
+            ;
+            return list.toArray(new String[list.size()]);
+        } catch (Exception e) {
+            throw new RuntimeException("Error in stringChopper.");
         }
     }
     
@@ -1334,11 +1355,6 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public void handleEvent(SQLResultEvent event) {
-        if (event.getIdentifier().equals("twdbot"))
-            m_botAction.SQLClose(event.getResultSet());
-    }
-
     public void commandAddMIDIP(String staffname, String info) {
         try {
             info = info.toLowerCase();
@@ -1509,21 +1525,6 @@ public class twdbot extends SubspaceBot {
         } catch (Exception e) {
             throw new RuntimeException("Error in parseCommand.");
         }
-    }
-
-    public void handleEvent(LoggedOn event) {
-        m_botAction.joinArena(m_arena);
-        ownerID = 0;
-        m_botAction.ipcSubscribe("MatchBot");
-        TimerTask checkMessages = new TimerTask() {
-            public void run() {
-                checkMessages();
-                checkNamesToReset();
-            };
-        };
-        m_botAction.scheduleTaskAtFixedRate(checkMessages, 5000, 30000);
-        m_botAction.sendUnfilteredPublicMessage("?chat=robodev,twdstaff,executive lounge");
-        checkIN();
     }
 
     public void command_signup(String name, String command, String[] parameters) {
