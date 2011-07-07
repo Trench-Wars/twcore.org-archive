@@ -44,6 +44,7 @@ public class twchat extends SubspaceBot {
     public ArrayList<String> show = new ArrayList<String>();
     public HashMap<String, Boolean> tstates = new HashMap<String, Boolean>();
     public LinkedList<String> locates = new LinkedList<String>();
+    public LinkedList<String> greeted = new LinkedList<String>();
     private static final String IPC = "whoonline";
     private static final String WHOBOT = "WhoBot";
     private static final String db = "pubstats";
@@ -363,9 +364,19 @@ public class twchat extends SubspaceBot {
     }
 
     public void handleEvent(PlayerEntered event) {
-        Player player = m_botAction.getPlayer(event.getPlayerID());
+        Player player = ba.getPlayer(event.getPlayerID());
         if (ba.getOperatorList().isBotExact(player.getPlayerName())) return;
-        m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
+        if (!greeted.contains(player.getPlayerName().toLowerCase())) {
+            greeted.add(player.getPlayerName().toLowerCase());
+            final String p = player.getPlayerName();
+            TimerTask greet = new TimerTask() {
+                public void run() {
+                    ba.sendSmartPrivateMessage(p, "Cool commands: pm me !whohas 4 to see what squads have 4 or more player online, or !squad tenure to see what tenure squad members are online (* means probably afk).");
+                }
+            };
+            ba.scheduleTask(greet, 2000);
+        }
+        ba.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
     }
 
     public void handleEvent(ArenaJoined event) {
