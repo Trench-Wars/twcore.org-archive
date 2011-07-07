@@ -213,7 +213,7 @@ public class twchat extends SubspaceBot {
                 isOnline(name, message);
             else if (message.equalsIgnoreCase("!signup"))
                 signup(name, message);
-            else if (message.startsWith("!squad "))
+            else if (message.startsWith("!squad ") || message.startsWith("!s "))
                 getSquad(name, message);
             else if (message.equalsIgnoreCase("!help"))
                 help(name, message);
@@ -550,7 +550,8 @@ public class twchat extends SubspaceBot {
                         "|                                Who Is Online                                  |",
                         "|                                                                               |",
                         "| !whohas <#>     - Lists all the squads who have <#> or more members online    |",
-                        "| !squad <squad>  - Lists online members of <squad>, * means potentially afk    |",
+                        "| !squad <squad>  - Lists all the members of <squad> currently online and       |",
+                        "|   or !s <squad>    the * means player is potentially afk",
                         "| !online <name>  - Shows if <name> is currently online according to list on bot|",
                         "| !stats          - Displays population and player online status information    |",
                         "|                                                                               |", };
@@ -784,7 +785,7 @@ public class twchat extends SubspaceBot {
     }
 
     public void getSquad(String name, String msg) {
-        msg = msg.substring(7);
+        msg = msg.substring(msg.indexOf(" ") + 1);
         if (msg.length() < 1) return;
         m_botAction.SQLBackgroundQuery(db, "squad:" + msg + ":" + name,
                 "SELECT fcName FROM tblPlayer WHERE fcSquad = '" + Tools.addSlashesToString(msg) + "' AND fnOnline = 1");
