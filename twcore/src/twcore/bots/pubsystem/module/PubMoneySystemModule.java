@@ -453,8 +453,8 @@ public class PubMoneySystemModule extends AbstractModule {
             return;
         try {
             int amount = Integer.valueOf(args[1]);
-            if (amount < 1)
-                m_botAction.sendSmartPrivateMessage(name, "Amount must be greater than 0");
+            if (amount < 1 || amount > 100000)
+                m_botAction.sendSmartPrivateMessage(name, "Amount must be greater than 0 and less than $100000 and !pot");
             else if (amount > getMoneyPot())
                 m_botAction.sendSmartPrivateMessage(name, "I only have $" + getMoneyPot() + " available in the pot.");
             else {
@@ -1496,6 +1496,8 @@ public class PubMoneySystemModule extends AbstractModule {
             doCmdCouponListOps(sender);
         } else if (command.startsWith("!award ")) {
             doCmdAward(sender, command);
+        } else if (command.equals("!pot")) {
+            m_botAction.sendSmartPrivateMessage(sender, "$" + getMoneyPot());
         }
     }
 
@@ -1541,6 +1543,8 @@ public class PubMoneySystemModule extends AbstractModule {
     	String bot[] = new String[] {
     		pubsystem.getHelpLine("!couponaddop <name>                    -- Add an operator (temporary, permanant via .cfg)."),
     		pubsystem.getHelpLine("!couponlistops                         -- List of operators."),
+            pubsystem.getHelpLine("!award <name>:<amount>                 -- Awards <name> with <amount> from the bot's bank"),
+            pubsystem.getHelpLine("!pot                                   -- Displays money available for awards"),
     	};
     	
     	List<String> lines = new ArrayList<String>();
