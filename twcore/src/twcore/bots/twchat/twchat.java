@@ -126,11 +126,11 @@ public class twchat extends SubspaceBot {
                     }
                 }
             } else if (squadInfo.length() > 1 && message.contains(" - ")) {
+                ba.cancelTask(locater);
                 debug(message);
                 String p = message.substring(0, message.lastIndexOf(" - "));
                 String arena = message.substring(message.lastIndexOf("- ") + 2);
                 if (locates.contains(p.toLowerCase())) {
-                    m_botAction.cancelTask(locater);
                     locates.remove(p.toLowerCase());
                     if (arena.contains("#") || arena.contains("afk"))
                         tstates.put(p, true);
@@ -144,8 +144,9 @@ public class twchat extends SubspaceBot {
                     debug("locates is empty, building info msg...");
                     String s = squadInfo.substring(squadInfo.indexOf(":")+1);
                     String n = squadInfo.substring(0, squadInfo.indexOf(":"));
-                    String msg = s + "(" + tstates.size() + "): ";
+                    String msg = "";
                     if (!tstates.isEmpty()) {
+                        msg += s + "(" + tstates.size() + "): ";
                         for (String pl : tstates.keySet()) {
                             msg += "" + pl;
                             if (tstates.get(pl))
@@ -155,7 +156,7 @@ public class twchat extends SubspaceBot {
                         msg = msg.substring(0, msg.length()-2);
                     } else {
                         debug("tstates was empty...");
-                        msg += "None found.";
+                        msg += s + "(0): None found.";
                     }
                     m_botAction.sendSmartPrivateMessage(n, msg);
                     locates.clear();
@@ -926,23 +927,27 @@ public class twchat extends SubspaceBot {
     
     private void locate() {
         final String loc = locates.get(0);
-        debug("Locating " + loc);
-        m_botAction.sendUnfilteredPublicMessage("*locate " + loc);
-        locater = new TimerTask() {
+        TimerTask delay = new TimerTask() {
             public void run() {
-                locates.remove(loc.toLowerCase());
-                tstates.remove(loc.toLowerCase());
-                if (!locates.isEmpty())
-                    locate();
-                else {
-                    m_botAction.sendSmartPrivateMessage(squadInfo.substring(0, squadInfo.indexOf(":")), squadInfo.substring(squadInfo.indexOf(":") + 1) + "(0): None found.");
-                    squadInfo = "";
-                    tstates.clear();
-                    locates.clear();
-                }
+                debug("Locating " + loc);
+                m_botAction.sendUnfilteredPublicMessage("*locate " + loc);
+                locater = new TimerTask() {
+                    public void run() {
+                        locates.remove(loc.toLowerCase());
+                        if (!locates.isEmpty())
+                            locate();
+                        else {
+                            m_botAction.sendSmartPrivateMessage(squadInfo.substring(0, squadInfo.indexOf(":")), squadInfo.substring(squadInfo.indexOf(":") + 1) + "(0): None found.");
+                            squadInfo = "";
+                            tstates.clear();
+                            locates.clear();
+                        }
+                    }
+                };
+                ba.scheduleTask(locater, 1500);
             }
         };
-        m_botAction.scheduleTask(locater, 1500);
+        ba.scheduleTask(delay, 2500);
     }
 
     public void debug(String msg) {
