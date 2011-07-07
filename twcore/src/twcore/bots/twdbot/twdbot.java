@@ -837,7 +837,14 @@ public class twdbot extends SubspaceBot {
                 m_botAction.sendSmartPrivateMessage(einfoer, message);
                 einfoer = "";
                 einfoee = "";
-                m_botAction.changeArena("TWD");
+                if (!m_botAction.getArenaName().equalsIgnoreCase("TWD")) {
+                    TimerTask goback = new TimerTask() {
+                        public void run() {
+                            m_botAction.changeArena("TWD");
+                        }
+                    };
+                    m_botAction.scheduleTask(goback, 1500);
+                }
             } else if (message.contains(" - ") && message.substring(0, message.lastIndexOf(" - ")).equalsIgnoreCase(einfoee)) {
                 m_botAction.cancelTask(einfo);
                 String arena = message.substring(message.lastIndexOf("- ") + 2);
