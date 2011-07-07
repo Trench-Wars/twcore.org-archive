@@ -55,11 +55,14 @@ public class MatchRound
     // 0 - none, 1 - arranging lineup, 2 - starting, 3 - playing, 4 - finished
     int m_fnRoundState;
 
-    // 0 - still playing, 1 - won by one of the teams, 2 - draw, 3 - cancelled
+    // 0 - still playing, 1 - won by one of the teams, 2 - draw, 3 - canceled
     int m_fnRoundResult;
 
+    // RoundID used to determine if playoff or not... playoff roundids are hardcoded
+    int m_fnRoundID;
     int m_fnMatchRoundID;
     int m_fnRoundNumber;
+    boolean m_playoff;
     int m_fnTeam1Score;
     int m_fnTeam2Score;
     MatchTeam m_team1;
@@ -103,16 +106,19 @@ public class MatchRound
     TimerTask m_raceTimer;
 
     static final int NOT_PLAYING_FREQ = 200;
+    static int[] m_playoffs;
 
     /** Creates a new instance of MatchRound */
     public MatchRound(int fnRoundNumber, String fcTeam1Name, String fcTeam2Name, MatchGame Matchgame)
     {
         useDatabase = false;
         m_game = Matchgame;
+        m_playoffs = m_game.m_playoffs;
         m_botAction = m_game.m_botAction;
         m_botAction.getObjectSet();
         m_rules = m_game.m_rules;
         m_fnRoundNumber = fnRoundNumber;
+        m_fnRoundID = getRoundID();
         m_fnRoundState = 0;
         m_fnRoundResult = 0;
         m_timeStarted = new java.util.Date();
@@ -120,6 +126,8 @@ public class MatchRound
         m_team1 = new MatchTeam(fcTeam1Name, 1, 1, this);
         m_team2 = new MatchTeam(fcTeam2Name, 2, 2, this);
 
+        m_playoff = isPlayoff();
+        
         m_lagHandler = new lagHandler(m_botAction, m_rules, this, "handleLagReport");
 
         m_notPlaying = new ArrayList<String>();
@@ -138,10 +146,15 @@ public class MatchRound
         {
                     //This is for the time race.  If the person hasn't set the time it is set to default
                     String winby = m_rules.getString("winby");
-                    if (winby.equals("timerace") && (m_raceTarget < 5 * 60 || m_raceTarget > 30 * 30)) // 5 mins and 30 mins in secs
+                    if (winby.equals("timerace")) // 5 mins and 30 mins in secs
                     {
-                        setRaceTarget(m_rules.getInt("defaulttarget") * 60); //mins to secs
-                        m_logger.sendArenaMessage("Race set to " + m_rules.getInt("defaulttarget") + " mins");
+                        if (!m_playoff && (m_raceTarget < 5 * 60 || m_raceTarget > 30 * 30)) {
+                            setRaceTarget(m_rules.getInt("defaulttarget") * 60); //mins to secs
+                            m_logger.sendArenaMessage("Race set to " + m_rules.getInt("defaulttarget") + " mins");
+                        } else if (m_playoff && (m_raceTarget < 5 * 60 || m_raceTarget > 40 * 30)) {
+                            setRaceTarget(m_rules.getInt("playofftarget") * 60); //mins to secs
+                            m_logger.sendArenaMessage("Race set to " + m_rules.getInt("playofftarget") + " mins");                            
+                        }
                     }
 
                     m_fnRoundState = 1;
@@ -156,6 +169,28 @@ public class MatchRound
         };
         specAll();
 
+    }
+    
+    public int getRoundID() {
+        int id = 1;
+        try {
+            String query = "SELECT fnTWL__RoundId as id FROM tblTWL__Match WHERE fnMatchID = " + m_game.m_fnMatchID + " LIMIT 1";
+            ResultSet rs = m_botAction.SQLQuery(dbConn, query);
+            if (rs.next())
+                id = rs.getInt("id");
+            m_botAction.SQLClose(rs);
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        return id;
+    }
+    
+    public boolean isPlayoff() {
+        for (int i : m_playoffs) {
+            if (m_fnRoundID == i)
+                return true;
+        }
+        return false;
     }
 
     public void specAll()
@@ -774,11 +809,17 @@ public class MatchRound
             Integer time = new Integer(string);
 
             //the time is also set in !startpick command method
-            if (time == null || time.intValue() < 5 || time.intValue() > 30)
+            if (time == null || time.intValue() < 5 || time.intValue() > 40)
             {
-                setRaceTarget(m_rules.getInt("defaulttarget") * 60); //mins to secs
-                m_logger.sendArenaMessage("Race set to: " + m_rules.getInt("defaulttarget") + " mins");
-                m_logger.sendPrivateMessage(name, "Needs to be between 5 mins and 30 mins - setting default race");
+                if (!m_playoff) {
+                    setRaceTarget(m_rules.getInt("defaulttarget") * 60); //mins to secs
+                    m_logger.sendArenaMessage("Race set to: " + m_rules.getInt("defaulttarget") + " mins");
+                    m_logger.sendPrivateMessage(name, "Needs to be between 5 mins and 30 mins - setting default race");
+                } else {
+                    setRaceTarget(m_rules.getInt("playofftarget") * 60); //mins to secs
+                    m_logger.sendArenaMessage("Race set to: " + m_rules.getInt("playofftarget") + " mins");
+                    m_logger.sendPrivateMessage(name, "Needs to be between 5 mins and 40 mins - setting default race");                    
+                }
             }
             else
             {
@@ -914,10 +955,15 @@ public class MatchRound
     {
         //This is for the time race.  If the person hasn't set the time it is set to default
         String winby = m_rules.getString("winby");
-        if (winby.equals("timerace") && (m_raceTarget < 5 * 60 || m_raceTarget > 30 * 30)) // 5 mins and 30 mins in secs
+        if (winby.equals("timerace")) // 5 mins and 30 mins in secs
         {
-            setRaceTarget(m_rules.getInt("defaulttarget") * 60); //mins to secs
-            m_logger.sendArenaMessage("Race set to " + m_rules.getInt("defaulttarget") + " mins");
+            if (!m_playoff && (m_raceTarget < 5 * 60 || m_raceTarget > 30 * 30)) {
+                setRaceTarget(m_rules.getInt("defaulttarget") * 60); //mins to secs
+                m_logger.sendArenaMessage("Race set to " + m_rules.getInt("defaulttarget") + " mins");
+            } else if (m_playoff && (m_raceTarget < 5 * 60 || m_raceTarget > 40 * 30)) {
+                setRaceTarget(m_rules.getInt("playofftarget") * 60); //mins to secs
+                m_logger.sendArenaMessage("Race set to " + m_rules.getInt("playofftarget") + " mins");                            
+            }
         }
 
         m_fnRoundState = 1;

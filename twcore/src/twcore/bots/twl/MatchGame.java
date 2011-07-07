@@ -58,6 +58,8 @@ public class MatchGame
 	int m_gameState = 0;
 	int playersNum = 0;
 
+	int[] m_playoffs;
+	
 	static int KILL_ME_PLEASE = 10;
 
 	boolean m_gameStored = false;
@@ -79,6 +81,8 @@ public class MatchGame
 		m_logger = new MatchLogger(m_botAction);
 
 		m_fnMatchTypeID = m_rules.getInt("matchtype");
+		
+		m_playoffs = m_rules.getIntArray("playoffs", ",");
 
 		if ((m_rules.getInt("rosterjoined") == 1) || (m_rules.getInt("storegame") == 1))
 		{
