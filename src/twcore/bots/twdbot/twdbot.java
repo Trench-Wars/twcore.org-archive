@@ -844,12 +844,12 @@ public class twdbot extends SubspaceBot {
                 ownerID++;
             } else if (message.startsWith("IP:")) { // !register
                 parseIP(message);
-            } else if (message.contains(" Res: ") && einfoer.length() > 1) {
+            } else if (!starting && message.contains(" Res: ") && einfoer.length() > 1) {
                 m_botAction.sendSmartPrivateMessage(einfoer, message);
                 einfoer = "";
                 einfoee = "";
                 m_botAction.changeArena("TWD");
-            } else if (message.substring(0, message.lastIndexOf(" - ")).equalsIgnoreCase(einfoee)) {
+            } else if (!starting && message.substring(0, message.lastIndexOf(" - ")).equalsIgnoreCase(einfoee)) {
                 m_botAction.cancelTask(einfo);
                 String arena = message.substring(message.lastIndexOf("- ") + 2);
                 if (arena.startsWith("Public"))
