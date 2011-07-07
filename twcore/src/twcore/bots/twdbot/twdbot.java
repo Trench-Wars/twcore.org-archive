@@ -54,6 +54,7 @@ public class twdbot extends SubspaceBot {
     private String register = "";
     private String einfoer = "";
     private String einfoee = "";
+    private String locatee = "";
     private HashMap<String, String> m_waitingAction;
     private String webdb = "website";
     private boolean manualSpawnOverride;
@@ -134,8 +135,11 @@ public class twdbot extends SubspaceBot {
     }
     
     public void handleEvent(ArenaJoined event) {
-        if (einfoer.length() > 1 && einfoee.length() > 1 && !m_botAction.getArenaName().equalsIgnoreCase("TWD")) {
-            m_botAction.sendUnfilteredPrivateMessage(einfoee, "*einfo");
+        if (!m_botAction.getArenaName().equalsIgnoreCase("TWD")) {
+            if (einfoer.length() > 1 && einfoee.length() > 1)
+                m_botAction.sendUnfilteredPrivateMessage(einfoee, "*einfo");
+            else if (locatee.length() > 0)
+                m_botAction.sendUnfilteredPrivateMessage(locatee, "*info");
         }
     }
 
@@ -752,7 +756,7 @@ public class twdbot extends SubspaceBot {
                 else if (message.startsWith("!fullinfo "))
                     commandDisplayInfo(name, message.substring(10), true);
                 else if (message.startsWith("!einfo "))
-                    commandeinfo(name, message);
+                    checkEinfo(name, message);
                 else if (message.startsWith("!register "))
                     commandRegisterName(name, message.substring(10), false);
                 else if (message.startsWith("!registered "))
@@ -854,11 +858,14 @@ public class twdbot extends SubspaceBot {
                         arena = arena.substring(arena.indexOf(" ") + 1);
                     m_botAction.changeArena(arena);
                 } else if (m_requesters.containsKey(located) || m_requesters.containsKey(located.toLowerCase())) {
-                    m_botAction.cancelTask(locater);
-                    String arena = message.substring(message.lastIndexOf("- ") + 2);
-                    if (arena.startsWith("Public"))
-                        arena = arena.substring(arena.indexOf(" ") + 1);
-                    m_botAction.changeArena(arena);                    
+                    if (locatee.equalsIgnoreCase(located)) {
+                        m_botAction.cancelTask(locater);
+                        locatee = located;
+                        String arena = message.substring(message.lastIndexOf("- ") + 2);
+                        if (arena.startsWith("Public"))
+                            arena = arena.substring(arena.indexOf(" ") + 1);
+                        m_botAction.changeArena(arena);        
+                    }
                 }
             }
         }
@@ -2117,16 +2124,15 @@ public class twdbot extends SubspaceBot {
                     requester = m_requesters.remove(name.toLowerCase());
                 if (requester != null) {
                     m_botAction.sendSmartPrivateMessage(requester, response);
+                    if (locatee.equalsIgnoreCase(name))
+                        locatee = "";
                     if (!m_botAction.getArenaName().equalsIgnoreCase("TWD")) {
-                        m_botAction.changeArena("TWD");  
-                        /*
                         TimerTask delay = new TimerTask() {
                             public void run() {
                                 m_botAction.changeArena("TWD");                                
                             }
                         };
                         m_botAction.scheduleTask(delay, 2000);
-                        */
                     }
                 }
             }
@@ -2163,20 +2169,22 @@ public class twdbot extends SubspaceBot {
             m_botAction.sendUnfilteredPrivateMessage(target, "*info");
         } else {
             m_requesters.put(message.toLowerCase(), name);
+            locatee = message.toLowerCase();
             final String n = name;
             final String p = message;
             m_botAction.sendUnfilteredPublicMessage("*locate " + message);
-            einfo = new TimerTask() {
+            locater = new TimerTask() {
                 public void run() {
                     m_botAction.sendSmartPrivateMessage(n, "Could not locate " + p);
                     m_requesters.remove(n.toLowerCase());
+                    locatee = "";
                 }
             };
-            m_botAction.scheduleTask(einfo, 2000);
+            m_botAction.scheduleTask(locater, 2000);
         }
     }
     
-    public void commandeinfo(String name, String msg) {
+    public void checkEinfo(String name, String msg) {
         String p = msg.substring(msg.indexOf(" ") + 1);
         if (m_botAction.getFuzzyPlayerName(p) != null) {
             einfoer = name;
