@@ -464,6 +464,10 @@ public class PubMoneySystemModule extends AbstractModule {
                 m_botAction.sendChatMessage(name + " has awarded " + args[0] + " $" + amount);
                 m_botAction.sendSmartPrivateMessage(name, "" + args[0] + " has been awarded $" + amount + " from my money pot ($" + getMoneyPot() + " left)");
                 m_botAction.sendSmartPrivateMessage(args[0], "Congratulations, you have been awarded $" + amount + "!");
+                if (database!=null)
+                    m_botAction.SQLBackgroundQuery(database, null, "INSERT INTO tblPlayerDonations "
+                        + "(fcName, fcNameTo, fnMoney, fdDate) "
+                        + "VALUES ('"+Tools.addSlashes(m_botAction.getBotName()) + "','" + Tools.addSlashes(pubPlayer.getPlayerName()) + "','" + amount + "',NOW())");
             }
         } catch (NumberFormatException e) {
             m_botAction.sendSmartPrivateMessage(name, "Invalid dollar amount.");
