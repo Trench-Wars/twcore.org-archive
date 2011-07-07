@@ -49,6 +49,7 @@ import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
+import twcore.core.events.PlayerPosition;
 import twcore.core.events.SQLResultEvent;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
@@ -444,6 +445,31 @@ public class PubMoneySystemModule extends AbstractModule {
     	}
     }
     
+    public void doCmdAward(String name, String cmd) {
+        if (!cmd.contains(":"))
+            return;
+        String[] args = cmd.substring(cmd.indexOf(" ") + 1).split(":");
+        if (args.length != 2)
+            return;
+        try {
+            int amount = Integer.valueOf(args[1]);
+            if (amount < 1)
+                m_botAction.sendSmartPrivateMessage(name, "Amount must be greater than 0");
+            else if (amount > getMoneyPot())
+                m_botAction.sendSmartPrivateMessage(name, "I only have $" + getMoneyPot() + " available in the pot.");
+            else {
+                PubPlayer pubPlayer = playerManager.getPlayer(args[0], false);
+                pubPlayer.addMoney(amount);
+                playerManager.getPlayer(m_botAction.getBotName(), false).removeMoney(amount);
+                m_botAction.sendChatMessage(name + " has awarded " + args[0] + " $" + amount);
+                m_botAction.sendSmartPrivateMessage(name, "" + args[0] + " has been awarded $" + amount + " from my money pot ($" + getMoneyPot() + " left)");
+                m_botAction.sendSmartPrivateMessage(args[0], "Congratulations, you have been awarded $" + amount + "!");
+            }
+        } catch (NumberFormatException e) {
+            m_botAction.sendSmartPrivateMessage(name, "Invalid dollar amount.");
+        }
+    }
+    
     private void sqlMoney(int money) {
         String query = "UPDATE tblMoneyCode SET fnMoney = (fnMoney + " + money + ") WHERE fcCode = 'OWNER'";
         m_botAction.SQLBackgroundQuery(database, null, query);
@@ -739,6 +765,10 @@ public class PubMoneySystemModule extends AbstractModule {
     	} else {
     		m_botAction.sendSmartPrivateMessage(sender, "You're still not in the system. Wait a bit to be added.");
     	}
+    }
+    
+    private int getMoneyPot() {
+        return playerManager.getPlayer(m_botAction.getBotName(), false).getMoney();
     }
     
     private void doCmdDisplayMoney(String sender, String command)
@@ -1464,6 +1494,8 @@ public class PubMoneySystemModule extends AbstractModule {
             doCmdCouponAddOp(sender, command.substring(12).trim());
         } else if (command.equals("!couponlistops")) {
             doCmdCouponListOps(sender);
+        } else if (command.startsWith("!award ")) {
+            doCmdAward(sender, command);
         }
     }
 
@@ -1710,15 +1742,9 @@ public class PubMoneySystemModule extends AbstractModule {
     }
     
     private void itemCommandNukeBase(String sender, String params) {
-        Ship s = m_botAction.getShip();
-        m_botAction.stopSpectatingPlayer();
-        s.move(512*16, 280*16);
         Player p = m_botAction.getPlayer(sender);
         final int freq = p.getFrequency();
-        m_botAction.focusFreqUpdate(freq);
-        s.setMovingUpdateTime(100);
-        s.setUnmovingUpdateTime(100);
-        s.setSpectatorUpdateTime(100);
+        
 	   	final Vector<Shot> shots = getShots();
         final Vector<Warper> warps = new Vector<Warper>();
         Iterator<Integer> i = m_botAction.getFreqIDIterator(freq);
@@ -1729,7 +1755,7 @@ public class PubMoneySystemModule extends AbstractModule {
             int y = pl.getYTileLocation();
             if (x > 475 && x < 549 && y > 248 && y < 300)
                 warps.add(new Warper(id, x, y));                
-        }
+        }               
         
     	m_botAction.getShip().setShip(0);
     	m_botAction.getShip().setFreq(freq);
@@ -1740,6 +1766,7 @@ public class PubMoneySystemModule extends AbstractModule {
         final TimerTask timerFire = new TimerTask() {
             public void run() {
                 while (!shots.isEmpty()) {
+                    m_botAction.getShip().sendPositionPacket();
                     Shot s = shots.remove(0);
                     m_botAction.getShip().rotateDegrees(s.a);
                     m_botAction.getShip().sendPositionPacket();
@@ -1758,15 +1785,13 @@ public class PubMoneySystemModule extends AbstractModule {
     	            w.save();    	
     	    }
     	};
-    	m_botAction.scheduleTask(shields, 3200);
+    	m_botAction.scheduleTask(shields, 3100);
     	
     	TimerTask timer = new TimerTask() {
             public void run() {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
             	m_botAction.move(512*16, 350*16);
-            	m_botAction.resetReliablePositionUpdating();
             	m_botAction.getShip().setSpectatorUpdateTime(100);
-                m_botAction.resetPlayerTracker();
                 //Iterator<Integer> i = m_botAction.getFreqIDIterator(freq);
                 for (Warper w : warps)
                     w.back();
