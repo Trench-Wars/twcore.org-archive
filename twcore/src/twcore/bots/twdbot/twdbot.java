@@ -89,7 +89,7 @@ public class twdbot extends SubspaceBot {
     private LinkedList<String> m_watches;
     private TimerTask einfo;
 
-    TimerTask check, lock, messages;
+    TimerTask check, lock, messages, locater;
 
     int ownerID;
 
@@ -845,12 +845,21 @@ public class twdbot extends SubspaceBot {
                     };
                     m_botAction.scheduleTask(goback, 1500);
                 }
-            } else if (message.contains(" - ") && message.substring(0, message.lastIndexOf(" - ")).equalsIgnoreCase(einfoee)) {
-                m_botAction.cancelTask(einfo);
-                String arena = message.substring(message.lastIndexOf("- ") + 2);
-                if (arena.startsWith("Public"))
-                    arena = arena.substring(arena.indexOf(" ") + 1);
-                m_botAction.changeArena(arena);
+            } else if (message.contains(" - ")) {
+                String located = message.substring(0, message.lastIndexOf(" - "));
+                if (located.equalsIgnoreCase(einfoee)) {
+                    m_botAction.cancelTask(einfo);
+                    String arena = message.substring(message.lastIndexOf("- ") + 2);
+                    if (arena.startsWith("Public"))
+                        arena = arena.substring(arena.indexOf(" ") + 1);
+                    m_botAction.changeArena(arena);
+                } else if (m_requesters.containsKey(located) || m_requesters.containsKey(located.toLowerCase())) {
+                    m_botAction.cancelTask(locater);
+                    String arena = message.substring(message.lastIndexOf("- ") + 2);
+                    if (arena.startsWith("Public"))
+                        arena = arena.substring(arena.indexOf(" ") + 1);
+                    m_botAction.changeArena(arena);                    
+                }
             }
         }
     }
@@ -2108,8 +2117,17 @@ public class twdbot extends SubspaceBot {
                     requester = m_requesters.remove(name.toLowerCase());
                 if (requester != null) {
                     m_botAction.sendSmartPrivateMessage(requester, response);
-                    if (!m_botAction.getArenaName().equalsIgnoreCase("TWD"))
-                        m_botAction.changeArena("TWD");
+                    if (!m_botAction.getArenaName().equalsIgnoreCase("TWD")) {
+                        m_botAction.changeArena("TWD");  
+                        /*
+                        TimerTask delay = new TimerTask() {
+                            public void run() {
+                                m_botAction.changeArena("TWD");                                
+                            }
+                        };
+                        m_botAction.scheduleTask(delay, 2000);
+                        */
+                    }
                 }
             }
         }
