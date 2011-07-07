@@ -542,7 +542,10 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendPrivateMessage(name, "Betting has been DISABLED for the time being.");
             return;
         }
-        
+        if (context.getPubChallenge().isDueling(name)) {
+			m_botAction.sendSmartPrivateMessage(name, "You cannot place bets while dueling.");
+			return;/*These three lines have been placed to prevent exploitation of the dueling and betting system - Dral <ZH> */
+        }        
         if( !context.getMoneySystem().isEnabled() ) {
             m_botAction.sendPrivateMessage(name, "[ERROR]  Please provide both name and amount to bet.  Example:  !beton qan:299");
             return;
