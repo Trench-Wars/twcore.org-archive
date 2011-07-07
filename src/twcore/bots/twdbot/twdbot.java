@@ -63,7 +63,6 @@ public class twdbot extends SubspaceBot {
     private boolean arenaChallAlert = true;
     private boolean otherAlerts = false;
     private boolean respawn = true;
-    private boolean starting = true;
     private static final String HUB = "TWCore-League";
     private static final String IPC = "MatchBot";
     private static final String BOT_NAME = "MatchBot";
@@ -135,7 +134,7 @@ public class twdbot extends SubspaceBot {
     }
     
     public void handleEvent(ArenaJoined event) {
-        if (!starting && einfoer.length() > 1 && einfoee.length() > 1) {
+        if (einfoer.length() > 1 && einfoee.length() > 1 && !m_botAction.getArenaName().equalsIgnoreCase("TWD")) {
             m_botAction.sendUnfilteredPrivateMessage(einfoee, "*einfo");
         }
     }
@@ -153,16 +152,6 @@ public class twdbot extends SubspaceBot {
         m_botAction.scheduleTaskAtFixedRate(checkMessages, 5000, 30000);
         m_botAction.sendUnfilteredPublicMessage("?chat=robodev,twdstaff,executive lounge");
         checkIN();
-        TimerTask starting = new TimerTask() {
-            public void run() {
-                started();
-            }
-        };
-        m_botAction.scheduleTask(starting, 6000);
-    }
-    
-    public void started() {
-        starting = false;
     }
 
     public void handleEvent(PlayerLeft event) {
@@ -844,12 +833,12 @@ public class twdbot extends SubspaceBot {
                 ownerID++;
             } else if (message.startsWith("IP:")) { // !register
                 parseIP(message);
-            } else if (!starting && message.contains(" Res: ") && einfoer.length() > 1) {
+            } else if (message.contains(" Res: ") && einfoer.length() > 1) {
                 m_botAction.sendSmartPrivateMessage(einfoer, message);
                 einfoer = "";
                 einfoee = "";
                 m_botAction.changeArena("TWD");
-            } else if (!starting && message.substring(0, message.lastIndexOf(" - ")).equalsIgnoreCase(einfoee)) {
+            } else if (message.contains(" - ") && message.substring(0, message.lastIndexOf(" - ")).equalsIgnoreCase(einfoee)) {
                 m_botAction.cancelTask(einfo);
                 String arena = message.substring(message.lastIndexOf("- ") + 2);
                 if (arena.startsWith("Public"))
