@@ -42,8 +42,8 @@ public class twchat extends SubspaceBot {
     BotAction ba;
     public ArrayList<String> lastPlayer = new ArrayList<String>();
     public ArrayList<String> show = new ArrayList<String>();
-    public HashMap<String, Boolean> tstates;
-    public LinkedList<String> locates;
+    public HashMap<String, Boolean> tstates = new HashMap<String, Boolean>();
+    public LinkedList<String> locates = new LinkedList<String>();
     private static final String IPC = "whoonline";
     private static final String WHOBOT = "WhoBot";
     private static final String db = "pubstats";
@@ -125,6 +125,7 @@ public class twchat extends SubspaceBot {
                     }
                 }
             } else if (squadInfo.length() > 1 && message.contains(" - ")) {
+                debug(message);
                 String p = message.substring(0, message.lastIndexOf(" - ")).toLowerCase();
                 String arena = message.substring(message.lastIndexOf("- ") + 2);
                 if (locates.contains(p)) {
@@ -135,9 +136,11 @@ public class twchat extends SubspaceBot {
                     else
                         tstates.put(p, false);
                 }
+                
                 if (!locates.isEmpty())
                     locate();
                 else {
+                    debug("locates is empty, building info msg...");
                     String s = squadInfo.substring(squadInfo.indexOf(":")+1);
                     String n = squadInfo.substring(0, squadInfo.indexOf(":"));
                     String msg = s + "(" + tstates.size() + "): ";
@@ -151,6 +154,7 @@ public class twchat extends SubspaceBot {
                         msg = msg.substring(0, msg.length()-2);
                         msg += " (* potential afk)";
                     } else {
+                        debug("tstates was empty...");
                         msg += "None found.";
                     }
                     m_botAction.sendSmartPrivateMessage(n, msg);
@@ -241,8 +245,9 @@ public class twchat extends SubspaceBot {
     }
     
     private void locate() {
-        m_botAction.sendUnfilteredPublicMessage("*locate " + locates.get(0));
         final String loc = locates.get(0);
+        debug("Locating " + loc);
+        m_botAction.sendUnfilteredPublicMessage("*locate " + loc);
         locater = new TimerTask() {
             public void run() {
                 locates.remove(loc.toLowerCase());
@@ -752,6 +757,7 @@ public class twchat extends SubspaceBot {
         if (msg.length() < 1) return;
         msg = msg.substring(msg.indexOf(" ") + 1);
         squadInfo = name + ":" + msg;
+        m_botAction.sendSmartPrivateMessage(name, "Initiating detailed squad player list retreival process for: " + msg);
         m_botAction.SQLBackgroundQuery(db, "squadINFO:" + msg + ":" + name,
                 "SELECT fcName FROM tblPlayer WHERE fcSquad = '" + Tools.addSlashesToString(msg) + "' AND fnOnline = 1");
     }
