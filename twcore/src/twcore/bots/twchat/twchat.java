@@ -53,6 +53,7 @@ public class twchat extends SubspaceBot {
 
     private String squadInfo = "";
     private String debugger = "";
+    private long elapsedTime;
     private boolean DEBUG = false;
     public boolean signup = false;
     public boolean notify = false;
@@ -158,7 +159,9 @@ public class twchat extends SubspaceBot {
                         debug("tstates was empty...");
                         msg += s + "(0): None found.";
                     }
-                    m_botAction.sendSmartPrivateMessage(n, msg);
+                    ba.sendSmartPrivateMessage(n, msg);
+                    ba.sendSmartPrivateMessage(n, "Time Elapsed: " + (System.currentTimeMillis() - elapsedTime)/60 + " seconds");
+                    elapsedTime = 0;
                     locates.clear();
                     tstates.clear();
                     squadInfo = "";
@@ -327,12 +330,13 @@ public class twchat extends SubspaceBot {
                 }
             } else {
                 m_botAction.sendSmartPrivateMessage(name, squad + "(" + 0 + "): None found.");
+                ba.sendSmartPrivateMessage(name, "Time Elapsed: " + (System.currentTimeMillis() - elapsedTime)/60 + " seconds");
+                elapsedTime = 0;
                 if (afk) {
                     locates.clear();
                     tstates.clear();
                     squadInfo = "";
                 }
-                return;
             }
         } catch (SQLException e) {
             Tools.printStackTrace(e);
@@ -340,6 +344,8 @@ public class twchat extends SubspaceBot {
         m_botAction.SQLClose(rs);
         if (!afk)
             m_botAction.sendSmartPrivateMessage(name, squad + "(" + online + "): " + mems);
+        else
+            locate();
     }
 
     public void handleEvent(PlayerLeft event) {
@@ -769,6 +775,7 @@ public class twchat extends SubspaceBot {
             ba.sendSmartPrivateMessage(name, "Command being used by someone else, please try again in a moment...");
             return;
         }
+        elapsedTime = System.currentTimeMillis();
         msg = msg.substring(msg.indexOf(" ") + 1);
         squadInfo = name + ":" + msg;
         m_botAction.sendSmartPrivateMessage(name, "Processing squad list for: " + msg + " (* means potentially afk)");
@@ -930,24 +937,26 @@ public class twchat extends SubspaceBot {
         TimerTask delay = new TimerTask() {
             public void run() {
                 debug("Locating " + loc);
-                m_botAction.sendUnfilteredPublicMessage("*locate " + loc);
-                locater = new TimerTask() {
-                    public void run() {
-                        locates.remove(loc.toLowerCase());
-                        if (!locates.isEmpty())
-                            locate();
-                        else {
-                            m_botAction.sendSmartPrivateMessage(squadInfo.substring(0, squadInfo.indexOf(":")), squadInfo.substring(squadInfo.indexOf(":") + 1) + "(0): None found.");
-                            squadInfo = "";
-                            tstates.clear();
-                            locates.clear();
-                        }
-                    }
-                };
-                ba.scheduleTask(locater, 1500);
+                ba.sendUnfilteredPublicMessage("*locate " + loc);
             }
         };
-        ba.scheduleTask(delay, 2500);
+        ba.scheduleTask(delay, 1000);
+        locater = new TimerTask() {
+            public void run() {
+                locates.remove(loc.toLowerCase());
+                if (!locates.isEmpty())
+                    locate();
+                else {
+                    ba.sendSmartPrivateMessage(squadInfo.substring(0, squadInfo.indexOf(":")), squadInfo.substring(squadInfo.indexOf(":") + 1) + "(0): None found.");
+                    ba.sendSmartPrivateMessage(squadInfo.substring(0, squadInfo.indexOf(":")), "Time Elapsed: " + (System.currentTimeMillis() - elapsedTime)/60 + " seconds");
+                    elapsedTime = 0;
+                    squadInfo = "";
+                    tstates.clear();
+                    locates.clear();
+                }
+            }
+        };
+        ba.scheduleTask(locater, 2500);
     }
 
     public void debug(String msg) {
