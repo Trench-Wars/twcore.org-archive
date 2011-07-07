@@ -133,7 +133,7 @@ public class twdbot extends SubspaceBot {
     }
     
     public void handleEvent(ArenaJoined event) {
-        if (!m_botAction.getArenaName().equalsIgnoreCase("TWD") && einfoer.length() > 1 && einfoee.length() > 1) {
+        if (einfoer.length() > 1 && einfoee.length() > 1 && !m_botAction.getArenaName().equalsIgnoreCase("TWD")) {
             m_botAction.sendUnfilteredPrivateMessage(einfoee, "*einfo");
         }
     }
