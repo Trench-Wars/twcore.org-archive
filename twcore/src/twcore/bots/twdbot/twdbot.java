@@ -20,6 +20,7 @@ import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.OperatorList;
 import twcore.core.SubspaceBot;
+import twcore.core.events.ArenaJoined;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
@@ -51,6 +52,8 @@ public class twdbot extends SubspaceBot {
     private int arenaChallCount;
     private String birthday;
     private String register = "";
+    private String einfoer = "";
+    private String einfoee = "";
     private HashMap<String, String> m_waitingAction;
     private String webdb = "website";
     private boolean manualSpawnOverride;
@@ -84,6 +87,7 @@ public class twdbot extends SubspaceBot {
     private Vector<String> m_idlers;
     private HashMap<String, KillRequest> m_killer;
     private LinkedList<String> m_watches;
+    private TimerTask einfo;
 
     TimerTask check, lock, messages;
 
@@ -125,6 +129,13 @@ public class twdbot extends SubspaceBot {
         req.request(EventRequester.MESSAGE);
         req.request(EventRequester.PLAYER_LEFT);
         req.request(EventRequester.PLAYER_ENTERED);
+        req.request(EventRequester.ARENA_JOINED);
+    }
+    
+    public void handleEvent(ArenaJoined event) {
+        if (!m_botAction.getArenaName().equalsIgnoreCase("TWD") && einfoer.length() > 1 && einfoee.length() > 1) {
+            m_botAction.sendUnfilteredPrivateMessage(einfoee, "*einfo");
+        }
     }
 
     public void handleEvent(PlayerLeft event) {
@@ -972,6 +983,8 @@ public class twdbot extends SubspaceBot {
                     commandDisplayInfo(name, message.substring(6), false);
                 else if (message.startsWith("!fullinfo "))
                     commandDisplayInfo(name, message.substring(10), true);
+                else if (message.startsWith("!einfo "))
+                    commandeinfo(name, message);
                 else if (message.startsWith("!register "))
                     commandRegisterName(name, message.substring(10), false);
                 else if (message.startsWith("!registered "))
@@ -1052,7 +1065,39 @@ public class twdbot extends SubspaceBot {
                 ownerID++;
             } else if (message.startsWith("IP:")) { // !register
                 parseIP(message);
+            } else if (message.contains(" Res: ") && einfoer.length() > 1) {
+                m_botAction.sendSmartPrivateMessage(einfoer, message);
+                einfoer = "";
+                einfoee = "";
+                m_botAction.changeArena("TWD");
+            } else if (message.substring(0, message.indexOf(" - ")).equalsIgnoreCase(einfoee)) {
+                m_botAction.cancelTask(einfo);
+                String arena = message.substring(message.lastIndexOf("- ") + 2);
+                if (arena.startsWith("Public"))
+                    arena = arena.substring(arena.indexOf(" ") + 1);
+                m_botAction.changeArena(arena);
             }
+        }
+    }
+    
+    public void commandeinfo(String name, String msg) {
+        String p = msg.substring(msg.indexOf(" ") + 1);
+        if (m_botAction.getFuzzyPlayerName(p) != null) {
+            einfoer = name;
+            einfoee = p;
+            m_botAction.sendUnfilteredPrivateMessage(p, "*einfo");
+        } else {
+            einfoer = name;
+            einfoee = p;
+            m_botAction.sendUnfilteredPublicMessage("*locate " + p);
+            einfo = new TimerTask() {
+                public void run() {
+                    m_botAction.sendSmartPrivateMessage(einfoer, "Could not locate " + einfoee);
+                    einfoer = "";
+                    einfoee = "";
+                }
+            };
+            m_botAction.scheduleTask(einfo, 2000);
         }
     }
     
