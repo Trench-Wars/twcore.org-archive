@@ -63,6 +63,7 @@ public class twdbot extends SubspaceBot {
     private boolean arenaChallAlert = true;
     private boolean otherAlerts = false;
     private boolean respawn = true;
+    private boolean starting = true;
     private static final String HUB = "TWCore-League";
     private static final String IPC = "MatchBot";
     private static final String BOT_NAME = "MatchBot";
@@ -134,7 +135,7 @@ public class twdbot extends SubspaceBot {
     }
     
     public void handleEvent(ArenaJoined event) {
-        if (einfoer.length() > 1 && einfoee.length() > 1) {
+        if (!starting && einfoer.length() > 1 && einfoee.length() > 1) {
             m_botAction.sendUnfilteredPrivateMessage(einfoee, "*einfo");
         }
     }
@@ -152,6 +153,16 @@ public class twdbot extends SubspaceBot {
         m_botAction.scheduleTaskAtFixedRate(checkMessages, 5000, 30000);
         m_botAction.sendUnfilteredPublicMessage("?chat=robodev,twdstaff,executive lounge");
         checkIN();
+        TimerTask starting = new TimerTask() {
+            public void run() {
+                started();
+            }
+        };
+        m_botAction.scheduleTask(starting, 6000);
+    }
+    
+    public void started() {
+        starting = false;
     }
 
     public void handleEvent(PlayerLeft event) {
