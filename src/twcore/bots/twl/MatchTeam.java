@@ -1087,7 +1087,7 @@ public class MatchTeam
 	    if (m_rules.getInt("matchtype") < 4)
             {
 		try {
-			ResultSet s = m_botAction.SQLQuery(dbConn, "SELECT tblTWL__LockDate.fdTWL__LockDate AS lockDate FROM tblTWL__LockDate, tblTeamUser WHERE tblTWL__LockDate.fcTWL__LockType = 'hard' AND tblTeamUser.fnUserID = '" + dbP.getUserID() + "' AND tblTeamUser.fdJoined < tblTWL__LockDate.fdTWL__LockDate;");
+			ResultSet s = m_botAction.SQLQuery(dbConn, "SELECT tblTWL__LockDate.fdTWL__LockDate AS lockDate FROM tblTWL__LockDate, tblTeamUser WHERE tblTWL__LockDate.fcTWL__LockType = 'hard' AND tblTeamUser.fnUserID = '" + dbP.getUserID() + "' AND (tblTeamUser.fdJoined < tblTWL__LockDate.fdTWL__LockDate OR (tblTeamUser.fnTeamID = 11890 AND tblTeamUser.fnTWL = 1));");
 			if (!s.next()) {
 			    return "Player was rostered after the roster lock and is ineligible for TWL games";
 			}
