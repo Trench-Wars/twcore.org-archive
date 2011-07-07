@@ -749,8 +749,8 @@ public class twchat extends SubspaceBot {
     }
     
     public void getSquadInfo(String name, String msg) {
-        msg = msg.substring(7);
         if (msg.length() < 1) return;
+        msg = msg.substring(msg.indexOf(" ") + 1);
         squadInfo = name + ":" + msg;
         m_botAction.SQLBackgroundQuery(db, "squadINFO:" + msg + ":" + name,
                 "SELECT fcName FROM tblPlayer WHERE fcSquad = '" + Tools.addSlashesToString(msg) + "' AND fnOnline = 1");
