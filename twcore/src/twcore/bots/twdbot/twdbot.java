@@ -2106,8 +2106,11 @@ public class twdbot extends SubspaceBot {
                     requester = m_requesters.remove(name);
                 else
                     requester = m_requesters.remove(name.toLowerCase());
-                if (requester != null)
+                if (requester != null) {
                     m_botAction.sendSmartPrivateMessage(requester, response);
+                    if (!m_botAction.getArenaName().equalsIgnoreCase("TWD"))
+                        m_botAction.changeArena("TWD");
+                }
             }
         }
     }
