@@ -42,7 +42,6 @@ import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
-import twcore.core.util.json.JSONValue;
 
 /**
  * "Pure" pub bot that can enforce ship restrictions, freq restrictions, and run
