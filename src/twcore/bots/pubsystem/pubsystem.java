@@ -145,8 +145,8 @@ public class pubsystem extends SubspaceBot
 	        	arena = m_botAction.getBotSettings().getString("Arena"+botNumber);
 	        }
 	        
-	        if (m_botAction.getBotSettings().getString("Chat"+botNumber) != null) {
-	        	String chats = m_botAction.getBotSettings().getString("Chat"+botNumber);
+	        if (m_botAction.getBotSettings().getString("Chats") != null) {
+	        	String chats = m_botAction.getBotSettings().getString("Chats");
 	        	m_botAction.sendUnfilteredPublicMessage("?chat=" + chats);
 	        }
 	        
