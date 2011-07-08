@@ -467,7 +467,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 if (database!=null)
                     m_botAction.SQLBackgroundQuery(database, null, "INSERT INTO tblPlayerDonations "
                         + "(fcName, fcNameTo, fnMoney, fdDate) "
-                        + "VALUES ('"+Tools.addSlashes(m_botAction.getBotName()) + "','" + Tools.addSlashes(pubPlayer.getPlayerName()) + "','" + amount + "',NOW())");
+                        + "VALUES ('"+Tools.addSlashes("BOTPOT-" + name) + "','" + Tools.addSlashes(pubPlayer.getPlayerName()) + "','" + amount + "',NOW())");
             }
         } catch (NumberFormatException e) {
             m_botAction.sendSmartPrivateMessage(name, "Invalid dollar amount.");
@@ -1469,7 +1469,11 @@ public class PubMoneySystemModule extends AbstractModule {
     				doCmdCouponEnable(sender, command.substring(command.indexOf(" ") + 1).trim());
     			} else if (command.startsWith("!coupondisable ") || command.startsWith("!cd ")) {
     				doCmdCouponDisable(sender, command.substring(command.indexOf(" ") + 1).trim());
-    			}
+    			} else if (command.startsWith("!award ")) {
+    	            doCmdAward(sender, command);
+    	        } else if (command.equals("!pot")) {
+    	            m_botAction.sendSmartPrivateMessage(sender, "$" + getMoneyPot());
+    	        }
 
         	}
         }
@@ -1498,10 +1502,6 @@ public class PubMoneySystemModule extends AbstractModule {
             doCmdCouponAddOp(sender, command.substring(12).trim());
         } else if (command.equals("!couponlistops")) {
             doCmdCouponListOps(sender);
-        } else if (command.startsWith("!award ")) {
-            doCmdAward(sender, command);
-        } else if (command.equals("!pot")) {
-            m_botAction.sendSmartPrivateMessage(sender, "$" + getMoneyPot());
         }
     }
 
@@ -1528,6 +1528,8 @@ public class PubMoneySystemModule extends AbstractModule {
 	public String[] getModHelpMessage(String sender) {
 
 		String normal[] = new String[] {
+	        pubsystem.getHelpLine("!award <name>:<amount>                 -- Awards <name> with <amount> from the bot's bank"),
+	        pubsystem.getHelpLine("!pot                                   -- Displays money available for awards"),
 			pubsystem.getHelpLine("!toggledonation                        -- Toggle on/off !donation."),	
 		};
 		
@@ -1547,8 +1549,6 @@ public class PubMoneySystemModule extends AbstractModule {
     	String bot[] = new String[] {
     		pubsystem.getHelpLine("!couponaddop <name>                    -- Add an operator (temporary, permanant via .cfg)."),
     		pubsystem.getHelpLine("!couponlistops                         -- List of operators."),
-            pubsystem.getHelpLine("!award <name>:<amount>                 -- Awards <name> with <amount> from the bot's bank"),
-            pubsystem.getHelpLine("!pot                                   -- Displays money available for awards"),
     	};
     	
     	List<String> lines = new ArrayList<String>();
