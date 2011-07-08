@@ -1469,17 +1469,17 @@ public class PubMoneySystemModule extends AbstractModule {
     				doCmdCouponEnable(sender, command.substring(command.indexOf(" ") + 1).trim());
     			} else if (command.startsWith("!coupondisable ") || command.startsWith("!cd ")) {
     				doCmdCouponDisable(sender, command.substring(command.indexOf(" ") + 1).trim());
-    			} else if (command.startsWith("!award ")) {
-    	            doCmdAward(sender, command);
-    	        } else if (command.equals("!pot")) {
-    	            m_botAction.sendSmartPrivateMessage(sender, "$" + getMoneyPot());
-    	        }
-
+    			} 
         	}
         }
-      
-        
 
+        if (m_botAction.getOperatorList().isSmod(sender) || couponOperators.contains(sender.toLowerCase())) {
+            if (command.startsWith("!award ")) {
+                doCmdAward(sender, command);
+            } else if (command.equals("!pot")) {
+                m_botAction.sendSmartPrivateMessage(sender, "$" + getMoneyPot());
+            }
+        }
 	}
 
     public void handleModCommand(String sender, String command) {
@@ -1491,10 +1491,6 @@ public class PubMoneySystemModule extends AbstractModule {
         } else 	if (command.equals("!toggledonation")) {
 			doCmdToggleDonation(sender);
         }
-
-    	if (m_botAction.getOperatorList().isSmod(sender)) {
-    	}
-		
     }
 
     public void handleSmodCommand(String sender, String command) {
