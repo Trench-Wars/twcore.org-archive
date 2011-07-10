@@ -817,9 +817,9 @@ public class staffbot_banc extends Module {
         String query;
         
         if(limit == 0 || limit == -1)
-            query = "SELECT * FROM tblWarnings WHERE name = '"+name+"' ORDER BY timeofwarning ASC";
+            query = "SELECT * FROM tblWarnings WHERE name = '"+Tools.addSlashesToString(name)+"' ORDER BY timeofwarning ASC";
         else
-            query  = "SELECT * FROM tblWarnings WHERE name = '"+name+"' ORDER BY timeofwarning ASC LIMIT 0,"+limit;
+            query  = "SELECT * FROM tblWarnings WHERE name = '"+Tools.addSlashesToString(name)+"' ORDER BY timeofwarning ASC LIMIT 0,"+limit;
         
         ResultSet rs = m_botAction.SQLQuery(this.trenchDatabase, query);
         
