@@ -113,7 +113,7 @@ public class MatchRound
     {
         useDatabase = false;
         m_game = Matchgame;
-        m_playoffs = m_game.m_playoffs;
+        //m_playoffs = m_game.m_playoffs;
         m_botAction = m_game.m_botAction;
         m_botAction.getObjectSet();
         m_rules = m_game.m_rules;
@@ -126,7 +126,7 @@ public class MatchRound
         m_team1 = new MatchTeam(fcTeam1Name, 1, 1, this);
         m_team2 = new MatchTeam(fcTeam2Name, 2, 2, this);
 
-        m_playoff = isPlayoff();
+        //m_playoff = isPlayoff();
         
         m_lagHandler = new lagHandler(m_botAction, m_rules, this, "handleLagReport");
 
@@ -185,13 +185,13 @@ public class MatchRound
         return id;
     }
     
-    public boolean isPlayoff() {
+    /*public boolean isPlayoff() {
         for (int i : m_playoffs) {
             if (m_fnRoundID == i)
                 return true;
         }
         return false;
-    }
+    }*/
 
     public void specAll()
     {
