@@ -44,7 +44,6 @@ public class twchat extends SubspaceBot {
     public ArrayList<String> show = new ArrayList<String>();
     public ArrayList<String> info = new ArrayList<String>();
     public ArrayList<String> staffer = new ArrayList<String>();
-    public ArrayList<String> ip = new ArrayList<String>();
     public HashMap<String, Boolean> tstates = new HashMap<String, Boolean>();
     public LinkedList<String> locates = new LinkedList<String>();
     public LinkedList<String> greeted = new LinkedList<String>();
@@ -61,7 +60,6 @@ public class twchat extends SubspaceBot {
     private long elapsedTime;
     private boolean DEBUG = false;
     public boolean signup = false;
-    private boolean staffInfo = true;
     public boolean notify = false;
     // status of the database update task sqlDump
     private boolean status = false;
@@ -258,15 +256,6 @@ public class twchat extends SubspaceBot {
                     getSquadInfo(name, message);
                 else if (message.equalsIgnoreCase("!toggle"))
                     toggle(name, message);
-                else if (message.equalsIgnoreCase("!staffinfo"))
-                    if(staffInfo == true){
-                        staffInfo = false;
-                        m_botAction.sendSmartPrivateMessage(name, "Staff info is now disabled");
-                    } else {
-                            staffInfo = true;
-                            m_botAction.sendSmartPrivateMessage(name, "Staff info is enabled");
-                        }
-                    
                 else if (message.equalsIgnoreCase("!get"))
                     test(name, message);
                 else if (message.equalsIgnoreCase("!put"))
@@ -398,43 +387,34 @@ public class twchat extends SubspaceBot {
         ba.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
         if(!ba.getOperatorList().isZH(player.getPlayerName())){
         return;
-    } else if(staffInfo == true){
+    } else
     
     m_botAction.sendUnfilteredPrivateMessage(name, "*info");
     try {
         ResultSet mid = m_botAction.SQLQuery(dbInfo, "SELECT DISTINCT A.fnMachineID FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"+name+"' ORDER BY A.fdUpdated DESC LIMIT 1");
-        ResultSet ips = m_botAction.SQLQuery(dbInfo, "SELECT DISTINCT A.fcIPString FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"+name+"' ORDER BY A.fdUpdated DESC LIMIT 1");
-        if(!mid.next() || !ips.next()){
-            return;
-            
+        if(!mid.next()){
+            m_botAction.sendChatMessage("No results");
         } else {
-        
         String db = mid.getString("fnMachineID");
-        String dbip = ips.getString("fcIPString");
         for (int i = 0; i < info.size(); i++){
         for (int y = 0; y < staffer.size(); y++){
-        for (int x = 0; x < ip.size(); x++){
-            m_botAction.sendSmartPrivateMessage("Dezmond", staffer.get(y) + " - DB: "+dbip+ " - LIVE: "+ip.get(i));
-            if(!db.equals(info.get(i)) && !dbip.equals(ip.get(x)) && name.equalsIgnoreCase(staffer.get(y))){
-                m_botAction.sendChatMessage(2,"WARNING: Staffer "+staffer.get(y)+" has a different MID & IP from previous login.");
-                staffer.remove(i);
+            if(!db.equals(info.get(i)) && name.equalsIgnoreCase(staffer.get(y))){
+                m_botAction.sendChatMessage(2,"WARNING: Staffer "+player.getPlayerName()+" has a different MID from previous login.");
                 m_botAction.sendChatMessage(2,"Database MID: "+db+" - LIVE MID: "+info.get(i));
-                info.remove(i);
-                m_botAction.sendChatMessage(2,"Database IP: "+dbip+" - LIVE IP: "+ip.get(x));
-                ip.remove(i);
+                }
                 
-        }}}
-             m_botAction.SQLClose(mid); 
-             m_botAction.SQLClose(ips);
-        
-        
+             info.remove(i);
+             staffer.remove(i);
+             m_botAction.SQLClose(mid);                
+        }
         }}
     } catch (SQLException e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
-    }}
+    }
     }
         
+    
     
     private String firstInfo(String message, String infoName) {
         int beginIndex = message.indexOf(infoName);
@@ -452,11 +432,9 @@ public class twchat extends SubspaceBot {
     
     public void sendPlayerInfo(String message) {
         String name = firstInfo(message, "TypedName:");
-        String stafferIP = firstInfo(message, "IP:");
         String playerMacID = firstInfo(message, "MachineId:");
         info.add(playerMacID);
-        ip.add(stafferIP);
-        staffer.add(name.toLowerCase());
+        staffer.add(name);
         
 
       
