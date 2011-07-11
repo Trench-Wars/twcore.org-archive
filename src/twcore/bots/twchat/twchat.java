@@ -396,9 +396,9 @@ public class twchat extends SubspaceBot {
             ba.scheduleTask(greet, 2000);
         }
         ba.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
-        if(!ba.getOperatorList().isZH(player.getPlayerName()) && staffInfo == false){
+        if(!ba.getOperatorList().isZH(player.getPlayerName())){
         return;
-    } else {
+    } else if(staffInfo == true){
     
     m_botAction.sendUnfilteredPrivateMessage(name, "*info");
     try {
@@ -417,13 +417,13 @@ public class twchat extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage("Dezmond", staffer.get(y) + " - DB: "+dbip+ " - LIVE: "+ip.get(i));
             if(!db.equals(info.get(i)) && !dbip.equals(ip.get(x)) && name.equalsIgnoreCase(staffer.get(y))){
                 m_botAction.sendChatMessage(2,"WARNING: Staffer "+staffer.get(y)+" has a different MID & IP from previous login.");
+                staffer.remove(staffer.get(i));
                 m_botAction.sendChatMessage(2,"Database MID: "+db+" - LIVE MID: "+info.get(i));
+                info.remove(info.get(i));
                 m_botAction.sendChatMessage(2,"Database IP: "+dbip+" - LIVE IP: "+ip.get(x));
+                ip.remove(ip.get(i));
                 
         }}}
-             info.remove(info.get(i));
-             staffer.remove(staffer.get(i));
-             ip.remove(ip.get(i));
              m_botAction.SQLClose(mid); 
              m_botAction.SQLClose(ips);
         
@@ -432,10 +432,9 @@ public class twchat extends SubspaceBot {
     } catch (SQLException e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
+    }}
     }
-    }
-    }
-    
+        
     
     private String firstInfo(String message, String infoName) {
         int beginIndex = message.indexOf(infoName);
