@@ -394,7 +394,7 @@ public class twchat extends SubspaceBot {
     try {
         ResultSet mid = m_botAction.SQLQuery(dbInfo, "SELECT DISTINCT A.fnMachineID FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"+name+"' ORDER BY A.fdUpdated DESC LIMIT 1");
         ResultSet ips = m_botAction.SQLQuery(dbInfo, "SELECT DISTINCT A.fcIPString FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"+name+"' ORDER BY A.fdUpdated DESC LIMIT 1");
-        if(!mid.next() && !ips.next()){
+        if(!mid.next() || !ips.next()){
             return;
         } else {
         String db = mid.getString("fnMachineID");
@@ -407,14 +407,14 @@ public class twchat extends SubspaceBot {
                 m_botAction.sendChatMessage(2,"Database MID: "+db+" - LIVE MID: "+info.get(i));
                 m_botAction.sendChatMessage(2,"Database IP: "+dbip+" - LIVE IP: "+ip.get(x));
                 }
-                
+        }}
              info.remove(i);
              staffer.remove(i);
              ip.remove(i);
              m_botAction.SQLClose(mid); 
              m_botAction.SQLClose(ips);
         }
-        }}
+        
         }
     } catch (SQLException e) {
         // TODO Auto-generated catch block
