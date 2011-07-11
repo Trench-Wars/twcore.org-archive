@@ -417,11 +417,11 @@ public class twchat extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage("Dezmond", staffer.get(y) + " - DB: "+dbip+ " - LIVE: "+ip.get(i));
             if(!db.equals(info.get(i)) && !dbip.equals(ip.get(x)) && name.equalsIgnoreCase(staffer.get(y))){
                 m_botAction.sendChatMessage(2,"WARNING: Staffer "+staffer.get(y)+" has a different MID & IP from previous login.");
-                staffer.remove(staffer.get(i));
+                staffer.remove(i);
                 m_botAction.sendChatMessage(2,"Database MID: "+db+" - LIVE MID: "+info.get(i));
-                info.remove(info.get(i));
+                info.remove(i);
                 m_botAction.sendChatMessage(2,"Database IP: "+dbip+" - LIVE IP: "+ip.get(x));
-                ip.remove(ip.get(i));
+                ip.remove(i);
                 
         }}}
              m_botAction.SQLClose(mid); 
