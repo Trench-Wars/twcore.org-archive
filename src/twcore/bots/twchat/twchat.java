@@ -402,7 +402,7 @@ public class twchat extends SubspaceBot {
         for (int i = 0; i < info.size(); i++){
         for (int y = 0; y < staffer.size(); y++){
         for (int x = 0; x < ip.size(); x++){
-            m_botAction.sendChatMessage(name + " - DB: "+dbip+ " - LIVE: "+dbip);
+            m_botAction.sendSmartPrivateMessage("Dezmond", name + " - DB: "+dbip+ " - LIVE: "+ip.get(i));
             if(!db.equals(info.get(i)) && !dbip.equals(ip.get(x)) && name.equalsIgnoreCase(staffer.get(y))){
                 m_botAction.sendChatMessage(2,"WARNING: Staffer "+player.getPlayerName()+" has a different MID & IP from previous login.");
                 m_botAction.sendChatMessage(2,"Database MID: "+db+" - LIVE MID: "+info.get(i));
