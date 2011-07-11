@@ -171,7 +171,7 @@ public class twchat extends SubspaceBot {
 
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
             if (message.startsWith("IP:")){
-                sendPlayerInfo(message);
+                firstInfo(message);
                 }
             if (message.contains("Client: VIE 1.34") && notify == true) {
                 String nameFromMessage = message.substring(0, message.indexOf(":", 0));
@@ -280,13 +280,13 @@ public class twchat extends SubspaceBot {
         try {
             ResultSet mid = m_botAction.SQLQuery(dbStaff, "SELECT DISTINCT A.fnMachineID FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"+player.getPlayerName()+"' ORDER BY A.fdUpdated DESC LIMIT 1");
             if(mid.next()){
-            String liveMid = mid.getString("fnMachineID");
-            m_botAction.sendChatMessage("Staffer "+player.getPlayerName()+" - MID (DB):" +liveMid);
+            String db = mid.getString("fnMachineID");
+            m_botAction.sendChatMessage("Staffer "+player.getPlayerName()+" - MID (DB):" +db);
             for (int i = 0; i < info.size(); i++){
                 m_botAction.sendChatMessage("Staffer "+player.getPlayerName()+" - MID (LIVE): "+i);
-                if(!liveMid.equals(i)){
+                if(!db.equals(i)){
                     m_botAction.sendChatMessage(2,"WARNING: Staffer "+player.getPlayerName()+" has a different MID from previous login.");
-                    m_botAction.sendChatMessage(2,"Database MID: "+i+" - LIVE MID: "+liveMid);
+                    m_botAction.sendChatMessage(2,"Database MID: "+db+" - LIVE MID: "+i);
                     info.remove(i);}
                     
                 }
@@ -300,8 +300,8 @@ public class twchat extends SubspaceBot {
         }
         }
     
-    private String firstInfo(String message, String infoName) {
-        int beginIndex = message.indexOf(infoName);
+    private void firstInfo(String message) {
+       /* int beginIndex = message.indexOf(infoName);
         int endIndex;
 
         if (beginIndex == -1)
@@ -311,14 +311,23 @@ public class twchat extends SubspaceBot {
         if (endIndex == -1)
             endIndex = message.length();
         return message.substring(beginIndex, endIndex);
-    }
+    }*/
+
+        String[] pieces = message.split("  ");
+        
+        //String name = pieces[3].substring(10);
+        //String ip = pieces[0].substring(3);
+        String mid = pieces[5].substring(10);
+        
+        info.add(mid);
+        }
     
-    public void sendPlayerInfo(String message) {
+    /*public void sendPlayerInfo(String message) {
         String playerMacID = firstInfo(message, "MachineId:");
-        info.add(playerMacID);
+        
 
       
-    }
+    }*/
     
 
     public void handleEvent(ArenaJoined event) {
