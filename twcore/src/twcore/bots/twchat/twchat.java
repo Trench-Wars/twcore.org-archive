@@ -267,26 +267,28 @@ public class twchat extends SubspaceBot {
 
     public void handleEvent(PlayerEntered event) {
         Player player = m_botAction.getPlayer(event.getPlayerID());
+        String name = event.getPlayerName();
         if (ba.getOperatorList().isBotExact(player.getPlayerName()))
             return;
         m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
         
     
-        if(!ba.getOperatorList().isZH(player.getPlayerName())){
+        if(!ba.getOperatorList().isZH(name)){
             return;
         } else
         
-        m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*info");
+        m_botAction.sendUnfilteredPrivateMessage(name, "*info");
         try {
-            ResultSet mid = m_botAction.SQLQuery(dbStaff, "SELECT DISTINCT A.fnMachineID FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"+player.getPlayerName()+"' ORDER BY A.fdUpdated DESC LIMIT 1");
-            if(mid.next()){
+            ResultSet mid = m_botAction.SQLQuery(dbStaff, "SELECT DISTINCT A.fnMachineID FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"+name+"' ORDER BY A.fdUpdated DESC LIMIT 1");
+            if(!mid.next()){
+                m_botAction.sendChatMessage("No results");
+            } else {
             String db = mid.getString("fnMachineID");
             //m_botAction.sendChatMessage("Staffer "+player.getPlayerName()+" - MID (DB):" +db);
             for (int i = 0; i < info.size(); i++){
                 if(!db.equals(info.get(i))){
-                    m_botAction.sendChatMessage(2,"WARNING: Staffer "+player.getPlayerName()+" has a different MID from previous login.");
+                    m_botAction.sendChatMessage(2,"WARNING: Staffer "+name+" has a different MID from previous login.");
                     m_botAction.sendChatMessage(2,"Database MID: "+db+" - LIVE MID: "+info.get(i));
-                    info.remove(info.get(i));
                     }
                     
                 info.remove(info.get(i));
