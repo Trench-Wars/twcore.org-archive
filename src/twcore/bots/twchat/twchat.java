@@ -189,6 +189,7 @@ public class twchat extends SubspaceBot {
             
             }}
     }
+    
 
 
     public void handleEvent(FileArrived event) {
@@ -275,21 +276,23 @@ public class twchat extends SubspaceBot {
         
         m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*info");
         try {
-            ResultSet id = m_botAction.SQLQuery(dbStaff, "SELECT fnUserID from tblUser WHERE fcUserName = '"+player.getPlayerName()+"'");
+            ResultSet id = m_botAction.SQLQuery(dbStaff, "SELECT fnUserID FROM tblUser WHERE fcUserName = '"+player.getPlayerName()+"'");
             ResultSet rs = m_botAction.SQLQuery(dbStaff, "SELECT fnMachineID FROM tblAlias WHERE fnUserID = '"+id+"'");
+            if(id.next() && rs.next()){
             String liveMid = rs.getString("fnMachineID");
+            m_botAction.sendChatMessage("Staffer Mid "+liveMid);
             for (int i = 0; i < info.size(); i++){
                 if(!liveMid.equals(i)){
                     m_botAction.sendChatMessage("WARNING: Staffer "+player.getPlayerName()+" has a different MID from previous login.");
                     m_botAction.sendChatMessage("Database MID: "+i+" - LIVE MID: "+liveMid);
-                    }
+                    info.remove(i);}
+                    
+                }
+                
                 m_botAction.SQLClose(id);
                 m_botAction.SQLClose(rs);
-                info.remove(i);
-                }
-            
                 
-            
+            }
         
         } catch (SQLException e) {
             // TODO Auto-generated catch block
