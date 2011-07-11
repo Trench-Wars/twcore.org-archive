@@ -396,18 +396,20 @@ public class twchat extends SubspaceBot {
         ResultSet ips = m_botAction.SQLQuery(dbInfo, "SELECT DISTINCT A.fcIPString FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"+name+"' ORDER BY A.fdUpdated DESC LIMIT 1");
         if(!mid.next() || !ips.next()){
             return;
+            
         } else {
+        
         String db = mid.getString("fnMachineID");
         String dbip = ips.getString("fcIPString");
         for (int i = 0; i < info.size(); i++){
         for (int y = 0; y < staffer.size(); y++){
         for (int x = 0; x < ip.size(); x++){
-            m_botAction.sendSmartPrivateMessage("Dezmond", name + " - DB: "+dbip+ " - LIVE: "+ip.get(i));
-            if(!db.equals(info.get(i)) && !dbip.equals(ip.get(x)) && name.equalsIgnoreCase(staffer.get(y))){
-                m_botAction.sendChatMessage(2,"WARNING: Staffer "+player.getPlayerName()+" has a different MID & IP from previous login.");
+            m_botAction.sendSmartPrivateMessage("Dezmond", staffer.get(y) + " - DB: "+dbip+ " - LIVE: "+ip.get(i));
+            if(!db.equals(info.get(i)) && !dbip.equals(ip.get(x)) && name.equalsIgnoreCase(staffer.get(y)))
+                m_botAction.sendChatMessage(2,"WARNING: Staffer "+staffer.get(y)+" has a different MID & IP from previous login.");
                 m_botAction.sendChatMessage(2,"Database MID: "+db+" - LIVE MID: "+info.get(i));
                 m_botAction.sendChatMessage(2,"Database IP: "+dbip+" - LIVE IP: "+ip.get(x));
-                }
+                
         }}
              info.remove(i);
              staffer.remove(i);
