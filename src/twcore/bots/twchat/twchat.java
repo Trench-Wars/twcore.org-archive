@@ -171,7 +171,7 @@ public class twchat extends SubspaceBot {
 
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
             if (message.startsWith("IP:")){
-                firstInfo(message);
+                sendPlayerInfo(message);
                 }
             if (message.contains("Client: VIE 1.34") && notify == true) {
                 String nameFromMessage = message.substring(0, message.indexOf(":", 0));
@@ -283,25 +283,24 @@ public class twchat extends SubspaceBot {
             String db = mid.getString("fnMachineID");
             //m_botAction.sendChatMessage("Staffer "+player.getPlayerName()+" - MID (DB):" +db);
             for (int i = 0; i < info.size(); i++){
-               // m_botAction.sendChatMessage("Staffer "+player.getPlayerName()+" - MID (LIVE): "+i);
                 if(!db.equals(info.get(i))){
                     m_botAction.sendChatMessage(2,"WARNING: Staffer "+player.getPlayerName()+" has a different MID from previous login.");
                     m_botAction.sendChatMessage(2,"Database MID: "+db+" - LIVE MID: "+info.get(i));
-                    info.remove(info.get(i));}
+                    info.remove(info.get(i));
+                    }
                     
-                }
-                
-                m_botAction.SQLClose(mid);                
+                info.remove(info.get(i));
+                 m_botAction.SQLClose(mid);                
             }
-        
+            }
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
         }
     
-    private void firstInfo(String message) {
-       /* int beginIndex = message.indexOf(infoName);
+    private String firstInfo(String message, String infoName) {
+        int beginIndex = message.indexOf(infoName);
         int endIndex;
 
         if (beginIndex == -1)
@@ -311,24 +310,16 @@ public class twchat extends SubspaceBot {
         if (endIndex == -1)
             endIndex = message.length();
         return message.substring(beginIndex, endIndex);
-    }*/
+    }
 
-        String[] pieces = message.split("  ");
-        
-        //String name = pieces[3].substring(10);
-        //String ip = pieces[0].substring(3);
-        String mid = pieces[5].substring(10);
-        
-        info.add(mid);
-        //m_botAction.sendChatMessage(mid);
-        }
     
-    /*public void sendPlayerInfo(String message) {
+    public void sendPlayerInfo(String message) {
         String playerMacID = firstInfo(message, "MachineId:");
+        info.add(playerMacID);
         
 
       
-    }*/
+    }
     
 
     public void handleEvent(ArenaJoined event) {
