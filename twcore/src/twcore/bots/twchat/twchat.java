@@ -284,10 +284,10 @@ public class twchat extends SubspaceBot {
             //m_botAction.sendChatMessage("Staffer "+player.getPlayerName()+" - MID (DB):" +db);
             for (int i = 0; i < info.size(); i++){
                // m_botAction.sendChatMessage("Staffer "+player.getPlayerName()+" - MID (LIVE): "+i);
-                if(!db.equals(i)){
+                if(!db.equals(info.get(i))){
                     m_botAction.sendChatMessage(2,"WARNING: Staffer "+player.getPlayerName()+" has a different MID from previous login.");
-                    m_botAction.sendChatMessage(2,"Database MID: "+db+" - LIVE MID: "+i);
-                    info.remove(i);}
+                    m_botAction.sendChatMessage(2,"Database MID: "+db+" - LIVE MID: "+info.get(i));
+                    info.remove(info.get(i));}
                     
                 }
                 
@@ -320,7 +320,7 @@ public class twchat extends SubspaceBot {
         String mid = pieces[5].substring(10);
         
         info.add(mid);
-        m_botAction.sendChatMessage(mid);
+        //m_botAction.sendChatMessage(mid);
         }
     
     /*public void sendPlayerInfo(String message) {
