@@ -280,8 +280,9 @@ public class twchat extends SubspaceBot {
             ResultSet mid = m_botAction.SQLQuery(dbStaff, "SELECT DISTINCT A.fnMachineID FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"+player.getPlayerName()+"' ORDER BY A.fdUpdated DESC LIMIT 1");
             if(mid.next()){
             String liveMid = mid.getString("fnMachineID");
-            m_botAction.sendChatMessage("Staffer "+player.getPlayerName()+" - MID "+liveMid);
+            m_botAction.sendChatMessage("Staffer "+player.getPlayerName()+" - MID (DB)"+liveMid);
             for (int i = 0; i < info.size(); i++){
+                m_botAction.sendChatMessage("Staffer "+player.getPlayerName()+" - MID (LIVE)"+i);
                 if(!liveMid.equals(i)){
                     m_botAction.sendChatMessage(2,"WARNING: Staffer "+player.getPlayerName()+" has a different MID from previous login.");
                     m_botAction.sendChatMessage(2,"Database MID: "+i+" - LIVE MID: "+liveMid);
