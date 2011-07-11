@@ -272,8 +272,8 @@ public class twchat extends SubspaceBot {
             return;
         m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
         
-    
-        if(!ba.getOperatorList().isZH(name)){
+        
+        /*if(!ba.getOperatorList().isZH(name)){
             return;
         } else
         
@@ -298,7 +298,7 @@ public class twchat extends SubspaceBot {
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }
+        }*/
         }
     
     private String firstInfo(String message, String infoName) {
