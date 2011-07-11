@@ -411,7 +411,8 @@ public class twchat extends SubspaceBot {
              info.remove(i);
              staffer.remove(i);
              ip.remove(i);
-             m_botAction.SQLClose(mid);                
+             m_botAction.SQLClose(mid); 
+             m_botAction.SQLClose(ips);
         }
         }}
         }
