@@ -44,6 +44,7 @@ public class twchat extends SubspaceBot {
     public ArrayList<String> show = new ArrayList<String>();
     public ArrayList<String> info = new ArrayList<String>();
     public ArrayList<String> staffer = new ArrayList<String>();
+    public ArrayList<String> ip = new ArrayList<String>();
     public HashMap<String, Boolean> tstates = new HashMap<String, Boolean>();
     public LinkedList<String> locates = new LinkedList<String>();
     public LinkedList<String> greeted = new LinkedList<String>();
@@ -392,22 +393,28 @@ public class twchat extends SubspaceBot {
     m_botAction.sendUnfilteredPrivateMessage(name, "*info");
     try {
         ResultSet mid = m_botAction.SQLQuery(dbInfo, "SELECT DISTINCT A.fnMachineID FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"+name+"' ORDER BY A.fdUpdated DESC LIMIT 1");
-        if(!mid.next()){
-            m_botAction.sendChatMessage("No results");
+        ResultSet ips = m_botAction.SQLQuery(dbInfo, "SELECT DISTINCT A.fcIPString FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"+name+"' ORDER BY A.fdUpdated DESC LIMIT 1");
+        if(!mid.next() && !ips.next()){
+            return;
         } else {
         String db = mid.getString("fnMachineID");
+        String dbip = ips.getString("fcIPString");
         for (int i = 0; i < info.size(); i++){
         for (int y = 0; y < staffer.size(); y++){
-            if(!db.equals(info.get(i)) && name.equalsIgnoreCase(staffer.get(y))){
-                m_botAction.sendChatMessage(2,"WARNING: Staffer "+player.getPlayerName()+" has a different MID from previous login.");
+        for (int x = 0; x < ip.size(); x++){
+            if(!db.equals(info.get(i)) && !dbip.equals(ip.get(x)) && name.equalsIgnoreCase(staffer.get(y))){
+                m_botAction.sendChatMessage(2,"WARNING: Staffer "+player.getPlayerName()+" has a different MID & IP from previous login.");
                 m_botAction.sendChatMessage(2,"Database MID: "+db+" - LIVE MID: "+info.get(i));
+                m_botAction.sendChatMessage(2,"Database IP: "+dbip+" - LIVE IP: "+ip.get(x));
                 }
                 
              info.remove(i);
              staffer.remove(i);
+             ip.remove(i);
              m_botAction.SQLClose(mid);                
         }
         }}
+        }
     } catch (SQLException e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
@@ -432,8 +439,10 @@ public class twchat extends SubspaceBot {
     
     public void sendPlayerInfo(String message) {
         String name = firstInfo(message, "TypedName:");
+        String stafferIP = firstInfo(message, "IP:");
         String playerMacID = firstInfo(message, "MachineId:");
         info.add(playerMacID);
+        ip.add(stafferIP);
         staffer.add(name);
         
 
