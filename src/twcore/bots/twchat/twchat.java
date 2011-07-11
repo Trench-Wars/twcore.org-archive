@@ -271,8 +271,9 @@ public class twchat extends SubspaceBot {
         m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
         
     
-        if(!ba.getOperatorList().isZH(player.getPlayerName()))
+        if(!ba.getOperatorList().isZH(player.getPlayerName())){
             return;
+        } else
         
         m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*info");
         try {
@@ -280,7 +281,7 @@ public class twchat extends SubspaceBot {
             ResultSet rs = m_botAction.SQLQuery(dbStaff, "SELECT fnMachineID FROM tblAlias WHERE fnUserID = '"+id+"'");
             if(id.next() && rs.next()){
             String liveMid = rs.getString("fnMachineID");
-            m_botAction.sendChatMessage("Staffer Mid "+liveMid);
+            m_botAction.sendChatMessage("Staffer "+player.getPlayerName()+" - MID "+liveMid);
             for (int i = 0; i < info.size(); i++){
                 if(!liveMid.equals(i)){
                     m_botAction.sendChatMessage("WARNING: Staffer "+player.getPlayerName()+" has a different MID from previous login.");
