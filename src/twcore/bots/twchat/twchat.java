@@ -390,7 +390,7 @@ public class twchat extends SubspaceBot {
     
     m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*info");
     try {
-        ResultSet mid = m_botAction.SQLQuery(dbInfo, "SELECT DISTINCT A.fnMachineID FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"+name+"' ORDER BY A.fdUpdated DESC LIMIT 1");
+        ResultSet mid = m_botAction.SQLQuery(dbInfo, "SELECT DISTINCT A.fnMachineID FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"+player.getPlayerName()+"' ORDER BY A.fdUpdated DESC LIMIT 1");
         if(!mid.next()){
             m_botAction.sendChatMessage("No results");
         } else {
