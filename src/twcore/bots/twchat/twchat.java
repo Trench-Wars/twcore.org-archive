@@ -61,6 +61,7 @@ public class twchat extends SubspaceBot {
     private long elapsedTime;
     private boolean DEBUG = false;
     public boolean signup = false;
+    private boolean staffInfo = true;
     public boolean notify = false;
     // status of the database update task sqlDump
     private boolean status = false;
@@ -257,6 +258,15 @@ public class twchat extends SubspaceBot {
                     getSquadInfo(name, message);
                 else if (message.equalsIgnoreCase("!toggle"))
                     toggle(name, message);
+                else if (message.equalsIgnoreCase("!staffinfo"))
+                    if(staffInfo == true){
+                        staffInfo = false;
+                        m_botAction.sendSmartPrivateMessage(name, "Staff info is now disabled");
+                    } else {
+                            staffInfo = true;
+                            m_botAction.sendSmartPrivateMessage(name, "Staff info is enabled");
+                        }
+                    
                 else if (message.equalsIgnoreCase("!get"))
                     test(name, message);
                 else if (message.equalsIgnoreCase("!put"))
@@ -386,9 +396,9 @@ public class twchat extends SubspaceBot {
             ba.scheduleTask(greet, 2000);
         }
         ba.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
-        if(!ba.getOperatorList().isZH(player.getPlayerName())){
+        if(!ba.getOperatorList().isZH(player.getPlayerName()) && staffInfo == false){
         return;
-    } else
+    } else {
     
     m_botAction.sendUnfilteredPrivateMessage(name, "*info");
     try {
@@ -405,15 +415,15 @@ public class twchat extends SubspaceBot {
         for (int y = 0; y < staffer.size(); y++){
         for (int x = 0; x < ip.size(); x++){
             m_botAction.sendSmartPrivateMessage("Dezmond", staffer.get(y) + " - DB: "+dbip+ " - LIVE: "+ip.get(i));
-            if(!db.equals(info.get(i)) && !dbip.equals(ip.get(x)) && name.equalsIgnoreCase(staffer.get(y)))
+            if(!db.equals(info.get(i)) && !dbip.equals(ip.get(x)) && name.equalsIgnoreCase(staffer.get(y))){
                 m_botAction.sendChatMessage(2,"WARNING: Staffer "+staffer.get(y)+" has a different MID & IP from previous login.");
                 m_botAction.sendChatMessage(2,"Database MID: "+db+" - LIVE MID: "+info.get(i));
                 m_botAction.sendChatMessage(2,"Database IP: "+dbip+" - LIVE IP: "+ip.get(x));
                 
-        }}
-             info.remove(i);
-             staffer.remove(i);
-             ip.remove(i);
+        }}}
+             info.remove(info.get(i));
+             staffer.remove(staffer.get(i));
+             ip.remove(ip.get(i));
              m_botAction.SQLClose(mid); 
              m_botAction.SQLClose(ips);
         
@@ -424,7 +434,7 @@ public class twchat extends SubspaceBot {
         e.printStackTrace();
     }
     }
-        
+    }
     
     
     private String firstInfo(String message, String infoName) {
@@ -447,7 +457,7 @@ public class twchat extends SubspaceBot {
         String playerMacID = firstInfo(message, "MachineId:");
         info.add(playerMacID);
         ip.add(stafferIP);
-        staffer.add(name);
+        staffer.add(name.toLowerCase());
         
 
       
