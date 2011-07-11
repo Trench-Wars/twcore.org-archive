@@ -42,12 +42,15 @@ public class twchat extends SubspaceBot {
     BotAction ba;
     public ArrayList<String> lastPlayer = new ArrayList<String>();
     public ArrayList<String> show = new ArrayList<String>();
+    public ArrayList<String> info = new ArrayList<String>();
+    public ArrayList<String> name = new ArrayList<String>();
     public HashMap<String, Boolean> tstates = new HashMap<String, Boolean>();
     public LinkedList<String> locates = new LinkedList<String>();
     public LinkedList<String> greeted = new LinkedList<String>();
     private static final String IPC = "whoonline";
     private static final String WHOBOT = "WhoBot";
     private static final String db = "pubstats";
+    private static final String dbInfo = "website";
     private static final String CORE = "TWCore";
     private static final String ECORE = "TWCore-Events";
     private static final String LCORE = "TWCore-League";
@@ -111,6 +114,9 @@ public class twchat extends SubspaceBot {
         int type = event.getMessageType();
 
         if (type == Message.ARENA_MESSAGE) {
+            if (message.startsWith("IP:")){
+                sendPlayerInfo(message);
+            }
             if (message.contains("Client: VIE 1.34") && notify == true) {
                 String nameFromMessage = message.substring(0, message.indexOf(":", 0));
                 if (m_botAction.getOperatorList().isSysopExact(nameFromMessage) && !nameFromMessage.equalsIgnoreCase("Pure_Luck")
@@ -365,7 +371,8 @@ public class twchat extends SubspaceBot {
 
     public void handleEvent(PlayerEntered event) {
         Player player = ba.getPlayer(event.getPlayerID());
-        if (ba.getOperatorList().isBotExact(player.getPlayerName())) return;
+        if (ba.getOperatorList().isBotExact(player.getPlayerName())) 
+            return;
         if (!greeted.contains(player.getPlayerName().toLowerCase())) {
             greeted.add(player.getPlayerName().toLowerCase());
             final String p = player.getPlayerName();
@@ -377,6 +384,56 @@ public class twchat extends SubspaceBot {
             ba.scheduleTask(greet, 2000);
         }
         ba.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
+        if(!ba.getOperatorList().isZH(player.getPlayerName())){
+        return;
+    } else
+    
+    m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*info");
+    try {
+        ResultSet mid = m_botAction.SQLQuery(dbInfo, "SELECT DISTINCT A.fnMachineID FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"+name+"' ORDER BY A.fdUpdated DESC LIMIT 1");
+        if(!mid.next()){
+            m_botAction.sendChatMessage("No results");
+        } else {
+        String db = mid.getString("fnMachineID");
+        //m_botAction.sendChatMessage("Staffer "+player.getPlayerName()+" - MID (DB): " +db);
+        for (int i = 0; i < info.size(); i++){
+            if(!db.equals(info.get(i))){
+                m_botAction.sendChatMessage(2,"WARNING: Staffer "+player.getPlayerName()+" has a different MID from previous login.");
+                m_botAction.sendChatMessage(2,"Database MID: "+db+" - LIVE MID: "+info.get(i));
+                }
+                
+             info.remove(i);
+             m_botAction.SQLClose(mid);                
+        }
+        }
+    } catch (SQLException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+    }
+    }
+        
+    
+    
+    private String firstInfo(String message, String infoName) {
+        int beginIndex = message.indexOf(infoName);
+        int endIndex;
+
+        if (beginIndex == -1)
+            return null;
+        beginIndex = beginIndex + infoName.length();
+        endIndex = message.indexOf("  ", beginIndex);
+        if (endIndex == -1)
+            endIndex = message.length();
+        return message.substring(beginIndex, endIndex);
+    }
+
+    
+    public void sendPlayerInfo(String message) {
+        String playerMacID = firstInfo(message, "MachineId:");
+        info.add(playerMacID);
+        
+
+      
     }
 
     public void handleEvent(ArenaJoined event) {
