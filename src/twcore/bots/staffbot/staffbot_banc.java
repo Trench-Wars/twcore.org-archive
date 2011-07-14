@@ -251,7 +251,9 @@ public class staffbot_banc extends Module {
                         //Everytime a someone tries a command, reload the ops and see if they have access
                         restart_ops();
                      if(!bancStaffers.containsKey(name.toLowerCase())){
+                         if(bancRevoked.containsKey(name.toLowerCase())){
                           m_botAction.sendSmartPrivateMessage(name, "Sorry, Your access to BanC has been revoked");
+                         }
                           return; 
                           
                 
