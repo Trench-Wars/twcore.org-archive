@@ -1024,7 +1024,7 @@ public class MatchRound
     }
     
     public void command_target(String name) {
-        if (!m_rules.getString("winby").equalsIgnoreCase("kills")) return;
+        if (!m_rules.getString("winby").equalsIgnoreCase("kills") || m_fnRoundState != 3) return;
     	if (!m_team1.isPlayerOnTeam(name)) {
     		m_botAction.sendPrivateMessage(name, m_team1.checkHighDeaths());
     	}
