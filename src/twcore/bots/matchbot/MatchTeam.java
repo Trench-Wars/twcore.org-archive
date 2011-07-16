@@ -1841,16 +1841,16 @@ public class MatchTeam
     				highDeath = temp;
     				result = temp.getPlayerName();
     			}
-    			else if (temp.getDeaths() > highDeath.getDeaths()) {
+    			else if (temp.getVirtualDeaths() > highDeath.getVirtualDeaths()) {
     				highDeath = temp;
     				result = highDeath.getPlayerName();
     			}
-    			else if (temp.getDeaths() == highDeath.getDeaths()) {
+    			else if (temp.getVirtualDeaths() == highDeath.getVirtualDeaths()) {
     				result += "/" + temp.getPlayerName();
     			}
     		}
     	}	    		
-    	return result + " - " + highDeath.getDeaths();
+    	return result + " - " + highDeath.getVirtualDeaths();
     }
 
     // checks if the team has players in-game
