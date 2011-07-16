@@ -935,7 +935,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	};
 	
 	public int getVirtualDeaths() {
-	    return (m_rules.getInt("deaths") - m_fnSpecAt);
+	    return (m_rules.getInt("deaths") - m_fnSpecAt) + m_statTracker.getTotalStatistic(Statistics.DEATHS);
 	}
 
 	public int getActualDeaths()
