@@ -818,13 +818,16 @@ public class MatchRound
         
         if ((m_fnRoundState <= 1) && (m_rules.getInt("pickbyturn") == 1))
             help.add("!notplaying                              - Indicate that you won't play this round");
-        help.add("!notplaylist                             - Show all the players who have turned '!notplaying' on");
+        	help.add("!notplaylist                             - Show all the players who have turned '!notplaying' on");
         if (m_fnRoundState == 3)
         {
             help.add("!score                                   - Show the current score of both teams");
             help.add("!rating <player>                         - provides realtime stats and rating of the player");
             help.add("!mvp                                     - provides the current mvp");
+            help.add("!target (!t)                             - Shows enemy player with the highest deaths");
         };
+        
+        
         
         // TWSDX ONLY
         if(m_game.m_fnMatchTypeID == 13) {
@@ -925,6 +928,9 @@ public class MatchRound
 
         if (command.equals("!myfreq"))
             command_myfreq(name, parameters);
+        
+        if (command.equalsIgnoreCase("!target") || command.equalsIgnoreCase("!t"))
+        	command_target(name);
 
         if (command.equals("!score"))
             command_score(name, parameters);
@@ -1015,6 +1021,15 @@ public class MatchRound
         {
             Tools.printStackTrace(e);
         }
+    }
+    
+    public void command_target(String name) {
+    	if (!m_team1.isPlayerOnTeam(name)) {
+    		m_botAction.sendPrivateMessage(name, m_team1.checkHighDeaths());
+    	}
+    	if (!m_team2.isPlayerOnTeam(name)) {
+    		m_botAction.sendPrivateMessage(name, m_team2.checkHighDeaths());
+    	}
     }
 
     /*
