@@ -1827,6 +1827,31 @@ public class MatchTeam
             i.next().flagReward(points);
 
     }
+    
+    public String checkHighDeaths() {
+    	String result = "";
+    	MatchPlayer highDeath = null;
+    	    	
+    	Iterator<MatchPlayer> i = m_players.iterator();
+    	while (i.hasNext()) {
+    		MatchPlayer temp = i.next();
+    		if (temp.getPlayerState() == MatchPlayer.IN_GAME) {    			
+    			
+    			if (highDeath == null){
+    				highDeath = temp;
+    				result = temp.getPlayerName();
+    			}
+    			if (temp.getDeaths() > highDeath.getDeaths()) {
+    				highDeath = temp;
+    				result = highDeath.getPlayerName();
+    			}
+    			else if (temp.getDeaths() == highDeath.getDeaths()) {
+    				result += "/" + highDeath.getPlayerName();
+    			}
+    		}
+    	}	    		
+    	return result + " - " + highDeath;
+    }
 
     // checks if the team has players in-game
     public boolean isDead()
