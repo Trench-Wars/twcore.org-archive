@@ -1025,10 +1025,12 @@ public class MatchRound
     
     public void command_target(String name) {
         if (!m_rules.getString("winby").equalsIgnoreCase("kills") || m_fnRoundState != 3) return;
-    	if (!m_team1.isPlayerOnTeam(name)) {
+        Player p = m_botAction.getPlayer(name);
+        if (p == null) return;
+    	if (!m_team1.getTeamName().equalsIgnoreCase(p.getSquadName())) {
     		m_botAction.sendPrivateMessage(name, m_team1.checkHighDeaths());
     	}
-    	if (!m_team2.isPlayerOnTeam(name)) {
+        if (!m_team2.getTeamName().equalsIgnoreCase(p.getSquadName())) {
     		m_botAction.sendPrivateMessage(name, m_team2.checkHighDeaths());
     	}
     }
