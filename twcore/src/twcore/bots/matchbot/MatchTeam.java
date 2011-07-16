@@ -1846,7 +1846,7 @@ public class MatchTeam
     				result = highDeath.getPlayerName();
     			}
     			else if (temp.getDeaths() == highDeath.getDeaths()) {
-    				result += "/" + highDeath.getPlayerName();
+    				result += "/" + temp.getPlayerName();
     			}
     		}
     	}	    		
