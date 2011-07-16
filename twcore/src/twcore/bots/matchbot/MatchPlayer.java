@@ -933,6 +933,10 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		m_logger.specAndSetFreq(m_fcPlayerName, m_team.getFrequency());
 		m_logger.sendArenaMessage(getPlayerName() + " is out (too long outside of base). " + getKills() + " wins " + getDeaths() + " losses");
 	};
+	
+	public int getVirtualDeaths() {
+	    return (m_rules.getInt("deaths") - m_fnSpecAt);
+	}
 
 	public int getActualDeaths()
 	{
