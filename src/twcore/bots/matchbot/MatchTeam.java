@@ -1849,8 +1849,11 @@ public class MatchTeam
     				result += "/" + temp.getPlayerName();
     			}
     		}
-    	}	    		
-    	return result + " - " + highDeath.getVirtualDeaths();
+    	}
+    	if (result != null && highDeath != null && result.length() > 0)
+    	    return result + " - " + highDeath.getVirtualDeaths();
+    	else
+    	    return null;
     }
 
     // checks if the team has players in-game
