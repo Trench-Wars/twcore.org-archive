@@ -1841,7 +1841,7 @@ public class MatchTeam
     				highDeath = temp;
     				result = temp.getPlayerName();
     			}
-    			if (temp.getDeaths() > highDeath.getDeaths()) {
+    			else if (temp.getDeaths() > highDeath.getDeaths()) {
     				highDeath = temp;
     				result = highDeath.getPlayerName();
     			}
@@ -1850,7 +1850,7 @@ public class MatchTeam
     			}
     		}
     	}	    		
-    	return result + " - " + highDeath;
+    	return result + " - " + highDeath.getDeaths();
     }
 
     // checks if the team has players in-game
