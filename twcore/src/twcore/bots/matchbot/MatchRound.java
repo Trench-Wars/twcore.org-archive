@@ -1027,11 +1027,16 @@ public class MatchRound
         if (!m_rules.getString("winby").equalsIgnoreCase("kills") || m_fnRoundState != 3) return;
         Player p = m_botAction.getPlayer(name);
         if (p == null) return;
+        String msg = null;
     	if (!m_team1.getTeamName().equalsIgnoreCase(p.getSquadName())) {
-    		m_botAction.sendPrivateMessage(name, m_team1.checkHighDeaths());
+    	    msg = m_team1.checkHighDeaths();
+    	    if (msg != null && msg.length() > 0)
+    	        m_botAction.sendPrivateMessage(name, msg);
     	}
         if (!m_team2.getTeamName().equalsIgnoreCase(p.getSquadName())) {
-    		m_botAction.sendPrivateMessage(name, m_team2.checkHighDeaths());
+            msg = m_team2.checkHighDeaths();
+            if (msg != null && msg.length() > 0)
+                m_botAction.sendPrivateMessage(name, msg);
     	}
     }
 
