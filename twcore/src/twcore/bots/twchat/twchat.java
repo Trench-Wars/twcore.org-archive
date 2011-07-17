@@ -1016,8 +1016,7 @@ public class twchat extends SubspaceBot {
         String msg = "";
         debug("Getting player db info for " + p);
         try {
-            ResultSet rs = ba.SQLQuery(db, "SELECT fcName, fcSquad, ftUpdated, ftLastSeen, fnOnline FROM tblPlayer WHERE fcName = '" + Tools.addSlashesToString(p) + "' LIMIT 1");
-
+            ResultSet rs = ba.SQLQuery(db, "SELECT fcName, fcSquad, ftUpdated, fdLastSeen, fnOnline FROM tblPlayer WHERE fcName = '" + Tools.addSlashesToString(p) + "' LIMIT 1");
             if (rs.next()) {
                 String squad = rs.getString("fcSquad");
                 String on = "OFFLINE";
@@ -1028,7 +1027,7 @@ public class twchat extends SubspaceBot {
                     msg += squad;
                 else
                     msg += "null";
-                msg += " | Last update - " + rs.getString("ftUpdated") + " | " + on + " Seen - " + rs.getString("ftLastSeen");
+                msg += " | Last update - " + rs.getString("ftUpdated") + " | " + on + " Seen - " + rs.getString("fdLastSeen");
             } else
                 msg = "No record found for " + p;
             ba.SQLClose(rs);
