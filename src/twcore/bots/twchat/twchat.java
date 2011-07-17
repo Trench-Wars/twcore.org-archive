@@ -247,7 +247,7 @@ public class twchat extends SubspaceBot {
                     debugger(name);
                 else if (message.startsWith("!dev")) 
                     deviates(name);
-                else if (message.startsWith("!pi "))
+                else if (message.startsWith("!p "))
                     getPlayer(name, message);
             }
 
@@ -376,31 +376,37 @@ public class twchat extends SubspaceBot {
     public void handleEvent(PlayerEntered event) {
         Player player = ba.getPlayer(event.getPlayerID());
         String name = player.getPlayerName();
-        if (ba.getOperatorList().isBotExact(player.getPlayerName())) 
+        if (ba.getOperatorList().isBotExact(player.getPlayerName()))
             return;
+        /* disabled atm
         if (!greeted.contains(player.getPlayerName().toLowerCase())) {
             greeted.add(player.getPlayerName().toLowerCase());
             final String p = player.getPlayerName();
             TimerTask greet = new TimerTask() {
                 public void run() {
-                    ba.sendSmartPrivateMessage(p, "Cool commands: pm me !whohas 4 to see what squads have 4 or more player online, or !squad tenure to see what tenure squad members are online (* means probably afk).");
+                    ba.sendSmartPrivateMessage(
+                            p,
+                            "Cool commands: pm me !whohas 4 to see what squads have 4 or more player online, or !squad tenure to see what tenure squad members are online (* means probably afk).");
                 }
             };
             ba.scheduleTask(greet, 2000);
-        }
+        } */
         ba.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
-        if(!ba.getOperatorList().isZH(player.getPlayerName())){
-        return;
-    } else
-    
-    m_botAction.sendUnfilteredPrivateMessage(name, "*info");
-    try {
-        ResultSet mid = m_botAction.SQLQuery(dbInfo, "SELECT DISTINCT A.fnMachineID FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"+name+"' ORDER BY A.fdUpdated DESC LIMIT 1");
-        if(!mid.next()){
-            m_botAction.sendChatMessage("No results");
-        } else {
-        String db = mid.getString("fnMachineID");
-        for (int i = 0; i < info.size(); i++){
+        if (!ba.getOperatorList().isZH(player.getPlayerName())) {
+            return;
+        } else
+
+            m_botAction.sendUnfilteredPrivateMessage(name, "*info");
+        try {
+            ResultSet mid =
+                    m_botAction.SQLQuery(dbInfo,
+                            "SELECT DISTINCT A.fnMachineID FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"
+                                    + name + "' ORDER BY A.fdUpdated DESC LIMIT 1");
+            if (!mid.next()) {
+                m_botAction.sendChatMessage("No results");
+            } else {
+                String db = mid.getString("fnMachineID");
+                for (int i = 0; i < info.size(); i++){
         for (int y = 0; y < staffer.size(); y++){
             if(!db.equals(info.get(i)) && name.equalsIgnoreCase(staffer.get(y))){
                 m_botAction.sendChatMessage(2,"WARNING: Staffer "+player.getPlayerName()+" has a different MID from previous login.");
@@ -1005,7 +1011,7 @@ public class twchat extends SubspaceBot {
     }
 
     private void getPlayer(String name, String cmd) {
-        if (cmd.length() < 5 || !cmd.contains(" ")) return;
+        if (cmd.length() < 3 || !cmd.contains(" ")) return;
         String p = cmd.substring(cmd.indexOf(" ") + 1);
         try {
             ResultSet rs = ba.SQLQuery(db, "SELECT fcName, fcSquad, ftUpdated, ftLastSeen, fnOnline FROM tblPlayer WHERE fcName = " + Tools.addSlashesToString(p) + " LIMIT 1");
