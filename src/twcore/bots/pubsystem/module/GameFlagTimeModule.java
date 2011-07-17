@@ -239,7 +239,11 @@ public class GameFlagTimeModule extends AbstractModule {
 							}
 						}
 					};
-					m_botAction.scheduleTask(task, 5*Tools.TimeInMillis.SECOND);
+					try {
+					    m_botAction.scheduleTask(task, 5*Tools.TimeInMillis.SECOND);
+					} catch (IllegalStateException e) {
+					    Tools.printStackTrace("LevTerr timer exception", e);
+					}
 	    			
 	    		} else {
 	    			
