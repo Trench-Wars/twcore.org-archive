@@ -216,7 +216,11 @@ public class PubUtilModule extends AbstractModule {
 		if (instant) {
 			task.run();
 		} else {
-			m_botAction.scheduleTask(task, 1*Tools.TimeInMillis.SECOND);
+		    try {
+		        m_botAction.scheduleTask(task, 1*Tools.TimeInMillis.SECOND);
+		    } catch (IllegalStateException e) {
+		        Tools.printLog("IllegalStateException when setting tileset of " + playerName);
+		    }
 		}
 
 	}
