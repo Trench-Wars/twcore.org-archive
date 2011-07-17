@@ -232,7 +232,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	                	m_botAction.scheduleTask(task, 0, itemPrize.getPrizeSeconds()*Tools.TimeInMillis.SECOND);
 	                // Or one shot?
 	                } else {
-	                	m_botAction.scheduleTask(task, 0);
+	                	task.run();
 	                }
 	        	} catch (IllegalStateException e) {
 	        		Tools.printLog("Exception ExecuteItem: " + item.getName() + " (params:" + params + ")");
@@ -2091,8 +2091,6 @@ public class PubMoneySystemModule extends AbstractModule {
         			m_botAction.sendUnfilteredPrivateMessage(receiver, "*shipreset");
         			cancel();
         		}
-        	} else {
-        		cancel();
         	}
 		}
 	};
