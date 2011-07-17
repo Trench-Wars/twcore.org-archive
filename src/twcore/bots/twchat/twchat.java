@@ -1011,11 +1011,13 @@ public class twchat extends SubspaceBot {
     }
 
     public void getPlayer(String name, String cmd) {
-        if (cmd.length() < 3 || !cmd.contains(" ")) return;
+        if (!cmd.contains(" ")) return;
         String p = cmd.substring(cmd.indexOf(" ") + 1);
+        String msg = "";
+        debug("Getting player db info for " + p);
         try {
             ResultSet rs = ba.SQLQuery(db, "SELECT fcName, fcSquad, ftUpdated, ftLastSeen, fnOnline FROM tblPlayer WHERE fcName = '" + Tools.addSlashesToString(p) + "' LIMIT 1");
-            String msg = "";
+
             if (rs.next()) {
                 String squad = rs.getString("fcSquad");
                 String on = "OFFLINE";
@@ -1029,11 +1031,12 @@ public class twchat extends SubspaceBot {
                 msg += " | Last update - " + rs.getString("ftUpdated") + " | " + on + " Seen - " + rs.getString("ftLastSeen");
             } else
                 msg = "No record found for " + p;
-            ba.sendSmartPrivateMessage(name, msg);
             ba.SQLClose(rs);
         } catch (SQLException e) {
             Tools.printStackTrace(e);
+            ba.sendSmartPrivateMessage(name, "SQL error on player: " + p);
         }
+        ba.sendSmartPrivateMessage(name, msg);
     }
 
     private void debugger(String name) {
