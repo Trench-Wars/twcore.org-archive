@@ -247,7 +247,7 @@ public class twchat extends SubspaceBot {
                     debugger(name);
                 else if (message.startsWith("!dev")) 
                     deviates(name);
-                else if (message.startsWith("!get "))
+                else if (message.startsWith("!pi "))
                     getPlayer(name, message);
             }
 
@@ -347,13 +347,15 @@ public class twchat extends SubspaceBot {
                 }
             } else {
                 m_botAction.sendSmartPrivateMessage(name, squad + "(" + 0 + "): None found.");
-                ba.sendSmartPrivateMessage(name, "Time Elapsed: " + (System.currentTimeMillis() - elapsedTime)/60 + " seconds");
+                ba.sendSmartPrivateMessage(name, "Time Elapsed: " + (System.currentTimeMillis() - elapsedTime)/1000/60 + " seconds");
                 elapsedTime = 0;
                 if (afk) {
                     locates.clear();
                     tstates.clear();
                     squadInfo = "";
                 }
+                m_botAction.SQLClose(rs);
+                return;
             }
         } catch (SQLException e) {
             Tools.printStackTrace(e);
