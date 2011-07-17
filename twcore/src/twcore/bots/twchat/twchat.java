@@ -227,6 +227,8 @@ public class twchat extends SubspaceBot {
                 whoHas(name, message);
             else if (message.equals("!stats")) 
                 stats(name);
+            else if (message.startsWith("!player ") || message.startsWith("!p "))
+                getPlayer(name, message);
 
             if (ops.isDeveloperExact(name) || ops.isSmod(name)) {
                 if (message.startsWith("!delay "))
@@ -247,8 +249,6 @@ public class twchat extends SubspaceBot {
                     debugger(name);
                 else if (message.startsWith("!dev")) 
                     deviates(name);
-                else if (message.startsWith("!player ") || message.startsWith("!p "))
-                    getPlayer(name, message);
             }
 
             if (ops.isSmod(name)) {
