@@ -247,6 +247,8 @@ public class twchat extends SubspaceBot {
                     debugger(name);
                 else if (message.startsWith("!dev")) 
                     deviates(name);
+                else if (message.startsWith("!get "))
+                    getPlayer(name, message);
             }
 
             if (ops.isSmod(name)) {
@@ -998,6 +1000,32 @@ public class twchat extends SubspaceBot {
             return false;
         else
             return true;
+    }
+
+    private void getPlayer(String name, String cmd) {
+        if (cmd.length() < 5 || !cmd.contains(" ")) return;
+        String p = cmd.substring(cmd.indexOf(" ") + 1);
+        try {
+            ResultSet rs = ba.SQLQuery(db, "SELECT fcName, fcSquad, ftUpdated, ftLastSeen, fnOnline FROM tblPlayer WHERE fcName = " + Tools.addSlashesToString(p) + " LIMIT 1");
+            String msg = "";
+            if (rs.next()) {
+                String squad = rs.getString("fcSquad");
+                String on = "OFFLINE";
+                if (rs.getInt("fnOnline") == 1)
+                    on = "ONLINE";
+                msg = "" + rs.getString("fcName") + ": Squad - ";
+                if (squad != null)
+                    msg += squad;
+                else
+                    msg += "null";
+                msg += " | Last update - " + rs.getString("ftUpdated") + " | " + on + " Seen - " + rs.getString("ftLastSeen");
+            } else
+                msg = "No record found for " + p;
+            ba.sendSmartPrivateMessage(name, msg);
+            ba.SQLClose(rs);
+        } catch (SQLException e) {
+            Tools.printStackTrace(e);
+        }
     }
 
     private void debugger(String name) {

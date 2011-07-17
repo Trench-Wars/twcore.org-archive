@@ -194,6 +194,7 @@ public class pubbotstats extends PubBotModule {
 	          player.setPeriodReset(false);
 	          player.updated();
 	      }
+          player.setSquad(event.getSquadName());
 	      player.seen();
 	  }
 
