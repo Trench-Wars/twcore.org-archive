@@ -150,7 +150,6 @@ public class staffbot_banc extends Module {
     private final int BANC_MAX_DURATION = 525600;   // (365 days in minutes)
     private final static int BANC_EXPIRE_TIME = Tools.TimeInMillis.WEEK * 2;
     private final static int MAX_NAME_SUGGESTIONS = 20;
-    private String sqlHost = "website";
     
     // Operation variables
     private List<BanC> activeBanCs = Collections.synchronizedList(new ArrayList<BanC>());
@@ -830,7 +829,7 @@ public class staffbot_banc extends Module {
         ArrayList<String> banCs = new ArrayList<String>();
 
         try {
-            ResultSet set = m_botAction.SQLQuery( sqlHost, query );
+            ResultSet set = m_botAction.SQLQuery( botsDatabase, query );
 
             if( set == null ) {
                 m_botAction.sendRemotePrivateMessage( name, "ERROR: There is a problem with your query (returned null) or the database is down.  Please report this to bot development." );
@@ -936,7 +935,7 @@ public class staffbot_banc extends Module {
                 "ORDER BY fcUsername LIMIT 0,"+MAX_NAME_SUGGESTIONS;
         
         try {
-            ResultSet set = m_botAction.SQLQuery( sqlHost, query );                
+            ResultSet set = m_botAction.SQLQuery( botsDatabase, query );                
             while( set.next() ) {
                 fuzzynames.add(" " + set.getString( "fcUsername" ));
             }
