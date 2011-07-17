@@ -247,7 +247,7 @@ public class twchat extends SubspaceBot {
                     debugger(name);
                 else if (message.startsWith("!dev")) 
                     deviates(name);
-                else if (message.startsWith("!p "))
+                else if (message.startsWith("!player ") || message.startsWith("!p "))
                     getPlayer(name, message);
             }
 
@@ -347,7 +347,7 @@ public class twchat extends SubspaceBot {
                 }
             } else {
                 m_botAction.sendSmartPrivateMessage(name, squad + "(" + 0 + "): None found.");
-                ba.sendSmartPrivateMessage(name, "Time Elapsed: " + (System.currentTimeMillis() - elapsedTime)/1000/60 + " seconds");
+                ba.sendSmartPrivateMessage(name, "Time Elapsed: " + ((System.currentTimeMillis() - elapsedTime)/1000/60) + " seconds");
                 elapsedTime = 0;
                 if (afk) {
                     locates.clear();
@@ -1010,11 +1010,11 @@ public class twchat extends SubspaceBot {
             return true;
     }
 
-    private void getPlayer(String name, String cmd) {
+    public void getPlayer(String name, String cmd) {
         if (cmd.length() < 3 || !cmd.contains(" ")) return;
         String p = cmd.substring(cmd.indexOf(" ") + 1);
         try {
-            ResultSet rs = ba.SQLQuery(db, "SELECT fcName, fcSquad, ftUpdated, ftLastSeen, fnOnline FROM tblPlayer WHERE fcName = " + Tools.addSlashesToString(p) + " LIMIT 1");
+            ResultSet rs = ba.SQLQuery(db, "SELECT fcName, fcSquad, ftUpdated, ftLastSeen, fnOnline FROM tblPlayer WHERE fcName = '" + Tools.addSlashesToString(p) + "' LIMIT 1");
             String msg = "";
             if (rs.next()) {
                 String squad = rs.getString("fcSquad");
