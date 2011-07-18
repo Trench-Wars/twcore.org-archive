@@ -1417,11 +1417,20 @@ public class hockeybot extends SubspaceBot {
     }
     
     private void cmd_decrease(String name, String message) {
-    	String msg = message.substring(9);
+    	String msg = message.substring(10);
     	int tempCheck = 0;
+    	int targetFreq = -1;
+    	
+    	try {
+    		targetFreq = Integer.valueOf(msg);
+    	} catch (NumberFormatException e) {
+    		m_botAction.sendPrivateMessage(name, "Invalid syntax. Please use !decrease <freq> where <freq> is either 0 or 1.");
+    		return;    		
+    	}
+    	
     	if (currentState != HockeyState.OFF) {
     		
-    		if (msg == "0") {
+    		if (targetFreq == 0) {
     			tempCheck = team0.getScore();
     			if (tempCheck > 0) {
     				team0.decreaseScore();
@@ -1430,7 +1439,7 @@ public class hockeybot extends SubspaceBot {
     			else
     				m_botAction.sendPrivateMessage(name, team0.getName() + " does not have any goals.");
     		}
-    		else if (msg == "1") {
+    		else if (targetFreq == 1) {
     			tempCheck = team1.getScore();
     			if (tempCheck > 0) {
     				team1.decreaseScore();
