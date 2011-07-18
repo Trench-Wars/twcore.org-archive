@@ -574,6 +574,8 @@ public class hockeybot extends SubspaceBot {
                 cmd_ball(name);
             } else if (cmd.equals("!drop")) {
                 cmd_drop(name);
+            } else if (cmd.startsWith("!decrease")) {
+            	cmd_decrease(name, cmd);
             }
         }
 
@@ -975,6 +977,7 @@ public class hockeybot extends SubspaceBot {
             help.add("!stop                             -- stops the bot");
             help.add("!ball                             -- retrieves the ball");
             help.add("!drop                             -- drops the ball");
+            help.add("!decrease <freq>                  -- subtracts a goal from <freq>");
             if (!config.getAllowAutoCaps()) {
                 help.add("!zone <message>                   -- sends time-restricted advert, message is optional");
             }
@@ -1411,6 +1414,35 @@ public class hockeybot extends SubspaceBot {
         } else {
             m_botAction.sendPrivateMessage(name, "Error: Bot is already OFF");
         }
+    }
+    
+    private void cmd_decrease(String name, String message) {
+    	String msg = message.substring(9);
+    	int tempCheck = 0;
+    	if (currentState != HockeyState.OFF) {
+    		
+    		if (msg == "0") {
+    			tempCheck = team0.getScore();
+    			if (tempCheck > 0) {
+    				team0.decreaseScore();
+    				m_botAction.sendArenaMessage(team0.getName() + " score has been set to " + team0.getScore() + " by " + name);
+    			}
+    			else
+    				m_botAction.sendPrivateMessage(name, team0.getName() + " does not have any goals.");
+    		}
+    		else if (msg == "1") {
+    			tempCheck = team1.getScore();
+    			if (tempCheck > 0) {
+    				team1.decreaseScore();
+        			m_botAction.sendArenaMessage(team1.getName() + "s score has been set to " + team1.getScore() + " by " + name);
+    			}
+    			else
+    				m_botAction.sendPrivateMessage(name, team1.getName() + " does not have any goals.");
+    		}
+    		else
+    			m_botAction.sendPrivateMessage(name, "The action could not be completed at this time. Use !decrease <freq> "
+    												 									+ "to subtract a goal from <freq>.");
+    }
     }
 
     /**
@@ -3248,6 +3280,10 @@ public class hockeybot extends SubspaceBot {
          */
         private void increaseScore() {
             teamScore++;
+        }
+        
+        private void decreaseScore() {
+        	teamScore--;
         }
 
         /**
