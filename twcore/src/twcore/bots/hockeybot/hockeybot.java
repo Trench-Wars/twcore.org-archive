@@ -1416,6 +1416,12 @@ public class hockeybot extends SubspaceBot {
         }
     }
     
+    /**
+     * Decreases a frequencies score by 1
+     * 
+     * @param name player that issue the !decrease command
+     * @param message frequency whose score is to be decreased
+     */
     private void cmd_decrease(String name, String message) {
     	String msg = message.substring(10);
     	int tempCheck = 0;
@@ -1434,7 +1440,7 @@ public class hockeybot extends SubspaceBot {
     			tempCheck = team0.getScore();
     			if (tempCheck > 0) {
     				team0.decreaseScore();
-    				m_botAction.sendArenaMessage(team0.getName() + " score has been set to " + team0.getScore() + " by " + name);
+    				m_botAction.sendArenaMessage("Score for " + team0.getName() + " has been set to " + team0.getScore() + " by " + name);
     			}
     			else
     				m_botAction.sendPrivateMessage(name, team0.getName() + " does not have any goals.");
@@ -1443,7 +1449,7 @@ public class hockeybot extends SubspaceBot {
     			tempCheck = team1.getScore();
     			if (tempCheck > 0) {
     				team1.decreaseScore();
-        			m_botAction.sendArenaMessage(team1.getName() + "s score has been set to " + team1.getScore() + " by " + name);
+        			m_botAction.sendArenaMessage("Score for " + team1.getName() + " has been set to " + team1.getScore() + " by " + name);
     			}
     			else
     				m_botAction.sendPrivateMessage(name, team1.getName() + " does not have any goals.");
