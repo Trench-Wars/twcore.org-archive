@@ -1625,7 +1625,7 @@ public class staffbot_banc extends Module {
                 if(sqlWhere.length() > 0) {
                     sqlWhere = "WHERE "+sqlWhere;
                 }
-                if (!showExpired)
+                if (showExpired)
                     sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated, fbLifted FROM tblBanc "+sqlWhere+" ORDER BY fnID DESC LIMIT 0,"+viewcount;
                 else
                     sqlQuery = "SELECT fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated, fbLifted FROM tblBanc " + sqlWhere + " AND (NOW() < DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE)) ORDER BY fnID DESC LIMIT 0," + viewcount;
