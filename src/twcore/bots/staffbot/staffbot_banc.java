@@ -331,13 +331,13 @@ public class staffbot_banc extends Module {
             // !listban [arg] [count]
             // !listban [#id]
             else if( messageLc.startsWith("!listban")) {
-                cmdListBan(name, message.substring(8).trim(), true);
+                cmdListBan(name, message.substring(8).trim(), true, true);
             }
             else if( messageLc.startsWith("!lb")) {
-                cmdListBan(name, message.substring(3).trim(), true);
+                cmdListBan(name, message.substring(3).trim(), true, true);
             }
             else if( messageLc.startsWith("!banlist")) {
-                cmdListBan(name, message.substring(8).trim(), true);
+                cmdListBan(name, message.substring(8).trim(), true, true);
             }
             
             // !changeban <#id> <arguments>
@@ -700,7 +700,7 @@ public class staffbot_banc extends Module {
     
 
     private void searchByLiftedBancs(String name){
-        cmdListBan(name, "-lifted", true);
+        cmdListBan(name, "-lifted", true, true);
     }
     /***
      * !search -help command explaining how to use it.
@@ -741,8 +741,7 @@ public class staffbot_banc extends Module {
      * */
     private void searchByName(String stafferName, String name, int limitBanCs, int limitWarnings) {
         try {
-            //sendBanCs(stafferName, name, limitBanCs);
-            queryBanC(stafferName, name, true);
+            sendBanCs(stafferName, name, limitBanCs);
             sendWarnings(stafferName, name, limitWarnings);
             if (m_botAction.getOperatorList().isSmod(stafferName) || bancOp.containsKey(stafferName.toLowerCase())) {
                 sendAltNicks(stafferName, name, limitBanCs, limitWarnings);
@@ -756,7 +755,7 @@ public class staffbot_banc extends Module {
     }
 
     private boolean sendBanCs(String stafferName, String name, int limit) throws SQLException{
-        this.cmdListBan(stafferName, "-player='"+name+"'",false);
+        this.cmdListBan(stafferName, "-player='"+name+"'",false, false);
         /* List<String> list = new ArrayList<String>();
         
         String query;
@@ -816,136 +815,6 @@ public class staffbot_banc extends Module {
             return true;
         }*/
         return true;
-    }
-    
-    /**
-     * Queries the database for stored bancs on a player.
-     * @param name Staffer requesting
-     * @param message Player to query
-     * @param showExpired Whether or not to display expired warnings
-     */
-    public void queryBanC( String name, String message, boolean showExpired ) {
-        String      query = "SELECT * FROM tblBanc WHERE fcUsername = '" + Tools.addSlashes(message.toLowerCase()) + "' ORDER BY fdCreated ASC";
-        ArrayList<String> banCs = new ArrayList<String>();
-
-        try {
-            ResultSet set = m_botAction.SQLQuery( botsDatabase, query );
-
-            if( set == null ) {
-                m_botAction.sendSmartPrivateMessage( name, "ERROR: There is a problem with your query (returned null) or the database is down.  Please report this to bot development." );
-                return;
-            }
-            
-            // Lookup the banCs from the database
-            int numExpired = 0;
-            int numTotal = 0;
-            
-            while( set.next() ){
-                String banc = set.getString( "fcType" );
-                String duration = set.getString("fnDuration");
-                String comment = set.getString("fcComment");
-                String staffer = set.getString("fcStaffer");
-                if(duration == null)   
-                    duration = "No Duration";
-                if(comment == null)    
-                    comment = "No Comment";
-                
-                java.sql.Date date = set.getDate( "fdCreated" );
-                java.sql.Date expireDate = new java.sql.Date(System.currentTimeMillis() - BANC_EXPIRE_TIME);
-                boolean expired = date.before(expireDate);
-                if( expired )
-                    numExpired++;
-                if( !expired || showExpired ) {
-                    String strDate = new SimpleDateFormat("dd MMM yyyy").format( date );
-                    /*
-                    String[] text;
-                    if( banc.contains("Ext: "))
-                        text = banc.split( "Ext: ", 2);
-                    else
-                        text = banc.split( ": ", 2);
-
-                    if( text.length == 2 ) */
-                        
-                    banCs.add(strDate + "   " + banc + "   " + duration + "   " + staffer + "   "+ comment);
-                }
-                numTotal++;
-            }
-            m_botAction.SQLClose( set );
-            
-            
-            // Respond to the user
-            if(numTotal > 0) {           
-                int size = banCs.size();
-                if( showExpired ) {   // !allbancs
-                    m_botAction.sendSmartPrivateMessage( name, "BanCs in database for " + message + ":" );
-                    m_botAction.smartPrivateMessageSpam( name, banCs.toArray(new String[size]));
-                    m_botAction.sendSmartPrivateMessage( name, "Displayed " + size + " BanCs (including " + numExpired + " expired BanCs)." );
-                } else {              // !bancs
-                    if(banCs.size() > 0) {
-                        m_botAction.sendSmartPrivateMessage( name, "BanCs in database for " + message + ":" );
-                        m_botAction.smartPrivateMessageSpam( name, banCs.toArray(new String[size]));
-                        m_botAction.sendSmartPrivateMessage( name, "Displayed " + size + " valid BanCs (suppressed " + numExpired + " expired)." + (numExpired > 0?" PM !allbancs to display all.":"") );
-                    } else {
-                        m_botAction.sendSmartPrivateMessage( name, "No active BanCs for "+ message +".");
-                        m_botAction.sendSmartPrivateMessage( name, "There are "+numExpired+" expired BanCs. PM !allbancs to display these.");
-                    }
-                    
-                }                
-            } else {
-                m_botAction.sendSmartPrivateMessage( name, "No BanCs found for '" + message + "'.");
-                
-                ArrayList<String> fuzzynames = getFuzzyNamesDB(message);
-                if(fuzzynames.size() > 0) {
-                    m_botAction.sendSmartPrivateMessage(name, "_");
-                    m_botAction.sendSmartPrivateMessage(name, "Maybe you were searching for the BanCs of one of the following players?");
-                    m_botAction.smartPrivateMessageSpam(name, fuzzynames.toArray(new String[fuzzynames.size()]));
-                    m_botAction.sendSmartPrivateMessage(name, "PM !banc <name> to see the BanCs on one of these names.");
-                }
-            }
-        } catch( SQLException e ){
-            Tools.printStackTrace( e );
-        }
-    }
-    
-    /**
-     * Based on a given name fragment, find other players that start with the fragment.
-     * @param name Staffer running cmd
-     * @param message Name fragment
-     */
-    public void getFuzzyNames( String name, String message ) {
-        ArrayList<String> fuzzynames;
-
-        fuzzynames = getFuzzyNamesDB(message);
-        
-        if(fuzzynames.size() > 0) {
-            m_botAction.sendSmartPrivateMessage( name, "Names in database starting with '" + message + "':" );
-            m_botAction.smartPrivateMessageSpam( name, fuzzynames.toArray(new String[fuzzynames.size()]));
-            if( fuzzynames.size() == MAX_NAME_SUGGESTIONS )
-                m_botAction.sendSmartPrivateMessage( name, "Results limited to "+ MAX_NAME_SUGGESTIONS + ", refine your search further if you have not found the desired result." );
-        } else {
-            m_botAction.sendSmartPrivateMessage( name, "No names found starting with '"+message+"'.");
-        }
-    }
-    
-    private ArrayList<String> getFuzzyNamesDB( String name ) {
-        ArrayList<String> fuzzynames = new ArrayList<String>();
-        
-        String query = "" +
-                "SELECT DISTINCT(fcUsername) " +
-                "FROM tblBanc " +
-                "WHERE fcUsername LIKE '" + Tools.addSlashes(name.toLowerCase()) + "%' " +
-                "ORDER BY fcUsername LIMIT 0,"+MAX_NAME_SUGGESTIONS;
-        
-        try {
-            ResultSet set = m_botAction.SQLQuery( botsDatabase, query );                
-            while( set.next() ) {
-                fuzzynames.add(" " + set.getString( "fcUsername" ));
-            }
-        } catch( SQLException sqle ) {
-            Tools.printLog("SQLException encountered in Staffbot.getFuzzyNamesDB(): "+sqle.getMessage());
-        }
-        
-        return fuzzynames;
     }
 
     private boolean sendWarnings(String stafferName, String name, int limit) throws SQLException{
@@ -1154,7 +1023,7 @@ public class staffbot_banc extends Module {
      * Changed the query in listban to find ips starting with substring. "x." - where like 'ipstr%'
      * */
     private void searchByIp(String stafferName, String ipString){
-        this.cmdListBan(stafferName, "-ip="+ipString, true);
+        this.cmdListBan(stafferName, "-ip="+ipString, true, true);
     }
     
     private void cmdListBanHelp(String name) {
@@ -1546,7 +1415,7 @@ public class staffbot_banc extends Module {
      * @param name player who issued the command
      * @param parameters any command parameters
      */
-    private void cmdListBan(String name, String parameters, boolean showLBHelp) {
+    private void cmdListBan(String name, String parameters, boolean showLBHelp, boolean showExpired) {
         int viewcount = 10;
         parameters = parameters.toLowerCase();
         String sqlWhere = "";
@@ -1710,7 +1579,6 @@ public class staffbot_banc extends Module {
                 ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
                 
                 if(rs.next()) {
-                    
                     String result = "";
                     result += (rs.getBoolean("active")?"#":"^");
                     result += rs.getString("fnID") + " ";
@@ -1765,28 +1633,30 @@ public class staffbot_banc extends Module {
                     rs.afterLast();
                     if(rs.previous()) {
                         do {
-                            
-                            String result = "";
-                            result += (rs.getBoolean("active")?"#":"^");
-                            result += Tools.formatString(rs.getString("fnID"), 4) + " ";
-                            result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
-                            result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + " ";
-                            result += Tools.formatString(rs.getString("fcType"),7) + " ";
-                            int time = Integer.parseInt( rs.getString("fnDuration") );
-                            if(time >= 24*60){
-                                int days = (time/24)/60;
-                                String daysNumber = days+"";
-                                result += " days: "+Tools.formatString(daysNumber, 5);
-                                
+
+                            boolean expired = rs.getBoolean("active");
+                            if (showExpired || (!showExpired && !expired)) {
+                                String result = "";
+                                result += (expired?"#":"^");
+                                result += Tools.formatString(rs.getString("fnID"), 4) + " ";
+                                result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
+                                result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + " ";
+                                result += Tools.formatString(rs.getString("fcType"),7) + " ";
+                                int time = Integer.parseInt( rs.getString("fnDuration") );
+                                if(time >= 24*60){
+                                    int days = (time/24)/60;
+                                    String daysNumber = days+"";
+                                    result += " days: "+Tools.formatString(daysNumber, 5);
+
+                                }
+                                else 
+                                    result += " mins:"+Tools.formatString(rs.getString("fnDuration"), 5) + " ";
+                                if(m_botAction.getOperatorList().isModerator(name))
+                                    result += " "+Tools.formatString(rs.getString("fcIP"), 15) + "  ";
+                                result += rs.getString("fcUsername");
+
+                                m_botAction.sendRemotePrivateMessage(name, result);
                             }
-                            else 
-                                result += " mins:"+Tools.formatString(rs.getString("fnDuration"), 5) + " ";
-                            if(m_botAction.getOperatorList().isModerator(name))
-                                result += " "+Tools.formatString(rs.getString("fcIP"), 15) + "  ";
-                            result += rs.getString("fcUsername");
-                            
-                            m_botAction.sendRemotePrivateMessage(name, result);
-                            
                         } while(rs.previous());
                         if(showLBHelp)  
                             m_botAction.sendRemotePrivateMessage(name, "!listban -help for more info");
