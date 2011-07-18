@@ -574,7 +574,7 @@ public class hockeybot extends SubspaceBot {
                 cmd_ball(name);
             } else if (cmd.equals("!drop")) {
                 cmd_drop(name);
-            } else if (cmd.startsWith("!decrease")) {
+            } else if (cmd.startsWith("!decrease ")) {
             	cmd_decrease(name, cmd);
             }
         }
