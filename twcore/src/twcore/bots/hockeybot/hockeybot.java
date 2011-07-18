@@ -4513,7 +4513,7 @@ public class hockeybot extends SubspaceBot {
                     }
                 }
             } catch (Exception e) {
-                System.err.println(e.getMessage() + e.getStackTrace());
+                //System.err.println(e.getMessage() + e.getStackTrace());
             }
 
             //DEFENSE CREASE PENALTY TEAM 0
