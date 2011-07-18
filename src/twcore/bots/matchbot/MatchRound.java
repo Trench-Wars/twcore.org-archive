@@ -942,7 +942,7 @@ public class MatchRound
             command_mvp(name, parameters);
 
         if (command.equals("!rpd") && (m_fnRoundState == 3) && m_rules.getString("winby").equals("timerace"))
-            command_mvp(name, parameters);
+            command_rpd(name, parameters);
         
         //TWSDX ONLY
         if (command.equals("!rules") && m_game.m_fnMatchTypeID == 13)
