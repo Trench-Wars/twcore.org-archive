@@ -845,9 +845,9 @@ public class staffbot_banc extends Module {
                 String duration = set.getString("fnDuration");
                 String comment = set.getString("fcComment");
                 String staffer = set.getString("fcStaffer");
-                if(duration.equals(null))   
+                if(duration == null)   
                     duration = "No Duration";
-                if(comment.equals(null))    
+                if(comment == null)    
                     comment = "No Comment";
                 
                 java.sql.Date date = set.getDate( "fdCreated" );
