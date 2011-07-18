@@ -930,7 +930,7 @@ public class staffbot_banc extends Module {
         
         String query = "" +
                 "SELECT DISTINCT(fcUsername) " +
-                "FROM tblbanc " +
+                "FROM tblBanc " +
                 "WHERE fcUsername LIKE '" + Tools.addSlashes(name.toLowerCase()) + "%' " +
                 "ORDER BY fcUsername LIMIT 0,"+MAX_NAME_SUGGESTIONS;
         
