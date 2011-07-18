@@ -942,7 +942,7 @@ public class staffbot_banc extends Module {
                     m_botAction.SQLClose(w);
 
                     boolean hasBanc = false;
-                    ResultSet b = m_botAction.SQLQuery(this.botsDatabase, "SELECT * FROM tblBanc WHERE fcUsername = '" + Tools.addSlashesToString(s) + "' AND (NOW() < DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE)) ORDER BY fdCreated ASC");
+                    ResultSet b = m_botAction.SQLQuery(this.botsDatabase, "SELECT * FROM tblBanc WHERE fcUsername = '" + Tools.addSlashesToString(s) + "' ORDER BY fdCreated ASC");
 
                     while (b.next()) {
                         Date date = b.getDate("fdCreated");
