@@ -942,8 +942,7 @@ public class staffbot_banc extends Module {
                     m_botAction.SQLClose(w);
 
                     boolean hasBanc = false;
-
-                    ResultSet b = m_botAction.SQLQuery(this.botsDatabase, "SELECT * FROM tblBanc WHERE fcUsername = '" + Tools.addSlashesToString(s) + "' ORDER BY fdCreated ASC");
+                    ResultSet b = m_botAction.SQLQuery(this.botsDatabase, "SELECT * FROM tblBanc WHERE fcUsername = '" + Tools.addSlashesToString(s) + "' AND (NOW() < DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE)) ORDER BY fdCreated ASC");
 
                     while (b.next()) {
                         Date date = b.getDate("fdCreated");
@@ -1626,7 +1625,10 @@ public class staffbot_banc extends Module {
                 if(sqlWhere.length() > 0) {
                     sqlWhere = "WHERE "+sqlWhere;
                 }
-                sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated, fbLifted FROM tblBanc "+sqlWhere+" ORDER BY fnID DESC LIMIT 0,"+viewcount;
+                if (!showExpired)
+                    sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated, fbLifted FROM tblBanc "+sqlWhere+" ORDER BY fnID DESC LIMIT 0,"+viewcount;
+                else
+                    sqlQuery = "SELECT fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated, fbLifted FROM tblBanc " + sqlWhere + " AND (NOW() < DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE)) ORDER BY fnID DESC LIMIT 0," + viewcount;
                 ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
                 
                 if(rs != null) {
@@ -1634,29 +1636,29 @@ public class staffbot_banc extends Module {
                     if(rs.previous()) {
                         do {
 
-                            boolean expired = rs.getBoolean("active");
-                            if (showExpired || (!showExpired && !expired)) {
-                                String result = "";
-                                result += (expired?"#":"^");
-                                result += Tools.formatString(rs.getString("fnID"), 4) + " ";
-                                result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
-                                result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + " ";
-                                result += Tools.formatString(rs.getString("fcType"),7) + " ";
-                                int time = Integer.parseInt( rs.getString("fnDuration") );
-                                if(time >= 24*60){
-                                    int days = (time/24)/60;
-                                    String daysNumber = days+"";
-                                    result += " days: "+Tools.formatString(daysNumber, 5);
+                            String result = "";
+                            if (showExpired)
+                                result += (rs.getBoolean("active")?"#":"^");
+                            else
+                                result += "#";
+                            result += Tools.formatString(rs.getString("fnID"), 4) + " ";
+                            result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
+                            result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + " ";
+                            result += Tools.formatString(rs.getString("fcType"),7) + " ";
+                            int time = Integer.parseInt( rs.getString("fnDuration") );
+                            if(time >= 24*60){
+                                int days = (time/24)/60;
+                                String daysNumber = days+"";
+                                result += " days: "+Tools.formatString(daysNumber, 5);
 
-                                }
-                                else 
-                                    result += " mins:"+Tools.formatString(rs.getString("fnDuration"), 5) + " ";
-                                if(m_botAction.getOperatorList().isModerator(name))
-                                    result += " "+Tools.formatString(rs.getString("fcIP"), 15) + "  ";
-                                result += rs.getString("fcUsername");
-
-                                m_botAction.sendRemotePrivateMessage(name, result);
                             }
+                            else 
+                                result += " mins:"+Tools.formatString(rs.getString("fnDuration"), 5) + " ";
+                            if(m_botAction.getOperatorList().isModerator(name))
+                                result += " "+Tools.formatString(rs.getString("fcIP"), 15) + "  ";
+                            result += rs.getString("fcUsername");
+
+                            m_botAction.sendRemotePrivateMessage(name, result);
                         } while(rs.previous());
                         if(showLBHelp)  
                             m_botAction.sendRemotePrivateMessage(name, "!listban -help for more info");
