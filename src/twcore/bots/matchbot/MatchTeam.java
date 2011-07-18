@@ -2084,6 +2084,14 @@ public class MatchTeam
 
         return retval;
     }
+    
+    public int getTotalRepelsUsed() {
+        int reps = 0;
+        ListIterator<MatchPlayer> i = m_players.listIterator();
+        while (i.hasNext())
+            reps += i.next().getRepelsUsed();
+        return reps;
+    }
 
     // get total score
     public int getTotalScore()
@@ -2459,6 +2467,7 @@ public class MatchTeam
                     + rightenString(Integer.toString(getDTotalStats(Statistics.SCORE)), 9) + " | "
                     + rightenString(Integer.toString(getDTotalStats(Statistics.FLAG_CLAIMED)), 4) + " | "
                     + rightenString(Integer.toString(getDTotalStats(Statistics.TERRIER_KILL)), 4) + " | "
+                    + rightenString(Integer.toString(getTotalRepelsUsed()), 3) + " | "
                     + rightenString(Integer.toString(getDTotalStats(Statistics.RATING)), 9) + " | "
                     + rightenString(Integer.toString(getTotalLagOuts()), 2) + " |");
             out.add("+------------------------'        |      |      |           |      |      |           |    |");
@@ -2473,6 +2482,7 @@ public class MatchTeam
                         + rightenString(Integer.toString(p.getTotalStatistic(Statistics.SCORE)), 9) + " | "
                         + rightenString(Integer.toString(p.getTotalStatistic(Statistics.FLAG_CLAIMED)), 4) + " | "
                         + rightenString(Integer.toString(p.getTotalStatistic(Statistics.TERRIER_KILL)), 4) + " | "
+                        + rightenString(p.getRepelsPerDeath(), 3) + " | "
                         + rightenString(Integer.toString(p.getTotalStatistic(Statistics.RATING)), 9) + " | "
                         + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
             }

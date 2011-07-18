@@ -13,6 +13,7 @@ package twcore.bots.matchbot;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -879,6 +880,16 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		}
 		return 0;
 	}
+	
+	public String getRepelsPerDeath() {
+        double reps = m_statTracker.getRepelsUsed();
+        double deaths = m_statTracker.getSharkDeaths();
+        if (reps > 0 && deaths > 0)
+            return (new DecimalFormat("0.0").format((reps/deaths)));
+        else if (reps > 0 && deaths == 0)
+            return "" + reps;
+        else return "   ";
+	}
 
 	/**
 	 * Method getStatistics.
@@ -942,6 +953,11 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	{
 		return m_statTracker.getTotalStatistic(Statistics.DEATHS);
 	};
+	
+	public int getRepelsUsed() {
+	    return m_statTracker.getRepelsUsed();
+	}
+	
 	public int getKills()
 	{
 		return m_statTracker.getTotalStatistic(Statistics.TOTAL_KILLS);
@@ -1269,6 +1285,24 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 
 			return total;
 		}
+	    
+	    public int getRepelsUsed() {
+	        int reps = 0;
+	        for (MatchPlayerShip ship : m_ships) {
+	            if (ship.getShipType() == 8)
+	                reps += (ship.getStatistic(Statistics.REPELS_USED)/2);
+	        }
+	        return reps;
+	    }
+	    
+	    public int getSharkDeaths() {
+            int deaths = 0;
+            for (MatchPlayerShip ship : m_ships) {
+                if (ship.getShipType() == 8)
+                    deaths += (ship.getStatistic(Statistics.DEATHS));
+            }
+            return deaths;
+	    }
 
 		/**
 		 * Method getTotalStatistic.
