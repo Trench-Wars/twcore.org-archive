@@ -445,13 +445,20 @@ public class hockeybot extends SubspaceBot {
      * Grabs ball and sits in drop location
      */
     public void getBall() {
-        if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
-            m_botAction.getShip().setShip(8);
-            m_botAction.getShip().setShip(0);
-            m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
-            m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
-            m_botAction.getBall(puck.getBallID(), (int) puck.getTimeStamp());
-        }
+        final TimerTask drop = new TimerTask() {
+            @Override
+            public void run() {
+                if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
+                    m_botAction.getShip().setShip(8);
+                    m_botAction.getShip().setShip(0);
+                    m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
+                    m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
+                    m_botAction.getBall(puck.getBallID(), (int) puck.getTimeStamp());
+                }
+            }
+            
+        };
+        drop.run();
     }
 
     /**
