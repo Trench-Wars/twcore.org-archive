@@ -832,7 +832,7 @@ public class staffbot_banc extends Module {
             ResultSet set = m_botAction.SQLQuery( botsDatabase, query );
 
             if( set == null ) {
-                m_botAction.sendRemotePrivateMessage( name, "ERROR: There is a problem with your query (returned null) or the database is down.  Please report this to bot development." );
+                m_botAction.sendSmartPrivateMessage( name, "ERROR: There is a problem with your query (returned null) or the database is down.  Please report this to bot development." );
                 return;
             }
             
@@ -875,29 +875,29 @@ public class staffbot_banc extends Module {
             // Respond to the user
             if(numTotal > 0) {                
                 if( showExpired ) {   // !allbancs
-                    m_botAction.sendRemotePrivateMessage( name, "BanCs in database for " + message + ":" );
-                    m_botAction.remotePrivateMessageSpam( name, banCs.toArray(new String[banCs.size()]));
-                    m_botAction.sendRemotePrivateMessage( name, "Displayed " + banCs.size() + " BanCs (including " + numExpired + " expired BanCs)." );
+                    m_botAction.sendSmartPrivateMessage( name, "BanCs in database for " + message + ":" );
+                    m_botAction.smartPrivateMessageSpam( name, banCs.toArray(new String[banCs.size()]));
+                    m_botAction.sendSmartPrivateMessage( name, "Displayed " + banCs.size() + " BanCs (including " + numExpired + " expired BanCs)." );
                 } else {              // !bancs
                     if(banCs.size() > 0) {
-                        m_botAction.sendRemotePrivateMessage( name, "BanCs in database for " + message + ":" );
-                        m_botAction.remotePrivateMessageSpam( name, banCs.toArray(new String[banCs.size()]));
-                        m_botAction.sendRemotePrivateMessage( name, "Displayed " + banCs.size() + " valid BanCs (suppressed " + numExpired + " expired)." + (numExpired > 0?" PM !allbancs to display all.":"") );
+                        m_botAction.sendSmartPrivateMessage( name, "BanCs in database for " + message + ":" );
+                        m_botAction.smartPrivateMessageSpam( name, banCs.toArray(new String[banCs.size()]));
+                        m_botAction.sendSmartPrivateMessage( name, "Displayed " + banCs.size() + " valid BanCs (suppressed " + numExpired + " expired)." + (numExpired > 0?" PM !allbancs to display all.":"") );
                     } else {
-                        m_botAction.sendRemotePrivateMessage( name, "No active BanCs for "+ message +".");
-                        m_botAction.sendRemotePrivateMessage( name, "There are "+numExpired+" expired BanCs. PM !allbancs to display these.");
+                        m_botAction.sendSmartPrivateMessage( name, "No active BanCs for "+ message +".");
+                        m_botAction.sendSmartPrivateMessage( name, "There are "+numExpired+" expired BanCs. PM !allbancs to display these.");
                     }
                     
                 }                
             } else {
-                m_botAction.sendRemotePrivateMessage( name, "No BanCs found for '" + message + "'.");
+                m_botAction.sendSmartPrivateMessage( name, "No BanCs found for '" + message + "'.");
                 
                 ArrayList<String> fuzzynames = getFuzzyNamesDB(message);
                 if(fuzzynames.size() > 0) {
-                    m_botAction.sendRemotePrivateMessage(name, "_");
-                    m_botAction.sendRemotePrivateMessage(name, "Maybe you were searching for the BanCs of one of the following players?");
-                    m_botAction.remotePrivateMessageSpam(name, fuzzynames.toArray(new String[fuzzynames.size()]));
-                    m_botAction.sendRemotePrivateMessage(name, "PM !banc <name> to see the BanCs on one of these names.");
+                    m_botAction.sendSmartPrivateMessage(name, "_");
+                    m_botAction.sendSmartPrivateMessage(name, "Maybe you were searching for the BanCs of one of the following players?");
+                    m_botAction.smartPrivateMessageSpam(name, fuzzynames.toArray(new String[fuzzynames.size()]));
+                    m_botAction.sendSmartPrivateMessage(name, "PM !banc <name> to see the BanCs on one of these names.");
                 }
             }
         } catch( SQLException e ){
@@ -916,12 +916,12 @@ public class staffbot_banc extends Module {
         fuzzynames = getFuzzyNamesDB(message);
         
         if(fuzzynames.size() > 0) {
-            m_botAction.sendRemotePrivateMessage( name, "Names in database starting with '" + message + "':" );
-            m_botAction.remotePrivateMessageSpam( name, fuzzynames.toArray(new String[fuzzynames.size()]));
+            m_botAction.sendSmartPrivateMessage( name, "Names in database starting with '" + message + "':" );
+            m_botAction.smartPrivateMessageSpam( name, fuzzynames.toArray(new String[fuzzynames.size()]));
             if( fuzzynames.size() == MAX_NAME_SUGGESTIONS )
-                m_botAction.sendRemotePrivateMessage( name, "Results limited to "+ MAX_NAME_SUGGESTIONS + ", refine your search further if you have not found the desired result." );
+                m_botAction.sendSmartPrivateMessage( name, "Results limited to "+ MAX_NAME_SUGGESTIONS + ", refine your search further if you have not found the desired result." );
         } else {
-            m_botAction.sendRemotePrivateMessage( name, "No names found starting with '"+message+"'.");
+            m_botAction.sendSmartPrivateMessage( name, "No names found starting with '"+message+"'.");
         }
     }
     
