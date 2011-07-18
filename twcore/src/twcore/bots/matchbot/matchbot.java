@@ -442,7 +442,7 @@ public class matchbot extends SubspaceBot {
                 && message.equals("Player Moderator OFF") && power) {
                 for (int i = 0; i < powerOn.size(); i++) {
                     m_botAction.sendUnfilteredPrivateMessage(powerOn.get(i), "*moderator");
-                    m_botAction.sendSmartPrivateMessage(powerOn.get(i), "Power ON.");
+                    m_botAction.sendPrivateMessage(powerOn.get(i), "Power ON.");
                     }
 
         }
@@ -450,7 +450,7 @@ public class matchbot extends SubspaceBot {
                 && message.equals("Player Moderator ON") && !power) {
                 for (int i = 0; i < powerOff.size(); i++) {
                     m_botAction.sendUnfilteredPrivateMessage(powerOff.get(i), "*moderator");
-                    m_botAction.sendSmartPrivateMessage(powerOn.get(i), "Power OFF.");
+                    m_botAction.sendPrivateMessage(powerOn.get(i), "Power OFF.");
                     }
 
         }
