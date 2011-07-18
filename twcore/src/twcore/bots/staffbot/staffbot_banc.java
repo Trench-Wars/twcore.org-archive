@@ -857,15 +857,16 @@ public class staffbot_banc extends Module {
                     numExpired++;
                 if( !expired || showExpired ) {
                     String strDate = new SimpleDateFormat("dd MMM yyyy").format( date );
-
+                    /*
                     String[] text;
                     if( banc.contains("Ext: "))
                         text = banc.split( "Ext: ", 2);
                     else
                         text = banc.split( ": ", 2);
 
-                    if( text.length == 2 )
-                        banCs.add(strDate + "   " + text[1] + "   " + duration + "   " + staffer + "   "+ comment);
+                    if( text.length == 2 ) */
+                        
+                    banCs.add(strDate + "   " + banc + "   " + duration + "   " + staffer + "   "+ comment);
                 }
                 numTotal++;
             }
@@ -873,16 +874,17 @@ public class staffbot_banc extends Module {
             
             
             // Respond to the user
-            if(numTotal > 0) {                
+            if(numTotal > 0) {           
+                int size = banCs.size();
                 if( showExpired ) {   // !allbancs
                     m_botAction.sendSmartPrivateMessage( name, "BanCs in database for " + message + ":" );
-                    m_botAction.smartPrivateMessageSpam( name, banCs.toArray(new String[banCs.size()]));
-                    m_botAction.sendSmartPrivateMessage( name, "Displayed " + banCs.size() + " BanCs (including " + numExpired + " expired BanCs)." );
+                    m_botAction.smartPrivateMessageSpam( name, banCs.toArray(new String[size]));
+                    m_botAction.sendSmartPrivateMessage( name, "Displayed " + size + " BanCs (including " + numExpired + " expired BanCs)." );
                 } else {              // !bancs
                     if(banCs.size() > 0) {
                         m_botAction.sendSmartPrivateMessage( name, "BanCs in database for " + message + ":" );
-                        m_botAction.smartPrivateMessageSpam( name, banCs.toArray(new String[banCs.size()]));
-                        m_botAction.sendSmartPrivateMessage( name, "Displayed " + banCs.size() + " valid BanCs (suppressed " + numExpired + " expired)." + (numExpired > 0?" PM !allbancs to display all.":"") );
+                        m_botAction.smartPrivateMessageSpam( name, banCs.toArray(new String[size]));
+                        m_botAction.sendSmartPrivateMessage( name, "Displayed " + size + " valid BanCs (suppressed " + numExpired + " expired)." + (numExpired > 0?" PM !allbancs to display all.":"") );
                     } else {
                         m_botAction.sendSmartPrivateMessage( name, "No active BanCs for "+ message +".");
                         m_botAction.sendSmartPrivateMessage( name, "There are "+numExpired+" expired BanCs. PM !allbancs to display these.");
