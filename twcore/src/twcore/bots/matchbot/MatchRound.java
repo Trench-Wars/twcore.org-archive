@@ -940,6 +940,9 @@ public class MatchRound
 
         if (command.equals("!mvp") && (m_fnRoundState == 3))
             command_mvp(name, parameters);
+
+        if (command.equals("!rpd") && (m_fnRoundState == 3) && m_rules.getString("winby").equals("timerace"))
+            command_mvp(name, parameters);
         
         //TWSDX ONLY
         if (command.equals("!rules") && m_game.m_fnMatchTypeID == 13)
@@ -1305,6 +1308,19 @@ public class MatchRound
         if(rules_output != null && rules_output.length() > 0) {
             m_botAction.privateMessageSpam(name, rules_output.split("##"));
         }
+    }
+    
+    public void command_rpd(String name, String args[]) {
+        if (args.length != 1 || args[0] == null)
+            return;
+        MatchPlayer p = getPlayer(args[0]);
+        if (p != null) {
+            if (p.getShipType() == 8)
+                m_botAction.sendPrivateMessage(name , p.getPlayerName() + ": " + p.getRepelsPerDeath() + " rpd");
+            else
+                m_botAction.sendPrivateMessage(name , p.getPlayerName() + " is not a shark.");
+        } else 
+            m_botAction.sendPrivateMessage(name , args[0] + " could not be found.");
     }
 
     public void handleLagReport(LagReport report)
@@ -2111,8 +2127,8 @@ public class MatchRound
 		    out.add("|                               K |    D |   TK |    Rating | LO |");
 	    }
 	} else {
-	    out.add(",---------------------------------+------+------+-----------+------+------+-----------+----.");
-	    out.add("|                               K |    D |   TK |    Points |   FT |  TeK |    Rating | LO |");
+	    out.add(",---------------------------------+------+------+-----------+------+------+-----+-----------+----.");
+	    out.add("|                               K |    D |   TK |    Points |   FT |  TeK |     |    Rating | LO |");
 	}
 
 	out.addAll(m_team1.getDScores(duelG, wbG));
@@ -2124,7 +2140,7 @@ public class MatchRound
 		    out.add("+---------------------------------+------+------+-----------+----+");
 	    }
 	} else {
-	    out.add("+---------------------------------+------+------+-----------+------+------+-----------+----+");
+	    out.add("+---------------------------------+------+------+-----------+------+------+-----+-----------+----+");
 	}
 
 	out.addAll(m_team2.getDScores(duelG, wbG));
@@ -2136,7 +2152,7 @@ public class MatchRound
 		    out.add("`---------------------------------+------+------+-----------+----'");
 	    }
 	} else {
-	    out.add("`---------------------------------+------+------+-----------+------+------+-----------+----'");
+	    out.add("`---------------------------------+------+------+-----------+------+------+-----+-----------+----'");
 	}
 
 	String out2[] = out.toArray(new String[out.size()]);
