@@ -755,7 +755,10 @@ public class staffbot_banc extends Module {
     }
 
     private boolean sendBanCs(String stafferName, String name, int limit) throws SQLException{
-        this.cmdListBan(stafferName, "-player='"+name+"'",false, false);
+        if (limit != -1)
+            this.cmdListBan(stafferName, "-player='"+name+"'",false, false);
+        else
+            this.cmdListBan(stafferName, "-player='"+name+"'",false, true);
         /* List<String> list = new ArrayList<String>();
         
         String query;
@@ -865,7 +868,7 @@ public class staffbot_banc extends Module {
         if(lastestWarnings.size() > 0)
         {
             
-            m_botAction.sendRemotePrivateMessage(stafferName, " ------ Lastest warnings (last 2 weeks): ");
+            m_botAction.sendRemotePrivateMessage(stafferName, " ------ Latest warnings (last 2 weeks): ");
             m_botAction.remotePrivateMessageSpam(stafferName, lastestWarnings.toArray(new String[lastestWarnings.size()]));
         }
 
@@ -1627,8 +1630,11 @@ public class staffbot_banc extends Module {
                 }
                 if (showExpired)
                     sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated, fbLifted FROM tblBanc "+sqlWhere+" ORDER BY fnID DESC LIMIT 0,"+viewcount;
-                else
+                else {
                     sqlQuery = "SELECT fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated, fbLifted FROM tblBanc " + sqlWhere + " AND (NOW() < DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE)) ORDER BY fnID DESC LIMIT 0," + viewcount;
+                    m_botAction.sendSmartPrivateMessage(name, " ------ Active BanCs ------ ");
+                }
+                    
                 ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
                 
                 if(rs != null) {
