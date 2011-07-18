@@ -4279,7 +4279,7 @@ public class hockeybot extends SubspaceBot {
     }
 
     private class Gameticker extends TimerTask {
-
+        int ticker = 0;
         @Override
         public void run() {
             switch (currentState) {
@@ -4339,14 +4339,13 @@ public class hockeybot extends SubspaceBot {
 
             if (!puck.holding) {
                 timeStamp = System.currentTimeMillis();
+                ticker = 0;
                 getBall();
-            }
-
-            long time = (System.currentTimeMillis() - timeStamp)
-                    / Tools.TimeInMillis.SECOND;
+            } else
+                ticker++;
 
             //DROP WARNING
-            if (time == 20) {
+            if (ticker == 20) {
                 m_botAction.sendArenaMessage("Get READY! DROP in 10 seconds.", 1);
                 try {
                     if (!team0.offside.empty()) {
@@ -4414,7 +4413,7 @@ public class hockeybot extends SubspaceBot {
             }
 
             //CHECK PENALTIES AND DROP
-            if (time >= 29) {
+            if (ticker >= 29) {
                 try {
                     if (!team0.offside.empty()) {
                         Iterator<String> i = team0.offside.iterator();
@@ -4479,7 +4478,7 @@ public class hockeybot extends SubspaceBot {
                 }
             }
 
-            if (time >= 30) {
+            if (ticker >= 30) {
                 startGame();
                 team0.clearUnsetPenalties();
                 team1.clearUnsetPenalties();
