@@ -441,16 +441,16 @@ public class matchbot extends SubspaceBot {
         if (messageType == Message.ARENA_MESSAGE
                 && message.equals("Player Moderator OFF") && power) {
                 for (int i = 0; i < powerOn.size(); i++) {
+                    m_botAction.sendPrivateMessage(powerOff.get(i), "Power ON.");
                     m_botAction.sendUnfilteredPrivateMessage(powerOn.get(i), "*moderator");
-                    m_botAction.sendPrivateMessage(powerOn.get(i), "Power ON.");
                     }
 
         }
         if (messageType == Message.ARENA_MESSAGE
                 && message.equals("Player Moderator ON") && !power) {
                 for (int i = 0; i < powerOff.size(); i++) {
-                    m_botAction.sendUnfilteredPrivateMessage(powerOff.get(i), "*moderator");
                     m_botAction.sendPrivateMessage(powerOn.get(i), "Power OFF.");
+                    m_botAction.sendUnfilteredPrivateMessage(powerOff.get(i), "*moderator");
                     }
 
         }
