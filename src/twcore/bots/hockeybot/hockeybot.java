@@ -445,21 +445,13 @@ public class hockeybot extends SubspaceBot {
      * Grabs ball and sits in drop location
      */
     public void getBall() {
-        final TimerTask drop = new TimerTask() {
-            @Override
-            public void run() {
-                if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
-                    m_botAction.getShip().setShip(8);
-                    m_botAction.getShip().setShip(0);
-                    m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
-                    m_botAction.getBall(puck.getBallID(), (int) puck.getTimeStamp());
-                    m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
-                    m_botAction.getShip().sendPositionPacket();
-                }
-            }
-            
-        };
-        drop.run();
+        if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
+            m_botAction.getShip().setShip(8);
+            m_botAction.getShip().setShip(0);
+            m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
+            m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
+            m_botAction.getBall(puck.getBallID(), (int) puck.getTimeStamp());
+        }
     }
 
     /**
@@ -467,7 +459,6 @@ public class hockeybot extends SubspaceBot {
      */
     public void dropBall() {
         m_botAction.getShip().setShip(8);
-        m_botAction.specWithoutLock(m_botAction.getBotName());
         m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
     }
 
@@ -4279,7 +4270,7 @@ public class hockeybot extends SubspaceBot {
     }
 
     private class Gameticker extends TimerTask {
-        int ticker = 0;
+
         @Override
         public void run() {
             switch (currentState) {
@@ -4339,13 +4330,14 @@ public class hockeybot extends SubspaceBot {
 
             if (!puck.holding) {
                 timeStamp = System.currentTimeMillis();
-                ticker = 0;
                 getBall();
-            } else
-                ticker++;
+            }
+
+            long time = (System.currentTimeMillis() - timeStamp)
+                    / Tools.TimeInMillis.SECOND;
 
             //DROP WARNING
-            if (ticker == 20) {
+            if (time == 20) {
                 m_botAction.sendArenaMessage("Get READY! DROP in 10 seconds.", 1);
                 try {
                     if (!team0.offside.empty()) {
@@ -4413,7 +4405,7 @@ public class hockeybot extends SubspaceBot {
             }
 
             //CHECK PENALTIES AND DROP
-            if (ticker >= 29) {
+            if (time >= 29) {
                 try {
                     if (!team0.offside.empty()) {
                         Iterator<String> i = team0.offside.iterator();
@@ -4478,7 +4470,7 @@ public class hockeybot extends SubspaceBot {
                 }
             }
 
-            if (ticker >= 30) {
+            if (time >= 30) {
                 startGame();
                 team0.clearUnsetPenalties();
                 team1.clearUnsetPenalties();
