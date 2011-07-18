@@ -2459,7 +2459,7 @@ public class MatchTeam
         }
         else
         {
-            out.add("|                          ,------+------+------+-----------+------+------+-----------+----+");
+            out.add("|                          ,------+------+------+-----------+------+------+-----+-----------+----+");
             out.add("| " + Tools.formatString(m_fcTeamName, 23) + " /  "
                     + rightenString(Integer.toString(getDTotalStats(Statistics.TOTAL_KILLS)), 4) + " | "
                     + rightenString(Integer.toString(getDTotalStats(Statistics.DEATHS)), 4) + " | "
@@ -2470,7 +2470,7 @@ public class MatchTeam
                     + rightenString(Integer.toString(getTotalRepelsUsed()), 3) + " | "
                     + rightenString(Integer.toString(getDTotalStats(Statistics.RATING)), 9) + " | "
                     + rightenString(Integer.toString(getTotalLagOuts()), 2) + " |");
-            out.add("+------------------------'        |      |      |           |      |      |           |    |");
+            out.add("+------------------------'        |      |      |           |      |      |     |           |    |");
 
             for (int i = players.length - 1; i >= 0; i--)
             {

@@ -2128,7 +2128,7 @@ public class MatchRound
 	    }
 	} else {
 	    out.add(",---------------------------------+------+------+-----------+------+------+-----+-----------+----.");
-	    out.add("|                               K |    D |   TK |    Points |   FT |  TeK |     |    Rating | LO |");
+	    out.add("|                               K |    D |   TK |    Points |   FT |  TeK | RPD |    Rating | LO |");
 	}
 
 	out.addAll(m_team1.getDScores(duelG, wbG));
