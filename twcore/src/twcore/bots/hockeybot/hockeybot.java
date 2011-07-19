@@ -574,9 +574,16 @@ public class hockeybot extends SubspaceBot {
                 cmd_ball(name);
             } else if (cmd.equals("!drop")) {
                 cmd_drop(name);
-            } else if (cmd.startsWith("!decrease ")) {
-            	cmd_decrease(name, cmd);
-            }
+            } 
+        }
+        
+        /* Staff commands ER+ */
+        if (m_botAction.getOperatorList().isER(name)) {
+        	if (cmd.startsWith("!decrease ")) {
+        		cmd_decrease(name, cmd);
+        	} else if (cmd.startsWith("!increase ")) {
+        		cmd_increase(name, cmd);
+        	}
         }
 
         /* Staff commands Moderator+ */
@@ -970,14 +977,18 @@ public class hockeybot extends SubspaceBot {
             help.add("!off                      -- stops the bot after the current game");
             help.add("!die                      -- disconnects the bot");
         }
-
+        
+        if (m_botAction.getOperatorList().isER(name)) {
+            help.add("!decrease <freq>                  -- subtracts a goal from <freq>");
+            help.add("!increase <freq>                  -- adds a goal for <freq> - only to be used to undo a double !decrease");
+        }
+        
         if (m_botAction.getOperatorList().isZH(name)) {
             help.add("ZH+ commands:");
             help.add("!start                            -- starts the bot");
             help.add("!stop                             -- stops the bot");
             help.add("!ball                             -- retrieves the ball");
             help.add("!drop                             -- drops the ball");
-            help.add("!decrease <freq>                  -- subtracts a goal from <freq>");
             if (!config.getAllowAutoCaps()) {
                 help.add("!zone <message>                   -- sends time-restricted advert, message is optional");
             }
@@ -1417,6 +1428,47 @@ public class hockeybot extends SubspaceBot {
     }
     
     /**
+     * Increases a frequencies score by 1
+     * @param name player that issue the !decrease command
+     * @param message frequency whose score is to be decreased
+     */
+    private void cmd_increase(String name, String message) {
+    	String msg = message.substring(10);
+    	int tempCheck = 0;
+    	int targetFreq = -1;
+    	
+    	try {
+    		targetFreq = Integer.valueOf(msg);
+    	} catch (NumberFormatException e) {
+    		m_botAction.sendPrivateMessage(name, "Invalid syntax. Please use !increase <freq> where <freq> is either 0 or 1.");
+    	}
+    	
+    	if (currentState != HockeyState.OFF) {
+    		if (targetFreq == 0) {
+    			tempCheck = team0.getScore();
+    			if (tempCheck < 7 && tempCheck >= 0) {
+    				team0.increaseScore();
+    				m_botAction.sendArenaMessage("Score for " + team0.getName() + " has been set to " + team0.getScore() + " by " + name);
+    			}
+    			else
+    				m_botAction.sendPrivateMessage(name, "This command cannot be used for the final goal.");
+    		}
+    		else if (targetFreq == 1) {
+    			tempCheck = team1.getScore();
+    			if (tempCheck < 7 && tempCheck >= 0) {
+    				team1.increaseScore();
+        			m_botAction.sendArenaMessage("Score for " + team1.getName() + " has been set to " + team1.getScore() + " by " + name);
+    			}
+    			else
+    				m_botAction.sendPrivateMessage(name, "This command cannot be used for the final goal.");
+    		}
+    		else
+    			m_botAction.sendPrivateMessage(name, "The action could not be completed at this time. Use !increase <freq> "
+    												 									+ "to add a goal for <freq>.");
+    	}
+    }
+    
+    /**
      * Decreases a frequencies score by 1
      * 
      * @param name player that issue the !decrease command
@@ -1460,7 +1512,9 @@ public class hockeybot extends SubspaceBot {
     }
     }
 
-    /**
+ 
+
+	/**
      * Handles the !sub command
      *
      * @param name name of the player that issued the !sub command
