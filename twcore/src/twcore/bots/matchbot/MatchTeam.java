@@ -425,7 +425,7 @@ public class MatchTeam
                                 m_botAction.sendUnfilteredPrivateMessage(n, "*einfo");
                             }
                         };
-                        m_botAction.scheduleTask(t, 4000);                        
+                        m_botAction.scheduleTask(t, 1000);                        
                     }
                 }
                 
@@ -872,6 +872,7 @@ public class MatchTeam
 
                 // if twdd gametype
                 if (m_round.getGame().m_fnMatchTypeID == 4) {
+                    m_botAction.sendPrivateMessage(name, "[DEBUG] Doing Resolution Check for: " + p.getPlayerName());
                     ResCheck rc = new ResCheck(p.getPlayerName(), ADD);
                     rc.cap = name;
                     rc.ship = fnShip;
@@ -2624,6 +2625,7 @@ public class MatchTeam
                 String[] rx = res.split("x");
                 r[0] = Integer.valueOf(rx[0]);
                 r[1] = Integer.valueOf(rx[1]);
+                m_botAction.sendPrivateMessage(cap, "[DEBUG] Checking " + r[0] + "x" + r[1] + " resolution of: " + name);
                 if (r[0] > MAX_RES_X || r[1] > MAX_RES_Y) {
                     if (type == ADD) {
                         m_botAction.sendSmartPrivateMessage(name, "Maximum resolution for this arena is " + MAX_RES_X + "x" + MAX_RES_Y + ". Until you change your resolution, you cannot be added.");
