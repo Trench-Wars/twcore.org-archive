@@ -274,6 +274,7 @@ public class twchat extends SubspaceBot {
             }
         }
     }
+    
 
     public void handleEvent(FileArrived event) {
         for (int i = 0; i < lastPlayer.size(); i++) {
@@ -283,6 +284,9 @@ public class twchat extends SubspaceBot {
                     BufferedWriter writer = new BufferedWriter(new FileWriter(m_botAction.getDataFile("vip.txt"), true));
 
                     reader.readLine();
+                    if(reader.readLine().equalsIgnoreCase(lastPlayer.get(i))){
+                        m_botAction.sendSmartPrivateMessage(lastPlayer.get(i), "Sorry, this name is already stored to use TWChat.");
+                    } else
                     writer.write("\r\n" + lastPlayer.get(i));
 
                     // writer.write("\n"+name);
@@ -293,7 +297,7 @@ public class twchat extends SubspaceBot {
                     m_botAction.putFile("vip.txt");
                     m_botAction.sendSmartPrivateMessage(lastPlayer.get(i), "You have successfully signed up to TWChat!");
                     Tools.printLog("Added player " + lastPlayer.get(i) + " to VIP.txt for TWChat");
-                    m_botAction.sendChatMessage("Good Day, I have added " + lastPlayer.get(i) + " to VIP for TWChat.");
+                    m_botAction.sendChatMessage("Player "+lastPlayer.get(i)+" has signed up for TWChat.");
                     lastPlayer.remove(i);
                 }
 
@@ -629,7 +633,7 @@ public class twchat extends SubspaceBot {
         String[] modCommands = {
                         "|------------------------------- TWChat SMod+ ----------------------------------|",
                         "|                                                                               |",
-                        "| !test                       - Retrieves the VIP text file from the server to  |",
+                        "| !get                        - Retrieves the VIP text file from the server to  |",
                         "|                               be accurate where it is placed.                 |",
                         "| !die                        - Throw me off a bridge without a parachute       |",
                         "| !vipadd                     - Manually add this person to VIP.                |",
