@@ -1479,7 +1479,7 @@ public class hockeybot extends SubspaceBot {
     	if (currentState != HockeyState.OFF) {
     		if (targetFreq == 0) {
     			tempCheck = team0.getScore();
-    			if (tempCheck < 7 && tempCheck >= 0) {
+    			if (tempCheck < 6 && tempCheck >= 0) {
     				team0.increaseScore();
     				m_botAction.sendArenaMessage("Score for " + team0.getName() + " has been set to " + team0.getScore() + " by " + name, 2);
     			}
@@ -1488,7 +1488,7 @@ public class hockeybot extends SubspaceBot {
     		}
     		else if (targetFreq == 1) {
     			tempCheck = team1.getScore();
-    			if (tempCheck < 7 && tempCheck >= 0) {
+    			if (tempCheck < 6 && tempCheck >= 0) {
     				team1.increaseScore();
         			m_botAction.sendArenaMessage("Score for " + team1.getName() + " has been set to " + team1.getScore() + " by " + name, 2);
     			}
@@ -1809,11 +1809,13 @@ public class hockeybot extends SubspaceBot {
      * - Determine next pick
      */
     private void startAddingPlayers() {
+    	
         currentState = HockeyState.ADDING_PLAYERS;
 
         timeStamp = System.currentTimeMillis();
         m_botAction.sendArenaMessage("Captains you have 10 minutes to set up your lineup correctly!",
                 Tools.Sound.BEEP2);
+        showTeamNameObjects();
 
         if (config.getAllowAutoCaps()) {
             newGameAlert(null, null);
@@ -1941,6 +1943,7 @@ public class hockeybot extends SubspaceBot {
     private void gameOver(int winningFreq) {
 
         currentState = HockeyState.GAME_OVER;
+        clearTeamNameObjects();
 
         //Cancel timer
         m_botAction.setTimer(0);
@@ -2458,6 +2461,7 @@ public class hockeybot extends SubspaceBot {
         team0.resetVariables();
         team1.resetVariables();
         clearObjects();
+        clearTeamNameObjects();
         puck.clear();
 
         setSpecAndFreq();
@@ -2505,7 +2509,39 @@ public class hockeybot extends SubspaceBot {
             }
         }
     }
+    
+    private void clearTeamNameObjects() {
+    	//"FREQ0" team name
+    	m_botAction.hideObject(350);
+    	m_botAction.hideObject(471);
+    	m_botAction.hideObject(342);
+    	m_botAction.hideObject(463);
+    	m_botAction.hideObject(564);
+    	//"FREQ1" team name
+    	m_botAction.hideObject(355);
+    	m_botAction.hideObject(476);
+    	m_botAction.hideObject(347);
+    	m_botAction.hideObject(468);
+    	m_botAction.hideObject(579);
+    }
+    
+    private void showTeamNameObjects() {
+    	//"FREQ0" team name
+    	m_botAction.showObject(350);
+    	m_botAction.showObject(471);
+    	m_botAction.showObject(342);
+    	m_botAction.showObject(463);
+    	m_botAction.showObject(564);
+    	//"FREQ1" team name
+    	m_botAction.showObject(355);
+    	m_botAction.showObject(476);
+    	m_botAction.showObject(347);
+    	m_botAction.showObject(468);
+    	m_botAction.showObject(579);
+    }
+    
     private void clearObjects() {
+    	//0-7 for freq 0
     	m_botAction.hideObject(100);
     	m_botAction.hideObject(101);
     	m_botAction.hideObject(102);
@@ -2514,6 +2550,7 @@ public class hockeybot extends SubspaceBot {
     	m_botAction.hideObject(105);
     	m_botAction.hideObject(106);
     	m_botAction.hideObject(107);
+    	//0-7 for freq 1
     	m_botAction.hideObject(200);
     	m_botAction.hideObject(201);
     	m_botAction.hideObject(202);
