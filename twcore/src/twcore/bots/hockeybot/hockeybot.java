@@ -44,6 +44,7 @@ public class hockeybot extends SubspaceBot {
     private HockeyConfig config;                            //Game configuration
     private HockeyTeam team0;                               //Teams
     private HockeyTeam team1;
+    private Vote staffVote;									//staff vote for clean or phase
     private HockeyPuck puck;                                //the ball in arena
     private Spy racismWatcher;                              //Racism watcher
     private ArrayList<String> listNotplaying;               //List of notplaying players
@@ -68,6 +69,7 @@ public class hockeybot extends SubspaceBot {
     private long roundTime;
     private long gameTime;
     private int carriersSize;
+    private String staffVoter;
 
     private enum HockeyPenalty {
 
@@ -101,6 +103,8 @@ public class hockeybot extends SubspaceBot {
         puck = new HockeyPuck();
         team0 = new HockeyTeam(0);              //Team: Freq 0
         team1 = new HockeyTeam(1);              //Team: Freq 1
+        staffVote = Vote.NONE;					//clears staff vote
+        
 
         racismWatcher = new Spy(m_botAction);   //Racism watcher
 
@@ -574,7 +578,9 @@ public class hockeybot extends SubspaceBot {
                 cmd_ball(name);
             } else if (cmd.equals("!drop")) {
                 cmd_drop(name);
-            } 
+            } else if (cmd.equals("!phase") || cmd.equals("!ph") || cmd.equals("!lag")) {
+            	cmd_ph(name);
+            }
         }
         
         /* Staff commands ER+ */
@@ -607,6 +613,32 @@ public class hockeybot extends SubspaceBot {
                 + ", " + puck.getBallY());
         getBall();
     }
+    
+    private void cmd_ph(String name) {
+    	
+    	if (currentState != HockeyState.REVIEW) {
+    		m_botAction.sendPrivateMessage(name, "The game is not currently in a review state. If you wish to manually add or a subtract " +
+    											 "a goal, please use !increase <freq> or !decrease <freq>.");
+    	}
+    	else {
+    		staffVote = Vote.PHASE;
+    		if (name != null) {    			
+    			staffVoter = name;
+    		}
+    		else {    			
+    			staffVoter = "Staff";
+    		}
+    	}	
+    	
+    }
+    
+    private Vote getStaffVote() {
+    	return staffVote;
+    }
+    
+
+    
+
 
     /** Handles the !drop command */
     private void cmd_drop(String name) {
@@ -981,6 +1013,7 @@ public class hockeybot extends SubspaceBot {
         if (m_botAction.getOperatorList().isER(name)) {
             help.add("!decrease <freq>                  -- subtracts a goal from <freq>");
             help.add("!increase <freq>                  -- adds a goal for <freq> - only to be used to undo a double !decrease");
+            help.add("!phase/!ph/!lag                   -- used only on the final goal to callback a phase/lag goal.");
         }
         
         if (m_botAction.getOperatorList().isZH(name)) {
@@ -1448,7 +1481,7 @@ public class hockeybot extends SubspaceBot {
     			tempCheck = team0.getScore();
     			if (tempCheck < 7 && tempCheck >= 0) {
     				team0.increaseScore();
-    				m_botAction.sendArenaMessage("Score for " + team0.getName() + " has been set to " + team0.getScore() + " by " + name);
+    				m_botAction.sendArenaMessage("Score for " + team0.getName() + " has been set to " + team0.getScore() + " by " + name, 2);
     			}
     			else
     				m_botAction.sendPrivateMessage(name, "This command cannot be used for the final goal.");
@@ -1457,7 +1490,7 @@ public class hockeybot extends SubspaceBot {
     			tempCheck = team1.getScore();
     			if (tempCheck < 7 && tempCheck >= 0) {
     				team1.increaseScore();
-        			m_botAction.sendArenaMessage("Score for " + team1.getName() + " has been set to " + team1.getScore() + " by " + name);
+        			m_botAction.sendArenaMessage("Score for " + team1.getName() + " has been set to " + team1.getScore() + " by " + name, 2);
     			}
     			else
     				m_botAction.sendPrivateMessage(name, "This command cannot be used for the final goal.");
@@ -1466,6 +1499,7 @@ public class hockeybot extends SubspaceBot {
     			m_botAction.sendPrivateMessage(name, "The action could not be completed at this time. Use !increase <freq> "
     												 									+ "to add a goal for <freq>.");
     	}
+    	
     }
     
     /**
@@ -1492,7 +1526,7 @@ public class hockeybot extends SubspaceBot {
     			tempCheck = team0.getScore();
     			if (tempCheck > 0) {
     				team0.decreaseScore();
-    				m_botAction.sendArenaMessage("Score for " + team0.getName() + " has been set to " + team0.getScore() + " by " + name);
+    				m_botAction.sendArenaMessage("Score for " + team0.getName() + " has been set to " + team0.getScore() + " by " + name, 2);
     			}
     			else
     				m_botAction.sendPrivateMessage(name, team0.getName() + " does not have any goals.");
@@ -1501,7 +1535,7 @@ public class hockeybot extends SubspaceBot {
     			tempCheck = team1.getScore();
     			if (tempCheck > 0) {
     				team1.decreaseScore();
-        			m_botAction.sendArenaMessage("Score for " + team1.getName() + " has been set to " + team1.getScore() + " by " + name);
+        			m_botAction.sendArenaMessage("Score for " + team1.getName() + " has been set to " + team1.getScore() + " by " + name, 2);
     			}
     			else
     				m_botAction.sendPrivateMessage(name, team1.getName() + " does not have any goals.");
@@ -1801,6 +1835,7 @@ public class hockeybot extends SubspaceBot {
      */
     private void startFaceOff() {
         currentState = HockeyState.FACE_OFF;
+        updateScoreBoard();
 
         puck.clear();
         team0.clearUnsetPenalties();
@@ -1811,8 +1846,8 @@ public class hockeybot extends SubspaceBot {
         timeStamp = System.currentTimeMillis();
     }
 
-    private void startReview(SoccerGoal event) {
-
+    private void startReview(SoccerGoal event) {    	
+    	
         Point release = puck.peekLastReleasePoint();
 
         int pX0 = Math.abs(config.team0GoalX - release.x);
@@ -1822,7 +1857,7 @@ public class hockeybot extends SubspaceBot {
         int pX1 = Math.abs(config.team1GoalX - release.x);
         int pY1 = Math.abs(config.team1GoalY - release.y);
         double distance1 = Math.sqrt(Math.pow(pX1, 2) + Math.pow(pY1, 2));
-
+        
         if (distance0 < config.getGoalRadius() && event.getFrequency() == 1) {
             m_botAction.sendArenaMessage("CREASE. No count.", Tools.Sound.CROWD_GEE);
         } else if (distance0 < config.getGoalRadius() && event.getFrequency() == 0) {
@@ -1860,13 +1895,34 @@ public class hockeybot extends SubspaceBot {
 
         //TODO cahnge this
         if (team0.getScore() >= 7) {
-            gameOver(0);
-        } else if (team1.getScore() >= 7) {
+        	currentState = HockeyState.REVIEW;
+            if (staffVote == Vote.PHASE) {
+            	m_botAction.sendArenaMessage("Goal voted PHASE/LAG by " + staffVoter + ".", 2);
+            	team0.decreaseScore();
+            	displayScores();
+            	startFaceOff();            
+            }
+            else {
+            	gameOver(0);
+            }
+        }            
+        else if (team1.getScore() >= 7) {
+        	currentState = HockeyState.REVIEW;
+            if (staffVote == Vote.PHASE) {
+            	m_botAction.sendArenaMessage("Goal voted PHASE/LAG by " + staffVoter + ".", 2);
+            	team1.decreaseScore();
+            	displayScores();
+            	startFaceOff();            
+            }
+            else {
             gameOver(1);
-        } else {
-            startFaceOff();
+        }
+        }
+        else {
+        	startFaceOff();
         }
     }
+    
 
     /**
      * Starts a game
@@ -2401,6 +2457,7 @@ public class hockeybot extends SubspaceBot {
         gameTime = 0;
         team0.resetVariables();
         team1.resetVariables();
+        clearObjects();
         puck.clear();
 
         setSpecAndFreq();
@@ -2447,6 +2504,32 @@ public class hockeybot extends SubspaceBot {
                 m_botAction.specWithoutLock(id);
             }
         }
+    }
+    private void clearObjects() {
+    	m_botAction.hideObject(100);
+    	m_botAction.hideObject(101);
+    	m_botAction.hideObject(102);
+    	m_botAction.hideObject(103);
+    	m_botAction.hideObject(104);
+    	m_botAction.hideObject(105);
+    	m_botAction.hideObject(106);
+    	m_botAction.hideObject(107);
+    	m_botAction.hideObject(200);
+    	m_botAction.hideObject(201);
+    	m_botAction.hideObject(202);
+    	m_botAction.hideObject(203);
+    	m_botAction.hideObject(204);
+    	m_botAction.hideObject(205);
+    	m_botAction.hideObject(206);
+    	m_botAction.hideObject(207);
+    	
+    }
+    private void updateScoreBoard() {
+    	int team0Score = team0.getScore();
+    	int team1Score = team1.getScore();
+    	clearObjects();
+    	m_botAction.showObject(100 + team0Score);
+    	m_botAction.showObject(200 + team1Score);
     }
 
     /**
@@ -2944,6 +3027,9 @@ public class hockeybot extends SubspaceBot {
 
         public void madeGoal() {
             this.goals++;
+            if (this.goals == 3) {
+            	m_botAction.sendArenaMessage("HAT TRICK by " + this.getName() + "!", 19);
+            }
         }
 
         public void madeTurnover() {
@@ -3314,6 +3400,8 @@ public class hockeybot extends SubspaceBot {
             substitutesLeft = config.getMaxSubs();
             captainsIndex = -1;
             teamScore = 0;
+            
+            
             try {
                 offside.clear();
                 dCrease.clear();
@@ -3349,10 +3437,12 @@ public class hockeybot extends SubspaceBot {
          */
         private void increaseScore() {
             teamScore++;
+            updateScoreBoard();
         }
         
         private void decreaseScore() {
         	teamScore--;
+        	updateScoreBoard();
         }
 
         /**
@@ -4675,7 +4765,18 @@ public class hockeybot extends SubspaceBot {
         }
 
         private void doReview() {
-            //would do voting here
+        
+        	if (!puck.holding) {
+                timeStamp = System.currentTimeMillis();
+                getBall();
+            }
+        	
+        	long time;
+        	time = (System.currentTimeMillis() - timeStamp) / Tools.TimeInMillis.SECOND;
+        	m_botAction.sendArenaMessage("Reviewing final goal...", 2);
+        	if (time >= 15) {
+        		getStaffVote();        		
+        	}       	
         }
 
         private void doGameOver() {
@@ -4690,6 +4791,7 @@ public class hockeybot extends SubspaceBot {
                 m_botAction.sendArenaMessage("Bot has been shutdown.", Tools.Sound.GAME_SUCKS);
                 reset();
                 unlockArena();
+                clearObjects();
             }
         }
     }
