@@ -44,7 +44,7 @@ public class hockeybot extends SubspaceBot {
     private HockeyConfig config;                            //Game configuration
     private HockeyTeam team0;                               //Teams
     private HockeyTeam team1;
-    private Vote staffVote;									//staff vote for clean or phase
+    //private Vote staffVote;   							//staff vote for clean or phase
     private HockeyPuck puck;                                //the ball in arena
     private Spy racismWatcher;                              //Racism watcher
     private ArrayList<String> listNotplaying;               //List of notplaying players
@@ -69,7 +69,7 @@ public class hockeybot extends SubspaceBot {
     private long roundTime;
     private long gameTime;
     private int carriersSize;
-    private String staffVoter;
+    // private String staffVoter;   
 
     private enum HockeyPenalty {
 
@@ -103,7 +103,7 @@ public class hockeybot extends SubspaceBot {
         puck = new HockeyPuck();
         team0 = new HockeyTeam(0);              //Team: Freq 0
         team1 = new HockeyTeam(1);              //Team: Freq 1
-        staffVote = Vote.NONE;					//clears staff vote
+        //staffVote = Vote.NONE;					//clears staff vote
         
 
         racismWatcher = new Spy(m_botAction);   //Racism watcher
@@ -578,9 +578,7 @@ public class hockeybot extends SubspaceBot {
                 cmd_ball(name);
             } else if (cmd.equals("!drop")) {
                 cmd_drop(name);
-            } else if (cmd.equals("!phase") || cmd.equals("!ph") || cmd.equals("!lag")) {
-            	cmd_ph(name);
-            }
+            } 
         }
         
         /* Staff commands ER+ */
@@ -614,6 +612,9 @@ public class hockeybot extends SubspaceBot {
         getBall();
     }
     
+    /*
+     * For delay period after final goal. needs more resting
+     * 
     private void cmd_ph(String name) {
     	
     	if (currentState != HockeyState.REVIEW) {
@@ -632,11 +633,12 @@ public class hockeybot extends SubspaceBot {
     	
     }
     
+    
     private Vote getStaffVote() {
     	return staffVote;
     }
     
-
+	*/
     
 
 
@@ -1897,30 +1899,10 @@ public class hockeybot extends SubspaceBot {
 
         //TODO cahnge this
         if (team0.getScore() >= 7) {
-        	currentState = HockeyState.REVIEW;
-            if (staffVote == Vote.PHASE) {
-            	m_botAction.sendArenaMessage("Goal voted PHASE/LAG by " + staffVoter + ".", 2);
-            	team0.decreaseScore();
-            	displayScores();
-            	startFaceOff();            
-            }
-            else {
-            	gameOver(0);
-            }
-        }            
-        else if (team1.getScore() >= 7) {
-        	currentState = HockeyState.REVIEW;
-            if (staffVote == Vote.PHASE) {
-            	m_botAction.sendArenaMessage("Goal voted PHASE/LAG by " + staffVoter + ".", 2);
-            	team1.decreaseScore();
-            	displayScores();
-            	startFaceOff();            
-            }
-            else {
-            gameOver(1);
-        }
-        }
-        else {
+        	gameOver(0);           
+        } else if (team1.getScore() >= 7) {
+        	gameOver(1);          
+        } else {
         	startFaceOff();
         }
     }
@@ -4802,7 +4784,9 @@ public class hockeybot extends SubspaceBot {
         }
 
         private void doReview() {
-        
+        /*
+         * For review period after final goal. needs more testing 
+         *
         	if (!puck.holding) {
                 timeStamp = System.currentTimeMillis();
                 getBall();
@@ -4813,7 +4797,8 @@ public class hockeybot extends SubspaceBot {
         	m_botAction.sendArenaMessage("Reviewing final goal...", 2);
         	if (time >= 15) {
         		getStaffVote();        		
-        	}       	
+        	}
+        */       	
         }
 
         private void doGameOver() {
