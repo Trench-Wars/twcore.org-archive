@@ -102,12 +102,13 @@ public class PubHuntModule extends AbstractModule {
 		
 		System.out.println(preyToHunter.size());
 		System.out.println(preyToHunter.keySet().size());
-    	
+    	/*
 		for(Entry<String, HuntPlayer> entry: preyToHunter.entrySet()) {
 			String playerName = entry.getKey();
 			m_botAction.sendSmartPrivateMessage(playerName, "preyToHunter: " + playerName);
 			//m_botAction.sendSmartPrivateMessage(playerName, "preyToHunter: " + playerName + " hunted by " + preyToHunter.get(playerName).name);
 		}
+		*/
 		
 		for(String player: preyWaitingList) {
 			m_botAction.sendSmartPrivateMessage(name, "preyWaitingList: " + player);
