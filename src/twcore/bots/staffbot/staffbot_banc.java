@@ -741,6 +741,7 @@ public class staffbot_banc extends Module {
      * */
     private void searchByName(String stafferName, String name, int limitBanCs, int limitWarnings) {
         try {
+            m_botAction.sendSmartPrivateMessage(stafferName, " ------ Latest bancs (last 2 weeks): ");
             sendBanCs(stafferName, name, limitBanCs);
             sendWarnings(stafferName, name, limitWarnings);
             if (m_botAction.getOperatorList().isSmod(stafferName) || bancOp.containsKey(stafferName.toLowerCase())) {
@@ -1417,7 +1418,7 @@ public class staffbot_banc extends Module {
      * @param name player who issued the command
      * @param parameters any command parameters
      */
-    private void cmdListBan(String name, String parameters, boolean showLBHelp, boolean showExpired) {
+    private void cmdListBan(String name, String parameters, boolean showLBHelp, boolean twoWeeks) {
         int viewcount = 10;
         parameters = parameters.toLowerCase();
         String sqlWhere = "";
@@ -1626,11 +1627,11 @@ public class staffbot_banc extends Module {
                 
             } else {
                 if(sqlWhere.length() > 0) {
-                    if (!showExpired)
+                    if (!twoWeeks)
                         sqlWhere = "WHERE fdCreated > DATE_SUB(NOW(), INTERVAL 2 WEEK) AND " + sqlWhere;
                     else
                         sqlWhere = "WHERE " + sqlWhere;
-                } else if (!showExpired){
+                } else if (!twoWeeks){
                     sqlWhere = "WHERE fdCreated > DATE_SUB(NOW(), INTERVAL 2 WEEK)";
                 }
                 
@@ -1645,10 +1646,7 @@ public class staffbot_banc extends Module {
                         do {
 
                             String result = "";
-                            if (showExpired)
-                                result += (rs.getBoolean("active")?"#":"^");
-                            else
-                                result += "#";
+                            result += (rs.getBoolean("active")?"#":"^");
                             result += Tools.formatString(rs.getString("fnID"), 4) + " ";
                             result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
                             result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + " ";
