@@ -399,7 +399,7 @@ public class PubHuntModule extends AbstractModule {
 		while(it.hasNext()) {
 			String name = it.next();
 			HuntPlayer prey = players.get(name);
-			if (!player.name.equalsIgnoreCase(name) && player.freq != prey.freq && prey.isPlaying()) {
+			if (prey != null && player != null && !player.name.equalsIgnoreCase(name) && player.freq != prey.freq && prey.isPlaying()) {
 				player.setPrey(prey.name);
 				preyToHunter.put(prey.name, player);
 				player.tellPrey();
