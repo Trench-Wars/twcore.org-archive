@@ -217,7 +217,7 @@ public class PubHuntModule extends AbstractModule {
     
     public void playerOut(HuntPlayer player) {
     	
-    	m_botAction.sendPublicMessage("Player out: " + player.name);
+    	//m_botAction.sendPublicMessage("Player out: " + player.name);
     	
     	preyWaitingList.remove(player.name);
     	hunterWaitingList.remove(player.name);
@@ -298,7 +298,8 @@ public class PubHuntModule extends AbstractModule {
         if (huntPlayerLeft != null) {
         	HuntPlayer hunter = preyToHunter.get(huntPlayerLeft.name);
         	playerOut(huntPlayerLeft);
-        	m_botAction.sendSmartPrivateMessage(hunter.name, "Your prey has left, please wait for a new prey.");
+        	if (hunter != null && hunter.name != null)
+        	    m_botAction.sendSmartPrivateMessage(hunter.name, "Your prey has left, please wait for a new prey.");
         	checkForWinner();
         }
 
@@ -397,7 +398,7 @@ public class PubHuntModule extends AbstractModule {
 		while(it.hasNext()) {
 			String name = it.next();
 			HuntPlayer prey = players.get(name);
-			if (player.freq != prey.freq && prey.isPlaying()) {
+			if (!player.name.equalsIgnoreCase(name) && player.freq != prey.freq && prey.isPlaying()) {
 				player.setPrey(prey.name);
 				preyToHunter.put(prey.name, player);
 				player.tellPrey();
