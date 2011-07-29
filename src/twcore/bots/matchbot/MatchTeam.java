@@ -90,6 +90,8 @@ public class MatchTeam
 
     boolean m_fbReadyToGo;
     boolean m_teamCancel;
+    boolean DEBUG;
+    String debugger;
 
     String m_fcLaggerName;
 
@@ -123,6 +125,8 @@ public class MatchTeam
         m_fnFrequency = fnFrequency;
         m_fbReadyToGo = false;
         m_teamCancel = false;
+        DEBUG = false;
+        debugger = "";
         m_fnSubstitutes = 0;
         m_fnShipChanges = 0;
         m_fnShipSwitches = 0;
@@ -374,7 +378,7 @@ public class MatchTeam
                 String name;
                 int idleTime;
                 name = msg.substring(0, msg.indexOf(":"));
-
+                debug("Sending idle info for: " + name);
                 idleTime = getIdleTime(msg);
                 if (isPlayerOnTeam(name))
                 {
@@ -414,7 +418,7 @@ public class MatchTeam
                 String name = msg.substring(0, msg.indexOf(':'));
                 String userid = getInfo(msg, "UserId:");
                 String resolution = getInfo(msg, "Res:");
-                
+                debug("Got einfo for: " + name);
                 if (resCheck.containsKey(name.toLowerCase())) {
                     if (resolution != null && resolution.length() > 3)
                         resCheck.remove(name.toLowerCase()).check(resolution);
@@ -697,6 +701,10 @@ public class MatchTeam
         {
             if ((isTWDOP) || (isCaptain(name)))
             {
+                
+                if (command.equals("!debug"))
+                    debugger(name);
+                
                 if (m_rules.getInt("captainfixed") == 0)
                     if (command.equals("!setcaptain"))
                         command_setcaptain(name, parameters);
@@ -754,6 +762,7 @@ public class MatchTeam
                     //                    if (command.equals("!lagger")) command_lagger(name,
                     // parameters);
                 }
+                
             }
             else if (getPlayer(name) != null)
             {
@@ -872,7 +881,7 @@ public class MatchTeam
 
                 // if twdd gametype
                 if (m_round.getGame().m_fnMatchTypeID == 4) {
-                    m_botAction.sendPrivateMessage(name, "[DEBUG] Doing Resolution Check for: " + p.getPlayerName());
+                    debug("Doing Resolution Check for: " + p.getPlayerName() + " cap: " + name);
                     ResCheck rc = new ResCheck(p.getPlayerName(), ADD);
                     rc.cap = name;
                     rc.ship = fnShip;
@@ -2601,7 +2610,28 @@ public class MatchTeam
 	    	}
 	    }
 	    return true;
-   }    	
+   }
+    
+    private void debugger(String name) {
+        if (!DEBUG) {
+            debugger = name;
+            DEBUG = true;
+            m_botAction.sendSmartPrivateMessage(name, "Debugging ENABLED. You are now set as the debugger.");
+        } else if (debugger.equalsIgnoreCase(name)){
+            debugger = "";
+            DEBUG = false;
+            m_botAction.sendSmartPrivateMessage(name, "Debugging DISABLED and debugger reset.");
+        } else {
+            m_botAction.sendChatMessage(name + " has overriden " + debugger + " as the target of debug messages.");
+            m_botAction.sendSmartPrivateMessage(name, "Debugging still ENABLED and you have replaced " + debugger + " as the debugger.");
+            debugger = name;
+        }
+    }
+    
+    public void debug(String msg) {
+        if (DEBUG)
+            m_botAction.sendSmartPrivateMessage(debugger, "[DEBUG] " + msg);
+    }
     
     public class ResCheck {
         String name;
@@ -2625,7 +2655,7 @@ public class MatchTeam
                 String[] rx = res.split("x");
                 r[0] = Integer.valueOf(rx[0].trim());
                 r[1] = Integer.valueOf(rx[1].trim());
-                m_botAction.sendPrivateMessage(cap, "[DEBUG] Checking " + r[0] + "x" + r[1] + " resolution of: " + name);
+                debug("Checking " + r[0] + "x" + r[1] + " resolution of: " + name + " cap: " + cap);
                 if (r[0] > MAX_RES_X || r[1] > MAX_RES_Y) {
                     if (type == ADD) {
                         m_botAction.sendSmartPrivateMessage(name, "Maximum resolution for this arena is " + MAX_RES_X + "x" + MAX_RES_Y + ". Until you change your resolution, you cannot be added.");
@@ -2646,7 +2676,7 @@ public class MatchTeam
                 } else {
                     if (type == ADD) {
                         String answer = addPlayer(name, ship, true, false);
-
+                        debug("Adding player " + name + " with answer=" + answer);
                         if (answer.equals("yes")) {
 
                             m_logger.sendPrivateMessage(cap, "Player " + name + " added to " + m_fcTeamName);
