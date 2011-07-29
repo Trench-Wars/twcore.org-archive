@@ -1626,14 +1626,16 @@ public class staffbot_banc extends Module {
                 
             } else {
                 if(sqlWhere.length() > 0) {
-                    sqlWhere = "WHERE "+sqlWhere;
+                    if (!showExpired)
+                        sqlWhere = "WHERE fdCreated > DATE_SUB(NOW(), INTERVAL 2 WEEK) AND " + sqlWhere;
+                    else
+                        sqlWhere = "WHERE " + sqlWhere;
+                } else if (!showExpired){
+                    sqlWhere = "WHERE fdCreated > DATE_SUB(NOW(), INTERVAL 2 WEEK)";
                 }
-                if (showExpired)
-                    sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated, fbLifted FROM tblBanc "+sqlWhere+" ORDER BY fnID DESC LIMIT 0,"+viewcount;
-                else {
-                    sqlQuery = "SELECT fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated, fbLifted FROM tblBanc " + sqlWhere + " AND (NOW() < DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE)) ORDER BY fnID DESC LIMIT 0," + viewcount;
-                    m_botAction.sendSmartPrivateMessage(name, " ------ Active BanCs ------ ");
-                }
+                
+                sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated, fbLifted FROM tblBanc "+sqlWhere+" ORDER BY fnID DESC LIMIT 0,"+viewcount;
+
                     
                 ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
                 
