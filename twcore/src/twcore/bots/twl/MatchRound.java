@@ -106,14 +106,12 @@ public class MatchRound
     TimerTask m_raceTimer;
 
     static final int NOT_PLAYING_FREQ = 200;
-    static int[] m_playoffs;
 
     /** Creates a new instance of MatchRound */
     public MatchRound(int fnRoundNumber, String fcTeam1Name, String fcTeam2Name, MatchGame Matchgame)
     {
         useDatabase = false;
         m_game = Matchgame;
-        m_playoffs = m_game.m_playoffs;
         m_botAction = m_game.m_botAction;
         m_botAction.getObjectSet();
         m_rules = m_game.m_rules;
@@ -187,7 +185,7 @@ public class MatchRound
     }
     
     public boolean isPlayoff() {
-        for (int i : m_playoffs) {
+        for (int i : m_game.m_playoffs) {
             if (m_fnRoundID == i)
                 return true;
         }
