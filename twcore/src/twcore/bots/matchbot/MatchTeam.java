@@ -2740,7 +2740,7 @@ public class MatchTeam
                     }
                 }
             } catch (NumberFormatException e) {
-                m_botAction.sendSmartPrivateMessage("WingZero", "NFE in ResCheck for: " + name);
+                debug("NFE in ResCheck for: " + name);
                 resCheck.put(name.toLowerCase(), this);
                 TimerTask t = new TimerTask() {
                     public void run() {
