@@ -416,7 +416,7 @@ public class MatchTeam
                 String resolution = getInfo(msg, "Res:");
                 
                 if (resCheck.containsKey(name.toLowerCase())) {
-                    if (!resolution.isEmpty())
+                    if (resolution != null && resolution.length() > 3)
                         resCheck.remove(name.toLowerCase()).check(resolution);
                     else {
                         final String n = name;
@@ -2623,8 +2623,8 @@ public class MatchTeam
             int[] r = new int[2];
             try {
                 String[] rx = res.split("x");
-                r[0] = Integer.valueOf(rx[0]);
-                r[1] = Integer.valueOf(rx[1]);
+                r[0] = Integer.valueOf(rx[0].trim());
+                r[1] = Integer.valueOf(rx[1].trim());
                 m_botAction.sendPrivateMessage(cap, "[DEBUG] Checking " + r[0] + "x" + r[1] + " resolution of: " + name);
                 if (r[0] > MAX_RES_X || r[1] > MAX_RES_Y) {
                     if (type == ADD) {
@@ -2710,13 +2710,14 @@ public class MatchTeam
                     }
                 }
             } catch (NumberFormatException e) {
+                m_botAction.sendSmartPrivateMessage("WingZero", "NFE in ResCheck for: " + name);
                 resCheck.put(name.toLowerCase(), this);
                 TimerTask t = new TimerTask() {
                     public void run() {
                         m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
                     }
                 };
-                m_botAction.scheduleTask(t, 5000);
+                m_botAction.scheduleTask(t, 1000);
             }
         }
     }
