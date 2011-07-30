@@ -249,12 +249,22 @@ public class hockeybot extends SubspaceBot {
     public void handleEvent(PlayerEntered event) {
         if (currentState != HockeyState.OFF) {
             String name;    //Name of the player that entered the zone
-
+            int pID;        //ID of the player that entered the arena
+            
             name = m_botAction.getPlayerName(event.getPlayerID());
-
+            
+            Player p;            
+            p = m_botAction.getPlayer(event.getPlayerID());
+            
+            if (p != null) {
+            	pID = p.getPlayerID();
+            	newPlayerUpdateScoreBoard(pID);
+            }
+            
             if (name != null) {
                 sendWelcomeMessage(name);   //Sends welcome message with status info to the player
                 putOnFreq(name);            //Puts the player on the corresponding frequency
+                
             }
         }
     }
@@ -2522,6 +2532,21 @@ public class hockeybot extends SubspaceBot {
     	m_botAction.showObject(579);
     }
     
+    private void pmShowTeamNameObjects(int pID) {
+    	//"FREQ0" team name
+    	m_botAction.showObjectForPlayer(pID,350);
+    	m_botAction.showObjectForPlayer(pID,471);
+    	m_botAction.showObjectForPlayer(pID,342);
+    	m_botAction.showObjectForPlayer(pID,463);
+    	m_botAction.showObjectForPlayer(pID,564);
+    	//"FREQ1" team name
+    	m_botAction.showObjectForPlayer(pID,355);
+    	m_botAction.showObjectForPlayer(pID,476);
+    	m_botAction.showObjectForPlayer(pID,347);
+    	m_botAction.showObjectForPlayer(pID,468);
+    	m_botAction.showObjectForPlayer(pID,579);
+    }
+    
     private void clearObjects() {
     	//0-7 for freq 0
     	m_botAction.hideObject(100);
@@ -2543,6 +2568,16 @@ public class hockeybot extends SubspaceBot {
     	m_botAction.hideObject(207);
     	
     }
+    
+    private void newPlayerUpdateScoreBoard(int pID) {
+    	int team0Score = team0.getScore();
+    	int team1Score = team1.getScore();
+    	
+    	pmShowTeamNameObjects(pID);
+    	m_botAction.showObjectForPlayer(pID, 100 + team0Score);
+    	m_botAction.showObjectForPlayer(pID, 200 + team1Score);
+    }
+    
     private void updateScoreBoard() {
     	int team0Score = team0.getScore();
     	int team1Score = team1.getScore();
