@@ -2313,6 +2313,10 @@ public class GameFlagTimeModule extends AbstractModule {
 			m_botAction.sendSmartPrivateMessage(sender,"You WILL be warped inside the base at the start of each round. Type !warp again to turn off.");
 		}
 	}
+	
+	public boolean canWarpPlayer(String name) {
+	    return warpPlayers.containsKey(name);
+	}
 	    
 	/**
 	 * Warps a player within a radius of 2 tiles to provided coord.

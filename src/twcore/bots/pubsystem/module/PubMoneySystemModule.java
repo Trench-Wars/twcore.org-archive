@@ -1902,15 +1902,18 @@ public class PubMoneySystemModule extends AbstractModule {
 	   			continue;
 	   		// Ter always warped on the middle
 	   		if (player.getShipType() == Tools.Ship.TERRIER) {
-	   			m_botAction.warpTo(player.getPlayerName(), coords[1][0], coords[1][1]);
+                if (context.getGameFlagTime().canWarpPlayer(player.getPlayerName()))
+                    m_botAction.warpTo(player.getPlayerName(), coords[1][0], coords[1][1]);
 	   		// Shark always warped on top
 	   		} else if (player.getShipType() == Tools.Ship.SHARK) {
 	   			int num = (int)Math.floor(Math.random()*3);
-	   			m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1]);
+                if (context.getGameFlagTime().canWarpPlayer(player.getPlayerName()))
+                    m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1]);
 	   		// The rest is random..
 	   		} else {
 	   			int num = (int)Math.floor(Math.random()*coords.length);
-	   			m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1], 3);
+	   			if (context.getGameFlagTime().canWarpPlayer(player.getPlayerName()))
+	   			    m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1], 3);
 	   		}
 	   	}
 	   	if (commander.getFrequency() < 100)
