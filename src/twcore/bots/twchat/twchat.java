@@ -770,7 +770,7 @@ public class twchat extends SubspaceBot {
             m_botAction.getServerFile("vip.txt");
             name = name.toLowerCase();
             lastPlayer.add(name);
-
+            m_botAction.sendSmartPrivateMessage(name, "Signup successful!");
         }
     }
 
