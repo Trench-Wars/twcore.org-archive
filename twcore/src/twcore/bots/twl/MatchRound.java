@@ -1229,7 +1229,7 @@ public class MatchRound
                     endGame();
                 };
             };
-            if (!m_playoff)
+            if (!m_playoff || !m_rules.getString("winby").equals("timerace"))
                 m_botAction.scheduleTask(m_endGame, 60000 * m_rules.getInt("time"));
             else
                 m_botAction.scheduleTask(m_endGame, 60000 * m_rules.getInt("playofftime"));
