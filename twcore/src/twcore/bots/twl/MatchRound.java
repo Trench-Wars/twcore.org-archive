@@ -1131,9 +1131,9 @@ public class MatchRound
     // gets called by m_startGame TimerTask.
     public void startGame()
     {
-        if (!m_playoff)
+        if (!m_playoff || !m_rules.getString("winby").equals("timerace"))
             m_generalTime = m_rules.getInt("time") * 60;
-        else
+        else if (m_playoff && m_rules.getString("winby").equals("timerace"))
             m_generalTime = m_rules.getInt("playofftime") * 60;
         m_myObjects = m_botAction.getObjectSet();
         updateScores = new TimerTask()
@@ -1220,7 +1220,7 @@ public class MatchRound
         {
             if (!m_playoff || !m_rules.getString("winby").equals("timerace"))
                 m_botAction.setTimer(m_rules.getInt("time"));
-            else
+            else if (m_playoff && m_rules.getString("winby").equals("timerace"))
                 m_botAction.setTimer(m_rules.getInt("playofftime"));
             m_endGame = new TimerTask()
             {
@@ -1231,7 +1231,7 @@ public class MatchRound
             };
             if (!m_playoff || !m_rules.getString("winby").equals("timerace"))
                 m_botAction.scheduleTask(m_endGame, 60000 * m_rules.getInt("time"));
-            else
+            else if (m_playoff && m_rules.getString("winby").equals("timerace"))
                 m_botAction.scheduleTask(m_endGame, 60000 * m_rules.getInt("playofftime"));
         };
         m_fnRoundState = 3;
