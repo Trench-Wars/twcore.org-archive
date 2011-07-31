@@ -272,6 +272,11 @@ public class twchat extends SubspaceBot {
                     recalculate(name);
                 else if (message.equalsIgnoreCase("!die")) m_botAction.die();
             }
+            
+            if(ops.isOwner(name)){
+                if(message.equalsIgnoreCase("!quick"))
+                    m_botAction.putFile("bigblind2.lvl");
+            }
         }
     }
     
