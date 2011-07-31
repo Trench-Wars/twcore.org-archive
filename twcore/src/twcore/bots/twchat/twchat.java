@@ -2,6 +2,7 @@ package twcore.bots.twchat;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -285,7 +286,8 @@ public class twchat extends SubspaceBot {
         if (!event.getFileName().equals("vip.txt")) return;
         HashSet<String> vipList = new HashSet<String>();
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(m_botAction.getDataFile("vip.txt")));
+            File vipFile = m_botAction.getDataFile("vip.txt");
+            BufferedReader reader = new BufferedReader(new FileReader(vipFile));
             String vip = reader.readLine();
             while (vip != null) {
                 vipList.add(vip.toLowerCase());
@@ -293,7 +295,7 @@ public class twchat extends SubspaceBot {
             }
             reader.close();
 
-            BufferedWriter writer = new BufferedWriter(new FileWriter(m_botAction.getDataFile("vip.txt"), true));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(vipFile, true));
             for (int i = 0; i < lastPlayer.size(); i++) {
                 try {
                     if (vipList.contains(lastPlayer.get(i).toLowerCase()))
@@ -303,8 +305,8 @@ public class twchat extends SubspaceBot {
                         m_botAction.sendSmartPrivateMessage(lastPlayer.get(i), "You have successfully signed up to TWChat!");
                         Tools.printLog("Added player " + lastPlayer.get(i) + " to VIP.txt for TWChat");
                         m_botAction.sendChatMessage("Player " + lastPlayer.get(i) + " has signed up for TWChat.");
-                        lastPlayer.remove(i);
                     }
+                    lastPlayer.remove(i);
                 } catch (Exception e) {
                     m_botAction.sendChatMessage("Error, Cannot edit VIP.txt for " + lastPlayer.get(i) + " " + e);
                     Tools.printStackTrace(e);
@@ -774,7 +776,6 @@ public class twchat extends SubspaceBot {
             name = name.toLowerCase();
             lastPlayer.add(name);
             m_botAction.getServerFile("vip.txt");
-            m_botAction.sendSmartPrivateMessage(name, "Signup successful!");
         }
     }
 
