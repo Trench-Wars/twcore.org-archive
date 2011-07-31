@@ -1218,7 +1218,7 @@ public class MatchRound
 
         if (m_rules.getInt("time") != 0)
         {
-            if (!m_playoff)
+            if (!m_playoff || !m_rules.getString("winby").equals("timerace"))
                 m_botAction.setTimer(m_rules.getInt("time"));
             else
                 m_botAction.setTimer(m_rules.getInt("playofftime"));
