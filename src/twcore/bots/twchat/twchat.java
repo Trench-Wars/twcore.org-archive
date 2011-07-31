@@ -2,6 +2,7 @@ package twcore.bots.twchat;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.sql.ResultSet;
@@ -279,39 +280,42 @@ public class twchat extends SubspaceBot {
             }
         }
     }
-    
 
     public void handleEvent(FileArrived event) {
-        for (int i = 0; i < lastPlayer.size(); i++) {
-            if (event.getFileName().equals("vip.txt")) {
+        if (!event.getFileName().equals("vip.txt")) return;
+        HashSet<String> vipList = new HashSet<String>();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(m_botAction.getDataFile("vip.txt")));
+            String vip = reader.readLine();
+            while (vip != null) {
+                vipList.add(vip.toLowerCase());
+                vip = reader.readLine();
+            }
+            reader.close();
+
+            BufferedWriter writer = new BufferedWriter(new FileWriter(m_botAction.getDataFile("vip.txt"), true));
+            for (int i = 0; i < lastPlayer.size(); i++) {
                 try {
-                    BufferedReader reader = new BufferedReader(new FileReader(m_botAction.getDataFile("vip.txt")));
-                    BufferedWriter writer = new BufferedWriter(new FileWriter(m_botAction.getDataFile("vip.txt"), true));
-
-                    reader.readLine();
-                   // if(reader.readLine().equalsIgnoreCase(lastPlayer.get(i))){
-                        //m_botAction.sendSmartPrivateMessage(lastPlayer.get(i), "Sorry, this name is already stored to use TWChat.");
-                   // } else
-                    writer.write("\r\n" + lastPlayer.get(i));
-
-                    // writer.write("\n"+name);
-                    writer.flush();
-                    reader.close();
-                    writer.close();
-
-                    m_botAction.putFile("vip.txt");
-                    m_botAction.sendSmartPrivateMessage(lastPlayer.get(i), "You have successfully signed up to TWChat!");
-                    Tools.printLog("Added player " + lastPlayer.get(i) + " to VIP.txt for TWChat");
-                    m_botAction.sendChatMessage("Player "+lastPlayer.get(i)+" has signed up for TWChat.");
-                    lastPlayer.remove(i);
-                }
-
-                catch (Exception e) {
+                    if (vipList.contains(lastPlayer.get(i).toLowerCase()))
+                        m_botAction.sendSmartPrivateMessage(lastPlayer.get(i), "Sorry, this name is already stored for use with TWChat.");
+                    else {
+                        writer.write("\r\n" + lastPlayer.get(i));
+                        m_botAction.sendSmartPrivateMessage(lastPlayer.get(i), "You have successfully signed up to TWChat!");
+                        Tools.printLog("Added player " + lastPlayer.get(i) + " to VIP.txt for TWChat");
+                        m_botAction.sendChatMessage("Player " + lastPlayer.get(i) + " has signed up for TWChat.");
+                        lastPlayer.remove(i);
+                    }
+                } catch (Exception e) {
                     m_botAction.sendChatMessage("Error, Cannot edit VIP.txt for " + lastPlayer.get(i) + " " + e);
                     Tools.printStackTrace(e);
                 }
-
             }
+            writer.flush();
+            writer.close();
+            m_botAction.putFile("vip.txt");
+        } catch (Exception e1) {
+            m_botAction.sendChatMessage("Error, Cannot view VIP.txt");
+            Tools.printStackTrace(e1);
         }
     }
 
