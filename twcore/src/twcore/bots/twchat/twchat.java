@@ -767,9 +767,9 @@ public class twchat extends SubspaceBot {
         if (signup == false) {
             m_botAction.sendSmartPrivateMessage(name, "You cannot signup to TWChat at this time.");
         } else {
-            m_botAction.getServerFile("vip.txt");
             name = name.toLowerCase();
             lastPlayer.add(name);
+            m_botAction.getServerFile("vip.txt");
             m_botAction.sendSmartPrivateMessage(name, "Signup successful!");
         }
     }
