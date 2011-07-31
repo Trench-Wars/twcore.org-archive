@@ -295,7 +295,7 @@ public class twchat extends SubspaceBot {
                     writer.write("\r\n" + lastPlayer.get(i));
 
                     // writer.write("\n"+name);
-
+                    writer.flush();
                     reader.close();
                     writer.close();
 
