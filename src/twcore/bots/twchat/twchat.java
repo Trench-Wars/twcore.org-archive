@@ -283,15 +283,15 @@ public class twchat extends SubspaceBot {
 
     public void handleEvent(FileArrived event) {
         for (int i = 0; i < lastPlayer.size(); i++) {
-            if (event.getFileName().equals("vip.txt") && !signup) {
+            if (event.getFileName().equals("vip.txt")) {
                 try {
                     BufferedReader reader = new BufferedReader(new FileReader(m_botAction.getDataFile("vip.txt")));
                     BufferedWriter writer = new BufferedWriter(new FileWriter(m_botAction.getDataFile("vip.txt"), true));
 
                     reader.readLine();
-                    if(reader.readLine().equalsIgnoreCase(lastPlayer.get(i))){
-                        m_botAction.sendSmartPrivateMessage(lastPlayer.get(i), "Sorry, this name is already stored to use TWChat.");
-                    } else
+                   // if(reader.readLine().equalsIgnoreCase(lastPlayer.get(i))){
+                        //m_botAction.sendSmartPrivateMessage(lastPlayer.get(i), "Sorry, this name is already stored to use TWChat.");
+                   // } else
                     writer.write("\r\n" + lastPlayer.get(i));
 
                     // writer.write("\n"+name);
