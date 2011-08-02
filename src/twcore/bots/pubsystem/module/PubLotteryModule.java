@@ -27,6 +27,7 @@ public class PubLotteryModule extends AbstractModule {
     public int gTicketPrice;
     public int gJackpot;
     public int gWinningNumber;
+    public int gTime;
     public Random r;
     public boolean guessOn;
     public String startingMessage;
@@ -53,14 +54,14 @@ public class PubLotteryModule extends AbstractModule {
         // guess
         playerGuesses = new HashMap<String, Integer>();
         gWinningPlayers = new LinkedList<String>();
-        gTicketPrice = 500;
-        gJackpot = 10000;
+        gTicketPrice = 100;
+        gJackpot = 5000;
         gWinningNumber = -1;
+        gTime = 5;
         r = new Random();
         guessOn = false;
-        startingMessage =
-                "LOTTERY is starting! To buy a number, PM me with \"!guess #\", where # is " + "an integer between 0 and 100. -"
-                        + m_botAction.getBotName();
+        startingMessage = "LOTTERY is starting! To buy a number, PM me with !guess <#>, where # is an integer between 0 " +
+        				  "and 100. For help, PM me with !lotteryhelp -" + m_botAction.getBotName();
         manager = context.getPlayerManager();
 
         // lottery
@@ -248,8 +249,11 @@ public class PubLotteryModule extends AbstractModule {
                     handleGuess(sender, command);
                 else
                     m_botAction.sendPrivateMessage(sender, "Guessing is not currently enabled.");
-            } else if (command.equalsIgnoreCase("!startguess"))
-                startGuessingGame();
+            } else if (command.equalsIgnoreCase("!lotteryhelp")) {
+            	lotteryHelp(sender);
+            } else if (command.equalsIgnoreCase("!prices")) {
+            	lotterPrices(sender);
+            }
 
         } catch (RuntimeException e) {
             if (e != null && e.getMessage() != null)
@@ -263,6 +267,34 @@ public class PubLotteryModule extends AbstractModule {
         try {
             if (command.startsWith("!lprice ")) {
                 setTicketPrice(sender, command);
+            } else if (command.equalsIgnoreCase("!startguess")) {
+                startGuessingGame();
+            } else if (command.equalsIgnoreCase("!lotterymod")) {
+            	lotteryMod(sender);
+            } else if (command.startsWith("!setjp ")) {
+            	if (!guessOn) {
+            		setJP(sender, command);
+            	} else {
+            		m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
+            	}
+            } else if (command.startsWith("!settp ")) {
+            	if (!guessOn) {
+            		setTP(sender, command);
+            	} else {
+            		m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
+            	}
+            } else if (command.startsWith("!settime ")) {
+            	if (!guessOn) {
+            		setTime(sender, command);
+            	} else {
+            		m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
+            	}
+            } else if (command.equalsIgnoreCase("!restoredefaults") || command.equalsIgnoreCase("!rd")) {
+            	if (!guessOn) {
+            		restoreDefaults(sender);
+            	} else {
+            		m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
+            	}
             }
         } catch (RuntimeException e) {
             m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
@@ -270,7 +302,9 @@ public class PubLotteryModule extends AbstractModule {
 
     }
 
-    @Override
+
+
+	@Override
     public String[] getHelpMessage(String sender) {
         return new String[] {};
     }
@@ -325,7 +359,7 @@ public class PubLotteryModule extends AbstractModule {
                 endGuessingGame();
             }
         };
-        m_botAction.scheduleTask(t, 2 * Tools.TimeInMillis.MINUTE);
+        m_botAction.scheduleTask(t, gTime * Tools.TimeInMillis.MINUTE);
     }
 
     public void endGuessingGame() {
@@ -334,10 +368,35 @@ public class PubLotteryModule extends AbstractModule {
         for (String player : playerGuesses.keySet()) {
             if (playerGuesses.get(player) == gWinningNumber) {
                 p = manager.getPlayer(player);
-                p.addMoney(gJackpot);
-                gWinningPlayers.add(player);
-                m_botAction.sendPrivateMessage(player, "$" + gJackpot + " has been added to your account for correctly guessing"
-                        + " the lottery number, congratulations!");
+                if (p == null) {
+                	return;
+                } else {
+                	p.addMoney(gJackpot);
+                    gWinningPlayers.add(player);
+                    m_botAction.sendPrivateMessage(player, "$" + gJackpot + " has been added to your account for correctly guessing"
+                            + " the lottery number, congratulations!");
+                }
+                
+            } else if ((gWinningNumber - playerGuesses.get(player)) == 1) {
+            	p = manager.getPlayer(player);
+                if (p == null) {
+                	return;
+                } else {
+                	p.addMoney(gJackpot/2);
+                	gWinningPlayers.add(player);
+                	m_botAction.sendPrivateMessage(player, "$" + (gJackpot/2) + " has been added to your account for guessing"
+                            + " within 1 of the winning lottery number, congratulations!");
+                }
+            } else if ((gWinningNumber - playerGuesses.get(player)) <= 5) {
+            	p = manager.getPlayer(player);
+                if (p == null) {
+                	return;
+                } else {
+                	p.addMoney(gJackpot/5);
+                	gWinningPlayers.add(player);
+                	m_botAction.sendPrivateMessage(player, "$" + (gJackpot/5) + " has been added to your account for guessing"
+                            + " within 5 of the winning lottery number, congratulations!");
+                }
             }
         }
 
@@ -345,10 +404,10 @@ public class PubLotteryModule extends AbstractModule {
             Iterator<String> i = gWinningPlayers.iterator();
             while (i.hasNext()) {
                 i.next();
-                gWinners += i + ", ";
+                String temp = i.next();                
+                gWinners += temp + ", ";
             }
-            gWinners.trim();
-            gWinners = gWinners.substring(0, gWinners.length() - 1);
+            gWinners = gWinners.substring(0, gWinners.length() - 2);
             m_botAction.sendArenaMessage("Lottery has ended. Winner(s): " + gWinners + ". Congratulations! Winning number was " + gWinningNumber
                     + ".", 2);
 
@@ -363,28 +422,127 @@ public class PubLotteryModule extends AbstractModule {
         String s = message.substring(message.indexOf(" ") + 1);
         int guess;
         p = manager.getPlayer(name);
+        if (p == null) 
+        	return;        
+        else {
 
-        try {
-            guess = Integer.valueOf(s);
-        } catch (NumberFormatException e) {
-            m_botAction.sendPrivateMessage(name, "You must guess a number between 0 and 100 in integer format. Example: !guess 50");
-            return;
+        	try {
+        		guess = Integer.valueOf(s);
+        	} catch (NumberFormatException e) {
+        		m_botAction.sendPrivateMessage(name, "You must guess a number between 0 and 100 in integer format. Example: !guess 50");
+        		return;
+        	}
+
+        	if (guess > 0 && guess < 100) {
+        		if (p.getMoney() >= gTicketPrice) {
+        			if (playerGuesses.containsKey(name)) {
+        				playerGuesses.put(name, guess);
+        				m_botAction.sendPrivateMessage(name, "Your guess has been changed to " + guess);
+        			} else {
+        				p.removeMoney(gTicketPrice);
+        				playerGuesses.put(name, guess);
+        				m_botAction.sendPrivateMessage(name, "You have guessed " + guess + " for $" + gTicketPrice + ".");
+        			}
+        		} else
+        			m_botAction.sendPrivateMessage(name, "You do not have enough funds to guess a number at this time. Please try again later.");
+        	} else
+        		m_botAction.sendPrivateMessage(name, "You must guess a number between 0 and 100 in integer format. Example: !guess 50");
         }
-
-        if (guess > 0 && guess < 100) {
-            if (p.getMoney() >= gTicketPrice) {
-                if (playerGuesses.containsKey(name)) {
-                    playerGuesses.put(name, guess);
-                    m_botAction.sendPrivateMessage(name, "Your guess has been changed to " + guess);
-                } else {
-                    p.removeMoney(gTicketPrice);
-                    playerGuesses.put(name, guess);
-                    m_botAction.sendPrivateMessage(name, "You have guessed " + guess + " for $" + gTicketPrice + ".");
-                }
-            } else
-                m_botAction.sendPrivateMessage(name, "You do not have enough funds to guess a number at this time. Please try again later.");
-        } else
-            m_botAction.sendPrivateMessage(name, "You must guess a number between 0 and 100 in integer format. Example: !guess 50");
     }
+    
+    public void lotteryMod(String name) {
+    	String[] modHelp = {
+    			"!lotterymod            -lottery help message for mods+",
+    			"!setjp <$>             -set lottery jackpot to <$>, must be between 1 and 50,000",
+    			"!settp <$>             -set ticket price to <$>, must be between 1 and 1,000 and less than the jackpot",
+    			"!settime <#>           -set length of lottery rounds to <#> in minutes, must be between 1 and 60",
+    			"NOTE: Do not use these commands without permission from an SMod+",
+    	};
+    	m_botAction.privateMessageSpam(name, modHelp);
+    }
+    
+    public void lotteryHelp(String name) {
+    	String[] help = {
+    			"+---------------------------------- LOTTERY ------------------------------------.",
+    			"|  Trench Wars lottery is a simple game of guessing a number and hoping to get  |",
+    			"|  lucky. To play, simply wait for a round to start and then PM TW-Pub1 with    |",
+    			"|  !guess <#>, where # is an integer value between 0 and 100. For example, if   |",
+    			"|  you wanted to guess the number 50, you would simply type :TW-Pub1:!guess 50  |",
+    			"|  and your guess will be recorded. When the lottery ends, if you guessed the   |",
+    			"|  correct number, you will be handsomly rewarded! As an added bonus, there is  |",
+    			"|  also a prize for guessing close to the winning number. Note: tickets are not |",
+    			"|  free, so be sure you have the cash and are feelin' lucky! If you wish to     |",
+    			"|  change your guess at any time, just use the !guess command and your number   |",
+    			"|  will be changed, free of charge. Use !prices to see the cost of a ticket and |",
+    			"|  the value of the jackpot. Good luck!                                         |",
+    			"`-------------------------------------------------------------------------------'",    			
+    	};
+    	m_botAction.privateMessageSpam(name, help);
+    }
+    
+    public void lotteryPrices(String name) {
+    	String[] prices = {
+        		"Ticket price     - $" + gTicketPrice,
+        		"Jackpot          - $" + gJackpot,
+    	};
+    	m_botAction.privateMessageSpam(name, prices);
+    }
+    
+    public void setJP(String name, String cmd) {
+    	String jp = cmd.substring(cmd.indexOf(" ") + 1);
+    	try {
+    		int tempJP = Integer.valueOf(jp);
+    		if (tempJP >= gTicketPrice && tempJP >= 1 && tempJP <= 50000) {
+    			gJackpot = tempJP;
+    			m_botAction.sendPrivateMessage(name, "Jackpot has been set to " + gJackpot);
+    		} else
+    			m_botAction.sendPrivateMessage(name, "You must choose a value between 1 and 50,0000 that is greater than the ticket price.");
+    	} catch (NumberFormatException e) {
+    		m_botAction.sendPrivateMessage(name, "The action could not be completed at this time.");
+    	}
+    }
+    
+    public void setTP(String name, String cmd) {
+    	String tp = cmd.substring(cmd.indexOf(" ") + 1);
+    	try {
+    		int tempTP = Integer.valueOf(tp);
+    		if (tempTP >= 1 && tempTP <= 1000) {
+    			gTicketPrice = tempTP;
+    			m_botAction.sendPrivateMessage(name, "Ticket price has been set to " + gTicketPrice);
+    		} else 
+    			m_botAction.sendPrivateMessage(name, "You must choose a value between 1 and 1000.");
+    	} catch (NumberFormatException e){
+    		m_botAction.sendPrivateMessage(name, "The action could not be completed at this time.");
+    	}
+    }
+    
+    public void setTime(String name, String cmd) {
+    	String time = cmd.substring(cmd.indexOf(" ") + 1);
+    	try {
+    		int tempTime = Integer.valueOf(time);
+    		if (tempTime >= 1 && tempTime <= 60) {
+    			gTime = tempTime;
+    			m_botAction.sendPrivateMessage(name, "Time has been set to " + gTime);
+    		} else
+    			m_botAction.sendPrivateMessage(name, "You must choose a value between 1 and 60 in minutes.");
+    	} catch (NumberFormatException e) {
+    		m_botAction.sendPrivateMessage(name, "The action could not be completed at this time.");
+    	}
+    }
+    
+    public void restoreDefaults(String name) {
+        gTicketPrice = 100;
+        gJackpot = 5000;
+        gWinningNumber = -1;
+        gTime = 5;
+        String[] defaults = {
+        		"Default values have been restored:",
+        		" Ticket price     - $" + gTicketPrice,
+        		" Jackpot          - $" + gJackpot,
+        		" Time             - " + gTime + "mins",        		
+        };
+        m_botAction.privateMessageSpam(name, defaults);
+    }
+
 
 }
