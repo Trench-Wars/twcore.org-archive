@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.TimerTask;
 import twcore.bots.pubsystem.PubContext;
+import twcore.bots.pubsystem.pubsystem;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.util.Tools;
@@ -252,7 +253,7 @@ public class PubLotteryModule extends AbstractModule {
             } else if (command.equalsIgnoreCase("!lotteryhelp")) {
             	lotteryHelp(sender);
             } else if (command.equalsIgnoreCase("!prices")) {
-            	lotterPrices(sender);
+            	lotteryPrices(sender);
             }
 
         } catch (RuntimeException e) {
@@ -269,29 +270,27 @@ public class PubLotteryModule extends AbstractModule {
                 setTicketPrice(sender, command);
             } else if (command.equalsIgnoreCase("!startguess")) {
                 startGuessingGame();
-            } else if (command.equalsIgnoreCase("!lotterymod")) {
-            	lotteryMod(sender);
             } else if (command.startsWith("!setjp ")) {
             	if (!guessOn) {
-            		setJP(sender, command);
+            		setGuessJackpot(sender, command);
             	} else {
             		m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
             	}
             } else if (command.startsWith("!settp ")) {
             	if (!guessOn) {
-            		setTP(sender, command);
+            		setGuessTicketPrice(sender, command);
             	} else {
             		m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
             	}
             } else if (command.startsWith("!settime ")) {
             	if (!guessOn) {
-            		setTime(sender, command);
+            		setGuessTime(sender, command);
             	} else {
             		m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
             	}
             } else if (command.equalsIgnoreCase("!restoredefaults") || command.equalsIgnoreCase("!rd")) {
             	if (!guessOn) {
-            		restoreDefaults(sender);
+            		restoreGuessDefaults(sender);
             	} else {
             		m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
             	}
@@ -306,12 +305,22 @@ public class PubLotteryModule extends AbstractModule {
 
 	@Override
     public String[] getHelpMessage(String sender) {
-        return new String[] {};
+        return new String[] {
+        		pubsystem.getHelpLine("!guess <#>        -- Buys a ticket for number <#>, where <#> is an integer between 0 and 100."),
+        		pubsystem.getHelpLine("!prices           -- Shows ticket price and jackpot value for lottery."),
+        		pubsystem.getHelpLine("!lotteryHelp      -- Info about the TW Lottery."),        		
+        };
     }
 
     @Override
     public String[] getModHelpMessage(String sender) {
-        return new String[] {};
+        return new String[] {        		
+    			pubsystem.getHelpLine("!lotterymod           -- Lottery help message for mods+"),
+    			pubsystem.getHelpLine("!setjp <$>            -- Set lottery jackpot to <$>, must be between 1 and 50,000"),
+    			pubsystem.getHelpLine("!settp <$>            -- Set ticket price to <$>, must be between 1 and 1,000 and less than the jackpot"),
+    			pubsystem.getHelpLine("!settime <#>          -- Set length of lottery rounds to <#> in minutes, must be between 1 and 60"),
+        };
+        
     }
 
     @Override
@@ -370,33 +379,33 @@ public class PubLotteryModule extends AbstractModule {
                 p = manager.getPlayer(player);
                 if (p == null) {
                 	return;
-                } else {
+                } 
                 	p.addMoney(gJackpot);
                     gWinningPlayers.add(player);
                     m_botAction.sendPrivateMessage(player, "$" + gJackpot + " has been added to your account for correctly guessing"
                             + " the lottery number, congratulations!");
-                }
+                
                 
             } else if ((gWinningNumber - playerGuesses.get(player)) == 1) {
             	p = manager.getPlayer(player);
                 if (p == null) {
                 	return;
-                } else {
+                }
                 	p.addMoney(gJackpot/2);
                 	gWinningPlayers.add(player);
                 	m_botAction.sendPrivateMessage(player, "$" + (gJackpot/2) + " has been added to your account for guessing"
                             + " within 1 of the winning lottery number, congratulations!");
-                }
+                 
             } else if ((gWinningNumber - playerGuesses.get(player)) <= 5) {
             	p = manager.getPlayer(player);
-                if (p == null) {
+                if (p == null) 
                 	return;
-                } else {
+                
                 	p.addMoney(gJackpot/5);
                 	gWinningPlayers.add(player);
                 	m_botAction.sendPrivateMessage(player, "$" + (gJackpot/5) + " has been added to your account for guessing"
                             + " within 5 of the winning lottery number, congratulations!");
-                }
+                
             }
         }
 
@@ -417,6 +426,7 @@ public class PubLotteryModule extends AbstractModule {
         guessOn = false;
         playerGuesses.clear();
     }
+            
 
     public void handleGuess(String name, String message) {
         String s = message.substring(message.indexOf(" ") + 1);
@@ -424,8 +434,7 @@ public class PubLotteryModule extends AbstractModule {
         p = manager.getPlayer(name);
         if (p == null) 
         	return;        
-        else {
-
+        
         	try {
         		guess = Integer.valueOf(s);
         	} catch (NumberFormatException e) {
@@ -447,19 +456,9 @@ public class PubLotteryModule extends AbstractModule {
         			m_botAction.sendPrivateMessage(name, "You do not have enough funds to guess a number at this time. Please try again later.");
         	} else
         		m_botAction.sendPrivateMessage(name, "You must guess a number between 0 and 100 in integer format. Example: !guess 50");
-        }
+        
     }
     
-    public void lotteryMod(String name) {
-    	String[] modHelp = {
-    			"!lotterymod            -lottery help message for mods+",
-    			"!setjp <$>             -set lottery jackpot to <$>, must be between 1 and 50,000",
-    			"!settp <$>             -set ticket price to <$>, must be between 1 and 1,000 and less than the jackpot",
-    			"!settime <#>           -set length of lottery rounds to <#> in minutes, must be between 1 and 60",
-    			"NOTE: Do not use these commands without permission from an SMod+",
-    	};
-    	m_botAction.privateMessageSpam(name, modHelp);
-    }
     
     public void lotteryHelp(String name) {
     	String[] help = {
@@ -488,7 +487,7 @@ public class PubLotteryModule extends AbstractModule {
     	m_botAction.privateMessageSpam(name, prices);
     }
     
-    public void setJP(String name, String cmd) {
+    public void setGuessJackpot(String name, String cmd) {
     	String jp = cmd.substring(cmd.indexOf(" ") + 1);
     	try {
     		int tempJP = Integer.valueOf(jp);
@@ -502,7 +501,7 @@ public class PubLotteryModule extends AbstractModule {
     	}
     }
     
-    public void setTP(String name, String cmd) {
+    public void setGuessTicketPrice(String name, String cmd) {
     	String tp = cmd.substring(cmd.indexOf(" ") + 1);
     	try {
     		int tempTP = Integer.valueOf(tp);
@@ -516,7 +515,7 @@ public class PubLotteryModule extends AbstractModule {
     	}
     }
     
-    public void setTime(String name, String cmd) {
+    public void setGuessTime(String name, String cmd) {
     	String time = cmd.substring(cmd.indexOf(" ") + 1);
     	try {
     		int tempTime = Integer.valueOf(time);
@@ -530,7 +529,7 @@ public class PubLotteryModule extends AbstractModule {
     	}
     }
     
-    public void restoreDefaults(String name) {
+    public void restoreGuessDefaults(String name) {
         gTicketPrice = 100;
         gJackpot = 5000;
         gWinningNumber = -1;
