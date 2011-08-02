@@ -155,8 +155,12 @@ public class pubautobot extends SubspaceBot {
 
     	if(message.equals("looking") && !locked) {
     		locked = true;
-    		m_botAction.scheduleTask(new UnlockTask(), 5*Tools.TimeInMillis.SECOND);
-    		m_botAction.ipcSendMessage(IPC_CHANNEL, "locked", ipc.getSender(), m_botAction.getBotName());
+    		try {
+    		    m_botAction.scheduleTask(new UnlockTask(), 5*Tools.TimeInMillis.SECOND);
+    		    m_botAction.ipcSendMessage(IPC_CHANNEL, "locked", ipc.getSender(), m_botAction.getBotName());
+    		} catch (IllegalStateException e) {
+    		    Tools.printStackTrace("ISE PubAutoBot IPC.", e);
+    		}
     	}
     	else if(message.equals("confirm_lock") && ipc.getRecipient().equals(m_botAction.getBotName())) {
     		String[] owners = ipc.getSender().split(":");
