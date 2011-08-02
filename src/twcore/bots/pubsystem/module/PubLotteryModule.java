@@ -2,28 +2,47 @@ package twcore.bots.pubsystem.module;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-
+import java.util.Random;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.TimerTask;
 import twcore.bots.pubsystem.PubContext;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
+import twcore.core.util.Tools;
+import twcore.bots.pubsystem.module.player.PubPlayer;
+import twcore.bots.pubsystem.module.PubPlayerManagerModule;
+
+
 
 /*
  * By Eria
  */
 
 public class PubLotteryModule extends AbstractModule {
-
+	//guess variables
+	public HashMap<String, Integer> playerGuesses;
+	public LinkedList<String> gWinningPlayers;
+	public int gTicketPrice;
+	public int gJackpot;
+	public int gWinningNumber;
+	public Random r;
+	public boolean guessOn;
+	public String startingMessage;
+	public PubPlayer p;
+	PubPlayerManagerModule manager;
+	
+	//lottery variables
     private int ticketSize = 2; // amount of entry numbers per ticket; default is 2
     private int numberMax = 50; // interval of number options; default is 1-50
     private int jackpot;  // default jackpot is $1000; if you change this value, also change it in resetJackpot()
     private int price; // default ticket price is $100; if you change this value, also change it in resetPrice()
     private int entries; // counts the number of lottery tickets submitted
-    private int[] winningNum = new int[ticketSize]; // lottery's winning numbers
-    
-    private String matchingNumbers; // change 'store' to display?  // stores and displays the player's numbers that match the winning numbers
-    
+    private int[] winningNum = new int[ticketSize]; // lottery's winning numbers    
+    private String matchingNumbers; // change 'store' to display?  // stores and displays the player's numbers that match the winning numbers    
     private boolean lotteryOn; // status for lottery; true = enabled, false = disabled
     
     
@@ -37,16 +56,31 @@ public class PubLotteryModule extends AbstractModule {
     
     public PubLotteryModule(BotAction botAction, PubContext context) {
     	super(botAction, context, "Lottery");
-        jackpot = 1000;
+    	
+    	//guess
+    	playerGuesses = new HashMap<String, Integer>();
+    	gWinningPlayers = new LinkedList<String>();
+    	gTicketPrice = 500;
+    	gJackpot = 10000;
+    	gWinningNumber = -1;
+    	r = new Random();
+    	guessOn = false;
+    	startingMessage = "LOTTERY is starting! To buy a number, PM me with \"!guess #\", where # is " +
+    					  "an integer between 0 and 100. -" + m_botAction.getBotName();
+    	manager = context.getPlayerManager();
+    	
+    	//lottery
+    	jackpot = 1000;
         price = 100;
         entries = 0;
-        lotteryOn = false;
+        lotteryOn = false;      
+
     }
     
     
 	public void requestEvents(EventRequester eventRequester)
 	{
-
+		
 	}
     
     /**
@@ -215,8 +249,17 @@ public class PubLotteryModule extends AbstractModule {
         else if(command.equals("!jackpot") || command.equals("!jp")) {
             pubLottery.displayJackpot(sender);
         }
-        */
-		
+        */    	    		
+    	if (command.startsWith("!guess ")) {
+    		if (guessOn) {
+    			handleGuess(command, sender);
+    		}
+    		else
+    			m_botAction.sendPrivateMessage(sender, "Guessing is not currently enabled.");
+    	}  else if (command.equalsIgnoreCase("!startguess")) {
+    		startGuessingGame();
+    	}
+    	
 	}
 
 	@Override
@@ -281,5 +324,96 @@ public class PubLotteryModule extends AbstractModule {
     
     public void setStatus(boolean mode) {
         lotteryOn = mode;
-    }*/
+    }*/ 
+    
+
+    
+    public void startGuessingGame() {
+    	guessOn = true;
+    	m_botAction.sendArenaMessage(startingMessage, 2);
+    	gWinningNumber = r.nextInt(99) + 1;
+    	m_botAction.sendPublicMessage("Number is " + gWinningNumber);
+		
+    	TimerTask t = new TimerTask() {   
+			public void run() {
+				endGuessingGame();
+			} 
+		};
+		m_botAction.scheduleTask(t, 2 * Tools.TimeInMillis.MINUTE);
+    }
+    
+    public void endGuessingGame() {
+    	String gWinners = "";
+    	
+    	for (String player : playerGuesses.keySet()) {
+    		if (playerGuesses.get(player) == gWinningNumber) {
+    			p = manager.getPlayer(player);
+    			p.addMoney(gJackpot);
+    			gWinningPlayers.add(player);
+    			m_botAction.sendPrivateMessage(player, "$" + gJackpot + " has been added to your account for correctly guessing" +
+    												   " the lottery number, congratulations!");
+    		}
+    	}
+    	
+    	if (gWinningPlayers.size() > 0) {
+    		Iterator<String> i = gWinningPlayers.iterator();
+    		while (i.hasNext()) {
+    			i.next();
+    			gWinners += i + ", ";
+    		}
+    		gWinners.trim();
+    		gWinners = gWinners.substring(0, gWinners.length() - 1);
+    		m_botAction.sendArenaMessage("Lottery has ended. Winner(s): " + gWinners + ". Congratulations! Winning number was " + gWinningNumber + ".", 2);
+    		
+    	}
+    	else
+    		m_botAction.sendArenaMessage("Lottery has ended. There are no winners. Winning number was " + gWinningNumber + ".", 2);
+    	
+    	guessOn = false;
+    	playerGuesses.clear();
+    }
+    
+    public void handleGuess(String message, String name) {
+    	String s = message.substring(message.indexOf(" ") + 1);
+    	int guess;
+    	p = manager.getPlayer(name);
+    	
+    	try {
+    		guess = Integer.valueOf(s);
+    	} catch (NumberFormatException e) {
+    		m_botAction.sendPrivateMessage(name, "You must guess a number between 0 and 100 in integer format. Example: !guess 50");
+    		return;
+    	} 
+    	
+    	if (guess > 0 && guess < 100) {
+    		if (p.getMoney() >= gTicketPrice) {
+    			if (playerGuesses.containsKey(name)) {
+    				playerGuesses.put(name, guess);
+    				m_botAction.sendPrivateMessage(name, "Your guess has been changed to " + guess);
+    			}
+    			else {
+    				p.removeMoney(gTicketPrice);
+    				playerGuesses.put(name, guess);
+    				m_botAction.sendPrivateMessage(name, "You have guessed " + guess + " for $" + gTicketPrice + ".");
+    			}
+    		}
+    		else
+    			m_botAction.sendPrivateMessage(name, "You do not have enough funds to guess a number at this time. Please try again later.");
+    	}
+    	else
+    		m_botAction.sendPrivateMessage(name, "You must guess a number between 0 and 100 in integer format. Example: !guess 50");
+    		return;
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 }
