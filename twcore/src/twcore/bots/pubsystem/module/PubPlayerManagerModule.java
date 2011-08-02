@@ -362,6 +362,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     
     public void handleDisconnect() {
     	saveTask.force();
+    	logMoneyDBTransaction.close();
     }
     
     public void handleEvent(SQLResultEvent event){
