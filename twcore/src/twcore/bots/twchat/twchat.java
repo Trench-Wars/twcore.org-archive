@@ -5,7 +5,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -13,7 +12,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimerTask;
@@ -47,8 +45,6 @@ public class twchat extends SubspaceBot {
     public ArrayList<String> info = new ArrayList<String>();
     public ArrayList<String> staffer = new ArrayList<String>();
     public HashMap<String, Boolean> tstates = new HashMap<String, Boolean>();
-    public LinkedList<String> locates = new LinkedList<String>();
-    public LinkedList<String> greeted = new LinkedList<String>();
     private static final String IPC = "whoonline";
     private static final String WHOBOT = "WhoBot";
     private static final String db = "pubstats";
@@ -57,20 +53,16 @@ public class twchat extends SubspaceBot {
     private static final String ECORE = "TWCore-Events";
     private static final String LCORE = "TWCore-League";
 
-    private String squadInfo = "";
     private String debugger = "";
-    private long elapsedTime;
     private boolean DEBUG = false;
     public boolean signup = false;
     public boolean notify = false;
-    private boolean duplicateRemoval = false;
     // status of the database update task sqlDump
     private boolean status = false;
     // number of seconds between database updates
     private int delay = 45;
     // updates player database periodically according to delay
     private TimerTask sqlDump;
-    private TimerTask locater;
     private TimerTask nocore;
 
     private String stater = "";
@@ -121,53 +113,14 @@ public class twchat extends SubspaceBot {
                 else
                     m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
                 
-                if (!show.equals(nameFromMessage.toLowerCase()))
+                // I don't get it... why would show (an arraylist) ever .equals a String?!?!?!
+                if (!show.contains(nameFromMessage.toLowerCase()))
                     show.add(nameFromMessage.toLowerCase());
 
+                // more weirdness starts now
                 if (message.startsWith("Not online")) {
                     for (int i = 0; i < show.size(); i++)
                         show.remove(i);
-                }
-            } else if (squadInfo.length() > 1 && message.contains(" - ")) {
-                ba.cancelTask(locater);
-                debug(message);
-                String p = message.substring(0, message.lastIndexOf(" - "));
-                String arena = message.substring(message.lastIndexOf("- ") + 2);
-                if (locates.contains(p.toLowerCase())) {
-                    locates.remove(p.toLowerCase());
-                    if (arena.contains("#") || arena.contains("afk"))
-                        tstates.put(p, true);
-                    else
-                        tstates.put(p, false);
-                } else
-                    locates.remove(0);
-                
-                if (!locates.isEmpty())
-                    locate();
-                else {
-                    debug("locates is empty, building info msg...");
-                    String s = squadInfo.substring(squadInfo.indexOf(":")+1);
-                    String n = squadInfo.substring(0, squadInfo.indexOf(":"));
-                    String msg = "";
-                    if (!tstates.isEmpty()) {
-                        msg += s + "(" + tstates.size() + "): ";
-                        for (String pl : tstates.keySet()) {
-                            msg += "" + pl;
-                            if (tstates.get(pl))
-                                msg += "*";
-                            msg += ", ";
-                        }
-                        msg = msg.substring(0, msg.length()-2);
-                    } else {
-                        debug("tstates was empty...");
-                        msg += s + "(0): None found.";
-                    }
-                    ba.sendSmartPrivateMessage(n, msg);
-                    ba.sendSmartPrivateMessage(n, "Time Elapsed: " + (System.currentTimeMillis() - elapsedTime)/60 + " seconds");
-                    elapsedTime = 0;
-                    locates.clear();
-                    tstates.clear();
-                    squadInfo = "";
                 }
             }
         }
@@ -248,8 +201,6 @@ public class twchat extends SubspaceBot {
             if (ops.isSmod(name)) {
                 if (message.equalsIgnoreCase("!show"))
                     show(name, message);
-                else if (message.startsWith("!si "))
-                    getSquadInfo(name, message);
                 else if (message.equalsIgnoreCase("!toggle"))
                     toggle(name, message);
                 else if (message.equalsIgnoreCase("!get"))
@@ -270,18 +221,12 @@ public class twchat extends SubspaceBot {
             if(ops.isOwner(name)){
                 if(message.equalsIgnoreCase("!quick"))
                     m_botAction.putFile("bigblind2.lvl");
-                else if (message.equalsIgnoreCase("!remdupvip"))
-                    removeDups(name);
             }
         }
     }
 
     public void handleEvent(FileArrived event) {
         if (!event.getFileName().equals("vip.txt")) return;
-        if (duplicateRemoval) {
-            removeDuplicateVIPs();
-            return;
-        }
         HashSet<String> vipList = new HashSet<String>();
         try {
             File vipFile = m_botAction.getDataFile("vip.txt");
@@ -327,9 +272,6 @@ public class twchat extends SubspaceBot {
     public void handleEvent(SQLResultEvent event) {
         if (!event.getIdentifier().contains(":")) return;
         String[] id = event.getIdentifier().split(":");
-        boolean afk = false;
-        if (id[0].startsWith("squadINFO"))
-            afk = true;
         String squad = id[1];
         String name = id[2];
         String mems = "";
@@ -337,47 +279,24 @@ public class twchat extends SubspaceBot {
         ResultSet rs = event.getResultSet();
         try {
             if (rs.next()) {
-                if (!afk) {
-                    String p = rs.getString("fcName");
-                    mems += p;
+                String p = rs.getString("fcName");
+                mems += p;
+                if (outsiders.contains(p.toLowerCase()))
+                    mems += "*";
+                online++;
+                while (rs.next()) {
+                    p = rs.getString("fcName");
+                    mems += ", " + p;
                     if (outsiders.contains(p.toLowerCase()))
                         mems += "*";
                     online++;
-                    while (rs.next()) {
-                        p = rs.getString("fcName");
-                        mems += ", " + p;
-                        if (outsiders.contains(p.toLowerCase()))
-                            mems += "*";
-                        online++;
-                    }
-                } else {
-                    String p = rs.getString("fcName").toLowerCase();
-                    locates.add(p);
-                    while (rs.next()) {
-                        p = rs.getString("fcName").toLowerCase();
-                        locates.add(p);
-                    }
                 }
-            } else {
+            } else
                 m_botAction.sendSmartPrivateMessage(name, squad + "(" + 0 + "): None found.");
-                ba.sendSmartPrivateMessage(name, "Time Elapsed: " + ((System.currentTimeMillis() - elapsedTime)/1000/60) + " seconds");
-                elapsedTime = 0;
-                if (afk) {
-                    locates.clear();
-                    tstates.clear();
-                    squadInfo = "";
-                }
-                m_botAction.SQLClose(rs);
-                return;
-            }
         } catch (SQLException e) {
             Tools.printStackTrace(e);
         }
         m_botAction.SQLClose(rs);
-        if (!afk)
-            m_botAction.sendSmartPrivateMessage(name, squad + "(" + online + "): " + mems);
-        else
-            locate();
     }
 
     public void handleEvent(PlayerLeft event) {
@@ -390,24 +309,11 @@ public class twchat extends SubspaceBot {
     public void handleEvent(PlayerEntered event) {
         Player player = ba.getPlayer(event.getPlayerID());
         String name = player.getPlayerName();
-        if (ba.getOperatorList().isBotExact(player.getPlayerName()))
-            return;
-        /* disabled atm
-        if (!greeted.contains(player.getPlayerName().toLowerCase())) {
-            greeted.add(player.getPlayerName().toLowerCase());
-            final String p = player.getPlayerName();
-            TimerTask greet = new TimerTask() {
-                public void run() {
-                    ba.sendSmartPrivateMessage(
-                            p,
-                            "Cool commands: pm me !whohas 4 to see what squads have 4 or more player online, or !squad tenure to see what tenure squad members are online (* means probably afk).");
-                }
-            };
-            ba.scheduleTask(greet, 2000);
-        } */
+        if (name == null || isBotExact(name)) return;
+        
         ba.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
 
-        if (!ba.getOperatorList().isZH(player.getPlayerName()))
+        if (!ops.isZH(name))
             return;
         else
             m_botAction.sendUnfilteredPrivateMessage(name, "*info");
@@ -426,10 +332,10 @@ public class twchat extends SubspaceBot {
                         }
                         info.remove(i);
                         staffer.remove(i);
-                        m_botAction.SQLClose(mid);
                     }
                 }
             }
+            m_botAction.SQLClose(mid);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -515,8 +421,7 @@ public class twchat extends SubspaceBot {
                     }
                 } else if (!ipc.isAll()) {
                     String name = ipc.getName().toLowerCase();
-                    if (ops.isBotExact(name) || (ops.isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness")))
-                        return;
+                    if (isBotExact(name)) return;
                     if (type == EventRequester.PLAYER_ENTERED) {
                         updateQueue.put(name, true);
                         online.add(name);
@@ -535,8 +440,7 @@ public class twchat extends SubspaceBot {
                         Iterator<Player> i = (Iterator<Player>) ipc.getList();
                         while (i.hasNext()) {
                             String name = i.next().getPlayerName().toLowerCase();
-                            if (!ops.isBotExact(name)
-                                    && !(ops.isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness"))) {
+                            if (!isBotExact(name)) {
                                 updateQueue.put(name, true);
                                 online.add(name);
                                 outsiders.remove(name);
@@ -548,8 +452,7 @@ public class twchat extends SubspaceBot {
                         Iterator<Player> i = (Iterator<Player>) ipc.getList();
                         while (i.hasNext()) {
                             String name = i.next().getPlayerName().toLowerCase();
-                            if (!ops.isBotExact(name)
-                                    && !(ops.isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness"))) {
+                            if (!isBotExact(name)) {
                                 updateQueue.put(name, false);
                                 online.remove(name);
                                 outsiders.remove(name);
@@ -558,7 +461,6 @@ public class twchat extends SubspaceBot {
                     }
                 }
                 debug(bug);
-                return;
             } else if (countBots && event.getObject() instanceof IPCMessage) {
                 IPCMessage ipc = (IPCMessage) event.getObject();
                 if (ipc.getRecipient().equals(m_botAction.getBotName())) {
@@ -659,43 +561,6 @@ public class twchat extends SubspaceBot {
         
         m_botAction.smartPrivateMessageSpam(name, endCommands);
     }
-    
-    public void removeDups(String name) {
-        m_botAction.sendSmartPrivateMessage(name, "Requesting VIP file and removing duplicates...");
-        stater = name;
-        duplicateRemoval = true;
-        m_botAction.getServerFile("vip.txt");
-    }
-    
-    public void removeDuplicateVIPs() {
-        duplicateRemoval = false;
-        File vips = m_botAction.getDataFile("vip.txt");
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(vips));
-            HashSet<String> vipList = new HashSet<String>();
-            String line = reader.readLine();
-            int count = 0;
-            while (line != null) {
-                if (vipList.contains(line.toLowerCase()))
-                    count++;
-                vipList.add(line.toLowerCase());
-                line = reader.readLine();
-            }
-            m_botAction.sendSmartPrivateMessage(stater, "Total duplicate VIP entries: " + count);
-            stater = "";
-            reader.close();
-            vips.delete();
-            vips.createNewFile();
-            BufferedWriter writer = new BufferedWriter(new FileWriter(vips, true));
-            for (String vip : vipList)
-                writer.write("\r\n" + vip);
-            writer.flush();
-            writer.close();      
-            m_botAction.putFile("vip.txt");
-        } catch (IOException e) {
-            Tools.printStackTrace(e);
-        }
-    }
 
     private void stats(String name) {
         stater = name;
@@ -722,6 +587,7 @@ public class twchat extends SubspaceBot {
     }
 
     private void recalculate(String name) {
+        // WHAT IN IN THE NAME OF ALL THINGS SACRED DOES THIS COMMAND DO?!?!? -WZ
         Iterator<String> list = show.iterator();
         if (!list.hasNext()) m_botAction.sendSmartPrivateMessage(name, "No-one is online!");
 
@@ -760,7 +626,6 @@ public class twchat extends SubspaceBot {
     public void go(String name, String message) {
         String go = message.substring(4);
         m_botAction.changeArena(go);
-
     }
 
     public void test(String name, String message) {
@@ -899,20 +764,6 @@ public class twchat extends SubspaceBot {
         m_botAction.SQLBackgroundQuery(db, "squad:" + msg + ":" + name,
                 "SELECT fcName FROM tblPlayer WHERE fcSquad = '" + Tools.addSlashesToString(msg) + "' AND fnOnline = 1");
     }
-    
-    public void getSquadInfo(String name, String msg) {
-        if (msg.length() < 1) return;
-        if (squadInfo.length() > 1) {
-            ba.sendSmartPrivateMessage(name, "Command being used by someone else, please try again in a moment...");
-            return;
-        }
-        elapsedTime = System.currentTimeMillis();
-        msg = msg.substring(msg.indexOf(" ") + 1);
-        squadInfo = name + ":" + msg;
-        m_botAction.sendSmartPrivateMessage(name, "Processing squad list for: " + msg + " (* means potentially afk)");
-        m_botAction.SQLBackgroundQuery(db, "squadINFO:" + msg + ":" + name,
-                "SELECT fcName FROM tblPlayer WHERE fcSquad = '" + Tools.addSlashesToString(msg) + "' AND fnOnline = 1");
-    }
 
     public void sqlReset() {
         try {
@@ -1034,8 +885,7 @@ public class twchat extends SubspaceBot {
         } catch (NumberFormatException e) {}
     }
 
-    @SuppressWarnings("unused")
-    private boolean isNotBot(String name) {
+    private boolean isBotExact(String name) {
         if (ops.isBotExact(name) || (!ops.isOwner(name) && ops.isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness")))
             return false;
         else
@@ -1084,33 +934,6 @@ public class twchat extends SubspaceBot {
             ba.sendSmartPrivateMessage(name, "Debugging still ENABLED and you have replaced " + debugger + " as the debugger.");
             debugger = name;
         }
-    }
-    
-    private void locate() {
-        final String loc = locates.get(0);
-        TimerTask delay = new TimerTask() {
-            public void run() {
-                debug("Locating " + loc);
-                ba.sendUnfilteredPublicMessage("*locate " + loc);
-            }
-        };
-        ba.scheduleTask(delay, 1000);
-        locater = new TimerTask() {
-            public void run() {
-                locates.remove(loc.toLowerCase());
-                if (!locates.isEmpty())
-                    locate();
-                else {
-                    ba.sendSmartPrivateMessage(squadInfo.substring(0, squadInfo.indexOf(":")), squadInfo.substring(squadInfo.indexOf(":") + 1) + "(0): None found.");
-                    ba.sendSmartPrivateMessage(squadInfo.substring(0, squadInfo.indexOf(":")), "Time Elapsed: " + (System.currentTimeMillis() - elapsedTime)/60 + " seconds");
-                    elapsedTime = 0;
-                    squadInfo = "";
-                    tstates.clear();
-                    locates.clear();
-                }
-            }
-        };
-        ba.scheduleTask(locater, 2500);
     }
 
     public void debug(String msg) {
