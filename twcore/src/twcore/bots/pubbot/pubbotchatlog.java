@@ -28,7 +28,7 @@ public class pubbotchatlog extends PubBotModule{
 					m_botAction.sendPrivateMessage(name, "!last #      - returns # previous recorded chat lines (max. is "+maxSize+")");
 				    
 	
-				else if(message.startsWith("!last")){
+				else if(message.startsWith("!last ") && message.length() > 6){
 					
 					String STRnumberSizeChatLog = message.substring(6);
 					
