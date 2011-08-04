@@ -44,7 +44,6 @@ public class twchat extends SubspaceBot {
     public ArrayList<String> show = new ArrayList<String>();
     public ArrayList<String> info = new ArrayList<String>();
     public ArrayList<String> staffer = new ArrayList<String>();
-    public HashMap<String, Boolean> tstates = new HashMap<String, Boolean>();
     private static final String IPC = "whoonline";
     private static final String WHOBOT = "WhoBot";
     private static final String db = "pubstats";
@@ -107,21 +106,13 @@ public class twchat extends SubspaceBot {
                 sendPlayerInfo(message);
             if (message.contains("Client: VIE 1.34") && notify == true) {
                 String nameFromMessage = message.substring(0, message.indexOf(":", 0));
-                if (m_botAction.getOperatorList().isSysopExact(nameFromMessage) && !nameFromMessage.equalsIgnoreCase("Pure_Luck")
-                        && !nameFromMessage.equalsIgnoreCase("Witness"))
+                if (isBotExact(nameFromMessage))
                     return;
                 else
                     m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
                 
-                // I don't get it... why would show (an arraylist) ever .equals a String?!?!?!
                 if (!show.contains(nameFromMessage.toLowerCase()))
                     show.add(nameFromMessage.toLowerCase());
-
-                // more weirdness starts now
-                if (message.startsWith("Not online")) {
-                    for (int i = 0; i < show.size(); i++)
-                        show.remove(i);
-                }
             }
         }
         
@@ -216,11 +207,6 @@ public class twchat extends SubspaceBot {
                 else if (message.equalsIgnoreCase("!recal"))
                     recalculate(name);
                 else if (message.equalsIgnoreCase("!die")) m_botAction.die();
-            }
-            
-            if(ops.isOwner(name)){
-                if(message.equalsIgnoreCase("!quick"))
-                    m_botAction.putFile("bigblind2.lvl");
             }
         }
     }
