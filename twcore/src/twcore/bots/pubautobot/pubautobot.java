@@ -317,48 +317,52 @@ public class pubautobot extends SubspaceBot {
     }
 
     public void update(){
+        // it's always somewhere in here, might as well catch it anywhere...
+        try {
+            botX = m_botAction.getShip().getX();
+            botY = m_botAction.getShip().getY();
 
-    	botX = m_botAction.getShip().getX();
- 		botY = m_botAction.getShip().getY();
+            if(turretPlayerID == -1){
+                ListIterator<Projectile> it = fired.listIterator();
+                while (it.hasNext()) {
+                    Projectile b = (Projectile) it.next();
+                    if (b.isHitting(botX, botY)) {
 
-     	if(turretPlayerID == -1){
-     		ListIterator<Projectile> it = fired.listIterator();
-     		while (it.hasNext()) {
-     			Projectile b = (Projectile) it.next();
-     			if (b.isHitting(botX, botY)) {
+                        if (m_botAction.getPlayer(b.getOwner()).getFrequency()==freq)
+                            return;
 
-     				if (m_botAction.getPlayer(b.getOwner()).getFrequency()==freq)
-     					return;
-
-     				if(!isSpawning){
-         				numberOfShots++;
-     					spawned = new TimerTask(){
-     						public void run(){
-     							isSpawning = false;
-     						}
-     					};
-     					if (numberOfShots >= dieAtXshots) {
-	     					isSpawning = true;
-	     					m_botAction.scheduleTask(spawned, SPAWN_TIME);
-	     					m_botAction.sendDeath(m_botAction.getPlayerID(b.getOwner()), 0);
-	     					Iterator<RepeatFireTimer> i = repeatFireTimers.iterator();
-	     					while(i.hasNext())i.next().pause();
-     					}
-     				}
-     				it.remove();
-     			}
-     			else if (b.getAge() > 5000) {
-     				it.remove();
-     			}
-     		}
-		}
-     	else{
-     		Player p = m_botAction.getPlayer(turretPlayerID);
-     		if(p == null)return;
-			int xVel = p.getXVelocity();
-			int yVel = p.getYVelocity();
-			m_botAction.getShip().move(botX, botY, xVel, yVel);
-     	}
+                        if(!isSpawning){
+                            numberOfShots++;
+                            spawned = new TimerTask(){
+                                public void run(){
+                                    isSpawning = false;
+                                }
+                            };
+                            if (numberOfShots >= dieAtXshots) {
+                                isSpawning = true;
+                                m_botAction.scheduleTask(spawned, SPAWN_TIME);
+                                m_botAction.sendDeath(m_botAction.getPlayerID(b.getOwner()), 0);
+                                Iterator<RepeatFireTimer> i = repeatFireTimers.iterator();
+                                while(i.hasNext())i.next().pause();
+                            }
+                        }
+                        it.remove();
+                    }
+                    else if (b.getAge() > 5000) {
+                        it.remove();
+                    }
+                }
+            }
+            else{
+                Player p = m_botAction.getPlayer(turretPlayerID);
+                if(p == null)return;
+                int xVel = p.getXVelocity();
+                int yVel = p.getYVelocity();
+                m_botAction.getShip().move(botX, botY, xVel, yVel);
+            }
+        } catch (NullPointerException e) {
+            Tools.printStackTrace("Null somewhere in the autobot update run method!", e);
+        }
     }
 
     public void handleEvent(Message event)
