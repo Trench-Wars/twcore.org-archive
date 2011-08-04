@@ -549,11 +549,9 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		}
 		lastDeath = System.currentTimeMillis();
 		
-		/* forget this for now
 		// Get *einfo on first death to get a proper resolution
-		if (m_team.m_round.m_game.m_fnMatchTypeID != 4 && m_statTracker.getStatistic(Statistics.DEATHS) == 1)
+		if (m_statTracker.getStatistic(Statistics.DEATHS) == 1)
 			m_botAction.sendUnfilteredPrivateMessage(getPlayerName(), "*einfo");
-		*/
 		// Lag check timer cancel
 		if ((((m_team.m_round.getGame().m_fnMatchTypeID == 17) && (m_statTracker.getTotalStatistic(Statistics.DEATHS) >= m_fnSpecAt)) || (m_statTracker.getStatistic(Statistics.DEATHS) >= m_fnSpecAt)) && (m_rules.getString("winby").equals("kills")))
 		{
@@ -605,6 +603,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	// report being substituted
 	public void reportSubstituted()
 	{
+	    m_aboutToBeSubbed = false;
 		resetOutOfBorderTime();
 		m_fnPlayerState = 2;
 
