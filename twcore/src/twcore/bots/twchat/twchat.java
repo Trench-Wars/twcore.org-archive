@@ -645,11 +645,13 @@ public class twchat extends SubspaceBot {
                 if(blackList.contains(name.toLowerCase()))
                     return;
                 blackList.add(name);
-            } else
+                result.close();
+            } else 
                 return;
         } catch (SQLException e) {
             e.printStackTrace();
         }
+       
     }
     
     private void listBlackList(String name, String message){
