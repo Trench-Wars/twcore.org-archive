@@ -1,7 +1,12 @@
 package twcore.bots.pubhub;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -798,7 +803,7 @@ public class pubhubalias extends PubBotModule
 				doHelpCmd(sender);
 			else if(command.startsWith("!altnick ")){
 				doAltNickCmd(message.substring(9).trim());
-				Tools.printLog(sender+" "+message);
+				record(sender, message);
 			}
 			else if(command.startsWith("!altip "))
 				doAltIpCmd(message.substring(7).trim());
@@ -861,6 +866,25 @@ public class pubhubalias extends PubBotModule
 		if(messageType == Message.CHAT_MESSAGE)
 			handleChatMessage(sender, message);
 	}
+	
+	public void record(String sender, String message) {
+	       try{
+	           Calendar c = Calendar.getInstance();
+	           String timestamp = c.get( c.MONTH ) + "/" + c.get( c.DAY_OF_MONTH )
+	           + "/" + c.get( c.YEAR ) + " - ";
+	       
+	           BufferedReader reader = new BufferedReader(new FileReader( "/home/bots/twcore/bin/logs/alias.log" )); 
+	           BufferedWriter writer = new BufferedWriter(new FileWriter( "/home/bots/twcore/bin/logs/alias.log",true ));           
+	               writer.write("\r\n" + timestamp + sender + " - " + message);
+	               reader.close(); 
+	               writer.close();  
+	       } catch(Exception e){
+	           m_botAction.sendChatMessage(2, "I cannot log this to the alias.log! + "+sender+ "-" + message);
+	        Tools.printStackTrace( e );}
+	        
+	       
+	        
+	        }
 
 	public void gotRecord(String argString)
 	{
