@@ -30,6 +30,7 @@ public class PubLotteryModule extends AbstractModule {
     public int gWinningNumber;
     public int gTime;
     public TimerTask t;
+    public TimerTask t2;
     public Random r;
     public boolean guessOn;
     public String startingMessage;
@@ -63,7 +64,7 @@ public class PubLotteryModule extends AbstractModule {
         r = new Random();
         guessOn = false;
         startingMessage = "LOTTERY is starting! To buy a number, PM me with !guess <#>, where # is an integer between 0 " +
-        				  "and 100. For help, PM me with !lotteryhelp -" + m_botAction.getBotName();
+        				  "and 100. You have " + gTime + " minutes to guess. For help, PM me with !lotteryhelp -" + m_botAction.getBotName();
         manager = context.getPlayerManager();
 
         // lottery
@@ -377,7 +378,14 @@ public class PubLotteryModule extends AbstractModule {
                 endGuessingGame();
             }
         };
+        
+        t2 = new TimerTask() {
+        	public void run() {
+        		m_botAction.sendArenaMessage("One minute remains in LOTTERY! PM me with !guess <#> if you would like to play. -" + m_botAction.getBotName(), 2);
+        	}
+        };
         m_botAction.scheduleTask(t, gTime * Tools.TimeInMillis.MINUTE);
+        m_botAction.scheduleTask(t2, ((gTime - (gTime - 1)) * Tools.TimeInMillis.MINUTE));
     }
 
     public void endGuessingGame() {
@@ -567,7 +575,8 @@ public class PubLotteryModule extends AbstractModule {
     
     public void endLottery(String name, String cmd) {
     	if (guessOn) {
-    		m_botAction.cancelTask(t);    	
+    		m_botAction.cancelTask(t);
+    		m_botAction.cancelTask(t2);
     		m_botAction.sendArenaMessage("LOTTERY has been cancelled. All players have been reimbursed for their tickets. -" + m_botAction.getBotName(), 2);
     		guessOn = false;
     		for (String player : playerGuesses.keySet()) {
