@@ -372,6 +372,7 @@ public class PubLotteryModule extends AbstractModule {
         clearGuessValues();
         m_botAction.sendArenaMessage(startingMessage, 2);
         gWinningNumber = r.nextInt(99) + 1;
+        m_botAction.sendPublicMessage("Number is " + gWinningNumber);
 
         t = new TimerTask() {
             public void run() {
@@ -417,7 +418,7 @@ public class PubLotteryModule extends AbstractModule {
                 PubPlayer p = manager.getPlayer(player);
                 if (p != null) {
                 	p.addMoney(gJackpot/5);
-                	gWinningPlayers.add(player.toLowerCase());
+                	gWinningPlayers.add(player);
                 	m_botAction.sendPrivateMessage(player, "$" + (gJackpot/5) + " has been added to your account for guessing"
                             + " within 5 of the winning lottery number, congratulations!");
                 }
@@ -426,16 +427,11 @@ public class PubLotteryModule extends AbstractModule {
         }
 
         if (gWinningPlayers.size() > 0) {
-            // nothing wrong with doing it like this, but you could also use the fancy for each bit like this
-            /* just saves a little bit of typing and space
-            for (String winner : gWinningPlayers)
+
+            for (String winner : gWinningPlayers) {
                 gWinners += winner + ", ";
-            */
-            Iterator<String> i = gWinningPlayers.iterator();
-            while (i.hasNext()) {
-                String temp = i.next();                
-                gWinners += temp + ", ";
             }
+
             gWinners = gWinners.substring(0, gWinners.length() - 2);
             m_botAction.sendArenaMessage("Lottery has ended. Winner(s): " + gWinners + ". Congratulations! Winning number was " + gWinningNumber
                     + ".", 2);
