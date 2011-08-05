@@ -320,7 +320,6 @@ public class PubLotteryModule extends AbstractModule {
     @Override
     public String[] getModHelpMessage(String sender) {
         return new String[] {        		
-    			pubsystem.getHelpLine("!lotterymod           -- Lottery help message for mods+"),
     			pubsystem.getHelpLine("!setjp <$>            -- Set lottery jackpot to <$>, must be between 1 and 50,000."),
     			pubsystem.getHelpLine("!settp <$>            -- Set ticket price to <$>, must be between 1 and 1,000 and less than the jackpot."),
     			pubsystem.getHelpLine("!settime <#>          -- Set length of lottery rounds to <#> in minutes, must be between 1 and 60."),
@@ -542,7 +541,7 @@ public class PubLotteryModule extends AbstractModule {
     	String[] gValues = {
         		"Ticket price     - $" + gTicketPrice,
         		"Jackpot          - $" + gJackpot,
-        		"Time             - $" + gTime,
+        		"Time             - " + gTime + " mins",
     	};
     	m_botAction.privateMessageSpam(name, gValues);
     }
@@ -556,7 +555,7 @@ public class PubLotteryModule extends AbstractModule {
         		"Default values have been restored:",
         		" Ticket price     - $" + gTicketPrice,
         		" Jackpot          - $" + gJackpot,
-        		" Time             - " + gTime + "mins",        		
+        		" Time             - " + gTime + " mins",        		
         };
         m_botAction.privateMessageSpam(name, defaults);
     }
@@ -567,17 +566,19 @@ public class PubLotteryModule extends AbstractModule {
     }
     
     public void endLottery(String name, String cmd) {
-    	m_botAction.cancelTask(t);
-    	m_botAction.sendArenaMessage("LOTTERY has been cancelled. All players have been reimbursed for their tickets. -" + m_botAction.getBotName(), 2);
-    	guessOn = false;
-    	for (String player : playerGuesses.keySet()) {
-    		p = manager.getPlayer(player);
-            if (p == null) 
-            	return;
-            p.addMoney(gTicketPrice);
+    	if (guessOn) {
+    		m_botAction.cancelTask(t);    	
+    		m_botAction.sendArenaMessage("LOTTERY has been cancelled. All players have been reimbursed for their tickets. -" + m_botAction.getBotName(), 2);
+    		guessOn = false;
+    		for (String player : playerGuesses.keySet()) {
+    			p = manager.getPlayer(player);
+    			if (p == null) 
+    				return;
+    			p.addMoney(gTicketPrice);
             
-    	}
-    	
+    		}
+    	} else
+    		m_botAction.sendPrivateMessage(name, "Lottery is not currently running.");
     }
 
 }
