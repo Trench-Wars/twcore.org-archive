@@ -29,6 +29,7 @@ public class PubLotteryModule extends AbstractModule {
     public int gJackpot;
     public int gWinningNumber;
     public int gTime;
+    public TimerTask t;
     public Random r;
     public boolean guessOn;
     public String startingMessage;
@@ -56,7 +57,7 @@ public class PubLotteryModule extends AbstractModule {
         playerGuesses = new HashMap<String, Integer>();
         gWinningPlayers = new LinkedList<String>();
         gTicketPrice = 100;
-        gJackpot = 5000;
+        gJackpot = 2500;
         gWinningNumber = -1;
         gTime = 5;
         r = new Random();
@@ -294,6 +295,10 @@ public class PubLotteryModule extends AbstractModule {
             	} else {
             		m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
             	}
+            } else if (command.equalsIgnoreCase("!seevalues")) {
+            	getGuessValues(sender, command);
+            } else if (command.equalsIgnoreCase("!endlottery")) {
+            	endLottery(sender, command);
             }
         } catch (RuntimeException e) {
             m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
@@ -316,9 +321,13 @@ public class PubLotteryModule extends AbstractModule {
     public String[] getModHelpMessage(String sender) {
         return new String[] {        		
     			pubsystem.getHelpLine("!lotterymod           -- Lottery help message for mods+"),
-    			pubsystem.getHelpLine("!setjp <$>            -- Set lottery jackpot to <$>, must be between 1 and 50,000"),
-    			pubsystem.getHelpLine("!settp <$>            -- Set ticket price to <$>, must be between 1 and 1,000 and less than the jackpot"),
-    			pubsystem.getHelpLine("!settime <#>          -- Set length of lottery rounds to <#> in minutes, must be between 1 and 60"),
+    			pubsystem.getHelpLine("!setjp <$>            -- Set lottery jackpot to <$>, must be between 1 and 50,000."),
+    			pubsystem.getHelpLine("!settp <$>            -- Set ticket price to <$>, must be between 1 and 1,000 and less than the jackpot."),
+    			pubsystem.getHelpLine("!settime <#>          -- Set length of lottery rounds to <#> in minutes, must be between 1 and 60."),
+    			pubsystem.getHelpLine("!seevalues            -- View the current ticket/jackpot/round length values for lottery."),
+    			pubsystem.getHelpLine("!restoredefaults/!rd  -- Restore the default lottery values."),
+    			pubsystem.getHelpLine("!endlottery           -- Cancels the current lottery round, reimburses money to players."),
+		
         };
         
     }
@@ -359,11 +368,12 @@ public class PubLotteryModule extends AbstractModule {
 
     public void startGuessingGame() {
         guessOn = true;
+        clearGuessValues();
         m_botAction.sendArenaMessage(startingMessage, 2);
         gWinningNumber = r.nextInt(99) + 1;
         m_botAction.sendPublicMessage("Number is " + gWinningNumber);
 
-        TimerTask t = new TimerTask() {
+        t = new TimerTask() {
             public void run() {
                 endGuessingGame();
             }
@@ -412,7 +422,6 @@ public class PubLotteryModule extends AbstractModule {
         if (gWinningPlayers.size() > 0) {
             Iterator<String> i = gWinningPlayers.iterator();
             while (i.hasNext()) {
-                i.next();
                 String temp = i.next();                
                 gWinners += temp + ", ";
             }
@@ -529,9 +538,18 @@ public class PubLotteryModule extends AbstractModule {
     	}
     }
     
+    public void getGuessValues(String name, String cmd) {
+    	String[] gValues = {
+        		"Ticket price     - $" + gTicketPrice,
+        		"Jackpot          - $" + gJackpot,
+        		"Time             - $" + gTime,
+    	};
+    	m_botAction.privateMessageSpam(name, gValues);
+    }
+    
     public void restoreGuessDefaults(String name) {
         gTicketPrice = 100;
-        gJackpot = 5000;
+        gJackpot = 2500;
         gWinningNumber = -1;
         gTime = 5;
         String[] defaults = {
@@ -542,6 +560,24 @@ public class PubLotteryModule extends AbstractModule {
         };
         m_botAction.privateMessageSpam(name, defaults);
     }
-
+    
+    public void clearGuessValues() {
+    	playerGuesses.clear();
+    	gWinningPlayers.clear();
+    }
+    
+    public void endLottery(String name, String cmd) {
+    	m_botAction.cancelTask(t);
+    	m_botAction.sendArenaMessage("LOTTERY has been cancelled. All players have been reimbursed for their tickets. -" + m_botAction.getBotName(), 2);
+    	guessOn = false;
+    	for (String player : playerGuesses.keySet()) {
+    		p = manager.getPlayer(player);
+            if (p == null) 
+            	return;
+            p.addMoney(gTicketPrice);
+            
+    	}
+    	
+    }
 
 }
