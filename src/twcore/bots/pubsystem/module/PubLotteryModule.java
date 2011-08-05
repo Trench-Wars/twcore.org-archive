@@ -385,7 +385,7 @@ public class PubLotteryModule extends AbstractModule {
         	}
         };
         m_botAction.scheduleTask(t, gTime * Tools.TimeInMillis.MINUTE);
-        m_botAction.scheduleTask(t2, ((gTime - (gTime - 1)) * Tools.TimeInMillis.MINUTE));
+        m_botAction.scheduleTask(t2, ((gTime - 1) * Tools.TimeInMillis.MINUTE));
     }
 
     public void endGuessingGame() {
