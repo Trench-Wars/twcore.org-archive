@@ -655,6 +655,7 @@ public class twchat extends SubspaceBot {
     }
     
     private void listBlackList(String name, String message){
+        reloadBlackList();
         if (blackList.size() < 150) {
             String msg = "BLACKLIST: ";
             for (String p : blackList) {
