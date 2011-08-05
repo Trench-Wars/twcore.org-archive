@@ -35,7 +35,6 @@ public class PubLotteryModule extends AbstractModule {
     public boolean guessOn;
     public String startingMessage;
     public String gWinners;
-    public PubPlayer p;
     PubPlayerManagerModule manager;
 
     // lottery variables
@@ -393,26 +392,29 @@ public class PubLotteryModule extends AbstractModule {
         gWinners = "";
         
         for (String player : playerGuesses.keySet()) {
-            if (playerGuesses.get(player.toLowerCase()) == gWinningNumber) {
-                p = manager.getPlayer(player);
+            if (playerGuesses.get(player) == gWinningNumber) { // since String player is coming straight from playerGuesses, its already lc
+                // guessed the number exactly
+                PubPlayer p = manager.getPlayer(player);
                 if (p != null) {
                 	p.addMoney(gJackpot);
-                    gWinningPlayers.add(player.toLowerCase());
+                    gWinningPlayers.add(player); // since we won't be checking with .contains, we might as well not worry about case
                     m_botAction.sendPrivateMessage(player, "$" + gJackpot + " has been added to your account for correctly guessing"
                             + " the lottery number, congratulations!");
                 }
                 
-            } else if ((gWinningNumber - playerGuesses.get(player.toLowerCase())) == 1) {
-            	p = manager.getPlayer(player);
+            } else if (Math.abs((gWinningNumber - playerGuesses.get(player.toLowerCase()))) == 1) {
+                // guessed 1 number different
+                PubPlayer p = manager.getPlayer(player);
                 if (p != null) {
                 	p.addMoney(gJackpot/2);
-                	gWinningPlayers.add(player.toLowerCase());
+                	gWinningPlayers.add(player);
                 	m_botAction.sendPrivateMessage(player, "$" + (gJackpot/2) + " has been added to your account for guessing"
                             + " within 1 of the winning lottery number, congratulations!");
                 }
                  
-            } else if ((gWinningNumber - playerGuesses.get(player.toLowerCase())) <= 5 && (gWinningNumber - playerGuesses.get(player.toLowerCase())) > 1) {
-            	p = manager.getPlayer(player);
+            } else if (Math.abs((gWinningNumber - playerGuesses.get(player.toLowerCase()))) <= 5) { // no need to check for > 1 cuz technically that should be covered up above
+                // guessed within 5 numbers of the number
+                PubPlayer p = manager.getPlayer(player);
                 if (p != null) {
                 	p.addMoney(gJackpot/5);
                 	gWinningPlayers.add(player.toLowerCase());
@@ -424,6 +426,11 @@ public class PubLotteryModule extends AbstractModule {
         }
 
         if (gWinningPlayers.size() > 0) {
+            // nothing wrong with doing it like this, but you could also use the fancy for each bit like this
+            /* just saves a little bit of typing and space
+            for (String winner : gWinningPlayers)
+                gWinners += winner + ", ";
+            */
             Iterator<String> i = gWinningPlayers.iterator();
             while (i.hasNext()) {
                 String temp = i.next();                
@@ -436,17 +443,16 @@ public class PubLotteryModule extends AbstractModule {
         } else
             m_botAction.sendArenaMessage("Lottery has ended. There are no winners. Winning number was " + gWinningNumber + ".", 2);
 
+        // Since you're resetting everything in your start method, might as well forget about it here
         guessOn = false;
-        playerGuesses.clear();
     }
             
 
     public void handleGuess(String name, String message) {
         String s = message.substring(message.indexOf(" ") + 1);
         int guess;
-        p = manager.getPlayer(name);
+        PubPlayer p = manager.getPlayer(name);
         if (p != null) {
-
         	try {
         		guess = Integer.valueOf(s);
         	} catch (NumberFormatException e) {
@@ -455,17 +461,17 @@ public class PubLotteryModule extends AbstractModule {
         	}
 
         	if (guess > 0 && guess < 100) {
-        		if (p.getMoney() >= gTicketPrice) {
-        			if (playerGuesses.containsKey(name.toLowerCase())) {
-        				playerGuesses.put(name.toLowerCase(), guess);
-        				m_botAction.sendPrivateMessage(name, "Your guess has been changed to " + guess);
-        			} else {
-        				p.removeMoney(gTicketPrice);
-        				playerGuesses.put(name.toLowerCase(), guess);
-        				m_botAction.sendPrivateMessage(name, "You have guessed " + guess + " for $" + gTicketPrice + ".");
-        			}
-        		} else
-        			m_botAction.sendPrivateMessage(name, "You do not have enough funds to guess a number at this time. Please try again later.");
+        	    if (!playerGuesses.containsKey(name.toLowerCase())) {
+                    if (p.getMoney() >= gTicketPrice) {
+                        p.removeMoney(gTicketPrice);
+                        playerGuesses.put(name.toLowerCase(), guess);
+                        m_botAction.sendPrivateMessage(name, "You have guessed " + guess + " for $" + gTicketPrice + ".");
+                    } else
+                        m_botAction.sendPrivateMessage(name, "You do not have enough funds to guess a number at this time. Please try again later.");
+        	    } else {
+                    playerGuesses.put(name.toLowerCase(), guess);
+                    m_botAction.sendPrivateMessage(name, "Your guess has been changed to " + guess);
+        		}
         	} else
         		m_botAction.sendPrivateMessage(name, "You must guess a number between 0 and 100 in integer format. Example: !guess 50");
         }
@@ -577,7 +583,7 @@ public class PubLotteryModule extends AbstractModule {
     		m_botAction.sendArenaMessage("LOTTERY has been cancelled. All players have been reimbursed for their tickets. -" + m_botAction.getBotName(), 2);
     		guessOn = false;
     		for (String player : playerGuesses.keySet()) {
-    			p = manager.getPlayer(player);
+    			PubPlayer p = manager.getPlayer(player);
     			if (p != null) {
     				p.addMoney(gTicketPrice);
     			}
