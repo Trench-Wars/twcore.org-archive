@@ -65,7 +65,7 @@ public class MatchTeam {
 
     HashMap<String, Boolean> checkPlayerMID;
     HashMap<String, ResCheck> resCheck;
-    HashSet<String> idleInfo; // used when getting the idle info for a player
+    HashSet<String> addInfo; // used when getting the idle info for a player
 
     final static int ADD = 0;
     final static int SUB = 1;
@@ -118,7 +118,7 @@ public class MatchTeam {
         m_captains = new LinkedList<String>();
         checkPlayerMID = new HashMap<String, Boolean>();
         resCheck = new HashMap<String, ResCheck>();
-        idleInfo = new HashSet<String>();
+        addInfo = new HashSet<String>();
         m_fnFrequency = fnFrequency;
         m_fbReadyToGo = false;
         m_teamCancel = false;
@@ -340,8 +340,8 @@ public class MatchTeam {
                 String resolution = getInfo(msg, "Res:");
                 debug("Got einfo for: " + name);
                 
-                if (idleInfo.contains(name.toLowerCase())) {
-                    idleInfo.remove(name.toLowerCase());
+                if (addInfo.contains(name.toLowerCase())) {
+                    addInfo.remove(name.toLowerCase());
                     int idleTime = getIdleTime(msg);
                     debug("Sending idle info for: " + name);
                     if (isPlayerOnTeam(name)) {
@@ -798,7 +798,7 @@ public class MatchTeam {
 
                     m_logger.sendPrivateMessage(name, "Player " + p.getPlayerName() + " added to " + m_fcTeamName);
                     m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game");
-                    idleInfo.add(p.getPlayerName().toLowerCase());
+                    addInfo.add(p.getPlayerName().toLowerCase());
                     m_botAction.sendUnfilteredPrivateMessage(p.getPlayerName(), "*einfo");
 
                     if (m_rules.getInt("pickbyturn") == 1) {
@@ -1914,6 +1914,7 @@ public class MatchTeam {
 
     // send start signal to all players
     public void signalStartToPlayers() {
+        addInfo.clear();
         ListIterator<MatchPlayer> i = m_players.listIterator();
 
         while (i.hasNext()) {
@@ -2363,7 +2364,7 @@ public class MatchTeam {
 
                             m_logger.sendPrivateMessage(cap, "Player " + name + " added to " + m_fcTeamName);
                             m_logger.sendPrivateMessage(name, "You've been put in the game");
-                            idleInfo.add(name.toLowerCase());
+                            addInfo.add(name.toLowerCase());
                             m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
 
                             if (m_rules.getInt("pickbyturn") == 1) {
