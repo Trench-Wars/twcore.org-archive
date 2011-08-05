@@ -57,7 +57,7 @@ public class twchat extends SubspaceBot {
 
     private String debugger = "";
     private boolean DEBUG = false;
-    public boolean signup = false;
+    public boolean signup = true;
     public boolean notify = false;
     // status of the database update task sqlDump
     private boolean status = false;
@@ -525,7 +525,7 @@ public class twchat extends SubspaceBot {
                         "| !recal                      - Recalculate people online or off on TWChat      |",
                         "| !blacklist <name>           - Prevents <name> to !signup                      |",
                         "| !unblacklist <name>         - Removes blacklist on <name>                     |",
-                        "| !contains                   - Lists people on the 'BlackList'                 |",
+                        "| !blcontains                   - Lists people on the 'BlackList'                 |",
                         "|-------------------------------------------------------------------------------|",
                         "|                                Who Is Online (SMod)                           |",
                         "|                                                                               |",
@@ -627,8 +627,8 @@ public class twchat extends SubspaceBot {
                 return;
             try {
                 m_botAction.SQLQueryAndClose(dbInfo, "UPDATE tblTWChat SET fnActive = 0 WHERE fcName = '"+player+"'");
+                blackList.remove(player);
                 m_botAction.sendSmartPrivateMessage(name, "Removed "+player+" from the TWChat BlackList.");
-                reloadBlackList();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -646,7 +646,7 @@ public class twchat extends SubspaceBot {
                     return;
                 blackList.add(name);
             } else
-                m_botAction.sendChatMessage("SQL Query of reloadBlackList is a fail.");
+                return;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -754,11 +754,11 @@ public class twchat extends SubspaceBot {
             reloadBlackList();
             if(blackList.contains(name.toLowerCase())){
                 m_botAction.sendSmartPrivateMessage(name, "You are blacklisted from using this feature.");
-            } else
+            } else {
             name = name.toLowerCase();
             lastPlayer.add(name);
             m_botAction.getServerFile("vip.txt");
-        }
+        }}
     }
 
     public void toggle(String name, String message) {
