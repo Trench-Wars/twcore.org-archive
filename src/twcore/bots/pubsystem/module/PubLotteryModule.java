@@ -326,6 +326,7 @@ public class PubLotteryModule extends AbstractModule {
     			pubsystem.getHelpLine("!seevalues            -- View the current ticket/jackpot/round length values for lottery."),
     			pubsystem.getHelpLine("!restoredefaults/!rd  -- Restore the default lottery values."),
     			pubsystem.getHelpLine("!endlottery           -- Cancels the current lottery round, reimburses money to players."),
+    			pubsystem.getHelpLine(" NOTE: Do not alter the lottery values without permission from an SMod+"),
 		
         };
         
@@ -370,7 +371,6 @@ public class PubLotteryModule extends AbstractModule {
         clearGuessValues();
         m_botAction.sendArenaMessage(startingMessage, 2);
         gWinningNumber = r.nextInt(99) + 1;
-        m_botAction.sendPublicMessage("Number is " + gWinningNumber);
 
         t = new TimerTask() {
             public void run() {
