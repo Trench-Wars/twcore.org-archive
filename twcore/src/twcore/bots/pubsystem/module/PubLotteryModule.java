@@ -18,7 +18,15 @@ import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.bots.pubsystem.module.PubPlayerManagerModule;
 
 /*
- * By Eria
+ * By fLaReD and WingZero.
+ * There is a bunch of code left over from an older lottery module written by Eria.
+ * Basically anything labeled with a "g" or containing the word "guess" or below the
+ * getSmodHelpMessage method is for the updated module.
+ * 
+ * This module is for a simple lottery game in pub. Players get to !guess a number between 0 and 100 
+ * for a small fee. If a player guesses the exact number, they win the jackpot. If they guess within 1 
+ * of the winning number, they get 1/2 of the jackpot and if they guess within 5 of the winning number
+ * they win 1/5 of the jackpot. The ticket prices and jackpot value can be adjusted by mods+
  */
 
 public class PubLotteryModule extends AbstractModule {
@@ -367,12 +375,14 @@ public class PubLotteryModule extends AbstractModule {
      * 
      * public void setStatus(boolean mode) { lotteryOn = mode; } */
 
+    /**
+     * This method starts the lottery guessing game.
+     */
     public void startGuessingGame() {
         guessOn = true;
         clearGuessValues();
         m_botAction.sendArenaMessage(startingMessage, 2);
         gWinningNumber = r.nextInt(99) + 1;
-        m_botAction.sendPublicMessage("Number is " + gWinningNumber);
 
         t = new TimerTask() {
             public void run() {
@@ -389,22 +399,23 @@ public class PubLotteryModule extends AbstractModule {
         m_botAction.scheduleTask(t2, ((gTime - 1) * Tools.TimeInMillis.MINUTE));
     }
 
+    /**
+     * Ends lottery guessing game, determines winners and hands out the reward money as necessary.
+     */
     public void endGuessingGame() {
         gWinners = "";
         
         for (String player : playerGuesses.keySet()) {
-            if (playerGuesses.get(player) == gWinningNumber) { // since String player is coming straight from playerGuesses, its already lc
-                // guessed the number exactly
+            if (playerGuesses.get(player) == gWinningNumber) { 
                 PubPlayer p = manager.getPlayer(player);
                 if (p != null) {
                 	p.addMoney(gJackpot);
-                    gWinningPlayers.add(player); // since we won't be checking with .contains, we might as well not worry about case
+                    gWinningPlayers.add(player); 
                     m_botAction.sendPrivateMessage(player, "$" + gJackpot + " has been added to your account for correctly guessing"
                             + " the lottery number, congratulations!");
                 }
                 
             } else if (Math.abs((gWinningNumber - playerGuesses.get(player.toLowerCase()))) == 1) {
-                // guessed 1 number different
                 PubPlayer p = manager.getPlayer(player);
                 if (p != null) {
                 	p.addMoney(gJackpot/2);
@@ -413,8 +424,7 @@ public class PubLotteryModule extends AbstractModule {
                             + " within 1 of the winning lottery number, congratulations!");
                 }
                  
-            } else if (Math.abs((gWinningNumber - playerGuesses.get(player.toLowerCase()))) <= 5) { // no need to check for > 1 cuz technically that should be covered up above
-                // guessed within 5 numbers of the number
+            } else if (Math.abs((gWinningNumber - playerGuesses.get(player.toLowerCase()))) <= 5) { 
                 PubPlayer p = manager.getPlayer(player);
                 if (p != null) {
                 	p.addMoney(gJackpot/5);
@@ -439,11 +449,15 @@ public class PubLotteryModule extends AbstractModule {
         } else
             m_botAction.sendArenaMessage("Lottery has ended. There are no winners. Winning number was " + gWinningNumber + ".", 2);
 
-        // Since you're resetting everything in your start method, might as well forget about it here
         guessOn = false;
     }
             
 
+    /**
+     * Handles player guesses
+     * @param name Name of player who bought a number
+     * @param message Number that they bought
+     */
     public void handleGuess(String name, String message) {
         String s = message.substring(message.indexOf(" ") + 1);
         int guess;
@@ -473,7 +487,10 @@ public class PubLotteryModule extends AbstractModule {
         }
     }
     
-    
+    /**
+     * Explanation of the lottery game
+     * @param name Player who sent the command
+     */
     public void lotteryHelp(String name) {
     	String[] help = {
     			"+---------------------------------- LOTTERY ------------------------------------.",
@@ -493,6 +510,10 @@ public class PubLotteryModule extends AbstractModule {
     	m_botAction.privateMessageSpam(name, help);
     }
     
+    /**
+     * Shows the current value of lottery variables
+     * @param name Player who sent the command
+     */
     public void lotteryPrices(String name) {
     	String[] prices = {
         		"Ticket price     - $" + gTicketPrice,
@@ -501,6 +522,11 @@ public class PubLotteryModule extends AbstractModule {
     	m_botAction.privateMessageSpam(name, prices);
     }
     
+    /**
+     * Sets the value of the jackpot, for mods+
+     * @param name Name of mod attempting to change jackpot variable
+     * @param cmd Value that they are setting the jackpot to
+     */
     public void setGuessJackpot(String name, String cmd) {
     	String jp = cmd.substring(cmd.indexOf(" ") + 1);
     	try {
@@ -515,6 +541,11 @@ public class PubLotteryModule extends AbstractModule {
     	}
     }
     
+    /**
+     * Sets the cost to buy a ticket, for mods+
+     * @param name Name of mod attempting to change ticket price
+     * @param cmd Value that they are setting the price to
+     */
     public void setGuessTicketPrice(String name, String cmd) {
     	String tp = cmd.substring(cmd.indexOf(" ") + 1);
     	try {
@@ -529,6 +560,11 @@ public class PubLotteryModule extends AbstractModule {
     	}
     }
     
+    /**
+     * Sets the length of lottery round, for mods+
+     * @param name Name of mod attempting to change round length
+     * @param cmd Time in minutes to set round length to
+     */
     public void setGuessTime(String name, String cmd) {
     	String time = cmd.substring(cmd.indexOf(" ") + 1);
     	try {
@@ -543,6 +579,11 @@ public class PubLotteryModule extends AbstractModule {
     	}
     }
     
+    /**
+     * Gets the values of lottery values
+     * @param name Name of mod requesting values
+     * @param cmd
+     */
     public void getGuessValues(String name, String cmd) {
     	String[] gValues = {
         		"Ticket price     - $" + gTicketPrice,
@@ -552,6 +593,10 @@ public class PubLotteryModule extends AbstractModule {
     	m_botAction.privateMessageSpam(name, gValues);
     }
     
+    /**
+     * Resets default lottery values
+     * @param name Name of mod resetting default values
+     */
     public void restoreGuessDefaults(String name) {
         gTicketPrice = 100;
         gJackpot = 2500;
@@ -566,12 +611,20 @@ public class PubLotteryModule extends AbstractModule {
         m_botAction.privateMessageSpam(name, defaults);
     }
     
+    /**
+     * Clears the hash map, linked list, and string of winner players
+     */
     public void clearGuessValues() {
     	gWinners = "";
     	playerGuesses.clear();
     	gWinningPlayers.clear();
     }
     
+    /**
+     * Ends the lottery game manually, reimburses all players who bought a ticket
+     * @param name Name of mod ending lottery
+     * @param cmd
+     */
     public void endLottery(String name, String cmd) {
     	if (guessOn) {
     		m_botAction.cancelTask(t);
