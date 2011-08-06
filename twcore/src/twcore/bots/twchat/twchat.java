@@ -287,6 +287,7 @@ public class twchat extends SubspaceBot {
                         mems += "*";
                     online++;
                 }
+                m_botAction.sendSmartPrivateMessage(name, squad + "(" + online + "): " + mems);
             } else
                 m_botAction.sendSmartPrivateMessage(name, squad + "(" + 0 + "): None found.");
         } catch (SQLException e) {
