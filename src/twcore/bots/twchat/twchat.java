@@ -984,9 +984,9 @@ public class twchat extends SubspaceBot {
 
     private boolean isBotExact(String name) {
         if (ops.isBotExact(name) || (!ops.isOwner(name) && ops.isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness")))
-            return false;
-        else
             return true;
+        else
+            return false;
     }
 
     public void getPlayer(String name, String cmd) {
