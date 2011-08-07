@@ -258,7 +258,6 @@ public class pubsystem extends SubspaceBot
         try {
         	
             int playerID = event.getPlayerID();
-            Player player = m_botAction.getPlayer(playerID);
             String playerName = m_botAction.getPlayerName(playerID);
 
             if(context.isStarted()) {
@@ -275,7 +274,6 @@ public class pubsystem extends SubspaceBot
             	
             	
                 m_botAction.sendSmartPrivateMessage(playerName, message );
-                m_botAction.sendSmartPrivateMessage(playerName, "Type !help for a list of commands.");
 
                 context.handleEvent(event);
             }
@@ -586,7 +584,6 @@ public class pubsystem extends SubspaceBot
     public void handleEvent(SocketMessageEvent event){
 
     	if (event.getRequest().equals("GETPLAYERS")) {
-    		ArrayList<String> players = new ArrayList<String>();
     		Iterator<Player> it = m_botAction.getPlayerIterator();
     		
     		// Building a JSON-format result
@@ -717,7 +714,11 @@ public class pubsystem extends SubspaceBot
      * The bot needs to be sysop of course.
      */
     public void setupArenaSetting() {
-    	
+
+        
+        // Engine ShutDown Time set to 5 seconds
+        m_botAction.sendUnfilteredPublicMessage("?set Prize:EngineShutDownTime:500");
+        /*
     	String[] ships = new String[] {
     		"Warbird",
     		"Javelin",
@@ -728,10 +729,6 @@ public class pubsystem extends SubspaceBot
     		"Lancaster",
     		"Shark"
     	};
-    	
-    	// Engine ShutDown Time set to 5 seconds
-    	m_botAction.sendUnfilteredPublicMessage("?set Prize:EngineShutDownTime:500");
-    	
     	for(String shipName: ships) {
     		//m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":ShieldTime:50000");
     		//m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":SuperTime:50000");
@@ -740,7 +737,7 @@ public class pubsystem extends SubspaceBot
     		//m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":AntiWarpStatus:1");
     		//m_botAction.sendUnfilteredPublicMessage("?set "+shipName+":BrickMax:1");
     	}
-    	
+    	*/
     	// Specific
     	//m_botAction.sendUnfilteredPublicMessage("?set Javelin:XRadarStatus:2");
     	//m_botAction.sendUnfilteredPublicMessage("?set Terrier:XRadarStatus:2");
