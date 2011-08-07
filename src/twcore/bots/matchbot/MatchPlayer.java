@@ -771,7 +771,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			m_statTracker.createNewShip(ship);
 			updateLagThreshold();
 		};
-		m_logger.setShip(m_fcPlayerName, m_statTracker.getShipType());
+		if (m_fnPlayerState != LAGGED)
+		    m_logger.setShip(m_fcPlayerName, m_statTracker.getShipType());
 
 		if (m_player != null)
 			if (m_player.getFrequency() != getFrequency())
