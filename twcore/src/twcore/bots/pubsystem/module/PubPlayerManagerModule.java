@@ -3,12 +3,10 @@ package twcore.bots.pubsystem.module;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -32,7 +30,6 @@ import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.SQLResultEvent;
-import twcore.core.events.TurretEvent;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
@@ -41,9 +38,11 @@ public class PubPlayerManagerModule extends AbstractModule {
     private static final int MSG_AT_FREQSIZE_DIFF = 4;  // Max # difference in size of freqs before
     													//   bot requests players even frequencies.
     													//   Value of -1 disables this feature.
+    @SuppressWarnings("unused")
     private static final int KEEP_MVP_FREQSIZE_DIFF = 2;// Max # difference in size of freqs required
                                                         //   for a player to keep MVP/get bonus on switching.
 
+    @SuppressWarnings("unused")
     private static final int NICEGUY_BOUNTY_AWARD = 25; // Bounty given to those that even freqs/ships
     
     private int SHUFFLE_SIZE = 4;
@@ -259,6 +258,8 @@ public class PubPlayerManagerModule extends AbstractModule {
 	        }
         }
         
+        if (pubPlayer != null && pubPlayer.getMoney() < 1000)
+            m_botAction.sendSmartPrivateMessage(playerName, "Type !help for a list of commands.");
 	}
 	
 	public void handleEvent(PlayerLeft event) {
@@ -420,7 +421,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     	Iterator<Player> it = m_botAction.getPlayerIterator();
     	while(it.hasNext()) {
     		Player p = it.next();
-    		PubPlayer pubPlayer = addPlayerToSystem(p.getPlayerName());
+    		addPlayerToSystem(p.getPlayerName());
     	}
     }
     
@@ -651,9 +652,9 @@ public class PubPlayerManagerModule extends AbstractModule {
     private void checkFreq(int playerID, int freq, boolean changeMessage)
     {
         Player player = m_botAction.getPlayer(playerID);
-        String playerName = player.getPlayerName();
         if( player == null )
             return;
+        String playerName = player.getPlayerName();
         
         if (context.getPubHunt().isPlayerPlaying(playerName)) {
         	return;
