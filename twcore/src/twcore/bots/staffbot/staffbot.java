@@ -128,17 +128,28 @@ public class staffbot extends SubspaceBot {
 				String[] smodHelp = {
 						" !die                      - Disconnects Staffbot"
 				};
+				
+				String[] ownerHelp = {
+				        " !putfile                  - Uploads file to the zone (RARE CASE)"
+				};
 
 				m_botAction.smartPrivateMessageSpam(senderName, help);
 
 				if(m_botAction.getOperatorList().isSmod(senderName)) {
 					m_botAction.smartPrivateMessageSpam(senderName, smodHelp);
 				}
+				if(m_botAction.getOperatorList().isOwner(senderName)){
+				    m_botAction.smartPrivateMessageSpam(senderName, ownerHelp);
+				}
 			}
 			if(message.equalsIgnoreCase("!die")) {
 				moduleHandler.unloadAllModules();
 				this.handleDisconnect();
 				m_botAction.die();
+			}
+			if(message.startsWith("!putfile ")){
+			    String msg = message.substring(9);
+			    m_botAction.putFile(msg);
 			}
 
             if( message.toLowerCase().startsWith("!isstaff") ) {
