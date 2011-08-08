@@ -221,6 +221,8 @@ public class staffbot_warnings extends Module {
             int numExpired = 0;
             int numTotal = 0;
             
+            int splitCount = 0;
+            
             while( set.next() ){
                 String warning = set.getString( "warning" );
                 java.sql.Date date = set.getDate( "timeofwarning" );
@@ -232,13 +234,24 @@ public class staffbot_warnings extends Module {
                     String strDate = new SimpleDateFormat("dd MMM yyyy").format( date );
 
                     String[] text;
+                    String tempWarn = "";
+                    String tempWarn2 = "";
                     if( warning.contains("Ext: "))
                         text = warning.split( "Ext: ", 2);
                     else
                         text = warning.split( ": ", 2);
 
-                    if( text.length == 2 )
-                        warnings.add(strDate + "  " + text[1]);
+                    if( text.length == 2 ) {
+                    	tempWarn = strDate + "  " + text[1];
+                    	if ( tempWarn.length() >= 190) {
+                    		tempWarn2 = tempWarn.substring(190);
+                    		tempWarn = tempWarn.substring(0, 189);
+                    		splitCount++;
+                    		warnings.add(tempWarn);
+                    		warnings.add(tempWarn2);
+                    	} else
+                        warnings.add(tempWarn);
+                    }
                 }
                 numTotal++;
             }
@@ -251,12 +264,12 @@ public class staffbot_warnings extends Module {
                 if( showExpired ) {   // !allwarnings
                     m_botAction.sendRemotePrivateMessage( name, "Warnings in database for " + message + ":" );
                     m_botAction.remotePrivateMessageSpam( name, warnings.toArray(new String[warnings.size()]));
-                    m_botAction.sendRemotePrivateMessage( name, "Displayed " + warnings.size() + " warnings (including " + numExpired + " expired warnings)." );
+                    m_botAction.sendRemotePrivateMessage( name, "Displayed " + (warnings.size() - splitCount) + " warnings (including " + numExpired + " expired warnings)." );
                 } else {              // !warnings
                     if(warnings.size() > 0) {
                         m_botAction.sendRemotePrivateMessage( name, "Warnings in database for " + message + ":" );
                         m_botAction.remotePrivateMessageSpam( name, warnings.toArray(new String[warnings.size()]));
-                        m_botAction.sendRemotePrivateMessage( name, "Displayed " + warnings.size() + " valid warnings (suppressed " + numExpired + " expired)." + (numExpired > 0?" PM !allwarnings to display all.":"") );
+                        m_botAction.sendRemotePrivateMessage( name, "Displayed " + (warnings.size() - splitCount) + " valid warnings (suppressed " + numExpired + " expired)." + (numExpired > 0?" PM !allwarnings to display all.":"") );
                     } else {
                         m_botAction.sendRemotePrivateMessage( name, "No active warnings for "+ message +".");
                         m_botAction.sendRemotePrivateMessage( name, "There are "+numExpired+" expired warnings. PM !allwarnings to display these.");
