@@ -243,9 +243,9 @@ public class staffbot_warnings extends Module {
 
                     if( text.length == 2 ) {
                     	tempWarn = strDate + "  " + text[1];
-                    	if ( tempWarn.length() >= 190) {
+                    	if ( tempWarn.length() > 190) {
                     		tempWarn2 = tempWarn.substring(190);
-                    		tempWarn = tempWarn.substring(0, 189);
+                    		tempWarn = tempWarn.substring(0, 190);
                     		splitCount++;
                     		warnings.add(tempWarn);
                     		warnings.add(tempWarn2);
