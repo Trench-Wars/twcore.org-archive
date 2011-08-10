@@ -2246,9 +2246,9 @@ public class MatchTeam {
          * If the team has less than 3 players in, we must stop check.
          */
 
-        String playerShipString;
-        playerShipString = playerShips.toString();
-        System.out.println(playerShipString);
+        //String playerShipString;
+        //playerShipString = playerShips.toString();
+        //System.out.println(playerShipString);
 
         if (counter < m_rules.getInt("minplayers")) {
             return true;
