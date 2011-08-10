@@ -79,7 +79,7 @@ public class staffbot extends SubspaceBot {
 		// 2 = smod chat
 		String staffchat = m_botAction.getGeneralSettings().getString("Staff Chat");
 		String smodchat = m_botAction.getGeneralSettings().getString("Smod Chat");
-		m_botAction.sendUnfilteredPublicMessage("?chat="+staffchat+","+smodchat);
+		m_botAction.sendUnfilteredPublicMessage("?chat="+staffchat+","+smodchat+",robodev");
 
 		// load modules
 		moduleHandler.loadModule("_serverwarningecho");

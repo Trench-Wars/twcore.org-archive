@@ -58,7 +58,7 @@ public class staffbot_badcommand_savelog extends Module {
         try {
             logFile = new FileWriter(new File(logFileName), true);
         } catch(IOException ioe) {
-            m_botAction.sendChatMessage("Error while opening log file. Disabling module functionality.");
+            m_botAction.sendChatMessage(3, "Error while opening log file. Disabling module functionality.");
             Tools.printStackTrace("Error while opening log file. Disabling module functionality.", ioe);
             this.cancel();
         }
