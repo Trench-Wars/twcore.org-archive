@@ -341,7 +341,6 @@ public class MatchTeam {
                 debug("Got einfo for: " + name);
                 
                 if (addInfo.contains(name.toLowerCase())) {
-                    addInfo.remove(name.toLowerCase());
                     int idleTime = getIdleTime(msg);
                     debug("Sending idle info for: " + name);
                     if (isPlayerOnTeam(name)) {
@@ -1945,6 +1944,14 @@ public class MatchTeam {
     }
 
     public void sendPrivateMessageToCaptains(String[] text) {
+        if (text[0].contains(": PING")) {
+            String name = text[0].substring(0, text[0].indexOf(": PING"));
+            if (!addInfo.contains(name.toLowerCase())) {
+                m_botAction.sendPrivateMessage("WingZero", "Captain lag spam request denied from: " + name);
+                return;
+            } else
+                addInfo.remove(name.toLowerCase());
+        }
         ListIterator<String> i = m_captains.listIterator();
         while (i.hasNext()) {
             m_botAction.privateMessageSpam(i.next(), text);
@@ -2291,6 +2298,16 @@ public class MatchTeam {
         if (DEBUG)
             m_botAction.sendSmartPrivateMessage(debugger, "[DEBUG] " + msg);
     }
+    
+    private void removeRequestTimer(String name) {
+        final String n = name.toLowerCase();
+        TimerTask task = new TimerTask() {
+            public void run() {
+                addInfo.remove(n);
+            }
+        };
+        m_botAction.scheduleTask(task, 3000);
+    }
 
     public class ResCheck {
         String name;
@@ -2365,6 +2382,7 @@ public class MatchTeam {
                             m_logger.sendPrivateMessage(cap, "Player " + name + " added to " + m_fcTeamName);
                             m_logger.sendPrivateMessage(name, "You've been put in the game");
                             addInfo.add(name.toLowerCase());
+                            removeRequestTimer(name);
                             m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
 
                             if (m_rules.getInt("pickbyturn") == 1) {
