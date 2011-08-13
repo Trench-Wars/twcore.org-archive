@@ -113,9 +113,6 @@ public class twchat extends SubspaceBot {
                     return;
                 else
                     m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
-
-                if (!show.contains(nameFromMessage.toLowerCase()))
-                    show.add(nameFromMessage.toLowerCase());
             }
         }
 
@@ -168,6 +165,10 @@ public class twchat extends SubspaceBot {
                 whoHas(name, message);
             else if (message.equals("!stats"))
                 stats(name);
+            else if (message.startsWith("!twchat online "))
+                show.add(name.toLowerCase());
+            else if (message.startsWith("!twchat offline "))
+                show.remove(name.toLowerCase());
             else if (message.startsWith("!player ") || message.startsWith("!p "))
                 getPlayer(name, message);
 
@@ -213,8 +214,8 @@ public class twchat extends SubspaceBot {
                     blackListRemove(name, message);
                 else if (message.equalsIgnoreCase("!blcontains"))
                     listBlackList(name, message);
-                else if (message.equalsIgnoreCase("!recal"))
-                    recalculate(name);
+                //else if (message.equalsIgnoreCase("!recal"))
+                   // recalculate(name);
                 else if (message.equalsIgnoreCase("!die"))
                     m_botAction.die();
             }
@@ -298,13 +299,13 @@ public class twchat extends SubspaceBot {
         m_botAction.SQLClose(rs);
     }
 
-    public void handleEvent(PlayerLeft event) {
+    /**public void handleEvent(PlayerLeft event) {
         String name = ba.getPlayerName(event.getPlayerID());
         if (name == null)
             return;
         if (show.contains(name.toLowerCase()) && !online.contains(name.toLowerCase()))
             show.remove(name.toLowerCase());
-    }
+    }*/
 
     public void handleEvent(PlayerEntered event) {
         Player player = ba.getPlayer(event.getPlayerID());
@@ -532,7 +533,6 @@ public class twchat extends SubspaceBot {
                 "| !toggle                     - Disables/Enables ability to !signup             |",
                 "| !notify                     - Toggles chat notify (stops !show)               |",
                 "| !put                        - Force putfile VIP.txt                           |",
-                "| !recal                      - Recalculate people online or off on TWChat      |",
                 "| !blacklist <name>           - Prevents <name> to !signup                      |",
                 "| !unblacklist <name>         - Removes blacklist on <name>                     |",
                 "| !blcontains                   - Lists people on the 'BlackList'                 |",
@@ -671,7 +671,7 @@ public class twchat extends SubspaceBot {
         m_botAction.sendSmartPrivateMessage(name, "Done.");
     }
 
-    private void recalculate(String name) {
+    /*private void recalculate(String name) {
         // WHAT IN IN THE NAME OF ALL THINGS SACRED DOES THIS COMMAND DO?!?!? -WZ
         Iterator<String> list = show.iterator();
         if (!list.hasNext())
@@ -680,7 +680,7 @@ public class twchat extends SubspaceBot {
         String pName = (String) list.next();
         m_botAction.sendUnfilteredPublicMessage("?find " + pName);
         m_botAction.sendSmartPrivateMessage(name, "Recalculated.");
-    }
+    }*/
 
     private String firstInfo(String message, String infoName) {
         int beginIndex = message.indexOf(infoName);
