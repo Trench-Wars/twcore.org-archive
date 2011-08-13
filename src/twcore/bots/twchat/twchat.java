@@ -166,13 +166,11 @@ public class twchat extends SubspaceBot {
             else if (message.equals("!stats"))
                 stats(name);
             else if (message.startsWith("!twchat online "))
-                if (!show.contains(name.toLowerCase())) {
-                    show.add(name.toLowerCase());
-                } else if (message.startsWith("!twchat offline "))
-                    if (show.contains(name.toLowerCase())) {
-                        show.remove(name.toLowerCase());
-                    } else if (message.startsWith("!player ") || message.startsWith("!p "))
-                        getPlayer(name, message);
+                showAdd(name);
+            else if (message.startsWith("!twchat offline "))
+                showRemove(name);
+            else if (message.startsWith("!player ") || message.startsWith("!p "))
+                getPlayer(name, message);
 
             if (ops.isDeveloperExact(name) || ops.isSmod(name)) {
                 if (message.startsWith("!delay "))
@@ -585,6 +583,17 @@ public class twchat extends SubspaceBot {
             }
         };
         ba.scheduleTask(nocore, 2500);
+    }
+
+    private void showAdd(String name) {
+        if (!show.contains(name.toLowerCase()))
+            show.add(name.toLowerCase());
+
+    }
+
+    private void showRemove(String name) {
+        if (show.contains(name.toLowerCase()))
+            show.remove(name.toLowerCase());
     }
 
     private void deviates(String name) {
