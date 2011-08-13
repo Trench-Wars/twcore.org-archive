@@ -165,9 +165,9 @@ public class twchat extends SubspaceBot {
                 whoHas(name, message);
             else if (message.equals("!stats"))
                 stats(name);
-            else if (message.startsWith("!twchat online "))
+            else if (message.equals("!twchat online"))
                 showAdd(name);
-            else if (message.startsWith("!twchat offline "))
+            else if (message.equals("!twchat offline"))
                 showRemove(name);
             else if (message.startsWith("!player ") || message.startsWith("!p "))
                 getPlayer(name, message);
@@ -586,14 +586,17 @@ public class twchat extends SubspaceBot {
     }
 
     private void showAdd(String name) {
-        if (!show.contains(name.toLowerCase()))
+        if (!show.contains(name.toLowerCase())) {
             show.add(name.toLowerCase());
 
+        }
     }
 
     private void showRemove(String name) {
-        if (show.contains(name.toLowerCase()))
+        if (show.contains(name.toLowerCase())) {
             show.remove(name.toLowerCase());
+
+        }
     }
 
     private void deviates(String name) {
