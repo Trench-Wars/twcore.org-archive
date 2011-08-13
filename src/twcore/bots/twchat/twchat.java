@@ -166,6 +166,7 @@ public class twchat extends SubspaceBot {
             else if (message.equals("!stats"))
                 stats(name);
             else if (message.startsWith("!twchat online "))
+                if(!show.contains(name.toLowerCase()))
                 show.add(name.toLowerCase());
             else if (message.startsWith("!twchat offline "))
                 show.remove(name.toLowerCase());
