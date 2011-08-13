@@ -166,12 +166,13 @@ public class twchat extends SubspaceBot {
             else if (message.equals("!stats"))
                 stats(name);
             else if (message.startsWith("!twchat online "))
-                if(!show.contains(name.toLowerCase()))
-                show.add(name.toLowerCase());
-            else if (message.startsWith("!twchat offline "))
-                show.remove(name.toLowerCase());
-            else if (message.startsWith("!player ") || message.startsWith("!p "))
-                getPlayer(name, message);
+                if (!show.contains(name.toLowerCase())) {
+                    show.add(name.toLowerCase());
+                } else if (message.startsWith("!twchat offline "))
+                    if (show.contains(name.toLowerCase())) {
+                        show.remove(name.toLowerCase());
+                    } else if (message.startsWith("!player ") || message.startsWith("!p "))
+                        getPlayer(name, message);
 
             if (ops.isDeveloperExact(name) || ops.isSmod(name)) {
                 if (message.startsWith("!delay "))
@@ -216,7 +217,7 @@ public class twchat extends SubspaceBot {
                 else if (message.equalsIgnoreCase("!blcontains"))
                     listBlackList(name, message);
                 //else if (message.equalsIgnoreCase("!recal"))
-                   // recalculate(name);
+                // recalculate(name);
                 else if (message.equalsIgnoreCase("!die"))
                     m_botAction.die();
             }
