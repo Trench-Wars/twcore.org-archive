@@ -59,41 +59,41 @@ import twcore.core.util.Tools;
 public class PubMoneySystemModule extends AbstractModule {
 
 	private PubStore store;
-	
+
 	private PubPlayerManagerModule playerManager;
-    
+
     private Map<PubPlayer, PubItemDuration> playersWithDurationItem;
-    
+
     // These variables are used to calculate the money earned for a kill
     private Map<Integer, Integer> shipKillerPoints;
     private Map<Integer, Integer> shipKilledPoints;
-    
+
     // Money earned by location
     private Map<Location, Integer> locationPoints;
-    
+
     // Time passed on the same frequency
     private HashMap<String, Long> frequencyTimes;
-    
+
     // Last time sphere was used on freq
     private HashMap<Integer, Long> immuneFreqs;
-    
+
     // IPC Receivers (used by autobots thread)
     private List<IPCReceiver> ipcReceivers;
     private String IPC_CHANNEL = "pubautobot";
-    
+
     // Coupon system
     private HashSet<String> couponOperators;
     private HashMap<String,CouponCode> coupons; // cache system
 
     // Arena
     private String arenaNumber = "0";
-    
+
     private boolean donationEnabled = false;
-    
+
     private String database;
 
     public PubMoneySystemModule(BotAction botAction, PubContext context) {
-    	
+
     	super(botAction, context, "Money/Store");
 
     	this.playerManager = context.getPlayerManager();
@@ -106,7 +106,7 @@ public class PubMoneySystemModule extends AbstractModule {
         this.immuneFreqs = new HashMap<Integer, Long>();
 
         this.coupons = new HashMap<String,CouponCode>();
-        
+
         this.ipcReceivers = new ArrayList<IPCReceiver>();
 
         try {
@@ -115,35 +115,35 @@ public class PubMoneySystemModule extends AbstractModule {
 	    } catch (Exception e) {
 	    	Tools.printStackTrace("Error while initializing the money system", e);
 		}
-	    
+
 	    m_botAction.ipcSubscribe(IPC_CHANNEL);
 
 	    reloadConfig();
-    	
+
     }
-    
-    
+
+
 	public void requestEvents(EventRequester eventRequester)
 	{
 		eventRequester.request(EventRequester.PLAYER_DEATH);
 	}
-    
+
     /**
      * Gets default settings for the points: area and ship
      * By points, we mean "money".
      * */
     private void initializePoints(){
-        
+
     	String[] locations = m_botAction.getBotSettings().getString("point_location").split(",");
     	for(String loc: locations) {
     		String[] split =  m_botAction.getBotSettings().getString("point_location" + loc).split(",");
     		Location location = Location.valueOf(split[0].toUpperCase());
     		locationPoints.put(location, Integer.parseInt(split[1]));
     	}
-    	
+
         String[] pointsKiller =  m_botAction.getBotSettings().getString("point_killer").split(",");
         String[] pointsKilled =  m_botAction.getBotSettings().getString("point_killed").split(",");
-        
+
         for(int i=1; i<=8; i++) {
         	shipKillerPoints.put(i, Integer.parseInt(pointsKiller[i-1]));
         	shipKilledPoints.put(i, Integer.parseInt(pointsKilled[i-1]));
@@ -152,27 +152,27 @@ public class PubMoneySystemModule extends AbstractModule {
     }
 
     private void buyItem(final String playerName, String itemName, String params){
-    	
+
         try{
 
             if (playerManager.isPlayerExists(playerName)){
-            	
+
             	// Wait, is this player dueling?
             	if (context.getPubChallenge().isDueling(playerName)) {
             		m_botAction.sendSmartPrivateMessage(playerName, "You cannot buy an item while dueling.");
             		return;
             	}
-            	
+
             	// Kill-o-thon running and he's the leader?
             	if (context.getPubKillSession().isLeader(playerName)) {
             		m_botAction.sendSmartPrivateMessage(playerName, "You cannot buy an item while being a leader of kill-o-thon.");
             		return;
             	}
-            	
+
             	PubPlayer buyer = playerManager.getPlayer(playerName);
             	final PubItem item = store.buy(itemName, buyer, params);
             	final PubPlayer receiver;
-            	
+
             	// Is it an item bought for someone else?
             	// If yes, change the receiver for this player and not the buyer
                 if (item.isPlayerStrict() || (item.isPlayerOptional() && !params.trim().isEmpty())) {
@@ -180,15 +180,15 @@ public class PubMoneySystemModule extends AbstractModule {
                 } else {
                 	receiver = buyer;
                 }
-            	
+
                 // Execute the item!!
                 executeItem(item, receiver, params);
-                
+
                 // Tell the world?
                 if (item.isArenaItem()) {
                 	 m_botAction.sendArenaMessage(playerName + " just bought a " + item.getDisplayName() + " for $" + item.getPrice() + ".",21);
                 }
-                
+
                 // Save this purchase
         		int shipType = m_botAction.getPlayer(receiver.getPlayerName()).getShipType();
         		// The query will be closed by PlayerManagerModule
@@ -197,11 +197,11 @@ public class PubMoneySystemModule extends AbstractModule {
     				+ "(fcItemName, fcBuyerName, fcReceiverName, fcArguments, fnPrice, fnReceiverShipType, fdDate) "
     				+ "VALUES ('"+Tools.addSlashes(item.getName())+"','"+Tools.addSlashes(buyer.getPlayerName())+"','"+Tools.addSlashes(receiver.getPlayerName())+"','"+Tools.addSlashes(params)+"','"+item.getPrice()+"','"+shipType+"',NOW())");
 
-            } 
+            }
             else {
                 m_botAction.sendSmartPrivateMessage(playerName, "You're not in the system to use !buy.");
             }
-            
+
         }
         catch(PubException e) {
         	 m_botAction.sendSmartPrivateMessage(playerName, e.getMessage());
@@ -209,23 +209,23 @@ public class PubMoneySystemModule extends AbstractModule {
         catch(Exception e){
             Tools.printStackTrace(e);
         }
-        
+
     }
-    
+
     public void executeItem(final PubItem item, final PubPlayer receiver, final String params) {
-    	
+
     	Player player = m_botAction.getPlayer(receiver.getPlayerName());
-    	
+
     	try {
-    	
+
 	    	// PRIZE ITEM
 	        if (item instanceof PubPrizeItem) {
-	        	
+
 	        	PubPrizeItem itemPrize = (PubPrizeItem)item;
-	        	
+
 	        	List<Integer> prizes = ((PubPrizeItem) item).getPrizes();
 	        	final TimerTask task = new PrizeTask(itemPrize, receiver.getPlayerName());
-	        	
+
 	        	// Prize items every X seconds? (super/shield)
 	        	try {
 	                if (itemPrize.getPrizeSeconds()!=0 && item.hasDuration()) {
@@ -238,7 +238,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	        		Tools.printLog("Exception ExecuteItem: " + item.getName() + " (params:" + params + ")");
 	        		return;
 	        	}
-	        	
+
 	        	if (item.hasDuration()) {
 	            	final PubItemDuration duration = item.getDuration();
 	            	m_botAction.sendSmartPrivateMessage(receiver.getPlayerName(), "You have " + duration.getSeconds() + " seconds to use your item.");
@@ -260,7 +260,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	            	}
 	        	}
 	        }
-	        
+
 	    	// SHIP UPGRADE ITEM (same as PubPrizeItem)
 	        if (item instanceof PubShipUpgradeItem) {
 	        	List<Integer> prizes = ((PubShipUpgradeItem) item).getPrizes();
@@ -285,17 +285,17 @@ public class PubMoneySystemModule extends AbstractModule {
 	            	}
 	        	}
 	        }
-	        
+
 	        // COMMAND ITEM
 	        else if (item instanceof PubCommandItem) {
 	        	String command = ((PubCommandItem)item).getCommand();
 	    		Method method = this.getClass().getDeclaredMethod("itemCommand"+command, String.class, String.class);
 	    		method.invoke(this, receiver.getPlayerName(), params);
-	        } 
-	        
+	        }
+
 	        // SHIP ITEM
 	        else if (item instanceof PubShipItem) {
-	        	
+
 	            if (item.hasDuration()) {
 	            	PubItemDuration duration = item.getDuration();
 	            	if (duration.hasTime()) {
@@ -311,30 +311,30 @@ public class PubMoneySystemModule extends AbstractModule {
 	            		playersWithDurationItem.put(receiver, duration);
 	            	}
 	            }
-	            
+
 	            receiver.setShipItem((PubShipItem)item);
 	            m_botAction.setShip(receiver.getPlayerName(), ((PubShipItem) item).getShipNumber());
-	        	
-	        } 
-	        
+
+	        }
+
     	} catch (Exception e) {
     		Tools.printStackTrace(e);
     	}
-    	
+
     }
-    
+
     private void doCmdDonate(String sender, String command) {
-    	
+
     	if (!donationEnabled) {
     		m_botAction.sendSmartPrivateMessage(sender, "You cannot donate at this time, feature disabled.");
     		return;
     	}
-    	
+
     	if (command.length()<8) {
     		m_botAction.sendSmartPrivateMessage(sender, "Try !donate <name>.");
     		return;
     	}
-    	
+
     	command = command.substring(8).trim();
     	if (command.contains(":")) {
     		String[] split = command.split("\\s*:\\s*");
@@ -344,37 +344,37 @@ public class PubMoneySystemModule extends AbstractModule {
     		}
     		String name = split[0];
     		String money = split[1];
-    		
+
     		try {
     			Integer.valueOf(money);
     		} catch (NumberFormatException e) {
     			m_botAction.sendSmartPrivateMessage(sender, "You must specify a number. !donate playerA:1000");
     			return;
     		}
-    		
+
     		if (context.getPubChallenge().isDueling(sender)) {
     			m_botAction.sendSmartPrivateMessage(sender, "You cannot donate while dueling.");
     			return;
     		}
-    		
+
     		if (Integer.valueOf(money) < 0) {
     			m_botAction.sendSmartPrivateMessage(sender, "What are you trying to do here?");
     			return;
     		}
-    		
+
     		if (Integer.valueOf(money) < 10) {
     			m_botAction.sendSmartPrivateMessage(sender, "You cannot donate for less than $10.");
     			return;
     		}
-    		
-    		
+
+
     		Player p = m_botAction.getFuzzyPlayer(name);
     		if (p == null) {
     			m_botAction.sendSmartPrivateMessage(sender, "Player not found.");
     			return;
     		}
     		name = p.getPlayerName();
-    		
+
     		if (name.equals(sender)) {
     			m_botAction.sendSmartPrivateMessage(sender, "You cannot donate to yourself.");
     			return;
@@ -383,15 +383,15 @@ public class PubMoneySystemModule extends AbstractModule {
     		PubPlayer pubPlayer = playerManager.getPlayer(name,false);
     		PubPlayer pubPlayerDonater = playerManager.getPlayer(sender,false);
     		if (pubPlayer != null && pubPlayerDonater != null) {
-    			
+
     			if (pubPlayerDonater.getMoney() < Integer.valueOf(money)) {
     				m_botAction.sendSmartPrivateMessage(sender, "You don't have $" + Integer.valueOf(money) + " to donate.");
     				return;
     			}
-    			
+
     			int currentMoney = pubPlayer.getMoney();
     			int moneyToDonate = Integer.valueOf(money);
-    			
+
     			pubPlayer.addMoney(moneyToDonate);
     			pubPlayerDonater.removeMoney(moneyToDonate);
     			m_botAction.sendSmartPrivateMessage(sender, "$" + moneyToDonate + " sent to " + pubPlayer.getPlayerName() + ".");
@@ -402,8 +402,8 @@ public class PubMoneySystemModule extends AbstractModule {
         		m_botAction.SQLBackgroundQuery(database, null, "INSERT INTO tblPlayerDonations "
     				+ "(fcName, fcNameTo, fnMoney, fdDate) "
     				+ "VALUES ('"+Tools.addSlashes(sender)+"','"+Tools.addSlashes(pubPlayer.getPlayerName())+"','"+moneyToDonate+"',NOW())");
-        		
-    			
+
+
     		} else {
     			m_botAction.sendSmartPrivateMessage(sender, "Player not found.");
     		}
@@ -412,9 +412,9 @@ public class PubMoneySystemModule extends AbstractModule {
     		m_botAction.sendSmartPrivateMessage(sender, "Invalid argument");
     	}
     }
-    
+
     public void doCmdAddMoney(String sender, String command) {
-    	
+
     	command = command.substring(10).trim();
     	if (command.contains(":")) {
     		String[] split = command.split("\\s*:\\s*");
@@ -427,13 +427,15 @@ public class PubMoneySystemModule extends AbstractModule {
     			if (moneyInt > 0) {
     				pubPlayer.addMoney(moneyInt);
     				sqlMoney(moneyInt);
+    				m_botAction.sendSmartPrivateMessage(pubPlayer.getPlayerName(), sender + " added you $" + (currentMoney+Integer.valueOf(money)) + ".");
     			} else {
     				pubPlayer.removeMoney(moneyInt);
                     sqlMoney(-Math.abs(moneyInt));
+                    m_botAction.sendSmartPrivateMessage(pubPlayer.getPlayerName(), sender + " remved you $" + (currentMoney+Integer.valueOf(money)) + ".");
     			}
-    			
+
     			m_botAction.sendSmartPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $" + (currentMoney+Integer.valueOf(money)) + " (before: $" + currentMoney + ")");
-    		
+
     		} else {
     			playerManager.addMoney(name, Integer.valueOf(money), true);
                 sqlMoney(Integer.valueOf(money));
@@ -444,7 +446,7 @@ public class PubMoneySystemModule extends AbstractModule {
     		m_botAction.sendSmartPrivateMessage(sender, "Invalid argument");
     	}
     }
-    
+
     public void doCmdAward(String name, String cmd) {
         if (!cmd.contains(":"))
             return;
@@ -473,7 +475,7 @@ public class PubMoneySystemModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(name, "Invalid dollar amount.");
         }
     }
-    
+
     private void sqlMoney(int money) {
         String query = "UPDATE tblMoneyCode SET fnMoney = (fnMoney + " + money + ") WHERE fcCode = 'OWNER'";
         m_botAction.SQLBackgroundQuery(database, null, query);
@@ -486,31 +488,31 @@ public class PubMoneySystemModule extends AbstractModule {
         	m_botAction.sendSmartPrivateMessage(playerName, message);
         }
     }
-    
+
     private void doCmdItems(String sender){
-    	
+
         Player p = m_botAction.getPlayer(sender);
-        
+
         ArrayList<String> lines = new ArrayList<String>();
-        
+
         Class currentClass = this.getClass();
-        
+
         if (!store.isOpened())
         {
         	lines.add("The store is closed, no items available.");
-    	} 
-        else 
+    	}
+        else
     	{
-        	
-        	
-        	
+
+
+
         	lines.add("List of items you can buy. Each item has a set of restrictions.");
 	        for(String itemName: store.getItems().keySet()) {
-	        	
+
 	        	PubItem item = store.getItems().get(itemName);
 	        	if (item.getAbbreviations().contains(itemName))
 	        		continue;
-	        	
+
 	        	if (item instanceof PubPrizeItem) {
 	        		if (!currentClass.equals(PubPrizeItem.class))
 	        			lines.add("Prizes:");
@@ -542,17 +544,17 @@ public class PubMoneySystemModule extends AbstractModule {
 	        	line += " -- " + (item.getDescription() + " ($" + item.getPrice() + ")");
 	        	lines.add(line);
 	        }
-	        
+
 	        lines.add("Legend: *Target optional **Target required (!buy item:PlayerName)");
 	    	lines.add("Use !iteminfo <item> for more info about the specified item and its restrictions.");
-	    	
-	    } 
+
+	    }
 
         m_botAction.smartPrivateMessageSpam(sender, lines.toArray(new String[lines.size()]));
-        
+
     }
 
-    private void doCmdBuy(String sender, String command) 
+    private void doCmdBuy(String sender, String command)
     {
         Player p = m_botAction.getPlayer(sender);
         if(p == null)
@@ -570,14 +572,14 @@ public class PubMoneySystemModule extends AbstractModule {
         	buyItem(sender, command, "");
         }
     }
-    
+
     private void doCmdDebugObj(String sender, String command) {
-    	
+
     	m_botAction.sendSmartPrivateMessage(sender, "Average of " + LvzMoneyPanel.totalObjSentPerMinute() + " *obj sent per minute.");
     }
-    
+
     private void doCmdBankrupt(String sender, String command) {
-    	
+
     	String name = sender;
     	if (command.contains(" ")) {
     		name = command.substring(command.indexOf(" ")).trim();
@@ -591,9 +593,9 @@ public class PubMoneySystemModule extends AbstractModule {
 			}
     	}
     }
-    
+
     private void doCmdToggleDonation(String sender) {
-    	
+
     	donationEnabled = !donationEnabled;
     	if (donationEnabled) {
     		m_botAction.sendSmartPrivateMessage(sender, "!donation is now enabled.");
@@ -601,8 +603,8 @@ public class PubMoneySystemModule extends AbstractModule {
     		m_botAction.sendSmartPrivateMessage(sender, "!donation is now disabled.");
     	}
     }
-    
-    private void doCmdItemInfo(String sender, String command) 
+
+    private void doCmdItemInfo(String sender, String command)
     {
         Player p = m_botAction.getPlayer(sender);
         if(p == null)
@@ -617,10 +619,10 @@ public class PubMoneySystemModule extends AbstractModule {
         	m_botAction.sendSmartPrivateMessage(sender, "Item '" + itemName + "' not found.");
         }
         else {
-        	
+
         	m_botAction.sendSmartPrivateMessage(sender, "Item: " + item.getName() + " (" + item.getDescription() + ")");
         	m_botAction.sendSmartPrivateMessage(sender, "Price: $" + item.getPrice());
-        	
+
         	if (item.isPlayerOptional()) {
         		m_botAction.sendSmartPrivateMessage(sender, "Targetable: Optional");
         	} else if (item.isPlayerStrict()) {
@@ -630,22 +632,22 @@ public class PubMoneySystemModule extends AbstractModule {
         	}
 
         	if (item.isRestricted()) {
-        		
+
         		PubItemRestriction r = item.getRestriction();
-        		
+
         		// Not really a restriction, that's why this is before.
         		if (!r.isBuyableFromSpec()) {
         			m_botAction.sendSmartPrivateMessage(sender, "Buyable from spec: No");
         		} else {
         			m_botAction.sendSmartPrivateMessage(sender, "Buyable from spec: Yes");
         		}
-        		
+
         		// Real restrictions
         		m_botAction.sendSmartPrivateMessage(sender, "Restrictions:");
         		String info = "";
 
         		if (r.getRestrictedShips().size()==8) {
-	        		info += "Cannot be bought while playing"; 
+	        		info += "Cannot be bought while playing";
 	        		m_botAction.sendSmartPrivateMessage(sender, " - Cannot be bought while playing");
         		} else {
         			String ships = "";
@@ -669,7 +671,7 @@ public class PubMoneySystemModule extends AbstractModule {
         			m_botAction.sendSmartPrivateMessage(sender, " - Maximum of 1 every "+r.getMaxArenaPerMinute()+" minutes for the whole arena");
         		}
         		if (r.getMaxFreqPerMinute() != -1) {
-                    m_botAction.sendSmartPrivateMessage(sender, " - Maximum of 1 every "+r.getMaxFreqPerMinute()+" minutes for the freq that bought it");        		    
+                    m_botAction.sendSmartPrivateMessage(sender, " - Maximum of 1 every "+r.getMaxFreqPerMinute()+" minutes for the freq that bought it");
         		}
 
         	}
@@ -693,17 +695,17 @@ public class PubMoneySystemModule extends AbstractModule {
         			m_botAction.sendSmartPrivateMessage(sender, " - " + (int)(d.getSeconds())+" seconds");
         		}
         	}
-        	
+
         	if (item.getImmuneTime() > 0)
                 m_botAction.sendSmartPrivateMessage(sender, " - The affected freq(s) become immune to this item for " + item.getImmuneTime() + " seconds");
 
         }
     }
-    
+
     private void doCmdRichest(String sender, String command)
     {
     	HashMap<String,Integer> players = new HashMap<String,Integer>();
-    	
+
     	Iterator<Player> it = m_botAction.getPlayerIterator();
     	while(it.hasNext()) {
     		PubPlayer player = playerManager.getPlayer(it.next().getPlayerName());
@@ -712,7 +714,7 @@ public class PubMoneySystemModule extends AbstractModule {
     		}
     	}
     	LinkedHashMap<String,Integer> richest = sort(players,false);
-    	
+
     	Iterator<Entry<String,Integer>> it2 = richest.entrySet().iterator();
     	int count = 0;
     	while(it2.hasNext() && count < 5) {
@@ -720,17 +722,17 @@ public class PubMoneySystemModule extends AbstractModule {
     		m_botAction.sendSmartPrivateMessage(sender, ++count + ". " + entry.getKey() + " with $" + entry.getValue());
     	}
     }
-    
+
     private void doCmdLastKill(String sender)
     {
     	PubPlayer player = playerManager.getPlayer(sender);
     	if (player != null) {
-    		
+
     		if (player.getLastKillKillerShip() == -1) {
     			m_botAction.sendSmartPrivateMessage(sender, "You haven't killed anyone yet.");
     			return;
     		}
-    		
+
     		int shipKiller = player.getLastKillKillerShip();
     		int shipKilled = player.getLastKillKilledShip();
     		Location location = player.getLastKillLocation();
@@ -747,34 +749,34 @@ public class PubMoneySystemModule extends AbstractModule {
             if (player.getLastKillWithFlag()) {
             	moneyByFlag = 3;
             }
-            
+
             int total = moneyKiller+moneyKilled+moneyByLocation+moneyByFlag;
-            
+
             String msg = "You were a " + Tools.shipName(shipKiller) + " (+$"+moneyKiller+")";
             msg += ", killed a " + Tools.shipName(shipKilled) + " (+$"+moneyKilled+"). ";
             msg += "Location: " + context.getPubUtil().getLocationName(location) + " (+$"+moneyByLocation+").";
-            
+
             // Overide if kill in space
             //if (location.equals(Location.SPACE)) {
             //	total = 0;
             //	msg = "Kills outside of the base are worthless.";
             //}
-            
+
             m_botAction.sendSmartPrivateMessage(sender, "You earned $" + total + " by killing " + player.getLastKillKilledName() + ".");
             m_botAction.sendSmartPrivateMessage(sender, msg);
             if (player.getLastKillWithFlag()) {
             	m_botAction.sendSmartPrivateMessage(sender, "Bonus: Your team had the flag (+$3).");
             }
-    		
+
     	} else {
     		m_botAction.sendSmartPrivateMessage(sender, "You're still not in the system. Wait a bit to be added.");
     	}
     }
-    
+
     private int getMoneyPot() {
         return playerManager.getPlayer(m_botAction.getBotName(), false).getMoney();
     }
-    
+
     private void doCmdDisplayMoney(String sender, String command)
     {
     	String name = sender;
@@ -795,9 +797,9 @@ public class PubMoneySystemModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(sender, "You're still not in the system. Wait a bit to be added.");
         }
     }
-    
+
 	private void doCmdCouponListOps(String sender) {
-		
+
 		List<String> lines = new ArrayList<String>();
 		lines.add("List of Operators:");
 		for(String name: couponOperators) {
@@ -807,11 +809,11 @@ public class PubMoneySystemModule extends AbstractModule {
 	}
 
 	private void doCmdCouponAddOp(String sender, String name) {
-		
+
 		if (!couponOperators.contains(name.toLowerCase())) {
 			couponOperators.add(name.toLowerCase());
 			m_botAction.sendSmartPrivateMessage(sender, name + " is now an operator (temporary until the bot respawn).");
-			
+
 			/*
 			String operatorsString = "";
 			for(String operator: operators) {
@@ -821,43 +823,43 @@ public class PubMoneySystemModule extends AbstractModule {
 			m_botAction.getBotSettings().put("Operators", operatorsString.substring(1));
 			m_botAction.getBotSettings().save();
 			*/
-			
+
 		} else {
 			m_botAction.sendSmartPrivateMessage(sender, name + " is already an operator.");
 		}
 	}
 
 	private void doCmdCouponDisable(String sender, String codeString) {
-		
+
 		CouponCode code = getCouponCode(codeString);
 		if (code == null) {
 			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' not found.");
 		}
 		else if (!code.isEnabled()) {
 			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' is already disabled.");
-		} 
+		}
 		else if (!code.isValid()) {
 			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' is not valid anymore, useless.");
-		} 
+		}
 		else {
 			code.setEnabled(false);
 			updateCouponDB(code,"update:"+codeString+":"+sender);
 		}
-		
+
 	}
 
 	private void doCmdCouponEnable(String sender, String codeString) {
-		
+
 		CouponCode code = getCouponCode(codeString);
 		if (code == null) {
 			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' not found.");
 		}
 		else if (code.isEnabled()) {
 			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' is already enabled.");
-		} 
+		}
 		else if (!code.isValid()) {
 			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' is not valid anymore, useless.");
-		} 
+		}
 		else {
 			code.setEnabled(true);
 			updateCouponDB(code,"update:"+codeString+":"+sender);
@@ -865,7 +867,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	}
 
 	private void doCmdCouponInfo(String sender, String codeString) {
-		
+
 		CouponCode code = getCouponCode(codeString);
 		if (code == null) {
 			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' not found.");
@@ -881,21 +883,21 @@ public class PubMoneySystemModule extends AbstractModule {
         		" - Start date: " + new SimpleDateFormat("yyyy-MM-dd HH:mm").format(code.getStartAt()),
         		" - Expiration date: " + new SimpleDateFormat("yyyy-MM-dd HH:mm").format(code.getEndAt()),
         	};
-	    	
+
 	    	m_botAction.smartPrivateMessageSpam(sender, generation);
 		}
 	}
-	
+
 	private void doCmdCouponUsers(String sender, String codeString) {
-		
+
 		CouponCode code = getCouponCode(codeString);
 		if (code == null) {
 			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' not found.");
 		}
 		else {
-	    	
+
 			try {
-				
+
 				ResultSet rs = m_botAction.SQLQuery(database, "SELECT * FROM tblMoneyCodeUsed WHERE fnMoneyCodeId = '" + code.getId() + "'");
 
 				int count = 0;
@@ -912,7 +914,7 @@ public class PubMoneySystemModule extends AbstractModule {
 				if (count == 0) {
 					m_botAction.sendSmartPrivateMessage(sender, "This code has not been used yet.");
 				}
-				
+
 			} catch (SQLException e) {
 				Tools.printStackTrace(e);
 				m_botAction.sendSmartPrivateMessage(sender, "An error has occured.");
@@ -922,22 +924,22 @@ public class PubMoneySystemModule extends AbstractModule {
 	}
 
 	private void doCmdCouponExpireDate(String sender, String command) {
-		
+
 		String[] pieces = command.split(":");
 		if (pieces.length != 2) {
 			m_botAction.sendSmartPrivateMessage(sender, "Bad argument");
 			return;
 		}
-		
+
 		String codeString = pieces[0];
 		String dateString = pieces[1];
-		
+
 		CouponCode code = getCouponCode(codeString);
 		if (code == null) {
 			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' not found.");
 		}
 		else {
-	    	
+
 			DateFormat df = new SimpleDateFormat("yyyy/MM/dd");
 			java.util.Date date;
 			try {
@@ -945,22 +947,22 @@ public class PubMoneySystemModule extends AbstractModule {
 			} catch (ParseException e) {
 				m_botAction.sendSmartPrivateMessage(sender, "Bad date");
 				return;
-			}  
-			
+			}
+
 			code.setEndAt(date);
 			updateCouponDB(code,"update:"+codeString+":"+sender);
-			
+
 		}
 	}
 
 	private void doCmdCouponLimitUse(String sender, String command) {
-		
+
 		String[] pieces = command.split(":");
 		if (pieces.length != 2) {
 			m_botAction.sendSmartPrivateMessage(sender, "Bad argument");
 			return;
 		}
-		
+
 		String codeString = pieces[0];
 		String limitString = pieces[1];
 		int limit;
@@ -970,7 +972,7 @@ public class PubMoneySystemModule extends AbstractModule {
 			m_botAction.sendSmartPrivateMessage(sender, "Bad number");
 			return;
 		}
-		
+
 		CouponCode code = getCouponCode(codeString);
 		if (code == null) {
 			m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' not found.");
@@ -983,19 +985,19 @@ public class PubMoneySystemModule extends AbstractModule {
 			} else {
 				m_botAction.sendSmartPrivateMessage(sender, "Must be a number higher than 0.");
 			}
-			
+
 		}
 	}
 
 	private void doCmdCouponCreate(String sender, String command) {
-		
+
 		String[] pieces = command.split("\\s*:\\s*");
 		if (pieces.length < 2) {
 		    m_botAction.sendSmartPrivateMessage(sender, "You must include a reason for creating this coupon. !cc <money>:<reason>");
 		    return;
 		// Automatic code
 		} else if (pieces.length == 2) {
-		
+
 			int money;
 			try {
 				money = Integer.parseInt(pieces[0]);
@@ -1003,14 +1005,14 @@ public class PubMoneySystemModule extends AbstractModule {
 				m_botAction.sendSmartPrivateMessage(sender, "Bad number.");
 				return;
 			}
-			
+
 			if (pieces[1].length() < 5) {
 	            m_botAction.sendSmartPrivateMessage(sender, "Insufficient comment for <reason>.");
-	            return;			    
+	            return;
 			}
-			
+
 			String codeString = null;
-			
+
 			while (codeString == null || getCouponCode(codeString) != null) {
 				// Genereate a random code using the date and md5
 				String s = (new java.util.Date()).toString();
@@ -1019,23 +1021,23 @@ public class PubMoneySystemModule extends AbstractModule {
 					m = MessageDigest.getInstance("MD5");
 					m.update(s.getBytes(), 0, s.length());
 					String codeTemp = new BigInteger(1, m.digest()).toString(16);
-					
+
 					if (getCouponCode(codeTemp) == null)
 						codeString = codeTemp.substring(0,8).toUpperCase();
-					
+
 				} catch (NoSuchAlgorithmException e) {
 					return;
 				}
 			}
-			
+
 			CouponCode code = new CouponCode(codeString, money, sender, pieces[1]);
 			insertCouponDB(code,"create:"+codeString+":"+sender);
-			
+
 		// Custom code
 		} else if (pieces.length == 3) {
-			
+
 			String codeString = pieces[0];
-			
+
 			int money;
 			try {
 				money = Integer.parseInt(pieces[1]);
@@ -1043,20 +1045,20 @@ public class PubMoneySystemModule extends AbstractModule {
 				m_botAction.sendSmartPrivateMessage(sender, "Bad number.");
 				return;
 			}
-            
+
             if (pieces[2].length() < 5) {
                 m_botAction.sendSmartPrivateMessage(sender, "Insufficient comment for <reason>.");
-                return;             
+                return;
             }
-			
+
 			if (getCouponCode(codeString) != null) {
 				m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' already exists.");
 				return;
 			}
-			
+
 			CouponCode code = new CouponCode(codeString, money, sender, pieces[2]);
 			insertCouponDB(code,"create:"+codeString+":"+sender);
-			
+
 		} else {
 			m_botAction.sendSmartPrivateMessage(sender, "Bad argument.");
 			return;
@@ -1069,11 +1071,11 @@ public class PubMoneySystemModule extends AbstractModule {
 		if (code == null) {
 			// no feedback to avoid bruteforce!!
 			// m_botAction.sendSmartPrivateMessage(sender, "Code '" + codeString + "' not found.");
-		} 
+		}
 		else if (isPlayerRedeemAlready(sender, code)) {
 			m_botAction.sendSmartPrivateMessage(sender, "You have already used this code.");
 			return;
-		} 
+		}
 		else if (!code.isValid()) {
 			// no feedback to avoid bruteforce!!
 			return;
@@ -1082,12 +1084,12 @@ public class PubMoneySystemModule extends AbstractModule {
 
 			code.gotUsed();
 			updateCouponDB(code,"updateredeem:"+codeString+":"+sender);
-			
+
 		}
 	}
-	
+
 	private boolean isPlayerRedeemAlready(String playerName, CouponCode code) {
-		
+
 		ResultSet rs;
 		try {
 			rs = m_botAction.SQLQuery(database, "SELECT * FROM tblMoneyCodeUsed WHERE fnMoneyCodeId = '" + code.getId() + "' AND fcName = '" + Tools.addSlashes(playerName) + "'");
@@ -1098,29 +1100,29 @@ public class PubMoneySystemModule extends AbstractModule {
 				m_botAction.SQLClose(rs);
 				return false;
 			}
-			
+
 		} catch (SQLException e) {
 			Tools.printStackTrace(e);
 			return false;
 		}
-		
+
 	}
-    
+
 	private CouponCode getCouponCode(String codeString) {
 		return getCouponCode(codeString,false);
 	}
-	
+
 	private CouponCode getCouponCode(String codeString, boolean forceUpdate) {
-    	
+
 		if (!forceUpdate && coupons.containsKey(codeString))
 			return coupons.get(codeString);
-		
+
 		try {
-			
+
 			ResultSet rs = m_botAction.SQLQuery(database, "SELECT * FROM tblMoneyCode WHERE fcCode = '" + Tools.addSlashes(codeString) + "'");
 
 			if (rs.next()) {
-	
+
 				int id = rs.getInt("fnMoneyCodeId");
 				String description = rs.getString("fcDescription");
 				String createdBy = rs.getString("fcCreatedBy");
@@ -1131,7 +1133,7 @@ public class PubMoneySystemModule extends AbstractModule {
 				Date startAt = rs.getDate("fdStartAt");
 				Date endAt = rs.getDate("fdEndAt");
 				Date createdAt = rs.getDate("fdCreated");
-				
+
 				CouponCode code = new CouponCode(codeString, money, createdAt, createdBy, description);
 				code.setId(id);
 				code.setEnabled(enabled);
@@ -1140,7 +1142,7 @@ public class PubMoneySystemModule extends AbstractModule {
 				code.setEndAt(endAt);
 				code.setUsed(used);
 				m_botAction.SQLClose(rs);
-				
+
 				coupons.put(codeString, code);
 				return code;
 			}
@@ -1148,20 +1150,20 @@ public class PubMoneySystemModule extends AbstractModule {
 				m_botAction.SQLClose(rs);
 				return null;
 			}
-			
+
 		} catch (SQLException e) {
 			Tools.printStackTrace(e);
 			return null;
 		}
 
-    	
+
     }
-	
+
 	private void insertCouponDB(CouponCode code, String params) {
-		
+
 		String startAtString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(code.getStartAt());
 		String endAtString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(code.getEndAt());
-		
+
 
 		m_botAction.SQLBackgroundQuery(database, "coupon:"+params,
 				"INSERT INTO tblMoneyCode " +
@@ -1178,11 +1180,11 @@ public class PubMoneySystemModule extends AbstractModule {
 				"" + (code.isEnabled() ? 1 : 0) + "," +
 				"NOW()" +
 				")");
-		
+
 	}
-	
+
 	private void updateCouponDB(CouponCode code, String params) {
-		
+
 		String startAtString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(code.getStartAt());
 		String endAtString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(code.getEndAt());
 
@@ -1201,44 +1203,44 @@ public class PubMoneySystemModule extends AbstractModule {
     public boolean isStoreOpened() {
     	return store.isOpened();
     }
-    
+
     public boolean isDatabaseOn() {
     	return  m_botAction.getBotSettings().getString("database") != null;
     }
-    
+
     public void handleTK(Player killer) {
-    	
-    	
-    	
+
+
+
     }
-    
+
     public void handleDisconnect() {
-    	
+
     }
-    
+
     public void handleEvent(SQLResultEvent event) {
-    	
+
 
     	// Coupon system
     	if (event.getIdentifier().startsWith("coupon")) {
 
     		String[] pieces = event.getIdentifier().split(":");
     		if (pieces.length > 1) {
-    			
+
     			if (pieces.length==4 && pieces[1].equals("update")) {
     				m_botAction.sendSmartPrivateMessage(pieces[3], "Code '" + pieces[2] + "' updated.");
     			}
-    		
+
     			else if (pieces.length == 4 && pieces[1].equals("updateredeem")) {
-    				
+
     				CouponCode code = getCouponCode(pieces[2]);
     				if (code == null)
     					return;
-    				
+
     				m_botAction.SQLBackgroundQuery(database, null, "INSERT INTO tblMoneyCodeUsed "
     						+ "(fnMoneyCodeId, fcName, fdCreated) "
     						+ "VALUES ('" + code.getId() + "', '" + Tools.addSlashes(pieces[3]) + "', NOW())");
-    			
+
     				if (context.getPlayerManager().addMoney(pieces[3], code.getMoney(), true)) {
     					m_botAction.sendSmartPrivateMessage(pieces[3], "$" + code.getMoney() + " has been added to your account.");
     				} else {
@@ -1246,18 +1248,18 @@ public class PubMoneySystemModule extends AbstractModule {
     				}
 
     			}
-    			
+
     			else if(pieces.length == 4 && pieces[1].equals("create")) {
     				m_botAction.sendSmartPrivateMessage(pieces[3], "Code '" + pieces[2] + "' created.");
     			}
     		}
-    		
+
     		m_botAction.SQLClose(event.getResultSet());
-    		
+
     	}
-    	
+
     }
-    
+
     public void handleEvent(InterProcessEvent event) {
     	for(IPCReceiver receiver: ipcReceivers) {
     		receiver.handleInterProcessEvent(event);
@@ -1268,26 +1270,26 @@ public class PubMoneySystemModule extends AbstractModule {
     	Player p = m_botAction.getPlayer(event.getPlayerID());
     	if (p == null)
     		return;
-    	
+
     	frequencyTimes.put(p.getPlayerName(), System.currentTimeMillis());
     }
-    
+
     public void handleEvent(PlayerLeft event) {
     	Player p = m_botAction.getPlayer(event.getPlayerID());
     	if (p == null)
     		return;
-    	
+
     	frequencyTimes.remove(p.getPlayerName());
     }
-   
+
     public void handleEvent(ArenaList event) {
-    	
+
     	/*
     	String thisArena = m_botAction.getArenaName();
-    	if (thisArena.contains("Public")) 
+    	if (thisArena.contains("Public"))
     	{
 	    	thisArena = thisArena.substring(8,9);
-	    	
+
 	    	int i=0;
 	    	for(String arena: event.getArenaNames()) {
 	    		System.out.println(i + ": " + arena);
@@ -1298,9 +1300,9 @@ public class PubMoneySystemModule extends AbstractModule {
 	    	}
     	}
     	*/
-    	
+
     }
-    
+
     public void handleEvent(PlayerDeath event) {
 
     	final Player killer = m_botAction.getPlayer( event.getKillerID() );
@@ -1308,7 +1310,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
         if( killer == null || killed == null )
             return;
-        
+
         // A TK, do nothing for now
         if ( killer.getFrequency() == killed.getFrequency() ) {
         	handleTK(killer);
@@ -1329,9 +1331,9 @@ public class PubMoneySystemModule extends AbstractModule {
             if (pubPlayerKiller == null || pubPlayerKilled == null) {
             	return;
             }
-            
+
             pubPlayerKilled.handleDeath(event);
-            
+
             // Duration check for Ship Item
             if (pubPlayerKilled.hasShipItem() && playersWithDurationItem.containsKey(pubPlayerKilled)) {
             	final PubItemDuration duration = playersWithDurationItem.get(pubPlayerKilled);
@@ -1353,16 +1355,16 @@ public class PubMoneySystemModule extends AbstractModule {
             		//      for 5 deaths (PubItemDuration)
             	}
             }
- 
+
             int x = killer.getXTileLocation();
-            int y = killer.getYTileLocation(); 
+            int y = killer.getYTileLocation();
             Location location = context.getPubUtil().getLocation(x, y);
-            
-            if (location != null) 
+
+            if (location != null)
             {
 	            int money = 0;
 	            boolean withFlag = false;
-	
+
 	            // Money if team with flag
 	            if (context.getGameFlagTime().isRunning()) {
 	            	int freqWithFlag = context.getGameFlagTime().getFreqWithFlag();
@@ -1371,7 +1373,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	            		withFlag = true;
 	            	}
 	            }
-	            
+
 	            // Money from the ship
 	            int moneyKiller = 0;
 	            int moneyKilled = 0;
@@ -1379,29 +1381,29 @@ public class PubMoneySystemModule extends AbstractModule {
 		            moneyKiller = shipKillerPoints.get((int)killer.getShipType());
 		            moneyKilled = shipKillerPoints.get((int)killed.getShipType());
 	            } catch(NullPointerException e) { }
-	            
+
 	            money += moneyKiller;
 	            money += moneyKilled;
-	            
+
 	            // Money from the location
 	            int moneyByLocation = 0;
 	            if (locationPoints.containsKey(location)) {
 	            	moneyByLocation = locationPoints.get(location);
 	            	money += moneyByLocation;
 	            }
-	
-	            // Add money	            
+
+	            // Add money
 	            String playerName = killer.getPlayerName();
 	            //context.getPlayerManager().addMoney(playerName, money);
 	            PubPlayer p = context.getPlayerManager().getPlayer( playerName );
 	            if( p != null ) {
 	                p.addMoney( money );
 	                // [SPACEBUX] $1000 milestone!  Balance ... $5002  Last kill ... +$10  (!lastkill for details)
-	                if( p.getMoney() % 1000 < money ) { 
+	                if( p.getMoney() % 1000 < money ) {
 	                    m_botAction.sendPrivateMessage( playerName, "[SPACEBUX] $1000 milestone.  Balance ... $" + p.getMoney() + "  Last kill ... +$" + money + "  (!lastkill for details)");
 	                }
 	            }
-	            
+
 	            pubPlayerKiller.setLastKillShips((int)killer.getShipType(), (int)killed.getShipType());
 	            pubPlayerKiller.setLastKillLocation(location);
 	            pubPlayerKiller.setLastKillKilledName(killed.getPlayerName());
@@ -1411,11 +1413,11 @@ public class PubMoneySystemModule extends AbstractModule {
         } catch(Exception e){
             Tools.printStackTrace(e);
         }
-    	
+
     }
 
     public void handleCommand(String sender, String command) {
-    	
+
         if(command.startsWith("!items") || command.trim().equals("!i")) {
             doCmdItems(sender);
         }
@@ -1447,14 +1449,14 @@ public class PubMoneySystemModule extends AbstractModule {
         	doCmdAddMoney(sender,command);
         }
         else if (command.startsWith("!coupon") || command.startsWith("!c")){
-        	  
+
     		// Coupon System commands
         	boolean operator = couponOperators.contains(sender.toLowerCase());
         	boolean smod = m_botAction.getOperatorList().isSmod(sender);
-        	
+
         	// (Operator/SMOD only)
         	if (operator || smod) {
-        		
+
     			if (command.startsWith("!couponcreate ") || command.startsWith("!cc ")) {
     				doCmdCouponCreate(sender, command.substring(command.indexOf(" ") + 1).trim());
     			} else if (command.startsWith("!couponlimituse ") || command.startsWith("!clu ")) {
@@ -1469,7 +1471,7 @@ public class PubMoneySystemModule extends AbstractModule {
     				doCmdCouponEnable(sender, command.substring(command.indexOf(" ") + 1).trim());
     			} else if (command.startsWith("!coupondisable ") || command.startsWith("!cd ")) {
     				doCmdCouponDisable(sender, command.substring(command.indexOf(" ") + 1).trim());
-    			} 
+    			}
         	}
         }
 
@@ -1483,7 +1485,7 @@ public class PubMoneySystemModule extends AbstractModule {
 	}
 
     public void handleModCommand(String sender, String command) {
-    	
+
 		if (command.startsWith("!bankrupt")) {
             doCmdBankrupt(sender, command);
         } else if(command.startsWith("!debugobj")) {
@@ -1504,8 +1506,8 @@ public class PubMoneySystemModule extends AbstractModule {
     @Override
     public String[] getSmodHelpMessage(String sender) {
         return new String[]{};
-    }   
-    
+    }
+
 	@Override
 	public String[] getHelpMessage(String sender) {
 		return new String[] {
@@ -1526,41 +1528,41 @@ public class PubMoneySystemModule extends AbstractModule {
 		String normal[] = new String[] {
 	        pubsystem.getHelpLine("!award <name>:<amount>                 -- Awards <name> with <amount> from the bot's bank"),
 	        pubsystem.getHelpLine("!pot                                   -- Displays money available for awards"),
-			pubsystem.getHelpLine("!toggledonation                        -- Toggle on/off !donation."),	
+			pubsystem.getHelpLine("!toggledonation                        -- Toggle on/off !donation."),
 		};
-		
+
     	String generation[] = new String[] {
     		pubsystem.getHelpLine("!couponcreate <money>:<reason>         -- (!cc) Create a random code for <money> justified with a <reason>. Use !limituse/!expiredate for more options."),
     		pubsystem.getHelpLine("!couponcreate <code>:<money>:<reason>  -- (!cc) Create a custom code for <money> justified with a <reason>. Max of 32 characters."),
     		pubsystem.getHelpLine("!couponlimituse <code>:<max>           -- (!clu) Set how many players <max> can get this <code>."),
     		pubsystem.getHelpLine("!couponexpiredate <code>:<date>        -- (!ced) Set an expiration <date> (format: yyyy/mm/dd) for <code>."),
     	};
-    	
+
     	String maintenance[] = new String[] {
     		pubsystem.getHelpLine("!couponinfo <code>                     -- (!ci) Information about this <code>."),
     		pubsystem.getHelpLine("!couponusers <code>                    -- (!cu) Who used this code."),
     		pubsystem.getHelpLine("!couponenable / !coupondisable <code>  -- (!ce/!cd) Enable/disable <code>."),
     	};
-    	
+
     	String bot[] = new String[] {
     		pubsystem.getHelpLine("!couponaddop <name>                    -- Add an operator (temporary, permanant via .cfg)."),
     		pubsystem.getHelpLine("!couponlistops                         -- List of operators."),
     	};
-    	
+
     	List<String> lines = new ArrayList<String>();
     	lines.addAll(Arrays.asList(normal));
     	if (m_botAction.getOperatorList().isSmod(sender)) {
     		lines.addAll(Arrays.asList(generation));
     		lines.addAll(Arrays.asList(maintenance));
     		lines.addAll(Arrays.asList(bot));
-    		
+
     	} else if (couponOperators.contains(sender.toLowerCase())) {
     		lines.addAll(Arrays.asList(generation));
     		lines.addAll(Arrays.asList(maintenance));
     	}
-	    	
+
 	    return lines.toArray(new String[lines.size()]);
-		
+
 	}
 
     private String getSender(Message event)
@@ -1571,7 +1573,7 @@ public class PubMoneySystemModule extends AbstractModule {
         int senderID = event.getPlayerID();
         return m_botAction.getPlayerName(senderID);
     }
-    
+
     private void updateFreqImmunity() {
         int immuneTime = store.getFreqImmuneTime();
         Iterator<Integer> i = immuneFreqs.keySet().iterator();
@@ -1583,7 +1585,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 i.remove();
         }
     }
-    
+
     /**
      * Format a number to currency with the dollar sign
      * 100000 -> $100,000
@@ -1603,7 +1605,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	if (params.equals("")) {
     		throw new PubException("You must add 1 parameter when you buy this item.");
     	}
-    	
+
     	final String playerName = params;
 
     	m_botAction.spectatePlayerImmediately(playerName);
@@ -1611,7 +1613,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	Player p = m_botAction.getPlayer(playerName);
     	Player psender = m_botAction.getPlayer(sender);
     	int distance = 10*16; // distance from the player and the bot
-    	
+
     	int x = p.getXLocation();
     	int y = p.getYLocation();
     	int angle = (int)p.getRotation()*9;
@@ -1626,7 +1628,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	m_botAction.getShip().sendPositionPacket();
     	m_botAction.getShip().fire(WeaponFired.WEAPON_THOR);
     	m_botAction.getShip().fire(WeaponFired.WEAPON_THOR);
-    	
+
     	TimerTask timer = new TimerTask() {
             public void run() {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
@@ -1637,14 +1639,14 @@ public class PubMoneySystemModule extends AbstractModule {
 
 
     }
-    
+
     private void itemCommandMegaWarp(String sender, String params) {
 
 	   	Player p = m_botAction.getPlayer(sender);
-	   	
+
 	   	String message = "";
 	   	int privFreqs = 0;
-	   	
+
 	   	List<Integer> freqList = new ArrayList<Integer>();
 	   	for(int i=0; i<10000; i++) {
 	   		int size = m_botAction.getPlayingFrequencySize(i);
@@ -1657,45 +1659,45 @@ public class PubMoneySystemModule extends AbstractModule {
 	   			}
 	   		}
 	   	}
-	   	
+
 	   	if (privFreqs > 0) {
 	   		message += " and " + privFreqs + " private freq(s)";
 	   	}
 	   	message = message.substring(1);
-	   	
+
 	   	m_botAction.sendArenaMessage(sender + " has warped to death FREQ " + message + ".",17);
-	   	
+
 	   	int toExclude = m_botAction.getPlayingFrequencySize(p.getFrequency());
 	   	int total = m_botAction.getNumPlaying()-toExclude;
 	   	int jump = (int)(360/total);
 	   	Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
-	   	
+
 	   	// Center of the circle (wormhole) + diameter
 	   	int x = 640;
 	   	int y = 610;
 	   	int d = 25;
-	   	
+
 	   	int i = 0;
 	   	while(it.hasNext()) {
 	   		Player player = it.next();
 	   		if (p.getFrequency()==player.getFrequency() || context.getPubChallenge().isDueling(player.getPlayerName()))
 	   			continue;
-	   		
+
 	   		int posX = x+(int)(d*Math.cos(i*jump));
 	   		int posY = y+(int)(d*Math.sin(i*jump));
 
 	   		m_botAction.warpTo(player.getPlayerName(), posX, posY);
 	   		m_botAction.specificPrize(player.getPlayerName(), Tools.Prize.ENERGY_DEPLETED);
-	   		
+
 	   		i++;
 	   	}
-    	
+
     }
-    
+
     private void itemCommandImmunity(final String sender, String params) {
-    	
+
     	m_botAction.sendSmartPrivateMessage(sender, "You have now an immunity for 4 minutes.");
-    	
+
     	store.addImmunity(sender);
     	TimerTask task = new TimerTask() {
 			public void run() {
@@ -1704,9 +1706,9 @@ public class PubMoneySystemModule extends AbstractModule {
 			}
 		};
 		m_botAction.scheduleTask(task, 4*Tools.TimeInMillis.MINUTE);
-    	
+
     }
-    
+
     private void itemCommandBaseBlast(String sender, String params) {
 
 	   	Player p = m_botAction.getPlayer(sender);
@@ -1722,7 +1724,7 @@ public class PubMoneySystemModule extends AbstractModule {
             	m_botAction.getShip().move(512*16+8, 270*16+8);
             	for(int j=0; j<2; j++) {
 	            	for(int i=0; i<360/5; i++) {
-	            		
+
 	                	m_botAction.getShip().rotateDegrees(i*5);
 	                	m_botAction.getShip().sendPositionPacket();
 	                	m_botAction.getShip().fire(34);
@@ -1734,7 +1736,7 @@ public class PubMoneySystemModule extends AbstractModule {
             }
         };
     	timerFire.run();
-    	
+
     	TimerTask timer = new TimerTask() {
             public void run() {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
@@ -1744,11 +1746,11 @@ public class PubMoneySystemModule extends AbstractModule {
         };
         m_botAction.scheduleTask(timer, 7500);
     }
-    
+
     private void itemCommandNukeBase(String sender, String params) {
         Player p = m_botAction.getPlayer(sender);
         final int freq = p.getFrequency();
-        
+
 	   	final Vector<Shot> shots = getShots();
         final Vector<Warper> warps = new Vector<Warper>();
         Iterator<Integer> i = m_botAction.getFreqIDIterator(freq);
@@ -1758,9 +1760,9 @@ public class PubMoneySystemModule extends AbstractModule {
             int x = pl.getXTileLocation();
             int y = pl.getYTileLocation();
             if (x > 475 && x < 549 && y > 248 && y < 300)
-                warps.add(new Warper(id, x, y));                
-        }               
-        
+                warps.add(new Warper(id, x, y));
+        }
+
     	m_botAction.getShip().setShip(0);
     	m_botAction.getShip().setFreq(freq);
     	m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
@@ -1782,15 +1784,15 @@ public class PubMoneySystemModule extends AbstractModule {
             }
         };
     	timerFire.run();
-    	
+
     	TimerTask shields = new TimerTask() {
     	    public void run() {
     	        for (Warper w: warps)
-    	            w.save();    	
+    	            w.save();
     	    }
     	};
     	m_botAction.scheduleTask(shields, 3100);
-    	
+
     	TimerTask timer = new TimerTask() {
             public void run() {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
@@ -1803,35 +1805,35 @@ public class PubMoneySystemModule extends AbstractModule {
         };
         m_botAction.scheduleTask(timer, 5500);
     }
-    
+
     private class Warper {
         int id, x, y;
-        
+
         public Warper(int id, int x, int y) {
             this.id = id;
             this.x = x;
             this.y = y;
         }
-        
+
         public void save() {
             m_botAction.warpTo(id, 512, 205);
         }
-        
+
         public void back() {
             m_botAction.warpTo(id, x, y);
         }
     }
-    
+
     class Shot {
         int a, x, y;
-        
+
         public Shot(int a, int x, int y) {
             this.a = a;
             this.x = x*16;
             this.y = y*16;
         }
     }
-    
+
     private Vector<Shot> getShots() {
         Vector<Shot> s = new Vector<Shot>();
         s.add(new Shot(15, 396, 219));
@@ -1848,17 +1850,17 @@ public class PubMoneySystemModule extends AbstractModule {
         s.add(new Shot(90, 531, 147));
         return s;
     }
-    
+
     private void itemCommandRoofTurret(String sender, String params) {
 
     	m_botAction.sendSmartPrivateMessage(sender, "Please wait while looking for a bot..");
-    	
+
     	Thread t = new AutobotRoofThread(sender, params, m_botAction, IPC_CHANNEL);
     	ipcReceivers.add((IPCReceiver)t);
     	t.start();
-    	
+
     }
-    
+
     private void itemCommandBaseTerr(String sender, String params) {
 
     	m_botAction.sendSmartPrivateMessage(sender, "Please wait while looking for a bot..");
@@ -1866,15 +1868,15 @@ public class PubMoneySystemModule extends AbstractModule {
     	Thread t1 = new AutobotBaseTerThread(sender, params, m_botAction, IPC_CHANNEL);
     	ipcReceivers.add((IPCReceiver)t1);
     	t1.start();
-    	
+
     	/*
     	Thread t2 = new AutobotBaseTerThread(sender, params, m_botAction, IPC_CHANNEL);
     	ipcReceivers.add((IPCReceiver)t2);
     	t2.start();
     	*/
-    	
+
     }
-    
+
     private void itemCommandBaseStrike(String sender, String params) {
 
     	int[][] coords = new int[][] {
@@ -1888,12 +1890,12 @@ public class PubMoneySystemModule extends AbstractModule {
     			//new int[] { 500, 287 }, // Bottom right
     			//new int[] { 526, 287 }, // Bottom left
     	};
-    	
+
 	   	Player commander = m_botAction.getPlayer(sender);
-	   	
+
 	   	Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
 	   	while(it.hasNext()) {
-	   		
+
 	   		Player player = it.next();
 
 	   		if (player.getFrequency() != commander.getFrequency())
@@ -1920,19 +1922,19 @@ public class PubMoneySystemModule extends AbstractModule {
 	   		m_botAction.sendArenaMessage("FREQ " + commander.getFrequency() + " is striking the flag room! Commanded by " + sender + ".", Tools.Sound.CROWD_OHH);
 	   	else
 	   		m_botAction.sendArenaMessage("A private freq is striking the flag room! Commanded by " + sender + ".", Tools.Sound.CROWD_OHH);
-	   	
+
     }
-    
+
     private void itemCommandFlagSaver(String sender, String params) {
 
 	   	Player p = m_botAction.getPlayer(sender);
-	   	
+
     	m_botAction.getShip().setShip(1);
     	m_botAction.getShip().setFreq(p.getFrequency());
     	m_botAction.getShip().rotateDegrees(270);
     	m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
     	m_botAction.getShip().move(512*16+8, 265*16+8);
-	   	
+
     	TimerTask timer = new TimerTask() {
             public void run() {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
@@ -1943,9 +1945,9 @@ public class PubMoneySystemModule extends AbstractModule {
         	m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for FREQ " + p.getFrequency() + ", thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
         else
         	m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag fo/r a private freq, thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
-	   	
+
     }
-    
+
     private void itemCommandBlindness(String sender, String params) throws PubException{
 
     	Player p1 = m_botAction.getPlayer(sender);
@@ -1956,17 +1958,17 @@ public class PubMoneySystemModule extends AbstractModule {
 	   	m_botAction.scheduleTask(new BlindnessTask(params,15,m_botAction),4*Tools.TimeInMillis.SECOND);
 
     }
-    
+
     private void itemCommandSphere(String sender, String params) {
 
         updateFreqImmunity();
 	   	Player p = m_botAction.getPlayer(sender);
-	   	
+
 	   	String message = "";
 	   	int privFreqs = 0;
-	   	
+
         long now = System.currentTimeMillis();
-	   	
+
 	   	List<Integer> freqList = new ArrayList<Integer>();
 	   	for(int i=0; i<10000; i++) {
 	   		int size = m_botAction.getPlayingFrequencySize(i);
@@ -1985,29 +1987,29 @@ public class PubMoneySystemModule extends AbstractModule {
             if (privFreqs > 0)
                 message += " AND ";
         }
-	   	
+
 	   	if (privFreqs > 0)
 	   		message += privFreqs + " private freq(s)";
-	   	
+
 	   	final Integer[] freqs = freqList.toArray(new Integer[freqList.size()]);
-	   	
+
 	   	if (!freqList.isEmpty() || privFreqs > 0)
 	   	    m_botAction.sendArenaMessage(sender + " has bought a Sphere of Seclusion for " + message + ".",17);
 	   	else
             m_botAction.sendArenaMessage(sender + " has bought a Sphere of Seclusion DUD (all freqs immune).",17);
-	   	
+
 		m_botAction.scheduleTask(new SphereSeclusionTask(freqs,true), 0);
 		m_botAction.scheduleTask(new SphereSeclusionTask(freqs,false), 30*Tools.TimeInMillis.SECOND);
 
     }
-    
+
     private void itemCommandEpidemic(String sender, String params) {
 
 	   	Player p = m_botAction.getPlayer(sender);
-	   	
+
 	   	String message = "";
 	   	int privFreqs = 0;
-	   	
+
 	   	List<Integer> freqList = new ArrayList<Integer>();
 	   	for(int i=0; i<10000; i++) {
 	   		int size = m_botAction.getPlayingFrequencySize(i);
@@ -2020,16 +2022,16 @@ public class PubMoneySystemModule extends AbstractModule {
 	   			}
 	   		}
 	   	}
-	   	
+
 	   	if (privFreqs > 0) {
 	   		message += " and " + privFreqs + " private freq(s)";
 	   	}
 	   	message = message.substring(2);
-	   	
+
 	   	final Integer[] freqs = freqList.toArray(new Integer[freqList.size()]);
-	   	
+
 	   	m_botAction.sendArenaMessage(sender + " has started an epidemic on FREQ " + message + ".",17);
-	   	
+
 	   	int timeElapsed = 0;
 		for(int i=1; i<10; i++) {
 			timeElapsed += 2300-(int)(Math.log(i)*1000);
@@ -2041,14 +2043,14 @@ public class PubMoneySystemModule extends AbstractModule {
 		m_botAction.scheduleTask(new EnergyDeplitedTask(freqs), timeElapsed+600);
 		m_botAction.scheduleTask(new EnergyDeplitedTask(freqs), timeElapsed+750);
 		m_botAction.scheduleTask(new EngineShutdownExtendedTask(freqs), timeElapsed+750);
-		
-	   	
+
+
     }
 
 	@Override
 	public void start() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 
@@ -2072,14 +2074,14 @@ public class PubMoneySystemModule extends AbstractModule {
     	}
     	database = m_botAction.getBotSettings().getString("database");
 	}
-	
+
    	private class PrizeTask extends TimerTask {
-   		
+
    		private PubPrizeItem item;
    		private String receiver;
    		private List<Integer> prizes;
    		private long startAt = System.currentTimeMillis();
-   		
+
    		public PrizeTask(PubPrizeItem item, String receiver) {
    			this.item = item;
    			this.prizes = item.getPrizes();
@@ -2097,13 +2099,13 @@ public class PubMoneySystemModule extends AbstractModule {
         	}
 		}
 	};
-	
+
 	private class AutobotBaseTerThread extends AutobotThread {
 
 		public AutobotBaseTerThread(String sender, String parameters, BotAction m_botAction, String ipcChannel) {
 			super(sender, parameters, m_botAction, ipcChannel);
 		}
-		
+
 		protected void ready() {
 			m_botAction.sendTeamMessage("");
 		}
@@ -2112,7 +2114,7 @@ public class PubMoneySystemModule extends AbstractModule {
 			Player p = m_botAction.getPlayer(sender);
 			if (p==null)
 				commandBot("!Die");
-			
+
 			commandBot("!Go " + m_botAction.getArenaName().substring(8,9));
 			try { Thread.sleep(2*Tools.TimeInMillis.SECOND); } catch (InterruptedException e) {}
             commandBot("!SetFreq " + p.getFrequency());
@@ -2132,22 +2134,22 @@ public class PubMoneySystemModule extends AbstractModule {
 			commandBot("!Killable");
 			commandBot("!DieAtXShots 20");
 			commandBot("!QuitOnDeath");
-			commandBot("!baseterr");			
+			commandBot("!baseterr");
 		}
 	}
-	
+
 	private class AutobotRoofThread extends AutobotThread {
 
 		public AutobotRoofThread(String sender, String parameters, BotAction m_botAction, String ipcChannel) {
 			super(sender, parameters, m_botAction, ipcChannel);
 		}
-		
+
 		protected void ready() {
 			m_botAction.sendArenaMessage(sender + " has bought a turret that will occupy the roof for 5 minutes.",21);
 		}
 
 		protected void prepare() {
-			
+
 			Player p = m_botAction.getPlayer(sender);
 			commandBot("!Go " + m_botAction.getArenaName().substring(8,9));
 			try { Thread.sleep(2*Tools.TimeInMillis.SECOND); } catch (InterruptedException e) {}
@@ -2161,7 +2163,7 @@ public class PubMoneySystemModule extends AbstractModule {
 			commandBot("!FastRotation");
 			commandBot("!Timeout 300");
 			commandBot("!Aim");
-			
+
 			// The autobot needs to know what is the roof
 			if (!m_botAction.getBotSettings().getString("location").isEmpty()) {
 		        String[] pointsLocation = m_botAction.getBotSettings().getString("location").split(",");
@@ -2172,11 +2174,11 @@ public class PubMoneySystemModule extends AbstractModule {
 		        	}
 		        }
 			}
-			
+
 		}
 
 	}
-	
+
    	private class BlindnessTask extends TimerTask {
    		private BotAction m_botAction;
    		private String playerName;
@@ -2205,7 +2207,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
 		}
 	};
-	
+
    	private class SphereSeclusionTask extends TimerTask {
    		private Integer[] freqs;
    		private boolean enable= false;
@@ -2225,11 +2227,11 @@ public class PubMoneySystemModule extends AbstractModule {
 	            		m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objon 561");
 	            	else
 	            		m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objoff 561");
-	            }	                
+	            }
 			}
 		}
 	};
-	
+
    	private class EnergyDeplitedTask extends TimerTask {
    		private Integer[] freqs;
    		public EnergyDeplitedTask(Integer[] freqs) {
@@ -2250,7 +2252,7 @@ public class PubMoneySystemModule extends AbstractModule {
 			}
 		}
 	};
-	
+
  	private class EngineShutdownExtendedTask extends TimerTask {
    		private Integer[] freqs;
    		public EngineShutdownExtendedTask(Integer[] freqs) {
@@ -2271,7 +2273,7 @@ public class PubMoneySystemModule extends AbstractModule {
 			}
 		}
 	}
- 	
+
 	public LinkedHashMap<String,Integer> sort(HashMap passedMap, boolean ascending) {
 
 		List mapKeys = new ArrayList(passedMap.keySet());
@@ -2303,6 +2305,6 @@ public class PubMoneySystemModule extends AbstractModule {
 	@Override
 	public void stop() {
 		// TODO Auto-generated method stub
-		
+
 	}
 }
