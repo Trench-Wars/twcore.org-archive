@@ -299,13 +299,15 @@ public class twchat extends SubspaceBot {
         m_botAction.SQLClose(rs);
     }
 
-    /**public void handleEvent(PlayerLeft event) {
+    public void handleEvent(PlayerLeft event) {
+    	/*
         String name = ba.getPlayerName(event.getPlayerID());
         if (name == null)
             return;
         if (show.contains(name.toLowerCase()) && !online.contains(name.toLowerCase()))
             show.remove(name.toLowerCase());
-    }*/
+        */
+    }
 
     public void handleEvent(PlayerEntered event) {
         Player player = ba.getPlayer(event.getPlayerID());
