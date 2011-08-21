@@ -1445,7 +1445,7 @@ public class PubMoneySystemModule extends AbstractModule {
         else if(command.startsWith("!richest")){
         	doCmdRichest(sender, command);
         }
-        else if( m_botAction.getOperatorList().isOwner(sender) && command.startsWith("!addmoney")) {
+        else if( m_botAction.getOperatorList().isSysop(sender) && command.startsWith("!addmoney")) {
         	doCmdAddMoney(sender,command);
         }
         else if (command.startsWith("!coupon") || command.startsWith("!c")){
