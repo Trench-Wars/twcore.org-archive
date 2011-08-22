@@ -1445,9 +1445,6 @@ public class PubMoneySystemModule extends AbstractModule {
         else if(command.startsWith("!richest")){
         	doCmdRichest(sender, command);
         }
-        else if( m_botAction.getOperatorList().isSysop(sender) && command.startsWith("!addmoney")) {
-        	doCmdAddMoney(sender,command);
-        }
         else if (command.startsWith("!coupon") || command.startsWith("!c")){
 
     		// Coupon System commands
@@ -1492,6 +1489,8 @@ public class PubMoneySystemModule extends AbstractModule {
         	doCmdDebugObj(sender, command);
         } else 	if (command.equals("!toggledonation")) {
 			doCmdToggleDonation(sender);
+        } else if( m_botAction.getOperatorList().isSysop(sender) && command.startsWith("!addmoney")) {
+        	doCmdAddMoney(sender,command);
         }
     }
 
