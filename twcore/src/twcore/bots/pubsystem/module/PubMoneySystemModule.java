@@ -427,11 +427,11 @@ public class PubMoneySystemModule extends AbstractModule {
     			if (moneyInt > 0) {
     				pubPlayer.addMoney(moneyInt);
     				sqlMoney(moneyInt);
-    				m_botAction.sendSmartPrivateMessage(pubPlayer.getPlayerName(), sender + " added you $" + (currentMoney+Integer.valueOf(money)) + ".");
+    				m_botAction.sendSmartPrivateMessage(pubPlayer.getPlayerName(), sender + " added you $" + (Integer.valueOf(money)) + ".");
     			} else {
     				pubPlayer.removeMoney(moneyInt);
                     sqlMoney(-Math.abs(moneyInt));
-                    m_botAction.sendSmartPrivateMessage(pubPlayer.getPlayerName(), sender + " remved you $" + (currentMoney+Integer.valueOf(money)) + ".");
+                    m_botAction.sendSmartPrivateMessage(pubPlayer.getPlayerName(), sender + " remved you $" + (Integer.valueOf(money)) + ".");
     			}
 
     			m_botAction.sendSmartPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $" + (currentMoney+Integer.valueOf(money)) + " (before: $" + currentMoney + ")");
