@@ -12,7 +12,6 @@ import java.util.Vector;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.SubspaceBot;
-import twcore.core.events.ArenaJoined;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.LoggedOn;
@@ -56,7 +55,7 @@ public class pubautobot extends SubspaceBot {
 	private boolean quitOnDeath = false;
 	private boolean fastRotation = true;
 	private int timeoutAt = -1; // after timeout, bot disconnects
-	private int energyOnStart = 1; // one shot and dead
+	//private int energyOnStart = 1; unused // one shot and dead
 	private HashSet<String> locations; // array of x:y position
 	private int dieAtXshots = 1; // if 1, first hit the bot dies
 	private long startedAt = 0;
@@ -317,51 +316,41 @@ public class pubautobot extends SubspaceBot {
     }
 
     public void update(){
-        // it's always somewhere in here, might as well catch it anywhere...
-        try {
-            botX = m_botAction.getShip().getX();
-            botY = m_botAction.getShip().getY();
+        botX = m_botAction.getShip().getX();
+        botY = m_botAction.getShip().getY();
 
-            if(turretPlayerID == -1){
-                ListIterator<Projectile> it = fired.listIterator();
-                while (it.hasNext()) {
-                    Projectile b = (Projectile) it.next();
-                    if (b.isHitting(botX, botY)) {
+        if(turretPlayerID == -1) {
+            ListIterator<Projectile> it = fired.listIterator();
+            while (it.hasNext()) {
+                Projectile b = (Projectile) it.next();
+                if (b.getOwner() != null && b.isHitting(botX, botY)) {
+                    Player p = m_botAction.getPlayer(b.getOwner());
 
-                        if (m_botAction.getPlayer(b.getOwner()).getFrequency()==freq)
-                            return;
-
-                        if(!isSpawning){
-                            numberOfShots++;
-                            spawned = new TimerTask(){
-                                public void run(){
-                                    isSpawning = false;
-                                }
-                            };
-                            if (numberOfShots >= dieAtXshots) {
-                                isSpawning = true;
-                                m_botAction.scheduleTask(spawned, SPAWN_TIME);
-                                m_botAction.sendDeath(m_botAction.getPlayerID(b.getOwner()), 0);
-                                Iterator<RepeatFireTimer> i = repeatFireTimers.iterator();
-                                while(i.hasNext())i.next().pause();
+                    if (p != null && p.getFrequency() != freq && !isSpawning) {
+                        numberOfShots++;
+                        spawned = new TimerTask(){
+                            public void run(){
+                                isSpawning = false;
                             }
+                        };
+                        if (numberOfShots >= dieAtXshots) {
+                            isSpawning = true;
+                            m_botAction.scheduleTask(spawned, SPAWN_TIME);
+                            m_botAction.sendDeath(m_botAction.getPlayerID(b.getOwner()), 0);
+                            Iterator<RepeatFireTimer> i = repeatFireTimers.iterator();
+                            while(i.hasNext())i.next().pause();
                         }
-                        it.remove();
                     }
-                    else if (b.getAge() > 5000) {
-                        it.remove();
-                    }
-                }
+                    it.remove();
+                } else if (b.getAge() > 5000)
+                    it.remove();
             }
-            else{
-                Player p = m_botAction.getPlayer(turretPlayerID);
-                if(p == null)return;
-                int xVel = p.getXVelocity();
-                int yVel = p.getYVelocity();
-                m_botAction.getShip().move(botX, botY, xVel, yVel);
-            }
-        } catch (NullPointerException e) {
-            Tools.printStackTrace("Null somewhere in the autobot update run method!", e);
+        } else {
+            Player p = m_botAction.getPlayer(turretPlayerID);
+            if (p == null) return;
+            int xVel = p.getXVelocity();
+            int yVel = p.getYVelocity();
+            m_botAction.getShip().move(botX, botY, xVel, yVel);
         }
     }
 
@@ -614,7 +603,7 @@ public class pubautobot extends SubspaceBot {
     	quitOnDeath = false;
     	fastRotation = true;
     	timeoutAt = -1;
-    	energyOnStart = 1;
+    	//energyOnStart = 1; unused
     	locations.clear();
     	dieAtXshots = 1;
     	startedAt = 0;
@@ -910,9 +899,10 @@ public class pubautobot extends SubspaceBot {
 private class RepeatFireTimer {
 	private int SPAWN_TIME = 5005;
 	public int weapon, delayms, repeatms;
-	public boolean isRunning = true, isSlowlyStopping = false;
+	public boolean isRunning = true;
+	//public boolean isSlowlyStopping = false; unused
 	TimerTask repeat = null;
-	TimerTask slowly;
+	//TimerTask slowly; unused
 
 	public RepeatFireTimer(int wep, int delayms, int repeatms){
 		this.weapon = wep;
@@ -943,7 +933,8 @@ private class RepeatFireTimer {
 		m_botAction.scheduleTaskAtFixedRate(this.repeat, this.SPAWN_TIME, this.repeatms);
 	}
 
-	public void stop(){
+	@SuppressWarnings("unused")
+    public void stop(){
 		if(isRunning){
 			repeat.cancel();
 			isRunning = false;
