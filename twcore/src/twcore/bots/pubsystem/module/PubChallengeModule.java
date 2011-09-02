@@ -245,11 +245,9 @@ public class PubChallengeModule extends AbstractModule {
         l.lastDeath = System.currentTimeMillis();
                 
         m_botAction.shipReset(killer);
-        if (w.challenge.ship == 8) {
-            m_botAction.scheduleTask(new ResetMines(killer), 4300);
-            m_botAction.scheduleTask(new ResetMines(killee), 4300);
-        }
-        
+        m_botAction.scheduleTask(new ResetMines(killer), 4300);
+        m_botAction.scheduleTask(new ResetMines(killee), 4300);
+                
         m_botAction.scheduleTask(new UpdateScore(w,l), 1*Tools.TimeInMillis.SECOND);
 	      	
         m_botAction.scheduleTask(new EnergyDepletedTask(killer), 1*1000);
