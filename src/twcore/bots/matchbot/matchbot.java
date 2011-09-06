@@ -77,7 +77,7 @@ public class matchbot extends SubspaceBot {
     static int CHECKING_ARENAS = 1, LOCKED = 2;
     static int INACTIVE_MESSAGE_LIMIT = 3, ACTIVE_MESSAGE_LIMIT = 16;
     final static String IPC = "MatchBot";
-    final static String TWDHUB = "WingTWD";
+    final static String TWDHUB = "TWDBot";
     // these variables are for when the bot is locked
     BotSettings m_rules;
     String m_rulesFileName;
