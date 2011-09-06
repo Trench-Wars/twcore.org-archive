@@ -59,6 +59,7 @@ public class twchat extends SubspaceBot {
     private boolean DEBUG = false;
     public boolean signup = true;
     public boolean notify = false;
+    public boolean staff = false;
     // status of the database update task sqlDump
     private boolean status = false;
     // number of seconds between database updates
@@ -105,6 +106,12 @@ public class twchat extends SubspaceBot {
         String message = event.getMessage();
         int type = event.getMessageType();
         if (type == Message.ARENA_MESSAGE) {
+            for (int i = 0; i < show.size(); i++) {
+                if (!message.equalsIgnoreCase("Player locked in spectator mode"))
+                    m_botAction.sendUnfilteredPrivateMessage(show.get(i), "*spec");
+                if (staff == true)
+                    m_botAction.sendChatMessage(2, "Spec'd " + show.get(i) + " for using TWChat.");
+            }
             if (message.startsWith("IP:"))
                 sendPlayerInfo(message);
             if (message.contains("Client: VIE 1.34") && notify == true) {
@@ -155,8 +162,6 @@ public class twchat extends SubspaceBot {
 
             if (message.startsWith("!online "))
                 isOnline(name, message);
-            else if (message.equalsIgnoreCase("!signup"))
-                signup(name, message);
             else if (message.startsWith("!squad ") || message.startsWith("!s "))
                 getSquad(name, message);
             else if (message.equalsIgnoreCase("!help"))
@@ -218,6 +223,11 @@ public class twchat extends SubspaceBot {
                 // recalculate(name);
                 else if (message.equalsIgnoreCase("!die"))
                     m_botAction.die();
+            }
+
+            if (type == Message.PRIVATE_MESSAGE) {
+                if (message.equalsIgnoreCase("!signup"))
+                    signup(name, message);
             }
         }
     }
@@ -315,9 +325,12 @@ public class twchat extends SubspaceBot {
         if (name == null || isBotExact(name))
             return;
 
+        if (show.contains(name.toLowerCase())) {
+            ba.sendUnfilteredPrivateMessage(name, "*spec");
+        }
         ba.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
 
-        if (!ops.isZH(name))
+        if (!ops.isZH(name) && staff == false)
             return;
         else
             m_botAction.sendUnfilteredPrivateMessage(name, "*info");
