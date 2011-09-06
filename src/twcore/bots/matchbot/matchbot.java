@@ -77,7 +77,7 @@ public class matchbot extends SubspaceBot {
     static int CHECKING_ARENAS = 1, LOCKED = 2;
     static int INACTIVE_MESSAGE_LIMIT = 3, ACTIVE_MESSAGE_LIMIT = 16;
     final static String IPC = "MatchBot";
-    final static String TWDHUB = "TWDBot";
+    final static String TWDHUB = "WingTWD";
     // these variables are for when the bot is locked
     BotSettings m_rules;
     String m_rulesFileName;
@@ -659,6 +659,8 @@ public class matchbot extends SubspaceBot {
                         m_game.cancel();
                     m_botAction.die();
                 }
+                if (command.equals("!getlags"))
+                    command_getLag(name);
                 if ((command.equals("!off"))) {
                     if (m_game == null) {
                         command_unlock(name, parameters);
@@ -857,6 +859,13 @@ public class matchbot extends SubspaceBot {
                 m_botAction.sendPrivateMessage(name, "I am locked in this arena");
         } else
             m_botAction.sendPrivateMessage(name, "There's still a game going on, kill it first");
+    }
+    
+    public void command_getLag(String name) {
+
+        m_botAction.sendSmartPrivateMessage(name, "LagSettings: spikesize=" + m_rules.getInt("spikesize") + " maxCurrPing=" + m_rules.getInt("maxcurrping") + " maxPacketLoss=" + 
+                m_rules.getDouble("maxploss") + " maxSlowPackets=" + m_rules.getDouble("maxslowpackets") + " maxStandDev=" + m_rules.getDouble("maxstandarddeviation") + 
+                " maxNumSpikes=" + m_rules.getInt("maxnumspikes"));
     }
 
     public void command_lock(String name, String[] parameters) {
