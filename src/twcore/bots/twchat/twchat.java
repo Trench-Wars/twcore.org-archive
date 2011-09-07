@@ -30,7 +30,7 @@ import twcore.core.events.InterProcessEvent;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
-import twcore.core.events.PlayerLeft;
+//import twcore.core.events.PlayerLeft;
 import twcore.core.events.SQLResultEvent;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
@@ -59,7 +59,7 @@ public class twchat extends SubspaceBot {
     private boolean DEBUG = false;
     public boolean signup = true;
     public boolean notify = false;
-    public boolean staff = false;
+    public boolean staff = true;
     // status of the database update task sqlDump
     private boolean status = false;
     // number of seconds between database updates
@@ -96,7 +96,7 @@ public class twchat extends SubspaceBot {
         req.request(EventRequester.LOGGED_ON);
         req.request(EventRequester.FILE_ARRIVED);
         req.request(EventRequester.PLAYER_ENTERED);
-        req.request(EventRequester.PLAYER_LEFT);
+        //req.request(EventRequester.PLAYER_LEFT);
     }
 
     public void handleEvent(Message event) {
@@ -203,6 +203,8 @@ public class twchat extends SubspaceBot {
                     show(name, message);
                 else if (message.equalsIgnoreCase("!toggle"))
                     toggle(name, message);
+                else if (message.equalsIgnoreCase("!warns"))
+                    warns(name, message);
                 else if (message.equalsIgnoreCase("!get"))
                     test(name, message);
                 else if (message.equalsIgnoreCase("!put"))
@@ -309,15 +311,15 @@ public class twchat extends SubspaceBot {
         m_botAction.SQLClose(rs);
     }
 
-    public void handleEvent(PlayerLeft event) {
-    	/*
-        String name = ba.getPlayerName(event.getPlayerID());
-        if (name == null)
-            return;
-        if (show.contains(name.toLowerCase()) && !online.contains(name.toLowerCase()))
-            show.remove(name.toLowerCase());
-        */
-    }
+    //public void handleEvent(PlayerLeft event) {
+    /*
+    String name = ba.getPlayerName(event.getPlayerID());
+    if (name == null)
+        return;
+    if (show.contains(name.toLowerCase()) && !online.contains(name.toLowerCase()))
+        show.remove(name.toLowerCase());
+    */
+    //}
 
     public void handleEvent(PlayerEntered event) {
         Player player = ba.getPlayer(event.getPlayerID());
@@ -329,26 +331,28 @@ public class twchat extends SubspaceBot {
             ba.sendUnfilteredPrivateMessage(name, "*spec");
         }
         ba.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
-
-        if (!ops.isZH(name) && staff == false)
+        
+        if(staff == true)
+        if (!ops.isZH(name))
             return;
         else
             m_botAction.sendUnfilteredPrivateMessage(name, "*info");
         try {
-            ResultSet mid = m_botAction.SQLQuery(dbInfo, "SELECT DISTINCT A.fnMachineID FROM tblAlias as A LEFT OUTER JOIN tblUser AS U ON U.fnUserID = A.fnUserID WHERE U.fcUserName = '"
-                    + name + "' ORDER BY A.fdUpdated DESC LIMIT 1");
+            ResultSet mid = m_botAction.SQLQuery(dbInfo, "SELECT CAST(GROUP_CONCAT(fnMachineID) AS CHAR) fnMachineIDs "+
+                                                         "FROM ( SELECT DISTINCT fnMachineID FROM tblUser u JOIN tblAlias a "+
+                                                         "USING (fnUserID) WHERE u.fcUserName = "+name+"' ORDER BY a.fdUpdated DESC LIMIT 3 ) t1");
             if (!mid.next())
                 m_botAction.sendChatMessage("No results");
             else {
-                String db = mid.getString("fnMachineID");
-                for (int i = 0; i < info.size(); i++) {
-                    for (int y = 0; y < staffer.size(); y++) {
-                        if (!db.equals(info.get(i)) && name.equalsIgnoreCase(staffer.get(y))) {
-                            m_botAction.sendChatMessage(2, "WARNING: Staffer " + player.getPlayerName() + " has a different MID from previous login.");
-                            m_botAction.sendChatMessage(2, "Database MID: " + db + " - LIVE MID: " + info.get(i));
+                String db = mid.getString("fnMachineIDs");
+                for(String i:info){
+                    for(String staff:staffer) {
+                        if (!db.contains(i) && name.equalsIgnoreCase(staff)) {
+                            m_botAction.sendChatMessage(2, "WARNING: Staffer " + player.getPlayerName() + " has a unconsistent MID from previous logins.");
+                            m_botAction.sendChatMessage(2, "Database MID: " + db + " - LIVE MID: " + i);
                         }
                         info.remove(i);
-                        staffer.remove(i);
+                        staffer.remove(staff);
                     }
                 }
             }
@@ -546,6 +550,7 @@ public class twchat extends SubspaceBot {
                 "| !go <arena>                 - I'll go to the arena you specify.               |",
                 "| !show                       - Show people online using TWChat App             |",
                 "| !toggle                     - Disables/Enables ability to !signup             |",
+                "| !warns                      - Toggle staff warning notify                     |",
                 "| !notify                     - Toggles chat notify (stops !show)               |",
                 "| !put                        - Force putfile VIP.txt                           |",
                 "| !blacklist <name>           - Prevents <name> to !signup                      |",
@@ -796,6 +801,16 @@ public class twchat extends SubspaceBot {
         } else {
             signup = false;
             m_botAction.sendSmartPrivateMessage(name, "Signup DEACTIVATED");
+        }
+    }
+    
+    public void warns(String name, String message) {
+        if (signup == false) {
+            signup = true;
+            m_botAction.sendSmartPrivateMessage(name, "Warn Notify ON");
+        } else {
+            signup = false;
+            m_botAction.sendSmartPrivateMessage(name, "Warn Notify OFF");
         }
     }
 
