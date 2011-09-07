@@ -59,7 +59,7 @@ public class twchat extends SubspaceBot {
     private boolean DEBUG = false;
     public boolean signup = true;
     public boolean notify = false;
-    public boolean staff = true;
+    public boolean staff = false;;
     // status of the database update task sqlDump
     private boolean status = false;
     // number of seconds between database updates
@@ -350,6 +350,8 @@ public class twchat extends SubspaceBot {
                         if (!db.contains(i) && name.equalsIgnoreCase(staff)) {
                             m_botAction.sendChatMessage(2, "WARNING: Staffer " + player.getPlayerName() + " has a unconsistent MID from previous logins.");
                             m_botAction.sendChatMessage(2, "Database MID: " + db + " - LIVE MID: " + i);
+                            info.remove(i);
+                            staffer.remove(staff);
                             
                         }
                     }
