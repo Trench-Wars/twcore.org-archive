@@ -221,8 +221,8 @@ public class twchat extends SubspaceBot {
                     blackListRemove(name, message);
                 else if (message.equalsIgnoreCase("!blcontains"))
                     listBlackList(name, message);
-                //else if (message.equalsIgnoreCase("!recal"))
-                // recalculate(name);
+                else if (message.equalsIgnoreCase("!recal"))
+                recalculate(name);
                 else if (message.equalsIgnoreCase("!die"))
                     m_botAction.die();
             }
@@ -706,16 +706,10 @@ public class twchat extends SubspaceBot {
         m_botAction.sendSmartPrivateMessage(name, "Done.");
     }
 
-    /*private void recalculate(String name) {
-        // WHAT IN IN THE NAME OF ALL THINGS SACRED DOES THIS COMMAND DO?!?!? -WZ
-        Iterator<String> list = show.iterator();
-        if (!list.hasNext())
-            m_botAction.sendSmartPrivateMessage(name, "No-one is online!");
-
-        String pName = (String) list.next();
-        m_botAction.sendUnfilteredPublicMessage("?find " + pName);
-        m_botAction.sendSmartPrivateMessage(name, "Recalculated.");
-    }*/
+    private void recalculate(String name) {
+        show.clear();
+        m_botAction.sendSmartPrivateMessage(name, "Removed all contents from !show");
+    }
 
     private String firstInfo(String message, String infoName) {
         int beginIndex = message.indexOf(infoName);
