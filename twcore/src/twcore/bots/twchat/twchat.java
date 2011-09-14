@@ -106,12 +106,7 @@ public class twchat extends SubspaceBot {
         String message = event.getMessage();
         int type = event.getMessageType();
         if (type == Message.ARENA_MESSAGE) {
-            for (int i = 0; i < show.size(); i++) {
-                if (!message.equalsIgnoreCase("Player locked in spectator mode"))
-                    m_botAction.sendUnfilteredPrivateMessage(show.get(i), "*spec");
-                if (staff == true)
-                    m_botAction.sendChatMessage(2, "Spec'd " + show.get(i) + " for using TWChat.");
-            }
+
             if (message.startsWith("IP:"))
                 sendPlayerInfo(message);
             if (message.contains("Client: VIE 1.34") && notify == true) {
@@ -120,7 +115,14 @@ public class twchat extends SubspaceBot {
                     return;
                 else
                     m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
+                m_botAction.sendUnfilteredPrivateMessage(nameFromMessage, "*spec");
+                if (!message.equalsIgnoreCase("Player locked in spectator mode")) {
+                    m_botAction.sendUnfilteredPrivateMessage(nameFromMessage, "*spec");
+
+                }
+
             }
+
         }
 
         if (type == Message.REMOTE_PRIVATE_MESSAGE || type == Message.PRIVATE_MESSAGE) {
@@ -222,7 +224,7 @@ public class twchat extends SubspaceBot {
                 else if (message.equalsIgnoreCase("!blcontains"))
                     listBlackList(name, message);
                 else if (message.equalsIgnoreCase("!recal"))
-                recalculate(name);
+                    recalculate(name);
                 else if (message.equalsIgnoreCase("!die"))
                     m_botAction.die();
             }
@@ -326,33 +328,31 @@ public class twchat extends SubspaceBot {
         String name = player.getPlayerName();
         if (name == null || isBotExact(name))
             return;
-
-        if (show.contains(name.toLowerCase())) {
-            ba.sendUnfilteredPrivateMessage(name, "*spec");
-        }
-        ba.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
         
-        if(staff == true)
-        if (!ops.isZH(name))
-            return;
-        else
-            m_botAction.sendUnfilteredPrivateMessage(name, "*info");
+        ba.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
+
+        if (staff == true)
+            if (!ops.isZH(name))
+                return;
+            else
+                m_botAction.sendUnfilteredPrivateMessage(name, "*info");
         try {
-            ResultSet mid = m_botAction.SQLQuery(dbInfo, "SELECT CAST(GROUP_CONCAT(fnMachineID) AS CHAR) fnMachineIDs "+
-                                                         "FROM ( SELECT DISTINCT fnMachineID FROM tblUser u JOIN tblAlias a "+
-                                                         "USING (fnUserID) WHERE u.fcUserName = '"+name+"' ORDER BY a.fdUpdated DESC LIMIT 3 ) t1");
+            ResultSet mid = m_botAction.SQLQuery(dbInfo, "SELECT CAST(GROUP_CONCAT(fnMachineID) AS CHAR) fnMachineIDs "
+                    + "FROM ( SELECT DISTINCT fnMachineID FROM tblUser u JOIN tblAlias a " + "USING (fnUserID) WHERE u.fcUserName = '" + name
+                    + "' ORDER BY a.fdUpdated DESC LIMIT 3 ) t1");
             if (!mid.next())
                 m_botAction.sendChatMessage("No results");
             else {
                 String db = mid.getString("fnMachineIDs");
-                for(String i:info){
-                    for(String staff:staffer) {
+                for (String i : info) {
+                    for (String staff : staffer) {
                         if (!db.contains(i) && name.equalsIgnoreCase(staff)) {
-                            m_botAction.sendChatMessage(2, "WARNING: Staffer " + player.getPlayerName() + " has a unconsistent MID from previous logins.");
+                            m_botAction.sendChatMessage(2, "WARNING: Staffer " + player.getPlayerName()
+                                    + " has a unconsistent MID from previous logins.");
                             m_botAction.sendChatMessage(2, "Database MID: " + db + " - LIVE MID: " + i);
                             info.remove(i);
                             staffer.remove(staff);
-                            
+
                         }
                     }
                 }
@@ -798,7 +798,7 @@ public class twchat extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage(name, "Signup DEACTIVATED");
         }
     }
-    
+
     public void warns(String name, String message) {
         if (signup == false) {
             signup = true;
