@@ -49,6 +49,7 @@ public class staffbot extends SubspaceBot {
     BotSettings m_botSettings;
     TimerTask getLog;
     private final static int CHECK_LOG_DELAY = 2000;
+    boolean echo;
 
     /* Initialization code */
     public staffbot(BotAction botAction) {
@@ -62,6 +63,7 @@ public class staffbot extends SubspaceBot {
         // Request Events
         EventRequester req = botAction.getEventRequester();
         req.requestAll();
+        echo = false;
     }
 
     @Override
@@ -103,6 +105,10 @@ public class staffbot extends SubspaceBot {
 
     @Override
     public void handleEvent(Message event) {
+        if (echo && event.getMessageType() == Message.ARENA_MESSAGE) {
+            m_botAction.sendArenaMessage(event.getMessage());
+            echo = false;
+        }
         if ((event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE)
                 && event.getMessage().startsWith("!")) {
             // Commands
@@ -151,6 +157,11 @@ public class staffbot extends SubspaceBot {
                     m_botAction.getServerFile(msg);
                     m_botAction.sendSmartPrivateMessage(senderName, "Done.");
                 } else if (message.startsWith("!echo ")) {
+                    if (echo) {
+                        echo = false;
+                        return;
+                    }
+                    echo = true;
                     String msg = event.getMessage().substring(message.indexOf(" ") + 1);
                     m_botAction.sendUnfilteredPublicMessage(msg);
                     m_botAction.sendSmartPrivateMessage(senderName, "Echoed: " + msg);
