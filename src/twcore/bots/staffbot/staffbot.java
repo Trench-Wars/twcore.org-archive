@@ -151,7 +151,7 @@ public class staffbot extends SubspaceBot {
                     m_botAction.getServerFile(msg);
                     m_botAction.sendSmartPrivateMessage(senderName, "Done.");
                 } else if (message.startsWith("!echo ")) {
-                    String msg = message.substring(message.indexOf(" ") + 1);
+                    String msg = event.getMessage().substring(message.indexOf(" ") + 1);
                     m_botAction.sendUnfilteredPublicMessage(msg);
                     m_botAction.sendSmartPrivateMessage(senderName, "Echoed: " + msg);
                 }
