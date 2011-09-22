@@ -117,7 +117,6 @@ public class staffbot extends SubspaceBot {
                 return;
             }
 
-            moduleHandler.handleEvent(event);
             // !help
             if (message.startsWith("!help")) {
                 String[] help = { " Op: " + senderName + " (" + Tools.staffName(operatorLevel) + ")",
@@ -173,6 +172,8 @@ public class staffbot extends SubspaceBot {
                 }
             }
         }
+        
+        moduleHandler.handleEvent(event);
     }
 
     @Override
