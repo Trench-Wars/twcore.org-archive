@@ -3,13 +3,11 @@ package twcore.bots.notifybot;
 import twcore.core.*;
 import twcore.core.events.*;
 import twcore.core.stats.DBPlayerData;
-import twcore.core.util.Tools;
 import twcore.core.events.SQLResultEvent;
 
 import java.net.*;
 import java.io.*;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 
 public class notifybot extends SubspaceBot {
@@ -41,11 +39,9 @@ public class notifybot extends SubspaceBot {
         String name = event.getMessager();
         if (name == null)
             name = BA.getPlayerName(event.getPlayerID());
-        //if(name == null) name="arena";
 
         if (pname == null)
             pname = name;
-        // BA.sendPrivateMessage(pname,name+"> "+msg);
 
         if ((msgtype == Message.PRIVATE_MESSAGE) || (msgtype == Message.REMOTE_PRIVATE_MESSAGE)) {
             if (oplist.isER(name)) {
@@ -263,104 +259,90 @@ public class notifybot extends SubspaceBot {
         }
 
         public void run() {
-            BA.sendPrivateMessage(pname, "run2");
-            try {
-                InputStreamReader hack = new InputStreamReader(socket.getInputStream());
-                BufferedReader in = new BufferedReader(hack);
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            check(socket, playerlist, queue, player, running);
+        }
+    }
 
-                BA.sendSmartPrivateMessage(pname, "IP: " + socket.getInetAddress().getHostAddress());
-                BA.sendSmartPrivateMessage(pname, "PORT: " + socket.getPort());
-                BA.sendSmartPrivateMessage(pname, "HOST: " + socket.getInetAddress().getHostName());
+    private void check(Socket socket, LinkedList<NotifyPlayer> playerlist2, LinkedList<String> queue, NotifyPlayer player, boolean running) {
+        try {
+            InputStreamReader hack = new InputStreamReader(socket.getInputStream());
+            BufferedReader in = new BufferedReader(hack);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            
+            BA.sendSmartPrivateMessage(pname, "A user is connecting...");
+            BA.sendSmartPrivateMessage(pname, "IP: " + socket.getInetAddress().getHostAddress());
+            BA.sendSmartPrivateMessage(pname, "PORT: " + socket.getPort());
+            BA.sendSmartPrivateMessage(pname, "HOST: " + socket.getInetAddress().getHostName());
 
-                running = true;
-                while (running) {
-                    if (queue.size() > 0) {
-                        String output = (String) queue.removeFirst();
-                        out.printf("%s\0", output); //send one, send rest later
-                        // BA.sendPrivateMessage(pname,"send: "+output);
-                    }
-
-                    if (!hack.ready())
-                        continue; //to avoid block
-
-                    String input = in.readLine();
-                    if (input != null) {
-                        // BA.sendPrivateMessage(pname,"recv: "+input);
-
-                        String[] args = input.trim().split(":");
-
-                        if (args[0] != null) {
-                            if(args[0].startsWith("LOGIN"))
-                                {
-
-                                    if ((args[1] != null) && (args[2] != null)) {
-                                        String name = args[1];
-                                        String pw = args[2];
-                                        DBPlayerData checker = new DBPlayerData(BA, "website", name);
-                                        boolean success = checker.getPlayerAccountData();
-                                       // m_botAction.sendSmartPrivateMessage(pname, "Test One!");
-
-                                      /**  ResultSet result = m_botAction.SQLQuery("website", "SELECT U.*, " + "PASSWORD("
-                                                + Tools.addSlashesToString(pw) + ") AS EncPW " + "FROM tblUser U"
-                                                + " JOIN tblUserAccount UA ON U.fnUserID = UA.fnUserID" + " WHERE U.fcUserName = "
-                                                + Tools.addSlashesToString(name) + " AND (U.fdDeleted = 0 or U.fdDeleted is null)"
-                                                + " AND UA.fcPassword = PASSWORD(" + Tools.addSlashesToString(pw) + ") "
-                                                + "AND U.fnUserID = UA.fnUserID");*/
-                                        
-                                        //m_botAction.sendSmartPrivateMessage(pname, "Test two!");
-                                        //if (!result.next()) {
-                                            m_botAction.sendSmartPrivateMessage(pname, "Wrong password for " + name);
-                                           // m_botAction.SQLClose(result);
-                                            if(!success || (success)){
-                                        } else {
-                                            BA.sendSmartPrivateMessage(pname, "Login from " + name);
-                                            BA.sendSmartPrivateMessage(pname, "Password: " + pw);
-                                            player = new NotifyPlayer(name, checker.getTeamName(), socket.getInetAddress(), socket.getPort(), queue);
-                                            playerlist.add(player);
-                                            queue.add("LOGINOK:" + name);
-                                           // m_botAction.SQLClose(result);
-
-                                        }
-                                    } else {
-                                        queue.add("LOGINBAD:Badly formatted login request.");
-                                        continue;
-                                    
-                                    }}
-                            else if(args[0].startsWith("LOGOUT"))
-                                {
-                                    BA.sendPrivateMessage(pname, "quitting");
-                                    running = false;
-                                }
-                            else if(args[0].startsWith("NOOP"))
-                                {
-                                    //TODO: add noop
-                                    queue.add("NOOP");
-                                    out.printf("NOOP2\0");
-                                }
-                            else if(args[0].startsWith("TEST"))
-                                {
-                                    BA.sendPrivateMessage(pname, "TEST");
-                                }
-                            }
-                        
-
-                    } else {
-                        BA.sendPrivateMessage(pname, "EOF");
-                        running = false;
-                    }
+            running = true;
+            while (running) {
+                if (queue.size() > 0) {
+                    String output = (String) queue.removeFirst();
+                    out.printf("%s\0", output); //send one, send rest later
                 }
 
-                in.close();
-                out.close();
-                socket.close();
-            } catch (Exception e) {
-                BA.sendPrivateMessage(pname, "something failed");
+                if (!hack.ready())
+                    continue; //to avoid block
+
+                String input = in.readLine();
+                if (input != null) {
+
+                    String[] args = input.trim().split(":");
+
+                    if (args[0] != null) {
+                        if (args[0].startsWith("LOGIN")) {
+
+                            if ((args[1] != null) && (args[2] != null)) {
+                                String name = args[1];
+                                String pw = args[2];
+                                DBPlayerData checker = new DBPlayerData(BA, "website", name);
+
+                                ResultSet result = m_botAction.SQLQuery("website", "SELECT fnUserID " + "FROM tblUser "
+                                        + "JOIN tblUserAccount USING (fnUserID) " + "WHERE fcUserName = '" + name + "' "
+                                        + "AND fcPassword = PASSWORD('" + pw + "')");
+
+                                if (!result.next()) {
+                                    m_botAction.sendSmartPrivateMessage(pname, "Wrong password for " + name);
+                                    queue.add("BADLOGIN:Wrong Password.");
+                                } else {
+                                    BA.sendSmartPrivateMessage(pname, "Connected user successful login.");
+                                    BA.sendSmartPrivateMessage(pname, "Login Name: " + name);
+                                    player = new NotifyPlayer(name, checker.getTeamName(), socket.getInetAddress(), socket.getPort(), queue);
+                                    playerlist.add(player);
+                                    queue.add("LOGINOK:" + name);
+
+                                }
+                                BA.SQLClose(result);
+                            } else {
+                                queue.add("LOGINBAD:Badly formatted login request.");
+                                continue;
+
+                            }
+
+                        } else if (args[0].startsWith("LOGOUT")) {
+                            running = false;
+                            playerlist.remove(player);
+                        } else if (args[0].startsWith("NOOP")) {
+                            queue.add("NOOP");
+                            out.printf("NOOP2\0");
+                        } else if (args[0].startsWith("TEST")) {
+                        }
+                    }
+
+                } else {
+                    running = false;
+                }
             }
 
-            if (player != null)
-                playerlist.remove(player);
+            in.close();
+            out.close();
+            socket.close();
+        } catch (Exception e) {
+            BA.sendPrivateMessage(pname, "something failed");
         }
+
+        if (player != null)
+            playerlist.remove(player);
     }
 
     private class NotifyPlayer {
