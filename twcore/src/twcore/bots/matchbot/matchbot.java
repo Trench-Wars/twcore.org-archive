@@ -974,7 +974,10 @@ public class matchbot extends SubspaceBot {
     public void command_challengetopteams(String name, String[] parameters) {
         try {
             if (parameters.length == 2) {
-                command_charena(name, parameters);
+                String arena = parameters[1].toLowerCase();
+                if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")
+                        || arena.startsWith("twfd"))
+                    command_charenaTop(name, parameters);
                 return;
             } else if (parameters.length == 1) {
                 String arena = parameters[0].toLowerCase();
@@ -1011,7 +1014,10 @@ public class matchbot extends SubspaceBot {
     public void command_challengeall(String name, String[] parameters) {
         try {
             if (parameters.length == 2) {
-                command_charena(name, parameters);
+                String arena = parameters[1].toLowerCase();
+                if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")
+                        || arena.startsWith("twfd"))
+                    command_charenaAll(name, parameters);
                 return;
             } else if (parameters.length == 1) {
                 String arena = parameters[0].toLowerCase();
