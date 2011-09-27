@@ -311,7 +311,7 @@ public class matchbot extends SubspaceBot {
                     m_die = false;
                     m_off = false;
                 } else if (ipc.getType() == Command.CHECKIN) {
-                    m_botAction.ipcTransmit(IPC, new IPCCommand(Command.CHECKIN, TWDHUB, arena));
+                    m_botAction.ipcTransmit(IPC, new IPCTWD(EventType.CHECKIN, arena, bot));
                 }
             } else if (event.getObject() instanceof IPCChallenge) {
                 IPCChallenge ipc = (IPCChallenge) event.getObject();
