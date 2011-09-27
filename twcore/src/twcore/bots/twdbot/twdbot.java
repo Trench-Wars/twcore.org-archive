@@ -671,11 +671,11 @@ public class twdbot extends SubspaceBot {
                 } else if (message.startsWith("!chawas")) {
                     command_watches(name);
                     return;
-                } else if (message.startsWith("!sibling")) {
+                } else if (message.startsWith("!sibling ")) {
                     command_sibling(name, message.substring(message.indexOf(" ")));
-                } else if (message.startsWith("!addsibling")) {
+                } else if (message.startsWith("!addsibling ")) {
                     command_addSibling(name, message.substring(message.indexOf(" ")));
-                } else if (message.startsWith("!changesibling")) {
+                } else if (message.startsWith("!changesibling ")) {
                     command_changeSibling(name, message.substring(message.indexOf(" ")));
                 } else if (message.equalsIgnoreCase("!help")) {
                     command_help(name);
@@ -1136,7 +1136,10 @@ public class twdbot extends SubspaceBot {
                 " !chawa <name>                - Toggles challenge watch on or off for <name>",
                 " !chawas                      - Displays current challenge watches",
                 " !ban <name>                  - Prevents <name> from being able to do challenges for a day",
-                " !unban <name>                - Removes challenge ban for <name> if it exists"
+                " !unban <name>                - Removes challenge ban for <name> if it exists",
+                " !sibling <name>              - Looks up all siblings registered for <name>",
+                " !addsibling <name>:<sibling> - Registers a <sibling> to <name>",
+                " !changesibling <old>:<new>   - changes name in siblings from <old> to <new>"
         };
         m_botAction.smartPrivateMessageSpam(name, msg);
         
@@ -1662,18 +1665,48 @@ public class twdbot extends SubspaceBot {
             m_botAction.sendChatMessage(2, "Usage: !addsibling name:siblingName");
         } else {
             try {
-                //regular insert
-                m_botAction.SQLQuery(webdb,
+                //do lookup to verify not already created
+                ResultSet s = m_botAction.SQLQuery(webdb,
+                        "SELECT * FROM tblSiblings WHERE fcName = '" +
+                        names[0].toLowerCase().trim() + "', fcSibling = '" +
+                        names[1].toLowerCase().trim() + "'");
+                if (s == null) {
+                    //regular insert
+                    m_botAction.SQLQuery(webdb,
                         "INSERT INTO tblSiblings (fcName, fcSibling) VALUES('" +
                         names[0].toLowerCase().trim() + "','" +
                         names[1].toLowerCase().trim() + "')");
+
+                    m_botAction.sendChatMessage(2, "Sibling mapping '" + names[0] +
+                        "' and '" + names[1] + "' added.");
+                }
+                
+                //do reverse lookup for complete mapping
+                ResultSet s2 = m_botAction.SQLQuery(webdb,
+                        "SELECT * FROM tblSiblings WHERE fcName = '" +
+                        names[1].toLowerCase().trim() + "', fcSibling = '" +
+                        names[0].toLowerCase().trim() + "'");
+                if (s2 == null) {
                 //reverse insert for looking up sibling first
-                m_botAction.SQLQuery(webdb,
+                    m_botAction.SQLQuery(webdb,
                         "INSERT INTO tblSiblings (fcName, fcSibling) VALUES('" +
                         names[1].toLowerCase().trim() + "','" +
                         names[0].toLowerCase().trim() + "')");
-                m_botAction.sendChatMessage(2, "Siblings '" + names[0] +
-                        "' and '" + names[1] + "' added.");
+                    
+                    m_botAction.sendChatMessage(2, "Sibling mapping '" + names[1] +
+                        "' and '" + names[0] + "' added.");
+                }
+
+                //lookup other sibling and map to added
+                /*ResultSet s3 = m_botAction.SQLQuery(webdb,
+                        "SELECT fcSibling FROM tblSiblings WHERE fcName = '" +
+                        names[0].toLowerCase().trim() + "'");
+                while (s3 != null && s3.next()) {
+                    String n = s3.getString(1);
+                    if (!n.equals(names[1])) {
+
+                    }
+                }*/
             } catch (SQLException e) {
             m_botAction.sendChatMessage(2,
                     "An SQLException occured in !addsibling");
