@@ -1581,7 +1581,7 @@ public class MatchRound
         m_botAction.showObject(m_rules.getInt("obj_gogogo"));
         
         //Sends match info to TWDBot
-        m_botAction.ipcTransmit("MatchBot", new IPCTWD(EventType.STATE, m_botAction.getArenaName(), m_botAction.getBotName(), m_game.m_fcTeam1Name, m_game.m_fcTeam2Name, m_game.m_fnMatchID));
+        m_botAction.ipcTransmit("MatchBot", new IPCTWD(EventType.STATE, m_botAction.getArenaName(), m_botAction.getBotName(), m_game.m_fcTeam1Name, m_game.m_fcTeam2Name, m_game.m_fnMatchID, m_game.m_fnTeam1Score, m_game.m_fnTeam2Score));
         m_timeStartedms = System.currentTimeMillis();
         flagClaimed = false;
         
