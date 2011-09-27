@@ -225,9 +225,12 @@ public class twdhub extends SubspaceBot {
                 if (arena.game != null) {
                     ba.sendSmartPrivateMessage(name, "A game is already being played in " + arenaName + ".");
                 } else {
-                    ipc.setBot(arena.bot);
-                    ba.ipcTransmit(IPC, ipc);
-                    arena.ipcFlag();
+                    if (arena.status == ArenaStatus.READY) { 
+                        ipc.setBot(arena.bot);
+                        ba.ipcTransmit(IPC, ipc);
+                        arena.ipcFlag();
+                    } else
+                        arena.add(ipc);
                 }
             } else {
                 Arena arena = new Arena(ipc.getArena());
