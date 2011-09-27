@@ -316,7 +316,7 @@ public class matchbot extends SubspaceBot {
                     else
                         m_botAction.ipcTransmit(IPC, new IPCTWD(EventType.CHECKIN, arena, bot));
                 }
-            } else if (event.getObject() instanceof IPCChallenge) {
+            } else if (event.getObject() instanceof IPCChallenge && TWDHUB.equalsIgnoreCase(event.getSenderName())) {
                 IPCChallenge ipc = (IPCChallenge) event.getObject();
                 String arena = m_botAction.getArenaName().toLowerCase();
                 String bot = m_botAction.getBotName();
