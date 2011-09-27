@@ -163,19 +163,23 @@ public class twdhub extends SubspaceBot {
                 checkDiv(ipc.getArena().substring(0, 4));
             } else if (ipc.getType() == EventType.CHECKIN) {
                 if (arenas.containsKey(ipc.getArena())) {
-                    new Game(ipc.getID(), ipc.getSquad1(), ipc.getSquad2(), ipc.getArena());
-                    Game game = arenas.get(ipc.getArena()).game;
-                    game.setRound(1);
-                    game.setState(1);
+                    if (ipc.getID() != 0) {
+                        new Game(ipc.getID(), ipc.getSquad1(), ipc.getSquad2(), ipc.getArena());
+                        Game game = arenas.get(ipc.getArena()).game;
+                        game.setRound(1);
+                        game.setState(1);
+                    }
                 } else {
                     Arena arena = new Arena(ipc.getArena());
                     arena.bot = ipc.getBot();
                     arena.status = ArenaStatus.READY;
                     arenas.put(ipc.getArena(), arena);
-                    new Game(ipc.getID(), ipc.getSquad1(), ipc.getSquad2(), ipc.getArena());
-                    Game game = arenas.get(ipc.getArena()).game;
-                    game.setRound(1);
-                    game.setState(1);
+                    if (ipc.getID() != 0) {
+                        new Game(ipc.getID(), ipc.getSquad1(), ipc.getSquad2(), ipc.getArena());
+                        Game game = arenas.get(ipc.getArena()).game;
+                        game.setRound(1);
+                        game.setState(1);
+                    }
                 }
                 checkDiv(ipc.getArena().substring(0, 4));
             } else if (ipc.getType() == EventType.STARTING) {
@@ -332,10 +336,10 @@ public class twdhub extends SubspaceBot {
     private void checkArenas() {
         debug("Checking arenas...");
         checkDiv("twbd");
-        //checkDiv("twdd");
-        //checkDiv("twjd");
-        //checkDiv("twsd");
-        //checkDiv("twfd");
+        checkDiv("twdd");
+        checkDiv("twjd");
+        checkDiv("twsd");
+        checkDiv("twfd");
     }
     
     private void checkDiv(String div) {
