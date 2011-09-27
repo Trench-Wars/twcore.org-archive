@@ -1096,13 +1096,13 @@ public class matchbot extends SubspaceBot {
                             squadsChalled += "and " + nmySquad + ".";
                     }
                     m_botAction.SQLClose(squads);
-                    m_botAction.sendPrivateMessage(name, squadsChalled);
+                    m_botAction.sendSmartPrivateMessage(name, squadsChalled);
                 } else
-                    m_botAction.sendPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
+                    m_botAction.sendSmartPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
             } else
-                m_botAction.sendPrivateMessage(name, "You can't challenge here, there is a game going on here already");
+                m_botAction.sendSmartPrivateMessage(name, "You can't challenge here, there is a game going on here already");
         } catch (Exception e) {
-            m_botAction.sendPrivateMessage(name, "Your challenge could not be completed. Please contact a TWD Operator."); // ********************************
+            m_botAction.sendSmartPrivateMessage(name, "Your challenge could not be completed. Please contact a TWD Operator."); // ********************************
         }
     }
 
@@ -1154,13 +1154,13 @@ public class matchbot extends SubspaceBot {
                             squadsChalled += "and " + nmySquad + ".";
                     }
                     m_botAction.SQLClose(squads);
-                    m_botAction.sendPrivateMessage(name, squadsChalled);
+                    m_botAction.sendSmartPrivateMessage(name, squadsChalled);
                 } else
-                    m_botAction.sendPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
+                    m_botAction.sendSmartPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
             } else
-                m_botAction.sendPrivateMessage(name, "You can't challenge here, there is a game going on here already");
+                m_botAction.sendSmartPrivateMessage(name, "You can't challenge here, there is a game going on here already");
         } catch (Exception e) {
-            m_botAction.sendPrivateMessage(name, "Your challenge could not be completed. Please contact a TWD Operator."); // ********************************
+            m_botAction.sendSmartPrivateMessage(name, "Your challenge could not be completed. Please contact a TWD Operator."); // ********************************
         }
     }
 
