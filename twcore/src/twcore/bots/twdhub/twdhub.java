@@ -45,6 +45,7 @@ public class twdhub extends SubspaceBot {
     
     VectorSet<String> needsBot;
     VectorSet<String> freeBots;
+    VectorSet<String> sentSpawn;
     
     HashMap<String, Arena> arenas;
     HashMap<String, Arena> bots;
@@ -59,7 +60,8 @@ public class twdhub extends SubspaceBot {
         oplist = ba.getOperatorList();
         rules = ba.getBotSettings();
         requestEvents();
-        
+
+        sentSpawn = new VectorSet<String>();
         needsBot = new VectorSet<String>();
         freeBots = new VectorSet<String>();
         arenas = new HashMap<String, Arena>();
@@ -78,12 +80,6 @@ public class twdhub extends SubspaceBot {
     
     public void handleEvent(ArenaJoined event) {
         checkIn();
-        TimerTask check = new TimerTask() {
-            public void run() {
-                checkArenas();
-            }
-        };
-        ba.scheduleTask(check, 3000);
     }
     
     public void handleEvent(PlayerEntered event) {
@@ -253,6 +249,12 @@ public class twdhub extends SubspaceBot {
     
     private void checkIn() {
         ba.ipcTransmit(IPC, new IPCCommand(Command.CHECKIN, null));
+        TimerTask check = new TimerTask() {
+            public void run() {
+                checkArenas();
+            }
+        };
+        ba.scheduleTask(check, 3000);
     }
     
     public void cmd_help(String name) {
@@ -427,6 +429,7 @@ public class twdhub extends SubspaceBot {
     private void lockBots() {
         while (!needsBot.isEmpty() && !freeBots.isEmpty()) {
             String name = needsBot.remove(0);
+            sentSpawn.remove(name);
             botLock(freeBots.remove(0), name);
         }
     }
@@ -470,15 +473,16 @@ public class twdhub extends SubspaceBot {
             arenas.put(low(name), arena);
         }
         needsBot.add(name);
-        if (freeBots.isEmpty())
+        if (freeBots.isEmpty() && !sentSpawn.contains(name)) {
+            sentSpawn.add(name);
             ba.sendSmartPrivateMessage(HUB, "!spawn matchbot");
-        else 
+        } else 
             lockBots();
     }
     
     private void botRemove(String name) {
-        debug("Bot remove: " + name);
         if (arenas.containsKey(name)) {
+            debug("Bot remove: " + name);
             Arena arena = arenas.get(name);
             arena.status = ArenaStatus.DYING;
             ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, arena.bot, null));
