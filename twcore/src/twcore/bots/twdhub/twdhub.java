@@ -229,6 +229,7 @@ public class twdhub extends SubspaceBot {
                 } else {
                     if (arena.status == ArenaStatus.READY) { 
                         ipc.setBot(arena.bot);
+                        debug("Transmitting challenge IPC for " + ipc.getName());
                         ba.ipcTransmit(IPC, ipc);
                         arena.ipcFlag();
                     } else
