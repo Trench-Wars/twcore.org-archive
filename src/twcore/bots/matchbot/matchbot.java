@@ -984,8 +984,8 @@ public class matchbot extends SubspaceBot {
                 if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")
                         || arena.startsWith("twfd")) {
                     command_charenaTop(name, parameters);
+                    return;
                 }
-                return;
             }
             int players;
             if (parameters.length == 1) {
@@ -1024,8 +1024,8 @@ public class matchbot extends SubspaceBot {
                 if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")
                         || arena.startsWith("twfd")) {
                     command_charenaAll(name, parameters);
+                    return;
                 }
-                return;
             }
             int players;
             if (parameters.length == 1) {
