@@ -217,7 +217,7 @@ public class twdhub extends SubspaceBot {
             }
         } else if (!shutdown && event.getObject() instanceof IPCChallenge) {
             IPCChallenge ipc = (IPCChallenge) event.getObject();
-            if (!ipc.getRecipient().equals(ba.getBotName())) return;
+            if (!isTWD(ipc.getArena()) || !ipc.getRecipient().equals(ba.getBotName())) return;
             String arenaName = ipc.getArena();
             String name = ipc.getName();
             if (arenas.containsKey(arenaName)) {
@@ -514,7 +514,13 @@ public class twdhub extends SubspaceBot {
         else if (div.equals("twfd"))
             ba.sendSmartPrivateMessage(bot, "!lock " + TWFD + ":" + arenaName);
         bots.put(bot, arena);
-        arena.flushIPC();
+        final Arena farena = arena;
+        TimerTask flush = new TimerTask() {
+            public void run() {
+                farena.flushIPC();
+            }
+        };
+        ba.scheduleTask(flush, 2000);
     }
     
     private boolean isTWD(String name) {
@@ -559,13 +565,13 @@ public class twdhub extends SubspaceBot {
         }
         
         public void add(IPCChallenge challenge) {
-            ipcFlag();
-            challs.put(low(challenge.getName()), challenge);
             if (challs.containsKey(low(challenge.getName())))
                 ba.sendSmartPrivateMessage(challenge.getName(), "Previous challenge replaced.");
+            challs.put(low(challenge.getName()), challenge);
         }
         
         public void flushIPC() {
+            if (challs.isEmpty()) return;
             ipcFlag();
             for (IPCChallenge ipc : challs.values()) {
                 ipc.setBot(bot);
