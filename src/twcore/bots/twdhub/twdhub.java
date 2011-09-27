@@ -160,7 +160,10 @@ public class twdhub extends SubspaceBot {
         if (event.getObject() instanceof IPCTWD) {
             IPCTWD ipc = (IPCTWD) event.getObject();
             if (ipc.getType() == EventType.NEW) {
-                new Game(-1, ipc.getSquad1(), ipc.getSquad2(), ipc.getArena());
+                Game game = new Game(-1, ipc.getSquad1(), ipc.getSquad2(), ipc.getArena());
+                if (arenas.containsKey(ipc.getArena())) {
+                    arenas.get(ipc.getArena()).game = game;
+                }
                 checkDiv(ipc.getArena().substring(0, 4));
             } else if (ipc.getType() == EventType.CHECKIN) {
                 if (!isTWD(ipc.getArena())) return;
@@ -170,8 +173,8 @@ public class twdhub extends SubspaceBot {
                     bots.put(arena.bot, arena);
                     arena.status = ArenaStatus.READY;
                     if (ipc.getID() != 0) {
-                        new Game(ipc.getID(), ipc.getSquad1(), ipc.getSquad2(), ipc.getArena());
-                        Game game = arenas.get(ipc.getArena()).game;
+                        Game game = new Game(ipc.getID(), ipc.getSquad1(), ipc.getSquad2(), ipc.getArena());
+                        arenas.get(ipc.getArena()).game = game;
                         game.setRound(1);
                         game.setState(1);
                     }
@@ -182,8 +185,8 @@ public class twdhub extends SubspaceBot {
                     arena.status = ArenaStatus.READY;
                     arenas.put(ipc.getArena(), arena);
                     if (ipc.getID() != 0) {
-                        new Game(ipc.getID(), ipc.getSquad1(), ipc.getSquad2(), ipc.getArena());
-                        Game game = arenas.get(ipc.getArena()).game;
+                        Game game = new Game(ipc.getID(), ipc.getSquad1(), ipc.getSquad2(), ipc.getArena());
+                        arenas.get(ipc.getArena()).game = game;
                         game.setRound(1);
                         game.setState(1);
                     }
