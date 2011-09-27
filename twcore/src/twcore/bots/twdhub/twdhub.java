@@ -161,9 +161,8 @@ public class twdhub extends SubspaceBot {
             IPCTWD ipc = (IPCTWD) event.getObject();
             if (ipc.getType() == EventType.NEW) {
                 Game game = new Game(-1, ipc.getSquad1(), ipc.getSquad2(), ipc.getArena());
-                if (arenas.containsKey(ipc.getArena())) {
+                if (arenas.containsKey(ipc.getArena()))
                     arenas.get(ipc.getArena()).game = game;
-                }
                 checkDiv(ipc.getArena().substring(0, 4));
             } else if (ipc.getType() == EventType.CHECKIN) {
                 if (!isTWD(ipc.getArena())) return;
