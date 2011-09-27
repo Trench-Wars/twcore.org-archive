@@ -11,7 +11,6 @@ import java.util.Stack;
 import java.util.TimerTask;
 import java.util.TreeSet;
 
-import twcore.bots.twdhub.Command;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
@@ -44,6 +43,7 @@ import twcore.core.util.ipc.EventType;
 import twcore.core.util.ipc.IPCChallenge;
 import twcore.core.util.ipc.IPCCommand;
 import twcore.core.util.ipc.IPCTWD;
+import twcore.core.util.ipc.Command;
 
 /**
  * Runs automated squad vs. squad TWD matches.
