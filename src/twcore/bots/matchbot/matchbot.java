@@ -3,16 +3,15 @@ package twcore.bots.matchbot;
 import java.io.File;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Stack;
 import java.util.TimerTask;
 import java.util.TreeSet;
 
+import twcore.bots.twdhub.Command;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
@@ -41,6 +40,10 @@ import twcore.core.game.Player;
 import twcore.core.stats.DBPlayerData;
 import twcore.core.util.Spy;
 import twcore.core.util.Tools;
+import twcore.core.util.ipc.EventType;
+import twcore.core.util.ipc.IPCChallenge;
+import twcore.core.util.ipc.IPCCommand;
+import twcore.core.util.ipc.IPCTWD;
 
 /**
  * Runs automated squad vs. squad TWD matches.
@@ -77,7 +80,7 @@ public class matchbot extends SubspaceBot {
     static int CHECKING_ARENAS = 1, LOCKED = 2;
     static int INACTIVE_MESSAGE_LIMIT = 3, ACTIVE_MESSAGE_LIMIT = 16;
     final static String IPC = "MatchBot";
-    final static String TWDHUB = "TWDBot";
+    final static String TWDHUB = "TWDHub";
     // these variables are for when the bot is locked
     BotSettings m_rules;
     String m_rulesFileName;
@@ -125,21 +128,21 @@ public class matchbot extends SubspaceBot {
 
     private void loadTWDOps() {
         try {
-	        ResultSet r = m_botAction.SQLQuery(dbConn, "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '14' AND tblUser.fnUserID = tblUserRank.fnUserID");
+            ResultSet r = m_botAction.SQLQuery(dbConn, "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '14' AND tblUser.fnUserID = tblUserRank.fnUserID");
 
-	        if (r == null) {
-	            return;
-	        }
+            if (r == null) {
+                return;
+            }
 
-	        twdops.clear();
+            twdops.clear();
 
-	        while(r.next()) {
-	            String name = r.getString("fcUsername");
-	            twdops.push(name);
-	        }
+            while (r.next()) {
+                String name = r.getString("fcUsername");
+                twdops.push(name);
+            }
 
-	        m_botAction.SQLClose( r );
-	    } catch (Exception e) {}
+            m_botAction.SQLClose(r);
+        } catch (Exception e) {}
     }
 
     public boolean isIdle() {
@@ -225,12 +228,12 @@ public class matchbot extends SubspaceBot {
         m_botAction.setReliableKills(1); // Reliable kills so the bot receives
                                          // every packet
         m_botAction.sendUnfilteredPublicMessage("?obscene");
-        
-        String arena = m_botAction.getArenaName().toLowerCase(); 
+
+        String arena = m_botAction.getArenaName().toLowerCase();
         if (arena.equalsIgnoreCase("twd")) {
             m_botAction.ipcTransmit(IPC, "twdmatchbot:spawned " + m_botAction.getBotName());
         } else if (isTWD() && m_isLocked) {
-            m_botAction.ipcTransmit(IPC, "twdmatchbot:locked " + m_botAction.getBotName() + "," + arena);            
+            m_botAction.ipcTransmit(IPC, "twdmatchbot:locked " + m_botAction.getBotName() + "," + arena);
         }
     }
 
@@ -281,64 +284,15 @@ public class matchbot extends SubspaceBot {
     }
 
     public void handleEvent(InterProcessEvent event) {
-        if ((event.getChannel().equals(IPC))
-                && (!event.getSenderName().equals(m_botAction.getBotName()))) {
-            if (event.getObject() instanceof String) {
-                String s = (String) event.getObject();
-                if (s.equals("whatArena")) {
-                    m_botAction.ipcTransmit(IPC, "myArena:"
-                            + m_botAction.getArenaName());
-                }
-                
-                if ((s.startsWith("myArena:")) && (m_isLocked)
-                        && (m_lockState == CHECKING_ARENAS)) {
-                    if (m_arenaList == null) {
-                        m_arenaList = new LinkedList<String>();
-                    }
-                    m_arenaList.add(s.substring(8).toLowerCase());
-                }
-
+        if ((event.getChannel().equals(IPC)) && (!event.getSenderName().equals(m_botAction.getBotName()))) {
+            if (event.getObject() instanceof IPCCommand) {
+                IPCCommand ipc = (IPCCommand) event.getObject();
                 String arena = m_botAction.getArenaName().toLowerCase();
                 String bot = m_botAction.getBotName();
-                if (s.startsWith("twdmatchbot:" + bot + ":denylock ")) {
-                    String name = s.substring(s.indexOf(" ") + 1);
-                    // name
-                    m_botAction.sendSmartPrivateMessage(name, "NO! You may NOT !lock while !manualspawn is DISABLED. READ MESSAGES!");
-                    
-                } else if (s.startsWith("twdmatchbot:" + bot + ":denyunlock ")) {
-                    String name = s.substring(s.indexOf(" ") + 1);
-                    // name
-                    m_botAction.sendSmartPrivateMessage(name, "NO! You may NOT !unlock while !manualspawn is DISABLED. READ MESSAGES!");
-
-                } else if (s.startsWith("twdmatchbot:" + bot + ":allowunlock ")) {
-                    String name = s.substring(s.indexOf(" ") + 1);
-                    // name
-                    command_unlock(name, null);
-                } else if (s.startsWith("twdmatchbots:newcheckin")) {
-                    if (isTWD()) {
-                        if (m_game != null) {
-                            // checkin:bot:arena:matchID:squad:squad:type
-                            m_botAction.ipcTransmit(IPC, "twdmatchbot:checkingin:" + bot + ":" + arena + ":" + m_game.m_fnMatchID + ":" + m_game.m_fcTeam1Name + ":" + m_game.m_fcTeam2Name + ":" + m_game.m_matchTypeName);
-                        } else {
-                            m_botAction.ipcTransmit(IPC, "twdmatchbot:checkingin:" + bot + ":" + arena);
-                        }
-                    } else if (arena.equalsIgnoreCase("twd")) {
-                        m_botAction.ipcTransmit(IPC, "twdmatchbot:checkingin:" + bot + ":" + arena);                        
-                    }
-                } else if (s.startsWith("twdmatchbots:checkin")) {
-                    if (isTWD()) {
-                        if (m_game != null) {
-                            m_botAction.ipcTransmit(IPC, "twdmatchbot:checkingin:" + bot + ":game");
-                        } else {
-                            m_botAction.ipcTransmit(IPC, "twdmatchbot:checkingin:" + bot + ":" + arena);
-                        }
-                    } else if (arena.equalsIgnoreCase("twd")) {
-                        m_botAction.ipcTransmit(IPC, "twdmatchbot:checkingin:" + bot + ":" + arena);                        
-                    }
-                    
-                } else if ((s.equals("all twdbots die")) || (s.equalsIgnoreCase("twdmatchbot:" + arena + " die")) || (s.equalsIgnoreCase("twdmatchbot:" + bot + " die"))) {
+                if (ipc.getBot() != null && !bot.equalsIgnoreCase(ipc.getBot()) && !arena.equalsIgnoreCase(ipc.getBot()))
+                    return;
+                if (ipc.getType() == Command.DIE) {
                     if (!m_isLocked || m_game == null) {
-                        m_botAction.ipcTransmit(IPC, "twdmatchbot:shuttingdown " + arena + "," + m_botAction.getBotName());
                         TimerTask d = new TimerTask() {
                             @Override
                             public void run() {
@@ -347,32 +301,44 @@ public class matchbot extends SubspaceBot {
                         };
                         m_botAction.scheduleTask(d, 3000);
                     } else if (m_game != null) {
+                        m_botAction.ipcTransmit(IPC, new IPCCommand(Command.ECHO, TWDHUB, bot
+                                + " reports it will shutdown after the current game ends in " + arena));
                         m_die = true;
                         m_off = true;
-                        m_botAction.ipcTransmit(IPC, "twdmatchbot:dying " + arena + "," + m_botAction.getBotName());
                     }
-                } else if (s.equalsIgnoreCase("twdmatchbot:" + bot + " stay")) {
-                    m_botAction.ipcTransmit(IPC, "twdmatchbot:staying " + arena + "," + m_botAction.getBotName());
+                } else if (ipc.getType() == Command.STAY) {
+                    m_botAction.ipcTransmit(IPC, new IPCCommand(Command.ECHO, TWDHUB, bot + " reports it will stay in " + arena));
                     m_die = false;
                     m_off = false;
-                } else if (s.startsWith("twd:" + arena + ":challenge ")) {
-                    // name,squad_op,players
-                    String[] args = s.substring(s.indexOf(" ") + 1).split(",");
-                    if (args.length != 3)
-                        return;
-                    command_ipcchallenge(args[0], new String[] {args[1], args[2]});
+                } else if (ipc.getType() == Command.CHECKIN) {
+                    m_botAction.ipcTransmit(IPC, new IPCCommand(Command.CHECKIN, TWDHUB, arena));
+                }
+            } else if (event.getObject() instanceof IPCChallenge) {
+                IPCChallenge ipc = (IPCChallenge) event.getObject();
+                String arena = m_botAction.getArenaName().toLowerCase();
+                String bot = m_botAction.getBotName();
+                if (bot.equalsIgnoreCase(ipc.getRecipient()) && arena.equalsIgnoreCase(ipc.getArena())) {
+                    if (ipc.getType() == EventType.CHALLENGE)
+                        do_challenge(ipc.getName(), ipc.getSquad1(), ipc.getSquad2(), ipc.getPlayers());
+                    else if (ipc.getType() == EventType.TOPCHALLENGE)
+                        do_challengeTopTeams(ipc.getName(), ipc.getSquad1(), ipc.getPlayers());
+                    else if (ipc.getType() == EventType.ALLCHALLENGE)
+                        do_challengeAllTeams(ipc.getName(), ipc.getSquad1(), ipc.getPlayers());
+
+                    final IPCCommand com = new IPCCommand(Command.EXPIRED, TWDHUB, arena);
+                    if (!ipcTimer) {
+                        exp = new TimerTask() {
+                            @Override
+                            public void run() {
+                                m_botAction.ipcTransmit(IPC, com);
+                            }
+                        };
+                        m_botAction.scheduleTask(exp, 300000);
+                        ipcTimer = true;
+                    }
                 }
             }
         }
-    }
-    
-    public boolean isTWD() {
-        String arena = m_botAction.getArenaName().toLowerCase();
-        
-        if (((arena.length() == 4) || (arena.length() == 5)) && ((arena.startsWith("twbd")) || (arena.startsWith("twdd")) || (arena.startsWith("twjd")) || (arena.startsWith("twsd")) || (arena.startsWith("twfd"))))
-            return true;
-        
-        return false;
     }
 
     public void handleEvent(PlayerDeath event) {
@@ -429,29 +395,25 @@ public class matchbot extends SubspaceBot {
         int messageType = event.getMessageType();
         String message = event.getMessage();
 
-        if (messageType == Message.ARENA_MESSAGE
-                && message.equals("Obscenity block ON") && !obsceneStatus) {
+        if (messageType == Message.ARENA_MESSAGE && message.equals("Obscenity block ON") && !obsceneStatus) {
             m_botAction.sendUnfilteredPublicMessage("?obscene");
         }
-        if (messageType == Message.ARENA_MESSAGE
-                && message.equals("Obscenity block OFF") && obsceneStatus) {
+        if (messageType == Message.ARENA_MESSAGE && message.equals("Obscenity block OFF") && obsceneStatus) {
             m_botAction.sendUnfilteredPublicMessage("?obscene");
         }
-        
-        if (messageType == Message.ARENA_MESSAGE
-                && message.equals("Player Moderator OFF") && power) {
-                for (int i = 0; i < powerOn.size(); i++) {
-                    m_botAction.sendPrivateMessage(powerOff.get(i), "Power ON.");
-                    m_botAction.sendUnfilteredPrivateMessage(powerOn.get(i), "*moderator");
-                    }
+
+        if (messageType == Message.ARENA_MESSAGE && message.equals("Player Moderator OFF") && power) {
+            for (int i = 0; i < powerOn.size(); i++) {
+                m_botAction.sendPrivateMessage(powerOff.get(i), "Power ON.");
+                m_botAction.sendUnfilteredPrivateMessage(powerOn.get(i), "*moderator");
+            }
 
         }
-        if (messageType == Message.ARENA_MESSAGE
-                && message.equals("Player Moderator ON") && !power) {
-                for (int i = 0; i < powerOff.size(); i++) {
-                    m_botAction.sendPrivateMessage(powerOn.get(i), "Power OFF.");
-                    m_botAction.sendUnfilteredPrivateMessage(powerOff.get(i), "*moderator");
-                    }
+        if (messageType == Message.ARENA_MESSAGE && message.equals("Player Moderator ON") && !power) {
+            for (int i = 0; i < powerOff.size(); i++) {
+                m_botAction.sendPrivateMessage(powerOn.get(i), "Power OFF.");
+                m_botAction.sendUnfilteredPrivateMessage(powerOff.get(i), "*moderator");
+            }
 
         }
 
@@ -461,36 +423,12 @@ public class matchbot extends SubspaceBot {
                 m_game.cancel();
             m_botAction.die();
         }
-        
-        if (messageType == Message.ARENA_MESSAGE){
-            if (message.startsWith(TWDHUB + " is in SSCU Trench Wars") && m_lock.length() > 0) {
-                m_botAction.ipcTransmit(IPC, m_lock);
-                m_lock = "";
-                return;
-            } else if (message.startsWith("Not online, last seen") && m_lock.length() > 0) {
-                if (m_lock.startsWith("twdmatchbot:manlock")) {
-                    String[] args = m_lock.substring(m_lock.indexOf(" ") + 1).split(",");
-                    if (args.length == 3) {
-                        if (args[2].contains(":"))
-                            command_lock(args[1], new String[] { args[2].substring(0, args[2].indexOf(":")), args[2].substring(args[2].indexOf(":") + 1) });
-                        else
-                            command_lock(args[1], new String[] { args[2].substring(args[2].indexOf(" ") + 1) });
-                    }
-                } else if (m_lock.startsWith("twdmatchbot:manunlock")) {
-                    String[] args = m_lock.substring(m_lock.indexOf(" ") + 1).split(",");
-                    command_unlock(args[1], null);
-                }
-                m_lock = "";
-                return;
-            }
-        }
-        
+
         if (messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) {
             String name = m_botAction.getPlayerName(event.getPlayerID());
-            if (name == null) {
+            if (name == null)
                 name = event.getMessager();
-            }
-            
+
             if (m_opList.isBotExact(name) && message.startsWith("!lock")) {
                 String[] args = message.substring(message.indexOf(" ") + 1).split(":");
                 command_lock(name, args);
@@ -507,15 +445,12 @@ public class matchbot extends SubspaceBot {
                 name = event.getMessager();
             }
 
-            
             isStaff = false;
             isRestrictedStaff = false;
             if ((m_isLocked) && (m_rules != null)) {
                 if (m_rules.getString("specialaccess") != null) {
                     try {
-                        if ((new String(":"
-                                + m_rules.getString("specialaccess").toLowerCase())).indexOf(":"
-                                + name.toLowerCase()) != -1) {
+                        if ((new String(":" + m_rules.getString("specialaccess").toLowerCase())).indexOf(":" + name.toLowerCase()) != -1) {
                             isStaff = true;
                             isRestrictedStaff = true;
                         }
@@ -528,18 +463,6 @@ public class matchbot extends SubspaceBot {
             if (m_opList.isBot(name)) {
                 isStaff = true;
                 isRestrictedStaff = false;
-            }
-            
-            if (messageType == Message.PRIVATE_MESSAGE && m_opList.isER(name)) {
-                if (message.startsWith("!lock ")) {
-                    m_lock = "twdmatchbot:manlock " + m_botAction.getBotName() + "," + name + "," + message;
-                    m_botAction.sendUnfilteredPublicMessage("?find=" + TWDHUB);
-                    return;
-                } else if (message.startsWith("!unlock")) {
-                    m_lock = "twdmatchbot:manunlock " + m_botAction.getBotName() + "," + name + "," + message + "," + m_botAction.getArenaName();
-                    m_botAction.sendUnfilteredPublicMessage("?find=" + TWDHUB);
-                    return;
-                }
             }
 
             if (stringChopper(message, ' ') == null)
@@ -567,9 +490,7 @@ public class matchbot extends SubspaceBot {
         }
 
         // Send to spy to check for racist comments
-        if (messageType == Message.PUBLIC_MESSAGE
-                || messageType == Message.TEAM_MESSAGE
-                || messageType == Message.OPPOSING_TEAM_MESSAGE
+        if (messageType == Message.PUBLIC_MESSAGE || messageType == Message.TEAM_MESSAGE || messageType == Message.OPPOSING_TEAM_MESSAGE
                 || messageType == Message.PUBLIC_MACRO_MESSAGE)
             racismSpy.handleEvent(event);
 
@@ -579,8 +500,7 @@ public class matchbot extends SubspaceBot {
     }
 
     // getHelpMessages, for hosts....
-    public String[] getHelpMessages(String name, boolean isStaff,
-            boolean isRestrictedStaff) {
+    public String[] getHelpMessages(String name, boolean isStaff, boolean isRestrictedStaff) {
         ArrayList<String> help = new ArrayList<String>();
 
         if (m_game != null) // Bot is running a game
@@ -607,9 +527,7 @@ public class matchbot extends SubspaceBot {
                 } else // Bot is locked in a specific arena / game but not
                        // started
                 {
-                    help.add("!game <squadA>:<squadB>                  - start a game of "
-                            + m_rules.getString("name")
-                            + " between teamA and teamB");
+                    help.add("!game <squadA>:<squadB>                  - start a game of " + m_rules.getString("name") + " between teamA and teamB");
                     help.add("!power                                   - disables/enables your staff power");
                     if (!isRestrictedStaff) {
                         help.add("!unlock                                  - unlock the bot, makes it go back to ?go twd");
@@ -625,13 +543,19 @@ public class matchbot extends SubspaceBot {
                 if (m_rules.getInt("captain_can_start_game") == 1) {
                     help.add("The following commands only work for rostered captains and assistants (shortcuts in parentheses):");
                     help.add("!challenge <squad>                       - (!ch)request a game of " + m_rules.getString("name") + " against <squad>");
-                    help.add("!challenge <squad>:<arena>               - (!ch)request a game of " + m_rules.getString("name") + " against <squad> in <arena>");
-                    help.add("!challenge <squad>:<players>             - (!ch)request a game of " + m_rules.getString("name") + " against <squad> with <players> number of players");
-                    help.add("!challenge <squad>:<players>:<arena>     - (!ch)request a game of " + m_rules.getString("name") + " against <squad> with <players> in <arena>");
-                    help.add("!challengeall <players>                  - (!chall)request a game of " + m_rules.getString("name") + " against the most active 8 squads with <players>s");
-                    help.add("!challengetopteams <players>             - (!chtop)request a game of " + m_rules.getString("name") + " against the 8 highest rated squads with <players>s");
+                    help.add("!challenge <squad>:<arena>               - (!ch)request a game of " + m_rules.getString("name")
+                            + " against <squad> in <arena>");
+                    help.add("!challenge <squad>:<players>             - (!ch)request a game of " + m_rules.getString("name")
+                            + " against <squad> with <players> number of players");
+                    help.add("!challenge <squad>:<players>:<arena>     - (!ch)request a game of " + m_rules.getString("name")
+                            + " against <squad> with <players> in <arena>");
+                    help.add("!challengeall <players>                  - (!chall)request a game of " + m_rules.getString("name")
+                            + " against the most active 8 squads with <players>s");
+                    help.add("!challengetopteams <players>             - (!chtop)request a game of " + m_rules.getString("name")
+                            + " against the 8 highest rated squads with <players>s");
                     help.add("!challenges                              - (!chals)lists all active challenges " + " made by your squad");
-                    help.add("!removechallenge <squad>                 - (!rc)removes the challenge of " + m_rules.getString("name") + " game against <squad>");
+                    help.add("!removechallenge <squad>                 - (!rc)removes the challenge of " + m_rules.getString("name")
+                            + " game against <squad>");
                     help.add("!removechallenge *                       - (!rc *)removes all challenges sent out by your squad");
                     help.add("!accept <squad>                          - (!a)accept the !challenge made by the challenging squad");
                 }
@@ -641,9 +565,8 @@ public class matchbot extends SubspaceBot {
         return help.toArray(new String[help.size()]);
     }
 
-    public void parseCommand(String name, String command, String[] parameters,
-            boolean isStaff, boolean isRestrictedStaff) {
-            
+    public void parseCommand(String name, String command, String[] parameters, boolean isStaff, boolean isRestrictedStaff) {
+
         if (isStaff) {
             if (command.equals("!game"))
                 createGame(name, parameters);
@@ -672,21 +595,20 @@ public class matchbot extends SubspaceBot {
                     command_listaccess(name, parameters);
                 if ((command.equals("!addaccess")) && (m_opList.isSmod(name)))
                     command_addaccess(name, parameters);
-                if ((command.equals("!removeaccess"))
-                        && (m_opList.isSmod(name)))
+                if ((command.equals("!removeaccess")) && (m_opList.isSmod(name)))
                     command_removeaccess(name, parameters);
             }
             if (m_game != null) {
-                if (command.equals("!killgame")) {
-                    m_botAction.sendArenaMessage("The game has been brutally killed by "
-                            + name);
+                if (command.equals("!pkg"))
+                    playerKillGame();
+                else if (command.equals("!killgame")) {
+                    m_botAction.sendArenaMessage("The game has been brutally killed by " + name);
                     m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
                     m_game.cancel();
                     m_game = null;
                     try {
                         Thread.sleep(100);
-                    } catch (Exception e) {
-                    }
+                    } catch (Exception e) {}
                     if (m_die && m_off) {
                         m_off = false;
                         m_die = false;
@@ -710,8 +632,7 @@ public class matchbot extends SubspaceBot {
                     m_game = null;
                     try {
                         Thread.sleep(100);
-                    } catch (Exception e) {
-                    }
+                    } catch (Exception e) {}
                     if (m_off) {
                         m_off = false;
                         command_unlock(name, parameters);
@@ -726,16 +647,14 @@ public class matchbot extends SubspaceBot {
                     if (m_game.m_curRound != null) {
 
                         boolean isCaptain = false;
-                        if (m_game.m_curRound.m_team1 != null
-                                && m_game.m_curRound.m_team2 != null) {
+                        if (m_game.m_curRound.m_team1 != null && m_game.m_curRound.m_team2 != null) {
                             isCaptain = m_game.m_curRound.m_team1.isCaptain(name);
                             if (!isCaptain)
                                 isCaptain = m_game.m_curRound.m_team2.isCaptain(name);
                         }
 
                         if (!isCaptain)
-                            m_game.m_curRound.toggleBlueout(m_game.m_curRound.m_blueoutState == 0 ? true
-                                    : false);
+                            m_game.m_curRound.toggleBlueout(m_game.m_curRound.m_blueoutState == 0 ? true : false);
                     }
                 }
 
@@ -789,16 +708,16 @@ public class matchbot extends SubspaceBot {
         if (!isTWDOP) {
             try {
                 isTWDOP = twdops.contains(name);
-            }catch (Exception e) {}
+            } catch (Exception e) {}
         }
 
         if (m_game != null)
             m_game.parseCommand(name, command, parameters, isStaff, isTWDOP);
     }
-    
+
     private void power(String name, String[] parameters) {
-        if(power){
-            m_botAction.sendUnfilteredPrivateMessage(name,"*moderator");
+        if (power) {
+            m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
             powerOff.add(name.toLowerCase());
             power = false;
             m_botAction.sendPrivateMessage(name, "Power OFF/ON.");
@@ -807,16 +726,12 @@ public class matchbot extends SubspaceBot {
             powerOn.add(name.toLowerCase());
             power = true;
             m_botAction.sendPrivateMessage(name, "Power ON/OFF.");
-                
-            
-                
+
         }
-        
+
     }
 
-
-
-    public void playerKillGame()	{
+    public void playerKillGame() {
         if (m_game != null) {
             m_botAction.sendArenaMessage("Both teams have agreed to cancel. This game will be voided.");
             m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
@@ -824,8 +739,7 @@ public class matchbot extends SubspaceBot {
             m_game = null;
             try {
                 Thread.sleep(100);
-            } catch (Exception e) {
-            }
+            } catch (Exception e) {}
             if (m_die && m_off) {
                 m_off = false;
                 m_die = false;
@@ -860,12 +774,13 @@ public class matchbot extends SubspaceBot {
         } else
             m_botAction.sendPrivateMessage(name, "There's still a game going on, kill it first");
     }
-    
+
     public void command_getLag(String name) {
 
-        m_botAction.sendSmartPrivateMessage(name, "LagSettings: spikesize=" + m_rules.getInt("spikesize") + " maxCurrPing=" + m_rules.getInt("maxcurrping") + " maxPacketLoss=" + 
-                m_rules.getDouble("maxploss") + " maxSlowPackets=" + m_rules.getDouble("maxslowpackets") + " maxStandDev=" + m_rules.getDouble("maxstandarddeviation") + 
-                " maxNumSpikes=" + m_rules.getInt("maxnumspikes"));
+        m_botAction.sendSmartPrivateMessage(name, "LagSettings: spikesize=" + m_rules.getInt("spikesize") + " maxCurrPing="
+                + m_rules.getInt("maxcurrping") + " maxPacketLoss=" + m_rules.getDouble("maxploss") + " maxSlowPackets="
+                + m_rules.getDouble("maxslowpackets") + " maxStandDev=" + m_rules.getDouble("maxstandarddeviation") + " maxNumSpikes="
+                + m_rules.getInt("maxnumspikes"));
     }
 
     public void command_lock(String name, String[] parameters) {
@@ -879,15 +794,12 @@ public class matchbot extends SubspaceBot {
             return;
         }
 
-        // lock here
-
         if (parameters.length >= 1) {
             try {
                 int typenumber = Integer.parseInt(parameters[0]);
                 String typeName = getGameTypeName(typenumber);
                 if (typeName != null) {
-                    m_rulesFileName = m_botAction.getGeneralSettings().getString("Core Location")
-                            + "/data/Rules/" + typeName + ".txt";
+                    m_rulesFileName = m_botAction.getGeneralSettings().getString("Core Location") + "/data/Rules/" + typeName + ".txt";
                     m_rules = new BotSettings(m_rulesFileName);
                     m_isLocked = true;
                     m_typeNumber = typenumber;
@@ -908,7 +820,7 @@ public class matchbot extends SubspaceBot {
                         };
                         m_botAction.scheduleTask(a, 100);
                     }
-                    
+
                     if (m_rules.getInt("aliascheck") == 1)
                         m_aliasCheck = true;
                 } else
@@ -922,143 +834,67 @@ public class matchbot extends SubspaceBot {
 
     public void command_unlock(String name, String[] parameters) {
         if (m_game != null) {
-        	if(name != null) {
-        		m_botAction.sendPrivateMessage(name, "Can't unlock, there's a game going on");
-        	}
-        	return;
+            if (name != null) {
+                m_botAction.sendPrivateMessage(name, "Can't unlock, there's a game going on");
+            }
+            return;
         }
         m_isLocked = false;
-        m_botAction.ipcTransmit(IPC, "twdmatchbot:unlocked " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
-        if(name != null){
-        	m_botAction.sendPrivateMessage(name, "Unlocked, going to ?go twd");
-        }        
+        if (name != null) {
+            m_botAction.sendPrivateMessage(name, "Unlocked, going to ?go twd");
+        }
         m_botAction.changeArena("twd");
     }
 
-    // challenge without unnecessary and previously completed checks 
-    public void command_ipcchallenge(String name, String[] parameters) {
-        try {
-            if (m_game == null) {
-                int players;
-                if (parameters.length == 2) {
-                    players = Integer.parseInt(parameters[1]);
-                    if (players == -1)
-                        players = m_rules.getInt("minplayers");
-                    else if (players < m_rules.getInt("minplayers") && players > m_rules.getInt("players")) {
-                        m_botAction.sendSmartPrivateMessage(name, "Minimum # of players is " + m_rules.getInt("minplayers") + " and maximum is " + m_rules.getInt("players") + ".");
-                        return;
-                    }
-                } else {
-                    players = m_rules.getInt("minplayers");
-                }
-                DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
-                if (!dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) {
-                    m_botAction.sendSmartPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
-                    return;
-                }
-
-                String nmySquad = parameters[0];
-                m_gameRequests.add(new GameRequest(name, dp.getTeamName(), nmySquad, players, dp.getUserID()));
-                m_botAction.sendSquadMessage(nmySquad, name + " is challenging you for a game of " + players + "vs" + players + " " + m_rules.getString("name") + " versus " + dp.getTeamName() + ". Captains/assistants, ?go " + m_botAction.getArenaName() + " and pm me with '!accept " + dp.getTeamName() + "'");
-                m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to " + nmySquad);
-                final String arena = m_botAction.getArenaName();
-                final String bot = m_botAction.getBotName();
-                if (!ipcTimer) {
-                    exp = new TimerTask() {
-                        @Override
-                        public void run() {
-                            m_botAction.ipcTransmit(IPC, "twd:expiredchallenge " + arena + "," + bot);
-                        }
-                    };
-                    m_botAction.scheduleTask(exp, 300000);
-                    ipcTimer = true;
-                }
-            } else
-                m_botAction.sendSmartPrivateMessage(name, "You can't challenge here, there is a game going on here already");
-        } catch (Exception e) {
-            m_botAction.sendSmartPrivateMessage(name, "Specify the squad you want to challenge");
+    public void command_charena(String name, String[] args) {
+        Player p = m_botAction.getPlayer(name);
+        if (p == null)
+            return;
+        int players;
+        String arena;
+        if (args.length == 3) {
+            players = Integer.parseInt(args[1]);
+            arena = args[2].toLowerCase();
+        } else {
+            arena = args[1].toLowerCase();
+            players = -1;
         }
+        //String toBot, EventType type, String arena, String name, String squad1, String squad2, int players
+        m_botAction.ipcTransmit("MatchBot", new IPCChallenge(TWDHUB, EventType.CHALLENGE, arena, name, p.getSquadName().toLowerCase(), args[0].toLowerCase(), players));
     }
 
-    public void command_charena(String name, String[] args) {
-        try {
-            Player p = m_botAction.getPlayer(name);
-            // check if he isn't challenging his own squad
-
-            DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
-            if ((p.getPlayerName().equalsIgnoreCase(name) && !p.getSquadName().equalsIgnoreCase(args[0])) || (!dp.getTeamName().equalsIgnoreCase(args[0]))) {
-                int players;
-                String arena;
-                if (args.length == 3) {
-                    players = Integer.parseInt(args[1]);
-                    arena = args[2].toLowerCase();
-                } else {
-                    arena = args[1].toLowerCase();
-                    players = -1;
-                }
-                if (!dp.isRankAssistantMinimum()
-                        && m_rules.getInt("anyone_can_start_game") != 1) {
-                    m_botAction.sendSmartPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
-                    return;
-                }
-                
-                if (isChallengeBanned(dp)) {
-                    m_botAction.sendPrivateMessage(name, "You have been challenge banned for spamming. Time remaining: " + getBanTime(dp.getUserID()));
-                    return;
-                }
-
-                if ((dp.getTeamName() != null)
-                        && (!dp.getTeamName().equals(""))
-                        && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
-                    // check if the challenged team exists
-                    String nmySquad = args[0];
-                    ResultSet rs = m_botAction.SQLQuery(dbConn, "select fnTeamID from tblTeam where fcTeamName = '"
-                            + Tools.addSlashesToString(nmySquad)
-                            + "' and (fdDeleted = 0 or fdDeleted IS NULL)");
-                    if (rs.next()) {
-                        // check to make sure the arena isn't this arena
-                        if (arena.equalsIgnoreCase(m_botAction.getArenaName())) {
-                            if (players == -1)
-                                players = m_rules.getInt("minplayers");
-                            m_gameRequests.add(new GameRequest(name, dp.getTeamName(), nmySquad, players, dp.getUserID()));
-                            m_botAction.sendSquadMessage(nmySquad, name
-                                    + " is challenging you for a game of "
-                                    + players + "vs" + players + " "
-                                    + m_rules.getString("name") + " versus "
-                                    + dp.getTeamName()
-                                    + ". Captains/assistants, ?go "
-                                    + m_botAction.getArenaName()
-                                    + " and pm me with '!accept "
-                                    + dp.getTeamName() + "'");
-                            m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to "
-                                    + nmySquad);
-                        } else if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd") || arena.startsWith("twfd")) {
-                            try {
-                                if (arena.length() > 4) {
-                                    int n = Integer.valueOf(arena.substring(4));
-                                    if (n < 1 || n > 5)
-                                        throw new NumberFormatException();
-                                }
-
-                                // send this request to twdbot for analysis (arena,squad_ch,squad_op,name,players,my_arena,my_botname)
-                                m_botAction.ipcTransmit(IPC, "twd:arena_request " + arena + "," + dp.getTeamName() + "," + args[0] + "," + name + "," + players + "," + m_arena + "," + m_botAction.getBotName());
-                            } catch (NumberFormatException e) {
-                                m_botAction.sendSmartPrivateMessage(name, "Invalid arena requested.");
-                            }
-                        } else {
-                            m_botAction.sendSmartPrivateMessage(name, "Please specify a valid TWD arena");                                
-                        }
-                    } else
-                        m_botAction.sendSmartPrivateMessage(name, "The team you want to challenge does NOT exist in TWD");
-                    m_botAction.SQLClose(rs);
-                } else
-                    m_botAction.sendSmartPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
-            } else
-                m_botAction.sendSmartPrivateMessage(name, "You can't challenge your own squad, silly :P");
-        } catch (Exception e) {
-            m_botAction.sendSmartPrivateMessage(name, "Specify the squad you want to challenge");
+    public void command_charenaTop(String name, String[] args) {
+        Player p = m_botAction.getPlayer(name);
+        if (p == null)
+            return;
+        int players;
+        String arena;
+        if (args.length == 2) {
+            players = Integer.parseInt(args[1]);
+            arena = args[1].toLowerCase();
+        } else {
+            arena = args[0].toLowerCase();
+            players = -1;
         }
+        //String toBot, EventType type, String arena, String name, String squad1, String squad2, int players
+        m_botAction.ipcTransmit("MatchBot", new IPCChallenge(TWDHUB, EventType.TOPCHALLENGE, arena, name, p.getSquadName().toLowerCase(), null, players));
+    }
 
+    public void command_charenaAll(String name, String[] args) {
+        Player p = m_botAction.getPlayer(name);
+        if (p == null)
+            return;
+        int players;
+        String arena;
+        if (args.length == 2) {
+            players = Integer.parseInt(args[1]);
+            arena = args[1].toLowerCase();
+        } else {
+            arena = args[0].toLowerCase();
+            players = -1;
+        }
+        //String toBot, EventType type, String arena, String name, String squad1, String squad2, int players
+        m_botAction.ipcTransmit("MatchBot", new IPCChallenge(TWDHUB, EventType.ALLCHALLENGE, arena, name, p.getSquadName().toLowerCase(), null, players));
     }
 
     //
@@ -1070,14 +906,15 @@ public class matchbot extends SubspaceBot {
             return;
         } else if (parameters.length == 2) {
             String arena = parameters[1].toLowerCase();
-            if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd") || arena.startsWith("twfd")) {
+            if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")
+                    || arena.startsWith("twfd")) {
                 command_charena(name, parameters);
-                return;                
-            }                
+                return;
+            }
         }
-        
+
         try {
-            
+
             if (m_game == null) {
                 Player p = m_botAction.getPlayer(name);
                 // check if he isn't challenging his own squad
@@ -1088,9 +925,7 @@ public class matchbot extends SubspaceBot {
                                 && Integer.parseInt(parameters[1]) <= m_rules.getInt("players")) {
                             players = Integer.parseInt(parameters[1]);
                         } else {
-                            m_botAction.sendSmartPrivateMessage(name, "Minimum # of players is "
-                                    + m_rules.getInt("minplayers")
-                                    + " and maximum is "
+                            m_botAction.sendSmartPrivateMessage(name, "Minimum # of players is " + m_rules.getInt("minplayers") + " and maximum is "
                                     + m_rules.getInt("players") + ".");
                             return;
                         }
@@ -1098,38 +933,28 @@ public class matchbot extends SubspaceBot {
                         players = m_rules.getInt("minplayers");
                     }
                     DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
-                    if (!dp.isRankAssistantMinimum()
-                            && m_rules.getInt("anyone_can_start_game") != 1) {
+                    if (!dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) {
                         m_botAction.sendPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
                         return;
                     }
-                    
+
                     if (isChallengeBanned(dp)) {
-                        m_botAction.sendPrivateMessage(name, "You have been challenge banned for spamming. Time remaining: " + getBanTime(dp.getUserID()));
+                        m_botAction.sendPrivateMessage(name, "You have been challenge banned for spamming. Time remaining: "
+                                + getBanTime(dp.getUserID()));
                         return;
                     }
 
-                    if ((dp.getTeamName() != null)
-                            && (!dp.getTeamName().equals(""))
-                            && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
+                    if ((dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
                         // check if the challenged team exists
                         String nmySquad = parameters[0];
                         ResultSet rs = m_botAction.SQLQuery(dbConn, "select fnTeamID from tblTeam where fcTeamName = '"
-                                + Tools.addSlashesToString(nmySquad)
-                                + "' and (fdDeleted = 0 or fdDeleted IS NULL)");
+                                + Tools.addSlashesToString(nmySquad) + "' and (fdDeleted = 0 or fdDeleted IS NULL)");
                         if (rs.next()) {
                             m_gameRequests.add(new GameRequest(name, dp.getTeamName(), nmySquad, players, dp.getUserID()));
-                            m_botAction.sendSquadMessage(nmySquad, name
-                                    + " is challenging you for a game of "
-                                    + players + "vs" + players + " "
-                                    + m_rules.getString("name") + " versus "
-                                    + dp.getTeamName()
-                                    + ". Captains/assistants, ?go "
-                                    + m_botAction.getArenaName()
-                                    + " and pm me with '!accept "
-                                    + dp.getTeamName() + "'");
-                            m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to "
-                                    + nmySquad);
+                            m_botAction.sendSquadMessage(nmySquad, name + " is challenging you for a game of " + players + "vs" + players + " "
+                                    + m_rules.getString("name") + " versus " + dp.getTeamName() + ". Captains/assistants, ?go "
+                                    + m_botAction.getArenaName() + " and pm me with '!accept " + dp.getTeamName() + "'");
+                            m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to " + nmySquad);
 
                             m_botAction.ipcTransmit(IPC, "twd:challenge " + name + "," + nmySquad + "," + players + "," + m_botAction.getArenaName());
                         } else
@@ -1146,42 +971,138 @@ public class matchbot extends SubspaceBot {
         }
     }
 
-    //
     public void command_challengetopteams(String name, String[] parameters) {
         try {
-            if (m_game == null) {
-                Player p = m_botAction.getPlayer(name);
-                int players;
-                if (parameters.length == 1) {
-                    if (Integer.parseInt(parameters[0]) >= m_rules.getInt("minplayers")
-                            && Integer.parseInt(parameters[0]) <= m_rules.getInt("players")) {
-                        players = Integer.parseInt(parameters[0]);
-                    } else {
-                        m_botAction.sendPrivateMessage(name, "Minimum # of players is "
-                                + m_rules.getInt("minplayers")
-                                + " and maximum is "
-                                + m_rules.getInt("players") + ".");
-                        return;
-                    }
-                } else {
-                    players = m_rules.getInt("minplayers");
+            if (parameters.length == 2) {
+                command_charena(name, parameters);
+                return;
+            } else if (parameters.length == 1) {
+                String arena = parameters[0].toLowerCase();
+                if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")
+                        || arena.startsWith("twfd")) {
+                    command_charenaTop(name, parameters);
                 }
+                return;
+            }
+            int players;
+            if (parameters.length == 1) {
+                if (Integer.parseInt(parameters[0]) >= m_rules.getInt("minplayers") && Integer.parseInt(parameters[0]) <= m_rules.getInt("players")) {
+                    players = Integer.parseInt(parameters[0]);
+                } else {
+                    m_botAction.sendPrivateMessage(name, "Minimum # of players is " + m_rules.getInt("minplayers") + " and maximum is "
+                            + m_rules.getInt("players") + ".");
+                    return;
+                }
+            } else {
+                players = m_rules.getInt("minplayers");
+            }
+            Player p = m_botAction.getPlayer(name);
+            if (p != null) {
+                String squad = p.getSquadName();
+                do_challengeTopTeams(name, squad, players);
+            } else
+                return;
+        } catch (Exception e) {
+            m_botAction.sendPrivateMessage(name, "Your challenge could not be completed. Please contact a TWD Operator."); // ********************************
+        }
+    }
+
+    //
+    public void command_challengeall(String name, String[] parameters) {
+        try {
+            if (parameters.length == 2) {
+                command_charena(name, parameters);
+                return;
+            } else if (parameters.length == 1) {
+                String arena = parameters[0].toLowerCase();
+                if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")
+                        || arena.startsWith("twfd")) {
+                    command_charenaAll(name, parameters);
+                }
+                return;
+            }
+            int players;
+            if (parameters.length == 1) {
+                if (Integer.parseInt(parameters[0]) >= m_rules.getInt("minplayers") && Integer.parseInt(parameters[0]) <= m_rules.getInt("players")) {
+                    players = Integer.parseInt(parameters[0]);
+                } else {
+                    m_botAction.sendPrivateMessage(name, "Minimum # of players is " + m_rules.getInt("minplayers") + " and maximum is "
+                            + m_rules.getInt("players") + ".");
+                    return;
+                }
+            } else {
+                players = m_rules.getInt("minplayers");
+            }
+            Player p = m_botAction.getPlayer(name);
+            if (p != null) {
+                String squad = p.getSquadName();
+                do_challengeAllTeams(name, squad, players);
+            } else
+                return;
+        } catch (Exception e) {
+            m_botAction.sendPrivateMessage(name, "Your challenge could not be completed. Please contact a TWD Operator."); // ********************************
+        }
+    }
+
+    public void do_challenge(String name, String squad1, String squad2, int players) {
+        try {
+            if (m_game == null) {
+                if (players < 0)
+                    players = m_rules.getInt("minplayers");
                 DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
-                if (!dp.isRankAssistantMinimum()
-                        && m_rules.getInt("anyone_can_start_game") != 1) {
+                if (!dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) {
                     m_botAction.sendPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
                     return;
                 }
-                
+
                 if (isChallengeBanned(dp)) {
                     m_botAction.sendPrivateMessage(name, "You have been challenge banned for spamming. Time remaining: " + getBanTime(dp.getUserID()));
                     return;
                 }
 
-                if ((dp.getTeamName() != null)
-                        && (!dp.getTeamName().equals(""))
-                        && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
-                    
+                if ((dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (squad1.equalsIgnoreCase(dp.getTeamName()))) {
+                    // check if the challenged team exists
+                    String nmySquad = squad2;
+                    ResultSet rs = m_botAction.SQLQuery(dbConn, "select fnTeamID from tblTeam where fcTeamName = '"
+                            + Tools.addSlashesToString(nmySquad) + "' and (fdDeleted = 0 or fdDeleted IS NULL)");
+                    if (rs.next()) {
+                        m_gameRequests.add(new GameRequest(name, dp.getTeamName(), nmySquad, players, dp.getUserID()));
+                        m_botAction.sendSquadMessage(nmySquad, name + " is challenging you for a game of " + players + "vs" + players + " "
+                                + m_rules.getString("name") + " versus " + dp.getTeamName() + ". Captains/assistants, ?go "
+                                + m_botAction.getArenaName() + " and pm me with '!accept " + dp.getTeamName() + "'");
+                        m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to " + nmySquad);
+
+                        m_botAction.ipcTransmit(IPC, "twd:challenge " + name + "," + nmySquad + "," + players + "," + m_botAction.getArenaName());
+                    } else
+                        m_botAction.sendSmartPrivateMessage(name, "The team you want to challenge does NOT exist in TWD");
+                    m_botAction.SQLClose(rs);
+                } else
+                    m_botAction.sendSmartPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
+            } else
+                m_botAction.sendSmartPrivateMessage(name, "You can't challenge here, there is a game going on here already");
+        } catch (Exception e) {
+            m_botAction.sendSmartPrivateMessage(name, "Specify the squad you want to challenge");
+        }
+    }
+
+    public void do_challengeTopTeams(String name, String squad, int players) {
+        try {
+            if (m_game == null) {
+                if (players < 0)
+                    players = m_rules.getInt("minplayers");
+                DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
+                if (!dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) {
+                    m_botAction.sendPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
+                    return;
+                }
+
+                if (isChallengeBanned(dp)) {
+                    m_botAction.sendPrivateMessage(name, "You have been challenge banned for spamming. Time remaining: " + getBanTime(dp.getUserID()));
+                    return;
+                }
+
+                if ((dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (squad.equalsIgnoreCase(dp.getTeamName()))) {
+
                     m_botAction.ipcTransmit(IPC, "twd:topchallenge " + name + "," + players + "," + m_botAction.getArenaName());
                     ResultSet squads = m_botAction.SQLQuery(dbConn, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
                             + "FROM tblTWDTeam, tblTeam "
@@ -1191,7 +1112,7 @@ public class matchbot extends SubspaceBot {
                             + "AND (tblTeam.fdDeleted=0 OR tblTeam.fdDeleted IS NULL) "
                             + "AND tblTWDTeam.fnGames>0 "
                             + "AND tblTeam.fcTeamName != '"
-                            + p.getSquadName()
+                            + squad
                             + "' "
                             + "ORDER BY tblTWDTeam.fnRating DESC "
                             + "LIMIT 8");
@@ -1203,15 +1124,9 @@ public class matchbot extends SubspaceBot {
 
                         m_gameRequests.add(new GameRequest(name, dp.getTeamName(), nmySquad, players, dp.getUserID()));
 
-                        m_botAction.sendSquadMessage(nmySquad, name
-                                + " is challenging you for a game of "
-                                + players + "vs" + players + " "
-                                + m_rules.getString("name") + " versus "
-                                + dp.getTeamName()
-                                + ". Captains/assistants, ?go "
-                                + m_botAction.getArenaName()
-                                + " and pm me with '!accept "
-                                + dp.getTeamName() + "'");
+                        m_botAction.sendSquadMessage(nmySquad, name + " is challenging you for a game of " + players + "vs" + players + " "
+                                + m_rules.getString("name") + " versus " + dp.getTeamName() + ". Captains/assistants, ?go "
+                                + m_botAction.getArenaName() + " and pm me with '!accept " + dp.getTeamName() + "'");
                         if (!squads.isLast())
                             squadsChalled += nmySquad + ", ";
                         else
@@ -1228,46 +1143,26 @@ public class matchbot extends SubspaceBot {
         }
     }
 
-    //
-    public void command_challengeall(String name, String[] parameters) {
+    public void do_challengeAllTeams(String name, String squad, int players) {
         try {
             if (m_game == null) {
-                Player p = m_botAction.getPlayer(name);
-                int players;
-                if (parameters.length == 1) {
-                    if (Integer.parseInt(parameters[0]) >= m_rules.getInt("minplayers")
-                            && Integer.parseInt(parameters[0]) <= m_rules.getInt("players")) {
-                        players = Integer.parseInt(parameters[0]);
-                    } else {
-                        m_botAction.sendPrivateMessage(name, "Minimum # of players is "
-                                + m_rules.getInt("minplayers")
-                                + " and maximum is "
-                                + m_rules.getInt("players") + ".");
-                        return;
-                    }
-                } else {
+                if (players < 0)
                     players = m_rules.getInt("minplayers");
-                }
                 DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
-                if (!dp.isRankAssistantMinimum()
-                        && m_rules.getInt("anyone_can_start_game") != 1) {
+                if (!dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) {
                     m_botAction.sendPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
                     return;
                 }
 
-                
                 if (isChallengeBanned(dp)) {
                     m_botAction.sendPrivateMessage(name, "You have been challenge banned for spamming. Time remaining: " + getBanTime(dp.getUserID()));
                     return;
                 }
-                
 
-                if ((dp.getTeamName() != null)
-                        && (!dp.getTeamName().equals(""))
-                        && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
+                if ((dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (squad.equalsIgnoreCase(dp.getTeamName()))) {
 
                     m_botAction.ipcTransmit(IPC, "twd:allchallenge " + name + "," + players + "," + m_botAction.getArenaName());
-                    
+
                     ResultSet squads = m_botAction.SQLQuery(dbConn, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
                             + "FROM tblTWDTeam, tblTeam "
                             + "WHERE tblTWDTeam.fnMatchTypeID="
@@ -1276,10 +1171,9 @@ public class matchbot extends SubspaceBot {
                             + "AND (tblTeam.fdDeleted=0 OR tblTeam.fdDeleted IS NULL) "
                             + "AND tblTWDTeam.fnGames>0 "
                             + "AND tblTeam.fcTeamName != '"
-                            + p.getSquadName()
+                            + squad
                             + "' "
-                            + "ORDER BY tblTWDTeam.fdLastRatingChange DESC "
-                            + "LIMIT 8");
+                            + "ORDER BY tblTWDTeam.fdLastRatingChange DESC " + "LIMIT 8");
 
                     String squadsChalled = "You have challenged: ";
 
@@ -1288,15 +1182,9 @@ public class matchbot extends SubspaceBot {
 
                         m_gameRequests.add(new GameRequest(name, dp.getTeamName(), nmySquad, players, dp.getUserID()));
 
-                        m_botAction.sendSquadMessage(nmySquad, name
-                                + " is challenging you for a game of "
-                                + players + "vs" + players + " "
-                                + m_rules.getString("name") + " versus "
-                                + dp.getTeamName()
-                                + ". Captains/assistants, ?go "
-                                + m_botAction.getArenaName()
-                                + " and pm me with '!accept "
-                                + dp.getTeamName() + "'");
+                        m_botAction.sendSquadMessage(nmySquad, name + " is challenging you for a game of " + players + "vs" + players + " "
+                                + m_rules.getString("name") + " versus " + dp.getTeamName() + ". Captains/assistants, ?go "
+                                + m_botAction.getArenaName() + " and pm me with '!accept " + dp.getTeamName() + "'");
                         if (!squads.isLast())
                             squadsChalled += nmySquad + ", ";
                         else
@@ -1319,12 +1207,12 @@ public class matchbot extends SubspaceBot {
                 Player p = m_botAction.getPlayer(name);
 
                 DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
-                if (!dp.isRankAssistantMinimum()
-                        && m_rules.getInt("anyone_can_start_game") != 1) {
+                if (!dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) {
                     m_botAction.sendPrivateMessage(name, "You must be a captain or assistant to remove challenges.");
                     return;
                 }
-                if (parameters.length > 0 && (dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
+                if (parameters.length > 0 && (dp.getTeamName() != null) && (!dp.getTeamName().equals(""))
+                        && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
                     String nmySquad = parameters[0];
                     boolean removeAll = false;
                     if (nmySquad.equals("*"))
@@ -1338,13 +1226,9 @@ public class matchbot extends SubspaceBot {
                         else {
                             if ((t.getChallenger().equalsIgnoreCase(p.getSquadName()))
                                     && (removeAll || (t.getChallenged().equalsIgnoreCase(nmySquad)))) {
-                                m_botAction.sendPrivateMessage(name, "Your challenge vs. "
-                                        + t.getChallenged() + " has been cancelled.");
-                                m_botAction.sendSquadMessage(t.getChallenged(), name
-                                        + " has cancelled the challenge of "
-                                        + m_rules.getString("name")
-                                        + " game versus " + p.getSquadName()
-                                        + ".");
+                                m_botAction.sendPrivateMessage(name, "Your challenge vs. " + t.getChallenged() + " has been cancelled.");
+                                m_botAction.sendSquadMessage(t.getChallenged(), name + " has cancelled the challenge of " + m_rules.getString("name")
+                                        + " game versus " + p.getSquadName() + ".");
                                 i.remove();
                             }
                         }
@@ -1364,9 +1248,7 @@ public class matchbot extends SubspaceBot {
                     Player p = m_botAction.getPlayer(name);
                     if (p != null) {
                         if (parameters.length > 0) {
-                            if ((dp.getTeamName() != null)
-                                    && (!dp.getTeamName().equals(""))
-                                    && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
+                            if ((dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
                                 // check if the accepted challenge exists
                                 String nmySquad = parameters[0];
                                 GameRequest t, r = null;
@@ -1375,14 +1257,12 @@ public class matchbot extends SubspaceBot {
                                     t = (GameRequest) i.next();
                                     if (t.getRequestAge() >= 300000)
                                         i.remove();
-                                    else if ((t.getChallenged().equalsIgnoreCase(p.getSquadName()))
-                                            && (t.getChallenger().equalsIgnoreCase(nmySquad)))
+                                    else if ((t.getChallenged().equalsIgnoreCase(p.getSquadName())) && (t.getChallenger().equalsIgnoreCase(nmySquad)))
                                         r = t;
                                 }
                                 if (r != null) {
                                     // check if he is assistant or captain
-                                    if (dp.isRankAssistantMinimum()
-                                            && m_rules.getInt("anyone_can_start_game") != 1) {
+                                    if (dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) {
                                         m_isStartingUp = true;
                                         m_botAction.sendSquadMessage(nmySquad, "A game of "
                                                 + r.getPlayersNum()
@@ -1406,44 +1286,33 @@ public class matchbot extends SubspaceBot {
                                                 + " will start in ?go "
                                                 + m_botAction.getArenaName()
                                                 + " in 30 seconds");
-                                        m_botAction.sendArenaMessage(r.getChallenger()
-                                                + " vs. "
-                                                + dp.getTeamName()
+                                        m_botAction.sendArenaMessage(r.getChallenger() + " vs. " + dp.getTeamName()
                                                 + " will start here in 30 seconds", 2);
                                         m_team1 = r.getChallenger();
                                         m_team2 = dp.getTeamName();
-                                        startMessage = name + "("
-                                        + p.getSquadName()
-                                        + ") accepted challenge from "
-                                        + r.getRequester() + "("
-                                        + r.getChallenger() + ")";
+                                        startMessage = name + "(" + p.getSquadName() + ") accepted challenge from " + r.getRequester() + "("
+                                                + r.getChallenger() + ")";
                                         final int pNum = r.getPlayersNum();
                                         final int chID = r.getRequesterID();
                                         final int acID = dp.getUserID();
-                                        m_botAction.ipcTransmit(IPC, "twdinfo:gamein30 " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
+                                        m_botAction.ipcTransmit(IPC, new IPCTWD(EventType.STARTING, m_botAction.getArenaName(), m_botAction.getBotName(), m_team1, m_team2, 0));
                                         TimerTask m_startGameTimer = new TimerTask() {
                                             public void run() {
                                                 m_isStartingUp = false;
                                                 if (m_cancelGame) {
-                                                    m_botAction.sendArenaMessage(m_team1
-                                                            + " vs. "
-                                                            + m_team2
-                                                            + " has been cancelled.");
+                                                    m_botAction.sendArenaMessage(m_team1 + " vs. " + m_team2 + " has been cancelled.");
                                                     m_team1 = null;
                                                     m_team2 = null;
                                                     m_cancelGame = false;
                                                 } else {
-                                                    String dta[] = { m_team1,
-                                                            m_team2,
-                                                            Integer.toString(pNum),
-                                                            Integer.toString(chID),
+                                                    String dta[] = { m_team1, m_team2, Integer.toString(pNum), Integer.toString(chID),
                                                             Integer.toString(acID) };
                                                     createGame(m_botAction.getBotName(), dta);
                                                 }
                                             }
                                         };
 
-                                        m_botAction.scheduleTask(m_startGameTimer, 10000);
+                                        m_botAction.scheduleTask(m_startGameTimer, 30000);
                                     } else
                                         m_botAction.sendPrivateMessage(name, "You're not allowed to accept challenges for your squad");
                                 } else
@@ -1451,10 +1320,9 @@ public class matchbot extends SubspaceBot {
                             } else
                                 m_botAction.sendPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
                         } else
-                            m_botAction.sendPrivateMessage(name, "You must specify a squad to accept.");                            
+                            m_botAction.sendPrivateMessage(name, "You must specify a squad to accept.");
                     } else
-                        m_botAction.sendSmartPrivateMessage(name, "Please ?go "
-                                + m_botAction.getArenaName()
+                        m_botAction.sendSmartPrivateMessage(name, "Please ?go " + m_botAction.getArenaName()
                                 + " and accept the challenge from there so I can check your ?squad. Thanks.");
                 } else
                     m_botAction.sendPrivateMessage(name, "Can't accept challenge, there's a game going on here already");
@@ -1464,6 +1332,7 @@ public class matchbot extends SubspaceBot {
             Tools.printStackTrace(e);
         }
     }
+
     public void command_challenges(String name) {
         try {
             if (m_isStartingUp == false) {
@@ -1471,11 +1340,9 @@ public class matchbot extends SubspaceBot {
                     DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
                     Player p = m_botAction.getPlayer(name);
                     if (p != null) {
-                        if ((dp.getTeamName() != null)
-                                && (!dp.getTeamName().equals(""))
-                                && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
-                                // check if he is assistant or captain
-                            if (dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) { 
+                        if ((dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
+                            // check if he is assistant or captain
+                            if (dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) {
                                 int numChalls = 0;
                                 GameRequest t = null;
                                 ListIterator<GameRequest> i = m_gameRequests.listIterator();
@@ -1489,14 +1356,13 @@ public class matchbot extends SubspaceBot {
                                     }
                                 }
                                 if (numChalls == 0)
-                                    m_botAction.sendPrivateMessage(name, "No challenges found");                                    
+                                    m_botAction.sendPrivateMessage(name, "No challenges found");
                             } else
                                 m_botAction.sendPrivateMessage(name, "You're not allowed to view challenges for your squad");
-                        } else 
+                        } else
                             m_botAction.sendPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
                     } else
-                        m_botAction.sendSmartPrivateMessage(name, "Please ?go "
-                                + m_botAction.getArenaName()
+                        m_botAction.sendSmartPrivateMessage(name, "Please ?go " + m_botAction.getArenaName()
                                 + " and accept the challenge from there so I can check your ?squad. Thanks.");
                 } else
                     m_botAction.sendPrivateMessage(name, "No challenges available, there's a game going on here already");
@@ -1507,7 +1373,6 @@ public class matchbot extends SubspaceBot {
         }
     }
 
-
     public void command_cancel(String name) {
         try {
             if (m_isStartingUp == true) {
@@ -1515,21 +1380,13 @@ public class matchbot extends SubspaceBot {
                     DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
                     Player p = m_botAction.getPlayer(name);
                     if (p != null) {
-                        if (dp.getTeamName().equalsIgnoreCase(m_team1)
-                                || dp.getTeamName().equalsIgnoreCase(m_team2)) {
-                            if (dp.isRankAssistantMinimum()
-                                    && m_rules.getInt("anyone_can_start_game") != 1) {
+                        if (dp.getTeamName().equalsIgnoreCase(m_team1) || dp.getTeamName().equalsIgnoreCase(m_team2)) {
+                            if (dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) {
                                 m_cancelGame = true;
-                                m_botAction.sendSquadMessage(m_team1, "The "
-                                        + m_rules.getString("name")
-                                        + " game versus " + m_team2
-                                        + " has been cancelled by " + name
-                                        + ".");
-                                m_botAction.sendSquadMessage(m_team2, "The "
-                                        + m_rules.getString("name")
-                                        + " game versus " + m_team1
-                                        + " has been cancelled by " + name
-                                        + ".");
+                                m_botAction.sendSquadMessage(m_team1, "The " + m_rules.getString("name") + " game versus " + m_team2
+                                        + " has been cancelled by " + name + ".");
+                                m_botAction.sendSquadMessage(m_team2, "The " + m_rules.getString("name") + " game versus " + m_team1
+                                        + " has been cancelled by " + name + ".");
                             }
                         }
                     }
@@ -1539,7 +1396,7 @@ public class matchbot extends SubspaceBot {
             Tools.printStackTrace(e);
         }
     }
-    
+
     public boolean isChallengeBanned(DBPlayerData dbp) {
         if (dbp.checkPlayerExists()) {
             try {
@@ -1558,35 +1415,34 @@ public class matchbot extends SubspaceBot {
         } else
             return false;
     }
-    
+
     public String getBanTime(int id) {
         String end = "";
         String now = "";
+        @SuppressWarnings("unused")
         int days = 0;
         int hours = 0;
         int mins = 0;
         try {
-            ResultSet rs = m_botAction.SQLQuery(dbConn, "SELECT NOW() as now, DATE_ADD(fdDateCreated, INTERVAL 1 DAY) as end FROM tblChallengeBan WHERE fnUserID = " + id + " AND fnActive = 1");
+            ResultSet rs = m_botAction.SQLQuery(dbConn, "SELECT NOW() as now, DATE_ADD(fdDateCreated, INTERVAL 1 DAY) as end FROM tblChallengeBan WHERE fnUserID = "
+                    + id + " AND fnActive = 1");
             if (rs.next()) {
                 end = rs.getString("end");
                 now = rs.getString("now");
                 String[] etime = end.substring(end.indexOf(" ") + 1).split(":");
                 String[] ntime = now.substring(now.indexOf(" ") + 1).split(":");
-                
+
                 hours = Integer.valueOf(etime[0]) + (23 - Integer.valueOf(ntime[0]));
                 mins = Integer.valueOf(etime[1]) + (60 - Integer.valueOf(ntime[1]));
-                
+
                 etime = end.substring(0, end.indexOf(" ")).split("-");
                 ntime = now.substring(0, now.indexOf(" ")).split("-");
                 days = Integer.valueOf(etime[2]) - (Integer.valueOf(ntime[2]) + 1);
-                
+
             }
         } catch (SQLException e) {
             Tools.printStackTrace(e);
         }
-        
-        
-        
         return "" + hours + " hours " + mins + " minutes";
     }
 
@@ -1616,8 +1472,7 @@ public class matchbot extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage(name, "Access list could not be found.");
             return;
         }
-        m_botAction.sendPrivateMessage(name, "Access list for game: "
-                + m_rules.getString("name"));
+        m_botAction.sendPrivateMessage(name, "Access list for game: " + m_rules.getString("name"));
         for (int i = 0; i < accA.length; i++) {
             m_botAction.sendPrivateMessage(name, accA[i]);
         }
@@ -1632,8 +1487,7 @@ public class matchbot extends SubspaceBot {
             acc = acc + newP + "(Granted by " + name + ")";
             m_rules.put("specialaccess", acc);
             m_rules.save();
-            m_botAction.sendPrivateMessage(name, newP
-                    + " has been added to the access list");
+            m_botAction.sendPrivateMessage(name, newP + " has been added to the access list");
         } catch (Exception e) {
             System.out.println("Error in command_addaccess: " + e.getMessage());
         }
@@ -1657,12 +1511,10 @@ public class matchbot extends SubspaceBot {
                 acc = acc.substring(0, cutFrom - 1) + acc.substring(cutTo);
                 m_rules.put("specialaccess", acc);
                 m_rules.save();
-                m_botAction.sendPrivateMessage(name, newP
-                        + " has been removed from the access list");
+                m_botAction.sendPrivateMessage(name, newP + " has been removed from the access list");
             }
         } catch (Exception e) {
-            System.out.println("Error in command_removeaccess: "
-                    + e.getMessage());
+            System.out.println("Error in command_removeaccess: " + e.getMessage());
         }
     }
 
@@ -1672,8 +1524,7 @@ public class matchbot extends SubspaceBot {
         String pick = null;
         for (int i = 0; i < avaArena.length; i++) {
 
-            if ((!m_arenaList.contains(avaArena[i].toLowerCase()))
-                    && (pick == null)) {
+            if ((!m_arenaList.contains(avaArena[i].toLowerCase())) && (pick == null)) {
                 pick = avaArena[i].toLowerCase();
             }
         }
@@ -1707,12 +1558,13 @@ public class matchbot extends SubspaceBot {
                                 m_botAction.ipcTransmit(IPC, "twdmatchbot:unlocked " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
                                 m_botAction.changeArena("twd");
                             }
-                            
+
                             if (m_die) {
                                 m_die = false;
                                 m_off = false;
                                 m_isLocked = false;
-                                m_botAction.ipcTransmit(IPC, "twdmatchbot:shuttingdown " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
+                                m_botAction.ipcTransmit(IPC, "twdmatchbot:shuttingdown " + m_botAction.getArenaName() + ","
+                                        + m_botAction.getBotName());
                                 TimerTask d = new TimerTask() {
                                     @Override
                                     public void run() {
@@ -1735,7 +1587,7 @@ public class matchbot extends SubspaceBot {
             ipcTimer = false;
             m_botAction.cancelTask(exp);
         }
-            
+
         try {
             createKillChecker();
             String fcTeam1Name = null, fcTeam2Name = null, rulesName = null;
@@ -1747,10 +1599,7 @@ public class matchbot extends SubspaceBot {
             if (!m_isLocked) {
                 if (parameters.length >= 1) {
                     typenumber = Integer.parseInt(parameters[0]);
-                    rulesName = m_botAction.getGeneralSettings().getString("Core Location")
-                            + "/data/Rules/"
-                            + getGameTypeName(typenumber)
-                            + ".txt";
+                    rulesName = m_botAction.getGeneralSettings().getString("Core Location") + "/data/Rules/" + getGameTypeName(typenumber) + ".txt";
                     m_rules = new BotSettings(rulesName);
                     players = m_rules.getInt("players");
                     if (parameters.length < 3) {
@@ -1805,8 +1654,7 @@ public class matchbot extends SubspaceBot {
         TreeSet<String> files = new TreeSet<String>(Arrays.asList(f.list()));
         int cnter = 0;
 
-        m_botAction.sendPrivateMessage(name, "I contain the following "
-                + "games:");
+        m_botAction.sendPrivateMessage(name, "I contain the following " + "games:");
         for (String file : files) {
             if (file.endsWith(".txt")) {
                 file = file.substring(0, file.lastIndexOf('.'));
@@ -1817,8 +1665,7 @@ public class matchbot extends SubspaceBot {
                         extraInfo = "";
                     else
                         extraInfo = "      " + extraInfo;
-                    m_botAction.sendPrivateMessage(name, "#" + cnter + "  "
-                            + file + extraInfo);
+                    m_botAction.sendPrivateMessage(name, "#" + cnter + "  " + file + extraInfo);
                 }
             }
         }
@@ -1870,12 +1717,23 @@ public class matchbot extends SubspaceBot {
     public void reload() {
         m_botSettings.reloadFile();
     }
-    
-    public boolean m_offStatus()	{
-    	return m_off;
+
+    public boolean m_offStatus() {
+        return m_off;
     }
-    public boolean m_dieStatus()	{
-    	return m_die;
+
+    public boolean m_dieStatus() {
+        return m_die;
+    }
+
+    public boolean isTWD() {
+        String arena = m_botAction.getArenaName().toLowerCase();
+
+        if (((arena.length() == 4) || (arena.length() == 5))
+                && ((arena.startsWith("twbd")) || (arena.startsWith("twdd")) || (arena.startsWith("twjd")) || (arena.startsWith("twsd")) || (arena.startsWith("twfd"))))
+            return true;
+
+        return false;
     }
 }
 
@@ -1887,8 +1745,7 @@ class GameRequest {
     int playersNum;
     BotAction m_botAction;
 
-    public GameRequest(String requester, String challenger, String challenged,
-            int players, int requesterID) {
+    public GameRequest(String requester, String challenger, String challenged, int players, int requesterID) {
         m_requester = requester;
         m_challenger = challenger;
         m_challenged = challenged;
@@ -1896,9 +1753,11 @@ class GameRequest {
         playersNum = players;
         m_requesterID = requesterID;
     }
-    
+
     public String toString() {
-        return "Squad: " + m_challenged + " was challenged to " + playersNum + "s by " + m_requester + " " + (System.currentTimeMillis() - m_timeRequest)/60000 + "." + (System.currentTimeMillis() - m_timeRequest)%60000/1000 + " minutes ago";
+        return "Squad: " + m_challenged + " was challenged to " + playersNum + "s by " + m_requester + " "
+                + (System.currentTimeMillis() - m_timeRequest) / 60000 + "." + (System.currentTimeMillis() - m_timeRequest) % 60000 / 1000
+                + " minutes ago";
     }
 
     public String getChallenged() {
@@ -1924,7 +1783,5 @@ class GameRequest {
     public int getRequesterID() {
         return m_requesterID;
     }
-    
-
 
 }

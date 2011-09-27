@@ -16,9 +16,7 @@ import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.TimerTask;
 
@@ -43,9 +41,9 @@ import twcore.core.lvz.Objset;
 import twcore.core.stats.LagReport;
 import twcore.core.stats.lagHandler;
 import twcore.core.util.Tools;
-import twcore.core.util.ipc.IPCMessage;
+import twcore.core.util.ipc.EventType;
+import twcore.core.util.ipc.IPCTWD;
 import twcore.core.util.json.JSONArray;
-import twcore.core.util.json.JSONObject;
 import twcore.core.util.json.JSONValue;
 
 public class MatchRound
@@ -107,7 +105,6 @@ public class MatchRound
     public static int BLUEOUT_OFF = 0;
     public static int BLUEOUT_ON = 1;
     boolean waitingOnBall = false;
-    private boolean power = true;
 
     // this is for lagchecking:
     String m_lagPlayerName;
@@ -266,8 +263,6 @@ public class MatchRound
                 m_team2.storePlayerResults();
             };
             m_botAction.SQLClose( s );
-            
-            String created = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
             
             String[] fields2 = {
             		"fnMatchID", 
@@ -429,6 +424,7 @@ public class MatchRound
      * @author Force of Nature
      * @param event The flagClaimed event holding the playerId claiming the flag
      */
+    @SuppressWarnings("unchecked")
     public void handleEvent(FlagClaimed event)
     {
         if (m_fnRoundState == 3)
@@ -542,6 +538,7 @@ public class MatchRound
     /*
      * Parses the PlayerDeath event to the team in which the player is
      */
+    @SuppressWarnings("unchecked")
     public void handleEvent(PlayerDeath event)
     {
     	if(m_fnRoundState == 3) {
@@ -1528,6 +1525,7 @@ public class MatchRound
     }
 
     // gets called by m_startGame TimerTask.
+    @SuppressWarnings("unchecked")
     public void startGame()
     {
     	if (m_rules.getInt("storegame") != 0)
@@ -1583,8 +1581,7 @@ public class MatchRound
         m_botAction.showObject(m_rules.getInt("obj_gogogo"));
         
         //Sends match info to TWDBot
-        m_botAction.ipcTransmit("MatchBot", "twdinfo:gamestate " + m_game.m_fnMatchID + "," + m_game.m_fcTeam1Name + "," + m_game.m_fcTeam2Name + ",1");
-        
+        m_botAction.ipcTransmit("MatchBot", new IPCTWD(EventType.STATE, m_botAction.getArenaName(), m_botAction.getBotName(), m_game.m_fcTeam1Name, m_game.m_fcTeam2Name, m_game.m_fnMatchID));
         m_timeStartedms = System.currentTimeMillis();
         flagClaimed = false;
         
@@ -2233,6 +2230,7 @@ public class MatchRound
      * 
      * See Arobas+
      */
+    @SuppressWarnings({ "unchecked", "serial" })
     public static class MatchRoundEvent extends JSONArray {
     	
     	public final static int KILL = 1;
@@ -2247,7 +2245,7 @@ public class MatchRound
     	public final static int ROUND_END = 10;
     	public final static int FLAG_TOUCH = 11;
 
-    	private MatchRoundEvent(int eventType) {
+        private MatchRoundEvent(int eventType) {
     		this.add(System.currentTimeMillis()); // timestamp
     		this.add(eventType); // event type
     	}
