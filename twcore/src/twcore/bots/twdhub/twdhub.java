@@ -77,7 +77,7 @@ public class twdhub extends SubspaceBot {
     }
     
     public void handleEvent(ArenaJoined event) {
-        
+        checkIn();
         checkArenas();
     }
     
@@ -210,6 +210,7 @@ public class twdhub extends SubspaceBot {
             }
         } else if (!shutdown && event.getObject() instanceof IPCChallenge) {
             IPCChallenge ipc = (IPCChallenge) event.getObject();
+            if (!ipc.getRecipient().equals(ba.getBotName())) return;
             String arenaName = ipc.getArena();
             String name = ipc.getName();
             if (arenas.containsKey(arenaName)) {
@@ -239,6 +240,10 @@ public class twdhub extends SubspaceBot {
         }
     }
     
+    private void checkIn() {
+        ba.ipcTransmit(IPC, new IPCCommand(Command.CHECKIN, null));
+    }
+    
     public void cmd_help(String name) {
         String[] msg = {
                 " !games        - List of games currently in progress",
@@ -258,7 +263,7 @@ public class twdhub extends SubspaceBot {
         squads.clear();
         bots.clear();
         arenas.clear();
-        ba.ipcTransmit(IPC, new IPCCommand(Command.CHECKIN, null));
+        checkIn();
     }
     
     public void cmd_list(String name) {
@@ -452,7 +457,7 @@ public class twdhub extends SubspaceBot {
         if (!arenas.containsKey(name)) {
             Arena arena = new Arena(name);
             arenas.put(low(name), arena);
-        }
+        } else return;
         needsBot.add(name);
         if (freeBots.isEmpty())
             ba.sendSmartPrivateMessage(HUB, "!spawn matchbot");
