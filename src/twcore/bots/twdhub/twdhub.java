@@ -167,6 +167,7 @@ public class twdhub extends SubspaceBot {
                 new Game(-1, ipc.getSquad1(), ipc.getSquad2(), ipc.getArena());
                 checkDiv(ipc.getArena().substring(0, 4));
             } else if (ipc.getType() == EventType.CHECKIN) {
+                if (!isTWD(ipc.getArena())) return;
                 if (arenas.containsKey(ipc.getArena())) {
                     Arena arena = arenas.get(ipc.getArena());
                     arena.bot = ipc.getBot();
@@ -509,6 +510,11 @@ public class twdhub extends SubspaceBot {
             ba.sendSmartPrivateMessage(bot, "!lock " + TWFD + ":" + arenaName);
         bots.put(bot, arena);
         arena.flushIPC();
+    }
+    
+    private boolean isTWD(String name) {
+        name = low(name);
+        return name.startsWith("twdd") || name.startsWith("twbd") || name.startsWith("twjd") || name.startsWith("twsd") || name.startsWith("twfd");
     }
     
     class Arena {
