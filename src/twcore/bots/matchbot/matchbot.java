@@ -311,7 +311,10 @@ public class matchbot extends SubspaceBot {
                     m_die = false;
                     m_off = false;
                 } else if (ipc.getType() == Command.CHECKIN) {
-                    m_botAction.ipcTransmit(IPC, new IPCTWD(EventType.CHECKIN, arena, bot));
+                    if (m_game != null)
+                        m_botAction.ipcTransmit(IPC, new IPCTWD(EventType.CHECKIN, arena, bot, m_game.m_fcTeam1Name, m_game.m_fcTeam2Name, m_game.m_fnMatchID, m_game.m_fnTeam1Score, m_game.m_fnTeam2Score));
+                    else
+                        m_botAction.ipcTransmit(IPC, new IPCTWD(EventType.CHECKIN, arena, bot));
                 }
             } else if (event.getObject() instanceof IPCChallenge) {
                 IPCChallenge ipc = (IPCChallenge) event.getObject();
@@ -1258,7 +1261,7 @@ public class matchbot extends SubspaceBot {
                                         final int pNum = r.getPlayersNum();
                                         final int chID = r.getRequesterID();
                                         final int acID = dp.getUserID();
-                                        m_botAction.ipcTransmit(IPC, new IPCTWD(EventType.STARTING, m_botAction.getArenaName(), m_botAction.getBotName(), m_team1, m_team2, 0));
+                                        m_botAction.ipcTransmit(IPC, new IPCTWD(EventType.NEW, m_botAction.getArenaName(), m_botAction.getBotName(), m_team1, m_team2, 0));
                                         TimerTask m_startGameTimer = new TimerTask() {
                                             public void run() {
                                                 m_isStartingUp = false;
