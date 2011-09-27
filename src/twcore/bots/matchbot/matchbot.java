@@ -898,9 +898,7 @@ public class matchbot extends SubspaceBot {
     }
 
     //
-    public void command_challenge(String name, String[] parameters)
-
-    {
+    public void command_challenge(String name, String[] parameters) {
         if (parameters.length == 3) {
             command_charena(name, parameters);
             return;
@@ -912,63 +910,24 @@ public class matchbot extends SubspaceBot {
                 return;
             }
         }
-
-        try {
-
-            if (m_game == null) {
-                Player p = m_botAction.getPlayer(name);
-                // check if he isn't challenging his own squad
-                if (!p.getSquadName().equalsIgnoreCase(parameters[0])) {
-                    int players;
-                    if (parameters.length == 2) {
-                        if (Integer.parseInt(parameters[1]) >= m_rules.getInt("minplayers")
-                                && Integer.parseInt(parameters[1]) <= m_rules.getInt("players")) {
-                            players = Integer.parseInt(parameters[1]);
-                        } else {
-                            m_botAction.sendSmartPrivateMessage(name, "Minimum # of players is " + m_rules.getInt("minplayers") + " and maximum is "
-                                    + m_rules.getInt("players") + ".");
-                            return;
-                        }
-                    } else {
-                        players = m_rules.getInt("minplayers");
-                    }
-                    DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
-                    if (!dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) {
-                        m_botAction.sendPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
-                        return;
-                    }
-
-                    if (isChallengeBanned(dp)) {
-                        m_botAction.sendPrivateMessage(name, "You have been challenge banned for spamming. Time remaining: "
-                                + getBanTime(dp.getUserID()));
-                        return;
-                    }
-
-                    if ((dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
-                        // check if the challenged team exists
-                        String nmySquad = parameters[0];
-                        ResultSet rs = m_botAction.SQLQuery(dbConn, "select fnTeamID from tblTeam where fcTeamName = '"
-                                + Tools.addSlashesToString(nmySquad) + "' and (fdDeleted = 0 or fdDeleted IS NULL)");
-                        if (rs.next()) {
-                            m_gameRequests.add(new GameRequest(name, dp.getTeamName(), nmySquad, players, dp.getUserID()));
-                            m_botAction.sendSquadMessage(nmySquad, name + " is challenging you for a game of " + players + "vs" + players + " "
-                                    + m_rules.getString("name") + " versus " + dp.getTeamName() + ". Captains/assistants, ?go "
-                                    + m_botAction.getArenaName() + " and pm me with '!accept " + dp.getTeamName() + "'");
-                            m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to " + nmySquad);
-
-                            m_botAction.ipcTransmit(IPC, "twd:challenge " + name + "," + nmySquad + "," + players + "," + m_botAction.getArenaName());
-                        } else
-                            m_botAction.sendSmartPrivateMessage(name, "The team you want to challenge does NOT exist in TWD");
-                        m_botAction.SQLClose(rs);
-                    } else
-                        m_botAction.sendSmartPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
-                } else
-                    m_botAction.sendSmartPrivateMessage(name, "You can't challenge your own squad, silly :P");
-            } else
-                m_botAction.sendSmartPrivateMessage(name, "You can't challenge here, there is a game going on here already");
-        } catch (Exception e) {
-            m_botAction.sendSmartPrivateMessage(name, "Specify the squad you want to challenge");
+        int players;
+        if (parameters.length == 2) {
+            if (Integer.parseInt(parameters[1]) >= m_rules.getInt("minplayers") && Integer.parseInt(parameters[1]) <= m_rules.getInt("players")) {
+                players = Integer.parseInt(parameters[1]);
+            } else {
+                m_botAction.sendSmartPrivateMessage(name, "Minimum # of players is " + m_rules.getInt("minplayers") + " and maximum is "
+                        + m_rules.getInt("players") + ".");
+                return;
+            }
+        } else {
+            players = m_rules.getInt("minplayers");
         }
+        Player p = m_botAction.getPlayer(name);
+        if (p != null) {
+            String squad = p.getSquadName();
+            do_challenge(name, squad, parameters[0].toLowerCase(), players);
+        } else
+            return;
     }
 
     public void command_challengetopteams(String name, String[] parameters) {
@@ -1077,8 +1036,6 @@ public class matchbot extends SubspaceBot {
                                 + m_rules.getString("name") + " versus " + dp.getTeamName() + ". Captains/assistants, ?go "
                                 + m_botAction.getArenaName() + " and pm me with '!accept " + dp.getTeamName() + "'");
                         m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to " + nmySquad);
-
-                        m_botAction.ipcTransmit(IPC, "twd:challenge " + name + "," + nmySquad + "," + players + "," + m_botAction.getArenaName());
                     } else
                         m_botAction.sendSmartPrivateMessage(name, "The team you want to challenge does NOT exist in TWD");
                     m_botAction.SQLClose(rs);
