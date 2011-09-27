@@ -78,7 +78,12 @@ public class twdhub extends SubspaceBot {
     
     public void handleEvent(ArenaJoined event) {
         checkIn();
-        checkArenas();
+        TimerTask check = new TimerTask() {
+            public void run() {
+                checkArenas();
+            }
+        };
+        ba.scheduleTask(check, 3000);
     }
     
     public void handleEvent(PlayerEntered event) {
@@ -163,6 +168,9 @@ public class twdhub extends SubspaceBot {
                 checkDiv(ipc.getArena().substring(0, 4));
             } else if (ipc.getType() == EventType.CHECKIN) {
                 if (arenas.containsKey(ipc.getArena())) {
+                    Arena arena = arenas.get(ipc.getArena());
+                    arena.bot = ipc.getBot();
+                    arena.status = ArenaStatus.READY;
                     if (ipc.getID() != 0) {
                         new Game(ipc.getID(), ipc.getSquad1(), ipc.getSquad2(), ipc.getArena());
                         Game game = arenas.get(ipc.getArena()).game;
@@ -454,10 +462,11 @@ public class twdhub extends SubspaceBot {
     private void botSpawn(String name) {
         if (shutdown) return;
         debug("Bot spawn: " + name);
+        if (needsBot.contains(name)) return;
         if (!arenas.containsKey(name)) {
             Arena arena = new Arena(name);
             arenas.put(low(name), arena);
-        } else return;
+        }
         needsBot.add(name);
         if (freeBots.isEmpty())
             ba.sendSmartPrivateMessage(HUB, "!spawn matchbot");
