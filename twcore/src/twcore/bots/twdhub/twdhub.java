@@ -20,6 +20,7 @@ import twcore.core.util.ipc.EventType;
 import twcore.core.util.ipc.IPCChallenge;
 import twcore.core.util.ipc.IPCCommand;
 import twcore.core.util.ipc.IPCTWD;
+import twcore.core.util.ipc.Command;
 
 /**
  *
@@ -27,9 +28,9 @@ import twcore.core.util.ipc.IPCTWD;
  */
 public class twdhub extends SubspaceBot {
 
-    private static final String HUB = "WingHub";
+    private static final String HUB = "TWCore-League";
     private static final String IPC = "MatchBot";
-    private static final String BOT_NAME = "WingMatch";
+    private static final String BOT_NAME = "MatchBot";
     private static final String PUBBOT = "TW-Guard";
     private static final String TWBD = "6";
     private static final String TWDD = "8";
