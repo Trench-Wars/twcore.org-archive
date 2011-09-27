@@ -171,6 +171,7 @@ public class twdhub extends SubspaceBot {
                 if (arenas.containsKey(ipc.getArena())) {
                     Arena arena = arenas.get(ipc.getArena());
                     arena.bot = ipc.getBot();
+                    bots.put(arena.bot, arena);
                     arena.status = ArenaStatus.READY;
                     if (ipc.getID() != 0) {
                         new Game(ipc.getID(), ipc.getSquad1(), ipc.getSquad2(), ipc.getArena());
@@ -181,6 +182,7 @@ public class twdhub extends SubspaceBot {
                 } else {
                     Arena arena = new Arena(ipc.getArena());
                     arena.bot = ipc.getBot();
+                    bots.put(arena.bot, arena);
                     arena.status = ArenaStatus.READY;
                     arenas.put(ipc.getArena(), arena);
                     if (ipc.getID() != 0) {
@@ -463,7 +465,6 @@ public class twdhub extends SubspaceBot {
     private void botSpawn(String name) {
         if (shutdown) return;
         debug("Bot spawn: " + name);
-        if (needsBot.contains(name)) return;
         if (!arenas.containsKey(name)) {
             Arena arena = new Arena(name);
             arenas.put(low(name), arena);
