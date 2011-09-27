@@ -11,7 +11,7 @@ import twcore.core.game.Player;
  */
 public class pubbotgamealert extends PubBotModule {
 
-    private final String TWDBOT = "TWDBot";
+    private final String TWDBOT = "TWDHub";
     
     @Override
     public void initializeModule() {
