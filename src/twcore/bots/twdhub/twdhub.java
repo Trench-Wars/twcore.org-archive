@@ -159,7 +159,7 @@ public class twdhub extends SubspaceBot {
     }
     
     public void handleEvent(InterProcessEvent event) {
-        if (!event.getChannel().equals(IPC)) return;
+        if (!event.getChannel().equals(IPC) || event.getSenderName().equals(ba.getBotName())) return;
         
         if (event.getObject() instanceof IPCTWD) {
             IPCTWD ipc = (IPCTWD) event.getObject();
