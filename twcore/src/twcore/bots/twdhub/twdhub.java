@@ -295,7 +295,7 @@ public class twdhub extends SubspaceBot {
     public void cmd_shutdown(String name) {
         ba.sendSmartPrivateMessage(name, "Initiating shutdown of all matchbots.");
         ba.sendChatMessage(2, "Total MatchBot shutdown requested by: " + name);
-        ba.ipcTransmit(IPC, "all twdbots die");
+        ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, null));
     }
     
     public void cmd_die(String name) {
