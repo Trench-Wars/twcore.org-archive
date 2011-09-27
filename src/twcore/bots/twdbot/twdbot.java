@@ -1642,7 +1642,8 @@ public class twdbot extends SubspaceBot {
     public void command_sibling(String name, String params) {
         try {
             ResultSet s = m_botAction.SQLQuery(webdb,
-                    "SELECT fcSibling FROM tblSiblings WHERE fcName = " + params.toLowerCase());
+                    "SELECT fcSibling FROM tblSiblings WHERE fcName = '"
+                    + params.toLowerCase() + "'");
             m_botAction.sendChatMessage(2, "Siblings found for " + params + ": ");
             while (s != null && s.next()) {
                 m_botAction.sendChatMessage(2, s.getString(1));
