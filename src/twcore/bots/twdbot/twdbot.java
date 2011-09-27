@@ -671,6 +671,12 @@ public class twdbot extends SubspaceBot {
                 } else if (message.startsWith("!chawas")) {
                     command_watches(name);
                     return;
+                } else if (message.startsWith("!sibling")) {
+                    command_sibling(name, message.substring(message.indexOf(" ")));
+                } else if (message.startsWith("!addsibling")) {
+                    command_addSibling(name, message.substring(message.indexOf(" ")));
+                } else if (message.startsWith("!changesibling")) {
+                    command_changeSibling(name, message.substring(message.indexOf(" ")));
                 } else if (message.equalsIgnoreCase("!help")) {
                     command_help(name);
                 } else if (message.startsWith("!chawa ")) {
@@ -1631,6 +1637,69 @@ public class twdbot extends SubspaceBot {
 
         }
 
+    }
+
+    public void command_sibling(String name, String params) {
+        try {
+            ResultSet s = m_botAction.SQLQuery(webdb,
+                    "SELECT fcSibling FROM tblSiblings WHERE fcName = " + params.toLowerCase());
+            m_botAction.sendChatMessage(2, "Siblings found for " + params + ": ");
+            while (s != null && s.next()) {
+                m_botAction.sendChatMessage(2, s.getString(1));
+            }
+        } catch (SQLException e) {
+            m_botAction.sendChatMessage(2, "An SQLException occured in !sibling");
+        }
+    }
+
+    public void command_addSibling(String name, String params) {
+        String[] names = params.split(":");
+        if (names.length < 2) {
+            m_botAction.sendChatMessage(2, "Usage: !addsibling name:siblingName");
+        } else {
+            try {
+                //regular insert
+                m_botAction.SQLQuery(webdb,
+                        "INSERT INTO tblSiblings (fcName, fcSibling) VALUES('" +
+                        names[0].toLowerCase() + "','" + names[1].toLowerCase()
+                        + "')");
+                //reverse insert for looking up sibling first
+                m_botAction.SQLQuery(webdb,
+                        "INSERT INTO tblSiblings (fcName, fcSibling) VALUES('" +
+                        names[1].toLowerCase() + "','" + names[0].toLowerCase()
+                        + "')");
+                m_botAction.sendChatMessage(2, "Siblings '" + names[0] +
+                        "' and '" + names[1] + "' added.");
+            } catch (SQLException e) {
+            m_botAction.sendChatMessage(2,
+                    "An SQLException occured in !addsibling");
+            }
+        }
+    }
+
+    public void command_changeSibling(String name, String params) {
+        String[] names = params.split(":");
+        if (names.length < 2) {
+            m_botAction.sendChatMessage(2, "Usage: !changesibling oldName:newName");
+        } else {
+            try {
+                //regular insert
+                m_botAction.SQLQuery(webdb,
+                        "UPDATE tblSiblings SET fcName='"
+                        + names[1].toLowerCase() + "' WHERE fcName='"
+                        + names[0].toLowerCase() + "'");
+                        //reverse insert for looking up sibling first
+                m_botAction.SQLQuery(webdb,
+                        "UPDATE tblSiblings SET fcSibling='"
+                        + names[1].toLowerCase() + "' WHERE fcSibling='"
+                        + names[0].toLowerCase() + "'");
+                m_botAction.sendChatMessage(2, "Sibling '" + names[0] +
+                        "' updated to '" + names[1] + "'.");
+            } catch (SQLException e) {
+            m_botAction.sendChatMessage(2,
+                    "An SQLException occured in !changesibling");
+            }
+        }
     }
 
     public void command_squadsignup(String name, String command) {
