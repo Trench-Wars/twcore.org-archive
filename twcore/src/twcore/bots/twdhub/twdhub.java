@@ -238,7 +238,7 @@ public class twdhub extends SubspaceBot {
             }
         } else if (event.getObject() instanceof IPCCommand) {
             IPCCommand ipc = (IPCCommand) event.getObject();
-            if (!ipc.getBot().equalsIgnoreCase(ba.getBotName())) return;
+            if (ipc.getBot() != null && !ipc.getBot().equalsIgnoreCase(ba.getBotName())) return;
             if (ipc.getType() == Command.ECHO)
                 ba.sendChatMessage(ipc.getCommand());
             else if (ipc.getType() == Command.EXPIRED) {
