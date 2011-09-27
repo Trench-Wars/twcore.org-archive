@@ -700,9 +700,9 @@ public class twdhub extends SubspaceBot {
                 stateS = "playing";
             String result = "";
             if (getType().equals("TWD Basing"))
-                result += getType() + "(" + arena + "): " + squad1 + " vs " + squad2 + " (" + stateS + ")";
+                result += getType() + "(" + arena.name + "): " + squad1.name + " vs " + squad2.name + " (" + stateS + ")";
             else
-                result += getType() + "(" + arena + "): " + squad1 + " vs " + squad2 + " (" + score1 + "-" + score2 + " " + stateS + " round " + round + ")";
+                result += getType() + "(" + arena.name + "): " + squad1.name + " vs " + squad2.name + " (" + score1 + "-" + score2 + " " + stateS + " round " + round + ")";
             return result;
         }
     }
