@@ -931,21 +931,21 @@ public class matchbot extends SubspaceBot {
     }
 
     public void command_challengetopteams(String name, String[] parameters) {
-        try {
-            if (parameters.length == 2) {
-                String arena = parameters[1].toLowerCase();
-                if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")
-                        || arena.startsWith("twfd"))
-                    command_charenaTop(name, parameters);
+        if (parameters.length == 2) {
+            String arena = parameters[1].toLowerCase();
+            if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")
+                    || arena.startsWith("twfd"))
+                command_charenaTop(name, parameters);
+            return;
+        } else if (parameters.length == 1) {
+            String arena = parameters[0].toLowerCase();
+            if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")
+                    || arena.startsWith("twfd")) {
+                command_charenaTop(name, parameters);
                 return;
-            } else if (parameters.length == 1) {
-                String arena = parameters[0].toLowerCase();
-                if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")
-                        || arena.startsWith("twfd")) {
-                    command_charenaTop(name, parameters);
-                    return;
-                }
             }
+        }
+        try {
             int players;
             if (parameters.length == 1) {
                 if (Integer.parseInt(parameters[0]) >= m_rules.getInt("minplayers") && Integer.parseInt(parameters[0]) <= m_rules.getInt("players")) {
