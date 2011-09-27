@@ -870,7 +870,7 @@ public class matchbot extends SubspaceBot {
         int players;
         String arena;
         if (args.length == 2) {
-            players = Integer.parseInt(args[1]);
+            players = Integer.parseInt(args[0]);
             arena = args[1].toLowerCase();
         } else {
             arena = args[0].toLowerCase();
@@ -887,7 +887,7 @@ public class matchbot extends SubspaceBot {
         int players;
         String arena;
         if (args.length == 2) {
-            players = Integer.parseInt(args[1]);
+            players = Integer.parseInt(args[0]);
             arena = args[1].toLowerCase();
         } else {
             arena = args[0].toLowerCase();
