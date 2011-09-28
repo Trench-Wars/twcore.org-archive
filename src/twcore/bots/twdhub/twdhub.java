@@ -465,19 +465,21 @@ public class twdhub extends SubspaceBot {
         debug("Bot stay: " + name);
         if (arenas.containsKey(name)) {
             Arena arena = arenas.get(name);
-            if (arena.status == ArenaStatus.DYING)
+            if (arena.status == ArenaStatus.DYING) {
                 arena.status = ArenaStatus.READY;
-            ba.ipcTransmit(IPC, new IPCCommand(Command.STAY, name));
+                ba.ipcTransmit(IPC, new IPCCommand(Command.STAY, name));
+            }
         }
     }
     
     private void botSpawn(String name) {
         if (shutdown) return;
-        debug("Bot spawn: " + name);
         if (!arenas.containsKey(name)) {
             Arena arena = new Arena(name);
             arenas.put(low(name), arena);
-        }
+        } else if (arenas.get(name).status != ArenaStatus.WAITING)
+            return;
+        debug("Bot spawn: " + name);
         needsBot.add(name);
         if (freeBots.isEmpty() && !sentSpawn.contains(name)) {
             sentSpawn.add(name);
@@ -490,8 +492,10 @@ public class twdhub extends SubspaceBot {
         if (arenas.containsKey(name)) {
             debug("Bot remove: " + name);
             Arena arena = arenas.get(name);
-            arena.status = ArenaStatus.DYING;
-            ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, arena.bot, null));
+            if (arena.status != ArenaStatus.DYING) { 
+                arena.status = ArenaStatus.DYING;
+                ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, arena.bot, null));
+            }
         }
     }
     
@@ -506,6 +510,10 @@ public class twdhub extends SubspaceBot {
         if (shutdown) return;
         debug("Bot lock: " + bot + "-" + arenaName);
         Arena arena = arenas.get(arenaName);
+        if (arena.status != ArenaStatus.WAITING) {
+            debug("Status was not waiting, so aborting " + arena.name);
+            return;
+        }
         arena.bot = bot;
         arena.status = ArenaStatus.READY;
         String div = arenaName.substring(0, 4);
