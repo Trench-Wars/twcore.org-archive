@@ -1,5 +1,6 @@
 package twcore.bots.twdhub;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TimerTask;
@@ -132,8 +133,16 @@ public class twdhub extends SubspaceBot {
                 }
                 return;
             }
+
+            String cmd = low(msg);
+            if (cmd.equals("!list"))
+                cmd_list(name);
+            else if (cmd.equals("!games"))
+                cmd_games(name);
+            else if (cmd.equals("!help"))
+                cmd_help(name);
+            
             if (oplist.isModerator(name)) {
-                String cmd = low(msg);
                 if (cmd.equals("!die"))
                     cmd_die(name);
                 else if (cmd.equals("!sdtwd"))
@@ -142,14 +151,8 @@ public class twdhub extends SubspaceBot {
                     checkArenas();
                 else if (cmd.equals("!debug"))
                     cmd_debug(name);
-                else if (cmd.equals("!list"))
-                    cmd_list(name);
-                else if (cmd.equals("!games"))
-                    cmd_games(name);
                 else if (cmd.equals("!reset"))
                     cmd_reset(name);
-                else if (cmd.equals("!help"))
-                    cmd_help(name);
             }
         }
     }
@@ -264,16 +267,18 @@ public class twdhub extends SubspaceBot {
     }
     
     public void cmd_help(String name) {
-        String[] msg = {
-                " !games        - List of games currently in progress",
-                " !check        - Checks for any arenas needing bots",
-                " !reset        - Resets all trackers and calls for checkin (goto fix it cmd)",
-                " !list         - List of current bot values",
-                " !debug        - Toggle debug mode",
-                " !sdtwd        - Shutdown TWD: kill all matchbots (lets games finish)",
-                " !die          - Kills bot"
-        };
-        ba.smartPrivateMessageSpam(name, msg);
+        ArrayList<String> msg = new ArrayList<String>();
+        msg.add("- TWD Hub Commands -");
+        msg.add(" !games        - List of games currently in progress");
+        msg.add(" !list         - List of current bot values");
+        if (oplist.isModerator(name)) {
+            msg.add(" !check        - Checks for any arenas needing bots");
+            msg.add(" !reset        - Resets all trackers and calls for checkin (goto fix it cmd)");
+            msg.add(" !debug        - Toggle debug mode");
+            msg.add(" !sdtwd        - Shutdown TWD: kill all matchbots (lets games finish)");
+            msg.add(" !die          - Kills bot");
+        }
+        ba.smartPrivateMessageSpam(name, msg.toArray(new String[9]));
     }
     
     public void cmd_reset(String name) {
