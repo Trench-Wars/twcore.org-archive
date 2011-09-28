@@ -1022,6 +1022,11 @@ public class matchbot extends SubspaceBot {
                     m_botAction.sendPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
                     return;
                 }
+                
+                if (squad1.equalsIgnoreCase(squad2)) {
+                    m_botAction.sendSmartPrivateMessage(name, "You can't challenge your own squad.");
+                    return;
+                }
 
                 if (isChallengeBanned(dp)) {
                     m_botAction.sendPrivateMessage(name, "You have been challenge banned for spamming. Time remaining: " + getBanTime(dp.getUserID()));
