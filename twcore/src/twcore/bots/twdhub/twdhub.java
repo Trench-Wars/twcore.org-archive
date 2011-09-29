@@ -579,7 +579,7 @@ public class twdhub extends SubspaceBot {
     
     private void sendAlerts(Game game) {
         for (String name : alerts)
-            ba.sendSmartPrivateMessage(name, "A " + game.getType() + " game is starting between " + game.squad1.name + " and " + game.squad2.name + " in " + game.arena.name);
+            ba.sendSmartPrivateMessage(name, game.getType() + " (" + game.arena.name + "): " + game.squad1.name + " vs " + game.squad2.name);
     }
     
     private boolean isTWD(String name) {
