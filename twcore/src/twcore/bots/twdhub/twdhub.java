@@ -47,7 +47,7 @@ public class twdhub extends SubspaceBot {
     VectorSet<String> needsBot;
     VectorSet<String> freeBots;
     VectorSet<String> sentSpawn;
-    
+    HashSet<String> alerts;
     HashMap<String, Arena> arenas;
     HashMap<String, Arena> bots;
     HashMap<String, Squad> squads;
@@ -68,6 +68,7 @@ public class twdhub extends SubspaceBot {
         arenas = new HashMap<String, Arena>();
         bots = new HashMap<String, Arena>();
         squads = new HashMap<String, Squad>();
+        alerts = new HashSet<String>();
         shutdown = false;
         DEBUG = true;
         debugger = "WingZero";
@@ -139,6 +140,8 @@ public class twdhub extends SubspaceBot {
                 cmd_list(name);
             else if (cmd.equals("!games"))
                 cmd_games(name);
+            else if (cmd.equals("!alert"))
+                cmd_alert(name);
             else if (cmd.equals("!help"))
                 cmd_help(name);
             
@@ -168,7 +171,9 @@ public class twdhub extends SubspaceBot {
                 checkDiv(ipc.getArena().substring(0, 4));
             } else if (ipc.getType() == EventType.CHECKIN) {
                 if (!isTWD(ipc.getArena())) return;
-                if (arenas.containsKey(ipc.getArena())) {
+                if (ipc.getArena().equalsIgnoreCase("twd"))
+                    freeBots.add(ipc.getBot());
+                else if (arenas.containsKey(ipc.getArena())) {
                     needsBot.remove(ipc.getArena());
                     Arena arena = arenas.get(ipc.getArena());
                     if (arena.status == ArenaStatus.READY && arena.bot != null) {
@@ -262,19 +267,10 @@ public class twdhub extends SubspaceBot {
         }
     }
     
-    private void checkIn() {
-        ba.ipcTransmit(IPC, new IPCCommand(Command.CHECKIN, null));
-        TimerTask check = new TimerTask() {
-            public void run() {
-                checkArenas();
-            }
-        };
-        ba.scheduleTask(check, 3000);
-    }
-    
     public void cmd_help(String name) {
         ArrayList<String> msg = new ArrayList<String>();
         msg.add("- TWD Hub Commands -");
+        msg.add(" !alert        - Toggles a PM alert whenever a new TWD match starts");
         msg.add(" !games        - List of games currently in progress");
         msg.add(" !list         - List of current bot values");
         if (oplist.isModerator(name)) {
@@ -284,7 +280,7 @@ public class twdhub extends SubspaceBot {
             msg.add(" !sdtwd        - Shutdown TWD: kill all matchbots (lets games finish)");
             msg.add(" !die          - Kills bot");
         }
-        ba.smartPrivateMessageSpam(name, msg.toArray(new String[9]));
+        ba.smartPrivateMessageSpam(name, msg.toArray(new String[10]));
     }
     
     public void cmd_reset(String name) {
@@ -294,6 +290,15 @@ public class twdhub extends SubspaceBot {
         bots.clear();
         arenas.clear();
         checkIn();
+    }
+    
+    public void cmd_alert(String name) {
+        if (alerts.remove(low(name)))
+            ba.sendSmartPrivateMessage(name, "New game alerts ENABLED.");
+        else {
+            alerts.add(low(name));
+            ba.sendSmartPrivateMessage(name, "New game alerts DISABLED.");
+        }
     }
     
     public void cmd_list(String name) {
@@ -370,6 +375,16 @@ public class twdhub extends SubspaceBot {
         er.request(EventRequester.PLAYER_ENTERED);
         er.request(EventRequester.PLAYER_LEFT);
         er.request(EventRequester.MESSAGE);
+    }
+    
+    private void checkIn() {
+        ba.ipcTransmit(IPC, new IPCCommand(Command.CHECKIN, null));
+        TimerTask check = new TimerTask() {
+            public void run() {
+                checkArenas();
+            }
+        };
+        ba.scheduleTask(check, 3000);
     }
     
     private void checkArenas() {
@@ -559,6 +574,11 @@ public class twdhub extends SubspaceBot {
         ba.scheduleTask(flush, 2000);
     }
     
+    private void sendAlerts(Game game) {
+        for (String name : alerts)
+            ba.sendSmartPrivateMessage(name, "A " + game.getType() + " game is starting between " + game.squad1.name + " and " + game.squad2.name + " in " + game.arena);
+    }
+    
     private boolean isTWD(String name) {
         name = low(name);
         return name.startsWith("twdd") || name.startsWith("twbd") || name.startsWith("twjd") || name.startsWith("twsd") || name.startsWith("twfd");
@@ -664,6 +684,7 @@ public class twdhub extends SubspaceBot {
             if (squad1 != null && squad2 != null) {
                 squad1.addGame(arenaName);
                 squad2.addGame(arenaName);
+                sendAlerts(this);
             }
         }
         
@@ -690,7 +711,7 @@ public class twdhub extends SubspaceBot {
             alerted.add(name.toLowerCase());
         }
         
-        private String getType() {
+        public String getType() {
             String aname = arena.name.toLowerCase();
             if (aname.startsWith("twbd"))
                 return "TWD Basing";
