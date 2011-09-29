@@ -52,6 +52,7 @@ public class twdhub extends SubspaceBot {
     HashMap<String, Arena> bots;
     HashMap<String, Squad> squads;
     boolean shutdown;
+    boolean startup;
     boolean DEBUG;
     String debugger;
     
@@ -60,8 +61,8 @@ public class twdhub extends SubspaceBot {
         ba = botAction;
         oplist = ba.getOperatorList();
         rules = ba.getBotSettings();
+        startup = true;
         requestEvents();
-
         sentSpawn = new VectorSet<String>();
         needsBot = new VectorSet<String>();
         freeBots = new VectorSet<String>();
@@ -294,10 +295,10 @@ public class twdhub extends SubspaceBot {
     
     public void cmd_alert(String name) {
         if (alerts.remove(low(name)))
-            ba.sendSmartPrivateMessage(name, "New game alerts ENABLED.");
+            ba.sendSmartPrivateMessage(name, "New game alerts DISABLED");
         else {
             alerts.add(low(name));
-            ba.sendSmartPrivateMessage(name, "New game alerts DISABLED.");
+            ba.sendSmartPrivateMessage(name, "New game alerts ENABLED");
         }
     }
     
@@ -381,6 +382,8 @@ public class twdhub extends SubspaceBot {
         ba.ipcTransmit(IPC, new IPCCommand(Command.CHECKIN, null));
         TimerTask check = new TimerTask() {
             public void run() {
+                if (startup)
+                    startup = false;
                 checkArenas();
             }
         };
@@ -397,7 +400,7 @@ public class twdhub extends SubspaceBot {
     }
     
     private void checkDiv(String div) {
-        if (shutdown) return;
+        if (startup || shutdown) return;
         Arena arena;
         if (arenas.containsKey(div)) {
             arena = arenas.get(div);
