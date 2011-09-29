@@ -159,7 +159,6 @@ public class twdhub extends SubspaceBot {
     
     public void handleEvent(InterProcessEvent event) {
         if (!event.getChannel().equals(IPC) || event.getSenderName().equals(ba.getBotName())) return;
-        
         if (event.getObject() instanceof IPCTWD) {
             IPCTWD ipc = (IPCTWD) event.getObject();
             if (ipc.getType() == EventType.NEW) {
@@ -170,6 +169,7 @@ public class twdhub extends SubspaceBot {
             } else if (ipc.getType() == EventType.CHECKIN) {
                 if (!isTWD(ipc.getArena())) return;
                 if (arenas.containsKey(ipc.getArena())) {
+                    needsBot.remove(ipc.getArena());
                     Arena arena = arenas.get(ipc.getArena());
                     if (arena.status == ArenaStatus.READY && arena.bot != null) {
                         ba.sendChatMessage("Found multipe bots in arena: " + ipc.getArena());
@@ -179,6 +179,7 @@ public class twdhub extends SubspaceBot {
                     arena.bot = ipc.getBot();
                     bots.put(arena.bot, arena);
                     arena.status = ArenaStatus.READY;
+                    freeBots.remove(arena.bot);
                     if (ipc.getID() != 0) {
                         Game game = new Game(ipc.getID(), ipc.getSquad1(), ipc.getSquad2(), ipc.getArena());
                         arenas.get(ipc.getArena()).game = game;
@@ -439,6 +440,10 @@ public class twdhub extends SubspaceBot {
             }
         } else {
             botSpawn(div);
+            botRemove(div + "2");
+            botRemove(div + "3");
+            botRemove(div + "4");
+            botRemove(div + "5");
         }
     }
     
@@ -472,10 +477,10 @@ public class twdhub extends SubspaceBot {
     }
     
     private void botStay(String name) {
-        debug("Bot stay: " + name);
         if (arenas.containsKey(name)) {
             Arena arena = arenas.get(name);
             if (arena.status == ArenaStatus.DYING) {
+                debug("Bot stay: " + name);
                 arena.status = ArenaStatus.READY;
                 ba.ipcTransmit(IPC, new IPCCommand(Command.STAY, name));
             }
@@ -500,9 +505,10 @@ public class twdhub extends SubspaceBot {
     
     private void botRemove(String name) {
         if (arenas.containsKey(name)) {
-            debug("Arena remove: " + name);
+            needsBot.remove(name);
             Arena arena = arenas.get(name);
             if (arena.status != ArenaStatus.DYING) { 
+                debug("Arena remove: " + name);
                 arena.status = ArenaStatus.DYING;
                 ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, arena.bot, null));
             }
