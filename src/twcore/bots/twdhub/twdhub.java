@@ -171,6 +171,11 @@ public class twdhub extends SubspaceBot {
                 if (!isTWD(ipc.getArena())) return;
                 if (arenas.containsKey(ipc.getArena())) {
                     Arena arena = arenas.get(ipc.getArena());
+                    if (arena.status == ArenaStatus.READY && arena.bot != null) {
+                        ba.sendChatMessage("Found multipe bots in arena: " + ipc.getArena());
+                        botRemove(ipc.getBot());
+                        return;
+                    }
                     arena.bot = ipc.getBot();
                     bots.put(arena.bot, arena);
                     arena.status = ArenaStatus.READY;
@@ -495,12 +500,15 @@ public class twdhub extends SubspaceBot {
     
     private void botRemove(String name) {
         if (arenas.containsKey(name)) {
-            debug("Bot remove: " + name);
+            debug("Arena remove: " + name);
             Arena arena = arenas.get(name);
             if (arena.status != ArenaStatus.DYING) { 
                 arena.status = ArenaStatus.DYING;
                 ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, arena.bot, null));
             }
+        } else {
+            debug("Bot remove: " + name);
+            ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, name, null));
         }
     }
     
