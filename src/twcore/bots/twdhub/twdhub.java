@@ -512,7 +512,7 @@ public class twdhub extends SubspaceBot {
                 arena.status = ArenaStatus.DYING;
                 ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, arena.bot, null));
             }
-        } else {
+        } else if (oplist.isBotExact(name)){
             debug("Bot remove: " + name);
             ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, name, null));
         }
