@@ -330,12 +330,15 @@ public class twdhub extends SubspaceBot {
     public void cmd_shutdown(String name) {
         shutdown = true;
         ba.sendSmartPrivateMessage(name, "Initiating shutdown of all matchbots.");
-        ba.sendChatMessage(2, "Total MatchBot shutdown requested by: " + name);
+        ba.sendChatMessage(2, "Total TWD bot shutdown requested by: " + name);
+        ba.sendChatMessage(3, "Total TWD bot shutdown requested by: " + name);
         ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, null));
     }
     
     public void cmd_die(String name) {
-        ba.sendChatMessage("Disconnecting at the request of: " + name);
+        ba.sendChatMessage(3, "Disconnecting as requested by " + name);
+        ba.sendChatMessage(2, "Disconnecting as requested by " + name);
+        ba.sendChatMessage("Disconnecting as requested by " + name);
         handleDisconnect();
     }
     
