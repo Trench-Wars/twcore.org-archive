@@ -313,7 +313,7 @@ public class matchbot extends SubspaceBot {
                 } else if (ipc.getType() == Command.CHECKIN) {
                     if (m_game != null)
                         m_botAction.ipcTransmit(IPC, new IPCTWD(EventType.CHECKIN, arena, bot, m_game.m_fcTeam1Name, m_game.m_fcTeam2Name, m_game.m_fnMatchID, m_game.m_fnTeam1Score, m_game.m_fnTeam2Score));
-                    else
+                    else if (m_isLocked)
                         m_botAction.ipcTransmit(IPC, new IPCTWD(EventType.CHECKIN, arena, bot));
                 }
             } else if (event.getObject() instanceof IPCChallenge && TWDHUB.equalsIgnoreCase(event.getSenderName())) {
@@ -580,6 +580,10 @@ public class matchbot extends SubspaceBot {
                     command_go(name, parameters);
                 if (command.equals("!power"))
                     power(name, parameters);
+                if (command.equals("!lock"))
+                    command_lock(name, parameters);
+                if (command.equals("!unlock"))
+                    command_unlock(name, parameters);
                 if ((command.equals("!die")) && (m_opList.isSmod(name))) {
                     if (m_game != null)
                         m_game.cancel();
