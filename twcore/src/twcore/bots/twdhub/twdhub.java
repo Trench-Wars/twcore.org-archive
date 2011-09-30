@@ -129,7 +129,7 @@ public class twdhub extends SubspaceBot {
                     Squad squad = squads.get(args[1].toLowerCase());
                     Vector<String> games = squad.getGames();
                     for (String arena : games) {
-                        if (arenas.containsKey(arena))
+                        if (arenas.containsKey(arena) && arenas.get(arena).game != null)
                             arenas.get(arena).game.alert(args[0], args[1]);
                     }
                 }
