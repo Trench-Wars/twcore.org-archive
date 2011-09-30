@@ -860,7 +860,11 @@ public class matchbot extends SubspaceBot {
         int players;
         String arena;
         if (args.length == 3) {
-            players = Integer.parseInt(args[1]);
+            try {
+                players = Integer.parseInt(args[1]);
+            } catch (NumberFormatException e) {
+                return;
+            }
             arena = args[2].toLowerCase();
         } else {
             arena = args[1].toLowerCase();
@@ -877,7 +881,11 @@ public class matchbot extends SubspaceBot {
         int players;
         String arena;
         if (args.length == 2) {
-            players = Integer.parseInt(args[0]);
+            try {
+                players = Integer.parseInt(args[0]);
+            } catch (NumberFormatException e) {
+                return;
+            }
             arena = args[1].toLowerCase();
         } else {
             arena = args[0].toLowerCase();
@@ -894,7 +902,11 @@ public class matchbot extends SubspaceBot {
         int players;
         String arena;
         if (args.length == 2) {
-            players = Integer.parseInt(args[0]);
+            try {
+                players = Integer.parseInt(args[0]);
+            } catch (NumberFormatException e) {
+                return;
+            }
             arena = args[1].toLowerCase();
         } else {
             arena = args[0].toLowerCase();
@@ -919,11 +931,15 @@ public class matchbot extends SubspaceBot {
         }
         int players;
         if (parameters.length == 2) {
-            if (Integer.parseInt(parameters[1]) >= m_rules.getInt("minplayers") && Integer.parseInt(parameters[1]) <= m_rules.getInt("players")) {
-                players = Integer.parseInt(parameters[1]);
-            } else {
-                m_botAction.sendSmartPrivateMessage(name, "Minimum # of players is " + m_rules.getInt("minplayers") + " and maximum is "
-                        + m_rules.getInt("players") + ".");
+            try {
+                if (Integer.parseInt(parameters[1]) >= m_rules.getInt("minplayers") && Integer.parseInt(parameters[1]) <= m_rules.getInt("players")) {
+                    players = Integer.parseInt(parameters[1]);
+                } else {
+                    m_botAction.sendSmartPrivateMessage(name, "Minimum # of players is " + m_rules.getInt("minplayers") + " and maximum is "
+                            + m_rules.getInt("players") + ".");
+                    return;
+                }
+            } catch (NumberFormatException e) {
                 return;
             }
         } else {
@@ -938,21 +954,21 @@ public class matchbot extends SubspaceBot {
     }
 
     public void command_challengetopteams(String name, String[] parameters) {
-        if (parameters.length == 2) {
-            String arena = parameters[1].toLowerCase();
-            if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")
-                    || arena.startsWith("twfd"))
-                command_charenaTop(name, parameters);
-            return;
-        } else if (parameters.length == 1) {
-            String arena = parameters[0].toLowerCase();
-            if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")
-                    || arena.startsWith("twfd")) {
-                command_charenaTop(name, parameters);
-                return;
-            }
-        }
         try {
+            if (parameters.length == 2) {
+                String arena = parameters[1].toLowerCase();
+                if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")
+                        || arena.startsWith("twfd"))
+                    command_charenaTop(name, parameters);
+                return;
+            } else if (parameters.length == 1) {
+                String arena = parameters[0].toLowerCase();
+                if (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd") || arena.startsWith("twsd")
+                        || arena.startsWith("twfd")) {
+                    command_charenaTop(name, parameters);
+                    return;
+                }
+            }
             int players;
             if (parameters.length == 1) {
                 if (Integer.parseInt(parameters[0]) >= m_rules.getInt("minplayers") && Integer.parseInt(parameters[0]) <= m_rules.getInt("players")) {
