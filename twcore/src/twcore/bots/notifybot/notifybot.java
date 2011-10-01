@@ -3,7 +3,9 @@ package twcore.bots.notifybot;
 import twcore.core.*;
 import twcore.core.events.*;
 import twcore.core.stats.DBPlayerData;
+import twcore.core.util.Tools;
 import twcore.core.events.SQLResultEvent;
+import twcore.core.game.Player;
 
 import java.net.*;
 import java.io.*;
@@ -76,7 +78,7 @@ public class notifybot extends SubspaceBot {
                     BA.sendSmartPrivateMessage(pname, "Starting the TWN server.");
                     new NotifyServer(BA, playerlist).start();
                 } else if (msg.equalsIgnoreCase("!stop")) {
-                    BA.sendPrivateMessage(pname, "Disconnecting the server...");
+                    BA.sendSmartPrivateMessage(pname, "Disconnecting the server...");
                     BA.ipcUnSubscribe("TWNotify");
 
                     for (Iterator<NotifyPlayer> i = playerlist.iterator(); i.hasNext();) {
@@ -93,26 +95,40 @@ public class notifybot extends SubspaceBot {
                     }
                 } else if (msg.startsWith("!squadmsg ")) {
                     StringTokenizer arguments = new StringTokenizer(msg.substring(10), ":");
-                    String squad = arguments.nextToken();
-                    String str = arguments.nextToken();
+                    if (!(arguments.countTokens() == 2)) {
+                        m_botAction.sendSmartPrivateMessage(pname, "Sucker, Learn to type the command right.");
+                    } else {
 
-                    BA.sendSmartPrivateMessage(pname, "Server Message sent: " + "MSG:" + str);
+                        String squad = arguments.nextToken();
+                        String str = arguments.nextToken();
 
-                    for (Iterator<NotifyPlayer> i = playerlist.iterator(); i.hasNext();) {
-                        NotifyPlayer player = (NotifyPlayer) i.next();
-                        player.send("SQUAD:" + squad + ":" + "MSG:" + str);
+                        for (Iterator<NotifyPlayer> i = playerlist.iterator(); i.hasNext();) {
+                            NotifyPlayer p = (NotifyPlayer) i.next();
+                            if (p.getSquad().equalsIgnoreCase(squad)) {
+                                p.send("MSG:" + str);
+                                m_botAction.sendSmartPrivateMessage(pname, "Server Squad Broadcast Message sent: " + str);
+                            }
+                        }
                     }
+
                 } else if (msg.startsWith("!squadalert ")) {
                     StringTokenizer arguments = new StringTokenizer(msg.substring(12), ":");
-                    String squad = arguments.nextToken();
-                    String str = arguments.nextToken();
+                    if (!(arguments.countTokens() == 2)) {
+                        m_botAction.sendSmartPrivateMessage(pname, "Sucker, Learn to type the command right.");
+                    } else {
+                        String squad = arguments.nextToken();
+                        String str = arguments.nextToken();
 
-                    BA.sendSmartPrivateMessage(pname, "Server Message sent: " + "MSG:" + str);
+                        for (Iterator<NotifyPlayer> i = playerlist.iterator(); i.hasNext();) {
+                            NotifyPlayer p = (NotifyPlayer) i.next();
+                            if (p.getSquad().equalsIgnoreCase(squad)) {
+                                p.send("ALERT:" + str);
+                                m_botAction.sendSmartPrivateMessage(pname, "Server Squad Broadcast Alert sent: " + str);
 
-                    for (Iterator<NotifyPlayer> i = playerlist.iterator(); i.hasNext();) {
-                        NotifyPlayer player = (NotifyPlayer) i.next();
-                        player.send("SQUAD:" + squad + ":" + "ALERT:" + str);
+                            }
+                        }
                     }
+
                 } else if (msg.startsWith("!msg ")) {
                     String str = msg.substring(msg.indexOf(" ") + 1, msg.length());
                     BA.sendSmartPrivateMessage(pname, "Server Message sent: " + "MSG:" + str);
@@ -192,7 +208,7 @@ public class notifybot extends SubspaceBot {
         }
     }
 
-    private class NotifyServer extends Thread {
+    public class NotifyServer extends Thread {
         private ServerSocket socket;
         private boolean running;
         private BotAction BA;
@@ -240,7 +256,7 @@ public class notifybot extends SubspaceBot {
 
     }
 
-    private class NotifyClient extends Thread {
+    public class NotifyClient extends Thread {
         private Socket socket;
         private boolean running;
         private BotAction BA;
@@ -263,12 +279,12 @@ public class notifybot extends SubspaceBot {
         }
     }
 
-    private void check(Socket socket, LinkedList<NotifyPlayer> playerlist2, LinkedList<String> queue, NotifyPlayer player, boolean running) {
+    public void check(Socket socket, LinkedList<NotifyPlayer> playerlist2, LinkedList<String> queue, NotifyPlayer player, boolean running) {
         try {
             InputStreamReader hack = new InputStreamReader(socket.getInputStream());
             BufferedReader in = new BufferedReader(hack);
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            
+
             BA.sendSmartPrivateMessage(pname, "A user is connecting...");
             BA.sendSmartPrivateMessage(pname, "IP: " + socket.getInetAddress().getHostAddress());
             BA.sendSmartPrivateMessage(pname, "PORT: " + socket.getPort());
@@ -291,12 +307,9 @@ public class notifybot extends SubspaceBot {
 
                     if (args[0] != null) {
                         if (args[0].startsWith("LOGIN")) {
-
                             if ((args[1] != null) && (args[2] != null)) {
                                 String name = args[1];
                                 String pw = args[2];
-                                DBPlayerData checker = new DBPlayerData(BA, "website", name);
-
                                 ResultSet result = m_botAction.SQLQuery("website", "SELECT fnUserID " + "FROM tblUser "
                                         + "JOIN tblUserAccount USING (fnUserID) " + "WHERE fcUserName = '" + name + "' "
                                         + "AND fcPassword = PASSWORD('" + pw + "')");
@@ -305,11 +318,20 @@ public class notifybot extends SubspaceBot {
                                     m_botAction.sendSmartPrivateMessage(pname, "Wrong password for " + name);
                                     queue.add("BADLOGIN:Wrong Password.");
                                 } else {
-                                    BA.sendSmartPrivateMessage(pname, "Connected user successful login.");
-                                    BA.sendSmartPrivateMessage(pname, "Login Name: " + name);
-                                    player = new NotifyPlayer(name, checker.getTeamName(), socket.getInetAddress(), socket.getPort(), queue);
-                                    playerlist.add(player);
-                                    queue.add("LOGINOK:" + name);
+                                    ResultSet squad = m_botAction.SQLQuery("pubstats", "SELECT fcSquad FROM tblPlayer WHERE fcName = '" + name + "'");
+                                    if (squad.next() || !squad.next()) {
+                                        String squads = squad.getString("fcSquad");
+                                        if (squads == null)
+                                            squads = "Unknown";
+                                        BA.sendSmartPrivateMessage(pname, "Connected user successful login.");
+                                        BA.sendSmartPrivateMessage(pname, "Login Name: " + name);
+                                        BA.sendSmartPrivateMessage(pname, "Squad: " + squads);
+                                        player = new NotifyPlayer(name, squads, socket.getInetAddress(), socket.getPort(), queue);
+                                        playerlist.add(player);
+                                        queue.add("LOGINOK:" + name);
+                                        BA.SQLClose(squad);
+
+                                    }
 
                                 }
                                 BA.SQLClose(result);
@@ -325,8 +347,7 @@ public class notifybot extends SubspaceBot {
                         } else if (args[0].startsWith("NOOP")) {
                             queue.add("NOOP");
                             out.printf("NOOP2\0");
-                        } else if (args[0].startsWith("TEST")) {
-                        }
+                        } else if (args[0].startsWith("TEST")) {}
                     }
 
                 } else {
@@ -345,12 +366,12 @@ public class notifybot extends SubspaceBot {
             playerlist.remove(player);
     }
 
-    private class NotifyPlayer {
+    public class NotifyPlayer {
         private LinkedList<String> queue;
         private InetAddress addr;
         private int port;
-        private String name;
-        private String squad;
+        public String name;
+        public String squad;
 
         public NotifyPlayer(String n, String sq, InetAddress a, int p, LinkedList<String> list) {
             name = n;
