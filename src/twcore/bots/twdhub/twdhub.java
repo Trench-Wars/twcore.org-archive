@@ -71,8 +71,8 @@ public class twdhub extends SubspaceBot {
         squads = new HashMap<String, Squad>();
         alerts = new HashSet<String>();
         shutdown = false;
-        DEBUG = true;
-        debugger = "WingZero";
+        DEBUG = false;
+        debugger = "";
     }
     
     public void handleEvent(LoggedOn event) {
@@ -281,7 +281,7 @@ public class twdhub extends SubspaceBot {
             msg.add(" !sdtwd        - Shutdown TWD: kill all matchbots (lets games finish)");
             msg.add(" !die          - Kills bot");
         }
-        ba.smartPrivateMessageSpam(name, msg.toArray(new String[10]));
+        ba.smartPrivateMessageSpam(name, msg.toArray(new String[msg.size()]));
     }
     
     public void cmd_reset(String name) {
