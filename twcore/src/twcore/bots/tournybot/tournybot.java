@@ -236,7 +236,7 @@ public class tournybot extends SubspaceBot {
 					}
 				} else {
 					fZoner = true;
-					m_botAction.sendPrivateMessage(name, "Ad for next tournament quaranteeded.");
+					m_botAction.sendPrivateMessage(name, "Placed advert for next tournament.");
 				}
 			} else if (message.startsWith("!setstart")) {
 				changeStart(message);
