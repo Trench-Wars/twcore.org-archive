@@ -136,10 +136,15 @@ public class staffbot extends SubspaceBot {
                     m_botAction.smartPrivateMessageSpam(senderName, ownerHelp);
                 }
             }
+            if(m_botAction.getOperatorList().isSmod(senderName)){
             if (message.equalsIgnoreCase("!die")) {
                 moduleHandler.unloadAllModules();
                 this.handleDisconnect();
                 m_botAction.die();
+            } else if (message.equalsIgnoreCase("!energy")){
+                m_botAction.sendUnfilteredPrivateMessage(senderName, "*energy");
+                m_botAction.sendPrivateMessage(senderName, "Done. Do not abuse this.");
+            }
             }
             if (m_botAction.getOperatorList().isOwner(senderName)) {
                 if (message.startsWith("!putfile ")) {
@@ -172,7 +177,7 @@ public class staffbot extends SubspaceBot {
                 }
             }
         }
-        
+
         moduleHandler.handleEvent(event);
     }
 
