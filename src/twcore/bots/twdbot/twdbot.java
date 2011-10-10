@@ -517,18 +517,19 @@ public class twdbot extends SubspaceBot {
                 }
                 rsName1Look.close();
 
+                //set our sibID for use if none found
+                if (sibID == -1) {
+                    sibID = maxID + 1;
+                }
+
                 //insert
                 m_botAction.SQLQuery(webdb, "INSERT INTO tblSiblings (fcName, "
                         + "fcSiblingID) VALUES('"
-                        + names[0].toLowerCase().trim()
-                        + (sibID != -1 ? sibID : maxID+1)
-                        + "')");
+                        + names[0].toLowerCase().trim() + ", " + sibID + "')");
 
                 m_botAction.SQLQuery(webdb, "INSERT INTO tblSiblings (fcName, "
                         + "fcSiblingID) VALUES('"
-                        + names[0].toLowerCase().trim()
-                        + (sibID != -1 ? sibID : maxID+1)
-                        + "')");
+                        + names[0].toLowerCase().trim() + ", " + sibID + "')");
 
                 m_botAction.sendChatMessage(2, "Sibling mapping '" + names[1] +
                         "' and '" + names[0] + "' added.");
