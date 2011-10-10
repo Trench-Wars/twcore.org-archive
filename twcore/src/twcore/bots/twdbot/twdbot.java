@@ -452,11 +452,21 @@ public class twdbot extends SubspaceBot {
         }
         try {
             ResultSet s = m_botAction.SQLQuery(webdb,
-                    "SELECT fcSibling FROM tblSiblings WHERE fcName = '"
+                    "SELECT fcSiblingID FROM tblSiblings WHERE fcName = '"
                     + params.toLowerCase().trim() + "'");
-            m_botAction.sendChatMessage(2, "Siblings found for " + params + ": ");
-            while (s != null && s.next()) {
-                m_botAction.sendChatMessage(2, s.getString(1));
+            
+            if (s != null && s.next()) {
+                m_botAction.sendChatMessage(2, "Siblings found for " + params + ": ");
+
+                ResultSet s2 = m_botAction.SQLQuery(webdb,
+                    "SELECT fcName FROM tblSiblings WHERE fcSiblingID = '"
+                    + s.getInt(1) + "'");
+                while (s2 != null && s2.next()) {
+                    if (!s2.getString(1).equals(params.toLowerCase().trim()));
+                        m_botAction.sendChatMessage(2, s2.getString(1));
+                }
+            } else {
+                m_botAction.sendChatMessage(2, "Siblings not found for " + params + ": ");
             }
         } catch (SQLException e) {
             m_botAction.sendChatMessage(2, "An SQLException occured in !sibling");
@@ -469,25 +479,58 @@ public class twdbot extends SubspaceBot {
             m_botAction.sendChatMessage(2, "Usage: !addsibling name:siblingName");
         } else {
             try {
-                
-                    //regular insert
-                    m_botAction.SQLQuery(webdb,
-                        "INSERT INTO tblSiblings (fcName, fcSibling) VALUES('" +
-                        names[0].toLowerCase().trim() + "','" +
-                        names[1].toLowerCase().trim() + "')");
+                //get largest siblingID
+                ResultSet s = m_botAction.SQLQuery(webdb, "SELECT MAX(fcSiblingID) FROM "
+                        + "tblSiblings");
 
-                    m_botAction.sendChatMessage(2, "Sibling mapping '" + names[0] +
-                        "' and '" + names[1] + "' added.");
-                
-                
-                
-                //reverse insert for looking up sibling first
-                    m_botAction.SQLQuery(webdb,
-                        "INSERT INTO tblSiblings (fcName, fcSibling) VALUES('" +
-                        names[1].toLowerCase().trim() + "','" +
-                        names[0].toLowerCase().trim() + "')");
-                    
-                    m_botAction.sendChatMessage(2, "Sibling mapping '" + names[1] +
+                int maxID = -1;
+                if (s != null && s.next()) {
+                    maxID = s.getInt(1);
+                }
+                s.close();
+
+                //lookup names for existing sib ids
+                ResultSet rsName0Look = m_botAction.SQLQuery(webdb,
+                        "SELECT fcSiblingID FROM tblSiblings WHERE fcName = '"
+                        + names[0].toLowerCase().trim() + "'");
+
+                int sibID = -1;
+                if (rsName0Look != null && rsName0Look.next()) {
+                    sibID = rsName0Look.getInt(1);
+                }
+                rsName0Look.close();
+
+                ResultSet rsName1Look = m_botAction.SQLQuery(webdb,
+                        "SELECT fcSiblingID FROM tblSiblings WHERE fcName = '"
+                        + names[0].toLowerCase().trim() + "'");
+
+                if (rsName1Look != null && rsName1Look.next()) {
+                    if (sibID != -1) {
+                        m_botAction.sendChatMessage(2, "Both names (" + names[0]
+                                + ", " + names[1] + ") belong to different"
+                                + "sibling groups (" + sibID + ", " +
+                                rsName1Look.getInt(1) + ")!");
+                        return;
+                    } else {
+                        sibID = rsName1Look.getInt(1);
+                    }
+                }
+                rsName1Look.close();
+
+                //insert
+                m_botAction.SQLQuery(webdb, "INSERT INTO tblSiblings (fcName, "
+                        + "fcSiblingID) VALUES('"
+                        + names[0].toLowerCase().trim()
+                        + (sibID != -1 ? sibID : maxID+1)
+                        + "')");
+
+                m_botAction.SQLQuery(webdb, "INSERT INTO tblSiblings (fcName, "
+                        + "fcSiblingID) VALUES('"
+                        + names[0].toLowerCase().trim()
+                        + (sibID != -1 ? sibID : maxID+1)
+                        + "')");
+
+                m_botAction.sendChatMessage(2, "Sibling mapping '" + names[1] +
                         "' and '" + names[0] + "' added.");
                
             } catch (SQLException e) {
@@ -509,10 +552,6 @@ public class twdbot extends SubspaceBot {
                         + names[1].toLowerCase().trim() + "' WHERE fcName='"
                         + names[0].toLowerCase().trim() + "'");
                         //reverse insert for looking up sibling first
-                m_botAction.SQLQuery(webdb,
-                        "UPDATE tblSiblings SET fcSibling='"
-                        + names[1].toLowerCase().trim() + "' WHERE fcSibling='"
-                        + names[0].toLowerCase().trim() + "'");
                 m_botAction.sendChatMessage(2, "Sibling '" + names[0] +
                         "' updated to '" + names[1] + "'.");
             } catch (SQLException e) {
