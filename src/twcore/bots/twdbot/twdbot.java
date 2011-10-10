@@ -487,6 +487,7 @@ public class twdbot extends SubspaceBot {
                 if (s != null && s.next()) {
                     maxID = s.getInt(1);
                 }
+                m_botAction.sendChatMessage(2, "debug - largest sib id: " + maxID);
                 s.close();
 
                 //lookup names for existing sib ids
@@ -498,6 +499,7 @@ public class twdbot extends SubspaceBot {
                 if (rsName0Look != null && rsName0Look.next()) {
                     sibID = rsName0Look.getInt(1);
                 }
+                m_botAction.sendChatMessage(2, "debug - name0 look: " + sibID);
                 rsName0Look.close();
 
                 ResultSet rsName1Look = m_botAction.SQLQuery(webdb,
@@ -515,6 +517,7 @@ public class twdbot extends SubspaceBot {
                         sibID = rsName1Look.getInt(1);
                     }
                 }
+                m_botAction.sendChatMessage(2, "debug - name1 look: " + sibID);
                 rsName1Look.close();
 
                 //set our sibID for use if none found
