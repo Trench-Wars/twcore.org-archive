@@ -342,9 +342,9 @@ public class twdhub extends SubspaceBot {
     }
     
     public void cmd_die(String name) {
-        ba.sendChatMessage(3, "Disconnecting as requested by " + name);
-        ba.sendChatMessage(2, "Disconnecting as requested by " + name);
-        ba.sendChatMessage("Disconnecting as requested by " + name);
+        ba.sendChatMessage(3, "Disconnecting at the request of " + name);
+        ba.sendChatMessage(2, "Disconnecting at the request of " + name);
+        ba.sendChatMessage("Disconnecting at the request of " + name);
         handleDisconnect();
     }
     
