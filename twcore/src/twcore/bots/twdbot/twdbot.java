@@ -465,9 +465,11 @@ public class twdbot extends SubspaceBot {
                     if (!s2.getString(1).equals(params.toLowerCase().trim()));
                         m_botAction.sendChatMessage(2, s2.getString(1));
                 }
+                s2.close();
             } else {
                 m_botAction.sendChatMessage(2, "Siblings not found for " + params + ": ");
             }
+            s.close();
         } catch (SQLException e) {
             m_botAction.sendChatMessage(2, "An SQLException occured in !sibling");
         }
@@ -487,7 +489,6 @@ public class twdbot extends SubspaceBot {
                 if (s != null && s.next()) {
                     maxID = s.getInt(1);
                 }
-                m_botAction.sendChatMessage(2, "debug - largest sib id: " + maxID);
                 s.close();
 
                 //lookup names for existing sib ids
@@ -499,17 +500,16 @@ public class twdbot extends SubspaceBot {
                 if (rsName0Look != null && rsName0Look.next()) {
                     sibID = rsName0Look.getInt(1);
                 }
-                m_botAction.sendChatMessage(2, "debug - name0 look: " + sibID);
                 rsName0Look.close();
 
                 ResultSet rsName1Look = m_botAction.SQLQuery(webdb,
                         "SELECT fcSiblingID FROM tblSiblings WHERE fcName = '"
-                        + names[0].toLowerCase().trim() + "'");
+                        + names[1].toLowerCase().trim() + "'");
 
                 if (rsName1Look != null && rsName1Look.next()) {
                     if (sibID != -1) {
                         m_botAction.sendChatMessage(2, "Both names (" + names[0]
-                                + ", " + names[1] + ") belong to different"
+                                + ", " + names[1] + ") belong to different "
                                 + "sibling groups (" + sibID + ", " +
                                 rsName1Look.getInt(1) + ")!");
                         return;
@@ -517,7 +517,6 @@ public class twdbot extends SubspaceBot {
                         sibID = rsName1Look.getInt(1);
                     }
                 }
-                m_botAction.sendChatMessage(2, "debug - name1 look: " + sibID);
                 rsName1Look.close();
 
                 //set our sibID for use if none found
@@ -532,7 +531,7 @@ public class twdbot extends SubspaceBot {
 
                 m_botAction.SQLQuery(webdb, "INSERT INTO tblSiblings (fcName, "
                         + "fcSiblingID) VALUES('"
-                        + names[0].toLowerCase().trim() + "', '" + sibID + "')");
+                        + names[1].toLowerCase().trim() + "', '" + sibID + "')");
 
                 m_botAction.sendChatMessage(2, "Sibling mapping '" + names[1] +
                         "' and '" + names[0] + "' added.");
