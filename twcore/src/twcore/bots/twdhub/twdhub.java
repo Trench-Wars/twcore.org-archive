@@ -503,7 +503,7 @@ public class twdhub extends SubspaceBot {
             if (arena.status == ArenaStatus.DYING) {
                 debug("Bot stay: " + name);
                 arena.status = ArenaStatus.READY;
-                ba.ipcTransmit(IPC, new IPCCommand(Command.STAY, name));
+                ba.ipcTransmit(IPC, new IPCCommand(Command.STAY, name, null));
             }
         }
     }
