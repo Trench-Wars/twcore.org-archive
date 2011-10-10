@@ -401,6 +401,7 @@ public class twdhub extends SubspaceBot {
     
     private void checkDiv(String div) {
         if (startup || shutdown) return;
+        div = div.substring(0, 4).toLowerCase();
         Arena arena;
         if (arenas.containsKey(div)) {
             arena = arenas.get(div);
