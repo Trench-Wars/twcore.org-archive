@@ -525,13 +525,17 @@ public class twdbot extends SubspaceBot {
                 }
 
                 //insert
+                try {
                 m_botAction.SQLQuery(webdb, "INSERT INTO tblSiblings (fcName, "
                         + "fcSiblingID) VALUES('"
                         + names[0].toLowerCase().trim() + "', '" + sibID + "')");
+                } catch (SQLException e) {}
 
+                try {
                 m_botAction.SQLQuery(webdb, "INSERT INTO tblSiblings (fcName, "
                         + "fcSiblingID) VALUES('"
                         + names[1].toLowerCase().trim() + "', '" + sibID + "')");
+                } catch (SQLException e) {}
 
                 m_botAction.sendChatMessage(2, "Sibling mapping '" + names[1] +
                         "' and '" + names[0] + "' added.");
