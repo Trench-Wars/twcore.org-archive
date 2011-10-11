@@ -461,8 +461,8 @@ public class hockeybot extends SubspaceBot {
             m_botAction.getShip().setShip(0);
             m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
             m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
-            m_botAction.getShip().sendPositionPacket();
             m_botAction.getBall(puck.getBallID(), (int) puck.getTimeStamp());
+            m_botAction.getShip().sendPositionPacket();
         }
     }
 
