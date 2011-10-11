@@ -2,11 +2,8 @@ package twcore.bots.hockeybot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Stack;
 import java.util.TimerTask;
 import java.util.TreeMap;
@@ -464,6 +461,7 @@ public class hockeybot extends SubspaceBot {
             m_botAction.getShip().setShip(0);
             m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
             m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
+            m_botAction.getShip().sendPositionPacket();
             m_botAction.getBall(puck.getBallID(), (int) puck.getTimeStamp());
         }
     }
@@ -621,37 +619,7 @@ public class hockeybot extends SubspaceBot {
                 + ", " + puck.getBallY());
         getBall();
     }
-    
-    /*
-     * For delay period after final goal. needs more resting
-     * 
-    private void cmd_ph(String name) {
-    	
-    	if (currentState != HockeyState.REVIEW) {
-    		m_botAction.sendPrivateMessage(name, "The game is not currently in a review state. If you wish to manually add or a subtract " +
-    											 "a goal, please use !increase <freq> or !decrease <freq>.");
-    	}
-    	else {
-    		staffVote = Vote.PHASE;
-    		if (name != null) {    			
-    			staffVoter = name;
-    		}
-    		else {    			
-    			staffVoter = "Staff";
-    		}
-    	}	
-    	
-    }
-    
-    
-    private Vote getStaffVote() {
-    	return staffVote;
-    }
-    
-	*/
-    
-
-
+   
     /** Handles the !drop command */
     private void cmd_drop(String name) {
         dropBall();
