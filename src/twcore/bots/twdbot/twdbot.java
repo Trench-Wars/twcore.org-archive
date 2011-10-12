@@ -52,7 +52,6 @@ public class twdbot extends SubspaceBot {
     private HashMap<String, String> m_waitingAction;
     private String webdb = "website";
     private static final String IPC = "MatchBot";
-    private static final String BOT_NAME = "MatchBot";
 
     private LinkedList<String> m_watches;
     private TimerTask einfo;
@@ -120,7 +119,7 @@ public class twdbot extends SubspaceBot {
         if (event.getChannel().equals(IPC)) {
             if (event.getObject() instanceof IPCChallenge) {
                 IPCChallenge ipc = (IPCChallenge) event.getObject();
-                if (ipc.getRecipient().equalsIgnoreCase(m_botAction.getBotName()) && m_watches.contains(ipc.getName())) {
+                if (ipc.getRecipient().equalsIgnoreCase(m_botAction.getBotName()) && m_watches.contains(ipc.getName().toLowerCase())) {
                     if (ipc.getType() == EventType.CHALLENGE) {
                         m_botAction.sendChatMessage(3, "" + ipc.getName() + " challenged " + ipc.getSquad2() + " to " + ipc.getPlayers() + "s in "
                                 + ipc.getArena());
