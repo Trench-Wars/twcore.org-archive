@@ -994,7 +994,7 @@ public class matchbot extends SubspaceBot {
 
     //
     public void command_challengeall(String name, String[] parameters) {
-        m_botAction.sendSmartPrivateMessage(name, "Command deprecated due to unneccessary challenge spam. Use chtop by itself from now on. NOTICE: Challenge spam is punishable by the removal challenge priveledges.");
+        m_botAction.sendSmartPrivateMessage(name, "Command deprecated due to unneccessary challenge spam. Use chtop by itself from now on. NOTICE: Challenge spam is punishable by the removal of challenge priveledges.");
         return;
         /*
         try {
