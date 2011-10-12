@@ -994,6 +994,9 @@ public class matchbot extends SubspaceBot {
 
     //
     public void command_challengeall(String name, String[] parameters) {
+        m_botAction.sendSmartPrivateMessage(name, "Command deprecated due to unneccessary challenge spam. Use chtop by itself from now on. NOTICE: Challenge spam is punishable by the removal challenge priveledges.");
+        return;
+        /*
         try {
             if (parameters.length == 2) {
                 String arena = parameters[1].toLowerCase();
@@ -1030,6 +1033,7 @@ public class matchbot extends SubspaceBot {
         } catch (Exception e) {
             m_botAction.sendPrivateMessage(name, "Your challenge could not be completed. Please contact a TWD Operator."); // ********************************
         }
+        */
     }
 
     public void do_challenge(String name, String squad1, String squad2, int players) {
@@ -1108,7 +1112,7 @@ public class matchbot extends SubspaceBot {
                             + squad
                             + "' "
                             + "ORDER BY tblTWDTeam.fnRating DESC "
-                            + "LIMIT 8");
+                            + "LIMIT 10");
 
                     String squadsChalled = "You have challenged: ";
 
