@@ -120,7 +120,7 @@ public class twdbot extends SubspaceBot {
         if (event.getChannel().equals(IPC)) {
             if (event.getObject() instanceof IPCChallenge) {
                 IPCChallenge ipc = (IPCChallenge) event.getObject();
-                if (ipc.getRecipient().startsWith(BOT_NAME) && m_watches.contains(ipc.getName())) {
+                if (ipc.getRecipient().equalsIgnoreCase(m_botAction.getBotName()) && m_watches.contains(ipc.getName())) {
                     if (ipc.getType() == EventType.CHALLENGE) {
                         m_botAction.sendChatMessage(3, "" + ipc.getName() + " challenged " + ipc.getSquad2() + " to " + ipc.getPlayers() + "s in "
                                 + ipc.getArena());
