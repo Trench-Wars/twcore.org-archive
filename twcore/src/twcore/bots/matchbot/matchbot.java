@@ -1064,6 +1064,8 @@ public class matchbot extends SubspaceBot {
                                 + m_rules.getString("name") + " versus " + dp.getTeamName() + ". Captains/assistants, ?go "
                                 + m_botAction.getArenaName() + " and pm me with '!accept " + dp.getTeamName() + "'");
                         m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to " + nmySquad);
+                        //String toBot, EventType type, String arena, String name, String squad1, String squad2, int players
+                        m_botAction.ipcTransmit(IPC, new IPCChallenge("TWDBot", EventType.CHALLENGE, m_botAction.getArenaName(), name, dp.getTeamName(), nmySquad, players));
                     } else
                         m_botAction.sendSmartPrivateMessage(name, "The team you want to challenge does NOT exist in TWD");
                     m_botAction.SQLClose(rs);
@@ -1094,7 +1096,7 @@ public class matchbot extends SubspaceBot {
 
                 if ((dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (squad.equalsIgnoreCase(dp.getTeamName()))) {
 
-                    m_botAction.ipcTransmit(IPC, "twd:topchallenge " + name + "," + players + "," + m_botAction.getArenaName());
+                    m_botAction.ipcTransmit(IPC, new IPCChallenge("TWDBot", EventType.TOPCHALLENGE, m_botAction.getArenaName(), name, dp.getTeamName(), null, players));
                     ResultSet squads = m_botAction.SQLQuery(dbConn, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
                             + "FROM tblTWDTeam, tblTeam "
                             + "WHERE tblTWDTeam.fnMatchTypeID="
@@ -1152,8 +1154,7 @@ public class matchbot extends SubspaceBot {
 
                 if ((dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (squad.equalsIgnoreCase(dp.getTeamName()))) {
 
-                    m_botAction.ipcTransmit(IPC, "twd:allchallenge " + name + "," + players + "," + m_botAction.getArenaName());
-
+                    m_botAction.ipcTransmit(IPC, new IPCChallenge("TWDBot", EventType.ALLCHALLENGE, m_botAction.getArenaName(), name, dp.getTeamName(), null, players));
                     ResultSet squads = m_botAction.SQLQuery(dbConn, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
                             + "FROM tblTWDTeam, tblTeam "
                             + "WHERE tblTWDTeam.fnMatchTypeID="
