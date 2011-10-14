@@ -227,13 +227,6 @@ public class matchbot extends SubspaceBot {
         m_botAction.setReliableKills(1); // Reliable kills so the bot receives
                                          // every packet
         m_botAction.sendUnfilteredPublicMessage("?obscene");
-
-        String arena = m_botAction.getArenaName().toLowerCase();
-        if (arena.equalsIgnoreCase("twd")) {
-            m_botAction.ipcTransmit(IPC, "twdmatchbot:spawned " + m_botAction.getBotName());
-        } else if (isTWD() && m_isLocked) {
-            m_botAction.ipcTransmit(IPC, "twdmatchbot:locked " + m_botAction.getBotName() + "," + arena);
-        }
     }
 
     public void handleEvent(SoccerGoal event) {
@@ -544,8 +537,6 @@ public class matchbot extends SubspaceBot {
                             + " against <squad> with <players> number of players");
                     help.add("!challenge <squad>:<players>:<arena>     - (!ch)request a game of " + m_rules.getString("name")
                             + " against <squad> with <players> in <arena>");
-                    help.add("!challengeall <players>                  - (!chall)request a game of " + m_rules.getString("name")
-                            + " against the most active 8 squads with <players>s");
                     help.add("!challengetopteams <players>             - (!chtop)request a game of " + m_rules.getString("name")
                             + " against the 8 highest rated squads with <players>s");
                     help.add("!challenges                              - (!chals)lists all active challenges " + " made by your squad");
@@ -611,7 +602,6 @@ public class matchbot extends SubspaceBot {
                     if (m_die && m_off) {
                         m_off = false;
                         m_die = false;
-                        m_botAction.ipcTransmit(IPC, "twdmatchbot:shuttingdown " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
                         TimerTask d = new TimerTask() {
                             @Override
                             public void run() {
@@ -740,7 +730,6 @@ public class matchbot extends SubspaceBot {
             if (m_die && m_off) {
                 m_off = false;
                 m_die = false;
-                m_botAction.ipcTransmit(IPC, "twdmatchbot:shuttingdown " + m_botAction.getArenaName() + "," + m_botAction.getBotName());
                 TimerTask d = new TimerTask() {
                     @Override
                     public void run() {
@@ -1085,6 +1074,7 @@ public class matchbot extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage(name, "Your challenge could not be completed. Please contact a TWD Operator."); // ********************************
         }
     }
+    
     public void command_removechallenge(String name, String[] parameters) {
         try {
             if (m_game == null) {
