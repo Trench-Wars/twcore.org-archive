@@ -31,7 +31,6 @@ import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.Prize;
 import twcore.core.events.TurretEvent;
-import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.stats.DBPlayerData;
@@ -194,40 +193,6 @@ public class MatchTeam {
             MatchPlayer p = getPlayer(playerName);
             p.reportAttach();
         }
-    }
-
-    public void handleEvent(WatchDamage event) {
-        /*
-        Using PlayerDeath instead
-        // Did someone died? if not do nothing
-        if (Math.abs(event.getEnergyLost()) <= event.getOldEnergy()) {
-            return;
-        }
-        
-        // Did someone shot himself? if yes do nothing
-        if (event.getVictim() == event.getAttacker()) {
-            return;
-        }
-        
-        Player killee = m_botAction.getPlayer(event.getVictim());
-        Player killer = m_botAction.getPlayer(event.getAttacker());
-
-        // Just in case..
-        if (killee == null || killer == null) {
-            return;
-        }
-        
-        // Distance between the killer and killee
-        double distance = Math.sqrt(
-        		Math.pow(killer.getXLocation()-killee.getXLocation(),2) +
-        		Math.pow(killer.getYLocation()-killee.getYLocation(),2))/16;
-        
-        String playerName = m_botAction.getPlayer(killer.getPlayerID()).getPlayerName();
-        MatchPlayer p = getPlayer(playerName);
-        
-        p.reportKillShotDistance(distance);
-        */
-
     }
 
     // when somebody lags out
@@ -510,11 +475,13 @@ public class MatchTeam {
                 if (m_debug)
                     Tools.printLog("Unable to obtain data from tblAliasSuppression on " + name + ".");
                 command_remove("^forceremove^", new String[] { name });
+                m_botAction.SQLClose(qryPlayerAlias);
                 return;
             }
 
             Integer fnMID = qryPlayerAlias.getInt("fnMID");
             String fcIP = qryPlayerAlias.getString("fcIP");
+            m_botAction.SQLClose(qryPlayerAlias);
 
             // First verify MID.  If MID does not match perfectly, search for a mod-entered alternate
             if (fnMID != mID) {
@@ -528,6 +495,7 @@ public class MatchTeam {
                 }
                 if (!match) {
                     if (tellPlayer) {
+                        m_botAction.SQLClose(results);
                         m_botAction.sendSmartPrivateMessage(name, "You can't play from this computer.  Please see a TWD op about playing using this computer if it is a legitimate use.");
                         return;
                     } else {
@@ -536,9 +504,12 @@ public class MatchTeam {
                                     + ", and no TWD-op data found that matches.");
                         command_remove("^forceremove^", new String[] { name });
                         m_botAction.sendSmartPrivateMessage(name, "Sorry, you can only play in TWD from the computer on which you registered this name.  Please contact a TWD op if you have questions.");
+
+                        m_botAction.SQLClose(results);
                         return;
                     }
                 }
+                m_botAction.SQLClose(results);
             }
 
             // Next verify the first two parts of IP.  If the match is no good, search for alternate.
@@ -558,6 +529,7 @@ public class MatchTeam {
                 }
                 if (!match) {
                     if (tellPlayer) {
+                        m_botAction.SQLClose(results);
                         m_botAction.sendSmartPrivateMessage(name, "You can't play from this location.  Please see a TWD op about playing using this location if it is a legitimate use.");
                         return;
                     } else {
@@ -565,10 +537,12 @@ public class MatchTeam {
                             Tools.printLog("Player's playing IP " + IP + " did not match fcIP in tblAliasSupression: " + fcIP
                                     + ", and no TWD-op data found that matches.");
                         command_remove("^forceremove^", new String[] { name });
+                        m_botAction.SQLClose(results);
                         m_botAction.sendSmartPrivateMessage(name, "Sorry, you can only play in TWD from the location at which you registered this name.  Please contact a TWD op if you have questions.");
                         return;
                     }
                 }
+                m_botAction.SQLClose(results);
             }
             p.setIPMIDChecked(true);
             if (tellPlayer)
@@ -933,6 +907,7 @@ public class MatchTeam {
     }
 
     // switch player
+    @SuppressWarnings("unchecked")
     public void command_switch(String name, String[] parameters) {
         MatchPlayer pA, pB;
 
@@ -1107,6 +1082,7 @@ public class MatchTeam {
     }
 
     // puts a player back in the game, IF ALLOWED TO
+    @SuppressWarnings("unchecked")
     public void command_lagout(String name, String[] parameters) {
         String lagger, message;
         MatchPlayer p;
@@ -1250,6 +1226,7 @@ public class MatchTeam {
             m_logger.sendPrivateMessage(name, "There are no more substitutes allowed");
     }
 
+    @SuppressWarnings("unchecked")
     public void dosubstitute(String name, String playerA, String playerB) {
         String answer;
         MatchPlayer pA = null, pB;
@@ -1353,13 +1330,11 @@ public class MatchTeam {
                 && (m_round.getOtherTeam(m_fnFrequency).getPlayersRostered() - getPlayersRostered() <= 0)) {
             return "The other team currently has the turn to pick a ship";
         }
-        ;
 
         // does the player want to be picked
         if (m_round.m_notPlaying.indexOf(name.toLowerCase()) != -1) {
             return "Player can't or doesn't want to play this round";
         }
-        ;
 
         // when rosterjoined=1, has to exist in the Roster database
         if (m_rules.getInt("rosterjoined") == 1) {
@@ -1384,13 +1359,11 @@ public class MatchTeam {
         if (name.toLowerCase().startsWith("matchbot")) {
             return "Playername should not start with 'matchbot'";
         }
-        ;
 
         // name should not start with "robo ref"
         if (name.toLowerCase().startsWith("robo ref")) {
             return "Playername should not start with 'robo ref'";
         }
-        ;
 
         // player should be in the arena
         p = m_botAction.getPlayer(name);
@@ -1536,6 +1509,7 @@ public class MatchTeam {
     }
 
     // adds a player to the team (finally)
+    @SuppressWarnings("unchecked")
     public void addPlayerFinal(String fcPlayerName, int fnShipType, boolean getInGame, boolean fbSilent) {
         MatchPlayer p;
         if (!useDatabase) {
@@ -2343,6 +2317,7 @@ public class MatchTeam {
             ship = pA.getShipType();
         }
 
+        @SuppressWarnings("unchecked")
         public void check(String res) {
             int[] r = new int[2];
             try {
