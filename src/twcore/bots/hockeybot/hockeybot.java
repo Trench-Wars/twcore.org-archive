@@ -201,14 +201,15 @@ public class hockeybot extends SubspaceBot {
 
         resolution = 3392;  //Set the maximum allowed resolution
 
+        m_botAction.joinArena(config.getArena());
         /* Join Arena */
         try {
-            m_botAction.joinArena(config.getArena(), resolution, resolution);
+            //m_botAction.joinArena(config.getArena(), resolution, resolution);
         } catch (Exception e) {
             m_botAction.joinArena(config.getArena());
         }
 
-        //m_botAction.setMessageLimit(10);    //Set antispam measurements
+        m_botAction.setMessageLimit(10);    //Set antispam measurements
     }
 
     /**
@@ -457,18 +458,18 @@ public class hockeybot extends SubspaceBot {
      * Grabs ball and sits in drop location
      */
     public void getBall() {
+        m_botAction.setShip(m_botAction.getBotName(), 1);
         Ship s = m_botAction.getShip();
         s.setShip(0);
         s.setFreq(FREQ_NOTPLAYING);
         final TimerTask get = new TimerTask() {
             public void run() {
-                m_botAction.getShip().move(8192, 520*16);
+                m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
                 m_botAction.getShip().sendPositionPacket();
                 try {
                     Thread.sleep(75);
                 } catch (InterruptedException e) {}
                 m_botAction.getBall(puck.getBallID(), (int) puck.getTimeStamp());
-                m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
                 m_botAction.getShip().sendPositionPacket();
                 try {
                     Thread.sleep(75);
