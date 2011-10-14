@@ -208,7 +208,7 @@ public class hockeybot extends SubspaceBot {
             m_botAction.joinArena(config.getArena());
         }
 
-        m_botAction.setMessageLimit(10);    //Set antispam measurements
+        //m_botAction.setMessageLimit(10);    //Set antispam measurements
     }
 
     /**
@@ -462,12 +462,13 @@ public class hockeybot extends SubspaceBot {
         s.setFreq(FREQ_NOTPLAYING);
         final TimerTask get = new TimerTask() {
             public void run() {
-                m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
+                m_botAction.getShip().move(8192, 520*16);
                 m_botAction.getShip().sendPositionPacket();
                 try {
                     Thread.sleep(75);
                 } catch (InterruptedException e) {}
                 m_botAction.getBall(puck.getBallID(), (int) puck.getTimeStamp());
+                m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
                 m_botAction.getShip().sendPositionPacket();
                 try {
                     Thread.sleep(75);
