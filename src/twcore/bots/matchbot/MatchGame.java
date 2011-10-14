@@ -27,7 +27,6 @@ import twcore.core.events.Prize;
 import twcore.core.events.ScoreReset;
 import twcore.core.events.SoccerGoal;
 import twcore.core.events.TurretEvent;
-import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.EventType;
@@ -122,7 +121,6 @@ public class MatchGame {
         //Sends match info to TWDBot if TWD
         if (m_bot.isTWD()) {
             m_botAction.ipcSubscribe("MatchBot");
-            //m_botAction.ipcTransmit("MatchBot", "twdinfo:newgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_matchTypeName + "," + m_fcArena + "," + m_botAction.getBotName());
             m_botAction.ipcTransmit("MatchBot", new IPCTWD(EventType.STARTING, m_botAction.getArenaName(), m_botAction.getBotName(), m_fcTeam1Name, m_fcTeam2Name, m_fnMatchID));
         }
     }
@@ -322,7 +320,6 @@ public class MatchGame {
                     + m_fnTeam2Score + ", ftTimeEnded='" + time + "' where fnMatchID = " + m_fnMatchID);
             m_gameStored = true;
             //Sends match info to TWDBot
-            //m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_botAction.getArenaName());
             m_botAction.ipcTransmit("MatchBot", new IPCTWD(EventType.END, m_botAction.getArenaName(), m_botAction.getBotName(), m_fcTeam1Name, m_fcTeam2Name, m_fnMatchID));
         } catch (Exception e) {
             Tools.printStackTrace(e);
@@ -432,14 +429,6 @@ public class MatchGame {
     public void handleEvent(TurretEvent event) {
         if (m_curRound != null) {
             m_curRound.handleEvent(event);
-        }
-    }
-
-    public void handleEvent(WatchDamage event) {
-
-        if (m_curRound != null) {
-            if (m_fnMatchTypeID == 4 || m_fnMatchTypeID == 5 || m_fnMatchTypeID == 13)
-                m_curRound.handleEvent(event);
         }
     }
 
@@ -747,7 +736,6 @@ public class MatchGame {
         }
         if (!m_gameStored && m_fnTeam1ID > 0 && m_fnTeam2ID > 0) {
             //Sends match info to TWDBot
-            //m_botAction.ipcTransmit("MatchBot", "twdinfo:endgame " + m_fnMatchID + "," + m_fcTeam1Name + "," + m_fcTeam2Name + "," + m_botAction.getArenaName());
             m_botAction.ipcTransmit("MatchBot", new IPCTWD(EventType.END, m_botAction.getArenaName(), m_botAction.getBotName(), m_fcTeam1Name, m_fcTeam2Name, m_fnMatchID));
         }
     }
