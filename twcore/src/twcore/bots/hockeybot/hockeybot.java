@@ -23,6 +23,7 @@ import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
 import twcore.core.events.SoccerGoal;
 import twcore.core.game.Player;
+import twcore.core.game.Ship;
 import twcore.core.util.Point;
 import twcore.core.util.Tools;
 import twcore.core.util.Spy;
@@ -143,8 +144,8 @@ public class hockeybot extends SubspaceBot {
      */
     @Override
     public void handleEvent(ArenaJoined event) {
-        //m_botAction.setReliableKills(1);
-        //m_botAction.setPlayerPositionUpdating(1);
+        m_botAction.setReliableKills(1);
+        m_botAction.setPlayerPositionUpdating(300);
         m_botAction.sendUnfilteredPublicMessage("?chat=" + config.getChats());  //Join all the chats
         start();    //Autostart the bot
     }
@@ -457,8 +458,9 @@ public class hockeybot extends SubspaceBot {
      */
     public void getBall() {
         if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
-            m_botAction.getShip().setShip(0);
-            m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
+            Ship s = m_botAction.getShip();
+            s.setShip(0);
+            s.setFreq(FREQ_NOTPLAYING);
             final TimerTask get = new TimerTask() {
                 public void run() {
                     m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
@@ -484,6 +486,7 @@ public class hockeybot extends SubspaceBot {
         m_botAction.getShip().setShip(8);
         m_botAction.specWithoutLock(m_botAction.getBotName());
         m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
+        m_botAction.setPlayerPositionUpdating(300);
     }
 
     private void checkPenalty(PlayerPosition event) {
