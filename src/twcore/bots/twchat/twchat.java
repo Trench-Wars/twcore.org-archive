@@ -338,7 +338,7 @@ public class twchat extends SubspaceBot {
                 m_botAction.sendUnfilteredPrivateMessage(name, "*info");
         try {
             ResultSet mid = m_botAction.SQLQuery(dbInfo, "SELECT CAST(GROUP_CONCAT(fnMachineID) AS CHAR) fnMachineIDs "
-                    + "FROM ( SELECT DISTINCT fnMachineID FROM tblUser u JOIN tblAlias a " + "USING (fnUserID) WHERE u.fcUserName = '" + name
+                    + "FROM ( SELECT DISTINCT fnMachineID FROM tblUser u JOIN tblAlias a USING (fnUserID) WHERE u.fcUserName = '" + Tools.addSlashesToString(name)
                     + "' ORDER BY a.fdUpdated DESC LIMIT 3 ) t1");
             if (!mid.next())
                 m_botAction.sendChatMessage("No results");
