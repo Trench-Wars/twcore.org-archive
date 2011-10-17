@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.StringTokenizer;
 import java.util.TimerTask;
 import java.util.ArrayList;
 
@@ -169,6 +170,8 @@ public class twdbot extends SubspaceBot {
                     command_changeSibling(name, message.substring(message.indexOf(" ")));
                 } else if (message.equalsIgnoreCase("!help")) {
                     command_help(name);
+                } else if (message.startsWith("!pwmatch ")) {
+                    pwmatch(name, message);
                 } else if (message.startsWith("!chawa ")) {
                     String player = message.substring(message.indexOf(" ") + 1);
                     if (m_watches.contains(player.toLowerCase())) {
@@ -343,6 +346,27 @@ public class twdbot extends SubspaceBot {
         }
     }
 
+    private void pwmatch(String name, String message) {
+        StringTokenizer arguments = new StringTokenizer(message.substring(9), ":");
+        if (!(arguments.countTokens() == 2)) {
+            m_botAction.sendSmartPrivateMessage(name, "How can I check if you don't give me two values to check?");
+        } else {
+
+            String name1 = arguments.nextToken();
+            String name2 = arguments.nextToken();
+
+            DBPlayerData pws = new DBPlayerData(m_botAction, name1);
+            DBPlayerData pws2 = new DBPlayerData(m_botAction, name2);
+
+            if (pws.getPassword().equals(pws2.getPassword())) {
+                m_botAction.sendChatMessage(2, "The requested TWD Password match by " + name + " returned POSITIVE");
+            } else {
+                m_botAction.sendChatMessage(2, "The requested TWD Password match by " + name + " returned NEGATIVE");
+            }
+        }
+
+    }
+
     public static String[] stringChopper(String input, char deliniator) {
         try {
             LinkedList<String> list = new LinkedList<String>();
@@ -378,15 +402,13 @@ public class twdbot extends SubspaceBot {
     }
 
     public void command_help(String name) {
-        String[] msg = { "TWD Challenge Commands:", 
-                " !chawa <name>                - Toggles challenge watch on or off for <name>",
+        String[] msg = { "TWD Challenge Commands:", " !chawa <name>                - Toggles challenge watch on or off for <name>",
                 " !chawas                      - Displays current challenge watches",
                 " !ban <name>                  - Prevents <name> from being able to do challenges for a day",
                 " !unban <name>                - Removes challenge ban for <name> if it exists",
                 " !sibling <name>              - Looks up all siblings registered for <name>",
                 " !addsibling <name>:<sibling> - Registers a <sibling> to <name>",
-                " !changesibling <old>:<new>   - changes name in siblings from <old> to <new>"
-                };
+                " !changesibling <old>:<new>   - changes name in siblings from <old> to <new>" };
         m_botAction.smartPrivateMessageSpam(name, msg);
 
     }
@@ -450,19 +472,16 @@ public class twdbot extends SubspaceBot {
             m_botAction.sendChatMessage(2, "Usage: !sibling name");
         }
         try {
-            ResultSet s = m_botAction.SQLQuery(webdb,
-                    "SELECT fcSiblingID FROM tblSiblings WHERE fcName = '"
-                    + params.toLowerCase().trim() + "'");
-            
+            ResultSet s = m_botAction.SQLQuery(webdb, "SELECT fcSiblingID FROM tblSiblings WHERE fcName = '" + params.toLowerCase().trim() + "'");
+
             if (s != null && s.next()) {
                 m_botAction.sendChatMessage(2, "Siblings found for " + params + ": ");
 
-                ResultSet s2 = m_botAction.SQLQuery(webdb,
-                    "SELECT fcName FROM tblSiblings WHERE fcSiblingID = '"
-                    + s.getInt(1) + "'");
+                ResultSet s2 = m_botAction.SQLQuery(webdb, "SELECT fcName FROM tblSiblings WHERE fcSiblingID = '" + s.getInt(1) + "'");
                 while (s2 != null && s2.next()) {
-                    if (!s2.getString(1).equals(params.toLowerCase().trim()));
-                        m_botAction.sendChatMessage(2, s2.getString(1));
+                    if (!s2.getString(1).equals(params.toLowerCase().trim()))
+                        ;
+                    m_botAction.sendChatMessage(2, s2.getString(1));
                 }
                 s2.close();
             } else {
@@ -481,8 +500,7 @@ public class twdbot extends SubspaceBot {
         } else {
             try {
                 //get largest siblingID
-                ResultSet s = m_botAction.SQLQuery(webdb, "SELECT MAX(fcSiblingID) FROM "
-                        + "tblSiblings");
+                ResultSet s = m_botAction.SQLQuery(webdb, "SELECT MAX(fcSiblingID) FROM " + "tblSiblings");
 
                 int maxID = -1;
                 if (s != null && s.next()) {
@@ -491,8 +509,7 @@ public class twdbot extends SubspaceBot {
                 s.close();
 
                 //lookup names for existing sib ids
-                ResultSet rsName0Look = m_botAction.SQLQuery(webdb,
-                        "SELECT fcSiblingID FROM tblSiblings WHERE fcName = '"
+                ResultSet rsName0Look = m_botAction.SQLQuery(webdb, "SELECT fcSiblingID FROM tblSiblings WHERE fcName = '"
                         + names[0].toLowerCase().trim() + "'");
 
                 int sibID = -1;
@@ -501,16 +518,13 @@ public class twdbot extends SubspaceBot {
                 }
                 rsName0Look.close();
 
-                ResultSet rsName1Look = m_botAction.SQLQuery(webdb,
-                        "SELECT fcSiblingID FROM tblSiblings WHERE fcName = '"
+                ResultSet rsName1Look = m_botAction.SQLQuery(webdb, "SELECT fcSiblingID FROM tblSiblings WHERE fcName = '"
                         + names[1].toLowerCase().trim() + "'");
 
                 if (rsName1Look != null && rsName1Look.next()) {
                     if (sibID != -1) {
-                        m_botAction.sendChatMessage(2, "Both names (" + names[0]
-                                + ", " + names[1] + ") belong to different "
-                                + "sibling groups (" + sibID + ", " +
-                                rsName1Look.getInt(1) + ")!");
+                        m_botAction.sendChatMessage(2, "Both names (" + names[0] + ", " + names[1] + ") belong to different " + "sibling groups ("
+                                + sibID + ", " + rsName1Look.getInt(1) + ")!");
                         return;
                     } else {
                         sibID = rsName1Look.getInt(1);
@@ -525,23 +539,19 @@ public class twdbot extends SubspaceBot {
 
                 //insert
                 try {
-                m_botAction.SQLQuery(webdb, "INSERT INTO tblSiblings (fcName, "
-                        + "fcSiblingID) VALUES('"
-                        + names[0].toLowerCase().trim() + "', '" + sibID + "')");
+                    m_botAction.SQLQuery(webdb, "INSERT INTO tblSiblings (fcName, " + "fcSiblingID) VALUES('" + names[0].toLowerCase().trim()
+                            + "', '" + sibID + "')");
                 } catch (SQLException e) {}
 
                 try {
-                m_botAction.SQLQuery(webdb, "INSERT INTO tblSiblings (fcName, "
-                        + "fcSiblingID) VALUES('"
-                        + names[1].toLowerCase().trim() + "', '" + sibID + "')");
+                    m_botAction.SQLQuery(webdb, "INSERT INTO tblSiblings (fcName, " + "fcSiblingID) VALUES('" + names[1].toLowerCase().trim()
+                            + "', '" + sibID + "')");
                 } catch (SQLException e) {}
 
-                m_botAction.sendChatMessage(2, "Sibling mapping '" + names[1] +
-                        "' and '" + names[0] + "' added.");
-               
+                m_botAction.sendChatMessage(2, "Sibling mapping '" + names[1] + "' and '" + names[0] + "' added.");
+
             } catch (SQLException e) {
-            m_botAction.sendChatMessage(2,
-                    "An SQLException occured in !addsibling");
+                m_botAction.sendChatMessage(2, "An SQLException occured in !addsibling");
             }
         }
     }
@@ -553,16 +563,12 @@ public class twdbot extends SubspaceBot {
         } else {
             try {
                 //regular insert
-                m_botAction.SQLQuery(webdb,
-                        "UPDATE tblSiblings SET fcName='"
-                        + names[1].toLowerCase().trim() + "' WHERE fcName='"
+                m_botAction.SQLQuery(webdb, "UPDATE tblSiblings SET fcName='" + names[1].toLowerCase().trim() + "' WHERE fcName='"
                         + names[0].toLowerCase().trim() + "'");
-                        //reverse insert for looking up sibling first
-                m_botAction.sendChatMessage(2, "Sibling '" + names[0] +
-                        "' updated to '" + names[1] + "'.");
+                //reverse insert for looking up sibling first
+                m_botAction.sendChatMessage(2, "Sibling '" + names[0] + "' updated to '" + names[1] + "'.");
             } catch (SQLException e) {
-            m_botAction.sendChatMessage(2,
-                    "An SQLException occured in !changesibling");
+                m_botAction.sendChatMessage(2, "An SQLException occured in !changesibling");
             }
         }
     }
@@ -1360,8 +1366,7 @@ public class twdbot extends SubspaceBot {
                 "         <IP> can be partial address - ie:  192.168.0.",
                 "--------- MISC COMMANDS --------------------------------------------------------------",
                 "!check <name>           - checks live IP and MID of <name> (through *info [no !go] works any arena, NOT the DB)",
-                "!twdops                 - displays a list of the current TWD Ops", "!go <arena>             - moves the bot"
-        };
+                "!twdops                 - displays a list of the current TWD Ops", "!go <arena>             - moves the bot" };
         String SModHelp[] = { "--------- SMOD COMMANDS --------------------------------------------------------------",
                 " TWD Operators are determined by levels on the website which can be modified at www.trenchwars.org/staff" };
         String help2[] = { "--------- ACCOUNT MANAGEMENT COMMANDS ------------------------------------------------",
