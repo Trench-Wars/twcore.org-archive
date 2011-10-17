@@ -347,25 +347,45 @@ public class twdbot extends SubspaceBot {
     }
 
     private void pwmatch(String name, String message) {
-        StringTokenizer arguments = new StringTokenizer(message.substring(9), ":");
-        if (!(arguments.countTokens() == 2)) {
-            m_botAction.sendSmartPrivateMessage(name, "How can I check if you don't give me two values to check?");
-        } else {
-
-            String name1 = arguments.nextToken();
-            String name2 = arguments.nextToken();
-
-            DBPlayerData pws = new DBPlayerData(m_botAction, "website", name1);
-            DBPlayerData pws2 = new DBPlayerData(m_botAction, "website", name2);
-
-            String pass = pws.getPassword();
-            String pass2 = pws2.getPassword();
-
-            if (pass.equals(pass2)) {
-                m_botAction.sendChatMessage(2, "The requested TWD Password match by " + name + " returned POSITIVE");
+        try {
+            StringTokenizer arguments = new StringTokenizer(message.substring(9), ":");
+            if (!(arguments.countTokens() == 2)) {
+                m_botAction.sendSmartPrivateMessage(name, "How can I check if you don't give me two values to check?");
             } else {
-                m_botAction.sendChatMessage(2, "The requested TWD Password match by " + name + " returned NEGATIVE");
+
+                String name1 = arguments.nextToken();
+                String name2 = arguments.nextToken();
+
+                DBPlayerData pws = new DBPlayerData(m_botAction, "website", name1, false);
+                DBPlayerData pws2 = new DBPlayerData(m_botAction, "website", name2, false);
+
+                int id = pws.getUserID();
+                int id2 = pws2.getUserID();
+
+                ResultSet result = m_botAction.SQLQuery("website", "SELECT fcPassword FROM tblUserAccount WHERE fnUserID = " + id);
+                ResultSet resultB = m_botAction.SQLQuery("website", "SELECT fcPassword FROM tblUserAccount WHERE fnUserID = " + id2);
+                
+                if(!result.next() || !resultB.next()){
+                    m_botAction.sendChatMessage(2, "Cannot compare one of the pwmatch values. Please make sure the user exists on TWD.");
+                } else {
+
+
+                    String pass = result.getString("fcPassword");
+                    String pass2 = resultB.getString("fcPassword");
+
+
+                    if (pass.equals(pass2)) {
+                        m_botAction.sendChatMessage(2, "The requested TWD Password match by " + name + " returned POSITIVE");
+                    } else {
+                        m_botAction.sendChatMessage(2, "The requested TWD Password match by " + name + " returned NEGATIVE");
+                    }
+                }   
+                m_botAction.SQLClose(result);
+                m_botAction.SQLClose(resultB);
             }
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 
