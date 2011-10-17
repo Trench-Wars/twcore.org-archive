@@ -1379,6 +1379,7 @@ public class twdbot extends SubspaceBot {
                 "!removemid <name>:<MID>              - Removes <MID> associated with <name>",
                 "!removeipmid <name>                  - Removes all IPs and MIDs for <name>",
                 "!listipmid <name>                    - Lists IP's and MID's associated with <name>",
+                "!pwmatch <name>:<name>               - Compares TWD Passwords of <name> and <name>",
                 "--------- ALIAS CHECK COMMANDS -------------------------------------------------------",
                 "!info <name>            - displays the IP/MID that was used to register this name",
                 "!fullinfo <name>        - displays IP/MID, squad name, and date squad was reg'd",
