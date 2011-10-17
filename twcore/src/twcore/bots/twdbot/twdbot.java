@@ -358,13 +358,17 @@ public class twdbot extends SubspaceBot {
             DBPlayerData pws = new DBPlayerData(m_botAction, name1);
             DBPlayerData pws2 = new DBPlayerData(m_botAction, name2);
 
-            if (pws.getPassword().equals(pws2.getPassword())) {
+            String pass = pws.getPassword();
+            String pass2 = pws2.getPassword();
+
+            m_botAction.sendSmartPrivateMessage("Dezmond", "Password A is " + pass + " and Password B is " + pass2);
+
+            if (pass.equals(pass2)) {
                 m_botAction.sendChatMessage(2, "The requested TWD Password match by " + name + " returned POSITIVE");
             } else {
                 m_botAction.sendChatMessage(2, "The requested TWD Password match by " + name + " returned NEGATIVE");
-            }
         }
-
+        }
     }
 
     public static String[] stringChopper(String input, char deliniator) {
