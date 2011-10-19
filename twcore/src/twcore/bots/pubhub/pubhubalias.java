@@ -59,7 +59,7 @@ public class pubhubalias extends PubBotModule
 
 	private static final String DATE_FIELD_PREFIX = "fd";
 
-	private SimpleDateFormat sdf;
+	private SimpleDateFormat sdf = new SimpleDateFormat("MM/dd");
 	
 	private Set<String> justAdded;
 	private Set<String> deleteNextTime;
@@ -82,7 +82,6 @@ public class pubhubalias extends PubBotModule
 	 */
 	public void initializeModule()
 	{
-	    sdf = new SimpleDateFormat("MM/dd/yy");
 		justAdded = Collections.synchronizedSet(new HashSet<String>());
 		deleteNextTime = Collections.synchronizedSet(new HashSet<String>());
 		watchedIPs = Collections.synchronizedMap(new HashMap<String,WatchComment>());
@@ -1271,6 +1270,10 @@ public class pubhubalias extends PubBotModule
 	    public WatchComment(String date, String comment) {
 	        this.date = date;
 	        this.comment = comment;
+	    }
+	    
+	    public String toString() {
+	        return date + " " + comment;
 	    }
 	}
 }
