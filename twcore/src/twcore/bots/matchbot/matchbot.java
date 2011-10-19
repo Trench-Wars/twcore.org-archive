@@ -897,6 +897,7 @@ public class matchbot extends SubspaceBot {
 
     //
     public void command_challenge(String name, String[] parameters) {
+        if (parameters.length < 1) return;
         if (parameters.length == 3) {
             command_charena(name, parameters);
             return;
