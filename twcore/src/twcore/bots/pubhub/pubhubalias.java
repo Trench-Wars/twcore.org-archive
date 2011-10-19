@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
@@ -58,11 +59,13 @@ public class pubhubalias extends PubBotModule
 
 	private static final String DATE_FIELD_PREFIX = "fd";
 
+	private SimpleDateFormat sdf;
+	
 	private Set<String> justAdded;
 	private Set<String> deleteNextTime;
-	private Map<String,String> watchedIPs;
-	private Map<String,String> watchedNames;
-	private Map<String,String> watchedMIDs;
+	private Map<String,WatchComment> watchedIPs;
+	private Map<String,WatchComment> watchedNames;
+	private Map<String,WatchComment> watchedMIDs;
 	//    < IP , Comment >
 	//    < MID, Comment >
 	//    <Name, Comment >
@@ -79,11 +82,12 @@ public class pubhubalias extends PubBotModule
 	 */
 	public void initializeModule()
 	{
+	    sdf = new SimpleDateFormat("MM/dd/yy");
 		justAdded = Collections.synchronizedSet(new HashSet<String>());
 		deleteNextTime = Collections.synchronizedSet(new HashSet<String>());
-		watchedIPs = Collections.synchronizedMap(new HashMap<String,String>());
-		watchedNames = Collections.synchronizedMap(new HashMap<String,String>());
-		watchedMIDs = Collections.synchronizedMap(new HashMap<String,String>());
+		watchedIPs = Collections.synchronizedMap(new HashMap<String,WatchComment>());
+		watchedNames = Collections.synchronizedMap(new HashMap<String,WatchComment>());
+		watchedMIDs = Collections.synchronizedMap(new HashMap<String,WatchComment>());
 		clearRecordTask = new ClearRecordTask();
 
 		m_botAction.scheduleTaskAtFixedRate(clearRecordTask, CLEAR_DELAY, CLEAR_DELAY);
@@ -586,7 +590,8 @@ public class pubhubalias extends PubBotModule
 		    } else {
 		        m_botAction.sendChatMessage( "Login watching enabled for IPs starting with " + IP );
 		    }
-			watchedIPs.put( IP, sender + ": "+comment );
+            String date = sdf.format(System.currentTimeMillis());
+			watchedIPs.put( IP, new WatchComment(date, sender + ": "+comment) );
 			saveWatches();
 		}
 	}
@@ -677,7 +682,6 @@ public class pubhubalias extends PubBotModule
 	public void doNameWatchCmd( String sender, String message ) {
 	    String[] params = message.split(":");
 	    String name = params[0].trim();
-	    
 		if( watchedNames.containsKey( name.toLowerCase() ) && (params.length == 1 || params[1] == null || params[1].length() == 0)) {
 			watchedNames.remove( name.toLowerCase() );
 			m_botAction.sendChatMessage( "Login watching disabled for '" + name + "'." );
@@ -692,7 +696,8 @@ public class pubhubalias extends PubBotModule
 		    } else {
 		        m_botAction.sendChatMessage( "Login watching enabled for '" + name + "'." );
 		    }
-			watchedNames.put( name.toLowerCase(), sender + ": "+comment );
+	        String date = sdf.format(System.currentTimeMillis());
+			watchedNames.put( name.toLowerCase(), new WatchComment(date, sender + ": "+comment) );
 			saveWatches();
 		}
 	}
@@ -719,7 +724,8 @@ public class pubhubalias extends PubBotModule
 		    } else {
 		        m_botAction.sendChatMessage( "Login watching enabled for MID: " + MID );
 		    }
-			watchedMIDs.put( MID, sender + ": "+comment );
+            String date = sdf.format(System.currentTimeMillis());
+			watchedMIDs.put( MID, new WatchComment(date, sender + ": "+comment) );
 			saveWatches();
 			
 		}
@@ -760,21 +766,24 @@ public class pubhubalias extends PubBotModule
 	        m_botAction.sendChatMessage( "IP:   (none)");
 	    }
 	    for(String IP:watchedIPs.keySet()) {
-	        m_botAction.sendChatMessage( "IP:   " + IP + "  ( "+watchedIPs.get(IP)+" )" );
+	        WatchComment com = watchedIPs.get(IP);
+	        m_botAction.sendChatMessage( com.date + " IP:   " + IP + "  ( "+com.comment+" )" );
 	    }
 	    
 		if(watchedMIDs.size() == 0) {
             m_botAction.sendChatMessage( "MID:  (none)");
         }
 		for(String MID:watchedMIDs.keySet()) {
-		    m_botAction.sendChatMessage( "MID:  " + MID + "  ( "+watchedMIDs.get(MID)+" )" );
+            WatchComment com = watchedMIDs.get(MID);
+		    m_botAction.sendChatMessage( com.date + " MID:  " + MID + "  ( "+com.comment+" )" );
 		}
 		
 		if(watchedNames.size() == 0 ) {
             m_botAction.sendChatMessage( "Name: (none)");
         }
 		for(String Name:watchedNames.keySet()) {
-		    m_botAction.sendChatMessage( "Name: " + Name + "  ( "+watchedNames.get(Name)+" )");
+            WatchComment com = watchedNames.get(Name);
+		    m_botAction.sendChatMessage( com.date + " Name: " + Name + "  ( "+com.comment+" )");
 		}
 	}
 
@@ -1114,9 +1123,9 @@ public class pubhubalias extends PubBotModule
 	    while(loop) {
 	        String IPWatch = cfg.getString("IPWatch"+i);
 	        if(IPWatch != null && IPWatch.trim().length()>0) {
-	            String[] IPWatchSplit = IPWatch.split(":",2);
+	            String[] IPWatchSplit = IPWatch.split(":",3);
 	            if(IPWatchSplit.length == 2)       // Check for corrupted data
-	                watchedIPs.put(IPWatchSplit[0], IPWatchSplit[1]);
+	                watchedIPs.put(IPWatchSplit[1], new WatchComment(IPWatchSplit[0],IPWatchSplit[2]));
 	            i++;
 	        } else {
 	            loop = false;
@@ -1130,9 +1139,9 @@ public class pubhubalias extends PubBotModule
         while(loop) {
             String MIDWatch = cfg.getString("MIDWatch"+i);
             if(MIDWatch != null && MIDWatch.trim().length()>0) {
-                String[] MIDWatchSplit = MIDWatch.split(":",2);
-                if(MIDWatchSplit.length == 2)       // Check for corrupted data
-                    watchedMIDs.put(MIDWatchSplit[0], MIDWatchSplit[1]);
+                String[] MIDWatchSplit = MIDWatch.split(":",3);
+                if(MIDWatchSplit.length == 3)       // Check for corrupted data
+                    watchedMIDs.put(MIDWatchSplit[1], new WatchComment(MIDWatchSplit[0], MIDWatchSplit[2]));
                 i++;
             } else {
                 loop = false;
@@ -1146,9 +1155,9 @@ public class pubhubalias extends PubBotModule
         while(loop) {
             String NameWatch = cfg.getString("NameWatch"+i);
             if(NameWatch != null && NameWatch.trim().length()>0) {
-                String[] NameWatchSplit = NameWatch.split(":",2);
-                if(NameWatchSplit.length == 2)       // Check for corrupted data
-                    watchedNames.put(NameWatchSplit[0], NameWatchSplit[1]);
+                String[] NameWatchSplit = NameWatch.split(":",3);
+                if(NameWatchSplit.length == 3)       // Check for corrupted data
+                    watchedNames.put(NameWatchSplit[1], new WatchComment(NameWatchSplit[0], NameWatchSplit[2]));
                 i++;
             } else {
                 loop = false;
@@ -1165,7 +1174,8 @@ public class pubhubalias extends PubBotModule
 	    
 	    // Save IP watches
 	    for(String IP:watchedIPs.keySet()) {
-	        cfg.put("IPWatch"+i, IP+":"+watchedIPs.get(IP));
+	        WatchComment com = watchedIPs.get(IP);
+	        cfg.put("IPWatch"+i, com.date+":"+ IP+":"+com.comment);
 	        i++;
 	    }
 	    // Clear any other still stored IP watches
@@ -1183,7 +1193,8 @@ public class pubhubalias extends PubBotModule
 	    
 	    // Save MID watches
 	    for(String MID:watchedMIDs.keySet()) {
-	        cfg.put("MIDWatch"+i, MID+":"+watchedMIDs.get(MID));
+            WatchComment com = watchedMIDs.get(MID);
+	        cfg.put("MIDWatch"+i, com.date + ":" + MID+":"+com.comment);
 	        i++;
 	    }
 	    // Clear any other still stored MID watches
@@ -1201,7 +1212,8 @@ public class pubhubalias extends PubBotModule
 	    
 	    // Save Name watches
         for(String Name:watchedNames.keySet()) {
-            cfg.put("NameWatch"+i, Name+":"+watchedNames.get(Name));
+            WatchComment com = watchedNames.get(Name);
+            cfg.put("NameWatch"+i, com.date + ":" + Name+":"+com.comment);
             i++;
         }
         // Clear any other still stored MID watches
@@ -1250,5 +1262,15 @@ public class pubhubalias extends PubBotModule
 			deleteNextTime.addAll(justAdded);
 			justAdded.clear();
 		}
+	}
+	
+	private class WatchComment {
+	    String comment;
+	    String date;
+	    
+	    public WatchComment(String date, String comment) {
+	        this.date = date;
+	        this.comment = comment;
+	    }
 	}
 }
