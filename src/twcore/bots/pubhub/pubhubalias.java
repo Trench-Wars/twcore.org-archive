@@ -1124,7 +1124,7 @@ public class pubhubalias extends PubBotModule
 	        String IPWatch = cfg.getString("IPWatch"+i);
 	        if(IPWatch != null && IPWatch.trim().length()>0) {
 	            String[] IPWatchSplit = IPWatch.split(":",3);
-	            if(IPWatchSplit.length == 2)       // Check for corrupted data
+	            if(IPWatchSplit.length == 3)       // Check for corrupted data
 	                watchedIPs.put(IPWatchSplit[1], new WatchComment(IPWatchSplit[0],IPWatchSplit[2]));
 	            i++;
 	        } else {
