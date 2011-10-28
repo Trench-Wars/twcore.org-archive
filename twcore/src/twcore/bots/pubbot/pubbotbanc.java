@@ -145,7 +145,7 @@ public class pubbotbanc extends PubBotModule {
     }
     
     private void superLockMethod(String namePlayer, int shipNumber){
-        
+        if (!Tools.isAllDigits(m_botAction.getArenaName())) return;
         if( shipNumber == 2 || shipNumber == 8 || shipNumber == 4){
             m_botAction.sendPrivateMessage(namePlayer, "You're banned from ship"+shipNumber);
             m_botAction.sendPrivateMessage(namePlayer, "You'be been put in spider. But you can change to: warbird(1), spider(3), weasel(6) or lancaster(7).");
