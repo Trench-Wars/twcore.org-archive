@@ -494,20 +494,27 @@ public class twdbot extends SubspaceBot {
             m_botAction.sendChatMessage(2, "Usage: !sibling name");
         }
         try {
-            ResultSet s = m_botAction.SQLQuery(webdb, "SELECT fcSiblingID FROM tblSiblings WHERE fcName = '" + params.toLowerCase().trim() + "'");
+            ResultSet s = m_botAction.SQLQuery(webdb,
+                    "WITH SiblingGroup AS (" +
+                    "SELECT player.fcUserName, sibling.fnTWDSiblingGroup " +
+                    "FROM tblTWDT__Player AS player " +
+                    "INNER JOIN tblTWDSibling AS sibling " +
+                    "ON player.fnUserID = sibling.fnUserID)" +
+                    "SELECT fcUserName FROM SiblingGroup" + 
+                    "WHERE fnTWDSiblingGroupID = (" +
+                    "SELECT fnTWDSiblingGroupID FROM SiblingGroup " +
+                    "WHERE fcUserName = '" + params.toLowerCase().trim() + "')");
 
-            if (s != null && s.next()) {
+            if (s == null) {
+                m_botAction.sendChatMessage(2, "No registered siblings found for "
+                        + params + ".");
+            }
+
+            while (s != null && s.next()) {
                 m_botAction.sendChatMessage(2, "Siblings found for " + params + ": ");
 
-                ResultSet s2 = m_botAction.SQLQuery(webdb, "SELECT fcName FROM tblSiblings WHERE fcSiblingID = '" + s.getInt(1) + "'");
-                while (s2 != null && s2.next()) {
-                    if (!s2.getString(1).equals(params.toLowerCase().trim()))
-                        ;
-                    m_botAction.sendChatMessage(2, s2.getString(1));
-                }
-                s2.close();
-            } else {
-                m_botAction.sendChatMessage(2, "Siblings not found for " + params + ": ");
+                m_botAction.sendChatMessage(2, "");
+                m_botAction.sendChatMessage(2, s.getString(1));
             }
             s.close();
         } catch (SQLException e) {
@@ -520,61 +527,11 @@ public class twdbot extends SubspaceBot {
         if (names.length < 2) {
             m_botAction.sendChatMessage(2, "Usage: !addsibling name:siblingName");
         } else {
-            try {
-                //get largest siblingID
-                ResultSet s = m_botAction.SQLQuery(webdb, "SELECT MAX(fcSiblingID) FROM " + "tblSiblings");
-
-                int maxID = -1;
-                if (s != null && s.next()) {
-                    maxID = s.getInt(1);
-                }
-                s.close();
-
-                //lookup names for existing sib ids
-                ResultSet rsName0Look = m_botAction.SQLQuery(webdb, "SELECT fcSiblingID FROM tblSiblings WHERE fcName = '"
-                        + names[0].toLowerCase().trim() + "'");
-
-                int sibID = -1;
-                if (rsName0Look != null && rsName0Look.next()) {
-                    sibID = rsName0Look.getInt(1);
-                }
-                rsName0Look.close();
-
-                ResultSet rsName1Look = m_botAction.SQLQuery(webdb, "SELECT fcSiblingID FROM tblSiblings WHERE fcName = '"
-                        + names[1].toLowerCase().trim() + "'");
-
-                if (rsName1Look != null && rsName1Look.next()) {
-                    if (sibID != -1) {
-                        m_botAction.sendChatMessage(2, "Both names (" + names[0] + ", " + names[1] + ") belong to different " + "sibling groups ("
-                                + sibID + ", " + rsName1Look.getInt(1) + ")!");
-                        return;
-                    } else {
-                        sibID = rsName1Look.getInt(1);
-                    }
-                }
-                rsName1Look.close();
-
-                //set our sibID for use if none found
-                if (sibID == -1) {
-                    sibID = maxID + 1;
-                }
-
-                //insert
-                try {
-                    m_botAction.SQLQuery(webdb, "INSERT INTO tblSiblings (fcName, " + "fcSiblingID) VALUES('" + names[0].toLowerCase().trim()
-                            + "', '" + sibID + "')");
-                } catch (SQLException e) {}
-
-                try {
-                    m_botAction.SQLQuery(webdb, "INSERT INTO tblSiblings (fcName, " + "fcSiblingID) VALUES('" + names[1].toLowerCase().trim()
-                            + "', '" + sibID + "')");
-                } catch (SQLException e) {}
-
-                m_botAction.sendChatMessage(2, "Sibling mapping '" + names[1] + "' and '" + names[0] + "' added.");
-
+            /*try {
+                
             } catch (SQLException e) {
                 m_botAction.sendChatMessage(2, "An SQLException occured in !addsibling");
-            }
+            }*/
         }
     }
 
@@ -583,15 +540,11 @@ public class twdbot extends SubspaceBot {
         if (names.length < 2) {
             m_botAction.sendChatMessage(2, "Usage: !changesibling oldName:newName");
         } else {
-            try {
-                //regular insert
-                m_botAction.SQLQuery(webdb, "UPDATE tblSiblings SET fcName='" + names[1].toLowerCase().trim() + "' WHERE fcName='"
-                        + names[0].toLowerCase().trim() + "'");
-                //reverse insert for looking up sibling first
-                m_botAction.sendChatMessage(2, "Sibling '" + names[0] + "' updated to '" + names[1] + "'.");
+            /*try {
+                
             } catch (SQLException e) {
                 m_botAction.sendChatMessage(2, "An SQLException occured in !changesibling");
-            }
+            }*/
         }
     }
 
