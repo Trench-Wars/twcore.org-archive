@@ -494,30 +494,43 @@ public class twdbot extends SubspaceBot {
             m_botAction.sendChatMessage(2, "Usage: !sibling name");
         }
         try {
-            ResultSet s = m_botAction.SQLQuery(webdb,
-                    "SELECT player.fcUserName FROM tblTWDT__Player AS player " +
-                    "JOIN tblTWDSibling AS sibling " +
-                    "ON player.fnUserID = sibling.fnUserID " +
-                    "WHERE sibling.fnTWDSiblingGroupID = " +
-                    "(SELECT sibling.fnTWDSiblingGroupID " +
-                    "FROM tblTWDSibling AS sibling " +
-                    "JOIN tblTWDT__Player AS player " +
-                    "ON sibling.fnUserID = player.fnUserID " +
-                    "WHERE player.fcUserName = '"
+            //grab the sibling group ids for corresponding player
+            ResultSet groupSet = m_botAction.SQLQuery(webdb,
+                    "SELECT * FROM tblTWDSiblingGroup AS group " +
+                    "JOIN tblTWDSibling AS sibling  " +
+                    "ON sibling.fnTWDSiblingGroupID = group.fnTWDSiblingGroupID " +
+                    "WHERE sibling.fnUserID = " +
+                    "(SELECT fnUserID FROM tblTWDPlayerMID " +
+                    "WHERE fcUserName = '"
                     + params.toLowerCase().trim() + "')");
 
-            if (s == null) {
+            if (groupSet == null) {
                 m_botAction.sendChatMessage(2, "No registered siblings found for "
                         + params + ".");
             }
 
-            while (s != null && s.next()) {
+            while (groupSet != null && groupSet.next()) {
                 m_botAction.sendChatMessage(2, "Siblings found for " + params + ": ");
 
                 m_botAction.sendChatMessage(2, "");
-                m_botAction.sendChatMessage(2, s.getString(1));
+
+                ResultSet nameSet = m_botAction.SQLQuery(webdb,
+                        "SELECT fcUserName FROM tblTWDPlayerMID " +
+                        "WHERE fnUserID = (" +
+                        "SELECT fnUserID FROM tblTWDSibling " +
+                        "WHERE fnTWDSiblingGroupID = '" +
+                        groupSet.getString(2) +
+                        "')");
+
+                while (nameSet != null && nameSet.next()) {
+                    m_botAction.sendChatMessage(2, nameSet.getString(1));
+                }
+
+                m_botAction.sendChatMessage(2, "");
+                m_botAction.sendChatMessage(2, "Updated: "+groupSet.getString(3));
+                m_botAction.sendChatMessage(2, "Comment: "+groupSet.getString(2));
             }
-            s.close();
+            groupSet.close();
         } catch (SQLException e) {
             m_botAction.sendChatMessage(2, "An SQLException occured in !sibling");
             m_botAction.sendChatMessage(2, e.getMessage());
