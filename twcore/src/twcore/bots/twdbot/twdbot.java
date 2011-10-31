@@ -519,6 +519,7 @@ public class twdbot extends SubspaceBot {
             s.close();
         } catch (SQLException e) {
             m_botAction.sendChatMessage(2, "An SQLException occured in !sibling");
+            m_botAction.sendChatMessage(2, e.getMessage());
         }
     }
 
