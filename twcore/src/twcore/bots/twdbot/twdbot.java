@@ -520,7 +520,7 @@ public class twdbot extends SubspaceBot {
                         "WHERE fnUserID = (" +
                         "SELECT fnUserID FROM tblTWDSibling " +
                         "WHERE fnTWDSiblingGroupID = '" +
-                        groupSet.getString(2) +
+                        groupSet.getString(1) +
                         "')");
 
                 while (nameSet != null && nameSet.next()) {
