@@ -517,7 +517,7 @@ public class twdbot extends SubspaceBot {
 
                 ResultSet nameSet = m_botAction.SQLQuery(webdb,
                         "SELECT fcUserName FROM tblTWDPlayerMID " +
-                        "WHERE fnUserID = (" +
+                        "WHERE fnUserID IN(" +
                         "SELECT fnUserID FROM tblTWDSibling " +
                         "WHERE fnTWDSiblingGroupID = '" +
                         groupSet.getString(1) +
