@@ -494,12 +494,13 @@ public class twdbot extends SubspaceBot {
             m_botAction.sendChatMessage(2, "Usage: !sibling name");
         }
         try {
+
             //grab the sibling group ids for corresponding player
             ResultSet groupSet = m_botAction.SQLQuery(webdb,
-                    "SELECT * FROM tblTWDSiblingGroup AS group " +
-                    "JOIN tblTWDSibling AS sibling  " +
-                    "ON sibling.fnTWDSiblingGroupID = group.fnTWDSiblingGroupID " +
-                    "WHERE sibling.fnUserID = " +
+                    "SELECT * FROM tblTWDSiblingGroup AS sibGroup " +
+                    "INNER JOIN tblTWDSibling AS sibling  " +
+                    "ON sibling.fnTWDSiblingGroupID = sibGroup.fnTWDSiblingGroupID " +
+                    "WHERE sibling.fnUserID IN" +
                     "(SELECT fnUserID FROM tblTWDPlayerMID " +
                     "WHERE fcUserName = '"
                     + params.toLowerCase().trim() + "')");
