@@ -1154,7 +1154,7 @@ public class staffbot_banc extends Module {
                     m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)silenced. (BanC #"+banc.getId()+")");
                     
                 } else if(banc == null) {
-                    m_botAction.sendChatMessage("Player '"+command.substring(8)+"' has been (re)silenced. (Error! No BanC Object)");
+                    m_botAction.sendChatMessage("Player '"+command.substring(8)+"' has been (re)silenced.");
                 }
                 
             } else if(command.startsWith("REMOVE "+BanCType.SILENCE.toString())) {
@@ -1169,7 +1169,7 @@ public class staffbot_banc extends Module {
                 if(banc != null && banc.isNotification()) {
                     m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)locked in spectator. (BanC #"+banc.getId()+")");
                 } else if(banc == null) {
-                    m_botAction.sendChatMessage("Player '"+command.substring(5)+"' has been (re)locked in spectator. (Error! No BanC Object)");
+                    m_botAction.sendChatMessage("Player '"+command.substring(5)+"' has been (re)locked in spectator.");
                 }//SPEC PLAYER
                  //012345
             } else if(command.startsWith(BanCType.SUPERSPEC.toString())){
@@ -1179,7 +1179,7 @@ public class staffbot_banc extends Module {
                 if(banc != null && banc.isNotification()){
                     m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been (re)superlocked in spectator. (BanC #"+banc.getId()+")");
                 } else if(banc == null){
-                    m_botAction.sendChatMessage("Player '"+command.substring(10)+"' has been (re)superlocked in spectator. (Error! No BanC Object)");
+                    m_botAction.sendChatMessage("Player '"+command.substring(10)+"' has been (re)superlocked in spectator.");
                 }
             }else if(command.startsWith("REMOVE "+BanCType.SUPERSPEC.toString())) {
                 //REMOVE SUPERSPEC
