@@ -91,6 +91,8 @@ public class pubsystem extends SubspaceBot
     private int initialPub;                             // Order of pub arena to defaultjoin
     private String initialSpawn;                        // Arena initially spawned in
     
+    private String greeting;
+    
     /**
      * Creates a new instance of pubsystem bot and initializes necessary data.
      *
@@ -163,6 +165,8 @@ public class pubsystem extends SubspaceBot
 	        m_botAction.receiveAllPlayerDeaths();
 	        
 	        m_botAction.socketSubscribe("PUBSYSTEM");
+	        
+	        greeting = null;
 	        
     	} catch (Exception e) {
     		Tools.printStackTrace(e);
@@ -277,6 +281,9 @@ public class pubsystem extends SubspaceBot
 
                 context.handleEvent(event);
             }
+            
+            if (greeting != null)
+                m_botAction.sendSmartPrivateMessage(playerName, greeting);
 
         } catch (Exception e) {
         	Tools.printStackTrace(e);
@@ -310,8 +317,11 @@ public class pubsystem extends SubspaceBot
         } else if ( m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) || m_botAction.getOperatorList().isBotExact(sender) )
             if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) ) {
                 handleModCommand(sender, message);      
-                if (m_botAction.getOperatorList().isSmod(sender))
+                if (m_botAction.getOperatorList().isSmod(sender)) {
                     handleSmodCommand(sender, message);
+                    if(message.startsWith("greet "))
+                        doGreet(sender, message);
+                }
             }
     }
 
@@ -401,6 +411,16 @@ public class pubsystem extends SubspaceBot
     public void handleSmodCommand(String sender, String command) {
         context.handleSmodCommand(sender, command);
     }
+    
+    public void doGreet(String name, String cmd) {
+        if (cmd.length() < 7) {
+            greeting = null;
+            m_botAction.sendSmartPrivateMessage(name, "Private message greeting DISABELD.");
+        } else {
+            greeting = cmd.substring(cmd.indexOf(" ") + 1);
+            m_botAction.sendSmartPrivateMessage(name, "Set PM greeting to: " + greeting);
+        }
+    }
 
     public void doAboutCmd(String sender) {
     	String text = "This bot is an updated version of purepubbot, formerly known as RoboBoy/Girl.";
@@ -481,6 +501,7 @@ public class pubsystem extends SubspaceBot
             	}
             	if (smod && module.getSmodHelpMessage(sender).length > 0) {
                     m.addAll(Arrays.asList(module.getSmodHelpMessage(sender)));
+                    m.add("!greet <msg>         -- Change private message greeting.");
                     m.add(" ");            	    
             	}
             	lines.addAll(m);
