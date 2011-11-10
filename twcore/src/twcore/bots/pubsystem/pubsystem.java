@@ -318,9 +318,9 @@ public class pubsystem extends SubspaceBot
             if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE)) {
                 handleModCommand(sender, message);
                 if (m_botAction.getOperatorList().isSmod(sender)) {
-                    if (message.startsWith("greet "))
-                        doGreet(sender, message);
                     handleSmodCommand(sender, message);
+                    if (message.startsWith("!greet"))
+                        doGreet(sender, message);
                 }
             }
     }
