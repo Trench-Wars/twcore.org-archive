@@ -301,30 +301,29 @@ public class pubsystem extends SubspaceBot
 
     public void handleEvent(Message event) {
     	
-    	context.handleEvent(event);
-    	
+        context.handleEvent(event);
+
         String sender = getSender(event);
         int messageType = event.getMessageType();
         String message = event.getMessage().trim();
-        if( message == null || sender == null )
+        if (message == null || sender == null)
             return;
 
-        if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.PUBLIC_MESSAGE ) )
+        if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.PUBLIC_MESSAGE))
             handlePublicCommand(sender, message, messageType);
         if (m_botAction.getOperatorList().isZH(sender) && (message.startsWith("!newplayer ") || message.startsWith("!next ") || message.startsWith("!end "))) {
-            if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) )
+            if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE))
                 handleModCommand(sender, message);
-        } else if ( m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) || m_botAction.getOperatorList().isBotExact(sender) )
-            if((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) ) {
-                handleModCommand(sender, message);      
+        } else if (m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) || m_botAction.getOperatorList().isBotExact(sender))
+            if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE)) {
+                handleModCommand(sender, message);
                 if (m_botAction.getOperatorList().isSmod(sender)) {
-                    handleSmodCommand(sender, message);
-                    if(message.startsWith("greet "))
+                    if (message.startsWith("greet "))
                         doGreet(sender, message);
+                    handleSmodCommand(sender, message);
                 }
             }
     }
-
 
 
     /* **********************************  COMMANDS  ************************************ */
@@ -501,7 +500,7 @@ public class pubsystem extends SubspaceBot
             	}
             	if (smod && module.getSmodHelpMessage(sender).length > 0) {
                     m.addAll(Arrays.asList(module.getSmodHelpMessage(sender)));
-                    m.add("!greet <msg>         -- Change private message greeting.");
+                    m.add("- !greet <msg>      -- Change private message greeting.");
                     m.add(" ");            	    
             	}
             	lines.addAll(m);
