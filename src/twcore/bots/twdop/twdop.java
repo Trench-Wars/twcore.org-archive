@@ -107,6 +107,8 @@ public class twdop extends SubspaceBot {
                         " !status                           - Recalls DB status and TWDOp count",
                         " !report <player>:<comment>        - Claims a call for helping <player> with <comment>", "   or !r <player>:<comment>",
                         " !addnote <player>:<comment>       - Insert a note for this player",
+                        " !listnotes <name>                 - List the notes assosiated with <name>",
+                        " !delnote <id>                     - Delete the note assosiated with <id>",
 
                 };
 
