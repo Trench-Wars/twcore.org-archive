@@ -198,6 +198,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 					if (rs.next()) {
 						player = getPlayerByResultSet(rs);
 						player.setName(playerName);
+	                    m_botAction.SQLClose(rs);
 						return player;
 					}
 					m_botAction.SQLClose(rs);

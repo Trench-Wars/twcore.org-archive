@@ -460,8 +460,7 @@ public class PubMoneySystemModule extends AbstractModule {
             else if (amount > getMoneyPot())
                 m_botAction.sendSmartPrivateMessage(name, "I only have $" + getMoneyPot() + " available in the pot.");
             else {
-                PubPlayer pubPlayer = playerManager.getPlayer(args[0], false);
-                pubPlayer.addMoney(amount);
+                playerManager.addMoney(args[0], amount, true);
                 playerManager.getPlayer(m_botAction.getBotName(), false).removeMoney(amount);
                 m_botAction.sendChatMessage(name + " has awarded " + args[0] + " $" + amount);
                 m_botAction.sendSmartPrivateMessage(name, "" + args[0] + " has been awarded $" + amount + " from my money pot ($" + getMoneyPot() + " left)");
@@ -469,7 +468,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 if (database!=null)
                     m_botAction.SQLBackgroundQuery(database, null, "INSERT INTO tblPlayerDonations "
                         + "(fcName, fcNameTo, fnMoney, fdDate) "
-                        + "VALUES ('"+Tools.addSlashes("BOTPOT-" + name) + "','" + Tools.addSlashes(pubPlayer.getPlayerName()) + "','" + amount + "',NOW())");
+                        + "VALUES ('"+Tools.addSlashes("BOTPOT-" + name) + "','" + Tools.addSlashes(args[0]) + "','" + amount + "',NOW())");
             }
         } catch (NumberFormatException e) {
             m_botAction.sendSmartPrivateMessage(name, "Invalid dollar amount.");
