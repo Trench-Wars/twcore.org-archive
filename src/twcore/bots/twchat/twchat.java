@@ -57,9 +57,9 @@ public class twchat extends SubspaceBot {
 
     private String debugger = "";
     private boolean DEBUG = false;
-    public boolean signup = true;
+    public boolean signup = false;
     public boolean notify = false;
-    public boolean staff = false;;
+    public boolean staff = false;
     // status of the database update task sqlDump
     private boolean status = false;
     // number of seconds between database updates
