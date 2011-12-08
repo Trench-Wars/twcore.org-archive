@@ -149,6 +149,8 @@ public class twdhub extends SubspaceBot {
             if (oplist.isModerator(name)) {
                 if (cmd.equals("!die"))
                     cmd_die(name);
+                else if (cmd.startsWith("!send "))
+                    sendBot(cmd.substring(6));
                 else if (cmd.equals("!sdtwd"))
                     cmd_shutdown(name);
                 else if (cmd.equals("!check"))
@@ -275,6 +277,7 @@ public class twdhub extends SubspaceBot {
         msg.add(" !games        - List of games currently in progress");
         msg.add(" !list         - List of current bot values");
         if (oplist.isModerator(name)) {
+            msg.add(" !send <arena> - Sends a bot to arena");
             msg.add(" !check        - Checks for any arenas needing bots");
             msg.add(" !reset        - Resets all trackers and calls for checkin (goto fix it cmd)");
             msg.add(" !debug        - Toggle debug mode");
@@ -398,7 +401,14 @@ public class twdhub extends SubspaceBot {
         checkDiv("twsd");
         checkDiv("twfd");
     }
-    
+
+    private void sendBot(String div) {
+        debug("!send request to " + div);
+        if (arenas.containsKey(div)) {
+            botStay(arenas.get(div).bot);
+        }
+    }
+
     private void checkDiv(String div) {
         if (startup || shutdown) return;
         div = div.substring(0, 4).toLowerCase();
