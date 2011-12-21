@@ -1464,7 +1464,7 @@ public class twdbot extends SubspaceBot {
             m_botAction.SQLBackgroundQuery(webdb, null, "DELETE FROM tblAliasSuppression WHERE fdResetTime < DATE_SUB(NOW(), INTERVAL 1 DAY);");
             m_botAction.SQLBackgroundQuery(webdb, null, "UPDATE tblChallengeBan SET fnActive = 0 WHERE fnActive = 1 AND fdDateCreated < DATE_SUB(NOW(), INTERVAL 1 DAY)");
         } catch (Exception e) {
-            System.out.println("Can't check for new names to reset...");
+            Tools.printLog("[TWDBot] Can't check for new names to reset...");
         }
         ;
     };
