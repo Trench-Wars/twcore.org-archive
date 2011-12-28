@@ -279,7 +279,7 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(challenger, "No such player in the arena.");
             return;
         }
-        challenged = playerChallenged.getPlayerName();
+        challenged = playerChallenged.getPlayerName().toLowerCase();
     	
         if(isDueling(challenger)) {
             m_botAction.sendSmartPrivateMessage(challenger, "You are already dueling.");
@@ -410,7 +410,7 @@ public class PubChallengeModule extends AbstractModule {
     	}
     	challenger = player.getPlayerName();
     
-    	Challenge challenge = challenges.get(challenger+"-"+accepter);
+    	Challenge challenge = challenges.get(challenger.toLowerCase()+"-"+accepter.toLowerCase());
         if (challenge == null) {
         	m_botAction.sendSmartPrivateMessage(accepter, "You dont have a challenge from "+challenger+".");
             return;
@@ -444,8 +444,8 @@ public class PubChallengeModule extends AbstractModule {
         // Set duelers in the challenge
         Dueler duelerChallenger = new Dueler(challenger, Dueler.DUEL_CHALLENGER, challenge);
         Dueler duelerAccepter = new Dueler(accepter, Dueler.DUEL_ACCEPTER, challenge);
-        duelers.put(challenger, duelerChallenger);
-        duelers.put(accepter, duelerAccepter);
+        duelers.put(challenger.toLowerCase(), duelerChallenger);
+        duelers.put(accepter.toLowerCase(), duelerAccepter);
         
         challenge.setDuelers(duelerChallenger, duelerAccepter);
         challenge.setArea(area);
@@ -481,8 +481,8 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendZoneMessage("[PUB] A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".", Tools.Sound.BEEP1);
         }
         
-        removePendingChallenge(challenger, false);
-        removePendingChallenge(accepter, false);
+        removePendingChallenge(challenger.toLowerCase(), false);
+        removePendingChallenge(accepter.toLowerCase(), false);
         
         // Prepare the timer, in 15 seconds the game should starts (added 5s to allow more bets)
         m_botAction.scheduleTask(new StartDuel(challenge), 10*1000);
