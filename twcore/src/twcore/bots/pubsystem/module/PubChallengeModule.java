@@ -1042,8 +1042,8 @@ public class PubChallengeModule extends AbstractModule {
                     freq2 = 0;
             }
 
-            duelers.get(challenger).setFreq(freq1);
-            duelers.get(accepter).setFreq(freq2);
+            duelers.get(challenger.toLowerCase()).setFreq(freq1);
+            duelers.get(accepter.toLowerCase()).setFreq(freq2);
             m_botAction.setFreq(challenger, freq1);
             m_botAction.setFreq(accepter, freq2);
             m_botAction.warpTo(challenger, area.warp1x, area.warp1y);
