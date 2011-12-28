@@ -382,11 +382,11 @@ public class PubChallengeModule extends AbstractModule {
     }
     
     public String getKey(Challenge challenge) {
-    	return challenge.challengerName+"-"+challenge.challengedName;
+    	return challenge.challengerName.toLowerCase()+"-"+challenge.challengedName.toLowerCase();
     }
     
     public boolean isChallengeAlreadySent(String challenger, String challenged) {
-    	return challenges.containsKey(challenger+"-"+challenged);
+    	return challenges.containsKey(challenger.toLowerCase() + "-" + challenged.toLowerCase());
     }
 
     
