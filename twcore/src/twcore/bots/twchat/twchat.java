@@ -328,19 +328,6 @@ public class twchat extends SubspaceBot {
         String name = player.getPlayerName();
         if (name == null || isBotExact(name))
             return;
-        if (name.toLowerCase().startsWith("chips. <")) {
-            String[] msgs = { 
-                    "HI! YOU ARE SO AWESOME.",
-                    "HI! YOU ARE SO AWESOME.",
-                    "HI! YOU ARE SO AWESOME.",
-                    "HI! YOU ARE SO AWESOME.",
-                    "HI! YOU ARE SO AWESOME.",
-                    "HI! YOU ARE SO AWESOME.",
-                    "HI! YOU ARE SO AWESOME.",
-                    "I hope I have helped in raising your spirits enough to prevent you from ending your sad little and useless life. (jk I'm only being nice.)"
-            };
-            ba.smartPrivateMessageSpam(name, msgs);
-        }
         ba.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
 
         if (staff == true)
