@@ -391,6 +391,9 @@ public class PubChallengeModule extends AbstractModule {
 
     
     public void addChallenge(Challenge challenge) {
+        if (challenges.containsKey(getKey(challenge))){
+            challenges.remove(getKey(challenge));
+        }
     	challenges.put(getKey(challenge), challenge);
     }
     
