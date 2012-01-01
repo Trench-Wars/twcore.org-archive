@@ -279,7 +279,7 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(challenger, "No such player in the arena.");
             return;
         }
-        challenged = playerChallenged.getPlayerName().toLowerCase();
+        challenged = playerChallenged.getPlayerName();
     	
         if(isDueling(challenger)) {
             m_botAction.sendSmartPrivateMessage(challenger, "You are already dueling.");
@@ -382,16 +382,16 @@ public class PubChallengeModule extends AbstractModule {
     }
     
     public String getKey(Challenge challenge) {
-    	return challenge.challengerName.toLowerCase()+"-"+challenge.challengedName.toLowerCase();
+    	return challenge.challengerName+"-"+challenge.challengedName;
     }
     
     public boolean isChallengeAlreadySent(String challenger, String challenged) {
-    	return challenges.containsKey(challenger.toLowerCase() + "-" + challenged.toLowerCase());
+    	return challenges.containsKey(challenger+"-"+challenged);
     }
 
     
     public void addChallenge(Challenge challenge) {
-        if (challenges.containsKey(getKey(challenge))){
+		if (challenges.containsKey(getKey(challenge))){
             challenges.remove(getKey(challenge));
         }
     	challenges.put(getKey(challenge), challenge);
@@ -413,7 +413,7 @@ public class PubChallengeModule extends AbstractModule {
     	}
     	challenger = player.getPlayerName();
     
-    	Challenge challenge = challenges.get(challenger.toLowerCase()+"-"+accepter.toLowerCase());
+    	Challenge challenge = challenges.get(challenger+"-"+accepter);
         if (challenge == null) {
         	m_botAction.sendSmartPrivateMessage(accepter, "You dont have a challenge from "+challenger+".");
             return;
@@ -447,8 +447,8 @@ public class PubChallengeModule extends AbstractModule {
         // Set duelers in the challenge
         Dueler duelerChallenger = new Dueler(challenger, Dueler.DUEL_CHALLENGER, challenge);
         Dueler duelerAccepter = new Dueler(accepter, Dueler.DUEL_ACCEPTER, challenge);
-        duelers.put(challenger.toLowerCase(), duelerChallenger);
-        duelers.put(accepter.toLowerCase(), duelerAccepter);
+        duelers.put(challenger, duelerChallenger);
+        duelers.put(accepter, duelerAccepter);
         
         challenge.setDuelers(duelerChallenger, duelerAccepter);
         challenge.setArea(area);
@@ -484,8 +484,8 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendZoneMessage("[PUB] A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship) + moneyMessage + ".", Tools.Sound.BEEP1);
         }
         
-        removePendingChallenge(challenger.toLowerCase(), false);
-        removePendingChallenge(accepter.toLowerCase(), false);
+        removePendingChallenge(challenger, false);
+        removePendingChallenge(accepter, false);
         
         // Prepare the timer, in 15 seconds the game should starts (added 5s to allow more bets)
         m_botAction.scheduleTask(new StartDuel(challenge), 10*1000);
@@ -1045,8 +1045,8 @@ public class PubChallengeModule extends AbstractModule {
                     freq2 = 0;
             }
 
-            duelers.get(challenger.toLowerCase()).setFreq(freq1);
-            duelers.get(accepter.toLowerCase()).setFreq(freq2);
+            duelers.get(challenger).setFreq(freq1);
+            duelers.get(accepter).setFreq(freq2);
             m_botAction.setFreq(challenger, freq1);
             m_botAction.setFreq(accepter, freq2);
             m_botAction.warpTo(challenger, area.warp1x, area.warp1y);
