@@ -10,6 +10,7 @@ import java.util.Vector;
 
 import twcore.bots.pubsystem.module.AbstractModule;
 import twcore.core.BotAction;
+import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaJoined;
@@ -166,7 +167,9 @@ public class pubsystem extends SubspaceBot
 	        
 	        m_botAction.socketSubscribe("PUBSYSTEM");
 	        
-	        greeting = null;
+	        greeting = (m_botAction.getBotSettings().getString("Greeting"));
+	        if (greeting.isEmpty())
+	            greeting = null;
 	        
     	} catch (Exception e) {
     		Tools.printStackTrace(e);
@@ -238,7 +241,7 @@ public class pubsystem extends SubspaceBot
 	    	String arenaToJoin = arenaNames[initialPub];// initialPub+1 if you spawn it in # arena
 	    	if(Tools.isAllDigits(arenaToJoin))
 	    	{
-	    		m_botAction.changeArena(arenaToJoin);
+	    		m_botAction.changeArena("(" + arenaToJoin + ")");
 	    		startBot();
 	    	}
 		} catch (Exception e) {
@@ -412,13 +415,17 @@ public class pubsystem extends SubspaceBot
     }
     
     public void doGreet(String name, String cmd) {
+        BotSettings set = m_botAction.getBotSettings();
         if (cmd.length() < 7) {
             greeting = null;
+            set.put("Greeting", "");
             m_botAction.sendSmartPrivateMessage(name, "Private message greeting DISABELD.");
         } else {
             greeting = cmd.substring(cmd.indexOf(" ") + 1);
+            set.put("Greeting", greeting);
             m_botAction.sendSmartPrivateMessage(name, "Set PM greeting to: " + greeting);
         }
+        set.save();
     }
 
     public void doAboutCmd(String sender) {
