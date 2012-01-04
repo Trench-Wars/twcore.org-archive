@@ -101,13 +101,8 @@ public class pubsystem extends SubspaceBot
     public pubsystem(BotAction botAction)
     {
         super(botAction);
-
-        //load greeting
-        if (m_botAction.getBotSettings() != null) {
-            this.greeting = m_botAction.getBotSettings().getString("Greeting");
-        }
-
         requestEvents();
+
     }
 
     /**
@@ -421,7 +416,7 @@ public class pubsystem extends SubspaceBot
             greeting = null;
             m_botAction.sendSmartPrivateMessage(name, "Private message greeting DISABELD.");
         } else {
-            setGreeting(cmd.substring(cmd.indexOf(" ") + 1));
+            greeting = cmd.substring(cmd.indexOf(" ") + 1);
             m_botAction.sendSmartPrivateMessage(name, "Set PM greeting to: " + greeting);
         }
     }
@@ -733,12 +728,7 @@ public class pubsystem extends SubspaceBot
     	if (context!=null)
             context.handleEvent(event);
     }
-
-    public void setGreeting(String greeting) {
-        this.greeting = greeting;
-        m_botAction.getBotSettings().put("Greeting", greeting);
-    }
-
+    
     /*
      * This method should be called only once to change the current setting of the arena
      * The bot needs to be sysop of course.
