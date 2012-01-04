@@ -241,7 +241,7 @@ public class pubsystem extends SubspaceBot
 	    	String arenaToJoin = arenaNames[initialPub];// initialPub+1 if you spawn it in # arena
 	    	if(Tools.isAllDigits(arenaToJoin))
 	    	{
-	    		m_botAction.changeArena("(" + arenaToJoin + ")");
+	    		m_botAction.changeArena(arenaToJoin);
 	    		startBot();
 	    	}
 		} catch (Exception e) {
