@@ -497,13 +497,13 @@ public class twdbot extends SubspaceBot {
 
             //grab the sibling group ids for corresponding player
             ResultSet groupSet = m_botAction.SQLQuery(webdb,
-                    "SELECT fnTWDSiblingGroupID"+
-                    "FROM tblTWDSibling"+
+                    "SELECT fnTWDSiblingGroupID "+
+                    "FROM tblTWDSibling "+
                     "WHERE fnUserID = ("+
-                    "SELECT fnUserID"+
-                    "FROM tblUser"+
+                    "SELECT fnUserID "+
+                    "FROM tblUser "+
                     "WHERE fcUserName = '"+params.trim()+"' "+
-                    "ORDER BY fnUserID"+
+                    "ORDER BY fnUserID "+
                     "LIMIT 1 )");
 
             if (groupSet == null) {
