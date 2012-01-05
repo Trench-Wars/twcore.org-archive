@@ -506,12 +506,12 @@ public class twdbot extends SubspaceBot {
                     "ORDER BY fnUserID "+
                     "LIMIT 1 )");
 
-            if (groupSet == null) {
+            if (groupSet == null || !groupSet.next()) {
                 m_botAction.sendChatMessage(2, "No registered siblings found for "
-                        + params + ".");
+                        + params.trim() + ".");
             }
 
-            while (groupSet != null && groupSet.next()) {
+            do {
                 m_botAction.sendChatMessage(2, "Siblings found for " + params + ": ");
 
                 m_botAction.sendChatMessage(2, "");
@@ -534,14 +534,19 @@ public class twdbot extends SubspaceBot {
                         + "'" + groupSet.getString(1) + "'");
 
                 while (nameSet != null && nameSet.next()) {
-                    m_botAction.sendChatMessage(2, " " + nameSet.getString(1));
+                    m_botAction.sendChatMessage(2, "  " + nameSet.getString(1));
                 }
 
                 if (infoSet != null && infoSet.next()){
-                    m_botAction.sendChatMessage(2, " Updated: "+infoSet.getString(2));
-                    m_botAction.sendChatMessage(2, " Comment: "+infoSet.getString(1));
+                    m_botAction.sendChatMessage(2, "Updated: "+infoSet.getString(2));
+                    m_botAction.sendChatMessage(2, "Comment: "+infoSet.getString(1));
                 }
-            }
+
+                nameSet.close();
+                infoSet.close();
+                
+            } while(groupSet.next());
+
             groupSet.close();
         } catch (SQLException e) {
             m_botAction.sendChatMessage(2, "An SQLException occured in !sibling");
