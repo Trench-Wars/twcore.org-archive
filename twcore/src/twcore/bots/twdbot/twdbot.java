@@ -496,22 +496,13 @@ public class twdbot extends SubspaceBot {
         try {
 
             //grab the sibling group ids for corresponding player
-            /*ResultSet groupSet = m_botAction.SQLQuery(webdb,
-                    "SELECT * FROM tblTWDSiblingGroup AS sibGroup " +
-                    "INNER JOIN tblTWDSibling AS sibling  " +
-                    "ON sibling.fnTWDSiblingGroupID = sibGroup.fnTWDSiblingGroupID " +
-                    "WHERE sibling.fnUserID IN" +
-                    "(SELECT fnUserID FROM tblTWDPlayerMID " +
-                    "WHERE fcUserName = '"
-                    + params.toLowerCase().trim() + "')");*/
-
             ResultSet groupSet = m_botAction.SQLQuery(webdb,
                     "SELECT fnTWDSiblingGroupID"+
                     "FROM tblTWDSibling"+
                     "WHERE fnUserID = ("+
                     "SELECT fnUserID"+
                     "FROM tblUser"+
-                    "WHERE fcUserName = "+params.toLowerCase().trim()+
+                    "WHERE fcUserName = '"+params.trim()+"' "+
                     "ORDER BY fnUserID"+
                     "LIMIT 1 )");
 
