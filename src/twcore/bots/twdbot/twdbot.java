@@ -517,20 +517,30 @@ public class twdbot extends SubspaceBot {
                 m_botAction.sendChatMessage(2, "");
 
                 ResultSet nameSet = m_botAction.SQLQuery(webdb,
-                        "SELECT fcUserName FROM tblTWDPlayerMID " +
-                        "WHERE fnUserID IN(" +
-                        "SELECT fnUserID FROM tblTWDSibling " +
+                        "SELECT fcUserName "+
+                        "FROM tblUser " +
+                        "WHERE fnUserID "+
+                        "IN(" +
+                        "SELECT fnUserID "+
+                        "FROM tblTWDSibling " +
                         "WHERE fnTWDSiblingGroupID = '" +
                         groupSet.getString(1) +
                         "')");
 
+                ResultSet infoSet = m_botAction.SQLQuery(webdb,
+                        "SELECT fcComment, ftUpdated "
+                        + "FROM tblTWDSiblingGroup "
+                        + "WHERE fnTWDSiblingGroupID = "
+                        + "'" + groupSet.getString(1) + "'");
+
                 while (nameSet != null && nameSet.next()) {
-                    m_botAction.sendChatMessage(2, nameSet.getString(1));
+                    m_botAction.sendChatMessage(2, " " + nameSet.getString(1));
                 }
 
-                m_botAction.sendChatMessage(2, "");
-                m_botAction.sendChatMessage(2, "Updated: "+groupSet.getString(3));
-                m_botAction.sendChatMessage(2, "Comment: "+groupSet.getString(2));
+                if (infoSet != null && infoSet.next()){
+                    m_botAction.sendChatMessage(2, " Updated: "+infoSet.getString(2));
+                    m_botAction.sendChatMessage(2, " Comment: "+infoSet.getString(1));
+                }
             }
             groupSet.close();
         } catch (SQLException e) {
