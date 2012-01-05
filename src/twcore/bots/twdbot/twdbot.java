@@ -496,14 +496,24 @@ public class twdbot extends SubspaceBot {
         try {
 
             //grab the sibling group ids for corresponding player
-            ResultSet groupSet = m_botAction.SQLQuery(webdb,
+            /*ResultSet groupSet = m_botAction.SQLQuery(webdb,
                     "SELECT * FROM tblTWDSiblingGroup AS sibGroup " +
                     "INNER JOIN tblTWDSibling AS sibling  " +
                     "ON sibling.fnTWDSiblingGroupID = sibGroup.fnTWDSiblingGroupID " +
                     "WHERE sibling.fnUserID IN" +
                     "(SELECT fnUserID FROM tblTWDPlayerMID " +
                     "WHERE fcUserName = '"
-                    + params.toLowerCase().trim() + "')");
+                    + params.toLowerCase().trim() + "')");*/
+
+            ResultSet groupSet = m_botAction.SQLQuery(webdb,
+                    "SELECT fnTWDSiblingGroupID"+
+                    "FROM tblTWDSibling"+
+                    "WHERE fnUserID = ("+
+                    "SELECT fnUserID"+
+                    "FROM tblUser"+
+                    "WHERE fcUserName = "+params.toLowerCase().trim()+
+                    "ORDER BY fnUserID"+
+                    "LIMIT 1 )");
 
             if (groupSet == null) {
                 m_botAction.sendChatMessage(2, "No registered siblings found for "
