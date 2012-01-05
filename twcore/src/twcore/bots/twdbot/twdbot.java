@@ -509,6 +509,7 @@ public class twdbot extends SubspaceBot {
             if (groupSet == null || !groupSet.next()) {
                 m_botAction.sendChatMessage(2, "No registered siblings found for "
                         + params.trim() + ".");
+                return;
             }
 
             do {
