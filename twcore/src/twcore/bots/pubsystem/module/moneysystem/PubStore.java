@@ -52,7 +52,7 @@ public class PubStore {
 
         String[] itemTypes = { "item_prize" , "item_ship_upgrade" , "item_ship" , "item_command" };
         for(String type: itemTypes) {
-        	String t = type + (m_botAction.getBotName().endsWith("1") ? "" : "+");
+        	String t = "" + type + (m_botAction.getBotName().endsWith("1") ? "" : "+");
 	    	String[] items = m_botAction.getBotSettings().getString(t).split(",");
 	    	for(String number: items) {
 
