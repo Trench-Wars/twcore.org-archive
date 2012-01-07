@@ -48,7 +48,7 @@ public class pubbotafk extends PubBotModule {
     private final static String STAFF_MOVED_WARNING = "REMINDER: You have been logged out of BanG and your ?obscene has been reset as a result of being moved.";
     
     private boolean status;
-    private int size = 90;
+    private int size = 10;
     
     private OperatorList opList;
     private List<String> vipList;
