@@ -487,8 +487,8 @@ public class PubKillSessionModule extends AbstractModule {
 		length = m_botAction.getBotSettings().getInt("killothon_length");
 		interval = m_botAction.getBotSettings().getInt("killothon_interval");
 		winnerMoney = m_botAction.getBotSettings().getInt("killothon_winner_money");
-		
-		if (m_botAction.getBotSettings().getInt("killothon_enabled" + (m_botAction.getBotName().endsWith("1") ? "" : "+"))==1) {
+		String k = "killothon_enabled" + (m_botAction.getBotName().endsWith("1") ? "" : "+");
+		if (m_botAction.getBotSettings().getInt(k)==1) {
 			enabled = true;
 		} 
 		
