@@ -606,6 +606,11 @@ public class pubsystem extends SubspaceBot
 
         context.start();
         
+        String commands[] = m_botAction.getBotSettings().getString("Post" + m_botAction.getBotNumber()).split(",");
+        for(int k = 0; k < commands.length; k++) {
+            handleModCommand(m_botAction.getBotName(), commands[k]);
+        }
+        
     }
 	
     public void handleEvent(SocketMessageEvent event){
