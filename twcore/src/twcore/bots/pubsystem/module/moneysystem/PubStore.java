@@ -49,8 +49,8 @@ public class PubStore {
         this.items = new LinkedHashMap<String, PubItem>();
         
         commandCooldown = Integer.valueOf(m_botAction.getBotSettings().getString("command_cd"));
-        
-        String[] itemTypes = { "item_prize", "item_ship_upgrade", "item_ship", "item_command" };
+        String pure = (m_botAction.getBotName().endsWith("1") ? "" : "+");
+        String[] itemTypes = { "item_prize" + pure, "item_ship_upgrade" + pure, "item_ship" + pure, "item_command" + pure };
         for(String type: itemTypes) {
         	
 	    	String[] items = m_botAction.getBotSettings().getString(type).split(",");
