@@ -42,9 +42,8 @@ public class PubStore {
     
     private void initializeStore() {
     	
-        if (m_botAction.getBotSettings().getInt("store_enabled")==0) {
+        if (m_botAction.getBotSettings().getInt("store_enabled")==0)
         	turnOff();
-    	}
         
         this.items = new LinkedHashMap<String, PubItem>();
         
