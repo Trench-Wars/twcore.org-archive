@@ -587,7 +587,7 @@ public class PubUtilModule extends AbstractModule {
     public void handleCommand(String sender, String command) {
 
         if (command.startsWith("!settile ") || command.startsWith("!tileset ")) {
-            //doSetTileCmd(sender, command.substring(9));
+            doSetTileCmd(sender, command.substring(9));
         } else if (command.startsWith(
                 "!whereis ")) {
             doWhereIsCmd(sender, command.substring(9), m_botAction.getOperatorList().isBot(sender));
