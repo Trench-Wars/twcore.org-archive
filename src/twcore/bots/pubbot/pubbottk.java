@@ -36,7 +36,7 @@ import twcore.core.util.ipc.IPCMessage;
  */
 public class pubbottk extends PubBotModule {
 
-    private final boolean HARDASS = false;   // True if bot should warn, setship and
+    private final boolean HARDASS = true;   // True if bot should warn, setship and
                                              // notify staff.  If set to false, bot only
                                              // records info about TKs.
 
