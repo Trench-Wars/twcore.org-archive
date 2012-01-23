@@ -283,7 +283,7 @@ public class matchbot extends SubspaceBot {
                 String bot = m_botAction.getBotName();
                 if (ipc.getBot() != null && !bot.equalsIgnoreCase(ipc.getBot()) && !arena.equalsIgnoreCase(ipc.getBot()))
                     return;
-                if (ipc.getType() == Command.DIE) {
+                if (ipc.getType() == Command.DIE && (bot.equalsIgnoreCase(ipc.getBot()) || arena.equalsIgnoreCase(ipc.getBot()))) {
                     if (!m_isLocked || m_game == null) {
                         TimerTask d = new TimerTask() {
                             @Override
