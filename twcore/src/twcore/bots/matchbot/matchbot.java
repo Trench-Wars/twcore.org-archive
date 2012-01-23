@@ -317,18 +317,6 @@ public class matchbot extends SubspaceBot {
                         do_challenge(ipc.getName(), ipc.getSquad1(), ipc.getSquad2(), ipc.getPlayers());
                     else if (ipc.getType() == EventType.TOPCHALLENGE)
                         do_challengeTopTeams(ipc.getName(), ipc.getSquad1(), ipc.getPlayers());
-
-                    final IPCCommand com = new IPCCommand(Command.EXPIRED, TWDHUB, arena);
-                    if (!ipcTimer) {
-                        exp = new TimerTask() {
-                            @Override
-                            public void run() {
-                                m_botAction.ipcTransmit(IPC, com);
-                            }
-                        };
-                        m_botAction.scheduleTask(exp, 300000);
-                        ipcTimer = true;
-                    }
                 }
             }
         }
@@ -1006,6 +994,19 @@ public class matchbot extends SubspaceBot {
                         m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to " + nmySquad);
                         //String toBot, EventType type, String arena, String name, String squad1, String squad2, int players
                         m_botAction.ipcTransmit(IPC, new IPCChallenge("TWDBot", EventType.CHALLENGE, m_botAction.getArenaName(), name, dp.getTeamName(), nmySquad, players));
+                        m_botAction.ipcTransmit(IPC, new IPCCommand(Command.CHALL, TWDHUB, m_botAction.getArenaName()));
+                        final IPCCommand com = new IPCCommand(Command.EXPIRED, TWDHUB, m_botAction.getArenaName());
+                        if (ipcTimer && exp != null)
+                            m_botAction.cancelTask(exp);
+                        exp = new TimerTask() {
+                            @Override
+                            public void run() {
+                                m_botAction.ipcTransmit(IPC, com);
+                                ipcTimer = false;
+                            }
+                        };
+                        ipcTimer = true;
+                        m_botAction.scheduleTask(exp, 300000);
                     } else
                         m_botAction.sendSmartPrivateMessage(name, "The team you want to challenge does NOT exist in TWD");
                     m_botAction.SQLClose(rs);
@@ -1067,6 +1068,19 @@ public class matchbot extends SubspaceBot {
                     }
                     m_botAction.SQLClose(squads);
                     m_botAction.sendSmartPrivateMessage(name, squadsChalled);
+                    m_botAction.ipcTransmit(IPC, new IPCCommand(Command.CHALL, TWDHUB, m_botAction.getArenaName()));
+                    final IPCCommand com = new IPCCommand(Command.EXPIRED, TWDHUB, m_botAction.getArenaName());
+                    if (ipcTimer && exp != null)
+                        m_botAction.cancelTask(exp);
+                    exp = new TimerTask() {
+                        @Override
+                        public void run() {
+                            m_botAction.ipcTransmit(IPC, com);
+                            ipcTimer = false;
+                        }
+                    };
+                    ipcTimer = true;
+                    m_botAction.scheduleTask(exp, 300000);
                 } else
                     m_botAction.sendSmartPrivateMessage(name, "Your ?squad and your squad on the TWD roster are not the same");
             } else
@@ -1106,6 +1120,13 @@ public class matchbot extends SubspaceBot {
                                         + " game versus " + p.getSquadName() + ".");
                                 i.remove();
                             }
+                        }
+                    }
+                    if (m_gameRequests.isEmpty()) {
+                        m_botAction.ipcTransmit(IPC, new IPCCommand(Command.EXPIRED, TWDHUB, m_botAction.getArenaName()));
+                        if (ipcTimer) {
+                            ipcTimer = false;
+                            m_botAction.cancelTask(exp);
                         }
                     }
                 }
