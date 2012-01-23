@@ -410,36 +410,36 @@ public class twdhub extends SubspaceBot {
         Arena arena;
         if (arenas.containsKey(div)) {
             arena = arenas.get(div);
-            if (arena.isActive()) {
+            if (arena.hasGame()) {
                 
                 if (arenas.containsKey(div + "2")) {
                     arena = arenas.get(div + "2");
-                    if (arena.isActive()) {
+                    if (arena.hasGame()) {
                         botStay(arena.bot);
                         
                         if (arenas.containsKey(div + "3")) {
                             arena = arenas.get(div + "3");
-                            if (arena.isActive()) {
+                            if (arena.hasGame()) {
                                 botStay(arena.bot);
                                 
                                 if (arenas.containsKey(div + "4")) {
                                     arena = arenas.get(div + "4");
-                                    if (arena.isActive()) {
+                                    if (arena.hasGame()) {
                                         botStay(arena.bot);
                                         
                                         if (arenas.containsKey(div + "5")) {
                                             arena = arenas.get(div + "5");
-                                            if (arena.isActive())
+                                            if (arena.hasGame())
                                                 botStay(arena.bot);
                                         } else
                                             botSpawn(div + "5");
-                                    } else
+                                    } else if (!arena.isActive())
                                         botRemove(div + "5");
                                 } else {
                                     botSpawn(div + "4");
                                     botRemove(div + "5");
                                 }
-                            } else {
+                            } else if (!arena.isActive()) {
                                 botRemove(div + "4");
                                 botRemove(div + "5");
                             }
@@ -448,7 +448,7 @@ public class twdhub extends SubspaceBot {
                             botRemove(div + "4");
                             botRemove(div + "5");
                         }
-                    } else {
+                    } else if (!arena.isActive()) {
                         botRemove(div + "3");
                         botRemove(div + "4");
                         botRemove(div + "5");
@@ -459,7 +459,7 @@ public class twdhub extends SubspaceBot {
                     botRemove(div + "4");
                     botRemove(div + "5");
                 }
-            } else {
+            } else if (!arena.isActive()) {
                 botRemove(div + "2");
                 botRemove(div + "3");
                 botRemove(div + "4");
