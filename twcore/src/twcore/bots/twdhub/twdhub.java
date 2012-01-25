@@ -213,7 +213,6 @@ public class twdhub extends SubspaceBot {
                         game.setState(1);
                     }
                 }
-                checkDiv(ipc.getArena().substring(0, 4));
             } else if (ipc.getType() == EventType.STARTING) {
                 if (arenas.containsKey(ipc.getArena()) && arenas.get(ipc.getArena()).game != null) { 
                     arenas.get(ipc.getArena()).expire();
