@@ -116,9 +116,15 @@ public class twdhub extends SubspaceBot {
         if (name == null) return;
         
         if (type == Message.CHAT_MESSAGE) {
-            if (msg.contains("(matchbot)") && msg.contains("disconnected")) {
-                String bot = msg.substring(0, msg.indexOf("("));
-                botDisconnected(bot);
+            if (msg.contains("matchbot")) {
+                if (msg.contains("disconnected")) {
+                    String bot = msg.substring(0, msg.indexOf("("));
+                    botDisconnected(bot);
+                } else if (msg.contains("failed to log in") && !sentSpawn.isEmpty()) {
+                    debug("Detected failed log in so resending spawn request...");
+                    sentSpawn.remove(0);
+                    checkArenas();
+                }
             }
         }
         
@@ -154,7 +160,7 @@ public class twdhub extends SubspaceBot {
                 else if (cmd.equals("!sdtwd"))
                     cmd_shutdown(name);
                 else if (cmd.equals("!check"))
-                    checkArenas();
+                    cmd_reset(name);
                 else if (cmd.equals("!debug"))
                     cmd_debug(name);
                 else if (cmd.equals("!reset"))
