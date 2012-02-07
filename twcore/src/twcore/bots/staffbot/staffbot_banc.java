@@ -1254,10 +1254,12 @@ public class staffbot_banc extends Module {
             //bancName = "auto-kick";
 
         }
-
+        String comment = null;
         if (parameters.length() > 2 && parameters.contains(":")) {
             timeStr = parameters.split(":")[1];
             parameters = parameters.split(":")[0];
+            if (parameters.split(":").length == 3)
+                comment = parameters.split(":")[2];
         } else {
             m_botAction.sendRemotePrivateMessage(name, "Syntax error. Please specify <playername>:<time/mins> or PM !help for more information.");
             return;
@@ -1319,10 +1321,11 @@ public class staffbot_banc extends Module {
         BanC banc;
         banc = new BanC(bancType, target, time);
         banc.staffer = name;
+        if (comment != null)
+            banc.setComment(comment);
         dbLookupIPMID(banc);
         dbAddBan(banc);
         activeBanCs.add(banc);
-
         if (time >= 24 * 60 * 7 && timeToTell > 0) {
 
             m_botAction.sendChatMessage(name + " initiated an " + bancName + " on '" + target + "' for " + timeToTell + " days(" + time + " mins).");
