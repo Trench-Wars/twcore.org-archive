@@ -1341,7 +1341,7 @@ public class staffbot_banc extends Module {
         m_botAction.ipcSendMessage(IPCBANC, bancType.toString() + " " + time + ":" + target, null, "banc");
 
         if (comment != null)
-            cmdBancomment(name, "!bancomment #" + banc.getId() + " " + comment);
+            cmdBancomment(name, "#" + banc.getId() + " " + comment);
     }
 
     /**
