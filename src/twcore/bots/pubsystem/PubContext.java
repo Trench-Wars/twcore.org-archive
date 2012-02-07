@@ -11,6 +11,7 @@ import twcore.bots.pubsystem.module.PubChallengeModule;
 import twcore.bots.pubsystem.module.PubHuntModule;
 import twcore.bots.pubsystem.module.PubKillSessionModule;
 import twcore.bots.pubsystem.module.PubLotteryModule;
+import twcore.bots.pubsystem.module.PubMapModule;
 import twcore.bots.pubsystem.module.PubMoneySystemModule;
 import twcore.bots.pubsystem.module.PubPlayerManagerModule;
 import twcore.bots.pubsystem.module.PubStreakModule;
@@ -35,6 +36,7 @@ public class PubContext {
     private LinkedHashMap<String, AbstractModule> modules;
 
     // Modules
+    private PubMapModule pubMap;
     private PubPlayerManagerModule playerManager;
     private PubMoneySystemModule moneySystem;
     private PubChallengeModule pubChallenge;
@@ -61,6 +63,7 @@ public class PubContext {
         // Order matter (!help)
 
         getGameFlagTime();
+        getPubMap();
         getPlayerManager();
         getMoneySystem();
         getPubChallenge();
@@ -129,6 +132,14 @@ public class PubContext {
             modules.put("flagtime", gameFlagTime);
         }
         return gameFlagTime;
+    }
+
+    public PubMapModule getPubMap() {
+        if (pubMap == null) {
+            pubMap = new PubMapModule(m_botAction, this);
+            modules.put("pubmap", pubMap);
+        }
+        return pubMap;
     }
 
     public PubPlayerManagerModule getPlayerManager() {
