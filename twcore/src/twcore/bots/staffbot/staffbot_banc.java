@@ -231,7 +231,6 @@ public class staffbot_banc extends Module {
                     m_botAction.sendSmartPrivateMessage(name, "Sorry, Your access to BanC has been revoked");
                 }
                 return;
-
             }
 
             if (messageLc.startsWith("!addop"))
@@ -1257,9 +1256,9 @@ public class staffbot_banc extends Module {
         String comment = null;
         if (parameters.length() > 2 && parameters.contains(":")) {
             timeStr = parameters.split(":")[1];
-            parameters = parameters.split(":")[0];
             if (parameters.split(":").length == 3)
                 comment = parameters.split(":")[2];
+            parameters = parameters.split(":")[0];
         } else {
             m_botAction.sendRemotePrivateMessage(name, "Syntax error. Please specify <playername>:<time/mins> or PM !help for more information.");
             return;
