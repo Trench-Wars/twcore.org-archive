@@ -4,7 +4,6 @@ import twcore.bots.pubsystem.PubContext;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
-import twcore.core.events.FrequencyChange;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
