@@ -1320,8 +1320,6 @@ public class staffbot_banc extends Module {
         BanC banc;
         banc = new BanC(bancType, target, time);
         banc.staffer = name;
-        if (comment != null)
-            banc.setComment(comment);
         dbLookupIPMID(banc);
         dbAddBan(banc);
         activeBanCs.add(banc);
@@ -1341,6 +1339,9 @@ public class staffbot_banc extends Module {
         }
         m_botAction.sendRemotePrivateMessage(name, "Please do not forget to add comments to your BanC with !bancomment <#id> <comments>.");
         m_botAction.ipcSendMessage(IPCBANC, bancType.toString() + " " + time + ":" + target, null, "banc");
+
+        if (comment != null)
+            cmdBancomment(name, "!bancomment #" + banc.getId() + " " + comment);
     }
 
     /**
