@@ -135,12 +135,12 @@ public class PubMapModule extends AbstractModule {
 
     @Override
     public String[] getHelpMessage(String sender) {
-        return null;
+        return new String[]{};
     }
 
     @Override
     public String[] getModHelpMessage(String sender) {
-        return null;
+        return new String[]{};
     }
 
     @Override
