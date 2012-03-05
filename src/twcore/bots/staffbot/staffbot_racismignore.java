@@ -36,7 +36,8 @@ public class staffbot_racismignore extends Module {
         Spy.clearIgnored();
     }
     
-    public void handleMessage(Message event) {
+    @Override
+    public void handleEvent(Message event) {
         if (event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ||
                 event.getMessageType() == Message.PRIVATE_MESSAGE) {
             String message = event.getMessage().toLowerCase();
