@@ -83,6 +83,7 @@ public class staffbot extends SubspaceBot {
 
         // load modules
         moduleHandler.loadModule("_serverwarningecho");
+        moduleHandler.loadModule("_racismignore");
         moduleHandler.loadModule("_warnings");
         moduleHandler.loadModule("_badcommand_savelog");
         moduleHandler.loadModule("_banc");
