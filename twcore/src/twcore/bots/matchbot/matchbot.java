@@ -70,7 +70,6 @@ public class matchbot extends SubspaceBot {
     boolean m_cancelGame = false;
     boolean m_off = false;
     boolean m_die = false;
-    boolean power = true;
     String m_locker;
     int m_lockState = 0;
     int m_typeNumber;
@@ -115,8 +114,6 @@ public class matchbot extends SubspaceBot {
         m_arena = m_botSettings.getString("Arena");
         m_opList = m_botAction.getOperatorList();
         m_gameRequests = new LinkedList<GameRequest>();
-        powerOn = new ArrayList<String>();
-        powerOff = new ArrayList<String>();
 
         twdops = new Stack<String>();
         loadTWDOps();
@@ -376,21 +373,6 @@ public class matchbot extends SubspaceBot {
         }
         if (messageType == Message.ARENA_MESSAGE && message.equals("Obscenity block OFF") && obsceneStatus) {
             m_botAction.sendUnfilteredPublicMessage("?obscene");
-        }
-
-        if (messageType == Message.ARENA_MESSAGE && message.equals("Player Moderator OFF") && power) {
-            for (int i = 0; i < powerOn.size(); i++) {
-                m_botAction.sendPrivateMessage(powerOff.get(i), "Power ON.");
-                m_botAction.sendUnfilteredPrivateMessage(powerOn.get(i), "*moderator");
-            }
-
-        }
-        if (messageType == Message.ARENA_MESSAGE && message.equals("Player Moderator ON") && !power) {
-            for (int i = 0; i < powerOff.size(); i++) {
-                m_botAction.sendPrivateMessage(powerOn.get(i), "Power OFF.");
-                m_botAction.sendUnfilteredPrivateMessage(powerOff.get(i), "*moderator");
-            }
-
         }
 
         if ((messageType == Message.ARENA_MESSAGE)
@@ -691,19 +673,8 @@ public class matchbot extends SubspaceBot {
     }
 
     private void power(String name, String[] parameters) {
-        if (power) {
-            m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
-            powerOff.add(name.toLowerCase());
-            power = false;
-            m_botAction.sendPrivateMessage(name, "Power OFF/ON.");
-        } else {
-            m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
-            powerOn.add(name.toLowerCase());
-            power = true;
-            m_botAction.sendPrivateMessage(name, "Power ON/OFF.");
-
-        }
-
+        m_botAction.sendUnfilteredPrivateMessage(name, "*moderator");
+        m_botAction.sendPrivateMessage(name, "Power ON/OFF.");
     }
 
     public void playerKillGame() {
