@@ -84,20 +84,22 @@ public class PubMapModule extends AbstractModule {
         if (!enabled) return;
         int pop = ba.getPlayingPlayers().size();
         long now = System.currentTimeMillis();
-        if (now - lastChange > timeDelay * Tools.TimeInMillis.MINUTE)
+        if (now - lastChange < timeDelay * Tools.TimeInMillis.MINUTE)
             return;
         if (pop > popTrigger + popLeeway) {
             lastChange = now;
             currentBase = LARGE_BASE;
             ba.setDoors(currentBase);
-            ba.setupObject(LARGE_OBJON, true);
-            ba.setupObject(SMALL_OBJON, false);
+            ba.showObject(LARGE_OBJON);
+            ba.hideObject(SMALL_OBJON);
+            ba.sendSmartPrivateMessage("WingZero","[PUBMAP] Base set to LARGE base.");
         } else if (pop < popTrigger - popLeeway) {
             lastChange = now;
             currentBase = SMALL_BASE;
             ba.setDoors(currentBase);
-            ba.setupObject(SMALL_OBJON, true);
-            ba.setupObject(LARGE_OBJON, false);
+            ba.showObject(SMALL_OBJON);
+            ba.hideObject(LARGE_OBJON);
+            ba.sendSmartPrivateMessage("WingZero","[PUBMAP] Base set to SMALL base.");
         }
     }
 
