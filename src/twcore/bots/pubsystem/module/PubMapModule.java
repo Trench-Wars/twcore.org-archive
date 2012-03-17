@@ -11,7 +11,10 @@ import twcore.core.util.Tools;
 
 public class PubMapModule extends AbstractModule {
 
-    private static final int SMALL_BASE = 6;
+    
+    private static final int SMALL_OBJON = 1002;
+    private static final int LARGE_OBJON = 1001;
+    private static final int SMALL_BASE = 2;
     private static final int LARGE_BASE = 8;
     //private static final int ANTI_LEV   = 14;
     
@@ -87,14 +90,14 @@ public class PubMapModule extends AbstractModule {
             lastChange = now;
             currentBase = LARGE_BASE;
             ba.setDoors(currentBase);
-            ba.setupObject(-1, true);
-            ba.setupObject(-1, false);
+            ba.setupObject(LARGE_OBJON, true);
+            ba.setupObject(SMALL_OBJON, false);
         } else if (pop < popTrigger - popLeeway) {
             lastChange = now;
             currentBase = SMALL_BASE;
             ba.setDoors(currentBase);
-            ba.setupObject(-1, true);
-            ba.setupObject(-1, false);
+            ba.setupObject(SMALL_OBJON, true);
+            ba.setupObject(LARGE_OBJON, false);
         }
     }
 
