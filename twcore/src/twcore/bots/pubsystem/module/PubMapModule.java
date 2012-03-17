@@ -99,14 +99,12 @@ public class PubMapModule extends AbstractModule {
             ba.setDoors(currentBase);
             ba.showObject(LARGE_OBJON);
             ba.hideObject(SMALL_OBJON);
-            ba.sendSmartPrivateMessage("WingZero","[PUBMAP] Base set to LARGE base.");
         } else if (pop < popTrigger - popLeeway) {
             lastChange = now;
             currentBase = SMALL_BASE;
             ba.setDoors(currentBase);
             ba.showObject(SMALL_OBJON);
             ba.hideObject(LARGE_OBJON);
-            ba.sendSmartPrivateMessage("WingZero","[PUBMAP] Base set to SMALL base.");
         }
     }
 
