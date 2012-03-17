@@ -63,7 +63,6 @@ public class PubContext {
         // Order matter (!help)
 
         getGameFlagTime();
-        getPubMap();
         getPlayerManager();
         getMoneySystem();
         getPubChallenge();
@@ -73,6 +72,7 @@ public class PubContext {
         getPubKillSession();
         getPubSession();
         getPubUtil();
+        getPubMap();
 
         int seconds = (int) (System.currentTimeMillis() - start) / 1000;
         Tools.printLog("Modules(" + modules.size() + ") for pubsystem loaded in " + seconds + " seconds.");
