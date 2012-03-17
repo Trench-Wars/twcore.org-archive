@@ -70,6 +70,13 @@ public class PubMapModule extends AbstractModule {
     public void handleEvent(PlayerEntered event) {
         if (event.getShipType() > 0)
             doPopCheck();
+        if (currentBase == LARGE_BASE) {
+            ba.showObjectForPlayer(event.getPlayerID(), LARGE_OBJON);
+            ba.hideObjectForPlayer(event.getPlayerID(), SMALL_OBJON);
+        } else {
+            ba.showObjectForPlayer(event.getPlayerID(), SMALL_OBJON);
+            ba.hideObjectForPlayer(event.getPlayerID(), LARGE_OBJON);
+        }
     }
     
     public void handleEvent(PlayerLeft event) {
