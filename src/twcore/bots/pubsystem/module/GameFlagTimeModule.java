@@ -400,10 +400,10 @@ public class GameFlagTimeModule extends AbstractModule {
                 cmd_terr(sender);
             else if (command.trim().equals("!lt") || command.trim().startsWith("!levter"))
                 cmd_levTerr(sender);
-            else if (command.trim().equals("!warp") || command.trim().equals("!w"))
-                cmd_warp(sender);
             else if (command.trim().equals("!shufflevote"))
                 cmd_shuffleVote(sender);
+            /*else if (command.trim().equals("!warp") || command.trim().equals("!w"))
+                cmd_warp(sender);*/
 
         } catch (RuntimeException e) {
             if (e != null && e.getMessage() != null)
@@ -421,10 +421,10 @@ public class GameFlagTimeModule extends AbstractModule {
                 cmd_strictTime(sender);
             else if (command.equals("!stoptime"))
                 cmd_stopTime(sender);
-            else if (command.equals("!autowarp"))
+            /*else if (command.equals("!autowarp"))
                 cmd_autoWarp(sender);
             else if (command.equals("!allowwarp"))
-                cmd_allowWarp(sender);
+                cmd_allowWarp(sender);*/
 
         } catch (RuntimeException e) {
             if (e != null && e.getMessage() != null)
@@ -444,7 +444,7 @@ public class GameFlagTimeModule extends AbstractModule {
     @Override
     public String[] getHelpMessage(String sender) {
         return new String[] { pubsystem.getHelpLine("!shufflevote      -- Initiates shuffle teams poll after a round ends."),
-                pubsystem.getHelpLine("!warp             -- Warps you inside base at start of next round. (!w)"),
+                //pubsystem.getHelpLine("!warp             -- Warps you inside base at start of next round. (!w)"),
                 pubsystem.getHelpLine("!terr             -- Shows terriers on the team and their last seen locations. (!t)"),
                 pubsystem.getHelpLine("!lt               -- Shows active levterrs (ter + lev(s) attached)."),
                 pubsystem.getHelpLine("!team             -- Tells you which ships your team members are in."),
@@ -456,10 +456,10 @@ public class GameFlagTimeModule extends AbstractModule {
     @Override
     public String[] getModHelpMessage(String sender) {
         return new String[] { pubsystem.getHelpLine("!starttime <#>    -- Starts Flag Time game to <#> minutes"),
-                pubsystem.getHelpLine("!stoptime         -- Ends Flag Time mode."),
-                pubsystem.getHelpLine("!stricttime       -- Toggles strict mode (all players warped)"),
-                pubsystem.getHelpLine("!autowarp         -- Enables and disables 'opt out' warping style"),
-                pubsystem.getHelpLine("!allowwarp        -- Allow/Disallow the !warp command") };
+                pubsystem.getHelpLine("!stoptime         -- Ends Flag Time mode.")};
+                //pubsystem.getHelpLine("!stricttime       -- Toggles strict mode (all players warped)"),
+                //pubsystem.getHelpLine("!autowarp         -- Enables and disables 'opt out' warping style"),
+                //pubsystem.getHelpLine("!allowwarp        -- Allow/Disallow the !warp command") };
     }
 
     @Override
@@ -2287,8 +2287,8 @@ public class GameFlagTimeModule extends AbstractModule {
                 int roundNum = freq0Score + freq1Score + 1;
                 if (preTimeCount == 0) {
                     m_botAction.sendArenaMessage("Next round begins in 10 seconds . . .");
-                    if (strictFlagTimeMode)
-                        safeWarp();
+                    //if (strictFlagTimeMode)
+                    //    safeWarp();
                 }
                 preTimeCount++;
 
@@ -2301,7 +2301,7 @@ public class GameFlagTimeModule extends AbstractModule {
                     m_botAction.sendArenaMessage(message, sound);
                     m_botAction.resetFlagGame();
                     setupPlayerTimes();
-                    warpPlayers(strictFlagTimeMode);
+                    //warpPlayers(strictFlagTimeMode);
                     Iterator<?> i = m_botAction.getPlayingPlayerIterator();
                     while (i.hasNext()) {
                         Player p = (Player) i.next();
