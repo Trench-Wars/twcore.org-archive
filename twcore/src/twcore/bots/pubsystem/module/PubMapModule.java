@@ -32,6 +32,7 @@ public class PubMapModule extends AbstractModule {
         ba = botAction;
         currentBase = SMALL_BASE;
         lastChange = 0;
+        setBase();
         reloadConfig();
     }
 
@@ -63,6 +64,7 @@ public class PubMapModule extends AbstractModule {
     }
     
     public void handleEvent(PlayerEntered event) {
+        if (!enabled) return;
         if (event.getShipType() > 0)
             doPopCheck();
         if (currentBase == LARGE_BASE) {
@@ -93,16 +95,24 @@ public class PubMapModule extends AbstractModule {
         if (pop > popTrigger + popLeeway) {
             lastChange = now;
             currentBase = LARGE_BASE;
-            ba.setDoors(currentBase);
-            ba.showObject(LARGE_OBJON);
-            ba.hideObject(SMALL_OBJON);
+            setBase();
         } else if (pop < popTrigger - popLeeway) {
             lastChange = now;
             currentBase = SMALL_BASE;
-            ba.setDoors(currentBase);
+            setBase();
+        }
+    }
+    
+    private void setBase() {
+        ba.setDoors(currentBase);
+        if (currentBase == SMALL_BASE) {
             ba.showObject(SMALL_OBJON);
             ba.hideObject(LARGE_OBJON);
+        } else {
+            ba.showObject(LARGE_OBJON);
+            ba.hideObject(SMALL_OBJON);
         }
+        
     }
 
     @Override
@@ -121,6 +131,8 @@ public class PubMapModule extends AbstractModule {
             cmd_getSets(sender);
         else if (command.equals("!mapmod"))
             cmd_mapMod(sender);
+        else if (command.equals("!setbase"))
+            setBase();
     }
     
     private void cmd_reloadConfig(String name) {
