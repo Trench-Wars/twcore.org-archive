@@ -25,29 +25,23 @@ public class PubMapModule extends AbstractModule {
     private int timeDelay;      // minimum amount of time between door changes
     private long lastChange;   
     
-    private boolean enabled;
-    
     private BotAction ba;
     
     public PubMapModule(BotAction botAction, PubContext context) {
         super(botAction, context, "PubMap");
         ba = botAction;
-        enabled = true;
         currentBase = SMALL_BASE;
-        reloadConfig();
         lastChange = 0;
-        doPopCheck();
+        reloadConfig();
     }
 
     @Override
     public void start() {
-        enabled = true;
         doPopCheck();
     }
 
     @Override
     public void stop() {
-        enabled = false;
     }
 
     @Override
@@ -65,6 +59,7 @@ public class PubMapModule extends AbstractModule {
         popLeeway = set.getInt("PopulationLeeway");
         timeDelay = set.getInt("TimeDelay");
         enabled = set.getInt("pubmap_enabled") == 1;
+        doPopCheck();
     }
     
     public void handleEvent(PlayerEntered event) {
@@ -80,11 +75,13 @@ public class PubMapModule extends AbstractModule {
     }
     
     public void handleEvent(PlayerLeft event) {
-        doPopCheck();
+        if (enabled)
+            doPopCheck();
     }
     
     public void handleEvent(FrequencyShipChange event) {
-        doPopCheck();
+        if (enabled)
+            doPopCheck();
     }
     
     private void doPopCheck() {
