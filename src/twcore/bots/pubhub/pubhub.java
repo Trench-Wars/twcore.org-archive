@@ -554,7 +554,7 @@ public class pubhub extends SubspaceBot {
         for(String bot:pubbots.keySet()) {
             if(bot.startsWith("SPAWNING")) {
                 arena = pubbots.get(bot);
-                if (arena.contains("Public") || arena.contains("tw") || arena.contains("trenchwars"))
+                if (Tools.isAllDigits(arena) || arena.contains("tw") || arena.contains("trenchwars"))
                     break;
             }
         }
