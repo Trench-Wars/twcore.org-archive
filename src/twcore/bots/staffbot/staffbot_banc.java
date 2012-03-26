@@ -1072,7 +1072,7 @@ public class staffbot_banc extends Module {
                 if (banc != null && banc.isNotification()) {
                     m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)silenced. (BanC #" + banc.getId() + ")");
 
-                } else if (banc == null && banc.isNotification()) {
+                } else if (banc == null) {
                     m_botAction.sendChatMessage("Player '" + command.substring(8) + "' has been (re)silenced.");
                 }
 
