@@ -550,10 +550,12 @@ public class pubhub extends SubspaceBot {
      */
     private String getUnspawnedArena() {
         String arena = null;
-
+        
         for(String bot:pubbots.keySet()) {
             if(bot.startsWith("SPAWNING")) {
                 arena = pubbots.get(bot);
+                if (bot.contains("Public") || bot.contains("tw") || bot.contains("trenchwars"))
+                    break;
             }
         }
 
