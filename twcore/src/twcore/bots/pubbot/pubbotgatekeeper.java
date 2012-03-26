@@ -42,7 +42,7 @@ public class pubbotgatekeeper extends PubBotModule {
 
 	public void handleEvent(PlayerEntered event) {
 		Player player = m_botAction.getPlayer(event.getPlayerID());
-		m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*info");
+		//m_botAction.sendUnfilteredPrivateMessage(player.getPlayerName(), "*info");
 		lastPlayer = player.getPlayerName();
 	}
 
