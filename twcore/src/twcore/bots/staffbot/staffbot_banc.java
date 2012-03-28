@@ -1075,6 +1075,7 @@ public class staffbot_banc extends Module {
                 } else if (banc == null) {
                     m_botAction.sendChatMessage("Player '" + command.substring(8) + "' has been (re)silenced.");
                 }
+                m_botAction.sendSmartPrivateMessage("WingZero", "silence from: " + ipc.getSender());
 
             } else if (command.startsWith("REMOVE " + BanCType.SILENCE.toString())) {
                 BanC banc = lookupActiveBanC(BanCType.SILENCE, command.substring(15));
