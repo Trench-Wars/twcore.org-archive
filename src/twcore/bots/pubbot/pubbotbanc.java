@@ -313,7 +313,6 @@ public class pubbotbanc extends PubBotModule {
             tempBanCCommand = banc.getType().toString();
             tempBanCPlayer = m_botAction.getFuzzyPlayerName(name);
             if (tempBanCPlayer != null && name.equalsIgnoreCase(tempBanCPlayer)) {
-                tempBanCCommand += " " + tempBanCPlayer;
                 tempBanCTime = "" + banc.getTime();
                 m_botAction.sendUnfilteredPrivateMessage(tempBanCPlayer, "*shutup");
             } else {
