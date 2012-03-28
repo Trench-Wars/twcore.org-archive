@@ -2,6 +2,7 @@ package twcore.bots.pubbot;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TimerTask;
@@ -109,15 +110,19 @@ public class pubbotbanc extends PubBotModule {
                 if (ipc.getList() instanceof List || !(ipc.getList() instanceof BanC)) {
                     m_botAction.sendSmartPrivateMessage("WingZero", "Got list!");
                     @SuppressWarnings("unchecked")
-                    List<BanC> bancList = (List<BanC>) ipc.getList();
+                    Iterator<BanC> i = (Iterator<BanC>) ipc.getList();
                     if (bancs.isEmpty()) {
-                        for (BanC b : bancList)
+                        while (i.hasNext()) {
+                            BanC b = i.next();
                             if (b.getType() == BanCType.SILENCE)
                                 bancs.put(low(b.getPlayername()), b);
+                        }
                     } else {
-                        HashMap<String, BanC> temps = bancs;
+                        @SuppressWarnings("unchecked")
+                        HashMap<String, BanC> temps = (HashMap<String, BanC>) bancs.clone();
                         bancs.clear();
-                        for (BanC b : bancList) {
+                        while (i.hasNext()) {
+                            BanC b = i.next();
                             if (b.getType() == BanCType.SILENCE) {
                                 String name = b.getPlayername();
                                 if (temps.containsKey(low(name))) {
