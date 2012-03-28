@@ -299,7 +299,7 @@ public class twdbot extends SubspaceBot {
                             m_botAction.sendSmartPrivateMessage(t.getOwner(), "You are not the owner of the squad " + t.getSquad());
                 }
                 ownerID++;
-            } else if (message.startsWith("IP:") && !message.contains(einfoee))
+            } else if (message.startsWith("IP:") && (!einfoee.isEmpty() && !message.contains(einfoee)))
                 parseIP(message);
             else if ((message.startsWith("TIME") || message.contains(" Res: ")) && einfoer.length() > 1) {
                 m_botAction.sendSmartPrivateMessage(einfoer, message);
