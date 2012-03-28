@@ -2030,8 +2030,10 @@ public class staffbot_banc extends Module {
         int bot = -1;
         if (receiver != null && receiver.startsWith("TW-Guard"))
             bot = Integer.valueOf(receiver.substring(9));
-        IPCEvent ipc = new IPCEvent(activeBanCs, 0, bot);
-        m_botAction.ipcTransmit(IPCBANC, ipc);
+        for (BanC b : activeBanCs) {
+            IPCEvent ipc = new IPCEvent(b, 0, bot);
+            m_botAction.ipcTransmit(IPCBANC, ipc);
+        }
         for (BanC banc : activeBanCs)
             if (banc.getType() != BanCType.SILENCE)
                 m_botAction.ipcSendMessage(IPCBANC, banc.type.toString() + " " + banc.duration + ":" + banc.playername, receiver, "banc");
