@@ -106,7 +106,8 @@ public class pubbotbanc extends PubBotModule {
             if (m_botAction.getBotName().startsWith("TW-Guard"))
                 bot = Integer.valueOf(m_botAction.getBotName().substring(8));
             if (ipc.getType() < 0 || ipc.getType() == bot) {
-                if (ipc.getList() instanceof List) {
+                if (ipc.getList() instanceof List || !(ipc.getList() instanceof BanC)) {
+                    m_botAction.sendSmartPrivateMessage("WingZero", "Got list!");
                     @SuppressWarnings("unchecked")
                     List<BanC> bancList = (List<BanC>) ipc.getList();
                     if (bancs.isEmpty()) {
