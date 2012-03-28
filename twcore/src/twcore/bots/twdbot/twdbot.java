@@ -234,6 +234,8 @@ public class twdbot extends SubspaceBot {
                     checkEinfo(name, message);
                 else if (message.startsWith("!register "))
                     commandRegisterName(name, message.substring(10), false);
+                else if (message.startsWith("!regconflicts "))
+                	commandRegisterConflicts(name, message.substring(14));
                 else if (message.startsWith("!registered "))
                     commandCheckRegistered(name, message.substring(12));
                 else if (message.equals("!twdops"))
@@ -310,7 +312,7 @@ public class twdbot extends SubspaceBot {
                     }
                 }
                 ownerID++;
-            } else if (message.startsWith("IP:")) { // !register
+            } else if (message.startsWith("IP:")) { // !register and !regconflicts
                 parseIP(message);
             } else if (message.contains(" Res: ") && einfoer.length() > 1) {
                 m_botAction.sendSmartPrivateMessage(einfoer, message);
@@ -1304,6 +1306,29 @@ public class twdbot extends SubspaceBot {
         m_botAction.sendUnfilteredPrivateMessage(player, "*info");
     }
 
+    public void commandRegisterConflicts(String name, String message) {
+
+        message = message.toLowerCase();
+        
+        Player pl = m_botAction.getPlayer(message);
+        if (pl == null) {
+            m_botAction.sendSmartPrivateMessage(name,  "Unable to find " + message + " in the arena.");
+            return;
+        }
+
+        //display if the nick is registered, but continue as we still want to see the other conflicted nicks.
+        DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, message);
+        if (dbP.isRegistered()) {
+            m_botAction.sendSmartPrivateMessage(name, "The name " + message + " is already registered.");
+        }
+
+        register = name;
+        
+        //add an entry to the waiting queue so that we know how to process the *info returned information
+        m_waitingAction.put(message, "regconflicts");
+        m_botAction.sendUnfilteredPrivateMessage(message, "*info");
+    }
+    
     public void commandIPCheck(String name, String ip, boolean staff) {
 
         try {
@@ -1359,6 +1384,7 @@ public class twdbot extends SubspaceBot {
                 "!enablename <name>      - enables the name so it can be used in TWD/TWL games",
                 "!disablename <name>     - disables the name so it can not be used in TWD/TWL games",
                 "!register <name>        - force registers that name, that player must be in the arena",
+                "!regconflicts <name>    - Display the list of names causing conflicts when trying to register <name>",
                 "!registered <name>      - checks if the name is registered",
                 "!add name:<name>  ip:<IP>  mid:<MID> - Adds <name> to DB with <IP> and/or <MID>",
                 "!removeip <name>:<IP>                - Removes <IP> associated with <name>",
@@ -1419,6 +1445,7 @@ public class twdbot extends SubspaceBot {
 
             // Note you can't get here if already registered, so can't match
             // yourself.
+            //with !regconflicts, the above isn't true anymore. Though is handled in it's own processing.
             if (dbP.aliasMatchCrude(ip, mid)) {
 
                 if (option.equals("register")) {
@@ -1428,9 +1455,21 @@ public class twdbot extends SubspaceBot {
                     commandMIDCheck(name, mid, false);
                     commandIPCheck(name, ip, false);
                     return;
+                } else if (option.equals("regconflicts")) {
+                    m_botAction.sendSmartPrivateMessage(register, "The following names show up as conflicts when trying to register:");
+                    commandMIDCheck(register, mid, true);
+                    commandIPCheck(register, ip, true);
+                    return;
                 } else
                     m_botAction.sendSmartPrivateMessage(register, "WARNING: Another account may have been registered on that connection.");
+            } else {
+                if (option.equals("regconflicts")) {
+                    m_botAction.sendSmartPrivateMessage(register, "No conflicts were found for the name " + name);
+                    return;
+                }
             }
+            
+            
 
             if (!dbP.register(ip, mid)) {
                 m_botAction.sendSmartPrivateMessage(register, "Unable to register name.");
