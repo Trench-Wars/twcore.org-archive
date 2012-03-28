@@ -39,10 +39,12 @@ public class pubbotalias extends PubBotModule {
     }
 
     public void handleEvent(PlayerEntered event) {
-        String arena = m_botAction.getArenaName().toLowerCase();
+        //String arena = m_botAction.getArenaName().toLowerCase();
         //if (arena.equals("tw") || arena.equals("trenchwars"))
           //  return;
         String playerName = event.getPlayerName();
+        if (playerName == null)
+            playerName = m_botAction.getPlayerName(event.getPlayerID());
         if (playerName.startsWith("^") == false) {
             m_botAction.sendUnfilteredPrivateMessage(playerName, "*info");
         }

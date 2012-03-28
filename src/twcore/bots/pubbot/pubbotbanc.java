@@ -54,6 +54,9 @@ public class pubbotbanc extends PubBotModule {
     private TimerTask initActiveBanCs;
     
     private HashMap<String, BanC> bancs;
+    
+    private String debugger = "WingZero";
+    private boolean DEBUG = true;
 
     @Override
     public void initializeModule() {
@@ -182,7 +185,7 @@ public class pubbotbanc extends PubBotModule {
 
             if (this.hashSuperSpec.contains(namePlayer.toLowerCase()))
                 superLockMethod(namePlayer, event.getShipType());
-
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -191,7 +194,6 @@ public class pubbotbanc extends PubBotModule {
     @Override
     public void handleEvent(Message event) {
         String message = event.getMessage().trim();
-        
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
             if (message.startsWith("IP"))
                 checkBanCs(message);
@@ -265,10 +267,33 @@ public class pubbotbanc extends PubBotModule {
                 if (tempBanCCommand == null && IPCQueue.size() != 0)
                     handleIPCMessage(IPCQueue.remove(0));
             }
+        } else if (event.getMessageType() == Message.PRIVATE_MESSAGE && m_botAction.getOperatorList().isSysop(event.getMessager()))
+            if (message.equals("!bancs"))
+                cmd_bancs(event.getMessager());
+            else if (message.equals("!debug"))
+                cmd_debug(event.getMessager());
+    }
+    
+    private void cmd_bancs(String name) {
+        m_botAction.sendSmartPrivateMessage(name, "Current BanC list:");
+        for (BanC b : bancs.values())
+            m_botAction.sendSmartPrivateMessage(name, " " + b.getPlayername());
+    }
+    
+    private void cmd_debug(String name) {
+        DEBUG = !DEBUG;
+        if (DEBUG) {
+            debugger = name;
+            m_botAction.sendSmartPrivateMessage(name, "Debugger ENABLED");
+        } else {
+            debugger = "";
+            m_botAction.sendSmartPrivateMessage(name, "Debugger DISABLED");
         }
     }
     
     private void checkBanCs(String info) {
+        if (DEBUG)
+            m_botAction.sendSmartPrivateMessage(debugger, "Got info: " + info);
         String name = getInfo(info, "TypedName:");
         String ip = getInfo(info, "IP:");
         String mid = getInfo(info, "MachineId:");
