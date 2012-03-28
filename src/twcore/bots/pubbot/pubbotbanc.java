@@ -138,8 +138,8 @@ public class pubbotbanc extends PubBotModule {
                         }
 
                     }
-                } else if (ipc.getList() instanceof BanC) {
-                    BanC b = (BanC) ipc.getList();
+                } else if (ipc.getName() != null) {
+                    BanC b = new BanC(ipc.getName());
                     if (b.getType() != BanCType.SILENCE) return;
                     bancs.put(low(b.getPlayername()), b);
                     String target = m_botAction.getFuzzyPlayerName(b.getPlayername());
