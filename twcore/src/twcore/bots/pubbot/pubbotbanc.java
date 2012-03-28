@@ -101,12 +101,12 @@ public class pubbotbanc extends PubBotModule {
         // IPCMessage.recipient "PubBotX" 	==> Specific Pubbot X
 
         if (IPCBANC.equals(event.getChannel()) && event.getObject() instanceof IPCEvent) {
+            m_botAction.sendSmartPrivateMessage("WingZero", "Got ipc...");
             IPCEvent ipc = (IPCEvent) event.getObject();
             int bot = ipc.getType();
             if (m_botAction.getBotName().startsWith("TW-Guard"))
                 bot = Integer.valueOf(m_botAction.getBotName().substring(9));
             if (ipc.getType() < 0 || ipc.getType() == bot) {
-                m_botAction.sendSmartPrivateMessage("WingZero", "Got ipc...");
                 if (ipc.getList() instanceof List) {
                     @SuppressWarnings("unchecked")
                     List<BanC> bancList = (List<BanC>) ipc.getList();
