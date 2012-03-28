@@ -140,8 +140,15 @@ public class pubbotbanc extends PubBotModule {
                     }
                 } else if (ipc.getList() instanceof BanC) {
                     BanC b = (BanC) ipc.getList();
-                    if (b.getType() == BanCType.SILENCE)
-                        bancs.put(low(b.getPlayername()), b);
+                    if (b.getType() != BanCType.SILENCE) return;
+                    bancs.put(low(b.getPlayername()), b);
+                    String target = m_botAction.getFuzzyPlayerName(b.getPlayername());
+                    if (target != null && target.equalsIgnoreCase(b.getPlayername())) {
+                        tempBanCCommand = "SILENCE";
+                        tempBanCPlayer = target;
+                        tempBanCTime = "" + b.getTime();
+                        m_botAction.sendUnfilteredPrivateMessage(target, "*shutup");
+                    }
                 }
             }
         }
