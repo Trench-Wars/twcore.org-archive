@@ -108,12 +108,13 @@ public class pubbotbanc extends PubBotModule {
                 bot = Integer.valueOf(m_botAction.getBotName().substring(8));
             if (ipc.getType() < 0 || ipc.getType() == bot) {
                 if (ipc.getList() instanceof List || !(ipc.getList() instanceof BanC)) {
-                    m_botAction.sendSmartPrivateMessage("WingZero", "Got list!");
+                    m_botAction.sendPrivateMessage("WingZero", "Got list!");
                     @SuppressWarnings("unchecked")
                     Iterator<BanC> i = (Iterator<BanC>) ipc.getList();
                     if (bancs.isEmpty()) {
                         while (i.hasNext()) {
                             BanC b = i.next();
+                            m_botAction.sendPrivateMessage("WingZero", "Iterate banc: " + b.getPlayername());
                             if (b.getType() == BanCType.SILENCE)
                                 bancs.put(low(b.getPlayername()), b);
                         }
@@ -123,6 +124,7 @@ public class pubbotbanc extends PubBotModule {
                         bancs.clear();
                         while (i.hasNext()) {
                             BanC b = i.next();
+                            m_botAction.sendPrivateMessage("WingZero", "Iterate banc: " + b.getPlayername());
                             if (b.getType() == BanCType.SILENCE) {
                                 String name = b.getPlayername();
                                 if (temps.containsKey(low(name))) {
