@@ -963,9 +963,6 @@ public class twdbot extends SubspaceBot {
     }
 
     private void cmd_RegisterConflicts(String name, String message) {
-
-        message = message.toLowerCase();
-
         Player pl = m_botAction.getPlayer(message);
         if (pl == null) {
             m_botAction.sendSmartPrivateMessage(name, "Unable to find " + message + " in the arena.");
@@ -1221,7 +1218,7 @@ public class twdbot extends SubspaceBot {
         DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, name);
 
         // If an info action wasn't set don't handle it
-        if (m_waitingAction.containsKey(name) || m_waitingAction.containsKey(name.toLowerCase())) {
+        if (m_waitingAction.containsKey(name)) {
 
             String option = m_waitingAction.get(name);
             m_waitingAction.remove(name);
