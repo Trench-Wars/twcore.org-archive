@@ -167,9 +167,10 @@ public class twdbot extends SubspaceBot {
                     cmd_addSibling(name, message.substring(message.indexOf(" ")));
                 else if (message.startsWith("!changesibling "))
                     cmd_changeSibling(name, message.substring(message.indexOf(" ")));
-                else if (message.equalsIgnoreCase("!help"))
+                else if (message.equalsIgnoreCase("!help")) {
                     cmd_help(name);
-                else if (message.startsWith("!pwmatch "))
+                    cmd_DisplayHelp(name, false);
+                } else if (message.startsWith("!pwmatch "))
                     cmd_passwordMatch(name, message);
                 else if (message.startsWith("!chawa ")) {
                     String player = message.substring(message.indexOf(" ") + 1);
@@ -1220,7 +1221,7 @@ public class twdbot extends SubspaceBot {
         DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, name);
 
         // If an info action wasn't set don't handle it
-        if (m_waitingAction.containsKey(name)) {
+        if (m_waitingAction.containsKey(name) || m_waitingAction.containsKey(name.toLowerCase())) {
 
             String option = m_waitingAction.get(name);
             m_waitingAction.remove(name);
