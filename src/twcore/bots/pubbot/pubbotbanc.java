@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -107,10 +108,10 @@ public class pubbotbanc extends PubBotModule {
             if (m_botAction.getBotName().startsWith("TW-Guard"))
                 bot = Integer.valueOf(m_botAction.getBotName().substring(8));
             if (ipc.getType() < 0 || ipc.getType() == bot) {
-                if (ipc.getList() instanceof List || !(ipc.getList() instanceof BanC)) {
+                if (ipc.getList() instanceof ListIterator || !(ipc.getList() instanceof BanC)) {
                     m_botAction.sendPrivateMessage("WingZero", "Got list!");
                     @SuppressWarnings("unchecked")
-                    Iterator<BanC> i = (Iterator<BanC>) ipc.getList();
+                    ListIterator<BanC> i = (ListIterator<BanC>) ipc.getList();
                     if (bancs.isEmpty()) {
                         while (i.hasNext()) {
                             BanC b = i.next();
