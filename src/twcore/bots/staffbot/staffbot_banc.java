@@ -2030,6 +2030,7 @@ public class staffbot_banc extends Module {
         int bot = -1;
         if (receiver != null && receiver.startsWith("TW-Guard"))
             bot = Integer.valueOf(receiver.substring(9));
+        m_botAction.sendSmartPrivateMessage("WingZero", "Sending banc/s to: " + receiver != null ? receiver + " " + bot : " x" + bot);
         for (BanC b : activeBanCs) {
             IPCEvent ipc = new IPCEvent(b, 0, bot);
             m_botAction.ipcTransmit(IPCBANC, ipc);

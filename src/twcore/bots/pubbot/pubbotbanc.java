@@ -59,6 +59,7 @@ public class pubbotbanc extends PubBotModule {
     public void initializeModule() {
         m_botAction.ipcSubscribe(IPCBANC);
 
+        bancs = new HashMap<String, BanC>();
         // Request active BanCs from StaffBot
         initActiveBanCs = new TimerTask() {
             @Override
@@ -77,7 +78,6 @@ public class pubbotbanc extends PubBotModule {
         };
         m_botAction.scheduleTaskAtFixedRate(checkIPCQueue, 5 * Tools.TimeInMillis.SECOND, 5 * Tools.TimeInMillis.SECOND);
         hashSuperSpec = new HashSet<String>();
-        bancs = new HashMap<String, BanC>();
 
     }
 
@@ -99,7 +99,7 @@ public class pubbotbanc extends PubBotModule {
     public void handleEvent(InterProcessEvent event) {
         // IPCMessage.recipient null		==> All pubbots
         // IPCMessage.recipient "PubBotX" 	==> Specific Pubbot X
-
+        
         if (IPCBANC.equals(event.getChannel()) && event.getObject() instanceof IPCEvent) {
             m_botAction.sendSmartPrivateMessage("WingZero", "Got ipc...");
             IPCEvent ipc = (IPCEvent) event.getObject();
