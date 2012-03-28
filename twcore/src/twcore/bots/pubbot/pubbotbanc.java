@@ -136,6 +136,7 @@ public class pubbotbanc extends PubBotModule {
 
                     }
                 } else if (ipc.getList() instanceof BanC) {
+                    m_botAction.sendSmartPrivateMessage("WingZero", "Got banc!");
                     BanC b = (BanC) ipc.getList();
                     if (b.getType() == BanCType.SILENCE)
                         bancs.put(low(b.getPlayername()), b);
