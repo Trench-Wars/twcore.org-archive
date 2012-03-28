@@ -963,22 +963,23 @@ public class twdbot extends SubspaceBot {
     }
 
     private void cmd_RegisterConflicts(String name, String message) {
-        Player pl = m_botAction.getPlayer(message);
-        if (pl == null) {
-            m_botAction.sendSmartPrivateMessage(name, "Unable to find " + message + " in the arena.");
+
+        String target = m_botAction.getFuzzyPlayerName(message);
+        if (target == null) {
+            m_botAction.sendSmartPrivateMessage(name, "Unable to find " + target + " in the arena.");
             return;
         }
 
         //display if the nick is registered, but continue as we still want to see the other conflicted nicks.
-        DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, message);
+        DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, target);
         if (dbP.isRegistered())
-            m_botAction.sendSmartPrivateMessage(name, "The name " + message + " is already registered.");
+            m_botAction.sendSmartPrivateMessage(name, "The name " + target + " is already registered.");
 
         register = name;
 
         //add an entry to the waiting queue so that we know how to process the *info returned information
-        m_waitingAction.put(message, "regconflicts");
-        m_botAction.sendUnfilteredPrivateMessage(message, "*info");
+        m_waitingAction.put(target, "regconflicts");
+        m_botAction.sendUnfilteredPrivateMessage(target, "*info");
     }
 
     private void cmd_IPCheck(String name, String ip, boolean staff) {
@@ -1025,6 +1026,54 @@ public class twdbot extends SubspaceBot {
         } catch (Exception e) {
             Tools.printStackTrace(e);
             m_botAction.sendSmartPrivateMessage(name, "Error doing MID check.");
+        }
+    }
+
+    private void cmd_einfo(String name, String msg) {
+        if (msg.length() < 8) return;
+        String p = msg.substring(msg.indexOf(" ") + 1);
+        if (m_botAction.getFuzzyPlayerName(p) != null) {
+            einfoer = name;
+            einfoee = p;
+            m_botAction.sendUnfilteredPrivateMessage(p, "*einfo");
+        } else {
+            einfoer = name;
+            einfoee = p;
+            m_botAction.sendUnfilteredPublicMessage("*locate " + p);
+            einfo = new TimerTask() {
+                @Override
+                public void run() {
+                    m_botAction.sendSmartPrivateMessage(einfoer, "Could not locate " + einfoee);
+                    einfoer = "";
+                    einfoee = "";
+                }
+            };
+            m_botAction.scheduleTask(einfo, 2000);
+        }
+    }
+
+    private void cmd_usage(String name, String msg) {
+        if (msg.length() < 8) return;
+        String p = msg.substring(msg.indexOf(" ") + 1);
+        if (m_botAction.getFuzzyPlayerName(p) != null) {
+            einfoer = name;
+            einfoee = p;
+            m_botAction.sendUnfilteredPrivateMessage(p, "*info");
+        } else if (locatee.isEmpty()) {
+            einfoer = name;
+            einfoee = p;
+            locatee = p;
+            m_botAction.sendUnfilteredPublicMessage("*locate " + p);
+            einfo = new TimerTask() {
+                @Override
+                public void run() {
+                    m_botAction.sendSmartPrivateMessage(einfoer, "Could not locate " + einfoee);
+                    einfoer = "";
+                    einfoee = "";
+                    locatee = "";
+                }
+            };
+            m_botAction.scheduleTask(einfo, 2000);
         }
     }
 
@@ -1301,54 +1350,6 @@ public class twdbot extends SubspaceBot {
                 }
             };
             m_botAction.scheduleTask(locater, 2000);
-        }
-    }
-
-    private void cmd_einfo(String name, String msg) {
-        if (msg.length() < 8) return;
-        String p = msg.substring(msg.indexOf(" ") + 1);
-        if (m_botAction.getFuzzyPlayerName(p) != null) {
-            einfoer = name;
-            einfoee = p;
-            m_botAction.sendUnfilteredPrivateMessage(p, "*einfo");
-        } else {
-            einfoer = name;
-            einfoee = p;
-            m_botAction.sendUnfilteredPublicMessage("*locate " + p);
-            einfo = new TimerTask() {
-                @Override
-                public void run() {
-                    m_botAction.sendSmartPrivateMessage(einfoer, "Could not locate " + einfoee);
-                    einfoer = "";
-                    einfoee = "";
-                }
-            };
-            m_botAction.scheduleTask(einfo, 2000);
-        }
-    }
-
-    private void cmd_usage(String name, String msg) {
-        if (msg.length() < 8) return;
-        String p = msg.substring(msg.indexOf(" ") + 1);
-        if (m_botAction.getFuzzyPlayerName(p) != null) {
-            einfoer = name;
-            einfoee = p;
-            m_botAction.sendUnfilteredPrivateMessage(p, "*info");
-        } else if (locatee.isEmpty()) {
-            einfoer = name;
-            einfoee = p;
-            locatee = p;
-            m_botAction.sendUnfilteredPublicMessage("*locate " + p);
-            einfo = new TimerTask() {
-                @Override
-                public void run() {
-                    m_botAction.sendSmartPrivateMessage(einfoer, "Could not locate " + einfoee);
-                    einfoer = "";
-                    einfoee = "";
-                    locatee = "";
-                }
-            };
-            m_botAction.scheduleTask(einfo, 2000);
         }
     }
 
