@@ -1307,6 +1307,7 @@ public class twdbot extends SubspaceBot {
     }
 
     private void cmd_einfo(String name, String msg) {
+        if (msg.length() < 8) return;
         String p = msg.substring(msg.indexOf(" ") + 1);
         if (m_botAction.getFuzzyPlayerName(p) != null) {
             einfoer = name;
@@ -1329,6 +1330,7 @@ public class twdbot extends SubspaceBot {
     }
 
     private void cmd_usage(String name, String msg) {
+        if (msg.length() < 8) return;
         String p = msg.substring(msg.indexOf(" ") + 1);
         if (m_botAction.getFuzzyPlayerName(p) != null) {
             einfoer = name;
