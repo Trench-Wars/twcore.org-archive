@@ -1342,7 +1342,8 @@ public class staffbot_banc extends Module {
         }
         m_botAction.sendRemotePrivateMessage(name, "Please do not forget to add comments to your BanC with !bancomment <#id> <comments>.");
         m_botAction.ipcSendMessage(IPCBANC, bancType.toString() + " " + time + ":" + target, null, "banc");
-        m_botAction.ipcTransmit(IPCBANC, banc);
+        if (bancType == BanCType.SILENCE)
+            m_botAction.ipcTransmit(IPCBANC, new IPCEvent(banc, 0, -1));
 
         if (comment != null)
             cmdBancomment(name, "#" + banc.getId() + " " + comment);
