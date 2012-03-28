@@ -272,7 +272,7 @@ public class pubbotbanc extends PubBotModule {
                 name = m_botAction.getPlayerName(event.getPlayerID());
             if (m_botAction.getOperatorList().isSysop(name))
                 if (message.equals("!bancs"))
-                    cmd_bancs(event.getMessager());
+                    cmd_bancs(name);
         }
     }
     
