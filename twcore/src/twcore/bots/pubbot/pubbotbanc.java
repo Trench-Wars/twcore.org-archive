@@ -2,8 +2,6 @@ package twcore.bots.pubbot;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 import java.util.TimerTask;
@@ -108,13 +106,11 @@ public class pubbotbanc extends PubBotModule {
                 bot = Integer.valueOf(m_botAction.getBotName().substring(8));
             if (ipc.getType() < 0 || ipc.getType() == bot) {
                 if (ipc.getList() instanceof ListIterator || !(ipc.getList() instanceof BanC)) {
-                    m_botAction.sendPrivateMessage("WingZero", "Got list!");
                     @SuppressWarnings("unchecked")
                     ListIterator<String> i = (ListIterator<String>) ipc.getList();
                     if (bancs.isEmpty()) {
                         while (i.hasNext()) {
                             BanC b = new BanC(i.next());
-                            m_botAction.sendPrivateMessage("WingZero", "Iterate banc: " + b.getPlayername());
                             if (b.getType() == BanCType.SILENCE)
                                 bancs.put(low(b.getPlayername()), b);
                         }
@@ -124,7 +120,6 @@ public class pubbotbanc extends PubBotModule {
                         bancs.clear();
                         while (i.hasNext()) {
                             BanC b = new BanC(i.next());
-                            m_botAction.sendPrivateMessage("WingZero", "Iterate banc: " + b.getPlayername());
                             if (b.getType() == BanCType.SILENCE) {
                                 String name = b.getPlayername();
                                 if (temps.containsKey(low(name))) {
@@ -144,7 +139,6 @@ public class pubbotbanc extends PubBotModule {
 
                     }
                 } else if (ipc.getList() instanceof BanC) {
-                    m_botAction.sendSmartPrivateMessage("WingZero", "Got banc!");
                     BanC b = (BanC) ipc.getList();
                     if (b.getType() == BanCType.SILENCE)
                         bancs.put(low(b.getPlayername()), b);
@@ -311,6 +305,7 @@ public class pubbotbanc extends PubBotModule {
             tempBanCPlayer = m_botAction.getFuzzyPlayerName(name);
             if (tempBanCPlayer == null)
                 tempBanCPlayer = name;
+            tempBanCTime = "" + banc.getTime();
             m_botAction.sendUnfilteredPrivateMessage(name, "*shutup");
         }
     }
@@ -417,20 +412,22 @@ public class pubbotbanc extends PubBotModule {
         String name;
         String ip;
         String mid;
+        long time;
         BanCType type;
         
         public BanC(String info) {
-            // name:ip:mid
+            // name:ip:mid:time
             String[] args = info.split(":");
             name = args[0];
             ip = args[1];
             mid = args[2];
-            if (args[3].equals("SILENCE"))
+            time = Long.valueOf(args[3]);
+            if (args[4].equals("SILENCE"))
                 type = BanCType.SILENCE;
             else
                 type = BanCType.SUPERSPEC;
         }
-        
+
         public String getPlayername() {
             return name;
         }
@@ -441,6 +438,10 @@ public class pubbotbanc extends PubBotModule {
         
         public String getMID() {
             return mid;
+        }
+        
+        public long getTime() {
+            return time;
         }
         
         public BanCType getType() {
