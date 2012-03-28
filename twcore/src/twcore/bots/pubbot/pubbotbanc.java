@@ -106,6 +106,7 @@ public class pubbotbanc extends PubBotModule {
             if (m_botAction.getBotName().startsWith("TW-Guard"))
                 bot = Integer.valueOf(m_botAction.getBotName().substring(9));
             if (ipc.getType() < 0 || ipc.getType() == bot) {
+                m_botAction.sendSmartPrivateMessage("WingZero", "Got ipc...");
                 if (ipc.getList() instanceof List) {
                     @SuppressWarnings("unchecked")
                     List<BanC> bancList = (List<BanC>) ipc.getList();
@@ -300,7 +301,9 @@ public class pubbotbanc extends PubBotModule {
         }
         if (banc != null && banc.getType() == BanCType.SILENCE) {
             tempBanCCommand = banc.getType().toString();
-            tempBanCPlayer = name;
+            tempBanCPlayer = m_botAction.getFuzzyPlayerName(name);
+            if (tempBanCPlayer == null)
+                tempBanCPlayer = name;
             m_botAction.sendUnfilteredPrivateMessage(name, "*shutup");
         }
     }
