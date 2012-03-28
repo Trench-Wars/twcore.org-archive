@@ -28,7 +28,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.LinkedList;
 
@@ -2194,9 +2193,7 @@ public class staffbot_banc extends Module {
         }
     }
 
-    public class BanC implements Serializable {
-
-        private static final long serialVersionUID = 1L;
+    public class BanC {
 
         public BanC() {
         }
