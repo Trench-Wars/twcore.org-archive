@@ -294,7 +294,16 @@ public class pubbotbanc extends PubBotModule {
             banc = bancs.get(low(name));
         else {
             for (BanC b : bancs.values()) {
-                if (b.getType() == BanCType.SILENCE && (ip.equals(b.getIP()) || mid.equals(b.getMID()))) {
+                if (b.getIP() != null && ip.equals(b.getIP())) {
+                    banc = b;
+                    break;
+                } else if (b.getMID() != null && mid.equals(b.getMID())) {
+                    banc = b;
+                    break;
+                } else if (b.getIP() != null && b.getMID() == null && ip.equals(b.getIP())) {
+                    banc = b;
+                    break;
+                } else if (b.getMID() != null && b.getIP() == null && mid.equals(b.getMID())) {
                     banc = b;
                     break;
                 }
@@ -303,10 +312,14 @@ public class pubbotbanc extends PubBotModule {
         if (banc != null && banc.getType() == BanCType.SILENCE) {
             tempBanCCommand = banc.getType().toString();
             tempBanCPlayer = m_botAction.getFuzzyPlayerName(name);
-            if (tempBanCPlayer == null)
-                tempBanCPlayer = name;
-            tempBanCTime = "" + banc.getTime();
-            m_botAction.sendUnfilteredPrivateMessage(name, "*shutup");
+            if (tempBanCPlayer != null && name.equalsIgnoreCase(tempBanCPlayer)) {
+                tempBanCCommand += " " + tempBanCPlayer;
+                tempBanCTime = "" + banc.getTime();
+                m_botAction.sendUnfilteredPrivateMessage(tempBanCPlayer, "*shutup");
+            } else {
+                tempBanCPlayer = null;
+                tempBanCCommand = null;
+            }
         }
     }
     
