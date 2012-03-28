@@ -3,6 +3,7 @@ package twcore.bots.twdbot;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -10,7 +11,6 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.StringTokenizer;
 import java.util.TimerTask;
-import java.util.ArrayList;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -29,12 +29,10 @@ import twcore.core.util.ipc.EventType;
 import twcore.core.util.ipc.IPCChallenge;
 
 /**
- * Handles TWD administration tasks such as registration and deletion. Prevents
- * players from playing from any but registered IP/MID, unless overridden by an
- * Op.
+ * Handles TWD administration tasks such as registration and deletion. Prevents players from playing from any but registered IP/MID, unless overridden
+ * by an Op.
  * 
- * Also handles and maintains MatchBot location and availability as well as game
- * information for potential alerts to entering players
+ * Also handles and maintains MatchBot location and availability as well as game information for potential alerts to entering players
  */
 public class twdbot extends SubspaceBot {
 
@@ -88,20 +86,22 @@ public class twdbot extends SubspaceBot {
         req.request(EventRequester.MESSAGE);
     }
 
+    @Override
     public void handleEvent(ArenaJoined event) {
-        if (!m_botAction.getArenaName().equalsIgnoreCase("TWD")) {
+        if (!m_botAction.getArenaName().equalsIgnoreCase("TWD"))
             if (einfoer.length() > 1 && einfoee.length() > 1)
                 m_botAction.sendUnfilteredPrivateMessage(einfoee, "*einfo");
             else if (locatee.length() > 0)
                 m_botAction.sendUnfilteredPrivateMessage(locatee, "*info");
-        }
     }
 
+    @Override
     public void handleEvent(LoggedOn event) {
         m_botAction.joinArena(m_arena);
         ownerID = 0;
         m_botAction.ipcSubscribe(IPC);
         TimerTask checkMessages = new TimerTask() {
+            @Override
             public void run() {
                 checkMessages();
                 checkNamesToReset();
@@ -111,16 +111,18 @@ public class twdbot extends SubspaceBot {
         m_botAction.sendUnfilteredPublicMessage("?chat=robodev,twdstaff,executive lounge");
     }
 
+    @Override
     public void handleEvent(SQLResultEvent event) {
         if (event.getIdentifier().equals("twdbot"))
             m_botAction.SQLClose(event.getResultSet());
     }
 
+    @Override
     public void handleEvent(InterProcessEvent event) {
-        if (event.getChannel().equals(IPC)) {
+        if (event.getChannel().equals(IPC))
             if (event.getObject() instanceof IPCChallenge) {
                 IPCChallenge ipc = (IPCChallenge) event.getObject();
-                if (ipc.getRecipient().equalsIgnoreCase(m_botAction.getBotName()) && m_watches.contains(ipc.getName().toLowerCase())) {
+                if (ipc.getRecipient().equalsIgnoreCase(m_botAction.getBotName()) && m_watches.contains(ipc.getName().toLowerCase()))
                     if (ipc.getType() == EventType.CHALLENGE) {
                         m_botAction.sendChatMessage(3, "" + ipc.getName() + " challenged " + ipc.getSquad2() + " to " + ipc.getPlayers() + "s in "
                                 + ipc.getArena());
@@ -133,46 +135,39 @@ public class twdbot extends SubspaceBot {
                         m_botAction.sendChatMessage(3, "" + ipc.getName() + " challenged top teams to " + ipc.getPlayers() + "s in " + ipc.getArena());
                         m_botAction.sendChatMessage(2, "" + ipc.getName() + " challenged top teams to " + ipc.getPlayers() + "s in " + ipc.getArena());
                     }
-                }
             }
-        }
     }
 
+    @Override
     public void handleEvent(Message event) {
-        boolean isStaff;
         String message = event.getMessage();
+        String name = m_botAction.getPlayerName(event.getPlayerID());
+        if (name == null)
+            name = event.getMessager();
+        int type = event.getMessageType();
 
-        String messager = m_botAction.getPlayerName(event.getPlayerID());
-        if (messager == null)
-            messager = event.getMessager();
-
-        if (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE
-                || event.getMessageType() == Message.CHAT_MESSAGE) {
-            String name = m_botAction.getPlayerName(event.getPlayerID());
-            if (name == null)
-                name = event.getMessager();
-
-            if (m_opList.isSysop(name) || isTWDOp(name) || m_opList.isOwner(name)) {
+        if (type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE || type == Message.CHAT_MESSAGE) {
+            if (m_opList.isSysop(name) || isTWDOp(name)) {
                 if (message.startsWith("!ban ")) {
-                    command_challengeBan(name, message.substring(message.indexOf(" ") + 1));
+                    cmd_challengeBan(name, message.substring(message.indexOf(" ") + 1));
                     return;
                 } else if (message.startsWith("!unban ")) {
-                    command_challengeUnban(name, message.substring(message.indexOf(" ") + 1));
+                    cmd_challengeUnban(name, message.substring(message.indexOf(" ") + 1));
                     return;
                 } else if (message.startsWith("!chawas")) {
-                    command_watches(name);
+                    cmd_watches(name);
                     return;
-                } else if (message.startsWith("!sibling ")) {
-                    command_sibling(name, message.substring(message.indexOf(" ")));
-                } else if (message.startsWith("!addsibling ")) {
-                    command_addSibling(name, message.substring(message.indexOf(" ")));
-                } else if (message.startsWith("!changesibling ")) {
-                    command_changeSibling(name, message.substring(message.indexOf(" ")));
-                } else if (message.equalsIgnoreCase("!help")) {
-                    command_help(name);
-                } else if (message.startsWith("!pwmatch ")) {
-                    pwmatch(name, message);
-                } else if (message.startsWith("!chawa ")) {
+                } else if (message.startsWith("!sibling "))
+                    cmd_sibling(name, message.substring(message.indexOf(" ")));
+                else if (message.startsWith("!addsibling "))
+                    cmd_addSibling(name, message.substring(message.indexOf(" ")));
+                else if (message.startsWith("!changesibling "))
+                    cmd_changeSibling(name, message.substring(message.indexOf(" ")));
+                else if (message.equalsIgnoreCase("!help"))
+                    cmd_help(name);
+                else if (message.startsWith("!pwmatch "))
+                    cmd_passwordMatch(name, message);
+                else if (message.startsWith("!chawa ")) {
                     String player = message.substring(message.indexOf(" ") + 1);
                     if (m_watches.contains(player.toLowerCase())) {
                         m_watches.remove(player.toLowerCase());
@@ -183,7 +178,8 @@ public class twdbot extends SubspaceBot {
                         m_botAction.sendChatMessage(3, "" + player + " has been added to challenge watch by " + name);
                         m_botAction.sendChatMessage(2, "" + player + " has been added to challenge watch by " + name);
                     }
-                } else if (event.getMessageType() != Message.CHAT_MESSAGE) {
+                } else if (type != Message.CHAT_MESSAGE) {
+                    // Operator commands
                     if (message.startsWith("!watch ")) {
                         String player = message.substring(message.indexOf(" ") + 1);
                         if (m_watches.contains(player.toLowerCase())) {
@@ -196,130 +192,130 @@ public class twdbot extends SubspaceBot {
                             m_botAction.sendChatMessage(2, "" + player + " has been added to challenge watch by " + name);
                         }
                     } else if (message.startsWith("!watches")) {
-                        command_watches(name);
+                        cmd_watches(name);
                         return;
+                    } else if (message.startsWith("!resetname "))
+                        cmd_ResetName(name, message.substring(11), false);
+                    else if (message.startsWith("!cancelreset "))
+                        cmd_CancelResetName(name, message.substring(13), false);
+                    else if (message.startsWith("!resettime "))
+                        cmd_GetResetTime(name, message.substring(11), false, false);
+                    else if (message.startsWith("!enablename "))
+                        cmd_EnableName(name, message.substring(12));
+                    else if (message.startsWith("!disablename "))
+                        cmd_DisableName(name, message.substring(13));
+                    else if (message.startsWith("!info "))
+                        cmd_DisplayInfo(name, message.substring(6), false);
+                    else if (message.startsWith("!fullinfo "))
+                        cmd_DisplayInfo(name, message.substring(10), true);
+                    else if (message.startsWith("!einfo "))
+                        checkEinfo(name, message);
+                    else if (message.startsWith("!register "))
+                        cmd_RegisterName(name, message.substring(10), false);
+                    else if (message.startsWith("!regconflicts "))
+                        cmd_RegisterConflicts(name, message.substring(14));
+                    else if (message.startsWith("!registered "))
+                        cmd_CheckRegistered(name, message.substring(12));
+                    else if (message.equals("!twdops"))
+                        cmd_TWDOps(name);
+                    else if (message.startsWith("!altip "))
+                        cmd_IPCheck(name, message.substring(7), true);
+                    else if (message.startsWith("!altmid "))
+                        cmd_MIDCheck(name, message.substring(8), true);
+                    else if (message.startsWith("!check "))
+                        checkIP(name, message.substring(7));
+                    else if (message.startsWith("!go "))
+                        m_botAction.changeArena(message.substring(4));
+                    else if (message.startsWith("!help"))
+                        cmd_DisplayHelp(name, false);
+                    else if (message.startsWith("!add "))
+                        cmd_AddMIDIP(name, message.substring(5));
+                    else if (message.startsWith("!removeip "))
+                        cmd_RemoveIP(name, message.substring(10));
+                    else if (message.startsWith("!removemid "))
+                        cmd_RemoveMID(name, message.substring(11));
+                    else if (message.startsWith("!removeipmid "))
+                        cmd_RemoveIPMID(name, message.substring(13));
+                    else if (message.startsWith("!listipmid "))
+                        cmd_ListIPMID(name, message.substring(11));
+                    else if (message.equalsIgnoreCase("!die")) {
+                        this.handleDisconnect();
+                        m_botAction.die();
                     }
                 }
-
-            }
-        }
-
-        if (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) {
-            String name = m_botAction.getPlayerName(event.getPlayerID());
-            if (name == null)
-                name = event.getMessager();
-
-            if (m_opList.isER(name))
-                isStaff = true;
-            else
-                isStaff = false;
-
-            if (m_opList.isSysop(name) || isTWDOp(name)) {
-                // Operator commands
-                if (message.startsWith("!resetname "))
-                    commandResetName(name, message.substring(11), false);
-                else if (message.startsWith("!cancelreset "))
-                    commandCancelResetName(name, message.substring(13), false);
-                else if (message.startsWith("!resettime "))
-                    commandGetResetTime(name, message.substring(11), false, false);
-                else if (message.startsWith("!enablename "))
-                    commandEnableName(name, message.substring(12));
-                else if (message.startsWith("!disablename "))
-                    commandDisableName(name, message.substring(13));
-                else if (message.startsWith("!info "))
-                    commandDisplayInfo(name, message.substring(6), false);
-                else if (message.startsWith("!fullinfo "))
-                    commandDisplayInfo(name, message.substring(10), true);
-                else if (message.startsWith("!einfo "))
-                    checkEinfo(name, message);
-                else if (message.startsWith("!register "))
-                    commandRegisterName(name, message.substring(10), false);
-                else if (message.startsWith("!regconflicts "))
-                	commandRegisterConflicts(name, message.substring(14));
-                else if (message.startsWith("!registered "))
-                    commandCheckRegistered(name, message.substring(12));
-                else if (message.equals("!twdops"))
-                    commandTWDOps(name);
-                else if (message.startsWith("!altip "))
-                    commandIPCheck(name, message.substring(7), true);
-                else if (message.startsWith("!altmid "))
-                    commandMIDCheck(name, message.substring(8), true);
-                else if (message.startsWith("!check "))
-                    checkIP(name, message.substring(7));
-                else if (message.startsWith("!go "))
-                    m_botAction.changeArena(message.substring(4));
-                else if (message.startsWith("!help"))
-                    commandDisplayHelp(name, false);
-                else if (message.startsWith("!add "))
-                    commandAddMIDIP(name, message.substring(5));
-                else if (message.startsWith("!removeip "))
-                    commandRemoveIP(name, message.substring(10));
-                else if (message.startsWith("!removemid "))
-                    commandRemoveMID(name, message.substring(11));
-                else if (message.startsWith("!removeipmid "))
-                    commandRemoveIPMID(name, message.substring(13));
-                else if (message.startsWith("!listipmid "))
-                    commandListIPMID(name, message.substring(11));
-                else if (message.equalsIgnoreCase("!die")) {
-                    this.handleDisconnect();
-                    m_botAction.die();
-                }
-            } else {
-                if (!(event.getMessageType() == Message.PRIVATE_MESSAGE))
-                    return;
+            } else if (type != Message.REMOTE_PRIVATE_MESSAGE) {
                 // Player commands
                 if (message.equals("!resetname"))
-                    commandResetName(name, name, true);
+                    cmd_ResetName(name, name, true);
                 else if (message.equals("!resettime"))
-                    commandGetResetTime(name, name, true, false);
+                    cmd_GetResetTime(name, name, true, false);
                 else if (message.equals("!cancelreset"))
-                    commandCancelResetName(name, name, true);
+                    cmd_CancelResetName(name, name, true);
                 else if (message.equals("!registered"))
-                    commandCheckRegistered(name, name);
+                    cmd_CheckRegistered(name, name);
                 else if (message.startsWith("!registered "))
-                    commandCheckRegistered(name, message.substring(12));
+                    cmd_CheckRegistered(name, message.substring(12));
                 else if (message.equals("!register"))
-                    commandRegisterName(name, name, true);
+                    cmd_RegisterName(name, name, true);
                 else if (message.equals("!twdops"))
-                    commandTWDOps(name);
+                    cmd_TWDOps(name);
                 else if (message.equals("!help"))
-                    commandDisplayHelp(name, true);
+                    cmd_DisplayHelp(name, true);
             }
 
-            // First: convert the command to a command with parameters
-            String command = stringChopper(message, ' ')[0];
-            String[] parameters = stringChopper(message.substring(command.length()).trim(), ':');
-            for (int i = 0; i < parameters.length; i++)
-                parameters[i] = parameters[i].replace(':', ' ').trim();
-            command = command.trim();
+            if (type != Message.REMOTE_PRIVATE_MESSAGE) {
+                // First: convert the command to a command with parameters
+                String command = stringChopper(message, ' ')[0];
+                String[] parameters = stringChopper(message.substring(command.length()).trim(), ':');
+                for (int i = 0; i < parameters.length; i++)
+                    parameters[i] = parameters[i].replace(':', ' ').trim();
+                command = command.trim();
 
-            parseCommand(name, command, parameters, isStaff);
+                if (message.equals("!signup"))
+                    cmd_signup(name, message, parameters);
+                if (message.equals("!squadsignup"))
+                    cmd_squadsignup(name, message);
+                if (message.equals("!help")) {
+                    String help[] = { "--------- TWD/TWL COMMANDS -----------------------------------------------------------",
+                            " !signup <password>     - Replace <password> with a password which is hard to guess.",
+                            "                          You are safer if you choose a password that differs",
+                            "                          completely from your current SSCU Continuum password.",
+                            "                          Example: !signup mypass. This command will get you an",
+                            "                          useraccount for TWL and TWD. If you have forgotten your",
+                            "                          password, you can use this to pick a new password",
+                            " !squadsignup           - This command will sign up your current ?squad for TWD.",
+                            "                          Note: You need to be the squadowner of the squad",
+                            "                          and !registered",
+                            " !games                 - This command will give you a list of the current matches",
+                            "                          Note: It will work from any arena!", };
+                    m_botAction.privateMessageSpam(name, help);
+                }
+            }
         }
 
-        if (event.getMessageType() == Message.ARENA_MESSAGE) { // !squadsignup
+        if (type == Message.ARENA_MESSAGE)
             if (event.getMessage().startsWith("Owner is ")) {
                 String squadOwner = event.getMessage().substring(9);
 
                 ListIterator<SquadOwner> i = m_squadowner.listIterator();
                 while (i.hasNext()) {
                     SquadOwner t = i.next();
-                    if (t.getID() == ownerID) {
-                        if (t.getOwner().equalsIgnoreCase(squadOwner)) {
+                    if (t.getID() == ownerID)
+                        if (t.getOwner().equalsIgnoreCase(squadOwner))
                             storeSquad(t.getSquad(), t.getOwner());
-                        } else {
+                        else
                             m_botAction.sendSmartPrivateMessage(t.getOwner(), "You are not the owner of the squad " + t.getSquad());
-                        }
-                    }
                 }
                 ownerID++;
-            } else if (message.startsWith("IP:")) { // !register and !regconflicts
+            } else if (message.startsWith("IP:"))
                 parseIP(message);
-            } else if (message.contains(" Res: ") && einfoer.length() > 1) {
+            else if (message.contains(" Res: ") && einfoer.length() > 1) {
                 m_botAction.sendSmartPrivateMessage(einfoer, message);
                 einfoer = "";
                 einfoee = "";
                 if (!m_botAction.getArenaName().equalsIgnoreCase("TWD")) {
                     TimerTask goback = new TimerTask() {
+                        @Override
                         public void run() {
                             m_botAction.changeArena("TWD");
                         }
@@ -334,7 +330,7 @@ public class twdbot extends SubspaceBot {
                     if (arena.startsWith("Public"))
                         arena = arena.substring(arena.indexOf(" ") + 1);
                     m_botAction.changeArena(arena);
-                } else if (m_requesters.containsKey(located) || m_requesters.containsKey(located.toLowerCase())) {
+                } else if (m_requesters.containsKey(located) || m_requesters.containsKey(located.toLowerCase()))
                     if (locatee.equalsIgnoreCase(located)) {
                         m_botAction.cancelTask(locater);
                         locatee = located;
@@ -343,17 +339,15 @@ public class twdbot extends SubspaceBot {
                             arena = arena.substring(arena.indexOf(" ") + 1);
                         m_botAction.changeArena(arena);
                     }
-                }
             }
-        }
     }
 
-    private void pwmatch(String name, String message) {
+    private void cmd_passwordMatch(String name, String message) {
         try {
             StringTokenizer arguments = new StringTokenizer(message.substring(9), ":");
-            if (!(arguments.countTokens() == 2)) {
+            if (!(arguments.countTokens() == 2))
                 m_botAction.sendSmartPrivateMessage(name, "How can I check if you don't give me two values to check?");
-            } else {
+            else {
 
                 String name1 = arguments.nextToken();
                 String name2 = arguments.nextToken();
@@ -366,67 +360,30 @@ public class twdbot extends SubspaceBot {
 
                 ResultSet result = m_botAction.SQLQuery("website", "SELECT fcPassword FROM tblUserAccount WHERE fnUserID = " + id);
                 ResultSet resultB = m_botAction.SQLQuery("website", "SELECT fcPassword FROM tblUserAccount WHERE fnUserID = " + id2);
-                
-                if(!result.next() || !resultB.next()){
-                    m_botAction.sendChatMessage(2, "Cannot compare one of the pwmatch values. Please make sure the user exists on TWD.");
-                } else {
 
+                if (!result.next() || !resultB.next())
+                    m_botAction.sendChatMessage(2, "Cannot compare one of the pwmatch values. Please make sure the user exists on TWD.");
+                else {
 
                     String pass = result.getString("fcPassword");
                     String pass2 = resultB.getString("fcPassword");
 
-
-                    if (pass.equals(pass2)) {
+                    if (pass.equals(pass2))
                         m_botAction.sendChatMessage(2, "The requested TWD Password match by " + name + " returned POSITIVE");
-                    } else {
+                    else
                         m_botAction.sendChatMessage(2, "The requested TWD Password match by " + name + " returned NEGATIVE");
-                    }
-                }   
+                }
                 m_botAction.SQLClose(result);
                 m_botAction.SQLClose(resultB);
             }
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Tools.printStackTrace(e);
         }
     }
 
-    public static String[] stringChopper(String input, char deliniator) {
-        try {
-            LinkedList<String> list = new LinkedList<String>();
-
-            int nextSpace = 0;
-            int previousSpace = 0;
-
-            if (input == null) {
-                return null;
-            }
-
-            do {
-                previousSpace = nextSpace;
-                nextSpace = input.indexOf(deliniator, nextSpace + 1);
-
-                if (nextSpace != -1) {
-                    String stuff = input.substring(previousSpace, nextSpace).trim();
-                    if (stuff != null && !stuff.equals(""))
-                        list.add(stuff);
-                }
-
-            } while (nextSpace != -1);
-            String stuff = input.substring(previousSpace);
-            stuff = stuff.trim();
-            if (stuff.length() > 0) {
-                list.add(stuff);
-            }
-            ;
-            return list.toArray(new String[list.size()]);
-        } catch (Exception e) {
-            throw new RuntimeException("Error in stringChopper.");
-        }
-    }
-
-    public void command_help(String name) {
-        String[] msg = { "TWD Challenge Commands:", " !chawa <name>                - Toggles challenge watch on or off for <name>",
+    private void cmd_help(String name) {
+        String[] msg = { "--------- TWD CHALLENGE COMMANDS -----------------------------------------------------",
+                " !chawa <name>                - Toggles challenge watch on or off for <name>",
                 " !chawas                      - Displays current challenge watches",
                 " !ban <name>                  - Prevents <name> from being able to do challenges for a day",
                 " !unban <name>                - Removes challenge ban for <name> if it exists",
@@ -437,9 +394,9 @@ public class twdbot extends SubspaceBot {
 
     }
 
-    public void command_challengeBan(String name, String msg) {
+    private void cmd_challengeBan(String name, String msg) {
         DBPlayerData dbp = new DBPlayerData(m_botAction, webdb, msg, false);
-        if (dbp.checkPlayerExists()) {
+        if (dbp.checkPlayerExists())
             try {
                 ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT * FROM tblChallengeBan WHERE fnUserID = " + dbp.getUserID() + " AND fnActive = 1");
                 if (rs.next()) {
@@ -454,13 +411,13 @@ public class twdbot extends SubspaceBot {
             } catch (SQLException e) {
                 Tools.printStackTrace(e);
             }
-        } else
+        else
             m_botAction.sendSmartPrivateMessage(name, "Player not found.");
     }
 
-    public void command_challengeUnban(String name, String msg) {
+    private void cmd_challengeUnban(String name, String msg) {
         DBPlayerData dbp = new DBPlayerData(m_botAction, webdb, msg, false);
-        if (dbp.checkPlayerExists()) {
+        if (dbp.checkPlayerExists())
             try {
                 ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT * FROM tblChallengeBan WHERE fnUserID = " + dbp.getUserID() + " AND fnActive = 1");
                 if (rs.next()) {
@@ -476,41 +433,31 @@ public class twdbot extends SubspaceBot {
             } catch (SQLException e) {
                 Tools.printStackTrace(e);
             }
-        } else
+        else
             m_botAction.sendSmartPrivateMessage(name, "Player not found.");
     }
 
-    public void command_watches(String name) {
+    private void cmd_watches(String name) {
         String watches = "Challenge watches: ";
-        for (String p : m_watches) {
+        for (String p : m_watches)
             watches += p + ", ";
-        }
 
         watches = watches.substring(0, watches.length() - 2);
         m_botAction.sendChatMessage(2, watches);
         m_botAction.sendChatMessage(3, watches);
     }
 
-    public void command_sibling(String name, String params) {
-        if (params == null || params.isEmpty()) {
+    private void cmd_sibling(String name, String params) {
+        if (params == null || params.isEmpty())
             m_botAction.sendChatMessage(2, "Usage: !sibling name");
-        }
         try {
 
             //grab the sibling group ids for corresponding player
-            ResultSet groupSet = m_botAction.SQLQuery(webdb,
-                    "SELECT fnTWDSiblingGroupID "+
-                    "FROM tblTWDSibling "+
-                    "WHERE fnUserID = ("+
-                    "SELECT fnUserID "+
-                    "FROM tblUser "+
-                    "WHERE fcUserName = '"+params.trim()+"' "+
-                    "ORDER BY fnUserID "+
-                    "LIMIT 1 )");
+            ResultSet groupSet = m_botAction.SQLQuery(webdb, "SELECT fnTWDSiblingGroupID " + "FROM tblTWDSibling " + "WHERE fnUserID = ("
+                    + "SELECT fnUserID " + "FROM tblUser " + "WHERE fcUserName = '" + params.trim() + "' " + "ORDER BY fnUserID " + "LIMIT 1 )");
 
             if (groupSet == null || !groupSet.next()) {
-                m_botAction.sendChatMessage(2, "No registered siblings found for "
-                        + params.trim() + ".");
+                m_botAction.sendChatMessage(2, "No registered siblings found for " + params.trim() + ".");
                 return;
             }
 
@@ -519,36 +466,24 @@ public class twdbot extends SubspaceBot {
 
                 m_botAction.sendChatMessage(2, "");
 
-                ResultSet nameSet = m_botAction.SQLQuery(webdb,
-                        "SELECT fcUserName "+
-                        "FROM tblUser " +
-                        "WHERE fnUserID "+
-                        "IN(" +
-                        "SELECT fnUserID "+
-                        "FROM tblTWDSibling " +
-                        "WHERE fnTWDSiblingGroupID = '" +
-                        groupSet.getString(1) +
-                        "')");
+                ResultSet nameSet = m_botAction.SQLQuery(webdb, "SELECT fcUserName " + "FROM tblUser " + "WHERE fnUserID " + "IN("
+                        + "SELECT fnUserID " + "FROM tblTWDSibling " + "WHERE fnTWDSiblingGroupID = '" + groupSet.getString(1) + "')");
 
-                ResultSet infoSet = m_botAction.SQLQuery(webdb,
-                        "SELECT fcComment, ftUpdated "
-                        + "FROM tblTWDSiblingGroup "
-                        + "WHERE fnTWDSiblingGroupID = "
-                        + "'" + groupSet.getString(1) + "'");
+                ResultSet infoSet = m_botAction.SQLQuery(webdb, "SELECT fcComment, ftUpdated " + "FROM tblTWDSiblingGroup "
+                        + "WHERE fnTWDSiblingGroupID = " + "'" + groupSet.getString(1) + "'");
 
-                while (nameSet != null && nameSet.next()) {
+                while (nameSet != null && nameSet.next())
                     m_botAction.sendChatMessage(2, "  " + nameSet.getString(1));
-                }
 
-                if (infoSet != null && infoSet.next()){
-                    m_botAction.sendChatMessage(2, "Updated: "+infoSet.getString(2));
-                    m_botAction.sendChatMessage(2, "Comment: "+infoSet.getString(1));
+                if (infoSet != null && infoSet.next()) {
+                    m_botAction.sendChatMessage(2, "Updated: " + infoSet.getString(2));
+                    m_botAction.sendChatMessage(2, "Comment: " + infoSet.getString(1));
                 }
 
                 nameSet.close();
                 infoSet.close();
-                
-            } while(groupSet.next());
+
+            } while (groupSet.next());
 
             groupSet.close();
         } catch (SQLException e) {
@@ -557,11 +492,11 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public void command_addSibling(String name, String params) {
+    private void cmd_addSibling(String name, String params) {
         String[] names = params.split(":");
-        if (names.length < 2) {
+        if (names.length < 2)
             m_botAction.sendChatMessage(2, "Usage: !addsibling name:siblingName");
-        } else {
+        else {
             /*try {
                 
             } catch (SQLException e) {
@@ -570,11 +505,11 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public void command_changeSibling(String name, String params) {
+    private void cmd_changeSibling(String name, String params) {
         String[] names = params.split(":");
-        if (names.length < 2) {
+        if (names.length < 2)
             m_botAction.sendChatMessage(2, "Usage: !changesibling oldName:newName");
-        } else {
+        else {
             /*try {
                 
             } catch (SQLException e) {
@@ -583,25 +518,7 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public boolean isTWDOp(String name) {
-        try {
-            ResultSet result = m_botAction.SQLQuery(webdb, "SELECT DISTINCT tblUser.fcUserName FROM tblUser, tblUserRank"
-                    + " WHERE tblUser.fcUserName = '" + Tools.addSlashesToString(name) + "'" + " AND tblUser.fnUserID = tblUserRank.fnUserID"
-                    + " AND ( tblUserRank.fnRankID = 14 OR tblUserRank.fnRankID = 19 )");
-            if (result != null && result.next()) {
-                m_botAction.SQLClose(result);
-                return true;
-            } else {
-                m_botAction.SQLClose(result);
-                return false;
-            }
-        } catch (SQLException e) {
-            Tools.printStackTrace(e);
-            return false;
-        }
-    }
-
-    public void commandTWDOps(String name) {
+    private void cmd_TWDOps(String name) {
         try {
             HashSet<String> twdOps = new HashSet<String>();
             ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT tblUser.fcUserName, tblUserRank.fnRankID FROM tblUser, tblUserRank"
@@ -624,18 +541,16 @@ public class twdbot extends SubspaceBot {
                 bag.add(it.next());
                 if (bag.size() == 4) {
                     String row = "";
-                    for (int i = 0; i < 4; i++) {
+                    for (int i = 0; i < 4; i++)
                         row = row + bag.get(i) + ", ";
-                    }
                     m_botAction.sendSmartPrivateMessage(name, "| " + row.substring(0, row.length() - 2));
                     bag.clear();
                 }
             }
             if (bag.size() != 0) {
                 String row = "";
-                for (int i = 0; i < bag.size(); i++) {
+                for (int i = 0; i < bag.size(); i++)
                     row = row + bag.get(i) + ", ";
-                }
                 m_botAction.sendSmartPrivateMessage(name, "| " + row.substring(0, row.length() - 2));
             }
             m_botAction.sendSmartPrivateMessage(name, "+------------------------------------------------------");
@@ -644,21 +559,20 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public void commandAddMIDIP(String staffname, String info) {
+    private void cmd_AddMIDIP(String staffname, String info) {
         try {
             info = info.toLowerCase();
             String pieces[] = info.split("  ", 3);
             HashSet<String> names = new HashSet<String>();
             HashSet<String> IPs = new HashSet<String>();
             HashSet<String> mIDs = new HashSet<String>();
-            for (int k = 0; k < pieces.length; k++) {
+            for (int k = 0; k < pieces.length; k++)
                 if (pieces[k].startsWith("name"))
                     names.add(pieces[k].split(":")[1]);
                 else if (pieces[k].startsWith("ip"))
                     IPs.add(pieces[k].split(":")[1]);
                 else if (pieces[k].startsWith("mid"))
                     mIDs.add(pieces[k].split(":")[1]);
-            }
             Iterator<String> namesIt = names.iterator();
             while (namesIt.hasNext()) {
                 String name = namesIt.next();
@@ -671,9 +585,9 @@ public class twdbot extends SubspaceBot {
                     String mID = null;
                     if (midsIt.hasNext())
                         mID = midsIt.next();
-                    if (IP == null && mID == null) {
+                    if (IP == null && mID == null)
                         m_botAction.sendSmartPrivateMessage(staffname, "Syntax (note double spaces):  !add name:thename  ip:IP  mid:MID");
-                    } else if (IP == null) {
+                    else if (IP == null) {
                         ResultSet r = m_botAction.SQLQuery(webdb, "SELECT fnUserID FROM tblTWDPlayerMID WHERE fcUserName='"
                                 + Tools.addSlashesToString(name) + "' AND fnMID=" + mID);
                         if (r.next()) {
@@ -722,12 +636,11 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public void commandRemoveMID(String Name, String info) {
+    private void cmd_RemoveMID(String Name, String info) {
         try {
             String pieces[] = info.split(":", 2);
-            if (pieces.length < 2) {
+            if (pieces.length < 2)
                 m_botAction.sendPrivateMessage(Name, "Needs to be like !removemid <name>:<mid>");
-            }
             String name = pieces[0];
             String mID = pieces[1];
             m_botAction.SQLQueryAndClose(webdb, "UPDATE tblTWDPlayerMID SET fnMID = 0 WHERE fcUserName = '" + Tools.addSlashesToString(name)
@@ -738,12 +651,11 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public void commandRemoveIP(String Name, String info) {
+    private void cmd_RemoveIP(String Name, String info) {
         try {
             String pieces[] = info.split(":", 2);
-            if (pieces.length < 2) {
+            if (pieces.length < 2)
                 m_botAction.sendPrivateMessage(Name, "Needs to be like !removeip <name>:<IP>");
-            }
             String name = pieces[0];
             String IP = pieces[1];
             m_botAction.SQLQueryAndClose(webdb, "UPDATE tblTWDPlayerMID SET fcIP = '0.0.0.0' WHERE fcUserName = '" + Tools.addSlashesToString(name)
@@ -754,41 +666,42 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public void commandRemoveIPMID(String name, String playerName) {
+    private void cmd_RemoveIPMID(String name, String playerName) {
         try {
             m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblTWDPlayerMID WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "'");
             m_botAction.sendPrivateMessage(name, "Removed all IP and MID entries for '" + playerName + "'.");
         } catch (SQLException e) {}
     }
 
-    public void commandListIPMID(String name, String player) {
+    private void cmd_ListIPMID(String name, String player) {
         DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, player);
         m_botAction.sendSmartPrivateMessage(name, "TWD record for '" + player + "'");
         String header = "Status: ";
-        if (dbP.getStatus() == 0) {
+        if (dbP.getStatus() == 0)
             header += "NOT REGISTERED";
-        } else {
+        else {
             if (dbP.getStatus() == 1)
                 header += "REGISTERED";
             else
                 header += "DISABLED";
             header += "  Registered IP: " + dbP.getIP() + "  Registered MID: " + dbP.getMID();
         }
+        m_botAction.sendSmartPrivateMessage(name, header);
 
         try {
             ResultSet results = m_botAction.SQLQuery(webdb, "SELECT fcIP, fnMID FROM tblTWDPlayerMID WHERE fcUserName = '"
                     + Tools.addSlashesToString(player) + "'");
             if (!results.next())
-                m_botAction.sendPrivateMessage(name, "There are no staff-registered IPs and MIDs for this name.");
+                m_botAction.sendSmartPrivateMessage(name, "There are no staff-registered IPs and MIDs for this name.");
             else {
-                m_botAction.sendPrivateMessage(name, "Staff-registered IP and MID exceptions:");
+                m_botAction.sendSmartPrivateMessage(name, "Staff-registered IP and MID exceptions:");
                 do {
                     String message = "";
                     if (!results.getString("fcIP").equals("0.0.0.0"))
                         message += "IP: " + results.getString("fcIP") + "   ";
                     if (results.getInt("fnMID") != 0)
                         message += "mID: " + results.getInt("fnMID");
-                    m_botAction.sendPrivateMessage(name, message);
+                    m_botAction.sendSmartPrivateMessage(name, message);
                 } while (results.next());
             }
             m_botAction.SQLClose(results);
@@ -798,34 +711,7 @@ public class twdbot extends SubspaceBot {
 
     }
 
-    public void parseCommand(String name, String command, String[] parameters, boolean isStaff) {
-        try {
-            if (command.equals("!signup")) {
-                command_signup(name, command, parameters);
-            }
-            if (command.equals("!squadsignup")) {
-                command_squadsignup(name, command);
-            }
-            if (command.equals("!help")) {
-                String help[] = { "--------- TWD/TWL COMMANDS -----------------------------------------------------------",
-                        "!signup <password>      - Replace <password> with a password which is hard to guess.",
-                        "                          You are safer if you choose a password that differs",
-                        "                          completely from your current SSCU Continuum password.",
-                        "                          Example: !signup mypass. This command will get you an",
-                        "                          useraccount for TWL and TWD. If you have forgotten your",
-                        "                          password, you can use this to pick a new password",
-                        "!squadsignup            - This command will sign up your current ?squad for TWD.",
-                        "                          Note: You need to be the squadowner of the squad", "                          and !registered",
-                        "!games                  - This command will give you a list of the current matches",
-                        "                          Note: It will work from any arena!", };
-                m_botAction.privateMessageSpam(name, help);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Error in parseCommand.");
-        }
-    }
-
-    public void command_signup(String name, String command, String[] parameters) {
+    private void cmd_signup(String name, String command, String[] parameters) {
         try {
 
             DBPlayerData data = new DBPlayerData(m_botAction, webdb, name, false);
@@ -841,27 +727,21 @@ public class twdbot extends SubspaceBot {
                 DBPlayerData thisP;
 
                 thisP = findPlayerInList(name);
-                if (thisP != null) {
-                    if (System.currentTimeMillis() - thisP.getLastQuery() < 300000) {
+                if (thisP != null)
+                    if (System.currentTimeMillis() - thisP.getLastQuery() < 300000)
                         can_continue = false;
-                    }
-                }
 
                 if (thisP == null) {
                     thisP = new DBPlayerData(m_botAction, webdb, name, true);
                     success = thisP.getPlayerAccountData();
-                } else {
+                } else
                     success = true;
-                }
 
                 if (can_continue) {
-                    if (!success) {
+                    if (!success)
                         success = thisP.createPlayerAccountData(fcPassword);
-                    } else {
-                        if (!thisP.getPassword().equals(fcPassword)) {
-                            success = thisP.updatePlayerAccountData(fcPassword);
-                        }
-                    }
+                    else if (!thisP.getPassword().equals(fcPassword))
+                        success = thisP.updatePlayerAccountData(fcPassword);
 
                     if (!thisP.hasRank(2))
                         thisP.giveRank(2);
@@ -872,203 +752,34 @@ public class twdbot extends SubspaceBot {
                         m_botAction.sendSmartPrivateMessage(name, "Password: " + thisP.getPassword());
                         m_botAction.sendSmartPrivateMessage(name, "To join your squad roster, go to http://twd.trenchwars.org . Log in, click on 'My Profile', select your squad and then click on 'Apply to this squad'");
                         m_players.add(thisP);
-                    } else {
+                    } else
                         m_botAction.sendSmartPrivateMessage(name, "Couldn't create/update your user account.  Contact a TWDOp with the ?help command for assistance.");
-                    }
-                } else {
+                } else
                     m_botAction.sendSmartPrivateMessage(name, "You can only signup / change passwords once every 5 minutes");
-                }
-            } else {
-                if (specialPlayer)
-                    m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup MySuperPass11!'. The password must contain at least 1 number, 1 uppercase, and needs to be at least 10 characters long. ");
-                else
-                    m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup MyPass11'. The password must contain a number and needs to be at least 8 characters long.");
-            }
+            } else if (specialPlayer)
+                m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup MySuperPass11!'. The password must contain at least 1 number, 1 uppercase, and needs to be at least 10 characters long. ");
+            else
+                m_botAction.sendSmartPrivateMessage(name, "Specify a password, ex. '!signup MyPass11'. The password must contain a number and needs to be at least 8 characters long.");
 
         } catch (Exception e) {
             throw new RuntimeException("Error in command_signup.");
         }
-    };
-
-    public boolean passwordIsValid(String password, boolean specialPlayer) {
-
-        boolean digit = false;
-        boolean uppercase = false;
-        boolean length = false;
-        @SuppressWarnings("unused")
-        boolean specialcharacter = false;
-
-        for (int i = 0; i < password.length(); i++) {
-
-            if (Character.isDigit(password.charAt(i))) {
-                digit = true;
-            }
-            if (Character.isUpperCase(password.charAt(i))) {
-                uppercase = true;
-            }
-            if (!Character.isLetterOrDigit(password.charAt(i))) {
-                specialcharacter = true;
-            }
-        }
-
-        if (specialPlayer) {
-            if (password.length() >= 10) {
-                length = true;
-            }
-            return length && digit && uppercase;
-
-        } else {
-
-            if (password.length() >= 8) {
-                length = true;
-            }
-
-            return length && digit;
-
-        }
-
     }
 
-    public void command_squadsignup(String name, String command) {
+    private void cmd_squadsignup(String name, String command) {
         Player p = m_botAction.getPlayer(name);
         String squad = p.getSquadName();
-        if (squad.equals("")) {
+        if (squad.equals(""))
             m_botAction.sendSmartPrivateMessage(name, "You are not in a squad.");
-        } else {
+        else {
             m_squadowner.add(new SquadOwner(name, squad, ownerID));
             m_botAction.sendUnfilteredPublicMessage("?squadowner " + squad);
         }
     }
 
-    public DBPlayerData findPlayerInList(String name) {
-        try {
-            ListIterator<DBPlayerData> l = m_players.listIterator();
-            DBPlayerData thisP;
-
-            while (l.hasNext()) {
-                thisP = l.next();
-                if (name.equalsIgnoreCase(thisP.getUserName()))
-                    return thisP;
-            }
-            ;
-            return null;
-        } catch (Exception e) {
-            throw new RuntimeException("Error in findPlayerInList.");
-        }
-    };
-
-    public void checkMessages() {
-        try {
-            // Improved query: tblMessage is only used for TWD score change
-            // messages, so we only need to check for unprocessed msgs
-            ResultSet s = m_botAction.SQLQuery(webdb, "SELECT * FROM tblMessage WHERE fnProcessed = 0");
-            while (s != null && s.next()) {
-                if (s.getString("fcMessageType").equalsIgnoreCase("squad")) {
-                    m_botAction.sendSquadMessage(s.getString("fcTarget"), s.getString("fcMessage"), s.getInt("fnSound"));
-                    // Delete messages rather than update them as sent, as we
-                    // don't need to keep records.
-                    // This table is only used to send msgs between the website
-                    // and this bot.
-                    m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblMessage WHERE fnMessageID = " + s.getInt("fnMessageID"));
-                }
-                ;
-            }
-            ;
-            m_botAction.SQLClose(s);
-        } catch (SQLException e) {
-            Tools.printStackTrace(e);
-        }
-        ;
-    };
-
-    public void storeSquad(String squad, String owner) {
-
-        try {
-            DBPlayerData thisP2 = new DBPlayerData(m_botAction, webdb, owner, false);
-
-            if (thisP2 == null || !thisP2.isRegistered()) {
-                m_botAction.sendSmartPrivateMessage(owner, "Your name has not been !registered. Please private message me with !register.");
-                return;
-            }
-            if (!thisP2.isEnabled()) {
-                m_botAction.sendSmartPrivateMessage(owner, "Your name has been disabled from TWD.  (This means you may not register a squad.)  Contact a TWDOp with ?help for assistance.");
-                return;
-            }
-
-            DBPlayerData thisP = new DBPlayerData(m_botAction, webdb, owner, false);
-
-            if (thisP != null) {
-                if (thisP.getTeamID() == 0) {
-                    ResultSet s = m_botAction.SQLQuery(webdb, "select fnTeamID from tblTeam where fcTeamName = '" + Tools.addSlashesToString(squad)
-                            + "' and (fdDeleted = 0 or fdDeleted IS NULL)");
-                    if (s.next()) {
-                        m_botAction.sendSmartPrivateMessage(owner, "That squad is already registered..");
-                        m_botAction.SQLClose(s);
-                        ;
-                        return;
-                    } else
-                        m_botAction.SQLClose(s);
-
-                    String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
-                    String fields[] = { "fcTeamName", "fdCreated" };
-                    String values[] = { Tools.addSlashesToString(squad), time };
-                    m_botAction.SQLInsertInto(webdb, "tblTeam", fields, values);
-
-                    int teamID;
-
-                    // This query gets the latest inserted TeamID from the
-                    // database to associate the player with
-                    ResultSet s2 = m_botAction.SQLQuery(webdb, "SELECT MAX(fnTeamID) AS fnTeamID FROM tblTeam");
-                    if (s2.next()) {
-                        teamID = s2.getInt("fnTeamID");
-                        m_botAction.SQLClose(s2);
-                    } else {
-                        m_botAction.sendSmartPrivateMessage(owner, "Database error, contact a TWD Op.");
-                        m_botAction.SQLClose(s2);
-                        return;
-                    }
-
-                    String fields2[] = { "fnUserID", "fnTeamID", "fdJoined", "fnCurrentTeam" };
-                    String values2[] = { Integer.toString(thisP.getUserID()), Integer.toString(teamID), time, "1" };
-                    m_botAction.SQLInsertInto(webdb, "tblTeamUser", fields2, values2);
-
-                    thisP.giveRank(4);
-
-                    m_botAction.sendSmartPrivateMessage(owner, "The squad " + squad + " has been signed up for TWD.");
-                } else
-                    m_botAction.sendSmartPrivateMessage(owner, "You must leave your current squad first.");
-            }
-        } catch (Exception e) {
-            m_botAction.sendSmartPrivateMessage(owner, "Database error, contact a TWD Op.");
-        }
-    }
-
-    class SquadOwner {
-        String owner = "", squad = "";
-        int id;
-
-        public SquadOwner(String name, String tSquad, int tID) {
-            owner = name;
-            squad = tSquad;
-            id = tID;
-        };
-
-        public String getOwner() {
-            return owner;
-        };
-
-        public String getSquad() {
-            return squad;
-        };
-
-        public int getID() {
-            return id;
-        };
-    };
-
     // aliasbot
 
-    public void commandCheckRegistered(String name, String message) {
+    private void cmd_CheckRegistered(String name, String message) {
 
         DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, message);
 
@@ -1078,7 +789,7 @@ public class twdbot extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage(name, "The name '" + message + "' has NOT been registered.");
     }
 
-    public void commandResetName(String name, String message, boolean player) {
+    private void cmd_ResetName(String name, String message, boolean player) {
 
         DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, message);
 
@@ -1131,7 +842,7 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public void commandCancelResetName(String name, String message, boolean player) {
+    private void cmd_CancelResetName(String name, String message, boolean player) {
         DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, message);
 
         try {
@@ -1141,52 +852,25 @@ public class twdbot extends SubspaceBot {
                 m_botAction.SQLBackgroundQuery(webdb, "twdbot", "UPDATE tblAliasSuppression SET fdResetTime = NULL WHERE fnUserID = '"
                         + dbP.getUserID() + "'");
 
-                if (player) {
+                if (player)
                     m_botAction.sendSmartPrivateMessage(name, "Your name has been removed from the list of names about to get reset.");
-                } else {
+                else
                     m_botAction.sendSmartPrivateMessage(name, "The name '" + message
                             + "' has been removed from the list of names about to get reset.");
-                }
-            } else {
-                if (player) {
-                    m_botAction.sendSmartPrivateMessage(name, "Your name isn't on the list of names about to get reset.");
-                } else {
-                    m_botAction.sendSmartPrivateMessage(name, "The name '" + message + "' was not found on the list of names about to get reset.");
-                }
-            }
+            } else if (player)
+                m_botAction.sendSmartPrivateMessage(name, "Your name isn't on the list of names about to get reset.");
+            else
+                m_botAction.sendSmartPrivateMessage(name, "The name '" + message + "' was not found on the list of names about to get reset.");
             m_botAction.SQLClose(s);
         } catch (Exception e) {
-            if (player) {
+            if (player)
                 m_botAction.sendSmartPrivateMessage(name, "Database error, contact a TWD Op.");
-            } else {
+            else
                 m_botAction.sendSmartPrivateMessage(name, "Database error: " + e.getMessage() + ".");
-            }
         }
     }
 
-    public boolean isBeingReset(String name, String message) {
-        DBPlayerData database = new DBPlayerData(m_botAction, webdb, message);
-        try {
-            String query = "SELECT DATE_ADD(fdResetTime, INTERVAL 1 DAY) as resettime, NOW() as now FROM tblAliasSuppression WHERE fnUserID = "
-                    + database.getUserID() + " AND fdResetTime IS NOT NULL";
-            ResultSet rs = m_botAction.SQLQuery(webdb, query);
-            if (rs.next()) { // then it'll be really reseted
-                String time = rs.getString("resetTime");
-                String now = rs.getString("now");
-                if (time.contains("."))
-                    time = time.substring(0, time.lastIndexOf("."));
-                if (now.contains("."))
-                    now = now.substring(0, now.lastIndexOf("."));
-                m_botAction.sendPrivateMessage(name, "Your name will reset at " + time + " already. Current time: " + now);
-                m_botAction.SQLClose(rs);
-                return true;
-            }
-            m_botAction.SQLClose(rs);
-        } catch (SQLException e) {}
-        return false;
-    }
-
-    public void commandGetResetTime(String name, String message, boolean player, boolean silent) {
+    private void cmd_GetResetTime(String name, String message, boolean player, boolean silent) {
         DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, message);
 
         try {
@@ -1199,31 +883,25 @@ public class twdbot extends SubspaceBot {
                     time = time.substring(0, time.lastIndexOf("."));
                 if (now.contains("."))
                     now = now.substring(0, now.lastIndexOf("."));
-                if (player) {
+                if (player)
                     m_botAction.sendSmartPrivateMessage(name, "Your name will reset at " + time + ". Current time: " + now);
-                } else {
+                else
                     m_botAction.sendSmartPrivateMessage(name, "The name '" + message + "' will reset at " + time + ". Current time: " + now);
-                }
-            } else {
-                if (!silent) {
-                    if (player) {
-                        m_botAction.sendSmartPrivateMessage(name, "Your name was not found on the list of names about to get reset.");
-                    } else {
-                        m_botAction.sendSmartPrivateMessage(name, "The name '" + message + "' was not found on the list of names about to get reset.");
-                    }
-                }
-            }
+            } else if (!silent)
+                if (player)
+                    m_botAction.sendSmartPrivateMessage(name, "Your name was not found on the list of names about to get reset.");
+                else
+                    m_botAction.sendSmartPrivateMessage(name, "The name '" + message + "' was not found on the list of names about to get reset.");
             m_botAction.SQLClose(s);
         } catch (Exception e) {
-            if (player) {
+            if (player)
                 m_botAction.sendSmartPrivateMessage(name, "Database error, contact a TWD Op.");
-            } else {
+            else
                 m_botAction.sendSmartPrivateMessage(name, "Database error: " + e.getMessage() + ".");
-            }
         }
     }
 
-    public void commandEnableName(String name, String message) {
+    private void cmd_EnableName(String name, String message) {
 
         DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, message);
 
@@ -1244,7 +922,7 @@ public class twdbot extends SubspaceBot {
         m_botAction.sendSmartPrivateMessage(name, "The name '" + message + "' has been enabled.");
     }
 
-    public void commandDisableName(String name, String message) {
+    private void cmd_DisableName(String name, String message) {
         // Create the player if not registered
         DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, message, true);
 
@@ -1261,7 +939,7 @@ public class twdbot extends SubspaceBot {
                 + "' has been disabled, and will not be able to reset manually without being enabled again.");
     }
 
-    public void commandDisplayInfo(String name, String message, boolean verbose) {
+    private void cmd_DisplayInfo(String name, String message, boolean verbose) {
 
         DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, message);
 
@@ -1278,19 +956,18 @@ public class twdbot extends SubspaceBot {
             dbP.getPlayerSquadData();
             m_botAction.sendSmartPrivateMessage(name, "Member of '" + dbP.getTeamName() + "'; squad created " + dbP.getTeamSignedUp());
         }
-        commandGetResetTime(name, message, false, true);
+        cmd_GetResetTime(name, message, false, true);
     }
 
-    public void commandRegisterName(String name, String message, boolean p) {
+    private void cmd_RegisterName(String name, String message, boolean p) {
 
         Player pl = m_botAction.getPlayer(message);
         String player;
         if (pl == null) {
             m_botAction.sendSmartPrivateMessage(name, "Unable to find " + message + " in the arena.");
             return;
-        } else {
+        } else
             player = message;
-        }
 
         DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, player);
 
@@ -1306,30 +983,29 @@ public class twdbot extends SubspaceBot {
         m_botAction.sendUnfilteredPrivateMessage(player, "*info");
     }
 
-    public void commandRegisterConflicts(String name, String message) {
+    private void cmd_RegisterConflicts(String name, String message) {
 
         message = message.toLowerCase();
-        
+
         Player pl = m_botAction.getPlayer(message);
         if (pl == null) {
-            m_botAction.sendSmartPrivateMessage(name,  "Unable to find " + message + " in the arena.");
+            m_botAction.sendSmartPrivateMessage(name, "Unable to find " + message + " in the arena.");
             return;
         }
 
         //display if the nick is registered, but continue as we still want to see the other conflicted nicks.
         DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, message);
-        if (dbP.isRegistered()) {
+        if (dbP.isRegistered())
             m_botAction.sendSmartPrivateMessage(name, "The name " + message + " is already registered.");
-        }
 
         register = name;
-        
+
         //add an entry to the waiting queue so that we know how to process the *info returned information
         m_waitingAction.put(message, "regconflicts");
         m_botAction.sendUnfilteredPrivateMessage(message, "*info");
     }
-    
-    public void commandIPCheck(String name, String ip, boolean staff) {
+
+    private void cmd_IPCheck(String name, String ip, boolean staff) {
 
         try {
             String query = "SELECT fcUserName, fcIP, fnMID FROM tblAliasSuppression AS A, ";
@@ -1350,7 +1026,7 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public void commandMIDCheck(String name, String mid, boolean staff) {
+    private void cmd_MIDCheck(String name, String mid, boolean staff) {
 
         if (mid == null || mid == "" || !(Tools.isAllDigits(mid))) {
             m_botAction.sendSmartPrivateMessage(name, "MID must be all numeric.");
@@ -1376,46 +1052,117 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public void commandDisplayHelp(String name, boolean player) {
+    private void cmd_DisplayHelp(String name, boolean player) {
         String help[] = { "--------- ACCOUNT MANAGEMENT COMMANDS ------------------------------------------------",
-                "!resetname <name>       - resets the name (unregisters it)",
-                "!resettime <name>       - returns the time when the name will be reset",
-                "!cancelreset <name>     - cancels the !reset a player has issued",
-                "!enablename <name>      - enables the name so it can be used in TWD/TWL games",
-                "!disablename <name>     - disables the name so it can not be used in TWD/TWL games",
-                "!register <name>        - force registers that name, that player must be in the arena",
-                "!regconflicts <name>    - Display the list of names causing conflicts when trying to register <name>",
-                "!registered <name>      - checks if the name is registered",
-                "!add name:<name>  ip:<IP>  mid:<MID> - Adds <name> to DB with <IP> and/or <MID>",
-                "!removeip <name>:<IP>                - Removes <IP> associated with <name>",
-                "!removemid <name>:<MID>              - Removes <MID> associated with <name>",
-                "!removeipmid <name>                  - Removes all IPs and MIDs for <name>",
-                "!listipmid <name>                    - Lists IP's and MID's associated with <name>",
-                "!pwmatch <name>:<name>               - Compares TWD Passwords of <name> and <name>",
+                " !resetname <name>       - resets the name (unregisters it)",
+                " !resettime <name>       - returns the time when the name will be reset",
+                " !cancelreset <name>     - cancels the !reset a player has issued",
+                " !enablename <name>      - enables the name so it can be used in TWD/TWL games",
+                " !disablename <name>     - disables the name so it can not be used in TWD/TWL games",
+                " !register <name>        - force registers that name, that player must be in the arena",
+                " !regconflicts <name>    - Display the list of names causing conflicts when trying to register <name>",
+                " !registered <name>      - checks if the name is registered",
+                " !add name:<name>  ip:<IP>  mid:<MID> - Adds <name> to DB with <IP> and/or <MID>",
+                " !removeip <name>:<IP>                - Removes <IP> associated with <name>",
+                " !removemid <name>:<MID>              - Removes <MID> associated with <name>",
+                " !removeipmid <name>                  - Removes all IPs and MIDs for <name>",
+                " !listipmid <name>                    - Lists IP's and MID's associated with <name>",
+                " !pwmatch <name>:<name>               - Compares TWD Passwords of <name> and <name>",
                 "--------- ALIAS CHECK COMMANDS -------------------------------------------------------",
-                "!info <name>            - displays the IP/MID that was used to register this name",
-                "!fullinfo <name>        - displays IP/MID, squad name, and date squad was reg'd",
-                "!altip <IP>             - looks for matching records based on <IP>",
-                "!altmid <MID>           - looks for matching records based on <MID>",
-                "!ipidcheck <IP> <MID>   - looks for matching records based on <IP> and <MID>",
+                " !info <name>            - displays the IP/MID that was used to register this name",
+                " !fullinfo <name>        - displays IP/MID, squad name, and date squad was reg'd",
+                " !altip <IP>             - looks for matching records based on <IP>",
+                " !altmid <MID>           - looks for matching records based on <MID>",
+                " !ipidcheck <IP> <MID>   - looks for matching records based on <IP> and <MID>",
                 "         <IP> can be partial address - ie:  192.168.0.",
                 "--------- MISC COMMANDS --------------------------------------------------------------",
-                "!check <name>           - checks live IP and MID of <name> (through *info [no !go] works any arena, NOT the DB)",
-                "!twdops                 - displays a list of the current TWD Ops", "!go <arena>             - moves the bot" };
+                " !check <name>           - checks live IP and MID of <name> (through *info [no !go] works any arena, NOT the DB)",
+                " !twdops                 - displays a list of the current TWD Ops", " !go <arena>             - moves the bot" };
         String SModHelp[] = { "--------- SMOD COMMANDS --------------------------------------------------------------",
                 " TWD Operators are determined by levels on the website which can be modified at www.trenchwars.org/staff" };
         String help2[] = { "--------- ACCOUNT MANAGEMENT COMMANDS ------------------------------------------------",
-                "!resetname              - resets your name", "!resettime              - returns the time when your name will be reset",
-                "!cancelreset            - cancels the !resetname", "!register               - registers your name",
-                "!registered <name>      - checks if the name is registered", "!twdops                 - displays a list of the current TWD Ops" };
+                " !resetname              - resets your name", " !resettime              - returns the time when your name will be reset",
+                " !cancelreset            - cancels the !resetname", " !register               - registers your name",
+                " !registered <name>      - checks if the name is registered", " !twdops                 - displays a list of the current TWD Ops" };
 
         if (player)
             m_botAction.privateMessageSpam(name, help2);
         else {
             m_botAction.privateMessageSpam(name, help);
-            if (m_opList.isSmod(name)) {
+            if (m_opList.isSmod(name))
                 m_botAction.privateMessageSpam(name, SModHelp);
+        }
+    }
+
+    public boolean isTWDOp(String name) {
+        try {
+            ResultSet result = m_botAction.SQLQuery(webdb, "SELECT DISTINCT tblUser.fcUserName FROM tblUser, tblUserRank"
+                    + " WHERE tblUser.fcUserName = '" + Tools.addSlashesToString(name) + "'" + " AND tblUser.fnUserID = tblUserRank.fnUserID"
+                    + " AND ( tblUserRank.fnRankID = 14 OR tblUserRank.fnRankID = 19 )");
+            if (result != null && result.next()) {
+                m_botAction.SQLClose(result);
+                return true;
+            } else {
+                m_botAction.SQLClose(result);
+                return false;
             }
+        } catch (SQLException e) {
+            Tools.printStackTrace(e);
+            return false;
+        }
+    }
+
+    public boolean isBeingReset(String name, String message) {
+        DBPlayerData database = new DBPlayerData(m_botAction, webdb, message);
+        try {
+            String query = "SELECT DATE_ADD(fdResetTime, INTERVAL 1 DAY) as resettime, NOW() as now FROM tblAliasSuppression WHERE fnUserID = "
+                    + database.getUserID() + " AND fdResetTime IS NOT NULL";
+            ResultSet rs = m_botAction.SQLQuery(webdb, query);
+            if (rs.next()) { // then it'll be really reseted
+                String time = rs.getString("resetTime");
+                String now = rs.getString("now");
+                if (time.contains("."))
+                    time = time.substring(0, time.lastIndexOf("."));
+                if (now.contains("."))
+                    now = now.substring(0, now.lastIndexOf("."));
+                m_botAction.sendPrivateMessage(name, "Your name will reset at " + time + " already. Current time: " + now);
+                m_botAction.SQLClose(rs);
+                return true;
+            }
+            m_botAction.SQLClose(rs);
+        } catch (SQLException e) {}
+        return false;
+    }
+
+    public static String[] stringChopper(String input, char deliniator) {
+        try {
+            LinkedList<String> list = new LinkedList<String>();
+
+            int nextSpace = 0;
+            int previousSpace = 0;
+
+            if (input == null)
+                return null;
+
+            do {
+                previousSpace = nextSpace;
+                nextSpace = input.indexOf(deliniator, nextSpace + 1);
+
+                if (nextSpace != -1) {
+                    String stuff = input.substring(previousSpace, nextSpace).trim();
+                    if (stuff != null && !stuff.equals(""))
+                        list.add(stuff);
+                }
+
+            } while (nextSpace != -1);
+            String stuff = input.substring(previousSpace);
+            stuff = stuff.trim();
+            if (stuff.length() > 0)
+                list.add(stuff);
+            ;
+            return list.toArray(new String[list.size()]);
+        } catch (Exception e) {
+            throw new RuntimeException("Error in stringChopper.");
         }
     }
 
@@ -1452,54 +1199,49 @@ public class twdbot extends SubspaceBot {
                     m_botAction.sendSmartPrivateMessage(name, "ERROR: One or more names have already been registered into TWD from your computer and/or internet address.");
                     m_botAction.sendSmartPrivateMessage(name, "Please login and reset your old name(s) with !resetname, wait 24 hours, and then !register this name.");
                     m_botAction.sendSmartPrivateMessage(name, "If one of these name(s) do not belong to you or anyone in your house, you may still register, but only with staff approval.  Type ?help <msg> for assistance.");
-                    commandMIDCheck(name, mid, false);
-                    commandIPCheck(name, ip, false);
+                    cmd_MIDCheck(name, mid, false);
+                    cmd_IPCheck(name, ip, false);
                     return;
                 } else if (option.equals("regconflicts")) {
                     m_botAction.sendSmartPrivateMessage(register, "The following names show up as conflicts when trying to register:");
-                    commandMIDCheck(register, mid, true);
-                    commandIPCheck(register, ip, true);
+                    cmd_MIDCheck(register, mid, true);
+                    cmd_IPCheck(register, ip, true);
                     return;
                 } else
                     m_botAction.sendSmartPrivateMessage(register, "WARNING: Another account may have been registered on that connection.");
-            } else {
-                if (option.equals("regconflicts")) {
-                    m_botAction.sendSmartPrivateMessage(register, "No conflicts were found for the name " + name);
-                    return;
-                }
+            } else if (option.equals("regconflicts")) {
+                m_botAction.sendSmartPrivateMessage(register, "No conflicts were found for the name " + name);
+                return;
             }
-            
-            
 
             if (!dbP.register(ip, mid)) {
                 m_botAction.sendSmartPrivateMessage(register, "Unable to register name.");
                 return;
             }
-            commandAddMIDIP(name, "name:" + name + "  ip:" + ip + "  mid:" + mid);
+            cmd_AddMIDIP(name, "name:" + name + "  ip:" + ip + "  mid:" + mid);
             m_botAction.sendSmartPrivateMessage(register, "REGISTRATION SUCCESSFUL");
             m_botAction.sendSmartPrivateMessage(register, "NOTE: Only one name per household is allowed to be registered with TWD staff approval.  If you have family members that also play, you must register manually with staff (type ?help <msg>).");
             m_botAction.sendSmartPrivateMessage(register, "Holding two or more name registrations in one household without staff approval may result in the disabling of one or all names registered.");
 
-        } else {
-            if (m_requesters != null) {
-                String response = name + "  IP:" + ip + "  MID:" + mid;
-                String requester = "";
-                if (m_requesters.containsKey(name))
-                    requester = m_requesters.remove(name);
-                else
-                    requester = m_requesters.remove(name.toLowerCase());
-                if (requester != null) {
-                    m_botAction.sendSmartPrivateMessage(requester, response);
-                    if (locatee.equalsIgnoreCase(name))
-                        locatee = "";
-                    if (!m_botAction.getArenaName().equalsIgnoreCase("TWD")) {
-                        TimerTask delay = new TimerTask() {
-                            public void run() {
-                                m_botAction.changeArena("TWD");
-                            }
-                        };
-                        m_botAction.scheduleTask(delay, 2000);
-                    }
+        } else if (m_requesters != null) {
+            String response = name + "  IP:" + ip + "  MID:" + mid;
+            String requester = "";
+            if (m_requesters.containsKey(name))
+                requester = m_requesters.remove(name);
+            else
+                requester = m_requesters.remove(name.toLowerCase());
+            if (requester != null) {
+                m_botAction.sendSmartPrivateMessage(requester, response);
+                if (locatee.equalsIgnoreCase(name))
+                    locatee = "";
+                if (!m_botAction.getArenaName().equalsIgnoreCase("TWD")) {
+                    TimerTask delay = new TimerTask() {
+                        @Override
+                        public void run() {
+                            m_botAction.changeArena("TWD");
+                        }
+                    };
+                    m_botAction.scheduleTask(delay, 2000);
                 }
             }
         }
@@ -1540,6 +1282,7 @@ public class twdbot extends SubspaceBot {
             final String p = message;
             m_botAction.sendUnfilteredPublicMessage("*locate " + message);
             locater = new TimerTask() {
+                @Override
                 public void run() {
                     m_botAction.sendSmartPrivateMessage(n, "Could not locate " + p);
                     m_requesters.remove(n.toLowerCase());
@@ -1561,6 +1304,7 @@ public class twdbot extends SubspaceBot {
             einfoee = p;
             m_botAction.sendUnfilteredPublicMessage("*locate " + p);
             einfo = new TimerTask() {
+                @Override
                 public void run() {
                     m_botAction.sendSmartPrivateMessage(einfoer, "Could not locate " + einfoee);
                     einfoer = "";
@@ -1568,6 +1312,165 @@ public class twdbot extends SubspaceBot {
                 }
             };
             m_botAction.scheduleTask(einfo, 2000);
+        }
+    }
+
+    public boolean passwordIsValid(String password, boolean specialPlayer) {
+
+        boolean digit = false;
+        boolean uppercase = false;
+        boolean length = false;
+        @SuppressWarnings("unused")
+        boolean specialcharacter = false;
+
+        for (int i = 0; i < password.length(); i++) {
+
+            if (Character.isDigit(password.charAt(i)))
+                digit = true;
+            if (Character.isUpperCase(password.charAt(i)))
+                uppercase = true;
+            if (!Character.isLetterOrDigit(password.charAt(i)))
+                specialcharacter = true;
+        }
+
+        if (specialPlayer) {
+            if (password.length() >= 10)
+                length = true;
+            return length && digit && uppercase;
+
+        } else {
+
+            if (password.length() >= 8)
+                length = true;
+
+            return length && digit;
+
+        }
+
+    }
+
+    public DBPlayerData findPlayerInList(String name) {
+        try {
+            ListIterator<DBPlayerData> l = m_players.listIterator();
+            DBPlayerData thisP;
+
+            while (l.hasNext()) {
+                thisP = l.next();
+                if (name.equalsIgnoreCase(thisP.getUserName()))
+                    return thisP;
+            }
+            ;
+            return null;
+        } catch (Exception e) {
+            throw new RuntimeException("Error in findPlayerInList.");
+        }
+    }
+
+    public void checkMessages() {
+        try {
+            // Improved query: tblMessage is only used for TWD score change
+            // messages, so we only need to check for unprocessed msgs
+            ResultSet s = m_botAction.SQLQuery(webdb, "SELECT * FROM tblMessage WHERE fnProcessed = 0");
+            while (s != null && s.next()) {
+                if (s.getString("fcMessageType").equalsIgnoreCase("squad")) {
+                    m_botAction.sendSquadMessage(s.getString("fcTarget"), s.getString("fcMessage"), s.getInt("fnSound"));
+                    // Delete messages rather than update them as sent, as we
+                    // don't need to keep records.
+                    // This table is only used to send msgs between the website
+                    // and this bot.
+                    m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblMessage WHERE fnMessageID = " + s.getInt("fnMessageID"));
+                }
+                ;
+            }
+            ;
+            m_botAction.SQLClose(s);
+        } catch (SQLException e) {
+            Tools.printStackTrace(e);
+        }
+        ;
+    };
+
+    public void storeSquad(String squad, String owner) {
+
+        try {
+            DBPlayerData thisP2 = new DBPlayerData(m_botAction, webdb, owner, false);
+
+            if (thisP2 == null || !thisP2.isRegistered()) {
+                m_botAction.sendSmartPrivateMessage(owner, "Your name has not been !registered. Please private message me with !register.");
+                return;
+            }
+            if (!thisP2.isEnabled()) {
+                m_botAction.sendSmartPrivateMessage(owner, "Your name has been disabled from TWD.  (This means you may not register a squad.)  Contact a TWDOp with ?help for assistance.");
+                return;
+            }
+
+            DBPlayerData thisP = new DBPlayerData(m_botAction, webdb, owner, false);
+
+            if (thisP != null)
+                if (thisP.getTeamID() == 0) {
+                    ResultSet s = m_botAction.SQLQuery(webdb, "select fnTeamID from tblTeam where fcTeamName = '" + Tools.addSlashesToString(squad)
+                            + "' and (fdDeleted = 0 or fdDeleted IS NULL)");
+                    if (s.next()) {
+                        m_botAction.sendSmartPrivateMessage(owner, "That squad is already registered..");
+                        m_botAction.SQLClose(s);
+                        ;
+                        return;
+                    } else
+                        m_botAction.SQLClose(s);
+
+                    String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+                    String fields[] = { "fcTeamName", "fdCreated" };
+                    String values[] = { Tools.addSlashesToString(squad), time };
+                    m_botAction.SQLInsertInto(webdb, "tblTeam", fields, values);
+
+                    int teamID;
+
+                    // This query gets the latest inserted TeamID from the
+                    // database to associate the player with
+                    ResultSet s2 = m_botAction.SQLQuery(webdb, "SELECT MAX(fnTeamID) AS fnTeamID FROM tblTeam");
+                    if (s2.next()) {
+                        teamID = s2.getInt("fnTeamID");
+                        m_botAction.SQLClose(s2);
+                    } else {
+                        m_botAction.sendSmartPrivateMessage(owner, "Database error, contact a TWD Op.");
+                        m_botAction.SQLClose(s2);
+                        return;
+                    }
+
+                    String fields2[] = { "fnUserID", "fnTeamID", "fdJoined", "fnCurrentTeam" };
+                    String values2[] = { Integer.toString(thisP.getUserID()), Integer.toString(teamID), time, "1" };
+                    m_botAction.SQLInsertInto(webdb, "tblTeamUser", fields2, values2);
+
+                    thisP.giveRank(4);
+
+                    m_botAction.sendSmartPrivateMessage(owner, "The squad " + squad + " has been signed up for TWD.");
+                } else
+                    m_botAction.sendSmartPrivateMessage(owner, "You must leave your current squad first.");
+        } catch (Exception e) {
+            m_botAction.sendSmartPrivateMessage(owner, "Database error, contact a TWD Op.");
+        }
+    }
+
+    class SquadOwner {
+        String owner = "", squad = "";
+        int id;
+
+        public SquadOwner(String name, String tSquad, int tID) {
+            owner = name;
+            squad = tSquad;
+            id = tID;
+        }
+
+        public String getOwner() {
+            return owner;
+        }
+
+        public String getSquad() {
+            return squad;
+        }
+
+        public int getID() {
+            return id;
         }
     }
 
