@@ -104,7 +104,7 @@ public class pubbotbanc extends PubBotModule {
             IPCEvent ipc = (IPCEvent) event.getObject();
             int bot = ipc.getType();
             if (m_botAction.getBotName().startsWith("TW-Guard"))
-                bot = Integer.valueOf(m_botAction.getBotName().substring(8));
+                bot = Integer.valueOf(m_botAction.getBotName().substring(9));
             if (ipc.getType() < 0 || ipc.getType() == bot) {
                 if (ipc.getList() instanceof List) {
                     @SuppressWarnings("unchecked")
@@ -265,9 +265,15 @@ public class pubbotbanc extends PubBotModule {
                 if (tempBanCCommand == null && IPCQueue.size() != 0)
                     handleIPCMessage(IPCQueue.remove(0));
             }
-        } else if (event.getMessageType() == Message.PRIVATE_MESSAGE && m_botAction.getOperatorList().isSysop(event.getMessager()))
-            if (message.equals("!bancs"))
-                cmd_bancs(event.getMessager());
+        }
+        if (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) {
+            String name = event.getMessager();
+            if (name == null)
+                name = m_botAction.getPlayerName(event.getPlayerID());
+            if (m_botAction.getOperatorList().isSysop(name))
+                if (message.equals("!bancs"))
+                    cmd_bancs(event.getMessager());
+        }
     }
     
     private void cmd_bancs(String name) {
