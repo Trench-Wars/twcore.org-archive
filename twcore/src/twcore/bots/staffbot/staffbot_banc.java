@@ -21,6 +21,7 @@ import twcore.core.OperatorList;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.util.Tools;
+import twcore.core.util.ipc.IPCEvent;
 import twcore.core.util.ipc.IPCMessage;
 
 import java.io.BufferedReader;
@@ -827,7 +828,7 @@ public class staffbot_banc extends Module {
                 ResultSet resultSet = m_botAction.SQLQuery(trenchDatabase, queryString);
                 List<String> nicks = new LinkedList<String>();
                 String curResult = null;
-                int numResults = 0;
+                //int numResults = 0;
 
                 while (resultSet.next()) {
                     curResult = resultSet.getString("fcUserName");
@@ -835,7 +836,7 @@ public class staffbot_banc extends Module {
                     if (!nicks.contains(curResult) && !playerName.toLowerCase().equals(curResult.toLowerCase())) {
 
                         nicks.add(curResult);
-                        numResults++;
+                        //numResults++;
                     }
                 }
 
@@ -1020,6 +1021,8 @@ public class staffbot_banc extends Module {
 
                 // Look trough active bans if it matches
                 for (BanC banc : this.activeBanCs) {
+                    if (banc.getType() == BanCType.SILENCE)
+                        continue;
                     boolean match = false;
 
                     if (banc.playername != null && banc.playername.equalsIgnoreCase(playerName)) {
@@ -1339,6 +1342,7 @@ public class staffbot_banc extends Module {
         }
         m_botAction.sendRemotePrivateMessage(name, "Please do not forget to add comments to your BanC with !bancomment <#id> <comments>.");
         m_botAction.ipcSendMessage(IPCBANC, bancType.toString() + " " + time + ":" + target, null, "banc");
+        m_botAction.ipcTransmit(IPCBANC, banc);
 
         if (comment != null)
             cmdBancomment(name, "#" + banc.getId() + " " + comment);
@@ -2023,9 +2027,14 @@ public class staffbot_banc extends Module {
      * @param receiver Receiving bot in case a certain pubbot needs to be initialized, else NULL for all pubbots
      */
     private void sendIPCActiveBanCs(String receiver) {
-        for (BanC banc : activeBanCs) {
-            m_botAction.ipcSendMessage(IPCBANC, banc.type.toString() + " " + banc.duration + ":" + banc.playername, receiver, "banc");
-        }
+        int bot = -1;
+        if (receiver != null && receiver.startsWith("TW-Guard"))
+            bot = Integer.valueOf(receiver.substring(9));
+        IPCEvent ipc = new IPCEvent(activeBanCs, 0, bot);
+        m_botAction.ipcTransmit(IPCBANC, ipc);
+        for (BanC banc : activeBanCs)
+            if (banc.getType() != BanCType.SILENCE)
+                m_botAction.ipcSendMessage(IPCBANC, banc.type.toString() + " " + banc.duration + ":" + banc.playername, receiver, "banc");
     }
 
     /**
