@@ -89,9 +89,13 @@ public class twdbot extends SubspaceBot {
     @Override
     public void handleEvent(ArenaJoined event) {
         if (!m_botAction.getArenaName().equalsIgnoreCase("TWD"))
-            if (einfoer.length() > 1 && einfoee.length() > 1)
-                m_botAction.sendUnfilteredPrivateMessage(einfoee, "*einfo");
-            else if (locatee.length() > 0)
+            if (einfoer.length() > 1 && einfoee.length() > 1) {
+                if (locatee.length() > 0) {
+                    locatee = "";
+                    m_botAction.sendUnfilteredPrivateMessage(einfoee, "*info");
+                } else
+                    m_botAction.sendUnfilteredPrivateMessage(einfoee, "*einfo");
+            } else if (locatee.length() > 0)
                 m_botAction.sendUnfilteredPrivateMessage(locatee, "*info");
     }
 
@@ -209,7 +213,9 @@ public class twdbot extends SubspaceBot {
                     else if (message.startsWith("!fullinfo "))
                         cmd_DisplayInfo(name, message.substring(10), true);
                     else if (message.startsWith("!einfo "))
-                        checkEinfo(name, message);
+                        cmd_einfo(name, message);
+                    else if (message.startsWith("!usage "))
+                        cmd_usage(name, message);
                     else if (message.startsWith("!register "))
                         cmd_RegisterName(name, message.substring(10), false);
                     else if (message.startsWith("!regconflicts "))
@@ -275,21 +281,6 @@ public class twdbot extends SubspaceBot {
                     cmd_signup(name, message, parameters);
                 if (message.equals("!squadsignup"))
                     cmd_squadsignup(name, message);
-                if (message.equals("!help")) {
-                    String help[] = { "--------- TWD/TWL COMMANDS -----------------------------------------------------------",
-                            " !signup <password>     - Replace <password> with a password which is hard to guess.",
-                            "                          You are safer if you choose a password that differs",
-                            "                          completely from your current SSCU Continuum password.",
-                            "                          Example: !signup mypass. This command will get you an",
-                            "                          useraccount for TWL and TWD. If you have forgotten your",
-                            "                          password, you can use this to pick a new password",
-                            " !squadsignup           - This command will sign up your current ?squad for TWD.",
-                            "                          Note: You need to be the squadowner of the squad",
-                            "                          and !registered",
-                            " !games                 - This command will give you a list of the current matches",
-                            "                          Note: It will work from any arena!", };
-                    m_botAction.privateMessageSpam(name, help);
-                }
             }
         }
 
@@ -307,9 +298,9 @@ public class twdbot extends SubspaceBot {
                             m_botAction.sendSmartPrivateMessage(t.getOwner(), "You are not the owner of the squad " + t.getSquad());
                 }
                 ownerID++;
-            } else if (message.startsWith("IP:"))
+            } else if (message.startsWith("IP:") && !message.contains(einfoee))
                 parseIP(message);
-            else if (message.contains(" Res: ") && einfoer.length() > 1) {
+            else if ((message.startsWith("TIME") || message.contains(" Res: ")) && einfoer.length() > 1) {
                 m_botAction.sendSmartPrivateMessage(einfoer, message);
                 einfoer = "";
                 einfoee = "";
@@ -379,19 +370,6 @@ public class twdbot extends SubspaceBot {
         } catch (SQLException e) {
             Tools.printStackTrace(e);
         }
-    }
-
-    private void cmd_help(String name) {
-        String[] msg = { "--------- TWD CHALLENGE COMMANDS -----------------------------------------------------",
-                " !chawa <name>                - Toggles challenge watch on or off for <name>",
-                " !chawas                      - Displays current challenge watches",
-                " !ban <name>                  - Prevents <name> from being able to do challenges for a day",
-                " !unban <name>                - Removes challenge ban for <name> if it exists",
-                " !sibling <name>              - Looks up all siblings registered for <name>",
-                " !addsibling <name>:<sibling> - Registers a <sibling> to <name>",
-                " !changesibling <old>:<new>   - changes name in siblings from <old> to <new>" };
-        m_botAction.smartPrivateMessageSpam(name, msg);
-
     }
 
     private void cmd_challengeBan(String name, String msg) {
@@ -1052,46 +1030,84 @@ public class twdbot extends SubspaceBot {
         }
     }
 
+    private void cmd_help(String name) {
+        String[] msg = { 
+                "--------- TWD CHALLENGE COMMANDS -----------------------------------------------------",
+                " !chawa <name>                - Toggles challenge watch on or off for <name>",
+                " !chawas                      - Displays current challenge watches",
+                " !ban <name>                  - Prevents <name> from being able to do challenges for a day",
+                " !unban <name>                - Removes challenge ban for <name> if it exists",
+                " !sibling <name>              - Looks up all siblings registered for <name>",
+                " !addsibling <name>:<sibling> - Registers a <sibling> to <name>",
+                " !changesibling <old>:<new>   - changes name in siblings from <old> to <new>" };
+        m_botAction.smartPrivateMessageSpam(name, msg);
+
+    }
+
     private void cmd_DisplayHelp(String name, boolean player) {
-        String help[] = { "--------- ACCOUNT MANAGEMENT COMMANDS ------------------------------------------------",
-                " !resetname <name>       - resets the name (unregisters it)",
-                " !resettime <name>       - returns the time when the name will be reset",
-                " !cancelreset <name>     - cancels the !reset a player has issued",
-                " !enablename <name>      - enables the name so it can be used in TWD/TWL games",
-                " !disablename <name>     - disables the name so it can not be used in TWD/TWL games",
-                " !register <name>        - force registers that name, that player must be in the arena",
-                " !regconflicts <name>    - Display the list of names causing conflicts when trying to register <name>",
-                " !registered <name>      - checks if the name is registered",
-                " !add name:<name>  ip:<IP>  mid:<MID> - Adds <name> to DB with <IP> and/or <MID>",
-                " !removeip <name>:<IP>                - Removes <IP> associated with <name>",
-                " !removemid <name>:<MID>              - Removes <MID> associated with <name>",
-                " !removeipmid <name>                  - Removes all IPs and MIDs for <name>",
-                " !listipmid <name>                    - Lists IP's and MID's associated with <name>",
-                " !pwmatch <name>:<name>               - Compares TWD Passwords of <name> and <name>",
+        String help[] = { 
+                "--------- ACCOUNT MANAGEMENT COMMANDS ------------------------------------------------",
+                " !resetname <name>            - resets the name (unregisters it)",
+                " !resettime <name>            - returns the time when the name will be reset",
+                " !cancelreset <name>          - cancels the !reset a player has issued",
+                " !enablename <name>           - enables the name so it can be used in TWD/TWL games",
+                " !disablename <name>          - disables the name so it can not be used in TWD/TWL games",
+                " !register <name>             - force registers that name, that player must be in the arena",
+                " !regconflicts <name>         - Display the list of names causing conflicts when trying to register <name>",
+                " !registered <name>           - checks if the name is registered",
+                " !add name:<name>  ip:<IP>  mid:<MID>  ",
+                "                              - Adds <name> to DB with <IP> and/or <MID>",
+                " !removeip <name>:<IP>        - Removes <IP> associated with <name>",
+                " !removemid <name>:<MID>      - Removes <MID> associated with <name>",
+                " !removeipmid <name>          - Removes all IPs and MIDs for <name>",
+                " !listipmid <name>            - Lists IP's and MID's associated with <name>",
+                " !pwmatch <name>:<name>       - Compares TWD Passwords of <name> and <name>",
                 "--------- ALIAS CHECK COMMANDS -------------------------------------------------------",
-                " !info <name>            - displays the IP/MID that was used to register this name",
-                " !fullinfo <name>        - displays IP/MID, squad name, and date squad was reg'd",
-                " !altip <IP>             - looks for matching records based on <IP>",
-                " !altmid <MID>           - looks for matching records based on <MID>",
-                " !ipidcheck <IP> <MID>   - looks for matching records based on <IP> and <MID>",
+                " !info <name>                 - displays the IP/MID that was used to register this name",
+                " !fullinfo <name>             - displays IP/MID, squad name, and date squad was reg'd",
+                " !altip <IP>                  - looks for matching records based on <IP>",
+                " !altmid <MID>                - looks for matching records based on <MID>",
+                " !ipidcheck <IP> <MID>        - looks for matching records based on <IP> and <MID>",
                 "         <IP> can be partial address - ie:  192.168.0.",
                 "--------- MISC COMMANDS --------------------------------------------------------------",
-                " !check <name>           - checks live IP and MID of <name> (through *info [no !go] works any arena, NOT the DB)",
-                " !twdops                 - displays a list of the current TWD Ops", " !go <arena>             - moves the bot" };
-        String SModHelp[] = { "--------- SMOD COMMANDS --------------------------------------------------------------",
+                " !check <name>                - checks live IP and MID of <name> (through *info [no !go] works any arena, NOT the DB)",
+                " !einfo <name>                - displays the einfo for <name> in any arena",
+                " !usage <name>                - displays the usage information for <name> in any arena",
+                " !twdops                      - displays a list of the current TWD Ops", 
+                " !go <arena>                  - moves the bot" };
+        String SModHelp[] = { 
+                "--------- SMOD COMMANDS --------------------------------------------------------------",
                 " TWD Operators are determined by levels on the website which can be modified at www.trenchwars.org/staff" };
-        String help2[] = { "--------- ACCOUNT MANAGEMENT COMMANDS ------------------------------------------------",
-                " !resetname              - resets your name", " !resettime              - returns the time when your name will be reset",
-                " !cancelreset            - cancels the !resetname", " !register               - registers your name",
-                " !registered <name>      - checks if the name is registered", " !twdops                 - displays a list of the current TWD Ops" };
+        String help2[] = { 
+                "--------- ACCOUNT MANAGEMENT COMMANDS ------------------------------------------------",
+                " !resetname                   - resets your name", 
+                " !resettime                   - returns the time when your name will be reset",
+                " !cancelreset                 - cancels the !resetname", 
+                " !register                    - registers your name",
+                " !registered <name>           - checks if the name is registered", };
 
-        if (player)
-            m_botAction.privateMessageSpam(name, help2);
-        else {
+        String help3[] = { 
+                "--------- TWD/TWL COMMANDS -----------------------------------------------------------",
+                " !signup <password>           - Replace <password> with a password which is hard to guess.",
+                "                                You are safer if you choose a password that differs",
+                "                                completely from your current SSCU Continuum password.",
+                "                                Example: !signup mypass. This command will get you an",
+                "                                useraccount for TWL and TWD. If you have forgotten your",
+                "                                password, you can use this to pick a new password",
+                " !squadsignup                 - This command will sign up your current ?squad for TWD.",
+                "                                Note: You need to be the squadowner of the squad",
+                "                                and !registered",
+                " !games                       - This command will give you a list of the current matches",
+                "                                Note: It will work from any arena!", };
+
+        m_botAction.privateMessageSpam(name, help2);
+        if (!player) {
             m_botAction.privateMessageSpam(name, help);
             if (m_opList.isSmod(name))
                 m_botAction.privateMessageSpam(name, SModHelp);
         }
+        m_botAction.privateMessageSpam(name, help3);
+        
     }
 
     public boolean isTWDOp(String name) {
@@ -1163,6 +1179,25 @@ public class twdbot extends SubspaceBot {
             return list.toArray(new String[list.size()]);
         } catch (Exception e) {
             throw new RuntimeException("Error in stringChopper.");
+        }
+    }
+
+    public boolean resetPRegistration(int id) {
+
+        try {
+            m_botAction.SQLQueryAndClose(webdb, "UPDATE tblAliasSuppression SET fdResetTime = NOW() WHERE fnUserID = " + id);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public void checkNamesToReset() {
+        try {
+            m_botAction.SQLBackgroundQuery(webdb, null, "DELETE FROM tblAliasSuppression WHERE fdResetTime < DATE_SUB(NOW(), INTERVAL 1 DAY);");
+            m_botAction.SQLBackgroundQuery(webdb, null, "UPDATE tblChallengeBan SET fnActive = 0 WHERE fnActive = 1 AND fdDateCreated < DATE_SUB(NOW(), INTERVAL 1 DAY)");
+        } catch (Exception e) {
+            Tools.printLog("[TWDBot] Can't check for new names to reset...");
         }
     }
 
@@ -1247,28 +1282,6 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public boolean resetPRegistration(int id) {
-
-        try {
-            m_botAction.SQLQueryAndClose(webdb, "UPDATE tblAliasSuppression SET fdResetTime = NOW() WHERE fnUserID = " + id);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    public void checkNamesToReset() {
-        try {
-            m_botAction.SQLBackgroundQuery(webdb, null, "DELETE FROM tblAliasSuppression WHERE fdResetTime < DATE_SUB(NOW(), INTERVAL 1 DAY);");
-            m_botAction.SQLBackgroundQuery(webdb, null, "UPDATE tblChallengeBan SET fnActive = 0 WHERE fnActive = 1 AND fdDateCreated < DATE_SUB(NOW(), INTERVAL 1 DAY)");
-        } catch (Exception e) {
-            Tools.printLog("[TWDBot] Can't check for new names to reset...");
-        }
-        ;
-    };
-
-    // ipbot
-
     public void checkIP(String name, String message) {
 
         String target = m_botAction.getFuzzyPlayerName(message);
@@ -1293,7 +1306,7 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public void checkEinfo(String name, String msg) {
+    private void cmd_einfo(String name, String msg) {
         String p = msg.substring(msg.indexOf(" ") + 1);
         if (m_botAction.getFuzzyPlayerName(p) != null) {
             einfoer = name;
@@ -1309,6 +1322,30 @@ public class twdbot extends SubspaceBot {
                     m_botAction.sendSmartPrivateMessage(einfoer, "Could not locate " + einfoee);
                     einfoer = "";
                     einfoee = "";
+                }
+            };
+            m_botAction.scheduleTask(einfo, 2000);
+        }
+    }
+
+    private void cmd_usage(String name, String msg) {
+        String p = msg.substring(msg.indexOf(" ") + 1);
+        if (m_botAction.getFuzzyPlayerName(p) != null) {
+            einfoer = name;
+            einfoee = p;
+            m_botAction.sendUnfilteredPrivateMessage(p, "*info");
+        } else if (locatee.isEmpty()) {
+            einfoer = name;
+            einfoee = p;
+            locatee = p;
+            m_botAction.sendUnfilteredPublicMessage("*locate " + p);
+            einfo = new TimerTask() {
+                @Override
+                public void run() {
+                    m_botAction.sendSmartPrivateMessage(einfoer, "Could not locate " + einfoee);
+                    einfoer = "";
+                    einfoee = "";
+                    locatee = "";
                 }
             };
             m_botAction.scheduleTask(einfo, 2000);
