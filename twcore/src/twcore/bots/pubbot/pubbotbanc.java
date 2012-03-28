@@ -10,7 +10,6 @@ import java.util.TimerTask;
 import java.util.Vector;
 
 import twcore.bots.PubBotModule;
-import twcore.bots.staffbot.staffbot_banc.BanC;
 import twcore.bots.staffbot.staffbot_banc.BanCType;
 import twcore.core.EventRequester;
 import twcore.core.events.FrequencyShipChange;
@@ -111,10 +110,10 @@ public class pubbotbanc extends PubBotModule {
                 if (ipc.getList() instanceof ListIterator || !(ipc.getList() instanceof BanC)) {
                     m_botAction.sendPrivateMessage("WingZero", "Got list!");
                     @SuppressWarnings("unchecked")
-                    ListIterator<BanC> i = (ListIterator<BanC>) ipc.getList();
+                    ListIterator<String> i = (ListIterator<String>) ipc.getList();
                     if (bancs.isEmpty()) {
                         while (i.hasNext()) {
-                            BanC b = i.next();
+                            BanC b = new BanC(i.next());
                             m_botAction.sendPrivateMessage("WingZero", "Iterate banc: " + b.getPlayername());
                             if (b.getType() == BanCType.SILENCE)
                                 bancs.put(low(b.getPlayername()), b);
@@ -124,7 +123,7 @@ public class pubbotbanc extends PubBotModule {
                         HashMap<String, BanC> temps = (HashMap<String, BanC>) bancs.clone();
                         bancs.clear();
                         while (i.hasNext()) {
-                            BanC b = i.next();
+                            BanC b = new BanC(i.next());
                             m_botAction.sendPrivateMessage("WingZero", "Iterate banc: " + b.getPlayername());
                             if (b.getType() == BanCType.SILENCE) {
                                 String name = b.getPlayername();
@@ -410,6 +409,42 @@ public class pubbotbanc extends PubBotModule {
             this.tempBanCPlayer = cmdSplit[1].toLowerCase();
             //if(!this.hashSuperSpec.contains(cmdSplit[1]))
             this.hashSuperSpec.add(cmdSplit[1].toLowerCase());
+        }
+    }
+    
+    class BanC {
+        
+        String name;
+        String ip;
+        String mid;
+        BanCType type;
+        
+        public BanC(String info) {
+            // name:ip:mid
+            String[] args = info.split(":");
+            name = args[0];
+            ip = args[1];
+            mid = args[2];
+            if (args[3].equals("SILENCE"))
+                type = BanCType.SILENCE;
+            else
+                type = BanCType.SUPERSPEC;
+        }
+        
+        public String getPlayername() {
+            return name;
+        }
+        
+        public String getIP() {
+            return ip;
+        }
+        
+        public String getMID() {
+            return mid;
+        }
+        
+        public BanCType getType() {
+            return type;
         }
     }
 
