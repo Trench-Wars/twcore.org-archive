@@ -377,7 +377,7 @@ public class staffbot_banc extends Module {
                 if (banc != null && banc.isNotification())
                     m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)silenced by " + ipc.getSender() + ". (BanC #" + banc.getId() + ")");
                 else if (banc == null)
-                    m_botAction.sendChatMessage("Player '" + command.substring(8) + "' has been (re)silenced by " + ipc.getSender() + ".");
+                    m_botAction.sendChatMessage("Player '" + args[1] + "' has been (re)silenced by " + ipc.getSender() + ".");
             } else if (command.startsWith("REMOVE " + BanCType.SILENCE.toString())) {
                 BanC banc = lookupActiveBanC(BanCType.SILENCE, args[2]);
                 if (banc != null && banc.isNotification())
