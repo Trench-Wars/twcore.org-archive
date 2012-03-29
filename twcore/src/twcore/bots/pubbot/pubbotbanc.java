@@ -95,9 +95,18 @@ public class pubbotbanc extends PubBotModule {
             String name = event.getPlayerName();
             if (name == null)
                 name = m_botAction.getPlayerName(event.getPlayerID());
-            
+
+            String playerName = event.getPlayerName();
+            if (playerName == null)
+                playerName = m_botAction.getPlayerName(event.getPlayerID());
+            if (playerName.startsWith("^") == false) {
+                m_botAction.sendUnfilteredPrivateMessage(playerName, "*info");
+            }
+            /*
             if (this.hashSuperSpec.contains(name.toLowerCase()))
                 superLockMethod(name, event.getShipType());
+                
+            */
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -256,6 +265,9 @@ public class pubbotbanc extends PubBotModule {
         }
         if (banc != null)
             actions.add(banc);
+        
+        m_botAction.ipcSendMessage(getIPCChannel(), "info " + name + ":" + ip + ":" + mid, getPubHubName(), "pubbotalias");
+        m_botAction.ipcSendMessage("TWDOp Alias", "info " + name + ":" + ip + ":" + mid, "TWDOpBot", "pubbotalias");   
     }
     
     private String low(String msg) {
