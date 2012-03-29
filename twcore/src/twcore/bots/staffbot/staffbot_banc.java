@@ -1991,7 +1991,7 @@ public class staffbot_banc extends Module {
      */
     private BanC lookupActiveBanC(BanCType bancType, String name) {
         for (BanC banc : this.activeBanCs)
-            if (banc.type.equals(bancType) && banc.playername.equalsIgnoreCase(name))
+            if (banc.type == bancType && banc.playername.equalsIgnoreCase(name))
                 return banc;
         return null;
     }
