@@ -278,9 +278,9 @@ public class twdbot extends SubspaceBot {
                     parameters[i] = parameters[i].replace(':', ' ').trim();
                 command = command.trim();
 
-                if (message.equals("!signup"))
-                    cmd_signup(name, message, parameters);
-                if (message.equals("!squadsignup"))
+                if (command.equals("!signup"))
+                    cmd_signup(name, command, parameters);
+                if (command.equals("!squadsignup"))
                     cmd_squadsignup(name, message);
             }
         }
