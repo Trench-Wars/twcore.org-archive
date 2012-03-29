@@ -455,7 +455,7 @@ public class pubbotbanc extends PubBotModule {
         }
         
         public String getCommand() {
-            return "" + (!active ? "REMOVE " : "") + type.toString() + " " + name;
+            return "" + (!active ? "REMOVE:" : "") + type.toString() + ":" + name;
         }
 
         public String getName() {

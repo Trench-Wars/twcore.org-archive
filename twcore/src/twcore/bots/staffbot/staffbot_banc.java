@@ -368,7 +368,7 @@ public class staffbot_banc extends Module {
         if (IPCBANC.equals(event.getChannel()) && event.getSenderName().startsWith("TW-Guard")) {
             IPCMessage ipc = (IPCMessage) event.getObject();
             String command = ipc.getMessage();
-            String[] args = command.split(" ");
+            String[] args = command.split(":");
             // On initilization of a pubbot, send the active bancs to that pubbot
             if (command.equals("BANC PUBBOT INIT"))
                 sendIPCActiveBanCs(ipc.getSender());
@@ -378,7 +378,7 @@ public class staffbot_banc extends Module {
                     m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)silenced by " + ipc.getSender() + ". (BanC #" + banc.getId() + ")");
                 else if (banc == null)
                     m_botAction.sendChatMessage("Player '" + args[1] + "' has been (re)silenced by " + ipc.getSender() + ".");
-            } else if (command.startsWith("REMOVE " + BanCType.SILENCE.toString())) {
+            } else if (command.startsWith("REMOVE:" + BanCType.SILENCE.toString())) {
                 BanC banc = lookupActiveBanC(BanCType.SILENCE, args[2]);
                 if (banc != null && banc.isNotification())
                     m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been unsilenced.");
@@ -398,14 +398,14 @@ public class staffbot_banc extends Module {
                     m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)superlocked in spectator. (BanC #" + banc.getId() + ")");
                 else if (banc == null)
                     m_botAction.sendChatMessage("Player '" + args[1] + "' has been (re)superlocked in spectator.");
-            } else if (command.startsWith("REMOVE " + BanCType.SUPERSPEC.toString())) {
+            } else if (command.startsWith("REMOVE:" + BanCType.SUPERSPEC.toString())) {
                 //REMOVE SUPERSPEC
                 BanC banc = lookupActiveBanC(BanCType.SUPERSPEC, args[2]);
                 if (banc != null && banc.isNotification())
                     m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been unsuper-specced.");
                 else if (banc == null)
                     m_botAction.sendChatMessage("Player '" + args[2] + "' has been unsuper-specced.");
-            } else if (command.startsWith("REMOVE " + BanCType.SPEC.toString())) {
+            } else if (command.startsWith("REMOVE:" + BanCType.SPEC.toString())) {
                 BanC banc = lookupActiveBanC(BanCType.SPEC, args[2]);
                 if (banc != null && banc.isNotification())
                     m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has had the speclock removed.");
