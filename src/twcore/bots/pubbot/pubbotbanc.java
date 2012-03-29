@@ -346,7 +346,7 @@ public class pubbotbanc extends PubBotModule {
     }
     
     private void handleRemove(String cmd) {
-        String[] args = cmd.split(" ");
+        String[] args = cmd.split(":");
         BanC b = null;
         if (args[1].equals(BanCType.SILENCE.toString())) {
             if (bancSilence.containsKey(low(args[2])))
