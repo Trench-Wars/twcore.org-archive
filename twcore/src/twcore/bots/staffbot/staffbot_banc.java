@@ -1743,7 +1743,7 @@ public class staffbot_banc extends Module {
                                             + banc.getStaffer());
                                     break;
                             }
-                            m_botAction.ipcSendMessage(IPCBANC, "REMOVE " + banc.type.toString() + " " + banc.playername, null, "banc");
+                            m_botAction.ipcSendMessage(IPCBANC, "REMOVE:" + banc.type.toString() + ":" + banc.playername, null, "banc");
                             iterator.remove();
                         }
                     }
@@ -1849,7 +1849,7 @@ public class staffbot_banc extends Module {
             // Make the banc expired so it's removed from the player if still active.
             BanC activeBanc = lookupActiveBanC(id);
             if (activeBanc != null) {
-                m_botAction.ipcSendMessage(IPCBANC, "REMOVE " + activeBanc.type.toString() + " " + activeBanc.playername, null, "banc");
+                m_botAction.ipcSendMessage(IPCBANC, "REMOVE:" + activeBanc.type.toString() + ":" + activeBanc.playername, null, "banc");
                 activeBanCs.remove(activeBanc);
             }
         } catch (SQLException sqle) {
@@ -2083,7 +2083,7 @@ public class staffbot_banc extends Module {
                                         + banc.getDuration() + " minute(s)." + " Authorized by " + banc.getStaffer());
                                 break;
                         }
-                        m_botAction.ipcSendMessage(IPCBANC, "REMOVE " + banc.type.toString() + " " + banc.playername, null, "banc");
+                        m_botAction.ipcSendMessage(IPCBANC, "REMOVE:" + banc.type.toString() + ":" + banc.playername, null, "banc");
                         iterator.remove();
                     }
                 }
