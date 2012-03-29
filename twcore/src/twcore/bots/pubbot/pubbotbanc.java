@@ -488,18 +488,16 @@ public class pubbotbanc extends PubBotModule {
         public void run() {
             if (!actions.isEmpty()) {
                 current = actions.remove(0);
-                if (current.isActive()) {
-                    switch (current.getType()) {
-                        case SILENCE:
-                            m_botAction.sendUnfilteredPrivateMessage(current.getName(), "*shutup");
-                            break;
-                        case SPEC:
-                            m_botAction.spec(current.getName());
-                            break;
-                        case SUPERSPEC:
-                            hashSuperSpec.remove(low(current.getName()));
-                            break;
-                    }
+                switch (current.getType()) {
+                    case SILENCE:
+                        m_botAction.sendUnfilteredPrivateMessage(current.getName(), "*shutup");
+                        break;
+                    case SPEC:
+                        m_botAction.spec(current.getName());
+                        break;
+                    case SUPERSPEC:
+                        hashSuperSpec.remove(low(current.getName()));
+                        break;
                 }
             }
         }
