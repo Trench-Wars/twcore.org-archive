@@ -14,7 +14,6 @@ import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
-import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCEvent;
 import twcore.core.util.ipc.IPCMessage;
 
@@ -39,26 +38,30 @@ public class pubbotbanc extends PubBotModule {
 
     private Set<String> hashSuperSpec;
 
-    private String tempBanCCommand = null;
-    private String tempBanCTime = null;
-    private String tempBanCPlayer = null;
-
     public static final String IPCBANC = "banc";
 
-    private final static String INFINTE_DURATION = "0";
+    private final static long INFINTE_DURATION = 0;
 
-    private Vector<String> IPCQueue = new Vector<String>();
-
-    private TimerTask checkIPCQueue;
     private TimerTask initActiveBanCs;
+    private Action act;
     
-    private HashMap<String, BanC> bancs;
+    private HashMap<String, BanC> bancSilence;
+    private HashMap<String, BanC> bancSpec;
+    private HashMap<String, BanC> bancSuper;
+    private Vector<BanC>          actions;
+    
+    private BanC current;
 
     @Override
     public void initializeModule() {
         m_botAction.ipcSubscribe(IPCBANC);
 
-        bancs = new HashMap<String, BanC>();
+        hashSuperSpec = new HashSet<String>();
+        
+        bancSilence = new HashMap<String, BanC>();
+        bancSpec = new HashMap<String, BanC>();
+        bancSuper = new HashMap<String, BanC>();
+        actions = new Vector<BanC>();
         // Request active BanCs from StaffBot
         initActiveBanCs = new TimerTask() {
             @Override
@@ -67,24 +70,16 @@ public class pubbotbanc extends PubBotModule {
             }
         };
         m_botAction.scheduleTask(initActiveBanCs, 1000);
-
-        checkIPCQueue = new TimerTask() {
-            @Override
-            public void run() {
-                if (IPCQueue.size() != 0)
-                    handleIPCMessage(IPCQueue.remove(0));
-            }
-        };
-        m_botAction.scheduleTaskAtFixedRate(checkIPCQueue, 5 * Tools.TimeInMillis.SECOND, 5 * Tools.TimeInMillis.SECOND);
-        hashSuperSpec = new HashSet<String>();
-
+        
+        act = new Action();
+        m_botAction.scheduleTask(act, 2000, 2000);
     }
 
     @Override
     public void cancel() {
         m_botAction.ipcUnSubscribe(IPCBANC);
         m_botAction.cancelTask(initActiveBanCs);
-        m_botAction.cancelTask(checkIPCQueue);
+        m_botAction.cancelTask(act);
     }
 
     @Override
@@ -95,90 +90,14 @@ public class pubbotbanc extends PubBotModule {
     }
 
     @Override
-    public void handleEvent(InterProcessEvent event) {
-        // IPCMessage.recipient null		==> All pubbots
-        // IPCMessage.recipient "PubBotX" 	==> Specific Pubbot X
-        
-        if (IPCBANC.equals(event.getChannel()) && event.getObject() instanceof IPCEvent) {
-            IPCEvent ipc = (IPCEvent) event.getObject();
-            int bot = ipc.getType();
-            if (m_botAction.getBotName().startsWith("TW-Guard"))
-                bot = Integer.valueOf(m_botAction.getBotName().substring(8));
-            if (ipc.getType() < 0 || ipc.getType() == bot) {
-                if (ipc.getList() instanceof ListIterator || !(ipc.getList() instanceof BanC)) {
-                    @SuppressWarnings("unchecked")
-                    ListIterator<String> i = (ListIterator<String>) ipc.getList();
-                    if (bancs.isEmpty()) {
-                        while (i.hasNext()) {
-                            BanC b = new BanC(i.next());
-                            if (b.getType() == BanCType.SILENCE)
-                                bancs.put(low(b.getPlayername()), b);
-                        }
-                    } else {
-                        @SuppressWarnings("unchecked")
-                        HashMap<String, BanC> temps = (HashMap<String, BanC>) bancs.clone();
-                        bancs.clear();
-                        while (i.hasNext()) {
-                            BanC b = new BanC(i.next());
-                            if (b.getType() == BanCType.SILENCE) {
-                                String name = b.getPlayername();
-                                if (temps.containsKey(low(name))) {
-                                    temps.remove(low(name));
-                                    bancs.put(low(name), b);
-                                }
-                            }
-                        }
-
-                        for (BanC b : temps.values()) {
-                            if (b.getType() == BanCType.SILENCE) {
-                                tempBanCCommand = "REMOVE";
-                                tempBanCPlayer = b.getPlayername();
-                                m_botAction.sendUnfilteredPrivateMessage(b.getPlayername(), "*shutup");
-                            }
-                        }
-
-                    }
-                } else if (ipc.getName() != null) {
-                    BanC b = new BanC(ipc.getName());
-                    if (b.getType() != BanCType.SILENCE) return;
-                    bancs.put(low(b.getPlayername()), b);
-                    String target = m_botAction.getFuzzyPlayerName(b.getPlayername());
-                    if (target != null && target.equalsIgnoreCase(b.getPlayername())) {
-                        tempBanCCommand = "SILENCE";
-                        tempBanCPlayer = target;
-                        tempBanCTime = "" + b.getTime();
-                        m_botAction.sendUnfilteredPrivateMessage(target, "*shutup");
-                    }
-                }
-            }
-        }
-        if (IPCBANC.equals(event.getChannel())
-                && event.getObject() != null
-                && event.getObject() instanceof IPCMessage
-                && ((IPCMessage) event.getObject()).getSender() != null
-                && ((IPCMessage) event.getObject()).getSender().equalsIgnoreCase("banc")
-                && (((IPCMessage) event.getObject()).getRecipient() == null 
-                    || ((IPCMessage) event.getObject()).getRecipient().equalsIgnoreCase(m_botAction.getBotName()))) {
-
-            IPCMessage ipc = (IPCMessage) event.getObject();
-            String command = ipc.getMessage();
-
-            // Are we still busy waiting for an answer?
-            if (tempBanCCommand != null)
-                IPCQueue.add(command);
-            else
-                handleIPCMessage(command);
-
-        }
-    }
-
-    @Override
     public void handleEvent(PlayerEntered event) {
         try {
-            String namePlayer = m_botAction.getPlayerName(event.getPlayerID());
-
-            if (this.hashSuperSpec.contains(namePlayer.toLowerCase()))
-                superLockMethod(namePlayer, event.getShipType());
+            String name = event.getPlayerName();
+            if (name == null)
+                name = m_botAction.getPlayerName(event.getPlayerID());
+            
+            if (this.hashSuperSpec.contains(name.toLowerCase()))
+                superLockMethod(name, event.getShipType());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -199,82 +118,97 @@ public class pubbotbanc extends PubBotModule {
     }
 
     @Override
+    public void handleEvent(InterProcessEvent event) {
+        if (IPCBANC.equals(event.getChannel()) && event.getObject() instanceof IPCEvent) {
+            IPCEvent ipc = (IPCEvent) event.getObject();
+            int bot = ipc.getType();
+            if (m_botAction.getBotName().startsWith("TW-Guard"))
+                bot = Integer.valueOf(m_botAction.getBotName().substring(8));
+            if (ipc.getType() < 0 || ipc.getType() == bot) {
+                if (ipc.isAll()) {
+                    @SuppressWarnings("unchecked")
+                    ListIterator<String> i = (ListIterator<String>) ipc.getList();
+                    while (i.hasNext()) {
+                        BanC b = new BanC(i.next());
+                        handleBanC(b);
+                    }
+                } else
+                    handleBanC(new BanC(ipc.getName()));
+            }
+        } else if (IPCBANC.equals(event.getChannel())
+                && event.getObject() != null
+                && event.getObject() instanceof IPCMessage
+                && ((IPCMessage) event.getObject()).getSender() != null && ((IPCMessage) event.getObject()).getSender().equalsIgnoreCase("banc")
+                && (((IPCMessage) event.getObject()).getRecipient() == null || ((IPCMessage) event.getObject()).getRecipient().equalsIgnoreCase(m_botAction.getBotName()))) {
+
+            IPCMessage ipc = (IPCMessage) event.getObject();
+            String command = ipc.getMessage();
+            if (command.startsWith("REMOVE"))
+                handleRemove(command);
+        }
+    }
+
+    @Override
     public void handleEvent(Message event) {
         String message = event.getMessage().trim();
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
-            if (message.startsWith("IP"))
+            if (message.startsWith("IP:"))
                 checkBanCs(message);
-            
-            if (tempBanCCommand != null) {
-                // <player> can now speak
-                if (message.equalsIgnoreCase(tempBanCPlayer + " can now speak")) {
-
-                    if (tempBanCCommand.startsWith("REMOVE")) {
+            else if (current != null) {
+                if (message.equalsIgnoreCase(current.getName() + " can now speak")) {
+                    if (!current.isActive()) {
                         // The bot just unsilenced the player (and it's ok)
-                        m_botAction.sendPrivateMessage(tempBanCPlayer, "Silence lifted. You can now speak.");
-                        m_botAction.ipcSendMessage(IPCBANC, tempBanCCommand + " " + tempBanCPlayer, "banc", m_botAction.getBotName());
-                        tempBanCCommand = null;
-                        tempBanCPlayer = null;
+                        m_botAction.sendPrivateMessage(current.getName(), "Silence lifted. You can now speak.");
+                        m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
+                        
                     } else
                         // The bot just unsilenced the player, while the player should be silenced.
-                        m_botAction.sendUnfilteredPrivateMessage(tempBanCPlayer, "*shutup");
-                } else if (message.equalsIgnoreCase(tempBanCPlayer + " has been silenced")) {
-
-                    if (tempBanCCommand.startsWith("REMOVE"))
+                        m_botAction.sendUnfilteredPrivateMessage(current.getName(), "*shutup");
+                } else if (message.equalsIgnoreCase(current.getName() + " has been silenced")) {
+                    if (!current.isActive())
                         // The bot just silenced the player, while the player should be unsilenced.
-                        m_botAction.sendUnfilteredPrivateMessage(tempBanCPlayer, "*shutup");
+                        m_botAction.sendUnfilteredPrivateMessage(current.getName(), "*shutup");
                     else {
                         // The bot just silenced the player (and it's ok)
-                        if (tempBanCTime.equals(INFINTE_DURATION))
-                            m_botAction.sendPrivateMessage(tempBanCPlayer, "You've been permanently silenced because of abuse and/or violation of Trench Wars rules.");
+                        if (current.getTime() == INFINTE_DURATION)
+                            m_botAction.sendPrivateMessage(current.getName(), "You've been permanently silenced because of abuse and/or violation of Trench Wars rules.");
                         else
-                            m_botAction.sendPrivateMessage(tempBanCPlayer, "You've been silenced for " + tempBanCTime
-                                    + " minutes because of abuse and/or violation of Trench Wars rules.");
-
-                        m_botAction.ipcSendMessage(IPCBANC, tempBanCCommand + " " + tempBanCPlayer, "banc", m_botAction.getBotName());
-                        tempBanCCommand = null;
-                        tempBanCPlayer = null;
+                            m_botAction.sendPrivateMessage(current.getName(), "You've been silenced for " + current.getTime() + " minutes because of abuse and/or violation of Trench Wars rules.");
+                        m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
+                        
                     }
                 } else if (message.equalsIgnoreCase("Player locked in spectator mode")) {
-
-                    if (tempBanCCommand.startsWith("REMOVE"))
+                    if (!current.isActive())
                         // The bot just spec-locked the player, while the player shouldn't be spec-locked.
-                        m_botAction.spec(tempBanCPlayer);
+                        m_botAction.spec(current.getName());
                     else {
                         // The bot just spec-locked the player (and it's ok)
-                        if (tempBanCTime.equals(INFINTE_DURATION))
-                            m_botAction.sendPrivateMessage(tempBanCPlayer, "You've been permanently locked into spectator because of abuse and/or violation of Trench Wars rules.");
+                        if (current.getTime() == INFINTE_DURATION)
+                            m_botAction.sendPrivateMessage(current.getName(), "You've been permanently locked into spectator because of abuse and/or violation of Trench Wars rules.");
                         else
-                            m_botAction.sendPrivateMessage(tempBanCPlayer, "You've been locked into spectator for " + tempBanCTime
-                                    + " minutes because of abuse and/or violation of Trench Wars rules.");
-
-                        m_botAction.ipcSendMessage(IPCBANC, tempBanCCommand + " " + tempBanCPlayer, "banc", m_botAction.getBotName());
-                        tempBanCCommand = null;
-                        tempBanCPlayer = null;
+                            m_botAction.sendPrivateMessage(current.getName(), "You've been locked into spectator for " + current.getTime() + " minutes because of abuse and/or violation of Trench Wars rules.");
+                        m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
+                        
                     }
                 } else if (message.equalsIgnoreCase("Player free to enter arena")) {
-                    if (tempBanCCommand.startsWith("REMOVE")) {
+                    if (!current.isActive()) {
                         // The bot just unspec-locked the player (and it's ok)
-                        m_botAction.sendPrivateMessage(tempBanCPlayer, "Spectator-lock removed. You may now enter.");
-                        m_botAction.ipcSendMessage(IPCBANC, tempBanCCommand + " " + tempBanCPlayer, "banc", m_botAction.getBotName());
-                        tempBanCCommand = null;
-                        tempBanCPlayer = null;
+                        m_botAction.sendPrivateMessage(current.getName(), "Spectator-lock removed. You may now enter.");
+                        m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
+                        
                     } else // The bot just unspec-locked the player, while the player should be spec-locked.
-                        m_botAction.spec(tempBanCPlayer);
+                        m_botAction.spec(current.getName());
                 } else if (message.equalsIgnoreCase("Player kicked off")) {
-                    m_botAction.ipcSendMessage(IPCBANC, tempBanCCommand + " " + tempBanCPlayer, "banc", m_botAction.getBotName());
-                    tempBanCCommand = null;
-                    tempBanCPlayer = null;
+                    m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
+                    
                 } else if (message.startsWith("REMOVE")) {
                     String playerName = message.substring(17);
                     this.hashSuperSpec.remove(playerName.toLowerCase());
                     m_botAction.sendChatMessage("Player " + playerName + " may now play in bombs-ship");
                 }
-
-                if (tempBanCCommand == null && IPCQueue.size() != 0)
-                    handleIPCMessage(IPCQueue.remove(0));
             }
         }
+        
         if (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) {
             String name = event.getMessager();
             if (name == null)
@@ -287,8 +221,8 @@ public class pubbotbanc extends PubBotModule {
     
     private void cmd_bancs(String name) {
         m_botAction.sendSmartPrivateMessage(name, "Current BanC list:");
-        for (BanC b : bancs.values())
-            m_botAction.sendSmartPrivateMessage(name, " " + b.getPlayername());
+        for (BanC b : bancSilence.values())
+            m_botAction.sendSmartPrivateMessage(name, " " + b.getName());
     }
     
     private void checkBanCs(String info) {
@@ -297,10 +231,14 @@ public class pubbotbanc extends PubBotModule {
         String mid = getInfo(info, "MachineId:");
         
         BanC banc = null;
-        if (bancs.containsKey(low(name)))
-            banc = bancs.get(low(name));
+        if (bancSilence.containsKey(low(name)))
+            banc = bancSilence.get(low(name));
+        else if (bancSpec.containsKey(low(name)))
+            banc = bancSpec.get(low(name));
+        else if (bancSuper.containsKey(low(name)))
+            banc = bancSuper.get(low(name));
         else {
-            for (BanC b : bancs.values()) {
+            for (BanC b : bancSilence.values()) {
                 if (b.getIP() != null && ip.equals(b.getIP())) {
                     banc = b;
                     break;
@@ -316,17 +254,8 @@ public class pubbotbanc extends PubBotModule {
                 }
             }
         }
-        if (banc != null && banc.getType() == BanCType.SILENCE) {
-            tempBanCCommand = banc.getType().toString();
-            tempBanCPlayer = m_botAction.getFuzzyPlayerName(name);
-            if (tempBanCPlayer != null && name.equalsIgnoreCase(tempBanCPlayer)) {
-                tempBanCTime = "" + banc.getTime();
-                m_botAction.sendUnfilteredPrivateMessage(tempBanCPlayer, "*shutup");
-            } else {
-                tempBanCPlayer = null;
-                tempBanCCommand = null;
-            }
-        }
+        if (banc != null)
+            actions.add(banc);
     }
     
     private String low(String msg) {
@@ -355,76 +284,137 @@ public class pubbotbanc extends PubBotModule {
             m_botAction.setShip(namePlayer, 3);
         }
     }
+    
+    private void handleBanC(BanC b) {
 
+        String target = m_botAction.getFuzzyPlayerName(b.getName());
+        switch (b.getType()) {
+            case SILENCE: 
+                bancSilence.put(low(b.getName()), b);
+                if (target != null && target.equalsIgnoreCase(b.getName())) {
+                    b.name = target;
+                    if (current != null) {
+                        actions.add(b);
+                    } else {
+                        current = b;
+                        m_botAction.sendUnfilteredPrivateMessage(b.getName(), "*shutup");
+                    }
+                }
+                break;
+            case SPEC:
+                bancSpec.put(low(b.getName()), b);
+                if (target != null && target.equalsIgnoreCase(b.getName())) {
+                    b.name = target;
+                    if (m_botAction.getPlayer(target).getShipType() > 0) {
+                        if (current != null) {
+                            actions.add(b);
+                        } else {
+                            current = b;
+                            m_botAction.spec(b.getName());
+                            m_botAction.spec(b.getName());
+                        }
+                    }
+                }
+                break;
+            case SUPERSPEC: 
+                bancSuper.put(low(b.getName()), b);
+                if (target != null && target.equalsIgnoreCase(b.getName())) {
+                    b.name = target;
+                    int s = m_botAction.getPlayer(target).getShipType();
+                    if (s == 2 || s == 4 || s == 8) {
+                        if (current != null) {
+                            actions.add(b);
+                        } else {
+                            m_botAction.setShip(b.getName(), 3);
+                        }
+                    }
+                }
+                break;
+        }
+    }
+    
+    private void handleRemove(String cmd) {
+        String[] args = cmd.split(" ");
+        BanC b = null;
+        if (args[1].equals(BanCType.SILENCE.toString())) {
+            if (bancSilence.containsKey(low(args[2])))
+                b = bancSilence.remove(low(args[2]));
+        } else if (args[1].equals(BanCType.SPEC.toString())) {
+            if (bancSpec.containsKey(low(args[2])))
+                b = bancSpec.remove(low(args[2]));
+        } else if (args[1].equals(BanCType.SUPERSPEC.toString())) {
+            if (bancSuper.containsKey(low(args[2])))
+                b = bancSuper.remove(low(args[2]));
+        } else return;
+        
+        String name = getTarget(b);
+        if (name != null && b != null) {
+            b.active = false;
+            actions.add(b);
+        }
+    }
+    
+    private String getTarget(BanC b) {
+        String target = m_botAction.getFuzzyPlayerName(b.getName());
+        if (target != null && target.equalsIgnoreCase(b.getName()))
+            b.name = target;
+        else
+            target = null;
+        return target;
+    }
+
+    /*
     private void handleIPCMessage(String command) {
         if (command.startsWith(BanCType.SILENCE.toString())) {
             // silence player in arena
-            tempBanCCommand = BanCType.SILENCE.toString();
-            tempBanCTime = command.substring(8).split(":")[0];
-            tempBanCPlayer = command.substring(8).split(":")[1];
-            m_botAction.sendUnfilteredPrivateMessage(tempBanCPlayer, "*shutup");
+            bancCommand = BanCType.SILENCE.toString();
+            bancTime = command.substring(8).split(":")[0];
+            bancPlayer = command.substring(8).split(":")[1];
+            m_botAction.sendUnfilteredPrivateMessage(bancPlayer, "*shutup");
         } else if (command.startsWith("REMOVE " + BanCType.SILENCE.toString())) {
             // unsilence player in arena
-            tempBanCCommand = "REMOVE " + BanCType.SILENCE.toString();
-            tempBanCTime = null;
-            tempBanCPlayer = command.substring(15);
-            bancs.remove(low(tempBanCPlayer));
-            m_botAction.sendUnfilteredPrivateMessage(tempBanCPlayer, "*shutup");
+            bancCommand = "REMOVE " + BanCType.SILENCE.toString();
+            bancTime = null;
+            bancPlayer = command.substring(15);
+            bancSilence.remove(low(bancPlayer));
+            m_botAction.sendUnfilteredPrivateMessage(bancPlayer, "*shutup");
         } else if (command.startsWith(BanCType.SPEC.toString())) {
             // speclock player in arena
-            tempBanCCommand = BanCType.SPEC.toString();
-            tempBanCTime = command.substring(5).split(":")[0];
-            tempBanCPlayer = command.substring(5).split(":")[1];
-            m_botAction.spec(tempBanCPlayer);
+            bancCommand = BanCType.SPEC.toString();
+            bancTime = command.substring(5).split(":")[0];
+            bancPlayer = command.substring(5).split(":")[1];
+            m_botAction.spec(bancPlayer);
         } else if (command.startsWith(BanCType.SUPERSPEC.toString())) {
             //superspec lock player in arena
             handleSuperSpec(command);
-            tempBanCCommand = BanCType.SUPERSPEC.toString();
+            bancCommand = BanCType.SUPERSPEC.toString();
             //!spec player:time
             //SPEC time:target
             //SUPERSPEC time:target
-            tempBanCTime = command.substring(10).split(":")[0];
+            bancTime = command.substring(10).split(":")[0];
             handleSuperSpec(command);
             //tempBanCPlayer = command.substring(10).split(":")[1];
-            m_botAction.setShip(tempBanCPlayer, 3);
+            m_botAction.setShip(bancPlayer, 3);
         } else if (command.startsWith("REMOVE " + BanCType.SPEC.toString())) {
             // remove speclock of player in arena
-            tempBanCCommand = "REMOVE " + BanCType.SPEC.toString();
-            tempBanCTime = null;
-            tempBanCPlayer = command.substring(12);
-            m_botAction.ipcSendMessage(IPCBANC, "remspec " + tempBanCPlayer, null, null);
-            m_botAction.spec(tempBanCPlayer);
+            bancCommand = "REMOVE " + BanCType.SPEC.toString();
+            bancTime = null;
+            bancPlayer = command.substring(12);
+            m_botAction.ipcSendMessage(IPCBANC, "remspec " + bancPlayer, null, null);
+            m_botAction.spec(bancPlayer);
             //need to make remove for super spec
             //REMOVE SPEC PLAYER
         } else if (command.startsWith("REMOVE " + BanCType.SUPERSPEC.toString())) {
-            tempBanCCommand = "REMOVE " + BanCType.SUPERSPEC.toString();
+            bancCommand = "REMOVE " + BanCType.SUPERSPEC.toString();
             hashSuperSpec.remove(command.substring(17).toLowerCase());
-            tempBanCTime = null;
+            bancTime = null;
             //REMOVE a
             //REMOVE SUPERSPEC PLAYER
-            tempBanCPlayer = command.substring(17);
+            bancPlayer = command.substring(17);
             //maybe pm the player here?
         }
     }
-
-    private void handleSuperSpec(String command) {
-        // TODO Auto-generated method stub
-        //SUPERSPEC TIME:OLDNICK:NEWNICK
-        String cmdSplit[] = command.split(":");
-        if (cmdSplit.length == 3) {
-            String oldNickString = cmdSplit[1].toLowerCase();
-            String newNickString = cmdSplit[2].toLowerCase();
-            this.tempBanCPlayer = newNickString;
-            if (!newNickString.equals(oldNickString)) {
-                this.hashSuperSpec.add(newNickString);
-                this.hashSuperSpec.remove(oldNickString);
-            }
-        } else {
-            this.tempBanCPlayer = cmdSplit[1].toLowerCase();
-            //if(!this.hashSuperSpec.contains(cmdSplit[1]))
-            this.hashSuperSpec.add(cmdSplit[1].toLowerCase());
-        }
-    }
+    */
     
     class BanC {
         
@@ -433,6 +423,7 @@ public class pubbotbanc extends PubBotModule {
         String mid;
         long time;
         BanCType type;
+        boolean active;
         
         public BanC(String info) {
             // name:ip:mid:time
@@ -441,13 +432,21 @@ public class pubbotbanc extends PubBotModule {
             ip = args[1];
             mid = args[2];
             time = Long.valueOf(args[3]);
+            
             if (args[4].equals("SILENCE"))
                 type = BanCType.SILENCE;
+            else if (args[4].equals("SPEC"))
+                type = BanCType.SPEC;
             else
                 type = BanCType.SUPERSPEC;
+            active = true;
+        }
+        
+        public String getCommand() {
+            return "" + (!active ? "REMOVE " : "") + type.toString() + " " + name;
         }
 
-        public String getPlayername() {
+        public String getName() {
             return name;
         }
         
@@ -465,6 +464,32 @@ public class pubbotbanc extends PubBotModule {
         
         public BanCType getType() {
             return type;
+        }
+        
+        public boolean isActive() {
+            return active;
+        }
+    }
+    
+    class Action extends TimerTask {
+        @Override
+        public void run() {
+            if (!actions.isEmpty()) {
+                current = actions.remove(0);
+                if (current.isActive()) {
+                    switch (current.getType()) {
+                        case SILENCE:
+                            m_botAction.sendUnfilteredPrivateMessage(current.getName(), "*shutup");
+                            break;
+                        case SPEC:
+                            m_botAction.spec(current.getName());
+                            break;
+                        case SUPERSPEC:
+                            hashSuperSpec.remove(low(current.getName()));
+                            break;
+                    }
+                }
+            }
         }
     }
 
