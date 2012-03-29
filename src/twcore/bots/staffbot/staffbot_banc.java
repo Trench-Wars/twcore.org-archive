@@ -1,5 +1,9 @@
 package twcore.bots.staffbot;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,8 +14,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.StringTokenizer;
 import java.util.TimerTask;
 
 import twcore.bots.Module;
@@ -24,26 +28,13 @@ import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCEvent;
 import twcore.core.util.ipc.IPCMessage;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.util.HashSet;
-import java.util.LinkedList;
-
 /**
  * StaffBot BanC module
  * 
- *  - automatic-silence
- *  - automatic-spec-lock
- *  - automatic-kick-lock
- *  - automatic-super-spec-lock @author quiles/dexter
- *  - !search feature @author quiles/dexter
- *  - !lifted feature @author quiles
- *  changed lifted banc to a new field instead of deleting.
- *  TODO:
- *   
- *   - Time left in !listban #ID
+ * - automatic-silence - automatic-spec-lock - automatic-kick-lock - automatic-super-spec-lock @author quiles/dexter - !search feature @author
+ * quiles/dexter - !lifted feature @author quiles changed lifted banc to a new field instead of deleting. TODO:
+ * 
+ * - Time left in !listban #ID
  * 
  * @author Maverick
  */
@@ -128,7 +119,9 @@ public class staffbot_banc extends Module {
             { 120, 60 * 24 * 7, 0, 0 } };
     private SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private final int BANC_MAX_DURATION = 525600; // (365 days in minutes)
+    @SuppressWarnings("unused")
     private final static int BANC_EXPIRE_TIME = Tools.TimeInMillis.WEEK * 2;
+    @SuppressWarnings("unused")
     private final static int MAX_NAME_SUGGESTIONS = 20;
 
     // Operation variables
@@ -213,6 +206,7 @@ public class staffbot_banc extends Module {
         eventRequester.request(EventRequester.MESSAGE);
     }
 
+    @Override
     public void handleEvent(Message event) {
         if (stop)
             return;
@@ -228,9 +222,8 @@ public class staffbot_banc extends Module {
             //Everytime a someone tries a command, reload the ops and see if they have access
             restart_ops();
             if (!bancStaffers.containsKey(name.toLowerCase())) {
-                if (bancRevoked.containsKey(name.toLowerCase())) {
+                if (bancRevoked.containsKey(name.toLowerCase()))
                     m_botAction.sendSmartPrivateMessage(name, "Sorry, Your access to BanC has been revoked");
-                }
                 return;
             }
 
@@ -251,9 +244,9 @@ public class staffbot_banc extends Module {
                     return;
             restart_ops();
             // !help
-            if (messageLc.startsWith("!help")) {
+            if (messageLc.startsWith("!help"))
                 cmdHelp(name, message.substring(5).trim());
-            } else if (messageLc.startsWith("!lifted"))
+            else if (messageLc.startsWith("!lifted"))
                 searchByLiftedBancs(name);
 
             else if (messageLc.startsWith("!searchip"))
@@ -271,43 +264,25 @@ public class staffbot_banc extends Module {
             }
 
             // !banaccesss
-            else if (messageLc.startsWith("!banaccess")) {
+            else if (messageLc.startsWith("!banaccess"))
                 cmdBanAccess(name, message.substring(10).trim());
-            }
-
-            // !shortcutkeys
-            else if (messageLc.startsWith("!shortcutkeys")) {
+            else if (messageLc.startsWith("!shortcutkeys"))
                 cmdShortcutkeys(name);
-            }
-
-            else if (messageLc.equalsIgnoreCase("!arg")) {
+            else if (messageLc.equalsIgnoreCase("!arg"))
                 cmdArgument(name);
-            }
-
-            // !silence <player>:<time/mins>
-            // !spec <player>:<time/mins>
-            // !kick <player>:<time/mins>   [mod+]
             else if (messageLc.startsWith("!silence") || messageLc.startsWith("!s") || messageLc.startsWith("!spec") || messageLc.startsWith("!sp ")
-                    || messageLc.startsWith("!superspec")) {
+                    || messageLc.startsWith("!superspec"))
                 //messageLc.startsWith("!kick") && opList.isModerator(name)) ||
                 //(messageLc.startsWith("!k") && opList.isModerator(name))) {
                 cmdSilenceSpecKick(name, message);
-            }
-
-            else if (messageLc.startsWith("!listban -help")) {
+            else if (messageLc.startsWith("!listban -help"))
                 cmdListBanHelp(name);
-            }
-            // !listban [arg] [count]
-            // !listban [#id]
-            else if (messageLc.startsWith("!listban")) {
+            else if (messageLc.startsWith("!listban"))
                 cmdListBan(name, message.substring(8).trim(), true, true);
-            } else if (messageLc.startsWith("!lb")) {
+            else if (messageLc.startsWith("!lb"))
                 cmdListBan(name, message.substring(3).trim(), true, true);
-            } else if (messageLc.startsWith("!banlist")) {
+            else if (messageLc.startsWith("!banlist"))
                 cmdListBan(name, message.substring(8).trim(), true, true);
-            }
-
-            // !changeban <#id> <arguments>
             else if (messageLc.startsWith("!changeban")) {
                 cmdChangeBan(name, message.substring(10).trim());
                 record(name, message);
@@ -317,38 +292,133 @@ public class staffbot_banc extends Module {
             }
 
             // !bancomment <#id> <comments>
-            else if (messageLc.startsWith("!bancomment")) {
+            else if (messageLc.startsWith("!bancomment"))
                 cmdBancomment(name, message.substring(11).trim());
-            } else if (messageLc.startsWith("!bc")) {
+            else if (messageLc.startsWith("!bc"))
                 cmdBancomment(name, message.substring(3).trim());
-            }
-
-            // !liftban <#id>
             else if (messageLc.startsWith("!liftban")) {
                 cmdLiftban(name, message.substring(8).trim());
                 record(name, message);
             }
             // !reload [Smod+]
-            else if (messageLc.startsWith("!reload") && opList.isDeveloper(name)) {
+            else if (messageLc.startsWith("!reload") && opList.isDeveloper(name))
                 cmdReload(name);
-            }
-
-            else if (messageLc.startsWith("!listactive") && opList.isDeveloper(name)) {
+            else if (messageLc.startsWith("!listactive") && opList.isDeveloper(name))
                 cmdListActiveBanCs(name);
-            }
-
-            else if (messageLc.startsWith("!forcedb") && opList.isDeveloper(name)) {
+            else if (messageLc.startsWith("!forcedb") && opList.isDeveloper(name))
                 doForceDBConnection(name);
-
-            }
         }
 
+    }
+
+    @Override
+    public void handleEvent(InterProcessEvent event) {
+        if (stop)
+            return;
+        if (!(event.getObject() instanceof IPCMessage))
+            return;
+        /*
+        String altNickToSuperSpec;
+        if (IPCALIAS.equals(event.getChannel()) && ((IPCMessage) event.getObject()).getMessage().startsWith("info ")) {
+            IPCMessage message = (IPCMessage) event.getObject();
+            StringTokenizer arguments = new StringTokenizer(message.getMessage().substring(5), ":");
+
+            if (arguments.countTokens() == 3) {
+                String playerName = arguments.nextToken();
+                String playerIP = arguments.nextToken();
+                String playerMID = arguments.nextToken();
+
+                // Look trough active bans if it matches
+                for (BanC banc : this.activeBanCs) {
+                    if (banc.getType() == BanCType.SILENCE)
+                        continue;
+                    boolean match = false;
+
+                    if (banc.playername != null && banc.playername.equalsIgnoreCase(playerName))
+                        // username match
+                        match = true;
+                    else if ((banc.IP != null && banc.IP.equals(playerIP)) && (banc.MID != null && banc.MID.equals(playerMID)))
+                        // IP and MID match
+                        match = true;
+                    else if ((banc.IP != null && banc.IP.equals(playerIP)) && banc.MID == null)
+                        // IP and unknown MID match
+                        match = true;
+                    else if (banc.IP == null && (banc.MID != null && banc.MID.equals(playerMID)))
+                        // unknown IP and MID match
+                        match = true;
+
+                    if (match) {
+                        // Match Ffound on one or more properties
+                        // Send BanC object to pubbotbanc to BanC the player
+                        banc.calculateExpired();
+                        altNickToSuperSpec = playerName;//banc.playername;
+                        //SUPERSPEC TIME:OLDNICK:NEWNICK
+                        if (banc.type.equals(BanCType.SUPERSPEC) && !banc.playername.equals(altNickToSuperSpec)) {
+                            m_botAction.ipcSendMessage(IPCBANC, banc.getType().toString() + " " + banc.duration + ":" + banc.playername + ":"
+                                    + altNickToSuperSpec, null, "banc");
+                            banc.playername = altNickToSuperSpec; //updating last nickname to the !liftban
+                        } else if (!banc.type.equals(BanCType.SUPERSPEC))
+                            m_botAction.ipcSendMessage(IPCBANC, banc.getType().toString() + " " + banc.duration + ":" + playerName, null, "banc");
+                    }
+                }
+            }
+        }
+        */
+        
+        if (IPCBANC.equals(event.getChannel()) && event.getSenderName().startsWith("TW-Guard")) {
+            IPCMessage ipc = (IPCMessage) event.getObject();
+            String command = ipc.getMessage();
+
+            // On initilization of a pubbot, send the active bancs to that pubbot
+            if (command.equals("BANC PUBBOT INIT"))
+                sendIPCActiveBanCs(ipc.getSender());
+            else if (command.startsWith(BanCType.SILENCE.toString())) {
+                BanC banc = lookupActiveBanC(BanCType.SILENCE, command.substring(8));
+                if (banc != null && banc.isNotification())
+                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)silenced by " + ipc.getSender() + ". (BanC #" + banc.getId() + ")");
+                else if (banc == null)
+                    m_botAction.sendChatMessage("Player '" + command.substring(8) + "' has been (re)silenced by " + ipc.getSender() + ".");
+            } else if (command.startsWith("REMOVE " + BanCType.SILENCE.toString())) {
+                BanC banc = lookupActiveBanC(BanCType.SILENCE, command.substring(15));
+                if (banc != null && banc.isNotification())
+                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been unsilenced.");
+                else if (banc == null)
+                    m_botAction.sendChatMessage("Player '" + command.substring(15) + "' has been unsilenced.");
+            } else if (command.startsWith(BanCType.SPEC.toString())) {
+                BanC banc = lookupActiveBanC(BanCType.SPEC, command.substring(5));
+                if (banc != null && banc.isNotification())
+                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)locked in spectator. (BanC #" + banc.getId() + ")");
+                else if (banc == null)
+                    m_botAction.sendChatMessage("Player '" + command.substring(5) + "' has been (re)locked in spectator.");
+            } else if (command.startsWith(BanCType.SUPERSPEC.toString())) {
+                //SUPERSPEC PLAYER
+                //0123456789T
+                BanC banc = lookupActiveBanC(BanCType.SUPERSPEC, command.substring(10));
+                if (banc != null && banc.isNotification())
+                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)superlocked in spectator. (BanC #" + banc.getId() + ")");
+                else if (banc == null)
+                    m_botAction.sendChatMessage("Player '" + command.substring(10) + "' has been (re)superlocked in spectator.");
+            } else if (command.startsWith("REMOVE " + BanCType.SUPERSPEC.toString())) {
+                //REMOVE SUPERSPEC
+                BanC banc = lookupActiveBanC(BanCType.SUPERSPEC, command.substring(17));
+                if (banc != null && banc.isNotification())
+                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been unsuper-specced.");
+                else if (banc == null)
+                    m_botAction.sendChatMessage("Player '" + command.substring(17) + "' has been unsuper-specced.");
+            } else if (command.startsWith("REMOVE " + BanCType.SPEC.toString())) {
+                BanC banc = lookupActiveBanC(BanCType.SPEC, command.substring(12));
+                if (banc != null && banc.isNotification())
+                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has had the speclock removed.");
+                else if (banc == null)
+                    m_botAction.sendChatMessage("Player '" + command.substring(12) + "' has had the speclock removed.");
+            }
+        }
     }
 
     private void record(String name, String message) {
         try {
             Calendar c = Calendar.getInstance();
-            String timestamp = c.get(c.MONTH) + "/" + c.get(c.DAY_OF_MONTH) + "/" + c.get(c.YEAR) + " - ";
+            String timestamp = c.get(Calendar.MONTH) + "/" + c.get(Calendar.DAY_OF_MONTH) + "/" + c.get(Calendar.YEAR) + " - ";
 
             BufferedReader reader = new BufferedReader(new FileReader("/home/bots/twcore/bin/logs/banc.log"));
             BufferedWriter writer = new BufferedWriter(new FileWriter("/home/bots/twcore/bin/logs/banc.log", true));
@@ -387,9 +457,9 @@ public class staffbot_banc extends Module {
         restart_ops();
         BotSettings m_botSettings = m_botAction.getBotSettings();
         String ops = m_botSettings.getString("BancStaffers");
-        if (ops.contains(substring.toLowerCase())) {
+        if (ops.contains(substring.toLowerCase()))
             m_botAction.sendSmartPrivateMessage(name, "Staffer " + substring + " is a Banc Operator");
-        } else
+        else
             m_botAction.sendSmartPrivateMessage(name, "Sorry, " + substring + " is not a Banc Operator");
     }
 
@@ -413,9 +483,8 @@ public class staffbot_banc extends Module {
         } else if (spot > 0 && spot == ops.length() - message.length()) {
             ops = ops.substring(0, spot - 1);
             m_botAction.sendSmartPrivateMessage(name, "Delete Op: " + message + " successful");
-        } else {
+        } else
             m_botAction.sendSmartPrivateMessage(name, "Delete Op: " + message + " successful");
-        }
 
         m_botSettings.put("BancStaffers", ops);
         m_botSettings.save();
@@ -426,6 +495,7 @@ public class staffbot_banc extends Module {
 
     /**
      * !addop
+     * 
      * @param name
      * @param substring
      */
@@ -458,18 +528,16 @@ public class staffbot_banc extends Module {
         BotSettings m_botSettings = m_botAction.getBotSettings();
         String ops = m_botSettings.getString("BancRevoked");
         int spot = ops.indexOf(substring);
-        if (spot == 0 && ops.length() == substring.length()) {
+        if (spot == 0 && ops.length() == substring.length())
             ops = "";
-        } else if (spot == 0 && ops.length() > substring.length()) {
+        else if (spot == 0 && ops.length() > substring.length())
             ops = ops.substring(substring.length() + 1);
-        } else if (spot > 0 && spot + substring.length() < ops.length()) {
+        else if (spot > 0 && spot + substring.length() < ops.length())
             ops = ops.substring(0, spot) + ops.substring(spot + substring.length() + 1);
-        } else if (spot > 0 && spot == ops.length() - substring.length()) {
+        else if (spot > 0 && spot == ops.length() - substring.length())
             ops = ops.substring(0, spot - 1);
-
-        } else {
+        else
             m_botAction.sendSmartPrivateMessage(name, "This person was NOT revoked.");
-        }
         m_botSettings.put("BancRevoked", ops);
         m_botSettings.save();
         restart_ops();
@@ -504,6 +572,7 @@ public class staffbot_banc extends Module {
 
     /**
      * !listops
+     * 
      * @param name
      */
 
@@ -522,7 +591,7 @@ public class staffbot_banc extends Module {
 
         for (int k = 0; list.hasNext();) {
 
-            String pName = (String) list.next();
+            String pName = list.next();
             if (m_botAction.getOperatorList().isSysop(pName))
                 bancs += pName + " (SysOp), ";
             else if (m_botAction.getOperatorList().isSmodExact(pName))
@@ -530,23 +599,21 @@ public class staffbot_banc extends Module {
             else
                 bancs += pName + ", ";
             k++;
-            if (k % 10 == 0 || !list.hasNext()) {
+            if (k % 10 == 0 || !list.hasNext())
                 if (bancs.length() > 2) {
                     m_botAction.sendSmartPrivateMessage(name, bancs.substring(0, bancs.length() - 2));
                     bancs = "";
                 }
-            }
 
         }
         String bancs1 = "List of staffers that have no access: ";
         Iterator<String> list1 = bancRevoked.values().iterator();
 
-        while (list1.hasNext()) {
+        while (list1.hasNext())
             if (list1.hasNext())
-                bancs1 += (String) list1.next() + ", ";
+                bancs1 += list1.next() + ", ";
             else
-                bancs1 += (String) list1.next();
-        }
+                bancs1 += list1.next();
 
         bancs1 = bancs1.substring(0, bancs1.length() - 2);
         m_botAction.sendSmartPrivateMessage(name, bancs1);
@@ -554,6 +621,7 @@ public class staffbot_banc extends Module {
 
     /**
      * !removeop
+     * 
      * @param name
      * @param message
      */
@@ -620,6 +688,7 @@ public class staffbot_banc extends Module {
 
     /***
      * !search -help command explaining how to use it.
+     * 
      * @author quiles
      */
     private void searchByNameHelp(String name) {
@@ -649,9 +718,7 @@ public class staffbot_banc extends Module {
 
     /**
      * 
-     * @author quiles/dexter
-     * Search feature
-     * Extract'd method here: into sendBancs and sendWarnings.
+     * @author quiles/dexter Search feature Extract'd method here: into sendBancs and sendWarnings.
      * 
      * @see getLimits method
      * */
@@ -663,7 +730,7 @@ public class staffbot_banc extends Module {
             if (m_botAction.getOperatorList().isSmod(stafferName) || bancOp.containsKey(stafferName.toLowerCase())) {
                 sendAltNicks(stafferName, name, limitBanCs, limitWarnings);
                 if (limitBanCs == 0 && limitWarnings == 0)
-                    m_botAction.sendRemotePrivateMessage(stafferName, "You can see all the player's history too typing !search player:-1:-1");
+                    m_botAction.sendSmartPrivateMessage(stafferName, "You can see all the player's history too typing !search player:-1:-1");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -774,24 +841,24 @@ public class staffbot_banc extends Module {
             else
                 warningSplitBecauseOfExt = warningStr.split(": ", 2);
 
-            if (date.before(expireDate) && warningSplitBecauseOfExt.length == 2) { //expired warnings AND warnings done correctly in database
+            if (date.before(expireDate) && warningSplitBecauseOfExt.length == 2)
                 expiredWarnings.add(stringDateExpired + " " + warningSplitBecauseOfExt[1]);
-            } else if (warningSplitBecauseOfExt.length == 2) //lastest warnings AND warnings done correctly in database
+            else if (warningSplitBecauseOfExt.length == 2) //lastest warnings AND warnings done correctly in database
                 lastestWarnings.add(stringDateNotExpired + " " + warningSplitBecauseOfExt[1]);
 
         }
 
         if (lastestWarnings.size() > 0) {
 
-            m_botAction.sendRemotePrivateMessage(stafferName, " ------ Latest warnings (last 2 weeks): ");
+            m_botAction.sendSmartPrivateMessage(stafferName, " ------ Latest warnings (last 2 weeks): ");
             m_botAction.remotePrivateMessageSpam(stafferName, lastestWarnings.toArray(new String[lastestWarnings.size()]));
         }
 
-        if (limit == 0) {
-            m_botAction.sendRemotePrivateMessage(stafferName, "There are " + expiredWarnings.size()
+        if (limit == 0)
+            m_botAction.sendSmartPrivateMessage(stafferName, "There are " + expiredWarnings.size()
                     + " expired warnings. Use !search <player>:[limits]:[limitWarning] to see");
-        } else if (expiredWarnings.size() > 0) {
-            m_botAction.sendRemotePrivateMessage(stafferName, " ------ Expired warnings (more than 2 weeks): ");
+        else if (expiredWarnings.size() > 0) {
+            m_botAction.sendSmartPrivateMessage(stafferName, " ------ Expired warnings (more than 2 weeks): ");
             m_botAction.remotePrivateMessageSpam(stafferName, expiredWarnings.toArray(new String[lastestWarnings.size()]));
         }
 
@@ -799,8 +866,7 @@ public class staffbot_banc extends Module {
     }
 
     /**
-     * Captures aliases for playerName during !search using provided limitBan
-     * and limitWarn
+     * Captures aliases for playerName during !search using provided limitBan and limitWarn
      * 
      * @param stafferName
      *            Name of staff to respond to with data
@@ -833,11 +899,9 @@ public class staffbot_banc extends Module {
                 while (resultSet.next()) {
                     curResult = resultSet.getString("fcUserName");
 
-                    if (!nicks.contains(curResult) && !playerName.toLowerCase().equals(curResult.toLowerCase())) {
-
+                    if (!nicks.contains(curResult) && !playerName.toLowerCase().equals(curResult.toLowerCase()))
                         nicks.add(curResult);
-                        //numResults++;
-                    }
+                    //numResults++;
                 }
 
                 m_botAction.SQLClose(resultSet);
@@ -881,14 +945,14 @@ public class staffbot_banc extends Module {
                     m_botAction.SQLClose(b);
 
                     if (hasWarning) {
-                        m_botAction.sendRemotePrivateMessage(stafferName, " ");
-                        m_botAction.sendRemotePrivateMessage(stafferName, "Warnings under Alias: " + s);
+                        m_botAction.sendSmartPrivateMessage(stafferName, " ");
+                        m_botAction.sendSmartPrivateMessage(stafferName, "Warnings under Alias: " + s);
                         sendWarnings(stafferName, s, limitWarn);
                     }
 
                     if (hasBanc) {
-                        m_botAction.sendRemotePrivateMessage(stafferName, " ");
-                        m_botAction.sendRemotePrivateMessage(stafferName, "BanCs under Alias: " + s);
+                        m_botAction.sendSmartPrivateMessage(stafferName, " ");
+                        m_botAction.sendSmartPrivateMessage(stafferName, "BanCs under Alias: " + s);
                         sendBanCs(stafferName, s, limitBan);
                     }
                 }
@@ -931,17 +995,15 @@ public class staffbot_banc extends Module {
                 //to limit #bancs and #warnings
                 limits[0] = Integer.parseInt(stPieces[1]);
                 limits[1] = Integer.parseInt(stPieces[2]);
-            } else if (stPieces.length == 2) {
+            } else if (stPieces.length == 2)
                 //to limits just #bancs and see all warnings
                 limits[0] = Integer.parseInt(stPieces[1]);
-            }
         }
         return limits;
     }
 
     /**
-     * Search ip feature - shortkut to !listban -ip=
-     * Changed the query in listban to find ips starting with substring. "x." - where like 'ipstr%'
+     * Search ip feature - shortkut to !listban -ip= Changed the query in listban to find ips starting with substring. "x." - where like 'ipstr%'
      * */
     private void searchByIp(String stafferName, String ipString) {
         this.cmdListBan(stafferName, "-ip=" + ipString, true, true);
@@ -999,158 +1061,30 @@ public class staffbot_banc extends Module {
         m_botAction.remotePrivateMessageSpam(name, spamPM);
     }
 
-    /* (non-Javadoc)
-     * @see twcore.bots.Module#handleEvent(twcore.core.events.InterProcessEvent)
-     */
-    @Override
-    public void handleEvent(InterProcessEvent event) {
-        if (stop)
-            return;
-        if (!(event.getObject() instanceof IPCMessage))
-            return;
-
-        String altNickToSuperSpec;
-        if (IPCALIAS.equals(event.getChannel()) && ((IPCMessage) event.getObject()).getMessage().startsWith("info ")) {
-            IPCMessage message = (IPCMessage) event.getObject();
-            StringTokenizer arguments = new StringTokenizer(message.getMessage().substring(5), ":");
-
-            if (arguments.countTokens() == 3) {
-                String playerName = arguments.nextToken();
-                String playerIP = arguments.nextToken();
-                String playerMID = arguments.nextToken();
-
-                // Look trough active bans if it matches
-                for (BanC banc : this.activeBanCs) {
-                    if (banc.getType() == BanCType.SILENCE)
-                        continue;
-                    boolean match = false;
-
-                    if (banc.playername != null && banc.playername.equalsIgnoreCase(playerName)) {
-                        // username match
-                        match = true;
-
-                        //Tools.printLog("BanC username match on '"+playerName+"', IP:"+playerIP+", MID:"+playerMID+". BanC #"+banc.id+" ; ("+banc.playername+","+banc.IP+","+banc.MID+") duration="+banc.duration+", start="+banc.created.getTime());
-                    } else if ((banc.IP != null && banc.IP.equals(playerIP)) && (banc.MID != null && banc.MID.equals(playerMID))) {
-                        // IP and MID match
-                        match = true;
-
-                        //Tools.printLog("BanC IP & MID match on '"+playerName+"', IP:"+playerIP+", MID:"+playerMID+". BanC #"+banc.id+" ; ("+banc.playername+","+banc.IP+","+banc.MID+") duration="+banc.duration+", start="+banc.created.getTime());
-                    } else if ((banc.IP != null && banc.IP.equals(playerIP)) && banc.MID == null) {
-                        // IP and unknown MID match
-                        match = true;
-
-                        //Tools.printLog("BanC IP & ?MID? match on '"+playerName+"', IP:"+playerIP+", MID:"+playerMID+". BanC #"+banc.id+" ; ("+banc.playername+","+banc.IP+","+banc.MID+") duration="+banc.duration+", start="+banc.created.getTime());
-                    } else if (banc.IP == null && (banc.MID != null && banc.MID.equals(playerMID))) {
-                        // unknown IP and MID match
-                        match = true;
-
-                        //Tools.printLog("BanC ?IP? & MID match on '"+playerName+"', IP:"+playerIP+", MID:"+playerMID+". BanC #"+banc.id+" ; ("+banc.playername+","+banc.IP+","+banc.MID+") duration="+banc.duration+", start="+banc.created.getTime());
-                    }
-
-                    if (match) {
-                        // Match Ffound on one or more properties
-                        // Send BanC object to pubbotbanc to BanC the player
-                        banc.calculateExpired();
-                        altNickToSuperSpec = playerName;//banc.playername;
-                        //SUPERSPEC TIME:OLDNICK:NEWNICK
-                        if (banc.type.equals(BanCType.SUPERSPEC) && !banc.playername.equals(altNickToSuperSpec)) {
-                            m_botAction.ipcSendMessage(IPCBANC, banc.getType().toString() + " " + banc.duration + ":" + banc.playername + ":"
-                                    + altNickToSuperSpec, null, "banc");
-                            banc.playername = altNickToSuperSpec; //updating last nickname to the !liftban
-                        } else if (!banc.type.equals(BanCType.SUPERSPEC))
-                            m_botAction.ipcSendMessage(IPCBANC, banc.getType().toString() + " " + banc.duration + ":" + playerName, null, "banc");
-                    }
-                }
-            }
-        }
-        if (IPCBANC.equals(event.getChannel()) && event.getSenderName().toLowerCase().startsWith("tw-guard")) {
-            IPCMessage ipc = (IPCMessage) event.getObject();
-            String command = ipc.getMessage();
-
-            // On initilization of a pubbot, send the active bancs to that pubbot
-            if (command.equals("BANC PUBBOT INIT")) {
-                sendIPCActiveBanCs(ipc.getSender());
-            } else if (command.startsWith(BanCType.SILENCE.toString())) {
-                BanC banc = lookupActiveBanC(BanCType.SILENCE, command.substring(8));
-                if (banc != null && banc.isNotification()) {
-                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)silenced by " + ipc.getSender() + ". (BanC #" + banc.getId() + ")");
-
-                } else if (banc == null) {
-                    m_botAction.sendChatMessage("Player '" + command.substring(8) + "' has been (re)silenced by " + ipc.getSender() + ".");
-                }
-
-            } else if (command.startsWith("REMOVE " + BanCType.SILENCE.toString())) {
-                BanC banc = lookupActiveBanC(BanCType.SILENCE, command.substring(15));
-                if (banc != null && banc.isNotification()) {
-                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been unsilenced.");
-                } else if (banc == null) {
-                    m_botAction.sendChatMessage("Player '" + command.substring(15) + "' has been unsilenced.");
-                }
-            } else if (command.startsWith(BanCType.SPEC.toString())) {
-                BanC banc = lookupActiveBanC(BanCType.SPEC, command.substring(5));
-                if (banc != null && banc.isNotification()) {
-                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)locked in spectator. (BanC #" + banc.getId()
-                            + ")");
-                } else if (banc == null) {
-                    m_botAction.sendChatMessage("Player '" + command.substring(5) + "' has been (re)locked in spectator.");
-                }//SPEC PLAYER
-                 //012345
-            } else if (command.startsWith(BanCType.SUPERSPEC.toString())) {
-                //SUPERSPEC PLAYER
-                //0123456789T
-                BanC banc = lookupActiveBanC(BanCType.SUPERSPEC, command.substring(10));
-                if (banc != null && banc.isNotification()) {
-                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)superlocked in spectator. (BanC #" + banc.getId()
-                            + ")");
-                } else if (banc == null) {
-                    m_botAction.sendChatMessage("Player '" + command.substring(10) + "' has been (re)superlocked in spectator.");
-                }
-            } else if (command.startsWith("REMOVE " + BanCType.SUPERSPEC.toString())) {
-                //REMOVE SUPERSPEC
-                BanC banc = lookupActiveBanC(BanCType.SUPERSPEC, command.substring(17));
-                if (banc != null && banc.isNotification()) {
-                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been unsuper-specced.");
-                } else if (banc == null) {
-                    m_botAction.sendChatMessage("Player '" + command.substring(17) + "' has been unsuper-specced.");
-                }
-            } else if (command.startsWith("REMOVE " + BanCType.SPEC.toString())) {
-                BanC banc = lookupActiveBanC(BanCType.SPEC, command.substring(12));
-                if (banc != null && banc.isNotification()) {
-                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has had the speclock removed.");
-                } else if (banc == null) {
-                    m_botAction.sendChatMessage("Player '" + command.substring(12) + "' has had the speclock removed.");
-                }
-                //} else if(command.startsWith(BanCType.KICK.toString())) {
-                //BanC banc = lookupActiveBanC(BanCType.KICK, command.substring(5));
-                //if(banc != null && banc.isNotification()) {
-                //m_botAction.sendChatMessage("Player '"+banc.getPlayername()+"' has been kicked.");
-                //} else if(banc == null) {
-                //m_botAction.sendChatMessage("Player '"+command.substring(5)+"' has been kicked.");
-            }
-        }
-    }
-
-    //}
-
     /**
      * Handles the !help command
-     * @param name player who issued the command
-     * @param parameters any command parameters
+     * 
+     * @param name
+     *            player who issued the command
+     * @param parameters
+     *            any command parameters
      */
     private void cmdHelp(String name, String parameters) {
 
         m_botAction.smartPrivateMessageSpam(name, helpER);
 
-        if (opList.isSmod(name)) {
+        if (opList.isSmod(name))
             m_botAction.smartPrivateMessageSpam(name, helpSmod);
-        }
 
     }
 
     /**
      * Handles the !banaccess command
-     * @param name player who issued the command
-     * @param parameters any command parameters
+     * 
+     * @param name
+     *            player who issued the command
+     * @param parameters
+     *            any command parameters
      */
     private void cmdBanAccess(String name, String parameters) {
         /*      Limitations on BanC by access level
@@ -1161,9 +1095,9 @@ public class staffbot_banc extends Module {
                  Auto-kick time/mins   n/a     30      60      none
         */
 
-        m_botAction.sendRemotePrivateMessage(name, "Limitations on BanC by access level");
-        m_botAction.sendRemotePrivateMessage(name, " ");
-        m_botAction.sendRemotePrivateMessage(name, "                       ER     MOD     SMOD    SYSOP");
+        m_botAction.sendSmartPrivateMessage(name, "Limitations on BanC by access level");
+        m_botAction.sendSmartPrivateMessage(name, " ");
+        m_botAction.sendSmartPrivateMessage(name, "                       ER     MOD     SMOD    SYSOP");
 
         for (int type = 0; type < BANCLIMITS.length; type++) {
             String line = "";
@@ -1177,33 +1111,32 @@ public class staffbot_banc extends Module {
                 case 2:
                     line += " SuperSpec time/mins";
                     break;
-                //case 2: line += " Auto-kick time/mins"; break; 
+            //case 2: line += " Auto-kick time/mins"; break; 
             }
             line = Tools.formatString(line, 23);
 
             for (int level = 0; level < BANCLIMITS[0].length; level++) {
                 String limit = "";
-                if (BANCLIMITS[type][level] == null) {
+                if (BANCLIMITS[type][level] == null)
                     limit += "n/a";
-                } else if (BANCLIMITS[type][level].intValue() == 0) {
+                else if (BANCLIMITS[type][level].intValue() == 0)
                     limit += "none";
-                } else {
+                else
                     limit += String.valueOf(BANCLIMITS[type][level]);
-                }
-                if (level < (BANCLIMITS[0].length - 1)) {
+                if (level < (BANCLIMITS[0].length - 1))
                     limit = Tools.formatString(limit, 8);
-                }
                 line += limit;
             }
 
-            m_botAction.sendRemotePrivateMessage(name, line);
+            m_botAction.sendSmartPrivateMessage(name, line);
         }
     }
 
     /**
      * Handles the !shortcutkeys command
      * 
-     * @param name player who issued the command
+     * @param name
+     *            player who issued the command
      */
     private void cmdShortcutkeys(String name) {
         m_botAction.smartPrivateMessageSpam(name, shortcutKeys);
@@ -1211,8 +1144,11 @@ public class staffbot_banc extends Module {
 
     /**
      * Handles the !silence, !spec and !kick command
-     * @param name player who issed the command
-     * @param message full message that the player sent
+     * 
+     * @param name
+     *            player who issed the command
+     * @param message
+     *            full message that the player sent
      */
     private void cmdSilenceSpecKick(String name, String message) {
         String timeStr = "10";
@@ -1263,17 +1199,11 @@ public class staffbot_banc extends Module {
                 comment = parameters.split(":")[2];
             parameters = parameters.split(":")[0];
         } else {
-            m_botAction.sendRemotePrivateMessage(name, "Syntax error. Please specify <playername>:<time/mins> or PM !help for more information.");
+            m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please specify <playername>:<time/mins> or PM !help for more information.");
             return;
         }
-        /*
-        if( !Tools.isAllDigits(timeStr) && !timeStr.contains("d")){//|| !Tools.isAllDigits(timeStr) ) {
-            m_botAction.sendRemotePrivateMessage(name, "Syntax error. Please specify <playername>:<time/mins> or PM !help for more information.");
-            return;
-        }
-        else */if (timeStr.length() > 6) {
+        if (timeStr.length() > 6)
             timeStr = timeStr.substring(0, 5);
-        }
 
         final String target = parameters;
         int time;
@@ -1287,25 +1217,23 @@ public class staffbot_banc extends Module {
             time = Integer.parseInt(timeStr);
 
         if (time > BANC_MAX_DURATION) {
-            m_botAction.sendRemotePrivateMessage(name, "The maximum amount of minutes for a BanC is " + BANC_MAX_DURATION
-                    + " minutes (365 days). Duration changed to this maximum.");
+            m_botAction.sendSmartPrivateMessage(name, "The maximum amount of minutes for a BanC is " + BANC_MAX_DURATION + " minutes (365 days). Duration changed to this maximum.");
             time = BANC_MAX_DURATION;
             timeToTell = (BANC_MAX_DURATION / 24) / 60;
-
         }
 
         // Check target
         // Already banced?
         if (isBanCed(target, bancType)) {
-            m_botAction.sendRemotePrivateMessage(name, "Player '" + target + "' is already banced. Check !listban.");
+            m_botAction.sendSmartPrivateMessage(name, "Player '" + target + "' is already banced. Check !listban.");
             return;
         } else if (m_botAction.getOperatorList().isBotExact(target)) {
-            m_botAction.sendRemotePrivateMessage(name, "You can't place a BanC on '" + target + "' as it is a bot.");
+            m_botAction.sendSmartPrivateMessage(name, "You can't place a BanC on '" + target + "' as it is a bot.");
             return;
         } else
         // staff member?
         if (m_botAction.getOperatorList().isBot(target)) {
-            m_botAction.sendRemotePrivateMessage(name, "Player '" + target + "' is staff, staff can't be banced.");
+            m_botAction.sendSmartPrivateMessage(name, "Player '" + target + "' is staff, staff can't be banced.");
             return;
         }
 
@@ -1314,8 +1242,8 @@ public class staffbot_banc extends Module {
         if (getBanCAccessDurationLimit(bancType, opList.getAccessLevel(name)) != 0
                 && (getBanCAccessDurationLimit(bancType, opList.getAccessLevel(name)) < time || time == 0)) {
             time = getBanCAccessDurationLimit(bancType, opList.getAccessLevel(name));
-            m_botAction.sendRemotePrivateMessage(name, "You are not allowed to issue an " + bancName + " of that duration.");
-            m_botAction.sendRemotePrivateMessage(name, "The duration has been changed to the maximum duration of your access level: " + time
+            m_botAction.sendSmartPrivateMessage(name, "You are not allowed to issue an " + bancName + " of that duration.");
+            m_botAction.sendSmartPrivateMessage(name, "The duration has been changed to the maximum duration of your access level: " + time
                     + " mins.");
             timeToTell = 7;
         }
@@ -1329,21 +1257,22 @@ public class staffbot_banc extends Module {
         if (time >= 24 * 60 * 7 && timeToTell > 0) {
 
             m_botAction.sendChatMessage(name + " initiated an " + bancName + " on '" + target + "' for " + timeToTell + " days(" + time + " mins).");
-            m_botAction.sendRemotePrivateMessage(name, "BanC #" + banc.id + ": " + bancName + " on '" + target + "' for " + timeToTell + " days("
+            m_botAction.sendSmartPrivateMessage(name, "BanC #" + banc.id + ": " + bancName + " on '" + target + "' for " + timeToTell + " days("
                     + time + " mins) initiated.");
         } else if (time > 0) {
             m_botAction.sendChatMessage(name + " initiated an " + bancName + " on '" + target + "' for " + time + " minutes.");
-            m_botAction.sendRemotePrivateMessage(name, "BanC #" + banc.id + ": " + bancName + " on '" + target + "' for " + time
+            m_botAction.sendSmartPrivateMessage(name, "BanC #" + banc.id + ": " + bancName + " on '" + target + "' for " + time
                     + " minutes initiated.");
         } else {
             m_botAction.sendChatMessage(name + " initiated an infinite/permanent " + bancName + " on '" + target + "'.");
-            m_botAction.sendRemotePrivateMessage(name, "BanC #" + banc.id + ": " + bancName + " on '" + target
+            m_botAction.sendSmartPrivateMessage(name, "BanC #" + banc.id + ": " + bancName + " on '" + target
                     + "' for infinite amount of time initiated.");
         }
-        m_botAction.sendRemotePrivateMessage(name, "Please do not forget to add comments to your BanC with !bancomment <#id> <comments>.");
+        m_botAction.sendSmartPrivateMessage(name, "Please do not forget to add comments to your BanC with !bancomment <#id> <comments>.");
         m_botAction.ipcSendMessage(IPCBANC, bancType.toString() + " " + time + ":" + target, null, "banc");
         if (bancType == BanCType.SILENCE)
-            m_botAction.ipcTransmit(IPCBANC, new IPCEvent(banc.getPlayername() + ":" + (banc.getIP() != null ? banc.getIP() : " ") + ":" + (banc.getMID() != null ? banc.getMID() : " ") + ":" + banc.getDuration() + ":" + banc.getType().toString(), 0, -1));
+            m_botAction.ipcTransmit(IPCBANC, new IPCEvent(banc.getPlayername() + ":" + (banc.getIP() != null ? banc.getIP() : " ") + ":"
+                    + (banc.getMID() != null ? banc.getMID() : " ") + ":" + banc.getDuration() + ":" + banc.getType().toString(), 0, -1));
 
         if (comment != null)
             cmdBancomment(name, "#" + banc.getId() + " " + comment);
@@ -1351,8 +1280,11 @@ public class staffbot_banc extends Module {
 
     /**
      * Handles the !listban command
-     * @param name player who issued the command
-     * @param parameters any command parameters
+     * 
+     * @param name
+     *            player who issued the command
+     * @param parameters
+     *            any command parameters
      */
     private void cmdListBan(String name, String parameters, boolean showLBHelp, boolean twoWeeks) {
         int viewcount = 10;
@@ -1381,8 +1313,7 @@ public class staffbot_banc extends Module {
 
             boolean playerArgument = false, stafferArgument = false;
 
-            for (String argument : parameters.split(" ")) {
-
+            for (String argument : parameters.split(" "))
                 if (!playerArgument && !stafferArgument) {
                     // [#id]
                     if (argument.startsWith("#") && Tools.isAllDigits(argument.substring(1))) {
@@ -1407,10 +1338,9 @@ public class staffbot_banc extends Module {
                         if (!sqlWhere.isEmpty())
                             sqlWhere += " AND ";
                         //sqlWhere += "fcUsername='"+playerString+"'";
-                        if (playerString.endsWith("'")) {
+                        if (playerString.endsWith("'"))
                             sqlWhere += "fcUsername='" + playerString.replace("'", "") + "'";
-
-                        } else {
+                        else {
                             sqlWhere += "fcUsername='" + Tools.addSlashes(playerString);
                             playerArgument = true;
                         }
@@ -1471,9 +1401,9 @@ public class staffbot_banc extends Module {
                             sqlWhere += " AND ";
                         //sqlWhere += "fcStaffer='"+stafferString+"'";
 
-                        if (stafferString.endsWith("'")) {
+                        if (stafferString.endsWith("'"))
                             sqlWhere += "fcStaffer='" + stafferString.replace("'", "") + "'";
-                        } else {
+                        else {
                             sqlWhere += "fcStaffer='" + Tools.addSlashes(stafferString);
                             stafferArgument = true;
                         }
@@ -1483,24 +1413,16 @@ public class staffbot_banc extends Module {
                         sqlWhere += "fbLifted=1";
                         showLifted = true;
                     }
-                }
-                // -player='<...>' or -staffer='<...>' extra name parts 
-                else {
-                    if (argument.endsWith("'")) {
-                        playerArgument = false;
-                        stafferArgument = false;
-                        sqlWhere += " " + argument.replace("'", "") + "'";
+                } else if (argument.endsWith("'")) {
+                    playerArgument = false;
+                    stafferArgument = false;
+                    sqlWhere += " " + argument.replace("'", "") + "'";
 
-                    } else {
-                        sqlWhere += " " + Tools.addSlashes(argument);
-                    }
-                }
+                } else
+                    sqlWhere += " " + Tools.addSlashes(argument);
 
-            }
-
-            if (playerArgument || stafferArgument) {
+            if (playerArgument || stafferArgument)
                 sqlWhere += "'";
-            }
         }
 
         String sqlQuery;
@@ -1522,45 +1444,40 @@ public class staffbot_banc extends Module {
                     String result = "";
                     result += (rs.getBoolean("active") ? "#" : "^");
                     result += rs.getString("fnID") + " ";
-                    if (rs.getString("fcMinAccess") != null) {
+                    if (rs.getString("fcMinAccess") != null)
                         result += "access:" + rs.getString("fcMinAccess") + " ";
-                    }
                     result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
                     result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + "  ";
                     result += Tools.formatString(rs.getString("fcType"), 7) + "  ";
                     result += "mins:" + Tools.formatString(rs.getString("fnDuration"), 5) + "  ";
                     result += rs.getString("fcUsername");
 
-                    m_botAction.sendRemotePrivateMessage(name, result);
+                    m_botAction.sendSmartPrivateMessage(name, result);
 
                     if (m_botAction.getOperatorList().isModerator(name)) {
                         String IP = rs.getString("fcIP");
                         if (IP == null)
                             IP = "(UNKNOWN)";
                         result = " IP: " + Tools.formatString(IP, 15) + "   ";
-                    } else {
+                    } else
                         result = " ";
-                    }
                     if (m_botAction.getOperatorList().isSmod(name)) {
                         String MID = rs.getString("fcMID");
                         if (MID == null)
                             MID = "(UNKNOWN)";
                         result += "MID: " + Tools.formatString(MID, 10) + "   ";
-                    } else {
+                    } else
                         result += " ";
-                    }
                     result += "Notification: " + (rs.getBoolean("fbNotification") ? "enabled" : "disabled");
-                    m_botAction.sendRemotePrivateMessage(name, result);
+                    m_botAction.sendSmartPrivateMessage(name, result);
 
                     String comments = rs.getString("fcComment");
-                    if (comments != null) {
-                        m_botAction.sendRemotePrivateMessage(name, " " + comments);
-                    } else {
-                        m_botAction.sendRemotePrivateMessage(name, " (no BanC comments)");
-                    }
-                } else {
-                    m_botAction.sendRemotePrivateMessage(name, "No BanC with that ID found.");
-                }
+                    if (comments != null)
+                        m_botAction.sendSmartPrivateMessage(name, " " + comments);
+                    else
+                        m_botAction.sendSmartPrivateMessage(name, " (no BanC comments)");
+                } else
+                    m_botAction.sendSmartPrivateMessage(name, "No BanC with that ID found.");
 
                 rs.close();
 
@@ -1570,9 +1487,8 @@ public class staffbot_banc extends Module {
                         sqlWhere = "WHERE fdCreated > DATE_SUB(NOW(), INTERVAL 2 WEEK) AND " + sqlWhere;
                     else
                         sqlWhere = "WHERE " + sqlWhere;
-                } else if (!twoWeeks) {
+                } else if (!twoWeeks)
                     sqlWhere = "WHERE fdCreated > DATE_SUB(NOW(), INTERVAL 2 WEEK)";
-                }
 
                 sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated, fbLifted FROM tblBanc "
                         + sqlWhere + " ORDER BY fnID DESC LIMIT 0," + viewcount;
@@ -1602,31 +1518,32 @@ public class staffbot_banc extends Module {
                                 result += " " + Tools.formatString(rs.getString("fcIP"), 15) + "  ";
                             result += rs.getString("fcUsername");
 
-                            m_botAction.sendRemotePrivateMessage(name, result);
+                            m_botAction.sendSmartPrivateMessage(name, result);
                         } while (rs.previous());
                         if (showLBHelp)
-                            m_botAction.sendRemotePrivateMessage(name, "!listban -help for more info");
+                            m_botAction.sendSmartPrivateMessage(name, "!listban -help for more info");
 
-                    } else {
+                    } else
                         // Empty resultset - nothing found
-                        m_botAction.sendRemotePrivateMessage(name, "No BanCs matching given arguments found.");
-                    }
-                } else {
+                        m_botAction.sendSmartPrivateMessage(name, "No BanCs matching given arguments found.");
+                } else
                     // Empty resultset - nothing found
-                    m_botAction.sendRemotePrivateMessage(name, "No BanCs matching given arguments found.");
-                }
+                    m_botAction.sendSmartPrivateMessage(name, "No BanCs matching given arguments found.");
             }
 
         } catch (SQLException sqle) {
-            m_botAction.sendRemotePrivateMessage(name, "A problem occured while retrieving ban listing from the database. Please try again or report the problem.");
+            m_botAction.sendSmartPrivateMessage(name, "A problem occured while retrieving ban listing from the database. Please try again or report the problem.");
             Tools.printStackTrace("SQLException while querying the database for BanCs", sqle);
         }
     }
 
     /**
      * Handles the !changeban command
-     * @param name player who issued the command
-     * @param parameters any command parameters
+     * 
+     * @param name
+     *            player who issued the command
+     * @param parameters
+     *            any command parameters
      */
     private void cmdChangeBan(String name, String parameters) {
         String sqlSet = "";
@@ -1652,15 +1569,14 @@ public class staffbot_banc extends Module {
 
             // Extract given #id
             String id = parameters.substring(1, parameters.indexOf(" ", 1));
-            if (Tools.isAllDigits(id)) {
+            if (Tools.isAllDigits(id))
                 banID = Integer.parseInt(id);
-            } else {
-                m_botAction.sendRemotePrivateMessage(name, "Syntax error. Please specify #id and arguments. For more information, PM !help.");
+            else {
+                m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please specify #id and arguments. For more information, PM !help.");
                 return;
             }
 
-            for (String argument : parameters.split(" ")) {
-
+            for (String argument : parameters.split(" "))
                 if (!playerArgument) {
                     // -player='<..>'
                     if (argument.startsWith("-player='")) {
@@ -1695,9 +1611,9 @@ public class staffbot_banc extends Module {
                                 ||
                                 //(MINACCESS_BANCSTAFFER.equalsIgnoreCase(accessRequirement) && !bancStaffers.containsKey(name.toLowerCase()))  ||
                                 (MINACCESS_SMOD.equalsIgnoreCase(accessRequirement) && !opList.isSmod(name))
-                                || (MINACCESS_SYSOP.equalsIgnoreCase(accessRequirement) && !opList.isSysop(name))) {
-                            m_botAction.sendRemotePrivateMessage(name, "You can't set the access requirement higher then your own access. (Argument ignored.)");
-                        } else if ( //MINACCESS_BANCSTAFFER.equalsIgnoreCase(accessRequirement)  ||
+                                || (MINACCESS_SYSOP.equalsIgnoreCase(accessRequirement) && !opList.isSysop(name)))
+                            m_botAction.sendSmartPrivateMessage(name, "You can't set the access requirement higher then your own access. (Argument ignored.)");
+                        else if ( //MINACCESS_BANCSTAFFER.equalsIgnoreCase(accessRequirement)  ||
                         MINACCESS_ER.equalsIgnoreCase(accessRequirement) || MINACCESS_MOD.equalsIgnoreCase(accessRequirement)
                                 || MINACCESS_SMOD.equalsIgnoreCase(accessRequirement) || MINACCESS_SYSOP.equalsIgnoreCase(accessRequirement)) {
                             if (!sqlSet.isEmpty())
@@ -1754,32 +1670,26 @@ public class staffbot_banc extends Module {
 
                             sqlSet += "fbNotification=0";
                             banChange.setNotification(false);
-                        } else {
-                            m_botAction.sendRemotePrivateMessage(name, "Syntax error on the -notif argument. (Argument ignored.)");
-                        }
+                        } else
+                            m_botAction.sendSmartPrivateMessage(name, "Syntax error on the -notif argument. (Argument ignored.)");
                     }
+                } else if (argument.endsWith("'")) {
+                    sqlSet += " " + argument.replace("'", "") + "'";
+                    banChange.setPlayername(banChange.getPlayername() + " " + argument.replace("'", ""));
+                    playerArgument = false;
+                } else {
+                    sqlSet += " " + Tools.addSlashes(argument);
+                    banChange.setPlayername(banChange.getPlayername() + " " + argument);
                 }
-                // -player='<...>' extra name parts
-                else {
-                    if (argument.endsWith("'")) {
-                        sqlSet += " " + argument.replace("'", "") + "'";
-                        banChange.setPlayername(banChange.getPlayername() + " " + argument.replace("'", ""));
-                        playerArgument = false;
-                    } else {
-                        sqlSet += " " + Tools.addSlashes(argument);
-                        banChange.setPlayername(banChange.getPlayername() + " " + argument);
-                    }
-                }
-            }
         } else {
             // No parameters
-            m_botAction.sendRemotePrivateMessage(name, "Syntax error. Please specify #id and arguments. For more information, PM !help.");
+            m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please specify #id and arguments. For more information, PM !help.");
             return;
         }
 
         if (sqlSet.isEmpty()) {
             // No arguments
-            m_botAction.sendRemotePrivateMessage(name, "Syntax error (no arguments specified). Please specify #id and arguments. For more information, PM !help.");
+            m_botAction.sendSmartPrivateMessage(name, "Syntax error (no arguments specified). Please specify #id and arguments. For more information, PM !help.");
             return;
         }
 
@@ -1797,7 +1707,7 @@ public class staffbot_banc extends Module {
                 if (//MINACCESS_BANCSTAFFER.equalsIgnoreCase(accessReq) && !bancStaffers.containsKey(name.toLowerCase())  ||
                 (MINACCESS_ER.equals(accessReq) && !opList.isER(name)) || (MINACCESS_MOD.equals(accessReq) && !opList.isModerator(name))
                         || (MINACCESS_SMOD.equals(accessReq) && !opList.isSmod(name)) || (MINACCESS_SYSOP.equals(accessReq) && !opList.isSysop(name))) {
-                    m_botAction.sendRemotePrivateMessage(name, "You don't have enough access to modify this BanC.");
+                    m_botAction.sendSmartPrivateMessage(name, "You don't have enough access to modify this BanC.");
                     return;
                 }
             }
@@ -1840,18 +1750,21 @@ public class staffbot_banc extends Module {
                 }
             }
 
-            m_botAction.sendRemotePrivateMessage(name, "BanC #" + banID + " changed.");
+            m_botAction.sendSmartPrivateMessage(name, "BanC #" + banID + " changed.");
 
         } catch (SQLException sqle) {
-            m_botAction.sendRemotePrivateMessage(name, "A problem occured while modifying the ban in the database. Please try again or report the problem.");
+            m_botAction.sendSmartPrivateMessage(name, "A problem occured while modifying the ban in the database. Please try again or report the problem.");
             Tools.printStackTrace("SQLException while modifying the database", sqle);
         }
     }
 
     /**
      * Handles the !bancomment command
-     * @param name player who issued the command
-     * @param parameters any command parameters
+     * 
+     * @param name
+     *            player who issued the command
+     * @param parameters
+     *            any command parameters
      */
     private void cmdBancomment(String name, String message) {
         // !bancomment <#id> <comments>   - Adds comments to BanC with specified #id.
@@ -1861,7 +1774,7 @@ public class staffbot_banc extends Module {
 
         if (message.length() == 0 || message.startsWith("#") == false || message.contains(" ") == false
                 || Tools.isAllDigits(message.substring(1).split(" ")[0]) == false || message.split(" ")[1].isEmpty()) {
-            m_botAction.sendRemotePrivateMessage(name, "Syntax error. Please specify #id and comments. For more information, PM !help.");
+            m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please specify #id and comments. For more information, PM !help.");
             return;
         } else {
             id = Integer.parseInt(message.substring(1).split(" ")[0]);
@@ -1878,19 +1791,17 @@ public class staffbot_banc extends Module {
             psUpdateComment.setInt(2, id);
             psUpdateComment.executeUpdate();
 
-            if (psUpdateComment.executeUpdate() == 1) {
-                m_botAction.sendRemotePrivateMessage(name, "BanC #" + id + " modified");
-            } else {
-                m_botAction.sendRemotePrivateMessage(name, "BanC #" + id + " doesn't exist.");
-            }
+            if (psUpdateComment.executeUpdate() == 1)
+                m_botAction.sendSmartPrivateMessage(name, "BanC #" + id + " modified");
+            else
+                m_botAction.sendSmartPrivateMessage(name, "BanC #" + id + " doesn't exist.");
 
             // Apply the banc comment to the active banc
             BanC activeBanc = lookupActiveBanC(id);
-            if (activeBanc != null) {
+            if (activeBanc != null)
                 activeBanc.comment = comments;
-            }
         } catch (SQLException sqle) {
-            m_botAction.sendRemotePrivateMessage(name, "A problem occured while modifying the ban in the database. Please try again or report the problem.");
+            m_botAction.sendSmartPrivateMessage(name, "A problem occured while modifying the ban in the database. Please try again or report the problem.");
             Tools.printStackTrace("SQLException while modifying the database", sqle);
         }
 
@@ -1919,11 +1830,10 @@ public class staffbot_banc extends Module {
         int id = -1;
 
         if (message.length() == 0 || !message.startsWith("#") || !Tools.isAllDigits(message.substring(1))) {
-            m_botAction.sendRemotePrivateMessage(name, "Syntax error. Please specify #id. For more information, PM !help.");
+            m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please specify #id. For more information, PM !help.");
             return;
-        } else {
+        } else
             id = Integer.parseInt(message.substring(1));
-        }
 
         // failsafe
         if (id == -1)
@@ -1933,7 +1843,7 @@ public class staffbot_banc extends Module {
             psRemoveBanC.setInt(1, id);
             psRemoveBanC.executeUpdate();
 
-            m_botAction.sendRemotePrivateMessage(name, "BanC #" + id + " removed");
+            m_botAction.sendSmartPrivateMessage(name, "BanC #" + id + " removed");
             m_botAction.sendChatMessage("BanC #" + id + " has been lifted by " + name);
 
             // Make the banc expired so it's removed from the player if still active.
@@ -1943,7 +1853,7 @@ public class staffbot_banc extends Module {
                 activeBanCs.remove(activeBanc);
             }
         } catch (SQLException sqle) {
-            m_botAction.sendRemotePrivateMessage(name, "A problem occured while deleting the banc from the database. Please try again or report the problem.");
+            m_botAction.sendSmartPrivateMessage(name, "A problem occured while deleting the banc from the database. Please try again or report the problem.");
             Tools.printStackTrace("SQLException while modifying the database", sqle);
         }
     }
@@ -1951,15 +1861,13 @@ public class staffbot_banc extends Module {
     private void cmdReload(String name) {
         activeBanCs.clear();
         this.loadActiveBanCs();
-        m_botAction.sendRemotePrivateMessage(name, "Bans reloaded from database.");
+        m_botAction.sendSmartPrivateMessage(name, "Bans reloaded from database.");
         this.sendIPCActiveBanCs(null);
     }
 
     private void cmdListActiveBanCs(String name) {
-        for (BanC banc : activeBanCs) {
-            m_botAction.sendRemotePrivateMessage(name, "#" + banc.getId() + " " + banc.getType() + " " + banc.getDuration() + "mins on "
-                    + banc.getPlayername());
-        }
+        for (BanC banc : activeBanCs)
+            m_botAction.sendSmartPrivateMessage(name, "#" + banc.getId() + " " + banc.getType() + " " + banc.getDuration() + "mins on " + banc.getPlayername());
     }
 
     /**
@@ -1995,7 +1903,7 @@ public class staffbot_banc extends Module {
         try {
             ResultSet rs = psActiveBanCs.executeQuery();
 
-            if (rs != null) {
+            if (rs != null)
                 while (rs.next()) {
                     BanC banc = new BanC();
                     banc.id = rs.getInt("fnID");
@@ -2015,7 +1923,6 @@ public class staffbot_banc extends Module {
                     banc.staffer = rs.getString("fcStaffer");
                     activeBanCs.add(banc);
                 }
-            }
         } catch (SQLException sqle) {
             Tools.printLog("SQLException occured while retrieving active BanCs: " + sqle.getMessage());
             m_botAction.sendChatMessage(2, "BANC WARNING: Problem occured while retrieving active BanCs: " + sqle.getMessage());
@@ -2025,7 +1932,9 @@ public class staffbot_banc extends Module {
 
     /**
      * Sends out all active BanCs trough IPC Messages to the pubbots so they are applied
-     * @param receiver Receiving bot in case a certain pubbot needs to be initialized, else NULL for all pubbots
+     * 
+     * @param receiver
+     *            Receiving bot in case a certain pubbot needs to be initialized, else NULL for all pubbots
      */
     private void sendIPCActiveBanCs(String receiver) {
         int bot = -1;
@@ -2033,60 +1942,57 @@ public class staffbot_banc extends Module {
             bot = Integer.valueOf(receiver.substring(8));
         LinkedList<String> l = new LinkedList<String>();
         for (BanC b : activeBanCs)
-            if (b.getType() == BanCType.SILENCE)
-                l.add(b.getPlayername() + ":" + (b.getIP() != null ? b.getIP() : " ") + ":" + (b.getMID() != null ? b.getMID() : " ") + ":" + b.getDuration() + ":" + b.getType().toString());
+            l.add(b.getPlayername() + ":" + (b.getIP() != null ? b.getIP() : " ") + ":" + (b.getMID() != null ? b.getMID() : " ") + ":" + b.getDuration() + ":" + b.getType().toString());
         m_botAction.ipcTransmit(IPCBANC, new IPCEvent(l.listIterator(), 0, bot));
         /*
         for (BanC b : activeBanCs) {
             IPCEvent ipc = new IPCEvent(b, 0, bot);
             m_botAction.ipcTransmit(IPCBANC, ipc);
-        }*/
+        }
         for (BanC banc : activeBanCs)
             if (banc.getType() != BanCType.SILENCE)
                 m_botAction.ipcSendMessage(IPCBANC, banc.type.toString() + " " + banc.duration + ":" + banc.playername, receiver, "banc");
+        */
     }
 
     /**
      * Checks if the player already has a BanC of the given type
-     *  
+     * 
      * @param playername
      * @param bancType
      * @return
      */
     private boolean isBanCed(String playername, BanCType bancType) {
-        for (BanC banc : activeBanCs) {
+        for (BanC banc : activeBanCs)
             if (banc.type.equals(bancType) && banc.playername.equalsIgnoreCase(playername))
                 return true;
-        }
         return false;
     }
 
     /**
      * Lookups a BanC from the list of active BanCs by the given id.
+     * 
      * @param id
      * @return an active BanC matching the given id or NULL if not found
      */
     private BanC lookupActiveBanC(int id) {
-        for (BanC banc : this.activeBanCs) {
-            if (banc.id == id) {
+        for (BanC banc : this.activeBanCs)
+            if (banc.id == id)
                 return banc;
-            }
-        }
         return null;
     }
 
     /**
      * Lookups a BanC from the list of active BanCs that matches the type and playername
+     * 
      * @param bancType
      * @param name
      * @return an active BanC matching the given type and playername or NULL if not found
      */
     private BanC lookupActiveBanC(BanCType bancType, String name) {
-        for (BanC banc : this.activeBanCs) {
-            if (banc.type.equals(bancType) && banc.playername.equalsIgnoreCase(name)) {
+        for (BanC banc : this.activeBanCs)
+            if (banc.type.equals(bancType) && banc.playername.equalsIgnoreCase(name))
                 return banc;
-            }
-        }
         return null;
     }
 
@@ -2113,9 +2019,8 @@ public class staffbot_banc extends Module {
             psAddBanC.execute();
 
             ResultSet rsKeys = psAddBanC.getGeneratedKeys();
-            if (rsKeys.next()) {
+            if (rsKeys.next())
                 banc.id = rsKeys.getInt(1);
-            }
             rsKeys.close();
 
         } catch (SQLException sqle) {
@@ -2142,14 +2047,14 @@ public class staffbot_banc extends Module {
     }
 
     /**
-     * This TimerTask periodically runs over all the active BanCs in the activeBanCs arrayList and (1) removes 
-     * already expired BanCs and (2) checks if BanCs has expired. If a BanC has expired, a chat message is given
-     * and the BanC is sent to the pubbots to lift the silence/spec if necessary.
+     * This TimerTask periodically runs over all the active BanCs in the activeBanCs arrayList and (1) removes already expired BanCs and (2) checks if
+     * BanCs has expired. If a BanC has expired, a chat message is given and the BanC is sent to the pubbots to lift the silence/spec if necessary.
      * 
      * @author Maverick
      */
     public class CheckExpiredBanCs extends TimerTask {
 
+        @Override
         public void run() {
 
             // Run trough all the active BanCs
@@ -2187,9 +2092,10 @@ public class staffbot_banc extends Module {
     }
 
     /**
-     * This TimerTask executes psKeepAlive which just sends a query to the database to keep the connection alive  
+     * This TimerTask executes psKeepAlive which just sends a query to the database to keep the connection alive
      */
     private class KeepAliveConnection extends TimerTask {
+        @Override
         public void run() {
             try {
                 psKeepAlive1.execute();
@@ -2229,9 +2135,9 @@ public class staffbot_banc extends Module {
         private boolean expired = false;
 
         public void calculateExpired() {
-            if (duration == 0) {
+            if (duration == 0)
                 expired = false;
-            } else {
+            else {
                 Date now = new Date();
                 Date expiration = new Date(created.getTime() + (duration * Tools.TimeInMillis.MINUTE));
                 expired = now.equals(expiration) || now.after(expiration);
@@ -2271,7 +2177,8 @@ public class staffbot_banc extends Module {
         }
 
         /**
-         * @param id the id to set
+         * @param id
+         *            the id to set
          */
         public void setId(int id) {
             this.id = id;
@@ -2285,7 +2192,8 @@ public class staffbot_banc extends Module {
         }
 
         /**
-         * @param type the type to set
+         * @param type
+         *            the type to set
          */
         public void setType(BanCType type) {
             this.type = type;
@@ -2299,7 +2207,8 @@ public class staffbot_banc extends Module {
         }
 
         /**
-         * @param playername the playername to set
+         * @param playername
+         *            the playername to set
          */
         public void setPlayername(String playername) {
             this.playername = playername;
@@ -2313,7 +2222,8 @@ public class staffbot_banc extends Module {
         }
 
         /**
-         * @param iP the iP to set
+         * @param iP
+         *            the iP to set
          */
         public void setIP(String iP) {
             IP = iP;
@@ -2327,7 +2237,8 @@ public class staffbot_banc extends Module {
         }
 
         /**
-         * @param mID the mID to set
+         * @param mID
+         *            the mID to set
          */
         public void setMID(String mID) {
             MID = mID;
@@ -2341,7 +2252,8 @@ public class staffbot_banc extends Module {
         }
 
         /**
-         * @param created the created to set
+         * @param created
+         *            the created to set
          */
         public void setCreated(Date created) {
             this.created = created;
@@ -2355,7 +2267,8 @@ public class staffbot_banc extends Module {
         }
 
         /**
-         * @param duration the duration to set
+         * @param duration
+         *            the duration to set
          */
         public void setDuration(long duration) {
             this.duration = duration;
@@ -2369,7 +2282,8 @@ public class staffbot_banc extends Module {
         }
 
         /**
-         * @param notification the notification to set
+         * @param notification
+         *            the notification to set
          */
         public void setNotification(boolean notification) {
             this.notification = notification;
@@ -2383,7 +2297,8 @@ public class staffbot_banc extends Module {
         }
 
         /**
-         * @param notification the notification to set
+         * @param notification
+         *            the notification to set
          */
         public void setNotification(Boolean notification) {
             this.notification = notification;
@@ -2397,7 +2312,8 @@ public class staffbot_banc extends Module {
         }
 
         /**
-         * @param staffer the staffer to set
+         * @param staffer
+         *            the staffer to set
          */
         public void setStaffer(String staffer) {
             this.staffer = staffer;
@@ -2411,7 +2327,8 @@ public class staffbot_banc extends Module {
         }
 
         /**
-         * @param comment the comment to set
+         * @param comment
+         *            the comment to set
          */
         public void setComment(String comment) {
             this.comment = comment;
@@ -2425,7 +2342,8 @@ public class staffbot_banc extends Module {
         }
 
         /**
-         * @param applied the applied to set
+         * @param applied
+         *            the applied to set
          */
         public void setApplied(boolean applied) {
             this.applied = applied;
@@ -2439,7 +2357,8 @@ public class staffbot_banc extends Module {
         }
 
         /**
-         * @param expired the expired to set
+         * @param expired
+         *            the expired to set
          */
         public void setExpired(boolean expired) {
             this.expired = expired;
