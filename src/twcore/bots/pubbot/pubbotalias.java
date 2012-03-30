@@ -12,7 +12,6 @@ public class pubbotalias extends PubBotModule {
 
     public void requestEvents(EventRequester eventRequester) {
         eventRequester.request(EventRequester.MESSAGE);
-        eventRequester.request(EventRequester.PLAYER_ENTERED);
     }
 
     public void sendPlayerInfo(String message) {
@@ -26,16 +25,9 @@ public class pubbotalias extends PubBotModule {
     
 
     public void handleArenaMessage(String message) {
-        if (message.startsWith("IP:"))
-            sendPlayerInfo(message);
     }
 
     public void handleEvent(Message event) {
-        String message = event.getMessage();
-        int messageType = event.getMessageType();
-
-        if (messageType == Message.ARENA_MESSAGE)
-            handleArenaMessage(message);
     }
 
     public void handleEvent(PlayerEntered event) {
