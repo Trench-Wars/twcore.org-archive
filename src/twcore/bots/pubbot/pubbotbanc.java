@@ -221,13 +221,13 @@ public class pubbotbanc extends PubBotModule {
         m_botAction.sendSmartPrivateMessage(name, "Current BanC lists");
         m_botAction.sendSmartPrivateMessage(name, " Silences:");
         for (BanC b : bancSilence.values())
-            m_botAction.sendSmartPrivateMessage(name, "  " + b.getName());
+            m_botAction.sendSmartPrivateMessage(name, "  " + b.getName() + " IP=" + (b.ip != null ? b.ip : "") + " MID=" + (b.mid != null ? b.mid : ""));
         m_botAction.sendSmartPrivateMessage(name, " Specs:");
         for (BanC b : bancSpec.values())
-            m_botAction.sendSmartPrivateMessage(name, "  " + b.getName());
+            m_botAction.sendSmartPrivateMessage(name, "  " + b.getName() + " IP=" + (b.ip != null ? b.ip : "") + " MID=" + (b.mid != null ? b.mid : ""));
         m_botAction.sendSmartPrivateMessage(name, " SuperSpecs:");
         for (BanC b : bancSuper.values())
-            m_botAction.sendSmartPrivateMessage(name, "  " + b.getName());
+            m_botAction.sendSmartPrivateMessage(name, "  " + b.getName() + " IP=" + (b.ip != null ? b.ip : "") + " MID=" + (b.mid != null ? b.mid : ""));
     }
 
     private boolean isMatch(BanC banc, String name, String ip, String mid) {
@@ -278,20 +278,16 @@ public class pubbotbanc extends PubBotModule {
         switch (b.getType()) {
             case SILENCE:
                 bancSilence.put(low(b.getName()), b);
-                if (target != null)
-                    actions.add(b);
                 break;
             case SPEC:
                 bancSpec.put(low(b.getName()), b);
-                if (target != null)
-                    actions.add(b);
                 break;
             case SUPERSPEC:
                 bancSuper.put(low(b.getName()), b);
-                if (target != null)
-                    actions.add(b);
                 break;
         }
+        if (target != null)
+            actions.add(b);
     }
 
     private void handleSuper(String namePlayer, int shipNumber) {
