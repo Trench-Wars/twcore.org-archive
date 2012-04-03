@@ -88,20 +88,12 @@ public class pubbotbanc extends PubBotModule {
 
     @Override
     public void handleEvent(PlayerEntered event) {
-        try {
-            String name = event.getPlayerName();
-            if (name == null)
-                name = m_botAction.getPlayerName(event.getPlayerID());
+        String name = event.getPlayerName();
+        if (name == null)
+            name = m_botAction.getPlayerName(event.getPlayerID());
 
-            String playerName = event.getPlayerName();
-            if (playerName == null)
-                playerName = m_botAction.getPlayerName(event.getPlayerID());
-            if (playerName.startsWith("^") == false)
-                m_botAction.sendUnfilteredPrivateMessage(playerName, "*info");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        if (name.startsWith("^") == false)
+            m_botAction.sendUnfilteredPrivateMessage(name, "*info");
     }
 
     @Override
@@ -250,10 +242,12 @@ public class pubbotbanc extends PubBotModule {
 
         if (bancSilence.containsKey(low(name)))
             actions.add(bancSilence.get(low(name)));
-        else
-            for (BanC b : bancSilence.values())
+        else {
+            for (BanC b : bancSilence.values()) {
                 if (isMatch(b, name, ip, mid))
                     actions.add(b);
+            }
+        }
 
         if (bancSpec.containsKey(low(name)))
             actions.add(bancSpec.get(low(name)));
