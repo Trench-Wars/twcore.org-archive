@@ -1,6 +1,7 @@
 package twcore.bots.pubbot;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.ListIterator;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -222,19 +223,6 @@ public class pubbotbanc extends PubBotModule {
             m_botAction.sendSmartPrivateMessage(name, "  " + b.getName() + " IP=" + (b.ip != null ? b.ip : "") + " MID=" + (b.mid != null ? b.mid : ""));
     }
 
-    private boolean isMatch(BanC banc, String name, String ip, String mid) {
-        if (banc.getIP() != null && ip.equals(banc.getIP()))
-            return true;
-        else if (banc.getMID() != null && mid.equals(banc.getMID()))
-            return true;
-        else if (banc.getIP() != null && banc.getMID() == null && ip.equals(banc.getIP()))
-            return true;
-        else if (banc.getMID() != null && banc.getIP() == null && mid.equals(banc.getMID()))
-            return true;
-        else
-            return false;
-    }
-
     private void checkBanCs(String info) {
         String name = getInfo(info, "TypedName:");
         String ip = getInfo(info, "IP:");
@@ -242,25 +230,23 @@ public class pubbotbanc extends PubBotModule {
 
         if (bancSilence.containsKey(low(name)))
             actions.add(bancSilence.get(low(name)));
-        else {
-            for (BanC b : bancSilence.values()) {
-                if (isMatch(b, name, ip, mid))
+        else
+            for (BanC b : bancSilence.values())
+                if (b.isMatch(name, ip, mid))
                     actions.add(b);
-            }
-        }
 
         if (bancSpec.containsKey(low(name)))
             actions.add(bancSpec.get(low(name)));
         else
             for (BanC b : bancSpec.values())
-                if (isMatch(b, name, ip, mid))
+                if (b.isMatch(name, ip, mid))
                     actions.add(b);
 
         if (bancSuper.containsKey(low(name)))
             actions.add(bancSuper.get(low(name)));
         else
             for (BanC b : bancSuper.values())
-                if (isMatch(b, name, ip, mid))
+                if (b.isMatch(name, ip, mid))
                     actions.add(b);
 
         m_botAction.ipcSendMessage(getIPCChannel(), "info " + name + ":" + ip + ":" + mid, getPubHubName(), "pubbotalias");
@@ -419,17 +405,19 @@ public class pubbotbanc extends PubBotModule {
 
     class BanC {
 
-        String name;
+        String name, originalName;
         String ip;
         String mid;
         long time;
         BanCType type;
         boolean active;
+        HashSet<String> aliases;
 
         public BanC(String info) {
             // name:ip:mid:time
             String[] args = info.split(":");
             name = args[0];
+            originalName = name;
             ip = args[1];
             if (ip.length() == 1)
                 ip = null;
@@ -445,6 +433,7 @@ public class pubbotbanc extends PubBotModule {
             else
                 type = BanCType.SUPERSPEC;
             active = true;
+            aliases = new HashSet<String>();
         }
 
         public String getCommand() {
@@ -473,6 +462,19 @@ public class pubbotbanc extends PubBotModule {
 
         public boolean isActive() {
             return active;
+        }
+        
+        public boolean isMatch(String name, String ip, String mid) {
+            boolean match = false;
+            if (this.ip != null && ip.equals(this.ip))
+                match = true;
+            else if (this.mid != null && mid.equals(this.mid))
+                match = true;
+            if (match) {
+                aliases.add(low(this.name));
+                this.name = name;
+            }
+            return match;
         }
     }
 
