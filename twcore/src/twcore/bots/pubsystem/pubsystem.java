@@ -263,7 +263,6 @@ public class pubsystem extends SubspaceBot
     public void handleEvent(PlayerEntered event)
     {
         try {
-        	
             int playerID = event.getPlayerID();
             String playerName = m_botAction.getPlayerName(playerID);
 
@@ -285,7 +284,7 @@ public class pubsystem extends SubspaceBot
                 context.handleEvent(event);
             }
             
-            if (greeting != null)
+            if (m_botAction.getArenaName().equalsIgnoreCase("(Public") && greeting != null)
                 m_botAction.sendSmartPrivateMessage(playerName, greeting);
 
         } catch (Exception e) {
