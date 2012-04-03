@@ -69,8 +69,6 @@ public class MatchTeam {
     final static int ADD = 0;
     final static int SUB = 1;
     final static int LAG = 2;
-    final static int MAX_RES_X = 1440;
-    final static int MAX_RES_Y = 1024;
 
     // 0 - no forfeit, 1 - forfeitwin, 2 - forfeitloss
     int m_fnForfeit;
@@ -104,6 +102,9 @@ public class MatchTeam {
     private boolean m_oneMinuteWarning = true;
 
     private String[] infoBuffer = new String[8];
+    
+    int MAX_RES_X = 1920;
+    int MAX_RES_Y = 1440;
 
     /** Creates a new instance of MatchTeam */
     public MatchTeam(String fcTeamName, int fnFrequency, int fnTeamNumber, MatchRound Matchround) {
@@ -127,7 +128,12 @@ public class MatchTeam {
         m_fnShipChanges = 0;
         m_fnShipSwitches = 0;
         m_fnTeamNumber = fnTeamNumber;
-
+        
+        if (m_botAction.getArenaName().equalsIgnoreCase("twdd") || m_botAction.getArenaName().equalsIgnoreCase("twdd2")) {
+            MAX_RES_X = 1440;
+            MAX_RES_Y = 1024;
+        }
+        
         if (fnTeamNumber == 1)
             m_fnTeamID = m_round.m_game.m_fnTeam1ID;
         else
