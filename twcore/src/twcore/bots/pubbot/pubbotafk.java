@@ -33,10 +33,10 @@ public class pubbotafk extends PubBotModule {
     // - Warn staffers after 15 minutes
     // - Kick staffers after +5 minutes (= 20 minutes)
     
-    private final static int WARNING_TIME = 8;      // (Time in minutes)
+    private final static int WARNING_TIME = 28;      // (Time in minutes)
     private final static int MOVE_TIME = 2;         // Time the player gets to get active
                                                     // after the warning (Time in minutes)
-    private final static int STAFF_WARNING_TIME = 15;
+    private final static int STAFF_WARNING_TIME = 40;
     private final static int STAFF_MOVE_TIME = 5;
     private final static String AFK_ARENA = "afk";  //Arena to where the players get moved
     private final static String WARNING_MESSAGE = "NOTICE: In order to keep the gameplay high in public arenas " +
