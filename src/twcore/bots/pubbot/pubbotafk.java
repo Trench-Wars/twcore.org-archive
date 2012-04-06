@@ -70,18 +70,7 @@ public class pubbotafk extends PubBotModule {
             for (String name : players.keySet()) {
             	if(vipList.contains(name))
             		continue;
-                if(opList.isER(name) && !opList.isSmod(name)) {
-                    // Staffers
-                    if (getIdleTime(name) >= (STAFF_WARNING_TIME + STAFF_MOVE_TIME)) {
-                        m_botAction.sendPrivateMessage(name, MOVE_MESSAGE);
-                        m_botAction.sendPrivateMessage(name, STAFF_MOVED_WARNING);
-                        m_botAction.sendUnfilteredPrivateMessage(name, sendtoCmd);
-                    } else if (getIdleTime(name) == STAFF_WARNING_TIME) {
-                        m_botAction.sendPrivateMessage(name, WARNING_MESSAGE);
-                        m_botAction.sendPrivateMessage(name, WARNING_MESSAGE2);
-                    }
-                    
-                } else if (!opList.isSmod(name)) {
+                if (!opList.isZH(name)) {
                     
                     // Normal players
                     if (getIdleTime(name) >= (WARNING_TIME + MOVE_TIME)) {
