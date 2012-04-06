@@ -48,7 +48,7 @@ public class pubbotafk extends PubBotModule {
     private final static String STAFF_MOVED_WARNING = "REMINDER: You have been logged out of BanG and your ?obscene has been reset as a result of being moved.";
     
     private boolean status;
-    private int size = 10;
+    private int size = 20;
     
     private OperatorList opList;
     private List<String> vipList;
@@ -162,11 +162,6 @@ public class pubbotafk extends PubBotModule {
         } else if (!status && m_botAction.getArenaSize() > size - 1) {
             status = true;
             
-            players.clear();
-            
-            for (Iterator<Player> it = m_botAction.getPlayerIterator(); it.hasNext();)
-                add(it.next());
-            
             TimerTask check = new TimerTask() {
                 public void run() {
                     check();
@@ -271,20 +266,20 @@ public class pubbotafk extends PubBotModule {
                 else if (message.startsWith("!status"))
                     cmdStatus(name);
                 else if (message.startsWith("!size"))
-                    cmdSetSize(message);
+                    cmdSetSize(name, message);
             }
         }
     }
     
-    public void cmdSetSize(String num) {
+    public void cmdSetSize(String name, String num) {
         int s = 0;
         try {
             s = Integer.valueOf(num.substring(6));
         } catch (NumberFormatException e) {
             return;
         }
-        
         this.size = s;
+        m_botAction.sendSmartPrivateMessage(name, "AFK population trigger size is now " + size);
         checkStatus();
     }
     
