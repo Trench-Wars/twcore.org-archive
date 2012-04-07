@@ -586,7 +586,7 @@ public class twdhub extends SubspaceBot {
                 farena.flushIPC();
             }
         };
-        ba.scheduleTask(flush, 4000);
+        ba.scheduleTask(flush, 2400);
     }
     
     private void sendAlerts(Game game) {
@@ -619,6 +619,7 @@ public class twdhub extends SubspaceBot {
         }
         
         public void expire() {
+            if (name.equalsIgnoreCase("twdd3")) return;
             activeChalls = false;
             expired = true;
         }
