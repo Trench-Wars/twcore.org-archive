@@ -260,6 +260,7 @@ public class twdhub extends SubspaceBot {
             } else {
                 Arena arena = new Arena(ipc.getArena());
                 arena.add(ipc);
+                arenas.put(low(arena.name), arena);
                 botSpawn(ipc.getArena());
             }
         } else if (event.getObject() instanceof IPCCommand) {
