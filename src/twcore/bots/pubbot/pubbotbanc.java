@@ -248,9 +248,6 @@ public class pubbotbanc extends PubBotModule {
             for (BanC b : bancSuper.values())
                 if (b.isMatch(name, ip, mid))
                     actions.add(b);
-
-        m_botAction.ipcSendMessage(getIPCChannel(), "info " + name + ":" + ip + ":" + mid, getPubHubName(), "pubbotalias");
-        m_botAction.ipcSendMessage("TWDOp Alias", "info " + name + ":" + ip + ":" + mid, "TWDOpBot", "pubbotalias");
     }
 
     private void handleBanC(BanC b) {
