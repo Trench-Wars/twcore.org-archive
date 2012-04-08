@@ -11,6 +11,7 @@ public class pubbotalias extends PubBotModule {
     }
 
     public void requestEvents(EventRequester eventRequester) {
+        eventRequester.request(EventRequester.MESSAGE);
     }
 
     public void sendPlayerInfo(String message) {
@@ -21,12 +22,11 @@ public class pubbotalias extends PubBotModule {
         m_botAction.ipcSendMessage(getIPCChannel(), "info " + playerName + ":" + playerIP + ":" + playerMacID, getPubHubName(), "pubbotalias");
         m_botAction.ipcSendMessage("TWDOp Alias", "info " + playerName + ":" + playerIP + ":" + playerMacID, "TWDOpBot", "pubbotalias");   
     }
-    
-
-    public void handleArenaMessage(String message) {
-    }
 
     public void handleEvent(Message event) {
+        String msg = event.getMessage();
+        if (event.getMessageType() == Message.ARENA_MESSAGE && msg.startsWith("IP:"))
+            sendPlayerInfo(msg);
     }
 
     public void handleEvent(PlayerEntered event) {
