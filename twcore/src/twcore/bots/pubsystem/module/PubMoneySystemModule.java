@@ -1313,6 +1313,7 @@ public class PubMoneySystemModule extends AbstractModule {
         // A TK, do nothing for now
         if ( killer.getFrequency() == killed.getFrequency() ) {
         	handleTK(killer);
+                playerManager.getPlayer(killed.getPlayerName()).handleDeath(event);
         	return;
         }
 
