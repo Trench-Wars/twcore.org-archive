@@ -34,19 +34,22 @@ public class pubbotafk extends PubBotModule {
     private final static String WARNING_MESSAGE2 = "To declare yourself not-idle, please talk in either public or team chat. " + "Private messages are ignored.";
     private final static String MOVE_MESSAGE = "You've been moved to the away-from-keyboard subarena - 'afk'. Type \"?go\" to return.";
     
+    private boolean enabled;
     private boolean status;
     private int size = 20;
 
     private OperatorList opList;
     private String sendto;
     private TreeMap<String, Idler> players;
+    
+    TimerTask check;
 
     @Override
     public void initializeModule() {
         String zoneIP = m_botAction.getGeneralSettings().getString("Server");
         String zonePort = m_botAction.getGeneralSettings().getString("Port");
         sendto = "*sendto " + zoneIP + "," + zonePort + "," + AFK_ARENA;
-
+        enabled = true;
         opList = m_botAction.getOperatorList();
 
         players = new TreeMap<String, Idler>();
@@ -60,6 +63,7 @@ public class pubbotafk extends PubBotModule {
 
     @Override
     public void cancel() {
+        if (!enabled) return;
         players.clear();
         populateList();
     }
@@ -81,6 +85,7 @@ public class pubbotafk extends PubBotModule {
 
     @Override
     public void handleEvent(FrequencyChange event) {
+        if (!enabled) return;
         Player p = m_botAction.getPlayer(event.getPlayerID());
         String name = low(p.getPlayerName());
         if (players.containsKey(name) && p.getShipType() != Tools.Ship.SPECTATOR)
@@ -93,6 +98,7 @@ public class pubbotafk extends PubBotModule {
 
     @Override
     public void handleEvent(FrequencyShipChange event) {
+        if (!enabled) return;
         Player p = m_botAction.getPlayer(event.getPlayerID());
         String name = low(p.getPlayerName());
         if (players.containsKey(name) && p.getShipType() != Tools.Ship.SPECTATOR)
@@ -105,6 +111,7 @@ public class pubbotafk extends PubBotModule {
 
     @Override
     public void handleEvent(PlayerEntered event) {
+        if (!enabled) return;
         Player p = m_botAction.getPlayer(event.getPlayerID());
         if (p.getShipType() == Tools.Ship.SPECTATOR)
             addIdler(p);
@@ -112,6 +119,7 @@ public class pubbotafk extends PubBotModule {
 
     @Override
     public void handleEvent(PlayerLeft event) {
+        if (!enabled) return;
         checkStatus();
         String name = m_botAction.getPlayerName(event.getPlayerID());
         if (players.containsKey(low(name)))
@@ -141,6 +149,8 @@ public class pubbotafk extends PubBotModule {
                     cmd_status(name);
                 else if (message.startsWith("!size"))
                     cmd_setSize(name, message);
+                else if (message.startsWith("!setafk"))
+                    cmd_setState(name);
     }
     
     private void populateList() {
@@ -163,12 +173,20 @@ public class pubbotafk extends PubBotModule {
     }
 
     private void checkStatus() {
+        if (!enabled) return;
         if (status && m_botAction.getArenaSize() < size) {
             status = false;
+            if (check != null) {
+                m_botAction.cancelTask(check);
+                check = null;
+            }
         } else if (!status && m_botAction.getArenaSize() > size - 1) {
             status = true;
             populateList();
-            TimerTask check = new TimerTask() {
+            if (check != null)
+                return;
+            
+            check = new TimerTask() {
                 @Override
                 public void run() {
                     check();
@@ -188,6 +206,7 @@ public class pubbotafk extends PubBotModule {
 
     private void cmd_help(String messager) {
         m_botAction.sendSmartPrivateMessage(messager, "Pubbot AFK Module");
+        m_botAction.sendSmartPrivateMessage(messager, "!setafk        -- Toggles the AFK module on or off");
         m_botAction.sendSmartPrivateMessage(messager, "!listidle      -- Display spectating players and their idle times");
         m_botAction.sendSmartPrivateMessage(messager, "!move <player> -- Move <player> to ?go " + AFK_ARENA);
         m_botAction.sendSmartPrivateMessage(messager, "!size <number> -- Set the arena size trigger to <number>");
@@ -238,6 +257,31 @@ public class pubbotafk extends PubBotModule {
             m_botAction.sendSmartPrivateMessage(name, "AFK Status: ON & Size: " + size);
         else
             m_botAction.sendSmartPrivateMessage(name, "AFK Status: OFF & Size: " + size);
+    }
+    
+    private void cmd_setState(String name) {
+        enabled = !enabled;
+        if (enabled) {
+            players.clear();
+            populateList();
+            if (check != null)
+                m_botAction.cancelTask(check);
+                
+            check = new TimerTask() {
+                public void run() {
+                    check();
+                }
+            };
+            m_botAction.scheduleTask(check, 1000, Tools.TimeInMillis.MINUTE);
+            m_botAction.sendSmartPrivateMessage(name, "AFK mover module has been ENABLED.");
+        } else {
+            players.clear();
+            if (check != null) {
+                m_botAction.cancelTask(check);
+                check = null;
+            }
+            m_botAction.sendSmartPrivateMessage(name, "AFK mover module has been DISABLED.");
+        }
     }
     
     class Idler {
