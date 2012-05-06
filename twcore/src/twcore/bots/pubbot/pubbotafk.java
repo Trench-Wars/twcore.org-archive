@@ -163,7 +163,7 @@ public class pubbotafk extends PubBotModule {
     }
 
     private void addIdler(Player p) {
-        if (!opList.isBotExact(p.getPlayerName()) && !opList.isSysopExact(p.getPlayerName()) && p.getShipType() == Tools.Ship.SPECTATOR) {
+        if (!opList.isBotExact(p.getPlayerName()) && !opList.isZH(p.getPlayerName()) && p.getShipType() == Tools.Ship.SPECTATOR) {
             String n = p.getPlayerName();
             if (players.containsKey(low(n)))
                 players.get(low(n)).active();
