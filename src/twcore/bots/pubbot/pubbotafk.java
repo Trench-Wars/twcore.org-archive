@@ -24,8 +24,8 @@ import twcore.core.util.Tools;
  */
 public class pubbotafk extends PubBotModule {
 
-    private final static int WARNING_TIME = 28;     // (Time in minutes)
-    private final static int MOVE_TIME = 2;         // Time the player gets to get active
+    private int WARNING_TIME = 28;     // (Time in minutes)
+    private int MOVE_TIME = 2;         // Time the player gets to get active
                                                     // after the warning (Time in minutes)
     private final static String AFK_ARENA = "afk";  // Arena to where the players get moved
     private final static String WARNING_MESSAGE = "NOTICE: In order to keep the gameplay high in public arenas "
@@ -151,6 +151,111 @@ public class pubbotafk extends PubBotModule {
                     cmd_setSize(name, message);
                 else if (message.startsWith("!setafk"))
                     cmd_setState(name);
+                else if (opList.isSmod(name) && message.startsWith("!afktime "))
+                    cmd_setTime(name, message);
+    }
+
+    private void cmd_help(String messager) {
+        m_botAction.sendSmartPrivateMessage(messager, "Pubbot AFK Module");
+        m_botAction.sendSmartPrivateMessage(messager, " !setafk        -- Toggles the AFK module on or off");
+        m_botAction.sendSmartPrivateMessage(messager, " !listidle      -- Display spectating players and their idle times");
+        m_botAction.sendSmartPrivateMessage(messager, " !move <player> -- Move <player> to ?go " + AFK_ARENA);
+        m_botAction.sendSmartPrivateMessage(messager, " !size <number> -- Set the arena size trigger to <number>");
+        m_botAction.sendSmartPrivateMessage(messager, " !status        -- Display the status of the AFK module");
+        if (opList.isSmod(messager))
+            m_botAction.sendSmartPrivateMessage(messager, " !afktime warn,move -- Sets the warn and move times (minutes)");
+    }
+    
+    private void cmd_setTime(String name, String cmd) {
+        if (cmd.contains(" ") && cmd.length() > 9 && cmd.contains(",")) {
+            String[] args = cmd.substring(cmd.indexOf(" ") + 1).split(",");
+            int move, warn;
+            try {
+                warn = Integer.valueOf(args[0]);
+                move = Integer.valueOf(args[1]);
+                if (warn > 0 && move > 0 && warn < 120 && move < 10) {
+                    WARNING_TIME = warn;
+                    MOVE_TIME = move;
+                    m_botAction.sendSmartPrivateMessage(name, "Warning/Move time set to: " + WARNING_TIME + "/" + MOVE_TIME);
+                    return;
+                }
+            } catch (NumberFormatException e) {
+            }
+        }
+        m_botAction.sendSmartPrivateMessage(name, "Invalid arguments.");
+    }
+
+    private void cmd_listIdle(String messager) {
+        ArrayList<String> out = new ArrayList<String>();
+        out.add(Tools.formatString("<Name>", 23) + " - <idle time/mins>");
+        for (Idler idler : players.values()) {
+            int idleTime = idler.getIdleTime();
+            String action = "";
+            if (idleTime < WARNING_TIME)
+                action += "Warning in " + (WARNING_TIME - idleTime) + " minute(s), ";
+            if (idleTime < (WARNING_TIME + MOVE_TIME))
+                action += "Moving in " + ((WARNING_TIME + MOVE_TIME) - idleTime) + " minute(s)";
+            out.add(Tools.formatString(idler.name, 23) + " - " + Tools.formatString(String.valueOf(idleTime), 2) + "  " + action);
+        }
+
+        m_botAction.smartPrivateMessageSpam(messager, out.toArray(new String[out.size()]));
+    }
+
+    private void cmd_moveIdle(String messager, String message) {
+        if (message.length() > 6) {
+            String player = m_botAction.getFuzzyPlayerName(message.substring(6));
+            if (player != null) {
+                m_botAction.sendUnfilteredPrivateMessage(player, sendto);
+                m_botAction.sendSmartPrivateMessage(messager, player + " has been moved to the afk arena.");
+            } else
+                m_botAction.sendSmartPrivateMessage(messager, "Unknown player");
+        }
+    }
+
+    private void cmd_setSize(String name, String num) {
+        int s = 0;
+        try {
+            s = Integer.valueOf(num.substring(6));
+        } catch (NumberFormatException e) {
+            return;
+        }
+        this.size = s;
+        m_botAction.sendSmartPrivateMessage(name, "AFK population trigger size is now " + size);
+        checkStatus();
+    }
+
+    private void cmd_status(String name) {
+        if (status)
+            m_botAction.sendSmartPrivateMessage(name, "AFK Status: ON & Size: " + size);
+        else
+            m_botAction.sendSmartPrivateMessage(name, "AFK Status: OFF & Size: " + size);
+        m_botAction.sendSmartPrivateMessage(name,     "            " + (enabled ? "ENABLED" : "DISABLED") + " & Check: " + (check == null ? "null" : "running"));
+        m_botAction.sendSmartPrivateMessage(name,     "            Warn: " + WARNING_TIME + " & Move: " + MOVE_TIME);
+    }
+    
+    private void cmd_setState(String name) {
+        enabled = !enabled;
+        if (enabled) {
+            players.clear();
+            populateList();
+            if (check != null)
+                m_botAction.cancelTask(check);
+                
+            check = new TimerTask() {
+                public void run() {
+                    check();
+                }
+            };
+            m_botAction.scheduleTask(check, 1000, Tools.TimeInMillis.MINUTE);
+            m_botAction.sendSmartPrivateMessage(name, "AFK mover module has been ENABLED.");
+        } else {
+            players.clear();
+            if (check != null) {
+                m_botAction.cancelTask(check);
+                check = null;
+            }
+            m_botAction.sendSmartPrivateMessage(name, "AFK mover module has been DISABLED.");
+        }
     }
     
     private void populateList() {
@@ -203,86 +308,6 @@ public class pubbotafk extends PubBotModule {
             }
         }
     }
-
-    private void cmd_help(String messager) {
-        m_botAction.sendSmartPrivateMessage(messager, "Pubbot AFK Module");
-        m_botAction.sendSmartPrivateMessage(messager, "!setafk        -- Toggles the AFK module on or off");
-        m_botAction.sendSmartPrivateMessage(messager, "!listidle      -- Display spectating players and their idle times");
-        m_botAction.sendSmartPrivateMessage(messager, "!move <player> -- Move <player> to ?go " + AFK_ARENA);
-        m_botAction.sendSmartPrivateMessage(messager, "!size <number> -- Set the arena size trigger to <number>");
-        m_botAction.sendSmartPrivateMessage(messager, "!status        -- Display the status of the AFK module");
-    }
-
-    private void cmd_listIdle(String messager) {
-        ArrayList<String> out = new ArrayList<String>();
-        out.add(Tools.formatString("<Name>", 23) + " - <idle time/mins>");
-        for (Idler idler : players.values()) {
-            long idleTime = idler.getIdleTime();
-            String action = "";
-            if (idleTime < WARNING_TIME)
-                action += "Warning in " + (WARNING_TIME - idleTime) + " minute(s), ";
-            if (idleTime < (WARNING_TIME + MOVE_TIME))
-                action += "Moving in " + ((WARNING_TIME + MOVE_TIME) - idleTime) + " minute(s)";
-            out.add(Tools.formatString(idler.name, 23) + " - " + Tools.formatString(String.valueOf(idleTime), 2) + "  " + action);
-        }
-
-        m_botAction.smartPrivateMessageSpam(messager, out.toArray(new String[out.size()]));
-    }
-
-    private void cmd_moveIdle(String messager, String message) {
-        if (message.length() > 6) {
-            String player = m_botAction.getFuzzyPlayerName(message.substring(6));
-            if (player != null) {
-                m_botAction.sendUnfilteredPrivateMessage(player, sendto);
-                m_botAction.sendSmartPrivateMessage(messager, player + " has been moved to the afk arena.");
-            } else
-                m_botAction.sendSmartPrivateMessage(messager, "Unknown player");
-        }
-    }
-
-    private void cmd_setSize(String name, String num) {
-        int s = 0;
-        try {
-            s = Integer.valueOf(num.substring(6));
-        } catch (NumberFormatException e) {
-            return;
-        }
-        this.size = s;
-        m_botAction.sendSmartPrivateMessage(name, "AFK population trigger size is now " + size);
-        checkStatus();
-    }
-
-    private void cmd_status(String name) {
-        if (status)
-            m_botAction.sendSmartPrivateMessage(name, "AFK Status: ON & Size: " + size);
-        else
-            m_botAction.sendSmartPrivateMessage(name, "AFK Status: OFF & Size: " + size);
-    }
-    
-    private void cmd_setState(String name) {
-        enabled = !enabled;
-        if (enabled) {
-            players.clear();
-            populateList();
-            if (check != null)
-                m_botAction.cancelTask(check);
-                
-            check = new TimerTask() {
-                public void run() {
-                    check();
-                }
-            };
-            m_botAction.scheduleTask(check, 1000, Tools.TimeInMillis.MINUTE);
-            m_botAction.sendSmartPrivateMessage(name, "AFK mover module has been ENABLED.");
-        } else {
-            players.clear();
-            if (check != null) {
-                m_botAction.cancelTask(check);
-                check = null;
-            }
-            m_botAction.sendSmartPrivateMessage(name, "AFK mover module has been DISABLED.");
-        }
-    }
     
     class Idler {
         String name;
@@ -296,8 +321,8 @@ public class pubbotafk extends PubBotModule {
         }
         
         public void check() {
-            long time = getIdleTime();
-            if (time > WARNING_TIME)
+            int time = getIdleTime();
+            if (time >= WARNING_TIME)
                 warn();
             if (time >= WARNING_TIME + MOVE_TIME) 
                 send();
@@ -308,8 +333,8 @@ public class pubbotafk extends PubBotModule {
             warned = false;
         }
         
-        public long getIdleTime() {
-            return (System.currentTimeMillis() - lastActive) / Tools.TimeInMillis.MINUTE;
+        public int getIdleTime() {
+            return (int)(System.currentTimeMillis() - lastActive) / Tools.TimeInMillis.MINUTE;
         }
         
         public void warn() {
