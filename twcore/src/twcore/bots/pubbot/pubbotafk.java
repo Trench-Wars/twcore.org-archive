@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.TreeMap;
+import java.util.Vector;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
@@ -54,10 +55,8 @@ public class pubbotafk extends PubBotModule {
 
         players = new TreeMap<String, Idler>();
         
-        if (m_botAction.getArenaSize() < size)
-            status = false;
-        else
-            status = true;
+        status = false;
+        check = null;
         checkStatus();
     }
 
@@ -303,8 +302,22 @@ public class pubbotafk extends PubBotModule {
 
     private void check() {
         if (status && !players.isEmpty()) {
-            for (Idler idler : players.values()) {
-                idler.check();
+            Vector<Idler> list = new Vector<Idler>();
+            for (Idler idler : players.values())
+                if (idler.check())
+                    list.add(idler);
+            
+            if (list.isEmpty()) return;
+            while (!list.isEmpty()) {
+                long delay = 0;
+                final Idler i = list.remove(0);
+                TimerTask send = new TimerTask() {
+                    public void run() {
+                        i.send();
+                    }
+                };
+                m_botAction.scheduleTask(send, delay);
+                delay += 3000;
             }
         }
     }
@@ -320,12 +333,13 @@ public class pubbotafk extends PubBotModule {
             lastActive = System.currentTimeMillis();
         }
         
-        public void check() {
+        public boolean check() {
             int time = getIdleTime();
             if (time >= WARNING_TIME)
                 warn();
-            if (time >= WARNING_TIME + MOVE_TIME) 
-                send();
+            if (time >= WARNING_TIME + MOVE_TIME)
+                return true;
+            return false;
         }
         
         public void active() {
