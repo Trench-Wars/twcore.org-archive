@@ -12,20 +12,22 @@ import twcore.core.events.Message;
 import twcore.core.events.SQLResultEvent;
 import twcore.core.util.Tools;
 
-public class pubbotnewbie extends PubBotModule{
+public class pubbotnewbie extends PubBotModule {
     public static final String ZONE_CHANNEL = "Zone Channel";
     public static final String PUBSYSTEM = "TW-Pub1";
-    
+
     private String currentInfoName = "";
     private String database = "website";
 
     private HashMap<String, Integer[]> loopCatcher;
     private HashMap<String, AliasCheck> aliases;
+    private HashSet<String> trainers;
 
     @Override
     public void initializeModule() {
         this.aliases = new HashMap<String, AliasCheck>();
         this.loopCatcher = new HashMap<String, Integer[]>();
+        this.trainers = new HashSet<String>();
     }
 
     @Override
@@ -39,22 +41,21 @@ public class pubbotnewbie extends PubBotModule{
 
     public void handleEvent(Message event) {
         String message = event.getMessage();
-        if (event.getMessageType() == Message.ARENA_MESSAGE)
-        {
+        if (event.getMessageType() == Message.ARENA_MESSAGE) {
             if (message.contains("TypedName:")) {
-                currentInfoName = message.substring(message.indexOf("TypedName:")+10);
+                currentInfoName = message.substring(message.indexOf("TypedName:") + 10);
                 currentInfoName = currentInfoName.substring(0, currentInfoName.indexOf("Demo:")).trim();
             }
-            
+
             if (message.startsWith("TIME: Session:")) {
-                String time = message.substring(message.indexOf("Total:")+6);
+                String time = message.substring(message.indexOf("Total:") + 6);
                 time = time.substring(0, time.indexOf("Created")).trim();
-                
+
                 String[] pieces = time.split(":");
-                
-                if (pieces.length==3) {
+
+                if (pieces.length == 3) {
                     if (pieces[0].equals("0")) { // if usage less than 1 hour
-                        
+
                         int hour = Integer.valueOf(pieces[0]);
                         int min = Integer.valueOf(pieces[1]);
 
@@ -67,39 +68,44 @@ public class pubbotnewbie extends PubBotModule{
                                 doAliasCheck(alias);
                             }
                         } else {
-                            AliasCheck alias = new AliasCheck(currentInfoName, hour *  60 + min);
+                            AliasCheck alias = new AliasCheck(currentInfoName, hour * 60 + min);
                             doAliasCheck(alias);
                         }
                     }
                 }
             }
+        } else if (event.getMessageType() == Message.PRIVATE_MESSAGE) {
+
         }
+
     }
-    
+
     public void handleEvent(SQLResultEvent event) {
         ResultSet resultSet = event.getResultSet();
-        if(resultSet == null)
+        if (resultSet == null)
             return;
-        
+
         if (event.getIdentifier().startsWith("alias:")) {
 
-            String name = event.getIdentifier().substring(event.getIdentifier().lastIndexOf(":")+1);
+            String name = event.getIdentifier().substring(event.getIdentifier().lastIndexOf(":") + 1);
             AliasCheck alias = aliases.get(name);
-            if (alias==null)
+            if (alias == null)
                 return;
-            
+
             // GET IP + MID
             if (event.getIdentifier().startsWith("alias:ip:")) {
                 StringBuffer buffer = new StringBuffer();
                 try {
                     resultSet.beforeFirst();
-                    while(resultSet.next()) {
+                    while (resultSet.next()) {
                         buffer.append(", ");
                         buffer.append(resultSet.getString("fnIP"));
                     }
-                } catch (Exception e) { e.printStackTrace(); }
-                
-                if (buffer.length()>2)
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if (buffer.length() > 2)
                     alias.setIpResults("(" + buffer.toString().substring(2) + ") ");
                 else {
                     System.out.println("[ALIAS] " + buffer.toString());
@@ -108,7 +114,7 @@ public class pubbotnewbie extends PubBotModule{
                     if (loopCatcher.containsKey(aliasIP)) {
                         Integer[] tasks = loopCatcher.get(aliasIP);
                         if (tasks == null)
-                            tasks = new Integer[] {1, 0};
+                            tasks = new Integer[] { 1, 0 };
                         else {
                             tasks[0]++;
                             count = tasks[0];
@@ -117,32 +123,31 @@ public class pubbotnewbie extends PubBotModule{
                     }
                     if (count > 5)
                         alias.setIpResults("");
-                    if (alias.getIpResults() == null && database!=null) {
+                    if (alias.getIpResults() == null && database != null) {
                         TimerTask delayIP = new TimerTask() {
                             @Override
                             public void run() {
                                 System.out.println("[ALIAS] Blank IP: " + aliasIP + " Task Scheduled.");
-                                m_botAction.SQLBackgroundQuery(database, "alias:ip:"+aliasIP,
-                                        "SELECT DISTINCT(fnIP) " +
-                                        "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-                                        "WHERE fcUserName = '" + Tools.addSlashes(aliasIP) + "'");
+                                m_botAction.SQLBackgroundQuery(database, "alias:ip:" + aliasIP, "SELECT DISTINCT(fnIP) "
+                                        + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashes(aliasIP) + "'");
                             }
                         };
                         m_botAction.scheduleTask(delayIP, 10000);
                     }
                 }
-            }
-            else if (event.getIdentifier().startsWith("alias:mid:")) {
+            } else if (event.getIdentifier().startsWith("alias:mid:")) {
                 StringBuffer buffer = new StringBuffer();
                 try {
                     resultSet.beforeFirst();
-                    while(resultSet.next()) {
+                    while (resultSet.next()) {
                         buffer.append(", ");
                         buffer.append(resultSet.getString("fnMachineID"));
                     }
-                } catch (Exception e) { e.printStackTrace(); }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
-                if (buffer.length()>2)
+                if (buffer.length() > 2)
                     alias.setMidResults("(" + buffer.toString().substring(2) + ") ");
                 else {
                     final String aliasMID = alias.getName();
@@ -150,7 +155,7 @@ public class pubbotnewbie extends PubBotModule{
                     if (loopCatcher.containsKey(aliasMID)) {
                         Integer[] tasks = loopCatcher.get(aliasMID);
                         if (tasks == null)
-                            tasks = new Integer[] {0, 1};
+                            tasks = new Integer[] { 0, 1 };
                         else {
                             tasks[1]++;
                             count = tasks[1];
@@ -159,15 +164,13 @@ public class pubbotnewbie extends PubBotModule{
                     }
                     if (count > 5)
                         alias.setMidResults("");
-                    if (alias.getMidResults() == null && database!=null) {
+                    if (alias.getMidResults() == null && database != null) {
                         TimerTask delayMID = new TimerTask() {
                             @Override
                             public void run() {
                                 System.out.println("[ALIAS] Blank MID: " + aliasMID + " Task Scheduled.");
-                                m_botAction.SQLBackgroundQuery(database, "alias:mid:"+aliasMID,
-                                        "SELECT DISTINCT(fnMachineID) " +
-                                        "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-                                        "WHERE fcUserName = '" + Tools.addSlashes(aliasMID) + "'");
+                                m_botAction.SQLBackgroundQuery(database, "alias:mid:" + aliasMID, "SELECT DISTINCT(fnMachineID) "
+                                        + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashes(aliasMID) + "'");
                             }
                         };
                         m_botAction.scheduleTask(delayMID, 13000);
@@ -181,18 +184,18 @@ public class pubbotnewbie extends PubBotModule{
                 int numResults = 0;
 
                 try {
-                    while(resultSet.next()) {
+                    while (resultSet.next()) {
                         String username = resultSet.getString("fcUserName");
-                        if(!prevResults.contains(username)){
+                        if (!prevResults.contains(username)) {
                             prevResults.add(username);
                             numResults++;
                         }
                     }
-                } catch (Exception e) { }
+                } catch (Exception e) {}
 
                 alias.setAliasCount(numResults);
-                sendNewPlayerAlert(alias);              
-                
+                sendNewPlayerAlert(alias);
+
             }
             // Send final query if we have IP+MID
             else if (alias.getIpResults() != null && alias.getMidResults() != null) {
@@ -202,13 +205,10 @@ public class pubbotnewbie extends PubBotModule{
                     if (alias.getIpResults().equals("") && alias.getMidResults().equals(""))
                         reason = "ip&mid";
                     System.out.println("[ALIAS] " + alias.getName() + " (empty:" + reason + ")");
-                    sendNewPlayerAlert(alias);      
+                    sendNewPlayerAlert(alias);
                 } else {
-                    m_botAction.SQLBackgroundQuery(database, "alias:final:"+name,
-                            "SELECT * " +
-                            "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " +
-                            "WHERE fnIP IN " + alias.getIpResults() + " " +
-                            "AND fnMachineID IN " + alias.getMidResults() + " ORDER BY fdUpdated DESC");
+                    m_botAction.SQLBackgroundQuery(database, "alias:final:" + name, "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID "
+                            + "WHERE fnIP IN " + alias.getIpResults() + " " + "AND fnMachineID IN " + alias.getMidResults() + " ORDER BY fdUpdated DESC");
                 }
             }
             m_botAction.SQLClose(event.getResultSet());
@@ -230,9 +230,11 @@ public class pubbotnewbie extends PubBotModule{
     // Alias check using background queries
     private void doAliasCheck(AliasCheck alias) {
         aliases.put(alias.getName(), alias);
-        loopCatcher.put(alias.getName(), new Integer[] {0, 0});
-        m_botAction.SQLBackgroundQuery(database, "alias:ip:" + alias.getName(), "SELECT DISTINCT(fnIP) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
-        m_botAction.SQLBackgroundQuery(database, "alias:mid:" + alias.getName(), "SELECT DISTINCT(fnMachineID) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
+        loopCatcher.put(alias.getName(), new Integer[] { 0, 0 });
+        m_botAction.SQLBackgroundQuery(database, "alias:ip:" + alias.getName(), "SELECT DISTINCT(fnIP) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID "
+                + "WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
+        m_botAction.SQLBackgroundQuery(database, "alias:mid:" + alias.getName(), "SELECT DISTINCT(fnMachineID) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID "
+                + "WHERE fcUserName = '" + Tools.addSlashes(alias.getName()) + "'");
     }
 
     private class AliasCheck {
@@ -248,11 +250,11 @@ public class pubbotnewbie extends PubBotModule{
             this.usage = usage;
             this.time = System.currentTimeMillis();
         }
-        
+
         public long getTime() {
             return System.currentTimeMillis() - time;
         }
-        
+
         public void resetTime() {
             time = System.currentTimeMillis();
         }
