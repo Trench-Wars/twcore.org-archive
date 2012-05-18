@@ -8,6 +8,7 @@ import java.util.TimerTask;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
+import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.events.SQLResultEvent;
 import twcore.core.util.Tools;
@@ -28,6 +29,7 @@ public class pubbotnewbie extends PubBotModule {
         this.aliases = new HashMap<String, AliasCheck>();
         this.loopCatcher = new HashMap<String, Integer[]>();
         this.trainers = new HashSet<String>();
+        m_botAction.ipcSubscribe(ZONE_CHANNEL);
     }
 
     @Override
@@ -37,6 +39,19 @@ public class pubbotnewbie extends PubBotModule {
     @Override
     public void requestEvents(EventRequester eventRequester) {
         eventRequester.request(EventRequester.MESSAGE);
+    }
+    
+    public void handleEvent(InterProcessEvent event) {
+        if (event.getChannel().equals(ZONE_CHANNEL) && event.getSenderName().equalsIgnoreCase("RoboHelp") && event.getObject() instanceof String) {
+            if (((String) event.getObject()).startsWith("newb")) {
+                String[] args = ((String) event.getObject()).substring(5).split(",");
+                if (trainers.contains(args[1].toLowerCase()))
+                    m_botAction.ipcTransmit(ZONE_CHANNEL, new String(args[0] + ":" + args[1] + " was already set as a trainer newb alert alias."));
+                else
+                    m_botAction.ipcTransmit(ZONE_CHANNEL, new String(args[0] + ":" + args[1] + " will trigger a newb alert upon next visit."));
+                trainers.add(args[1].toLowerCase());                
+            }
+        }
     }
 
     public void handleEvent(Message event) {
@@ -54,11 +69,13 @@ public class pubbotnewbie extends PubBotModule {
                 String[] pieces = time.split(":");
 
                 if (pieces.length == 3) {
-                    if (pieces[0].equals("0")) { // if usage less than 1 hour
-
-                        int hour = Integer.valueOf(pieces[0]);
-                        int min = Integer.valueOf(pieces[1]);
-
+                    int hour = Integer.valueOf(pieces[0]);
+                    int min = Integer.valueOf(pieces[1]);
+                    if (trainers.remove(currentInfoName.toLowerCase())) {
+                        AliasCheck alias = new AliasCheck(currentInfoName, hour * 60 + min);
+                        alias.setAliasCount(1);
+                        sendNewPlayerAlert(alias);
+                    } else if (pieces[0].equals("0")) { // if usage less than 1 hour
                         if (aliases.containsKey(currentInfoName)) {
                             AliasCheck alias = aliases.get(currentInfoName);
                             alias.setUsage(hour * 60 + min);
