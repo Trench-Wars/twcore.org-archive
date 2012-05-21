@@ -48,7 +48,7 @@ public class pubbotnewbie extends PubBotModule {
                 if (trainers.contains(args[1].toLowerCase()))
                     m_botAction.ipcTransmit(ZONE_CHANNEL, new String(args[0] + ":" + args[1] + " was already set as a trainer newb alert alias."));
                 else
-                    m_botAction.ipcTransmit(ZONE_CHANNEL, new String(args[0] + ":" + args[1] + " will trigger a newb alert upon next visit."));
+                    m_botAction.ipcTransmit(ZONE_CHANNEL, new String(args[0] + ":" + args[1] + " will trigger a newb alert upon next visit." + ":" + args[1]));
                 trainers.add(args[1].toLowerCase());                
             }
         }
