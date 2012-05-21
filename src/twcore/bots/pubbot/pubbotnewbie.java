@@ -43,7 +43,7 @@ public class pubbotnewbie extends PubBotModule {
     
     public void handleEvent(InterProcessEvent event) {
         if (event.getChannel().equals(ZONE_CHANNEL) && event.getSenderName().equalsIgnoreCase("RoboHelp") && event.getObject() instanceof String) {
-            if (((String) event.getObject()).startsWith("newb")) {
+            if (((String) event.getObject()).startsWith("newb:")) {
                 String[] args = ((String) event.getObject()).substring(5).split(",");
                 if (trainers.contains(args[1].toLowerCase()))
                     m_botAction.ipcTransmit(ZONE_CHANNEL, new String(args[0] + ":" + args[1] + " was already set as a trainer newb alert alias."));
@@ -72,7 +72,7 @@ public class pubbotnewbie extends PubBotModule {
                     int hour = Integer.valueOf(pieces[0]);
                     int min = Integer.valueOf(pieces[1]);
                     if (trainers.remove(currentInfoName.toLowerCase())) {
-                        AliasCheck alias = new AliasCheck(currentInfoName, hour * 60 + min);
+                        AliasCheck alias = new AliasCheck(currentInfoName, 1);
                         alias.setAliasCount(1);
                         sendNewPlayerAlert(alias);
                     } else if (pieces[0].equals("0")) { // if usage less than 1 hour
