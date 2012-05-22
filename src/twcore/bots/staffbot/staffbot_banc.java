@@ -372,6 +372,8 @@ public class staffbot_banc extends Module {
             // On initilization of a pubbot, send the active bancs to that pubbot
             if (command.equals("BANC PUBBOT INIT"))
                 sendIPCActiveBanCs(ipc.getSender());
+            else if (command.startsWith("KICKED:"))
+                m_botAction.sendChatMessage(command.substring(7));
             else if (command.startsWith(BanCType.SILENCE.toString())) {
                 BanC banc = lookupActiveBanC(BanCType.SILENCE, args[1]);
                 if (banc != null && banc.isNotification())
