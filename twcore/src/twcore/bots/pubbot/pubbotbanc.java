@@ -92,7 +92,9 @@ public class pubbotbanc extends PubBotModule {
         String name = event.getPlayerName();
         if (name == null)
             name = m_botAction.getPlayerName(event.getPlayerID());
-
+        
+        m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
+        
         if (name.startsWith("^") == false)
             m_botAction.sendUnfilteredPrivateMessage(name, "*info");
     }
@@ -142,7 +144,11 @@ public class pubbotbanc extends PubBotModule {
     public void handleEvent(Message event) {
         String message = event.getMessage().trim();
         if (event.getMessageType() == Message.ARENA_MESSAGE)
-            if (message.startsWith("IP:"))
+            if (message.contains("Proxy: SOCKS5 proxy")) {
+                String name = message.substring(0, message.indexOf(": U"));
+                m_botAction.sendUnfilteredPrivateMessage(name, "*kill");
+                m_botAction.ipcSendMessage(IPCBANC, "KICKED:Player '" + name + "' has been kicked for using an unapproved client.", "banc", m_botAction.getBotName());
+            } else if (message.startsWith("IP:"))
                 checkBanCs(message);
             else if (current != null) {
                 String name = current.getName();
