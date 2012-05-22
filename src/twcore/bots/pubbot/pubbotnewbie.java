@@ -44,6 +44,7 @@ public class pubbotnewbie extends PubBotModule {
     public void handleEvent(InterProcessEvent event) {
         if (event.getChannel().equals(ZONE_CHANNEL) && event.getSenderName().equalsIgnoreCase("RoboHelp") && event.getObject() instanceof String) {
             if (((String) event.getObject()).startsWith("newb:")) {
+                m_botAction.sendSmartPrivateMessage("WingZero", "Got IPC: " + ((String) event.getObject()));
                 String[] args = ((String) event.getObject()).substring(5).split(",");
                 if (trainers.contains(args[1].toLowerCase()))
                     m_botAction.ipcTransmit(ZONE_CHANNEL, new String(args[0] + ":" + args[1] + " was already set as a trainer newb alert alias."));
