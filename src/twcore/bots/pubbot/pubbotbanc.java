@@ -94,7 +94,7 @@ public class pubbotbanc extends PubBotModule {
         if (name == null)
             name = m_botAction.getPlayerName(event.getPlayerID());
         
-        if (!Tools.isAllDigits(m_botAction.getArenaName()))
+        if (!m_botAction.getArenaName().contains("Public"))
             m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
         
         if (name.startsWith("^") == false)
