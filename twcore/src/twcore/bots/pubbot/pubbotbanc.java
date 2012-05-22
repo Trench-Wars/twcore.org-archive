@@ -14,6 +14,7 @@ import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
 import twcore.core.game.Player;
+import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCEvent;
 import twcore.core.util.ipc.IPCMessage;
 
@@ -93,7 +94,8 @@ public class pubbotbanc extends PubBotModule {
         if (name == null)
             name = m_botAction.getPlayerName(event.getPlayerID());
         
-        m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
+        if (!Tools.isAllDigits(m_botAction.getArenaName()))
+            m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
         
         if (name.startsWith("^") == false)
             m_botAction.sendUnfilteredPrivateMessage(name, "*info");
@@ -147,7 +149,7 @@ public class pubbotbanc extends PubBotModule {
             if (message.contains("Proxy: SOCKS5 proxy")) {
                 String name = message.substring(0, message.indexOf(": U"));
                 m_botAction.sendUnfilteredPrivateMessage(name, "*kill");
-                m_botAction.ipcSendMessage(IPCBANC, "KICKED:Player '" + name + "' has been kicked for using an unapproved client.", "banc", m_botAction.getBotName());
+                m_botAction.ipcSendMessage(IPCBANC, "KICKED:Player '" + name + "' has been kicked by " + m_botAction.getBotName() + " for using an unapproved client.", "banc", m_botAction.getBotName());
             } else if (message.startsWith("IP:"))
                 checkBanCs(message);
             else if (current != null) {
