@@ -158,10 +158,6 @@ public class pubhub extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage(cfg_hubbot, "!spawn PubBot");
         }
         
-        // Inter-zone arena, always put a bot there
-        arenaList.add("tw");
-        arenaList.add("trenchwars");
-        
         String[] arenas = arenaList.toArray(new String[arenaList.size()]);
         
         for (int i = 0; i < arenas.length; i++) {
