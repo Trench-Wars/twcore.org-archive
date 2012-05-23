@@ -202,8 +202,8 @@ public class pubbotbanc extends PubBotModule {
                         current = null;
                         m_botAction.spec(name);
                     }
-                } else if (message.equalsIgnoreCase("Player kicked off"))
-                    m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
+                }/* else if (message.equalsIgnoreCase("Player kicked off"))
+                    m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());*/
                 else if (message.startsWith("REMOVE"))
                     m_botAction.sendChatMessage("Player " + name + " may now play in bombs-ship");
             }
