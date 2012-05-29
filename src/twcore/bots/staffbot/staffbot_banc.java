@@ -590,8 +590,43 @@ public class staffbot_banc extends Module {
             m_botAction.sendSmartPrivateMessage(name, "Banc Error: No staff found. Contact botdev.");
             return;
         }
+        
+        OperatorList opList = m_botAction.getOperatorList();
+        List<String> sysops = new LinkedList<String>();
+        List<String> smods = new LinkedList<String>();
+        List<String> mods = new LinkedList<String>();
+        List<String> ers = new LinkedList<String>();
+        List<String> other = new LinkedList<String>();
+        
+        for(;list.hasNext();)
+        {
+            String pName = (String)list.next();
 
-        for (int k = 0; list.hasNext();) {
+            if (opList.isSysop(pName))
+                sysops.add(pName);
+            else if (opList.isSmodExact(pName))
+                smods.add(pName);
+            else if (opList.isModerator(pName))
+                mods.add(pName);
+            else if (opList.isER(pName))
+                ers.add(pName);
+            else 
+                other.add(pName);
+        }
+        
+        List<String> revoked = new LinkedList<String>();
+        Iterator<String> list1 = bancRevoked.values().iterator();
+        while (list1.hasNext())
+            revoked.add((String)list1.next());
+        
+        Collections.sort(sysops);
+        Collections.sort(smods);
+        Collections.sort(mods);
+        Collections.sort(ers);
+        Collections.sort(other);
+        Collections.sort(revoked);
+
+        /* for (int k = 0; list.hasNext();) {
 
             String pName = list.next();
             if (m_botAction.getOperatorList().isSysop(pName))
@@ -606,11 +641,10 @@ public class staffbot_banc extends Module {
                     m_botAction.sendSmartPrivateMessage(name, bancs.substring(0, bancs.length() - 2));
                     bancs = "";
                 }
-
         }
+       
         String bancs1 = "List of staffers that have no access: ";
         Iterator<String> list1 = bancRevoked.values().iterator();
-
         while (list1.hasNext())
             if (list1.hasNext())
                 bancs1 += list1.next() + ", ";
@@ -619,7 +653,70 @@ public class staffbot_banc extends Module {
 
         bancs1 = bancs1.substring(0, bancs1.length() - 2);
         m_botAction.sendSmartPrivateMessage(name, bancs1);
+        */
+        //!!!!!!!!!!!!!!!!!!!!!!!
+
+        ArrayList<String> dispList = new ArrayList<String>();
+
+        String temp = "";
+        Iterator<String> o = null;
+        
+        for (int i=0; i<6; i++)
+        {
+            switch (i) {
+            case 0:
+                o = sysops.iterator();
+                temp = "Sysops: ";
+                break;
+            case 1:
+                o = smods.iterator();
+                temp = "Smods : ";
+                break;
+            case 2:
+                o = mods.iterator();
+                temp = "Mods  : ";
+                break;
+            case 3:
+                o = ers.iterator();
+                temp = "ERs   : ";
+                break;
+            case 4:
+                o = other.iterator();
+                temp = "Others : ";
+                break;
+            default:
+                o = revoked.iterator();
+                if (!o.hasNext())
+                    continue;
+                temp = "List of staffers that have no access.";
+                dispList.add(temp);
+                temp = "Revoked: ";
+                break;
+            }
+            
+            if (!o.hasNext())
+                continue;
+            
+            int count = 0;                
+            while (o.hasNext()) {
+                String n = o.next();
+                if (count == 5) {
+                    count++;
+                    dispList.add(temp);
+                    temp = "        ";
+                    count = 0;
+                }
+                if (count > 0)
+                    temp += ", ";
+                temp += n;
+                count++;
+            }
+            dispList.add(temp);
+        }
+
+        m_botAction.smartPrivateMessageSpam(name, dispList.toArray(new String[dispList.size()]));
     }
+
 
     /**
      * !removeop
