@@ -5,19 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.TimerTask;
 
-import twcore.bots.pubsystem.module.AbstractModule;
-import twcore.bots.pubsystem.module.GameFlagTimeModule;
-import twcore.bots.pubsystem.module.PubChallengeModule;
-import twcore.bots.pubsystem.module.PubHuntModule;
-import twcore.bots.pubsystem.module.PubKillSessionModule;
-import twcore.bots.pubsystem.module.PubLotteryModule;
-import twcore.bots.pubsystem.module.PubMapModule;
-import twcore.bots.pubsystem.module.PubMoneySystemModule;
-import twcore.bots.pubsystem.module.PubPlayerManagerModule;
-import twcore.bots.pubsystem.module.PubStreakModule;
-import twcore.bots.pubsystem.module.PubUtilModule;
-import twcore.bots.pubsystem.module.PubSessionModule;
-import twcore.bots.pubsystem.module.PubAchievementsModule;
+import twcore.bots.pubsystem.module.*;
 import twcore.core.BotAction;
 import twcore.core.events.SQLResultEvent;
 import twcore.core.events.SubspaceEvent;
@@ -47,6 +35,7 @@ public class PubContext {
     private PubSessionModule pubSession;
     private PubAchievementsModule pubAchievements;
     private PubLotteryModule pubLottery;
+    private GaugeModule gaugeModule;
 
     // Game module
     private GameFlagTimeModule gameFlagTime;
@@ -73,6 +62,7 @@ public class PubContext {
         getPubSession();
         getPubUtil();
         getPubMap();
+        getGauge();
 
         int seconds = (int) (System.currentTimeMillis() - start) / 1000;
         Tools.printLog("Modules(" + modules.size() + ") for pubsystem loaded in " + seconds + " seconds.");
@@ -150,6 +140,14 @@ public class PubContext {
         return playerManager;
     }
 
+    public GaugeModule getGauge() {
+        if (gaugeModule == null) {
+            gaugeModule = new GaugeModule(m_botAction, this);
+            modules.put("gaugemodule", gaugeModule);
+        }
+        return gaugeModule;
+    }
+    
     public PubMoneySystemModule getMoneySystem() {
         if (moneySystem == null) {
             moneySystem = new PubMoneySystemModule(m_botAction, this);
