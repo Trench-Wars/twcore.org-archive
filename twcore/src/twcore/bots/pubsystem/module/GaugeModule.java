@@ -62,19 +62,19 @@ public class GaugeModule extends AbstractModule {
         if (command.equals("!startgauge")) {
             if (!running) {
                 start();
-                m_botAction.sendSmartPrivateMessage(sender, 
+                m_botAction.sendPrivateMessage(sender, 
                         "[GaugeModule] Started!");
             } else {
-                m_botAction.sendSmartPrivateMessage(sender, 
+                m_botAction.sendPrivateMessage(sender, 
                         "[GaugeModule] Already Started!");
             }
         } else if (command.equals("!stopgauge")){
             if (running) {
                 stop();
-                m_botAction.sendSmartPrivateMessage(sender, 
+                m_botAction.sendPrivateMessage(sender, 
                         "[GaugeModule] Stopped!");
             } else {
-                m_botAction.sendSmartPrivateMessage(sender, 
+                m_botAction.sendPrivateMessage(sender, 
                         "[GaugeModule] Already Stopped!");
             }
             
