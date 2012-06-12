@@ -284,7 +284,7 @@ public class pubsystem extends SubspaceBot
                 context.handleEvent(event);
             }
             
-            if (m_botAction.getArenaName().equalsIgnoreCase("(Public") && greeting != null)
+            if (m_botAction.getArenaName().contains("(Public") && greeting != null)
                 m_botAction.sendSmartPrivateMessage(playerName, greeting);
 
         } catch (Exception e) {
