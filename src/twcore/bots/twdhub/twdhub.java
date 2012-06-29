@@ -77,7 +77,7 @@ public class twdhub extends SubspaceBot {
     
     public void handleEvent(LoggedOn event) {
         ba.ipcSubscribe(IPC);
-        ba.sendUnfilteredPublicMessage("?chat=robodev,executive lounge,twdstaff");
+        ba.sendUnfilteredPublicMessage("?chat=robodev,executive lounge,leagueop");
         ba.joinArena(rules.getString("Arena"));
     }
     
