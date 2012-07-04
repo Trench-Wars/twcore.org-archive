@@ -872,7 +872,7 @@ public class twdopalias extends Module
     public void record(String sender, String message) {
         try{
             Calendar c = Calendar.getInstance();
-            String timestamp = c.get( c.MONTH ) + "/" + c.get( c.DAY_OF_MONTH )
+            String timestamp = (c.get( c.MONTH ) + 1) + "/" + c.get( c.DAY_OF_MONTH )
             + "/" + c.get( c.YEAR ) + " - ";
         
             BufferedReader reader = new BufferedReader(new FileReader( "/home/bots/twcore/bin/logs/alias.log" )); 
