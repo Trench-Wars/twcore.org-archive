@@ -124,7 +124,7 @@ public class pubhubalias extends PubBotModule {
         hider.handleEvent(event);
     }
 
-    private void doAltNickCmd(String playerName) {
+    private void doAltNickCmd(String playerName, boolean all) {
         try {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
@@ -139,6 +139,8 @@ public class pubhubalias extends PubBotModule {
 
             if (ipResults == null || midResults == null)
                 m_botAction.sendChatMessage("Player not found in database.");
+            else if (all)
+                displayAltNickAllResults(queryString, headers, "fcUserName");
             else
                 displayAltNickResults(playerName, queryString, headers, "fcUserName");
 
@@ -218,6 +220,35 @@ public class pubhubalias extends PubBotModule {
         }
 
         return ip32Bit;
+    }
+
+    private void displayAltNickAllResults(String queryString, String[] headers, String uniqueField) throws SQLException {
+        ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
+        HashSet<String> prevResults = new HashSet<String>();
+        String curResult = null;
+        int numResults = 0;
+
+        if (resultSet == null)
+            throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+
+        m_botAction.sendChatMessage(getResultHeaders(headers));
+        while (resultSet.next()) {
+            if (uniqueField != null)
+                curResult = resultSet.getString(uniqueField);
+
+            if (uniqueField == null || !prevResults.contains(curResult)) {
+                if (numResults <= m_maxRecords)
+                    m_botAction.sendChatMessage(getResultLine(resultSet, headers));
+                prevResults.add(curResult);
+                numResults++;
+            }
+        }
+
+        if (numResults > m_maxRecords)
+            m_botAction.sendChatMessage(numResults - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
+        else
+            m_botAction.sendChatMessage("Altnick returned " + numResults + " results.");
+        m_botAction.SQLClose(resultSet);
     }
 
     private void displayAltNickResults(String player, String queryString, String[] headers, String uniqueField) throws SQLException {
@@ -715,7 +746,7 @@ public class pubhubalias extends PubBotModule {
             else if (command.equals("!help"))
                 doHelpCmd(sender);
             else if (command.startsWith("!altnick ")) {
-                doAltNickCmd(message.substring(9).trim());
+                doAltNickCmd(message.substring(9).trim(), false);
                 record(sender, message);
             } else if (command.startsWith("!altip "))
                 doAltIpCmd(message.substring(7).trim());
@@ -759,6 +790,10 @@ public class pubhubalias extends PubBotModule {
                 doAddAliasOp(sender, message.substring(8).trim());
             else if (command.startsWith("!aliasdeop "))
                 doRemAliasOp(sender, message.substring(10).trim());
+            else if (command.startsWith("!altall ") && opList.isSysopExact(sender)) {
+                doAltNickCmd(message.substring(8).trim(), true);
+                record(sender, message);
+            }
         } catch (Exception e) {
             m_botAction.sendChatMessage(e.getMessage());
         }
