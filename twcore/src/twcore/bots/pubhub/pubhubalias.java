@@ -23,6 +23,7 @@ import twcore.core.EventRequester;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.stats.DBPlayerData;
+import twcore.core.util.Hider;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
@@ -75,6 +76,7 @@ public class pubhubalias extends PubBotModule {
 
     private HashMap<String, String> twdops = new HashMap<String, String>();
     private HashMap<String, String> aliasops = new HashMap<String, String>();
+    private Hider hider;
 
     /**
      * This method initializes the module.
@@ -86,6 +88,7 @@ public class pubhubalias extends PubBotModule {
         watchedNames = Collections.synchronizedMap(new HashMap<String, WatchComment>());
         watchedMIDs = Collections.synchronizedMap(new HashMap<String, WatchComment>());
         clearRecordTask = new ClearRecordTask();
+        hider = new Hider(m_botAction);
 
         m_botAction.scheduleTaskAtFixedRate(clearRecordTask, CLEAR_DELAY, CLEAR_DELAY);
 
@@ -226,7 +229,7 @@ public class pubhubalias extends PubBotModule {
                 curResult = resultSet.getString(uniqueField);
 
             if (uniqueField == null || !prevResults.contains(curResult)) {
-                if (numResults <= m_maxRecords)
+                if (!hider.isHidden(curResult) && numResults <= m_maxRecords)
                     m_botAction.sendChatMessage(getResultLine(resultSet, headers));
                 prevResults.add(curResult);
                 numResults++;
