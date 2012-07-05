@@ -140,7 +140,7 @@ public class pubhubalias extends PubBotModule {
             if (ipResults == null || midResults == null)
                 m_botAction.sendChatMessage("Player not found in database.");
             else
-                displayAltNickResults(queryString, headers, "fcUserName");
+                displayAltNickResults(playerName, queryString, headers, "fcUserName");
 
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
@@ -156,7 +156,7 @@ public class pubhubalias extends PubBotModule {
         try {
             String[] headers = { NAME_FIELD, IP_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
-            displayAltNickResults("SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnMachineId = " + playerMid + " " + getOrderBy(), headers, "fcUserName");
+            displayAltNickResults(null, "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnMachineId = " + playerMid + " " + getOrderBy(), headers, "fcUserName");
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
@@ -173,7 +173,7 @@ public class pubhubalias extends PubBotModule {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
             String query = "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcIPString LIKE '" + stringPlayerIP + "%'" + " " + getOrderBy();
 
-            displayAltNickResults(query, headers, "fcUserName");
+            displayAltNickResults(null, query, headers, "fcUserName");
 
         } catch (SQLException e) {
             //throw new RuntimeException("SQL Error: "+e.getMessage(), e);
@@ -187,7 +187,7 @@ public class pubhubalias extends PubBotModule {
             String[] headers = { NAME_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
             long ip32Bit = make32BitIp(playerIp);
 
-            displayAltNickResults("SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnIp LIKE " + ip32Bit + " " + getOrderBy(), headers, "fcUserName");
+            displayAltNickResults(null, "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnIp LIKE " + ip32Bit + " " + getOrderBy(), headers, "fcUserName");
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
@@ -196,7 +196,7 @@ public class pubhubalias extends PubBotModule {
     private void doInfoCmd(String playerName) {
         try {
             String[] headers = { IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
-            displayAltNickResults("SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName)
+            displayAltNickResults(playerName, "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName)
                     + "' " + getOrderBy(), headers);
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
@@ -220,7 +220,7 @@ public class pubhubalias extends PubBotModule {
         return ip32Bit;
     }
 
-    private void displayAltNickResults(String queryString, String[] headers, String uniqueField) throws SQLException {
+    private void displayAltNickResults(String player, String queryString, String[] headers, String uniqueField) throws SQLException {
         ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
         HashSet<String> prevResults = new HashSet<String>();
         String curResult = null;
@@ -228,6 +228,10 @@ public class pubhubalias extends PubBotModule {
 
         if (resultSet == null)
             throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+        
+        boolean hide = true;
+        if (player != null && hider.isHidden(player))
+            hide = false;
 
         m_botAction.sendChatMessage(getResultHeaders(headers));
         while (resultSet.next()) {
@@ -235,7 +239,7 @@ public class pubhubalias extends PubBotModule {
                 curResult = resultSet.getString(uniqueField);
 
             if (uniqueField == null || !prevResults.contains(curResult)) {
-                if (!hider.isHidden(curResult) && numResults <= m_maxRecords)
+                if (((hide && !hider.isHidden(curResult)) || (!hide && hider.isHidden(curResult))) && numResults <= m_maxRecords)
                     m_botAction.sendChatMessage(getResultLine(resultSet, headers));
                 prevResults.add(curResult);
                 numResults++;
@@ -249,8 +253,8 @@ public class pubhubalias extends PubBotModule {
         m_botAction.SQLClose(resultSet);
     }
 
-    private void displayAltNickResults(String queryString, String[] headers) throws SQLException {
-        displayAltNickResults(queryString, headers, null);
+    private void displayAltNickResults(String player, String queryString, String[] headers) throws SQLException {
+        displayAltNickResults(player, queryString, headers, null);
     }
 
     private String getResultHeaders(String[] displayFields) {
