@@ -767,10 +767,6 @@ public class pubhubalias extends PubBotModule {
 
         if (messageType == Message.CHAT_MESSAGE)
             handleChatMessage(sender, message);
-        else if (messageType == Message.REMOTE_PRIVATE_MESSAGE || messageType == Message.PRIVATE_MESSAGE) {
-            if (opList.isSysop(sender) && message.equalsIgnoreCase("!hiders"))
-                hider.cmd_list(sender);
-        }
     }
 
     public void record(String sender, String message) {
