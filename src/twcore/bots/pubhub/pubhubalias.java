@@ -20,6 +20,7 @@ import java.util.TimerTask;
 import twcore.bots.PubBotModule;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
+import twcore.core.events.FileArrived;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.stats.DBPlayerData;
@@ -116,6 +117,11 @@ public class pubhubalias extends PubBotModule {
 
     public void requestEvents(EventRequester eventRequester) {
         eventRequester.request(EventRequester.MESSAGE);
+        eventRequester.request(EventRequester.FILE_ARRIVED);
+    }
+    
+    public void handleEvent(FileArrived event) {
+        hider.handleEvent(event);
     }
 
     private void doAltNickCmd(String playerName) {
@@ -761,6 +767,10 @@ public class pubhubalias extends PubBotModule {
 
         if (messageType == Message.CHAT_MESSAGE)
             handleChatMessage(sender, message);
+        else if (messageType == Message.REMOTE_PRIVATE_MESSAGE || messageType == Message.PRIVATE_MESSAGE) {
+            if (opList.isSysop(sender) && message.equalsIgnoreCase("!hiders"))
+                hider.cmd_list(sender);
+        }
     }
 
     public void record(String sender, String message) {
