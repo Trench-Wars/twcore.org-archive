@@ -239,7 +239,7 @@ public class pubhubalias extends PubBotModule {
                 curResult = resultSet.getString(uniqueField);
 
             if (uniqueField == null || !prevResults.contains(curResult)) {
-                if (((hide && !hider.isHidden(curResult)) || (!hide && hider.isHidden(curResult))) && numResults <= m_maxRecords)
+                if (( (hide && !hider.isHidden(curResult)) || (!hide && curResult.toLowerCase().contains(player.toLowerCase())) ) && numResults <= m_maxRecords)
                     m_botAction.sendChatMessage(getResultLine(resultSet, headers));
                 prevResults.add(curResult);
                 numResults++;
