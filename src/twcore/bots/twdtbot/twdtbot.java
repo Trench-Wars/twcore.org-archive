@@ -136,7 +136,7 @@ public class twdtbot extends SubspaceBot {
                     t = t.substring(0, 10) + " at " + t.substring(11, 16);
                     ba.sendSmartPrivateMessage(name, "You already signed up on " + t + ".");
                 } else {
-                    ba.SQLBackgroundQuery(db, null, "INSERT INTO tblDraft__Player (fnPlayerID, fnSeason, fcName, ftUpdated) VALUES(" + season + ", " + dbP.getUserID() + ", '" + Tools.addSlashesToString(name) + "', NOW())");
+                    ba.SQLBackgroundQuery(db, null, "INSERT INTO tblDraft__Player (fnPlayerID, fnSeason, fcName, ftUpdated) VALUES(" + dbP.getUserID() + ", " + season + ", '" + Tools.addSlashesToString(name) + "', NOW())");
                     ba.sendSmartPrivateMessage(name, "Signup successful!");
                 }
             } catch (SQLException e) {
