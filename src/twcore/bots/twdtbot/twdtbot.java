@@ -3,6 +3,7 @@ package twcore.bots.twdtbot;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.TimerTask;
 
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
@@ -172,7 +173,7 @@ public class twdtbot extends SubspaceBot {
     
     private void cmd_die(String name) {
         ba.sendSmartPrivateMessage(name, "Goodbye, have a nice day!");
-        ba.die();
+        new Die();
     }
     
     private String[] wrapLines(String msg) {
@@ -188,6 +189,18 @@ public class twdtbot extends SubspaceBot {
             }
         }
         return lines.toArray(new String[lines.size()]);
+    }
+    
+    private class Die extends TimerTask {
+        
+        public Die() {
+            ba.scheduleTask(this, 3000);
+        }
+        
+        public void run() {
+            ba.die();
+        }
+        
     }
 
 }
