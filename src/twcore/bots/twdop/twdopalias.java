@@ -122,7 +122,7 @@ public class twdopalias extends Module {
         hider.handleEvent(event);
     }
 
-    private void doAltNickCmd(String playerName) {
+    private void doAltNickCmd(String playerName, boolean all) {
         try {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
@@ -137,8 +137,10 @@ public class twdopalias extends Module {
 
             if (ipResults == null || midResults == null)
                 m_botAction.sendChatMessage("Player not found in database.");
+            else if (all)
+                displayAltNickAllResults(queryString, headers, "fcUserName");
             else
-                displayAltNickResults(queryString, headers, "fcUserName");
+                displayAltNickResults(playerName, queryString, headers, "fcUserName");
 
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
@@ -154,7 +156,7 @@ public class twdopalias extends Module {
         try {
             String[] headers = { NAME_FIELD, IP_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
-            displayAltNickResults("SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnMachineId = " + playerMid + " " + getOrderBy(), headers, "fcUserName");
+            displayAltNickResults(null, "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnMachineId = " + playerMid + " " + getOrderBy(), headers, "fcUserName");
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
@@ -171,7 +173,7 @@ public class twdopalias extends Module {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
             String query = "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcIPString LIKE '" + stringPlayerIP + "%'" + " " + getOrderBy();
 
-            displayAltNickResults(query, headers, "fcUserName");
+            displayAltNickResults(null, query, headers, "fcUserName");
 
         } catch (SQLException e) {
             //throw new RuntimeException("SQL Error: "+e.getMessage(), e);
@@ -185,7 +187,7 @@ public class twdopalias extends Module {
             String[] headers = { NAME_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
             long ip32Bit = make32BitIp(playerIp);
 
-            displayAltNickResults("SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnIp LIKE " + ip32Bit + " " + getOrderBy(), headers, "fcUserName");
+            displayAltNickResults(null, "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnIp LIKE " + ip32Bit + " " + getOrderBy(), headers, "fcUserName");
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
@@ -194,7 +196,7 @@ public class twdopalias extends Module {
     private void doInfoCmd(String playerName) {
         try {
             String[] headers = { IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
-            displayAltNickResults("SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName)
+            displayAltNickResults(playerName, "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName)
                     + "' " + getOrderBy(), headers);
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
@@ -218,7 +220,7 @@ public class twdopalias extends Module {
         return ip32Bit;
     }
 
-    private void displayAltNickResults(String queryString, String[] headers, String uniqueField) throws SQLException {
+    private void displayAltNickAllResults(String queryString, String[] headers, String uniqueField) throws SQLException {
         ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
         HashSet<String> prevResults = new HashSet<String>();
         String curResult = null;
@@ -233,7 +235,7 @@ public class twdopalias extends Module {
                 curResult = resultSet.getString(uniqueField);
 
             if (uniqueField == null || !prevResults.contains(curResult)) {
-                if (!hider.isHidden(curResult) && numResults <= m_maxRecords)
+                if (numResults <= m_maxRecords)
                     m_botAction.sendChatMessage(getResultLine(resultSet, headers));
                 prevResults.add(curResult);
                 numResults++;
@@ -247,8 +249,41 @@ public class twdopalias extends Module {
         m_botAction.SQLClose(resultSet);
     }
 
-    private void displayAltNickResults(String queryString, String[] headers) throws SQLException {
-        displayAltNickResults(queryString, headers, null);
+    private void displayAltNickResults(String player, String queryString, String[] headers, String uniqueField) throws SQLException {
+        ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
+        HashSet<String> prevResults = new HashSet<String>();
+        String curResult = null;
+        int numResults = 0;
+
+        if (resultSet == null)
+            throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+        
+        boolean hide = true;
+        if (player != null && hider.isHidden(player))
+            hide = false;
+
+        m_botAction.sendChatMessage(getResultHeaders(headers));
+        while (resultSet.next()) {
+            if (uniqueField != null)
+                curResult = resultSet.getString(uniqueField);
+
+            if (uniqueField == null || !prevResults.contains(curResult)) {
+                if (( (hide && !hider.isHidden(curResult)) || (!hide && curResult.toLowerCase().contains(player.toLowerCase())) ) && numResults <= m_maxRecords)
+                    m_botAction.sendChatMessage(getResultLine(resultSet, headers));
+                prevResults.add(curResult);
+                numResults++;
+            }
+        }
+
+        if (numResults > m_maxRecords)
+            m_botAction.sendChatMessage(numResults - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
+        else
+            m_botAction.sendChatMessage("Altnick returned " + numResults + " results.");
+        m_botAction.SQLClose(resultSet);
+    }
+
+    private void displayAltNickResults(String player, String queryString, String[] headers) throws SQLException {
+        displayAltNickResults(player, queryString, headers, null);
     }
 
     private String getResultHeaders(String[] displayFields) {
@@ -705,7 +740,7 @@ public class twdopalias extends Module {
             else if (command.equals("!help"))
                 doHelpCmd(sender);
             else if (command.startsWith("!altnick ")) {
-                doAltNickCmd(message.substring(9).trim());
+                doAltNickCmd(message.substring(9).trim(), false);
                 record(sender, message);
             } else if (command.startsWith("!altip "))
                 doAltIpCmd(message.substring(7).trim());
@@ -750,6 +785,10 @@ public class twdopalias extends Module {
                 doAddAliasOp(sender, message.substring(8).trim());
             else if (command.startsWith("!aliasdeop "))
                 doRemAliasOp(sender, message.substring(10).trim());
+            else if (command.startsWith("!altall ") && opList.isSysopExact(sender)) {
+                doAltNickCmd(message.substring(8).trim(), true);
+                record(sender, message);
+            }
         } catch (Exception e) {
             m_botAction.sendChatMessage(e.getMessage());
         }
