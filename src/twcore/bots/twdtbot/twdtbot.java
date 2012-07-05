@@ -101,14 +101,12 @@ public class twdtbot extends SubspaceBot {
     private void cmd_help(String name) {
         String[] help = {
                      "+-- Trench Wars Draft Tournament Signup ----------------------------------------.",
-                     "|                                                                               |",
                      "| !signup                  - Registers for participation in TWDT                |",
                      "|                                                                               |",
         };
         
         String[] smod = {
                      "+-- SMod Commands --------------------------------------------------------------|",
-                     "|                                                                               |",
                      "| !count                   - Counts the number of players currently registered  |",
                      "| !reg                     - Lists all the players registered to play           |",
                      "| !die                     - Kills the bot                                      |",
@@ -175,7 +173,7 @@ public class twdtbot extends SubspaceBot {
     }
     
     private void cmd_die(String name) {
-        ba.sendSmartPrivateMessage(name, "Goodbye, have a nice day!");
+        ba.sendSmartPrivateMessage(name, "Goodbye, and have a nice day! After all, you get to LIVE. You're not dead or dying... yet");
         new Die();
     }
     
