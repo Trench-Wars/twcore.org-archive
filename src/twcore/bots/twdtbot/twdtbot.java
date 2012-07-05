@@ -92,6 +92,8 @@ public class twdtbot extends SubspaceBot {
                 cmd_count(name);
             else if (cmd.equals("!reg"))
                 cmd_registered(name);
+            else if (cmd.equals("!die"))
+                cmd_die(name);
         }
     }
     
@@ -105,6 +107,7 @@ public class twdtbot extends SubspaceBot {
                      "+-- SMOD Commands --------------------------------------------------------------|",
                      "| !count                   - Counts the number of players currently registered  |",
                      "| !reg                     - Lists all the players registered to play           |",
+                     "| !die                     - Kills the bot                                      |",
                      "`-------------------------------------------------------------------------------'"
         };
         String end = "`-------------------------------------------------------------------------------'";
@@ -165,6 +168,11 @@ public class twdtbot extends SubspaceBot {
     private void cmd_registered(String name) {
         ba.sendSmartPrivateMessage(name, "Processing request...");
         ba.SQLBackgroundQuery(db, name, "SELECT fcName FROM tblDraft__Player WHERE fnSeason = " + season + " ORDER BY ftUpdated ASC");
+    }
+    
+    private void cmd_die(String name) {
+        ba.sendSmartPrivateMessage(name, "Goodbye, have a nice day!");
+        ba.die();
     }
     
     private String[] wrapLines(String msg) {
