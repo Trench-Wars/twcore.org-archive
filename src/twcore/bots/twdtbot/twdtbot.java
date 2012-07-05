@@ -101,11 +101,14 @@ public class twdtbot extends SubspaceBot {
     private void cmd_help(String name) {
         String[] help = {
                      "+-- Trench Wars Draft Tournament Signup ----------------------------------------.",
+                     "|                                                                               |",
                      "| !signup                  - Registers for participation in TWDT                |",
+                     "|                                                                               |",
         };
         
         String[] smod = {
-                     "+-- SMOD Commands --------------------------------------------------------------|",
+                     "+-- SMod Commands --------------------------------------------------------------|",
+                     "|                                                                               |",
                      "| !count                   - Counts the number of players currently registered  |",
                      "| !reg                     - Lists all the players registered to play           |",
                      "| !die                     - Kills the bot                                      |",
