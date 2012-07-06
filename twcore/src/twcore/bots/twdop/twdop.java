@@ -90,7 +90,7 @@ public class twdop extends SubspaceBot {
 
     @Override
     public void handleEvent(Message event) {
-        if ((event.getMessageType() == Message.CHAT_MESSAGE) && event.getMessage().startsWith("!")) {
+        if ((event.getMessageType() == Message.CHAT_MESSAGE || event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) && event.getMessage().startsWith("!")) {
             // Commands
             String message = event.getMessage().toLowerCase();
             short sender = event.getPlayerID();

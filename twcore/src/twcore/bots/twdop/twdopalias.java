@@ -253,14 +253,15 @@ public class twdopalias extends Module {
         ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
         HashSet<String> prevResults = new HashSet<String>();
         String curResult = null;
-        int numResults = 0;
+        int totalResults = 0;
+        int shownResults = 0;
 
         if (resultSet == null)
             throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
         
-        boolean hide = true;
+        boolean hide = false;
         if (player != null && hider.isHidden(player))
-            hide = false;
+            hide = true;
 
         m_botAction.sendChatMessage(getResultHeaders(headers));
         while (resultSet.next()) {
@@ -268,17 +269,19 @@ public class twdopalias extends Module {
                 curResult = resultSet.getString(uniqueField);
 
             if (uniqueField == null || !prevResults.contains(curResult)) {
-                if (( (hide && !hider.isHidden(curResult)) || (!hide && curResult.toLowerCase().contains(player.toLowerCase())) ) && numResults <= m_maxRecords)
+                if (!hide && !hider.isHidden(curResult) && totalResults <= m_maxRecords) {
                     m_botAction.sendChatMessage(getResultLine(resultSet, headers));
+                    shownResults++;
+                }
                 prevResults.add(curResult);
-                numResults++;
+                totalResults++;
             }
         }
 
-        if (numResults > m_maxRecords)
-            m_botAction.sendChatMessage(numResults - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
+        if (shownResults > m_maxRecords)
+            m_botAction.sendChatMessage(shownResults - m_maxRecords + " records not shown.  !maxrecords # to show if available (current: " + m_maxRecords + ")");
         else
-            m_botAction.sendChatMessage("Altnick returned " + numResults + " results.");
+            m_botAction.sendChatMessage("Altnick returned " + shownResults + " (" + totalResults + ") results.");
         m_botAction.SQLClose(resultSet);
     }
 
