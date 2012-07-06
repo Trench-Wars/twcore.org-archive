@@ -283,7 +283,7 @@ public class pubhubalias extends PubBotModule {
         if (shownResults > m_maxRecords)
             m_botAction.sendChatMessage(shownResults - m_maxRecords + " records not shown.  !maxrecords # to show if available (current: " + m_maxRecords + ")");
         else
-            m_botAction.sendChatMessage("Altnick returned " + shownResults + "(" + totalResults + ") results.");
+            m_botAction.sendChatMessage("Altnick returned " + shownResults + " (" + totalResults + ") results.");
         m_botAction.SQLClose(resultSet);
     }
 
