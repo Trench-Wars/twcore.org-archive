@@ -45,11 +45,11 @@ public class twdtbot extends SubspaceBot {
     
     public void handleEvent(LoggedOn event) {
         ba.joinArena(ba.getBotSettings().getString("InitialArena"));
+        season = ba.getBotSettings().getInt("Season");
+        oplist = ba.getOperatorList();
     }
     
     public void handleEvent(ArenaJoined event) {
-        season = ba.getBotSettings().getInt("Season");
-        oplist = ba.getOperatorList();
     }
     
     public void handleEvent(SQLResultEvent event) {
@@ -138,7 +138,8 @@ public class twdtbot extends SubspaceBot {
                     t = t.substring(0, 10) + " at " + t.substring(11, 16);
                     ba.sendSmartPrivateMessage(name, "You already signed up on " + t + ".");
                 } else {
-                    ba.SQLBackgroundQuery(db, null, "INSERT INTO tblDraft__Player (fnPlayerID, fnSeason, fcName, ftUpdated) VALUES(" + dbP.getUserID() + ", " + season + ", '" + Tools.addSlashesToString(name) + "', NOW())");
+                    ba.SQLBackgroundQuery(db, null, "INSERT INTO tblDraft__Player (fnPlayerID, fnSeason, fcName) VALUES(" + dbP.getUserID() + ", " + season + ", '" + Tools.addSlashesToString(name) + "')");
+                    ba.SQLBackgroundQuery(db, null, "INSERT INTO tblDraft__PlayerReg (fcName, fnSeason) VALUES('" + Tools.addSlashesToString(name) + "', " + season + ")");
                     ba.sendSmartPrivateMessage(name, "Signup successful!");
                 }
             } catch (SQLException e) {
