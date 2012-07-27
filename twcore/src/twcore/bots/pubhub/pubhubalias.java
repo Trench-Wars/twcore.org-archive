@@ -198,8 +198,8 @@ public class pubhubalias extends PubBotModule {
     private void doInfoCmd(String playerName) {
         try {
             String[] headers = { IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
-            displayAltNickResults(playerName, "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName)
-                    + "' " + getOrderBy(), headers);
+            displayAltNickAllResults("SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName)
+                    + "' " + getOrderBy(), headers, null);
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
