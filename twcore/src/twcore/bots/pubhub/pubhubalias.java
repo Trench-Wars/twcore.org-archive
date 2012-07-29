@@ -198,8 +198,32 @@ public class pubhubalias extends PubBotModule {
     private void doInfoCmd(String playerName) {
         try {
             String[] headers = { IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
-            displayAltNickAllResults("SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName)
-                    + "' " + getOrderBy(), headers, null);
+            String queryString = "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "' " + getOrderBy();
+            ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
+            HashSet<String> prevResults = new HashSet<String>();
+            String curResult = null;
+            int numResults = 0;
+
+            if (resultSet == null)
+                throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+
+            boolean hide = hider.isHidden(playerName);
+            
+            m_botAction.sendChatMessage(getResultHeaders(headers));
+            while (resultSet.next()) {
+                if (!prevResults.contains(curResult)) {
+                    if (!hide && numResults <= m_maxRecords)
+                        m_botAction.sendChatMessage(getResultLine(resultSet, headers));
+                    prevResults.add(curResult);
+                    numResults++;
+                }
+            }
+
+            if (numResults > m_maxRecords)
+                m_botAction.sendChatMessage(numResults - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
+            else
+                m_botAction.sendChatMessage("Altnick returned " + numResults + " results.");
+            m_botAction.SQLClose(resultSet);
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
@@ -287,9 +311,11 @@ public class pubhubalias extends PubBotModule {
         m_botAction.SQLClose(resultSet);
     }
 
+    /*
     private void displayAltNickResults(String player, String queryString, String[] headers) throws SQLException {
         displayAltNickResults(player, queryString, headers, null);
     }
+    */
 
     private String getResultHeaders(String[] displayFields) {
         StringBuffer resultHeaders = new StringBuffer();
@@ -811,6 +837,7 @@ public class pubhubalias extends PubBotModule {
             handleChatMessage(sender, message);
     }
 
+    @SuppressWarnings("static-access")
     public void record(String sender, String message) {
         try {
             Calendar c = Calendar.getInstance();
