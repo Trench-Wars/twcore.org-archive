@@ -269,7 +269,7 @@ public class staffbot_badcommand_savelog extends Module {
 	    
 	    CommandLog commandLog;
 
-	    if (fromPlayer != null && command != null && opList.isER(fromPlayer)) {
+	    if (fromPlayer != null && command != null && opList.isZH(fromPlayer)) {
 	        commandLog = new CommandLog(date, arena, fromPlayer, toPlayer, command);
 	      
 	        if (isBadCommand(command)) {
