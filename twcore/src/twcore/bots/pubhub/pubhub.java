@@ -92,7 +92,7 @@ public class pubhub extends SubspaceBot {
      */
     public pubhub(BotAction botAction) {
         super(botAction);
-        moduleHandler = new ModuleHandler(m_botAction, m_botAction.getGeneralSettings().getString("Core Location") + "/twcore/bots/pubhub", "pubhub");
+        moduleHandler = new ModuleHandler(botAction, m_botAction.getGeneralSettings().getString("Core Location") + "/twcore/bots/pubhub", "pubhub");
         pubbots = new ConcurrentHashMap<String,String>();
     }
 
@@ -505,6 +505,8 @@ public class pubhub extends SubspaceBot {
     private int countUnspawnedArenas() {
         int count = 0;
         for(String bot:pubbots.keySet()) {
+            if (DEBUG)
+                m_botAction.sendSmartPrivateMessage("WingZero", "bot: " + bot + " arena: " + pubbots.get(bot));
             if(bot.startsWith("SPAWNING")) {
                 count++;
             }
@@ -525,8 +527,6 @@ public class pubhub extends SubspaceBot {
             String aarena = pubbots.get(bot);
 
             if(bot.startsWith("SPAWNING") && aarena.equals(arena)) {
-                if (DEBUG)
-                    m_botAction.sendSmartPrivateMessage("WingZero", "Removing arena: " + arena);
                 removedArena = pubbots.remove(bot);
                 break;
             }
@@ -560,7 +560,7 @@ public class pubhub extends SubspaceBot {
         for(String bot:pubbots.keySet()) {
             if(bot.startsWith("SPAWNING")) {
                 arena = pubbots.get(bot);
-                if (Tools.isAllDigits(arena))
+                if (Tools.isAllDigits(arena) || arena.equals("dsb"))
                     break;
             }
         }
