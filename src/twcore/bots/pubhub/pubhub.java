@@ -422,8 +422,10 @@ public class pubhub extends SubspaceBot {
                 cfg_pubModules.add(module);
         }
 
+        msg = "loaded: ";
         // Modules-<arena>
         for (String arena : cfg_arenas) {
+            msg += arena + ", ";
             String modulesSetting = botSettings.getString("Modules-" + arena);
 
             if (modulesSetting != null && modulesSetting.length() > 0) {
@@ -447,6 +449,7 @@ public class pubhub extends SubspaceBot {
                 }
             }
         }
+        m_botAction.sendChatMessage(msg);
 
         // Access
         StringTokenizer accessUsers = new StringTokenizer(botSettings.getString("Access"), ":");
