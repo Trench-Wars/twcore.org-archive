@@ -92,7 +92,7 @@ public class pubhub extends SubspaceBot {
      */
     public pubhub(BotAction botAction) {
         super(botAction);
-        moduleHandler = new ModuleHandler(botAction, m_botAction.getGeneralSettings().getString("Core Location") + "/twcore/bots/pubhub", "pubhub");
+        moduleHandler = new ModuleHandler(m_botAction, m_botAction.getGeneralSettings().getString("Core Location") + "/twcore/bots/pubhub", "pubhub");
         pubbots = new ConcurrentHashMap<String,String>();
     }
 
@@ -120,11 +120,6 @@ public class pubhub extends SubspaceBot {
         opList = m_botAction.getOperatorList();
         pubhub = m_botAction.getBotName();
 
-        // Request events
-        EventRequester eventRequester = m_botAction.getEventRequester();
-        eventRequester.request(EventRequester.ARENA_LIST);
-        eventRequester.request(EventRequester.MESSAGE);
-
         // Change to the configured arena
         m_botAction.changeArena(botSettings.getString("InitialArena"));
 
@@ -136,8 +131,11 @@ public class pubhub extends SubspaceBot {
         m_botAction.ipcSubscribe(IPCWHO);
         // Join chat
         m_botAction.sendUnfilteredPublicMessage("?chat=" + cfg_chat_hub );
-        
-        loadConfiguration();
+
+        // Request events
+        EventRequester eventRequester = m_botAction.getEventRequester();
+        eventRequester.request(EventRequester.ARENA_LIST);
+        eventRequester.request(EventRequester.MESSAGE);
 
         // Start the task of getting the arena list by which pubbots will be spawned
         m_botAction.scheduleTaskAtFixedRate(arenaListTask, 1000, CHECKARENALIST_DELAY);
@@ -150,9 +148,9 @@ public class pubhub extends SubspaceBot {
      */
     public void handleEvent(ArenaList event) {
     	
-    	HashSet<String> arenaList = new HashSet<String>(Arrays.asList(event.getArenaNames()));
+    	@SuppressWarnings({ "unchecked", "rawtypes" })
+        HashSet<String> arenaList = new HashSet(Arrays.asList(event.getArenaNames()));
     	arenaList.add("dsb");
-    	arenaList.add("tw");
     	
         boolean startup = pubbots.size()==0;
 
@@ -553,7 +551,7 @@ public class pubhub extends SubspaceBot {
             if(bot.startsWith("SPAWNING")) {
                 arena = pubbots.get(bot);
                 if (Tools.isAllDigits(arena) || arena.equals("dsb"))
-                    return arena;
+                    break;
             }
         }
 
