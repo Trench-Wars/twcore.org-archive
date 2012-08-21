@@ -151,6 +151,7 @@ public class pubhub extends SubspaceBot {
     	@SuppressWarnings({ "unchecked", "rawtypes" })
         HashSet<String> arenaList = new HashSet(Arrays.asList(event.getArenaNames()));
     	arenaList.add("dsb");
+        arenaList.add("tw");
     	
         boolean startup = pubbots.size()==0;
 
