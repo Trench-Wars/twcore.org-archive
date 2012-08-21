@@ -151,6 +151,8 @@ public class pubhub extends SubspaceBot {
     public void handleEvent(ArenaList event) {
     	
     	HashSet<String> arenaList = new HashSet<String>(Arrays.asList(event.getArenaNames()));
+    	arenaList.add("dsb");
+    	arenaList.add("tw");
     	
         boolean startup = pubbots.size()==0;
 
@@ -158,9 +160,6 @@ public class pubhub extends SubspaceBot {
             // Spawn the pubbot
             m_botAction.sendSmartPrivateMessage(cfg_hubbot, "!spawn PubBot");
         }
-        
-        for (String auto : cfg_arenas)
-            arenaList.add(auto);
         
         String[] arenas = arenaList.toArray(new String[arenaList.size()]);
 
