@@ -402,7 +402,7 @@ public class pubhub extends SubspaceBot {
         String msg = "arenas: ";
         for (String s : cfg_arenas)
             msg += "" + s + ", ";
-        m_botAction.sendChatMessage(msg);
+        m_botAction.sendSmartPrivateMessage("WingZero", msg);
 
         // AutoloadModules
         StringTokenizer modules = new StringTokenizer(botSettings.getString("AutoloadModules"));
