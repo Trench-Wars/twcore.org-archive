@@ -527,6 +527,8 @@ public class pubhub extends SubspaceBot {
             String aarena = pubbots.get(bot);
 
             if(bot.startsWith("SPAWNING") && aarena.equals(arena)) {
+                if (DEBUG)
+                    m_botAction.sendSmartPrivateMessage("WingZero", "Removing arena: " + arena);
                 removedArena = pubbots.remove(bot);
                 break;
             }
