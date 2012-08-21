@@ -159,10 +159,8 @@ public class pubhub extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage(cfg_hubbot, "!spawn PubBot");
         }
         
-        if (startup) {
-            for (String auto : cfg_arenas)
-                arenaList.add(auto);
-        }
+        for (String auto : cfg_arenas)
+            arenaList.add(auto);
         
         String[] arenas = arenaList.toArray(new String[arenaList.size()]);
 
@@ -555,7 +553,7 @@ public class pubhub extends SubspaceBot {
         for(String bot:pubbots.keySet()) {
             if(bot.startsWith("SPAWNING")) {
                 arena = pubbots.get(bot);
-                if (Tools.isAllDigits(arena))
+                if (Tools.isAllDigits(arena) || arena.equals("dsb"))
                     return arena;
             }
         }
