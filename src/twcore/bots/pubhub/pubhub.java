@@ -159,7 +159,10 @@ public class pubhub extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage(cfg_hubbot, "!spawn PubBot");
         }
         
-        arenaList.add("dsb");
+        if (startup) {
+            for (String auto : cfg_arenas)
+                arenaList.add(auto);
+        }
         
         String[] arenas = arenaList.toArray(new String[arenaList.size()]);
 
@@ -222,20 +225,6 @@ public class pubhub extends SubspaceBot {
                     m_botAction.sendSmartPrivateMessage(sender, " " + name + ": " + arena);
                 }
             }
-            return;
-        }
-
-        if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) && ((opList.isDeveloperExact(sender) && opList
-                .isModerator(sender)) || opList.isSmod(sender)) && message.equalsIgnoreCase("!pubbots")) {
-            String msg = "pubbots: ";
-            for (String bot : pubbots.keySet())
-                msg += "(" + bot + ")" + pubbots.get(bot) + ", ";
-            m_botAction.sendSmartPrivateMessage(sender, msg);
-            msg = "cfg_arenas: ";
-            for (String a : cfg_arenas)
-                msg += a + ", ";
-            m_botAction.sendSmartPrivateMessage(sender, msg);
-            
             return;
         }
 
