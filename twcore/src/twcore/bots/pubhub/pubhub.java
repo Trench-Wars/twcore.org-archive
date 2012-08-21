@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -151,7 +150,7 @@ public class pubhub extends SubspaceBot {
      */
     public void handleEvent(ArenaList event) {
     	
-    	HashSet<String> arenaList = new HashSet(Arrays.asList(event.getArenaNames()));
+    	HashSet<String> arenaList = new HashSet<String>(Arrays.asList(event.getArenaNames()));
     	
         boolean startup = pubbots.size()==0;
 
@@ -161,11 +160,13 @@ public class pubhub extends SubspaceBot {
         }
         
         String[] arenas = arenaList.toArray(new String[arenaList.size()]);
-        
+
+        String msg = "ArenaList: ";
         for (int i = 0; i < arenas.length; i++) {
             String arena = arenas[i].toLowerCase();
-
+            msg += arena;
             if( Tools.isAllDigits(arena) || cfg_arenas.contains(arena) || (cfg_allArenas && !startup && !arena.contains("#") && event.getSizeOfArena(arenas[i]) > 2)) {
+                msg += "+";
                 if (!activeArenas.contains(arena))
                     activeArenas.add(arena);
                 if(!pubbots.containsValue(arena)) {
@@ -174,8 +175,10 @@ public class pubhub extends SubspaceBot {
                 }
             } else
                 activeArenas.remove(arena);
+            msg += ", ";
         }
-        
+        if (DEBUG)
+            m_botAction.sendSmartPrivateMessage("WingZero", msg);
         // Only spawn a pubbot after the arena check when bot is starting up
         if(startup && countUnspawnedArenas() > 0) {
             // Spawn the pubbot
