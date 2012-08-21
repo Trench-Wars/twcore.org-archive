@@ -115,8 +115,6 @@ public class pubhub extends SubspaceBot {
      * @param event is the message event to handle.
      */
     public void handleEvent(LoggedOn event) {
-        loadConfiguration();
-
         BotSettings botSettings = m_botAction.getBotSettings();
         opList = m_botAction.getOperatorList();
         pubhub = m_botAction.getBotName();
@@ -132,6 +130,8 @@ public class pubhub extends SubspaceBot {
         m_botAction.ipcSubscribe(IPCWHO);
         // Join chat
         m_botAction.sendUnfilteredPublicMessage("?chat=" + cfg_chat_hub );
+        
+        loadConfiguration();
 
         // Request events
         EventRequester eventRequester = m_botAction.getEventRequester();
@@ -402,7 +402,7 @@ public class pubhub extends SubspaceBot {
         String msg = "arenas: ";
         for (String s : cfg_arenas)
             msg += "" + s + ", ";
-        m_botAction.sendSmartPrivateMessage("WingZero", msg);
+        m_botAction.sendChatMessage(msg);
 
         // AutoloadModules
         StringTokenizer modules = new StringTokenizer(botSettings.getString("AutoloadModules"));
