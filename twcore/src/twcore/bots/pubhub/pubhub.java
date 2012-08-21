@@ -161,12 +161,9 @@ public class pubhub extends SubspaceBot {
         
         String[] arenas = arenaList.toArray(new String[arenaList.size()]);
 
-        String msg = "ArenaList: ";
         for (int i = 0; i < arenas.length; i++) {
             String arena = arenas[i].toLowerCase();
-            msg += arena;
             if( Tools.isAllDigits(arena) || cfg_arenas.contains(arena) || (cfg_allArenas && !startup && !arena.contains("#") && event.getSizeOfArena(arenas[i]) > 2)) {
-                msg += "+";
                 if (!activeArenas.contains(arena))
                     activeArenas.add(arena);
                 if(!pubbots.containsValue(arena)) {
@@ -175,10 +172,8 @@ public class pubhub extends SubspaceBot {
                 }
             } else
                 activeArenas.remove(arena);
-            msg += ", ";
         }
-        if (DEBUG)
-            m_botAction.sendSmartPrivateMessage("WingZero", msg);
+        
         // Only spawn a pubbot after the arena check when bot is starting up
         if(startup && countUnspawnedArenas() > 0) {
             // Spawn the pubbot
@@ -428,8 +423,8 @@ public class pubhub extends SubspaceBot {
         msg = "loaded: ";
         // Modules-<arena>
         for (String arena : cfg_arenas) {
-            msg += arena + ", ";
             String modulesSetting = botSettings.getString("Modules-" + arena);
+            msg += "(" + arena + ") " + modulesSetting + ", ";
 
             if (modulesSetting != null && modulesSetting.length() > 0) {
                 StringTokenizer moduless = new StringTokenizer(modulesSetting);
