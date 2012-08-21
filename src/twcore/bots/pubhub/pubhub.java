@@ -398,6 +398,11 @@ public class pubhub extends SubspaceBot {
             String arena = arenas.nextToken().toLowerCase();
             cfg_arenas.add(arena);
         }
+        
+        String msg = "arenas: ";
+        for (String s : cfg_arenas)
+            msg += "" + s + ", ";
+        m_botAction.sendChatMessage(msg);
 
         // AutoloadModules
         StringTokenizer modules = new StringTokenizer(botSettings.getString("AutoloadModules"));
