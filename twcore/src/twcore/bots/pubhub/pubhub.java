@@ -152,6 +152,7 @@ public class pubhub extends SubspaceBot {
         HashSet<String> arenaList = new HashSet(Arrays.asList(event.getArenaNames()));
     	arenaList.add("dsb");
         arenaList.add("tw");
+        arenaList.add("trenchwars");
     	
         boolean startup = pubbots.size()==0;
 
@@ -551,7 +552,7 @@ public class pubhub extends SubspaceBot {
         for(String bot:pubbots.keySet()) {
             if(bot.startsWith("SPAWNING")) {
                 arena = pubbots.get(bot);
-                if (Tools.isAllDigits(arena) || arena.equals("dsb"))
+                if (Tools.isAllDigits(arena) || arena.equals("dsb") || arena.equals("tw") || arena.equals("trenchwars"))
                     break;
             }
         }
