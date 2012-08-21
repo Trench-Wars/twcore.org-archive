@@ -159,6 +159,8 @@ public class pubhub extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage(cfg_hubbot, "!spawn PubBot");
         }
         
+        arenaList.add("dsb");
+        
         String[] arenas = arenaList.toArray(new String[arenaList.size()]);
 
         for (int i = 0; i < arenas.length; i++) {
@@ -220,6 +222,20 @@ public class pubhub extends SubspaceBot {
                     m_botAction.sendSmartPrivateMessage(sender, " " + name + ": " + arena);
                 }
             }
+            return;
+        }
+
+        if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) && ((opList.isDeveloperExact(sender) && opList
+                .isModerator(sender)) || opList.isSmod(sender)) && message.equalsIgnoreCase("!pubbots")) {
+            String msg = "pubbots: ";
+            for (String bot : pubbots.keySet())
+                msg += "(" + bot + ")" + pubbots.get(bot) + ", ";
+            m_botAction.sendSmartPrivateMessage(sender, msg);
+            msg = "cfg_arenas: ";
+            for (String a : cfg_arenas)
+                msg += a + ", ";
+            m_botAction.sendSmartPrivateMessage(sender, msg);
+            
             return;
         }
 
@@ -398,11 +414,6 @@ public class pubhub extends SubspaceBot {
             String arena = arenas.nextToken().toLowerCase();
             cfg_arenas.add(arena);
         }
-        
-        String msg = "arenas: ";
-        for (String s : cfg_arenas)
-            msg += "" + s + ", ";
-        m_botAction.sendChatMessage(msg);
 
         // AutoloadModules
         StringTokenizer modules = new StringTokenizer(botSettings.getString("AutoloadModules"));
@@ -420,12 +431,10 @@ public class pubhub extends SubspaceBot {
                 cfg_pubModules.add(module);
         }
 
-        msg = "loaded: ";
         // Modules-<arena>
         for (String arena : cfg_arenas) {
             String modulesSetting = botSettings.getString("Modules-" + arena);
-            msg += "(" + arena + ") " + modulesSetting + ", ";
-
+            
             if (modulesSetting != null && modulesSetting.length() > 0) {
                 StringTokenizer moduless = new StringTokenizer(modulesSetting);
 
@@ -447,7 +456,6 @@ public class pubhub extends SubspaceBot {
                 }
             }
         }
-        m_botAction.sendChatMessage(msg);
 
         // Access
         StringTokenizer accessUsers = new StringTokenizer(botSettings.getString("Access"), ":");
@@ -505,8 +513,6 @@ public class pubhub extends SubspaceBot {
     private int countUnspawnedArenas() {
         int count = 0;
         for(String bot:pubbots.keySet()) {
-            if (DEBUG)
-                m_botAction.sendSmartPrivateMessage("WingZero", "bot: " + bot + " arena: " + pubbots.get(bot));
             if(bot.startsWith("SPAWNING")) {
                 count++;
             }
@@ -560,8 +566,8 @@ public class pubhub extends SubspaceBot {
         for(String bot:pubbots.keySet()) {
             if(bot.startsWith("SPAWNING")) {
                 arena = pubbots.get(bot);
-                if (Tools.isAllDigits(arena) || arena.equals("dsb"))
-                    break;
+                if (Tools.isAllDigits(arena))
+                    return arena;
             }
         }
 
