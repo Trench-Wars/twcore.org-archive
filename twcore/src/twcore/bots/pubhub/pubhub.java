@@ -115,9 +115,16 @@ public class pubhub extends SubspaceBot {
      * @param event is the message event to handle.
      */
     public void handleEvent(LoggedOn event) {
+        loadConfiguration();
+        
         BotSettings botSettings = m_botAction.getBotSettings();
         opList = m_botAction.getOperatorList();
         pubhub = m_botAction.getBotName();
+
+        // Request events
+        EventRequester eventRequester = m_botAction.getEventRequester();
+        eventRequester.request(EventRequester.ARENA_LIST);
+        eventRequester.request(EventRequester.MESSAGE);
 
         // Change to the configured arena
         m_botAction.changeArena(botSettings.getString("InitialArena"));
@@ -132,11 +139,6 @@ public class pubhub extends SubspaceBot {
         m_botAction.sendUnfilteredPublicMessage("?chat=" + cfg_chat_hub );
         
         loadConfiguration();
-
-        // Request events
-        EventRequester eventRequester = m_botAction.getEventRequester();
-        eventRequester.request(EventRequester.ARENA_LIST);
-        eventRequester.request(EventRequester.MESSAGE);
 
         // Start the task of getting the arena list by which pubbots will be spawned
         m_botAction.scheduleTaskAtFixedRate(arenaListTask, 1000, CHECKARENALIST_DELAY);
