@@ -335,6 +335,7 @@ public class twchat extends SubspaceBot {
                 return;
             else
                 m_botAction.sendUnfilteredPrivateMessage(name, "*info");
+        /* this is stupid
         try {
             ResultSet mid = m_botAction.SQLQuery(dbInfo, "SELECT CAST(GROUP_CONCAT(fnMachineID) AS CHAR) fnMachineIDs "
                     + "FROM ( SELECT DISTINCT fnMachineID FROM tblUser u JOIN tblAlias a USING (fnUserID) WHERE u.fcUserName = '" + Tools.addSlashesToString(name)
@@ -360,6 +361,7 @@ public class twchat extends SubspaceBot {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        */
     }
 
     public void handleEvent(ArenaJoined event) {
