@@ -209,12 +209,10 @@ public class twdopalias extends Module {
             
             m_botAction.sendChatMessage(getResultHeaders(headers));
             while (resultSet.next()) {
-                if (!prevResults.contains(curResult)) {
-                    if (!hide && numResults <= m_maxRecords)
-                        m_botAction.sendChatMessage(getResultLine(resultSet, headers));
-                    prevResults.add(curResult);
-                    numResults++;
-                }
+                if (!hide && numResults <= m_maxRecords)
+                    m_botAction.sendChatMessage(getResultLine(resultSet, headers));
+                prevResults.add(curResult);
+                numResults++;
             }
 
             if (numResults > m_maxRecords)
@@ -320,10 +318,6 @@ public class twdopalias extends Module {
         else
             m_botAction.sendChatMessage("Altnick returned " + shownResults + " (" + totalResults + ") results.");
         m_botAction.SQLClose(resultSet);
-    }
-
-    private void displayAltNickResults(String player, String queryString, String[] headers) throws SQLException {
-        displayAltNickResults(player, queryString, headers, null);
     }
 
     private String getResultHeaders(String[] displayFields) {
