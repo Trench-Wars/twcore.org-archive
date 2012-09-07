@@ -576,6 +576,7 @@ public class MatchTeam {
                 help.add("!ready                                   - use this when you're done setting your lineup");
                 help.add("!cancel                                  - request or agree to cancel the game");
                 help.add("!addplayer                               - request to add an extra player");
+                help.add("!addtime                                 - request to add an 2 minutes for lineups (not twbd)");
                 help.add("!lagout <player>                         - puts <player> back in the game");
                 if (m_rules.getInt("blueout") == 1)
                     help.add("!blueout                                 - enable/disable blueout");
