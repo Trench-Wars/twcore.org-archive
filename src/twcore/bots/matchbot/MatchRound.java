@@ -1620,6 +1620,11 @@ public class MatchRound {
         if (!m_fbExtensionUsed && (m_team1.hasAddedTime() || m_team2.hasAddedTime())) {        	
         	m_fbExtensionUsed = true;
         	m_botAction.setTimer(m_rules.getInt("lineupextension"));
+            m_scheduleTimer = new TimerTask() {
+                public void run() {
+                    scheduleTimeIsUp();
+                };
+            };
         	m_botAction.scheduleTask(m_scheduleTimer, 60000 * m_rules.getInt("lineupextension"));
         } else {
             String t1a = m_team1.isAllowedToBegin(), t2a = m_team2.isAllowedToBegin();
