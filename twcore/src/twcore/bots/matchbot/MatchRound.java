@@ -1616,22 +1616,22 @@ public class MatchRound {
 
     // schedule time is up. Start game when both rosters are ok, otherwise call forfeit
     public void scheduleTimeIsUp() {
-        String t1a = m_team1.isAllowedToBegin(), t2a = m_team2.isAllowedToBegin();
-        // 0 - GO,     1 - TEAM 1 FORFEITS,       2 - TEAM 2 FORFEITS,     3 - BOTH FORFEIT
-        int gameResult = 0;
-
-        if (!t1a.equals("yes"))
-            gameResult = 1;
-        if (!t2a.equals("yes"))
-            if (gameResult == 0)
-                gameResult = 2;
-            else
-                gameResult = 3;
         
-        if (!m_fbExtensionUsed && (m_team1.hasAddedTime() && m_team2.hasAddedTime())) {        	
+        if (!m_fbExtensionUsed && (m_team1.hasAddedTime() || m_team2.hasAddedTime())) {        	
         	m_fbExtensionUsed = true;
         	m_botAction.scheduleTask(m_scheduleTimer, 60000 * m_rules.getInt("lineupextension"));
         } else {
+            String t1a = m_team1.isAllowedToBegin(), t2a = m_team2.isAllowedToBegin();
+            // 0 - GO,     1 - TEAM 1 FORFEITS,       2 - TEAM 2 FORFEITS,     3 - BOTH FORFEIT
+            int gameResult = 0;
+
+            if (!t1a.equals("yes"))
+                gameResult = 1;
+            if (!t2a.equals("yes"))
+                if (gameResult == 0)
+                    gameResult = 2;
+                else
+                    gameResult = 3;
         	// check if neither of the teams has nobody rostered at all (forfeits entire game)
             if ((m_team1.getPlayersReadyToPlay() == 0) && (m_team2.getPlayersReadyToPlay() != 0)) {
                 m_fbAffectsEntireGame = true;
