@@ -37,7 +37,7 @@ public class PubChallengeModule extends AbstractModule {
     private Map<String, Long> spam;
     private LinkedList<String> noplay;
 
-    // added this due to multiple people asking me to fix, 
+    // added this due to multiple people asking me to fix,
     // i didn't know if sharks should get shrap or not so i made it changeable
     private boolean sharkShrap = false;
     private boolean saveDuel = false;
@@ -1403,7 +1403,7 @@ public class PubChallengeModule extends AbstractModule {
                 areas.put(i, new DuelArea(i, pos1[0], pos1[1], pos2[0], pos2[1], ships));
             }
 
-            // Setting Misc.        
+            // Setting Misc.
             enabled = m_botAction.getBotSettings().getInt("duel_enabled") == 1;
             announceNew = m_botAction.getBotSettings().getInt("duel_announce_new") == 1;
             announceWinner = m_botAction.getBotSettings().getInt("duel_announce_winner") == 1;
