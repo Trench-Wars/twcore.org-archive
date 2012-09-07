@@ -1393,9 +1393,9 @@ public class tournybot extends SubspaceBot {
 
 				if ((tournyCount%2 == 0 || fZoner) && !zonerLock) {
 				    if ( fWin.getNames().indexOf(" and ") != -1)
-				        m_botAction.sendZoneMessage("Next automated tournament is starting. Last round's winners were " + fWin.getNames() + "! Type ?go tourny to play");
+				        m_botAction.sendZoneMessage("Next automated tournament is starting. Last round's winners were " + fWin.getNames() + "! Type ?go tourny to play",2);
 				    else
-				        m_botAction.sendZoneMessage("Next automated tournament is starting. Last round's winner was " + fWin.getNames() + "! Type ?go tourny to play");
+				        m_botAction.sendZoneMessage("Next automated tournament is starting. Last round's winner was " + fWin.getNames() + "! Type ?go tourny to play",2);
 					fZoner = false;
 				}
 
