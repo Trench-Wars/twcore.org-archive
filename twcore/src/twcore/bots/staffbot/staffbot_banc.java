@@ -106,6 +106,8 @@ public class staffbot_banc extends Module {
     private final String uniqueConnectionID = "banc";
     private final String IPCBANC = "banc";
     private final String IPCALIAS = "pubBots";
+    private final String webdb = "website";
+    
 
     //private final String MINACCESS_BANCSTAFFER = "OPS";
     private final String MINACCESS_ER = "ER";
@@ -566,6 +568,7 @@ public class staffbot_banc extends Module {
             String op[] = m_botSettings.getString("BancOperators").split(",");
             for (int j = 0; j < op.length; j++)
                 bancOp.put(op[j].toLowerCase(), op[j]);
+                        
         } catch (Exception e) {
             Tools.printStackTrace("Method Failed: ", e);
         }
@@ -583,7 +586,6 @@ public class staffbot_banc extends Module {
         if (!opList.isSmod(name))
             return;
         restart_ops();
-        String bancs = "";
         m_botAction.sendSmartPrivateMessage(name, "List of staff that have Banc Access: ");
         Iterator<String> list = bancStaffers.keySet().iterator();
         if (!list.hasNext()) {
@@ -826,7 +828,7 @@ public class staffbot_banc extends Module {
             m_botAction.sendSmartPrivateMessage(stafferName, " ------ Latest bancs (last 2 weeks): ");
             sendBanCs(stafferName, name, limitBanCs);
             sendWarnings(stafferName, name, limitWarnings);
-            if (m_botAction.getOperatorList().isSmod(stafferName) || bancOp.containsKey(stafferName.toLowerCase())) {
+            if (m_botAction.getOperatorList().isSmod(stafferName) || bancOp.containsKey(stafferName.toLowerCase()) || isTWDOp( stafferName ) ) {
                 sendAltNicks(stafferName, name, limitBanCs, limitWarnings);
                 if (limitBanCs == 0 && limitWarnings == 0)
                     m_botAction.sendSmartPrivateMessage(stafferName, "You can see all the player's history too typing !search player:-1:-1");
@@ -835,6 +837,24 @@ public class staffbot_banc extends Module {
             e.printStackTrace();
         }
 
+    }
+    
+    public boolean isTWDOp(String name) {
+        try {
+            ResultSet result = m_botAction.SQLQuery(webdb, "SELECT DISTINCT tblUser.fcUserName FROM tblUser, tblUserRank"
+                    + " WHERE tblUser.fcUserName = '" + Tools.addSlashesToString(name) + "'" + " AND tblUser.fnUserID = tblUserRank.fnUserID"
+                    + " AND ( tblUserRank.fnRankID = 14 OR tblUserRank.fnRankID = 19 )");
+            if (result != null && result.next()) {
+                m_botAction.SQLClose(result);
+                return true;
+            } else {
+                m_botAction.SQLClose(result);
+                return false;
+            }
+        } catch (SQLException e) {
+            Tools.printStackTrace(e);
+            return false;
+        }
     }
 
     private boolean sendBanCs(String stafferName, String name, int limit) throws SQLException {
