@@ -98,6 +98,7 @@ public class MatchRound {
 
     boolean m_fbAffectsEntireGame = false;
     boolean m_fbExtension = false;
+    boolean m_fbExtensionUsed = false;
     // -1 - unknown;  0 - off; 1 - on
     int m_blueoutState = 0;
     public static int BLUEOUT_OFF = 0;
@@ -1626,51 +1627,58 @@ public class MatchRound {
                 gameResult = 2;
             else
                 gameResult = 3;
-
-        // check if neither of the teams has nobody rostered at all (forfeits entire game)
-        if ((m_team1.getPlayersReadyToPlay() == 0) && (m_team2.getPlayersReadyToPlay() != 0)) {
-            m_fbAffectsEntireGame = true;
-            m_team1.forfeitLoss();
-            m_team2.forfeitWin();
-            m_logger.sendArenaMessage("Time is up. " + m_team1.getTeamName()
-                    + " didn't have any player rostered at all, and thus forfeits the ENTIRE game", 2);
-            endGame();
-        } else if ((m_team2.getPlayersReadyToPlay() == 0) && (m_team1.getPlayersReadyToPlay() != 0)) {
-            m_fbAffectsEntireGame = true;
-            m_team1.forfeitWin();
-            m_team2.forfeitLoss();
-            m_logger.sendArenaMessage("Time is up. " + m_team2.getTeamName()
-                    + " didn't have any player rostered at all, and thus forfeits the ENTIRE game", 2);
-            endGame();
-        } else if ((m_team1.getPlayersReadyToPlay() == 0) && (m_team2.getPlayersReadyToPlay() == 0)) {
-            m_fbAffectsEntireGame = true;
-            m_team1.forfeitLoss();
-            m_team2.forfeitLoss();
-            m_logger.sendArenaMessage("Time is up. Both teams didn't have any player rostered at all, the game will be declared void", 5);
-            endGame();
-        } else if (gameResult == 1) {
-            m_team1.forfeitLoss();
-            m_team2.forfeitWin();
-            m_logger.sendArenaMessage("Time is up. " + m_team1.getTeamName() + "'s roster is NOT OK: " + t1a);
-            endGame();
-        } else if (gameResult == 2) {
-            m_team1.forfeitWin();
-            m_team2.forfeitLoss();
-            m_logger.sendArenaMessage("Time is up. " + m_team2.getTeamName() + "'s roster is NOT OK: " + t2a);
-            endGame();
-        } else if (gameResult == 3) {
-            m_team1.forfeitLoss();
-            m_team2.forfeitLoss();
-            m_logger.sendArenaMessage("Time is up. Both rosters are NOT OK:");
-            m_logger.sendArenaMessage(m_team1.getTeamName() + " - " + t1a);
-            m_logger.sendArenaMessage(m_team2.getTeamName() + " - " + t2a);
-            endGame();
+        
+        if (!m_fbExtensionUsed && (m_team1.hasAddedTime() && m_team2.hasAddedTime())) {        	
+        	m_fbExtensionUsed = true;
+        	m_botAction.scheduleTask(m_scheduleTimer, 60000 * m_rules.getInt("lineupextension"));
         } else {
-            m_team1.setReadyToGo();
-            m_team2.setReadyToGo();
-            m_logger.sendArenaMessage("Time is up. Rosters are OK.");
-            checkReadyToGo();
+        	// check if neither of the teams has nobody rostered at all (forfeits entire game)
+            if ((m_team1.getPlayersReadyToPlay() == 0) && (m_team2.getPlayersReadyToPlay() != 0)) {
+                m_fbAffectsEntireGame = true;
+                m_team1.forfeitLoss();
+                m_team2.forfeitWin();
+                m_logger.sendArenaMessage("Time is up. " + m_team1.getTeamName()
+                        + " didn't have any player rostered at all, and thus forfeits the ENTIRE game", 2);
+                endGame();
+            } else if ((m_team2.getPlayersReadyToPlay() == 0) && (m_team1.getPlayersReadyToPlay() != 0)) {
+                m_fbAffectsEntireGame = true;
+                m_team1.forfeitWin();
+                m_team2.forfeitLoss();
+                m_logger.sendArenaMessage("Time is up. " + m_team2.getTeamName()
+                        + " didn't have any player rostered at all, and thus forfeits the ENTIRE game", 2);
+                endGame();
+            } else if ((m_team1.getPlayersReadyToPlay() == 0) && (m_team2.getPlayersReadyToPlay() == 0)) {
+                m_fbAffectsEntireGame = true;
+                m_team1.forfeitLoss();
+                m_team2.forfeitLoss();
+                m_logger.sendArenaMessage("Time is up. Both teams didn't have any player rostered at all, the game will be declared void", 5);
+                endGame();
+            } else if (gameResult == 1) {
+                m_team1.forfeitLoss();
+                m_team2.forfeitWin();
+                m_logger.sendArenaMessage("Time is up. " + m_team1.getTeamName() + "'s roster is NOT OK: " + t1a);
+                endGame();
+            } else if (gameResult == 2) {
+                m_team1.forfeitWin();
+                m_team2.forfeitLoss();
+                m_logger.sendArenaMessage("Time is up. " + m_team2.getTeamName() + "'s roster is NOT OK: " + t2a);
+                endGame();
+            } else if (gameResult == 3) {
+                m_team1.forfeitLoss();
+                m_team2.forfeitLoss();
+                m_logger.sendArenaMessage("Time is up. Both rosters are NOT OK:");
+                m_logger.sendArenaMessage(m_team1.getTeamName() + " - " + t1a);
+                m_logger.sendArenaMessage(m_team2.getTeamName() + " - " + t2a);
+                endGame();
+            } else {
+                m_team1.setReadyToGo();
+                m_team2.setReadyToGo();
+                m_logger.sendArenaMessage("Time is up. Rosters are OK.");
+                checkReadyToGo();
+            }
         }
+
+        
     }
 
     public void toggleBlueout(boolean blueout) {

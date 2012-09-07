@@ -83,6 +83,7 @@ public class MatchTeam {
     LinkedList<String> m_captains;
 
     boolean m_fbReadyToGo;
+    boolean m_fbAddTime;
     boolean m_teamCancel;
     boolean DEBUG;
     String debugger;
@@ -121,6 +122,7 @@ public class MatchTeam {
         addInfo = new HashSet<String>();
         m_fnFrequency = fnFrequency;
         m_fbReadyToGo = false;
+        m_fbAddTime = false;
         m_teamCancel = false;
         DEBUG = false;
         debugger = "";
@@ -633,6 +635,8 @@ public class MatchTeam {
                         command_change(name, parameters);
                     if (command.equals("!ready"))
                         command_ready(name, parameters);
+                    if (command.equals("!addtime"))
+                    	command_addtime(name, parameters);
                     if (command.equals("!cancel"))
                         command_cancel(name, parameters);
                     if (command.equals("!lagout"))
@@ -1075,6 +1079,15 @@ public class MatchTeam {
             m_logger.sendArenaMessage(m_fcTeamName + " is NOT ready to begin");
         }
     }
+    
+    public void command_addtime(String name, String[] parameters) {
+    	if (!m_fbAddTime && m_round.m_fnRoundState == 1) {
+    		if (m_rules.getInt("lineupextension") >= 1) {
+    			m_logger.sendArenaMessage(m_fcTeamName + " has requested an extra " + m_rules.getInt("lineupextension") + " minutes to submit their lineup.");
+    			m_fbAddTime = true;
+    		}
+    	}
+    }
 
     public void command_cancel(String name, String[] parameters) {
         if (!m_teamCancel) {
@@ -1461,6 +1474,13 @@ public class MatchTeam {
         } else {
             return "Team doesn't have enough players, need at least " + m_rules.getInt("minplayers");
         }
+    }
+    
+    public boolean hasAddedTime() {
+    	if (m_fbAddTime)
+    		return true;
+    	else
+    		return false;
     }
 
     // setReadyToGo
