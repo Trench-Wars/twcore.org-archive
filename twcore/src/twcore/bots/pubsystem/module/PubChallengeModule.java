@@ -675,7 +675,9 @@ public class PubChallengeModule extends AbstractModule {
                 m_botAction.sendSmartPrivateMessage(loser.name, "You have lost to " + winner.name + " by lagout in duel" + moneyMessage + ".");
             }
 
-            laggers.remove(loser.name);
+            StartLagout lagger = laggers.remove(loser.name);
+            if (lagger != null)
+                m_botAction.cancelTask(lagger);
             challenge.settleAllBets(winner.name, context.getPlayerManager(), m_botAction);
 
         } else {
@@ -711,8 +713,12 @@ public class PubChallengeModule extends AbstractModule {
         if (challenge.winByLagout)
             duelers.remove(loser.name);
         challenges.remove(getKey(challenge));
-        laggers.remove(winner.name);
-        laggers.remove(loser.name);
+        StartLagout lagger = laggers.remove(winner.name);
+        if (lagger != null)
+            m_botAction.cancelTask(lagger);
+        lagger = laggers.remove(loser.name);
+        if (lagger != null)
+            m_botAction.cancelTask(lagger);
 
         warpToSafe(winner.name, true);
         warpToSafe(loser.name, false);
@@ -1398,17 +1404,10 @@ public class PubChallengeModule extends AbstractModule {
             }
 
             // Setting Misc.        
-            if (m_botAction.getBotSettings().getInt("duel_enabled") == 1)
-                enabled = true;
-
-            if (m_botAction.getBotSettings().getInt("duel_announce_new") == 1)
-                announceNew = true;
-
-            if (m_botAction.getBotSettings().getInt("duel_announce_winner") == 1)
-                announceWinner = true;
-
-            if (m_botAction.getBotSettings().getInt("duel_database_enabled") == 1)
-                saveDuel = true;
+            enabled = m_botAction.getBotSettings().getInt("duel_enabled") == 1;
+            announceNew = m_botAction.getBotSettings().getInt("duel_announce_new") == 1;
+            announceWinner = m_botAction.getBotSettings().getInt("duel_announce_winner") == 1;
+            saveDuel = m_botAction.getBotSettings().getInt("duel_database_enabled") == 1;
 
             database = m_botAction.getBotSettings().getString("database");
 
@@ -1750,7 +1749,7 @@ class Challenge {
 
             if (challengedBets.containsKey(name)) {
                 bettor.addMoney(challengedBets.get(name));
-                totalC -= challengedBets.get(name);
+                totalA -= challengedBets.get(name);
                 m_ba.sendSmartPrivateMessage(name, "[NOTE]  Your previous bet of $" + challengedBets.get(name) + " has been returned to you.");
             }
 
