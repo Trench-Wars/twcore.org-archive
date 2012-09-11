@@ -86,7 +86,7 @@ public class PubChallengeModule extends AbstractModule {
             return;
 
         Challenge challenge = dueler.challenge;
-        if (challenge != null && challenge.isStarted()) {
+        if (challenge != null && challenge.isStarted() && !challenge.hasEnded()) {
             laggers.put(name, new StartLagout(name));
             m_botAction.scheduleTask(laggers.get(name), 60 * 1000);
             m_botAction.sendSmartPrivateMessage(challenge.getOppositeDueler(name).name, "Your opponent has lagged out. He has 60 seconds to return to the game.");
@@ -107,7 +107,7 @@ public class PubChallengeModule extends AbstractModule {
 
         Challenge challenge = dueler.challenge;
 
-        if (challenge.isStarted()) {
+        if (challenge.isStarted() && !challenge.hasEnded()) {
 
             if (event.getShipType() == 0) {
                 dueler.lagouts++;
