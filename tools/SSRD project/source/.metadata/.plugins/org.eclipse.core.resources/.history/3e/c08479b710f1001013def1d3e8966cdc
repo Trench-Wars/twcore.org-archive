@@ -1,0 +1,56 @@
+package net.SubSpace.SSDR.Server.Main;
+
+import java.net.*;
+import java.util.Random;
+import java.io.*;
+ 
+public class ServerThread extends Thread {
+    private Socket socket = null;
+    Random random = new Random();
+ 
+    public ServerThread(Socket socket) {
+    super("ServerThread");
+    this.socket = socket;
+    }
+ 
+    public void run() {
+    	Boolean Connect = false;
+    	try {
+			ServerSocket servsock = new ServerSocket(40000 + random.nextInt(100));
+			Connect = true;
+		} catch (IOException e1) {
+			try {
+				ServerSocket servsock = new ServerSocket(40000 + random.nextInt(100));
+				Connect = true;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				try {
+					ServerSocket servsock = new ServerSocket(40000 + random.nextInt(100));
+					Connect = true;
+				} catch (IOException e2) {
+					Connect = false;
+				}
+			}
+			e1.printStackTrace();
+		}
+    	while (Connect) {
+    		
+    	}
+    }
+    
+    
+    
+    public void SendFile(File file) throws IOException
+    {
+
+        byte [] mybytearray  = new byte [(int)file.length()];
+        FileInputStream fis = new FileInputStream(file);
+        BufferedInputStream bis = new BufferedInputStream(fis);
+        bis.read(mybytearray,0,mybytearray.length);
+        OutputStream os = socket.getOutputStream();
+        System.out.println("Sending...");
+        os.write(mybytearray,0,mybytearray.length);
+        os.flush();
+        socket.close();
+    }
+}

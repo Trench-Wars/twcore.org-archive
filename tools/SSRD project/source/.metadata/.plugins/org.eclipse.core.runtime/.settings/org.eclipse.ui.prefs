@@ -1,0 +1,4 @@
+CURRENT_THEME_ID=org.eclipse.ui.ide.systemDefault
+eclipse.preferences.version=1
+presentationFactoryId=org.eclipse.ui.presentations.default
+showIntro=false

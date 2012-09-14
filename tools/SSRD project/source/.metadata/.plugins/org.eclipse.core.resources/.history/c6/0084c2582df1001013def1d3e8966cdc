@@ -1,0 +1,95 @@
+package net.SubSpace.SSDR.Server.Main;
+
+import java.net.*;
+import java.util.List;
+import java.util.Random;
+import java.io.*;
+ 
+public class ServerThread extends Thread {
+    private Socket socket = null;
+    Random random = new Random();
+ 
+    public ServerThread(Socket socket) {
+    super("ServerThread");
+    this.socket = socket;
+    }
+ 
+    public void run() {
+    	Boolean Connect = false;
+    	PrintWriter out = null;
+        BufferedReader in = null;
+        Protocol p = new Protocol();
+ 
+        try {
+        	//ServerSocket servsock = new ServerSocket(40000 + random.nextInt(100));
+            out = new PrintWriter(socket.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        } catch (UnknownHostException e) {
+            System.err.println("Don't know about host: taranis.");
+            System.exit(1);
+        } catch (IOException e) {
+            System.err.println("Couldn't get I/O for the connection to: taranis.");
+            System.exit(1);
+        }
+ 
+        BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+        String fromServer;
+        String fromUser;
+        try {
+        	List LVLlist = Server.LVLlist;
+			while ((fromUser = in.readLine()) != null) {
+				File file = null;
+			try {
+				fromUser = stdIn.readLine();
+				if(fromUser == "Read Next")
+				{
+						if(LVLlist.isEmpty())
+						{
+							break;
+						}
+						out.println((file = (File)LVLlist.get(0)).getName() + ":" + file.length());
+						LVLlist.remove(0);
+
+				}
+				else // Returns long value for processing file. After this is ran it should return a read.
+				{
+					long userFileSize = Long.parseLong(fromUser);
+					if(p.shouldFileBeUpdated(userFileSize, file.getName()))
+					{
+						byte[] fileInBytes = p.sendFile(file);
+						DataOutputStream dout = new DataOutputStream(socket.getOutputStream());
+						dout.write(fileInBytes);
+
+					}
+				}
+
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        out.close();
+        try {
+			in.close();
+			stdIn.close();
+			socket.close();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+    }
+    
+    
+    
+    public void SendFile(File file) throws IOException
+    {
+        OutputStream os = socket.getOutputStream();
+        //os.writeObject((Object)file);
+        socket.close();
+    }
+}

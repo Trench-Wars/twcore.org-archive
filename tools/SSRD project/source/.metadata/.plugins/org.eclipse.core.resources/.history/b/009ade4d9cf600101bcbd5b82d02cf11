@@ -1,0 +1,77 @@
+package net.SubSpace.SSDR.Main;
+
+public class ThreadCheckForUpdates implements Runnable{
+
+	static Thread currentCheckedZone;
+	static Long minutes = (long) 30;
+	static boolean wait = false;
+	static boolean runChecks = true;
+	private boolean skipNext;
+	@Override
+	public void run() 
+	{
+		while(runChecks)
+		{		
+			try {
+				ThreadIcon.setHoverMessage("(Checking for updates in zone list.)");
+				for(int j = 0; j < SSDR.zoneCount; j++)
+				{			
+					ThreadIcon.isServerReachable = false;
+					wait = false;
+					ThreadCheck.kill = false;
+					if((currentCheckedZone == null|| !currentCheckedZone.isAlive() || ThreadCheck.kill) && SSDR.ZoneUpdate[j])
+					{
+						currentCheckedZone = new Thread(new ThreadCheck(SSDR.ZoneName[j],SSDR.ZoneIP[j], 39943, false), SSDR.ZoneName[j] + "'s Downloading Thread");
+						currentCheckedZone.start();
+						wait = true;
+
+					}
+					else
+					{
+						wait = true;
+					}
+					while(!ThreadCheck.kill)
+					{
+						if(!runChecks)
+						{
+							skipNext = true;
+							break;
+						}
+						if(ThreadCheck.kill || !wait || currentCheckedZone.isInterrupted() || !currentCheckedZone.isAlive())
+						{
+							//System.out.println("got here.");
+							break;
+						}
+						
+					}
+					if(!skipNext)
+					{
+						if(SSDR.ZoneUpdate[j])
+						{
+							currentCheckedZone = new Thread(new ThreadCheck(SSDR.ZoneName[j],SSDR.ZoneIP[j], 39943, false), SSDR.ZoneName[j] + "'s Downloading Thread");
+							currentCheckedZone.start();
+							wait = true;
+							while(wait)
+							{
+								if(!runChecks || !wait)
+								{
+									break;
+								}
+							}
+						}
+					}
+					if(!runChecks)
+					{
+						break;
+					}
+
+				}
+				ThreadIcon.isDownloading = false;
+				Thread.sleep(minutes * 60 * 1000);
+			} catch (InterruptedException e) {
+				ThreadIcon.isServerReachable = true;
+				e.printStackTrace();
+			}
+		}
+	}
+}
