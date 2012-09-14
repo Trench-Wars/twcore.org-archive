@@ -1,0 +1,1 @@
+//If any username has one of the following things in it, it will not let them use that name... Watch out what you put in here!

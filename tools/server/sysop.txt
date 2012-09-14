@@ -1,0 +1,2 @@
+//Put the names of only your Sysops here
+//Will allow only following names to log in as sysop if enabled in server.ini for SysopCheck

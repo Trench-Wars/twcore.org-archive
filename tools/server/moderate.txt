@@ -1,0 +1,17 @@
+//Put your name and any other smod/sysop/mod here like so:
+//Mine GO BOOM
+
+//Will also only allow following people to log into mod if use mod list option on in server.ini
+//Also added a new feature that can be used in mod, smod, or sysop.txt
+//Name = normal, get access like normal
+//+Name: = gets access for powers in all priv arenas (everything but Public0 and such)
+//+Name:@ = gets access for powers only in main arenas (Pubic0 stuff)
+//+Name:arenaname = gets access for powers ONLY in that subarena
+//If you want Name to have powers in two subarenas, have it like:
+//Name
+//+Name:arena1
+//+Name:arena2
+
+//NOTE: Must have them also put in the powers normally, THEN restrict it. IE:
+//  Mine GO BOOM
+//  +Mine GO BOOM:mgbarena

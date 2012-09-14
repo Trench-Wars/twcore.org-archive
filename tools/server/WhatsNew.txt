@@ -1,0 +1,489 @@
+----------------------------- version 1.34.14 ---------------------------------
+New server.ini variable: Misc:AllowPrerelease - default 1, when set, users with
+new prerelease versions are allowed to play
+
+New cfg variable: Misc:SaveSpawnScore - default 0, when set, server will save
+arena score to arenaname.scr file. NB! default setting changes differs from
+older subgame versions, where spawn scores were always saved to .scr file and
+there was no option to disable it. Disabling .scr file save will make server
+run smoother and will prevent server directory filling up with useless files.
+
+Fixed false connection flood alerts
+
+Fixed player not taking damage after macroing ?go arena several times
+													   
+----------------------------- version 1.34.13c --------------------------------
+Added client timer drift percentage to /*einfo
+
+----------------------------- version 1.34.13b --------------------------------
+Added support for position packet queueing and smart clustering to save 
+bandwidth. To enable it, set in server.ini Routing:QueuePositions:1. Following
+variables can be used to control clustering process: 
+Routing:PosSendRadar - how long radar packets are queued, default 100 ms 
+Routing:PosSendEdge - how long packets on screen edge are queued, default 30 ms
+Routing:PosSendClose - how long close packets are queue, default 20 ms
+Routing:ClosePosPixels - how near are packets considered close, default 250 
+pixels
+
+New cfg variable: Misc:MaxTimerDrift - percentage how much client timer is 
+allowed to differ from server timer [Continuum 0.38+]
+
+Added support for chat channel multicast to prevent zone<>biller connection
+overload on very popular chats like Hockey zone's ?chat=zilla
+
+New cfg variable: Latency:NegativeClientSlowPacketTime - packets with future
+timestamp farther in future than this variable are considered as slow packets.
+Default value: 0 - feature is disabled. Feature is still experimental.
+[Continuum 0.38+]
+
+New cfg variable: Soccer:DisableWallPass - default 0, when set, passing ball
+through walls is diabled. There must be clear line between ball and ship 
+center to pick up ball [Continuum 0.38+]
+
+New cfg variable: Soccer:DisableBallKilling - default 0, when set, ships with
+0 velocity in safezone don't catch ball [Continuum 0.38+]
+
+----------------------------- version 1.34.13a --------------------------------
+Fixed extreme lagging bug when subgame was stated when GetTickCount() returned
+negative values (Windows has been running without rebooting 25 days)
+
+----------------------------- version 1.34.13 ---------------------------------
+Removed incoming bandwidth limit from localhost connections
+
+New cfg variable: Misc:AntiWarpSettleDelay - time in 1/100th seconds after 
+warping/portaling/attaching during which artificial antiwarp is activated
+[Continuum 0.38+]
+
+New cfg variables: Spawn:Team0-X, Spawn:Team0-Y, Spawn:Team0-Radius - allows
+specify spawn location and radius per team. If only Team0 variables are set, 
+all teams use them, if Team0 and Team1 variables are set, even teams use Team0
+ones and odd team Team1 ones. It is possible to set spawn positions upto 4
+teams (Team0-Team3) [Continuum 0.38+]
+
+New cfg variable: Misc:DisableScreenshot - disables Continuum's screenshot
+functionality for non-spectators if set to 1 [Continuum 0.37+]
+
+New server.ini variable: Comms:FlushTime - time in millseconds how long server
+will collect position packets before sending them to clients. Recommended
+setting: 10 - 20
+
+Fixed unauthenticated users (name starting with ^) getting moderator powers
+when using billing server proxy and billing server is down
+
+New server.ini variable: Comms:BandwithIdleTime - time in seconds when server
+stops sending position packets to idle spectators. Useful to save bandwidth. 
+Idle time is also shown in /*einfo now
+
+Fixed server crash when client requested to go to negative frequency
+
+New server.ini variable: Comms:SelectTime - time in millseconds how long server
+should wait incoming packet using select() function. This is replacement for 
+CPU:SleepTime, which sleeps constant time, regardless if there are incoming
+packets waiting processing or not. Recommended settings: Comms:SelectTime:10,
+CPU:SleepTime:0 and CPU:SleepPerIteration:0
+
+Fixed bug in Continuum's protocol. NB! Continuum 0.38 will require 1.34.13
+
+----------------------------- version 1.34.12a --------------------------------
+Added proxy detection to /*einfo. Proxy is detected for Continuum 0.37 and
+later clients. You need to set server IP address in server.ini [Misc] ServerIP
+for it to work. 
+* Undetermined - SS 1.3x or Continuum 0.36 clients
+* SOCKS5 proxy - User is using Continuum's built in SOCKS5 proxy
+* Using proxy at localhost - player is using proxy ran in same machine as 
+Continuum client. There is no other reason to do so than monitoring or 
+tampering with packet stream
+* Using custom proxy - player is using custom proxy. Suspect cheating.
+* Using NAT - player is using router or firewall doing NAT translation
+* Not using proxy - no proxy was detected between client and server
+
+Fixed timer desync and slow FPS sysop messages. Before "Unknown interity 
+violation" was displayed
+
+New cfg variable: Misc:StartInSpec - if set, players entering arena are always
+put to spectator mode
+
+New server.ini variable: Misc:ForceContinuumOnly - if set server will ignore
+ContinuumOnly variable is all cfg files and require Continuum in all arenas
+
+New command: *objset +/-<object id>,+/-<object id>,... - sets state of listed
+map/screen objects. +<object id> shows object and -<object id> hides it. For 
+example "*objset +1,-20,+13" shows objects 1 and 13 and hides object 20.
+Command is meant to replace *objon and *objoff commands and it can be sent
+to player privately or to whole arena. Command is meant for humans to use, for
+bots there is special packet for toggling objects states which is much more
+efficient. See BuildLevel documentation for more info about the objects. 
+[Continuum 0.38+]
+
+----------------------------- version 1.34.12 release -------------------------
+Added support for zone staff chats. To use local chats set Misc:StaffChat in
+server.ini to comma separated chat name list. Only players with moderator and
+higher powers can enter these chats and in ?chat these chats are listed as
+(staff) chatname
+
+Disabled non-public chat ? commands (ie /?password or '?squadleave) as there 
+has beed a lot of accidents where players trying to help others will do the
+command without intention
+
+Bugfix in Continuum 0.37 user handling
+
+----------------------------- version 1.34.12pr4 ------------------------------
+Fixed a crash bug introduced in 1.34.12pr3 in user sound checking
+
+New command: /*watchdamage - Toggles player damage reporting on/off for 
+selected player. When turned on moderator will see something like that:
+PriitK took 500 damage from l33t L2 bomb having 1400 nrg [Continuum 0.37+]
+
+----------------------------- version 1.34.12pr3 ------------------------------
+Added support for team sounds. Regular users can play sounds %150 - %255 in
+team chat, zone sysops can upload these sounds in lvz file
+
+New cfg variable: Misc:MinUsage. Specifies amount of usage in hours for players
+to play in arena.
+
+Adding + in front of level files specified by Misc:LevelFiles will make 
+downloading them optional for users
+
+----------------------------- version 1.34.12pr2 ------------------------------
+Fixed crash when lvz file is specified in cfg, but file is not present
+
+Fixed /*tinfo to display invalid last line
+
+Fixed vip functionality to bypass code checksums
+
+----------------------------- version 1.34.12pr1 ------------------------------
+Added collecting of server<-> client clock synchronization info and commad 
+/*tinfo to view it. 
+
+Removed printing of XXX killed by YYY to server console
+
+Removed updating of LastUsedStamp for spawn cfg files
+
+New cfg variable: <ship>:Radius. It specifies ship radius in pixels. In old
+Subspace all ships have fixed radius 14 pixels. This means that ships will fit
+through 2 tile holes, will take damage from weapons 14 pixels away from ship
+center etc. Changing the radius will make ships smaller or bigger from game
+play aspect, you can also change visual aspect to players by specifying custom
+level graphics and also sounds [Continuum 0.37+]
+
+New command: *objon <object id> - shows objects on map/screen with specified 
+id. Can be sent to player privately or to whole arena. See BuildLevel 
+documentation for more info. [Continuum 0.37+]
+
+New command: *objoff <object id> - hides objects on map/screen with specified
+id. Can be sent to player privately or to whole arena. [Continuum 0.37+]
+
+New cfg variable: Misc:LevelFiles. Comma separated list of level files built 
+with BuildLevel.exe (lvz files). These files contain screen and map object 
+definitions and graphics, custom shipsets, sounds, help texts, etc. See
+BuildLevel documentation for more info. [Continuum 0.37+]
+
+New server.ini variable: Misc:AllowVIEClients. When set to 0 Subspace client
+users are not allowed to enter zone. (It was actually added a while ago but
+I forgot to document it)
+
+Added vip.txt. Players listed in vip.txt can enter zone with old Subspace
+client when zone is set to Misc:AllowVIEClients:0 and can play in arenas that
+have Misc:ContinuumOnly set to 1 in config. Also players listed can enter zone
+with Continuum 0.37 pre-release versions. When billing server is down vip.txt
+is ignored, naturally
+
+----------------------------- version 1.34.11 ---------------------------------
+New command: /*warpto xcoord ycoord - privately sent to player will warp player 
+to given position. Coordinates are given in tiles (1-1023), when there is wall
+at specified location, random position is chosen. [Continuum 0.35+]
+
+Modified /*watchgreen to show negative prizes
+
+New cfg variable: Spectator:HideFlags. When set dropped flags are not shown to
+spectators. [Continuum 0.36+]
+
+New cfg variable: Spectator:NoXRadar. When set spectators won't have X-Radar
+[Continuum 0.36+]
+
+New cfg variable: Bullet:ExactDamage. When set bullet damage is exact, not
+random [Continuum 0.36+]
+
+New cfg variable: Misc:SlowFrameRate. Specifies minimum frame rate for client.
+When frame rate falls below specified rate for 10 seconds, client is 
+disconnected. 0 - disable check, maximum is 35 [Continuum 0.36+]
+
+New cfg variable: <ship>:SeeBombLevel. 1=see all bombs on radar, 2=see bombs
+greater than level 1 on radar, 3=see bombs greater than level 2 on radar, 
+0 = no bombs are shown on radar [Continuum 0.36+]
+
+New cfg variable: <ship>:DisableFastShooting. When set firing bullets, bombs
+and thors is disabled when using afterburner [Continuum 0.36+]
+
+Fixed a bug in Continuum communcation protocol that caused connection to get
+stuck infrequently
+
+Added confirmation message to /*warn command
+
+New server.ini variable: Misc:NoFlagRewardLimit. If set non-zero reward 
+multiplier limit is removed in FlagRewardMode 1. Multiplier is 
+(maximumAllowedPerTeam / numberOfTeamMembers), if NoFlagRewardLimit is set 0
+multiplier is limited by 2.
+
+Fixed bug causing infrequent server crashes (Access violation at 
+address 41d006)
+
+Fixed another crash bug (Access violation at address 428e20)
+
+Fixed security hole that allows anybody to upload moderate.txt and permit.txt
+
+Fixed 'shadow KOTH' bug. When entering arena other players sometimes see that 
+entered player has KOTH, while he doesn't. Happends very seldom, but when it is
+triggered all players entering had KOTH and only server shutdown/start would
+fix that
+
+Fixed problem of public teams becoming uneven when there are private teams in 
+arena.
+
+New cfg variable: Misc:ContinuumOnly. When set to 1 non-Continuum players are
+locked to spec and get message to use Continuum to play
+
+New cfg variables: Latency:C2SNoDataAction and Latency:C2SNoDataTime. If 
+C2SNoDataAction is set to non-zero and there is no data coming from player for 
+C2SNoDataTime (in 1/100th seconds) follwing action is performed:
+C2SNoDataAction=1: Report it using sysop message
+C2SNoDataAction=2: Put player to spec mode
+C2SNoDataAction=4; Kick player.
+C2SNoDataAction can be combination (sum) of above actions.
+
+Added new ArenaMode 5 (Custom:ArenaMode in server.ini). In arena mode 1-4 
+arenaname.cfg is created (copied from server.cfg) every time a user enters a 
+spawn. This means that over time cfg files are piling up in server directory
+and changes in server.cfg are not reflected in spawns, makeing maintenance of
+settings pain in the ass. In ArenaMode 5 if arenaname.cfg is not found, server
+will use spawn.cfg.
+
+Fixed bug in server that allowed sending cross-arena private messages so that 
+they appear to come from user without name.
+
+New command: *relkills <0 or 1> - toggles sending kills reliably on and off.
+Normally server sends kill messages as non-reliable messages if killed player's
+bounty is less than 200 (teamkills are always non-reliable). Setting 
+*relkills 1 will make server send kill messages reliably, 
+
+New command: /*bandwidth <bandwidth> - allow to set cutback watermark per 
+player, overriding arena's Latency:CutbackWatermark setting
+
+----------------------------- version 1.34.10 ---------------------------------
+New command: *warn <text> - privately sent to player will display moderator
+warning using red font to player
+
+Fixed problem with keepalive. After sending large amouts of data, such as
+voice messages, settings, etc players got often kicked with low keepalive 
+values.
+
+Added client version display to /*einfo
+
+Fixed 3 buffer length checking/overflow bugs in lowlevel protocol
+
+Added ability to disable *shutdown command as sysops can execute arbitrary 
+commands with it and it is potential threat to host security. To disable 
+*shutdown create noshutdown directory to server directory. Don't forget to
+set file permissions of that directory if sysops have FTP access
+
+Tons of continuum client releated changes
+
+----------------------------- version 1.34.9 ----------------------------------
+Fixed protection against IP spoofed packet floods. Made a simple mistake and 
+left it open to smart flooders. Smack me
+
+New command: *flags - displays locations of uncarried flags
+
+New command: /*greeninfo - displays how many particular prizes player has
+picked up and it's difference from normal distribution
+
+Added displaying of client type to /*einfo to distinquish between VIE and
+Continuum clients
+
+----------------------------- version 1.34.8 ----------------------------------
+Added protection against IP spoofed packet floods
+
+Fix against another DoS attack (voice sending with incomplete packet)
+
+New sysop command: *lag: shows average lag of all players in zone
+
+?getnews is now available only in spectator mode
+
+----------------------------- version 1.34.7 ----------------------------------
+Added fix against Catid's zone flooder. When flood is detected IP address is
+added to blacklist and all traffic from that IP is ignored for time relative
+to amount of flood received. Flooder's IP is reported once using sysop alert
+
+Added fastbombing detection. To enable it set Misc:CheckFastBombing in 
+server.ini as combination (sum) of following values:
+ 1 - Send sysop alert when fastbombing is detected
+ 2 - Filter out fastbombs
+ 4 - Kick fastbombing player off
+There is Misc:FastBombingThreshold variable in server.ini to tune detection.
+Default and recommended value for that variable is 30. Bomb/mine is considered
+for fastbombing if delay between 2 bombs/mines is less than 
+ship:BombFireDelay - Misc:FastBombingThreshold
+
+Added support for multiple alert commands. Misc:AlertCommand is now comma
+separated list of player alert commands (f.ex. cheater,help,illegal)
+
+Alert commands are now logged to server log
+
+Added support for zone local chats. To use local chats set Misc:LocalChat in
+server.ini to comma separated chat name list
+
+Added ability to force obscene checking on for all clients. To enable it set
+Misc:ForceObsceneCheck in server.ini to 1. Users can toggle obscenity blocking
+by ?obscene command
+
+Added new player command: ?find <player name>. Tells in what arena specified
+player is if not in private arena (starting with #). Moderators can find
+players in private arenas too
+
+Players with name ^Banned are silenced and locked to spec
+
+Added feature to limit player's screen resolution. To enable set in an arena
+cfg file Misc:MaxXRes and Misc:MaxYRes variables. 0 = no limit
+
+Added scorereset support without need to recycle zone (needs same functionality
+to be added to billing server before it can be used)
+
+----------------------------- version 1.34.6 ----------------------------------
+Fix against Sage386's DoS attack (At least one that crashed Trench Wars and
+I have crash dump about). It is a simple buffer overflow bug in login code
+
+New sysop command *version. Tells version for the server
+
+Added weapons server to client packetloss to /*lag command
+
+----------------------------- version 1.34.5 ----------------------------------
+Added weapons checking. To enable it set in server.ini Misc:CheckWeapons:1
+If enabled follwing checks are preformed:
+* Bullet fired with level > [ship]MaxGuns + [Flag]FlaggerGunUpgrade
+* Boucning bullet fired and [PrizeWeight]BouncingBullets is 0 and [Cost]Bounce
+  is 0
+* Bomb fired with level > [ship]MaxBombs + [Flag]FlaggerBombUpgrade
+* Prox bomb fired and [PrizeWeight]Proximity is 0 and [Cost]Prox is 0
+* Bomb fired with shrap > [ship]ShrapnelMax
+* Bomb fired with bouncing shrap and [PrizeWeight]BouncingBullets is 0 and
+  [Cost]Bounce is 0
+* Mine is fired and [ship]MaxMines is 0
+* A prize is picked up and [PrizeWeight] of that prize is 0
+* Stealth is turned on and [ship]StealthStatus is 0
+* Cloak is turned on and [ship]CloakStatus is 0
+* XRadar is turned on and [ship]XRadarStatus is 0
+* Anti-Warp is turned on and [ship]AntiWarpStatus is 0
+* Player uses ufo
+
+If one of the above conditions is true red sysop alert message is triggered and
+that weapon packet is ignored. If [security]SecurityKickoff is 1 in server.cfg
+file player is kicked out too. Check is deactiveded for smod+
+
+Added functinality to enable mod/smod/sysop commands only in certain arenas. 
+Access is controlled via moderate.txt/smod.txt/sysop.txt. To restrict access
+append to moderate.txt/smod.txt/sysop.txt:
++playername:arenaname
+If arenaname is empty access is granted in main (public) arenas. If arenaname
+is @ access is granted in all private (not main) arenas. Here is an example of
+smod.txt to grant smod access to PriitK in all arenas, to Foobar in public
+arenas only, to Poophead in all private arenas and to Lagger in elim and super
+arena
+------smod.txt------
+PriitK
+Foobar
+Poophead
+Lagger
++Foobar:
++Poophead:@
++Lagger:elim
++Lagger:super
+
+New cfg variable: Misc:MaxPlayers. Overrides server.ini's Arena:ArenaMaxPlayers
+variable for a spawn
+
+New server.ini variable: Misc:ShipTypeSwitchResetPeriod. If set non-zero player
+shipchange counters are reset in given period. It allows to set 
+Security:MaxShipTypeSwitchCount low to kick out players that use ship changes
+to get good configuration or spawning spot
+
+New cfg variable: Misc:GreetMessage. It is sent to player when s/he enters
+spawn
+
+New cfg variables: Misc:PeriodicMessage0-PeriodicMessage4. Value must have
+following syntax: <period> <delay> [*]<text>
+If set and players are in spawn <text>s starting with * are sent out as zone
+messages and without * as arena messages. <period> <delay> are in minutes,
+<delay> indicates when first message is sent after arena creation.
+
+New command: /*watchgreen. Toggles player green pickup logging on/off for
+selected player. Then turned on, moderator who did it will receive notification
+message every time when that player picks up green
+
+New command: /*einfo. Displays player billing user id and screen resolution
+
+New command: /*lag. Displays player ping and packetloss
+
+New command: ?lag. Displays ping and packetloss
+
+New commads: *getfile, *putfile and *delfile. Allow sysop to get/put/delete
+files from server directory. exe, com, dll, bat and cmd files are offlimits.
+Following commands were removed: get/putsysoplist, get/putsmodlist, 
+get/putnews, get/putobscene
+
+New command: *listban. Lists all active /*kill <minutes> bans with machine id,
+time in seconds since ban was made, ban length in seconds
+
+New command: *removeban <machineid>. Removes a /*kill <minutes> ban
+
+----------------------------- version 1.34.4 ----------------------------------
+New command: /*ufo
+
+New command: /*super. If player isn't smod+ server will give data checksum
+warnings
+
+New command: ?scorereset and 2 server.ini settings: Misc:AllowPubScorereset and
+Misc:AllowPvtScorereset
+
+New command: *listmod - lists all mods+ in zone. SMod+ access is required for
+this commad
+
+Fixed flag neuting: New server.ini setting Misc:TimerDropFlagTerritoryRadius
+same as Flag:FlagTerritoryRadius, but will used only if flags are dropped when
+timer expires. So, if you set Flag:FlagTerritoryRadius to 0 and 
+Misc:TimerDropFlagTerritoryRadius to 8 flags will be respawned on freq/ship
+change
+
+Removed /*setfreq restrictions
+
+Fixed bug that caused occasional zone crashes
+
+----------------------------- version 1.34.3 ----------------------------------
+? commands flooding protection (?chat macro)
+
+freq change flooding protection (=%freq macro in spec)
+
+New command: *specall - puts all players in arena to spec, but doesn't lock
+them. Usual access restrictions apply: mods and smods cant spec sysops and mods
+
+New server.ini variable: Misc:NoAntiInSafe. If set to non-zero antiwarp is 
+disabled in safe zones
+
+New server.ini variable: Misc:LockFreqs. If set to non-zero freq changing when
+arena is locked is disabled
+
+New server.ini variable: Misc:PositionDataAccess. Extra position data is really 
+information about the player ship. It is displayed to spectators in the top of
+screen (energy, rockets, walls, portals, etc). Normally only sysops see it, but
+it can be configured in server.cfg via Misc:ExtraPositionData so, that all
+players see it. It is not recommended, because it increases bandwidth players
+use about 50% thus increasing ping/packetloss. This variable controls, who see
+extra data. 0 - only sysops, 1 - smod+, 2 - mod+. It is meaningful only if 
+Misc:ExtraPositionData is 0 in server.cfg
+
+New server.ini variable: Misc:AlertCommand. Replacement to BanG ?cheater
+command. Players can type ?<Misc:AlertCommand> <text>, that <text> is sent to
+all mods+ who are in the zone. Command is disabled, if value of this variable
+is empty.
+
+Negative bounty fix. Negative bounty is ignored and will trigger red sysop
+messages

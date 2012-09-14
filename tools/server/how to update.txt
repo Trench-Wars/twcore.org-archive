@@ -1,0 +1,9 @@
+To use the update.exe file, create a folder in your server folder called:
+version1
+
+Then in this folder, extract the update.exe file to here. Also, copy continuum.exe from your
+server folder into this folder. Once there, rename continuum.exe to subspace.exe. Now startup
+your zone, and you now have continuum .36 allowed into your zone.
+
+NOTE: If people download the upgrade.exe from your zone, they maybe lagged out during
+download. To prevent this, in your server.ini, set the [Misc] MenuKickoutDelay to 60000.

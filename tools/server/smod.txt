@@ -1,0 +1,2 @@
+//Put the names of only your Smods here
+//Will allow only following names to log in as smod if enabled in server.ini for SmodCheck

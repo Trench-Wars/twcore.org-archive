@@ -1,0 +1,17 @@
+Put your news here!
+
+This Zone is currently using SubGame 1.34.14
+You can do the following extra commands other than ones listed in F1:
+
+?lag - Shows your lag and ping all at once
+
+?getnews - Downloads news.txt file
+
+?cheater (text) - Will message all only messages your text message
+
+
+--------------------
+Source for files and/or help:
+
+Mine GO BOOM, webmaster of Server Help
+http://www.shanky.com/server/
