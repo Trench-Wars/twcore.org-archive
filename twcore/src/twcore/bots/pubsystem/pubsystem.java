@@ -418,7 +418,7 @@ public class pubsystem extends SubspaceBot
         if (cmd.length() < 7) {
             greeting = null;
             set.put("Greeting", "");
-            m_botAction.sendSmartPrivateMessage(name, "Private message greeting DISABELD.");
+            m_botAction.sendSmartPrivateMessage(name, "Private message greeting DISABLED.");
         } else {
             greeting = cmd.substring(cmd.indexOf(" ") + 1);
             set.put("Greeting", greeting);
