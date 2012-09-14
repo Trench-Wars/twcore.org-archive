@@ -213,8 +213,6 @@ public class twdbot extends SubspaceBot {
                         cmd_DisplayInfo(name, message.substring(6), false);
                     else if (message.startsWith("!fullinfo "))
                         cmd_DisplayInfo(name, message.substring(10), true);
-                    else if (message.startsWith("!einfo "))
-                        cmd_einfo(name, message);
                     else if (message.startsWith("!usage "))
                         cmd_usage(name, message);
                     else if (message.startsWith("!register "))
@@ -248,6 +246,10 @@ public class twdbot extends SubspaceBot {
                     else if (message.equalsIgnoreCase("!die")) {
                         this.handleDisconnect();
                         m_botAction.die();
+                    }
+                    if (m_opList.isSmod(name)) {
+                        if (message.startsWith("!einfo "))
+                            cmd_einfo(name, message);
                     }
                 }
             } else if (type != Message.REMOTE_PRIVATE_MESSAGE) {
