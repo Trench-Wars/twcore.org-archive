@@ -21,7 +21,7 @@
         <description>Go to flag room in top of base.</description>
         <location x="485" y="254" width="54" height="36" />
     </achievement>
-    <achievement id="3" name="I Can't Die!">
+    <achievement id="3" name="Minute Man">
         <description>Don't die for 1 minute.</description>
 		<time minimum="60" >
 			<death maximum="0" />
@@ -45,7 +45,7 @@
 			<ship type="4" />
 		</kill>
     </achievement>
-    <achievement id="7" name="Run Home">
+    <achievement id="7" name="Home Run">
         <description>Visit roof and all three safes in under 2 minutes.</description>
         <time maximum="120">
 			<location x="512" y="237" maximumRange="9" />
