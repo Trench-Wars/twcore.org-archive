@@ -38,7 +38,10 @@ import twcore.core.game.Player;
 import twcore.core.util.ByteArray;
 
 /**
- *
+ * The PubAchievementsModule allows pubsystem to award player achievements 
+ * based on their actions in pub. 
+ * 
+ * @see http://www.twcore.org/ticket/735
  * @author spookedone
  */
 public final class PubAchievementsModule extends AbstractModule {
@@ -49,7 +52,12 @@ public final class PubAchievementsModule extends AbstractModule {
     private final Map<Short, List<Achievement>> players;
     private boolean running = false;
     public static BotAction botAction;
-
+    
+    /**
+     * Standard constructor for pubsystem module
+     * @param m_botAction
+     * @param context 
+     */
     public PubAchievementsModule(BotAction m_botAction, PubContext context) {
         super(m_botAction, context, "Achievements");
 
@@ -60,12 +68,16 @@ public final class PubAchievementsModule extends AbstractModule {
         synchronized (achievements) {
             reloadConfig();
         }
-
+        
         this.enabled = true;
 
         m_botAction.setPlayerPositionUpdating(200);
     }
 
+    /**
+     * Clear the current achievements and reloads the xml file containing the
+     * achievements list.
+     */
     @Override
     public void reloadConfig() {
         achievements.clear();
@@ -91,59 +103,76 @@ public final class PubAchievementsModule extends AbstractModule {
         }
     }
 
+    /**
+     * Load a player into the list of players having achievements. Required to
+     * have a player's achievements tracked and should be called upon player
+     * entry into arena. 
+     * 
+     * TODO needs to load saved achievement from database
+     * 
+     * @param id id of the player
+     */
     public void loadPlayer(short id) {
         if (!players.containsKey(id)) {
-        synchronized (players) {
-            List<Achievement> playerAchievements = new LinkedList<Achievement>();
+            synchronized (players) {
+                List<Achievement> playerAchievements = new LinkedList<Achievement>();
 
-            for (Achievement a : achievements) {
-                playerAchievements.add(new Achievement(a));
+                for (Achievement a : achievements) {
+                    playerAchievements.add(new Achievement(a));
+                }
+
+                Player p = botAction.getPlayer(id);
+                for (Achievement a : playerAchievements) {
+                    a.reset();  //forces time to update
+                    if ((a.getTypeMask() & Type.ship.value()) == Type.ship.value()) {
+                        for (Requirement r : a.getRequirements()) {
+                            if (r instanceof Ship) {
+                                Ship s = (Ship) r;
+                                s.setCurrent(p.getShipType());
+                            }
+                        }
+                    }
+                }
+                players.put(id, playerAchievements);
             }
+        }
+    }
 
-            Player p = botAction.getPlayer(id);
-            for (Achievement a : playerAchievements) {
-                a.reset();  //forces time to update
-                if ((a.getTypeMask() & Type.ship.value()) == Type.ship.value()) {
-                    for (Requirement r : a.getRequirements()) {
-                        if (r instanceof Ship) {
-                            Ship s = (Ship) r;
-                            s.setCurrent(p.getShipType());
+    /**
+     * The handleAchievement method tolls a players achievements, based on type
+     * of requirement being set on whichever callback fires this method. It will
+     * pass along the event and type for further review to see if something was 
+     * progressed to or achieved.
+     * 
+     * @param id id of player
+     * @param type type of requirement update
+     * @param event the event itself
+     * 
+     * @see twcore.bots.pubsystem.module.achievements.Requirement
+     */
+    public void handleAchievement(short id, Type type, SubspaceEvent event) {
+        if (players.containsKey(id)) {
+
+            for (Achievement a : players.get(id)) {
+                boolean complete = a.update(type, event);
+                if (complete) {
+                    botAction.sendPrivateMessage(id, "[Achievement Completed] "
+                            + a.getName() + " - " + a.getDescription());
+
+                    //must set all achievements of same id to complete
+                    for (Achievement b : players.get(id)) {
+                        if (a.getId() == b.getId()) {
+                            b.setComplete(true);
                         }
                     }
                 }
             }
-            players.put(id, playerAchievements);
-        }}
+        }
     }
 
-    public void handleAchievement(short id, Type type, SubspaceEvent event) {
-        if (!players.containsKey(id)) {
-            loadPlayer(id);
-        }
-
-        Stack<Integer> achieveIds = new Stack<Integer>();
-        for (Achievement a : players.get(id)) {
-            boolean complete = a.update(type, event);
-            if (complete) {
-                achieveIds.push(a.getId());
-                botAction.sendPrivateMessage(id, "[Achievement Completed] "
-                        + a.getName() + " - " + a.getDescription());
-            }
-        }
-
-        //set all achievements sharing ids to complete
-        while (!achieveIds.isEmpty()) {
-            int achieveId = achieveIds.pop();
-            for (Achievement a : players.get(id)) {
-                if (a.getId() == achieveId) {
-                    a.setComplete(true);
-                }
-            }
-        }
-
-    }
-
-    /* EVENT */
+    /*
+     * EVENT
+     */
     @Override
     public void handleEvent(ArenaList event) {
     }
@@ -229,6 +258,10 @@ public final class PubAchievementsModule extends AbstractModule {
     public void handleDisconnect() {
     }
 
+    /**
+     * Starts the PubAchievementsModule. Load current players, creates a static
+     * timer, and sets its running flag for event callbacks.
+     */
     @Override
     public void start() {
         Iterator<Player> i = m_botAction.getPlayerIterator();
@@ -242,12 +275,14 @@ public final class PubAchievementsModule extends AbstractModule {
             @Override
             public void run() {
                 Time.increment();
-                try {
-                for (short id : players.keySet()) {
-                    for (Achievement a : players.get(id)) {
-                        handleAchievement(id, Type.time, null);
+                /*try {
+                    for (short id : players.keySet()) {
+                        for (Achievement a : players.get(id)) {
+                            handleAchievement(id, Type.time, null);
+                        }
                     }
-                }} catch (Exception e) {}
+                } catch (Exception e) {
+                }*/
             }
         }, 0, 1000);
 
@@ -330,16 +365,16 @@ public final class PubAchievementsModule extends AbstractModule {
             if (!players.containsKey(id)) {
                 loadPlayer(id);
             }
-                m_botAction.sendPrivateMessage(recipient, "Achievements for "
-                        + p.getPlayerName());
-                for (Achievement a : players.get(id)) {
-                    if (!ids.contains(a.getId())) {
-                        ids.push(a.getId());
-                        m_botAction.sendPrivateMessage(recipient, "["
-                                + (a.isComplete() ? "X] " : " ] ") + a.getName()
-                                + " - " + a.getDescription());
-                    }
-                
+            m_botAction.sendPrivateMessage(recipient, "Achievements for "
+                    + p.getPlayerName());
+            for (Achievement a : players.get(id)) {
+                if (!ids.contains(a.getId())) {
+                    ids.push(a.getId());
+                    m_botAction.sendPrivateMessage(recipient, "["
+                            + (a.isComplete() ? "X] " : " ] ") + a.getName()
+                            + " - " + a.getDescription());
+                }
+
             }
         } else {
             m_botAction.sendPrivateMessage(recipient, "Achievements are not activated.");
@@ -484,59 +519,60 @@ public final class PubAchievementsModule extends AbstractModule {
                             requirements.push(range);
                             break;
                         case flagclaim:
-                        /*type |= Type.flagclaim.value();
-
-                        ValueRequirement flagclaim = new ValueRequirement();
-
-                        String flagClaimMin = attributes.getValue("minimum");
-                        String flagClaimMax = attributes.getValue("maximum");
-
-                        if (flagClaimMin != null) {
-                        flagclaim.setMinimum(Integer.parseInt(flagClaimMin));
-                        }
-                        if (flagClaimMax != null) {
-                        flagclaim.setMaximum(Integer.parseInt(flagClaimMax));
-                        }
-
-                        achievement.setFlagclaim(flagclaim);
-
-                        break;*/
+                        /*
+                         * type |= Type.flagclaim.value();
+                         *
+                         * ValueRequirement flagclaim = new ValueRequirement();
+                         *
+                         * String flagClaimMin = attributes.getValue("minimum");
+                         * String flagClaimMax = attributes.getValue("maximum");
+                         *
+                         * if (flagClaimMin != null) {
+                         * flagclaim.setMinimum(Integer.parseInt(flagClaimMin));
+                         * } if (flagClaimMax != null) {
+                         * flagclaim.setMaximum(Integer.parseInt(flagClaimMax));
+                         * }
+                         *
+                         * achievement.setFlagclaim(flagclaim);
+                         *
+                         * break;
+                         */
                         case flagtime:
-                        /*type |= Type.flagtime.value();
-
-                        ValueRequirement flagtime = new ValueRequirement();
-
-                        String flagTimeMin = attributes.getValue("minimum");
-                        String flagTimeMax = attributes.getValue("maximum");
-
-                        if (flagTimeMin != null) {
-                        flagtime.setMinimum(Integer.parseInt(flagTimeMin));
-                        }
-                        if (flagTimeMax != null) {
-                        flagtime.setMaximum(Integer.parseInt(flagTimeMax));
-                        }
-
-                        break;*/
+                        /*
+                         * type |= Type.flagtime.value();
+                         *
+                         * ValueRequirement flagtime = new ValueRequirement();
+                         *
+                         * String flagTimeMin = attributes.getValue("minimum");
+                         * String flagTimeMax = attributes.getValue("maximum");
+                         *
+                         * if (flagTimeMin != null) {
+                         * flagtime.setMinimum(Integer.parseInt(flagTimeMin)); }
+                         * if (flagTimeMax != null) {
+                         * flagtime.setMaximum(Integer.parseInt(flagTimeMax)); }
+                         *
+                         * break;
+                         */
                         case prize:
-                        /*type |= Type.prize.value();
-
-                        ValueRequirement prize = new ValueRequirement();
-
-                        String prizeMin = attributes.getValue("minimum");
-                        String prizeMax = attributes.getValue("maximum");
-                        String prizeType = attributes.getValue("type");
-
-                        if (prizeMin != null) {
-                        prize.setMinimum(Integer.parseInt(prizeMin));
-                        }
-                        if (prizeMax != null) {
-                        prize.setMaximum(Integer.parseInt(prizeMax));
-                        }
-                        if (prizeType != null) {
-                        //achievement.setPrizeType(Integer.parseInt(prizeType));
-                        }
-
-                        break;*/
+                        /*
+                         * type |= Type.prize.value();
+                         *
+                         * ValueRequirement prize = new ValueRequirement();
+                         *
+                         * String prizeMin = attributes.getValue("minimum");
+                         * String prizeMax = attributes.getValue("maximum");
+                         * String prizeType = attributes.getValue("type");
+                         *
+                         * if (prizeMin != null) {
+                         * prize.setMinimum(Integer.parseInt(prizeMin)); } if
+                         * (prizeMax != null) {
+                         * prize.setMaximum(Integer.parseInt(prizeMax)); } if
+                         * (prizeType != null) {
+                         * //achievement.setPrizeType(Integer.parseInt(prizeType));
+                         * }
+                         *
+                         * break;
+                         */
                         case ship:
                             typeMask |= Type.ship.value();
                             Ship ship;
@@ -580,21 +616,27 @@ public final class PubAchievementsModule extends AbstractModule {
             }
         }
 
-        /** This method is called when warnings occur */
+        /**
+         * This method is called when warnings occur
+         */
         @Override
         public void warning(SAXParseException exception) {
             System.err.println("WARNING: line " + exception.getLineNumber() + ": "
                     + exception.getMessage());
         }
 
-        /** This method is called when errors occur */
+        /**
+         * This method is called when errors occur
+         */
         @Override
         public void error(SAXParseException exception) {
             System.err.println("ERROR: line " + exception.getLineNumber() + ": "
                     + exception.getMessage());
         }
 
-        /** This method is called when non-recoverable errors occur. */
+        /**
+         * This method is called when non-recoverable errors occur.
+         */
         @Override
         public void fatalError(SAXParseException exception) throws SAXException {
             System.err.println("FATAL: line " + exception.getLineNumber() + ": "
