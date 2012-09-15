@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.TimerTask;
-
 import twcore.bots.pubsystem.module.*;
 import twcore.core.BotAction;
 import twcore.core.events.SQLResultEvent;
@@ -33,7 +32,6 @@ public class PubContext {
     private PubUtilModule pubUtil;
     private PubHuntModule pubHunt;
     private PubSessionModule pubSession;
-    private PubAchievementsModule pubAchievements;
     private PubLotteryModule pubLottery;
     private GaugeModule gaugeModule;
 
@@ -162,14 +160,6 @@ public class PubContext {
             modules.put("hunt", pubHunt);
         }
         return pubHunt;
-    }
-
-    public PubAchievementsModule getPubAchievements() {
-        if (pubAchievements == null) {
-            pubAchievements = new PubAchievementsModule(m_botAction, this);
-            modules.put("achievements", pubAchievements);
-        }
-        return pubAchievements;
     }
 
     public PubKillSessionModule getPubKillSession() {
