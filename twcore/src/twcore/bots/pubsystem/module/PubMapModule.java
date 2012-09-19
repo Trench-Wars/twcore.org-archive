@@ -117,7 +117,11 @@ public class PubMapModule extends AbstractModule {
             lastChange = now;
             currentBase = SMALL_BASE;
             setBase();
-        } else if (pop > popTriggers.get(SMALL_BASE) + popLeeway && pop < popTriggers.get(LARGE_BASE) - (popLeeway*2)) {
+        } else if (currentBase == SMALL_BASE && pop > popTriggers.get(SMALL_BASE) + popLeeway) {
+            lastChange = now;
+            currentBase = MED_BASE;
+            setBase();
+        } else if (currentBase == MED_BASE && pop < popTriggers.get(LARGE_BASE) - (popLeeway*2)) {
             lastChange = now;
             currentBase = MED_BASE;
             setBase();
