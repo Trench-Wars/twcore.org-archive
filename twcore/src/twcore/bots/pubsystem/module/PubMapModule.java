@@ -18,8 +18,8 @@ public class PubMapModule extends AbstractModule {
     private static final int MED_OBJON = 1002;
     private static final int LARGE_OBJON = 1003;
     private static final int SMALL_BASE = 6;
-    private static final int MED_BASE = 8;
-    private static final int LARGE_BASE = 12;
+    private static final int MED_BASE = 9;
+    private static final int LARGE_BASE = 8;
     
     private int currentBase;    // current door setting
 
