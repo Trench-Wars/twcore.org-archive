@@ -167,6 +167,7 @@ public class PubUtilModule extends AbstractModule {
         //checkForDoors();
     }
 
+    /*
     private void checkForDoors() {
 
         // Did someone manually changed the doors? if yes.. do nothing
@@ -182,6 +183,7 @@ public class PubUtilModule extends AbstractModule {
             doorStatus = DoorMode.CLOSED;
         }
     }
+    */
 
     public void setTileset(Tileset tileset, final String playerName, boolean instant) {
         final Tileset playerTileset;
@@ -292,7 +294,7 @@ public class PubUtilModule extends AbstractModule {
 
     private void doAutoDoorCmd(String sender) {
         doorModeManual = false;
-        checkForDoors();
+        //checkForDoors();
         m_botAction.sendSmartPrivateMessage(sender, "Doors will be locked or in operation if the number of players is higher than " + doorModeThreshold + ".");
     }
 
