@@ -107,7 +107,7 @@ public class PubMapModule extends AbstractModule {
         if (!enabled) return;
         int pop = ba.getPlayingPlayers().size();
         long now = System.currentTimeMillis();
-        if (now - lastChange < timeDelay * Tools.TimeInMillis.MINUTE)
+        if (lastChange != 0 && now - lastChange < timeDelay * Tools.TimeInMillis.MINUTE)
             return;
         if (pop > popTriggers.get(LARGE_BASE) + popLeeway) {
             lastChange = now;
@@ -117,7 +117,7 @@ public class PubMapModule extends AbstractModule {
             lastChange = now;
             currentBase = SMALL_BASE;
             setBase();
-        } else if (pop > popTriggers.get(SMALL_BASE) + popLeeway && pop < popTriggers.get(LARGE_BASE) - popLeeway) {
+        } else if (pop > popTriggers.get(SMALL_BASE) + popLeeway || pop < popTriggers.get(LARGE_BASE) - popLeeway) {
             lastChange = now;
             currentBase = MED_BASE;
             setBase();
@@ -132,12 +132,12 @@ public class PubMapModule extends AbstractModule {
                 ba.hideObject(MED_OBJON);
                 ba.hideObject(LARGE_OBJON);
                 break;
-            case MED_OBJON:
+            case MED_BASE:
                 ba.showObject(MED_OBJON);
                 ba.hideObject(SMALL_OBJON);
                 ba.hideObject(LARGE_OBJON);
                 break;
-            case LARGE_OBJON:
+            case LARGE_BASE:
                 ba.showObject(LARGE_OBJON);
                 ba.hideObject(SMALL_OBJON);
                 ba.hideObject(MED_OBJON);
