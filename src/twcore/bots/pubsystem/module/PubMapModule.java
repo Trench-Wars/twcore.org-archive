@@ -1,5 +1,7 @@
 package twcore.bots.pubsystem.module;
 
+import java.util.HashMap;
+
 import twcore.bots.pubsystem.PubContext;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -12,15 +14,17 @@ import twcore.core.util.Tools;
 public class PubMapModule extends AbstractModule {
 
     
-    private static final int SMALL_OBJON = 1002;
-    private static final int LARGE_OBJON = 1001;
-    private static final int SMALL_BASE = 2;
+    private static final int SMALL_OBJON = 1001;
+    private static final int MED_OBJON = 1002;
+    private static final int LARGE_OBJON = 1003;
+    private static final int SMALL_BASE = 6;
+    private static final int MED_BASE = 12;
     private static final int LARGE_BASE = 8;
-    //private static final int ANTI_LEV   = 14;
     
     private int currentBase;    // current door setting
-    
-    private int popTrigger;     // cut off for number of players before door change
+
+    private HashMap<Integer, Integer> popTriggers; // door setting mapped to popTrigger
+    //private int popTrigger;     // cut off for number of players before door change
     private int popLeeway;      // number of players from trigger required for door change
     private int timeDelay;      // minimum amount of time between door changes
     private long lastChange;   
@@ -30,7 +34,7 @@ public class PubMapModule extends AbstractModule {
     public PubMapModule(BotAction botAction, PubContext context) {
         super(botAction, context, "PubMap");
         ba = botAction;
-        currentBase = SMALL_BASE;
+        currentBase = MED_BASE;
         lastChange = 0;
         setBase();
         reloadConfig();
@@ -56,7 +60,10 @@ public class PubMapModule extends AbstractModule {
     @Override
     public void reloadConfig() {
         BotSettings set = ba.getBotSettings();
-        popTrigger = set.getInt("PopulationTrigger");
+        int[] trigs = set.getIntArray("PopulationTrigger", ",");
+        popTriggers = new HashMap<Integer, Integer>(3);
+        popTriggers.put(SMALL_BASE, trigs[0]);
+        popTriggers.put(LARGE_BASE, trigs[1]);
         popLeeway = set.getInt("PopulationLeeway");
         timeDelay = set.getInt("TimeDelay");
         enabled = set.getInt("pubmap_enabled") == 1;
@@ -67,12 +74,22 @@ public class PubMapModule extends AbstractModule {
         if (!enabled) return;
         if (event.getShipType() > 0)
             doPopCheck();
-        if (currentBase == LARGE_BASE) {
-            ba.showObjectForPlayer(event.getPlayerID(), LARGE_OBJON);
-            ba.hideObjectForPlayer(event.getPlayerID(), SMALL_OBJON);
-        } else {
-            ba.showObjectForPlayer(event.getPlayerID(), SMALL_OBJON);
-            ba.hideObjectForPlayer(event.getPlayerID(), LARGE_OBJON);
+        switch (currentBase) {
+            case SMALL_BASE: 
+                ba.showObjectForPlayer(event.getPlayerID(), SMALL_OBJON);
+                ba.hideObjectForPlayer(event.getPlayerID(), MED_OBJON);
+                ba.hideObjectForPlayer(event.getPlayerID(), LARGE_OBJON);
+                break;
+            case MED_BASE:
+                ba.showObjectForPlayer(event.getPlayerID(), MED_OBJON);
+                ba.hideObjectForPlayer(event.getPlayerID(), SMALL_OBJON);
+                ba.hideObjectForPlayer(event.getPlayerID(), LARGE_OBJON);
+                break;
+            case LARGE_BASE: 
+                ba.showObjectForPlayer(event.getPlayerID(), LARGE_OBJON);
+                ba.hideObjectForPlayer(event.getPlayerID(), SMALL_OBJON);
+                ba.hideObjectForPlayer(event.getPlayerID(), MED_OBJON);
+                break;
         }
     }
     
@@ -92,27 +109,40 @@ public class PubMapModule extends AbstractModule {
         long now = System.currentTimeMillis();
         if (now - lastChange < timeDelay * Tools.TimeInMillis.MINUTE)
             return;
-        if (pop > popTrigger + popLeeway) {
+        if (pop > popTriggers.get(LARGE_BASE) + popLeeway) {
             lastChange = now;
             currentBase = LARGE_BASE;
             setBase();
-        } else if (pop < popTrigger - popLeeway) {
+        } else if (pop < popTriggers.get(SMALL_BASE) - popLeeway) {
             lastChange = now;
             currentBase = SMALL_BASE;
+            setBase();
+        } else if (pop > popTriggers.get(SMALL_BASE) + popLeeway && pop < popTriggers.get(LARGE_BASE) - popLeeway) {
+            lastChange = now;
+            currentBase = MED_BASE;
             setBase();
         }
     }
     
     private void setBase() {
         ba.setDoors(currentBase);
-        if (currentBase == SMALL_BASE) {
-            ba.showObject(SMALL_OBJON);
-            ba.hideObject(LARGE_OBJON);
-        } else {
-            ba.showObject(LARGE_OBJON);
-            ba.hideObject(SMALL_OBJON);
+        switch (currentBase) {
+            case SMALL_BASE:
+                ba.showObject(SMALL_OBJON);
+                ba.hideObject(MED_OBJON);
+                ba.hideObject(LARGE_OBJON);
+                break;
+            case MED_OBJON:
+                ba.showObject(MED_OBJON);
+                ba.hideObject(SMALL_OBJON);
+                ba.hideObject(LARGE_OBJON);
+                break;
+            case LARGE_OBJON:
+                ba.showObject(LARGE_OBJON);
+                ba.hideObject(SMALL_OBJON);
+                ba.hideObject(LARGE_OBJON);
+                break;
         }
-        
     }
 
     @Override
@@ -141,7 +171,7 @@ public class PubMapModule extends AbstractModule {
     }
     
     private void cmd_getSets(String name) {
-        ba.sendSmartPrivateMessage(name, "Current MapModule settings> PopTrigger:" + popTrigger + " PopLeeway:" + popLeeway + " TimeDelay:" + timeDelay);
+        ba.sendSmartPrivateMessage(name, "Current MapModule settings> PopTrigger:" + popTriggers.get(SMALL_BASE) + "," + popTriggers.get(LARGE_BASE) + " PopLeeway:" + popLeeway + " TimeDelay:" + timeDelay);
     }
     
     private void cmd_mapMod(String name) {
