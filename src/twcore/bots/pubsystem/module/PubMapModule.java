@@ -34,10 +34,10 @@ public class PubMapModule extends AbstractModule {
     public PubMapModule(BotAction botAction, PubContext context) {
         super(botAction, context, "PubMap");
         ba = botAction;
+        reloadConfig();
         currentBase = MED_BASE;
         lastChange = 0;
         setBase();
-        reloadConfig();
     }
 
     @Override
