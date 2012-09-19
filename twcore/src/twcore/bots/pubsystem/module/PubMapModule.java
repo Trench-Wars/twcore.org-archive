@@ -34,10 +34,10 @@ public class PubMapModule extends AbstractModule {
     public PubMapModule(BotAction botAction, PubContext context) {
         super(botAction, context, "PubMap");
         ba = botAction;
-        reloadConfig();
-        currentBase = MED_BASE;
         lastChange = 0;
+        currentBase = MED_BASE;
         setBase();
+        reloadConfig();
     }
 
     @Override
@@ -121,7 +121,7 @@ public class PubMapModule extends AbstractModule {
             lastChange = now;
             currentBase = MED_BASE;
             setBase();
-        } else if (currentBase == MED_BASE && pop < popTriggers.get(LARGE_BASE) - (popLeeway*2)) {
+        } else if (currentBase == LARGE_BASE && pop < popTriggers.get(LARGE_BASE) - (popLeeway*2)) {
             lastChange = now;
             currentBase = MED_BASE;
             setBase();
