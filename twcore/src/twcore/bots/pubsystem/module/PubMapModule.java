@@ -140,7 +140,7 @@ public class PubMapModule extends AbstractModule {
             case LARGE_OBJON:
                 ba.showObject(LARGE_OBJON);
                 ba.hideObject(SMALL_OBJON);
-                ba.hideObject(LARGE_OBJON);
+                ba.hideObject(MED_OBJON);
                 break;
         }
     }
