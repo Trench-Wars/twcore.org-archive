@@ -1847,7 +1847,8 @@ public class PubMoneySystemModule extends AbstractModule {
         s.add(new Shot(115, 575, 160));
         s.add(new Shot(80, 472, 150));
         s.add(new Shot(100, 552, 150));
-        s.add(new Shot(90, 492, 147));
+        //s.add(new Shot(90, 492, 147));
+        s.add(new Shot(90, 496, 154));
         s.add(new Shot(90, 531, 147));
         return s;
     }
