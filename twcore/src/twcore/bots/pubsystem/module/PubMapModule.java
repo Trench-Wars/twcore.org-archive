@@ -46,6 +46,7 @@ public class PubMapModule extends AbstractModule {
     private BotAction ba;
     private Random random;
     private MapRegions regions;
+    private BaseChange baseChanger;
     
     public PubMapModule(BotAction botAction, PubContext context) {
         super(botAction, context, "PubMap");
@@ -162,10 +163,11 @@ public class PubMapModule extends AbstractModule {
     }
     
     private void setBase(int base) {
-        if (currentBase == base)
+        if (currentBase == base || baseChanger != null)
             return;
         ba.sendArenaMessage("NOTICE: The map will be changing to " + getBase(base) + " in 5 seconds!", 24);
-        ba.scheduleTask(new BaseChange(base), 5000);
+        baseChanger = new BaseChange(base);
+        ba.scheduleTask(baseChanger, 5000);
     }
     
     private void warpForMedium() {
@@ -315,6 +317,7 @@ public class PubMapModule extends AbstractModule {
                     ba.hideObject(MED_OBJON);
                     break;
             }
+            baseChanger = null;
         }
     }
 
