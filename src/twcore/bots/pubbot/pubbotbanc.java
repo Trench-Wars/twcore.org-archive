@@ -13,6 +13,7 @@ import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
+import twcore.core.events.PlayerLeft;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCEvent;
@@ -84,6 +85,7 @@ public class pubbotbanc extends PubBotModule {
     public void requestEvents(EventRequester eventRequester) {
         eventRequester.request(EventRequester.MESSAGE);
         eventRequester.request(EventRequester.PLAYER_ENTERED);
+        eventRequester.request(EventRequester.PLAYER_LEFT);
         if (m_botAction.getArenaName().contains("(Public"))
             eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
     }
@@ -99,6 +101,13 @@ public class pubbotbanc extends PubBotModule {
         
         if (name.startsWith("^") == false)
             m_botAction.sendUnfilteredPrivateMessage(name, "*info");
+    }
+
+    @Override
+    public void handleEvent(PlayerLeft event) {
+        String name = m_botAction.getPlayerName(event.getPlayerID());
+        
+        
     }
 
     @Override
@@ -237,21 +246,21 @@ public class pubbotbanc extends PubBotModule {
         String mid = getInfo(info, "MachineId:");
 
         if (bancSilence.containsKey(low(name)))
-            actions.add(bancSilence.get(low(name)));
+            actions.add(bancSilence.get(low(name)).reset());
         else
             for (BanC b : bancSilence.values())
                 if (b.isMatch(name, ip, mid))
                     actions.add(b);
 
         if (bancSpec.containsKey(low(name)))
-            actions.add(bancSpec.get(low(name)));
+            actions.add(bancSpec.get(low(name)).reset());
         else
             for (BanC b : bancSpec.values())
                 if (b.isMatch(name, ip, mid))
                     actions.add(b);
 
         if (bancSuper.containsKey(low(name)))
-            actions.add(bancSuper.get(low(name)));
+            actions.add(bancSuper.get(low(name)).reset());
         else
             for (BanC b : bancSuper.values())
                 if (b.isMatch(name, ip, mid))
@@ -480,6 +489,11 @@ public class pubbotbanc extends PubBotModule {
                 this.name = name;
             }
             return match;
+        }
+        
+        public BanC reset() {
+            name = originalName;
+            return this;
         }
     }
 
