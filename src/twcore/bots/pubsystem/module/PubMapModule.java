@@ -222,18 +222,11 @@ public class PubMapModule extends AbstractModule {
     }
     
     private void cmd_getSets(String name) {
-        String str = "";
-        if (currentBase == SMALL_BASE)
-            str = "SMALL_BASE(" + SMALL_BASE + ")";
-        else if (currentBase == MED_BASE)
-            str = "MED_BASE(" + MED_BASE + ")";
-        else if (currentBase == LARGE_BASE)
-            str = "LARGE_BASE(" + LARGE_BASE + ")";
         long dt = (timeDelay * Tools.TimeInMillis.MINUTE - (System.currentTimeMillis() - lastChange));
         int min = (int)(dt / Tools.TimeInMillis.MINUTE);
         int sec = (int) (dt - min * Tools.TimeInMillis.MINUTE) / Tools.TimeInMillis.SECOND;
         ba.sendSmartPrivateMessage(name, "Current MapModule settings> PopTrigger:" + popTriggers.get(SMALL_BASE) + "," + popTriggers.get(LARGE_BASE) + " PopLeeway:" + popLeeway + " TimeDelay:" + timeDelay);
-        ba.sendSmartPrivateMessage(name, "Current base: " + str + " Pop:" + ba.getNumPlaying() + " Time: " + min + "min " + sec + "sec");
+        ba.sendSmartPrivateMessage(name, "Current base: " + getBase(currentBase) + " Pop:" + ba.getNumPlaying() + " Time: " + min + "min " + sec + "sec");
     }
     
     private void cmd_mapMod(String name) {
