@@ -296,6 +296,7 @@ public class PubMapModule extends AbstractModule {
         }
         
         public void run() {
+            lastChange = System.currentTimeMillis();
             currentBase = base;
             ba.setDoors(currentBase);
             switch (currentBase) {
