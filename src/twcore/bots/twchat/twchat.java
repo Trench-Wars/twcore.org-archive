@@ -54,7 +54,10 @@ public class twchat extends SubspaceBot {
     private static final String CORE = "TWCore";
     private static final String ECORE = "TWCore-Events";
     private static final String LCORE = "TWCore-League";
-
+    private static final String STREAM = "TrenchStream";
+    
+    private KeepStreamAlive stream;
+    
     private String debugger = "";
     private boolean DEBUG = false;
     public boolean signup = false;
@@ -86,6 +89,7 @@ public class twchat extends SubspaceBot {
         ba = m_botAction;
         m_botSettings = m_botAction.getBotSettings();
         ops = m_botAction.getOperatorList();
+        new KeepStreamAlive();
     }
 
     public void requestEvents() {
@@ -227,6 +231,8 @@ public class twchat extends SubspaceBot {
                     recalculate(name);
                 else if (message.equalsIgnoreCase("!die"))
                     m_botAction.die();
+                else if (message.equalsIgnoreCase("!stream"))
+                    cmd_stream(name);
             }
 
             if (type == Message.PRIVATE_MESSAGE) {
@@ -522,6 +528,16 @@ public class twchat extends SubspaceBot {
         ba.sendSmartPrivateMessage(stater, msg);
         stater = "";
         countBots = false;
+    }
+    
+    private void cmd_stream(String name) {
+        if (stream != null) {
+            stream.end();
+            ba.sendSmartPrivateMessage(name, "TrenchStream messages halted.");
+        } else {
+            new KeepStreamAlive();
+            ba.sendSmartPrivateMessage(name, "TrenchStream messages resumed.");
+        }
     }
 
     private void help(String name, String message) {
@@ -1083,5 +1099,25 @@ public class twchat extends SubspaceBot {
     public void debug(String msg) {
         if (DEBUG)
             ba.sendSmartPrivateMessage(debugger, "[DEBUG] " + msg);
+    }
+    
+    private class KeepStreamAlive extends TimerTask {
+        
+        public KeepStreamAlive() {
+            if (stream != null)
+                ba.cancelTask(stream);
+            stream = this;
+            ba.scheduleTask(stream, 5000, 5 * Tools.TimeInMillis.MINUTE);
+        }
+        
+        public void run() {
+            ba.sendPrivateMessage(STREAM, "stay alive");
+        }
+        
+        public void end() {
+            stream = null;
+            ba.cancelTask(this);
+        }
+        
     }
 }
