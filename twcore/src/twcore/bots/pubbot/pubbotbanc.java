@@ -15,7 +15,6 @@ import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.game.Player;
-import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCEvent;
 import twcore.core.util.ipc.IPCMessage;
 
@@ -105,9 +104,6 @@ public class pubbotbanc extends PubBotModule {
 
     @Override
     public void handleEvent(PlayerLeft event) {
-        String name = m_botAction.getPlayerName(event.getPlayerID());
-        
-        
     }
 
     @Override
@@ -118,6 +114,10 @@ public class pubbotbanc extends PubBotModule {
         String name = m_botAction.getPlayerName(event.getPlayerID());
         if (bancSuper.containsKey(low(name)))
             actions.add(bancSuper.get(low(name)));
+        else
+            for (BanC b : bancSuper.values())
+                if (b.isMatch(name))
+                    actions.add(b);
     }
 
     @Override
@@ -489,6 +489,14 @@ public class pubbotbanc extends PubBotModule {
                 this.name = name;
             }
             return match;
+        }
+        
+        public boolean isMatch(String name) {
+            if (aliases.contains(low(name))) {
+                this.name = name;
+                return true;
+            } else
+                return false;
         }
         
         public BanC reset() {
