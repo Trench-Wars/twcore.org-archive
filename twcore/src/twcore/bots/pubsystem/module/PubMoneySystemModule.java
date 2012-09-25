@@ -1818,6 +1818,7 @@ public class PubMoneySystemModule extends AbstractModule {
             public void run() {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
             	m_botAction.move(512*16, 285*16);
+            	m_botAction.setPlayerPositionUpdating(300);
             	m_botAction.getShip().setSpectatorUpdateTime(100);
                 //Iterator<Integer> i = m_botAction.getFreqIDIterator(freq);
                 for (Warper w : warps)
