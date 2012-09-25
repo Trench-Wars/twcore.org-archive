@@ -1111,7 +1111,7 @@ public class twchat extends SubspaceBot {
         }
         
         public void run() {
-            ba.sendPrivateMessage(STREAM, "stay alive");
+            ba.sendSmartPrivateMessage(STREAM, "stay alive");
         }
         
         public void end() {
