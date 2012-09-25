@@ -552,7 +552,7 @@ public class pubhub extends SubspaceBot {
         for(String bot:pubbots.keySet()) {
             if(bot.startsWith("SPAWNING")) {
                 arena = pubbots.get(bot);
-                if (Tools.isAllDigits(arena) || arena.equals("dsb") || arena.equals("tw") || arena.equals("trenchwars"))
+                if (Tools.isAllDigits(arena) || arena.equals("tw") || arena.equals("trenchwars"))
                     break;
             }
         }
