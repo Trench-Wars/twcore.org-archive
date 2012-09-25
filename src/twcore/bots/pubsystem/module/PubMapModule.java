@@ -58,6 +58,7 @@ public class PubMapModule extends AbstractModule {
         lastChange = 0;
         currentBase = MED_BASE;
         reloadConfig();
+        ba.setPlayerPositionUpdating(300);
     }
 
     @Override
