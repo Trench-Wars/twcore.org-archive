@@ -1,5 +1,6 @@
 package twcore.bots.pubsystem.module;
 
+import java.io.FileNotFoundException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -49,11 +50,10 @@ import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
-import twcore.core.events.PlayerPosition;
 import twcore.core.events.SQLResultEvent;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
-import twcore.core.game.Ship;
+import twcore.core.util.MapRegions;
 import twcore.core.util.Tools;
 
 public class PubMoneySystemModule extends AbstractModule {
@@ -86,11 +86,15 @@ public class PubMoneySystemModule extends AbstractModule {
     private HashMap<String,CouponCode> coupons; // cache system
 
     // Arena
-    private String arenaNumber = "0";
+    //private String arenaNumber = "0";
 
     private boolean donationEnabled = false;
 
     private String database;
+
+    private MapRegions regions;
+    
+    private static final String MAP_NAME = "pubmap";
 
     public PubMoneySystemModule(BotAction botAction, PubContext context) {
 
@@ -118,8 +122,25 @@ public class PubMoneySystemModule extends AbstractModule {
 
 	    m_botAction.ipcSubscribe(IPC_CHANNEL);
 
+	    regions = new MapRegions();
+	    reloadRegions();
 	    reloadConfig();
 
+    }
+    
+    public void reloadRegions() {
+        try {
+            regions.clearRegions();
+            regions.loadRegionImage(MAP_NAME + ".png");
+            regions.loadRegionCfg(MAP_NAME + ".cfg");
+        } catch (FileNotFoundException fnf) {
+            Tools.printLog("Error: " + MAP_NAME + ".png and " + MAP_NAME + ".cfg must be in the data/maps folder.");
+        } catch (javax.imageio.IIOException iie) {
+            Tools.printLog("Error: couldn't read image");
+        } catch (Exception e) {
+            Tools.printLog("Could not load warps for " + MAP_NAME);
+            Tools.printStackTrace(e);
+        }
     }
 
 
@@ -1758,10 +1779,9 @@ public class PubMoneySystemModule extends AbstractModule {
         while (i.hasNext()) {
             int id = i.next();
             Player pl = m_botAction.getPlayer(id);
-            int x = pl.getXTileLocation();
-            int y = pl.getYTileLocation();
-            if (x > 475 && x < 549 && y > 248 && y < 300)
-                warps.add(new Warper(id, x, y));
+            int reg = regions.getRegion(pl);
+            if (reg == 1 || reg == 2 || reg == 3 || reg == 5)
+                warps.add(new Warper(id, pl.getXTileLocation(), pl.getYTileLocation()));
         }
 
     	m_botAction.getShip().setShip(0);
@@ -1797,7 +1817,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	TimerTask timer = new TimerTask() {
             public void run() {
             	m_botAction.specWithoutLock(m_botAction.getBotName());
-            	m_botAction.move(512*16, 350*16);
+            	m_botAction.move(512*16, 285*16);
             	m_botAction.getShip().setSpectatorUpdateTime(100);
                 //Iterator<Integer> i = m_botAction.getFreqIDIterator(freq);
                 for (Warper w : warps)

@@ -27,7 +27,7 @@ public class PubMapModule extends AbstractModule {
     private static final int SMALL_BASE = 6;
     private static final int MED_BASE = 9;
     private static final int LARGE_BASE = 8;
-    private static final String MAP_NAME = "pub";
+    private static final String MAP_NAME = "pubmap";
 
     private static final int LARGE_REGION = 2;
     private static final int MED_REGION = 3;
@@ -189,7 +189,6 @@ public class PubMapModule extends AbstractModule {
             int reg = regions.getRegion(p);
             if (reg == LARGE_REGION || reg == MED_REGION) {
                 Point coord = getRandomPoint(FR_REGION);
-                ba.sendPublicMessage("Warped " + p.getPlayerName() + ": " + coord.getX() + " " + coord.getY());
                 ba.warpTo(p.getPlayerID(), (int) coord.getX(), (int) coord.getY());
             } else if (reg == SMALL_REGION) {
                 Point coord = getRandomPoint(MID_REGION);
