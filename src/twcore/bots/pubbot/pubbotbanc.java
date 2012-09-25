@@ -485,7 +485,7 @@ public class pubbotbanc extends PubBotModule {
             else if (this.mid != null && mid.equals(this.mid))
                 match = true;
             if (match) {
-                aliases.add(low(this.name));
+                aliases.add(low(name));
                 this.name = name;
             }
             return match;
