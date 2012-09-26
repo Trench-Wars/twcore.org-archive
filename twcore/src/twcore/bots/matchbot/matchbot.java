@@ -1176,6 +1176,7 @@ public class matchbot extends SubspaceBot {
                                                             Integer.toString(acID) };
                                                     createGame(m_botAction.getBotName(), dta);
                                                 }
+                                                createGame = null;
                                             }
                                         };
 
