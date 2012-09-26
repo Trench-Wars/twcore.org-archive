@@ -93,7 +93,7 @@ public class matchbot extends SubspaceBot {
     // --- temporary
     String m_team1 = null, m_team2 = null;
     String m_lock = "";
-    TimerTask exp;
+    TimerTask exp, createGame;
 
     // private static Pattern parseInfoRE =
     // Pattern.compile("^IP:(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})  TimeZoneBias:\\d+  Freq:\\d+  TypedName:(.*)  Demo:\\d  MachineId:(\\d+)$");
@@ -281,7 +281,7 @@ public class matchbot extends SubspaceBot {
                 if (ipc.getBot() != null && !bot.equalsIgnoreCase(ipc.getBot()) && !arena.equalsIgnoreCase(ipc.getBot()))
                     return;
                 if (ipc.getType() == Command.DIE && (ipc.getBot() == null || (ipc.getBot() != null && (bot.equalsIgnoreCase(ipc.getBot()) || arena.equalsIgnoreCase(ipc.getBot()))))) {
-                    if (!m_isLocked || m_game == null) {
+                    if (createGame == null && (!m_isLocked || m_game == null)) {
                         TimerTask d = new TimerTask() {
                             @Override
                             public void run() {
@@ -289,7 +289,7 @@ public class matchbot extends SubspaceBot {
                             }
                         };
                         m_botAction.scheduleTask(d, 3000);
-                    } else if (m_game != null) {
+                    } else if (m_game != null || createGame != null) {
                         m_botAction.ipcTransmit(IPC, new IPCCommand(Command.ECHO, TWDHUB, bot
                                 + " reports it will shutdown after the current game ends in " + arena));
                         m_die = true;
@@ -1163,7 +1163,7 @@ public class matchbot extends SubspaceBot {
                                         final int chID = r.getRequesterID();
                                         final int acID = dp.getUserID();
                                         m_botAction.ipcTransmit(IPC, new IPCTWD(EventType.NEW, m_botAction.getArenaName(), m_botAction.getBotName(), m_team1, m_team2, 0));
-                                        TimerTask m_startGameTimer = new TimerTask() {
+                                        createGame = new TimerTask() {
                                             public void run() {
                                                 m_isStartingUp = false;
                                                 if (m_cancelGame) {
@@ -1179,7 +1179,7 @@ public class matchbot extends SubspaceBot {
                                             }
                                         };
 
-                                        m_botAction.scheduleTask(m_startGameTimer, 30000);
+                                        m_botAction.scheduleTask(createGame, 30000);
                                     } else
                                         m_botAction.sendPrivateMessage(name, "You're not allowed to accept challenges for your squad");
                                 } else
