@@ -40,6 +40,7 @@ public class pubbotbanc extends PubBotModule {
     public static final String IPCBANC = "banc";
 
     private final static long INFINTE_DURATION = 0;
+    private static final int MAX_NAME_LENGTH = 19;
 
     private TimerTask initActiveBanCs;
     private Action act;
@@ -245,6 +246,13 @@ public class pubbotbanc extends PubBotModule {
         String ip = getInfo(info, "IP:");
         String mid = getInfo(info, "MachineId:");
 
+        if (name.length() > MAX_NAME_LENGTH) {
+            m_botAction.sendPrivateMessage(name, "You have been kicked from the server! Names containing more than 19 characters are no longer allowed in SSCU Trench Wars.");
+            m_botAction.sendSmartPrivateMessage(name, "*kill");
+            m_botAction.ipcSendMessage(IPCBANC, "KICKED:Player '" + name + "' has been kicked by " + m_botAction.getBotName() + " for having a name greater than " + MAX_NAME_LENGTH + " characters.", "banc", m_botAction.getBotName());
+            return;
+        }
+        
         if (bancSilence.containsKey(low(name)))
             actions.add(bancSilence.get(low(name)).reset());
         else
