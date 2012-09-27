@@ -247,7 +247,7 @@ public class pubbotbanc extends PubBotModule {
         String mid = getInfo(info, "MachineId:");
 
         if (name.length() > MAX_NAME_LENGTH) {
-            Player p = m_botAction.getPlayer(name.substring(0, MAX_NAME_LENGTH + 1));
+            Player p = m_botAction.getPlayer(name.substring(0, MAX_NAME_LENGTH));
             if (p != null) {
                 m_botAction.sendPrivateMessage(p.getPlayerID(), "You have been kicked from the server! Names containing more than 19 characters are no longer allowed in SSCU Trench Wars.");
                 m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*kill");
