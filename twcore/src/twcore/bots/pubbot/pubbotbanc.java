@@ -95,13 +95,6 @@ public class pubbotbanc extends PubBotModule {
         String name = event.getPlayerName();
         if (name == null)
             name = m_botAction.getPlayerName(event.getPlayerID());
-
-        if (name.length() > MAX_NAME_LENGTH) {
-            m_botAction.sendPrivateMessage(name, "You have been kicked from the server! Names containing more than 19 characters are no longer allowed in SSCU Trench Wars.");
-            m_botAction.sendUnfilteredPrivateMessage(event.getPlayerID(), "*kill");
-            m_botAction.ipcSendMessage(IPCBANC, "KICKED:Player '" + name + "' has been kicked by " + m_botAction.getBotName() + " for having a name greater than " + MAX_NAME_LENGTH + " characters.", "banc", m_botAction.getBotName());
-            return;
-        }
         
         if (!m_botAction.getArenaName().contains("Public"))
             m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
@@ -252,6 +245,16 @@ public class pubbotbanc extends PubBotModule {
         String name = getInfo(info, "TypedName:");
         String ip = getInfo(info, "IP:");
         String mid = getInfo(info, "MachineId:");
+
+        if (name.length() > MAX_NAME_LENGTH) {
+            Player p = m_botAction.getPlayer(name.substring(0, MAX_NAME_LENGTH + 1));
+            if (p != null) {
+                m_botAction.sendPrivateMessage(p.getPlayerID(), "You have been kicked from the server! Names containing more than 19 characters are no longer allowed in SSCU Trench Wars.");
+                m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*kill");
+                m_botAction.ipcSendMessage(IPCBANC, "KICKED:Player '" + name + "' has been kicked by " + m_botAction.getBotName() + " for having a name greater than " + MAX_NAME_LENGTH + " characters.", "banc", m_botAction.getBotName());
+                return;
+            }
+        }
         
         if (bancSilence.containsKey(low(name)))
             actions.add(bancSilence.get(low(name)).reset());
