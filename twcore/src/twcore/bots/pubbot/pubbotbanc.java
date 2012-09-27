@@ -248,7 +248,7 @@ public class pubbotbanc extends PubBotModule {
 
         if (name.length() > MAX_NAME_LENGTH) {
             m_botAction.sendPrivateMessage(name, "You have been kicked from the server! Names containing more than 19 characters are no longer allowed in SSCU Trench Wars.");
-            m_botAction.sendSmartPrivateMessage(name, "*kill");
+            m_botAction.sendUnfilteredPrivateMessage(name, "*kill");
             m_botAction.ipcSendMessage(IPCBANC, "KICKED:Player '" + name + "' has been kicked by " + m_botAction.getBotName() + " for having a name greater than " + MAX_NAME_LENGTH + " characters.", "banc", m_botAction.getBotName());
             return;
         }
