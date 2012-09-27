@@ -39,7 +39,7 @@ public class pubbotbanc extends PubBotModule {
 
     public static final String IPCBANC = "banc";
 
-    private final static long INFINTE_DURATION = 0;
+    private static final long INFINTE_DURATION = 0;
     private static final int MAX_NAME_LENGTH = 19;
 
     private TimerTask initActiveBanCs;
@@ -51,11 +51,12 @@ public class pubbotbanc extends PubBotModule {
     private Vector<BanC> actions;
 
     private BanC current;
+    private boolean silentKicks;
 
     @Override
     public void initializeModule() {
         m_botAction.ipcSubscribe(IPCBANC);
-
+        silentKicks = false;
         bancSilence = new HashMap<String, BanC>();
         bancSpec = new HashMap<String, BanC>();
         bancSuper = new HashMap<String, BanC>();
@@ -225,9 +226,16 @@ public class pubbotbanc extends PubBotModule {
             if (m_botAction.getOperatorList().isSmod(name))
                 if (message.equals("!bancs"))
                     cmd_bancs(name);
+                else if (message.equals("!kicks"))
+                    cmd_kicks(name);
         }
     }
 
+    private void cmd_kicks(String name) {
+        silentKicks = !silentKicks;
+        m_botAction.sendSmartPrivateMessage(name, "Silent kicks are now " + (silentKicks ? "ENABLED." : "DISABLED."));
+    }
+    
     private void cmd_bancs(String name) {
         m_botAction.sendSmartPrivateMessage(name, "Current BanC lists");
         m_botAction.sendSmartPrivateMessage(name, " Silences:");
@@ -242,16 +250,24 @@ public class pubbotbanc extends PubBotModule {
     }
 
     private void checkBanCs(String info) {
-        String name = getInfo(info, "TypedName:");
+        final String name = getInfo(info, "TypedName:");
         String ip = getInfo(info, "IP:");
         String mid = getInfo(info, "MachineId:");
 
         if (name.length() > MAX_NAME_LENGTH) {
             Player p = m_botAction.getPlayer(name.substring(0, MAX_NAME_LENGTH));
             if (p != null) {
-                m_botAction.sendPrivateMessage(p.getPlayerID(), "You have been kicked from the server! Names containing more than 19 characters are no longer allowed in SSCU Trench Wars.");
-                m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*kill");
-                m_botAction.ipcSendMessage(IPCBANC, "KICKED:Player '" + name + "' has been kicked by " + m_botAction.getBotName() + " for having a name greater than " + MAX_NAME_LENGTH + " characters.", "banc", m_botAction.getBotName());
+                final int id = p.getPlayerID();
+                TimerTask kick = new TimerTask() {
+                    public void run() {
+                        m_botAction.sendPrivateMessage(id, "You have been kicked from the server! Names containing more than 19 characters are no longer allowed in SSCU Trench Wars.");
+                        m_botAction.sendUnfilteredPrivateMessage(id, "*kill");
+                        if (!silentKicks)
+                            m_botAction.ipcSendMessage(IPCBANC, "KICKED:Player '" + name + "' has been kicked by " + m_botAction.getBotName() + " for having a name greater than " + MAX_NAME_LENGTH + " characters.", "banc", m_botAction.getBotName());
+                        
+                    }
+                };
+                m_botAction.scheduleTask(kick, 3200);
                 return;
             }
         }
