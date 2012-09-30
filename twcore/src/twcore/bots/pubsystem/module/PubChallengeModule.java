@@ -1073,12 +1073,22 @@ public class PubChallengeModule extends AbstractModule {
         if (dueler.type == Dueler.DUEL_CHALLENGER) {
             m_botAction.setShip(name, challenge.ship);
             m_botAction.warpTo(name, challenge.area.warp1x, challenge.area.warp1y);
-            m_botAction.setFreq(name, 0);
         } else {
             m_botAction.setShip(name, challenge.ship);
+            m_botAction.setFreq(name, getFreq());
             m_botAction.warpTo(name, challenge.area.warp2x, challenge.area.warp2y);
-            m_botAction.setFreq(name, 1);
         }
+    }
+    
+    private int getFreq() {
+        Random r = new Random();
+        int freq = -1;
+        while (freq < 0) {
+            freq = r.nextInt(9999);
+            if (m_botAction.getFrequencySize(freq) > 0)
+                freq = -1;
+        }
+        return freq;
     }
 
     public String getRealName(String name) {
