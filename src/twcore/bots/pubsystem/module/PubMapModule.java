@@ -11,6 +11,7 @@ import twcore.bots.pubsystem.PubContext;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
+import twcore.core.events.ArenaJoined;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
@@ -49,10 +50,12 @@ public class PubMapModule extends AbstractModule {
     private Random random;
     private MapRegions regions;
     private BaseChange baseChanger;
+    private boolean inPub;
     
     public PubMapModule(BotAction botAction, PubContext context) {
         super(botAction, context, "PubMap");
         ba = botAction;
+        inPub = ba.getArenaName().startsWith("(Public");
         random = new Random();
         regions = new MapRegions();
         lastChange = 0;
@@ -76,6 +79,7 @@ public class PubMapModule extends AbstractModule {
         er.request(EventRequester.PLAYER_ENTERED);
         er.request(EventRequester.PLAYER_LEFT);
         er.request(EventRequester.FREQUENCY_SHIP_CHANGE);
+        er.request(EventRequester.ARENA_JOINED);
     }
 
     @Override
@@ -107,8 +111,12 @@ public class PubMapModule extends AbstractModule {
         }
     }
     
+    public void handleEvent(ArenaJoined event) {
+        inPub = ba.getArenaName().startsWith("(Public");
+    }
+    
     public void handleEvent(PlayerEntered event) {
-        if (!enabled) return;
+        if (!enabled || !inPub) return;
         if (event.getShipType() > 0)
             doPopCheck();
         switch (currentBase) {
@@ -137,17 +145,17 @@ public class PubMapModule extends AbstractModule {
     }
     
     public void handleEvent(PlayerLeft event) {
-        if (enabled)
+        if (enabled && inPub)
             doPopCheck();
     }
     
     public void handleEvent(FrequencyShipChange event) {
-        if (enabled)
+        if (enabled && inPub)
             doPopCheck();
     }
     
     private void doPopCheck() {
-        if (!enabled) return;
+        if (!enabled || !inPub) return;
         int pop = ba.getPlayingPlayers().size();
         long now = System.currentTimeMillis();
         if (lastChange != 0 && now - lastChange < timeDelay * Tools.TimeInMillis.MINUTE)
