@@ -55,7 +55,7 @@ public class PubMapModule extends AbstractModule {
     public PubMapModule(BotAction botAction, PubContext context) {
         super(botAction, context, "PubMap");
         ba = botAction;
-        inPub = Tools.isAllDigits(ba.getArenaName());
+        inPub = ba.getArenaName().startsWith("(Public");
         random = new Random();
         regions = new MapRegions();
         lastChange = 0;
@@ -112,7 +112,7 @@ public class PubMapModule extends AbstractModule {
     }
     
     public void handleEvent(ArenaJoined event) {
-        inPub = Tools.isAllDigits(ba.getArenaName());
+        inPub = ba.getArenaName().startsWith("(Public");
     }
     
     public void handleEvent(PlayerEntered event) {
@@ -236,6 +236,7 @@ public class PubMapModule extends AbstractModule {
     
     private void cmd_reloadConfig(String name) {
         reloadConfig();
+        inPub = ba.getArenaName().startsWith("(Public");
         ba.sendSmartPrivateMessage(name, "PubMapModule settings have been reloaded from cfg file.");
     }
     
