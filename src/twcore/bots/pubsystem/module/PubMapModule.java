@@ -161,13 +161,13 @@ public class PubMapModule extends AbstractModule {
         if (lastChange != 0 && now - lastChange < timeDelay * Tools.TimeInMillis.MINUTE)
             return;
         if (pop > popTriggers.get(LARGE_BASE) + popLeeway)
-            setBase(LARGE_BASE);
+            setBase(LARGE_BASE, false);
         else if (pop < popTriggers.get(SMALL_BASE) - popLeeway)
-            setBase(SMALL_BASE);
+            setBase(SMALL_BASE, false);
         else if (currentBase == SMALL_BASE && pop > popTriggers.get(SMALL_BASE) + popLeeway)
-            setBase(MED_BASE);
+            setBase(MED_BASE, false);
         else if (currentBase == LARGE_BASE && pop < popTriggers.get(LARGE_BASE) - (popLeeway*2))
-            setBase(MED_BASE);
+            setBase(MED_BASE, false);
     }
     
     private String getBase(int base) {
@@ -179,8 +179,8 @@ public class PubMapModule extends AbstractModule {
             return "LARGE";
     }
     
-    private void setBase(int base) {
-        if ((currentBase == base && lastChange != 0) || baseChanger != null)
+    private void setBase(int base, boolean force) {
+        if (!force && ((currentBase == base && lastChange != 0) || baseChanger != null))
             return;
         ba.sendArenaMessage("NOTICE: The map will be changing to " + getBase(base) + " in 5 seconds!", 24);
         baseChanger = new BaseChange(base);
@@ -231,7 +231,7 @@ public class PubMapModule extends AbstractModule {
         else if (command.equals("!mapmod"))
             cmd_mapMod(sender);
         else if (command.equals("!setbase"))
-            setBase(currentBase);
+            setBase(currentBase, true);
     }
     
     private void cmd_reloadConfig(String name) {
@@ -272,6 +272,7 @@ public class PubMapModule extends AbstractModule {
                 " - !loadcfg          -- Reloads map module settings from the cfg file.",
                 " - !getsets          -- Displays current map module settings.",
                 " - !mapmod           -- Enables/Disables the pub map population control.",
+                " - !setbase          -- Forces the bot to set for current base settings.",
         };
         return msg;
     }
