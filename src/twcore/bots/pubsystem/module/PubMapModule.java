@@ -244,7 +244,7 @@ public class PubMapModule extends AbstractModule {
         int min = (int)(dt / Tools.TimeInMillis.MINUTE);
         int sec = (int) (dt - min * Tools.TimeInMillis.MINUTE) / Tools.TimeInMillis.SECOND;
         ba.sendSmartPrivateMessage(name, "Current MapModule settings> PopTrigger:" + popTriggers.get(SMALL_BASE) + "," + popTriggers.get(LARGE_BASE) + " PopLeeway:" + popLeeway + " TimeDelay:" + timeDelay);
-        ba.sendSmartPrivateMessage(name, "Current base: " + getBase(currentBase) + " Pop:" + ba.getNumPlaying() + " Time: " + min + "min " + sec + "sec");
+        ba.sendSmartPrivateMessage(name, "Current arena: " + ba.getArenaName() + " base: " + getBase(currentBase) + " Pop:" + ba.getNumPlaying() + " Time: " + min + "min " + sec + "sec");
     }
     
     private void cmd_mapMod(String name) {
