@@ -55,7 +55,7 @@ public class PubMapModule extends AbstractModule {
     public PubMapModule(BotAction botAction, PubContext context) {
         super(botAction, context, "PubMap");
         ba = botAction;
-        inPub = ba.getArenaName().startsWith("(Public");
+        inPub = Tools.isAllDigits(ba.getArenaName());
         random = new Random();
         regions = new MapRegions();
         lastChange = 0;
@@ -112,7 +112,7 @@ public class PubMapModule extends AbstractModule {
     }
     
     public void handleEvent(ArenaJoined event) {
-        inPub = ba.getArenaName().startsWith("(Public");
+        inPub = Tools.isAllDigits(ba.getArenaName());
     }
     
     public void handleEvent(PlayerEntered event) {
