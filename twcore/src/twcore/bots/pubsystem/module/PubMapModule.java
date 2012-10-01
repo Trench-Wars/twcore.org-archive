@@ -180,7 +180,7 @@ public class PubMapModule extends AbstractModule {
     }
     
     private void setBase(int base) {
-        if (currentBase == base || baseChanger != null)
+        if ((currentBase == base && lastChange != 0) || baseChanger != null)
             return;
         ba.sendArenaMessage("NOTICE: The map will be changing to " + getBase(base) + " in 5 seconds!", 24);
         baseChanger = new BaseChange(base);
