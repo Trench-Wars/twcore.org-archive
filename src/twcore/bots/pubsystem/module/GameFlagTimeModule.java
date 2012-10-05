@@ -655,12 +655,12 @@ public class GameFlagTimeModule extends AbstractModule {
                 + (flagMinutesRequired == 1 ? "" : "s") + " to win a round.  Best " + (MAX_FLAGTIME_ROUNDS + 1) / 2 + " of " + MAX_FLAGTIME_ROUNDS
                 + " wins the game.");
         if (strictFlagTimeMode)
-            m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  All players will be warped at round start.");
+            m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  ");
         else if (isAutoWarpEnabled())
-            m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  You will be warped inside base at round start (type !warp to change). -"
+            m_botAction.sendArenaMessage("Round 1 begins in 60 seconds. -"
                     + m_botAction.getBotName());
         else
-            m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  PM me with !warp to warp inside base at round start. -"
+            m_botAction.sendArenaMessage("Round 1 begins in 60 seconds. -"
                     + m_botAction.getBotName());
 
         startFlagTimeStarted();
