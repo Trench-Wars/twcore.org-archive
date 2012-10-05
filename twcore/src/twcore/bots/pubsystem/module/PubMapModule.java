@@ -111,6 +111,7 @@ public class PubMapModule extends AbstractModule {
         }
     }
     
+    @Override
     public void handleEvent(ArenaJoined event) {
         inPub = ba.getArenaName().startsWith("(Public");
     }
@@ -246,6 +247,8 @@ public class PubMapModule extends AbstractModule {
         int sec = (int) (dt - min * Tools.TimeInMillis.MINUTE) / Tools.TimeInMillis.SECOND;
         ba.sendSmartPrivateMessage(name, "Current MapModule settings> PopTrigger:" + popTriggers.get(SMALL_BASE) + "," + popTriggers.get(LARGE_BASE) + " PopLeeway:" + popLeeway + " TimeDelay:" + timeDelay);
         ba.sendSmartPrivateMessage(name, "Current arena: " + ba.getArenaName() + " inPub: " + inPub + " base: " + getBase(currentBase) + " Pop:" + ba.getNumPlaying() + " Time: " + min + "min " + sec + "sec");
+
+        inPub = ba.getArenaName().startsWith("(Public");
     }
     
     private void cmd_mapMod(String name) {
