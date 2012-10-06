@@ -2359,8 +2359,8 @@ public class GameFlagTimeModule extends AbstractModule {
                 int roundNum = freq0Score + freq1Score + 1;
                 if (preTimeCount == 0) {
                     m_botAction.sendArenaMessage("Next round begins in 10 seconds . . .");
-                    //if (strictFlagTimeMode)
-                    //    safeWarp();
+                    if (strictFlagTimeMode)
+                        safeWarp();
                 }
                 preTimeCount++;
 
@@ -2373,7 +2373,7 @@ public class GameFlagTimeModule extends AbstractModule {
                     m_botAction.sendArenaMessage(message, sound);
                     m_botAction.resetFlagGame();
                     setupPlayerTimes();
-                    //warpPlayers(strictFlagTimeMode);
+                    warpPlayers(strictFlagTimeMode);
                     Iterator<?> i = m_botAction.getPlayingPlayerIterator();
                     while (i.hasNext()) {
                         Player p = (Player) i.next();
