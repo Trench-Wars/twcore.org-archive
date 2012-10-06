@@ -32,24 +32,24 @@ import twcore.core.util.Tools;
 
 public class GameFlagTimeModule extends AbstractModule {
 
-    private static final int FLAG_CLAIM_SECS = 4;       // Seconds it takes to fully claim a flag
-    private static final int INTERMISSION_SECS = 90;    // Seconds between end of round and start of next
-    private static final int INTERMISSION_GAME_SECS = 90;   // Seconds between end of game and start of next
+    private static final int FLAG_CLAIM_SECS = 4;		// Seconds it takes to fully claim a flag
+    private static final int INTERMISSION_SECS = 90;	// Seconds between end of round and start of next
+    private static final int INTERMISSION_GAME_SECS = 90;	// Seconds between end of game and start of next
     private static final int MAX_FLAGTIME_ROUNDS = 5;   // Max # rounds (odd numbers only)
 
     // HashMaps to calculte MVPs after each round
     private HashMap<String, Long> playerTimeJoined;      // Time when the player joined this freq in EPOCH
     private HashMap<String, Integer> playerTimes;        // Roundtime of player on freq
-    private HashMap<String, Integer> flagClaims;            // Flag claimed during a round
+    private HashMap<String, Integer> flagClaims;			// Flag claimed during a round
     private HashMap<String, Integer> killsLocationWeigth;// Total of kill-location-weight after a round
-    private HashMap<String, Integer> killsBounty;       // Total of bounty collected by kill after a round
-    private HashMap<String, Integer> terrKills;         // Number of terr-kill during a round
-    private HashMap<String, Integer> kills;             // Number of kills during a round
-    private HashMap<String, Integer> deaths;                // Number of deaths during a round
-    private HashMap<String, Integer> tks;               // Number of tk
-    private HashMap<String, Integer> attaches;          // Number of attachee (ter only)
-    private HashMap<String, Integer> killsInBase;       // Number of kills inside the base (mid+flagroom)
-    private HashMap<String, HashSet<Integer>> ships;        // Type of ships used during a round
+    private HashMap<String, Integer> killsBounty;		// Total of bounty collected by kill after a round
+    private HashMap<String, Integer> terrKills;			// Number of terr-kill during a round
+    private HashMap<String, Integer> kills;				// Number of kills during a round
+    private HashMap<String, Integer> deaths;				// Number of deaths during a round
+    private HashMap<String, Integer> tks;				// Number of tk
+    private HashMap<String, Integer> attaches;			// Number of attachee (ter only)
+    private HashMap<String, Integer> killsInBase;		// Number of kills inside the base (mid+flagroom)
+    private HashMap<String, HashSet<Integer>> ships;		// Type of ships used during a round
 
     private HashMap<String, LevTerr> levterrs;          // Current lev terrs
 
@@ -68,8 +68,8 @@ public class GameFlagTimeModule extends AbstractModule {
     private FlagCountTask flagTimer;                    // Flag time main class
     private StartRoundTask startTimer;                  // TimerTask to start round
     private IntermissionTask intermissionTimer;         // TimerTask for round intermission
-    private AuxLvzTask scoreDisplay;                    // Displays score lvz
-    private AuxLvzTask scoreRemove;                     // Removes score lvz
+    private AuxLvzTask scoreDisplay;					// Displays score lvz
+    private AuxLvzTask scoreRemove;						// Removes score lvz
 
     private int flagMinutesRequired;                    // Flag minutes required to win
     private int freq0Score, freq1Score;                 // # rounds won
@@ -86,6 +86,10 @@ public class GameFlagTimeModule extends AbstractModule {
     // X and Y coords for warp points.  Note that the first X and Y should be
     // the "standard" warp; in TW this is the earwarp.  These coords are used in
     // strict flag time mode.
+    private boolean warpCmdsAllowed = true;	// True if players & mods are allowed to use warp cmds
+    
+    private boolean warpPtsManual = true;	// True if warp points are hard-coded
+
     private int warpPtsLeftX[];
     private int warpPtsLeftY[];
     private int warpPtsRightX[];
@@ -119,16 +123,55 @@ public class GameFlagTimeModule extends AbstractModule {
 
     @Override
     public void reloadConfig() {
-        warpPtsLeftX = m_botAction.getBotSettings().getIntArray("warp_leftX", ",");
-        warpPtsLeftY = m_botAction.getBotSettings().getIntArray("warp_leftY", ",");
-        warpPtsRightX = m_botAction.getBotSettings().getIntArray("warp_rightX", ",");
-        warpPtsRightY = m_botAction.getBotSettings().getIntArray("warp_rightY", ",");
+    	if (!warpPtsManual) {
+    		warpPtsLeftX = m_botAction.getBotSettings().getIntArray("warp_leftX", ",");
+        	warpPtsLeftY = m_botAction.getBotSettings().getIntArray("warp_leftY", ",");
+        	warpPtsRightX = m_botAction.getBotSettings().getIntArray("warp_rightX", ",");
+        	warpPtsRightY = m_botAction.getBotSettings().getIntArray("warp_rightY", ",");
 
-        warpSafeLeftX = m_botAction.getBotSettings().getInt("warp_safe_leftX");
-        warpSafeLeftY = m_botAction.getBotSettings().getInt("warp_safe_leftY");
-        warpSafeRightX = m_botAction.getBotSettings().getInt("warp_safe_rightX");
-        warpSafeRightY = m_botAction.getBotSettings().getInt("warp_safe_rightY");
+        	warpSafeLeftX = m_botAction.getBotSettings().getInt("warp_safe_leftX");
+        	warpSafeLeftY = m_botAction.getBotSettings().getInt("warp_safe_leftY");
+        	warpSafeRightX = m_botAction.getBotSettings().getInt("warp_safe_rightX");
+        	warpSafeRightY = m_botAction.getBotSettings().getInt("warp_safe_rightY");
+    	
+    	// Hardcoded warp points (for new base system)
+    	} else {
+    		warpPtsLeftX[0] = 481;
+    		warpPtsLeftX[1] = 485;
+    		warpPtsLeftX[2] = 489;
+    		warpPtsLeftX[3] = 491;
+    		warpPtsLeftX[4] = 488;
+    		
+    		warpPtsLeftY[0] = 262;
+    		warpPtsLeftY[1] = 258;
+    		warpPtsLeftY[2] = 266;
+    		warpPtsLeftY[3] = 288;
+    		warpPtsLeftY[4] = 278;
+    				
+    		warpPtsRightX[0] = 542;
+    		warpPtsRightX[1] = 539;
+    		warpPtsRightX[2] = 535;
+    		warpPtsRightX[3] = 533;
+    		warpPtsRightX[4] = 536;
 
+    		warpPtsRightY[0] = 262;
+    		warpPtsRightY[1] = 258;
+    		warpPtsRightY[2] = 266;
+    		warpPtsRightY[3] = 288;
+    		warpPtsRightY[4] = 278;
+
+    		// Coords in array format, in case anyone needs them later on
+    		//int[] leftX =  { 481, 485, 489, 491, 488 };
+    		//int[] leftY =  { 262, 258, 266, 288, 278 };
+    		//int[] rightX = { 542, 539, 535, 533, 536 };
+    		//int[] rightY = { 262, 258, 266, 288, 278 };    		
+    		
+    		warpSafeLeftX = 241;
+    		warpSafeLeftY = 485;
+    		warpSafeRightX = 785;
+    		warpSafeRightY = 484;    		
+    	}
+        
         if (m_botAction.getBotSettings().getInt("auto_warp") == 1)
             autoWarp = true;
 
@@ -402,8 +445,8 @@ public class GameFlagTimeModule extends AbstractModule {
                 cmd_levTerr(sender);
             else if (command.trim().equals("!shufflevote"))
                 cmd_shuffleVote(sender);
-            /*else if (command.trim().equals("!warp") || command.trim().equals("!w"))
-                cmd_warp(sender);*/
+            else if (warpCmdsAllowed && (command.trim().equals("!warp") || command.trim().equals("!w")))
+                cmd_warp(sender);
 
         } catch (RuntimeException e) {
             if (e != null && e.getMessage() != null)
@@ -443,23 +486,41 @@ public class GameFlagTimeModule extends AbstractModule {
 
     @Override
     public String[] getHelpMessage(String sender) {
-        return new String[] { pubsystem.getHelpLine("!shufflevote      -- Initiates shuffle teams poll after a round ends."),
-                //pubsystem.getHelpLine("!warp             -- Warps you inside base at start of next round. (!w)"),
+    	if( warpCmdsAllowed ) {
+    		return new String[] { pubsystem.getHelpLine("!shufflevote      -- Initiates shuffle teams poll after a round ends."),
+                pubsystem.getHelpLine("!warp             -- Warps you inside base at start of next round. (!w)"),
                 pubsystem.getHelpLine("!terr             -- Shows terriers on the team and their last seen locations. (!t)"),
                 pubsystem.getHelpLine("!lt               -- Shows active levterrs (ter + lev(s) attached)."),
                 pubsystem.getHelpLine("!team             -- Tells you which ships your team members are in."),
                 pubsystem.getHelpLine("!time             -- Displays info about time remaining in flag time."),
 
-        };
+    		};
+    	} else {
+            return new String[] { pubsystem.getHelpLine("!shufflevote      -- Initiates shuffle teams poll after a round ends."),
+                pubsystem.getHelpLine("!terr             -- Shows terriers on the team and their last seen locations. (!t)"),
+                pubsystem.getHelpLine("!lt               -- Shows active levterrs (ter + lev(s) attached)."),
+                pubsystem.getHelpLine("!team             -- Tells you which ships your team members are in."),
+                pubsystem.getHelpLine("!time             -- Displays info about time remaining in flag time."),
+
+            };    		
+    	}
     }
 
     @Override
     public String[] getModHelpMessage(String sender) {
-        return new String[] { pubsystem.getHelpLine("!starttime <#>    -- Starts Flag Time game to <#> minutes"),
-                pubsystem.getHelpLine("!stoptime         -- Ends Flag Time mode.")};
-                //pubsystem.getHelpLine("!stricttime       -- Toggles strict mode (all players warped)"),
-                //pubsystem.getHelpLine("!autowarp         -- Enables and disables 'opt out' warping style"),
-                //pubsystem.getHelpLine("!allowwarp        -- Allow/Disallow the !warp command") };
+    	if (warpCmdsAllowed) {
+            return new String[] { pubsystem.getHelpLine("!starttime <#>    -- Starts Flag Time game to <#> minutes"),
+                pubsystem.getHelpLine("!stoptime         -- Ends Flag Time mode."),
+                pubsystem.getHelpLine("!stricttime       -- Toggles strict mode (all players warped)"),
+                pubsystem.getHelpLine("!autowarp         -- Enables and disables 'opt out' warping style"),
+                pubsystem.getHelpLine("!allowwarp        -- Allow/Disallow the !warp command")
+                
+            };
+    	} else {
+            return new String[] { pubsystem.getHelpLine("!starttime <#>    -- Starts Flag Time game to <#> minutes"),
+                pubsystem.getHelpLine("!stoptime         -- Ends Flag Time mode."),
+            };    		
+    	}
     }
 
     @Override
@@ -654,14 +715,23 @@ public class GameFlagTimeModule extends AbstractModule {
         m_botAction.sendArenaMessage("Objective: Hold flag for " + flagMinutesRequired + " consecutive minute"
                 + (flagMinutesRequired == 1 ? "" : "s") + " to win a round.  Best " + (MAX_FLAGTIME_ROUNDS + 1) / 2 + " of " + MAX_FLAGTIME_ROUNDS
                 + " wins the game.");
-        if (strictFlagTimeMode)
-            m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  ");
-        else if (isAutoWarpEnabled())
-            m_botAction.sendArenaMessage("Round 1 begins in 60 seconds. -"
-                    + m_botAction.getBotName());
-        else
-            m_botAction.sendArenaMessage("Round 1 begins in 60 seconds. -"
-                    + m_botAction.getBotName());
+        if (strictFlagTimeMode) {
+       		m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  All players will be warped at round start.");
+        } else if (isAutoWarpEnabled()) {
+        	if (warpCmdsAllowed)
+        		m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  You will be warped inside base at round start (type !warp to change). -"
+        				+ m_botAction.getBotName());
+        	else
+        		m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  You will be warped inside base at round start. -"
+        				+ m_botAction.getBotName());
+        } else {
+        	if (warpCmdsAllowed)
+        		m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  PM me with !warp to warp inside base at round start. -"
+        				+ m_botAction.getBotName());
+        	else
+                m_botAction.sendArenaMessage("Round 1 begins in 60 seconds. -"
+                        + m_botAction.getBotName());        	        	
+        }
 
         startFlagTimeStarted();
         freq0Score = 0;
@@ -789,8 +859,8 @@ public class GameFlagTimeModule extends AbstractModule {
         int[] objs2 = { 2200, 2000, (freq0Score < 10 ? 60 + freq0Score : 50 + freq0Score), (freq0Score < 10 ? 80 + freq1Score : 70 + freq1Score) };
         boolean[] objs2Display = { true, false, false, false };
         scoreRemove = new AuxLvzTask(objs2, objs2Display);
-        m_botAction.scheduleTask(scoreDisplay, 1000);       // Do score display
-        m_botAction.scheduleTask(scoreRemove, time - 1000); // do score removal
+        m_botAction.scheduleTask(scoreDisplay, 1000);		// Do score display
+        m_botAction.scheduleTask(scoreRemove, time - 1000);	// do score removal
         m_botAction.showObject(2100);
         if (autoVote && freq0Score + freq1Score >= minShuffleRound && Math.abs(freq0Score - freq1Score) > 0)
             ;
@@ -1276,11 +1346,11 @@ public class GameFlagTimeModule extends AbstractModule {
         }
         /*
         if (mostDeath != null) {
-            m_botAction.sendArenaMessage(" - Most Reckless      : " + mostDeath);
+        	m_botAction.sendArenaMessage(" - Most Reckless      : " + mostDeath);
         }
         if (mostTk != null) {
-            m_botAction.sendArenaMessage(" - Least Honorable    : " + mostTk);
-            //context.getPlayerManager().addMoney(mostTk, 0);
+        	m_botAction.sendArenaMessage(" - Least Honorable    : " + mostTk);
+        	//context.getPlayerManager().addMoney(mostTk, 0);
         }
         */
 
@@ -1378,15 +1448,15 @@ public class GameFlagTimeModule extends AbstractModule {
         int position = 0;
         int div[] = new int[]{ 1,2,4,5,10 };
         while(iterator.hasNext() && position < 3) {
-            position++;
-            int moneyBonus = (int)(moneyMVP/div[position-1]);
-            String playerName = iterator.next();
-            String moneyMessage = "";
-            if (context.getMoneySystem().isEnabled()) {
-                moneyMessage = " (+$"+moneyBonus+")";
-                context.getPlayerManager().addMoney(playerName, moneyBonus);
-            }
-            m_botAction.sendArenaMessage(" " + position + ". " + playerName + moneyMessage);
+        	position++;
+        	int moneyBonus = (int)(moneyMVP/div[position-1]);
+        	String playerName = iterator.next();
+        	String moneyMessage = "";
+        	if (context.getMoneySystem().isEnabled()) {
+        		moneyMessage = " (+$"+moneyBonus+")";
+        		context.getPlayerManager().addMoney(playerName, moneyBonus);
+        	}
+        	m_botAction.sendArenaMessage(" " + position + ". " + playerName + moneyMessage);
         }
         */
 
