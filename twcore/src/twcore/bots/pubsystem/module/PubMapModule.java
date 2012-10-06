@@ -62,6 +62,13 @@ public class PubMapModule extends AbstractModule {
         currentBase = MED_BASE;
         reloadConfig();
         ba.setPlayerPositionUpdating(300);
+        TimerTask initialize = new TimerTask() {
+            public void run() {
+                inPub = ba.getArenaName().startsWith("(Public");
+                doPopCheck();
+            }
+        };
+        ba.scheduleTask(initialize, 5000);
     }
 
     @Override
