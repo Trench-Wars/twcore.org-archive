@@ -116,6 +116,8 @@ public class staffbot_staffchat_savelog extends Module {
             	writeText("cheater: " + "(" + playerName + ") " + line);
             } else if( command.equals( "advert" )){
             	writeText("advert: " + "(" + playerName + ") " + line);
+            } else if( command.equals( "newplayer" )){
+                writeText("newplayer: " + "(" + playerName + ") " + line);
             }
         }
         
