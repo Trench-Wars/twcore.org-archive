@@ -1,6 +1,6 @@
 package twcore.bots.pubbot;
 
-import java.util.Iterator;
+//import java.util.Iterator;
 import java.util.HashMap;
 import java.util.TimerTask;
 
@@ -81,12 +81,18 @@ public class pubbotwho extends PubBotModule {
 
         //m_botAction.ipcTransmit(IPC, new IPCMessage("enter:" + p.getPlayerName()));
         String name = p.getPlayerName().toLowerCase();
+        
+        // Has player left and then re-entered before their TimerTask has fired? If so, update time
         if (who.containsKey(name)) {
-            m_botAction.cancelTask(who.remove(name));
+        	Who temp = who.get(name);
+        	if (temp != null)
+        		temp.setTime( System.currentTimeMillis() );
+            //m_botAction.cancelTask(who.remove(name));
+        } else {
+        	Who u = new Who(p.getPlayerName(), System.currentTimeMillis());
+        	who.put(name, u);
+        	m_botAction.scheduleTask(u, 2000);
         }
-        Who u = new Who(p.getPlayerName(), System.currentTimeMillis());
-        who.put(name, u);
-        m_botAction.scheduleTask(u, 2000);
     }
 
     public void handleEvent(PlayerLeft event) {
@@ -143,8 +149,9 @@ public class pubbotwho extends PubBotModule {
     
     class Who extends TimerTask {
         
-        String name;
-        long time;
+        String name;    // Player name
+        long time;      // Time at which they entered arena  (TODO: verify that this is actually used?
+                        //                                          Its run() uses System's current time)
         
         public Who(String name, long time) {
             this.name = name;
@@ -155,6 +162,10 @@ public class pubbotwho extends PubBotModule {
         public void run() {
             who.remove(name.toLowerCase());
             m_botAction.ipcTransmit(IPC, new IPCEvent(name, System.currentTimeMillis(), EventRequester.PLAYER_ENTERED));
+        }
+        
+        public void setTime( long time ) {
+        	this.time = time;
         }
         
     }
