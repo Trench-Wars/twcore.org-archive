@@ -66,7 +66,9 @@ public class staffbot_serverwarningecho extends Module {
 		if(event.getMessageType() == Message.SERVER_ERROR) {
 		    // 1 = staff chat
 	        // 2 = smod chat
-		    String p = getPlayerNameFromError(event.getMessage()).toLowerCase();
+		    String p = getPlayerNameFromError(event.getMessage());
+		    if( p != null )
+		        p = p.toLowerCase();
 		    if(ignoredPlayers.isEmpty() || !ignoredPlayers.contains(p)) {
 		        if (p.equals("hockeybot")) {
 		            ignoredPlayers.add("hockeybot");
@@ -112,7 +114,7 @@ public class staffbot_serverwarningecho extends Module {
 	  }
 	  
 	  private String getPlayerNameFromError(String errorMessage) {
-	      if(errorMessage.indexOf('(') != -1 && errorMessage.indexOf(')') != -1) {
+	      if(errorMessage != null && errorMessage.indexOf('(') != -1 && errorMessage.indexOf(')') != -1) {
     	      int startPosition = errorMessage.indexOf('(')+1;
     	      int endPosition = errorMessage.indexOf(')');
     	      return errorMessage.substring(startPosition, endPosition);
