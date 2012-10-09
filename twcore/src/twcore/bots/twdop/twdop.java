@@ -97,7 +97,7 @@ public class twdop extends SubspaceBot {
             String senderName = event.getMessageType() == Message.CHAT_MESSAGE ? event.getMessager() : m_botAction.getPlayerName(sender);
 
             // Ignore player's commands
-            if (!m_botAction.getOperatorList().isSmod(senderName) && !isTWDOp(senderName)) {
+            if (senderName != null && (!m_botAction.getOperatorList().isSmod(senderName) && !isTWDOp(senderName))) {
                 return;
             }
 
