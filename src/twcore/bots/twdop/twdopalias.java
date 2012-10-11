@@ -139,7 +139,7 @@ public class twdopalias extends Module {
             if (ipResults == null || midResults == null)
                 m_botAction.sendChatMessage("Player not found in database.");
             else if (all)
-                displayAltNickAllResults(queryString, headers, "fcUserName");
+                displayAltNickAllResults(sender, queryString, headers, "fcUserName");
             else
                 displayAltNickResults(sender, playerName, queryString, headers, "fcUserName");
 
@@ -194,7 +194,7 @@ public class twdopalias extends Module {
         }
     }
 
-    private void doInfoCmd(String playerName) {
+    private void doInfoCmd(String sender, String playerName) {
         try {
             String[] headers = { IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
             String queryString = "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "' " + getOrderBy();
@@ -207,29 +207,31 @@ public class twdopalias extends Module {
                 throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
 
             boolean hide = hider.isHidden(playerName);
-            
-            m_botAction.sendChatMessage(getResultHeaders(headers));
+
+            ArrayList<String> results = new ArrayList<String>();
+            results.add(getResultHeaders(headers));
             while (resultSet.next()) {
                 if (!hide && numResults <= m_maxRecords)
-                    m_botAction.sendChatMessage(getResultLine(resultSet, headers));
+                    results.add(getResultLine(resultSet, headers));
                 prevResults.add(curResult);
                 numResults++;
             }
 
             if (numResults > m_maxRecords)
-                m_botAction.sendChatMessage(numResults - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
+                results.add(numResults - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
             else
-                m_botAction.sendChatMessage("Altnick returned " + numResults + " results.");
+                results.add("Altnick returned " + numResults + " results.");
             m_botAction.SQLClose(resultSet);
+            m_botAction.smartPrivateMessageSpam(sender, results.toArray(new String[results.size()]));
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
     }
 
-    private void doInfoAllCmd(String playerName) {
+    private void doInfoAllCmd(String sender, String playerName) {
         try {
             String[] headers = { IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
-            displayAltNickAllResults(
+            displayAltNickAllResults(sender, 
                     "SELECT * "
                             + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID "
                             + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "' "
@@ -256,7 +258,7 @@ public class twdopalias extends Module {
         return ip32Bit;
     }
 
-    private void displayAltNickAllResults(String queryString, String[] headers, String uniqueField) throws SQLException {
+    private void displayAltNickAllResults(String sender, String queryString, String[] headers, String uniqueField) throws SQLException {
         ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
         HashSet<String> prevResults = new HashSet<String>();
         String curResult = null;
@@ -265,24 +267,27 @@ public class twdopalias extends Module {
         if (resultSet == null)
             throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
 
-        m_botAction.sendChatMessage(getResultHeaders(headers));
+        //m_botAction.sendChatMessage(getResultHeaders(headers));
+        ArrayList<String> results = new ArrayList<String>();
+        results.add(getResultHeaders(headers));
         while (resultSet.next()) {
             if (uniqueField != null)
                 curResult = resultSet.getString(uniqueField);
 
             if (uniqueField == null || !prevResults.contains(curResult)) {
                 if (numResults <= m_maxRecords)
-                    m_botAction.sendChatMessage(getResultLine(resultSet, headers));
+                    results.add(getResultLine(resultSet, headers));
                 prevResults.add(curResult);
                 numResults++;
             }
         }
 
         if (numResults > m_maxRecords)
-            m_botAction.sendChatMessage(numResults - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
+            results.add(numResults - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
         else
-            m_botAction.sendChatMessage("Altnick returned " + numResults + " results.");
+            results.add("Altnick returned " + numResults + " results.");
         m_botAction.SQLClose(resultSet);
+        m_botAction.smartPrivateMessageSpam(sender, results.toArray(new String[results.size()]));
     }
 
     private void displayAltNickResults(String sender, String player, String queryString, String[] headers, String uniqueField) throws SQLException {
@@ -793,10 +798,10 @@ public class twdopalias extends Module {
             //          else if(command.startsWith("!alttwl "))
             //              doAltTWLCmd(message.substring(8).trim());
             else if (command.startsWith("!info ")) {
-                doInfoCmd(message.substring(6).trim());
+                doInfoCmd(sender, message.substring(6).trim());
                 record(sender, message);
             } else if (opList.isSysopExact(sender) && command.startsWith("!infoall "))
-                doInfoAllCmd(message.substring(9).trim());
+                doInfoAllCmd(sender, message.substring(9).trim());
             else if (command.startsWith("!compare ")) {
                 doCompareCmd(message.substring(9).trim());
                 record(sender, message);
