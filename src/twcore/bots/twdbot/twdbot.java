@@ -145,17 +145,6 @@ public class twdbot extends SubspaceBot {
                     }
             }
     }
-    
-    private void cmd_relay(String name) {
-        aliasRelay = !aliasRelay;
-        if (aliasRelay) {
-            m_botAction.sendSmartPrivateMessage(name, "Alias relay messages: ENABLED");
-            m_botSettings.put("AliasRelay", 1);
-        } else {
-            m_botAction.sendSmartPrivateMessage(name, "Alias relay messages: DISABLED");
-            m_botSettings.put("AliasRelay", 0);
-        }
-    }
 
     @Override
     public void handleEvent(Message event) {
@@ -351,6 +340,17 @@ public class twdbot extends SubspaceBot {
                         m_botAction.changeArena(arena);
                     }
             }
+    }
+    
+    private void cmd_relay(String name) {
+        aliasRelay = !aliasRelay;
+        if (aliasRelay) {
+            m_botAction.sendSmartPrivateMessage(name, "Alias relay messages: ENABLED");
+            m_botSettings.put("AliasRelay", 1);
+        } else {
+            m_botAction.sendSmartPrivateMessage(name, "Alias relay messages: DISABLED");
+            m_botSettings.put("AliasRelay", 0);
+        }
     }
 
     private void cmd_passwordMatch(String name, String message) {
@@ -1451,7 +1451,7 @@ public class twdbot extends SubspaceBot {
                 int type = rs.getInt(5);
                 ids.add(id);
                 if (aliasRelay)
-                    m_botAction.sendChatMessage("[TWD Alias] (" + type + ") " + user + ": " + alias);
+                    m_botAction.sendChatMessage(3,"[TWD Alias] (" + type + ") " + user + ": " + alias);
                 inserts += "('" + Tools.addSlashes(user) + "','" + Tools.addSlashes(alias) + "','" + d.toString() + "'," + type + "), ";
             }
             m_botAction.SQLClose(rs);
