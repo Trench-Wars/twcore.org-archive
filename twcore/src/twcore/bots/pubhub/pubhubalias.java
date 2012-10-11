@@ -223,7 +223,11 @@ public class pubhubalias extends PubBotModule {
             else
                 results.add("Altnick returned " + numResults + " results.");
             m_botAction.SQLClose(resultSet);
-            m_botAction.smartPrivateMessageSpam(sender, results.toArray(new String[results.size()]));
+            if (privateAliases)
+                m_botAction.smartPrivateMessageSpam(sender, results.toArray(new String[results.size()]));
+            else
+                for (String message : results)
+                    m_botAction.sendChatMessage(message);
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
