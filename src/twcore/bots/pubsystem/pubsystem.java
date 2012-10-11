@@ -45,6 +45,14 @@ import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
 /**
+ * Main pub system, which works by integrating all pub modules.
+ * 
+ * 
+ * 
+ * ----
+ * 
+ * TODO: Move description below to proper modules (GameFlagTime and PubPlayerManagerModule)
+ * 
  * "Pure" pub bot that can enforce ship restrictions, freq restrictions, and run
  * a timed pub game using a flag. (Note that for non-TW zones, the warp points for
  * flag time games must be set up before use.)
@@ -93,6 +101,9 @@ public class pubsystem extends SubspaceBot
     private String initialSpawn;                        // Arena initially spawned in
     
     private String greeting;
+    
+    private boolean printHelpSpaces = false;            // Whether to print spaces after each section
+                                                        //   in !help spam
     
     /**
      * Creates a new instance of pubsystem bot and initializes necessary data.
@@ -470,7 +481,8 @@ public class pubsystem extends SubspaceBot
 				}
 				if (module.getHelpMessage(sender).length>0) {
 					m.addAll(Arrays.asList(module.getHelpMessage(null)));
-					m.add(" ");
+		            if( printHelpSpaces )
+		                m.add(" ");
 				}
 				lines.addAll(m);
 			}
@@ -485,7 +497,8 @@ public class pubsystem extends SubspaceBot
  			if( m_botAction.getOperatorList().isModerator( sender ) )
  				lines.add(getHelpLine("!helpmod          -- Show the !help menu for Mod+."));
 	     	
- 			lines.add(" ");
+ 			if( printHelpSpaces )
+ 			    lines.add(" ");
  	        lines.add("Note: Commands must be sent in private.");
  			
 	    	m_botAction.smartPrivateMessageSpam(sender, (String[])lines.toArray(new String[lines.size()]));
@@ -502,12 +515,14 @@ public class pubsystem extends SubspaceBot
             	}
             	if (module.getModHelpMessage(sender).length>0) {
             		m.addAll(Arrays.asList(module.getModHelpMessage(sender)));
-            		m.add(" ");
+                    if( printHelpSpaces )
+                        m.add(" ");
             	}
             	if (smod && module.getSmodHelpMessage(sender).length > 0) {
                     m.addAll(Arrays.asList(module.getSmodHelpMessage(sender)));
                     m.add("- !greet <msg>      -- Change private message greeting.");
-                    m.add(" ");            	    
+                    if( printHelpSpaces )
+                        m.add(" ");            	    
             	}
             	lines.addAll(m);
             }
@@ -537,7 +552,7 @@ public class pubsystem extends SubspaceBot
     }
     
     public static String getHelpLine(String line) {
-    	return "- " + line;
+    	return "   " + line;
     }
     
     public static String getModuleHelpHeader(String headerName) {
