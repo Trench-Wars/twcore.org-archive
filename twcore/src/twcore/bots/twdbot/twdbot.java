@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.StringTokenizer;
 import java.util.TimerTask;
+import java.util.Vector;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -55,6 +56,8 @@ public class twdbot extends SubspaceBot {
     private LinkedList<String> m_watches;
     private TimerTask einfo;
 
+    private boolean aliasRelay;
+    
     TimerTask messages, locater;
 
     int ownerID;
@@ -76,6 +79,7 @@ public class twdbot extends SubspaceBot {
 
         //birthday = new SimpleDateFormat("HH:mm MM.dd.yy").format(Calendar.getInstance().getTime());
         m_watches = new LinkedList<String>();
+        aliasRelay = m_botSettings.getInt("AliasRelay") == 1;
         requestEvents();
     }
 
@@ -108,7 +112,7 @@ public class twdbot extends SubspaceBot {
             @Override
             public void run() {
                 checkMessages();
-                checkNamesToReset();
+                checkForResets();
             };
         };
         m_botAction.scheduleTaskAtFixedRate(checkMessages, 5000, 30000);
@@ -140,6 +144,17 @@ public class twdbot extends SubspaceBot {
                         m_botAction.sendChatMessage(2, "" + ipc.getName() + " challenged top teams to " + ipc.getPlayers() + "s in " + ipc.getArena());
                     }
             }
+    }
+    
+    private void cmd_relay(String name) {
+        aliasRelay = !aliasRelay;
+        if (aliasRelay) {
+            m_botAction.sendSmartPrivateMessage(name, "Alias relay messages: ENABLED");
+            m_botSettings.put("AliasRelay", 1);
+        } else {
+            m_botAction.sendSmartPrivateMessage(name, "Alias relay messages: DISABLED");
+            m_botSettings.put("AliasRelay", 0);
+        }
     }
 
     @Override
@@ -183,6 +198,8 @@ public class twdbot extends SubspaceBot {
                         m_botAction.sendChatMessage(3, "" + player + " has been added to challenge watch by " + name);
                         m_botAction.sendChatMessage(2, "" + player + " has been added to challenge watch by " + name);
                     }
+                } else if (m_opList.isSysop(name) && message.equalsIgnoreCase("!relay")) {
+                    cmd_relay(name);
                 } else if (type != Message.CHAT_MESSAGE) {
                     // Operator commands
                     if (message.startsWith("!watch ")) {
@@ -1241,7 +1258,7 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public void checkNamesToReset() {
+    public void checkForResets() {
         try {
             m_botAction.SQLBackgroundQuery(webdb, null, "DELETE FROM tblAliasSuppression WHERE fdResetTime < DATE_SUB(NOW(), INTERVAL 1 DAY);");
             m_botAction.SQLBackgroundQuery(webdb, null, "UPDATE tblChallengeBan SET fnActive = 0 WHERE fnActive = 1 AND fdDateCreated < DATE_SUB(NOW(), INTERVAL 1 DAY)");
@@ -1420,10 +1437,33 @@ public class twdbot extends SubspaceBot {
                     // and this bot.
                     m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblMessage WHERE fnMessageID = " + s.getInt("fnMessageID"));
                 }
-                ;
             }
-            ;
-            m_botAction.SQLClose(s);
+            m_botAction.SQLClose(s);            
+            
+            ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT * FROM tblTWDAliasRelay");
+            String inserts = "";
+            Vector<Integer> ids = new Vector<Integer>();
+            while (rs.next()) {
+                int id = rs.getInt(1);
+                String user = rs.getString(2);
+                String alias = rs.getString(3);
+                java.sql.Timestamp d = rs.getTimestamp(4);
+                int type = rs.getInt(5);
+                ids.add(id);
+                if (aliasRelay)
+                    m_botAction.sendChatMessage("[TWD Alias] (" + type + ") " + user + ": " + alias);
+                inserts += "('" + Tools.addSlashes(user) + "','" + Tools.addSlashes(alias) + "','" + d.toString() + "'," + type + "), ";
+            }
+            m_botAction.SQLClose(rs);
+            if (!ids.isEmpty()) {
+                inserts = "INSERT INTO tblTWDAliasLog (fcUser, fcAlias, fdDate, fnType) VALUES " + inserts.substring(0, inserts.lastIndexOf(","));
+                m_botAction.SQLBackgroundQuery(webdb, null, inserts);
+                String deletes = "";
+                for (Integer i : ids)
+                    deletes += i + ",";
+                deletes = deletes.substring(0, deletes.lastIndexOf(","));
+                m_botAction.SQLBackgroundQuery(webdb, null, "DELETE FROM tblTWDAliasRelay WHERE fnID IN (" + deletes + ")");
+            }
         } catch (SQLException e) {
             Tools.printStackTrace(e);
         }
