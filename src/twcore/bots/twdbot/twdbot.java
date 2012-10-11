@@ -1451,7 +1451,7 @@ public class twdbot extends SubspaceBot {
                 int type = rs.getInt(5);
                 ids.add(id);
                 if (aliasRelay)
-                    m_botAction.sendChatMessage(3,"[TWD Alias] (" + type + ") " + user + ": " + alias);
+                    m_botAction.sendChatMessage(3,"[TWD Staff Site] Alias(" + type + ") by " + user + ": " + alias);
                 inserts += "('" + Tools.addSlashes(user) + "','" + Tools.addSlashes(alias) + "','" + d.toString() + "'," + type + "), ";
             }
             m_botAction.SQLClose(rs);
