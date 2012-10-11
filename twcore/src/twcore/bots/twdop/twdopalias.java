@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
@@ -122,7 +123,7 @@ public class twdopalias extends Module {
         hider.handleEvent(event);
     }
 
-    private void doAltNickCmd(String playerName, boolean all) {
+    private void doAltNickCmd(String sender, String playerName, boolean all) {
         try {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
@@ -140,14 +141,14 @@ public class twdopalias extends Module {
             else if (all)
                 displayAltNickAllResults(queryString, headers, "fcUserName");
             else
-                displayAltNickResults(playerName, queryString, headers, "fcUserName");
+                displayAltNickResults(sender, playerName, queryString, headers, "fcUserName");
 
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
     }
 
-    private void doAltMacIdCmd(String playerMid) {
+    private void doAltMacIdCmd(String sender, String playerMid) {
         if (!Tools.isAllDigits(playerMid)) {
             m_botAction.sendChatMessage("Command syntax error: Please use !altmid <number>");
             return;
@@ -156,7 +157,7 @@ public class twdopalias extends Module {
         try {
             String[] headers = { NAME_FIELD, IP_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
-            displayAltNickResults(null, "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnMachineId = " + playerMid + " " + getOrderBy(), headers, "fcUserName");
+            displayAltNickResults(sender, null, "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnMachineId = " + playerMid + " " + getOrderBy(), headers, "fcUserName");
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
@@ -168,12 +169,12 @@ public class twdopalias extends Module {
         return "ORDER BY fdUpdated DESC";
     }
 
-    private void doAltIpCmdPartial(String stringPlayerIP) {
+    private void doAltIpCmdPartial(String sender, String stringPlayerIP) {
         try {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
             String query = "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcIPString LIKE '" + stringPlayerIP + "%'" + " " + getOrderBy();
 
-            displayAltNickResults(null, query, headers, "fcUserName");
+            displayAltNickResults(sender, null, query, headers, "fcUserName");
 
         } catch (SQLException e) {
             //throw new RuntimeException("SQL Error: "+e.getMessage(), e);
@@ -182,12 +183,12 @@ public class twdopalias extends Module {
         }
     }
 
-    private void doAltIpCmd(String playerIp) {
+    private void doAltIpCmd(String sender, String playerIp) {
         try {
             String[] headers = { NAME_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
             long ip32Bit = make32BitIp(playerIp);
 
-            displayAltNickResults(null, "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnIp LIKE " + ip32Bit + " " + getOrderBy(), headers, "fcUserName");
+            displayAltNickResults(sender, null, "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnIp LIKE " + ip32Bit + " " + getOrderBy(), headers, "fcUserName");
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
@@ -284,7 +285,7 @@ public class twdopalias extends Module {
         m_botAction.SQLClose(resultSet);
     }
 
-    private void displayAltNickResults(String player, String queryString, String[] headers, String uniqueField) throws SQLException {
+    private void displayAltNickResults(String sender, String player, String queryString, String[] headers, String uniqueField) throws SQLException {
         ResultSet resultSet = m_botAction.SQLQuery(DATABASE, queryString);
         HashSet<String> prevResults = new HashSet<String>();
         String curResult = null;
@@ -298,14 +299,17 @@ public class twdopalias extends Module {
         if (player != null && hider.isHidden(player))
             hide = true;
 
-        m_botAction.sendChatMessage(getResultHeaders(headers));
+        //m_botAction.sendChatMessage(getResultHeaders(headers));
+        ArrayList<String> results = new ArrayList<String>();
+        results.add(getResultHeaders(headers));
         while (resultSet.next()) {
             if (uniqueField != null)
                 curResult = resultSet.getString(uniqueField);
 
             if (uniqueField == null || !prevResults.contains(curResult)) {
                 if (!hide && !hider.isHidden(curResult) && totalResults <= m_maxRecords) {
-                    m_botAction.sendChatMessage(getResultLine(resultSet, headers));
+                    //m_botAction.sendChatMessage(getResultLine(resultSet, headers));
+                    results.add(getResultLine(resultSet, headers));
                     shownResults++;
                 }
                 prevResults.add(curResult);
@@ -314,10 +318,13 @@ public class twdopalias extends Module {
         }
 
         if (shownResults > m_maxRecords)
-            m_botAction.sendChatMessage(shownResults - m_maxRecords + " records not shown.  !maxrecords # to show if available (current: " + m_maxRecords + ")");
+            results.add(shownResults - m_maxRecords + " records not shown.  !maxrecords # to show if available (current: " + m_maxRecords + ")");
+            //m_botAction.sendChatMessage(shownResults - m_maxRecords + " records not shown.  !maxrecords # to show if available (current: " + m_maxRecords + ")");
         else
-            m_botAction.sendChatMessage("Altnick returned " + shownResults + " (" + totalResults + ") results.");
+            results.add("Altnick returned " + shownResults + " (" + totalResults + ") results.");
+            //m_botAction.sendChatMessage("Altnick returned " + shownResults + " (" + totalResults + ") results.");
         m_botAction.SQLClose(resultSet);
+        m_botAction.smartPrivateMessageSpam(sender, results.toArray(new String[results.size()]));
     }
 
     private String getResultHeaders(String[] displayFields) {
@@ -768,27 +775,32 @@ public class twdopalias extends Module {
         try {
             if (command.equals("!recordinfo"))
                 doRecordInfoCmd(sender);
-            else if (command.startsWith("!partialip"))
-                doAltIpCmdPartial(command.substring(11));
-
-            else if (command.equals("!help"))
+            else if (command.startsWith("!partialip")) {
+                doAltIpCmdPartial(sender, command.substring(11));
+                record(sender, message);
+            } else if (command.equals("!help"))
                 doHelpCmd(sender);
             else if (command.startsWith("!altnick ")) {
-                doAltNickCmd(message.substring(9).trim(), false);
+                doAltNickCmd(sender, message.substring(9).trim(), false);
                 record(sender, message);
-            } else if (command.startsWith("!altip "))
-                doAltIpCmd(message.substring(7).trim());
-            else if (command.startsWith("!altmid "))
-                doAltMacIdCmd(message.substring(8).trim());
+            } else if (command.startsWith("!altip ")) {
+                doAltIpCmd(sender, message.substring(7).trim());
+                record(sender, message);
+            } else if (command.startsWith("!altmid ")) {
+                doAltMacIdCmd(sender, message.substring(8).trim());
+                record(sender, message);
+            } 
             //          else if(command.startsWith("!alttwl "))
             //              doAltTWLCmd(message.substring(8).trim());
-            else if (command.startsWith("!info "))
+            else if (command.startsWith("!info ")) {
                 doInfoCmd(message.substring(6).trim());
-            else if (opList.isSysopExact(sender) && command.startsWith("!infoall "))
+                record(sender, message);
+            } else if (opList.isSysopExact(sender) && command.startsWith("!infoall "))
                 doInfoAllCmd(message.substring(9).trim());
-            else if (command.startsWith("!compare "))
+            else if (command.startsWith("!compare ")) {
                 doCompareCmd(message.substring(9).trim());
-            else if (command.startsWith("!maxrecords "))
+                record(sender, message);
+            } else if (command.startsWith("!maxrecords "))
                 doMaxRecordsCmd(message.substring(12).trim());
             else if (command.startsWith("!ipwatch "))
                 doIPWatchCmd(sender, message.substring(9).trim());
@@ -822,7 +834,7 @@ public class twdopalias extends Module {
             else if (command.startsWith("!aliasdeop "))
                 doRemAliasOp(sender, message.substring(10).trim());
             else if (command.startsWith("!altall ") && opList.isSysopExact(sender)) {
-                doAltNickCmd(message.substring(8).trim(), true);
+                doAltNickCmd(sender, message.substring(8).trim(), true);
                 record(sender, message);
             }
         } catch (Exception e) {
