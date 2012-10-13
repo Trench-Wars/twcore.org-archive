@@ -324,10 +324,7 @@ public class pubsystem extends SubspaceBot
 
         if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.PUBLIC_MESSAGE))
             handlePublicCommand(sender, message, messageType);
-        if (m_botAction.getOperatorList().isZH(sender) && (message.startsWith("!newplayer ") || message.startsWith("!next ") || message.startsWith("!end "))) {
-            if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE))
-                handleModCommand(sender, message);
-        } else if (m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) || m_botAction.getOperatorList().isBotExact(sender))
+        else if (m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) || m_botAction.getOperatorList().isBotExact(sender))
             if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE)) {
                 handleModCommand(sender, message);
                 if (m_botAction.getOperatorList().isSmod(sender)) {
@@ -353,22 +350,12 @@ public class pubsystem extends SubspaceBot
             
             if(command.equals("!help") || command.equals("!h"))
                 doHelpCmd(sender, false);
-            else if(command.equals("!help -tutorial"))
-                doTutorialHelpCmd(sender);
             //else if(command.equals("!algorithm") || command.equals("!algo"))
             //    doAlgorithmCmd(sender);
             else if(command.startsWith("!greetmessage"))
                 doGreetMessageCmd(sender, command);
             else if(command.equals("!about"))
                 doAboutCmd(sender);
-            else if(command.equals("!tutorial"))
-                context.getPubUtil().doTutorial(sender);
-            else if(command.equals("!next"))
-                context.getPubUtil().doNext(sender, true);
-            else if(command.equals("!end"))
-                context.getPubUtil().doEnd(sender);
-            else if(command.equals("!quickhelp"))
-                context.getPubUtil().doQuickHelp(sender);
             else if (command.startsWith("!") && !command.contains(" ") && command.length()>1 && command.charAt(1)!='!' && messageType == Message.PUBLIC_MESSAGE) {
             	m_botAction.sendSmartPrivateMessage(sender, "Please, send your command in private. Try :" + m_botAction.getBotName() + ":" + command);
             }
@@ -394,10 +381,6 @@ public class pubsystem extends SubspaceBot
     public void handleModCommand(String sender, String command) {
     	
         try {
-            if(command.startsWith("New Player:")) {
-                context.getPubUtil().handleNewPlayer(command);
-                return;
-            }
             command = command.toLowerCase();
         	if (command.equals("!setuparena") && m_botAction.getOperatorList().isOwner(sender)) {
         		setupArenaSetting();

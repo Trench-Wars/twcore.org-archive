@@ -5,17 +5,17 @@ import java.util.LinkedList;
 import java.util.List;
 
 import twcore.bots.pubsystem.module.PubUtilModule.Location;
-import twcore.bots.pubsystem.module.PubUtilModule.Tileset;
+//import twcore.bots.pubsystem.module.PubUtilModule.Tileset;
 import twcore.bots.pubsystem.module.moneysystem.LvzMoneyPanel;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItemUsed;
-import twcore.bots.pubsystem.module.moneysystem.item.PubPrizeItem;
+//import twcore.bots.pubsystem.module.moneysystem.item.PubPrizeItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubCommandItem;
 import twcore.core.BotAction;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerDeath;
-import twcore.core.game.Player;
+//import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
 
@@ -25,7 +25,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
 	
 	private BotAction m_botAction;
 
-	private Tileset tileset = Tileset.MONOLITH;
+	//private Tileset tileset = Tileset.MONOLITH;
 	
     private String name;
     private int money;
@@ -84,6 +84,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
         return name;
     }
     
+    /*
     public Tileset getTileset() {
     	return tileset;
     }
@@ -94,6 +95,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     	}
     	this.tileset = tileset;
     }
+    */
 
     public int getMoney() {
         return money;
