@@ -463,6 +463,7 @@ public class PubChallengeModule extends AbstractModule {
         if (playerAccepter.getShipType() == 0)
             m_botAction.setShip(accepter, ship);
 
+        /*
         String moneyMessage = "";
         if (context.getMoneySystem().isEnabled())
             moneyMessage = " for $" + amount;
@@ -470,7 +471,7 @@ public class PubChallengeModule extends AbstractModule {
         if (announceNew && amount >= announceZoneWinnerAt)
             m_botAction.sendZoneMessage("[PUB] A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship)
                     + moneyMessage + ".", Tools.Sound.BEEP1);
-
+        */
         removePendingChallenge(challenger, false);
         removePendingChallenge(accepter, false);
 
