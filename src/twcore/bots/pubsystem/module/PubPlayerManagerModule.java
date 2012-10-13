@@ -14,7 +14,6 @@ import java.util.Vector;
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.PubHuntModule.HuntPlayer;
-import twcore.bots.pubsystem.module.PubUtilModule.Tileset;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipUpgradeItem;
@@ -398,6 +397,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     		
 			String name = rs.getString("fcName");
 			int money = rs.getInt("fnMoney");
+			/*
 			Tileset tileset;
 			try {
 				tileset = Tileset.valueOf(rs.getString("fcTileset").toUpperCase());
@@ -405,6 +405,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 			} catch (Exception e) { 
 				tileset = Tileset.BLUETECH;
 			}
+			*/
 
 			player = new PubPlayer(m_botAction, name, money);
 			players.put(name.toLowerCase(), player);
@@ -432,7 +433,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     	if (player != null) {
     		player.reloadPanel(false);
     		player.setName(playerName);
-    		context.getPubUtil().setTileset(player.getTileset(), player.getPlayerName(), false);
+    		//context.getPubUtil().setTileset(player.getTileset(), player.getPlayerName(), false);
     		return player;
     	}
     	else if (databaseName != null) {
@@ -900,8 +901,8 @@ public class PubPlayerManagerModule extends AbstractModule {
                 	}
                 	
                 	if (player.getLastOptionsUpdate() > player.getLastSavedState()) {
-                    	String tilesetName = player.getTileset().toString().toLowerCase();
-                    	m_botAction.SQLBackgroundQuery(databaseName, null, "INSERT INTO tblPlayerStats (fcName,fcTileset) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"','"+Tools.addSlashes(tilesetName)+"') ON DUPLICATE KEY UPDATE fcTileset='"+Tools.addSlashes(tilesetName)+"'");
+                    	//String tilesetName = player.getTileset().toString().toLowerCase();
+                    	m_botAction.SQLBackgroundQuery(databaseName, null, "INSERT INTO tblPlayerStats (fcName,fcTileset) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"','') ON DUPLICATE KEY UPDATE fcTileset=''");
                     	player.savedState();
                 	}
                 	

@@ -31,38 +31,14 @@ public class PubUtilModule extends AbstractModule {
         SAFE
     }
     private HashMap<String, Location> locations;
-
-    // TILESET
-    public static enum Tileset {
-
-        DEFAULT,
-        BOKI,
-        MONOLITH,
-        BLUETECH
-    };
-    public HashMap<Tileset, Integer> tilesetObjects;
-    public Tileset defaultTileSet = Tileset.BLUETECH;
+    
     public boolean tilesetEnabled = false;
-    private String currentInfoName = "";
-    private int currentPing = -1;
-
-    // DOORS
-    private static enum DoorMode {
-
-        CLOSED, OPENED, IN_OPERATION, UNKNOW
-    };
-    private DoorMode doorStatus = DoorMode.UNKNOW;
-    private int doorModeDefault;
-    private int doorModeThreshold;
-    private int doorModeThresholdSetting;
-    private boolean doorModeManual = false;
+    
     // PRIV FREQ
     private boolean privFreqEnabled = true;
     // Lev can attach on public freq
     private boolean levAttachEnabled = true;
     private long uptime = 0;
-    private HashMap<String, Stack<String[]>> tutorials = new HashMap<String, Stack<String[]>>();
-    private HashMap<String, ObjonTimer> objonTimers = new HashMap<String, ObjonTimer>();
 
     public PubUtilModule(BotAction botAction, PubContext context) {
         super(botAction, context, "Utility");
@@ -95,42 +71,6 @@ public class PubUtilModule extends AbstractModule {
     }
 
     public void handleEvent(Message event) {
-        String pingString = "";
-        String message = event.getMessage();
-        if (event.getMessageType() == Message.ARENA_MESSAGE) {
-            if (message.contains("TypedName:")) {
-                currentInfoName = message.substring(message.indexOf("TypedName:") + 10);
-                currentInfoName = currentInfoName.substring(0, currentInfoName.indexOf("Demo:")).trim();
-            }
-            if (message.startsWith("Ping:")) {
-                pingString = message.substring(message.indexOf(':') + 1, message.indexOf('m'));
-                currentPing = Integer.valueOf(pingString);
-
-                m_botAction.sendUnfilteredPrivateMessage(currentInfoName, "*objon 2010");
-                m_botAction.sendPrivateMessage(currentInfoName, "Welcome to Trench Wars! If you'd like to see a brief tutorial, please type !tutorial");
-                if (currentPing == 0) {
-                    ObjonTimer lagCheck = new ObjonTimer(currentInfoName);
-                    m_botAction.scheduleTask(lagCheck, 45000, 15000);
-                    objonTimers.put(currentInfoName, lagCheck);
-                }
-            }
-            if (objonTimers.containsKey(currentInfoName) && message.startsWith("PING Current")) {
-                int pingCheck = Integer.valueOf(message.substring(message.indexOf(':') + 1, message.indexOf(" m")));
-                if (pingCheck > 0) {
-                    m_botAction.sendUnfilteredPrivateMessage(currentInfoName, "*objon 2010");
-                    m_botAction.cancelTask(objonTimers.get(currentInfoName));
-                }
-            }
-        }
-    }
-
-    public void handleNewPlayer(String message) {
-        currentInfoName = m_botAction.getFuzzyPlayerName(message.substring(message.indexOf(":") + 2));
-        if (currentInfoName != null) {
-            m_botAction.sendUnfilteredPrivateMessage(currentInfoName, "*info");
-        } else {
-            currentInfoName = "";
-        }
     }
 
     public void handleEvent(TurretEvent event) {
@@ -163,7 +103,7 @@ public class PubUtilModule extends AbstractModule {
     }
 
     public void handleEvent(PlayerLeft event) {
-        tutorials.remove(m_botAction.getPlayerName(event.getPlayerID()));
+        //tutorials.remove(m_botAction.getPlayerName(event.getPlayerID()));
         //checkForDoors();
     }
 
@@ -184,7 +124,7 @@ public class PubUtilModule extends AbstractModule {
         }
     }
     */
-
+    /*
     public void setTileset(Tileset tileset, final String playerName, boolean instant) {
         final Tileset playerTileset;
 
@@ -253,7 +193,8 @@ public class PubUtilModule extends AbstractModule {
 
     /**
      * Change the current tileset for a player
-     */
+     */ 
+    /*
     private void doSetTileCmd(String sender, String tileName) {
 
         if (!tilesetEnabled) {
@@ -297,7 +238,7 @@ public class PubUtilModule extends AbstractModule {
         //checkForDoors();
         m_botAction.sendSmartPrivateMessage(sender, "Doors will be locked or in operation if the number of players is higher than " + doorModeThreshold + ".");
     }
-
+    */
     /**
      * Moves the bot from one arena to another.  The bot must not be
      * started for it to move.
@@ -493,140 +434,25 @@ public class PubUtilModule extends AbstractModule {
         return "Not yet spotted";
     }
 
-    /**
-     * This class is used for checking the lag status of newbs in order
-     * to determine whether or not they will be able to see an objon
-     */
-    class ObjonTimer extends TimerTask {
-
-        String name;
-
-        public ObjonTimer(String p) {
-            name = p;
-        }
-
-        public void run() {
-            if (m_botAction.getFuzzyPlayerName(name) != null) {
-                currentInfoName = name;
-                m_botAction.sendUnfilteredPrivateMessage(name, "*lag");
-            }
-        }
-    }
-
-    public void doTutorial(String player) {
-        if (!tutorials.containsKey(player)) {
-            if (m_botAction.getPlayer(player).getShipType() == 0) {
-                m_botAction.setShip(player, 1);
-            }
-            m_botAction.sendUnfilteredPrivateMessage(player, "*objon 2011");
-            m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2010");
-            m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2020");
-            Stack<String[]> objons = new Stack<String[]>();
-            objons.push(new String[]{"*objoff 2017", "*objon 2018", "*objoff 2019"});
-            objons.push(new String[]{"*objoff 2016", "*objon 2017"});
-            objons.push(new String[]{"*objoff 2015", "*objon 2016"});
-            objons.push(new String[]{"*objoff 2014", "*objon 2015"});
-            objons.push(new String[]{"*objoff 2013", "*objon 2014"});
-            objons.push(new String[]{"*objoff 2012", "*objon 2013"});
-            objons.push(new String[]{"*objoff 2011", "*objon 2012", "*objon 2019"});
-            tutorials.put(player, objons);
-        } else {
-            m_botAction.sendPrivateMessage(player, "Use !next");
-        }
-    }
-
-    public void doNext(String player, boolean pub) {
-        if (tutorials.containsKey(player)) {
-            Stack<String[]> objects = tutorials.get(player);
-            String[] objs = objects.pop();
-            m_botAction.sendUnfilteredPrivateMessage(player, objs[0]);
-            m_botAction.sendUnfilteredPrivateMessage(player, objs[1]);
-            if (objs.length > 2) {
-                m_botAction.sendUnfilteredPrivateMessage(player, objs[2]);
-            }
-            if (objs.length > 3) {
-                m_botAction.sendPrivateMessage(player, objs[3]);
-            }
-            if (pub && !objs[0].equals("*objoff 2017")) {
-                m_botAction.sendPrivateMessage(player, "" + player + ", to continue the tutorial, please type ::!next");
-            }
-            tutorials.put(player, objects);
-            if (objects.empty()) {
-                tutorials.remove(player);
-            }
-        } else {
-            m_botAction.sendPrivateMessage(player, "You must first type !tutorial");
-        }
-    }
-
-    public void doEnd(String player) {
-        if (tutorials.containsKey(player)) {
-            tutorials.remove(player);
-        }
-        if (objonTimers.containsKey(player)) {
-            ObjonTimer timer = objonTimers.remove(player);
-            m_botAction.cancelTask(timer);
-        }
-        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2010");
-        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2011");
-        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2012");
-        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2013");
-        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2014");
-        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2015");
-        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2016");
-        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2017");
-        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2018");
-        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2019");
-        m_botAction.sendUnfilteredPrivateMessage(player, "*objoff 2020");
-    }
-
-    public void doQuickHelp(String player) {
-        doEnd(player);
-        m_botAction.sendUnfilteredPrivateMessage(player, "*objon 2020");
-    }
-
     @Override
     public void handleCommand(String sender, String command) {
 
         if (command.startsWith("!settile ") || command.startsWith("!tileset ")) {
-            doSetTileCmd(sender, command.substring(9));
+            //doSetTileCmd(sender, command.substring(9));
         } else if (command.startsWith(
                 "!whereis ")) {
             doWhereIsCmd(sender, command.substring(9), m_botAction.getOperatorList().isBot(sender));
-        } else if (command.equals("!restrictions")) {
+        } else if (command.equals("!restrictions")) 
             context.getPlayerManager().doRestrictionsCmd(sender);
-        } else if (command.equals("!tutorial")) {
-            doTutorial(sender);
-        } else if (command.equals("!next")) {
-            doNext(sender, false);
-        } else if (command.equals("!end")) {
-            doEnd(sender);
-        } else if (command.equals("!quickhelp")) {
-            doQuickHelp(sender);
-        }
     }
 
     @Override
     public void handleModCommand(String sender, String command) {
         boolean dev = m_botAction.getOperatorList().isDeveloper(sender);
-        if (command.startsWith("!dooropen") && dev) {
-            doOpenDoorCmd(sender);
-        } else if (command.startsWith("!doorclose") && dev) {
-            doCloseDoorCmd(sender);
-        } else if (command.startsWith("!doortoggle") && dev) {
-            doToggleDoorCmd(sender);
-        } else if (command.startsWith("!doorauto") && dev) {
-            doAutoDoorCmd(sender);
-        } else if (command.startsWith("!go ") && dev) {
+        if (command.startsWith("!go ") && dev) {
             doGoCmd(sender, command.substring(4));
         } else if (command.equals("!stop") && dev) {
             context.stop();
-        } else if (command.startsWith("!newplayer ")) {
-            doModNewplayer(sender, command.substring(command.indexOf(" ") + 1));
-        } else if (command.startsWith("!next ")) {
-            doModNext(sender, command.substring(command.indexOf(" ") + 1));
-        } else if (command.startsWith("!end ")) {
-            doModEnd(sender, command.substring(command.indexOf(" ") + 1));
         } else if (command.equals("!privfreqs") && dev) {
             doPrivFreqsCmd(sender);
         } else if (command.equals("!levattach") && dev) {
@@ -651,46 +477,13 @@ public class PubUtilModule extends AbstractModule {
         return privFreqEnabled;
     }
 
-    public void doModNewplayer(String mod, String name) {
-        name = m_botAction.getFuzzyPlayerName(name);
-        if (name != null) {
-            m_botAction.sendUnfilteredPrivateMessage(name, "*objon 2025");
-            m_botAction.sendSmartPrivateMessage(mod, "New player objon sent to: " + name);
-        } else {
-            m_botAction.sendSmartPrivateMessage(mod, "Player not found!");
-        }
-    }
-
-    public void doModNext(String mod, String name) {
-        name = m_botAction.getFuzzyPlayerName(name);
-        if (name != null) {
-            m_botAction.sendUnfilteredPrivateMessage(name, "*objoff 2025");
-            m_botAction.sendUnfilteredPrivateMessage(name, "*objon 2026");
-            m_botAction.sendSmartPrivateMessage(mod, "Next objon sent to: " + name);
-        } else {
-            m_botAction.sendSmartPrivateMessage(mod, "Player not found!");
-        }
-    }
-
-    public void doModEnd(String mod, String name) {
-        name = m_botAction.getFuzzyPlayerName(name);
-        if (name != null) {
-            m_botAction.sendUnfilteredPrivateMessage(name, "*objoff 2025");
-            m_botAction.sendUnfilteredPrivateMessage(name, "*objoff 2026");
-            m_botAction.sendSmartPrivateMessage(mod, "All objons removed for: " + name);
-        } else {
-            m_botAction.sendSmartPrivateMessage(mod, "Player not found!");
-        }
-
-    }
-
     @Override
     public String[] getHelpMessage(String sender) {
         return new String[]{
                     pubsystem.getHelpLine("!whereis <name>   -- Shows last seen location of <name> (if on your team)."),
                     pubsystem.getHelpLine("!restrictions     -- Lists all current ship restrictions."),
-                    pubsystem.getHelpLine("!settile <name>   -- Change the current tileset."),
-                    pubsystem.getHelpLine("                     Choice: bluetech (default), boki, monolith.")
+                    //pubsystem.getHelpLine("!settile <name>   -- Change the current tileset."),
+                    //pubsystem.getHelpLine("                     Choice: bluetech (default), boki, monolith.")
                 };
     }
 
@@ -700,10 +493,10 @@ public class PubUtilModule extends AbstractModule {
         if (dev) {
             String[] string = {
                 pubsystem.getHelpLine("!privfreqs        -- Toggles private frequencies & check for imbalances."),
-                pubsystem.getHelpLine("!dooropen         -- Open doors."),
-                pubsystem.getHelpLine("!doorclose        -- Close doors."),
-                pubsystem.getHelpLine("!doortoggle       -- In operation doors."),
-                pubsystem.getHelpLine("!doorauto         -- Auto mode (close if # of players below " + doorModeThreshold + "."),
+                //pubsystem.getHelpLine("!dooropen         -- Open doors."),
+                //pubsystem.getHelpLine("!doorclose        -- Close doors."),
+                //pubsystem.getHelpLine("!doortoggle       -- In operation doors."),
+                //pubsystem.getHelpLine("!doorauto         -- Auto mode (close if # of players below " + doorModeThreshold + "."),
                 pubsystem.getHelpLine("!levattach        -- Toggles lev attach capability on public frequencies."),
                 pubsystem.getHelpLine("!set <ship> <#>   -- Sets <ship> to restriction <#>."),
                 pubsystem.getHelpLine("                     0=disabled; 1=any amount; other=weighted:"),
@@ -713,16 +506,18 @@ public class PubUtilModule extends AbstractModule {
                 pubsystem.getHelpLine("!uptime           -- Uptime of the bot in minutes."),
                 pubsystem.getHelpLine("!stop             -- Stop the bot (needed when !go)."),
                 pubsystem.getHelpLine("!die              -- Logs the bot off of the server."),
-                pubsystem.getHelpLine("!newplayer <name> -- Sends new player helper objon to <name>."),
-                pubsystem.getHelpLine("!next <name>      -- Sends the next helper objon to <name>."),
-                pubsystem.getHelpLine("!end <name>       -- Removes all objons for <name>.")};
+                //pubsystem.getHelpLine("!newplayer <name> -- Sends new player helper objon to <name>."),
+                //pubsystem.getHelpLine("!next <name>      -- Sends the next helper objon to <name>."),
+                //pubsystem.getHelpLine("!end <name>       -- Removes all objons for <name>.")
+                };
             return string;
         } else {
             String[] string = {
                 pubsystem.getHelpLine("!uptime           -- Uptime of the bot in minutes."),
-                pubsystem.getHelpLine("!newplayer <name> -- Sends new player helper objon to <name>."),
-                pubsystem.getHelpLine("!next <name>      -- Sends the next helper objon to <name>."),
-                pubsystem.getHelpLine("!end <name>       -- Removes all objons for <name>.")};
+                //pubsystem.getHelpLine("!newplayer <name> -- Sends new player helper objon to <name>."),
+                //pubsystem.getHelpLine("!next <name>      -- Sends the next helper objon to <name>."),
+                //pubsystem.getHelpLine("!end <name>       -- Removes all objons for <name>.")
+                };
             return string;
         }
     }
@@ -777,10 +572,7 @@ public class PubUtilModule extends AbstractModule {
             Tools.printStackTrace(e);
         }
 
-        doorModeDefault = m_botAction.getBotSettings().getInt("doormode_default");
-        doorModeThreshold = m_botAction.getBotSettings().getInt("doormode_threshold");
-        doorModeThresholdSetting = m_botAction.getBotSettings().getInt("doormode_threshold_setting");
-
+        /*
         String tileSet = m_botAction.getBotSettings().getString("tileset_default");
         try {
             defaultTileSet = Tileset.valueOf(tileSet.toUpperCase());
@@ -791,11 +583,7 @@ public class PubUtilModule extends AbstractModule {
         tilesetObjects = new HashMap<Tileset, Integer>();
         tilesetObjects.put(Tileset.BOKI, 0);
         tilesetObjects.put(Tileset.MONOLITH, 1);
-
-        if (m_botAction.getBotSettings().getInt("tileset_enabled") == 1) {
-            tilesetEnabled = true;
-        }
-
+        */
         if (m_botAction.getBotSettings().getInt("utility_enabled") == 1) {
             enabled = true;
         }
