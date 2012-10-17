@@ -317,7 +317,7 @@ public class pubhubalias extends PubBotModule {
                 curResult = resultSet.getString(uniqueField);
 
             if (uniqueField == null || !prevResults.contains(curResult)) {
-                if (!hide && !hider.isHidden(curResult.substring(0, 25).trim()) && totalResults <= m_maxRecords) {
+                if (!hide && !hider.isHidden(curResult.substring(0, (curResult.length() < 24 ? 24 : curResult.length())).trim()) && totalResults <= m_maxRecords) {
                     //m_botAction.sendChatMessage(getResultLine(resultSet, headers));
                     results.add(getResultLine(resultSet, headers));
                     shownResults++;
