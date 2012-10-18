@@ -788,9 +788,11 @@ public class pubhubalias extends PubBotModule {
         if (privateAliases) {
             m_botAction.sendChatMessage("Alias command output will now be directed to PRIVATE messages.");
             m_botAction.getBotSettings().put("PrivateAliases", 1);
+            m_botAction.getBotSettings().save();
         } else {
             m_botAction.sendChatMessage("Alias command output will now be directed to CHAT.");
             m_botAction.getBotSettings().put("PrivateAliases", 0);
+            m_botAction.getBotSettings().save();
         }
     }
 
