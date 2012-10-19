@@ -280,16 +280,19 @@ public class twdbot extends SubspaceBot {
 
             if (type != Message.REMOTE_PRIVATE_MESSAGE) {
                 // First: convert the command to a command with parameters
-                String command = stringChopper(message, ' ')[0];
-                String[] parameters = stringChopper(message.substring(command.length()).trim(), ':');
-                for (int i = 0; i < parameters.length; i++)
-                    parameters[i] = parameters[i].replace(':', ' ').trim();
-                command = command.trim();
+                String[] temp = stringChopper(message, ' ');
+                if (temp != null) {
+                    String command = temp[0];
+                    String[] parameters = stringChopper(message.substring(command.length()).trim(), ':');
+                    for (int i = 0; i < parameters.length; i++)
+                        parameters[i] = parameters[i].replace(':', ' ').trim();
+                    command = command.trim();
 
-                if (command.equals("!signup"))
-                    cmd_signup(name, command, parameters);
-                if (command.equals("!squadsignup"))
-                    cmd_squadsignup(name, message);
+                    if (command.equals("!signup"))
+                        cmd_signup(name, command, parameters);
+                    if (command.equals("!squadsignup"))
+                        cmd_squadsignup(name, message);
+                }
             }
         }
 
