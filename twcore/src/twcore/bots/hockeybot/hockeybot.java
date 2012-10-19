@@ -299,9 +299,10 @@ public class hockeybot extends SubspaceBot {
         String name = m_botAction.getPlayerName(playerID);
 
         HockeyTeam team = null;
-        if (name != null) {
-            team = getTeam(name);
-        }
+        if (name == null)   // Can do exactly squat if we can't get the name
+            return;
+        
+        team = getTeam(name);
 
         /* Null pointer exception check */
         if (team != null && !team.laggedOut(name)) {
@@ -400,7 +401,7 @@ public class hockeybot extends SubspaceBot {
 
                     //check offside
                     HockeyPlayer player = team.getPlayer(name.toLowerCase());
-                    if (player.getCurrentShipType() == Tools.Ship.SHARK) {
+                    if (player != null && player.getCurrentShipType() == Tools.Ship.SHARK) {
                         try {
                             if (team.getFrequency() == 0) {
                                 if (event.getXLocation() / 16 > config.getTeam0BlueLine() / 16) {
