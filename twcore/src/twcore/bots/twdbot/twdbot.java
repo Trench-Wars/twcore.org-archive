@@ -281,7 +281,7 @@ public class twdbot extends SubspaceBot {
             if (type != Message.REMOTE_PRIVATE_MESSAGE) {
                 // First: convert the command to a command with parameters
                 String[] temp = stringChopper(message, ' ');
-                if (temp != null) {
+                if (temp != null && temp.length > 0 ) {
                     String command = temp[0];
                     String[] parameters = stringChopper(message.substring(command.length()).trim(), ':');
                     for (int i = 0; i < parameters.length; i++)
