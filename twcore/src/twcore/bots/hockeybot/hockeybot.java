@@ -4503,6 +4503,7 @@ public class hockeybot extends SubspaceBot {
             long time = (System.currentTimeMillis() - timeStamp)
                     / Tools.TimeInMillis.SECOND;
 
+            m_botAction.getShip().sendPositionPacket();
             //DROP WARNING
             if (time == 20) {
                 m_botAction.sendArenaMessage("Get READY! DROP in 10 seconds.", 1);
@@ -4518,6 +4519,7 @@ public class hockeybot extends SubspaceBot {
                     }
                 } catch (Exception e) {
                 }
+                m_botAction.getShip().sendPositionPacket();
                 try {
                     if (!team1.offside.empty()) {
                         Iterator<String> i = team1.offside.iterator();
@@ -4530,6 +4532,7 @@ public class hockeybot extends SubspaceBot {
                     }
                 } catch (Exception e) {
                 }
+                m_botAction.getShip().sendPositionPacket();
                 try {
                     if (team0.fCrease.size() > 1) {
                         Iterator<String> i = team0.fCrease.iterator();
@@ -4543,6 +4546,7 @@ public class hockeybot extends SubspaceBot {
                     }
                 } catch (Exception e) {
                 }
+                m_botAction.getShip().sendPositionPacket();
                 try {
                     if (team1.fCrease.size() > 1) {
                         Iterator<String> i = team1.fCrease.iterator();
@@ -4556,6 +4560,7 @@ public class hockeybot extends SubspaceBot {
                     }
                 } catch (Exception e) {
                 }
+                m_botAction.getShip().sendPositionPacket();
                 try {
                     if (!botCrease.empty()) {
                         Iterator<String> i = botCrease.iterator();
@@ -4584,6 +4589,7 @@ public class hockeybot extends SubspaceBot {
                     }
                 } catch (Exception e) {
                 }
+                m_botAction.getShip().sendPositionPacket();
                 try {
                     if (!team1.offside.empty()) {
                         Iterator<String> i = team1.offside.iterator();
@@ -4595,6 +4601,7 @@ public class hockeybot extends SubspaceBot {
                     }
                 } catch (Exception e) {
                 }
+                m_botAction.getShip().sendPositionPacket();
                 try {
                     if (team0.fCrease.size() > 1) {
                         Iterator<String> i = team0.fCrease.iterator();
@@ -4607,6 +4614,7 @@ public class hockeybot extends SubspaceBot {
                     }
                 } catch (Exception e) {
                 }
+                m_botAction.getShip().sendPositionPacket();
                 try {
                     if (team1.fCrease.size() > 1) {
                         Iterator<String> i = team1.fCrease.iterator();
@@ -4619,6 +4627,7 @@ public class hockeybot extends SubspaceBot {
                     }
                 } catch (Exception e) {
                 }
+                m_botAction.getShip().sendPositionPacket();
                 try {
                     if (!botCrease.empty()) {
                         Iterator<String> i = botCrease.iterator();
@@ -4638,6 +4647,7 @@ public class hockeybot extends SubspaceBot {
             }
 
             if (time >= 30) {
+                m_botAction.getShip().sendPositionPacket();
                 startGame();
                 team0.clearUnsetPenalties();
                 team1.clearUnsetPenalties();
