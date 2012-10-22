@@ -422,7 +422,7 @@ public class twdopalias extends Module {
      * @param argString
      * @throws SQLException
      */
-    public void doCompareCmd(String argString) throws SQLException {
+    public void doCompareCmd(String sender, String argString) throws SQLException {
         StringTokenizer argTokens = new StringTokenizer(argString, ":");
 
         if (argTokens.countTokens() != 2)
@@ -443,8 +443,9 @@ public class twdopalias extends Module {
 
             p1Set.afterLast();
             p2Set.afterLast();
-
-            m_botAction.sendChatMessage("Comparison of " + player1Name + " to " + player2Name + ":");
+            ArrayList<String> msgs = new ArrayList<String>();
+            msgs.add("Comparison of " + player1Name + " to " + player2Name + ":");
+            //m_botAction.sendChatMessage("Comparison of " + player1Name + " to " + player2Name + ":");
 
             LinkedList<String> IPs = new LinkedList<String>();
             LinkedList<Integer> MIDs = new LinkedList<Integer>();
@@ -473,7 +474,8 @@ public class twdopalias extends Module {
 
                 if (display != "") {
                     if (results < m_maxRecords) {
-                        m_botAction.sendChatMessage(display);
+                        msgs.add(display);
+                        //m_botAction.sendChatMessage(display);
                         results++;
                     }
                 }
@@ -482,9 +484,12 @@ public class twdopalias extends Module {
             m_botAction.SQLClose(p1Set);
             m_botAction.SQLClose(p2Set);
             if (results == 0)
-                m_botAction.sendChatMessage("No matching IPs or MIDs found.");
+                msgs.add("No matching IPs or MIDs found.");
+                //m_botAction.sendChatMessage("No matching IPs or MIDs found.");
             if (results > m_maxRecords)
-                m_botAction.sendChatMessage(results - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
+                msgs.add(results - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
+                //m_botAction.sendChatMessage(results - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
+            m_botAction.smartPrivateMessageSpam(sender, msgs.toArray(new String[msgs.size()]));
         } catch (SQLException e) {
             throw new RuntimeException("ERROR: Cannot connect to database.");
         }
@@ -803,7 +808,7 @@ public class twdopalias extends Module {
             } else if (opList.isSysopExact(sender) && command.startsWith("!infoall "))
                 doInfoAllCmd(sender, message.substring(9).trim());
             else if (command.startsWith("!compare ")) {
-                doCompareCmd(message.substring(9).trim());
+                doCompareCmd(sender, message.substring(9).trim());
                 record(sender, message);
             } else if (command.startsWith("!maxrecords "))
                 doMaxRecordsCmd(message.substring(12).trim());
