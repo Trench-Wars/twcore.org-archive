@@ -1703,7 +1703,7 @@ public class MatchRound {
     }
 
     public void requestBlueout(boolean blueout) {
-        if (m_fnRoundState >= 2)
+        if (m_fnRoundState >= 2 && m_team1.getBlueoutState() && m_team2.getBlueoutState())
             toggleBlueout(blueout);
     }
 
