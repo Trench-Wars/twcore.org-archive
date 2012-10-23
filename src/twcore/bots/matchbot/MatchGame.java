@@ -367,8 +367,19 @@ public class MatchGame {
 
     public void handleEvent(Message event) {
         m_logger.logEvent(event);
+        String name = m_botAction.getPlayerName(event.getPlayerID());
+        if (name == null)
+            name = event.getMessager();
+        
         if (m_curRound != null) {
             m_curRound.handleEvent(event);
+        }
+        
+        if (event.getMessageType() == Message.PRIVATE_MESSAGE && m_botAction.getOperatorList().isSysop(name)) {
+            if (event.getMessage().equalsIgnoreCase("!debug") && m_curRound != null && m_curRound.m_team1 != null && m_curRound.m_team2 != null) {
+                m_curRound.m_team1.debugger(name);
+                m_curRound.m_team2.debugger(name);
+            }
         }
 
         if (event.getMessageType() == Message.ARENA_MESSAGE && event.getMessage().startsWith("Flag:FlaggerKillMultiplier=")) {

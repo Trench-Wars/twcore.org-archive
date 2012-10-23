@@ -409,18 +409,6 @@ public class MatchRound {
      * Checks if lag reports are sent (in the shape of an arenamessage)
      */
     public void handleEvent(Message event) {
-        if ((event.getMessageType() == Message.PUBLIC_MESSAGE) && (m_blueoutState == 1) && (m_endGame != null) && this.m_fnRoundState >= 2)//&& (System.currentTimeMillis() - m_timeBOEnabled > 5000))
-        {
-            String name = m_botAction.getPlayerName(event.getPlayerID());
-            m_botAction.sendCheaterMessage(name + " talking in blueout: " + name + "> " + event.getMessage());
-
-            if (m_botAction.getOperatorList().isZH(name)) {
-                m_botAction.warnPlayer(event.getPlayerID(), "Do not talk during blueout! Powers revoked, relogin to restore them.");
-                m_botAction.sendUnfilteredPrivateMessage(event.getPlayerID(), "*moderator");
-            } else {
-                m_botAction.warnPlayer(event.getPlayerID(), "Do not talk during blueout!");
-            }
-        }
 
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
             String msg = event.getMessage();
@@ -430,7 +418,7 @@ public class MatchRound {
                 m_team2.handleEvent(event);
             }
 
-            if ((m_fnRoundState == 2 || m_fnRoundState == 3) && event.getMessage().contains("Res:")) {
+            if ((m_fnRoundState == 2 || m_fnRoundState == 3) && msg.contains("Res:")) {
                 m_team1.handleEvent(event);
                 m_team2.handleEvent(event);
             }
@@ -463,10 +451,20 @@ public class MatchRound {
                 if (m_blueoutState == BLUEOUT_ON)
                     m_botAction.toggleLockPublicChat();
             }
-            ;
         }
-        ;
-    };
+        if ((event.getMessageType() == Message.PUBLIC_MESSAGE) && (m_blueoutState == 1) && (m_endGame != null) && this.m_fnRoundState >= 2)//&& (System.currentTimeMillis() - m_timeBOEnabled > 5000))
+        {
+            String name = m_botAction.getPlayerName(event.getPlayerID());
+            m_botAction.sendCheaterMessage(name + " talking in blueout: " + name + "> " + event.getMessage());
+
+            if (m_botAction.getOperatorList().isZH(name)) {
+                m_botAction.warnPlayer(event.getPlayerID(), "Do not talk during blueout! Powers revoked, relogin to restore them.");
+                m_botAction.sendUnfilteredPrivateMessage(event.getPlayerID(), "*moderator");
+            } else {
+                m_botAction.warnPlayer(event.getPlayerID(), "Do not talk during blueout!");
+            }
+        }
+    }
 
     /*
      * Parses the PlayerDeath event to the team in which the player is
