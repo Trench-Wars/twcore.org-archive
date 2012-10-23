@@ -21,6 +21,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.TimerTask;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.Vector;
 
 import twcore.bots.matchbot.MatchRound.MatchRoundEvent;
 import twcore.core.BotAction;
@@ -63,8 +66,8 @@ public class MatchTeam {
     int m_lagID = 0;
 
     HashMap<String, Boolean> checkPlayerMID;
-    HashMap<String, ResCheck> resCheck;
-    HashSet<String> addInfo; // used when getting the idle info for a player
+    TreeMap<String, ResCheck> resCheck;
+    TreeSet<String> addInfo; // used when getting the idle info for a player
 
     final static int ADD = 0;
     final static int SUB = 1;
@@ -90,6 +93,8 @@ public class MatchTeam {
 
     String m_fcLaggerName;
 
+    private Einfoer einfoer;
+    
     TimerTask m_changeDelay;
     TimerTask m_substituteDelay;
     String plA = "-ready-", plB = "-ready-", nme = "-ready-";
@@ -118,8 +123,8 @@ public class MatchTeam {
         m_players = new LinkedList<MatchPlayer>();
         m_captains = new LinkedList<String>();
         checkPlayerMID = new HashMap<String, Boolean>();
-        resCheck = new HashMap<String, ResCheck>();
-        addInfo = new HashSet<String>();
+        resCheck = new TreeMap<String, ResCheck>(String.CASE_INSENSITIVE_ORDER);
+        addInfo = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
         m_fnFrequency = fnFrequency;
         m_fbReadyToGo = false;
         m_fbAddTime = false;
@@ -130,6 +135,9 @@ public class MatchTeam {
         m_fnShipChanges = 0;
         m_fnShipSwitches = 0;
         m_fnTeamNumber = fnTeamNumber;
+        
+        einfoer = new Einfoer();
+        m_botAction.scheduleTask(einfoer, 2000, 2000);
         
         if (m_botAction.getArenaName().equalsIgnoreCase("twdd") || m_botAction.getArenaName().equalsIgnoreCase("twdd2")) {
             MAX_RES_X = 1440;
@@ -308,39 +316,7 @@ public class MatchTeam {
 
             if (msg.indexOf("UserId:") > 0 && msg.indexOf("Timer drift:") > 0) {
                 // *einfo
-                String name = msg.substring(0, msg.indexOf(":"));
-                String userid = getInfo(msg, "UserId:");
-                String resolution = getInfo(msg, "Res:");
-                debug("Got einfo for: " + name);
-                
-                if (addInfo.contains(name.toLowerCase())) {
-                    int idleTime = getIdleTime(msg);
-                    debug("Sending idle info for: " + name);
-                    if (isPlayerOnTeam(name)) {
-                        sendPrivateMessageToCaptains(name + " has been idle for " + idleTime + " seconds.");
-                        m_round.m_lagHandler.requestLag(name, "!" + m_fcTeamName);
-                    }
-                }
-                
-                if (resCheck.containsKey(name.toLowerCase())) {
-                    if (resolution != null && resolution.length() > 3)
-                        resCheck.remove(name.toLowerCase()).check(resolution);
-                    else {
-                        final String n = name;
-                        TimerTask t = new TimerTask() {
-                            public void run() {
-                                m_botAction.sendUnfilteredPrivateMessage(n, "*einfo");
-                            }
-                        };
-                        m_botAction.scheduleTask(t, 1000);
-                    }
-                }
-                MatchPlayer player = getPlayer(name);
-
-                if (player != null && userid != null && userid.length() > 0) {
-                    if (!resolution.isEmpty())
-                        player.resolution = resolution;
-                }
+                handleEinfo(msg);
             } else if (msg.startsWith("IP:") && msg.indexOf("TypedName:") > 0) {
                 // Store *info results in infoBuffer
                 Arrays.fill(infoBuffer, ""); // clear buffer
@@ -369,8 +345,37 @@ public class MatchTeam {
             matchPlayer.handleEvent(event);
         }
     }
+    
+    private void handleEinfo(String msg) {
+        String name = msg.substring(0, msg.indexOf(":"));
+        String userid = msg.substring(msg.indexOf("UserId:") + 9, msg.indexOf("Res:")).trim();
+        String resolution = msg.substring(msg.indexOf("Res: ") + 6, msg.indexOf("Client: ")).trim();
+        debug("Got einfo for: " + name);
+        
+        einfoer.gotEinfo(name);
+        
+        MatchPlayer player = getPlayer(name);
 
-    // see pubbotstats
+        if (resolution != null && resolution.length() > 0) {
+            if (player != null && userid != null && userid.length() > 0)
+                player.resolution = resolution;
+
+            if (resCheck.containsKey(name))
+                 resCheck.remove(name).check(resolution);
+        }
+        
+        if (addInfo.remove(name)) {
+            int idleTime = getIdleTime(msg);
+            debug("Sending idle info for: " + name);
+            if (isPlayerOnTeam(name)) {
+                sendPrivateMessageToCaptains(name + " has been idle for " + idleTime + " seconds.");
+                m_round.m_lagHandler.requestLag(name, "!" + m_fcTeamName);
+            }
+        }
+        
+    }
+
+    // see guardstats
     private String getInfo(String message, String infoName) {
         int beginIndex = message.indexOf(infoName);
         int endIndex;
@@ -772,7 +777,7 @@ public class MatchTeam {
                     debug("Doing Resolution Check for: " + p.getPlayerName() + " cap: " + name);
                     ResCheck rc = new ResCheck(p.getPlayerName(), name, fnShip, ADD);
                     resCheck.put(p.getPlayerName().toLowerCase(), rc);
-                    m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*einfo");
+                    einfoer.add(p.getPlayerName());
                     return;
                 }
 
@@ -783,7 +788,7 @@ public class MatchTeam {
                     m_logger.sendPrivateMessage(name, "Player " + p.getPlayerName() + " added to " + m_fcTeamName);
                     m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game");
                     addInfo.add(p.getPlayerName().toLowerCase());
-                    m_botAction.sendUnfilteredPrivateMessage(p.getPlayerName(), "*einfo");
+                    einfoer.add(p.getPlayerName());
 
                     if (m_rules.getInt("pickbyturn") == 1) {
                         m_turn = !m_turn;
@@ -1126,7 +1131,7 @@ public class MatchTeam {
                 if (commandByOther)
                     rc.cap = name;
                 resCheck.put(p.getPlayerName().toLowerCase(), rc);
-                m_botAction.sendUnfilteredPrivateMessage(p.getPlayerName(), "*einfo");
+                einfoer.add(p.getPlayerName());
             } else {
                 message = p.lagin();
                 if (message.equals("yes")) {
@@ -1208,7 +1213,7 @@ public class MatchTeam {
                             if (playerB != null) {
                                 ResCheck rc = new ResCheck(playerB, playerA, name, pA, SUB);
                                 resCheck.put(playerB.toLowerCase(), rc);
-                                m_botAction.sendUnfilteredPrivateMessage(playerB, "*einfo");
+                                einfoer.add(playerB);
                             } else
                                 m_botAction.sendPrivateMessage(name, "Player not found in arena");
                         } else {
@@ -2279,7 +2284,7 @@ public class MatchTeam {
         return true;
     }
 
-    private void debugger(String name) {
+    public void debugger(String name) {
         if (!DEBUG) {
             debugger = name;
             DEBUG = true;
@@ -2308,6 +2313,39 @@ public class MatchTeam {
             }
         };
         m_botAction.scheduleTask(task, 3000);
+    }
+    
+    class Einfoer extends TimerTask {
+        
+        Vector<String> queue;
+        String current;
+        
+        public Einfoer() {
+            queue = new Vector<String>();
+            current = null;
+        }
+        
+        @Override
+        public void run() {
+            if (current != null)
+                m_botAction.sendUnfilteredPrivateMessage(current, "*einfo");
+            else if (!queue.isEmpty()) {
+                current = queue.remove(0);
+                m_botAction.sendUnfilteredPrivateMessage(current, "*einfo");
+            }
+        }
+        
+        public void gotEinfo(String name) {
+            if (current != null && name.equalsIgnoreCase(current))
+                current = null;
+        }
+        
+        public void add(String name) {
+            name = name.toLowerCase();
+            if (!queue.contains(name))
+                queue.add(name);
+        }
+        
     }
 
     public class ResCheck {
@@ -2385,7 +2423,7 @@ public class MatchTeam {
                             m_logger.sendPrivateMessage(name, "You've been put in the game");
                             addInfo.add(name.toLowerCase());
                             removeRequestTimer(name);
-                            m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
+                            einfoer.add(name);
 
                             if (m_rules.getInt("pickbyturn") == 1) {
                                 m_turn = !m_turn;
@@ -2446,7 +2484,7 @@ public class MatchTeam {
                 resCheck.put(name.toLowerCase(), this);
                 TimerTask t = new TimerTask() {
                     public void run() {
-                        m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
+                        einfoer.add(name);
                     }
                 };
                 m_botAction.scheduleTask(t, 1000);
