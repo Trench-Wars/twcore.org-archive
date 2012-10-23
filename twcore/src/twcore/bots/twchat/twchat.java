@@ -115,7 +115,7 @@ public class twchat extends SubspaceBot {
                 sendPlayerInfo(message);
             if (message.contains("Client: VIE 1.34") && notify == true) {
                 String nameFromMessage = message.substring(0, message.indexOf(":", 0));
-                if (isBotExact(nameFromMessage))
+                if (ops.isBotExact(nameFromMessage))
                     return;
                 else
                     m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
@@ -332,7 +332,7 @@ public class twchat extends SubspaceBot {
     public void handleEvent(PlayerEntered event) {
         Player player = ba.getPlayer(event.getPlayerID());
         String name = player.getPlayerName();
-        if (name == null || isBotExact(name))
+        if (name == null || ops.isBotExact(name))
             return;
         ba.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
 
@@ -454,7 +454,7 @@ public class twchat extends SubspaceBot {
                     }
                 } else if (!ipc.isAll()) {
                     String name = ipc.getName().toLowerCase();
-                    if (isBotExact(name))
+                    if (ops.isBotExact(name))
                         return;
                     if (type == EventRequester.PLAYER_ENTERED) {
                         updateQueue.put(name, true);
@@ -474,7 +474,7 @@ public class twchat extends SubspaceBot {
                         Iterator<Player> i = (Iterator<Player>) ipc.getList();
                         while (i.hasNext()) {
                             String name = i.next().getPlayerName().toLowerCase();
-                            if (!isBotExact(name)) {
+                            if (!ops.isBotExact(name)) {
                                 updateQueue.put(name, true);
                                 online.add(name);
                                 outsiders.remove(name);
@@ -486,7 +486,7 @@ public class twchat extends SubspaceBot {
                         Iterator<Player> i = (Iterator<Player>) ipc.getList();
                         while (i.hasNext()) {
                             String name = i.next().getPlayerName().toLowerCase();
-                            if (!isBotExact(name)) {
+                            if (!ops.isBotExact(name)) {
                                 updateQueue.put(name, false);
                                 online.remove(name);
                                 outsiders.remove(name);
@@ -1040,14 +1040,6 @@ public class twchat extends SubspaceBot {
         } catch (SQLException e) {
             Tools.printStackTrace(e);
         } catch (NumberFormatException e) {}
-    }
-
-    private boolean isBotExact(String name) {
-        if (ops.isBotExact(name)
-                || (!ops.isOwner(name) && ops.isSysopExact(name) && !name.equalsIgnoreCase("Pure_Luck") && !name.equalsIgnoreCase("Witness")))
-            return true;
-        else
-            return false;
     }
 
     public void getPlayer(String name, String cmd) {
