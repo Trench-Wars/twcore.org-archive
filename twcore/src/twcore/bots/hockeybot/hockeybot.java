@@ -458,8 +458,8 @@ public class hockeybot extends SubspaceBot {
      */
     public void getBall() {
         if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
-            m_botAction.getShip().setShip(0);
-            m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
+            m_botAction.setShip(m_botAction.getBotName(), 1);
+            m_botAction.setFreq(m_botAction.getBotName(), FREQ_NOTPLAYING);
             m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
             m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
             m_botAction.getShip().sendPositionPacket();
@@ -470,9 +470,8 @@ public class hockeybot extends SubspaceBot {
      * Drops the ball at current location
      */
     public void dropBall() {
-        m_botAction.getShip().setShip(8);
         m_botAction.specWithoutLock(m_botAction.getBotName());
-        m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
+        m_botAction.setFreq(m_botAction.getBotName(), FREQ_NOTPLAYING);
     }
 
     private void checkPenalty(PlayerPosition event) {
@@ -4500,8 +4499,7 @@ public class hockeybot extends SubspaceBot {
                 getBall();
             }
 
-            long time = (System.currentTimeMillis() - timeStamp)
-                    / Tools.TimeInMillis.SECOND;
+            long time = (System.currentTimeMillis() - timeStamp) / Tools.TimeInMillis.SECOND;
 
             m_botAction.getShip().sendPositionPacket();
             //DROP WARNING
@@ -4517,10 +4515,6 @@ public class hockeybot extends SubspaceBot {
                                     + "before drop or you will receive a penalty.");
                         }
                     }
-                } catch (Exception e) {
-                }
-                m_botAction.getShip().sendPositionPacket();
-                try {
                     if (!team1.offside.empty()) {
                         Iterator<String> i = team1.offside.iterator();
                         while (i.hasNext()) {
@@ -4530,10 +4524,6 @@ public class hockeybot extends SubspaceBot {
                                     + "before drop or you will receive a penalty.");
                         }
                     }
-                } catch (Exception e) {
-                }
-                m_botAction.getShip().sendPositionPacket();
-                try {
                     if (team0.fCrease.size() > 1) {
                         Iterator<String> i = team0.fCrease.iterator();
                         while (i.hasNext()) {
@@ -4544,10 +4534,6 @@ public class hockeybot extends SubspaceBot {
                                     + "the crease or you will recieve a penalty.");
                         }
                     }
-                } catch (Exception e) {
-                }
-                m_botAction.getShip().sendPositionPacket();
-                try {
                     if (team1.fCrease.size() > 1) {
                         Iterator<String> i = team1.fCrease.iterator();
                         while (i.hasNext()) {
@@ -4558,10 +4544,6 @@ public class hockeybot extends SubspaceBot {
                                     + "the crease or you will recieve a penalty.");
                         }
                     }
-                } catch (Exception e) {
-                }
-                m_botAction.getShip().sendPositionPacket();
-                try {
                     if (!botCrease.empty()) {
                         Iterator<String> i = botCrease.iterator();
                         while (i.hasNext()) {
@@ -4587,10 +4569,6 @@ public class hockeybot extends SubspaceBot {
                             m_botAction.sendArenaMessage("OFFSIDE PENALTY: " + name);
                         }
                     }
-                } catch (Exception e) {
-                }
-                m_botAction.getShip().sendPositionPacket();
-                try {
                     if (!team1.offside.empty()) {
                         Iterator<String> i = team1.offside.iterator();
                         while (i.hasNext()) {
@@ -4599,10 +4577,6 @@ public class hockeybot extends SubspaceBot {
                             m_botAction.sendArenaMessage("OFFSIDE PENALTY: " + name);
                         }
                     }
-                } catch (Exception e) {
-                }
-                m_botAction.getShip().sendPositionPacket();
-                try {
                     if (team0.fCrease.size() > 1) {
                         Iterator<String> i = team0.fCrease.iterator();
                         i.next();
@@ -4612,10 +4586,6 @@ public class hockeybot extends SubspaceBot {
                             m_botAction.sendArenaMessage("FACEOFF CREASE PENALTY: " + name);
                         }
                     }
-                } catch (Exception e) {
-                }
-                m_botAction.getShip().sendPositionPacket();
-                try {
                     if (team1.fCrease.size() > 1) {
                         Iterator<String> i = team1.fCrease.iterator();
                         i.next();
@@ -4625,10 +4595,6 @@ public class hockeybot extends SubspaceBot {
                             m_botAction.sendArenaMessage("FACEOFF CREASE PENALTY: " + name);
                         }
                     }
-                } catch (Exception e) {
-                }
-                m_botAction.getShip().sendPositionPacket();
-                try {
                     if (!botCrease.empty()) {
                         Iterator<String> i = botCrease.iterator();
                         HockeyPlayer player = null;
