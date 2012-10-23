@@ -75,7 +75,7 @@ public class GameFlagTimeModule extends AbstractModule {
     private int freq0Score, freq1Score;                 // # rounds won
     private int minShuffleRound = 3;                    // Minimum number of played rounds before shuffle vote can occur
     private boolean autoVote = false;                   // Automatically start shuffle vote if conditions are met
-    private boolean shuffleVote = false;                // True if player did !shufflevote
+    //private boolean shuffleVote = false;                // True if player did !shufflevote (unused)
     private boolean votePeriod = false;                 // Time after round in which !shufflevote can be used
     private TimerTask voteWait;                         // Used after a round when waiting for someone to use !shufflevote
 
@@ -107,9 +107,11 @@ public class GameFlagTimeModule extends AbstractModule {
     private boolean flagTimeStarted = false;
     private boolean strictFlagTimeMode = false;
 
+    /* Added in and never used?
     private int moneyRoundWin = 0;
     private int moneyGameWin = 0;
     private int moneyMVP = 0;
+    */
 
     public GameFlagTimeModule(BotAction botAction, PubContext context) {
         super(botAction, context, "Game FlagTime");
@@ -465,11 +467,7 @@ public class GameFlagTimeModule extends AbstractModule {
             else if (command.equals("!stricttime"))
                 cmd_strictTime(sender);
             else if (command.equals("!stoptime"))
-                cmd_stopTime(sender);
-            /*else if (command.equals("!autowarp"))
-                cmd_autoWarp(sender);
-            else if (command.equals("!allowwarp"))
-                cmd_allowWarp(sender);*/
+                cmd_stopTime(sender);            
 
         } catch (RuntimeException e) {
             if (e != null && e.getMessage() != null)
@@ -484,6 +482,10 @@ public class GameFlagTimeModule extends AbstractModule {
             cmd_shuffleRounds(sender, command);
         else if (command.trim().equals("!autovote"))
             cmd_autoVote(sender);
+        else if (command.equals("!autowarp"))
+            cmd_autoWarp(sender);
+        else if (command.equals("!allowwarp"))
+            cmd_allowWarp(sender);
     }
 
     @Override
@@ -510,25 +512,23 @@ public class GameFlagTimeModule extends AbstractModule {
 
     @Override
     public String[] getModHelpMessage(String sender) {
-    	if (warpCmdsAllowed) {
-            return new String[] { pubsystem.getHelpLine("!starttime <#>    -- Starts Flag Time game to <#> minutes"),
+        return new String[] { pubsystem.getHelpLine("!starttime <#>    -- Starts Flag Time game to <#> minutes"),
                 pubsystem.getHelpLine("!stoptime         -- Ends Flag Time mode."),
-                pubsystem.getHelpLine("!stricttime       -- Toggles strict mode (all players warped)"),
-                pubsystem.getHelpLine("!autowarp         -- Enables and disables 'opt out' warping style"),
-                pubsystem.getHelpLine("!allowwarp        -- Allow/Disallow the !warp command")
-                
-            };
-    	} else {
-            return new String[] { pubsystem.getHelpLine("!starttime <#>    -- Starts Flag Time game to <#> minutes"),
-                pubsystem.getHelpLine("!stoptime         -- Ends Flag Time mode."),
-            };    		
-    	}
+                pubsystem.getHelpLine("!stricttime       -- Toggles strict mode (all players warped)"),                
+        };
     }
 
     @Override
     public String[] getSmodHelpMessage(String sender) {
-        return new String[] { pubsystem.getHelpLine("!autovote         -- Toggles the shuffle vote between auto and manual (!shufflevote)"),
-                pubsystem.getHelpLine("!rounds <#>       -- Sets the minumum number of rounds for shuffle vote to <#>"), };
+        if (warpCmdsAllowed) {
+            return new String[] { pubsystem.getHelpLine("!autovote         -- Toggles the shuffle vote between auto and manual (!shufflevote)"),
+                pubsystem.getHelpLine("!rounds <#>       -- Sets the minumum number of rounds for shuffle vote to <#>"),
+                pubsystem.getHelpLine("!autowarp         -- Enables and disables 'opt out' warping style"),
+                pubsystem.getHelpLine("!allowwarp        -- Allow/Disallow the !warp command") };
+        } else {
+            return new String[] { pubsystem.getHelpLine("!autovote         -- Toggles the shuffle vote between auto and manual (!shufflevote)"),
+                    pubsystem.getHelpLine("!rounds <#>       -- Sets the minumum number of rounds for shuffle vote to <#>"), };
+        }
     }
 
     /**
@@ -544,14 +544,14 @@ public class GameFlagTimeModule extends AbstractModule {
         if (p.getShipType() == 0)
             throw new RuntimeException("You must be in a ship for this command to work.");
         ArrayList<Vector<String>> team = getTeamData(p.getFrequency());
-        int players = 0;
+        //int players = 0;
         for (int i = 1; i < 9; i++) {
             int num = team.get(i).size();
             String text = num + Tools.formatString((" " + Tools.shipNameSlang(i) + (num == 1 ? "" : "s")), 8);
             text += "   ";
             for (int j = 0; j < team.get(i).size(); j++) {
                 text += (j + 1) + ") " + team.get(i).get(j) + "  ";
-                players++;
+                //players++;
             }
             m_botAction.sendSmartPrivateMessage(sender, text);
         }
@@ -647,7 +647,8 @@ public class GameFlagTimeModule extends AbstractModule {
     public void cmd_shuffleVote(String name) {
         if (!autoVote) {
             if (votePeriod) {
-                shuffleVote = false;
+                // This var is never checked; probably was going to be used at one point, but then was forgotten?
+                //shuffleVote = false;
                 votePeriod = false;
                 m_botAction.cancelTask(voteWait);
                 context.getPlayerManager().checkSizesAndShuffle(name);
@@ -781,6 +782,11 @@ public class GameFlagTimeModule extends AbstractModule {
      *            is the person issuing the command.
      */
     public void cmd_autoWarp(String sender) {
+        if(!warpCmdsAllowed) {
+            m_botAction.sendSmartPrivateMessage(sender, "Sorry, the use of warp commands on this bot are presently disabled. Please speak to Local Dev Union #646 to change this.");
+            return;
+        }
+        
         if (autoWarp) {
             m_botAction.sendSmartPrivateMessage(sender, "Players will no longer automatically be added to the !warp list when they enter the arena.");
             autoWarpDisable();
@@ -797,6 +803,11 @@ public class GameFlagTimeModule extends AbstractModule {
      *            is the person issuing the command.
      */
     public void cmd_allowWarp(String sender) {
+        if(!warpCmdsAllowed) {
+            m_botAction.sendSmartPrivateMessage(sender, "Sorry, the use of warp commands on this bot are presently disabled. Please speak to Local Dev Union #646 to change this.");
+            return;
+        }
+        
         if (isWarpEnabled()) {
             m_botAction.sendSmartPrivateMessage(sender, "Players will no longer be able to use !warp.");
             warpPlayers.clear();
@@ -941,6 +952,7 @@ public class GameFlagTimeModule extends AbstractModule {
     /**
      * Ends a round of Flag Time mode & awards prizes. After, sets up an intermission, followed by a new round.
      */
+    @SuppressWarnings("unused")
     private void doEndRound() {
 
         if (!isFlagTimeStarted() || flagTimer == null)
@@ -1282,14 +1294,14 @@ public class GameFlagTimeModule extends AbstractModule {
                 attaches.put(playerName, 0);
         }
 
-        LinkedHashMap<String, Integer> deaths = sort(this.deaths, false);
         LinkedHashMap<String, Integer> lessdeaths = sort(this.deaths, true);
         LinkedHashMap<String, Integer> kills = sort(this.kills, false);
         LinkedHashMap<String, Integer> teks = sort(this.terrKills, false);
         LinkedHashMap<String, Integer> flagClaims = sort(this.flagClaims, false);
         LinkedHashMap<String, Integer> killsInBase = sort(this.killsInBase, false);
-        LinkedHashMap<String, Integer> tks = sort(this.tks, false);
         LinkedHashMap<String, Integer> attaches = sort(this.attaches, false);
+        //LinkedHashMap<String, Integer> deaths = sort(this.deaths, false);
+        //LinkedHashMap<String, Integer> tks = sort(this.tks, false);
         killsInBasePercent = sort(killsInBasePercent, false);
 
         // Achievements composed of more than 1 variable
@@ -1674,7 +1686,7 @@ public class GameFlagTimeModule extends AbstractModule {
         return getPosition(map, position, 0, false);
     }
 
-    public LinkedHashMap<String, Integer> getBestOf(LinkedHashMap<String, Integer>... lists) {
+    public LinkedHashMap<String, Integer> getBestOf(LinkedHashMap<String, Integer> ... lists) {
 
         HashMap<String, Integer> playerWeight = new HashMap<String, Integer>();
         for (LinkedHashMap<String, Integer> list : lists) {
@@ -2251,6 +2263,7 @@ public class GameFlagTimeModule extends AbstractModule {
          *            Name of player
          * @return Flag grabs
          */
+        @SuppressWarnings("unused")
         public int getTotalKill(String name) {
             Integer count = kills.get(name);
             if (count == null)
@@ -2266,6 +2279,7 @@ public class GameFlagTimeModule extends AbstractModule {
          *            Name of player
          * @return Flag grabs
          */
+        @SuppressWarnings("unused")
         public int getTotalDeath(String name) {
             Integer count = deaths.get(name);
             if (count == null)
@@ -2281,6 +2295,7 @@ public class GameFlagTimeModule extends AbstractModule {
          *            Name of player
          * @return Flag grabs
          */
+        @SuppressWarnings("unused")
         public int getTotalTerrKill(String name) {
             Integer count = terrKills.get(name);
             if (count == null)
@@ -2296,6 +2311,7 @@ public class GameFlagTimeModule extends AbstractModule {
          *            Name of player
          * @return Flag grabs
          */
+        @SuppressWarnings("unused")
         public int getKillWeight(String name) {
             Integer count = killsLocationWeigth.get(name);
             if (count == null)
@@ -2311,6 +2327,7 @@ public class GameFlagTimeModule extends AbstractModule {
          *            Name of player
          * @return Flag grabs
          */
+        @SuppressWarnings("unused")
         public int getTotalShipChange(String name) {
             HashSet<Integer> count = ships.get(name);
             if (count == null)
