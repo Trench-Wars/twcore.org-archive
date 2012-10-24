@@ -613,7 +613,7 @@ public class matchbot extends SubspaceBot {
                         }
 
                         if (!isCaptain)
-                            m_game.m_curRound.toggleBlueout(m_game.m_curRound.m_blueoutState == 0 ? true : false);
+                            m_game.m_curRound.toggleBlueout(m_game.m_curRound.m_blueoutState == false ? true : false);
                     }
                 }
 

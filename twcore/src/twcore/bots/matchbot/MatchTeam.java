@@ -1319,8 +1319,8 @@ public class MatchTeam {
     public void command_blueout(String name, String[] parameters) {
         if (m_rules.getInt("blueout") == 1) {
             m_blueoutState = !m_blueoutState;
-            if (m_blueoutState == true) {
-                if (m_round.m_blueoutState != 1)
+            if (m_blueoutState) {
+                if (!m_round.m_blueoutState)
                     m_round.requestBlueout(m_blueoutState);
                 else
                     m_logger.sendPrivateMessage(name, "Blueout has already been enabled");
@@ -1328,7 +1328,7 @@ public class MatchTeam {
                 if (m_round.m_fnRoundState < 2)
                     m_logger.sendPrivateMessage(name, "Blueout will be enabled as soon as the game begins");
             } else {
-                if (m_round.getOtherTeam(m_fnFrequency).getBlueoutState() == false)
+                if (m_round.getOtherTeam(m_fnFrequency).getBlueoutState())
                     m_round.requestBlueout(m_blueoutState);
                 m_logger.sendPrivateMessage(name, "If the other team also requested to turn off blueout, blueout will be taken off.");
             }

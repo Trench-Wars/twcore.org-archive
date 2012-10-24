@@ -530,16 +530,10 @@ public class MatchGame {
             m_logger.sendPrivateMessage(name, "- " + extra);
 
         if (m_curRound != null) {
-            switch (m_curRound.m_blueoutState) {
-                case 0:
-                    m_logger.sendPrivateMessage(name, "Blueout is not enabled.");
-                    break;
-                case 1:
-                    m_logger.sendPrivateMessage(name, "Blueout is enabled.");
-                    break;
-                default:
-                    m_logger.sendPrivateMessage(name, "Blueout status is unknown.");
-            }
+            if (m_curRound.m_blueoutState)
+                m_logger.sendPrivateMessage(name, "Blueout is enabled.");
+            else
+                m_logger.sendPrivateMessage(name, "Blueout is not enabled.");
         }
     }
 
