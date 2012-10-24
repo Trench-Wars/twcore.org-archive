@@ -349,7 +349,7 @@ public class MatchTeam {
     private void handleEinfo(String msg) {
         String name = msg.substring(0, msg.indexOf(":"));
         String userid = msg.substring(msg.indexOf("UserId:") + 9, msg.indexOf("Res:")).trim();
-        String resolution = msg.substring(msg.indexOf("Res: ") + 6, msg.indexOf("Client: ")).trim();
+        String resolution = msg.substring(msg.indexOf("Res: ") + 5, msg.indexOf("Client: ")).trim();
         debug("Got einfo for: " + name);
         
         einfoer.gotEinfo(name);
