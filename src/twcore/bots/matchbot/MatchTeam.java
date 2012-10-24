@@ -1952,10 +1952,9 @@ public class MatchTeam {
     public void sendPrivateMessageToCaptains(String[] text) {
         if (text[0].contains(": PING")) {
             String name = text[0].substring(0, text[0].indexOf(": PING"));
-            if (!addInfo.contains(name.toLowerCase())) {
-                m_botAction.sendPrivateMessage("WingZero", "Captain lag spam request denied from: " + name);
+            if (!addInfo.contains(name.toLowerCase()))
                 return;
-            } else
+            else
                 addInfo.remove(name.toLowerCase());
         }
         ListIterator<String> i = m_captains.listIterator();
