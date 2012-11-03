@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.TimerTask;
 import twcore.bots.pubsystem.module.*;
 import twcore.core.BotAction;
+import twcore.core.BotSettings;
 import twcore.core.events.SQLResultEvent;
 import twcore.core.events.SubspaceEvent;
 import twcore.core.util.Tools;
@@ -263,11 +264,12 @@ public class PubContext {
                     m_botAction.sendSmartPrivateMessage(sender, "Module '" + moduleName + "' disabled.");
                 }
                 if (moduleName.equalsIgnoreCase("pubmap")) {
+                    BotSettings sets = m_botAction.getBotSettings();
                     if (enable)
-                        m_botAction.getBotSettings().put("pubmap_enabled", "1");
+                        sets.put("pubmap_enabled", "1");
                     else
-                        m_botAction.getBotSettings().put("pubmap_enabled", "0");
-                    m_botAction.getBotSettings().save();
+                        sets.put("pubmap_enabled", "0");
+                    sets.save();
                 }
             } else {
                 m_botAction.sendSmartPrivateMessage(sender, "Module '" + moduleName + "' not found.");
