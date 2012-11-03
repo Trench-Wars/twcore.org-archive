@@ -264,9 +264,9 @@ public class PubContext {
                 }
                 if (moduleName.equalsIgnoreCase("pubmap")) {
                     if (enable)
-                        m_botAction.getBotSettings().put("enable_pubmap", "1");
+                        m_botAction.getBotSettings().put("pubmap_enabled", "1");
                     else
-                        m_botAction.getBotSettings().put("enable_pubmap", "0");
+                        m_botAction.getBotSettings().put("pubmap_enabled", "0");
                     m_botAction.getBotSettings().save();
                 }
             } else {
