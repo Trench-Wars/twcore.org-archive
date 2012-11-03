@@ -262,6 +262,13 @@ public class PubContext {
                     modules.get(moduleName).disable();
                     m_botAction.sendSmartPrivateMessage(sender, "Module '" + moduleName + "' disabled.");
                 }
+                if (moduleName.equalsIgnoreCase("pubmap")) {
+                    if (enable)
+                        m_botAction.getBotSettings().put("enable_pubmap", "1");
+                    else
+                        m_botAction.getBotSettings().put("enable_pubmap", "0");
+                    m_botAction.getBotSettings().save();
+                }
             } else {
                 m_botAction.sendSmartPrivateMessage(sender, "Module '" + moduleName + "' not found.");
                 String moduleNames = "";
