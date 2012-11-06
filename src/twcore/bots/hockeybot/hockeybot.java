@@ -24,8 +24,8 @@ import twcore.core.events.PlayerPosition;
 import twcore.core.events.SoccerGoal;
 import twcore.core.game.Player;
 import twcore.core.util.Point;
-import twcore.core.util.Tools;
 import twcore.core.util.Spy;
+import twcore.core.util.Tools;
 
 /**
  * Class HockeyBot
@@ -41,7 +41,7 @@ public class hockeybot extends SubspaceBot {
     private HockeyConfig config;                            //Game configuration
     private HockeyTeam team0;                               //Teams
     private HockeyTeam team1;
-    //private Vote staffVote;   							//staff vote for clean or phase
+    //private Vote staffVote;                               //staff vote for clean or phase
     private HockeyPuck puck;                                //the ball in arena
     private Spy racismWatcher;                              //Racism watcher
     private ArrayList<String> listNotplaying;               //List of notplaying players
@@ -476,9 +476,9 @@ public class hockeybot extends SubspaceBot {
     }
 
     private void checkPenalty(PlayerPosition event) {
+
         int playerID = event.getPlayerID();
         String name = m_botAction.getPlayerName(playerID);
-
         HockeyTeam team = null;
         if (name != null) {
             team = getTeam(name);
@@ -486,7 +486,7 @@ public class hockeybot extends SubspaceBot {
 
         if (team != null) {
             HockeyPlayer player = team.searchPlayer(name);
-            //check penalty
+            // check penalty
             if (player != null) {
                 if (player.penalty != HockeyPenalty.NONE) {
 
@@ -495,16 +495,22 @@ public class hockeybot extends SubspaceBot {
                     } else if (event.getYLocation() > config.getTeam1ExtY()) {
                         m_botAction.warpTo(name, config.getTeam1PenX() / 16, config.getTeam1PenY() / 16);
                     }
-
-                    if ((gameTime - player.penaltyTimestamp) >= config.getPenaltyTime()) {
-                        player.penalty = HockeyPenalty.NONE;
-                        if (team.getFrequency() == 0) {
-                            m_botAction.warpTo(name, config.getTeam0ExtX() / 16, config.getTeam0ExtY() / 16);
-                        } else {
-                            m_botAction.warpTo(name, config.getTeam1ExtX() / 16, config.getTeam1ExtY() / 16);
-                        }
-                    }
+                    checkPenaltyExipred(name, team);
                 }
+            }
+        }
+
+    }
+
+    private void checkPenaltyExipred(String name, HockeyTeam team) {
+        HockeyPlayer player = team.searchPlayer(name);
+
+        if ((gameTime - player.penaltyTimestamp) >= config.getPenaltyTime()) {
+            player.penalty = HockeyPenalty.NONE;
+            if (team.getFrequency() == 0) {
+                m_botAction.warpTo(name, config.getTeam0ExtX() / 16, config.getTeam0ExtY() / 16);
+            } else {
+                m_botAction.warpTo(name, config.getTeam1ExtX() / 16, config.getTeam1ExtY() / 16);
             }
         }
     }
@@ -1269,7 +1275,15 @@ public class hockeybot extends SubspaceBot {
                 return;
             }
 
-            t.removePlayer(p.getName());
+            if (p.penalty != HockeyPenalty.NONE) {
+                checkPenaltyExipred(name, t);
+                if (p.penalty != HockeyPenalty.NONE)
+                    m_botAction.sendPrivateMessage(name,"Player cannot be removed because they are in the penalty box.");
+                else
+                    t.removePlayer(p.getName());
+            } else {
+                t.removePlayer(p.getName());
+            }
 
             determineTurn();
         }
@@ -1447,40 +1461,40 @@ public class hockeybot extends SubspaceBot {
      * @param message frequency whose score is to be decreased
      */
     private void cmd_increase(String name, String message) {
-    	String msg = message.substring(10);
-    	int tempCheck = 0;
-    	int targetFreq = -1;
-    	
-    	try {
-    		targetFreq = Integer.valueOf(msg);
-    	} catch (NumberFormatException e) {
-    		m_botAction.sendPrivateMessage(name, "Invalid syntax. Please use !increase <freq> where <freq> is either 0 or 1.");
-    	}
-    	
-    	if (currentState != HockeyState.OFF) {
-    		if (targetFreq == 0) {
-    			tempCheck = team0.getScore();
-    			if (tempCheck < 6 && tempCheck >= 0) {
-    				team0.increaseScore();
-    				m_botAction.sendArenaMessage("Score for " + team0.getName() + " has been set to " + team0.getScore() + " by " + name, 2);
-    			}
-    			else
-    				m_botAction.sendPrivateMessage(name, "This command cannot be used for the final goal.");
-    		}
-    		else if (targetFreq == 1) {
-    			tempCheck = team1.getScore();
-    			if (tempCheck < 6 && tempCheck >= 0) {
-    				team1.increaseScore();
-        			m_botAction.sendArenaMessage("Score for " + team1.getName() + " has been set to " + team1.getScore() + " by " + name, 2);
-    			}
-    			else
-    				m_botAction.sendPrivateMessage(name, "This command cannot be used for the final goal.");
-    		}
-    		else
-    			m_botAction.sendPrivateMessage(name, "The action could not be completed at this time. Use !increase <freq> "
-    												 									+ "to add a goal for <freq>.");
-    	}
-    	
+        String msg = message.substring(10);
+        int tempCheck = 0;
+        int targetFreq = -1;
+        
+        try {
+            targetFreq = Integer.valueOf(msg);
+        } catch (NumberFormatException e) {
+            m_botAction.sendPrivateMessage(name, "Invalid syntax. Please use !increase <freq> where <freq> is either 0 or 1.");
+        }
+        
+        if (currentState != HockeyState.OFF) {
+            if (targetFreq == 0) {
+                tempCheck = team0.getScore();
+                if (tempCheck < 6 && tempCheck >= 0) {
+                    team0.increaseScore();
+                    m_botAction.sendArenaMessage("Score for " + team0.getName() + " has been set to " + team0.getScore() + " by " + name, 2);
+                }
+                else
+                    m_botAction.sendPrivateMessage(name, "This command cannot be used for the final goal.");
+            }
+            else if (targetFreq == 1) {
+                tempCheck = team1.getScore();
+                if (tempCheck < 6 && tempCheck >= 0) {
+                    team1.increaseScore();
+                    m_botAction.sendArenaMessage("Score for " + team1.getName() + " has been set to " + team1.getScore() + " by " + name, 2);
+                }
+                else
+                    m_botAction.sendPrivateMessage(name, "This command cannot be used for the final goal.");
+            }
+            else
+                m_botAction.sendPrivateMessage(name, "The action could not be completed at this time. Use !increase <freq> "
+                                                                                        + "to add a goal for <freq>.");
+        }
+        
     }
     
     /**
@@ -1490,46 +1504,46 @@ public class hockeybot extends SubspaceBot {
      * @param message frequency whose score is to be decreased
      */
     private void cmd_decrease(String name, String message) {
-    	String msg = message.substring(10);
-    	int tempCheck = 0;
-    	int targetFreq = -1;
-    	
-    	try {
-    		targetFreq = Integer.valueOf(msg);
-    	} catch (NumberFormatException e) {
-    		m_botAction.sendPrivateMessage(name, "Invalid syntax. Please use !decrease <freq> where <freq> is either 0 or 1.");
-    		return;    		
-    	}
-    	
-    	if (currentState != HockeyState.OFF) {
-    		
-    		if (targetFreq == 0) {
-    			tempCheck = team0.getScore();
-    			if (tempCheck > 0) {
-    				team0.decreaseScore();
-    				m_botAction.sendArenaMessage("Score for " + team0.getName() + " has been set to " + team0.getScore() + " by " + name, 2);
-    			}
-    			else
-    				m_botAction.sendPrivateMessage(name, team0.getName() + " does not have any goals.");
-    		}
-    		else if (targetFreq == 1) {
-    			tempCheck = team1.getScore();
-    			if (tempCheck > 0) {
-    				team1.decreaseScore();
-        			m_botAction.sendArenaMessage("Score for " + team1.getName() + " has been set to " + team1.getScore() + " by " + name, 2);
-    			}
-    			else
-    				m_botAction.sendPrivateMessage(name, team1.getName() + " does not have any goals.");
-    		}
-    		else
-    			m_botAction.sendPrivateMessage(name, "The action could not be completed at this time. Use !decrease <freq> "
-    												 									+ "to subtract a goal from <freq>.");
+        String msg = message.substring(10);
+        int tempCheck = 0;
+        int targetFreq = -1;
+        
+        try {
+            targetFreq = Integer.valueOf(msg);
+        } catch (NumberFormatException e) {
+            m_botAction.sendPrivateMessage(name, "Invalid syntax. Please use !decrease <freq> where <freq> is either 0 or 1.");
+            return;         
+        }
+        
+        if (currentState != HockeyState.OFF) {
+            
+            if (targetFreq == 0) {
+                tempCheck = team0.getScore();
+                if (tempCheck > 0) {
+                    team0.decreaseScore();
+                    m_botAction.sendArenaMessage("Score for " + team0.getName() + " has been set to " + team0.getScore() + " by " + name, 2);
+                }
+                else
+                    m_botAction.sendPrivateMessage(name, team0.getName() + " does not have any goals.");
+            }
+            else if (targetFreq == 1) {
+                tempCheck = team1.getScore();
+                if (tempCheck > 0) {
+                    team1.decreaseScore();
+                    m_botAction.sendArenaMessage("Score for " + team1.getName() + " has been set to " + team1.getScore() + " by " + name, 2);
+                }
+                else
+                    m_botAction.sendPrivateMessage(name, team1.getName() + " does not have any goals.");
+            }
+            else
+                m_botAction.sendPrivateMessage(name, "The action could not be completed at this time. Use !decrease <freq> "
+                                                                                        + "to subtract a goal from <freq>.");
     }
     }
 
  
 
-	/**
+    /**
      * Handles the !sub command
      *
      * @param name name of the player that issued the !sub command
