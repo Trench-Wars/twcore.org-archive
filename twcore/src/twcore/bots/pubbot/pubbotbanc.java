@@ -1,5 +1,6 @@
 package twcore.bots.pubbot;
 
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.ListIterator;
@@ -39,21 +40,24 @@ import twcore.core.util.ipc.IPCMessage;
 public class pubbotbanc extends PubBotModule {
 
     public static final String IPCBANC = "banc";
+    private static final String AFK_ARENA = "afk";
 
     private static final long INFINTE_DURATION = 0;
     private static final int MAX_NAME_LENGTH = 19;
-    private static final String db = "bots";
+    private static final int MAX_IDLE_TIME = 15; //mins
 
     private TimerTask initActiveBanCs;
     private Action act;
+    private SendElapsed elapsed;
 
     private TreeMap<String, BanC> bancSilence;
     private TreeMap<String, BanC> bancSpec;
     private TreeMap<String, BanC> bancSuper;
-    private Vector<BanC> actions;
+    private Vector<Object> actions;
 
-    private BanC current;
+    private Object current;
     private boolean silentKicks;
+    private String sendto;
 
     @Override
     public void initializeModule() {
@@ -62,7 +66,11 @@ public class pubbotbanc extends PubBotModule {
         bancSilence = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         bancSpec = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         bancSuper = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
-        actions = new Vector<BanC>();
+        actions = new Vector<Object>();
+        
+        String zoneIP = m_botAction.getGeneralSettings().getString("Server");
+        String zonePort = m_botAction.getGeneralSettings().getString("Port");
+        sendto = "*sendto " + zoneIP + "," + zonePort + "," + AFK_ARENA;
         
         // Request active BanCs from StaffBot
         initActiveBanCs = new TimerTask() {
@@ -75,6 +83,8 @@ public class pubbotbanc extends PubBotModule {
 
         act = new Action();
         m_botAction.scheduleTask(act, 2000, 2000);
+        elapsed = new SendElapsed();
+        m_botAction.scheduleTask(elapsed, 5 * Tools.TimeInMillis.MINUTE, 5 * Tools.TimeInMillis.MINUTE);
     }
 
     @Override
@@ -108,6 +118,8 @@ public class pubbotbanc extends PubBotModule {
 
     @Override
     public void handleEvent(PlayerLeft event) {
+        String name = m_botAction.getPlayerName(event.getPlayerID());
+        elapsed.rem(name);
     }
 
     @Override
@@ -165,7 +177,10 @@ public class pubbotbanc extends PubBotModule {
                 m_botAction.ipcSendMessage(IPCBANC, "KICKED:Player '" + name + "' has been kicked by " + m_botAction.getBotName() + " for using an unapproved client.", "banc", m_botAction.getBotName());
             } else if (message.startsWith("IP:"))
                 checkBanCs(message);
-            else if (current != null) {
+            else if (message.contains("Idle: "))
+                elapsed.handleIdle(message);
+            else if (current != null && current instanceof BanC) {
+                BanC current = (BanC) this.current;
                 String name = current.getName();
                 if (message.equalsIgnoreCase(current.getName() + " can now speak")) {
                     if (!current.isActive()) {
@@ -250,6 +265,16 @@ public class pubbotbanc extends PubBotModule {
         for (BanC b : bancSuper.values())
             m_botAction.sendSmartPrivateMessage(name, "  " + b.getName() + " IP=" + (b.ip != null ? b.ip : "") + " MID=" + (b.mid != null ? b.mid : ""));
     }
+    
+    private void cmd_move(String name, String msg) {
+        if (msg.length() > 6) {
+            String p = m_botAction.getFuzzyPlayerName(msg.substring(msg.indexOf(" ") + 1));
+            if (p != null) {
+                sendIdler(p);
+                m_botAction.sendPrivateMessage(name, "Moving '" + p + "' to afk");
+            }
+        }
+    }
 
     private void checkBanCs(String info) {
         final String name = getInfo(info, "TypedName:");
@@ -274,38 +299,38 @@ public class pubbotbanc extends PubBotModule {
             }
         }
         
-        if (bancSilence.containsKey(name))
+        if (bancSilence.containsKey(name)) {
             actions.add(bancSilence.get(name).reset());
-        else
+            elapsed.add(name, bancSilence.get(name));
+        } else {
             for (BanC b : bancSilence.values())
-                if (b.isMatch(name, ip, mid))
+                if (b.isMatch(name, ip, mid)) {
                     actions.add(b);
+                    elapsed.add(name, b);
+                }
+        }
 
-        if (bancSpec.containsKey(name))
+        if (bancSpec.containsKey(name)) {
             actions.add(bancSpec.get(name).reset());
-        else
+            elapsed.add(name, bancSpec.get(name));
+        } else {
             for (BanC b : bancSpec.values())
-                if (b.isMatch(name, ip, mid))
+                if (b.isMatch(name, ip, mid)) {
                     actions.add(b);
+                    elapsed.add(name, b);
+                }
+        }
 
-        if (bancSuper.containsKey(name))
+        if (bancSuper.containsKey(name)) {
             actions.add(bancSuper.get(name).reset());
-        else
+            elapsed.add(name, bancSuper.get(name));
+        } else {
             for (BanC b : bancSuper.values())
-                if (b.isMatch(name, ip, mid))
+                if (b.isMatch(name, ip, mid)) {
                     actions.add(b);
-    }
-    
-    class SendElapsed extends TimerTask {
-        
-        public SendElapsed() {
-            
+                    elapsed.add(name, b);
+                }
         }
-        
-        public void run() {
-            
-        }
-        
     }
 
     private void handleBanC(BanC b) {
@@ -321,8 +346,10 @@ public class pubbotbanc extends PubBotModule {
                 bancSuper.put(b.getName(), b);
                 break;
         }
-        if (target != null)
+        if (target != null) {
             actions.add(b);
+            elapsed.add(target, b);
+        }
     }
 
     private void handleSuper(String namePlayer, int shipNumber) {
@@ -354,7 +381,14 @@ public class pubbotbanc extends PubBotModule {
         if (name != null && b != null) {
             b.active = false;
             actions.add(b);
+            elapsed.rem(args[2]);
         }
+    }
+    
+    private void sendIdler(String name) {
+        String MOVE_MESSAGE = "You've been moved to the away-from-keyboard subarena - 'afk'. Type \"?go\" to return.";
+        m_botAction.sendPrivateMessage(name, MOVE_MESSAGE);
+        m_botAction.sendUnfilteredPrivateMessage(name, sendto);
     }
 
     private String getTarget(BanC b) {
@@ -384,20 +418,106 @@ public class pubbotbanc extends PubBotModule {
         public void run() {
             if (!actions.isEmpty()) {
                 current = actions.remove(0);
-                switch (current.getType()) {
+                if (current instanceof BanC) {
+                    BanC curr = (BanC) current;
+                    switch (curr.getType()) {
                     case SILENCE:
-                        m_botAction.sendUnfilteredPrivateMessage(current.getName(), "*shutup");
+                        m_botAction.sendUnfilteredPrivateMessage(curr.getName(), "*shutup");
                         break;
                     case SPEC:
-                        m_botAction.spec(current.getName());
+                        m_botAction.spec(curr.getName());
                         break;
                     case SUPERSPEC:
-                        Player p = m_botAction.getPlayer(current.getName());
+                        Player p = m_botAction.getPlayer(curr.getName());
                         if (p != null)
-                            handleSuper(current.getName(), p.getShipType());
+                            handleSuper(curr.getName(), p.getShipType());
                         break;
-                }
+                    }
+                } else if (current instanceof String)
+                    m_botAction.sendUnfilteredPrivateMessage((String) current, "*einfo");
             }
+        }
+    }
+    
+    class SendElapsed extends TimerTask {
+        
+        TreeMap<String, BanC> silence;
+        TreeMap<String, BanC> ship;
+        TreeMap<String, BanC> spec;
+        
+        public SendElapsed() {
+            silence = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
+            ship = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
+            spec = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
+        }
+        
+        public void handleIdle(String msg) {
+            String name = msg.substring(0, msg.indexOf(":"));
+            int sec = 0;
+            try {
+                sec = Integer.valueOf(msg.substring(msg.indexOf("Idle:") + 6, msg.lastIndexOf("s")));
+            } catch (NumberFormatException e) {
+                Tools.printStackTrace(e);
+                return;
+            }
+            if (sec > MAX_IDLE_TIME * 60)
+                sendIdler(name);
+        }
+
+        public void run() {
+            for (Entry<String, BanC> e : silence.entrySet()) {
+                e.getValue().sendUpdate();
+                actions.add(e.getKey());
+            }
+            for (Entry<String, BanC> e : ship.entrySet()) {
+                e.getValue().sendUpdate();
+                actions.add(e.getKey());
+            }
+            for (Entry<String, BanC> e : spec.entrySet()) {
+                e.getValue().sendUpdate();
+                actions.add(e.getKey());
+            }
+        }
+        
+        public void add(String name, BanC banc) {
+            switch (banc.getType()) {
+                case SILENCE: 
+                    if (!silence.containsKey(name)) {
+                        silence.put(name, banc); 
+                        banc.setActive(true);
+                    }
+                    break;
+                case SUPERSPEC: 
+                    if (!ship.containsKey(name)) {
+                        ship.put(name, banc); 
+                        banc.setActive(true);
+                    }
+                    break;
+                case SPEC: 
+                    if (!spec.containsKey(name)) {
+                        spec.put(name, banc); 
+                        banc.setActive(true);
+                    }
+                    break;
+            }
+        }
+        
+        public void rem(String name) {
+            if (silence.containsKey(name))
+                silence.remove(name).setActive(false);
+            if (ship.containsKey(name))
+                ship.remove(name).setActive(false);
+            if (spec.containsKey(name))
+                spec.remove(name).setActive(false);
+        }
+        
+        public void stop() {
+            for (BanC b : silence.values())
+                b.setActive(false);
+            for (BanC b : spec.values())
+                b.setActive(false);
+            for (BanC b : ship.values())
+                b.setActive(false);
         }
     }
 
@@ -489,7 +609,15 @@ public class pubbotbanc extends PubBotModule {
             return this;
         }
         
-        void update() {
+        public void setActive(boolean a) {
+            active = a;
+            if (a)
+                lastUpdate = System.currentTimeMillis();
+            else
+                sendUpdate();
+        }
+        
+        public void sendUpdate() {
             long now = System.currentTimeMillis();
             int mins = (int) (now - lastUpdate) / Tools.TimeInMillis.MINUTE;
             lastUpdate = now;
