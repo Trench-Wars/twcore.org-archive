@@ -458,19 +458,16 @@ public class hockeybot extends SubspaceBot {
      * Grabs ball and sits in drop location
      */
     public void getBall() {
-        if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
-            boolean lock = lockArena;
-            lockArena = false;
-            m_botAction.toggleLocked();
-            Ship s = m_botAction.getShip();
-            s.setShip(0);
-            s.setFreq(FREQ_NOTPLAYING);
-            s.move(config.getPuckDropX(), config.getPuckDropY());
-            m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
-            s.sendPositionPacket();
-            lockArena = lock;
-            m_botAction.toggleLocked();
-        }
+        boolean lock = lockArena;
+        lockArena = false;
+        m_botAction.toggleLocked();
+        Ship s = m_botAction.getShip();
+        s.setShip(0);
+        s.setFreq(FREQ_NOTPLAYING);
+        s.move(config.getPuckDropX(), config.getPuckDropY());
+        m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
+        lockArena = lock;
+        m_botAction.toggleLocked();
     }
 
     /**
@@ -479,7 +476,9 @@ public class hockeybot extends SubspaceBot {
     public void dropBall() {
         String b = m_botAction.getBotName();
         m_botAction.getShip().setShip(8);
+        m_botAction.specWithoutLock(b);
         m_botAction.setFreq(b, FREQ_NOTPLAYING);
+        m_botAction.setPlayerPositionUpdating(300);
     }
 
     private void checkPenalty(PlayerPosition event) {
@@ -1745,7 +1744,7 @@ public class hockeybot extends SubspaceBot {
         lockArena();
         lockDoors();
         setSpecAndFreq();
-
+        dropBall();
         try {
             gameticker.cancel();
         } catch (Exception e) {
