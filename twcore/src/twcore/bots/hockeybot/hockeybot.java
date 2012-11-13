@@ -528,97 +528,82 @@ public class hockeybot extends SubspaceBot {
     private void handleCommand(String name, String command, int override) {
         String cmd = command.toLowerCase();
 
-        /* Captain commands */
-        if (isCaptain(name) || override != -1) {
-            if (cmd.startsWith("!change")) {
-                cmd_change(name, cmd, override);
-            } else if (cmd.startsWith("!switch")) {
-                cmd_switch(name, cmd, override);
-            } else if (cmd.startsWith("!add")) {
-                cmd_add(name, cmd, override);
-            /*} else if (cmd.startsWith("!mad")) {
-                //TODO REMOVE THIS
-                cmd_add("SpookBot1", cmd, override);
-                cmd_ready("SpookBot1", override);*/
-            } else if (cmd.equals("!ready")) {
-                cmd_ready(name, override);
-            } else if (cmd.equals("!removecap")) {
-                cmd_removecap(name, override);
-            } else if (cmd.startsWith("!remove")) {
-                cmd_remove(name, cmd, override);
-            } else if (cmd.startsWith("!sub")) {
-                cmd_sub(name, cmd, override);
-            }
-        }
+       /* Captain commands */
+       if (isCaptain(name) || override != -1) {
+           if (cmd.startsWith("!change")) {
+               cmd_change(name, cmd, override);
+           } else if (cmd.startsWith("!switch")) {
+               cmd_switch(name, cmd, override);
+           } else if (cmd.startsWith("!add")) {
+               cmd_add(name, cmd, override);
+           } else if (cmd.equals("!ready")) {
+               cmd_ready(name, override);
+           } else if (cmd.startsWith("!remove")) {
+               cmd_remove(name, cmd, override);
+           } else if (cmd.startsWith("!sub")) {
+               cmd_sub(name, cmd, override);
+           }
+      }
 
-        /* Player commands */
-        if (cmd.equals("!cap")) {
-            cmd_cap(name);
-        } else if (cmd.equals("!help")) {
-            cmd_help(name);
-        } else if (cmd.equals("!return")) {
-            cmd_lagout(name);
-        } else if (cmd.equals("!lagout")) {
-            cmd_lagout(name);
-        } else if (cmd.equals("!list")) {
-            cmd_list(name);
-        } else if (cmd.equals("!notplaying") || cmd.equals("!np")) {
-            cmd_notplaying(name);
-        } else if (cmd.equals("!status")) {
-            cmd_status(name);
-        } else if (cmd.equals("!subscribe")) {
-            cmd_subscribe(name);
-        }
+       /* Player commands */
+       if (cmd.equals("!cap")) {
+           cmd_cap(name);
+       } else if (cmd.equals("!help")) {
+           cmd_help(name);
+       } else if (cmd.equals("!return")) {
+           cmd_lagout(name);
+       } else if (cmd.equals("!lagout")) {
+           cmd_lagout(name);
+       } else if (cmd.equals("!list")) {
+           cmd_list(name);
+       } else if (cmd.equals("!notplaying") || cmd.equals("!np")) {
+           cmd_notplaying(name);
+       } else if (cmd.equals("!status")) {
+           cmd_status(name);
+       } else if (cmd.equals("!subscribe")) {
+           cmd_subscribe(name);
+       }
 
-        /* Voting commands */
-        if (cmd.equals("!clean") || cmd.equals("!cl")) {
-        } else if (cmd.equals("!phase") || cmd.equals("!ph")) {
-        }
 
-        /* Staff commands ZH+ */
-        if (m_botAction.getOperatorList().isZH(name)) {
-            if (cmd.equals("!start")) {
-                cmd_start(name);
-            } else if (cmd.equals("!stop")) {
-                cmd_stop(name);
-            } else if (cmd.startsWith("!zone") && !config.getAllowAutoCaps()) {
-                cmd_zone(name, command);
-            } else if (cmd.equals("!off")) {
-                cmd_off(name);
-            } else if (cmd.startsWith("!forcenp ")) {
-                cmd_forcenp(name, cmd);
-            } else if (cmd.startsWith("!setcaptain")) {
-                cmd_setCaptain(name, cmd, override);
-            } else if (cmd.equals("!ball")) {
-                cmd_ball(name);
-            } else if (cmd.equals("!drop")) {
-                cmd_drop(name);
-            } 
-        }
-        
-        /* Staff commands ER+ */
-        if (m_botAction.getOperatorList().isER(name)) {
-        	if (cmd.startsWith("!decrease ")) {
-        		cmd_decrease(name, cmd);
-        	} else if (cmd.startsWith("!increase ")) {
-        		cmd_increase(name, cmd);
-        	}
-        }
+       /* Staff commands ZH+ */
+       if (m_botAction.getOperatorList().isZH(name)) {
+           if (cmd.equals("!start")) {
+               cmd_start(name);
+           } else if (cmd.equals("!stop")) {
+               cmd_stop(name);
+           } else if (cmd.startsWith("!zone")) {
+               cmd_zone(name, command);
+           } else if (cmd.equals("!off")) {
+               cmd_off(name);
+           } else if (cmd.startsWith("!forcenp ")) {
+               cmd_forcenp(name, cmd);
+           } else if (cmd.startsWith("!setcaptain")) {
+               cmd_setCaptain(name, cmd, override);
+           } else if (cmd.equals("!ball")) {
+               cmd_ball(name);
+           } else if (cmd.equals("!drop")) {
+               cmd_drop(name);
+           } else if (cmd.startsWith("!decrease ")) {
+               cmd_decrease(name, cmd);
+           } else if (cmd.startsWith("!increase ")) {
+               cmd_increase(name, cmd);
+           }
+       }
 
-        /* Staff commands Moderator+ */
-        if (m_botAction.getOperatorList().isModerator(name)) {
-            if (cmd.equals("!die")) {
-                m_botAction.die();
-            }
-        }
+       /* Staff commands Moderator+ */
+       if (m_botAction.getOperatorList().isModerator(name)) {
+           if (cmd.equals("!die")) {
+               m_botAction.die();
+           }
+       }
 
-        /* Staff commands SMOD+ */
-        if (m_botAction.getOperatorList().isSmod(name)) {
-            if (cmd.equals("!allowzoner")) {
-                cmd_allowZoner(name);
-            }
-        }
-    }
+       /* Staff commands SMOD+ */
+       if (m_botAction.getOperatorList().isSmod(name)) {
+           if (cmd.equals("!allowzoner")) {
+               cmd_allowZoner(name);
+           }
+       }
+   }
 
     /** Handles the !ball command */
     private void cmd_ball(String name) {
@@ -946,49 +931,33 @@ public class hockeybot extends SubspaceBot {
      * @param name name of the player that issued the !help command
      */
     private void cmd_help(String name) {
-        //TODO clean this up
+
         ArrayList<String> help = new ArrayList<String>();   //Help messages
 
-        if (currentState == HockeyState.WAITING_FOR_CAPS) {
-            if (config.getAllowAutoCaps()) {
-                help.add("!cap                      -- Become captain of a team");
-            } else {
-                help.add("!cap                      -- List captains");
-            }
-            if (isCaptain(name)) {
-                help.add("!removecap                -- Removes you as a captain");
-            }
-        } else if (currentState == HockeyState.ADDING_PLAYERS) {
-            if (isCaptain(name)) {
-                help.add("!add <player>             -- Adds player");
-                help.add("!add <player>:<ship>      -- Adds player in the specified ship");
-            }
-            help.add("!cap                      -- Become captain of a team / shows current captains!");
-            if (isCaptain(name)) {
-                help.add("!change <player>:<ship>   -- Sets the player in the specified ship");
-            }
-            help.add("!lagout                   -- Puts you back into the game if you have lagged out");
-            help.add("!list                     -- Lists all players on this team");
-            //help.add("!myfreq                   -- Puts you on your team's frequency");
-            //help.add("!mvp                      -- Displays the current mvp");
-            //help.add("!rating <player>          -- Displays your/<player> current rating");
-            //help.add("!score <player>           -- Displays your/<player> current score");
-            if (currentState == HockeyState.ADDING_PLAYERS && isCaptain(name)) {
-                help.add("!ready                    -- Use this when you're done setting your lineup");
-                help.add("!remove <player>          -- Removes specified player)");
-            }
-            if (isCaptain(name)) {
-                help.add("!removecap                -- Removes you as a captain");
-                help.add("!sub <playerA>:<playerB>  -- Substitutes <playerA> with <playerB>");
-                help.add("!switch <player>:<player> -- Exchanges the ship of both players");
-            }
-        }
-
-        help.add("!status                   -- Display status and score");
-
         if (currentState != HockeyState.OFF) {
-            help.add("!notplaying               -- Toggles not playing mode  (short !np)");
-            help.add("!subscribe                -- Toggles alerts in private messages");
+           help.add("!lagout                   -- Puts you back into the game if you have lagged out");
+           help.add("!list                     -- Lists all players on this team");
+           help.add("!cap                      -- Become captain of a team / shows current captains!");
+           help.add("!status                   -- Display status and score");
+           help.add("!notplaying               -- Toggles not playing mode  (short !np)");
+                if (isCaptain(name)) {
+                    help.add("Captain Controls:");
+                    help.add("!add <player>             -- Adds player (Default Ship: Spider)");
+                    help.add("!add <player>:<ship>      -- Adds player in the specified ship");
+                    help.add("!remove <player>          -- Removes specified player)");
+                    help.add("!change <player>:<ship>   -- Sets the player in the specified ship");
+                    help.add("!sub <playerA>:<playerB>  -- Substitutes <playerA> with <playerB>");
+                    help.add("!switch <player>:<player> -- Exchanges the ship of both players");
+                        if (currentState == HockeyState.ADDING_PLAYERS && isCaptain(name)) {
+                            help.add("!ready                    -- Use this when you're done setting your lineup");
+                        }
+                }
+       } else {
+           help.add("!subscribe                -- Toggles alerts in private messages");
+       }
+        
+        if (currentState != HockeyState.OFF) {
+           
         }
 
         if (m_botAction.getOperatorList().isModerator(name)) {
@@ -996,27 +965,19 @@ public class hockeybot extends SubspaceBot {
             help.add("!off                      -- stops the bot after the current game");
             help.add("!die                      -- disconnects the bot");
         }
-        
-        if (m_botAction.getOperatorList().isER(name)) {
-            help.add("!decrease <freq>                  -- subtracts a goal from <freq>");
-            help.add("!increase <freq>                  -- adds a goal for <freq> - only to be used to undo a double !decrease");
-            help.add("!phase/!ph/!lag                   -- used only on the final goal to callback a phase/lag goal.");
-        }
-        
+
         if (m_botAction.getOperatorList().isZH(name)) {
             help.add("ZH+ commands:");
             help.add("!start                            -- starts the bot");
             help.add("!stop                             -- stops the bot");
             help.add("!ball                             -- retrieves the ball");
             help.add("!drop                             -- drops the ball");
-            if (!config.getAllowAutoCaps()) {
-                help.add("!zone <message>                   -- sends time-restricted advert, message is optional");
-            }
+            help.add("!decrease <freq>                  -- subtracts a goal from <freq>");
+            help.add("!increase <freq>                  -- adds a goal for <freq> - only to be used to undo a double !decrease");
+            help.add("!zone <message>                   -- sends time-restricted advert, message is optional");
             help.add("!forcenp <player>                 -- Sets <player> to !notplaying");
             if (currentState == HockeyState.WAITING_FOR_CAPS) {
                 help.add("!setcaptain <# freq>:<player>     -- Sets <player> as captain for <# freq>");
-                help.add("!setcaptain <player>      -- Sets <player> to captain");
-                help.add("!removecap                -- Removes the cap of team !t#");
             }
         }
 
@@ -1632,7 +1593,15 @@ public class hockeybot extends SubspaceBot {
                 }
             }
 
-            t.sub(playerA, playerBnew); //Execute the substitute
+            if (playerA.penalty != HockeyPenalty.NONE) {
+                checkPenaltyExipred(name, t);
+                if (playerA.penalty != HockeyPenalty.NONE)
+                    m_botAction.sendPrivateMessage(name,"Player cannot be subbed because they are in the penalty box.");
+                else
+                    t.sub(playerA, playerBnew); //Execute the substitute
+            } else {
+                t.sub(playerA, playerBnew); //Execute the substitute
+            }
         }
     }
 
