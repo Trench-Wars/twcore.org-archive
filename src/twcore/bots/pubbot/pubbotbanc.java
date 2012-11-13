@@ -1,7 +1,7 @@
 package twcore.bots.pubbot;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.ListIterator;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -15,6 +15,7 @@ import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.game.Player;
+import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCEvent;
 import twcore.core.util.ipc.IPCMessage;
 
@@ -41,13 +42,14 @@ public class pubbotbanc extends PubBotModule {
 
     private static final long INFINTE_DURATION = 0;
     private static final int MAX_NAME_LENGTH = 19;
+    private static final String db = "bots";
 
     private TimerTask initActiveBanCs;
     private Action act;
 
-    private HashMap<String, BanC> bancSilence;
-    private HashMap<String, BanC> bancSpec;
-    private HashMap<String, BanC> bancSuper;
+    private TreeMap<String, BanC> bancSilence;
+    private TreeMap<String, BanC> bancSpec;
+    private TreeMap<String, BanC> bancSuper;
     private Vector<BanC> actions;
 
     private BanC current;
@@ -57,9 +59,9 @@ public class pubbotbanc extends PubBotModule {
     public void initializeModule() {
         m_botAction.ipcSubscribe(IPCBANC);
         silentKicks = false;
-        bancSilence = new HashMap<String, BanC>();
-        bancSpec = new HashMap<String, BanC>();
-        bancSuper = new HashMap<String, BanC>();
+        bancSilence = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
+        bancSpec = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
+        bancSuper = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         actions = new Vector<BanC>();
         
         // Request active BanCs from StaffBot
@@ -114,8 +116,8 @@ public class pubbotbanc extends PubBotModule {
         if (ship != 2 && ship != 4 && ship != 8)
             return;
         String name = m_botAction.getPlayerName(event.getPlayerID());
-        if (bancSuper.containsKey(low(name)))
-            actions.add(bancSuper.get(low(name)));
+        if (bancSuper.containsKey(name))
+            actions.add(bancSuper.get(name));
         else
             for (BanC b : bancSuper.values())
                 if (b.isMatch(name))
@@ -272,39 +274,51 @@ public class pubbotbanc extends PubBotModule {
             }
         }
         
-        if (bancSilence.containsKey(low(name)))
-            actions.add(bancSilence.get(low(name)).reset());
+        if (bancSilence.containsKey(name))
+            actions.add(bancSilence.get(name).reset());
         else
             for (BanC b : bancSilence.values())
                 if (b.isMatch(name, ip, mid))
                     actions.add(b);
 
-        if (bancSpec.containsKey(low(name)))
-            actions.add(bancSpec.get(low(name)).reset());
+        if (bancSpec.containsKey(name))
+            actions.add(bancSpec.get(name).reset());
         else
             for (BanC b : bancSpec.values())
                 if (b.isMatch(name, ip, mid))
                     actions.add(b);
 
-        if (bancSuper.containsKey(low(name)))
-            actions.add(bancSuper.get(low(name)).reset());
+        if (bancSuper.containsKey(name))
+            actions.add(bancSuper.get(name).reset());
         else
             for (BanC b : bancSuper.values())
                 if (b.isMatch(name, ip, mid))
                     actions.add(b);
+    }
+    
+    class SendElapsed extends TimerTask {
+        
+        public SendElapsed() {
+            
+        }
+        
+        public void run() {
+            
+        }
+        
     }
 
     private void handleBanC(BanC b) {
         String target = getTarget(b);
         switch (b.getType()) {
             case SILENCE:
-                bancSilence.put(low(b.getName()), b);
+                bancSilence.put(b.getName(), b);
                 break;
             case SPEC:
-                bancSpec.put(low(b.getName()), b);
+                bancSpec.put(b.getName(), b);
                 break;
             case SUPERSPEC:
-                bancSuper.put(low(b.getName()), b);
+                bancSuper.put(b.getName(), b);
                 break;
         }
         if (target != null)
@@ -325,14 +339,14 @@ public class pubbotbanc extends PubBotModule {
         String[] args = cmd.split(":");
         BanC b = null;
         if (args[1].equals(BanCType.SILENCE.toString())) {
-            if (bancSilence.containsKey(low(args[2])))
-                b = bancSilence.remove(low(args[2]));
+            if (bancSilence.containsKey(args[2]))
+                b = bancSilence.remove(args[2]);
         } else if (args[1].equals(BanCType.SPEC.toString())) {
-            if (bancSpec.containsKey(low(args[2])))
-                b = bancSpec.remove(low(args[2]));
+            if (bancSpec.containsKey(args[2]))
+                b = bancSpec.remove(args[2]);
         } else if (args[1].equals(BanCType.SUPERSPEC.toString())) {
-            if (bancSuper.containsKey(low(args[2])))
-                b = bancSuper.remove(low(args[2]));
+            if (bancSuper.containsKey(args[2]))
+                b = bancSuper.remove(args[2]);
         } else
             return;
 
@@ -352,59 +366,6 @@ public class pubbotbanc extends PubBotModule {
         return target;
     }
 
-    /*
-    private void handleIPCMessage(String command) {
-        if (command.startsWith(BanCType.SILENCE.toString())) {
-            // silence player in arena
-            bancCommand = BanCType.SILENCE.toString();
-            bancTime = command.substring(8).split(":")[0];
-            bancPlayer = command.substring(8).split(":")[1];
-            m_botAction.sendUnfilteredPrivateMessage(bancPlayer, "*shutup");
-        } else if (command.startsWith("REMOVE " + BanCType.SILENCE.toString())) {
-            // unsilence player in arena
-            bancCommand = "REMOVE " + BanCType.SILENCE.toString();
-            bancTime = null;
-            bancPlayer = command.substring(15);
-            bancSilence.remove(low(bancPlayer));
-            m_botAction.sendUnfilteredPrivateMessage(bancPlayer, "*shutup");
-        } else if (command.startsWith(BanCType.SPEC.toString())) {
-            // speclock player in arena
-            bancCommand = BanCType.SPEC.toString();
-            bancTime = command.substring(5).split(":")[0];
-            bancPlayer = command.substring(5).split(":")[1];
-            m_botAction.spec(bancPlayer);
-        } else if (command.startsWith(BanCType.SUPERSPEC.toString())) {
-            //superspec lock player in arena
-            handleSuperSpec(command);
-            bancCommand = BanCType.SUPERSPEC.toString();
-            //!spec player:time
-            //SPEC time:target
-            //SUPERSPEC time:target
-            bancTime = command.substring(10).split(":")[0];
-            handleSuperSpec(command);
-            //tempBanCPlayer = command.substring(10).split(":")[1];
-            m_botAction.setShip(bancPlayer, 3);
-        } else if (command.startsWith("REMOVE " + BanCType.SPEC.toString())) {
-            // remove speclock of player in arena
-            bancCommand = "REMOVE " + BanCType.SPEC.toString();
-            bancTime = null;
-            bancPlayer = command.substring(12);
-            m_botAction.ipcSendMessage(IPCBANC, "remspec " + bancPlayer, null, null);
-            m_botAction.spec(bancPlayer);
-            //need to make remove for super spec
-            //REMOVE SPEC PLAYER
-        } else if (command.startsWith("REMOVE " + BanCType.SUPERSPEC.toString())) {
-            bancCommand = "REMOVE " + BanCType.SUPERSPEC.toString();
-            hashSuperSpec.remove(command.substring(17).toLowerCase());
-            bancTime = null;
-            //REMOVE a
-            //REMOVE SUPERSPEC PLAYER
-            bancPlayer = command.substring(17);
-            //maybe pm the player here?
-        }
-    }
-    */
-
     private String getInfo(String message, String infoName) {
         int beginIndex = message.indexOf(infoName);
         int endIndex;
@@ -416,10 +377,6 @@ public class pubbotbanc extends PubBotModule {
         if (endIndex == -1)
             endIndex = message.length();
         return message.substring(beginIndex, endIndex);
-    }
-
-    private String low(String msg) {
-        return msg.toLowerCase();
     }
 
     class Action extends TimerTask {
@@ -452,7 +409,8 @@ public class pubbotbanc extends PubBotModule {
         long time;
         BanCType type;
         boolean active;
-        HashSet<String> aliases;
+        TreeSet<String> aliases;
+        long lastUpdate;
 
         public BanC(String info) {
             // name:ip:mid:time
@@ -474,7 +432,7 @@ public class pubbotbanc extends PubBotModule {
             else
                 type = BanCType.SUPERSPEC;
             active = true;
-            aliases = new HashSet<String>();
+            aliases = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
         }
 
         public String getCommand() {
@@ -512,14 +470,14 @@ public class pubbotbanc extends PubBotModule {
             else if (this.mid != null && mid.equals(this.mid))
                 match = true;
             if (match) {
-                aliases.add(low(name));
+                aliases.add(name);
                 this.name = name;
             }
             return match;
         }
         
         public boolean isMatch(String name) {
-            if (aliases.contains(low(name))) {
+            if (aliases.contains(name)) {
                 this.name = name;
                 return true;
             } else
@@ -529,6 +487,13 @@ public class pubbotbanc extends PubBotModule {
         public BanC reset() {
             name = originalName;
             return this;
+        }
+        
+        void update() {
+            long now = System.currentTimeMillis();
+            int mins = (int) (now - lastUpdate) / Tools.TimeInMillis.MINUTE;
+            lastUpdate = now;
+            m_botAction.ipcSendMessage(IPCBANC, "ELAPSED:" + originalName + ":" + mins, null, m_botAction.getBotName());
         }
     }
 
