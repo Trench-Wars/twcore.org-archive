@@ -114,10 +114,6 @@ public class hockeybot extends SubspaceBot {
         lockLastGame = false;
 
         botCrease = new Stack<String>();
-        m_botAction.setMessageLimit( 8, false );
-        m_botAction.setReliableKills( 1 );
-        m_botAction.setPlayerPositionUpdating( 675 );
-        m_botAction.setLowPriorityPacketCap( 8 );
 
     }
 
@@ -1747,6 +1743,10 @@ public class hockeybot extends SubspaceBot {
      * Starts the bot
      */
     private void start() {
+        m_botAction.setMessageLimit( 8, false );
+        m_botAction.setReliableKills( 1 );
+        m_botAction.setPlayerPositionUpdating( 675 );
+        m_botAction.setLowPriorityPacketCap( 8 );
         lockLastGame = false;
         lockArena();
         lockDoors();
