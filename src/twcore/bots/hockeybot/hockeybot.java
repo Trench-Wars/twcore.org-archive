@@ -458,6 +458,7 @@ public class hockeybot extends SubspaceBot {
      * Grabs ball and sits in drop location
      */
     public void getBall() {
+        if (puck.holding) return; 
         boolean lock = lockArena;
         lockArena = false;
         m_botAction.toggleLocked();
