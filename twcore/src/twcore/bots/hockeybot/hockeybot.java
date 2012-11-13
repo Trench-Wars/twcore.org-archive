@@ -23,6 +23,7 @@ import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
 import twcore.core.events.SoccerGoal;
 import twcore.core.game.Player;
+import twcore.core.game.Ship;
 import twcore.core.util.Point;
 import twcore.core.util.Spy;
 import twcore.core.util.Tools;
@@ -459,11 +460,14 @@ public class hockeybot extends SubspaceBot {
     public void getBall() {
         if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
             String b = m_botAction.getBotName();
+            Ship s = m_botAction.getShip();
             m_botAction.setShip(b, 1);
+            s.setShip(0);
             m_botAction.setFreq(b, FREQ_NOTPLAYING);
-            m_botAction.getShip().move(puck.getBallX(), puck.getBallY());
+            s.setFreq(FREQ_NOTPLAYING);
+            s.move(puck.getBallX(), puck.getBallY());
             m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
-            m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
+            s.move(config.getPuckDropX(), config.getPuckDropY());
         }
     }
 
@@ -472,7 +476,8 @@ public class hockeybot extends SubspaceBot {
      */
     public void dropBall() {
         String b = m_botAction.getBotName();
-        m_botAction.specWithoutLock(b);
+        m_botAction.spec(b);
+        m_botAction.spec(b);
         m_botAction.setFreq(b, FREQ_NOTPLAYING);
     }
 
