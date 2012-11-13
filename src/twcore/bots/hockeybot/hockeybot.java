@@ -23,7 +23,6 @@ import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
 import twcore.core.events.SoccerGoal;
 import twcore.core.game.Player;
-import twcore.core.game.Ship;
 import twcore.core.util.Point;
 import twcore.core.util.Spy;
 import twcore.core.util.Tools;
@@ -101,7 +100,7 @@ public class hockeybot extends SubspaceBot {
         puck = new HockeyPuck();
         team0 = new HockeyTeam(0);              //Team: Freq 0
         team1 = new HockeyTeam(1);              //Team: Freq 1
-        //staffVote = Vote.NONE;					//clears staff vote
+        //staffVote = Vote.NONE;                    //clears staff vote
         
 
         racismWatcher = new Spy(m_botAction);   //Racism watcher
@@ -255,8 +254,8 @@ public class hockeybot extends SubspaceBot {
             p = m_botAction.getPlayer(event.getPlayerID());
             
             if (p != null) {
-            	pID = p.getPlayerID();
-            	newPlayerUpdateScoreBoard(pID);
+                pID = p.getPlayerID();
+                newPlayerUpdateScoreBoard(pID);
             }
             
             if (name != null) {
@@ -458,29 +457,23 @@ public class hockeybot extends SubspaceBot {
      * Grabs ball and sits in drop location
      */
     public void getBall() {
-        boolean lock = lockArena;
-        lockArena = false;
-        m_botAction.toggleLocked();
-        Ship s = m_botAction.getShip();
-        if (s.getShip() != 0)
-            s.setShip(0);
-        s.setFreq(FREQ_NOTPLAYING);
-        s.move(puck.getBallX(), puck.getBallY());
-        m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
-        s.move(config.getPuckDropX(), config.getPuckDropY());
-        lockArena = lock;
-        m_botAction.toggleLocked();
+        if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
+            m_botAction.getShip().setShip(0);
+            m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
+            m_botAction.getShip().move(puck.getBallX(), puck.getBallY());
+            m_botAction.getShip().updatePosition();
+            m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
+            m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
+            m_botAction.getShip().updatePosition();
+        }
     }
 
     /**
      * Drops the ball at current location
      */
     public void dropBall() {
-        String b = m_botAction.getBotName();
-        if (m_botAction.getShip().getShip() != 8)
-            m_botAction.getShip().setShip(8);
-        m_botAction.setFreq(b, FREQ_NOTPLAYING);
-        m_botAction.setPlayerPositionUpdating(600);
+        m_botAction.getShip().setShip(8);
+        m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
     }
 
     private void checkPenalty(PlayerPosition event) {
@@ -1742,15 +1735,11 @@ public class hockeybot extends SubspaceBot {
      * Starts the bot
      */
     private void start() {
-        m_botAction.setMessageLimit( 8, false );
-        m_botAction.setReliableKills( 1 );
-        m_botAction.setPlayerPositionUpdating( 675 );
-        m_botAction.setLowPriorityPacketCap( 8 );
         lockLastGame = false;
         lockArena();
         lockDoors();
         setSpecAndFreq();
-        dropBall();
+
         try {
             gameticker.cancel();
         } catch (Exception e) {
@@ -1785,7 +1774,7 @@ public class hockeybot extends SubspaceBot {
      * - Determine next pick
      */
     private void startAddingPlayers() {
-    	
+        
         currentState = HockeyState.ADDING_PLAYERS;
 
         timeStamp = System.currentTimeMillis();
@@ -1824,8 +1813,8 @@ public class hockeybot extends SubspaceBot {
         timeStamp = System.currentTimeMillis();
     }
 
-    private void startReview(SoccerGoal event) {    	
-    	
+    private void startReview(SoccerGoal event) {        
+        
         Point release = puck.peekLastReleasePoint();
 
         int pX0 = Math.abs(config.team0GoalX - release.x);
@@ -1873,11 +1862,11 @@ public class hockeybot extends SubspaceBot {
 
         //TODO cahnge this
         if (team0.getScore() >= 7) {
-        	gameOver(0);           
+            gameOver(0);           
         } else if (team1.getScore() >= 7) {
-        	gameOver(1);          
+            gameOver(1);          
         } else {
-        	startFaceOff();
+            startFaceOff();
         }
     }
     
@@ -2228,7 +2217,6 @@ public class hockeybot extends SubspaceBot {
      * @param ship Ship type of the player
      */
     private void checkPlayer(String name, int frequency, int ship) {
-        if (m_botAction.getBotName().equalsIgnoreCase(name)) return;
         HockeyTeam t;
 
         name = name.toLowerCase();
@@ -2468,87 +2456,87 @@ public class hockeybot extends SubspaceBot {
     }
     
     private void clearTeamNameObjects() {
-    	//"FREQ0" team name
-    	m_botAction.hideObject(350);
-    	m_botAction.hideObject(471);
-    	m_botAction.hideObject(342);
-    	m_botAction.hideObject(463);
-    	m_botAction.hideObject(564);
-    	//"FREQ1" team name
-    	m_botAction.hideObject(355);
-    	m_botAction.hideObject(476);
-    	m_botAction.hideObject(347);
-    	m_botAction.hideObject(468);
-    	m_botAction.hideObject(579);
+        //"FREQ0" team name
+        m_botAction.hideObject(350);
+        m_botAction.hideObject(471);
+        m_botAction.hideObject(342);
+        m_botAction.hideObject(463);
+        m_botAction.hideObject(564);
+        //"FREQ1" team name
+        m_botAction.hideObject(355);
+        m_botAction.hideObject(476);
+        m_botAction.hideObject(347);
+        m_botAction.hideObject(468);
+        m_botAction.hideObject(579);
     }
     
     private void showTeamNameObjects() {
-    	//"FREQ0" team name
-    	m_botAction.showObject(350);
-    	m_botAction.showObject(471);
-    	m_botAction.showObject(342);
-    	m_botAction.showObject(463);
-    	m_botAction.showObject(564);
-    	//"FREQ1" team name
-    	m_botAction.showObject(355);
-    	m_botAction.showObject(476);
-    	m_botAction.showObject(347);
-    	m_botAction.showObject(468);
-    	m_botAction.showObject(579);
+        //"FREQ0" team name
+        m_botAction.showObject(350);
+        m_botAction.showObject(471);
+        m_botAction.showObject(342);
+        m_botAction.showObject(463);
+        m_botAction.showObject(564);
+        //"FREQ1" team name
+        m_botAction.showObject(355);
+        m_botAction.showObject(476);
+        m_botAction.showObject(347);
+        m_botAction.showObject(468);
+        m_botAction.showObject(579);
     }
     
     private void pmShowTeamNameObjects(int pID) {
-    	//"FREQ0" team name
-    	m_botAction.showObjectForPlayer(pID,350);
-    	m_botAction.showObjectForPlayer(pID,471);
-    	m_botAction.showObjectForPlayer(pID,342);
-    	m_botAction.showObjectForPlayer(pID,463);
-    	m_botAction.showObjectForPlayer(pID,564);
-    	//"FREQ1" team name
-    	m_botAction.showObjectForPlayer(pID,355);
-    	m_botAction.showObjectForPlayer(pID,476);
-    	m_botAction.showObjectForPlayer(pID,347);
-    	m_botAction.showObjectForPlayer(pID,468);
-    	m_botAction.showObjectForPlayer(pID,579);
+        //"FREQ0" team name
+        m_botAction.showObjectForPlayer(pID,350);
+        m_botAction.showObjectForPlayer(pID,471);
+        m_botAction.showObjectForPlayer(pID,342);
+        m_botAction.showObjectForPlayer(pID,463);
+        m_botAction.showObjectForPlayer(pID,564);
+        //"FREQ1" team name
+        m_botAction.showObjectForPlayer(pID,355);
+        m_botAction.showObjectForPlayer(pID,476);
+        m_botAction.showObjectForPlayer(pID,347);
+        m_botAction.showObjectForPlayer(pID,468);
+        m_botAction.showObjectForPlayer(pID,579);
     }
     
     private void clearObjects() {
-    	//0-7 for freq 0
-    	m_botAction.hideObject(100);
-    	m_botAction.hideObject(101);
-    	m_botAction.hideObject(102);
-    	m_botAction.hideObject(103);
-    	m_botAction.hideObject(104);
-    	m_botAction.hideObject(105);
-    	m_botAction.hideObject(106);
-    	m_botAction.hideObject(107);
-    	//0-7 for freq 1
-    	m_botAction.hideObject(200);
-    	m_botAction.hideObject(201);
-    	m_botAction.hideObject(202);
-    	m_botAction.hideObject(203);
-    	m_botAction.hideObject(204);
-    	m_botAction.hideObject(205);
-    	m_botAction.hideObject(206);
-    	m_botAction.hideObject(207);
-    	
+        //0-7 for freq 0
+        m_botAction.hideObject(100);
+        m_botAction.hideObject(101);
+        m_botAction.hideObject(102);
+        m_botAction.hideObject(103);
+        m_botAction.hideObject(104);
+        m_botAction.hideObject(105);
+        m_botAction.hideObject(106);
+        m_botAction.hideObject(107);
+        //0-7 for freq 1
+        m_botAction.hideObject(200);
+        m_botAction.hideObject(201);
+        m_botAction.hideObject(202);
+        m_botAction.hideObject(203);
+        m_botAction.hideObject(204);
+        m_botAction.hideObject(205);
+        m_botAction.hideObject(206);
+        m_botAction.hideObject(207);
+        
     }
     
     private void newPlayerUpdateScoreBoard(int pID) {
-    	int team0Score = team0.getScore();
-    	int team1Score = team1.getScore();
-    	
-    	pmShowTeamNameObjects(pID);
-    	m_botAction.showObjectForPlayer(pID, 100 + team0Score);
-    	m_botAction.showObjectForPlayer(pID, 200 + team1Score);
+        int team0Score = team0.getScore();
+        int team1Score = team1.getScore();
+        
+        pmShowTeamNameObjects(pID);
+        m_botAction.showObjectForPlayer(pID, 100 + team0Score);
+        m_botAction.showObjectForPlayer(pID, 200 + team1Score);
     }
     
     private void updateScoreBoard() {
-    	int team0Score = team0.getScore();
-    	int team1Score = team1.getScore();
-    	clearObjects();
-    	m_botAction.showObject(100 + team0Score);
-    	m_botAction.showObject(200 + team1Score);
+        int team0Score = team0.getScore();
+        int team1Score = team1.getScore();
+        clearObjects();
+        m_botAction.showObject(100 + team0Score);
+        m_botAction.showObject(200 + team1Score);
     }
 
     /**
@@ -3047,7 +3035,7 @@ public class hockeybot extends SubspaceBot {
         public void madeGoal() {
             this.goals++;
             if (this.goals == 3) {
-            	m_botAction.sendArenaMessage("HAT TRICK by " + this.getName() + "!", 19);
+                m_botAction.sendArenaMessage("HAT TRICK by " + this.getName() + "!", 19);
             }
         }
 
@@ -3460,8 +3448,8 @@ public class hockeybot extends SubspaceBot {
         }
         
         private void decreaseScore() {
-        	teamScore--;
-        	updateScoreBoard();
+            teamScore--;
+            updateScoreBoard();
         }
 
         /**
@@ -4764,18 +4752,18 @@ public class hockeybot extends SubspaceBot {
         /*
          * For review period after final goal. needs more testing 
          *
-        	if (!puck.holding) {
+            if (!puck.holding) {
                 timeStamp = System.currentTimeMillis();
                 getBall();
             }
-        	
-        	long time;
-        	time = (System.currentTimeMillis() - timeStamp) / Tools.TimeInMillis.SECOND;
-        	m_botAction.sendArenaMessage("Reviewing final goal...", 2);
-        	if (time >= 15) {
-        		getStaffVote();        		
-        	}
-        */       	
+            
+            long time;
+            time = (System.currentTimeMillis() - timeStamp) / Tools.TimeInMillis.SECOND;
+            m_botAction.sendArenaMessage("Reviewing final goal...", 2);
+            if (time >= 15) {
+                getStaffVote();             
+            }
+        */          
         }
 
         private void doGameOver() {
