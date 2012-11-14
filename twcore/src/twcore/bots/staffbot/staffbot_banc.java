@@ -176,7 +176,7 @@ public class staffbot_banc extends Module {
             m_botAction.scheduleTaskAtFixedRate(checkExpiredBanCs, Tools.TimeInMillis.MINUTE, Tools.TimeInMillis.MINUTE);
             
             UpdateElapsed updateElapsed = new UpdateElapsed();
-            m_botAction.scheduleTaskAtFixedRate(updateElapsed, 5 * Tools.TimeInMillis.MINUTE, 5 * Tools.TimeInMillis.MINUTE);
+            m_botAction.scheduleTaskAtFixedRate(updateElapsed, 3 * Tools.TimeInMillis.MINUTE, 5 * Tools.TimeInMillis.MINUTE);
 
             //Schedule the timertask to keep alive the database connection
             m_botAction.scheduleTaskAtFixedRate(keepAliveConnection, 5 * Tools.TimeInMillis.MINUTE, 2 * Tools.TimeInMillis.MINUTE);
@@ -1584,7 +1584,7 @@ public class staffbot_banc extends Module {
                 } else if (!twoWeeks)
                     sqlWhere = "WHERE fdCreated > DATE_SUB(NOW(), INTERVAL 2 WEEK)";
 
-                sqlQuery = "SELECT (DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > NOW() OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated, fbLifted FROM tblBanc "
+                sqlQuery = "SELECT (fnElapsed < fnDuration OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated, fbLifted FROM tblBanc "
                         + sqlWhere + " ORDER BY fnID DESC LIMIT 0," + viewcount;
 
                 ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
@@ -2284,9 +2284,11 @@ public class staffbot_banc extends Module {
 
         public void updateElapsed(int mins) {
             elapsed += mins;
-            if (duration > 0 && elapsed >= duration)
-                expired = true;
             updated = true;
+            if (duration > 0 && elapsed >= duration) {
+                expired = true;
+                sendUpdate();
+            }
         }
         
         public void sendUpdate() {
