@@ -405,6 +405,8 @@ public class pubbotbanc extends PubBotModule {
     }
 
     private String getTarget(BanC b) {
+        if (b == null)
+            return null;
         String target = m_botAction.getFuzzyPlayerName(b.getName());
         if (target != null && target.equalsIgnoreCase(b.getName()))
             b.name = target;
