@@ -2248,9 +2248,12 @@ public class staffbot_banc extends Module {
             if (duration == 0)
                 expired = false;
             else {
+                expired = elapsed >= duration;
+                /*
                 Date now = new Date();
                 Date expiration = new Date(created.getTime() + (duration * Tools.TimeInMillis.MINUTE));
                 expired = now.equals(expiration) || now.after(expiration);
+                */
             }
         }
 

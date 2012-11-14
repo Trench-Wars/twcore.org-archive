@@ -245,6 +245,11 @@ public class pubbotbanc extends PubBotModule {
                     cmd_bancs(name);
                 else if (message.equals("!kicks"))
                     cmd_kicks(name);
+            if (m_botAction.getOperatorList().isModerator(name))
+                if (message.startsWith("!move "))
+                    cmd_move(name, message);
+                else if (message.equalsIgnoreCase("!list"))
+                    cmd_list(name);
         }
     }
 
@@ -266,13 +271,18 @@ public class pubbotbanc extends PubBotModule {
             m_botAction.sendSmartPrivateMessage(name, "  " + b.getName() + " IP=" + (b.ip != null ? b.ip : "") + " MID=" + (b.mid != null ? b.mid : ""));
     }
     
+    private void cmd_list(String name) {
+        elapsed.list(name);
+    }
+    
     private void cmd_move(String name, String msg) {
         if (msg.length() > 6) {
             String p = m_botAction.getFuzzyPlayerName(msg.substring(msg.indexOf(" ") + 1));
             if (p != null) {
                 sendIdler(p);
                 m_botAction.sendPrivateMessage(name, "Moving '" + p + "' to afk");
-            }
+            } else
+                m_botAction.sendPrivateMessage(name, "Player not found");
         }
     }
 
@@ -450,19 +460,6 @@ public class pubbotbanc extends PubBotModule {
             ship = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
             spec = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         }
-        
-        public void handleIdle(String msg) {
-            String name = msg.substring(0, msg.indexOf(":"));
-            int sec = 0;
-            try {
-                sec = Integer.valueOf(msg.substring(msg.indexOf("Idle:") + 6, msg.lastIndexOf("s")));
-            } catch (NumberFormatException e) {
-                Tools.printStackTrace(e);
-                return;
-            }
-            if (sec > MAX_IDLE_TIME * 60)
-                sendIdler(name);
-        }
 
         public void run() {
             for (Entry<String, BanC> e : silence.entrySet()) {
@@ -477,6 +474,31 @@ public class pubbotbanc extends PubBotModule {
                 e.getValue().sendUpdate();
                 actions.add(e.getKey());
             }
+        }
+        
+        public void list(String name) {
+            m_botAction.sendSmartPrivateMessage(name, "Silences: ");
+            for (Entry<String, BanC> e : silence.entrySet())
+                m_botAction.sendSmartPrivateMessage(name, e.getKey() + "(" + e.getValue().getElapsed() + ")");
+            m_botAction.sendSmartPrivateMessage(name, "SuperSpecs: ");
+            for (Entry<String, BanC> e : ship.entrySet())
+                m_botAction.sendSmartPrivateMessage(name, e.getKey() + "(" + e.getValue().getElapsed() + ")");
+            m_botAction.sendSmartPrivateMessage(name, "Specs: ");
+            for (Entry<String, BanC> e : spec.entrySet())
+                m_botAction.sendSmartPrivateMessage(name, e.getKey() + "(" + e.getValue().getElapsed() + ")");
+        }
+        
+        public void handleIdle(String msg) {
+            String name = msg.substring(0, msg.indexOf(":"));
+            int sec = 0;
+            try {
+                sec = Integer.valueOf(msg.substring(msg.indexOf("Idle:") + 6, msg.lastIndexOf("s")));
+            } catch (NumberFormatException e) {
+                Tools.printStackTrace(e);
+                return;
+            }
+            if (sec > MAX_IDLE_TIME * 60)
+                sendIdler(name);
         }
         
         public void add(String name, BanC banc) {
@@ -553,6 +575,10 @@ public class pubbotbanc extends PubBotModule {
                 type = BanCType.SUPERSPEC;
             active = true;
             aliases = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+        }
+
+        public int getElapsed() {
+            return (int) (System.currentTimeMillis() - lastUpdate) / 60;
         }
 
         public String getCommand() {
