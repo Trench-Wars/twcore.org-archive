@@ -90,6 +90,7 @@ public class pubbotbanc extends PubBotModule {
     @Override
     public void cancel() {
         m_botAction.ipcUnSubscribe(IPCBANC);
+        elapsed.stop();
         m_botAction.cancelTask(initActiveBanCs);
         m_botAction.cancelTask(act);
     }
@@ -558,6 +559,7 @@ public class pubbotbanc extends PubBotModule {
             // name:ip:mid:time
             String[] args = info.split(":");
             name = args[0];
+            lastUpdate = System.currentTimeMillis();
             originalName = name;
             ip = args[1];
             if (ip.length() == 1)
