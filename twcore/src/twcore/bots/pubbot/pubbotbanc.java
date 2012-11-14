@@ -146,6 +146,7 @@ public class pubbotbanc extends PubBotModule {
                 bot = Integer.valueOf(m_botAction.getBotName().substring(8));
             if (ipc.getType() < 0 || ipc.getType() == bot)
                 if (ipc.isAll()) {
+                    elapsed.stop();
                     @SuppressWarnings("unchecked")
                     ListIterator<String> i = (ListIterator<String>) ipc.getList();
                     while (i.hasNext()) {
@@ -392,8 +393,9 @@ public class pubbotbanc extends PubBotModule {
         if (name != null && b != null) {
             b.active = false;
             actions.add(b);
-            elapsed.rem(args[2]);
         }
+        
+        elapsed.rem(args[2]);
     }
     
     private void sendIdler(String name) {
@@ -493,7 +495,7 @@ public class pubbotbanc extends PubBotModule {
             String name = msg.substring(0, msg.indexOf(":"));
             int sec = 0;
             try {
-                sec = Integer.valueOf(msg.substring(msg.indexOf("Idle:") + 6, msg.lastIndexOf("s")));
+                sec = Integer.valueOf(msg.substring(msg.indexOf("Idle:") + 6, msg.lastIndexOf("s")-1));
             } catch (NumberFormatException e) {
                 Tools.printStackTrace(e);
                 return;
