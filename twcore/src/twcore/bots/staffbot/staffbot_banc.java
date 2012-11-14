@@ -142,7 +142,7 @@ public class staffbot_banc extends Module {
     public void initializeModule() {
         //*/
         // Initialize Prepared Statements
-        psActiveBanCs = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT * FROM tblBanc WHERE fnDuration = 0 OR fnElapsed < fnDuration");
+        psActiveBanCs = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT * FROM tblBanc WHERE (fnDuration = 0 OR fnElapsed < fnDuration) AND fbLifted = 0");
         //psListBanCs = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT * FROM tblBanc LIMIT 0,?");
         psCheckAccessReq = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SELECT fcMinAccess FROM tblBanc WHERE fnID = ?");
         psAddBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "INSERT INTO tblBanc(fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())", true);
