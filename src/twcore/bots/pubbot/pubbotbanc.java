@@ -580,7 +580,7 @@ public class pubbotbanc extends PubBotModule {
         }
 
         public int getElapsed() {
-            return (int) (System.currentTimeMillis() - lastUpdate) / 60;
+            return (int) (System.currentTimeMillis() - lastUpdate) / Tools.TimeInMillis.MINUTE;
         }
 
         public String getCommand() {
@@ -650,6 +650,7 @@ public class pubbotbanc extends PubBotModule {
             int mins = (int) (now - lastUpdate) / Tools.TimeInMillis.MINUTE;
             lastUpdate = now;
             m_botAction.ipcSendMessage(IPCBANC, "ELAPSED:" + originalName + ":" + mins, null, m_botAction.getBotName());
+            m_botAction.sendSmartPrivateMessage("WingZero", "Sending update: " + name + "(" + mins + ")");
         }
     }
 
