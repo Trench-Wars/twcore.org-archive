@@ -137,6 +137,7 @@ public class staffbot_banc extends Module {
 
     // Keep database connection alive workaround
     private KeepAliveConnection keepAliveConnection = new KeepAliveConnection();
+    private UpdateElapsed updateElapsed;
 
     @Override
     public void initializeModule() {
@@ -175,7 +176,7 @@ public class staffbot_banc extends Module {
             CheckExpiredBanCs checkExpiredBanCs = new CheckExpiredBanCs();
             m_botAction.scheduleTaskAtFixedRate(checkExpiredBanCs, Tools.TimeInMillis.MINUTE, Tools.TimeInMillis.MINUTE);
             
-            UpdateElapsed updateElapsed = new UpdateElapsed();
+            updateElapsed = new UpdateElapsed();
             m_botAction.scheduleTaskAtFixedRate(updateElapsed, 3 * Tools.TimeInMillis.MINUTE, 5 * Tools.TimeInMillis.MINUTE);
 
             //Schedule the timertask to keep alive the database connection
@@ -189,6 +190,7 @@ public class staffbot_banc extends Module {
     @Override
     public void cancel() {
         stop = true;
+        updateElapsed.run();
 
         m_botAction.ipcUnSubscribe(IPCALIAS);
         m_botAction.ipcUnSubscribe(IPCBANC);
