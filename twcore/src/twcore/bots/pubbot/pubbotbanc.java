@@ -570,7 +570,6 @@ public class pubbotbanc extends PubBotModule {
                 ship.remove(name).setActive(false);
             if (spec.containsKey(name))
                 spec.remove(name).setActive(false);
-            debug("Elapser removed or tried removing: " + name);
         }
 
         public void stop() {
