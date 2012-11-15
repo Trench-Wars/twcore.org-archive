@@ -1543,7 +1543,7 @@ public class staffbot_banc extends Module {
                     result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
                     result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + "  ";
                     result += Tools.formatString(rs.getString("fcType"), 7) + "  ";
-                    result += "mins:" + Tools.formatString(rs.getString("fnDuration") + " (" + rs.getInt("fnElapsed") + ")", 12) + " ";
+                    result += "mins:" + Tools.formatString(rs.getString("fnDuration"), 5) + Tools.formatString("(" + rs.getInt("fnElapsed") + ")", 7) + " ";
                     result += rs.getString("fcUsername");
 
                     m_botAction.sendSmartPrivateMessage(name, result);
@@ -1606,10 +1606,11 @@ public class staffbot_banc extends Module {
                                 String daysNumber = days + "";
                                 double elap = rs.getInt("fnElapsed") / 24 / 60 * 10;
                                 elap = (elap - elap % 1) / 10;
+                                String e = "" + elap;
                                 if (elap % 1 == 0)
-                                    elap = (int) elap;
-                                result += " days: " + Tools.formatString(daysNumber, 5) + " ";
-                                result += Tools.formatString("(" + elap + ")", 7) + " ";
+                                    e = "" + (int) elap;
+                                result += " days: " + Tools.formatString(daysNumber, 5);
+                                result += Tools.formatString("(" + e + ")", 7);
                             } else {
                                 result += " mins:" + Tools.formatString(rs.getString("fnDuration"), 5) + " ";
                                 result += Tools.formatString("(" + rs.getInt("fnElapsed") + ")", 7) + " ";
