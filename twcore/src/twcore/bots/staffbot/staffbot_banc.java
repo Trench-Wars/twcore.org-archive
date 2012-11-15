@@ -1543,7 +1543,7 @@ public class staffbot_banc extends Module {
                     result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
                     result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + "  ";
                     result += Tools.formatString(rs.getString("fcType"), 7) + "  ";
-                    result += "mins:" + Tools.formatString(rs.getString("fnDuration") + "(" + rs.getInt("fnElapsed") + ")", 12) + " ";
+                    result += "mins:" + Tools.formatString(rs.getString("fnDuration") + " (" + rs.getInt("fnElapsed") + ")", 12) + " ";
                     result += rs.getString("fcUsername");
 
                     m_botAction.sendSmartPrivateMessage(name, result);
@@ -1604,10 +1604,11 @@ public class staffbot_banc extends Module {
                             if (time >= 24 * 60) {
                                 int days = (time / 24) / 60;
                                 String daysNumber = days + "";
-                                result += " days: " + Tools.formatString(daysNumber, 5);
-
+                                double elap = rs.getInt("fnElapsed") / 24 / 60 * 10;
+                                elap = (elap - elap % 1) / 10;
+                                result += " days: " + Tools.formatString(daysNumber + " (" + elap + ")", 12);
                             } else
-                                result += " mins:" + Tools.formatString(rs.getString("fnDuration") + "(" + rs.getInt("fnElapsed") + ")", 12) + " ";
+                                result += " mins:" + Tools.formatString(rs.getString("fnDuration") + " (" + rs.getInt("fnElapsed") + ")", 12) + " ";
                             if (m_botAction.getOperatorList().isModerator(name))
                                 result += " " + Tools.formatString(rs.getString("fcIP"), 15) + "  ";
                             result += rs.getString("fcUsername");
