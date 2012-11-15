@@ -7,10 +7,6 @@ import java.util.Iterator;
 import java.util.Stack;
 import java.util.TimerTask;
 import java.util.TreeMap;
-import java.util.LinkedList;
-import java.sql.SQLException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -30,7 +26,6 @@ import twcore.core.game.Player;
 import twcore.core.util.Point;
 import twcore.core.util.Spy;
 import twcore.core.util.Tools;
-
 
 /**
  * Class HockeyBot
@@ -59,7 +54,6 @@ public class hockeybot extends SubspaceBot {
     //Static variables
     private static final int ZONER_WAIT_TIME = 7;
     private Stack<String> botCrease;
-    
 
     //Game states
     private enum HockeyState {
@@ -533,12 +527,7 @@ public class hockeybot extends SubspaceBot {
      * @param override Override number, -1 for default, 0 for Freq 0, 1 for Freq 1
      */
     private void handleCommand(String name, String command, int override) {
-    	if (command.startsWith("!teamsignup squadname")) {
-    		registerSquad(name, command.substring(12));
-        }
-    	
-                
-    	String cmd = command.toLowerCase();
+        String cmd = command.toLowerCase();
 
        /* Captain commands */
        if (isCaptain(name) || override != -1) {
@@ -572,8 +561,6 @@ public class hockeybot extends SubspaceBot {
            cmd_notplaying(name);
        } else if (cmd.equals("!status")) {
            cmd_status(name);
-       } else if (cmd.equals("!subscribe")) {
-           cmd_subscribe(name);
        } else if (cmd.equals("!subscribe")) {
            cmd_subscribe(name);
        }
@@ -2571,22 +2558,6 @@ public class hockeybot extends SubspaceBot {
         m_botAction.arenaMessageSpam(spam.toArray(new String[spam.size()]));
     }
 
-    private void registerSquad(String name, String squadName){
-        try{
-            //!teamsignup squadname
-            //0123456789TE
-            //0123456789DOD
-            HockeyRegistrator registrator;
-            registrator = new HockeyRegistrator(m_botAction);
-            registrator.createTeam(name, squadName);
-            
-        }catch(SQLException e){
-            e.printStackTrace();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-    
     /* Game classes */
     private class HockeyCaptain {
 
@@ -4815,343 +4786,8 @@ public class hockeybot extends SubspaceBot {
             }
         }
     }
-    
-public class HockeyRegistrator {
 
-    private HockeyDatabase hockeyDatabase;
-    
-    private final int second = 1000;
-    private final int minutes = 60*second;
-    
-    
-    public HockeyRegistrator(BotAction botAction) throws SQLException {
-        this.hockeyDatabase = new HockeyDatabase(botAction);
-        m_botAction = botAction;
-       
-    }
-     
-    public void createTeam(String name, String squadName){
-      
-        signupSquad(name, squadName);
-    }
-    
-    public boolean isAlreadyRegistered(String squadName){
-            if(hockeyDatabase.isTeam(squadName))
-                return true;
-            
-        return false;
-    }
-    
-    public void signupSquad(String name, String squadName){
-        hockeyDatabase.putTeam( name, squadName);
-    }
-
-    public boolean isRostered(String name){
-       
-        int userId = hockeyDatabase.getPlayerUserId(name);
-        
-        if(hockeyDatabase.getTeamUserIdIsRostered(userId))
-            return true;
-      
-        return false;
-    }
-
-    public String getCaptainTeamName(String captainName){
-        return hockeyDatabase.getCaptainTeamName(captainName);
-    }
-    
-    public String getPlayerTeamName(String playerName){
-        return hockeyDatabase.getPlayerTeamName(playerName);
-    }
-    
-    public void doDisplaySquads(String name, String message){
-        hockeyDatabase.getCurrentSquads();
+    private void debugMessage(String msg) {
+        m_botAction.sendPrivateMessage("Spook <ZH>", msg);
     }
 }
-
-public class HockeyDatabase {
-
-    private BotAction m_botAction;
-    
-    private String connectionName = "website";
-    private String uniqueId = "hz";
-    
-    
-    //private PreparedStatement psGetTeamId;
-    private PreparedStatement psGetCurrentSquads;
-    //private PreparedStatement psGetMatchId;
-    private PreparedStatement psKeepAlive;
-    
-    public HockeyDatabase(BotAction botAction) throws SQLException{
-        this.m_botAction = botAction;
-     
-        psGetCurrentSquads = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, 
-                "SELECT fsName from tblTWHT__Team");
-        
-        
-       
-       // psGetMatchId = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,  
-         //       "SELECT fnTeam1ID, fnTeam2ID FROM tblTWHT__Match where fnMatchId = ?");
-        
-     
-        
-    }
-    public int getTeamId(String squadName){
-        try{
-            PreparedStatement psGetTeamId;
-            psGetTeamId = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, 
-                    "SELECT fnTWHTTeamId FROM tblTWHT__Team where fsName = ?");
-            psGetTeamId.setString(1, squadName);
-            ResultSet rs = psGetTeamId.executeQuery();
-            while(rs.next()){
-                int id = rs.getInt(1);
-                return id;
-            }
-        }catch (SQLException e){
-            Tools.printLog(e.toString());
-        }
-        
-        return -1;
-    }
-    public boolean isTeam(String squadName){
-        
-        try{
-            
-            PreparedStatement psGetTeam;
-            psGetTeam = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, 
-            "SELECT fnTWHTTeamId FROM tblTWHT__Team where fsName = ?");
-    
-            psGetTeam.setString(1, squadName);
-            ResultSet rs = psGetTeam.executeQuery();
-            
-            if(rs.next()){
-                psGetTeam.close();
-                return true;
-            }
-        }catch(SQLException e){
-            Tools.printLog(e.toString());
-        }
-        
-        return false;
-    }
-    
-    public int getPlayerUserId(String captainName){
-        int userId = -1;
-        
-        try{
-            
-            PreparedStatement psGetUserId;
-            psGetUserId = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, "SELECT fnUserId FROM tblUser where fcUserName = ?");
-            psGetUserId.setString(1, captainName);
-            
-            ResultSet rs = psGetUserId.executeQuery();
-            
-            if(rs.next() && rs != null)
-                userId = rs.getInt(1);
-            //setUserId();
-            
-            psGetUserId.close();
-            
-        }catch(SQLException e){
-            Tools.printLog(e.getMessage());
-        }
-        
-        return userId;
-    }
-    
-    public int getTeamUserId(String name){
-        
-        try{
-            int playerId = getPlayerUserId(name);
-            String query = "SELECT fnTeamUserId from tblTWHT__TeamUser where fnUserId = ?";
-            PreparedStatement psGetTeamUserId = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, query);
-            
-            psGetTeamUserId.setInt(1, playerId);
-            
-            ResultSet rs = psGetTeamUserId.executeQuery();
-            
-            while(rs.next()){
-               int teamUserId = rs.getInt(1);
-               return teamUserId;
-            }
-        }catch(SQLException e){
-            Tools.printLog(e.toString());
-        }
-        return 0;
-    }
-    
-    public String getPlayerTeamName(String playerName){
-        String squadName = null;
-        try{
-            
-            PreparedStatement psGetTeamName;
-            
-            String query = "SELECT DISTINCT t.fsName " +
-                    "FROM tblTWHT__Team t, tblTWHT__TeamUser tu, tblUser u  " +
-                    "WHERE t.fnTWHTTeamID = tu.fnTeamID " +
-                    "AND tu.fnUserID = u.fnUserID "+
-                    "AND tu.fdQuit IS NULL "+
-                    "AND u.fcUserName = ?";
-            psGetTeamName = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, query);
-            psGetTeamName.setString(1, playerName );
-            
-            ResultSet rs = psGetTeamName.executeQuery();
-            while(rs.next()){
-                squadName = rs.getString(1);
-                return squadName;
-            }
-        }catch(SQLException e){
-            Tools.printLog(e.toString());
-        }
-        return squadName;
-    }
-    
-    public String getCaptainTeamName(String captainName){
-        
-        try{
-         
-            PreparedStatement psGetTeamName;
-            
-            String query = "SELECT DISTINCT t.fsName " +
-                    "FROM tblTWHT__Team t, tblTWHT__TeamUser tu, tblUser u, tblTWHT__UserRank ur " +
-                    "WHERE t.fnTWHTTeamID = tu.fnTeamID " +
-                    "AND tu.fnUserID = u.fnUserID " +
-                    "AND ur.fnUserID = tu.fnUserID " +
-                    "AND (ur.fnRankID = 3 OR ur.fnRankID = 4) "+
-                    "AND tu.fdQuit IS NULL "+
-                    "AND u.fcUserName = ?";
-            psGetTeamName = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, query);
-            psGetTeamName.setString(1, captainName);
-            
-            ResultSet rs = psGetTeamName.executeQuery();
-            while(rs.next()){
-                String squadName = rs.getString(1);
-                return squadName;
-            }
-        }catch(SQLException e){
-            Tools.printLog(e.toString());
-        }
-        
-        return null;
-    }
-    
-    public boolean getTeamUserIdIsRostered(int userId){
-            try{
-                
-                PreparedStatement psGetTeamUserId;
-                psGetTeamUserId = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,  
-                        "SELECT fnTeamUserId FROM tblTWHT__TeamUser where fnUserId = ? " +
-                        "AND fdQuit IS NULL");
-                
-                psGetTeamUserId.setInt(1, userId);
-                ResultSet rs = psGetTeamUserId.executeQuery();
-                
-                if(rs.next()){
-                    psGetTeamUserId.close();
-                    return true; //already rostered
-                }
-            }catch(SQLException e){
-                Tools.printLog(e.toString());
-            }
-        return false;
-    }
-
-    public void getCurrentSquads(){
-    
-        try{
-            ResultSet rs = psGetCurrentSquads.executeQuery();
-            
-            while(rs.next())
-                m_botAction.sendArenaMessage("Current Squad on Database: "+rs.getString("fsName"));
-            
-        }catch(SQLException e){
-            Tools.printLog(e.toString());
-            }
-    }
-
-    public void putTeam(String name, String teamName){
-            
-        try{
-            PreparedStatement psPutExtendedLogTeamSignup;
-            
-            psPutExtendedLogTeamSignup = 
-                m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, 
-                    "INSERT INTO tblTWHT__Team ("+
-                    "fsName, " +
-                    "fnCaptainID, " +
-                    "fdCreated, " +
-                    "fdApproved) " +
-                    "VALUES( ?,?,NOW(),NOW() )" );
-            
-            psPutExtendedLogTeamSignup.setString(1, teamName);
-            psPutExtendedLogTeamSignup.setInt(2, getPlayerUserId(name));
-            psPutExtendedLogTeamSignup.executeUpdate();
-            m_botAction.sendPrivateMessage(name, "You've applied "+ teamName+" on the site successfuly! Just wait a TWH-Op to accept it.");
-            
-            psPutExtendedLogTeamSignup.close();
-        }catch(SQLException e){
-            Tools.printLog(e.getMessage());
-        }
-        
-    }
-    
-    public String getChat(int id){
-        try{
-            PreparedStatement psGetTeamChat;
-            psGetTeamChat = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,
-                    "SELECT fsChat from tblTWHT__Team WHERE fnTWHTTeamId = ?");
-            psGetTeamChat.setInt(1, id);
-            ResultSet rs = psGetTeamChat.executeQuery();
-            while(rs.next()){
-                String chat = rs.getString(1);
-                return chat;
-            }
-            
-        }catch(SQLException e){
-            Tools.printLog(e.getMessage());
-        }
-        return null;
-    }
-    
-    /**
-     * MATCH QUERIES
-     * */
-    public void putMatch(int idTeamOne, int idTeamTwo){
-        try{
-            PreparedStatement psPutExtendedLogMatchInfo;
-            String query = "INSERT INTO tblTWHT__Match (fnTeam1ID, fnTeam2ID) VALUES (?,?)";
-            psPutExtendedLogMatchInfo = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId, query);
-            
-            psPutExtendedLogMatchInfo.setInt(1, idTeamOne);
-            psPutExtendedLogMatchInfo.setInt(2, idTeamTwo);
-            psPutExtendedLogMatchInfo.executeUpdate();
-            psPutExtendedLogMatchInfo.close();
-        }catch(SQLException e){
-            Tools.printLog(e.toString());
-        }
-        
-    }
-    
-    /*****************************************************/
-    private void closePreparedStatements(){
-        try{
-            psGetCurrentSquads.close();
-          
-        }catch(SQLException e){
-            Tools.printLog(e.toString());
-            }
-    }
-    
-    public void keepAlive(){
-        try{
-            psKeepAlive = m_botAction.createPreparedStatement(this.connectionName, this.uniqueId,  "SHOW DATABASES");
-            psKeepAlive.execute();
-        }catch(SQLException e){
-            Tools.printLog(e.toString());
-        }
-    }
-}
-}
-
-
-
