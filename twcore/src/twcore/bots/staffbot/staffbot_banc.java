@@ -1614,7 +1614,7 @@ public class staffbot_banc extends Module {
                                 result += " days: " + Tools.formatString(daysNumber, 4);
                                 result += Tools.formatString("(" + e + ")", 6);
                             } else {
-                                result += " mins:" + Tools.formatString(rs.getString("fnDuration"), 4);
+                                result += " mins:" + Tools.formatString(rs.getString("fnDuration"), 4) + " ";
                                 result += Tools.formatString("(" + rs.getInt("fnElapsed") + ")", 6) + " ";
                             }
                             if (m_botAction.getOperatorList().isModerator(name))
