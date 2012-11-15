@@ -1545,7 +1545,7 @@ public class staffbot_banc extends Module {
                     result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
                     result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + "  ";
                     result += Tools.formatString(rs.getString("fcType"), 7) + "  ";
-                    result += "mins:" + Tools.formatString(rs.getString("fnDuration"), 5) + Tools.formatString("(" + rs.getInt("fnElapsed") + ")", 7) + " ";
+                    result += "mins:" + Tools.formatString(rs.getString("fnDuration"), 4) + Tools.formatString("(" + rs.getInt("fnElapsed") + ")", 6) + " ";
                     result += rs.getString("fcUsername");
 
                     m_botAction.sendSmartPrivateMessage(name, result);
@@ -1611,11 +1611,11 @@ public class staffbot_banc extends Module {
                                 String e = "" + elap;
                                 if (elap % 1 == 0)
                                     e = "" + (int) elap;
-                                result += " days: " + Tools.formatString(daysNumber, 5);
-                                result += Tools.formatString("(" + e + ")", 7);
+                                result += " days: " + Tools.formatString(daysNumber, 4);
+                                result += Tools.formatString("(" + e + ")", 6);
                             } else {
-                                result += " mins:" + Tools.formatString(rs.getString("fnDuration"), 5) + " ";
-                                result += Tools.formatString("(" + rs.getInt("fnElapsed") + ")", 7) + " ";
+                                result += " mins:" + Tools.formatString(rs.getString("fnDuration"), 4);
+                                result += Tools.formatString("(" + rs.getInt("fnElapsed") + ")", 6) + " ";
                             }
                             if (m_botAction.getOperatorList().isModerator(name))
                                 result += " " + Tools.formatString(rs.getString("fcIP"), 15) + "  ";
