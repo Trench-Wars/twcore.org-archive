@@ -89,7 +89,7 @@ public class pubbotbanc extends PubBotModule {
         act = new Action();
         m_botAction.scheduleTask(act, 2000, 2000);
         elapsed = new SendElapsed();
-        m_botAction.scheduleTask(elapsed, 5 * Tools.TimeInMillis.MINUTE, 5 * Tools.TimeInMillis.MINUTE);
+        m_botAction.scheduleTask(elapsed, 2 * Tools.TimeInMillis.MINUTE, 2 * Tools.TimeInMillis.MINUTE);
     }
 
     @Override
