@@ -1606,9 +1606,14 @@ public class staffbot_banc extends Module {
                                 String daysNumber = days + "";
                                 double elap = rs.getInt("fnElapsed") / 24 / 60 * 10;
                                 elap = (elap - elap % 1) / 10;
-                                result += " days: " + Tools.formatString(daysNumber + " (" + elap + ")", 12);
-                            } else
-                                result += " mins:" + Tools.formatString(rs.getString("fnDuration") + " (" + rs.getInt("fnElapsed") + ")", 12) + " ";
+                                if (elap % 1 == 0)
+                                    elap = (int) elap;
+                                result += " days: " + Tools.formatString(daysNumber, 5) + " ";
+                                result += Tools.formatString("(" + elap + ")", 7) + " ";
+                            } else {
+                                result += " mins:" + Tools.formatString(rs.getString("fnDuration"), 5) + " ";
+                                result += Tools.formatString("(" + rs.getInt("fnElapsed") + ")", 7) + " ";
+                            }
                             if (m_botAction.getOperatorList().isModerator(name))
                                 result += " " + Tools.formatString(rs.getString("fcIP"), 15) + "  ";
                             result += rs.getString("fcUsername");
