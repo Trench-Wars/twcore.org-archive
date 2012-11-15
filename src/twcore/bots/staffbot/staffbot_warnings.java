@@ -2,6 +2,7 @@ package twcore.bots.staffbot;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -222,12 +223,14 @@ public class staffbot_warnings extends Module {
             int numTotal = 0;
             
             int splitCount = 0;
+            SimpleDateFormat f = new SimpleDateFormat("dd-MM-yyyy");
             
             while( set.next() ){
                 String warning = set.getString( "warning" );
                 java.sql.Date date = set.getDate( "timeofwarning" );
+                java.sql.Date pre = new java.sql.Date(f.parse("15-11-2012").getTime());
                 java.sql.Date expireDate = new java.sql.Date(System.currentTimeMillis() - WARNING_EXPIRE_TIME);
-                boolean expired = date.before(expireDate);
+                boolean expired = date.before(expireDate) || date.before(pre);
                 if( expired )
                     numExpired++;
                 if( !expired || showExpired ) {
@@ -287,7 +290,7 @@ public class staffbot_warnings extends Module {
                     m_botAction.sendRemotePrivateMessage(name, "PM !warning <name> to see the warnings on one of these names.");
                 }
             }
-        } catch( SQLException e ){
+        } catch( SQLException | ParseException e ){
             Tools.printStackTrace( e );
         }
     }
