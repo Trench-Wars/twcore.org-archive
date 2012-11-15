@@ -1530,7 +1530,7 @@ public class staffbot_banc extends Module {
             }
 
             if (sqlWhere.contains("fnID")) {
-                sqlQuery = "SELECT (fnElapsed < fnDuration OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fcComment, fbNotification, fdCreated, fbLifted FROM tblBanc WHERE "
+                sqlQuery = "SELECT (fnElapsed < fnDuration OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fnElapsed, fcStaffer, fcComment, fbNotification, fdCreated, fbLifted FROM tblBanc WHERE "
                         + sqlWhere + " LIMIT 0,1";
                 ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
 
@@ -1543,7 +1543,7 @@ public class staffbot_banc extends Module {
                     result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
                     result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + "  ";
                     result += Tools.formatString(rs.getString("fcType"), 7) + "  ";
-                    result += "mins:" + Tools.formatString(rs.getString("fnDuration"), 5) + "  ";
+                    result += "mins:" + Tools.formatString(rs.getString("fnDuration") + "(" + rs.getInt("fnElapsed") + ")", 12) + " ";
                     result += rs.getString("fcUsername");
 
                     m_botAction.sendSmartPrivateMessage(name, result);
@@ -1607,7 +1607,7 @@ public class staffbot_banc extends Module {
                                 result += " days: " + Tools.formatString(daysNumber, 5);
 
                             } else
-                                result += " mins:" + Tools.formatString(rs.getString("fnDuration"), 5) + " ";
+                                result += " mins:" + Tools.formatString(rs.getString("fnDuration") + "(" + rs.getInt("fnElapsed") + ")", 12) + " ";
                             if (m_botAction.getOperatorList().isModerator(name))
                                 result += " " + Tools.formatString(rs.getString("fcIP"), 15) + "  ";
                             result += rs.getString("fcUsername");
