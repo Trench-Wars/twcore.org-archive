@@ -905,7 +905,7 @@ public class staffbot_banc extends Module {
     private boolean sendWarnings(String stafferName, String name, int limit) throws SQLException {
 
         String query;
-
+        //4604 is the last warning with the old banc duration system
         if (limit == 0 || limit == -1)
             query = "SELECT * FROM tblWarnings WHERE name = '" + Tools.addSlashesToString(name) + "' ORDER BY timeofwarning ASC";
         else
@@ -939,7 +939,7 @@ public class staffbot_banc extends Module {
             else
                 warningSplitBecauseOfExt = warningStr.split(": ", 2);
 
-            if (date.before(expireDate) && warningSplitBecauseOfExt.length == 2)
+            if ((rs.getInt("fnID") < 4605 || date.before(expireDate)) && warningSplitBecauseOfExt.length == 2)
                 expiredWarnings.add(stringDateExpired + " " + warningSplitBecauseOfExt[1]);
             else if (warningSplitBecauseOfExt.length == 2) //lastest warnings AND warnings done correctly in database
                 lastestWarnings.add(stringDateNotExpired + " " + warningSplitBecauseOfExt[1]);
