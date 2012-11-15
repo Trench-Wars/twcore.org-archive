@@ -1611,7 +1611,7 @@ public class staffbot_banc extends Module {
                                 String e = "" + elap;
                                 if (elap % 1 == 0)
                                     e = "" + (int) elap;
-                                result += " days: " + Tools.formatString(daysNumber, 4);
+                                result += " days: " + Tools.formatString(daysNumber, 4) + " ";
                                 result += Tools.formatString("(" + e + ")", 6);
                             } else {
                                 result += " mins:" + Tools.formatString(rs.getString("fnDuration"), 4) + " ";
