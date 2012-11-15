@@ -1406,7 +1406,7 @@ public class staffbot_banc extends Module {
             // #19861 access:4 by PUNK rock 2009-09-26 18:14 days:1 ~98.194.169.186:8  ~mid:462587662* AmoresPerros
 
             boolean playerArgument = false, stafferArgument = false;
-
+            
             for (String argument : parameters.split(" "))
                 if (!playerArgument && !stafferArgument) {
                     // [#id]
@@ -1584,7 +1584,7 @@ public class staffbot_banc extends Module {
                 } else if (!twoWeeks)
                     sqlWhere = "WHERE fdCreated > DATE_SUB(NOW(), INTERVAL 2 WEEK)";
 
-                sqlQuery = "SELECT (fnElapsed < fnDuration OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated, fbLifted FROM tblBanc "
+                sqlQuery = "SELECT (fnElapsed < fnDuration OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fnElapsed, fcStaffer, fdCreated, fbLifted FROM tblBanc "
                         + sqlWhere + " ORDER BY fnID DESC LIMIT 0," + viewcount;
 
                 ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
