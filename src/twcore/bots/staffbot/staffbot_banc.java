@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -919,6 +920,13 @@ public class staffbot_banc extends Module {
 
         while (rs.next()) {
 
+            SimpleDateFormat f = new SimpleDateFormat("dd-MM-yyyy");
+            java.sql.Date pre = null;
+            try {
+                pre = new java.sql.Date(f.parse("15-11-2012").getTime());
+            } catch (ParseException e) {
+                Tools.printStackTrace(e);
+            }
             String warningStr = rs.getString("warning");
             String stringDateExpired = "";
             String stringDateNotExpired = "";
@@ -927,7 +935,7 @@ public class staffbot_banc extends Module {
 
             Date expireDate = new java.sql.Date(System.currentTimeMillis() - expiredTime);
 
-            if (date.before(expireDate))
+            if (date.before(expireDate) || date.before(pre))
                 stringDateExpired = new SimpleDateFormat("dd MMM yyyy").format(date);
             else
                 stringDateNotExpired = new SimpleDateFormat("dd MMM yyyy").format(date);
