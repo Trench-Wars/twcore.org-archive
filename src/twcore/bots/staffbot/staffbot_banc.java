@@ -252,7 +252,7 @@ public class staffbot_banc extends Module {
             restart_ops();
             // !help
             if (messageLc.startsWith("!help"))
-                cmdHelp(name, message.substring(5).trim());
+                cmd_Help(name, message.substring(5).trim());
             else if (messageLc.startsWith("!lifted"))
                 searchByLiftedBancs(name);
 
@@ -272,46 +272,46 @@ public class staffbot_banc extends Module {
 
             // !banaccesss
             else if (messageLc.startsWith("!banaccess"))
-                cmdBanAccess(name, message.substring(10).trim());
+                cmd_BanAccess(name, message.substring(10).trim());
             else if (messageLc.startsWith("!shortcutkeys"))
-                cmdShortcutkeys(name);
+                cmd_Shortcutkeys(name);
             else if (messageLc.equalsIgnoreCase("!arg"))
-                cmdArgument(name);
+                cmd_Argument(name);
             else if (messageLc.startsWith("!silence") || messageLc.startsWith("!s") || messageLc.startsWith("!spec") || messageLc.startsWith("!sp ")
                     || messageLc.startsWith("!superspec"))
                 //messageLc.startsWith("!kick") && opList.isModerator(name)) ||
                 //(messageLc.startsWith("!k") && opList.isModerator(name))) {
-                cmdSilenceSpecKick(name, message);
+                cmd_SilenceSpecKick(name, message);
             else if (messageLc.startsWith("!listban -help"))
-                cmdListBanHelp(name);
+                cmd_ListBanHelp(name);
             else if (messageLc.startsWith("!listban"))
-                cmdListBan(name, message.substring(8).trim(), true, true);
+                cmd_ListBan(name, message.substring(8).trim(), true, true);
             else if (messageLc.startsWith("!lb"))
-                cmdListBan(name, message.substring(3).trim(), true, true);
+                cmd_ListBan(name, message.substring(3).trim(), true, true);
             else if (messageLc.startsWith("!banlist"))
-                cmdListBan(name, message.substring(8).trim(), true, true);
+                cmd_ListBan(name, message.substring(8).trim(), true, true);
             else if (messageLc.startsWith("!changeban")) {
-                cmdChangeBan(name, message.substring(10).trim());
+                cmd_ChangeBan(name, message.substring(10).trim());
                 record(name, message);
             } else if (messageLc.startsWith("!cb")) {
-                cmdChangeBan(name, message.substring(3).trim());
+                cmd_ChangeBan(name, message.substring(3).trim());
                 record(name, message);
             }
 
             // !bancomment <#id> <comments>
             else if (messageLc.startsWith("!bancomment"))
-                cmdBancomment(name, message.substring(11).trim());
+                cmd_Bancomment(name, message.substring(11).trim());
             else if (messageLc.startsWith("!bc"))
-                cmdBancomment(name, message.substring(3).trim());
+                cmd_Bancomment(name, message.substring(3).trim());
             else if (messageLc.startsWith("!liftban")) {
-                cmdLiftban(name, message.substring(8).trim());
+                cmd_Liftban(name, message.substring(8).trim());
                 record(name, message);
             }
             // !reload [Smod+]
             else if (messageLc.startsWith("!reload") && opList.isDeveloper(name))
-                cmdReload(name);
+                cmd_Reload(name);
             else if (messageLc.startsWith("!listactive") && opList.isDeveloper(name))
-                cmdListActiveBanCs(name);
+                cmd_ListActiveBanCs(name);
             else if (messageLc.startsWith("!forcedb") && opList.isDeveloper(name))
                 doForceDBConnection(name);
         }
@@ -419,7 +419,7 @@ public class staffbot_banc extends Module {
 
     }
 
-    private void cmdArgument(String name) {
+    private void cmd_Argument(String name) {
         String Argument[] = { " Arguments:", "             -player='<..>'     - Specifies player name",
                 "             -d=#               - Specifies duration in minutes",
                 "             -a=<...>           - Specifies access requirement, options; mod / smod / sysop",
@@ -761,7 +761,7 @@ public class staffbot_banc extends Module {
     }
 
     private void searchByLiftedBancs(String name) {
-        cmdListBan(name, "-lifted", true, true);
+        cmd_ListBan(name, "-lifted", true, true);
     }
 
     /***
@@ -836,9 +836,9 @@ public class staffbot_banc extends Module {
 
     private boolean sendBanCs(String stafferName, String name, int limit) throws SQLException {
         if (limit != -1)
-            this.cmdListBan(stafferName, "-player='" + name + "'", false, false);
+            this.cmd_ListBan(stafferName, "-player='" + name + "'", false, false);
         else
-            this.cmdListBan(stafferName, "-player='" + name + "'", false, true);
+            this.cmd_ListBan(stafferName, "-player='" + name + "'", false, true);
         /* List<String> list = new ArrayList<String>();
         
         String query;
@@ -1102,10 +1102,10 @@ public class staffbot_banc extends Module {
      * Search ip feature - shortkut to !listban -ip= Changed the query in listban to find ips starting with substring. "x." - where like 'ipstr%'
      * */
     private void searchByIp(String stafferName, String ipString) {
-        this.cmdListBan(stafferName, "-ip=" + ipString, true, true);
+        this.cmd_ListBan(stafferName, "-ip=" + ipString, true, true);
     }
 
-    private void cmdListBanHelp(String name) {
+    private void cmd_ListBanHelp(String name) {
         // TODO Auto-generated method stub
         //!listban -player='name'
         List<String> listBanHelp = new ArrayList<String>();
@@ -1165,7 +1165,7 @@ public class staffbot_banc extends Module {
      * @param parameters
      *            any command parameters
      */
-    private void cmdHelp(String name, String parameters) {
+    private void cmd_Help(String name, String parameters) {
 
         m_botAction.smartPrivateMessageSpam(name, helpER);
 
@@ -1182,7 +1182,7 @@ public class staffbot_banc extends Module {
      * @param parameters
      *            any command parameters
      */
-    private void cmdBanAccess(String name, String parameters) {
+    private void cmd_BanAccess(String name, String parameters) {
         /*      Limitations on BanC by access level
                          
                                        ER      MOD     SMOD    SYSOP
@@ -1234,7 +1234,7 @@ public class staffbot_banc extends Module {
      * @param name
      *            player who issued the command
      */
-    private void cmdShortcutkeys(String name) {
+    private void cmd_Shortcutkeys(String name) {
         m_botAction.smartPrivateMessageSpam(name, shortcutKeys);
     }
 
@@ -1246,7 +1246,7 @@ public class staffbot_banc extends Module {
      * @param message
      *            full message that the player sent
      */
-    private void cmdSilenceSpecKick(String name, String message) {
+    private void cmd_SilenceSpecKick(String name, String message) {
         String timeStr = "10";
         String parameters = "";
         BanCType bancType = BanCType.SILENCE;
@@ -1369,7 +1369,7 @@ public class staffbot_banc extends Module {
                     + (banc.getMID() != null ? banc.getMID() : " ") + ":" + banc.getDuration() + ":" + banc.getType().toString(), 0, -1));
 
         if (comment != null)
-            cmdBancomment(name, "#" + banc.getId() + " " + comment);
+            cmd_Bancomment(name, "#" + banc.getId() + " " + comment);
     }
 
     /**
@@ -1380,7 +1380,7 @@ public class staffbot_banc extends Module {
      * @param parameters
      *            any command parameters
      */
-    private void cmdListBan(String name, String parameters, boolean showLBHelp, boolean twoWeeks) {
+    private void cmd_ListBan(String name, String parameters, boolean showLBHelp, boolean twoWeeks) {
         int viewcount = 10;
         parameters = parameters.toLowerCase();
         String sqlWhere = "";
@@ -1639,7 +1639,7 @@ public class staffbot_banc extends Module {
      * @param parameters
      *            any command parameters
      */
-    private void cmdChangeBan(String name, String parameters) {
+    private void cmd_ChangeBan(String name, String parameters) {
         String sqlSet = "";
         int banID;
         OperatorList opList = m_botAction.getOperatorList();
@@ -1860,7 +1860,7 @@ public class staffbot_banc extends Module {
      * @param parameters
      *            any command parameters
      */
-    private void cmdBancomment(String name, String message) {
+    private void cmd_Bancomment(String name, String message) {
         // !bancomment <#id> <comments>   - Adds comments to BanC with specified #id.
 
         int id = -1;
@@ -1919,7 +1919,7 @@ public class staffbot_banc extends Module {
         }
     }
 
-    private void cmdLiftban(String name, String message) {
+    private void cmd_Liftban(String name, String message) {
         // !liftban <#id>                 - Removes ban with #id.
         int id = -1;
 
@@ -1952,14 +1952,14 @@ public class staffbot_banc extends Module {
         }
     }
 
-    private void cmdReload(String name) {
+    private void cmd_Reload(String name) {
         activeBanCs.clear();
         this.loadActiveBanCs();
         m_botAction.sendSmartPrivateMessage(name, "Bans reloaded from database.");
         this.sendIPCActiveBanCs(null);
     }
 
-    private void cmdListActiveBanCs(String name) {
+    private void cmd_ListActiveBanCs(String name) {
         for (BanC banc : activeBanCs)
             m_botAction.sendSmartPrivateMessage(name, "#" + banc.getId() + " " + banc.getType() + " " + banc.getDuration() + "mins on " + banc.getPlayername());
     }
