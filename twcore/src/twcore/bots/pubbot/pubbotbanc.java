@@ -58,11 +58,16 @@ public class pubbotbanc extends PubBotModule {
     private Object current;
     private boolean silentKicks;
     private String sendto;
+    
+    private boolean DEBUG;
+    private String debugger;
 
     @Override
     public void initializeModule() {
         m_botAction.ipcSubscribe(IPCBANC);
         silentKicks = false;
+        DEBUG = false;
+        debugger = null;
         bancSilence = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         bancSpec = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         bancSuper = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
@@ -247,11 +252,24 @@ public class pubbotbanc extends PubBotModule {
                     cmd_bancs(name);
                 else if (message.equals("!kicks"))
                     cmd_kicks(name);
+                else if (message.equals("!banc"))
+                    cmd_banc(name);
             if (m_botAction.getOperatorList().isModerator(name))
-                if (message.startsWith("!move "))
+                if (message.startsWith("!move ") || message.startsWith("!bounce "))
                     cmd_move(name, message);
                 else if (message.equalsIgnoreCase("!list"))
                     cmd_list(name);
+        }
+    }
+    
+    private void cmd_banc(String name) {
+        DEBUG = !DEBUG;
+        if (DEBUG) {
+            debugger = name;
+            m_botAction.sendSmartPrivateMessage(name, "BanC debugger ENABLED and set you as debugger.");
+        } else {
+            debugger = null;
+            m_botAction.sendSmartPrivateMessage(name, "BanC debugger DISABLED.");
         }
     }
 
@@ -278,7 +296,7 @@ public class pubbotbanc extends PubBotModule {
     }
 
     private void cmd_move(String name, String msg) {
-        if (msg.length() > 6) {
+        if (msg.length() > msg.indexOf(" ") + 1) {
             String p = m_botAction.getFuzzyPlayerName(msg.substring(msg.indexOf(" ") + 1));
             if (p != null) {
                 if (isBanced(p)) {
@@ -405,6 +423,7 @@ public class pubbotbanc extends PubBotModule {
         String MOVE_MESSAGE = "You've been moved to the away-from-keyboard subarena - 'afk'. Type \"?go\" to return.";
         m_botAction.sendPrivateMessage(name, MOVE_MESSAGE);
         m_botAction.sendUnfilteredPrivateMessage(name, sendto);
+        debug("[BanC] Bounced: " + name);
     }
 
     private String getTarget(BanC b) {
@@ -433,6 +452,11 @@ public class pubbotbanc extends PubBotModule {
         if (endIndex == -1)
             endIndex = message.length();
         return message.substring(beginIndex, endIndex);
+    }
+    
+    void debug(String msg) {
+        if (DEBUG) 
+            m_botAction.sendSmartPrivateMessage(debugger, "[BanC] " + msg);
     }
 
     class Action extends TimerTask {
@@ -519,18 +543,21 @@ public class pubbotbanc extends PubBotModule {
                     if (!silence.containsKey(name)) {
                         silence.put(name, banc); 
                         banc.setActive(true);
+                        debug("Elapser added: " + name);
                     }
                     break;
                 case SUPERSPEC: 
                     if (!ship.containsKey(name)) {
                         ship.put(name, banc); 
                         banc.setActive(true);
+                        debug("Elapser added: " + name);
                     }
                     break;
                 case SPEC: 
                     if (!spec.containsKey(name)) {
                         spec.put(name, banc); 
                         banc.setActive(true);
+                        debug("Elapser added: " + name);
                     }
                     break;
             }
@@ -543,6 +570,7 @@ public class pubbotbanc extends PubBotModule {
                 ship.remove(name).setActive(false);
             if (spec.containsKey(name))
                 spec.remove(name).setActive(false);
+            debug("Elapser removed or tried removing: " + name);
         }
 
         public void stop() {
@@ -661,7 +689,7 @@ public class pubbotbanc extends PubBotModule {
             int mins = (int) (now - lastUpdate) / Tools.TimeInMillis.MINUTE;
             lastUpdate = now;
             m_botAction.ipcSendMessage(IPCBANC, "ELAPSED:" + originalName + ":" + mins, null, m_botAction.getBotName());
-            m_botAction.sendSmartPrivateMessage("WingZero", "Sending update: " + name + "(" + mins + ")");
+            debug("Sending update: " + name + "(" + mins + ")");
         }
     }
 
