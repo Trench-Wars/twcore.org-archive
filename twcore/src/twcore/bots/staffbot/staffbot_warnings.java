@@ -223,11 +223,11 @@ public class staffbot_warnings extends Module {
             int numTotal = 0;
             
             int splitCount = 0;
-            SimpleDateFormat f = new SimpleDateFormat("dd-MM-yyyy");
             
             while( set.next() ){
                 String warning = set.getString( "warning" );
                 java.sql.Date date = set.getDate( "timeofwarning" );
+                SimpleDateFormat f = new SimpleDateFormat("dd-MM-yyyy");
                 java.sql.Date pre = new java.sql.Date(f.parse("15-11-2012").getTime());
                 java.sql.Date expireDate = new java.sql.Date(System.currentTimeMillis() - WARNING_EXPIRE_TIME);
                 boolean expired = date.before(expireDate) || date.before(pre);
@@ -290,7 +290,9 @@ public class staffbot_warnings extends Module {
                     m_botAction.sendRemotePrivateMessage(name, "PM !warning <name> to see the warnings on one of these names.");
                 }
             }
-        } catch( SQLException | ParseException e ){
+        } catch( SQLException e ){
+            Tools.printStackTrace( e );
+        } catch (ParseException e) {
             Tools.printStackTrace( e );
         }
     }
