@@ -149,25 +149,7 @@ public class hockeybot extends SubspaceBot {
         start();    //Autostart the bot
     }
 
-    /**
-     * Handles FrequencyChange event
-     * - since this event looks almost the same as FrequencyShipChange
-     *   event its passed on to checkFCandFSC(name, frequency, ship).
-     */
-    @Override
-    public void handleEvent(FrequencyChange event) {
-        if (currentState != HockeyState.OFF) {
-            Player p;
 
-            p = m_botAction.getPlayer(event.getPlayerID());
-
-            if (p != null) {
-                if (!p.getPlayerName().equals(m_botAction.getBotName())) {
-                    checkFCandFSC(p.getPlayerName(), p.getFrequency(), p.getShipType());
-                }
-            }
-        }
-    }
 
     /**
      * Handles FrequencyShipChange event
@@ -433,6 +415,7 @@ public class hockeybot extends SubspaceBot {
 
     @Override
     public void handleEvent(BallPosition event) {
+    	if (currentState == HockeyState.GAME_IN_PROGRESS || currentState == HockeyState.FACE_OFF)
         puck.update(event);
     }
 
@@ -458,14 +441,17 @@ public class hockeybot extends SubspaceBot {
      */
     public void getBall() {
         if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
-            m_botAction.getShip().setShip(0);
+          //m_botAction.getShip().setShip(8);
             m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
             m_botAction.getShip().move(puck.getBallX(), puck.getBallY());
             m_botAction.getShip().updatePosition();
+            m_botAction.getShip().setShip(0);
+            m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
             m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
             m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
             m_botAction.getShip().updatePosition();
         }
+        
     }
 
     /**
@@ -531,15 +517,15 @@ public class hockeybot extends SubspaceBot {
 
        /* Captain commands */
        if (isCaptain(name) || override != -1) {
-           if (cmd.startsWith("!change")) {
+           if (cmd.startsWith("!change") || cmd.startsWith("!ch ")) {
                cmd_change(name, cmd, override);
-           } else if (cmd.startsWith("!switch")) {
+           } else if (cmd.startsWith("!switch") || cmd.startsWith("!sw ")) {
                cmd_switch(name, cmd, override);
            } else if (cmd.startsWith("!add")) {
                cmd_add(name, cmd, override);
            } else if (cmd.equals("!ready")) {
                cmd_ready(name, override);
-           } else if (cmd.startsWith("!remove")) {
+           } else if (cmd.startsWith("!remove") || cmd.startsWith("!rm ")) {
                cmd_remove(name, cmd, override);
            } else if (cmd.startsWith("!sub")) {
                cmd_sub(name, cmd, override);
@@ -549,11 +535,11 @@ public class hockeybot extends SubspaceBot {
        /* Player commands */
        if (cmd.equals("!cap")) {
            cmd_cap(name);
-       } else if (cmd.equals("!help")) {
-           cmd_help(name);
+       } else if (cmd.startsWith("!help")) {
+           cmd_help(name, cmd);
        } else if (cmd.equals("!return")) {
            cmd_lagout(name);
-       } else if (cmd.equals("!lagout")) {
+       } else if (cmd.equals("!lagout") || cmd.equals("!la ")) {
            cmd_lagout(name);
        } else if (cmd.equals("!list")) {
            cmd_list(name);
@@ -563,7 +549,7 @@ public class hockeybot extends SubspaceBot {
            cmd_status(name);
        } else if (cmd.equals("!subscribe")) {
            cmd_subscribe(name);
-       }
+       } 
 
 
        /* Staff commands ZH+ */
@@ -578,17 +564,17 @@ public class hockeybot extends SubspaceBot {
                cmd_off(name);
            } else if (cmd.startsWith("!forcenp ")) {
                cmd_forcenp(name, cmd);
-           } else if (cmd.startsWith("!setcaptain")) {
+           } else if (cmd.startsWith("!setcaptain") || cmd.startsWith("!sc ")) {
                cmd_setCaptain(name, cmd, override);
            } else if (cmd.equals("!ball")) {
                cmd_ball(name);
            } else if (cmd.equals("!drop")) {
                cmd_drop(name);
-           } else if (cmd.startsWith("!decrease ")) {
+           } else if (cmd.startsWith("!decrease ") || cmd.startsWith("!de ")) {
                cmd_decrease(name, cmd);
-           } else if (cmd.startsWith("!increase ")) {
+           } else if (cmd.startsWith("!increase ") || cmd.startsWith("!in ")) {
                cmd_increase(name, cmd);
-           }
+           } 
        }
 
        /* Staff commands Moderator+ */
@@ -926,71 +912,89 @@ public class hockeybot extends SubspaceBot {
         m_botAction.sendPrivateMessage(name, p.getPlayerName() + " has been set to !notplaying.");
     }
 
-    /**
-     * Handles the !help command
-     *
-     * @param name name of the player that issued the !help command
-     */
-    private void cmd_help(String name) {
+    private void cmd_help(String name, String msg) {
 
         ArrayList<String> help = new ArrayList<String>();   //Help messages
 
-        if (currentState != HockeyState.OFF) {
-           help.add("!lagout                   -- Puts you back into the game if you have lagged out");
-           help.add("!list                     -- Lists all players on this team");
-           help.add("!cap                      -- Become captain of a team / shows current captains!");
-           help.add("!status                   -- Display status and score");
-           help.add("!notplaying               -- Toggles not playing mode  (short !np)");
-                if (isCaptain(name)) {
-                    help.add("Captain Controls:");
-                    help.add("!add <player>             -- Adds player (Default Ship: Spider)");
-                    help.add("!add <player>:<ship>      -- Adds player in the specified ship");
-                    help.add("!remove <player>          -- Removes specified player)");
-                    help.add("!change <player>:<ship>   -- Sets the player in the specified ship");
-                    help.add("!sub <playerA>:<playerB>  -- Substitutes <playerA> with <playerB>");
-                    help.add("!switch <player>:<player> -- Exchanges the ship of both players");
-                        if (currentState == HockeyState.ADDING_PLAYERS && isCaptain(name)) {
-                            help.add("!ready                    -- Use this when you're done setting your lineup");
-                        }
-                }
-       } else {
-           help.add("!subscribe                -- Toggles alerts in private messages");
-       }
-        
-        if (currentState != HockeyState.OFF) {
-           
-        }
-
-        if (m_botAction.getOperatorList().isModerator(name)) {
-            help.add("MOD commands:");
-            help.add("!off                      -- stops the bot after the current game");
-            help.add("!die                      -- disconnects the bot");
-        }
-
-        if (m_botAction.getOperatorList().isZH(name)) {
-            help.add("ZH+ commands:");
+        if (currentState == HockeyState.OFF) {
+            help.add("Hockey Help Menu");
+            help.add("-----------------------------------------------------------------------");
+            help.add("!subscribe                           Toggles alerts in private messages");           
+            if (m_botAction.getOperatorList().isZH(name)) {
             help.add("!start                            -- starts the bot");
-            help.add("!stop                             -- stops the bot");
-            help.add("!ball                             -- retrieves the ball");
-            help.add("!drop                             -- drops the ball");
-            help.add("!decrease <freq>                  -- subtracts a goal from <freq>");
-            help.add("!increase <freq>                  -- adds a goal for <freq> - only to be used to undo a double !decrease");
-            help.add("!zone <message>                   -- sends time-restricted advert, message is optional");
-            help.add("!forcenp <player>                 -- Sets <player> to !notplaying");
-            if (currentState == HockeyState.WAITING_FOR_CAPS) {
-                help.add("!setcaptain <# freq>:<player>     -- Sets <player> as captain for <# freq>");
             }
-        }
+         } else {
+        	 if (!msg.contains("cap") && !msg.contains("staff")){
+	        help.add("Hockey Help Menu");
+	        help.add("-----------------------------------------------------------------------");
+            help.add("!notplaying                       Toggles not playing mode  (short !np)");
+            help.add("!cap                                            shows current captains!");
+            help.add("!lagout              Puts you back into the game if you have lagged out");
+            help.add("!list                                    Lists all players on this team");
+            help.add("!status                                        Display status and score");
+            help.add("-----------------------------------------------------------------------");
+            help.add("For more help: Private Mesage Me !help <topic>           ex. !help cap ");
+            help.add("Topics            Cap (Captain commands for before and during the game)"); 
+        	                      
+		     if (m_botAction.getOperatorList().isZH(name)) 
+		    	 help.add("              Staff (The staff commands for before and during the game)");  
+        	 }
+		        
+	            String[] spam = help.toArray(new String[help.size()]);
+	            m_botAction.privateMessageSpam(name, spam);
+            
+            if (msg.contains("cap")) {
+            	
+            	 ArrayList<String> hCap = new ArrayList<String>(); 
+            	 
+            	 hCap.add("Hockey Help Menu: Captain Controls");
+            	 hCap.add("-----------------------------------------------------------------------");
+            	 hCap.add("!add <player>                        Adds player (Default Ship: Spider)");
+            	 hCap.add("!add <player>:<ship>                  Adds player in the specified ship");
+            	 hCap.add("!remove <player>                              Removes specified player)");
+            	 hCap.add("!change <player>:<ship>           Sets the player in the specified ship");
+            	 hCap.add("!sub <playerA>:<playerB>           Substitutes <playerA> with <playerB>");
+            	 hCap.add("!switch <player>:<player>            Exchanges the ship of both players");
+            	 hCap.add("!ready                    Use this when you're done setting your lineup");
+            	 hCap.add("-----------------------------------------------------------------------");
+            	 
+ 	            String[] spamCap = hCap.toArray(new String[hCap.size()]);
+ 	            m_botAction.privateMessageSpam(name, spamCap);
+ 	            
+            } 
+            if (msg.contains("staff")) {
+                if (m_botAction.getOperatorList().isZH(name)) {
+                	
+                	ArrayList<String> hStaff = new ArrayList<String>();
+                	
+                	hStaff.add("Hockey Help Menu: Staff Controls");
+                	hStaff.add("-----------------------------------------------------------------------");
+                	hStaff.add("!start                                                   starts the bot");
+                	hStaff.add("!stop                                                     stops the bot");
+                	hStaff.add("!ball                                                retrieves the ball");
+                	hStaff.add("!drop                                                    drops the ball");
+                	hStaff.add("!decrease <freq>                           subtracts a goal from <freq>");
+                	hStaff.add("!increase <freq>                                 adds a goal for <freq>");
+                	hStaff.add("!zone <message>       sends time-restricted advert, message is optional");
+		            hStaff.add("!forcenp <player>                          Sets <player> to !notplaying");
+		            hStaff.add("!setcaptain <# freq>:<player>     Sets <player> as captain for <# freq>");
+                    if (m_botAction.getOperatorList().isModerator(name)) {
+                    	hStaff.add("!off                      stops the bot after the current game");
+                    	hStaff.add("!die                      disconnects the bot");                
+                    }
+                        if (m_botAction.getOperatorList().isSmod(name)) { 
+                        	hStaff.add("!allowzoner              Forces the zone timers to reset allowing !zone");
+                                          
+                        } 
+                        String[] spamStaff = hStaff.toArray(new String[hStaff.size()]);
+         	            m_botAction.privateMessageSpam(name, spamStaff);
+                }
+            }
+         } 
 
-        if (m_botAction.getOperatorList().isSmod(name)) {
-            help.add("Smod+ command:");
-            help.add("!allowzoner                       -- Forces the zone timers to reset allowing !zone");
-        }
-
-        String[] spam = help.toArray(new String[help.size()]);
-        m_botAction.privateMessageSpam(name, spam);
     }
-
+ 
+    
     /**
      * Handles the !lagout/!return command
      *
@@ -1118,7 +1122,7 @@ public class hockeybot extends SubspaceBot {
                         "You have been removed from the not playing list.");   //Notify the player
                 /* Put the player on the spectator frequency */
                 m_botAction.setShip(name, 1);
-                m_botAction.specWithoutLock(name);
+               m_botAction.specWithoutLock(name);
                 return;
             }
 
@@ -1595,7 +1599,7 @@ public class hockeybot extends SubspaceBot {
             }
 
             if (playerA.penalty != HockeyPenalty.NONE) {
-                checkPenaltyExipred(name, t);
+                checkPenaltyExipred(playerA.getName(), t);
                 if (playerA.penalty != HockeyPenalty.NONE)
                     m_botAction.sendPrivateMessage(name,"Player cannot be subbed because they are in the penalty box.");
                 else
@@ -2699,7 +2703,7 @@ public class hockeybot extends SubspaceBot {
             team1ExtY = botSettings.getInt("Team1ExtY");
 
             //penalty time
-            penaltyTime = botSettings.getInt("PenaltyTime");
+            penaltyTime = 60;
         }
 
         /**
@@ -4487,13 +4491,16 @@ public class hockeybot extends SubspaceBot {
                 timeStamp = System.currentTimeMillis();
                 getBall();
             }
-
+            
+            double randomDrop = Math.floor(Math.random() * (9)) + 15;
+            
             long time = (System.currentTimeMillis() - timeStamp) / Tools.TimeInMillis.SECOND;
 
             m_botAction.getShip().sendPositionPacket();
             //DROP WARNING
-            if (time == 20) {
-                m_botAction.sendArenaMessage("Get READY! DROP in 10 seconds.", 1);
+            if (time == 10) {
+            	
+          	    m_botAction.sendArenaMessage("Get READY! THE PUCK WILL BE DROPPED SOON.", 1);
                 try {
                     if (!team0.offside.empty()) {
                         Iterator<String> i = team0.offside.iterator();
@@ -4544,11 +4551,13 @@ public class hockeybot extends SubspaceBot {
                         }
                     }
                 } catch (Exception e) {
-                }
+                }               
             }
 
             //CHECK PENALTIES AND DROP
-            if (time >= 29) {
+            if (time >= randomDrop) {
+            m_botAction.getShip().sendPositionPacket();
+            startGame();
                 try {
                     if (!team0.offside.empty()) {
                         Iterator<String> i = team0.offside.iterator();
@@ -4599,11 +4608,6 @@ public class hockeybot extends SubspaceBot {
                     }
                 } catch (Exception e) {
                 }
-            }
-
-            if (time >= 30) {
-                m_botAction.getShip().sendPositionPacket();
-                startGame();
                 team0.clearUnsetPenalties();
                 team1.clearUnsetPenalties();
             }
