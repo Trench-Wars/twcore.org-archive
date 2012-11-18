@@ -38,6 +38,7 @@ public class hockeybot extends SubspaceBot {
 
     private boolean lockArena;
     private boolean lockLastGame;
+    private boolean isPenalty = false;
     private HockeyConfig config;                            //Game configuration
     private HockeyTeam team0;                               //Teams
     private HockeyTeam team1;
@@ -281,7 +282,7 @@ public class hockeybot extends SubspaceBot {
         String name = m_botAction.getPlayerName(playerID);
 
         HockeyTeam team = null;
-        if (name == null)   // Can do exactly squat if we can't get the name
+        if (name == null || name == m_botAction.getBotName())   // Can do exactly squat if we can't get the name
             return;
         
         team = getTeam(name);
@@ -441,7 +442,7 @@ public class hockeybot extends SubspaceBot {
      */
     public void getBall() {
         if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
-          //m_botAction.getShip().setShip(8);
+          	m_botAction.getShip().setShip(8);
             m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
             m_botAction.getShip().move(puck.getBallX(), puck.getBallY());
             m_botAction.getShip().updatePosition();
@@ -517,15 +518,15 @@ public class hockeybot extends SubspaceBot {
 
        /* Captain commands */
        if (isCaptain(name) || override != -1) {
-           if (cmd.startsWith("!change") || cmd.startsWith("!ch ")) {
+           if (cmd.startsWith("!change")) {
                cmd_change(name, cmd, override);
-           } else if (cmd.startsWith("!switch") || cmd.startsWith("!sw ")) {
+           } else if (cmd.startsWith("!switch")) {
                cmd_switch(name, cmd, override);
            } else if (cmd.startsWith("!add")) {
                cmd_add(name, cmd, override);
            } else if (cmd.equals("!ready")) {
                cmd_ready(name, override);
-           } else if (cmd.startsWith("!remove") || cmd.startsWith("!rm ")) {
+           } else if (cmd.startsWith("!remove")) {
                cmd_remove(name, cmd, override);
            } else if (cmd.startsWith("!sub")) {
                cmd_sub(name, cmd, override);
@@ -539,11 +540,11 @@ public class hockeybot extends SubspaceBot {
            cmd_help(name, cmd);
        } else if (cmd.equals("!return")) {
            cmd_lagout(name);
-       } else if (cmd.equals("!lagout") || cmd.equals("!la ")) {
+       } else if (cmd.equals("!lagout")) {
            cmd_lagout(name);
        } else if (cmd.equals("!list")) {
            cmd_list(name);
-       } else if (cmd.equals("!notplaying") || cmd.equals("!np")) {
+       } else if (cmd.equals("!notplaying")) {
            cmd_notplaying(name);
        } else if (cmd.equals("!status")) {
            cmd_status(name);
@@ -564,15 +565,15 @@ public class hockeybot extends SubspaceBot {
                cmd_off(name);
            } else if (cmd.startsWith("!forcenp ")) {
                cmd_forcenp(name, cmd);
-           } else if (cmd.startsWith("!setcaptain") || cmd.startsWith("!sc ")) {
+           } else if (cmd.startsWith("!setcaptain")) {
                cmd_setCaptain(name, cmd, override);
            } else if (cmd.equals("!ball")) {
                cmd_ball(name);
            } else if (cmd.equals("!drop")) {
                cmd_drop(name);
-           } else if (cmd.startsWith("!decrease ") || cmd.startsWith("!de ")) {
+           } else if (cmd.startsWith("!decrease ")) {
                cmd_decrease(name, cmd);
-           } else if (cmd.startsWith("!increase ") || cmd.startsWith("!in ")) {
+           } else if (cmd.startsWith("!increase ")) {
                cmd_increase(name, cmd);
            } 
        }
@@ -1294,7 +1295,7 @@ public class hockeybot extends SubspaceBot {
             /* Check command syntax */
             if (cmd.isEmpty()) {
                 m_botAction.sendPrivateMessage(name, "Error: please specify a player, "
-                        + "'!setcaptain <# freq>:<player>', or '!t1-/!t2-setcaptain <player>'");
+                        + "'!setcaptain <# freq>:<player>'");
                 return;
             }
 
@@ -1303,7 +1304,7 @@ public class hockeybot extends SubspaceBot {
             /* Check command syntax */
             if (splitCmd.length < 2) {
                 m_botAction.sendPrivateMessage(name, "Error: please specify a player, "
-                        + "'!setcaptain <# freq>:<player>', or '!t1-/!t2-setcaptain <player>'");
+                        + "'!setcaptain <# freq>:<player>'");
                 return;
             }
 
@@ -1320,7 +1321,7 @@ public class hockeybot extends SubspaceBot {
                 frequency = Integer.parseInt(splitCmd[0]);
             } catch (Exception e) {
                 m_botAction.sendPrivateMessage(name, "Error: please specify a correct frequency, "
-                        + "'!setcaptain <# freq>:<player>', or '!t1-/!t2-setcaptain <player>'");
+                        + "'!setcaptain <# freq>:<player>'");
                 return;
             }
 
@@ -1331,7 +1332,7 @@ public class hockeybot extends SubspaceBot {
                 team1.setCaptain(p.getPlayerName());
             } else {
                 m_botAction.sendPrivateMessage(name, "Error: please specify a correct frequency, "
-                        + "'!setcaptain <# freq>:<player>', or '!t1-/!t2-setcaptain <player>'");
+                        + "'!setcaptain <# freq>:<player>'");
             }
 
 
@@ -1884,7 +1885,7 @@ public class hockeybot extends SubspaceBot {
      */
     private void startGame() {
         currentState = HockeyState.GAME_IN_PROGRESS;
-        dropBall();
+        
 
         timeStamp = System.currentTimeMillis();
         m_botAction.sendArenaMessage("Go Go Go !!!", Tools.Sound.VICTORY_BELL);
@@ -2451,6 +2452,9 @@ public class hockeybot extends SubspaceBot {
             Player i = it.next();
             int id = i.getPlayerID();
             int freq = i.getFrequency();
+            if (m_botAction.getPlayerName(id) == m_botAction.getBotName()){
+            	return;
+            } else {
             if (i.getShipType() != Tools.Ship.SPECTATOR) {
                 m_botAction.specWithoutLock(id);
             }
@@ -2460,6 +2464,7 @@ public class hockeybot extends SubspaceBot {
                 m_botAction.setShip(id, 1);
                 m_botAction.specWithoutLock(id);
             }
+        }
         }
     }
     
@@ -4556,8 +4561,9 @@ public class hockeybot extends SubspaceBot {
 
             //CHECK PENALTIES AND DROP
             if (time >= randomDrop) {
+           
             m_botAction.getShip().sendPositionPacket();
-            startGame();
+            dropBall();
                 try {
                     if (!team0.offside.empty()) {
                         Iterator<String> i = team0.offside.iterator();
@@ -4604,13 +4610,21 @@ public class hockeybot extends SubspaceBot {
                             }
                             player.setPenalty(HockeyPenalty.FO_CREASE);
                             m_botAction.sendArenaMessage("FACEOFF CREASE PENALTY: " + name);
+                            isPenalty = true;
                         }
                     }
                 } catch (Exception e) {
                 }
-                team0.clearUnsetPenalties();
-                team1.clearUnsetPenalties();
+                if (isPenalty){
+                	isPenalty = false;
+                	startFaceOff();                	
+                } else {
+                    team0.clearUnsetPenalties();
+                    team1.clearUnsetPenalties();
+                	startGame();
+                }
             }
+            gameTime++;
         }
 
         private void doStartGame() {
