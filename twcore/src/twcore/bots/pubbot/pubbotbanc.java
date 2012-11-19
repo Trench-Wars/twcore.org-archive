@@ -423,7 +423,7 @@ public class pubbotbanc extends PubBotModule {
         String MOVE_MESSAGE = "You've been moved to the away-from-keyboard subarena - 'afk'. Type \"?go\" to return.";
         m_botAction.sendPrivateMessage(name, MOVE_MESSAGE);
         m_botAction.sendUnfilteredPrivateMessage(name, sendto);
-        debug("[BanC] Bounced: " + name);
+        debug("Bounced: " + name);
     }
 
     private String getTarget(BanC b) {
@@ -541,6 +541,7 @@ public class pubbotbanc extends PubBotModule {
 
         public void handleIdle(String msg) {
             String name = msg.substring(0, msg.indexOf(":"));
+            if (!isBanced(name)) return;
             int sec = 0;
             try {
                 sec = Integer.valueOf(msg.substring(msg.indexOf("Idle:") + 6, msg.lastIndexOf("s")-1));
