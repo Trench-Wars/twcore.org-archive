@@ -490,25 +490,40 @@ public class pubbotbanc extends PubBotModule {
         TreeMap<String, BanC> silence;
         TreeMap<String, BanC> ship;
         TreeMap<String, BanC> spec;
+        TreeSet<String> updated;
 
         public SendElapsed() {
+            updated = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
             silence = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
             ship = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
             spec = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         }
 
         public void run() {
+            updated.clear();
             for (Entry<String, BanC> e : silence.entrySet()) {
-                e.getValue().sendUpdate();
-                actions.add(e.getKey());
+                if (!updated.contains(e.getKey())) {
+                    e.getValue().sendUpdate(true);
+                    actions.add(e.getKey());
+                    updated.add(e.getKey());
+                } else
+                    e.getValue().sendUpdate(false);
             }
             for (Entry<String, BanC> e : ship.entrySet()) {
-                e.getValue().sendUpdate();
-                actions.add(e.getKey());
+                if (!updated.contains(e.getKey())) {
+                    e.getValue().sendUpdate(true);
+                    actions.add(e.getKey());
+                    updated.add(e.getKey());
+                } else
+                    e.getValue().sendUpdate(false);
             }
             for (Entry<String, BanC> e : spec.entrySet()) {
-                e.getValue().sendUpdate();
-                actions.add(e.getKey());
+                if (!updated.contains(e.getKey())) {
+                    e.getValue().sendUpdate(true);
+                    actions.add(e.getKey());
+                    updated.add(e.getKey());
+                } else
+                    e.getValue().sendUpdate(false);
             }
         }
 
@@ -680,15 +695,18 @@ public class pubbotbanc extends PubBotModule {
             if (a)
                 lastUpdate = System.currentTimeMillis();
             else
-                sendUpdate();
+                sendUpdate(true);
         }
 
-        public void sendUpdate() {
+        public void sendUpdate(boolean ipc) {
             long now = System.currentTimeMillis();
             int mins = (int) (now - lastUpdate) / Tools.TimeInMillis.MINUTE;
             lastUpdate = now;
-            m_botAction.ipcSendMessage(IPCBANC, "ELAPSED:" + originalName + ":" + mins, null, m_botAction.getBotName());
-            debug("Sending update: " + name + "(" + mins + ")");
+            if (ipc) {
+                m_botAction.ipcSendMessage(IPCBANC, "ELAPSED:" + originalName + ":" + mins, null, m_botAction.getBotName());
+                debug("Sending update: " + originalName + "(" + mins + ")");
+            } else
+                debug("Updated not sent: " + originalName + "(" + mins + ")");
         }
     }
 
