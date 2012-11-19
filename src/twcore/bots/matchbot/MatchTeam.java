@@ -2461,21 +2461,24 @@ public class MatchTeam {
                         }
                     } else if (type == LAG) {
                         MatchPlayer p = getPlayer(name, true);
-                        String message = p.lagin();
-                        if (message.equals("yes")) {
-                            if (m_rules.getInt("storegame") != 0)
-                                m_round.events.add(MatchRoundEvent.lagin(p.m_dbPlayer.getUserID()));
+                        if (p != null) {
+                            String message = p.lagin();
+                            if (message.equals("yes")) {
+                                if (m_rules.getInt("storegame") != 0)
+                                    m_round.events.add(MatchRoundEvent.lagin(p.m_dbPlayer.getUserID()));
 
-                            if (cap.length() > 0)
-                                m_logger.sendPrivateMessage(cap, "Player is back in, " + p.getLagoutsLeft() + " lagouts left");
-                        } else {
-                            // if not succesful, inform either the host/captain
-                            // or the player himself:
-                            if (cap.length() > 0)
-                                m_logger.sendPrivateMessage(cap, "Couldn't put player back in: " + message);
-                            else
-                                m_logger.sendPrivateMessage(name, "Couldn't put you back in: " + message);
-                        }
+                                if (cap.length() > 0)
+                                    m_logger.sendPrivateMessage(cap, "Player is back in, " + p.getLagoutsLeft() + " lagouts left");
+                            } else {
+                                // if not succesful, inform either the host/captain
+                                // or the player himself:
+                                if (cap.length() > 0)
+                                    m_logger.sendPrivateMessage(cap, "Couldn't put player back in: " + message);
+                                else
+                                    m_logger.sendPrivateMessage(name, "Couldn't put you back in: " + message);
+                            }
+                        } else
+                            m_logger.sendPrivateMessage(name, "Couldn't put you back in.");
                     }
                 }
             } catch (NumberFormatException e) {
