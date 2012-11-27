@@ -3,6 +3,7 @@ package twcore.bots.pubsystem.module.player;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeMap;
 
 import twcore.bots.pubsystem.module.PubUtilModule.Location;
 //import twcore.bots.pubsystem.module.PubUtilModule.Tileset;
@@ -22,6 +23,7 @@ import twcore.core.util.Tools;
 public class PubPlayer implements Comparable<PubPlayer>{
     
 	private static final int MAX_ITEM_USED_HISTORY = 30 * Tools.TimeInMillis.MINUTE;
+    private static final int DONATE_DELAY = Tools.TimeInMillis.MINUTE;
 	
 	private BotAction m_botAction;
 
@@ -33,6 +35,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private LinkedList<PubItemUsed> itemsBoughtForOther;
     private LinkedList<PubItem> itemsBoughtThisLife;
     private LinkedList<String> ignoreList;
+    private TreeMap<String, Long> donated;
     
     private LvzMoneyPanel cashPanel;
     
@@ -73,11 +76,26 @@ public class PubPlayer implements Comparable<PubPlayer>{
         this.itemsBoughtThisLife = new LinkedList<PubItem>();
         this.cashPanel = new LvzMoneyPanel(m_botAction);
         this.ignoreList = new LinkedList<String>();
+        this.donated = new TreeMap<String, Long>(String.CASE_INSENSITIVE_ORDER);
         reloadPanel(false);
     }
 
     public void setName(String name) {
     	this.name = name;
+    }
+    
+    public boolean donate(String name) {
+        long now = System.currentTimeMillis();
+        if (donated.containsKey(name)) {
+            if (now - donated.get(name) > DONATE_DELAY) {
+                donated.put(name, now);
+                return true;
+            } else
+                return false;
+        } else {
+            donated.put(name, now);
+            return true;
+        }
     }
     
     public String getPlayerName() {

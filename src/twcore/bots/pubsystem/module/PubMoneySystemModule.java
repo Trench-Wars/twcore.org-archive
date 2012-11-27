@@ -404,10 +404,12 @@ public class PubMoneySystemModule extends AbstractModule {
     		PubPlayer pubPlayer = playerManager.getPlayer(name,false);
     		PubPlayer pubPlayerDonater = playerManager.getPlayer(sender,false);
     		if (pubPlayer != null && pubPlayerDonater != null) {
-
     			if (pubPlayerDonater.getMoney() < Integer.valueOf(money)) {
     				m_botAction.sendSmartPrivateMessage(sender, "You don't have $" + Integer.valueOf(money) + " to donate.");
     				return;
+    			}
+    			if (!pubPlayerDonater.donate(name)) {
+                    m_botAction.sendSmartPrivateMessage(sender, "You have to wait before donating to this player again.");
     			}
 
     			int currentMoney = pubPlayer.getMoney();
