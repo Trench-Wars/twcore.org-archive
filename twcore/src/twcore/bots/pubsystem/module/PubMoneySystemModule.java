@@ -410,6 +410,7 @@ public class PubMoneySystemModule extends AbstractModule {
     			}
     			if (!pubPlayerDonater.donate(name)) {
                     m_botAction.sendSmartPrivateMessage(sender, "You have to wait before donating to this player again.");
+                    return;
     			}
 
     			int currentMoney = pubPlayer.getMoney();
