@@ -420,7 +420,6 @@ public class hockeybot extends SubspaceBot {
 
     @Override
     public void handleEvent(BallPosition event) {
-    	if (currentState == HockeyState.GAME_IN_PROGRESS || currentState == HockeyState.FACE_OFF)
         puck.update(event);
     }
 
@@ -448,11 +447,10 @@ public class hockeybot extends SubspaceBot {
         if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
           	m_botAction.getShip().setShip(0);
             m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
-            m_botAction.getShip().move(puck.getBallX(), puck.getBallY());
-            m_botAction.getShip().updatePosition();
-            m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
+            //m_botAction.getShip().move(puck.getBallX(), puck.getBallY());
             m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
             m_botAction.getShip().updatePosition();
+            m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
         }
         
     }
