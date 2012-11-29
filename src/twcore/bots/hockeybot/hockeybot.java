@@ -460,9 +460,11 @@ public class hockeybot extends SubspaceBot {
      * Drops the ball at current location
      */
     public void dropBall() {
-        m_botAction.getShip().setShip(8);
-        m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
-        m_botAction.setPlayerPositionUpdating(300);
+        if (m_botAction.getShip().getShip() < 8) {
+            m_botAction.getShip().setShip(8);
+            m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
+            m_botAction.setPlayerPositionUpdating(300);
+        }
     }
 
     private void checkPenalty(PlayerPosition event) {
