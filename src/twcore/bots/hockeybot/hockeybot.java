@@ -445,11 +445,8 @@ public class hockeybot extends SubspaceBot {
      */
     public void getBall() {
         if (m_botAction.getShip().getShip() == 8 || !puck.holding) {
-            m_botAction.stopSpectatingPlayer();
             m_botAction.getShip().setShip(0);
-            m_botAction.setShip(m_botAction.getBotName(), 1);
             m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
-            m_botAction.setFreq(m_botAction.getBotName(), FREQ_NOTPLAYING);
             //m_botAction.getShip().move(puck.getBallX(), puck.getBallY());
             m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
             m_botAction.getShip().updatePosition();
@@ -462,8 +459,8 @@ public class hockeybot extends SubspaceBot {
      * Drops the ball at current location
      */
     public void dropBall() {
-        if (m_botAction.getShip().getShip() != 8) {
-            m_botAction.specWithoutLock(m_botAction.getBotName());
+        Player bot = m_botAction.getPlayer(m_botAction.getBotName());
+        if (m_botAction.getShip().getShip() != 8 || (bot != null && bot.getFrequency() != FREQ_NOTPLAYING)) {
             m_botAction.getShip().setShip(8);
             m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
             m_botAction.setPlayerPositionUpdating(300);
