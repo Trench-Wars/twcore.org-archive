@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.Stack;
 import java.util.TimerTask;
 import java.util.TreeMap;
-import java.util.LinkedList;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,7 +17,6 @@ import twcore.core.EventRequester;
 import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.BallPosition;
-import twcore.core.events.FrequencyChange;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
@@ -149,7 +147,7 @@ public class hockeybot extends SubspaceBot {
     @Override
     public void handleEvent(ArenaJoined event) {
         //m_botAction.setReliableKills(1);
-        //m_botAction.setPlayerPositionUpdating(1);
+        m_botAction.setPlayerPositionUpdating(300);
         m_botAction.sendUnfilteredPublicMessage("?chat=" + config.getChats());  //Join all the chats
         start();    //Autostart the bot
     }
@@ -168,11 +166,8 @@ public class hockeybot extends SubspaceBot {
 
             p = m_botAction.getPlayer(event.getPlayerID());
 
-            if (p != null || p.getPlayerName().equalsIgnoreCase(m_botAction.getBotName())) {
-                if (!p.getPlayerName().equals(m_botAction.getBotName())) {
-                    checkFCandFSC(p.getPlayerName(), p.getFrequency(), p.getShipType());
-                }
-            }
+            if (p != null &&p.getPlayerName().equals(m_botAction.getBotName()))
+                checkFCandFSC(p.getPlayerName(), p.getFrequency(), p.getShipType());
         }
     }
 
@@ -2383,12 +2378,13 @@ public class hockeybot extends SubspaceBot {
      * @param message Arena message
      */
     private void checkArenaLock(String message) {
+        /*
         if (message.equals("Arena UNLOCKED") && lockArena) {
             m_botAction.toggleLocked();
         }
-        if (message.equals("Arena LOCKED") && !lockArena) {
+        */
+        if (message.equals("Arena LOCKED"))
             m_botAction.toggleLocked();
-        }
     }
 
     /**
