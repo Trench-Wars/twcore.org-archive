@@ -166,7 +166,7 @@ public class hockeybot extends SubspaceBot {
 
             p = m_botAction.getPlayer(event.getPlayerID());
 
-            if (p != null &&p.getPlayerName().equals(m_botAction.getBotName()))
+            if (p != null && !p.getPlayerName().equals(m_botAction.getBotName()))
                 checkFCandFSC(p.getPlayerName(), p.getFrequency(), p.getShipType());
         }
     }
