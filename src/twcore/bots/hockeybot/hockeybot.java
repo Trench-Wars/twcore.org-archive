@@ -446,12 +446,12 @@ public class hockeybot extends SubspaceBot {
      */
     public void getBall() {
         if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
-            String self = m_botAction.getBotName();
-            m_botAction.setShip(self, 1);
           	m_botAction.getShip().setShip(0);
             m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
-            m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
+            m_botAction.getShip().move(puck.getBallX(), puck.getBallY());
             m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
+            m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
+            m_botAction.getShip().updatePosition();
         }
         
     }
@@ -462,8 +462,6 @@ public class hockeybot extends SubspaceBot {
     public void dropBall() {
         m_botAction.getShip().setShip(8);
         m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
-        m_botAction.specWithoutLock(m_botAction.getBotName());
-        m_botAction.setFreq(m_botAction.getBotName(), FREQ_NOTPLAYING);
         m_botAction.setPlayerPositionUpdating(300);
     }
 
