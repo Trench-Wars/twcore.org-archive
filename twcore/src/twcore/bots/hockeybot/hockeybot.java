@@ -168,7 +168,7 @@ public class hockeybot extends SubspaceBot {
 
             p = m_botAction.getPlayer(event.getPlayerID());
 
-            if (p != null) {
+            if (p != null || p.getPlayerName().equalsIgnoreCase(m_botAction.getBotName())) {
                 if (!p.getPlayerName().equals(m_botAction.getBotName())) {
                     checkFCandFSC(p.getPlayerName(), p.getFrequency(), p.getShipType());
                 }
@@ -445,6 +445,7 @@ public class hockeybot extends SubspaceBot {
      */
     public void getBall() {
         if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
+            m_botAction.stopSpectatingPlayer();
           	m_botAction.getShip().setShip(0);
             m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
             //m_botAction.getShip().move(puck.getBallX(), puck.getBallY());
