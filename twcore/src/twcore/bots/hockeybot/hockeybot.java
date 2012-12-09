@@ -124,7 +124,6 @@ public class hockeybot extends SubspaceBot {
         EventRequester req = m_botAction.getEventRequester();
 
         req.request(EventRequester.ARENA_JOINED);           //Bot joined arena
-        req.request(EventRequester.FREQUENCY_CHANGE);       //Player changed frequency
         req.request(EventRequester.FREQUENCY_SHIP_CHANGE);  //Player changed frequency/ship
         req.request(EventRequester.LOGGED_ON);              //Bot logged on
         req.request(EventRequester.MESSAGE);                //Bot received message
@@ -161,13 +160,20 @@ public class hockeybot extends SubspaceBot {
      */
     @Override
     public void handleEvent(FrequencyShipChange event) {
-        if (currentState != HockeyState.OFF) {
+        if (currentState != HockeyState.OFF && currentState != HockeyState.WAITING_FOR_CAPS) {
             Player p;
 
             p = m_botAction.getPlayer(event.getPlayerID());
-
+            
+            HockeyTeam team = null;
+            team = getTeam(p.getPlayerName());
+            
+            if (team == null){
+                return;
+            } else {
             if (p != null && !p.getPlayerName().equals(m_botAction.getBotName()))
                 checkFCandFSC(p.getPlayerName(), p.getFrequency(), p.getShipType());
+            }
         }
     }
 
@@ -255,11 +261,17 @@ public class hockeybot extends SubspaceBot {
      */
     @Override
     public void handleEvent(PlayerLeft event) {
-        if (currentState != HockeyState.OFF) {
+        if (currentState != HockeyState.OFF && currentState != HockeyState.WAITING_FOR_CAPS) {
             String name;    //Name of the player that left
 
             name = m_botAction.getPlayerName(event.getPlayerID());
-
+            HockeyTeam team = null;
+            
+            team = getTeam(name);
+            
+            if (team == null){
+                return;
+            }
             if (name != null) {
                 //Check if the player that left was a captain
                 checkCaptainLeft(name);
