@@ -749,7 +749,7 @@ public class pubsystem extends SubspaceBot
 
         
         // Engine ShutDown Time set to 5 seconds
-        m_botAction.sendUnfilteredPublicMessage("?set Prize:EngineShutDownTime:500");
+        //m_botAction.sendUnfilteredPublicMessage("?set Prize:EngineShutDownTime:500");
         /*
     	String[] ships = new String[] {
     		"Warbird",
