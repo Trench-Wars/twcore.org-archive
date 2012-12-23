@@ -32,6 +32,10 @@ public class staffbot_serverwarningecho extends Module {
 	            return;
 	        }
 	        
+	        if(message.startsWith("SERVERIGNOREREQ-TWCHAT ") && (name.equals("TWChat"))) {
+	            String ignoree = message.substring(23);
+	            ignoredPlayers.add(ignoree);
+	        }
 	        if(message.startsWith("!help")) {
 	            m_botAction.smartPrivateMessageSpam(name, helpSmod);
 	        } else
