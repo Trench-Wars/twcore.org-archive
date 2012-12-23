@@ -52,6 +52,7 @@ public class twchat extends SubspaceBot {
     private static final String db = "pubstats";
     private static final String dbInfo = "website";
     private static final String CORE = "TWCore";
+    private static final String STAFFBOT = "StaffBot";
     private static final String ECORE = "TWCore-Events";
     private static final String LCORE = "TWCore-League";
     private static final String STREAM = "TrenchStream";
@@ -113,8 +114,13 @@ public class twchat extends SubspaceBot {
 
             if (message.startsWith("IP:"))
                 sendPlayerInfo(message);
-            if (message.contains("Client: VIE 1.34") && notify == true) {
+            if (message.contains("Client: VIE 1.34")) {
                 String nameFromMessage = message.substring(0, message.indexOf(":", 0));
+                if(ops.isZH(nameFromMessage)){
+                    m_botAction.sendSmartPrivateMessage(STAFFBOT, "SERVERIGNOREREQ-TWCHAT " + nameFromMessage);
+                    m_botAction.sendChatMessage(2, nameFromMessage + " is using TWChat. Sending request to ignore server warnings...");
+                }
+                if(notify == true){
                 if (ops.isBotExact(nameFromMessage))
                     return;
                 else
@@ -124,7 +130,7 @@ public class twchat extends SubspaceBot {
                     m_botAction.sendUnfilteredPrivateMessage(nameFromMessage, "*spec");
 
                 }
-
+                }
             }
 
         }
