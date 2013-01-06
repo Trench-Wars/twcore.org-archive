@@ -1465,7 +1465,7 @@ public class twdbot extends SubspaceBot {
                 for (Integer i : ids)
                     deletes += i + ",";
                 deletes = deletes.substring(0, deletes.lastIndexOf(","));
-                m_botAction.SQLBackgroundQuery(webdb, null, "DELETE FROM tblTWDAliasRelay WHERE fnID IN (" + deletes + ")");
+                m_botAction.SQLQuery(webdb, "DELETE FROM tblTWDAliasRelay WHERE fnID IN (" + deletes + ")");
             }
         } catch (SQLException e) {
             Tools.printStackTrace(e);
