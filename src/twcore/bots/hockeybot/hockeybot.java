@@ -146,7 +146,6 @@ public class hockeybot extends SubspaceBot {
     @Override
     public void handleEvent(ArenaJoined event) {
         //m_botAction.setReliableKills(1);
-        m_botAction.toggleLocked();
         m_botAction.setPlayerPositionUpdating(300);
         m_botAction.sendUnfilteredPublicMessage("?chat=" + config.getChats());  //Join all the chats
     }
@@ -1754,8 +1753,7 @@ public class hockeybot extends SubspaceBot {
         m_botAction.setReliableKills(1);
         m_botAction.setPlayerPositionUpdating(300);
         m_botAction.setLowPriorityPacketCap(8);
-        lockLastGame = false;
-        lockArena();
+        lockLastGame = false;        
         lockDoors();
         setSpecAndFreq();
 
@@ -1795,8 +1793,9 @@ public class hockeybot extends SubspaceBot {
      */
     private void startAddingPlayers() {
         
-        currentState = HockeyState.ADDING_PLAYERS;
-
+        currentState = HockeyState.ADDING_PLAYERS;        
+        lockArena();
+        m_botAction.specAll();
         timeStamp = System.currentTimeMillis();
         m_botAction.sendArenaMessage("Captains you have 10 minutes to set up your lineup correctly!",
                 Tools.Sound.BEEP2);
@@ -1813,7 +1812,7 @@ public class hockeybot extends SubspaceBot {
         if (team1.hasCaptain()) {
             team1.putCaptainInList();
         }
-
+        
         determineTurn();
     }
 
@@ -2370,7 +2369,7 @@ public class hockeybot extends SubspaceBot {
      *
      * @param message Arena message
      */
-    private void checkArenaLock(String message) {        
+    private void checkArenaLock(String message) {
         if (message.equals("Arena UNLOCKED") && lockArena) 
             m_botAction.toggleLocked(); 
         else if (message.equals("Arena LOCKED") && !lockArena )
