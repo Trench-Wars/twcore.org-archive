@@ -60,10 +60,10 @@ public class hockeybot extends SubspaceBot {
 
     //Game states
     private enum HockeyState {
-
         OFF, WAITING_FOR_CAPS, ADDING_PLAYERS, FACE_OFF,
         GAME_IN_PROGRESS, REVIEW, GAME_OVER
     };
+    
     private HockeyState currentState;
     private long timeStamp;
     private long roundTime;
@@ -112,7 +112,7 @@ public class hockeybot extends SubspaceBot {
         listNotplaying.add(m_botAction.getBotName().toLowerCase());
         listAlert = new ArrayList<String>();
 
-        lockArena = false;
+        lockArena = true;
         lockLastGame = false;
 
         botCrease = new Stack<String>();
@@ -146,9 +146,9 @@ public class hockeybot extends SubspaceBot {
     @Override
     public void handleEvent(ArenaJoined event) {
         //m_botAction.setReliableKills(1);
+        m_botAction.toggleLocked();
         m_botAction.setPlayerPositionUpdating(300);
         m_botAction.sendUnfilteredPublicMessage("?chat=" + config.getChats());  //Join all the chats
-        start();    //Autostart the bot
     }
 
 
@@ -2370,13 +2370,10 @@ public class hockeybot extends SubspaceBot {
      *
      * @param message Arena message
      */
-    private void checkArenaLock(String message) {
-        /*
-        if (message.equals("Arena UNLOCKED") && lockArena) {
-            m_botAction.toggleLocked();
-        }
-        */
-        if (message.equals("Arena LOCKED"))
+    private void checkArenaLock(String message) {        
+        if (message.equals("Arena UNLOCKED") && lockArena) 
+            m_botAction.toggleLocked(); 
+        else if (message.equals("Arena LOCKED") && !lockArena )
             m_botAction.toggleLocked();
     }
 
