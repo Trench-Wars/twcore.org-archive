@@ -13,7 +13,7 @@ import java.sql.ResultSet;
 import java.util.*;
 
 public class notifybot extends SubspaceBot {
-    private BotAction m_botAction;
+    private BotAction BA;
     private BotSettings BS;
     private OperatorList oplist;
     private LinkedList<NotifyPlayer> playerlist;
@@ -22,10 +22,10 @@ public class notifybot extends SubspaceBot {
     public notifybot(BotAction botAction) {
         super(botAction);
 
-        m_botAction = BotAction.getBotAction();
-        BS = m_botAction.getBotSettings();
-        EventRequester req = m_botAction.getEventRequester();
-        oplist = m_botAction.getOperatorList();
+        BA = BotAction.getBotAction();
+        BS = BA.getBotSettings();
+        EventRequester req = BA.getEventRequester();
+        oplist = BA.getOperatorList();
 
         req.request(EventRequester.MESSAGE);
         req.request(EventRequester.ARENA_JOINED);
@@ -40,7 +40,7 @@ public class notifybot extends SubspaceBot {
         int msgtype = event.getMessageType();
         String name = event.getMessager();
         if (name == null)
-            name = m_botAction.getPlayerName(event.getPlayerID());
+            name = BA.getPlayerName(event.getPlayerID());
 
         if (pname == null)
             pname = name;
@@ -48,9 +48,9 @@ public class notifybot extends SubspaceBot {
         if ((msgtype == Message.PRIVATE_MESSAGE) || (msgtype == Message.REMOTE_PRIVATE_MESSAGE)) {
             if (oplist.isER(name)) {
                 if (msg.equalsIgnoreCase("!die")) {
-                    m_botAction.sendSmartPrivateMessage(pname, name + " killed me, Disconnecting clients...");
+                    BA.sendSmartPrivateMessage(pname, name + " killed me, Disconnecting clients...");
 
-                    m_botAction.ipcUnSubscribe("TWNotify");
+                    BA.ipcUnSubscribe("TWNotify");
 
                     for (Iterator<NotifyPlayer> i = playerlist.iterator(); i.hasNext();) {
                         NotifyPlayer player = (NotifyPlayer) i.next();
@@ -61,7 +61,7 @@ public class notifybot extends SubspaceBot {
                         Thread.sleep(1000);
                     } catch (Exception e) {}
                     ;
-                    m_botAction.die();
+                    BA.die();
                 } else if (msg.equalsIgnoreCase("!help")) {
                     String[] help = { "+------------------------------------------------------+",
                             "|           Trench Wars Notify Bot Server              |", "+------------------------------------------------------+",
@@ -71,15 +71,15 @@ public class notifybot extends SubspaceBot {
                             "| !size                 - How many is online with TWN? |", "| !who                  - Show who's logged in to TWN  |",
                             "+------------------------------------------------------+" };
 
-                    if (m_botAction.getOperatorList().isSysop(name)) {
-                        m_botAction.smartPrivateMessageSpam(name, help);
+                    if (BA.getOperatorList().isSysop(name)) {
+                        BA.smartPrivateMessageSpam(name, help);
                     }
                 } else if (msg.equalsIgnoreCase("!start")) {
-                    m_botAction.sendSmartPrivateMessage(pname, "Starting the TWN server.");
-                    new NotifyServer(m_botAction, playerlist).start();
+                    BA.sendSmartPrivateMessage(pname, "Starting the TWN server.");
+                    new NotifyServer(BA, playerlist).start();
                 } else if (msg.equalsIgnoreCase("!stop")) {
-                    m_botAction.sendSmartPrivateMessage(pname, "Disconnecting the server...");
-                    m_botAction.ipcUnSubscribe("TWNotify");
+                    BA.sendSmartPrivateMessage(pname, "Disconnecting the server...");
+                    BA.ipcUnSubscribe("TWNotify");
 
                     for (Iterator<NotifyPlayer> i = playerlist.iterator(); i.hasNext();) {
                         NotifyPlayer player = (NotifyPlayer) i.next();
@@ -87,7 +87,7 @@ public class notifybot extends SubspaceBot {
                     }
                 } else if (msg.startsWith("!send ")) {
                     String str = msg.substring(msg.indexOf(" ") + 1, msg.length());
-                    m_botAction.sendSmartPrivateMessage(pname, "Server Message sent: " + str);
+                    BA.sendSmartPrivateMessage(pname, "Server Message sent: " + str);
 
                     for (Iterator<NotifyPlayer> i = playerlist.iterator(); i.hasNext();) {
                         NotifyPlayer player = (NotifyPlayer) i.next();
@@ -131,7 +131,7 @@ public class notifybot extends SubspaceBot {
 
                 } else if (msg.startsWith("!msg ")) {
                     String str = msg.substring(msg.indexOf(" ") + 1, msg.length());
-                    m_botAction.sendSmartPrivateMessage(pname, "Server Message sent: " + "MSG:" + str);
+                    BA.sendSmartPrivateMessage(pname, "Server Message sent: " + "MSG:" + str);
 
                     for (Iterator<NotifyPlayer> i = playerlist.iterator(); i.hasNext();) {
                         NotifyPlayer player = (NotifyPlayer) i.next();
@@ -139,33 +139,33 @@ public class notifybot extends SubspaceBot {
                     }
                 } else if (msg.startsWith("!alert ")) {
                     String str = msg.substring(msg.indexOf(" ") + 1, msg.length());
-                    m_botAction.sendSmartPrivateMessage(pname, "Server Message sent: " + "ALERT:" + str);
+                    BA.sendSmartPrivateMessage(pname, "Server Message sent: " + "ALERT:" + str);
 
                     for (Iterator<NotifyPlayer> i = playerlist.iterator(); i.hasNext();) {
                         NotifyPlayer player = (NotifyPlayer) i.next();
                         player.send("ALERT:" + str);
                     }
                 } else if (msg.equalsIgnoreCase("!size")) {
-                    m_botAction.sendSmartPrivateMessage(pname, "The current size of TWN users online is " + playerlist.size());
+                    BA.sendSmartPrivateMessage(pname, "The current size of TWN users online is " + playerlist.size());
                 } else if (msg.equalsIgnoreCase("!who")) {
                     String str = "Online:";
                     for (Iterator<NotifyPlayer> i = playerlist.iterator(); i.hasNext();) {
                         NotifyPlayer player = (NotifyPlayer) i.next();
                         str = str.concat(" " + player.getName() + ",");
                     }
-                    m_botAction.sendSmartPrivateMessage(pname, str);
+                    BA.sendSmartPrivateMessage(pname, str);
                 }
             }
         }
     }
 
     public void handleEvent(LoggedOn event) {
-        m_botAction.joinArena(BS.getString("arena"));
-        m_botAction.ipcSubscribe("TWNotify");
+        BA.joinArena(BS.getString("arena"));
+        BA.ipcSubscribe("TWNotify");
     }
 
     public void handleEvent(ArenaJoined event) {
-        m_botAction.setReliableKills(1);
+        BA.setReliableKills(1);
     }
 
     public void handleEvent(SQLResultEvent event) {
@@ -211,11 +211,11 @@ public class notifybot extends SubspaceBot {
     public class NotifyServer extends Thread {
         private ServerSocket socket;
         private boolean running;
-        private BotAction m_botAction;
+        private BotAction BA;
         private LinkedList<NotifyPlayer> playerlist;
 
         public NotifyServer(BotAction botact, LinkedList<NotifyPlayer> plist) {
-            m_botAction = botact;
+            BA = botact;
             playerlist = plist;
             running = false;
 
@@ -224,19 +224,19 @@ public class notifybot extends SubspaceBot {
                 socket.setReuseAddress(true); //to rebind after bot crash and no twcore crash
                 running = true;
             } catch (IOException e) {
-                m_botAction.sendPrivateMessage(pname, "couldnt get socket");
+                BA.sendPrivateMessage(pname, "couldnt get socket");
             }
 
-            m_botAction.sendPrivateMessage(pname, "s1=" + socket);
+            BA.sendPrivateMessage(pname, "s1=" + socket);
         }
 
         public void run() {
-            m_botAction.sendPrivateMessage(pname, "running");
+            BA.sendPrivateMessage(pname, "running");
             while (running) {
                 try {
-                    new NotifyClient(socket.accept(), m_botAction, playerlist).start();
+                    new NotifyClient(socket.accept(), BA, playerlist).start();
                 } catch (IOException e) {
-                    m_botAction.sendPrivateMessage(pname, "accept failed");
+                    BA.sendPrivateMessage(pname, "accept failed");
                 }
             }
 
@@ -244,12 +244,12 @@ public class notifybot extends SubspaceBot {
         }
 
         public void end() {
-            m_botAction.sendPrivateMessage(pname, "ending");
+            BA.sendPrivateMessage(pname, "ending");
             running = false;
             try {
                 socket.close();
             } catch (IOException e) {
-                m_botAction.sendPrivateMessage(pname, "close2 failed");
+                BA.sendPrivateMessage(pname, "close2 failed");
             }
 
         }
@@ -259,18 +259,18 @@ public class notifybot extends SubspaceBot {
     public class NotifyClient extends Thread {
         private Socket socket;
         private boolean running;
-        private BotAction m_botAction;
+        private BotAction BA;
         private LinkedList<NotifyPlayer> playerlist;
         private LinkedList<String> queue;
         private NotifyPlayer player;
 
         public NotifyClient(Socket s, BotAction botact, LinkedList<NotifyPlayer> plist) {
             socket = s;
-            m_botAction = botact;
+            BA = botact;
             playerlist = plist;
             queue = new LinkedList<String>();
             player = null;
-            m_botAction.sendPrivateMessage(pname, "s2=" + socket);
+            BA.sendPrivateMessage(pname, "s2=" + socket);
             running = false;
         }
 
@@ -285,10 +285,10 @@ public class notifybot extends SubspaceBot {
             BufferedReader in = new BufferedReader(hack);
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
-            m_botAction.sendSmartPrivateMessage(pname, "A user is connecting...");
-            m_botAction.sendSmartPrivateMessage(pname, "IP: " + socket.getInetAddress().getHostAddress());
-            m_botAction.sendSmartPrivateMessage(pname, "PORT: " + socket.getPort());
-            m_botAction.sendSmartPrivateMessage(pname, "HOST: " + socket.getInetAddress().getHostName());
+            BA.sendSmartPrivateMessage(pname, "A user is connecting...");
+            BA.sendSmartPrivateMessage(pname, "IP: " + socket.getInetAddress().getHostAddress());
+            BA.sendSmartPrivateMessage(pname, "PORT: " + socket.getPort());
+            BA.sendSmartPrivateMessage(pname, "HOST: " + socket.getInetAddress().getHostName());
 
             running = true;
             while (running) {
@@ -316,27 +316,27 @@ public class notifybot extends SubspaceBot {
 
                                 if (!result.next()) {
                                     m_botAction.sendSmartPrivateMessage(pname, "Wrong password for " + name);
-                                    queue.add("m_botActionDLOGIN:Wrong Password.");
+                                    queue.add("BADLOGIN:Wrong Password.");
                                 } else {
                                     ResultSet squad = m_botAction.SQLQuery("pubstats", "SELECT fcSquad FROM tblPlayer WHERE fcName = '" + name + "'");
                                     if (squad.next() || !squad.next()) {
                                         String squads = squad.getString("fcSquad");
                                         if (squads == null)
                                             squads = "Unknown";
-                                        m_botAction.sendSmartPrivateMessage(pname, "Connected user successful login.");
-                                        m_botAction.sendSmartPrivateMessage(pname, "Login Name: " + name);
-                                        m_botAction.sendSmartPrivateMessage(pname, "Squad: " + squads);
+                                        BA.sendSmartPrivateMessage(pname, "Connected user successful login.");
+                                        BA.sendSmartPrivateMessage(pname, "Login Name: " + name);
+                                        BA.sendSmartPrivateMessage(pname, "Squad: " + squads);
                                         player = new NotifyPlayer(name, squads, socket.getInetAddress(), socket.getPort(), queue);
                                         playerlist.add(player);
                                         queue.add("LOGINOK:" + name);
-                                        m_botAction.SQLClose(squad);
+                                        BA.SQLClose(squad);
 
                                     }
 
                                 }
-                                m_botAction.SQLClose(result);
+                                BA.SQLClose(result);
                             } else {
-                                queue.add("LOGINm_botActionD:m_botActiondly formatted login request.");
+                                queue.add("LOGINBAD:Badly formatted login request.");
                                 continue;
 
                             }
@@ -359,7 +359,7 @@ public class notifybot extends SubspaceBot {
             out.close();
             socket.close();
         } catch (Exception e) {
-            m_botAction.sendPrivateMessage(pname, "something failed");
+            BA.sendPrivateMessage(pname, "something failed");
         }
 
         if (player != null)
