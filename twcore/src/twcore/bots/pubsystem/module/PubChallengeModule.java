@@ -29,6 +29,12 @@ import twcore.core.util.Tools;
 public class PubChallengeModule extends AbstractModule {
 
     public static final int MAX_WARP = 2;
+    
+    // normal map
+    //private static final int SAFE_MINESX = 512;
+    //private static final int SAFE_MINESY = 760;
+    private static final int SAFE_MINESX = 501;
+    private static final int SAFE_MINESY = 684;
 
     private Map<Integer, DuelArea> areas;
     private Map<String, Dueler> duelers;
@@ -809,11 +815,12 @@ public class PubChallengeModule extends AbstractModule {
 
             if (dueler != null) {
                 m_botAction.shipReset(name);
-                m_botAction.warpTo(name, 512, 760);
+                m_botAction.warpTo(name, SAFE_MINESX, SAFE_MINESY);
             }
         }
 
     }
+
 
     private class SpawnBack extends TimerTask {
 
@@ -1031,10 +1038,7 @@ public class PubChallengeModule extends AbstractModule {
     }
 
     private void warpToSafe(String name, boolean winner) {
-        if (winner)
-            m_botAction.warpTo(name, 507, 730);
-        else
-            m_botAction.warpTo(name, 517, 730);
+        m_botAction.warpTo(name, SAFE_MINESX, SAFE_MINESY);
     }
 
     public boolean hasChallenged(String name) {
