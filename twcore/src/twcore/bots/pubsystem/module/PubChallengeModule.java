@@ -163,7 +163,7 @@ public class PubChallengeModule extends AbstractModule {
             return;
         }
 
-        if (y > 225 && y < 700 && x > 225 && x < 700 && challenge.isStarted()) {
+        if (y > 225 && y < 675 && x > 225 && x < 675 && challenge.isStarted()) {
             DuelArea area = challenge.area;
 
             if (!laggers.containsKey(name) && System.currentTimeMillis() - dueler.backFromLagout > 2 * Tools.TimeInMillis.SECOND
