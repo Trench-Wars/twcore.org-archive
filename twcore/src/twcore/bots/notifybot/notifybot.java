@@ -310,13 +310,18 @@ public class notifybot extends SubspaceBot {
                             if ((args[1] != null) && (args[2] != null)) {
                                 String name = args[1];
                                 String pw = args[2];
-                                ResultSet result = m_botAction.SQLQuery("website", "SELECT fnUserID " + "FROM tblUser "
+                                /*ResultSet result = m_botAction.SQLQuery("website", "SELECT fnUserID " + "FROM tblUser "
                                         + "JOIN tblUserAccount USING (fnUserID) " + "WHERE fcUserName = '" + name + "' "
                                         + "AND fcPassword = PASSWORD('" + pw + "')");
-
+                                 */
+                                ResultSet result = m_botAction.SQLQuery("website", "SELECT U.*, PASSWORD(" + pw
+                                        + ") AS EncPW FROM tblUser U JOIN tblUserAccount UA ON U.fnUserID = UA.fnUserID WHERE U.fcUserName = '"
+                                        + name + "' AND (U.fdDeleted = 0 or U.fdDeleted is null) AND UA.fcPassword = PASSWORD(" + pw
+                                        + ") AND U.fnUserID = UA.fnUserID");
                                 if (!result.next()) {
                                     m_botAction.sendSmartPrivateMessage(pname, "Wrong password for " + name);
                                     queue.add("BADLOGIN:Wrong Password.");
+                                    BA.SQLClose(result);
                                 } else {
                                     ResultSet squad = m_botAction.SQLQuery("pubstats", "SELECT fcSquad FROM tblPlayer WHERE fcName = '" + name + "'");
                                     if (squad.next() || !squad.next()) {
@@ -328,7 +333,7 @@ public class notifybot extends SubspaceBot {
                                         BA.sendSmartPrivateMessage(pname, "Squad: " + squads);
                                         player = new NotifyPlayer(name, squads, socket.getInetAddress(), socket.getPort(), queue);
                                         playerlist.add(player);
-                                        queue.add("LOGINOK:" + name);
+                                        queue.add("LOGINOK:" + name + ":" + player.getSquad());
                                         BA.SQLClose(squad);
 
                                     }
