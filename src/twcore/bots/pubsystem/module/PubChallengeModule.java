@@ -33,8 +33,8 @@ public class PubChallengeModule extends AbstractModule {
     // normal map
     //private static final int SAFE_MINESX = 512;
     //private static final int SAFE_MINESY = 760;
-    private static final int SAFE_MINESX = 501;
-    private static final int SAFE_MINESY = 684;
+    private static final int SAFE_MINESX = 511;
+    private static final int SAFE_MINESY = 782;
 
     private Map<Integer, DuelArea> areas;
     private Map<String, Dueler> duelers;
