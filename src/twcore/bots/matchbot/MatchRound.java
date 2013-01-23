@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.ListIterator;
+import java.util.Random;
 import java.util.TimerTask;
 
 import twcore.core.BotAction;
@@ -46,6 +47,11 @@ import twcore.core.util.json.JSONArray;
 import twcore.core.util.json.JSONValue;
 
 public class MatchRound {
+    
+    private static final int[] DD_AREA = {706 - 319, 655 - 369};
+    private static final int[] DD_WARP = {512-10, 256-5, 512+10, 256+5};
+    
+    private Random rand;
 
     // holds one round: both teams
     boolean useDatabase;
@@ -120,6 +126,7 @@ public class MatchRound {
 
     /** Creates a new instance of MatchRound */
     public MatchRound(int fnRoundNumber, String fcTeam1Name, String fcTeam2Name, MatchGame Matchgame) {
+        rand = new Random();
         useDatabase = false;
         m_game = Matchgame;
         m_botAction = m_game.m_botAction;
@@ -628,7 +635,19 @@ public class MatchRound {
              *   else if (systemtimems - outside start) > outofbordertime*500 then give_warning
              *   else if (systemtimems - outside start) > outofbordertime*1000 then kick_out_of_game
              */
-            if (m_rules.getInt("yborder") != 0) {
+            
+            // this is the warper for DD's
+            if (m_game.m_fnMatchTypeID == 4 || m_game.m_fnMatchTypeID == 1 || m_game.m_fnMatchTypeID == 9) {
+                int x = event.getXLocation();
+                int y = event.getYLocation();
+                if (y < DD_WARP[4]) {
+                    x = rand.nextInt(DD_AREA[0]) + DD_AREA[0];
+                    y = rand.nextInt(DD_AREA[1]) + DD_AREA[1];
+                    m_botAction.warpTo(event.getPlayerID(), x, y);
+                    m_botAction.sendPublicMessage("Warped [" + m_botAction.getPlayerName(event.getPlayerID()) + "] to " + x + " " + y);
+                }
+                
+            } else if (m_rules.getInt("yborder") != 0) {
                 //int xpos = event.getXLocation() / 16;
                 int ypos = event.getYLocation() / 16;
                 int yborder = m_rules.getInt("yborder");
