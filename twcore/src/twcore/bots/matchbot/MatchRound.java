@@ -636,15 +636,15 @@ public class MatchRound {
              *   else if (systemtimems - outside start) > outofbordertime*1000 then kick_out_of_game
              */
             
-            // this is the warper for DD's
-            if (m_game.m_fnMatchTypeID == 4 || m_game.m_fnMatchTypeID == 1 || m_game.m_fnMatchTypeID == 9) {
+            // this is the warper for DD's (not to be used until after twl 13')
+            if (m_game.m_fnMatchTypeID == 9) {
                 int x = event.getXLocation() / 16;
                 int y = event.getYLocation() / 16;
                 if (y < DD_WARP[3]) {
                     x = rand.nextInt(DD_AREA[0]) + DD_AREA[2];
                     y = rand.nextInt(DD_AREA[1]) + DD_AREA[3];
                     m_botAction.warpTo(event.getPlayerID(), x, y);
-                    m_botAction.sendPublicMessage("Warped [" + m_botAction.getPlayerName(event.getPlayerID()) + "] to " + x + " " + y);
+                    //m_botAction.sendPublicMessage("Warped [" + m_botAction.getPlayerName(event.getPlayerID()) + "] to " + x + " " + y);
                 }
                 
             } else if (m_rules.getInt("yborder") != 0) {
@@ -1417,7 +1417,7 @@ public class MatchRound {
 
         }
         
-        if (m_game.m_fnMatchTypeID == 4 || m_game.m_fnMatchTypeID == 9 || m_game.m_fnMatchTypeID == 1) {
+        if (m_game.m_fnMatchTypeID == 9) {
             m_botAction.setPlayerPositionUpdating(300);
         }
 
