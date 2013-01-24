@@ -1416,6 +1416,10 @@ public class MatchRound {
             m_botAction.scheduleTaskAtFixedRate(m_raceTimer, 1000, 1000);
 
         }
+        
+        if (m_game.m_fnMatchTypeID == 4 || m_game.m_fnMatchTypeID == 9 || m_game.m_fnMatchTypeID == 1) {
+            m_botAction.setPlayerPositionUpdating(300);
+        }
 
         if (m_rules.getInt("pathcount") > 0) {
             m_moveAround = new TimerTask() {
