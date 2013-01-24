@@ -638,8 +638,8 @@ public class MatchRound {
             
             // this is the warper for DD's
             if (m_game.m_fnMatchTypeID == 4 || m_game.m_fnMatchTypeID == 1 || m_game.m_fnMatchTypeID == 9) {
-                int x = event.getXLocation();
-                int y = event.getYLocation();
+                int x = event.getXLocation() / 16;
+                int y = event.getYLocation() / 16;
                 if (y < DD_WARP[3]) {
                     x = rand.nextInt(DD_AREA[0]) + DD_AREA[0];
                     y = rand.nextInt(DD_AREA[1]) + DD_AREA[1];
