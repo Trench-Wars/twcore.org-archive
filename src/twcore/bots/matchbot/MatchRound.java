@@ -48,7 +48,7 @@ import twcore.core.util.json.JSONValue;
 
 public class MatchRound {
     
-    private static final int[] DD_AREA = {706 - 319, 655 - 369};
+    private static final int[] DD_AREA = {706 - 319, 655 - 369, 319, 369};
     private static final int[] DD_WARP = {512-10, 256-5, 512+10, 256+5};
     
     private Random rand;
@@ -641,8 +641,8 @@ public class MatchRound {
                 int x = event.getXLocation() / 16;
                 int y = event.getYLocation() / 16;
                 if (y < DD_WARP[3]) {
-                    x = rand.nextInt(DD_AREA[0]) + DD_AREA[0];
-                    y = rand.nextInt(DD_AREA[1]) + DD_AREA[1];
+                    x = rand.nextInt(DD_AREA[0]) + DD_AREA[2];
+                    y = rand.nextInt(DD_AREA[1]) + DD_AREA[3];
                     m_botAction.warpTo(event.getPlayerID(), x, y);
                     m_botAction.sendPublicMessage("Warped [" + m_botAction.getPlayerName(event.getPlayerID()) + "] to " + x + " " + y);
                 }
@@ -1419,7 +1419,6 @@ public class MatchRound {
         
         if (m_game.m_fnMatchTypeID == 4 || m_game.m_fnMatchTypeID == 9 || m_game.m_fnMatchTypeID == 1) {
             m_botAction.setPlayerPositionUpdating(300);
-            m_botAction.sendPublicMessage("Position updating set.");
         }
 
         if (m_rules.getInt("pathcount") > 0) {
