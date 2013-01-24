@@ -1419,6 +1419,8 @@ public class MatchRound {
         
         if (m_game.m_fnMatchTypeID == 4 || m_game.m_fnMatchTypeID == 9 || m_game.m_fnMatchTypeID == 1) {
             m_botAction.setPlayerPositionUpdating(300);
+            m_botAction.sendPublicMessage("Position updating set.");
+            m_botAction.getShip().move(512, 256);
         }
 
         if (m_rules.getInt("pathcount") > 0) {
