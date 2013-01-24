@@ -640,7 +640,7 @@ public class MatchRound {
             if (m_game.m_fnMatchTypeID == 4 || m_game.m_fnMatchTypeID == 1 || m_game.m_fnMatchTypeID == 9) {
                 int x = event.getXLocation();
                 int y = event.getYLocation();
-                if (y < DD_WARP[4]) {
+                if (y < DD_WARP[3]) {
                     x = rand.nextInt(DD_AREA[0]) + DD_AREA[0];
                     y = rand.nextInt(DD_AREA[1]) + DD_AREA[1];
                     m_botAction.warpTo(event.getPlayerID(), x, y);
@@ -1420,7 +1420,6 @@ public class MatchRound {
         if (m_game.m_fnMatchTypeID == 4 || m_game.m_fnMatchTypeID == 9 || m_game.m_fnMatchTypeID == 1) {
             m_botAction.setPlayerPositionUpdating(300);
             m_botAction.sendPublicMessage("Position updating set.");
-            m_botAction.getShip().move(512, 256);
         }
 
         if (m_rules.getInt("pathcount") > 0) {
