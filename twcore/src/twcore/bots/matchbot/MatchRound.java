@@ -50,6 +50,7 @@ public class MatchRound {
     
     private static final int[] DD_AREA = {706 - 319, 655 - 369, 319, 369};
     private static final int[] DD_WARP = {512-10, 256-5, 512+10, 256+5};
+    private static final int RADIUS = 20;
     
     private Random rand;
 
@@ -638,13 +639,13 @@ public class MatchRound {
             
             // this is the warper for DD's (not to be used until after twl 13')
             if (m_game.m_fnMatchTypeID == 9) {
-                int x = event.getXLocation() / 16;
                 int y = event.getYLocation() / 16;
                 if (y < DD_WARP[3]) {
-                    x = rand.nextInt(DD_AREA[0]) + DD_AREA[2];
-                    y = rand.nextInt(DD_AREA[1]) + DD_AREA[3];
-                    m_botAction.warpTo(event.getPlayerID(), x, y);
-                    //m_botAction.sendPublicMessage("Warped [" + m_botAction.getPlayerName(event.getPlayerID()) + "] to " + x + " " + y);
+                    int[] xy = getSafeSpawnPoint(event.getPlayerID());
+                    if (xy != null) {
+                        m_botAction.warpTo(event.getPlayerID(), xy[0], xy[1]);
+                        //m_botAction.sendPublicMessage("Warped [" + m_botAction.getPlayerName(event.getPlayerID()) + "] to " + x + " " + y);
+                    }
                 }
                 
             } else if (m_rules.getInt("yborder") != 0) {
@@ -696,6 +697,34 @@ public class MatchRound {
                 }
             }
         }
+    }
+    
+    private int[] getSafeSpawnPoint(int pid) {
+        Player p = m_botAction.getPlayer(pid);
+        if (p == null || p.getShipType() == 0)
+            return null;
+        
+        boolean safe = false;
+        int x = DD_WARP[0];
+        int y = DD_WARP[1];
+        
+        while (!safe) {
+            safe = true;
+            x = rand.nextInt(DD_AREA[0]) + DD_AREA[2];
+            y = rand.nextInt(DD_AREA[1]) + DD_AREA[3];
+            int freq = p.getFrequency();
+            Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
+            while (i.hasNext() && safe) {
+                p = i.next();
+                if (p.getFrequency() != freq) {
+                   int[] nme = {p.getXLocation()/16, p.getYLocation()/16};
+                   if (nme[0] > RADIUS - x && nme[0] < RADIUS + x && nme[1] > RADIUS - y && nme[1] < RADIUS + y)
+                       safe = false;
+                }
+            }
+        }
+        
+        return new int[] {x, y};
     }
 
     public MatchPlayer getPlayer(String playerName) {
