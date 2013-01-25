@@ -727,6 +727,7 @@ public class MatchRound {
                        safe = false;
                 }
             }
+            count++;
         }
         
         if (count >= MAX_COUNT)
