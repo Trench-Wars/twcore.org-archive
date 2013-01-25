@@ -909,7 +909,7 @@ public class MatchRound {
      * @param parameters The value for the new safe spawn radius in tiles
      */
     public void command_radius(String name, String[] param) {
-        if (param != null && param.length == 1) {
+        if (param != null && param.length > 0 && param.length < 3) {
             try {
                 int r = Integer.valueOf(param[0]);
                 if (r > -1 && r < 250) {
@@ -917,6 +917,14 @@ public class MatchRound {
                     m_botAction.sendPrivateMessage(name, "Safe spawn radius: " + r + " tiles");
                 } else
                     m_botAction.sendPrivateMessage(name, "Radius must be between current limits of 0 and 250!");
+                if (param.length > 1) {
+                    int c = Integer.valueOf(param[1]);
+                    if (c > 0 && c < 100) {
+                        MAX_COUNT = c;
+                        m_botAction.sendPrivateMessage(name, "Max count: " + c);
+                    }
+                }
+                    
             } catch (Exception e) {
                 
             }
