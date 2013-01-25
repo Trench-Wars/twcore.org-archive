@@ -50,7 +50,7 @@ public class MatchRound {
     
     private static final int[] DD_AREA = {706 - 319, 655 - 369, 319, 369};
     private static final int[] DD_WARP = {512-10, 256-5, 512+10, 256+5};
-    private static final int MAX_COUNT = 50;
+    private int MAX_COUNT = 50;
     private int RADIUS = 30;
     
     private Random rand;
@@ -1480,6 +1480,7 @@ public class MatchRound {
         
         if (m_game.m_fnMatchTypeID == 9) {
             m_botAction.setPlayerPositionUpdating(300);
+            MAX_COUNT = m_rules.getInt("maxcount");
         }
 
         if (m_rules.getInt("pathcount") > 0) {
