@@ -50,7 +50,7 @@ public class MatchRound {
     
     private static final int[] DD_AREA = {706 - 319, 655 - 369, 319, 369};
     private static final int[] DD_WARP = {512-10, 256-5, 512+10, 256+5};
-    private static final int RADIUS = 20;
+    private int RADIUS = 20;
     
     private Random rand;
 
@@ -140,6 +140,8 @@ public class MatchRound {
         m_logger = m_game.m_logger;
 
         events = new JSONArray();
+        
+        RADIUS = m_rules.getInt("radius");
 
         if (!m_rules.getString("name").equalsIgnoreCase("strikeball")) {
             m_team1 = new MatchTeam(fcTeam1Name, (int) Math.floor(Math.random() * 8000 + 1000), 1, this);
