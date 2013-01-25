@@ -50,6 +50,7 @@ public class MatchRound {
     
     private static final int[] DD_AREA = {706 - 319, 655 - 369, 319, 369};
     private static final int[] DD_WARP = {512-10, 256-5, 512+10, 256+5};
+    private static final int MAX_COUNT = 50;
     private int RADIUS = 30;
     
     private Random rand;
@@ -704,11 +705,15 @@ public class MatchRound {
         if (p == null || p.getShipType() == 0)
             return null;
         
+        m_botAction.sendPrivateMessage(pid, "Warp/spawn detected! You will respawn momentarily...");
+        
         boolean safe = false;
         int x = DD_WARP[0];
         int y = DD_WARP[1];
         
-        while (!safe) {
+        int count = 0;
+        
+        while (!safe && count < MAX_COUNT) {
             safe = true;
             x = rand.nextInt(DD_AREA[0]) + DD_AREA[2];
             y = rand.nextInt(DD_AREA[1]) + DD_AREA[3];
@@ -723,6 +728,9 @@ public class MatchRound {
                 }
             }
         }
+        
+        if (count >= MAX_COUNT)
+            m_botAction.sendPrivateMessage(pid, "WARNING: Spawn may be unsafe since no safe spot was found in " + count + " attempts.");
         
         return new int[] {x, y};
     }
@@ -903,10 +911,11 @@ public class MatchRound {
         if (param != null && param.length == 1) {
             try {
                 int r = Integer.valueOf(param[0]);
-                if (r > 0 && r < 300) {
+                if (r > -1 && r < 250) {
                     RADIUS = r;
                     m_botAction.sendPrivateMessage(name, "Safe spawn radius: " + r + " tiles");
-                }
+                } else
+                    m_botAction.sendPrivateMessage(name, "Radius must be between current limits of 0 and 250!");
             } catch (Exception e) {
                 
             }
