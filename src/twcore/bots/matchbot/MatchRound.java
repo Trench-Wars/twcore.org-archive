@@ -50,7 +50,7 @@ public class MatchRound {
     
     private static final int[] DD_AREA = {706 - 319, 655 - 369, 319, 369};
     private static final int[] DD_WARP = {512-10, 256-5, 512+10, 256+5};
-    private int RADIUS = 20;
+    private int RADIUS = 30;
     
     private Random rand;
 
@@ -140,8 +140,6 @@ public class MatchRound {
         m_logger = m_game.m_logger;
 
         events = new JSONArray();
-        
-        RADIUS = m_rules.getInt("radius");
 
         if (!m_rules.getString("name").equalsIgnoreCase("strikeball")) {
             m_team1 = new MatchTeam(fcTeam1Name, (int) Math.floor(Math.random() * 8000 + 1000), 1, this);
@@ -810,6 +808,10 @@ public class MatchRound {
 
         if ((command.equals("!startpick")) && (m_fnRoundState == 0) && isStaff)
             command_startpick(name, parameters);
+        
+        if ((command.equals("!radius")) && isStaff) {
+            command_radius(name, parameters);
+        }
 
         if (command.equals("!lag") && isStaff)
             command_checklag(name, parameters);
@@ -888,6 +890,25 @@ public class MatchRound {
                 m_team1.parseCommand(name, command, parameters, isTWDOP);
             } else if ((m_team2.getPlayer(name, true) != null) || (m_team2.isCaptain(name))) {
                 m_team2.parseCommand(name, command, parameters, isTWDOP);
+            }
+        }
+    }
+
+    /**
+     * Method command_radius.
+     * @param name The person who got commanded
+     * @param parameters The value for the new safe spawn radius in tiles
+     */
+    public void command_radius(String name, String[] param) {
+        if (param != null && param.length == 1) {
+            try {
+                int r = Integer.valueOf(param[0]);
+                if (r > 0 && r < 300) {
+                    RADIUS = r;
+                    m_botAction.sendPrivateMessage(name, "Safe spawn radius: " + r + " tiles");
+                }
+            } catch (Exception e) {
+                
             }
         }
     }
