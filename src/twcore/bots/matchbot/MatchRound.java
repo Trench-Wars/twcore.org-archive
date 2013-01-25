@@ -50,8 +50,8 @@ public class MatchRound {
     
     private static final int[] DD_AREA = {706 - 319, 655 - 369, 319, 369};
     private static final int[] DD_WARP = {512-10, 256-5, 512+10, 256+5};
-    private int MAX_COUNT = 50;
-    private int RADIUS = 30;
+    private int MAX_COUNT = 75;
+    private int RADIUS = 40;
     
     private Random rand;
 
