@@ -675,7 +675,8 @@ public class MatchRound {
                 if (y < DD_WARP[3]) {
                     int[] xy = getSafeSpawnPoint(event.getPlayerID());
                     if (xy != null) {
-                        m_botAction.specificPrize(event.getPlayerID(), 18);
+                        if (shields)
+                            m_botAction.specificPrize(event.getPlayerID(), 18);
                         m_botAction.warpTo(event.getPlayerID(), xy[0], xy[1]);
                         //m_botAction.sendPublicMessage("Warped [" + m_botAction.getPlayerName(event.getPlayerID()) + "] to " + x + " " + y);
                     }
@@ -873,7 +874,7 @@ public class MatchRound {
                 command_radius(name, parameters);
 
             if (command.equals("!shields"))
-                command_radius(name, parameters);
+                command_shields(name, parameters);
 
             if (command.equals("!alert"))
                 command_alert(name, parameters);
@@ -966,7 +967,7 @@ public class MatchRound {
      * @param parameters The value for the new safe spawn radius in tiles
      */
     public void command_radius(String name, String[] param) {
-        if (param != null && param[0].length() > 0) {
+        if (param[0] != null && param[0].length() > 0) {
             if (param[0].contains(" "))
                 param = new String[] {param[0].substring(0, param[0].indexOf(" ")), param[0].substring(param[0].indexOf(" ") + 1)};
                 
