@@ -53,6 +53,7 @@ public class MatchRound {
     private static final int[] DD_AREA = {706 - 319, 655 - 369, 319, 369};
     //private static final int[] DD_AREA = {(706-64) - (319+64), (655-47) - (369+47), (319+64), (369+47)};
     private static final int[] DD_WARP = {512-10, 256-5, 512+10, 256+5};
+    private static final String MAP_NAME = "duel";
     private int MAX_COUNT = 500;
     private int RADIUS = 40;
     private MapRegions regions;
@@ -145,7 +146,7 @@ public class MatchRound {
         m_fnRoundResult = 0;
         m_timeStarted = new java.util.Date();
         m_logger = m_game.m_logger;
-        regions = new MapRegions();
+        regions = m_game.m_bot.regions;
         reloadRegions();
 
         events = new JSONArray();
@@ -193,8 +194,6 @@ public class MatchRound {
         }
         specAll();
     }
-    
-    private static final String MAP_NAME = "duel";
     
     private void reloadRegions() {
         try {

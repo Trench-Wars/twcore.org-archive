@@ -36,6 +36,7 @@ import twcore.core.events.TurretEvent;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.stats.DBPlayerData;
+import twcore.core.util.MapRegions;
 import twcore.core.util.Spy;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.EventType;
@@ -61,7 +62,9 @@ public class matchbot extends SubspaceBot {
     String startMessage;
 
     String dbConn = "website";
-
+    
+    MapRegions regions;
+    
     //
     boolean ipcTimer = false;
     boolean m_isLocked = false;
@@ -109,7 +112,7 @@ public class matchbot extends SubspaceBot {
     public matchbot(BotAction botAction) {
         // Setup of necessary stuff for any bot.
         super(botAction);
-
+        regions = new MapRegions();
         m_botSettings = m_botAction.getBotSettings();
         m_arena = m_botSettings.getString("Arena");
         m_opList = m_botAction.getOperatorList();
