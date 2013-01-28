@@ -48,7 +48,8 @@ import twcore.core.util.json.JSONValue;
 
 public class MatchRound {
     
-    private static final int[] DD_AREA = {706 - 319, 655 - 369, 319, 369};
+    //private static final int[] DD_AREA = {706 - 319, 655 - 369, 319, 369};
+    private static final int[] DD_AREA = {(706-64) - (319+64), (655-47) - (369+47), (319+64), (369+47)};
     private static final int[] DD_WARP = {512-10, 256-5, 512+10, 256+5};
     private int MAX_COUNT = 75;
     private int RADIUS = 40;
