@@ -42,6 +42,7 @@ import twcore.core.lvz.Objset;
 import twcore.core.stats.LagReport;
 import twcore.core.stats.lagHandler;
 import twcore.core.util.MapRegions;
+import twcore.core.util.Point;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.EventType;
 import twcore.core.util.ipc.IPCTWD;
@@ -742,27 +743,38 @@ public class MatchRound {
         while (!safe && count < MAX_COUNT) {
             safe = true;
             count++;
-            x = rand.nextInt(DD_AREA[0]) + DD_AREA[2];
-            y = rand.nextInt(DD_AREA[1]) + DD_AREA[3];
-            if (regions.checkRegion(x,y, 0)) {
-                int freq = p.getFrequency();
-                Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
-                while (i.hasNext() && safe) {
-                    p = i.next();
-                    if (p.getFrequency() != freq) {
-                        int[] nme = {p.getXLocation()/16, p.getYLocation()/16};
-                        if (nme[0] > RADIUS - x && nme[0] < RADIUS + x && nme[1] > RADIUS - y && nme[1] < RADIUS + y)
-                            safe = false;
-                    }
+            Point xy = getRegionPoint();
+            x = xy.x;
+            y = xy.y;
+            int freq = p.getFrequency();
+            Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
+            while (i.hasNext() && safe) {
+                p = i.next();
+                if (p.getFrequency() != freq) {
+                    int[] nme = {p.getXLocation()/16, p.getYLocation()/16};
+                    if (nme[0] > RADIUS - x && nme[0] < RADIUS + x && nme[1] > RADIUS - y && nme[1] < RADIUS + y)
+                        safe = false;
                 }
-            } else
-                safe = false;
+            }
         }
         
         if (count >= MAX_COUNT)
             m_botAction.sendPrivateMessage(pid, "WARNING: Spawn may be unsafe since no safe spot was found in " + count + " attempts.");
         
         return new int[] {x, y};
+    }
+    
+    private Point getRegionPoint() {
+        int count = 0;
+        int x = 512;
+        int y = x;
+        while (count < 10000) {
+            x = rand.nextInt(DD_AREA[0]) + DD_AREA[2];
+            y = rand.nextInt(DD_AREA[1]) + DD_AREA[3];
+            if (regions.checkRegion(x,y, 0))
+                return new Point(x, y);
+        }
+        return new Point(512, 512);
     }
 
     public MatchPlayer getPlayer(String playerName) {
