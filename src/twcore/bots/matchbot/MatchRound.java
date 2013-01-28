@@ -669,6 +669,7 @@ public class MatchRound {
                 if (y < DD_WARP[3]) {
                     int[] xy = getSafeSpawnPoint(event.getPlayerID());
                     if (xy != null) {
+                        m_botAction.specificPrize(event.getPlayerID(), 18);
                         m_botAction.warpTo(event.getPlayerID(), xy[0], xy[1]);
                         //m_botAction.sendPublicMessage("Warped [" + m_botAction.getPlayerName(event.getPlayerID()) + "] to " + x + " " + y);
                     }
