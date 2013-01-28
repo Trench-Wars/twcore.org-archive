@@ -55,12 +55,13 @@ public class MatchRound {
     //private static final int[] DD_AREA = {(706-64) - (319+64), (655-47) - (369+47), (319+64), (369+47)};
     private static final int[] DD_WARP = {512-10, 256-5, 512+10, 256+5};
     private static final String MAP_NAME = "duel";
-    private int MAX_COUNT = 500;
-    private int RADIUS = 40;
     private MapRegions regions;
     
     private Random rand;
     private boolean spawnAlert;
+    private boolean shields;
+    private int maxCount;
+    private int radius;
 
     // holds one round: both teams
     boolean useDatabase;
@@ -147,6 +148,11 @@ public class MatchRound {
         m_fnRoundResult = 0;
         m_timeStarted = new java.util.Date();
         m_logger = m_game.m_logger;
+        
+        radius = m_rules.getInt("radius");
+        maxCount = m_rules.getInt("maxcount");
+        shields = m_rules.getInt("shields") == 1;
+        
         regions = m_game.m_bot.regions;
         reloadRegions();
 
@@ -740,7 +746,7 @@ public class MatchRound {
         
         int count = 0;
         
-        while (!safe && count < MAX_COUNT) {
+        while (!safe && count < maxCount) {
             safe = true;
             count++;
             Point xy = getRegionPoint();
@@ -752,13 +758,13 @@ public class MatchRound {
                 p = i.next();
                 if (p.getFrequency() != freq) {
                     int[] nme = {p.getXLocation()/16, p.getYLocation()/16};
-                    if (nme[0] > RADIUS - x && nme[0] < RADIUS + x && nme[1] > RADIUS - y && nme[1] < RADIUS + y)
+                    if (nme[0] > radius - x && nme[0] < radius + x && nme[1] > radius - y && nme[1] < radius + y)
                         safe = false;
                 }
             }
         }
         
-        if (count >= MAX_COUNT)
+        if (count >= maxCount)
             m_botAction.sendPrivateMessage(pid, "WARNING: Spawn may be unsafe since no safe spot was found in " + count + " attempts.");
         
         return new int[] {x, y};
@@ -834,6 +840,7 @@ public class MatchRound {
             help.add("!startinfo                               - shows who started this game");
             if (m_game.m_fnMatchTypeID == 9) {
                 help.add("!radius <tiles> <count>                  - Set spawn radius to <tiles>, max <count> optional");
+                help.add("!shields                                 - Toggle shields prized on spawn");
                 help.add("!alert                                   - Toggle the spawn detection alert pm");
             }
             if (m_team1 != null) {
@@ -855,26 +862,28 @@ public class MatchRound {
             if (command.equals("!notplaylist"))
                 command_notplaylist(name, parameters);
         }
+        if (isStaff) {
+            if ((command.equals("!settime")) && (m_fnRoundState == 0))
+                command_setTime(name, parameters);
 
-        if ((command.equals("!settime")) && (m_fnRoundState == 0) && isStaff)
-            command_setTime(name, parameters);
+            if ((command.equals("!startpick")) && (m_fnRoundState == 0))
+                command_startpick(name, parameters);
 
-        if ((command.equals("!startpick")) && (m_fnRoundState == 0) && isStaff)
-            command_startpick(name, parameters);
-        
-        if ((command.equals("!radius")) && isStaff) {
-            command_radius(name, parameters);
+            if (command.equals("!radius"))
+                command_radius(name, parameters);
+
+            if (command.equals("!shields"))
+                command_radius(name, parameters);
+
+            if (command.equals("!alert"))
+                command_alert(name, parameters);
+
+            if (command.equals("!lag") && isStaff)
+                command_checklag(name, parameters);
+
+            if (command.equals("!lagstatus"))
+                command_lagstatus(name, parameters);
         }
-        
-        if ((command.equals("!alert")) && isStaff) {
-            command_alert(name, parameters);
-        }
-
-        if (command.equals("!lag") && isStaff)
-            command_checklag(name, parameters);
-
-        if ((command.equals("!lagstatus")) && isStaff)
-            command_lagstatus(name, parameters);
 
         if (command.equals("!cap")) {
 
@@ -964,18 +973,20 @@ public class MatchRound {
             try {
                 int r = Integer.valueOf(param[0]);
                 if (r > -1 && r < 250) {
-                    RADIUS = r;
+                    radius = r;
                     m_botAction.sendPrivateMessage(name, "Safe spawn radius: " + r + " tiles");
+                    m_rules.put("radius", r);
                 } else
                     m_botAction.sendPrivateMessage(name, "Radius must be between current limits of 0 and 250!");
                 if (param.length > 1 && param[1].length() > 0) {
                     int c = Integer.valueOf(param[1]);
                     if (c > 0 && c < 10000) {
-                        MAX_COUNT = c;
+                        maxCount = c;
                         m_botAction.sendPrivateMessage(name, "Max count: " + c);
+                        m_rules.put("maxcount", c);
                     }
                 }
-                    
+                m_rules.save();
             } catch (Exception e) {
                 
             }
@@ -985,6 +996,11 @@ public class MatchRound {
     public void command_alert(String name, String[] param) {
         spawnAlert = !spawnAlert;
         m_botAction.sendPrivateMessage(name, "Spawn detection alert: " + (spawnAlert ? "ENABLED" : "DISABLED"));
+    }
+    
+    public void command_shields(String name, String[] param) {
+        shields = !shields;
+        m_botAction.sendPrivateMessage(name, "Shields on spawn: " + (shields ? "ENABLED" : "DISABLED"));
     }
 
     /**
@@ -1545,7 +1561,7 @@ public class MatchRound {
         
         if (m_game.m_fnMatchTypeID == 9) {
             m_botAction.setPlayerPositionUpdating(300);
-            MAX_COUNT = m_rules.getInt("maxcount");
+            maxCount = m_rules.getInt("maxcount");
         }
 
         if (m_rules.getInt("pathcount") > 0) {
