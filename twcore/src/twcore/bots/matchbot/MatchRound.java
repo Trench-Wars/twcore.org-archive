@@ -11,6 +11,7 @@ package twcore.bots.matchbot;
  * @author  Administrator
  */
 
+import java.io.FileNotFoundException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
@@ -40,6 +41,7 @@ import twcore.core.game.Player;
 import twcore.core.lvz.Objset;
 import twcore.core.stats.LagReport;
 import twcore.core.stats.lagHandler;
+import twcore.core.util.MapRegions;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.EventType;
 import twcore.core.util.ipc.IPCTWD;
@@ -48,13 +50,15 @@ import twcore.core.util.json.JSONValue;
 
 public class MatchRound {
     
-    //private static final int[] DD_AREA = {706 - 319, 655 - 369, 319, 369};
-    private static final int[] DD_AREA = {(706-64) - (319+64), (655-47) - (369+47), (319+64), (369+47)};
+    private static final int[] DD_AREA = {706 - 319, 655 - 369, 319, 369};
+    //private static final int[] DD_AREA = {(706-64) - (319+64), (655-47) - (369+47), (319+64), (369+47)};
     private static final int[] DD_WARP = {512-10, 256-5, 512+10, 256+5};
-    private int MAX_COUNT = 75;
+    private int MAX_COUNT = 500;
     private int RADIUS = 40;
+    private MapRegions regions;
     
     private Random rand;
+    private boolean spawnAlert;
 
     // holds one round: both teams
     boolean useDatabase;
@@ -131,6 +135,7 @@ public class MatchRound {
     public MatchRound(int fnRoundNumber, String fcTeam1Name, String fcTeam2Name, MatchGame Matchgame) {
         rand = new Random();
         useDatabase = false;
+        spawnAlert = false;
         m_game = Matchgame;
         m_botAction = m_game.m_botAction;
         m_scoreBoard = m_botAction.getObjectSet();
@@ -140,6 +145,8 @@ public class MatchRound {
         m_fnRoundResult = 0;
         m_timeStarted = new java.util.Date();
         m_logger = m_game.m_logger;
+        regions = new MapRegions();
+        reloadRegions();
 
         events = new JSONArray();
 
@@ -186,8 +193,25 @@ public class MatchRound {
         }
         specAll();
     }
+    
+    private static final String MAP_NAME = "duel";
+    
+    private void reloadRegions() {
+        try {
+            regions.clearRegions();
+            regions.loadRegionImage(MAP_NAME + ".png");
+            regions.loadRegionCfg(MAP_NAME + ".cfg");
+        } catch (FileNotFoundException fnf) {
+            Tools.printLog("Error: " + MAP_NAME + ".png and " + MAP_NAME + ".cfg must be in the data/maps folder.");
+        } catch (javax.imageio.IIOException iie) {
+            Tools.printLog("Error: couldn't read image");
+        } catch (Exception e) {
+            Tools.printLog("Could not load warps for " + MAP_NAME);
+            Tools.printStackTrace(e);
+        }
+    }
 
-    public void specAll() {
+    private void specAll() {
         Iterator<Player> iterator = m_botAction.getPlayerIterator();
         Player player;
         int specFreq = getSpecFreq();
@@ -706,7 +730,8 @@ public class MatchRound {
         if (p == null || p.getShipType() == 0)
             return null;
         
-        m_botAction.sendPrivateMessage(pid, "Warp/spawn detected! You will respawn momentarily...");
+        if (spawnAlert)
+            m_botAction.sendPrivateMessage(pid, "Warp/spawn detected! You will respawn momentarily...");
         
         boolean safe = false;
         int x = DD_WARP[0];
@@ -716,19 +741,22 @@ public class MatchRound {
         
         while (!safe && count < MAX_COUNT) {
             safe = true;
+            count++;
             x = rand.nextInt(DD_AREA[0]) + DD_AREA[2];
             y = rand.nextInt(DD_AREA[1]) + DD_AREA[3];
-            int freq = p.getFrequency();
-            Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
-            while (i.hasNext() && safe) {
-                p = i.next();
-                if (p.getFrequency() != freq) {
-                   int[] nme = {p.getXLocation()/16, p.getYLocation()/16};
-                   if (nme[0] > RADIUS - x && nme[0] < RADIUS + x && nme[1] > RADIUS - y && nme[1] < RADIUS + y)
-                       safe = false;
+            if (regions.checkRegion(x,y, 0)) {
+                int freq = p.getFrequency();
+                Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
+                while (i.hasNext() && safe) {
+                    p = i.next();
+                    if (p.getFrequency() != freq) {
+                        int[] nme = {p.getXLocation()/16, p.getYLocation()/16};
+                        if (nme[0] > RADIUS - x && nme[0] < RADIUS + x && nme[1] > RADIUS - y && nme[1] < RADIUS + y)
+                            safe = false;
+                    }
                 }
-            }
-            count++;
+            } else
+                safe = false;
         }
         
         if (count >= MAX_COUNT)
@@ -821,6 +849,11 @@ public class MatchRound {
         
         if ((command.equals("!radius")) && isStaff) {
             command_radius(name, parameters);
+            command_alert(name, parameters);
+        }
+        
+        if ((command.equals("!alert")) && isStaff) {
+            command_alert(name, parameters);
         }
 
         if (command.equals("!lag") && isStaff)
@@ -910,7 +943,10 @@ public class MatchRound {
      * @param parameters The value for the new safe spawn radius in tiles
      */
     public void command_radius(String name, String[] param) {
-        if (param != null && param.length > 0 && param.length < 3) {
+        if (param != null && param[0].length() > 0) {
+            if (param[0].contains(" "))
+                param = new String[] {param[0].substring(0, param[0].indexOf(" ")), param[0].substring(param[0].indexOf(" ") + 1)};
+                
             try {
                 int r = Integer.valueOf(param[0]);
                 if (r > -1 && r < 250) {
@@ -918,7 +954,7 @@ public class MatchRound {
                     m_botAction.sendPrivateMessage(name, "Safe spawn radius: " + r + " tiles");
                 } else
                     m_botAction.sendPrivateMessage(name, "Radius must be between current limits of 0 and 250!");
-                if (param.length > 1) {
+                if (param.length > 1 && param[1].length() > 0) {
                     int c = Integer.valueOf(param[1]);
                     if (c > 0 && c < 100) {
                         MAX_COUNT = c;
@@ -930,6 +966,11 @@ public class MatchRound {
                 
             }
         }
+    }
+    
+    public void command_alert(String name, String[] param) {
+        spawnAlert = !spawnAlert;
+        m_botAction.sendPrivateMessage(name, "Spawn detection alert: " + (spawnAlert ? "ENABLED" : "DISABLED"));
     }
 
     /**
