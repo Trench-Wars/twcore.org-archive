@@ -820,7 +820,10 @@ public class MatchRound {
             }
             help.add("!lag <player>                            - show <player>'s lag");
             help.add("!startinfo                               - shows who started this game");
-
+            if (m_game.m_fnMatchTypeID == 9) {
+                help.add("!radius <tiles> <count>                  - Set spawn radius to <tiles>, max <count> optional");
+                help.add("!alert                                   - Toggle the spawn detection alert pm");
+            }
             if (m_team1 != null) {
                 help.add("-- Prepend your command with !t1- for '" + m_team1.getTeamName() + "', !t2- for '" + m_team2.getTeamName() + "' --");
                 help.addAll(m_team1.getHelpMessages(name, isStaff));
@@ -849,7 +852,6 @@ public class MatchRound {
         
         if ((command.equals("!radius")) && isStaff) {
             command_radius(name, parameters);
-            command_alert(name, parameters);
         }
         
         if ((command.equals("!alert")) && isStaff) {
@@ -956,7 +958,7 @@ public class MatchRound {
                     m_botAction.sendPrivateMessage(name, "Radius must be between current limits of 0 and 250!");
                 if (param.length > 1 && param[1].length() > 0) {
                     int c = Integer.valueOf(param[1]);
-                    if (c > 0 && c < 100) {
+                    if (c > 0 && c < 10000) {
                         MAX_COUNT = c;
                         m_botAction.sendPrivateMessage(name, "Max count: " + c);
                     }
