@@ -1001,6 +1001,8 @@ public class MatchRound {
     public void command_shields(String name, String[] param) {
         shields = !shields;
         m_botAction.sendPrivateMessage(name, "Shields on spawn: " + (shields ? "ENABLED" : "DISABLED"));
+        m_rules.put("shields", (shields ? 1 : 0));
+        m_rules.save();
     }
 
     /**
