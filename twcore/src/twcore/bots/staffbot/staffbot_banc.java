@@ -2053,7 +2053,7 @@ public class staffbot_banc extends Module {
             bot = Integer.valueOf(receiver.substring(8));
         LinkedList<String> l = new LinkedList<String>();
         for (BanC b : activeBanCs)
-            l.add(b.getPlayername() + ":" + (b.getIP() != null ? b.getIP() : " ") + ":" + (b.getMID() != null ? b.getMID() : " ") + ":" + b.getDuration() + ":" + b.getType().toString());
+            l.add(b.getPlayername() + ":" + (b.getIP() != null ? b.getIP() : " ") + ":" + (b.getMID() != null ? b.getMID() : " ") + ":" + b.getDuration() + ":" + b.getType().toString() + ":" + b.getElapsed());
         m_botAction.ipcTransmit(IPCBANC, new IPCEvent(l.listIterator(), 0, bot));
         /*
         for (BanC b : activeBanCs) {
@@ -2409,6 +2409,10 @@ public class staffbot_banc extends Module {
          */
         public void setCreated(Date created) {
             this.created = created;
+        }
+        
+        public int getElapsed() {
+            return elapsed;
         }
 
         /**

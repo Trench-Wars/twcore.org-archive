@@ -210,7 +210,7 @@ public class pubbotbanc extends PubBotModule {
                             m_botAction.sendPrivateMessage(current.getName(), "You've been permanently silenced because of abuse and/or violation of Trench Wars rules.");
                         else
                             m_botAction.sendPrivateMessage(current.getName(), "You've been silenced for " + current.getTime()
-                                    + " minutes because of abuse and/or violation of Trench Wars rules.");
+                                    + " (" + current.getTime() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
                         m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
                     }
                 } else if (message.equalsIgnoreCase("Player locked in spectator mode")) {
@@ -224,7 +224,7 @@ public class pubbotbanc extends PubBotModule {
                             m_botAction.sendPrivateMessage(current.getName(), "You've been permanently locked into spectator because of abuse and/or violation of Trench Wars rules.");
                         else
                             m_botAction.sendPrivateMessage(current.getName(), "You've been locked into spectator for " + current.getTime()
-                                    + " minutes because of abuse and/or violation of Trench Wars rules.");
+                                    + " (" + current.getTime() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
                         m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
                     }
                 } else if (message.equalsIgnoreCase("Player free to enter arena")) {
@@ -389,7 +389,7 @@ public class pubbotbanc extends PubBotModule {
         if (!m_botAction.getArenaName().startsWith("(Public "))
             return;
         if (shipNumber == 2 || shipNumber == 8 || shipNumber == 4) {
-            m_botAction.sendPrivateMessage(namePlayer, "You're banned from ship" + shipNumber);
+            m_botAction.sendPrivateMessage(namePlayer, "You're banned from ship" + shipNumber + " with " + bancSuper.get(namePlayer).getRemaining() + " minutes remaining.");
             m_botAction.sendPrivateMessage(namePlayer, "You'be been put in spider. But you can change to: warbird(1), spider(3), weasel(6) or lancaster(7).");
             m_botAction.setShip(namePlayer, 3);
         }
@@ -608,6 +608,7 @@ public class pubbotbanc extends PubBotModule {
         boolean active;
         TreeSet<String> aliases;
         long lastUpdate;
+        int elapsed;
 
         public BanC(String info) {
             // name:ip:mid:time
@@ -629,12 +630,17 @@ public class pubbotbanc extends PubBotModule {
                 type = BanCType.SPEC;
             else
                 type = BanCType.SUPERSPEC;
+            elapsed = Integer.valueOf(args[5]);
             active = true;
             aliases = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
         }
 
         public int getElapsed() {
             return (int) (System.currentTimeMillis() - lastUpdate) / Tools.TimeInMillis.MINUTE;
+        }
+        
+        public String getRemaining() {
+            return "" + (time - elapsed);
         }
 
         public String getCommand() {
