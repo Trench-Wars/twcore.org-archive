@@ -708,6 +708,7 @@ public class pubbotbanc extends PubBotModule {
         public void sendUpdate(boolean ipc) {
             long now = System.currentTimeMillis();
             int mins = (int) (now - lastUpdate) / Tools.TimeInMillis.MINUTE;
+            elapsed += mins;
             lastUpdate = now;
             if (ipc) {
                 m_botAction.ipcSendMessage(IPCBANC, "ELAPSED:" + originalName + ":" + mins, null, m_botAction.getBotName());
