@@ -1314,7 +1314,7 @@ public class duelbot extends SubspaceBot {
 
     public void do_addPlayer( String name, String IP, String MID ) {
     	try {
-    		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT fcUserName FROM tblDuelPlayer WHERE fnEnabled = 1 AND (fcIP = '"+IP+"' OR (fcIP = '"+IP+"' AND fnMID = '"+MID+"')) OR fcUserName = '"+Tools.addSlashesToString(name)+"'" );
+    		ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT p.fcUserName FROM tblDuelPlayer p JOIN tblAlias a ON p.fnUserID = a.fnUserID WHERE p.fnEnabled = 1 AND (a.fcIPString = '"+IP+"' OR (a.fcIPString = '"+IP+"' AND a.fnMID = '"+MID+"')) OR p.fcUserName = '"+Tools.addSlashesToString(name)+"'" );
     		if( !result.next() ) {
     			DBPlayerData player = new DBPlayerData( m_botAction, mySQLHost, name, true );
     			m_botAction.SQLQueryAndClose( mySQLHost, "INSERT INTO tblDuelPlayer (`fnUserID`, `fcUserName`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) VALUES ("+player.getUserID()+", '"+Tools.addSlashesToString(name)+"', '"+IP+"', '"+MID+"', 0, 0, NOW())" );
