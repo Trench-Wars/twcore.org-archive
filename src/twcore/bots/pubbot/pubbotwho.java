@@ -89,9 +89,11 @@ public class pubbotwho extends PubBotModule {
         		temp.setTime( System.currentTimeMillis() );
             //m_botAction.cancelTask(who.remove(name));
         } else {
-        	Who u = new Who(p.getPlayerName(), System.currentTimeMillis());
-        	who.put(name, u);
-        	m_botAction.scheduleTask(u, 2000);
+            try {
+                m_botAction.scheduleTask(who.put(name, new Who(p.getPlayerName(), System.currentTimeMillis())), 2000);
+            } catch (IllegalStateException e) {
+                m_botAction.sendSmartPrivateMessage("WingZero", "IllegalStateException on: " + name);
+            }
         }
     }
 
