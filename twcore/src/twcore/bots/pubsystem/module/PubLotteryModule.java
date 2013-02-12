@@ -81,8 +81,6 @@ public class PubLotteryModule extends AbstractModule {
         entries = 0;
         lotteryOn = false;
         reloadConfig();
-        m_botAction.sendPublicMessage("Lotto loaded!");
-
     }
 
     @Override
