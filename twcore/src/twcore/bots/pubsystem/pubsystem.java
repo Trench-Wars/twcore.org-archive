@@ -219,6 +219,7 @@ public class pubsystem extends SubspaceBot
      */
     public void handleEvent(ArenaList event)
     {
+        /*
     	if (!roamPub || context.isStarted())
     		return;
     	
@@ -258,6 +259,9 @@ public class pubsystem extends SubspaceBot
 		} catch (Exception e) {
 			Tools.printStackTrace(e);
 		}
+		*/
+        m_botAction.changeArena("0");
+        startBot();
     	
     	context.handleEvent(event);
     }
