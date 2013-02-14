@@ -12,6 +12,7 @@ import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.game.Player;
+import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCEvent;
 import twcore.core.util.ipc.IPCMessage;
 
@@ -93,9 +94,9 @@ public class pubbotwho extends PubBotModule {
                 who.put(name, new Who(p.getPlayerName(), System.currentTimeMillis()));
                 m_botAction.scheduleTask(who.get(name), 2000);
             } catch (IllegalStateException e) {
-                m_botAction.sendSmartPrivateMessage("WingZero", "IllegalStateException on: " + name);
+                Tools.printLog("IllegalStateException on: " + name);
             } catch (NullPointerException e) {
-                m_botAction.sendSmartPrivateMessage("WingZero", "NullPointerException on: " + (name != null ? name : "null"));
+                Tools.printLog("NullPointerException on: " + (name != null ? name : "null") + "," + (p != null ? "p OK" : "p is null") + "," + (p.getPlayerName() != null ? "getPlayerName OK" : "getPlayerName is null") + "," + (who.get(name) != null ? "who.get OK" : "who.get is null") );
             }
         }
     }
