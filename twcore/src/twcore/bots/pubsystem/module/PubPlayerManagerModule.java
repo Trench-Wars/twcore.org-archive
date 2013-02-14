@@ -366,28 +366,26 @@ public class PubPlayerManagerModule extends AbstractModule {
     }
     
     public void handleEvent(SQLResultEvent event){
-    	
-    	if (event.getIdentifier().startsWith("moneydb")) {
-    		String[] pieces = event.getIdentifier().split(":");
-    		String force = pieces[3].equals("1") ? "(F) " : "";
-    		logMoneyDBTransaction.write(Tools.getTimeStamp() + " - " + force + pieces[1] + "> " + pieces[2]);
-    		m_botAction.SQLClose(event.getResultSet());
-    	}
-    	
-    	else if (event.getIdentifier().startsWith("newplayer")) {
-    		ResultSet rs = event.getResultSet();
-    		String playerName = event.getIdentifier().substring(10);
-    		try {
-				if (rs.next()) {
-					getPlayerByResultSet(rs);
-				} else {
-					players.put(playerName.toLowerCase(), new PubPlayer(m_botAction, playerName));
-				}
-			} catch (SQLException e) {
-				Tools.printStackTrace(e);
-			}
-			m_botAction.SQLClose(event.getResultSet());
-    	}
+        try {
+            if (event.getIdentifier().startsWith("moneydb")) {
+                String[] pieces = event.getIdentifier().split(":");
+                String force = pieces[3].equals("1") ? "(F) " : "";
+                logMoneyDBTransaction.write(Tools.getTimeStamp() + " - " + force + pieces[1] + "> " + pieces[2]);
+            } else if (event.getIdentifier().startsWith("newplayer")) {
+                ResultSet rs = event.getResultSet();
+                String playerName = event.getIdentifier().substring(10);
+                if (rs.next()) {
+                    getPlayerByResultSet(rs);
+                } else {
+                    players.put(playerName.toLowerCase(), new PubPlayer(m_botAction, playerName));
+                }
+            }
+        } catch (SQLException e) {
+            m_botAction.SQLClose(event.getResultSet());
+            Tools.printStackTrace(e);
+        } finally {
+            m_botAction.SQLClose(event.getResultSet());
+        }
     }
     
     public PubPlayer getPlayerByResultSet(ResultSet rs) {
