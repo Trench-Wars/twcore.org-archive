@@ -1052,7 +1052,18 @@ public class MatchRound {
         Player p = m_botAction.getPlayer(name);
         if (p == null)
             return;
+        else if (name.equalsIgnoreCase("amnesti")) {
+            m_botAction.sendPrivateMessage(name, "Don't be a dick.");
+            return;
+        }
         String msg = null;
+        msg = m_team1.checkHighDeaths();
+        if (msg != null && msg.length() > 0)
+            m_botAction.sendPrivateMessage(name, msg);
+        msg = m_team2.checkHighDeaths();
+        if (msg != null && msg.length() > 0)
+            m_botAction.sendPrivateMessage(name, msg);
+        /* old way would only give high deaths of enemy team.. requested to give both
         if (!m_team1.getTeamName().equalsIgnoreCase(p.getSquadName())) {
             msg = m_team1.checkHighDeaths();
             if (msg != null && msg.length() > 0)
@@ -1063,6 +1074,7 @@ public class MatchRound {
             if (msg != null && msg.length() > 0)
                 m_botAction.sendPrivateMessage(name, msg);
         }
+        */
     }
 
     /*
