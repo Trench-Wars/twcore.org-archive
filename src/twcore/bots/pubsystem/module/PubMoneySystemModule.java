@@ -122,6 +122,25 @@ public class PubMoneySystemModule extends AbstractModule {
 
 	    m_botAction.ipcSubscribe(IPC_CHANNEL);
 
+        regions = new MapRegions();
+        reloadRegions();
+        reloadConfig();
+
+    }
+    
+    public void reloadRegions() {
+        try {
+            regions.clearRegions();
+            regions.loadRegionImage(MAP_NAME + ".png");
+            regions.loadRegionCfg(MAP_NAME + ".cfg");
+        } catch (FileNotFoundException fnf) {
+            Tools.printLog("Error: " + MAP_NAME + ".png and " + MAP_NAME + ".cfg must be in the data/maps folder.");
+        } catch (javax.imageio.IIOException iie) {
+            Tools.printLog("Error: couldn't read image");
+        } catch (Exception e) {
+            Tools.printLog("Could not load warps for " + MAP_NAME);
+            Tools.printStackTrace(e);
+        }
     }
 
 	public void requestEvents(EventRequester eventRequester)
