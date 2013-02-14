@@ -182,7 +182,7 @@ public class DBPlayerData {
     public boolean giveRank(int rankNr) {
         if (m_fnUserID != 0) {
             try {
-                m_connection.SQLQuery(m_connName, "INSERT tblUserRank (fnUserID, fnRankID) VALUES ("+m_fnUserID+", "+rankNr+")");
+                m_connection.SQLQueryAndClose(m_connName, "INSERT tblUserRank (fnUserID, fnRankID) VALUES ("+m_fnUserID+", "+rankNr+")");
                 m_lastQuery = System.currentTimeMillis();
                 return true;
             } catch (Exception e) {
