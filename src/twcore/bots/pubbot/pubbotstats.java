@@ -556,14 +556,14 @@ public class pubbotstats extends PubBotModule {
           // if one player is found without extra info, request it and then quit
           // This task is repeated in a short time so a time delay is between each *info
           // We have to do it this way because doing multiple *info's at once will result in that one *info request falls away
-          Vector<Short> players = new Vector<Short>();
-          Iterator<Player> it = m_botAction.getPlayerIterator();
+          Vector<Integer> players = new Vector<Integer>();
+          Iterator<Integer> it = m_botAction.getPlayerIDIterator();
           while (it.hasNext())
-              players.add(it.next().getPlayerID());
+              players.add(it.next());
           
-          Iterator<Short> i = players.iterator();
+          Iterator<Integer> i = players.iterator();
           while(i.hasNext()) {
-              short id = i.next();
+              int id = i.next();
               Player p = m_botAction.getPlayer(id);
               if (p == null)
                   continue;
