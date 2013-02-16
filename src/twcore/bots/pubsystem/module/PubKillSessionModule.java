@@ -50,7 +50,7 @@ public class PubKillSessionModule extends AbstractModule {
 		notplaying = new HashSet<String>();
 		locations = new LinkedHashSet<Location>();
 		kills = new HashMap<String,Integer>();
-		regions = new MapRegions();
+		regions = context.getPubUtil().getRegions();
 		
 		reloadConfig();
 		
