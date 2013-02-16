@@ -1053,7 +1053,7 @@ public class MatchRound {
         if (p == null)
             return;
         else if (name.equalsIgnoreCase("amnesti")) {
-            m_botAction.sendPrivateMessage(name, "Don't be a dick.");
+            m_botAction.sendPrivateMessage(name, "Don't be a d!ck.");
             return;
         }
         String msg = null;
