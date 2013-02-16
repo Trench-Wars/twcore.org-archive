@@ -99,8 +99,13 @@ public class PubUtilModule extends AbstractModule {
     public Location getLocation(int x, int y) {
         Region region = getRegion(x, y);
         Location location = null;
-        if (region != null)
-            location = Location.valueOf(region.toString());
+        if (region != null) {
+            try {
+                location = Location.valueOf(region.toString());
+            } catch (IllegalArgumentException e) {
+                location = null;
+            }
+        }
         if (location != null) {
             return location;
         } else {
