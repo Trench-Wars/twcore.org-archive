@@ -1,6 +1,5 @@
 package twcore.bots.pubsystem.module;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,12 +16,9 @@ import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.PlayerDeath;
 import twcore.core.game.Player;
-import twcore.core.util.MapRegions;
 import twcore.core.util.Tools;
 
 public class PubKillSessionModule extends AbstractModule {
-
-    private static final String MAP_NAME = "pubmap";
     
 	private int length;		// in minutes
 	private int interval;	// in minutes
@@ -40,8 +36,6 @@ public class PubKillSessionModule extends AbstractModule {
 	private LinkedHashSet<Location> locations;
 	private HashSet<String> notplaying;
 	
-	private MapRegions regions;
-	
 	private int killLeader = 0;
 
 	public PubKillSessionModule(BotAction botAction, PubContext context) {
@@ -50,7 +44,6 @@ public class PubKillSessionModule extends AbstractModule {
 		notplaying = new HashSet<String>();
 		locations = new LinkedHashSet<Location>();
 		kills = new HashMap<String,Integer>();
-		regions = context.getPubUtil().getRegions();
 		
 		reloadConfig();
 		
@@ -67,34 +60,18 @@ public class PubKillSessionModule extends AbstractModule {
         length = m_botAction.getBotSettings().getInt("killothon_length");
         interval = m_botAction.getBotSettings().getInt("killothon_interval");
         winnerMoney = m_botAction.getBotSettings().getInt("killothon_winner_money");
-        String k = "killothon_enabled" + (m_botAction.getBotName().endsWith("1") ? "" : "+");
+        String k = "killothon_enabled";
         if (m_botAction.getBotSettings().getInt(k)==1) {
             enabled = true;
-        } 
-        reloadRegions();
+        }
         int[] pieces = m_botAction.getBotSettings().getIntArray("killothon_locations",",");
         for(int piece: pieces) {
             try {
                 Location location = Location.valueOf(Region.values()[piece].toString());
                 locations.add(location);
             } catch (Exception e) {
-                
+                Tools.printLog("[PubKillSession] Exception thrown when loading locations. " + e.getMessage());
             }
-        }
-    }
-    
-    public void reloadRegions() {
-        try {
-            regions.clearRegions();
-            regions.loadRegionImage(MAP_NAME + ".png");
-            regions.loadRegionCfg(MAP_NAME + ".cfg");
-        } catch (FileNotFoundException fnf) {
-            Tools.printLog("Error: " + MAP_NAME + ".png and " + MAP_NAME + ".cfg must be in the data/maps folder.");
-        } catch (javax.imageio.IIOException iie) {
-            Tools.printLog("Error: couldn't read image");
-        } catch (Exception e) {
-            Tools.printLog("Could not load warps for " + MAP_NAME);
-            Tools.printStackTrace(e);
         }
     }
 	
