@@ -1,13 +1,13 @@
 package twcore.bots.pubsystem.module;
 
 import java.awt.Point;
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.TimerTask;
 
 import twcore.bots.pubsystem.PubContext;
+import twcore.bots.pubsystem.module.PubUtilModule.Region;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
@@ -30,13 +30,6 @@ public class PubMapModule extends AbstractModule {
     private static final int SMALL_BASE = 6;
     private static final int MED_BASE = 9;
     private static final int LARGE_BASE = 8;
-    private static final String MAP_NAME = "pubmap";
-
-    private static final int LARGE_REGION = 2;
-    private static final int MED_REGION = 3;
-    private static final int SMALL_REGION = 4;
-    private static final int FR_REGION = 1;
-    private static final int MID_REGION = 0;
     
     private int currentBase;    // current door setting
 
@@ -48,18 +41,19 @@ public class PubMapModule extends AbstractModule {
     
     private BotAction ba;
     private Random random;
-    private MapRegions regions;
     private BaseChange baseChanger;
     private boolean inPub;
+    
+    private MapRegions regions;
     
     public PubMapModule(BotAction botAction, PubContext context) {
         super(botAction, context, "PubMap");
         ba = botAction;
         inPub = ba.getArenaName().startsWith("(Public");
         random = new Random();
-        regions = new MapRegions();
         lastChange = 0;
         currentBase = MED_BASE;
+        regions = context.getPubUtil().getRegions();
         reloadConfig();
         ba.setPlayerPositionUpdating(300);
         TimerTask initialize = new TimerTask() {
@@ -99,23 +93,8 @@ public class PubMapModule extends AbstractModule {
         popLeeway = set.getInt("PopulationLeeway");
         timeDelay = set.getInt("TimeDelay");
         enabled = set.getInt("pubmap_enabled") == 1;
-        reloadRegions();
+        context.getPubUtil().reloadRegions();
         doPopCheck();
-    }
-    
-    public void reloadRegions() {
-        try {
-            regions.clearRegions();
-            regions.loadRegionImage(MAP_NAME + ".png");
-            regions.loadRegionCfg(MAP_NAME + ".cfg");
-        } catch (FileNotFoundException fnf) {
-            Tools.printLog("Error: " + MAP_NAME + ".png and " + MAP_NAME + ".cfg must be in the data/maps folder.");
-        } catch (javax.imageio.IIOException iie) {
-            Tools.printLog("Error: couldn't read image");
-        } catch (Exception e) {
-            Tools.printLog("Could not load warps for " + MAP_NAME);
-            Tools.printStackTrace(e);
-        }
     }
     
     @Override
@@ -200,8 +179,8 @@ public class PubMapModule extends AbstractModule {
         while (i.hasNext()) {
             Player p = i.next();
             int reg = regions.getRegion(p);
-            if (reg == LARGE_REGION) {
-                Point coord = getRandomPoint(FR_REGION);
+            if (reg == Region.LARGE_FR.ordinal()) {
+                Point coord = getRandomPoint(Region.FLAGROOM.ordinal());
                 ba.warpTo(p.getPlayerID(), (int) coord.getX(), (int) coord.getY());
             }
         }
@@ -212,11 +191,11 @@ public class PubMapModule extends AbstractModule {
         while (i.hasNext()) {
             Player p = i.next();
             int reg = regions.getRegion(p);
-            if (reg == LARGE_REGION || reg == MED_REGION) {
-                Point coord = getRandomPoint(FR_REGION);
+            if (reg == Region.LARGE_FR.ordinal() || reg == Region.MED_FR.ordinal()) {
+                Point coord = getRandomPoint(Region.FLAGROOM.ordinal());
                 ba.warpTo(p.getPlayerID(), (int) coord.getX(), (int) coord.getY());
-            } else if (reg == SMALL_REGION) {
-                Point coord = getRandomPoint(MID_REGION);
+            } else if (reg == Region.TUNNELS.ordinal()) {
+                Point coord = getRandomPoint(Region.MID.ordinal());
                 ba.warpTo(p.getPlayerID(), (int) coord.getX(), (int) coord.getY());
             }
         }

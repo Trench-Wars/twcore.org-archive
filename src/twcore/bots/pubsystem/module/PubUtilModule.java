@@ -1,6 +1,8 @@
 package twcore.bots.pubsystem.module;
 
+import java.io.FileNotFoundException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Stack;
 import java.util.TimerTask;
@@ -14,13 +16,16 @@ import twcore.core.events.Message;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.TurretEvent;
 import twcore.core.game.Player;
+import twcore.core.util.MapRegions;
 import twcore.core.util.Tools;
 
 public class PubUtilModule extends AbstractModule {
 
+    private static final String MAP_NAME = "pubmap";
+    
     // LOCATION
     public static enum Location {
-
+        
         FLAGROOM,
         MID,
         LOWER,
@@ -30,6 +35,25 @@ public class PubUtilModule extends AbstractModule {
         SPAWN,
         SAFE
     }
+    
+    public static enum Region {
+        MID,
+        FLAGROOM,
+        LARGE_FR,
+        MED_FR,
+        TUNNELS,
+        CRAM,
+        LOWER,
+        ROOF,        
+        
+        SPACE,
+        UNKNOWN,
+        SPAWN,
+        SAFE
+    }
+    private MapRegions regions;
+    private HashSet<Region> locals;
+    
     private HashMap<String, Location> locations;
     
     public boolean tilesetEnabled = false;
@@ -43,7 +67,29 @@ public class PubUtilModule extends AbstractModule {
     public PubUtilModule(BotAction botAction, PubContext context) {
         super(botAction, context, "Utility");
         this.uptime = System.currentTimeMillis();
+        regions = new MapRegions();
+        locals = new HashSet<Region>();
         reloadConfig();
+        
+    }
+    
+    public void reloadRegions() {
+        try {
+            regions.clearRegions();
+            regions.loadRegionImage(MAP_NAME + ".png");
+            regions.loadRegionCfg(MAP_NAME + ".cfg");
+        } catch (FileNotFoundException fnf) {
+            Tools.printLog("Error: " + MAP_NAME + ".png and " + MAP_NAME + ".cfg must be in the data/maps folder.");
+        } catch (javax.imageio.IIOException iie) {
+            Tools.printLog("Error: couldn't read image");
+        } catch (Exception e) {
+            Tools.printLog("Could not load warps for " + MAP_NAME);
+            Tools.printStackTrace(e);
+        }
+    }
+    
+    public MapRegions getRegions() {
+        return regions;
     }
 
     private String coordToString(int x, int y) {
@@ -51,7 +97,10 @@ public class PubUtilModule extends AbstractModule {
     }
 
     public Location getLocation(int x, int y) {
-        Location location = locations.get(coordToString(x, y));
+        Region region = getRegion(x, y);
+        Location location = null;
+        if (region != null)
+            location = Location.valueOf(region.toString());
         if (location != null) {
             return location;
         } else {
@@ -397,37 +446,40 @@ public class PubUtilModule extends AbstractModule {
 
         return "Unknown";
     }
+    
+    private Region getRegion(int x, int y) {
+        int r = regions.getRegion(x, y);
+        Region region = null;
+        if (r >= 0)
+            region = Region.values()[r];
+        return region;
+    }
 
     public String getPlayerLocation(int x, int y) {
+        Region location = getRegion(x, y);
 
-        String exact = "";
-
-        String position = "Outside base";
-
-        Location location = getLocation(x, y);
-
-        if (Location.UNKNOWN.equals(location)) {
+        if (Region.UNKNOWN.equals(location)) {
             return "Not yet spotted";
         }
-        if (Location.FLAGROOM.equals(location)) {
+        if (Region.FLAGROOM.equals(location)) {
             return "in Flagroom";
         }
-        if (Location.MID.equals(location)) {
+        if (Region.MID.equals(location)) {
             return "in Mid Base";
         }
-        if (Location.LOWER.equals(location)) {
+        if (Region.LOWER.equals(location)) {
             return "in Lower Base";
         }
-        if (Location.ROOF.equals(location)) {
+        if (Region.ROOF.equals(location)) {
             return "on Roof";
         }
-        if (Location.SPAWN.equals(location)) {
+        if (Region.SPAWN.equals(location)) {
             return "in Spawn";
         }
-        if (Location.SAFE.equals(location)) {
+        if (Region.SAFE.equals(location)) {
             return "in Safe";
         }
-        if (Location.SPACE.equals(location)) {
+        if (Region.SPACE.equals(location)) {
             return "in Space";
         }
 
@@ -439,8 +491,7 @@ public class PubUtilModule extends AbstractModule {
 
         if (command.startsWith("!settile ") || command.startsWith("!tileset ")) {
             //doSetTileCmd(sender, command.substring(9));
-        } else if (command.startsWith(
-                "!whereis ")) {
+        } else if (command.startsWith("!whereis ")) {
             doWhereIsCmd(sender, command.substring(9), m_botAction.getOperatorList().isBot(sender));
         } else if (command.equals("!restrictions")) 
             context.getPlayerManager().doRestrictionsCmd(sender);

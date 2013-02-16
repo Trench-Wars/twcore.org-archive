@@ -1,5 +1,6 @@
 package twcore.bots.pubsystem.module;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,14 +12,18 @@ import java.util.TimerTask;
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.PubUtilModule.Location;
+import twcore.bots.pubsystem.module.PubUtilModule.Region;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.PlayerDeath;
 import twcore.core.game.Player;
+import twcore.core.util.MapRegions;
 import twcore.core.util.Tools;
 
 public class PubKillSessionModule extends AbstractModule {
 
+    private static final String MAP_NAME = "pubmap";
+    
 	private int length;		// in minutes
 	private int interval;	// in minutes
 	
@@ -35,6 +40,8 @@ public class PubKillSessionModule extends AbstractModule {
 	private LinkedHashSet<Location> locations;
 	private HashSet<String> notplaying;
 	
+	private MapRegions regions;
+	
 	private int killLeader = 0;
 
 	public PubKillSessionModule(BotAction botAction, PubContext context) {
@@ -43,10 +50,53 @@ public class PubKillSessionModule extends AbstractModule {
 		notplaying = new HashSet<String>();
 		locations = new LinkedHashSet<Location>();
 		kills = new HashMap<String,Integer>();
+		regions = new MapRegions();
 		
 		reloadConfig();
 		
 	}
+
+    @Override
+    public void requestEvents(EventRequester eventRequester) {
+        eventRequester.request(EventRequester.PLAYER_DEATH);
+    }
+
+    @Override
+    public void reloadConfig() {
+        
+        length = m_botAction.getBotSettings().getInt("killothon_length");
+        interval = m_botAction.getBotSettings().getInt("killothon_interval");
+        winnerMoney = m_botAction.getBotSettings().getInt("killothon_winner_money");
+        String k = "killothon_enabled" + (m_botAction.getBotName().endsWith("1") ? "" : "+");
+        if (m_botAction.getBotSettings().getInt(k)==1) {
+            enabled = true;
+        } 
+        reloadRegions();
+        int[] pieces = m_botAction.getBotSettings().getIntArray("killothon_locations",",");
+        for(int piece: pieces) {
+            try {
+                Location location = Location.valueOf(Region.values()[piece].toString());
+                locations.add(location);
+            } catch (Exception e) {
+                
+            }
+        }
+    }
+    
+    public void reloadRegions() {
+        try {
+            regions.clearRegions();
+            regions.loadRegionImage(MAP_NAME + ".png");
+            regions.loadRegionCfg(MAP_NAME + ".cfg");
+        } catch (FileNotFoundException fnf) {
+            Tools.printLog("Error: " + MAP_NAME + ".png and " + MAP_NAME + ".cfg must be in the data/maps folder.");
+        } catch (javax.imageio.IIOException iie) {
+            Tools.printLog("Error: couldn't read image");
+        } catch (Exception e) {
+            Tools.printLog("Could not load warps for " + MAP_NAME);
+            Tools.printStackTrace(e);
+        }
+    }
 	
 	public boolean isRunning() {
 		return sessionStarted;
@@ -215,46 +265,6 @@ public class PubKillSessionModule extends AbstractModule {
     	
     }
 	
-	public void handleEvent(PlayerDeath event) {
-		
-		if (!enabled || !sessionStarted)
-			return;
-		
-		Player killer = m_botAction.getPlayer(event.getKillerID());
-		Player killed = m_botAction.getPlayer(event.getKilleeID());
-		
-		if (killer == null || killed == null)
-			return;
-		
-		if (killer.getFrequency() == killed.getFrequency())
-			return;
-		
-		Location location = context.getPubUtil().getLocation(killer.getXTileLocation(), killer.getYTileLocation());
-		
-		// If locations is not empty, 
-		// It means that the kill must be done inside of one of the location on this list to count
-		if (locations.size() == 0 || locations.contains(location)) {
-			
-			Integer count = kills.get(killer.getPlayerName());
-			if (count == null) {
-				count = 0;
-			}
-			count++;
-			kills.put(killer.getPlayerName(), count);
-			if (count%10==0) {
-				doStatCmd(killer.getPlayerName(), true);
-			}
-			
-		} else {
-			
-			m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "");
-			
-		}
-
-		lastDeaths.put(killed.getPlayerName(), System.currentTimeMillis());
-		
-	}
-	
     public void doSettingCmd( String sender, String setting ) {
 
     	String[] split = setting.split(":");
@@ -419,6 +429,46 @@ public class PubKillSessionModule extends AbstractModule {
     	
     }
     
+    public void handleEvent(PlayerDeath event) {
+        
+        if (!enabled || !sessionStarted)
+            return;
+        
+        Player killer = m_botAction.getPlayer(event.getKillerID());
+        Player killed = m_botAction.getPlayer(event.getKilleeID());
+        
+        if (killer == null || killed == null)
+            return;
+        
+        if (killer.getFrequency() == killed.getFrequency())
+            return;
+        
+        Location location = context.getPubUtil().getLocation(killer.getXTileLocation(), killer.getYTileLocation());
+        
+        // If locations is not empty, 
+        // It means that the kill must be done inside of one of the location on this list to count
+        if (locations.size() == 0 || locations.contains(location)) {
+            
+            Integer count = kills.get(killer.getPlayerName());
+            if (count == null) {
+                count = 0;
+            }
+            count++;
+            kills.put(killer.getPlayerName(), count);
+            if (count%10==0) {
+                doStatCmd(killer.getPlayerName(), true);
+            }
+            
+        } else {
+            
+            m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "");
+            
+        }
+
+        lastDeaths.put(killed.getPlayerName(), System.currentTimeMillis());
+        
+    }
+    
 	@Override
 	public void handleCommand(String sender, String command) {
 
@@ -453,6 +503,12 @@ public class PubKillSessionModule extends AbstractModule {
                 m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
         }
 	}
+
+    @Override
+    public void handleSmodCommand(String sender, String command) {
+        // TODO Auto-generated method stub
+        
+    }
 	
 	@Override
 	public String[] getHelpMessage(String sender) {
@@ -471,53 +527,19 @@ public class PubKillSessionModule extends AbstractModule {
         };
 	}
 
-	@Override
-	public void requestEvents(EventRequester eventRequester) {
-		eventRequester.request(EventRequester.PLAYER_DEATH);
-	}
+    @Override
+    public String[] getSmodHelpMessage(String sender) {
+        return new String[]{};
+    }
 
-	@Override
-	public void start() {
-		startSession();
-	}
-
-	@Override
-	public void reloadConfig() {
-		
-		length = m_botAction.getBotSettings().getInt("killothon_length");
-		interval = m_botAction.getBotSettings().getInt("killothon_interval");
-		winnerMoney = m_botAction.getBotSettings().getInt("killothon_winner_money");
-		String k = "killothon_enabled" + (m_botAction.getBotName().endsWith("1") ? "" : "+");
-		if (m_botAction.getBotSettings().getInt(k)==1) {
-			enabled = true;
-		} 
-		
-		String locationsString = m_botAction.getBotSettings().getString("killothon_locations");
-		String[] pieces = locationsString.split(",");
-		for(String piece: pieces) {
-			try {
-				Location location = Location.valueOf(piece.trim().toUpperCase());
-				locations.add(location);
-			} catch (Exception e) {
-				
-			}
-		}
-	}
+    @Override
+    public void start() {
+        startSession();
+    }
 
 	@Override
 	public void stop() {
 		stopSession(false);
 	}
-
-    @Override
-    public void handleSmodCommand(String sender, String command) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public String[] getSmodHelpMessage(String sender) {
-        return new String[]{};
-    }
 
 }
