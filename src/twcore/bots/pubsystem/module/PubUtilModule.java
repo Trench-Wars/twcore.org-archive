@@ -44,11 +44,11 @@ public class PubUtilModule extends AbstractModule {
         TUNNELS,
         CRAM,
         LOWER,
-        ROOF,        
+        ROOF,    
+        SPAWN,    
         
         SPACE,
         UNKNOWN,
-        SPAWN,
         SAFE
     }
     private MapRegions regions;
