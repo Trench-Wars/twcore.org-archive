@@ -32,7 +32,7 @@ public class staffbot_serverwarningecho extends Module {
 	            return;
 	        }
 	        
-	        if(message.startsWith("SERVERIGNOREREQ-TWCHAT ") && (name.equals("TWChat"))) {
+	        if(message.startsWith("SERVERIGNOREREQ-TWCHAT ") && (name.equals("TW-Chat"))) {
 	            String ignoree = message.substring(23);
 	            ignoredPlayers.add(ignoree);
 	        }
