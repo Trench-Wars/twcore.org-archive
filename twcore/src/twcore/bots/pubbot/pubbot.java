@@ -117,6 +117,7 @@ public class pubbot extends SubspaceBot
     if(notify)
     m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("dying", pubHubBot));
     moduleHandler.unloadAllModules();
+    m_botAction.cancelTasks();
     m_botAction.scheduleTask(new LogOffTask(), LOG_OFF_DELAY);
   }
 
@@ -396,7 +397,6 @@ public class pubbot extends SubspaceBot
         m_botAction.ipcUnSubscribe(IPCCHANNEL);
         m_botAction.ipcUnSubscribe(IPCCHANNEL2);
         m_botAction.ipcUnSubscribe(IPCSILENCE);
-        m_botAction.cancelTasks();
         m_botAction.die( "normal log-off" );
     }
   }
