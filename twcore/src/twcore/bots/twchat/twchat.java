@@ -118,7 +118,7 @@ public class twchat extends SubspaceBot {
                 String nameFromMessage = message.substring(0, message.indexOf(":", 0));
                 if(ops.isZH(nameFromMessage)){
                     m_botAction.sendSmartPrivateMessage(STAFFBOT, "SERVERIGNOREREQ-TWCHAT " + nameFromMessage);
-                    m_botAction.sendChatMessage(2, nameFromMessage + " is using TWChat. Sending request to ignore server warnings...");
+                    m_botAction.sendChatMessage(2, nameFromMessage + " is using TW-Chat. Sending request to ignore server warnings...");
                 }
                 if(notify == true){
                 if (ops.isBotExact(nameFromMessage))
@@ -266,12 +266,12 @@ public class twchat extends SubspaceBot {
             for (int i = 0; i < lastPlayer.size(); i++) {
                 try {
                     if (vipList.contains(lastPlayer.get(i).toLowerCase()))
-                        m_botAction.sendSmartPrivateMessage(lastPlayer.get(i), "Sorry, this name is already stored for use with TWChat.");
+                        m_botAction.sendSmartPrivateMessage(lastPlayer.get(i), "Sorry, this name is already stored for use with TW-Chat.");
                     else {
                         writer.write("\r\n" + lastPlayer.get(i));
-                        m_botAction.sendSmartPrivateMessage(lastPlayer.get(i), "You have successfully signed up to TWChat!");
-                        Tools.printLog("Added player " + lastPlayer.get(i) + " to VIP.txt for TWChat");
-                        m_botAction.sendChatMessage("Player " + lastPlayer.get(i) + " has signed up for TWChat.");
+                        m_botAction.sendSmartPrivateMessage(lastPlayer.get(i), "You have successfully signed up to TW-Chat!");
+                        Tools.printLog("Added player " + lastPlayer.get(i) + " to VIP.txt for TW-Chat");
+                        m_botAction.sendChatMessage("Player " + lastPlayer.get(i) + " has signed up for TW-Chat.");
                     }
                     lastPlayer.remove(i);
                 } catch (Exception e) {
@@ -565,14 +565,14 @@ public class twchat extends SubspaceBot {
                 "| !online <name>  - Shows if <name> is currently online according to list on bot|",
                 "| !stats          - Displays population and player online status information    |",
                 "|                                                                               |", };
-        String[] modCommands = { "|------------------------------- TWChat SMod+ ----------------------------------|",
+        String[] modCommands = { "|------------------------------- TW-Chat SMod+ ---------------------------------|",
                 "|                                                                               |",
                 "| !get                        - Retrieves the VIP text file from the server to  |",
                 "|                               be accurate where it is placed.                 |",
                 "| !die                        - Throw me off a bridge without a parachute       |",
                 "| !vipadd                     - Manually add this person to VIP.                |",
                 "| !go <arena>                 - I'll go to the arena you specify.               |",
-                "| !show                       - Show people online using TWChat App             |",
+                "| !show                       - Show people online using TW-Chat App            |",
                 "| !toggle                     - Disables/Enables ability to !signup             |",
                 "| !warns                      - Toggle staff warning notify                     |",
                 "| !notify                     - Toggles chat notify (stops !show)               |",
@@ -664,7 +664,7 @@ public class twchat extends SubspaceBot {
             String[] values = { Tools.addSlashes(player), Tools.addSlashes(name), new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()),
                     "1", };
             m_botAction.SQLInsertInto(dbInfo, "tblTWChat", fields, values);
-            m_botAction.sendSmartPrivateMessage(name, "Added " + player + " to TWChat BlackList.");
+            m_botAction.sendSmartPrivateMessage(name, "Added " + player + " to TW-Chat BlackList.");
             reloadBlackList();
         }
 
@@ -683,7 +683,7 @@ public class twchat extends SubspaceBot {
             try {
                 m_botAction.SQLQueryAndClose(dbInfo, "UPDATE tblTWChat SET fnActive = 0 WHERE fcName = '" + player + "'");
                 blackList.remove(player);
-                m_botAction.sendSmartPrivateMessage(name, "Removed " + player + " from the TWChat BlackList.");
+                m_botAction.sendSmartPrivateMessage(name, "Removed " + player + " from the TW-Chat BlackList.");
             } catch (SQLException e) {
                 Tools.printStackTrace(e);
             }
@@ -799,7 +799,7 @@ public class twchat extends SubspaceBot {
 
     public void signup(String name, String message) {
         if (signup == false) {
-            m_botAction.sendSmartPrivateMessage(name, "You cannot signup to TWChat at this time.");
+            m_botAction.sendSmartPrivateMessage(name, "You cannot signup to TW-Chat at this time.");
         } else {
             reloadBlackList();
             if (blackList.contains(name.toLowerCase())) {
