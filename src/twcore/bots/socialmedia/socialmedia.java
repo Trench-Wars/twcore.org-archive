@@ -130,7 +130,7 @@ public class socialmedia extends SubspaceBot {
         } else {
             ba.joinArena(cfg.getString("FBInitialArena"));
         }
-
+        ba.sendUnfilteredPublicMessage("?chat=robodev");
     }
 
     public void handleEvent(ArenaList event) {
@@ -138,6 +138,9 @@ public class socialmedia extends SubspaceBot {
     }
 
     public void handleEvent(ArenaJoined event) {
+    	ba.setFreq(ba.getPlayerID(ba.getBotName()), 9751);
+    	ba.sendChatMessage("Joined Public. Facebook and Twitter OAuth Credentials Accepted.");
+    
     }
 
     public void handleEvent(PlayerEntered event) {
