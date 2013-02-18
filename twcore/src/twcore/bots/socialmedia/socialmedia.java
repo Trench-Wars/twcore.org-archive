@@ -139,7 +139,11 @@ public class socialmedia extends SubspaceBot {
 
     public void handleEvent(ArenaJoined event) {
     	ba.setFreq(ba.getPlayerID(ba.getBotName()), 9751);
-    	ba.sendChatMessage("Joined Public. Facebook and Twitter OAuth Credentials Accepted.");
+    	if(ba.getBotName().equals(twitterBot)){
+    	ba.sendChatMessage("My OAuth Credentials were accepted. Monitoring Trench Wars events...");
+    	} else {
+    		ba.sendChatMessage("My OAuth Credentials were accepted. Monitoring important Trench Wars events...");
+    	}
     
     }
 
@@ -149,7 +153,7 @@ public class socialmedia extends SubspaceBot {
         if (ba.getBotName().equals(twitterBot)) {
             if (ba.getPlayingPlayers().size() > 50 && Tools.isAllDigits(arena)) {
                 try {
-                    twitter.updateStatus("We have just went passed the 50 player mark in public (non specced players)! Come join in the basing action in ?go "
+                    twitter.updateStatus("We have just went passed the 50 player mark in public (non spectating players)! Come join in the basing action in ?go "
                             + ba.getArenaName() + " -" + ba.getBotName());
                 } catch (TwitterException e) {
                     // TODO Auto-generated catch block
@@ -211,7 +215,7 @@ public class socialmedia extends SubspaceBot {
             String arenamsg = event.getMessage();
             String eventmsg = arenamsg.toLowerCase();
             if (ba.getBotName().equals(twitterBot)) {
-                if (eventmsg.contains("?go base") || eventmsg.contains("?go wbduel") || eventmsg.contains("?go javduel")
+                if (eventmsg.contains("?go base") || eventmsg.contains("?go wbduel") || eventmsg.contains("?go spidduel") || eventmsg.contains("?go javduel")
                         || eventmsg.contains("?go hockey")) {
                     try {
                         twitter.updateStatus("AUTOMATED-EVENT: " + arenamsg);
@@ -226,6 +230,13 @@ public class socialmedia extends SubspaceBot {
                         // TODO Auto-generated catch block
                         Tools.printStackTrace(e);
                     }
+                } else if (eventmsg.contains("TWD") || eventmsg.contains("TWL")){
+                	try {
+						twitter.updateStatus("LEAGUE GAME: " + arenamsg);
+					} catch (TwitterException e) {
+						// TODO Auto-generated catch block
+						Tools.printStackTrace(e);
+					}
                 }
             }
         }
@@ -253,7 +264,7 @@ public class socialmedia extends SubspaceBot {
                 "+-------------------------------------------------------------------------+",
                 "|                  SMod Commands (Facebook)                               |",
                 "| !fbpost                 - Posts a status update with <msg>              |",
-                "| !go                     - Sends the bot to <arena>                      |",
+                "| !go <arena>                   - Sends the bot to <arena>                |",
                 "| !die                    - Kills bot                                     |",
                 "+-------------------------------------------------------------------------+", };
         if(ba.getBotName().equals(twitterBot)){
