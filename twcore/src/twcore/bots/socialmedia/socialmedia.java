@@ -50,22 +50,26 @@ public class socialmedia extends SubspaceBot {
     private OperatorList oplist;
 
     //Twitter Config
-    twitter4j.conf.ConfigurationBuilder cb;
-    TwitterFactory tf;
-    Twitter twitter;
-    String TConsumer;
-    String TConsSecret;
-    String TAccessToken;
-    String TAccessTokenSecret;
+    twitter4j.conf.ConfigurationBuilder twitterConfig; //builds the authentication 
+    TwitterFactory twitterFactory; //initiates the Twitter authentication 
+    Twitter twitter; //what we will reference through this program to post etc
+    String twitterConsumer; //authentication
+    String twitterConsSecret; //authentication
+    String twitterAccessToken; //authentication
+    String twitterAccessTokenSecret; //authentication
 
     //Facebook Config
-    facebook4j.conf.ConfigurationBuilder fbcb;
-    FacebookFactory fbf;
-    Facebook facebook;
-    String FBAppID;
-    String FBAppSecret;
-    String FBAccessToken;
-    String FBPermissions;
+    facebook4j.conf.ConfigurationBuilder facebookConfig; //builds the authentication
+    FacebookFactory facebookFactory; //initiates the Facebook authentication
+    Facebook facebook; //what we will reference through this program to post etc
+    String facebookAppID; //authentication
+    String facebookAppSecret; //authentication
+    String facebookAccessToken; //authentication
+    String facebookPermissions; //authentication
+    
+    //Bots
+    String facebookBot = "TW-FacebookBot";
+    String twitterBot = "TW-TwitterBot";
 
     BotSettings cfg;
 
@@ -77,34 +81,34 @@ public class socialmedia extends SubspaceBot {
         oplist = m_botAction.getOperatorList();
 
         //Facebook
-        FBAppID = cfg.getString("FBAppID");
-        FBAppSecret = cfg.getString("FBAppSecret");
-        FBAccessToken = cfg.getString("FBAuthAccessToken");
-        FBPermissions = cfg.getString("FBAuthPermissions");
+        facebookAppID = cfg.getString("FBAppID");
+        facebookAppSecret = cfg.getString("FBAppSecret");
+        facebookAccessToken = cfg.getString("FBAuthAccessToken");
+        facebookPermissions = cfg.getString("FBAuthPermissions");
 
-        fbcb = new facebook4j.conf.ConfigurationBuilder();
-        fbcb.setDebugEnabled(true);
-        fbcb.setOAuthAppId(FBAppID);
-        fbcb.setOAuthAppSecret(FBAppSecret);
-        fbcb.setOAuthAccessToken(FBAccessToken);
-        fbcb.setOAuthPermissions(FBPermissions);
-        fbf = new FacebookFactory(fbcb.build());
-        facebook = fbf.getInstance();
+        facebookConfig = new facebook4j.conf.ConfigurationBuilder();
+        facebookConfig.setDebugEnabled(true);
+        facebookConfig.setOAuthAppId(facebookAppID);
+        facebookConfig.setOAuthAppSecret(facebookAppSecret);
+        facebookConfig.setOAuthAccessToken(facebookAccessToken);
+        facebookConfig.setOAuthPermissions(facebookPermissions);
+        facebookFactory = new FacebookFactory(facebookConfig.build());
+        facebook = facebookFactory.getInstance();
 
         //Twitter
-        TConsumer = cfg.getString("TOAuthConsumerKey");
-        TConsSecret = cfg.getString("TOAuthConsumerSecret");
-        TAccessToken = cfg.getString("TOAuthAccessToken");
-        TAccessTokenSecret = cfg.getString("TOAuthAccessTokenSecret");
+        twitterConsumer = cfg.getString("TOAuthConsumerKey");
+        twitterConsSecret = cfg.getString("TOAuthConsumerSecret");
+        twitterAccessToken = cfg.getString("TOAuthAccessToken");
+        twitterAccessTokenSecret = cfg.getString("TOAuthAccessTokenSecret");
 
-        cb = new ConfigurationBuilder();
-        cb.setDebugEnabled(true);
-        cb.setOAuthConsumerKey(TConsumer);
-        cb.setOAuthConsumerSecret(TConsSecret);
-        cb.setOAuthAccessToken(TAccessToken);
-        cb.setOAuthAccessTokenSecret(TAccessTokenSecret);
-        tf = new TwitterFactory(cb.build());
-        twitter = tf.getInstance();
+        twitterConfig = new ConfigurationBuilder();
+        twitterConfig.setDebugEnabled(true);
+        twitterConfig.setOAuthConsumerKey(twitterConsumer);
+        twitterConfig.setOAuthConsumerSecret(twitterConsSecret);
+        twitterConfig.setOAuthAccessToken(twitterAccessToken);
+        twitterConfig.setOAuthAccessTokenSecret(twitterAccessTokenSecret);
+        twitterFactory = new TwitterFactory(twitterConfig.build());
+        twitter = twitterFactory.getInstance();
 
         //Instantiate your EventRequester
         EventRequester events = ba.getEventRequester();
@@ -121,7 +125,7 @@ public class socialmedia extends SubspaceBot {
     public void handleEvent(LoggedOn event) {
         //Retrieve information from .cfg - in this case, the arena name to join to.
         //Get the initial arena from config and enter it
-        if (ba.getBotName().equals("TwitterBot")) {
+        if (ba.getBotName().equals(twitterBot)) {
             ba.joinArena(cfg.getString("InitialArena"));
         } else {
             ba.joinArena(cfg.getString("FBInitialArena"));
@@ -139,7 +143,7 @@ public class socialmedia extends SubspaceBot {
     public void handleEvent(PlayerEntered event) {
         //We've just had a benchmarks in players for pub. Lets update Twitter!!!
         String arena = ba.getArenaName();
-        if (ba.getBotName().equals("TwitterBot")) {
+        if (ba.getBotName().equals(twitterBot)) {
             if (ba.getPlayingPlayers().size() > 50 && Tools.isAllDigits(arena)) {
                 try {
                     twitter.updateStatus("We have just went passed the 50 player mark in public (non specced players)! Come join in the basing action in ?go "
@@ -163,7 +167,7 @@ public class socialmedia extends SubspaceBot {
             if (msg.equalsIgnoreCase("!help")) {
                 cmd_help(name, msg);
             } else if (msg.equalsIgnoreCase("!about")) {
-                if (ba.getBotName().equals("TwitterBot")) {
+                if (ba.getBotName().equals(twitterBot)) {
                     m_botAction.sendSmartPrivateMessage(name, "Hello there! My name is TwitterBot. I'm the sister of FacebookBot. My purpose is to track important events "
                             + "and post them on our Twitter page! Want to see what I post? Why don't you follow me on http://www.twitter.com/SSTrenchWars. "
                             + "Oh and not to mention, Dezmond owns me. Safe to say I won't be going anywhere soon...");
@@ -178,7 +182,7 @@ public class socialmedia extends SubspaceBot {
                     String go = msg.substring(4);
                     ba.changeArena(go);
                     ba.sendSmartPrivateMessage(name, "Moving services to " + go);
-                } else if (msg.startsWith("!tpost ") && ba.getBotName().equals("TwitterBot")) {
+                } else if (msg.startsWith("!tpost ") && ba.getBotName().equals(twitterBot)) {
                     String status = msg.substring(7);
                     try {
                         twitter.updateStatus(status + " -" + ba.getBotName());
@@ -186,7 +190,7 @@ public class socialmedia extends SubspaceBot {
                         // TODO Auto-generated catch block
                         Tools.printStackTrace(e);
                     }
-                } else if (msg.startsWith("!fbpost ") && ba.getBotName().equals("FacebookBot")) {
+                } else if (msg.startsWith("!fbpost ") && ba.getBotName().equals(facebookBot)) {
                     String fbstatus = msg.substring(8);
                     try {
                         facebook.postStatusMessage(fbstatus + " -" + ba.getBotName());
@@ -203,7 +207,7 @@ public class socialmedia extends SubspaceBot {
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
             String arenamsg = event.getMessage();
             String eventmsg = arenamsg.toLowerCase();
-            if (ba.getBotName().equals("TwitterBot")) {
+            if (ba.getBotName().equals(twitterBot)) {
                 if (eventmsg.contains("?go base") || eventmsg.contains("?go wbduel") || eventmsg.contains("?go javduel")
                         || eventmsg.contains("?go hockey")) {
                     try {
@@ -249,12 +253,12 @@ public class socialmedia extends SubspaceBot {
                 "| !go                     - Sends the bot to <arena>                      |",
                 "| !die                    - Kills bot                                     |",
                 "+-------------------------------------------------------------------------+", };
-        if(ba.getBotName().equals("TwitterBot")){
+        if(ba.getBotName().equals(twitterBot)){
             ba.smartPrivateMessageSpam(name, strs);
         } else {
             ba.smartPrivateMessageSpam(name, stafffb);
         }
-        if (oplist.isSmod(name.toLowerCase()) && ba.getBotName().equals("TwitterBot")) {
+        if (oplist.isSmod(name.toLowerCase()) && ba.getBotName().equals(twitterBot)) {
             ba.smartPrivateMessageSpam(name, staff);
         } else {
             ba.smartPrivateMessageSpam(name, stafffb);
