@@ -329,6 +329,7 @@ public class staffbot_warnings extends Module {
             } else {
                 m_botAction.sendRemotePrivateMessage(name, "No warnings found for '" + message + "'.  Use the exact name." );                
             }
+            m_botAction.SQLClose(set);            
         } catch( SQLException e ) {
             Tools.printStackTrace( e );            
         }
@@ -369,6 +370,7 @@ public class staffbot_warnings extends Module {
             while( set.next() ) {
                 fuzzynames.add(" " + set.getString( "name" ));
             }
+            m_botAction.SQLClose(set);
         } catch( SQLException sqle ) {
             Tools.printLog("SQLException encountered in Staffbot.getFuzzyNamesDB(): "+sqle.getMessage());
         }
