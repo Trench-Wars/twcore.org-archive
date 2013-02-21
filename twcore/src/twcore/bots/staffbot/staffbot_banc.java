@@ -952,6 +952,8 @@ public class staffbot_banc extends Module {
                 lastestWarnings.add(stringDateNotExpired + " " + warningSplitBecauseOfExt[1]);
 
         }
+        
+        m_botAction.SQLClose(rs);
 
         if (lastestWarnings.size() > 0) {
 
