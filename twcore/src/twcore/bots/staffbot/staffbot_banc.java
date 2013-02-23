@@ -108,7 +108,6 @@ public class staffbot_banc extends Module {
     private final String IPCBANC = "banc";
     private final String IPCALIAS = "pubBots";
     private final String webdb = "website";
-    
 
     //private final String MINACCESS_BANCSTAFFER = "OPS";
     private final String MINACCESS_ER = "ER";
@@ -176,7 +175,7 @@ public class staffbot_banc extends Module {
             // Start TimerTasks
             CheckExpiredBanCs checkExpiredBanCs = new CheckExpiredBanCs();
             m_botAction.scheduleTaskAtFixedRate(checkExpiredBanCs, Tools.TimeInMillis.MINUTE, Tools.TimeInMillis.MINUTE);
-            
+
             updateElapsed = new UpdateElapsed();
             m_botAction.scheduleTaskAtFixedRate(updateElapsed, 3 * Tools.TimeInMillis.MINUTE, 5 * Tools.TimeInMillis.MINUTE);
 
@@ -327,7 +326,7 @@ public class staffbot_banc extends Module {
             return;
         if (!(event.getObject() instanceof IPCMessage))
             return;
-        
+
         if (IPCBANC.equals(event.getChannel()) && event.getSenderName().startsWith("TW-Guard")) {
             IPCMessage ipc = (IPCMessage) event.getObject();
             String command = ipc.getMessage();
@@ -342,7 +341,8 @@ public class staffbot_banc extends Module {
             else if (command.startsWith(BanCType.SILENCE.toString())) {
                 BanC banc = lookupActiveBanC(BanCType.SILENCE, args[1]);
                 if (banc != null && banc.isNotification())
-                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)silenced by " + ipc.getSender() + ". (BanC #" + banc.getId() + ")");
+                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)silenced by " + ipc.getSender() + ". (BanC #"
+                            + banc.getId() + ")");
                 else if (banc == null)
                     m_botAction.sendChatMessage("Player '" + args[1] + "' has been (re)silenced by " + ipc.getSender() + ".");
             } else if (command.startsWith("REMOVE:" + BanCType.SILENCE.toString())) {
@@ -354,7 +354,8 @@ public class staffbot_banc extends Module {
             } else if (command.startsWith(BanCType.SPEC.toString())) {
                 BanC banc = lookupActiveBanC(BanCType.SPEC, args[1]);
                 if (banc != null && banc.isNotification())
-                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)locked in spectator. (BanC #" + banc.getId() + ")");
+                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)locked in spectator. (BanC #" + banc.getId()
+                            + ")");
                 else if (banc == null)
                     m_botAction.sendChatMessage("Player '" + args[1] + "' has been (re)locked in spectator.");
             } else if (command.startsWith(BanCType.SUPERSPEC.toString())) {
@@ -362,7 +363,8 @@ public class staffbot_banc extends Module {
                 //0123456789T
                 BanC banc = lookupActiveBanC(BanCType.SUPERSPEC, args[1]);
                 if (banc != null && banc.isNotification())
-                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)superlocked in spectator. (BanC #" + banc.getId() + ")");
+                    m_botAction.sendChatMessage("Player '" + banc.getPlayername() + "' has been (re)superlocked in spectator. (BanC #" + banc.getId()
+                            + ")");
                 else if (banc == null)
                     m_botAction.sendChatMessage("Player '" + args[1] + "' has been (re)superlocked in spectator.");
             } else if (command.startsWith("REMOVE:" + BanCType.SUPERSPEC.toString())) {
@@ -381,7 +383,7 @@ public class staffbot_banc extends Module {
             }
         }
     }
-    
+
     /**
      * Takes input from IPC and updates elapsed time for matching banc names.
      * 
@@ -394,7 +396,8 @@ public class staffbot_banc extends Module {
                 try {
                     int min = Integer.valueOf(mins);
                     b.updateElapsed(min);
-                } catch (NumberFormatException e) {};
+                } catch (NumberFormatException e) {}
+                ;
             }
         }
     }
@@ -548,7 +551,7 @@ public class staffbot_banc extends Module {
             String op[] = m_botSettings.getString("BancOperators").split(",");
             for (int j = 0; j < op.length; j++)
                 bancOp.put(op[j].toLowerCase(), op[j]);
-                        
+
         } catch (Exception e) {
             Tools.printStackTrace("Method Failed: ", e);
         }
@@ -572,17 +575,16 @@ public class staffbot_banc extends Module {
             m_botAction.sendSmartPrivateMessage(name, "Banc Error: No staff found. Contact botdev.");
             return;
         }
-        
+
         OperatorList opList = m_botAction.getOperatorList();
         List<String> sysops = new LinkedList<String>();
         List<String> smods = new LinkedList<String>();
         List<String> mods = new LinkedList<String>();
         List<String> ers = new LinkedList<String>();
         List<String> other = new LinkedList<String>();
-        
-        for(;list.hasNext();)
-        {
-            String pName = (String)list.next();
+
+        for (; list.hasNext();) {
+            String pName = (String) list.next();
 
             if (opList.isSysop(pName))
                 sysops.add(pName);
@@ -592,15 +594,15 @@ public class staffbot_banc extends Module {
                 mods.add(pName);
             else if (opList.isER(pName))
                 ers.add(pName);
-            else 
+            else
                 other.add(pName);
         }
-        
+
         List<String> revoked = new LinkedList<String>();
         Iterator<String> list1 = bancRevoked.values().iterator();
         while (list1.hasNext())
-            revoked.add((String)list1.next());
-        
+            revoked.add((String) list1.next());
+
         Collections.sort(sysops);
         Collections.sort(smods);
         Collections.sort(mods);
@@ -624,7 +626,7 @@ public class staffbot_banc extends Module {
                     bancs = "";
                 }
         }
-       
+        
         String bancs1 = "List of staffers that have no access: ";
         Iterator<String> list1 = bancRevoked.values().iterator();
         while (list1.hasNext())
@@ -642,44 +644,43 @@ public class staffbot_banc extends Module {
 
         String temp = "";
         Iterator<String> o = null;
-        
-        for (int i=0; i<6; i++)
-        {
+
+        for (int i = 0; i < 6; i++) {
             switch (i) {
-            case 0:
-                o = sysops.iterator();
-                temp = "Sysops: ";
-                break;
-            case 1:
-                o = smods.iterator();
-                temp = "Smods : ";
-                break;
-            case 2:
-                o = mods.iterator();
-                temp = "Mods  : ";
-                break;
-            case 3:
-                o = ers.iterator();
-                temp = "ERs   : ";
-                break;
-            case 4:
-                o = other.iterator();
-                temp = "Others : ";
-                break;
-            default:
-                o = revoked.iterator();
-                if (!o.hasNext())
-                    continue;
-                temp = "List of staffers that have no access.";
-                dispList.add(temp);
-                temp = "Revoked: ";
-                break;
+                case 0:
+                    o = sysops.iterator();
+                    temp = "Sysops: ";
+                    break;
+                case 1:
+                    o = smods.iterator();
+                    temp = "Smods : ";
+                    break;
+                case 2:
+                    o = mods.iterator();
+                    temp = "Mods  : ";
+                    break;
+                case 3:
+                    o = ers.iterator();
+                    temp = "ERs   : ";
+                    break;
+                case 4:
+                    o = other.iterator();
+                    temp = "Others : ";
+                    break;
+                default:
+                    o = revoked.iterator();
+                    if (!o.hasNext())
+                        continue;
+                    temp = "List of staffers that have no access.";
+                    dispList.add(temp);
+                    temp = "Revoked: ";
+                    break;
             }
-            
+
             if (!o.hasNext())
                 continue;
-            
-            int count = 0;                
+
+            int count = 0;
             while (o.hasNext()) {
                 String n = o.next();
                 if (count == 5) {
@@ -698,7 +699,6 @@ public class staffbot_banc extends Module {
 
         m_botAction.smartPrivateMessageSpam(name, dispList.toArray(new String[dispList.size()]));
     }
-
 
     /**
      * !removeop
@@ -808,7 +808,7 @@ public class staffbot_banc extends Module {
             m_botAction.sendSmartPrivateMessage(stafferName, " ------ Latest bancs (last 2 weeks): ");
             sendBanCs(stafferName, name, limitBanCs);
             sendWarnings(stafferName, name, limitWarnings);
-            if (m_botAction.getOperatorList().isSmod(stafferName) || bancOp.containsKey(stafferName.toLowerCase()) || isTWDOp( stafferName ) ) {
+            if (m_botAction.getOperatorList().isSmod(stafferName) || bancOp.containsKey(stafferName.toLowerCase()) || isTWDOp(stafferName)) {
                 sendAltNicks(stafferName, name, limitBanCs, limitWarnings);
                 if (limitBanCs == 0 && limitWarnings == 0)
                     m_botAction.sendSmartPrivateMessage(stafferName, "You can see all the player's history too typing !search player:-1:-1");
@@ -818,7 +818,7 @@ public class staffbot_banc extends Module {
         }
 
     }
-    
+
     public boolean isTWDOp(String name) {
         try {
             ResultSet result = m_botAction.SQLQuery(webdb, "SELECT DISTINCT tblUser.fcUserName FROM tblUser, tblUserRank"
@@ -952,7 +952,7 @@ public class staffbot_banc extends Module {
                 lastestWarnings.add(stringDateNotExpired + " " + warningSplitBecauseOfExt[1]);
 
         }
-        
+
         m_botAction.SQLClose(rs);
 
         if (lastestWarnings.size() > 0) {
@@ -1218,7 +1218,7 @@ public class staffbot_banc extends Module {
                 case 2:
                     line += " SuperSpec time/mins";
                     break;
-            //case 2: line += " Auto-kick time/mins"; break; 
+                //case 2: line += " Auto-kick time/mins"; break; 
             }
             line = Tools.formatString(line, 23);
 
@@ -1324,7 +1324,8 @@ public class staffbot_banc extends Module {
             time = Integer.parseInt(timeStr);
 
         if (time > BANC_MAX_DURATION) {
-            m_botAction.sendSmartPrivateMessage(name, "The maximum amount of minutes for a BanC is " + BANC_MAX_DURATION + " minutes (365 days). Duration changed to this maximum.");
+            m_botAction.sendSmartPrivateMessage(name, "The maximum amount of minutes for a BanC is " + BANC_MAX_DURATION
+                    + " minutes (365 days). Duration changed to this maximum.");
             time = BANC_MAX_DURATION;
             timeToTell = (BANC_MAX_DURATION / 24) / 60;
         }
@@ -1377,7 +1378,8 @@ public class staffbot_banc extends Module {
         }
         m_botAction.sendSmartPrivateMessage(name, "Please do not forget to add comments to your BanC with !bancomment <#id> <comments>.");
         m_botAction.ipcTransmit(IPCBANC, new IPCEvent(banc.getPlayername() + ":" + (banc.getIP() != null ? banc.getIP() : " ") + ":"
-                    + (banc.getMID() != null ? banc.getMID() : " ") + ":" + banc.getDuration() + ":" + banc.getType().toString() + ":" + banc.getElapsed(), 0, -1));
+                + (banc.getMID() != null ? banc.getMID() : " ") + ":" + banc.getDuration() + ":" + banc.getType().toString() + ":"
+                + banc.getElapsed(), 0, -1));
 
         if (comment != null)
             cmd_Bancomment(name, "#" + banc.getId() + " " + comment);
@@ -1417,7 +1419,7 @@ public class staffbot_banc extends Module {
             // #19861 access:4 by PUNK rock 2009-09-26 18:14 days:1 ~98.194.169.186:8  ~mid:462587662* AmoresPerros
 
             boolean playerArgument = false, stafferArgument = false;
-            
+
             for (String argument : parameters.split(" "))
                 if (!playerArgument && !stafferArgument) {
                     // [#id]
@@ -1554,7 +1556,8 @@ public class staffbot_banc extends Module {
                     result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
                     result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + "  ";
                     result += Tools.formatString(rs.getString("fcType"), 7) + "  ";
-                    result += "mins:" + Tools.formatString(rs.getString("fnDuration"), 4) + Tools.formatString("(" + rs.getInt("fnElapsed") + ")", 6) + " ";
+                    result += "mins:" + Tools.formatString(rs.getString("fnDuration"), 4) + Tools.formatString("(" + rs.getInt("fnElapsed") + ")", 6)
+                            + " ";
                     result += rs.getString("fcUsername");
 
                     m_botAction.sendSmartPrivateMessage(name, result);
@@ -1749,6 +1752,13 @@ public class staffbot_banc extends Module {
                             sqlSet += ", ";
                         sqlSet += "fcIP=NULL";
                         banChange.setIP("NULL");
+                    } else
+                    //staffer
+                    if (argument.startsWith("-staffname=")) {
+                        if (!sqlSet.isEmpty())
+                            sqlSet += ", ";
+                        sqlSet += "fcStaffer='" + argument.substring(11) + "'";
+                        banChange.setStaffer(argument.substring(11));
 
                     } else
                     // -mid=#
@@ -1979,7 +1989,8 @@ public class staffbot_banc extends Module {
 
     private void cmd_ListActiveBanCs(String name) {
         for (BanC banc : activeBanCs)
-            m_botAction.sendSmartPrivateMessage(name, "#" + banc.getId() + " " + banc.getType() + " " + banc.getDuration() + "mins on " + banc.getPlayername());
+            m_botAction.sendSmartPrivateMessage(name, "#" + banc.getId() + " " + banc.getType() + " " + banc.getDuration() + "mins on "
+                    + banc.getPlayername());
     }
 
     /**
@@ -2055,7 +2066,8 @@ public class staffbot_banc extends Module {
             bot = Integer.valueOf(receiver.substring(8));
         LinkedList<String> l = new LinkedList<String>();
         for (BanC b : activeBanCs)
-            l.add(b.getPlayername() + ":" + (b.getIP() != null ? b.getIP() : " ") + ":" + (b.getMID() != null ? b.getMID() : " ") + ":" + b.getDuration() + ":" + b.getType().toString() + ":" + b.getElapsed());
+            l.add(b.getPlayername() + ":" + (b.getIP() != null ? b.getIP() : " ") + ":" + (b.getMID() != null ? b.getMID() : " ") + ":"
+                    + b.getDuration() + ":" + b.getType().toString() + ":" + b.getElapsed());
         m_botAction.ipcTransmit(IPCBANC, new IPCEvent(l.listIterator(), 0, bot));
         /*
         for (BanC b : activeBanCs) {
@@ -2158,14 +2170,14 @@ public class staffbot_banc extends Module {
                     + ")", sqle);
         }
     }
-    
+
     /**
      * Simply tries to send new elapsed times for any updated bancs.
      *
      * @author WingZero
      */
     private class UpdateElapsed extends TimerTask {
-        
+
         public void run() {
             for (BanC b : activeBanCs)
                 b.sendUpdate();
@@ -2257,7 +2269,7 @@ public class staffbot_banc extends Module {
 
         private String staffer;
         private String comment;
-        
+
         private boolean updated = false;
         private boolean applied = false;
         private boolean expired = false;
@@ -2308,9 +2320,10 @@ public class staffbot_banc extends Module {
                 sendUpdate();
             }
         }
-        
+
         public void sendUpdate() {
-            if (!updated) return;
+            if (!updated)
+                return;
             try {
                 psElapsed.setInt(1, elapsed);
                 psElapsed.setInt(2, id);
@@ -2412,7 +2425,7 @@ public class staffbot_banc extends Module {
         public void setCreated(Date created) {
             this.created = created;
         }
-        
+
         public int getElapsed() {
             return elapsed;
         }
