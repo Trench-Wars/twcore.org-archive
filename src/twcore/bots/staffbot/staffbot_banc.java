@@ -1755,13 +1755,14 @@ public class staffbot_banc extends Module {
                                 m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please format the time as  -d=<duration>");
                                 return;
                             }            
-                        } else             
+                        } else {
                             try { 
                                 time = Integer.parseInt(timeStr);
                             } catch (NumberFormatException e) {
                                 m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please format the time as  -d=<duration>");
                                 return;
                             }
+                        }
                         
                         
                         if (!sqlSet.isEmpty())
