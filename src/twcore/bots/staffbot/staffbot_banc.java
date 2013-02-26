@@ -1300,6 +1300,7 @@ public class staffbot_banc extends Module {
 
         }
         String comment = null;
+        
         if (parameters.length() > 2 && parameters.contains(":")) {
             timeStr = parameters.split(":")[1];
             if (parameters.split(":").length == 3)
@@ -1317,11 +1318,30 @@ public class staffbot_banc extends Module {
         int timeToTell = 0;
         if (timeStr.contains("d")) {
             String justTime = timeStr.substring(0, timeStr.indexOf("d"));
-            timeToTell = Integer.parseInt(justTime);
-            time = Integer.parseInt(justTime) * 1440;
-
-        } else
-            time = Integer.parseInt(timeStr);
+            try { 
+                timeToTell = Integer.parseInt(justTime);
+                time = Integer.parseInt(justTime) * 1440;            
+            } catch (NumberFormatException e) {
+                m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please specify <playername>:<time/mins> or PM !help for more information.");
+                return;
+            }
+        } else if (timeStr.contains("h")) {
+            String justTime = timeStr.substring(0, timeStr.indexOf("h"));            
+            try { 
+                timeToTell = Integer.parseInt(justTime);
+                time = Integer.parseInt(justTime) * 60;            
+            } catch (NumberFormatException e) {
+                m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please specify <playername>:<time/mins> or PM !help for more information.");
+                return;
+            }            
+        } else {
+            try { 
+                time = Integer.parseInt(timeStr);
+            } catch (NumberFormatException e) {
+                m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please specify <playername>:<time/mins> or PM !help for more information.");
+                return;
+            }
+		}
 
         if (time > BANC_MAX_DURATION) {
             m_botAction.sendSmartPrivateMessage(name, "The maximum amount of minutes for a BanC is " + BANC_MAX_DURATION
@@ -1711,11 +1731,43 @@ public class staffbot_banc extends Module {
 
                     } else
                     // -d=#
-                    if (argument.startsWith("-d=") && Tools.isAllDigits(argument.substring(3))) {
+                    if (argument.startsWith("-d=") && argument.length() > 3) {
+                        String timeStr = argument.substring(3);
+                        argument = argument.substring(0 , 3);                        
+                        int time;
+                        int timeToTell = 0;
+                        
+                        if (timeStr.contains("d")) {
+                            String justTime = timeStr.substring(0, timeStr.indexOf("d"));            
+                            try { 
+                                timeToTell = Integer.parseInt(justTime);
+                                time = Integer.parseInt(justTime) * 1440;            
+                            } catch (NumberFormatException e) {
+                                m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please format the time as  -d=<duration>");
+                                return;
+                            }
+                        } else if (timeStr.contains("h")) {
+                            String justTime = timeStr.substring(0, timeStr.indexOf("h"));            
+                            try { 
+                                timeToTell = Integer.parseInt(justTime);
+                                time = Integer.parseInt(justTime) * 60;            
+                            } catch (NumberFormatException e) {
+                                m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please format the time as  -d=<duration>");
+                                return;
+                            }            
+                        } else             
+                            try { 
+                                time = Integer.parseInt(timeStr);
+                            } catch (NumberFormatException e) {
+                                m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please format the time as  -d=<duration>");
+                                return;
+                            }
+                        
+                        
                         if (!sqlSet.isEmpty())
                             sqlSet += ", ";
-                        sqlSet += "fnDuration=" + argument.substring(3);
-                        banChange.setDuration(Integer.parseInt(argument.substring(3)));
+                        sqlSet += "fnDuration=" + time;
+                        banChange.setDuration(time);
 
                     } else
                     // -a=<...>
