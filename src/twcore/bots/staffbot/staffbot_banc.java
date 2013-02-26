@@ -198,13 +198,13 @@ public class staffbot_banc extends Module {
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psCheckAccessReq);
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psActiveBanCs);
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psListBanCs);
-        m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psActiveBanCs);
+       // m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psActiveBanCs);
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psAddBanC);
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psUpdateComment);
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psRemoveBanC);
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psElapsed);
         m_botAction.closePreparedStatement(trenchDatabase, uniqueConnectionID, psLookupIPMID);
-        m_botAction.closePreparedStatement(trenchDatabase, uniqueConnectionID, psKeepAlive1);
+        m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psKeepAlive1);
         m_botAction.closePreparedStatement(trenchDatabase, uniqueConnectionID, psKeepAlive2);
 
         m_botAction.cancelTasks();
