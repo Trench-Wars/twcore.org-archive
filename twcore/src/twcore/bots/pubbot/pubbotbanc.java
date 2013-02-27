@@ -386,7 +386,7 @@ public class pubbotbanc extends PubBotModule {
     }
 
     private void handleSuper(String namePlayer, int shipNumber) {
-        if (!m_botAction.getArenaName().startsWith("Public"))
+        if (!m_botAction.getArenaName().startsWith("Public "))
             return;
         if (shipNumber == 2 || shipNumber == 8 || shipNumber == 4) {
             m_botAction.sendPrivateMessage(namePlayer, "You're banned from ship" + shipNumber + " with " + bancSuper.get(namePlayer).getRemaining() + " minutes remaining.");
