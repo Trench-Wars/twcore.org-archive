@@ -72,15 +72,16 @@ public class pubbot extends SubspaceBot
     requestEvents();
   }
 
+  @Override
   public void handleDisconnect() {
       m_botAction.ipcTransmit(IPCCHANNEL, new IPCMessage("dying", pubHubBot));
       if( moduleHandler != null )
-          moduleHandler.unloadAllModules();
-      m_botAction.cancelTasks();
+          moduleHandler.unloadAllModules();     
       m_botAction.ipcUnSubscribe(IPCCHANNEL);
       m_botAction.ipcUnSubscribe(IPCCHANNEL2);
       m_botAction.ipcUnSubscribe(IPCSILENCE);
       m_botAction.ipcUnSubscribe(IPCWHO);
+      m_botAction.cancelTasks();
   }
 
   /**
@@ -397,6 +398,7 @@ public class pubbot extends SubspaceBot
         m_botAction.ipcUnSubscribe(IPCCHANNEL);
         m_botAction.ipcUnSubscribe(IPCCHANNEL2);
         m_botAction.ipcUnSubscribe(IPCSILENCE);
+        m_botAction.ipcUnSubscribe(IPCWHO);
         m_botAction.die( "normal log-off" );
     }
   }
