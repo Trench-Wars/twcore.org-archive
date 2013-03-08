@@ -326,6 +326,11 @@ public class pubbottk extends PubBotModule {
             m_botAction.sendPrivateMessage( name, "Staff has already been notified about '" + tker + "'.  Please use ?cheater if the problem continues or you do not receive a response." );
         	return;
         }
+        
+        if( info.wasStaffNotified() ) {
+            m_botAction.sendPrivateMessage( name, "Staff has already been notified about '" + tker + "'.  Please use ?cheater if the problem continues or you do not receive a response." );
+            return;
+        }
 
         String msg = "?cheater TK Report: " + name + " is reporting " + tker + " for intentional TK.  (" + info.getNumTKs() + " total TKs)";
         m_botAction.sendUnfilteredPublicMessage( msg );
