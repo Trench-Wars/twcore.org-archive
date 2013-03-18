@@ -214,7 +214,8 @@ public class socialmedia extends SubspaceBot {
                             if (msg.startsWith("!tpost ") && ba.getBotName().equals(twitterBot)) {
                                 String status = msg.substring(7);
                                 try {
-                                    twitter.updateStatus(status + " -" + ba.getBotName());
+                                    twitter.updateStatus(status);
+                                    m_botAction.sendChatMessage("Tweeted to SSTrenchWars!");
                                 } catch (TwitterException e) {
                                     // TODO Auto-generated catch block
                                     Tools.printStackTrace(e);
@@ -222,7 +223,8 @@ public class socialmedia extends SubspaceBot {
                             } else if (msg.startsWith("!fbpost ") && ba.getBotName().equals(facebookBot)) {
                                 String fbstatus = msg.substring(8);
                                 try {
-                                    facebook.postStatusMessage(fbstatus + " -" + ba.getBotName());
+                                    facebook.postStatusMessage(fbstatus);
+                                    m_botAction.sendChatMessage("Posted to TWSubspace!");
                                 } catch (FacebookException e) {
                                     // TODO Auto-generated catch block
                                     Tools.printStackTrace(e);
@@ -367,12 +369,9 @@ public class socialmedia extends SubspaceBot {
                 "| !addop                  - Add Op                                         |",
                 "| !deop                   - De Op                                          |",
                 "+--------------------------------------------------------------------------+", };
-        if (ba.getBotName().equals(twitterBot)) {
             ba.smartPrivateMessageSpam(name, strs);
-        } else {
-            ba.smartPrivateMessageSpam(name, stafffb);
-        }
-        if (oplist.isSmod(name.toLowerCase()) && ba.getBotName().equals(twitterBot)) {
+
+        if (oplist.isSmod(name.toLowerCase()) || mediaops.containsKey(name.toLowerCase()) && ba.getBotName().equals(twitterBot)) {
             ba.smartPrivateMessageSpam(name, staff);
         } else {
             ba.smartPrivateMessageSpam(name, stafffb);
