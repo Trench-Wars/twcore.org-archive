@@ -209,13 +209,17 @@ public class socialmedia extends SubspaceBot {
                     }
                 }
 
-                        if (mediaops.containsKey(name.toLowerCase())) {
+                        if (mediaops.containsKey(name.toLowerCase()) || oplist.isSmod(name.toLowerCase())) {
 
                             if (msg.startsWith("!tpost ") && ba.getBotName().equals(twitterBot)) {
                                 String status = msg.substring(7);
                                 try {
+                                    if(status.length() > 140){
+                                        m_botAction.sendChatMessage("That tweet is over 140 characters - therefor I reject it.");
+                                    } else {
                                     twitter.updateStatus(status);
                                     m_botAction.sendChatMessage("Tweeted to SSTrenchWars!");
+                                    }
                                 } catch (TwitterException e) {
                                     // TODO Auto-generated catch block
                                     Tools.printStackTrace(e);
