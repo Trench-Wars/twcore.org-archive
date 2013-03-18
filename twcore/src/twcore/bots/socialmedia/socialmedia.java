@@ -195,6 +195,19 @@ public class socialmedia extends SubspaceBot {
                         String go = msg.substring(4);
                         ba.changeArena(go);
                         ba.sendChatMessage("Moving services to " + go);
+                    } else if (msg.startsWith("!addop ")) {
+                        String opname = msg.substring(7);
+                        addOp(name, opname);
+                    } else if (msg.startsWith("!deop ")) {
+                        String opname = msg.substring(6);
+                        deOp(name, opname);
+                    } else if (msg.equalsIgnoreCase("!listops")) {
+                        listOp();
+                    } else if (msg.equalsIgnoreCase("!die")) {
+                        m_botAction.sendChatMessage(name + " killed me!");
+                        ba.die();
+                    }
+                }
 
                         if (mediaops.containsKey(name.toLowerCase())) {
 
@@ -216,19 +229,7 @@ public class socialmedia extends SubspaceBot {
                                 }
                             }
                         }
-                    } else if (msg.startsWith("!addop ")) {
-                        String opname = msg.substring(7);
-                        addOp(name, opname);
-                    } else if (msg.startsWith("!deop ")) {
-                        String opname = msg.substring(6);
-                        deOp(name, opname);
-                    } else if (msg.equalsIgnoreCase("!listops")) {
-                        listOp();
-                    } else if (msg.equalsIgnoreCase("!die")) {
-                        m_botAction.sendChatMessage(name + " killed me!");
-                        ba.die();
-                    }
-                }
+
             }
 
             if (event.getMessageType() == Message.ARENA_MESSAGE) {
