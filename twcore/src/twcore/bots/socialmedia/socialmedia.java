@@ -173,7 +173,7 @@ public class socialmedia extends SubspaceBot {
         String name = event.getMessager();
         if (name == null || name.length() < 1)
             name = m_botAction.getPlayerName(event.getPlayerID());
-        String msg = event.getMessage().toLowerCase();
+        String msg = event.getMessage();
 
         if (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE || event.getMessageType() == Message.CHAT_MESSAGE) {
             if (msg.equalsIgnoreCase("!help")) {
