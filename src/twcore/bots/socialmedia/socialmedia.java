@@ -1,5 +1,8 @@
 package twcore.bots.socialmedia;
 
+import java.util.HashMap;
+import java.util.Iterator;
+
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
@@ -66,10 +69,12 @@ public class socialmedia extends SubspaceBot {
     String facebookAppSecret; //authentication
     String facebookAccessToken; //authentication
     String facebookPermissions; //authentication
-    
+
     //Bots
     String facebookBot = "TW-FacebookBot";
     String twitterBot = "TW-TwitterBot";
+
+    HashMap<String, String> mediaops = new HashMap<String, String>();
 
     BotSettings cfg;
 
@@ -130,7 +135,7 @@ public class socialmedia extends SubspaceBot {
         } else {
             ba.joinArena(cfg.getString("FBInitialArena"));
         }
-        ba.sendUnfilteredPublicMessage("?chat=robodev");
+        ba.sendUnfilteredPublicMessage("?chat=media");
     }
 
     public void handleEvent(ArenaList event) {
@@ -138,13 +143,13 @@ public class socialmedia extends SubspaceBot {
     }
 
     public void handleEvent(ArenaJoined event) {
-    	ba.setFreq(ba.getPlayerID(ba.getBotName()), 9751);
-    	if(ba.getBotName().equals(twitterBot)){
-    	ba.sendChatMessage("My OAuth Credentials were accepted. Monitoring Trench Wars events...");
-    	} else {
-    		ba.sendChatMessage("My OAuth Credentials were accepted. Monitoring important Trench Wars events...");
-    	}
-    
+        ba.setFreq(ba.getPlayerID(ba.getBotName()), 9751);
+        if (ba.getBotName().equals(twitterBot)) {
+            ba.sendChatMessage("My OAuth Credentials were accepted. Monitoring Trench Wars events...");
+        } else {
+            ba.sendChatMessage("My OAuth Credentials were accepted. Monitoring important Trench Wars events...");
+        }
+
     }
 
     public void handleEvent(PlayerEntered event) {
@@ -170,7 +175,7 @@ public class socialmedia extends SubspaceBot {
             name = m_botAction.getPlayerName(event.getPlayerID());
         String msg = event.getMessage().toLowerCase();
 
-        if (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) {
+        if (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE || event.getMessageType() == Message.CHAT_MESSAGE) {
             if (msg.equalsIgnoreCase("!help")) {
                 cmd_help(name, msg);
             } else if (msg.equalsIgnoreCase("!about")) {
@@ -184,62 +189,153 @@ public class socialmedia extends SubspaceBot {
                             + "You can visit it at http://facebook.com/TWSubspace. Unfortunately my owner doesn't let me go -ANYWHERE-, so I'll be here to post frequently!");
                 }
             }
-            if (oplist.isSmod(name)) {
-                if (msg.startsWith("!go ")) {
-                    String go = msg.substring(4);
-                    ba.changeArena(go);
-                    ba.sendSmartPrivateMessage(name, "Moving services to " + go);
-                } else if (msg.startsWith("!tpost ") && ba.getBotName().equals(twitterBot)) {
-                    String status = msg.substring(7);
-                    try {
-                        twitter.updateStatus(status + " -" + ba.getBotName());
-                    } catch (TwitterException e) {
-                        // TODO Auto-generated catch block
-                        Tools.printStackTrace(e);
+            if (event.getMessageType() == Message.CHAT_MESSAGE) {
+                if (oplist.isSmod(name)) {
+                    if (msg.startsWith("!go ")) {
+                        String go = msg.substring(4);
+                        ba.changeArena(go);
+                        ba.sendChatMessage("Moving services to " + go);
+
+                        if (mediaops.containsKey(name.toLowerCase())) {
+
+                            if (msg.startsWith("!tpost ") && ba.getBotName().equals(twitterBot)) {
+                                String status = msg.substring(7);
+                                try {
+                                    twitter.updateStatus(status + " -" + ba.getBotName());
+                                } catch (TwitterException e) {
+                                    // TODO Auto-generated catch block
+                                    Tools.printStackTrace(e);
+                                }
+                            } else if (msg.startsWith("!fbpost ") && ba.getBotName().equals(facebookBot)) {
+                                String fbstatus = msg.substring(8);
+                                try {
+                                    facebook.postStatusMessage(fbstatus + " -" + ba.getBotName());
+                                } catch (FacebookException e) {
+                                    // TODO Auto-generated catch block
+                                    Tools.printStackTrace(e);
+                                }
+                            }
+                        }
+                    } else if (msg.startsWith("!addop ")) {
+                        String opname = msg.substring(7);
+                        addOp(name, opname);
+                    } else if (msg.startsWith("!deop ")) {
+                        String opname = msg.substring(6);
+                        deOp(name, opname);
+                    } else if (msg.equalsIgnoreCase("!listops")) {
+                        listOp();
+                    } else if (msg.equalsIgnoreCase("!die")) {
+                        m_botAction.sendChatMessage(name + " killed me!");
+                        ba.die();
                     }
-                } else if (msg.startsWith("!fbpost ") && ba.getBotName().equals(facebookBot)) {
-                    String fbstatus = msg.substring(8);
-                    try {
-                        facebook.postStatusMessage(fbstatus + " -" + ba.getBotName());
-                    } catch (FacebookException e) {
-                        // TODO Auto-generated catch block
-                        Tools.printStackTrace(e);
-                    }
-                } else if (msg.equalsIgnoreCase("!die")) {
-                    ba.die();
                 }
             }
+
+            if (event.getMessageType() == Message.ARENA_MESSAGE) {
+                String arenamsg = event.getMessage();
+                String eventmsg = arenamsg.toLowerCase();
+                /*if (ba.getBotName().equals(twitterBot)) {
+                    if (eventmsg.contains("?go base") || eventmsg.contains("?go wbduel") || eventmsg.contains("?go spidduel") || eventmsg.contains("?go javduel")
+                            || eventmsg.contains("?go hockey")) {
+                        try {
+                            twitter.updateStatus("AUTOMATED-EVENT: " + arenamsg);
+                        } catch (TwitterException e) {
+                            // TODO Auto-generated catch block
+                            Tools.printStackTrace(e);
+                        }
+                    } else if (eventmsg.contains("?go ")) {
+                        try {
+                            twitter.updateStatus("EVENT: " + arenamsg);
+                        } catch (TwitterException e) {
+                            // TODO Auto-generated catch block
+                            Tools.printStackTrace(e);
+                        }
+                    } else if (eventmsg.contains("TWD") || eventmsg.contains("TWL")){
+                    	try {
+                			twitter.updateStatus("LEAGUE GAME: " + arenamsg);
+                		} catch (TwitterException e) {
+                			// TODO Auto-generated catch block
+                			Tools.printStackTrace(e);
+                		}
+                    }
+                }
+                }*/
+            }
+        }
+    }
+
+    private void loadOps() {
+        try {
+            BotSettings m_botSettings = m_botAction.getBotSettings();
+            mediaops.clear();
+            //
+            String ops[] = m_botSettings.getString("MediaOps").split(",");
+            for (int i = 0; i < ops.length; i++)
+                mediaops.put(ops[i].toLowerCase(), ops[i]);
+        } catch (Exception e) {
+            Tools.printStackTrace("Method Failed: ", e);
         }
 
-        if (event.getMessageType() == Message.ARENA_MESSAGE) {
-            String arenamsg = event.getMessage();
-            String eventmsg = arenamsg.toLowerCase();
-            if (ba.getBotName().equals(twitterBot)) {
-                if (eventmsg.contains("?go base") || eventmsg.contains("?go wbduel") || eventmsg.contains("?go spidduel") || eventmsg.contains("?go javduel")
-                        || eventmsg.contains("?go hockey")) {
-                    try {
-                        twitter.updateStatus("AUTOMATED-EVENT: " + arenamsg);
-                    } catch (TwitterException e) {
-                        // TODO Auto-generated catch block
-                        Tools.printStackTrace(e);
-                    }
-                } else if (eventmsg.contains("?go ")) {
-                    try {
-                        twitter.updateStatus("EVENT: " + arenamsg);
-                    } catch (TwitterException e) {
-                        // TODO Auto-generated catch block
-                        Tools.printStackTrace(e);
-                    }
-                } else if (eventmsg.contains("TWD") || eventmsg.contains("TWL")){
-                	try {
-						twitter.updateStatus("LEAGUE GAME: " + arenamsg);
-					} catch (TwitterException e) {
-						// TODO Auto-generated catch block
-						Tools.printStackTrace(e);
-					}
-                }
-            }
+    }
+
+    public void deOp(String playerName, String message) {
+
+        loadOps();
+        BotSettings m_botSettings = m_botAction.getBotSettings();
+        String ops = m_botSettings.getString("MediaOps");
+
+        int spot = ops.indexOf(message);
+        if (spot == 0 && ops.length() == message.length()) {
+            ops = "";
+            m_botAction.sendChatMessage("Removed: " + message + " successful");
+        } else if (spot == 0 && ops.length() > message.length()) {
+            ops = ops.substring(message.length() + 1);
+            m_botAction.sendChatMessage("Removed: " + message + " successful");
+        } else if (spot > 0 && spot + message.length() < ops.length()) {
+            ops = ops.substring(0, spot) + ops.substring(spot + message.length() + 1);
+            m_botAction.sendChatMessage("Removed: " + message + " successful");
+        } else if (spot > 0 && spot == ops.length() - message.length()) {
+            ops = ops.substring(0, spot - 1);
+            m_botAction.sendChatMessage("Removed: " + message + " successful");
+        } else
+            m_botAction.sendChatMessage("Removed: " + message + " successful");
+
+        m_botSettings.put("MediaOps", ops);
+        m_botSettings.save();
+        loadOps();
+    }
+
+    public void addOp(String playerName, String message) {
+        //SMod+ only command.
+        if (oplist.isSmod(playerName))
+            return;
+
+        BotSettings m_botSettings = m_botAction.getBotSettings();
+        String ops = m_botSettings.getString("MediaOps");
+
+        if (ops.contains(message)) {
+            m_botAction.sendChatMessage(message + " is already a Media Operator");
+            return;
         }
+        if (ops.length() < 1)
+            m_botSettings.put("MediaOps", message);
+        else
+            m_botSettings.put("MediaOps", ops + "," + message);
+        m_botAction.sendChatMessage("Added " + message + " as a Media Operator");
+        m_botSettings.save();
+        loadOps();
+    }
+
+    public void listOp() {
+        loadOps();
+        String hops = "Media Operators: ";
+        Iterator<String> it1 = mediaops.values().iterator();
+        while (it1.hasNext())
+            if (it1.hasNext())
+                hops += it1.next() + ", ";
+            else
+                hops += it1.next();
+        m_botAction.sendChatMessage(hops);
     }
 
     private void cmd_help(String name, String msg) {
@@ -255,19 +351,25 @@ public class socialmedia extends SubspaceBot {
                 "+-------------------------------------------------------------------------+", };
         String[] staff = { "|                                                                         |",
                 "+-------------------------------------------------------------------------+",
-                "|                  SMod Commands (Twitter)                                |",
+                "|                  Ops & SMod Commands (Twitter)                          |",
                 "| !tpost                 - Posts a status update with <msg>               |",
                 "| !go <arena>            - Sends the bot to <arena>                       |",
                 "| !die                   - Kills bot                                      |",
+                "| !listops               - List Ops                                       |",
+                "| !addop                 - Add Op                                         |",
+                "| !deop                  - De Op                                          |",
                 "+-------------------------------------------------------------------------+", };
         String[] stafffb = { "|                                                                         |",
-                "+-------------------------------------------------------------------------+",
-                "|                  SMod Commands (Facebook)                               |",
-                "| !fbpost                 - Posts a status update with <msg>              |",
-                "| !go <arena>                   - Sends the bot to <arena>                |",
-                "| !die                    - Kills bot                                     |",
-                "+-------------------------------------------------------------------------+", };
-        if(ba.getBotName().equals(twitterBot)){
+                "+--------------------------------------------------------------------------+",
+                "|                 Ops & SMod Commands (Facebook)                           |",
+                "| !fbpost                 - Posts a status update with <msg>               |",
+                "| !go <arena>             - Sends the bot to <arena>                       |",
+                "| !die                    - Kills bot                                      |",
+                "| !listops                - List Ops                                       |",
+                "| !addop                  - Add Op                                         |",
+                "| !deop                   - De Op                                          |",
+                "+--------------------------------------------------------------------------+", };
+        if (ba.getBotName().equals(twitterBot)) {
             ba.smartPrivateMessageSpam(name, strs);
         } else {
             ba.smartPrivateMessageSpam(name, stafffb);
