@@ -288,18 +288,18 @@ public class socialmedia extends SubspaceBot {
         int spot = ops.indexOf(message);
         if (spot == 0 && ops.length() == message.length()) {
             ops = "";
-            m_botAction.sendChatMessage("Removed: " + message + " successful");
+            m_botAction.sendChatMessage("Removed " + message + " as a Media Operator");
         } else if (spot == 0 && ops.length() > message.length()) {
             ops = ops.substring(message.length() + 1);
-            m_botAction.sendChatMessage("Removed: " + message + " successful");
+            m_botAction.sendChatMessage("Removed " + message + " as a Media Operator");
         } else if (spot > 0 && spot + message.length() < ops.length()) {
             ops = ops.substring(0, spot) + ops.substring(spot + message.length() + 1);
-            m_botAction.sendChatMessage("Removed: " + message + " successful");
+            m_botAction.sendChatMessage("Removed " + message + " as a Media Operator");
         } else if (spot > 0 && spot == ops.length() - message.length()) {
             ops = ops.substring(0, spot - 1);
-            m_botAction.sendChatMessage("Removed: " + message + " successful");
+            m_botAction.sendChatMessage("Removed " + message + " as a Media Operator");
         } else
-            m_botAction.sendChatMessage("Removed: " + message + " successful");
+            m_botAction.sendChatMessage("Removed " + message + " as a Media Operator");
 
         m_botSettings.put("MediaOps", ops);
         m_botSettings.save();
@@ -307,9 +307,6 @@ public class socialmedia extends SubspaceBot {
     }
 
     public void addOp(String playerName, String message) {
-        //SMod+ only command.
-        if (oplist.isSmod(playerName))
-            return;
 
         BotSettings m_botSettings = m_botAction.getBotSettings();
         String ops = m_botSettings.getString("MediaOps");
