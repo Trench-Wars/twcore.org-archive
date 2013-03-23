@@ -227,11 +227,12 @@ public class socialmedia extends SubspaceBot {
                             } else if (msg.startsWith("!fbpost ") && ba.getBotName().equals(facebookBot)) {
                                 String fbstatus = msg.substring(8);
                                 try {
-                                    facebook.postStatusMessage(fbstatus);
+                                    facebook.postStatusMessage("136524223193430",fbstatus);
                                     m_botAction.sendChatMessage("Posted to TWSubspace!");
                                 } catch (FacebookException e) {
                                     // TODO Auto-generated catch block
                                     Tools.printStackTrace(e);
+                                    m_botAction.sendChatMessage("Error: " + e);
                                 }
                             }
                         }
