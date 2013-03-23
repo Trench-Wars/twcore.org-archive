@@ -376,12 +376,13 @@ public class socialmedia extends SubspaceBot {
                 "+--------------------------------------------------------------------------+", };
             ba.smartPrivateMessageSpam(name, strs);
 
-        if (oplist.isSmod(name.toLowerCase()) || mediaops.containsKey(name.toLowerCase()) && ba.getBotName().equals(twitterBot)) {
+        if (oplist.isSmod(name.toLowerCase()) || mediaops.containsKey(name.toLowerCase())){
+            if (ba.getBotName().equals(twitterBot)) {
             ba.smartPrivateMessageSpam(name, staff);
         } else {
             ba.smartPrivateMessageSpam(name, stafffb);
 
         }
     }
-
+    }
 }
