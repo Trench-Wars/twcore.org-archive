@@ -494,29 +494,25 @@ public class pubsystem extends SubspaceBot
 	    	m_botAction.smartPrivateMessageSpam(sender, (String[])lines.toArray(new String[lines.size()]));
         	
         } else {
-        	boolean smod = false;
-        	if (m_botAction.getOperatorList().isSmod(sender))
-        	    smod = true;
+        	boolean smod = m_botAction.getOperatorList().isSmod(sender);
         	
             for(AbstractModule module: context.getModules()) {
             	List<String> m = new ArrayList<String>();
             	if (module.getModHelpMessage(sender).length>0) {
             		m.add(getModuleHelpHeader(module.getName()));
-            	}
-            	if (module.getModHelpMessage(sender).length>0) {
             		m.addAll(Arrays.asList(module.getModHelpMessage(sender)));
                     if( printHelpSpaces )
                         m.add(" ");
             	}
             	if (smod && module.getSmodHelpMessage(sender).length > 0) {
                     m.addAll(Arrays.asList(module.getSmodHelpMessage(sender)));
-                    m.add("- !greet <msg>      -- Change private message greeting.");
                     if( printHelpSpaces )
                         m.add(" ");            	    
             	}
             	lines.addAll(m);
             }
-            
+            if( smod )
+                lines.add("   !greet <msg>      -- Change private message greeting.");
             if( m_botAction.getOperatorList().isModerator( sender ) )
                 m_botAction.smartPrivateMessageSpam(sender, (String[])lines.toArray(new String[lines.size()]));
 
