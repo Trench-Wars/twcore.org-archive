@@ -1357,7 +1357,7 @@ public class MatchTeam {
         }
 
         // does the player want to be picked
-        if (m_round.m_notPlaying.indexOf(name.toLowerCase()) != -1) {
+        if (m_round.m_notPlaying.containsKey(name.toLowerCase())) {
             return "Player can't or doesn't want to play this round";
         }
 
