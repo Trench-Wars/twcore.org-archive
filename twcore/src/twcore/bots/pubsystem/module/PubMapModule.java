@@ -258,11 +258,11 @@ public class PubMapModule extends AbstractModule {
     @Override
     public String[] getSmodHelpMessage(String sender) {
         String[] msg = {
-                " [PubMap]",
-                " - !loadcfg          -- Reloads map module settings from the cfg file.",
-                " - !getsets          -- Displays current map module settings.",
-                " - !mapmod           -- Enables/Disables the pub map population control.",
-                " - !setbase          -- Forces the bot to set for current base settings.",
+                "[PubMap]",
+                "   !loadcfg          -- Reloads map module settings from the cfg file.",
+                "   !getsets          -- Displays current map module settings.",
+                "   !mapmod           -- Enables/Disables the pub map population control.",
+                "   !setbase          -- Forces the bot to set for current base settings.",
         };
         return msg;
     }
