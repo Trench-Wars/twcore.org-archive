@@ -390,9 +390,12 @@ public class pubbotbanc extends PubBotModule {
             return;
         if (shipNumber == 2 || shipNumber == 8 || shipNumber == 4) {
             try {
-                m_botAction.sendPrivateMessage(namePlayer, "You're banned from ship" + shipNumber + " with " + bancSuper.get(namePlayer).getRemaining() + " minutes remaining.");
-                m_botAction.sendPrivateMessage(namePlayer, "You've been put in spider. But you can change to: warbird(1), spider(3), weasel(6) or lancaster(7).");
-                m_botAction.setShip(namePlayer, 3);
+                BanC b = bancSuper.get(namePlayer);
+                if (b != null) {
+                    m_botAction.sendPrivateMessage(namePlayer, "You're banned from ship" + shipNumber + " with " + b.getRemaining() + " minutes remaining.");
+                    m_botAction.sendPrivateMessage(namePlayer, "You've been put in spider. But you can change to: warbird(1), spider(3), weasel(6) or lancaster(7).");
+                    m_botAction.setShip(namePlayer, 3);
+                }
             } catch (NullPointerException e) {
                 Tools.printStackTrace(e);
                 return;
