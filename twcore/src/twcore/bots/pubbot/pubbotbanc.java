@@ -42,7 +42,7 @@ public class pubbotbanc extends PubBotModule {
     public static final String IPCBANC = "banc";
     private static final String AFK_ARENA = "afk";
 
-    private static final long INFINTE_DURATION = 0;
+    private static final long INFINITE_DURATION = 0;
     private static final int MAX_NAME_LENGTH = 19;
     private static final int MAX_IDLE_TIME = 15; //mins
 
@@ -206,7 +206,7 @@ public class pubbotbanc extends PubBotModule {
                         m_botAction.sendUnfilteredPrivateMessage(name, "*shutup");
                     } else {
                         // The bot just silenced the player (and it's ok)
-                        if (current.getTime() == INFINTE_DURATION)
+                        if (current.getTime() == INFINITE_DURATION)
                             m_botAction.sendPrivateMessage(current.getName(), "You've been permanently silenced because of abuse and/or violation of Trench Wars rules.");
                         else
                             m_botAction.sendPrivateMessage(current.getName(), "You've been silenced for " + current.getTime()
@@ -220,7 +220,7 @@ public class pubbotbanc extends PubBotModule {
                         m_botAction.spec(name);
                     } else {
                         // The bot just spec-locked the player (and it's ok)
-                        if (current.getTime() == INFINTE_DURATION)
+                        if (current.getTime() == INFINITE_DURATION)
                             m_botAction.sendPrivateMessage(current.getName(), "You've been permanently locked into spectator because of abuse and/or violation of Trench Wars rules.");
                         else
                             m_botAction.sendPrivateMessage(current.getName(), "You've been locked into spectator for " + current.getTime()
