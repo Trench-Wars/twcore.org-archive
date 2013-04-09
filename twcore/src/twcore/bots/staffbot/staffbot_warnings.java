@@ -316,7 +316,7 @@ public class staffbot_warnings extends Module {
                 }
                 String warningText = set.getString( "warning" );
                 java.sql.Date date = new java.sql.Date(System.currentTimeMillis());
-                m_botAction.SQLQueryAndClose( sqlHost, "UPDATE tblWarnings SET warning='DEL: (Warning deleted by " + name + " on " + new SimpleDateFormat("dd MMM yyyy").format( date ) + ")' WHERE warning='" + Tools.addSlashesToString(warningText) + "'" );
+                m_botAction.SQLQueryAndClose( sqlHost, "UPDATE tblWarnings SET warning='DEL: (Warning deleted by " + name + " on " + new SimpleDateFormat("dd MMM yyyy kk:mm:ss").format( date ) + ")' WHERE warning='" + Tools.addSlashesToString(warningText) + "'" );
                 String[] text;
                 if( warningText.contains("Ext: "))
                     text = warningText.split( "Ext: ", 2);
