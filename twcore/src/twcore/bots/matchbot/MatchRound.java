@@ -16,9 +16,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.ListIterator;
 import java.util.Random;
 import java.util.TimerTask;
 
@@ -103,7 +103,8 @@ public class MatchRound {
     TimerTask m_moveAround;
     TimerTask m_secondWarp;
     TimerTask updateScores;
-    ArrayList<String> m_notPlaying;
+    HashMap<String,Long> m_notPlaying;
+    private long timeBetweenNPs = (Tools.TimeInMillis.SECOND * 45);
 
     JSONArray events; // array of MatchRoundEvent
 
@@ -168,7 +169,7 @@ public class MatchRound {
 
         m_lagHandler = new lagHandler(m_botAction, m_rules, this, "handleLagReport");
 
-        m_notPlaying = new ArrayList<String>();
+        m_notPlaying = new HashMap<String,Long>();
 
         Iterator<Player> iterator = m_botAction.getPlayerIterator();
         Player player;
@@ -176,7 +177,7 @@ public class MatchRound {
         while (iterator.hasNext()) {
             player = iterator.next();
             if (player.getFrequency() == NOT_PLAYING_FREQ) {
-                m_notPlaying.add(player.getPlayerName().toLowerCase());
+                m_notPlaying.put(player.getPlayerName().toLowerCase(), System.currentTimeMillis());
             }
         }
 
@@ -365,8 +366,8 @@ public class MatchRound {
             m_botAction.sendPrivateMessage(event.getPlayerID(), "This game has blueout enabled.");
         }
 
-        int exists = m_notPlaying.indexOf(event.getPlayerName().toLowerCase());
-        if (exists != -1) {
+        Long exists = m_notPlaying.get(event.getPlayerName().toLowerCase());
+        if (exists != null) {
             m_botAction.spec(event.getPlayerName());
             m_botAction.spec(event.getPlayerName());
             m_logger.sendPrivateMessage(event.getPlayerName(), "notplaying mode is still on, captains will be unable to pick you");
@@ -1218,10 +1219,10 @@ public class MatchRound {
     }
 
     public void command_notplaying(String name, String parameters[]) {
-        int exists = m_notPlaying.indexOf(name.toLowerCase());
+        Long time = m_notPlaying.get(name.toLowerCase());
 
-        if (exists == -1) {
-            m_notPlaying.add(name.toLowerCase());
+        if (time == null) {
+            m_notPlaying.put(name.toLowerCase(), System.currentTimeMillis());
             String[] tmp = { name };
             if ((m_team1.getPlayer(name, true) != null) && (m_fnRoundState == 1))
                 m_team1.command_remove(name, tmp);
@@ -1232,19 +1233,23 @@ public class MatchRound {
             m_logger.sendPrivateMessage(name, "Not Playing mode turned on, captains will be unable to pick you");
             m_logger.setFreq(name, NOT_PLAYING_FREQ);
         } else {
-            m_notPlaying.remove(exists);
-            m_logger.sendPrivateMessage(name, "notplaying mode turned off, captains will be able to pick you");
-            if (m_fnRoundState > 2) {
-                m_logger.sendPrivateMessage(name, "If you wish to get back on the normal spec frequency, rejoin the arena");
-                m_logger.setFreq(name, NOT_PLAYING_FREQ + 1);
+            if( System.currentTimeMillis() < time + timeBetweenNPs ) {  // Delay between toggling !np in-game            
+                m_notPlaying.remove(name.toLowerCase());
+                m_logger.sendPrivateMessage(name, "notplaying mode turned off, captains will be able to pick you");
+                if (m_fnRoundState > 2) {
+                    m_logger.sendPrivateMessage(name, "If you wish to get back on the normal spec frequency, rejoin the arena");
+                    m_logger.setFreq(name, NOT_PLAYING_FREQ + 1);
+                } else {
+                    placeOnSpecFreq(name);
+                }
             } else {
-                placeOnSpecFreq(name);
+                m_logger.sendPrivateMessage(name, "Sorry, in the interest of fairness you must wait a short time before turning notplaying back off again.");                
             }
         }
     }
 
     public void command_notplaylist(String name, String parameters[]) {
-        ListIterator<String> i = m_notPlaying.listIterator();
+        Iterator<String> i = m_notPlaying.keySet().iterator();
         String a = "", pn;
         boolean first = true;
         while (i.hasNext()) {
