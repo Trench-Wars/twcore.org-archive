@@ -789,7 +789,7 @@ public class PubPlayerManagerModule extends AbstractModule {
      */
     public void shuffle() {
         if (notify)
-            m_botAction.sendSmartPrivateMessage("WingZero", "Shufflling teams!");
+            m_botAction.sendSmartPrivateMessage("WingZero", "Shuffling teams!");
         ArrayList<Integer> plist = new ArrayList<Integer>();
         Iterator<Integer> i = m_botAction.getFreqIDIterator(0);
         int s = m_botAction.getFrequencySize(0);
@@ -953,6 +953,26 @@ public class PubPlayerManagerModule extends AbstractModule {
         m_botAction.sendPrivateMessage(name, "Freq difference shuffle trigger = " + SHUFFLE_SIZE);
     }
 
+    /**
+     * Send a staff member to spectator mode. SMod+ 
+     */
+    public void doSpecStaff(String name, String msg) {
+        msg = msg.substring(msg.indexOf(" ") + 1);
+        
+        Player p = m_botAction.getPlayer( msg );
+        if (p == null) {
+            p = m_botAction.getFuzzyPlayer( msg );
+            if (p == null ) {
+               m_botAction.sendPrivateMessage(name, "Can't find a player corresponding to '" + msg + "'");
+               return;
+            }
+        }
+        
+        m_botAction.specWithoutLock( p.getPlayerID() );
+        m_botAction.sendPrivateMessage(name, "'" + p.getPlayerName() + "' sent to spec.");
+    }
+    
+    
 	@Override
 	public void handleCommand(String sender, String command) {
 		// TODO Auto-generated method stub
@@ -976,6 +996,8 @@ public class PubPlayerManagerModule extends AbstractModule {
             shuffle();
         } else if (command.startsWith("!trigger ")) {
             doSetShuffleSize(sender, command);
+        } else if (command.startsWith("!specstaff ")) {
+            doSpecStaff(sender, command);
         } else if(command.equals("!debug")) {
             for(PubPlayer p: players.values()) {
                 m_botAction.sendSmartPrivateMessage(sender, p.getPlayerName());
@@ -991,6 +1013,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                 pubsystem.getHelpLine("!vote             -- Force a vote to shuffle teams."),
                 pubsystem.getHelpLine("!forceshuffle     -- Force shuffle teams."),
                 pubsystem.getHelpLine("!trigger          -- Set the freq size difference trigger for shuffle vote (-1 is off)."),
+                pubsystem.getHelpLine("!specstaff <name> -- Spec SMod+ who is AFK"),
         };
     }   
 	
@@ -1002,8 +1025,8 @@ public class PubPlayerManagerModule extends AbstractModule {
 	@Override
 	public String[] getModHelpMessage(String sender) {
 		return new String[]{
-		        "- !tax <$>          -- Sets <$> as the amount deducted for teamkills",
-		        "- !tax              -- Shows the current teamkill tax"
+		        "   !tax <$>          -- Sets <$> as the amount deducted for teamkills",
+		        "   !tax              -- Shows the current teamkill tax"
 		};
 	}
 
