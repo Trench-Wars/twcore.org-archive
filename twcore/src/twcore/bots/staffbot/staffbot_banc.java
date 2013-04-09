@@ -190,7 +190,8 @@ public class staffbot_banc extends Module {
     @Override
     public void cancel() {
         stop = true;
-        updateElapsed.run();
+        if( updateElapsed != null )     // Gave NPE in error log; better safe than sorry
+            updateElapsed.run();
 
         m_botAction.ipcUnSubscribe(IPCALIAS);
         m_botAction.ipcUnSubscribe(IPCBANC);
