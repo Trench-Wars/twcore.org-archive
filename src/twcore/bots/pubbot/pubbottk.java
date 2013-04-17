@@ -2,6 +2,7 @@ package twcore.bots.pubbot;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.TreeSet;
 import java.util.WeakHashMap;
 import java.util.Iterator;
 
@@ -69,12 +70,17 @@ public class pubbottk extends PubBotModule {
     private WeakHashMap <String,TKInfo>oldtkers; // Same as above; stores TKers who leave arena
                                                  // (low-cost abuse prevention).  Old keys dropped regularly.
     private HashMap <String,String>tked;     // (String)Name TKd -> (String)Last name who TKd them
+    private TreeSet<String> ignores;
 
     /**
      * Called when the module is loaded for each individual pubbot.
      */
     public void initializeModule() {
         currentArena = m_botAction.getArenaName();
+        ignores = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+        String[] ignore = m_botAction.getBotSettings().getString("Ignores").trim().split(",");
+        for (String i : ignore)
+            ignores.add(i);
 
         // TODO: Add to CFG
         if( currentArena.toLowerCase().equals("tourny") || currentArena.toLowerCase().startsWith("base") || currentArena.toLowerCase().equals("duel") )
@@ -207,6 +213,8 @@ public class pubbottk extends PubBotModule {
         String message = event.getMessage();
         if( event.getMessageType() == Message.PRIVATE_MESSAGE ){
             String name = m_botAction.getPlayerName( event.getPlayerID() );
+            if (ignores.contains(name))
+                return;
             if( m_opList.isBot( name ) ) {
 
                 if( message.equals( "!help" )){
@@ -325,11 +333,6 @@ public class pubbottk extends PubBotModule {
         if( info.playerHasNotified() ) {
             m_botAction.sendPrivateMessage( name, "Staff has already been notified about '" + tker + "'.  Please use ?cheater if the problem continues or you do not receive a response." );
         	return;
-        }
-        
-        if( info.wasStaffNotified() ) {
-            m_botAction.sendPrivateMessage( name, "Staff has already been notified about '" + tker + "'.  Please use ?cheater if the problem continues or you do not receive a response." );
-            return;
         }
 
         String msg = "?cheater TK Report: " + name + " is reporting " + tker + " for intentional TK.  (" + info.getNumTKs() + " total TKs)";
