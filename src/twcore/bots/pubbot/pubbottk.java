@@ -251,7 +251,7 @@ public class pubbottk extends PubBotModule {
                 igns += i + ",";
             m_botAction.getBotSettings().put("Ignores", igns);
             m_botAction.getBotSettings().save();
-            m_botAction.sendPrivateMessage(name, "" + p + " has been IGNORED.");
+            m_botAction.sendPrivateMessage(name, "" + p + " is no longer ignored.");
         } else {
             ignores.add(p);
             String igns = "";
@@ -259,7 +259,7 @@ public class pubbottk extends PubBotModule {
                 igns += i + ",";
             m_botAction.getBotSettings().put("Ignores", igns);
             m_botAction.getBotSettings().save();
-            m_botAction.sendPrivateMessage(name, "" + p + " is no longer ignored.");
+            m_botAction.sendPrivateMessage(name, "" + p + " has been IGNORED.");
         }
     }
     
@@ -268,7 +268,7 @@ public class pubbottk extends PubBotModule {
         String igns = "";
         for (String i : ignores)
             igns += i + ",";
-        m_botAction.sendPrivateMessage(name, igns);
+        m_botAction.sendPrivateMessage(name, "Ignoring: " + igns);
     }
 
 
