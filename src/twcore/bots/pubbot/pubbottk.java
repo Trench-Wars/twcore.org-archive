@@ -221,6 +221,8 @@ public class pubbottk extends PubBotModule {
                     m_botAction.sendPrivateMessage( name, "Pubbot TK Module" );
                 	m_botAction.sendPrivateMessage( name, "!help        - this message");
                 	m_botAction.sendPrivateMessage( name, "!tkinfo name - gives TK information on 'name', if they have TK'd");
+                    m_botAction.sendPrivateMessage( name, "!ignore name - ignores or un-ignores tk reporting attempts from name");
+                    m_botAction.sendPrivateMessage( name, "!ignores     - lists ignored players");
 
                 } else if( message.startsWith( "!tkinfo " )){
                     String tkname = message.substring( 8 ).toLowerCase();
@@ -228,12 +230,45 @@ public class pubbottk extends PubBotModule {
            		        m_botAction.sendPrivateMessage( name, "Formatting error.  Please use format: !tkinfo playername" );
                     else
            		        msgTKInfo( name, tkname );
-                }
+                } else if (message.startsWith("!ignore "))
+                    cmd_ignore(name, message);
+                else if (message.equalsIgnoreCase("!ignores"))
+                    cmd_ignores(name);
             }
-            if( message.equals( "report") && ALLOW_PLAYER_NOTIFY == true ) {
+            if( message.equals( "report") && ALLOW_PLAYER_NOTIFY) {
                 doManualPlayerNotify( name );
             }
         }
+    }
+    
+    public void cmd_ignore(String name, String cmd) {
+        if (cmd.length() < "!ignore n".length())
+            return;
+        String p = cmd.substring(8);
+        if (ignores.remove(p)) {
+            String igns = "";
+            for (String i : ignores)
+                igns += i + ",";
+            m_botAction.getBotSettings().put("Ignores", igns);
+            m_botAction.getBotSettings().save();
+            m_botAction.sendPrivateMessage(name, "" + p + " has been IGNORED.");
+        } else {
+            ignores.add(p);
+            String igns = "";
+            for (String i : ignores)
+                igns += i + ",";
+            m_botAction.getBotSettings().put("Ignores", igns);
+            m_botAction.getBotSettings().save();
+            m_botAction.sendPrivateMessage(name, "" + p + " is no longer ignored.");
+        }
+    }
+    
+    public void cmd_ignores(String name) {
+
+        String igns = "";
+        for (String i : ignores)
+            igns += i + ",";
+        m_botAction.sendPrivateMessage(name, igns);
     }
 
 
