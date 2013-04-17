@@ -641,6 +641,7 @@ public class pubbotbanc extends PubBotModule {
             elapsed = Integer.valueOf(args[5]);
             active = true;
             aliases = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+            aliases.add(originalName);
         }
 
         public int getElapsed() {
