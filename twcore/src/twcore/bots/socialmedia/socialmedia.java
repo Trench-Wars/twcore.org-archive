@@ -135,7 +135,7 @@ public class socialmedia extends SubspaceBot {
         } else {
             ba.joinArena(cfg.getString("FBInitialArena"));
         }
-        ba.sendUnfilteredPublicMessage("?chat=media,"+ba.getGeneralSettings().getString("SmodChat"));
+        ba.sendUnfilteredPublicMessage("?chat=media," + ba.getGeneralSettings().getString("Smod Chat"));
         loadOps();
     }
 
@@ -146,9 +146,9 @@ public class socialmedia extends SubspaceBot {
     public void handleEvent(ArenaJoined event) {
         ba.setFreq(ba.getPlayerID(ba.getBotName()), 9751);
         if (ba.getBotName().equals(twitterBot)) {
-            ba.sendChatMessage(2,"OAuth Credentials Verified.");
+            ba.sendChatMessage(2, "OAuth Credentials Verified.");
         } else {
-            ba.sendChatMessage(2,"Access Tokens Verified.");
+            ba.sendChatMessage(2, "Access Tokens Verified.");
         }
 
     }
@@ -176,7 +176,8 @@ public class socialmedia extends SubspaceBot {
             name = m_botAction.getPlayerName(event.getPlayerID());
         String msg = event.getMessage();
 
-        if (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE || event.getMessageType() == Message.CHAT_MESSAGE) {
+        if (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE
+                || event.getMessageType() == Message.CHAT_MESSAGE) {
             if (msg.equalsIgnoreCase("!help")) {
                 cmd_help(name, msg);
             } else if (msg.equalsIgnoreCase("!about")) {
@@ -209,42 +210,42 @@ public class socialmedia extends SubspaceBot {
                     }
                 }
 
-                        if (mediaops.containsKey(name.toLowerCase()) || oplist.isSmod(name.toLowerCase())) {
+                if (mediaops.containsKey(name.toLowerCase()) || oplist.isSmod(name.toLowerCase())) {
 
-                            if (msg.startsWith("!tpost ") && ba.getBotName().equals(twitterBot)) {
-                                String status = msg.substring(7);
-                                try {
-                                    if(status.length() > 140){
-                                        m_botAction.sendChatMessage("That tweet is over 140 characters - therefor I reject it.");
-                                    } else {
-                                    twitter.updateStatus(status);
-                                    if(event.getChatNumber() == 1){
+                    if (msg.startsWith("!tpost ") && ba.getBotName().equals(twitterBot)) {
+                        String status = msg.substring(7);
+                        try {
+                            if (status.length() > 140) {
+                                m_botAction.sendChatMessage("That tweet is over 140 characters - therefor I reject it.");
+                            } else {
+                                twitter.updateStatus(status);
+                                if (event.getChatNumber() == 1) {
                                     m_botAction.sendChatMessage("Tweeted to SSTrenchWars!");
-                                    } else {
-                                        ba.sendChatMessage(2,"Tweeted to SSTrenchWars!");
-                                    }
-                                    }
-                                } catch (TwitterException e) {
-                                    // TODO Auto-generated catch block
-                                    Tools.printStackTrace(e);
-                                }
-                            } else if (msg.startsWith("!fbpost ") && ba.getBotName().equals(facebookBot)) {
-                                String fbstatus = msg.substring(8);
-                                try {
-                                    facebook.postStatusMessage("136524223193430",fbstatus);
-                                    if(event.getChatNumber() == 1){
-                                    m_botAction.sendChatMessage("Posted to TWSubspace!");
-                                    } else {
-                                        m_botAction.sendChatMessage("Posted to TWSubspace!");
-                                    }
-                                    
-                                } catch (FacebookException e) {
-                                    // TODO Auto-generated catch block
-                                    Tools.printStackTrace(e);
-                                    m_botAction.sendChatMessage("Error: " + e);
+                                } else {
+                                    ba.sendChatMessage(2, "Tweeted to SSTrenchWars!");
                                 }
                             }
+                        } catch (TwitterException e) {
+                            // TODO Auto-generated catch block
+                            Tools.printStackTrace(e);
                         }
+                    } else if (msg.startsWith("!fbpost ") && ba.getBotName().equals(facebookBot)) {
+                        String fbstatus = msg.substring(8);
+                        try {
+                            facebook.postStatusMessage("136524223193430", fbstatus);
+                            if (event.getChatNumber() == 1) {
+                                m_botAction.sendChatMessage("Posted to TWSubspace!");
+                            } else {
+                                m_botAction.sendChatMessage("Posted to TWSubspace!");
+                            }
+
+                        } catch (FacebookException e) {
+                            // TODO Auto-generated catch block
+                            Tools.printStackTrace(e);
+                            m_botAction.sendChatMessage("Error: " + e);
+                        }
+                    }
+                }
 
             }
 
@@ -383,15 +384,15 @@ public class socialmedia extends SubspaceBot {
                 "| !addop                  - Add Op                                         |",
                 "| !deop                   - De Op                                          |",
                 "+--------------------------------------------------------------------------+", };
-            ba.smartPrivateMessageSpam(name, strs);
+        ba.smartPrivateMessageSpam(name, strs);
 
-        if (oplist.isSmod(name.toLowerCase()) || mediaops.containsKey(name.toLowerCase())){
+        if (oplist.isSmod(name.toLowerCase()) || mediaops.containsKey(name.toLowerCase())) {
             if (ba.getBotName().equals(twitterBot)) {
-            ba.smartPrivateMessageSpam(name, staff);
-        } else {
-            ba.smartPrivateMessageSpam(name, stafffb);
+                ba.smartPrivateMessageSpam(name, staff);
+            } else {
+                ba.smartPrivateMessageSpam(name, stafffb);
 
+            }
         }
-    }
     }
 }
