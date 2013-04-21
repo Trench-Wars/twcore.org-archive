@@ -135,7 +135,8 @@ public class socialmedia extends SubspaceBot {
         } else {
             ba.joinArena(cfg.getString("FBInitialArena"));
         }
-        ba.sendUnfilteredPublicMessage("?chat=media");
+        ba.sendUnfilteredPublicMessage("?chat=media,"+ba.getGeneralSettings().getString("SmodChat"));
+        loadOps();
     }
 
     public void handleEvent(ArenaList event) {
@@ -145,9 +146,9 @@ public class socialmedia extends SubspaceBot {
     public void handleEvent(ArenaJoined event) {
         ba.setFreq(ba.getPlayerID(ba.getBotName()), 9751);
         if (ba.getBotName().equals(twitterBot)) {
-            ba.sendChatMessage("My OAuth Credentials were accepted. Monitoring Trench Wars events...");
+            ba.sendChatMessage(2,"OAuth Credentials Verified.");
         } else {
-            ba.sendChatMessage("My OAuth Credentials were accepted. Monitoring important Trench Wars events...");
+            ba.sendChatMessage(2,"Access Tokens Verified.");
         }
 
     }
@@ -181,12 +182,11 @@ public class socialmedia extends SubspaceBot {
             } else if (msg.equalsIgnoreCase("!about")) {
                 if (ba.getBotName().equals(twitterBot)) {
                     m_botAction.sendSmartPrivateMessage(name, "Hello there! My name is TwitterBot. I'm the sister of FacebookBot. My purpose is to track important events "
-                            + "and post them on our Twitter page! Want to see what I post? Why don't you follow me on http://www.twitter.com/SSTrenchWars. "
-                            + "Oh and not to mention, Dezmond owns me. Safe to say I won't be going anywhere soon...");
+                            + "and post them on our Twitter page! Want to see what I post? Why don't you follow me on http://www.twitter.com/SSTrenchWars. ");
                 } else {
                     m_botAction.sendSmartPrivateMessage(name, "Hey! My name is FacebookBot. If you didn't know, TwitterBot is my sister! My reason for being here "
                             + "is to post important events and status updates to our Facebook page for SSCU Trench Wars. Interested in liking my page? "
-                            + "You can visit it at http://facebook.com/TWSubspace. Unfortunately my owner doesn't let me go -ANYWHERE-, so I'll be here to post frequently!");
+                            + "You can visit it at http://facebook.com/TWSubspace.");
                 }
             }
             if (event.getMessageType() == Message.CHAT_MESSAGE) {
@@ -218,7 +218,11 @@ public class socialmedia extends SubspaceBot {
                                         m_botAction.sendChatMessage("That tweet is over 140 characters - therefor I reject it.");
                                     } else {
                                     twitter.updateStatus(status);
+                                    if(event.getChatNumber() == 1){
                                     m_botAction.sendChatMessage("Tweeted to SSTrenchWars!");
+                                    } else {
+                                        ba.sendChatMessage(2,"Tweeted to SSTrenchWars!");
+                                    }
                                     }
                                 } catch (TwitterException e) {
                                     // TODO Auto-generated catch block
@@ -228,7 +232,12 @@ public class socialmedia extends SubspaceBot {
                                 String fbstatus = msg.substring(8);
                                 try {
                                     facebook.postStatusMessage("136524223193430",fbstatus);
+                                    if(event.getChatNumber() == 1){
                                     m_botAction.sendChatMessage("Posted to TWSubspace!");
+                                    } else {
+                                        m_botAction.sendChatMessage("Posted to TWSubspace!");
+                                    }
+                                    
                                 } catch (FacebookException e) {
                                     // TODO Auto-generated catch block
                                     Tools.printStackTrace(e);
