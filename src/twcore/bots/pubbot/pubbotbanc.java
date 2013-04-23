@@ -385,16 +385,15 @@ public class pubbotbanc extends PubBotModule {
         }
     }
 
-    private void handleSuper(String namePlayer, int shipNumber) {
+    private void handleSuper(BanC b, int shipNumber) {
         if (!m_botAction.getArenaName().startsWith("(Public "))
             return;
         if (shipNumber == 2 || shipNumber == 8 || shipNumber == 4) {
             try {
-                BanC b = bancSuper.get(namePlayer);
                 if (b != null) {
-                    m_botAction.sendPrivateMessage(namePlayer, "You're banned from ship" + shipNumber + " with " + b.getRemaining() + " minutes remaining.");
-                    m_botAction.sendPrivateMessage(namePlayer, "You've been put in spider. But you can change to: warbird(1), spider(3), weasel(6) or lancaster(7).");
-                    m_botAction.setShip(namePlayer, 3);
+                    m_botAction.sendPrivateMessage(b.getName(), "You're banned from ship" + shipNumber + " with " + b.getRemaining() + " minutes remaining.");
+                    m_botAction.sendPrivateMessage(b.getName(), "You've been put in spider. But you can change to: warbird(1), spider(3), weasel(6) or lancaster(7).");
+                    m_botAction.setShip(b.getName(), 3);
                 }
             } catch (NullPointerException e) {
                 Tools.printStackTrace(e);
@@ -484,7 +483,7 @@ public class pubbotbanc extends PubBotModule {
                         case SUPERSPEC:
                             Player p = m_botAction.getPlayer(curr.getName());
                             if (p != null)
-                                handleSuper(curr.getName(), p.getShipType());
+                                handleSuper(curr, p.getShipType());
                             break;
                     }
                 } else if (current instanceof String)
