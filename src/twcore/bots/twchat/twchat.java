@@ -446,6 +446,7 @@ public class twchat extends SubspaceBot {
                         stater = "";
                     } else if (type == EventRequester.MESSAGE) {
                         String name = ipc.getName();
+                        bug += " - " + name;
                         String cmd = name.substring(name.indexOf(":") + 1);
                         name = name.substring(0, name.indexOf(":"));
 
