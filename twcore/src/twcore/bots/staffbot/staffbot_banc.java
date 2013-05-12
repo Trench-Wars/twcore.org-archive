@@ -337,7 +337,7 @@ public class staffbot_banc extends Module {
                 sendIPCActiveBanCs(ipc.getSender());
             else if (command.startsWith("ELAPSED:"))
                 doElapsed(args[1], args[2]);
-            else if (command.startsWith("KICKED:"))
+            else if (command.startsWith("KICKED:") || command.startsWith("PROXY:"))
                 m_botAction.sendChatMessage(2, command.substring(7));
             else if (command.startsWith(BanCType.SILENCE.toString())) {
                 BanC banc = lookupActiveBanC(BanCType.SILENCE, args[1]);
