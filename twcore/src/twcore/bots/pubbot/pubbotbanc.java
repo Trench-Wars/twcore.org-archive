@@ -59,6 +59,8 @@ public class pubbotbanc extends PubBotModule {
     private boolean silentKicks;
     private String sendto;
     
+    private boolean proxy;
+    
     private boolean DEBUG;
     private String debugger;
 
@@ -67,6 +69,7 @@ public class pubbotbanc extends PubBotModule {
         m_botAction.ipcSubscribe(IPCBANC);
         silentKicks = false;
         DEBUG = false;
+        proxy = false;
         debugger = null;
         bancSilence = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         bancSpec = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
@@ -178,7 +181,7 @@ public class pubbotbanc extends PubBotModule {
     public void handleEvent(Message event) {
         String message = event.getMessage().trim();
         if (event.getMessageType() == Message.ARENA_MESSAGE)
-            if (message.contains("Proxy: ") && !message.contains("Not using proxy")) {//if (message.contains("Proxy: SOCKS5 proxy")) {
+            if ((!proxy && message.contains("Proxy: ") && !message.contains("Not using proxy")) || (proxy && message.contains("Proxy: SOCKS5 proxy"))) {
                 String name = message.substring(0, message.indexOf(": U"));
                 String proxy = message.substring(message.indexOf("Proxy:"), message.indexOf("Idle:")-1);
                 m_botAction.sendUnfilteredPrivateMessage(name, "*kill");
@@ -255,12 +258,19 @@ public class pubbotbanc extends PubBotModule {
                     cmd_kicks(name);
                 else if (message.equals("!banc"))
                     cmd_banc(name);
+                else if (message.equals("!proxy"))
+                    cmd_proxy(name);
             if (m_botAction.getOperatorList().isModerator(name))
                 if (message.startsWith("!move ") || message.startsWith("!bounce "))
                     cmd_move(name, message);
                 else if (message.equalsIgnoreCase("!list"))
                     cmd_list(name);
         }
+    }
+    
+    private void cmd_proxy(String name) {
+        proxy = !proxy;
+        m_botAction.sendSmartPrivateMessage(name, "Proxy kicking is: " + (proxy ? "DISABLED" : "ENABLED"));
     }
     
     private void cmd_banc(String name) {
