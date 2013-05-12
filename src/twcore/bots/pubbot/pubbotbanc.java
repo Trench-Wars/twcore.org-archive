@@ -183,11 +183,11 @@ public class pubbotbanc extends PubBotModule {
         if (event.getMessageType() == Message.ARENA_MESSAGE)
             if ((!proxy && message.contains("Proxy: ") && !message.contains("Not using proxy")) || (proxy && message.contains("Proxy: SOCKS5 proxy"))) {
                 String name = message.substring(0, message.indexOf(": U"));
-                String proxy = message.substring(message.indexOf("Proxy:"), message.indexOf("Idle:")-1);
+                String proxy = message.substring(message.indexOf("Proxy:"), message.indexOf("Idle:")-2);
                 m_botAction.sendUnfilteredPrivateMessage(name, "*kill");
                 m_botAction.ipcSendMessage(IPCBANC, "KICKED:Player '" + name + "' has been kicked by " + m_botAction.getBotName() + " for using an unapproved proxy. (" + proxy + ")", "banc", m_botAction.getBotName());
             } else if (message.contains("Proxy: ") && !message.contains("Not using proxy")) {
-                String proxy = message.substring(message.indexOf("Proxy:"), message.indexOf("Idle:")-1);
+                String proxy = message.substring(message.indexOf("Proxy:"), message.indexOf("Idle:")-2);
                 String name = message.substring(0, message.indexOf(": U"));
                 m_botAction.ipcSendMessage(IPCBANC, "PROXY:Player '" + name + "' detected by " + m_botAction.getBotName() + " using a proxy. (" + proxy + ")", "banc", m_botAction.getBotName());
             } else if (message.startsWith("IP:"))

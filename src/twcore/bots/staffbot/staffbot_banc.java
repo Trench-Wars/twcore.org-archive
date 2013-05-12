@@ -338,7 +338,7 @@ public class staffbot_banc extends Module {
             else if (command.startsWith("ELAPSED:"))
                 doElapsed(args[1], args[2]);
             else if (command.startsWith("KICKED:") || command.startsWith("PROXY:"))
-                m_botAction.sendChatMessage(2, command.substring(command.indexOf(":")));
+                m_botAction.sendChatMessage(2, command.substring(command.indexOf(":")+1));
             else if (command.startsWith(BanCType.SILENCE.toString())) {
                 BanC banc = lookupActiveBanC(BanCType.SILENCE, args[1]);
                 if (banc != null && banc.isNotification())
