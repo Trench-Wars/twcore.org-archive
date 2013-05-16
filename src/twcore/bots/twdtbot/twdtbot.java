@@ -140,7 +140,7 @@ public class twdtbot extends SubspaceBot {
                 } else {
                     ba.SQLBackgroundQuery(db, null, "INSERT INTO tblDraft__Player (fnUserID, fnSeason, fcName, fcPlayerStatusTypeID) VALUES(" + dbP.getUserID() + ", " + season + ", '" + Tools.addSlashesToString(name) + "', " + 7 + ")");
                     ba.SQLBackgroundQuery(db, null, "INSERT INTO tblDraft__PlayerReg (fcName, fnSeason) VALUES('" + Tools.addSlashesToString(name) + "', " + season + ")");
-                    ba.sendSmartPrivateMessage(name, "Signup successful!");
+                    ba.sendSmartPrivateMessage(name, "Signup successful! To view your account and other information regarding the current season. Please visit http://www.trenchwars.org/twdt/ and login at the top of the page.");
                 }
             } catch (SQLException e) {
                 ba.sendSmartPrivateMessage(name, "An error occured and your signup did not complete.");
