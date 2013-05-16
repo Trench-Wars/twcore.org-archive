@@ -138,7 +138,7 @@ public class twdtbot extends SubspaceBot {
                     t = t.substring(0, 10) + " at " + t.substring(11, 16);
                     ba.sendSmartPrivateMessage(name, "You already signed up on " + t + ".");
                 } else {
-                    ba.SQLBackgroundQuery(db, null, "INSERT INTO tblDraft__Player (fnPlayerID, fnSeason, fcName) VALUES(" + dbP.getUserID() + ", " + season + ", '" + Tools.addSlashesToString(name) + "')");
+                    ba.SQLBackgroundQuery(db, null, "INSERT INTO tblDraft__Player (fnUserID, fnSeason, fcName) VALUES(" + dbP.getUserID() + ", " + season + ", '" + Tools.addSlashesToString(name) + "')");
                     ba.SQLBackgroundQuery(db, null, "INSERT INTO tblDraft__PlayerReg (fcName, fnSeason) VALUES('" + Tools.addSlashesToString(name) + "', " + season + ")");
                     ba.sendSmartPrivateMessage(name, "Signup successful!");
                 }
@@ -154,7 +154,7 @@ public class twdtbot extends SubspaceBot {
     private void cmd_count(String name) {
         ResultSet rs = null;
         try {
-            rs = ba.SQLQuery(db, "SELECT COUNT(fnPlayerID) as c FROM tblDraft__Player WHERE fnSeason = " + season + "");
+            rs = ba.SQLQuery(db, "SELECT COUNT(fnUserID) as c FROM tblDraft__Player WHERE fnSeason = " + season + "");
             
             if (rs.next())
                 ba.sendSmartPrivateMessage(name, "Total players registerd: " + rs.getInt("c"));
