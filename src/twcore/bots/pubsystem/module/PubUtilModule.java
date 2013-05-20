@@ -321,17 +321,17 @@ public class PubUtilModule extends AbstractModule {
      *
      * @param sender is the sender of the command.
      */
-    private void doPrivFreqsCmd(String sender) {
+    private void doPrivFreqsCmd(String sender, String verbose ) {
         privFreqEnabled = !privFreqEnabled;
 
         if (privFreqEnabled) {
             context.getPlayerManager().fixFreqs();
-            if (!context.hasJustStarted()) {
+            if (!context.hasJustStarted() && verbose.equals("on")) {
                 m_botAction.sendArenaMessage("[SETTING] Private Frequencies enabled.", 2);
             }
             m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully enabled.");
         } else {
-            if (!context.hasJustStarted()) {
+            if (!context.hasJustStarted() && verbose.equals("on")) {
                 m_botAction.sendArenaMessage("[SETTING] Private Frequencies disabled.", 2);
             }
             m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully disabled.");
@@ -510,7 +510,13 @@ public class PubUtilModule extends AbstractModule {
         } else if (command.equals("!stop") && dev) {
             context.stop();
         } else if (command.equals("!privfreqs") && dev) {
-            doPrivFreqsCmd(sender);
+            doPrivFreqsCmd(sender, "on" );
+        } else if (command.startsWith("!privfreqs") && dev) {
+            try {
+                doPrivFreqsCmd(sender, command.substring(11) );
+            } catch (Exception e) {
+                m_botAction.sendPrivateMessage(sender, "Syntax: !privfreqs [(verbose)on|off] (Cmd still a toggle!) Ex: !privfreqs off (no output to arena)");
+            }
         } else if (command.equals("!levattach") && dev) {
             doLevAttachCmd(sender);
         } else if (command.equals("!uptime")) {
