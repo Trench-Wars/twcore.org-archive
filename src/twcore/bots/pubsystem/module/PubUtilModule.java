@@ -63,6 +63,7 @@ public class PubUtilModule extends AbstractModule {
     // Lev can attach on public freq
     private boolean levAttachEnabled = true;
     private long uptime = 0;
+    private String dummy;   // So it's not reinstantiated w/ the constantly-used method getLocation
 
     public PubUtilModule(BotAction botAction, PubContext context) {
         super(botAction, context, "Utility");
@@ -105,16 +106,15 @@ public class PubUtilModule extends AbstractModule {
         Location location = null;
         if (region != null) {
             try {
-                switch( region.toString() ) {
-                case "LARGE_FR":
-                case "MED_FR":
-                case "CRAM":
-                case "FLAGROOM": location = Location.valueOf("FLAGROOM");
-                case "TUNNELS": location = Location.valueOf("LOWER");
-                default: location = Location.valueOf(region.toString());
-                }
+                location = Location.valueOf(region.toString());
             } catch (IllegalArgumentException e) {
-                location = null;
+                dummy = region.toString();
+                if (dummy.equals("CRAM") || dummy.equals("LARGE_FR") || dummy.equals("MED_FR"))
+                    location = Location.valueOf("FLAGROOM");
+                else if (dummy.equals("TUNNELS"))
+                    location = Location.valueOf("LOWER");
+                else
+                    location = null;
             }
         }
         if (location != null) {
