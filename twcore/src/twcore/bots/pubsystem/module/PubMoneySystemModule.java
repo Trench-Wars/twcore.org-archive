@@ -209,13 +209,21 @@ public class PubMoneySystemModule extends AbstractModule {
                 	 m_botAction.sendArenaMessage(playerName + " just bought a " + item.getDisplayName() + " for $" + item.getPrice() + ".",21);
                 }
 
+        		
+        		
+        		// Querying once every !buy (!!!)
+        		// TODO: Possibly make a system that stores the info every 15 min?        		
+
+                
+                /*
                 // Save this purchase
-        		int shipType = m_botAction.getPlayer(receiver.getPlayerName()).getShipType();
-        		// The query will be closed by PlayerManagerModule
+                int shipType = m_botAction.getPlayer(receiver.getPlayerName()).getShipType();
+                // The query will be closed by PlayerManagerModule
         		if (database!=null)
         		m_botAction.SQLBackgroundQuery(database, null, "INSERT INTO tblPurchaseHistory "
     				+ "(fcItemName, fcBuyerName, fcReceiverName, fcArguments, fnPrice, fnReceiverShipType, fdDate) "
     				+ "VALUES ('"+Tools.addSlashes(item.getName())+"','"+Tools.addSlashes(buyer.getPlayerName())+"','"+Tools.addSlashes(receiver.getPlayerName())+"','"+Tools.addSlashes(params)+"','"+item.getPrice()+"','"+shipType+"',NOW())");
+    	        */
 
             }
             else {
