@@ -408,12 +408,15 @@ public class PubPlayer implements Comparable<PubPlayer>{
 	}
 	
 	public void ezPenalty( boolean killer ) {
+        if( killer ) {
+            removeMoney( EZ_PENALTY );
+        } else {
+            addMoney( EZ_PENALTY );            
+        }
 	    if( notifiedAboutEZ == false ) {
 	        if( killer ) {
-	            removeMoney( EZ_PENALTY );
 	            m_botAction.sendPrivateMessage( name, "[SPORTSMANSHIP FINE]  They were that easy? You won't mind donating $" + EZ_PENALTY + " to help them out, then.  [-" + EZ_PENALTY + "/'ez'; msg will not repeat]" );
 	        } else {
-                addMoney( EZ_PENALTY );
                 m_botAction.sendPrivateMessage( name, "You have been given +$" + EZ_PENALTY + " by your killer.  [-" + EZ_PENALTY + "/'ez'; msg will not repeat]" );
 	        }
 	        notifiedAboutEZ = true;
