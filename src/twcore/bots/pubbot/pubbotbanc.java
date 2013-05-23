@@ -189,7 +189,8 @@ public class pubbotbanc extends PubBotModule {
             } else if (message.contains("Proxy: ") && !message.contains("Not using proxy") && !message.contains("Using NAT")) {
                 String proxy = message.substring(message.indexOf("Proxy:"), message.indexOf("Idle:")-2);
                 String name = message.substring(0, message.indexOf(": U"));
-                m_botAction.ipcSendMessage(IPCBANC, "PROXY:Player '" + name + "' detected by " + m_botAction.getBotName() + " using a proxy. (" + proxy + ")", "banc", m_botAction.getBotName());
+                if (!opList.isBotExact(name))
+                    m_botAction.ipcSendMessage(IPCBANC, "PROXY:Player '" + name + "' detected by " + m_botAction.getBotName() + " using a proxy. (" + proxy + ")", "banc", m_botAction.getBotName());
             } else if (message.startsWith("IP:"))
                 checkBanCs(message);
             else if (message.contains("Idle: "))
