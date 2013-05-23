@@ -104,6 +104,7 @@ public class pubsystem extends SubspaceBot
     
     private boolean printHelpSpaces = false;            // Whether to print spaces after each section
                                                         //   in !help spam
+    private static boolean EZ_CHECK_ON = true;          // Check for ez 
     
     /**
      * Creates a new instance of pubsystem bot and initializes necessary data.
@@ -363,11 +364,16 @@ public class pubsystem extends SubspaceBot
                 doGreetMessageCmd(sender, command);
             else if(command.equals("!about"))
                 doAboutCmd(sender);
-            else if (command.startsWith("!") && !command.contains(" ") && command.length()>1 && command.charAt(1)!='!' && messageType == Message.PUBLIC_MESSAGE) {
+            //else if (command.startsWith("!") && !command.contains(" ") && command.length()>1 && command.charAt(1)!='!' && messageType == Message.PUBLIC_MESSAGE) {
             	//m_botAction.sendSmartPrivateMessage(sender, "Please, send your command in private. Try :" + m_botAction.getBotName() + ":" + command);
-            }
+            //}
             else if (messageType != Message.PUBLIC_MESSAGE) {
             	context.handleCommand(sender, command.toLowerCase());
+            } else if( EZ_CHECK_ON ) {
+                // The "Good Sportsmanship" rule
+                if (command.startsWith("ez") || command.startsWith("e z") ) {
+                    context.getMoneySystem().handleEZ(sender);
+                }
             }
             
         } catch(RuntimeException e) {

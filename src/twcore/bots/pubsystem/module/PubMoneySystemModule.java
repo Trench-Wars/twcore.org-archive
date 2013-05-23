@@ -89,11 +89,8 @@ public class PubMoneySystemModule extends AbstractModule {
     //private String arenaNumber = "0";
 
     private boolean donationEnabled = false;
-
     private String database;
-
-    private MapRegions regions;
-    
+    private MapRegions regions;    
     private static final String MAP_NAME = "pubmap";
 
     public PubMoneySystemModule(BotAction botAction, PubContext context) {
@@ -1532,6 +1529,21 @@ public class PubMoneySystemModule extends AbstractModule {
             doCmdCouponAddOp(sender, command.substring(12).trim());
         } else if (command.equals("!couponlistops")) {
             doCmdCouponListOps(sender);
+        }
+    }
+    
+    /**
+     * A convenient way to handle "ez" when we're trying to improve the level of sportsmanship pre-Steam.
+     * @param sender
+     */
+    public void handleEZ(String sender) {
+        PubPlayer pp = playerManager.getPlayer(sender);
+        if( pp != null ) {
+            pp.ezPenalty( true );
+            PubPlayer pplast = playerManager.getPlayer( pp.getLastKillKilledName() );            
+            if( pplast != null ) {
+                pplast.ezPenalty( false );
+            }
         }
     }
 
