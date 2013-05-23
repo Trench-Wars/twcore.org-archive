@@ -62,6 +62,9 @@ public class PubPlayer implements Comparable<PubPlayer>{
 	private Location lastKillLocation;
 	private String lastKillKilledName;
 	private boolean lastKillWithFlag;
+    private boolean notifiedAboutEZ = false; 
+	
+	public static int EZ_PENALTY = 250;
 
     public PubPlayer(BotAction m_botAction, String name) {
     	this(m_botAction, name, 0);
@@ -402,6 +405,19 @@ public class PubPlayer implements Comparable<PubPlayer>{
 	        msg += i + ", ";
 	    msg = msg.substring(0, msg.length() - 2);
 	    m_botAction.sendPrivateMessage(name, msg);
+	}
+	
+	public void ezPenalty( boolean killer ) {
+	    if( notifiedAboutEZ == false ) {
+	        if( killer ) {
+	            removeMoney( EZ_PENALTY );
+	            m_botAction.sendPrivateMessage( name, "[SPORTSMANSHIP FINE]  They were that easy? You won't mind donating $" + EZ_PENALTY + " to help them out, then.  [-" + EZ_PENALTY + "/'ez'; msg will not repeat]" );
+	        } else {
+                addMoney( EZ_PENALTY );
+                m_botAction.sendPrivateMessage( name, "You have been given +$" + EZ_PENALTY + " by your killer.  [-" + EZ_PENALTY + "/'ez'; msg will not repeat]" );
+	        }
+	        notifiedAboutEZ = true;
+	    }
 	}
 
 }
