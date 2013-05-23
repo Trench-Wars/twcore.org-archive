@@ -96,12 +96,23 @@ public class PubUtilModule extends AbstractModule {
         return x + ":" + y;
     }
 
+    // Support added for additional regions not found in Location. Fixes killothon/timedgame issues.
+    // Due to how Location is used (testing if Loc =/!= X), we can't just add new Locations
+    // without changing logic in many places.
+    // TODO: REMOVE LOCATION AND ONLY WORK BASED ON REGION. LOCATION IS UNNECESSARY AND RESULTS IN BLOAT
     public Location getLocation(int x, int y) {
         Region region = getRegion(x, y);
         Location location = null;
         if (region != null) {
             try {
-                location = Location.valueOf(region.toString());
+                switch( region.toString() ) {
+                case "LARGE_FR":
+                case "MED_FR":
+                case "CRAM":
+                case "FLAGROOM": location = Location.valueOf("FLAGROOM");
+                case "TUNNELS": location = Location.valueOf("LOWER");
+                default: location = Location.valueOf(region.toString());
+                }
             } catch (IllegalArgumentException e) {
                 location = null;
             }
