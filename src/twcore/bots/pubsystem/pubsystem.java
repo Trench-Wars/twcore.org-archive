@@ -104,7 +104,7 @@ public class pubsystem extends SubspaceBot
     
     private boolean printHelpSpaces = false;            // Whether to print spaces after each section
                                                         //   in !help spam
-    private static boolean EZ_CHECK_ON = true;          // Check for ez 
+    private boolean ezCheckOn = false;                  // Check for ez 
     
     /**
      * Creates a new instance of pubsystem bot and initializes necessary data.
@@ -291,7 +291,9 @@ public class pubsystem extends SubspaceBot
             		"Store:[" + (context.getMoneySystem().isStoreOpened() ? "ON" : "OFF") + "]  " + 
             		"Kill-o-thon:[" + (context.getPubKillSession().isRunning() ? "ON" : "OFF") + "]  " +
             		"Duel:[" + (context.getPubChallenge().isEnabled() ? "ON" : "OFF") + "]  " +
-            		"Hunt:[" + (context.getPubHunt().isEnabled() ? "ON" : "OFF") + "]";
+            		"EZ:[" + (ezCheckOn ? "ON" : "OFF") + "]";
+            	    // TODO: Fix hunt (crashes bot) and... is lottery broken? May need fix if display commented out
+                    //"Hunt:[" + (context.getPubHunt().isEnabled() ? "ON" : "OFF") + "]";
             		//"Lottery:[" + (context.getP().isRunning() ? "ON" : "OFF") + "]; 
             	
             	
@@ -339,6 +341,15 @@ public class pubsystem extends SubspaceBot
                     handleSmodCommand(sender, message);
                     if (message.startsWith("!greet"))
                         doGreet(sender, message);
+                    else if (message.startsWith("!ez")) {
+                        if (message.startsWith("!ez on"))
+                            ezCheckOn = true;
+                        else if (message.startsWith("!ez off"))
+                            ezCheckOn = false;
+                        else
+                            ezCheckOn = !ezCheckOn;
+                        m_botAction.sendPrivateMessage(sender, "GRUMPKIN MODE a.k.a. Troll Toll a.k.a. Good Sportsmanship Rule:  [" + (ezCheckOn ? "ON" : "OFF") + "]" );
+                    }
                 }
             }
     }
@@ -369,7 +380,7 @@ public class pubsystem extends SubspaceBot
             //}
             else if (messageType != Message.PUBLIC_MESSAGE) {
             	context.handleCommand(sender, command.toLowerCase());
-            } else if( EZ_CHECK_ON ) {
+            } else if( ezCheckOn ) {
                 // The "Good Sportsmanship" rule
                 if (command.startsWith("ez") || command.startsWith("e z") ) {
                     context.getMoneySystem().handleEZ(sender);
@@ -453,6 +464,12 @@ public class pubsystem extends SubspaceBot
     public void doGreetMessageCmd(String sender, String command) {
     	m_botAction.sendUnfilteredPublicMacro("?set Misc:GreetMessage:" + command.substring(14).trim());
     	m_botAction.sendSmartPrivateMessage(sender, "Greeting message changed, reconnect to see the effect.");
+    }
+    
+    public void doEZCmd(String sender, int value) {
+        switch( value ) {
+        case 0: 
+        }
     }
 
     /**

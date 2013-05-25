@@ -64,7 +64,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
 	private boolean lastKillWithFlag;
     private boolean notifiedAboutEZ = false; 
 	
-	public static int EZ_PENALTY = 250;
+	public static int EZ_PENALTY = 100;
 
     public PubPlayer(BotAction m_botAction, String name) {
     	this(m_botAction, name, 0);
