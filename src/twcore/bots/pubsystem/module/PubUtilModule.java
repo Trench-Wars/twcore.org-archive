@@ -108,10 +108,9 @@ public class PubUtilModule extends AbstractModule {
             try {
                 location = Location.valueOf(region.toString());
             } catch (IllegalArgumentException e) {
-                dummy = region.toString();
-                if (dummy.equals("CRAM") || dummy.equals("LARGE_FR") || dummy.equals("MED_FR"))
+                if (region.equals(Region.CRAM) || region.equals(Region.LARGE_FR) || region.equals(Region.MED_FR))
                     location = Location.valueOf("FLAGROOM");
-                else if (dummy.equals("TUNNELS"))
+                else if (region.equals(Region.TUNNELS))
                     location = Location.valueOf("LOWER");
                 else
                     location = null;
