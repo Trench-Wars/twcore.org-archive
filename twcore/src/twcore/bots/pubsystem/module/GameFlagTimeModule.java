@@ -1287,11 +1287,16 @@ public class GameFlagTimeModule extends AbstractModule {
             else
                 killsInBasePercent.put(playerName, 0);
 
-        // Remove terriers not on the winning team for the variable 'attaches' (set weight to 0)
+        // Halve attaches for non-winners (not remove them from the running entirely!)
         for (String playerName : attaches.keySet()) {
             Player p = m_botAction.getPlayer(playerName);
-            if (p != null && p.getFrequency() != winnerFreq)
-                attaches.put(playerName, 0);
+            if (p != null && p.getFrequency() != winnerFreq) {
+                Integer i = attaches.get(playerName);
+                if (i != null && i > 0 )
+                    attaches.put(playerName, new Integer( (int)Math.round((float)i * 0.5)) );
+                else
+                    attaches.put(playerName, 0);
+            }
         }
 
         LinkedHashMap<String, Integer> lessdeaths = sort(this.deaths, true);
@@ -1335,29 +1340,61 @@ public class GameFlagTimeModule extends AbstractModule {
 
         m_botAction.sendArenaMessage("Achievements:");
         if (basingKingName != null) {
-            m_botAction.sendArenaMessage(" - Basing King        : " + basingKingName + " (+$" + m10 + ")");
+            m_botAction.sendArenaMessage(" - Basing King             : " + basingKingName + Tools.rightString(" (+$" + m10 + ")", 8) );
             context.getPlayerManager().addMoney(basingKingName, m10, true);
         }
         if (mostKillName != null) {
-            m_botAction.sendArenaMessage(" - Most Veteran Like  : " + mostKillName + " (+$" + m5 + ")");
+            m_botAction.sendArenaMessage(" - Most Veteran Like       : " + mostKillName + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostKillName, m5, true);
         }
         if (mostFlagClaimed != null) {
-            m_botAction.sendArenaMessage(" - Flag Savior        : " + mostFlagClaimed + " (+$" + m5 + ")");
+            m_botAction.sendArenaMessage(" - Flag Savior             : " + mostFlagClaimed + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostFlagClaimed, m5, true);
         }
         if (bestTerrierName != null) {
-            m_botAction.sendArenaMessage(" - Best Terrier       : " + bestTerrierName + " (+$" + m5 + ")");
+            m_botAction.sendArenaMessage(" - Best Terrier            : " + bestTerrierName + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(bestTerrierName, m5);
         }
         if (lessDeath != null) {
-            m_botAction.sendArenaMessage(" - Most Cautious      : " + lessDeath + " (+$" + m2 + ")");
+            m_botAction.sendArenaMessage(" - Most Cautious           : " + lessDeath + Tools.rightString(" (+$" + m2 + ")", 8) );
             context.getPlayerManager().addMoney(lessDeath, m2);
         }
         if (mostTek != null) {
-            m_botAction.sendArenaMessage(" - Most Terrier Kills : " + mostTek + " (+$" + m2 + ")");
+            m_botAction.sendArenaMessage(" - Most Terrier Kills      : " + mostTek + Tools.rightString(" (+$" + m2 + ")", 8) );
             context.getPlayerManager().addMoney(mostTek, m2);
         }
+        
+        /* W.I.P.
+        // XXX: Let's have fun. Fake achievements
+        java.util.Random r = new Random();
+        if (r.nextInt(10) == 0) {            
+            // Get a random
+            List <Player>l = m_botAction.getPlayingPlayers();            
+            Player p = l.get( r.nextInt(l.size()) );
+            if( p == null )
+                return;
+
+            String text;
+            switch( r.nextInt(20) ) {
+                         //"                        "
+                         //"Most Terrier Kills     X"
+            case 0: text = "Most Believable Troll";
+            case 1: text = "Just Dropped from Squad";
+            case 2: text = "Who the Hell's Heard Of";
+            case 3: text = "Most Intimindating";
+            case 4: text = "Most Likely to Succeed";
+            case 5: text = "Class Clown";
+            case 6: text = "Living in Basement Award";
+            case 7: text = "Most Loveable";            
+            case 8: text = "AFK Entire Round";
+            case 9: text = "Spawnkilling King";
+            
+            
+            }
+
+            
+        }
+        */
         /*
         if (mostDeath != null) {
             m_botAction.sendArenaMessage(" - Most Reckless      : " + mostDeath);
