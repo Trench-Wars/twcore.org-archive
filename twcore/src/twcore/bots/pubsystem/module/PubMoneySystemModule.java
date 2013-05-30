@@ -192,7 +192,7 @@ public class PubMoneySystemModule extends AbstractModule {
             	if( p != null && p.getShipType() == 4 && leviBuyRestricted ) {
             	    // Levis can only buy in safe
             	    Region r = context.getPubUtil().getRegion( p.getXTileLocation(), p.getYTileLocation() );
-            	    if( ! r.toString().equals( "SAFE") ) {
+            	    if( r != null && !(Region.SAFE.equals(r)) ) {
             	        // No buying except in safe!
                         m_botAction.sendSmartPrivateMessage(playerName, "Leviathans can only !buy in safe.");
                         return;
