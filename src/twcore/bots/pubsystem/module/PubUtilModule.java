@@ -463,7 +463,7 @@ public class PubUtilModule extends AbstractModule {
         return "Unknown";
     }
     
-    private Region getRegion(int x, int y) {
+    public Region getRegion(int x, int y) {
         int r = regions.getRegion(x, y);
         Region region = null;
         if (r >= 0)

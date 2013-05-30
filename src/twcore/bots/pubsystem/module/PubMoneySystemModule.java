@@ -28,6 +28,7 @@ import java.util.Vector;
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.PubUtilModule.Location;
+import twcore.bots.pubsystem.module.PubUtilModule.Region;
 import twcore.bots.pubsystem.module.moneysystem.CouponCode;
 import twcore.bots.pubsystem.module.moneysystem.LvzMoneyPanel;
 import twcore.bots.pubsystem.module.moneysystem.PubStore;
@@ -89,6 +90,7 @@ public class PubMoneySystemModule extends AbstractModule {
     //private String arenaNumber = "0";
 
     private boolean donationEnabled = false;
+    private boolean leviBuyRestricted = true;
     private String database;
     private MapRegions regions;    
     private static final String MAP_NAME = "pubmap";
@@ -185,8 +187,20 @@ public class PubMoneySystemModule extends AbstractModule {
             		m_botAction.sendSmartPrivateMessage(playerName, "You cannot buy an item while being a leader of kill-o-thon.");
             		return;
             	}
-
+            	
+            	Player p = m_botAction.getPlayer( playerName );
+            	if( p != null && p.getShipType() == 4 && leviBuyRestricted ) {
+            	    // Levis can only buy in safe
+            	    Region r = context.getPubUtil().getRegion( p.getXTileLocation(), p.getYTileLocation() );
+            	    if( ! r.toString().equals( "SAFE") ) {
+            	        // No buying except in safe!
+                        m_botAction.sendSmartPrivateMessage(playerName, "Leviathans can only !buy in safe.");
+                        return;
+            	    }
+            	}
+            	
             	PubPlayer buyer = playerManager.getPlayer(playerName);
+            	//buyer.get
             	final PubItem item = store.buy(itemName, buyer, params);
             	final PubPlayer receiver;
 
