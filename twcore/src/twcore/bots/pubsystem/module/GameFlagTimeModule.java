@@ -1355,13 +1355,13 @@ public class GameFlagTimeModule extends AbstractModule {
             m_botAction.sendArenaMessage(" - Best Terrier            : " + bestTerrierName + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(bestTerrierName, m5);
         }
+        if (mostTek != null) {
+            m_botAction.sendArenaMessage(" - Most Terrier Kills      : " + mostTek + Tools.rightString(" (+$" + m2 + ")", 8) );
+            context.getPlayerManager().addMoney(mostTek, m5);
+        }
         if (lessDeath != null) {
             m_botAction.sendArenaMessage(" - Most Cautious           : " + lessDeath + Tools.rightString(" (+$" + m2 + ")", 8) );
             context.getPlayerManager().addMoney(lessDeath, m2);
-        }
-        if (mostTek != null) {
-            m_botAction.sendArenaMessage(" - Most Terrier Kills      : " + mostTek + Tools.rightString(" (+$" + m2 + ")", 8) );
-            context.getPlayerManager().addMoney(mostTek, m2);
         }
         
         /* W.I.P.
