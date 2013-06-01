@@ -2131,6 +2131,9 @@ public class PubMoneySystemModule extends AbstractModule {
     			couponOperators.add(name.toLowerCase());
     		}
     	}
+        if (m_botAction.getBotSettings().getInt("levi_buy_in_safe")==1) {
+            leviBuyRestricted = true;
+        }
     	database = m_botAction.getBotSettings().getString("database");
 	}
 
