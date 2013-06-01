@@ -90,7 +90,7 @@ public class PubMoneySystemModule extends AbstractModule {
     //private String arenaNumber = "0";
 
     private boolean donationEnabled = false;
-    private boolean leviBuyRestricted = true;
+    private boolean leviBuyRestricted = false;
     private String database;
     private MapRegions regions;    
     private static final String MAP_NAME = "pubmap";
