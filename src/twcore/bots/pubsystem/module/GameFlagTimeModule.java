@@ -174,6 +174,9 @@ public class GameFlagTimeModule extends AbstractModule {
     		warpSafeRightY = 484;    		
     	}
         
+        if (m_botAction.getBotSettings().getInt("allow_warp") == 1)
+            warpEnabled = true;
+        
         if (m_botAction.getBotSettings().getInt("auto_warp") == 1)
             autoWarp = true;
 
@@ -300,13 +303,17 @@ public class GameFlagTimeModule extends AbstractModule {
                     playerTimes.remove(pname);
                 }
 
+            /* Should ONLY be done after a player enters, not every shipchange!
             if (warpEnabled && !strictFlagTimeMode && isFlagTimeStarted() && autoWarp && !warpPlayers.containsKey(playerName))
                 if (ship != Tools.Ship.SPECTATOR)
                     cmd_warp(playerName);
+            */
 
-            // Terrs and Levis can't warp into base if Levis are enabled
+            // Levis can't warp into base
+            // TODO: Only check this ONCE because we need to change the rule sometimes...
+            // Only Levis can't warp into base right now!
             if (context.getPlayerManager().isShipRestricted(Tools.Ship.LEVIATHAN))
-                if (ship == Tools.Ship.LEVIATHAN || ship == Tools.Ship.TERRIER)
+                if (ship == Tools.Ship.LEVIATHAN )
                     warpPlayers.remove(playerName);
 
         } catch (Exception e) {
@@ -407,12 +414,17 @@ public class GameFlagTimeModule extends AbstractModule {
         Player player = m_botAction.getPlayer(playerID);
         String playerName = m_botAction.getPlayerName(playerID);
 
-        if (isRunning() && isAutoWarpEnabled()) {
-            if (player.getShipType() != Tools.Ship.SPECTATOR)
-                cmd_warp(playerName);
-            flagTimer.newShip(playerName, player.getShipType());
-        }
+        if (isRunning() ) {
+            if( event.getShipType() != Tools.Ship.SPECTATOR )
+                flagTimer.newShip(playerName, player.getShipType());
 
+            if( isAutoWarpEnabled()) {
+                PubPlayer pplayer = context.getPlayerManager().getPlayer(playerName);
+                if( pplayer != null )
+                    warpPlayers.put(playerName, pplayer);
+            }
+        }
+        
         statusMessage(playerName);
     }
 
