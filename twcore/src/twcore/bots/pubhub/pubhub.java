@@ -164,7 +164,8 @@ public class pubhub extends SubspaceBot {
 
         for (int i = 0; i < arenas.length; i++) {
             String arena = arenas[i].toLowerCase();
-            if( Tools.isAllDigits(arena) || cfg_arenas.contains(arena) || (cfg_allArenas && !startup && !arena.contains("#") && event.getSizeOfArena(arenas[i]) > 2)) {
+            // TODO: Change check to see if actually a pub. Atm checks for if all digits and length=1
+            if( cfg_arenas.contains(arena) || (cfg_allArenas && !startup && !arena.contains("#") && event.getSizeOfArena(arenas[i]) > 2) || (Tools.isAllDigits(arena) && arena.length() == 1)) {
                 if (!activeArenas.contains(arena))
                     activeArenas.add(arena);
                 if(!pubbots.containsValue(arena)) {
