@@ -1352,7 +1352,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
         m_botAction.sendArenaMessage("Achievements:");
         if (basingKingName != null) {
-            m_botAction.sendArenaMessage(" - Basing King             : " + basingKingName + Tools.rightString(" (+$" + m10 + ")", 8) );
+            m_botAction.sendArenaMessage(" - Basing King/Queen             : " + basingKingName + Tools.rightString(" (+$" + m10 + ")", 8) );
             context.getPlayerManager().addMoney(basingKingName, m10, true);
         }
         if (mostKillName != null) {
