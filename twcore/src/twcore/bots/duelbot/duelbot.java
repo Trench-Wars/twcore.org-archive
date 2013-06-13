@@ -1357,7 +1357,7 @@ public class duelbot extends SubspaceBot {
                     aliasChecker = "";
                 }
             } else {
-                if (result.getString("fcUserName").equalsIgnoreCase(name)) {
+                if (result.getString("n").equalsIgnoreCase(name)) {
                     if (aliasChecker.equals(""))
                         m_botAction.sendSmartPrivateMessage(name, "You have already signed up.");
                     else {
@@ -1379,7 +1379,7 @@ public class duelbot extends SubspaceBot {
                     } else {
                         String extras = "";
                         do {
-                            extras += " " + result.getString("fcUserName") + " ";
+                            extras += " " + result.getString("n") + " ";
                         } while (result.next());
                         if (aliasChecker.equals("")) {
                             m_botAction.sendSmartPrivateMessage(name, "It appears you already have other names signed up for TWEL or have registered this name already.");
