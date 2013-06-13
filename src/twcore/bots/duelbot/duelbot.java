@@ -1341,8 +1341,7 @@ public class duelbot extends SubspaceBot {
     public void do_addPlayer(String name, String IP, String MID) {
         try {
             //ResultSet result = m_botAction.SQLQuery( mySQLHost, "SELECT p.fcUserName FROM tblDuelPlayer p JOIN tblAlias a ON p.fnUserID = a.fnUserID WHERE p.fnEnabled = 1 AND (a.fcIPString = '"+IP+"' OR (a.fcIPString = '"+IP+"' AND a.fnMID = '"+MID+"')) OR p.fcUserName = '"+Tools.addSlashesToString(name)+"'" );
-            String query = "SELECT fcUserName FROM tblDuelPlayer WHERE fnUserID IN (SELECT a2.fnUserID FROM tblAlias a1 JOIN tblAlias a2 ON a1.fnIP = a2.fnIP WHERE a1.fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"
-                    + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1)) AND fnEnabled = 1 LIMIT 100";
+            String query = "SELECT DISTINCT U.fcUserName as n FROM tblUser U JOIN (tblDuelPlayer DP JOIN (tblAlias a1 JOIN tblAlias a2 ON a1.fnIP = a2.fnIP) ON a2.fnUserID = DP.fnUserID) ON U.fnUserID = DP.fnUserID  WHERE  a1.fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"+Tools.addSlashesToString(name)+"'  ORDER BY fnUserID ASC LIMIT 1)) AND fnEnabled = 1";
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
             if (!result.next()) {
                 DBPlayerData player = new DBPlayerData(m_botAction, mySQLHost, name, true);
