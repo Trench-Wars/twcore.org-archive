@@ -454,8 +454,8 @@ public class twdbot extends SubspaceBot {
         try {
 
             //grab the sibling group ids for corresponding player
-            ResultSet groupSet = m_botAction.SQLQuery(webdb, "SELECT fnTWDSiblingGroupID " + "FROM tblTWDSibling " + "WHERE fnUserID = ("
-                    + "SELECT fnUserID " + "FROM tblUser " + "WHERE fcUserName = '" + params.trim() + "' " + "ORDER BY fnUserID " + "LIMIT 1 )");
+            ResultSet groupSet = m_botAction.SQLQuery(webdb, "SELECT fnTWDSiblingGroupID, fnUserID" + "FROM tblTWDSibling " + "WHERE fnUserID = ("
+                    + "SELECT fnUserID " + "FROM tblUser " + "WHERE fcUserName = '" + params.trim() + "' " + "ORDER BY fnUserID " + "LIMIT 1 ) and fnStaffRemoveUserID=NULL ");
 
             if (groupSet == null || !groupSet.next()) {
                 m_botAction.sendChatMessage(2, "No registered siblings found for " + params.trim() + ".");
@@ -467,8 +467,15 @@ public class twdbot extends SubspaceBot {
 
                 m_botAction.sendChatMessage(2, "");
 
-                ResultSet nameSet = m_botAction.SQLQuery(webdb, "SELECT fcUserName " + "FROM tblUser " + "WHERE fnUserID " + "IN("
-                        + "SELECT fnUserID " + "FROM tblTWDSibling " + "WHERE fnTWDSiblingGroupID = '" + groupSet.getString(1) + "')");
+                String nickList = groupSet.getString(2);
+                do
+                	nickList = nickList+","+groupSet.getString(2);
+                while (groupSet.next());
+
+                ResultSet nameSet = m_botAction.SQLQuery(webdb, "SELECT fcUserName " + "FROM tblUser " + "WHERE fnUserID " + "IN(" + nickList + ")");
+
+                //ResultSet nameSet = m_botAction.SQLQuery(webdb, "SELECT fcUserName " + "FROM tblUser " + "WHERE fnUserID " + "IN("
+                //        + "SELECT fnUserID " + "FROM tblTWDSibling " + "WHERE fnTWDSiblingGroupID = '" + groupSet.getString(1) + "')");
 
                 ResultSet infoSet = m_botAction.SQLQuery(webdb, "SELECT fcComment, ftUpdated " + "FROM tblTWDSiblingGroup "
                         + "WHERE fnTWDSiblingGroupID = " + "'" + groupSet.getString(1) + "'");
