@@ -462,23 +462,30 @@ public class twdbot extends SubspaceBot {
                 return;
             }
 
-            do {
+//            do {
                 m_botAction.sendChatMessage(2, "Siblings found for " + params + ": ");
 
                 m_botAction.sendChatMessage(2, "");
+                
+                String groupList = ","+groupSet.getString(1)+","; 
 
                 String nickList = groupSet.getString(2);
-                do
+                while (groupSet.next())
+                {
                 	nickList = nickList+","+groupSet.getString(2);
-                while (groupSet.next());
+                	if (!groupList.contains(","+groupSet.getString(1)+","))
+                			groupList = groupList+groupSet.getString(1)+",";
+                }
+                
+                groupList=groupList.substring(1,groupList.length()-1);
 
                 ResultSet nameSet = m_botAction.SQLQuery(webdb, "SELECT fcUserName " + "FROM tblUser " + "WHERE fnUserID " + "IN(" + nickList + ")");
 
                 //ResultSet nameSet = m_botAction.SQLQuery(webdb, "SELECT fcUserName " + "FROM tblUser " + "WHERE fnUserID " + "IN("
                 //        + "SELECT fnUserID " + "FROM tblTWDSibling " + "WHERE fnTWDSiblingGroupID = '" + groupSet.getString(1) + "')");
 
-                ResultSet infoSet = m_botAction.SQLQuery(webdb, "SELECT fcComment, ftUpdated " + "FROM tblTWDSiblingGroup "
-                        + "WHERE fnTWDSiblingGroupID = " + "'" + groupSet.getString(1) + "'");
+                ResultSet infoSet = m_botAction.SQLQuery(webdb, "SELECT fcComment, ftUpdated FROM tblTWDSiblingGroup "
+                        + "WHERE fnTWDSiblingGroupID in (" + groupList + ")");
 
                 while (nameSet != null && nameSet.next())
                     m_botAction.sendChatMessage(2, "  " + nameSet.getString(1));
@@ -491,7 +498,7 @@ public class twdbot extends SubspaceBot {
                 nameSet.close();
                 infoSet.close();
 
-            } while (groupSet.next());
+//            } while (groupSet.next());
 
             groupSet.close();
         } catch (SQLException e) {
