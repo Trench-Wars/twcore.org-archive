@@ -463,7 +463,7 @@ public class twdbot extends SubspaceBot {
             }
 
             do {
-                m_botAction.sendChatMessage(2, "Siblings found for " + params + ": ");
+                m_botAction.sendChatMessage(2, "Siblings found for " + params.trim() + ": ");
 
                 //m_botAction.sendChatMessage(2, "");
                 
@@ -483,7 +483,7 @@ public class twdbot extends SubspaceBot {
                     {
                     	comments[i] = comments[i].trim();
                     	if (!comments[i].isEmpty())
-                    		m_botAction.sendChatMessage(2, "Comment:"+ comments[i]);
+                    		m_botAction.sendChatMessage(2, "Comment: "+ comments[i]);
                     }
                     //m_botAction.sendChatMessage(2, "Comment: " + infoSet.getString(1));
                 }
