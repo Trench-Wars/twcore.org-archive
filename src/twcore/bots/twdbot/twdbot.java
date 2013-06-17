@@ -454,7 +454,7 @@ public class twdbot extends SubspaceBot {
         try {
 
             //grab the sibling group ids for corresponding player
-            ResultSet groupSet = m_botAction.SQLQuery(webdb, "SELECT fnTWDSiblingGroupID, fnUserID FROM tblTWDSibling WHERE fnUserID in ("
+            ResultSet groupSet = m_botAction.SQLQuery(webdb, "SELECT fnTWDSiblingGroupID FROM tblTWDSibling WHERE fnUserID in ("
                     + "SELECT fnUserID FROM tblUser WHERE fcUserName like '" + params.trim() + "' ORDER BY fnUserID ) and fnStaffRemoveUserID is NULL");
 
             if (groupSet == null || !groupSet.next()) {
@@ -462,43 +462,36 @@ public class twdbot extends SubspaceBot {
                 return;
             }
 
-//            do {
+            do {
                 m_botAction.sendChatMessage(2, "Siblings found for " + params + ": ");
 
-                m_botAction.sendChatMessage(2, "");
+                //m_botAction.sendChatMessage(2, "");
                 
-                String groupList = ","+groupSet.getString(1)+","; 
-
-                String nickList = groupSet.getString(2);
-                while (groupSet.next())
-                {
-                	nickList = nickList+","+groupSet.getString(2);
-                	if (!groupList.contains(","+groupSet.getString(1)+","))
-                			groupList = groupList+groupSet.getString(1)+",";
-                }
-                
-                groupList=groupList.substring(1,groupList.length()-1);
-
-                ResultSet nameSet = m_botAction.SQLQuery(webdb, "SELECT fcUserName " + "FROM tblUser " + "WHERE fnUserID " + "IN(" + nickList + ")");
-
-                //ResultSet nameSet = m_botAction.SQLQuery(webdb, "SELECT fcUserName " + "FROM tblUser " + "WHERE fnUserID " + "IN("
-                //        + "SELECT fnUserID " + "FROM tblTWDSibling " + "WHERE fnTWDSiblingGroupID = '" + groupSet.getString(1) + "')");
+                ResultSet nameSet = m_botAction.SQLQuery(webdb, "SELECT fcUserName FROM tblUser WHERE fnUserID IN ("
+                        + "SELECT fnUserID FROM tblTWDSibling WHERE fnTWDSiblingGroupID = '" + groupSet.getString(1) + "' and fnStaffRemoveUserID is NULL )");
 
                 ResultSet infoSet = m_botAction.SQLQuery(webdb, "SELECT fcComment, ftUpdated FROM tblTWDSiblingGroup "
-                        + "WHERE fnTWDSiblingGroupID in (" + groupList + ")");
+                        + "WHERE fnTWDSiblingGroupID = '" + groupSet.getString(1) + "'" );
 
                 while (nameSet != null && nameSet.next())
                     m_botAction.sendChatMessage(2, "  " + nameSet.getString(1));
 
                 if (infoSet != null && infoSet.next()) {
                     m_botAction.sendChatMessage(2, "Updated: " + infoSet.getString(2));
-                    m_botAction.sendChatMessage(2, "Comment: " + infoSet.getString(1));
+                    String comments[] = infoSet.getString(1).split("\\r?\\n");
+                    for (int i=0; i<comments.length;i++)
+                    {
+                    	comments[i] = comments[i].trim();
+                    	if (!comments[i].isEmpty())
+                    		m_botAction.sendChatMessage(2, "Comment:"+ comments[i]);
+                    }
+                    //m_botAction.sendChatMessage(2, "Comment: " + infoSet.getString(1));
                 }
 
                 nameSet.close();
                 infoSet.close();
 
-//            } while (groupSet.next());
+            } while (groupSet.next());
 
             groupSet.close();
         } catch (SQLException e) {
