@@ -16,6 +16,7 @@ public class PubItemRestriction {
 	private int maxArenaPerMinute = -1;
 	private int maxPerSecond = -1;
 	private int maxFreqPerMinute = -1;
+	private int globalCooldownBuy = -1;
 	private boolean buyableFromSpec = false;
 	private List<String> itemNotSameTime;
 	private TreeMap<Short, Long> freqUsed;
@@ -65,7 +66,7 @@ public class PubItemRestriction {
 	
 	public void setMaxConsecutive(int max) {
 		this.maxConsecutive = max;
-	}
+	}	
 	
 	public void setMaxArenaPerMinute(int max) {
 		this.maxArenaPerMinute = max;
@@ -78,6 +79,10 @@ public class PubItemRestriction {
 	public void setFreqPerMinute(int max) {
 	    this.maxFreqPerMinute = max;
 	}
+	
+	public void setGobalCooldownBuy(int c) {
+        this.globalCooldownBuy = c;
+    }
 	
 	public void buyableFromSpec(boolean b) {
 		this.buyableFromSpec = b;
@@ -145,6 +150,17 @@ public class PubItemRestriction {
 				}
 			}
 		}
+		
+		if (globalCooldownBuy!=-1) {
+            List<PubItemUsed> items = player.getItemsBought();
+            for(int i=0; i<items.size(); i++) {
+                PubItemUsed itemUsed = items.get(i);
+                long diff = System.currentTimeMillis()-itemUsed.getTime();
+                if (diff < globalCooldownBuy*Tools.TimeInMillis.SECOND) {
+                    throw new PubException("You must wait at least " + globalCooldownBuy + " seconds before you purchase another item , please wait...");
+                }
+            }
+        }
 		
 		if (maxPerLife!=-1) {
 			List<PubItem> items = player.getItemsBoughtThisLife();
