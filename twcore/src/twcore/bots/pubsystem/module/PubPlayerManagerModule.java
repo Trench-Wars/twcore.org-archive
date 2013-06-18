@@ -753,11 +753,11 @@ public class PubPlayerManagerModule extends AbstractModule {
         m_botAction.sendOpposingTeamMessageByFrequency(0, "[TEAM SHUFFLE POLL] Teams unbalanced: You have 20 seconds to Vote to shuffle teams! ");
         m_botAction.sendOpposingTeamMessageByFrequency(0, " 1- Yes");
         m_botAction.sendOpposingTeamMessageByFrequency(0, " 2- No");
-        m_botAction.sendOpposingTeamMessageByFrequency(0, "PM Your answers to " + m_botAction.getBotName() + " ( :TW-Pub1:<number> )");
+        m_botAction.sendOpposingTeamMessageByFrequency(0, "PM Your answers to " + m_botAction.getBotName() + " ( :TW-Pub:<number> )");
         m_botAction.sendOpposingTeamMessageByFrequency(1, "[TEAM SHUFFLE POLL] Teams unbalanced: You have 20 seconds to Vote to shuffle teams! ");
         m_botAction.sendOpposingTeamMessageByFrequency(1, " 1- Yes");
         m_botAction.sendOpposingTeamMessageByFrequency(1, " 2- No");
-        m_botAction.sendOpposingTeamMessageByFrequency(1, "PM Your answers to " + m_botAction.getBotName() + " ( :TW-Pub1:<number> )");
+        m_botAction.sendOpposingTeamMessageByFrequency(1, "PM Your answers to " + m_botAction.getBotName() + " ( :TW-Pub:<number> )");
         TimerTask count = new TimerTask() {
             public void run() {
                 voting = false;
