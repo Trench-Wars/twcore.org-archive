@@ -15,7 +15,7 @@ import twcore.core.util.Tools;
 
 public class pubbotnewbie extends PubBotModule {
     public static final String ZONE_CHANNEL = "Zone Channel";
-    public static final String PUBSYSTEM = "TW-Pub1";
+    public static final String PUBSYSTEM = "TW-PubSystem";
 
     private String currentInfoName = "";
     private String database = "website";
