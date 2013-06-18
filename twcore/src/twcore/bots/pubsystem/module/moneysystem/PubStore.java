@@ -25,6 +25,7 @@ public class PubStore {
 	private PubContext context;
 	
 	private int commandCooldown = 0;
+	private int prizecooldown= 0;
 	
 	private boolean opened = true;
     private LinkedHashMap<String, PubItem> items;
@@ -48,6 +49,7 @@ public class PubStore {
         this.items = new LinkedHashMap<String, PubItem>();
         
         commandCooldown = Integer.valueOf(m_botAction.getBotSettings().getString("command_cd"));
+        prizecooldown = Integer.valueOf(m_botAction.getBotSettings().getString("prize_cd"));
 
         String[] itemTypes = { "item_prize" , "item_ship_upgrade" , "item_ship" , "item_command" };
         for(String type: itemTypes) {
@@ -107,6 +109,10 @@ public class PubStore {
 	    			
 	    			boolean hasRestriction = false;
 	    			boolean hasDuration = false;
+	    			
+	    			if (prizecooldown != 0) {
+	    			    r.setGobalCooldownBuy(prizecooldown);
+	    			}
 	    			
 	    			for(int i=optionPointer; i<data.length; i++) {
 
