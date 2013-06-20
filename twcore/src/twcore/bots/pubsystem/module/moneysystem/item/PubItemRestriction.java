@@ -151,7 +151,7 @@ public class PubItemRestriction {
 			}
 		}
 		
-		if (globalCooldownBuy!=-1) {
+		if (globalCooldownBuy!=-1 && shipType == 4) {
             List<PubItemUsed> items = player.getItemsBought();
             for(int i=0; i<items.size(); i++) {
                 PubItemUsed itemUsed = items.get(i);
