@@ -155,7 +155,7 @@ public class PubUtilModule extends AbstractModule {
         }
 
         if (p2 != null) {
-            PubPlayer pubPlayer2 = context.getPlayerManager().getPlayer(p1.getPlayerName());
+            PubPlayer pubPlayer2 = context.getPlayerManager().getPlayer(p2.getPlayerName());
             if (pubPlayer2 != null && p2.getShipType() == Tools.Ship.LEVIATHAN) {
                 if(event.isAttaching()) {
                 // Attachee check up                    
