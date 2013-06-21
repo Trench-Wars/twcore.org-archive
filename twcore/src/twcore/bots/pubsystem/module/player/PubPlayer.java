@@ -16,7 +16,7 @@ import twcore.bots.pubsystem.module.moneysystem.item.PubCommandItem;
 import twcore.core.BotAction;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerDeath;
-//import twcore.core.game.Player;
+import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
 
@@ -175,16 +175,29 @@ public class PubPlayer implements Comparable<PubPlayer>{
     	return lastDeath;
     }
     
-    public void setLevTerr(boolean levTerr) {
-        this.isLevTerr = levTerr;
-    }   
-    
     public void setLastDetachLevTerr() {
         this.lastDetachLevTerr = System.currentTimeMillis();
     }   
     
     public boolean getLevTerr() {
-        return isLevTerr;
+        Player p1 = m_botAction.getPlayer(this.name);
+        Player p2 = null;
+        boolean levTerr = false;
+        
+        if(p1 != null) {
+            if(p1.isAttached() && p1.getShipType() == 4)  {
+                levTerr = true;
+            } else if (p1.hasAttachees() && p1.getShipType() == 5) {
+                for (int i : p1.getTurrets()) { 
+                    p2 = m_botAction.getPlayer(i);
+                    if (p2 != null && !levTerr) {
+                        if (p2.getShipType() == 4)
+                            levTerr = true;
+                    }
+                }
+            }
+        }
+        return levTerr;
     }
     
     public long getLastDetachLevTerr() {
