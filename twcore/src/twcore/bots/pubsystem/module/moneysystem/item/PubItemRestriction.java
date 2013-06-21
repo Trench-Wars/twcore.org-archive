@@ -178,8 +178,8 @@ public class PubItemRestriction {
 		
 		if (detachLevTerrCooldown !=-1 && (shipType == 4 || shipType == 5)) {
                 long diff = System.currentTimeMillis()-player.getLastDetachLevTerr();
-                if (diff < detachLevTerrCooldown*Tools.TimeInMillis.SECOND) 
-                    throw new PubException("You must wait at least " + globalCooldownBuy + " seconds before you purchase another item , please wait...");                
+                if (diff < detachLevTerrCooldown * Tools.TimeInMillis.SECOND) 
+                    throw new PubException("You must wait at least " + detachLevTerrCooldown + " seconds after leaving your LevTerr to !buy , please wait...");                
             }
         
 		
