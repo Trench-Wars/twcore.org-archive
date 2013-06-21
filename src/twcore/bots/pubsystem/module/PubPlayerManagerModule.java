@@ -4,8 +4,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.TimerTask;
@@ -19,6 +19,7 @@ import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipUpgradeItem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.bots.pubsystem.util.Log;
+import twcore.bots.pubsystem.util.PubException;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.ArenaJoined;
@@ -34,203 +35,211 @@ import twcore.core.util.Tools;
 
 public class PubPlayerManagerModule extends AbstractModule {
 
-    private static final int MSG_AT_FREQSIZE_DIFF = 4;  // Max # difference in size of freqs before
-    													//   bot requests players even frequencies.
-    													//   Value of -1 disables this feature.
+    private int MSG_AT_FREQSIZE_DIFF = -1;  // Max # difference in size of freqs before
+                                                        //   bot requests players even frequencies.
+                                                        //   Value of -1 disables this feature.
     @SuppressWarnings("unused")
-    private static final int KEEP_MVP_FREQSIZE_DIFF = 2;// Max # difference in size of freqs required
+    private int KEEP_MVP_FREQSIZE_DIFF = 0;// Max # difference in size of freqs required
                                                         //   for a player to keep MVP/get bonus on switching.
 
-    @SuppressWarnings("unused")
-    private static final int NICEGUY_BOUNTY_AWARD = 25; // Bounty given to those that even freqs/ships
+    private int NICEGUY_BOUNTY_AWARD = 0; // Bounty given to those that even freqs/ships
     
-    private int SHUFFLE_SIZE = 4;
+    private int SHUFFLE_SIZE = -1;
 
-    private HashMap<String, PubPlayer> players;         // Always lowercase!
-    private HashSet<String> freq0;                   	// Players on freq 0
-    private HashSet<String> freq1;                   	// Players on freq 1
+    private TreeMap<String, PubPlayer> players;         // Always lowercase!
+    private TreeSet<String> freq0;                      // Players on freq 0
+    private TreeSet<String> freq1;                      // Players on freq 1
     
     private int tkTax = 0;                            // Amount to deduct for team kills
 
     private int[] freqSizeInfo = {0, 0};                // Index 0: size difference; 1: # of smaller freq
     
     private Vector<Integer> shipWeight;
-	
-	private String databaseName;
-	
-	private SavePlayersTask saveTask = new SavePlayersTask();
-	private int SAVETASK_INTERVAL = 1; // minutes
+    
+    private String databaseName;
+    
+    private SavePlayersTask saveTask = new SavePlayersTask();
+    private int SAVETASK_INTERVAL = 1; // minutes
     
     private Log logMoneyDBTransaction;
     
     private boolean notify = false;
     private boolean voting = false;
     private Random r = new Random();
-    private HashMap<Integer, Integer> votes;
+    private TreeMap<Integer, Integer> votes;
 
-	public PubPlayerManagerModule(BotAction m_botAction, PubContext context) 
-	{
-		super(m_botAction, context, "PlayerManager");
+    public PubPlayerManagerModule(BotAction m_botAction, PubContext context) 
+    {
+        super(m_botAction, context, "PlayerManager");
 
-    	logMoneyDBTransaction = new Log(m_botAction, "moneydb.log");
-		
-		this.players = new HashMap<String, PubPlayer>();
-		this.freq0 = new HashSet<String>();
-		this.freq1 = new HashSet<String>();
-		
-		m_botAction.scheduleTaskAtFixedRate(saveTask, SAVETASK_INTERVAL * Tools.TimeInMillis.MINUTE, SAVETASK_INTERVAL * Tools.TimeInMillis.MINUTE);
-		
-		// Always enabled!
-		enabled = true;
-		
-		reloadConfig();
-	}
-	
-	public void handleEvent(Message event) {
-	    if (event.getMessageType() != Message.PRIVATE_MESSAGE || !voting)
-	        return;
-	    int id = event.getPlayerID();
-	    Player p = m_botAction.getPlayer(id);
-	    if ((p.getFrequency() != 0 && p.getFrequency() != 1) || p.getShipType() == 0)
-	        return;
-	    
-	    int vote = -1;
-	    try {
-	        vote = Integer.valueOf(event.getMessage());
-	    } catch (NumberFormatException e) {
-	        return;
-	    }
-	    if (vote == 1 || vote == 2) {
-	        votes.put(id, vote);
-	        m_botAction.sendPrivateMessage(id, "Your vote has been counted.");
-	    }
-	}
-	
+        logMoneyDBTransaction = new Log(m_botAction, "moneydb.log");
+        
+        this.players = new TreeMap<String, PubPlayer>();
+        this.freq0 = new TreeSet<String>();
+        this.freq1 = new TreeSet<String>();
+        
+        m_botAction.scheduleTaskAtFixedRate(saveTask, SAVETASK_INTERVAL * Tools.TimeInMillis.MINUTE, SAVETASK_INTERVAL * Tools.TimeInMillis.MINUTE);
+        
+        // Always enabled!
+        enabled = true;
+        
+        reloadConfig();
+    }
     
-	public void requestEvents(EventRequester eventRequester)
-	{
-		eventRequester.request(EventRequester.ARENA_JOINED);
-		eventRequester.request(EventRequester.FREQUENCY_CHANGE);
-		eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
-		eventRequester.request(EventRequester.PLAYER_LEFT);
-		eventRequester.request(EventRequester.PLAYER_ENTERED);
+    public void handleEvent(Message event) {
+        if (voting && (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.PUBLIC_MESSAGE)) {
+            int id = event.getPlayerID();
+            Player p = m_botAction.getPlayer(id);
+            if ((p.getFrequency() != 0 && p.getFrequency() != 1) || p.getShipType() == 0)
+                return;
+            
+            if (MSG_AT_FREQSIZE_DIFF != -1 && event.getMessage().equalsIgnoreCase("!switch")) {
+                if (freqSizeInfo[0] <= 1) {
+                    voting = false;
+                    return; 
+                }
+                if((freqSizeInfo[1] == 1 && p.getFrequency() == 0) || (freqSizeInfo[1] == 0 && p.getFrequency() == 1))
+                    doFrequencySwitch(p.getPlayerID());
+            }else if (SHUFFLE_SIZE != -1) { 
+                int vote = -1;
+                    try {
+                        vote = Integer.valueOf(event.getMessage());
+                    } catch (NumberFormatException e) {
+                        return;
+                    }
+                    if (vote == 1 || vote == 2) {
+                        votes.put(id, vote);
+                        m_botAction.sendPrivateMessage(id, "Your vote has been counted.");
+                    }
+            }
+        }
+    }
+    
+    
+    public void requestEvents(EventRequester eventRequester)
+    {
+        eventRequester.request(EventRequester.ARENA_JOINED);
+        eventRequester.request(EventRequester.FREQUENCY_CHANGE);
+        eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
+        eventRequester.request(EventRequester.PLAYER_LEFT);
+        eventRequester.request(EventRequester.PLAYER_ENTERED);
         eventRequester.request(EventRequester.MESSAGE);
-	}
-	
-	public boolean addMoney(String playerName, int money) {
-		return addMoney(playerName, money, false);
-	}
-	
-	public boolean removeMoney(String playerName, int money) {
-		return removeMoney(playerName, money, false);
-	}
+    }
+    
+    public boolean addMoney(String playerName, int money) {
+        return addMoney(playerName, money, false);
+    }
+    
+    public boolean removeMoney(String playerName, int money) {
+        return removeMoney(playerName, money, false);
+    }
 
-	public boolean addMoney(String playerName, int money, boolean forceToDB) {
-		PubPlayer player = players.get(playerName.toLowerCase());
-		if (player != null) {
-			player.addMoney(money);
-			return true;
-		} 
-		else if (forceToDB) {
-			
-			String database = m_botAction.getBotSettings().getString("database");
-			// The query will be closed by PlayerManagerModule
-			if (database!=null)
-				try {
-					ResultSet rs = m_botAction.SQLQuery(database, "UPDATE tblPlayerStats "
-							+ "SET fnMoney = fnMoney+" + Math.abs(money) + " "
-							+ "WHERE fcName='" + Tools.addSlashes(playerName) + "'");
-					if (rs.getStatement().getUpdateCount() < 1) {
-						m_botAction.SQLClose(rs);
-						return false;
-					}
-					m_botAction.SQLClose(rs);
-				} catch (SQLException e) {
-					return false;
-				}
-			return true;
-		}
-		return false;
-	}
-	
-	public boolean removeMoney(String playerName, int money, boolean forceToDB) {
-		PubPlayer player = players.get(playerName.toLowerCase());
-		if (player != null) {
-			player.removeMoney(money);
-			return true;
-		} 
-		else if (forceToDB) {
-			
-			String database = m_botAction.getBotSettings().getString("database");
-			if (database!=null) 
-				m_botAction.SQLBackgroundQuery(database, null, "UPDATE tblPlayerStats "
-						+ "SET fnMoney = IF(fnMoney-" + Math.abs(money) + "<0,0,fnMoney-" + Math.abs(money) + ") "
-						+ "WHERE fcName='" + playerName + "'");
+    public boolean addMoney(String playerName, int money, boolean forceToDB) {
+        PubPlayer player = players.get(playerName.toLowerCase());
+        if (player != null) {
+            player.addMoney(money);
+            return true;
+        } 
+        else if (forceToDB) {
+            
+            String database = m_botAction.getBotSettings().getString("database");
+            // The query will be closed by PlayerManagerModule
+            if (database!=null)
+                try {
+                    ResultSet rs = m_botAction.SQLQuery(database, "UPDATE tblPlayerStats "
+                            + "SET fnMoney = fnMoney+" + Math.abs(money) + " "
+                            + "WHERE fcName='" + Tools.addSlashes(playerName) + "'");
+                    if (rs.getStatement().getUpdateCount() < 1) {
+                        m_botAction.SQLClose(rs);
+                        return false;
+                    }
+                    m_botAction.SQLClose(rs);
+                } catch (SQLException e) {
+                    return false;
+                }
+            return true;
+        }
+        return false;
+    }
+    
+    public boolean removeMoney(String playerName, int money, boolean forceToDB) {
+        PubPlayer player = players.get(playerName.toLowerCase());
+        if (player != null) {
+            player.removeMoney(money);
+            return true;
+        } 
+        else if (forceToDB) {
+            
+            String database = m_botAction.getBotSettings().getString("database");
+            if (database!=null) 
+                m_botAction.SQLBackgroundQuery(database, null, "UPDATE tblPlayerStats "
+                        + "SET fnMoney = IF(fnMoney-" + Math.abs(money) + "<0,0,fnMoney-" + Math.abs(money) + ") "
+                        + "WHERE fcName='" + playerName + "'");
 
-		}
-		return false;
-	}
-	
-	
-	/**
-	 * Retrieve a player on the cache only (if the player is currently playing)
-	 * or by requesting the database. You may only want to request the database
-	 * if you want to get information about a player not playing.
-	 */
-	public PubPlayer getPlayer(String playerName, boolean cacheOnly) 
-	{
-		PubPlayer player = players.get(playerName.toLowerCase());
-		
-		if (cacheOnly) {
-			if (player!=null)
-				player.setName(playerName);
-			return player;
-		}
-		else {
-			
-			if (player != null)
-				return player;
-			
-			if (databaseName != null) {
-	    		try {
-					ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT fcName, fnMoney, fcTileset, fnBestStreak FROM tblPlayerStats WHERE fcName = '"+Tools.addSlashes(playerName)+"'");
-					if (rs.next()) {
-						player = getPlayerByResultSet(rs);
-						player.setName(playerName);
-	                    m_botAction.SQLClose(rs);
-						return player;
-					}
-					m_botAction.SQLClose(rs);
-				} catch (SQLException e) {
-					Tools.printStackTrace(e);
-				}
-			}
+        }
+        return false;
+    }
+    
+    
+    /**
+     * Retrieve a player on the cache only (if the player is currently playing)
+     * or by requesting the database. You may only want to request the database
+     * if you want to get information about a player not playing.
+     */
+    public PubPlayer getPlayer(String playerName, boolean cacheOnly) 
+    {
+        PubPlayer player = players.get(playerName.toLowerCase());
+        
+        if (cacheOnly) {
+            if (player!=null)
+                player.setName(playerName);
+            return player;
+        }
+        else {
+            
+            if (player != null)
+                return player;
+            
+            if (databaseName != null) {
+                try {
+                    ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT fcName, fnMoney, fcTileset, fnBestStreak FROM tblPlayerStats WHERE fcName = '"+Tools.addSlashes(playerName)+"'");
+                    if (rs.next()) {
+                        player = getPlayerByResultSet(rs);
+                        player.setName(playerName);
+                        m_botAction.SQLClose(rs);
+                        return player;
+                    }
+                    m_botAction.SQLClose(rs);
+                } catch (SQLException e) {
+                    Tools.printStackTrace(e);
+                }
+            }
 
-			return players.get(playerName.toLowerCase());
-		}
-	}
-	
-	public PubPlayer getPlayer(String name) {
-		return getPlayer(name, true);
-	}
-	
-	public boolean isPlayerExists(String name) {
-		return players.containsKey(name.toLowerCase());
-	}
-	
-	public boolean isPlayerOnFreq(String name, int freq) {
-		if (freq == 0)
-			return freq0.contains(players.get(name.toLowerCase()));
-		if (freq == 1)
-			return freq1.contains(players.get(name.toLowerCase()));
-		return false;
-	}
-	
-	public void handleEvent(PlayerEntered event) {
+            return players.get(playerName.toLowerCase());
+        }
+    }
+    
+    public PubPlayer getPlayer(String name) {
+        return getPlayer(name, true);
+    }
+    
+    public boolean isPlayerExists(String name) {
+        return players.containsKey(name.toLowerCase());
+    }
+    
+    public boolean isPlayerOnFreq(String name, int freq) {
+        if (freq == 0)
+            return freq0.contains(players.get(name.toLowerCase()));
+        if (freq == 1)
+            return freq1.contains(players.get(name.toLowerCase()));
+        return false;
+    }
+    
+    public void handleEvent(PlayerEntered event) {
 
-    	String playerName = event.getPlayerName();
-    	
-    	PubPlayer pubPlayer = addPlayerToSystem(playerName);
+        String playerName = event.getPlayerName();
+        
+        PubPlayer pubPlayer = addPlayerToSystem(playerName);
 
         String restrictions = "";
         int weight;
@@ -244,50 +253,50 @@ public class PubPlayerManagerModule extends AbstractModule {
         }
         
         if (!context.getPubUtil().isLevAttachEnabled()) {
-        	restrictions += "Leviathan attach capability disabled on public frequencies.";
+            restrictions += "Leviathan attach capability disabled on public frequencies.";
         }
 
         if( restrictions != "" )
             m_botAction.sendSmartPrivateMessage(playerName, "Ship restrictions: " + restrictions );
 
         if (context.isStarted()) {
-	        checkPlayer(event.getPlayerID());
-	        if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
-	            checkFreq(event.getPlayerID(), event.getTeam(), false);
-	            checkFreqSizes();
-	        }
+            checkPlayer(event.getPlayerID());
+            if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
+                checkFreq(event.getPlayerID(), event.getTeam(), false);
+                checkFreqSizes();
+            }
         }
         
         if (pubPlayer != null && pubPlayer.getMoney() < 1000)
             m_botAction.sendSmartPrivateMessage(playerName, "Type !help for a list of commands.");
-	}
-	
-	public void handleEvent(PlayerLeft event) {
-		
-    	Player p = m_botAction.getPlayer(event.getPlayerID());
-    	if (p==null)
-    		return;
-    	String playerName = p.getPlayerName();
+    }
+    
+    public void handleEvent(PlayerLeft event) {
+        
+        Player p = m_botAction.getPlayer(event.getPlayerID());
+        if (p==null)
+            return;
+        String playerName = p.getPlayerName();
 
         removeFromLists(playerName);
         checkFreqSizes();
-	}
-	
-	public void handleEvent(FrequencyChange event) {
-		
-		Player player = m_botAction.getPlayer(event.getPlayerID());
+    }
+    
+    public void handleEvent(FrequencyChange event) {
+        
+        Player player = m_botAction.getPlayer(event.getPlayerID());
         int playerID = event.getPlayerID();
         int freq = event.getFrequency();
 
         if(context.isStarted()) {
-        	HuntPlayer huntPlayer = context.getPubHunt().getPlayerPlaying(player.getPlayerName());
+            HuntPlayer huntPlayer = context.getPubHunt().getPlayerPlaying(player.getPlayerName());
             if (huntPlayer != null && context.getPubHunt().isRunning()) {
-            	if (huntPlayer.freq != event.getFrequency()) {
-            		m_botAction.setFreq(playerID, huntPlayer.freq);
-            		m_botAction.sendSmartPrivateMessage(player.getPlayerName(), "You cannot change your frequency during a game of hunt.");
-            	}
+                if (huntPlayer.freq != event.getFrequency()) {
+                    m_botAction.setFreq(playerID, huntPlayer.freq);
+                    m_botAction.sendSmartPrivateMessage(player.getPlayerName(), "You cannot change your frequency during a game of hunt.");
+                }
             } else {
-            	checkPlayer(playerID);
+                checkPlayer(playerID);
                 if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
                     checkFreq(playerID, freq, true);
                     checkFreqSizes();
@@ -295,37 +304,37 @@ public class PubPlayerManagerModule extends AbstractModule {
             }
         }
         
-	}
+    }
 
-	public void handleEvent(PlayerDeath event) {
-		
+    public void handleEvent(PlayerDeath event) {
+        
         Player killer = m_botAction.getPlayer(event.getKillerID());
         Player killed = m_botAction.getPlayer(event.getKilleeID());
-    	
+        
         if (killer == null || killed == null)
-        	return;
+            return;
                 
-		PubPlayer pubPlayerKiller = getPlayer(killer.getPlayerName());
-		PubPlayer pubPlayerKilled = getPlayer(killed.getPlayerName());
-		if (pubPlayerKilled != null) {
-			//long diff = System.currentTimeMillis() - pubPlayerKilled.getLastDeath();
-			pubPlayerKilled.addDeath();
-			
-			// Spawn check (not working properly, the attach info isn't updating fast enough)
-			/*
-			if (diff < 8 * Tools.TimeInMillis.SECOND && System.currentTimeMillis()-pubPlayerKilled.getLastAttach() > 3.5*Tools.TimeInMillis.SECOND) {
-				if (pubPlayerKiller != null) {
-					if (pubPlayerKiller.getMoney() >= 200) {
-						pubPlayerKiller.removeMoney(200);
-						m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "Spawning is uncool, $200 subtracted from your money.");
-					} else {
-						m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "Spawning is uncool.");
-					}
-				}
-			}
-			*/
+        PubPlayer pubPlayerKiller = getPlayer(killer.getPlayerName());
+        PubPlayer pubPlayerKilled = getPlayer(killed.getPlayerName());
+        if (pubPlayerKilled != null) {
+            //long diff = System.currentTimeMillis() - pubPlayerKilled.getLastDeath();
+            pubPlayerKilled.addDeath();
+            
+            // Spawn check (not working properly, the attach info isn't updating fast enough)
+            /*
+            if (diff < 8 * Tools.TimeInMillis.SECOND && System.currentTimeMillis()-pubPlayerKilled.getLastAttach() > 3.5*Tools.TimeInMillis.SECOND) {
+                if (pubPlayerKiller != null) {
+                    if (pubPlayerKiller.getMoney() >= 200) {
+                        pubPlayerKiller.removeMoney(200);
+                        m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "Spawning is uncool, $200 subtracted from your money.");
+                    } else {
+                        m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "Spawning is uncool.");
+                    }
+                }
+            }
+            */
 
-		}
+        }
 
         // The following four if statements deduct the tax value from a player who TKs.
         if ((killer.getFrequency() == killed.getFrequency()) && (killer.getShipType() != 8)) {
@@ -339,30 +348,30 @@ public class PubPlayerManagerModule extends AbstractModule {
                 }
             }
         } 
-		
-	}
-	
+        
+    }
+    
     public void handleEvent(FrequencyShipChange event) {
 
         int playerID = event.getPlayerID();
         int freq = event.getFrequency();
         Player p = m_botAction.getPlayer(playerID);
-    	
-		PubPlayer pubPlayer = players.get(p.getPlayerName().toLowerCase());
-		if (pubPlayer!=null) {
-			pubPlayer.handleShipChange(event);
-		}
+        
+        PubPlayer pubPlayer = players.get(p.getPlayerName().toLowerCase());
+        if (pubPlayer!=null) {
+            pubPlayer.handleShipChange(event);
+        }
 
-		if (context.isStarted()) {
-			checkPlayer(playerID);
-			if (!context.getPubUtil().isPrivateFrequencyEnabled()) {
-				checkFreq(playerID, freq, true);
-			}
-		}
+        if (context.isStarted()) {
+            checkPlayer(playerID);
+            if (!context.getPubUtil().isPrivateFrequencyEnabled()) {
+                checkFreq(playerID, freq, true);
+            }
+        }
     }
     
     public void handleDisconnect() {
-    	saveTask.force();
+        saveTask.force();
     }
     
     public void handleEvent(SQLResultEvent event){
@@ -389,64 +398,64 @@ public class PubPlayerManagerModule extends AbstractModule {
     }
     
     public PubPlayer getPlayerByResultSet(ResultSet rs) {
-    	
-    	PubPlayer player = null;
-    	try {
-    		
-			String name = rs.getString("fcName");
-			int money = rs.getInt("fnMoney");
-			/*
-			Tileset tileset;
-			try {
-				tileset = Tileset.valueOf(rs.getString("fcTileset").toUpperCase());
-				context.getPubUtil().setTileset(tileset, name, false);
-			} catch (Exception e) { 
-				tileset = Tileset.BLUETECH;
-			}
-			*/
+        
+        PubPlayer player = null;
+        try {
+            
+            String name = rs.getString("fcName");
+            int money = rs.getInt("fnMoney");
+            /*
+            Tileset tileset;
+            try {
+                tileset = Tileset.valueOf(rs.getString("fcTileset").toUpperCase());
+                context.getPubUtil().setTileset(tileset, name, false);
+            } catch (Exception e) { 
+                tileset = Tileset.BLUETECH;
+            }
+            */
 
-			player = new PubPlayer(m_botAction, name, money);
-			players.put(name.toLowerCase(), player);
-			player.reloadPanel(false);
-			player.setBestStreak(rs.getInt("fnBestStreak"));
-			
-    	} catch (Exception e) {	
-    	}
-		
-		return player;
+            player = new PubPlayer(m_botAction, name, money);
+            players.put(name.toLowerCase(), player);
+            player.reloadPanel(false);
+            player.setBestStreak(rs.getInt("fnBestStreak"));
+            
+        } catch (Exception e) { 
+        }
+        
+        return player;
     }
     
     public void handleEvent(ArenaJoined event)
     {
-    	Iterator<Player> it = m_botAction.getPlayerIterator();
-    	while(it.hasNext()) {
-    		Player p = it.next();
-    		addPlayerToSystem(p.getPlayerName());
-    	}
+        Iterator<Player> it = m_botAction.getPlayerIterator();
+        while(it.hasNext()) {
+            Player p = it.next();
+            addPlayerToSystem(p.getPlayerName());
+        }
     }
     
     private PubPlayer addPlayerToSystem(final String playerName) {
-    	
-    	PubPlayer player = players.get(playerName.toLowerCase());
-    	if (player != null) {
-    		player.reloadPanel(false);
-    		player.setName(playerName);
-    		//context.getPubUtil().setTileset(player.getTileset(), player.getPlayerName(), false);
-    		return player;
-    	}
-    	else if (databaseName != null) {
-    		m_botAction.SQLBackgroundQuery(databaseName, "newplayer_"+playerName, "SELECT fcName, fnMoney, fcTileset, fnBestStreak FROM tblPlayerStats WHERE fcName = '"+Tools.addSlashes(playerName)+"'");
-    	}
-    	else {
-    		player = new PubPlayer(m_botAction, playerName);
-    		players.put(playerName.toLowerCase(), player);
-    	}
-    	
-    	return player;
+        
+        PubPlayer player = players.get(playerName.toLowerCase());
+        if (player != null) {
+            player.reloadPanel(false);
+            player.setName(playerName);
+            //context.getPubUtil().setTileset(player.getTileset(), player.getPlayerName(), false);
+            return player;
+        }
+        else if (databaseName != null) {
+            m_botAction.SQLBackgroundQuery(databaseName, "newplayer_"+playerName, "SELECT fcName, fnMoney, fcTileset, fnBestStreak FROM tblPlayerStats WHERE fcName = '"+Tools.addSlashes(playerName)+"'");
+        }
+        else {
+            player = new PubPlayer(m_botAction, playerName);
+            players.put(playerName.toLowerCase(), player);
+        }
+        
+        return player;
     }
     
     public boolean isShipRestricted(int ship) {
-    	return shipWeight.get(ship) == 0;
+        return shipWeight.get(ship) == 0;
     }
     
     /**
@@ -565,17 +574,17 @@ public class PubPlayerManagerModule extends AbstractModule {
             
             PubPlayer pubPlayer = context.getPlayerManager().getPlayer(player.getPlayerName());
             if (pubPlayer != null && pubPlayer.hasShipItem()) {
-            	PubShipItem item = pubPlayer.getShipItem();
-            	if (item.getShipNumber() == player.getShipType()) {
-            		return;
-            	}
+                PubShipItem item = pubPlayer.getShipItem();
+                if (item.getShipNumber() == player.getShipType()) {
+                    return;
+                }
             }
 
             m_botAction.setShip(playerID, randomShip);
-       	    m_botAction.sendSmartPrivateMessage(m_botAction.getPlayerName(playerID), "That ship has been restricted in this arena.");  
-       	    m_botAction.sendSmartPrivateMessage(m_botAction.getPlayerName(playerID), "Please choose another, or type ?arena to select another arena. You've been put randomly in ship "+randomShip);
+            m_botAction.sendSmartPrivateMessage(m_botAction.getPlayerName(playerID), "That ship has been restricted in this arena.");  
+            m_botAction.sendSmartPrivateMessage(m_botAction.getPlayerName(playerID), "Please choose another, or type ?arena to select another arena. You've been put randomly in ship "+randomShip);
        
-       	    return;
+            return;
         }
 
         // For all other weights, we must decide whether they can play based on the
@@ -599,14 +608,14 @@ public class PubPlayerManagerModule extends AbstractModule {
             }
         }
 
-    	// Free pass if you're the only one on the freq, regardless of weight.
-    	if( numShipsOfType <= 1 )
-    	    return;
+        // Free pass if you're the only one on the freq, regardless of weight.
+        if( numShipsOfType <= 1 )
+            return;
 
-    	if( freqTotal == 0 ) {
+        if( freqTotal == 0 ) {
             m_botAction.sendSmartPrivateMessage(m_botAction.getPlayerName(playerID), "Problem locating your freq!  Please contact a mod with ?help.");
             return;
-    	}
+        }
 
         if( numShipsOfType > freqTotal / weight ) {
             // If unlimited spiders are allowed, set them to spider; else spec
@@ -657,7 +666,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         String playerName = player.getPlayerName();
         
         if (context.getPubHunt().isPlayerPlaying(playerName)) {
-        	return;
+            return;
         }
 
         int ship = player.getShipType();
@@ -690,9 +699,9 @@ public class PubPlayerManagerModule extends AbstractModule {
      * Checks for imbalance in frequencies, and requests the stacked freq to even it up
      * if there's a significant gap.
      */
-    private void checkFreqSizes() 
+    public void checkFreqSizes() 
     {
-        if( MSG_AT_FREQSIZE_DIFF == -1 || context.getPubUtil().isPrivateFrequencyEnabled() )
+        if( MSG_AT_FREQSIZE_DIFF == -1)
             return;
         int freq0 = m_botAction.getPlayingFrequencySize(0);
         int freq1 = m_botAction.getPlayingFrequencySize(1);
@@ -701,16 +710,46 @@ public class PubPlayerManagerModule extends AbstractModule {
             return;
         freqSizeInfo[0] = diff;
         if( freqSizeInfo[0] >= MSG_AT_FREQSIZE_DIFF ) {
+            voting = true;
             if( freq0 > freq1 ) {
-                m_botAction.sendOpposingTeamMessageByFrequency(0, "Teams unbalanced: " + freq0 + "v" + freq1 + ". Volunteers requested; type =1 to switch to freq 1." );
+                m_botAction.sendOpposingTeamMessageByFrequency(0, "Teams are uneven: " + freq0 + "v" + freq1 + ". Need " + freqSizeInfo[0]/2 + " volunteers to switch to freq 1 and may do so by typing !switch to TW-PubSystem and as a reward may receive " + NICEGUY_BOUNTY_AWARD + " pubbux!" );
                 freqSizeInfo[1] = 1;
             } else {
-                m_botAction.sendOpposingTeamMessageByFrequency(1, "Teams unbalanced: " + freq1 + "v" + freq0 + ". Volunteers requested; type =0 to switch to freq 0." );
+                m_botAction.sendOpposingTeamMessageByFrequency(1, "Teams are uneven: " + freq0 + "v" + freq1 + ". Need " + freqSizeInfo[0]/2 + " volunteers to switch to freq 0 and may do so by typing !switch to TW-PubSystem and as a reward may receive " + NICEGUY_BOUNTY_AWARD + " pubbux!" );
                 freqSizeInfo[1] = 0;
             }
         }
-
     }
+    
+    /**
+     * Handles the !switch command duirng voting for the checkFreqSizes
+     * 
+     */
+    public void doFrequencySwitch(int playerID) {
+        PubPlayer pubPlayer =  context.getPlayerManager().getPlayer(m_botAction.getPlayerName(playerID));
+        if (pubPlayer != null) {
+            freqSizeInfo[0] = freqSizeInfo[0] - 1;
+            
+            //Switches the players frequency
+            if (freqSizeInfo[1] == 1) 
+                m_botAction.setFreq(playerID, 1);
+             else
+                 m_botAction.setFreq(playerID, 0);                   
+            
+            //Checks if the player has recieved a reward in the last 10 minutes.
+            if (pubPlayer.getLastSwitchReward() != -1) {
+            long diff = System.currentTimeMillis()-pubPlayer.getLastSwitchReward();
+                if (diff < 10 * Tools.TimeInMillis.MINUTE) {
+                        m_botAction.sendPrivateMessage(playerID,"You have been switched but you may only recieve one award every 10 minutes.");
+                        return;
+                        }
+            }
+            m_botAction.sendPrivateMessage(playerID,"Thank you for switching!  You have recieved " + NICEGUY_BOUNTY_AWARD + "$");
+            addMoney(m_botAction.getPlayerName(playerID), NICEGUY_BOUNTY_AWARD);
+            pubPlayer.setLastSwitchReward();
+        }       
+    }
+    
     
     public void checkSizesAndShuffle(int dx) {
         if (SHUFFLE_SIZE < 0 || dx < SHUFFLE_SIZE)
@@ -749,15 +788,15 @@ public class PubPlayerManagerModule extends AbstractModule {
         if (notify)
             m_botAction.sendSmartPrivateMessage("WingZero", "Shuffle vote in progress...");
         voting = true;
-        votes = new HashMap<Integer, Integer>();
+        votes = new TreeMap<Integer, Integer>();
         m_botAction.sendOpposingTeamMessageByFrequency(0, "[TEAM SHUFFLE POLL] Teams unbalanced: You have 20 seconds to Vote to shuffle teams! ");
         m_botAction.sendOpposingTeamMessageByFrequency(0, " 1- Yes");
         m_botAction.sendOpposingTeamMessageByFrequency(0, " 2- No");
-        m_botAction.sendOpposingTeamMessageByFrequency(0, "PM Your answers to " + m_botAction.getBotName() + " ( :TW-Pub:<number> )");
+        m_botAction.sendOpposingTeamMessageByFrequency(0, "PM Your answers to " + m_botAction.getBotName() + " ( :TW-Pub1:<number> )");
         m_botAction.sendOpposingTeamMessageByFrequency(1, "[TEAM SHUFFLE POLL] Teams unbalanced: You have 20 seconds to Vote to shuffle teams! ");
         m_botAction.sendOpposingTeamMessageByFrequency(1, " 1- Yes");
         m_botAction.sendOpposingTeamMessageByFrequency(1, " 2- No");
-        m_botAction.sendOpposingTeamMessageByFrequency(1, "PM Your answers to " + m_botAction.getBotName() + " ( :TW-Pub:<number> )");
+        m_botAction.sendOpposingTeamMessageByFrequency(1, "PM Your answers to " + m_botAction.getBotName() + " ( :TW-Pub1:<number> )");
         TimerTask count = new TimerTask() {
             public void run() {
                 voting = false;
@@ -781,7 +820,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                 }
             }
         };
-        m_botAction.scheduleTask(count, 20*Tools.TimeInMillis.SECOND);
+        m_botAction.scheduleTask(count, 85*Tools.TimeInMillis.SECOND);
     }
     
     /**
@@ -843,7 +882,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             checkFreq(player.getPlayerID(), player.getFrequency(), false);
         }
     }
-	
+    
 
     /**
      * Fills the freq lists for freqs 1 and 0.
@@ -861,55 +900,55 @@ public class PubPlayerManagerModule extends AbstractModule {
             player = (Player) iterator.next();
             lowerName = player.getPlayerName().toLowerCase();
             if(player.getFrequency() == pubsystem.FREQ_0)
-            	freq0.add(lowerName);
+                freq0.add(lowerName);
             if(player.getFrequency() == pubsystem.FREQ_1)
-            	freq1.add(lowerName);
+                freq1.add(lowerName);
         }
     }
     
     
     private class SavePlayersTask extends TimerTask {
-    	
-    	private boolean force = false;
-    	
-    	public void force() {
-    		force = true;
-    		run();
-    	}
-    	
+        
+        private boolean force = false;
+        
+        public void force() {
+            force = true;
+            run();
+        }
+        
         public void run() {
-        	
-        	Collection<String> arenaPlayers = new ArrayList<String>();
+            
+            Collection<String> arenaPlayers = new ArrayList<String>();
             Iterator<Player> it = m_botAction.getPlayerIterator();
             while(it.hasNext()) {
-            	Player p = it.next();
-            	arenaPlayers.add(p.getPlayerName());
+                Player p = it.next();
+                arenaPlayers.add(p.getPlayerName());
             }
 
             Iterator<PubPlayer> it2 = players.values().iterator();
             while(it2.hasNext()) {
-            	
-            	PubPlayer player = it2.next();
+                
+                PubPlayer player = it2.next();
 
-            	// Money is always saved
-            	if (databaseName != null) {
-                	if (force || player.getLastMoneyUpdate() > player.getLastMoneySavedState()) {
-                		m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney()+":"+(force?"1":"0"), "INSERT INTO tblPlayerStats (fcName,fnMoney) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
-                		player.moneySavedState();
-                	}
-                	
-                	if (player.getLastOptionsUpdate() > player.getLastSavedState()) {
-                    	//String tilesetName = player.getTileset().toString().toLowerCase();
-                    	m_botAction.SQLBackgroundQuery(databaseName, null, "INSERT INTO tblPlayerStats (fcName,fcTileset) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"','') ON DUPLICATE KEY UPDATE fcTileset=''");
-                    	player.savedState();
-                	}
-                	
-            	}
-            	    
-            	// Not anymore on this arena? remove this player from the PubPlayerManager
-            	if (m_botAction.getPlayer(player.getPlayerName()) == null) {
-            		it2.remove();
-            	}
+                // Money is always saved
+                if (databaseName != null) {
+                    if (force || player.getLastMoneyUpdate() > player.getLastMoneySavedState()) {
+                        m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney()+":"+(force?"1":"0"), "INSERT INTO tblPlayerStats (fcName,fnMoney) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
+                        player.moneySavedState();
+                    }
+                    
+                    if (player.getLastOptionsUpdate() > player.getLastSavedState()) {
+                        //String tilesetName = player.getTileset().toString().toLowerCase();
+                        m_botAction.SQLBackgroundQuery(databaseName, null, "INSERT INTO tblPlayerStats (fcName,fcTileset) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"','') ON DUPLICATE KEY UPDATE fcTileset=''");
+                        player.savedState();
+                    }
+                    
+                }
+                    
+                // Not anymore on this arena? remove this player from the PubPlayerManager
+                if (m_botAction.getPlayer(player.getPlayerName()) == null) {
+                    it2.remove();
+                }
             }
             
             force = false;
@@ -973,20 +1012,20 @@ public class PubPlayerManagerModule extends AbstractModule {
     }
     
     
-	@Override
-	public void handleCommand(String sender, String command) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void handleCommand(String sender, String command) {
+        // TODO Auto-generated method stub
+        
+    }
 
-	@Override
-	public void handleModCommand(String sender, String command) {
-		if(command.trim().equals("!tax")) {
+    @Override
+    public void handleModCommand(String sender, String command) {
+        if(command.trim().equals("!tax")) {
             doGetTeamKillTax(sender, command);
         } else if(command.trim().startsWith("!tax ")) {
             doSetTeamKillTax(sender, command);
         }
-	}
+    }
     
     @Override
     public void handleSmodCommand(String sender, String command) { 
@@ -1016,46 +1055,50 @@ public class PubPlayerManagerModule extends AbstractModule {
                 pubsystem.getHelpLine("!specstaff <name> -- Spec SMod+ who is AFK"),
         };
     }   
-	
-	@Override
-	public String[] getHelpMessage(String sender) {
-		return new String[]{};
-	}
+    
+    @Override
+    public String[] getHelpMessage(String sender) {
+        return new String[]{};
+    }
 
-	@Override
-	public String[] getModHelpMessage(String sender) {
-		return new String[]{
-		        "   !tax <$>          -- Sets <$> as the amount deducted for teamkills",
-		        "   !tax              -- Shows the current teamkill tax"
-		};
-	}
+    @Override
+    public String[] getModHelpMessage(String sender) {
+        return new String[]{
+                "   !tax <$>          -- Sets <$> as the amount deducted for teamkills",
+                "   !tax              -- Shows the current teamkill tax"
+        };
+    }
 
-	@Override
-	public void start() {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void start() {
+        // TODO Auto-generated method stub
+        
+    }
 
 
-	@Override
-	public void reloadConfig() 
-	{
-		this.databaseName = m_botAction.getBotSettings().getString("database");
-		this.shipWeight = new Vector<Integer>();
-        shipWeight.add(new Integer(1));		// Allow unlimited number of spec players
+    @Override
+    public void reloadConfig() 
+    {
+        this.databaseName = m_botAction.getBotSettings().getString("database");
+        this.shipWeight = new Vector<Integer>();
+        shipWeight.add(new Integer(1));     // Allow unlimited number of spec players
         String[] restrictions = m_botAction.getBotSettings().getString("ShipRestrictions" + m_botAction.getBotNumber()).split(",");
         for(String r: restrictions) {
-        	shipWeight.add(new Integer(r));
+            shipWeight.add(new Integer(r));
         }
+        
+        NICEGUY_BOUNTY_AWARD =  Integer.valueOf(m_botAction.getBotSettings().getString("niceguy_bounty_award"));
+        MSG_AT_FREQSIZE_DIFF = Integer.valueOf(m_botAction.getBotSettings().getString("msg_at_freq_diff"));
+        SHUFFLE_SIZE = Integer.valueOf(m_botAction.getBotSettings().getString("shuffle_size"));
 
-	}
+    }
 
 
-	@Override
-	public void stop() {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void stop() {
+        // TODO Auto-generated method stub
+        
+    }
     
     private void setNotify() {
         notify = !notify;
