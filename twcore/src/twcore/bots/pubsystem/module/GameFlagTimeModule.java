@@ -1496,12 +1496,12 @@ public class GameFlagTimeModule extends AbstractModule {
 
         }
 
-        if (!autoVote && context.getPlayerManager().checkSizes()) {
+   /*     if (!autoVote && context.getPlayerManager().checkSizes()) {
             m_botAction.sendOpposingTeamMessageByFrequency(0, "[TEAM SHUFFLE] To start a poll for a pub freq shuffle, PM " + m_botAction.getBotName()
                     + " with !shufflevote ");
             m_botAction.sendOpposingTeamMessageByFrequency(1, "[TEAM SHUFFLE] To start a poll for a pub freq shuffle, PM " + m_botAction.getBotName()
                     + " with !shufflevote ");
-        }
+        }*/
 
         // MVP TOP 3
         /*
