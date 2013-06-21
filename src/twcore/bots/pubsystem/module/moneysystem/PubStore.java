@@ -26,6 +26,8 @@ public class PubStore {
 	
 	private int commandCooldown = 0;
 	private int prizecooldown= 0;
+	private int detachLevTerrCooldown = 0;
+	private int buyableFromLevTerr = 1;
 	
 	private boolean opened = true;
     private LinkedHashMap<String, PubItem> items;
@@ -50,6 +52,8 @@ public class PubStore {
         
         commandCooldown = Integer.valueOf(m_botAction.getBotSettings().getString("command_cd"));
         prizecooldown = Integer.valueOf(m_botAction.getBotSettings().getString("prize_cd"));
+        buyableFromLevTerr = Integer.valueOf(m_botAction.getBotSettings().getString("buy_from_levterr"));
+        detachLevTerrCooldown = Integer.valueOf(m_botAction.getBotSettings().getString("levterr_detach_cd"));
 
         String[] itemTypes = { "item_prize" , "item_ship_upgrade" , "item_ship" , "item_command" };
         for(String type: itemTypes) {
@@ -95,7 +99,7 @@ public class PubStore {
 	    		else if ("item_ship".equals(type)) {
 	    			item = new PubShipItem(data[0].trim(), data[1].trim(), data[2].trim(),Integer.parseInt(data[3].trim()), Integer.parseInt(data[4].trim()));
 	    			optionPointer = 5;
-	    		}
+	    		}    
 	    		else if ("item_command".equals(type)) {
 	    			item = new PubCommandItem(data[0].trim(), data[1].trim(), data[2].trim(), Integer.parseInt(data[3].trim()), data[4]);
 	    			optionPointer = 4;
@@ -110,9 +114,14 @@ public class PubStore {
 	    			boolean hasRestriction = false;
 	    			boolean hasDuration = false;
 	    			
-	    			if (prizecooldown != 0) {
+	    			if (prizecooldown != 0) 
 	    			    r.setGobalCooldownBuy(prizecooldown);
+	    			if (buyableFromLevTerr == 0) {
+	    			    r.setbuyableFromLevTerr();
+	    			} else if (buyableFromLevTerr == 1 && detachLevTerrCooldown != 0) {
+	    			        r.setDetachLevTerrCooldown(detachLevTerrCooldown);
 	    			}
+	    			
 	    			
 	    			for(int i=optionPointer; i<data.length; i++) {
 
