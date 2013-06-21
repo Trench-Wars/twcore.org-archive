@@ -137,11 +137,12 @@ public class PubUtilModule extends AbstractModule {
     public void handleEvent(Message event) {
     }
 
+    @Override
     public void handleEvent(TurretEvent event) {
 
         Player p1 = m_botAction.getPlayer(event.getAttacheeID());
         Player p2 = m_botAction.getPlayer(event.getAttacherID());
-
+        
         if (p1 != null) {
             // Attacher stats
             PubPlayer pubPlayer = context.getPlayerManager().getPlayer(p1.getPlayerName());
@@ -606,6 +607,7 @@ public class PubUtilModule extends AbstractModule {
 
     @Override
     public void requestEvents(EventRequester eventRequester) {
+        eventRequester.request(EventRequester.TURRET_EVENT);
         eventRequester.request(EventRequester.PLAYER_LEFT);
         eventRequester.request(EventRequester.PLAYER_ENTERED);
         eventRequester.request(EventRequester.MESSAGE);
