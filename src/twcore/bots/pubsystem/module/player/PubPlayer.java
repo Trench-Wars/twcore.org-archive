@@ -49,6 +49,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private long lastMoneySavedState = System.currentTimeMillis();
     private long lastSavedState = System.currentTimeMillis();
     private long lastOptionsUpdate = System.currentTimeMillis();
+    private long lastDetachLevTerr = System.currentTimeMillis();
     private long lastDeath = 0;
     private long lastAttach = 0;
     private long lastThor = 0;
@@ -63,6 +64,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
 	private String lastKillKilledName;
 	private boolean lastKillWithFlag;
     private boolean notifiedAboutEZ = false; 
+    private boolean isLevTerr = false;
 	
 	public static int EZ_PENALTY = 100;
 
@@ -171,6 +173,22 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     public long getLastDeath() {
     	return lastDeath;
+    }
+    
+    public void setLevTerr(boolean levTerr) {
+        this.isLevTerr = levTerr;
+    }   
+    
+    public void setLastDetachLevTerr() {
+        this.lastDetachLevTerr = System.currentTimeMillis();
+    }   
+    
+    public boolean getLevTerr() {
+        return isLevTerr;
+    }
+    
+    public long getLastDetachLevTerr() {
+        return lastAttach;
     }
     
     public long getLastAttach() {
