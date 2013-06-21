@@ -201,7 +201,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     }
     
     public long getLastDetachLevTerr() {
-        return lastAttach;
+        return lastDetachLevTerr;
     }
     
     public long getLastAttach() {
