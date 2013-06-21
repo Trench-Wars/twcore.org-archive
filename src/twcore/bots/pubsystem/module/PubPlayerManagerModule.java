@@ -263,7 +263,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             checkPlayer(event.getPlayerID());
             if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
                 checkFreq(event.getPlayerID(), event.getTeam(), false);
-                checkFreqSizes();
+            //    checkFreqSizes();
             }
         }
         
@@ -279,7 +279,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         String playerName = p.getPlayerName();
 
         removeFromLists(playerName);
-        checkFreqSizes();
+      //  checkFreqSizes();
     }
     
     public void handleEvent(FrequencyChange event) {
@@ -297,10 +297,10 @@ public class PubPlayerManagerModule extends AbstractModule {
                 }
             } else {
                 checkPlayer(playerID);
-                if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
+               /* if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
                     checkFreq(playerID, freq, true);
                     checkFreqSizes();
-                }
+                }*/
             }
         }
         
