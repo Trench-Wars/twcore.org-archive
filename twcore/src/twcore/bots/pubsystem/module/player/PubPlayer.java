@@ -47,6 +47,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private long lastBigItemUsed = 0;
     private long lastMoneyUpdate = System.currentTimeMillis();
     private long lastMoneySavedState = System.currentTimeMillis();
+    private long lastSwitchReward = -1;
     private long lastSavedState = System.currentTimeMillis();
     private long lastOptionsUpdate = System.currentTimeMillis();
     private long lastDetachLevTerr = System.currentTimeMillis();
@@ -308,6 +309,14 @@ public class PubPlayer implements Comparable<PubPlayer>{
     	if (shipItem != null) {
     		deathsOnShipItem++;
     	}
+    }
+    
+    public void setLastSwitchReward() {
+        this.lastSwitchReward = System.currentTimeMillis();
+    }
+    
+    public Long getLastSwitchReward() {
+        return lastSwitchReward;
     }
     
     public int getDeathsOnShipItem() {
