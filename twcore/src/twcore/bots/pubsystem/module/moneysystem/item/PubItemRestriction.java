@@ -17,6 +17,8 @@ public class PubItemRestriction {
 	private int maxPerSecond = -1;
 	private int maxFreqPerMinute = -1;
 	private int globalCooldownBuy = -1;
+	private int detachLevTerrCooldown = -1;
+	private boolean buyableFromLevTerr = true;
 	private boolean buyableFromSpec = false;
 	private List<String> itemNotSameTime;
 	private TreeMap<Short, Long> freqUsed;
@@ -84,8 +86,16 @@ public class PubItemRestriction {
         this.globalCooldownBuy = c;
     }
 	
+	public void setDetachLevTerrCooldown(int c) {
+	    this.detachLevTerrCooldown = c;
+	}
+	
 	public void buyableFromSpec(boolean b) {
 		this.buyableFromSpec = b;
+	}
+	
+	public void setbuyableFromLevTerr() {
+	    this.buyableFromLevTerr = false;
 	}
 	
 	public boolean isBuyableFromSpec() {
@@ -131,6 +141,10 @@ public class PubItemRestriction {
 			}
 		}
 		
+		if (!buyableFromLevTerr && player.getLevTerr()) {
+		    throw new PubException("Buying has been disabled for LevTerrs.");
+		}
+		
 		if (maxArenaPerMinute!=-1) {
 			long diff = System.currentTimeMillis()-item.getLastTimeUsed();
 			if (diff < maxArenaPerMinute*Tools.TimeInMillis.MINUTE) {
@@ -161,6 +175,13 @@ public class PubItemRestriction {
                 }
             }
         }
+		
+		if (detachLevTerrCooldown !=-1 && (shipType == 4 || shipType == 5)) {
+                long diff = System.currentTimeMillis()-player.getLastDetachLevTerr();
+                if (diff < detachLevTerrCooldown*Tools.TimeInMillis.SECOND) 
+                    throw new PubException("You must wait at least " + globalCooldownBuy + " seconds before you purchase another item , please wait...");                
+            }
+        
 		
 		if (maxPerLife!=-1) {
 			List<PubItem> items = player.getItemsBoughtThisLife();
