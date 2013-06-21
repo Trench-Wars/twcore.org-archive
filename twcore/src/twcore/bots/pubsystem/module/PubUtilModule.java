@@ -146,24 +146,39 @@ public class PubUtilModule extends AbstractModule {
             // Attacher stats
             PubPlayer pubPlayer = context.getPlayerManager().getPlayer(p1.getPlayerName());
             if (pubPlayer != null) {
-                pubPlayer.handleAttach();
-            }
-        }
-
-        if (p2 != null) {
-            // Attachee check up
-            if (!levAttachEnabled && p2.getShipType() == Tools.Ship.LEVIATHAN && event.isAttaching()) {
-
-                // Public freq?
-                if (p2.getFrequency() == 0 || p2.getFrequency() == 1) {
-                    m_botAction.specWithoutLock(p2.getPlayerName());
-                    m_botAction.setShip(p2.getPlayerName(), Tools.Ship.LEVIATHAN);
-                    m_botAction.setFreq(p2.getPlayerName(), p2.getFrequency());
-                    m_botAction.sendSmartPrivateMessage(p2.getPlayerName(), "You cannot attach to a Terrier on a public frequency.");
+                if (event.isAttaching()) {
+                    pubPlayer.handleAttach();
+                        if (p1.getShipType() == 4)
+                            pubPlayer.setLevTerr(true);
+                } else if (!event.isAttaching() && p1.getShipType() == 4){
+                    pubPlayer.setLastDetachLevTerr();
+                    pubPlayer.setLevTerr(false);
                 }
             }
         }
 
+        if (p2 != null) {
+            PubPlayer pubPlayer2 = context.getPlayerManager().getPlayer(p1.getPlayerName());
+            if (pubPlayer2 != null && p2.getShipType() == Tools.Ship.LEVIATHAN) {                
+                // Attachee check up
+                if (event.isAttaching()) {
+                    pubPlayer2.setLevTerr(true);
+                    
+                    if (!levAttachEnabled ) {
+                        // Public freq?
+                        if (p2.getFrequency() == 0 || p2.getFrequency() == 1) {
+                            m_botAction.specWithoutLock(p2.getPlayerName());
+                            m_botAction.setShip(p2.getPlayerName(), Tools.Ship.LEVIATHAN);
+                            m_botAction.setFreq(p2.getPlayerName(), p2.getFrequency());
+                            m_botAction.sendSmartPrivateMessage(p2.getPlayerName(), "You cannot attach to a Terrier on a public frequency.");
+                        }
+                    }
+                } else if (!event.isAttaching()) {
+                    pubPlayer2.setLastDetachLevTerr();
+                    pubPlayer2.setLevTerr(false);
+                }
+            }
+        }
     }
 
     public void handleEvent(PlayerLeft event) {
