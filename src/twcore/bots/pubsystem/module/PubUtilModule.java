@@ -148,22 +148,17 @@ public class PubUtilModule extends AbstractModule {
             if (pubPlayer != null) {
                 if (event.isAttaching()) {
                     pubPlayer.handleAttach();
-                        if (p1.getShipType() == 4)
-                            pubPlayer.setLevTerr(true);
-                } else if (!event.isAttaching() && p1.getShipType() == 4){
+                } else if (p2 != null && !event.isAttaching() && p2.getShipType() == 4){
                     pubPlayer.setLastDetachLevTerr();
-                    pubPlayer.setLevTerr(false);
                 }
             }
         }
 
         if (p2 != null) {
             PubPlayer pubPlayer2 = context.getPlayerManager().getPlayer(p1.getPlayerName());
-            if (pubPlayer2 != null && p2.getShipType() == Tools.Ship.LEVIATHAN) {                
-                // Attachee check up
-                if (event.isAttaching()) {
-                    pubPlayer2.setLevTerr(true);
-                    
+            if (pubPlayer2 != null && p2.getShipType() == Tools.Ship.LEVIATHAN) {
+                if(event.isAttaching()) {
+                // Attachee check up                    
                     if (!levAttachEnabled ) {
                         // Public freq?
                         if (p2.getFrequency() == 0 || p2.getFrequency() == 1) {
@@ -175,11 +170,11 @@ public class PubUtilModule extends AbstractModule {
                     }
                 } else if (!event.isAttaching()) {
                     pubPlayer2.setLastDetachLevTerr();
-                    pubPlayer2.setLevTerr(false);
                 }
             }
         }
     }
+    
 
     public void handleEvent(PlayerLeft event) {
         //tutorials.remove(m_botAction.getPlayerName(event.getPlayerID()));
