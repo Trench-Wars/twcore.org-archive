@@ -889,7 +889,7 @@ public class GameFlagTimeModule extends AbstractModule {
         m_botAction.showObject(2100);
         if (autoVote && freq0Score + freq1Score >= minShuffleRound && Math.abs(freq0Score - freq1Score) > 0)
             ;
-        context.getPlayerManager().checkSizesAndShuffle(Math.abs(freq0Score - freq1Score));
+        context.getPlayerManager().checkFreqSizes();
 
     }
 
