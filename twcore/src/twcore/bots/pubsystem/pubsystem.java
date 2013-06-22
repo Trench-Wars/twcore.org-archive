@@ -148,6 +148,8 @@ public class pubsystem extends SubspaceBot
      */
     public void handleEvent(LoggedOn event)
     {
+        m_botAction.setLowPriorityPacketCap( 8 );
+
     	try {
 	        initialSpawn = m_botAction.getBotSettings().getString("InitialArena");
 	        initialPub = (m_botAction.getBotSettings().getInt("Pub" + m_botAction.getBotNumber()) - 1);
