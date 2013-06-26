@@ -309,13 +309,6 @@ public class GameFlagTimeModule extends AbstractModule {
                     cmd_warp(playerName);
             */
 
-            // Levis can't warp into base
-            // TODO: Only check this ONCE because we need to change the rule sometimes...
-            // Only Levis can't warp into base right now!
-            if (context.getPlayerManager().isShipRestricted(Tools.Ship.LEVIATHAN))
-                if (ship == Tools.Ship.LEVIATHAN )
-                    warpPlayers.remove(playerName);
-
         } catch (Exception e) {
             Tools.printStackTrace(e);
         }
@@ -842,24 +835,9 @@ public class GameFlagTimeModule extends AbstractModule {
         } else if (strictFlagTimeMode) {
             m_botAction.sendSmartPrivateMessage(sender, "Strict Flag mode is currently running, !warp has no effect. You will automatically be warped.");
             return;
-        } else if (warpEnabled) {
+        } else if (!warpEnabled) {
             m_botAction.sendSmartPrivateMessage(sender, "Warping into base at round start is not currently allowed.");
             return;
-        }
-
-        // Levis can't warp into base if Levis are enabled
-        if (!context.getPlayerManager().isShipRestricted(Tools.Ship.LEVIATHAN)) {
-            Player p = m_botAction.getPlayer(sender);
-            if (p.getShipType() == Tools.Ship.LEVIATHAN) {
-                m_botAction.sendSmartPrivateMessage(sender, "Leviathans can not warp in to base at round start.");
-                return;
-            }
-            /*
-            if (p.getShipType() == Tools.Ship.TERRIER) {
-                m_botAction.sendSmartPrivateMessage(sender,"Terriers can not warp into base at round start while Leviathans are enabled.");
-                return;
-            }
-            */
         }
 
         if (warpPlayers.containsKey(sender)) {
@@ -1862,35 +1840,33 @@ public class GameFlagTimeModule extends AbstractModule {
         while (i.hasNext()) {
 
             p = (Player) i.next();
+            if (p == null)
+                continue;
             pname = p.getPlayerName();
 
-            if (!allPlayers)
-                if (p.getFrequency() != 0 && p.getFrequency() != 1)
-                    p = null;
-                else if (!warpPlayers.containsKey(pname)) {
-                    Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
-                    // Warp the player if inside the flagroom
-                    if (!loc.equals(Location.FLAGROOM))
-                        p = null;
+            if (allPlayers) {
+                if (p.getFrequency() != 0 && p.getFrequency() != 1) {
+                    continue;
                 }
+            } else if (!warpPlayers.containsKey(pname)) {
+                Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
+                //Warp the player if inside the flagroom
+                if (!loc.equals(Location.FLAGROOM))
+                    continue;
+            }
 
-            if (p != null && p.getShipType() == Tools.Ship.LEVIATHAN)
-                p = null;
+            if (p.getShipType() == Tools.Ship.LEVIATHAN)
+                continue;
+            
+            if (allPlayers)
+                rand = 0;
+            else
+                rand = r.nextInt(warpPtsLeftX.length);
 
-            if (p != null) {
-
-                if (allPlayers)
-                    rand = 0;
-                else
-                    rand = r.nextInt(warpPtsLeftX.length);
-
-                if (p.getFrequency() % 2 == randomside)
-                    doPlayerWarp(pname, warpPtsLeftX[rand], warpPtsLeftY[rand]);
-                else
-                    doPlayerWarp(pname, warpPtsRightX[rand], warpPtsRightY[rand]);
-
-            } else if (!allPlayers)
-                nullPlayers.add(pname);
+            if (p.getFrequency() % 2 == randomside)
+                doPlayerWarp(pname, warpPtsLeftX[rand], warpPtsLeftY[rand]);
+            else
+                doPlayerWarp(pname, warpPtsRightX[rand], warpPtsRightY[rand]);
         }
 
         if (!nullPlayers.isEmpty()) {
@@ -1987,7 +1963,6 @@ public class GameFlagTimeModule extends AbstractModule {
 
     @Override
     public void start() {
-        // TODO Auto-generated method stub
     }
 
     @Override
