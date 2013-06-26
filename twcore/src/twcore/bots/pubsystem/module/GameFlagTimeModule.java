@@ -1844,11 +1844,12 @@ public class GameFlagTimeModule extends AbstractModule {
                 continue;
             pname = p.getPlayerName();
 
-            if (allPlayers) {
-                if (p.getFrequency() != 0 && p.getFrequency() != 1) {
-                    continue;
-                }
-            } else if (!warpPlayers.containsKey(pname)) {
+            // TODO: Check instead if dueling (why wasn't that done in the first place, I do not know)
+            // Also, consider not warping if a terr and on a private freq.
+            if (p.getFrequency() != 0 && p.getFrequency() != 1)
+                continue;
+
+            if (!warpPlayers.containsKey(pname) && !allPlayers) {
                 Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
                 //Warp the player if inside the flagroom
                 if (!loc.equals(Location.FLAGROOM))
@@ -1869,11 +1870,13 @@ public class GameFlagTimeModule extends AbstractModule {
                 doPlayerWarp(pname, warpPtsRightX[rand], warpPtsRightY[rand]);
         }
 
+        /* Reimplement as needed... not sure if we need it at present.
         if (!nullPlayers.isEmpty()) {
             i = nullPlayers.iterator();
             while (i.hasNext())
                 warpPlayers.remove(i.next());
         }
+        */
     }
 
     /**
