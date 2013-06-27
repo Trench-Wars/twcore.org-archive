@@ -212,7 +212,6 @@ public class MatchTeam {
     }
 
     // when somebody lags out
-    // Removed if (!p.getLagByBot()) { } after     if (m_rules.getInt("deaths") != -1 && m_round.m_fnRoundState == 3) {  as per request by Reckful - K A N E 06/20/2013
     public void handleEvent(FrequencyShipChange event) {
         String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
 
@@ -222,8 +221,10 @@ public class MatchTeam {
                 sendPrivateMessageToCaptains(playerName + " lagged out or manually specced", 13);
 
                 if (m_rules.getInt("deaths") != -1 && m_round.m_fnRoundState == 3) {
+                    if (!p.getLagByBot()) {
                         m_botAction.sendArenaMessage(playerName + " has changed to spectator mode - +1 death");
                         p.reportDeath();
+                    }
                 }
 
                 // TWSD ONLY:
