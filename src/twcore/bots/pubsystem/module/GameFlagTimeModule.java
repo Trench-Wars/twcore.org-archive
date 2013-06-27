@@ -81,7 +81,8 @@ public class GameFlagTimeModule extends AbstractModule {
 
     private Objset objs;                                // For keeping track of counter
 
-    private HashMap<String, PubPlayer> warpPlayers;
+    //private HashMap<String, PubPlayer> warpPlayers;
+    private HashSet<String> warpPlayers;
 
     // X and Y coords for warp points.  Note that the first X and Y should be
     // the "standard" warp; in TW this is the earwarp.  These coords are used in
@@ -116,7 +117,7 @@ public class GameFlagTimeModule extends AbstractModule {
     public GameFlagTimeModule(BotAction botAction, PubContext context) {
         super(botAction, context, "Game FlagTime");
         objs = m_botAction.getObjectSet();
-        warpPlayers = new HashMap<String, PubPlayer>();
+        warpPlayers = new HashSet<String>();
         playerTimes = new HashMap<String, Integer>();
         levterrs = new HashMap<String, LevTerr>();
         reloadConfig();
@@ -405,17 +406,16 @@ public class GameFlagTimeModule extends AbstractModule {
 
         int playerID = event.getPlayerID();
         Player player = m_botAction.getPlayer(playerID);
+        if (player == null)
+            return;
         String playerName = m_botAction.getPlayerName(playerID);
 
         if (isRunning() ) {
             if( event.getShipType() != Tools.Ship.SPECTATOR )
                 flagTimer.newShip(playerName, player.getShipType());
 
-            if( isAutoWarpEnabled()) {
-                PubPlayer pplayer = context.getPlayerManager().getPlayer(playerName);
-                if( pplayer != null )
-                    warpPlayers.put(playerName, pplayer);
-            }
+            if( isAutoWarpEnabled())
+                warpPlayers.add(playerName);
         }
         
         statusMessage(playerName);
@@ -840,11 +840,11 @@ public class GameFlagTimeModule extends AbstractModule {
             return;
         }
 
-        if (warpPlayers.containsKey(sender)) {
+        if (warpPlayers.contains(sender)) {
             warpPlayers.remove(sender);
             m_botAction.sendSmartPrivateMessage(sender, "You will NOT be warped inside the base at the start of each round. Type !warp again to turn back on.");
         } else {
-            warpPlayers.put(sender, player);
+            warpPlayers.add(sender);
             m_botAction.sendSmartPrivateMessage(sender, "You WILL be warped inside the base at the start of each round. Type !warp again to turn off.");
         }
     }
@@ -1619,7 +1619,7 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     public boolean canWarpPlayer(String name) {
-        return warpPlayers.containsKey(name);
+        return warpPlayers.contains(name);
     }
 
     public boolean isFlagTimeStarted() {
@@ -1849,7 +1849,7 @@ public class GameFlagTimeModule extends AbstractModule {
             if (p.getFrequency() != 0 && p.getFrequency() != 1)
                 continue;
 
-            if (!warpPlayers.containsKey(pname) && !allPlayers) {
+            if (!warpPlayers.contains(pname) && !allPlayers) {
                 Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
                 //Warp the player if inside the flagroom
                 if (!loc.equals(Location.FLAGROOM))
