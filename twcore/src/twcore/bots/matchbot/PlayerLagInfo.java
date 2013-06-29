@@ -15,7 +15,7 @@ import twcore.core.events.Message;
 public class PlayerLagInfo extends PlayerInfo
 {
   public static final int MIN_TINFO_TIME = 3;
-  public static final int DEFAULT_SPIKE_SIZE = 300;
+  public static final int DEFAULT_SPIKE_SIZE = 75;
 
   private PlayerLagState state;
   private int currentPing;
