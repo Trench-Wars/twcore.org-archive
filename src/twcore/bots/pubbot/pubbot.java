@@ -60,6 +60,7 @@ public class pubbot extends SubspaceBot
     private String pubHubBot;
     private String currentArena;
     private String botName;
+    private String mainPubBotChats;
     private boolean connected;
 
     private boolean movingGoCmd = false;  // true if this bot received a "go " command and is moving to the new arena
@@ -103,6 +104,10 @@ public class pubbot extends SubspaceBot
         m_botAction.changeArena(currentArena);
 
         botName = m_botAction.getBotName();
+        if (botName.equals("TW-Guard0")) {
+            mainPubBotChats = botSettings.getString("mainPubBotChats");
+            m_botAction.sendUnfilteredPublicMessage("?chat=" + mainPubBotChats);
+        }
         m_botAction.ipcSubscribe(IPCCHANNEL);
         m_botAction.ipcSubscribe(IPCCHANNEL2);
         m_botAction.ipcSubscribe(IPCWHO);
@@ -214,7 +219,10 @@ public class pubbot extends SubspaceBot
      */
     public void gotJoinChatCmd(String argString)
     {
+        if (botName.equals("TW-Guard0"))
+            return;
         m_botAction.sendUnfilteredPublicMessage("?chat=" + argString);
+        
     }
 
     /**
