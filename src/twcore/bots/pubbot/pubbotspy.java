@@ -64,10 +64,10 @@ public class pubbotspy extends PubBotModule
         if(!ignoreList.contains(sender.toLowerCase()))
           m_botAction.sendUnfilteredPublicMessage("?cheater " + messageTypeString + ": (" + sender + "): " + message);
         else
-          m_botAction.sendChatMessage(messageTypeString + ": (" + sender + "): " + message);
+          m_botAction.sendChatMessage(2,messageTypeString + ": (" + sender + "): " + message);
       }
       if(spying || watchList.contains(sender.toLowerCase()))
-        m_botAction.sendChatMessage(messageTypeString + ": (" + sender + ") (" + currentArena + "): " + message);
+        m_botAction.sendChatMessage(2,messageTypeString + ": (" + sender + ") (" + currentArena + "): " + message);
       if(pWatchList.containsKey(sender.toLowerCase()))
     	  for(String staffMember:pWatchList.get(sender.toLowerCase()))
     		  m_botAction.sendSmartPrivateMessage(staffMember, messageTypeString + ": (" + sender + ") (" + currentArena + "): " + message);
