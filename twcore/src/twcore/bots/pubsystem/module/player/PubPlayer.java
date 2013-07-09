@@ -301,31 +301,30 @@ public class PubPlayer implements Comparable<PubPlayer>{
         return ((int)m_botAction.getPlayer(name).getShipType()) == 0;
     }
     
+    public void doSpawnMid() {
+        double spawnPoint = Math.floor(Math.random() * 10);
+        Player p = m_botAction.getPlayer(name);
+        
+        if(p != null) {
+            if (spawnPoint <= 5)
+                m_botAction.warpTo(p.getPlayerName(), 560, 320, 15);
+            else
+                m_botAction.warpTo(p.getPlayerName(), 464, 320, 15);
+        }
+    }
+    
     public void doLowPopSpawn(Boolean deathspawn) {
-        if(deathspawn) {
-            this.spawnDelay = new TimerTask() {            
-                @Override
-                public void run() {
-                    double spawnPoint = Math.floor(Math.random()) + 1;
-                    Player p = m_botAction.getPlayer(name);                
-                    if(p != null) {
-                        if (spawnPoint == 1)
-                            m_botAction.warpTo(p.getPlayerName(), 560, 320, 15);
-                        else
-                            m_botAction.warpTo(p.getPlayerName(), 464, 320, 15);
-                    }                
-                }
-            }; m_botAction.scheduleTask(this.spawnDelay, Tools.TimeInMillis.SECOND * 4);
-        } else {
-            double spawnPoint = Math.floor(Math.random()) + 1;
-            Player p = m_botAction.getPlayer(name);                
-            if(p != null) {
-                if (spawnPoint == 1)
-                    m_botAction.warpTo(p.getPlayerName(), 560, 320, 15);
-                else
-                    m_botAction.warpTo(p.getPlayerName(), 464, 320, 15);
-            }                
-        }            
+        if (name.equalsIgnoreCase("K A N E")) {
+            if(deathspawn) {
+                this.spawnDelay = new TimerTask() {        
+                    @Override
+                    public void run() {
+                        doSpawnMid();
+                        }                
+                }; m_botAction.scheduleTask(this.spawnDelay, Tools.TimeInMillis.SECOND * 4 + 500);
+            } else 
+                doSpawnMid();
+        }
     }
 
     public void handleShipChange(FrequencyShipChange event) {
