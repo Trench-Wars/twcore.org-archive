@@ -44,6 +44,8 @@ public class PubPlayerManagerModule extends AbstractModule {
 
     private int NICEGUY_BOUNTY_AWARD = 0; // Bounty given to those that even freqs/ships
     
+    private int MAX_MID_SPAWN = -1; // Max Freq Size to enable mid spawning, -1 = off
+    
     private int SHUFFLE_SIZE = -1;
 
     private TreeMap<String, PubPlayer> players;         // Always lowercase!
@@ -65,6 +67,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     
     private boolean notify = false;
     private boolean voting = false;
+    private boolean lowPopSpawning = false;
     private Random r = new Random();
     private TreeMap<Integer, Integer> votes;
 
@@ -118,6 +121,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     
     public void requestEvents(EventRequester eventRequester)
     {
+        eventRequester.request(EventRequester.PLAYER_DEATH);
         eventRequester.request(EventRequester.ARENA_JOINED);
         eventRequester.request(EventRequester.FREQUENCY_CHANGE);
         eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
@@ -287,6 +291,19 @@ public class PubPlayerManagerModule extends AbstractModule {
         Player player = m_botAction.getPlayer(event.getPlayerID());
         int playerID = event.getPlayerID();
         int freq = event.getFrequency();
+        PubPlayer pubPlayer;
+        
+        
+        
+            if (player != null && lowPopSpawning) {
+                 pubPlayer = players.get(player.getPlayerName().toLowerCase());
+            if (pubPlayer!=null) {
+                if(!context.getPubChallenge().isDueling(pubPlayer.getPlayerName()) && player.isPlaying()) {
+                    pubPlayer.doLowPopSpawn(false);
+                    }
+                }
+            }
+            
 
         if(context.isStarted()) {
             HuntPlayer huntPlayer = context.getPubHunt().getPlayerPlaying(player.getPlayerName());
@@ -333,8 +350,18 @@ public class PubPlayerManagerModule extends AbstractModule {
                 }
             }
             */
+            
+            if(lowPopSpawning) {
+                if(!context.getPubChallenge().isDueling(pubPlayerKilled.getPlayerName()) && killed.isPlaying()) {
+                    pubPlayerKilled.doLowPopSpawn(true);
+                    }
+                }
 
         }
+        
+
+       
+            
 
         // The following four if statements deduct the tax value from a player who TKs.
         if ((killer.getFrequency() == killed.getFrequency()) && (killer.getShipType() != 8)) {
@@ -360,6 +387,10 @@ public class PubPlayerManagerModule extends AbstractModule {
         PubPlayer pubPlayer = players.get(p.getPlayerName().toLowerCase());
         if (pubPlayer!=null) {
             pubPlayer.handleShipChange(event);
+            if (lowPopSpawning)
+                if(!context.getPubChallenge().isDueling(pubPlayer.getPlayerName()) && p.isPlaying()) {
+                    pubPlayer.doLowPopSpawn(false);
+                }
         }
 
         if (context.isStarted()) {
@@ -640,6 +671,13 @@ public class PubPlayerManagerModule extends AbstractModule {
             freq0.add(lowerName);
         if(freq == pubsystem.FREQ_1)
             freq1.add(lowerName);
+        
+        int numPlayers = m_botAction.getNumPlaying();
+        if(numPlayers != -1 && numPlayers <= MAX_MID_SPAWN && !lowPopSpawning)
+            lowPopSpawning = true;
+        else if (numPlayers > MAX_MID_SPAWN && lowPopSpawning)
+            lowPopSpawning = false;
+
     }
     
     /**
@@ -649,6 +687,22 @@ public class PubPlayerManagerModule extends AbstractModule {
         String lowerName = playerName.toLowerCase();
         freq0.remove(lowerName);
         freq1.remove(lowerName);
+        
+        int numPlayers = m_botAction.getNumPlaying();
+        if(numPlayers != -1 && numPlayers <= MAX_MID_SPAWN && !lowPopSpawning)
+            lowPopSpawning = true;
+        else if (numPlayers > MAX_MID_SPAWN && lowPopSpawning)
+            lowPopSpawning = false;
+    }
+    
+    public void enableLowPopWarp() { 
+        if(!lowPopSpawning)
+        lowPopSpawning = true;
+        
+    }
+    
+    public boolean isLowPopWarp() {
+        return lowPopSpawning;
     }
     
     /**
@@ -1088,6 +1142,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         }
         
         NICEGUY_BOUNTY_AWARD =  Integer.valueOf(m_botAction.getBotSettings().getString("niceguy_bounty_award"));
+        MAX_MID_SPAWN =  Integer.valueOf(m_botAction.getBotSettings().getString("max_mid_spawn"));
         MSG_AT_FREQSIZE_DIFF = Integer.valueOf(m_botAction.getBotSettings().getString("msg_at_freq_diff"));
         SHUFFLE_SIZE = Integer.valueOf(m_botAction.getBotSettings().getString("shuffle_size"));
 
