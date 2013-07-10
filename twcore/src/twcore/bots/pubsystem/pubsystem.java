@@ -293,7 +293,7 @@ public class pubsystem extends SubspaceBot
             		"Store:[" + (context.getMoneySystem().isStoreOpened() ? "ON" : "OFF") + "]  " + 
             		"Kill-o-thon:[" + (context.getPubKillSession().isRunning() ? "ON" : "OFF") + "]  " +
             		"Duel:[" + (context.getPubChallenge().isEnabled() ? "ON" : "OFF") + "]  " +
-                    "EZ:[" + (ezCheckOn ? "ON" : "OFF") + "]" +
+                    "EZ:[" + (ezCheckOn ? "ON" : "OFF") + "] " +
                 "LowP:[" + (context.getPlayerManager().isLowPopWarp() ? "ON" : "OFF") + "]  ";
             	    // TODO: Fix hunt (crashes bot) and... is lottery broken? May need fix if display commented out
                     //"Hunt:[" + (context.getPubHunt().isEnabled() ? "ON" : "OFF") + "]";
