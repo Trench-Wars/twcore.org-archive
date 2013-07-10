@@ -314,17 +314,15 @@ public class PubPlayer implements Comparable<PubPlayer>{
     }
     
     public void doLowPopSpawn(Boolean deathspawn) {
-        if (name.equalsIgnoreCase("K A N E")) {
             if(deathspawn) {
                 this.spawnDelay = new TimerTask() {        
                     @Override
                     public void run() {
                         doSpawnMid();
                         }                
-                }; m_botAction.scheduleTask(this.spawnDelay, Tools.TimeInMillis.SECOND * 4 + 500);
+                }; m_botAction.scheduleTask(this.spawnDelay, Tools.TimeInMillis.SECOND * 5);
             } else 
-                doSpawnMid();
-        }
+                doSpawnMid();        
     }
 
     public void handleShipChange(FrequencyShipChange event) {
