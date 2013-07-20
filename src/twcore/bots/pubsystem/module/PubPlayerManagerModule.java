@@ -766,10 +766,10 @@ public class PubPlayerManagerModule extends AbstractModule {
         if( freqSizeInfo[0] >= MSG_AT_FREQSIZE_DIFF ) {
             voting = true;
             if( freq0 > freq1 ) {
-                m_botAction.sendOpposingTeamMessageByFrequency(0, "Teams are uneven: " + freq0 + "v" + freq1 + ". Need " + freqSizeInfo[0]/2 + " volunteers to switch to freq 1 and may do so by typing !switch to TW-PubSystem and as a reward may receive " + NICEGUY_BOUNTY_AWARD + " pubbux!" );
+                m_botAction.sendOpposingTeamMessageByFrequency(0, "Teams are uneven: " + freq0 + "v" + freq1 + ". Need " + freqSizeInfo[0]/2 + " volunteers to switch to freq 1 and may do so by typing !switch to TW-PubSystem. As a reward you may receive " + NICEGUY_BOUNTY_AWARD + " pubbux!" );
                 freqSizeInfo[1] = 1;
             } else {
-                m_botAction.sendOpposingTeamMessageByFrequency(1, "Teams are uneven: " + freq0 + "v" + freq1 + ". Need " + freqSizeInfo[0]/2 + " volunteers to switch to freq 0 and may do so by typing !switch to TW-PubSystem and as a reward may receive " + NICEGUY_BOUNTY_AWARD + " pubbux!" );
+                m_botAction.sendOpposingTeamMessageByFrequency(1, "Teams are uneven: " + freq0 + "v" + freq1 + ". Need " + freqSizeInfo[0]/2 + " volunteers to switch to freq 0 and may do so by typing !switch to TW-PubSystem. As a reward you may receive " + NICEGUY_BOUNTY_AWARD + " pubbux!" );
                 freqSizeInfo[1] = 0;
             }
         }
