@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.Stack;
 import java.util.TimerTask;
 
 import twcore.bots.pubsystem.PubContext;
@@ -112,6 +111,8 @@ public class PubUtilModule extends AbstractModule {
                     location = Location.valueOf("FLAGROOM");
                 else if (region.equals(Region.TUNNELS))
                     location = Location.valueOf("LOWER");
+                else if (region.equals(Region.SAFE))
+                    location = Location.valueOf("SAFE");
                 else
                     location = null;
             }
@@ -181,139 +182,7 @@ public class PubUtilModule extends AbstractModule {
         //tutorials.remove(m_botAction.getPlayerName(event.getPlayerID()));
         //checkForDoors();
     }
-
-    /*
-    private void checkForDoors() {
-
-        // Did someone manually changed the doors? if yes.. do nothing
-        if (doorModeManual) {
-            return;
-        }
-
-        if (m_botAction.getNumPlayers() >= doorModeThreshold && !doorStatus.equals(DoorMode.IN_OPERATION)) {
-            m_botAction.setDoors(doorModeThresholdSetting);
-            doorStatus = DoorMode.IN_OPERATION;
-        } else if (!doorStatus.equals(DoorMode.CLOSED)) {
-            m_botAction.setDoors(doorModeDefault);
-            doorStatus = DoorMode.CLOSED;
-        }
-    }
-    */
-    /*
-    public void setTileset(Tileset tileset, final String playerName, boolean instant) {
-        final Tileset playerTileset;
-
-        if (!tilesetEnabled) {
-            return;
-        }
-
-        if (tileset == Tileset.DEFAULT) {
-            playerTileset = defaultTileSet;
-        } else {
-            playerTileset = tileset;
-        }
-
-        TimerTask task = new TimerTask() {
-
-            public void run() {
-                PubPlayer pubPlayer = context.getPlayerManager().getPlayer(playerName);
-                if (pubPlayer != null) {
-                    if (Tileset.BLUETECH == playerTileset) {
-                        for (int object : tilesetObjects.values()) {
-                            m_botAction.sendUnfilteredPrivateMessage(playerName, "*objoff " + object);
-                        }
-                    } else {
-                        for (int object : tilesetObjects.values()) {
-                            m_botAction.sendUnfilteredPrivateMessage(playerName, "*objoff " + object);
-                        }
-                        m_botAction.sendUnfilteredPrivateMessage(playerName, "*objon " + tilesetObjects.get(playerTileset));
-                    }
-                    pubPlayer.setTileset(playerTileset);
-                }
-            }
-        };
-
-        if (instant) {
-            task.run();
-        } else {
-            try {
-                m_botAction.scheduleTask(task, 1 * Tools.TimeInMillis.SECOND);
-            } catch (IllegalStateException e) {
-                Tools.printLog("IllegalStateException when setting tileset of " + playerName);
-            }
-        }
-
-    }
-
-    public void setArenaTileset(Tileset tileset) {
-        if (tileset == Tileset.DEFAULT) {
-            tileset = defaultTileSet;
-        }
-
-        if (!tilesetEnabled) {
-            return;
-        }
-
-        if (Tileset.BLUETECH == tileset) {
-            for (int object : tilesetObjects.values()) {
-                m_botAction.sendUnfilteredPublicMessage("*objoff " + object);
-            }
-        } else {
-            for (int object : tilesetObjects.values()) {
-                m_botAction.sendUnfilteredPublicMessage("*objoff " + object);
-            }
-            m_botAction.sendUnfilteredPublicMessage("*objon " + tilesetObjects.get(tileset));
-        }
-    }
-
-    /**
-     * Change the current tileset for a player
-     */ 
-    /*
-    private void doSetTileCmd(String sender, String tileName) {
-
-        if (!tilesetEnabled) {
-            m_botAction.sendSmartPrivateMessage(sender, "This command is disabled. It may be due to a special event/day/map.");
-            return;
-        }
-
-        try {
-            Tileset tileset = Tileset.valueOf(tileName.toUpperCase());
-            setTileset(tileset, sender, true);
-            m_botAction.sendSmartPrivateMessage(sender, "This setting has been saved in your account. Tileset: " + tileName);
-        } catch (IllegalArgumentException e) {
-            m_botAction.sendSmartPrivateMessage(sender, "The tileset '" + tileName + "' does not exists.");
-        }
-
-    }
-
-    private void doOpenDoorCmd(String sender) {
-        doorModeManual = true;
-        m_botAction.setDoors(0);
-        m_botAction.sendSmartPrivateMessage(sender, "Doors opened.");
-        doorStatus = DoorMode.OPENED;
-    }
-
-    private void doCloseDoorCmd(String sender) {
-        doorModeManual = true;
-        m_botAction.setDoors(255);
-        m_botAction.sendSmartPrivateMessage(sender, "Doors closed.");
-        doorStatus = DoorMode.CLOSED;
-    }
-
-    private void doToggleDoorCmd(String sender) {
-        doorModeManual = true;
-        m_botAction.setDoors(-2);
-        m_botAction.sendSmartPrivateMessage(sender, "Doors will be toggl.");
-        doorStatus = DoorMode.IN_OPERATION;
-    }
-
-    private void doAutoDoorCmd(String sender) {
-        doorModeManual = false;
-        //checkForDoors();
-        m_botAction.sendSmartPrivateMessage(sender, "Doors will be locked or in operation if the number of players is higher than " + doorModeThreshold + ".");
-    }
-    */
+    
     /**
      * Moves the bot from one arena to another.  The bot must not be
      * started for it to move.
