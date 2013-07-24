@@ -47,8 +47,8 @@ public class PubUtilModule extends AbstractModule {
         SPAWN,    
         
         SPACE,
+        SAFE,
         UNKNOWN,
-        SAFE
     }
     private MapRegions regions;
     private HashSet<Region> locals;
