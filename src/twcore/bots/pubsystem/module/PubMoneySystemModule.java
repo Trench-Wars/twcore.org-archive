@@ -615,7 +615,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 LinkedList<Integer> playerIDs = p.getTurrets();
                 for (Integer i : playerIDs) {
                     Player a = m_botAction.getPlayer(i);
-                    if (a.isShip(Ship.LEVIATHAN)) {
+                    if (a != null && a.isShip(Ship.LEVIATHAN)) {
                         m_botAction.sendPrivateMessage(sender, 
                                 "LTs must be in a safety zone to purchase items.");
                         return;
