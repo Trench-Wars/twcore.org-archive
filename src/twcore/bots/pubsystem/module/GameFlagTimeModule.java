@@ -2170,7 +2170,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
                 if (remain < 60)
                     if (remain < 4) {
-                        m_botAction.sendArenaMessage("INCONCIEVABLE!!: " + p.getPlayerName() + " claims flag for "
+                        m_botAction.sendArenaMessage("INCONCEIVABLE!!: " + p.getPlayerName() + " claims flag for "
                                 + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with just " + remain + " second"
                                 + (remain == 1 ? "" : "s") + " left!", 65);
                         m_botAction.showObject(2500);
