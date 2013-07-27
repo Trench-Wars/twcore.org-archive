@@ -614,7 +614,8 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendPrivateMessage(name, "[ERROR]  Couldn't finalize bet.  (You are not allowed to be in the duel you're betting on, or bet on both players.)");
         else
             m_botAction.sendPrivateMessage(name, "[OK!]  Your bet for $" + amt + " has been deducted from your balance and placed on " + searchName
-                    + ".  Good luck!  (NOTE: you'll lose your bet if you leave the arena before the duel is finished.)");
+                    + ". Inorder to win, another player will need to place a bet, as it is not betting against the house. Good luck!  "
+                    + "(NOTE: you'll lose your bet if you leave the arena before the duel is finished.)");
 
     }
 
