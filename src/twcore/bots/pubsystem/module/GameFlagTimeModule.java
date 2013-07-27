@@ -1353,7 +1353,7 @@ public class GameFlagTimeModule extends AbstractModule {
             context.getPlayerManager().addMoney(mostTek, m5);
         }
         if (mostLvk != null) {
-            m_botAction.sendArenaMessage(" - Most Leviathan Kills     : " + mostLvk + Tools.rightString(" (+$" + m5 + ")", 8) );
+            m_botAction.sendArenaMessage(" - Most Leviathan Kills    : " + mostLvk + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostLvk, m5);
         }
         if (lessDeath != null) {
