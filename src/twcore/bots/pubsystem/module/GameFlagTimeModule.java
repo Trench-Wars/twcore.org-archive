@@ -43,6 +43,7 @@ public class GameFlagTimeModule extends AbstractModule {
     private HashMap<String, Integer> flagClaims;            // Flag claimed during a round
     private HashMap<String, Integer> killsLocationWeigth;// Total of kill-location-weight after a round
     private HashMap<String, Integer> killsBounty;       // Total of bounty collected by kill after a round
+    private HashMap<String, Integer> levKills;          //total number of leviathans killed
     private HashMap<String, Integer> terrKills;         // Number of terr-kill during a round
     private HashMap<String, Integer> kills;             // Number of kills during a round
     private HashMap<String, Integer> deaths;                // Number of deaths during a round
@@ -1291,6 +1292,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
         LinkedHashMap<String, Integer> lessdeaths = sort(this.deaths, true);
         LinkedHashMap<String, Integer> kills = sort(this.kills, false);
+        LinkedHashMap<String, Integer> lvks = sort(this.levKills, false);
         LinkedHashMap<String, Integer> teks = sort(this.terrKills, false);
         LinkedHashMap<String, Integer> flagClaims = sort(this.flagClaims, false);
         LinkedHashMap<String, Integer> killsInBase = sort(this.killsInBase, false);
@@ -1320,6 +1322,7 @@ public class GameFlagTimeModule extends AbstractModule {
         String lessDeath = getPosition(lessdeaths, 1, 5, true);
         String mostFlagClaimed = getPosition(flagClaims, 1);
         //String mostTk = getPosition(tks, 1, 8, false);
+        String mostLvk = getPosition(lvks, 1);
         String mostTek = getPosition(teks, 1);
         String bestTerrierName = getPosition(bestTerrier, 1);
 
@@ -1348,6 +1351,10 @@ public class GameFlagTimeModule extends AbstractModule {
         if (mostTek != null) {
             m_botAction.sendArenaMessage(" - Most Terrier Kills      : " + mostTek + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostTek, m5);
+        }
+        if (mostLvk != null) {
+            m_botAction.sendArenaMessage(" - Most Leviathan Kills      : " + mostLvk + Tools.rightString(" (+$" + m5 + ")", 8) );
+            context.getPlayerManager().addMoney(mostLvk, m5);
         }
         if (lessDeath != null) {
             m_botAction.sendArenaMessage(" - Most Cautious           : " + lessDeath + Tools.rightString(" (+$" + m2 + ")", 8) );
@@ -1744,6 +1751,7 @@ public class GameFlagTimeModule extends AbstractModule {
         sortedList.put(sort(deaths, true), 25);
         sortedList.put(sort(kills, false), 25);
         sortedList.put(sort(killsBounty, false), 25);
+        sortedList.put(sort(levKills, false), 40);
         sortedList.put(sort(terrKills, false), 40);
         sortedList.put(sort(killsLocationWeigth, false), 40);
         sortedList.put(sort(flagClaims, false), 50);
@@ -2009,6 +2017,7 @@ public class GameFlagTimeModule extends AbstractModule {
             freqsSecs = new HashMap<Integer, Integer>();
             flagClaims = new HashMap<String, Integer>();
             kills = new HashMap<String, Integer>();
+            levKills = new HashMap<String, Integer>();
             terrKills = new HashMap<String, Integer>();
             deaths = new HashMap<String, Integer>();
             killsLocationWeigth = new HashMap<String, Integer>();
@@ -2079,6 +2088,16 @@ public class GameFlagTimeModule extends AbstractModule {
             else
                 kills.put(player, new Integer(count.intValue() + 1));
 
+            // Lev kill?
+            if (shipTypeKilled == Tools.Ship.LEVIATHAN && !location.equals(Location.SPACE) && !location.equals(Location.SPAWN)
+                    && !location.equals(Location.ROOF)) {
+                Integer levKill = levKills.get(player);
+                if (levKill == null)
+                    levKills.put(player, new Integer(1));
+                else
+                    levKills.put(player, new Integer(levKill.intValue() + 1));
+            }
+            
             // Terr kill ?
             if (shipTypeKilled == Tools.Ship.TERRIER && !location.equals(Location.SPACE) && !location.equals(Location.SPAWN)
                     && !location.equals(Location.ROOF)) {
@@ -2315,6 +2334,22 @@ public class GameFlagTimeModule extends AbstractModule {
                 return count;
         }
 
+        /**
+         * Returns number of lev kills for given player.
+         * 
+         * @param name
+         *            Name of player
+         * @return Flag grabs
+         */
+        @SuppressWarnings("unused")
+        public int getTotalLevKills(String name) {
+            Integer count = levKills.get(name);
+            if (count == null)
+                return 0;
+            else
+                return count;
+        }
+        
         /**
          * Returns number of terr kill for given player.
          * 
