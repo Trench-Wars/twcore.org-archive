@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -56,6 +57,7 @@ import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.util.MapRegions;
 import twcore.core.util.Tools;
+import twcore.core.util.Tools.Ship;
 
 public class PubMoneySystemModule extends AbstractModule {
 
@@ -598,8 +600,30 @@ public class PubMoneySystemModule extends AbstractModule {
     private void doCmdBuy(String sender, String command)
     {
         Player p = m_botAction.getPlayer(sender);
-        if(p == null)
+        if (p == null) {
             return;
+        }
+        
+        /* LIMIT LTs TO SAFE */
+        /* http://www.twcore.org/ticket/981 */
+        if (!p.isInSafe()) {
+            if (p.isShip(Ship.LEVIATHAN) && p.isAttached()) {
+                m_botAction.sendPrivateMessage(name, 
+                        "LTs must be in a safety zone to purchase items.");
+                return;
+            } else if (p.isShip(Ship.TERRIER) && p.hasAttachees()) {
+                LinkedList<Integer> playerIDs = p.getTurrets();
+                for (Integer i : playerIDs) {
+                    Player a = m_botAction.getPlayer(i);
+                    if (a.isShip(Ship.LEVIATHAN)) {
+                        m_botAction.sendPrivateMessage(name, 
+                                "LTs must be in a safety zone to purchase items.");
+                        return;
+                    }
+                }
+            }
+        }
+        
         if (!command.contains(" ")) {
         	doCmdItems(sender);
         	return;
