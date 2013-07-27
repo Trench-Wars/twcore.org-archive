@@ -608,7 +608,7 @@ public class PubMoneySystemModule extends AbstractModule {
         /* http://www.twcore.org/ticket/981 */
         if (!p.isInSafe()) {
             if (p.isShip(Ship.LEVIATHAN) && p.isAttached()) {
-                m_botAction.sendPrivateMessage(name, 
+                m_botAction.sendPrivateMessage(sender, 
                         "LTs must be in a safety zone to purchase items.");
                 return;
             } else if (p.isShip(Ship.TERRIER) && p.hasAttachees()) {
@@ -616,7 +616,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 for (Integer i : playerIDs) {
                     Player a = m_botAction.getPlayer(i);
                     if (a.isShip(Ship.LEVIATHAN)) {
-                        m_botAction.sendPrivateMessage(name, 
+                        m_botAction.sendPrivateMessage(sender, 
                                 "LTs must be in a safety zone to purchase items.");
                         return;
                     }
