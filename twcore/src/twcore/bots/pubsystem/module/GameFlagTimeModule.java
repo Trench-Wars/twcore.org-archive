@@ -348,8 +348,8 @@ public class GameFlagTimeModule extends AbstractModule {
                         lt.allowAlert(true);
                     if (event.getKilledPlayerBounty() > 30) {
                         m_botAction.sendPrivateMessage(killer.getPlayerName(), "You killed the last Leviathan of this LevTerr, you get $150 + 3x its bounty in money! +$"
-                                + (100 + (event.getKilledPlayerBounty() * 3)));
-                        context.getPlayerManager().addMoney(killer.getPlayerName(), 150 + event.getKilledPlayerBounty() * 3);
+                                + (150 + (event.getKilledPlayerBounty() * 3)));
+                        context.getPlayerManager().addMoney(killer.getPlayerName(), 150 + (event.getKilledPlayerBounty() * 3));
                     }
                     break;
                 }
