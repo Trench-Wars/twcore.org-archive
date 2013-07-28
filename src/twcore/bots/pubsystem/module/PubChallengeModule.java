@@ -1169,12 +1169,9 @@ public class PubChallengeModule extends AbstractModule {
     @Override
     public void handleCommand(String sender, String command) {
 
-        if (command.startsWith("!challenge ") || command.startsWith("!duel ")) {
+        if (command.startsWith("!challenge ") || command.startsWith("!ch ") || command.startsWith("!duel ")) {
             String pieces[];
-            if (command.startsWith("!challenge "))
-                pieces = command.substring(11).split(":");
-            else
-                pieces = command.substring(7).split(":");
+            pieces = command.substring(command.indexOf(" ") + 1).split(":");
 
             String opponent = "";
 
