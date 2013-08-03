@@ -527,12 +527,12 @@ public class PubMoneySystemModule extends AbstractModule {
      * 
      * @param sender
      * @param msg
-     *          The command with syntax !edit CFG_key:Value
+     *          The command with syntax !edit CFG_key=Value
      */
     private void doCmdEditCfg(String sender, String msg) {
         msg = msg.substring(6);
         String key = msg.substring(0, msg.indexOf(":"));
-        String val = msg.substring(msg.indexOf(":") + 1);
+        String val = msg.substring(msg.indexOf("=") + 1);
         if (key == null || val == null) return;
         BotSettings cfg = m_botAction.getBotSettings();
         String oldValue = cfg.getString(key);
@@ -1626,7 +1626,7 @@ public class PubMoneySystemModule extends AbstractModule {
         return new String[] {
                 pubsystem.getHelpLine("!storehelp                            -- Displays the PubStore CFG help located in the CFG file."),
                 pubsystem.getHelpLine("!storecfg                             -- Displays the PubStore CFG values."),
-                pubsystem.getHelpLine("!edit <key>:<value>                   -- Modifies the pubsystem store configuration file. BE CAREFUL!"),
+                pubsystem.getHelpLine("!edit <key>=<value>                   -- Modifies the pubsystem store configuration file. BE CAREFUL!"),
         };
     }
 
