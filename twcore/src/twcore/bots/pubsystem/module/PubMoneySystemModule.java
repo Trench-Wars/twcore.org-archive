@@ -567,7 +567,9 @@ public class PubMoneySystemModule extends AbstractModule {
                 else if (begin)
                     cfg.add(line);
                 else if (line.contains("END STORE ITEMS"))
-                    begin = false;
+                    line = null;
+                if (line != null)
+                    line = read.readLine();
             }
             
             read.close();
@@ -601,7 +603,9 @@ public class PubMoneySystemModule extends AbstractModule {
                 else if (begin)
                     cfg.add(line);
                 else if (line.contains("END STORE HELP"))
-                    begin = false;
+                    line = null;
+                if (line != null)
+                    line = read.readLine();
             }
             
             read.close();
@@ -1620,9 +1624,9 @@ public class PubMoneySystemModule extends AbstractModule {
     @Override
     public String[] getSmodHelpMessage(String sender) {
         return new String[] {
-                pubsystem.getHelpLine("!storehelp          -- Displays the PubStore CFG help located in the CFG file."),
-                pubsystem.getHelpLine("!storecfg           -- Displays the PubStore CFG values."),
-                pubsystem.getHelpLine("!edit <key>:<value> -- Modifies the pubsystem store configuration file. BE CAREFUL!"),
+                pubsystem.getHelpLine("!storehelp                            -- Displays the PubStore CFG help located in the CFG file."),
+                pubsystem.getHelpLine("!storecfg                             -- Displays the PubStore CFG values."),
+                pubsystem.getHelpLine("!edit <key>:<value>                   -- Modifies the pubsystem store configuration file. BE CAREFUL!"),
         };
     }
 
