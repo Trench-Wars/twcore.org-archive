@@ -65,8 +65,13 @@ public class PubStreakModule extends AbstractModule {
         public void handleEvent(PlayerPosition event) {
             Player p = m_botAction.getPlayer(event.getPlayerID());
             if (p != null && p.isInSafe()) {
-                winStreaks.remove(p.getPlayerName());
-                loseStreaks.remove(p.getPlayerName());
+                if (winStreaks.containsKey(p.getPlayerName())) {
+                    if (winStreaks.get(p.getPlayerName()) >= winsStreakArenaAt) {
+                        winStreaks.remove(p.getPlayerName());
+                        m_botAction.sendSmartPrivateMessage(p.getPlayerName(), 
+                                "You have entered a safe and lost your streak.");
+                    }
+                }
             }
         }
         
