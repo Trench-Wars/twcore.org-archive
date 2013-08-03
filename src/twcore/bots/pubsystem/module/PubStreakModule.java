@@ -16,6 +16,7 @@ import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
+import twcore.core.events.PlayerPosition;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
@@ -58,9 +59,17 @@ public class PubStreakModule extends AbstractModule {
 	{
 		eventRequester.request(EventRequester.PLAYER_DEATH);
 		eventRequester.request(EventRequester.PLAYER_LEFT);
+                eventRequester.request(EventRequester.PLAYER_POSITION);
 	}
 
-
+        public void handleEvent(PlayerPosition event) {
+            Player p = m_botAction.getPlayer(event.getPlayerID());
+            if (p != null && p.isInSafe()) {
+                winStreaks.remove(p.getPlayerName());
+                loseStreaks.remove(p.getPlayerName());
+            }
+        }
+        
 	public void handleEvent(PlayerLeft event) {
 		Player p = m_botAction.getPlayer(event.getPlayerID());
 		if (p==null)
