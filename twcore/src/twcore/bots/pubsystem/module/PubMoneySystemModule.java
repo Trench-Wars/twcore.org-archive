@@ -1502,7 +1502,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     p.addMoney(money);
                     // [SPACEBUX] $1000 milestone!  Balance ... $5002  Last kill ... +$10  (!lastkill for details)
                     if (p.getMoney() % 1000 < money) {
-                        m_botAction.sendPrivateMessage(playerName, "[SPACEBUX] $1000 milestone.  Balance ... $" + p.getMoney() + "  Last kill ... +$" + money + "  (!lastkill for details)");
+                        m_botAction.sendPrivateMessage(playerName, "[PUBBUX] $1000 milestone.  Balance ... $" + p.getMoney() + "  Last kill ... +$" + money + "  (!lastkill for details)");
                     }
                 }
 
