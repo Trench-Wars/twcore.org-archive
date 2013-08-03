@@ -531,7 +531,7 @@ public class PubMoneySystemModule extends AbstractModule {
      */
     private void doCmdEditCfg(String sender, String msg) {
         msg = msg.substring(6);
-        String key = msg.substring(msg.indexOf(":"));
+        String key = msg.substring(0, msg.indexOf(":"));
         String val = msg.substring(msg.indexOf(":") + 1);
         if (key == null || val == null) return;
         BotSettings cfg = m_botAction.getBotSettings();
