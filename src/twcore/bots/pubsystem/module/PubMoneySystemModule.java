@@ -566,7 +566,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     begin = true;
                 else if (begin)
                     cfg.add(line);
-                else if (line.contains("END STORE ITEMS"))
+                if (line.contains("END STORE ITEMS"))
                     line = null;
                 if (line != null)
                     line = read.readLine();
@@ -602,7 +602,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     begin = true;
                 else if (begin)
                     cfg.add(line);
-                else if (line.contains("END STORE HELP"))
+                if (line.contains("END STORE HELP"))
                     line = null;
                 if (line != null)
                     line = read.readLine();
