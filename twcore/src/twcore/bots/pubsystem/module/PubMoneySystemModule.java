@@ -1,6 +1,9 @@
 package twcore.bots.pubsystem.module;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -45,6 +48,7 @@ import twcore.bots.pubsystem.util.AutobotThread;
 import twcore.bots.pubsystem.util.IPCReceiver;
 import twcore.bots.pubsystem.util.PubException;
 import twcore.core.BotAction;
+import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.events.ArenaList;
 import twcore.core.events.FrequencyChange;
@@ -515,6 +519,99 @@ public class PubMoneySystemModule extends AbstractModule {
         if (message != null) {
             m_botAction.sendSmartPrivateMessage(playerName, message);
         }
+    }
+    
+    /**
+     * Edits a particular CFG setting value (meant to be used for on-the-fly PubStore modification).
+     * Dangerous!
+     * 
+     * @param sender
+     * @param msg
+     *          The command with syntax !edit CFG_key:Value
+     */
+    private void doCmdEditCfg(String sender, String msg) {
+        msg = msg.substring(6);
+        String key = msg.substring(msg.indexOf(":"));
+        String val = msg.substring(msg.indexOf(":") + 1);
+        if (key == null || val == null) return;
+        BotSettings cfg = m_botAction.getBotSettings();
+        String oldValue = cfg.getString(key);
+        if (oldValue != null) {
+            cfg.put(key, val);
+            m_botAction.sendPrivateMessage(sender, "Updated key " + key + " was successful... NOTE: Change will not take effect until CFG is reloaded using !reload.");
+            m_botAction.sendPrivateMessage(sender, "Old value: " + oldValue);
+            m_botAction.sendPrivateMessage(sender, "New value: " + val);
+            cfg.save();
+        } else
+            m_botAction.sendPrivateMessage(sender, "Key not found: " + key);
+    }
+    
+    /**
+     * Lists the configuration values for the pub store items.
+     * 
+     * @param sender
+     */
+    private void doCmdViewStoreCfg(String sender) {
+        ArrayList<String> cfg = new ArrayList<String>();
+        
+        File f = m_botAction.getBotSettingsPath();
+        try {
+            // read the actual cfg file line by line and store the relevant information we want to relay
+            BufferedReader read = new BufferedReader(new FileReader(f));
+            
+            boolean begin = false;
+            String line = read.readLine();
+            while (line != null) {
+                if (line.contains("END STORE HELP"))
+                    begin = true;
+                else if (begin)
+                    cfg.add(line);
+                else if (line.contains("END STORE ITEMS"))
+                    begin = false;
+            }
+            
+            read.close();
+            
+            m_botAction.privateMessageSpam(sender, cfg.toArray(new String[cfg.size()]));
+            
+        } catch (Exception e) {
+            Tools.printStackTrace(e);
+            m_botAction.sendPrivateMessage(sender, "Error reading configuration file.");
+        }        
+    }
+
+    /**
+     * Lists the configuration guide for the pub store items.
+     * 
+     * @param sender
+     */
+    private void doCmdStoreCfgHelp(String sender) {     
+        ArrayList<String> cfg = new ArrayList<String>();
+        
+        File f = m_botAction.getBotSettingsPath();
+        try {
+            // read the actual cfg file line by line and store the relevant information we want to relay
+            BufferedReader read = new BufferedReader(new FileReader(f));
+            
+            boolean begin = false;
+            String line = read.readLine();
+            while (line != null) {
+                if (line.contains("BEGIN STORE HELP"))
+                    begin = true;
+                else if (begin)
+                    cfg.add(line);
+                else if (line.contains("END STORE HELP"))
+                    begin = false;
+            }
+            
+            read.close();
+            
+            m_botAction.privateMessageSpam(sender, cfg.toArray(new String[cfg.size()]));
+            
+        } catch (Exception e) {
+            Tools.printStackTrace(e);
+            m_botAction.sendPrivateMessage(sender, "Error reading configuration file.");
+        }          
     }
 
     private void doCmdItems(String sender) {
@@ -1487,11 +1584,21 @@ public class PubMoneySystemModule extends AbstractModule {
     }
 
     public void handleSmodCommand(String sender, String command) {
-        if (command.startsWith("!couponaddop ")) {
+        if (command.startsWith("!couponaddop "))
             doCmdCouponAddOp(sender, command.substring(12).trim());
-        } else if (command.equals("!couponlistops")) {
+        else if (command.equals("!couponlistops"))
             doCmdCouponListOps(sender);
-        }
+        else if (m_botAction.getOperatorList().isSysop(sender))
+            handleSysopCommand(sender, command);
+    }
+    
+    public void handleSysopCommand(String sender, String command) {
+        if (command.equals("!storehelp"))
+            doCmdStoreCfgHelp(sender);
+        else if (command.equals("!storecfg"))
+            doCmdViewStoreCfg(sender);
+        else if (command.startsWith("!edit "))
+            doCmdEditCfg(sender, command);
     }
 
     /**
@@ -1512,7 +1619,11 @@ public class PubMoneySystemModule extends AbstractModule {
 
     @Override
     public String[] getSmodHelpMessage(String sender) {
-        return new String[] {};
+        return new String[] {
+                pubsystem.getHelpLine("!storehelp          -- Displays the PubStore CFG help located in the CFG file."),
+                pubsystem.getHelpLine("!storecfg           -- Displays the PubStore CFG values."),
+                pubsystem.getHelpLine("!edit <key>:<value> -- Modifies the pubsystem store configuration file. BE CAREFUL!"),
+        };
     }
 
     @Override
