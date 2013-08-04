@@ -35,7 +35,6 @@ public class PubContext {
     private PubSessionModule pubSession;
     private PubLotteryModule pubLottery;
     private GaugeModule gaugeModule;
-    private BountyModule bountyModule;
 
     // Game module
     private GameFlagTimeModule gameFlagTime;
@@ -147,14 +146,6 @@ public class PubContext {
             modules.put("gaugemodule", gaugeModule);
         }
         return gaugeModule;
-    }
-    
-    public BountyModule getBounty() {
-        if (bountyModule == null) {
-            bountyModule = new BountyModule(m_botAction, this);
-            modules.put("bounty", bountyModule);
-        }
-        return bountyModule;
     }
     
     public PubMoneySystemModule getMoneySystem() {
