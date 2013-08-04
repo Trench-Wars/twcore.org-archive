@@ -95,8 +95,7 @@ public class BountyModule extends AbstractModule {
         String in = command.toLowerCase();
         if (in.startsWith("!status")) {
             m_botAction.sendPrivateMessage(sender, "[Bounty] Module is " + 
-                    (isRunning?"":"not") + " running. " + bounties.keySet().size()
-                    + " bounties loaded.");
+                    (isRunning?"":"not") + " running.");
         }
     }
 
