@@ -190,7 +190,7 @@ public class BountyModule extends AbstractModule {
                 } else {
                     currentAmount += addition;
                     requester.removeMoney(addition);
-                    bounties.put(name, currentAmount);
+                    bounties.put(deadman.getPlayerName(), currentAmount);
                     m_botAction.sendPrivateMessage(sender, "[Bounty] You have "
                             + "added $" + addition + " of bounty to " + deadman.getPlayerName());
                 }
