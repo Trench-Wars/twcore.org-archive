@@ -63,11 +63,12 @@ public class BountyModule extends AbstractModule {
             Player killed = m_botAction.getPlayer(event.getKilleeID());
             Player killer = m_botAction.getPlayer(event.getKillerID());
             if (killed != null && killer != null) {
-                Integer amount = bounties.get(killed);
+                Integer amount = bounties.get(killed.getPlayerName());
                 if (amount != null) {
                     PubPlayer killerPubPlayer = context.getPlayerManager()
                             .getPlayer(killer.getPlayerName());
                     killerPubPlayer.addMoney(amount);
+                    bounties.remove(killed.getPlayerName());
                     m_botAction.sendPrivateMessage(killer.getPlayerName(), 
                             "[Bounty] You have been awarded $" + amount + 
                             " for the death of " + killed.getPlayerName());
@@ -95,11 +96,6 @@ public class BountyModule extends AbstractModule {
 
     @Override
     public void handleModCommand(String sender, String command) {
-        String in = command.toLowerCase();
-        if (in.startsWith("!status")) {
-            m_botAction.sendPrivateMessage(sender, "[Bounty] Module is " + 
-                    (isRunning?"":"not") + " running.");
-        }
     }
 
     @Override
@@ -124,9 +120,7 @@ public class BountyModule extends AbstractModule {
 
     @Override
     public String[] getModHelpMessage(String sender) {
-        return new String[] {
-            pubsystem.getHelpLine("!status              -- Shows status of the Bounty module."),
-        };
+        return new String[] {};
     }
 
     @Override
@@ -156,8 +150,11 @@ public class BountyModule extends AbstractModule {
                 try {
                     bounty = bounties.get(p.getPlayerName());
                 } catch (ConcurrentModificationException e) {}
-                m_botAction.sendPrivateMessage(sender, "[Bounty] " + p.getPlayerName()
-                        + " has a $" + (bounty==null?"0":bounty) + " bounty.");
+                if (bounty != null) {
+                    m_botAction.sendPrivateMessage(sender, "[Bounty] " + p.getPlayerName()
+                        + " has a $" + bounty + " bounty.");
+                }
+                
             }
         }
     }
