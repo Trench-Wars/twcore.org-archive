@@ -194,6 +194,8 @@ public class BountyModule extends AbstractModule {
                     throw new NumberFormatException();
                 } else if (addition + currentAmount > maximumBounty) {
                     throw new NumberFormatException();
+                } else if (requester.getMoney() < addition) {
+                    throw new NumberFormatException();
                 } else {
                     currentAmount += addition;
                     requester.removeMoney(addition);
@@ -204,8 +206,8 @@ public class BountyModule extends AbstractModule {
                     //timer delay on announce
                     if (isAnnouncing) {
                         m_botAction.sendArenaMessage("[Bounty] " + deadman + 
-                                " has a total bounty of $" + currentAmount + 
-                                ". Do !listbty to view all.");
+                                " now has a bounty of $" + currentAmount + 
+                                ". Pm !listbty to TW-PubSystem to view.");
                         
                         isAnnouncing = false;
                         m_botAction.scheduleTask(new TimerTask() {
