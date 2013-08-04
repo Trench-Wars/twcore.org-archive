@@ -207,7 +207,7 @@ public class BountyModule extends AbstractModule {
                     if (isAnnouncing) {
                         m_botAction.sendArenaMessage("[Bounty] " + deadman + 
                                 " now has a bounty of $" + currentAmount + 
-                                ". Pm !listbty to TW-PubSystem to view.");
+                                ". Private message !listbty to TW-PubSystem to view.");
                         
                         isAnnouncing = false;
                         m_botAction.scheduleTask(new TimerTask() {
