@@ -55,7 +55,8 @@ public class PubContext {
         getPlayerManager();
         getMoneySystem();
         getPubChallenge();
-        getPubHunt();
+        getBounty();
+        //getPubHunt();
         getPubLottery();
         getPubStreak();
         getPubKillSession();
@@ -63,7 +64,7 @@ public class PubContext {
         getPubUtil();
         getPubMap();
         getGauge();
-        getBounty();
+        
 
         int seconds = (int) (System.currentTimeMillis() - start) / 1000;
         Tools.printLog("Modules(" + modules.size() + ") for pubsystem loaded in " + seconds + " seconds.");
@@ -152,7 +153,7 @@ public class PubContext {
     public BountyModule getBounty() {
         if (bountyModule == null) {
             bountyModule = new BountyModule(m_botAction, this);
-            modules.put("bountymodule", bountyModule);
+            modules.put("bounty", bountyModule);
         }
         return bountyModule;
     }
