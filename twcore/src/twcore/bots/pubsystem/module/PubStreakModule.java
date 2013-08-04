@@ -1,6 +1,7 @@
 package twcore.bots.pubsystem.module;
 
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -65,12 +66,16 @@ public class PubStreakModule extends AbstractModule {
         public void handleEvent(PlayerPosition event) {
             Player p = m_botAction.getPlayer(event.getPlayerID());
             if (p != null && p.isInSafe()) {
+                try {
                 if (winStreaks.containsKey(p.getPlayerName())) {
                     if (winStreaks.get(p.getPlayerName()) >= winsStreakArenaAt) {
                         winStreaks.remove(p.getPlayerName());
                         m_botAction.sendSmartPrivateMessage(p.getPlayerName(), 
                                 "You have entered a safe and lost your streak.");
                     }
+                }
+                } catch (ConcurrentModificationException e) {
+                    
                 }
             }
         }
