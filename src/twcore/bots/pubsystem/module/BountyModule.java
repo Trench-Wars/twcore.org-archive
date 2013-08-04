@@ -153,10 +153,12 @@ public class BountyModule extends AbstractModule {
             }
         } else {
             List<Player> players = m_botAction.getPlayingPlayers();
+            int count = 0;
             for (Player p : players) {
                 Integer bounty = null;
                 try {
                     bounty = bounties.get(p.getPlayerName());
+                    count++;
                 } catch (ConcurrentModificationException e) {}
                 if (bounty != null) {
                     m_botAction.sendPrivateMessage(sender, "[Bounty] " + p.getPlayerName()
@@ -164,6 +166,7 @@ public class BountyModule extends AbstractModule {
                 }
                 
             }
+            m_botAction.sendPrivateMessage(sender, "[Bounty] " + count + " current bounties.");
         }
     }
     
