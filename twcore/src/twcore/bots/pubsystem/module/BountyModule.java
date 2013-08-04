@@ -35,6 +35,8 @@ public class BountyModule extends AbstractModule {
         super(botAction, context, "Bounty");
         
         bounties = new ConcurrentHashMap<String, Integer>();
+        
+        reloadConfig();
     }
     
     @Override
