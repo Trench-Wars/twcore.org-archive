@@ -4,6 +4,7 @@
  */
 package twcore.bots.pubsystem.module;
 
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import twcore.bots.pubsystem.PubContext;
@@ -151,7 +152,10 @@ public class BountyModule extends AbstractModule {
         } else {
             List<Player> players = m_botAction.getPlayingPlayers();
             for (Player p : players) {
-                Integer bounty = bounties.get(p.getPlayerName());
+                Integer bounty = null;
+                try {
+                    bounty = bounties.get(p.getPlayerName());
+                } catch (ConcurrentModificationException e) {}
                 m_botAction.sendPrivateMessage(sender, "[Bounty] " + p.getPlayerName()
                         + " has a $" + (bounty==null?"0":bounty) + " bounty.");
             }
