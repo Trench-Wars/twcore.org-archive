@@ -158,11 +158,11 @@ public class BountyModule extends AbstractModule {
                 Integer bounty = null;
                 try {
                     bounty = bounties.get(p.getPlayerName());
-                    count++;
                 } catch (ConcurrentModificationException e) {}
                 if (bounty != null) {
                     m_botAction.sendPrivateMessage(sender, "[Bounty] " + p.getPlayerName()
                         + " has a $" + bounty + " bounty.");
+                    count++;
                 }
                 
             }
