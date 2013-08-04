@@ -6,7 +6,7 @@ package twcore.bots.pubsystem.module;
 
 import java.util.ConcurrentModificationException;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.bots.pubsystem.pubsystem;
@@ -25,7 +25,7 @@ import twcore.core.game.Player;
  */
 public class BountyModule extends AbstractModule {
 
-    private ConcurrentHashMap<String, Integer> bounties;
+    private HashMap<String, Integer> bounties;
     private int minimumBounty;
     private int maximumBounty;
     private boolean isRunning;
@@ -33,7 +33,7 @@ public class BountyModule extends AbstractModule {
     public BountyModule(BotAction botAction, PubContext context) {
         super(botAction, context, "Bounty");
 
-        bounties = new ConcurrentHashMap<String, Integer>();
+        bounties = new HashMap<String, Integer>();
 
         reloadConfig();
     }
