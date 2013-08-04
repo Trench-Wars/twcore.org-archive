@@ -6,6 +6,7 @@ package twcore.bots.pubsystem.module;
 
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.module.player.PubPlayer;
@@ -29,13 +30,18 @@ public class BountyModule extends AbstractModule {
     
     private int minimumBounty;
     private int maximumBounty;
+    private int announceDelay;
     
     private boolean isRunning;
+    private boolean isAnnouncing;
     
     public BountyModule(BotAction botAction, PubContext context) {
         super(botAction, context, "Bounty");
         
         bounties = new ConcurrentHashMap<String, Integer>();
+        
+        isRunning = false;
+        isAnnouncing = true;
         
         reloadConfig();
     }
@@ -82,6 +88,7 @@ public class BountyModule extends AbstractModule {
     public void reloadConfig() {
         minimumBounty = m_botAction.getBotSettings().getInt("bounty_min");
         maximumBounty = m_botAction.getBotSettings().getInt("bounty_max");
+        announceDelay = m_botAction.getBotSettings().getInt("bounty_del");
     }
 
     @Override
@@ -193,6 +200,21 @@ public class BountyModule extends AbstractModule {
                     bounties.put(deadman.getPlayerName(), currentAmount);
                     m_botAction.sendPrivateMessage(sender, "[Bounty] You have "
                             + "added $" + addition + " of bounty to " + deadman.getPlayerName());
+                    
+                    //timer delay on announce
+                    if (isAnnouncing) {
+                        m_botAction.sendArenaMessage("[Bounty] " + deadman + 
+                                " has a total bounty of $" + currentAmount + 
+                                ". Do !listbty to view all.");
+                        
+                        isAnnouncing = false;
+                        m_botAction.scheduleTask(new TimerTask() {
+                            @Override
+                            public void run() {
+                                isAnnouncing = true;
+                            }
+                        }, announceDelay * 1000);
+                    }
                 }
             } catch (NumberFormatException e) {
                 m_botAction.sendPrivateMessage(sender, "[Bounty] Unable to add"
