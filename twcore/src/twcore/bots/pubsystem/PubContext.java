@@ -55,7 +55,6 @@ public class PubContext {
         getPlayerManager();
         getMoneySystem();
         getPubChallenge();
-        getBounty();
         //getPubHunt();
         getPubLottery();
         getPubStreak();
@@ -64,7 +63,7 @@ public class PubContext {
         getPubUtil();
         getPubMap();
         getGauge();
-        
+        getBounty();
 
         int seconds = (int) (System.currentTimeMillis() - start) / 1000;
         Tools.printLog("Modules(" + modules.size() + ") for pubsystem loaded in " + seconds + " seconds.");
