@@ -35,6 +35,7 @@ public class PubContext {
     private PubSessionModule pubSession;
     private PubLotteryModule pubLottery;
     private GaugeModule gaugeModule;
+    private BountyModule bountyModule;
 
     // Game module
     private GameFlagTimeModule gameFlagTime;
@@ -62,6 +63,7 @@ public class PubContext {
         getPubUtil();
         getPubMap();
         getGauge();
+        getBounty();
 
         int seconds = (int) (System.currentTimeMillis() - start) / 1000;
         Tools.printLog("Modules(" + modules.size() + ") for pubsystem loaded in " + seconds + " seconds.");
@@ -145,6 +147,14 @@ public class PubContext {
             modules.put("gaugemodule", gaugeModule);
         }
         return gaugeModule;
+    }
+    
+    public BountyModule getBounty() {
+        if (bountyModule == null) {
+            bountyModule = new BountyModule(m_botAction, this);
+            modules.put("bountymodule", bountyModule);
+        }
+        return bountyModule;
     }
     
     public PubMoneySystemModule getMoneySystem() {
