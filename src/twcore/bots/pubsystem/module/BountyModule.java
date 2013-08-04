@@ -86,6 +86,7 @@ public class BountyModule extends AbstractModule {
     
     @Override
     public void reloadConfig() {
+        enabled = m_botAction.getBotSettings().getInt("bounty_enabled") == 1;
         minimumBounty = m_botAction.getBotSettings().getInt("bounty_min");
         maximumBounty = m_botAction.getBotSettings().getInt("bounty_max");
         announceDelay = m_botAction.getBotSettings().getInt("bounty_del");
