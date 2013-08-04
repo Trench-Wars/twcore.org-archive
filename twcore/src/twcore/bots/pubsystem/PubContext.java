@@ -54,7 +54,7 @@ public class PubContext {
         getPlayerManager();
         getMoneySystem();
         getPubChallenge();
-        //getPubHunt();
+        getPubHunt();
         getPubLottery();
         getPubStreak();
         getPubKillSession();
