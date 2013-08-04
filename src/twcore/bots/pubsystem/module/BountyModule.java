@@ -108,16 +108,6 @@ public class BountyModule extends AbstractModule {
             reloadConfig();
             start();
             m_botAction.sendPrivateMessage(sender, "[Bounty] Restarted.");
-        } else if (in.startsWith("!stopbty")) {
-            if (isRunning) {
-                stop();
-            }
-            m_botAction.sendPrivateMessage(sender, "[Bounty] Stopped.");
-        } else if (in.startsWith("!startbty")) {
-            if (isRunning) {
-                start();
-            }
-            m_botAction.sendPrivateMessage(sender, "[Bounty] Started.");
         }
     }
 
@@ -140,9 +130,7 @@ public class BountyModule extends AbstractModule {
     @Override
     public String[] getSmodHelpMessage(String sender) {
         return new String[] {
-            pubsystem.getHelpLine("!reloadbty           -- Reload the configuration file. (Restart)"),
-            pubsystem.getHelpLine("!stopbty             -- Stops the bounty module."),
-            pubsystem.getHelpLine("!startbty            -- Starts the bounty module."),
+            pubsystem.getHelpLine("!reloadbty           -- Reload the configuration file. (Restarts)"),
         };
     }
     
