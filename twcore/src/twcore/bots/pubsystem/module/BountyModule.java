@@ -68,7 +68,7 @@ public class BountyModule extends AbstractModule {
         if (isRunning) {
             Player killed = m_botAction.getPlayer(event.getKilleeID());
             Player killer = m_botAction.getPlayer(event.getKillerID());
-            if (killed != null && killer != null) {
+            if (killed != null && killer != null && killed.getFrequency() != killer.getFrequency()) {
                 Integer amount = bounties.get(killed.getPlayerName());
                 if (amount != null) {
                     PubPlayer killerPubPlayer = context.getPlayerManager()
@@ -76,7 +76,7 @@ public class BountyModule extends AbstractModule {
                     killerPubPlayer.addMoney(amount);
                     bounties.remove(killed.getPlayerName());
                     m_botAction.sendPrivateMessage(killer.getPlayerName(), 
-                            "[Bounty] You have been awarded $" + amount + 
+                            "[BOUNTY] You have been awarded $" + amount + 
                             " for the death of " + killed.getPlayerName());
                 }
             }
@@ -113,7 +113,7 @@ public class BountyModule extends AbstractModule {
             stop();
             reloadConfig();
             start();
-            m_botAction.sendPrivateMessage(sender, "[Bounty] Restarted.");
+            m_botAction.sendPrivateMessage(sender, "[BOUNTY] Restarted.");
         }
     }
 
@@ -148,7 +148,7 @@ public class BountyModule extends AbstractModule {
             Player lookup = m_botAction.getFuzzyPlayer(name);
             if (lookup != null) {
                 Integer bounty = bounties.get(lookup.getPlayerName());
-                m_botAction.sendPrivateMessage(sender, "[Bounty] " + lookup.getPlayerName()
+                m_botAction.sendPrivateMessage(sender, "[BOUNTY] " + lookup.getPlayerName()
                         + " has a $" + (bounty==null?"0":bounty) + " bounty.");
             }
         } else {
@@ -160,7 +160,7 @@ public class BountyModule extends AbstractModule {
                     bounty = bounties.get(p.getPlayerName());
                 } catch (ConcurrentModificationException e) {}
                 if (bounty != null) {
-                    m_botAction.sendPrivateMessage(sender, "[Bounty] " + p.getPlayerName()
+                    m_botAction.sendPrivateMessage(sender, "[BOUNTY] " + p.getPlayerName()
                         + " has a $" + bounty + " bounty.");
                     count++;
                 }
@@ -204,12 +204,12 @@ public class BountyModule extends AbstractModule {
                     currentAmount += addition;
                     requester.removeMoney(addition);
                     bounties.put(deadman.getPlayerName(), currentAmount);
-                    m_botAction.sendPrivateMessage(sender, "[Bounty] You have "
+                    m_botAction.sendPrivateMessage(sender, "[BOUNTY] You have "
                             + "added $" + addition + " of bounty to " + deadman.getPlayerName());
                     
                     //timer delay on announce
                     if (isAnnouncing) {
-                        m_botAction.sendArenaMessage("[Bounty] " + deadman + 
+                        m_botAction.sendArenaMessage("[BOUNTY] " + deadman + 
                                 " now has a bounty of $" + currentAmount + 
                                 ". Private message !listbty to TW-PubSystem to view.");
                         
@@ -223,7 +223,7 @@ public class BountyModule extends AbstractModule {
                     }
                 }
             } catch (NumberFormatException e) {
-                m_botAction.sendPrivateMessage(sender, "[Bounty] Unable to add"
+                m_botAction.sendPrivateMessage(sender, "[BOUNTY] Unable to add"
                         + " that amount. Minimum $" + minimumBounty + ", Maximum $"
                         + maximumBounty);
             }
