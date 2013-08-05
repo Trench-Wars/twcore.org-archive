@@ -111,7 +111,6 @@ public class BountyModule extends AbstractModule {
         String in = command.toLowerCase();
         if (in.startsWith("!reloadbty")) {
             stop();
-            reloadConfig();
             start();
             m_botAction.sendPrivateMessage(sender, "[BOUNTY] Restarted.");
         }
