@@ -1064,9 +1064,9 @@ public class PubChallengeModule extends AbstractModule {
         if (!laggers.containsKey(name)) {
             m_botAction.sendSmartPrivateMessage(name, "You have not lagged out from a duel.");
             return;
+        } else {
+            m_botAction.cancelTask(laggers.remove(name));
         }
-        //m_botAction.cancelTask(laggers.get(name));
-        //laggers.remove(name);
 
         Dueler dueler = duelers.get(name);
         if (dueler == null)
