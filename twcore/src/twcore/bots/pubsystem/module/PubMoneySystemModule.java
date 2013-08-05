@@ -260,7 +260,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
                 PubPrizeItem itemPrize = (PubPrizeItem) item;
 
-                List<Integer> prizes = ((PubPrizeItem) item).getPrizes();
+                //List<Integer> prizes = ((PubPrizeItem) item).getPrizes();
                 final TimerTask task = new PrizeTask(itemPrize, receiver.getPlayerName());
 
                 // Prize items every X seconds? (super/shield)
@@ -512,14 +512,6 @@ public class PubMoneySystemModule extends AbstractModule {
         String query = "UPDATE tblMoneyCode SET fnMoney = (fnMoney + " + money + ") WHERE fcCode = 'OWNER'";
         m_botAction.SQLBackgroundQuery(database, null, query);
     }
-
-    private void sendMoneyToPlayer(String playerName, int amount, String message) {
-        PubPlayer player = playerManager.getPlayer(playerName);
-        player.addMoney(amount);
-        if (message != null) {
-            m_botAction.sendSmartPrivateMessage(playerName, message);
-        }
-    }
     
     /**
      * Edits a particular CFG setting value (meant to be used for on-the-fly PubStore modification).
@@ -538,10 +530,12 @@ public class PubMoneySystemModule extends AbstractModule {
         String oldValue = cfg.getString(key);
         if (oldValue != null) {
             cfg.put(key, val);
-            m_botAction.sendPrivateMessage(sender, "Updated key " + key + " was successful... NOTE: Change will not take effect until CFG is reloaded using !reload.");
+            m_botAction.sendPrivateMessage(sender, "Updated key " + key + " was successful... ");
             m_botAction.sendPrivateMessage(sender, "Old value: " + oldValue);
             m_botAction.sendPrivateMessage(sender, "New value: " + val);
             cfg.save();
+            reloadConfig();
+            m_botAction.sendPrivateMessage(sender, "Store config reloaded...");
         } else
             m_botAction.sendPrivateMessage(sender, "Key not found: " + key);
     }
@@ -620,7 +614,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
     private void doCmdItems(String sender) {
 
-        Player p = m_botAction.getPlayer(sender);
+        //Player p = m_botAction.getPlayer(sender);
 
         ArrayList<String> lines = new ArrayList<String>();
 
@@ -785,10 +779,8 @@ public class PubMoneySystemModule extends AbstractModule {
 
                 // Real restrictions
                 m_botAction.sendSmartPrivateMessage(sender, "Restrictions:");
-                String info = "";
 
                 if (r.getRestrictedShips().size() == 8) {
-                    info += "Cannot be bought while playing";
                     m_botAction.sendSmartPrivateMessage(sender, " - Cannot be bought while playing");
                 } else {
                     String ships = "";
