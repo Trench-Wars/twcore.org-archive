@@ -466,7 +466,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             return player;
         }
         else if (databaseName != null) {
-            m_botAction.SQLBackgroundQuery(databaseName, "newplayer_"+playerName, "SELECT fcName, fnMoney, fcTileset, fnBestStreak FROM tblPlayerStats WHERE fcName = '"+Tools.addSlashes(playerName)+"'");
+            m_botAction.SQLBackgroundQuery(databaseName, "newplayer_"+playerName, "SELECT s.fcName, s.fnMoney, s.fcTileset, s.fnBestStreak, p.fbWarp FROM tblPlayerStats s, tblPlayer p WHERE s.fcName = '"+Tools.addSlashes(playerName)+"' and p.fcName = '"+Tools.addSlashes(playerName)+"'");
         }
         else {
             player = new PubPlayer(m_botAction, playerName);
