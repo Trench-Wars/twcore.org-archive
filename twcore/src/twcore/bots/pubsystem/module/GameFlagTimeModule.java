@@ -833,7 +833,7 @@ public class GameFlagTimeModule extends AbstractModule {
             return;
         }
 
-        if (player.setWarp()) {
+        if (!player.setWarp()) {
             m_botAction.sendSmartPrivateMessage(sender, "You will NOT be warped inside the base at the start of each round. Type !warp again to turn back on.");
         } else {
             m_botAction.sendSmartPrivateMessage(sender, "You WILL be warped inside the base at the start of each round. Type !warp again to turn off.");
