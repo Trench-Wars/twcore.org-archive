@@ -978,7 +978,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                 // Money is always saved
                 if (databaseName != null) {
                     if (force || player.getLastMoneyUpdate() > player.getLastMoneySavedState()) {
-                        m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney()+":"+(force?"1":"0"), "INSERT INTO tblPlayerStats (fcName,fnMoney) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+"," + (player.getWarp() ? 1 : 0)+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
+                        m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney()+":"+(force?"1":"0"), "INSERT INTO tblPlayerStats (fcName,fnMoney) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
                         player.moneySavedState();
                     }
                     
