@@ -205,7 +205,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             
             if (databaseName != null) {
                 try {
-                    ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT fcName, fnMoney, fcTileset, fnBestStreak FROM tblPlayerStats WHERE fcName = '"+Tools.addSlashes(playerName)+"'");
+                    ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT s.fcName, s.fnMoney, p.fbWarp, s.fcTileset, s.fnBestStreak FROM tblPlayerStats s, tblPlayer p WHERE s.fcName = '"+Tools.addSlashes(playerName)+"'");
                     if (rs.next()) {
                         player = getPlayerByResultSet(rs);
                         player.setName(playerName);
@@ -432,9 +432,9 @@ public class PubPlayerManagerModule extends AbstractModule {
         PubPlayer player = null;
         try {
             
-            String name = rs.getString("fcName");
-            int money = rs.getInt("fnMoney");
-            boolean warp = rs.getInt("fbWarp") == 1;
+            String name = rs.getString("s.fcName");
+            int money = rs.getInt("s.fnMoney");
+            boolean warp = rs.getInt("p.fbWarp") == 1;
             
             player = new PubPlayer(m_botAction, name, money, warp);
             players.put(name.toLowerCase(), player);
