@@ -817,8 +817,10 @@ public class GameFlagTimeModule extends AbstractModule {
     public void cmd_warp(String sender) {
 
         PubPlayer player = context.getPlayerManager().getPlayer(sender);
-        if (player == null)
+        if (player == null) {
+            m_botAction.sendPrivateMessage("WingZero", "Null player: " + sender);
             return;
+        }
 
         if (!isFlagTimeStarted()) {
             m_botAction.sendSmartPrivateMessage(sender, "Flag Time mode is not currently running.");
@@ -1834,7 +1836,6 @@ public class GameFlagTimeModule extends AbstractModule {
         int rand;
         Player p;
         String pname;
-        LinkedList<String> nullPlayers = new LinkedList<String>();
 
         int randomside = r.nextInt(2);
 
@@ -1852,7 +1853,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
             PubPlayer player = context.getPlayerManager().getPlayer(pname);
 
-            if (player != null && player.getWarp() && !allPlayers) {
+            if ((player != null && !player.getWarp()) && !allPlayers) {
                 Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
                 //Warp the player if inside the flagroom
                 if (!loc.equals(Location.FLAGROOM))
