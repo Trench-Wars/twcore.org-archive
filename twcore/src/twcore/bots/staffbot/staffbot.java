@@ -104,8 +104,7 @@ public class staffbot extends SubspaceBot {
 
     @Override
     public void handleEvent(Message event) {
-        if ((event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE)
-                && event.getMessage().startsWith("!")) {
+        if ((event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) && event.getMessage().startsWith("!")) {
             // Commands
             String message = event.getMessage().toLowerCase();
             short sender = event.getPlayerID();
@@ -120,8 +119,7 @@ public class staffbot extends SubspaceBot {
 
             // !help
             if (message.startsWith("!help")) {
-                String[] help = { " Op: " + senderName + " (" + Tools.staffName(operatorLevel) + ")",
-                        "-----------------------[ Staff Bot ]-----------------------",
+                String[] help = { " Op: " + senderName + " (" + Tools.staffName(operatorLevel) + ")", "-----------------------[ Staff Bot ]-----------------------",
                         " !isStaff <name>           - Checks if <name> is a member of staff" };
 
                 String[] smodHelp = { " !die                      - Disconnects Staffbot" };
@@ -137,25 +135,14 @@ public class staffbot extends SubspaceBot {
                     m_botAction.smartPrivateMessageSpam(senderName, ownerHelp);
                 }
             }
-            if(m_botAction.getOperatorList().isSmod(senderName)){
-            if (message.equalsIgnoreCase("!die")) {
-                moduleHandler.unloadAllModules();
-                this.handleDisconnect();
-                m_botAction.die();
-            } else if (message.equalsIgnoreCase("!energy")){
-                m_botAction.sendUnfilteredPrivateMessage(senderName, "*energy");
-                m_botAction.sendPrivateMessage(senderName, "Done. Do not abuse this.");
-            }
-            }
-            if (m_botAction.getOperatorList().isOwner(senderName)) {
-                if (message.startsWith("!putfile ")) {
-                    String msg = message.substring(9);
-                    m_botAction.putFile(msg);
-                    m_botAction.sendSmartPrivateMessage(senderName, "Done.");
-                } else if (message.startsWith("!getfile ")) {
-                    String msg = message.substring(9);
-                    m_botAction.getServerFile(msg);
-                    m_botAction.sendSmartPrivateMessage(senderName, "Done.");
+            if (m_botAction.getOperatorList().isSmod(senderName)) {
+                if (message.equalsIgnoreCase("!die")) {
+                    moduleHandler.unloadAllModules();
+                    this.handleDisconnect();
+                    m_botAction.die();
+                } else if (message.equalsIgnoreCase("!energy")) {
+                    m_botAction.sendUnfilteredPrivateMessage(senderName, "*energy");
+                    m_botAction.sendPrivateMessage(senderName, "Done. Do not abuse this.");
                 }
             }
 
@@ -164,12 +151,10 @@ public class staffbot extends SubspaceBot {
                 if (parse.length == 2) {
                     int accessLevel = m_botAction.getOperatorList().getAccessLevel(parse[1]);
                     if (accessLevel == 0) {
-                        m_botAction.sendSmartPrivateMessage(senderName, "'" + parse[1]
-                                + "' is not a member of staff, or the name was not found (use exact case, i.e., 'DoCk>').");
+                        m_botAction.sendSmartPrivateMessage(senderName, "'" + parse[1] + "' is not a member of staff, or the name was not found (use exact case, i.e., 'DoCk>').");
                     } else {
                         if (m_botAction.getOperatorList().isHighmod(senderName)) {
-                            m_botAction.sendSmartPrivateMessage(senderName, "'" + parse[1] + "' is staff: "
-                                    + m_botAction.getOperatorList().getAccessLevelName(accessLevel));
+                            m_botAction.sendSmartPrivateMessage(senderName, "'" + parse[1] + "' is staff: " + m_botAction.getOperatorList().getAccessLevelName(accessLevel));
                         } else {
                             m_botAction.sendSmartPrivateMessage(senderName, "'" + parse[1] + "' is a member of staff.");
                         }
