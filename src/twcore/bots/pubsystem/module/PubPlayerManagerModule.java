@@ -978,13 +978,13 @@ public class PubPlayerManagerModule extends AbstractModule {
                 // Money is always saved
                 if (databaseName != null) {
                     if (force || player.getLastMoneyUpdate() > player.getLastMoneySavedState()) {
-                        m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney()+":"+(force?"1":"0"), "INSERT INTO tblPlayerStats (fcName,fnMoney,fbWarp) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+"," + (player.getWarp() ? 1 : 0)+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney() + ", fbWarp=" + (player.getWarp() ? 1 : 0));
+                        m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney()+":"+(force?"1":"0"), "INSERT INTO tblPlayerStats (fcName,fnMoney) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+"," + (player.getWarp() ? 1 : 0)+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
                         player.moneySavedState();
                     }
                     
                     if (player.getLastOptionsUpdate() > player.getLastSavedState()) {
                         //String tilesetName = player.getTileset().toString().toLowerCase();
-                        m_botAction.SQLBackgroundQuery(databaseName, null, "INSERT INTO tblPlayerStats (fcName,fcTileset) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"','') ON DUPLICATE KEY UPDATE fcTileset=''");
+                        m_botAction.SQLBackgroundQuery(databaseName, null, "INSERT INTO tblPlayer (fcName,fbWarp) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"'," + (player.getWarp() ? 1 : 0) + ") ON DUPLICATE KEY UPDATE fbWarp=" + (player.getWarp() ? 1 : 0));
                         player.savedState();
                     }
                     
