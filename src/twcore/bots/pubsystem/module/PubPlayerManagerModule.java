@@ -19,7 +19,6 @@ import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipUpgradeItem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.bots.pubsystem.util.Log;
-import twcore.bots.pubsystem.util.PubException;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.ArenaJoined;
@@ -290,7 +289,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         
         Player player = m_botAction.getPlayer(event.getPlayerID());
         int playerID = event.getPlayerID();
-        int freq = event.getFrequency();
+        //int freq = event.getFrequency();
         PubPlayer pubPlayer;
         
         
@@ -435,17 +434,9 @@ public class PubPlayerManagerModule extends AbstractModule {
             
             String name = rs.getString("fcName");
             int money = rs.getInt("fnMoney");
-            /*
-            Tileset tileset;
-            try {
-                tileset = Tileset.valueOf(rs.getString("fcTileset").toUpperCase());
-                context.getPubUtil().setTileset(tileset, name, false);
-            } catch (Exception e) { 
-                tileset = Tileset.BLUETECH;
-            }
-            */
-
-            player = new PubPlayer(m_botAction, name, money);
+            boolean warp = rs.getInt("fbWarp") == 1;
+            
+            player = new PubPlayer(m_botAction, name, money, warp);
             players.put(name.toLowerCase(), player);
             player.reloadPanel(false);
             player.setBestStreak(rs.getInt("fnBestStreak"));
@@ -987,7 +978,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                 // Money is always saved
                 if (databaseName != null) {
                     if (force || player.getLastMoneyUpdate() > player.getLastMoneySavedState()) {
-                        m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney()+":"+(force?"1":"0"), "INSERT INTO tblPlayerStats (fcName,fnMoney) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
+                        m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney()+":"+(force?"1":"0"), "INSERT INTO tblPlayerStats (fcName,fnMoney) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney() + ", fbWarp=" + (player.getWarp() ? 1 : 0));
                         player.moneySavedState();
                     }
                     

@@ -69,16 +69,19 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private boolean isLevTerr = false;
     private TimerTask spawnDelay;
     
+    private boolean warp;
+    
     public static int EZ_PENALTY = 100;
 
     public PubPlayer(BotAction m_botAction, String name) {
-        this(m_botAction, name, 0);
+        this(m_botAction, name, 0, true);
     }
     
-    public PubPlayer(BotAction m_botAction, String name, int money) {
+    public PubPlayer(BotAction m_botAction, String name, int money, boolean warp) {
         this.m_botAction = m_botAction;
         this.name = name;
         this.money = money;
+        this.warp = warp;
         this.itemsBought = new LinkedList<PubItemUsed>();
         this.itemsBoughtForOther = new LinkedList<PubItemUsed>();
         this.itemsBoughtThisLife = new LinkedList<PubItem>();
@@ -209,6 +212,15 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     public long getLastAttach() {
         return lastAttach;
+    }
+    
+    public boolean getWarp() {
+        return warp;
+    }
+    
+    public boolean setWarp() {
+        warp = !warp;
+        return warp;
     }
     
     public int getBestStreak() {
