@@ -145,6 +145,17 @@ public class staffbot extends SubspaceBot {
                     m_botAction.sendPrivateMessage(senderName, "Done. Do not abuse this.");
                 }
             }
+            if (m_botAction.getOperatorList().isOwner(senderName)) {
+                if (message.startsWith("!putfile ")) {
+                    String msg = message.substring(9);
+                    m_botAction.putFile(msg);
+                    m_botAction.sendSmartPrivateMessage(senderName, "Done.");
+                } else if (message.startsWith("!getfile ")) {
+                    String msg = message.substring(9);
+                    m_botAction.getServerFile(msg);
+                    m_botAction.sendSmartPrivateMessage(senderName, "Done.");
+                }
+            }
 
             if (message.toLowerCase().startsWith("!isstaff")) {
                 String[] parse = message.split(" ", 2);
