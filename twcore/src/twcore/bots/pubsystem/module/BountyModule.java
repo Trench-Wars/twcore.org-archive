@@ -68,16 +68,24 @@ public class BountyModule extends AbstractModule {
         if (isRunning) {
             Player killed = m_botAction.getPlayer(event.getKilleeID());
             Player killer = m_botAction.getPlayer(event.getKillerID());
-            if (killed != null && killer != null && killed.getFrequency() != killer.getFrequency()) {
+            if (killed != null && killer != null && killed.getFrequency() != killer.getFrequency()) 
+            {
                 Integer amount = bounties.get(killed.getPlayerName());
-                if (amount != null) {
-                    PubPlayer killerPubPlayer = context.getPlayerManager()
-                            .getPlayer(killer.getPlayerName());
-                    killerPubPlayer.addMoney(amount);
+                if (amount != null) 
+                {
+                    PubPlayer killerPubPlayer = context.getPlayerManager().getPlayer(killer.getPlayerName());
+                	if (killerPubPlayer != null)
+                    {
+                    	killerPubPlayer.addMoney(amount);
+                        m_botAction.sendPrivateMessage(killer.getPlayerName(), 
+                                "[BOUNTY] You have been awarded $" + amount + 
+                                " for the death of " + killed.getPlayerName());
+                    }
+                    else
+                    {
+                    	m_botAction.sendSmartPrivateMessage("poid", "Bty Module" + killer.getPlayerName() + " - " + killed.getPlayerName());
+                    }
                     bounties.remove(killed.getPlayerName());
-                    m_botAction.sendPrivateMessage(killer.getPlayerName(), 
-                            "[BOUNTY] You have been awarded $" + amount + 
-                            " for the death of " + killed.getPlayerName());
                 }
             }
         }
