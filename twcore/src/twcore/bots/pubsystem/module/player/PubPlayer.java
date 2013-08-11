@@ -220,7 +220,6 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     public boolean setWarp() {
         warp = !warp;
-        lastOptionsUpdate = System.currentTimeMillis();
         return warp;
     }
     
