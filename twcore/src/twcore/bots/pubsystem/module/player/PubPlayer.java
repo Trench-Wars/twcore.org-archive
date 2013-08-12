@@ -71,13 +71,21 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     private boolean warp;
     
+    private long playerID;
+    private boolean hasStatsDB = false;
+    
     public static int EZ_PENALTY = 100;
 
     public PubPlayer(BotAction m_botAction, String name) {
-        this(m_botAction, name, 0, true);
+        this(m_botAction, name, 0, true, -1);
     }
     
-    public PubPlayer(BotAction m_botAction, String name, int money, boolean warp) {
+    public PubPlayer(BotAction m_botAction, String name, int money, boolean warp)
+    {
+    	this(m_botAction, name, money, warp, -1);
+    }
+    
+    public PubPlayer(BotAction m_botAction, String name, int money, boolean warp, long fnid) {
         this.m_botAction = m_botAction;
         this.name = name;
         this.money = money;
@@ -88,6 +96,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
         this.cashPanel = new LvzMoneyPanel(m_botAction);
         this.ignoreList = new LinkedList<String>();
         this.donated = new TreeMap<String, Long>(String.CASE_INSENSITIVE_ORDER);
+        this.playerID = fnid;
         reloadPanel(false);
     }
 
@@ -403,6 +412,22 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     public long getLastBigItemUsed() {
         return lastBigItemUsed;
+    }
+    
+    public long getPlayerID() {
+    	return playerID;
+    }
+    
+    public void setPlayerID(long fnID) {
+    	playerID = fnID;
+    }
+    
+    public boolean hasStatsDB() {
+    	return hasStatsDB;
+    }
+    
+    public void setHasStatsDB(boolean stats) {
+    	hasStatsDB = stats;
     }
 
     @Override
