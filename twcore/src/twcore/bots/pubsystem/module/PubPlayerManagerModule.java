@@ -1019,7 +1019,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                     {
                         if (player.hasStatsDB())
                         {
-                            m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney()+":"+(force?"1":"0"), "UPDATE tblPlayerStats Set fnMoney=player.getMoney(), fbWarp="+(player.getWarp()?1:0 )+ " where fcName = '"+Tools.addSlashes(player.getPlayerName())+"'");
+                            m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney()+":"+(force?"1":"0"), "UPDATE tblPlayerStats Set fnMoney="+player.getMoney()+", fbWarp="+(player.getWarp()?1:0 )+ " where fcName = '"+Tools.addSlashes(player.getPlayerName())+"'");
                         }
                         else
                         {
