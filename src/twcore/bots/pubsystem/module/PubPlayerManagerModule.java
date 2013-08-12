@@ -205,7 +205,15 @@ public class PubPlayerManagerModule extends AbstractModule {
             
             if (databaseName != null) {
                 try {
-                    ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT s.fcName, s.fnMoney, p.fbWarp, s.fcTileset, s.fnBestStreak FROM tblPlayerStats s, tblPlayer p WHERE s.fcName = '"+Tools.addSlashes(playerName)+"'");
+                    //ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT s.fcName, s.fnMoney, p.fbWarp, s.fcTileset, s.fnBestStreak, p.fnID FROM tblPlayerStats s, tblPlayer p WHERE s.fcName = '"+Tools.addSlashes(playerName)+"'");
+                	//12Aug2013 POiD	Updated query to use 2 outer joins (MYSQL way to handle Full outer joins) so that entries from both tblPlayer and tblPlayerStats will be included
+                	//					even if an entry exists in only 1 of the tables and not in both. Previous query would return nothing if both tables didn't have a row.
+                	ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT s.fcname,p.fcname,s.fnmoney,s.fbwarp,s.fctileset,s.fnbeststreak,p.fnid from tblPlayerStats as s left outer JOIN tblPlayer as p on p.fcname=s.fcname"
+                			+" WHERE s.fcname='"+Tools.addSlashes(playerName)+"'"
+                			+" UNION"
+                			+" SELECT s.fcname,p.fcname,s.fnmoney,s.fbwarp,s.fctileset,s.fnbeststreak,p.fnid from tblPlayerStats as s right outer JOIN tblPlayer as p on p.fcname=s.fcname"
+                			+" WHERE p.fcname='"+Tools.addSlashes(playerName)+"'");
+                			
                     if (rs.next()) {
                         player = getPlayerByResultSet(rs);
                         player.setName(playerName);
@@ -419,6 +427,18 @@ public class PubPlayerManagerModule extends AbstractModule {
                     players.put(playerName.toLowerCase(), new PubPlayer(m_botAction, playerName));
                 }
             }
+            //12Aug2013	POiD	Commented out the below updates as currently no updates to tblPlayer are needed. Left code in case of future changes.
+            //					note the tracking of fnID is to help determine whether to do an Update or Insert during timer based updates.
+            //else if (event.getIdentifier().startsWith("warpInsert"))
+            //{
+            //	String playerName = event.getIdentifier().substring(11);
+            //	ResultSet rs = event.getResultSet();
+            //	if (rs.next())
+            //	{
+            //		long fnID = rs.getLong("fnID");
+            //		players.get(playerName.toLowerCase()).setPlayerID(fnID);
+            //	}
+            //}
         } catch (SQLException e) {
             m_botAction.SQLClose(event.getResultSet());
             Tools.printStackTrace(e);
@@ -433,10 +453,20 @@ public class PubPlayerManagerModule extends AbstractModule {
         try {
             
             String name = rs.getString("s.fcName");
+            boolean hasStats = true;
+            if (name == null)
+            {
+            	name = rs.getString("p.fcName");
+            	hasStats = false;
+            }
             int money = rs.getInt("s.fnMoney");
-            boolean warp = rs.getInt("p.fbWarp") == 1;
+            boolean warp = rs.getInt("s.fbWarp") == 1;
+            long fnID = rs.getLong("p.fnID");
+            if (rs.wasNull())
+            	fnID = -1;
             
-            player = new PubPlayer(m_botAction, name, money, warp);
+            player = new PubPlayer(m_botAction, name, money, warp, fnID);
+            player.setHasStatsDB(hasStats);
             players.put(name.toLowerCase(), player);
             player.reloadPanel(false);
             player.setBestStreak(rs.getInt("fnBestStreak"));
@@ -466,7 +496,14 @@ public class PubPlayerManagerModule extends AbstractModule {
             return player;
         }
         else if (databaseName != null) {
-            m_botAction.SQLBackgroundQuery(databaseName, "newplayer_"+playerName, "SELECT s.fcName as fcName, s.fnMoney as fnMoney, s.fcTileset as fcTileset, s.fnBestStreak as fnBestStreak, p.fbWarp as fbWarp FROM tblPlayerStats s, tblPlayer p WHERE s.fcName = '"+Tools.addSlashes(playerName)+"' and p.fcName = '"+Tools.addSlashes(playerName)+"'");
+            //m_botAction.SQLBackgroundQuery(databaseName, "newplayer_"+playerName, "SELECT s.fcName as fcName, s.fnMoney as fnMoney, s.fcTileset as fcTileset, s.fnBestStreak as fnBestStreak, p.fbWarp as fbWarp, p.fnId FROM tblPlayerStats s, tblPlayer p WHERE s.fcName = '"+Tools.addSlashes(playerName)+"' and p.fcName = '"+Tools.addSlashes(playerName)+"'");
+        	//12Aug2013 POiD	Updated query to use 2 outer joins (MYSQL way to handle Full outer joins) so that entries from both tblPlayer and tblPlayerStats will be included
+        	//					even if an entry exists in only 1 of the tables and not in both. Previous query would return nothing if both tables didn't have a row.
+        	m_botAction.SQLBackgroundQuery(databaseName, "newplayer_"+playerName, "SELECT s.fcname,p.fcname,s.fnmoney,s.fbwarp,s.fctileset,s.fnbeststreak,p.fnid from tblPlayerStats as s left outer JOIN tblPlayer as p on p.fcname=s.fcname"
+        			+" WHERE s.fcname='"+Tools.addSlashes(playerName)+"'"
+        			+" UNION"
+        			+" SELECT s.fcname,p.fcname,s.fnmoney,s.fbwarp,s.fctileset,s.fnbeststreak,p.fnid from tblPlayerStats as s right outer JOIN tblPlayer as p on p.fcname=s.fcname"
+        			+" WHERE p.fcname='"+Tools.addSlashes(playerName)+"'");
         }
         else {
             player = new PubPlayer(m_botAction, playerName);
@@ -977,16 +1014,37 @@ public class PubPlayerManagerModule extends AbstractModule {
 
                 // Money is always saved
                 if (databaseName != null) {
-                    if (force || player.getLastMoneyUpdate() > player.getLastMoneySavedState()) {
-                        m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney()+":"+(force?"1":"0"), "INSERT INTO tblPlayerStats (fcName,fnMoney) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+") ON DUPLICATE KEY UPDATE fnMoney=" + player.getMoney());
+                    if (force || player.getLastMoneyUpdate() > player.getLastMoneySavedState()) 
+                    {
+                    	if (player.hasStatsDB())
+                    	{
+                    		m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney()+":"+(force?"1":"0"), "UPDATE tblPlayerStats Set fnMoney=player.getMoney(), fbWarp="+(player.getWarp()?1:0 )+ " where fcName = '"+Tools.addSlashes(player.getPlayerName())+"'");
+                    	}
+                    	else
+                    	{
+                    		m_botAction.SQLBackgroundQuery(databaseName, "moneydb:"+player.getPlayerName()+":"+player.getMoney()+":"+(force?"1":"0"), "INSERT INTO tblPlayerStats (fcName,fnMoney,fbWarp) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"',"+player.getMoney()+","+(player.getWarp() ? 1 : 0)+")");
+                    		player.setHasStatsDB(true);
+                    	}
                         player.moneySavedState();
                     }
                     
-                    if (player.getLastOptionsUpdate() > player.getLastSavedState()) {
+                    //12Aug2013	POiD	Commented out the below updates as currently no updates to tblPlayer are needed. Left code in case of future changes.
+                    //
+                    //if (player.getLastOptionsUpdate() > player.getLastSavedState()) {
                         //String tilesetName = player.getTileset().toString().toLowerCase();
-                        m_botAction.SQLBackgroundQuery(databaseName, null, "INSERT INTO tblPlayer (fcName,fbWarp) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"'," + (player.getWarp() ? 1 : 0) + ") ON DUPLICATE KEY UPDATE fbWarp=" + (player.getWarp() ? 1 : 0));
-                        player.savedState();
-                    }
+                    	//long playerID = player.getPlayerID();
+                    	//if (playerID != -1)
+                    	//{
+                    	//	m_botAction.SQLBackgroundQuery(databaseName,null, "UPDATE tblPlayer Set fbWarp = " + (player.getWarp() ? 1 : 0) + " WHERE fnID= " + playerID);
+                    	//}
+                    	//else
+                    	//{
+                    	//	m_botAction.SQLBackgroundQuery(databaseName,null, "INSERT INTO tblPlayer (fcName,fbWarp,fcIP,fdLastSeen,fnOnline) VALUES ('" + Tools.addSlashes(player.getPlayerName())+"'," + (player.getWarp() ? 1 : 0) + ")");
+                    	//	m_botAction.SQLBackgroundQuery(databaseName,"warpInsert:"+player.getPlayerName(), "SELECT fnID from tblPlayer WHERE fcName = '" + Tools.addSlashes(player.getPlayerName())+"'");
+                    	//}
+                    	//m_botAction.SQLBackgroundQuery(databaseName, null, "INSERT INTO tblPlayer (fcName,fbWarp) VALUES ('"+Tools.addSlashes(player.getPlayerName())+"'," + (player.getWarp() ? 1 : 0) + ") ON DUPLICATE KEY UPDATE fbWarp=" + (player.getWarp() ? 1 : 0));
+                        //player.savedState();
+                    //}
                     
                 }
                     
