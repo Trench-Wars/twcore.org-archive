@@ -853,14 +853,18 @@ public class MatchTeam {
             if (p != null) {
 
                 p.getOutOfGame();
-                m_players.remove(p);
-                m_logger.sendPrivateMessage(name, "Player removed from the game");
+                // If the specific player was in the list and is successfully removed.
+                if(m_players.remove(p)) {
+                	m_logger.sendPrivateMessage(name, "Player removed from the game");
 
-                if (m_rules.getInt("pickbyturn") == 1) {
-                    m_round.determineNextPick();
-                }
+	                if (m_rules.getInt("pickbyturn") == 1) {
+	                    m_round.determineNextPick();
+	                }
+            	} else {
+            		// Player not found in the setup.
+            		m_logger.sendPrivateMessage(name, "Player not found");
+            	}
             }
-            m_logger.sendPrivateMessage(name, "Player not found");
         } catch (Exception e) {
             m_logger.sendPrivateMessage(name, "Could not remove player, unknown error in command_remove (" + e.getMessage() + ")");
         }
