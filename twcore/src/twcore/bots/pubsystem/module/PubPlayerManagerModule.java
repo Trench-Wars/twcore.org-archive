@@ -189,45 +189,39 @@ public class PubPlayerManagerModule extends AbstractModule {
      * or by requesting the database. You may only want to request the database
      * if you want to get information about a player not playing.
      */
-    public PubPlayer getPlayer(String playerName, boolean cacheOnly) 
-    {
+    public PubPlayer getPlayer(String playerName, boolean cacheOnly) {
         PubPlayer player = players.get(playerName.toLowerCase());
-        
-        if (cacheOnly) {
-            if (player!=null)
-                player.setName(playerName);
+
+        if (player != null) {
+            player.setName(playerName);
             return player;
-        }
-        else {
-            
-            if (player != null)
-                return player;
-            
-            if (databaseName != null) {
-                try {
-                    //ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT s.fcName, s.fnMoney, p.fbWarp, s.fcTileset, s.fnBestStreak, p.fnID FROM tblPlayerStats s, tblPlayer p WHERE s.fcName = '"+Tools.addSlashes(playerName)+"'");
-                	//12Aug2013 POiD	Updated query to use 2 outer joins (MYSQL way to handle Full outer joins) so that entries from both tblPlayer and tblPlayerStats will be included
-                	//					even if an entry exists in only 1 of the tables and not in both. Previous query would return nothing if both tables didn't have a row.
-                	ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT s.fcname,p.fcname,s.fnmoney,s.fbwarp,s.fctileset,s.fnbeststreak,p.fnid from tblPlayerStats as s left outer JOIN tblPlayer as p on p.fcname=s.fcname"
-                			+" WHERE s.fcname='"+Tools.addSlashes(playerName)+"'"
-                			+" UNION"
-                			+" SELECT s.fcname,p.fcname,s.fnmoney,s.fbwarp,s.fctileset,s.fnbeststreak,p.fnid from tblPlayerStats as s right outer JOIN tblPlayer as p on p.fcname=s.fcname"
-                			+" WHERE p.fcname='"+Tools.addSlashes(playerName)+"'");
-                			
-                    if (rs.next()) {
-                        player = getPlayerByResultSet(rs);
-                        player.setName(playerName);
-                        m_botAction.SQLClose(rs);
-                        return player;
-                    }
+        } else if (databaseName != null) {
+            try {
+                //ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT s.fcName, s.fnMoney, p.fbWarp, s.fcTileset, s.fnBestStreak, p.fnID FROM tblPlayerStats s, tblPlayer p WHERE s.fcName = '"+Tools.addSlashes(playerName)+"'");
+                //12Aug2013 POiD	Updated query to use 2 outer joins (MYSQL way to handle Full outer joins) so that entries from both tblPlayer and tblPlayerStats will be included
+                //					even if an entry exists in only 1 of the tables and not in both. Previous query would return nothing if both tables didn't have a row.
+                ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT s.fcname,p.fcname,s.fnmoney,s.fbwarp,s.fctileset,s.fnbeststreak,p.fnid from tblPlayerStats as s left outer JOIN tblPlayer as p on p.fcname=s.fcname"
+                        + " WHERE s.fcname='"
+                        + Tools.addSlashes(playerName)
+                        + "'"
+                        + " UNION"
+                        + " SELECT s.fcname,p.fcname,s.fnmoney,s.fbwarp,s.fctileset,s.fnbeststreak,p.fnid from tblPlayerStats as s right outer JOIN tblPlayer as p on p.fcname=s.fcname"
+                        + " WHERE p.fcname='" + Tools.addSlashes(playerName) + "'");
+
+                if (rs.next()) {
+                    player = getPlayerByResultSet(rs);
+                    player.setName(playerName);
                     m_botAction.SQLClose(rs);
-                } catch (SQLException e) {
-                    Tools.printStackTrace(e);
+                    return player;
                 }
+                m_botAction.SQLClose(rs);
+            } catch (SQLException e) {
+                Tools.printStackTrace(e);
             }
 
             return players.get(playerName.toLowerCase());
-        }
+        } else
+            return null;
     }
     
     public PubPlayer getPlayer(String name) {
