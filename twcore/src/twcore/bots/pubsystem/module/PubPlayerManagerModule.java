@@ -208,10 +208,10 @@ public class PubPlayerManagerModule extends AbstractModule {
                     //ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT s.fcName, s.fnMoney, p.fbWarp, s.fcTileset, s.fnBestStreak, p.fnID FROM tblPlayerStats s, tblPlayer p WHERE s.fcName = '"+Tools.addSlashes(playerName)+"'");
                 	//12Aug2013 POiD	Updated query to use 2 outer joins (MYSQL way to handle Full outer joins) so that entries from both tblPlayer and tblPlayerStats will be included
                 	//					even if an entry exists in only 1 of the tables and not in both. Previous query would return nothing if both tables didn't have a row.
-                	ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT s.fcName,p.fcName,s.fnMoney,s.fbWarp,s.fcTileset,s.fnBestStreak,p.fnID from tblPlayerStats as s left outer JOIN tblPlayer as p on p.fcName=s.fcName"
+                	ResultSet rs = m_botAction.SQLQuery(databaseName, "SELECT s.fcName as sfcName,p.fcName as pfcName,s.fnMoney,s.fbWarp,s.fcTileset,s.fnBestStreak,p.fnID from tblPlayerStats as s left outer JOIN tblPlayer as p on p.fcName=s.fcName"
                 			+" WHERE s.fcName='"+Tools.addSlashes(playerName)+"'"
                 			+" UNION"
-                			+" SELECT s.fcName,p.fcName,s.fnMoney,s.fbWarp,s.fcTileset,s.fnBestStreak,p.fnID from tblPlayerStats as s right outer JOIN tblPlayer as p on p.fcName=s.fcName"
+                			+" SELECT s.fcName as sfcName,p.fcName as pfcName,s.fnMoney,s.fbWarp,s.fcTileset,s.fnBestStreak,p.fnID from tblPlayerStats as s right outer JOIN tblPlayer as p on p.fcName=s.fcName"
                 			+" WHERE p.fcName='"+Tools.addSlashes(playerName)+"'");
                 			
                     if (rs.next()) {
@@ -452,16 +452,16 @@ public class PubPlayerManagerModule extends AbstractModule {
         PubPlayer player = null;
         try {
             
-            String name = rs.getString("s.fcName");
+            String name = rs.getString("sfcName");
             boolean hasStats = true;
             if (name == null)
             {
-                name = rs.getString("p.fcName");
+                name = rs.getString("pfcName");
                 hasStats = false;
             }
-            int money = rs.getInt("s.fnMoney");
-            boolean warp = rs.getInt("s.fbWarp") == 1;
-            long fnID = rs.getLong("p.fnID");
+            int money = rs.getInt("fnMoney");
+            boolean warp = rs.getInt("fbWarp") == 1;
+            long fnID = rs.getLong("fnID");
             if (rs.wasNull())
                 fnID = -1;
             
@@ -500,10 +500,10 @@ public class PubPlayerManagerModule extends AbstractModule {
             //m_botAction.SQLBackgroundQuery(databaseName, "newplayer_"+playerName, "SELECT s.fcName as fcName, s.fnMoney as fnMoney, s.fcTileset as fcTileset, s.fnBestStreak as fnBestStreak, p.fbWarp as fbWarp, p.fnId FROM tblPlayerStats s, tblPlayer p WHERE s.fcName = '"+Tools.addSlashes(playerName)+"' and p.fcName = '"+Tools.addSlashes(playerName)+"'");
         	//12Aug2013 POiD	Updated query to use 2 outer joins (MYSQL way to handle Full outer joins) so that entries from both tblPlayer and tblPlayerStats will be included
         	//					even if an entry exists in only 1 of the tables and not in both. Previous query would return nothing if both tables didn't have a row.
-        	m_botAction.SQLBackgroundQuery(databaseName, "newplayer_"+playerName, "SELECT s.fcName,p.fcName,s.fnMoney,s.fbWarp,s.fcTileset,s.fnBestStreak,p.fnID from tblPlayerStats as s left outer JOIN tblPlayer as p on p.fcName=s.fcName"
+        	m_botAction.SQLBackgroundQuery(databaseName, "newplayer_"+playerName, "SELECT s.fcName as sfcName,p.fcName as pfcName,s.fnMoney,s.fbWarp,s.fcTileset,s.fnBestStreak,p.fnID from tblPlayerStats as s left outer JOIN tblPlayer as p on p.fcName=s.fcName"
         			+" WHERE s.fcName='"+Tools.addSlashes(playerName)+"'"
         			+" UNION"
-        			+" SELECT s.fcName,p.fcName,s.fnMoney,s.fbWarp,s.fcTileset,s.fnBestStreak,p.fnID from tblPlayerStats as s right outer JOIN tblPlayer as p on p.fcName=s.fcName"
+        			+" SELECT s.fcName as sfcName,p.fcName as pfcName,s.fnMoney,s.fbWarp,s.fcTileset,s.fnBestStreak,p.fnID from tblPlayerStats as s right outer JOIN tblPlayer as p on p.fcName=s.fcName"
         			+" WHERE p.fcName='"+Tools.addSlashes(playerName)+"'");
         }
         else {
