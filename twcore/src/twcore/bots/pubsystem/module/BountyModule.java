@@ -187,53 +187,60 @@ public class BountyModule extends AbstractModule {
             parameters = sub.split(":");
         }
         
-        if (parameters != null) {
-            deadman = m_botAction.getFuzzyPlayer(parameters[0]);
+        if (parameters.length < 2)
+        {
+        	m_botAction.sendSmartPrivateMessage(sender, "[BOUNTY] Please ensure you "
+                        + " specify both a player AND amount!  Format: !addbty <name>:<amt>");
         }
+        else
+        {
+            deadman = m_botAction.getFuzzyPlayer(parameters[0]);
         
-        if (requester != null && deadman != null) {
+        	if (requester != null && deadman != null) {
             
-            Integer currentAmount = bounties.get(deadman.getPlayerName());
-            if (currentAmount == null) {
-                currentAmount = 0;
-            }
+        		Integer currentAmount = bounties.get(deadman.getPlayerName());
+        		if (currentAmount == null) {
+        			currentAmount = 0;
+        		}
             
-            try {
-                Integer addition = Integer.parseInt(parameters[1]);
+        		try {
+        			Integer addition = Integer.parseInt(parameters[1]);
                 
-                if (addition < minimumBounty || addition > maximumBounty) {
-                    throw new NumberFormatException();
-                } else if (addition + currentAmount > maximumBounty) {
-                    throw new NumberFormatException();
-                } else if (requester.getMoney() < addition) {
-                    throw new NumberFormatException();
-                } else {
-                    currentAmount += addition;
-                    requester.removeMoney(addition);
-                    bounties.put(deadman.getPlayerName(), currentAmount);
-                    m_botAction.sendPrivateMessage(sender, "[BOUNTY] You have "
+        			if (addition < minimumBounty || addition > maximumBounty) {
+        				throw new NumberFormatException();
+        			} else if (addition + currentAmount > maximumBounty) {
+        				throw new NumberFormatException();
+        			} else if (requester.getMoney() < addition) {
+        				throw new NumberFormatException();
+        			} else {
+        				currentAmount += addition;
+        				requester.removeMoney(addition);
+        				bounties.put(deadman.getPlayerName(), currentAmount);
+        				m_botAction.sendPrivateMessage(sender, "[BOUNTY] You have "
                             + "added $" + addition + " of bounty to " + deadman.getPlayerName());
                     
-                    //timer delay on announce
-                    if (isAnnouncing) {
-                        m_botAction.sendArenaMessage("[BOUNTY] " + deadman + 
+        				//timer delay on announce
+        				if (isAnnouncing) {
+        					m_botAction.sendArenaMessage("[BOUNTY] " + deadman + 
                                 " now has a bounty of $" + currentAmount + 
                                 ". Private message !listbty to TW-PubSystem to view.");
                         
-                        isAnnouncing = false;
-                        m_botAction.scheduleTask(new TimerTask() {
-                            @Override
-                            public void run() {
-                                isAnnouncing = true;
-                            }
-                        }, announceDelay * 1000);
-                    }
-                }
-            } catch (NumberFormatException e) {
-                m_botAction.sendPrivateMessage(sender, "[BOUNTY] Unable to add"
+        					isAnnouncing = false;
+        					m_botAction.scheduleTask(new TimerTask() {
+                            
+        						@Override
+        						public void run() {
+        							isAnnouncing = true;
+        						}
+        					}, announceDelay * 1000);
+        				}
+        			}
+        		} catch (NumberFormatException e) {
+        			m_botAction.sendPrivateMessage(sender, "[BOUNTY] Unable to add"
                         + " that amount. Minimum $" + minimumBounty + ", Maximum $"
                         + maximumBounty);
-            }
+        		}
+        	}
         }
     }
 }
