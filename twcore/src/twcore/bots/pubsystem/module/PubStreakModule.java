@@ -93,9 +93,12 @@ public class PubStreakModule extends AbstractModule {
 			{
 				if (winStreaks.containsKey(p.getPlayerName()))
 				{
-					winStreaks.remove(p.getPlayerName());
-					m_botAction.sendSmartPrivateMessage(p.getPlayerName(), 
+					if (winStreaks.get(p.getPlayerName()) >= winsStreakArenaAt) 
+                    {
+						winStreaks.remove(p.getPlayerName());
+						m_botAction.sendSmartPrivateMessage(p.getPlayerName(), 
 							"You have entered spectator mode and thus have lost your streak.");
+                    }
 				}
 			}
 		}
