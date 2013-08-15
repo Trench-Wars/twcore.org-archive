@@ -552,7 +552,7 @@ public class hockeybot extends SubspaceBot {
            cmd_lagout(name);
        } else if (cmd.equals("!list")) {
            cmd_list(name);
-       } else if (cmd.equals("!notplaying")) {
+       } else if (cmd.equals("!notplaying") || cmd.equals("!np")) {
            cmd_notplaying(name);
        } else if (cmd.equals("!status")) {
            cmd_status(name);
