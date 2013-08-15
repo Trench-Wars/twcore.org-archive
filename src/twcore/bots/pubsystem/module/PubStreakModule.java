@@ -18,6 +18,7 @@ import twcore.core.EventRequester;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
+import twcore.core.events.FrequencyShipChange;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
@@ -60,25 +61,45 @@ public class PubStreakModule extends AbstractModule {
 	{
 		eventRequester.request(EventRequester.PLAYER_DEATH);
 		eventRequester.request(EventRequester.PLAYER_LEFT);
-                eventRequester.request(EventRequester.PLAYER_POSITION);
+		eventRequester.request(EventRequester.PLAYER_POSITION);
+		eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
 	}
 
-        public void handleEvent(PlayerPosition event) {
-            Player p = m_botAction.getPlayer(event.getPlayerID());
-            if (p != null && p.isInSafe()) {
-                try {
+	public void handleEvent(PlayerPosition event) 
+	{
+		Player p = m_botAction.getPlayer(event.getPlayerID());
+		if (p != null && p.isInSafe()) {
+			try {
                 if (winStreaks.containsKey(p.getPlayerName())) {
-                    if (winStreaks.get(p.getPlayerName()) >= winsStreakArenaAt) {
+                    if (winStreaks.get(p.getPlayerName()) >= winsStreakArenaAt) 
+                    {
                         winStreaks.remove(p.getPlayerName());
                         m_botAction.sendSmartPrivateMessage(p.getPlayerName(), 
                                 "You have entered a safe and lost your streak.");
                     }
                 }
-                } catch (ConcurrentModificationException e) {
-                    
-                }
-            }
-        }
+			} catch (ConcurrentModificationException e) {
+			}
+		}
+	}
+	
+	//15Aug2013	POiD	Added Speccing removing a streak.
+	public void handleEvent(FrequencyShipChange event)
+	{
+		if (event.getShipType() == 0)	//spec
+		{
+			Player p = m_botAction.getPlayer(event.getPlayerID());
+			if (p != null)
+			{
+				if (winStreaks.containsKey(p.getPlayerName()))
+				{
+					winStreaks.remove(p.getPlayerName());
+					m_botAction.sendSmartPrivateMessage(p.getPlayerName(), 
+							"You have entered spectator mode and thus have lost your streak.");
+				}
+			}
+		}
+	}
         
 	public void handleEvent(PlayerLeft event) {
 		Player p = m_botAction.getPlayer(event.getPlayerID());
@@ -167,7 +188,7 @@ public class PubStreakModule extends AbstractModule {
         // Time to tell the player that SAFE are not allowed
         // Else, the player will lose his streak
         if (streak == winsStreakArenaAt) {
-        	m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "You have kill " + winsStreakArenaAt + " times in a row, you are now not allowed to go in safe.");
+        	m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "You have kill " + winsStreakArenaAt + " times in a row, you are now not allowed to go in safe or spectator mode.");
         	m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "If you do, you will lose your streak. May the force be with you.");
         }
         
