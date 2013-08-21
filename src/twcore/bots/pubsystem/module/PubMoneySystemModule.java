@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -100,10 +101,14 @@ public class PubMoneySystemModule extends AbstractModule {
     private String database;
     private MapRegions regions;
     private static final String MAP_NAME = "pubmap";
+    
+    PreparedStatement updateMoney;
 
     public PubMoneySystemModule(BotAction botAction, PubContext context) {
 
         super(botAction, context, "Money/Store");
+        
+        this.updateMoney = m_botAction.createPreparedStatement(database, "pubsystem", "UPDATE tblMoneyCode SET fnMoney = (fnMoney + ?) WHERE fcCode = 'OWNER'");
 
         this.playerManager = context.getPlayerManager();
 
@@ -509,8 +514,17 @@ public class PubMoneySystemModule extends AbstractModule {
     }
 
     private void sqlMoney(int money) {
-        String query = "UPDATE tblMoneyCode SET fnMoney = (fnMoney + " + money + ") WHERE fcCode = 'OWNER'";
-        m_botAction.SQLBackgroundQuery(database, null, query);
+        if (updateMoney != null) {
+            try {
+                updateMoney.setInt(0, money);
+                updateMoney.executeUpdate();
+            } catch (SQLException e) {
+                Tools.printStackTrace(e);
+            }
+        } else {
+            String query = "UPDATE tblMoneyCode SET fnMoney = (fnMoney + " + money + ") WHERE fcCode = 'OWNER'";
+            m_botAction.SQLBackgroundQuery(database, null, query);
+        }
     }
     
     /**
