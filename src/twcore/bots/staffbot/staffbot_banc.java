@@ -133,7 +133,7 @@ public class staffbot_banc extends Module {
 
     // PreparedStatements
     private PreparedStatement psListBanCs, psCheckAccessReq, psActiveBanCs, psAddBanC, psUpdateComment, psRemoveBanC, psLookupIPMID, psKeepAlive1,
-            psKeepAlive2, psElapsed;
+            psKeepAlive2, psElapsed, psExpired;
 
     // Keep database connection alive workaround
     private KeepAliveConnection keepAliveConnection = new KeepAliveConnection();
@@ -149,14 +149,15 @@ public class staffbot_banc extends Module {
         psAddBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "INSERT INTO tblBanc(fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fcStaffer, fdCreated) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())", true);
         psUpdateComment = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "UPDATE tblBanc SET fcComment = ? WHERE fnID = ?");
         //psRemoveBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "DELETE FROM tblBanc WHERE fnID = ?");
-        psRemoveBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "UPDATE tblBanc SET fbLifted = 1 WHERE fnID = ?");
+        psRemoveBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "UPDATE tblBanc SET fbLifted = 1, fdExpired = NOW() WHERE fnID = ?");
         psLookupIPMID = m_botAction.createPreparedStatement(trenchDatabase, uniqueConnectionID, "SELECT fcIpString, fnMachineId FROM tblAlias INNER JOIN tblUser ON tblAlias.fnUserID = tblUser.fnUserID WHERE fcUserName = ? ORDER BY fdUpdated DESC LIMIT 0,1");
         psKeepAlive1 = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SHOW DATABASES");
         psKeepAlive2 = m_botAction.createPreparedStatement(trenchDatabase, uniqueConnectionID, "SHOW DATABASES");
         psElapsed = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "UPDATE tblBanc SET fnElapsed = ? WHERE fnID = ?");
-
+        psExpired = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "UPDATE tblBanc SET fdExpired = NOW() WHERE fnID = ? AND fdExpired IS NULL");
+        
         if (psActiveBanCs == null || psCheckAccessReq == null || psAddBanC == null || psUpdateComment == null || psRemoveBanC == null
-                || psLookupIPMID == null || psKeepAlive1 == null || psKeepAlive2 == null || psElapsed == null) {
+                || psLookupIPMID == null || psKeepAlive1 == null || psKeepAlive2 == null || psElapsed == null || psExpired == null) {
             Tools.printLog("BanC: One or more PreparedStatements are null! Module BanC disabled.");
             m_botAction.sendChatMessage(2, "BanC: One or more connections (prepared statements) couldn't be made! Module BanC disabled.");
             //this.cancel();
@@ -204,6 +205,7 @@ public class staffbot_banc extends Module {
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psUpdateComment);
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psRemoveBanC);
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psElapsed);
+        m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psExpired);
         m_botAction.closePreparedStatement(trenchDatabase, uniqueConnectionID, psLookupIPMID);
         m_botAction.closePreparedStatement(botsDatabase, uniqueConnectionID, psKeepAlive1);
         m_botAction.closePreparedStatement(trenchDatabase, uniqueConnectionID, psKeepAlive2);
@@ -1616,11 +1618,11 @@ public class staffbot_banc extends Module {
             } else {
                 if (sqlWhere.length() > 0) {
                     if (!twoWeeks)
-                        sqlWhere = "WHERE DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > DATE_SUB(NOW(), INTERVAL 2 WEEK) AND " + sqlWhere;
+                        sqlWhere = "WHERE (fdExpired IS NULL OR (fdExpired > DATE_SUB(NOW(), INTERVAL 2 WEEK)) AND " + sqlWhere;
                     else
                         sqlWhere = "WHERE " + sqlWhere;
                 } else if (!twoWeeks)
-                    sqlWhere = "WHERE DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > DATE_SUB(NOW(), INTERVAL 2 WEEK)";
+                    sqlWhere = "WHERE (fdExpired IS NULL OR (fdExpired > DATE_SUB(NOW(), INTERVAL 2 WEEK))";
 
                 sqlQuery = "SELECT (fnElapsed < fnDuration OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fnElapsed, fcStaffer, fdCreated, fbLifted FROM tblBanc "
                         + sqlWhere + " ORDER BY fnID DESC LIMIT 0," + viewcount;
@@ -2385,6 +2387,11 @@ public class staffbot_banc extends Module {
                 psElapsed.setInt(1, elapsed);
                 psElapsed.setInt(2, id);
                 psElapsed.executeUpdate();
+                if (expired) {
+                    psExpired.setInt(1, id);
+                    psExpired.executeUpdate();
+                }
+                
             } catch (SQLException sqle) {
                 Tools.printLog("SQLException occured while updating active BanCs: " + sqle.getMessage());
                 m_botAction.sendChatMessage(2, "BANC WARNING: Problem occured while updating active BanCs: " + sqle.getMessage());
