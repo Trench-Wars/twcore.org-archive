@@ -1616,11 +1616,11 @@ public class staffbot_banc extends Module {
             } else {
                 if (sqlWhere.length() > 0) {
                     if (!twoWeeks)
-                        sqlWhere = "WHERE fdCreated > DATE_SUB(NOW(), INTERVAL 2 WEEK) AND " + sqlWhere;
+                        sqlWhere = "WHERE DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > DATE_SUB(NOW(), INTERVAL 2 WEEK) AND " + sqlWhere;
                     else
                         sqlWhere = "WHERE " + sqlWhere;
                 } else if (!twoWeeks)
-                    sqlWhere = "WHERE fdCreated > DATE_SUB(NOW(), INTERVAL 2 WEEK)";
+                    sqlWhere = "WHERE DATE_ADD(fdCreated, INTERVAL fnDuration MINUTE) > DATE_SUB(NOW(), INTERVAL 2 WEEK)";
 
                 sqlQuery = "SELECT (fnElapsed < fnDuration OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fnElapsed, fcStaffer, fdCreated, fbLifted FROM tblBanc "
                         + sqlWhere + " ORDER BY fnID DESC LIMIT 0," + viewcount;
