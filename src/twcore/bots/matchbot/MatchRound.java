@@ -1203,9 +1203,10 @@ public class MatchRound {
                 nFrequency = m_team2.getFrequency();
             else {
                 // Long name hack for those that don't exact-match using getPlayer(String, true)
-                if (m_team1.getPlayer(name, false) != null)
+                // THIS IS NO LONGER APPLICABLE, REVERTING TO , TRUE instead of , false.
+                if (m_team1.getPlayer(name, true) != null)
                     nFrequency = m_team1.getFrequency();
-                else if (m_team2.getPlayer(name, false) != null)
+                else if (m_team2.getPlayer(name, true) != null)
                     nFrequency = m_team2.getFrequency();
                 else
                     m_botAction.sendPrivateMessage(name, "You're not a part of either of the teams!");
