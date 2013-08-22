@@ -1624,7 +1624,7 @@ public class staffbot_banc extends Module {
                 } else if (!twoWeeks)
                     sqlWhere = "WHERE (fdExpired IS NULL OR (fdExpired > DATE_SUB(NOW(), INTERVAL 2 WEEK))";
 
-                sqlQuery = "SELECT (fnElapsed < fnDuration OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fnElapsed, fcStaffer, fdCreated, fbLifted FROM tblBanc "
+                sqlQuery = "SELECT (fnElapsed < fnDuration OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fnElapsed, fcStaffer, fdCreated, fdExpired, fbLifted FROM tblBanc "
                         + sqlWhere + " ORDER BY fnID DESC LIMIT 0," + viewcount;
 
                 ResultSet rs = m_botAction.SQLQuery(botsDatabase, sqlQuery);
