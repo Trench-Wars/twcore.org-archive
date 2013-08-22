@@ -56,7 +56,9 @@ public class pubhubstats extends PubBotModule {
 	 * m_botAction has been initialized.
 	 */
 	public void initializeModule() {
-        psUpdatePlayer = m_botAction.createPreparedStatement(database, uniqueConnectionID, "INSERT INTO tblPlayer (fnId, fcName, fcSquad, fcBanner, fcIP, fnTimezone, fcCountryCode, fcUsage, fcResolution, fdCreated, fdLastSeen) VALUES (?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE fcSquad = VALUES(fcSquad), fcBanner = VALUES(fcBanner), fcIP = VALUES(fcIP), fnTimezone = VALUES(fnTimezone), fcCountryCode = VALUES(fcCountryCode), fcUsage = VALUES(fcUsage), fcResolution = VALUES(fcResolution), fdLastSeen = VALUES(fdLastSeen)", true);
+		//Note fnID was added to the "on duplicate update" as data shows some current fnIDs in tblPlayer do not correspond to ?userID data
+		//and thus tables saving pub data using ?userid (such as tblScore) are not linking back to the appropriate "tblPlayer" entry.
+        psUpdatePlayer = m_botAction.createPreparedStatement(database, uniqueConnectionID, "INSERT INTO tblPlayer (fnId, fcName, fcSquad, fcBanner, fcIP, fnTimezone, fcCountryCode, fcUsage, fcResolution, fdCreated, fdLastSeen) VALUES (?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE fcSquad = VALUES(fcSquad), fcBanner = VALUES(fcBanner), fcIP = VALUES(fcIP), fnTimezone = VALUES(fnTimezone), fcCountryCode = VALUES(fcCountryCode), fcUsage = VALUES(fcUsage), fcResolution = VALUES(fcResolution), fdLastSeen = VALUES(fdLastSeen), fnId = VALUES(fnId)", true);
 	    
 	    psScoreExists = m_botAction.createPreparedStatement(database, uniqueConnectionID, "SELECT fnPlayerId FROM tblScore WHERE fnPlayerId = ? AND fnShip = ?");
 	    psReplaceScore = m_botAction.createPreparedStatement(database, uniqueConnectionID, "REPLACE INTO tblScore(fnPlayerId, fnShip, fnFlagPoints, fnKillPoints, fnWins, fnLosses, fnRate, fnAverage, ftLastUpdate) VALUES (?,?,?,?,?,?,?,?,?)");
