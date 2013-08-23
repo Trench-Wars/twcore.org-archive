@@ -25,6 +25,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     private static final int MAX_ITEM_USED_HISTORY = 30 * Tools.TimeInMillis.MINUTE;
     private static final int DONATE_DELAY = Tools.TimeInMillis.MINUTE;
+    private static final String db = "pubstats";
     
     private BotAction m_botAction;
 
@@ -229,6 +230,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     public boolean setWarp() {
         warp = !warp;
+        m_botAction.SQLBackgroundQuery(db, null, "UPDATE tblPlayerStats SET fbWarp = " + (warp ? "1" : "0") + " WHERE fcName = " + name);
         return warp;
     }
     
