@@ -230,7 +230,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     public boolean setWarp() {
         warp = !warp;
-        m_botAction.SQLBackgroundQuery(db, null, "UPDATE tblPlayerStats SET fbWarp = " + (warp ? "1" : "0") + " WHERE fcName = " + name);
+        m_botAction.SQLBackgroundQuery(db, null, "UPDATE tblPlayerStats SET fbWarp = " + (warp ? "1" : "0") + " WHERE fcName = '" + Tools.addSlashesToString(name) + "'");
         return warp;
     }
     
