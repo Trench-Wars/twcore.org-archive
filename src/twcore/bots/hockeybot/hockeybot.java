@@ -51,7 +51,6 @@ public class hockeybot extends SubspaceBot {
     private ArrayList<String> listAlert;                    //List of players who toggled !subscribe on
     private long zonerTimestamp;                            //Timestamp of the last zoner
     private long manualZonerTimestamp;                      //Timestamp of the last manualzoner
-    private short hostID;                                   //PlayerID of the host
     private int maxTimeouts;                                //Maximum allowed timeouts per game.
     //Frequencies
     private static final int FREQ_SPEC = 8025;
@@ -222,7 +221,7 @@ public class hockeybot extends SubspaceBot {
             checkArenaLock(message);    //Checks if the arena should be locked
         } else if (messageType == Message.PRIVATE_MESSAGE) {
             if (sender != null) {
-                handleCommand(sender, message, -1, event.getPlayerID());   //Handle commands
+                handleCommand(sender, message, -1);   //Handle commands
             }
         }
     }
@@ -522,9 +521,8 @@ public class hockeybot extends SubspaceBot {
      * @param name Sender of the command
      * @param cmd command
      * @param override Override number, -1 for default, 0 for Freq 0, 1 for Freq 1
-     * @param senderID PlayerID for safetymeasures against long-name partial match hack
      */
-    private void handleCommand(String name, String command, int override, short senderID) {
+    private void handleCommand(String name, String command, int override) {
         String cmd = command.toLowerCase();
 
        /* Captain commands */
@@ -550,7 +548,7 @@ public class hockeybot extends SubspaceBot {
        if (cmd.equals("!cap")) {
            cmd_cap(name);
        } else if (cmd.startsWith("!help")) {
-           cmd_help(name, cmd, senderID);
+           cmd_help(name, cmd);
        } else if (cmd.equals("!return")) {
            cmd_lagout(name);
        } else if (cmd.equals("!lagout")) {
@@ -569,7 +567,7 @@ public class hockeybot extends SubspaceBot {
        /* Staff commands ZH+ */
        if (m_botAction.getOperatorList().isZH(name)) {
            if (cmd.equals("!start")) {
-               cmd_start(name, senderID);
+               cmd_start(name);
            } else if (cmd.equals("!stop")) {
                cmd_stop(name);
            } else if (cmd.startsWith("!zone")) {
@@ -588,10 +586,15 @@ public class hockeybot extends SubspaceBot {
                cmd_decrease(name, cmd);
            } else if (cmd.startsWith("!increase ")) {
                cmd_increase(name, cmd);
-           } else if (cmd.startsWith("!settimeout ")) {
-               cmd_settimeout(name, cmd, senderID);
+           } 
+       }
+       
+       /* Staff commands ER+ */
+       if (m_botAction.getOperatorList().isER(name)) {
+           if (cmd.startsWith("!settimeout ")) {
+               cmd_settimeout(name, cmd);
            } else if (cmd.equals("!hosttimeout") || cmd.equals("!hto")) {
-               cmd_hosttimeout(name, senderID);
+               cmd_hosttimeout(name);
            }
        }
 
@@ -936,7 +939,7 @@ public class hockeybot extends SubspaceBot {
      * @param name name of the player
      * @param msg the full command message
      */
-    private void cmd_help(String name, String msg, short senderID) {
+    private void cmd_help(String name, String msg) {
 
         ArrayList<String> help = new ArrayList<String>();   //Help messages
 
@@ -1006,7 +1009,7 @@ public class hockeybot extends SubspaceBot {
                 	hStaff.add("!zone <message>       sends time-restricted advert, message is optional");
 		            hStaff.add("!forcenp <player>                          Sets <player> to !notplaying");
 		            hStaff.add("!setcaptain <# freq>:<player>     Sets <player> as captain for <# freq>");
-		            if (senderID == hostID) {
+		            if (m_botAction.getOperatorList().isER(name)) {
 		                hStaff.add("!hosttimeout                  Request a 30 second timeout (short: !hto)");
 		                hStaff.add("!settimeout <amount>     Sets captain timeouts to <amount> (default: 1)");
 		            }
@@ -1379,9 +1382,8 @@ public class hockeybot extends SubspaceBot {
      *
      * @param name player that issued the !start command
      */
-    private void cmd_start(String name, short senderID) {
+    private void cmd_start(String name) {
         if (currentState == HockeyState.OFF) {
-            hostID = senderID;
             start();
         } else {
             m_botAction.sendPrivateMessage(name, "Error: Bot is already ON");
@@ -1790,10 +1792,9 @@ public class hockeybot extends SubspaceBot {
      * Handles the !hosttimeout command. 
      * 
      * @param name name of the host.
-     * @param senderID Playerid of the sender.
      */
-    private void cmd_hosttimeout(String name, short senderID) {
-        if((currentState == HockeyState.OFF) || (senderID != hostID))
+    private void cmd_hosttimeout(String name) {
+        if(currentState == HockeyState.OFF)
             return;
         // If the host requests a timeout   
         if(!(currentState == HockeyState.FACE_OFF)) {
@@ -1809,12 +1810,11 @@ public class hockeybot extends SubspaceBot {
      * 
      * @param name Name of the player that issued the command.
      * @param cmd The command issued.
-     * @param senderID Player id of sender
      */
-    private void cmd_settimeout(String name, String cmd, short senderID) {
+    private void cmd_settimeout(String name, String cmd) {
         Integer value = null;
         
-        if((currentState == HockeyState.OFF) || (senderID != hostID))
+        if(currentState == HockeyState.OFF)
             return;
         
         if (!(currentState == HockeyState.GAME_OVER
