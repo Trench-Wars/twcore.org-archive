@@ -28,7 +28,7 @@ public class pubbotafk extends PubBotModule {
     private int WARNING_TIME = 28;     // (Time in minutes)
     private int MOVE_TIME = 2;         // Time the player gets to get active
                                                     // after the warning (Time in minutes)
-    private final static String AFK_ARENA = "afk";  // Arena to where the players get moved
+    private final static String AFK_ARENA = "elim";  // Arena to where the players get moved
     private final static String WARNING_MESSAGE = "NOTICE: In order to keep the gameplay high in public arenas "
             + "being idle for too long is not allowed. If you intend to go away, please type \"?go " + AFK_ARENA + "\"." + " (If you stay inactive you will be moved to the subarena '" + AFK_ARENA
             + "' automatically.)";
