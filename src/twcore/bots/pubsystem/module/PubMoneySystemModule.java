@@ -1999,9 +1999,10 @@ public class PubMoneySystemModule extends AbstractModule {
 
     private void itemCommandBaseStrike(String sender, String params) {
 
-        int[][] coords = new int[][] { new int[] { 500, 256 }, // Top right
-                new int[] { 512, 253 }, // Top middle
-                new int[] { 524, 256 }, // Top left
+        int[][] coords = new int[][] { 
+                new int[] { 500, 260 }, // Top right
+                new int[] { 512, 257 }, // Top middle
+                new int[] { 524, 260 }, // Top left
                 new int[] { 538, 260 }, // Ear right
                 new int[] { 486, 260 }, // Ear left
                 new int[] { 492, 273 }, // Middle right
@@ -2052,7 +2053,7 @@ public class PubMoneySystemModule extends AbstractModule {
         m_botAction.getShip().setFreq(p.getFrequency());
         m_botAction.getShip().rotateDegrees(270);
         m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
-        m_botAction.getShip().move(512 * 16 + 8, 265 * 16 + 8);
+        m_botAction.getShip().move(512 * 16 + 8, 276 * 16 + 8);
 
         TimerTask timer = new TimerTask() {
             public void run() {
