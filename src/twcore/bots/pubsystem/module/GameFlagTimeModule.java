@@ -719,7 +719,7 @@ public class GameFlagTimeModule extends AbstractModule {
        		m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  All players will be warped at round start.");
         } else if (isAutoWarpEnabled()) {
         	if (warpCmdsAllowed)
-        		m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  You will be warped inside base at round start (type !warp to change). -"
+        		m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  You will be warped inside base at round start (type :tw-pub:!warp to change). -"
         				+ m_botAction.getBotName());
         	else
         		m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  You will be warped inside base at round start. -"
