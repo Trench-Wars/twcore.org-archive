@@ -702,7 +702,7 @@ public class GameFlagTimeModule extends AbstractModule {
             min = (Integer.valueOf(argString)).intValue();
         } catch (Exception e) {
             throw new RuntimeException("Bad input.  Please supply a number.");
-        }
+        } 
 
         if (min < 1 || min > 120)
             throw new RuntimeException("The number of minutes required must be between 1 and 120.");
