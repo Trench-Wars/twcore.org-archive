@@ -2251,7 +2251,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 commandBot("!WarpTo 538 260");
                 commandBot("!Face 25");
             } else {
-                commandBot("!WarpTo 512 253");
+                commandBot("!WarpTo 512 258");
                 commandBot("!Face 20");
             }
             commandBot("!Timeout 300");
