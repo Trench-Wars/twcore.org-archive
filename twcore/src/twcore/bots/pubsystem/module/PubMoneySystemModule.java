@@ -2058,6 +2058,7 @@ public class PubMoneySystemModule extends AbstractModule {
         TimerTask timer = new TimerTask() {
             public void run() {
                 m_botAction.specWithoutLock(m_botAction.getBotName());
+                m_botAction.setPlayerPositionUpdating(300);
             }
         };
         m_botAction.scheduleTask(timer, 4000);
