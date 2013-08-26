@@ -53,7 +53,7 @@ public class twchat extends SubspaceBot {
     private static final String dbInfo = "website";
     private static final String CORE = "TWCore";
     private static final String STAFFBOT = "StaffBot";
-    private static final String ECORE = "TWCore-Events";
+    private static final String ECORE = "TWCore-Event";
     private static final String LCORE = "TWCore-League";
     private static final String STREAM = "TrenchStream";
     
