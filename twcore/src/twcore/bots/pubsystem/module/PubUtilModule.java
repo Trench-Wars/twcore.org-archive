@@ -27,7 +27,7 @@ import twcore.core.util.Tools;
 public class PubUtilModule extends AbstractModule {
 
     private static final String MAP_NAME = "pubmap";
-    private static final String db = "pubsystem";
+    private static final String db = "pubstats";
     
     //private PreparedStatement psPlayTime;
     
