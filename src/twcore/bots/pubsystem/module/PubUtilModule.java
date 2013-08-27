@@ -1,16 +1,22 @@
 package twcore.bots.pubsystem.module;
 
 import java.io.FileNotFoundException;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.TimerTask;
+import java.util.TreeMap;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
+import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.TurretEvent;
@@ -21,6 +27,9 @@ import twcore.core.util.Tools;
 public class PubUtilModule extends AbstractModule {
 
     private static final String MAP_NAME = "pubmap";
+    private static final String db = "pubsystem";
+    
+    //private PreparedStatement psPlayTime;
     
     // LOCATION
     public static enum Location {
@@ -54,6 +63,7 @@ public class PubUtilModule extends AbstractModule {
     private HashSet<Region> locals;
     
     private HashMap<String, Location> locations;
+    private TreeMap<String, Staffer> staffers;
     
     public boolean tilesetEnabled = false;
     
@@ -70,7 +80,8 @@ public class PubUtilModule extends AbstractModule {
         regions = new MapRegions();
         locals = new HashSet<Region>();
         reloadConfig();
-        
+        staffers = new TreeMap<String, Staffer>(String.CASE_INSENSITIVE_ORDER);
+        //psPlayTime = m_botAction.createPreparedStatement(db, "playtime", "INSERT INTO tblStaffer (fcName, fnPlayTime) VALUES(?,?) ON DUPLICATE KEY UPDATE fnPlayTime = fnPlayTime + VALUES(fnPlayTime)");
     }
     
     public void reloadRegions() {
@@ -177,10 +188,29 @@ public class PubUtilModule extends AbstractModule {
         }
     }
     
+    public void handleEvent(FrequencyShipChange event) {
+        String name = m_botAction.getPlayerName(event.getPlayerID());
+        if (name == null) return;
+        if (m_botAction.getOperatorList().isZH(name)) {
+            int ship = event.getShipType();
+            if (ship > 0) {
+                if (staffers.containsKey(name))
+                    staffers.get(name).enter();
+                else
+                    staffers.put(name, new Staffer(name));
+            } else if (staffers.containsKey(name)) {
+                    staffers.get(name).exit();
+            }
+        }
+    }
+    
 
     public void handleEvent(PlayerLeft event) {
         //tutorials.remove(m_botAction.getPlayerName(event.getPlayerID()));
         //checkForDoors();
+        String name = m_botAction.getPlayerName(event.getPlayerID());
+        if (name != null && staffers.containsKey(name))
+            staffers.remove(name).exit();
     }
     
     /**
@@ -479,25 +509,12 @@ public class PubUtilModule extends AbstractModule {
         eventRequester.request(EventRequester.TURRET_EVENT);
         eventRequester.request(EventRequester.PLAYER_LEFT);
         eventRequester.request(EventRequester.PLAYER_ENTERED);
+        eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
         eventRequester.request(EventRequester.MESSAGE);
     }
 
     @Override
     public void start() {
-    }
-
-    /**
-     * This private class logs the bot off.  It is used to give a slight delay
-     * to the log off process.
-     */
-    private class DieTask extends TimerTask {
-
-        /**
-         * This method logs the bot off.
-         */
-        public void run() {
-            m_botAction.die();
-        }
     }
 
     @Override
@@ -557,5 +574,77 @@ public class PubUtilModule extends AbstractModule {
     @Override
     public String[] getSmodHelpMessage(String sender) {
         return new String[]{};
+    }
+    
+    /**
+     * Staffer class is used to track the play time of staff members.
+     *
+     * @author WingZero
+     */
+    private class Staffer {
+        
+        String name;
+        long entryTime;
+        long exitTime;
+        int playTime;
+        boolean playing;
+        String date;
+        
+        public Staffer(String name) {
+            this.name = name;
+            entryTime = System.currentTimeMillis();
+            exitTime = -1;
+            playTime = 0;
+            playing = true;
+            //YYYY-MM-DD
+            DateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+            date = f.format(entryTime);
+            String q = "INSERT INTO tblStaffer (fcName, fnPlayTime, fdDate) VALUES('" + Tools.addSlashesToString(name) + "', 0, '" + date + "') WHERE NOT EXISTS (SELECT '" + Tools.addSlashesToString(name) + "' FROM tblStaffer WHERE fdDate = '" + date + "')";
+            try {
+                m_botAction.SQLQueryAndClose(db, q);
+            } catch (SQLException e) {
+                Tools.printStackTrace(e);
+            }
+        }
+        
+        public void exit() {
+            if (playing) {
+                playing = false;
+                exitTime = System.currentTimeMillis();
+                playTime += (int) (exitTime - entryTime) / Tools.TimeInMillis.MINUTE;
+                entryTime = -1;
+                sendTime();
+            }
+        }
+        
+        public void enter() {
+            if (!playing) {
+                playing = true;
+                entryTime = System.currentTimeMillis();
+                exitTime = -1;
+            }
+        }
+        
+        public void sendTime() {
+            if (playTime > 0) {
+                m_botAction.SQLBackgroundQuery(db, null, "UPDATE tblStaffer SET fnPlayTime = fnPlayTime + " + playTime + " WHERE fcName = '"  + Tools.addSlashesToString(name) + "' AND fdDate = '" + date + "'");
+                //m_botAction.SQLBackgroundQuery(db, null, "INSERT INTO tblStaffer (fcName, fnPlayTime) VALUES('" + Tools.addSlashesToString(name) + "'," + playTime + ") ON DUPLICATE KEY UPDATE fnPlayTime = fnPlayTime + VALUES(fnPlayTime)");
+                playTime = 0;
+            }
+        }
+    }
+
+    /**
+     * This private class logs the bot off.  It is used to give a slight delay
+     * to the log off process.
+     */
+    private class DieTask extends TimerTask {
+
+        /**
+         * This method logs the bot off.
+         */
+        public void run() {
+            m_botAction.die();
+        }
     }
 }
