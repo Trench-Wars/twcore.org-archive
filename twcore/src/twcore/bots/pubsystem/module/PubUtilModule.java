@@ -81,6 +81,8 @@ public class PubUtilModule extends AbstractModule {
         locals = new HashSet<Region>();
         reloadConfig();
         staffers = new TreeMap<String, Staffer>(String.CASE_INSENSITIVE_ORDER);
+        SendTime sendTimes = new SendTime();
+        m_botAction.scheduleTask(sendTimes, 5 * Tools.TimeInMillis.MINUTE, 5 * Tools.TimeInMillis.MINUTE);
         //psPlayTime = m_botAction.createPreparedStatement(db, "playtime", "INSERT INTO tblStaffer (fcName, fnPlayTime) VALUES(?,?) ON DUPLICATE KEY UPDATE fnPlayTime = fnPlayTime + VALUES(fnPlayTime)");
     }
     
@@ -576,6 +578,20 @@ public class PubUtilModule extends AbstractModule {
         return new String[]{};
     }
     
+    private class SendTime extends TimerTask {
+
+        @Override
+        public void run() {
+            for (Staffer s : staffers.values()) {
+                if (s.playing) {
+                    s.exit();
+                    s.enter();
+                }
+            }
+        }
+        
+    }
+    
     /**
      * Staffer class is used to track the play time of staff members.
      *
@@ -646,6 +662,7 @@ public class PubUtilModule extends AbstractModule {
          * This method logs the bot off.
          */
         public void run() {
+            m_botAction.cancelTasks();
             m_botAction.die();
         }
     }
