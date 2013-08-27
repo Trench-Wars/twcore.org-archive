@@ -599,7 +599,9 @@ public class PubUtilModule extends AbstractModule {
             //YYYY-MM-DD
             DateFormat f = new SimpleDateFormat("yyyy-MM-dd");
             date = f.format(entryTime);
-            String q = "INSERT INTO tblStaffer (fcName, fnPlayTime, fdDate) VALUES('" + Tools.addSlashesToString(name) + "', 0, '" + date + "') WHERE NOT EXISTS (SELECT '" + Tools.addSlashesToString(name) + "' FROM tblStaffer WHERE fdDate = '" + date + "')";
+            String q = "INSERT INTO tblStaffer (fcName, fnPlayTime, fdDate) " +
+        		        "SELECT * FROM (SELECT '" + Tools.addSlashesToString(name) + "', 0, '" + date + "') as tmp " +
+        				"WHERE NOT EXISTS (SELECT '" + Tools.addSlashesToString(name) + "' FROM tblStaffer WHERE fcName = '" + Tools.addSlashesToString(name) + "' AND fdDate = '" + date + "')";
             try {
                 m_botAction.SQLQueryAndClose(db, q);
             } catch (SQLException e) {
