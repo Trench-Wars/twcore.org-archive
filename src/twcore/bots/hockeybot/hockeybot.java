@@ -11,6 +11,8 @@ import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+import twcore.bots.twht.twhtPlayer;
+import twcore.bots.twht.twhtTeam;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
@@ -78,6 +80,8 @@ public class hockeybot extends SubspaceBot {
     };
     //Game ticker
     private Gameticker gameticker;
+    private TimerTask fo_botUpdateTimer;
+    private TimerTask ballDelay;
 
     private static enum Vote {
 
@@ -449,18 +453,37 @@ public class hockeybot extends SubspaceBot {
     }
 
     /**
-     * Grabs ball and sits in drop location
+     * Removes the ball from play
      */
-    public void getBall() {
+    public void doRemoveBall() {
+        doGetBall(4800, 4800);
+        
+        ballDelay = new TimerTask() {
+            @Override
+            public void run() {
+                dropBall();
+            }
+        }; m_botAction.scheduleTask(ballDelay, 2 * Tools.TimeInMillis.SECOND);
+    }
+    
+    /**
+     * Causes the bot to grab the ball and goes to a specific location
+     */
+    public void doGetBall(int xLoc, int yLoc) {
+        fo_botUpdateTimer = new TimerTask() {
+            @Override
+            public void run() {
+                if (m_botAction.getShip().needsToBeSent())
+                    m_botAction.getShip().sendPositionPacket();
+            }
+        }; m_botAction.scheduleTask(fo_botUpdateTimer, 0, 1000);
+
         if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
             m_botAction.getShip().setShip(0);
-            m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
-            //m_botAction.getShip().move(puck.getBallX(), puck.getBallY());
-            m_botAction.getShip().move(config.getPuckDropX(), config.getPuckDropY());
-            m_botAction.getShip().updatePosition();
+            m_botAction.getShip().setFreq(FREQ_NOTPLAYING);      
+            m_botAction.getShip().move(xLoc, yLoc);
             m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
         }
-        
     }
 
     /**
@@ -469,7 +492,7 @@ public class hockeybot extends SubspaceBot {
     public void dropBall() {
         m_botAction.getShip().setShip(8);
         m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
-        m_botAction.setPlayerPositionUpdating(300);
+        m_botAction.cancelTask(fo_botUpdateTimer);
     }
 
     private void checkPenalty(PlayerPosition event) {
@@ -615,9 +638,12 @@ public class hockeybot extends SubspaceBot {
 
     /** Handles the !ball command */
     private void cmd_ball(String name) {
-        m_botAction.sendPrivateMessage(name, "Ball was located at: " + puck.getBallX()
-                + ", " + puck.getBallY());
-        getBall();
+        int xCoord = puck.getBallX();
+        int  yCoord= puck.getBallY();
+        
+        m_botAction.sendPrivateMessage(name, "Ball was located at: " + xCoord
+                + ", " + yCoord);
+        doGetBall(xCoord, yCoord);
     }
    
     /** Handles the !drop command */
@@ -4694,7 +4720,7 @@ public class hockeybot extends SubspaceBot {
         	
             if (!puck.holding) {
                 timeStamp = System.currentTimeMillis();
-                getBall();
+                doGetBall(config.getPuckDropX(), config.getPuckDropY());
             }
             
             double randomDrop = Math.floor(Math.random() * (9)) + 15;
@@ -5023,7 +5049,7 @@ public class hockeybot extends SubspaceBot {
         		}
         		// Make sure the ball doesn't get into play.
         		if (!puck.holding) {
-                    getBall();
+        		    doRemoveBall();
                 }
                 m_botAction.getShip().sendPositionPacket();
         	}
