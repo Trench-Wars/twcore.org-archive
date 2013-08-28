@@ -11,8 +11,6 @@ import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import twcore.bots.twht.twhtPlayer;
-import twcore.bots.twht.twhtTeam;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
