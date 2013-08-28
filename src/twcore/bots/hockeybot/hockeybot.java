@@ -1421,6 +1421,10 @@ public class hockeybot extends SubspaceBot {
                 status[0] = "Teams: " + team0.getName() + " vs. " + team1.getName()
                         + ". We are currently facing off";
                 break;
+            case TIMEOUT:
+                status[0] = "Teams: " + team0.getName() + " vs. " + team1.getName()
+                        + ". We are currently in a timeout";
+                break; 
             case GAME_IN_PROGRESS:
                 status[0] = "Game is in progress.";
                 status[1] = "Score " + team0.getName() + " vs. " + team1.getName() + ": " + score();
@@ -2545,8 +2549,8 @@ public class hockeybot extends SubspaceBot {
     	int sizeTeam0, sizeTeam1;
     	
         currentState = HockeyState.FACE_OFF;
-        sizeTeam0 = team0.players.size();
-        sizeTeam1 = team1.players.size();
+        sizeTeam0 = team0.getSizeIN();
+        sizeTeam1 = team1.getSizeIN();
         
         // Extended lineup check
         if(sizeTeam0 < config.getMinPlayers()) {
