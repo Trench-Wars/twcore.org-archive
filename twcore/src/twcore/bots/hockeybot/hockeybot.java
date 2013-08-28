@@ -150,6 +150,7 @@ public class hockeybot extends SubspaceBot {
     @Override
     public void handleEvent(ArenaJoined event) {
         //m_botAction.setReliableKills(1);
+        start();
         m_botAction.setPlayerPositionUpdating(300);
         m_botAction.sendUnfilteredPublicMessage("?chat=" + config.getChats());  //Join all the chats
     }
@@ -2131,6 +2132,9 @@ public class hockeybot extends SubspaceBot {
         m_botAction.sendArenaMessage(name + 
                 " has requested a 30-second timeout for Freq " +
                 t.getFrequency() + ".", Tools.Sound.CROWD_GEE);
+        m_botAction.getShip().move(4800, 4800);
+        m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
+        dropBall();
     }
     
     /**
@@ -2145,6 +2149,9 @@ public class hockeybot extends SubspaceBot {
         doRemoveBall();
         m_botAction.sendArenaMessage(name + 
                 " has issued a 30-second timeout.", Tools.Sound.BEEP1);
+        m_botAction.getShip().move(4800, 4800);
+        m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
+        dropBall();
     }
 
     /**
