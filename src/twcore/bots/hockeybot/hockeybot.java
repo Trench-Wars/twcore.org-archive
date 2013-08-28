@@ -2046,7 +2046,9 @@ public class hockeybot extends SubspaceBot {
     	m_botAction.sendArenaMessage(name + 
     			" has requested a 30-second timeout for Freq " +
     			t.getFrequency() + ".", Tools.Sound.CROWD_GEE);
-    	doRemoveBall();
+    	m_botAction.getShip().move(4800, 4800);
+        m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
+        dropBall();
     }
     
     /**
