@@ -2046,6 +2046,7 @@ public class hockeybot extends SubspaceBot {
     	m_botAction.sendArenaMessage(name + 
     			" has requested a 30-second timeout for Freq " +
     			t.getFrequency() + ".", Tools.Sound.CROWD_GEE);
+    	doRemoveBall();
     }
     
     /**
@@ -5045,11 +5046,12 @@ public class hockeybot extends SubspaceBot {
         		if(time == 20) {
         			m_botAction.sendArenaMessage("Timeout will end in 10 seconds.");
         		}
-        		// Make sure the ball doesn't get into play.
+        		/* Make sure the ball doesn't get into play.
         		if (!puck.holding) {
         		    doRemoveBall();
-                }
-                m_botAction.getShip().sendPositionPacket();
+                }*/
+        		
+                //m_botAction.getShip().sendPositionPacket();
         	}
         }
     }
