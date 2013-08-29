@@ -19,6 +19,7 @@ import twcore.core.EventRequester;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerLeft;
+import twcore.core.events.PlayerEntered;
 import twcore.core.events.TurretEvent;
 import twcore.core.game.Player;
 import twcore.core.util.MapRegions;
@@ -206,6 +207,22 @@ public class PubUtilModule extends AbstractModule {
         }
     }
     
+    public void handleEvent(PlayerEntered event)
+    {
+    	String name = m_botAction.getPlayerName(event.getPlayerID());
+    	if (name == null) return;
+    	if (m_botAction.getOperatorList().isZH(name))
+    	{
+    		int ship = event.getShipType();
+    		if (ship > 0) 
+    		{
+    			if (staffers.containsKey(name))
+    				staffers.get(name).enter();
+    			else
+    				staffers.put(name, new Staffer(name));
+    		}
+    	}    	
+    }
 
     public void handleEvent(PlayerLeft event) {
         //tutorials.remove(m_botAction.getPlayerName(event.getPlayerID()));
