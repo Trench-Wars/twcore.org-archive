@@ -28,15 +28,27 @@ public class staffbot_warnings extends Module {
     private TimerTask getLog;
     private Vector<String> lastWarnings = new Vector<String>(20);	// Holds track of last 20 warnings
 
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
     // Helps (strange to redefine each time someone types !help)
-    final String[] helpER = { "--------------------[ Warnings: ER+ ]----------------------", " !warnings <player>        - Checks valid red warnings on specified player",
-            " ! <player>                - (shortcut for above)", " !allwarnings <player>     - Shows all warnings on player, including expired.",
-            " !fuzzyname <player>       - Checks for names similar to <player> in database." };
+    final String[] helpER = { 
+            "--------------------[ Warnings: ER+ ]----------------------", 
+            " !warnings <player>        - Checks valid red warnings on specified player",
+            " ! <player>                - (shortcut for above)", 
+            " !allwarnings <player>     - Shows all warnings on player, including expired.",
+            " !fuzzyname <player>       - Checks for names similar to <player> in database." 
+        };
 
-    final String[] helpMod = { "--------------------[ Warnings: Mod+ ]---------------------", " !deletelast <player>      - Deletes last warning given to a player." };
+    final String[] helpMod = { 
+            "--------------------[ Warnings: Mod+ ]---------------------", 
+            " !deletelast <player>      - Deletes last warning given to a player." 
+        };
 
-    final String[] helpSmod = { "--------------------[ Warnings: SMod+ ]--------------------", " !warningsfrom <player>    - Displays a list of recent warns given to a player.",
-            " !manual player:warning    - Adds a manual database warning to player. Use with caution!" };
+    final String[] helpSmod = { 
+            "--------------------[ Warnings: SMod+ ]--------------------", 
+            " !warningsfrom <player>    - Displays a list of recent warns given to a player.",
+            " !manual player:warning    - Adds a manual database warning to player. Use with caution!" 
+        };
 
     private void addManualWarning(String name, String message) {
         StringTokenizer argTokens = new StringTokenizer(message, ":");
@@ -46,8 +58,8 @@ public class staffbot_warnings extends Module {
             String[] paramNames = { "name", "warning", "staffmember", "timeofwarning" };
             Calendar thisTime = Calendar.getInstance();
             java.util.Date day = thisTime.getTime();
-            String warntime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(day);
-            String date = new java.sql.Date(System.currentTimeMillis()).toString();
+            String warntime = sdf.format(day);
+            String date = sdf.format(System.currentTimeMillis()).toString();
             String[] data = { player.toLowerCase().trim(), new String(warntime + ": (" + name + ") to (" + player + ")" + " " + warning), name.toLowerCase().trim(), date };
 
             m_botAction.SQLInsertInto(sqlHost, "tblWarnings", paramNames, data);
@@ -180,7 +192,7 @@ public class staffbot_warnings extends Module {
                     return;
 
                 String[] paramNames = { "name", "warning", "staffmember", "timeofwarning" };
-                String date = new java.sql.Date(System.currentTimeMillis()).toString();
+                String date = sdf.format(System.currentTimeMillis()).toString();
                 String[] data = { Tools.addSlashes(warnedPlayer.toLowerCase()), Tools.addSlashes(message), Tools.addSlashes(staffMember.toLowerCase()), date };
 
                 m_botAction.SQLInsertInto(sqlHost, "tblWarnings", paramNames, data);
@@ -373,9 +385,7 @@ public class staffbot_warnings extends Module {
             m_botAction.sendRemotePrivateMessage(name, "Last (max 50) warnings in database given by " + message + ":");
             while (set.next()) {
                 String warning = set.getString("warning");
-                java.sql.Date date = set.getDate("timeofwarning");
-                String strDate = new SimpleDateFormat("dd MMM yyyy").format(date);
-
+                String strDate = new SimpleDateFormat("dd MMM yyyy").format(sdf.parse(set.getString("timeofwarning")));
                 String[] text = warning.split(": ", 3);
                 if (text.length == 3)
                     m_botAction.sendRemotePrivateMessage(name, strDate + "  - " + text[2]);
@@ -383,6 +393,8 @@ public class staffbot_warnings extends Module {
             m_botAction.sendRemotePrivateMessage(name, "End of list.");
             m_botAction.SQLClose(set);
         } catch (SQLException e) {
+            Tools.printStackTrace(e);
+        } catch (ParseException e) {
             Tools.printStackTrace(e);
         }
     }
