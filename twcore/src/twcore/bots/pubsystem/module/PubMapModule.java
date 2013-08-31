@@ -359,7 +359,7 @@ public class PubMapModule extends AbstractModule {
                 public void run() {
                     stragglerCheck = false;
                 }
-            }, 3 * Tools.TimeInMillis.MINUTE);
+            }, 5 * Tools.TimeInMillis.MINUTE);
         }
     }
 
