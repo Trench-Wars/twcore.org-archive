@@ -15,6 +15,7 @@ import twcore.core.events.ArenaJoined;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
+import twcore.core.events.PlayerPosition;
 import twcore.core.game.Player;
 import twcore.core.util.MapRegions;
 import twcore.core.util.Tools;
@@ -42,6 +43,7 @@ public class PubMapModule extends AbstractModule {
     private BotAction ba;
     private Random random;
     private BaseChange baseChanger;
+    private boolean stragglerCheck;
     private boolean inPub;
     
     private MapRegions regions;
@@ -50,6 +52,7 @@ public class PubMapModule extends AbstractModule {
         super(botAction, context, "PubMap");
         ba = botAction;
         inPub = ba.getArenaName().startsWith("(Public");
+        stragglerCheck = false;
         random = new Random();
         lastChange = 0;
         currentBase = MED_BASE;
@@ -81,6 +84,7 @@ public class PubMapModule extends AbstractModule {
         er.request(EventRequester.PLAYER_LEFT);
         er.request(EventRequester.FREQUENCY_SHIP_CHANGE);
         er.request(EventRequester.ARENA_JOINED);
+        er.request(EventRequester.PLAYER_POSITION);
     }
 
     @Override
@@ -100,6 +104,24 @@ public class PubMapModule extends AbstractModule {
     @Override
     public void handleEvent(ArenaJoined event) {
         inPub = ba.getArenaName().startsWith("(Public");
+    }
+    
+    public void handleEvent(PlayerPosition event) {
+        if (!stragglerCheck) return;
+        Player p = ba.getPlayer(event.getPlayerID());
+        int reg = regions.getRegion(p);
+        if (currentBase == SMALL_BASE) {
+            if (reg == Region.MED_FR.ordinal() || reg == Region.LARGE_FR.ordinal()) {
+                Point coord = getRandomPoint(Region.FLAGROOM.ordinal());
+                ba.warpTo(p.getPlayerID(), (int) coord.getX(), (int) coord.getY());
+            }
+        } else if (currentBase == MED_BASE) {
+            if (reg == Region.LARGE_FR.ordinal()) {
+                Point coord = getRandomPoint(Region.FLAGROOM.ordinal());
+                ba.warpTo(p.getPlayerID(), (int) coord.getX(), (int) coord.getY());
+            }
+            
+        }
     }
     
     public void handleEvent(PlayerEntered event) {
@@ -332,6 +354,12 @@ public class PubMapModule extends AbstractModule {
                     break;
             }
             baseChanger = null;
+            stragglerCheck = true;
+            ba.scheduleTask(new TimerTask() {
+                public void run() {
+                    stragglerCheck = false;
+                }
+            }, 3 * Tools.TimeInMillis.MINUTE);
         }
     }
 
