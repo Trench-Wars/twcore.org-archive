@@ -278,7 +278,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             }
         }
         
-        if (pubPlayer != null && pubPlayer.getMoney() < 1000)
+        if (pubPlayer != null && pubPlayer.getMoney() < 500)
             m_botAction.sendSmartPrivateMessage(playerName, "Type !help for a list of commands.");
     }
     

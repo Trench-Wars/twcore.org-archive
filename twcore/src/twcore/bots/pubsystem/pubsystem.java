@@ -300,7 +300,7 @@ public class pubsystem extends SubspaceBot
             		//"Lottery:[" + (context.getP().isRunning() ? "ON" : "OFF") + "]; 
             	
             	
-                m_botAction.sendSmartPrivateMessage(playerName, message );
+                //m_botAction.sendSmartPrivateMessage(playerName, message );
 
                 context.handleEvent(event);
             }
