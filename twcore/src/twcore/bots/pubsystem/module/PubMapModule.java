@@ -48,6 +48,8 @@ public class PubMapModule extends AbstractModule {
     
     private MapRegions regions;
     
+    private TimerTask stragglerChecker;
+    
     public PubMapModule(BotAction botAction, PubContext context) {
         super(botAction, context, "PubMap");
         ba = botAction;
@@ -317,6 +319,13 @@ public class PubMapModule extends AbstractModule {
         return p;
     }
     
+    private class StragglerChecker extends TimerTask {
+        public void run() {
+            stragglerCheck = false;
+            stragglerChecker = null;
+        }
+    }
+    
     private class BaseChange extends TimerTask {
         private int base;
         
@@ -354,12 +363,11 @@ public class PubMapModule extends AbstractModule {
                     break;
             }
             baseChanger = null;
-            stragglerCheck = true;
-            ba.scheduleTask(new TimerTask() {
-                public void run() {
-                    stragglerCheck = false;
-                }
-            }, 5 * Tools.TimeInMillis.MINUTE);
+            //stragglerCheck = true;
+            //if (stragglerChecker != null)
+            //    ba.cancelTask(stragglerChecker);
+            //stragglerChecker = new StragglerChecker();
+            //ba.scheduleTask(stragglerChecker, 5 * Tools.TimeInMillis.MINUTE);
         }
     }
 
