@@ -31,7 +31,7 @@ import twcore.core.util.ipc.IPCMessage;
  */
 public class pubautobot extends SubspaceBot {
 
-	private static boolean DEBUG_ENABLED = true;
+	private static boolean DEBUG_ENABLED = false;  // Debug mode. Do not use this on live due to potential exploits.
 
 	// Game constant
 	private static final double SS_CONSTANT = 0.1111111;
@@ -43,41 +43,42 @@ public class pubautobot extends SubspaceBot {
 
 	// Ownership
 	private boolean locked = false;
-	private String owner; // usually a bot
-	private String subowner; // usually a player
+	private String owner;                      // Usually a bot, who gave the activation commands to this bot.
+	private String subowner;                   // The player who requested this bot at the owner.
 
 	// Settings
-	private boolean autoAiming = false;
-	private boolean enemyAimingOnly = true;
+	private boolean autoAiming = false;        // When set, automatically tries to track a nearby player.
+	private boolean enemyAimingOnly = true;    // Only tracks hostile players.
 	private boolean fireOnSight = false;
-	private boolean following = false;
-	private boolean killable = false;
-	private boolean quitOnDeath = false;
+	private boolean following = false;         // Set when the bot is tracking a player.
+	private boolean killable = false;          // Allows the bot to be killed.
+	private boolean quitOnDeath = false;       // If set, the bot will return to the stable after it dies.
 	private boolean fastRotation = true;
-	private int timeoutAt = -1; // after timeout, bot disconnects
+	private int timeoutAt = -1;                // Amount of time (seconds) before the bot disappears to the stable.
 	//private int energyOnStart = 1; unused // one shot and dead
-	private HashSet<String> locations; // array of x:y position
-	private int dieAtXshots = 1; // if 1, first hit the bot dies
-	private long startedAt = 0;
+	private HashSet<String> locations;         // array of x:y position
+	private int dieAtXshots = 1;               // Amount of hits the bot will take before 'dying'. If 1, the first hit kills the bot.
+	private long startedAt = 0;                // Time at which this bot was activated. (Read: Being actually in a ship.)
 
 	// In-game settings
-	private int freq;
-	private int botX;
-	private int botY;
+	private int freq;                  // Bot's frequency.
+	private int botX;                  // Bot's x-coordinate.
+	private int botY;                  // Bot's y-coordinate.
 	private int angle = 0;
 	private int angleTo = 0;
-	private int numberOfShots = 0;
+	private int numberOfShots = 0;     // Number of hits the bot has taken (without dying).
 
-    private int turretPlayerID = -1;
-    private LinkedList<Projectile> fired = new LinkedList<Projectile>();
-	private Vector<RepeatFireTimer> repeatFireTimers = new Vector<RepeatFireTimer>();
+	// Various tracking related settings and lists.
+    private int turretPlayerID = -1;                                                    // ID of the player the bot is attached to.
+    private LinkedList<Projectile> fired = new LinkedList<Projectile>();                // List for tracking projectiles.
+	private Vector<RepeatFireTimer> repeatFireTimers = new Vector<RepeatFireTimer>();  
     private RotationTask rotationTask;
     private DisableEnemyOnSightTask disableEnemyOnSightTask;
 
-	boolean isSpawning = false;
+	boolean isSpawning = false;            // Is the bot respawning?
 
 	private boolean enemyOnSight = false;
-	private String target;
+	private String target;                 // Name of the current target.
 
 	// THIS LIST IS NOT UP-TO-DATE !
 
@@ -108,26 +109,30 @@ public class pubautobot extends SubspaceBot {
 		"!help				-- displays this"
 	};
 
-	TimerTask spawned;
-	TimerTask updateIt = new TimerTask(){
-		public void run(){
-			update();
-		}
-	};
+	TimerTask spawned;     // Timertask used for respawning the bot after it has died. (Only used when quitOnDeath == false.)
+	TimerTask updateIt;    // Timertask used for checking the projectiles heading the bot's way.
 
+	/**
+	 * Constructor
+	 * @param botAction botAction
+	 */
     public pubautobot(BotAction botAction) {
         super(botAction);
         requestEvents();
         loadConfig();
     }
 
+    /**
+     * Loads the configuration for this bot.
+     */
     public void loadConfig() {
-
     	locations = new HashSet<String>();
     	disableEnemyOnSightTask = new DisableEnemyOnSightTask();
-
     }
 
+    /**
+     * Handles the logged on event for this bot.
+     */
     public void handleEvent(LoggedOn event) {
     	try {
 			m_botAction.joinArena(m_botAction.getBotSettings().getString("Arena"),(short)3392,(short)3392);
@@ -139,16 +144,17 @@ public class pubautobot extends SubspaceBot {
 		m_botAction.setPlayerPositionUpdating(200);
     }
 
-    /* Step to request this bot
-     *
+    /**
+     * Handles the IPC event.
+     * <p>
+     * Step to request this bot: <pre>
      * 1. RandomBot> Send a "looking"
      * 2. Autobot> If not locked, send a "locked"
      *    If not confirmation after 5 seconds, the bot is free'd
      * 3. RandomBot> Confirm with "confirm_lock"
-     * 4. Setup the new owner of this bot
+     * 4. Setup the new owner of this bot</pre>
      */
-    public void handleEvent(InterProcessEvent event)
-    {
+    public void handleEvent(InterProcessEvent event) {
     	IPCMessage ipc = (IPCMessage)event.getObject();
     	String message = ipc.getMessage();
 
@@ -160,24 +166,20 @@ public class pubautobot extends SubspaceBot {
     		} catch (IllegalStateException e) {
     		    Tools.printStackTrace("ISE PubAutoBot IPC.", e);
     		}
-    	}
-    	else if(message.equals("confirm_lock") && ipc.getRecipient().equals(m_botAction.getBotName())) {
+    	} else if(message.equals("confirm_lock") && ipc.getRecipient().equals(m_botAction.getBotName())) {
     		String[] owners = ipc.getSender().split(":");
     		owner = owners[0];
     		if (owners.length==2) {
     			subowner = owners[1];
     		}
-    	}
-    	else if(message.startsWith("command:") && locked && owner != null){
+    	} else if(message.startsWith("command:") && locked && owner != null){
     		if (ipc.getSender().equals(owner) || ipc.getSender().equals(subowner))
     			handleCommand(ipc.getSender(), message.substring(8));
-    	}
-    	else if(message.startsWith("locations:") && owner != null && owner.equals(ipc.getSender())) {
+    	} else if(message.startsWith("locations:") && owner != null && owner.equals(ipc.getSender())) {
     		locations = new HashSet<String>();
     		String[] data = message.substring(10).split(",");
     		locations.addAll(Arrays.asList(data));
     	}
-
     }
 
     public void requestEvents() {
@@ -200,7 +202,6 @@ public class pubautobot extends SubspaceBot {
     }
 
     public void handleEvent(PlayerDeath event) {
-
     	String killer = m_botAction.getPlayerName(event.getKillerID());
     	String killee = m_botAction.getPlayerName(event.getKilleeID());
 
@@ -234,9 +235,9 @@ public class pubautobot extends SubspaceBot {
     	// Get the player that fired the weapon.
     	Player p = m_botAction.getPlayer(event.getPlayerID());
     	
-    	// Leave if the player cannot be found or if the weapon's effect is too hard to track.
+    	// Leave if the player cannot be found, the projectile is friendly or if the weapon's effect is too hard to track.
         if(p == null 
-                || (p.getFrequency() == m_botAction.getShip().getAge())     // This condition makes no sense...
+                || (p.getFrequency() == freq)
                 || event.getWeaponType() > WeaponFired.WEAPON_MULTIFIRE 
                 || event.isType(WeaponFired.WEAPON_REPEL) 
                 || event.isType(WeaponFired.WEAPON_DECOY) 
@@ -345,7 +346,7 @@ public class pubautobot extends SubspaceBot {
      * Tracks the projectiles fired at the bot and updates the bot's location if attached.
      * This is run through a scheduled task that is fired when the bot is in a ship.
      */
-    public void update(){
+    public void update() {
         // Update current coords of the bot.
         botX = m_botAction.getShip().getX();
         botY = m_botAction.getShip().getY();
@@ -380,6 +381,8 @@ public class pubautobot extends SubspaceBot {
                             // Pause firing at the players.
                             Iterator<RepeatFireTimer> i = repeatFireTimers.iterator();
                             while(i.hasNext())i.next().pause();
+                            
+                            //TODO: Check if this needs to call upon the free() function, if it still fails...
                         }
                     }
                     // Since it hit us, remove the projectile.
@@ -399,13 +402,11 @@ public class pubautobot extends SubspaceBot {
         }
     }
 
-    public void handleEvent(Message event)
-    {
-    	// If in production (not debug), you can only interact with this bot
-    	// by using the InterProcess channel
-    	if (!DEBUG_ENABLED)
-    		return;
-
+    /**
+     * Handles incoming messages.
+     */
+    public void handleEvent(Message event) {
+    	// Get the message's specifics.
     	int messageType = event.getMessageType();
     	String message = event.getMessage();
     	String playerName = event.getMessager();
@@ -413,54 +414,76 @@ public class pubautobot extends SubspaceBot {
     		playerName = m_botAction.getPlayerName(event.getPlayerID());
     	}
 
+    	// Only react to private messages
     	if(messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE)
     	{
-    		if(m_botAction.getOperatorList().isSmod(playerName)){
+    	    // Filter for !die
+    		if(m_botAction.getOperatorList().isSmod(playerName)) {
     			if (m_botAction.getOperatorList().isSmod(playerName) && message.equalsIgnoreCase("!die"))
     	            disconnect();
-
     		}
 
-    		if (locked && owner != null && (owner.equals(playerName) || subowner.equals(playerName)) && handleCommand(playerName, message)) {
-    			// ok
-    		}
-    		else {
+    		// Only allow direct command communication to this bot when debug mode is enabled.
+            // When in production, the only command interaction with this bot should be by using the InterProcess channel.
+            // The !die command is still accessible in case of emergencies, though.
+    		if (locked && owner != null 
+    		        && (owner.equals(playerName) || subowner.equals(playerName)) 
+    		        && handleCommand(playerName, message)
+    		        && DEBUG_ENABLED) {
+    			// If the bot is locked and one of the owners message it, throw the message through handleCommand().
+    		    // This function will return true if it was an actual command that could be executed.
+    		    // Read: If the owners send something else than a real command, this if-statement will be false.
+    		} else {
+    		    // When someone else tries to communicate with this bot or the owners didn't use a real command.
     			if (owner != null) {
-    				String controllerBy = owner;
-    				if (subowner != null) controllerBy += " and " + subowner;
-    				m_botAction.sendSmartPrivateMessage(playerName, "Hi " + playerName + ", I am controlled by " + controllerBy + ". ");
+    			    if(DEBUG_ENABLED) {
+    			        // This feels like debugging information. Better hide it from the public to be honest.
+        				String controllerBy = owner;
+        				if (subowner != null) controllerBy += " and " + subowner;
+        				m_botAction.sendSmartPrivateMessage(playerName, "Hi " + playerName + ", I am controlled by " + controllerBy + ". ");
+    			    }
 
-    				String aboutMe  = "About me: ";
+    			    //TODO: Clean this up into a better system.
+    				String aboutMe  = "About me: I've been hired to work for Freq " + freq +".";
     				String aboutMe2 = "";
-    				if (killable)
-    				{
-    					aboutMe += "I can be killed. ";
-    					if (dieAtXshots > 1) {
-    						aboutMe += "I die after " + dieAtXshots + " shots, " + (dieAtXshots-numberOfShots) + " left. ";
+    				String aboutMe3 = "";
+    				if (killable) {
+    				    // Display the amounts of deaths left, if applicable.
+    					aboutMe2 += "I can be killed";
+    					if ((dieAtXshots-numberOfShots) > 1) {
+    						aboutMe2 += ", but I can still survive " + (dieAtXshots-numberOfShots) + " more hits.";
     					} else {
-    						aboutMe += "Hit me 1 time and I die. ";
+    						aboutMe2 += ". Hit me one more time and I die.";
     					}
-    					if (timeoutAt != -1) {
-    						aboutMe2 += "I will disconnect in " + Tools.getTimeDiffString(startedAt+timeoutAt*1000, false) + ". ";
-    					}
+    				} else {
+    					aboutMe2 += "I cannot be killed. ";
     				}
-    				else {
-    					aboutMe += "I cannot be killed. ";
-    					if (timeoutAt != -1) {
-    						aboutMe += "I will disconnect in " + Tools.getTimeDiffString(startedAt+timeoutAt*1000, false) + ". ";
-    					}
-    				}
-
+    				
+					// Display the amount of time left, if applicable.
+					if (timeoutAt != -1) {
+						aboutMe3 += "My job will be done in " + Tools.getTimeDiffString(startedAt + timeoutAt*1000, false) + ".";
+					}
+    				
+					// Send the created messages.
     				m_botAction.sendSmartPrivateMessage(playerName, aboutMe);
-    				if (!aboutMe2.equals("")) {
-    					m_botAction.sendSmartPrivateMessage(playerName, aboutMe2);
+    				m_botAction.sendSmartPrivateMessage(playerName, aboutMe2);
+    				if (!aboutMe3.equals("")) {
+    					m_botAction.sendSmartPrivateMessage(playerName, aboutMe3);
     				}
     			}
     		}
     	}
     }
 
-    public boolean handleCommand(String name, String msg){
+    /**
+     * Handles commands sent by the owner of this bot or any other bot.
+     * Note: When debug is disabled, players do not have access to this.
+     * 
+     * @param name Name of the sender
+     * @param msg Message
+     * @return Boolean true if a matching command was found, otherwise false.
+     */
+    public boolean handleCommand(String name, String msg) {
 
     	msg = msg.toLowerCase().trim();
 
@@ -556,15 +579,23 @@ public class pubautobot extends SubspaceBot {
 		}
 
     	return true;
-
     }
     
+    /**
+     * Message triggered by !baseterr. (Auto-issued on start.)
+     */
     public void baseTerr() {
-        m_botAction.sendTeamMessage("ATTACH! " + m_botAction.getBotName() + " BASETERR stationed in FLAGROOM but I can only take " + (dieAtXshots-numberOfShots) + " more hits!", Tools.Sound.CANT_LOG_IN);
+        m_botAction.sendTeamMessage("ATTACH! " + m_botAction.getBotName() 
+                + " BASETERR stationed in FLAGROOM but I can only take " 
+                + (dieAtXshots-numberOfShots) + " more hits!", Tools.Sound.CANT_LOG_IN);
     }
 
-    public void attach(String playerName)
-    {
+    /**
+     * Attaches to a player.
+     * 
+     * @param playerName The player to attach to.
+     */
+    public void attach(String playerName) {
     	String name = m_botAction.getFuzzyPlayerName(playerName);
     	if (name==null)
     		return;
@@ -580,14 +611,24 @@ public class pubautobot extends SubspaceBot {
     	m_botAction.getShip().attach(turretPlayerID);
     }
 
+    /**
+     * Attach from a player
+     */
     public void unAttach() {
-    	if(turretPlayerID == -1)return;
+    	if(turretPlayerID == -1)
+    	    return;
     	m_botAction.getShip().unattach();
     	turretPlayerID = -1;
     }
 
-    /* Not accurate
-     * Case: If the player dettach the bot */
+    /**
+     * Checks if the bot is attached to a player.
+     * <p>
+     * NOTE: Not accurate.<br>
+     * Case: If the player forcefully detaches the bot.
+     * 
+     *  @return True if the bot is attached to a player. Otherwise false.
+     */
     public boolean isAttached() {
     	if (turretPlayerID != -1)
     		return true;
@@ -627,19 +668,36 @@ public class pubautobot extends SubspaceBot {
     	dieAtXshots = Integer.valueOf(parameter);
     }
 
+    /**
+     * Sets the amount of time after which the bot leaves.<p>
+     * This function will also start a timer that fires when the time is up.
+     * 
+     * @param parameter Timeout value in seconds.
+     */
     private void doTimeoutDieCmd(String parameter) {
     	int seconds = Integer.valueOf(parameter);
     	timeoutAt = seconds;
         m_botAction.scheduleTask(new FreeTask(), seconds * Tools.TimeInMillis.SECOND);
     }
 
+    /**
+     * Frees up all the used timers, variables and lists and such.
+     * When possible, the values are reset to their initial values.
+     */
     private void free() {
+        // First clean up all the timers to avoid racing conditions...
+        m_botAction.cancelTasks();
+        
+        // Unlock the bot and remove the owners.
     	locked = false;
     	owner = null;
     	subowner = null;
+    	
+    	// Move the bot back into the stable.
     	m_botAction.getShip().setShip(8);
     	m_botAction.changeArena(m_botAction.getBotSettings().getString("Arena"));
 
+    	// Reset all the variables
     	autoAiming = false;
     	enemyAimingOnly = true;
     	fireOnSight = false;
@@ -649,15 +707,22 @@ public class pubautobot extends SubspaceBot {
     	fastRotation = true;
     	timeoutAt = -1;
     	//energyOnStart = 1; unused
-    	locations.clear();
+    	
     	dieAtXshots = 1;
     	startedAt = 0;
     	isSpawning = false;
     	enemyOnSight = false;
     	target = null;
+    	
+    	// Cancel all the lists
+    	locations.clear();
     	doStopRepeatFireCmd(null);
+    	fired.clear();
     }
 
+    /**
+     * Starts a timer for the disconnect sequence. (500ms)
+     */
     private void disconnect() {
     	m_botAction.scheduleTask(new DieTask(), 500);
     }
@@ -678,42 +743,82 @@ public class pubautobot extends SubspaceBot {
         m_botAction.changeArena(arena);
     }
 
-    public void doSetShipCmd(String name, String message){
-    	try{
+    /**
+     * Sets the ship for the bot to use and starts a new update timer.
+     * (This function must be called through !setship to ensure the bot will work correctly.)
+     * 
+     * @param name Name of the person who issued the command
+     * @param message The original message.
+     */
+    public void doSetShipCmd(String name, String message) {
+    	try {
     		int ship = Integer.parseInt(message.trim());
     		if(ship <= 9 && ship >= 1){
     			m_botAction.getShip().setShip(ship-1);
     			botX = m_botAction.getShip().getX();
     			botY = m_botAction.getShip().getY();
     			m_botAction.getShip().setFreq(0);
-    			m_botAction.scheduleTaskAtFixedRate(updateIt, 100, 100);
     			startedAt = System.currentTimeMillis();
+    			updateIt = new TimerTask(){
+    		        public void run(){
+    		            update();
+    		        }
+    		    };
+    			m_botAction.scheduleTaskAtFixedRate(updateIt, 100, 100);
     		}
-    	}catch(Exception e){}
+    	} catch(Exception e) {}
     }
 
-    public void doSetFreqCmd(String name, String message){
-    	try{
+    /**
+     * Changes the freq of the bot and stores this internally.
+     * <p>
+     * Please note that using this when activating the bot is important, since the internally set freq
+     * is used in various checks through this bot's code.
+     * 
+     * @param name The bot (or in debugmode the (sub)owner) who issued the command.
+     * @param message The original command.
+     */
+    public void doSetFreqCmd(String name, String message) {
+    	try {
     		int freq = Integer.parseInt(message.trim());
     		m_botAction.getShip().setFreq(freq);
     		this.freq = freq;
-    	}catch(Exception e){}
+    	} catch(Exception e) {}
     }
 
+    /**
+     * Puts the bot into spectator mode.
+     * <p>
+     * This method will also cancel the {@link #updateIt}-timer if it's running.
+     */
     public void spec() {
-    	if(m_botAction.getShip().getShip() == 8)return;
-    	try{m_botAction.cancelTask(updateIt);}catch(Exception e){}
+        // If the bot is already specced, do nothing.
+    	if(m_botAction.getShip().getShip() == 8)
+    	    return;
+    	// Cancel the current update timer.
+    	try {
+    	    m_botAction.cancelTask(updateIt);
+	    } catch(Exception e) {}
+    	// Spec the bot.
     	m_botAction.getShip().setShip(8);
     }
 
-    public void doWarpToCmd(String name, String message){
-    	if(m_botAction.getShip().getShip() == 8)return;
+    /**
+     * Warp the bot.
+     * 
+     * @param name The bot, or in debugmode, person, who issued the command.
+     * @param message The original command.
+     */
+    public void doWarpToCmd(String name, String message) {
+        // If the bot is specced, ignore this command.
+    	if(m_botAction.getShip().getShip() == 8)
+    	    return;
     	String[] msg = message.split(" ");
     	try {
     		int x = Integer.parseInt(msg[0]);
     		int y = Integer.parseInt(msg[1]);
     		warpTo(x,y);
-    	}catch(Exception e){}
+    	} catch(Exception e) {}
     }
 
     /* 0-1024 */
@@ -725,11 +830,11 @@ public class pubautobot extends SubspaceBot {
 
 	public void doFaceCmd(String name, String message){
 		if(m_botAction.getShip().getShip() == 8)return;
-		try{
+		try {
 			float degree = Float.parseFloat(message);
 			int angle = Math.round(degree);
 			face(angle);
-		}catch(Exception e){}
+		} catch(Exception e) {}
 	}
 
 	/* 0-39 */
