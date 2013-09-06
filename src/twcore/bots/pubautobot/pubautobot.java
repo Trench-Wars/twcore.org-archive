@@ -221,22 +221,51 @@ public class pubautobot extends SubspaceBot {
 
     }
 
+    /**
+     * Adds a fired weapon to the big list of bullets and bombs for tracking.
+     */
     public void handleEvent(WeaponFired event) {
+        // If the bot isn't set to be killable, leave.
     	if(!killable) return;
+    	// If the bot is in spec, leave.
     	if(m_botAction.getShip().getShip() == 8) return;
+    	// If there is someone attached, we track deaths differently, leave.
     	if(turretPlayerID != -1) return;
+    	// Get the player that fired the weapon.
     	Player p = m_botAction.getPlayer(event.getPlayerID());
-        if(p == null || (p.getFrequency() == m_botAction.getShip().getAge()) || event.getWeaponType() > 8 || event.isType(5) || event.isType(6) || event.isType(7))return;
+    	
+    	// Leave if the player cannot be found or if the weapon's effect is too hard to track.
+        if(p == null 
+                || (p.getFrequency() == m_botAction.getShip().getAge())     // This condition makes no sense...
+                || event.getWeaponType() > WeaponFired.WEAPON_MULTIFIRE 
+                || event.isType(WeaponFired.WEAPON_REPEL) 
+                || event.isType(WeaponFired.WEAPON_DECOY) 
+                || event.isType(WeaponFired.WEAPON_BURST))
+            return;
+        
         double pSpeed = p.getWeaponSpeed();
+        // Convert rotation to radians.
 		double bearing = Math.PI * 2 * (double)event.getRotation() / 40.0;
-		fired.add(new Projectile(p.getPlayerName(), event.getXLocation() + (short)(10.0 * Math.sin(bearing)), event.getYLocation() - (short)(10.0 * Math.cos(bearing)), event.getXVelocity() + (short)(pSpeed * Math.sin(bearing)), event.getYVelocity() - (short)(pSpeed * Math.cos(bearing)), event.getWeaponType(), event.getWeaponLevel()));
+		
+		// Add the projectile to the list of tracked projectiles.
+		fired.add(new Projectile(p.getPlayerName(), 
+		        event.getXLocation() + (short)(10.0 * Math.sin(bearing)), 
+		        event.getYLocation() - (short)(10.0 * Math.cos(bearing)), 
+		        event.getXVelocity() + (short)(pSpeed * Math.sin(bearing)), 
+		        event.getYVelocity() - (short)(pSpeed * Math.cos(bearing)), 
+		        event.getWeaponType(), 
+		        event.getWeaponLevel()));
 	}
 
+    /**
+     * Updates the player tracking and/or the movement/location of the bot.
+     */
     public void handleEvent(PlayerPosition event) {
-
+        // If the bot is specced, leave.
     	if(m_botAction.getShip().getShip() == 8) return;
 
     	Player p = m_botAction.getPlayer(event.getPlayerID());
+    	// Leave if the player cannot be found, or we aren't shooting, or if it's a friendly, and we aren't set to shoot them.
         if(p == null || !autoAiming || (enemyAimingOnly && p.getFrequency() == freq)) {
         	return;
         }
@@ -248,22 +277,29 @@ public class pubautobot extends SubspaceBot {
         	}
         }
 
+        // The bot can only receive playerposition packets of those in range.
+        // If it hasn't received a packet in a while from a freq that it's supposed to track, it goes into a sleep mode
+        // until it does receive a position packet from an opponent.
         m_botAction.cancelTask(disableEnemyOnSightTask);
         disableEnemyOnSightTask = new DisableEnemyOnSightTask();
         m_botAction.scheduleTask(disableEnemyOnSightTask, 3*Tools.TimeInMillis.SECOND);
 
+        // Reenable tracking the enemy, because it has seen one.
         enemyOnSight = true;
 
+        // Get the relative distance to the player and calculate its angle towards the bot in degrees.
+        // Revert the angle, to know whereto the bot needs to aim.
         double diffY, diffX, angle;
         diffX = (event.getXLocation() + (event.getXVelocity() * REACTION_TIME)) - m_botAction.getShip().getX();
     	diffY = (event.getYLocation() + (event.getYVelocity() * REACTION_TIME)) - m_botAction.getShip().getY();
     	angle = (180 - (Math.atan2(diffX, diffY)*180/Math.PI)) * SS_CONSTANT;
 
     	if (!following) {
+    	    // If the bot isn't tracking any player, start tracking this one.
     		doFaceCmd(m_botAction.getBotName(), Double.toString(angle));
     	}
     	else {
-
+    	    // If the target isn't the current target we're tracking, ignore it.
     		if (target != null && !target.equals(p.getPlayerName()))
     			return;
 
@@ -276,6 +312,9 @@ public class pubautobot extends SubspaceBot {
     		// Distance between the player and the bot
     		int d = (int)(Math.sqrt((pX-bX)*(pX-bX) + (pY-bY)*(pY-bY)));
 
+    		// If we didn't have a target (which we shouldn't due to earlier checks),
+    		// and the distance to the player is close enough, then set him as the new target.
+    		// Otherwise, another one to ignore.
     		if (target == null && d < 10) {
     			target = p.getPlayerName();
     		} else if (target == null) {
@@ -283,22 +322,8 @@ public class pubautobot extends SubspaceBot {
     		}
 
     		// Adjust the percentage for X/Y velocity
-    		// Quick and dirty.. feel free to optimize it in 1 line of code
-    		double pctX = Math.abs(diffX)/(Math.abs(diffX)+Math.abs(diffY));
-    		double pctY = Math.abs(diffY)/(Math.abs(diffX)+Math.abs(diffY));
-    		if (diffX>0 && diffY>0) {
-    			pctX *= 1;
-    			pctY *= 1;
-    		} else if (diffX>0 && diffY<0) {
-    			pctX *= 1;
-    			pctY *= -1;
-    		} else if (diffX<0 && diffY<0) {
-    			pctX *= -1;
-    			pctY *= -1;
-    		} else if (diffX<0 && diffY>0) {
-    			pctX *= -1;
-    			pctY *= 1;
-    		}
+    		double pctX = diffX/(Math.abs(diffX)+Math.abs(diffY));
+    		double pctY = diffY/(Math.abs(diffX)+Math.abs(diffY));
 
     		// Accelerate the velocity if the player is far
     		// Works only with the TW settings
@@ -309,43 +334,63 @@ public class pubautobot extends SubspaceBot {
     		int vY = (int)(1000*pctY*pctD);
 
     		//System.out.println("Px:"+pX + "   Py:"+pY + "   Bx:"+bX + "   By:"+bY + "   BBx:"+botX + "   BBy:"+botY + "   Vx:"+vX + "   Vy:"+vY + "   A:"+angle);
-
+    		
+    		// Adjust the bots velocity and heading.
     		m_botAction.getShip().setVelocitiesAndDir(vX, vY, (int)angle);
 
     	}
     }
 
+    /**
+     * Tracks the projectiles fired at the bot and updates the bot's location if attached.
+     * This is run through a scheduled task that is fired when the bot is in a ship.
+     */
     public void update(){
+        // Update current coords of the bot.
         botX = m_botAction.getShip().getX();
         botY = m_botAction.getShip().getY();
 
+        // If we aren't attached to a player, check if a bullet will hit us.
         if(turretPlayerID == -1) {
             ListIterator<Projectile> it = fired.listIterator();
             while (it.hasNext()) {
                 Projectile b = (Projectile) it.next();
+                // If the projectile has an owner and it's hitting the bot, then let's do our magic.
                 if (b.getOwner() != null && b.isHitting(botX, botY)) {
                     Player p = m_botAction.getPlayer(b.getOwner());
 
+                    // Check if the bullet is hostile and the bot isn't respawning.
                     if (p != null && p.getFrequency() != freq && !isSpawning) {
+                        // Increase the "shot that hit us"-counter.
                         numberOfShots++;
+                        // Initiate a new task in case we are going to respawn.
                         spawned = new TimerTask(){
                             public void run(){
                                 isSpawning = false;
                             }
                         };
+                        // Check if we are supposed to die.
                         if (numberOfShots >= dieAtXshots) {
+                            // Set us to respawning
                             isSpawning = true;
                             m_botAction.scheduleTask(spawned, SPAWN_TIME);
+                            // Award a kill to the owner of the projectile.
                             m_botAction.sendDeath(m_botAction.getPlayerID(b.getOwner()), 0);
+                            
+                            // Pause firing at the players.
                             Iterator<RepeatFireTimer> i = repeatFireTimers.iterator();
                             while(i.hasNext())i.next().pause();
                         }
                     }
+                    // Since it hit us, remove the projectile.
                     it.remove();
-                } else if (b.getAge() > 5000)
+                } else if (b.getAge() > 5000 || b.getOwner() == null) {
+                    // If the bullet becomes too old, or if there is no known owner (shouldn't happen), discard it.
                     it.remove();
+                }
             }
         } else {
+            // If we are attached, adjust our movement to match the player we're attached to.
             Player p = m_botAction.getPlayer(turretPlayerID);
             if (p == null) return;
             int xVel = p.getXVelocity();
