@@ -25,7 +25,12 @@ import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
 /**
- * The original PracBot.
+ * PubAutoBot
+ * <p>
+ * This class is mainly used as a feature for the !buy-system in the pub and 
+ * fulfills roles like base terrier, roof turret and flag savior.
+ * <p>
+ * This bot is branched off of the PracBot.
  *
  * @author milosh - 1.15.08
  */
@@ -34,54 +39,53 @@ public class pubautobot extends SubspaceBot {
 	private static boolean DEBUG_ENABLED = false;  // Debug mode. Do not use this on live due to potential exploits.
 
 	// Game constant
-	private static final double SS_CONSTANT = 0.1111111;
-	private static final int SPAWN_TIME = 5005;
-	private static double REACTION_TIME = 0.075;
+	private static final double SS_CONSTANT = 0.1111111;   // Constant related to angles.
+	private static final int SPAWN_TIME = 5005;            // Respawntime for the bot in ms.
+	private static double REACTION_TIME = 0.075;           // Reaction time of the bot?
 
 	// Inter-bot communication
 	private static final String IPC_CHANNEL = "pubautobot";
 
 	// Ownership
-	private boolean locked = false;
+	private boolean locked = false;            // Wether or not the bot is locked.
 	private String owner;                      // Usually a bot, who gave the activation commands to this bot.
 	private String subowner;                   // The player who requested this bot at the owner.
 
 	// Settings
 	private boolean autoAiming = false;        // When set, automatically tries to track a nearby player.
 	private boolean enemyAimingOnly = true;    // Only tracks hostile players.
-	private boolean fireOnSight = false;
+	private boolean fireOnSight = false;       // Enables firing on targets.
 	private boolean following = false;         // Set when the bot is tracking a player.
 	private boolean killable = false;          // Allows the bot to be killed.
 	private boolean quitOnDeath = false;       // If set, the bot will return to the stable after it dies.
 	private boolean fastRotation = true;
 	private int timeoutAt = -1;                // Amount of time (seconds) before the bot disappears to the stable.
-	//private int energyOnStart = 1; unused // one shot and dead
+	//private int energyOnStart = 1; unused      // one shot and dead
 	private HashSet<String> locations;         // array of x:y position
 	private int dieAtXshots = 1;               // Amount of hits the bot will take before 'dying'. If 1, the first hit kills the bot.
 	private long startedAt = 0;                // Time at which this bot was activated. (Read: Being actually in a ship.)
 
 	// In-game settings
-	private int freq;                  // Bot's frequency.
-	private int botX;                  // Bot's x-coordinate.
-	private int botY;                  // Bot's y-coordinate.
-	private int angle = 0;
-	private int angleTo = 0;
-	private int numberOfShots = 0;     // Number of hits the bot has taken (without dying).
+	private int freq;                          // Bot's frequency.
+	private int botX;                          // Bot's x-coordinate.
+	private int botY;                          // Bot's y-coordinate.
+	private int angle = 0;                     // Bot's target angle?
+	private int angleTo = 0;                   // Bot's current angle?
+	private int numberOfShots = 0;             // Number of hits the bot has taken (without dying).
 
 	// Various tracking related settings and lists.
     private int turretPlayerID = -1;                                                    // ID of the player the bot is attached to.
     private LinkedList<Projectile> fired = new LinkedList<Projectile>();                // List for tracking projectiles.
-	private Vector<RepeatFireTimer> repeatFireTimers = new Vector<RepeatFireTimer>();  
-    private RotationTask rotationTask;
-    private DisableEnemyOnSightTask disableEnemyOnSightTask;
+	private Vector<RepeatFireTimer> repeatFireTimers = new Vector<RepeatFireTimer>();   // Stores the weapon types and speeds the bot shoots with and at.
+    private RotationTask rotationTask;                                                  // Timer that allows the bot to slowly rotate.
+    private DisableEnemyOnSightTask disableEnemyOnSightTask;                            // Timer that allows the bot to go to 'sleep' if it hasn't had an enemy in sight for a while.
 
 	boolean isSpawning = false;            // Is the bot respawning?
 
-	private boolean enemyOnSight = false;
+	private boolean enemyOnSight = false;  // Enables tracking of a hostile player.
 	private String target;                 // Name of the current target.
 
-	// THIS LIST IS NOT UP-TO-DATE !
-
+	// This list is disabled and not up to date.
 	String[] helpmsg = {
 		"!setship #			-- puts the bot into ship number #",
 		"!setfreq #         -- operates like *setfreq",
@@ -159,16 +163,22 @@ public class pubautobot extends SubspaceBot {
     	String message = ipc.getMessage();
 
     	if(message.equals("looking") && !locked) {
+    	    // Step 1: Finding an available bot and locking it.
     		locked = true;
     		try {
+    		    // Starts a timer to unlock the bot if not all the required steps are executed.
     		    m_botAction.scheduleTask(new UnlockTask(), 5*Tools.TimeInMillis.SECOND);
+    		    // Step 2: Send a confirmation to the requester.
     		    m_botAction.ipcSendMessage(IPC_CHANNEL, "locked", ipc.getSender(), m_botAction.getBotName());
     		} catch (IllegalStateException e) {
     		    Tools.printStackTrace("ISE PubAutoBot IPC.", e);
     		}
     	} else if(message.equals("confirm_lock") && ipc.getRecipient().equals(m_botAction.getBotName())) {
+    	    // Step 3: Confirming the lock.
+    	    // Step 4: Determine who's the owner (bot) of this bot ...
     		String[] owners = ipc.getSender().split(":");
     		owner = owners[0];
+    		// ... as well as if there is a subowner (player).
     		if (owners.length==2) {
     			subowner = owners[1];
     		}
@@ -194,11 +204,13 @@ public class pubautobot extends SubspaceBot {
     }
 
     public void handleEvent(PlayerLeft event){
-    	if(event.getPlayerID() == turretPlayerID)unAttach();
+    	if(event.getPlayerID() == turretPlayerID)
+    	    unAttach();
     }
 
     public void handleEvent(FrequencyShipChange event){
-    	if(event.getPlayerID() == turretPlayerID && event.getShipType() == 0)unAttach();
+    	if(event.getPlayerID() == turretPlayerID && event.getShipType() == 0)
+    	    unAttach();
     }
 
     public void handleEvent(PlayerDeath event) {
@@ -298,8 +310,7 @@ public class pubautobot extends SubspaceBot {
     	if (!following) {
     	    // If the bot isn't tracking any player, start tracking this one.
     		doFaceCmd(m_botAction.getBotName(), Double.toString(angle));
-    	}
-    	else {
+    	} else {
     	    // If the target isn't the current target we're tracking, ignore it.
     		if (target != null && !target.equals(p.getPlayerName()))
     			return;
@@ -365,8 +376,8 @@ public class pubautobot extends SubspaceBot {
                         // Increase the "shot that hit us"-counter.
                         numberOfShots++;
                         // Initiate a new task in case we are going to respawn.
-                        spawned = new TimerTask(){
-                            public void run(){
+                        spawned = new TimerTask() {
+                            public void run() {
                                 isSpawning = false;
                             }
                         };
@@ -415,8 +426,7 @@ public class pubautobot extends SubspaceBot {
     	}
 
     	// Only react to private messages
-    	if(messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE)
-    	{
+    	if(messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) {
     	    // Filter for !die
     		if(m_botAction.getOperatorList().isSmod(playerName)) {
     			if (m_botAction.getOperatorList().isSmod(playerName) && message.equalsIgnoreCase("!die")) {
@@ -757,14 +767,14 @@ public class pubautobot extends SubspaceBot {
     public void doSetShipCmd(String name, String message) {
     	try {
     		int ship = Integer.parseInt(message.trim());
-    		if(ship <= 9 && ship >= 1){
+    		if(ship <= 9 && ship >= 1) {
     			m_botAction.getShip().setShip(ship-1);
     			botX = m_botAction.getShip().getX();
     			botY = m_botAction.getShip().getY();
     			m_botAction.getShip().setFreq(0);
     			startedAt = System.currentTimeMillis();
-    			updateIt = new TimerTask(){
-    		        public void run(){
+    			updateIt = new TimerTask() {
+    		        public void run() {
     		            update();
     		        }
     		    };
@@ -832,8 +842,9 @@ public class pubautobot extends SubspaceBot {
 		botY = y * 16 + 8;
     }
 
-	public void doFaceCmd(String name, String message){
-		if(m_botAction.getShip().getShip() == 8)return;
+	public void doFaceCmd(String name, String message) {
+		if(m_botAction.getShip().getShip() == 8)
+		    return;
 		try {
 			float degree = Float.parseFloat(message);
 			int angle = Math.round(degree);
@@ -847,8 +858,7 @@ public class pubautobot extends SubspaceBot {
 		if (rotationTask == null && !fastRotation && !following) {
 			rotationTask = new RotationTask();
 			rotationTask.start();
-		}
-		else if (fastRotation || following) {
+		} else if (fastRotation || following) {
 			if (rotationTask != null) {
 				rotationTask.stopRunning();
 				rotationTask = null;
@@ -859,14 +869,15 @@ public class pubautobot extends SubspaceBot {
 		angleTo = angle;
 	}
 
-	public void doDropBrickCmd(String message){
-		if(m_botAction.getShip().getShip() == 8)return;
-		try{
+	public void doDropBrickCmd(String message) {
+		if(m_botAction.getShip().getShip() == 8)
+		    return;
+		try {
 			String[] msg = message.split(" ");
 			int x = Integer.parseInt(msg[0]);
 			int y = Integer.parseInt(msg[1]);
 			dropBrickAtPosition(x,y);
-		}catch(Exception e){}
+		} catch(Exception e) {}
 	}
 
 	public void dropBrick(){
@@ -874,111 +885,115 @@ public class pubautobot extends SubspaceBot {
 	}
 
 	/* 0-1024 */
-	public void dropBrickAtPosition(int x, int y){
+	public void dropBrickAtPosition(int x, int y) {
 		m_botAction.getShip().dropBrick(x * 16 + 8, y * 16 + 8);
 	}
 
-	public void doFireCmd(String msg){
-		if(m_botAction.getShip().getShip() == 8)return;
-		try{
+	public void doFireCmd(String msg) {
+		if(m_botAction.getShip().getShip() == 8)
+		    return;
+		try {
 			int wep = Integer.parseInt(msg);
 			fire(wep);
-		}catch(Exception e){}
+		} catch(Exception e) {}
 	}
 
 	public void fire(int weapon) {
 		m_botAction.getShip().fire(weapon);
 	}
 
-	public void doRepeatFireCmd(String name, String message, boolean fireOnSight){
-		try{
+	public void doRepeatFireCmd(String name, String message, boolean fireOnSight) {
+		try {
 			this.fireOnSight = fireOnSight;
 			StringTokenizer msg = getArgTokens(message);
-			if(msg.countTokens() != 2){m_botAction.sendSmartPrivateMessage( name, "Format: !repeatfire <Weapon>:<Repeat in Miliseconds>");return;}
+			if(msg.countTokens() != 2) {
+			    m_botAction.sendSmartPrivateMessage( name, "Format: !repeatfire <Weapon>:<Repeat in Miliseconds>");
+			    return;
+		    }
 			int weapon = Integer.parseInt(msg.nextToken());
 			int timerStart = 0;
 			int repeatTime = Integer.parseInt(msg.nextToken());
-			if(repeatTime >= 200){
-				if(repeatFireTimers.size() > 2){
+			if(repeatTime >= 200) {
+				if(repeatFireTimers.size() > 2) {
 					m_botAction.sendSmartPrivateMessage( name, "Please, no more than three firing tasks.");
-				}else new RepeatFireTimer(weapon, timerStart, repeatTime);
-			}
-			else
+				} else {
+				    new RepeatFireTimer(weapon, timerStart, repeatTime);
+				}
+			} else {
 				m_botAction.sendSmartPrivateMessage( name, "Sending a weapon packet every " + repeatTime + "ms can cause the 0x07 bi-directional packet.");
-
-		}catch(Exception e){}
+			}
+		} catch(Exception e) {}
 	}
 
-	public void doFireListCmd(String name){
-		if(repeatFireTimers.size() == 0){
+	public void doFireListCmd(String name) {
+		if(repeatFireTimers.size() == 0) {
 			m_botAction.sendSmartPrivateMessage( name, "There are currently no firing tasks.");
 			return;
 		}
 		Iterator<RepeatFireTimer> i = repeatFireTimers.iterator();
-		while(i.hasNext()){
+		while(i.hasNext()) {
 			m_botAction.sendSmartPrivateMessage( name, i.next().toString());
 		}
 	}
 
-	public void doStopRepeatFireCmd(String message){
-		if(repeatFireTimers.size() == 0){
+	public void doStopRepeatFireCmd(String message) {
+		if(repeatFireTimers.size() == 0) {
 			return;
 		}
-		if(message == null){
+		if(message == null) {
 			Iterator<RepeatFireTimer> i = repeatFireTimers.iterator();
-			while(i.hasNext()){
+			while(i.hasNext()) {
 				RepeatFireTimer r = i.next();
 				r.cancel();
 			}
 			repeatFireTimers.clear();
-		}
-		else{
-			try{
+		} else {
+			try {
 				int index = Integer.parseInt(message) - 1;
 				repeatFireTimers.elementAt(index).cancel();
 				repeatFireTimers.removeElementAt(index);
-			}catch(Exception e){}
+			} catch(Exception e) {}
 		}
 	}
 
-	public void doSetAccuracyCmd(String message){
-		try{
+	public void doSetAccuracyCmd(String message) {
+		try {
 			int x = Integer.parseInt(message);
-			if(x < 0 || x > 5)return;
+			if(x < 0 || x > 5)
+			    return;
 			REACTION_TIME = .075;
-			for(int i = 0; i < x; i++){
+			for(int i = 0; i < x; i++) {
 				REACTION_TIME -= .02;
 			}
-		}catch(Exception e){}
+		} catch(Exception e) {}
 	}
 
-	public void doMoveCmd(String name, String message){
-		if(m_botAction.getShip().getShip() == 8)return;
+	public void doMoveCmd(String name, String message) {
+		if(m_botAction.getShip().getShip() == 8)
+		    return;
 		StringTokenizer argTokens = getArgTokens(message);
 	    int numTokens = argTokens.countTokens();
 	    if(numTokens != 4 && numTokens != 2)
 	    	m_botAction.sendSmartPrivateMessage( name, "Format: !move X:Y:XVelocity:YVelocity");
 	    else if(numTokens == 2)
 	    	m_botAction.sendSmartPrivateMessage( name, "For a stationary warp use !warpto <X>:<Y>");
-	    else if(numTokens == 4){
-	    	try{
+	    else if(numTokens == 4) {
+	    	try {
 	    		int x = Integer.parseInt(argTokens.nextToken()) * 16;
 	    		int y = Integer.parseInt(argTokens.nextToken()) * 16;
 	    		int xVel = Integer.parseInt(argTokens.nextToken());
 	    		int yVel = Integer.parseInt(argTokens.nextToken());
 	    		m_botAction.getShip().move(x,y,xVel,yVel);
-	    	}catch(Exception e){}
+	    	} catch(Exception e) {}
 	    }
 	}
 
-	public StringTokenizer getArgTokens(String string)
-	  {
+	public StringTokenizer getArgTokens(String string) {
 	    if(string.indexOf((int) ':') != -1)
-	      return new StringTokenizer(string, ":");
+	        return new StringTokenizer(string, ":");
+	    
 	    return new StringTokenizer(string);
-	  }
-
-
+    }
 
 	private class DieTask extends TimerTask {
         public void run() {
@@ -1043,64 +1058,66 @@ public class pubautobot extends SubspaceBot {
 	            		m_botAction.getShip().setRotation(angle);
 	        		}
         		}
-        		try { Thread.sleep(125); } catch (InterruptedException e) { }
-
+        		try { 
+        		    Thread.sleep(125); 
+    		    } catch (InterruptedException e) { }
         	}
         }
     }
 
 
-private class RepeatFireTimer {
-	private int SPAWN_TIME = 5005;
-	public int weapon, delayms, repeatms;
-	public boolean isRunning = true;
-	//public boolean isSlowlyStopping = false; unused
-	TimerTask repeat = null;
-	//TimerTask slowly; unused
-
-	public RepeatFireTimer(int wep, int delayms, int repeatms){
-		this.weapon = wep;
-		this.delayms = delayms;
-		this.repeatms = repeatms;
-		repeatFireTimers.add(this);
-		repeat = new TimerTask(){
-			public void run(){
-				if (!fireOnSight || (fireOnSight && enemyOnSight))
-					doFireCmd(Integer.toString(weapon));
-			}
-		};
-		m_botAction.scheduleTaskAtFixedRate(this.repeat, this.delayms, this.repeatms);
-	}
-	public void cancel(){
-		if(repeat != null)
-			repeat.cancel();
-		isRunning = false;
-	}
-	public void pause(){
-		if(!isRunning)return;
-		repeat.cancel();
-		repeat = new TimerTask(){
-			public void run(){
-				doFireCmd(Integer.toString(weapon));
-			}
-		};
-		m_botAction.scheduleTaskAtFixedRate(this.repeat, this.SPAWN_TIME, this.repeatms);
-	}
-
-	@SuppressWarnings("unused")
-    public void stop(){
-		if(isRunning){
-			repeat.cancel();
-			isRunning = false;
-		}
-	}
-
-	public String toString(){
-		String s = (repeatFireTimers.indexOf(this)+1) + ") Firing weapon(" + weapon + ") every " + repeatms + " ms." ;
-		return s;
-	}
-}
-
-
+    private class RepeatFireTimer {
+    	private int SPAWN_TIME = 5005;
+    	public int weapon, delayms, repeatms;
+    	public boolean isRunning = true;
+    	//public boolean isSlowlyStopping = false; unused
+    	TimerTask repeat = null;
+    	//TimerTask slowly; unused
+    
+    	public RepeatFireTimer(int wep, int delayms, int repeatms) {
+    		this.weapon = wep;
+    		this.delayms = delayms;
+    		this.repeatms = repeatms;
+    		repeatFireTimers.add(this);
+    		repeat = new TimerTask() {
+    			public void run() {
+    				if (!fireOnSight || (fireOnSight && enemyOnSight))
+    					doFireCmd(Integer.toString(weapon));
+    			}
+    		};
+    		m_botAction.scheduleTaskAtFixedRate(this.repeat, this.delayms, this.repeatms);
+    	}
+    	
+    	public void cancel() {
+    		if(repeat != null)
+    			repeat.cancel();
+    		isRunning = false;
+    	}
+    	
+    	public void pause() {
+    		if(!isRunning)
+    		    return;
+    		repeat.cancel();
+    		repeat = new TimerTask() {
+    			public void run() {
+    				doFireCmd(Integer.toString(weapon));
+    			}
+    		};
+    		m_botAction.scheduleTaskAtFixedRate(this.repeat, this.SPAWN_TIME, this.repeatms);
+    	}
+    
+    	@SuppressWarnings("unused")
+        public void stop() {
+    		if(isRunning) {
+    			repeat.cancel();
+    			isRunning = false;
+    		}
+    	}
+    
+    	public String toString() {
+    		String s = (repeatFireTimers.indexOf(this)+1) + ") Firing weapon(" + weapon + ") every " + repeatms + " ms." ;
+    		return s;
+    	}
+    }
 
 }
