@@ -419,17 +419,19 @@ public class pubautobot extends SubspaceBot {
     	{
     	    // Filter for !die
     		if(m_botAction.getOperatorList().isSmod(playerName)) {
-    			if (m_botAction.getOperatorList().isSmod(playerName) && message.equalsIgnoreCase("!die"))
-    	            disconnect();
+    			if (m_botAction.getOperatorList().isSmod(playerName) && message.equalsIgnoreCase("!die")) {
+    			    disconnect();
+    			    return;
+    			}
     		}
 
     		// Only allow direct command communication to this bot when debug mode is enabled.
             // When in production, the only command interaction with this bot should be by using the InterProcess channel.
             // The !die command is still accessible in case of emergencies, though.
-    		if (locked && owner != null 
-    		        && (owner.equals(playerName) || subowner.equals(playerName)) 
-    		        && handleCommand(playerName, message)
-    		        && DEBUG_ENABLED) {
+    		if (locked && DEBUG_ENABLED
+    		        && owner != null 
+    		        && (owner.equals(playerName) || subowner.equals(playerName))
+    		        && handleCommand(playerName, message)) {
     			// If the bot is locked and one of the owners message it, throw the message through handleCommand().
     		    // This function will return true if it was an actual command that could be executed.
     		    // Read: If the owners send something else than a real command, this if-statement will be false.
@@ -444,9 +446,11 @@ public class pubautobot extends SubspaceBot {
     			    }
 
     			    //TODO: Clean this up into a better system.
-    				String aboutMe  = "About me: I've been hired to work for Freq " + freq +".";
+    				String aboutMe  = "About me:";
     				String aboutMe2 = "";
     				String aboutMe3 = "";
+    				if (freq < 100)
+    				    aboutMe +=  " I've been hired to work for Freq " + freq +".";
     				if (killable) {
     				    // Display the amounts of deaths left, if applicable.
     					aboutMe2 += "I can be killed";
@@ -714,7 +718,7 @@ public class pubautobot extends SubspaceBot {
     	enemyOnSight = false;
     	target = null;
     	
-    	// Cancel all the lists
+    	// Clear all the lists
     	locations.clear();
     	doStopRepeatFireCmd(null);
     	fired.clear();
