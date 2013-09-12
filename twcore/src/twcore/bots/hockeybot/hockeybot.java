@@ -3899,50 +3899,57 @@ public class hockeybot extends SubspaceBot {
         }
     }
 
+    /**
+     * This class keeps track of anything player related. 
+     * It is mainly used for stat tracking and some other player related values.
+     * @author unknown
+     *
+     */
     private class HockeyPlayer {
 
-        private String p_name;
-        private int[][] p_ship;
-        private int p_currentShip;
-        private int p_state;
-        private long p_timestampLagout;
-        private long p_timestampChange;
-        private long p_timestampSub;
-        private long p_timestampSwitch;
-        private int p_lagouts;
-        private int p_frequency;
-        private long p_lastPositionUpdate;
-        private int p_userID;
+        private String p_name;                              // Player's name
+        private int[][] p_ship;                             // Tracks player's stats for used ships.
+        private int p_currentShip;                          // The current ship of the player.
+        private int p_state;                                // The current state of the player (IN, SUBBED, etc.)
+        private long p_timestampLagout;                     // Timestamp of the last time the player was lagged out.
+        private long p_timestampChange;                     // Timestamp of the last time the player changed ship. 
+        private long p_timestampSub;                        // Timestamp of the last time the player was subbed.
+        private long p_timestampSwitch;                     // Timestamp of the last time the player switched ships.
+        private int p_lagouts;                              // Number of lagouts for this player.
+        private int p_frequency;                            // Player's current frequency.
+        private long p_lastPositionUpdate;                  // Last time the bot received a position packet for this player.
+        private int p_userID;                               // User ID of the player.
 
         /* Constants */
-        private final static int USED = 24;
-        private final static int PLAY_TIME = 25;
-        //Ship states
-        private static final int IN = 0;
-        private static final int LAGOUT = 1;
-        private static final int OUT_SUBABLE = 2;
-        private static final int SUBBED = 3;
-        private static final int PENALTY = 4;
+        private final static int USED = 24;                 // Used in p_ship to track which ships have been used by this player.
+        private final static int PLAY_TIME = 25;            // Used in p_ship to track the playtime for each ship by this player.
+        //Ship states for p_state.
+        private static final int IN = 0;                    // Player is in a ship and active.
+        private static final int LAGOUT = 1;                // Player is lagged out.
+        private static final int OUT_SUBABLE = 2;           // Player is out, but allowed to be subbed.
+        private static final int SUBBED = 3;                // Player has been subbed.
+        private static final int PENALTY = 4;               // Player is doing time for for a penalty.
         //Static variables
-        private static final int CHANGE_WAIT_TIME = 15; //In seconds
-        private static final int SWITCH_WAIT_TIME = 15; //In seconds
-        private static final int SUB_WAIT_TIME = 15; //In seconds
-        private static final int LAGOUT_TIME = 15 * Tools.TimeInMillis.SECOND;  //In seconds
-        //penalty handling
-        private HockeyPenalty penalty = HockeyPenalty.NONE;
-        //private long warnTimestamp = 0;     //timestamp
-        private long penaltyTimestamp = 0;  //in gametime which increments from 0 each second of gameplay
-        private int penalties = 0;          //penalites recieved
+        private static final int CHANGE_WAIT_TIME = 15;     // Wait time between !changes, in seconds
+        private static final int SWITCH_WAIT_TIME = 15;     // Wait time between !switches, in seconds
+        private static final int SUB_WAIT_TIME = 15;        // Wait time between !subs, in seconds
+        private static final int LAGOUT_TIME = 15 * Tools.TimeInMillis.SECOND;  // Time in which the player is allowed back into the game with !lagout, in milliseconds.
+        
+        //Penalty related variables.
+        private HockeyPenalty penalty = HockeyPenalty.NONE; // Current penalty state of the player.
+        private long penaltyTimestamp = 0;                  // Timestamp of the time the last penalty has started for this player.
+        private int penalties = 0;                          // Amount of penalties received by this player.
         //TODO Improve size of deathTracker to Integer or Short instead of Long. Possibly after more timetrackers have been added.
-        private TreeMap<Long,String> deathTracker;  //Used for detecting respawnkilling
-        //stats
-        private int saves = 0;              //saves in defense crease
-        private int steals = 0;             //puck steals
-        private int assists = 0;            //clean goals assisted
-        private int goals = 0;              //clean goals made
-        private int shotsOnGoal = 0;        //Intercepted shots at goal.
-        private int ownGoals = 0;           //Own goals made
-        private int turnovers = 0;          //Allowed the puck to be turned over (go to the other team)
+        private TreeMap<Long,String> deathTracker;          //Used for detecting respawnkilling
+        
+        //Player statistics.
+        private int saves = 0;                              // Saves made in the defensive crease.
+        private int steals = 0;                             // Steals made by this player.
+        private int assists = 0;                            // Assists on clean goals.
+        private int goals = 0;                              // Clean goals made.
+        private int shotsOnGoal = 0;                        // Intercepted shots at goal.
+        private int ownGoals = 0;                           // Own goals made.
+        private int turnovers = 0;                          // Allowed the puck to be turned over (go to the other team).
 
         /** Class constructor */
         private HockeyPlayer(String player, int shipType, int frequency) {
@@ -3955,8 +3962,6 @@ public class hockeybot extends SubspaceBot {
             m_botAction.scoreReset(p_name);
             addPlayer();
 
-            p_ship[p_currentShip][USED] = 1;
-
             p_timestampLagout = 0;
             p_timestampChange = 0;
             p_timestampSub = 0;
@@ -3966,20 +3971,23 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
-         * Adds a player into the game
-         * - Resets out of border time
+         * Adds a player into the game.
          */
         private void addPlayer() {
+            // Set state to in (active) and ticks the current ship as used.
             p_state = IN;
             p_ship[p_currentShip][USED] = 1;
 
+            // Can't do anything if we cannot find the player.
             if (m_botAction.getPlayer(p_name) == null) {
                 return;
             }
 
+            // Puts the player in an actual ship and in the right frequency.
             m_botAction.setShip(p_name, p_currentShip);
             m_botAction.setFreq(p_name, p_frequency);
 
+            // Warps the player to the correct warp in point.
             if (p_frequency == 0) {
                 m_botAction.warpTo(p_name, config.getTeam0ExtX() / 16, config.getTeam0ExtY() / 16);
             } else {
@@ -3987,14 +3995,23 @@ public class hockeybot extends SubspaceBot {
             }
         }
 
+        /**
+         * Increases the saves stat by one.
+         */
         public void madeSave() {
             this.saves++;
         }
 
+        /**
+         * Increases the steal stat by one.
+         */
         public void madeSteal() {
             this.steals++;
         }
 
+        /**
+         * Increases the assist stat by one.
+         */
         public void madeAssist() {
             this.assists++;
         }
@@ -4010,6 +4027,7 @@ public class hockeybot extends SubspaceBot {
          */
         public void madeGoal(boolean addShotOnGoal) {
             this.goals++;
+            // If the goal wasn't a shot at own goal, add a shot on goal.
             if(addShotOnGoal)
                 shotOnGoal();
             if (this.goals == 3) {
@@ -4017,14 +4035,23 @@ public class hockeybot extends SubspaceBot {
             }
         }
         
+        /**
+         * Increases the shots on goal stat by one.
+         */
         public void shotOnGoal() {
             this.shotsOnGoal++;
         }
         
+        /**
+         * Increases the made own goal stat by one.
+         */
         public void madeOwnGoal() {
             this.ownGoals++;
         }
 
+        /**
+         * Increases the turnover stat by one.
+         */
         public void madeTurnover() {
             this.turnovers++;
         }
@@ -4050,12 +4077,12 @@ public class hockeybot extends SubspaceBot {
 
         /**
          * Handles a lagout event
-         * - Notes down the timestamp of the lagout
-         * - Adds one to the lagout counter
-         * - Adds a death if gametype is WBDUEL,JAVDUEL or SPIDDUEL
-         * - Check if the player hits loss/deaths limit
-         * - Check if the player is out due maximum of lagouts
-         * - Tell the player how to get back in
+         * <ul>
+         *  <li>Notes down the timestamp of the lagout
+         *  <li>Adds one to the lagout counter
+         *  <li>Check if the player is out due maximum of lagouts
+         *  <li>Tell the player how to get back in
+         * </ul>
          */
         private void lagout() {
             p_state = LAGOUT;
@@ -4084,11 +4111,13 @@ public class hockeybot extends SubspaceBot {
 
         /**
          * This method handles a player going out
-         * - Changes player state
-         * - Spectates the player
-         * - Notifies the arena
-         * - Change state according to reason
-         *
+         * <ul>
+         *  <li>Changes player state
+         *  <li>Spectates the player
+         *  <li>Notifies the arena
+         *  <li>Change state according to reason
+         * </ul>
+         * 
          * @param reason Reason why the player went out
          */
         private void out(String reason) {
@@ -4221,10 +4250,12 @@ public class hockeybot extends SubspaceBot {
          * @param shipType Shiptype to change to
          */
         private void change(int shipType) {
+            // Notify the arena of the change.
             m_botAction.sendArenaMessage(p_name + " changed from " + Tools.shipName(p_currentShip)
                     + " to " + Tools.shipName(shipType));
+            
+            // Update this player's shiptype and ship stats.
             p_currentShip = shipType;
-
             p_ship[p_currentShip][USED] = 1;
 
             if (m_botAction.getPlayer(p_name) != null) {
@@ -4233,11 +4264,13 @@ public class hockeybot extends SubspaceBot {
                 if(t != null && t.isGoalie(p_name))
                     t.removeGoalie();
                 
+                // Change the player's ship in-game.
                 m_botAction.setShip(p_name, shipType);
                 // Add player as goalie, if he becomes it.
                 if(t != null && config.isGoalieShip(shipType))
                     t.goalieName = p_name;
                 
+                // Respawn the player at the right coordinates.
                 if (p_frequency == 0) {
                     m_botAction.warpTo(p_name, config.getTeam0ExtX() / 16, config.getTeam0ExtY() / 16);
                 } else {
@@ -4322,8 +4355,10 @@ public class hockeybot extends SubspaceBot {
 
         /**
          * Switches player
-         * - puts the player in
-         * - timestamps the event
+         * <ul>
+         *  <li>puts the player in
+         *  <li>timestamps the event
+         * </ul>
          */
         private void switchPlayer() {
             addPlayer();
@@ -4374,6 +4409,7 @@ public class hockeybot extends SubspaceBot {
                         count++;
                 }
                 
+                // Depending on the amount of deaths the current killer is responsible for, return a penalty.
                 if(count == 2) {
                     return HockeyPenalty.ILLEGAL_CHK_WARN;
                 } else if(count >= 3) {
@@ -4384,19 +4420,42 @@ public class hockeybot extends SubspaceBot {
             }
         }
         
+        /**
+         * Gives the player a penalty.
+         * <p>
+         * When called, this function does the following:
+         * <ul>
+         *  <li>Sets the current penalty to the one passed to this function.
+         *  <li>Notes the time at which this penalty was issued.
+         *  <li>Warps the player to the correct penalty box. 
+         *  <li>Adds a penalty to the stats of this player.
+         *  <li>Sends a message to the player who received the penalty.
+         * </ul>
+         * 
+         * This function can also be used to clear a player's penalty. However, the player isn't warped out of the penalty box!
+         * 
+         * @param pen The penalty the player received.
+         */
         private void setPenalty(HockeyPenalty pen) {
+            // Update this player's penalty state.
+            this.penalty = pen;
+            
             if (pen == HockeyPenalty.NONE) {
-                this.penalty = pen;
+                // Nothing further to do.
                 return;
             }
 
-            this.penalty = pen;
+            // Update the penalty timestamp.
             this.penaltyTimestamp = gameTime;
+            
+            // Warp the player to the correct penalty box.
             if (team0.isPlayer(p_name)) {
                 m_botAction.warpTo(p_name, config.getTeam0PenX() / 16, config.getTeam0PenY() / 16);
             } else {
                 m_botAction.warpTo(p_name, config.getTeam1PenX() / 16, config.getTeam1PenY() / 16);
             }
+            
+            // Increase the penalty stat and send a private message to the player.
             penalties++;
             m_botAction.sendPrivateMessage(p_name, "You recieved a penalty for "
                     + config.getPenaltyTime() + " seconds of game time.");
