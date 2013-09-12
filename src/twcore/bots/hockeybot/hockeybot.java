@@ -42,7 +42,6 @@ public class hockeybot extends SubspaceBot {
     //TODO Add and display time tracking.
     //TODO Add option to do a timed match.
     //TODO Add count down during setup time.
-    //TODO Add vote on last goal in none-timed games.
     //TODO Add shoot-outs on tied timed game.
     //TODO Add tracking of time played and ship time played.
     //TODO Add Persistent stat tracking through SQL.
@@ -50,10 +49,11 @@ public class hockeybot extends SubspaceBot {
     //TODO Add multi-layered penalty system. (I.e. short time for minor penalties up to removal from game on huge penalties.)
     //TODO (Non-bot related) Custom arena graphics.
 
+    // Various flags
     private boolean lockArena;
     private boolean lockLastGame;
     private boolean isPenalty = false;
-    private boolean reviewing = false;
+    private boolean reviewing = false;                      //This flag is set to true while the voting period is active on the final goa.
     
     // Various lists
     private HockeyConfig config;                            //Game configuration
@@ -61,7 +61,6 @@ public class hockeybot extends SubspaceBot {
     private HockeyTeam team0;                               //Teams
     private HockeyTeam team1;
     private ArrayList<HockeyTeam> teams;                    //Simple arraylist to optimize some routines.
-    //private Vote staffVote;                               //staff vote for clean or phase
     private HockeyPuck puck;                                //the ball in arena
     private Spy racismWatcher;                              //Racism watcher
     private ArrayList<String> listNotplaying;               //List of notplaying players
@@ -70,15 +69,15 @@ public class hockeybot extends SubspaceBot {
     private TreeMap<String,HockeyVote> listVotes;           //Voting list for the review on the final goal.
     
     //Game tickers & other time related stuff
-    private Gameticker gameticker;
-    private TimerTask fo_botUpdateTimer;
-    private TimerTask ballDelay;
-    private TimerTask statsDelay;
-    private TimerTask mvpDelay;
-    private TimerTask reviewDelay;
-    private long timeStamp;
-    private long roundTime;
-    private long gameTime;
+    private Gameticker gameticker;                          // General ticker of the statemachine for this bot.
+    private TimerTask fo_botUpdateTimer;                    // Timer that runs during the face off.
+    private TimerTask ballDelay;                            // Delay for when the puck is brought into play. (Face off)
+    private TimerTask statsDelay;                           // Timer that delays the display of the stats at the end of a game.
+    private TimerTask mvpDelay;                             // Timer that delays the display of the MVP at the end of a game.
+    private TimerTask reviewDelay;                          // Timer that disables the final goal review period.
+    private long timeStamp;                                 // Used to track the time of various key-moments.
+    private long roundTime;                                 // Currently referred to in the code, but never read out. Will be used in the future.
+    private long gameTime;                                  // Total (active) game time.
     
     // Zoner related stuff
     private long zonerTimestamp;                            //Timestamp of the last zoner
@@ -88,10 +87,51 @@ public class hockeybot extends SubspaceBot {
     private static final int FREQ_SPEC = 8025;              //Frequency of specced players.
     private static final int FREQ_NOTPLAYING = 2;           //Frequency of players that are !np
     //Static variables
-    private static final int ZONER_WAIT_TIME = 7;
+    private static final int ZONER_WAIT_TIME = 7;           // Time in minutes for the automatic zoner.
     
 
-    //Game states
+    /**
+     * Game states.
+     * <p>
+     * This holds the various states that can be used during the game. It currently holds the following enums:
+     * <ul>
+     *  <li>OFF: Bot is active, but game is disabled.
+     *  <li>WAITING_FOR_CAPS: First phase, adding of the captains.
+     *  <li>ADDING_PLAYERS: State in which captains are setting up their teams.
+     *  <li>FACE_OFF: State during the face off.
+     *  <li>GAME_IN_PROGRESS: State when the puck is in play for the players.
+     *  <li>REVIEW: State right after a goal is made, where it is judged if it is valid. 
+     *      This is for both the automatic review as well as the manual review.
+     *  <li>TIMEOUT: State during a time out.
+     *  <li>GAME_OVER: State when the final stats are being displayed.
+     *  <li>WAIT: Used during transition of states to prevent racing conditions.
+     * </ul>
+     * This enum also holds the following {@link EnumSet EnumSets}.
+     * <ul>
+     *  <li>MIDGAME: A collection of states of the periods after the initial setup and before the game is over.
+     *  It contains the following states:
+     *  <ul>
+     *      <li>FACE_OFF;
+     *      <li>GAME_IN_PROGRESS;
+     *      <li>TIMEOUT;
+     *      <li>WAIT.
+     *  </ul>
+     *  <li>ACTIVEGAME: A collection of states of the periods where there is player interaction. Basically MIDGAME, including the setup phase.
+     *  It contains the following states:
+     *  <ul>
+     *      <li>ADDING_PLAYERS;
+     *      <li>FACE_OFF;
+     *      <li>GAME_IN_PROGRESS;
+     *      <li>TIMEOUT;
+     *      <li>WAIT.
+     *  </ul>
+     * </ul>
+     * 
+     * @see Gameticker
+     * @see EnumSet
+     * @author unknown, Trancid
+     *
+     */
     private static enum HockeyState {
         OFF, WAITING_FOR_CAPS, ADDING_PLAYERS, FACE_OFF,
         GAME_IN_PROGRESS, REVIEW, TIMEOUT, GAME_OVER, 
@@ -104,25 +144,74 @@ public class hockeybot extends SubspaceBot {
         
     };    
 
-    private HockeyState currentState;
-    
-    private int carriersSize;
-    // private String staffVoter;
+    private HockeyState currentState;   // This keeps track of the current, active state.
+    private int carriersSize;           // This keeps track of the last checked point of the carriers stack. Used for stat-tracking.
 
-    // Hockey penalties.
+    /**
+     * The various available hockey penalties.
+     * <p>
+     * Currently this enum holds the following values:
+     * <ul>
+     *  <li>NONE: No penalty;
+     *  <li>OFFSIDE: Offside penalty. Used for a goalie picking up the puck when he has crossed his team's blue line, 
+     *  as well as when a player is on the wrong half during the faceoff.
+     *  <li>D_CREASE: Defensive crease penalty. Used when more than one defending player is in the crease zone, and the player
+     *  intercepts the puck. (With the exception of the goalie.)
+     *  <li>FO_CREASE: Face off crease penalty. Used when a team has more than one player in the face off crease zone during the face off.
+     *  <li>ILLEGAL_CHK_WARN: Illegal check (spawn killing) penalty warning. Used when a player is responsible for two deaths in a continuous
+     *  series of deaths of a player. This isn't an actual penalty, yet.
+     *  <li>ILLEGAL_CHECK: Illegal check (spawn killing) penalty. Used when a player is responsible for three deaths in a continuous series of
+     *  deaths of a player. This is the actual penalty.
+     *  <li>GOALIE_KILL: Illegal check penalty. Used when the goalie is killed in its own defensive crease zone.
+     *  <li>OTHER: Other penalties. Used when the host or ZH+ manually issued a penalty through !penalty.
+     * </ul>
+     * 
+     * @author unknown, Trancid
+     *
+     */
     private static enum HockeyPenalty {
         NONE, OFFSIDE, D_CREASE, FO_CREASE, 
         ILLEGAL_CHK_WARN, ILLEGAL_CHECK, 
         GOALIE_KILL, OTHER
     };
     
-    
-    // Game modes.
+    /**
+     * Gamemodes
+     * <p>
+     * Used for the bot to keep track of what kind of game is being played. Should only be altered during the setup of a game.
+     * It currently has the following options:
+     * <ul>
+     *  <li>GOALS: Game ends at a certain target number of goals.
+     *  <li>TIMED: Game ends after a certain amount of game time has passed.
+     * </ul>
+     * The target to which the game is played is stored in {@link HockeyConfig#gameModeTarget}.
+     * 
+     * @see HockeyConfig#gameMode
+     * @author Trancid
+     *
+     */
     private static enum GameMode {
         GOALS, TIMED
     };
 
-    // Votes for review of final goal.
+    /**
+     * Voting options for the final goal review, if enabled. The voting can only be done by a ZH+.
+     * <p>
+     * This enum holds the following voting options:
+     * <ul>
+     *  <li>NONE: No or an invalid vote has been cast by a player.
+     *  <li>ABSTAIN: Player opted to abstain. His/her vote will not be taken into account when determining the results.
+     *  <li>CLEAN: Player voted for clean. Adds towards the goal being awarded.
+     *  <li>CREASE: Player voted for offensive crease. Adds towards the goal being rejected.
+     *  <li>PHASE: Player voted for phasing. Adds towards the goal being rejected.
+     * </ul>
+     * 
+     * @see hockeybot#cmd_vote(String, String)
+     * @see hockeybot#startFinalReview()
+     * @see Gameticker#doReview()
+     * @author unknown, Trancid
+     *
+     */
     private static enum HockeyVote {
         NONE, ABSTAIN, CLEAN, CREASE, PHASE;
     };
@@ -157,7 +246,7 @@ public class hockeybot extends SubspaceBot {
         //The entire side that belongs to freq 0.
         private static final EnumSet<HockeyZone> SIDE0 = EnumSet.of(CREASE0, DZ0, AREA0, FO0, FO_SAFE0, FO_DROP0, PEN0);
         //The entire face off area that is on the side of freq 0.
-        private static final EnumSet<HockeyZone> FO_AREA0 = EnumSet.of(FO0, FO_SAFE0, FO_DROP0);
+        //private static final EnumSet<HockeyZone> FO_AREA0 = EnumSet.of(FO0, FO_SAFE0, FO_DROP0);
         
         //Overlapping zones for freq 1
         //Defensive zone (everything right of the right blue line, including the blue line)
@@ -165,7 +254,7 @@ public class hockeybot extends SubspaceBot {
         //The entire side that belongs to freq 1.
         private static final EnumSet<HockeyZone> SIDE1 = EnumSet.of(CREASE1, DZ1, AREA1, FO1, FO_SAFE1, FO_DROP1, PEN1);
         //The entire face off area that is on the side of freq 1.
-        private static final EnumSet<HockeyZone> FO_AREA1 = EnumSet.of(FO1, FO_SAFE1, FO_DROP1);
+        //private static final EnumSet<HockeyZone> FO_AREA1 = EnumSet.of(FO1, FO_SAFE1, FO_DROP1);
         
         //The entire face off area, ignoring sides.
         private static final EnumSet<HockeyZone> FO_AREA = EnumSet.of(FO0, FO_SAFE0, FO_DROP0, FO1, FO_SAFE1, FO_DROP1);
@@ -202,7 +291,9 @@ public class hockeybot extends SubspaceBot {
         puck = new HockeyPuck();
         team0 = new HockeyTeam(0);                      //Team: Freq 0
         team1 = new HockeyTeam(1);                      //Team: Freq 1
-        teams = new ArrayList<HockeyTeam>();            // List containing the teams. Mainly used to optimize code.
+        
+        // List containing the teams. Mainly used to optimize/shorten code.
+        teams = new ArrayList<HockeyTeam>();
         teams.add(team0);
         teams.add(team1);
         teams.trimToSize();
@@ -1684,6 +1775,7 @@ public class hockeybot extends SubspaceBot {
      * @param name name of the player that issued the !removecap command
      * @param override override 0/1 for teams, -1 if not overriden
      */
+    /*
     private void cmd_removecap(String name, int override) {
         HockeyTeam t;
 
@@ -1693,6 +1785,7 @@ public class hockeybot extends SubspaceBot {
             t.captainLeft();   //Remove captain
         }
     }
+    */
 
     /**
      * Handles the !rempenalty command. (ZH+)
@@ -3325,7 +3418,16 @@ public class hockeybot extends SubspaceBot {
         m_botAction.arenaMessageSpam(spam.toArray(new String[spam.size()]));
     }
 
-    /* Game classes */
+    /* 
+     * Game classes 
+     */
+    
+    /**
+     * Class that holds various information on a team's captain.
+     * <p>
+     * Most members of this class are currently unused.
+     * Depending on future changes, this class might become deprecated.
+     */
     private class HockeyCaptain {
 
         private String captainName;
@@ -3346,40 +3448,65 @@ public class hockeybot extends SubspaceBot {
         }
     }
 
+    /**
+     * This holds the configuration for this bot.
+     * <p>
+     * This class uses the various configuration files to load up the default settings.
+     * Currently it is using two seperate configuration files, being:
+     * <ul>
+     *  <li>hockeybot.cfg: Bot/game specific settings, like ships, amount of players, messages and gametypes.
+     *  <li>hockey.cfg:    Arena specific settings, like zones and coordinates.
+     * </ul>
+     * Besides the values in the configuration files, this class also initializes variables to their default values.
+     * In some cases, when no valid values are found in the config files, this class also sets variables to hard coded defaults as a backup.
+     * 
+     * @see BottSettings
+     * @see HockeyConfig#initZones()
+     * @author unknown
+     *
+     */
     private class HockeyConfig {
 
-        private BotSettings botSettings;
-        private ArrayList<Integer> goalieShips;
-        private String chats;
-        private String arena;
-        private int maxLagouts;
-        private int maxSubs;
-        private int maxPlayers;
-        private int minPlayers;
-        private int defaultShipType;
-        private int[] maxShips;
-        private GameMode gameMode;
-        private int gameModeTarget;
-        private boolean announceShipType;
-        private boolean allowAutoCaps;
-        private boolean allowZoner;
-        private boolean allowVote;        
-        //#Coordinate for puck drop
+        /*
+         * Settings from hockeybot.cfg
+         */
+        private BotSettings botSettings;            // Settings from a configuration file.
+        private ArrayList<Integer> goalieShips;     // A list of allowed goalie ships. Only one ship total of the shiptypes in this list allowed per team Uses the convention of Tools.Ship.
+        private String chats;                       // Various chats this bot joins.
+        private String arena;                       // The arena this bot joins as default.
+        private int maxLagouts;                     // Maximum allowed lagouts for a player. Unlimited when set to -1.
+        private int maxSubs;                        // Maximum subs allowed per team. Unlimited when set to -1.
+        private int maxPlayers;                     // Maximum number of active players allowed per team.
+        private int minPlayers;                     // Minimum number of active players needed per team.
+        private int defaultShipType;                // Default used ship for a new player if none is specified.
+        private int[] maxShips;                     // Maximum number of each ship allowed per team.
+        private GameMode gameMode;                  // Gamemode that is used. Can either be Goals or Timed.
+        private int gameModeTarget;                 // Target value (goals or minutes) a game is played to.
+        private boolean announceShipType;           // Announce the shiptype of a player who has been added.
+        private boolean allowAutoCaps;              // Allow players to !cap themselves when true, or need a ZH+ to !setcaptain captains when false.
+        private boolean allowZoner;                 // Whether or not the bot automatically sends out zoners.
+        private boolean allowVote;                  // Allows a final goal review period, where ZH+ get to vote the validity of the goal.
+        private int penaltyTime;                    // Standard penalty duration time.
+        
+        /*
+         * Settings from hockey.cfg
+         */
+        //Coordinate for puck drop.
         private int puckDropX;
         private int puckDropY;
         //Coordinates for puck during timeout.
         private int puckToX;
         private int puckToY;
-        //Coordinate for penalty boxes
+        //Coordinate for penalty boxes.
         private int team0PenX;
         private int team0PenY;
         private int team1PenX;
         private int team1PenY;
+        //Coordinates for the warp in points.
         private int team0ExtX;
         private int team0ExtY;
         private int team1ExtX;
         private int team1ExtY;
-        private int penaltyTime;
 
         /** Class constructor */
         private HockeyConfig() {
@@ -3479,6 +3606,13 @@ public class hockeybot extends SubspaceBot {
 
         /**
          * Loads in and sets up the zones.
+         * <p>
+         * These settings are read from the arena configuration file, hockey.cfg.
+         * 
+         * @see BotSettings
+         * @see MapRegions
+         * 
+         * @return True when settings were read in correctly. False when critical files were not found. (The latter auto-kills the bot.)
          */
         private boolean initZones() {
             BotSettings cfg;
@@ -3501,19 +3635,21 @@ public class hockeybot extends SubspaceBot {
                 return false;
             }
             
-            //Coordinate for puck drop
+            //Coordinates for puck drop.
             puckDropX = cfg.getInt("PuckDropX");
             puckDropY = cfg.getInt("PuckDropY");
-            //Coordinates for puck during timeout
+            
+            //Coordinates for puck during timeout.
             puckToX = cfg.getInt("PuckTimeoutX");
             puckToY = cfg.getInt("PuckTimeoutY");
 
-            //Coordinate for penalty boxes
+            //Coordinate for penalty boxes.
             team0PenX = cfg.getInt("Team0PenX");
             team0PenY = cfg.getInt("Team0PenY");
             team1PenX = cfg.getInt("Team1PenX");
             team1PenY = cfg.getInt("Team1PenY");
-
+            
+            //Coordinates for the warp-in points.
             team0ExtX = cfg.getInt("Team0ExtX");
             team0ExtY = cfg.getInt("Team0ExtY");
             team1ExtX = cfg.getInt("Team1ExtX");
@@ -3623,6 +3759,7 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
+         * Returns the X-coordinate of the puck drop location.
          * @return the puckDropX
          */
         public int getPuckDropX() {
@@ -3630,6 +3767,7 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
+         * Returns the Y-coordinate of the puck drop location.
          * @return the puckDropY
          */
         public int getPuckDropY() {
@@ -3637,20 +3775,23 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
-         * @return X-coordinate of timeout location of the puck
+         * Returns the X-coordinate of timeout location of the puck
+         * @return the puckToX
          */
         public int getPuckToX() {
             return puckToX;
         }
 
         /**
-         * @return Y-coordinate of timeout location of the puck
+         * Returns the Y-coordinate of timeout location of the puck
+         * @return the puckToY
          */
         public int getPuckToY() {
             return puckToY;
         }
         
         /**
+         * Returns the X-coordinate of the penalty box of team 0.
          * @return the Team0PenX
          */
         public int getTeam0PenX() {
@@ -3658,6 +3799,7 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
+         * Returns the Y-coordinate of the penalty box of team 0.
          * @return the Team0PenY
          */
         public int getTeam0PenY() {
@@ -3665,6 +3807,7 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
+         * Returns the X-coordinate of the penalty box of team 1.
          * @return the Team1PenX
          */
         public int getTeam1PenX() {
@@ -3672,6 +3815,7 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
+         * Returns the Y-coordinate of the penalty box of team 1.
          * @return the Team1PenY
          */
         public int getTeam1PenY() {
@@ -3679,6 +3823,7 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
+         * Returns the X-coordinate of the warp-in point of team 0.
          * @return the Team0ExtX
          */
         public int getTeam0ExtX() {
@@ -3686,6 +3831,7 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
+         * Returns the Y-coordinate of the warp-in point of team 0.
          * @return the Team0ExtY
          */
         public int getTeam0ExtY() {
@@ -3693,6 +3839,7 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
+         * Returns the X-coordinate of the warp-in point of team 1.
          * @return the Team1ExtX
          */
         public int getTeam1ExtX() {
@@ -3700,6 +3847,7 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
+         * Returns the Y-coordinate of the warp-in point of team 1.
          * @return the Team1ExtY
          */
         public int getTeam1ExtY() {
@@ -3715,13 +3863,15 @@ public class hockeybot extends SubspaceBot {
         }
         
         /**
-         * @return The target minutes or goals to which the game is played.
+         * The target minutes or goals to which the game is played.
+         * @return the gameModeTarget
          */
         public int getGameTarget() {
             return gameModeTarget;
         }
         
         /**
+         * Returns the default period in seconds for a penalty.
          * @return the penaltyTime
          */
         public int getPenaltyTime() {
@@ -3739,6 +3889,11 @@ public class hockeybot extends SubspaceBot {
             gameModeTarget = target;
         }
         
+        /**
+         * Returns whether or not a certain ship is defined as a goalie ship.
+         * @param shipType Shiptype to check. Uses {@link Tools.Ship}.
+         * @return True if the shiptype is a goalie ship. Otherwise false.
+         */
         public boolean isGoalieShip(int shipType) {
             return goalieShips.contains(shipType);
         }
@@ -3760,8 +3915,6 @@ public class hockeybot extends SubspaceBot {
         private int p_userID;
 
         /* Constants */
-        private final static int SCORE = 0;
-        private final static int DEATHS = 1;
         private final static int USED = 24;
         private final static int PLAY_TIME = 25;
         //Ship states
@@ -3777,7 +3930,7 @@ public class hockeybot extends SubspaceBot {
         private static final int LAGOUT_TIME = 15 * Tools.TimeInMillis.SECOND;  //In seconds
         //penalty handling
         private HockeyPenalty penalty = HockeyPenalty.NONE;
-        private long warnTimestamp = 0;     //timestamp
+        //private long warnTimestamp = 0;     //timestamp
         private long penaltyTimestamp = 0;  //in gametime which increments from 0 each second of gameplay
         private int penalties = 0;          //penalites recieved
         //TODO Improve size of deathTracker to Integer or Short instead of Long. Possibly after more timetrackers have been added.
