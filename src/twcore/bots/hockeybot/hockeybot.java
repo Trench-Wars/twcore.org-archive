@@ -2596,20 +2596,16 @@ public class hockeybot extends SubspaceBot {
         try {
             // Get the player who scored
             String scorer = puck.getLastCarrierName();
-            if (team0.isOnTeam(scorer)) {
+            HockeyTeam t = getTeam(scorer);
+            
+            if(t != null) {
                 // Add a point to the team's score.
-                team0.getPlayer(scorer).madeGoal(true);
+                t.getPlayer(scorer).madeGoal(true);
                 String assister = puck.getLastCarrierName();
                 // Check if there was a valid assister.
-                if (team0.isOnTeam(assister)) {
+                if (t.isOnTeam(assister)) {
                     // Add the stat to the assister.
-                    team0.getPlayer(assister).madeAssist();
-                }
-            } else {
-                team1.getPlayer(scorer).madeGoal(true);
-                String assister = puck.getLastCarrierName();
-                if (team1.isOnTeam(assister)) {
-                    team1.getPlayer(assister).madeAssist();
+                    t.getPlayer(assister).madeAssist();
                 }
             }
         } catch (Exception e) {
