@@ -570,11 +570,21 @@ public class hockeybot extends SubspaceBot {
         }
     }
     
+    /**
+     * Handles the BallPosition event.
+     * <p>
+     * This will update the puck's data each time a ball update packet has been received.
+     */
     @Override
     public void handleEvent(BallPosition event) {
         puck.update(event);
     }
 
+    /**
+     * Handles the SoccerGoal event
+     * <p>
+     * Starts the review of the goal, if it was valid or not.
+     */
     @Override
     public void handleEvent(SoccerGoal event) {
         if (currentState == HockeyState.GAME_IN_PROGRESS) {
@@ -608,6 +618,9 @@ public class hockeybot extends SubspaceBot {
     
     /**
      * Causes the bot to grab the ball and goes to a specific location
+     * 
+     * @param xLoc x-coordinate to go to.
+     * @param yLoc y-coordinate to go to.
      */
     public void doGetBall(int xLoc, int yLoc) {
         fo_botUpdateTimer = new TimerTask() {
@@ -637,6 +650,14 @@ public class hockeybot extends SubspaceBot {
         puck.holding = false;
     }
 
+    /**
+     * Checks if the player has a penalty, and warps the player to the penalty box if he/she isn't in it.
+     * This is needed, because penalized players can get out of the penaltybox by changing ships.
+     * <p>
+     * Afterwards also checks if the player's penalty has expired.
+     *  
+     * @param event The PlayerPosition event that contains the coordinates for this player.
+     */
     private void checkPenalty(PlayerPosition event) {
 
         int playerID = event.getPlayerID();
@@ -664,6 +685,12 @@ public class hockeybot extends SubspaceBot {
 
     }
 
+    /**
+     * Check if the player's penalty has expired.
+     * 
+     * @param name Name of the player
+     * @param team Team of the player
+     */
     private void checkPenaltyExipred(String name, HockeyTeam team) {
         HockeyPlayer player = team.searchPlayer(name);
 
@@ -1401,6 +1428,11 @@ public class hockeybot extends SubspaceBot {
         }
     }
 
+    /**
+     * Creates a sorted list of players for the !list command.
+     * @param frequency Frequency of the team to create the list of.
+     * @return A textual representation of this team, ready to be spammed in PM.
+     */
     private ArrayList<String> listTeam(int frequency) {
         /* Set up sorting */
         Comparator<HockeyPlayer> comparator = new Comparator<HockeyPlayer>() {
@@ -1677,7 +1709,7 @@ public class hockeybot extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage(name, "Error: Please specify a player, '!rempenalty <player>'");
             return;
         }
-;
+
         targetName = m_botAction.getFuzzyPlayerName(args);
         if(targetName == null) {
             m_botAction.sendSmartPrivateMessage(name, "Player " + args + " does not exist.");
@@ -2107,7 +2139,7 @@ public class hockeybot extends SubspaceBot {
     }
     
     /**
-     * Handles the voting by the staff during the review of the final goal.
+     * Handles the voting by the staff during the review of the final goal. (ZH+)
      * 
      * @param name Name of the staffmember who is voting.
      * @param args The vote of the staffmember.
@@ -2206,6 +2238,8 @@ public class hockeybot extends SubspaceBot {
   
     /**
      * Starts waiting for caps
+     * 
+     * @see Gameticker#doWaitingForCaps()
      */
     private void startWaitingForCaps() {
         // To avoid any racing conditions, set the current state to WAIT.
@@ -2224,10 +2258,14 @@ public class hockeybot extends SubspaceBot {
     }
 
     /**
-     * Start adding players state
-     * - Notify arena
-     * - Notify chats
-     * - Determine next pick
+     * Start adding players state.
+     * <ul> 
+     *  <li>Notify arena
+     *  <li>Notify chats
+     *  <li>Determine next pick
+     * </ul>
+     * 
+     * @see Gameticker#doAddingPlayers()
      */
     private void startAddingPlayers() {
         // To avoid any racing conditions, set the current state to WAIT.
@@ -2259,6 +2297,8 @@ public class hockeybot extends SubspaceBot {
 
     /**
      * Starts pre game
+     * 
+     * @see Gameticker#doFaceOff()
      */
     private void startFaceOff() {
         // To avoid any racing conditions, set the current state to WAIT.
@@ -2280,12 +2320,22 @@ public class hockeybot extends SubspaceBot {
         currentState = HockeyState.FACE_OFF;
     }
 
+    /**
+     * Starts the automated review period after a goal has been made.
+     * <p>
+     * This function will check if a violation has occured, or if the goal was an own goal, or if it was a clean goal.
+     * Furthermore will it assign the goal to a player and increase the scorecount of the scoring team.
+     * <p>
+     * When this is a non-timed game, on the final goal, a manual review will be done after the default checks, through {@link #startFinalReview()}.
+     * @param event The original SoccerGoal event.
+     */
     private void startReview(SoccerGoal event) {
         
         Point release = puck.peekLastReleasePoint();
         int freq = event.getFrequency();
         HockeyZone hz = getZone(release);
         
+        // Check if the goal was clean
         if((freq == 0 && HockeyZone.CREASE1.equals(hz))
                 || (freq == 1 && HockeyZone.CREASE0.equals(hz))) {
             //Offensive crease.
@@ -2297,31 +2347,39 @@ public class hockeybot extends SubspaceBot {
             m_botAction.sendArenaMessage("Goal awarded to: " + addOwnGoal());
             //Award point to the opposing team.
             teams.get(1 - freq).increaseScore();
+            // Display scores in chat.
             displayScores();
         } else if (freq == 0 || freq == 1) {
             //Clean goal.
             m_botAction.sendArenaMessage("Clean!");
+            // Increase the score.
             teams.get(freq).increaseScore();
+            // Award point to the scorer and to anyone who has assisted with this goal.
             addPlayerGoalWithAssist();
+            // Display scores in chat.
             displayScores();
             teams.get(1 - freq).clearDCs();
         }
 
-        //TODO change this
+        // Check if the game is finished
         if (team0.getScore() >= config.getGameTarget()
                 || (team1.getScore() >= config.getGameTarget())) {
+            // We have reached the target number, start a final review, if enabled, or end the game.
             if(config.allowVote) {
                 startFinalReview();
             } else {
                 gameOver();
             }
         } else {
+            // Target has not been reached yet, start a new face off.
             startFaceOff();
         }
     }
     
     /**
      * Starts a game
+     * 
+     * @see Gameticker#doStartGame()
      */
     private void startGame() {
         // To avoid any racing conditions, set the current state to WAIT.
@@ -2336,6 +2394,8 @@ public class hockeybot extends SubspaceBot {
     
     /**
      * Initiates the timeout state.
+     * 
+     * @see Gameticker#doTimeout()
      */
     private void startTimeout() {
         // To avoid any racing conditions, set the current state to WAIT.
@@ -2355,6 +2415,39 @@ public class hockeybot extends SubspaceBot {
         currentState = HockeyState.TIMEOUT;
     }
 
+    /**
+     * Starts the final review.
+     * <p>
+     * When a game has goals as target (not-timed), on the final goal, a manual review is possible.
+     * This is done due to the bot not being 100% accurate and not able to detect phasing.
+     * <p>
+     * When this state is started, the puck is removed from play and a 15 second timer is started.
+     * Any ZH+ can cast a vote through !vote during this period. 
+     * <p>
+     * Depending on the votes cast, the following scenarios are possible:
+     * <ul>
+     * <li> No votes have been cast:
+     *  <ul> 
+     *      <li>Goal is awarded.
+     *      <li>Game is ended.
+     *  </ul>
+     * <li> If any votes have been cast and the sum of crease and phase votes is higher than or equal to the clean votes: 
+     *  <ul>
+     *      <li>Goal is rejected.
+     *      <li>The highest amount of votes out of the crease and phase votes is displayed as the reason.
+     *      <li>On a tie of crease and phase votes, phase is displayed as the reason.
+     *      <li>The team's score is lowered by one.
+     *      <li>Face off is started.
+     *  </ul>
+     * <li> The amount of clean votes is higher than the sum of crease and phase votes:
+     *  <ul>
+     *      <li>Goal is awarded.
+     *      <li>Game is ended.
+     *  </ul>
+     * </ul>
+     * 
+     *  @see Gameticker#doReview()
+     */
     private void startFinalReview() {
         // To avoid any racing conditions, set the current state to WAIT.
         // This prevents the bot from accidentally doing stuff that influences the commands here.
@@ -2392,7 +2485,27 @@ public class hockeybot extends SubspaceBot {
     }
     
     /**
-     * What to do with when game is over
+     * What to do with when game is over.
+     * <p>
+     * This starts several timers to display results and whatnot.
+     * <ul>
+     *  <li>After 2 seconds:
+     *  <ul>
+     *      <li>Display "GAME OVER" message.
+     *      <li>Display the final score.
+     *  </ul>
+     *  <li>After 5 seconds:
+     *  <ul>
+     *      <li>Display the MVP.
+     *  </ul>
+     *  <li>After 10 seconds:
+     *  <ul>
+     *      <li>Specs everyone.
+     *      <li>Restarts the game at adding captains or stops the bot.
+     *  </ul>
+     * </ul>
+     * 
+     * @see Gameticker#doGameOver()
      */
     private void gameOver() {
         // To avoid any racing conditions, set the current state to WAIT.
@@ -2474,13 +2587,22 @@ public class hockeybot extends SubspaceBot {
         return stats;
     }
 
+    /**
+     * Handles the assigning of stats when a player scored a goal, including any assists.
+     * <p>
+     * This function should only be called upon valid goals. When adding stats for an own goal, please use {@link #addOwnGoal()}.
+     */
     private void addPlayerGoalWithAssist() {
         try {
+            // Get the player who scored
             String scorer = puck.getLastCarrierName();
             if (team0.isOnTeam(scorer)) {
+                // Add a point to the team's score.
                 team0.getPlayer(scorer).madeGoal(true);
                 String assister = puck.getLastCarrierName();
+                // Check if there was a valid assister.
                 if (team0.isOnTeam(assister)) {
+                    // Add the stat to the assister.
                     team0.getPlayer(assister).madeAssist();
                 }
             } else {
@@ -2491,6 +2613,9 @@ public class hockeybot extends SubspaceBot {
                 }
             }
         } catch (Exception e) {
+            // This will most likely trigger if getLastCarrierName gives a NULL.
+            // This should never happen on the scorer himself, but can happen in rare cases with looking up the assister.
+            // If it happens then, then there was simply no assister, and there is nothing else we need to do.
         }
 
     }
