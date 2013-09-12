@@ -2868,8 +2868,10 @@ public class hockeybot extends SubspaceBot {
 
     /**
      * Handles FrequencyChange event and FrequencyShipChange event
-     * - Checks if the player has lagged out
-     * - Checks if the player is allowed in
+     * <ul>
+     *  <li>Checks if the player has lagged out
+     *  <li>Checks if the player is allowed in
+     * </ul>
      *
      * @param name Name of the player
      * @param frequency Frequency of the player
@@ -2882,9 +2884,11 @@ public class hockeybot extends SubspaceBot {
 
     /**
      * Checks if a player has lagged out
-     * - Check if the player is on one of the teams
-     * - Check if the player is in spectator mode
-     * - Check if the player is a player on the team
+     * <ul>
+     *  <li>Check if the player is on one of the teams
+     *  <li>Check if the player is in spectator mode
+     *  <li>Check if the player is a player on the team
+     * </ul>
      *
      * @param name Name of the player
      * @param frequency Frequency of the player
@@ -2958,7 +2962,12 @@ public class hockeybot extends SubspaceBot {
         }
     }
 
-    /** Determines who's turn it is to pick a player*/
+    /** 
+     * Determines who's turn it is to pick a player
+     * <p>
+     * Checks which team currently has the least amount of players in the field and sets the turn to pick to that team.
+     * On a tie, freq 0 is allowed to pick. 
+     */
     private void determineTurn() {
         if (team0.getSizeIN() <= team1.getSizeIN()) {
             if (team0.getSizeIN() != config.getMaxPlayers()) {
@@ -3183,19 +3192,22 @@ public class hockeybot extends SubspaceBot {
             if (m_botAction.getPlayerName(id) == m_botAction.getBotName()){
                 return;
             } else {
-            if (i.getShipType() != Tools.Ship.SPECTATOR) {
-                m_botAction.specWithoutLock(id);
+                if (i.getShipType() != Tools.Ship.SPECTATOR) {
+                    m_botAction.specWithoutLock(id);
+                }
+                if (listNotplaying.contains(i.getPlayerName()) && freq != FREQ_NOTPLAYING) {
+                    m_botAction.setFreq(id, FREQ_NOTPLAYING);
+                } else if (freq != FREQ_SPEC && !listNotplaying.contains(i.getPlayerName())) {
+                    m_botAction.setShip(id, 1);
+                    m_botAction.specWithoutLock(id);
+                }
             }
-            if (listNotplaying.contains(i.getPlayerName()) && freq != FREQ_NOTPLAYING) {
-                m_botAction.setFreq(id, FREQ_NOTPLAYING);
-            } else if (freq != FREQ_SPEC && !listNotplaying.contains(i.getPlayerName())) {
-                m_botAction.setShip(id, 1);
-                m_botAction.specWithoutLock(id);
-            }
-        }
         }
     }
     
+    /**
+     * Removes the team names from the overlay for every player in the arena.
+     */
     private void clearTeamNameObjects() {
         //"FREQ0" team name
         m_botAction.hideObject(350);
@@ -3211,6 +3223,9 @@ public class hockeybot extends SubspaceBot {
         m_botAction.hideObject(579);
     }
     
+    /**
+     * Adds the team names to the overlay for every player in the arena.
+     */
     private void showTeamNameObjects() {
         //"FREQ0" team name
         m_botAction.showObject(350);
@@ -3226,6 +3241,10 @@ public class hockeybot extends SubspaceBot {
         m_botAction.showObject(579);
     }
     
+    /**
+     * Adds the team names to the overlay of a specific player.
+     * @param pID ID of player
+     */
     private void pmShowTeamNameObjects(int pID) {
         //"FREQ0" team name
         m_botAction.showObjectForPlayer(pID,350);
@@ -3241,7 +3260,11 @@ public class hockeybot extends SubspaceBot {
         m_botAction.showObjectForPlayer(pID,579);
     }
     
+    /**
+     * Clears the score from the overlay.
+     */
     private void clearObjects() {
+        //TODO adjust this for different goal targets.
         //0-7 for freq 0
         m_botAction.hideObject(100);
         m_botAction.hideObject(101);
@@ -3263,6 +3286,10 @@ public class hockeybot extends SubspaceBot {
         
     }
     
+    /**
+     * Updates the scoreboard overlay for a player who entered the arena mid-game.
+     * @param pID ID of player.
+     */
     private void newPlayerUpdateScoreBoard(int pID) {
         int team0Score = team0.getScore();
         int team1Score = team1.getScore();
@@ -3272,6 +3299,9 @@ public class hockeybot extends SubspaceBot {
         m_botAction.showObjectForPlayer(pID, 200 + team1Score);
     }
     
+    /**
+     * Updates the scoreboard overlay for everyone in the arena.
+     */
     private void updateScoreBoard() {
         int team0Score = team0.getScore();
         int team1Score = team1.getScore();
