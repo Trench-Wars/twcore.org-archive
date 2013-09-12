@@ -724,6 +724,7 @@ public class pubautobot extends SubspaceBot {
     	
     	dieAtXshots = 1;
     	startedAt = 0;
+    	numberOfShots = 0;
     	isSpawning = false;
     	enemyOnSight = false;
     	target = null;
