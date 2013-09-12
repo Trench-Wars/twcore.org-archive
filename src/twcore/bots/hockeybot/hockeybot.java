@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.Stack;
 import java.util.TimerTask;
 import java.util.TreeMap;
+
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
@@ -2737,24 +2738,32 @@ public class hockeybot extends SubspaceBot {
 
     /**
      * Alerts players that a new game is starting
-     * - Send alert to chats
-     * - Send alert to subscribers
-     * - Send alert to zone
+     * <ul>
+     *  <li>Send alert to chats;
+     *  <li>Send alert to subscribers;
+     *  <li>Send alert to zone.
+     * </ul>
+     * 
+     * @param name Name of the person who's issuing the game alert.
+     * @param message The custom message to be used, if any.
      */
     private void newGameAlert(String name, String message) {
 
         String nameTag = " -" + m_botAction.getBotName();
 
-        //Build generic message in one is not passed
+        //Build generic message if a custom one isn't passed to this function.
         if (message == null || message.isEmpty()) {
             message = "A game of hockey is starting! Type ?go hockey to play.";
         } else if (message.toLowerCase().contains("?go")) {
+            // Don't need to double up on the ?go's.
             m_botAction.sendPrivateMessage(name, "Please do not include ?go base in the zoner as I will add this for you automatically.");
             return;
         } else if (message.toLowerCase().contains("-" + name.toLowerCase())) {
+            // Don't need to double up on the names.
             m_botAction.sendPrivateMessage(name, "Please do not include your name in the zoner as I will provide mine automatically.");
             return;
         } else {
+            // Add the ?go part if a valid custom message is provided.
             message += " ?go " + m_botAction.getArenaName();
         }
 
@@ -2783,14 +2792,8 @@ public class hockeybot extends SubspaceBot {
      * @return True if a zoner can be send, else false
      */
     private boolean allowZoner() {
-        boolean bool;
-        if ((System.currentTimeMillis() - zonerTimestamp)
-                <= (ZONER_WAIT_TIME * Tools.TimeInMillis.MINUTE)) {
-            bool = false;
-        } else {
-            bool = true;
-        }
-        return bool;
+        // If more time has passed than the waiting time, return true.
+        return ((System.currentTimeMillis() - zonerTimestamp) > (ZONER_WAIT_TIME * Tools.TimeInMillis.MINUTE));
     }
 
     /**
@@ -2798,14 +2801,8 @@ public class hockeybot extends SubspaceBot {
      * @return True if a zoner can be send, else false
      */
     private boolean allowManualZoner() {
-        boolean bool;
-        if ((System.currentTimeMillis() - manualZonerTimestamp)
-                <= (10 * Tools.TimeInMillis.MINUTE)) {
-            bool = false;
-        } else {
-            bool = true;
-        }
-        return bool;
+        // If more than 10 minutes has passed since the last manual zoner, return true.
+        return ((System.currentTimeMillis() - manualZonerTimestamp) > (10 * Tools.TimeInMillis.MINUTE));
     }
 
     /**
@@ -2823,19 +2820,13 @@ public class hockeybot extends SubspaceBot {
      * @param name name of the player that left the game and could be captain
      */
     private void checkCaptainLeft(String name) {
-        if (team0.getCaptainName().equalsIgnoreCase(name)) {
-            if (currentState != HockeyState.WAITING_FOR_CAPS) {
-                team0.captainLeftArena();
-            } else {
-                team0.captainLeft();
-            }
-        }
-
-        if (team1.getCaptainName().equalsIgnoreCase(name)) {
-            if (currentState != HockeyState.WAITING_FOR_CAPS) {
-                team1.captainLeftArena();
-            } else {
-                team1.captainLeft();
+        for(HockeyTeam t : teams) {
+            if(t.getCaptainName().equalsIgnoreCase(name)) {
+                if (currentState != HockeyState.WAITING_FOR_CAPS) {
+                    t.captainLeftArena();
+                } else {
+                    t.captainLeft();
+                }
             }
         }
     }
@@ -2846,8 +2837,8 @@ public class hockeybot extends SubspaceBot {
      * @param name Who to send the list to.
      */
     private void sendCaptainList(String name) {
-        m_botAction.sendPrivateMessage(name, team0.getCaptainName() + " is captain of " + team0.getName() + ".");
-        m_botAction.sendPrivateMessage(name, team1.getCaptainName() + " is captain of " + team1.getName() + ".");
+        for(HockeyTeam t : teams) 
+            m_botAction.sendPrivateMessage(name, t.getCaptainName() + " is captain of " + t.getName() + ".");
     }
 
     /**
