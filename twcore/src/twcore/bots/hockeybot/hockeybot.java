@@ -2706,26 +2706,21 @@ public class hockeybot extends SubspaceBot {
      * @return name of the MVP
      */
     private String getMVP() {
-        //TODO update this to get score from players
-        String mvp;
+        String mvp = "";
         int highestRating = 0;
-        
-        mvp = "";
 
-        for (HockeyPlayer p : team0.players.values()) {
-            if (highestRating < p.getTotalRating()) {
-                highestRating = p.getTotalRating();
-                mvp = p.getName();
+        // Go through each team ...
+        for (HockeyTeam t : teams) {
+            // ... and every player ..
+            for (HockeyPlayer p : t.players.values()) {
+                // ... and keep the one with the highest rating.
+                if (highestRating < p.getTotalRating()) {
+                    highestRating = p.getTotalRating();
+                    mvp = p.getName();
+                }
             }
         }
         
-        for (HockeyPlayer p : team1.players.values()) {
-            if (highestRating < p.getTotalRating()) {
-                highestRating = p.getTotalRating();
-                mvp = p.getName();
-            }
-        }
-
         return mvp;
     }
 
@@ -4240,7 +4235,7 @@ public class hockeybot extends SubspaceBot {
          * @return players rating
          */
         private int getTotalRating() {
-            //TODO Improve this
+            //TODO Improve this by constantly calculating/adjusting this during the game, to include some other statistics like time played and passes and such.
             // Random formula
             return (goals * 5 + saves * 5 + assists * 3 + shotsOnGoal + steals
                     - penalties * 5 - ownGoals * 5 - turnovers);
