@@ -4475,28 +4475,35 @@ public class hockeybot extends SubspaceBot {
         }
     }
 
+    /**
+     * This class handles all team related functions and stat tracking.
+     * 
+     * @author unknown
+     *
+     */
     private class HockeyTeam {
 
-        private boolean flag;
-        private boolean turnToPick;
-        private boolean ready;
-        private int flagTime;
-        private int timeout;
-        private int frequency;
-        private TreeMap<String, HockeyPlayer> players;
+        private boolean flag;                               // Whether or not the team has control over the puck?
+        private boolean turnToPick;                         // True if it's this team's turn to pick a player.
+        private boolean ready;                              // True if this team has finished its line up and is ready to begin.
+        private int flagTime;                               // Amount of time this team had possession of the puck?
+        private int timeout;                                // Amount of time outs this team is still able to use. This is set at the start of a game.
+        private int frequency;                              // Frequency of this team.
+        private TreeMap<String, HockeyPlayer> players;      // List of names the players on this team, linked to their HockeyPlayer class object.
         private TreeMap<Short, HockeyCaptain> captains;
         private short captainsIndex;
-        private String captainName;
-        private String lastCaptainName;
-        private String teamName;
+        private String captainName;                         // Current captain's name.
+        private String lastCaptainName;                     // Last captain's name.
+        private String teamName;                            // Team name.
         private long captainTimestamp;
-        private int substitutesLeft;
-        private int teamScore;
-        private String goalieName;
-        //penalties
-        private Stack<String> offside;
-        private Stack<String> dCrease;
-        private Stack<String> fCrease;
+        private int substitutesLeft;                        // Amount of substitutes left for this team.
+        private int teamScore;                              // Current score for this team.
+        private String goalieName;                          // Current goalie's name.
+        
+        // Penalty tracking lists.
+        private Stack<String> offside;                      // List of players from this team who are in an offside position.
+        private Stack<String> dCrease;                      // List of players from this team who are in the defensive crease zone.
+        private Stack<String> fCrease;                      // List of players from this team who are in the face off crease zone.
 
         /** Class constructor */
         private HockeyTeam(int frequency) {
@@ -4538,6 +4545,12 @@ public class hockeybot extends SubspaceBot {
             }
         }
 
+        /**
+         * Clears out the current lists of penalties.
+         * <p>
+         * This only clears the lists which are used to check if a player needs to receive a penalty.
+         * It doesn't actually remove any active penalties.
+         */
         private void clearUnsetPenalties() {
             try {
                 offside.clear();
@@ -4547,14 +4560,23 @@ public class hockeybot extends SubspaceBot {
             }
         }
 
+        /**
+         * Clears any defensive crease penalties. 
+         * <p>
+         * This is only done for defensive crease penalties which are active.
+         * This does not clear the penalty tracking lists.
+         * If a player's penalty is cleared by this, it warps the player back into the game.
+         * 
+         *  @see #clearUnsetPenalties()
+         */
         private void clearDCs() {
-            for (HockeyPlayer i : players.values()) {
-                if (i.penalty == HockeyPenalty.D_CREASE) {
-                    i.penalty = HockeyPenalty.NONE;
+            for (HockeyPlayer p : players.values()) {
+                if (p.penalty == HockeyPenalty.D_CREASE) {
+                    p.penalty = HockeyPenalty.NONE;
                     if (frequency == 0) {
-                        m_botAction.warpTo(i.p_name, config.getTeam0ExtX() / 16, config.getTeam0ExtY() / 16);
+                        m_botAction.warpTo(p.p_name, config.getTeam0ExtX() / 16, config.getTeam0ExtY() / 16);
                     } else {
-                        m_botAction.warpTo(i.p_name, config.getTeam1ExtX() / 16, config.getTeam1ExtY() / 16);
+                        m_botAction.warpTo(p.p_name, config.getTeam1ExtX() / 16, config.getTeam1ExtY() / 16);
                     }
                 }
             }
@@ -4568,11 +4590,17 @@ public class hockeybot extends SubspaceBot {
             updateScoreBoard();
         }
         
+        /**
+         * Decreases the team score by one.
+         */
         private void decreaseScore() {
             teamScore--;
             updateScoreBoard();
         }
         
+        /**
+         * Lowers the amount of remaining allowed time outs by one.
+         */
         private void useTimeOut() {
             if(timeout > 0) timeout--;
         }
@@ -4961,9 +4989,10 @@ public class hockeybot extends SubspaceBot {
 
         /**
          * Checks if the team has a captain
-         * - Checks if captainName is equal to [NONE]
-         * - Checks if captain is in the arena
-         *
+         * <ul>
+         *  <li>Checks if captainName is equal to [NONE]
+         *  <li>Checks if captain is in the arena
+         * </ul>
          * @return true if the team has a captain, else false
          */
         private boolean hasCaptain() {
@@ -4978,8 +5007,10 @@ public class hockeybot extends SubspaceBot {
 
         /**
          * Sets captain
-         * - Sets timestamp
-         * - Sends arena message
+         * <ul>
+         *  <li>Sets timestamp
+         *  <li>Sends arena message
+         * </ul>
          *
          * @param name Name of the captain
          */
@@ -5432,44 +5463,38 @@ public class hockeybot extends SubspaceBot {
             return lagouts;
         }
 
+        /**
+         * Returns a player's {@link HockeyPlayer} object from this team's players list..
+         * @param name Name of the player to look up
+         * @return The HockeyPlayer object associated with this name, or null when the player isn't found.
+         */
         public HockeyPlayer getPlayer(String name) {
             return players.get(name);
         }
-
-        /**
-         * Warps player to coords
-         *
-         * @param x_coord x_coord
-         * @param y_coord y_coord
-         */
-        private void warpTo(int x_coord, int y_coord) {
-            for (HockeyPlayer i : players.values()) {
-                int playerID = m_botAction.getPlayerID(i.p_name);
-
-                if (playerID == -1) {
-                    return;
-                }
-
-                m_botAction.warpTo(playerID, x_coord, y_coord);
-            }
-        }
     }
 
+    /**
+     * This class keeps track of anything related to the puck/ball.
+     * 
+     * @author unknown
+     *
+     */
     private class HockeyPuck {
 
-        private byte ballID;
-        private int timestamp;
-        private short ballX;
-        private short ballY;
-        private short veloX;
-        private boolean carried;
-        private String carrier;
-        private final Stack<String> carriers;
-        private Stack<Point> releases;
-        private boolean holding;
-        private Point lastPickup;
-        private int dropDelay;
+        private byte ballID;                    // The ID of the ball/puck.
+        private int timestamp;                  // Timestamp of the last BallPosition event.
+        private short ballX;                    // Current X-coordinate of the puck.
+        private short ballY;                    // Current Y-coordinate of the puck.
+        private short veloX;                    // Current velocity along the X-axis.
+        private boolean carried;                // True if the puck is being carried by someone.
+        private String carrier;                 // Name of the current carrier.
+        private final Stack<String> carriers;   // List of the current and all previous carries of the puck. Sorted according LIFO.
+        private Stack<Point> releases;          // List of points (X- and Y-coordinate) of where the puck was previously released. 
+        private boolean holding;                // True if the bot is currently carrying the puck.
+        private Point lastPickup;               // Point of where the puck was picked up last.
+        private int dropDelay;                  // Delay before the puck is being dropped during face off.
 
+        /** Class constructor */
         public HockeyPuck() {
             carrier = null;
             carriers = new Stack<String>();
@@ -5481,6 +5506,18 @@ public class hockeybot extends SubspaceBot {
 
         /**
          * Called by handleEvent(BallPosition event)
+         * <p>
+         * Updates almost anything puck related:
+         * <ul>
+         *  <li>BallID.
+         *  <li>Timestamp.
+         *  <li>Coordinates.
+         *  <li>Current velocity.
+         *  <li>Current carrier and carriers stack, if applicable.
+         *  <li>Pick up point, if applicable.
+         *  <li>Release point stack, if applicable.
+         *  <li>Carried and/or holding, if applicable.
+         * </ul>
          * @param event the ball position
          */
         public void update(BallPosition event) {
@@ -5521,7 +5558,7 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
-         * clears local data for puck
+         * Clears local data for puck
          */
         public void clear() {
             carrier = null;
@@ -5534,28 +5571,48 @@ public class hockeybot extends SubspaceBot {
             }
         }
 
+        /**
+         * Returns the current ball ID.
+         * @return ballID
+         */
         public byte getBallID() {
             return ballID;
         }
 
+        /**
+         * Returns the timestamp of the last puck update.
+         * @return timestamp
+         */
         public int getTimeStamp() {
             return timestamp;
         }
 
+        /**
+         * Returns the last known X-coordinate of the puck.
+         * @return ballX
+         */
         public short getBallX() {
             return ballX;
         }
 
+        /**
+         * Returns the last known Y-coordinate of the puck.
+         * @return ballY
+         */
         public short getBallY() {
             return ballY;
         }
 
+        /**
+         * Returns if the puck is currently being carried by a player.
+         * @return carried
+         */
         public boolean isCarried() {
             return carried;
         }
 
         /**
-         * Peeks at last ball carrier without removing them from stack
+         * Peeks at last ball carrier without removing them from stack.
          * @return short player id or null if empty
          */
         public String peekLastCarrierName() {
@@ -5567,7 +5624,7 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
-         * Gets last ball carrier (removes it from stack)
+         * Gets last ball carrier (removes it from stack).
          * @return short player id or null if empty
          */
         public String getLastCarrierName() {
@@ -5579,7 +5636,7 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
-         * Peeks at last ball release without removing them from stack
+         * Peeks at last ball release without removing them from stack.
          * @return point last point released or null if empty
          */
         public Point peekLastReleasePoint() {
@@ -5591,7 +5648,7 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
-         * Get last ball release (removes it from stack)
+         * Get last ball release (removes it from stack).
          * @return point last point released or null if empty
          */
         public Point getLastReleasePoint() {
