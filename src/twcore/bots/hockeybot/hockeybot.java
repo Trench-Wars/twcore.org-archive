@@ -3223,23 +3223,23 @@ public class hockeybot extends SubspaceBot {
         // Extended lineup check
         if(sizeTeam0 < config.getMinPlayers()) {
             m_botAction.sendArenaMessage("Freq 0 does not have enough players. " +
-                    "(Current: " + sizeTeam0 + "; Needed: " + 
-                    config.getMinPlayers() + ")");
+                    "(Current: " + sizeTeam0 + " players; Needed: " + 
+                    config.getMinPlayers() + " players)");
         } else if(sizeTeam1 < config.getMinPlayers()) {
             m_botAction.sendArenaMessage("Freq 1 does not have enough players. " +
-                    "(Current: " + sizeTeam1 + "; Needed: " + 
-                    config.getMinPlayers() + ")");
+                    "(Current: " + sizeTeam1 + " players; Needed: " + 
+                    config.getMinPlayers() + " players)");
         } else if(sizeTeam0 > config.getMaxPlayers()) {
             m_botAction.sendArenaMessage("Freq 0 has too many players. " +
-                    "(Current: " + sizeTeam0 + "; Maximum: " + 
-                    config.getMaxPlayers() + ")");
+                    "(Current: " + sizeTeam0 + " players; Maximum: " + 
+                    config.getMaxPlayers() + " players)");
         } else if(sizeTeam1 > config.getMaxPlayers()) {
             m_botAction.sendArenaMessage("Freq 1 has too many players. " +
-                    "(Current: " + sizeTeam1 + "; Maximum: " + 
-                    config.getMaxPlayers() + ")");
+                    "(Current: " + sizeTeam1 + " players; Maximum: " + 
+                    config.getMaxPlayers() + " players)");
         } else if(sizeTeam0 != sizeTeam1) {
             m_botAction.sendArenaMessage("Teams are unequal. " +
-                    "(Freq 0: " + sizeTeam0 + "; Freq 1: " + sizeTeam1 + ")");
+                    "(Freq 0: " + sizeTeam0 + " players; Freq 1: " + sizeTeam1 + " players)");
         } else {
             currentState = HockeyState.FACE_OFF;
             m_botAction.sendArenaMessage("Lineups are ok! Game will start in 30 seconds!", Tools.Sound.CROWD_OOO);
