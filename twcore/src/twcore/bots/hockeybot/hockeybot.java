@@ -6002,7 +6002,14 @@ public class hockeybot extends SubspaceBot {
          * It's original intent was to give the staff time to vote on the final goal.
          */
         private void doReview() {
-            // Only do stuff when reviewing is done.
+            // Check if the ball isn't in the wrong place, just to be sure...
+            HockeyZone puckZone = getZone(new Point(puck.getBallX(), puck.getBallY()));
+            if(puckZone != null 
+                    && (HockeyZone.SIDE0.contains(puckZone) || HockeyZone.SIDE1.contains(puckZone))) {
+                doRemoveBall();
+            }
+            
+            // Only do real stuff when reviewing is done.
             if(!reviewing) {
                 int count[] = {0, 0, 0, 0, 0};   // NONE, ABSTAIN, CLEAN, CREASE, PHASE  
                 
@@ -6039,8 +6046,7 @@ public class hockeybot extends SubspaceBot {
                     m_botAction.sendArenaMessage("The goal has been judged as Clean!");
                     // Th-th-th-that's all, folks!
                     gameOver();
-                }
-                    
+                }                    
             }
         }
 
@@ -6087,7 +6093,15 @@ public class hockeybot extends SubspaceBot {
                 startFaceOff();
             } else if (time == 20) {
                     m_botAction.sendArenaMessage("Timeout will end in 10 seconds.");
+            } else {
+                // Check if the ball isn't in the wrong place, just to be sure...
+                HockeyZone puckZone = getZone(new Point(puck.getBallX(), puck.getBallY()));
+                if(puckZone != null 
+                        && (HockeyZone.SIDE0.contains(puckZone) || HockeyZone.SIDE1.contains(puckZone))) {
+                    doRemoveBall();
+                }
             }
+            
         }
     }
 
