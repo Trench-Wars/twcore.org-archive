@@ -4414,7 +4414,7 @@ public class hockeybot extends SubspaceBot {
                 // No entries in the deathTracker.
                 deathTracker.put(time, killer);
                 return HockeyPenalty.NONE;
-            } else if(time - deathTracker.lastKey() > 2)  {
+            } else if(time - deathTracker.lastKey() >= 2)  {
                 // More than two seconds have passed since the last death. Reset the deathTracker.
                 deathTracker.clear();
                 deathTracker.put(time, killer);
