@@ -1746,7 +1746,12 @@ public class hockeybot extends SubspaceBot {
             }
 
             /* Search for the to be removed player */
-            p = t.searchPlayer(m_botAction.getFuzzyPlayerName(args));
+            // First try an exact match.
+            p = t.searchPlayer(args);
+            
+            // If it fails, try a fuzzy match.
+            if (p == null)
+                p = t.searchPlayer(m_botAction.getFuzzyPlayerName(args));
 
             /* Check if player has been found */
             if (p == null) {
@@ -2065,7 +2070,14 @@ public class hockeybot extends SubspaceBot {
                 return;
             }
 
-            playerA = t.searchPlayer(m_botAction.getFuzzyPlayerName(splitCmd[0]));   //Search for <playerA>
+            /* Try to get an exact match first. */
+            playerA = t.searchPlayer(splitCmd[0]);
+            
+            // If an exact match fails, try a fuzzy match.
+            if(playerA == null)
+                playerA = t.searchPlayer(m_botAction.getFuzzyPlayerName(splitCmd[0]));   //Search for <playerA>
+            
+            // Player B must be in spec to be able to be subbed, so no need to go for an exact match first.
             playerBnew = m_botAction.getFuzzyPlayer(splitCmd[1]);   //Search for <playerB>
 
             /* Check if players can be found */
@@ -2171,8 +2183,15 @@ public class hockeybot extends SubspaceBot {
                 return;
             }
 
-            playerA = t.searchPlayer(m_botAction.getFuzzyPlayerName(splitCmd[0])); //Search <playerA>
-            playerB = t.searchPlayer(m_botAction.getFuzzyPlayerName(splitCmd[1])); //Search <playerB>
+            // First try to find an exact match.
+            playerA = t.searchPlayer(splitCmd[0]);
+            playerB = t.searchPlayer(splitCmd[1]);
+            
+            // If they cannot be found, try a fuzzy match.
+            if(playerA == null)
+                playerA = t.searchPlayer(m_botAction.getFuzzyPlayerName(splitCmd[0])); //Search <playerA>
+            if(playerB == null)
+                playerB = t.searchPlayer(m_botAction.getFuzzyPlayerName(splitCmd[1])); //Search <playerB>
 
             /* Check if both players have been found */
             if (playerA == null || playerB == null) {
