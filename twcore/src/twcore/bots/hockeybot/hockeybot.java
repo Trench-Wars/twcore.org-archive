@@ -4400,7 +4400,7 @@ public class hockeybot extends SubspaceBot {
          * killer has killed this player. Depending on how often the killer is found in deathTracker, the following value will be returned:
          * <ul>
          * <li>First and second kill: HockeyPenalty.NONE
-         * <li>Third kill kill: HockeyPenalty.ILLEGAL_CHK_WARN
+         * <li>Third kill: HockeyPenalty.ILLEGAL_CHK_WARN
          * <li>Fifth or higher kill: HockeyPenalty.ILLEGAL_CHECK
          * </ul>
          * 
@@ -4408,14 +4408,14 @@ public class hockeybot extends SubspaceBot {
          * @return HockeyPenalty: NONE, ILLEGAL_CHK_WARN or ILLEGAL_CHECK
          */
         private HockeyPenalty trackDeaths(String killer) {
-            Long time = System.currentTimeMillis() / 1000;
+            Long time = System.currentTimeMillis();
             
             if(deathTracker.isEmpty()) {
                 // No entries in the deathTracker.
                 deathTracker.put(time, killer);
                 return HockeyPenalty.NONE;
-            } else if(time - deathTracker.lastKey() >= 2)  {
-                // More than two seconds have passed since the last death. Reset the deathTracker.
+            } else if((time - deathTracker.lastKey()) >= (1.5 * Tools.TimeInMillis.SECOND))  {
+                // More than 1.5 seconds have passed since the last death. Reset the deathTracker.
                 deathTracker.clear();
                 deathTracker.put(time, killer);
                 return HockeyPenalty.NONE;
@@ -4434,6 +4434,8 @@ public class hockeybot extends SubspaceBot {
                 if(count == 3) {
                     return HockeyPenalty.ILLEGAL_CHK_WARN;
                 } else if(count >= 5) {
+                    // Reset the tracker to be sure.
+                    deathTracker.clear();
                     return HockeyPenalty.ILLEGAL_CHECK;
                 } else {
                     return HockeyPenalty.NONE;
