@@ -639,6 +639,7 @@ public class hockeybot extends SubspaceBot {
             // Goalie was killed in his own crease zone
             pKiller.setPenalty(HockeyPenalty.GOALIE_KILL);
             m_botAction.sendArenaMessage("GOALIE KILL PENALTY: " + killer);
+            startFaceOff();
             return;
         }
 
@@ -658,6 +659,7 @@ public class hockeybot extends SubspaceBot {
                 // Midgame. Give the player a penalty.
                 pKiller.setPenalty(HockeyPenalty.ILLEGAL_CHECK);
                 m_botAction.sendArenaMessage("ILLEGAL CHECK PENALTY: " + killer + ". (Respawnkilling)");
+                startFaceOff();
             }
         }
     }
@@ -4397,9 +4399,9 @@ public class hockeybot extends SubspaceBot {
          * When the old entries are found to still be useful, deathTracker will be used to determine how often the current
          * killer has killed this player. Depending on how often the killer is found in deathTracker, the following value will be returned:
          * <ul>
-         * <li>First kill: HockeyPenalty.NONE
-         * <li>Second kill: HockeyPenalty.ILLEGAL_CHK_WARN
-         * <li>Third or higher kill: HockeyPenalty.ILLEGAL_CHECK
+         * <li>First and second kill: HockeyPenalty.NONE
+         * <li>Third kill kill: HockeyPenalty.ILLEGAL_CHK_WARN
+         * <li>Fifth or higher kill: HockeyPenalty.ILLEGAL_CHECK
          * </ul>
          * 
          * @param killer Name of the last killer
@@ -4429,9 +4431,9 @@ public class hockeybot extends SubspaceBot {
                 }
                 
                 // Depending on the amount of deaths the current killer is responsible for, return a penalty.
-                if(count == 2) {
+                if(count == 3) {
                     return HockeyPenalty.ILLEGAL_CHK_WARN;
-                } else if(count >= 3) {
+                } else if(count >= 5) {
                     return HockeyPenalty.ILLEGAL_CHECK;
                 } else {
                     return HockeyPenalty.NONE;
