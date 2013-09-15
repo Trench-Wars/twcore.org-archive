@@ -327,8 +327,7 @@ public class notifybot extends SubspaceBot {
                                 //User ID query
                                 ResultSet rs = m_botAction.SQLQuery("website", "SELECT fnUserID FROM tblUser WHERE fcUserName = '" + name + "'");
                                 
-                                System.out.println("Name -" + name);
-                                System.out.println("Password -" + pw);
+                               
                                 
                                 //Encrypt the password through MySQL
                                 ResultSet rspw = m_botAction.SQLQuery("website", "SELECT SHA1(UNHEX(SHA1('" + pw + "'))) AS Encrypted");
