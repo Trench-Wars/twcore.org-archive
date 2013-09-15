@@ -315,7 +315,7 @@ public class notifybot extends SubspaceBot {
                     if (args[0] != null) {
                         if (args[0].startsWith("LOGIN")) {
                             if ((args[1] != null) && (args[2] != null)) {
-                                String name = args[1];
+                                String name = args[1].trim();
                                 String pw = args[2];
                                 m_botAction.sendSmartPrivateMessage(pname, "Received LOGIN request...authorizing...");
                                 
@@ -325,21 +325,29 @@ public class notifybot extends SubspaceBot {
                                  */
                                 
                                 //User ID query
-                                ResultSet rs = m_botAction.SQLQuery("website", "SELECT fnUserID FROM tblUser WHERE fcName = '" + name.toLowerCase()
-                                        + "'");
+                                ResultSet rs = m_botAction.SQLQuery("website", "SELECT fnUserID FROM tblUser WHERE fcUserName = '" + name + "'");
+                                
+                                System.out.println("Name -" + name);
+                                System.out.println("Password -" + pw);
                                 
                                 //Encrypt the password through MySQL
                                 ResultSet rspw = m_botAction.SQLQuery("website", "SELECT SHA1(UNHEX(SHA1('" + pw + "'))) AS Encrypted");
                                 
                                 
-                                int userID = rs.getInt("fnUserID"); //Return the UserID
+                                if(!rs.next() || !rspw.next()) {
+                                    System.out.println("No results found!");
+                                    
+                                } else { 
+                                    
+                                String userID = rs.getString("fnUserID"); //Return the UserID
                                 String encrypted = rspw.getString("Encrypted"); //Return the encrypted password
                                 encrypted = "*" + encrypted.toUpperCase(); //Format the password so it matches what's stored in SQL
                                 
                                 
                                 //The Holy Grail query! This compares the password stored in the tblUserAccount to that in which the player enters into TWN
                                 ResultSet match = m_botAction.SQLQuery("website", "SELECT fcPassword FROM tblUserAccount WHERE fnUserID = '" + userID
-                                        + "' AND fcPassword = '" + Tools.addSlashesToString(encrypted) + "'");
+                                        + "' AND fcPassword = '" + encrypted + "'");
+                                
                                 
                                 
                                 //If nothing is returned from the holy grail query, then we can assume the password is incorrect
@@ -349,8 +357,8 @@ public class notifybot extends SubspaceBot {
                                     BA.SQLClose(rs);
                                     BA.SQLClose(rspw);
                                     BA.SQLClose(match);
-                                    
-                                    
+                                
+                                
                                 //Wait! We have a result. The password query matched, time to get some information from the database about this player
                                 } else {
                                     m_botAction.sendSmartPrivateMessage(pname, "Password Correct - getting squad..."); // Debug
@@ -381,12 +389,13 @@ public class notifybot extends SubspaceBot {
                                         BA.SQLClose(match);
 
                                     }
-
+                                
                                 }
+                                
                                 BA.SQLClose(rs);
                                 BA.SQLClose(rspw);
                                 BA.SQLClose(match);
-                             
+                                }
                             //The login request isn't right...
                             } else {
                                 m_botAction.sendSmartPrivateMessage(pname, "Hacker Alert!");
@@ -404,11 +413,13 @@ public class notifybot extends SubspaceBot {
                             out.printf("NOOP2\0");
                         } else if (args[0].startsWith("TEST")) {}
                     }
+               
 
                 } else {
                     running = false;
                 }
             }
+            
 
             // We are done with the authentication process. Close the sockets.
             in.close();
