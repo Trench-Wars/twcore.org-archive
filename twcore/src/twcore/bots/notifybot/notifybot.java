@@ -30,11 +30,11 @@ public class notifybot extends SubspaceBot {
         req.request(EventRequester.MESSAGE);
         req.request(EventRequester.ARENA_JOINED);
         req.request(EventRequester.LOGGED_ON);
-
         playerlist = new LinkedList<NotifyPlayer>();
         pname = null;
     }
 
+    //Standard Message Event for TWCore. Commands and stuff!
     public void handleEvent(Message event) {
         String msg = event.getMessage();
         int msgtype = event.getMessageType();
@@ -77,6 +77,8 @@ public class notifybot extends SubspaceBot {
                 } else if (msg.equalsIgnoreCase("!start")) {
                     BA.sendSmartPrivateMessage(pname, "Starting the TWN server.");
                     new NotifyServer(BA, playerlist).start();
+                    System.out.println("Starting Server..");
+                    //startServer();
                 } else if (msg.equalsIgnoreCase("!stop")) {
                     BA.sendSmartPrivateMessage(pname, "Disconnecting the server...");
                     BA.ipcUnSubscribe("TWNotify");
@@ -157,6 +159,11 @@ public class notifybot extends SubspaceBot {
                 }
             }
         }
+    }
+
+    private void startServer() {
+        new NotifyServer(BA, playerlist).start();
+        System.out.println("Starting Server..");
     }
 
     public void handleEvent(LoggedOn event) {
@@ -310,38 +317,81 @@ public class notifybot extends SubspaceBot {
                             if ((args[1] != null) && (args[2] != null)) {
                                 String name = args[1];
                                 String pw = args[2];
-                                /*ResultSet result = m_botAction.SQLQuery("website", "SELECT fnUserID " + "FROM tblUser "
-                                        + "JOIN tblUserAccount USING (fnUserID) " + "WHERE fcUserName = '" + name + "' "
-                                        + "AND fcPassword = PASSWORD('" + pw + "')");
+                                m_botAction.sendSmartPrivateMessage(pname, "Received LOGIN request...authorizing...");
+                                
+                                /*
+                                 * We need to grab the user ID from the tblUser table, so we can then compare the values
+                                 * We also need to encrypt the password before we query on it, as we don't want to query in plain text. 
                                  */
-                                ResultSet result = m_botAction.SQLQuery("website", "SELECT U.*, PASSWORD(" + pw
-                                        + ") AS EncPW FROM tblUser U JOIN tblUserAccount UA ON U.fnUserID = UA.fnUserID WHERE U.fcUserName = '"
-                                        + name + "' AND (U.fdDeleted = 0 or U.fdDeleted is null) AND UA.fcPassword = PASSWORD(" + pw
-                                        + ") AND U.fnUserID = UA.fnUserID");
-                                if (!result.next()) {
+                                
+                                //User ID query
+                                ResultSet rs = m_botAction.SQLQuery("website", "SELECT fnUserID FROM tblUser WHERE fcName = '" + name.toLowerCase()
+                                        + "'");
+                                
+                                //Encrypt the password through MySQL
+                                ResultSet rspw = m_botAction.SQLQuery("website", "SELECT SHA1(UNHEX(SHA1('" + pw + "'))) AS Encrypted");
+                                
+                                
+                                int userID = rs.getInt("fnUserID"); //Return the UserID
+                                String encrypted = rspw.getString("Encrypted"); //Return the encrypted password
+                                encrypted = "*" + encrypted.toUpperCase(); //Format the password so it matches what's stored in SQL
+                                
+                                
+                                //The Holy Grail query! This compares the password stored in the tblUserAccount to that in which the player enters into TWN
+                                ResultSet match = m_botAction.SQLQuery("website", "SELECT fcPassword FROM tblUserAccount WHERE fnUserID = '" + userID
+                                        + "' AND fcPassword = '" + Tools.addSlashesToString(encrypted) + "'");
+                                
+                                
+                                //If nothing is returned from the holy grail query, then we can assume the password is incorrect
+                                if (!match.next()) {
                                     m_botAction.sendSmartPrivateMessage(pname, "Wrong password for " + name);
-                                    queue.add("BADLOGIN:Wrong Password.");
-                                    BA.SQLClose(result);
+                                    out.printf("BADLOGIN:Wrong Password." + '\n');
+                                    BA.SQLClose(rs);
+                                    BA.SQLClose(rspw);
+                                    BA.SQLClose(match);
+                                    
+                                    
+                                //Wait! We have a result. The password query matched, time to get some information from the database about this player
                                 } else {
-                                    ResultSet squad = m_botAction.SQLQuery("pubstats", "SELECT fcSquad FROM tblPlayer WHERE fcName = '" + name + "'");
+                                    m_botAction.sendSmartPrivateMessage(pname, "Password Correct - getting squad..."); // Debug
+                                    
+                                    ResultSet squad = m_botAction.SQLQuery("pubstats", "SELECT fcSquad FROM tblPlayer WHERE fcName = '" + name + "'"); //Return the squad of the player
+                                    
+                                    m_botAction.sendSmartPrivateMessage(pname, "Pubstats query done..."); // Debug
+                                    
+                                    
+                                   //We'll add the squads to the stats of the player. If they don't have a squad, use 'Unknown'
                                     if (squad.next() || !squad.next()) {
                                         String squads = squad.getString("fcSquad");
                                         if (squads == null)
                                             squads = "Unknown";
+                                        
+                                        //Debug
                                         BA.sendSmartPrivateMessage(pname, "Connected user successful login.");
                                         BA.sendSmartPrivateMessage(pname, "Login Name: " + name);
                                         BA.sendSmartPrivateMessage(pname, "Squad: " + squads);
+                                        
+                                        //Create the stats and notify the client about the successfull login
                                         player = new NotifyPlayer(name, squads, socket.getInetAddress(), socket.getPort(), queue);
                                         playerlist.add(player);
-                                        queue.add("LOGINOK:" + name + ":" + player.getSquad());
+                                        out.printf("LOGINOK:" + name + ":" + player.getSquad() + '\n');
                                         BA.SQLClose(squad);
+                                        BA.SQLClose(rs);
+                                        BA.SQLClose(rspw);
+                                        BA.SQLClose(match);
 
                                     }
 
                                 }
-                                BA.SQLClose(result);
+                                BA.SQLClose(rs);
+                                BA.SQLClose(rspw);
+                                BA.SQLClose(match);
+                             
+                            //The login request isn't right...
                             } else {
-                                queue.add("LOGINBAD:Badly formatted login request.");
+                                m_botAction.sendSmartPrivateMessage(pname, "Hacker Alert!");
+                                out.printf("LOGINBAD:Badly formatted login request." + '\n');
+                                
                                 continue;
 
                             }
@@ -360,11 +410,14 @@ public class notifybot extends SubspaceBot {
                 }
             }
 
+            // We are done with the authentication process. Close the sockets.
             in.close();
             out.close();
             socket.close();
+            
         } catch (Exception e) {
             BA.sendPrivateMessage(pname, "something failed");
+            Tools.printStackTrace(e);
         }
 
         if (player != null)
