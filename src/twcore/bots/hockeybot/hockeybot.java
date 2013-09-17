@@ -25,6 +25,7 @@ import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
 import twcore.core.events.SoccerGoal;
 import twcore.core.game.Player;
+import twcore.core.lvz.Objset;
 import twcore.core.util.MapRegions;
 import twcore.core.util.Point;
 import twcore.core.util.Spy;
@@ -68,6 +69,9 @@ public class hockeybot extends SubspaceBot {
     private Stack<String> botCrease;                        //Crease tracking for faceoff.
     private TreeMap<String,HockeyVote> listVotes;           //Voting list for the review on the final goal.
     
+    // LVZ display
+    private Overlay scoreOverlay;                           // Manages the LVZ overlay display.
+    
     //Game tickers & other time related stuff
     private Gameticker gameticker;                          // General ticker of the statemachine for this bot.
     private TimerTask fo_botUpdateTimer;                    // Timer that runs during the face off.
@@ -76,16 +80,18 @@ public class hockeybot extends SubspaceBot {
     private TimerTask mvpDelay;                             // Timer that delays the display of the MVP at the end of a game.
     private TimerTask reviewDelay;                          // Timer that disables the final goal review period.
     private long timeStamp;                                 // Used to track the time of various key-moments.
-    private long roundTime;                                 // Currently referred to in the code, but never read out. Will be used in the future.
-    private long gameTime;                                  // Total (active) game time.
+    private int roundTime;                                 // Currently referred to in the code, but never read out. Will be used in the future.
+    private int gameTime;                                  // Total (active) game time.
     
     // Zoner related stuff
     private long zonerTimestamp;                            //Timestamp of the last zoner
     private long manualZonerTimestamp;                      //Timestamp of the last manualzoner
     private int maxTimeouts;                                //Maximum allowed timeouts per game.
+    
     //Frequencies
     private static final int FREQ_SPEC = 8025;              //Frequency of specced players.
     private static final int FREQ_NOTPLAYING = 2;           //Frequency of players that are !np
+    
     //Static variables
     private static final int ZONER_WAIT_TIME = 7;           // Time in minutes for the automatic zoner.
     
@@ -312,6 +318,8 @@ public class hockeybot extends SubspaceBot {
         lockLastGame = false;
 
         botCrease = new Stack<String>();                // Face off crease zone list.
+        
+        scoreOverlay = new Overlay();                   // LVZ display overlay.
 
     }
 
@@ -442,7 +450,8 @@ public class hockeybot extends SubspaceBot {
             
             if (p != null) {
                 pID = p.getPlayerID();
-                newPlayerUpdateScoreBoard(pID);
+                //newPlayerUpdateScoreBoard(pID);
+                scoreOverlay.displayAll(pID);
             }
             
             if (name != null) {
@@ -836,6 +845,8 @@ public class hockeybot extends SubspaceBot {
                 cmd_sub(name, args, override);
             } else if (cmd.equals("!timeout") && (maxTimeouts > 0)) {
                 cmd_timeout(name);
+            } else if (cmd.equals("!setteamname") || cmd.equals("!stn")) {
+                cmd_setteamname(name, args);
             }
         }
 
@@ -1350,6 +1361,7 @@ public class hockeybot extends SubspaceBot {
                  hCap.add("!change <player>:<ship>           Sets the player in the specified ship");
                  hCap.add("!sub <playerA>:<playerB>           Substitutes <playerA> with <playerB>");
                  hCap.add("!switch <player>:<player>            Exchanges the ship of both players");
+                 hCap.add("!setteamname <name>                Sets your team's name. (short: !stn)");
                  hCap.add("!timeout                       During faceoff, request a 30 sec timeout");
                  hCap.add("!ready                    Use this when you're done setting your lineup");
                  hCap.add("-----------------------------------------------------------------------");
@@ -1722,7 +1734,7 @@ public class hockeybot extends SubspaceBot {
 
             /* Check if both teams are ready */
             if (team0.isReady() && team1.isReady()) {
-                checkLineup(); //Check lineups
+                checkLineup(false); //Check lineups
             }
         }
     }
@@ -1908,6 +1920,47 @@ public class hockeybot extends SubspaceBot {
             }
 
         }
+    }
+    
+    /**
+     * Handles the !setteamname command. (cap)
+     * <p>
+     * This command allows a captain to change his/her team's name.
+     * 
+     * @param name Name of the player who issued the commmand.
+     * @param args Command parameters.
+     */
+    private void cmd_setteamname(String name, String args) {
+        HockeyTeam t;
+        
+        if(!HockeyState.ACTIVEGAME.contains(currentState)) {
+            // Not currently in a correct state.
+            return;
+        }
+        
+        if (args.isEmpty()) {
+            // Invalid command syntax.
+            m_botAction.sendSmartPrivateMessage(name, 
+                    "Error: please specify a player and frequency, '!setteamname <name>'");
+            return;
+        }
+        
+        t = getTeam(name);
+        if(t == null) {
+            // Shouldn't happen, since a captain's check was done before this function could be called, however, better safe than sorry.
+            m_botAction.sendSmartPrivateMessage(name, "Seems that you aren't part of any team.");
+            return;
+        }
+        
+        if(t.getName().equals(args)) {
+            // Team already has this name.
+            m_botAction.sendSmartPrivateMessage(name, "Your team already has that name.");
+            return;
+        }
+        
+        t.setName(args);
+        
+        m_botAction.sendArenaMessage(name + " has changed the team name of Freq "+ t.getFrequency() + " to: " + args);
     }
 
     /**
@@ -2392,7 +2445,10 @@ public class hockeybot extends SubspaceBot {
         timeStamp = System.currentTimeMillis();
         m_botAction.sendArenaMessage("Captains you have 10 minutes to set up your lineup correctly!",
                 Tools.Sound.BEEP2);
-        showTeamNameObjects();
+        //showTeamNameObjects();
+        roundTime = 10 * 60;
+        scoreOverlay.updateNames();
+        scoreOverlay.updateTime(roundTime);
 
         if (config.getAllowAutoCaps()) {
             newGameAlert(null, null);
@@ -2419,7 +2475,8 @@ public class hockeybot extends SubspaceBot {
         // To avoid any racing conditions, set the current state to WAIT.
         // This prevents the bot from accidentally doing stuff that influences the commands here.
         currentState = HockeyState.WAIT;
-        updateScoreBoard();
+        //updateScoreBoard();
+        scoreOverlay.updateAll(gameTime);
 
         puck.clear();
         team0.clearUnsetPenalties();
@@ -2627,7 +2684,9 @@ public class hockeybot extends SubspaceBot {
         // This prevents the bot from accidentally doing stuff that influences the commands here.
         currentState = HockeyState.WAIT;
         
-        clearTeamNameObjects();
+        //clearTeamNameObjects();
+        scoreOverlay.clearAllObjects();
+        scoreOverlay.resetVariables();
 
         //Cancel timer
         m_botAction.setTimer(0);
@@ -3213,8 +3272,9 @@ public class hockeybot extends SubspaceBot {
 
     /**
      * Checks if lineups are ok
+     * @param timeExpired Must be set to true if this lineup check is caused by exceeding the initial time limit. Otherwise, use false.
      */
-    private void checkLineup() {
+    private void checkLineup(boolean timeExpired) {
         int sizeTeam0, sizeTeam1;
         
         sizeTeam0 = team0.getSizeIN();
@@ -3246,16 +3306,25 @@ public class hockeybot extends SubspaceBot {
             m_botAction.sendArenaMessage("Freq 0 <---  |  ---> Freq 1");
             team0.timeout = maxTimeouts;
             team1.timeout = maxTimeouts;
+            scoreOverlay.updateAll(null);
             startFaceOff();
             return;
         }
-            
+        
         // Code will only go here if the lineups are not ok, otherwise, the return above kicks in.
-        m_botAction.sendArenaMessage("Lineups are NOT ok! Status of teams set to NOT ready. " 
-                + "Captains, fix your lineups and try again.", Tools.Sound.CROWD_GEE);
-        //startWaitingForCaps();
-        team0.ready();
-        team1.ready();
+        if(timeExpired) {
+            // When the maximum lineup time has expired, stop the game.
+            m_botAction.sendArenaMessage("Lineups are NOT ok! " 
+                    + "Game has been cancelled.", Tools.Sound.CROWD_GEE);
+            startWaitingForCaps();
+        } else {
+            // When the time hasn't expired yet, give the captains a chance to fix their teams.
+            m_botAction.sendArenaMessage("Lineups are NOT ok! Status of teams set to NOT ready. " 
+                    + "Captains, fix your lineups and try again.", Tools.Sound.CROWD_GEE);
+            team0.ready();
+            team1.ready();
+        }
+
     }
 
     /**
@@ -3265,8 +3334,11 @@ public class hockeybot extends SubspaceBot {
         gameTime = 0;
         team0.resetVariables();
         team1.resetVariables();
-        clearObjects();
-        clearTeamNameObjects();
+        //clearObjects();
+        //clearTeamNameObjects();
+        scoreOverlay.clearAllObjects();
+        scoreOverlay.resetVariables();
+        
         puck.clear();
 
         setSpecAndFreq();
@@ -4610,7 +4682,8 @@ public class hockeybot extends SubspaceBot {
          */
         private void increaseScore() {
             teamScore++;
-            updateScoreBoard();
+            //updateScoreBoard();
+            scoreOverlay.updateScores();
         }
         
         /**
@@ -4618,7 +4691,8 @@ public class hockeybot extends SubspaceBot {
          */
         private void decreaseScore() {
             teamScore--;
-            updateScoreBoard();
+            //updateScoreBoard();
+            scoreOverlay.updateScores();
         }
         
         /**
@@ -4635,6 +4709,15 @@ public class hockeybot extends SubspaceBot {
          */
         private String getName() {
             return teamName;
+        }
+        
+        /**
+         * Sets the teamname to the parameter provided.
+         * @param newName The new name of the team.
+         */
+        private void setName(String newName) {
+            teamName = newName;
+            scoreOverlay.updateNames();
         }
 
         /**
@@ -5682,6 +5765,327 @@ public class hockeybot extends SubspaceBot {
             return p;
         }
     }
+    
+    /**
+     * This class handles all the overlay related actions.
+     * <p>
+     * Using the default {@link Objset} seems chunky, but might fully convert to that system eventually.
+     * 
+     * @author Trancid
+     *
+     */
+    private class Overlay {
+        ArrayList<String> teamNames;        // Currently active (displayed) teamnames
+        ArrayList<Integer> activeObjects;   // Currently active (displayed) objects.
+        ArrayList<Integer> scores;          // Currently active (displayed) scores.
+        Integer time;                       // Currenly active (displayed) time.
+
+        /** Overlay constructor */
+        public Overlay() {
+            // Initiate main members.
+            activeObjects = new ArrayList<Integer>();
+            scores = new ArrayList<Integer>();
+            teamNames = new ArrayList<String>();
+            
+            resetVariables();
+        }
+        
+        /**
+         * Resets member variables to their initial state.
+         */
+        public void resetVariables() {
+            if(!activeObjects.isEmpty())
+                activeObjects.clear();
+            if(!scores.isEmpty())
+                scores.clear();
+            if(!teamNames.isEmpty()) 
+                teamNames.clear();
+            
+            scores.add(9);          // Odd value, but otherwise the initial 0 will not be displayed.
+            scores.add(9);
+            teamNames.add("     ");
+            teamNames.add("     ");
+            time = null;          
+        }
+        
+        /*
+         * Functions that update only that which differs. 
+         */
+        /**
+         * Run all the update functions, to update the display for all players.
+         * @param newTime Time to set the display on. Null if no time is wanted.
+         */
+        public void updateAll(Integer newTime) {
+            updateNames();
+            updateScores();
+            updateTime(newTime);
+        }
+        
+        /**
+         * Updates the currently displayed scores to the real scores, if possible.
+         */
+        public void updateScores() {
+            int oldScore = 0;
+            int newScore = 0;
+            int freq = 0;
+            
+            for(HockeyTeam t : teams) {
+                // Can't do anything if we don't have a proper team.
+                if(t == null)
+                    continue;
+                
+                freq = t.getFrequency();
+                oldScore = scores.get(freq);
+                newScore = t.getScore();
+                
+                // If the old score differs from the new score.
+                if(oldScore != newScore) {
+                    // Update the score.
+                    scores.set(freq, newScore);
+                    
+                    // For each digit, check which ones are different.
+                    for(int i = 0; i < 5; i++) {
+                        if(oldScore%10 != newScore%10) {
+                            // Update the digit if needed. (I.e. they differ, but don't display leading zeros.)
+                            if(i == 0 || oldScore != 0)
+                                removeObject(getObjIDScore(freq, i, oldScore%10));
+                            if(i == 0 || newScore != 0)
+                                dispObject(getObjIDScore(freq, i, newScore%10));
+                        }
+                        
+                        // Remove the last checked digit from the score.
+                        oldScore/=10;
+                        newScore/=10;
+                        
+                        // Saves a bit of math to check if there are any significant digits left.
+                        if(oldScore == 0 && newScore == 0)
+                            break;
+                    }
+                }
+            }
+        }
+        /**
+         * Updates the currently displayed names to the current team names.
+         * Only the first five characters will be displayed, from which only the alphanumeric characters will be displayed.
+         * Any non-alphanumeric characters will be treated as spaces.
+         */
+        public void updateNames() {
+            String oldName, newName;
+            int freq = 0;
+            
+            for(HockeyTeam t : teams) {
+                // Can't do anything if we don't have a proper team.
+                if(t == null)
+                    continue;
+                
+                freq = t.getFrequency();
+                oldName = teamNames.get(freq).toUpperCase();
+                // Get the new name and remove the spaces to make a more useful tag.
+                newName = t.getName().toUpperCase().replace(" ", "");
+                
+                // old_name should be stored as five characters. For comparison, new_name should be trimmed down or extended to this as well.
+                if(newName.length() != 5) {
+                    newName = newName.concat("     ").substring(0, 5);
+                }
+                
+                // If the names differ, find out what differs and change it accordingly.
+                if(!oldName.equals(newName)) {
+                    // Update the records.
+                    teamNames.set(freq, newName);
+                    
+                    // Iterate through the strings to compare and update.
+                    for(int i = 0; i < 5; i++) {
+                        char oldCh = oldName.charAt(i);
+                        char newCh = newName.charAt(i);
+                        
+                        if(oldCh != newCh) {
+                            // Update the letter/number, but only if it's alphanumeric.
+                            if(Character.isLetter(oldCh) || Character.isDigit(oldCh))
+                                removeObject(getObjIDName(freq, i, oldCh));
+                            if(Character.isLetter(newCh) || Character.isDigit(newCh))
+                                dispObject(getObjIDName(freq, i, newCh));
+                        }
+                    }
+                }
+            }
+            
+        }
+        
+        /**
+         * Compares the given time and updates the LVZ display accordingly.
+         * Anything above 99 minutes will be truncated, and anything negative will be treated as null.
+         * 
+         * @param newTime The new time to be displayed, in seconds. When null is sent, the time is erased.
+         */
+        public void updateTime(Integer newTime) {
+            Integer oldTime = time;
+            
+            // Treat negative time as null.
+            if(newTime != null && newTime < 0) 
+                newTime = null;
+            
+            if(oldTime == null && newTime != null) {
+                // No time previously displayed.
+                // Funky math to convert seconds into mm:ss, while keeping it in one int.
+                newTime = (newTime * 100 / 60) + (newTime % 60);
+                time = newTime;
+                
+                for(int i = 0; i < 4; i++) {
+                    // Simply display the new time.
+                    dispObject(getObjIDTime(i, newTime%10));
+                    newTime /= 10;
+                }
+                
+            } else if(oldTime != null && newTime == null) {
+                // Hide the time.
+                time = newTime;
+                
+                for(int i = 0; i < 4; i++) {
+                    // Simply remove the old time.
+                    removeObject(getObjIDTime(i, oldTime%10));
+                    oldTime /= 10;
+                }
+                
+            } else if(oldTime != null && newTime != null) {
+                // Update the time, but only where digits differ.
+                // Funky math to convert seconds into mm:ss, while keeping it in one int.
+                newTime = (newTime / 60) * 100 + (newTime % 60);
+                time = newTime;
+                
+                for(int i = 0; i < 4; i++) {
+                    if(oldTime%10 != newTime %10) {
+                        // Remove old digit.
+                        removeObject(getObjIDTime(i, oldTime%10));
+                        // Display new digit.
+                        dispObject(getObjIDTime(i, newTime%10));
+                    }
+                    
+                    // Remove the last digits.
+                    oldTime /= 10;
+                    newTime /= 10;
+                }
+            }
+        }
+        
+        /*
+         * Functions that display.
+         */
+        /**
+         * Displays/shows a LVZ object to all the players.
+         * @param objID ID of object to be enabled.
+         */
+        private void dispObject(int objID) {
+            if(activeObjects.isEmpty() || !activeObjects.contains(objID)) {
+                activeObjects.add(objID);
+                m_botAction.showObject(objID);
+            }
+        }
+
+        /**
+         * Displays all active LVZ objects to a player.
+         * Only to be used when a player enters the arena.
+         * 
+         * @param playerID ID of player for whom the update is.
+         */
+        public void displayAll(int playerID) {
+            if(!activeObjects.isEmpty()) {
+                Objset batchObjects = m_botAction.getObjectSet();
+                for(int objID : activeObjects) {
+                    batchObjects.showObject(playerID, objID);
+                }
+                m_botAction.setObjects(playerID);
+            }
+        }
+        
+        /*
+         * Functions that remove.
+         */
+        /**
+         * Removes/hides a single active LVZ object for all players.
+         * @param objID ID of object that needs to be removed.
+         */
+        private void removeObject(Integer objID) {
+            if(!activeObjects.isEmpty() && activeObjects.contains(objID)) {
+                activeObjects.remove(objID);
+                m_botAction.hideObject(objID);
+            }
+        }
+        
+        /**
+         * Removes/hides all the active LVZ objects for all the players.
+         */
+        public void clearAllObjects() {
+            if(!activeObjects.isEmpty()) {
+                Objset batchObjects = m_botAction.getObjectSet();
+                for(int objID : activeObjects) {
+                    batchObjects.hideObject(objID);
+                }
+                m_botAction.setObjects();
+                activeObjects.clear();
+            }
+        }
+        
+        /*
+         * Actual LVZ helper functions.
+         */
+        /**
+         * Converts a given letter or number in the name box to its object ID.
+         * This is done according to the following formatting:
+         * <pre>
+         * Boxes: [FREQ0] [FREQ1]
+         * Offset: 01234   01234</pre>
+         * 
+         * Valid values for value are A-Z, a-z and 0-9.
+         * 
+         * @param freq The frequency for which to look up the object id.
+         * @param offset The offset in the name box for the specific frequency.
+         * @param value The letter or digit that needs to be converted.
+         * @return The object ID associated with the given data.
+         */
+        private int getObjIDName(int freq, int offset, char value) {
+            // Adjust for frequency offset.
+            offset = offset + freq * 5;
+            if(Character.isDigit(value)) {
+                return ((value + 8) * 10 + offset);
+            } else {
+                return ((Character.toUpperCase(value) - 35) * 10 + offset);
+            }
+        }
+        
+        /**
+         * Converts a given number in the score box to its object ID.
+         * This is done according to the following formatting:
+         * <pre>
+         * Boxes: [FREQ0] [FREQ1]
+         * Offset: 43210   43210</pre>
+         * 
+         * Valid values for number are 0-9.
+         * @param freq The frequency for which to look up the object id.
+         * @param offset The offset in the score box for the specific frequency.
+         * @param number The digit that needs to be converted.
+         * @return The object ID associated with the given data.
+         */
+        private int getObjIDScore(int freq, int offset, int number) {
+            freq++;
+            return (freq * 100 + offset * 10 + number);
+        }
+        
+        /**
+         * Converts a given number in the time box to its object ID.
+         * This is done according to the following formatting:
+         * <pre>
+         * Box:   [TI:ME]
+         * Offset: 32 10 </pre>
+         * 
+         * Valid values for number are 0-9.
+         * @param offset The offset in the time box.
+         * @param number The digit that needs to be converted.
+         * @return The object ID associated with the given data.
+         */
+        private int getObjIDTime(int offset, int number) {
+            return (700 + offset * 10 + number);
+        }
+    }
 
     /**
      * Class Gameticker
@@ -5777,11 +6181,14 @@ public class hockeybot extends SubspaceBot {
          * Initiates {@link hockeybot#checkLineup() checkLineup()} if this is the case.
          */
         private void doAddingPlayers() {
-            int multiplier = 10;
-
-            if ((System.currentTimeMillis() - timeStamp) >= Tools.TimeInMillis.MINUTE * multiplier) {
+            // Reduce countdown by one second.
+            roundTime--;
+            // Update display.
+            scoreOverlay.updateTime(roundTime);
+            
+            if ((System.currentTimeMillis() - timeStamp) >= Tools.TimeInMillis.MINUTE * 10) {
                 m_botAction.sendArenaMessage("Time is up! Checking lineups..");
-                checkLineup();
+                checkLineup(true);
             }
         }
 
@@ -5910,8 +6317,6 @@ public class hockeybot extends SubspaceBot {
          */
         private void doStartGame() {
             HockeyTeam tC, tP;
-            roundTime = ((System.currentTimeMillis() - timeStamp)
-                    / Tools.TimeInMillis.SECOND);
 
             //check for steals/saves
             try {
@@ -5996,7 +6401,7 @@ public class hockeybot extends SubspaceBot {
             }
 
             gameTime++;
-
+            scoreOverlay.updateTime(gameTime);
         }
 
         /**
@@ -6073,7 +6478,8 @@ public class hockeybot extends SubspaceBot {
                 m_botAction.sendArenaMessage("Bot has been shutdown.", Tools.Sound.GAME_SUCKS);
                 reset();
                 unlockArena();
-                clearObjects();
+                //clearObjects();
+                scoreOverlay.clearAllObjects();
             }
         }
         
