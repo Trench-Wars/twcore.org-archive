@@ -344,9 +344,11 @@ public class hockeybot extends SubspaceBot {
      */
     /**
      * Handles ArenaJoined event
-     * - Sets up reliable kills
-     * - Sets up chats
-     * - Auto-starts bot
+     * <ul>
+     *  <li>Sets up reliable kills
+     *  <li>Sets up chats
+     *  <li>Auto-starts bot
+     * </ul>
      */
     @Override
     public void handleEvent(ArenaJoined event) {
@@ -358,8 +360,10 @@ public class hockeybot extends SubspaceBot {
 
     /**
      * Handles FrequencyShipChange event
-     * - since this event looks almost the same as FrequencyChange
-     *   event its passed on to checkFCandFSC(name, frequency, ship).
+     * <ul>
+     *  <li>since this event looks almost the same as FrequencyChange
+     *  <li>event its passed on to checkFCandFSC(name, frequency, ship).
+     * </ul>
      */
     @Override
     public void handleEvent(FrequencyShipChange event) {
@@ -382,8 +386,10 @@ public class hockeybot extends SubspaceBot {
 
     /**
      * Handles LoggedOn event
-     * - Join arena
-     * - Set antispam measurements
+     * <ul>
+     *  <li>Join arena
+     *  <li>Set antispam measurements
+     * </ul>
      */
     @Override
     public void handleEvent(LoggedOn event) {
@@ -403,9 +409,11 @@ public class hockeybot extends SubspaceBot {
 
     /**
      * Handles Message event
-     * - Racism watcher
-     * - Arena lock
-     * - Player commands
+     * <ul>
+     *  <li>Racism watcher
+     *  <li>Arena lock
+     *  <li>Player commands
+     * </ul>
      */
     @Override
     public void handleEvent(Message event) {
@@ -434,8 +442,10 @@ public class hockeybot extends SubspaceBot {
 
     /**
      * Handles PlayerEntered event
-     * - Sends welcome message
-     * - Puts the player on the corresponding frequency
+     * <ul>
+     *  <li>Sends welcome message
+     *  <li>Puts the player on the corresponding frequency
+     * </ul>
      */
     @Override
     public void handleEvent(PlayerEntered event) {
@@ -464,8 +474,10 @@ public class hockeybot extends SubspaceBot {
 
     /**
      * Handles PlayerLeft event
-     * - Checks if the player that left was a captain
-     * - Checks if the player that left lagged out
+     * <ul>
+     *  <li>Checks if the player that left was a captain
+     *  <li>Checks if the player that left lagged out
+     * </ul>
      */
     @Override
     public void handleEvent(PlayerLeft event) {
@@ -491,8 +503,10 @@ public class hockeybot extends SubspaceBot {
 
     /**
      * Handles PlayerPosition event
-     * - Warps players back to their safes during PRE_GAME
-     * - Timestamps last received position for out of border time
+     * <ul>
+     *  <li>Warps players back to their safes during PRE_GAME
+     *  <li>Timestamps last received position for out of border time
+     * </ul>
      */
     @Override
     public void handleEvent(PlayerPosition event) {
@@ -697,7 +711,7 @@ public class hockeybot extends SubspaceBot {
 
     /**
      * Handles a disconnect
-     * - cancel all tasks
+     * <li>cancel all tasks
      */
     @Override
     public void handleDisconnect() {
@@ -3394,6 +3408,7 @@ public class hockeybot extends SubspaceBot {
     /**
      * Removes the team names from the overlay for every player in the arena.
      */
+    @Deprecated
     private void clearTeamNameObjects() {
         //"FREQ0" team name
         m_botAction.hideObject(350);
@@ -3412,6 +3427,7 @@ public class hockeybot extends SubspaceBot {
     /**
      * Adds the team names to the overlay for every player in the arena.
      */
+    @Deprecated
     private void showTeamNameObjects() {
         //"FREQ0" team name
         m_botAction.showObject(350);
@@ -3431,6 +3447,7 @@ public class hockeybot extends SubspaceBot {
      * Adds the team names to the overlay of a specific player.
      * @param pID ID of player
      */
+    @Deprecated
     private void pmShowTeamNameObjects(int pID) {
         //"FREQ0" team name
         m_botAction.showObjectForPlayer(pID,350);
@@ -3449,6 +3466,7 @@ public class hockeybot extends SubspaceBot {
     /**
      * Clears the score from the overlay.
      */
+    @Deprecated
     private void clearObjects() {
         //TODO adjust this for different goal targets.
         //0-7 for freq 0
@@ -3476,6 +3494,7 @@ public class hockeybot extends SubspaceBot {
      * Updates the scoreboard overlay for a player who entered the arena mid-game.
      * @param pID ID of player.
      */
+    @Deprecated
     private void newPlayerUpdateScoreBoard(int pID) {
         int team0Score = team0.getScore();
         int team1Score = team1.getScore();
@@ -3488,6 +3507,7 @@ public class hockeybot extends SubspaceBot {
     /**
      * Updates the scoreboard overlay for everyone in the arena.
      */
+    @Deprecated
     private void updateScoreBoard() {
         int team0Score = team0.getScore();
         int team1Score = team1.getScore();
@@ -5864,6 +5884,7 @@ public class hockeybot extends SubspaceBot {
                 }
             }
         }
+        
         /**
          * Updates the currently displayed names to the current team names.
          * Only the first five characters will be displayed, from which only the alphanumeric characters will be displayed.
