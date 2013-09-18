@@ -40,13 +40,10 @@ import twcore.core.util.Tools;
  */
 public class hockeybot extends SubspaceBot {
     // Todo-list of features that need to be added in the future.
-    //TODO Add and display time tracking.
     //TODO Add option to do a timed match.
-    //TODO Add count down during setup time.
     //TODO Add shoot-outs on tied timed game.
     //TODO Add tracking of time played and ship time played.
     //TODO Add Persistent stat tracking through SQL.
-    //TODO Add custom team names.
     //TODO Add multi-layered penalty system. (I.e. short time for minor penalties up to removal from game on huge penalties.)
     //TODO (Non-bot related) Custom arena graphics.
 
@@ -1467,7 +1464,7 @@ public class hockeybot extends SubspaceBot {
             if(targetFreq == 0 || targetFreq == 1) {
                 t = teams.get(targetFreq);
                 tempCheck = t.getScore();
-                if (tempCheck + 1 >= config.getGameTarget()) {
+                if ((config.getGameMode() == GameMode.GOALS) && (tempCheck + 1 >= config.getGameTarget())) {
                     m_botAction.sendPrivateMessage(name, "This command cannot be used for the final goal.");
                 } else {
                     t.increaseScore();
@@ -2548,8 +2545,9 @@ public class hockeybot extends SubspaceBot {
         }
 
         // Check if the game is finished
-        if (team0.getScore() >= config.getGameTarget()
-                || (team1.getScore() >= config.getGameTarget())) {
+        if ((config.getGameMode() == GameMode.GOALS 
+                && (team0.getScore() >= config.getGameTarget() 
+                    || team1.getScore() >= config.getGameTarget()))) {
             // We have reached the target number, start a final review, if enabled, or end the game.
             if(config.allowVote) {
                 startFinalReview();
@@ -3313,6 +3311,12 @@ public class hockeybot extends SubspaceBot {
         } else {
             currentState = HockeyState.FACE_OFF;
             m_botAction.sendArenaMessage("Lineups are ok! Game will start in 30 seconds!", Tools.Sound.CROWD_OOO);
+            // Inform the players of the type of game.
+            if(config.gameMode == GameMode.GOALS) {
+                m_botAction.sendArenaMessage("First team to score " + config.getGameTarget() + " goals wins!");
+            } else if(config.gameMode == GameMode.TIMED) {
+                m_botAction.sendArenaMessage("Team who leads after " + config.getGameTarget() + " minutes of game time wins!.");
+            }
             m_botAction.sendArenaMessage("Team: " + team0.getName() + " (Freq 0) <---  |  ---> Team: " + team1.getName() + " (Freq 1)");
             team0.timeout = maxTimeouts;
             team1.timeout = maxTimeouts;
@@ -3519,10 +3523,10 @@ public class hockeybot extends SubspaceBot {
         //TODO Optimize for speed. (I.e. get rid of Tools.centerString where possible.)
         ArrayList<String> spam = new ArrayList<String>();
         spam.add("+----------------------+----------------------+");
-        spam.add("| " + Tools.centerString("Freq 0", 20) 
+/*        spam.add("| " + Tools.centerString("Freq 0", 20) 
                       +                " | " 
                       + Tools.centerString("Freq 1", 20)    
-                      +                                       " |");
+                      +                                       " |");*/
         spam.add("| " + Tools.centerString(team0.getName(), 20) 
                       +                " | " 
                       + Tools.centerString(team1.getName(), 20)    
@@ -4628,7 +4632,6 @@ public class hockeybot extends SubspaceBot {
         /** Class constructor */
         private HockeyTeam(int frequency) {
             this.frequency = frequency;
-            this.teamName = "Freq " + frequency;
 
             players = new TreeMap<String, HockeyPlayer>();
             captains = new TreeMap<Short, HockeyCaptain>();
@@ -4647,6 +4650,7 @@ public class hockeybot extends SubspaceBot {
             players.clear();
             flag = false;
             turnToPick = false;
+            teamName = "Freq " + frequency;
             captainName = "[NONE]";
             lastCaptainName = "[NONE]";
             goalieName = "[NONE]";
@@ -5446,7 +5450,7 @@ public class hockeybot extends SubspaceBot {
         private void ready() {
             if (!ready) {
                 if (players.size() >= config.getMinPlayers()) {
-                    m_botAction.sendArenaMessage(teamName + " is ready to begin.");
+                    m_botAction.sendArenaMessage("Team " + teamName + " is ready to begin.");
                     ready = true;
                 } else {
                     m_botAction.sendPrivateMessage(captainName, "Cannot ready, not enough players in.");
@@ -6432,11 +6436,26 @@ public class hockeybot extends SubspaceBot {
 
             gameTime++;
             scoreOverlay.updateTime(gameTime);
+            
+            // Check if time has expired in timed mode.
+            if(config.getGameMode() == GameMode.TIMED && gameTime >= (config.getGameTarget() * 60)) {
+                //TODO Implement shoot outs.
+                gameOver();
+            }
         }
 
         /**
-         * Currently, this function is not used.
-         * It's original intent was to give the staff time to vote on the final goal.
+         * This function is active when the final review is taking place.
+         * <p>
+         * A timer started by {@link hockeybot#startFinalReview()} will set the reviewing flag to false after 15 seconds have elapsed.
+         * This will then in turn trigger the counting of the votes in this function.
+         * <p>
+         * Currently, only staff of access level ZH+ can cast a vote. To get a clean vote, one of the following conditions must be true:
+         * <ul>
+         *  <li>No votes were cast.
+         *  <li>The amount of clean votes is higher than the combined amount of phase and crease votes.
+         * </ul>
+         * Otherwise, the goal is rejected, with the highest reject reason count as reason, or phase on a tie.
          */
         private void doReview() {
             // Check if the ball isn't in the wrong place, just to be sure...
