@@ -1786,6 +1786,22 @@ public class GameFlagTimeModule extends AbstractModule {
             return flagTimer.flagHoldingFreq;
         return -1;
     }
+    
+    /**
+     * Instantly claims the flag while bypassing the FlagClaimed eventhandler.
+     * <p>
+     * This method is meant to be used if the pubsystem bot needs to claim the flag himself from a different PubSystem module.
+     * This will bypass the FlagClaimed event as well as the check if the bot isn't the claiming party and the three second grace period.
+     * 
+     * @param freq Frequency for which the flag is to be claimed.
+     */
+    public void remoteFlagClaim(int freq) {
+        flagTimer.flagHoldingFreq = freq;
+        m_botAction.showObject(2400); // Shows flag claimed lvz
+        flagTimer.isBeingClaimed = false;
+        flagTimer.flagClaimingFreq = -1;
+        flagTimer.secondsHeld = 0;
+    }
 
     public void stopTime() {
         if (!isFlagTimeStarted())

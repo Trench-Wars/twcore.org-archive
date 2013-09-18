@@ -88,7 +88,8 @@ public abstract class AutobotThread extends Thread implements IPCReceiver {
 		protected abstract void ready();
 		
 		public void commandBot(String command) {
-			m_botAction.sendSmartPrivateMessage(autobotName, command);
+		    m_botAction.ipcSendMessage(IPC_CHANNEL, "command:" + command, autobotName, m_botAction.getBotName());
+			//m_botAction.sendSmartPrivateMessage(autobotName, command);
 		}
 	
 	}

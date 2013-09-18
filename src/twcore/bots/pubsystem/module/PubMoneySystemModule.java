@@ -2046,9 +2046,14 @@ public class PubMoneySystemModule extends AbstractModule {
     }
 
     private void itemCommandFlagSaver(String sender, String params) {
-
+        Iterator<Integer> flagIt;
         Player p = m_botAction.getPlayer(sender);
-
+        
+        if(p == null) {
+            // We will be unable to determine the target frequency without a Player object.
+            return;
+        }
+        
         m_botAction.getShip().setShip(1);
         m_botAction.getShip().setFreq(p.getFrequency());
         m_botAction.getShip().rotateDegrees(270);
@@ -2062,6 +2067,15 @@ public class PubMoneySystemModule extends AbstractModule {
             }
         };
         m_botAction.scheduleTask(timer, 4000);
+        
+        // Botside, we need to claim the flag
+        context.getGameFlagTime().remoteFlagClaim(p.getFrequency());
+        // Serverside, we need to claim the flag.
+        flagIt = m_botAction.getFlagIDIterator();
+        while(flagIt.hasNext()) {
+            m_botAction.getFlag(flagIt.next());
+        }
+
         if (p.getFrequency() < 100)
             m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for FREQ " + p.getFrequency() + ", thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
         else
@@ -2237,7 +2251,7 @@ public class PubMoneySystemModule extends AbstractModule {
             Player p = m_botAction.getPlayer(sender);
             if (p == null)
                 commandBot("!Die");
-
+            
             commandBot("!Go " + m_botAction.getArenaName().substring(8, 9));
             try {
                 Thread.sleep(2 * Tools.TimeInMillis.SECOND);
@@ -2255,7 +2269,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 commandBot("!WarpTo 512 258");
                 commandBot("!Face 20");
             }
-            commandBot("!Timeout 300");
+            commandBot("!Timeout 120");
             commandBot("!Killable");
             commandBot("!DieAtXShots 20");
             commandBot("!QuitOnDeath");
