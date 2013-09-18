@@ -1955,7 +1955,7 @@ public class hockeybot extends SubspaceBot {
         if (args.isEmpty()) {
             // Invalid command syntax.
             m_botAction.sendSmartPrivateMessage(name, 
-                    "Error: please specify a player and frequency, '!setteamname <name>'");
+                    "Error: please specify a teamname, '!setteamname <name>'");
             return;
         }
         
@@ -2313,8 +2313,8 @@ public class hockeybot extends SubspaceBot {
             t.useTimeOut();
             // .. send a nice message ...
             m_botAction.sendArenaMessage(name + 
-                    " has requested a 30-second timeout for Freq " +
-                    t.getFrequency() + ".", Tools.Sound.CROWD_GEE);
+                    " has requested a 30-second timeout for team: " +
+                    t.getName()+ ".", Tools.Sound.CROWD_GEE);
             // ... and start the timeout.
             startTimeout();
         }
@@ -2732,22 +2732,18 @@ public class hockeybot extends SubspaceBot {
      */
     private void dispResults() {
         ArrayList<String> spam = new ArrayList<String>();
-        spam.add("+----------------------+-------+-------+---------+-------+--------+-----------+-----------+----------+");
-        spam.add("|        Freq 0        | Goals | Saves | Assists | Shots | Steals | Turnovers | Penalties | Own Goal |");
-        spam.add("+----------------------+-------+-------+---------+-------+--------+-----------+-----------+----------+");
-        ////////("012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901");
-        ////////("0         1         2         3         4         5         6         7         8         9         10");
-    
-        spam.addAll(addTeamStats(team0));
-
-        spam.add("+----------------------+-------+-------+---------+-------+--------+-----------+-----------+----------+");
-        spam.add("|        Freq 1        | Goals | Saves | Assists | Shots | Steals | Turnovers | Penalties | Own Goal |");
-        spam.add("+----------------------+-------+-------+---------+-------+--------+-----------+-----------+----------+");
-        
-        spam.addAll(addTeamStats(team1));
+        for(HockeyTeam t : teams) {
+            spam.add("+----------------------+-------+-------+---------+-------+--------+-----------+-----------+----------+");
+            spam.add("| " + Tools.centerString(t.getName(), 20)
+                                         + " | Goals | Saves | Assists | Shots | Steals | Turnovers | Penalties | Own Goal |");
+            spam.add("+----------------------+-------+-------+---------+-------+--------+-----------+-----------+----------+");
+            ////////("012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901");
+            ////////("0         1         2         3         4         5         6         7         8         9         10");
+            
+            spam.addAll(addTeamStats(t));
+        }
         
         spam.add("+----------------------+-------+-------+---------+-------+--------+-----------+-----------+----------+");
-        //goals, saves, assists, steals, penalties
 
         m_botAction.arenaMessageSpam(spam.toArray(new String[spam.size()]));
     }
@@ -3317,7 +3313,7 @@ public class hockeybot extends SubspaceBot {
         } else {
             currentState = HockeyState.FACE_OFF;
             m_botAction.sendArenaMessage("Lineups are ok! Game will start in 30 seconds!", Tools.Sound.CROWD_OOO);
-            m_botAction.sendArenaMessage("Freq 0 <---  |  ---> Freq 1");
+            m_botAction.sendArenaMessage("Team: " + team0.getName() + " (Freq 0) <---  |  ---> Team: " + team1.getName() + " (Freq 1)");
             team0.timeout = maxTimeouts;
             team1.timeout = maxTimeouts;
             scoreOverlay.updateAll(null);
@@ -4733,9 +4729,13 @@ public class hockeybot extends SubspaceBot {
         
         /**
          * Sets the teamname to the parameter provided.
+         * For formatting and safety issues, currently limited to 20 chars max.
          * @param newName The new name of the team.
          */
         private void setName(String newName) {
+            if(newName.length() > 20) {
+                newName = newName.substring(0, 20);
+            }
             teamName = newName;
             scoreOverlay.updateNames();
         }
