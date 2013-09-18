@@ -115,6 +115,8 @@ public class pubautobot extends SubspaceBot {
 
 	TimerTask spawned;     // Timertask used for respawning the bot after it has died. (Only used when quitOnDeath == false.)
 	TimerTask updateIt;    // Timertask used for checking the projectiles heading the bot's way.
+	TimerTask unlockMe;    // Timertask used to unlock the bot if not set up in time.
+	TimerTask freeMe;      // Timertask used to free/reset all the data.
 
 	/**
 	 * Constructor
@@ -167,7 +169,9 @@ public class pubautobot extends SubspaceBot {
     		locked = true;
     		try {
     		    // Starts a timer to unlock the bot if not all the required steps are executed.
-    		    m_botAction.scheduleTask(new UnlockTask(), 5*Tools.TimeInMillis.SECOND);
+    		    m_botAction.cancelTask(unlockMe);
+    		    unlockMe = new UnlockTask();
+    		    m_botAction.scheduleTask(unlockMe, 5*Tools.TimeInMillis.SECOND);
     		    // Step 2: Send a confirmation to the requester.
     		    m_botAction.ipcSendMessage(IPC_CHANNEL, "locked", ipc.getSender(), m_botAction.getBotName());
     		} catch (IllegalStateException e) {
@@ -182,10 +186,16 @@ public class pubautobot extends SubspaceBot {
     		if (owners.length==2) {
     			subowner = owners[1];
     		}
-    	} else if(message.startsWith("command:") && locked && owner != null){
-    		if (ipc.getSender().equals(owner) || ipc.getSender().equals(subowner))
+    	} else if(message.startsWith("command:") 
+    	        && locked 
+    	        && owner != null 
+    	        && ipc.getRecipient().equals(m_botAction.getBotName())){
+    		if (ipc.getSender().equals(owner) || (subowner != null && ipc.getSender().equals(subowner)))
     			handleCommand(ipc.getSender(), message.substring(8));
-    	} else if(message.startsWith("locations:") && owner != null && owner.equals(ipc.getSender())) {
+    	} else if(message.startsWith("locations:") 
+    	        && owner != null 
+    	        && owner.equals(ipc.getSender()) 
+    	        && ipc.getRecipient().equals(m_botAction.getBotName())) {
     		locations = new HashSet<String>();
     		String[] data = message.substring(10).split(",");
     		locations.addAll(Arrays.asList(data));
@@ -383,9 +393,6 @@ public class pubautobot extends SubspaceBot {
                         };
                         // Check if we are supposed to die.
                         if (numberOfShots >= dieAtXshots) {
-                            // Set us to respawning
-                            isSpawning = true;
-                            m_botAction.scheduleTask(spawned, SPAWN_TIME);
                             // Award a kill to the owner of the projectile.
                             m_botAction.sendDeath(m_botAction.getPlayerID(b.getOwner()), 0);
                             
@@ -393,7 +400,15 @@ public class pubautobot extends SubspaceBot {
                             Iterator<RepeatFireTimer> i = repeatFireTimers.iterator();
                             while(i.hasNext())i.next().pause();
                             
-                            //TODO: Check if this needs to call upon the free() function, if it still fails...
+                            if(quitOnDeath) {
+                                m_botAction.sendTeamMessage("That last shot was fatal to me. Good luck and farewell.");
+                                free();
+                                return;
+                            }
+
+                            // Set us to respawning
+                            isSpawning = true;
+                            m_botAction.scheduleTask(spawned, SPAWN_TIME);
                         }
                     }
                     // Since it hit us, remove the projectile.
@@ -440,7 +455,7 @@ public class pubautobot extends SubspaceBot {
             // The !die command is still accessible in case of emergencies, though.
     		if (locked && DEBUG_ENABLED
     		        && owner != null 
-    		        && (owner.equals(playerName) || subowner.equals(playerName))
+    		        && (owner.equals(playerName) || (subowner !=null && subowner.equals(playerName)))
     		        && handleCommand(playerName, message)) {
     			// If the bot is locked and one of the owners message it, throw the message through handleCommand().
     		    // This function will return true if it was an actual command that could be executed.
@@ -626,7 +641,7 @@ public class pubautobot extends SubspaceBot {
     }
 
     /**
-     * Attach from a player
+     * Detach from a player
      */
     public void unAttach() {
     	if(turretPlayerID == -1)
@@ -691,7 +706,9 @@ public class pubautobot extends SubspaceBot {
     private void doTimeoutDieCmd(String parameter) {
     	int seconds = Integer.valueOf(parameter);
     	timeoutAt = seconds;
-        m_botAction.scheduleTask(new FreeTask(), seconds * Tools.TimeInMillis.SECOND);
+    	m_botAction.cancelTask(freeMe);
+    	freeMe = new FreeTask();
+        m_botAction.scheduleTask(freeMe, seconds * Tools.TimeInMillis.SECOND);
     }
 
     /**
@@ -748,7 +765,6 @@ public class pubautobot extends SubspaceBot {
     		try {
 				Thread.sleep(700);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
     	}
@@ -1012,6 +1028,7 @@ public class pubautobot extends SubspaceBot {
 
 	private class FreeTask extends TimerTask {
         public void run() {
+            m_botAction.sendTeamMessage("My time here is done. Good luck and goodbye!");
         	free();
         }
     }
