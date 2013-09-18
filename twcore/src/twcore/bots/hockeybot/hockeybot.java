@@ -3516,13 +3516,22 @@ public class hockeybot extends SubspaceBot {
      * Displays the scores
      */
     private void displayScores() {
-        //TODO fix score display
+        //TODO Optimize for speed. (I.e. get rid of Tools.centerString where possible.)
         ArrayList<String> spam = new ArrayList<String>();
-        spam.add("+----------------+----------------+");
-        spam.add("|     Freq 0     |     Freq 1     |");
-        spam.add("|       " + team0.getScore() + "        |       "
-                + team1.getScore() + "        |");
-        spam.add("+----------------+----------------+");
+        spam.add("+----------------------+----------------------+");
+        spam.add("| " + Tools.centerString("Freq 0", 20) 
+                      +                " | " 
+                      + Tools.centerString("Freq 1", 20)    
+                      +                                       " |");
+        spam.add("| " + Tools.centerString(team0.getName(), 20) 
+                      +                " | " 
+                      + Tools.centerString(team1.getName(), 20)    
+                      +                                       " |");
+        spam.add("| " + Tools.centerString(Integer.toString(team0.getScore()), 20) 
+                      +                " | " 
+                      + Tools.centerString(Integer.toString(team1.getScore()), 20)    
+                      +                                       " |");
+        spam.add("+----------------------+----------------------+");
 
         m_botAction.arenaMessageSpam(spam.toArray(new String[spam.size()]));
     }
