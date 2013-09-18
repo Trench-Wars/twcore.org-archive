@@ -2731,17 +2731,17 @@ public class hockeybot extends SubspaceBot {
     private void dispResults() {
         ArrayList<String> spam = new ArrayList<String>();
         for(HockeyTeam t : teams) {
-            spam.add("+----------------------+-------+-------+---------+-------+--------+-----------+-----------+----------+");
+            spam.add("+----------------------+-------+-------+---------+-------+--------+-----------+-----------+----------+--------+");
             spam.add("| " + Tools.centerString(t.getName(), 20)
-                                         + " | Goals | Saves | Assists | Shots | Steals | Turnovers | Penalties | Own Goal |");
-            spam.add("+----------------------+-------+-------+---------+-------+--------+-----------+-----------+----------+");
+                                         + " | Goals | Saves | Assists | Shots | Steals | Turnovers | Penalties | Own Goal | Rating |");
+            spam.add("+----------------------+-------+-------+---------+-------+--------+-----------+-----------+----------+--------+");
             ////////("012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901");
             ////////("0         1         2         3         4         5         6         7         8         9         10");
             
             spam.addAll(addTeamStats(t));
         }
         
-        spam.add("+----------------------+-------+-------+---------+-------+--------+-----------+-----------+----------+");
+        spam.add("+----------------------+-------+-------+---------+-------+--------+-----------+-----------+----------+--------+");
 
         m_botAction.arenaMessageSpam(spam.toArray(new String[spam.size()]));
     }
@@ -2764,6 +2764,7 @@ public class hockeybot extends SubspaceBot {
                     + " |" + Tools.rightString(Integer.toString(p.turnovers), 10)
                     + " |" + Tools.rightString(Integer.toString(p.penalties), 10)
                     + " |" + Tools.rightString(Integer.toString(p.ownGoals), 9)
+                    + " |" + Tools.rightString(Integer.toString(p.getTotalRating()), 7)
                     + " |");
         }
         return stats;
@@ -4586,16 +4587,22 @@ public class hockeybot extends SubspaceBot {
         }
         
         /**
-         * Calculates the rating of a player
+         * Calculates the rating of a player.
          * Used weights might require to be changed in the future
          * 
          * @return players rating
          */
         private int getTotalRating() {
             //TODO Improve this by constantly calculating/adjusting this during the game, to include some other statistics like time played and passes and such.
-            // Random formula
-            return (goals * 5 + saves * 5 + assists * 3 + shotsOnGoal + steals
-                    - penalties * 5 - ownGoals * 5 - turnovers);
+            // Random formula, based on twht's one.
+            return (goals * 107
+                    + saves * 27
+                    + assists * 60
+                    + shotsOnGoal * 13
+                    + steals * 16
+                    - penalties * 107 
+                    - ownGoals * 107
+                    - turnovers * 13);
         }
     }
 
