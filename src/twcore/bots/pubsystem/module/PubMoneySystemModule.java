@@ -2269,7 +2269,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 commandBot("!WarpTo 512 258");
                 commandBot("!Face 20");
             }
-            commandBot("!Timeout 120");
+            commandBot("!Timeout 300");
             commandBot("!Killable");
             commandBot("!DieAtXShots 20");
             commandBot("!QuitOnDeath");
