@@ -792,7 +792,7 @@ public class hockeybot extends SubspaceBot {
                     } else if (event.getYLocation() > config.getTeam1ExtY()) {
                         m_botAction.warpTo(name, config.getTeam1PenX() / 16, config.getTeam1PenY() / 16);
                     }
-                    checkPenaltyExipred(name, team);
+                    checkPenaltyExpired(name, team);
                 }
             }
         }
@@ -805,7 +805,7 @@ public class hockeybot extends SubspaceBot {
      * @param name Name of the player
      * @param team Team of the player
      */
-    private void checkPenaltyExipred(String name, HockeyTeam team) {
+    private void checkPenaltyExpired(String name, HockeyTeam team) {
         HockeyPlayer player = team.searchPlayer(name);
 
         if ((gameTime - player.penaltyTimestamp) >= config.getPenaltyTime()) {
@@ -1785,9 +1785,10 @@ public class hockeybot extends SubspaceBot {
             }
 
             if (p.penalty != HockeyPenalty.NONE) {
-                checkPenaltyExipred(name, t);
+                checkPenaltyExpired(p.getName(), t);
                 if (p.penalty != HockeyPenalty.NONE)
-                    m_botAction.sendPrivateMessage(name,"Player cannot be removed because they are in the penalty box.");
+                    m_botAction.sendPrivateMessage(name,"Player cannot be removed because they are in the penalty box."
+                            + "If the player is offline, please wait " + config.getPenaltyTime() + " seconds before trying again.");
                 else
                     t.removePlayer(p.getName());
             } else {
@@ -2189,9 +2190,10 @@ public class hockeybot extends SubspaceBot {
             }
 
             if (playerA.penalty != HockeyPenalty.NONE) {
-                checkPenaltyExipred(playerA.getName(), t);
+                checkPenaltyExpired(playerA.getName(), t);
                 if (playerA.penalty != HockeyPenalty.NONE)
-                    m_botAction.sendPrivateMessage(name,"Player cannot be subbed because they are in the penalty box.");
+                    m_botAction.sendPrivateMessage(name,"Player cannot be subbed because they are in the penalty box."
+                            + "If the player is offline, please wait " + config.getPenaltyTime() + " seconds before trying again.");
                 else
                     t.sub(playerA, playerBnew); //Execute the substitute
             } else {
