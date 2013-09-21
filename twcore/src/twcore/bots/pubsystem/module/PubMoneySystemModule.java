@@ -121,7 +121,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
         this.coupons = new HashMap<String, CouponCode>();
 
-        this.ipcReceivers = new ArrayList<IPCReceiver>();
+        this.ipcReceivers = Collections.synchronizedList(new ArrayList<IPCReceiver>());
 
         try {
             this.store = new PubStore(m_botAction, context);
@@ -1369,8 +1369,18 @@ public class PubMoneySystemModule extends AbstractModule {
     }
 
     public void handleEvent(InterProcessEvent event) {
-        for (IPCReceiver receiver : ipcReceivers) {
-            receiver.handleInterProcessEvent(event);
+        List<IPCReceiver> ipcReceiversCopy;
+        
+        // Since executing the IPC messages might take a bit, synchronizing the receiver.handleInterProcessEvent could lock things up.
+        // So instead, just temporary sync the list, to copy over the references of the values it currently has.
+        // Then release the sync and do the real iteration over the copied references.
+        if(ipcReceivers != null) {
+            synchronized(ipcReceivers) {
+                ipcReceiversCopy = new ArrayList<IPCReceiver>(ipcReceivers);
+            }
+            for (IPCReceiver receiver : ipcReceiversCopy) {
+                receiver.handleInterProcessEvent(event);
+            }
         }
     }
 
