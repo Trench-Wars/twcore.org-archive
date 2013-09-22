@@ -895,6 +895,8 @@ public class hockeybot extends SubspaceBot {
                 cmd_forcenp(name, args);
             } else if (cmd.equals("!setcaptain") || cmd.equals("!sc")) {
                 cmd_setCaptain(name, args, override);
+            } else if (cmd.equals("!remcaptain") || cmd.equals("!rc")) {
+                cmd_removecap(name, args);
             } else if (cmd.equals("!ball")) {
                 cmd_ball(name);
             } else if (cmd.equals("!drop")) {
@@ -1397,6 +1399,7 @@ public class hockeybot extends SubspaceBot {
                     hStaff.add("!zone <message>                  sends time-restricted advert, message is optional");
                     hStaff.add("!forcenp <player>                                     Sets <player> to !notplaying");
                     hStaff.add("!setcaptain <# freq>:<player>   Sets <player> as captain for <# freq> (short: !sc)");
+                    hStaff.add("!remcaptain <# freq>             Removes the captain of freq <# freq> (short: !rc)");
                     hStaff.add("!penalty <player>:<reason>         Sends <player> to the penalty box (short: !pen)");
                     hStaff.add("!rempenalty <player>        Removes the current penalty of <player> (short: !rpen)");
                     hStaff.add("!hosttimeout                             Request a 30 second timeout (short: !hto)");
@@ -1801,23 +1804,55 @@ public class hockeybot extends SubspaceBot {
     }
 
     /**
-     * Handles the !removecap command (Not used atm)
+     * Handles the !remcaptain command (ZH+)
      *
      * @param name name of the player that issued the !removecap command
-     * @param override override 0/1 for teams, -1 if not overriden
+     * @param args Frequency of the captain to be removed.
      */
-    /*
-    private void cmd_removecap(String name, int override) {
+    private void cmd_removecap(String name, String args) {
         HockeyTeam t;
+        Integer freq = null;
 
-        if (currentState != HockeyState.OFF && currentState != HockeyState.GAME_OVER) {
-            t = getTeam(name, override); //Retrieve team number
-
-            t.captainLeft();   //Remove captain
+        // Initial checks
+        if (currentState == HockeyState.OFF || currentState == HockeyState.GAME_OVER) {
+            // Ignore, no game in progress.
+            return;
         }
+        
+        if(args.isEmpty()) {
+            // No valid arguments sent.
+            m_botAction.sendSmartPrivateMessage(name, 
+                    "Please specify the frequency of the captain you want to remove. '!remcaptain <#freq>'");
+            return;
+        }
+        
+        // Check if we received a correct frequency.
+        try {
+            freq = Integer.parseInt(args);
+        } catch (NumberFormatException e) {
+            // If no valid number has been provided, then this will be taken care of in the next if statement, which combines some stuff.
+        }
+        
+        // If the previous catch triggered or an invalid freq has been given, this if statement will be valid.
+        if(freq == null || freq < 0 || freq > 1) {
+            // No valid arguments sent.
+            m_botAction.sendSmartPrivateMessage(name, 
+                    "Please specify the frequency of the captain you want to remove. '!remcaptain <#freq>'");
+            return;
+        }
+        
+        t = teams.get(freq);
+        
+        if(t != null && t.hasCaptain()) {
+            t.captainLeft();   //Remove captain, will auto-sent a message.
+        } else {
+            // There was no captain on this team.
+            m_botAction.sendSmartPrivateMessage(name, "Freq " + freq + " does not have a captain.");
+        }
+        
+        return;
     }
-    */
-
+    
     /**
      * Handles the !rempenalty command. (ZH+)
      * 
