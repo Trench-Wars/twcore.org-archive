@@ -32,8 +32,8 @@ public class pubbotafk extends PubBotModule {
     private final static String WARNING_MESSAGE = "NOTICE: In order to keep the gameplay high in public arenas "
             + "being idle for too long is not allowed. If you intend to go away, please type \"?go " + AFK_ARENA + "\"." + " (If you stay inactive you will be moved to the subarena '" + AFK_ARENA
             + "' automatically.)";
-    private final static String WARNING_MESSAGE2 = "To declare yourself not-idle, please talk in either public or team chat. " + "Private messages are ignored.";
-    private final static String MOVE_MESSAGE = "You've been moved to the away-from-keyboard subarena - 'afk'. Type \"?go\" to return.";
+    private final static String WARNING_MESSAGE2 = "To declare yourself not-idle, please talk in either public, private or team chat. " + "Private messages are ignored.";
+    private final static String MOVE_MESSAGE = "You've been moved to the away-from-keyboard subarena - 'elim'. Type \"?go\" to return.";
     
     private boolean enabled;
     private boolean status;
@@ -42,6 +42,7 @@ public class pubbotafk extends PubBotModule {
     private OperatorList opList;
     private String sendto;
     private TreeMap<String, Idler> players;
+    private Vector<Idler> sendList;
     
     TimerTask check;
 
@@ -54,6 +55,7 @@ public class pubbotafk extends PubBotModule {
         opList = m_botAction.getOperatorList();
 
         players = new TreeMap<String, Idler>();
+        sendList = new Vector<Idler>();
         
         status = false;
         check = null;
@@ -129,6 +131,10 @@ public class pubbotafk extends PubBotModule {
     public void handleEvent(Message event) {
         int type = event.getMessageType();
         String message = event.getMessage();
+        
+        if (type == Message.ARENA_MESSAGE)
+            handleEinfo(message);
+        
         String name = m_botAction.getPlayerName(event.getPlayerID());
 
         if (name != null)
@@ -152,6 +158,15 @@ public class pubbotafk extends PubBotModule {
                     cmd_setState(name);
                 else if (opList.isSmod(name) && message.startsWith("!afktime "))
                     cmd_setTime(name, message);
+    }
+    
+    private void handleEinfo(String msg) {
+        if (!msg.contains("Idle:")) return;
+        String name = msg.substring(0, msg.indexOf(":"));
+        if (players.containsKey(name)) {
+            String idle = msg.substring(msg.indexOf("Idle: ") + 7, msg.indexOf(" s  Timer drift"));
+            players.get(name).setIdleTime(idle);
+        }
     }
 
     private void cmd_help(String messager) {
@@ -242,7 +257,7 @@ public class pubbotafk extends PubBotModule {
                 
             check = new TimerTask() {
                 public void run() {
-                    check();
+                    checkIdlers();
                 }
             };
             m_botAction.scheduleTask(check, 1000, Tools.TimeInMillis.MINUTE);
@@ -293,32 +308,39 @@ public class pubbotafk extends PubBotModule {
             check = new TimerTask() {
                 @Override
                 public void run() {
-                    check();
+                    checkIdlers();
                 }
             };
             m_botAction.scheduleTaskAtFixedRate(check, 5000, Tools.TimeInMillis.MINUTE);
         }
     }
 
-    private void check() {
+    private void checkIdlers() {
         if (status && !players.isEmpty()) {
-            Vector<Idler> list = new Vector<Idler>();
+            sendList.clear();
             for (Idler idler : players.values())
-                if (idler.check())
-                    list.add(idler);
-            
-            if (list.isEmpty()) return;
-            while (!list.isEmpty()) {
-                long delay = 0;
-                final Idler i = list.remove(0);
-                TimerTask send = new TimerTask() {
-                    public void run() {
-                        i.send();
-                    }
-                };
-                m_botAction.scheduleTask(send, delay);
-                delay += 3000;
-            }
+                idler.getEinfo();
+            TimerTask sends = new TimerTask() {
+                public void run() {
+                    doSends();
+                }
+            };
+            m_botAction.scheduleTask(sends, 10 * Tools.TimeInMillis.SECOND);
+        }
+    }
+    
+    private void doSends() {
+        if (sendList != null && sendList.isEmpty()) return;
+        while (!sendList.isEmpty()) {
+            long delay = 0;
+            final Idler i = sendList.remove(0);
+            TimerTask send = new TimerTask() {
+                public void run() {
+                    i.send();
+                }
+            };
+            m_botAction.scheduleTask(send, delay);
+            delay += 3000;
         }
     }
     
@@ -331,14 +353,21 @@ public class pubbotafk extends PubBotModule {
             name = n;
             warned = false;
             lastActive = System.currentTimeMillis();
+            getEinfo();
+        }
+        
+        public void getEinfo() {
+            m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
         }
         
         public boolean check() {
             int time = getIdleTime();
             if (time >= WARNING_TIME)
                 warn();
-            if (time >= WARNING_TIME + MOVE_TIME)
+            if (time >= WARNING_TIME + MOVE_TIME) {
+                sendList.add(this);
                 return true;
+            }
             return false;
         }
         
@@ -349,6 +378,15 @@ public class pubbotafk extends PubBotModule {
         
         public int getIdleTime() {
             return (int)(System.currentTimeMillis() - lastActive) / Tools.TimeInMillis.MINUTE;
+        }
+        
+        public void setIdleTime(String idle) {
+            // Idle: xx s  T
+            int secs = Integer.parseInt(idle);
+            lastActive = System.currentTimeMillis() - (secs * Tools.TimeInMillis.SECOND);
+            if (secs < 5)
+                warned = false;
+            this.check();
         }
         
         public void warn() {
