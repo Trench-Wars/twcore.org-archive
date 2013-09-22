@@ -1860,7 +1860,7 @@ public class hockeybot extends SubspaceBot {
      */
     private void cmd_removePenalty(String name, String args) {
         String targetName;
-        HockeyPlayer targetPlayer;
+        HockeyPlayer p;
         HockeyTeam t;
         
         if(args.isEmpty()) {
@@ -1869,28 +1869,30 @@ public class hockeybot extends SubspaceBot {
             return;
         }
 
-        targetName = m_botAction.getFuzzyPlayerName(args);
-        if(targetName == null) {
-            m_botAction.sendSmartPrivateMessage(name, "Player " + args + " does not exist.");
-            return;
-        }
+        // Try to see if there is an exact match.
+        t = getTeam(args);
         
-        if(team0.isOnTeam(targetName)) {
-            t = team0;
-        } else if(team1.isOnTeam(targetName)) {
-            t = team1;
+        // If no exact match found, try it with getFuzzyPlayerName.
+        if(t == null) {
+            targetName = m_botAction.getFuzzyPlayerName(args);
+            t = getTeam(targetName);
         } else {
+            targetName = args;
+        }
+        
+        // If we still didn't get a team from this players name, send a message back to the issuer.
+        if(t == null) {
             m_botAction.sendSmartPrivateMessage(name, 
-                    "Player " + targetName + " is not a player in any of the hockeyteams.");
+                    "Player " + args + " does not exist or is not a player in any of the hockeyteams.");
             return;
         }
         
-        targetPlayer = t.getPlayer(targetName);
+        p = t.getPlayer(targetName);
         
-        if(targetPlayer != null && targetPlayer.penalty != HockeyPenalty.NONE) {
-            targetPlayer.penaltyTimestamp = 0;
-            targetPlayer.penalty = HockeyPenalty.NONE;
-            targetPlayer.penalties--;
+        if(p != null && p.penalty != HockeyPenalty.NONE) {
+            p.penaltyTimestamp = 0;
+            p.penalty = HockeyPenalty.NONE;
+            p.penalties--;
             if(t.getFrequency() == 0) {
                 m_botAction.warpTo(targetName, config.getTeam0ExtX() / 16, config.getTeam0ExtY() / 16);
             } else {
@@ -3964,8 +3966,8 @@ public class hockeybot extends SubspaceBot {
         private int p_userID;                               // User ID of the player.
 
         /* Constants */
-        private final static int USED = 24;                 // Used in p_ship to track which ships have been used by this player.
-        private final static int PLAY_TIME = 25;            // Used in p_ship to track the playtime for each ship by this player.
+        private final static int USED = 0;                 // Used in p_ship to track which ships have been used by this player.
+        private final static int PLAY_TIME = 1;            // Used in p_ship to track the playtime for each ship by this player.
         //Ship states for p_state.
         private static final int IN = 0;                    // Player is in a ship and active.
         private static final int LAGOUT = 1;                // Player is lagged out.
@@ -3996,7 +3998,7 @@ public class hockeybot extends SubspaceBot {
 
         /** Class constructor */
         private HockeyPlayer(String player, int shipType, int frequency) {
-            p_ship = new int[9][26];
+            p_ship = new int[9][2];
             p_name = player;
             p_currentShip = shipType;
             p_frequency = frequency;
