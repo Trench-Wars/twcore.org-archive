@@ -457,7 +457,6 @@ public class hockeybot extends SubspaceBot {
             
             if (p != null) {
                 pID = p.getPlayerID();
-                //newPlayerUpdateScoreBoard(pID);
                 scoreOverlay.displayAll(pID);
             }
             
@@ -2493,8 +2492,9 @@ public class hockeybot extends SubspaceBot {
         timeStamp = System.currentTimeMillis();
         m_botAction.sendArenaMessage("Captains you have 10 minutes to set up your lineup correctly!",
                 Tools.Sound.BEEP2);
-        //showTeamNameObjects();
+        
         roundTime = 10 * 60;
+        
         scoreOverlay.updateNames();
         scoreOverlay.updateTime(roundTime);
 
@@ -2523,7 +2523,7 @@ public class hockeybot extends SubspaceBot {
         // To avoid any racing conditions, set the current state to WAIT.
         // This prevents the bot from accidentally doing stuff that influences the commands here.
         currentState = HockeyState.WAIT;
-        //updateScoreBoard();
+
         scoreOverlay.updateAll(gameTime);
 
         puck.clear();
@@ -2733,7 +2733,6 @@ public class hockeybot extends SubspaceBot {
         // This prevents the bot from accidentally doing stuff that influences the commands here.
         currentState = HockeyState.WAIT;
         
-        //clearTeamNameObjects();
         scoreOverlay.clearAllObjects();
         scoreOverlay.resetVariables();
 
@@ -3386,8 +3385,7 @@ public class hockeybot extends SubspaceBot {
         gameTime = 0;
         team0.resetVariables();
         team1.resetVariables();
-        //clearObjects();
-        //clearTeamNameObjects();
+        
         scoreOverlay.clearAllObjects();
         scoreOverlay.resetVariables();
         
@@ -3444,127 +3442,12 @@ public class hockeybot extends SubspaceBot {
     }
     
     /**
-     * Removes the team names from the overlay for every player in the arena.
-     */
-    @Deprecated
-    private void clearTeamNameObjects() {
-        //"FREQ0" team name
-        m_botAction.hideObject(350);
-        m_botAction.hideObject(471);
-        m_botAction.hideObject(342);
-        m_botAction.hideObject(463);
-        m_botAction.hideObject(564);
-        //"FREQ1" team name
-        m_botAction.hideObject(355);
-        m_botAction.hideObject(476);
-        m_botAction.hideObject(347);
-        m_botAction.hideObject(468);
-        m_botAction.hideObject(579);
-    }
-    
-    /**
-     * Adds the team names to the overlay for every player in the arena.
-     */
-    @Deprecated
-    private void showTeamNameObjects() {
-        //"FREQ0" team name
-        m_botAction.showObject(350);
-        m_botAction.showObject(471);
-        m_botAction.showObject(342);
-        m_botAction.showObject(463);
-        m_botAction.showObject(564);
-        //"FREQ1" team name
-        m_botAction.showObject(355);
-        m_botAction.showObject(476);
-        m_botAction.showObject(347);
-        m_botAction.showObject(468);
-        m_botAction.showObject(579);
-    }
-    
-    /**
-     * Adds the team names to the overlay of a specific player.
-     * @param pID ID of player
-     */
-    @Deprecated
-    private void pmShowTeamNameObjects(int pID) {
-        //"FREQ0" team name
-        m_botAction.showObjectForPlayer(pID,350);
-        m_botAction.showObjectForPlayer(pID,471);
-        m_botAction.showObjectForPlayer(pID,342);
-        m_botAction.showObjectForPlayer(pID,463);
-        m_botAction.showObjectForPlayer(pID,564);
-        //"FREQ1" team name
-        m_botAction.showObjectForPlayer(pID,355);
-        m_botAction.showObjectForPlayer(pID,476);
-        m_botAction.showObjectForPlayer(pID,347);
-        m_botAction.showObjectForPlayer(pID,468);
-        m_botAction.showObjectForPlayer(pID,579);
-    }
-    
-    /**
-     * Clears the score from the overlay.
-     */
-    @Deprecated
-    private void clearObjects() {
-        //TODO adjust this for different goal targets.
-        //0-7 for freq 0
-        m_botAction.hideObject(100);
-        m_botAction.hideObject(101);
-        m_botAction.hideObject(102);
-        m_botAction.hideObject(103);
-        m_botAction.hideObject(104);
-        m_botAction.hideObject(105);
-        m_botAction.hideObject(106);
-        m_botAction.hideObject(107);
-        //0-7 for freq 1
-        m_botAction.hideObject(200);
-        m_botAction.hideObject(201);
-        m_botAction.hideObject(202);
-        m_botAction.hideObject(203);
-        m_botAction.hideObject(204);
-        m_botAction.hideObject(205);
-        m_botAction.hideObject(206);
-        m_botAction.hideObject(207);
-        
-    }
-    
-    /**
-     * Updates the scoreboard overlay for a player who entered the arena mid-game.
-     * @param pID ID of player.
-     */
-    @Deprecated
-    private void newPlayerUpdateScoreBoard(int pID) {
-        int team0Score = team0.getScore();
-        int team1Score = team1.getScore();
-        
-        pmShowTeamNameObjects(pID);
-        m_botAction.showObjectForPlayer(pID, 100 + team0Score);
-        m_botAction.showObjectForPlayer(pID, 200 + team1Score);
-    }
-    
-    /**
-     * Updates the scoreboard overlay for everyone in the arena.
-     */
-    @Deprecated
-    private void updateScoreBoard() {
-        int team0Score = team0.getScore();
-        int team1Score = team1.getScore();
-        clearObjects();
-        m_botAction.showObject(100 + team0Score);
-        m_botAction.showObject(200 + team1Score);
-    }
-
-    /**
      * Displays the scores
      */
     private void displayScores() {
         //TODO Optimize for speed. (I.e. get rid of Tools.centerString where possible.)
         ArrayList<String> spam = new ArrayList<String>();
         spam.add("+----------------------+----------------------+");
-/*        spam.add("| " + Tools.centerString("Freq 0", 20) 
-                      +                " | " 
-                      + Tools.centerString("Freq 1", 20)    
-                      +                                       " |");*/
         spam.add("| " + Tools.centerString(team0.getName(), 20) 
                       +                " | " 
                       + Tools.centerString(team1.getName(), 20)    
@@ -4755,7 +4638,6 @@ public class hockeybot extends SubspaceBot {
          */
         private void increaseScore() {
             teamScore++;
-            //updateScoreBoard();
             scoreOverlay.updateScores();
         }
         
@@ -4764,7 +4646,6 @@ public class hockeybot extends SubspaceBot {
          */
         private void decreaseScore() {
             teamScore--;
-            //updateScoreBoard();
             scoreOverlay.updateScores();
         }
         
@@ -6571,7 +6452,6 @@ public class hockeybot extends SubspaceBot {
                 m_botAction.sendArenaMessage("Bot has been shutdown.", Tools.Sound.GAME_SUCKS);
                 reset();
                 unlockArena();
-                //clearObjects();
                 scoreOverlay.clearAllObjects();
             }
         }
