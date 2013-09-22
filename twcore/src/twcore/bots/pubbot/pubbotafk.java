@@ -164,7 +164,7 @@ public class pubbotafk extends PubBotModule {
         if (!msg.contains("Idle:")) return;
         String name = msg.substring(0, msg.indexOf(":"));
         if (players.containsKey(name)) {
-            String idle = msg.substring(msg.indexOf("Idle: ") + 7, msg.indexOf(" s  Timer drift"));
+            String idle = msg.substring(msg.indexOf("Idle: ") + 6, msg.indexOf(" s  Timer drift"));
             players.get(name).setIdleTime(idle);
         }
     }
