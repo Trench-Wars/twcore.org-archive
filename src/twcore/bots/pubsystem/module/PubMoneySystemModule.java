@@ -2258,21 +2258,26 @@ public class PubMoneySystemModule extends AbstractModule {
         }
 
         protected void prepare() {
+            int freq;
             Player p = m_botAction.getPlayer(sender);
-            if (p == null)
+            if (p == null) {
                 commandBot("!Die");
+                return;
+            }
+            // Store frequency in case the player decides to DC within the next two seconds.
+            freq = p.getFrequency();
             
             commandBot("!Go " + m_botAction.getArenaName().substring(8, 9));
             try {
                 Thread.sleep(2 * Tools.TimeInMillis.SECOND);
             } catch (InterruptedException e) {}
-            commandBot("!SetFreq " + p.getFrequency());
+            commandBot("!SetFreq " + freq);
             commandBot("!SetShip 5");
-            commandBot("!SetFreq " + p.getFrequency());
-            if (p.getFrequency() == 0) {
+            commandBot("!SetFreq " + freq);
+            if (freq == 0) {
                 commandBot("!WarpTo 486 260");
                 commandBot("!Face 15");
-            } else if (p.getFrequency() == 1) {
+            } else if (freq == 1) {
                 commandBot("!WarpTo 538 260");
                 commandBot("!Face 25");
             } else {
@@ -2298,8 +2303,16 @@ public class PubMoneySystemModule extends AbstractModule {
         }
 
         protected void prepare() {
-
-            Player p = m_botAction.getPlayer(sender);
+            int freq;
+            
+            Player p = m_botAction.getPlayer(sender);           
+            if (p == null) {
+                commandBot("!Die");
+                return;
+            }
+            // Store frequency in case the player decides to DC within the next 2.5 seconds.
+            freq = p.getFrequency();
+            
             commandBot("!Go " + m_botAction.getArenaName().substring(8, 9));
             try {
                 Thread.sleep(2 * Tools.TimeInMillis.SECOND);
@@ -2308,7 +2321,7 @@ public class PubMoneySystemModule extends AbstractModule {
             try {
                 Thread.sleep(250);
             } catch (InterruptedException e) {}
-            commandBot("!SetFreq " + p.getFrequency());
+            commandBot("!SetFreq " + freq);
             try {
                 Thread.sleep(250);
             } catch (InterruptedException e) {}
