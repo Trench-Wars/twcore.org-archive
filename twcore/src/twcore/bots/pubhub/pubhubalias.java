@@ -68,6 +68,9 @@ public class pubhubalias extends PubBotModule {
     private Map<String, WatchComment> watchedIPs;
     private Map<String, WatchComment> watchedNames;
     private Map<String, WatchComment> watchedMIDs;
+    private Map<String, WatchComment> watchedLNames;    // Watched names starting with String.
+    private Map<String, WatchComment> watchedRNames;    // Watched names ending with String.
+    private Map<String, WatchComment> watchedPNames;    // Watched names containing String.
     //    < IP , Comment >
     //    < MID, Comment >
     //    <Name, Comment >
@@ -91,6 +94,9 @@ public class pubhubalias extends PubBotModule {
         watchedIPs = Collections.synchronizedMap(new HashMap<String, WatchComment>());
         watchedNames = Collections.synchronizedMap(new HashMap<String, WatchComment>());
         watchedMIDs = Collections.synchronizedMap(new HashMap<String, WatchComment>());
+        watchedLNames = Collections.synchronizedMap(new HashMap<String, WatchComment>());
+        watchedRNames = Collections.synchronizedMap(new HashMap<String, WatchComment>());
+        watchedPNames = Collections.synchronizedMap(new HashMap<String, WatchComment>()); 
         clearRecordTask = new ClearRecordTask();
         hider = new Hider(m_botAction);
 
@@ -509,6 +515,9 @@ public class pubhubalias extends PubBotModule {
                 "!PartialIP <IP>                - Alias by <PARTIALIP>", "!AltMID   <MacID>              - Alias by <MacID>", "!Info     <PlayerName>         - Shows stored info of <PlayerName>",
                 "!Compare  <Player1>:<Player2>  - Compares and shows matches", "!MaxResults <#>                - Changes the max. number of results to return",
                 "!NameWatch <Name>:<reason>     - Watches logins for <Name> with the specified <reason>", "!NameWatch <Name>              - Disables the login watch for <Name>",
+                "!LNameWatch <Name>:<reason>    - Watches logins that start with <Name> with the specified <reason>", "!LNameWatch <Name>             - Disables the left partial login watch for <Name>",
+                "!RNameWatch <Name>:<reason>    - Watches logins that end with <Name> with the specified <reason>", "!RNameWatch <Name>             - Disables the right partial login watch for <Name>",
+                "!PNameWatch <Name>:<reason>    - Watches logins that contain <Name> with the specified <reason>", "!PNameWatch <Name>             - Disables the partial login watch for <Name>",
                 "!IPWatch   <IP>:<reason>       - Watches logins for <IP> with the specified <reason>", "!IPWatch   <IP>                - Disables the login watch for <IP>",
                 "!MIDWatch  <MID>:<reason>      - Watches logins for <MID> with the specified <reason>", "!MIDWatch  <MID>               - Disables the login watch for <MID>",
                 "!ClearNameWatch                - Clears all login watches for names", "!ClearIPWatch                  - Clears all login watches for IPs",
@@ -695,7 +704,97 @@ public class pubhubalias extends PubBotModule {
             saveWatches();
         }
     }
+    
+    /**
+     * Starts watching for a left partial name to log on.
+     * 
+     * @param name
+     *            Name to watch for
+     */
+    public void doLNameWatchCmd(String sender, String message) {
+        String[] params = message.split(":");
+        String name = params[0].trim();
+        String lcname = name.toLowerCase();
+        if (watchedLNames.containsKey(lcname) && (params.length == 1 || params[1] == null || params[1].length() == 0)) {
+            watchedLNames.remove(lcname);
+            m_botAction.sendChatMessage("Login watching disabled for '" + name + "'.");
+            saveWatches();
+        } else if (params.length == 1 || params[1] == null || params[1].length() == 0) {
+            m_botAction.sendChatMessage("Please specify a comment/reason after the name seperated by a : . For example, !LNameWatch Wing:Evil genius.");
+        } else {
+            String comment = params[1].trim();
 
+            if (watchedLNames.containsKey(lcname)) {
+                m_botAction.sendChatMessage("Login watching for '" + name + "' reason changed.");
+            } else {
+                m_botAction.sendChatMessage("Login watching enabled for '" + name + "'.");
+            }
+            String date = sdf.format(System.currentTimeMillis());
+            watchedLNames.put(lcname, new WatchComment(date, sender + ": " + comment));
+            saveWatches();
+        }
+    }
+    
+    /**
+     * Starts watching for a name to log on.
+     * 
+     * @param name
+     *            Name to watch for
+     */
+    public void doRNameWatchCmd(String sender, String message) {
+        String[] params = message.split(":");
+        String name = params[0].trim();
+        String lcname = name.toLowerCase();
+        if (watchedRNames.containsKey(lcname) && (params.length == 1 || params[1] == null || params[1].length() == 0)) {
+            watchedRNames.remove(lcname);
+            m_botAction.sendChatMessage("Login watching disabled for '" + name + "'.");
+            saveWatches();
+        } else if (params.length == 1 || params[1] == null || params[1].length() == 0) {
+            m_botAction.sendChatMessage("Please specify a comment/reason after the name seperated by a : . For example, !RNameWatch PAP:Lazy Dev.");
+        } else {
+            String comment = params[1].trim();
+
+            if (watchedRNames.containsKey(lcname)) {
+                m_botAction.sendChatMessage("Login watching for '" + name + "' reason changed.");
+            } else {
+                m_botAction.sendChatMessage("Login watching enabled for '" + name + "'.");
+            }
+            String date = sdf.format(System.currentTimeMillis());
+            watchedRNames.put(lcname, new WatchComment(date, sender + ": " + comment));
+            saveWatches();
+        }
+    }
+    
+    /**
+     * Starts watching for a name to log on.
+     * 
+     * @param name
+     *            Name to watch for
+     */
+    public void doPNameWatchCmd(String sender, String message) {
+        String[] params = message.split(":");
+        String name = params[0].trim();
+        String lcname = name.toLowerCase();
+        if (watchedPNames.containsKey(lcname) && (params.length == 1 || params[1] == null || params[1].length() == 0)) {
+            watchedPNames.remove(lcname);
+            m_botAction.sendChatMessage("Login watching disabled for '" + name + "'.");
+            saveWatches();
+        } else if (params.length == 1 || params[1] == null || params[1].length() == 0) {
+            m_botAction.sendChatMessage("Please specify a comment/reason after the name seperated by a : . For example, !PNameWatch eft_Ey:Birthday watch.");
+        } else {
+            String comment = params[1].trim();
+
+            if (watchedPNames.containsKey(lcname)) {
+                m_botAction.sendChatMessage("Login watching for '" + name + "' reason changed.");
+            } else {
+                m_botAction.sendChatMessage("Login watching enabled for '" + name + "'.");
+            }
+            String date = sdf.format(System.currentTimeMillis());
+            watchedPNames.put(lcname, new WatchComment(date, sender + ": " + comment));
+            saveWatches();
+        }
+    }
+    
     /**
      * Starts watching for a given MacID.
      * 
@@ -755,6 +854,33 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
+     * Stops all left hand name watching.
+     */
+    public void doClearLNameWatchCmd() {
+        watchedLNames.clear();
+        m_botAction.sendChatMessage("All watched left names cleared.");
+        saveWatches();
+    }
+    
+    /**
+     * Stops all right hand name watching.
+     */
+    public void doClearRNameWatchCmd() {
+        watchedRNames.clear();
+        m_botAction.sendChatMessage("All watched right names cleared.");
+        saveWatches();
+    }
+    
+    /**
+     * Stops all partial name watching.
+     */
+    public void doClearPNameWatchCmd() {
+        watchedPNames.clear();
+        m_botAction.sendChatMessage("All watched partial names cleared.");
+        saveWatches();
+    }
+    
+    /**
      * Shows current watches.
      */
     public void doShowWatchesCmd() {
@@ -780,6 +906,30 @@ public class pubhubalias extends PubBotModule {
         for (String Name : watchedNames.keySet()) {
             WatchComment com = watchedNames.get(Name);
             m_botAction.sendChatMessage(com.date + " Name: " + Name + "  ( " + com.comment + " )");
+        }
+        
+        if (watchedLNames.size() == 0) {
+            m_botAction.sendChatMessage("Left Name: (none)");
+        }
+        for (String Name : watchedLNames.keySet()) {
+            WatchComment com = watchedLNames.get(Name);
+            m_botAction.sendChatMessage(com.date + " Left Name: " + Name + "  ( " + com.comment + " )");
+        }
+        
+        if (watchedRNames.size() == 0) {
+            m_botAction.sendChatMessage("Right Name: (none)");
+        }
+        for (String Name : watchedRNames.keySet()) {
+            WatchComment com = watchedRNames.get(Name);
+            m_botAction.sendChatMessage(com.date + " Right Name: " + Name + "  ( " + com.comment + " )");
+        }
+        
+        if (watchedPNames.size() == 0) {
+            m_botAction.sendChatMessage("Partial Name: (none)");
+        }
+        for (String Name : watchedPNames.keySet()) {
+            WatchComment com = watchedPNames.get(Name);
+            m_botAction.sendChatMessage(com.date + " Partial Name: " + Name + "  ( " + com.comment + " )");
         }
     }
     
@@ -848,12 +998,24 @@ public class pubhubalias extends PubBotModule {
                 doNameWatchCmd(sender, message.substring(11).trim());
             else if (command.startsWith("!midwatch "))
                 doMIDWatchCmd(sender, message.substring(10).trim());
+            else if (command.startsWith("!lnamewatch "))
+                doLNameWatchCmd(sender, message.substring(12).trim());
+            else if (command.startsWith("!rnamewatch "))
+                doRNameWatchCmd(sender, message.substring(12).trim());
+            else if (command.startsWith("!pnamewatch "))
+                doPNameWatchCmd(sender, message.substring(12).trim());
             else if (command.equals("!clearipwatch"))
                 doClearIPWatchCmd();
             else if (command.equals("!clearnamewatch"))
                 doClearNameWatchCmd();
             else if (command.equals("!clearmidwatch"))
                 doClearMIDWatchCmd();
+            else if (command.equals("!clearlnamewatch"))
+                doClearLNameWatchCmd();
+            else if (command.equals("!clearrnamewatch"))
+                doClearRNameWatchCmd();
+            else if (command.equals("!clearpnamewatch"))
+                doClearPNameWatchCmd();
             else if (command.equals("!showwatches"))
                 doShowWatchesCmd();
             else if (command.equals("!sortbyname")) {
@@ -922,6 +1084,9 @@ public class pubhubalias extends PubBotModule {
         checkName(playerName, playerIP, playerMacID);
         checkIP(playerName, playerIP, playerMacID);
         checkMID(playerName, playerIP, playerMacID);
+        checkLName(playerName, playerIP, playerMacID);
+        checkRName(playerName, playerIP, playerMacID);
+        checkPName(playerName, playerIP, playerMacID);
 
         try {
             recordInfo(playerName, playerIP, playerMacID);
@@ -946,6 +1111,66 @@ public class pubhubalias extends PubBotModule {
         }
     }
 
+    /**
+     * Check if a name is being watched for, and notify on chat if so.
+     * Used for left partial matches. (Starts with)
+     * 
+     * @param name
+     *            Name to check
+     * @param IP
+     *            IP of player
+     * @param MacId
+     *            MacID of player
+     */
+    public void checkLName(String name, String IP, String MacID) {
+        for (String startName : watchedLNames.keySet()) {
+            if (name.toLowerCase().startsWith(startName)) {
+                m_botAction.sendChatMessage("LEFT PARTIAL NAMEWATCH: '" + name + "' logged in.  (IP: " + IP + ", MID: " + MacID + ")");
+                m_botAction.sendChatMessage("           " + watchedLNames.get(startName));
+            }
+        }
+    }
+    
+    /**
+     * Check if a name is being watched for, and notify on chat if so.
+     * Used for right partial matches. (Ends with)
+     * 
+     * @param name
+     *            Name to check
+     * @param IP
+     *            IP of player
+     * @param MacId
+     *            MacID of player
+     */
+    public void checkRName(String name, String IP, String MacID) {
+        for (String startName : watchedRNames.keySet()) {
+            if (name.toLowerCase().startsWith(startName)) {
+                m_botAction.sendChatMessage("RIGHT PARTIAL NAMEWATCH: '" + name + "' logged in.  (IP: " + IP + ", MID: " + MacID + ")");
+                m_botAction.sendChatMessage("           " + watchedRNames.get(startName));
+            }
+        }
+    }
+    
+    /**
+     * Check if a name is being watched for, and notify on chat if so.
+     * Used for partial matches. (Contains)
+     * 
+     * @param name
+     *            Name to check
+     * @param IP
+     *            IP of player
+     * @param MacId
+     *            MacID of player
+     */
+    public void checkPName(String name, String IP, String MacID) {
+        for (String startName : watchedRNames.keySet()) {
+            if (name.toLowerCase().contains(startName)) {
+                m_botAction.sendChatMessage("PARTIAL NAMEWATCH: '" + name + "' logged in.  (IP: " + IP + ", MID: " + MacID + ")");
+                m_botAction.sendChatMessage("           " + watchedPNames.get(startName));
+            }
+        }
+    }
+    
     /**
      * Check if an IP is being watched for, and notify on chat if so.
      * 
@@ -1114,6 +1339,9 @@ public class pubhubalias extends PubBotModule {
         watchedIPs.clear();
         watchedMIDs.clear();
         watchedNames.clear();
+        watchedLNames.clear();
+        watchedRNames.clear();
+        watchedPNames.clear();
 
         // Load the IP watches from the configuration
         while (loop) {
@@ -1160,6 +1388,54 @@ public class pubhubalias extends PubBotModule {
             }
         }
 
+        // Load the Left Partial Name watches from the configuration
+        loop = true;
+        i = 1;
+
+        while (loop) {
+            String NameWatch = cfg.getString("LeftNameWatch" + i);
+            if (NameWatch != null && NameWatch.trim().length() > 0) {
+                String[] NameWatchSplit = NameWatch.split(":", 3);
+                if (NameWatchSplit.length == 3)       // Check for corrupted data
+                    watchedLNames.put(NameWatchSplit[1], new WatchComment(NameWatchSplit[0], NameWatchSplit[2]));
+                i++;
+            } else {
+                loop = false;
+            }
+        }
+        
+        // Load the Right Partial Name watches from the configuration
+        loop = true;
+        i = 1;
+
+        while (loop) {
+            String NameWatch = cfg.getString("RightNameWatch" + i);
+            if (NameWatch != null && NameWatch.trim().length() > 0) {
+                String[] NameWatchSplit = NameWatch.split(":", 3);
+                if (NameWatchSplit.length == 3)       // Check for corrupted data
+                    watchedRNames.put(NameWatchSplit[1], new WatchComment(NameWatchSplit[0], NameWatchSplit[2]));
+                i++;
+            } else {
+                loop = false;
+            }
+        }
+        
+        // Load the Partial Name watches from the configuration
+        loop = true;
+        i = 1;
+
+        while (loop) {
+            String NameWatch = cfg.getString("PartialNameWatch" + i);
+            if (NameWatch != null && NameWatch.trim().length() > 0) {
+                String[] NameWatchSplit = NameWatch.split(":", 3);
+                if (NameWatchSplit.length == 3)       // Check for corrupted data
+                    watchedPNames.put(NameWatchSplit[1], new WatchComment(NameWatchSplit[0], NameWatchSplit[2]));
+                i++;
+            } else {
+                loop = false;
+            }
+        }
+        
         // Done loading watches
     }
 
@@ -1212,10 +1488,67 @@ public class pubhubalias extends PubBotModule {
             cfg.put("NameWatch" + i, com.date + ":" + Name + ":" + com.comment);
             i++;
         }
-        // Clear any other still stored MID watches
+        // Clear any other still stored Name watches
         while (loop) {
             if (cfg.getString("NameWatch" + i) != null) {
                 cfg.remove("NameWatch" + i);
+                i++;
+            } else {
+                loop = false;
+            }
+        }
+        
+        i = 1;
+        loop = true;
+
+        // Save LName watches
+        for (String Name : watchedLNames.keySet()) {
+            WatchComment com = watchedLNames.get(Name);
+            cfg.put("LeftNameWatch" + i, com.date + ":" + Name + ":" + com.comment);
+            i++;
+        }
+        // Clear any other still stored LName watches
+        while (loop) {
+            if (cfg.getString("LeftNameWatch" + i) != null) {
+                cfg.remove("LeftNameWatch" + i);
+                i++;
+            } else {
+                loop = false;
+            }
+        }
+        
+        i = 1;
+        loop = true;
+
+        // Save RName watches
+        for (String Name : watchedRNames.keySet()) {
+            WatchComment com = watchedRNames.get(Name);
+            cfg.put("RightNameWatch" + i, com.date + ":" + Name + ":" + com.comment);
+            i++;
+        }
+        // Clear any other still stored RName watches
+        while (loop) {
+            if (cfg.getString("RightNameWatch" + i) != null) {
+                cfg.remove("RightNameWatch" + i);
+                i++;
+            } else {
+                loop = false;
+            }
+        }
+        
+        i = 1;
+        loop = true;
+
+        // Save PName watches
+        for (String Name : watchedPNames.keySet()) {
+            WatchComment com = watchedPNames.get(Name);
+            cfg.put("PartialNameWatch" + i, com.date + ":" + Name + ":" + com.comment);
+            i++;
+        }
+        // Clear any other still stored PName watches
+        while (loop) {
+            if (cfg.getString("PartialNameWatch" + i) != null) {
+                cfg.remove("PartialNameWatch" + i);
                 i++;
             } else {
                 loop = false;
