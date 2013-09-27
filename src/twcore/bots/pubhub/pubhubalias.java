@@ -1144,7 +1144,7 @@ public class pubhubalias extends PubBotModule {
      */
     public void checkRName(String name, String IP, String MacID) {
         for (String startName : watchedRNames.keySet()) {
-            if (name.toLowerCase().startsWith(startName)) {
+            if (name.toLowerCase().endsWith(startName)) {
                 m_botAction.sendChatMessage("RIGHT PARTIAL NAMEWATCH: '" + name + "' logged in.  (IP: " + IP + ", MID: " + MacID + ")");
                 m_botAction.sendChatMessage("           " + watchedRNames.get(startName));
             }
@@ -1163,7 +1163,7 @@ public class pubhubalias extends PubBotModule {
      *            MacID of player
      */
     public void checkPName(String name, String IP, String MacID) {
-        for (String startName : watchedRNames.keySet()) {
+        for (String startName : watchedPNames.keySet()) {
             if (name.toLowerCase().contains(startName)) {
                 m_botAction.sendChatMessage("PARTIAL NAMEWATCH: '" + name + "' logged in.  (IP: " + IP + ", MID: " + MacID + ")");
                 m_botAction.sendChatMessage("           " + watchedPNames.get(startName));
