@@ -68,9 +68,9 @@ public class pubbotbanc extends PubBotModule {
     public void initializeModule() {
         m_botAction.ipcSubscribe(IPCBANC);
         silentKicks = false;
-        DEBUG = true;
+        DEBUG = false;
         proxy = true;
-        debugger = "ThePAP";
+        debugger = null;
         bancSilence = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         bancSpec = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         bancSuper = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
@@ -330,15 +330,12 @@ public class pubbotbanc extends PubBotModule {
         String ip = getInfo(info, "IP:");
         String mid = getInfo(info, "MachineId:");
 
-        debug("Name: " + name + "; Length: " + name.length() +"; Substring: " + name.substring(0, MAX_NAME_LENGTH));
         if (name.length() > MAX_NAME_LENGTH) {
-            Player p = m_botAction.getPlayer(name.substring(0, MAX_NAME_LENGTH));
+            Player p = m_botAction.getPlayer(name.substring(0, MAX_NAME_LENGTH).trim());
             if (p != null) {
                 final int id = p.getPlayerID();
-                debug("ID: " + id);
                 TimerTask kick = new TimerTask() {
                     public void run() {
-                        debug("Inside run task");
                         m_botAction.sendPrivateMessage(id, "You have been kicked from the server! Names containing more than 19 characters are no longer allowed in SSCU Trench Wars.");
                         m_botAction.sendUnfilteredPrivateMessage(id, "*kill");
                         if (!silentKicks)
@@ -348,13 +345,7 @@ public class pubbotbanc extends PubBotModule {
                 };
                 m_botAction.scheduleTask(kick, 3200);
                 return;
-            } else {
-                debug("p == null; Trimmed p" + ((m_botAction.getPlayer(name.substring(0, MAX_NAME_LENGTH).trim())==null)?"==":"!=") + "null");
-                m_botAction.sendUnfilteredPrivateMessage(name, "Full Name");
-                m_botAction.sendUnfilteredPrivateMessage(name.substring(0, MAX_NAME_LENGTH), "Partial Name");
-                m_botAction.sendUnfilteredPrivateMessage(name.substring(0, MAX_NAME_LENGTH).trim(), "Trimmed Name");
             }
-            
         }
 
         if (bancSilence.containsKey(name)) {
