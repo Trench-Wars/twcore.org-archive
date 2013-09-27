@@ -68,9 +68,9 @@ public class pubbotbanc extends PubBotModule {
     public void initializeModule() {
         m_botAction.ipcSubscribe(IPCBANC);
         silentKicks = false;
-        DEBUG = false;
+        DEBUG = true;
         proxy = true;
-        debugger = null;
+        debugger = "ThePAP";
         bancSilence = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         bancSpec = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         bancSuper = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
@@ -330,6 +330,7 @@ public class pubbotbanc extends PubBotModule {
         String ip = getInfo(info, "IP:");
         String mid = getInfo(info, "MachineId:");
 
+        debug("Info: " + info + "; Name: " + name + "; Length: " + name.length());
         if (name.length() > MAX_NAME_LENGTH) {
             Player p = m_botAction.getPlayer(name.substring(0, MAX_NAME_LENGTH));
             if (p != null) {
