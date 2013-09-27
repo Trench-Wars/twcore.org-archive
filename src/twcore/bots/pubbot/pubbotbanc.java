@@ -349,7 +349,7 @@ public class pubbotbanc extends PubBotModule {
                 m_botAction.scheduleTask(kick, 3200);
                 return;
             } else {
-                debug("p == null; Full p" + ((m_botAction.getPlayer(name)==null)?"==":"!=") + "null");
+                debug("p == null; Trimmed p" + ((m_botAction.getPlayer(name.trim())==null)?"==":"!=") + "null");
             }
             
         }
