@@ -330,13 +330,15 @@ public class pubbotbanc extends PubBotModule {
         String ip = getInfo(info, "IP:");
         String mid = getInfo(info, "MachineId:");
 
-        debug("Info: " + info + "; Name: " + name + "; Length: " + name.length());
+        debug("Name: " + name + "; Length: " + name.length() +"; Substring: " + name.substring(0, MAX_NAME_LENGTH));
         if (name.length() > MAX_NAME_LENGTH) {
             Player p = m_botAction.getPlayer(name.substring(0, MAX_NAME_LENGTH));
             if (p != null) {
                 final int id = p.getPlayerID();
+                debug("ID: " + id);
                 TimerTask kick = new TimerTask() {
                     public void run() {
+                        debug("Inside run task");
                         m_botAction.sendPrivateMessage(id, "You have been kicked from the server! Names containing more than 19 characters are no longer allowed in SSCU Trench Wars.");
                         m_botAction.sendUnfilteredPrivateMessage(id, "*kill");
                         if (!silentKicks)
@@ -346,7 +348,10 @@ public class pubbotbanc extends PubBotModule {
                 };
                 m_botAction.scheduleTask(kick, 3200);
                 return;
+            } else {
+                debug("p == null; Full p" + ((m_botAction.getPlayer(name)==null)?"==":"!=") + "null");
             }
+            
         }
 
         if (bancSilence.containsKey(name)) {
