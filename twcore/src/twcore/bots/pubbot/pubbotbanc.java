@@ -349,7 +349,10 @@ public class pubbotbanc extends PubBotModule {
                 m_botAction.scheduleTask(kick, 3200);
                 return;
             } else {
-                debug("p == null; Trimmed p" + ((m_botAction.getPlayer(name.trim())==null)?"==":"!=") + "null");
+                debug("p == null; Trimmed p" + ((m_botAction.getPlayer(name.substring(0, MAX_NAME_LENGTH).trim())==null)?"==":"!=") + "null");
+                m_botAction.sendUnfilteredPrivateMessage(name, "Full Name");
+                m_botAction.sendUnfilteredPrivateMessage(name.substring(0, MAX_NAME_LENGTH), "Partial Name");
+                m_botAction.sendUnfilteredPrivateMessage(name.substring(0, MAX_NAME_LENGTH).trim(), "Trimmed Name");
             }
             
         }
