@@ -56,7 +56,7 @@ public class policebot extends SubspaceBot {
         current = null;
         perp = null;
         locating = false;
-        debugger = null;
+        debugger = "WingZero";
     }
 
     /** Request events **/
@@ -178,10 +178,13 @@ public class policebot extends SubspaceBot {
             if (ipc.isAll()) {
                 @SuppressWarnings("unchecked")
                 ListIterator<String> i = (ListIterator<String>) ipc.getList();
+                debug("ipc.getList() " + (ipc.getList() == null ? "null" : "not null"));
                 while (i.hasNext())
                     handleSilence(i.next());
-            } else
+            } else {
+                debug("ipc.getName() == " + ipc.getName());
                 handleSilence(ipc.getName());
+            }
         } else if (IPCBANC.equals(event.getChannel())
                 && event.getObject() != null
                 && event.getObject() instanceof IPCMessage
