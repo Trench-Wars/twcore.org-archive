@@ -178,11 +178,12 @@ public class policebot extends SubspaceBot {
             if (ipc.isAll()) {
                 @SuppressWarnings("unchecked")
                 ListIterator<String> i = (ListIterator<String>) ipc.getList();
-                debug("ipc.getList() " + (ipc.getList() == null ? "null" : "not null"));
-                while (i.hasNext())
-                    handleSilence(i.next());
+                while (i.hasNext()) {
+                    String in = i.next();
+                    debug("i.next = " + in);
+                    handleSilence(in);
+                }
             } else {
-                debug("ipc.getName() == " + ipc.getName());
                 handleSilence(ipc.getName());
             }
         } else if (IPCBANC.equals(event.getChannel())
@@ -308,7 +309,10 @@ public class policebot extends SubspaceBot {
         if (!args[4].equals("SILENCE"))
             return;
         Silence banc = new Silence(cmd);
-        silences.put(banc.getName(), banc);
+        String target = getTarget(banc);
+        if (target == null)
+            target = banc.getName();
+        silences.put(target, banc);
     }
 
     /**
