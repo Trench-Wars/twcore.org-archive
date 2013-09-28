@@ -171,10 +171,10 @@ public class policebot extends SubspaceBot {
      */
     public void handleEvent(InterProcessEvent event) {
         if (IPCBANC.equals(event.getChannel()) && event.getObject() instanceof IPCEvent) {
-            debug("Got IPCEvent");
             // This is usually used when StaffBot is sending to ALL pubbots
             IPCEvent ipc = (IPCEvent) event.getObject();
-            if (ipc.getType() < 0) {
+            debug("Got IPCEvent - type: " + ipc.getType());
+            if (ipc.getType() < 1) {
                 if (ipc.isAll()) {
                     @SuppressWarnings("unchecked")
                     ListIterator<String> i = (ListIterator<String>) ipc.getList();
