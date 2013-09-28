@@ -330,7 +330,7 @@ public class staffbot_banc extends Module {
         if (!(event.getObject() instanceof IPCMessage))
             return;
 
-        if (IPCBANC.equals(event.getChannel()) && event.getSenderName().startsWith("TW-Guard")) {
+        if (IPCBANC.equals(event.getChannel()) && (event.getSenderName().startsWith("TW-Guard") || event.getSenderName().startsWith("TW-Police"))) {
             IPCMessage ipc = (IPCMessage) event.getObject();
             String command = ipc.getMessage();
             String[] args = command.split(":");
@@ -2121,8 +2121,9 @@ public class staffbot_banc extends Module {
      */
     private void sendIPCActiveBanCs(String receiver) {
         int bot = -1;
-        if (receiver != null && receiver.startsWith("TW-Guard"))
-            bot = Integer.valueOf(receiver.substring(8));
+        if (receiver != null)
+            if (receiver.startsWith("TW-Guard"))
+                bot = Integer.valueOf(receiver.substring(8));
         LinkedList<String> l = new LinkedList<String>();
         for (BanC b : activeBanCs)
             l.add(b.getPlayername() + ":" + (b.getIP() != null ? b.getIP() : " ") + ":" + (b.getMID() != null ? b.getMID() : " ") + ":"
