@@ -101,7 +101,7 @@ public class policebot extends SubspaceBot {
         String message = event.getMessage().trim();
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
             // Command result returns (arena messages)
-            if (message.toLowerCase().startsWith(perp.toLowerCase() + " - ")) {
+            if (perp != null && message.toLowerCase().startsWith(perp.toLowerCase() + " - ")) {
                 // Locate was successful so pursue if private arena, otherwise ignore
                 debug("Locate message received: " + message);
                 locating = false;
