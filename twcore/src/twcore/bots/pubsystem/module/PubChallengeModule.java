@@ -10,7 +10,6 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.TimerTask;
 import java.util.Vector;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
@@ -43,7 +42,6 @@ public class PubChallengeModule extends AbstractModule {
     private Map<String, StartLagout> laggers;
     private Map<String, Long> spam;
     private LinkedList<String> noplay;
-    private CopyOnWriteArrayList<String> superspecced;      // Tracking list for superspecced players.
 
     // added this due to multiple people asking me to fix,
     // i didn't know if sharks should get shrap or not so i made it changeable
@@ -52,9 +50,6 @@ public class PubChallengeModule extends AbstractModule {
     private boolean allowBets = true;
     private String database = "";
 
-    // Flag to clear the super spec list.
-    private boolean clearSuperspec = false;
-    
     private boolean announceNew = false;
     private boolean announceWinner = false;
     private int announceWinnerAt = 0;
@@ -293,18 +288,6 @@ public class PubChallengeModule extends AbstractModule {
             return;
         }
 
-        // Temporary check for superspec.
-        if (isShipBanned(challenger, ship)) {
-            m_botAction.sendSmartPrivateMessage(challenger, "You are banned from using that ship.");
-            return;
-        }
-        
-        // Temporary check for superspec.
-        if (isShipBanned(challenged, ship)) {
-            m_botAction.sendSmartPrivateMessage(challenger, "This player is banned from using that ship.");
-            return;
-        }
-        
         if (noplay.contains(challenged.toLowerCase())) {
             m_botAction.sendSmartPrivateMessage(challenger, "This player is not accepting challenges.");
             return;
@@ -839,25 +822,6 @@ public class PubChallengeModule extends AbstractModule {
 
     }
 
-    /**
-     * Timer to update the internally kept banc list.
-     * Current method is rather dirty and will need a better implementation.
-     * 
-     * @author Trancid
-     *
-     */
-    private class BancUpdate extends TimerTask {
-        private BancUpdate() {           
-        }
-        
-        @Override
-        public void run() {
-            // Send a request for the list to TW-Guard0.
-            m_botAction.sendSmartPrivateMessage("TW-Guard0", "!bancs");
-            // Set a flag to clear the list.
-            clearSuperspec = true;
-        }
-    }
 
     private class SpawnBack extends TimerTask {
 
@@ -1095,56 +1059,6 @@ public class PubChallengeModule extends AbstractModule {
         return duelers.containsKey(name);
     }
 
-    /**
-     * Checks if the player is banned from a certain ship due to superspec.
-     * 
-     * @param name Name of the player
-     * @param ship Ship type
-     * @return True when the player is superspecced, otherwise false.
-     */
-    public boolean isShipBanned(String name, int ship) {
-        if((ship == Tools.Ship.JAVELIN || ship == Tools.Ship.LEVIATHAN || ship == Tools.Ship.SHARK) 
-                && superspecced.contains(name.toLowerCase())) {
-            // Ship is either a jav, lev or shark and the player is superspecced.
-            return true;
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Updates the banc list with the information provided.
-     * This function will only be called when a message is received by TW-Guard0
-     * @param msg Line that needs to be parsed.
-     */
-    private void updateBancList(String msg) {
-        int index;
-        
-        if(msg.isEmpty())
-            return;
-        
-        // If the clear flag is set, then we're receiving the start of an update, so the list needs to be cleared.
-        if(clearSuperspec) {
-            clearSuperspec = false;
-            if(superspecced != null && !superspecced.isEmpty())
-                superspecced.clear();
-        }
-        
-        // Find where the name ends.
-        index = msg.indexOf("IP=");
-        if(index == -1) {
-            // If it's a line without player info, it will not contain the IP= part.
-            return;
-        }
-        
-        // Clean up the name.
-        msg = msg.substring(0, index).trim().toLowerCase();
-        
-        // Add the name to the list if it aint in there. (Duplicates are possible, because we are lazy and also adding specs and bans.)
-        if(superspecced != null && (superspecced.isEmpty() || !superspecced.contains(msg)))
-            superspecced.add(msg);
-    }
-    
     public void returnFromLagout(String name) {
 
         if (!laggers.containsKey(name)) {
@@ -1387,11 +1301,6 @@ public class PubChallengeModule extends AbstractModule {
                 doDebugCmd(sender);
             else if (command.startsWith("!sharkshrap"))
                 doSharkShrap(sender);
-            
-            // If a message is received from TW-Guard0, it contains info regarding the banc list.
-            if (sender.equalsIgnoreCase("TW-Guard0")) {
-                updateBancList(command);
-            }
 
         } catch (RuntimeException e) {
             if (e != null && e.getMessage() != null)
@@ -1403,13 +1312,6 @@ public class PubChallengeModule extends AbstractModule {
     public void handleSmodCommand(String sender, String command) {
         if (command.startsWith("!info "))
             doSuperInfo(sender, command);
-        else if(command.equals("!updatebancs")) {
-            // Manually force an update of the internally kept tracking list.
-            m_botAction.sendSmartPrivateMessage("TW-Guard0", "!bancs");
-            m_botAction.sendSmartPrivateMessage(sender, "A request has been sent to update the list.");
-            // Set a flag to clear the list.
-            clearSuperspec = true;
-        }
     }
 
     @Override
@@ -1444,8 +1346,7 @@ public class PubChallengeModule extends AbstractModule {
 
     @Override
     public String[] getSmodHelpMessage(String sender) {
-        return new String[] { pubsystem.getHelpLine("!info <name>                  -- Displays detailed monetary information on duel bets for <name>."), 
-                pubsystem.getHelpLine("!updatebanc                   -- Updates the internally banc tracking list."),};
+        return new String[] { pubsystem.getHelpLine("!info <name>                  -- Displays detailed monetary information on duel bets for <name>."), };
     }
 
     public void doSuperInfo(String sender, String com) {
@@ -1503,7 +1404,6 @@ public class PubChallengeModule extends AbstractModule {
             this.laggers = new HashMap<String, StartLagout>();
             this.spam = new HashMap<String, Long>();
             this.noplay = new LinkedList<String>();
-            this.superspecced = new CopyOnWriteArrayList<String>();
 
             // Setting Duel Areas
             for (int i = 1; i < m_botAction.getBotSettings().getInt("duel_area") + 1; i++) {
@@ -1527,12 +1427,6 @@ public class PubChallengeModule extends AbstractModule {
             announceWinnerAt = m_botAction.getBotSettings().getInt("duel_announce_arena_winner_at");
             announceZoneWinnerAt = m_botAction.getBotSettings().getInt("duel_announce_zone_winner_at");
             deaths = m_botAction.getBotSettings().getInt("duel_deaths");
-            
-            // Initiate an update timer for the Banc list.
-            // Due to login time difference with TW-Guard0, it will trigger the first time after 5 minutes.
-            // After that, it will do so at 15 minute intervals.
-            // Smods+ will have the option to manually update the list.
-            m_botAction.scheduleTask(new BancUpdate(), 5*Tools.TimeInMillis.MINUTE, 15*Tools.TimeInMillis.MINUTE);
         }
     }
 
