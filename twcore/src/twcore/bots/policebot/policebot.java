@@ -308,9 +308,7 @@ public class policebot extends SubspaceBot {
         if (!args[4].equals("SILENCE"))
             return;
         Silence banc = new Silence(cmd);
-        String target = getTarget(banc);
-        if (target != null)
-            silences.put(target, banc);
+        silences.put(banc.getName(), banc);
     }
 
     /**
@@ -403,7 +401,7 @@ public class policebot extends SubspaceBot {
      *
      * @author WingZero
      */
-    private class Silence {
+    class Silence {
 
         String name, originalName;
         String ip;
