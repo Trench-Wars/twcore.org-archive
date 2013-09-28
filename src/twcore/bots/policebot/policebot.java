@@ -31,7 +31,7 @@ public class policebot extends SubspaceBot {
     
     public static final String IPCBANC = "banc";
     public static final String IPCPOLICE = "police";
-    public static final String HOME = "tw";
+    public static final String HOME = "#robopark";
 
     private BotSettings sets;                   // BotSettings ease of access ** may not be needed if not used much
     private OperatorList ops;                   // OperatorList ease of access
@@ -174,16 +174,17 @@ public class policebot extends SubspaceBot {
             debug("Got IPCEvent");
             // This is usually used when StaffBot is sending to ALL pubbots
             IPCEvent ipc = (IPCEvent) event.getObject();
-            if (ipc.isAll()) {
-                @SuppressWarnings("unchecked")
-                ListIterator<String> i = (ListIterator<String>) ipc.getList();
-                while (i.hasNext()) {
-                    String in = i.next();
-                    debug("i.next = " + in);
-                    handleSilence(in);
+            if (ipc.getType() < 0) {
+                if (ipc.isAll()) {
+                    @SuppressWarnings("unchecked")
+                    ListIterator<String> i = (ListIterator<String>) ipc.getList();
+                    while (i.hasNext()) {
+                        String in = i.next();
+                        handleSilence(in);
+                    }
+                } else {
+                    handleSilence(ipc.getName());
                 }
-            } else {
-                handleSilence(ipc.getName());
             }
         } else if (IPCBANC.equals(event.getChannel())
                 && event.getObject() != null
@@ -281,9 +282,10 @@ public class policebot extends SubspaceBot {
                 if (banc.isMatch(name, ip, mid))
                     current = banc;
         
-        if (current != null)
+        if (current != null) {
             ba.sendUnfilteredPrivateMessage(name, "*shutup");
-        ba.sendArenaMessage("WOOP! WOOP!");
+            ba.sendArenaMessage("WOOP! WOOP!");
+        }
     }
     
     /**
