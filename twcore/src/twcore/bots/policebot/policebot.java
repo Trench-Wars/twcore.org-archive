@@ -226,7 +226,7 @@ public class policebot extends SubspaceBot {
     
     /** Toggles debug messages **/
     private void cmd_debug(String name) {
-        if (debugger.equalsIgnoreCase(name)) {
+        if (debugger != null && debugger.equalsIgnoreCase(name)) {
             debugger = null;
             ba.sendSmartPrivateMessage(name, "Debugging DISABLED");
         } else {
