@@ -40,12 +40,15 @@ import twcore.core.util.ipc.IPCMessage;
 public class pubbotbanc extends PubBotModule {
 
     public static final String IPCBANC = "banc";
+    public static final String IPCPOLICE = "police";
     private static final String AFK_ARENA = "afk";
 
     private static final long INFINITE_DURATION = 0;
     private static final int MAX_NAME_LENGTH = 19;
     private static final int MAX_IDLE_TIME = 15; //mins
 
+    private String crossZoneArena;
+    
     private TimerTask initActiveBanCs;
     private Action act;
     private SendElapsed elapsed;
@@ -80,6 +83,8 @@ public class pubbotbanc extends PubBotModule {
         String zonePort = m_botAction.getGeneralSettings().getString("Port");
         sendto = "*sendto " + zoneIP + "," + zonePort + "," + AFK_ARENA;
 
+        crossZoneArena = m_botAction.getBotSettings().getString("CrossZoneArena");
+        
         // Request active BanCs from StaffBot
         initActiveBanCs = new TimerTask() {
             @Override
@@ -129,6 +134,8 @@ public class pubbotbanc extends PubBotModule {
     public void handleEvent(PlayerLeft event) {
         String name = m_botAction.getPlayerName(event.getPlayerID());
         elapsed.rem(name);
+        if (m_botAction.getArenaName().equalsIgnoreCase(crossZoneArena))
+            m_botAction.ipcSendMessage(IPCPOLICE, name, null, m_botAction.getBotName());
     }
 
     @Override
