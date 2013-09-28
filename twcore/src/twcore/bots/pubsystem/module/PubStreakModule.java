@@ -61,11 +61,13 @@ public class PubStreakModule extends AbstractModule {
 	{
 		eventRequester.request(EventRequester.PLAYER_DEATH);
 		eventRequester.request(EventRequester.PLAYER_LEFT);
-		eventRequester.request(EventRequester.PLAYER_POSITION);
-		eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
+		// Disabled at the request of KrynetiX
+		//eventRequester.request(EventRequester.PLAYER_POSITION);
+		//eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
 	}
 
-	public void handleEvent(PlayerPosition event) 
+	/*29Sep2013 Trancid Disabled/removed at the request of KrynetiX
+    public void handleEvent(PlayerPosition event) 
 	{
 		Player p = m_botAction.getPlayer(event.getPlayerID());
 		if (p != null && p.isInSafe()) {
@@ -81,8 +83,9 @@ public class PubStreakModule extends AbstractModule {
 			} catch (ConcurrentModificationException e) {
 			}
 		}
-	}
+	}*/
 	
+	/*29Sep2013 Trancid Removed/disabled at the request of KrynetiX.
 	//15Aug2013	POiD	Added Speccing removing a streak.
 	public void handleEvent(FrequencyShipChange event)
 	{
@@ -102,7 +105,7 @@ public class PubStreakModule extends AbstractModule {
 				}
 			}
 		}
-	}
+	}*/
         
 	public void handleEvent(PlayerLeft event) {
 		Player p = m_botAction.getPlayer(event.getPlayerID());
