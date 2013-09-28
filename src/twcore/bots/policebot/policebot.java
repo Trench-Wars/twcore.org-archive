@@ -172,28 +172,29 @@ public class policebot extends SubspaceBot {
      */
     public void handleEvent(InterProcessEvent event) {
         if (IPCBANC.equals(event.getChannel()) && event.getObject() instanceof IPCEvent) {
+            debug("Got IPCEvent");
             // This is usually used when StaffBot is sending to ALL pubbots
             IPCEvent ipc = (IPCEvent) event.getObject();
-            if (ipc.getType() < 0)
-                if (ipc.isAll()) {
-                    @SuppressWarnings("unchecked")
-                    ListIterator<String> i = (ListIterator<String>) ipc.getList();
-                    while (i.hasNext())
-                        handleSilence(i.next());
-                } else
-                    handleSilence(ipc.getName());
+            if (ipc.isAll()) {
+                @SuppressWarnings("unchecked")
+                ListIterator<String> i = (ListIterator<String>) ipc.getList();
+                while (i.hasNext())
+                    handleSilence(i.next());
+            } else
+                handleSilence(ipc.getName());
         } else if (IPCBANC.equals(event.getChannel())
                 && event.getObject() != null
                 && event.getObject() instanceof IPCMessage
                 && ((IPCMessage) event.getObject()).getSender() != null
-                && ((IPCMessage) event.getObject()).getSender().equalsIgnoreCase("banc")
-                && (((IPCMessage) event.getObject()).getRecipient() == null || ((IPCMessage) event.getObject()).getRecipient().equalsIgnoreCase(m_botAction.getBotName()))) {
+                && ((IPCMessage) event.getObject()).getSender().equalsIgnoreCase("banc")) {
             // Specialized for specific banc removals
+            debug("Got IPCMessage");
             IPCMessage ipc = (IPCMessage) event.getObject();
             String command = ipc.getMessage();
             if (command.startsWith("REMOVE"))
                 handleRemove(command);
         } else if (IPCPOLICE.equals(event.getChannel())) {
+            debug("Got IPCMessage for Police");
             IPCMessage ipc = (IPCMessage) event.getObject();
             String perp = ipc.getMessage().toLowerCase();
             // TODO: Add process for creating a new perp tracker
@@ -260,10 +261,15 @@ public class policebot extends SubspaceBot {
      */
     private void checkSilences(String info) {
         if (current != null) return;
+        
         debug("Checking silences with info string: " + info);
+        
         String name = getInfo(info, "TypedName:");
         String ip = getInfo(info, "IP:");
         String mid = getInfo(info, "MachineId:");
+        
+        if (perp.equalsIgnoreCase(name))
+            perp = null;
         
         if (silences.containsKey(name))
             current = silences.get(name).reset();
