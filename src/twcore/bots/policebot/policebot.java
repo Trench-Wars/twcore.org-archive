@@ -159,7 +159,6 @@ public class policebot extends SubspaceBot {
             String name = ba.getFuzzyPlayerName(perp);
             if (name != null && name.equalsIgnoreCase(perp)) {
                 ba.sendUnfilteredPrivateMessage(name, "*info");
-                ba.sendArenaMessage("WOOP! WOOP!");
             }
         }
     }
@@ -202,7 +201,7 @@ public class policebot extends SubspaceBot {
             IPCMessage ipc = (IPCMessage) event.getObject();
             String perp = ipc.getMessage().toLowerCase();
             // TODO: Add process for creating a new perp tracker
-            if (!perps.contains(perp))
+            if (!ops.isZH(perp) && !perps.contains(perp))
                 perps.add(perp);
         }
     }
@@ -284,6 +283,7 @@ public class policebot extends SubspaceBot {
         
         if (current != null)
             ba.sendUnfilteredPrivateMessage(name, "*shutup");
+        ba.sendArenaMessage("WOOP! WOOP!");
     }
     
     /**
