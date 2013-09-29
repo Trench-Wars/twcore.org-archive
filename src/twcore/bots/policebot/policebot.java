@@ -150,18 +150,22 @@ public class policebot extends SubspaceBot {
             String name = ba.getFuzzyPlayerName(perp);
             if (name != null && name.equalsIgnoreCase(perp)) {
                 BanC banc = bancs.get(perp);
-                switch (banc.getType()) {
-                    case SILENCE:
-                        ba.sendUnfilteredPrivateMessage(name, "*shutup");
-                        break;
-                    case SPEC:
-                        ba.sendUnfilteredPrivateMessage(name, "*spec");
-                        break;
-                    default:
-                        break;
+                if (banc == null)
+                    debug("BanC was null for: " + perp);
+                else {
+                    switch (banc.getType()) {
+                        case SILENCE:
+                            ba.sendUnfilteredPrivateMessage(name, "*shutup");
+                            break;
+                        case SPEC:
+                            ba.sendUnfilteredPrivateMessage(name, "*spec");
+                            break;
+                        default:
+                            break;
+                    }
+                    ba.sendArenaMessage("WOOP! WOOP!");
+                    debug("Apprehended " + banc.getType().toString() + " suspect: " + banc.getName());
                 }
-                ba.sendArenaMessage("WOOP! WOOP!");
-                debug("Apprehended " + banc.getType().toString() + " suspect: " + banc.getName());
             }
             status = Status.CONFIRM;
         }
@@ -180,6 +184,7 @@ public class policebot extends SubspaceBot {
             String info = ipc.getMessage().toLowerCase();
             // TODO: Add process for creating a new perp tracker
             BanC b = new BanC(info);
+            bancs.put(b.getName(), b);
             perps.add(b.getName());
         }
     }
