@@ -154,7 +154,7 @@ public class policebot extends SubspaceBot {
                     case SILENCE:
                         ba.sendUnfilteredPrivateMessage(name, "*shutup");
                         break;
-                    case SUPERSPEC:
+                    case SPEC:
                         ba.sendUnfilteredPrivateMessage(name, "*spec");
                         break;
                     default:
@@ -302,14 +302,14 @@ public class policebot extends SubspaceBot {
         int elapsed;
 
         public BanC(String info) {
-            // name:ip:mid:time
+            // name:type:time
             String[] args = info.split(":");
             name = args[0];
-            time = Long.valueOf(args[3]);
+            time = Long.valueOf(args[2]);
 
-            if (args[4].equals("SILENCE"))
+            if (args[1].equals("SILENCE"))
                 type = BanCType.SILENCE;
-            else if (args[4].equals("SPEC"))
+            else if (args[1].equals("SPEC"))
                 type = BanCType.SPEC;
             else
                 type = BanCType.SUPERSPEC;
