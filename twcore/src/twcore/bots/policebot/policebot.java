@@ -161,6 +161,7 @@ public class policebot extends SubspaceBot {
                             ba.sendUnfilteredPrivateMessage(name, "*spec");
                             break;
                         default:
+                            status = Status.IDLE;
                             break;
                     }
                     ba.sendArenaMessage("WOOP! WOOP!");
@@ -313,9 +314,9 @@ public class policebot extends SubspaceBot {
             name = args[0];
             time = Long.valueOf(args[2]);
 
-            if (args[1].equals("SILENCE"))
+            if (args[1].equalsIgnoreCase("SILENCE"))
                 type = BanCType.SILENCE;
-            else if (args[1].equals("SPEC"))
+            else if (args[1].equalsIgnoreCase("SPEC"))
                 type = BanCType.SPEC;
             else
                 type = BanCType.SUPERSPEC;
