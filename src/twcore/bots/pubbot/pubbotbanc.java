@@ -46,7 +46,7 @@ public class pubbotbanc extends PubBotModule {
     private static final long INFINITE_DURATION = 0;
     private static final int MAX_NAME_LENGTH = 19;
     private static final int MAX_IDLE_TIME = 15; //mins
-    private static final int SILENCE_CONFIRM_TIME = 3000; //ms
+    private static final int BANC_CONFIRM_TIME = 3000; //ms
     
     private TimerTask initActiveBanCs;
     private Action act;
@@ -56,7 +56,7 @@ public class pubbotbanc extends PubBotModule {
     private TreeMap<String, BanC> bancSpec;
     private TreeMap<String, BanC> bancSuper;
     private Vector<Object> actions;
-    private TreeMap<String, Long> silenceConfirms;
+    private TreeMap<String, Confirm> confirms;
     
     private Object current;
     private boolean silentKicks;
@@ -77,7 +77,7 @@ public class pubbotbanc extends PubBotModule {
         bancSilence = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         bancSpec = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         bancSuper = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
-        silenceConfirms = new TreeMap<String, Long>(String.CASE_INSENSITIVE_ORDER);
+        confirms = new TreeMap<String, Confirm>(String.CASE_INSENSITIVE_ORDER);
         actions = new Vector<Object>();
 
         String zoneIP = m_botAction.getGeneralSettings().getString("Server");
@@ -204,7 +204,7 @@ public class pubbotbanc extends PubBotModule {
                 String name = current.getName();
                 if (message.equalsIgnoreCase(current.getName() + " can now speak")) {
                     if (!current.isActive()) {
-                        silenceConfirms.remove(current.getName());
+                        confirms.remove(current.getName());
                         // The bot just unsilenced the player (and it's ok)
                         m_botAction.sendPrivateMessage(current.getName(), "Silence lifted. You can now speak.");
                         m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
@@ -220,7 +220,7 @@ public class pubbotbanc extends PubBotModule {
                         m_botAction.sendUnfilteredPrivateMessage(name, "*shutup");
                     } else {
                         // The bot just silenced the player (and it's ok)
-                        silenceConfirms.remove(current.getName());
+                        confirms.remove(current.getName());
                         if (current.getTime() == INFINITE_DURATION)
                             m_botAction.sendPrivateMessage(current.getName(), "You've been permanently silenced because of abuse and/or violation of Trench Wars rules.");
                         else
@@ -234,6 +234,7 @@ public class pubbotbanc extends PubBotModule {
                         current = null;
                         m_botAction.spec(name);
                     } else {
+                        confirms.remove(current.getName());
                         // The bot just spec-locked the player (and it's ok)
                         if (current.getTime() == INFINITE_DURATION)
                             m_botAction.sendPrivateMessage(current.getName(), "You've been permanently locked into spectator because of abuse and/or violation of Trench Wars rules.");
@@ -244,6 +245,7 @@ public class pubbotbanc extends PubBotModule {
                     }
                 } else if (message.equalsIgnoreCase("Player free to enter arena")) {
                     if (!current.isActive()) {
+                        confirms.remove(current.getName());
                         // The bot just unspec-locked the player (and it's ok)
                         m_botAction.sendPrivateMessage(current.getName(), "Spectator-lock removed. You may now enter.");
                         m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
@@ -491,17 +493,17 @@ public class pubbotbanc extends PubBotModule {
     class Action extends TimerTask {
         @Override
         public void run() {
-            long now = System.currentTimeMillis();
             if (!actions.isEmpty()) {
                 current = actions.remove(0);
                 if (current instanceof BanC) {
                     BanC curr = (BanC) current;
                     switch (curr.getType()) {
                         case SILENCE:
-                            silenceConfirms.put(curr.getName(), now);
+                            confirms.put(curr.getName(), new Confirm(curr.getName(), curr.getType(), curr.getTime()));
                             m_botAction.sendUnfilteredPrivateMessage(curr.getName(), "*shutup");
                             break;
                         case SPEC:
+                            confirms.put(curr.getName(), new Confirm(curr.getName(), curr.getType(), curr.getTime()));
                             m_botAction.spec(curr.getName());
                             break;
                         case SUPERSPEC:
@@ -513,12 +515,37 @@ public class pubbotbanc extends PubBotModule {
                 } else if (current instanceof String)
                     m_botAction.sendUnfilteredPrivateMessage((String) current, "*einfo");
             }
-            for (String name : silenceConfirms.keySet()) {
-                if (now - silenceConfirms.get(name) > SILENCE_CONFIRM_TIME) {
-                    silenceConfirms.remove(name);
-                    m_botAction.ipcSendMessage(IPCPOLICE, name, null, m_botAction.getBotName());
+            for (String name : confirms.keySet()) {
+                if (confirms.get(name).expired()) {
+                    Confirm conf = confirms.remove(name);
+                    m_botAction.ipcSendMessage(IPCPOLICE, name + ":" + conf.type.toString() + ":" + conf.time, null, m_botAction.getBotName());
                 }
             }
+        }
+    }
+    
+    /**
+     * 
+     * Confirm - simple class that holds the time the command was issued and the type of command.
+     *
+     * @author WingZero
+     */
+    class Confirm {
+        
+        String name;
+        BanCType type;
+        long time;
+        long issued;
+        
+        public Confirm(String name, BanCType type, long time) {
+            this.name = name;
+            this.type = type;
+            this.time = time;
+            issued = System.currentTimeMillis();
+        }
+        
+        public boolean expired() {
+            return System.currentTimeMillis() - issued > BANC_CONFIRM_TIME;
         }
     }
 
