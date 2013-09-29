@@ -106,6 +106,8 @@ public class policebot extends SubspaceBot {
                         m_botAction.sendPrivateMessage(banc.getName(), "You've been silenced for " + banc.getTime()
                                 + " (" + banc.getTime() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
                     m_botAction.ipcSendMessage(IPCBANC, banc.getCommand(), "banc", m_botAction.getBotName());
+                    if (perp != null)
+                        bancs.remove(perp);
                     status = Status.IDLE;
                 } else if (message.equalsIgnoreCase("Player locked in spectator mode")) {
                     // The bot just spec-locked the player (and it's ok)
@@ -115,6 +117,8 @@ public class policebot extends SubspaceBot {
                         m_botAction.sendPrivateMessage(banc.getName(), "You've been locked into spectator for " + banc.getTime()
                                 + " (" + banc.getTime() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
                     m_botAction.ipcSendMessage(IPCBANC, banc.getCommand(), "banc", m_botAction.getBotName());
+                    if (perp != null)
+                        bancs.remove(perp);
                     status = Status.IDLE;
                 } else if (message.equalsIgnoreCase("Player free to enter arena")) {// The bot just unspec-locked the player, while the player should be spec-locked.
                     ba.spec(perp);
@@ -282,8 +286,6 @@ public class policebot extends SubspaceBot {
                         perp = null;
                         ba.changeArena(HOME);
                     } else if (!perps.isEmpty()) {
-                        if (perp != null)
-                            bancs.remove(perp);
                         perp = perps.remove(0);
                         debug("Locating " + perp);
                         status = Status.LOCATE;
