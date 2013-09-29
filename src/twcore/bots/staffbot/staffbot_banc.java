@@ -2121,11 +2121,8 @@ public class staffbot_banc extends Module {
      */
     private void sendIPCActiveBanCs(String receiver) {
         int bot = -1;
-        if (receiver != null)
-            if (receiver.startsWith("TW-Guard"))
-                bot = Integer.valueOf(receiver.substring(8));
-            else if (receiver.startsWith("TW-Police"))
-                bot = 0;
+        if (receiver != null && receiver.startsWith("TW-Guard"))
+            bot = Integer.valueOf(receiver.substring(8));
         LinkedList<String> l = new LinkedList<String>();
         for (BanC b : activeBanCs)
             l.add(b.getPlayername() + ":" + (b.getIP() != null ? b.getIP() : " ") + ":" + (b.getMID() != null ? b.getMID() : " ") + ":"
