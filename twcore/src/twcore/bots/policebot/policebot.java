@@ -1,10 +1,9 @@
 package twcore.bots.policebot;
 
-import java.util.ListIterator;
 import java.util.TimerTask;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.Vector;
+
 
 import twcore.bots.staffbot.staffbot_banc.BanCType;
 import twcore.core.BotAction;
@@ -16,7 +15,6 @@ import twcore.core.events.ArenaJoined;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
-import twcore.core.util.ipc.IPCEvent;
 import twcore.core.util.ipc.IPCMessage;
 
 /**
@@ -36,26 +34,22 @@ public class policebot extends SubspaceBot {
     private BotSettings sets;                   // BotSettings ease of access ** may not be needed if not used much
     private OperatorList ops;                   // OperatorList ease of access
     
-    private TreeMap<String, Silence> silences;  // Current BanC silences
+    private TreeMap<String, BanC> bancs;        // Current BanCs 
     private Vector<String> perps;               // Perpetrator tracking list as reported by pubbot 
     
-    private String perp;                        // Current perpetrator being tracked down
-    private Silence current;                    // Current silence being worked
-    
-    private boolean locating;                   // Toggle used for locating players who may be offline
+    private String perp;                        // Current perp being worked
+    private Status status;                      // Current status/operation
+    private String debugger;                    // Current debugger
     
     private Tracker tracker;                    // Main bot loop for rotating perp tracking and silencing
-    
-    private String debugger;                    // Current debugger
     
     public policebot(BotAction botAction) {
         super(botAction);
         requestEvents();
-        silences = new TreeMap<String, Silence>(String.CASE_INSENSITIVE_ORDER);
+        bancs = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         perps = new Vector<String>();
-        current = null;
         perp = null;
-        locating = false;
+        status = Status.IDLE;
         debugger = "WingZero";
     }
 
@@ -76,16 +70,6 @@ public class policebot extends SubspaceBot {
         
         ba.joinArena(sets.getString("InitialArena"));
         
-        //TODO: Make sure StaffBot is ready for this bot's name of TW-Police
-        // Request active BanCs from StaffBot
-        TimerTask initActiveBanCs = new TimerTask() {
-            @Override
-            public void run() {
-                m_botAction.ipcSendMessage(IPCBANC, "BANC PUBBOT INIT", null, m_botAction.getBotName());
-            }
-        };
-        m_botAction.scheduleTask(initActiveBanCs, 1000);
-        
         tracker = new Tracker();
         ba.scheduleTask(tracker, 5000, 5000);
     }
@@ -104,28 +88,36 @@ public class policebot extends SubspaceBot {
             if (perp != null && message.toLowerCase().startsWith(perp.toLowerCase() + " - ")) {
                 // Locate was successful so pursue if private arena, otherwise ignore
                 debug("Locate message received: " + message);
-                locating = false;
-                if (message.contains("#"))
+                if (!message.contains("Public "))
+                    // TODO: Fix this to accurately obtain the arena regardless of -'s
                     ba.changeArena(message.substring(message.indexOf("#")));
                 else {
                     perp = null;
-                    current = null;
                 }
-            } else if (message.startsWith("IP:"))
-                checkSilences(message);
-            else if (current != null) {
-                if (message.equalsIgnoreCase(current.getName() + " can now speak")) {
+            } else if (status == Status.CONFIRM && perp != null) {
+                BanC banc = bancs.get(perp);
+                if (message.equalsIgnoreCase(banc.getName() + " can now speak")) {
                     // This bot should ALWAYS be silencing players as this means the player was accidentally unsilenced
-                    ba.sendUnfilteredPrivateMessage(current.getName(), "*shutup");
-                } else if (message.equalsIgnoreCase(current.getName() + " has been silenced")) {
-                    if (current.getTime() == 0)
-                        m_botAction.sendPrivateMessage(current.getName(), "You've been permanently silenced because of abuse and/or violation of Trench Wars rules.");
+                    ba.sendUnfilteredPrivateMessage(banc.getName(), "*shutup");
+                } else if (message.equalsIgnoreCase(banc.getName() + " has been silenced")) {
+                    if (banc.getTime() == 0)
+                        m_botAction.sendPrivateMessage(banc.getName(), "You've been permanently silenced because of abuse and/or violation of Trench Wars rules.");
                     else
-                        m_botAction.sendPrivateMessage(current.getName(), "You've been silenced for " + current.getTime()
-                                + " (" + current.getTime() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
-                    m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
-                    current = null;
-                    perp = null;
+                        m_botAction.sendPrivateMessage(banc.getName(), "You've been silenced for " + banc.getTime()
+                                + " (" + banc.getTime() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
+                    m_botAction.ipcSendMessage(IPCBANC, banc.getCommand(), "banc", m_botAction.getBotName());
+                    status = Status.IDLE;
+                } else if (message.equalsIgnoreCase("Player locked in spectator mode")) {
+                    // The bot just spec-locked the player (and it's ok)
+                    if (banc.getTime() == 0)
+                        m_botAction.sendPrivateMessage(banc.getName(), "You've been permanently locked into spectator because of abuse and/or violation of Trench Wars rules.");
+                    else
+                        m_botAction.sendPrivateMessage(banc.getName(), "You've been locked into spectator for " + banc.getTime()
+                                + " (" + banc.getTime() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
+                    m_botAction.ipcSendMessage(IPCBANC, banc.getCommand(), "banc", m_botAction.getBotName());
+                    status = Status.IDLE;
+                } else if (message.equalsIgnoreCase("Player free to enter arena")) {// The bot just unspec-locked the player, while the player should be spec-locked.
+                    ba.spec(perp);
                 }
             }
         } else if (event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE || event.getMessageType() == Message.PRIVATE_MESSAGE) {
@@ -143,8 +135,6 @@ public class policebot extends SubspaceBot {
                     cmd_help(name);
                 else if (cmd.startsWith("!debug"))
                     cmd_debug(name);
-                else if (cmd.equals("!bancs"))
-                    cmd_bancs(name);
                 else if (cmd.equals("!status"))
                     cmd_status(name);
         }
@@ -155,10 +145,24 @@ public class policebot extends SubspaceBot {
      *  - Upon entering an arena the bot will proceed with tracked player silencing
      */
     public void handleEvent(ArenaJoined event) {
-        if (perp != null) {
+        // status should be apprehend
+        if (status == Status.APPREHEND && perp != null) {
             String name = ba.getFuzzyPlayerName(perp);
             if (name != null && name.equalsIgnoreCase(perp)) {
-                ba.sendUnfilteredPrivateMessage(name, "*info");
+                BanC banc = bancs.get(perp);
+                switch (banc.getType()) {
+                    case SILENCE:
+                        ba.sendUnfilteredPrivateMessage(name, "*shutup");
+                        break;
+                    case SUPERSPEC:
+                        ba.sendUnfilteredPrivateMessage(name, "*spec");
+                        break;
+                    default:
+                        break;
+                }
+                ba.sendArenaMessage("WOOP! WOOP!");
+                debug("Apprehended " + banc.getType().toString() + " suspect: " + banc.getName());
+                status = Status.CONFIRM;
             }
         }
     }
@@ -170,40 +174,13 @@ public class policebot extends SubspaceBot {
      *  - Tracks down players reported by StaffBot to have entered from cross-zone
      */
     public void handleEvent(InterProcessEvent event) {
-        if (IPCBANC.equals(event.getChannel()) && event.getObject() instanceof IPCEvent) {
-            // This is usually used when StaffBot is sending to ALL pubbots
-            IPCEvent ipc = (IPCEvent) event.getObject();
-            debug("Got IPCEvent - type: " + ipc.getType());
-            if (ipc.getType() < 1) {
-                if (ipc.isAll()) {
-                    @SuppressWarnings("unchecked")
-                    ListIterator<String> i = (ListIterator<String>) ipc.getList();
-                    while (i.hasNext()) {
-                        String in = i.next();
-                        handleSilence(in);
-                    }
-                } else {
-                    handleSilence(ipc.getName());
-                }
-            }
-        } else if (IPCBANC.equals(event.getChannel())
-                && event.getObject() != null
-                && event.getObject() instanceof IPCMessage
-                && ((IPCMessage) event.getObject()).getSender() != null
-                && ((IPCMessage) event.getObject()).getSender().equalsIgnoreCase("banc")) {
-            // Specialized for specific banc removals
-            debug("Got IPCMessage");
+        if (IPCPOLICE.equals(event.getChannel())) {
+            debug("Got IPCMessage on IPCPolice channel");
             IPCMessage ipc = (IPCMessage) event.getObject();
-            String command = ipc.getMessage();
-            if (command.startsWith("REMOVE"))
-                handleRemove(command);
-        } else if (IPCPOLICE.equals(event.getChannel())) {
-            debug("Got IPCMessage for Police");
-            IPCMessage ipc = (IPCMessage) event.getObject();
-            String perp = ipc.getMessage().toLowerCase();
+            String info = ipc.getMessage().toLowerCase();
             // TODO: Add process for creating a new perp tracker
-            if (!ops.isZH(perp) && !perps.contains(perp))
-                perps.add(perp);
+            BanC b = new BanC(info);
+            perps.add(b.getName());
         }
     }
     
@@ -212,7 +189,6 @@ public class policebot extends SubspaceBot {
         String[] msgs = new String[] {
                 ",------------- POLICE BOT HELP -------------.",
                 "| !debug   - enables debug messages         |",
-                "| !bancs   - lists current silence bancs    |",
                 "| !status  - lists current bot variables    |",
                 "`-------------------------------------------'"
         };
@@ -221,7 +197,7 @@ public class policebot extends SubspaceBot {
     
     /** Shows current status of bot variables **/
     private void cmd_status(String name) {
-        String msg = "Locating: " + locating + " Perp: " + perp + " Current: " + (current != null ? current.getName() : "null");
+        String msg = "Status: " + status.toString() + " Current perp: " + (perp != null ? perp : "null");
         ba.sendSmartPrivateMessage(name, msg);
         msg = "Perps: ";
         for (String s : perps)
@@ -250,113 +226,6 @@ public class policebot extends SubspaceBot {
             ba.die();
     }
     
-    /** Lists current silences **/
-    private void cmd_bancs(String name) {
-        m_botAction.sendSmartPrivateMessage(name, " Silences:");
-        for (Silence b : silences.values())
-            m_botAction.sendSmartPrivateMessage(name, "  " + b.getName() + " IP=" + (b.ip != null ? b.ip : "") + " MID=" + (b.mid != null ? b.mid : ""));
-    }
-    
-    /**
-     * Takes *info and checks to see if player should be silenced. Sets current silence since
-     * perp was found.
-     * 
-     * @param info
-     */
-    private void checkSilences(String info) {
-        if (current != null) return;
-        
-        debug("Checking silences with info string: " + info);
-        
-        String name = getInfo(info, "TypedName:");
-        String ip = getInfo(info, "IP:");
-        String mid = getInfo(info, "MachineId:");
-        
-        if (perp.equalsIgnoreCase(name))
-            perp = null;
-        
-        if (silences.containsKey(name))
-            current = silences.get(name).reset();
-        else
-            for (Silence banc : silences.values())
-                if (banc.isMatch(name, ip, mid))
-                    current = banc;
-        
-        if (current != null) {
-            ba.sendUnfilteredPrivateMessage(name, "*shutup");
-            ba.sendArenaMessage("WOOP! WOOP!");
-        }
-    }
-    
-    /**
-     * Removes silences as requested by StaffBot from the banc IPC.
-     * 
-     * @param cmd
-     */
-    private void handleRemove(String cmd) {
-        debug("HandleRemove: " + cmd);
-        String[] args = cmd.split(":");
-        if (args[1].equals(BanCType.SILENCE.toString()))
-            silences.remove(args[2]);
-    }
-    
-    /**
-     * Adds silence information to silences list as specified by StaffBot from the BanC IPC.
-     * 
-     * @param banc
-     */
-    private void handleSilence(String cmd) {
-        debug("HandleSilence: " + cmd);
-        String[] args = cmd.split(":");
-        if (!args[4].equals("SILENCE"))
-            return;
-        Silence banc = new Silence(cmd);
-        String target = getTarget(banc);
-        if (target == null)
-            target = banc.getName();
-        silences.put(target, banc);
-    }
-
-    /**
-     * Helper method used to get the correct player name regardless of capitalization.
-     * 
-     * @param banc
-     * @return
-     */
-    private String getTarget(Silence banc) {
-        if (banc == null)
-            return null;
-        String target = m_botAction.getFuzzyPlayerName(banc.getName());
-        if (target != null && target.equalsIgnoreCase(banc.getName()))
-            banc.name = target;
-        else
-            target = null;
-        return target;
-    }
-
-    /**
-     * Takes lines from an *info and returns the requested information.
-     * 
-     * @param message
-     *          Line from info
-     * @param infoName
-     *          Type of data requested i.e. TypedName
-     * @return
-     *          String
-     */
-    private String getInfo(String message, String infoName) {
-        int beginIndex = message.indexOf(infoName);
-        int endIndex;
-
-        if (beginIndex == -1)
-            return null;
-        beginIndex = beginIndex + infoName.length();
-        endIndex = message.indexOf("  ", beginIndex);
-        if (endIndex == -1)
-            endIndex = message.length();
-        return message.substring(beginIndex, endIndex);
-    }
-    
     private void debug(String msg) {
         if (debugger != null)
             ba.sendSmartPrivateMessage(debugger, "[DEBUG] " + msg);
@@ -364,6 +233,14 @@ public class policebot extends SubspaceBot {
     
     public void handleDisconnect() {
         ba.cancelTasks();
+    }
+    
+    enum Status {
+        // more like POST status
+        LOCATE,     // attempted to find player but no result returned
+        APPREHEND,  // entered arena so issue silence/spec and wait for confirmation
+        CONFIRM,    // awaiting confirmation meaning none was given yet so go back to locating
+        IDLE        // previous cycle completed so either get next perp or return home
     }
     
     /**
@@ -376,63 +253,74 @@ public class policebot extends SubspaceBot {
 
         @Override
         public void run() {
-            if (locating) {
-                // locate failed, player must be offline
-                debug("Locating " + perp + " failed");
-                locating = false;
-                perp = null;
-                current = null;
-            }
-            if (perp == null && current == null && perps.isEmpty() && !ba.getArenaName().equalsIgnoreCase(HOME)) {
-                // nothing to do
-                debug("Nothing to do: returning home");
-                ba.changeArena(HOME);
-            } else if (perp == null && current == null && !perps.isEmpty()) {
-                perp = perps.remove(0);
-                locating = true;
-                ba.locatePlayer(perp);
-                debug("Locating " + perp);
-            } else if (perp != null && current == null) {
-                // Perp must have fled to a different arena
-                debug("Relocating " + perp);
-                locating = true;
-                ba.locatePlayer(perp);
+            switch (status) {
+                case APPREHEND:
+                    // handled by ArenaJoined
+                    break;
+                case CONFIRM:
+                    // handled by Message event
+                    // awaiting confirmation meaning none was given yet so go back to locating
+                    // Perp must have fled to a different arena
+                    debug("Relocating " + perp);
+                    status = Status.LOCATE;
+                    ba.locatePlayer(perp);
+                    break;
+                case LOCATE:
+                    // locate failed, player must be offline
+                    debug("Locating " + perp + " failed");
+                    status = Status.IDLE;
+                case IDLE:
+                    if (perps.isEmpty() && !ba.getArenaName().equalsIgnoreCase(HOME)) {
+                        // nothing to do
+                        debug("Nothing to do: returning home");
+                        perp = null;
+                        ba.changeArena(HOME);
+                    } else if (!perps.isEmpty()) {
+                        if (perp != null)
+                            bancs.remove(perp);
+                        perp = perps.remove(0);
+                        debug("Locating " + perp);
+                        status = Status.LOCATE;
+                        ba.locatePlayer(perp);
+                    }
+                    break;
             }
         }
         
     }
 
     /**
-     * Stripped down version of pubbotbanc's BanC class designed for silences only.
+     * BanC - stripped down from pubbotbanc's version to include only pertinent information related to policebot.
      *
      * @author WingZero
      */
-    class Silence {
+    class BanC {
 
-        String name, originalName;
-        String ip;
-        String mid;
-        TreeSet<String> aliases;
-        Long time;
+        String name;
+        long time;
+        BanCType type;
+        int elapsed;
 
-        public Silence(String info) {
-            // name:ip:mid:time  -- time will not be needed for this bot (taken from pubbotbanc)
+        public BanC(String info) {
+            // name:ip:mid:time
             String[] args = info.split(":");
             name = args[0];
-            originalName = name;
-            ip = args[1];
-            if (ip.length() == 1)
-                ip = null;
-            mid = args[2];
-            if (mid.length() == 1)
-                mid = null;
             time = Long.valueOf(args[3]);
-            aliases = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
-            aliases.add(originalName);
+
+            if (args[4].equals("SILENCE"))
+                type = BanCType.SILENCE;
+            else if (args[4].equals("SPEC"))
+                type = BanCType.SPEC;
+            else
+                type = BanCType.SUPERSPEC;
+        }
+        
+        public String getRemaining() {
+            return "" + (time);
         }
 
         public String getCommand() {
-            return "SILENCE:" + name + ":" + originalName;
+            return "" + type.toString() + ":" + name + ":" + name;
         }
 
         public String getName() {
@@ -443,22 +331,8 @@ public class policebot extends SubspaceBot {
             return time;
         }
 
-        public boolean isMatch(String name, String ip, String mid) {
-            boolean match = false;
-            if (this.ip != null && ip.equals(this.ip))
-                match = true;
-            else if (this.mid != null && mid.equals(this.mid))
-                match = true;
-            if (match) {
-                aliases.add(name);
-                this.name = name;
-            }
-            return match;
-        }
-
-        public Silence reset() {
-            name = originalName;
-            return this;
+        public BanCType getType() {
+            return type;
         }
     }
 }
