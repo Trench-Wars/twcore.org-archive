@@ -90,7 +90,8 @@ public class policebot extends SubspaceBot {
                 debug("Locate message received: " + message);
                 if (!message.contains("Public "))
                     // TODO: Fix this to accurately obtain the arena regardless of -'s
-                    ba.changeArena(message.substring(message.indexOf("#")));
+                    
+                    ba.changeArena(message.substring(perp.length() + 3));
                 else {
                     perp = null;
                 }
