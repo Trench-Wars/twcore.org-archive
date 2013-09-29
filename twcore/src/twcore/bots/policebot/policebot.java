@@ -90,11 +90,9 @@ public class policebot extends SubspaceBot {
                 debug("Locate message received: " + message);
                 if (!message.contains("Public "))
                     // TODO: Fix this to accurately obtain the arena regardless of -'s
-                    
                     ba.changeArena(message.substring(perp.length() + 3));
-                else {
-                    perp = null;
-                }
+                else
+                    status = Status.IDLE;
             } else if (status == Status.CONFIRM && perp != null) {
                 BanC banc = bancs.get(perp);
                 if (message.equalsIgnoreCase(banc.getName() + " can now speak")) {
@@ -163,8 +161,8 @@ public class policebot extends SubspaceBot {
                 }
                 ba.sendArenaMessage("WOOP! WOOP!");
                 debug("Apprehended " + banc.getType().toString() + " suspect: " + banc.getName());
-                status = Status.CONFIRM;
             }
+            status = Status.CONFIRM;
         }
     }
     
@@ -257,6 +255,7 @@ public class policebot extends SubspaceBot {
             switch (status) {
                 case APPREHEND:
                     // handled by ArenaJoined
+                    break;
                 case CONFIRM:
                     // handled by Message event
                     // awaiting confirmation meaning none was given yet so go back to locating
