@@ -4,7 +4,6 @@ import java.util.TimerTask;
 
 import twcore.core.BotAction;
 import twcore.core.events.InterProcessEvent;
-import twcore.core.game.Player;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
@@ -89,7 +88,6 @@ public abstract class AutobotThread extends Thread implements IPCReceiver {
 		
 		public void commandBot(String command) {
 		    m_botAction.ipcSendMessage(IPC_CHANNEL, "command:" + command, autobotName, m_botAction.getBotName());
-			//m_botAction.sendSmartPrivateMessage(autobotName, command);
 		}
 	
 	}
