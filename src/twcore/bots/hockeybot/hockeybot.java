@@ -3466,33 +3466,6 @@ public class hockeybot extends SubspaceBot {
     /* 
      * Game classes 
      */
-    
-    /**
-     * Class that holds various information on a team's captain.
-     * <p>
-     * Most members of this class are currently unused.
-     * Depending on future changes, this class might become deprecated.
-     */
-    private class HockeyCaptain {
-
-        private String captainName;
-        private long startTime;
-        private long endTime;
-
-        private HockeyCaptain(String name) {
-            captainName = name;
-            endTime = -1;
-        }
-
-        private boolean hasEnded() {
-            if (endTime != -1) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
-
     /**
      * This holds the configuration for this bot.
      * <p>
@@ -3962,12 +3935,10 @@ public class hockeybot extends SubspaceBot {
         private long p_timestampSwitch;                     // Timestamp of the last time the player switched ships.
         private int p_lagouts;                              // Number of lagouts for this player.
         private int p_frequency;                            // Player's current frequency.
-        private long p_lastPositionUpdate;                  // Last time the bot received a position packet for this player.
-        private int p_userID;                               // User ID of the player.
 
         /* Constants */
         private final static int USED = 0;                 // Used in p_ship to track which ships have been used by this player.
-        private final static int PLAY_TIME = 1;            // Used in p_ship to track the playtime for each ship by this player.
+        
         //Ship states for p_state.
         private static final int IN = 0;                    // Player is in a ship and active.
         private static final int LAGOUT = 1;                // Player is lagged out.
@@ -4186,13 +4157,6 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
-         * Timestamps last position received
-         */
-        private void timestampLastPosition() {
-            p_lastPositionUpdate = System.currentTimeMillis();
-        }
-
-        /**
          * Returns the name of this player
          *
          * @return Returns the name of this player
@@ -4381,24 +4345,6 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
-         * Adds a second to playtime
-         */
-        private void addPlayTime() {
-            if (p_state == IN) {
-                p_ship[p_currentShip][PLAY_TIME]++;
-            }
-        }
-
-        /**
-         * Returns lagouts
-         *
-         * @return lagouts
-         */
-        private int getLagouts() {
-            return p_lagouts;
-        }
-
-        /**
          * Switches player
          * <ul>
          *  <li>puts the player in
@@ -4536,14 +4482,12 @@ public class hockeybot extends SubspaceBot {
      */
     private class HockeyTeam {
 
-        private boolean flag;                               // Whether or not the team has control over the puck?
         private boolean turnToPick;                         // True if it's this team's turn to pick a player.
         private boolean ready;                              // True if this team has finished its line up and is ready to begin.
-        private int flagTime;                               // Amount of time this team had possession of the puck?
         private int timeout;                                // Amount of time outs this team is still able to use. This is set at the start of a game.
         private int frequency;                              // Frequency of this team.
         private TreeMap<String, HockeyPlayer> players;      // List of names the players on this team, linked to their HockeyPlayer class object.
-        private TreeMap<Short, HockeyCaptain> captains;
+        private TreeMap<Short, String> captains;
         private short captainsIndex;
         private String captainName;                         // Current captain's name.
         private String lastCaptainName;                     // Last captain's name.
@@ -4563,7 +4507,7 @@ public class hockeybot extends SubspaceBot {
             this.frequency = frequency;
 
             players = new TreeMap<String, HockeyPlayer>();
-            captains = new TreeMap<Short, HockeyCaptain>();
+            captains = new TreeMap<Short, String>();
 
             offside = new Stack<String>();
             dCrease = new Stack<String>();
@@ -4577,14 +4521,12 @@ public class hockeybot extends SubspaceBot {
          */
         private void resetVariables() {
             players.clear();
-            flag = false;
             turnToPick = false;
             teamName = "Freq " + frequency;
             captainName = "[NONE]";
             lastCaptainName = "[NONE]";
             goalieName = "[NONE]";
             captains.clear();
-            flagTime = 0;
             ready = false;
             substitutesLeft = config.getMaxSubs();
             captainsIndex = -1;
@@ -4830,15 +4772,6 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
-         * Returns the flagtime
-         *
-         * @return flag time in seconds
-         */
-        private int getFlagTime() {
-            return flagTime;
-        }
-
-        /**
          * Returns the name of the current captain
          *
          * @return name of the current captain
@@ -4868,20 +4801,6 @@ public class hockeybot extends SubspaceBot {
             } else {
                 m_botAction.sendArenaMessage("The captain of " + teamName
                         + " has left the arena.");
-            }
-        }
-
-        /**
-         * Timestamps last position of the player
-         *
-         * @param name name of the player
-         */
-        private void timestampLastPosition(String name) {
-            try {
-                if (players.containsKey(name)) {
-                    players.get(name).timestampLastPosition();
-                }
-            } catch (Exception e) {
             }
         }
 
@@ -5030,15 +4949,6 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
-         * Returns turn value
-         *
-         * @return true if its the teams turn to pick, else false
-         */
-        private boolean getTurn() {
-            return turnToPick;
-        }
-
-        /**
          * Team has picked a player
          * - turnToPick set to false
          */
@@ -5108,7 +5018,7 @@ public class hockeybot extends SubspaceBot {
 
             if (currentState != HockeyState.WAITING_FOR_CAPS) {
                 captainsIndex++;
-                captains.put(captainsIndex, new HockeyCaptain(captainName));
+                captains.put(captainsIndex, captainName);
             }
         }
 
@@ -5117,7 +5027,7 @@ public class hockeybot extends SubspaceBot {
          */
         private void putCaptainInList() {
             captainsIndex++;
-            captains.put(captainsIndex, new HockeyCaptain(captainName));
+            captains.put(captainsIndex, captainName);
         }
 
         /**
@@ -5515,21 +5425,6 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
-         * Returns the total sum of all lag outs
-         *
-         * @return total sum of all lag outs
-         */
-        private int getLagouts() {
-            int lagouts = 0;
-
-            for (HockeyPlayer i : players.values()) {
-                lagouts += i.getLagouts();
-            }
-
-            return lagouts;
-        }
-
-        /**
          * Returns a player's {@link HockeyPlayer} object from this team's players list..
          * @param name Name of the player to look up
          * @return The HockeyPlayer object associated with this name, or null when the player isn't found.
@@ -5670,26 +5565,6 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
-         * Returns if the puck is currently being carried by a player.
-         * @return carried
-         */
-        public boolean isCarried() {
-            return carried;
-        }
-
-        /**
-         * Peeks at last ball carrier without removing them from stack.
-         * @return short player id or null if empty
-         */
-        public String peekLastCarrierName() {
-            String id = null;
-            if (!carriers.empty()) {
-                id = carriers.peek();
-            }
-            return id;
-        }
-
-        /**
          * Gets last ball carrier (removes it from stack).
          * @return short player id or null if empty
          */
@@ -5709,18 +5584,6 @@ public class hockeybot extends SubspaceBot {
             Point p = null;
             if (!releases.empty()) {
                 p = releases.peek();
-            }
-            return p;
-        }
-
-        /**
-         * Get last ball release (removes it from stack).
-         * @return point last point released or null if empty
-         */
-        public Point getLastReleasePoint() {
-            Point p = null;
-            if (!releases.empty()) {
-                p = releases.pop();
             }
             return p;
         }
