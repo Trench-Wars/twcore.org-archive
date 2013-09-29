@@ -125,8 +125,10 @@ public class pubbotbanc extends PubBotModule {
         if (!m_botAction.getArenaName().contains("Public"))
             m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
 
-        if (!name.startsWith("^"))
+        if (!name.startsWith("^")) {
+            confirms.put(name, new Confirm(name));
             m_botAction.sendUnfilteredPrivateMessage(name, "*info");
+        }
     }
 
     @Override
@@ -178,6 +180,10 @@ public class pubbotbanc extends PubBotModule {
             String command = ipc.getMessage();
             if (command.startsWith("REMOVE"))
                 handleRemove(command);
+        } else if (IPCPOLICE.equals(event.getChannel()) && ((IPCMessage) event.getObject()).getRecipient().equalsIgnoreCase(m_botAction.getBotName())) {
+            IPCMessage ipc = (IPCMessage) event.getObject();
+            String info = ipc.getMessage();
+            checkBanCs(info);
         }
     }
 
@@ -338,6 +344,9 @@ public class pubbotbanc extends PubBotModule {
         String ip = getInfo(info, "IP:");
         String mid = getInfo(info, "MachineId:");
 
+        if (confirms.containsKey(name))
+            confirms.remove(name);
+        
         if (name.length() > MAX_NAME_LENGTH) {
             Player p = m_botAction.getPlayer(name.substring(0, MAX_NAME_LENGTH).trim());
             if (p != null) {
@@ -518,7 +527,10 @@ public class pubbotbanc extends PubBotModule {
             for (String name : confirms.keySet()) {
                 if (confirms.get(name).expired()) {
                     Confirm conf = confirms.remove(name);
-                    m_botAction.ipcSendMessage(IPCPOLICE, name + ":" + conf.type.toString() + ":" + conf.time, null, m_botAction.getBotName());
+                    if (!conf.info)
+                        m_botAction.ipcSendMessage(IPCPOLICE, "BANC:" + name + ":" + conf.type.toString() + ":" + conf.time, null, m_botAction.getBotName());
+                    else
+                        m_botAction.ipcSendMessage(IPCPOLICE, "INFO:" + name, null, m_botAction.getBotName());
                 }
             }
         }
@@ -536,12 +548,22 @@ public class pubbotbanc extends PubBotModule {
         BanCType type;
         long time;
         long issued;
+        boolean info;
         
         public Confirm(String name, BanCType type, long time) {
             this.name = name;
             this.type = type;
             this.time = time;
             issued = System.currentTimeMillis();
+            info = false;
+        }
+        
+        public Confirm(String name) {
+            this.name = name;
+            this.type = null;
+            this.time = 0;
+            issued = System.currentTimeMillis();
+            info = true;
         }
         
         public boolean expired() {

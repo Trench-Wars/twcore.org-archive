@@ -35,6 +35,7 @@ public class policebot extends SubspaceBot {
     private OperatorList ops;                   // OperatorList ease of access
     
     private TreeMap<String, BanC> bancs;        // Current BanCs 
+    private TreeMap<String, String> guards;     // Quick fix for getting the guard requesting the *info
     private Vector<String> perps;               // Perpetrator tracking list as reported by pubbot 
     
     private String perp;                        // Current perp being worked
@@ -47,6 +48,7 @@ public class policebot extends SubspaceBot {
         super(botAction);
         requestEvents();
         bancs = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
+        guards = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
         perps = new Vector<String>();
         perp = null;
         status = Status.IDLE;
@@ -96,7 +98,14 @@ public class policebot extends SubspaceBot {
                     status = Status.IDLE;
             } else if (status == Status.CONFIRM && perp != null) {
                 BanC banc = bancs.get(perp);
-                if (message.equalsIgnoreCase(banc.getName() + " can now speak")) {
+                if (banc == null) {
+                    if (message.startsWith("IP:")) {
+                        String guard = guards.remove(perp);
+                        ba.ipcSendMessage(IPCPOLICE, message, guard, ba.getBotName());
+                        debug("Sending info to " + guard + ":" + message);
+                    }
+                    status = Status.IDLE;
+                } else if (message.equalsIgnoreCase(banc.getName() + " can now speak")) {
                     // This bot should ALWAYS be silencing players as this means the player was accidentally unsilenced
                     ba.sendUnfilteredPrivateMessage(banc.getName(), "*shutup");
                 } else if (message.equalsIgnoreCase(banc.getName() + " has been silenced")) {
@@ -154,9 +163,10 @@ public class policebot extends SubspaceBot {
             String name = ba.getFuzzyPlayerName(perp);
             if (name != null && name.equalsIgnoreCase(perp)) {
                 BanC banc = bancs.get(perp);
-                if (banc == null)
-                    debug("BanC was null for: " + perp);
-                else {
+                if (banc == null) {
+                    debug("BanC was null so getting info for: " + perp);
+                    ba.sendUnfilteredPrivateMessage(perp, "*info");
+                } else {
                     switch (banc.getType()) {
                         case SILENCE:
                             ba.sendUnfilteredPrivateMessage(name, "*shutup");
@@ -168,7 +178,8 @@ public class policebot extends SubspaceBot {
                             status = Status.IDLE;
                             break;
                     }
-                    ba.sendArenaMessage("WOOP! WOOP!");
+                    if (ba.getArenaSize() < 3)
+                        ba.sendArenaMessage("WOOP! WOOP!");
                     debug("Apprehended " + banc.getType().toString() + " suspect: " + banc.getName());
                 }
             }
@@ -187,10 +198,15 @@ public class policebot extends SubspaceBot {
             debug("Got IPCMessage on IPCPolice channel");
             IPCMessage ipc = (IPCMessage) event.getObject();
             String info = ipc.getMessage().toLowerCase();
-            // TODO: Add process for creating a new perp tracker
-            BanC b = new BanC(info);
-            bancs.put(b.getName(), b);
-            perps.add(b.getName());
+            if (info.startsWith("BANC:")) {
+                BanC b = new BanC(info);
+                bancs.put(b.getName(), b);
+                perps.add(b.getName());
+            } else {
+                String[] args = info.split(":");
+                perps.add(args[1]);
+                guards.put(args[1], ipc.getSender());
+            }
         }
     }
     
@@ -313,12 +329,12 @@ public class policebot extends SubspaceBot {
             // name:type:time
             debug("Creating BanC: " + info);
             String[] args = info.split(":");
-            name = args[0];
-            time = Long.valueOf(args[2]);
+            name = args[1];
+            time = Long.valueOf(args[3]);
 
-            if (args[1].equalsIgnoreCase("SILENCE"))
+            if (args[2].equalsIgnoreCase("SILENCE"))
                 type = BanCType.SILENCE;
-            else if (args[1].equalsIgnoreCase("SPEC"))
+            else if (args[2].equalsIgnoreCase("SPEC"))
                 type = BanCType.SPEC;
             else
                 type = BanCType.SUPERSPEC;
