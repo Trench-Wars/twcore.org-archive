@@ -164,7 +164,8 @@ public class policebot extends SubspaceBot {
                 ba.sendArenaMessage("WOOP! WOOP!");
                 debug("Apprehended " + banc.getType().toString() + " suspect: " + banc.getName());
                 status = Status.CONFIRM;
-            }
+            } else
+                status = Status.LOCATE;
         }
     }
     
