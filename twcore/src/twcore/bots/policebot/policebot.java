@@ -88,6 +88,7 @@ public class policebot extends SubspaceBot {
             if (perp != null && message.toLowerCase().startsWith(perp.toLowerCase() + " - ")) {
                 // Locate was successful so pursue if private arena, otherwise ignore
                 debug("Locate message received: " + message);
+                status = Status.APPREHEND;
                 if (!message.contains("Public "))
                     // TODO: Fix this to accurately obtain the arena regardless of -'s
                     ba.changeArena(message.substring(perp.length() + 3));
