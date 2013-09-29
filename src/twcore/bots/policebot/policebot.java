@@ -85,7 +85,7 @@ public class policebot extends SubspaceBot {
         String message = event.getMessage().trim();
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
             // Command result returns (arena messages)
-            if (perp != null && message.toLowerCase().startsWith(perp.toLowerCase() + " - ")) {
+            if (status == Status.LOCATE && perp != null && message.toLowerCase().startsWith(perp.toLowerCase() + " - ")) {
                 // Locate was successful so pursue if private arena, otherwise ignore
                 debug("Locate message received: " + message);
                 status = Status.APPREHEND;
@@ -308,6 +308,7 @@ public class policebot extends SubspaceBot {
 
         public BanC(String info) {
             // name:type:time
+            debug("Creating BanC: " + info);
             String[] args = info.split(":");
             name = args[0];
             time = Long.valueOf(args[2]);
