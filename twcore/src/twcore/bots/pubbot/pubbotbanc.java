@@ -46,8 +46,7 @@ public class pubbotbanc extends PubBotModule {
     private static final long INFINITE_DURATION = 0;
     private static final int MAX_NAME_LENGTH = 19;
     private static final int MAX_IDLE_TIME = 15; //mins
-
-    private String crossZoneArena;
+    private static final int SILENCE_CONFIRM_TIME = 3000; //ms
     
     private TimerTask initActiveBanCs;
     private Action act;
@@ -57,7 +56,8 @@ public class pubbotbanc extends PubBotModule {
     private TreeMap<String, BanC> bancSpec;
     private TreeMap<String, BanC> bancSuper;
     private Vector<Object> actions;
-
+    private TreeMap<String, Long> silenceConfirms;
+    
     private Object current;
     private boolean silentKicks;
     private String sendto;
@@ -77,13 +77,12 @@ public class pubbotbanc extends PubBotModule {
         bancSilence = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         bancSpec = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
         bancSuper = new TreeMap<String, BanC>(String.CASE_INSENSITIVE_ORDER);
+        silenceConfirms = new TreeMap<String, Long>(String.CASE_INSENSITIVE_ORDER);
         actions = new Vector<Object>();
 
         String zoneIP = m_botAction.getGeneralSettings().getString("Server");
         String zonePort = m_botAction.getGeneralSettings().getString("Port");
         sendto = "*sendto " + zoneIP + "," + zonePort + "," + AFK_ARENA;
-
-        crossZoneArena = m_botAction.getBotSettings().getString("CrossZoneArena");
         
         // Request active BanCs from StaffBot
         initActiveBanCs = new TimerTask() {
@@ -126,7 +125,7 @@ public class pubbotbanc extends PubBotModule {
         if (!m_botAction.getArenaName().contains("Public"))
             m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
 
-        if (name.startsWith("^") == false)
+        if (!name.startsWith("^"))
             m_botAction.sendUnfilteredPrivateMessage(name, "*info");
     }
 
@@ -134,8 +133,6 @@ public class pubbotbanc extends PubBotModule {
     public void handleEvent(PlayerLeft event) {
         String name = m_botAction.getPlayerName(event.getPlayerID());
         elapsed.rem(name);
-        if (m_botAction.getArenaName().equalsIgnoreCase(crossZoneArena))
-            m_botAction.ipcSendMessage(IPCPOLICE, name, null, m_botAction.getBotName());
     }
 
     @Override
@@ -207,6 +204,7 @@ public class pubbotbanc extends PubBotModule {
                 String name = current.getName();
                 if (message.equalsIgnoreCase(current.getName() + " can now speak")) {
                     if (!current.isActive()) {
+                        silenceConfirms.remove(current.getName());
                         // The bot just unsilenced the player (and it's ok)
                         m_botAction.sendPrivateMessage(current.getName(), "Silence lifted. You can now speak.");
                         m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
@@ -222,6 +220,7 @@ public class pubbotbanc extends PubBotModule {
                         m_botAction.sendUnfilteredPrivateMessage(name, "*shutup");
                     } else {
                         // The bot just silenced the player (and it's ok)
+                        silenceConfirms.remove(current.getName());
                         if (current.getTime() == INFINITE_DURATION)
                             m_botAction.sendPrivateMessage(current.getName(), "You've been permanently silenced because of abuse and/or violation of Trench Wars rules.");
                         else
@@ -492,12 +491,14 @@ public class pubbotbanc extends PubBotModule {
     class Action extends TimerTask {
         @Override
         public void run() {
+            long now = System.currentTimeMillis();
             if (!actions.isEmpty()) {
                 current = actions.remove(0);
                 if (current instanceof BanC) {
                     BanC curr = (BanC) current;
                     switch (curr.getType()) {
                         case SILENCE:
+                            silenceConfirms.put(curr.getName(), now);
                             m_botAction.sendUnfilteredPrivateMessage(curr.getName(), "*shutup");
                             break;
                         case SPEC:
@@ -511,6 +512,12 @@ public class pubbotbanc extends PubBotModule {
                     }
                 } else if (current instanceof String)
                     m_botAction.sendUnfilteredPrivateMessage((String) current, "*einfo");
+            }
+            for (String name : silenceConfirms.keySet()) {
+                if (now - silenceConfirms.get(name) > SILENCE_CONFIRM_TIME) {
+                    silenceConfirms.remove(name);
+                    m_botAction.ipcSendMessage(IPCPOLICE, name, null, m_botAction.getBotName());
+                }
             }
         }
     }
