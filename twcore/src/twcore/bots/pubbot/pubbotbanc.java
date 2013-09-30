@@ -183,6 +183,7 @@ public class pubbotbanc extends PubBotModule {
         } else if (IPCPOLICE.equals(event.getChannel()) && ((IPCMessage) event.getObject()).getRecipient().equalsIgnoreCase(m_botAction.getBotName())) {
             IPCMessage ipc = (IPCMessage) event.getObject();
             String info = ipc.getMessage();
+            debug("Got POLICE info: " + info);
             checkBanCs(info);
         }
     }
