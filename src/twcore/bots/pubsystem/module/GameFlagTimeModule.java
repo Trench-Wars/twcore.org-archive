@@ -1874,13 +1874,13 @@ public class GameFlagTimeModule extends AbstractModule {
                 continue;
             
             // Check player's location for exempt locations.
-            if ((player != null && !player.getWarp())) {
+            if ((player != null && !allPlayers)) {
                 Region reg = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
-                //When not all players are warped, warp the player if inside the flagroom
-                //or when all players are warped, skip the player if he/she's inside a safe.
+                //Do not warp the player if they have disabled warping and aren't inside the flagroom
+                //or skip the player if he/she's inside a safe.
                 if(reg != null
-                        && ((!allPlayers && !Region.FLAGROOM.equals(reg)) 
-                                || (allPlayers && Region.SAFE.equals(reg))))
+                        && ((!player.getWarp() && !Region.FLAGROOM.equals(reg)) 
+                                || (Region.SAFE.equals(reg))))
                     continue;
             }
             
