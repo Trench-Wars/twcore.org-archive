@@ -180,11 +180,12 @@ public class pubbotbanc extends PubBotModule {
             String command = ipc.getMessage();
             if (command.startsWith("REMOVE"))
                 handleRemove(command);
-        } else if (IPCPOLICE.equals(event.getChannel()) && ((IPCMessage) event.getObject()).getRecipient().equalsIgnoreCase(m_botAction.getBotName())) {
+        } else if (IPCPOLICE.equals(event.getChannel())) {
             IPCMessage ipc = (IPCMessage) event.getObject();
             String info = ipc.getMessage();
-            debug("Got POLICE info: " + info);
-            checkBanCs(info);
+            debug("Got POLICE info for " + ipc.getRecipient() + ": " + info);
+            if (ipc.getRecipient().equalsIgnoreCase(m_botAction.getBotName()))
+                checkBanCs(info);
         }
     }
 
