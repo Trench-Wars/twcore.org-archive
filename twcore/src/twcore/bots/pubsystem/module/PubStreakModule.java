@@ -63,7 +63,7 @@ public class PubStreakModule extends AbstractModule {
 		eventRequester.request(EventRequester.PLAYER_LEFT);
 		// Disabled at the request of KrynetiX
 		//eventRequester.request(EventRequester.PLAYER_POSITION);
-		//eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
+		eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
 	}
 
 	/*29Sep2013 Trancid Disabled/removed at the request of KrynetiX
@@ -85,7 +85,6 @@ public class PubStreakModule extends AbstractModule {
 		}
 	}*/
 	
-	/*29Sep2013 Trancid Removed/disabled at the request of KrynetiX.
 	//15Aug2013	POiD	Added Speccing removing a streak.
 	public void handleEvent(FrequencyShipChange event)
 	{
@@ -105,7 +104,7 @@ public class PubStreakModule extends AbstractModule {
 				}
 			}
 		}
-	}*/
+	}
         
 	public void handleEvent(PlayerLeft event) {
 		Player p = m_botAction.getPlayer(event.getPlayerID());
