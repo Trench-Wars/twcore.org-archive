@@ -206,6 +206,8 @@ public class policebot extends SubspaceBot {
                 String[] args = info.split(":");
                 perps.add(args[1]);
                 guards.put(args[1], ipc.getSender());
+            } else {
+                debug("Unknown error: " + info);
             }
         }
     }
