@@ -102,8 +102,9 @@ public class policebot extends SubspaceBot {
                         String guard = guards.remove(perp);
                         ba.ipcSendMessage(IPCPOLICE, message, guard, ba.getBotName());
                         debug("Sending info to " + guard + ":" + message);
-                    }
-                    status = Status.IDLE;
+                        status = Status.IDLE;
+                    } else if (message.startsWith("Bytes/Sec:"))
+                        status = Status.IDLE;
                 } else if (message.equalsIgnoreCase(banc.getName() + " can now speak")) {
                     // This bot should ALWAYS be silencing players as this means the player was accidentally unsilenced
                     ba.sendUnfilteredPrivateMessage(banc.getName(), "*shutup");
