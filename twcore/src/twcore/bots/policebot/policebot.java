@@ -198,11 +198,11 @@ public class policebot extends SubspaceBot {
             debug("Got IPCMessage on IPCPolice channel");
             IPCMessage ipc = (IPCMessage) event.getObject();
             String info = ipc.getMessage().toLowerCase();
-            if (info.startsWith("BANC:")) {
+            if (info.toLowerCase().startsWith("banc:")) {
                 BanC b = new BanC(info);
                 bancs.put(b.getName(), b);
                 perps.add(b.getName());
-            } else if (info.startsWith("INFO:")) {
+            } else if (info.toLowerCase().startsWith("info:")) {
                 String[] args = info.split(":");
                 perps.add(args[1]);
                 guards.put(args[1], ipc.getSender());
