@@ -70,6 +70,7 @@ public class pubbotbanc extends PubBotModule {
     @Override
     public void initializeModule() {
         m_botAction.ipcSubscribe(IPCBANC);
+        m_botAction.ipcSubscribe(IPCPOLICE);
         silentKicks = false;
         DEBUG = false;
         proxy = true;
@@ -102,6 +103,7 @@ public class pubbotbanc extends PubBotModule {
     @Override
     public void cancel() {
         m_botAction.ipcUnSubscribe(IPCBANC);
+        m_botAction.ipcUnSubscribe(IPCPOLICE);
         elapsed.stop();
         m_botAction.cancelTask(initActiveBanCs);
         m_botAction.cancelTask(act);
