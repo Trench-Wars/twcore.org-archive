@@ -92,7 +92,6 @@ public class policebot extends SubspaceBot {
                 debug("Locate message received: " + message);
                 status = Status.APPREHEND;
                 if (!message.contains("Public "))
-                    // TODO: Fix this to accurately obtain the arena regardless of -'s
                     ba.changeArena(message.substring(perp.length() + 3));
                 else
                     status = Status.IDLE;
@@ -162,6 +161,7 @@ public class policebot extends SubspaceBot {
         if (status == Status.APPREHEND && perp != null) {
             String name = ba.getFuzzyPlayerName(perp);
             if (name != null && name.equalsIgnoreCase(perp)) {
+                status = Status.CONFIRM;
                 BanC banc = bancs.get(perp);
                 if (banc == null) {
                     debug("BanC was null so getting info for: " + perp);
@@ -183,7 +183,6 @@ public class policebot extends SubspaceBot {
                     debug("Apprehended " + banc.getType().toString() + " suspect: " + banc.getName());
                 }
             }
-            status = Status.CONFIRM;
         }
     }
     
