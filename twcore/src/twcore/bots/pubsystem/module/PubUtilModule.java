@@ -1,7 +1,6 @@
 package twcore.bots.pubsystem.module;
 
 import java.io.FileNotFoundException;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -110,10 +109,17 @@ public class PubUtilModule extends AbstractModule {
         return x + ":" + y;
     }
 
-    // Support added for additional regions not found in Location. Fixes killothon/timedgame issues.
-    // Due to how Location is used (testing if Loc =/!= X), we can't just add new Locations
-    // without changing logic in many places.
-    // TODO: REMOVE LOCATION AND ONLY WORK BASED ON REGION. LOCATION IS UNNECESSARY AND RESULTS IN BLOAT
+    /**
+     * Support added for additional regions not found in Location. Fixes killothon/timedgame issues.    
+     * Due to how Location is used (testing if Loc =/!= X), we can't just add new Locations
+     * without changing logic in many places.
+     * @param x xTileLocation
+     * @param y yTileLocation
+     * @return The location that matches the specific coordinates. When nothing is found: Location.SPACE
+     * @deprecated {@link Region} and {@link #getRegion(int, int)} are favoured above this and should be used instead.
+     */
+    @Deprecated
+    //TODO: REMOVE LOCATION AND ONLY WORK BASED ON REGION. LOCATION IS UNNECESSARY AND RESULTS IN BLOAT
     public Location getLocation(int x, int y) {
         Region region = getRegion(x, y);
         Location location = null;

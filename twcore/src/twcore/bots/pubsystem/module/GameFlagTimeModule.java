@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -16,6 +15,7 @@ import java.util.Vector;
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.PubUtilModule.Location;
+import twcore.bots.pubsystem.module.PubUtilModule.Region;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
@@ -1869,15 +1869,20 @@ public class GameFlagTimeModule extends AbstractModule {
 
             PubPlayer player = context.getPlayerManager().getPlayer(pname);
 
-            if ((player != null && !player.getWarp()) && !allPlayers) {
-                Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
-                //Warp the player if inside the flagroom
-                if (!loc.equals(Location.FLAGROOM))
-                    continue;
-            }
-
+            // Check if the player is a lev. If so, do not warp.
             if (p.getShipType() == Tools.Ship.LEVIATHAN)
                 continue;
+            
+            // Check player's location for exempt locations.
+            if ((player != null && !player.getWarp())) {
+                Region reg = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
+                //When not all players are warped, warp the player if inside the flagroom
+                //or when all players are warped, skip the player if he/she's inside a safe.
+                if(reg != null
+                        && ((!allPlayers && !Region.FLAGROOM.equals(reg)) 
+                                || (allPlayers && Region.SAFE.equals(reg))))
+                    continue;
+            }
             
             if (allPlayers)
                 rand = 0;
