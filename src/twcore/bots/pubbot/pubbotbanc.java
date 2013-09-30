@@ -485,7 +485,7 @@ public class pubbotbanc extends PubBotModule {
     private String getInfo(String message, String infoName) {
         int beginIndex = message.indexOf(infoName);
         if (beginIndex < 0)
-            beginIndex = message.indexOf(infoName.toLowerCase());
+            beginIndex = message.toLowerCase().indexOf(infoName);
         int endIndex;
 
         if (beginIndex == -1)
