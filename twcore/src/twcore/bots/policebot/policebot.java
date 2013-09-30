@@ -202,7 +202,7 @@ public class policebot extends SubspaceBot {
                 BanC b = new BanC(info);
                 bancs.put(b.getName(), b);
                 perps.add(b.getName());
-            } else {
+            } else if (info.startsWith("INFO:")) {
                 String[] args = info.split(":");
                 perps.add(args[1]);
                 guards.put(args[1], ipc.getSender());
