@@ -1,23 +1,14 @@
 package twcore.bots.pubsystem.module;
 
-import java.util.Collections;
-import java.util.ConcurrentModificationException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TimerTask;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
-import twcore.bots.pubsystem.module.PubUtilModule.Location;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
-import twcore.core.events.PlayerPosition;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
@@ -52,7 +43,7 @@ public class PubStreakModule extends AbstractModule {
 		this.winStreaks = new ConcurrentHashMap<String,Integer>();
 		this.loseStreaks = new ConcurrentHashMap<String,Integer>();
 
-		m_botAction.scheduleTask(new SafeChecker(context), 10*Tools.TimeInMillis.SECOND, 3*Tools.TimeInMillis.SECOND);
+		//m_botAction.scheduleTask(new SafeChecker(context), 10*Tools.TimeInMillis.SECOND, 3*Tools.TimeInMillis.SECOND);
 		
 		reloadConfig();
 	}
@@ -190,10 +181,10 @@ public class PubStreakModule extends AbstractModule {
         
         streak = winStreaks.get(killer.getPlayerName());
         
-        // Time to tell the player that SAFE are not allowed
+        // Time to tell the player speccing is not allowed
         // Else, the player will lose his streak
         if (streak == winsStreakArenaAt) {
-        	m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "You have kill " + winsStreakArenaAt + " times in a row, you are now not allowed to go in safe or spectator mode.");
+        	m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "You have kill " + winsStreakArenaAt + " times in a row, you are now not allowed to go in spectator mode.");
         	m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "If you do, you will lose your streak. May the force be with you.");
         }
         
@@ -441,7 +432,7 @@ public class PubStreakModule extends AbstractModule {
 	public void stop() {
 		
 	}
-	
+	/*29Sep2013 Trancid Disabled/removed at the request of KrynetiX
 	private class SafeChecker extends TimerTask {
 
 		private PubContext context;
@@ -468,7 +459,7 @@ public class PubStreakModule extends AbstractModule {
 				}
 			}
 		}
-	}
+	}*/
 
     @Override
     public void handleSmodCommand(String sender, String command) {
