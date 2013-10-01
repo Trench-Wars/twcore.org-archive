@@ -1315,6 +1315,10 @@ public class PubMoneySystemModule extends AbstractModule {
     public boolean isStoreOpened() {
         return store.isOpened();
     }
+    
+    public void resetRoundRestrictions() {
+        store.resetRoundRestrictedItems();
+    }
 
     public boolean isDatabaseOn() {
         return m_botAction.getBotSettings().getString("database") != null;
