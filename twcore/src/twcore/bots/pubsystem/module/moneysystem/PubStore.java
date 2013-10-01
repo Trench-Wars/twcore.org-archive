@@ -31,6 +31,7 @@ public class PubStore {
 	
 	private boolean opened = true;
     private LinkedHashMap<String, PubItem> items;
+    private ArrayList<PubItem> roundRestrictedItems;
     
     // Immunity list
     private HashMap<String, Long> immunity;
@@ -41,6 +42,7 @@ public class PubStore {
     	this.context = context;
     	this.immunity = new HashMap<String, Long>();
         this.items = new LinkedHashMap<String, PubItem>();
+        this.roundRestrictedItems = new ArrayList<PubItem>();
     }
     
     private void initializeStore() {
@@ -49,6 +51,7 @@ public class PubStore {
         	turnOff();
         
         this.items = new LinkedHashMap<String, PubItem>();
+        this.roundRestrictedItems = new ArrayList<PubItem>();
         
         commandCooldown = Integer.valueOf(m_botAction.getBotSettings().getString("command_cd"));
         prizecooldown = Integer.valueOf(m_botAction.getBotSettings().getString("prize_cd"));
@@ -150,6 +153,15 @@ public class PubStore {
 	    				} else if (option.startsWith("!fdm")) {
 	    				    int max = Integer.parseInt(option.substring(4));
 	    				    r.setFreqPerMinute(max);
+	    				    hasRestriction = true;
+	    				} else if (option.startsWith("!fdr")) {
+	    				    int max = Integer.parseInt(option.substring(4));
+	    				    r.setFreqPerRound(max);
+	    				    if(item != null)
+	    				        roundRestrictedItems.add(item);
+	    				    hasRestriction = true;
+	    				} else if (option.startsWith("!pf")) {
+	    				    r.setPublicFreqOnly();
 	    				    hasRestriction = true;
 	    				} else if (option.startsWith("!fit")) {
 	    				    int t = Integer.parseInt(option.substring(4));
@@ -290,8 +302,10 @@ public class PubStore {
         }
         
         item.hasBeenBought();
-        if (item.isRestricted())
+        if (item.isRestricted()) {
             item.getRestriction().freqUsing(m_botAction.getPlayer(player.getPlayerName()).getFrequency());
+            item.getRestriction().addFreqUsedRound(m_botAction.getPlayer(player.getPlayerName()).getFrequency());
+        }
         
         return item;
     }
@@ -345,5 +359,17 @@ public class PubStore {
             return items.get("sphere").getImmuneTime();
         else
             return -1;
+    }
+    
+    /*
+     * Clears the tracking lists of items that have limited buys per freq per round.
+     */
+    public void resetRoundRestrictedItems() {
+        if(roundRestrictedItems.isEmpty())
+            return;
+        
+        for(PubItem item : roundRestrictedItems) {
+            item.getRestriction().resetFreqRoundUses();
+        }
     }
 }

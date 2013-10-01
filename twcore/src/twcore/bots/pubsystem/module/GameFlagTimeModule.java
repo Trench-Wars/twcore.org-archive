@@ -1249,6 +1249,9 @@ public class GameFlagTimeModule extends AbstractModule {
             m_botAction.sendArenaMessage("END ROUND: A private freq wins the round after " + getTimeString(flagTimer.getTotalSecs()) + " (Bonus: +$"
                     + moneyBonus + ")", Tools.Sound.BEEP1);
 
+        // Clear any round restricted buyable items/commands
+        context.getMoneySystem().resetRoundRestrictions();
+        
         // Achievement part
         // ---------------------------------------
 

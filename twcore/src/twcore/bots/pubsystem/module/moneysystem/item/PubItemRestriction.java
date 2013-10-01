@@ -16,17 +16,21 @@ public class PubItemRestriction {
 	private int maxArenaPerMinute = -1;
 	private int maxPerSecond = -1;
 	private int maxFreqPerMinute = -1;
+	private int maxFreqPerRound = -1;
 	private int globalCooldownBuy = -1;
 	private int detachLevTerrCooldown = -1;
 	private boolean buyableFromLevTerr = true;
 	private boolean buyableFromSpec = false;
+	private boolean publicFreqOnly = false;
 	private List<String> itemNotSameTime;
 	private TreeMap<Short, Long> freqUsed;
+    private TreeMap<Short, Integer> freqUsedPerRound;
 	
 	public PubItemRestriction() {
 		ships = new ArrayList<Integer>();
 		itemNotSameTime = new ArrayList<String>();
 		freqUsed = new TreeMap<Short, Long>();
+        freqUsedPerRound = new TreeMap<Short, Integer>();
 	}
 	
 	public void addShip(int shipType) {
@@ -62,6 +66,40 @@ public class PubItemRestriction {
             return false;
 	}
 	
+	public boolean canFreqUseRound(Short freq) {
+	    if(maxFreqPerRound == -1)
+	        return true;
+	    else if(!isFreqAllowed(freq))
+	        return false;
+	    else if(!freqUsedPerRound.containsKey(freq))
+	        return true;
+	    else if(freqUsedPerRound.get(freq) < maxFreqPerRound)
+	        return true;
+	    else
+	        return false;
+	}
+	
+	public boolean isFreqAllowed(Short freq) {
+	    if(publicFreqOnly && (freq != 0 && freq != 1))
+	        return false;
+	    else
+	        return true;
+	}
+	
+	public void addFreqUsedRound(Short freq) {
+	    if(!canFreqUseRound(freq))
+	        return;
+	    if(!freqUsedPerRound.containsKey(freq))
+	        freqUsedPerRound.put(freq, 1);
+	    else
+	        freqUsedPerRound.put(freq, freqUsedPerRound.get(freq) + 1);      
+	}
+	
+	public void resetFreqRoundUses() {
+	    if (maxFreqPerRound != -1 && !freqUsedPerRound.isEmpty())
+	        freqUsedPerRound.clear();
+	}
+	
 	public void setMaxPerLife(int max) {
 		this.maxPerLife = max;
 	}
@@ -80,6 +118,14 @@ public class PubItemRestriction {
 	
 	public void setFreqPerMinute(int max) {
 	    this.maxFreqPerMinute = max;
+	}
+	
+	public void setFreqPerRound(int max) {
+	    this.maxFreqPerRound = max;
+	}
+	
+	public void setPublicFreqOnly() {
+	    this.publicFreqOnly = true;
 	}
 	
 	public void setGobalCooldownBuy(int c) {
@@ -112,6 +158,14 @@ public class PubItemRestriction {
 	
 	public int getMaxFreqPerMinute() {
 	    return maxFreqPerMinute;
+	}
+	
+	public int getMaxFreqPerRound() {
+	    return maxFreqPerRound;
+	}
+	
+	public boolean isPublicFreqOnly() {
+	    return publicFreqOnly;
 	}
 	
 	public int getMaxPerLife() {
@@ -206,6 +260,12 @@ public class PubItemRestriction {
 					throw new PubException("Only " + maxConsecutive + " consecutive buy of this item allowed.");
 			}
 		}
+		
+		if (!isFreqAllowed(freq))
+		    throw new PubException("Private freqs are not allowed to buy this item.");
+		
+		if (!canFreqUseRound(freq))
+		    throw new PubException("Your freq has already bought the maximum number allowed of this item.");
         
         if (!canFreqUse(freq))
             throw new PubException("Your freq has bought this item in the past " + maxFreqPerMinute + " minutes, please wait...");
