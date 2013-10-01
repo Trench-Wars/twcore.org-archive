@@ -2058,14 +2058,18 @@ public class PubMoneySystemModule extends AbstractModule {
     private void itemCommandFlagSaver(String sender, String params) {
         Iterator<Integer> flagIt;
         Player p = m_botAction.getPlayer(sender);
+        int freq;
         
         if(p == null) {
             // We will be unable to determine the target frequency without a Player object.
             return;
         }
         
+        //Store the freq to avoid null pointer exceptions later on.
+        freq = p.getFrequency();
+        
         m_botAction.getShip().setShip(1);
-        m_botAction.getShip().setFreq(p.getFrequency());
+        m_botAction.getShip().setFreq(freq);
         m_botAction.getShip().rotateDegrees(270);
         m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
         m_botAction.getShip().move(512 * 16 + 8, 276 * 16 + 8);
@@ -2079,15 +2083,15 @@ public class PubMoneySystemModule extends AbstractModule {
         m_botAction.scheduleTask(timer, 4000);
         
         // Botside, we need to claim the flag
-        context.getGameFlagTime().remoteFlagClaim(p.getFrequency());
+        context.getGameFlagTime().remoteFlagClaim(freq);
         // Serverside, we need to claim the flag.
         flagIt = m_botAction.getFlagIDIterator();
         while(flagIt.hasNext()) {
             m_botAction.getFlag(flagIt.next());
         }
 
-        if (p.getFrequency() < 100)
-            m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for FREQ " + p.getFrequency() + ", thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
+        if (freq < 100)
+            m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for FREQ " + freq + ", thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
         else
             m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for a private freq, thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
 
