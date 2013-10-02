@@ -2478,6 +2478,10 @@ public class GameFlagTimeModule extends AbstractModule {
                         Player p = (Player) i.next();
                         flagTimer.newShip(p.getPlayerName(), p.getShipType());
                     }
+                    
+                    // Clear any round restricted buyable items/commands
+                    context.getMoneySystem().resetRoundRestrictions();
+                    
                     return;
                 }
             }
