@@ -2076,7 +2076,7 @@ public class PubMoneySystemModule extends AbstractModule {
         m_botAction.getShip().setFreq(freq);
         m_botAction.getShip().rotateDegrees(270);
         m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
-        m_botAction.getShip().move(512 * 16 + 8, 276 * 16 + 8);
+        m_botAction.getShip().move(512 * 16 + 8, 270 * 16 + 8);
 
         TimerTask timer = new TimerTask() {
             public void run() {
