@@ -330,9 +330,9 @@ public class PubPlayer implements Comparable<PubPlayer>{
         
         if(p != null) {
             if (spawnPoint <= 5)
-                m_botAction.warpTo(p.getPlayerName(), 560, 320, 15);
+                m_botAction.warpTo(p.getPlayerName(), 539, 323, 9);
             else
-                m_botAction.warpTo(p.getPlayerName(), 464, 320, 15);
+                m_botAction.warpTo(p.getPlayerName(), 485, 323, 9);
         }
     }
     
