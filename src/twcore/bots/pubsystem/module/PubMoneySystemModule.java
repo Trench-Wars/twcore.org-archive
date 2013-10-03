@@ -2012,6 +2012,7 @@ public class PubMoneySystemModule extends AbstractModule {
     }
 
     private void itemCommandBaseStrike(String sender, String params) {
+        Short freq = null;
 
         int[][] coords = new int[][] { 
                 new int[] { 500, 260 }, // Top right
@@ -2026,34 +2027,48 @@ public class PubMoneySystemModule extends AbstractModule {
         };
 
         Player commander = m_botAction.getPlayer(sender);
-
+        
+        // Default null check
+        if(commander == null)
+            return;
+        
+        // Since it might take a bit to execute this routine, prefetch the command's frequency.
+        freq = commander.getFrequency();
+        if(freq == null)
+            return;
+        
         Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
         while (it.hasNext()) {
 
             Player player = it.next();
 
-            if (player.getFrequency() != commander.getFrequency())
+            if (player.getFrequency() != freq)
                 continue;
             if (context.getPubChallenge().isDueling(player.getPlayerName()))
                 continue;
-            // Ter always warped on the middle
+            // Check if the player is a lev. If so, do not warp.
+            if (player.getShipType() == Tools.Ship.LEVIATHAN)
+                continue;
+            // Do not warp players that are in a safe.
+            Region reg = context.getPubUtil().getRegion(player.getXTileLocation(), player.getYTileLocation());
+            if(reg != null && Region.SAFE.equals(reg))
+                continue;
+            
+            // Terr always warped on the middle
             if (player.getShipType() == Tools.Ship.TERRIER) {
-                if (context.getGameFlagTime().canWarpPlayer(player.getPlayerName()))
-                    m_botAction.warpTo(player.getPlayerName(), coords[1][0], coords[1][1]);
+                m_botAction.warpTo(player.getPlayerName(), coords[1][0], coords[1][1]);
                 // Shark always warped on top
             } else if (player.getShipType() == Tools.Ship.SHARK) {
                 int num = (int) Math.floor(Math.random() * 3);
-                if (context.getGameFlagTime().canWarpPlayer(player.getPlayerName()))
-                    m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1]);
+                m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1]);
                 // The rest is random..
             } else {
                 int num = (int) Math.floor(Math.random() * coords.length);
-                if (context.getGameFlagTime().canWarpPlayer(player.getPlayerName()))
-                    m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1], 3);
+                m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1], 3);
             }
         }
-        if (commander.getFrequency() < 100)
-            m_botAction.sendArenaMessage("FREQ " + commander.getFrequency() + " is striking the flag room! Commanded by " + sender + ".", Tools.Sound.CROWD_OHH);
+        if (freq < 100)
+            m_botAction.sendArenaMessage("FREQ " + freq + " is striking the flag room! Commanded by " + sender + ".", Tools.Sound.CROWD_OHH);
         else
             m_botAction.sendArenaMessage("A private freq is striking the flag room! Commanded by " + sender + ".", Tools.Sound.CROWD_OHH);
 
