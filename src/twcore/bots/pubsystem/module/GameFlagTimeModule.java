@@ -1790,6 +1790,10 @@ public class GameFlagTimeModule extends AbstractModule {
         return -1;
     }
     
+    public Long getLastFreqChange(String name) {
+        return playerTimeJoined.get(name);
+    }
+    
     /**
      * Instantly claims the flag while bypassing the FlagClaimed eventhandler.
      * <p>

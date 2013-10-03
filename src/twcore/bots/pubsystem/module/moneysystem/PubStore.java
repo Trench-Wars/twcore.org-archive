@@ -29,6 +29,8 @@ public class PubStore {
 	private int detachLevTerrCooldown = 0;
 	private int buyableFromLevTerr = 1;
 	
+	private int loyaltyTime = 120 * Tools.TimeInMillis.SECOND;
+	
 	private boolean opened = true;
     private LinkedHashMap<String, PubItem> items;
     private ArrayList<PubItem> roundRestrictedItems;
@@ -57,6 +59,7 @@ public class PubStore {
         prizecooldown = Integer.valueOf(m_botAction.getBotSettings().getString("prize_cd"));
         buyableFromLevTerr = Integer.valueOf(m_botAction.getBotSettings().getString("buy_from_levterr"));
         detachLevTerrCooldown = Integer.valueOf(m_botAction.getBotSettings().getString("levterr_detach_cd"));
+        loyaltyTime = Integer.valueOf(m_botAction.getBotSettings().getString("loyalty_time")) * Tools.TimeInMillis.SECOND;
 
         String[] itemTypes = { "item_prize" , "item_ship_upgrade" , "item_ship" , "item_command" };
         for(String type: itemTypes) {
@@ -124,7 +127,6 @@ public class PubStore {
 	    			} else if (buyableFromLevTerr == 1 && detachLevTerrCooldown != 0) {
 	    			        r.setDetachLevTerrCooldown(detachLevTerrCooldown);
 	    			}
-	    			
 	    			
 	    			for(int i=optionPointer; i<data.length; i++) {
 
@@ -228,11 +230,19 @@ public class PubStore {
         	throw new PubException("This item does not exist.");
         
         if (item instanceof PubCommandItem) {
+            // Command item cooldown
             long timePassed = System.currentTimeMillis() - player.getLastBigItemUsed(); 
             if (timePassed < commandCooldown * Tools.TimeInMillis.SECOND) {
                 timePassed = commandCooldown - (timePassed / 1000);
                 throw new PubException("You must wait at least " + timePassed + " seconds before buying another special item.");
             }
+            // Freq loyalty check
+            timePassed = System.currentTimeMillis() - context.getGameFlagTime().getLastFreqChange(buyer.getPlayerName());
+            if (timePassed < loyaltyTime) {
+                timePassed = (loyaltyTime - timePassed) / 1000;
+                throw new PubException("You must stay at least " + timePassed + " more seconds in your freq before you can buy a special item.");
+            }
+            
         }
         
         if (item.isPlayerStrict() || (item.isPlayerOptional() && !params.trim().isEmpty())) {
