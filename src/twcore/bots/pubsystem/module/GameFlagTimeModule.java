@@ -136,40 +136,40 @@ public class GameFlagTimeModule extends AbstractModule {
     	
     	// Hardcoded warp points (for new base system)
     	} else {
-    		warpPtsLeftX[0] = 481;
-    		warpPtsLeftX[1] = 485;
-    		warpPtsLeftX[2] = 489;
-    		warpPtsLeftX[3] = 491;
-    		warpPtsLeftX[4] = 488;
-    		
-    		warpPtsLeftY[0] = 262;
-    		warpPtsLeftY[1] = 258;
-    		warpPtsLeftY[2] = 266;
-    		warpPtsLeftY[3] = 288;
-    		warpPtsLeftY[4] = 278;
-    				
-    		warpPtsRightX[0] = 542;
-    		warpPtsRightX[1] = 539;
-    		warpPtsRightX[2] = 535;
-    		warpPtsRightX[3] = 533;
-    		warpPtsRightX[4] = 536;
+    	    warpPtsLeftX[0] = 482;
+            warpPtsLeftX[1] = 486;
+            warpPtsLeftX[2] = 490;
+            warpPtsLeftX[3] = 490;
+            warpPtsLeftX[4] = 491;
+            
+            warpPtsLeftY[0] = 256;
+            warpPtsLeftY[1] = 252;
+            warpPtsLeftY[2] = 260;
+            warpPtsLeftY[3] = 270;
+            warpPtsLeftY[4] = 280;
+                    
+            warpPtsRightX[0] = 542;
+            warpPtsRightX[1] = 538;
+            warpPtsRightX[2] = 534;
+            warpPtsRightX[3] = 534;
+            warpPtsRightX[4] = 533;
 
-    		warpPtsRightY[0] = 262;
-    		warpPtsRightY[1] = 258;
-    		warpPtsRightY[2] = 266;
-    		warpPtsRightY[3] = 288;
-    		warpPtsRightY[4] = 278;
+            warpPtsRightY[0] = 256;
+            warpPtsRightY[1] = 252;
+            warpPtsRightY[2] = 260;
+            warpPtsRightY[3] = 270;
+            warpPtsRightY[4] = 280;
 
-    		// Coords in array format, in case anyone needs them later on
-    		//int[] leftX =  { 481, 485, 489, 491, 488 };
-    		//int[] leftY =  { 262, 258, 266, 288, 278 };
-    		//int[] rightX = { 542, 539, 535, 533, 536 };
-    		//int[] rightY = { 262, 258, 266, 288, 278 };    		
-    		
-    		warpSafeLeftX = 241;
-    		warpSafeLeftY = 485;
-    		warpSafeRightX = 785;
-    		warpSafeRightY = 484;    		
+            // Coords in array format, in case anyone needs them later on
+            //int[] leftX =  { 481, 485, 489, 491, 488 };
+            //int[] leftY =  { 262, 258, 266, 288, 278 };
+            //int[] rightX = { 542, 539, 535, 533, 536 };
+            //int[] rightY = { 262, 258, 266, 288, 278 };           
+            
+            warpSafeLeftX = 306;
+            warpSafeLeftY = 482;
+            warpSafeRightX = 718;
+            warpSafeRightY = 482;           	
     	}
         
         if (m_botAction.getBotSettings().getInt("allow_warp") == 1)
