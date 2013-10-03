@@ -312,6 +312,13 @@ public class GameFlagTimeModule extends AbstractModule {
 
     @Override
     public void handleEvent(FrequencyChange event) {
+        String p = m_botAction.getPlayerName(event.getPlayerID());
+        if (p != null) {
+            PubPlayer pubPlayer = context.getPlayerManager().getPlayer(p);
+            if (pubPlayer != null) 
+                pubPlayer.setLastFreqSwitch();
+        }
+        
         // Reset the time of a player for MVP purpose
         if (isRunning()) {
             Player player = m_botAction.getPlayer(event.getPlayerID());
