@@ -325,14 +325,19 @@ public class PubPlayer implements Comparable<PubPlayer>{
     }
     
     public void doSpawnMid() {
-        double spawnPoint = Math.floor(Math.random() * 10);
+        double spawnPoint = Math.floor(Math.random() * 20);
         Player p = m_botAction.getPlayer(name);
         
         if(p != null) {
             if (spawnPoint <= 5)
                 m_botAction.warpTo(p.getPlayerName(), 539, 323, 9);
-            else
+            else if (spawnPoint > 5 && spawnPoint <= 10)  {
                 m_botAction.warpTo(p.getPlayerName(), 485, 323, 9);
+            } else if (spawnPoint > 10 && spawnPoint <= 15)  {
+                m_botAction.warpTo(p.getPlayerName(), 474 , 298, 8);
+            } else {
+                m_botAction.warpTo(p.getPlayerName(), 550 , 298, 8);
+            }
         }
     }
     
