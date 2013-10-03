@@ -2017,10 +2017,10 @@ public class PubMoneySystemModule extends AbstractModule {
                 new int[] { 500, 260 }, // Top right
                 new int[] { 512, 257 }, // Top middle
                 new int[] { 524, 260 }, // Top left
-                new int[] { 538, 260 }, // Ear right
-                new int[] { 486, 260 }, // Ear left
-                new int[] { 492, 273 }, // Middle right
-                new int[] { 532, 273 }, // Middle left
+                new int[] { 536, 255 }, // Ear right
+                new int[] { 488, 255 }, // Ear left
+                new int[] { 493, 268 }, // Middle right
+                new int[] { 531, 268 }, // Middle left
         //new int[] { 500, 287 }, // Bottom right
         //new int[] { 526, 287 }, // Bottom left
         };
@@ -2283,13 +2283,13 @@ public class PubMoneySystemModule extends AbstractModule {
             commandBot("!SetShip 5");
             commandBot("!SetFreq " + freq);
             if (freq == 0) {
-                commandBot("!WarpTo 486 260");
+                commandBot("!WarpTo 488 254");
                 commandBot("!Face 15");
             } else if (freq == 1) {
-                commandBot("!WarpTo 538 260");
+                commandBot("!WarpTo 536 254");
                 commandBot("!Face 25");
             } else {
-                commandBot("!WarpTo 512 258");
+                commandBot("!WarpTo 512 257");
                 commandBot("!Face 20");
             }
             commandBot("!Timeout 300");
