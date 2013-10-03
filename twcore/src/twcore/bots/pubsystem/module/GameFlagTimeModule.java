@@ -139,26 +139,26 @@ public class GameFlagTimeModule extends AbstractModule {
     	    warpPtsLeftX[0] = 482;
             warpPtsLeftX[1] = 486;
             warpPtsLeftX[2] = 490;
-            warpPtsLeftX[3] = 490;
+            warpPtsLeftX[3] = 491;
             warpPtsLeftX[4] = 491;
             
             warpPtsLeftY[0] = 256;
             warpPtsLeftY[1] = 252;
             warpPtsLeftY[2] = 260;
-            warpPtsLeftY[3] = 270;
-            warpPtsLeftY[4] = 280;
+            warpPtsLeftY[3] = 269;
+            warpPtsLeftY[4] = 279;
                     
             warpPtsRightX[0] = 542;
             warpPtsRightX[1] = 538;
             warpPtsRightX[2] = 534;
-            warpPtsRightX[3] = 534;
+            warpPtsRightX[3] = 533;
             warpPtsRightX[4] = 533;
 
             warpPtsRightY[0] = 256;
             warpPtsRightY[1] = 252;
             warpPtsRightY[2] = 260;
-            warpPtsRightY[3] = 270;
-            warpPtsRightY[4] = 280;
+            warpPtsRightY[3] = 269;
+            warpPtsRightY[4] = 279;
 
             // Coords in array format, in case anyone needs them later on
             //int[] leftX =  { 481, 485, 489, 491, 488 };
