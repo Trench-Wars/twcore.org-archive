@@ -30,7 +30,7 @@ public class PubMapModule extends AbstractModule {
     private static final int RIGHT_SIDE_DOOR = 1005;
     private static final int SMALL_BASE = 6;
     private static final int MED_BASE = 9;
-    private static final int LARGE_BASE = 8;
+    private static final int LARGE_BASE = 24;
     
     private int currentBase;    // current door setting
 
