@@ -2015,9 +2015,9 @@ public class PubMoneySystemModule extends AbstractModule {
         Short freq = null;
 
         int[][] coords = new int[][] { 
-                new int[] { 500, 260 }, // Top right
+                new int[] { 501, 261 }, // Top right
                 new int[] { 512, 257 }, // Top middle
-                new int[] { 524, 260 }, // Top left
+                new int[] { 523, 261 }, // Top left
                 new int[] { 536, 255 }, // Ear right
                 new int[] { 488, 255 }, // Ear left
                 new int[] { 493, 268 }, // Middle right
@@ -2064,7 +2064,12 @@ public class PubMoneySystemModule extends AbstractModule {
                 // The rest is random..
             } else {
                 int num = (int) Math.floor(Math.random() * coords.length);
-                m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1], 3);
+                    if (num == 1)
+                        m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1]);
+                    else if (num == 0 || num == 2)
+                        m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1],1);
+                    else if (num >= 3)
+                        m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1], 3);
             }
         }
         if (freq < 100)
