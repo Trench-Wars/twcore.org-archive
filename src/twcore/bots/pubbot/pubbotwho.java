@@ -95,6 +95,7 @@ public class pubbotwho extends PubBotModule {
                 m_botAction.scheduleTask(who.get(name), 2000);
             } catch (IllegalStateException e) {
                 Tools.printLog("IllegalStateException on: " + name);
+                Tools.printStackTrace(e);
             } catch (NullPointerException e) {
                 Tools.printLog("NullPointerException on: " + (name != null ? name : "null") + "," + (p != null ? "p OK" : "p is null") + "," + (p.getPlayerName() != null ? "getPlayerName OK" : "getPlayerName is null") + "," + (who.get(name) != null ? "who.get OK" : "who.get is null") );
             }
