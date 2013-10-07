@@ -33,7 +33,7 @@ public abstract class AutobotThread extends Thread implements IPCReceiver {
 			
 	    	final String hubName = m_botAction.getBotSettings().getString("HubName");
 
-	    	/* Step 1: Look if there is a bot avalaible
+	    	/* Step 1: Look if there is a bot available 
 	    	 * Step 2: If not, spawn a new one
 	    	 * Step 3: Try until numberOfTry reach 10
 	    	 */

@@ -334,7 +334,7 @@ public class PubChallengeModule extends AbstractModule {
         }
 
         if (getEmptyDuelArea(ship) == null) {
-            m_botAction.sendSmartPrivateMessage(challenger, "There is no duel area avalaible. Please try later.");
+            m_botAction.sendSmartPrivateMessage(challenger, "There is no duel area available . Please try later.");
             return;
         }
 
