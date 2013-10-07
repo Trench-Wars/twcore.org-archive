@@ -288,7 +288,7 @@ public class PubContext {
                 for (String name : modules.keySet()) {
                     moduleNames += ", " + name;
                 }
-                m_botAction.sendSmartPrivateMessage(sender, "Avalaible: " + moduleNames.substring(1));
+                m_botAction.sendSmartPrivateMessage(sender, "Available : " + moduleNames.substring(1));
             }
         }
 
