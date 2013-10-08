@@ -144,6 +144,9 @@ public class PubItemRestriction {
 	    this.buyableFromLevTerr = false;
 	}
 	
+	public boolean isBuyableFromLevTerr() {
+	    return buyableFromLevTerr;
+	}
 	public boolean isBuyableFromSpec() {
 		return buyableFromSpec;
 	}
@@ -275,11 +278,14 @@ public class PubItemRestriction {
     public void checkForOther(PubItem item, PubPlayer player, int shipType) throws PubException {
         
         if (ships.contains(shipType))
-            throw new PubException("You cannot buy this item with your current ship.");
+            throw new PubException("The ship of the person who you want to buy this for is prohibited from getting this item.");
         
         if (!buyableFromSpec) {
             if (player.isOnSpec()) {
                 throw new PubException("You cannot buy this item if you are a spectator.");
+            }
+            if(shipType == Tools.Ship.SPECTATOR) {
+                throw new PubException("You cannot buy this item for a spectator.");
             }
         }
         
