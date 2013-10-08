@@ -55,11 +55,11 @@ public class PubStore {
         this.items = new LinkedHashMap<String, PubItem>();
         this.roundRestrictedItems = new ArrayList<PubItem>();
         
-        commandCooldown = Integer.valueOf(m_botAction.getBotSettings().getString("command_cd"));
-        prizecooldown = Integer.valueOf(m_botAction.getBotSettings().getString("prize_cd"));
-        buyableFromLevTerr = Integer.valueOf(m_botAction.getBotSettings().getString("buy_from_levterr"));
-        detachLevTerrCooldown = Integer.valueOf(m_botAction.getBotSettings().getString("levterr_detach_cd"));
-        loyaltyTime = Integer.valueOf(m_botAction.getBotSettings().getString("loyalty_time")) * Tools.TimeInMillis.SECOND;
+        commandCooldown = m_botAction.getBotSettings().getInt("command_cd");
+        prizecooldown = m_botAction.getBotSettings().getInt("prize_cd");
+        buyableFromLevTerr = m_botAction.getBotSettings().getInt("buy_from_levterr");
+        detachLevTerrCooldown = m_botAction.getBotSettings().getInt("levterr_detach_cd");
+        loyaltyTime = m_botAction.getBotSettings().getInt("loyalty_time") * Tools.TimeInMillis.SECOND;
 
         String[] itemTypes = { "item_prize" , "item_ship_upgrade" , "item_ship" , "item_command" };
         for(String type: itemTypes) {
