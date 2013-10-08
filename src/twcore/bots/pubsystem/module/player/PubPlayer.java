@@ -71,6 +71,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private boolean isLevTerr = false;
     private TimerTask spawnDelay;
     
+    private short lastFreq = 9999;
     private boolean warp;
     
     private long playerID;
@@ -99,6 +100,11 @@ public class PubPlayer implements Comparable<PubPlayer>{
         this.ignoreList = new LinkedList<String>();
         this.donated = new TreeMap<String, Long>(String.CASE_INSENSITIVE_ORDER);
         this.playerID = fnid;
+        
+        try {
+            this.lastFreq = m_botAction.getPlayer(name).getFrequency();
+        } catch (Exception e) {}
+        
         reloadPanel(false);
     }
 
@@ -378,7 +384,11 @@ public class PubPlayer implements Comparable<PubPlayer>{
         return lastSwitchReward;
     }
     
-    public void setLastFreqSwitch() {
+    public void setLastFreqSwitch(short newFreq) {
+        if(newFreq == lastFreq)
+            return;
+        
+        lastFreq = newFreq;
         this.lastFreqSwitch = System.currentTimeMillis();
     }
     

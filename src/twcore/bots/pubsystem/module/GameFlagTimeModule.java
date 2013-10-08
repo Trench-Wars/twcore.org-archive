@@ -32,24 +32,24 @@ import twcore.core.util.Tools;
 
 public class GameFlagTimeModule extends AbstractModule {
 
-    private static final int FLAG_CLAIM_SECS = 4;       // Seconds it takes to fully claim a flag
-    private static final int INTERMISSION_SECS = 90;    // Seconds between end of round and start of next
+    private static final int FLAG_CLAIM_SECS = 4;           // Seconds it takes to fully claim a flag
+    private static final int INTERMISSION_SECS = 90;        // Seconds between end of round and start of next
     private static final int INTERMISSION_GAME_SECS = 90;   // Seconds between end of game and start of next
-    private static final int MAX_FLAGTIME_ROUNDS = 5;   // Max # rounds (odd numbers only)
+    private static final int MAX_FLAGTIME_ROUNDS = 5;       // Max # rounds (odd numbers only)
 
     // HashMaps to calculte MVPs after each round
-    private HashMap<String, Long> playerTimeJoined;      // Time when the player joined this freq in EPOCH
-    private HashMap<String, Integer> playerTimes;        // Roundtime of player on freq
+    private HashMap<String, Long> playerTimeJoined;         // Time when the player joined this freq in EPOCH
+    private HashMap<String, Integer> playerTimes;           // Roundtime of player on freq
     private HashMap<String, Integer> flagClaims;            // Flag claimed during a round
-    private HashMap<String, Integer> killsLocationWeigth;// Total of kill-location-weight after a round
-    private HashMap<String, Integer> killsBounty;       // Total of bounty collected by kill after a round
-    private HashMap<String, Integer> levKills;          //total number of leviathans killed
-    private HashMap<String, Integer> terrKills;         // Number of terr-kill during a round
-    private HashMap<String, Integer> kills;             // Number of kills during a round
+    private HashMap<String, Integer> killsLocationWeigth;   // Total of kill-location-weight after a round
+    private HashMap<String, Integer> killsBounty;           // Total of bounty collected by kill after a round
+    private HashMap<String, Integer> levKills;              //total number of leviathans killed
+    private HashMap<String, Integer> terrKills;             // Number of terr-kill during a round
+    private HashMap<String, Integer> kills;                 // Number of kills during a round
     private HashMap<String, Integer> deaths;                // Number of deaths during a round
-    private HashMap<String, Integer> tks;               // Number of tk
-    private HashMap<String, Integer> attaches;          // Number of attachee (ter only)
-    private HashMap<String, Integer> killsInBase;       // Number of kills inside the base (mid+flagroom)
+    private HashMap<String, Integer> tks;                   // Number of tk
+    private HashMap<String, Integer> attaches;              // Number of attachee (ter only)
+    private HashMap<String, Integer> killsInBase;           // Number of kills inside the base (mid+flagroom)
     private HashMap<String, HashSet<Integer>> ships;        // Type of ships used during a round
 
     private HashMap<String, LevTerr> levterrs;          // Current lev terrs
@@ -76,7 +76,7 @@ public class GameFlagTimeModule extends AbstractModule {
     private int freq0Score, freq1Score;                 // # rounds won
     private int minShuffleRound = 3;                    // Minimum number of played rounds before shuffle vote can occur
     private boolean autoVote = false;                   // Automatically start shuffle vote if conditions are met
-    //private boolean shuffleVote = false;                // True if player did !shufflevote (unused)
+    //private boolean shuffleVote = false;              // True if player did !shufflevote (unused)
     private boolean votePeriod = false;                 // Time after round in which !shufflevote can be used
     private TimerTask voteWait;                         // Used after a round when waiting for someone to use !shufflevote
 
@@ -274,6 +274,10 @@ public class GameFlagTimeModule extends AbstractModule {
         	return;
         String playerName = p.getPlayerName();
 
+        PubPlayer pubPlayer = context.getPlayerManager().getPlayer(playerName);
+        if (pubPlayer != null) 
+            pubPlayer.setLastFreqSwitch(event.getFrequency());
+        
         // Do nothing if the player is hunting
         if (context.getPubHunt().isPlayerPlaying(playerName))
             return;
@@ -316,13 +320,14 @@ public class GameFlagTimeModule extends AbstractModule {
         if (p != null) {
             PubPlayer pubPlayer = context.getPlayerManager().getPlayer(p);
             if (pubPlayer != null) 
-                pubPlayer.setLastFreqSwitch();
+                pubPlayer.setLastFreqSwitch(event.getFrequency());
         }
         
         // Reset the time of a player for MVP purpose
         if (isRunning()) {
             Player player = m_botAction.getPlayer(event.getPlayerID());
-            playerTimeJoined.put(player.getPlayerName(), System.currentTimeMillis());
+            if(player != null)
+                playerTimeJoined.put(player.getPlayerName(), System.currentTimeMillis());
         }
     }
 
@@ -940,6 +945,7 @@ public class GameFlagTimeModule extends AbstractModule {
     /**
      * Ends a round of Flag Time mode & awards prizes. After, sets up an intermission, followed by a new round.
      */
+    /*
     @SuppressWarnings("unused")
     private void doEndRound() {
 
@@ -1209,7 +1215,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
         intermissionTimer = new IntermissionTask();
         m_botAction.scheduleTask(intermissionTimer, intermissionTime);
-    }
+    }*/
 
     private void doEndRoundNew() {
 
