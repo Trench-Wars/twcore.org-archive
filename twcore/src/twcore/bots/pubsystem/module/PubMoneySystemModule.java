@@ -197,6 +197,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     return;
                 }
 
+                /* Oct-5-2013 Disabled restriction by request.
                 Player p = m_botAction.getPlayer(playerName);
                 if (p != null && p.getShipType() == 4 && leviBuyRestricted) {
                     // Levis can only buy in safe
@@ -206,10 +207,10 @@ public class PubMoneySystemModule extends AbstractModule {
                         m_botAction.sendSmartPrivateMessage(playerName, "Leviathans can only !buy in safe.");
                         return;
                     }
-                }
+                }*/
 
                 PubPlayer buyer = playerManager.getPlayer(playerName);
-                //buyer.get
+
                 final PubItem item = store.buy(itemName, buyer, params);
                 final PubPlayer receiver;
 
@@ -819,6 +820,12 @@ public class PubMoneySystemModule extends AbstractModule {
                 }
                 if (r.getMaxFreqPerMinute() != -1) {
                     m_botAction.sendSmartPrivateMessage(sender, " - Maximum of 1 every " + r.getMaxFreqPerMinute() + " minutes for the freq that bought it");
+                }
+                if (r.getMaxFreqPerRound() != -1) {
+                    m_botAction.sendSmartPrivateMessage(sender, " - Maximum of " + r.getMaxFreqPerRound() + " per round for the freq that bought it");
+                }
+                if (r.isPublicFreqOnly()) {
+                    m_botAction.sendSmartPrivateMessage(sender, " - Available only for frequencies 0 and 1");
                 }
 
             }
