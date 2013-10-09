@@ -542,7 +542,7 @@ public class PubMoneySystemModule extends AbstractModule {
     }
 
     /**
-     * Handles the !award command. (SMod+ or coupon owner)<br>
+     * Handles the !award command. (SMod+ or coupon operator)<br>
      * Awards money from the pot to a player.
      * @param name Name of the person who initiated the command.
      * @param cmd The command including arguments. These include a name and an amount.
@@ -766,7 +766,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     line += "**";
                 }
                 line = Tools.formatString(line, 21);
-                line += " -- " + (item.getDescription() + " ($" + item.getPrice() + ")");
+                line += " -- " + (item.getDescription() + " (" + formatMoney(item.getPrice()) + ")");
                 lines.add(line);
             }
 
@@ -1111,7 +1111,12 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
-    
+    /**
+     * Handles the !couponlistops command. (Smod+)
+     * <p>
+     * Displays the current coupon Operators.
+     * @param sender Person who issued the command.
+     */
     private void doCmdCouponListOps(String sender) {
 
         List<String> lines = new ArrayList<String>();
@@ -1122,13 +1127,21 @@ public class PubMoneySystemModule extends AbstractModule {
         m_botAction.smartPrivateMessageSpam(sender, lines.toArray(new String[lines.size()]));
     }
 
+    /**
+     * Handles the !couponaddop command. (Smod+)
+     * <p>
+     * Temporary adds a coupon operator. Change is reverted when the bot respawns.
+     * If the person is already a coupon operator, nothing is changed.
+     * @param sender Person who issued the command.
+     * @param name Name of the temporary coupon operator.
+     */
     private void doCmdCouponAddOp(String sender, String name) {
 
         if (!couponOperators.contains(name.toLowerCase())) {
             couponOperators.add(name.toLowerCase());
             m_botAction.sendSmartPrivateMessage(sender, name + " is now an operator (temporary until the bot respawn).");
 
-            /*
+            /* Old code for permanently adding a coupon operator.
             String operatorsString = "";
             for(String operator: operators) {
             	operatorsString += "," + operator;
@@ -1143,6 +1156,13 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Handles the !coupondisable command. (Smod+ or coupon operator)
+     * <p>
+     * Disables a coupon with a specific code, if possible.
+     * @param sender Person who issued the command.
+     * @param codeString Code of the coupon that is to be disabled.
+     */
     private void doCmdCouponDisable(String sender, String codeString) {
 
         CouponCode code = getCouponCode(codeString);
@@ -1159,6 +1179,13 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Handles the !couponenable command. (Smod+ or coupon operator)
+     * <p>
+     * Enables a coupon with a specific code, if possible.
+     * @param sender Person who issued the command.
+     * @param codeString Code of the coupon that is to be enabled.
+     */
     private void doCmdCouponEnable(String sender, String codeString) {
 
         CouponCode code = getCouponCode(codeString);
@@ -1174,6 +1201,13 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Handles the !couponinfo command. (Smod+ or coupon operator)
+     * <p>
+     * Displays all the known details on a specific coupon, if it exists.
+     * @param sender Person who issued the command.
+     * @param codeString Code of the coupon that is looked up.
+     */
     private void doCmdCouponInfo(String sender, String codeString) {
 
         CouponCode code = getCouponCode(codeString);
@@ -1190,6 +1224,13 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Handles the !couponusers command. (Smod+ or coupon operator)
+     * <p>
+     * Checks whether a certain coupon code has already been used, and if so, displays the details about it.
+     * @param sender Person who issued the command.
+     * @param codeString Code of the coupon that is being looked up.
+     */
     private void doCmdCouponUsers(String sender, String codeString) {
 
         CouponCode code = getCouponCode(codeString);
@@ -1224,6 +1265,13 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Handles the !couponexpiredate command. (Smod+ or coupon operator)
+     * <p>
+     * Alters the expiration date for a specific coupon. The date should be formatted as yyyy/MM/dd.
+     * @param sender Person who issued the command.
+     * @param command The arguments used; couponcode:expirationdate
+     */
     private void doCmdCouponExpireDate(String sender, String command) {
 
         String[] pieces = command.split(":");
@@ -1249,12 +1297,22 @@ public class PubMoneySystemModule extends AbstractModule {
                 return;
             }
 
+            // Update the coupon and log the update.
             code.setEndAt(date);
             updateCouponDB(code, "update:" + codeString + ":" + sender);
 
         }
     }
 
+    /**
+     * Handles the !couponlimituse command. (Smod+ or coupon operator)
+     * <p>
+     * Sets the amount of uses available for this coupon. The person cannot disable the coupon
+     * by setting this value to 0. Instead, {@link #doCmdCouponDisable(String, String) doCmdCouponDisable}
+     * should be used.
+     * @param sender Person who issued the command.
+     * @param command Arguments given; couponcode:maxuses
+     */
     private void doCmdCouponLimitUse(String sender, String command) {
 
         String[] pieces = command.split(":");
@@ -1288,6 +1346,14 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Handles the !couponcreate command. (Smod+ or coupon operator)
+     * <p>
+     * Creates a new coupon for a specific amount of money with a provided reason. 
+     * This function will also generate a coupon code for the new coupon if none is provided.
+     * @param sender Person who issued the command.
+     * @param command Arguments provided; money:reason[:couponcode]
+     */
     private void doCmdCouponCreate(String sender, String command) {
 
         String[] pieces = command.split("\\s*:\\s*");
@@ -1364,6 +1430,16 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Handles the !coupon command. (Anyone)
+     * <p>
+     * Redeems the coupon with the provided coupon code. This is done silently to prevent brute force methods.
+     * The only feedback given is when a person has already used up the coupon.
+     * <p>
+     * To trigger this specific command, there must be a coupon code provided as argument with the command.
+     * @param sender Person who issued the command.
+     * @param codeString Coupon code.
+     */
     private void doCmdCoupon(String sender, String codeString) {
 
         CouponCode code = getCouponCode(codeString, true);
@@ -1384,6 +1460,12 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Checks whether a coupon has already been redeemed.
+     * @param playerName Player for who to check.
+     * @param code Coupon code for which to check.
+     * @return True if the coupon code has been used up completely. False otherwise.
+     */
     private boolean isPlayerRedeemAlready(String playerName, CouponCode code) {
 
         ResultSet rs;
@@ -1404,10 +1486,22 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Retrieves a coupon for the provided code, without forcing an update to the local storage.
+     * @param codeString Code of the coupon to be retrieved
+     * @return The retrieved coupon when found, otherwise null.
+     * @see #getCouponCode(String, boolean)
+     */
     private CouponCode getCouponCode(String codeString) {
         return getCouponCode(codeString, false);
     }
 
+    /**
+     * Retrieves a coupon for the provided code.
+     * @param codeString Code of the coupon to be retrieved.
+     * @param forceUpdate When true, force an update of the local database from the general database. 
+     * @return The retrieved coupon when found, otherwise null.
+     */
     private CouponCode getCouponCode(String codeString, boolean forceUpdate) {
 
         if (!forceUpdate && coupons.containsKey(codeString))
@@ -1453,6 +1547,11 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Inserts a coupon into the general database.
+     * @param code The coupon that needs to be inserted.
+     * @param params Any additional information. Mainly who created the coupon.
+     */
     private void insertCouponDB(CouponCode code, String params) {
 
         String startAtString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(code.getStartAt());
@@ -1476,6 +1575,11 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Updates a coupon in the general database.
+     * @param code The coupon that needs to be updated.
+     * @param params Any additional parameters, for example the person who triggered the update.
+     */
     private void updateCouponDB(CouponCode code, String params) {
 
         String startAtString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(code.getStartAt());
@@ -1487,26 +1591,51 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Checks whether the pub store is open.
+     * @return True if the pubstore is open, otherwise fals.
+     * @see PubStore
+     */
     public boolean isStoreOpened() {
         return store.isOpened();
     }
     
+    /**
+     * Resets the counter used to track the usages of round restricted items.
+     * @see PubStore
+     */
     public void resetRoundRestrictions() {
         store.resetRoundRestrictedItems();
     }
 
+    /**
+     * Checks if there is an entry for database in the configuration.
+     * @return True if there is a database entry, otherwise false.
+     */
     public boolean isDatabaseOn() {
         return m_botAction.getBotSettings().getString("database") != null;
     }
 
+    /**
+     * Unknown. Seems to be a dummy function that never got implemented.
+     * @param killer Probably the person who committed the TK.
+     */
     public void handleTK(Player killer) {
 
     }
 
+    /**
+     * Dummy function.
+     */
     public void handleDisconnect() {
 
     }
 
+    /**
+     * Handles the SQLResultEvent
+     * <p>
+     * Mainly used to give feedback on actions related to coupon creation, updating and redeeming.
+     */
     public void handleEvent(SQLResultEvent event) {
 
         // Coupon system
@@ -1516,11 +1645,12 @@ public class PubMoneySystemModule extends AbstractModule {
             if (pieces.length > 1) {
 
                 if (pieces.length == 4 && pieces[1].equals("update")) {
+                    // General update
                     m_botAction.sendSmartPrivateMessage(pieces[3], "Code '" + pieces[2] + "' updated.");
                 }
 
                 else if (pieces.length == 4 && pieces[1].equals("updateredeem")) {
-
+                    // Coupon redeem update
                     CouponCode code = getCouponCode(pieces[2]);
                     if (code == null)
                         return;
@@ -1537,6 +1667,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 }
 
                 else if (pieces.length == 4 && pieces[1].equals("create")) {
+                    // Coupon creation
                     m_botAction.sendSmartPrivateMessage(pieces[3], "Code '" + pieces[2] + "' created.");
                 }
             }
@@ -1547,6 +1678,9 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Handles any messages that come through the subscribed IPC channels.
+     */
     public void handleEvent(InterProcessEvent event) {
         List<IPCReceiver> ipcReceiversCopy;
         
@@ -1563,6 +1697,9 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Handles the frequency change of a player.
+     */
     public void handleEvent(FrequencyChange event) {
         Player p = m_botAction.getPlayer(event.getPlayerID());
         if (p == null)
@@ -1571,6 +1708,9 @@ public class PubMoneySystemModule extends AbstractModule {
         frequencyTimes.put(p.getPlayerName(), System.currentTimeMillis());
     }
 
+    /**
+     * Handles the PlayerLeft event
+     */
     public void handleEvent(PlayerLeft event) {
         Player p = m_botAction.getPlayer(event.getPlayerID());
         if (p == null)
@@ -1579,6 +1719,9 @@ public class PubMoneySystemModule extends AbstractModule {
         frequencyTimes.remove(p.getPlayerName());
     }
 
+    /**
+     * Handles the ArenaList event. Currently empty.
+     */
     public void handleEvent(ArenaList event) {
 
         /*
@@ -1600,6 +1743,15 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Handles the PlayerDeath event.
+     * <p>
+     * Main purposes is to give out money rewards to the killers. This reward is dependent on things like location and if
+     * the killer's freq is holding the flag.
+     * Currently disabled, but it can also give out money penalties on team kills.
+     * <p>
+     * This function is set to ignore duelling players.
+     */
     public void handleEvent(PlayerDeath event) {
 
         final Player killer = m_botAction.getPlayer(event.getKillerID());
@@ -1713,6 +1865,12 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Handles the low level commands as well as various coupon related commands.
+     * 
+     * @param sender Player who issued the command.
+     * @param command The full command, including parameters.
+     */
     public void handleCommand(String sender, String command) {
 
         if (command.startsWith("!items") || command.trim().equals("!i")) {
@@ -1772,6 +1930,12 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Handles the Mod+ commands.
+     * 
+     * @param sender Mod+ who issued the command.
+     * @param command The full command, including parameters.
+     */
     public void handleModCommand(String sender, String command) {
 
         if (command.startsWith("!bankrupt")) {
@@ -1785,6 +1949,12 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Handles the Smod+ commands.
+     * 
+     * @param sender Smod+ who issued the command.
+     * @param command The full command, including parameters.
+     */
     public void handleSmodCommand(String sender, String command) {
         if (command.startsWith("!couponaddop "))
             doCmdCouponAddOp(sender, command.substring(12).trim());
@@ -1794,6 +1964,11 @@ public class PubMoneySystemModule extends AbstractModule {
             handleSysopCommand(sender, command);
     }
     
+    /**
+     * Handles the Sysop commands.
+     * @param sender Sysop who issued the command.
+     * @param command The command including parameters.
+     */
     public void handleSysopCommand(String sender, String command) {
         if (command.equals("!storehelp"))
             doCmdStoreCfgHelp(sender);
@@ -1806,7 +1981,7 @@ public class PubMoneySystemModule extends AbstractModule {
     /**
      * A convenient way to handle "ez" when we're trying to improve the level of sportsmanship pre-Steam.
      * 
-     * @param sender
+     * @param sender The player who said "ez".
      */
     public void handleEZ(String sender) {
         PubPlayer pp = playerManager.getPlayer(sender);
@@ -1819,6 +1994,11 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Smod command related help messages.
+     * @param sender Person who issued the command
+     * @return All the Smod related help messages.
+     */
     @Override
     public String[] getSmodHelpMessage(String sender) {
         return new String[] {
@@ -1828,6 +2008,11 @@ public class PubMoneySystemModule extends AbstractModule {
         };
     }
 
+    /**
+     * General help messages.
+     * @param sender Person who issued the command
+     * @return All general help messages.
+     */
     @Override
     public String[] getHelpMessage(String sender) {
         return new String[] { 
@@ -1842,6 +2027,11 @@ public class PubMoneySystemModule extends AbstractModule {
                 pubsystem.getHelpLine("!lastkill           -- How much you earned for your last kill (+ algorithm)."), };
     }
 
+    /**
+     * Mod+ command related help messages.
+     * @param sender Person who issued the command
+     * @return All the Mod+ related help messages.
+     */
     @Override
     public String[] getModHelpMessage(String sender) {
 
@@ -1881,6 +2071,12 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Fetches the sender of a message, no matter if it's a normal private message or a remote private message.
+     * @param event The original Message event
+     * @return Name of the sender
+     */
+    @SuppressWarnings("unused")
     private String getSender(Message event) {
         if (event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE)
             return event.getMessager();
@@ -1889,6 +2085,9 @@ public class PubMoneySystemModule extends AbstractModule {
         return m_botAction.getPlayerName(senderID);
     }
 
+    /**
+     * Updates the immunity a freq has, while it has not expired.
+     */
     private void updateFreqImmunity() {
         int immuneTime = store.getFreqImmuneTime();
         Iterator<Integer> i = immuneFreqs.keySet().iterator();
@@ -1912,8 +2111,18 @@ public class PubMoneySystemModule extends AbstractModule {
     }
 
     /**
+     * Executes the special shop item SuddenDeath.
+     * <p>
      * Not always working.. need to find out why.
+     * The original intent seems to have this function as if the bot is a hired assassin.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the Sudden Death.
+     * @param params The victim of the sudden death.
+     * @throws PubException Used to relay information on why this method has failed to execute properly.
      */
+    @SuppressWarnings("unused")
     private void itemCommandSuddenDeath(final String sender, String params) throws PubException {
 
         if (params.equals("")) {
@@ -1953,6 +2162,18 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Executes the special shop item MegaWarp.
+     * <p>
+     * This item seems to be warping every player that is not dueling nor is on the buyer's freq to a single location.
+     * Every warped player also has its energy depleted, making them extremely vulnerable.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the MegaWarp
+     * @param params Unused.
+     */
+    @SuppressWarnings("unused")
     private void itemCommandMegaWarp(String sender, String params) {
 
         Player p = m_botAction.getPlayer(sender);
@@ -2007,6 +2228,18 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Executes the special shop item Immunity.
+     * <p>
+     * This method provides the buyer with 4 minutes of immunity through {@link PubStore#addImmunity(String)} 
+     * and a timer that removes the immunity after the set time has passed.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the immunity.
+     * @param params Unused at the moment.
+     */
+    @SuppressWarnings("unused")
     private void itemCommandImmunity(final String sender, String params) {
 
         m_botAction.sendSmartPrivateMessage(sender, "You have now an immunity for 4 minutes.");
@@ -2022,6 +2255,19 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Executes the special shop item BaseBlast.
+     * <p>
+     * This special item puts the pubsystem bot inside the flagroom and sends out projectiles in all directions.
+     * It does this in two full circles at 5 degree angles. Per angle per circle two projectiles are fired, which
+     * seem to be a level 1 and level 2 single bullet?
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender
+     * @param params
+     */
+    @SuppressWarnings("unused")
     private void itemCommandBaseBlast(String sender, String params) {
 
         Player p = m_botAction.getPlayer(sender);
@@ -2064,6 +2310,19 @@ public class PubMoneySystemModule extends AbstractModule {
         m_botAction.scheduleTask(timer, 7500);
     }
 
+    /**
+     * Executes the special shop item NukeBase.
+     * <p>
+     * This special command warps any team mates of the buyer who are in the flag room to a safe location.
+     * As soon as the players have been warped out, the bot enters a ship and fires a Thor into the flag room.
+     * After the Thor has detonated, the players who previously got warped out will be warped back in.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the NukeBase
+     * @param params Currently unused
+     */
+    @SuppressWarnings("unused")
     private void itemCommandNukeBase(String sender, String params) {
         Player p = m_botAction.getPlayer(sender);
         final int freq = p.getFrequency();
@@ -2125,24 +2384,43 @@ public class PubMoneySystemModule extends AbstractModule {
         m_botAction.scheduleTask(timer, 5500);
     }
 
+    /**
+     * This class is used by the {@link PubMoneySystemModule#itemCommandNukeBase(String, String) NukeBase} command.
+     * It's main purpose is to temporary store the location of a group of players, warp these players to safety
+     * and afterwards warp them back to their original coordinates.
+     * @author unknown
+     *
+     */
     private class Warper {
         int id, x, y;
 
+        /** Warper constructor */
         public Warper(int id, int x, int y) {
             this.id = id;
             this.x = x;
             this.y = y;
         }
 
+        /**
+         * Warps a specific player to a safe location.
+         */
         public void save() {
             m_botAction.warpTo(id, 512, 141);
         }
 
+        /**
+         * Warps a specific player back to its previous location.
+         */
         public void back() {
             m_botAction.warpTo(id, x, y);
         }
     }
 
+    /**
+     * The purpose of this class is to track projectiles(?)
+     * @author unknown
+     *
+     */
     class Shot {
         int a, x, y;
 
