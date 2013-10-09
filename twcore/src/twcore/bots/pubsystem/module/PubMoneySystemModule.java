@@ -627,43 +627,54 @@ public class PubMoneySystemModule extends AbstractModule {
         }          
     }
 
-    private void doCmdItems(String sender) {
-
-        //Player p = m_botAction.getPlayer(sender);
-
+    private void doCmdItems(String sender, boolean displayAll) {
+        Class<? extends PubItem> currentClass = PubItem.class;
         ArrayList<String> lines = new ArrayList<String>();
-
-        Class currentClass = this.getClass();
+        
+        Player p = m_botAction.getPlayer(sender);
+        Integer shipType = (int) (p == null ? Tools.Ship.SPECTATOR : p.getShipType());
 
         if (!store.isOpened()) {
             lines.add("The store is closed, no items available.");
         } else {
-
-            lines.add("List of items you can buy. Each item has a set of restrictions.");
+            if(displayAll)
+                lines.add("List of all our store items. Each item has a set of restrictions.");
+            else
+                lines.add("As a " + Tools.shipName(shipType) + " you can buy the following store items. Each item has a set of restrictions.");
+            
             for (String itemName : store.getItems().keySet()) {
 
                 PubItem item = store.getItems().get(itemName);
                 if (item.getAbbreviations().contains(itemName))
                     continue;
 
-                if (item instanceof PubPrizeItem) {
-                    if (!currentClass.equals(PubPrizeItem.class))
-                        lines.add("Prizes:");
+                // Check if the item should be displayed.
+                // This is done before the change of type detection to avoid headers with empty lists.
+                if(!displayAll) {
+                    PubItemRestriction restriction = item.getRestriction();
+                    
+                    // We need to skip displaying the item in the following situation:
+                    // When there are restrictions on the item, and the player is in spec, but it's not buyable from spec
+                    // or when there are restrictions, there are ship restrictions, the player is in a ship and his ship is on the list. 
+                    if(restriction != null
+                            && ((shipType == Tools.Ship.SPECTATOR && !restriction.isBuyableFromSpec())
+                                    || (shipType != Tools.Ship.SPECTATOR 
+                                        && restriction.getRestrictedShips().contains(shipType)))) {
+                        continue;
+                    }
+                }
+                
+                if (item instanceof PubPrizeItem && !currentClass.equals(PubPrizeItem.class)) {
+                    lines.add("Prizes:");
                     currentClass = PubPrizeItem.class;
-                } else if (item instanceof PubShipUpgradeItem) {
-                    lines.add("");
-                    if (!currentClass.equals(PubShipUpgradeItem.class))
-                        lines.add("Ship Upgrades:");
+                } else if (item instanceof PubShipUpgradeItem && !currentClass.equals(PubShipUpgradeItem.class)) {
+                    lines.add("Ship Upgrades:");
                     currentClass = PubShipUpgradeItem.class;
-                } else if (item instanceof PubShipItem) {
-                    lines.add("");
-                    if (!currentClass.equals(PubShipItem.class))
-                        lines.add("Ships:");
+                } else if (item instanceof PubShipItem && !currentClass.equals(PubShipItem.class)) {
+                    lines.add("Ships:");
                     currentClass = PubShipItem.class;
-                } else if (item instanceof PubCommandItem) {
-                    lines.add("");
-                    if (!currentClass.equals(PubCommandItem.class))
-                        lines.add("Specials:");
+                } else if (item instanceof PubCommandItem && !currentClass.equals(PubCommandItem.class)) {
+                    lines.add("Specials:");
                     currentClass = PubCommandItem.class;
                 }
 
@@ -680,6 +691,8 @@ public class PubMoneySystemModule extends AbstractModule {
 
             lines.add("Legend: *Target optional **Target required (!buy item:PlayerName)");
             lines.add("Use !iteminfo <item> for more info about the specified item and its restrictions.");
+            if(!displayAll)
+                lines.add("Use !fullbuylist to display all the available items in store.");
 
         }
 
@@ -712,7 +725,7 @@ public class PubMoneySystemModule extends AbstractModule {
         }
 
         if (!command.contains(" ")) {
-            doCmdItems(sender);
+            doCmdItems(sender, false);
             return;
         }
         command = command.substring(command.indexOf(" ")).trim();
@@ -1548,9 +1561,12 @@ public class PubMoneySystemModule extends AbstractModule {
     public void handleCommand(String sender, String command) {
 
         if (command.startsWith("!items") || command.trim().equals("!i")) {
-            doCmdItems(sender);
+            doCmdItems(sender, false);
         } else if (command.trim().equals("!buy") || command.trim().equals("!b")) {
-            doCmdItems(sender);
+            doCmdItems(sender, false);
+        } else if (command.trim().equals("!fullbuylist") || command.trim().equals("!fbl") 
+                || command.trim().equals("!fullitemlist") || command.trim().equals("!fil") ) {
+            doCmdItems(sender, true);
         } else if (command.startsWith("!$") || command.startsWith("!money")) {
             doCmdDisplayMoney(sender, command);
         } else if (command.startsWith("!iteminfo") || command.startsWith("!buyinfo")) {
@@ -1651,25 +1667,31 @@ public class PubMoneySystemModule extends AbstractModule {
     @Override
     public String[] getSmodHelpMessage(String sender) {
         return new String[] {
-                pubsystem.getHelpLine("!storehelp                            -- Displays the PubStore CFG help located in the CFG file."),
-                pubsystem.getHelpLine("!storecfg                             -- Displays the PubStore CFG values."),
-                pubsystem.getHelpLine("!edit <key>=<value>                   -- Modifies the pubsystem store configuration file. BE CAREFUL!"),
+                pubsystem.getHelpLine("!storehelp                             -- Displays the PubStore CFG help located in the CFG file."),
+                pubsystem.getHelpLine("!storecfg                              -- Displays the PubStore CFG values."),
+                pubsystem.getHelpLine("!edit <key>=<value>                    -- Modifies the pubsystem store configuration file. BE CAREFUL!"),
         };
     }
 
     @Override
     public String[] getHelpMessage(String sender) {
-        return new String[] { pubsystem.getHelpLine("!buy                -- Display the list of items. (!items, !i)"), pubsystem.getHelpLine("!buy <item>         -- Item to buy. (!b)"),
+        return new String[] { 
+                pubsystem.getHelpLine("!buy                -- Display the list of items you can buy. (!items, !b, !i)"),
+                pubsystem.getHelpLine("!fullbuylist        -- Displays all the available store items. (!fullitemlist, !fbl, !fil)"),
+                pubsystem.getHelpLine("!buy <item>         -- Item to buy. (!b)"),
                 pubsystem.getHelpLine("!iteminfo <item>    -- Information about this item. (restriction, duration, etc.)"),
-                pubsystem.getHelpLine("!money <name>       -- Display your money or for a given player name. (!$)"), pubsystem.getHelpLine("!donate <name>:<$>  -- Donate money to a player."),
-                pubsystem.getHelpLine("!coupon <code>      -- Redeem your <code>."), pubsystem.getHelpLine("!richest            -- Top 5 richest players currently playing."),
+                pubsystem.getHelpLine("!money <name>       -- Display your money or for a given player name. (!$)"), 
+                pubsystem.getHelpLine("!donate <name>:<$>  -- Donate money to a player."),
+                pubsystem.getHelpLine("!coupon <code>      -- Redeem your <code>."), 
+                pubsystem.getHelpLine("!richest            -- Top 5 richest players currently playing."),
                 pubsystem.getHelpLine("!lastkill           -- How much you earned for your last kill (+ algorithm)."), };
     }
 
     @Override
     public String[] getModHelpMessage(String sender) {
 
-        String normal[] = new String[] { pubsystem.getHelpLine("!award <name>:<amount>                 -- Awards <name> with <amount> from the bot's bank"),
+        String normal[] = new String[] { 
+                pubsystem.getHelpLine("!award <name>:<amount>                 -- Awards <name> with <amount> from the bot's bank"),
                 pubsystem.getHelpLine("!pot                                   -- Displays money available for awards"),
                 pubsystem.getHelpLine("!toggledonation                        -- Toggle on/off !donation."), };
 
@@ -1679,11 +1701,13 @@ public class PubMoneySystemModule extends AbstractModule {
                 pubsystem.getHelpLine("!couponlimituse <code>:<max>           -- (!clu) Set how many players <max> can get this <code>."),
                 pubsystem.getHelpLine("!couponexpiredate <code>:<date>        -- (!ced) Set an expiration <date> (format: yyyy/mm/dd) for <code>."), };
 
-        String maintenance[] = new String[] { pubsystem.getHelpLine("!couponinfo <code>                     -- (!ci) Information about this <code>."),
+        String maintenance[] = new String[] { 
+                pubsystem.getHelpLine("!couponinfo <code>                     -- (!ci) Information about this <code>."),
                 pubsystem.getHelpLine("!couponusers <code>                    -- (!cu) Who used this code."),
                 pubsystem.getHelpLine("!couponenable / !coupondisable <code>  -- (!ce/!cd) Enable/disable <code>."), };
 
-        String bot[] = new String[] { pubsystem.getHelpLine("!couponaddop <name>                    -- Add an operator (temporary, permanant via .cfg)."),
+        String bot[] = new String[] { 
+                pubsystem.getHelpLine("!couponaddop <name>                    -- Add an operator (temporary, permanant via .cfg)."),
                 pubsystem.getHelpLine("!couponlistops                         -- List of operators."), };
 
         List<String> lines = new ArrayList<String>();
