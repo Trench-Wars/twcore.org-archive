@@ -2424,6 +2424,7 @@ public class PubMoneySystemModule extends AbstractModule {
     class Shot {
         int a, x, y;
 
+        /** Shot constructor */
         public Shot(int a, int x, int y) {
             this.a = a;
             this.x = x * 16;
@@ -2431,6 +2432,10 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * A vector of a variety of projectiles with a specific angle, x- and y-coordinate.
+     * @return A vector of a lot of shots.
+     */
     private Vector<Shot> getShots() {
         Vector<Shot> s = new Vector<Shot>();
         s.add(new Shot(15, 396, 219));
@@ -2449,6 +2454,21 @@ public class PubMoneySystemModule extends AbstractModule {
         return s;
     }
 
+    /**
+     * Executes the special shop item RoofTurret.
+     * <p>
+     * This function tries to spawn in a new TW-Bot of the type pubautobot.
+     * When done, it will send some configuration commands to the new bot, so that it will act like a roof turret.
+     * To prevent exploits, the communcation between the bots is done over IPC.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the Roof Turret.
+     * @param params Any additional parameters.
+     * @see AutobotRoofThread
+     * @see pubautobot
+     */
+    @SuppressWarnings("unused")
     private void itemCommandRoofTurret(String sender, String params) {
 
         m_botAction.sendSmartPrivateMessage(sender, "Please wait while looking for a bot..");
@@ -2459,6 +2479,21 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Executes the special shop item BaseTerr.
+     * <p>
+     * This function tries to spawn in a new TW-Bot of the type pubautobot.
+     * When done, it will send some configuration commands to the new bot, so that it will act like a base terrier.
+     * To prevent exploits, the communcation between the bots is done over IPC.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the base terrier.
+     * @param params Any additional parameters.
+     * @see AutobotBaseTerThread
+     * @see pubautobot
+     */
+    @SuppressWarnings("unused")
     private void itemCommandBaseTerr(String sender, String params) {
 
         m_botAction.sendSmartPrivateMessage(sender, "Please wait while looking for a bot..");
@@ -2466,15 +2501,23 @@ public class PubMoneySystemModule extends AbstractModule {
         Thread t1 = new AutobotBaseTerThread(sender, params, m_botAction, IPC_CHANNEL);
         ipcReceivers.add((IPCReceiver) t1);
         t1.start();
-
-        /*
-        Thread t2 = new AutobotBaseTerThread(sender, params, m_botAction, IPC_CHANNEL);
-        ipcReceivers.add((IPCReceiver)t2);
-        t2.start();
-        */
-
     }
 
+    /**
+     * Executes the special shop item BaseStrike.
+     * <p>
+     * This command attempts to warp an entire freq into the base at once. The location where the team is warped to
+     * is randomly chosen from a list of base coordinates and is dependent on ship type. The Terriers will spawn
+     * at the center of the warp in location, with Sharks on top of them for protection. Any other type of ship
+     * will be spawned in the vicinity of the center, acting as a protective shell. People who are on the same freq
+     * but reside either in a safe or are dueling or are piloting a Leviathan are excluded from the warp.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bougth the BaseStrike.
+     * @param params Currently unused.
+     */
+    @SuppressWarnings("unused")
     private void itemCommandBaseStrike(String sender, String params) {
         Short freq = null;
 
@@ -2543,6 +2586,19 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Executes the special shop item FlagSaver.
+     * <p>
+     * This function puts the pubsystem bot into play, to claim the flag for the team of the purchaser.
+     * Due to the way the bots and the server work, it is nescessary to send a capture packet out. On top of that,
+     * to update everything on the botside of things, the {@link GameFlagTimeModule} needs to be informed as well.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the flag saver.
+     * @param params Unused at the moment.
+     */
+    @SuppressWarnings("unused")
     private void itemCommandFlagSaver(String sender, String params) {
         Iterator<Integer> flagIt;
         Player p = m_botAction.getPlayer(sender);
@@ -2585,6 +2641,19 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Executes the special shop item Blindness.
+     * <p>
+     * This method will cast blindness onto the targetted player for 15 seconds, starting 4 seconds after executing this function.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the blindness.
+     * @param params The targeted player who will receive the blindness.
+     * @throws PubException Various exceptions can happen. The main ones will be {@link NullPointerException NPE's} and {@link IllegalStateException ISE's}.
+     * @see BlindnessTask
+     */
+    @SuppressWarnings("unused")
     private void itemCommandBlindness(String sender, String params) throws PubException {
 
         Player p1 = m_botAction.getPlayer(sender);
@@ -2592,10 +2661,25 @@ public class PubMoneySystemModule extends AbstractModule {
 
         m_botAction.sendPrivateMessage(params, "You will be soon struck with a mysterious case of sudden blindness gave by " + p1.getPlayerName() + ".", Tools.Sound.CRYING);
         m_botAction.sendPrivateMessage(sender, "Blindness gave to " + p2.getPlayerName() + ".");
+        // Start the actual blindness task.
         m_botAction.scheduleTask(new BlindnessTask(params, 15, m_botAction), 4 * Tools.TimeInMillis.SECOND);
 
     }
 
+    /**
+     * Executes the special shop item Sphere.
+     * <p>
+     * This casts a sphere of seclusion on any player who isn't on the buyer's frequency, unless that frequency
+     * has {@link #itemCommandImmunity(String, String) Immunity} active, or the player is currently in a duel.
+     * The sphere of seclusion will last for 30 seconds.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the sphere.
+     * @param params Currently unused.
+     * @see SphereSeclusionTask
+     */
+    @SuppressWarnings("unused")
     private void itemCommandSphere(String sender, String params) {
 
         updateFreqImmunity();
@@ -2606,6 +2690,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
         long now = System.currentTimeMillis();
 
+        // Get a list of all the non-immune frequencies.
         List<Integer> freqList = new ArrayList<Integer>();
         for (int i = 0; i < 10000; i++) {
             int size = m_botAction.getPlayingFrequencySize(i);
@@ -2635,11 +2720,26 @@ public class PubMoneySystemModule extends AbstractModule {
         else
             m_botAction.sendArenaMessage(sender + " has bought a Sphere of Seclusion DUD (all freqs immune).", 17);
 
+        // Start a TimerTask for starting and removing the Sphere of Seclusion.
         m_botAction.scheduleTask(new SphereSeclusionTask(freqs, true), 0);
         m_botAction.scheduleTask(new SphereSeclusionTask(freqs, false), 30 * Tools.TimeInMillis.SECOND);
 
     }
 
+    /**
+     * Executes the special shop item Epidemic.
+     * <p>
+     * This method will cast a serie of "debuffs" on the players of the opponent frequencies. These debuffs
+     * consist out of energy depletions and engine shutdowns.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the epidemic.
+     * @param params Currently unused.
+     * @see EnergyDepletedTask
+     * @see EngineShutdownExtendedTask
+     */
+    @SuppressWarnings("unused")
     private void itemCommandEpidemic(String sender, String params) {
 
         Player p = m_botAction.getPlayer(sender);
@@ -2647,6 +2747,7 @@ public class PubMoneySystemModule extends AbstractModule {
         String message = "";
         int privFreqs = 0;
 
+        // Compile a list of targetted freqs.
         List<Integer> freqList = new ArrayList<Integer>();
         for (int i = 0; i < 10000; i++) {
             int size = m_botAction.getPlayingFrequencySize(i);
@@ -2669,26 +2770,31 @@ public class PubMoneySystemModule extends AbstractModule {
 
         m_botAction.sendArenaMessage(sender + " has started an epidemic on FREQ " + message + ".", 17);
 
+        // Initiate the TimerTasks that handle the energy depletion and engine shutdown.
         int timeElapsed = 0;
         for (int i = 1; i < 10; i++) {
             timeElapsed += 2300 - (int) (Math.log(i) * 1000);
-            m_botAction.scheduleTask(new EnergyDeplitedTask(freqs), timeElapsed);
+            m_botAction.scheduleTask(new EnergyDepletedTask(freqs), timeElapsed);
         }
-        m_botAction.scheduleTask(new EnergyDeplitedTask(freqs), timeElapsed + 150);
-        m_botAction.scheduleTask(new EnergyDeplitedTask(freqs), timeElapsed + 300);
-        m_botAction.scheduleTask(new EnergyDeplitedTask(freqs), timeElapsed + 450);
-        m_botAction.scheduleTask(new EnergyDeplitedTask(freqs), timeElapsed + 600);
-        m_botAction.scheduleTask(new EnergyDeplitedTask(freqs), timeElapsed + 750);
+        m_botAction.scheduleTask(new EnergyDepletedTask(freqs), timeElapsed + 150);
+        m_botAction.scheduleTask(new EnergyDepletedTask(freqs), timeElapsed + 300);
+        m_botAction.scheduleTask(new EnergyDepletedTask(freqs), timeElapsed + 450);
+        m_botAction.scheduleTask(new EnergyDepletedTask(freqs), timeElapsed + 600);
+        m_botAction.scheduleTask(new EnergyDepletedTask(freqs), timeElapsed + 750);
         m_botAction.scheduleTask(new EngineShutdownExtendedTask(freqs), timeElapsed + 750);
 
     }
 
+    /**
+     * Currently empty.
+     */
     @Override
     public void start() {
-        // TODO Auto-generated method stub
-
     }
 
+    /**
+     * Reloads the various configuration settings.
+     */
     @Override
     public void reloadConfig() {
         store.reloadConfig();
@@ -2713,6 +2819,11 @@ public class PubMoneySystemModule extends AbstractModule {
         database = m_botAction.getBotSettings().getString("database");
     }
 
+    /**
+     * Timertask that executes the prizing of items bought through the {@link PubShop}.
+     * @author unknown
+     *
+     */
     private class PrizeTask extends TimerTask {
 
         private PubPrizeItem item;
@@ -2720,12 +2831,16 @@ public class PubMoneySystemModule extends AbstractModule {
         private List<Integer> prizes;
         private long startAt = System.currentTimeMillis();
 
+        /** PrizeTask constructor */
         public PrizeTask(PubPrizeItem item, String receiver) {
             this.item = item;
             this.prizes = item.getPrizes();
             this.receiver = receiver;
         }
 
+        /**
+         * The executed code when this timertask fires, being the prizing of a player and resetting it when it ends.
+         */
         public void run() {
             for (int prizeNumber : prizes) {
                 m_botAction.specificPrize(receiver, prizeNumber);
@@ -2739,16 +2854,30 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     };
 
+    /**
+     * This class sets up a spawned in TW-Bot to act like a base terrier.
+     * @author unknown
+     * @see AutobotThread
+     * @see pubautobot
+     */
     private class AutobotBaseTerThread extends AutobotThread {
 
+        /** AutobotBaseTerThread constructor */
         public AutobotBaseTerThread(String sender, String parameters, BotAction m_botAction, String ipcChannel) {
             super(sender, parameters, m_botAction, ipcChannel);
         }
 
+        /**
+         * This is called after the preparations have been done.
+         */
         protected void ready() {
             m_botAction.sendTeamMessage("");
         }
 
+        /**
+         * Prepares the spawned in pubautobot to behave like it should do.
+         * This includes things like the correct frequency, location, expiration time, amount of hits it can endure, etc. 
+         */
         protected void prepare() {
             int freq;
             Player p = m_botAction.getPlayer(sender);
@@ -2784,16 +2913,30 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * This class sets up a spawned in TW-Bot to act like a roof turret.
+     * @author unknown
+     * @see AutobotThread
+     * @see pubautobot
+     */
     private class AutobotRoofThread extends AutobotThread {
 
+        /** AutobotRoofThread constructor */
         public AutobotRoofThread(String sender, String parameters, BotAction m_botAction, String ipcChannel) {
             super(sender, parameters, m_botAction, ipcChannel);
         }
 
+        /**
+         * After the perparations are done, send out a message to inform everyone.
+         */
         protected void ready() {
             m_botAction.sendArenaMessage(sender + " has bought a turret that will occupy the roof for 5 minutes.", 21);
         }
 
+        /**
+         * Prepares the spawned in pubautobot to behave like it should do.
+         * This includes things like the correct frequency, location, expiration time, firing methods, etc. 
+         */
         protected void prepare() {
             int freq;
             
@@ -2839,12 +2982,18 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * TimerTask that handles the prizing and removal of Blindness. 
+     * @author unknown
+     *
+     */
     private class BlindnessTask extends TimerTask {
         private BotAction m_botAction;
         private String playerName;
         private int durationSecond;
         private long startedAt;
 
+        /** BlindnessTask constructor */
         public BlindnessTask(String playerName, int durationSecond, BotAction m_botAction) {
             this.playerName = playerName;
             this.durationSecond = durationSecond;
@@ -2852,15 +3001,22 @@ public class PubMoneySystemModule extends AbstractModule {
             this.startedAt = System.currentTimeMillis();
         }
 
+        /**
+         * Main run routine. While the current duration is less than the total duration, it sends out
+         * an *objon to give this player blindness. When the duration has exceeded the total duration, 
+         * it will send out an *objoff, disabling the blindness.
+         */
         public void run() {
             Runnable r = new Runnable() {
                 public void run() {
+                    // Enable blindness and keep it up for the entire duration.
                     while (System.currentTimeMillis() - startedAt < durationSecond * 1000) {
                         m_botAction.sendUnfilteredPrivateMessage(playerName, "*objon 562");
                         try {
                             Thread.sleep(1 * Tools.TimeInMillis.SECOND);
                         } catch (InterruptedException e) {}
                     }
+                    // Disable the blindness.
                     m_botAction.sendUnfilteredPrivateMessage(playerName, "*objoff 562");
                 }
             };
@@ -2870,48 +3026,73 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     };
 
+    /**
+     * TimerTask which handles the sphere of seclusion "prizing".
+     * @author unknown
+     *
+     */
     private class SphereSeclusionTask extends TimerTask {
         private Integer[] freqs;
         private boolean enable = false;
 
+        /** SphereSeclusionTask constructor */
         public SphereSeclusionTask(Integer[] freqs, boolean enable) {
             this.freqs = freqs;
             this.enable = enable;
         }
 
+        /**
+         * Main run routine, which does the actual *objon and *objoff to give and remove the sphere.
+         */
         public void run() {
             for (int freq : freqs) {
                 for (Iterator<Player> i = m_botAction.getFreqPlayerIterator(freq); i.hasNext();) {
                     Player p = i.next();
+                    // Exclude anyone who is immune.
                     if (store.hasImmunity(p.getPlayerName()))
                         continue;
+                    // Exclude anyone who is dueling.
                     if (context.getPubChallenge().isDueling(p.getPlayerName()))
                         continue;
                     if (enable)
+                        // Enable the sphere.
                         m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objon 561");
                     else
+                        // Disable the sphere.
                         m_botAction.sendUnfilteredPrivateMessage(p.getPlayerID(), "*objoff 561");
                 }
             }
         }
     };
 
-    private class EnergyDeplitedTask extends TimerTask {
+    /**
+     * TimerTask which handles the prizing of energy depletions.
+     * @author unknown
+     *
+     */
+    private class EnergyDepletedTask extends TimerTask {
         private Integer[] freqs;
 
-        public EnergyDeplitedTask(Integer[] freqs) {
+        /** EnergyDepletedTask constructor */
+        public EnergyDepletedTask(Integer[] freqs) {
             this.freqs = freqs;
         }
 
+        /**
+         * Main run routine. This does a one-time prizing of the energy depletion for all of the stored frequencies.
+         */
         public void run() {
             for (int freq : freqs) {
                 try {
                     for (Iterator<Player> i = m_botAction.getFreqPlayerIterator(freq); i.hasNext();) {
                         Player p = i.next();
+                        // Exclude immune players.
                         if (store.hasImmunity(p.getPlayerName()))
                             continue;
+                        // Exclude anyone who is dueling.
                         if (context.getPubChallenge().isDueling(p.getPlayerName()))
                             continue;
+                        // Prize the energy depletion.
                         m_botAction.specificPrize(p.getPlayerID(), Tools.Prize.ENERGY_DEPLETED);
                     }
                 } catch (Exception e) {}
@@ -2919,22 +3100,34 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     };
 
+    /**
+     * TimerTask which handles the prizing of the engine shutdown.
+     * @author unknown
+     *
+     */
     private class EngineShutdownExtendedTask extends TimerTask {
         private Integer[] freqs;
 
+        /** EngineShutdownExtendedTask constructor */
         public EngineShutdownExtendedTask(Integer[] freqs) {
             this.freqs = freqs;
         }
 
+        /**
+         * Main run routine. This prizes the extended engine shutdown to all of the stored frequencies.
+         */
         public void run() {
             for (int freq : freqs) {
                 try {
                     for (Iterator<Player> i = m_botAction.getFreqPlayerIterator(freq); i.hasNext();) {
                         Player p = i.next();
+                        // Exclude immune players.
                         if (store.hasImmunity(p.getPlayerName()))
                             continue;
+                        // Exclude players who are dueling.
                         if (context.getPubChallenge().isDueling(p.getPlayerName()))
                             continue;
+                        // Prize the extended engine shutdown.
                         m_botAction.specificPrize(p.getPlayerID(), Tools.Prize.ENGINE_SHUTDOWN_EXTENDED);
                     }
                 } catch (Exception e) {}
@@ -2942,23 +3135,29 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
-    public LinkedHashMap<String, Integer> sort(HashMap passedMap, boolean ascending) {
+    /**
+     * Sorts a Hashmap into a LinkedHashMap by order of the values.
+     * @param passedMap The map that needs to be sorted.
+     * @param ascending The type of sorting. True for ascending, false for descending.
+     * @return The sorted hashmap.
+     */
+    public LinkedHashMap<String, Integer> sort(HashMap<String, Integer> passedMap, boolean ascending) {
 
-        List mapKeys = new ArrayList(passedMap.keySet());
-        List mapValues = new ArrayList(passedMap.values());
+        List<String> mapKeys = new ArrayList<String>(passedMap.keySet());
+        List<Integer> mapValues = new ArrayList<Integer>(passedMap.values());
         Collections.sort(mapValues);
         Collections.sort(mapKeys);
 
         if (!ascending)
             Collections.reverse(mapValues);
 
-        LinkedHashMap someMap = new LinkedHashMap();
-        Iterator valueIt = mapValues.iterator();
+        LinkedHashMap<String, Integer> someMap = new LinkedHashMap<String, Integer>();
+        Iterator<Integer> valueIt = mapValues.iterator();
         while (valueIt.hasNext()) {
-            Object val = valueIt.next();
-            Iterator keyIt = mapKeys.iterator();
+            Integer val = valueIt.next();
+            Iterator<String> keyIt = mapKeys.iterator();
             while (keyIt.hasNext()) {
-                Object key = keyIt.next();
+                String key = keyIt.next();
                 if (passedMap.get(key).toString().equals(val.toString())) {
                     passedMap.remove(key);
                     mapKeys.remove(key);
@@ -2970,9 +3169,11 @@ public class PubMoneySystemModule extends AbstractModule {
         return someMap;
     }
 
+    /**
+     * Empty for now.
+     */
     @Override
     public void stop() {
-        // TODO Auto-generated method stub
-
     }
+    
 }
