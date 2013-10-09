@@ -104,6 +104,7 @@ public class PubMoneySystemModule extends AbstractModule {
     
     PreparedStatement updateMoney;
 
+    /** PubMoneySystemModule constructor */
     public PubMoneySystemModule(BotAction botAction, PubContext context) {
 
         super(botAction, context, "Money/Store");
@@ -138,6 +139,10 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Reloads the used regions.
+     * @see MapRegions
+     */
     public void reloadRegions() {
         try {
             regions.clearRegions();
@@ -153,13 +158,14 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /** Default event requester */
     public void requestEvents(EventRequester eventRequester) {
         eventRequester.request(EventRequester.PLAYER_DEATH);
     }
 
     /**
      * Gets default settings for the points: area and ship By points, we mean "money".
-     * */
+     */
     private void initializePoints() {
 
         String[] locations = m_botAction.getBotSettings().getString("point_location").split(",");
@@ -179,6 +185,21 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * The first shell used to buy an item from the {@link PubStore}.
+     * <p>
+     * This function does the initial checks if the player is currently dueling or if the player is the leader of the Kill-o-thon.
+     * Depending on whether it's enabled, it will also do a check if the person is in a LT.
+     * <br>
+     * Ship and item dependent restrictions will be checked on later.
+     * 
+     * @param playerName Name of the person who wants to buy an item.
+     * @param itemName Name of the product to be bought.
+     * @param params Generally, only used for a target name if bought for someone else.
+     * 
+     * @see PubStore#buy(String, PubPlayer, String)
+     * @see #executeItem(PubItem, PubPlayer, String)
+     */
     private void buyItem(final String playerName, String itemName, String params) {
 
         try {
@@ -211,6 +232,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
                 PubPlayer buyer = playerManager.getPlayer(playerName);
 
+                // Retrieve the actual item. This inherently also checks for restrictions.
                 final PubItem item = store.buy(itemName, buyer, params);
                 final PubPlayer receiver;
 
@@ -255,6 +277,18 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Executes a purchased item. The way this is done depends on the type of item that is bought.
+     * <ul>
+     *  <li>{@link PubPrizeItem}:       One or more timers are started to execute a *prize;
+     *  <li>{@link PubShipUpgradeItem}: Gives a specific ship upgrade as *prize and starts a timer to remove it;
+     *  <li>{@link PubCommandItem}:     Invokes a method that executes the needed actions;
+     *  <li>{@link PubShipItem}:        Changes the player's ship and starts a timer to cancel it.
+     * </ul>
+     * @param item Item to be executed
+     * @param receiver The person who receives the item. (Often equals the buyer of the item.)
+     * @param params If the receiver isn't the person who bought it, his/her name will be in here as well.
+     */
     public void executeItem(final PubItem item, final PubPlayer receiver, final String params) {
 
         Player player = m_botAction.getPlayer(receiver.getPlayerName());
@@ -282,6 +316,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     return;
                 }
 
+                // If the item has a duration, start a timer to remove it when the item expires.
                 if (item.hasDuration()) {
                     final PubItemDuration duration = item.getDuration();
                     m_botAction.sendSmartPrivateMessage(receiver.getPlayerName(), "You have " + duration.getSeconds() + " seconds to use your item.");
@@ -332,7 +367,9 @@ public class PubMoneySystemModule extends AbstractModule {
             // COMMAND ITEM
             else if (item instanceof PubCommandItem) {
                 String command = ((PubCommandItem) item).getCommand();
+                // Find the accompanying method.
                 Method method = this.getClass().getDeclaredMethod("itemCommand" + command, String.class, String.class);
+                // And run it.
                 method.invoke(this, receiver.getPlayerName(), params);
             }
 
@@ -365,6 +402,12 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Handles the !donate command. (Anyone)<br>
+     * This command uses two arguments, being the targetname and the amount to be donated.
+     * @param sender Player who sent the !donate command
+     * @param command The command including its arguments
+     */
     private void doCmdDonate(String sender, String command) {
 
         if (!donationEnabled) {
@@ -421,6 +464,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 return;
             }
 
+            // Most checks are done now. Time to do the actual donating.
             PubPlayer pubPlayer = playerManager.getPlayer(name, false);
             PubPlayer pubPlayerDonater = playerManager.getPlayer(sender, false);
             if (pubPlayer != null && pubPlayerDonater != null) {
@@ -454,14 +498,24 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Handles the undocumented !addmoney command. (Sysop+)<br>
+     * This generates money from nothing, with the main intent being debugging.
+     * 
+     * @param sender The person who sent the command.
+     * @param command The actual command including parameters.
+     */
     public void doCmdAddMoney(String sender, String command) {
 
         command = command.substring(10).trim();
         if (command.contains(":")) {
+            // Fetch the arguments.
             String[] split = command.split("\\s*:\\s*");
             String name = split[0];
             String money = split[1];
             int moneyInt = Integer.valueOf(money);
+            
+            // Do the magic.
             PubPlayer pubPlayer = playerManager.getPlayer(name, false);
             if (pubPlayer != null) {
                 int currentMoney = pubPlayer.getMoney();
@@ -472,7 +526,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 } else {
                     pubPlayer.removeMoney(moneyInt);
                     sqlMoney(-Math.abs(moneyInt));
-                    m_botAction.sendSmartPrivateMessage(pubPlayer.getPlayerName(), sender + " remved you $" + (Integer.valueOf(money)) + ".");
+                    m_botAction.sendSmartPrivateMessage(pubPlayer.getPlayerName(), sender + " removed you $" + (Integer.valueOf(money)) + ".");
                 }
 
                 m_botAction.sendSmartPrivateMessage(sender, pubPlayer.getPlayerName() + " has now $" + (currentMoney + Integer.valueOf(money)) + " (before: $" + currentMoney + ")");
@@ -487,6 +541,12 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Handles the !award command. (SMod+ or coupon owner)<br>
+     * Awards money from the pot to a player.
+     * @param name Name of the person who initiated the command.
+     * @param cmd The command including arguments. These include a name and an amount.
+     */
     public void doCmdAward(String name, String cmd) {
         if (!cmd.contains(":"))
             return;
@@ -514,6 +574,10 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Updates the total amount of money(?)
+     * @param money Amount that is added or removed.
+     */
     private void sqlMoney(int money) {
         if (updateMoney != null) {
             try {
@@ -627,11 +691,24 @@ public class PubMoneySystemModule extends AbstractModule {
         }          
     }
 
+    /**
+     * Handles the !buy command when absent of arguments. (Anyone)
+     * <p>
+     * This method displays a list of buyable items to the player. Generally this will be only the items
+     * that can be bought for the ship the player is currently using (including spectator). This is done
+     * to make the bot less spammy with its messages. When a full list view is requested, then this is also
+     * handled by this function.
+     * <p>
+     * Besides !buy, this function is also used by !items, !fullbuylist and !fullitemlist and their abbreviations.
+     * @param sender The person who used the command.
+     * @param displayAll Whether or not to display the full list of items.
+     */
     private void doCmdItems(String sender, boolean displayAll) {
         Class<? extends PubItem> currentClass = PubItem.class;
         ArrayList<String> lines = new ArrayList<String>();
         
         Player p = m_botAction.getPlayer(sender);
+        // Store the shiptype to minimize CPU usage. If no player was found, treat it as if the player is a spectator.
         Integer shipType = (int) (p == null ? Tools.Ship.SPECTATOR : p.getShipType());
 
         if (!store.isOpened()) {
@@ -642,6 +719,7 @@ public class PubMoneySystemModule extends AbstractModule {
             else
                 lines.add("As a " + Tools.shipName(shipType) + " you can buy the following store items. Each item has a set of restrictions.");
             
+            // Iterate through all of the available store items.
             for (String itemName : store.getItems().keySet()) {
 
                 PubItem item = store.getItems().get(itemName);
@@ -664,6 +742,8 @@ public class PubMoneySystemModule extends AbstractModule {
                     }
                 }
                 
+                // Whenever the item is an instance of a different class than the current class, 
+                // update the current class and add a header for a new section.
                 if (item instanceof PubPrizeItem && !currentClass.equals(PubPrizeItem.class)) {
                     lines.add("Prizes:");
                     currentClass = PubPrizeItem.class;
@@ -678,6 +758,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     currentClass = PubCommandItem.class;
                 }
 
+                // Add a line specific for this item, detailing the command, description and price.
                 String line = " !buy " + item.getName();
                 if (item.isPlayerOptional()) {
                     line += "*";
@@ -689,6 +770,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 lines.add(line);
             }
 
+            // Some final notes.
             lines.add("Legend: *Target optional **Target required (!buy item:PlayerName)");
             lines.add("Use !iteminfo <item> for more info about the specified item and its restrictions.");
             if(!displayAll)
@@ -700,6 +782,14 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /**
+     * Handles the initial !buy command. (Anyone)<p>
+     * Does an initial check on whether the person is part of a LT. Following this, a check is done 
+     * if an argument has been passed by the initiator. If no arguments are passed, {@link #doCmdItems(String, boolean) doCmdItems}
+     * is called upon. Otherwise the function {@link #buyItem(String, String, String) buyItem} is started.
+     * @param sender The person who sent the command.
+     * @param command The actual command including optional parameters.
+     */
     private void doCmdBuy(String sender, String command) {
         Player p = m_botAction.getPlayer(sender);
         if (p == null) {
@@ -738,11 +828,25 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Handles the !debugobj command. (Mod+)
+     * <p>
+     * This command is meant to be used for debugging purposes. It displays the average amount of *obj sent per minute.
+     * @param sender Person who sent the command.
+     * @param command The actual command, no parameters.
+     */
     private void doCmdDebugObj(String sender, String command) {
 
         m_botAction.sendSmartPrivateMessage(sender, "Average of " + LvzMoneyPanel.totalObjSentPerMinute() + " *obj sent per minute.");
     }
 
+    /**
+     * Handles the !bankrupt command. (Mod+)
+     * <p>
+     * This removes all of the money from a player.
+     * @param sender Person who sent the command.
+     * @param command The command, including parameters.
+     */
     private void doCmdBankrupt(String sender, String command) {
 
         String name = sender;
@@ -759,30 +863,47 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Handles the !toggledonation command. (Mod+)
+     * <p>
+     * Enables or disables the !donate command.
+     * @param sender
+     */
     private void doCmdToggleDonation(String sender) {
 
         donationEnabled = !donationEnabled;
         if (donationEnabled) {
-            m_botAction.sendSmartPrivateMessage(sender, "!donation is now enabled.");
+            m_botAction.sendSmartPrivateMessage(sender, "!donate is now enabled.");
         } else {
-            m_botAction.sendSmartPrivateMessage(sender, "!donation is now disabled.");
+            m_botAction.sendSmartPrivateMessage(sender, "!donate is now disabled.");
         }
     }
 
+    /**
+     * Handles the !iteminfo command. (Anyone)
+     * <p>
+     * Displays detailed item info on an item from the PubStore.
+     * This includes, but is not limited to, a detailed description, price and restrictions.
+     * @param sender The person who issued the command.
+     * @param command The command, including parameter
+     */
     private void doCmdItemInfo(String sender, String command) {
         Player p = m_botAction.getPlayer(sender);
         if (p == null)
             return;
+        
         if (!command.contains(" ")) {
             m_botAction.sendSmartPrivateMessage(sender, "You need to supply an item.");
             return;
         }
+        
+        // Fetch the item.
         String itemName = command.substring(command.indexOf(" ")).trim();
         PubItem item = store.getItem(itemName);
         if (item == null) {
             m_botAction.sendSmartPrivateMessage(sender, "Item '" + itemName + "' not found.");
         } else {
-
+            // Display all the properties of this item.
             m_botAction.sendSmartPrivateMessage(sender, "Item: " + item.getName() + " (" + item.getDescription() + ")");
             m_botAction.sendSmartPrivateMessage(sender, "Price: $" + item.getPrice());
 
@@ -794,6 +915,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 m_botAction.sendSmartPrivateMessage(sender, "Targetable: No");
             }
 
+            // When it has the restriction flag, display the restrictions.
             if (item.isRestricted()) {
 
                 PubItemRestriction r = item.getRestriction();
@@ -843,6 +965,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
             }
 
+            // If an item has a duration, display the duration.
             if (item.hasDuration()) {
                 m_botAction.sendSmartPrivateMessage(sender, "Durations:");
                 PubItemDuration d = item.getDuration();
@@ -859,15 +982,24 @@ public class PubMoneySystemModule extends AbstractModule {
                 }
             }
 
+            // Other item properties.
             if (item.getImmuneTime() > 0)
                 m_botAction.sendSmartPrivateMessage(sender, " - The affected freq(s) become immune to this item for " + item.getImmuneTime() + " seconds");
 
         }
     }
 
+    /**
+     * Handles the !richest command. (Anyone)
+     * <p>
+     * Displays the five richest players who are currently online.
+     * @param sender Sender of the command.
+     * @param command The command, no parameters.
+     */
     private void doCmdRichest(String sender, String command) {
         HashMap<String, Integer> players = new HashMap<String, Integer>();
 
+        // Copy over the current list into a new list. Mainly to avoid concurrent modification exceptions.
         Iterator<Player> it = m_botAction.getPlayerIterator();
         while (it.hasNext()) {
             PubPlayer player = playerManager.getPlayer(it.next().getPlayerName());
@@ -875,8 +1007,11 @@ public class PubMoneySystemModule extends AbstractModule {
                 players.put(player.getPlayerName(), player.getMoney());
             }
         }
+        
+        // Sort the copy.
         LinkedHashMap<String, Integer> richest = sort(players, false);
 
+        // And get the top five.
         Iterator<Entry<String, Integer>> it2 = richest.entrySet().iterator();
         int count = 0;
         while (it2.hasNext() && count < 5) {
@@ -885,6 +1020,12 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Handles the !lastkill command. (Anyone)
+     * <p>
+     * Displays the last kill made by this player, including various details like money earned.
+     * @param sender Player who issued the command.
+     */
     private void doCmdLastKill(String sender) {
         PubPlayer player = playerManager.getPlayer(sender);
         if (player != null) {
@@ -902,10 +1043,12 @@ public class PubMoneySystemModule extends AbstractModule {
             int moneyKiller = shipKillerPoints.get(shipKiller);
             int moneyKilled = shipKillerPoints.get(shipKilled);
 
+            // Bonus money earned from the location.
             int moneyByLocation = 0;
             if (locationPoints.containsKey(location)) {
                 moneyByLocation = locationPoints.get(location);
             }
+            // Bonus money earned by holding the flag.
             int moneyByFlag = 0;
             if (player.getLastKillWithFlag()) {
                 moneyByFlag = 3;
@@ -934,10 +1077,22 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Retrieves the amount of money in the bot's pot.
+     * @return Total amount of cash the pubsystem owns.
+     */
     private int getMoneyPot() {
         return playerManager.getPlayer(m_botAction.getBotName(), false).getMoney();
     }
 
+    /**
+     * Handles the !money command. (Anyone)
+     * <p>
+     * Displays the amount of money a person has. When used with a name as argument, it will try
+     * to lookup that person's current amount of money. This can only be done for players who are in the pub.
+     * @param sender Person who issued the command.
+     * @param command The command, including parameter.
+     */
     private void doCmdDisplayMoney(String sender, String command) {
         String name = sender;
         if (command.contains(" ")) {
@@ -951,12 +1106,12 @@ public class PubMoneySystemModule extends AbstractModule {
         } else if (playerManager.isPlayerExists(name)) {
             PubPlayer pubPlayer = playerManager.getPlayer(sender);
             m_botAction.sendSmartPrivateMessage(sender, "You have $" + pubPlayer.getMoney() + " in your bank.");
-            //m_botAction.sendSmartPrivateMessage(sender, "Your PubPal balance is : $"+pubPlayer.getMoney());
         } else {
             m_botAction.sendSmartPrivateMessage(sender, "You're still not in the system. Wait a bit to be added.");
         }
     }
 
+    
     private void doCmdCouponListOps(String sender) {
 
         List<String> lines = new ArrayList<String>();
