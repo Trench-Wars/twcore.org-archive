@@ -19,6 +19,7 @@ import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerEntered;
+import twcore.core.events.PlayerPosition;
 import twcore.core.events.TurretEvent;
 import twcore.core.game.Player;
 import twcore.core.util.MapRegions;
@@ -156,6 +157,15 @@ public class PubUtilModule extends AbstractModule {
     }
 
     public void handleEvent(Message event) {
+    }
+    
+    public void handleEvent(PlayerPosition event) {
+        Player p = m_botAction.getPlayer(event.getPlayerID());
+        int reg = regions.getRegion(p);
+        if (reg == Region.SPAWN.ordinal() && p.hasAntiwarpOn()) {
+            m_botAction.specificPrize(event.getPlayerID(), -Tools.Prize.ANTIWARP);
+            m_botAction.sendPrivateMessage(event.getPlayerID(), "ANTI-WARP is ILLEGAL in spawn area and has been removed from your ship. No refunds permitted! Just don't do it.");
+        }
     }
 
     @Override
