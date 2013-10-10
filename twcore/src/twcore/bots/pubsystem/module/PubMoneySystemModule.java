@@ -93,6 +93,9 @@ public class PubMoneySystemModule extends AbstractModule {
     private HashSet<String> couponOperators;
     private HashMap<String, CouponCode> coupons; // cache system
 
+    private HashMap<String, ArrayList<ItemBan>> itemBans;
+    private HashMap<String, ShopBan> shopBans;
+    
     // Arena
     //private String arenaNumber = "0";
 
@@ -121,6 +124,9 @@ public class PubMoneySystemModule extends AbstractModule {
         this.immuneFreqs = new HashMap<Integer, Long>();
 
         this.coupons = new HashMap<String, CouponCode>();
+        
+        this.itemBans = new HashMap<String, ArrayList<ItemBan>>();
+        this.shopBans = new HashMap<String, ShopBan>();
 
         this.ipcReceivers = Collections.synchronizedList(new ArrayList<IPCReceiver>());
 
@@ -201,7 +207,8 @@ public class PubMoneySystemModule extends AbstractModule {
      * @see #executeItem(PubItem, PubPlayer, String)
      */
     private void buyItem(final String playerName, String itemName, String params) {
-
+        boolean itemBanUpdateNeeded = false;
+        
         try {
 
             if (playerManager.isPlayerExists(playerName)) {
@@ -217,7 +224,41 @@ public class PubMoneySystemModule extends AbstractModule {
                     m_botAction.sendSmartPrivateMessage(playerName, "You cannot buy an item while being a leader of kill-o-thon.");
                     return;
                 }
+                
+                // Is the player currently banned from using the shop?
+                if(!shopBans.isEmpty() && shopBans.containsKey(playerName.toLowerCase())) {
+                    if(shopBans.get(playerName.toLowerCase()).isShopBanned()) {
+                        m_botAction.sendSmartPrivateMessage(playerName, "You have been banned from using the item shop.");
+                        return;
+                    } else {
+                        shopBans.remove(playerName.toLowerCase());
+                        saveBans();
+                    }
+                }
 
+                // Is the player currently banned from using this specific item?
+                if(!itemBans.isEmpty() && itemBans.containsKey(playerName.toLowerCase())) {
+                    ArrayList<ItemBan> itemBanList = itemBans.get(playerName.toLowerCase());
+                    PubItem itemWanted = store.getItem(itemName);
+                    for(ItemBan itemban : itemBanList) {
+                        if(itemWanted.equals(store.getItem(itemban.item))) {
+                            if(itemban.isItemBanned()) {
+                                m_botAction.sendSmartPrivateMessage(playerName, "You have been banned from buying this item from the shop.");
+                                return;
+                            } else {
+                                itemBanList.remove(itemban);
+                                itemBanUpdateNeeded = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if(itemBanUpdateNeeded) {
+                        itemBans.put(playerName.toLowerCase(), itemBanList);
+                        saveBans();
+                    }
+                }
+                
                 /* Oct-5-2013 Disabled restriction by request.
                 Player p = m_botAction.getPlayer(playerName);
                 if (p != null && p.getShipType() == 4 && leviBuyRestricted) {
@@ -1085,6 +1126,9 @@ public class PubMoneySystemModule extends AbstractModule {
         return playerManager.getPlayer(m_botAction.getBotName(), false).getMoney();
     }
 
+    /*
+     * Coupon related commands.
+     */
     /**
      * Handles the !money command. (Anyone)
      * <p>
@@ -1591,6 +1635,168 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
+    /*
+     * Item and shop ban commands.
+     */
+    //else if (command.startsWith("!additemban ") || command.startsWith("!aib "))
+    private void doCmdAddItemBan(String sender, String args) {
+        Integer duration = null;
+        ArrayList<ItemBan> itemBanList = null;
+        
+        if(args.isEmpty())
+            return;
+        
+        String splitArgs[] = args.split(":",4);
+        
+        if(splitArgs.length != 4) {
+            m_botAction.sendSmartPrivateMessage(sender, "Please provide all the needed parameters. (!aib <name>:<item>:<duration>:<reason>)");
+            return;
+        }
+        
+        try {
+            duration = Integer.parseInt(splitArgs[2]);
+        } catch (NumberFormatException e) {
+            m_botAction.sendSmartPrivateMessage(sender, "Please provide a valid duration, in hours.");
+            return;
+        }
+        
+        ItemBan itemban = new ItemBan(splitArgs[0], sender, splitArgs[1], duration, splitArgs[3]);
+        
+        if(!itemBans.isEmpty() && itemBans.containsKey(splitArgs[0].toLowerCase())) {
+            itemBanList = itemBans.get(splitArgs[0].toLowerCase());
+            itemBanList.add(itemban);
+        } else {
+            itemBanList = new ArrayList<ItemBan>();
+            itemBanList.add(itemban);
+        }
+        
+        itemBans.put(splitArgs[0].toLowerCase(), itemBanList);
+        saveBans();
+        
+        m_botAction.sendSmartPrivateMessage(sender, splitArgs[0] + " has been banned from buying " + splitArgs[1] + " for " + duration + " hours.");
+        
+    }
+    
+    //else if (command.equals("!listitembans") || command.equals("!lib"))
+    private void doCmdListItemBans(String sender) {
+        boolean needsUpdate = false;
+        HashMap<String, ArrayList<ItemBan>> newItemBans = new HashMap<String, ArrayList<ItemBan>>(); 
+        
+        if(itemBans.isEmpty()) {
+            m_botAction.sendSmartPrivateMessage(sender, "No one is currently banned from specific items in the shop.");
+            return;
+        }
+        
+        for(String name : itemBans.keySet()) {
+            ArrayList<ItemBan> newItemBanList = new ArrayList<ItemBan>();
+            for(ItemBan itemban : itemBans.get(name.toLowerCase())) {
+                if(itemban.isItemBanned()) {
+                    newItemBanList.add(itemban);
+                    m_botAction.sendSmartPrivateMessage(sender, itemban.getStatusMessage());
+                } else {
+                    needsUpdate = true;
+                }
+            }
+            newItemBans.put(name.toLowerCase(), newItemBanList);
+        }
+
+        itemBans.clear();
+        itemBans.putAll(newItemBans);
+        
+        if(needsUpdate)
+            saveBans();
+    }
+    
+    //else if (command.startsWith("!removeitemban ") || command.startsWith("!rib "))
+    private void doCmdRemoveItemBan(String sender, String args) {
+        if(args.isEmpty())
+            return;
+        
+        if(itemBans.isEmpty() || !itemBans.containsKey(args.toLowerCase())) {
+            m_botAction.sendSmartPrivateMessage(sender, "Could not find " + args + " in the current list of itembans.");
+            return;
+        }
+        
+        itemBans.remove(args.toLowerCase());
+        saveBans();
+        
+        m_botAction.sendSmartPrivateMessage(sender, "All itembans for " + args + " have been lifted.");
+    }
+    
+    //else if (command.startsWith("!addshopban ") || command.startsWith("!asb "))
+    private void doCmdAddShopBan(String sender, String args) {
+        Integer duration = null;
+        
+        if(args.isEmpty())
+            return;
+        
+        String splitArgs[] = args.split(":",3);
+        
+        if(splitArgs.length != 3) {
+            m_botAction.sendSmartPrivateMessage(sender, "Please provide all the needed parameters. (!asb <name>:<duration>:<reason>)");
+            return;
+        }
+        
+        try {
+            duration = Integer.parseInt(splitArgs[1]);
+        } catch (NumberFormatException e) {
+            m_botAction.sendSmartPrivateMessage(sender, "Please provide a valid duration, in hours.");
+            return;
+        }
+        
+        if(!shopBans.isEmpty() && shopBans.containsKey(splitArgs[0].toLowerCase())) {
+            if(shopBans.get(splitArgs[0].toLowerCase()).isShopBanned()) {
+                m_botAction.sendSmartPrivateMessage(sender, splitArgs[0] + " already has a shop ban. Please remove the current one first before applying a new one.");
+                return;
+            }
+        }
+        
+        ShopBan shopban = new ShopBan(splitArgs[0], sender, duration, splitArgs[2]);
+        
+        shopBans.put(splitArgs[0].toLowerCase(), shopban);
+        saveBans();
+        
+        m_botAction.sendSmartPrivateMessage(sender, splitArgs[0] + " has been banned from using the shop for " + duration + " hours.");        
+    }
+    
+    //else if (command.equals("!listshopbans") || command.equals("!lsb"))
+    private void doCmdListShopBans(String sender) {
+        boolean needsUpdate = false;
+        
+        if(shopBans.isEmpty()) {
+            m_botAction.sendSmartPrivateMessage(sender, "No one is currently banned from using the shop.");
+            return;
+        }
+        
+        for(String name : shopBans.keySet()) {
+            if(!shopBans.get(name.toLowerCase()).isShopBanned()) {
+                shopBans.remove(name.toLowerCase());
+                needsUpdate = true;
+            } else {
+                m_botAction.sendSmartPrivateMessage(sender, shopBans.get(name.toLowerCase()).getStatusMessage());
+            }
+        }
+        
+        if(needsUpdate)
+            saveBans();
+    }
+    
+    //else if (command.startsWith("!removeshopban ") || command.startsWith("!rsb "))
+    private void doCmdRemoveShopBan(String sender, String args) {
+        if(args.isEmpty())
+            return;
+        
+        if(shopBans.isEmpty() || !shopBans.containsKey(args.toLowerCase())) {
+            m_botAction.sendSmartPrivateMessage(sender, "Could not find " + args + " in the current list of shopbans.");
+            return;
+        }
+        
+        shopBans.remove(args.toLowerCase());
+        saveBans();
+        
+        m_botAction.sendSmartPrivateMessage(sender, "All shopbans for " + args + " have been lifted.");
+    }
+    
     /**
      * Checks whether the pub store is open.
      * @return True if the pubstore is open, otherwise fals.
@@ -1960,6 +2166,18 @@ public class PubMoneySystemModule extends AbstractModule {
             doCmdCouponAddOp(sender, command.substring(12).trim());
         else if (command.equals("!couponlistops"))
             doCmdCouponListOps(sender);
+        else if (command.startsWith("!additemban ") || command.startsWith("!aib "))
+            doCmdAddItemBan(sender, command.substring(command.indexOf(" ") + 1).trim());
+        else if (command.equals("!listitembans") || command.equals("!lib"))
+            doCmdListItemBans(sender);
+        else if (command.startsWith("!removeitemban ") || command.startsWith("!rib "))
+            doCmdRemoveItemBan(sender, command.substring(command.indexOf(" ") + 1).trim());
+        else if (command.startsWith("!addshopban ") || command.startsWith("!asb "))
+            doCmdAddShopBan(sender, command.substring(command.indexOf(" ") + 1).trim());
+        else if (command.equals("!listshopbans") || command.equals("!lsb"))
+            doCmdListShopBans(sender);
+        else if (command.startsWith("!removeshopban ") || command.startsWith("!rsb "))
+            doCmdRemoveShopBan(sender, command.substring(command.indexOf(" ") + 1).trim());
         else if (m_botAction.getOperatorList().isSysop(sender))
             handleSysopCommand(sender, command);
     }
@@ -2817,8 +3035,104 @@ public class PubMoneySystemModule extends AbstractModule {
             leviBuyRestricted = true;
         }
         database = m_botAction.getBotSettings().getString("database");
+        
+        loadBans();
+    }
+    
+    private void loadBans() {
+        BotSettings cfg = m_botAction.getBotSettings();
+        ArrayList<ItemBan> itemBanList;
+
+        int i = 1;
+        boolean entriesLeft = true;
+        
+        itemBans.clear();
+        shopBans.clear();
+        
+        // Load item bans.
+        while(entriesLeft) {
+            String itemban = cfg.getString("itemban" + i);
+            if (itemban != null && itemban.trim().length() > 0) {
+                String[] itemBanSplit = itemban.split(":", 6);
+                if (itemBanSplit.length == 6) {      // Check for corrupted data
+                    if(!itemBans.isEmpty() && itemBans.containsKey(itemBanSplit[0])) {
+                        itemBanList = itemBans.get(itemBanSplit[0]);
+                        itemBanList.add(new ItemBan(itemBanSplit));
+                    } else {
+                        itemBanList = new ArrayList<ItemBan>();
+                        itemBanList.add(new ItemBan(itemBanSplit));
+                    }
+                    itemBans.put(itemBanSplit[0], itemBanList);
+                }
+                i++;
+            } else {
+                entriesLeft = false;
+            }
+        }
+        
+        entriesLeft = true;
+        i = 1;
+        
+        // Load shop bans.
+        while(entriesLeft) {
+            String shopban = cfg.getString("shopban" + i);
+            if (shopban != null && shopban.trim().length() > 0) {
+                String[] shopBanSplit = shopban.split(":", 5);
+                if (shopBanSplit.length == 5) {      // Check for corrupted data
+                    shopBans.put(shopBanSplit[0], new ShopBan(shopBanSplit));
+                }
+                i++;
+            } else {
+                entriesLeft = false;
+            }
+        }
     }
 
+    private void saveBans() {
+        BotSettings cfg = m_botAction.getBotSettings();
+        boolean loop = true;
+        int i = 1;
+
+        // Save item bans
+        for (String name : itemBans.keySet()) {
+            ArrayList<ItemBan> itemBanList = itemBans.get(name);
+            for(ItemBan itemban : itemBanList) {
+                cfg.put("itemban" + i, itemban.toString());
+                i++;
+            }
+        }
+        // Clear any other still stored item bans
+        while (loop) {
+            if (cfg.getString("itemban" + i) != null) {
+                cfg.remove("itemban" + i);
+                i++;
+            } else {
+                loop = false;
+            }
+        }
+        
+        loop = true;
+        i = 1;
+        
+        // Save shop bans
+        for (String name : shopBans.keySet()) {
+            ShopBan shopban = shopBans.get(name);
+            cfg.put("shopban" + i, shopban.toString());
+            i++;
+        }
+        // Clear any other still stored shop bans
+        while (loop) {
+            if (cfg.getString("shopban" + i) != null) {
+                cfg.remove("shopban" + i);
+                i++;
+            } else {
+                loop = false;
+            }
+        }
+        
+        cfg.save();
+    }
+    
     /**
      * Timertask that executes the prizing of items bought through the {@link PubShop}.
      * @author unknown
@@ -3135,6 +3449,101 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    private class ShopBan {
+        private String name;
+        private String issuer;
+        private Long startTime;
+        private Integer duration;
+        private String reason;
+        
+        public ShopBan(String name, String issuer, Integer duration, String reason) {
+            this.name = name;
+            this.issuer = issuer;
+            this.duration = duration;
+            this.reason = reason;
+            this.startTime = System.currentTimeMillis();
+        }
+        
+        public ShopBan(String[] itemBanSplit) {
+            this.name = itemBanSplit[0];
+            this.issuer = itemBanSplit[1];
+            try {
+                this.startTime = Long.parseLong(itemBanSplit[2]);
+            } catch (NumberFormatException e) {
+                this.startTime = System.currentTimeMillis();
+            }
+            try {
+                this.duration = Integer.parseInt(itemBanSplit[3]);
+            } catch (NumberFormatException e) {
+                this.duration = 1;
+            }
+            this.reason = itemBanSplit[4];
+        }
+        
+        
+        public boolean isShopBanned() {
+            return (System.currentTimeMillis() - startTime < duration * Tools.TimeInMillis.HOUR);
+        }
+ 
+        public String getStatusMessage() {
+            return ("Name: " + name + "; Issued by: " + issuer
+                    + "; Expires in: " + Tools.getTimeDiffString(startTime + (duration * Tools.TimeInMillis.HOUR), true)
+                    + "; Reason: " + reason);
+        }
+        
+        public String toString() {
+            return (name + ":" + issuer + ":" + startTime + ":" + duration + ":" + reason);
+        }
+    }
+ 
+    private class ItemBan {
+        private String name;
+        private String issuer;
+        private String item;
+        private Long startTime;
+        private Integer duration;
+        private String reason;
+        
+        public ItemBan(String name, String issuer, String item, Integer duration, String reason) {
+            this.name = name;
+            this.issuer = issuer;
+            this.item = item;
+            this.duration = duration;
+            this.reason = reason;
+            this.startTime = System.currentTimeMillis();
+        }
+        
+        public ItemBan(String[] itemBanSplit) {
+            this.name = itemBanSplit[0];
+            this.issuer = itemBanSplit[1];
+            this.item = itemBanSplit[2];
+            try {
+                this.startTime = Long.parseLong(itemBanSplit[3]);
+            } catch (NumberFormatException e) {
+                this.startTime = System.currentTimeMillis();
+            }
+            try {
+                this.duration = Integer.parseInt(itemBanSplit[4]);
+            } catch (NumberFormatException e) {
+                this.duration = 1;
+            }
+            this.reason = itemBanSplit[5];
+        }
+        
+        public boolean isItemBanned() {
+            return (System.currentTimeMillis() - startTime < duration * Tools.TimeInMillis.HOUR);
+        }
+        
+        public String getStatusMessage() {
+            return ("Name: " + name + "; Issued by: " + issuer + "; Item: " + item
+                    + "; Expires in: " + Tools.getTimeDiffString(startTime + (duration * Tools.TimeInMillis.HOUR), true)
+                    + "; Reason: " + reason);
+        }
+        
+        public String toString() {
+            return (name + ":" + issuer + ":" + item + ":" + startTime + ":" + duration + ":" + reason);
+        }
+    }
     /**
      * Sorts a Hashmap into a LinkedHashMap by order of the values.
      * @param passedMap The map that needs to be sorted.
