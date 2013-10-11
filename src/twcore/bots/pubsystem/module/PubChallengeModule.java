@@ -1179,6 +1179,12 @@ public class PubChallengeModule extends AbstractModule {
             if (p != null)
                 opponent = p.getPlayerName();
 
+            // Check if we aren't challenging a bot.
+            if(m_botAction.getOperatorList().isBotExact(opponent)) {
+                m_botAction.sendSmartPrivateMessage(sender, "You cannot challenge a bot.");
+                return;
+            }
+            
             // Get the real player name
             if (pieces.length == 3 || (pieces.length == 2 && !context.getMoneySystem().isEnabled())) {
                 PubPlayer player = context.getPlayerManager().getPlayer(opponent);

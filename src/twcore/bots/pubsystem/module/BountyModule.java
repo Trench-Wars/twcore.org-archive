@@ -198,6 +198,11 @@ public class BountyModule extends AbstractModule {
         
         	if (requester != null && deadman != null) {
             
+        	    if(m_botAction.getOperatorList().isBotExact(deadman.getPlayerName())) {
+        	        m_botAction.sendSmartPrivateMessage(sender, "You cannot place a bounty on a bot.");
+        	        return;
+        	    }
+        	    
         		Integer currentAmount = bounties.get(deadman.getPlayerName());
         		if (currentAmount == null) {
         			currentAmount = 0;
