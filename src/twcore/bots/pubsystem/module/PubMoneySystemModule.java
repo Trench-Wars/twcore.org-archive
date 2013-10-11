@@ -1638,21 +1638,37 @@ public class PubMoneySystemModule extends AbstractModule {
     /*
      * Item and shop ban commands.
      */
-    //else if (command.startsWith("!additemban ") || command.startsWith("!aib "))
+    /**
+     * Handles the !additemban command. (Smod+)
+     * <p>
+     * This will add an item ban to a player. The person who issues the command, must provide the following parameters:
+     * <ul>
+     *  <li>Name of the person who receives the ban;
+     *  <li>Name of the item that is being restricted;
+     *  <li>Duration of the ban, in hours;
+     *  <li>Reason of the ban.
+     * </ul>
+     * The issued ban persists through restarts of the pubsystem, however, the player doesn't need to be online to make the time tick.
+     * @param sender Person who issued the command.
+     * @param args The arguments of the command.
+     */
     private void doCmdAddItemBan(String sender, String args) {
         Integer duration = null;
         ArrayList<ItemBan> itemBanList = null;
         
+        // Silent return.
         if(args.isEmpty())
             return;
         
         String splitArgs[] = args.split(":",4);
         
+        // Not enough information given by the issuer.
         if(splitArgs.length != 4) {
             m_botAction.sendSmartPrivateMessage(sender, "Please provide all the needed parameters. (!aib <name>:<item>:<duration>:<reason>)");
             return;
         }
         
+        // Convert the duration.
         try {
             duration = Integer.parseInt(splitArgs[2]);
         } catch (NumberFormatException e) {
@@ -1660,8 +1676,11 @@ public class PubMoneySystemModule extends AbstractModule {
             return;
         }
         
+        // Create the new ban.
         ItemBan itemban = new ItemBan(splitArgs[0], sender, splitArgs[1], duration, splitArgs[3]);
         
+        // Add the new ban to the current list of bans for this user.
+        //TODO Check whether the new itemban doesn't already match an existing ban for the same item.
         if(!itemBans.isEmpty() && itemBans.containsKey(splitArgs[0].toLowerCase())) {
             itemBanList = itemBans.get(splitArgs[0].toLowerCase());
             itemBanList.add(itemban);
@@ -1670,73 +1689,157 @@ public class PubMoneySystemModule extends AbstractModule {
             itemBanList.add(itemban);
         }
         
+        // Add the ban to the global list and save the changes to file to make it persistant.
         itemBans.put(splitArgs[0].toLowerCase(), itemBanList);
         saveBans();
         
+        // Send the information to the player and the person who issued the ban.
+        m_botAction.sendSmartPrivateMessage(splitArgs[0], "You have been banned from buying " + splitArgs[1] + " from the shop for " + duration + " hours.");
+        m_botAction.sendSmartPrivateMessage(splitArgs[0], "This ban was issued by " + sender + " for the following reason: " + splitArgs[3]);
         m_botAction.sendSmartPrivateMessage(sender, splitArgs[0] + " has been banned from buying " + splitArgs[1] + " for " + duration + " hours.");
         
     }
     
-    //else if (command.equals("!listitembans") || command.equals("!lib"))
+    /**
+     * Handles the !listitembans command. (Smod+)
+     * <p>
+     * This will display all of the currently active item bans.
+     * At the same time, this function will also check if none of the item bans have been lifted. If they have been lifted,
+     * then it will remove them from the list and save the changes.
+     * @param sender Person who issued the command.
+     */
     private void doCmdListItemBans(String sender) {
         boolean needsUpdate = false;
         HashMap<String, ArrayList<ItemBan>> newItemBans = new HashMap<String, ArrayList<ItemBan>>(); 
         
+        // No active bans.
         if(itemBans.isEmpty()) {
             m_botAction.sendSmartPrivateMessage(sender, "No one is currently banned from specific items in the shop.");
             return;
         }
         
+        // Iterate through all the item bans.
         for(String name : itemBans.keySet()) {
             ArrayList<ItemBan> newItemBanList = new ArrayList<ItemBan>();
             for(ItemBan itemban : itemBans.get(name.toLowerCase())) {
                 if(itemban.isItemBanned()) {
+                    // Display the ban if it's still active, and copy it over to the new list, to prevent concurrent modification.
                     newItemBanList.add(itemban);
                     m_botAction.sendSmartPrivateMessage(sender, itemban.getStatusMessage());
                 } else {
+                    // Flag the need for an update and do not copy the entry over when it has expired.
                     needsUpdate = true;
                 }
             }
-            newItemBans.put(name.toLowerCase(), newItemBanList);
+            // Copy over the new ban list for a specific player into the new global list.
+            if(!newItemBanList.isEmpty())
+                newItemBans.put(name.toLowerCase(), newItemBanList);
         }
 
-        itemBans.clear();
-        itemBans.putAll(newItemBans);
-        
-        if(needsUpdate)
+        // If an update was needed, update the real global list and save the changes to file.
+        if(needsUpdate) {
+            itemBans.clear();
+            itemBans.putAll(newItemBans);
+
             saveBans();
+        }
     }
     
-    //else if (command.startsWith("!removeitemban ") || command.startsWith("!rib "))
+    /**
+     * Handles the !removeitemban command. (Smod+)
+     * <p>
+     * Removes a specific item ban from a player or all of their item bans, depending on the parameters provided.
+     * The removal only happens when the issuer has a sufficiently high access level. This is compared for each individual
+     * item ban.
+     * @param sender Person who issued the command.
+     * @param args Name of the player whose shop ban will be lifted.
+     */
     private void doCmdRemoveItemBan(String sender, String args) {
+        // Silent return.
         if(args.isEmpty())
             return;
         
-        if(itemBans.isEmpty() || !itemBans.containsKey(args.toLowerCase())) {
-            m_botAction.sendSmartPrivateMessage(sender, "Could not find " + args + " in the current list of itembans.");
+        ArrayList<ItemBan> updatedList = new ArrayList<ItemBan>();
+        String splitArgs[] = args.split(":",2);
+        int level = m_botAction.getOperatorList().getAccessLevel(sender);
+        int counter = 0;
+        int initialSize = 0;
+        boolean updateNeeded = false;
+        
+        // There is no active ban for this player.
+        if(itemBans.isEmpty() || !itemBans.containsKey(splitArgs[0].toLowerCase())) {
+            m_botAction.sendSmartPrivateMessage(sender, "Could not find " + splitArgs[0] + " in the current list of itembans.");
             return;
         }
         
-        itemBans.remove(args.toLowerCase());
-        saveBans();
+        updatedList = itemBans.get(splitArgs[0].toLowerCase());
+        initialSize = updatedList.size();
         
-        m_botAction.sendSmartPrivateMessage(sender, "All itembans for " + args + " have been lifted.");
+        // Iterate through the current item ban list of the targeted person.
+        for(ItemBan itemban : updatedList) {
+            // Remove the entry when the following is valid:
+            // Access level high enough AND one out of the following two situations is true:
+            // - All item bans are to be removed for this person
+            // - A specific item ban needs to be removed and this item ban matches the name.
+            if((splitArgs.length == 1 
+                    || (splitArgs.length == 2 && itemban.item.equalsIgnoreCase(splitArgs[1]))) 
+                    && level >= m_botAction.getOperatorList().getAccessLevel(itemban.issuer)) {
+                counter++;
+                updateNeeded = true;
+                m_botAction.sendSmartPrivateMessage(sender, "Removing: " + itemban.getStatusMessage());
+                updatedList.remove(itemban);
+            }
+        }
+
+        // If an update has been made, then update the global list and save the changes to file.
+        if(updateNeeded) {
+            if(updatedList.isEmpty())
+                itemBans.remove(splitArgs[0].toLowerCase());
+            else
+                itemBans.put(splitArgs[0].toLowerCase(), updatedList);
+            
+            saveBans();
+        }
+        
+        // Inform the issuer on the made changes.
+        if(counter == 0) {
+            m_botAction.sendSmartPrivateMessage(sender, "No itemban found or access level was not sufficient enough to remove the itemban.");
+        } else if(counter == initialSize) {
+            m_botAction.sendSmartPrivateMessage(sender, "All itembans for " + splitArgs[0] + " have been lifted.");
+        } else {
+            m_botAction.sendSmartPrivateMessage(sender, "Removed " + counter + " out of " + initialSize + " itembans for " + splitArgs[0] + ".");
+        }
     }
     
-    //else if (command.startsWith("!addshopban ") || command.startsWith("!asb "))
+    /**
+     * Handles the !addshopban command. (Smod+)
+     * <p>
+     * This will add a shop ban to a player. The person who issues the command, must provide the following parameters:
+     * <ul>
+     *  <li>Name of the person who receives the ban;
+     *  <li>Duration of the ban, in hours;
+     *  <li>Reason of the ban.
+     * </ul>
+     * The issued ban persists through restarts of the pubsystem, however, the player doesn't need to be online to make the time tick.
+     * @param sender Person who issued the command.
+     * @param args The arguments of the command.
+     */
     private void doCmdAddShopBan(String sender, String args) {
         Integer duration = null;
         
+        // Silent return.
         if(args.isEmpty())
             return;
         
         String splitArgs[] = args.split(":",3);
         
+        // Not enough information given by the issuer.
         if(splitArgs.length != 3) {
             m_botAction.sendSmartPrivateMessage(sender, "Please provide all the needed parameters. (!asb <name>:<duration>:<reason>)");
             return;
         }
         
+        // Convert the duration.
         try {
             duration = Integer.parseInt(splitArgs[1]);
         } catch (NumberFormatException e) {
@@ -1744,6 +1847,7 @@ public class PubMoneySystemModule extends AbstractModule {
             return;
         }
         
+        // Check whether this person already has an active shop ban.
         if(!shopBans.isEmpty() && shopBans.containsKey(splitArgs[0].toLowerCase())) {
             if(shopBans.get(splitArgs[0].toLowerCase()).isShopBanned()) {
                 m_botAction.sendSmartPrivateMessage(sender, splitArgs[0] + " already has a shop ban. Please remove the current one first before applying a new one.");
@@ -1751,50 +1855,82 @@ public class PubMoneySystemModule extends AbstractModule {
             }
         }
         
+        // Create a new shop ban.
         ShopBan shopban = new ShopBan(splitArgs[0], sender, duration, splitArgs[2]);
         
+        // Update the global list and save the changes to file to make them persistent.
         shopBans.put(splitArgs[0].toLowerCase(), shopban);
         saveBans();
         
+        // Send the information to the player and the person who issued the ban.
+        m_botAction.sendSmartPrivateMessage(splitArgs[0], "You have been banned from buying any item from the shop for " + duration + " hours.");
+        m_botAction.sendSmartPrivateMessage(splitArgs[0], "This ban was issued by " + sender + " for the following reason: " + splitArgs[2]);
         m_botAction.sendSmartPrivateMessage(sender, splitArgs[0] + " has been banned from using the shop for " + duration + " hours.");        
     }
     
-    //else if (command.equals("!listshopbans") || command.equals("!lsb"))
+    /**
+     * Handles the !listshopbans command. (Smod+)
+     * <p>
+     * This will display all of the currently active shop bans.
+     * Simultaniously it will check if any of the bans have expired, and if so, remove them from the list.
+     * @param sender Person who issued the command.
+     */
     private void doCmdListShopBans(String sender) {
         boolean needsUpdate = false;
         
+        // No active bans.
         if(shopBans.isEmpty()) {
             m_botAction.sendSmartPrivateMessage(sender, "No one is currently banned from using the shop.");
             return;
         }
         
+        // Iterate through the ban list.
         for(String name : shopBans.keySet()) {
             if(!shopBans.get(name.toLowerCase()).isShopBanned()) {
+                // If a ban has expired, remove it from the list and flag it for an update.
                 shopBans.remove(name.toLowerCase());
                 needsUpdate = true;
             } else {
+                // Display the ban.
                 m_botAction.sendSmartPrivateMessage(sender, shopBans.get(name.toLowerCase()).getStatusMessage());
             }
         }
         
+        // If changes have been made, save them.
         if(needsUpdate)
             saveBans();
     }
     
-    //else if (command.startsWith("!removeshopban ") || command.startsWith("!rsb "))
+    /**
+     * Handles the !removeshopban command. (Smod+)
+     * <p>
+     * Removes a player's shop ban from the list, but only if the access level of the issuer is sufficient enough.
+     * @param sender Person who issued the command.
+     * @param args Name of the player whose shop ban will be lifted.
+     */
     private void doCmdRemoveShopBan(String sender, String args) {
+        // Silent return.
         if(args.isEmpty())
             return;
         
+        // There is no active ban for this player.
         if(shopBans.isEmpty() || !shopBans.containsKey(args.toLowerCase())) {
             m_botAction.sendSmartPrivateMessage(sender, "Could not find " + args + " in the current list of shopbans.");
             return;
         }
         
+        // To remove a ban, the access level of the issuer needs to be equal to or higher than that of the person who created the ban.
+        if(m_botAction.getOperatorList().getAccessLevel(sender) < m_botAction.getOperatorList().getAccessLevel(shopBans.get(args.toLowerCase()).issuer)) {
+            m_botAction.sendSmartPrivateMessage(sender, "Sorry, this ban is above your paygrade.");
+            return;
+        }
+        
+        // Remove the ban and save the changes.
         shopBans.remove(args.toLowerCase());
         saveBans();
         
-        m_botAction.sendSmartPrivateMessage(sender, "All shopbans for " + args + " have been lifted.");
+        // Inform the issuer of the removal.
+        m_botAction.sendSmartPrivateMessage(sender, "The shopban for " + args + " have been lifted.");
     }
     
     /**
@@ -2220,6 +2356,12 @@ public class PubMoneySystemModule extends AbstractModule {
     @Override
     public String[] getSmodHelpMessage(String sender) {
         return new String[] {
+                pubsystem.getHelpLine("!aib <name>:<item>:<duration>:<reason> -- Adds an item ban on <item> for <name> for <duration> hours with <reason>. (!additemban)"),
+                pubsystem.getHelpLine("!listitembans                          -- Lists all the currently active item bans. (!lib)"),
+                pubsystem.getHelpLine("!removeitemban <name>[:<item>]         -- Lifts all item bans for <name>. Optional: Lifts item bans specifically for <item>. (!rib)"),
+                pubsystem.getHelpLine("!addshopban <name>:<duration>:<reason> -- Adds an item ban on <item> for <name> for <duration> hours with <reason>. (!asb)"),
+                pubsystem.getHelpLine("!listshopbans                          -- Lists all the currently active shop bans. (!lsb)"),
+                pubsystem.getHelpLine("!removeshopban <name>                  -- Lifts the shop ban for <name>. (!rsb)"),
                 pubsystem.getHelpLine("!storehelp                             -- Displays the PubStore CFG help located in the CFG file."),
                 pubsystem.getHelpLine("!storecfg                              -- Displays the PubStore CFG values."),
                 pubsystem.getHelpLine("!edit <key>=<value>                    -- Modifies the pubsystem store configuration file. BE CAREFUL!"),
@@ -3449,13 +3591,25 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Tracker class for individual shopbans. Disallows a player to completely use the shop.
+     * @author Trancid
+     *
+     */
     private class ShopBan {
-        private String name;
-        private String issuer;
-        private Long startTime;
-        private Integer duration;
-        private String reason;
+        private String name;        // Name of the banned person.
+        private String issuer;      // Person who issued the ban.
+        private Long startTime;     // Time when the ban was issued, in ms.
+        private Integer duration;   // Duration of the ban, in hours.
+        private String reason;      // Reason for the ban.
         
+        /**
+         * ShopBan constructor when a SMod+ issues a new shopban.
+         * @param name Name of the person who will be shopbanned.
+         * @param issuer Person who issued the ban.
+         * @param duration The length of the ban, in hours.
+         * @param reason The reason for the ban.
+         */
         public ShopBan(String name, String issuer, Integer duration, String reason) {
             this.name = name;
             this.issuer = issuer;
@@ -3464,6 +3618,10 @@ public class PubMoneySystemModule extends AbstractModule {
             this.startTime = System.currentTimeMillis();
         }
         
+        /**
+         * ShopBan constructor when the information is loaded from a file.
+         * @param itemBanSplit Array of the variables loaded. Must be 5 in total!
+         */
         public ShopBan(String[] itemBanSplit) {
             this.name = itemBanSplit[0];
             this.issuer = itemBanSplit[1];
@@ -3480,30 +3638,53 @@ public class PubMoneySystemModule extends AbstractModule {
             this.reason = itemBanSplit[4];
         }
         
-        
+        /**
+         * Checks if the player is still banned from using the shop.
+         * @return True when the ban period hasn't expired yet, otherwise false.
+         */
         public boolean isShopBanned() {
             return (System.currentTimeMillis() - startTime < duration * Tools.TimeInMillis.HOUR);
         }
  
+        /**
+         * Preformatted status message used as feedback in look up functions.
+         * @return Preformatted string which holds all the information on this specific ban.
+         */
         public String getStatusMessage() {
             return ("Name: " + name + "; Issued by: " + issuer
                     + "; Expires in: " + Tools.getTimeDiffString(startTime + (duration * Tools.TimeInMillis.HOUR), true)
                     + "; Reason: " + reason);
         }
         
+        /**
+         * Method used to store the information to file in a preformatted method.
+         */
         public String toString() {
             return (name + ":" + issuer + ":" + startTime + ":" + duration + ":" + reason);
         }
     }
  
+    /**
+     * Tracker class for individual itembans. Disallows a player from buying a specific item from the shop.
+     * @author Trancid
+     *
+     */
     private class ItemBan {
-        private String name;
-        private String issuer;
-        private String item;
-        private Long startTime;
-        private Integer duration;
-        private String reason;
+        private String name;        // Name of the banned person.
+        private String issuer;      // Person who issued the ban.
+        private String item;        // Item of which the player is banned from.
+        private Long startTime;     // Time when the ban got issued, in ms.
+        private Integer duration;   // Duration of the ban, in hours.
+        private String reason;      // Reason for the ban.
         
+        /**
+         * ItemBan constructor when a SMod+ issues a new itemban.
+         * @param name Name of the person who will be shopbanned.
+         * @param issuer Person who issued the ban.
+         * @param item Item for which the user is banned from.
+         * @param duration The length of the ban, in hours.
+         * @param reason The reason for the ban.
+         */
         public ItemBan(String name, String issuer, String item, Integer duration, String reason) {
             this.name = name;
             this.issuer = issuer;
@@ -3513,6 +3694,10 @@ public class PubMoneySystemModule extends AbstractModule {
             this.startTime = System.currentTimeMillis();
         }
         
+        /**
+         * ItemBan constructor when the information is loaded from a file.
+         * @param itemBanSplit Array of the variables loaded. Must be 6 in total!
+         */
         public ItemBan(String[] itemBanSplit) {
             this.name = itemBanSplit[0];
             this.issuer = itemBanSplit[1];
@@ -3530,20 +3715,32 @@ public class PubMoneySystemModule extends AbstractModule {
             this.reason = itemBanSplit[5];
         }
         
+        /**
+         * Checks if the player is still banned from using this specific item.
+         * @return True when the ban period hasn't expired yet, otherwise false.
+         */
         public boolean isItemBanned() {
             return (System.currentTimeMillis() - startTime < duration * Tools.TimeInMillis.HOUR);
         }
         
+        /**
+         * Preformatted status message used as feedback in look up functions.
+         * @return Preformatted string which holds all the information on this specific ban.
+         */
         public String getStatusMessage() {
             return ("Name: " + name + "; Issued by: " + issuer + "; Item: " + item
                     + "; Expires in: " + Tools.getTimeDiffString(startTime + (duration * Tools.TimeInMillis.HOUR), true)
                     + "; Reason: " + reason);
         }
         
+        /**
+         * Method used to store the information to file in a preformatted method.
+         */
         public String toString() {
             return (name + ":" + issuer + ":" + item + ":" + startTime + ":" + duration + ":" + reason);
         }
     }
+    
     /**
      * Sorts a Hashmap into a LinkedHashMap by order of the values.
      * @param passedMap The map that needs to be sorted.
