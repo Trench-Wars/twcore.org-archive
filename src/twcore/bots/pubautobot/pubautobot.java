@@ -442,10 +442,20 @@ public class pubautobot extends SubspaceBot {
 
     	// Only react to private messages
     	if(messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) {
-    	    // Filter for !die
+    	    // Filter for !die and !status
     		if(m_botAction.getOperatorList().isSmod(playerName)) {
-    			if (m_botAction.getOperatorList().isSmod(playerName) && message.equalsIgnoreCase("!die")) {
+    			if (message.equalsIgnoreCase("!die")) {
     			    disconnect();
+    			    return;
+    			} else if(message.equalsIgnoreCase("!status")) {
+    			    m_botAction.sendSmartPrivateMessage(playerName, "My current status: "
+    			            + "I am " + (locked?"":"un") + "locked; "
+    			            + (owner!=null?"My current owner is: " + owner:"I have no owner") + "; "
+    			            + (subowner!=null?"My current subowner is: " + subowner:"I have no subowner" + "."));
+    			    return;
+    			} else if(message.equalsIgnoreCase("!gtfo")) {
+    			    m_botAction.sendSmartPrivateMessage(playerName, "Please, don't send me to my room... It's fun in here!");
+    			    free();
     			    return;
     			}
     		}
