@@ -3181,6 +3181,9 @@ public class PubMoneySystemModule extends AbstractModule {
         loadBans();
     }
     
+    /**
+     * Loads the active item and shop bans from file.
+     */
     private void loadBans() {
         BotSettings cfg = m_botAction.getBotSettings();
         ArrayList<ItemBan> itemBanList;
@@ -3230,6 +3233,9 @@ public class PubMoneySystemModule extends AbstractModule {
         }
     }
 
+    /**
+     * Saves the active item and shop bans to file.
+     */
     private void saveBans() {
         BotSettings cfg = m_botAction.getBotSettings();
         boolean loop = true;
