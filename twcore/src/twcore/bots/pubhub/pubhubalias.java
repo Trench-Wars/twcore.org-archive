@@ -138,10 +138,10 @@ public class pubhubalias extends PubBotModule {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
             String ipResults = getSubQueryResultString("SELECT DISTINCT(fnIP) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '"
-                    + Tools.addSlashesToString(playerName) + "'", "fnIP");
+                    + Tools.addSlashes(playerName) + "'", "fnIP");
 
             String midResults = getSubQueryResultString("SELECT DISTINCT(fnMachineId) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '"
-                    + Tools.addSlashesToString(playerName) + "'", "fnMachineId");
+                    + Tools.addSlashes(playerName) + "'", "fnMachineId");
 
             String queryString = "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnIP IN " + ipResults + " " + "AND fnMachineID IN "
                     + midResults + " " + getOrderBy();
