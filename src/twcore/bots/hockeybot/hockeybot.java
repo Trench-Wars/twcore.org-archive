@@ -658,7 +658,11 @@ public class hockeybot extends SubspaceBot {
             // Goalie was killed in his own crease zone
             pKiller.setPenalty(HockeyPenalty.GOALIE_KILL);
             m_botAction.sendArenaMessage("GOALIE KILL PENALTY: " + killer);
-            startFaceOff();
+            // If the puck and the location of the penalty are in the same defensive zone, start a faceoff.
+            if((tKillee.getFrequency() == 0 && HockeyZone.DZONE0.contains(puck.getZone())) 
+                    || (tKillee.getFrequency() == 1 && HockeyZone.DZONE1.contains(puck.getZone()))) {
+                startFaceOff();
+            }
             return;
         }
 
@@ -678,7 +682,13 @@ public class hockeybot extends SubspaceBot {
                 // Midgame. Give the player a penalty.
                 pKiller.setPenalty(HockeyPenalty.ILLEGAL_CHECK);
                 m_botAction.sendArenaMessage("ILLEGAL CHECK PENALTY: " + killer + ". (Respawnkilling)");
-                startFaceOff();
+                // If the puck and the location of the penalty are in the same defensive zone, start a faceoff.
+                if((HockeyZone.DZONE0.contains(m_botAction.getPlayer(killee)) 
+                            && HockeyZone.DZONE0.contains(puck.getZone())) 
+                        || (HockeyZone.DZONE0.contains(m_botAction.getPlayer(killee)) 
+                            && HockeyZone.DZONE1.contains(puck.getZone()))) {
+                    startFaceOff();
+                }
             }
         }
     }
@@ -3447,7 +3457,6 @@ public class hockeybot extends SubspaceBot {
      * Displays the scores
      */
     private void displayScores() {
-        //TODO Optimize for speed. (I.e. get rid of Tools.centerString where possible.)
         ArrayList<String> spam = new ArrayList<String>();
         spam.add("+----------------------+----------------------+");
         spam.add("| " + Tools.centerString(team0.getName(), 20) 
@@ -4401,9 +4410,9 @@ public class hockeybot extends SubspaceBot {
                 }
                 
                 // Depending on the amount of deaths the current killer is responsible for, return a penalty.
-                if(count == 3) {
+                if(count == 2) {
                     return HockeyPenalty.ILLEGAL_CHK_WARN;
-                } else if(count >= 5) {
+                } else if(count >= 4) {
                     // Reset the tracker to be sure.
                     deathTracker.clear();
                     return HockeyPenalty.ILLEGAL_CHECK;
@@ -4461,7 +4470,6 @@ public class hockeybot extends SubspaceBot {
          * @return players rating
          */
         private int getTotalRating() {
-            //TODO Improve this by constantly calculating/adjusting this during the game, to include some other statistics like time played and passes and such.
             // Random formula, based on twht's one.
             return (goals * 107
                     + saves * 27
@@ -5586,6 +5594,14 @@ public class hockeybot extends SubspaceBot {
                 p = releases.peek();
             }
             return p;
+        }
+        
+        /**
+         * Returns the zone the puck currently resides in.
+         * @return Current HockeyZone or null if nothing is found.
+         */
+        public HockeyZone getZone() {     
+            return HockeyZone.intToEnum(hockeyZones.getRegion(ballX / 16, ballY / 16));
         }
     }
     
