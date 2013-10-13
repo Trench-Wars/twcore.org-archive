@@ -752,7 +752,7 @@ public class hockeybot extends SubspaceBot {
                 if (m_botAction.getShip().needsToBeSent())
                     m_botAction.getShip().sendPositionPacket();
             }
-        }; m_botAction.scheduleTask(fo_botUpdateTimer, 0, Tools.TimeInMillis.SECOND);
+        }; m_botAction.scheduleTask(fo_botUpdateTimer, 0, 5);
         
         if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
             m_botAction.getShip().setShip(0);
