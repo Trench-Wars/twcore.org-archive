@@ -242,13 +242,6 @@ public class PubStore {
                 timePassed = (loyaltyTime - timePassed) / 1000;
                 throw new PubException("You must stay at least " + timePassed + " more seconds in your freq before you can buy a special item.");
             }
-            
-            /*timePassed = System.currentTimeMillis() - context.getGameFlagTime().getLastFreqChange(player.getPlayerName());
-            if (timePassed < loyaltyTime) {
-                timePassed = (loyaltyTime - timePassed) / 1000;
-                throw new PubException("You must stay at least " + timePassed + " more seconds in your freq before you can buy a special item.");
-            }*/
-            
         }
         
         if (item.isPlayerStrict() || (item.isPlayerOptional() && !params.trim().isEmpty())) {
