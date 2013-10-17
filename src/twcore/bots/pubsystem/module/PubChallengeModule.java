@@ -15,12 +15,14 @@ import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
+import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
 import twcore.core.game.Player;
+import twcore.core.util.Point;
 import twcore.core.util.Tools;
 
 /*
@@ -29,13 +31,7 @@ import twcore.core.util.Tools;
 public class PubChallengeModule extends AbstractModule {
 
     public static final int MAX_WARP = 2;
-    
-    // normal map
-    //private static final int SAFE_MINESX = 512;
-    //private static final int SAFE_MINESY = 760;
-    private static final int SAFE_MINESX = 511;
-    private static final int SAFE_MINESY = 782;
-
+        
     private Map<Integer, DuelArea> areas;
     private Map<String, Dueler> duelers;
     private Map<String, Challenge> challenges;
@@ -55,6 +51,9 @@ public class PubChallengeModule extends AbstractModule {
     private int announceWinnerAt = 0;
     private int announceZoneWinnerAt = 100000000;
     private int deaths;
+    
+    // Coordinates of the safe zone used to clear out projectiles and mines.
+    private Point coordsSafe;
 
     private int minBet = 100;
 
@@ -188,7 +187,7 @@ public class PubChallengeModule extends AbstractModule {
             }
 
             if (duelers.get(name).type == Dueler.DUEL_CHALLENGER) {
-                m_botAction.warpTo(name, area.warp1x, area.warp1y);
+                m_botAction.warpTo(name, area.warp1);
                 if (laggers.containsKey(name)) {
                     m_botAction.cancelTask(laggers.get(name));
                     laggers.remove(name);
@@ -503,10 +502,10 @@ public class PubChallengeModule extends AbstractModule {
                 m_botAction.sendSmartPrivateMessage(sender, playerName + " is not dueling.");
             else if (dueler.challenge.area != null) {
 
-                final int posX = Math.min(dueler.challenge.area.warp1x, dueler.challenge.area.warp2x);
-                final int posY = dueler.challenge.area.warp1y;
+                final int posX = Math.min(dueler.challenge.area.warp1.x, dueler.challenge.area.warp2.x);
+                final int posY = dueler.challenge.area.warp1.y;
 
-                final int diff = Math.abs((dueler.challenge.area.warp1x - dueler.challenge.area.warp2x) / 2);
+                final int diff = Math.abs((dueler.challenge.area.warp1.x - dueler.challenge.area.warp2.x) / 2);
 
                 m_botAction.specWithoutLock(sender);
                 TimerTask timer = new TimerTask() {
@@ -816,7 +815,7 @@ public class PubChallengeModule extends AbstractModule {
 
             if (dueler != null) {
                 m_botAction.shipReset(name);
-                m_botAction.warpTo(name, SAFE_MINESX, SAFE_MINESY);
+                m_botAction.warpTo(name, coordsSafe);
             }
         }
 
@@ -843,9 +842,9 @@ public class PubChallengeModule extends AbstractModule {
             if (dueler != null) {
 
                 if (dueler.type == 1)
-                    m_botAction.warpTo(name, challenge.area.warp1x, challenge.area.warp1y);
+                    m_botAction.warpTo(name, challenge.area.warp1);
                 else if (dueler.type == 2)
-                    m_botAction.warpTo(name, challenge.area.warp2x, challenge.area.warp2y);
+                    m_botAction.warpTo(name, challenge.area.warp2);
                 givePrize(name);
             }
         }
@@ -1010,8 +1009,8 @@ public class PubChallengeModule extends AbstractModule {
             duelers.get(accepter).setFreq(freq2);
             m_botAction.setFreq(challenger, freq1);
             m_botAction.setFreq(accepter, freq2);
-            m_botAction.warpTo(challenger, area.warp1x, area.warp1y);
-            m_botAction.warpTo(accepter, area.warp2x, area.warp2y);
+            m_botAction.warpTo(challenger, area.warp1);
+            m_botAction.warpTo(accepter, area.warp2);
             givePrize(challenger);
             givePrize(accepter);
 
@@ -1039,7 +1038,7 @@ public class PubChallengeModule extends AbstractModule {
     }
 
     private void warpToSafe(String name, boolean winner) {
-        m_botAction.warpTo(name, SAFE_MINESX, SAFE_MINESY);
+        m_botAction.warpTo(name, coordsSafe);
     }
 
     public boolean hasChallenged(String name) {
@@ -1078,11 +1077,11 @@ public class PubChallengeModule extends AbstractModule {
 
         if (dueler.type == Dueler.DUEL_CHALLENGER) {
             m_botAction.setShip(name, challenge.ship);
-            m_botAction.warpTo(name, challenge.area.warp1x, challenge.area.warp1y);
+            m_botAction.warpTo(name, challenge.area.warp1);
         } else {
             m_botAction.setShip(name, challenge.ship);
             m_botAction.setFreq(name, getFreq());
-            m_botAction.warpTo(name, challenge.area.warp2x, challenge.area.warp2y);
+            m_botAction.warpTo(name, challenge.area.warp2);
         }
     }
     
@@ -1412,15 +1411,21 @@ public class PubChallengeModule extends AbstractModule {
             this.noplay = new LinkedList<String>();
 
             // Setting Duel Areas
-            for (int i = 1; i < m_botAction.getBotSettings().getInt("duel_area") + 1; i++) {
-                int pos1[] = m_botAction.getBotSettings().getIntArray("duel_area" + i + "_pos1", " ");
-                int pos2[] = m_botAction.getBotSettings().getIntArray("duel_area" + i + "_pos2", " ");
+            BotSettings cfg = new BotSettings(m_botAction.getBotSettings().getString("coords_config"));
+            
+            Point[] pos1 = cfg.getPointArray("duel_area_pos1", ",", ":");
+            Point[] pos2 = cfg.getPointArray("duel_area_pos2", ",", ":");
+            
+            // Load all the duel area's. To be safe, only load until we either hit the config cap or the max entries on the positions.
+            for (int i = 1; i <= m_botAction.getBotSettings().getInt("duel_area") && i <= pos1.length && i <= pos2.length; i++) {
                 int shipArray[] = m_botAction.getBotSettings().getIntArray("duel_area" + i + "_ship", ",");
                 boolean[] ships = { false, false, false, false, false, false, false, false };
                 for (int ship : shipArray)
                     ships[ship - 1] = true;
-                areas.put(i, new DuelArea(i, pos1[0], pos1[1], pos2[0], pos2[1], ships));
+                areas.put(i, new DuelArea(i, pos1[i - 1], pos2[i - 1], ships));
             }
+            
+            coordsSafe = cfg.getPoint("duel_safe", ":");
 
             // Setting Misc.
             enabled = m_botAction.getBotSettings().getInt("duel_enabled") == 1;
@@ -1468,17 +1473,15 @@ class DuelArea {
     public int number; // Area number
 
     public boolean inUse = false;
-
-    public int warp1y, warp1x, warp2y, warp2x;
+    
+    public Point warp1, warp2;
 
     public boolean[] shipAllowed; // 0=wb, 7=shark
 
-    public DuelArea(int number, int warp1x, int warp1y, int warp2x, int warp2y, boolean[] shipAllowed) {
+    public DuelArea(int number, Point warp1, Point warp2, boolean[] shipAllowed) {
         this.number = number;
-        this.warp1x = warp1x;
-        this.warp1y = warp1y;
-        this.warp2x = warp2x;
-        this.warp2y = warp2y;
+        this.warp1 = warp1;
+        this.warp2 = warp2;
         this.shipAllowed = shipAllowed;
     }
 
