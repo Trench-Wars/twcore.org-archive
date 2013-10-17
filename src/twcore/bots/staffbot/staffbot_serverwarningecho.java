@@ -28,17 +28,19 @@ public class staffbot_serverwarningecho extends Module {
 	        String message = event.getMessage().toLowerCase();
 	        String name = event.getMessager() == null ? m_botAction.getPlayerName(event.getPlayerID()) : event.getMessager();
 	        
+	           if(message.startsWith("SERVERIGNORE ") && (name.equals("TW-Chat"))) {
+	                String ignoree = message.substring(13);
+	                if(!ignoredPlayers.contains(ignoree)){
+	                ignoredPlayers.add(ignoree);
+	                //m_botAction.sendChatMessage(2, "Ignoring server errors for " + ignoree + " as requested by TW-Chat.");
+
+	                }
+	                
 	        if(!m_botAction.getOperatorList().isSmod(name)) {
 	            return;
 	        }
 	        
-	        if(message.startsWith("SERVERIGNORE ") && (name.equals("TW-Chat"))) {
-	            String ignoree = message.substring(13);
-	            if(!ignoredPlayers.contains(ignoree)){
-	            ignoredPlayers.add(ignoree);
-	            m_botAction.sendChatMessage(2, "Ignoring server errors for " + ignoree + " as requested by TW-Chat.");
 
-	            }
 	        } else
 	        if(message.startsWith("!help")) {
 	            m_botAction.smartPrivateMessageSpam(name, helpSmod);
