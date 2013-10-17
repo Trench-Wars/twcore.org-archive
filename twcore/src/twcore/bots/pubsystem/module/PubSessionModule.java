@@ -11,7 +11,6 @@ import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
-import twcore.bots.pubsystem.module.player.PubPlayer;
 
 // Session module - provides info on player's current play session
 
