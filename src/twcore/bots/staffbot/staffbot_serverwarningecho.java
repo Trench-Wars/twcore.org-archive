@@ -34,9 +34,11 @@ public class staffbot_serverwarningecho extends Module {
 	        
 	        if(message.startsWith("SERVERIGNOREREQ-TWCHAT ") && (name.equals("TW-Chat"))) {
 	            String ignoree = message.substring(23).trim();
-	            if(!ignoredPlayers.contains(ignoree))
+	            if(!ignoredPlayers.contains(ignoree)){
 	            ignoredPlayers.add(ignoree);
 	            m_botAction.sendChatMessage(2, "Ignoring server errors for " + ignoree + " as requested by TW-Chat.");
+
+	            }
 	        } else
 	        if(message.startsWith("!help")) {
 	            m_botAction.smartPrivateMessageSpam(name, helpSmod);
