@@ -30,11 +30,8 @@ public class staffbot_serverwarningecho extends Module {
 	        
 	           if(message.startsWith("serverignore ") && (name.equals("TW-Chat"))) {
 	                String ignoree = message.substring(13);
-	                m_botAction.sendSmartPrivateMessage("Dezmond", ignoree);
 	                if(!ignoredPlayers.contains(ignoree)){
-	                m_botAction.sendSmartPrivateMessage("Dezmond", ignoree + " ignore request");
 	                ignoredPlayers.add(ignoree);
-	                m_botAction.sendSmartPrivateMessage("Dezmond", ignoree + " added");
 	                //m_botAction.sendChatMessage(2, "Ignoring server errors for " + ignoree + " as requested by TW-Chat.");
 
 	                }
