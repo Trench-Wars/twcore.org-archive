@@ -18,6 +18,7 @@ import twcore.bots.pubsystem.module.PubUtilModule.Location;
 import twcore.bots.pubsystem.module.PubUtilModule.Region;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
+import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.events.FlagClaimed;
 import twcore.core.events.FrequencyChange;
@@ -28,6 +29,7 @@ import twcore.core.events.PlayerLeft;
 import twcore.core.events.TurretEvent;
 import twcore.core.game.Player;
 import twcore.core.lvz.Objset;
+import twcore.core.util.Point;
 import twcore.core.util.Tools;
 
 public class GameFlagTimeModule extends AbstractModule {
@@ -87,18 +89,13 @@ public class GameFlagTimeModule extends AbstractModule {
     // strict flag time mode.
     private boolean warpCmdsAllowed = true;	// True if players & mods are allowed to use warp cmds
     
-    private boolean warpPtsManual = true;	// True if warp points are hard-coded
-
-    private int warpPtsLeftX[] = {0,0,0,0,0};
-    private int warpPtsLeftY[] = {0,0,0,0,0};
-    private int warpPtsRightX[] = {0,0,0,0,0};
-    private int warpPtsRightY[] = {0,0,0,0,0};
-
+    // Warp coords for warp in into FR at the start of a round.
+    private Point[] warpPtsLeft;
+    private Point[] warpPtsRight;
+    
     // Warp coords for safes (for use in strict flag time mode)
-    private int warpSafeLeftX;
-    private int warpSafeLeftY;
-    private int warpSafeRightX;
-    private int warpSafeRightY;
+    private Point warpSafeLeft;
+    private Point warpSafeRight;
 
     private boolean warpEnabled = false;
     private boolean autoWarp = false;
@@ -123,54 +120,8 @@ public class GameFlagTimeModule extends AbstractModule {
 
     @Override
     public void reloadConfig() {
-    	if (!warpPtsManual) {
-    		warpPtsLeftX = m_botAction.getBotSettings().getIntArray("warp_leftX", ",");
-        	warpPtsLeftY = m_botAction.getBotSettings().getIntArray("warp_leftY", ",");
-        	warpPtsRightX = m_botAction.getBotSettings().getIntArray("warp_rightX", ",");
-        	warpPtsRightY = m_botAction.getBotSettings().getIntArray("warp_rightY", ",");
-
-        	warpSafeLeftX = m_botAction.getBotSettings().getInt("warp_safe_leftX");
-        	warpSafeLeftY = m_botAction.getBotSettings().getInt("warp_safe_leftY");
-        	warpSafeRightX = m_botAction.getBotSettings().getInt("warp_safe_rightX");
-        	warpSafeRightY = m_botAction.getBotSettings().getInt("warp_safe_rightY");
     	
-    	// Hardcoded warp points (for new base system)
-    	} else {
-    	    warpPtsLeftX[0] = 482;
-            warpPtsLeftX[1] = 486;
-            warpPtsLeftX[2] = 490;
-            warpPtsLeftX[3] = 491;
-            warpPtsLeftX[4] = 491;
-            
-            warpPtsLeftY[0] = 256;
-            warpPtsLeftY[1] = 252;
-            warpPtsLeftY[2] = 260;
-            warpPtsLeftY[3] = 269;
-            warpPtsLeftY[4] = 279;
-                    
-            warpPtsRightX[0] = 542;
-            warpPtsRightX[1] = 538;
-            warpPtsRightX[2] = 534;
-            warpPtsRightX[3] = 533;
-            warpPtsRightX[4] = 533;
-
-            warpPtsRightY[0] = 256;
-            warpPtsRightY[1] = 252;
-            warpPtsRightY[2] = 260;
-            warpPtsRightY[3] = 269;
-            warpPtsRightY[4] = 279;
-
-            // Coords in array format, in case anyone needs them later on
-            //int[] leftX =  { 481, 485, 489, 491, 488 };
-            //int[] leftY =  { 262, 258, 266, 288, 278 };
-            //int[] rightX = { 542, 539, 535, 533, 536 };
-            //int[] rightY = { 262, 258, 266, 288, 278 };           
-            
-            warpSafeLeftX = 306;
-            warpSafeLeftY = 482;
-            warpSafeRightX = 718;
-            warpSafeRightY = 482;           	
-    	}
+    	reloadCoordsConfig();
         
         if (m_botAction.getBotSettings().getInt("allow_warp") == 1)
             warpEnabled = true;
@@ -180,6 +131,28 @@ public class GameFlagTimeModule extends AbstractModule {
 
         if (m_botAction.getBotSettings().getInt("flagtime_enabled") == 1)
             enabled = true;
+    }
+    
+    /**
+     * Loads the coordinates from a separate settings file.
+     */
+    private void reloadCoordsConfig() {
+        BotSettings cfg = new BotSettings(m_botAction.getBotSettings().getString("coords_config"));
+        
+        // Warp points for start of round, left side of base.
+        warpPtsLeft = cfg.getPointArray("warp_left", ",", ":");
+        
+        // Warp points for start of round, right side of base.
+        warpPtsRight = cfg.getPointArray("warp_right", ",", ":");
+        
+        // Coordinates of left safe.
+        warpSafeLeft = cfg.getPoint("safe_left", ":");
+        
+        // Cordinates of right safe.
+        warpSafeRight = cfg.getPoint("safe_right", ":");
+        
+        //TODO: Handle situation in which the warp points aren't located.
+        
     }
 
     @Override
@@ -1574,6 +1547,16 @@ public class GameFlagTimeModule extends AbstractModule {
     /**
      * Warps a player within a radius of 2 tiles to provided coord.
      * 
+     * @param playerName Name of the player.
+     * @param targetCoord Coordinates the player will warp to.
+     */
+    private void doPlayerWarp(String playerName, Point targetCoord) {
+        doPlayerWarp(playerName, targetCoord.x, targetCoord.y);
+    }
+    
+    /**
+     * Warps a player within a radius of 2 tiles to provided coord.
+     * 
      * @param playerName
      * @param xCoord
      * @param yCoord
@@ -1907,12 +1890,12 @@ public class GameFlagTimeModule extends AbstractModule {
             if (allPlayers)
                 rand = 0;
             else
-                rand = r.nextInt(warpPtsLeftX.length);
+                rand = r.nextInt(warpPtsLeft.length);
 
             if (p.getFrequency() % 2 == randomside)
-                doPlayerWarp(pname, warpPtsLeftX[rand], warpPtsLeftY[rand]);
+                doPlayerWarp(pname, warpPtsLeft[rand]);
             else
-                doPlayerWarp(pname, warpPtsRightX[rand], warpPtsRightY[rand]);
+                doPlayerWarp(pname, warpPtsRight[rand]);
         }
 
         /* Reimplement as needed... not sure if we need it at present.
@@ -1962,9 +1945,9 @@ public class GameFlagTimeModule extends AbstractModule {
             p = i.next();
             if (p != null)
                 if (p.getFrequency() % 2 == 0)
-                    m_botAction.warpTo(p.getPlayerID(), warpSafeLeftX, warpSafeLeftY);
+                    m_botAction.warpTo(p.getPlayerID(), warpSafeLeft);
                 else
-                    m_botAction.warpTo(p.getPlayerID(), warpSafeRightX, warpSafeRightY);
+                    m_botAction.warpTo(p.getPlayerID(), warpSafeRight);
         }
     }
 
