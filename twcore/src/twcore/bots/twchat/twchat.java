@@ -117,7 +117,7 @@ public class twchat extends SubspaceBot {
             if (message.contains("Client: VIE 1.34")) {
                 String nameFromMessage = message.substring(0, message.indexOf(":", 0));
                 if(ops.isZH(nameFromMessage)){
-                    m_botAction.sendSmartPrivateMessage(STAFFBOT, "SERVERIGNOREREQ-TWCHAT " + nameFromMessage);
+                    m_botAction.sendSmartPrivateMessage("StaffBot", "SERVERIGNORE " + nameFromMessage);
                     m_botAction.sendChatMessage(2, nameFromMessage + " is using TW-Chat. Sending request to ignore server warnings...");
                 }
                 if(notify == true){
@@ -347,33 +347,6 @@ public class twchat extends SubspaceBot {
                 return;
             else
                 m_botAction.sendUnfilteredPrivateMessage(name, "*info");
-        /* this is stupid
-        try {
-            ResultSet mid = m_botAction.SQLQuery(dbInfo, "SELECT CAST(GROUP_CONCAT(fnMachineID) AS CHAR) fnMachineIDs "
-                    + "FROM ( SELECT DISTINCT fnMachineID FROM tblUser u JOIN tblAlias a USING (fnUserID) WHERE u.fcUserName = '" + Tools.addSlashesToString(name)
-                    + "' ORDER BY a.fdUpdated DESC LIMIT 3 ) t1");
-            if (!mid.next())
-                m_botAction.sendChatMessage("No results");
-            else {
-                String db = mid.getString("fnMachineIDs");
-                for (String i : info) {
-                    for (String staff : staffer) {
-                        if (!db.contains(i) && name.equalsIgnoreCase(staff)) {
-                            m_botAction.sendChatMessage(2, "WARNING: Staffer " + player.getPlayerName()
-                                    + " has a unconsistent MID from previous logins.");
-                            m_botAction.sendChatMessage(2, "Database MID: " + db + " - LIVE MID: " + i);
-                            info.remove(i);
-                            staffer.remove(staff);
-
-                        }
-                    }
-                }
-            }
-            m_botAction.SQLClose(mid);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        */
     }
 
     public void handleEvent(ArenaJoined event) {
