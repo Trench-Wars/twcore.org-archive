@@ -18,6 +18,7 @@ import twcore.core.BotAction;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerDeath;
 import twcore.core.game.Player;
+import twcore.core.util.Point;
 import twcore.core.util.Tools;
 
 
@@ -26,6 +27,19 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private static final int MAX_ITEM_USED_HISTORY = 30 * Tools.TimeInMillis.MINUTE;
     private static final int DONATE_DELAY = Tools.TimeInMillis.MINUTE;
     private static final String db = "pubstats";
+
+    // Spawn points for the low population mid spawn.
+    private static final Point[] COORDS_MIDSPAWN = {
+        new Point(539, 323),
+        new Point(485, 323),
+        new Point(474, 298),
+        new Point(550, 298)
+    };
+    
+    // Radius for the low population mid spawn. Amount must be equal to the amount of Points in COORDS_MIDSPAWN.
+    private static final int[] RADIUS_MIDSPAWN = {
+        9, 9, 8, 8
+    };
     
     private BotAction m_botAction;
 
@@ -332,19 +346,13 @@ public class PubPlayer implements Comparable<PubPlayer>{
     }
     
     public void doSpawnMid() {
-        double spawnPoint = Math.floor(Math.random() * 20);
+        // Generate a number between 0 and the amount of warp points we have.
+        // To prevent an out of boundaries error, pick the smallest of the two sizes of COORDS_MIDSPAWN and RADIUS_MIDSPAWN. (They should be equal)
+        int spawnPoint = (int) (Math.random() * Math.min(COORDS_MIDSPAWN.length, RADIUS_MIDSPAWN.length));
         Player p = m_botAction.getPlayer(name);
         
         if(p != null) {
-            if (spawnPoint <= 5)
-                m_botAction.warpTo(p.getPlayerName(), 539, 323, 9);
-            else if (spawnPoint > 5 && spawnPoint <= 10)  {
-                m_botAction.warpTo(p.getPlayerName(), 485, 323, 9);
-            } else if (spawnPoint > 10 && spawnPoint <= 15)  {
-                m_botAction.warpTo(p.getPlayerName(), 474 , 298, 8);
-            } else {
-                m_botAction.warpTo(p.getPlayerName(), 550 , 298, 8);
-            }
+            m_botAction.warpTo(p.getPlayerName(), COORDS_MIDSPAWN[spawnPoint], RADIUS_MIDSPAWN[spawnPoint]);
         }
     }
     
