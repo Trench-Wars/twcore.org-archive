@@ -61,6 +61,7 @@ import twcore.core.events.SQLResultEvent;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.util.MapRegions;
+import twcore.core.util.Point;
 import twcore.core.util.Tools;
 import twcore.core.util.Tools.Ship;
 
@@ -95,6 +96,15 @@ public class PubMoneySystemModule extends AbstractModule {
 
     private HashMap<String, ArrayList<ItemBan>> itemBans;
     private HashMap<String, ShopBan> shopBans;
+    
+    // Coordinates
+    private Point coordBaseBlast;
+    private Point[] coordsBaseStrike;
+    private Point[] coordsBaseTerrier;
+    private Point coordFlagSaver;
+    private Point coordMegaWarp;
+    private Point coordNukeBase;
+    private Point coordRoofTurret;
     
     // Arena
     //private String arenaNumber = "0";
@@ -141,6 +151,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
         regions = new MapRegions();
         reloadRegions();
+        reloadCoords();
         reloadConfig();
 
     }
@@ -162,6 +173,30 @@ public class PubMoneySystemModule extends AbstractModule {
             Tools.printLog("Could not load warps for " + MAP_NAME);
             Tools.printStackTrace(e);
         }
+    }
+    
+    /**
+     * Load all the coordinate related settings from a separate configuration file.
+     */
+    public void reloadCoords() {
+        BotSettings cfg = new BotSettings(m_botAction.getBotSettings().getString("coords_config"));
+
+        // Base blast spawn location in points
+        coordBaseBlast=cfg.getPoint("BaseBlast", ":");
+        // Base strike warp locations in tiles.
+        coordsBaseStrike=cfg.getPointArray("BaseStrike", ",", ":");
+        // Base terrier spawn location in tiles. (Frequency 0, 1, X)
+        coordsBaseTerrier=cfg.getPointArray("BaseTerrier", ",", ":");
+        // Flag saver spawn location in points.
+        coordFlagSaver=cfg.getPoint("FlagSaver", ":");
+        // Mega warp wormhole location in tiles.
+        coordMegaWarp=cfg.getPoint("MegaWarp", ":");
+        // Nuke base safe location in points.
+        coordNukeBase=cfg.getPoint("NukeBase", ":");
+        // Roof turret spawn location in tiles.
+        coordRoofTurret=cfg.getPoint("RoofTurret", ":");
+        
+        //TODO: Handle situation in which the warp points aren't located.        
     }
 
     /** Default event requester */
@@ -2567,8 +2602,8 @@ public class PubMoneySystemModule extends AbstractModule {
         Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
 
         // Center of the circle (wormhole) + diameter
-        int x = 640;
-        int y = 610;
+        int x = coordMegaWarp.x;
+        int y = coordMegaWarp.y;
         int d = 25;
 
         int i = 0;
@@ -2640,7 +2675,7 @@ public class PubMoneySystemModule extends AbstractModule {
         m_botAction.sendArenaMessage(sender + " has sent a blast of bombs inside the flagroom!", Tools.Sound.HALLELUJAH);
         final TimerTask timerFire = new TimerTask() {
             public void run() {
-                m_botAction.getShip().move(512 * 16 + 8, 270 * 16 + 8);
+                m_botAction.getShip().move(coordBaseBlast.x, coordBaseBlast.y);
                 for (int j = 0; j < 2; j++) {
                     for (int i = 0; i < 360 / 5; i++) {
 
@@ -2733,7 +2768,7 @@ public class PubMoneySystemModule extends AbstractModule {
         TimerTask timer = new TimerTask() {
             public void run() {
                 m_botAction.specWithoutLock(m_botAction.getBotName());
-                m_botAction.move(512 * 16, 285 * 16);
+                m_botAction.move(coordNukeBase.x, coordNukeBase.y);
                 m_botAction.setPlayerPositionUpdating(300);
                 m_botAction.getShip().setSpectatorUpdateTime(100);
                 //Iterator<Integer> i = m_botAction.getFreqIDIterator(freq);
@@ -2881,18 +2916,6 @@ public class PubMoneySystemModule extends AbstractModule {
     private void itemCommandBaseStrike(String sender, String params) {
         Short freq = null;
 
-        int[][] coords = new int[][] { 
-                new int[] { 501, 261 }, // Top right
-                new int[] { 512, 257 }, // Top middle
-                new int[] { 523, 261 }, // Top left
-                new int[] { 536, 255 }, // Ear right
-                new int[] { 488, 255 }, // Ear left
-                new int[] { 493, 268 }, // Middle right
-                new int[] { 531, 268 }, // Middle left
-        //new int[] { 500, 287 }, // Bottom right
-        //new int[] { 526, 287 }, // Bottom left
-        };
-
         Player commander = m_botAction.getPlayer(sender);
         
         // Default null check
@@ -2923,20 +2946,20 @@ public class PubMoneySystemModule extends AbstractModule {
             
             // Terr always warped on the middle
             if (player.getShipType() == Tools.Ship.TERRIER) {
-                m_botAction.warpTo(player.getPlayerName(), coords[1][0], coords[1][1]);
+                m_botAction.warpTo(player.getPlayerName(), coordsBaseStrike[1]);
                 // Shark always warped on top
             } else if (player.getShipType() == Tools.Ship.SHARK) {
                 int num = (int) Math.floor(Math.random() * 3);
-                m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1]);
+                m_botAction.warpTo(player.getPlayerName(), coordsBaseStrike[num]);
                 // The rest is random..
             } else {
-                int num = (int) Math.floor(Math.random() * coords.length);
+                int num = (int) Math.floor(Math.random() * coordsBaseStrike.length);
                     if (num == 1)
-                        m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1]);
+                        m_botAction.warpTo(player.getPlayerName(), coordsBaseStrike[num]);
                     else if (num == 0 || num == 2)
-                        m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1],1);
+                        m_botAction.warpTo(player.getPlayerName(), coordsBaseStrike[num], 1);
                     else if (num >= 3)
-                        m_botAction.warpTo(player.getPlayerName(), coords[num][0], coords[num][1], 3);
+                        m_botAction.warpTo(player.getPlayerName(), coordsBaseStrike[num], 3);
             }
         }
         if (freq < 100)
@@ -2976,7 +2999,7 @@ public class PubMoneySystemModule extends AbstractModule {
         m_botAction.getShip().setFreq(freq);
         m_botAction.getShip().rotateDegrees(270);
         m_botAction.specificPrize(m_botAction.getBotName(), Tools.Prize.SHIELDS);
-        m_botAction.getShip().move(512 * 16 + 8, 269 * 16 + 8);
+        m_botAction.getShip().move(coordFlagSaver.x, coordFlagSaver.y);
 
         TimerTask timer = new TimerTask() {
             public void run() {
@@ -3358,13 +3381,13 @@ public class PubMoneySystemModule extends AbstractModule {
             commandBot("!SetShip 5");
             commandBot("!SetFreq " + freq);
             if (freq == 0) {
-                commandBot("!WarpTo 488 254");
+                commandBot("!WarpTo " + coordsBaseTerrier[0].x + " " + coordsBaseTerrier[0].y);
                 commandBot("!Face 15");
             } else if (freq == 1) {
-                commandBot("!WarpTo 536 254");
+                commandBot("!WarpTo " + coordsBaseTerrier[1].x + " " + coordsBaseTerrier[1].y);
                 commandBot("!Face 25");
             } else {
-                commandBot("!WarpTo 512 257");
+                commandBot("!WarpTo " + coordsBaseTerrier[2].x + " " + coordsBaseTerrier[2].y);
                 commandBot("!Face 20");
             }
             commandBot("!Timeout 300");
@@ -3422,7 +3445,7 @@ public class PubMoneySystemModule extends AbstractModule {
             try {
                 Thread.sleep(250);
             } catch (InterruptedException e) {}
-            commandBot("!WarpTo 512 239");
+            commandBot("!WarpTo " + coordRoofTurret.x + " " + coordRoofTurret.y);
             commandBot("!RepeatFireOnSight 65 500");
             commandBot("!AimingAtEnemy");
             commandBot("!FastRotation");
