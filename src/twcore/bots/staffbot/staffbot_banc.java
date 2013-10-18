@@ -1812,6 +1812,7 @@ public class staffbot_banc extends Module {
                         sqlSet += "fcIP=NULL";
                         banChange.setIP("NULL");
                     } else
+                    /* 18-Oct-2013: Disabled by request of Left_Eye.
                     //staffer
                     if (argument.startsWith("-staffname=")) {
                         if (!sqlSet.isEmpty())
@@ -1820,6 +1821,7 @@ public class staffbot_banc extends Module {
                         banChange.setStaffer(argument.substring(11));
 
                     } else
+                    */
                     // -mid=#
                     if (argument.startsWith("-mid=") && Tools.isAllDigits(argument.substring(5))) {
                         if (!sqlSet.isEmpty())
