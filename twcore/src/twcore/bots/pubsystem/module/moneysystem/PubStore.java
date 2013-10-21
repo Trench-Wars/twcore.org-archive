@@ -27,7 +27,7 @@ public class PubStore {
 	private int commandCooldown = 0;
 	private int prizecooldown= 0;
 	private int detachLevTerrCooldown = 0;
-	private int buyableFromLevTerr = 1;
+	private boolean buyableFromLevTerr = true;
 	
 	private int loyaltyTime = 120 * Tools.TimeInMillis.SECOND;
 	
@@ -57,7 +57,7 @@ public class PubStore {
         
         commandCooldown = m_botAction.getBotSettings().getInt("command_cd");
         prizecooldown = m_botAction.getBotSettings().getInt("prize_cd");
-        buyableFromLevTerr = m_botAction.getBotSettings().getInt("buy_from_levterr");
+        buyableFromLevTerr = (m_botAction.getBotSettings().getInt("buy_from_levterr") == 1);
         detachLevTerrCooldown = m_botAction.getBotSettings().getInt("levterr_detach_cd");
         loyaltyTime = m_botAction.getBotSettings().getInt("loyalty_time") * Tools.TimeInMillis.SECOND;
 
@@ -120,12 +120,16 @@ public class PubStore {
 	    			boolean hasRestriction = false;
 	    			boolean hasDuration = false;
 	    			
-	    			if (prizecooldown != 0) 
+	    			if (prizecooldown != 0) { 
 	    			    r.setGobalCooldownBuy(prizecooldown);
-	    			if (buyableFromLevTerr == 0) {
+	    			    hasRestriction = true;
+	    			}
+	    			if (buyableFromLevTerr) {
 	    			    r.setbuyableFromLevTerr();
-	    			} else if (buyableFromLevTerr == 1 && detachLevTerrCooldown != 0) {
-	    			        r.setDetachLevTerrCooldown(detachLevTerrCooldown);
+	    			    hasRestriction = true;
+	    			} else if (!buyableFromLevTerr && detachLevTerrCooldown != 0) {
+	    			    r.setDetachLevTerrCooldown(detachLevTerrCooldown);
+	    			    hasRestriction = true;
 	    			}
 	    			
 	    			for(int i=optionPointer; i<data.length; i++) {
@@ -278,6 +282,7 @@ public class PubStore {
         }
         
         if (item.isRestricted()) {
+            //TODO: Properly fix this when an item is bought for someone else, in regard to which checks are done.
         	PubItemRestriction restriction = item.getRestriction();
         	restriction.check(item, buyer, m_botAction.getPlayer(player.getPlayerName()).getShipType(), m_botAction.getPlayer(player.getPlayerName()).getFrequency());
         
