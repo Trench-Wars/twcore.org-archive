@@ -109,8 +109,10 @@ public class PubMoneySystemModule extends AbstractModule {
     // Arena
     //private String arenaNumber = "0";
 
+    private ArrayList<Integer> canBuyAnywhere;
+    private boolean canLTBuyAnywhere = false;
     private boolean donationEnabled = false;
-    private boolean leviBuyRestricted = true;
+
     private String database;
     private MapRegions regions;
     private static final String MAP_NAME = "pubmap";
@@ -260,6 +262,44 @@ public class PubMoneySystemModule extends AbstractModule {
                     return;
                 }
                 
+                // Is the player's ship on the list of ships that is restricted to only buy in safe?
+                Player p = m_botAction.getPlayer(playerName);
+                if(p != null && p.getShipType() != Tools.Ship.SPECTATOR) {
+                    // Only check this global restriction for players that are actually in a ship.
+                    if(canBuyAnywhere.isEmpty() || !canBuyAnywhere.contains((int) p.getShipType())) {
+                        Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
+                        if (r != null && !(Region.SAFE.equals(r))) {
+                            // No buying except in safe!
+                            m_botAction.sendSmartPrivateMessage(playerName, Tools.shipName(p.getShipType()) + " can only !buy in safe.");
+                            return;
+                        }                        
+                    }
+                    
+                }
+                
+                // Special case of the above. Is the player on a LT, while outside a safe and LTs being restricted to only be able to buy in a safe.
+                if(!canLTBuyAnywhere) {
+                    if (p.isShip(Ship.LEVIATHAN) && p.isAttached()) {
+                        Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
+                        if (r != null && !(Region.SAFE.equals(r))) {
+                            m_botAction.sendPrivateMessage(playerName, "LTs must be in a safety zone to purchase items.");
+                            return;
+                        }
+                    } else if (p.isShip(Ship.TERRIER) && p.hasAttachees()) {
+                        Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
+                        if (r != null && !(Region.SAFE.equals(r))) {
+                            LinkedList<Integer> playerIDs = p.getTurrets();
+                            for (Integer i : playerIDs) {
+                                Player a = m_botAction.getPlayer(i);
+                                if (a != null && a.isShip(Ship.LEVIATHAN)) {
+                                    m_botAction.sendPrivateMessage(playerName, "LTs must be in a safety zone to purchase items.");
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 // Is the player currently banned from using the shop?
                 if(!shopBans.isEmpty() && shopBans.containsKey(playerName.toLowerCase())) {
                     if(shopBans.get(playerName.toLowerCase()).isShopBanned()) {
@@ -293,18 +333,6 @@ public class PubMoneySystemModule extends AbstractModule {
                         saveBans();
                     }
                 }
-                
-                /* Oct-5-2013 Disabled restriction by request.
-                Player p = m_botAction.getPlayer(playerName);
-                if (p != null && p.getShipType() == 4 && leviBuyRestricted) {
-                    // Levis can only buy in safe
-                    Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
-                    if (r != null && !(Region.SAFE.equals(r))) {
-                        // No buying except in safe!
-                        m_botAction.sendSmartPrivateMessage(playerName, "Leviathans can only !buy in safe.");
-                        return;
-                    }
-                }*/
 
                 PubPlayer buyer = playerManager.getPlayer(playerName);
 
@@ -871,25 +899,7 @@ public class PubMoneySystemModule extends AbstractModule {
         if (p == null) {
             return;
         }
-
-        /* LIMIT LTs TO SAFE */
-        /* http://www.twcore.org/ticket/981 */
-        if (!p.isInSafe()) {
-            if (p.isShip(Ship.LEVIATHAN) && p.isAttached()) {
-                m_botAction.sendPrivateMessage(sender, "LTs must be in a safety zone to purchase items.");
-                return;
-            } else if (p.isShip(Ship.TERRIER) && p.hasAttachees()) {
-                LinkedList<Integer> playerIDs = p.getTurrets();
-                for (Integer i : playerIDs) {
-                    Player a = m_botAction.getPlayer(i);
-                    if (a != null && a.isShip(Ship.LEVIATHAN)) {
-                        m_botAction.sendPrivateMessage(sender, "LTs must be in a safety zone to purchase items.");
-                        return;
-                    }
-                }
-            }
-        }
-
+        
         if (!command.contains(" ")) {
             doCmdItems(sender, false);
             return;
@@ -3196,9 +3206,16 @@ public class PubMoneySystemModule extends AbstractModule {
                 couponOperators.add(name.toLowerCase());
             }
         }
-        if (m_botAction.getBotSettings().getInt("levi_buy_in_safe") == 1) {
-            leviBuyRestricted = true;
+        
+        // Which ships are not safezone restricted.
+        canBuyAnywhere = new ArrayList<Integer>();
+        for(Integer ship : m_botAction.getBotSettings().getIntArray("AllowBuyOutsideSafe", ",")) {
+            canBuyAnywhere.add(ship);
         }
+        
+        // Are LTs able to buy outside the safezone?
+        canLTBuyAnywhere = (m_botAction.getBotSettings().getInt("AllowLTOutsideSafe") == 1);
+                
         database = m_botAction.getBotSettings().getString("database");
         
         loadBans();
