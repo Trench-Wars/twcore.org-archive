@@ -1018,7 +1018,7 @@ public class pubhubalias extends PubBotModule {
                 record(sender, message);
             } 
             else if (command.startsWith("!infofull ")) {
-                doInfoArchCmd(sender, message.substring(6).trim());
+                doInfoArchCmd(sender, message.substring(10).trim());
                 record(sender, message);
             } 
             else if (opList.isSysopExact(sender) && command.startsWith("!infoall ")) {
