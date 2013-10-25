@@ -141,6 +141,8 @@ public class hockeybot extends SubspaceBot {
         WAIT;
         
         // Collection of commonly together used HockeyStates.
+        private static final EnumSet<HockeyState> HOSTTIMEOUT = EnumSet.of(FACE_OFF, GAME_IN_PROGRESS, WAIT);
+        private static final EnumSet<HockeyState> PREGAME = EnumSet.of(OFF, WAITING_FOR_CAPS, ADDING_PLAYERS);
         private static final EnumSet<HockeyState> MIDGAME = EnumSet.of(FACE_OFF, GAME_IN_PROGRESS, TIMEOUT, WAIT);
         private static final EnumSet<HockeyState> ACTIVEGAME = EnumSet.of(ADDING_PLAYERS,
                 FACE_OFF, GAME_IN_PROGRESS, TIMEOUT, WAIT);
@@ -194,7 +196,7 @@ public class hockeybot extends SubspaceBot {
      *
      */
     private static enum GameMode {
-        GOALS, TIMED
+        GOALS, TIMED, OFFICIAL
     };
 
     /**
@@ -349,10 +351,8 @@ public class hockeybot extends SubspaceBot {
      */
     @Override
     public void handleEvent(ArenaJoined event) {
-        //m_botAction.setReliableKills(1);
-        start();
-        m_botAction.setPlayerPositionUpdating(300);
         m_botAction.sendUnfilteredPublicMessage("?chat=" + config.getChats());  //Join all the chats
+        start();
     }
 
     /**
@@ -918,6 +918,8 @@ public class hockeybot extends SubspaceBot {
                 cmd_penalty(name, args);
             } else if (cmd.equals("!rempenalty") || cmd.equals("!rpen")) {
                 cmd_removePenalty(name, args);
+            } else if (cmd.equals("!setgamemode") || cmd.equals("!sgm")) {
+                cmd_setGameMode(name, args);
             } else if (cmd.equals("!hosttimeout") || cmd.equals("!hto")) {
                 cmd_hosttimeout(name);
             } else if (cmd.equals("!vote")) {
@@ -1351,18 +1353,18 @@ public class hockeybot extends SubspaceBot {
             m_botAction.privateMessageSpam(name, spam);
          } else {
              if (!args.contains("cap") && !args.contains("staff")){
-            help.add("Hockey Help Menu");
-            help.add("-----------------------------------------------------------------------");
-            help.add("!notplaying                       Toggles not playing mode  (short !np)");
-            help.add("!cap                                            shows current captains!");
-            help.add("!lagout              Puts you back into the game if you have lagged out");
-            help.add("!list                                    Lists all players on this team");
-            help.add("!status                                        Display status and score");
-            help.add("!subscribe                           Toggles alerts in private messages");
-            help.add("-----------------------------------------------------------------------");
-            help.add("For more help: Private Mesage Me !help <topic>           ex. !help cap ");
-            help.add("                                                                       ");
-            help.add("Topics            Cap (Captain commands for before and during the game)");
+                help.add("Hockey Help Menu");
+                help.add("-----------------------------------------------------------------------");
+                help.add("!notplaying                       Toggles not playing mode  (short !np)");
+                help.add("!cap                                            shows current captains!");
+                help.add("!lagout              Puts you back into the game if you have lagged out");
+                help.add("!list                                    Lists all players on this team");
+                help.add("!status                                        Display status and score");
+                help.add("!subscribe                           Toggles alerts in private messages");
+                help.add("-----------------------------------------------------------------------");
+                help.add("For more help: Private Mesage Me !help <topic>           ex. !help cap ");
+                help.add("                                                                       ");
+                help.add("Topics            Cap (Captain commands for before and during the game)");
                                   
              if (m_botAction.getOperatorList().isZH(name))
                  help.add("              Staff (The staff commands for before and during the game)");
@@ -1412,6 +1414,7 @@ public class hockeybot extends SubspaceBot {
                     hStaff.add("!penalty <player>:<reason>         Sends <player> to the penalty box (short: !pen)");
                     hStaff.add("!rempenalty <player>        Removes the current penalty of <player> (short: !rpen)");
                     hStaff.add("!hosttimeout                             Request a 30 second timeout (short: !hto)");
+                    hStaff.add("!setgamemode [<options>]             Use without options for details (short: !sgm)");
                     hStaff.add("!vote <vote>                        Give your <vote> during the final goal review.");
                     if (m_botAction.getOperatorList().isER(name)) {
                         hStaff.add("!settimeout <amount>                Sets captain timeouts to <amount> (default: 1)");
@@ -1443,8 +1446,8 @@ public class hockeybot extends SubspaceBot {
             return;
         
         // If the host requests a timeout, check if the current phase allows it.   
-        if(!(currentState == HockeyState.FACE_OFF)) {
-            m_botAction.sendPrivateMessage(name, "This is currently only available during a FaceOff.");
+        if(!(HockeyState.HOSTTIMEOUT.contains(currentState))) {
+            m_botAction.sendPrivateMessage(name, "This feature is not available at the current phase of the game.");
         } else {
             // Send a nice message ...
             m_botAction.sendArenaMessage(name + 
@@ -1978,6 +1981,93 @@ public class hockeybot extends SubspaceBot {
             }
 
         }
+    }
+    
+    /**
+     * Handles the !setgamemode command. (ZH+)
+     * <p>
+     * This commands allows the host to set which game mode is being played.
+     * The following game modes are availabe:
+     * <ul>
+     *  <li>GOALS: A race to a certain amount of goals;
+     *  <li>TIMED: Highest score after a set time wins;
+     *  <li>OFFICIAL: Three round game, highest score wins. (Not yet implemented.)
+     * </ul>
+     * Additionally, a target score or time can be set, and the option to enable shootouts on a tie.
+     * Shootouts is currently not yet implemented.
+     * @param name Person who issued the command.
+     * @param args Optional parameters: <code><</code>GameMode>:<code><</code>Target>:<code><</code>Shootouts>.
+     *      Everything is optional, but if only a higher option is set, then there must be matching ":".
+     * @see GameMode
+     */
+    private void cmd_setGameMode(String name, String args) {
+        GameMode gameMode = config.getGameMode();
+        int gameTarget = config.getGameTarget();
+        boolean shootouts = config.shootoutsEnabled();
+        
+        if(!args.isEmpty() && HockeyState.PREGAME.contains(currentState)) {
+            String[] splitArgs = args.toLowerCase().split(":");
+            
+            switch(splitArgs.length) {
+            // Intentional fall-through structure.
+            case 3:
+                if(splitArgs[2].equals("on") || splitArgs[2].startsWith("e") || splitArgs[2].startsWith("t") || splitArgs[2].equals("1")) {
+                    // Trigger options to enable: on, e(nable), t(rue), 1
+                    shootouts = true;
+                } else if(splitArgs[2].equals("off") || splitArgs[2].startsWith("d") || splitArgs[2].startsWith("f") || splitArgs[2].equals("0")) {
+                    // Trigger options to disable: on, d(isable), f(alse), 0
+                    shootouts = false;
+                }
+            case 2:
+                if(!splitArgs[1].isEmpty()) {
+                    try {
+                        gameTarget = Integer.parseInt(splitArgs[1]);
+                    } catch (NumberFormatException e) {}
+                }
+            case 1:
+                if(!splitArgs[0].isEmpty()) {
+                    if(splitArgs[0].startsWith("g"))
+                        gameMode = GameMode.GOALS;
+                    else if(splitArgs[0].startsWith("t"))
+                        gameMode = GameMode.TIMED;
+                    else if(splitArgs[0].startsWith("o"))
+                        gameMode = GameMode.OFFICIAL;
+                }
+            default:
+                break;
+            }
+            
+            config.setGameMode(gameMode, gameTarget, shootouts);
+        } else if(args.isEmpty()) {
+            m_botAction.sendSmartPrivateMessage(name, "Usage: !setgamemode [[<GameMode>]:[<GameTarget>]:[<Shootouts>]]");
+            m_botAction.sendSmartPrivateMessage(name, " <GameMode>:     Goals, Timed or Official;");
+            m_botAction.sendSmartPrivateMessage(name, " <GameTarget>:   Target goals or minutes play time;");
+            m_botAction.sendSmartPrivateMessage(name, " <Shootouts>:    Enable shootouts on a tied game.");
+        } else if(!HockeyState.PREGAME.contains(currentState)) {
+            m_botAction.sendSmartPrivateMessage(name, "You cannot change the game mode during this stage of the game.");
+            return;
+        }
+        
+        String msgInfo = "Game Mode: ";
+        if(gameMode.equals(GameMode.GOALS)) {
+            msgInfo += "First team to reach " + gameTarget + " goals wins.";
+        } else if(gameMode.equals(GameMode.TIMED)) {
+            msgInfo += " Timed game to " + gameTarget + " minutes;";
+            msgInfo += " Shootouts on tied game: " + (shootouts?"On":"Off");
+        } else if(gameMode.equals(GameMode.OFFICIAL)) {
+            msgInfo += " Three rounds of " + gameTarget + " minutes;";
+            msgInfo += " Shootouts on tied game: " + (shootouts?"On":"Off");
+        } else {
+            msgInfo += "Unknown; Target: " + gameTarget + "; Shootouts: " + (shootouts?"On":"Off"); 
+        }
+        m_botAction.sendSmartPrivateMessage(name, "The current settings are:");
+        m_botAction.sendSmartPrivateMessage(name, msgInfo);
+        m_botAction.sendSmartPrivateMessage(name, "Please note: Shootouts and the official game are not yet implemented.");
+        
+        // Changes might have been made, inform the public.
+        if(!args.isEmpty())
+            m_botAction.sendArenaMessage(msgInfo, Tools.Sound.BEEP2);
+        return;
     }
     
     /**
@@ -2768,9 +2858,40 @@ public class hockeybot extends SubspaceBot {
             }
         }; ba.scheduleTask(mvpDelay, Tools.TimeInMillis.SECOND * 5);
         
+        dispWinner();
+        
         timeStamp = System.currentTimeMillis();
         
         currentState = HockeyState.GAME_OVER;
+    }
+    
+    private void dispWinner() {
+        HockeyTeam winner, loser;
+        int scoreDifference = Math.abs(team0.getScore() - team1.getScore());
+        
+        if(team0.getScore() >= team1.getScore()) {
+            winner = team0;
+            loser = team1;
+        } else {
+            winner = team1;
+            loser = team0;
+        }
+        
+        switch(scoreDifference) {
+        case 0:
+            m_botAction.sendArenaMessage("The game is a tie!", Tools.Sound.INCONCEIVABLE);
+            break;
+        case 1:
+            m_botAction.sendArenaMessage(winner.getName() + " narrowly defeated " + loser.getName() + "!", Tools.Sound.CROWD_OOO);
+            break;
+        case 2:
+            m_botAction.sendArenaMessage(winner.getName() + " managed to defeat " + loser.getName() + "!");
+            break;
+        default:
+            // Score difference of 3 or more.
+            m_botAction.sendArenaMessage(winner.getName() + " humiliated " + loser.getName() + "!", Tools.Sound.INCONCEIVABLE);
+            break;
+        }
     }
     
     /**
@@ -3509,6 +3630,7 @@ public class hockeybot extends SubspaceBot {
         private int[] maxShips;                     // Maximum number of each ship allowed per team.
         private GameMode gameMode;                  // Gamemode that is used. Can either be Goals or Timed.
         private int gameModeTarget;                 // Target value (goals or minutes) a game is played to.
+        private boolean gameModeShootouts;          // Whether or not shootouts are enabled on a tied game.
         private boolean announceShipType;           // Announce the shiptype of a player who has been added.
         private boolean allowAutoCaps;              // Allow players to !cap themselves when true, or need a ZH+ to !setcaptain captains when false.
         private boolean allowZoner;                 // Whether or not the bot automatically sends out zoners.
@@ -3614,12 +3736,22 @@ public class hockeybot extends SubspaceBot {
             }
 
             // Gamemode
-            if(botSettings.getInt("GameMode") == 1) {
-                gameMode = GameMode.TIMED;
-            } else {
+            switch(botSettings.getInt("GameMode")) {
+            case 0:
+            default:
                 gameMode = GameMode.GOALS;
+                break;
+            case 1:
+                gameMode = GameMode.TIMED;
+                break;
+            case 2:
+                gameMode = GameMode.OFFICIAL;
+                break;
             }
+
             gameModeTarget = botSettings.getInt("GameModeTarget");
+            
+            gameModeShootouts = (botSettings.getInt("Shootouts") == 1);
             
             //penalty time
             penaltyTime = botSettings.getInt("PenaltyTime");
@@ -3898,6 +4030,14 @@ public class hockeybot extends SubspaceBot {
         }
         
         /**
+         * Whether or not shootouts is enabled on a tied game.
+         * @return True when shootouts are enabled.
+         */
+        public boolean shootoutsEnabled() {
+            return gameModeShootouts;
+        }
+        
+        /**
          * Returns the default period in seconds for a penalty.
          * @return the penaltyTime
          */
@@ -3908,12 +4048,14 @@ public class hockeybot extends SubspaceBot {
         /**
          * Sets the {@link GameMode gamemode} to a specific type and target.
          * 
-         * @param gm A {@link GameMode}. (Either {@link GameMode#GOALS} or {@link GameMode#TIMED}) 
+         * @param gm A {@link GameMode}. (Either {@link GameMode#GOALS}, {@link GameMode#TIMED} or {@link GameMode#OFFICIAL}) 
          * @param target Target score or time.
+         * @param shootouts Whether or not to enable shootouts on a tied game.
          */
-        public void setGameMode(GameMode gm, int target) {
+        public void setGameMode(GameMode gm, int target, boolean shootouts) {
             gameMode = gm;
             gameModeTarget = target;
+            gameModeShootouts = shootouts;
         }
         
         /**
