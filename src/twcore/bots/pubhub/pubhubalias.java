@@ -10,13 +10,17 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TimerTask;
+import java.util.TreeMap;
 
 import twcore.bots.PubBotModule;
 import twcore.core.BotSettings;
@@ -61,6 +65,9 @@ public class pubhubalias extends PubBotModule {
     private static final String DEFAULT_HEADER = "Unknown Column";
 
     private static final String DATE_FIELD_PREFIX = "fd";
+    
+    /** Sorting options for !showwatches and !showmywatches */
+    private static enum SortField { NONE, DATE, TRIGGER, ISSUER };
 
     private SimpleDateFormat sdf = new SimpleDateFormat("MM/dd");
 
@@ -512,19 +519,37 @@ public class pubhubalias extends PubBotModule {
     }
 
     public void doHelpCmd(String sender) {
-        String[] message = { "ALIAS CHAT COMMANDS: ", "!AltNick  <PlayerName>         - Alias by <PlayerName>", "!AltIP    <IP>                 - Alias by <IP>",
-                "!PartialIP <IP>                - Alias by <PARTIALIP>", "!AltMID   <MacID>              - Alias by <MacID>", "!Info     <PlayerName>         - Shows stored info of <PlayerName>",
-                "!Compare  <Player1>:<Player2>  - Compares and shows matches", "!MaxResults <#>                - Changes the max. number of results to return",
-                "!NameWatch <Name>:<reason>     - Watches logins for <Name> with the specified <reason>", "!NameWatch <Name>              - Disables the login watch for <Name>",
-                "!LNameWatch <Name>:<reason>    - Watches logins that start with <Name> with the specified <reason>", "!LNameWatch <Name>             - Disables the left partial login watch for <Name>",
-                "!RNameWatch <Name>:<reason>    - Watches logins that end with <Name> with the specified <reason>", "!RNameWatch <Name>             - Disables the right partial login watch for <Name>",
-                "!PNameWatch <Name>:<reason>    - Watches logins that contain <Name> with the specified <reason>", "!PNameWatch <Name>             - Disables the partial login watch for <Name>",
-                "!IPWatch   <IP>:<reason>       - Watches logins for <IP> with the specified <reason>", "!IPWatch   <IP>                - Disables the login watch for <IP>",
-                "!MIDWatch  <MID>:<reason>      - Watches logins for <MID> with the specified <reason>", "!MIDWatch  <MID>               - Disables the login watch for <MID>",
-                "!ClearNameWatch                - Clears all login watches for names", "!ClearIPWatch                  - Clears all login watches for IPs",
-                "!ClearMIDWatch                 - Clears all login watches for MIDs", "!ShowWatches                   - Shows all current login watches",
-                "!SortByName / !SortByDate      - Selects sorting method", "!update                        - Updates TWDOps list", "!aliasop <name>                - Gives <name> alias access",
-                "!aliasdeop <name>              - Removes alias access for <name>", "!listaliasops (!lao)           - Lists current alias-ops"
+        String[] message = { "ALIAS CHAT COMMANDS: ",
+                "!AltNick  <PlayerName>         - Alias by <PlayerName>",
+                "!AltIP    <IP>                 - Alias by <IP>",
+                "!PartialIP <IP>                - Alias by <PARTIALIP>",
+                "!AltMID   <MacID>              - Alias by <MacID>",
+                "!Info     <PlayerName>         - Shows stored info of <PlayerName>",
+                "!Compare  <Player1>:<Player2>  - Compares and shows matches",
+                "!MaxResults <#>                - Changes the max. number of results to return",
+                "!NameWatch <Name>:<reason>     - Watches logins for <Name> with the specified <reason>",
+                "!NameWatch <Name>              - Disables the login watch for <Name>",
+                "!LNameWatch <Name>:<reason>    - Watches logins that start with <Name> with the specified <reason>",
+                "!LNameWatch <Name>             - Disables the left partial login watch for <Name>",
+                "!RNameWatch <Name>:<reason>    - Watches logins that end with <Name> with the specified <reason>",
+                "!RNameWatch <Name>             - Disables the right partial login watch for <Name>",
+                "!PNameWatch <Name>:<reason>    - Watches logins that contain <Name> with the specified <reason>",
+                "!PNameWatch <Name>             - Disables the partial login watch for <Name>",
+                "!IPWatch   <IP>:<reason>       - Watches logins for <IP> with the specified <reason>",
+                "!IPWatch   <IP>                - Disables the login watch for <IP>",
+                "!MIDWatch  <MID>:<reason>      - Watches logins for <MID> with the specified <reason>",
+                "!MIDWatch  <MID>               - Disables the login watch for <MID>",
+                "!ClearNameWatch                - Clears all login watches for names",
+                "!ClearIPWatch                  - Clears all login watches for IPs",
+                "!ClearMIDWatch                 - Clears all login watches for MIDs",
+                "!ShowWatches [<Sort>:<Dir>]    - Shows all current login watches, optionally sorted by <Sort>",
+                "                               Sort options: d(ate), t(rigger), i(ssuer); Dir: A(scending), D(escending)",
+                "!ShowMyWatches [<Sort>:<Dir>]  - Same as !ShowWatches, but only displays your own watches",
+                "!SortByName / !SortByDate      - Selects sorting method",
+                "!update                        - Updates TWDOps list",
+                "!aliasop <name>                - Gives <name> alias access",
+                "!aliasdeop <name>              - Removes alias access for <name>",
+                "!listaliasops (!lao)           - Lists current alias-ops"
 
         };
         m_botAction.smartPrivateMessageSpam(sender, message);
@@ -934,6 +959,177 @@ public class pubhubalias extends PubBotModule {
         }
     }
     
+    /**
+     * New version for {@link #doShowWatchesCmd()}, handles the !showwatches and !showmywatches commands.
+     * <p>
+     * This version combines the standard result provided by !showwatches with optional parameters, being:
+     * <ul>
+     *  <li>Sort by date issued;
+     *  <li>Sort by trigger;
+     *  <li>Sort by issuer.
+     * </ul>
+     * The above can be combined by any of the following:
+     * <ul>
+     *  <li>Ascending or descending sort;
+     *  <li>Only show the watches issued by the user of the command.
+     * </ul>
+     * <p>
+     * Please do note that any sorting is done per "group" and that the result is still displayed in the appropriate chat.
+     * @param name Issuer of the command.
+     * @param args Optional arguments: [<code><</code>{d(ate), t(rigger), i(ssuer)}>:<code><</code>{a(scending), d(escending)}>]
+     * @param showAll True if all watches are to be shown, false if only the issuer's watches are to be shown.
+     */
+    public void doShowWatchesCmd(String name, String args, boolean showAll) {
+        SortField sortBy = SortField.NONE;
+        boolean sortDirection = false;
+        boolean nothingFound = true;
+        Map<String, WatchComment> tmpWatchComments = new TreeMap<String, WatchComment>();
+        
+        if(!args.isEmpty()) {
+            String[] splitArgs = args.toLowerCase().split(":");
+            
+            if(splitArgs.length != 2) {
+                m_botAction.sendSmartPrivateMessage(name, "Invalid arguments, please consult !help.");
+                return;
+            }
+            
+            if(splitArgs[0].startsWith("d"))
+                sortBy = SortField.DATE;
+            else if(splitArgs[0].startsWith("t"))
+                sortBy = SortField.TRIGGER;
+            else if(splitArgs[0].startsWith("i"))
+                sortBy = SortField.ISSUER;
+            else
+                sortBy = SortField.NONE;
+            
+            sortDirection = splitArgs[1].startsWith("a");
+        }
+        
+        if (watchedIPs.size() == 0) {
+            m_botAction.sendChatMessage("IP:   (none)");
+        } else {
+            if(sortBy != SortField.NONE)
+                tmpWatchComments = WatchListSorter.sortByValue(watchedIPs, sortBy, sortDirection);
+            else
+                tmpWatchComments = watchedIPs;
+            for (String IP : tmpWatchComments.keySet()) {
+                WatchComment com = tmpWatchComments.get(IP);
+                if(!showAll && !com.comment.startsWith(name))
+                    continue;
+                
+                m_botAction.sendChatMessage(com.date + " IP:   " + Tools.formatString(IP, 19) + "  ( " + com.comment + " )");
+                nothingFound = false;
+            }
+            if(nothingFound)
+                m_botAction.sendChatMessage("IP:   (none)");
+        }
+        
+        nothingFound = true;
+        
+        if (watchedMIDs.size() == 0) {
+            m_botAction.sendChatMessage("MID:  (none)");
+        } else {
+            if(sortBy != SortField.NONE)
+                tmpWatchComments = WatchListSorter.sortByValue(watchedMIDs, sortBy, sortDirection);
+            else
+                tmpWatchComments = watchedMIDs;
+            for (String MID : tmpWatchComments.keySet()) {
+                WatchComment com = tmpWatchComments.get(MID);
+                if(!showAll && !com.comment.startsWith(name))
+                    continue;
+                
+                m_botAction.sendChatMessage(com.date + " MID:  " + Tools.formatString(MID, 19) + "  ( " + com.comment + " )");
+                nothingFound = false;
+            }
+            if(nothingFound)
+                m_botAction.sendChatMessage("MID:  (none)");
+        }
+        
+        nothingFound = true;
+        
+        if (watchedNames.size() == 0) {
+            m_botAction.sendChatMessage("Name: (none)");
+        } else {
+            if(sortBy != SortField.NONE) 
+                tmpWatchComments = WatchListSorter.sortByValue(watchedNames, sortBy, sortDirection);
+            else
+                tmpWatchComments = watchedNames;
+            for (String Name : tmpWatchComments.keySet()) {
+                WatchComment com = tmpWatchComments.get(Name);
+                if(!showAll && !com.comment.startsWith(name))
+                    continue;
+                
+                m_botAction.sendChatMessage(com.date + " Name: " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
+                nothingFound = false;
+            }
+            if(nothingFound)
+                m_botAction.sendChatMessage("Name: (none)");
+        }
+        
+        nothingFound = true;
+        
+        if (watchedLNames.size() == 0) {
+            m_botAction.sendChatMessage("Left Name:    (none)");
+        } else {
+            if(sortBy != SortField.NONE)
+                tmpWatchComments = WatchListSorter.sortByValue(watchedLNames, sortBy, sortDirection);
+            else
+                tmpWatchComments = watchedLNames;
+            for (String Name : tmpWatchComments.keySet()) {
+                WatchComment com = tmpWatchComments.get(Name);
+                if(!showAll && !com.comment.startsWith(name))
+                    continue;
+                
+                m_botAction.sendChatMessage(com.date + " Left Name:    " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
+                nothingFound = false;
+            }
+            if(nothingFound)
+                m_botAction.sendChatMessage("Left Name:    (none)");
+        }
+        
+        nothingFound = true;
+        
+        if (watchedRNames.size() == 0) {
+            m_botAction.sendChatMessage("Right Name:   (none)");
+        } else {
+            if(sortBy != SortField.NONE)
+                tmpWatchComments = WatchListSorter.sortByValue(watchedRNames, sortBy, sortDirection);
+            else
+                tmpWatchComments = watchedRNames;
+            for (String Name : tmpWatchComments.keySet()) {
+                WatchComment com = tmpWatchComments.get(Name);
+                if(!showAll && !com.comment.startsWith(name))
+                    continue;
+                
+                m_botAction.sendChatMessage(com.date + " Right Name:   " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
+                nothingFound = false;
+            }
+            if(nothingFound)
+                m_botAction.sendChatMessage("Right Name:   (none)");
+        }
+        
+        nothingFound = true;
+        
+        if (watchedPNames.size() == 0) {
+            m_botAction.sendChatMessage("Partial Name: (none)");
+        } else {
+            if(sortBy != SortField.NONE)
+                tmpWatchComments = WatchListSorter.sortByValue(watchedPNames, sortBy, sortDirection);
+            else
+                tmpWatchComments = watchedPNames;
+            for (String Name : tmpWatchComments.keySet()) {
+                WatchComment com = tmpWatchComments.get(Name);
+                if(!showAll && !com.comment.startsWith(name))
+                    continue;
+                
+                m_botAction.sendChatMessage(com.date + " Partial Name: " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
+                nothingFound = false;
+            }
+            if(nothingFound)
+                m_botAction.sendChatMessage("Partial Name: (none)");
+        }
+    }
+    
     private void doPrivateAliases() {
         privateAliases = !privateAliases;
         if (privateAliases) {
@@ -1017,8 +1213,12 @@ public class pubhubalias extends PubBotModule {
                 doClearRNameWatchCmd();
             else if (command.equals("!clearpnamewatch"))
                 doClearPNameWatchCmd();
-            else if (command.equals("!showwatches"))
-                doShowWatchesCmd();
+            else if (command.startsWith("!showwatches"))
+                doShowWatchesCmd(sender, message.substring(12).trim(), true);
+//            else if (command.equals("!showwatches"))
+//                doShowWatchesCmd();
+            else if (command.startsWith("!showmywatches"))
+                doShowWatchesCmd(sender, message.substring(14).trim(), false);
             else if (command.equals("!sortbyname")) {
                 m_sortByName = true;
                 m_botAction.sendChatMessage("Sorting !alt cmds by name first.");
@@ -1604,4 +1804,64 @@ public class pubhubalias extends PubBotModule {
             return date + " " + comment;
         }
     }
+
+    /**
+     * Sorter class for the various watch lists.
+     * <p>
+     * This class allows the tracking TreeMaps for the various watches to be sorted.
+     * The fields that can be sorted by are:
+     * <ul>
+     *  <li>Date issued;
+     *  <li>Trigger used;
+     *  <li>Issuer of the watch.
+     * </ul>
+     * The targeted map can also be sorted ascending or descending.
+     * This static class does not change the inputed map.
+     * <p>
+     * The base for this class was blatantly stolen from:  
+     * http://stackoverflow.com/questions/109383/how-to-sort-a-mapkey-value-on-the-values-in-java/2581754#2581754
+     * by Carter Page.
+     * 
+     * @author Trancid
+     *
+     */
+    public static class WatchListSorter {
+
+        /**
+         * Sorts the given map according to the given parameters.
+         * @param map The map that needs to be sorted. Must be of the type Map<{@link String}, {@link WatchComment}>
+         * @param sortBy The field that is used to sort by.
+         * @param direction True for ascending, false for descending.
+         * @return
+         */
+        public static Map<String, WatchComment> sortByValue(Map<String, WatchComment> map, final SortField sortBy, final boolean direction) {
+            // Create a list of all the entries in the given map.
+            List<Map.Entry<String, WatchComment>> list = new LinkedList<Map.Entry<String, WatchComment>>(map.entrySet());
+
+            // Sort the list according to the rules inside the compare function.
+            Collections.sort( list, new Comparator<Map.Entry<String, WatchComment>>() {
+                public int compare( Map.Entry<String, WatchComment> wc1, Map.Entry<String, WatchComment> wc2 ) {
+                    switch(sortBy) {
+                    case DATE:
+                        return (wc1.getValue().date).compareTo( wc2.getValue().date ) * (direction?1:-1);
+                    case ISSUER:
+                        return (wc1.getValue().comment).compareTo( wc2.getValue().comment ) * (direction?1:-1);
+                    case TRIGGER:
+                        return (wc1.getKey().compareTo(wc2.getKey())* (direction?1:-1));
+                    case NONE:
+                    default:
+                        return (direction?1:-1);
+                    }
+                }
+            } );
+
+            // Put the sorted list back into a map, and return the result.
+            Map<String, WatchComment> result = new LinkedHashMap<String, WatchComment>();
+            for (Map.Entry<String, WatchComment> entry : list) {
+                result.put( entry.getKey(), entry.getValue() );
+            }
+            return result;
+        }
+    }
+    
 }
