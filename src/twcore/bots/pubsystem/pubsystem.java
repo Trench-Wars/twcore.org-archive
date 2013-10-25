@@ -8,6 +8,7 @@ import java.util.TimerTask;
 import java.util.Vector;
 
 import twcore.bots.pubsystem.module.AbstractModule;
+import twcore.bots.pubsystem.util.Log;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
@@ -100,6 +101,8 @@ public class pubsystem extends SubspaceBot
     private String initialSpawn;                        // Arena initially spawned in
     
     private String greeting;
+    private String commentGreeting;
+    private Log commentLog;
     
     private boolean printHelpSpaces = false;            // Whether to print spaces after each section
                                                         //   in !help spam
@@ -183,6 +186,21 @@ public class pubsystem extends SubspaceBot
 	        greeting = (m_botAction.getBotSettings().getString("Greeting"));
 	        if (greeting.isEmpty())
 	            greeting = null;
+	        
+	        commentGreeting = m_botAction.getBotSettings().getString("CommentGreeting");
+	        if(commentGreeting.isEmpty())
+	            commentGreeting = null;
+	        
+	        if(commentGreeting != null && !m_botAction.getBotSettings().getString("comment_log").isEmpty()) {
+	            commentLog = new Log(m_botAction, m_botAction.getBotSettings().getString("comment_log"));
+	            String header = "=== Session started at " + Tools.getTimeStamp() + " ===";
+	            commentLog.write(Tools.formatString("=", header.length(), "="));
+	            commentLog.write(header);
+                commentLog.write(Tools.formatString("=", header.length(), "="));
+                commentLog.write("");
+	        } else
+	            commentGreeting = null;
+	            
 	        
     	} catch (Exception e) {
     		Tools.printStackTrace(e);
@@ -306,6 +324,9 @@ public class pubsystem extends SubspaceBot
             
             if (m_botAction.getArenaName().contains("(Public") && greeting != null)
                 m_botAction.sendSmartPrivateMessage(playerName, greeting);
+            
+            if(m_botAction.getArenaName().contains("(Public") && commentGreeting != null)
+                m_botAction.sendSmartPrivateMessage(playerName, getCommentGreeting(playerName));
 
         } catch (Exception e) {
         	Tools.printStackTrace(e);
@@ -377,6 +398,8 @@ public class pubsystem extends SubspaceBot
                 doGreetMessageCmd(sender, command);
             else if(command.equals("!about"))
                 doAboutCmd(sender);
+            else if(command.startsWith("!comment") && commentGreeting != null)
+                doCommentCmd(sender, command.substring(8).trim());
             //else if (command.startsWith("!") && !command.contains(" ") && command.length()>1 && command.charAt(1)!='!' && messageType == Message.PUBLIC_MESSAGE) {
             	//m_botAction.sendSmartPrivateMessage(sender, "Please, send your command in private. Try :" + m_botAction.getBotName() + ":" + command);
             //}
@@ -457,6 +480,18 @@ public class pubsystem extends SubspaceBot
     	m_botAction.sendSmartPrivateMessage(sender, "         Witness, Dezmond and Cheese! (for their support)");
     	m_botAction.sendSmartPrivateMessage(sender, "         Qan and Cpt. Guano (authors of purepubbot)");
     	m_botAction.sendSmartPrivateMessage(sender, "         And many more...");
+    }
+    
+    public void doCommentCmd(String sender, String args) {
+        if(args.isEmpty()) {
+            m_botAction.sendSmartPrivateMessage(sender, getCommentGreeting(sender));
+            return;
+        }
+        
+        if(commentLog != null) {
+            commentLog.write(Tools.getTimeStamp() + ": " + Tools.formatString(sender, 19) + "> " + args);
+            m_botAction.sendSmartPrivateMessage(sender, "Your comment has been forwarded to the Trench Wars developers.");
+        }
     }
     
     public void doAlgorithmCmd(String sender) {
@@ -562,6 +597,18 @@ public class pubsystem extends SubspaceBot
         m_botAction.remotePrivateMessageSpam(sender, list.toArray(new String[list.size()]));
     }
     
+    public String getCommentGreeting(String name) {
+        if(name != null) {
+            if(commentGreeting.contains("%playername"))
+                return commentGreeting.replace("%playername", name);
+            else if(commentGreeting.contains("%PLAYERNAME"))
+                return commentGreeting.replace("%PLAYERNAME", name);
+        }
+            
+        
+        return commentGreeting;
+    }
+    
     public static String getHelpLine(String line) {
     	return "   " + line;
     }
@@ -662,6 +709,13 @@ public class pubsystem extends SubspaceBot
     }
 	
     public void handleDisconnect() {
+        if(commentLog != null) {
+            commentLog.write("");
+            commentLog.write("=== Session ended ===");
+            commentLog.write("");
+            commentLog.write("");
+            commentLog.close();
+        }
     	if (context!=null)
     		context.handleDisconnect();
     }
