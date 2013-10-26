@@ -40,7 +40,6 @@ import twcore.core.util.Tools;
  */
 public class hockeybot extends SubspaceBot {
     // Todo-list of features that need to be added in the future.
-    //TODO Add option to do a timed match.
     //TODO Add shoot-outs on tied timed game.
     //TODO Add tracking of time played and ship time played.
     //TODO Add Persistent stat tracking through SQL.
@@ -6386,9 +6385,17 @@ public class hockeybot extends SubspaceBot {
             scoreOverlay.updateTime(gameTime);
             
             // Check if time has expired in timed mode.
-            if(config.getGameMode() == GameMode.TIMED && gameTime >= (config.getGameTarget() * 60)) {
-                //TODO Implement shoot outs.
-                gameOver();
+            if(config.getGameMode() == GameMode.TIMED) {
+                if(gameTime >= (config.getGameTarget() * 60)) {
+                    //TODO Implement shoot outs.
+                    gameOver();
+                } else if(gameTime == (config.getGameTarget() * 30)) {
+                    m_botAction.sendArenaMessage("Halfway mark. " + config.getGameTarget() / 2 + " minutes of playtime left!", Tools.Sound.VICTORY_BELL);
+                } else if(gameTime == (config.getGameTarget() - 5) * 60) {
+                    m_botAction.sendArenaMessage("Only five more minutes left to play!", Tools.Sound.VICTORY_BELL); 
+                } else if(gameTime == (config.getGameTarget() - 1) * 60) {
+                    m_botAction.sendArenaMessage("Game will end in 1 minute!", Tools.Sound.VICTORY_BELL);
+                }
             }
         }
 
