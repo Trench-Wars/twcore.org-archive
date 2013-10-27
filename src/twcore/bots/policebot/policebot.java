@@ -16,6 +16,7 @@ import twcore.core.events.ArenaJoined;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
+import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
 /**
@@ -340,7 +341,7 @@ public class policebot extends SubspaceBot {
         else if (locateCount >= LOCATES) {
             locateWait = new LocateWait();
             int time = rand.nextInt(3 * 60) + 30;  // in between 30 seconds and 3 minutes
-            ba.scheduleTask(locateWait, time);
+            ba.scheduleTask(locateWait, time * Tools.TimeInMillis.SECOND);
             debug("New locate wait timer set for: " + time + " secs");
             return true;
         } else
