@@ -3,6 +3,12 @@ package twcore.bots.pubsystem.module.moneysystem.item;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Pub item class.
+ * 
+ * TODO: Fully comment. There are a lot of so-so naming choices made for this file
+ * and it could really use it.
+ */
 public abstract class PubItem {
     
     protected String name;
@@ -108,10 +114,16 @@ public abstract class PubItem {
 		return lastTimeUsed;
 	}
 	
+	/**
+	 * @return True if you can gift this item to another player (but are not required to)
+	 */
 	public boolean isPlayerOptional() {
 		return playerOptional;
 	}
 	
+	/**
+	 * @return True if you MUST gift this item to another player in order to buy it
+	 */
 	public boolean isPlayerStrict() {
 		return playerStrict;
 	}
