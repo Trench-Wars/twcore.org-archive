@@ -582,13 +582,13 @@ public class pubsystem extends SubspaceBot
                         if( printHelpSpaces )
                             m.add(" ");
                     } else {
-                        m.add( convertToConciseHelp( module.getModHelpMessage(sender)) );
+                        m.add(getHelpLine(convertToConciseHelp( module.getModHelpMessage(sender))));
                     }
 
             	}
             	if (smod && module.getSmodHelpMessage(sender).length > 0) {
                     if (!headerAdded) {
-                        m.add(getHelpLine(getModuleHelpHeader(module.getName())));
+                        m.add(getModuleHelpHeader(module.getName()));
                     }
             	    if (fullHelp) {
             	        m.addAll(Arrays.asList(module.getSmodHelpMessage(sender)));

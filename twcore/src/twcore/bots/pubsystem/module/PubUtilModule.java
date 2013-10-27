@@ -508,19 +508,17 @@ public class PubUtilModule extends AbstractModule {
         if (dev) {
             String[] string = {
                 pubsystem.getHelpLine("!privfreqs        -- Toggles private frequencies & check for imbalances."),
-                //pubsystem.getHelpLine("!dooropen         -- Open doors."),
-                //pubsystem.getHelpLine("!doorclose        -- Close doors."),
-                //pubsystem.getHelpLine("!doortoggle       -- In operation doors."),
-                //pubsystem.getHelpLine("!doorauto         -- Auto mode (close if # of players below " + doorModeThreshold + "."),
                 pubsystem.getHelpLine("!levattach        -- Toggles lev attach capability on public frequencies."),
-                pubsystem.getHelpLine("!set <ship> <#>   -- Sets <ship> to restriction <#>."),
-                pubsystem.getHelpLine("                     0=disabled; 1=any amount; other=weighted:"),
-                pubsystem.getHelpLine("                     2 = 1/2 of freq can be this ship, 5 = 1/5, ..."),
+                pubsystem.getHelpLine("!set <ship> <#>   -- Sets <ship> to max 1/<#> freq (!set 4 5=20% levi); 0=off"),
                 pubsystem.getHelpLine("!go <arena>       -- Moves the bot to <arena>."),
                 pubsystem.getHelpLine("!reloadconfig     -- Reload the configuration (needed if .cfg has changed)."),
                 pubsystem.getHelpLine("!uptime           -- Uptime of the bot in minutes."),
                 pubsystem.getHelpLine("!stop             -- Stop the bot (needed when !go)."),
                 pubsystem.getHelpLine("!die              -- Logs the bot off of the server."),
+                //pubsystem.getHelpLine("!dooropen         -- Open doors."),
+                //pubsystem.getHelpLine("!doorclose        -- Close doors."),
+                //pubsystem.getHelpLine("!doortoggle       -- In operation doors."),
+                //pubsystem.getHelpLine("!doorauto         -- Auto mode (close if # of players below " + doorModeThreshold + "."),
                 //pubsystem.getHelpLine("!newplayer <name> -- Sends new player helper objon to <name>."),
                 //pubsystem.getHelpLine("!next <name>      -- Sends the next helper objon to <name>."),
                 //pubsystem.getHelpLine("!end <name>       -- Removes all objons for <name>.")
@@ -596,12 +594,10 @@ public class PubUtilModule extends AbstractModule {
 
     @Override
     public void stop() {
-        // TODO Auto-generated method stub
     }
 
     @Override
     public void handleSmodCommand(String sender, String command) {
-        // TODO Auto-generated method stub
     }
 
     @Override
