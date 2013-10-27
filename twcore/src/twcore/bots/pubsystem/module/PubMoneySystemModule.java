@@ -245,7 +245,13 @@ public class PubMoneySystemModule extends AbstractModule {
      */
     private void buyItem(final String playerName, String itemName, String params) {
         boolean itemBanUpdateNeeded = false;
-        
+        boolean buyingForOther = false;
+        if (!params.trim().isEmpty()) {
+            PubItem prefetch = store.getItem(itemName);
+            if (prefetch.isPlayerStrict() || prefetch.isPlayerOptional())
+                buyingForOther = true;
+        }
+
         try {
 
             if (playerManager.isPlayerExists(playerName)) {
@@ -257,14 +263,14 @@ public class PubMoneySystemModule extends AbstractModule {
                 }
 
                 // Kill-o-thon running and he's the leader?
-                if (context.getPubKillSession().isLeader(playerName)) {
+                if (context.getPubKillSession().isLeader(playerName) && !buyingForOther) {
                     m_botAction.sendSmartPrivateMessage(playerName, "You cannot buy an item while being a leader of kill-o-thon.");
                     return;
                 }
                 
                 // Is the player's ship on the list of ships that is restricted to only buy in safe?
                 Player p = m_botAction.getPlayer(playerName);
-                if(p != null && p.getShipType() != Tools.Ship.SPECTATOR) {
+                if(p != null && p.getShipType() != Tools.Ship.SPECTATOR && !buyingForOther) {
                     // Only check this global restriction for players that are actually in a ship.
                     if(canBuyAnywhere.isEmpty() || !canBuyAnywhere.contains((int) p.getShipType())) {
                         Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
@@ -342,7 +348,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
                 // Is it an item bought for someone else?
                 // If yes, change the receiver for this player and not the buyer
-                if (item.isPlayerStrict() || (item.isPlayerOptional() && !params.trim().isEmpty())) {
+                if (buyingForOther) {
                     receiver = context.getPlayerManager().getPlayer(params.trim());
                 } else {
                     receiver = buyer;
