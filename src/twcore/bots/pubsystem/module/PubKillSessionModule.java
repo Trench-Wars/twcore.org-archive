@@ -483,7 +483,6 @@ public class PubKillSessionModule extends AbstractModule {
 
     @Override
     public void handleSmodCommand(String sender, String command) {
-        // TODO Auto-generated method stub
         
     }
 	
@@ -498,8 +497,7 @@ public class PubKillSessionModule extends AbstractModule {
 	@Override
 	public String[] getModHelpMessage(String sender) {
 		return new String[] {
-			pubsystem.getHelpLine("!settingkillothon <length>:<interval>:<money>   -- Change settings (in minutes)."),
-			pubsystem.getHelpLine("                                                   Current:" + length + ":" + interval + ":" + winnerMoney),
+			pubsystem.getHelpLine("!settingkillothon <length>:<interval>:<money> -- KoT cfg. Current=" + length + ":" + interval + ":" + winnerMoney),
 			pubsystem.getHelpLine("!startkillothon       -- Start a new session of kill-o-thon (" + length + " min. for $" + winnerMoney + ")."),
         };
 	}
