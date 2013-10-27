@@ -176,8 +176,8 @@ public class pubhubalias extends PubBotModule {
             String midResults = getSubQueryResultString("SELECT DISTINCT(fnMachineId) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '"
                     + Tools.addSlashes(playerName) + "'", "fnMachineId");
 
-            String queryString = "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnIP IN " + ipResults + " " + "OR fnMachineID IN "
-                    + midResults + " " + getOrderBy();
+            String queryString = "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE (fnIP IN " + ipResults + " " + "OR fnMachineID IN "
+                    + midResults + ") AND fnMachineID > 1 " + getOrderBy();
 
             if (ipResults == null || midResults == null)
                 m_botAction.sendChatMessage("Player not found in database.");
