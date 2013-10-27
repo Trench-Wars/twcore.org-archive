@@ -263,6 +263,24 @@ public class policebot extends SubspaceBot {
             ba.die();
     }
     
+    /**
+     * Determines if it is safe to do a *locate command and returns false if so.
+     *
+     * @return false if okay to *locate
+     */
+    private boolean locateWait() {
+        if (locateWait != null)
+            return false;
+        else if (locateCount >= LOCATES) {
+            locateWait = new LocateWait();
+            int time = rand.nextInt(3 * 60) + 30;  // in between 30 seconds and 3 minutes
+            ba.scheduleTask(locateWait, time * Tools.TimeInMillis.SECOND);
+            debug("New locate wait timer set for: " + time + " secs");
+            return true;
+        } else
+            return true;
+    }
+    
     private void debug(String msg) {
         if (debugger != null)
             ba.sendSmartPrivateMessage(debugger, "[DEBUG] " + msg);
@@ -328,24 +346,6 @@ public class policebot extends SubspaceBot {
             }
         }
         
-    }
-    
-    /**
-     * Determines if it is safe to do a *locate command and returns false if so.
-     *
-     * @return false if okay to *locate
-     */
-    private boolean locateWait() {
-        if (locateWait != null)
-            return false;
-        else if (locateCount >= LOCATES) {
-            locateWait = new LocateWait();
-            int time = rand.nextInt(3 * 60) + 30;  // in between 30 seconds and 3 minutes
-            ba.scheduleTask(locateWait, time * Tools.TimeInMillis.SECOND);
-            debug("New locate wait timer set for: " + time + " secs");
-            return true;
-        } else
-            return true;
     }
     
     private class LocateWait extends TimerTask {
