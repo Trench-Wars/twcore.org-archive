@@ -25,6 +25,7 @@ import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
 import twcore.core.events.SoccerGoal;
 import twcore.core.game.Player;
+import twcore.core.game.Ship;
 import twcore.core.lvz.Objset;
 import twcore.core.util.MapRegions;
 import twcore.core.util.Point;
@@ -753,8 +754,9 @@ public class hockeybot extends SubspaceBot {
             }
         }; m_botAction.scheduleTask(fo_botUpdateTimer, 0, 500);
         
-        if (m_botAction.getShip().getShip() != 0 || !puck.holding) {
-            m_botAction.getShip().setShip(0);
+        if (m_botAction.getShip().getShip() != Ship.INTERNAL_WARBIRD || !puck.holding) {
+            m_botAction.stopReliablePositionUpdating();
+            m_botAction.getShip().setShip(Ship.INTERNAL_WARBIRD);
             m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
             m_botAction.getShip().move(xLoc, yLoc);
             m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
@@ -767,8 +769,9 @@ public class hockeybot extends SubspaceBot {
      */
     public void dropBall() {
         m_botAction.cancelTask(fo_botUpdateTimer);
-        m_botAction.getShip().setShip(8);
+        m_botAction.getShip().setShip(Ship.INTERNAL_SPECTATOR);
         m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
+        m_botAction.setPlayerPositionUpdating(300);
         puck.holding = false;
     }
 
@@ -5066,14 +5069,14 @@ public class hockeybot extends SubspaceBot {
          */
         private void addPlayer(Player p, int shipType) {
             String arenaMessage;    //Arena message
-            String captainMessage;  //Captain message
-            String playerMessage;   //Player message
+            //String captainMessage;  //Captain message
+            //String playerMessage;   //Player message
             String pName;           //Player name
 
             pName = p.getPlayerName();
 
-            captainMessage = pName + " has been added.";
-            playerMessage = "You've been added to the game.";
+            //captainMessage = pName + " has been added.";
+            //playerMessage = "You've been added to the game.";
 
             if (config.announceShipType()) {
                 arenaMessage = pName + " is in for " + teamName + " as a " + Tools.shipName(shipType) + ".";
@@ -5083,8 +5086,8 @@ public class hockeybot extends SubspaceBot {
 
             /* Send the messages */
             m_botAction.sendArenaMessage(arenaMessage);
-            m_botAction.sendPrivateMessage(captainName, captainMessage);
-            m_botAction.sendPrivateMessage(pName, playerMessage);
+            //m_botAction.sendPrivateMessage(captainName, captainMessage);
+            //m_botAction.sendPrivateMessage(pName, playerMessage);
 
             if (!players.containsKey(pName)) {
                 players.put(pName, new HockeyPlayer(pName, shipType, frequency));
