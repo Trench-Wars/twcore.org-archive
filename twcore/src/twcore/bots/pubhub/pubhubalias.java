@@ -166,6 +166,31 @@ public class pubhubalias extends PubBotModule {
         }
     }
 
+    private void doAltNickOrCmd(String sender, String playerName, boolean all) {
+        try {
+            String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
+
+            String ipResults = getSubQueryResultString("SELECT DISTINCT(fnIP) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '"
+                    + Tools.addSlashes(playerName) + "'", "fnIP");
+
+            String midResults = getSubQueryResultString("SELECT DISTINCT(fnMachineId) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '"
+                    + Tools.addSlashes(playerName) + "'", "fnMachineId");
+
+            String queryString = "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnIP IN " + ipResults + " " + "OR fnMachineID IN "
+                    + midResults + " " + getOrderBy();
+
+            if (ipResults == null || midResults == null)
+                m_botAction.sendChatMessage("Player not found in database.");
+            else if (all)
+                displayAltNickAllResults(sender, queryString, headers, "fcUserName");
+            else
+                displayAltNickResults(sender, playerName, queryString, headers, "fcUserName");
+
+        } catch (SQLException e) {
+            throw new RuntimeException("SQL Error: " + e.getMessage(), e);
+        }
+    }
+
     private void doAltMacIdCmd(String sender, String playerMid) {
         if (!Tools.isAllDigits(playerMid)) {
             m_botAction.sendChatMessage("Command syntax error: Please use !altmid <number>");
@@ -521,6 +546,7 @@ public class pubhubalias extends PubBotModule {
     public void doHelpCmd(String sender) {
         String[] message = { "ALIAS CHAT COMMANDS: ",
                 "!AltNick  <PlayerName>         - Alias by <PlayerName>",
+                "!AltOr  <PlayerName>           - Alias by <PlayerName> using IP OR MID",
                 "!AltIP    <IP>                 - Alias by <IP>",
                 "!PartialIP <IP>                - Alias by <PARTIALIP>",
                 "!AltMID   <MacID>              - Alias by <MacID>",
@@ -1164,6 +1190,9 @@ public class pubhubalias extends PubBotModule {
                 doHelpCmd(sender);
             else if (command.startsWith("!altnick ")) {
                 doAltNickCmd(sender, message.substring(9).trim(), false);
+                record(sender, message);
+            } else if (command.startsWith("!altor ")) {
+                doAltNickOrCmd(sender, message.substring(7).trim(), false);
                 record(sender, message);
             } else if (command.startsWith("!altip ")) {
                 doAltIpCmd(sender, message.substring(7).trim());
