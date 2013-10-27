@@ -270,7 +270,7 @@ public class policebot extends SubspaceBot {
      */
     private boolean locateWait() {
         if (locateWait != null)
-            return false;
+            return true;
         else if (locateCount >= LOCATES) {
             locateWait = new LocateWait();
             int time = rand.nextInt(3 * 60) + 30;  // in between 30 seconds and 3 minutes
@@ -278,7 +278,7 @@ public class policebot extends SubspaceBot {
             debug("New locate wait timer set for: " + time + " secs");
             return true;
         } else
-            return true;
+            return false;
     }
     
     private void debug(String msg) {
