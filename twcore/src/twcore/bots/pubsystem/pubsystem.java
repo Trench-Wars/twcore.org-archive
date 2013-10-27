@@ -391,7 +391,7 @@ public class pubsystem extends SubspaceBot
     	
         try {
             
-            if (command.equals("!help") || command.equals("!h") || command.equals("?"))
+            if (command.equals("!help") || command.equals("!h") || (command.equals("?") && messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE ))
                 doHelpCmd(sender, false, false);
             else if (command.equals("!helpall") || command.equals("?*"))
                 doHelpCmd(sender, false, true);
@@ -530,7 +530,7 @@ public class pubsystem extends SubspaceBot
 				        if( printHelpSpaces )
 				            m.add(" ");
 				    } else {
-				        m.add( convertToConciseHelp( module.getHelpMessage(null)) );
+				        m.add( getHelpLine(convertToConciseHelp(module.getHelpMessage(null))) );
 				    }
 				}
 				lines.addAll(m);
@@ -567,11 +567,16 @@ public class pubsystem extends SubspaceBot
         	
         } else {
         	boolean smod = m_botAction.getOperatorList().isSmod(sender);
+        	boolean headerAdded;
         	
             for(AbstractModule module: context.getModules()) {
+                headerAdded = false;
             	List<String> m = new ArrayList<String>();
             	if (module.getModHelpMessage(sender).length > 0) {
-            		m.add(getModuleHelpHeader(module.getName()));
+            	    if (!headerAdded) {
+            	        m.add(getModuleHelpHeader(module.getName()));
+            	        headerAdded = true;
+            	    }
                     if (fullHelp) {
                         m.addAll(Arrays.asList(module.getModHelpMessage(sender)));
                         if( printHelpSpaces )
@@ -582,12 +587,15 @@ public class pubsystem extends SubspaceBot
 
             	}
             	if (smod && module.getSmodHelpMessage(sender).length > 0) {
+                    if (!headerAdded) {
+                        m.add(getHelpLine(getModuleHelpHeader(module.getName())));
+                    }
             	    if (fullHelp) {
             	        m.addAll(Arrays.asList(module.getSmodHelpMessage(sender)));
             	        if( printHelpSpaces )
             	            m.add(" ");
             	    } else {
-                        m.add( convertToConciseHelp( module.getSmodHelpMessage(null)) );            	        
+                        m.add(getHelpLine(convertToConciseHelp(module.getSmodHelpMessage(null))));            	        
             	    }
             	}
             	lines.addAll(m);
@@ -612,7 +620,7 @@ public class pubsystem extends SubspaceBot
     public void doHelpModuleCmd( String sender, String command ) {
         String[] moduleName = command.toLowerCase().split(" ", 2);
         if (moduleName.length == 2) {
-            List<String> m = new ArrayList<String>();
+            Vector<String> m = new Vector<String>();
             for(AbstractModule module: context.getModules()) {
                 
                 if( module.getName().toLowerCase().startsWith(moduleName[1])) {
@@ -636,7 +644,7 @@ public class pubsystem extends SubspaceBot
             }
             if( m.isEmpty() )
                 m.add( "Module '" + moduleName[1] + "' not found. Usage: !help modulename  (or a short form of the name, such as !help chal)" );
-            m_botAction.smartPrivateMessageSpam(sender, (String[])m.toArray());
+            m_botAction.smartPrivateMessageSpam(sender, (String[])m.toArray(new String[m.size()]));
         } else {
             m_botAction.sendSmartPrivateMessage(sender, "Usage: !help modulename. Use !help or !helpall for standard help listings.");
         }
@@ -699,7 +707,7 @@ public class pubsystem extends SubspaceBot
     }
     
     public static String getHelpLine(String line) {
-    	return "  " + line;
+    	return "   " + line;
     }
     
     public static String getModuleHelpHeader(String headerName) {
