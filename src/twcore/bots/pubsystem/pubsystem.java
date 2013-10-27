@@ -526,11 +526,11 @@ public class pubsystem extends SubspaceBot
 				if (module.getHelpMessage(sender).length > 0) {
                     m.add(getModuleHelpHeader(module.getName()));
 				    if (fullHelp) {
-				        m.addAll(Arrays.asList(module.getHelpMessage(null)));
+				        m.addAll(Arrays.asList(module.getHelpMessage(sender)));
 				        if( printHelpSpaces )
 				            m.add(" ");
 				    } else {
-				        m.add( getHelpLine(convertToConciseHelp(module.getHelpMessage(null))) );
+				        m.add( getHelpLine(convertToConciseHelp(module.getHelpMessage(sender))) );
 				    }
 				}
 				lines.addAll(m);
@@ -582,7 +582,7 @@ public class pubsystem extends SubspaceBot
                         if( printHelpSpaces )
                             m.add(" ");
                     } else {
-                        m.add( convertToConciseHelp( module.getModHelpMessage(null)) );
+                        m.add( convertToConciseHelp( module.getModHelpMessage(sender)) );
                     }
 
             	}
@@ -595,7 +595,7 @@ public class pubsystem extends SubspaceBot
             	        if( printHelpSpaces )
             	            m.add(" ");
             	    } else {
-                        m.add(getHelpLine(convertToConciseHelp(module.getSmodHelpMessage(null))));            	        
+                        m.add(getHelpLine(convertToConciseHelp(module.getSmodHelpMessage(sender))));            	        
             	    }
             	}
             	lines.addAll(m);
