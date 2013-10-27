@@ -1,5 +1,6 @@
 package twcore.bots.policebot;
 
+import java.util.Random;
 import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.Vector;
@@ -30,6 +31,7 @@ public class policebot extends SubspaceBot {
     public static final String IPCBANC = "banc";
     public static final String IPCPOLICE = "police";
     public static final String HOME = "#robopark";
+    public static final int LOCATES = 5;
 
     private BotSettings sets;                   // BotSettings ease of access ** may not be needed if not used much
     private OperatorList ops;                   // OperatorList ease of access
@@ -41,7 +43,10 @@ public class policebot extends SubspaceBot {
     private String perp;                        // Current perp being worked
     private Status status;                      // Current status/operation
     private String debugger;                    // Current debugger
+    private int locateCount;                    // Number of locate commands since last wait period
+    private Random rand;                        // RNG for locate wait timer period
     
+    private LocateWait locateWait;              // Wait timer to prevent DC's from too many locates
     private Tracker tracker;                    // Main bot loop for rotating perp tracking and silencing
     
     public policebot(BotAction botAction) {
@@ -53,6 +58,9 @@ public class policebot extends SubspaceBot {
         perp = null;
         status = Status.IDLE;
         debugger = "WingZero";
+        locateCount = 0;
+        locateWait = null;
+        rand = new Random();
     }
 
     /** Request events **/
@@ -289,9 +297,12 @@ public class policebot extends SubspaceBot {
                     // handled by Message event
                     // awaiting confirmation meaning none was given yet so go back to locating
                     // Perp must have fled to a different arena
-                    debug("Relocating " + perp);
-                    status = Status.LOCATE;
-                    ba.locatePlayer(perp);
+                    if (!locateWait()) {
+                        debug("Relocating " + perp);
+                        status = Status.LOCATE;
+                        ba.locatePlayer(perp);
+                        locateCount++;
+                    }
                     break;
                 case LOCATE:
                     // locate failed, player must be offline
@@ -304,15 +315,45 @@ public class policebot extends SubspaceBot {
                         perp = null;
                         ba.changeArena(HOME);
                     } else if (!perps.isEmpty()) {
-                        perp = perps.remove(0);
-                        debug("Locating " + perp);
-                        status = Status.LOCATE;
-                        ba.locatePlayer(perp);
+                        if (!locateWait()) {
+                            perp = perps.remove(0);
+                            debug("Locating " + perp);
+                            status = Status.LOCATE;
+                            ba.locatePlayer(perp);
+                            locateCount++;
+                        }
                     }
                     break;
             }
         }
         
+    }
+    
+    /**
+     * Determines if it is safe to do a *locate command and returns false if so.
+     *
+     * @return false if okay to *locate
+     */
+    private boolean locateWait() {
+        if (locateWait != null)
+            return false;
+        else if (locateCount >= LOCATES) {
+            locateWait = new LocateWait();
+            int time = rand.nextInt(3 * 60) + 30;  // in between 30 seconds and 3 minutes
+            ba.scheduleTask(locateWait, time);
+            debug("New locate wait timer set for: " + time + " secs");
+            return true;
+        } else
+            return true;
+    }
+    
+    private class LocateWait extends TimerTask {
+        
+        @Override
+        public void run() {
+            locateCount = 0;
+            locateWait = null;
+        }
     }
 
     /**
