@@ -87,7 +87,7 @@ import twcore.core.util.Tools;
  */
 public class pubsystem extends SubspaceBot
 {	
-	private PubContext context;								// Context of the game
+	private PubContext context;                         // Context of the game
 
     public static final int SPEC = 0;                   // Number of the spec ship
     public static final int FREQ_0 = 0;                 // Frequency 0
@@ -95,7 +95,7 @@ public class pubsystem extends SubspaceBot
 
     private ToggleTask toggleTask;                      // Toggles commands on and off at a specified interval
 
-    private boolean roamPub = true;						// True if bots auto-roam to public
+    private boolean roamPub = true;                     // True if bots auto-roam to public
     private boolean initLogin = true;                   // True if first arena login
     private int initialPub;                             // Order of pub arena to defaultjoin
     private String initialSpawn;                        // Arena initially spawned in
@@ -303,6 +303,7 @@ public class pubsystem extends SubspaceBot
 
             if(context.isStarted()) {
             	
+                /*
             	String message = 
             		//"Welcome to Pub.  " +
             		"Private freqs:[" + (context.getPubUtil().isPrivateFrequencyEnabled() ? "ON" : "OFF") + "]  " + 
@@ -316,8 +317,8 @@ public class pubsystem extends SubspaceBot
                     //"Hunt:[" + (context.getPubHunt().isEnabled() ? "ON" : "OFF") + "]";
             		//"Lottery:[" + (context.getP().isRunning() ? "ON" : "OFF") + "]; 
             	
-            	
-                //m_botAction.sendSmartPrivateMessage(playerName, message );
+                m_botAction.sendSmartPrivateMessage(playerName, message );
+                */
 
                 context.handleEvent(event);
             }
@@ -390,13 +391,15 @@ public class pubsystem extends SubspaceBot
     	
         try {
             
-            if(command.equals("!help") || command.equals("!h"))
-                doHelpCmd(sender, false);
-            //else if(command.equals("!algorithm") || command.equals("!algo"))
-            //    doAlgorithmCmd(sender);
-            else if(command.startsWith("!greetmessage"))
+            if (command.equals("!help") || command.equals("!h") || command.equals("?"))
+                doHelpCmd(sender, false, false);
+            else if (command.equals("!helpall") || command.equals("?*"))
+                doHelpCmd(sender, false, true);
+            else if (command.startsWith("!help "))
+                doHelpModuleCmd(sender, command);
+            else if (command.startsWith("!greetmessage"))
                 doGreetMessageCmd(sender, command);
-            else if(command.equals("!about"))
+            else if (command.equals("!about"))
                 doAboutCmd(sender);
             else if(command.startsWith("!comment") && commentGreeting != null)
                 doCommentCmd(sender, command.substring(8).trim());
@@ -435,8 +438,10 @@ public class pubsystem extends SubspaceBot
         		setupArenaSetting();
         		m_botAction.sendSmartPrivateMessage(sender, "Setting changed!");
         	}
-        	else if(command.equals("!modhelp") || command.equals("!helpmod"))
-                doHelpCmd(sender, true);
+        	else if(command.equals("!modhelp") || command.equals("!helpmod") || command.equals("!hm"))
+                doHelpCmd(sender, true, false);
+            else if(command.equals("!hma"))
+                doHelpCmd(sender, true, true);
         	else {
         		context.handleModCommand(sender, command);
         	}
@@ -471,16 +476,15 @@ public class pubsystem extends SubspaceBot
     }
 
     public void doAboutCmd(String sender) {
-    	String text = "This bot is an updated version of purepubbot, formerly known as RoboBoy/Girl.";
-    	m_botAction.sendSmartPrivateMessage(sender, text);
+    	m_botAction.sendSmartPrivateMessage(sender, "This bot is an updated version of purepubbot, formerly known as RoboBoy/Girl.");
     	m_botAction.sendSmartPrivateMessage(sender, "");
     	m_botAction.sendSmartPrivateMessage(sender, "Credits: Arobas+ and Dexter (main update)");
     	m_botAction.sendSmartPrivateMessage(sender, "         Subby and Eria (challenge/lottery feature)");
     	m_botAction.sendSmartPrivateMessage(sender, "         Diakka and Flared (for the map and setting)");
     	m_botAction.sendSmartPrivateMessage(sender, "         Witness, Dezmond and Cheese! (for their support)");
-    	m_botAction.sendSmartPrivateMessage(sender, "         Qan and Cpt. Guano (authors of purepubbot)");
+    	m_botAction.sendSmartPrivateMessage(sender, "         qan (pub game, TK, etc) and Cpt. Guano (original bot)");
     	m_botAction.sendSmartPrivateMessage(sender, "         And many more...");
-    }
+    }        
     
     public void doCommentCmd(String sender, String args) {
         if(args.isEmpty()) {
@@ -503,19 +507,12 @@ public class pubsystem extends SubspaceBot
     	m_botAction.sendSmartPrivateMessage(sender, "Greeting message changed, reconnect to see the effect.");
     }
     
-    public void doEZCmd(String sender, int value) {
-        switch( value ) {
-        case 0: 
-        }
-    }
-
     /**
      * Displays a help message depending on access level.
      *
      * @param sender is the person issuing the command.
      */
-    public void doHelpCmd(String sender, boolean modHelp)
-    {
+    public void doHelpCmd(String sender, boolean modHelp, boolean fullHelp) {
         Vector<String> lines = new Vector<String>();
         
         if (!modHelp) {
@@ -526,30 +523,45 @@ public class pubsystem extends SubspaceBot
             		continue;
             	
 				List<String> m = new ArrayList<String>();
-				if (module.getHelpMessage(sender).length>0) {
-					m.add(getModuleHelpHeader(module.getName()));
-				}
-				if (module.getHelpMessage(sender).length>0) {
-					m.addAll(Arrays.asList(module.getHelpMessage(null)));
-		            if( printHelpSpaces )
-		                m.add(" ");
+				if (module.getHelpMessage(sender).length > 0) {
+                    m.add(getModuleHelpHeader(module.getName()));
+				    if (fullHelp) {
+				        m.addAll(Arrays.asList(module.getHelpMessage(null)));
+				        if( printHelpSpaces )
+				            m.add(" ");
+				    } else {
+				        m.add( convertToConciseHelp( module.getHelpMessage(null)) );
+				    }
 				}
 				lines.addAll(m);
 			}
              
-	     	String[] others = new String[] {
-	     			getModuleHelpHeader("Others"),
-	     			//getHelpLine("!algorithm        -- How the robot calculate the money you earn for each kill."),
-	     			getHelpLine("!about            -- About this bot."),
-	     	};
-	     	
-	    	lines.addAll(Arrays.asList(others));
- 			if( m_botAction.getOperatorList().isModerator( sender ) )
- 				lines.add(getHelpLine("!helpmod          -- Show the !help menu for Mod+."));
-	     	
+			if (fullHelp) {
+			    String[] others = new String[] {
+			            getModuleHelpHeader("Others"),
+			            getHelpLine("!about            -- About this bot."),
+			    };	     	
+			    lines.addAll(Arrays.asList(others));
+			} else {
+			    lines.add(getHelpLine("!about"));
+			}
+		
+ 			if( m_botAction.getOperatorList().isModerator( sender ) ) {
+ 			    if (fullHelp) {
+ 			        lines.add(getHelpLine("!helpmod          -- Show !help menu for Mod+.         (!hm)"));
+ 			        lines.add(getHelpLine("!helpmodall       -- Show verbose !help menu for Mod+. (!hma)"));
+ 			    } else {
+ 			        lines.add(getHelpLine("!helpmod !helpmodall"));
+ 			    }
+ 			}
+ 			
  			if( printHelpSpaces )
  			    lines.add(" ");
- 	        lines.add("Note: Commands must be sent in private.");
+ 			
+ 			if( fullHelp )
+ 			    lines.add("Note: Commands must be sent in private.");
+ 			else
+                lines.add("NOTE: Use >>  !helpall  << for explanation of commands, or !help modulename for specific module help.");
  			
 	    	m_botAction.smartPrivateMessageSpam(sender, (String[])lines.toArray(new String[lines.size()]));
         	
@@ -558,26 +570,103 @@ public class pubsystem extends SubspaceBot
         	
             for(AbstractModule module: context.getModules()) {
             	List<String> m = new ArrayList<String>();
-            	if (module.getModHelpMessage(sender).length>0) {
+            	if (module.getModHelpMessage(sender).length > 0) {
             		m.add(getModuleHelpHeader(module.getName()));
-            		m.addAll(Arrays.asList(module.getModHelpMessage(sender)));
-                    if( printHelpSpaces )
-                        m.add(" ");
+                    if (fullHelp) {
+                        m.addAll(Arrays.asList(module.getModHelpMessage(sender)));
+                        if( printHelpSpaces )
+                            m.add(" ");
+                    } else {
+                        m.add( convertToConciseHelp( module.getModHelpMessage(null)) );
+                    }
+
             	}
             	if (smod && module.getSmodHelpMessage(sender).length > 0) {
-                    m.addAll(Arrays.asList(module.getSmodHelpMessage(sender)));
-                    if( printHelpSpaces )
-                        m.add(" ");            	    
+            	    if (fullHelp) {
+            	        m.addAll(Arrays.asList(module.getSmodHelpMessage(sender)));
+            	        if( printHelpSpaces )
+            	            m.add(" ");
+            	    } else {
+                        m.add( convertToConciseHelp( module.getSmodHelpMessage(null)) );            	        
+            	    }
             	}
             	lines.addAll(m);
             }
-            if( smod )
-                lines.add("   !greet <msg>      -- Change private message greeting.");
-            if( m_botAction.getOperatorList().isModerator( sender ) )
-                m_botAction.smartPrivateMessageSpam(sender, (String[])lines.toArray(new String[lines.size()]));
-
+            if (smod)
+                if (fullHelp)
+                    lines.add(getHelpLine("!greet <msg>      -- Change private message greeting."));
+                else
+                    lines.add(getHelpLine("!greet"));
+            if( !fullHelp )
+                lines.add("Send !helpmodall (!hma) for listing with command descriptions.");
+            
+            m_botAction.smartPrivateMessageSpam(sender, (String[])lines.toArray(new String[lines.size()]));
         }
-
+    }
+    
+    /**
+     * Return help on a particular module, including mod and smod commands, as applicable.
+     * @param sender
+     * @param command
+     */
+    public void doHelpModuleCmd( String sender, String command ) {
+        String[] moduleName = command.toLowerCase().split(" ", 2);
+        if (moduleName.length == 2) {
+            List<String> m = new ArrayList<String>();
+            for(AbstractModule module: context.getModules()) {
+                
+                if( module.getName().toLowerCase().startsWith(moduleName[1])) {
+                    m.add(getModuleHelpHeader(module.getName()));
+                    if (module.getHelpMessage(sender).length > 0) {
+                        m.addAll(Arrays.asList(module.getHelpMessage(sender)));
+                        if( printHelpSpaces )
+                            m.add(" ");
+                    }
+                    if (m_botAction.getOperatorList().isModerator(sender) && module.getModHelpMessage(sender).length > 0) {
+                        m.addAll(Arrays.asList(module.getModHelpMessage(sender)));
+                        if( printHelpSpaces )
+                            m.add(" ");
+                    }
+                    if (m_botAction.getOperatorList().isSmod(sender) && module.getSmodHelpMessage(sender).length > 0) {
+                        m.addAll(Arrays.asList(module.getSmodHelpMessage(sender)));
+                        if( printHelpSpaces )
+                            m.add(" ");
+                    }
+                }
+            }
+            if( m.isEmpty() )
+                m.add( "Module '" + moduleName[1] + "' not found. Usage: !help modulename  (or a short form of the name, such as !help chal)" );
+            m_botAction.smartPrivateMessageSpam(sender, (String[])m.toArray());
+        } else {
+            m_botAction.sendSmartPrivateMessage(sender, "Usage: !help modulename. Use !help or !helpall for standard help listings.");
+        }
+    }
+    
+    /**
+     * Helper function to convert an array of strings containing commands and their descriptions to
+     * a single line containing only the commands.
+     * 
+     * @param helpStrings
+     * @return
+     */
+    public String convertToConciseHelp( String[] helpStrings ) {
+        String helpString = "";
+        for (int i=0; i<helpStrings.length; i++)
+            helpString += extractCmdString( helpStrings[i] ) + " ";
+        return helpString;
+    }
+    
+    /**
+     * Helper function to extract a command from a help string.
+     * @param helpString 
+     * @return
+     */
+    public String extractCmdString( String helpString ) {
+        String[] s = (helpString.trim()).split(" ", 2);
+        if (s.length > 0 )
+            return s[0];
+        else
+            return "";
     }
     
     public void doTutorialHelpCmd(String sender){
@@ -594,7 +683,7 @@ public class pubsystem extends SubspaceBot
         list.add(st);
         st = "Thanks to Flared and WingZero for creating the tutorial in Trench Wars!";
         list.add(st);
-        m_botAction.remotePrivateMessageSpam(sender, list.toArray(new String[list.size()]));
+        m_botAction.remotePrivateMessageSpam(sender, (String[])list.toArray());
     }
     
     public String getCommentGreeting(String name) {
@@ -610,7 +699,7 @@ public class pubsystem extends SubspaceBot
     }
     
     public static String getHelpLine(String line) {
-    	return "   " + line;
+    	return "  " + line;
     }
     
     public static String getModuleHelpHeader(String headerName) {
@@ -641,9 +730,8 @@ public class pubsystem extends SubspaceBot
     /**
      * Starts the bot with CFG-specified setup commands.
      */
-	public void startBot()
-    {
-        try{
+	public void startBot() {
+        try {
         	
         	if (context.isStarted())
         		return;
@@ -672,14 +760,14 @@ public class pubsystem extends SubspaceBot
                     Tools.printLog("Must have both toggles and number of minutes defined (!toggle;!toggle2:mins)");
                 }
             }
-        }catch(Exception e){
+        } catch(Exception e){
             Tools.printStackTrace(e);
         }
 
         context.start();
         
         String commands[] = m_botAction.getBotSettings().getString("Post" + m_botAction.getBotNumber()).split(",");
-        for(int k = 0; k < commands.length; k++) {
+        for (int k = 0; k < commands.length; k++) {
             handleModCommand(m_botAction.getBotName(), commands[k]);
         }
         
@@ -822,10 +910,8 @@ public class pubsystem extends SubspaceBot
     
     /*
      * This method should be called only once to change the current setting of the arena
-     * The bot needs to be sysop of course.
      */
     public void setupArenaSetting() {
-
         
         // Engine ShutDown Time set to 5 seconds
         //m_botAction.sendUnfilteredPublicMessage("?set Prize:EngineShutDownTime:500");
