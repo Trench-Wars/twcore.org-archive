@@ -1851,7 +1851,7 @@ class Challenge {
             bettor.removeMoney(amount);
             challengerBets.put(name, amount);
             if( challengedBets.isEmpty() )
-                doBetAdvert(name,amount,false);
+                doBetAdvert(name,amount,true);
             totalC += amount;
             return true;
         } else {
