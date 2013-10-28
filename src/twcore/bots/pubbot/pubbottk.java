@@ -66,6 +66,8 @@ public class pubbottk extends PubBotModule {
     private final int TKNUM_EMERGENCY_NOTIFY = 50;  // # TK's to force a notify
 
     private final int COOLDOWN_SECS = 10;    // Time, in secs, it takes to remove 1 TK point
+    private final int DEFAULT_LOG_LENGTH = 15;  // Default max record length of !tklog
+    private final int DEFAULT_LOG_TIME = 60;   // Default max time length of !tklogt
     private OperatorList m_opList;           // Access list
     private String currentArena;             // Current arena the host bot is in
     private boolean checkTKs;                // True if TK checking enabled
@@ -222,17 +224,21 @@ public class pubbottk extends PubBotModule {
 
                 if( message.equals( "!help" )){
                     m_botAction.sendPrivateMessage( name, "Pubbot TK Module" );
-                	m_botAction.sendPrivateMessage( name, "!help        - this message");
-                	m_botAction.sendPrivateMessage( name, "!tkinfo name - gives TK information on 'name', if they have TK'd");
-                    m_botAction.sendPrivateMessage( name, "!ignore name - ignores or un-ignores tk reporting attempts from name");
-                    m_botAction.sendPrivateMessage( name, "!ignores     - lists ignored players");
+                	m_botAction.sendPrivateMessage( name, "!tkinfo name         - Gives TK information on 'name', if they have TK'd");
+                    m_botAction.sendPrivateMessage( name, "!tklog name:#        - Shows log of last # TKs (use no :# for default=" + DEFAULT_LOG_LENGTH + ")");
+                    m_botAction.sendPrivateMessage( name, "!tklogt name:#       - Shows log of TKs in last # minutes (default=" + DEFAULT_LOG_TIME + ")");
+                    m_botAction.sendPrivateMessage( name, "!tklogp name:target  - Shows log of all TKs made against a specific target");
+                    m_botAction.sendPrivateMessage( name, "!ignore name         - Ignores or un-ignores tk reporting attempts from name");
+                    m_botAction.sendPrivateMessage( name, "!ignores             - Lists ignored players");
 
-                } else if( message.startsWith( "!tkinfo " )){
-                    String tkname = message.substring( 8 ).toLowerCase();
-                    if( tkname == null )
-           		        m_botAction.sendPrivateMessage( name, "Formatting error.  Please use format: !tkinfo playername" );
-                    else
-           		        msgTKInfo( name, tkname );
+                } else if (message.startsWith( "!tkinfo " )) {
+        		    msgTKInfo( name, message.substring(8).toLowerCase() );
+                } else if (message.startsWith( "!tklog " )) {
+                    cmdTKLog(name, message.substring(7).toLowerCase(),0);
+                } else if (message.startsWith( "!tklogt " )) {
+                    cmdTKLog(name, message.substring(8).toLowerCase(),1);
+                } else if (message.startsWith( "!tklogp " )) {
+                    cmdTKLog(name, message.substring(8).toLowerCase(),2);
                 } else if (message.startsWith("!ignore "))
                     cmd_ignore(name, message);
                 else if (message.equalsIgnoreCase("!ignores"))
@@ -273,7 +279,7 @@ public class pubbottk extends PubBotModule {
             igns += i + ",";
         m_botAction.sendPrivateMessage(name, "Ignoring: " + igns);
     }
-
+    
 
     /**
      * Messages a staff member the information on a TKer.
@@ -281,43 +287,10 @@ public class pubbottk extends PubBotModule {
      * @param tkname Name of TKer
      */
     public void msgTKInfo( String staffname, String tkname ) {
-    	TKInfo tker = tkers.get( tkname );
-
-        if( tker == null ){
-            Iterator<Player> i = m_botAction.getPlayerIterator();
-            Player searchPlayer = null;
-            while( i.hasNext() && searchPlayer == null ){
-                searchPlayer = i.next();
-                // For inexact names
-                if(! searchPlayer.getPlayerName().toLowerCase().startsWith( tkname ) ) {
-                    // Long name hack
-                    if(! tkname.startsWith( searchPlayer.getPlayerName().toLowerCase() ) ) {
-                        searchPlayer = null;
-                    }
-                }
-            }
-            if( searchPlayer == null ) {
-                tker = oldtkers.get( tkname );
-                if( tker == null ) {
-                    m_botAction.sendSmartPrivateMessage( staffname, "Player not found in either current arena records or backlog.  If you're searching in the backlog, use the full name." );
-                    return;
-                } else {
-                    m_botAction.sendSmartPrivateMessage( staffname, "Player found in backlog (NOT presently in arena):" );                    
-                }
-            } else {
-                tker = tkers.get( searchPlayer.getPlayerName().toLowerCase());
-                if( tker == null ) {
-                    tker = oldtkers.get( tkname );
-                    if( tker == null ) {
-                        m_botAction.sendSmartPrivateMessage( staffname, "Player found in arena (" + searchPlayer.getPlayerName() + "), but no TK record found.  If you're searching in the backlog & this isn't the player you want, use the full name instead." );
-                        return;
-                    } else {
-                        m_botAction.sendSmartPrivateMessage( staffname, "Player found in backlog (NOT presently in arena):" );                    
-                    }
-                }
-            }
-        }
-
+        TKInfo tker = getTKerFromName(staffname, tkname);
+        if( tker == null )
+            return;
+        
     	m_botAction.sendSmartPrivateMessage( staffname, "'" + tker.getName() + "' TK Record    [First record " + Tools.getTimeDiffString(tker.getFirstTKTime(), true) + " ago]" );
 		m_botAction.sendSmartPrivateMessage( staffname, "TKs:  " + tker.getNumTKs() + (HARDASS ? ("     Warns:  " + tker.getNumWarns()) : "") );
         //m_botAction.sendSmartPrivateMessage( staffname, "Last player TKd:  " + tker.getLastTKd() + "    [" + Tools.getTimeDiffString(tker.getLastTKTime(), true) + " ago]" );
@@ -350,9 +323,55 @@ public class pubbottk extends PubBotModule {
 			else
 			    m_botAction.sendSmartPrivateMessage( staffname, "  - TKd this player twice in a row." );
 		}
-        m_botAction.sendSmartPrivateMessage( staffname, "[DETAIL VIEW - last 5 players TKs]" );
 		printTKLog( staffname, tker, 5 );
     }
+    
+    
+    /**
+     * Print a TK log.
+     * @param staffname
+     * @param cmd
+     * @param type 0=number of TKs (!tklog); 1=length of time (!tklogt); 2=tked player (!tklogp)
+     */
+    public void cmdTKLog( String staffname, String cmd, int type ) {
+        String[] cmds = cmd.split( ":", 2 );
+        int var = 0;
+        TKInfo tker = getTKerFromName( staffname, cmds[0] );
+        if( tker == null )
+            return;
+        
+        if( cmds.length == 1 ) {
+            if( type == 0 ) {
+                printTKLog(staffname, tker, DEFAULT_LOG_LENGTH);
+            } else if( type == 1 ) {
+                printTKLogByTime(staffname, tker, DEFAULT_LOG_TIME);
+            } else {
+                m_botAction.sendSmartPrivateMessage( staffname, "Usage: !tklog tkername:targetname" );
+                return;
+            }
+        } else {
+            if( type == 0 || type == 1 ) {
+                try {
+                    var = Integer.parseInt( cmds[1] );
+                } catch( Exception e) {
+                    m_botAction.sendSmartPrivateMessage( staffname, "Specify a valid number as the 2nd argument (e.g., !tklog name:50 or !tklogt name:30). Using defaults instead." );
+                    if( type == 0 )
+                        printTKLog(staffname, tker, DEFAULT_LOG_LENGTH);
+                    else
+                        printTKLogByTime(staffname, tker, DEFAULT_LOG_TIME);
+                    return;
+                }
+                if( type == 0 )
+                    printTKLog(staffname, tker, var);
+                else
+                    printTKLogByTime(staffname, tker, var);
+            } else {
+                printTKLogByName(staffname, tker, cmds[1]);
+            }
+        }        
+        
+    }
+    
     
     /**
      * Print out a log of the last X number of TKs.
@@ -362,15 +381,114 @@ public class pubbottk extends PubBotModule {
      */
     public void printTKLog( String staffname, TKInfo tker, int numToPrint ) {
         TreeMap <Long,String>tklog = tker.getTKLog();
+        if( numToPrint < 1 || numToPrint > 100 )
+            return;
         Long lasttime = System.currentTimeMillis();
         String lastname;
+        m_botAction.sendSmartPrivateMessage( staffname, "[TK LOG for '" + tker.getName() + "' of last " + numToPrint + " players TK'd]" );
         do {
-            lasttime = tklog.floorKey(lasttime);    // Get next biggest key entry
+            lasttime = tklog.lowerKey(lasttime);    // Get next biggest key entry
+            if( lasttime == null )
+                return;
             lastname = tklog.get(lasttime);
             if( lastname != null )
                 m_botAction.sendSmartPrivateMessage( staffname, Tools.formatString(lastname, 25) + Tools.getTimeDiffString(lasttime,true) + " ago");
             numToPrint--;
         } while (lastname !=null && numToPrint>0 );
+    }
+
+    
+    /**
+     * Print out a log of all TKs occurring in the last X minutes.
+     * @param staffname
+     * @param tker
+     * @param numToPrint
+     */
+    public void printTKLogByTime( String staffname, TKInfo tker, int minutes ) {
+        TreeMap <Long,String>tklog = tker.getTKLog();
+        if( minutes < 0 || minutes > 24 * 60 )
+            return;
+        Long timelimit = System.currentTimeMillis() - (minutes * Tools.TimeInMillis.MINUTE);
+        Long lasttime = System.currentTimeMillis();
+        String lastname;
+        m_botAction.sendSmartPrivateMessage( staffname, "[TK LOG for '" + tker.getName() + "' of players TK'd in last " + minutes + " minutes]" );
+        do {
+            lasttime = tklog.lowerKey(lasttime);    // Get next biggest key entry
+            if( lasttime == null || lasttime < timelimit )
+                return;
+            lastname = tklog.get(lasttime);
+            if( lastname != null )
+                m_botAction.sendSmartPrivateMessage( staffname, Tools.formatString(lastname, 25) + Tools.getTimeDiffString(lasttime,true) + " ago");
+        } while (lastname !=null );
+    }
+    
+    
+    /**
+     * Print out a log of all TKs on player X.
+     * @param staffname
+     * @param tker
+     * @param numToPrint
+     */
+    public void printTKLogByName( String staffname, TKInfo tker, String tkedPlayer ) {
+        TreeMap <Long,String>tklog = tker.getTKLog();
+        Long lasttime = System.currentTimeMillis();
+        String lastname;
+        m_botAction.sendSmartPrivateMessage( staffname, "[TK LOG for '" + tker.getName() + "' showing times for all TKs against player '" + tkedPlayer + "']" );
+        do {
+            lasttime = tklog.lowerKey(lasttime);    // Get next biggest key entry
+            if( lasttime == null )
+                return;
+            lastname = tklog.get(lasttime);
+            if( lastname != null && lastname.equalsIgnoreCase( tkedPlayer ))
+                m_botAction.sendSmartPrivateMessage( staffname, Tools.formatString(lastname, 25) + Tools.getTimeDiffString(lasttime,true) + " ago");
+        } while (lastname !=null );
+    }
+
+
+    /**
+     * Helper fuction (extracted from msgTKInfo) that gets a TK log given a player's name.
+     * @param staffname
+     * @param tkname
+     * @return
+     */
+    public TKInfo getTKerFromName( String staffname, String tkname ) {
+        TKInfo tker = tkers.get( tkname );
+
+        if( tker == null ){
+            Iterator<Player> i = m_botAction.getPlayerIterator();
+            Player searchPlayer = null;
+            while( i.hasNext() && searchPlayer == null ){
+                searchPlayer = i.next();
+                // For inexact names
+                if(! searchPlayer.getPlayerName().toLowerCase().startsWith( tkname ) ) {
+                    // Long name hack
+                    if(! tkname.startsWith( searchPlayer.getPlayerName().toLowerCase() ) ) {
+                        searchPlayer = null;
+                    }
+                }
+            }
+            if( searchPlayer == null ) {
+                tker = oldtkers.get( tkname );
+                if( tker == null ) {
+                    m_botAction.sendSmartPrivateMessage( staffname, "Player not in current arena or backlog. If searching backlog, use full name." );
+                    return null;
+                } else {
+                    m_botAction.sendSmartPrivateMessage( staffname, "Player found in backlog (NOT presently in arena):" );                    
+                }
+            } else {
+                tker = tkers.get( searchPlayer.getPlayerName().toLowerCase());
+                if( tker == null ) {
+                    tker = oldtkers.get( tkname );
+                    if( tker == null ) {
+                        m_botAction.sendSmartPrivateMessage( staffname, "'" + searchPlayer.getPlayerName() + "' has no TK record. Use full name to search backlog." );
+                        return null;
+                    } else {
+                        m_botAction.sendSmartPrivateMessage( staffname, "Player found in backlog (NOT presently in arena):" );                    
+                    }
+                }
+            }
+        }
+        return tker;
     }
 
 
