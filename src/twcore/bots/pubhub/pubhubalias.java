@@ -1032,7 +1032,7 @@ public class pubhubalias extends PubBotModule {
         }
         
         if (watchedIPs.size() == 0) {
-            m_botAction.sendChatMessage("IP:   (none)");
+            m_botAction.sendSmartPrivateMessage(name, "IP:   (none)");
         } else {
             if(sortBy != SortField.NONE)
                 tmpWatchComments = WatchListSorter.sortByValue(watchedIPs, sortBy, sortDirection);
@@ -1043,17 +1043,17 @@ public class pubhubalias extends PubBotModule {
                 if(!showAll && !com.comment.startsWith(name))
                     continue;
                 
-                m_botAction.sendChatMessage(com.date + " IP:   " + Tools.formatString(IP, 19) + "  ( " + com.comment + " )");
+                m_botAction.sendSmartPrivateMessage(name, com.date + " IP:   " + Tools.formatString(IP, 19) + "  ( " + com.comment + " )");
                 nothingFound = false;
             }
             if(nothingFound)
-                m_botAction.sendChatMessage("IP:   (none)");
+                m_botAction.sendSmartPrivateMessage(name, "IP:   (none)");
         }
         
         nothingFound = true;
         
         if (watchedMIDs.size() == 0) {
-            m_botAction.sendChatMessage("MID:  (none)");
+            m_botAction.sendSmartPrivateMessage(name, "MID:  (none)");
         } else {
             if(sortBy != SortField.NONE)
                 tmpWatchComments = WatchListSorter.sortByValue(watchedMIDs, sortBy, sortDirection);
@@ -1064,17 +1064,17 @@ public class pubhubalias extends PubBotModule {
                 if(!showAll && !com.comment.startsWith(name))
                     continue;
                 
-                m_botAction.sendChatMessage(com.date + " MID:  " + Tools.formatString(MID, 19) + "  ( " + com.comment + " )");
+                m_botAction.sendSmartPrivateMessage(name, com.date + " MID:  " + Tools.formatString(MID, 19) + "  ( " + com.comment + " )");
                 nothingFound = false;
             }
             if(nothingFound)
-                m_botAction.sendChatMessage("MID:  (none)");
+                m_botAction.sendSmartPrivateMessage(name, "MID:  (none)");
         }
         
         nothingFound = true;
         
         if (watchedNames.size() == 0) {
-            m_botAction.sendChatMessage("Name: (none)");
+            m_botAction.sendSmartPrivateMessage(name, "Name: (none)");
         } else {
             if(sortBy != SortField.NONE) 
                 tmpWatchComments = WatchListSorter.sortByValue(watchedNames, sortBy, sortDirection);
@@ -1085,17 +1085,17 @@ public class pubhubalias extends PubBotModule {
                 if(!showAll && !com.comment.startsWith(name))
                     continue;
                 
-                m_botAction.sendChatMessage(com.date + " Name: " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
+                m_botAction.sendSmartPrivateMessage(name, com.date + " Name: " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
                 nothingFound = false;
             }
             if(nothingFound)
-                m_botAction.sendChatMessage("Name: (none)");
+                m_botAction.sendSmartPrivateMessage(name, "Name: (none)");
         }
         
         nothingFound = true;
         
         if (watchedLNames.size() == 0) {
-            m_botAction.sendChatMessage("Left Name:    (none)");
+            m_botAction.sendSmartPrivateMessage(name, "Left Name:    (none)");
         } else {
             if(sortBy != SortField.NONE)
                 tmpWatchComments = WatchListSorter.sortByValue(watchedLNames, sortBy, sortDirection);
@@ -1106,17 +1106,17 @@ public class pubhubalias extends PubBotModule {
                 if(!showAll && !com.comment.startsWith(name))
                     continue;
                 
-                m_botAction.sendChatMessage(com.date + " Left Name:    " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
+                m_botAction.sendSmartPrivateMessage(name, com.date + " Left Name:    " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
                 nothingFound = false;
             }
             if(nothingFound)
-                m_botAction.sendChatMessage("Left Name:    (none)");
+                m_botAction.sendSmartPrivateMessage(name, "Left Name:    (none)");
         }
         
         nothingFound = true;
         
         if (watchedRNames.size() == 0) {
-            m_botAction.sendChatMessage("Right Name:   (none)");
+            m_botAction.sendSmartPrivateMessage(name, "Right Name:   (none)");
         } else {
             if(sortBy != SortField.NONE)
                 tmpWatchComments = WatchListSorter.sortByValue(watchedRNames, sortBy, sortDirection);
@@ -1127,17 +1127,17 @@ public class pubhubalias extends PubBotModule {
                 if(!showAll && !com.comment.startsWith(name))
                     continue;
                 
-                m_botAction.sendChatMessage(com.date + " Right Name:   " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
+                m_botAction.sendSmartPrivateMessage(name, com.date + " Right Name:   " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
                 nothingFound = false;
             }
             if(nothingFound)
-                m_botAction.sendChatMessage("Right Name:   (none)");
+                m_botAction.sendSmartPrivateMessage(name, "Right Name:   (none)");
         }
         
         nothingFound = true;
         
         if (watchedPNames.size() == 0) {
-            m_botAction.sendChatMessage("Partial Name: (none)");
+            m_botAction.sendSmartPrivateMessage(name, "Partial Name: (none)");
         } else {
             if(sortBy != SortField.NONE)
                 tmpWatchComments = WatchListSorter.sortByValue(watchedPNames, sortBy, sortDirection);
@@ -1148,11 +1148,11 @@ public class pubhubalias extends PubBotModule {
                 if(!showAll && !com.comment.startsWith(name))
                     continue;
                 
-                m_botAction.sendChatMessage(com.date + " Partial Name: " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
+                m_botAction.sendSmartPrivateMessage(name, com.date + " Partial Name: " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
                 nothingFound = false;
             }
             if(nothingFound)
-                m_botAction.sendChatMessage("Partial Name: (none)");
+                m_botAction.sendSmartPrivateMessage(name, "Partial Name: (none)");
         }
     }
     
