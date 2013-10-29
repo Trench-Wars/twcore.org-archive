@@ -102,6 +102,12 @@ public class GameFlagTimeModule extends AbstractModule {
 
     private boolean flagTimeStarted = false;
     private boolean strictFlagTimeMode = false;
+    
+    // Solo terr incentive: if player is only Terr on freq 0/1, provide a regular bonus
+    private boolean giveTerrBonus = true;       // True if terrs receive a money bonus
+    private final int terrBonusFrequency = 180; // How often terrs are given a bonus, in seconds
+    private final int terrBonusAmt = 100;       // Award amount
+    private final int terrBonusMinOnFreq = 3;   // Smallest # of players on freq to allow bonus    
 
     /* Added in and never used?
     private int moneyRoundWin = 0;
@@ -2248,7 +2254,56 @@ public class GameFlagTimeModule extends AbstractModule {
             m_botAction.setObjects();
             isRunning = false;
         }
-
+        
+        /**
+         * Checks for terrs on public frequencies that are playing alone,
+         * and gives a small bonus every X seconds.
+         */
+        public void checkTerrBonus() {
+            Iterator<Player> i = m_botAction.getPlayerIterator();
+            Player p;
+            int[] freqsize = {0,0};
+            boolean[] foundTerr = {false,false};
+            Player[] terr = {null,null};
+            while (i.hasNext()) {
+                p = i.next();
+                if (p != null && p.getShipType() != Tools.Ship.SPECTATOR) {                    
+                    if (p.getFrequency() == 0) {
+                        freqsize[0]++;
+                        if (p.getShipType() == Tools.Ship.TERRIER) {
+                            if( !foundTerr[0] ) {
+                                terr[0] = p;
+                                foundTerr[0] = true;
+                            } else {
+                                //2nd terr, so dump both of them
+                                terr[0] = null;
+                            }
+                        }
+                    } else if (p.getFrequency() == 1) {
+                        freqsize[1]++;
+                        if (p.getShipType() == Tools.Ship.TERRIER) {
+                            if( !foundTerr[1] ) {
+                                terr[1] = p;
+                                foundTerr[1] = true;
+                            } else {
+                                //2nd terr, so dump both of them
+                                terr[1] = null;
+                            }
+                        }
+                    }
+                }
+            }
+            if (terr[0] != null && freqsize[0] >= terrBonusMinOnFreq ) {
+                context.getPlayerManager().addMoney(terr[0].getPlayerName(), terrBonusAmt);
+                m_botAction.sendPrivateMessage(terr[0].getPlayerID(), "BONUS: +$" + terrBonusAmt + " for being only Terr on freq." );
+            }
+            if (terr[1] != null && freqsize[1] >= terrBonusMinOnFreq ) {
+                context.getPlayerManager().addMoney(terr[1].getPlayerName(), terrBonusAmt);
+                m_botAction.sendPrivateMessage(terr[1].getPlayerID(), "BONUS: +$" + terrBonusAmt + " for being only Terr on freq." );
+            }
+            
+        }
+        
         /**
          * Sends time info to requested player.
          * 
@@ -2502,6 +2557,10 @@ public class GameFlagTimeModule extends AbstractModule {
                     assignFlag();
                 }
                 return;
+            }
+            
+            if (giveTerrBonus && totalSecs % terrBonusFrequency == 0) {
+                checkTerrBonus();
             }
 
             Integer freqSecs = freqsSecs.get(flagHoldingFreq);
