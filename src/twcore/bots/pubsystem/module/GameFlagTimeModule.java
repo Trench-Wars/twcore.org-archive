@@ -105,7 +105,7 @@ public class GameFlagTimeModule extends AbstractModule {
     
     // Solo terr incentive: if player is only Terr on freq 0/1, provide a regular bonus
     private boolean giveTerrBonus = true;       // True if terrs receive a money bonus
-    private final int terrBonusFrequency = 180; // How often terrs are given a bonus, in seconds
+    private final int terrBonusFrequency = 117; // How often terrs are given a bonus, in seconds
     private final int terrBonusAmt = 100;       // Award amount
     private final int terrBonusMinOnFreq = 3;   // Smallest # of players on freq to allow bonus    
 
