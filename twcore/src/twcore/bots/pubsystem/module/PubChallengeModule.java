@@ -57,7 +57,8 @@ public class PubChallengeModule extends AbstractModule {
 
     private int minBet = 100;
     public long lastBetAdvert = 0;
-    public final long MAX_BET_ADVERT_FREQUENCY = 15 * Tools.TimeInMillis.MINUTE;  // Time in ms between bets being arena'd  
+    public final long MAX_BET_ADVERT_FREQUENCY = 10 * Tools.TimeInMillis.MINUTE;  // Time in ms between bets being arena'd
+    public final int MIN_BET_TO_NOTIFY = 500;
 
     public PubChallengeModule(BotAction m_botAction, PubContext context) {
         super(m_botAction, context, "Challenge");
@@ -1303,7 +1304,6 @@ public class PubChallengeModule extends AbstractModule {
             } else {
                 m_botAction.sendSmartPrivateMessage(sender, "Proper use is !challenge name:ship " + (context.getMoneySystem().isEnabled() ? ":amount" : "") );
             }
-            
         }
     }
     
@@ -1345,9 +1345,9 @@ public class PubChallengeModule extends AbstractModule {
                 String better = "";
                 String betted = "";
                 if (!d.challenge.challengerBets.isEmpty())
-                    better = " (bets)";
+                    better = " ($" + d.challenge.getTotalChallengerBets() + " bet)";
                 if (!d.challenge.challengedBets.isEmpty())
-                    betted = " (bets)";
+                    betted = " ($" + d.challenge.getTotalChallengedBets() + " bet)";
                 if (d.challenge.ship1==d.challenge.ship2) {
                     m_botAction.sendSmartPrivateMessage(name, "" + d.challenge.challengerName + better + " vs " + d.challenge.challengedName + betted
                             + " in " + Tools.shipName(d.challenge.ship1) + ": " + d.challenge.challenger.kills + "-" + d.challenge.accepter.kills);
@@ -1690,7 +1690,21 @@ class Challenge {
         } else
             return null;
     }
+    
+    public int getTotalChallengerBets() {
+        int total = 0;
+        for( Integer bet : challengerBets.values() )
+            total += bet;
+        return total;
+    }
 
+    public int getTotalChallengedBets() {
+        int total = 0;
+        for( Integer bet : challengerBets.values() )
+            total += bet;
+        return total;
+    }
+    
     public void setArea(DuelArea area) {
         this.area = area;
     }
@@ -1874,7 +1888,7 @@ class Challenge {
     }
     
     void doBetAdvert( String bettor, int amount, boolean onChallenger ) {
-        if( amount < 1000 )
+        if( amount < pcm_ref.MIN_BET_TO_NOTIFY )
             return;
         
         if( System.currentTimeMillis() - pcm_ref.lastBetAdvert < pcm_ref.MAX_BET_ADVERT_FREQUENCY )
