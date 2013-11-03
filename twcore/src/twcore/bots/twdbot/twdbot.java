@@ -116,7 +116,7 @@ public class twdbot extends SubspaceBot {
             };
         };
         m_botAction.scheduleTaskAtFixedRate(checkMessages, 5000, 30000);
-        m_botAction.sendUnfilteredPublicMessage("?chat=robodev,leagueop,executive lounge");
+        m_botAction.sendUnfilteredPublicMessage("?chat=robodev,twdstaff,executive lounge");
     }
 
     @Override
