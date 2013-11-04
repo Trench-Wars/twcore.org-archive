@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -2256,14 +2257,15 @@ public class GameFlagTimeModule extends AbstractModule {
         }
         
         /**
-         * Checks for terrs on public frequencies that are playing alone,
+         * Checks for non-LT terrs on public frequencies that are playing alone,
          * and gives a small bonus every X seconds.
          */
         public void checkTerrBonus() {
             Iterator<Player> i = m_botAction.getPlayerIterator();
-            Player p;
+            Player p, p2;
             int[] freqsize = {0,0};
             boolean[] foundTerr = {false,false};
+            boolean lt = false;
             Player[] terr = {null,null};
             while (i.hasNext()) {
                 p = i.next();
@@ -2271,35 +2273,54 @@ public class GameFlagTimeModule extends AbstractModule {
                     if (p.getFrequency() == 0) {
                         freqsize[0]++;
                         if (p.getShipType() == Tools.Ship.TERRIER) {
-                            if( !foundTerr[0] ) {
-                                terr[0] = p;
-                                foundTerr[0] = true;
-                            } else {
-                                //2nd terr, so dump both of them
-                                terr[0] = null;
+                            for ( Integer turretid : p.getTurrets() ) {
+                                p2 = m_botAction.getPlayer(turretid);
+                                if (p2 != null && p2.getShipType() == Tools.Ship.LEVIATHAN) {
+                                    lt = true;
+                                    break;
+                                }
+                            }
+                            if( !lt ) {
+                                if( !foundTerr[0] ) {
+                                    terr[0] = p;
+                                    foundTerr[0] = true;
+                                } else {
+                                    //2nd terr, so dump both of them
+                                    terr[0] = null;
+                                }
                             }
                         }
                     } else if (p.getFrequency() == 1) {
                         freqsize[1]++;
                         if (p.getShipType() == Tools.Ship.TERRIER) {
-                            if( !foundTerr[1] ) {
-                                terr[1] = p;
-                                foundTerr[1] = true;
-                            } else {
-                                //2nd terr, so dump both of them
-                                terr[1] = null;
+                            for ( Integer turretid : p.getTurrets() ) {
+                                p2 = m_botAction.getPlayer(turretid);
+                                if (p2 != null && p2.getShipType() == Tools.Ship.LEVIATHAN) {
+                                    lt = true;
+                                    break;
+                                }
+                            }
+                            if( !lt ) {
+                                if( !foundTerr[1] ) {
+                                    terr[1] = p;
+                                    foundTerr[1] = true;
+                                } else {
+                                    //2nd terr, so dump both of them
+                                    terr[1] = null;
+                                }
                             }
                         }
                     }
                 }
+                lt = false;
             }
             if (terr[0] != null && freqsize[0] >= terrBonusMinOnFreq ) {
                 context.getPlayerManager().addMoney(terr[0].getPlayerName(), terrBonusAmt);
-                m_botAction.sendPrivateMessage(terr[0].getPlayerID(), "BONUS: +$" + terrBonusAmt + " for being only Terr on freq." );
+                m_botAction.sendPrivateMessage(terr[0].getPlayerID(), "BONUS: +$" + terrBonusAmt + " for being only non-LT Terr on freq." );
             }
             if (terr[1] != null && freqsize[1] >= terrBonusMinOnFreq ) {
                 context.getPlayerManager().addMoney(terr[1].getPlayerName(), terrBonusAmt);
-                m_botAction.sendPrivateMessage(terr[1].getPlayerID(), "BONUS: +$" + terrBonusAmt + " for being only Terr on freq." );
+                m_botAction.sendPrivateMessage(terr[1].getPlayerID(), "BONUS: +$" + terrBonusAmt + " for being only non-LT Terr on freq." );
             }
             
         }
