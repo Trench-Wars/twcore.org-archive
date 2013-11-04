@@ -46,10 +46,10 @@ public class PubChallengeModule extends AbstractModule {
     private boolean allowBets = true;
     private String database = "";
 
-    private boolean announceNew = false;
+    //private boolean announceNew = false;
     private boolean announceWinner = false;
     private int announceWinnerAt = 0;
-    private int announceZoneWinnerAt = 100000000;
+    private int announceZoneWinnerAt = 50000;
     private int deaths;
     
     // Coordinates of the safe zone used to clear out projectiles and mines.
@@ -57,7 +57,7 @@ public class PubChallengeModule extends AbstractModule {
 
     private int minBet = 100;
     public long lastBetAdvert = 0;
-    public final long MAX_BET_ADVERT_FREQUENCY = 10 * Tools.TimeInMillis.MINUTE;  // Time in ms between bets being arena'd
+    public final long MAX_BET_ADVERT_FREQUENCY = 2 * Tools.TimeInMillis.MINUTE;  // Time in ms between bets being arena'd
     public final int MIN_BET_TO_NOTIFY = 500;
 
     public PubChallengeModule(BotAction m_botAction, PubContext context) {
@@ -628,9 +628,9 @@ public class PubChallengeModule extends AbstractModule {
         if (!foundDuel.betOnDueler(name, bettor, bettingChallenger, amt))
             m_botAction.sendPrivateMessage(name, "[ERROR]  Couldn't finalize bet.  (You are not allowed to be in the duel you're betting on, or bet on both players.)");
         else
-            m_botAction.sendPrivateMessage(name, "[OK!]  Your bet for $" + amt + " has been deducted from your balance and placed on " + searchName
-                    + ". Inorder to win, another player will need to place a bet, as it is not betting against the house. Good luck!  "
-                    + "(NOTE: you'll lose your bet if you leave the arena before the duel is finished.)");
+            m_botAction.sendPrivateMessage(name, "[OK!]  Bet for $" + amt + " deducted from your account and placed on " + searchName
+                    + ". To win any money, another player will need to place an opposing bet. Good luck! "
+                    + "(NOTE: stay in pub until duel is finished or your bet will be lost!)");
 
     }
 
@@ -966,6 +966,17 @@ public class PubChallengeModule extends AbstractModule {
             this.challenger = challenge.challenger.name;
             this.accepter = challenge.accepter.name;
             refreshSpamStopper();
+            
+            // Placing this code here (before duel starts) to encourage more betting
+            if (allowBets) {
+                if (ship1==ship2) {
+                    m_botAction.sendArenaMessage( "[" + Tools.shipName(ship1) + " Duel] - " + challenger + " vs " + accepter
+                            + " for $" + challenge.amount +". Betting closes in 1 minute. Use !beton <name>:<$>");
+                } else {
+                    m_botAction.sendArenaMessage( "[" + Tools.shipName(ship1) + " vs " +  Tools.shipName(ship2) + " Mixed Duel] - " + challenger + " vs " + accepter
+                            + " for $" + challenge.amount +". Betting closes in 1 minute. Use !beton <name>:<$>");                    
+                }
+            }
         }
 
         @Override
@@ -1061,16 +1072,6 @@ public class PubChallengeModule extends AbstractModule {
             
             m_botAction.sendSmartPrivateMessage(challenger, "GO GO GO!", Tools.Sound.GOGOGO);
             m_botAction.sendSmartPrivateMessage(accepter, "GO GO GO!", Tools.Sound.GOGOGO);
-
-            if (allowBets) {
-                if (ship1==ship2) {
-                    m_botAction.sendArenaMessage("A " + Tools.shipName(ship1) + " duel is starting between " + challenger + " and " + accepter
-                            + ". You have 1 minute to use !beton <name>:<amount> to place a bet on this duel!");
-                } else {
-                    m_botAction.sendArenaMessage("A " + Tools.shipName(ship1) + " vs " +  Tools.shipName(ship2) + " duel is starting between " + challenger + " and " + accepter
-                            + ". You have 1 minute to use !beton <name>:<amount> to place a bet on this duel!");                    
-                }
-            }
         }
     }
 
@@ -1512,7 +1513,7 @@ public class PubChallengeModule extends AbstractModule {
 
             // Setting Misc.
             enabled = m_botAction.getBotSettings().getInt("duel_enabled") == 1;
-            announceNew = m_botAction.getBotSettings().getInt("duel_announce_new") == 1;
+            //announceNew = m_botAction.getBotSettings().getInt("duel_announce_new") == 1;
             announceWinner = m_botAction.getBotSettings().getInt("duel_announce_winner") == 1;
             saveDuel = m_botAction.getBotSettings().getInt("duel_database_enabled") == 1;
 
@@ -1802,7 +1803,10 @@ class Challenge {
                     } else if (challengerWon) {
                         bet = bet + Math.round(totalA * ((float) bet / totalC));
                         p.addMoney(bet);
-                        pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + challengerName + " defeated " + challengedName + ".  You win $" + bet + "!");
+                        if( bet != challengerBets.get(n) )
+                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + challengerName + " defeated " + challengedName + ".  You win $" + bet + "!");
+                        else
+                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET RETURNED]  " + challengerName + " defeated " + challengedName + ", but no-one bet against you.  $" + bet + " returned to your account.");
                     } else {
                         Integer diff = (Math.round(totalA * ((float) bet / totalC)));
                         p.addMoney(bet - diff);
@@ -1828,7 +1832,11 @@ class Challenge {
                     } else if (!challengerWon) {
                         bet = bet + Math.round(totalC * ((float) bet / totalA));
                         p.addMoney(bet);
-                        pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + challengedName + " defeated " + challengerName + ".  You win $" + bet + "!");
+                        if( bet != challengedBets.get(n) )
+                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + challengedName + " defeated " + challengerName + ".  You win $" + bet + "!");
+                        else
+                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET RETURNED]  " + challengerName + " defeated " + challengedName + ", but no-one bet against you.  $" + bet + " returned to your account.");
+
                     } else {
                         Integer diff = (Math.round(totalC * ((float) bet / totalA)));
                         p.addMoney(bet - diff);
@@ -1895,14 +1903,14 @@ class Challenge {
             return;
         if ( onChallenger ) {
             if ( ship1 == ship2 )
-                pcm_ref.m_botAction.sendArenaMessage( bettor + " has bet $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + ". To match their bet, !beton " + challengedName + ":" + amount );
+                pcm_ref.m_botAction.sendArenaMessage( bettor + " bet $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + ". Match it:  !beton " + challengedName + ":" + amount );
             else
-                pcm_ref.m_botAction.sendArenaMessage( bettor + " has bet $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + " vs " + Tools.shipNameSlang( ship2 ) + ". To match their bet, !beton " + challengedName + ":" + amount );
+                pcm_ref.m_botAction.sendArenaMessage( bettor + " bet $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + " vs " + Tools.shipNameSlang( ship2 ) + ". Match it:  !beton " + challengedName + ":" + amount );
         } else {
             if ( ship1 == ship2 )
-                pcm_ref.m_botAction.sendArenaMessage( bettor + " has bet $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + ". To match their bet, !beton " + challengerName + ":" + amount );
+                pcm_ref.m_botAction.sendArenaMessage( bettor + " bet $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + ". Match it:  !beton " + challengerName + ":" + amount );
             else
-                pcm_ref.m_botAction.sendArenaMessage( bettor + " has bet $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + " vs " + Tools.shipNameSlang( ship1 ) + ". To match their bet, !beton " + challengerName + ":" + amount );            
+                pcm_ref.m_botAction.sendArenaMessage( bettor + " bet $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + " vs " + Tools.shipNameSlang( ship1 ) + ". Match it:  !beton " + challengerName + ":" + amount );            
         }
         pcm_ref.lastBetAdvert = System.currentTimeMillis();
     }
