@@ -145,6 +145,7 @@ public class pubhubalias extends PubBotModule {
         try {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
+            long t = System.currentTimeMillis();
             String ipResults = getSubQueryResultString("SELECT DISTINCT(fnIP) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '"
                     + Tools.addSlashes(playerName) + "'", "fnIP");
 
@@ -160,6 +161,56 @@ public class pubhubalias extends PubBotModule {
                 displayAltNickAllResults(sender, queryString, headers, "fcUserName");
             else
                 displayAltNickResults(sender, playerName, queryString, headers, "fcUserName");
+            m_botAction.sendChatMessage("Execution time: " + (System.currentTimeMillis() - t) + "ms" );
+
+        } catch (SQLException e) {
+            throw new RuntimeException("SQL Error: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * ALternate method of altnicking that cuts inner joins from 3 to 1, but adds
+     * an additional SELECT query. Should improve efficiency.
+     * TODO: rework tblAlias
+     * @param sender
+     * @param playerName
+     * @param all
+     */
+    private void doAltNick2Cmd(String sender, String playerName, boolean all) {
+        Integer id = -1;
+        try {
+            ResultSet resultSet = m_botAction.SQLQuery(DATABASE, "SELECT fnUserID FROM `tblUser` WHERE fcUserName='" + Tools.addSlashes(playerName) + "'");
+            if (resultSet == null)
+                throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+
+            if (resultSet.next())
+                id = resultSet.getInt("fnUserID");
+
+            if (id==null) {
+                m_botAction.sendChatMessage("Player not found in database.");
+                return;
+            }
+        } catch( SQLException e ) {
+            m_botAction.sendChatMessage("ERROR: SQL Exception thrown.");
+            return;
+        }
+
+        try {
+            String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
+
+            long t = System.currentTimeMillis();
+            String ipResults = getSubQueryResultString("SELECT DISTINCT(fnIP) FROM `tblAlias` WHERE fnUserID='" + id + "'", "fnIP");
+            String midResults = getSubQueryResultString("SELECT DISTINCT(fnMachineId) FROM `tblAlias` WHERE fnUserID='" + id + "'", "fnMachineId");
+            String queryString = "SELECT * FROM `tblAlias` WHERE (fnIP IN " + ipResults + " " + "AND fnMachineID IN "
+                    + midResults + ")" + getOrderBy();
+                    
+            if (ipResults == null || midResults == null)
+                m_botAction.sendChatMessage("Player not found in database.");
+            else if (all)
+                displayAltNickAllResults(sender, queryString, headers, "fdRecorded");
+            else
+                displayAltNickResults(sender, playerName, queryString, headers, "fdRecorded");
+            m_botAction.sendChatMessage("Execution time: " + (System.currentTimeMillis() - t) + "ms" );
 
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
@@ -1181,15 +1232,18 @@ public class pubhubalias extends PubBotModule {
         }
 
         try {
-            if (command.equals("!recordinfo"))
+            if (command.equals("!recordinfo")) {
                 doRecordInfoCmd(sender);
-            else if (command.startsWith("!partialip"))
+            } else if (command.startsWith("!partialip")) {
                 doAltIpCmdPartial(sender, command.substring(11));
 
-            else if (command.equals("!help"))
+            } else if (command.equals("!help")) {
                 doHelpCmd(sender);
-            else if (command.startsWith("!altnick ")) {
+            } else if (command.startsWith("!altnick ")) {
                 doAltNickCmd(sender, message.substring(9).trim(), false);
+                record(sender, message);
+            } else if (command.startsWith("!altnick2 ")) {
+                doAltNick2Cmd(sender, message.substring(10).trim(), false);
                 record(sender, message);
             } else if (command.startsWith("!altor ")) {
                 doAltNickOrCmd(sender, message.substring(7).trim(), false);
