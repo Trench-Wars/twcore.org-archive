@@ -146,13 +146,13 @@ public class pubhubalias extends PubBotModule {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
             long t = System.currentTimeMillis();
-            String ipResults = getSubQueryResultString("SELECT DISTINCT(fnIP) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '"
+            String ipResults = getSubQueryResultString("SELECT DISTINCT(fnIP) FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID WHERE fcUserName = '"
                     + Tools.addSlashes(playerName) + "'", "fnIP");
 
-            String midResults = getSubQueryResultString("SELECT DISTINCT(fnMachineId) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '"
+            String midResults = getSubQueryResultString("SELECT DISTINCT(fnMachineId) FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID WHERE fcUserName = '"
                     + Tools.addSlashes(playerName) + "'", "fnMachineId");
 
-            String queryString = "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnIP IN " + ipResults + " " + "AND fnMachineID IN "
+            String queryString = "SELECT * FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID WHERE fnIP IN " + ipResults + " AND fnMachineID IN "
                     + midResults + " " + getOrderBy();
 
             if (ipResults == null || midResults == null)
@@ -161,7 +161,7 @@ public class pubhubalias extends PubBotModule {
                 displayAltNickAllResults(sender, queryString, headers, "fcUserName");
             else
                 displayAltNickResults(sender, playerName, queryString, headers, "fcUserName");
-            m_botAction.sendChatMessage("Execution time: " + (System.currentTimeMillis() - t) + "ms" );
+            m_botAction.sendSmartPrivateMessage(sender, "Execution time: " + (System.currentTimeMillis() - t) + "ms" );
 
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
@@ -169,7 +169,7 @@ public class pubhubalias extends PubBotModule {
     }
     
     /**
-     * ALternate method of altnicking that cuts inner joins from 3 to 1, but adds
+     * Alternate method of altnicking that cuts inner joins from 3 to 1, but adds
      * an additional SELECT query. Should improve efficiency.
      * TODO: rework tblAlias
      * @param sender
@@ -201,16 +201,16 @@ public class pubhubalias extends PubBotModule {
             long t = System.currentTimeMillis();
             String ipResults = getSubQueryResultString("SELECT DISTINCT(fnIP) FROM `tblAlias` WHERE fnUserID='" + id + "'", "fnIP");
             String midResults = getSubQueryResultString("SELECT DISTINCT(fnMachineId) FROM `tblAlias` WHERE fnUserID='" + id + "'", "fnMachineId");
-            String queryString = "SELECT * FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID WHERE (fnIP IN " + ipResults + " " + "AND fnMachineID IN "
+            String queryString = "SELECT fcUserName FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID WHERE (fnIP IN " + ipResults + " " + "AND fnMachineID IN "
                     + midResults + ")" + getOrderBy();
                     
             if (ipResults == null || midResults == null)
                 m_botAction.sendChatMessage("Player not found in database.");
             else if (all)
-                displayAltNickAllResults(sender, queryString, headers, "fdRecorded");
+                displayAltNickAllResults(sender, queryString, headers, "fcUserName");
             else
-                displayAltNickResults(sender, playerName, queryString, headers, "fdRecorded");
-            m_botAction.sendChatMessage("Execution time: " + (System.currentTimeMillis() - t) + "ms" );
+                displayAltNickResults(sender, playerName, queryString, headers, "fcUserName");
+            m_botAction.sendSmartPrivateMessage(sender, "Execution time: " + (System.currentTimeMillis() - t) + "ms" );
 
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
