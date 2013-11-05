@@ -222,11 +222,14 @@ public class pubhubalias extends PubBotModule {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
             long t = System.currentTimeMillis();
-            String queryString = "SET @userId = (SELECT fnUserId FROM tblUser WHERE fcUserName='"
-                + Tools.addSlashes(playerName) + "' LIMIT 0,1);"
-                + " SELECT U.fcUserName, A.* FROM tblAlias A JOIN tblUser U ON A.fnUserId = U.fnUserId WHERE "
-                + " fnIP IN ( SELECT DISTINCT(fnIP) FROM tblAlias WHERE fnUserId = @userId ) AND"
-                + " fnMachineId IN ( SELECT DISTINCT(fnMachineID) FROM tblAlias WHERE fnUserId = @userId )";
+            String queryString = 
+                //"SET @userId = (SELECT fnUserId FROM tblUser WHERE fcUserName='"
+                //+ Tools.addSlashes(playerName) + "' LIMIT 0,1);"
+                  " SELECT U.fcUserName, A.* FROM tblAlias A JOIN tblUser U ON A.fnUserId = U.fnUserId WHERE "
+                + " fnIP IN ( SELECT DISTINCT(fnIP) FROM tblAlias WHERE fnUserId ="
+                + " (SELECT fnUserId FROM tblUser WHERE fcUserName='" + Tools.addSlashes(playerName) + "' LIMIT 0,1) ) AND" 
+                + " fnMachineId IN ( SELECT DISTINCT(fnMachineID) FROM tblAlias WHERE fnUserId ="
+                + "(SELECT fnUserId FROM tblUser WHERE fcUserName='" + Tools.addSlashes(playerName) + "' LIMIT 0,1) )";
             
             if (all)
                 displayAltNickAllResults(sender, queryString, headers, "fcUserName");
