@@ -39,7 +39,7 @@ public class twdopalias extends Module {
     public static final int DEFAULT_DAYS = 180;
 
     private static final String NAME_FIELD = "fcUserName";
-    private static final String IP_FIELD = "fcIpString";
+    private static final String IP_FIELD = "fcIPString";
     private static final String MID_FIELD = "fnMachineId";
     private static final String TIMES_UPDATED_FIELD = "fnTimesUpdated";
     private static final String LAST_UPDATED_FIELD = "fdUpdated";

@@ -150,7 +150,7 @@ public class staffbot_banc extends Module {
         psUpdateComment = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "UPDATE tblBanc SET fcComment = ? WHERE fnID = ?");
         //psRemoveBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "DELETE FROM tblBanc WHERE fnID = ?");
         psRemoveBanC = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "UPDATE tblBanc SET fbLifted = 1, fdExpired = NOW() WHERE fnID = ?");
-        psLookupIPMID = m_botAction.createPreparedStatement(trenchDatabase, uniqueConnectionID, "SELECT fcIpString, fnMachineId FROM tblAlias INNER JOIN tblUser ON tblAlias.fnUserID = tblUser.fnUserID WHERE fcUserName = ? ORDER BY fdUpdated DESC LIMIT 0,1");
+        psLookupIPMID = m_botAction.createPreparedStatement(trenchDatabase, uniqueConnectionID, "SELECT fcIPString, fnMachineId FROM tblAlias INNER JOIN tblUser ON tblAlias.fnUserID = tblUser.fnUserID WHERE fcUserName = ? ORDER BY fdUpdated DESC LIMIT 0,1");
         psKeepAlive1 = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "SHOW DATABASES");
         psKeepAlive2 = m_botAction.createPreparedStatement(trenchDatabase, uniqueConnectionID, "SHOW DATABASES");
         psElapsed = m_botAction.createPreparedStatement(botsDatabase, uniqueConnectionID, "UPDATE tblBanc SET fnElapsed = ? WHERE fnID = ?");
