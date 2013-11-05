@@ -201,7 +201,7 @@ public class pubhubalias extends PubBotModule {
             long t = System.currentTimeMillis();
             String ipResults = getSubQueryResultString("SELECT DISTINCT(fnIP) FROM `tblAlias` WHERE fnUserID='" + id + "'", "fnIP");
             String midResults = getSubQueryResultString("SELECT DISTINCT(fnMachineId) FROM `tblAlias` WHERE fnUserID='" + id + "'", "fnMachineId");
-            String queryString = "SELECT * FROM `tblAlias` WHERE (fnIP IN " + ipResults + " " + "AND fnMachineID IN "
+            String queryString = "SELECT * FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID WHERE (fnIP IN " + ipResults + " " + "AND fnMachineID IN "
                     + midResults + ")" + getOrderBy();
                     
             if (ipResults == null || midResults == null)
@@ -227,7 +227,7 @@ public class pubhubalias extends PubBotModule {
             String midResults = getSubQueryResultString("SELECT DISTINCT(fnMachineId) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '"
                     + Tools.addSlashes(playerName) + "'", "fnMachineId");
 
-            String queryString = "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE (fnIP IN " + ipResults + " " + "OR fnMachineID IN "
+            String queryString = "SELECT * FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE (fnIP IN " + ipResults + " " + "OR fnMachineID IN "
                     + midResults + ") AND fnMachineID > 1 " + getOrderBy();
 
             if (ipResults == null || midResults == null)
