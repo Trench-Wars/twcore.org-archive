@@ -217,6 +217,28 @@ public class pubhubalias extends PubBotModule {
         }
     }
 
+    private void doAltNick3Cmd(String sender, String playerName, boolean all) {
+        try {
+            String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
+
+            long t = System.currentTimeMillis();
+            String queryString = "SET @userId = (SELECT fnUserId FROM tblUser WHERE fcUserName='"
+                + Tools.addSlashes(playerName) + "' LIMIT 0,1);"
+                + " SELECT U.fcUserName, A.* FROM tblAlias A JOIN tblUser U ON A.fnUserId = U.fnUserId WHERE "
+                + " fnIP IN ( SELECT DISTINCT(fnIP) FROM tblAlias WHERE fnUserId = @userId ) AND"
+                + " fnMachineId IN ( SELECT DISTINCT(fnMachineID) FROM tblAlias WHERE fnUserId = @userId )";
+            
+            if (all)
+                displayAltNickAllResults(sender, queryString, headers, "fcUserName");
+            else
+                displayAltNickResults(sender, playerName, queryString, headers, "fcUserName");
+            m_botAction.sendSmartPrivateMessage(sender, "Execution time: " + (System.currentTimeMillis() - t) + "ms" );
+
+        } catch (SQLException e) {
+            throw new RuntimeException("SQL Error: " + e.getMessage(), e);
+        }
+    }
+    
     private void doAltNickOrCmd(String sender, String playerName, boolean all) {
         try {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
@@ -1244,6 +1266,9 @@ public class pubhubalias extends PubBotModule {
                 record(sender, message);
             } else if (command.startsWith("!altnick2 ")) {
                 doAltNick2Cmd(sender, message.substring(10).trim(), false);
+                record(sender, message);
+            } else if (command.startsWith("!altnick3 ")) {
+                doAltNick3Cmd(sender, message.substring(10).trim(), false);
                 record(sender, message);
             } else if (command.startsWith("!altor ")) {
                 doAltNickOrCmd(sender, message.substring(7).trim(), false);
