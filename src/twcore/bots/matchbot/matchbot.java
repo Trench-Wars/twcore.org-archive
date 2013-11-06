@@ -237,6 +237,7 @@ public class matchbot extends SubspaceBot {
 
     public void handleEvent(LoggedOn event) {
         m_botAction.ipcSubscribe(IPC);
+        m_botAction.sendUnfilteredPublicMessage("?chat=robodev");
 
         String def = m_botSettings.getString("Default" + getBotNumber());
         int typeNumber = getGameTypeNumber(def);
@@ -283,8 +284,13 @@ public class matchbot extends SubspaceBot {
                 String bot = m_botAction.getBotName();
                 if (ipc.getBot() != null && !bot.equalsIgnoreCase(ipc.getBot()) && !arena.equalsIgnoreCase(ipc.getBot()))
                     return;
-                if (ipc.getType() == Command.DIE && (ipc.getBot() == null || (ipc.getBot() != null && (bot.equalsIgnoreCase(ipc.getBot()) || arena.equalsIgnoreCase(ipc.getBot()))))) {
+                if (ipc.getType() == Command.DIE && 
+                        (ipc.getBot() == null || 
+                            (ipc.getBot() != null && 
+                            (bot.equalsIgnoreCase(ipc.getBot()) 
+                                    || arena.equalsIgnoreCase(ipc.getBot()))))) {
                     if (!m_isLocked || (m_game == null && !m_isStartingUp)) {
+                        ba.sendChatMessage("Got IPC DIE command for bot/arena: " + ipc.getBot());
                         TimerTask d = new TimerTask() {
                             @Override
                             public void run() {
