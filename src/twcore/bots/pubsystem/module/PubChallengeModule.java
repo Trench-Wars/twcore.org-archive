@@ -969,12 +969,13 @@ public class PubChallengeModule extends AbstractModule {
             
             // Placing this code here (before duel starts) to encourage more betting
             if (allowBets) {
+                String amtString = (challenge.amount >= 250 ? "$" + challenge.amount : "peanuts"); 
                 if (ship1==ship2) {
-                    m_botAction.sendArenaMessage( "[" + Tools.shipName(ship1) + " Duel] - " + challenger + " vs " + accepter
-                            + " for $" + challenge.amount +". Betting closes in 1 minute. Use !beton <name>:<$>");
+                    m_botAction.sendArenaMessage( "- [" + Tools.shipName(ship1).toUpperCase() + " DUEL] - " + challenger + " vs " + accepter
+                            + " for " + amtString +". Betting closes in 1 minute. Use !beton <name>:<$>");
                 } else {
-                    m_botAction.sendArenaMessage( "[" + Tools.shipName(ship1) + " vs " +  Tools.shipName(ship2) + " Mixed Duel] - " + challenger + " vs " + accepter
-                            + " for $" + challenge.amount +". Betting closes in 1 minute. Use !beton <name>:<$>");                    
+                    m_botAction.sendArenaMessage( "- [" + Tools.shipName(ship1).toUpperCase() + " vs " +  Tools.shipName(ship2).toUpperCase() + " DUEL] - " + challenger + " vs " + accepter
+                            + " for " + amtString +". Betting closes in 1 minute. Use !beton <name>:<$>");                    
                 }
             }
         }
@@ -1903,14 +1904,14 @@ class Challenge {
             return;
         if ( onChallenger ) {
             if ( ship1 == ship2 )
-                pcm_ref.m_botAction.sendArenaMessage( bettor + " bet $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + ". Match it:  !beton " + challengedName + ":" + amount );
+                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + ". To match it, use: !beton " + challengedName + ":" + amount );
             else
-                pcm_ref.m_botAction.sendArenaMessage( bettor + " bet $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + " vs " + Tools.shipNameSlang( ship2 ) + ". Match it:  !beton " + challengedName + ":" + amount );
+                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + " vs " + Tools.shipNameSlang( ship2 ) + ". Match it: !beton " + challengedName + ":" + amount );
         } else {
             if ( ship1 == ship2 )
-                pcm_ref.m_botAction.sendArenaMessage( bettor + " bet $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + ". Match it:  !beton " + challengerName + ":" + amount );
+                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + ". To match it, use: !beton " + challengerName + ":" + amount );
             else
-                pcm_ref.m_botAction.sendArenaMessage( bettor + " bet $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + " vs " + Tools.shipNameSlang( ship1 ) + ". Match it:  !beton " + challengerName + ":" + amount );            
+                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + " vs " + Tools.shipNameSlang( ship1 ) + ". Match it: !beton " + challengerName + ":" + amount );            
         }
         pcm_ref.lastBetAdvert = System.currentTimeMillis();
     }
