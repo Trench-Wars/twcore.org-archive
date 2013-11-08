@@ -187,7 +187,7 @@ public class BountyModule extends AbstractModule {
             parameters = sub.split(":");
         }
         
-        if (parameters.length < 2)
+        if (parameters == null || parameters.length < 2)
         {
         	m_botAction.sendSmartPrivateMessage(sender, "[BOUNTY] Please ensure you "
                         + " specify both a player AND amount!  Format: !addbty <name>:<amt>");
