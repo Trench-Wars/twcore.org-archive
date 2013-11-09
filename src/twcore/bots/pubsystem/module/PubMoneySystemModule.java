@@ -248,7 +248,7 @@ public class PubMoneySystemModule extends AbstractModule {
         boolean buyingForOther = false;
         if (!params.trim().isEmpty()) {
             PubItem prefetch = store.getItem(itemName);
-            if (prefetch.isPlayerStrict() || prefetch.isPlayerOptional())
+            if (prefetch != null && (prefetch.isPlayerStrict() || prefetch.isPlayerOptional()))
                 buyingForOther = true;
         }
 
