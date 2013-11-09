@@ -141,7 +141,7 @@ public class pubhubalias extends PubBotModule {
         hider.handleEvent(event);
     }
 
-    private void doAltNickCmd(String sender, String playerName, boolean all) {
+    private void doORIGAltNickCmd(String sender, String playerName, boolean all) {
         try {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
@@ -168,14 +168,8 @@ public class pubhubalias extends PubBotModule {
         }
     }
     
-    /**
-     * Alternate method of altnicking that cuts inner joins from 3 to 1, but adds
-     * an additional SELECT query. Should improve efficiency.
-     * TODO: rework tblAlias
-     * @param sender
-     * @param playerName
-     * @param all
-     */
+
+    /*
     private void doAltNick2Cmd(String sender, String playerName, boolean all) {
         Integer id = -1;
         try {
@@ -216,8 +210,9 @@ public class pubhubalias extends PubBotModule {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
     }
+    */
 
-    private void doAltNick3Cmd(String sender, String playerName, boolean all) {
+    private void doAltNickCmd(String sender, String playerName, boolean all) {
         try {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
@@ -621,8 +616,8 @@ public class pubhubalias extends PubBotModule {
 
     public void doHelpCmd(String sender) {
         String[] message = { "ALIAS CHAT COMMANDS: ",
-                "!AltNick  <PlayerName>         - Alias by <PlayerName>",
-                "!AltOr  <PlayerName>           - Alias by <PlayerName> using IP OR MID",
+                "!AltNick  <PlayerName>         - Alias by <PlayerName> (!altnickorig for old alg.)",
+                "!AltOr    <PlayerName>         - Alias by <PlayerName> using IP OR MID",
                 "!AltIP    <IP>                 - Alias by <IP>",
                 "!PartialIP <IP>                - Alias by <PARTIALIP>",
                 "!AltMID   <MacID>              - Alias by <MacID>",
@@ -1267,12 +1262,17 @@ public class pubhubalias extends PubBotModule {
             } else if (command.startsWith("!altnick ")) {
                 doAltNickCmd(sender, message.substring(9).trim(), false);
                 record(sender, message);
+            } else if (command.startsWith("!altnickorig ")) {
+                doORIGAltNickCmd(sender, message.substring(13).trim(), false);
+                record(sender, message);
+            /*
             } else if (command.startsWith("!altnick2 ")) {
                 doAltNick2Cmd(sender, message.substring(10).trim(), false);
                 record(sender, message);
             } else if (command.startsWith("!altnick3 ")) {
                 doAltNick3Cmd(sender, message.substring(10).trim(), false);
                 record(sender, message);
+            */
             } else if (command.startsWith("!altor ")) {
                 doAltNickOrCmd(sender, message.substring(7).trim(), false);
                 record(sender, message);
