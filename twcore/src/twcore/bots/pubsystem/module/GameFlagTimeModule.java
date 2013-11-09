@@ -1461,7 +1461,7 @@ public class GameFlagTimeModule extends AbstractModule {
             case 90: text = " - Most Gullible           : "; break;
             case 91: text = " - Most Interest in Trains : "; break;
             case 92: text = " - Leland                  : "; break;
-            case 93: text = " - PriitK (aliased)        : "; break;
+            case 93: text = " - Should Know Better      : "; break;
             case 94: text = " - Nice Hat                : "; break;
             case 95: text = " - Smallest PM Reply %     : "; break;
             case 96: text = " - Dies Over and Over      : "; break;
@@ -1470,7 +1470,7 @@ public class GameFlagTimeModule extends AbstractModule {
             case 99: text = " - TW's Greatest Asset     : "; break;
             default: text = " - Most Non-Conformist     : ";
             }
-            int amt = r.nextInt(28) + 2;    // Extremely small, awkward amount to show it's only a joke
+            int amt = r.nextInt(48) + 2;    // Extremely small, awkward amount to show it's only a joke
             m_botAction.sendArenaMessage(text + p.getPlayerName() + Tools.rightString(" (+$" + amt + ")", 8) );
             context.getPlayerManager().addMoney(p.getPlayerName(), amt); // ...but yes, actually give it to them
         }
