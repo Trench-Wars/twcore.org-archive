@@ -692,7 +692,7 @@ public class PubChallengeModule extends AbstractModule {
             challenge.returnAllBets(context.getPlayerManager());
         } else if (challenge.winByLagout) {
             if (announceWinner && challenge.amount >= announceZoneWinnerAt)
-                m_botAction.sendZoneMessage("[DUEL] " + winner.name + " has defeated " + loser.name + " (by lagout) in duel" + moneyMessage + "!");
+                m_botAction.sendZoneMessage("[PUBDUEL] " + winner.name + " has defeated " + loser.name + " (by lagout) in duel" + moneyMessage + "!");
             else if (announceWinner && challenge.amount >= announceWinnerAt)
                 m_botAction.sendArenaMessage("[DUEL] " + winner.name + " has defeated " + loser.name + " (by lagout) in duel" + moneyMessage + ".");
             else {
@@ -707,7 +707,7 @@ public class PubChallengeModule extends AbstractModule {
 
         } else {
             if (announceWinner && money >= announceZoneWinnerAt)
-                m_botAction.sendZoneMessage("[DUEL] " + winner.name + " has defeated " + loser.name + " " + winnerKills + "-" + loserKills
+                m_botAction.sendZoneMessage("[PUBDUEL] " + winner.name + " has defeated " + loser.name + " " + winnerKills + "-" + loserKills
                         + " in duel" + moneyMessage + "!");
             else if (announceWinner && money >= announceWinnerAt)
                 m_botAction.sendArenaMessage("[DUEL] " + winner.name + " has defeated " + loser.name + " " + winnerKills + "-" + loserKills
@@ -1782,10 +1782,21 @@ class Challenge {
     public void settleAllBets(String winner, PubPlayerManagerModule ppmm) {
         Integer bet = 0;
         PubPlayer p;
-        boolean challengerWon = false;
-
-        if (winner.equalsIgnoreCase(challengerName))
-            challengerWon = true;
+        boolean challengerWon = winner.equalsIgnoreCase(challengerName);
+        String winnerName, loserName;
+        int winnerKills, loserKills;
+        
+        if(challengerWon) {
+            winnerName = challengerName;
+            loserName = challengedName;
+            winnerKills = challenger.kills;
+            loserKills = accepter.kills;            
+        } else {
+            winnerName = challengedName;
+            loserName = challengerName;
+            winnerKills = accepter.kills;
+            loserKills = challenger.kills;
+        }
 
         for (String n : challengerBets.keySet()) {
             p = ppmm.getPlayer(n);
@@ -1796,22 +1807,22 @@ class Challenge {
                         if (challengerWon) {
                             bet = bet * 2;
                             p.addMoney(bet);
-                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + challengerName + " defeated " + challengedName + ".  You win $" + bet
-                                    + "!");
+                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills +
+                                    ".  You win $" + bet + "!");
                         } else
-                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET LOST]  " + challengedName + " defeated " + challengerName + ".  You lost $" + bet
+                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET LOST]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ".  You lost $" + bet
                                     + ".  Better luck next time.");
                     } else if (challengerWon) {
                         bet = bet + Math.round(totalA * ((float) bet / totalC));
                         p.addMoney(bet);
                         if( bet != challengerBets.get(n) )
-                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + challengerName + " defeated " + challengedName + ".  You win $" + bet + "!");
+                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ".  You win $" + bet + "!");
                         else
-                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET RETURNED]  " + challengerName + " defeated " + challengedName + ", but no-one bet against you.  $" + bet + " returned to your account.");
+                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET RETURNED]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ", but no-one bet against you.  $" + bet + " returned to your account.");
                     } else {
                         Integer diff = (Math.round(totalA * ((float) bet / totalC)));
                         p.addMoney(bet - diff);
-                        pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET LOST]  " + challengedName + " defeated " + challengerName + ".  You lost $" + diff
+                        pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET LOST]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ".  You lost $" + diff
                                 + ".  Better luck next time.");
                     }
             }
@@ -1825,23 +1836,23 @@ class Challenge {
                         if (!challengerWon) {
                             bet = bet * 2;
                             p.addMoney(bet);
-                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + challengedName + " defeated " + challengerName + ".  You win $" + bet
+                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ".  You win $" + bet
                                     + "!");
                         } else
-                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET LOST]  " + challengerName + " defeated " + challengedName + ".  You lost $" + bet
+                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET LOST]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ".  You lost $" + bet
                                     + ".  Better luck next time.");
                     } else if (!challengerWon) {
                         bet = bet + Math.round(totalC * ((float) bet / totalA));
                         p.addMoney(bet);
                         if( bet != challengedBets.get(n) )
-                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + challengedName + " defeated " + challengerName + ".  You win $" + bet + "!");
+                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ".  You win $" + bet + "!");
                         else
-                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET RETURNED]  " + challengerName + " defeated " + challengedName + ", but no-one bet against you.  $" + bet + " returned to your account.");
+                            pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET RETURNED] " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ", but no-one bet against you.  $" + bet + " returned to your account.");
 
                     } else {
                         Integer diff = (Math.round(totalC * ((float) bet / totalA)));
                         p.addMoney(bet - diff);
-                        pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET LOST]  " + challengerName + " defeated " + challengedName + ".  You lost $" + diff
+                        pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET LOST]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ".  You lost $" + diff
                                 + ".  Better luck next time.");
                     }
             }
