@@ -1,5 +1,6 @@
 package twcore.bots.pubbot;
 
+import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -532,15 +533,19 @@ public class pubbotbanc extends PubBotModule {
                 } else if (current instanceof String)
                     m_botAction.sendUnfilteredPrivateMessage((String) current, "*einfo");
             }
+            HashSet<String> removes = new HashSet<String>();
             for (String name : confirms.keySet()) {
                 if (confirms.get(name).expired()) {
-                    Confirm conf = confirms.remove(name);
+                    Confirm conf = confirms.get(name);
+                    removes.add(name);
                     if (!conf.info)
                         m_botAction.ipcSendMessage(IPCPOLICE, "BANC:" + name + ":" + conf.type.toString() + ":" + conf.time, null, m_botAction.getBotName());
                     else
                         m_botAction.ipcSendMessage(IPCPOLICE, "INFO:" + name, null, m_botAction.getBotName());
                 }
             }
+            for (String name : removes)
+                confirms.remove(name);
         }
     }
     
