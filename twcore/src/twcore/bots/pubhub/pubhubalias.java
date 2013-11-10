@@ -224,7 +224,8 @@ public class pubhubalias extends PubBotModule {
                 + " fnIP IN ( SELECT DISTINCT(fnIP) FROM tblAlias WHERE fnUserId ="
                 + " (SELECT fnUserId FROM tblUser WHERE fcUserName='" + Tools.addSlashes(playerName) + "' LIMIT 0,1) ) AND" 
                 + " fnMachineId IN ( SELECT DISTINCT(fnMachineID) FROM tblAlias WHERE fnUserId ="
-                + "(SELECT fnUserId FROM tblUser WHERE fcUserName='" + Tools.addSlashes(playerName) + "' LIMIT 0,1) )";
+                + "(SELECT fnUserId FROM tblUser WHERE fcUserName='" + Tools.addSlashes(playerName) + "' LIMIT 0,1) ) "
+                + getOrderBy();
             
             if (all)
                 displayAltNickAllResults(sender, queryString, headers, "fcUserName");
