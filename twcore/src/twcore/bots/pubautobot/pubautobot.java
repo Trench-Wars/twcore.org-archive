@@ -800,6 +800,7 @@ public class pubautobot extends SubspaceBot {
     			botY = m_botAction.getShip().getY();
     			m_botAction.getShip().setFreq(0);
     			startedAt = System.currentTimeMillis();
+    			fired.clear();
     			updateIt = new TimerTask() {
     		        public void run() {
     		            update();
