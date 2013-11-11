@@ -160,7 +160,11 @@ public class PubUtilModule extends AbstractModule {
     }
     
     public void handleEvent(PlayerPosition event) {
+        // TODO: This code is damn inefficient, called constantly ...
+        // There are better ways to check for anti than monitoring every PP packet!
+        // XXX: Consider running the check every 5sec over all players instead!        
         Player p = m_botAction.getPlayer(event.getPlayerID());
+        if(p==null) return;
         int reg = regions.getRegion(p);
         if (reg == Region.SPAWN.ordinal() && p.hasAntiwarpOn()) {
             m_botAction.specificPrize(event.getPlayerID(), -Tools.Prize.ANTIWARP);
