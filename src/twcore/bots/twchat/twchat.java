@@ -52,7 +52,6 @@ public class twchat extends SubspaceBot {
     private static final String db = "pubstats";
     private static final String dbInfo = "website";
     private static final String CORE = "TWCore";
-    private static final String STAFFBOT = "StaffBot";
     private static final String ECORE = "TWCore-Event";
     private static final String LCORE = "TWCore-League";
     private static final String STREAM = "TrenchStream";
@@ -62,8 +61,10 @@ public class twchat extends SubspaceBot {
     private String debugger = "";
     private boolean DEBUG = false;
     public boolean signup = false;
-    public boolean notify = false;
+    public boolean notify = true;
     public boolean staff = false;
+    public boolean servignore = false;
+    
     // status of the database update task sqlDump
     private boolean status = false;
     // number of seconds between database updates
@@ -116,7 +117,7 @@ public class twchat extends SubspaceBot {
                 sendPlayerInfo(message);
             if (message.contains("Client: VIE 1.34")) {
                 String nameFromMessage = message.substring(0, message.indexOf(":", 0));
-                if(ops.isZH(nameFromMessage)){
+                if(servignore == true){
                     m_botAction.sendSmartPrivateMessage("StaffBot", "SERVERIGNORE " + nameFromMessage);
                     m_botAction.sendChatMessage(2, nameFromMessage + " is using TW-Chat. Sending request to ignore server warnings...");
                 }
@@ -239,6 +240,17 @@ public class twchat extends SubspaceBot {
                     m_botAction.die();
                 else if (message.equalsIgnoreCase("!stream"))
                     cmd_stream(name);
+                else if (message.equalsIgnoreCase("!servignore")){
+                    if(servignore == false){
+                    servignore = true;
+                    ba.sendSmartPrivateMessage(name, "Enabled Server Warnings for TWChat users");
+                    } else {
+                    servignore = false;
+                    ba.sendSmartPrivateMessage(name, "Disabled Server Warnings for TWChat users");
+
+                    }
+                   
+                }
             }
 
             if (type == Message.PRIVATE_MESSAGE) {
