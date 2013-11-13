@@ -557,9 +557,12 @@ public class pubbotstats extends PubBotModule {
           // This task is repeated in a short time so a time delay is between each *info
           // We have to do it this way because doing multiple *info's at once will result in that one *info request falls away
           Vector<Integer> players = new Vector<Integer>();
-          Iterator<Integer> it = m_botAction.getPlayerIDIterator();
-          while (it.hasNext())
-              players.add(it.next());
+          synchronized (m_botAction.getPlayerMap()) {
+              Iterator<Integer> it = m_botAction.getPlayerIDIterator();
+              while (it.hasNext())
+                  players.add(it.next());
+          }
+          
           
           Iterator<Integer> i = players.iterator();
           while(i.hasNext()) {
