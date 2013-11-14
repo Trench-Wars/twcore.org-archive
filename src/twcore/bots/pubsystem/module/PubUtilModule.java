@@ -284,12 +284,12 @@ public class PubUtilModule extends AbstractModule {
         if (privFreqEnabled) {
             context.getPlayerManager().fixFreqs();
             if (!context.hasJustStarted() && verbose.equals("on")) {
-                m_botAction.sendArenaMessage("[SETTING] Private Frequencies enabled.", 2);
+                m_botAction.sendArenaMessage("[SETTING] Private Frequencies enabled.");
             }
             m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully enabled.");
         } else {
             if (!context.hasJustStarted() && verbose.equals("on")) {
-                m_botAction.sendArenaMessage("[SETTING] Private Frequencies disabled.", 2);
+                m_botAction.sendArenaMessage("[SETTING] Private Frequencies disabled.");
             }
             m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully disabled.");
         }
@@ -301,12 +301,12 @@ public class PubUtilModule extends AbstractModule {
         if (levAttachEnabled) {
             context.getPlayerManager().fixFreqs();
             if (!context.hasJustStarted()) {
-                m_botAction.sendArenaMessage("[SETTING] Leviathan attach capability enabled on public frequencies.", 2);
+                m_botAction.sendArenaMessage("[SETTING] Leviathan attach capability enabled on public frequencies.");
             }
             m_botAction.sendSmartPrivateMessage(sender, "Leviathan can now attach on a ter in public freq.");
         } else {
             if (!context.hasJustStarted()) {
-                m_botAction.sendArenaMessage("[SETTING] Leviathan attach capability disabled on public frequencies.", 2);
+                m_botAction.sendArenaMessage("[SETTING] Leviathan attach capability disabled on public frequencies.");
             }
             m_botAction.sendSmartPrivateMessage(sender, "Leviathan cannot attach anymore on a ter in public freq.");
         }

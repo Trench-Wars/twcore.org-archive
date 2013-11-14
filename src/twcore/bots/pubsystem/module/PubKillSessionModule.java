@@ -89,9 +89,9 @@ public class PubKillSessionModule extends AbstractModule {
 
 		if (!context.hasJustStarted()) {
 			if (context.getMoneySystem().isEnabled())
-				m_botAction.sendArenaMessage("[KILL-O-THON] A new session has started. Kill the most in " + length + " minutes and win $" + winnerMoney + ". (score, type !killothon)", Tools.Sound.BEEP1);
+				m_botAction.sendArenaMessage("[KILL-O-THON] has begun. Kill the most in " + length + " minutes and win $" + winnerMoney + ". (:tw-p:!killothon for score)");
 			else
-				m_botAction.sendArenaMessage("[KILL-O-THON] A new session has started. Kill the most in " + length + " minutes.", Tools.Sound.BEEP1);
+				m_botAction.sendArenaMessage("[KILL-O-THON] has begun. Kill the most in " + length + " minutes.");
 		}
 		
 		if (locations.size() > 0) {
@@ -188,9 +188,9 @@ public class PubKillSessionModule extends AbstractModule {
 				}
 				
 				if (names.size()==1)
-					m_botAction.sendArenaMessage("[KILL-O-THON] End of the session. Winner" + moneyMessage + " with " + killNumber + " kills : " + namesString, Tools.Sound.BEEP1);
+					m_botAction.sendArenaMessage("[KILL-O-THON] is over. WINNER" + moneyMessage + " with " + killNumber + " kills : " + namesString);
 				else
-					m_botAction.sendArenaMessage("[KILL-O-THON] End of the session. Winners" + moneyMessage + " with " + killNumber + " kills : " + namesString, Tools.Sound.BEEP1);
+					m_botAction.sendArenaMessage("[KILL-O-THON] is over. WINNERS" + moneyMessage + " with " + killNumber + " kills : " + namesString);
 	
 				// Winner(s) money	
 				if (context.getMoneySystem().isEnabled()) {
