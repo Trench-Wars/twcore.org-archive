@@ -359,7 +359,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
                 // Tell the world?
                 if (item.isArenaItem()) {
-                    m_botAction.sendArenaMessage(playerName + " just bought a " + item.getDisplayName() + " for $" + item.getPrice() + ".", 21);
+                    m_botAction.sendArenaMessage("[BUY] " + playerName + " just bought a " + item.getDisplayName() + " for $" + item.getPrice() + ".", Tools.Sound.CROWD_OHH);
                 }
 
                 // Querying once every !buy (!!!)
@@ -3034,9 +3034,9 @@ public class PubMoneySystemModule extends AbstractModule {
         }
 
         if (freq < 100)
-            m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for FREQ " + freq + ", thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
+            m_botAction.sendArenaMessage("[BUY] " + m_botAction.getBotName() + " got the flag for FREQ " + freq + ", thanks to " + sender + "!");
         else
-            m_botAction.sendArenaMessage(m_botAction.getBotName() + " got the flag for a private freq, thanks to " + sender + "!", Tools.Sound.CROWD_OHH);
+            m_botAction.sendArenaMessage("[BUY] " + m_botAction.getBotName() + " got the flag for a PRIVATE FREQ, thanks to " + sender + "!");
 
     }
 
@@ -3167,7 +3167,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
         final Integer[] freqs = freqList.toArray(new Integer[freqList.size()]);
 
-        m_botAction.sendArenaMessage(sender + " has started an epidemic on FREQ " + message + ".", 17);
+        m_botAction.sendArenaMessage("[BUY] " + sender + " has started an epidemic on FREQ " + message + ".", Tools.Sound.UNDER_ATTACK);
 
         // Initiate the TimerTasks that handle the energy depletion and engine shutdown.
         int timeElapsed = 0;
@@ -3438,7 +3438,7 @@ public class PubMoneySystemModule extends AbstractModule {
          * After the perparations are done, send out a message to inform everyone.
          */
         protected void ready() {
-            m_botAction.sendArenaMessage(sender + " has bought a turret that will occupy the roof for 5 minutes.", 21);
+            m_botAction.sendArenaMessage("[BUY] " + sender + " has bought a turret that will occupy the roof for 5 minutes.");
         }
 
         /**

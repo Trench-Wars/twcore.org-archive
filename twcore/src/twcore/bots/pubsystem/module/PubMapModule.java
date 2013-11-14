@@ -183,17 +183,17 @@ public class PubMapModule extends AbstractModule {
     
     private String getBase(int base) {
         if (base == SMALL_BASE)
-            return "SMALL";
+            return "PETITE";
         else if (base == MED_BASE)
-            return "MEDIUM";
+            return "MODERATELY-SIZED";
         else
-            return "LARGE";
+            return "ENORMOUS";
     }
     
     private void setBase(int base, boolean force) {
         if (!force && ((currentBase == base && lastChange != 0) || baseChanger != null))
             return;
-        ba.sendArenaMessage("NOTICE: The map will be changing to " + getBase(base) + " in 5 seconds!", 24);
+        ba.sendArenaMessage("[BASE] Map changing to " + getBase(base) + " in 5 seconds.");
         baseChanger = new BaseChange(base);
         ba.scheduleTask(baseChanger, 5000);
     }

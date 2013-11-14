@@ -702,27 +702,22 @@ public class GameFlagTimeModule extends AbstractModule {
         flagMinutesRequired = min;
 
         if (!context.hasJustStarted())
-            m_botAction.sendArenaMessage("Flag Time mode has been enabled.");
+            m_botAction.sendArenaMessage("[FLAG] Flag Time mode has been enabled.");
 
-        m_botAction.sendArenaMessage("Objective: Hold flag for " + flagMinutesRequired + " consecutive minute"
-                + (flagMinutesRequired == 1 ? "" : "s") + " to win a round.  Best " + (MAX_FLAGTIME_ROUNDS + 1) / 2 + " of " + MAX_FLAGTIME_ROUNDS
-                + " wins the game.");
+        m_botAction.sendArenaMessage("[FLAG] Hold for " + flagMinutesRequired + " consecutive minute"
+                + (flagMinutesRequired == 1 ? "" : "s") + " to win round. (Best " + (MAX_FLAGTIME_ROUNDS + 1) / 2 + " of " + MAX_FLAGTIME_ROUNDS + ")");
         if (strictFlagTimeMode) {
-       		m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  All players will be warped at round start.");
+       		m_botAction.sendArenaMessage("[FLAG] Round 1 begins in 60 seconds.  ALL players warped at round start.");
         } else if (isAutoWarpEnabled()) {
         	if (warpCmdsAllowed)
-        		m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  You will be warped inside base at round start (type :tw-pub:!warp to change). -"
-        				+ m_botAction.getBotName());
+        		m_botAction.sendArenaMessage("[FLAG] Round 1 begins in 60 seconds.  You will be warped inside base at round start (type :tw-p:!warp to change)." );
         	else
-        		m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  You will be warped inside base at round start. -"
-        				+ m_botAction.getBotName());
+        		m_botAction.sendArenaMessage("[FLAG] Round 1 begins in 60 seconds.  You will be warped inside base at round start." );
         } else {
         	if (warpCmdsAllowed)
-        		m_botAction.sendArenaMessage("Round 1 begins in 60 seconds.  PM me with !warp to warp inside base at round start. -"
-        				+ m_botAction.getBotName());
+        		m_botAction.sendArenaMessage("[FLAG] Round 1 begins in 60 seconds.  Type :tw-p:!warp to warp into base at round start." );
         	else
-                m_botAction.sendArenaMessage("Round 1 begins in 60 seconds. -"
-                        + m_botAction.getBotName());        	        	
+                m_botAction.sendArenaMessage("[FLAG] Round 1 begins in 60 seconds.");        	        	
         }
 
         startFlagTimeStarted();
@@ -869,10 +864,9 @@ public class GameFlagTimeModule extends AbstractModule {
         boolean endOfGame = false;
         switch (roundNum) {
             case 1:
-                m_botAction.sendArenaMessage("Object: Hold flag for " + flagMinutesRequired + " consecutive minute"
-                        + (flagMinutesRequired == 1 ? "" : "s") + " to win a round.  Best " + (MAX_FLAGTIME_ROUNDS + 1) / 2 + " of "
-                        + MAX_FLAGTIME_ROUNDS + " wins the game.");
-                roundTitle = "The next game";
+                m_botAction.sendArenaMessage("[FLAG] Hold for " + flagMinutesRequired + " consecutive minute"
+                        + (flagMinutesRequired == 1 ? "" : "s") + " to win round. (Best " + (MAX_FLAGTIME_ROUNDS + 1) / 2 + " of " + MAX_FLAGTIME_ROUNDS + ")");
+                roundTitle = "Next game";
                 intermission = INTERMISSION_GAME_SECS;
                 endOfGame = true;
                 break;
@@ -883,8 +877,8 @@ public class GameFlagTimeModule extends AbstractModule {
                 roundTitle = "Round " + roundNum;
         }
 
-        m_botAction.sendArenaMessage(roundTitle + " begins in " + getTimeString(intermission) + ".  (Score: " + freq0Score + " - " + freq1Score + ")"
-                + (strictFlagTimeMode ? "" : ("  Type !warp to set warp status, or send !help")));
+        m_botAction.sendArenaMessage("[FLAG] " + roundTitle + " begins in " + getTimeString(intermission) + ".  (Score: " + freq0Score + " - " + freq1Score + ")"
+                + (strictFlagTimeMode ? "" : (" :tw-p:!warp to set warp status")));
 
         m_botAction.cancelTask(startTimer);
 
@@ -1230,17 +1224,17 @@ public class GameFlagTimeModule extends AbstractModule {
                 gameOver = true;
             else {
                 int roundNumber = freq0Score + freq1Score;
-                m_botAction.sendArenaMessage("END OF ROUND " + roundNumber + ": " + "Freq " + winnerFreq + " wins after "
-                        + getTimeString(flagTimer.getTotalSecs()) + " " + "Score: " + freq0Score + " - " + freq1Score + " (Bonus: +$" + moneyBonus
-                        + ")", Tools.Sound.BEEP1);
+                m_botAction.sendArenaMessage("[FLAG] END OF ROUND " + roundNumber + ": Freq " + winnerFreq + " wins after "
+                        + getTimeString(flagTimer.getTotalSecs()) + " Final Score: " + freq0Score + "-" + freq1Score + " (Bonus: +$" + moneyBonus
+                        + ")");
             }
 
         } else if (winnerFreq < 100)
-            m_botAction.sendArenaMessage("END ROUND: Freq " + winnerFreq + " wins the round after " + getTimeString(flagTimer.getTotalSecs())
-                    + " (Bonus: +$" + moneyBonus + ")", Tools.Sound.BEEP1);
+            m_botAction.sendArenaMessage("[FLAG] END ROUND: Freq " + winnerFreq + " wins the round after " + getTimeString(flagTimer.getTotalSecs())
+                    + ". (Bonus: +$" + moneyBonus + ")");
         else
-            m_botAction.sendArenaMessage("END ROUND: A private freq wins the round after " + getTimeString(flagTimer.getTotalSecs()) + " (Bonus: +$"
-                    + moneyBonus + ")", Tools.Sound.BEEP1);
+            m_botAction.sendArenaMessage("[FLAG] END ROUND: A PRIVATE FREQ wins the round after " + getTimeString(flagTimer.getTotalSecs()) + "! (Bonus: +$"
+                    + moneyBonus + ")");
 
         // Clear any round restricted buyable items/commands
         context.getMoneySystem().resetRoundRestrictions();
@@ -1317,7 +1311,6 @@ public class GameFlagTimeModule extends AbstractModule {
         int m5 = 250 + Math.max(0, (mins - 5) * 5);
         int m2 = 100 + Math.max(0, (mins - 5) * 5);
 
-        m_botAction.sendArenaMessage("Achievements:");
         if (basingKingName != null) {
             m_botAction.sendArenaMessage(" - Basing King/Queen       : " + basingKingName + Tools.rightString(" (+$" + m10 + ")", 8) );
             context.getPlayerManager().addMoney(basingKingName, m10, true);
@@ -1471,7 +1464,7 @@ public class GameFlagTimeModule extends AbstractModule {
             default: text = " - Most Non-Conformist     : ";
             }
             int amt = r.nextInt(48) + 2;    // Extremely small, awkward amount to show it's only a joke
-            m_botAction.sendArenaMessage(text + p.getPlayerName() + Tools.rightString(" (+$" + amt + ")", 8) );
+            m_botAction.sendArenaMessage(text + p.getPlayerName() + Tools.rightString(" (+$" + amt + ")", 7) );
             context.getPlayerManager().addMoney(p.getPlayerName(), amt); // ...but yes, actually give it to them
         }
         if( r.nextInt(200) == 0 )   // Because very rare surprises are fun/festive!
@@ -1607,22 +1600,21 @@ public class GameFlagTimeModule extends AbstractModule {
                     diff = freq1Score - freq0Score;
             switch (diff) {
                 case -1:
-                    winMsg = " for their masterful victory!";
+                    winMsg = " educates with a masterful victory";
                     break;
                 case 1:
-                    winMsg = " for their close win!";
+                    winMsg = " muscles in a close win";
                     break;
                 case 2:
-                    winMsg = " for a well-executed victory!";
+                    winMsg = " delivers a well-executed victory";
                     break;
                 default:
-                    winMsg = " for their win!";
+                    winMsg = " wins";
                     break;
             }
-            m_botAction.sendArenaMessage("GAME OVER!  Freq " + winnerFreq + " has won the game after " + getTimeString(flagTimer.getTotalSecs())
-                    + " Final score: " + freq0Score + " - " + freq1Score, 2);
-
-            m_botAction.sendArenaMessage("Give congratulations to FREQ " + winnerFreq + winMsg + " (Bonus: +$" + moneyBonus + ")");
+            m_botAction.sendArenaMessage("[FLAG] GAME OVER!  Freq " + winnerFreq + winMsg + " after " + getTimeString(flagTimer.getTotalSecs())
+                    + ". Final score: " + freq0Score + "-" + freq1Score);
+            //m_botAction.sendArenaMessage("Give congratulations to FREQ " + winnerFreq + winMsg + " (Bonus: +$" + moneyBonus + ")");
 
             freq0Score = 0;
             freq1Score = 0;
@@ -1907,7 +1899,7 @@ public class GameFlagTimeModule extends AbstractModule {
         if (!isFlagTimeStarted())
             return;
 
-        m_botAction.sendArenaMessage("Flag Time mode has been disabled.");
+        m_botAction.sendArenaMessage("[FLAG] Flag Time mode has been disabled.");
 
         try {
             if (flagTimer != null)
@@ -2287,26 +2279,26 @@ public class GameFlagTimeModule extends AbstractModule {
 
                 if (remain < 60)
                     if (remain < 4) {
-                        m_botAction.sendArenaMessage("INCONCEIVABLE!!: " + p.getPlayerName() + " claims flag for "
+                        m_botAction.sendArenaMessage("[FLAG] INCONCEIVABLE!!: " + p.getPlayerName() + " claims flag for "
                                 + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with just " + remain + " second"
                                 + (remain == 1 ? "" : "s") + " left!", 65);
                         m_botAction.showObject(2500);
                         m_botAction.showObject(2600);
-                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Wow!! I give you $1000 for this.");
+                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Wow!! I'll give you $1000 for this.");
                         context.getPlayerManager().addMoney(p.getPlayerName(), 1000);
 
                     } else if (remain < 11) {
-                        m_botAction.sendArenaMessage("AMAZING!: " + p.getPlayerName() + " claims flag for "
+                        m_botAction.sendArenaMessage("[FLAG] AMAZING!: " + p.getPlayerName() + " claims flag for "
                                 + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with just " + remain + " sec. left!");
                         m_botAction.showObject(2600); // 'Daym!' lvz
-                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Not bad at all! I give you $500 for this.");
+                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Not bad at all! I'll give you $500 for this.");
                         context.getPlayerManager().addMoney(p.getPlayerName(), 500);
 
                     } else if (remain < 25)
-                        m_botAction.sendArenaMessage("SAVE!: " + p.getPlayerName() + " claims flag for "
+                        m_botAction.sendArenaMessage("[FLAG] SAVE!: " + p.getPlayerName() + " claims flag for "
                                 + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with " + remain + " sec. left!");
                     else
-                        m_botAction.sendArenaMessage("Save: " + p.getPlayerName() + " claims flag for "
+                        m_botAction.sendArenaMessage("[FLAG] Save: " + p.getPlayerName() + " claims flag for "
                                 + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with " + remain + " sec. left.");
             }
 
@@ -2592,12 +2584,12 @@ public class GameFlagTimeModule extends AbstractModule {
 
             if (isRunning == false)
                 if (roundNum == 1)
-                    return "Round 1 of a new game is just about to start.";
+                    return "[FLAG] Round 1 of a new game will start soon.";
                 else
-                    return "We are currently in between rounds (round " + roundNum + " starting soon).  Score: " + freq0Score + " - " + freq1Score;
-            return "ROUND " + roundNum + " Stats: " + (flagHoldingFreq == -1 || flagHoldingFreq > 99 ? "?" : "Freq " + flagHoldingFreq)
+                    return "[FLAG] Round " + roundNum + " starting soon. Score: " + freq0Score + "-" + freq1Score;
+            return "[FLAG] ROUND " + roundNum + "  " + (flagHoldingFreq == -1 || flagHoldingFreq > 99 ? "?" : "Freq " + flagHoldingFreq)
                     + " holding for " + getTimeString(secondsHeld) + ", needs " + getTimeString((flagMinutesRequired * 60) - secondsHeld)
-                    + " more.  [Time: " + getTimeString(totalSecs) + "]  Score: " + freq0Score + " - " + freq1Score;
+                    + " more.  [Time: " + getTimeString(totalSecs) + "]";
         }
 
         /**
@@ -2623,7 +2615,7 @@ public class GameFlagTimeModule extends AbstractModule {
             if (isStarted == false) {
                 int roundNum = freq0Score + freq1Score + 1;
                 if (preTimeCount == 0) {
-                    m_botAction.sendArenaMessage("Next round begins in 10 seconds . . .");
+                    m_botAction.sendArenaMessage("[FLAG] Next round begins in 10 seconds . . .");
                     if (strictFlagTimeMode)
                         safeWarp();
                 }
@@ -2632,10 +2624,11 @@ public class GameFlagTimeModule extends AbstractModule {
                 if (preTimeCount >= 10) {
                     isStarted = true;
                     isRunning = true;
-                    String message = (roundNum == MAX_FLAGTIME_ROUNDS ? "FINAL ROUND" : "ROUND " + roundNum) + " START!  Hold flag for "
-                            + flagMinutesRequired + " consecutive minute" + (flagMinutesRequired == 1 ? "" : "s") + " to win the round.";
-                    int sound = strictFlagTimeMode ? Tools.Sound.GOGOGO : Tools.Sound.BEEP1;
-                    m_botAction.sendArenaMessage(message, sound);
+                    String message = "[FLAG] " + (roundNum == MAX_FLAGTIME_ROUNDS ? "FINAL ROUND" : "ROUND " + roundNum) + " START!  Hold flag for "
+                            + flagMinutesRequired + " consecutive minute" + (flagMinutesRequired == 1 ? "" : "s") + " to win.";
+                    //int sound = strictFlagTimeMode ? Tools.Sound.GOGOGO : Tools.Sound.BEEP1;
+                    //m_botAction.sendArenaMessage(message, sound);
+                    m_botAction.sendArenaMessage(message);
                     m_botAction.resetFlagGame();
                     setupPlayerTimes();
                     warpPlayers(strictFlagTimeMode);
@@ -2691,9 +2684,9 @@ public class GameFlagTimeModule extends AbstractModule {
                 endGame();
                 doEndRoundNew();
             } else if (flagSecsReq - secondsHeld == 60)
-                m_botAction.sendArenaMessage((flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "Private freq") + " will win in 60 seconds.");
+                m_botAction.sendArenaMessage("[FLAG] " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "Private freq") + " will win in 60 seconds.");
             else if (flagSecsReq - secondsHeld == 10)
-                m_botAction.sendArenaMessage((flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "Private freq") + " will win in 10 seconds . . .");
+                m_botAction.sendArenaMessage("[FLAG] " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "Private freq") + " will win in 10 seconds . . .");
         }
 
         /**

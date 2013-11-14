@@ -227,8 +227,8 @@ public class BountyModule extends AbstractModule {
         				//timer delay on announce
         				if (isAnnouncing) {
         					m_botAction.sendArenaMessage("[BOUNTY] " + deadman + 
-                                " now has a bounty of $" + currentAmount + 
-                                ". Private message !listbty to TW-PubSystem to view.");
+                                " now has a $" + currentAmount + 
+                                " bounty. To view, type:  :tw-p:!listbty");
                         
         					isAnnouncing = false;
         					m_botAction.scheduleTask(new TimerTask() {

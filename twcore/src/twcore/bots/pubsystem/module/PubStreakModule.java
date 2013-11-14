@@ -15,24 +15,24 @@ import twcore.core.util.Tools;
 
 public class PubStreakModule extends AbstractModule {
 
-	public final static int ARENA_TIMEOUT = 1 * Tools.TimeInMillis.MINUTE;
+	public final static int ARENA_TIMEOUT = 3 * Tools.TimeInMillis.MINUTE;
 
 	private ConcurrentHashMap<String,Integer> winStreaks;
 	private ConcurrentHashMap<String,Integer> loseStreaks;
 	
-	private int streakJump;
+	//private int streakJump;
 	private int winsStreakArenaAt;
-	private int winsStreakZoneAt;
+	//private int winsStreakZoneAt;
 	private int winsStreakMoneyMultiplicator;
 	private int streakBrokerBonus;
 	
 	private int bestWinStreak = 0;
 	private int worstLoseStreak = 0;
 	private PubPlayer bestWinStreakPlayer;
-	private PubPlayer worstLoseStreakPlayer;
+	//private PubPlayer worstLoseStreakPlayer;
 	
 	private long lastArena = 0;
-	private long lastZone = 0;
+	//private long lastZone = 0;
 	
 	private boolean moneyEnabled = false;
 
@@ -154,7 +154,8 @@ public class PubStreakModule extends AbstractModule {
         		int streak = winStreaks.get(killed.getPlayerName());
         		int moneybroker = streakBrokerBonus + streak*winsStreakMoneyMultiplicator;
         		
-	        	announceStreakBreaker(pubPlayerKiller, pubPlayerKilled, streak, moneybroker);
+        		announceStreakBreaker(pubPlayerKiller, pubPlayerKilled, streak, moneybroker,
+        		        (winStreaks.get(killed.getPlayerName()) >= winsStreakArenaAt * 3) );
 	        	if (streakBrokerBonus > 0) {
 	        		pubPlayerKiller.addMoney(streakBrokerBonus);
 	        	}
@@ -172,7 +173,7 @@ public class PubStreakModule extends AbstractModule {
         streak = loseStreaks.get(killed.getPlayerName());
         if (streak > worstLoseStreak) {
         	worstLoseStreak = streak;
-        	worstLoseStreakPlayer = pubPlayerKilled;
+        	//worstLoseStreakPlayer = pubPlayerKilled;
         }
         
         // Updating stats for the killer (if not dueling)
@@ -234,22 +235,27 @@ public class PubStreakModule extends AbstractModule {
     	
 	}
 
-	private void announceStreakBreaker(PubPlayer killer, PubPlayer killed, int streak, int money) {
+	private void announceStreakBreaker(PubPlayer killer, PubPlayer killed, int streak, int money, boolean arena) {
     	String message = "[STREAK BREAKER!] " + killed.getPlayerName() + " (" + streak + " kills) broken by " + killer.getPlayerName() + "!";
     	if (context.getMoneySystem().isEnabled()) {
     		message += " (+$" + money + ")";
     	}
-    	m_botAction.sendArenaMessage(message, Tools.Sound.INCONCEIVABLE);
+    	if (arena)
+    	    m_botAction.sendArenaMessage(message);
+    	else
+            m_botAction.sendPrivateMessage((int)killer.getPlayerID(), message);
     }
 
     private void announceWinStreak(PubPlayer player, int streak) {
     	if (m_botAction.getOperatorList().isBotExact(player.getPlayerName()))
     	    return;
+    	/*
     	int money = getMoney(winStreaks.get(player.getPlayerName()));
     	String moneyMessage = "";
     	if (context.getMoneySystem().isEnabled()) {
     		moneyMessage = "(+$" + String.valueOf(money) + ")";
     	}
+    	*/
     	
     	// Arena?
     	if (streak >= winsStreakArenaAt) {
@@ -363,12 +369,12 @@ public class PubStreakModule extends AbstractModule {
     	bestWinStreakPlayer = null;
     	
     	worstLoseStreak = 0;
-    	worstLoseStreakPlayer = null;
+    	//worstLoseStreakPlayer = null;
     	
 		winStreaks = new ConcurrentHashMap<String,Integer>();
 		loseStreaks = new ConcurrentHashMap<String,Integer>();
     	
-    	m_botAction.sendArenaMessage("[STREAK] The streak session has been reset.", Tools.Sound.BEEP2);
+    	m_botAction.sendArenaMessage("[STREAK] The streak session has been reset.");
     }
     
 	@Override
@@ -409,7 +415,6 @@ public class PubStreakModule extends AbstractModule {
 
 	@Override
 	public void start() {
-		// TODO Auto-generated method stub
 		
 	}
 
@@ -421,9 +426,9 @@ public class PubStreakModule extends AbstractModule {
 		if (m_botAction.getBotSettings().getInt("streak_money_enabled")==1) {
 			moneyEnabled = true;
 		}
-		streakJump = m_botAction.getBotSettings().getInt("streak_jump");
+		//streakJump = m_botAction.getBotSettings().getInt("streak_jump");
 		winsStreakArenaAt = m_botAction.getBotSettings().getInt("streak_wins_arena_at");
-		winsStreakZoneAt = m_botAction.getBotSettings().getInt("streak_wins_zone_at");
+		//winsStreakZoneAt = m_botAction.getBotSettings().getInt("streak_wins_zone_at");
 		winsStreakMoneyMultiplicator = m_botAction.getBotSettings().getInt("streak_wins_money_multiplicator");
 		streakBrokerBonus = m_botAction.getBotSettings().getInt("streak_broker_bonus");
 	}
@@ -463,7 +468,6 @@ public class PubStreakModule extends AbstractModule {
 
     @Override
     public void handleSmodCommand(String sender, String command) {
-        // TODO Auto-generated method stub
         
     }
 
