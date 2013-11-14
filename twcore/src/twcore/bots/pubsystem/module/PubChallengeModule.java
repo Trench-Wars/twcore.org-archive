@@ -971,11 +971,11 @@ public class PubChallengeModule extends AbstractModule {
             if (allowBets) {
                 String amtString = (challenge.amount >= 250 ? "$" + challenge.amount : "peanuts"); 
                 if (ship1==ship2) {
-                    m_botAction.sendArenaMessage( "- [" + Tools.shipName(ship1).toUpperCase() + " DUEL] - " + challenger + " vs " + accepter
-                            + " for " + amtString +". Betting closes in 1 minute. Use !beton <name>:<$>");
+                    m_botAction.sendArenaMessage( "- [" + Tools.shipNameSlang(ship1).toUpperCase() + " DUEL] - " + challenger + " vs " + accepter
+                            + " for " + amtString +". Betting closes soon. Use !beton <name>:<$>");
                 } else {
-                    m_botAction.sendArenaMessage( "- [" + Tools.shipName(ship1).toUpperCase() + " vs " +  Tools.shipName(ship2).toUpperCase() + " DUEL] - " + challenger + " vs " + accepter
-                            + " for " + amtString +". Betting closes in 1 minute. Use !beton <name>:<$>");                    
+                    m_botAction.sendArenaMessage( "- [" + Tools.shipNameSlang(ship1).toUpperCase() + " vs " +  Tools.shipNameSlang(ship2).toUpperCase() + " DUEL] - " + challenger + " vs " + accepter
+                            + " for " + amtString +". Betting closes soon. Use !beton <name>:<$>");                    
                 }
             }
         }
