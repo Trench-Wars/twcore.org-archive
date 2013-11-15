@@ -432,7 +432,7 @@ public class pubbotbanc extends PubBotModule {
             try {
                 if (b != null) {
                     m_botAction.sendPrivateMessage(b.getName(), "You're banned from ship" + shipNumber + " with " + b.getRemaining() + " minutes remaining.");
-                    m_botAction.sendPrivateMessage(b.getName(), "You've been put in spider. But you can change to: warbird(1), spider(3), weasel(6) or lancaster(7).");
+                    m_botAction.sendPrivateMessage(b.getName(), "You've been put in spider. But you can change to: warbird(1), spider(3), terrier(5), weasel(6) or lancaster(7).");
                     m_botAction.setShip(b.getName(), 3);
                 }
             } catch (NullPointerException e) {
