@@ -39,11 +39,9 @@ public class PubChallengeModule extends AbstractModule {
     private Map<String, Long> spam;
     private LinkedList<String> noplay;
 
-    // added this due to multiple people asking me to fix,
-    // i didn't know if sharks should get shrap or not so i made it changeable
-    private boolean sharkShrap = false;
-    private boolean saveDuel = false;
-    private boolean allowBets = true;
+    private boolean sharkShrap = false; // True if sharks get shrap
+    private boolean saveDuel = false;   // True if duels are saved to DB
+    private boolean allowBets = true;   // True if betting is allowed
     private String database = "";
 
     //private boolean announceNew = false;
@@ -785,8 +783,11 @@ public class PubChallengeModule extends AbstractModule {
         m_botAction.specificPrize(name, Tools.Prize.MULTIFIRE);
         m_botAction.specificPrize(name, -27); // NEGATIVE ROCKET
         m_botAction.specificPrize(name, -26); // NEGATIVE BRICK
-        m_botAction.specificPrize(name, -19); // NEGATIVE SHRAPNEL
-        m_botAction.specificPrize(name, -19);
+        if (!sharkShrap) {
+            m_botAction.specificPrize(name, -19); // NEGATIVE SHRAPNEL
+            m_botAction.specificPrize(name, -19);
+            m_botAction.specificPrize(name, -19);
+        }
 
     }
 
@@ -1049,27 +1050,6 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.warpTo(accepter, area.warp2);
             givePrize(challenger);
             givePrize(accepter);
-
-            // putting this here for now, you can move it into givePrize later
-            if (ship1 == 8) {
-                if (!sharkShrap) {
-                    m_botAction.specificPrize(challenger, -19);
-                    m_botAction.specificPrize(challenger, -19);
-                } else {
-                    m_botAction.specificPrize(challenger, 19);
-                    m_botAction.specificPrize(challenger, 19);
-                }
-            }
-            if (ship2 == 8) {
-                if (!sharkShrap) {
-                    m_botAction.specificPrize(accepter, -19);
-                    m_botAction.specificPrize(accepter, -19);
-                } else {
-                    m_botAction.specificPrize(accepter, 19);
-                    m_botAction.specificPrize(accepter, 19);
-                }
-            }
-
             
             m_botAction.sendSmartPrivateMessage(challenger, "GO GO GO!", Tools.Sound.GOGOGO);
             m_botAction.sendSmartPrivateMessage(accepter, "GO GO GO!", Tools.Sound.GOGOGO);
