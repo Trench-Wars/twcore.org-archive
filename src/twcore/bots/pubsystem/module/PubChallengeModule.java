@@ -1682,7 +1682,7 @@ class Challenge {
 
     public int getTotalChallengedBets() {
         int total = 0;
-        for( Integer bet : challengerBets.values() )
+        for( Integer bet : challengedBets.values() )
             total += bet;
         return total;
     }
