@@ -21,6 +21,9 @@ import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
+import twcore.core.game.Projectile;
+import twcore.core.game.Ship;
+import twcore.core.util.Point;
 import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
@@ -251,7 +254,7 @@ public class pubautobot extends SubspaceBot {
         // If the bot isn't set to be killable, leave.
     	if(!killable) return;
     	// If the bot is in spec, leave.
-    	if(m_botAction.getShip().getShip() == 8) return;
+    	if(m_botAction.getShip().getShip() == Ship.INTERNAL_SPECTATOR) return;
     	// If there is someone attached, we track deaths differently, leave.
     	if(turretPlayerID != -1) return;
     	// Get the player that fired the weapon.
@@ -267,17 +270,13 @@ public class pubautobot extends SubspaceBot {
             return;
         
         double pSpeed = p.getWeaponSpeed();
-        // Convert rotation to radians.
-		double bearing = Math.PI * 2 * (double)event.getRotation() / 40.0;
-		
-		// Add the projectile to the list of tracked projectiles.
-		fired.add(new Projectile(p.getPlayerName(), 
-		        event.getXLocation() + (short)(10.0 * Math.sin(bearing)), 
-		        event.getYLocation() - (short)(10.0 * Math.cos(bearing)), 
-		        event.getXVelocity() + (short)(pSpeed * Math.sin(bearing)), 
-		        event.getYVelocity() - (short)(pSpeed * Math.cos(bearing)), 
-		        event.getWeaponType(), 
-		        event.getWeaponLevel()));
+        
+        Projectile pjt = new Projectile(p.getPlayerName(), event, pSpeed);
+        
+        if(pjt.getImpactTime(new Point(m_botAction.getShip().getX(), m_botAction.getShip().getY()), 16, 5000) < 0)
+            return;
+        
+        fired.add(pjt);
 	}
 
     /**
