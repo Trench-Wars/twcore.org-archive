@@ -2178,52 +2178,46 @@ public class hockeybot extends SubspaceBot {
      * @param name name of the player that issued the command
      */
     private void cmd_status(String name) {
-        String[] status;    //Status message
+        String status;    //Status message
 
-        status = new String[2];
-        status[0] = ""; //Default value
-        status[1] = ""; //Default value
+        status = ""; //Default value
 
         switch (currentState) {
             case OFF:
-                status[0] = "Bot turned off, no games can be started at this moment.";
+                status = "Bot turned off, no games can be started at this moment.";
                 break;
             case WAITING_FOR_CAPS:
                 if (config.getAllowAutoCaps()) {
-                    status[0] = "A new game will start when two people message me with !cap";
+                    status = "A new game will start when two people message me with !cap";
                 } else {
-                    status[0] = "Request a new game with '?help start hockey please'";
+                    status = "Request a new game with '?help start hockey please'";
                 }
                 break;
             case ADDING_PLAYERS:
-                status[0] = "Teams: " + team0.getName() + " vs. " + team1.getName()
+                status = "Teams: " + team0.getName() + " vs. " + team1.getName()
                         + ". We are currently arranging lineups";
                 break;
             case FACE_OFF:
-                status[0] = "Teams: " + team0.getName() + " vs. " + team1.getName()
+                status = "Teams: " + team0.getName() + " vs. " + team1.getName()
                         + ". We are currently facing off";
                 break;
             case TIMEOUT:
-                status[0] = "Teams: " + team0.getName() + " vs. " + team1.getName()
+                status = "Teams: " + team0.getName() + " vs. " + team1.getName()
                         + ". We are currently in a timeout";
                 break;
             case GAME_IN_PROGRESS:
-                status[0] = "Game is in progress.";
-                status[1] = "Score " + team0.getName() + " vs. " + team1.getName() + ": " + score();
+                status = "Game is in progress. "
+                        + "Score " + team0.getName() + " vs. " + team1.getName() + ": " + score();
                 break;
             case GAME_OVER:
-                status[0] = "Teams: " + team0.getName() + " vs. " + team1.getName()
+                status = "Teams: " + team0.getName() + " vs. " + team1.getName()
                         + ". We are currently ending the game";
                 break;
         }
 
         /* Send status message */
-        if (!status[0].isEmpty()) {
-            m_botAction.sendPrivateMessage(name, status[0]);
-        }
-
-        if (!status[1].isEmpty()) {
-            m_botAction.sendPrivateMessage(name, status[1]);
+        if (!status.isEmpty()) {
+            m_botAction.sendPrivateMessage(name, status);
         }
     }
 
