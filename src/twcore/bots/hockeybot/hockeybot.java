@@ -746,6 +746,8 @@ public class hockeybot extends SubspaceBot {
      * @param yLoc y-coordinate to go to.
      */
     public void doGetBall(int xLoc, int yLoc) {
+        m_botAction.stopReliablePositionUpdating();
+        m_botAction.move(xLoc, yLoc);
         fo_botUpdateTimer = new TimerTask() {
             @Override
             public void run() {
@@ -755,7 +757,7 @@ public class hockeybot extends SubspaceBot {
         }; m_botAction.scheduleTask(fo_botUpdateTimer, 0, 500);
         
         if (m_botAction.getShip().getShip() != Ship.INTERNAL_WARBIRD || !puck.holding) {
-            m_botAction.stopReliablePositionUpdating();
+            m_botAction.getShip().setShip(Ship.INTERNAL_WARBIRD);
             m_botAction.getShip().setShip(Ship.INTERNAL_WARBIRD);
             m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
             m_botAction.getShip().move(xLoc, yLoc);
@@ -769,6 +771,7 @@ public class hockeybot extends SubspaceBot {
      */
     public void dropBall() {
         m_botAction.cancelTask(fo_botUpdateTimer);
+        m_botAction.getShip().setShip(Ship.INTERNAL_SPECTATOR);
         m_botAction.getShip().setShip(Ship.INTERNAL_SPECTATOR);
         m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
         m_botAction.setPlayerPositionUpdating(300);
@@ -1353,6 +1356,9 @@ public class hockeybot extends SubspaceBot {
             }
             String[] spam = help.toArray(new String[help.size()]);
             m_botAction.privateMessageSpam(name, spam);
+         } else if (puck.holding) {
+             // The bot gets kicked for message flooding seemingly when he is spamming while in a ship.
+             m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
          } else {
              if (!args.contains("cap") && !args.contains("staff")){
                 help.add("Hockey Help Menu");
@@ -1534,7 +1540,10 @@ public class hockeybot extends SubspaceBot {
     private void cmd_list(String name) {
         HockeyTeam t;
 
-        if (currentState != HockeyState.OFF && currentState != HockeyState.WAITING_FOR_CAPS
+        if (puck.holding) {
+            // The bot gets kicked for message flooding seemingly when he is spamming while in a ship.
+            m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
+        } else if (currentState != HockeyState.OFF && currentState != HockeyState.WAITING_FOR_CAPS
                 && currentState != HockeyState.GAME_OVER) {
             t = getTeam(name);   //Retrieve teamnumber
 
@@ -6518,6 +6527,46 @@ public class hockeybot extends SubspaceBot {
             
         }
     }
+
+    /*
+     * Possibly used later on to debug this bot in a very detailed manner.
+    private class Log {
+
+        private static final String path = "/home/bots/twcore-event/bin/logs/hockey/";
+        private FileWriter writer;
+        
+        public Log(BotAction botAction, String filename) {
+            try {
+                File file = new File(path);
+                writer = new FileWriter(new File(file, filename), true);
+                write(Tools.formatString("=", 40, "="));
+                write("=== " + Tools.formatString("Starting log session",32) + " ===");
+                write("=== " + Tools.formatString(Tools.getTimeStamp(),32) + " ===");
+                write(Tools.formatString("=", 40, "="));
+            } catch (IOException e) {
+                Tools.printStackTrace(e);
+            }
+        }
+        
+        public void close() {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void write(String text) {
+            if (writer != null)
+            try {
+                writer.write(text + "\r\n");
+                writer.flush();
+            } catch (IOException e) {
+                Tools.printStackTrace(e);
+            }
+        }
+        
+    }*/
 
     /**
      * Used for debugging purposes only. When committing the code, please either temporary remove
