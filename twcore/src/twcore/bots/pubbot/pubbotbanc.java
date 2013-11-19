@@ -773,7 +773,10 @@ public class pubbotbanc extends PubBotModule {
 
         public boolean isMatch(String name, String ip, String mid) {
             boolean match = false;
-            if (this.ip != null && ip.equals(this.ip))
+            if (this.ip != null 
+                    && ( ip.equals(this.ip)         // Full IP match
+                            || ( (this.ip.endsWith("*") || this.ip.endsWith("."))                     // Partial IP match
+                                    && ip.startsWith( this.ip.substring(0, this.ip.length() - 1) )))) // Indicated by ending . or *
                 match = true;
             else if (this.mid != null && mid.equals(this.mid))
                 match = true;
