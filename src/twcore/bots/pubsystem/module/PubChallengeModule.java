@@ -284,11 +284,13 @@ public class PubChallengeModule extends AbstractModule {
         boolean moneyActive = context.getMoneySystem().isEnabled();
         boolean openChal = challenged.equals("*");
         Player playerChallenged = m_botAction.getFuzzyPlayer(challenged);
-        if (!openChal && playerChallenged == null) {
-            m_botAction.sendSmartPrivateMessage(challenger, "No such player in the arena.");
-            return;
+        if (!openChal) {
+            if (playerChallenged == null) {
+                m_botAction.sendSmartPrivateMessage(challenger, "No such player in the arena.");
+                return;
+            }
+            challenged = playerChallenged.getPlayerName();
         }
-        challenged = playerChallenged.getPlayerName();
 
         if (isDueling(challenger)) {
             m_botAction.sendSmartPrivateMessage(challenger, "You are already dueling.");
