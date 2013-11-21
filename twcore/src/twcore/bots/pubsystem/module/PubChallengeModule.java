@@ -38,6 +38,7 @@ public class PubChallengeModule extends AbstractModule {
     private Map<String, StartLagout> laggers;
     private Map<String, Long> spam;
     private LinkedList<String> noplay;
+    private Map<String,String> openChallenges;
 
     private boolean sharkShrap = false; // True if sharks get shrap
     private boolean saveDuel = false;   // True if duels are saved to DB
@@ -48,6 +49,7 @@ public class PubChallengeModule extends AbstractModule {
     private boolean announceWinner = false;
     private int announceWinnerAt = 0;
     private int announceZoneWinnerAt = 50000;
+    private int announceOpenChallengeAt = 1000;
     private int deaths;
     
     // Coordinates of the safe zone used to clear out projectiles and mines.
@@ -57,6 +59,7 @@ public class PubChallengeModule extends AbstractModule {
     public long lastBetAdvert = 0;
     public final long MAX_BET_ADVERT_FREQUENCY = 2 * Tools.TimeInMillis.MINUTE;  // Time in ms between bets being arena'd
     public final int MIN_BET_TO_NOTIFY = 500;
+    public final long TIME_OPEN_CHALS_ACTIVE = 30 * Tools.TimeInMillis.MINUTE;  // Time open challenges are active
 
     public PubChallengeModule(BotAction m_botAction, PubContext context) {
         super(m_botAction, context, "Challenge");
@@ -86,6 +89,7 @@ public class PubChallengeModule extends AbstractModule {
         String name = p.getPlayerName();
 
         noplay.remove(name.toLowerCase());
+        openChallenges.remove(name);
 
         Dueler dueler = duelers.get(name);
         if (dueler == null)
@@ -156,12 +160,9 @@ public class PubChallengeModule extends AbstractModule {
 
         Dueler dueler = duelers.get(name);
 
-        int x = event.getXLocation() / 16;
-        int y = event.getYLocation() / 16;
-
         if (dueler == null)
             return;
-
+        
         Challenge challenge = dueler.challenge;
         if (challenge.hasEnded()) {
             challenges.remove(getKey(challenge));
@@ -169,6 +170,9 @@ public class PubChallengeModule extends AbstractModule {
             warpToSafe(name, false);
             return;
         }
+        
+        int x = event.getXLocation() / 16;
+        int y = event.getYLocation() / 16;
 
         if (y > 225 && y < 675 && x > 225 && x < 675 && challenge.isStarted()) {
             DuelArea area = challenge.area;
@@ -278,6 +282,7 @@ public class PubChallengeModule extends AbstractModule {
 
     public void issueChallenge(String challenger, String challenged, int amount, int ship1, int ship2) {
         boolean moneyActive = context.getMoneySystem().isEnabled();
+        boolean openChal = challenged.equals("*");
         Player playerChallenged = m_botAction.getFuzzyPlayer(challenged);
         if (playerChallenged == null) {
             m_botAction.sendSmartPrivateMessage(challenger, "No such player in the arena.");
@@ -290,18 +295,21 @@ public class PubChallengeModule extends AbstractModule {
             return;
         }
 
-        if (isDueling(challenged)) {
-            m_botAction.sendSmartPrivateMessage(challenger, "This player is already dueling.");
-            return;
-        }
+        if (!openChal) {
+            if (isDueling(challenged)) {
+                m_botAction.sendSmartPrivateMessage(challenger, "This player is already dueling.");
+                return;
+            }
 
-        if (noplay.contains(challenged.toLowerCase())) {
-            m_botAction.sendSmartPrivateMessage(challenger, "This player is not accepting challenges.");
-            return;
-        }
+            if (noplay.contains(challenged.toLowerCase())) {
+                m_botAction.sendSmartPrivateMessage(challenger, "This player is not accepting challenges.");
+                return;
+            }
 
+        }
+        
         String key = challenger.toLowerCase() + "-" + challenged.toLowerCase();
-        if (spam.containsKey(key) && ((System.currentTimeMillis() - spam.get(key)) < 30 * Tools.TimeInMillis.SECOND)) {
+        if (!openChal && spam.containsKey(key) && ((System.currentTimeMillis() - spam.get(key)) < 30 * Tools.TimeInMillis.SECOND)) {
             m_botAction.sendSmartPrivateMessage(challenger, "Please wait 30 seconds before challenging this player again.");
             return;
         }
@@ -314,18 +322,21 @@ public class PubChallengeModule extends AbstractModule {
             return;
         }
 
-        if (pubChallenged == null) {
+        if (!openChal && pubChallenged == null) {
             m_botAction.sendSmartPrivateMessage(challenger, "Please wait, " + challenged + " is not in the system yet.");
             return;
         }
 
-        if (pubChallenged.isIgnored(challenger)) {
+        if (!openChal && pubChallenged.isIgnored(challenger)) {
             m_botAction.sendSmartPrivateMessage(challenger, "This player is not accepting challenges from you.");
             return;
         }
 
         if (isChallengeAlreadySent(challenger, challenged)) {
-            m_botAction.sendSmartPrivateMessage(challenger, "You have already a pending challenge with " + challenged + ".");
+            if (openChal)
+                m_botAction.sendSmartPrivateMessage(challenger, "You already have an open challenge set.");
+            else
+                m_botAction.sendSmartPrivateMessage(challenger, "You already have a pending challenge with " + challenged + ".");
             m_botAction.sendSmartPrivateMessage(challenger, "Please remove it using !removechallenge before challenging more.");
             return;
         }
@@ -354,28 +365,40 @@ public class PubChallengeModule extends AbstractModule {
                 m_botAction.sendSmartPrivateMessage(challenger, "You don't have enough money.");
                 return;
             }
-            if (pubChallenged.getMoney() < amount) {
+            if (!openChal && pubChallenged.getMoney() < amount) {
                 m_botAction.sendSmartPrivateMessage(challenger, challenged + " does not have enough money.");
                 return;
             }
         }
 
-        if (ship1 == ship2) {
-            m_botAction.sendSmartPrivateMessage(challenged, challenger + " has challenged you to duel" + (moneyActive ? (" for $" + amount) : "") + " in "
-                    + Tools.shipName(ship1) + ". To accept reply !accept " + challenger);
-            m_botAction.sendSmartPrivateMessage(challenged, "Duel to " + deaths + ".");
-            m_botAction.sendSmartPrivateMessage(challenger, "Challenge sent to " + challenged + (moneyActive ? (" for $" + amount) : "") + ".");
+        if (openChal) {
+            m_botAction.sendSmartPrivateMessage(challenger, "Open challenge sent for any player to accept; it will now show in !openduels (!od) for the next " + (TIME_OPEN_CHALS_ACTIVE / Tools.TimeInMillis.MINUTE) + " minutes.");
+            String displayStr = (ship1==ship2 ? Tools.shipName(ship1) : Tools.shipName(ship1) + " vs " + Tools.shipName(ship2))
+                                + " duel" + (moneyActive ? (" for $" + amount) : "");
+            openChallenges.put(challenger, displayStr);
+            if (amount >= announceOpenChallengeAt)
+                m_botAction.sendArenaMessage("[OPEN DUEL] " + challenger + " challenges anyone to duel in " + displayStr + ".  !accept " + challenger );
         } else {
-            m_botAction.sendSmartPrivateMessage(challenged, challenger + " has challenged you to a special duel" + (moneyActive ? (" for $" + amount) : "") + " in their "
-                    + Tools.shipName(ship1) + " vs your " + Tools.shipName(ship2) +".");
-            m_botAction.sendSmartPrivateMessage(challenged, "Duel to " + deaths + ". To accept reply !accept " + challenger);
-            m_botAction.sendSmartPrivateMessage(challenger, "Challenge sent to " + challenged + (moneyActive ? (" for $" + amount) : "") + " in your " + Tools.shipName(ship1) + " vs their " + Tools.shipName(ship2) + ".");
+            if (ship1 == ship2) {
+                m_botAction.sendSmartPrivateMessage(challenged, challenger + " has challenged you to duel" + (moneyActive ? (" for $" + amount) : "") + " in "
+                        + Tools.shipName(ship1) + ". To accept reply !accept " + challenger);
+                m_botAction.sendSmartPrivateMessage(challenged, "Duel to " + deaths + ".");
+                m_botAction.sendSmartPrivateMessage(challenger, "Challenge sent to " + challenged + (moneyActive ? (" for $" + amount) : "") + ".");
+            } else {
+                m_botAction.sendSmartPrivateMessage(challenged, challenger + " has challenged you to a special duel" + (moneyActive ? (" for $" + amount) : "") + " in their "
+                        + Tools.shipName(ship1) + " vs your " + Tools.shipName(ship2) +".");
+                m_botAction.sendSmartPrivateMessage(challenged, "Duel to " + deaths + ". To accept reply !accept " + challenger);
+                m_botAction.sendSmartPrivateMessage(challenger, "Challenge sent to " + challenged + (moneyActive ? (" for $" + amount) : "") + " in your " + Tools.shipName(ship1) + " vs their " + Tools.shipName(ship2) + ".");
+            }
         }
 
         final Challenge challenge = new Challenge(amount, ship1, ship2, challenger, challenged, this);
         addChallenge(challenge);
         spam.put(challenger.toLowerCase() + "-" + challenged.toLowerCase(), System.currentTimeMillis());
-        m_botAction.scheduleTask(new RemoveChallenge(challenge), 60 * Tools.TimeInMillis.SECOND);
+        if (openChal)
+            m_botAction.scheduleTask(new RemoveChallenge(challenge), TIME_OPEN_CHALS_ACTIVE);
+        else
+            m_botAction.scheduleTask(new RemoveChallenge(challenge), 60 * Tools.TimeInMillis.SECOND);
 
     }
 
@@ -394,6 +417,7 @@ public class PubChallengeModule extends AbstractModule {
     }
 
     public void acceptChallenge(String accepter, String challenger) {
+        boolean openChal = false;
 
         // Already playing?
         if (duelers.containsKey(accepter)) {
@@ -411,8 +435,13 @@ public class PubChallengeModule extends AbstractModule {
 
         Challenge challenge = challenges.get(challenger + "-" + accepter);
         if (challenge == null) {
-            m_botAction.sendSmartPrivateMessage(accepter, "You dont have a challenge from " + challenger + ".");
-            return;
+            // Check for open challenge
+            challenge = challenges.get(challenger + "-*" );
+            if (challenge == null) {
+                m_botAction.sendSmartPrivateMessage(accepter, "You don't have a challenge from " + challenger + ".");
+                return;
+            }
+            openChal = true;
         }
 
         int amount = challenge.amount;
@@ -421,9 +450,13 @@ public class PubChallengeModule extends AbstractModule {
 
         if (context.getMoneySystem().isEnabled()) {
             if (context.getPlayerManager().getPlayer(accepter).getMoney() < amount) {
-                m_botAction.sendSmartPrivateMessage(accepter, "You don't have enough money to accept the challenge. Challenge removed.");
-                m_botAction.sendSmartPrivateMessage(challenger, accepter + " does not have enough money to accept the challenge. Challenge removed.");
-                return;
+                if (!openChal) {
+                    m_botAction.sendSmartPrivateMessage(accepter, "You don't have enough money to accept the challenge. Challenge removed.");
+                    m_botAction.sendSmartPrivateMessage(challenger, accepter + " does not have enough money to accept the challenge. Challenge removed.");
+                    return;
+                } else {
+                    m_botAction.sendSmartPrivateMessage(accepter, "You don't have enough money to accept that challenge.");
+                }
             }
             if (context.getPlayerManager().getPlayer(challenger).getMoney() < amount) {
                 m_botAction.sendSmartPrivateMessage(accepter, challenger + " does not have the money.");
@@ -447,10 +480,14 @@ public class PubChallengeModule extends AbstractModule {
         if (area == null) {
             m_botAction.sendSmartPrivateMessage(accepter, "Unfortunately there is no available duel area. Try again later.");
             m_botAction.sendSmartPrivateMessage(challenger, accepter
-                    + "has accepted your challenge. Unfortunately there is no available duel area. Try again later.");
+                    + " has accepted your challenge. Unfortunately there is no available duel area. Try again later.");
             return;
         } else
             area.setInUse();
+        
+        if (openChal)
+            challenge.challengedName = accepter;
+        openChallenges.remove(challenger);
 
         // Set duelers in the challenge
         Dueler duelerChallenger = new Dueler(challenger, Dueler.DUEL_CHALLENGER, challenge);
@@ -600,7 +637,7 @@ public class PubChallengeModule extends AbstractModule {
         }
 
         if (!foundDuel.canBet()) {
-            m_botAction.sendPrivateMessage(name, "[ERROR]  Duel found, but either the betting time has passed (1 minute after duel start) or the duel is already over.");
+            m_botAction.sendPrivateMessage(name, "[ERROR]  Betting time has passed (1 minute after duel start) OR duel over/already started.");
             return;
         }
 
@@ -640,15 +677,23 @@ public class PubChallengeModule extends AbstractModule {
             if (c.challengerName.equals(name))
                 if (!c.isStarted()) {
                     if (tellPlayer)
-                        m_botAction.sendSmartPrivateMessage(name, "Challenge against " + c.challengedName + " removed.");
+                        if( c.challengedName.equals("*"))
+                            m_botAction.sendSmartPrivateMessage(name, "Open challenge removed.");
+                        else
+                            m_botAction.sendSmartPrivateMessage(name, "Challenge against " + c.challengedName + " removed.");                            
                     it.remove();
                     totalRemoved++;
                 }
         }
+        openChallenges.remove(name);
 
-        if (totalRemoved == 0)
+        if (totalRemoved == 0) {
             if (tellPlayer)
                 m_botAction.sendSmartPrivateMessage(name, "No pending challenge to remove.");
+        } else {
+            if (tellPlayer)
+                m_botAction.sendSmartPrivateMessage(name, "Removed " + totalRemoved + "challenges.");            
+        }
 
     }
 
@@ -1210,6 +1255,8 @@ public class PubChallengeModule extends AbstractModule {
             removePendingChallenge(sender, true);
         else if (command.equalsIgnoreCase("!lagout"))
             returnFromLagout(sender);
+        else if (command.equalsIgnoreCase("!od") || command.equalsIgnoreCase("!openduels"))
+            listOpenDuels(sender);
         else if (command.equalsIgnoreCase("!ld") || command.equalsIgnoreCase("!duels"))
             listDuels(sender);
         else if (command.equals("!npduel"))
@@ -1224,10 +1271,14 @@ public class PubChallengeModule extends AbstractModule {
     public void parseChallenge( String sender, String command, boolean isSpecialChallenge ) {
         String pieces[];
         String opponent = "";
-        Player p;
+        boolean openChal = false;
+        Player p = null;
         try {
             pieces = command.substring(command.indexOf(" ") + 1).split(":");
-            p = m_botAction.getFuzzyPlayer(pieces[0]);
+            if (pieces[0].equals("*"))
+                openChal = true;
+            else
+                p = m_botAction.getFuzzyPlayer(pieces[0]);
         } catch (Exception e) {
             m_botAction.sendSmartPrivateMessage(sender, "Error in command; try again.");
             return;
@@ -1243,12 +1294,16 @@ public class PubChallengeModule extends AbstractModule {
         
         if (!isSpecialChallenge) {
             if (pieces.length == 3 ) {
-                PubPlayer player = context.getPlayerManager().getPlayer(opponent);
-                if (player == null) {
-                    m_botAction.sendSmartPrivateMessage(sender, "Player not on the system yet.");
-                    return;
-                } else
-                    opponent = player.getPlayerName();
+                if (!openChal) {
+                    PubPlayer player = context.getPlayerManager().getPlayer(opponent);
+                    if (player == null) {
+                        m_botAction.sendSmartPrivateMessage(sender, "Player not on the system yet.");
+                        return;
+                    } else
+                        opponent = player.getPlayerName();
+                } else {
+                    opponent = "*";
+                }
 
                 try {
                     int ship = Integer.parseInt(pieces[1]);
@@ -1265,12 +1320,16 @@ public class PubChallengeModule extends AbstractModule {
             }
         } else {
             if (pieces.length == 4 ) {
-                PubPlayer player = context.getPlayerManager().getPlayer(opponent);
-                if (player == null) {
-                    m_botAction.sendSmartPrivateMessage(sender, "Player not on the system yet.");
-                    return;
-                } else
-                    opponent = player.getPlayerName();
+                if (!openChal) {
+                    PubPlayer player = context.getPlayerManager().getPlayer(opponent);
+                    if (player == null) {
+                        m_botAction.sendSmartPrivateMessage(sender, "Player not on the system yet.");
+                        return;
+                    } else
+                        opponent = player.getPlayerName();
+                } else {
+                    opponent = "*";
+                }
 
                 try {
                     int ship = Integer.parseInt(pieces[1]);
@@ -1324,18 +1383,19 @@ public class PubChallengeModule extends AbstractModule {
                 ops.add(d.challenge.getOppositeDueler(d.name).name);
                 ops.add(d.name);
 
+                String timeStr = Tools.getTimeDiffString(d.challenge.startAt, true);
                 String better = "";
-                String betted = "";
+                String betted = "";                
                 if (!d.challenge.challengerBets.isEmpty())
                     better = " ($" + d.challenge.getTotalChallengerBets() + " bet)";
                 if (!d.challenge.challengedBets.isEmpty())
                     betted = " ($" + d.challenge.getTotalChallengedBets() + " bet)";
                 if (d.challenge.ship1==d.challenge.ship2) {
                     m_botAction.sendSmartPrivateMessage(name, "" + d.challenge.challengerName + better + " vs " + d.challenge.challengedName + betted
-                            + " in " + Tools.shipName(d.challenge.ship1) + ": " + d.challenge.challenger.kills + "-" + d.challenge.accepter.kills);
+                            + " in " + Tools.shipName(d.challenge.ship1) + ": " + d.challenge.challenger.kills + "-" + d.challenge.accepter.kills + "  [" + timeStr + "]" );
                 } else {
                     m_botAction.sendSmartPrivateMessage(name, "" + d.challenge.challengerName + better + " vs " + d.challenge.challengedName + betted
-                            + " in " + Tools.shipName(d.challenge.ship1) + " vs " + Tools.shipName(d.challenge.ship2) + ": " + d.challenge.challenger.kills + "-" + d.challenge.accepter.kills);                    
+                            + " in " + Tools.shipName(d.challenge.ship1) + " vs " + Tools.shipName(d.challenge.ship2) + ": " + d.challenge.challenger.kills + "-" + d.challenge.accepter.kills  + "  [" + timeStr + "]" );                    
                 }
             }
 
@@ -1343,6 +1403,18 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(name, "There are currently no active duels.");
             return;
         }
+    }
+    
+    /**
+     * Lists all open challenges available.
+     * @param name
+     */
+    public void listOpenDuels(String name) {
+        if (openChallenges.size() < 1)
+            m_botAction.sendSmartPrivateMessage(name, "No open challenges found. To issue your own, type !challenge *:ship#:money");            
+        else
+            for (String challenger : openChallenges.keySet())
+                m_botAction.sendSmartPrivateMessage(name, challenger + ": " + openChallenges.get(challenger));        
     }
 
     public void doSharkShrap(String name) {
@@ -1384,12 +1456,14 @@ public class PubChallengeModule extends AbstractModule {
     public String[] getHelpMessage(String sender) {
         if (context.getMoneySystem().isEnabled())
             return new String[] {
-                    pubsystem.getHelpLine("!challenge <name>:<ship>:<$>  -- Challenge a player to " + deaths
-                            + " in ship (1-8) for $X. (!duel)"),
-                    pubsystem.getHelpLine("!chspecial <name>:<ship>:<ship2>:<$> -- As above, but in your ship vs their ship2."),  
+                    pubsystem.getHelpLine("!challenge <name>:<ship>:<$>  -- Challenge NAME to " + deaths
+                            + " in SHIP (1-8) for $. (!duel)"),
+                    pubsystem.getHelpLine("!chspecial <name>:<ship>:<ship2>:<$> -- As above, but in your ship vs their ship2."),
+                    pubsystem.getHelpLine("!duel *:<ship>:<$>            -- Duel ANYONE in SHIP for $ (!openduels to list all)" ),
                     //pubsystem.getHelpLine("!watchduel <name>             -- Watch the duel of this player. (!wd)"),
-                    pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent."),
+                    pubsystem.getHelpLine("!removechallenge              -- Cancel all challenges sent. (!rm)"),
                     pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played. (!ld)"),
+                    pubsystem.getHelpLine("!openduels                    -- Lists all open duels you can accept. (!od)"),
                     pubsystem.getHelpLine("!beton <name>:<$>             -- Bet on <name> to win a duel."),
                     pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
                     pubsystem.getHelpLine("!npduel                       -- Enables or disables you from receiving duel challenges."),
@@ -1397,9 +1471,13 @@ public class PubChallengeModule extends AbstractModule {
                     pubsystem.getHelpLine("!ignores                      -- Lists who you are currently ignoring challenges from."), };
         else
             return new String[] { pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played. (!ld)"),
-                    pubsystem.getHelpLine("!challenge <name>:<ship>      -- Challenge a player to " + deaths + " in a specific ship (1-8)."),
-                    pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
-                    pubsystem.getHelpLine("!removechallenges             -- Cancel your challenges sent. (!rm)"),
+                    pubsystem.getHelpLine("!challenge <name>:<ship>      -- Challenge NAME to " + deaths + " in SHIP (1-8). (!duel)"),
+                    pubsystem.getHelpLine("!chspecial <name>:<ship>:<ship2> -- As above, but in your ship vs their ship2."),
+                    pubsystem.getHelpLine("!duel *:<ship>                -- Duel ANYONE in SHIP (!openduels to list all)" ),
+                    //pubsystem.getHelpLine("!watchduel <name>             -- Displays the score of <names>'s duel. (!wd)"),
+                    pubsystem.getHelpLine("!removechallenge              -- Cancel all challenges sent. (!rm)"),
+                    pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played. (!ld)"),
+                    pubsystem.getHelpLine("!openduels                    -- Lists all open duels you can accept. (!od)"),
                     pubsystem.getHelpLine("!npduel                       -- Enables or disables you from receiving duel challenges."),
                     pubsystem.getHelpLine("!ignore <name>                -- Prevents/allows <name> from challenging you to duels."),
                     pubsystem.getHelpLine("!ignores                      -- Lists who you are currently ignoring challenges from."), };
@@ -1474,6 +1552,7 @@ public class PubChallengeModule extends AbstractModule {
             this.laggers = new HashMap<String, StartLagout>();
             this.spam = new HashMap<String, Long>();
             this.noplay = new LinkedList<String>();
+            this.openChallenges = new HashMap<String,String>();
 
             // Setting Duel Areas
             BotSettings cfg = new BotSettings(m_botAction.getBotSettings().getString("coords_config"));
@@ -1502,6 +1581,7 @@ public class PubChallengeModule extends AbstractModule {
 
             announceWinnerAt = m_botAction.getBotSettings().getInt("duel_announce_arena_winner_at");
             announceZoneWinnerAt = m_botAction.getBotSettings().getInt("duel_announce_zone_winner_at");
+            announceOpenChallengeAt = m_botAction.getBotSettings().getInt("duel_announce_open_challenge_at");
             deaths = m_botAction.getBotSettings().getInt("duel_deaths");
         }
     }
@@ -1729,7 +1809,7 @@ class Challenge {
     }
 
     public boolean canBet() {
-        return (!duelEnded && (System.currentTimeMillis() - startAt) < betTimeWindow);
+        return (isStarted() && !duelEnded && (System.currentTimeMillis() - startAt) < betTimeWindow);
     }
 
     public void returnAllBets(PubPlayerManagerModule ppmm) {
