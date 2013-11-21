@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.TimerTask;
 import java.util.TreeMap;
@@ -19,7 +18,6 @@ import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerEntered;
-import twcore.core.events.PlayerPosition;
 import twcore.core.events.TurretEvent;
 import twcore.core.game.Player;
 import twcore.core.util.MapRegions;
@@ -61,30 +59,49 @@ public class PubUtilModule extends AbstractModule {
         UNKNOWN,
     }
     private MapRegions regions;
-    private HashSet<Region> locals;
     
     private HashMap<String, Location> locations;
     private TreeMap<String, Staffer> staffers;
     
-    public boolean tilesetEnabled = false;
+    private TimerTask checkForAntiInSpawn;
     
-    // PRIV FREQ
-    private boolean privFreqEnabled = true;
-    // Lev can attach on public freq
-    private boolean levAttachEnabled = true;
+    private boolean privFreqEnabled = true;     // True if private frequencies are enabled    
+    private boolean levAttachEnabled = true;    // True if Lev can attach on public freq
     private long uptime = 0;
     private String dummy;   // So it's not reinstantiated w/ the constantly-used method getLocation
+    //private boolean tilesetEnabled = false;
+    //private HashSet<Region> locals;
 
     public PubUtilModule(BotAction botAction, PubContext context) {
         super(botAction, context, "Utility");
         this.uptime = System.currentTimeMillis();
         regions = new MapRegions();
-        locals = new HashSet<Region>();
+        //locals = new HashSet<Region>();
         reloadConfig();
         staffers = new TreeMap<String, Staffer>(String.CASE_INSENSITIVE_ORDER);
         SendTime sendTimes = new SendTime();
         m_botAction.scheduleTask(sendTimes, 5 * Tools.TimeInMillis.MINUTE, 5 * Tools.TimeInMillis.MINUTE);
         //psPlayTime = m_botAction.createPreparedStatement(db, "playtime", "INSERT INTO tblStaffer (fcName, fnPlayTime) VALUES(?,?) ON DUPLICATE KEY UPDATE fnPlayTime = fnPlayTime + VALUES(fnPlayTime)");
+        
+        checkForAntiInSpawn = new TimerTask() {
+            public void run() {
+                for( Player p : m_botAction.getPlayingPlayers() ) {
+                    //Player p = m_botAction.getPlayer(event.getPlayerID());
+                    if (p!=null) {
+                        int reg = regions.getRegion(p);
+                        if (reg == Region.SPAWN.ordinal() && p.hasAntiwarpOn()) {
+                            m_botAction.specificPrize(p.getPlayerID(), -Tools.Prize.ANTIWARP);
+                            m_botAction.sendPrivateMessage(p.getPlayerID(), "ANTI-WARP is ILLEGAL in spawn area and has been removed from your ship. Continued use of antiwarp in spawn may result in a ban from purchasing antiwarp.");
+                        }
+                    }
+                }                
+            }
+        };
+        // Check anti status of all players every 3sec. This won't instantly catch everyone, but if
+        // someone is hanging around spawn using anti, it will see it. Furthermore, using anti in
+        // spawn is rather obvious and can be reported by old-fashioned means, like any other cheating.
+        // Good compromise between performance and efficacy. Checking each position packet slows bot down.
+        m_botAction.scheduleTask( checkForAntiInSpawn, 3 * Tools.TimeInMillis.SECOND, 3 * Tools.TimeInMillis.SECOND );
     }
     
     public void reloadRegions() {
@@ -159,19 +176,6 @@ public class PubUtilModule extends AbstractModule {
     public void handleEvent(Message event) {
     }
     
-    public void handleEvent(PlayerPosition event) {
-        // TODO: This code is damn inefficient, called constantly ...
-        // There are better ways to check for anti than monitoring every PP packet!
-        // XXX: Consider running the check every 5sec over all players instead!        
-        Player p = m_botAction.getPlayer(event.getPlayerID());
-        if(p==null) return;
-        int reg = regions.getRegion(p);
-        if (reg == Region.SPAWN.ordinal() && p.hasAntiwarpOn()) {
-            m_botAction.specificPrize(event.getPlayerID(), -Tools.Prize.ANTIWARP);
-            m_botAction.sendPrivateMessage(event.getPlayerID(), "ANTI-WARP is ILLEGAL in spawn area and has been removed from your ship. No refunds permitted! Just don't do it.");
-        }
-    }
-
     @Override
     public void handleEvent(TurretEvent event) {
 
