@@ -1436,7 +1436,11 @@ public class hockeybot extends SubspaceBot {
                                       
                     }
                     String[] spamStaff = hStaff.toArray(new String[hStaff.size()]);
-                    m_botAction.privateMessageSpam(name, spamStaff);
+                    // Just a final check for added anti-flood security.
+                    if(m_botAction.getShip().getShip() != Ship.INTERNAL_WARBIRD)
+                        m_botAction.smartPrivateMessageSpam(name, spamStaff);
+                    else
+                        m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
                 }
             }
          }
