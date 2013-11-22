@@ -747,6 +747,7 @@ public class hockeybot extends SubspaceBot {
      */
     public void doGetBall(int xLoc, int yLoc) {
         m_botAction.stopReliablePositionUpdating();
+        m_botAction.stopSpectatingPlayer();
         m_botAction.move(xLoc, yLoc);
         fo_botUpdateTimer = new TimerTask() {
             @Override
@@ -756,11 +757,13 @@ public class hockeybot extends SubspaceBot {
             }
         }; m_botAction.scheduleTask(fo_botUpdateTimer, 0, 500);
         
-        if (m_botAction.getShip().getShip() != Ship.INTERNAL_WARBIRD || !puck.holding) {
+        if (m_botAction.getShip().getShip() != Ship.INTERNAL_WARBIRD) {
             m_botAction.getShip().setShip(Ship.INTERNAL_WARBIRD);
             m_botAction.getShip().setShip(Ship.INTERNAL_WARBIRD);
             m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
             m_botAction.getShip().move(xLoc, yLoc);
+        }
+        if(!puck.holding) {
             m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
             puck.holding = true;
         }
@@ -1379,7 +1382,11 @@ public class hockeybot extends SubspaceBot {
              }
                 
                 String[] spam = help.toArray(new String[help.size()]);
-                m_botAction.privateMessageSpam(name, spam);
+                
+                if(m_botAction.getShip().getShip() != Ship.INTERNAL_WARBIRD)
+                    m_botAction.privateMessageSpam(name, spam);
+                else
+                    m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
             
             if (args.contains("cap")) {
                 
@@ -1399,7 +1406,11 @@ public class hockeybot extends SubspaceBot {
                  hCap.add("-----------------------------------------------------------------------");
                  
                 String[] spamCap = hCap.toArray(new String[hCap.size()]);
-                m_botAction.privateMessageSpam(name, spamCap);
+                
+                if(m_botAction.getShip().getShip() != Ship.INTERNAL_WARBIRD)
+                    m_botAction.privateMessageSpam(name, spamCap);
+                else
+                    m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
                 
             }
             if (args.contains("staff")) {
@@ -2642,6 +2653,8 @@ public class hockeybot extends SubspaceBot {
         team1.clearUnsetPenalties();
 
         m_botAction.sendArenaMessage("Prepare For FaceOff", Tools.Sound.CROWD_OOO);
+        
+        m_botAction.stopReliablePositionUpdating();
 
         timeStamp = System.currentTimeMillis();
         puck.dropDelay = (int) (Math.random() * 9 + 15);
