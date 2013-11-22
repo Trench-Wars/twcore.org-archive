@@ -637,9 +637,9 @@ public class pubhubalias extends PubBotModule {
                 "!IPWatch   <IP>                - Disables the login watch for <IP>",
                 "!MIDWatch  <MID>:<reason>      - Watches logins for <MID> with the specified <reason>",
                 "!MIDWatch  <MID>               - Disables the login watch for <MID>",
-                "!ClearNameWatch                - Clears all login watches for names",
-                "!ClearIPWatch                  - Clears all login watches for IPs",
-                "!ClearMIDWatch                 - Clears all login watches for MIDs",
+                "!ClearNameWatch                - Clears all login watches for names (disabled)",
+                "!ClearIPWatch                  - Clears all login watches for IPs (disabled)",
+                "!ClearMIDWatch                 - Clears all login watches for MIDs (disabled)",
                 "!ShowWatches [<Sort>:<Dir>]    - Shows all current login watches, optionally sorted by <Sort>",
                 "                               Sort options: d(ate), t(rigger), i(ssuer); Dir: A(scending), D(escending)",
                 "!ShowMyWatches [<Sort>:<Dir>]  - Same as !ShowWatches, but only displays your own watches",
@@ -655,21 +655,18 @@ public class pubhubalias extends PubBotModule {
 
     public void doCheatSheet(String sender) {
         String[] message = { "ALIAS CHAT CHEAT SHEET: ",
-                "!AliasDeOp         -               !Info           - ",
-                "!AliasOp           -               !IPWatch        - !iw",
-                "!AltIP             - !ai           !ListAliasOps   - !lao",
-                "!AltMID            - !am           !LNameWatch     - !lnw",
-                "!AltNick           - !an           !MaxResults     - !mr",
-                "!AltNickOrig       - !ano          !MIDWatch       - !mw",
-                "!AltOr             - !ao           !NameWatch      - !nw",
-                "!CheatSheet        - !cs           !PartialIP      - !pip",
-                "!ClearIPWatch      - !ciw          !PNameWatch     - !pnw",
-                "!ClearLNameWatch   - !clw          !RNameWatch     - !rnw",
-                "!ClearMIDWatch     - !cmw          !ShowMyWatches  - !smw",
-                "!ClearNameWatch    - !cnw          !ShowWatches    - !sw",
-                "!ClearPNameWatch   - !cpw          !SortByDate     - !sbd",
-                "!ClearRNameWatch   - !crw          !SortByName     - !sbn",
-                "!Compare           -               !update         - "
+                "!AliasDeOp         -               !LNameWatch     - !lnw",
+                "!AliasOp           -               !MaxResults     - !mr",
+                "!AltIP             - !ai           !MIDWatch       - !mw",
+                "!AltMID            - !am           !NameWatch      - !nw",
+                "!AltNick           - !an           !PartialIP      - !pip",
+                "!AltNickOrig       - !ano          !PNameWatch     - !pnw",
+                "!AltOr             - !ao           !RNameWatch     - !rnw",
+                "!CheatSheet        - !cs           !ShowMyWatches  - !smw",
+                "!Compare           -               !ShowWatches    - !sw",
+                "!Info              -               !SortByDate     - !sbd",
+                "!IPWatch           - !iw           !SortByName     - !sbn",
+                "!ListAliasOps      - !lao          !update         - "
         };
         m_botAction.smartPrivateMessageSpam(sender, message);
     }
@@ -1343,6 +1340,7 @@ public class pubhubalias extends PubBotModule {
                 doRNameWatchCmd(sender, args);
             else if (command.equals("!pnamewatch")      || command.equals("!pnw"))
                 doPNameWatchCmd(sender, args);
+            /* Disabled for now. No reason to clear a full list.
             else if (command.equals("!clearipwatch")    || command.equals("!ciw"))
                 doClearIPWatchCmd();
             else if (command.equals("!clearnamewatch")  || command.equals("!cnw"))
@@ -1355,6 +1353,7 @@ public class pubhubalias extends PubBotModule {
                 doClearRNameWatchCmd();
             else if (command.equals("!clearpnamewatch") || command.equals("!cpw"))
                 doClearPNameWatchCmd();
+             */
             else if (command.equals("!showwatches")     || command.equals("!sw"))
                 doShowWatchesCmd(sender, args, true);
 //            else if (command.equals("!showwatches"))
