@@ -653,6 +653,27 @@ public class pubhubalias extends PubBotModule {
         m_botAction.smartPrivateMessageSpam(sender, message);
     }
 
+    public void doCheatSheet(String sender) {
+        String[] message = { "ALIAS CHAT CHEAT SHEET: ",
+                "!AliasDeOp         -               !Info           - ",
+                "!AliasOp           -               !IPWatch        - !iw",
+                "!AltIP             - !ai           !ListAliasOps   - !lao",
+                "!AltMID            - !am           !LNameWatch     - !lnw",
+                "!AltNick           - !an           !MaxResults     - !mr",
+                "!AltNickOrig       - !ano          !MIDWatch       - !mw",
+                "!AltOr             - !ao           !NameWatch      - !nw",
+                "!CheatSheet        - !cs           !PartialIP      - !pip",
+                "!ClearIPWatch      - !ciw          !PNameWatch     - !pnw",
+                "!ClearLNameWatch   - !clw          !RNameWatch     - !rnw",
+                "!ClearMIDWatch     - !cmw          !ShowMyWatches  - !smw",
+                "!ClearNameWatch    - !cnw          !ShowWatches    - !sw",
+                "!ClearPNameWatch   - !cpw          !SortByDate     - !sbd",
+                "!ClearRNameWatch   - !crw          !SortByName     - !sbn",
+                "!Compare           -               !update         - "
+        };
+        m_botAction.smartPrivateMessageSpam(sender, message);
+    }
+    
     public void doRecordInfoCmd(String sender) {
         m_botAction.sendChatMessage("Players recorded in the hashmap: " + (justAdded.size() + deleteNextTime.size()));
     }
@@ -1243,7 +1264,15 @@ public class pubhubalias extends PubBotModule {
 
     public void handleChatMessage(String sender, String message) {
         String command = message.toLowerCase();
+        String args = "";
 
+        //Separate the command from its arguments if applicable.
+        if(message.contains(" ")) {
+            int index = message.indexOf(" ");
+            command = command.substring(0, index);
+            if(message.length() > ++index)
+                args = message.substring(index).trim();
+        }
         /*
          * Extra check for smod and twdop added
          * -fantus
@@ -1255,16 +1284,17 @@ public class pubhubalias extends PubBotModule {
         try {
             if (command.equals("!recordinfo")) {
                 doRecordInfoCmd(sender);
-            } else if (command.startsWith("!partialip")) {
-                doAltIpCmdPartial(sender, command.substring(11));
-
+            } else if (command.equals("!partialip")     || command.equals("!pip")) {
+                doAltIpCmdPartial(sender, args);
             } else if (command.equals("!help")) {
                 doHelpCmd(sender);
-            } else if (command.startsWith("!altnick ")) {
-                doAltNickCmd(sender, message.substring(9).trim(), false);
+            } else if (command.equals("!cheatsheet")    || command.equals("!cs")) {
+                doCheatSheet(sender);
+            } else if (command.equals("!altnick")       || command.equals("!an")) {
+                doAltNickCmd(sender, args, false);
                 record(sender, message);
-            } else if (command.startsWith("!altnickorig ")) {
-                doORIGAltNickCmd(sender, message.substring(13).trim(), false);
+            } else if (command.equals("!altnickorig")   || command.equals("!ano")) {
+                doORIGAltNickCmd(sender, args, false);
                 record(sender, message);
             /*
             } else if (command.startsWith("!altnick2 ")) {
@@ -1274,81 +1304,81 @@ public class pubhubalias extends PubBotModule {
                 doAltNick3Cmd(sender, message.substring(10).trim(), false);
                 record(sender, message);
             */
-            } else if (command.startsWith("!altor ")) {
-                doAltNickOrCmd(sender, message.substring(7).trim(), false);
+            } else if (command.equals("!altor")         || command.equals("!ao")) {
+                doAltNickOrCmd(sender, args, false);
                 record(sender, message);
-            } else if (command.startsWith("!altip ")) {
-                doAltIpCmd(sender, message.substring(7).trim());
+            } else if (command.equals("!altip")         || command.equals("!ai")) {
+                doAltIpCmd(sender, args);
                 record(sender, message);
-            } else if (command.startsWith("!altmid ")) {
-                doAltMacIdCmd(sender, message.substring(8).trim());
+            } else if (command.equals("!altmid")        || command.equals("!am")) {
+                doAltMacIdCmd(sender, args);
                 record(sender, message);
             } 
             //			else if(command.startsWith("!alttwl "))
             //				doAltTWLCmd(message.substring(8).trim());
-            else if (command.startsWith("!info ")) {
-                doInfoCmd(sender, message.substring(6).trim());
+            else if (command.equals("!info")) {
+                doInfoCmd(sender, args);
                 record(sender, message);
             }
-            else if (opList.isSysopExact(sender) && command.startsWith("!infoall ")) {
-                doInfoAllCmd(sender, message.substring(9).trim());
+            else if (opList.isSysopExact(sender) && command.equals("!infoall")) {
+                doInfoAllCmd(sender, args);
                 record(sender, message);
             } else if (opList.isSysopExact(sender) && command.startsWith("!priv"))
                 doPrivateAliases();
-            else if (command.startsWith("!compare ")) {
-                doCompareCmd(message.substring(9).trim());
+            else if (command.equals("!compare")) {
+                doCompareCmd(args);
                 record(sender, message);
             } 
-            else if (command.startsWith("!maxrecords "))
-                doMaxRecordsCmd(message.substring(12).trim());
-            else if (command.startsWith("!ipwatch "))
-                doIPWatchCmd(sender, message.substring(9).trim());
-            else if (command.startsWith("!namewatch "))
-                doNameWatchCmd(sender, message.substring(11).trim());
-            else if (command.startsWith("!midwatch "))
-                doMIDWatchCmd(sender, message.substring(10).trim());
-            else if (command.startsWith("!lnamewatch "))
-                doLNameWatchCmd(sender, message.substring(12).trim());
-            else if (command.startsWith("!rnamewatch "))
-                doRNameWatchCmd(sender, message.substring(12).trim());
-            else if (command.startsWith("!pnamewatch "))
-                doPNameWatchCmd(sender, message.substring(12).trim());
-            else if (command.equals("!clearipwatch"))
+            else if (command.equals("!maxrecords")      || command.equals("!mr"))
+                doMaxRecordsCmd(args);
+            else if (command.equals("!ipwatch")         || command.equals("!iw"))
+                doIPWatchCmd(sender, args);
+            else if (command.equals("!namewatch")       || command.equals("!nw"))
+                doNameWatchCmd(sender, args);
+            else if (command.equals("!midwatch")        || command.equals("!mw"))
+                doMIDWatchCmd(sender, args);
+            else if (command.equals("!lnamewatch")      || command.equals("!lnw"))
+                doLNameWatchCmd(sender, args);
+            else if (command.equals("!rnamewatch")      || command.equals("!rnw"))
+                doRNameWatchCmd(sender, args);
+            else if (command.equals("!pnamewatch")      || command.equals("!pnw"))
+                doPNameWatchCmd(sender, args);
+            else if (command.equals("!clearipwatch")    || command.equals("!ciw"))
                 doClearIPWatchCmd();
-            else if (command.equals("!clearnamewatch"))
+            else if (command.equals("!clearnamewatch")  || command.equals("!cnw"))
                 doClearNameWatchCmd();
-            else if (command.equals("!clearmidwatch"))
+            else if (command.equals("!clearmidwatch")   || command.equals("!cmw"))
                 doClearMIDWatchCmd();
-            else if (command.equals("!clearlnamewatch"))
+            else if (command.equals("!clearlnamewatch") || command.equals("!clw"))
                 doClearLNameWatchCmd();
-            else if (command.equals("!clearrnamewatch"))
+            else if (command.equals("!clearrnamewatch") || command.equals("!crw"))
                 doClearRNameWatchCmd();
-            else if (command.equals("!clearpnamewatch"))
+            else if (command.equals("!clearpnamewatch") || command.equals("!cpw"))
                 doClearPNameWatchCmd();
-            else if (command.startsWith("!showwatches"))
-                doShowWatchesCmd(sender, message.substring(12).trim(), true);
+            else if (command.equals("!showwatches")     || command.equals("!sw"))
+                doShowWatchesCmd(sender, args, true);
 //            else if (command.equals("!showwatches"))
 //                doShowWatchesCmd();
-            else if (command.startsWith("!showmywatches"))
-                doShowWatchesCmd(sender, message.substring(14).trim(), false);
-            else if (command.equals("!sortbyname")) {
+            else if (command.equals("!showmywatches")   || command.equals("!smw"))
+                doShowWatchesCmd(sender, args, false);
+            else if (command.equals("!sortbyname")      || command.equals("!sbn")) {
                 m_sortByName = true;
                 m_botAction.sendChatMessage("Sorting !alt cmds by name first.");
-            } else if (command.equals("!sortbydate")) {
+            } else if (command.equals("!sortbydate")    || command.equals("!sbd")) {
                 m_sortByName = false;
                 m_botAction.sendChatMessage("Sorting !alt cmds by date first.");
             } else if (command.equals("!update")) {
                 updateTWDOps();
                 updateAliasOps();
                 m_botAction.sendChatMessage("Updating twdop & alias-op lists.");
-            } else if (command.equals("!listaliasops") || command.equals("!lao"))
+            } else if (command.equals("!listaliasops")  || command.equals("!lao"))
                 doListAliasOps();
-            else if (command.startsWith("!aliasop "))
-                doAddAliasOp(sender, message.substring(8).trim());
-            else if (command.startsWith("!aliasdeop "))
-                doRemAliasOp(sender, message.substring(10).trim());
-            else if (command.startsWith("!altall ") && opList.isSysopExact(sender)) {
-                doAltNickCmd(sender, message.substring(8).trim(), true);
+            else if (command.equals("!aliasop"))
+                doAddAliasOp(sender, args);
+            else if (command.equals("!aliasdeop"))
+                doRemAliasOp(sender, args);
+            else if (command.equals("!altall") && opList.isSysopExact(sender)) {
+                doAltNickCmd(sender, args, true);
                 record(sender, message);
             }
         } catch (Exception e) {
