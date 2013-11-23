@@ -311,7 +311,7 @@ public class PubChallengeModule extends AbstractModule {
         }
         
         String key = challenger.toLowerCase() + "-" + challenged.toLowerCase();
-        if (!openChal && spam.containsKey(key) && ((System.currentTimeMillis() - spam.get(key)) < 30 * Tools.TimeInMillis.SECOND)) {
+        if (spam.containsKey(key) && ((System.currentTimeMillis() - spam.get(key)) < 30 * Tools.TimeInMillis.SECOND)) {
             m_botAction.sendSmartPrivateMessage(challenger, "Please wait 30 seconds before challenging this player again.");
             return;
         }
