@@ -455,10 +455,10 @@ public class PubChallengeModule extends AbstractModule {
                 if (!openChal) {
                     m_botAction.sendSmartPrivateMessage(accepter, "You don't have enough money to accept the challenge. Challenge removed.");
                     m_botAction.sendSmartPrivateMessage(challenger, accepter + " does not have enough money to accept the challenge. Challenge removed.");
-                    return;
                 } else {
                     m_botAction.sendSmartPrivateMessage(accepter, "You don't have enough money to accept that challenge.");
                 }
+                return;
             }
             if (context.getPlayerManager().getPlayer(challenger).getMoney() < amount) {
                 m_botAction.sendSmartPrivateMessage(accepter, challenger + " does not have the money.");
