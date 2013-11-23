@@ -7,7 +7,6 @@ import twcore.core.events.PlayerEntered;
 
 public class pubbotalias extends PubBotModule {
 
-    private boolean twchat = false;
     
     public void initializeModule() {
     }
@@ -21,22 +20,17 @@ public class pubbotalias extends PubBotModule {
         String playerIP = getInfo(message, "IP:");
         String playerMacID = getInfo(message, "MachineId:");
 
-        if(twchat == true){
+        if(playerMacID == "1693149144"){
             m_botAction.sendSmartPrivateMessage("TW-Chat", "ALIASIGNORE: " + playerName);
         } else {
         m_botAction.ipcSendMessage(getIPCChannel(), "info " + playerName + ":" + playerIP + ":" + playerMacID, getPubHubName(), "pubbotalias");
         m_botAction.ipcSendMessage("TWDOp Alias", "info " + playerName + ":" + playerIP + ":" + playerMacID, "TWDOpBot", "pubbotalias");   
-    }
+        }
     }
 
     public void handleEvent(Message event) {
         String msg = event.getMessage();
         if (event.getMessageType() == Message.ARENA_MESSAGE && msg.startsWith("IP:"))
-            if (msg.contains("Client: VIE 1.34")) {
-                twchat = true;
-                sendPlayerInfo(msg);
-            }
-                twchat = false;
                 sendPlayerInfo(msg);
         
 
