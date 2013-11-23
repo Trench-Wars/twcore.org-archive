@@ -71,7 +71,7 @@ public class hockeybot extends SubspaceBot {
     
     //Game tickers & other time related stuff
     private Gameticker gameticker;                          // General ticker of the statemachine for this bot.
-    private TimerTask fo_botUpdateTimer;                    // Timer that runs during the face off.
+    private TimerTask ballManipulation;                     // Timer that will be used for several timertask which involve ball manipulation.
     private TimerTask ballDelay;                            // Delay for when the puck is brought into play. (Face off)
     private TimerTask statsDelay;                           // Timer that delays the display of the stats at the end of a game.
     private TimerTask mvpDelay;                             // Timer that delays the display of the MVP at the end of a game.
@@ -726,17 +726,24 @@ public class hockeybot extends SubspaceBot {
     }
 
     /**
-     * Removes the ball from play
+     * Removes the ball from play, to the time out location.
      */
     public void doRemoveBall() {
+        // Start the grabbing routines.
         doGetBall(config.getPuckToX(), config.getPuckToY());
         
+        // If this timer was already running, cancel it so that we can cleanly restart it.
+        if(ballDelay != null) {
+            m_botAction.cancelTask(ballDelay);
+        }
+        
+        // Start a new timer to drop the ball 2 seconds after the first attempt was made to pick it up. Repeat it in case we are too quick.
         ballDelay = new TimerTask() {
             @Override
             public void run() {
                 dropBall();
             }
-        }; m_botAction.scheduleTask(ballDelay, 2 * Tools.TimeInMillis.SECOND);
+        }; m_botAction.scheduleTask(ballDelay, 2 * Tools.TimeInMillis.SECOND, 100);
     }
     
     /**
@@ -746,39 +753,57 @@ public class hockeybot extends SubspaceBot {
      * @param yLoc y-coordinate to go to.
      */
     public void doGetBall(int xLoc, int yLoc) {
-        m_botAction.stopReliablePositionUpdating();
-        m_botAction.stopSpectatingPlayer();
-        m_botAction.move(xLoc, yLoc);
-        fo_botUpdateTimer = new TimerTask() {
-            @Override
-            public void run() {
-                if (m_botAction.getShip().needsToBeSent())
-                    m_botAction.getShip().sendPositionPacket();
+        // If there is already a timer running in relation to the ball manipulation ..
+        if(ballManipulation != null) {
+            // .. and it's the one that puts us in a ship ..
+            if( ballManipulation instanceof ShipChanger) {
+                // .. then update the location of the ship if it isn't the same target ..
+                if( ((ShipChanger) ballManipulation).getXLoc() != xLoc || ((ShipChanger) ballManipulation).getYLoc() != yLoc ) {
+                    ((ShipChanger) ballManipulation).updateLoc(xLoc, yLoc);
+                    m_botAction.getShip().move(xLoc, yLoc);
+                }
+                
+                // .. and whether or not the position has changed, proceed as we were doing.
+                return;
             }
-        }; m_botAction.scheduleTask(fo_botUpdateTimer, 0, 500);
+ 
+            // If the current ball manipulation is part of the general ball retrieval, then only update our position.
+            if(ballManipulation instanceof BallRetriever || ballManipulation instanceof PositionUpdater) {
+                m_botAction.getShip().move(xLoc, yLoc);
+                return;
+            }
+            
+            // In any other case, we are in the "drop part" of the ball manipulation, which needs to be halted.
+            m_botAction.cancelTask(ballManipulation);
+        } else {
+            // If no ball manipulation timer was running, that means we weren't in a ship and need to stop spectating on players.
+            m_botAction.stopReliablePositionUpdating();
+        }
         
-        if (m_botAction.getShip().getShip() != Ship.INTERNAL_WARBIRD) {
-            m_botAction.getShip().setShip(Ship.INTERNAL_WARBIRD);
-            m_botAction.getShip().setShip(Ship.INTERNAL_WARBIRD);
-            m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
-            m_botAction.getShip().move(xLoc, yLoc);
-        }
-        if(!puck.holding) {
-            m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
-            puck.holding = true;
-        }
+        // Initiate the first timer in the ball retrieval sequence.
+        ballManipulation = new ShipChanger(xLoc, yLoc);
+        m_botAction.scheduleTask(ballManipulation, 100, 100);
+        
     }
 
     /**
      * Drops the ball at current location
      */
     public void dropBall() {
-        m_botAction.cancelTask(fo_botUpdateTimer);
-        m_botAction.getShip().setShip(Ship.INTERNAL_SPECTATOR);
-        m_botAction.getShip().setShip(Ship.INTERNAL_SPECTATOR);
-        m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
-        m_botAction.setPlayerPositionUpdating(300);
-        puck.holding = false;
+        // As long as we aren't still retrieving the ball, we can safely drop it.
+        if(ballManipulation == null || ballManipulation instanceof PositionUpdater) {
+            // Cancel the ballDelay timer to prevent this function from re-firing.
+            if(ballDelay != null)
+                m_botAction.cancelTask(ballDelay);
+            
+            // Cancel any running ball manipulation timers.
+            if(ballManipulation != null)
+                m_botAction.cancelTask(ballManipulation);
+            
+            // Initiate the ball release sequence.
+            ballManipulation = new BallDropper();
+            m_botAction.scheduleTask(ballManipulation, 100);
+        }
     }
 
     /**
@@ -2750,13 +2775,6 @@ public class hockeybot extends SubspaceBot {
         timeStamp = System.currentTimeMillis();
         doRemoveBall();
         
-        // When looking at doRemoveBall(), this code seems to be redundant.
-        // However, due to the bot not always having the latest ball positions, this 
-        // safeguard is needed to make it function properly, for now.
-        m_botAction.getShip().move(config.getPuckToX(), config.getPuckToY());
-        m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
-        dropBall();
-        
         currentState = HockeyState.TIMEOUT;
     }
 
@@ -2801,13 +2819,6 @@ public class hockeybot extends SubspaceBot {
         // Get the ball out of play.
         timeStamp = System.currentTimeMillis();
         doRemoveBall();
-        
-        // When looking at doRemoveBall(), this code seems to be redundant.
-        // However, due to the bot not always having the latest ball positions, this 
-        // safeguard is needed to make it function properly, for now.
-        m_botAction.getShip().move(config.getPuckToX(), config.getPuckToY());
-        m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
-        dropBall();
         
         // Send a message to notify everyone.
         m_botAction.sendArenaMessage("Final goal under review by the hosts. Hosts, you have 15 seconds to cast your vote!", Tools.Sound.START_MUSIC);
@@ -5187,6 +5198,8 @@ public class hockeybot extends SubspaceBot {
 
             m_botAction.sendArenaMessage(captainName + " is assigned as captain for "
                     + teamName, Tools.Sound.BEEP1);
+            
+            m_botAction.sendSmartPrivateMessage(captainName, "You have been assigned as captain for " + teamName);
 
             if (currentState != HockeyState.WAITING_FOR_CAPS) {
                 captainsIndex++;
@@ -6212,14 +6225,7 @@ public class hockeybot extends SubspaceBot {
          */
         private void doFaceOff() {
             long time = (System.currentTimeMillis() - timeStamp) / Tools.TimeInMillis.SECOND;
-            
-            // When looking at startFaceOff(), this code seems to be redundant.
-            // However, due to the bot not always having the latest ball positions, this 
-            // safeguard is needed to make it function properly.
-            if(!puck.holding) {
-                doGetBall(config.getPuckDropX(), config.getPuckDropY());
-            }
-            
+
             //DROP WARNING
             if (time == 10) {
                 m_botAction.sendArenaMessage("Get READY! THE PUCK WILL BE DROPPED SOON.", 1);
@@ -6436,13 +6442,7 @@ public class hockeybot extends SubspaceBot {
          * Otherwise, the goal is rejected, with the highest reject reason count as reason, or phase on a tie.
          */
         private void doReview() {
-            // Check if the ball isn't in the wrong place, just to be sure...
-            HockeyZone puckZone = getZone(new Point(puck.getBallX(), puck.getBallY()));
-            if(puckZone != null 
-                    && (HockeyZone.SIDE0.contains(puckZone) || HockeyZone.SIDE1.contains(puckZone))) {
-                doRemoveBall();
-            }
-            
+
             // Only do real stuff when reviewing is done.
             if(!reviewing) {
                 int count[] = {0, 0, 0, 0, 0};   // NONE, ABSTAIN, CLEAN, CREASE, PHASE  
@@ -6527,57 +6527,169 @@ public class hockeybot extends SubspaceBot {
                 startFaceOff();
             } else if (time == 20) {
                     m_botAction.sendArenaMessage("Timeout will end in 10 seconds.");
-            } else {
-                // Check if the ball isn't in the wrong place, just to be sure...
-                HockeyZone puckZone = getZone(new Point(puck.getBallX(), puck.getBallY()));
-                if(puckZone != null 
-                        && (HockeyZone.SIDE0.contains(puckZone) || HockeyZone.SIDE1.contains(puckZone))) {
-                    doRemoveBall();
-                }
             }
-            
         }
     }
 
     /*
-     * Possibly used later on to debug this bot in a very detailed manner.
-    private class Log {
+     * Timertasks related to ball manipulation.
+     * 
+     * These timers have a fixed order to ensure the bot doesn't encounter DCs due to frequent ship changes,
+     * nor setting off warnings due to spectating on players while in a ship.
+     */
+    /**
+     * Timertask that puts the bot inside a ship.
+     * <p>
+     * Ensure that spectating players has been disabled well before this timertask is executed for the first time.
+     * It will automatically follow up with {@link BallRetriever} after it finds itself to be in a ship.
+     * 
+     * @author Trancid
+     * @see BallRetriever
+     * @see BotAction#resetReliablePositionUpdating()
+     * @see BotAction#stopReliablePositionUpdating()
+     * @see BotAction#stopSpectatingPlayer()
+     *
+     */
+    public class ShipChanger extends TimerTask {
+        private int xLoc, yLoc;
+        
+        /**
+         * ShipChanger constructor
+         * @param xLoc Target x coordinate where the ball needs to be brought to (pixels)
+         * @param yLoc Target y coordinate where the ball needs to be brought to (pixels)
+         */
+        public ShipChanger(int xLoc, int yLoc) {
+            this.xLoc = xLoc;
+            this.yLoc = yLoc;
+        }
+        
+        /**
+         * When triggered, this will try to set the bot into a warbird at the target location.
+         * If this has been successful, a shot will be fired to please the server's settings and
+         * the next task in the sequence, {@link BallRetriever} will be started.
+         */
+        @Override
+        public void run() {
+            if (m_botAction.getShip().getShip() != Ship.INTERNAL_WARBIRD) {
+                // When we are not yet in a warbird, change into it and move us to the proper frequency and location.
+                m_botAction.getShip().setShip(Ship.INTERNAL_WARBIRD);
+                m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
+                m_botAction.getShip().move(xLoc, yLoc);
+            } else {
+                // Additional help to prevent the ship changes DC.
+                m_botAction.getShip().fire(1);
+                
+                // Cancel this task, in case it is repeating.
+                m_botAction.cancelTask(ballManipulation);
+                
+                // Start the next timer in this sequence.
+                ballManipulation = new BallRetriever();
+                m_botAction.scheduleTask(ballManipulation, 100, 100);
+            }
+        }
+        
+        /**
+         * Getter for more efficient code.
+         * @return xLoc
+         */
+        public int getXLoc() {
+            return xLoc;
+        }
+        
+        /**
+         * Getter for more efficient code.
+         * @return yLoc
+         */
+        public int getYLoc() {
+            return yLoc;
+        }
+        
+        /**
+         * Setter to prevent the need of stopping this timer and recreating a new one when the target position changes.
+         * @param xLoc Target x coordinate (pixels)
+         * @param yLoc Target y coordinate (pixels)
+         */
+        public void updateLoc(int xLoc, int yLoc) {
+            this.xLoc = xLoc;
+            this.yLoc = yLoc;
+        }
+    }
+    
+    /**
+     * Timertask that retrieves the ball.
+     * <p>
+     * This timertask is automatically followed by enabling the {@link PositionUpdater position updater}.
+     * @author Trancid
+     * @see PositionUpdater
+     */
+    public class BallRetriever extends TimerTask {
+        /**
+         * This routine will attempt to get the ball. When it already has the ball,
+         * it will cancel itself and queues the {@link PositionUpdater}.
+         */
+        @Override
+        public void run() {
+            if(!puck.holding) {
+                m_botAction.getBall(puck.getBallID(), puck.getTimeStamp());
+            } else {
+                m_botAction.cancelTask(ballManipulation);
+                ballManipulation = new PositionUpdater();
+                m_botAction.scheduleTask(ballManipulation, 500);
+            }
+        }
+    }
+    
+    /**
+     * Timertask that regularely sends a position packet to keep the server happy.
+     * @author Trancid
+     */
+    public class PositionUpdater extends TimerTask {
+        @Override
+        public void run() {
+            if (m_botAction.getShip().needsToBeSent())
+                m_botAction.getShip().sendPositionPacket();
+        }
+    }
+    
+    /**
+     * Timertasks that drops the ball by spectating the bot.
+     * <p>
+     * This should only be run when the bot already is in a ship and has the ball.
+     * When this task is fired, it will automatically starts the next task in the
+     * ball manipulation sequence, {@link ReenableSpeccing}.
+     * @author Trancid
+     * @see ReenableSpeccing
+     */
+    public class BallDropper extends TimerTask {
+        /**
+         * This main routine puts the bot back into spectating mode and on the correct frequency.
+         * It will also schedule a timer task, {@link ReenableSpeccing}, which will re-enable spectating
+         * the players for their position.
+         */
+        @Override
+        public void run() {
+            m_botAction.getShip().setShip(Ship.INTERNAL_SPECTATOR);
+            m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
+            puck.holding = false;
+            m_botAction.cancelTask(ballManipulation);
+            ballManipulation = new ReenableSpeccing();
+            m_botAction.scheduleTask(ballManipulation, 500);
+        }
+    }
 
-        private static final String path = "/home/bots/twcore-event/bin/logs/hockey/";
-        private FileWriter writer;
-        
-        public Log(BotAction botAction, String filename) {
-            try {
-                File file = new File(path);
-                writer = new FileWriter(new File(file, filename), true);
-                write(Tools.formatString("=", 40, "="));
-                write("=== " + Tools.formatString("Starting log session",32) + " ===");
-                write("=== " + Tools.formatString(Tools.getTimeStamp(),32) + " ===");
-                write(Tools.formatString("=", 40, "="));
-            } catch (IOException e) {
-                Tools.printStackTrace(e);
-            }
+    /**
+     * This Timertask re-enables the spectating of the players to track their positions.
+     * <p>
+     * If this is not called upon through the default sequence, please ensure that the bot is
+     * not in a ship at the time of execution, since this will trigger server warnings.
+     * @author Trancid
+     */
+    public class ReenableSpeccing extends TimerTask {
+        @Override
+        public void run() {
+            m_botAction.setPlayerPositionUpdating(300);
         }
-        
-        public void close() {
-            try {
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        public void write(String text) {
-            if (writer != null)
-            try {
-                writer.write(text + "\r\n");
-                writer.flush();
-            } catch (IOException e) {
-                Tools.printStackTrace(e);
-            }
-        }
-        
-    }*/
+    }
 
     /**
      * Used for debugging purposes only. When committing the code, please either temporary remove
