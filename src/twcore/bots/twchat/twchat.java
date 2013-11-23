@@ -211,13 +211,6 @@ public class twchat extends SubspaceBot {
                     deviates(name);
             }
             
-            if (ops.isBot(name)) {
-                if (message.startsWith("ALIASIGNORE: ")){
-                    String player = message.substring(13);
-                    ba.sendChatMessage(2, "Ignoring this player for aliases while using TWChat: " + player);
-                }
-            
-            }
 
             if (ops.isSmod(name)) {
                 if (message.equalsIgnoreCase("!show"))
