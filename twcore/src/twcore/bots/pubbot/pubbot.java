@@ -316,6 +316,7 @@ public class pubbot extends SubspaceBot
      */
     public void handleEvent(Message event)
     {
+       if(!event.getMessage().contains("MachineID:1693149144"))
         moduleHandler.handleEvent(event);
     }
 
