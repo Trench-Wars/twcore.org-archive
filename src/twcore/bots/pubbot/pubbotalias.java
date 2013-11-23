@@ -20,10 +20,9 @@ public class pubbotalias extends PubBotModule {
         String playerIP = getInfo(message, "IP:");
         String playerMacID = getInfo(message, "MachineId:");
 
-        if(playerMacID != "1693149144"){
         m_botAction.ipcSendMessage(getIPCChannel(), "info " + playerName + ":" + playerIP + ":" + playerMacID, getPubHubName(), "pubbotalias");
         m_botAction.ipcSendMessage("TWDOp Alias", "info " + playerName + ":" + playerIP + ":" + playerMacID, "TWDOpBot", "pubbotalias");   
-        }
+        
     }
 
     public void handleEvent(Message event) {
