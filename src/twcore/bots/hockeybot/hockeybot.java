@@ -914,6 +914,8 @@ public class hockeybot extends SubspaceBot {
             cmd_lagout(name);
         } else if (cmd.equals("!list")) {
             cmd_list(name);
+        } else if (cmd.equals("!myfreq")) {
+            cmd_myfreq(name);
         } else if (cmd.equals("!notplaying") || cmd.equals("!np")) {
             cmd_notplaying(name);
         } else if (cmd.equals("!status")) {
@@ -1395,6 +1397,7 @@ public class hockeybot extends SubspaceBot {
                 help.add("!cap                                            shows current captains!");
                 help.add("!lagout              Puts you back into the game if you have lagged out");
                 help.add("!list                                    Lists all players on this team");
+                help.add("!myfreq                              Puts you on your team's frequency.");
                 help.add("!status                                        Display status and score");
                 help.add("!subscribe                           Toggles alerts in private messages");
                 help.add("-----------------------------------------------------------------------");
@@ -1655,6 +1658,25 @@ public class hockeybot extends SubspaceBot {
         return list;
     }
 
+    /**
+     * Handles the !myfreq command.
+     * <p>
+     * Puts the player on his/her team's frequency.
+     * @param name name of the player that issued the !myfreq command
+     */
+    private void cmd_myfreq(String name) {
+        Player p;
+        HockeyTeam t;
+        
+        if (HockeyState.ACTIVEGAME.contains(currentState)) {
+            p = ba.getPlayer(name);
+            t = getTeam(name);
+            if(t != null && p != null && p.getFrequency() != t.getFrequency()) {
+                ba.setFreq(name, t.getFrequency());
+            }
+        }
+    }
+    
     /**
      * Handles the !notplaying command
      *
