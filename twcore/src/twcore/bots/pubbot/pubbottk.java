@@ -9,6 +9,7 @@ import java.util.Iterator;
 
 import twcore.bots.PubBotModule;
 import twcore.core.util.Tools;
+import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.OperatorList;
 import twcore.core.events.ArenaList;
@@ -83,10 +84,11 @@ public class pubbottk extends PubBotModule {
     public void initializeModule() {
         currentArena = m_botAction.getArenaName();
         ignores = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
-        String[] ignore = m_botAction.getBotSettings().getString("Ignores").trim().split(",");
-        for (String i : ignore)
-            ignores.add(i);
-
+        if(m_botAction.getBotSettings().getString("Ignores") != null) {
+            String[] ignore = m_botAction.getBotSettings().getString("Ignores").trim().split(",");
+            for (String i : ignore)
+                ignores.add(i);
+        }
         // TODO: Add to CFG
         if( currentArena.toLowerCase().equals("tourny") || currentArena.toLowerCase().startsWith("base") || currentArena.toLowerCase().equals("duel") )
             checkTKs = false;
@@ -253,21 +255,23 @@ public class pubbottk extends PubBotModule {
     public void cmd_ignore(String name, String cmd) {
         if (cmd.length() < "!ignore n".length())
             return;
+        BotSettings cfg = m_botAction.getBotSettings();
         String p = cmd.substring(8);
+        
         if (ignores.remove(p)) {
             String igns = "";
             for (String i : ignores)
                 igns += i + ",";
-            m_botAction.getBotSettings().put("Ignores", igns);
-            m_botAction.getBotSettings().save();
+            cfg.put("Ignores", igns);
+            cfg.save();
             m_botAction.sendPrivateMessage(name, "" + p + " is no longer ignored.");
         } else {
             ignores.add(p);
             String igns = "";
             for (String i : ignores)
                 igns += i + ",";
-            m_botAction.getBotSettings().put("Ignores", igns);
-            m_botAction.getBotSettings().save();
+            cfg.put("Ignores", igns);
+            cfg.save();
             m_botAction.sendPrivateMessage(name, "" + p + " has been IGNORED.");
         }
     }
