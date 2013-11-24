@@ -948,11 +948,14 @@ public class PubChallengeModule extends AbstractModule {
         @Override
         public void run() {
 
-            if (Math.abs(killer.lastDeath - killed.lastDeath) < 2 * Tools.TimeInMillis.SECOND) {
+            // If a kill occurred between starting and running this TimerTask, then don't count it.
+            if (Math.abs(killer.lastDeath - killed.lastDeath) < 1 * Tools.TimeInMillis.SECOND) {
                 m_botAction.sendSmartPrivateMessage(killer.name, "No count");
                 return;
 
             } else if (Math.abs(killed.lastKill - killer.lastKill) < 5 * Tools.TimeInMillis.SECOND) {
+                // In this scenario, the TimerTask of the previous kill has already been fired, and adjusted the score.
+                // Since this is a no count scenario, we will have to lower the scores of both players.
                 killed.kills--;
                 killer.deaths--;
                 m_botAction.sendSmartPrivateMessage(killer.name, "No count, back to " + killer.kills + "-" + killed.kills);
