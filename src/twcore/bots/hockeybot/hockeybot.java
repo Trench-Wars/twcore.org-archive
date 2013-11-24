@@ -3578,6 +3578,13 @@ public class hockeybot extends SubspaceBot {
         scoreOverlay.resetVariables();
         
         puck.clear();
+        
+        // Clear any running timers except for the main game ticker.
+        m_botAction.cancelTask(ballDelay);
+        m_botAction.cancelTask(ballManipulation);
+        m_botAction.cancelTask(mvpDelay);
+        m_botAction.cancelTask(reviewDelay);
+        m_botAction.cancelTask(statsDelay);
 
         setSpecAndFreq();
     }
