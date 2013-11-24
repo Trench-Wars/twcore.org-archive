@@ -726,11 +726,13 @@ public class hockeybot extends SubspaceBot {
     }
 
     /**
-     * Removes the ball from play, to the time out location.
+     * Picks up the ball and moves it to a specific location.
+     * @param xLoc X-coordinate, in pixels.
+     * @param yLoc Y-coordinate, in pixels.
      */
-    public void doRemoveBall() {
+    public void doMoveBall(int xLoc, int yLoc) {
         // Start the grabbing routines.
-        doGetBall(config.getPuckToX(), config.getPuckToY());
+        doGetBall(xLoc, yLoc);
         
         // If this timer was already running, cancel it so that we can cleanly restart it.
         if(ballDelay != null) {
@@ -945,6 +947,8 @@ public class hockeybot extends SubspaceBot {
                 cmd_ball(name);
             } else if (cmd.equals("!drop")) {
                 cmd_drop(name);
+            } else if (cmd.equals("!resetball")) {
+                cmd_resetBall(name);
             } else if (cmd.startsWith("!dec")) {     //!dec & !decrease
                 cmd_decrease(name, args);
             } else if (cmd.startsWith("!inc")) {     //!inc & !increase
@@ -1450,8 +1454,9 @@ public class hockeybot extends SubspaceBot {
                     hStaff.add("----------------------------------------------------------------------------------");
                     hStaff.add("!start                                                              starts the bot");
                     hStaff.add("!stop                                                                stops the bot");
-                    hStaff.add("!ball                                                           retrieves the ball");
-                    hStaff.add("!drop                                                               drops the ball");
+                    hStaff.add("!ball                                          retrieves the ball (Emergency only)");
+                    hStaff.add("!drop                                              drops the ball (Emergency only)");
+                    hStaff.add("!resetball                           moves the ball to the center (Emergency only)");
                     hStaff.add("!decrease <freq>                        subtracts a goal from <freq> (short: !dec)");
                     hStaff.add("!increase <freq>                              adds a goal for <freq> (short: !inc)");
                     hStaff.add("!zone <message>                  sends time-restricted advert, message is optional");
@@ -1990,6 +1995,18 @@ public class hockeybot extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage(name, 
                     "Player " + targetName + " is currently not sitting out any penalties.");
         }
+    }
+    
+    /**
+     * Handles the !resetball command (ZH+)
+     * <p>
+     * In case of an emergency, this command moves the ball to the center of the court.
+     * @param name Person who issued the command
+     */
+    private void cmd_resetBall(String name) {
+        m_botAction.sendSmartPrivateMessage(name, "The puck will be moved to the center of the court. Please be patient.");
+        doMoveBall(config.puckDropX, config.puckDropY);
+        
     }
     
     /**
@@ -2795,7 +2812,7 @@ public class hockeybot extends SubspaceBot {
         currentState = HockeyState.WAIT;
         
         timeStamp = System.currentTimeMillis();
-        doRemoveBall();
+        doMoveBall(config.getPuckToX(), config.getPuckToY());
         
         currentState = HockeyState.TIMEOUT;
     }
@@ -2840,7 +2857,7 @@ public class hockeybot extends SubspaceBot {
         
         // Get the ball out of play.
         timeStamp = System.currentTimeMillis();
-        doRemoveBall();
+        doMoveBall(config.getPuckToX(), config.getPuckToY());
         
         // Send a message to notify everyone.
         m_botAction.sendArenaMessage("Final goal under review by the hosts. Hosts, you have 15 seconds to cast your vote!", Tools.Sound.START_MUSIC);
