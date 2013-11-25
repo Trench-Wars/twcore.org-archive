@@ -56,6 +56,7 @@ public class twchat extends SubspaceBot {
     private static final String ECORE = "TWCore-Event";
     private static final String LCORE = "TWCore-League";
     private static final String STREAM = "TrenchStream";
+    private static String player = "";
     
     private KeepStreamAlive stream;
     
@@ -122,6 +123,8 @@ public class twchat extends SubspaceBot {
                     m_botAction.sendSmartPrivateMessage("StaffBot", "SERVERIGNORE " + nameFromMessage);
                     m_botAction.sendChatMessage(2, nameFromMessage + " is using TW-Chat. Sending request to ignore server warnings...");
                 }
+                
+                if 
                 if(notify == true){
                 if (ops.isBotExact(nameFromMessage))
                     return;
@@ -642,8 +645,17 @@ public class twchat extends SubspaceBot {
     private void showAdd(String name) {
         if (!show.contains(name.toLowerCase())) {
             show.add(name.toLowerCase());
+            player = name;
+        TimerTask task = new TimerTask() {
+            public void run() {
+                ba.sendUnfilteredPublicMessage("*locate " + player);
+            }
+        
 
-        }
+        };
+        ba.scheduleTask(task, 60000);
+
+    }
     }
 
     private void showRemove(String name) {
@@ -784,7 +796,7 @@ public class twchat extends SubspaceBot {
 
     public void show(String name, String message) {
         String people = "";
-        m_botAction.sendSmartPrivateMessage(name, "People ONLINE using TW Chat App:");
+        m_botAction.sendSmartPrivateMessage(name, "People ONLINE using TW Chat App (website & android):");
         Iterator<String> list = show.iterator();
         if (!list.hasNext())
             m_botAction.sendSmartPrivateMessage(name, "No-one! :(");
