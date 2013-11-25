@@ -785,7 +785,7 @@ public class hockeybot extends SubspaceBot {
         
         // Initiate the first timer in the ball retrieval sequence.
         ballManipulation = new ShipChanger(xLoc, yLoc);
-        m_botAction.scheduleTask(ballManipulation, 100, 100);
+        m_botAction.scheduleTask(ballManipulation, 150, 100);
         
     }
 
