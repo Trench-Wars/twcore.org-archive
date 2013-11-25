@@ -6753,6 +6753,7 @@ public class hockeybot extends SubspaceBot {
         @Override
         public void run() {
             m_botAction.setPlayerPositionUpdating(300);
+            ballManipulation = null;
         }
     }
 
