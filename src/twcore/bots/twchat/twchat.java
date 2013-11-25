@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -360,6 +361,28 @@ public class twchat extends SubspaceBot {
                 return;
             else
                 m_botAction.sendUnfilteredPrivateMessage(name, "*info");
+    }
+    
+    private void recordVIP(String name, String message) {
+        try {
+            Calendar c = Calendar.getInstance();
+            String timestamp = c.get(Calendar.MONTH) + "/" + c.get(Calendar.DAY_OF_MONTH) + "/" + c.get(Calendar.YEAR) + " - ";
+
+            BufferedReader reader = new BufferedReader(new FileReader("/home/bots/twcore/bin/logs/vip.log"));
+            BufferedWriter writer = new BufferedWriter(new FileWriter("/home/bots/twcore/bin/logs/vip.log", true));
+
+            writer.write("\r\n" + timestamp + " - " + name + " - " + message);
+
+            reader.close();
+            writer.close();
+
+        }
+
+        catch (Exception e) {
+            m_botAction.sendChatMessage(2, "I cannot log this to the banc.log! + " + name);
+            Tools.printStackTrace(e);
+        }
+
     }
 
     public void handleEvent(ArenaJoined event) {
@@ -746,6 +769,7 @@ public class twchat extends SubspaceBot {
         String vip = message.substring(8).toLowerCase();
         lastPlayer.add(vip);
         m_botAction.sendSmartPrivateMessage(name, "Done.");
+        recordVIP(name, vip);
     }
 
     public void go(String name, String message) {
