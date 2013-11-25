@@ -56,14 +56,13 @@ public class twchat extends SubspaceBot {
     private static final String ECORE = "TWCore-Event";
     private static final String LCORE = "TWCore-League";
     private static final String STREAM = "TrenchStream";
-    private static String player = "";
     
     private KeepStreamAlive stream;
     
     private String debugger = "";
     private boolean DEBUG = false;
     public boolean signup = false;
-    public boolean notify = true;
+    public boolean notify = false;
     public boolean staff = false;
     public boolean servignore = false;
     
@@ -123,8 +122,6 @@ public class twchat extends SubspaceBot {
                     m_botAction.sendSmartPrivateMessage("StaffBot", "SERVERIGNORE " + nameFromMessage);
                     m_botAction.sendChatMessage(2, nameFromMessage + " is using TW-Chat. Sending request to ignore server warnings...");
                 }
-                
-                if 
                 if(notify == true){
                 if (ops.isBotExact(nameFromMessage))
                     return;
@@ -645,17 +642,8 @@ public class twchat extends SubspaceBot {
     private void showAdd(String name) {
         if (!show.contains(name.toLowerCase())) {
             show.add(name.toLowerCase());
-            player = name;
-        TimerTask task = new TimerTask() {
-            public void run() {
-                ba.sendUnfilteredPublicMessage("*locate " + player);
-            }
-        
 
-        };
-        ba.scheduleTask(task, 60000);
-
-    }
+        }
     }
 
     private void showRemove(String name) {
@@ -796,7 +784,7 @@ public class twchat extends SubspaceBot {
 
     public void show(String name, String message) {
         String people = "";
-        m_botAction.sendSmartPrivateMessage(name, "People ONLINE using TW Chat App (website & android):");
+        m_botAction.sendSmartPrivateMessage(name, "People ONLINE using TW Chat App:");
         Iterator<String> list = show.iterator();
         if (!list.hasNext())
             m_botAction.sendSmartPrivateMessage(name, "No-one! :(");
@@ -836,6 +824,9 @@ public class twchat extends SubspaceBot {
     }
 
     public void toggle(String name, String message) {
+        if(!ba.getOperatorList().isSysop(name)){
+            ba.sendSmartPrivateMessage(name, "Sysop Only!");
+        } else {
         if (signup == false) {
             signup = true;
             m_botAction.sendSmartPrivateMessage(name, "Signup ACTIVATED");
@@ -843,6 +834,7 @@ public class twchat extends SubspaceBot {
             signup = false;
             m_botAction.sendSmartPrivateMessage(name, "Signup DEACTIVATED");
         }
+    }
     }
 
     public void warns(String name, String message) {
