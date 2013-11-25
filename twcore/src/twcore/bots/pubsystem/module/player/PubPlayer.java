@@ -359,7 +359,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     public void doLowPopSpawn(Boolean deathspawn) {
         Player p = m_botAction.getPlayer(name);
         
-        if (p != null && p.getShipType() != 4) {
+        if (p != null && p.getShipType() != Tools.Ship.LEVIATHAN) {
                 if(deathspawn) {
                     this.spawnDelay = new TimerTask() {        
                         @Override

@@ -178,7 +178,8 @@ public class PubUtilModule extends AbstractModule {
     
     @Override
     public void handleEvent(TurretEvent event) {
-
+        if (!enabled) return;
+        
         Player p1 = m_botAction.getPlayer(event.getAttacheeID());
         Player p2 = m_botAction.getPlayer(event.getAttacherID());
         
@@ -216,6 +217,8 @@ public class PubUtilModule extends AbstractModule {
     }
     
     public void handleEvent(FrequencyShipChange event) {
+        if (!enabled) return;
+        
         String name = m_botAction.getPlayerName(event.getPlayerID());
         if (name == null) return;
         if (m_botAction.getOperatorList().isZH(name)) {
@@ -232,6 +235,8 @@ public class PubUtilModule extends AbstractModule {
     }
     
     public void handleEvent(PlayerEntered event) {
+        if (!enabled) return;
+
         String name = m_botAction.getPlayerName(event.getPlayerID());
         if (name == null)
             return;
@@ -247,6 +252,8 @@ public class PubUtilModule extends AbstractModule {
     }
 
     public void handleEvent(PlayerLeft event) {
+        if (!enabled) return;
+
         //tutorials.remove(m_botAction.getPlayerName(event.getPlayerID()));
         //checkForDoors();
         String name = m_botAction.getPlayerName(event.getPlayerID());

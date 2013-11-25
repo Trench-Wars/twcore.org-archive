@@ -2030,6 +2030,7 @@ public class PubMoneySystemModule extends AbstractModule {
      * Mainly used to give feedback on actions related to coupon creation, updating and redeeming.
      */
     public void handleEvent(SQLResultEvent event) {
+        if (!enabled ) return;
 
         // Coupon system
         if (event.getIdentifier().startsWith("coupon")) {
@@ -2075,6 +2076,7 @@ public class PubMoneySystemModule extends AbstractModule {
      * Handles any messages that come through the subscribed IPC channels.
      */
     public void handleEvent(InterProcessEvent event) {
+        if (!enabled ) return;
         List<IPCReceiver> ipcReceiversCopy;
         
         // Since executing the IPC messages might take a bit, synchronizing the receiver.handleInterProcessEvent could lock things up.
@@ -2094,6 +2096,7 @@ public class PubMoneySystemModule extends AbstractModule {
      * Handles the frequency change of a player.
      */
     public void handleEvent(FrequencyChange event) {
+        if (!enabled ) return;
         Player p = m_botAction.getPlayer(event.getPlayerID());
         if (p == null)
             return;
@@ -2105,6 +2108,7 @@ public class PubMoneySystemModule extends AbstractModule {
      * Handles the PlayerLeft event
      */
     public void handleEvent(PlayerLeft event) {
+        if (!enabled ) return;
         Player p = m_botAction.getPlayer(event.getPlayerID());
         if (p == null)
             return;
@@ -2146,7 +2150,8 @@ public class PubMoneySystemModule extends AbstractModule {
      * This function is set to ignore duelling players.
      */
     public void handleEvent(PlayerDeath event) {
-
+        if (!enabled ) return;
+        
         final Player killer = m_botAction.getPlayer(event.getKillerID());
         final Player killed = m_botAction.getPlayer(event.getKilleeID());
 

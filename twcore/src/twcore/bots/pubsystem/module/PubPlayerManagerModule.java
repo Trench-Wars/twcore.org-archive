@@ -264,7 +264,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         }
         
         if (!context.getPubUtil().isLevAttachEnabled()) {
-            restrictions += "Leviathan attach capability disabled on public frequencies.";
+            restrictions += "Leviathan attach disabled on public frequencies.";
         }
 
         if( restrictions != "" )
@@ -274,12 +274,12 @@ public class PubPlayerManagerModule extends AbstractModule {
             checkPlayer(event.getPlayerID());
             if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
                 checkFreq(event.getPlayerID(), event.getTeam(), false);
-            //    checkFreqSizes();
+            //checkFreqSizes();
             }
         }
         
         if (pubPlayer != null && pubPlayer.getMoney() < 500)
-            m_botAction.sendSmartPrivateMessage(playerName, "Type !help for a list of commands.");
+            m_botAction.sendSmartPrivateMessage(playerName, "PM me back with !help for a list of commands. (Type :: to reply to last PM sent)");
     }
     
     public void handleEvent(PlayerLeft event) {
@@ -290,44 +290,43 @@ public class PubPlayerManagerModule extends AbstractModule {
         String playerName = p.getPlayerName();
 
         removeFromLists(playerName);
-      //  checkFreqSizes();
+        //checkFreqSizes();
     }
     
-    public void handleEvent(FrequencyChange event) {
-        
-        Player player = m_botAction.getPlayer(event.getPlayerID());
-        int playerID = event.getPlayerID();
-        //int freq = event.getFrequency();
-        PubPlayer pubPlayer;
-        
-        
-        
-            if (player != null && lowPopSpawning) {
-                 pubPlayer = players.get(player.getPlayerName().toLowerCase());
+    public void handleEvent(FrequencyChange event) {        
+        if (lowPopSpawning) {
+            Player player = m_botAction.getPlayer(event.getPlayerID());
+            if (player==null)
+                return;
+            PubPlayer pubPlayer;
+            pubPlayer = players.get(player.getPlayerName().toLowerCase());
             if (pubPlayer!=null) {
                 if(!context.getPubChallenge().isDueling(pubPlayer.getPlayerName()) && player.isPlaying()) {
                     pubPlayer.doLowPopSpawn(false);
-                    }
                 }
             }
-            
+        }
 
-        if(context.isStarted()) {
+        /* Disabled until hunt running again
+        if (context.isStarted() && context.getPubHunt().isRunning()) {
+            Player player = m_botAction.getPlayer(event.getPlayerID());
+            if (player==null)
+                return;
             HuntPlayer huntPlayer = context.getPubHunt().getPlayerPlaying(player.getPlayerName());
-            if (huntPlayer != null && context.getPubHunt().isRunning()) {
+            if (huntPlayer != null) {
                 if (huntPlayer.freq != event.getFrequency()) {
-                    m_botAction.setFreq(playerID, huntPlayer.freq);
+                    m_botAction.setFreq(player.getPlayerID(), huntPlayer.freq);
                     m_botAction.sendSmartPrivateMessage(player.getPlayerName(), "You cannot change your frequency during a game of hunt.");
                 }
             } else {
-                checkPlayer(playerID);
-               /* if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
-                    checkFreq(playerID, freq, true);
-                    checkFreqSizes();
-                }*/
+                checkPlayer(player.getPlayerID());
+                //if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
+                //    checkFreq(playerID, freq, true);
+                //    checkFreqSizes();
+                //}
             }
         }
-        
+        */
     }
 
     public void handleEvent(PlayerDeath event) {
@@ -361,24 +360,17 @@ public class PubPlayerManagerModule extends AbstractModule {
             if(lowPopSpawning) {
                 if(!context.getPubChallenge().isDueling(pubPlayerKilled.getPlayerName()) && killed.isPlaying()) {
                     pubPlayerKilled.doLowPopSpawn(true);
-                    }
                 }
-
+            }
         }
-        
-
-       
-            
 
         // The following four if statements deduct the tax value from a player who TKs.
-        if ((killer.getFrequency() == killed.getFrequency()) && (killer.getShipType() != 8)) {
+        if (tkTax > 0 && (killer.getFrequency() == killed.getFrequency()) && (killer.getShipType() != 8)) {
             if (pubPlayerKiller != null) {
-                if (tkTax > 0) {
-                    int money = pubPlayerKiller.getMoney();
-                    if (money >= tkTax) {
-                        pubPlayerKiller.removeMoney(tkTax);
-                        m_botAction.sendPrivateMessage(pubPlayerKiller.getPlayerName(), "Your account has been deducted $" + tkTax + " for team-killing " + killed);
-                    }
+                int money = pubPlayerKiller.getMoney();
+                if (money >= tkTax) {
+                    pubPlayerKiller.removeMoney(tkTax);
+                    m_botAction.sendPrivateMessage(pubPlayerKiller.getPlayerName(), "Your account has been deducted $" + tkTax + " for team-killing " + killed);
                 }
             }
         } 
@@ -387,10 +379,8 @@ public class PubPlayerManagerModule extends AbstractModule {
     
     public void handleEvent(FrequencyShipChange event) {
 
-        int playerID = event.getPlayerID();
-        int freq = event.getFrequency();
-        Player p = m_botAction.getPlayer(playerID);
-        
+        Player p = m_botAction.getPlayer(event.getPlayerID());
+        if (p==null) return;
         PubPlayer pubPlayer = players.get(p.getPlayerName().toLowerCase());
         if (pubPlayer!=null) {
             pubPlayer.handleShipChange(event);
@@ -401,9 +391,9 @@ public class PubPlayerManagerModule extends AbstractModule {
         }
 
         if (context.isStarted()) {
-            checkPlayer(playerID);
+            checkPlayer(event.getPlayerID());
             if (!context.getPubUtil().isPrivateFrequencyEnabled()) {
-                checkFreq(playerID, freq, true);
+                checkFreq(event.getPlayerID(), event.getFrequency(), true);
             }
         }
     }
@@ -748,9 +738,11 @@ public class PubPlayerManagerModule extends AbstractModule {
             return;
         String playerName = player.getPlayerName();
         
+        /* Disabled until hunt re-enabled
         if (context.getPubHunt().isPlayerPlaying(playerName)) {
             return;
         }
+        */
 
         int ship = player.getShipType();
         int newFreq = freq;

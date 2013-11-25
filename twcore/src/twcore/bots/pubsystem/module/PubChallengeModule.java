@@ -151,7 +151,7 @@ public class PubChallengeModule extends AbstractModule {
 
     @Override
     public void handleEvent(PlayerPosition event) {
-        if (!enabled)
+        if (!enabled || duelers.isEmpty())
             return;
 
         String name = m_botAction.getPlayerName(event.getPlayerID());
@@ -311,7 +311,7 @@ public class PubChallengeModule extends AbstractModule {
         }
         
         String key = challenger.toLowerCase() + "-" + challenged.toLowerCase();
-        if (spam.containsKey(key) && ((System.currentTimeMillis() - spam.get(key)) < 30 * Tools.TimeInMillis.SECOND)) {
+        if (!openChal && spam.containsKey(key) && ((System.currentTimeMillis() - spam.get(key)) < 30 * Tools.TimeInMillis.SECOND)) {
             m_botAction.sendSmartPrivateMessage(challenger, "Please wait 30 seconds before challenging this player again.");
             return;
         }
@@ -379,7 +379,7 @@ public class PubChallengeModule extends AbstractModule {
                                 + " duel" + (moneyActive ? (" for $" + amount) : "");
             openChallenges.put(challenger, displayStr);
             if (amount >= announceOpenChallengeAt)
-                m_botAction.sendArenaMessage("[OPEN DUEL] " + challenger + " challenges anyone to duel in " + displayStr + ".  !accept " + challenger );
+                m_botAction.sendArenaMessage("[OPEN DUEL] " + challenger + " challenges anyone to " + displayStr + ".  !accept " + challenger );
         } else {
             if (ship1 == ship2) {
                 m_botAction.sendSmartPrivateMessage(challenged, challenger + " has challenged you to duel" + (moneyActive ? (" for $" + amount) : "") + " in "

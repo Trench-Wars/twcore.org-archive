@@ -32,7 +32,6 @@ public class BountyModule extends AbstractModule {
     private int maximumBounty;
     private int announceDelay;
     
-    private boolean isRunning;
     private boolean isAnnouncing;
     
     public BountyModule(BotAction botAction, PubContext context) {
@@ -40,7 +39,6 @@ public class BountyModule extends AbstractModule {
         
         bounties = new ConcurrentHashMap<String, Integer>();
         
-        isRunning = false;
         isAnnouncing = true;
         
         reloadConfig();
@@ -49,12 +47,11 @@ public class BountyModule extends AbstractModule {
     @Override
     public void start() {
         reloadConfig();
-        isRunning = true;
     }
 
     @Override
     public void stop() {
-        isRunning = false;
+        enabled = false;
         bounties.clear();
     }
 
@@ -65,7 +62,7 @@ public class BountyModule extends AbstractModule {
 
     @Override
     public void handleEvent(PlayerDeath event) {
-        if (isRunning) {
+        if (enabled) {
             Player killed = m_botAction.getPlayer(event.getKilleeID());
             Player killer = m_botAction.getPlayer(event.getKillerID());
             if (killed != null && killer != null && killed.getFrequency() != killer.getFrequency()) 

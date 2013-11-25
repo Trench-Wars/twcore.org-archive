@@ -168,6 +168,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
     @Override
     public void handleEvent(PlayerLeft event) {
+        if (!enabled ) return;
 
         Player p = m_botAction.getPlayer(event.getPlayerID());
         if (p == null)
@@ -188,6 +189,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
     @Override
     public void handleEvent(TurretEvent event) {
+        if (!enabled ) return;
 
         final Player p1 = m_botAction.getPlayer(event.getAttacheeID());
         final Player p2 = m_botAction.getPlayer(event.getAttacherID());
@@ -243,10 +245,9 @@ public class GameFlagTimeModule extends AbstractModule {
 
     @Override
     public void handleEvent(FrequencyShipChange event) {
+        if (!enabled ) return;
 
         int playerID = event.getPlayerID();
-        int freq = event.getFrequency();
-        int ship = event.getShipType();
 
         Player p = m_botAction.getPlayer(playerID);
         if( p == null )
@@ -257,9 +258,10 @@ public class GameFlagTimeModule extends AbstractModule {
         if (pubPlayer != null) 
             pubPlayer.setLastFreqSwitch(event.getFrequency());
         
-        // Do nothing if the player is hunting
+        /* Disabled until hunt re-enabled
         if (context.getPubHunt().isPlayerPlaying(playerName))
             return;
+        */
 
         // Do nothing if the player is dueling
         if (context.getPubChallenge().isEnabled())
@@ -268,16 +270,16 @@ public class GameFlagTimeModule extends AbstractModule {
 
         // Stat for a new ship
         if (flagTimer != null)
-            flagTimer.newShip(playerName, ship);
+            flagTimer.newShip(playerName, event.getShipType());
 
         // Tell the team chat if there is a new Terrier playing
-        if (ship == Tools.Ship.TERRIER)
-            m_botAction.sendOpposingTeamMessageByFrequency(freq, "Player " + p.getPlayerName() + " is now a terr. You may attach.");
+        if (event.getShipType() == Tools.Ship.TERRIER)
+            m_botAction.sendOpposingTeamMessageByFrequency(event.getFrequency(), "Player " + p.getPlayerName() + " is now a terr. You may attach.");
 
         try {
             if (isFlagTimeStarted() && isRunning())
                 // Remove player if spec'ing
-                if (ship == Tools.Ship.SPECTATOR) {
+                if (event.getShipType() == Tools.Ship.SPECTATOR) {
                     String pname = p.getPlayerName();
                     playerTimes.remove(pname);
                 }
@@ -295,6 +297,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
     @Override
     public void handleEvent(FrequencyChange event) {
+        if (!enabled ) return;
         String p = m_botAction.getPlayerName(event.getPlayerID());
         if (p != null) {
             PubPlayer pubPlayer = context.getPlayerManager().getPlayer(p);
@@ -312,6 +315,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
     @Override
     public void handleEvent(PlayerDeath event) {
+        if (!enabled ) return;
 
         int killerID = event.getKillerID();
         int killedID = event.getKilleeID();
@@ -389,6 +393,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
     @Override
     public void handleEvent(PlayerEntered event) {
+        if (!enabled ) return;
 
         int playerID = event.getPlayerID();
         Player player = m_botAction.getPlayer(playerID);
@@ -406,6 +411,8 @@ public class GameFlagTimeModule extends AbstractModule {
 
     @Override
     public void handleEvent(FlagClaimed event) {
+        if (!enabled ) return;
+
         if (!isFlagTimeStarted())
             return;
 
@@ -881,7 +888,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
         m_botAction.cancelTask(startTimer);
 
-        // A game of hunt between
+        /* Disabled until hunt re-enabled
         if (context.getPubHunt().isEnabled() && endOfGame) {
             TimerTask timer = new TimerTask() {
                 @Override
@@ -891,6 +898,7 @@ public class GameFlagTimeModule extends AbstractModule {
             };
             m_botAction.scheduleTask(timer, 10 * Tools.TimeInMillis.SECOND);
         }
+        */
 
         startTimer = new StartRoundTask();
         m_botAction.scheduleTask(startTimer, intermission * 1000);
@@ -1980,8 +1988,17 @@ public class GameFlagTimeModule extends AbstractModule {
             
             if (allPlayers)
                 rand = 0;
-            else
+            else {
+                // Clear mines if they aren't already cleared by a strict time warp/allwarp
+                if (p.getShipType() == Tools.Ship.SHARK) {
+                    if (p.getFrequency() % 2 == 0)
+                        m_botAction.warpTo(p.getPlayerID(), warpSafeLeft);
+                    else
+                        m_botAction.warpTo(p.getPlayerID(), warpSafeRight);
+                }
                 rand = r.nextInt(warpPtsLeft.length);
+            }
+            
 
             if (p.getFrequency() % 2 == randomside)
                 doPlayerWarp(pname, warpPtsLeft[rand]);

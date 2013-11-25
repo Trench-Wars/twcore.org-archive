@@ -55,8 +55,9 @@ public class PubContext {
         getPlayerManager();
         getMoneySystem();
         getPubChallenge();
-        getPubHunt();
-        getPubLottery();
+        // Disabled 11/25/13; re-enable if used
+        //getPubHunt();
+        //getPubLottery();
         getPubStreak();
         getPubKillSession();
         getPubSession();
@@ -222,8 +223,12 @@ public class PubContext {
         return pubLottery;
     }
 
+    /** 11/25/13 - Adding explicit calls to modules for handling of general events,
+     * so we're not iterating over this Map unnecessarily 500 times a second.
+     */
     public void handleEvent(SubspaceEvent event) {
 
+        /*
         Iterator<AbstractModule> iterator = modules.values().iterator();
         AbstractModule module;
 
@@ -237,7 +242,34 @@ public class PubContext {
                 displayException(e);
             }
         }
+        */
+        
+        // Rather than checking whether each module is enabled before sending event,
+        // have each event handler method check in module itself. This saves many cycles,
+        // as most modules handle only a small subset of possible events they can handle.       
+        try {
+            playerManager.handleEvent(event);
+            moneySystem.handleEvent(event);
+            pubUtil.handleEvent(event);
+            gameFlagTime.handleEvent(event);
+            pubChallenge.handleEvent(event);
+            pubStreak.handleEvent(event);
+            pubKillSession.handleEvent(event);
+            pubSession.handleEvent(event);
+            pubMap.handleEvent(event);            
+            bountyModule.handleEvent(event);
 
+            // Gauge does not use events (at present)
+            //gaugeModule.handleEvent(event);
+            
+            // The following modules are not used at present. Uncomment and be sure
+            // that each one checks if module's enabled before handling event when re-enabling.
+            //pubHunt.handleEvent(event);
+            //pubLottery.handleEvent(event);
+        } catch (Exception e) {
+            displayException(e);            
+        }
+        
     }
 
     public void handleCommand(String sender, String command) {

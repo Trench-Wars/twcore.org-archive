@@ -77,9 +77,10 @@ public class PubStreakModule extends AbstractModule {
 	}*/
 	
 	//15Aug2013	POiD	Added Speccing removing a streak.
-	public void handleEvent(FrequencyShipChange event)
-	{
-		if (event.getShipType() == 0)	//spec
+	public void handleEvent(FrequencyShipChange event) {
+	    if (!enabled) return;
+	    
+		if (event.getShipType() == Tools.Ship.SPECTATOR)
 		{
 			Player p = m_botAction.getPlayer(event.getPlayerID());
 			if (p != null)
@@ -98,6 +99,8 @@ public class PubStreakModule extends AbstractModule {
 	}
         
 	public void handleEvent(PlayerLeft event) {
+	    if (!enabled) return;
+
 		Player p = m_botAction.getPlayer(event.getPlayerID());
 		if (p==null)
 			return;
@@ -106,7 +109,6 @@ public class PubStreakModule extends AbstractModule {
 	}
     
     public void handleEvent(PlayerDeath event) {
-
     	if (!enabled)
     		return;
     	
