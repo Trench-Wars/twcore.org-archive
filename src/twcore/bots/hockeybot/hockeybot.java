@@ -6293,24 +6293,29 @@ public class hockeybot extends SubspaceBot {
                 try {
                     for(HockeyTeam t: teams) {
                         String arrow = (t.getFrequency()==0)?"left (<-)":"right (->)";
+                        String names = "";
                         if (!t.offside.empty()) {
                             Iterator<String> i = t.offside.iterator();
                             while (i.hasNext()) {
-                                String name = i.next();
-                                m_botAction.sendPrivateMessage(name, "WARNING: You are "
-                                        + "offside. Get " + arrow + " of the center red line "
-                                        + "before drop or you will receive a penalty.");
+                                names += (i.next() + ", ");
                             }
+                            
+                            m_botAction.sendOpposingTeamMessageByFrequency(t.getFrequency(), "WARNING: " + names
+                                        + "you are offside. Get " + arrow + " of the center red line "
+                                        + "before drop or you will receive a penalty.", Tools.Sound.BEEP1);
                         }
+                        
                         if (t.fCrease.size() > 1) {
+                            names = "";
                             Iterator<String> i = t.fCrease.iterator();
                             while (i.hasNext()) {
-                                String name = i.next();
-                                m_botAction.sendPrivateMessage(name, "WARNING: Only one "
-                                        + "member per team is allowed in crease during "
-                                        + "Face Off. The last players who entered leave "
-                                        + "the crease or you will recieve a penalty.");
+                                names += (i.next() + ", ");
                             }
+                            
+                            m_botAction.sendOpposingTeamMessageByFrequency(t.getFrequency(), "WARNING: " + names
+                                    + "only one member per team is allowed in crease during "
+                                    + "Face Off. The last players who entered leave "
+                                    + "the crease or you will recieve a penalty.", Tools.Sound.BEEP1);
                         }
                     }
                     if (!botCrease.empty()) {
@@ -6320,7 +6325,7 @@ public class hockeybot extends SubspaceBot {
                             m_botAction.sendPrivateMessage(name, "WARNING: You are "
                                     + "not allowed to sit inside the red crease during"
                                     + " Face Off. Exit before drop or you will recieve"
-                                    + " a penalty.");
+                                    + " a penalty.", Tools.Sound.BEEP1);
                         }
                     }
                 } catch (Exception e) {
@@ -6610,7 +6615,7 @@ public class hockeybot extends SubspaceBot {
      * @see BotAction#stopSpectatingPlayer()
      *
      */
-    public class ShipChanger extends TimerTask {
+    private class ShipChanger extends TimerTask {
         private int xLoc, yLoc;
         
         /**
@@ -6682,7 +6687,7 @@ public class hockeybot extends SubspaceBot {
      * @author Trancid
      * @see PositionUpdater
      */
-    public class BallRetriever extends TimerTask {
+    private class BallRetriever extends TimerTask {
         /**
          * This routine will attempt to get the ball. When it already has the ball,
          * it will cancel itself and queues the {@link PositionUpdater}.
@@ -6703,7 +6708,7 @@ public class hockeybot extends SubspaceBot {
      * Timertask that regularely sends a position packet to keep the server happy.
      * @author Trancid
      */
-    public class PositionUpdater extends TimerTask {
+    private class PositionUpdater extends TimerTask {
         @Override
         public void run() {
             if (m_botAction.getShip().needsToBeSent())
@@ -6720,7 +6725,7 @@ public class hockeybot extends SubspaceBot {
      * @author Trancid
      * @see ReenableSpeccing
      */
-    public class BallDropper extends TimerTask {
+    private class BallDropper extends TimerTask {
         /**
          * This main routine puts the bot back into spectating mode and on the correct frequency.
          * It will also schedule a timer task, {@link ReenableSpeccing}, which will re-enable spectating
@@ -6744,7 +6749,7 @@ public class hockeybot extends SubspaceBot {
      * not in a ship at the time of execution, since this will trigger server warnings.
      * @author Trancid
      */
-    public class ReenableSpeccing extends TimerTask {
+    private class ReenableSpeccing extends TimerTask {
         @Override
         public void run() {
             m_botAction.setPlayerPositionUpdating(300);
