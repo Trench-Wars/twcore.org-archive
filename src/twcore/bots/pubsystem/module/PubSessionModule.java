@@ -44,6 +44,7 @@ public class PubSessionModule extends AbstractModule {
 	}
 
 	public void handleEvent( PlayerEntered event ) {
+	    if (!enabled) return;
         Player p = m_botAction.getPlayer(event.getPlayerID());
         if (p==null)
             return;	    
@@ -52,6 +53,7 @@ public class PubSessionModule extends AbstractModule {
 	}
 	
 	public void handleEvent(PlayerLeft event) {
+        if (!enabled) return;
 		Player p = m_botAction.getPlayer(event.getPlayerID());
 		if (p==null)
 			return;
@@ -715,6 +717,7 @@ public class PubSessionModule extends AbstractModule {
             
             
             // ***  LANDMARKS for # ships of type KILLED  ***
+            /*
             switch( enemyship ) {
             case 1:
                 
@@ -741,7 +744,7 @@ public class PubSessionModule extends AbstractModule {
                 
                 break;
             }
-        
+            */
         }
         
         
@@ -835,37 +838,5 @@ public class PubSessionModule extends AbstractModule {
     public String[] getSmodHelpMessage(String sender) {
         return new String[]{};
     }
-	
-	
-	
-	
-	
-	
-	
-	
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 }

@@ -43,18 +43,18 @@ public class PubMapModule extends AbstractModule {
     private BotAction ba;
     private Random random;
     private BaseChange baseChanger;
-    private boolean stragglerCheck;
+    //private boolean stragglerCheck;
     private boolean inPub;
     
     private MapRegions regions;
     
-    private TimerTask stragglerChecker;
+    //private TimerTask stragglerChecker;
     
     public PubMapModule(BotAction botAction, PubContext context) {
         super(botAction, context, "PubMap");
         ba = botAction;
         inPub = ba.getArenaName().startsWith("(Public");
-        stragglerCheck = false;
+        //stragglerCheck = false;
         random = new Random();
         lastChange = 0;
         currentBase = MED_BASE;
@@ -86,7 +86,7 @@ public class PubMapModule extends AbstractModule {
         er.request(EventRequester.PLAYER_LEFT);
         er.request(EventRequester.FREQUENCY_SHIP_CHANGE);
         er.request(EventRequester.ARENA_JOINED);
-        er.request(EventRequester.PLAYER_POSITION);
+        //er.request(EventRequester.PLAYER_POSITION);
     }
 
     @Override
@@ -108,7 +108,9 @@ public class PubMapModule extends AbstractModule {
         inPub = ba.getArenaName().startsWith("(Public");
     }
     
-    public void handleEvent(PlayerPosition event) {
+    //Re-enable if using stragglerCheck. All PlayerPosition handling is VERY COSTLY :),
+    //as it is fired over and over and over and over and over and over again
+    /*public void handleEvent(PlayerPosition event) {
         if (!stragglerCheck) return;
         Player p = ba.getPlayer(event.getPlayerID());
         int reg = regions.getRegion(p);
@@ -125,6 +127,7 @@ public class PubMapModule extends AbstractModule {
             
         }
     }
+    */
     
     public void handleEvent(PlayerEntered event) {
         if (!enabled || !inPub) return;
@@ -317,13 +320,15 @@ public class PubMapModule extends AbstractModule {
         }
         return p;
     }
-    
+
+    /*
     private class StragglerChecker extends TimerTask {
         public void run() {
             stragglerCheck = false;
             stragglerChecker = null;
         }
     }
+    */
     
     private class BaseChange extends TimerTask {
         private int base;
