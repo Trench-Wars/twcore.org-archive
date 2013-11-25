@@ -13,6 +13,7 @@ import java.util.TreeMap;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
+import twcore.core.OperatorList;
 import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.BallPosition;
@@ -37,7 +38,7 @@ import twcore.core.util.Tools;
  *
  * <p>Used for hosting ?go hockey</p>
  *
- * @author fantus, spookedone
+ * @author Fantus, SpookedOne, Trancid
  */
 public class hockeybot extends SubspaceBot {
     // Todo-list of features that need to be added in the future.
@@ -1378,119 +1379,112 @@ public class hockeybot extends SubspaceBot {
      * @param args The arguments of the full command message
      */
     private void cmd_help(String name, String args) {
-
         ArrayList<String> help = new ArrayList<String>();   //Help messages
-
+        OperatorList opList = m_botAction.getOperatorList();
+        
         if (currentState == HockeyState.OFF) {
             help.add("Hockey Help Menu");
             help.add("-----------------------------------------------------------------------");
             help.add("!subscribe                           Toggles alerts in private messages");
-            if (m_botAction.getOperatorList().isZH(name)) {
+            if (opList.isZH(name)) {
                 help.add("!start                                                -- starts the bot");
             }
             String[] spam = help.toArray(new String[help.size()]);
             m_botAction.privateMessageSpam(name, spam);
-         } else if (puck.holding) {
-             // The bot gets kicked for message flooding seemingly when he is spamming while in a ship.
-             m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
-         } else {
-             if (!args.contains("cap") && !args.contains("staff")){
-                help.add("Hockey Help Menu");
-                help.add("-----------------------------------------------------------------------");
-                help.add("!notplaying                       Toggles not playing mode  (short !np)");
-                help.add("!cap                                            shows current captains!");
-                help.add("!lagout              Puts you back into the game if you have lagged out");
-                help.add("!list                                    Lists all players on this team");
-                help.add("!myfreq                              Puts you on your team's frequency.");
-                help.add("!status                                        Display status and score");
-                help.add("!subscribe                           Toggles alerts in private messages");
-                help.add("-----------------------------------------------------------------------");
-                help.add("For more help: Private Mesage Me !help <topic>           ex. !help cap ");
-                help.add("                                                                       ");
-                help.add("Topics            Cap (Captain commands for before and during the game)");
-                                  
-             if (m_botAction.getOperatorList().isZH(name))
-                 help.add("              Staff (The staff commands for before and during the game)");
-             }
-                
-                String[] spam = help.toArray(new String[help.size()]);
-                
-                if(m_botAction.getShip().getShip() != Ship.INTERNAL_WARBIRD)
-                    m_botAction.privateMessageSpam(name, spam);
-                else
-                    m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
-            
-            if (args.contains("cap")) {
-                
-                 ArrayList<String> hCap = new ArrayList<String>();
-                 
-                 hCap.add("Hockey Help Menu: Captain Controls");
-                 hCap.add("-----------------------------------------------------------------------");
-                 hCap.add("!add <player>                        Adds player (Default Ship: Spider)");
-                 hCap.add("!add <player>:<ship>                  Adds player in the specified ship");
-                 hCap.add("!remove <player>                              Removes specified player)");
-                 hCap.add("!change <player>:<ship>           Sets the player in the specified ship");
-                 hCap.add("!sub <playerA>:<playerB>           Substitutes <playerA> with <playerB>");
-                 hCap.add("!switch <player>:<player>            Exchanges the ship of both players");
-                 hCap.add("!setteamname <name>                Sets your team's name. (short: !stn)");
-                 hCap.add("!timeout                       During faceoff, request a 30 sec timeout");
-                 hCap.add("!ready                    Use this when you're done setting your lineup");
-                 hCap.add("-----------------------------------------------------------------------");
-                 
-                String[] spamCap = hCap.toArray(new String[hCap.size()]);
-                
-                if(m_botAction.getShip().getShip() != Ship.INTERNAL_WARBIRD)
-                    m_botAction.privateMessageSpam(name, spamCap);
-                else
-                    m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
-                
-            }
-            if (args.contains("staff")) {
-                if (m_botAction.getOperatorList().isZH(name)) {
-                    
-                    ArrayList<String> hStaff = new ArrayList<String>();
-                    
-                    hStaff.add("Hockey Help Menu: Staff Controls");
-                    hStaff.add("----------------------------------------------------------------------------------");
-                    hStaff.add("!start                                                              starts the bot");
-                    hStaff.add("!stop                                                                stops the bot");
-                    hStaff.add("!ball                                          retrieves the ball (Emergency only)");
-                    hStaff.add("!drop                                              drops the ball (Emergency only)");
-                    hStaff.add("!resetball                           moves the ball to the center (Emergency only)");
-                    hStaff.add("!decrease <freq>                        subtracts a goal from <freq> (short: !dec)");
-                    hStaff.add("!increase <freq>                              adds a goal for <freq> (short: !inc)");
-                    hStaff.add("!zone <message>                  sends time-restricted advert, message is optional");
-                    hStaff.add("!forcenp <player>                                     Sets <player> to !notplaying");
-                    hStaff.add("!setcaptain <# freq>:<player>   Sets <player> as captain for <# freq> (short: !sc)");
-                    hStaff.add("!remcaptain <# freq>             Removes the captain of freq <# freq> (short: !rc)");
-                    hStaff.add("!penalty <player>:<reason>         Sends <player> to the penalty box (short: !pen)");
-                    hStaff.add("!rempenalty <player>        Removes the current penalty of <player> (short: !rpen)");
-                    hStaff.add("!hosttimeout                             Request a 30 second timeout (short: !hto)");
-                    hStaff.add("!setgamemode [<options>]             Use without options for details (short: !sgm)");
-                    hStaff.add("!vote <vote>                        Give your <vote> during the final goal review.");
-                    if (m_botAction.getOperatorList().isER(name)) {
-                        hStaff.add("!settimeout <amount>                Sets captain timeouts to <amount> (default: 1)");
-                    }
-                    if (m_botAction.getOperatorList().isModerator(name)) {
-                        hStaff.add("!off                                          stops the bot after the current game");
-                        hStaff.add("!die                                                           disconnects the bot");
-                    }
-                    if (m_botAction.getOperatorList().isSmod(name)) {
-                        hStaff.add("!allowzoner                         Forces the zone timers to reset allowing !zone");
-                                      
-                    }
-                    String[] spamStaff = hStaff.toArray(new String[hStaff.size()]);
-                    // Just a final check for added anti-flood security.
-                    if(m_botAction.getShip().getShip() != Ship.INTERNAL_WARBIRD)
-                        m_botAction.smartPrivateMessageSpam(name, spamStaff);
-                    else
-                        m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
-                }
-            }
-         }
+        } else if (!isBotInSpec()) {
+            // The bot gets kicked for message flooding seemingly when he is spamming while in a ship.
+            m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
+        } else if (args.contains("cap")) {
 
+            ArrayList<String> hCap = new ArrayList<String>();
+
+            hCap.add("Hockey Help Menu: Captain Controls");
+            hCap.add("-----------------------------------------------------------------------");
+            hCap.add("!add <player>                        Adds player (Default Ship: Spider)");
+            hCap.add("!add <player>:<ship>                  Adds player in the specified ship");
+            hCap.add("!remove <player>                              Removes specified player)");
+            hCap.add("!change <player>:<ship>           Sets the player in the specified ship");
+            hCap.add("!sub <playerA>:<playerB>           Substitutes <playerA> with <playerB>");
+            hCap.add("!switch <player>:<player>            Exchanges the ship of both players");
+            hCap.add("!setteamname <name>                Sets your team's name. (short: !stn)");
+            hCap.add("!timeout                       During faceoff, request a 30 sec timeout");
+            hCap.add("!ready                    Use this when you're done setting your lineup");
+            hCap.add("-----------------------------------------------------------------------");
+
+            String[] spamCap = hCap.toArray(new String[hCap.size()]);
+
+            if(isBotInSpec())
+                m_botAction.privateMessageSpam(name, spamCap);
+            else
+                m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
+
+        } else if (args.contains("staff") && opList.isZH(name)) {
+            ArrayList<String> hStaff = new ArrayList<String>();
+
+            hStaff.add("Hockey Help Menu: Staff Controls");
+            hStaff.add("----------------------------------------------------------------------------------");
+            hStaff.add("!start                                                              starts the bot");
+            hStaff.add("!stop                                                                stops the bot");
+            hStaff.add("!ball                                          retrieves the ball (Emergency only)");
+            hStaff.add("!drop                                              drops the ball (Emergency only)");
+            hStaff.add("!resetball                           moves the ball to the center (Emergency only)");
+            hStaff.add("!decrease <freq>                        subtracts a goal from <freq> (short: !dec)");
+            hStaff.add("!increase <freq>                              adds a goal for <freq> (short: !inc)");
+            hStaff.add("!zone <message>                  sends time-restricted advert, message is optional");
+            hStaff.add("!forcenp <player>                                     Sets <player> to !notplaying");
+            hStaff.add("!setcaptain <# freq>:<player>   Sets <player> as captain for <# freq> (short: !sc)");
+            hStaff.add("!remcaptain <# freq>             Removes the captain of freq <# freq> (short: !rc)");
+            hStaff.add("!penalty <player>:<reason>         Sends <player> to the penalty box (short: !pen)");
+            hStaff.add("!rempenalty <player>        Removes the current penalty of <player> (short: !rpen)");
+            hStaff.add("!hosttimeout                             Request a 30 second timeout (short: !hto)");
+            hStaff.add("!setgamemode [<options>]             Use without options for details (short: !sgm)");
+            hStaff.add("!vote <vote>                        Give your <vote> during the final goal review.");
+            if (opList.isER(name)) {
+                hStaff.add("!settimeout <amount>                Sets captain timeouts to <amount> (default: 1)");
+            }
+            if (opList.isModerator(name)) {
+                hStaff.add("!off                                          stops the bot after the current game");
+                hStaff.add("!die                                                           disconnects the bot");
+            }
+            if (opList.isSmod(name)) {
+                hStaff.add("!allowzoner                         Forces the zone timers to reset allowing !zone");
+
+            }
+            String[] spamStaff = hStaff.toArray(new String[hStaff.size()]);
+            // Just a final check for added anti-flood security.
+            if(isBotInSpec())
+                m_botAction.smartPrivateMessageSpam(name, spamStaff);
+            else
+                m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
+
+        } else {
+            help.add("Hockey Help Menu");
+            help.add("-----------------------------------------------------------------------");
+            help.add("!notplaying                       Toggles not playing mode  (short !np)");
+            help.add("!cap                                            shows current captains!");
+            help.add("!lagout              Puts you back into the game if you have lagged out");
+            help.add("!list                                    Lists all players on this team");
+            help.add("!myfreq                              Puts you on your team's frequency.");
+            help.add("!status                                        Display status and score");
+            help.add("!subscribe                           Toggles alerts in private messages");
+            help.add("-----------------------------------------------------------------------");
+            help.add("For more help: Private Mesage Me !help <topic>           ex. !help cap ");
+            help.add("                                                                       ");
+            help.add("Topics            Cap (Captain commands for before and during the game)");
+
+            if (opList.isZH(name))
+                help.add("              Staff (The staff commands for before and during the game)");
+
+            String[] spam = help.toArray(new String[help.size()]);
+
+            if(isBotInSpec())
+                m_botAction.privateMessageSpam(name, spam);
+            else
+                m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
+
+        }
     }
-    
+
     /**
      * Handles the !hosttimeout command. (ZH+)
      * 
@@ -1588,7 +1582,7 @@ public class hockeybot extends SubspaceBot {
     private void cmd_list(String name) {
         HockeyTeam t;
 
-        if (puck.holding) {
+        if (!isBotInSpec()) {
             // The bot gets kicked for message flooding seemingly when he is spamming while in a ship.
             m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
         } else if (currentState != HockeyState.OFF && currentState != HockeyState.WAITING_FOR_CAPS
@@ -3495,6 +3489,26 @@ public class hockeybot extends SubspaceBot {
             m_botAction.toggleLocked();
         else if (message.equals("Arena LOCKED") && !lockArena )
             m_botAction.toggleLocked();
+    }
+    
+    /**
+     * Checks whether or not the bot is in spectator mode.
+     * @return True if the bot is in spec and is not scheduled to be in a ship.
+     */
+    private boolean isBotInSpec() {
+        if(puck.holding) {
+            // For the bot to be holding the puck, he must be in a ship.
+            return false;
+        } else if(m_botAction.getShip().getShip() != Ship.INTERNAL_SPECTATOR) {
+            // If the shiptype isn't Spectator, he must be in a ship.
+            return false;
+        } else if(ballManipulation != null && ballManipulation instanceof ShipChanger) {
+            // If there is a ShipChanger task scheduled, the bot might be in a ship before the caller's routine has finished.
+            return false;
+        } else {
+            // If all goes well, the bot is in spectator mode.
+            return true;
+        }
     }
 
     /**
