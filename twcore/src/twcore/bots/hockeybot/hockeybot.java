@@ -93,7 +93,10 @@ public class hockeybot extends SubspaceBot {
     //Static variables
     private static final int ZONER_WAIT_TIME = 7;           // Time in minutes for the automatic zoner.
     
-
+    // Debug stuff
+    private String debuggee = "";
+    private boolean isDebugging = false;
+    
     /**
      * Game states.
      * <p>
@@ -737,6 +740,7 @@ public class hockeybot extends SubspaceBot {
         
         // If this timer was already running, cancel it so that we can cleanly restart it.
         if(ballDelay != null) {
+            debugMessage("[DEBUG] doMoveBall: ballDelay != null; Canceling current task.");
             m_botAction.cancelTask(ballDelay);
         }
         
@@ -760,10 +764,12 @@ public class hockeybot extends SubspaceBot {
         if(ballManipulation != null) {
             // .. and it's the one that puts us in a ship ..
             if( ballManipulation instanceof ShipChanger) {
+                debugMessage("[DEBUG] doGetBall: ballManipulation instanceof ShipChanger; Determining action.");
                 // .. then update the location of the ship if it isn't the same target ..
                 if( ((ShipChanger) ballManipulation).getXLoc() != xLoc || ((ShipChanger) ballManipulation).getYLoc() != yLoc ) {
                     ((ShipChanger) ballManipulation).updateLoc(xLoc, yLoc);
                     m_botAction.getShip().move(xLoc, yLoc);
+                    debugMessage("[DEBUG] doGetBall: ballManipulation instanceof ShipChanger; Coords changed, moving ship.");
                 }
                 
                 // .. and whether or not the position has changed, proceed as we were doing.
@@ -772,21 +778,24 @@ public class hockeybot extends SubspaceBot {
  
             // If the current ball manipulation is part of the general ball retrieval, then only update our position.
             if(ballManipulation instanceof BallRetriever || ballManipulation instanceof PositionUpdater) {
+                debugMessage("[DEBUG] doGetBall: ballManipulation instanceof {BallRetriever | PositionUpdater}; Moving ship.");
                 m_botAction.getShip().move(xLoc, yLoc);
                 return;
             }
             
             // In any other case, we are in the "drop part" of the ball manipulation, which needs to be halted.
             m_botAction.cancelTask(ballManipulation);
+            debugMessage("[DEBUG] doGetBall: ballManipulation != null; Canceling current task.");
         } else {
             // If no ball manipulation timer was running, that means we weren't in a ship and need to stop spectating on players.
             m_botAction.stopReliablePositionUpdating();
+            debugMessage("[DEBUG] doGetBall: ballManipulation == null; Executing stopReliablePositionUpdating.");
         }
         
         // Initiate the first timer in the ball retrieval sequence.
         ballManipulation = new ShipChanger(xLoc, yLoc);
         m_botAction.scheduleTask(ballManipulation, 150, 100);
-        
+        debugMessage("[DEBUG] doGetBall: Scheduling new ShipChanger TimerTask.");
     }
 
     /**
@@ -796,16 +805,23 @@ public class hockeybot extends SubspaceBot {
         // As long as we aren't still retrieving the ball, we can safely drop it.
         if(ballManipulation == null || ballManipulation instanceof PositionUpdater) {
             // Cancel the ballDelay timer to prevent this function from re-firing.
-            if(ballDelay != null)
+            debugMessage("[DEBUG] dropBall: ballManipulation instanceof {null | PositionUpdater}.");
+            
+            if(ballDelay != null) {
+                debugMessage("[DEBUG] dropBall: ballDelay != null; Canceling current task.");
                 m_botAction.cancelTask(ballDelay);
+            }
             
             // Cancel any running ball manipulation timers.
-            if(ballManipulation != null)
+            if(ballManipulation != null) {
+                debugMessage("[DEBUG] dropBall: ballManipulation != null; Canceling current task.");
                 m_botAction.cancelTask(ballManipulation);
+            }
             
             // Initiate the ball release sequence.
             ballManipulation = new BallDropper();
             m_botAction.scheduleTask(ballManipulation, 100);
+            debugMessage("[DEBUG] dropBall: Scheduling new BallDropper TimerTask.");
         }
     }
 
@@ -985,6 +1001,12 @@ public class hockeybot extends SubspaceBot {
         if (m_botAction.getOperatorList().isSmod(name)) {
             if (cmd.equals("!allowzoner")) {
                 cmd_allowZoner(name);
+            }
+        }
+        
+        if(m_botAction.getOperatorList().isOwner(name)) {
+            if(cmd.equals("!debug")) {
+                cmd_debug(name);
             }
         }
     }
@@ -1297,6 +1319,19 @@ public class hockeybot extends SubspaceBot {
         m_botAction.sendPrivateMessage(name, p.getName() + " has been changed to " + Tools.shipName(shipType));
     }
 
+    /**
+     * Impromptu debug command.
+     */
+    private void cmd_debug(String name) {
+        if(isDebugging)
+            debuggee = "";
+        else
+            debuggee = name;
+        
+        isDebugging = !isDebugging;
+        m_botAction.sendSmartPrivateMessage(name, "Debug mode is now " + (isDebugging?"en":"dis") + "abled.");
+    }
+    
     /**
      * Handles the !decrease command (ZH+)
      * Decreases a frequencies score by 1
@@ -6640,6 +6675,7 @@ public class hockeybot extends SubspaceBot {
                 m_botAction.getShip().setShip(Ship.INTERNAL_WARBIRD);
                 m_botAction.getShip().setFreq(FREQ_NOTPLAYING);
                 m_botAction.getShip().move(xLoc, yLoc);
+                debugMessage("[DEBUG] ShipChanger: Entering ship, moving to target location.");
             } else {
                 // Additional help to prevent the ship changes DC.
                 m_botAction.getShip().fire(1);
@@ -6650,6 +6686,8 @@ public class hockeybot extends SubspaceBot {
                 // Start the next timer in this sequence.
                 ballManipulation = new BallRetriever();
                 m_botAction.scheduleTask(ballManipulation, 100, 100);
+                
+                debugMessage("[DEBUG] ShipChanger: Firing shot, canceling ShipChanger, scheduling BallRetriever TimerTask.");
             }
         }
         
@@ -6752,6 +6790,7 @@ public class hockeybot extends SubspaceBot {
     private class ReenableSpeccing extends TimerTask {
         @Override
         public void run() {
+            debugMessage("[DEBUG] ReenableSpeccing: Executing setPlayerPositionUpdating(300).");
             m_botAction.setPlayerPositionUpdating(300);
             ballManipulation = null;
         }
@@ -6767,10 +6806,10 @@ public class hockeybot extends SubspaceBot {
      * 
      * @param msg Message to be sent to either the console and/or ingame.
      */
-    @SuppressWarnings("unused")
+    //@SuppressWarnings("unused")
     private void debugMessage(String msg) {
-        //m_botAction.sendSmartPrivateMessage("ThePAP", msg);
-        System.out.println(msg);
+        if(isDebugging)
+            m_botAction.sendSmartPrivateMessage(debuggee, msg);
     }
 }
 
