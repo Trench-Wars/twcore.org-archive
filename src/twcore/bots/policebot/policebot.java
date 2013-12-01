@@ -170,7 +170,7 @@ public class policebot extends SubspaceBot {
         // status should be apprehend
         if (status == Status.APPREHEND && perp != null) {
             String name = ba.getFuzzyPlayerName(perp);
-            if (name != null && name.equalsIgnoreCase(perp) && !ba.getOperatorList().isBotExact(name)) {
+            if (name != null && name.equalsIgnoreCase(perp)) {
                 status = Status.CONFIRM;
                 BanC banc = bancs.get(perp);
                 if (banc == null) {
@@ -209,12 +209,16 @@ public class policebot extends SubspaceBot {
             String info = ipc.getMessage().toLowerCase();
             if (info.toLowerCase().startsWith("banc:")) {
                 BanC b = new BanC(info);
-                bancs.put(b.getName(), b);
-                perps.add(b.getName());
+                if(!ba.getOperatorList().isBotExact(b.getName())) {
+                    bancs.put(b.getName(), b);
+                    perps.add(b.getName());
+                }
             } else if (info.toLowerCase().startsWith("info:")) {
                 String[] args = info.split(":");
-                perps.add(args[1]);
-                guards.put(args[1], ipc.getSender());
+                if(!ba.getOperatorList().isBotExact(args[1])) {
+                    perps.add(args[1]);
+                    guards.put(args[1], ipc.getSender());
+                }
             } else {
                 debug("Unknown error: " + info);
             }
