@@ -150,7 +150,6 @@ public class pubautobot extends SubspaceBot {
 		}
     	m_botAction.ipcSubscribe(IPC_CHANNEL);
     	m_botAction.ipcSendMessage(IPC_CHANNEL, "loggedon", null, m_botAction.getBotName());
-		m_botAction.setPlayerPositionUpdating(200);
     }
 
     /**
