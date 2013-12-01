@@ -411,6 +411,14 @@ public class twdhub extends SubspaceBot {
     }
 
     private void checkDiv(String div) {
+        div = div.substring(0, 4).toLowerCase();
+        if(div.equals("twdd")) {
+            checkDivPartial(div, 1, 2);
+            checkDivPartial(div, 3, 5);
+        } else {
+            checkDivPartial(div, 1, 5);
+        }
+        /*
         if (startup || shutdown) return;
         div = div.substring(0, 4).toLowerCase();
         Arena arena;
@@ -477,6 +485,40 @@ public class twdhub extends SubspaceBot {
             botRemove(div + "3");
             botRemove(div + "4");
             botRemove(div + "5");
+        }*/
+    }
+    
+    private void checkDivPartial(String div, int start, int end) {
+        if (startup || shutdown) return;
+        div = div.substring(0, 4).toLowerCase();
+        Arena arena;
+        String arenaName;
+        for(; start <= end; start++) {
+            arenaName = div;
+            if(start != 1)
+                arenaName += start;
+            
+            if (arenas.containsKey(div)) {
+                arena = arenas.get(div);
+                if (arena.hasGame()) {
+                    botStay(arena.bot);
+                    continue;
+                } else if (!arena.isActive()){
+                    botRemove(arenaName);
+                    break;
+                }
+            } else {
+                botSpawn(arenaName);
+                break;
+            }
+        }
+        
+        for(++start; start <= end; start++) {
+            arenaName = div;
+            if(start != 1)
+                arenaName += start;
+            
+            botRemove(arenaName);
         }
     }
     
