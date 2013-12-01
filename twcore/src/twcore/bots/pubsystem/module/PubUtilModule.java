@@ -83,7 +83,7 @@ public class PubUtilModule extends AbstractModule {
         m_botAction.scheduleTask(sendTimes, 5 * Tools.TimeInMillis.MINUTE, 5 * Tools.TimeInMillis.MINUTE);
         //psPlayTime = m_botAction.createPreparedStatement(db, "playtime", "INSERT INTO tblStaffer (fcName, fnPlayTime) VALUES(?,?) ON DUPLICATE KEY UPDATE fnPlayTime = fnPlayTime + VALUES(fnPlayTime)");
         
-        checkForAntiInSpawn = new TimerTask() {
+       /* checkForAntiInSpawn = new TimerTask() {
             public void run() {
                 for( Player p : m_botAction.getPlayingPlayers() ) {
                     //Player p = m_botAction.getPlayer(event.getPlayerID());
@@ -101,7 +101,7 @@ public class PubUtilModule extends AbstractModule {
         // someone is hanging around spawn using anti, it will see it. Furthermore, using anti in
         // spawn is rather obvious and can be reported by old-fashioned means, like any other cheating.
         // Good compromise between performance and efficacy. Checking each position packet slows bot down.
-        m_botAction.scheduleTask( checkForAntiInSpawn, 3 * Tools.TimeInMillis.SECOND, 3 * Tools.TimeInMillis.SECOND );
+        m_botAction.scheduleTask( checkForAntiInSpawn, 3 * Tools.TimeInMillis.SECOND, 3 * Tools.TimeInMillis.SECOND ); */
     }
     
     public void reloadRegions() {
