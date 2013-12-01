@@ -532,6 +532,8 @@ public class pubautobot extends SubspaceBot {
 			doSetShipCmd(name,msg.substring(9));
     	else if(msg.startsWith("!setfreq "))
     		doSetFreqCmd(name,msg.substring(9));
+    	else if(msg.startsWith("!setshipfreq "))
+    	    doSetShipFreqCmd(name, msg.substring(13));
 		else if(msg.startsWith("!warpto "))
 			doWarpToCmd(name,msg.substring(8));
 		else if(msg.startsWith("!face "))
@@ -803,6 +805,9 @@ public class pubautobot extends SubspaceBot {
     			m_botAction.getShip().setFreq(0);
     			startedAt = System.currentTimeMillis();
     			fired.clear();
+    			if(updateIt != null)
+    			    updateIt.cancel();
+    			
     			updateIt = new TimerTask() {
     		        public void run() {
     		            update();
@@ -830,6 +835,43 @@ public class pubautobot extends SubspaceBot {
     	} catch(Exception e) {}
     }
 
+    /**
+     * Combined command that changes both the ship and freq of the bot.
+     * <p>
+     * Additionally, this will store the frequency internally, as well as start an update timer.
+     * @param name Bot who issued the command.
+     * @param message The original command.
+     */
+    public void doSetShipFreqCmd(String name, String message) {
+        if(message.isEmpty())
+            return;
+        
+        String[] splitArgs = message.trim().split(":");
+        try {
+            int ship = Integer.parseInt(splitArgs[0]);
+            int freq = Integer.parseInt(splitArgs[1]);
+            
+            if(ship <= 9 && ship >= 1) {
+                m_botAction.getShip().setShip(ship-1);
+                botX = m_botAction.getShip().getX();
+                botY = m_botAction.getShip().getY();
+                m_botAction.getShip().setFreq(freq);
+                startedAt = System.currentTimeMillis();
+                m_botAction.getShip().moveAndFire(botX, botY, 1);
+                fired.clear();
+                this.freq = freq;
+                if(updateIt != null)
+                    updateIt.cancel();
+                
+                updateIt = new TimerTask() {
+                    public void run() {
+                        update();
+                    }
+                };
+                m_botAction.scheduleTaskAtFixedRate(updateIt, 100, 100);
+            }
+        } catch (Exception e) {}
+    }
     /**
      * Puts the bot into spectator mode.
      * <p>
