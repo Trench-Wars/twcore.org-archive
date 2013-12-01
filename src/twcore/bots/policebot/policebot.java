@@ -170,7 +170,7 @@ public class policebot extends SubspaceBot {
         // status should be apprehend
         if (status == Status.APPREHEND && perp != null) {
             String name = ba.getFuzzyPlayerName(perp);
-            if (name != null && name.equalsIgnoreCase(perp) && ba.getOperatorList().isBotExact(name)) {
+            if (name != null && name.equalsIgnoreCase(perp) && !ba.getOperatorList().isBotExact(name)) {
                 status = Status.CONFIRM;
                 BanC banc = bancs.get(perp);
                 if (banc == null) {
