@@ -437,6 +437,10 @@ public class pubautobot extends SubspaceBot {
     	if (playerName == null) {
     		playerName = m_botAction.getPlayerName(event.getPlayerID());
     	}
+    	
+    	// Let's ignore bots, since all bot related stuff goes through IPC.
+        if(m_botAction.getOperatorList().isBotExact(playerName))
+            return;
 
     	// Only react to private messages
     	if(messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) {
@@ -457,7 +461,7 @@ public class pubautobot extends SubspaceBot {
     			    return;
     			}
     		}
-
+    		
     		// Only allow direct command communication to this bot when debug mode is enabled.
             // When in production, the only command interaction with this bot should be by using the InterProcess channel.
             // The !die command is still accessible in case of emergencies, though.
