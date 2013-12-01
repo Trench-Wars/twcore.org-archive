@@ -21,15 +21,20 @@ import twcore.bots.Module;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.events.FileArrived;
-import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
-import twcore.core.stats.DBPlayerData;
 import twcore.core.util.Hider;
 import twcore.core.util.Tools;
-import twcore.core.util.ipc.IPCMessage;
 
 /**
  * THIS CODE SERIOUSLY NEEDS TO BE REFACTORED!! - Cpt
+ * 
+ * 
+ * XXX: THIS CODE REMAINS FORKED FROM PUBHUBALIAS. (It was copied from there, resulting
+ * in problems in the past, such as double alias entries.)
+ * 
+ * Their shared algorithms (!altnick etc) will not be updated concurrently.
+ * Consider refactoring so that they share the same algorithms from a central
+ * place, perhaps in a /core/ file.
  */
 
 public class twdopalias extends Module {
@@ -868,7 +873,7 @@ public class twdopalias extends Module {
 
             BufferedReader reader = new BufferedReader(new FileReader("/home/bots/twcore/bin/logs/alias.log"));
             BufferedWriter writer = new BufferedWriter(new FileWriter("/home/bots/twcore/bin/logs/alias.log", true));
-            writer.write("\r\n" + timestamp + sender + " - " + message);
+            writer.write("\r\n" + timestamp + sender + " - (TWD) " + message);
             reader.close();
             writer.close();
         } catch (Exception e) {
@@ -876,27 +881,6 @@ public class twdopalias extends Module {
             Tools.printStackTrace(e);
         }
 
-    }
-
-    public void gotRecord(String argString) {
-        if (justAdded.contains(argString.toLowerCase()) || deleteNextTime.contains(argString.toLowerCase()))
-            return;
-
-        StringTokenizer recordArgs = new StringTokenizer(argString, ":");
-        if (recordArgs.countTokens() != 3)
-            throw new IllegalArgumentException("ERROR: Could not write player information.");
-        String playerName = recordArgs.nextToken();
-        String playerIP = recordArgs.nextToken();
-        String playerMacID = recordArgs.nextToken();
-
-        checkName(playerName, playerIP, playerMacID);
-        checkIP(playerName, playerIP, playerMacID);
-        checkMID(playerName, playerIP, playerMacID);
-
-        try {
-            recordInfo(playerName, playerIP, playerMacID);
-            justAdded.add(playerName.toLowerCase());
-        } catch (Exception e) {}
     }
 
     /**
@@ -952,85 +936,12 @@ public class twdopalias extends Module {
         }
     }
 
-    /**
-     * This method handles an InterProcess event.
-     * 
-     * @param event
-     *            is the IPC event to handle.
-     */
-    public void handleEvent(InterProcessEvent event) {
-        // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
-        if (event.getObject() instanceof IPCMessage == false) {
-            return;
-        }
-
-        IPCMessage ipcMessage = (IPCMessage) event.getObject();
-        String botName = m_botAction.getBotName();
-        String message = ipcMessage.getMessage();
-
-        try {
-            if (botName.equals(ipcMessage.getRecipient())) {
-                if (message.startsWith("info "))
-                    gotRecord(message.substring(5));
-            }
-        } catch (Exception e) {
-            m_botAction.sendChatMessage(e.getMessage());
-        }
-    }
 
     /**
      * This method handles the destruction of this module.
      */
-
     public void cancel() {
         m_botAction.cancelTask(clearRecordTask);
-    }
-
-    private void recordInfo(String playerName, String playerIP, String playerMacID) {
-        DBPlayerData playerData = new DBPlayerData(m_botAction, DATABASE, playerName, true);
-        int userID = playerData.getUserID();
-        int aliasID = getAliasID(userID, playerIP, playerMacID);
-
-        if (aliasID == -1)
-            createAlias(userID, playerIP, playerMacID);
-        else
-            updateAlias(aliasID);
-    }
-
-    private int getAliasID(int userID, String playerIP, String playerMacID) {
-        try {
-            long ip32Bit = make32BitIp(playerIP);
-            ResultSet resultSet = m_botAction.SQLQuery(DATABASE, "SELECT * " + "FROM tblAlias " + "WHERE fnUserID = " + userID + " " + "AND fnIP = " + ip32Bit + " " + "AND fnMachineID = "
-                    + playerMacID);
-            if (!resultSet.next())
-                return -1;
-            int results = resultSet.getInt("fnAliasID");
-            m_botAction.SQLClose(resultSet);
-            return results;
-        } catch (SQLException e) {
-            throw new RuntimeException("ERROR: Unable to access database.");
-        }
-    }
-
-    private void createAlias(int userID, String playerIP, String playerMacID) {
-        try {
-            long ip32Bit = make32BitIp(playerIP);
-            String query = "INSERT INTO tblAlias " + "(fnUserID, fcIPString, fnIP, fnMachineID, fnTimesUpdated, fdRecorded, fdUpdated) " + "VALUES (" + userID + ", '" + playerIP + "', " + ip32Bit
-                    + ", " + playerMacID + ", 1, NOW(), NOW())";
-            ResultSet r = m_botAction.SQLQuery(DATABASE, query);
-            m_botAction.SQLClose(r);
-        } catch (SQLException e) {
-            throw new RuntimeException("ERROR: Unable to create alias entry.");
-        }
-    }
-
-    private void updateAlias(int aliasID) {
-        try {
-            ResultSet r = m_botAction.SQLQuery(DATABASE, "UPDATE tblAlias " + "SET fnTimesUpdated = fnTimesUpdated + 1, fdUpdated = NOW() " + "WHERE fnAliasID = " + aliasID);
-            m_botAction.SQLClose(r);
-        } catch (SQLException e) {
-            throw new RuntimeException("ERROR: Unable to update alias entry.");
-        }
     }
 
     private void updateTWDOps() {
