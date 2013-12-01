@@ -35,6 +35,8 @@ import twcore.core.util.ipc.IPCMessage;
 
 /**
  * THIS CODE SERIOUSLY NEEDS TO BE REFACTORED!! - Cpt
+ * 
+ * We're working on it, Guano... we're working on it. :>   - qan
  */
 
 public class pubhubalias extends PubBotModule {
@@ -65,6 +67,9 @@ public class pubhubalias extends PubBotModule {
     private static final String DEFAULT_HEADER = "Unknown Column";
 
     private static final String DATE_FIELD_PREFIX = "fd";
+    
+    public final String TWChatMID = "1693149144";
+
     
     /** Sorting options for !showwatches and !showmywatches */
     private static enum SortField { NONE, DATE, TRIGGER, ISSUER };
@@ -1429,6 +1434,8 @@ public class pubhubalias extends PubBotModule {
         checkLName(playerName, playerIP, playerMacID);
         checkRName(playerName, playerIP, playerMacID);
         checkPName(playerName, playerIP, playerMacID);
+        if (playerMacID.equals(TWChatMID))  // Do not record TW Chat users in alias system
+            return;
 
         try {
             recordInfo(playerName, playerIP, playerMacID);

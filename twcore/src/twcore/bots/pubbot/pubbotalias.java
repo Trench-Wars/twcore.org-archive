@@ -6,8 +6,6 @@ import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
 
 public class pubbotalias extends PubBotModule {
-
-    public final String TWChatMID = "1693149144";
     
     public void initializeModule() {
     }
@@ -18,8 +16,6 @@ public class pubbotalias extends PubBotModule {
 
     public void sendPlayerInfo(String message) {
         String playerMacID = getInfo(message, "MachineId:");
-        if (playerMacID.equals(TWChatMID))  // Do not record TW Chat users in alias system
-            return;
         String playerName = getInfo(message, "TypedName:");
         String playerIP = getInfo(message, "IP:");
 
