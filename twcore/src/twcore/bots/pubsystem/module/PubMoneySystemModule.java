@@ -3405,9 +3405,7 @@ public class PubMoneySystemModule extends AbstractModule {
             try {
                 Thread.sleep(2 * Tools.TimeInMillis.SECOND);
             } catch (InterruptedException e) {}
-            commandBot("!SetFreq " + freq);
-            commandBot("!SetShip 5");
-            commandBot("!SetFreq " + freq);
+            commandBot("!SetShipFreq 5:" + freq);
             if (freq == 0) {
                 commandBot("!WarpTo " + coordsBaseTerrier[0].x + " " + coordsBaseTerrier[0].y);
                 commandBot("!Face 15");
@@ -3465,11 +3463,7 @@ public class PubMoneySystemModule extends AbstractModule {
             try {
                 Thread.sleep(2 * Tools.TimeInMillis.SECOND);
             } catch (InterruptedException e) {}
-            commandBot("!SetShip 1");
-            try {
-                Thread.sleep(250);
-            } catch (InterruptedException e) {}
-            commandBot("!SetFreq " + freq);
+            commandBot("!SetShipFreq 1:" + freq);
             try {
                 Thread.sleep(250);
             } catch (InterruptedException e) {}
