@@ -87,6 +87,9 @@ public class pubautobot extends SubspaceBot {
 
 	private boolean enemyOnSight = false;  // Enables tracking of a hostile player.
 	private String target;                 // Name of the current target.
+	
+	private boolean m_debug = false;
+	private String m_debugger = "";
 
 	// This list is disabled and not up to date.
 	String[] helpmsg = {
@@ -459,6 +462,10 @@ public class pubautobot extends SubspaceBot {
     			    m_botAction.sendSmartPrivateMessage(playerName, "Please, don't send me to my room... It's fun in here!");
     			    free();
     			    return;
+    			} else if(message.equalsIgnoreCase("!debug")) {
+    			    m_debug = !m_debug;
+    			    m_debugger = playerName;
+    			    m_botAction.sendSmartPrivateMessage(playerName, "Debugging is now " + (m_debug?"en":"dis") + "abled.");
     			}
     		}
     		
@@ -741,6 +748,7 @@ public class pubautobot extends SubspaceBot {
     	// Move the bot back into the stable.
     	m_botAction.getShip().setShip(8);
     	m_botAction.changeArena(m_botAction.getBotSettings().getString("Arena"));
+    	debug("Free: Switching to spec, changing arena.");
 
     	// Reset all the variables
     	autoAiming = false;
@@ -785,6 +793,7 @@ public class pubautobot extends SubspaceBot {
     }
 
     public void go(String arena) {
+        debug("Go: Changing arena to " + arena);
         m_botAction.changeArena(arena);
     }
 
@@ -803,6 +812,7 @@ public class pubautobot extends SubspaceBot {
     			botX = m_botAction.getShip().getX();
     			botY = m_botAction.getShip().getY();
     			m_botAction.getShip().setFreq(0);
+    			debug("SetShip command: switching to ship " + ship + " and freq 0.");
     			startedAt = System.currentTimeMillis();
     			fired.clear();
     			if(updateIt != null)
@@ -831,6 +841,7 @@ public class pubautobot extends SubspaceBot {
     	try {
     		int freq = Integer.parseInt(message.trim());
     		m_botAction.getShip().setFreq(freq);
+    		debug("SetFreq command: Switching to freq: " + freq);
     		this.freq = freq;
     	} catch(Exception e) {}
     }
@@ -860,6 +871,7 @@ public class pubautobot extends SubspaceBot {
                 m_botAction.getShip().moveAndFire(botX, botY, 1);
                 fired.clear();
                 this.freq = freq;
+                debug("SetShipFreq command: Switching to ship " + ship + " and freq " + freq);
                 if(updateIt != null)
                     updateIt.cancel();
                 
@@ -887,6 +899,7 @@ public class pubautobot extends SubspaceBot {
 	    } catch(Exception e) {}
     	// Spec the bot.
     	m_botAction.getShip().setShip(8);
+    	debug("Spec: Speccing myself.");
     }
 
     /**
@@ -1191,6 +1204,12 @@ public class pubautobot extends SubspaceBot {
     		String s = (repeatFireTimers.indexOf(this)+1) + ") Firing weapon(" + weapon + ") every " + repeatms + " ms." ;
     		return s;
     	}
+    }
+    
+    private void debug(String msg) {
+        if(m_debug) {
+            m_botAction.sendSmartPrivateMessage(m_debugger, msg);
+        }
     }
 
 }
