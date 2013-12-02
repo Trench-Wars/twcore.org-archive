@@ -467,10 +467,12 @@ public class pubbotbanc extends PubBotModule {
     }
 
     private void sendIdler(String name) {
-        String MOVE_MESSAGE = "You've been moved to the away-from-keyboard subarena - 'afk'. Type \"?go\" to return.";
-        m_botAction.sendPrivateMessage(name, MOVE_MESSAGE);
-        m_botAction.sendUnfilteredPrivateMessage(name, sendto);
-        debug("Bounced: " + name);
+        if(!m_botAction.getArenaName().equalsIgnoreCase(AFK_ARENA)) {
+            String MOVE_MESSAGE = "You've been moved to the away-from-keyboard subarena - 'afk'. Type \"?go\" to return.";
+            m_botAction.sendPrivateMessage(name, MOVE_MESSAGE);
+            m_botAction.sendUnfilteredPrivateMessage(name, sendto);
+            debug("Bounced: " + name);
+        }
     }
 
     private String getTarget(BanC b) {
