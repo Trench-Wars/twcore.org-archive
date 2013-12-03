@@ -86,6 +86,7 @@ public class notifybot extends SubspaceBot {
                     for (Iterator<NotifyPlayer> i = playerlist.iterator(); i.hasNext();) {
                         NotifyPlayer player = (NotifyPlayer) i.next();
                         player.send("DISCONNECT: Server shutting down.");
+                        
                     }
                 } else if (msg.startsWith("!send ")) {
                     String str = msg.substring(msg.indexOf(" ") + 1, msg.length());
@@ -169,6 +170,7 @@ public class notifybot extends SubspaceBot {
     public void handleEvent(LoggedOn event) {
         BA.joinArena(BS.getString("arena"));
         BA.ipcSubscribe("TWNotify");
+        startServer();
     }
 
     public void handleEvent(ArenaJoined event) {
@@ -296,7 +298,9 @@ public class notifybot extends SubspaceBot {
             BA.sendSmartPrivateMessage(pname, "IP: " + socket.getInetAddress().getHostAddress());
             BA.sendSmartPrivateMessage(pname, "PORT: " + socket.getPort());
             BA.sendSmartPrivateMessage(pname, "HOST: " + socket.getInetAddress().getHostName());
-
+            System.out.println("IP: " + socket.getInetAddress().getHostAddress());
+            System.out.println("PORT: " + socket.getPort());
+            System.out.println("HOST: " + socket.getInetAddress().getHostName());
             running = true;
             while (running) {
                 if (queue.size() > 0) {
@@ -318,6 +322,7 @@ public class notifybot extends SubspaceBot {
                                 String name = args[1].trim();
                                 String pw = args[2];
                                 m_botAction.sendSmartPrivateMessage(pname, "Received LOGIN request...authorizing...");
+                                System.out.println("Login Request...");
                                 
                                 /*
                                  * We need to grab the user ID from the tblUser table, so we can then compare the values
@@ -361,6 +366,7 @@ public class notifybot extends SubspaceBot {
                                 //Wait! We have a result. The password query matched, time to get some information from the database about this player
                                 } else {
                                     m_botAction.sendSmartPrivateMessage(pname, "Password Correct - getting squad..."); // Debug
+                                    System.out.println("Login correct! Getting squad...");
                                     
                                     ResultSet squad = m_botAction.SQLQuery("pubstats", "SELECT fcSquad FROM tblPlayer WHERE fcName = '" + name + "'"); //Return the squad of the player
                                     
@@ -407,9 +413,14 @@ public class notifybot extends SubspaceBot {
                         } else if (args[0].startsWith("LOGOUT")) {
                             running = false;
                             playerlist.remove(player);
-                        } else if (args[0].startsWith("NOOP")) {
-                            queue.add("NOOP");
-                            out.printf("NOOP2\0");
+                            
+                        } else if (args[0].startsWith("CHECKRSPND")) {
+                            System.out.println("Request from client to send info held in the queue.");
+                            for(int i = 0; i < queue.size(); i++) {   
+                                out.printf(queue.get(i) + '\n');
+                                queue.remove(queue.get(i));
+                            }  
+                            
                         } else if (args[0].startsWith("TEST")) {}
                     }
                
