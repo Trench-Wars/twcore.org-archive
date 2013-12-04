@@ -15,7 +15,6 @@ import twcore.core.events.ArenaJoined;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
-import twcore.core.events.PlayerPosition;
 import twcore.core.game.Player;
 import twcore.core.util.MapRegions;
 import twcore.core.util.Tools;
