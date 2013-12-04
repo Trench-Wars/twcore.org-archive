@@ -379,7 +379,7 @@ public class PubChallengeModule extends AbstractModule {
                                 + " duel" + (moneyActive ? (" for $" + amount) : "");
             openChallenges.put(challenger, displayStr);
             if (amount >= announceOpenChallengeAt)
-                m_botAction.sendArenaMessage("[OPEN DUEL] " + challenger + " challenges anyone to " + displayStr + ".  !accept " + challenger );
+                m_botAction.sendArenaMessage("[OPEN DUEL] " + challenger + " challenges anyone to " + displayStr + ".  :tw-p:!accept " + challenger );
         } else {
             if (ship1 == ship2) {
                 m_botAction.sendSmartPrivateMessage(challenged, challenger + " has challenged you to duel" + (moneyActive ? (" for $" + amount) : "") + " in "
@@ -1023,10 +1023,10 @@ public class PubChallengeModule extends AbstractModule {
                 String amtString = (challenge.amount >= 250 ? "$" + challenge.amount : "peanuts"); 
                 if (ship1==ship2) {
                     m_botAction.sendArenaMessage( "- [" + Tools.shipNameSlang(ship1).toUpperCase() + " DUEL] - " + challenger + " vs " + accepter
-                            + " for " + amtString +". Betting closes soon. Use !beton <name>:<$>");
+                            + " for " + amtString +". Betting closes soon. Use :tw-p:!beton <name>:<$>");
                 } else {
                     m_botAction.sendArenaMessage( "- [" + Tools.shipNameSlang(ship1).toUpperCase() + " vs " +  Tools.shipNameSlang(ship2).toUpperCase() + " DUEL] - " + challenger + " vs " + accepter
-                            + " for " + amtString +". Betting closes soon. Use !beton <name>:<$>");                    
+                            + " for " + amtString +". Betting closes soon. Use :tw-p:!beton <name>:<$>");                    
                 }
             }
         }
@@ -1980,14 +1980,14 @@ class Challenge {
             return;
         if ( onChallenger ) {
             if ( ship1 == ship2 )
-                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + ". To match it, use: !beton " + challengedName + ":" + amount );
+                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + ". To match it, use: :tw-p:!beton " + challengedName + ":" + amount );
             else
-                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + " vs " + Tools.shipNameSlang( ship2 ) + ". Match it: !beton " + challengedName + ":" + amount );
+                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + " vs " + Tools.shipNameSlang( ship2 ) + ". Match it: :tw-p:!beton " + challengedName + ":" + amount );
         } else {
             if ( ship1 == ship2 )
-                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + ". To match it, use: !beton " + challengerName + ":" + amount );
+                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + ". To match it, use: :tw-p:!beton " + challengerName + ":" + amount );
             else
-                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + " vs " + Tools.shipNameSlang( ship1 ) + ". Match it: !beton " + challengerName + ":" + amount );            
+                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + " vs " + Tools.shipNameSlang( ship1 ) + ". Match it: :tw-p:!beton " + challengerName + ":" + amount );            
         }
         pcm_ref.lastBetAdvert = System.currentTimeMillis();
     }
