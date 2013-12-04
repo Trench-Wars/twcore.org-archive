@@ -570,7 +570,7 @@ public class matchbot extends SubspaceBot {
             if (m_game != null) {
                 if (command.equals("!pkg"))
                     playerKillGame();
-                else if (command.equals("!killgame")) {
+                else if (command.equals("!killgame") && twdops.contains(name)) {
                     m_botAction.sendArenaMessage("The game has been brutally killed by " + name);
                     m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
                     m_game.cancel();
