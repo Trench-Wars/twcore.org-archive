@@ -88,7 +88,7 @@ public class pubautobot extends SubspaceBot {
 	private boolean enemyOnSight = false;  // Enables tracking of a hostile player.
 	private String target;                 // Name of the current target.
 	
-	private boolean m_debug = true;
+	private boolean m_debug = false;
 	private String m_debugger = "ThePAP";
 
 	// This list is disabled and not up to date.
