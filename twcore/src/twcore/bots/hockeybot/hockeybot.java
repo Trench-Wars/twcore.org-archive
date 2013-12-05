@@ -1426,9 +1426,6 @@ public class hockeybot extends SubspaceBot {
             }
             String[] spam = help.toArray(new String[help.size()]);
             m_botAction.privateMessageSpam(name, spam);
-        } else if (!isBotInSpec()) {
-            // The bot gets kicked for message flooding seemingly when he is spamming while in a ship.
-            m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
         } else if (args.contains("cap")) {
 
             ArrayList<String> hCap = new ArrayList<String>();
@@ -1448,10 +1445,7 @@ public class hockeybot extends SubspaceBot {
 
             String[] spamCap = hCap.toArray(new String[hCap.size()]);
 
-            if(isBotInSpec())
-                m_botAction.privateMessageSpam(name, spamCap);
-            else
-                m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
+            enhancedPrivateMessageSpam(name, spamCap);
 
         } else if (args.contains("staff") && opList.isZH(name)) {
             ArrayList<String> hStaff = new ArrayList<String>();
@@ -1486,11 +1480,8 @@ public class hockeybot extends SubspaceBot {
 
             }
             String[] spamStaff = hStaff.toArray(new String[hStaff.size()]);
-            // Just a final check for added anti-flood security.
-            if(isBotInSpec())
-                m_botAction.smartPrivateMessageSpam(name, spamStaff);
-            else
-                m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
+
+            enhancedPrivateMessageSpam(name, spamStaff);
 
         } else {
             help.add("Hockey Help Menu");
@@ -1512,11 +1503,7 @@ public class hockeybot extends SubspaceBot {
 
             String[] spam = help.toArray(new String[help.size()]);
 
-            if(isBotInSpec())
-                m_botAction.privateMessageSpam(name, spam);
-            else
-                m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
-
+            enhancedPrivateMessageSpam(name, spam);
         }
     }
 
@@ -1617,10 +1604,7 @@ public class hockeybot extends SubspaceBot {
     private void cmd_list(String name) {
         HockeyTeam t;
 
-        if (!isBotInSpec()) {
-            // The bot gets kicked for message flooding seemingly when he is spamming while in a ship.
-            m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
-        } else if (currentState != HockeyState.OFF && currentState != HockeyState.WAITING_FOR_CAPS
+        if (currentState != HockeyState.OFF && currentState != HockeyState.WAITING_FOR_CAPS
                 && currentState != HockeyState.GAME_OVER) {
             t = getTeam(name);   //Retrieve teamnumber
 
@@ -1644,7 +1628,7 @@ public class hockeybot extends SubspaceBot {
             }
 
             String[] spam = list.toArray(new String[list.size()]);
-            m_botAction.privateMessageSpam(name, spam);
+            enhancedPrivateMessageSpam(name, spam);
         }
     }
 
@@ -6796,6 +6780,52 @@ public class hockeybot extends SubspaceBot {
         }
     }
 
+    /**
+     * This forms an additional protection layer to prevent the bot from being kicked for
+     * private message flooding. This code is experimental.
+     * @param name Name to who to send the spam to.
+     * @param spam The spam.
+     */
+    private void enhancedPrivateMessageSpam(final String name, final String[] spam) {
+        int i = 0;
+        for(; i < spam.length && isBotInSpec(); i++) {
+            m_botAction.sendSmartPrivateMessage(name, spam[i]);
+        }
+        
+        if(i < spam.length && !isBotInSpec()) {
+            ThrottledPM tPM = new ThrottledPM(name, spam, i);
+            m_botAction.scheduleTask(tPM, Tools.TimeInMillis.SECOND, Tools.TimeInMillis.SECOND);
+        }
+    }
+    
+    /**
+     * This TimerTask is used to throttle private message spam when the bot is in a ship.
+     * This code is experimental.
+     * @author Trancid
+     */
+    private class ThrottledPM extends TimerTask {
+        private int i, length;
+        private String name;
+        private String[] spam;
+        
+        public ThrottledPM(final String name, final String[] spam, int i) {
+            this.i = i;
+            this.name = name;
+            this.spam = spam;
+            this.length = spam.length;
+        }
+        
+        @Override
+        public void run() {
+            if(i < length) {
+                m_botAction.sendSmartPrivateMessage(name, spam[i]);
+                i++;
+            } else {
+                this.cancel();
+            }
+        }
+    }
+    
     /**
      * Used for debugging purposes only. When committing the code, please either temporary remove
      * the @SuppressWarnings line to doublecheck that this function throws the being unused warning, or
