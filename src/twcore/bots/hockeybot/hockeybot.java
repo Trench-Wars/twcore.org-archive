@@ -6790,6 +6790,12 @@ public class hockeybot extends SubspaceBot {
      */
     private void enhancedPrivateMessageSpam(final String name, final String[] spam) {
         int i = 0;
+        
+        if(!isBotInSpec()) {
+            m_botAction.sendSmartPrivateMessage(name, "I'm sorry, but while I'm in a ship, this command is disabled.");
+            return;
+        }
+        
         for(; i < spam.length && isBotInSpec(); i++) {
             m_botAction.sendSmartPrivateMessage(name, spam[i]);
         }
