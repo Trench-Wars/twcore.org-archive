@@ -2633,7 +2633,6 @@ public class hockeybot extends SubspaceBot {
     private void start() {
         m_botAction.setMessageLimit(8, false);
         m_botAction.setReliableKills(1);
-        m_botAction.setPlayerPositionUpdating(300);
         m_botAction.setLowPriorityPacketCap(8);
         lockLastGame = false;
         lockDoors();
@@ -2688,6 +2687,7 @@ public class hockeybot extends SubspaceBot {
                
         lockArena();
         m_botAction.specAll();
+        m_botAction.setPlayerPositionUpdating(300);
         timeStamp = System.currentTimeMillis();
         m_botAction.sendArenaMessage("Captains you have 10 minutes to set up your lineup correctly!",
                 Tools.Sound.BEEP2);
@@ -3636,6 +3636,8 @@ public class hockeybot extends SubspaceBot {
         m_botAction.cancelTask(reviewDelay);
         m_botAction.cancelTask(statsDelay);
 
+        // Test to see if this solves a server error message.
+        m_botAction.stopReliablePositionUpdating();
         setSpecAndFreq();
     }
 
