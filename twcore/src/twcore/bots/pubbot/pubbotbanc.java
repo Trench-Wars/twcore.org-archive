@@ -537,7 +537,11 @@ public class pubbotbanc extends PubBotModule {
             }
             HashSet<String> removes = new HashSet<String>();
             for (String name : confirms.keySet()) {
-                if (name != null && confirms.get(name) != null && confirms.get(name).expired()) {
+                if (name == null) {
+                    continue;
+                } else if(confirms.get(name) == null) {
+                    removes.add(name);
+                } else if (confirms.get(name).expired()) {
                     Confirm conf = confirms.get(name);
                     removes.add(name);
                     if (!conf.info)
