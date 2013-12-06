@@ -23,6 +23,7 @@ public class pubbotwho extends PubBotModule {
     HashMap<String, Who> who = new HashMap<String, Who>();
     
     boolean debug = false;
+    String debuggee = "WingZero";
 
     public void initializeModule() {
         m_botAction.ipcSubscribe(IPC);
@@ -43,18 +44,18 @@ public class pubbotwho extends PubBotModule {
             return;
         if (type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE) {
             if (m_botAction.getOperatorList().isSmod(name) && msg.equals("!debug")) {
-                debug();
+                debug(name);
             }
         }
 
     }
     
-    private void debug() {
+    private void debug(String name) {
         debug = !debug;
         if (debug)
-            m_botAction.sendSmartPrivateMessage("WingZero", "Debug ON");
-        else
-            m_botAction.sendSmartPrivateMessage("WingZero", "Debug OFF");
+            debuggee = name;
+        
+        m_botAction.sendSmartPrivateMessage(debuggee, "Debug " + (debug?"ON":"OFF"));
     }
 
     public void handleEvent(ArenaJoined event) {
@@ -78,7 +79,7 @@ public class pubbotwho extends PubBotModule {
             return;
         
         if (debug)
-            m_botAction.sendSmartPrivateMessage("WingZero", "enter event for: " + p.getPlayerName());
+            m_botAction.sendSmartPrivateMessage(debuggee, "enter event for: " + p.getPlayerName());
 
         //m_botAction.ipcTransmit(IPC, new IPCMessage("enter:" + p.getPlayerName()));
         String name = p.getPlayerName().toLowerCase();
@@ -98,6 +99,7 @@ public class pubbotwho extends PubBotModule {
                 //who.put(name, new Who(p.getPlayerName(), System.currentTimeMillis()));
                 //m_botAction.scheduleTask(who.get(name), 2000);
             } catch (IllegalStateException e) {
+                m_botAction.sendChatMessage(2, "[ERROR] I think I became unresponsive. Please contact a dev or restart me.");
                 Tools.printLog("IllegalStateException on: " + name + " in pubbotwho");
                 //Tools.printStackTrace(e);
             } catch (NullPointerException e) {
@@ -118,7 +120,7 @@ public class pubbotwho extends PubBotModule {
             return;
         
         if (debug)
-            m_botAction.sendSmartPrivateMessage("WingZero", "left event for: " + p.getPlayerName());
+            m_botAction.sendSmartPrivateMessage(debuggee, "left event for: " + p.getPlayerName());
 
         //m_botAction.ipcTransmit(IPC, new IPCMessage("left:" + p.getPlayerName()));
         String name = p.getPlayerName().toLowerCase();
