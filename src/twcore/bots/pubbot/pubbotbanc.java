@@ -46,7 +46,7 @@ public class pubbotbanc extends PubBotModule {
 
     private static final long INFINITE_DURATION = 0;
     private static final int MAX_NAME_LENGTH = 19;
-    private static final int MAX_IDLE_TIME = 15; //mins
+    private static final int MAX_IDLE_TIME = 10; //mins
     private static final int BANC_CONFIRM_TIME = 3000; //ms
     
     private TimerTask initActiveBanCs;
@@ -650,8 +650,9 @@ public class pubbotbanc extends PubBotModule {
                 Tools.printStackTrace(e);
                 return;
             }
-            if (sec > MAX_IDLE_TIME * 60)
-                sendIdler(name);
+            // No longer sending to afk arena
+            //if (sec > MAX_IDLE_TIME * 60)
+            //    sendIdler(name);
         }
 
         public void add(String name, BanC banc) {
