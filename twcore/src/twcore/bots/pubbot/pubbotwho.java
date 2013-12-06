@@ -99,7 +99,7 @@ public class pubbotwho extends PubBotModule {
                 //who.put(name, new Who(p.getPlayerName(), System.currentTimeMillis()));
                 //m_botAction.scheduleTask(who.get(name), 2000);
             } catch (IllegalStateException e) {
-                m_botAction.sendChatMessage(2, "[ERROR] I think I became unresponsive. Please contact a dev or restart me.");
+                m_botAction.sendChatMessage(1, "[ERROR] I think I became unresponsive. Please contact a dev or restart me.");
                 Tools.printLog("IllegalStateException on: " + name + " in pubbotwho");
                 //Tools.printStackTrace(e);
             } catch (NullPointerException e) {
