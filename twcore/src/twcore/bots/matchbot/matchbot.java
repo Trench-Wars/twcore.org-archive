@@ -817,6 +817,30 @@ public class matchbot extends SubspaceBot {
             arena = args[1].toLowerCase();
             players = -1;
         }
+
+        // Check if the requested arena isn't outside of the range of valid arenas.
+        if(arena.length() == 5 && (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd")
+                || arena.startsWith("twsd") || arena.startsWith("twfd"))) {
+            int arenaNumber;
+            try {
+                arenaNumber = Integer.parseInt(arena.substring(5, 6));
+            } catch (NumberFormatException e) {
+                m_botAction.sendSmartPrivateMessage(name, arena + " is an invalid arena name. Please try again.");
+                return;
+            }
+            String type = arena.substring(1, 5);
+            if((type.equals("twbd") || type.equals("twdd") || type.equals("twsd")) && arenaNumber > 7) {
+                m_botAction.sendSmartPrivateMessage(name, "The highest available arena is " + type + "7.");
+                return;
+            } else if(type.equals("twjd") && arenaNumber > 10) {
+                m_botAction.sendSmartPrivateMessage(name, "The highest available arena is " + type + "10.");
+                return;
+            } else if(type.equals("twfd") && arenaNumber > 4) {
+                m_botAction.sendSmartPrivateMessage(name, "The highest available arena is " + type + "4.");
+                return;
+            } 
+        }
+        
         //String toBot, EventType type, String arena, String name, String squad1, String squad2, int players
         m_botAction.ipcTransmit("MatchBot", new IPCChallenge(TWDHUB, EventType.CHALLENGE, arena, name, p.getSquadName().toLowerCase(), args[0].toLowerCase(), players));
     }
