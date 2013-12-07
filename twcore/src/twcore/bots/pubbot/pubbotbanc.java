@@ -536,18 +536,25 @@ public class pubbotbanc extends PubBotModule {
                     m_botAction.sendUnfilteredPrivateMessage((String) current, "*einfo");
             }
             HashSet<String> removes = new HashSet<String>();
-            for (String name : confirms.keySet()) {
-                if (name == null) {
-                    continue;
-                } else if(confirms.get(name) == null) {
-                    removes.add(name);
-                } else if (confirms.get(name).expired()) {
-                    Confirm conf = confirms.get(name);
-                    removes.add(name);
-                    if (!conf.info)
-                        m_botAction.ipcSendMessage(IPCPOLICE, "BANC:" + name + ":" + conf.type.toString() + ":" + conf.time, null, m_botAction.getBotName());
-                    else
-                        m_botAction.ipcSendMessage(IPCPOLICE, "INFO:" + name, null, m_botAction.getBotName());
+            synchronized (confirms) {
+                for (String name : confirms.keySet()) {
+                    if (name == null) {
+                        continue;
+                    } else if (confirms.get(name) == null) {
+                        removes.add(name);
+                    } else if (confirms.get(name).expired()) {
+                        Confirm conf = confirms.get(name);
+                        removes.add(name);
+                        if (!conf.info)
+                            m_botAction
+                                    .ipcSendMessage(IPCPOLICE, "BANC:" + name
+                                            + ":" + conf.type.toString() + ":"
+                                            + conf.time, null,
+                                            m_botAction.getBotName());
+                        else
+                            m_botAction.ipcSendMessage(IPCPOLICE, "INFO:"
+                                    + name, null, m_botAction.getBotName());
+                    }
                 }
             }
             for (String name : removes)
