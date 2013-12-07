@@ -823,12 +823,12 @@ public class matchbot extends SubspaceBot {
                 || arena.startsWith("twsd") || arena.startsWith("twfd"))) {
             int arenaNumber;
             try {
-                arenaNumber = Integer.parseInt(arena.substring(5));
+                arenaNumber = Integer.parseInt(arena.substring(4));
             } catch (NumberFormatException e) {
                 m_botAction.sendSmartPrivateMessage(name, arena + " is an invalid arena name. Please try again.");
                 return;
             }
-            String type = arena.substring(1, 5);
+            String type = arena.substring(0, 4);
             if((type.equals("twbd") || type.equals("twdd") || type.equals("twsd")) && arenaNumber > 7) {
                 m_botAction.sendSmartPrivateMessage(name, "The highest available arena is " + type + "7.");
                 return;
