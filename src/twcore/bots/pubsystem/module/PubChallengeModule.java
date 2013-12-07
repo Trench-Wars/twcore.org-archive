@@ -1318,10 +1318,10 @@ public class PubChallengeModule extends AbstractModule {
                     else
                         m_botAction.sendSmartPrivateMessage(sender, "Ship must be a number between 1 and 8.");
                 } catch (NumberFormatException e) {
-                    m_botAction.sendSmartPrivateMessage(sender, "Proper use is !challenge name:ship " + (context.getMoneySystem().isEnabled() ? ":amount" : "") );
+                    m_botAction.sendSmartPrivateMessage(sender, "Proper use is !challenge name:ship" + (context.getMoneySystem().isEnabled() ? ":amount" : "") );
                 }
             } else {
-                m_botAction.sendSmartPrivateMessage(sender, "Proper use is !challenge name:ship " + (context.getMoneySystem().isEnabled() ? ":amount" : "") );
+                m_botAction.sendSmartPrivateMessage(sender, "Proper use is !challenge name:ship" + (context.getMoneySystem().isEnabled() ? ":amount" : "") );
             }
         } else {
             if (pieces.length == 4 ) {
@@ -1345,10 +1345,10 @@ public class PubChallengeModule extends AbstractModule {
                     else
                         m_botAction.sendSmartPrivateMessage(sender, "Ships must both be a number between 1 and 8.");
                 } catch (NumberFormatException e) {
-                    m_botAction.sendSmartPrivateMessage(sender, "Proper use is !challenge name:ship " + (context.getMoneySystem().isEnabled() ? ":amount" : "") );
+                    m_botAction.sendSmartPrivateMessage(sender, "Proper use is !challenge name:ship" + (context.getMoneySystem().isEnabled() ? ":amount" : "") );
                 }
             } else {
-                m_botAction.sendSmartPrivateMessage(sender, "Proper use is !challenge name:ship " + (context.getMoneySystem().isEnabled() ? ":amount" : "") );
+                m_botAction.sendSmartPrivateMessage(sender, "Proper use is !challenge name:ship" + (context.getMoneySystem().isEnabled() ? ":amount" : "") );
             }
         }
     }
