@@ -823,7 +823,7 @@ public class matchbot extends SubspaceBot {
                 || arena.startsWith("twsd") || arena.startsWith("twfd"))) {
             int arenaNumber;
             try {
-                arenaNumber = Integer.parseInt(arena.substring(5, 6));
+                arenaNumber = Integer.parseInt(arena.substring(5));
             } catch (NumberFormatException e) {
                 m_botAction.sendSmartPrivateMessage(name, arena + " is an invalid arena name. Please try again.");
                 return;
