@@ -545,7 +545,7 @@ public class pubbotbanc extends PubBotModule {
                     } else if (confirms.get(name).expired()) {
                         Confirm conf = confirms.get(name);
                         removes.add(name);
-                        if (!conf.info)
+                        if (conf != null && !conf.info)
                             m_botAction
                                     .ipcSendMessage(IPCPOLICE, "BANC:" + name
                                             + ":" + conf.type.toString() + ":"
