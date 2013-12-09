@@ -1989,13 +1989,6 @@ public class GameFlagTimeModule extends AbstractModule {
             if (allPlayers)
                 rand = 0;
             else {
-                // Clear mines if they aren't already cleared by a strict time warp/allwarp
-                if (p.getShipType() == Tools.Ship.SHARK) {
-                    if (p.getFrequency() % 2 == 0)
-                        m_botAction.warpTo(p.getPlayerID(), warpSafeLeft);
-                    else
-                        m_botAction.warpTo(p.getPlayerID(), warpSafeRight);
-                }
                 rand = r.nextInt(warpPtsLeft.length);
             }
             
@@ -2056,6 +2049,28 @@ public class GameFlagTimeModule extends AbstractModule {
                     m_botAction.warpTo(p.getPlayerID(), warpSafeLeft);
                 else
                     m_botAction.warpTo(p.getPlayerID(), warpSafeRight);
+        }
+    }
+    
+    /**
+     * Clears shark mines just before warping players into FR. For public freqs only.
+     */
+    public void clearSharkMines() {
+        Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
+        Player p;
+
+        while (i.hasNext()) {
+            p = i.next();
+            if (p == null || (p.getFrequency() != 0 && p.getFrequency() != 1))
+                continue;
+
+            // Clear mines by warping into safe
+            if (p.getShipType() == Tools.Ship.SHARK) {
+                if (p.getFrequency() % 2 == 0)
+                    m_botAction.warpTo(p.getPlayerID(), warpSafeLeft);
+                else
+                    m_botAction.warpTo(p.getPlayerID(), warpSafeRight);
+            }
         }
     }
 
@@ -2639,6 +2654,10 @@ public class GameFlagTimeModule extends AbstractModule {
                         safeWarp();
                 }
                 preTimeCount++;
+                
+                if (preTimeCount == 9 && !strictFlagTimeMode ) {
+                    clearSharkMines();
+                }
 
                 if (preTimeCount >= 10) {
                     isStarted = true;
