@@ -113,7 +113,7 @@ public class staffbot_commands extends Module {
             } catch(ParseException pe) {}
             
             if (eventDate == null) {
-                m_botAction.sendChatMessage(2, "Time conversion problem, contact BotDev");
+                m_botAction.sendSmartPrivateMessage(name, "Time conversion problem, contact BotDev");
                 return;
             } 
             if (m_watchAll)
@@ -140,7 +140,7 @@ public class staffbot_commands extends Module {
                     eventArena += "):";
                 String eventTime = chatFormat.format(eventDate);
                 
-                m_botAction.sendChatMessage(2, eventTime+ " " + eventStaffer + " (" + eventArena + eventMessage);
+                m_botAction.sendSmartPrivateMessage(name, eventTime+ " " + eventStaffer + " (" + eventArena + eventMessage);
             }
             return;
 	    }
@@ -427,7 +427,7 @@ public class staffbot_commands extends Module {
     
     private void prepareMessage(String name, String message) {
         if (m_chat) {
-            m_botAction.sendChatMessage(2, message);
+            m_botAction.sendSmartPrivateMessage(name, message);
         } else {
             m_botAction.sendSmartPrivateMessage(name, message);
         }
