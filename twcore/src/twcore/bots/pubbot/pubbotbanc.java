@@ -798,6 +798,10 @@ public class pubbotbanc extends PubBotModule {
             if (match) {
                 aliases.add(name);
                 this.name = name;
+            } else if (aliases.contains(name)) { 
+                    // For rare instances where 2 people match banC, erasing the 1st name
+                    // (this is an issue w/ partial IP, mainly)
+                    match = true;
             }
             return match;
         }
