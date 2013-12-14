@@ -540,12 +540,13 @@ public class pubbotbanc extends PubBotModule {
                 for (String name : confirms.keySet()) {
                     if (name == null) {
                         continue;
-                    } else if (confirms.get(name) == null) {
+                    } 
+                    Confirm conf = confirms.get(name);
+                    if (conf == null) {
                         removes.add(name);
-                    } else if (confirms.get(name).expired()) {
-                        Confirm conf = confirms.get(name);
+                    } else if (conf.expired()) {
                         removes.add(name);
-                        if (conf != null && !conf.info)
+                        if (!conf.info)
                             m_botAction
                                     .ipcSendMessage(IPCPOLICE, "BANC:" + name
                                             + ":" + conf.type.toString() + ":"
