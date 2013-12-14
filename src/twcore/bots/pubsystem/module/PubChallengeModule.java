@@ -99,7 +99,7 @@ public class PubChallengeModule extends AbstractModule {
         if (challenge != null && challenge.isStarted() && !challenge.hasEnded()) {
             laggers.put(name, new StartLagout(name));
             m_botAction.scheduleTask(laggers.get(name), 60 * 1000);
-            m_botAction.sendSmartPrivateMessage(challenge.getOppositeDueler(name).name, "Your opponent has lagged out. He has 60 seconds to return to the game.");
+            m_botAction.sendSmartPrivateMessage(challenge.getOppositeDueler(name).name, "Your opponent has lagged out, and has 60 seconds to return to the game.");
         }
     }
 
@@ -198,21 +198,19 @@ public class PubChallengeModule extends AbstractModule {
                 }
             }
 
-            if (duelers.get(name).type == Dueler.DUEL_CHALLENGER) {
-                m_botAction.warpTo(name, area.warp1);
-                if (laggers.containsKey(name)) {
-                    m_botAction.cancelTask(laggers.get(name));
-                    laggers.remove(name);
-                    m_botAction.sendSmartPrivateMessage(name, "You have returned from lagout.");
-                }
-                return;
+            StartLagout l = laggers.remove(name);
+            if (l != null) {
+                l.cancelLagout();
+                m_botAction.cancelTask(l);
+                m_botAction.sendSmartPrivateMessage(name, "You have returned from lagout.");
+                givePrize(name);
             }
 
-            if (laggers.containsKey(name)) {
-                m_botAction.cancelTask(laggers.get(name));
-                laggers.remove(name);
-                m_botAction.sendSmartPrivateMessage(name, "You have returned from lagout.");
-            }
+            if (duelers.get(name).type == Dueler.DUEL_CHALLENGER)
+                m_botAction.warpTo(name, area.warp1);
+            else
+                m_botAction.warpTo(name, area.warp2);
+
         }
     }
 
@@ -730,7 +728,12 @@ public class PubChallengeModule extends AbstractModule {
             moneyMessage = " for $" + money;
 
         if (laggers.containsKey(winner.name) && laggers.containsKey(loser.name)) {
-            m_botAction.cancelTask(laggers.get(winner.name));
+            StartLagout l1 = laggers.get(winner.name);
+            StartLagout l2 = laggers.get(loser.name);
+            l1.cancelLagout();
+            l2.cancelLagout();
+            m_botAction.cancelTask(l1);
+            m_botAction.cancelTask(l2);
             m_botAction.sendSmartPrivateMessage(winner.name, "Your duel against " + loser.name + " has been cancelled, both lagout/specced.");
             m_botAction.sendSmartPrivateMessage(loser.name, "Your duel against " + winner.name + " has been cancelled, both lagout/specced.");
             cancelled = true;
@@ -746,8 +749,10 @@ public class PubChallengeModule extends AbstractModule {
             }
 
             StartLagout lagger = laggers.remove(loser.name);
-            if (lagger != null)
+            if (lagger != null) {
+                lagger.cancelLagout();
                 m_botAction.cancelTask(lagger);
+            }
             challenge.settleAllBets(winner.name,context.getPlayerManager());
 
         } else {
@@ -787,11 +792,15 @@ public class PubChallengeModule extends AbstractModule {
             duelers.remove(loser.name);
         challenges.remove(getKey(challenge));
         StartLagout lagger = laggers.remove(winner.name);
-        if (lagger != null)
+        if (lagger != null) {
+            lagger.cancelLagout();
             m_botAction.cancelTask(lagger);
+        }
         lagger = laggers.remove(loser.name);
-        if (lagger != null)
+        if (lagger != null) {
+            lagger.cancelLagout();
             m_botAction.cancelTask(lagger);
+        }
 
         warpToSafe(winner.name, true);
         warpToSafe(loser.name, false);
@@ -828,12 +837,12 @@ public class PubChallengeModule extends AbstractModule {
         m_botAction.shipReset(name);
         m_botAction.specificPrize(name, Tools.Prize.FULLCHARGE);
         m_botAction.specificPrize(name, Tools.Prize.MULTIFIRE);
-        m_botAction.specificPrize(name, -27); // NEGATIVE ROCKET
-        m_botAction.specificPrize(name, -26); // NEGATIVE BRICK
+        m_botAction.specificPrize(name, -Tools.Prize.ROCKET); // NEGATIVE ROCKET
+        m_botAction.specificPrize(name, -Tools.Prize.BRICK); // NEGATIVE BRICK
         if (!sharkShrap) {
-            m_botAction.specificPrize(name, -19); // NEGATIVE SHRAPNEL
-            m_botAction.specificPrize(name, -19);
-            m_botAction.specificPrize(name, -19);
+            m_botAction.specificPrize(name, -Tools.Prize.SHRAPNEL); // NEGATIVE SHRAPNEL
+            m_botAction.specificPrize(name, -Tools.Prize.SHRAPNEL);
+            m_botAction.specificPrize(name, -Tools.Prize.SHRAPNEL);
         }
 
     }
@@ -982,15 +991,20 @@ public class PubChallengeModule extends AbstractModule {
 
     private class StartLagout extends TimerTask {
         private String name;
+        private boolean cancelled = false;
 
         private StartLagout(String name) {
             this.name = name;
+        }
+        
+        private void cancelLagout() {
+            cancelled = true;
         }
 
         @Override
         public void run() {
             Dueler dueler = duelers.get(name);
-            if (dueler == null)
+            if (dueler == null || cancelled)
                 return;
 
             Challenge challenge = dueler.challenge;
@@ -1042,8 +1056,12 @@ public class PubChallengeModule extends AbstractModule {
                 duelers.remove(challenge.challengerName);
                 duelers.remove(challenge.challengedName);
                 challenges.remove(getKey(challenge));
-                laggers.remove(challenge.challengerName);
-                laggers.remove(challenge.challengedName);
+                StartLagout l = laggers.remove(challenge.challengerName);
+                if (l != null)
+                    l.cancelLagout();
+                l = laggers.remove(challenge.challengedName);
+                if (l != null)
+                    l.cancelLagout();
                 area.free();
                 if (p_chall == null)
                     m_botAction.sendSmartPrivateMessage(accepter, "The duel cannot start, " + challenger + " not found.");
@@ -1133,7 +1151,9 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(name, "You have not lagged out from a duel.");
             return;
         } else {
-            m_botAction.cancelTask(laggers.remove(name));
+            StartLagout l = laggers.remove(name);
+            l.cancelLagout();
+            m_botAction.cancelTask(l);
         }
 
         Dueler dueler = duelers.get(name);
@@ -1152,6 +1172,7 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.setFreq(name, getFreq());
             m_botAction.warpTo(name, challenge.area.warp2);
         }
+        givePrize(name);
     }
     
     private int getFreq() {
@@ -1223,8 +1244,12 @@ public class PubChallengeModule extends AbstractModule {
             challenges.remove(getKey(challenge));
             duelers.remove(name);
             duelers.remove(opponent);
-            laggers.remove(name);
-            laggers.remove(opponent);
+            StartLagout l = laggers.remove(name);
+            if (l != null)
+                l.cancelLagout();
+            l = laggers.remove(opponent);
+            if (l != null)
+                l.cancelLagout();
             warpToSafe(name, true);
             warpToSafe(opponent, false);
             m_botAction.sendSmartPrivateMessage(name, "Your duel has been cancelled by " + sender);
@@ -1603,9 +1628,17 @@ public class PubChallengeModule extends AbstractModule {
                 warpToSafe(c.challengedName, false);
                 try {
                     duelers.remove(c.challenger);
-                    duelers.remove(c.accepter);
-                    laggers.remove(c.challengerName);
-                    laggers.remove(c.challengedName);
+                    duelers.remove(c.accepter);                    
+                    StartLagout l = laggers.remove(c.challengerName);
+                    if (l != null) {
+                        l.cancelLagout();
+                        m_botAction.cancelTask(l);
+                    }
+                    l = laggers.remove(c.challengedName);
+                    if (l != null) {
+                        l.cancelLagout();
+                        m_botAction.cancelTask(l);
+                    }
                 } catch (Exception e) {
                     Tools.printStackTrace(e);
                 }
