@@ -1975,9 +1975,13 @@ class Challenge {
                 return false;
 
             if (challengerBets.containsKey(name)) {
+                pcm_ref.m_botAction.sendSmartPrivateMessage(name, "You can't change your bet once it's been made.");
+                return false;
+                /* No longer allowing refunds.
                 bettor.addMoney(challengerBets.get(name));
                 totalC -= challengerBets.get(name);
                 pcm_ref.m_botAction.sendSmartPrivateMessage(name, "[NOTE]  Your previous bet of $" + challengerBets.get(name) + " has been returned to you.");
+                */
             }
 
             bettor.removeMoney(amount);
@@ -1991,9 +1995,13 @@ class Challenge {
                 return false;
 
             if (challengedBets.containsKey(name)) {
+                pcm_ref.m_botAction.sendSmartPrivateMessage(name, "You can't change your bet once it's been made.");
+                return false;
+                /* No longer allowing refunds.
                 bettor.addMoney(challengedBets.get(name));
                 totalA -= challengedBets.get(name);
                 pcm_ref.m_botAction.sendSmartPrivateMessage(name, "[NOTE]  Your previous bet of $" + challengedBets.get(name) + " has been returned to you.");
+                */
             }
 
             bettor.removeMoney(amount);
