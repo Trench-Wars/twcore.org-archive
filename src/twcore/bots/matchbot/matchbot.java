@@ -828,7 +828,14 @@ public class matchbot extends SubspaceBot {
                 m_botAction.sendSmartPrivateMessage(name, arena + " is an invalid arena name. Please try again.");
                 return;
             }
+            
             String type = arena.substring(0, 4);
+            
+            if(arenaNumber < 2) {
+                m_botAction.sendPrivateMessage(name, "The lowest available numbered arena is " + type + "2.");
+                return;
+            }
+            
             if((type.equals("twbd") || type.equals("twdd") || type.equals("twsd")) && arenaNumber > 7) {
                 m_botAction.sendSmartPrivateMessage(name, "The highest available arena is " + type + "7.");
                 return;
