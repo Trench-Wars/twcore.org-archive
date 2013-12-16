@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.TimerTask;
 import twcore.bots.pubsystem.module.*;
+import twcore.bots.pubsystem.util.Log;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.events.SQLResultEvent;
@@ -16,6 +17,8 @@ public class PubContext {
     private BotAction m_botAction;
 
     private boolean started = false;
+    
+    private Log moneyLog;
 
     // True during the first 5 seconds
     // Reason: to avoid spamming the arena when the bot spawn
@@ -48,6 +51,8 @@ public class PubContext {
         // Instanciate (order matter)
 
         long start = System.currentTimeMillis();
+        
+        moneyLog = new Log(m_botAction, "Transaction.log");
 
         // Order matter (!help)
 
@@ -386,6 +391,8 @@ public class PubContext {
                 displayException(e);
             }
         }
+        
+        moneyLog.close();
 
     }
 
@@ -399,4 +406,7 @@ public class PubContext {
         Tools.printStackTrace(e);
     }
 
+    public void moneyLog(String text) {
+        moneyLog.write(Tools.getTimeStamp() + ": " + text);
+    }
 }
