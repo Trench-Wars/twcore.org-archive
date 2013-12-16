@@ -378,6 +378,7 @@ public class PubChallengeModule extends AbstractModule {
             openChallenges.put(challenger, displayStr);
             if (amount >= announceOpenChallengeAt)
                 m_botAction.sendArenaMessage("[OPEN DUEL] " + challenger + " challenges anyone to " + displayStr + ".  :tw-p:!accept " + challenger );
+            context.moneyLog("[OPEN CHALLENGE] " + challenger + " (" + Tools.shipName(ship1) + ") challenged anyone (" + Tools.shipName(ship2) + ") for $" + amount);
         } else {
             if (ship1 == ship2) {
                 m_botAction.sendSmartPrivateMessage(challenged, challenger + " has challenged you to duel" + (moneyActive ? (" for $" + amount) : "") + " in "
@@ -390,6 +391,7 @@ public class PubChallengeModule extends AbstractModule {
                 m_botAction.sendSmartPrivateMessage(challenged, "Duel to " + deaths + ". To accept reply !accept " + challenger);
                 m_botAction.sendSmartPrivateMessage(challenger, "Challenge sent to " + challenged + (moneyActive ? (" for $" + amount) : "") + " in your " + Tools.shipName(ship1) + " vs their " + Tools.shipName(ship2) + ".");
             }
+            context.moneyLog("[CHALLENGE] " + challenger + " (" + Tools.shipName(ship1) + ") challenged " + challenged  + " (" + Tools.shipName(ship2) + ") for $" + amount);
         }
 
         final Challenge challenge = new Challenge(amount, ship1, ship2, challenger, challenged, this);
@@ -508,6 +510,8 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(accepter, "Challenge accepted. The duel will start in 10 seconds.");
         }
 
+        context.moneyLog("[ACCEPT] " + accepter + " (" + Tools.shipName(ship2) + ") accepted challenge by " + challenger  + " (" + Tools.shipName(ship1) + ") for $" + amount);
+        
         Player playerChallenger = m_botAction.getPlayer(challenger);
         Player playerAccepter = m_botAction.getPlayer(accepter);
 
@@ -736,6 +740,7 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.cancelTask(l2);
             m_botAction.sendSmartPrivateMessage(winner.name, "Your duel against " + loser.name + " has been cancelled, both lagout/specced.");
             m_botAction.sendSmartPrivateMessage(loser.name, "Your duel against " + winner.name + " has been cancelled, both lagout/specced.");
+            context.moneyLog("[DUEL END] Duel cancelled between " + winner.name +" and " + loser.name + " due to lagout/spec.");
             cancelled = true;
             challenge.returnAllBets(context.getPlayerManager());
         } else if (challenge.winByLagout) {
@@ -748,6 +753,8 @@ public class PubChallengeModule extends AbstractModule {
                 m_botAction.sendSmartPrivateMessage(loser.name, "You have lost to " + winner.name + " (by lagout) in duel" + moneyMessage + ".");
             }
 
+            context.moneyLog("[DUEL END] Duel won by " + winner.name +" vs " + loser.name + " due to lagout/spec " + moneyMessage + ".");
+            
             StartLagout lagger = laggers.remove(loser.name);
             if (lagger != null) {
                 lagger.cancelLagout();
@@ -768,6 +775,7 @@ public class PubChallengeModule extends AbstractModule {
                 m_botAction.sendSmartPrivateMessage(loser.name, "You have lost to " + winner.name + " " + loserKills + "-" + winnerKills + " in duel"
                         + moneyMessage + ".");
             }
+            context.moneyLog("[DUEL END] Duel won by " + winner.name +" vs " + loser.name + moneyMessage +". Result: " + winnerKills + "-" + loserKills + ".");
             challenge.settleAllBets(winner.name, context.getPlayerManager());
         }
 
@@ -1860,6 +1868,7 @@ class Challenge {
                 bet = challengerBets.get(n);
                 p.addMoney(bet);
                 pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET INFO]  The duel you bet on has been cancelled.  $" + bet + " returned to your account.");
+                pcm_ref.context.moneyLog("[BET INFO] Duel cancelled, refunding " + n + " $" + bet + ".");
             }
         }
         for (String n : challengedBets.keySet()) {
@@ -1868,6 +1877,7 @@ class Challenge {
                 bet = challengedBets.get(n);
                 p.addMoney(bet);
                 pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET INFO]  The duel you bet on has been cancelled.  $" + bet + " returned to your account.");
+                pcm_ref.context.moneyLog("[BET INFO] Duel cancelled, refunding " + n + " $" + bet + ".");
             }
         }
 
@@ -1907,21 +1917,28 @@ class Challenge {
                             p.addMoney(bet);
                             pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills +
                                     ".  You win $" + bet + "!");
-                        } else
+                            pcm_ref.context.moneyLog("[BET WON] " + n + " won $" + bet + ".");
+                        } else {
                             pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET LOST]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ".  You lost $" + bet
                                     + ".  Better luck next time.");
+                            pcm_ref.context.moneyLog("[BET LOST] " + n + " lost $" + bet + ".");
+                        }
                     } else if (challengerWon) {
                         bet = bet + Math.round(totalA * ((float) bet / totalC));
                         p.addMoney(bet);
-                        if( bet != challengerBets.get(n) )
+                        if( bet != challengerBets.get(n) ) {
                             pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ".  You win $" + bet + "!");
-                        else
+                            pcm_ref.context.moneyLog("[BET WON] " + n + " won $" + bet + ".");
+                        } else {
                             pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET RETURNED]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ", but no-one bet against you.  $" + bet + " returned to your account.");
+                            pcm_ref.context.moneyLog("[BET LOST] " + n + " lost nothing. (No opposing bets)");
+                        }
                     } else {
                         Integer diff = (Math.round(totalA * ((float) bet / totalC)));
                         p.addMoney(bet - diff);
                         pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET LOST]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ".  You lost $" + diff
                                 + ".  Better luck next time.");
+                        pcm_ref.context.moneyLog("[BET LOST] " + n + " lost $" + diff + ".");
                     }
             }
         }
@@ -1936,22 +1953,28 @@ class Challenge {
                             p.addMoney(bet);
                             pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ".  You win $" + bet
                                     + "!");
-                        } else
+                            pcm_ref.context.moneyLog("[BET WON] " + n + " won $" + bet + ".");
+                        } else {
                             pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET LOST]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ".  You lost $" + bet
                                     + ".  Better luck next time.");
+                            pcm_ref.context.moneyLog("[BET LOST] " + n + " lost $" + bet + ".");
+                        }
                     } else if (!challengerWon) {
                         bet = bet + Math.round(totalC * ((float) bet / totalA));
                         p.addMoney(bet);
-                        if( bet != challengedBets.get(n) )
+                        if( bet != challengedBets.get(n) ) {
                             pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET WON]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ".  You win $" + bet + "!");
-                        else
+                            pcm_ref.context.moneyLog("[BET WON] " + n + " won $" + bet + ".");
+                        } else {
                             pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET RETURNED] " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ", but no-one bet against you.  $" + bet + " returned to your account.");
-
+                            pcm_ref.context.moneyLog("[BET LOST] " + n + " lost nothing. (No opposing bets)");
+                        }
                     } else {
                         Integer diff = (Math.round(totalC * ((float) bet / totalA)));
                         p.addMoney(bet - diff);
                         pcm_ref.m_botAction.sendSmartPrivateMessage(n, "[BET LOST]  " + winnerName + " defeated " + loserName + " " + winnerKills + ":" + loserKills + ".  You lost $" + diff
                                 + ".  Better luck next time.");
+                        pcm_ref.context.moneyLog("[BET LOST] " + n + " lost $" + diff + ".");
                     }
             }
         }
@@ -1989,6 +2012,7 @@ class Challenge {
             if( challengedBets.isEmpty() )
                 doBetAdvert(name,amount,true);
             totalC += amount;
+            pcm_ref.context.moneyLog("[BET] " + name + " has bet $ " + amount + " bet on " + challengerName + "." );
             return true;
         } else {
             if (challengerBets.containsKey(name))
@@ -2009,6 +2033,7 @@ class Challenge {
             if( challengerBets.isEmpty() )
                 doBetAdvert(name,amount,false);
             totalA += amount;
+            pcm_ref.context.moneyLog("[BET] " + name + " has bet $ " + amount + " bet on " + challengerName + "." );
             return true;
         }        
     }

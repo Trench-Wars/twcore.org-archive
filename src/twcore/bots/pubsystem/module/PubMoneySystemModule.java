@@ -361,6 +361,8 @@ public class PubMoneySystemModule extends AbstractModule {
                 if (item.isArenaItem()) {
                     m_botAction.sendArenaMessage("[BUY] " + playerName + " just bought a " + item.getDisplayName() + " for $" + item.getPrice() + ".", Tools.Sound.CROWD_OHH);
                 }
+                
+                context.moneyLog("[BUY] " + playerName + " bought a " + item.getDisplayName() + " for $" + item.getPrice() + ".");
 
                 // Querying once every !buy (!!!)
                 // TODO: Possibly make a system that stores the info every 15 min?        		
@@ -595,6 +597,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 m_botAction.sendSmartPrivateMessage(sender, "$" + moneyToDonate + " sent to " + pubPlayer.getPlayerName() + ".");
                 m_botAction.sendSmartPrivateMessage(pubPlayer.getPlayerName(), sender + " sent you $" + moneyToDonate + ", you have now $" + (moneyToDonate + currentMoney) + ".");
 
+                context.moneyLog("[DONATE] " + sender + " donated $" + moneyToDonate + " to " + pubPlayer.getPlayerName() + ".");
                 // The query will be closed by PlayerManagerModule
                 if (database != null)
                     m_botAction.SQLBackgroundQuery(database, null, "INSERT INTO tblPlayerDonations " + "(fcName, fcNameTo, fnMoney, fdDate) " + "VALUES ('" + Tools.addSlashes(sender) + "','"
