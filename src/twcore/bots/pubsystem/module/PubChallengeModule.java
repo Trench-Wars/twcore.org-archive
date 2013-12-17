@@ -2033,7 +2033,7 @@ class Challenge {
             if( challengerBets.isEmpty() )
                 doBetAdvert(name,amount,false);
             totalA += amount;
-            pcm_ref.context.moneyLog("[BET] " + name + " has bet $ " + amount + " bet on " + challengerName + "." );
+            pcm_ref.context.moneyLog("[BET] " + name + " has bet $ " + amount + " bet on " + challengedName + "." );
             return true;
         }        
     }
