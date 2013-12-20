@@ -28,9 +28,9 @@ public class PubMapModule extends AbstractModule {
     private static final int SMALL_OBJON = 1001;
     private static final int MED_OBJON = 1002;
     private static final int LARGE_OBJON = 1003;
-    private static final int SMALL_OBJON_SNOW = 3001;
-    private static final int MED_OBJON_SNOW = 3002;
-    private static final int LARGE_OBJON_SNOW = 3003;    
+    private static final int SMALL_OBJON_SNOW = 2001;
+    private static final int MED_OBJON_SNOW = 2002;
+    private static final int LARGE_OBJON_SNOW = 2003;    
     private static final int LEFT_SIDE_DOOR = 1004;
     private static final int RIGHT_SIDE_DOOR = 1005;
     private static final int XMAS_OBJON = 3;
