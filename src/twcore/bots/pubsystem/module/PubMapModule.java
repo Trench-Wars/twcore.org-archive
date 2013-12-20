@@ -245,7 +245,7 @@ public class PubMapModule extends AbstractModule {
         usingXmasLVZ.put(name, usegfx);
         Player p = m_botAction.getPlayer(name);
         if( p != null ) {
-            m_botAction.sendPrivateMessage(name, "You are now " + (usegfx ? "" : "NOT") + " using the optional Christmas decorations." );
+            m_botAction.sendPrivateMessage(name, "You are now " + (usegfx ? "" : "NOT ") + "using the optional Christmas decorations." );
             doLVZ(p.getPlayerID());
         }
     }
