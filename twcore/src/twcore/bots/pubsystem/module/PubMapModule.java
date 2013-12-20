@@ -366,7 +366,6 @@ public class PubMapModule extends AbstractModule {
                 }
                 ba.showObjectForPlayer(id, LEFT_SIDE_DOOR);
                 ba.showObjectForPlayer(id, RIGHT_SIDE_DOOR);
-                warpForSmall();
                 break;
             case MED_BASE:
                 if (doSnow) {
@@ -380,7 +379,6 @@ public class PubMapModule extends AbstractModule {
                 }
                 ba.hideObjectForPlayer(id, LEFT_SIDE_DOOR);
                 ba.hideObjectForPlayer(id, RIGHT_SIDE_DOOR);
-                warpForMedium();
                 break;
             case LARGE_BASE:
                 if (doSnow) {
@@ -425,9 +423,6 @@ public class PubMapModule extends AbstractModule {
                         ba.hideObjectForPlayer(id, MED_OBJON);
                         ba.hideObjectForPlayer(id, LARGE_OBJON);                        
                     }
-                    ba.showObjectForPlayer(id, LEFT_SIDE_DOOR);
-                    ba.showObjectForPlayer(id, RIGHT_SIDE_DOOR);
-                    warpForSmall();
                     break;
                 case MED_BASE:
                     if (doSnow) {
@@ -439,9 +434,6 @@ public class PubMapModule extends AbstractModule {
                         ba.showObjectForPlayer(id, MED_OBJON);
                         ba.hideObjectForPlayer(id, LARGE_OBJON);                        
                     }
-                    ba.hideObjectForPlayer(id, LEFT_SIDE_DOOR);
-                    ba.hideObjectForPlayer(id, RIGHT_SIDE_DOOR);
-                    warpForMedium();
                     break;
                 case LARGE_BASE:
                     if (doSnow) {
@@ -453,11 +445,25 @@ public class PubMapModule extends AbstractModule {
                         ba.hideObjectForPlayer(id, MED_OBJON);
                         ba.showObjectForPlayer(id, LARGE_OBJON);                        
                     }
-                    ba.hideObjectForPlayer(id, LEFT_SIDE_DOOR);
-                    ba.hideObjectForPlayer(id, RIGHT_SIDE_DOOR);
                     break;
                 }
             }
+            switch (currentBase) {
+            case SMALL_BASE:
+                ba.showObject(LEFT_SIDE_DOOR);
+                ba.showObject(RIGHT_SIDE_DOOR);
+                warpForSmall();
+                break;
+            case MED_BASE:
+                ba.hideObject(LEFT_SIDE_DOOR);
+                ba.hideObject(RIGHT_SIDE_DOOR);
+                warpForMedium();
+                break;
+            case LARGE_BASE:
+                ba.hideObject(LEFT_SIDE_DOOR);
+                ba.hideObject(RIGHT_SIDE_DOOR);
+            }
+
         }
 
     }
