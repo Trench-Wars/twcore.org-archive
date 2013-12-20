@@ -1229,12 +1229,13 @@ public class GameFlagTimeModule extends AbstractModule {
 
             if (freq0Score >= maxScore || freq1Score >= maxScore)
                 gameOver = true;
-            else {
-                int roundNumber = freq0Score + freq1Score;
-                m_botAction.sendArenaMessage("[FLAG] END OF ROUND " + roundNumber + ": Freq " + winnerFreq + " wins after "
-                        + getTimeString(flagTimer.getTotalSecs()) + " Final Score: " + freq0Score + "-" + freq1Score + " (Bonus: +$" + moneyBonus
-                        + ")");
-            }
+            
+            int roundNumber = freq0Score + freq1Score;
+            m_botAction.sendArenaMessage("[FLAG] END OF ROUND " + roundNumber 
+                    + ": Freq " + winnerFreq + " wins after " + getTimeString(flagTimer.getTotalSecs()) 
+                    + (gameOver?" Final":" Current") + " Score: " + freq0Score + "-" + freq1Score 
+                    + " (Bonus: +$" + moneyBonus + ")");
+        
 
         } else if (winnerFreq < 100)
             m_botAction.sendArenaMessage("[FLAG] END ROUND: Freq " + winnerFreq + " wins the round after " + getTimeString(flagTimer.getTotalSecs())
