@@ -5,8 +5,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.TimerTask;
+import java.util.Collections;
+import java.util.Map;
 
 import twcore.bots.pubsystem.PubContext;
+import twcore.bots.pubsystem.pubsystem;
 import twcore.bots.pubsystem.module.PubUtilModule.Region;
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -25,8 +28,12 @@ public class PubMapModule extends AbstractModule {
     private static final int SMALL_OBJON = 1001;
     private static final int MED_OBJON = 1002;
     private static final int LARGE_OBJON = 1003;
+    private static final int SMALL_OBJON_SNOW = 3001;
+    private static final int MED_OBJON_SNOW = 3002;
+    private static final int LARGE_OBJON_SNOW = 3003;    
     private static final int LEFT_SIDE_DOOR = 1004;
     private static final int RIGHT_SIDE_DOOR = 1005;
+    private static final int XMAS_OBJON = 3;
     private static final int SMALL_BASE = 6;
     private static final int MED_BASE = 9;
     private static final int LARGE_BASE = 24;
@@ -37,13 +44,14 @@ public class PubMapModule extends AbstractModule {
     //private int popTrigger;     // cut off for number of players before door change
     private int popLeeway;      // number of players from trigger required for door change
     private int timeDelay;      // minimum amount of time between door changes
-    private long lastChange;   
+    private long lastChange;
     
     private BotAction ba;
     private Random random;
     private BaseChange baseChanger;
     //private boolean stragglerCheck;
     private boolean inPub;
+    private Map<String,Boolean> usingXmasLVZ;
     
     private MapRegions regions;
     
@@ -67,6 +75,8 @@ public class PubMapModule extends AbstractModule {
             }
         };
         ba.scheduleTask(initialize, 5000);
+        usingXmasLVZ = Collections.synchronizedMap( new HashMap<String,Boolean>() ); 
+        
     }
 
     @Override
@@ -132,29 +142,7 @@ public class PubMapModule extends AbstractModule {
         if (!enabled || !inPub) return;
         if (event.getShipType() > 0)
             doPopCheck();
-        switch (currentBase) {
-            case SMALL_BASE: 
-                ba.showObjectForPlayer(event.getPlayerID(), SMALL_OBJON);
-                ba.showObjectForPlayer(event.getPlayerID(), LEFT_SIDE_DOOR);
-                ba.showObjectForPlayer(event.getPlayerID(), RIGHT_SIDE_DOOR);
-                ba.hideObjectForPlayer(event.getPlayerID(), MED_OBJON);
-                ba.hideObjectForPlayer(event.getPlayerID(), LARGE_OBJON);
-                break;
-            case MED_BASE:
-                ba.showObjectForPlayer(event.getPlayerID(), MED_OBJON);
-                ba.hideObjectForPlayer(event.getPlayerID(), SMALL_OBJON);
-                ba.hideObjectForPlayer(event.getPlayerID(), LARGE_OBJON);
-                ba.hideObjectForPlayer(event.getPlayerID(), LEFT_SIDE_DOOR);
-                ba.hideObjectForPlayer(event.getPlayerID(), RIGHT_SIDE_DOOR);
-                break;
-            case LARGE_BASE: 
-                ba.showObjectForPlayer(event.getPlayerID(), LARGE_OBJON);
-                ba.hideObjectForPlayer(event.getPlayerID(), SMALL_OBJON);
-                ba.hideObjectForPlayer(event.getPlayerID(), MED_OBJON);
-                ba.hideObjectForPlayer(event.getPlayerID(), LEFT_SIDE_DOOR);
-                ba.hideObjectForPlayer(event.getPlayerID(), RIGHT_SIDE_DOOR);
-                break;
-        }
+        doLVZ(event.getPlayerID());
     }
     
     public void handleEvent(PlayerLeft event) {
@@ -229,6 +217,8 @@ public class PubMapModule extends AbstractModule {
 
     @Override
     public void handleCommand(String sender, String command) {
+        if (command.equals("!xmasgfx"))
+            cmd_xmasGfx(sender);
     }
 
     @Override
@@ -245,6 +235,19 @@ public class PubMapModule extends AbstractModule {
             cmd_mapMod(sender);
         else if (command.equals("!setbase"))
             setBase(currentBase, true);
+    }
+    
+    private void cmd_xmasGfx(String name) {
+        Boolean usegfx = usingXmasLVZ.get(name);
+        if (usegfx == null)
+            usegfx = true;
+        usegfx = !usegfx;
+        usingXmasLVZ.put(name, usegfx);
+        Player p = m_botAction.getPlayer(name);
+        if( p != null ) {
+            m_botAction.sendPrivateMessage(name, "You are now " + (usegfx ? "" : "NOT") + " using the optional Christmas decorations." );
+            doLVZ(p.getPlayerID());
+        }
     }
     
     private void cmd_reloadConfig(String name) {
@@ -273,7 +276,10 @@ public class PubMapModule extends AbstractModule {
 
     @Override
     public String[] getHelpMessage(String sender) {
-        return new String[]{};
+        String[] msg = {
+                pubsystem.getHelpLine("!xmasgfx          -- Toggle on/off Christmas graphics" )
+        };
+        return msg;
     }
 
     @Override
@@ -284,10 +290,10 @@ public class PubMapModule extends AbstractModule {
     @Override
     public String[] getSmodHelpMessage(String sender) {
         String[] msg = {
-                "   !loadcfg          -- Reloads map module settings from the cfg file.",
-                "   !getsets          -- Displays current map module settings.",
-                "   !mapmod           -- Enables/Disables the pub map population control.",
-                "   !setbase          -- Forces the bot to set for current base settings.",
+                pubsystem.getHelpLine("!loadcfg          -- Reloads map module settings from the cfg file."),
+                pubsystem.getHelpLine("!getsets          -- Displays current map module settings."),
+                pubsystem.getHelpLine("!mapmod           -- Enables/Disables the pub map population control."),
+                pubsystem.getHelpLine("!setbase          -- Forces the bot to set for current base settings."),
         };
         return msg;
     }
@@ -329,6 +335,133 @@ public class PubMapModule extends AbstractModule {
     }
     */
     
+    /**
+     * Show base LVZ objects.
+     * TODO: Change this method (don't revert) when XMas has passed.
+     * Comment out appropriate lines so it can easily be used next year.
+     */
+    private void doLVZ(int id) {
+        if (id != -1) {     // Not all players            
+            Player p = m_botAction.getPlayer(id);
+            if (p == null)
+                return;
+            Boolean doSnow = usingXmasLVZ.get(p.getPlayerName());
+            if (doSnow == null)
+                doSnow = true;
+            if (doSnow)
+                ba.showObjectForPlayer(id, XMAS_OBJON);
+            else
+                ba.hideObjectForPlayer(id, XMAS_OBJON);
+
+            switch (currentBase) {
+            case SMALL_BASE:
+                if (doSnow) {
+                    ba.showObjectForPlayer(id, SMALL_OBJON_SNOW);
+                    ba.hideObjectForPlayer(id, MED_OBJON_SNOW);
+                    ba.hideObjectForPlayer(id, LARGE_OBJON_SNOW);
+                } else {
+                    ba.showObjectForPlayer(id, SMALL_OBJON);
+                    ba.hideObjectForPlayer(id, MED_OBJON);
+                    ba.hideObjectForPlayer(id, LARGE_OBJON);                        
+                }
+                ba.showObjectForPlayer(id, LEFT_SIDE_DOOR);
+                ba.showObjectForPlayer(id, RIGHT_SIDE_DOOR);
+                warpForSmall();
+                break;
+            case MED_BASE:
+                if (doSnow) {
+                    ba.hideObjectForPlayer(id, SMALL_OBJON_SNOW);
+                    ba.showObjectForPlayer(id, MED_OBJON_SNOW);
+                    ba.hideObjectForPlayer(id, LARGE_OBJON_SNOW);
+                } else {
+                    ba.hideObjectForPlayer(id, SMALL_OBJON);
+                    ba.showObjectForPlayer(id, MED_OBJON);
+                    ba.hideObjectForPlayer(id, LARGE_OBJON);                        
+                }
+                ba.hideObjectForPlayer(id, LEFT_SIDE_DOOR);
+                ba.hideObjectForPlayer(id, RIGHT_SIDE_DOOR);
+                warpForMedium();
+                break;
+            case LARGE_BASE:
+                if (doSnow) {
+                    ba.hideObjectForPlayer(id, SMALL_OBJON_SNOW);
+                    ba.hideObjectForPlayer(id, MED_OBJON_SNOW);
+                    ba.showObjectForPlayer(id, LARGE_OBJON_SNOW);
+                } else {
+                    ba.hideObjectForPlayer(id, SMALL_OBJON);
+                    ba.hideObjectForPlayer(id, MED_OBJON);
+                    ba.showObjectForPlayer(id, LARGE_OBJON);                        
+                }
+                ba.hideObjectForPlayer(id, LEFT_SIDE_DOOR);
+                ba.hideObjectForPlayer(id, RIGHT_SIDE_DOOR);
+                break;
+            }
+
+        } else {            // All players
+            Boolean doSnow = false;
+            Player p;
+            for (String s : usingXmasLVZ.keySet() ) {
+                p = m_botAction.getPlayer(s);
+                if (p == null)
+                    continue;
+                doSnow = usingXmasLVZ.get(s);
+                if (doSnow == null)
+                    doSnow = true;
+                if (doSnow)
+                    ba.showObjectForPlayer(id, XMAS_OBJON);
+                else
+                    ba.hideObjectForPlayer(id, XMAS_OBJON);
+
+                id = p.getPlayerID();                
+
+                switch (currentBase) {
+                case SMALL_BASE:
+                    if (doSnow) {
+                        ba.showObjectForPlayer(id, SMALL_OBJON_SNOW);
+                        ba.hideObjectForPlayer(id, MED_OBJON_SNOW);
+                        ba.hideObjectForPlayer(id, LARGE_OBJON_SNOW);
+                    } else {
+                        ba.showObjectForPlayer(id, SMALL_OBJON);
+                        ba.hideObjectForPlayer(id, MED_OBJON);
+                        ba.hideObjectForPlayer(id, LARGE_OBJON);                        
+                    }
+                    ba.showObjectForPlayer(id, LEFT_SIDE_DOOR);
+                    ba.showObjectForPlayer(id, RIGHT_SIDE_DOOR);
+                    warpForSmall();
+                    break;
+                case MED_BASE:
+                    if (doSnow) {
+                        ba.hideObjectForPlayer(id, SMALL_OBJON_SNOW);
+                        ba.showObjectForPlayer(id, MED_OBJON_SNOW);
+                        ba.hideObjectForPlayer(id, LARGE_OBJON_SNOW);
+                    } else {
+                        ba.hideObjectForPlayer(id, SMALL_OBJON);
+                        ba.showObjectForPlayer(id, MED_OBJON);
+                        ba.hideObjectForPlayer(id, LARGE_OBJON);                        
+                    }
+                    ba.hideObjectForPlayer(id, LEFT_SIDE_DOOR);
+                    ba.hideObjectForPlayer(id, RIGHT_SIDE_DOOR);
+                    warpForMedium();
+                    break;
+                case LARGE_BASE:
+                    if (doSnow) {
+                        ba.hideObjectForPlayer(id, SMALL_OBJON_SNOW);
+                        ba.hideObjectForPlayer(id, MED_OBJON_SNOW);
+                        ba.showObjectForPlayer(id, LARGE_OBJON_SNOW);
+                    } else {
+                        ba.hideObjectForPlayer(id, SMALL_OBJON);
+                        ba.hideObjectForPlayer(id, MED_OBJON);
+                        ba.showObjectForPlayer(id, LARGE_OBJON);                        
+                    }
+                    ba.hideObjectForPlayer(id, LEFT_SIDE_DOOR);
+                    ba.hideObjectForPlayer(id, RIGHT_SIDE_DOOR);
+                    break;
+                }
+            }
+        }
+
+    }
+    
     private class BaseChange extends TimerTask {
         private int base;
         
@@ -340,31 +473,8 @@ public class PubMapModule extends AbstractModule {
             lastChange = System.currentTimeMillis();
             currentBase = base;
             ba.setDoors(currentBase);
-            switch (currentBase) {
-                case SMALL_BASE:
-                    ba.showObject(LEFT_SIDE_DOOR);
-                    ba.showObject(RIGHT_SIDE_DOOR);
-                    ba.showObject(SMALL_OBJON);
-                    ba.hideObject(MED_OBJON);
-                    ba.hideObject(LARGE_OBJON);
-                    warpForSmall();
-                    break;
-                case MED_BASE:
-                    ba.showObject(MED_OBJON);
-                    ba.hideObject(SMALL_OBJON);
-                    ba.hideObject(LARGE_OBJON);
-                    ba.hideObject(LEFT_SIDE_DOOR);
-                    ba.hideObject(RIGHT_SIDE_DOOR);
-                    warpForMedium();
-                    break;
-                case LARGE_BASE:
-                    ba.showObject(LARGE_OBJON);
-                    ba.hideObject(SMALL_OBJON);
-                    ba.hideObject(MED_OBJON);
-                    ba.hideObject(LEFT_SIDE_DOOR);
-                    ba.hideObject(RIGHT_SIDE_DOOR);
-                    break;
-            }
+            doLVZ(-1);
+            
             baseChanger = null;
             //stragglerCheck = true;
             //if (stragglerChecker != null)
