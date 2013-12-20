@@ -436,7 +436,7 @@ public class pubhubalias extends PubBotModule {
                 if (hide || (hider.isHidden(curResult.substring(0, (curResult.length() > 24 ? 24 : curResult.length())).trim()))) {
                     hiddenResults++;
                 } else {                
-                    if (shownResults <= m_maxRecords) {
+                    if (shownResults < m_maxRecords) {
                         results.add(getResultLine(resultSet, headers));
                         shownResults++;
                     }
@@ -446,7 +446,7 @@ public class pubhubalias extends PubBotModule {
             }
         }
 
-        if (shownResults == m_maxRecords)
+        if (shownResults >= m_maxRecords)
             results.add(shownResults + " results shown, " + (totalResults - shownResults) + " repressed.  !maxrecords # to show if available (current: " + m_maxRecords + ")");
         else {
             if (opList.isSysopExact(sender)) 
