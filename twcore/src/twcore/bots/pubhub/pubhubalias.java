@@ -417,6 +417,7 @@ public class pubhubalias extends PubBotModule {
         String curResult = null;
         int totalResults = 0;
         int shownResults = 0;
+        int hiddenResults = 0;
 
         if (resultSet == null)
             throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
@@ -426,27 +427,33 @@ public class pubhubalias extends PubBotModule {
             hide = true;
 
         ArrayList<String> results = new ArrayList<String>();
-        //m_botAction.sendChatMessage(getResultHeaders(headers));
         results.add(getResultHeaders(headers));
         while (resultSet.next()) {
             if (uniqueField != null)
                 curResult = resultSet.getString(uniqueField);
 
             if (uniqueField == null || !prevResults.contains(curResult)) {
-                if (!hide && !hider.isHidden(curResult.substring(0, (curResult.length() > 24 ? 24 : curResult.length())).trim()) && totalResults <= m_maxRecords) {
-                    //m_botAction.sendChatMessage(getResultLine(resultSet, headers));
-                    results.add(getResultLine(resultSet, headers));
-                    shownResults++;
+                if (hide || (hider.isHidden(curResult.substring(0, (curResult.length() > 24 ? 24 : curResult.length())).trim()))) {
+                    hiddenResults++;
+                } else {                
+                    if (shownResults <= m_maxRecords) {
+                        results.add(getResultLine(resultSet, headers));
+                        shownResults++;
+                    }
                 }
                 prevResults.add(curResult);
                 totalResults++;
             }
         }
 
-        if (shownResults > m_maxRecords)
-            results.add(shownResults - m_maxRecords + " records not shown.  !maxrecords # to show if available (current: " + m_maxRecords + ")");
-        else
-            results.add("Altnick returned " + shownResults + " (" + totalResults + ") results.");
+        if (shownResults == m_maxRecords)
+            results.add(shownResults + " results shown, " + (totalResults - shownResults) + " repressed.  !maxrecords # to show if available (current: " + m_maxRecords + ")");
+        else {
+            if (opList.isSysopExact(sender)) 
+                results.add(shownResults + " results shown (" + (hiddenResults) + " hidden, " + (totalResults - hiddenResults) + " duplicates repressed)" );
+            else
+                results.add("All " + shownResults + " results shown (" + (totalResults - hiddenResults) + " duplicates repressed)" );
+        }
         m_botAction.SQLClose(resultSet);
         if (privateAliases)
             m_botAction.smartPrivateMessageSpam(sender, results.toArray(new String[results.size()]));
