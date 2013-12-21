@@ -135,7 +135,7 @@ public class socialmedia extends SubspaceBot {
         } else {
             ba.joinArena(cfg.getString("FBInitialArena"));
         }
-        ba.sendUnfilteredPublicMessage("?chat=media," + ba.getGeneralSettings().getString("Smod Chat"));
+        ba.sendUnfilteredPublicMessage("?chat=marketing," + ba.getGeneralSettings().getString("Smod Chat"));
         loadOps();
     }
 
