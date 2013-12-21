@@ -87,6 +87,8 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     private short lastFreq = 9999;
     private boolean warp;
+    // Used to track whether a shark is in safe due to the mine clearing warp, or because he was already there.
+    private boolean minesCleared = false;
     
     private long playerID;
     private boolean hasStatsDB = false;
@@ -253,6 +255,14 @@ public class PubPlayer implements Comparable<PubPlayer>{
         warp = !warp;
         m_botAction.SQLBackgroundQuery(db, null, "UPDATE tblPlayerStats SET fbWarp = " + (warp ? "1" : "0") + " WHERE fcName = '" + Tools.addSlashesToString(name) + "'");
         return warp;
+    }
+    
+    public boolean isMinesCleared() {
+        return minesCleared;
+    }
+    
+    public void setMinesCleared(boolean minesCleared) {
+        this.minesCleared = minesCleared;
     }
     
     public int getBestStreak() {

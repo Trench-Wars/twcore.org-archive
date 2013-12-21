@@ -1980,10 +1980,10 @@ public class GameFlagTimeModule extends AbstractModule {
             if ((player != null && !allPlayers)) {
                 Region reg = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
                 //Do not warp the player if they have disabled warping and aren't inside the flagroom
-                //or skip the player if he/she's inside a safe.
+                //or skip the player if he/she's inside a safe, and not there due to a mine clearing warp.
                 if(reg != null
                         && ((!player.getWarp() && !Region.FLAGROOM.equals(reg)) 
-                                || (Region.SAFE.equals(reg))))
+                                || (Region.SAFE.equals(reg) && !player.isMinesCleared())))
                     continue;
             }
             
@@ -2067,10 +2067,21 @@ public class GameFlagTimeModule extends AbstractModule {
 
             // Clear mines by warping into safe
             if (p.getShipType() == Tools.Ship.SHARK) {
+                
+                PubPlayer pp = context.getPlayerManager().getPlayer(p.getPlayerName());
+                pp.setMinesCleared(false);
+                
+                // Don't warp those that are already in the safezone.
+                Region reg = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
+                if (Region.SAFE.equals(reg))
+                    continue;
+                
                 if (p.getFrequency() % 2 == 0)
                     m_botAction.warpTo(p.getPlayerID(), warpSafeLeft);
                 else
                     m_botAction.warpTo(p.getPlayerID(), warpSafeRight);
+                
+                pp.setMinesCleared(true);
             }
         }
     }
