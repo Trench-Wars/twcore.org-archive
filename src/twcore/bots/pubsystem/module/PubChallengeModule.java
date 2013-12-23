@@ -446,6 +446,11 @@ public class PubChallengeModule extends AbstractModule {
             openChal = true;
         }
 
+        if(openChal && challenger.equalsIgnoreCase(accepter)) {
+            m_botAction.sendSmartPrivateMessage(accepter, "You cannot accept your own challenges.");
+            return;
+        }
+        
         int amount = challenge.amount;
         int ship1 = challenge.ship1;
         int ship2 = challenge.ship2;
