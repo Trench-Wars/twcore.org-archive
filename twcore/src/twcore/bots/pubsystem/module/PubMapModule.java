@@ -346,8 +346,10 @@ public class PubMapModule extends AbstractModule {
             if (p == null)
                 return;
             Boolean doSnow = usingXmasLVZ.get(p.getPlayerName());
-            if (doSnow == null)
+            if (doSnow == null) {
                 doSnow = true;
+                usingXmasLVZ.put(p.getPlayerName(), true);
+            }
             if (doSnow)
                 ba.showObjectForPlayer(id, XMAS_OBJON);
             else
