@@ -815,11 +815,11 @@ public class MatchRound {
         else
             help.add("!cap                                     - Show the captains of both teams");
 
-        help.add("!myfreq                                  - sets you on your team's frequency");
+        help.add("!myfreq                                  - sets you on your team's frequency (short: !mf)");
 
         if ((m_fnRoundState <= 1) && (m_rules.getInt("pickbyturn") == 1))
             help.add("!notplaying                              - Indicate that you won't play this round");
-        help.add("!notplaylist                             - Show all the players who have turned '!notplaying' on");
+        help.add("!notplaylist                             - Show all the players who have turned '!notplaying' on (short: !np)");
         if (m_fnRoundState == 3) {
             help.add("!score                                   - Show the current score of both teams");
             help.add("!rating <player>                         - provides realtime stats and rating of the player");
@@ -859,7 +859,7 @@ public class MatchRound {
 
     public void parseCommand(String name, String command, String[] parameters, boolean isStaff, boolean isTWDOP) {
         if (m_rules.getInt("pickbyturn") == 1) {
-            if (command.equals("!notplaying"))
+            if (command.equals("!notplaying") || command.equals("!np"))
                 command_notplaying(name, parameters);
             if (command.equals("!notplaylist"))
                 command_notplaylist(name, parameters);
@@ -925,7 +925,7 @@ public class MatchRound {
             }
         }
 
-        if (command.equals("!myfreq"))
+        if (command.equals("!myfreq") || command.equals("!mf"))
             command_myfreq(name, parameters);
 
         if (command.equalsIgnoreCase("!target") || command.equalsIgnoreCase("!t"))
