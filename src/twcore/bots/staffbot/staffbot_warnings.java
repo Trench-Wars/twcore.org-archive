@@ -60,7 +60,7 @@ public class staffbot_warnings extends Module {
             java.util.Date day = thisTime.getTime();
             String warntime = sdf.format(day);
             String date = sdf.format(System.currentTimeMillis()).toString();
-            String[] data = { player.toLowerCase().trim(), new String(warntime + ": (" + name + ") to (" + player + ")" + " " + warning), name.toLowerCase().trim(), date };
+            String[] data = { Tools.addSlashes(player.toLowerCase().trim()), new String(warntime + ": (" + Tools.addSlashes(name) + ") to (" + player + ")" + " " + warning), Tools.addSlashes(name.toLowerCase().trim()), date };
 
             m_botAction.SQLInsertInto(sqlHost, "tblWarnings", paramNames, data);
             m_botAction.sendSmartPrivateMessage(name, "Inserted warning (" + warning + ") to player (" + player + ")");
