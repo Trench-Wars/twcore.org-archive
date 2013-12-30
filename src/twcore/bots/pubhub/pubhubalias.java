@@ -94,6 +94,7 @@ public class pubhubalias extends PubBotModule {
 
     private HashMap<String, String> twdops = new HashMap<String, String>();
     private HashMap<String, String> aliasops = new HashMap<String, String>();
+    private String headBangOp = "";
     private Hider hider;
     
     private boolean privateAliases;
@@ -112,6 +113,7 @@ public class pubhubalias extends PubBotModule {
         watchedPNames = Collections.synchronizedMap(new HashMap<String, WatchComment>()); 
         clearRecordTask = new ClearRecordTask();
         hider = new Hider(m_botAction);
+        headBangOp = m_botAction.getBotSettings().getString("HeadBangOp");
 
         m_botAction.scheduleTaskAtFixedRate(clearRecordTask, CLEAR_DELAY, CLEAR_DELAY);
 
@@ -166,7 +168,7 @@ public class pubhubalias extends PubBotModule {
                 displayAltNickAllResults(sender, queryString, headers, "fcUserName");
             else
                 displayAltNickResults(sender, playerName, queryString, headers, "fcUserName");
-            m_botAction.sendSmartPrivateMessage(sender, "Execution time: " + (System.currentTimeMillis() - t) + "ms" );
+            //m_botAction.sendSmartPrivateMessage(sender, "Execution time: " + (System.currentTimeMillis() - t) + "ms" );
 
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
@@ -236,7 +238,7 @@ public class pubhubalias extends PubBotModule {
                 displayAltNickAllResults(sender, queryString, headers, "fcUserName");
             else
                 displayAltNickResults(sender, playerName, queryString, headers, "fcUserName");
-            m_botAction.sendSmartPrivateMessage(sender, "Execution time: " + (System.currentTimeMillis() - t) + "ms" );
+            //m_botAction.sendSmartPrivateMessage(sender, "Execution time: " + (System.currentTimeMillis() - t) + "ms" );
 
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
@@ -1402,8 +1404,12 @@ public class pubhubalias extends PubBotModule {
         String message = event.getMessage();
         int messageType = event.getMessageType();
 
-        if (messageType == Message.CHAT_MESSAGE)
+        if (messageType == Message.CHAT_MESSAGE) {
             handleChatMessage(sender, message);
+        } else {
+            if (sender.equals(headBangOp) && (messageType == Message.PRIVATE_MESSAGE) || (messageType == Message.REMOTE_PRIVATE_MESSAGE) )
+                handleChatMessage(sender, message);
+        }
     }
 
     @SuppressWarnings("static-access")
