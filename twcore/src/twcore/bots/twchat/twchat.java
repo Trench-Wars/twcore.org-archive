@@ -559,28 +559,20 @@ public class twchat extends SubspaceBot {
     private void help(String name, String message) {
         String[] startCommands = { "+-------------------------------------------------------------------------------+",
                 "|                                 Trench Wars Chat                              |",
-                "|                                                                               |",
-                "| Hello! I'm a bot that will allow you to chat on the web!                      |",
-                "| I also have the ability to look for online squad players!                     |",
-                "| Please look below for the available commands.                                 |" };
-        String[] publicCommands = { "|                                                                               |",
-                "| !signup                     - Signs you up to be able to use the online TW    |",
-                "|                               Chat App                                        |",
-                "|-------------------------------------------------------------------------------|",
-                "|                                Who Is Online                                  |",
-                "|                                                                               |",
+                "| Hello! I can help you chat on the web, or look for online squad players!      |" };
+        String[] publicCommands = { 
+                "| !signup                     - Signs you up for the online TW Chat App         |",
+                "|------------------------------- Who Is Online ---------------------------------|",
                 "| !whohas <#>     - Lists all the squads who have <#> or more members online    |",
                 "| !squad <squad>  - Lists all the members of <squad> currently online and       |",
                 "|   or !s <squad>    the * means player is potentially afk",
                 "| !online <name>  - Shows if <name> is currently online according to list on bot|",
-                "| !stats          - Displays population and player online status information    |",
-                "|                                                                               |", };
+                "| !stats          - Displays population and player online status information    |" };
         String[] modCommands = { "|------------------------------- TW-Chat SMod+ ---------------------------------|",
-                "|                                                                               |",
-                "| !get                        - Retrieves the VIP text file from the server to  |",
-                "|                               be accurate where it is placed.                 |",
-                "| !die                        - Throw me off a bridge without a parachute       |",
+                "| >> Check aliases before add:  http://trenchwars.org/dezmond/twchatusers.php   |",
+                "| !get                        - Gets VIP.txt from server (do before !vipadd)    |",
                 "| !vipadd                     - Manually add this person to VIP.                |",
+                "| !die                        - Throw me off a bridge without a parachute       |",
                 "| !go <arena>                 - I'll go to the arena you specify.               |",
                 "| !show                       - Show people online using TW-Chat App            |",
                 "| !toggle                     - Disables/Enables ability to !signup             |",
@@ -589,10 +581,8 @@ public class twchat extends SubspaceBot {
                 "| !put                        - Force putfile VIP.txt                           |",
                 "| !blacklist <name>           - Prevents <name> to !signup                      |",
                 "| !unblacklist <name>         - Removes blacklist on <name>                     |",
-                "| !blcontains                   - Lists people on the 'BlackList'                 |",
+                "| !blcontains                 - Lists people on the 'BlackList'                 |",
                 "|-------------------------------------------------------------------------------|",
-                "|                                Who Is Online (SMod)                           |",
-                "|                                                                               |",
                 "| !update         - Toggles the online status update process on and off         |",
                 "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
                 "| !si <squad>     - Lists members of <squad>, * means potentially afk by *locate|",
@@ -602,8 +592,6 @@ public class twchat extends SubspaceBot {
                 "| !whosonline     - Lists every single player found in the online list          |",
                 "| !refresh        - Resets entire database & calls for bots to update players   |", };
         String[] devCommands = { "|-------------------------------------------------------------------------------|",
-                "|                                Who Is Online (Dev)                            |",
-                "|                                                                               |",
                 "| !update         - Toggles the online status update process on and off         |",
                 "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
                 "| !si <squad>     - Lists members of <squad>, * means potentially afk by *locate|",
@@ -614,7 +602,8 @@ public class twchat extends SubspaceBot {
                 "| !refresh        - Resets entire database & calls for bots to update players   |", };
         String[] endCommands = { "\\-------------------------------------------------------------------------------/" };
 
-        m_botAction.smartPrivateMessageSpam(name, startCommands);
+        if (!m_botAction.getOperatorList().isZH(name))
+            m_botAction.smartPrivateMessageSpam(name, startCommands);
         m_botAction.smartPrivateMessageSpam(name, publicCommands);
 
         if (m_botAction.getOperatorList().isSmod(name))
