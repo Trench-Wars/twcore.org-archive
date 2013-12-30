@@ -178,7 +178,7 @@ public class socialmedia extends SubspaceBot {
 
         if (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE
                 || event.getMessageType() == Message.CHAT_MESSAGE) {
-            if (msg.equalsIgnoreCase("!help")) {
+            if (msg.equalsIgnoreCase("!help") && event.getMessageType() != Message.CHAT_MESSAGE) {
                 cmd_help(name, msg);
             } else if (msg.equalsIgnoreCase("!about")) {
                 if (ba.getBotName().equals(twitterBot)) {
