@@ -148,7 +148,7 @@ public class pubhubalias extends PubBotModule {
         try {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
-            long t = System.currentTimeMillis();
+            //long t = System.currentTimeMillis();
             String ipResults = getSubQueryResultString("SELECT DISTINCT(fnIP) FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID WHERE fcUserName = '"
                     + Tools.addSlashes(playerName) + "'", "fnIP");
 
@@ -219,7 +219,7 @@ public class pubhubalias extends PubBotModule {
         try {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
-            long t = System.currentTimeMillis();
+            //long t = System.currentTimeMillis();
             String queryString = 
                 //"SET @userId = (SELECT fnUserId FROM tblUser WHERE fcUserName='"
                 //+ Tools.addSlashes(playerName) + "' LIMIT 0,1);"
@@ -655,8 +655,8 @@ public class pubhubalias extends PubBotModule {
                 "!ShowMyWatches [<Sort>:<Dir>]  - Same as !ShowWatches, but only displays your own watches",
                 "!SortByName / !SortByDate      - Selects sorting method",
                 "!update                        - Updates TWDOps list",
-                "!aliasop <name>                - Gives <name> alias access",
-                "!aliasdeop <name>              - Removes alias access for <name>",
+                //"!aliasop <name>                - Gives <name> alias access",
+                //"!aliasdeop <name>              - Removes alias access for <name>",
                 "!listaliasops (!lao)           - Lists current alias-ops"
 
         };
@@ -665,18 +665,16 @@ public class pubhubalias extends PubBotModule {
 
     public void doCheatSheet(String sender) {
         String[] message = { "ALIAS CHAT CHEAT SHEET: ",
-                "!AliasDeOp         -               !LNameWatch     - !lnw",
-                "!AliasOp           -               !MaxResults     - !mr",
                 "!AltIP             - !ai           !MIDWatch       - !mw",
-                "!AltMID            - !am           !NameWatch      - !nw",
-                "!AltNick           - !an           !PartialIP      - !pip",
-                "!AltNickOrig       - !ano          !PNameWatch     - !pnw",
-                "!AltOr             - !ao           !RNameWatch     - !rnw",
-                "!CheatSheet        - !cs           !ShowMyWatches  - !smw",
+                "!AltMID            - !am           !IPWatch        - !iw",
+                "!AltNick           - !an           !NameWatch      - !nw",
+                "!Info              -               !PNameWatch     - !pnw",
+                "!AltOr             - !ao           !LNameWatch     - !lnw",
+                "!PartialIP         - !pip          !RNameWatch     - !rnw",
                 "!Compare           -               !ShowWatches    - !sw",
-                "!Info              -               !SortByDate     - !sbd",
-                "!IPWatch           - !iw           !SortByName     - !sbn",
-                "!ListAliasOps      - !lao          !update         - "
+                "!MaxResults        - !mr           !ShowMyWatches  - !smw",
+                "!update            -               !SortByName     - !sbn",
+                "!ListAliasOps      - !lao          !SortByDate     - !sbd"
         };
         m_botAction.smartPrivateMessageSpam(sender, message);
     }
