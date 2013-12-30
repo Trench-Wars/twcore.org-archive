@@ -94,7 +94,7 @@ public class pubhubalias extends PubBotModule {
 
     private HashMap<String, String> twdops = new HashMap<String, String>();
     private HashMap<String, String> aliasops = new HashMap<String, String>();
-    private String headBangOp = "";
+    private String headBangOp;
     private Hider hider;
     
     private boolean privateAliases;
@@ -114,6 +114,8 @@ public class pubhubalias extends PubBotModule {
         clearRecordTask = new ClearRecordTask();
         hider = new Hider(m_botAction);
         headBangOp = m_botAction.getBotSettings().getString("HeadBangOp");
+        if (headBangOp == null)
+            headBangOp = "";
 
         m_botAction.scheduleTaskAtFixedRate(clearRecordTask, CLEAR_DELAY, CLEAR_DELAY);
 
