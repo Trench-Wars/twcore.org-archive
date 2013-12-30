@@ -319,17 +319,31 @@ public class pubbotbanc extends PubBotModule {
         m_botAction.sendSmartPrivateMessage(name, "Silent kicks are now " + (silentKicks ? "ENABLED." : "DISABLED."));
     }
 
-    private void cmd_bancs(String name) {
-        m_botAction.sendSmartPrivateMessage(name, "Current BanC lists");
-        m_botAction.sendSmartPrivateMessage(name, " Silences:");
-        for (BanC b : bancSilence.values())
-            m_botAction.sendSmartPrivateMessage(name, "  " + b.getName() + " IP=" + (b.ip != null ? b.ip : "") + " MID=" + (b.mid != null ? b.mid : ""));
-        m_botAction.sendSmartPrivateMessage(name, " Specs:");
-        for (BanC b : bancSpec.values())
-            m_botAction.sendSmartPrivateMessage(name, "  " + b.getName() + " IP=" + (b.ip != null ? b.ip : "") + " MID=" + (b.mid != null ? b.mid : ""));
-        m_botAction.sendSmartPrivateMessage(name, " SuperSpecs:");
-        for (BanC b : bancSuper.values())
-            m_botAction.sendSmartPrivateMessage(name, "  " + b.getName() + " IP=" + (b.ip != null ? b.ip : "") + " MID=" + (b.mid != null ? b.mid : ""));
+    private void cmd_bancs(String name) {        
+        if( bancSilence.size() > 0) {
+            m_botAction.sendSmartPrivateMessage(name, "[SILENCES]");
+            for (BanC b : bancSilence.values())
+                m_botAction.sendSmartPrivateMessage(name, "" + Tools.formatString(b.getName(), 21) +
+                        Tools.formatString(" " + (b.ip != null ? b.ip : "*"), 18 ) +
+                        Tools.formatString(" " + (b.mid != null ? b.mid : "*"), 13 ) +
+                        "[" + b.getRemaining() + "]");
+        }
+        if( bancSuper.size() > 0) {
+            m_botAction.sendSmartPrivateMessage(name, "[SUPERSPECS]");
+            for (BanC b : bancSuper.values())
+                m_botAction.sendSmartPrivateMessage(name, "" + Tools.formatString(b.getName(), 21) +
+                        Tools.formatString(" " + (b.ip != null ? b.ip : "*"), 18 ) +
+                        Tools.formatString(" " + (b.mid != null ? b.mid : "*"), 13 ) +
+                        "[" + b.getRemaining() + "]");
+        }
+        if( bancSpec.size() > 0) {
+            m_botAction.sendSmartPrivateMessage(name, "[SPECS]");
+            for (BanC b : bancSpec.values())
+                m_botAction.sendSmartPrivateMessage(name, "" + Tools.formatString(b.getName(), 21) +
+                        Tools.formatString(" " + (b.ip != null ? b.ip : "*"), 18 ) +
+                        Tools.formatString(" " + (b.mid != null ? b.mid : "*"), 13 ) +
+                        "[" + b.getRemaining() + "]");
+        }
     }
 
     private void cmd_list(String name) {
@@ -662,15 +676,19 @@ public class pubbotbanc extends PubBotModule {
         }
 
         public void list(String name) {
+            m_botAction.sendSmartPrivateMessage(name, "Currently active BanCs");
             m_botAction.sendSmartPrivateMessage(name, "Silences: ");
             for (Entry<String, BanC> e : silence.entrySet())
-                m_botAction.sendSmartPrivateMessage(name, "  " + e.getKey() + "(" + e.getValue().getElapsed() + ")");
+                m_botAction.sendSmartPrivateMessage(name, "  " + Tools.formatString(e.getKey(), 21) +
+                        "[Remaining: " + e.getValue().getRemaining() + " (" + e.getValue().getElapsed() + ")]");
             m_botAction.sendSmartPrivateMessage(name, "SuperSpecs: ");
             for (Entry<String, BanC> e : ship.entrySet())
-                m_botAction.sendSmartPrivateMessage(name, "  " + e.getKey() + "(" + e.getValue().getElapsed() + ")");
+                m_botAction.sendSmartPrivateMessage(name, "  " + Tools.formatString(e.getKey(), 21) +
+                        "[Remaining: " + e.getValue().getRemaining() + " (" + e.getValue().getElapsed() + ")]");
             m_botAction.sendSmartPrivateMessage(name, "Specs: ");
             for (Entry<String, BanC> e : spec.entrySet())
-                m_botAction.sendSmartPrivateMessage(name, "  " + e.getKey() + "(" + e.getValue().getElapsed() + ")");
+                m_botAction.sendSmartPrivateMessage(name, "  " + Tools.formatString(e.getKey(), 21) +
+                        "[Remaining: " + e.getValue().getRemaining() + " (" + e.getValue().getElapsed() + ")]");
         }
 
         public void handleIdle(String msg) {
