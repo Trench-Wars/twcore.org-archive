@@ -92,9 +92,9 @@ public class pubhubalias extends PubBotModule {
     private int m_maxRecords = 15;
     private boolean m_sortByName = false;
 
-    private HashMap<String, String> twdops = new HashMap<String, String>();
-    private HashMap<String, String> aliasops = new HashMap<String, String>();
-    private String headBangOp;
+    private HashSet<String> twdops = new HashSet<String>();
+    private HashSet<String> aliasops = new HashSet<String>();
+    private HashSet<String> bangops = new HashSet<String>();
     private Hider hider;
     
     private boolean privateAliases;
@@ -113,32 +113,26 @@ public class pubhubalias extends PubBotModule {
         watchedPNames = Collections.synchronizedMap(new HashMap<String, WatchComment>()); 
         clearRecordTask = new ClearRecordTask();
         hider = new Hider(m_botAction);
-        headBangOp = m_botAction.getBotSettings().getString("HeadBangOp");
-        if (headBangOp == null)
-            headBangOp = "";
 
         m_botAction.scheduleTaskAtFixedRate(clearRecordTask, CLEAR_DELAY, CLEAR_DELAY);
 
         loadWatches();
 
         updateTWDOps();
+        updateBangOps();
         updateAliasOps();
     }
 
     private boolean isTWDOp(String name) {
-        if (twdops.containsKey(name.toLowerCase())) {
-            return true;
-        } else {
-            return false;
-        }
+        return twdops.contains(name.toLowerCase());
     }
 
+    private boolean isBangOp(String name) {
+        return bangops.contains(name.toLowerCase());
+    }
+    
     private boolean isAliasOp(String name) {
-        if (aliasops.containsKey(name.toLowerCase())) {
-            return true;
-        } else {
-            return false;
-        }
+        return aliasops.contains(name.toLowerCase());
     }
 
     public void requestEvents(EventRequester eventRequester) {
@@ -769,11 +763,11 @@ public class pubhubalias extends PubBotModule {
             return;
         }
 
-        if (aliasops.containsKey(message.toLowerCase())) {
+        if (aliasops.contains(message.toLowerCase())) {
             m_botAction.sendChatMessage(message + " is already on the alias-ops list.");
             return;
         } else {
-            aliasops.put(message.toLowerCase(), message);
+            aliasops.add(message.toLowerCase());
         }
 
         try {
@@ -792,7 +786,7 @@ public class pubhubalias extends PubBotModule {
             return;
         }
 
-        if (!aliasops.containsKey(message.toLowerCase())) {
+        if (!aliasops.contains(message.toLowerCase())) {
             m_botAction.sendChatMessage(message + " could not be found on the alias-ops list.");
             return;
         } else {
@@ -815,7 +809,7 @@ public class pubhubalias extends PubBotModule {
 
         m_botAction.sendChatMessage("AliasOps:");
 
-        for (String i : aliasops.values()) {
+        for (String i : aliasops) {
             output += i + ", ";
             counter++;
 
@@ -1384,14 +1378,17 @@ public class pubhubalias extends PubBotModule {
                 m_botAction.sendChatMessage("Sorting !alt cmds by date first.");
             } else if (command.equals("!update")) {
                 updateTWDOps();
+                updateBangOps();
                 updateAliasOps();
                 m_botAction.sendChatMessage("Updating twdop & alias-op lists.");
             } else if (command.equals("!listaliasops")  || command.equals("!lao"))
                 doListAliasOps();
+            /*
             else if (command.equals("!aliasop"))
                 doAddAliasOp(sender, args);
             else if (command.equals("!aliasdeop"))
                 doRemAliasOp(sender, args);
+            */
             else if (command.equals("!altall") && opList.isSysopExact(sender)) {
                 doAltNickCmd(sender, args, true);
                 record(sender, message);
@@ -1409,7 +1406,7 @@ public class pubhubalias extends PubBotModule {
         if (messageType == Message.CHAT_MESSAGE) {
             handleChatMessage(sender, message);
         } else {
-            if (sender.equals(headBangOp) && (messageType == Message.PRIVATE_MESSAGE) || (messageType == Message.REMOTE_PRIVATE_MESSAGE) )
+            if (isBangOp(sender) && (messageType == Message.PRIVATE_MESSAGE) || (messageType == Message.REMOTE_PRIVATE_MESSAGE) )
                 handleChatMessage(sender, message);
         }
     }
@@ -1655,44 +1652,57 @@ public class pubhubalias extends PubBotModule {
     private void updateTWDOps() {
         try {
             ResultSet r = m_botAction.SQLQuery(DATABASE, "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '14' AND tblUser.fnUserID = tblUserRank.fnUserID");
-
-            if (r == null) {
+            if (r == null)
                 return;
-            }
 
             twdops.clear();
 
             while (r.next()) {
                 String name = r.getString("fcUsername");
-                twdops.put(name.toLowerCase(), name);
+                twdops.add(name.toLowerCase());
             }
-
             m_botAction.SQLClose(r);
         } catch (SQLException e) {
             throw new RuntimeException("ERROR: Unable to update twdop list.");
         }
     }
 
+    private void updateBangOps() {
+        try {
+            ResultSet r = m_botAction.SQLQuery(DATABASE, "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '31' AND tblUser.fnUserID = tblUserRank.fnUserID");
+            if (r == null)
+                return;
+
+            bangops.clear();
+
+            while (r.next()) {
+                String name = r.getString("fcUsername");
+                bangops.add(name.toLowerCase());
+            }
+            m_botAction.SQLClose(r);
+        } catch (SQLException e) {
+            throw new RuntimeException("ERROR: Unable to update bangop list.");
+        }
+    }
+    
     private void updateAliasOps() {
         try {
-            ResultSet r = m_botAction.SQLQuery(DATABASE, "SELECT User FROM `tblAliasOps`");
-
-            if (r == null) {
+            ResultSet r = m_botAction.SQLQuery(DATABASE, "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '20' AND tblUser.fnUserID = tblUserRank.fnUserID");
+            if (r == null)
                 return;
-            }
 
             aliasops.clear();
 
             while (r.next()) {
-                String name = r.getString("User");
-                aliasops.put(name.toLowerCase(), name);
+                String name = r.getString("fcUserName");
+                aliasops.add(name.toLowerCase());
             }
-
             m_botAction.SQLClose(r);
         } catch (SQLException e) {
             throw new RuntimeException("ERROR: Unable to update alias-op list.");
         }
     }
+
 
     private void loadWatches() {
         BotSettings cfg = m_botAction.getBotSettings();
