@@ -222,10 +222,8 @@ public class pubbottk extends PubBotModule {
             String name = m_botAction.getPlayerName( event.getPlayerID() );
             if (ignores.contains(name))
                 return;
-            if( m_opList.isBot( name ) ) {
-
-                if( message.equals( "!help" )){
-                    m_botAction.sendPrivateMessage( name, "Pubbot TK Module" );
+            if( m_opList.isZH( name ) ) {
+                if (message.equals( "!help" )) {
                 	m_botAction.sendPrivateMessage( name, "!tkinfo name         - Gives TK information on 'name', if they have TK'd");
                     m_botAction.sendPrivateMessage( name, "!tklog name:#        - Shows log of last # TKs (use no :# for default=" + DEFAULT_LOG_LENGTH + ")");
                     m_botAction.sendPrivateMessage( name, "!tklogt name:#       - Shows log of TKs in last # minutes (default=" + DEFAULT_LOG_TIME + ")");

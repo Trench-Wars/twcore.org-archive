@@ -277,20 +277,24 @@ public class pubbotbanc extends PubBotModule {
             String name = event.getMessager();
             if (name == null)
                 name = m_botAction.getPlayerName(event.getPlayerID());
-            if (m_botAction.getOperatorList().isSmod(name))
+            if (m_botAction.getOperatorList().isSmod(name)) {
                 if (message.equals("!bancs"))
                     cmd_bancs(name);
+                else if (message.equals("!bancdebug"))
+                    cmd_bancdebug(name);
                 else if (message.equals("!kicks"))
                     cmd_kicks(name);
-                else if (message.equals("!banc"))
-                    cmd_banc(name);
                 else if (message.equals("!proxy"))
                     cmd_proxy(name);
-            if (m_botAction.getOperatorList().isModerator(name))
+            }
+            if (m_botAction.getOperatorList().isModerator(name)) {
+                if (message.equals("!help"))
+                    cmd_help(name, m_botAction.getOperatorList().isSmod(name));
                 if (message.startsWith("!move ") || message.startsWith("!bounce "))
                     cmd_move(name, message);
                 else if (message.equalsIgnoreCase("!list"))
                     cmd_list(name);
+            }
         }
     }
     
@@ -299,7 +303,7 @@ public class pubbotbanc extends PubBotModule {
         m_botAction.sendSmartPrivateMessage(name, "Proxy kicking is: " + (proxy ? "DISABLED" : "ENABLED"));
     }
     
-    private void cmd_banc(String name) {
+    private void cmd_bancdebug(String name) {
         DEBUG = !DEBUG;
         if (DEBUG) {
             debugger = name;
@@ -344,6 +348,23 @@ public class pubbotbanc extends PubBotModule {
             } else
                 m_botAction.sendPrivateMessage(name, "Player not found");
         }
+    }
+    
+    private void cmd_help(String name, boolean isSmod) {
+        if (isSmod) {
+            String[] msgs = {
+                    "!bancs     - List all active BanC's, including those not logged in",
+                    "!bancdebug - Logs all new BanC info & other actions to you via PM",
+                    "!kicks     - Toggles showing kicks for long names",
+                    "!proxy     - Toggles showing kicks for using a proxy"
+            };
+            m_botAction.privateMessageSpam(name, msgs);
+        }
+        String[] modmsgs = {
+                    "!list      - Lists active BanC's of any players in the arena",
+                    "!move      - Moves an idle BanC'd player to the afk arena"
+        };
+        m_botAction.privateMessageSpam(name, modmsgs);
     }
 
     private void checkBanCs(String info) {
