@@ -967,7 +967,7 @@ public class twdopalias extends Module {
 
     private void updateAliasOps() {
         try {
-            ResultSet r = m_botAction.SQLQuery(DATABASE, "SELECT User FROM `tblAliasOps`");
+            ResultSet r = m_botAction.SQLQuery(DATABASE, "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '20' AND tblUser.fnUserID = tblUserRank.fnUserID");
 
             if (r == null) {
                 return;
@@ -976,7 +976,7 @@ public class twdopalias extends Module {
             aliasops.clear();
 
             while (r.next()) {
-                String name = r.getString("User");
+                String name = r.getString("fcUserName");
                 aliasops.put(name.toLowerCase(), name);
             }
 
