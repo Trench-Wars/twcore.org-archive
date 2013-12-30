@@ -128,6 +128,8 @@ public class pubhubalias extends PubBotModule {
     }
 
     private boolean isBangOp(String name) {
+        if (name==null || bangops==null)
+            return false;
         return bangops.contains(name.toLowerCase());
     }
     
@@ -1404,7 +1406,7 @@ public class pubhubalias extends PubBotModule {
         if (messageType == Message.CHAT_MESSAGE) {
             handleChatMessage(sender, message);
         } else {
-            if (isBangOp(sender) && (messageType == Message.PRIVATE_MESSAGE) || (messageType == Message.REMOTE_PRIVATE_MESSAGE) )
+            if ((messageType == Message.PRIVATE_MESSAGE) || (messageType == Message.REMOTE_PRIVATE_MESSAGE) && isBangOp(sender))
                 handleChatMessage(sender, message);
         }
     }
