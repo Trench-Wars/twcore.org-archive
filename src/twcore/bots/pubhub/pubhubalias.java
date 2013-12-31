@@ -124,6 +124,8 @@ public class pubhubalias extends PubBotModule {
     }
 
     private boolean isTWDOp(String name) {
+        if (name==null || twdops==null)
+            return false;
         return twdops.contains(name.toLowerCase());
     }
 
@@ -134,6 +136,8 @@ public class pubhubalias extends PubBotModule {
     }
     
     private boolean isAliasOp(String name) {
+        if (name==null || aliasops==null)
+            return false;
         return aliasops.contains(name.toLowerCase());
     }
 
