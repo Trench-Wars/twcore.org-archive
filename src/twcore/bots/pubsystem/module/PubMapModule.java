@@ -143,7 +143,7 @@ public class PubMapModule extends AbstractModule {
         if (!enabled || !inPub) return;
         if (event.getShipType() > 0)
             doPopCheck();
-        doLVZ(event.getPlayerID());
+        doLVZ(event.getPlayerID(), false);
     }
     
     public void handleEvent(PlayerLeft event) {
@@ -252,7 +252,7 @@ public class PubMapModule extends AbstractModule {
         Player p = m_botAction.getPlayer(name);
         if( p != null ) {
             m_botAction.sendPrivateMessage(name, "You are now " + (usegfx ? "" : "NOT ") + "using the optional graphics." );
-            doLVZ(p.getPlayerID());
+            doLVZ(p.getPlayerID(), true);
         }
     }
     
@@ -345,7 +345,7 @@ public class PubMapModule extends AbstractModule {
      * Show base LVZ objects, including any special holiday/event objects that may
      * be toggled using !gfx command.
      */
-    private void doLVZ(int id) {
+    private void doLVZ(int id, boolean scrubOldGfx) {
         if (id != -1) {     // Not all players            
             Player p = m_botAction.getPlayer(id);
             if (p == null)
@@ -364,57 +364,38 @@ public class PubMapModule extends AbstractModule {
                     ba.hideObjectForPlayer(id, HOLIDAY_OBJON);
             }
 
-            switch (currentBase) {
-            case SMALL_BASE:
-                if (doHolidayGfx) {
-                    ba.showObjectForPlayer(id, SMALL_OBJON_HOLIDAY);
-                    ba.hideObjectForPlayer(id, MED_OBJON_HOLIDAY);
-                    ba.hideObjectForPlayer(id, LARGE_OBJON_HOLIDAY);
-                } else {
-                    ba.showObjectForPlayer(id, SMALL_OBJON);
-                    ba.hideObjectForPlayer(id, MED_OBJON);
-                    ba.hideObjectForPlayer(id, LARGE_OBJON);                        
-                }
-                ba.showObjectForPlayer(id, LEFT_SIDE_DOOR);
-                ba.showObjectForPlayer(id, RIGHT_SIDE_DOOR);
-                break;
-            case MED_BASE:
-                if (doHolidayGfx) {
-                    ba.hideObjectForPlayer(id, SMALL_OBJON_HOLIDAY);
-                    ba.showObjectForPlayer(id, MED_OBJON_HOLIDAY);
-                    ba.hideObjectForPlayer(id, LARGE_OBJON_HOLIDAY);
-                } else {
-                    ba.hideObjectForPlayer(id, SMALL_OBJON);
-                    ba.showObjectForPlayer(id, MED_OBJON);
-                    ba.hideObjectForPlayer(id, LARGE_OBJON);                        
-                }
-                ba.hideObjectForPlayer(id, LEFT_SIDE_DOOR);
-                ba.hideObjectForPlayer(id, RIGHT_SIDE_DOOR);
-                break;
-            case LARGE_BASE:
-                if (doHolidayGfx) {
-                    ba.hideObjectForPlayer(id, SMALL_OBJON_HOLIDAY);
-                    ba.hideObjectForPlayer(id, MED_OBJON_HOLIDAY);
-                    ba.showObjectForPlayer(id, LARGE_OBJON_HOLIDAY);
-                } else {
-                    ba.hideObjectForPlayer(id, SMALL_OBJON);
-                    ba.hideObjectForPlayer(id, MED_OBJON);
-                    ba.showObjectForPlayer(id, LARGE_OBJON);                        
-                }
-                ba.hideObjectForPlayer(id, LEFT_SIDE_DOOR);
-                ba.hideObjectForPlayer(id, RIGHT_SIDE_DOOR);
-                break;
-            }
-
+            setBaseLVZForPlayer(id, doHolidayGfx, true, scrubOldGfx);
+            
         } else {            // All players
             Boolean doHolidayGfx = false;
             Player p;
-            for (String s : usingHolidayLVZ.keySet() ) {
-                p = m_botAction.getPlayer(s);
-                if (p == null)
-                    continue;
+            
+            if(!checkForHolidayLVZ) {
+                // Use the old method to save packets
+                switch (currentBase) {
+                case SMALL_BASE:
+                    ba.showObject(SMALL_OBJON);
+                    ba.hideObject(MED_OBJON);
+                    ba.hideObject(LARGE_OBJON);
+                    break;
+                case MED_BASE:
+                    ba.showObject(MED_OBJON);
+                    ba.hideObject(SMALL_OBJON);
+                    ba.hideObject(LARGE_OBJON);
+                    break;
+                case LARGE_BASE:
+                    ba.showObject(LARGE_OBJON);
+                    ba.hideObject(SMALL_OBJON);
+                    ba.hideObject(MED_OBJON);
+                    break;
+                }
                 
-                if (checkForHolidayLVZ) {
+            } else {
+                for (String s : usingHolidayLVZ.keySet() ) {
+                    p = m_botAction.getPlayer(s);
+                    if (p == null)
+                        continue;
+
                     doHolidayGfx = usingHolidayLVZ.get(s);
                     if (doHolidayGfx == null) {
                         doHolidayGfx = true;
@@ -424,46 +405,12 @@ public class PubMapModule extends AbstractModule {
                         ba.showObjectForPlayer(id, HOLIDAY_OBJON);
                     else
                         ba.hideObjectForPlayer(id, HOLIDAY_OBJON);
-                }
-                
-                id = p.getPlayerID();                
 
-                switch (currentBase) {
-                case SMALL_BASE:
-                    if (doHolidayGfx) {
-                        ba.showObjectForPlayer(id, SMALL_OBJON_HOLIDAY);
-                        ba.hideObjectForPlayer(id, MED_OBJON_HOLIDAY);
-                        ba.hideObjectForPlayer(id, LARGE_OBJON_HOLIDAY);
-                    } else {
-                        ba.showObjectForPlayer(id, SMALL_OBJON);
-                        ba.hideObjectForPlayer(id, MED_OBJON);
-                        ba.hideObjectForPlayer(id, LARGE_OBJON);                        
-                    }
-                    break;
-                case MED_BASE:
-                    if (doHolidayGfx) {
-                        ba.hideObjectForPlayer(id, SMALL_OBJON_HOLIDAY);
-                        ba.showObjectForPlayer(id, MED_OBJON_HOLIDAY);
-                        ba.hideObjectForPlayer(id, LARGE_OBJON_HOLIDAY);
-                    } else {
-                        ba.hideObjectForPlayer(id, SMALL_OBJON);
-                        ba.showObjectForPlayer(id, MED_OBJON);
-                        ba.hideObjectForPlayer(id, LARGE_OBJON);                        
-                    }
-                    break;
-                case LARGE_BASE:
-                    if (doHolidayGfx) {
-                        ba.hideObjectForPlayer(id, SMALL_OBJON_HOLIDAY);
-                        ba.hideObjectForPlayer(id, MED_OBJON_HOLIDAY);
-                        ba.showObjectForPlayer(id, LARGE_OBJON_HOLIDAY);
-                    } else {
-                        ba.hideObjectForPlayer(id, SMALL_OBJON);
-                        ba.hideObjectForPlayer(id, MED_OBJON);
-                        ba.showObjectForPlayer(id, LARGE_OBJON);                        
-                    }
-                    break;
-                }
+                    id = p.getPlayerID();                    
+                    setBaseLVZForPlayer(id, doHolidayGfx, false, scrubOldGfx);
+                }                
             }
+            
             switch (currentBase) {
             case SMALL_BASE:
                 ba.showObject(LEFT_SIDE_DOOR);
@@ -484,6 +431,93 @@ public class PubMapModule extends AbstractModule {
 
     }
     
+    /**
+     * Sets the base graphics individually. Unfortunately
+     * @param id Pid
+     * @param doHolidayGfx True if using holiday gfx
+     * @param setDoors True if also setting door gfx
+     * @param scrubOldGfx True if scrubbing old gfx (after using !gfx)
+     */
+    private void setBaseLVZForPlayer( int id, boolean doHolidayGfx, boolean setDoors, boolean scrubOldGfx ) {     
+        switch (currentBase) {
+        case SMALL_BASE:
+            if (doHolidayGfx) {
+                ba.showObjectForPlayer(id, SMALL_OBJON_HOLIDAY);
+                ba.hideObjectForPlayer(id, MED_OBJON_HOLIDAY);
+                ba.hideObjectForPlayer(id, LARGE_OBJON_HOLIDAY);
+                if (scrubOldGfx) {
+                    ba.hideObjectForPlayer(id, SMALL_OBJON);
+                    ba.hideObjectForPlayer(id, MED_OBJON);
+                    ba.hideObjectForPlayer(id, LARGE_OBJON);
+                }
+            } else {
+                ba.showObjectForPlayer(id, SMALL_OBJON);
+                ba.hideObjectForPlayer(id, MED_OBJON);
+                ba.hideObjectForPlayer(id, LARGE_OBJON);                
+                if (scrubOldGfx) {
+                    ba.hideObjectForPlayer(id, SMALL_OBJON_HOLIDAY);
+                    ba.hideObjectForPlayer(id, MED_OBJON_HOLIDAY);
+                    ba.hideObjectForPlayer(id, LARGE_OBJON_HOLIDAY);
+                }
+            }
+            if (setDoors) {
+                ba.showObjectForPlayer(id, LEFT_SIDE_DOOR);
+                ba.showObjectForPlayer(id, RIGHT_SIDE_DOOR);
+            }
+            break;
+        case MED_BASE:
+            if (doHolidayGfx) {
+                ba.showObjectForPlayer(id, MED_OBJON_HOLIDAY);
+                ba.hideObjectForPlayer(id, SMALL_OBJON_HOLIDAY);
+                ba.hideObjectForPlayer(id, LARGE_OBJON_HOLIDAY);
+                if (scrubOldGfx) {
+                    ba.hideObjectForPlayer(id, SMALL_OBJON);
+                    ba.hideObjectForPlayer(id, MED_OBJON);
+                    ba.hideObjectForPlayer(id, LARGE_OBJON);
+                }
+            } else {
+                ba.showObjectForPlayer(id, MED_OBJON);
+                ba.hideObjectForPlayer(id, SMALL_OBJON);
+                ba.hideObjectForPlayer(id, LARGE_OBJON);
+                if (scrubOldGfx) {
+                    ba.hideObjectForPlayer(id, SMALL_OBJON_HOLIDAY);
+                    ba.hideObjectForPlayer(id, MED_OBJON_HOLIDAY);
+                    ba.hideObjectForPlayer(id, LARGE_OBJON_HOLIDAY);
+                }
+            }
+            if (setDoors) {
+                ba.hideObjectForPlayer(id, LEFT_SIDE_DOOR);
+                ba.hideObjectForPlayer(id, RIGHT_SIDE_DOOR);
+            }
+            break;
+        case LARGE_BASE:
+            if (doHolidayGfx) {
+                ba.showObjectForPlayer(id, LARGE_OBJON_HOLIDAY);
+                ba.hideObjectForPlayer(id, SMALL_OBJON_HOLIDAY);
+                ba.hideObjectForPlayer(id, MED_OBJON_HOLIDAY);
+                if (scrubOldGfx) {
+                    ba.hideObjectForPlayer(id, SMALL_OBJON);
+                    ba.hideObjectForPlayer(id, MED_OBJON);
+                    ba.hideObjectForPlayer(id, LARGE_OBJON);
+                }
+            } else {
+                ba.showObjectForPlayer(id, LARGE_OBJON);
+                ba.hideObjectForPlayer(id, SMALL_OBJON);
+                ba.hideObjectForPlayer(id, MED_OBJON);
+                if (scrubOldGfx) {
+                    ba.hideObjectForPlayer(id, SMALL_OBJON_HOLIDAY);
+                    ba.hideObjectForPlayer(id, MED_OBJON_HOLIDAY);                
+                    ba.hideObjectForPlayer(id, LARGE_OBJON_HOLIDAY);
+                }
+            }
+            if (setDoors) {
+                ba.hideObjectForPlayer(id, LEFT_SIDE_DOOR);
+                ba.hideObjectForPlayer(id, RIGHT_SIDE_DOOR);
+            }
+            break;
+        }
+    }
+    
     private class BaseChange extends TimerTask {
         private int base;
         
@@ -495,7 +529,7 @@ public class PubMapModule extends AbstractModule {
             lastChange = System.currentTimeMillis();
             currentBase = base;
             ba.setDoors(currentBase);
-            doLVZ(-1);
+            doLVZ(-1, false);
             
             baseChanger = null;
             //stragglerCheck = true;
