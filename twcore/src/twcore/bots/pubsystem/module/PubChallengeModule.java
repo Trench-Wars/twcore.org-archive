@@ -18,6 +18,7 @@ import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.events.FrequencyShipChange;
+import twcore.core.events.Message;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
@@ -60,14 +61,19 @@ public class PubChallengeModule extends AbstractModule {
     public final long MAX_BET_ADVERT_FREQUENCY = 2 * Tools.TimeInMillis.MINUTE;  // Time in ms between bets being arena'd
     public final int MIN_BET_TO_NOTIFY = 500;
     public final long TIME_OPEN_CHALS_ACTIVE = 30 * Tools.TimeInMillis.MINUTE;  // Time open challenges are active
+    
+    public final String TWChatMID = "1693149144";
 
     public PubChallengeModule(BotAction m_botAction, PubContext context) {
         super(m_botAction, context, "Challenge");
-
+        
         reloadConfig();
 
     }
 
+
+    // *** EVENTS ***
+    
     @Override
     public void requestEvents(EventRequester eventRequester) {
         eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
@@ -266,6 +272,42 @@ public class PubChallengeModule extends AbstractModule {
         m_botAction.scheduleTask(new SpawnBack(killee), 5 * 1000);
 
     }
+    
+    /**
+     * Check for TWChat users, and cancel their duels and challenges.
+     */
+    @Override
+    public void handleEvent(Message event) {
+        String msg = event.getMessage();
+        if (event.getMessageType() == Message.ARENA_MESSAGE && msg.startsWith("IP:"))
+            checkForTWChat(msg);
+    }
+
+    
+    // *** METHODS ***
+    
+    public void checkForTWChat(String message) {
+        String playerMacID = extractFromInfoString(message, "MachineId:");
+        String playerName = extractFromInfoString(message, "TypedName:");
+        if (playerMacID == TWChatMID) {
+            removePendingChallenge(playerName,true,true);
+            removeChallengesTo(playerName,true,true);
+        }
+    }
+
+    private String extractFromInfoString(String message, String infoName) {
+        int beginIndex = message.indexOf(infoName);
+        int endIndex;
+
+        if (beginIndex == -1)
+            return null;
+        beginIndex = beginIndex + infoName.length();
+        endIndex = message.indexOf("  ", beginIndex);
+        if (endIndex == -1)
+            endIndex = message.length();
+        return message.substring(beginIndex, endIndex);
+    }
+
 
     public DuelArea getEmptyDuelArea(int shipType) {
         Iterator<Entry<Integer, DuelArea>> iter = areas.entrySet().iterator();
@@ -370,6 +412,10 @@ public class PubChallengeModule extends AbstractModule {
                 return;
             }
         }
+        
+        // Check MID for TWChat # (catch in Message event)
+        m_botAction.sendUnfilteredPrivateMessage( challenger, "*info" );
+        m_botAction.sendUnfilteredPrivateMessage( challenged, "*info" );
 
         if (openChal) {
             m_botAction.sendSmartPrivateMessage(challenger, "Open challenge sent for any player to accept; it will now show in !openduels (!od) for the next " + (TIME_OPEN_CHALS_ACTIVE / Tools.TimeInMillis.MINUTE) + " minutes.");
@@ -445,10 +491,19 @@ public class PubChallengeModule extends AbstractModule {
             }
             openChal = true;
         }
-
-        if(openChal && challenger.equalsIgnoreCase(accepter)) {
-            m_botAction.sendSmartPrivateMessage(accepter, "You cannot accept your own challenges.");
-            return;
+        
+        if (openChal) {
+            player = m_botAction.getPlayer(accepter);
+            if (player != null && player.getShipType() == Tools.Ship.SPECTATOR) {
+                // XXX: Hack fix for special case of TWChat user accepting open duel
+                m_botAction.sendSmartPrivateMessage(accepter, "You cannot accept open challenges unless already in-game. Please enter a ship.");
+                return;
+            }
+            
+            if (challenger.equalsIgnoreCase(accepter)) {
+                m_botAction.sendSmartPrivateMessage(accepter, "You cannot accept your own challenges.");
+                return;
+            }
         }
         
         int amount = challenge.amount;
@@ -537,8 +592,8 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendZoneMessage("[PUB] A duel is starting between " + challenger + " and " + accepter + " in " + Tools.shipName(ship)
                     + moneyMessage + ".", Tools.Sound.BEEP1);
         */
-        removePendingChallenge(challenger, false);
-        removePendingChallenge(accepter, false);
+        removePendingChallenge(challenger, false, false);
+        removePendingChallenge(accepter, false, false);
 
         // Prepare the timer, in 15 seconds the game should starts (added 5s to allow more bets)
         m_botAction.scheduleTask(new StartDuel(challenge), 10 * 1000);
@@ -678,7 +733,7 @@ public class PubChallengeModule extends AbstractModule {
 
     }
 
-    public void removePendingChallenge(String name, boolean tellPlayer) {
+    public void removePendingChallenge(String name, boolean tellPlayer, boolean forTWChat ) {
         Iterator<Challenge> it = challenges.values().iterator();
         int totalRemoved = 0;
         while (it.hasNext()) {
@@ -687,24 +742,44 @@ public class PubChallengeModule extends AbstractModule {
                 if (!c.isStarted()) {
                     if (tellPlayer)
                         if( c.challengedName.equals("*"))
-                            m_botAction.sendSmartPrivateMessage(name, "Open challenge removed.");
+                            m_botAction.sendSmartPrivateMessage(name, "Open challenge removed." + (forTWChat ? "" : " TWChat users may not challenge."));
                         else
-                            m_botAction.sendSmartPrivateMessage(name, "Challenge against " + c.challengedName + " removed.");                            
+                            m_botAction.sendSmartPrivateMessage(name, "Challenge against " + c.challengedName + " removed." + (forTWChat ? "" : " TWChat users may not challenge."));                            
                     it.remove();
                     totalRemoved++;
+                } else if( forTWChat ) {
+                    // TODO: Cancel even after it's started. Methods are a bit messy though.
+                    // This is necessary for TWChat users who accept open duels.
+                    // Hack fix: to accept an open duel, you now have to be in ship already.
                 }
         }
         openChallenges.remove(name);
 
         if (totalRemoved == 0) {
-            if (tellPlayer)
+            if (tellPlayer && !forTWChat)
                 m_botAction.sendSmartPrivateMessage(name, "No pending challenge to remove.");
         } else {
-            if (tellPlayer)
+            if (tellPlayer && !forTWChat)
                 m_botAction.sendSmartPrivateMessage(name, "Removed " + totalRemoved + "challenges.");            
         }
-
     }
+    
+    public void removeChallengesTo(String name, boolean tellPlayer, boolean forTWChat ) {
+        Iterator<Challenge> it = challenges.values().iterator();
+        while (it.hasNext()) {
+            Challenge c = it.next();
+            if (c.challengedName.equals(name))
+                if (!c.isStarted()) {
+                    if (tellPlayer) {
+                        m_botAction.sendSmartPrivateMessage(c.challengerName, "Challenge against " + c.challengedName + " removed." + (forTWChat ? "" : " TWChat users may not be challenged."));
+                        m_botAction.sendSmartPrivateMessage(name, "Challenge from " + c.challengerName + " removed." + (forTWChat ? "" : " TWChat users may not accept challenges."));
+                    }
+                    it.remove();
+                }
+        }
+        openChallenges.remove(name);
+    }
+
 
     public Challenge getChallengeStartedByPlayerName(String name) {
         Iterator<Challenge> it = challenges.values().iterator();
@@ -1295,7 +1370,7 @@ public class PubChallengeModule extends AbstractModule {
         else if (command.startsWith("!beton "))
             placeBet(sender, command.substring(7));
         else if (command.startsWith("!removechallenge") || command.equalsIgnoreCase("!rm"))
-            removePendingChallenge(sender, true);
+            removePendingChallenge(sender, true, false);
         else if (command.equalsIgnoreCase("!lagout"))
             returnFromLagout(sender);
         else if (command.equalsIgnoreCase("!od") || command.equalsIgnoreCase("!openduels"))
@@ -1865,7 +1940,7 @@ class Challenge {
 
     public void returnAllBets(PubPlayerManagerModule ppmm) {
         Integer bet = 0;
-        ;
+        
         PubPlayer p;
         for (String n : challengerBets.keySet()) {
             p = ppmm.getPlayer(n);
