@@ -1104,13 +1104,17 @@ public class staffbot_banc extends Module {
 
         if (commandSearch.contains(":")) {
             String stPieces[] = commandSearch.split(":");
-            if (stPieces.length == 3) {
-                //to limit #bancs and #warnings
-                limits[0] = Integer.parseInt(stPieces[1]);
-                limits[1] = Integer.parseInt(stPieces[2]);
-            } else if (stPieces.length == 2)
-                //to limits just #bancs and see all warnings
-                limits[0] = Integer.parseInt(stPieces[1]);
+            try {
+                if (stPieces.length == 3) {
+                    //to limit #bancs and #warnings
+                    limits[0] = Integer.parseInt(stPieces[1]);
+                    limits[1] = Integer.parseInt(stPieces[2]);
+                } else if (stPieces.length == 2)
+                    //to limits just #bancs and see all warnings
+                    limits[0] = Integer.parseInt(stPieces[1]);
+            } catch (NumberFormatException e) {
+                // Invalid input given. For now, do nothing and run with the default parameters.
+            }
         }
         return limits;
     }
