@@ -239,17 +239,17 @@ public class staffbot_banc extends Module {
                 return;
             }
 
-            if (messageLc.startsWith("!addop"))
+            if (messageLc.startsWith("!addop "))
                 //!addop
                 addBancOperator(name, messageLc.substring(7));
-            if (messageLc.startsWith("!removeop"))
+            if (messageLc.startsWith("!removeop "))
                 //!revokeop
                 removeBancStaffer(name, messageLc.substring(10));
             if (messageLc.equals("!listops"))
                 showBancPeople(name);
-            if (messageLc.startsWith("!deleteop"))
+            if (messageLc.startsWith("!deleteop "))
                 deleteBancOperator(name, messageLc.substring(10));
-            if (messageLc.startsWith("!isop"))
+            if (messageLc.startsWith("!isop "))
                 isOp(name, messageLc.substring(6));
             if (messageLc.equals("!reloadops"))
                 if (!opList.isOwner(name))
@@ -267,7 +267,7 @@ public class staffbot_banc extends Module {
             else if (messageLc.startsWith("!search -help"))
                 searchByNameHelp(name);
 
-            else if (messageLc.startsWith("!search")) {
+            else if (messageLc.startsWith("!search ")) {
                 String commandTillName = messageLc.split(":")[0];
                 String nameToSearch = commandTillName.substring(8);
                 int limits[] = getLimits(messageLc);
