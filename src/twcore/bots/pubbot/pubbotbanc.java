@@ -1,6 +1,8 @@
 package twcore.bots.pubbot;
 
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -129,7 +131,9 @@ public class pubbotbanc extends PubBotModule {
             m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
 
         if (!name.startsWith("^")) {
-            confirms.put(name, new Confirm(name));
+            synchronized(confirms) {
+                confirms.put(name, new Confirm(name));
+            }
             m_botAction.sendUnfilteredPrivateMessage(name, "*info");
         }
     }
@@ -217,7 +221,9 @@ public class pubbotbanc extends PubBotModule {
                 String name = current.getName();
                 if (message.equalsIgnoreCase(current.getName() + " can now speak")) {
                     if (!current.isActive()) {
-                        confirms.remove(current.getName());
+                        synchronized(confirms) {
+                            confirms.remove(current.getName());
+                        }
                         // The bot just unsilenced the player (and it's ok)
                         m_botAction.sendPrivateMessage(current.getName(), "Silence lifted. You can now speak.");
                         m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
@@ -233,7 +239,9 @@ public class pubbotbanc extends PubBotModule {
                         m_botAction.sendUnfilteredPrivateMessage(name, "*shutup");
                     } else {
                         // The bot just silenced the player (and it's ok)
-                        confirms.remove(current.getName());
+                        synchronized(confirms) {
+                            confirms.remove(current.getName());
+                        }
                         if (current.getTime() == INFINITE_DURATION)
                             m_botAction.sendPrivateMessage(current.getName(), "You've been permanently silenced because of abuse and/or violation of Trench Wars rules.");
                         else
@@ -247,7 +255,9 @@ public class pubbotbanc extends PubBotModule {
                         current = null;
                         m_botAction.spec(name);
                     } else {
-                        confirms.remove(current.getName());
+                        synchronized(confirms) {
+                            confirms.remove(current.getName());
+                        }
                         // The bot just spec-locked the player (and it's ok)
                         if (current.getTime() == INFINITE_DURATION)
                             m_botAction.sendPrivateMessage(current.getName(), "You've been permanently locked into spectator because of abuse and/or violation of Trench Wars rules.");
@@ -258,7 +268,9 @@ public class pubbotbanc extends PubBotModule {
                     }
                 } else if (message.equalsIgnoreCase("Player free to enter arena")) {
                     if (!current.isActive()) {
-                        confirms.remove(current.getName());
+                        synchronized(confirms) {
+                            confirms.remove(current.getName());
+                        }
                         // The bot just unspec-locked the player (and it's ok)
                         m_botAction.sendPrivateMessage(current.getName(), "Spectator-lock removed. You may now enter.");
                         m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
@@ -386,8 +398,10 @@ public class pubbotbanc extends PubBotModule {
         String ip = getInfo(info, "IP:");
         String mid = getInfo(info, "MachineId:");
 
-        if (confirms.containsKey(name))
-            confirms.remove(name);
+        synchronized(confirms) {
+            if (confirms.containsKey(name))
+                confirms.remove(name);
+        }
         
         if (name.length() > MAX_NAME_LENGTH) {
             Player p = m_botAction.getPlayer(name.substring(0, MAX_NAME_LENGTH).trim());
@@ -570,31 +584,35 @@ public class pubbotbanc extends PubBotModule {
                 } else if (current instanceof String)
                     m_botAction.sendUnfilteredPrivateMessage((String) current, "*einfo");
             }
-            HashSet<String> removes = new HashSet<String>();
-            synchronized (confirms) {
-                for (String name : confirms.keySet()) {
-                    if (name == null) {
-                        continue;
-                    } 
-                    Confirm conf = confirms.get(name);
-                    if (conf == null) {
-                        removes.add(name);
-                    } else if (conf.expired()) {
-                        removes.add(name);
-                        if (!conf.info)
-                            m_botAction
-                                    .ipcSendMessage(IPCPOLICE, "BANC:" + name
-                                            + ":" + conf.type.toString() + ":"
-                                            + conf.time, null,
-                                            m_botAction.getBotName());
-                        else
-                            m_botAction.ipcSendMessage(IPCPOLICE, "INFO:"
-                                    + name, null, m_botAction.getBotName());
+            try {
+                HashSet<String> removes = new HashSet<String>();
+                synchronized (confirms) {
+                    for (String name : confirms.keySet()) {
+                        if (name == null) {
+                            continue;
+                        } 
+                        Confirm conf = confirms.get(name);
+                        if (conf == null) {
+                            removes.add(name);
+                        } else if (conf.expired()) {
+                            removes.add(name);
+                            if (!conf.info)
+                                m_botAction
+                                        .ipcSendMessage(IPCPOLICE, "BANC:" + name
+                                                + ":" + conf.type.toString() + ":"
+                                                + conf.time, null,
+                                                m_botAction.getBotName());
+                            else
+                                m_botAction.ipcSendMessage(IPCPOLICE, "INFO:"
+                                        + name, null, m_botAction.getBotName());
+                        }
                     }
                 }
+                for (String name : removes)
+                    confirms.remove(name);
+            } catch (ConcurrentModificationException cme) {
+                Tools.printStackTrace(cme);
             }
-            for (String name : removes)
-                confirms.remove(name);
         }
     }
     
