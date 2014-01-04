@@ -1368,7 +1368,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 if( p != null ) {
 
                     String text;
-                    switch( r.nextInt(100) ) {
+                    switch( r.nextInt(110) ) {
                     case  0: text = " - Most Randomly Selected  : "; break;
                     case  1: text = " - Most Pubbux Owed        : "; break;
                     case  2: text = " - Most Extreme Politics   : "; break;
@@ -1469,6 +1469,16 @@ public class GameFlagTimeModule extends AbstractModule {
                     case 97: text = " - Possible Sysop Recruit  : "; break;
                     case 98: text = " - Most Time Avoiding Work : "; break;
                     case 99: text = " - TW's Greatest Asset     : "; break;
+                    case 100: text= " - Won't Leave a Residue   : "; break;
+                    case 101: text= " - Dropped from TWL        : "; break;
+                    case 102: text= " - Universal ignore.txt    : "; break;
+                    case 103: text= " - hax                     : "; break;
+                    case 104: text= " - Great Pair of Legs      : "; break;
+                    case 105: text= " - Spiritual Guide         : "; break;
+                    case 106: text= " - Closet Non-Conformist   : "; break;
+                    case 107: text= " - My New Rap Name         : "; break;
+                    case 108: text= " - Most Grandchildren      : "; break;
+                    case 109: text= " - Never Ever Pubs         : "; break;
                     default: text = " - Most Non-Conformist     : ";
                     }
                     int amt = r.nextInt(48) + 2;    // Extremely small, awkward amount to show it's only a joke
