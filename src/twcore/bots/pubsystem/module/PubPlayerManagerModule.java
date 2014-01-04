@@ -34,9 +34,11 @@ import twcore.core.util.Tools;
 
 public class PubPlayerManagerModule extends AbstractModule {
 
-    private int MSG_AT_FREQSIZE_DIFF = -1;  // Max # difference in size of freqs before
-                                                        //   bot requests players even frequencies.
-                                                        //   Value of -1 disables this feature.
+    private int MSG_AT_FREQSIZE_DIFF = -1;      // Max # difference in size of freqs before
+                                                //   bot requests players even frequencies.
+                                                //   Value of -1 disables this feature.
+    private int MIDROUND_FREQSIZE_DIFF = -1;    // As above, but for midround differences
+
     @SuppressWarnings("unused")
     private int KEEP_MVP_FREQSIZE_DIFF = 0;// Max # difference in size of freqs required
                                                         //   for a player to keep MVP/get bonus on switching.
@@ -773,8 +775,9 @@ public class PubPlayerManagerModule extends AbstractModule {
     /**
      * Checks for imbalance in frequencies, and requests the stacked freq to even it up
      * if there's a significant gap.
+     * @param midRoundCheck True if checking sizes mid-round (needs larger gap)
      */
-    public void checkFreqSizes() 
+    public void checkFreqSizes( boolean midRoundCheck ) 
     {
         if( MSG_AT_FREQSIZE_DIFF == -1)
             return;
@@ -784,7 +787,8 @@ public class PubPlayerManagerModule extends AbstractModule {
         if( diff == freqSizeInfo[0] )
             return;
         freqSizeInfo[0] = diff;
-        if( freqSizeInfo[0] >= MSG_AT_FREQSIZE_DIFF ) {
+        int neededDiff = (midRoundCheck ? MIDROUND_FREQSIZE_DIFF : MSG_AT_FREQSIZE_DIFF);
+        if( freqSizeInfo[0] >= neededDiff ) {
             voting = true;
             if( freq0 > freq1 ) {
                 m_botAction.sendOpposingTeamMessageByFrequency(0, "Teams are uneven: " + freq0 + "v" + freq1 + ". Need " + freqSizeInfo[0]/2 + " volunteers to switch to freq 1 and may do so by typing !switch to TW-PubSystem. As a reward you may receive " + NICEGUY_BOUNTY_AWARD + " pubbux!" );
@@ -795,6 +799,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             }
         }
     }
+
     
     /**
      * Handles the !switch command duirng voting for the checkFreqSizes
@@ -808,16 +813,16 @@ public class PubPlayerManagerModule extends AbstractModule {
             //Switches the players frequency
             if (freqSizeInfo[1] == 1) 
                 m_botAction.setFreq(playerID, 1);
-             else
-                 m_botAction.setFreq(playerID, 0);                   
+            else
+                m_botAction.setFreq(playerID, 0);                   
             
             //Checks if the player has recieved a reward in the last 10 minutes.
             if (pubPlayer.getLastSwitchReward() != -1) {
-            long diff = System.currentTimeMillis()-pubPlayer.getLastSwitchReward();
+                long diff = System.currentTimeMillis()-pubPlayer.getLastSwitchReward();
                 if (diff < 10 * Tools.TimeInMillis.MINUTE) {
-                        m_botAction.sendPrivateMessage(playerID,"You have been switched but you may only recieve one award every 10 minutes.");
-                        return;
-                        }
+                    m_botAction.sendPrivateMessage(playerID,"You have been switched but you may only recieve one award every 10 minutes.");
+                    return;
+                }
             }
             m_botAction.sendPrivateMessage(playerID,"Thank you for switching!  You have recieved " + NICEGUY_BOUNTY_AWARD + "$");
             addMoney(m_botAction.getPlayerName(playerID), NICEGUY_BOUNTY_AWARD);
@@ -1110,7 +1115,6 @@ public class PubPlayerManagerModule extends AbstractModule {
     
     @Override
     public void handleCommand(String sender, String command) {
-        // TODO Auto-generated method stub
         
     }
 
@@ -1167,7 +1171,6 @@ public class PubPlayerManagerModule extends AbstractModule {
 
     @Override
     public void start() {
-        // TODO Auto-generated method stub
         
     }
 
@@ -1186,6 +1189,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         NICEGUY_BOUNTY_AWARD =  Integer.valueOf(m_botAction.getBotSettings().getString("niceguy_bounty_award"));
         MAX_MID_SPAWN =  Integer.valueOf(m_botAction.getBotSettings().getString("max_mid_spawn"));
         MSG_AT_FREQSIZE_DIFF = Integer.valueOf(m_botAction.getBotSettings().getString("msg_at_freq_diff"));
+        MIDROUND_FREQSIZE_DIFF = Integer.valueOf(m_botAction.getBotSettings().getString("midround_freq_diff"));
         SHUFFLE_SIZE = Integer.valueOf(m_botAction.getBotSettings().getString("shuffle_size"));
 
     }
@@ -1193,7 +1197,6 @@ public class PubPlayerManagerModule extends AbstractModule {
 
     @Override
     public void stop() {
-        // TODO Auto-generated method stub
         
     }
     

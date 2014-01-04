@@ -76,7 +76,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
     private int flagMinutesRequired;                    // Flag minutes required to win
     private int freq0Score, freq1Score;                 // # rounds won
-    private int minShuffleRound = 3;                    // Minimum number of played rounds before shuffle vote can occur
+    //private int minShuffleRound = 3;                    // Minimum number of played rounds before shuffle vote can occur
     private boolean autoVote = false;                   // Automatically start shuffle vote if conditions are met
     //private boolean shuffleVote = false;              // True if player did !shufflevote (unused)
     private boolean votePeriod = false;                 // Time after round in which !shufflevote can be used
@@ -104,10 +104,13 @@ public class GameFlagTimeModule extends AbstractModule {
     private boolean strictFlagTimeMode = false;
     
     // Solo terr incentive: if player is only Terr on freq 0/1, provide a regular bonus
-    private boolean giveTerrBonus = true;       // True if terrs receive a money bonus
-    private final int terrBonusFrequency = 117; // How often terrs are given a bonus, in seconds
-    private final int terrBonusAmt = 100;       // Award amount
-    private final int terrBonusMinOnFreq = 3;   // Smallest # of players on freq to allow bonus    
+    // NOTE: Values are read from CFG, but these are there as a backup/guide.
+    private boolean giveTerrBonus = true;       // True if sole-terr-on-freq, non-LT terrs
+                                                // receive a money bonus.
+    private int terrBonusFrequency = 117; // How often terrs are given a bonus, in seconds
+    private int terrBonusAmt = 250;       // Award amount
+    private int terrBonusMinOnFreq = 3;   // Smallest # of players on freq to allow bonus
+    
 
     /* Added in and never used?
     private int moneyRoundWin = 0;
@@ -137,6 +140,18 @@ public class GameFlagTimeModule extends AbstractModule {
 
         if (m_botAction.getBotSettings().getInt("flagtime_enabled") == 1)
             enabled = true;
+        
+        if (m_botAction.getBotSettings().getInt("terr_bonus_enabled") == 1)
+            giveTerrBonus = true;
+        
+        if (giveTerrBonus) {
+            int t = m_botAction.getBotSettings().getInt("terr_bonus_amt");
+            if (t>0) terrBonusAmt = t;
+            t = m_botAction.getBotSettings().getInt("terr_bonus_freq");
+            if (t>0) terrBonusFrequency = t;
+            t = m_botAction.getBotSettings().getInt("terr_bonus_min_players");
+            if (t>0) terrBonusMinOnFreq = t;
+        }        
     }
     
     /**
@@ -658,6 +673,8 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     public void cmd_shuffleRounds(String sender, String msg) {
+        m_botAction.sendSmartPrivateMessage(sender, "Shuffle is presently disabled.");
+        /*
         int r = 3;
         try {
             r = Integer.valueOf(msg.substring(msg.indexOf(" ") + 1));
@@ -671,7 +688,7 @@ public class GameFlagTimeModule extends AbstractModule {
         }
         minShuffleRound = r;
         m_botAction.sendSmartPrivateMessage(sender, "Minimum shuffle rounds set to " + r);
-
+        */
     }
 
     public void cmd_autoVote(String name) {
@@ -849,10 +866,10 @@ public class GameFlagTimeModule extends AbstractModule {
         m_botAction.scheduleTask(scoreDisplay, 1000);       // Do score display
         m_botAction.scheduleTask(scoreRemove, time - 1000); // do score removal
         m_botAction.showObject(2100);
-        if (autoVote && freq0Score + freq1Score >= minShuffleRound && Math.abs(freq0Score - freq1Score) > 0)
-            ;
-        context.getPlayerManager().checkFreqSizes();
-
+        // XXX: Shuffle is disabled
+        //if (autoVote && freq0Score + freq1Score >= minShuffleRound && Math.abs(freq0Score - freq1Score) > 0)
+        //    ;
+        context.getPlayerManager().checkFreqSizes(false);
     }
 
     /**
@@ -867,14 +884,14 @@ public class GameFlagTimeModule extends AbstractModule {
 
         String roundTitle = "";
         int intermission = INTERMISSION_SECS;
-        boolean endOfGame = false;
+        //boolean endOfGame = false;
         switch (roundNum) {
             case 1:
                 m_botAction.sendArenaMessage("[FLAG] Hold for " + flagMinutesRequired + " consecutive minute"
                         + (flagMinutesRequired == 1 ? "" : "s") + " to win round. (Best " + (MAX_FLAGTIME_ROUNDS + 1) / 2 + " of " + MAX_FLAGTIME_ROUNDS + ")");
                 roundTitle = "Next game";
                 intermission = INTERMISSION_GAME_SECS;
-                endOfGame = true;
+                //endOfGame = true;
                 break;
             case MAX_FLAGTIME_ROUNDS:
                 roundTitle = "Final Round";
@@ -2485,6 +2502,7 @@ public class GameFlagTimeModule extends AbstractModule {
          * 
          * @return Array of size 2, index 0 being the team leader and 1 being # flaggrabs
          */
+        @SuppressWarnings("unused")
         public String[] getTeamLeader(HashSet<String> MVPs) {
             String[] leaderInfo = { "", "", "" };
             HashSet<String> ties = new HashSet<String>();
@@ -2528,6 +2546,7 @@ public class GameFlagTimeModule extends AbstractModule {
          *            Name of player
          * @return Flag grabs
          */
+        @SuppressWarnings("unused")
         public int getFlagGrabs(String name) {
             Integer grabs = flagClaims.get(name);
             if (grabs == null)
@@ -2711,8 +2730,11 @@ public class GameFlagTimeModule extends AbstractModule {
             totalSecs++;
 
             // Display mode info at 5 min increments, unless we are near the end of a game
-            if ((totalSecs % (5 * 60)) == 0 && ((flagMinutesRequired * 60) - secondsHeld > 30))
+            if ((totalSecs % (5 * 60)) == 0 && ((flagMinutesRequired * 60) - secondsHeld > 30)) {
                 m_botAction.sendArenaMessage(getTimeInfo());
+                context.getPlayerManager().checkFreqSizes(true);
+            }
+
 
             if (isBeingClaimed) {
                 claimSecs++;
