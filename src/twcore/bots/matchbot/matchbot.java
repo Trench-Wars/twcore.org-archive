@@ -285,12 +285,12 @@ public class matchbot extends SubspaceBot {
                 if (ipc.getBot() != null && !bot.equalsIgnoreCase(ipc.getBot()) && !arena.equalsIgnoreCase(ipc.getBot()))
                     return;
                 if (ipc.getType() == Command.DIE && 
-                        (ipc.getBot() == null || 
+                        (ipc.getBot() == "all" || 
                             (ipc.getBot() != null && 
                             (bot.equalsIgnoreCase(ipc.getBot()) 
                                     || arena.equalsIgnoreCase(ipc.getBot()))))) {
                     if (!m_isLocked || (m_game == null && !m_isStartingUp)) {
-                        ba.sendChatMessage("Got IPC DIE command for bot/arena: " + ipc.getBot());
+                        ba.sendChatMessage("Got IPC DIE for bot/arena: " + ipc.getBot() + " (" + ipc.getCommand() + ")" );
                         TimerTask d = new TimerTask() {
                             @Override
                             public void run() {
