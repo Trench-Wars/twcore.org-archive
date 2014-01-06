@@ -237,7 +237,8 @@ public class twdhub extends SubspaceBot {
                     squad.endGame(arena.name);
                     arena.game = null;
                 }
-                checkDiv(ipc.getArena().substring(0, 4));
+                // May be causing issues. Don't need to remove at this point anyhow. Wait for standard spawn check.
+                //checkDiv(ipc.getArena().substring(0, 4));
             }
         } else if (!shutdown && event.getObject() instanceof IPCChallenge) {
             IPCChallenge ipc = (IPCChallenge) event.getObject();
