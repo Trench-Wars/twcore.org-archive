@@ -350,7 +350,7 @@ public class twdhub extends SubspaceBot {
         ba.sendSmartPrivateMessage(name, "Initiating shutdown of all matchbots.");
         ba.sendChatMessage(2, "Total TWD bot shutdown requested by: " + name);
         ba.sendChatMessage(3, "Total TWD bot shutdown requested by: " + name);
-        ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, null));
+        ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, "all", "Full shutdown"));
     }
     
     public void cmd_die(String name) {
@@ -586,11 +586,11 @@ public class twdhub extends SubspaceBot {
             if (arena.status != ArenaStatus.DYING) { 
                 debug("Arena remove: " + name);
                 arena.status = ArenaStatus.DYING;
-                ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, arena.bot, null));
+                ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, arena.bot, "DEAD ARENA on " + name));
             }
         } else if (oplist.isBotExact(name)){
             debug("Bot remove: " + name);
-            ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, name, null));
+            ba.ipcTransmit(IPC, new IPCCommand(Command.DIE, name, "REMOVE bot " + name));
         }
     }
     
