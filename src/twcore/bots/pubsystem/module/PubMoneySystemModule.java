@@ -2291,7 +2291,7 @@ public class PubMoneySystemModule extends AbstractModule {
             doCmdDonate(sender, command);
         } else if (command.startsWith("!coupon ")) {
             doCmdCoupon(sender, command.substring(8).trim());
-        } else if (command.equals("!lastkill")) {
+        } else if (command.startsWith("!lastkill") || command.equals("!lk")) {
             doCmdLastKill(sender);
         } else if (command.startsWith("!richest")) {
             doCmdRichest(sender, command);
@@ -2443,7 +2443,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 pubsystem.getHelpLine("!donate <name>:<$>  -- Donate money to a player."),
                 pubsystem.getHelpLine("!coupon <code>      -- Redeem your <code>."), 
                 pubsystem.getHelpLine("!richest            -- Top 5 richest players currently playing."),
-                pubsystem.getHelpLine("!lastkill           -- How much you earned for your last kill (+ algorithm)."), };
+                pubsystem.getHelpLine("!lastkill           -- How much you earned for your last kill (+ algorithm). (!lk)"), };
     }
 
     /**
