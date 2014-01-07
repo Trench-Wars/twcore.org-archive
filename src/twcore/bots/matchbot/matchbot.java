@@ -818,35 +818,8 @@ public class matchbot extends SubspaceBot {
             players = -1;
         }
 
-        // Check if the requested arena isn't outside of the range of valid arenas.
-        if(arena.length() == 5 && (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd")
-                || arena.startsWith("twsd") || arena.startsWith("twfd"))) {
-            int arenaNumber;
-            try {
-                arenaNumber = Integer.parseInt(arena.substring(4));
-            } catch (NumberFormatException e) {
-                m_botAction.sendSmartPrivateMessage(name, arena + " is an invalid arena name. Please try again.");
-                return;
-            }
-            
-            String type = arena.substring(0, 4);
-            
-            if(arenaNumber < 2) {
-                m_botAction.sendPrivateMessage(name, "The lowest available numbered arena is " + type + "2.");
-                return;
-            }
-            
-            if((type.equals("twbd") || type.equals("twdd") || type.equals("twsd")) && arenaNumber > 7) {
-                m_botAction.sendSmartPrivateMessage(name, "The highest available arena is " + type + "7.");
-                return;
-            } else if(type.equals("twjd") && arenaNumber > 10) {
-                m_botAction.sendSmartPrivateMessage(name, "The highest available arena is " + type + "10.");
-                return;
-            } else if(type.equals("twfd") && arenaNumber > 4) {
-                m_botAction.sendSmartPrivateMessage(name, "The highest available arena is " + type + "4.");
-                return;
-            } 
-        }
+        if(isArenaInvalid(name, arena))
+            return;
         
         //String toBot, EventType type, String arena, String name, String squad1, String squad2, int players
         m_botAction.ipcTransmit("MatchBot", new IPCChallenge(TWDHUB, EventType.CHALLENGE, arena, name, p.getSquadName().toLowerCase(), args[0].toLowerCase(), players));
@@ -869,6 +842,10 @@ public class matchbot extends SubspaceBot {
             arena = args[0].toLowerCase();
             players = -1;
         }
+        
+        if(isArenaInvalid(name, arena))
+            return;
+        
         //String toBot, EventType type, String arena, String name, String squad1, String squad2, int players
         m_botAction.ipcTransmit("MatchBot", new IPCChallenge(TWDHUB, EventType.TOPCHALLENGE, arena, name, p.getSquadName().toLowerCase(), null, players));
     }
@@ -890,8 +867,53 @@ public class matchbot extends SubspaceBot {
             arena = args[0].toLowerCase();
             players = -1;
         }
+        
+        if(isArenaInvalid(name, arena))
+            return;
+        
         //String toBot, EventType type, String arena, String name, String squad1, String squad2, int players
         m_botAction.ipcTransmit("MatchBot", new IPCChallenge(TWDHUB, EventType.ALLCHALLENGE, arena, name, p.getSquadName().toLowerCase(), null, players));
+    }
+    
+    /**
+     * Centralized check to see if the requested arena is a valid arena. I.e. it exists with the correct map.
+     * @param name Person who tries to have a match.
+     * @param arena Where the person wants to have the match.
+     * @return True if it's an invalid arena, false if it is a valid arena.
+     */
+    private boolean isArenaInvalid(String name, String arena) {
+        // Check if the requested arena isn't outside of the range of valid arenas.
+        if(arena.length() >= 5 && (arena.startsWith("twbd") || arena.startsWith("twdd") || arena.startsWith("twjd")
+                || arena.startsWith("twsd") || arena.startsWith("twfd"))) {
+            int arenaNumber;
+            try {
+                arenaNumber = Integer.parseInt(arena.substring(4));
+            } catch (NumberFormatException e) {
+                m_botAction.sendSmartPrivateMessage(name, arena + " is an invalid arena name. Please try again.");
+                return true;
+            }
+            
+            String type = arena.substring(0, 4);
+            
+            if(arenaNumber < 2) {
+                m_botAction.sendPrivateMessage(name, "The lowest available numbered arena is " + type + "2.");
+                return true;
+            }
+            
+            if((type.equals("twbd") || type.equals("twdd") || type.equals("twsd")) && arenaNumber > 7) {
+                m_botAction.sendSmartPrivateMessage(name, "The highest available arena is " + type + "7.");
+                return true;
+            } else if(type.equals("twjd") && arenaNumber > 10) {
+                m_botAction.sendSmartPrivateMessage(name, "The highest available arena is " + type + "10.");
+                return true;
+            } else if(type.equals("twfd") && arenaNumber > 4) {
+                m_botAction.sendSmartPrivateMessage(name, "The highest available arena is " + type + "4.");
+                return true;
+            } 
+        }
+        
+        // Passed all the checks.
+        return false;
     }
 
     //
