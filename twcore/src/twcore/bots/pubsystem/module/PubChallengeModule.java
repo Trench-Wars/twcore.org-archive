@@ -212,10 +212,13 @@ public class PubChallengeModule extends AbstractModule {
                 givePrize(name);
             }
 
-            if (duelers.get(name).type == Dueler.DUEL_CHALLENGER)
+            if (duelers.get(name).type == Dueler.DUEL_CHALLENGER) {
                 m_botAction.warpTo(name, area.warp1);
-            else
+                m_botAction.setShip(name, challenge.ship1);
+            } else {
                 m_botAction.warpTo(name, area.warp2);
+                m_botAction.setShip(name, challenge.ship2);
+            }
 
         }
     }
