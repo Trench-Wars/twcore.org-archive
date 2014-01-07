@@ -285,7 +285,7 @@ public class matchbot extends SubspaceBot {
                 if (ipc.getBot() != null && !bot.equalsIgnoreCase(ipc.getBot()) && !arena.equalsIgnoreCase(ipc.getBot()))
                     return;
                 if (ipc.getType() == Command.DIE && 
-                        (ipc.getBot() == "all" || 
+                        (ipc.getBot().equals("all") || 
                             (ipc.getBot() != null && 
                             (bot.equalsIgnoreCase(ipc.getBot()) 
                                     || arena.equalsIgnoreCase(ipc.getBot()))))) {
