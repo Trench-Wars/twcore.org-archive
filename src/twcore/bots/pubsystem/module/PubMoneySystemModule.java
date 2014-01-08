@@ -2815,23 +2815,23 @@ public class PubMoneySystemModule extends AbstractModule {
      */
     @SuppressWarnings("unused")
     private void itemCommandFireworks(String sender, String params) {
-        m_botAction.sendArenaMessage(".-=( IT'S A CELEBRATION, SNITCHES )=-.  The Grand Mighty " + sender.toUpperCase() + " has ordered a fireworks display, to commence forthwith!!", Tools.Sound.CROWD_OOO);
+        m_botAction.sendArenaMessage(".-=( IT'S A CELEBRATION, SNITCHES )=-.  The Grand Royale " + sender.toUpperCase() + " has ordered a fireworks display, to commence forthwith!!", Tools.Sound.CROWD_OOO);
         final TimerTask displayFireworks = new TimerTask() {
             int iterations = 0;
             Random r = new Random();
             public void run() {
-                while (iterations < 100) {
+                if (iterations >= 100)
+                    try {
+                        this.cancel();
+                    } catch(Exception e) {}
+                else {
                     iterations++;
                     // TODO: Get better obj#s for fireworks
                     m_botAction.showObject((r.nextInt(8) + 1));
-                    
-                    try {
-                        Thread.sleep(150);
-                    } catch (InterruptedException e) {}
                 }
             }
         };
-        m_botAction.scheduleTask(displayFireworks, 3000);
+        m_botAction.scheduleTaskAtFixedRate(displayFireworks, 2000, 150);
     }
     
     /**
