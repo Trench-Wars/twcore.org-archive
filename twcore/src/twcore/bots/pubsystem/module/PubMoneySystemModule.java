@@ -2818,7 +2818,7 @@ public class PubMoneySystemModule extends AbstractModule {
         m_botAction.sendArenaMessage(".-=( IT'S A CELEBRATION, SNITCHES )=-.  The Grand Mighty " + sender.toUpperCase() + " has ordered a fireworks display, to commence forthwith!!", Tools.Sound.CROWD_OOO);
         final TimerTask displayFireworks = new TimerTask() {
             int iterations = 0;
-            Random r;
+            Random r = new Random();
             public void run() {
                 while (iterations < 100) {
                     iterations++;
