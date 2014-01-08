@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.Random;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
@@ -279,8 +280,7 @@ public class PubMoneySystemModule extends AbstractModule {
                             m_botAction.sendSmartPrivateMessage(playerName, Tools.shipName(p.getShipType()) + " can only !buy in safe.");
                             return;
                         }                        
-                    }
-                    
+                    }                    
                 }
                 
                 // Special case of the above. Is the player on a LT, while outside a safe and LTs being restricted to only be able to buy in a safe.
@@ -2802,7 +2802,38 @@ public class PubMoneySystemModule extends AbstractModule {
         };
         m_botAction.scheduleTask(timer, 5500);
     }
-
+    
+    /**
+     * Executes the special shop item Fireworks.
+     * <p>
+     * This special command displays fireworks to all players.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the Fireworks
+     * @param params Currently unused
+     */
+    @SuppressWarnings("unused")
+    private void itemCommandFireworks(String sender, String params) {
+        m_botAction.sendArenaMessage(".-=( IT'S A CELEBRATION, SNITCHES )=-.  The Grand Mighty " + sender.toUpperCase() + " has ordered a fireworks display, to commence forthwith!!", Tools.Sound.CROWD_OOO);
+        final TimerTask displayFireworks = new TimerTask() {
+            int iterations = 0;
+            Random r;
+            public void run() {
+                while (iterations < 100) {
+                    iterations++;
+                    // TODO: Get better obj#s for fireworks
+                    m_botAction.showObject((r.nextInt(8) + 1));
+                    
+                    try {
+                        Thread.sleep(150);
+                    } catch (InterruptedException e) {}
+                }
+            }
+        };
+        m_botAction.scheduleTask(displayFireworks, 3000);
+    }
+    
     /**
      * This class is used by the {@link PubMoneySystemModule#itemCommandNukeBase(String, String) NukeBase} command.
      * It's main purpose is to temporary store the location of a group of players, warp these players to safety
