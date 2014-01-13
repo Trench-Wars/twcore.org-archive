@@ -144,11 +144,13 @@ public class PubChallengeModule extends AbstractModule {
                 if (event.getShipType() != challenge.ship1) {
                     dueler.lastShipChange = 1;
                     m_botAction.setShip(name, challenge.ship1);
+                    givePrize(name);
                 }
             } else if( challenge.getChallenged().equals(name) ) {                
                 if (event.getShipType() != challenge.ship2) {
                     dueler.lastShipChange = 1;
                     m_botAction.setShip(name, challenge.ship2);
+                    givePrize(name);
                 }
             } 
         }
@@ -209,15 +211,16 @@ public class PubChallengeModule extends AbstractModule {
                 l.cancelLagout();
                 m_botAction.cancelTask(l);
                 m_botAction.sendSmartPrivateMessage(name, "You have returned from lagout.");
-                givePrize(name);
             }
 
             if (duelers.get(name).type == Dueler.DUEL_CHALLENGER) {
                 m_botAction.warpTo(name, area.warp1);
                 m_botAction.setShip(name, challenge.ship1);
+                givePrize(name);
             } else {
                 m_botAction.warpTo(name, area.warp2);
                 m_botAction.setShip(name, challenge.ship2);
+                givePrize(name);
             }
 
         }
