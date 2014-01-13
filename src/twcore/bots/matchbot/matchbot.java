@@ -815,7 +815,13 @@ public class matchbot extends SubspaceBot {
             arena = args[2].toLowerCase();
         } else {
             arena = args[1].toLowerCase();
-            players = -1;
+            players = m_rules.getInt("minplayers");
+        }
+        
+        if (players < m_rules.getInt("minplayers") || players > m_rules.getInt("players")) {
+            m_botAction.sendSmartPrivateMessage(name, "Minimum # of players is " + m_rules.getInt("minplayers") + " and maximum is "
+                    + m_rules.getInt("players") + ".");
+            return;
         }
 
         if(isArenaInvalid(name, arena))
