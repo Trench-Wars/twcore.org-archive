@@ -1137,9 +1137,11 @@ public class PubMoneySystemModule extends AbstractModule {
             return;
         }
         
-        PubPlayer pp = playerManager.getPlayer(sender, true);
-        if (pp == null )
+        PubPlayer pp = playerManager.getPlayer(sender, false);
+        if (pp == null ) {
+            m_botAction.sendPrivateMessage(sender, "Can't locate you. Try entering pub.");
             return;
+        }
         
         if (pp.getMoney() < bet) {
             m_botAction.sendSmartPrivateMessage(sender, "You don't have $" + bet + " to bet.");
@@ -1231,7 +1233,7 @@ public class PubMoneySystemModule extends AbstractModule {
         if (winFactor > 0) {
             if (winFactor > 1) {
                 m_botAction.sendPrivateMessage(name, "WIN!  " + winMsg + "  WIN!" );
-                m_botAction.sendPrivateMessage(name, "You have just won $" + (bet * winFactor) + "!  " + winMsg );
+                m_botAction.sendPrivateMessage(name, "You have just won $" + (bet * winFactor) + "!" );
                 pp.addMoney( (bet * winFactor) - bet );
             } else {
                 m_botAction.sendPrivateMessage(name, "A Terr has ported you to safety; you keep your bet." );
