@@ -1125,15 +1125,37 @@ public class PubMoneySystemModule extends AbstractModule {
      */
     private void doCmdFruit(String sender, String command) {
         int bet = 0;
-        try {
-            bet = Integer.parseInt(command);
-        } catch(Exception e) {
-            m_botAction.sendPrivateMessage(sender, "Provide a # to use the fruit machine (between 10 and 1000). E.g., !fruit 50");
+        int iterations = 1;
+        
+        if (command.contains(":")) {
+            String[] parsed = command.split(":");
+            if (parsed.length != 2) {
+                m_botAction.sendPrivateMessage(sender, "Format:  !fruit 10:5  (Bet 10 x5 times) or !fruit 50  (Bet 50)");
+                return;                
+            }
+            try {
+                bet = Integer.parseInt(parsed[0]);
+                iterations = Integer.parseInt(parsed[1]);
+            } catch(Exception e) {
+                m_botAction.sendPrivateMessage(sender, "Format:  !fruit 10:5  (Bet 10 x5 times) or !fruit 50  (Bet 50)");
+                return;
+            }
+        } else {        
+            try {
+                bet = Integer.parseInt(command);
+            } catch(Exception e) {
+                m_botAction.sendPrivateMessage(sender, "Provide a # to use the fruit machine (between 10 and 1000). E.g., !fruit 50, or !fruit 50:5 to play 5 times for 50.");
+                return;
+            }
+        }
+        
+        if (bet < 10 || bet > 100) {
+            m_botAction.sendPrivateMessage(sender, "Provide an amount between 10 and 100. (To bet larger amounts, use !fruit amt:times, e.g., !fruit 100:10 to bet 100 for 10 total pulls of the fruit machine)");
             return;
         }
         
-        if (bet < 10 || bet > 1000) {
-            m_botAction.sendPrivateMessage(sender, "Provide an amount between 10 and 1000.");
+        if (iterations > 10 || iterations < 1) {
+            m_botAction.sendPrivateMessage(sender, "Bot only accepts 10 bets at a time maximum (and, of course, 1 minimum).");
             return;
         }
         
@@ -1143,103 +1165,105 @@ public class PubMoneySystemModule extends AbstractModule {
             return;
         }
         
-        if (pp.getMoney() < bet) {
+        if (pp.getMoney() < (bet * iterations)) {
             m_botAction.sendSmartPrivateMessage(sender, "You don't have $" + bet + " to bet.");
             return;
         }
         
-        Random r = new Random();
-        int[] slots = new int[3];
-        for (int i=0; i<3; i++)
-            slots[i] = r.nextInt(9);
-        int winFactor = 0;
-        String winMsg = "";
-        
-        if (slots[0] == slots[1] && slots[1] == slots[2]) {
-            switch (slots[0]) {
-            case 0:
-                winFactor = 25;
-                winMsg = "YOU'RE BEING WATCHED JACKPOT!";
-                break;
-            case 1:
-                winFactor = 100;
-                winMsg = "> WARBIRD JACKPOT! <";
-                break;
-            case 2:
-                winFactor = 500;
-                winMsg = ">>>> !!! JAVELIN JACKPOT !!! <<<";
-                break;
-            case 3:
-                winFactor = 200;
-                winMsg = ">> SPIDER JACKPOT!! <<";
-                break;
-            case 4:
-                winFactor = 1000;
-                winMsg = ">>>>>>> !!!! OMGOMGOMG .. YES! LEVIATHAN JACKPOT !!!! <<<<<<";
-                break;
-            case 5:
-                winFactor = 300;
-                winMsg = ">>> !!!TERRIER JACKPOT!!! <<<";
-                break;
-            case 6:
-                winFactor = 50;
-                winMsg = "WEASEL JACKPOT!!";
-                break;
-            case 7:
-                winFactor = 150;
-                winMsg = ">> LANCASTER JACKPOT!! <<";
-                break;
-            case 8:
-                winFactor = 75;
-                winMsg = "SHARK JACKPOT!";
-                break;
-            }
-        } else {
-            int[] hits = new int[9];
-            for (int i=0; i<9; i++) {
-                if (slots[0] == i || slots[1] == i || slots[2] == i)
-                    hits[i]++;
-            }
-            
-            if (hits[1] + hits[3] + hits[7] == 3) {
-                winFactor = 20;
-                winMsg = "All Fighter Matchup!";                
-            } else if (hits[3] + hits[7] == 3) {
-                winFactor = 10;
-                winMsg = "Basefighter Matchup!";
-            } else if (hits[5] == 1 && hits[3] == 1 && hits[8] == 1) {
-                winFactor = 40;
-                winMsg = "Basing Team Matchup!";
-            } else if (hits[5] == 1 && hits[7] == 1 && hits[8] == 1) {
-                winFactor = 25;
-                winMsg = "Alt. Basing Matchup!";
-            } else if (hits[4] == 2 && hits[5] == 1 ) {
-                winFactor = 15;
-                winMsg = "Double LeviTerr Matchup!";
-            } else if (hits[4] == 1 && hits[5] >= 1 ) {
-                winFactor = 5;
-                winMsg = "LeviTerr Matchup!";
-            } else if (hits[5] >= 1) {
-                winFactor = 1;
-                winMsg = "Portal! (no $ lost)";
-            }
-        }
-        
-        m_botAction.sendPrivateMessage(sender,
-                "[" + Tools.centerString( Tools.shipNameSlang(slots[0]), 8 ).toUpperCase() + "]   " +
-                "[" + Tools.centerString( Tools.shipNameSlang(slots[1]), 8 ).toUpperCase() + "]   " +
-                "[" + Tools.centerString( Tools.shipNameSlang(slots[2]), 8 ).toUpperCase() + "]" +
-                (winFactor == 0 ? "   (no win)" : ""));
-        if (winFactor > 0) {
-            if (winFactor > 1) {
-                m_botAction.sendPrivateMessage(sender, "WIN!  " + winMsg + "  WIN!" );
-                m_botAction.sendPrivateMessage(sender, "You have just won $" + (bet * winFactor) + "!" );
-                pp.addMoney( (bet * winFactor) - bet );
+        for (int j=0; j<iterations; j++) {
+            Random r = new Random();
+            int[] slots = new int[3];
+            for (int i=0; i<3; i++)
+                slots[i] = r.nextInt(9);
+            int winFactor = 0;
+            String winMsg = "";
+
+            if (slots[0] == slots[1] && slots[1] == slots[2]) {
+                switch (slots[0]) {
+                case 0:
+                    winFactor = 15;
+                    winMsg = "YOU'RE BEING WATCHED JACKPOT!";
+                    break;
+                case 1:
+                    winFactor = 75;
+                    winMsg = "> WARBIRD JACKPOT! <";
+                    break;
+                case 2:
+                    winFactor = 250;
+                    winMsg = ">>>> !!! JAVELIN JACKPOT !!! <<<";
+                    break;
+                case 3:
+                    winFactor = 150;
+                    winMsg = ">> SPIDER JACKPOT!! <<";
+                    break;
+                case 4:
+                    winFactor = 500;
+                    winMsg = ">>>>>>> !!!! OMGOMGOMG .. YES! LEVIATHAN JACKPOT !!!! <<<<<<";
+                    break;
+                case 5:
+                    winFactor = 200;
+                    winMsg = ">>> !!!TERRIER JACKPOT!!! <<<";
+                    break;
+                case 6:
+                    winFactor = 25;
+                    winMsg = "WEASEL JACKPOT!!";
+                    break;
+                case 7:
+                    winFactor = 100;
+                    winMsg = ">> LANCASTER JACKPOT!! <<";
+                    break;
+                case 8:
+                    winFactor = 50;
+                    winMsg = "SHARK JACKPOT!";
+                    break;
+                }
             } else {
-                m_botAction.sendPrivateMessage(sender, "A Terr has ported you to safety; you keep your bet." );
+                int[] hits = new int[9];
+                for (int i=0; i<9; i++) {
+                    if (slots[0] == i || slots[1] == i || slots[2] == i)
+                        hits[i]++;
+                }
+
+                if (hits[1] + hits[3] + hits[7] == 3) {
+                    winFactor = 12;
+                    winMsg = "All Fighter Matchup!";                
+                } else if (hits[3] + hits[7] == 3) {
+                    winFactor = 8;
+                    winMsg = "Basefighter Matchup!";
+                } else if (hits[5] == 1 && hits[3] == 1 && hits[8] == 1) {
+                    winFactor = 20;
+                    winMsg = "Basing Team Matchup!";
+                } else if (hits[5] == 1 && hits[7] == 1 && hits[8] == 1) {
+                    winFactor = 15;
+                    winMsg = "Alt. Basing Matchup!";
+                } else if (hits[4] == 2 && hits[5] == 1 ) {
+                    winFactor = 10;
+                    winMsg = "Double LeviTerr Matchup!";
+                } else if (hits[4] == 1 && hits[5] >= 1 ) {
+                    winFactor = 3;
+                    winMsg = "LeviTerr Matchup!";
+                } else if (hits[5] >= 1) {
+                    winFactor = 1;
+                    winMsg = "Portal! (no $ lost)";
+                }
             }
-        } else {
-            pp.removeMoney( bet );
+
+            m_botAction.sendPrivateMessage(sender,
+                    "[" + Tools.centerString( Tools.shipNameSlang(slots[0]), 8 ).toUpperCase() + "]   " +
+                    "[" + Tools.centerString( Tools.shipNameSlang(slots[1]), 8 ).toUpperCase() + "]   " +
+                    "[" + Tools.centerString( Tools.shipNameSlang(slots[2]), 8 ).toUpperCase() + "]" +
+                    (winFactor == 0 ? "   (no win)" : ""));
+            if (winFactor > 0) {
+                if (winFactor > 1) {
+                    m_botAction.sendPrivateMessage(sender, "WIN!  " + winMsg + "  WIN!" );
+                    m_botAction.sendPrivateMessage(sender, "You have just won $" + (bet * winFactor) + "!" );
+                    pp.addMoney( (bet * winFactor) - bet );
+                } else {
+                    m_botAction.sendPrivateMessage(sender, "A Terr has ported you to safety; you keep your bet." );
+                }
+            } else {
+                pp.removeMoney( bet );
+            }
         }
     }
 
@@ -1254,18 +1278,18 @@ public class PubMoneySystemModule extends AbstractModule {
         String[] msg = {
                 "       TRENCH WARS Fruit Machine: Revenge of the Levi",
                 "[PAYOUT TABLE]  - Given as a multiplier of amount bet",
-                "3 SPECTATORS ... x25           3 SPIDERS    ... x200",
-                "3 WEASELS    ... x50           3 TERRIERS   ... x300",
-                "3 SHARKS     ... x75           3 JAVELINS   ... x500",
-                "3 WARBIRDS   ... x100          3 LEVIATHANS ... x1000",
-                "3 LANCS      ... x150            :)         ...  ^^^",
+                "3 SPECTATORS ... x15           3 SPIDERS    ... x150",
+                "3 WEASELS    ... x25           3 TERRIERS   ... x200",
+                "3 SHARKS     ... x50           3 JAVELINS   ... x250",
+                "3 WARBIRDS   ... x75           3 LEVIATHANS ... x500",
+                "3 LANCS      ... x100            :)         ...  ^^^",
                 "[OTHER PAYOUTS]",
-                "Basing Team (Terr, Shark, Spider)           ... x40",
-                "Alternate Basing Team (Terr, Shark, Lanc)   ... x25",
-                "All Fighter (WB, Lanc, Spider)              ... x20",
-                "Base Fighter (any 3 Lancs or Spiders)       ... x10",
-                "Double LeviTerr (Terr, 2 Levis)             ... x15",
-                "LeviTerr (Terr, Levi)                       ... x5",
+                "Basing Team (Terr, Shark, Spider)           ... x20",
+                "Alternate Basing Team (Terr, Shark, Lanc)   ... x15",
+                "All Fighter (WB, Lanc, Spider)              ... x12",
+                "Double LeviTerr (Terr, 2 Levis)             ... x10",
+                "Base Fighter (any 3 Lancs or Spiders)       ... x8",
+                "LeviTerr (Terr, Levi)                       ... x3",
                 "Portal (Terr)                       ... FREE PLAY",
         };
         m_botAction.privateMessageSpam(sender, msg);
@@ -2604,7 +2628,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 pubsystem.getHelpLine("!coupon <code>      -- Redeem your <code>."), 
                 pubsystem.getHelpLine("!richest            -- Top 5 richest players currently playing."),
                 pubsystem.getHelpLine("!lastkill           -- How much you earned for your last kill (+ algorithm). (!lk)"),
-                pubsystem.getHelpLine("!fruit <amount>     -- Play the slot machine/fruit machine for <amount>."),
+                pubsystem.getHelpLine("!fruit <$>[:#]      -- Play the slot machine for <$>, optionally # times. (!fruit 10:5)"),
                 pubsystem.getHelpLine("!fruitinfo          -- Payout table for the fruit machine."), };
     }
 
