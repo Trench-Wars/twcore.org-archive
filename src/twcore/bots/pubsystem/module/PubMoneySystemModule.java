@@ -1174,7 +1174,7 @@ public class PubMoneySystemModule extends AbstractModule {
             Random r = new Random();
             int[] slots = new int[3];
             for (int i=0; i<3; i++)
-                slots[i] = r.nextInt(9);
+                slots[i] = r.nextInt(10);
             int winFactor = 0;
             String winMsg = "";
 
@@ -1198,7 +1198,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     break;
                 case 4:
                     winFactor = 500;
-                    winMsg = ">>>>>>> !!!! OMGOMGOMG .. YES! LEVIATHAN JACKPOT !!!! <<<<<<";
+                    winMsg = ">>>>>>>>> !!!! OMGOMGOMG .. YES!! LEVIATHAN JACKPOT !!!!! <<<<<<<<";
                     break;
                 case 5:
                     winFactor = 200;
@@ -1215,6 +1215,10 @@ public class PubMoneySystemModule extends AbstractModule {
                 case 8:
                     winFactor = 50;
                     winMsg = "SHARK JACKPOT!";
+                    break;
+                case 9:
+                    winFactor = 400;
+                    winMsg = ">>>>>>> !!!! YEAHHHHHH!! NIGHWASP JACKPOT !!!! <<<<<<";
                     break;
                 }
             } else {
@@ -1243,28 +1247,59 @@ public class PubMoneySystemModule extends AbstractModule {
                     winFactor = 3;
                     winMsg = "LeviTerr Matchup!";
                 } else if (hits[5] >= 1) {
-                    winFactor = 1;
-                    winMsg = "Portal! (no $ lost)";
+                    // Each Terr has a 50% chance of giving a free play
+                    for (int k=0; k<hits[5]; k++)
+                        if (r.nextInt(2) == 0)
+                            winFactor = 1;
                 }
             }
 
-            m_botAction.sendPrivateMessage(sender,
-                    "[" + Tools.centerString( Tools.shipNameSlang(slots[0]), 8 ).toUpperCase() + "]   " +
-                    "[" + Tools.centerString( Tools.shipNameSlang(slots[1]), 8 ).toUpperCase() + "]   " +
-                    "[" + Tools.centerString( Tools.shipNameSlang(slots[2]), 8 ).toUpperCase() + "]" +
-                    (winFactor == 0 ? "   (no win)" : ""));
+            String rollmsg =
+                "[" + Tools.centerString( getShipNameSpecial(slots[0]), 8 ).toUpperCase() + "]   " +
+                "[" + Tools.centerString( getShipNameSpecial(slots[1]), 8 ).toUpperCase() + "]   " +
+                "[" + Tools.centerString( getShipNameSpecial(slots[2]), 8 ).toUpperCase() + "]   ";
+                                            
             if (winFactor > 0) {
                 if (winFactor > 1) {
-                    m_botAction.sendPrivateMessage(sender, "WIN!  " + winMsg + "  WIN!" );
-                    m_botAction.sendPrivateMessage(sender, "You have just won $" + (bet * winFactor) + "!" );
+                    rollmsg += "(WON $" + (bet * winFactor) + ")";
+                    m_botAction.sendPrivateMessage(sender, "WIN!  " + winMsg + "  WIN!", Tools.Sound.VICTORY_BELL );
                     pp.addMoney( (bet * winFactor) - bet );
                 } else {
-                    m_botAction.sendPrivateMessage(sender, "A Terr has ported you to safety; you keep your bet." );
+                    rollmsg += "(free play)";
+                    //m_botAction.sendPrivateMessage(sender, "A Terr has ported you to safety; you keep your bet." );
                 }
             } else {
+                rollmsg += "(no win)";
                 pp.removeMoney( bet );
             }
+            m_botAction.sendPrivateMessage(sender, rollmsg);
         }
+    }
+    
+    private String getShipNameSpecial( int shipNumber ) {
+        switch( shipNumber ){
+        case Tools.Ship.SPECTATOR:
+            return "Spec";
+        case Tools.Ship.WARBIRD:
+            return "WB";
+        case Tools.Ship.JAVELIN:
+            return "Jav";
+        case Tools.Ship.SPIDER:
+            return "Spid";
+        case Tools.Ship.LEVIATHAN:
+            return "Levi";
+        case Tools.Ship.TERRIER:
+            return "Terr";
+        case Tools.Ship.WEASEL:
+            return "X";
+        case Tools.Ship.LANCASTER:
+            return "Lanc";
+        case Tools.Ship.SHARK:
+            return "Shark";
+        case 9:
+            return "N'Wasp";
+        }
+        return "UFO";
     }
 
     /**
@@ -1276,13 +1311,13 @@ public class PubMoneySystemModule extends AbstractModule {
      */
     private void doCmdFruitInfo(String sender) {
         String[] msg = {
-                "       TRENCH WARS Fruit Machine: Revenge of the Levi",
-                "[PAYOUT TABLE]  - Given as a multiplier of amount bet",
+                "      TRENCH WARS Fruit Machine: Revenge of the Levi",
+                "[PAYOUT TABLE] - Given as a multiplier of amount bet",
                 "3 SPECTATORS ... x15           3 SPIDERS    ... x150",
                 "3 WEASELS    ... x25           3 TERRIERS   ... x200",
                 "3 SHARKS     ... x50           3 JAVELINS   ... x250",
-                "3 WARBIRDS   ... x75           3 LEVIATHANS ... x500",
-                "3 LANCS      ... x100            :)         ...  ^^^",
+                "3 WARBIRDS   ... x75           3 NIGHTWASPS ... x400",
+                "3 LANCS      ... x100          3 LEVIATHANS ... x500",
                 "[OTHER PAYOUTS]",
                 "Basing Team (Terr, Shark, Spider)           ... x20",
                 "Alternate Basing Team (Terr, Shark, Lanc)   ... x15",
@@ -1290,7 +1325,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 "Double LeviTerr (Terr, 2 Levis)             ... x10",
                 "Base Fighter (any 3 Lancs or Spiders)       ... x8",
                 "LeviTerr (Terr, Levi)                       ... x3",
-                "Portal (Terr)                       ... FREE PLAY",
+                "Portal (every Terr)   ... 50% CHANCE FOR FREE PLAY",
         };
         m_botAction.privateMessageSpam(sender, msg);
     }
