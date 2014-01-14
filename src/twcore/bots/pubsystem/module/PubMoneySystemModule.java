@@ -936,7 +936,7 @@ public class PubMoneySystemModule extends AbstractModule {
     }
 
     /**
-     * Handles the !bankrupt command. (Mod+)
+     * Handles the !bankrupt command. (Sysop+)
      * <p>
      * This removes all of the money from a player.
      * @param sender Person who sent the command.
@@ -1113,6 +1113,160 @@ public class PubMoneySystemModule extends AbstractModule {
             Entry<String, Integer> entry = it2.next();
             m_botAction.sendSmartPrivateMessage(sender, ++count + ". " + entry.getKey() + " with $" + entry.getValue());
         }
+    }
+    
+    /**
+     * Handles the !fruit command. (Anyone)
+     * <p>
+     * Pulls the handle of the one-armed bandit (aka fruit machine)
+     * in an ill-fated attempt to earn more money.
+     * @param sender Sender of the command.
+     * @param command Amount to throw away
+     */
+    private void doCmdFruit(String sender, String command) {
+        int bet = 0;
+        try {
+            bet = Integer.parseInt(command);
+        } catch(Exception e) {
+            m_botAction.sendPrivateMessage(sender, "Provide a # to use the fruit machine (between 10 and 1000). E.g., !fruit 50");
+            return;
+        }
+        
+        if (bet < 10 || bet > 1000) {
+            m_botAction.sendPrivateMessage(sender, "Provide an amount between 10 and 1000.");
+            return;
+        }
+        
+        PubPlayer pp = playerManager.getPlayer(sender, true);
+        if (pp == null )
+            return;
+        
+        if (pp.getMoney() < bet) {
+            m_botAction.sendSmartPrivateMessage(sender, "You don't have $" + bet + " to bet.");
+            return;
+        }
+        
+        Random r = new Random();
+        int[] slots = new int[3];
+        for (int i=0; i<3; i++)
+            slots[i] = r.nextInt(9);
+        int winFactor = 0;
+        String winMsg = "";
+        
+        if (slots[0] == slots[1] && slots[1] == slots[2]) {
+            switch (slots[0]) {
+            case 0:
+                winFactor = 25;
+                winMsg = "YOU'RE BEING WATCHED JACKPOT!";
+                break;
+            case 1:
+                winFactor = 100;
+                winMsg = "> WARBIRD JACKPOT! <";
+                break;
+            case 2:
+                winFactor = 500;
+                winMsg = ">>>> !!! JAVELIN JACKPOT !!! <<<";
+                break;
+            case 3:
+                winFactor = 200;
+                winMsg = ">> SPIDER JACKPOT!! <<";
+                break;
+            case 4:
+                winFactor = 1000;
+                winMsg = ">>>>>>> !!!! OMGOMGOMG .. YES! LEVIATHAN JACKPOT !!!! <<<<<<";
+                break;
+            case 5:
+                winFactor = 300;
+                winMsg = ">>> !!!TERRIER JACKPOT!!! <<<";
+                break;
+            case 6:
+                winFactor = 50;
+                winMsg = "WEASEL JACKPOT!!";
+                break;
+            case 7:
+                winFactor = 150;
+                winMsg = ">> LANCASTER JACKPOT!! <<";
+                break;
+            case 8:
+                winFactor = 75;
+                winMsg = "SHARK JACKPOT!";
+                break;
+            }
+        } else {
+            int[] hits = new int[9];
+            for (int i=0; i<9; i++) {
+                if (slots[0] == i || slots[1] == i || slots[2] == i)
+                    hits[i]++;
+            }
+            
+            if (hits[1] + hits[3] + hits[7] == 3) {
+                winFactor = 20;
+                winMsg = "All Fighter Matchup!";                
+            } else if (hits[3] + hits[7] == 3) {
+                winFactor = 10;
+                winMsg = "Basefighter Matchup!";
+            } else if (hits[5] == 1 && hits[3] == 1 && hits[8] == 1) {
+                winFactor = 40;
+                winMsg = "Basing Team Matchup!";
+            } else if (hits[5] == 1 && hits[7] == 1 && hits[8] == 1) {
+                winFactor = 25;
+                winMsg = "Alt. Basing Matchup!";
+            } else if (hits[4] == 2 && hits[5] == 1 ) {
+                winFactor = 15;
+                winMsg = "Double LeviTerr Matchup!";
+            } else if (hits[4] == 1 && hits[5] >= 1 ) {
+                winFactor = 5;
+                winMsg = "LeviTerr Matchup!";
+            } else if (hits[5] >= 1) {
+                winFactor = 1;
+                winMsg = "Portal! (no $ lost)";
+            }
+        }
+        
+        m_botAction.sendPrivateMessage(name,
+                "[" + Tools.centerString( Tools.shipNameSlang(slots[0]), 8 ).toUpperCase() + "]   " +
+                "[" + Tools.centerString( Tools.shipNameSlang(slots[1]), 8 ).toUpperCase() + "]   " +
+                "[" + Tools.centerString( Tools.shipNameSlang(slots[2]), 8 ).toUpperCase() + "]" +
+                (winFactor == 0 ? "   (no win)" : ""));
+        if (winFactor > 0) {
+            if (winFactor > 1) {
+                m_botAction.sendPrivateMessage(name, "WIN!  " + winMsg + "  WIN!" );
+                m_botAction.sendPrivateMessage(name, "You have just won $" + (bet * winFactor) + "!  " + winMsg );
+                pp.addMoney( (bet * winFactor) - bet );
+            } else {
+                m_botAction.sendPrivateMessage(name, "A Terr has ported you to safety; you keep your bet." );
+            }
+        } else {
+            pp.removeMoney( bet );
+        }
+    }
+
+    /**
+     * Handles the !fruitinfo command. (Anyone)
+     * <p>
+     * Shows information related to the fruit machine/slot machine.
+     * @param sender Sender of the command.
+     * @param command Amount to throw away
+     */
+    private void doCmdFruitInfo(String sender) {
+        String[] msg = {
+                "       TRENCH WARS Fruit Machine: Revenge of the Levi",
+                "[PAYOUT TABLE]  - Given as a multiplier of amount bet",
+                "3 SPECTATORS ... x25           3 SPIDERS    ... x200",
+                "3 WEASELS    ... x50           3 TERRIERS   ... x300",
+                "3 SHARKS     ... x75           3 JAVELINS   ... x500",
+                "3 WARBIRDS   ... x100          3 LEVIATHANS ... x1000",
+                "3 LANCS      ... x150            :)         ...  ^^^",
+                "[OTHER PAYOUTS]",
+                "Basing Team (Terr, Shark, Spider)           ... x40",
+                "Alternate Basing Team (Terr, Shark, Lanc)   ... x25",
+                "All Fighter (WB, Lanc, Spider)              ... x20",
+                "Base Fighter (any 3 Lancs or Spiders)       ... x10",
+                "Double LeviTerr (Terr, 2 Levis)             ... x15",
+                "LeviTerr (Terr, Levi)                       ... x5",
+                "Portal (Terr)                       ... FREE PLAY",
+        };
+        m_botAction.privateMessageSpam(sender, msg);
     }
 
     /**
@@ -2295,6 +2449,10 @@ public class PubMoneySystemModule extends AbstractModule {
             doCmdLastKill(sender);
         } else if (command.startsWith("!richest")) {
             doCmdRichest(sender, command);
+        } else if (command.startsWith("!fruit ")) {
+            doCmdFruit(sender, command.substring(6).trim());
+        } else if (command.startsWith("!fruitinfo")) {
+            doCmdFruitInfo(sender);
         } else if (command.startsWith("!coupon") || command.startsWith("!c")) {
 
             // Coupon System commands
@@ -2339,9 +2497,7 @@ public class PubMoneySystemModule extends AbstractModule {
      */
     public void handleModCommand(String sender, String command) {
 
-        if (command.startsWith("!bankrupt")) {
-            doCmdBankrupt(sender, command);
-        } else if (command.startsWith("!debugobj")) {
+        if (command.startsWith("!debugobj")) {
             doCmdDebugObj(sender, command);
         } else if (command.equals("!toggledonation")) {
             doCmdToggleDonation(sender);
@@ -2389,6 +2545,8 @@ public class PubMoneySystemModule extends AbstractModule {
             doCmdViewStoreCfg(sender);
         else if (command.startsWith("!edit "))
             doCmdEditCfg(sender, command);
+        else if (command.startsWith("!bankrupt"))
+            doCmdBankrupt(sender, command);
     }
 
     /**
@@ -2443,7 +2601,9 @@ public class PubMoneySystemModule extends AbstractModule {
                 pubsystem.getHelpLine("!donate <name>:<$>  -- Donate money to a player."),
                 pubsystem.getHelpLine("!coupon <code>      -- Redeem your <code>."), 
                 pubsystem.getHelpLine("!richest            -- Top 5 richest players currently playing."),
-                pubsystem.getHelpLine("!lastkill           -- How much you earned for your last kill (+ algorithm). (!lk)"), };
+                pubsystem.getHelpLine("!lastkill           -- How much you earned for your last kill (+ algorithm). (!lk)"),
+                pubsystem.getHelpLine("!fruit <amount>     -- Play the slot machine/fruit machine for <amount>."),
+                pubsystem.getHelpLine("!fruitinfo          -- Payout table for the fruit machine."), };
     }
 
     /**
