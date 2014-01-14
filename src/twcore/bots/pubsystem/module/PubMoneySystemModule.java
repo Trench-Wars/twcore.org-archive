@@ -1225,18 +1225,18 @@ public class PubMoneySystemModule extends AbstractModule {
             }
         }
         
-        m_botAction.sendPrivateMessage(name,
+        m_botAction.sendPrivateMessage(sender,
                 "[" + Tools.centerString( Tools.shipNameSlang(slots[0]), 8 ).toUpperCase() + "]   " +
                 "[" + Tools.centerString( Tools.shipNameSlang(slots[1]), 8 ).toUpperCase() + "]   " +
                 "[" + Tools.centerString( Tools.shipNameSlang(slots[2]), 8 ).toUpperCase() + "]" +
                 (winFactor == 0 ? "   (no win)" : ""));
         if (winFactor > 0) {
             if (winFactor > 1) {
-                m_botAction.sendPrivateMessage(name, "WIN!  " + winMsg + "  WIN!" );
-                m_botAction.sendPrivateMessage(name, "You have just won $" + (bet * winFactor) + "!" );
+                m_botAction.sendPrivateMessage(sender, "WIN!  " + winMsg + "  WIN!" );
+                m_botAction.sendPrivateMessage(sender, "You have just won $" + (bet * winFactor) + "!" );
                 pp.addMoney( (bet * winFactor) - bet );
             } else {
-                m_botAction.sendPrivateMessage(name, "A Terr has ported you to safety; you keep your bet." );
+                m_botAction.sendPrivateMessage(sender, "A Terr has ported you to safety; you keep your bet." );
             }
         } else {
             pp.removeMoney( bet );
