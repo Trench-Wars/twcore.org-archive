@@ -1181,67 +1181,68 @@ public class PubMoneySystemModule extends AbstractModule {
             if (slots[0] == slots[1] && slots[1] == slots[2]) {
                 switch (slots[0]) {
                 case 0:
-                    winFactor = 15;
+                    winFactor = 10;
                     winMsg = "YOU'RE BEING WATCHED JACKPOT!";
                     break;
                 case 1:
-                    winFactor = 75;
+                    winFactor = 30;
                     winMsg = "> WARBIRD JACKPOT! <";
                     break;
                 case 2:
-                    winFactor = 250;
+                    winFactor = 150;
                     winMsg = ">>>> !!! JAVELIN JACKPOT !!! <<<";
                     break;
                 case 3:
-                    winFactor = 150;
+                    winFactor = 75;
                     winMsg = ">> SPIDER JACKPOT!! <<";
                     break;
                 case 4:
-                    winFactor = 500;
+                    winFactor = 250;
                     winMsg = ">>>>>>>>> !!!! OMGOMGOMG .. YES!! LEVIATHAN JACKPOT !!!!! <<<<<<<<";
                     break;
                 case 5:
-                    winFactor = 200;
+                    winFactor = 100;
                     winMsg = ">>> !!!TERRIER JACKPOT!!! <<<";
                     break;
                 case 6:
-                    winFactor = 25;
+                    winFactor = 15;
                     winMsg = "WEASEL JACKPOT!!";
                     break;
                 case 7:
-                    winFactor = 100;
+                    winFactor = 50;
                     winMsg = ">> LANCASTER JACKPOT!! <<";
                     break;
                 case 8:
-                    winFactor = 50;
+                    winFactor = 20;
                     winMsg = "SHARK JACKPOT!";
                     break;
                 case 9:
-                    winFactor = 400;
+                    winFactor = 200;
                     winMsg = ">>>>>>> !!!! YEAHHHHHH!! NIGHWASP JACKPOT !!!! <<<<<<";
                     break;
                 }
             } else {
-                int[] hits = new int[9];
-                for (int i=0; i<9; i++) {
-                    if (slots[0] == i || slots[1] == i || slots[2] == i)
-                        hits[i]++;
+                int[] hits = new int[10];
+                for (int i=0; i<10; i++) {
+                    for (int y=0; y<3; y++)
+                        if (slots[y] == i)
+                            hits[i]++;
                 }
 
                 if (hits[1] + hits[3] + hits[7] == 3) {
-                    winFactor = 12;
+                    winFactor = 8;
                     winMsg = "All Fighter Matchup!";                
                 } else if (hits[3] + hits[7] == 3) {
-                    winFactor = 8;
+                    winFactor = 4;
                     winMsg = "Basefighter Matchup!";
                 } else if (hits[5] == 1 && hits[3] == 1 && hits[8] == 1) {
-                    winFactor = 20;
+                    winFactor = 12;
                     winMsg = "Basing Team Matchup!";
                 } else if (hits[5] == 1 && hits[7] == 1 && hits[8] == 1) {
-                    winFactor = 15;
+                    winFactor = 10;
                     winMsg = "Alt. Basing Matchup!";
                 } else if (hits[4] == 2 && hits[5] == 1 ) {
-                    winFactor = 10;
+                    winFactor = 5;
                     winMsg = "Double LeviTerr Matchup!";
                 } else if (hits[4] == 1 && hits[5] >= 1 ) {
                     winFactor = 3;
@@ -1261,8 +1262,10 @@ public class PubMoneySystemModule extends AbstractModule {
                                             
             if (winFactor > 0) {
                 if (winFactor > 1) {
-                    rollmsg += "(WON $" + (bet * winFactor) + ")";
-                    m_botAction.sendPrivateMessage(sender, "WIN!  " + winMsg + "  WIN!", Tools.Sound.VICTORY_BELL );
+                    rollmsg += " WON $" + (bet * winFactor);
+                    m_botAction.sendPrivateMessage(sender, 
+                            Tools.centerString( "WIN!  " + winMsg + "  WIN!", 60 ),
+                            Tools.Sound.VICTORY_BELL );
                     pp.addMoney( (bet * winFactor) - bet );
                 } else {
                     rollmsg += "(free play)";
@@ -1313,17 +1316,17 @@ public class PubMoneySystemModule extends AbstractModule {
         String[] msg = {
                 "      TRENCH WARS Fruit Machine: Revenge of the Levi",
                 "[PAYOUT TABLE] - Given as a multiplier of amount bet",
-                "3 SPECTATORS ... x15           3 SPIDERS    ... x150",
-                "3 WEASELS    ... x25           3 TERRIERS   ... x200",
-                "3 SHARKS     ... x50           3 JAVELINS   ... x250",
-                "3 WARBIRDS   ... x75           3 NIGHTWASPS ... x400",
-                "3 LANCS      ... x100          3 LEVIATHANS ... x500",
+                "3 SPECTATORS ... x10           3 SPIDERS    ... x75",
+                "3 WEASELS    ... x15           3 TERRIERS   ... x100",
+                "3 SHARKS     ... x20           3 JAVELINS   ... x150",
+                "3 WARBIRDS   ... x30           3 NIGHTWASPS ... x200",
+                "3 LANCS      ... x50           3 LEVIATHANS ... x250",
                 "[OTHER PAYOUTS]",
-                "Basing Team (Terr, Shark, Spider)           ... x20",
-                "Alternate Basing Team (Terr, Shark, Lanc)   ... x15",
-                "All Fighter (WB, Lanc, Spider)              ... x12",
-                "Double LeviTerr (Terr, 2 Levis)             ... x10",
-                "Base Fighter (any 3 Lancs or Spiders)       ... x8",
+                "Basing Team (Terr, Shark, Spider)           ... x15",
+                "Alternate Basing Team (Terr, Shark, Lanc)   ... x10",
+                "All Fighter (WB, Lanc, Spider)              ... x8",
+                "Double LeviTerr (Terr, 2 Levis)             ... x5",
+                "Base Fighter (any 3 Lancs or Spiders)       ... x4",
                 "LeviTerr (Terr, Levi)                       ... x3",
                 "Portal (every Terr)   ... 50% CHANCE FOR FREE PLAY",
         };
@@ -2492,7 +2495,7 @@ public class PubMoneySystemModule extends AbstractModule {
         if (command.startsWith("!items") || command.trim().equals("!i")) {
             doCmdItems(sender, false);
         } else if (command.trim().equals("!buy") || command.trim().equals("!b")) {
-            doCmdItems(sender, false);
+            doCmdItems(sender, true);
         } else if (command.trim().equals("!fullbuylist") || command.trim().equals("!fbl") 
                 || command.trim().equals("!fullitemlist") || command.trim().equals("!fil") ) {
             doCmdItems(sender, true);
