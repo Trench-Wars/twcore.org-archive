@@ -1126,6 +1126,7 @@ public class PubMoneySystemModule extends AbstractModule {
     private void doCmdFruit(String sender, String command) {
         int bet = 0;
         int iterations = 1;
+        int winnings = 0;
         
         if (command.contains(":")) {
             String[] parsed = command.split(":");
@@ -1250,7 +1251,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 } else if (hits[5] >= 1) {
                     // Each Terr has a 50% chance of giving a free play
                     for (int k=0; k<hits[5]; k++)
-                        if (r.nextInt(4) == 0)
+                        if (r.nextInt(3) == 0)
                             winFactor = 1;
                 }
             }
@@ -1268,17 +1269,19 @@ public class PubMoneySystemModule extends AbstractModule {
                     m_botAction.sendPrivateMessage(sender, 
                             Tools.centerString( "WIN!  " + winMsg + "  WIN!", 50 ),
                             Tools.Sound.VICTORY_BELL );
-                    pp.addMoney( (bet * winFactor) - bet );
+                    winnings += ((bet * winFactor) - bet);
                 } else {
                     rollmsg += "(free play)";
                     //m_botAction.sendPrivateMessage(sender, "A Terr has ported you to safety; you keep your bet." );
                 }
             } else {
                 rollmsg += "(no win)";
-                pp.removeMoney( bet );
+                winnings -= bet;
             }
             m_botAction.sendPrivateMessage(sender, rollmsg);
         }
+        pp.setMoney( pp.getMoney() + winnings );
+        
     }
     
     private String getShipNameSpecial( int shipNumber ) {
@@ -1330,7 +1333,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 "Double LeviTerr (Terr, 2 Levis)             ... x5",
                 "Base Fighter (any 3 Lancs or Spiders)       ... x3",
                 "LeviTerr (Terr, Levi)                       ... x2",
-                "Portal (every Terr)   ... 25% CHANCE FOR FREE PLAY",
+                "Portal (every Terr)   ... 33% CHANCE FOR FREE PLAY",
         };
         m_botAction.privateMessageSpam(sender, msg);
     }
