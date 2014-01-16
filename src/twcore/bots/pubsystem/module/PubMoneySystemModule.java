@@ -119,6 +119,7 @@ public class PubMoneySystemModule extends AbstractModule {
     private static final String MAP_NAME = "pubmap";
     
     PreparedStatement updateMoney;
+    private int[] fruitStats = {0,0};
 
     /** PubMoneySystemModule constructor */
     public PubMoneySystemModule(BotAction botAction, PubContext context) {
@@ -1150,8 +1151,8 @@ public class PubMoneySystemModule extends AbstractModule {
             }
         }
         
-        if (bet < 10 || bet > 100) {
-            m_botAction.sendPrivateMessage(sender, "Provide an amount between 10 and 100. (To bet larger amounts, use !fruit amt:times, e.g., !fruit 100:10 to bet 100 for 10 total pulls of the fruit machine)");
+        if (bet < 10 || bet > 500) {
+            m_botAction.sendPrivateMessage(sender, "Provide an amount between 10 and 500. (To bet larger amounts, use !fruit amt:times, e.g., !fruit 100:10 to bet 100 for 10 total pulls of the fruit machine)");
             return;
         }
         
@@ -1273,6 +1274,7 @@ public class PubMoneySystemModule extends AbstractModule {
                             Tools.centerString( "WIN!  " + winMsg + "  WIN!", 50 ),
                             Tools.Sound.VICTORY_BELL );
                     winnings += ((bet * winFactor) - bet);
+                    fruitStats[0] += bet;
                 } else {
                     rollmsg += "(free play)";
                     //m_botAction.sendPrivateMessage(sender, "A Terr has ported you to safety; you keep your bet." );
@@ -1280,6 +1282,7 @@ public class PubMoneySystemModule extends AbstractModule {
             } else {
                 rollmsg += "(no win)";
                 winnings -= bet;
+                fruitStats[1] += bet;
             }
             m_botAction.sendPrivateMessage(sender, rollmsg);
         }
@@ -2423,7 +2426,7 @@ public class PubMoneySystemModule extends AbstractModule {
                             pubPlayerKilled.resetShipItem();
                             m_botAction.setShip(killed.getPlayerName(), 1);
                             playersWithDurationItem.remove(pubPlayerKilled);
-                            m_botAction.sendSmartPrivateMessage(killed.getPlayerName(), "You lost your ship after " + duration.getDeaths() + " death(s).", 22);
+                            m_botAction.sendSmartPrivateMessage(killed.getPlayerName(), "You lost your item after " + duration.getDeaths() + " death(s).", 22);
                         }
                     };
                     m_botAction.scheduleTask(timer, 4300);
@@ -2549,6 +2552,8 @@ public class PubMoneySystemModule extends AbstractModule {
                     doCmdCouponEnable(sender, command.substring(command.indexOf(" ") + 1).trim());
                 } else if (command.startsWith("!coupondisable ") || command.startsWith("!cd ")) {
                     doCmdCouponDisable(sender, command.substring(command.indexOf(" ") + 1).trim());
+                } else if (command.startsWith("!fruitstats")) {
+                    m_botAction.sendSmartPrivateMessage( sender, "Players have ... Won: $" + fruitStats[0] + "  Lost: $" + fruitStats[1] + "  House Earnings: " + (fruitStats[1] - fruitStats[0]) );
                 }
             }
         }
