@@ -790,11 +790,13 @@ public class PubPlayerManagerModule extends AbstractModule {
         int neededDiff = (midRoundCheck ? MIDROUND_FREQSIZE_DIFF : MSG_AT_FREQSIZE_DIFF);
         if( freqSizeInfo[0] >= neededDiff ) {
             voting = true;
+            String msg = "TEAMS UNEVEN: " + freq0 + "v" + freq1 + ". Need " + freqSizeInfo[0]/2 + " volunteer" + (freqSizeInfo[0]/2 == 1 ? "" : "s") 
+                + " to switch freqs. Type :tw-p:!switch to accept. Reward: $" + NICEGUY_BOUNTY_AWARD + "!"; 
             if( freq0 > freq1 ) {
-                m_botAction.sendOpposingTeamMessageByFrequency(0, "Teams are uneven: " + freq0 + "v" + freq1 + ". Need " + freqSizeInfo[0]/2 + " volunteers to switch to freq 1 and may do so by typing !switch to TW-PubSystem. As a reward you may receive " + NICEGUY_BOUNTY_AWARD + " pubbux!" );
+                m_botAction.sendOpposingTeamMessageByFrequency(0, msg);
                 freqSizeInfo[1] = 1;
             } else {
-                m_botAction.sendOpposingTeamMessageByFrequency(1, "Teams are uneven: " + freq0 + "v" + freq1 + ". Need " + freqSizeInfo[0]/2 + " volunteers to switch to freq 0 and may do so by typing !switch to TW-PubSystem. As a reward you may receive " + NICEGUY_BOUNTY_AWARD + " pubbux!" );
+                m_botAction.sendOpposingTeamMessageByFrequency(1, msg);
                 freqSizeInfo[1] = 0;
             }
         }

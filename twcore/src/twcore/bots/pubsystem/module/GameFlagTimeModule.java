@@ -2729,10 +2729,13 @@ public class GameFlagTimeModule extends AbstractModule {
 
             totalSecs++;
 
-            // Display mode info at 5 min increments, unless we are near the end of a game
-            if ((totalSecs % (5 * 60)) == 0 && ((flagMinutesRequired * 60) - secondsHeld > 30)) {
-                m_botAction.sendArenaMessage(getTimeInfo());
-                context.getPlayerManager().checkFreqSizes(true);
+            // Display mode info at 5 min increments, unless we are near the end of a game;
+            //   also check for severe freq imbalance every minute
+            if ((flagMinutesRequired * 60) - secondsHeld > 30) {
+                if (totalSecs % (5 * 60) == 0) 
+                    m_botAction.sendArenaMessage(getTimeInfo());
+                if (totalSecs % 60 == 0)                 
+                    context.getPlayerManager().checkFreqSizes(true);
             }
 
 
