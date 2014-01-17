@@ -6214,6 +6214,7 @@ public class hockeybot extends SubspaceBot {
         public void run() {
             switch (currentState) {
                 case OFF:
+                    doKeepAlive();
                     break;
                 case WAITING_FOR_CAPS:
                     doWaitingForCaps();
@@ -6253,6 +6254,13 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
+         * Attempt to combat the "No data for X ms" messages.
+         */
+        private void doKeepAlive() {
+            m_botAction.getShip().move(8192, 8192);
+        }
+        
+        /**
          * Handles the state in which the captains are assigned.
          */
         private void doWaitingForCaps() {
@@ -6272,6 +6280,8 @@ public class hockeybot extends SubspaceBot {
             }
 
             checkIfEnoughCaps();
+            
+            doKeepAlive();
         }
 
         /**
