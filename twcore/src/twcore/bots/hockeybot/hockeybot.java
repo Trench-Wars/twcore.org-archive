@@ -53,6 +53,7 @@ public class hockeybot extends SubspaceBot {
     private boolean lockLastGame;
     private boolean isPenalty = false;
     private boolean reviewing = false;                      //This flag is set to true while the voting period is active on the final goa.
+    private boolean disableWelcome = false;                 // Makes the welcome message either disabled or enabled. (Needed for error prevention.)
     
     // Various lists
     private HockeyConfig config;                            //Game configuration
@@ -358,6 +359,8 @@ public class hockeybot extends SubspaceBot {
         if(currentState.equals(HockeyState.OFF)) {
             m_botAction.sendUnfilteredPublicMessage("?chat=" + config.getChats());  //Join all the chats
             start();
+        } else {
+            disableWelcome = false;
         }
     }
 
@@ -452,6 +455,10 @@ public class hockeybot extends SubspaceBot {
      */
     @Override
     public void handleEvent(PlayerEntered event) {
+        // We just re-entered the arena, ignore all player entry events.
+        if(disableWelcome)
+            return;
+        
         if (currentState != HockeyState.OFF) {
             String name;    //Name of the player that entered the zone
             int pID;        //ID of the player that entered the arena
@@ -3598,7 +3605,11 @@ public class hockeybot extends SubspaceBot {
             team0.timeout = maxTimeouts;
             team1.timeout = maxTimeouts;
             scoreOverlay.updateAll(null);
+            
+            // Next two lines of code is to refresh the timer on the C2SNoDataTimeOut. (Prevents the error message "No data for X ms")
+            disableWelcome = true;
             m_botAction.changeArena(config.getArena());
+            
             startFaceOff();
             return;
         }
