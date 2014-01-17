@@ -355,8 +355,10 @@ public class hockeybot extends SubspaceBot {
      */
     @Override
     public void handleEvent(ArenaJoined event) {
-        m_botAction.sendUnfilteredPublicMessage("?chat=" + config.getChats());  //Join all the chats
-        start();
+        if(currentState.equals(HockeyState.OFF)) {
+            m_botAction.sendUnfilteredPublicMessage("?chat=" + config.getChats());  //Join all the chats
+            start();
+        }
     }
 
     /**
@@ -3596,6 +3598,7 @@ public class hockeybot extends SubspaceBot {
             team0.timeout = maxTimeouts;
             team1.timeout = maxTimeouts;
             scoreOverlay.updateAll(null);
+            m_botAction.changeArena(config.getArena());
             startFaceOff();
             return;
         }
@@ -6214,7 +6217,6 @@ public class hockeybot extends SubspaceBot {
         public void run() {
             switch (currentState) {
                 case OFF:
-                    doKeepAlive();
                     break;
                 case WAITING_FOR_CAPS:
                     doWaitingForCaps();
@@ -6252,13 +6254,6 @@ public class hockeybot extends SubspaceBot {
                     break;
             }
         }
-
-        /**
-         * Attempt to combat the "No data for X ms" messages.
-         */
-        private void doKeepAlive() {
-            m_botAction.getShip().move(8192, 8192);
-        }
         
         /**
          * Handles the state in which the captains are assigned.
@@ -6280,8 +6275,6 @@ public class hockeybot extends SubspaceBot {
             }
 
             checkIfEnoughCaps();
-            
-            doKeepAlive();
         }
 
         /**
