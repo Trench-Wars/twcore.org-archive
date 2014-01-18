@@ -814,7 +814,7 @@ public class staffbot_banc extends Module {
             m_botAction.sendSmartPrivateMessage(stafferName, " ------ Latest bancs (last 2 weeks): ");
             sendBanCs(stafferName, name, limitBanCs);
             sendWarnings(stafferName, name, limitWarnings);
-            if (m_botAction.getOperatorList().isSmod(stafferName) || bancOp.containsKey(stafferName.toLowerCase()) || isTWDOp(stafferName)) {
+            if (m_botAction.getOperatorList().isModerator(stafferName) || bancOp.containsKey(stafferName.toLowerCase()) || isTWDOp(stafferName)) {
                 sendAltNicks(stafferName, name, limitBanCs, limitWarnings);
                 if (limitBanCs == 0 && limitWarnings == 0)
                     m_botAction.sendSmartPrivateMessage(stafferName, "You can see all the player's history too typing !search player:-1:-1");
