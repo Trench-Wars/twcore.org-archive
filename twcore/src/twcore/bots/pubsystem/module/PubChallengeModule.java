@@ -1558,7 +1558,7 @@ public class PubChallengeModule extends AbstractModule {
             if (command.equalsIgnoreCase("!betting"))
                 doToggleBets(sender);
             if (command.startsWith("!cancelchallenge"))
-                doCancelDuelCmd(sender, command.substring(17).trim());
+                doCancelDuelCmd(sender, command.substring(16).trim());
             else if (command.startsWith("!debugchallenge"))
                 doDebugCmd(sender);
             else if (command.startsWith("!sharkshrap"))
