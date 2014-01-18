@@ -1247,10 +1247,10 @@ public class PubMoneySystemModule extends AbstractModule {
                     winFactor = 6;
                     winMsg = "Bombing Run Matchup!";
                 } else if (hits[4] == 2 && hits[5] == 1 ) {
-                    winFactor = 2;
+                    winFactor = 3;
                     winMsg = "Double LeviTerr Matchup!";
                 } else if (hits[4] == 1 && hits[5] >= 1 ) {
-                    winFactor = 3;
+                    winFactor = 2;
                     winMsg = "LeviTerr Matchup!";
                 } else if (hits[5] >= 1) {
                     // Each Terr has a 50% chance of giving a free play
@@ -1274,7 +1274,7 @@ public class PubMoneySystemModule extends AbstractModule {
                             Tools.centerString( "WIN!  " + winMsg + "  WIN!", 50 ),
                             Tools.Sound.VICTORY_BELL );
                     winnings += ((bet * winFactor) - bet);
-                    fruitStats[0] += bet;
+                    fruitStats[0] += ((bet * winFactor) - bet);
                 } else {
                     rollmsg += "(free play)";
                     //m_botAction.sendPrivateMessage(sender, "A Terr has ported you to safety; you keep your bet." );
