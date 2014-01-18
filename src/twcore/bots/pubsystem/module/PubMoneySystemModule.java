@@ -2529,14 +2529,17 @@ public class PubMoneySystemModule extends AbstractModule {
             doCmdFruit(sender, command.substring(6).trim());
         } else if (command.startsWith("!fruitinfo")) {
             doCmdFruitInfo(sender);
-        } else if (command.startsWith("!coupon") || command.startsWith("!c")) {
+        }
+        
+        if (m_botAction.getOperatorList().isSmod(sender) || couponOperators.contains(sender.toLowerCase())) {
+
 
             // Coupon System commands
             boolean operator = couponOperators.contains(sender.toLowerCase());
             boolean smod = m_botAction.getOperatorList().isSmod(sender);
 
             // (Operator/SMOD only)
-            if (operator || smod) {
+            if (command.startsWith("!coupon") || command.startsWith("!c") ) {
 
                 if (command.startsWith("!couponcreate ") || command.startsWith("!cc ")) {
                     doCmdCouponCreate(sender, command.substring(command.indexOf(" ") + 1).trim());
@@ -2552,17 +2555,15 @@ public class PubMoneySystemModule extends AbstractModule {
                     doCmdCouponEnable(sender, command.substring(command.indexOf(" ") + 1).trim());
                 } else if (command.startsWith("!coupondisable ") || command.startsWith("!cd ")) {
                     doCmdCouponDisable(sender, command.substring(command.indexOf(" ") + 1).trim());
-                } else if (command.startsWith("!fruitstats")) {
-                    m_botAction.sendSmartPrivateMessage( sender, "Players have ... Won: $" + fruitStats[0] + "  Lost: $" + fruitStats[1] + "  House Earnings: " + (fruitStats[1] - fruitStats[0]) );
                 }
             }
-        }
-
-        if (m_botAction.getOperatorList().isSmod(sender) || couponOperators.contains(sender.toLowerCase())) {
+            
             if (command.startsWith("!award ")) {
                 doCmdAward(sender, command);
             } else if (command.equals("!pot")) {
                 m_botAction.sendSmartPrivateMessage(sender, "$" + getMoneyPot());
+            } else if (command.startsWith("!fruitstats")) {
+                m_botAction.sendSmartPrivateMessage( sender, "Players have ... Won: $" + fruitStats[0] + "  Lost: $" + fruitStats[1] + "  House Earnings: " + (fruitStats[1] - fruitStats[0]) );
             }
         }
     }
