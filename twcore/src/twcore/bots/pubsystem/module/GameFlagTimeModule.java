@@ -1540,8 +1540,8 @@ public class GameFlagTimeModule extends AbstractModule {
                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // ..
                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // ..
                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #22"); // burst
-                m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #24"); // thor
-                m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #26"); // brick
+                //m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #24"); // thor
+                //m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #26"); // brick
                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #27"); // rocket
                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #28"); // portal
 
@@ -1553,7 +1553,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // ..
                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // ..
                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #22"); // burst
-                m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #26"); // brick
+                //m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #26"); // brick
                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #27"); // rocket
                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #28"); // portal
 
@@ -1583,8 +1583,29 @@ public class GameFlagTimeModule extends AbstractModule {
                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #21"); // ..
                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #28"); // portal
 
-            } else
+            } else {
                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #15"); // multifire
+            }
+            
+            if (mins >= 30) {
+            	final int minsFireworks = mins;
+                final TimerTask displayFireworks = new TimerTask() {
+                    int iterations = 0;
+                    Random r = new Random();
+                    public void run() {
+                        if (iterations >= minsFireworks + 20)
+                            try {
+                                this.cancel();
+                            } catch(Exception e) {}
+                        else {
+                            iterations++;
+                            // TODO: Get better obj#s for fireworks
+                            m_botAction.showObject((r.nextInt(8) + 1));
+                        }
+                    }
+                };
+                m_botAction.scheduleTaskAtFixedRate(displayFireworks, 2000, 300);
+            }
 
         }
 
