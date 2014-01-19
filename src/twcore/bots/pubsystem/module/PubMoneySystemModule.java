@@ -1112,9 +1112,35 @@ public class PubMoneySystemModule extends AbstractModule {
         int count = 0;
         while (it2.hasNext() && count < 5) {
             Entry<String, Integer> entry = it2.next();
-            m_botAction.sendSmartPrivateMessage(sender, ++count + ". " + entry.getKey() + " with $" + entry.getValue());
+            m_botAction.sendSmartPrivateMessage(sender, ++count + ". "
+            		+ Tools.formatString( entry.getKey(), 25 )
+            		+ " ... " + Tools.rightString( ("$" + entry.getValue()), 20) );
         }
     }
+    
+    /**
+     * Handles the !richestall command. (Anyone)
+     * <p>
+     * Displays the five richest players, on or offline.
+     * @param sender Sender of the command.
+     * @param command The command, no parameters.
+     */
+    private void doCmdRichestAll(String sender, String command) {
+    	String query = "SELECT fcName, fnMoney FROM tblPlayerStats ORDER BY fnMoney DESC LIMIT 0, 10";
+    	try {
+    		ResultSet r = m_botAction.SQLQuery("pubstats", query);
+    		int count = 0;
+    		while (r.previous()) {
+                m_botAction.sendSmartPrivateMessage(sender, ++count + ". "
+                		+ Tools.formatString( r.getString("fcName"), 25 ) + " ... "
+                		+ Tools.rightString( ("$" + r.getInt("fnMoney") ), 20) );
+    		}
+    		m_botAction.SQLClose( r );
+    	} catch (Exception e) {
+            m_botAction.sendSmartPrivateMessage(sender, "Error while loading results. Please try again later.");    		
+    	}    	
+    }
+
     
     /**
      * Handles the !fruit command. (Anyone)
@@ -2525,6 +2551,8 @@ public class PubMoneySystemModule extends AbstractModule {
             doCmdLastKill(sender);
         } else if (command.startsWith("!richest")) {
             doCmdRichest(sender, command);
+        } else if (command.startsWith("!richestall")) {
+            doCmdRichestAll(sender, command);
         } else if (command.startsWith("!fruit ")) {
             doCmdFruit(sender, command.substring(6).trim());
         } else if (command.startsWith("!fruitinfo")) {
