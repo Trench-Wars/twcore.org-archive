@@ -2132,14 +2132,14 @@ class Challenge {
             return;
         if ( onChallenger ) {
             if ( ship1 == ship2 )
-                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + ". To match it, use: :tw-p:!beton " + challengedName + ":" + amount );
+                pcm_ref.m_botAction.sendArenaMessage( "[BET] $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + ". To match: :tw-p:!beton " + challengedName + ":" + amount );
             else
-                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + " vs " + Tools.shipNameSlang( ship2 ) + ". Match it: :tw-p:!beton " + challengedName + ":" + amount );
+                pcm_ref.m_botAction.sendArenaMessage( "[BET] $" + amount + " on " + challengerName + " in " + Tools.shipNameSlang( ship1 ) + " vs " + Tools.shipNameSlang( ship2 ) + ". To match: :tw-p:!beton " + challengedName + ":" + amount );
         } else {
             if ( ship1 == ship2 )
-                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + ". To match it, use: :tw-p:!beton " + challengerName + ":" + amount );
+                pcm_ref.m_botAction.sendArenaMessage( "[BET] $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + ". To match: :tw-p:!beton " + challengerName + ":" + amount );
             else
-                pcm_ref.m_botAction.sendArenaMessage( "[BET] " + bettor + " bet $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + " vs " + Tools.shipNameSlang( ship1 ) + ". Match it: :tw-p:!beton " + challengerName + ":" + amount );            
+                pcm_ref.m_botAction.sendArenaMessage( "[BET] $" + amount + " on " + challengedName + " in " + Tools.shipNameSlang( ship2 ) + " vs " + Tools.shipNameSlang( ship1 ) + ". To match: :tw-p:!beton " + challengerName + ":" + amount );            
         }
         pcm_ref.lastBetAdvert = System.currentTimeMillis();
     }
