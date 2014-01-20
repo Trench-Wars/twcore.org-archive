@@ -1130,7 +1130,7 @@ public class PubMoneySystemModule extends AbstractModule {
     	try {
     		ResultSet r = m_botAction.SQLQuery("pubstats", query);
     		int count = 0;
-    		while (r.previous()) {
+    		while (r.next()) {
                 m_botAction.sendSmartPrivateMessage(sender, ++count + ") "
                 		+ Tools.formatString( r.getString("fcName"), 20 ) + " ..."
                 		+ Tools.rightString( ("$" + r.getInt("fnMoney") ), 15 ) );
