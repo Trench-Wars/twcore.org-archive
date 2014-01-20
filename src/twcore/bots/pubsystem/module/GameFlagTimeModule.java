@@ -1587,13 +1587,12 @@ public class GameFlagTimeModule extends AbstractModule {
                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #15"); // multifire
             }
             
-            if (mins >= 30) {
-            	final int minsFireworks = mins;
+            if (mins >= 45) {
                 final TimerTask displayFireworks = new TimerTask() {
                     int iterations = 0;
                     Random r = new Random();
                     public void run() {
-                        if (iterations >= minsFireworks + 20)
+                        if (iterations >= 8)
                             try {
                                 this.cancel();
                             } catch(Exception e) {}
@@ -1604,7 +1603,7 @@ public class GameFlagTimeModule extends AbstractModule {
                         }
                     }
                 };
-                m_botAction.scheduleTaskAtFixedRate(displayFireworks, 2000, 300);
+                m_botAction.scheduleTaskAtFixedRate(displayFireworks, 2000, 800);
             }
 
         }
@@ -2441,7 +2440,7 @@ public class GameFlagTimeModule extends AbstractModule {
             Player p, p2;
             int[] freqsize = {0,0};
             boolean[] foundTerr = {false,false};
-            boolean lt = false;
+            boolean lt = false, outside = false;
             Player[] terr = {null,null};
             while (i.hasNext()) {
                 p = i.next();
@@ -2456,7 +2455,12 @@ public class GameFlagTimeModule extends AbstractModule {
                                     break;
                                 }
                             }
-                            if( !lt ) {
+                            Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
+                            if (loc != null)
+                                if (loc.equals(Location.SAFE) || loc.equals(Location.SPACE) || loc.equals(Location.UNKNOWN) )
+                                	outside = true;
+
+                            if( !lt && !outside ) {
                                 if( !foundTerr[0] ) {
                                     terr[0] = p;
                                     foundTerr[0] = true;
@@ -2476,7 +2480,12 @@ public class GameFlagTimeModule extends AbstractModule {
                                     break;
                                 }
                             }
-                            if( !lt ) {
+                            Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
+                            if (loc != null)
+                                if (loc.equals(Location.SAFE) || loc.equals(Location.SPACE) || loc.equals(Location.UNKNOWN) )
+                                	outside = true;
+                            
+                            if( !lt && !outside ) {
                                 if( !foundTerr[1] ) {
                                     terr[1] = p;
                                     foundTerr[1] = true;
@@ -2489,6 +2498,7 @@ public class GameFlagTimeModule extends AbstractModule {
                     }
                 }
                 lt = false;
+                outside = false;
             }
             if (terr[0] != null && freqsize[0] >= terrBonusMinOnFreq ) {
                 context.getPlayerManager().addMoney(terr[0].getPlayerName(), terrBonusAmt);
