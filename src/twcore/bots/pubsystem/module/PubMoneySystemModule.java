@@ -1112,9 +1112,9 @@ public class PubMoneySystemModule extends AbstractModule {
         int count = 0;
         while (it2.hasNext() && count < 5) {
             Entry<String, Integer> entry = it2.next();
-            m_botAction.sendSmartPrivateMessage(sender, ++count + ". "
-            		+ Tools.formatString( entry.getKey(), 25 )
-            		+ " ... " + Tools.rightString( ("$" + entry.getValue()), 20) );
+            m_botAction.sendSmartPrivateMessage(sender, ++count + ") "
+            		+ Tools.formatString( entry.getKey(), 20 ) + " ..."
+            		+ Tools.rightString( ("$" + entry.getValue()), 15) );
         }
     }
     
@@ -1131,9 +1131,9 @@ public class PubMoneySystemModule extends AbstractModule {
     		ResultSet r = m_botAction.SQLQuery("pubstats", query);
     		int count = 0;
     		while (r.previous()) {
-                m_botAction.sendSmartPrivateMessage(sender, ++count + ". "
-                		+ Tools.formatString( r.getString("fcName"), 25 ) + " ... "
-                		+ Tools.rightString( ("$" + r.getInt("fnMoney") ), 20) );
+                m_botAction.sendSmartPrivateMessage(sender, ++count + ") "
+                		+ Tools.formatString( r.getString("fcName"), 20 ) + " ..."
+                		+ Tools.rightString( ("$" + r.getInt("fnMoney") ), 15 ) );
     		}
     		m_botAction.SQLClose( r );
     	} catch (Exception e) {
@@ -2549,10 +2549,10 @@ public class PubMoneySystemModule extends AbstractModule {
             doCmdCoupon(sender, command.substring(8).trim());
         } else if (command.startsWith("!lastkill") || command.equals("!lk")) {
             doCmdLastKill(sender);
-        } else if (command.startsWith("!richest")) {
-            doCmdRichest(sender, command);
         } else if (command.startsWith("!richestall")) {
             doCmdRichestAll(sender, command);
+        } else if (command.startsWith("!richest")) {
+            doCmdRichest(sender, command);
         } else if (command.startsWith("!fruit ")) {
             doCmdFruit(sender, command.substring(6).trim());
         } else if (command.startsWith("!fruitinfo")) {
@@ -2708,6 +2708,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 pubsystem.getHelpLine("!donate <name>:<$>  -- Donate money to a player."),
                 pubsystem.getHelpLine("!coupon <code>      -- Redeem your <code>."), 
                 pubsystem.getHelpLine("!richest            -- Top 5 richest players currently playing."),
+                pubsystem.getHelpLine("!richestall         -- Top 10 richest players in all of TW."),
                 pubsystem.getHelpLine("!lastkill           -- How much you earned for your last kill (+ algorithm). (!lk)"),
                 pubsystem.getHelpLine("!fruit <$>[:#]      -- Play the slot machine for <$>, optionally # times. (!fruit 10:5)"),
                 pubsystem.getHelpLine("!fruitinfo          -- Payout table for the fruit machine."), };
