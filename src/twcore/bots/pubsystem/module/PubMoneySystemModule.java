@@ -1112,8 +1112,8 @@ public class PubMoneySystemModule extends AbstractModule {
         int count = 0;
         while (it2.hasNext() && count < 5) {
             Entry<String, Integer> entry = it2.next();
-            m_botAction.sendSmartPrivateMessage(sender, ++count + ") "
-            		+ Tools.formatString( entry.getKey(), 20 ) + " ..."
+            m_botAction.sendSmartPrivateMessage(sender, 
+            		Tools.formatString( (++count + ") " + entry.getKey()), 25 ) + " ..."
             		+ Tools.rightString( ("$" + entry.getValue()), 15) );
         }
     }
@@ -1131,8 +1131,8 @@ public class PubMoneySystemModule extends AbstractModule {
     		ResultSet r = m_botAction.SQLQuery("pubstats", query);
     		int count = 0;
     		while (r.next()) {
-                m_botAction.sendSmartPrivateMessage(sender, ++count + ") "
-                		+ Tools.formatString( r.getString("fcName"), 20 ) + " ..."
+                m_botAction.sendSmartPrivateMessage(sender, 
+                		Tools.formatString( ++count + ") " + r.getString("fcName"), 25 ) + " ..."
                 		+ Tools.rightString( ("$" + r.getInt("fnMoney") ), 15 ) );
     		}
     		m_botAction.SQLClose( r );
