@@ -465,14 +465,22 @@ public class twl extends SubspaceBot
                 command_lock(name, parameters);
             if (command.equals("!unlock"))
                 command_unlock(name, parameters);
-            if ((command.equals("!die")) && (m_opList.isSmod(name)))
-                m_botAction.die();
-            if ((command.equals("!off")) && (m_opList.isSmod(name)))
-            if (m_game == null)	{
-                command_unlock(name, parameters);
-            } else {
-                command_setoff(name);
+            if ((command.equals("!die"))) {
+            	if (m_isLocked) {
+            		m_botAction.sendSmartPrivateMessage(name, "Please !unlock before dying, for security reasons.");
+            		return;
+            	} else {
+            		m_botAction.sendSmartPrivateMessage(name, "Dying.");
+            		m_botAction.die();
+            		return;
+            	}
             }
+            if ((command.equals("!off")) && (m_opList.isSmod(name)))
+            	if (m_game == null)	{
+            		command_unlock(name, parameters);
+            	} else {
+            		command_setoff(name);
+            	}
             if ((command.equals("!listaccess")) && (m_opList.isSmod(name)))
                 command_listaccess(name, parameters);
             if ((command.equals("!addaccess")) && (m_opList.isSmod(name)))
