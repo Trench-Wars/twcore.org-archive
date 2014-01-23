@@ -374,18 +374,18 @@ public class hockeybot extends SubspaceBot {
     @Override
     public void handleEvent(FrequencyShipChange event) {
         if (currentState != HockeyState.OFF && currentState != HockeyState.WAITING_FOR_CAPS) {
-            Player p;
-
-            p = m_botAction.getPlayer(event.getPlayerID());
+            Player p = m_botAction.getPlayer(event.getPlayerID());
             
-            HockeyTeam team = null;
-            team = getTeam(p.getPlayerName());
+            if(p == null)
+                return;
+            
+            HockeyTeam team = getTeam(p.getPlayerName());
             
             if (team == null){
                 return;
             } else {
-            if (p != null && !p.getPlayerName().equals(m_botAction.getBotName()))
-                checkFCandFSC(p.getPlayerName(), p.getFrequency(), p.getShipType());
+                if (p != null && !p.getPlayerName().equals(m_botAction.getBotName()))
+                    checkFCandFSC(p.getPlayerName(), p.getFrequency(), p.getShipType());
             }
         }
     }
