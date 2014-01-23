@@ -933,6 +933,7 @@ public class PubChallengeModule extends AbstractModule {
         m_botAction.specificPrize(name, Tools.Prize.MULTIFIRE);
         m_botAction.specificPrize(name, -Tools.Prize.ROCKET); // NEGATIVE ROCKET
         m_botAction.specificPrize(name, -Tools.Prize.BRICK); // NEGATIVE BRICK
+        m_botAction.specificPrize(name, -Tools.Prize.PORTAL); // NEGATIVE PORT (for Levs)
         if (!sharkShrap) {
             m_botAction.specificPrize(name, -Tools.Prize.SHRAPNEL); // NEGATIVE SHRAPNEL
             m_botAction.specificPrize(name, -Tools.Prize.SHRAPNEL);
