@@ -2,10 +2,8 @@ package twcore.bots.notifybot;
 
 import twcore.core.*;
 import twcore.core.events.*;
-import twcore.core.stats.DBPlayerData;
 import twcore.core.util.Tools;
 import twcore.core.events.SQLResultEvent;
-import twcore.core.game.Player;
 
 import java.net.*;
 import java.io.*;
@@ -470,6 +468,14 @@ public class notifybot extends SubspaceBot {
 
         public String getSquad() {
             return squad;
+        }
+        
+        public InetAddress getAddress() {
+            return addr;
+        }
+        
+        public int getPort() {
+            return port;
         }
     }
 }
