@@ -425,8 +425,12 @@ public class PubChallengeModule extends AbstractModule {
 
         if (openChal) {
             m_botAction.sendSmartPrivateMessage(challenger, "Open challenge sent for any player to accept; it will now show in !openduels (!od) for the next " + (TIME_OPEN_CHALS_ACTIVE / Tools.TimeInMillis.MINUTE) + " minutes.");
-            String displayStr = (ship1==ship2 ? Tools.shipName(ship1) : Tools.shipName(ship1) + " vs " + Tools.shipName(ship2))
-                                + " duel" + (moneyActive ? (" for $" + amount) : "");
+            String displayStr;
+            
+            if (ship1==ship2 )
+            	displayStr = Tools.shipName(ship1);
+            else
+            	displayStr = Tools.shipName(ship1) + " (their ship)  vs  " + Tools.shipName(ship2) + " (your ship)  duel" + (moneyActive ? (" for $" + amount) : "");
             openChallenges.put(challenger, displayStr);
             if (amount >= announceOpenChallengeAt)
                 m_botAction.sendArenaMessage("[OPEN DUEL] " + challenger + " challenges anyone to " + displayStr + ".  :tw-p:!accept " + challenger );
@@ -438,8 +442,8 @@ public class PubChallengeModule extends AbstractModule {
                 m_botAction.sendSmartPrivateMessage(challenged, "Duel to " + deaths + ".");
                 m_botAction.sendSmartPrivateMessage(challenger, "Challenge sent to " + challenged + (moneyActive ? (" for $" + amount) : "") + ".");
             } else {
-                m_botAction.sendSmartPrivateMessage(challenged, challenger + " has challenged you to a special duel" + (moneyActive ? (" for $" + amount) : "") + " in their "
-                        + Tools.shipName(ship1) + " vs your " + Tools.shipName(ship2) +".");
+                m_botAction.sendSmartPrivateMessage(challenged, challenger + " has challenged you to a special duel" + (moneyActive ? (" for $" + amount) : "") + " in THEIR "
+                        + Tools.shipName(ship1) + " vs YOUR " + Tools.shipName(ship2) +".");
                 m_botAction.sendSmartPrivateMessage(challenged, "Duel to " + deaths + ". To accept reply !accept " + challenger);
                 m_botAction.sendSmartPrivateMessage(challenger, "Challenge sent to " + challenged + (moneyActive ? (" for $" + amount) : "") + " in your " + Tools.shipName(ship1) + " vs their " + Tools.shipName(ship2) + ".");
             }
@@ -1539,6 +1543,7 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(name, "No open challenges found. To issue your own, type !challenge *:ship#:money");            
         else
             for (String challenger : openChallenges.keySet())
+            	
                 m_botAction.sendSmartPrivateMessage(name, challenger + ": " + openChallenges.get(challenger));        
     }
 
