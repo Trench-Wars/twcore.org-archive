@@ -79,7 +79,7 @@ public class staffbot extends SubspaceBot {
         // 2 = smod chat
         String staffchat = m_botAction.getGeneralSettings().getString("Staff Chat");
         String smodchat = m_botAction.getGeneralSettings().getString("Smod Chat");
-        m_botAction.sendUnfilteredPublicMessage("?chat=" + staffchat + "," + smodchat + ",robodev");
+        m_botAction.sendUnfilteredPublicMessage("?chat=" + staffchat + "," + smodchat + ",robodev,banmods");
 
         // load modules
         moduleHandler.loadModule("_serverwarningecho");
@@ -89,6 +89,7 @@ public class staffbot extends SubspaceBot {
         moduleHandler.loadModule("_banc");
         moduleHandler.loadModule("_staffchat_savelog");
         //moduleHandler.loadModule("_commands");
+        moduleHandler.loadModule("_loginwatch");
 
         // start the log checking timer task for all modules
 
