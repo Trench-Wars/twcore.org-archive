@@ -3,11 +3,14 @@ package twcore.bots.staffbot;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import twcore.bots.Module;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
+import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
+import twcore.core.util.ipc.IPCMessage;
 
 /**
  * This module reports bad commands (and player kicks for message flooding) that are shown on the *log
@@ -298,8 +301,46 @@ public class staffbot_loginwatch extends Module {
         }
     }
     
+    public void handleEvent(InterProcessEvent event) {
+        // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
+        if (event.getObject() instanceof IPCMessage == false) {
+            return;
+        }
 
-    private void saveWatches() {
+        IPCMessage ipcMessage = (IPCMessage) event.getObject();
+        String botName = m_botAction.getBotName();
+        String message = ipcMessage.getMessage();
+
+        try {
+            if (botName.equals(ipcMessage.getRecipient())) {
+                if (message.startsWith("info "))
+                    gotRecord(message.substring(5));
+            }
+        } catch (Exception e) {
+            m_botAction.sendChatMessage(e.getMessage());
+        }
+    }
+    
+
+    private void gotRecord(String argString) {
+
+        StringTokenizer recordArgs = new StringTokenizer(argString, ":");
+        if (recordArgs.countTokens() != 3)
+            throw new IllegalArgumentException("ERROR: Could not write player information.");
+        String playerName = recordArgs.nextToken();
+        String playerIP = recordArgs.nextToken();
+        String playerMacID = recordArgs.nextToken();
+
+        checkName(playerName, playerIP, playerMacID);
+        checkIP(playerName, playerIP, playerMacID);
+        checkMID(playerName, playerIP, playerMacID);
+        //checkLName(playerName, playerIP, playerMacID);
+        //checkRName(playerName, playerIP, playerMacID);
+        //checkPName(playerName, playerIP, playerMacID);
+		
+	}
+
+	private void saveWatches() {
         BotSettings cfg = m_botAction.getBotSettings();
         boolean loop = true;
         int i = 1;
