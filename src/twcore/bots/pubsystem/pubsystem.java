@@ -97,7 +97,7 @@ public class pubsystem extends SubspaceBot
 
     private boolean roamPub = true;                     // True if bots auto-roam to public
     private boolean initLogin = true;                   // True if first arena login
-    private int initialPub;                             // Order of pub arena to defaultjoin
+    //private int initialPub;                             // Order of pub arena to defaultjoin
     private String initialSpawn;                        // Arena initially spawned in
     
     private String greeting;
@@ -154,7 +154,7 @@ public class pubsystem extends SubspaceBot
 
     	try {
 	        initialSpawn = m_botAction.getBotSettings().getString("InitialArena");
-	        initialPub = (m_botAction.getBotSettings().getInt("Pub" + m_botAction.getBotNumber()) - 1);
+	        //initialPub = (m_botAction.getBotSettings().getInt("Pub" + m_botAction.getBotNumber()) - 1);
 	        
 	        String arena = initialSpawn;
 	        int botNumber = m_botAction.getBotSettings().getInt(m_botAction.getBotName() + "Pub");
