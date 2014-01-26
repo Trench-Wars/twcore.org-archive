@@ -350,6 +350,9 @@ public class PubUtilModule extends AbstractModule {
      * @throws RuntimeException if the bot is running pure pub settings.
      */
     private void doDieCmd(String sender) {
+    	try {
+    		context.getMoneySystem().printFruitStatsToLog();
+    	} catch (Exception e) {}
         m_botAction.sendSmartPrivateMessage(sender, "Bot logging off.");
         m_botAction.setObjects();
         m_botAction.scheduleTask(new DieTask(), 300);
