@@ -83,7 +83,6 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private String lastKillKilledName;
     private boolean lastKillWithFlag;
     private boolean notifiedAboutEZ = false; 
-    private boolean isLevTerr = false;
     private TimerTask spawnDelay;
     
     private short lastFreq = 9999;
@@ -386,10 +385,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     public void handleShipChange(FrequencyShipChange event) {
         if (shipItem != null && event.getShipType() != shipItem.getShipNumber())
             resetShipItem();
-        if (event.getShipType() == Tools.Ship.SPECTATOR)
-        	lastSpecTime = System.currentTimeMillis();
-        else
-        	lastSpecTime = -1;
+        resetSpecTime(event.getShipType());
     }
 
     public void handleDeath(PlayerDeath event) {
@@ -539,8 +535,11 @@ public class PubPlayer implements Comparable<PubPlayer>{
         this.lastKillWithFlag = withFlag;
     }
     
-    public void resetSpecTime() {
-    	lastSpecTime = System.currentTimeMillis();
+    public void resetSpecTime( int shipNum ) {
+    	if (shipNum == Tools.Ship.SPECTATOR)
+    		lastSpecTime = System.currentTimeMillis();
+    	else
+    		lastSpecTime = -1;
     }
     
     public void ignorePlayer(String player) {
@@ -584,10 +583,12 @@ public class PubPlayer implements Comparable<PubPlayer>{
     }
     
     public void checkSpecTime() {
-    	long diff = System.currentTimeMillis() - lastSpecTime;
-    	if (diff > Tools.TimeInMillis.HOUR * 1) {
+    	if (lastSpecTime == -1 )
+    		return;
+    	if (lastSpecTime < System.currentTimeMillis() - Tools.TimeInMillis.HOUR * 1) {
     		lastSpecTime = System.currentTimeMillis();
-            m_botAction.sendPrivateMessage( name, "2cool4school Bonus: $100" );    		
+            m_botAction.sendPrivateMessage( name, "2cool4school Bonus: $100" );
+            addMoney( 100 );
     	}
     }
 

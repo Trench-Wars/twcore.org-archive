@@ -283,7 +283,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         if (pubPlayer != null) {
         	if (pubPlayer.getMoney() < 1000)
         		m_botAction.sendSmartPrivateMessage(playerName, "PM me back with !help for a list of commands. (Type :: to reply to last PM sent)");
-            pubPlayer.resetSpecTime();
+            pubPlayer.resetSpecTime(event.getShipType());
         }
     }
     
