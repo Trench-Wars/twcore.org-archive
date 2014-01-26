@@ -473,7 +473,8 @@ public class matchbot extends SubspaceBot {
         if (m_game != null) // Bot is running a game
         {
             if (isStaff) {
-                help.add("!killgame                                - stops a game _immediately_");
+            	if (m_opList.isSmod( name ))
+            		help.add("!killgame                                - stops a game _immediately_");
                 help.add("!power                                   - disables/enables your staff power");
             }
             help.addAll(m_game.getHelpMessages(name, isStaff));
@@ -570,7 +571,7 @@ public class matchbot extends SubspaceBot {
             if (m_game != null) {
                 if (command.equals("!pkg"))
                     playerKillGame();
-                else if (command.equals("!killgame") && twdops.contains(name)) {
+                else if (command.equals("!killgame") && (twdops.contains(name) || m_opList.isSmod( name ))) {
                     m_botAction.sendArenaMessage("The game has been brutally killed by " + name);
                     m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
                     m_game.cancel();
@@ -594,7 +595,7 @@ public class matchbot extends SubspaceBot {
                         command_unlock(name, parameters);
                     }
                 }
-                if (command.equals("!endgameverysilently")) {
+                if (command.equals("!endgameverysilently") && m_opList.isHighmod( name )) {
                     m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
                     m_game.cancel();
                     m_game = null;
