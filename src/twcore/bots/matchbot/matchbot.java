@@ -289,7 +289,7 @@ public class matchbot extends SubspaceBot {
                             (ipc.getBot() != null && 
                             (bot.equalsIgnoreCase(ipc.getBot()) 
                                     || arena.equalsIgnoreCase(ipc.getBot()))))) {
-                    if (!m_isLocked || (m_game == null && !m_isStartingUp)) {
+                    if (m_game == null && !m_isStartingUp) {
                         ba.sendChatMessage("Got IPC DIE for bot/arena: " + ipc.getBot() + " (" + ipc.getCommand() + ")" );
                         TimerTask d = new TimerTask() {
                             @Override
@@ -298,7 +298,7 @@ public class matchbot extends SubspaceBot {
                             }
                         };
                         m_botAction.scheduleTask(d, 3000);
-                    } else if (m_game != null || m_isStartingUp) {
+                    } else {
                         m_botAction.ipcTransmit(IPC, new IPCCommand(Command.ECHO, TWDHUB, bot
                                 + " reports it will shutdown after the current game ends in " + arena));
                         m_die = true;
