@@ -48,6 +48,7 @@ public class staffbot extends SubspaceBot {
     BotAction m_botAction;
     BotSettings m_botSettings;
     TimerTask getLog;
+    String fileUser = "";
     private final static int CHECK_LOG_DELAY = 2000;
 
     /* Initialization code */
@@ -105,13 +106,13 @@ public class staffbot extends SubspaceBot {
 
     @Override
     public void handleEvent(Message event) {
+
         if ((event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) && event.getMessage().startsWith("!")) {
             // Commands
             String message = event.getMessage().toLowerCase();
             short sender = event.getPlayerID();
             String senderName = event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ? event.getMessager() : m_botAction.getPlayerName(sender);
             int operatorLevel = m_botAction.getOperatorList().getAccessLevel(senderName);
-            ;
 
             // Ignore player's commands
             if (operatorLevel == OperatorList.PLAYER_LEVEL) {
@@ -150,11 +151,13 @@ public class staffbot extends SubspaceBot {
                 if (message.startsWith("!putfile ")) {
                     String msg = message.substring(9);
                     m_botAction.putFile(msg);
-                    m_botAction.sendSmartPrivateMessage(senderName, "Done.");
+                    fileUser = senderName;
+                    m_botAction.sendSmartPrivateMessage(senderName, "Putting file " + msg + "..." );
                 } else if (message.startsWith("!getfile ")) {
                     String msg = message.substring(9);
                     m_botAction.getServerFile(msg);
-                    m_botAction.sendSmartPrivateMessage(senderName, "Done.");
+                    fileUser = senderName;
+                    m_botAction.sendSmartPrivateMessage(senderName, "Getting file " + msg + "..." );
                 }
             }
 
@@ -174,6 +177,11 @@ public class staffbot extends SubspaceBot {
                     }
                 }
             }
+        } else if (event.getMessageType() == Message.ARENA_MESSAGE && !fileUser.equals("")) {
+        	if (event.getMessage().startsWith("File received:")) {
+        		m_botAction.sendSmartPrivateMessage(fileUser, event.getMessage());
+        		fileUser = "";
+        	}
         }
 
         moduleHandler.handleEvent(event);
