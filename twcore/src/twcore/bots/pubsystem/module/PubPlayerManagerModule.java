@@ -13,7 +13,7 @@ import java.util.Vector;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
-import twcore.bots.pubsystem.module.PubHuntModule.HuntPlayer;
+//import twcore.bots.pubsystem.module.PubHuntModule.HuntPlayer;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipUpgradeItem;
@@ -803,6 +803,10 @@ public class PubPlayerManagerModule extends AbstractModule {
                 freqSizeInfo[1] = 0;
             }
         }
+    }
+    
+    
+    public void checkSpecTime() {
         Iterator<Player> i = m_botAction.getPlayerIterator();
         while (i.hasNext()) {
         	Player p = i.next();
