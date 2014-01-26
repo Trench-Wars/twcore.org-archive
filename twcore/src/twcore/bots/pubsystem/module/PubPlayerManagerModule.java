@@ -280,8 +280,11 @@ public class PubPlayerManagerModule extends AbstractModule {
             }
         }
         
-        if (pubPlayer != null && pubPlayer.getMoney() < 500)
-            m_botAction.sendSmartPrivateMessage(playerName, "PM me back with !help for a list of commands. (Type :: to reply to last PM sent)");
+        if (pubPlayer != null) {
+        	if (pubPlayer.getMoney() < 1000)
+        		m_botAction.sendSmartPrivateMessage(playerName, "PM me back with !help for a list of commands. (Type :: to reply to last PM sent)");
+            pubPlayer.resetSpecTime();
+        }
     }
     
     public void handleEvent(PlayerLeft event) {
@@ -799,6 +802,15 @@ public class PubPlayerManagerModule extends AbstractModule {
                 m_botAction.sendOpposingTeamMessageByFrequency(1, msg);
                 freqSizeInfo[1] = 0;
             }
+        }
+        Iterator<Player> i = m_botAction.getPlayerIterator();
+        while (i.hasNext()) {
+        	Player p = i.next();
+        	if (p.isShip(Tools.Ship.SPECTATOR)) {
+        		PubPlayer pp = players.get( p.getPlayerName().toLowerCase() );
+        		if (pp != null)
+        			pp.checkSpecTime();
+        	}
         }
     }
 

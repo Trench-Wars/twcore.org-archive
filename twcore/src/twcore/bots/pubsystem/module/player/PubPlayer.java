@@ -71,6 +71,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private long lastDeath = 0;
     private long lastAttach = 0;
     private long lastThor = 0;
+    private long lastSpecTime = -1;
     
     // Stats
     private int bestStreak = 0;
@@ -385,6 +386,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
     public void handleShipChange(FrequencyShipChange event) {
         if (shipItem != null && event.getShipType() != shipItem.getShipNumber())
             resetShipItem();
+        if (event.getShipType() == Tools.Ship.SPECTATOR)
+        	lastSpecTime = System.currentTimeMillis();
+        else
+        	lastSpecTime = -1;
     }
 
     public void handleDeath(PlayerDeath event) {
@@ -534,6 +539,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
         this.lastKillWithFlag = withFlag;
     }
     
+    public void resetSpecTime() {
+    	lastSpecTime = System.currentTimeMillis();
+    }
+    
     public void ignorePlayer(String player) {
         if (!ignoreList.contains(player.toLowerCase())) {
             ignoreList.add(player.toLowerCase());
@@ -572,6 +581,14 @@ public class PubPlayer implements Comparable<PubPlayer>{
             }
             notifiedAboutEZ = true;
         }
+    }
+    
+    public void checkSpecTime() {
+    	long diff = System.currentTimeMillis() - lastSpecTime;
+    	if (diff > Tools.TimeInMillis.HOUR * 1) {
+    		lastSpecTime = System.currentTimeMillis();
+            m_botAction.sendPrivateMessage( name, "2cool4school Bonus: $100" );    		
+    	}
     }
 
 }
