@@ -1213,7 +1213,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     winMsg = "YOU'RE BEING WATCHED JACKPOT!";
                     break;
                 case 1:
-                    winFactor = 15;
+                    winFactor = 20;
                     winMsg = "> WARBIRD JACKPOT! <";
                     break;
                 case 2:
@@ -1233,7 +1233,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     winMsg = ">>> !!!TERRIER JACKPOT!!! <<<";
                     break;
                 case 6:
-                    winFactor = 8;
+                    winFactor = 10;
                     winMsg = "WEASEL JACKPOT!!";
                     break;
                 case 7:
@@ -1241,7 +1241,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     winMsg = ">> LANCASTER JACKPOT!! <<";
                     break;
                 case 8:
-                    winFactor = 10;
+                    winFactor = 15;
                     winMsg = "SHARK JACKPOT!";
                     break;
                 case 9:
@@ -1272,6 +1272,9 @@ public class PubMoneySystemModule extends AbstractModule {
                 } else if (hits[2] == 1 && hits[4] == 1 && hits[9] == 1) {
                     winFactor = 6;
                     winMsg = "Bombing Run Matchup!";
+                } else if (hits[4] == 1 && hits[6] == 1 && hits[8] == 1) {
+                    winFactor = 4;
+                    winMsg = "Sneaky Team Matchup!";
                 } else if (hits[4] == 2 && hits[5] == 1 ) {
                     winFactor = 3;
                     winMsg = "Double LeviTerr Matchup!";
@@ -1354,9 +1357,9 @@ public class PubMoneySystemModule extends AbstractModule {
                 "      TRENCH WARS Fruit Machine: Revenge of the Levi",
                 "[PAYOUT TABLE] - Given as a multiplier of amount bet",
                 "3 SPECTATORS ... x5            3 SPIDERS    ... x50",
-                "3 WEASELS    ... x8            3 TERRIERS   ... x60",
-                "3 SHARKS     ... x10           3 JAVELINS   ... x80",
-                "3 WARBIRDS   ... x15           3 NIGHTWASPS ... x100",
+                "3 WEASELS    ... x10           3 TERRIERS   ... x60",
+                "3 SHARKS     ... x15           3 JAVELINS   ... x80",
+                "3 WARBIRDS   ... x20           3 NIGHTWASPS ... x100",
                 "3 LANCS      ... x30           3 LEVIATHANS ... x200",
                 "[OTHER PAYOUTS]",
                 "Basing Team (Terr, Shark, Spider)           ... x8",
@@ -1364,11 +1367,19 @@ public class PubMoneySystemModule extends AbstractModule {
                 "Bombing Run (Jav, NWasp, Levi)              ... x6",
                 "All Fighter (WB, Lanc, Spider)              ... x5",
                 "Double LeviTerr (Terr, 2 Levis)             ... x5",
+                "Sneaky Team (Terr, Weasel, Shark)           ... x4",
                 "Base Fighter (any 3 Lancs or Spiders)       ... x3",
                 "LeviTerr (Terr, Levi)                       ... x2",
                 "Portal (every Terr)   ... 33% CHANCE FOR FREE PLAY",
         };
         m_botAction.privateMessageSpam(sender, msg);
+    }
+
+    /**
+     * For when the bot dies.
+     */
+    public void printFruitStatsToLog() {
+        Tools.printLog( "Fruit Machine stats:  Players won $" + fruitStats[0] + ", lost $" + fruitStats[1] + "  (House earns " + (fruitStats[1] - fruitStats[0]) + ")");
     }
 
     /**
