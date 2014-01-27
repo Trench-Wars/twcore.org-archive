@@ -428,7 +428,7 @@ public class PubChallengeModule extends AbstractModule {
             String displayStr;
             
             if (ship1==ship2 )
-            	displayStr = Tools.shipName(ship1);
+            	displayStr = Tools.shipName(ship1) + (moneyActive ? (" for $" + amount) : "");
             else
             	displayStr = Tools.shipName(ship1) + " (their ship)  vs  " + Tools.shipName(ship2) + " (your ship)  duel" + (moneyActive ? (" for $" + amount) : "");
             openChallenges.put(challenger, displayStr);
