@@ -454,9 +454,9 @@ public class pubhubalias extends PubBotModule {
             results.add(shownResults + " results shown, " + (totalResults - shownResults) + " repressed.  !maxrecords # to show if available (current: " + m_maxRecords + ")");
         else {
             if (opList.isSysopExact(sender)) 
-                results.add(shownResults + " results shown (" + (hiddenResults) + " hidden, " + (totalResults - hiddenResults) + " duplicates repressed)" );
+                results.add(shownResults + " results shown" + (hiddenResults > 0 ? ", " + (hiddenResults) + " hidden." : ". (None hidden)") );
             else
-                results.add("All " + shownResults + " results shown (" + (totalResults - hiddenResults) + " duplicates repressed)" );
+                results.add("All " + shownResults + " results shown." );
         }
         m_botAction.SQLClose(resultSet);
         if (privateAliases)
