@@ -246,7 +246,7 @@ public class pubbotbanc extends PubBotModule {
                             m_botAction.sendPrivateMessage(current.getName(), "You've been permanently silenced because of abuse and/or violation of Trench Wars rules.");
                         else
                             m_botAction.sendPrivateMessage(current.getName(), "You've been silenced for " + current.getTime()
-                                    + " (" + current.getTime() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
+                                    + " (" + current.getRemaining() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
                         m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
                     }
                 } else if (message.equalsIgnoreCase("Player locked in spectator mode")) {
@@ -263,7 +263,7 @@ public class pubbotbanc extends PubBotModule {
                             m_botAction.sendPrivateMessage(current.getName(), "You've been permanently locked into spectator because of abuse and/or violation of Trench Wars rules.");
                         else
                             m_botAction.sendPrivateMessage(current.getName(), "You've been locked into spectator for " + current.getTime()
-                                    + " (" + current.getTime() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
+                                    + " (" + current.getRemaining() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
                         m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
                     }
                 } else if (message.equalsIgnoreCase("Player free to enter arena")) {
