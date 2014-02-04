@@ -112,12 +112,12 @@ public class GameFlagTimeModule extends AbstractModule {
     private int terrBonusMinOnFreq = 3;   // Smallest # of players on freq to allow bonus
     
     private final int LVZ_10TOSTART = 17100;
-    private final int LVZ_60TOWIN = 17100;
-    private final int LVZ_30TOWIN = 17100;
-    private final int LVZ_10TOWIN = 17100;
-    private final int LVZ_WINIMMINENT = 17100;
-    private final int LVZ_GAMEOVER= 17100;
-    private final int LVZ_ROUNDOVER = 17100;
+    private final int LVZ_60TOWIN = 17101;
+    private final int LVZ_30TOWIN = 17102;
+    private final int LVZ_10TOWIN = 17103;
+    private final int LVZ_WINIMMINENT = 17104;
+    private final int LVZ_GAMEOVER= 17105;
+    private final int LVZ_ROUNDOVER = 17106;
     
 
     /* Added in and never used?
