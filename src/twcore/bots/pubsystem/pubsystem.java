@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.Calendar;
+import java.text.SimpleDateFormat;
 
 import twcore.bots.pubsystem.module.AbstractModule;
 import twcore.bots.pubsystem.util.Log;
@@ -358,7 +360,11 @@ public class pubsystem extends SubspaceBot
         if (m_botAction.getOperatorList().isZH(sender) && (message.startsWith("!newplayer ") || message.startsWith("!next ") || message.startsWith("!end "))) {
             if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE))
                 handleModCommand(sender, message);
-        } else if (m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) || m_botAction.getOperatorList().isBotExact(sender))
+        } else if ((message.startsWith("!servertime") && (messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE)) ) {
+            Calendar cal = Calendar.getInstance();
+            SimpleDateFormat sdf = new SimpleDateFormat("hh:mma, MMM dd yyyy");
+            m_botAction.sendSmartPrivateMessage(sender, "The current server time is: " + sdf.format(cal.getTime()));
+        } else if (m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) || m_botAction.getOperatorList().isBotExact(sender)) {
             if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE)) {
                 handleModCommand(sender, message);
                 if (m_botAction.getOperatorList().isSmod(sender)) {
@@ -376,6 +382,7 @@ public class pubsystem extends SubspaceBot
                     }
                 }
             }
+        }
     }
 
 
@@ -540,10 +547,12 @@ public class pubsystem extends SubspaceBot
 			    String[] others = new String[] {
 			            getModuleHelpHeader("Others"),
 			            getHelpLine("!about            -- About this bot."),
+                        getHelpLine("!servertime       -- Show current time on the server."),
 			    };	     	
 			    lines.addAll(Arrays.asList(others));
 			} else {
 			    lines.add(getHelpLine("!about"));
+                lines.add(getHelpLine("!servertime"));
 			}
 		
  			if( m_botAction.getOperatorList().isModerator( sender ) ) {
@@ -551,7 +560,7 @@ public class pubsystem extends SubspaceBot
  			        lines.add(getHelpLine("!helpmod          -- Show !help menu for Mod+.         (!hm)"));
  			        lines.add(getHelpLine("!helpmodall       -- Show verbose !help menu for Mod+. (!hma)"));
  			    } else {
- 			        lines.add(getHelpLine("!helpmod !helpmodall"));
+ 			        lines.add(getHelpLine("MODERATOR COMMANDS: !helpmod, !helpmodall "));
  			    }
  			}
  			
