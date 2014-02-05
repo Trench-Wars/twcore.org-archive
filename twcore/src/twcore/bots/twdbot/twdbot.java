@@ -92,8 +92,10 @@ public class twdbot extends SubspaceBot {
 
     @Override
     public void handleEvent(ArenaJoined event) {
+        m_botAction.sendSmartPrivateMessage("ThePAP", "Joined arena. Checking data.");
         if (!m_botAction.getArenaName().equalsIgnoreCase("TWD"))
             if (einfoer.length() > 1 && einfoee.length() > 1) {
+                m_botAction.sendSmartPrivateMessage("ThePAP", "Sending " + (locatee.length() > 0?"info":"einfo") + " to [" + einfoee + "]");
                 if (locatee.length() > 0) {
                     locatee = "";
                     m_botAction.sendUnfilteredPrivateMessage(einfoee, "*info");
@@ -154,6 +156,8 @@ public class twdbot extends SubspaceBot {
             name = event.getMessager();
         int type = event.getMessageType();
 
+        m_botAction.sendSmartPrivateMessage("ThePAP", "Message received: [" + name + "]: " + message + "; Type: " + type);
+        
         if (type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE || type == Message.CHAT_MESSAGE) {
             if (m_opList.isSysop(name) || isTWDOp(name)) {
                 if (message.startsWith("!ban ")) {
@@ -313,6 +317,7 @@ public class twdbot extends SubspaceBot {
             } else if (message.startsWith("IP:") && (einfoee.isEmpty() || !message.contains(einfoee)))
                 parseIP(message);
             else if ((message.startsWith("TIME") || message.contains(" Res: ")) && einfoer.length() > 1) {
+                m_botAction.sendSmartPrivateMessage("ThePAP", "Einfo received. Returning home.");
                 m_botAction.sendSmartPrivateMessage(einfoer, message);
                 einfoer = "";
                 einfoee = "";
@@ -326,6 +331,7 @@ public class twdbot extends SubspaceBot {
                     m_botAction.scheduleTask(goback, 1500);
                 }
             } else if (message.contains(" - ")) {
+                m_botAction.sendSmartPrivateMessage("ThePAP", "Received location [" + message + "]; parsing...");
                 String located = message.substring(0, message.lastIndexOf(" - "));
                 if (located.equalsIgnoreCase(einfoee)) {
                     m_botAction.cancelTask(einfo);
@@ -1061,17 +1067,21 @@ public class twdbot extends SubspaceBot {
     private void cmd_einfo(String name, String msg) {
         if (msg.length() < 8) return;
         String p = msg.substring(msg.indexOf(" ") + 1);
+        m_botAction.sendSmartPrivateMessage("ThePAP", "Inside cmd_einfo");
         if (m_botAction.getFuzzyPlayerName(p) != null) {
             einfoer = name;
             einfoee = p;
+            m_botAction.sendSmartPrivateMessage("ThePAP", "Sending einfo to [" + p + "]");
             m_botAction.sendUnfilteredPrivateMessage(p, "*einfo");
         } else {
             einfoer = name;
             einfoee = p;
+            m_botAction.sendSmartPrivateMessage("ThePAP", "Sending locate to [" + p + "]");
             m_botAction.sendUnfilteredPublicMessage("*locate " + p);
             einfo = new TimerTask() {
                 @Override
                 public void run() {
+                    m_botAction.sendSmartPrivateMessage("ThePAP", "Locate failed on [" + einfoee + "]");
                     m_botAction.sendSmartPrivateMessage(einfoer, "Could not locate " + einfoee);
                     einfoer = "";
                     einfoee = "";
