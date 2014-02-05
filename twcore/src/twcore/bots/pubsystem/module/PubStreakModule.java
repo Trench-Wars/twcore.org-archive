@@ -384,8 +384,10 @@ public class PubStreakModule extends AbstractModule {
 
         if(command.trim().equals("!streak") || command.startsWith("!streak "))
         	doStreakCmd(sender, command.substring(7).trim());
+        else if(command.trim().equals("!s") || command.startsWith("!s "))
+            doStreakCmd(sender, command.substring(2).trim());
         else if(command.trim().equals("!streakbest") || command.trim().equals("!beststreak"))
-            	doBestSessionStreakCmd(sender);
+        	doBestSessionStreakCmd(sender);
 
 	}
 
@@ -402,7 +404,7 @@ public class PubStreakModule extends AbstractModule {
 	@Override
 	public String[] getHelpMessage(String sender) {
 		return new String[] {
-			pubsystem.getHelpLine("!streak            -- Your current streak."),
+			pubsystem.getHelpLine("!streak            -- Your current streak. (Shorthand: !s)"),
 			pubsystem.getHelpLine("!streak <name>     -- Best and current streak of a given player name."),
 			pubsystem.getHelpLine("!beststreak        -- Current best streak of the session."),
         };
