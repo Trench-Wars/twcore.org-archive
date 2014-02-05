@@ -157,9 +157,11 @@ public class twdbot extends SubspaceBot {
         int type = event.getMessageType();
 
         m_botAction.sendSmartPrivateMessage("ThePAP", "Message received: [" + name + "]: " + message + "; Type: " + type);
-        
+        m_botAction.sendSmartPrivateMessage("ThePAP", "pID: [" + event.getPlayerID() + "]; Name: [" + m_botAction.getPlayerName(event.getPlayerID()) + "]; Messager: ["+ event.getMessager() +"]");
         if (type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE || type == Message.CHAT_MESSAGE) {
+            m_botAction.sendSmartPrivateMessage("ThePAP", "Analyzing: 1");
             if (m_opList.isSysop(name) || isTWDOp(name)) {
+                m_botAction.sendSmartPrivateMessage("ThePAP", "Analyzing: 1.1");
                 if (message.startsWith("!ban ")) {
                     cmd_challengeBan(name, message.substring(message.indexOf(" ") + 1));
                     return;
@@ -194,6 +196,7 @@ public class twdbot extends SubspaceBot {
                 } else if (m_opList.isSysop(name) && message.equalsIgnoreCase("!relay")) {
                     cmd_relay(name);
                 } else if (type != Message.CHAT_MESSAGE) {
+                    m_botAction.sendSmartPrivateMessage("ThePAP", "Analyzing: 1.1.1");
                     // Operator commands
                     if (message.startsWith("!watch ")) {
                         String player = message.substring(message.indexOf(" ") + 1);
@@ -258,11 +261,13 @@ public class twdbot extends SubspaceBot {
                         m_botAction.die();
                     }
                     if (m_opList.isSmod(name)) {
+                        m_botAction.sendSmartPrivateMessage("ThePAP", "Analyzing: 1.1.1.1");
                         if (message.startsWith("!einfo "))
                             cmd_einfo(name, message);
                     }
                 }
             } else if (type != Message.REMOTE_PRIVATE_MESSAGE) {
+                m_botAction.sendSmartPrivateMessage("ThePAP", "Analyzing: 1.2");
                 // Player commands
                 if (message.equals("!resetname"))
                     cmd_ResetName(name, name, true);
@@ -283,6 +288,7 @@ public class twdbot extends SubspaceBot {
             }
 
             if (type != Message.REMOTE_PRIVATE_MESSAGE) {
+                m_botAction.sendSmartPrivateMessage("ThePAP", "Analyzing: 2");
                 // First: convert the command to a command with parameters
                 String[] temp = stringChopper(message, ' ');
                 if (temp != null && temp.length > 0 ) {
@@ -300,7 +306,8 @@ public class twdbot extends SubspaceBot {
             }
         }
 
-        if (type == Message.ARENA_MESSAGE)
+        if (type == Message.ARENA_MESSAGE) {
+            m_botAction.sendSmartPrivateMessage("ThePAP", "Analyzing: 3");
             if (event.getMessage().startsWith("Owner is ")) {
                 String squadOwner = event.getMessage().substring(9);
 
@@ -349,6 +356,7 @@ public class twdbot extends SubspaceBot {
                         m_botAction.changeArena(arena);
                     }
             }
+        }
     }
     
     private void cmd_relay(String name) {
