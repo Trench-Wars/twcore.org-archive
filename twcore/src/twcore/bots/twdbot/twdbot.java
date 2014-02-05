@@ -92,10 +92,8 @@ public class twdbot extends SubspaceBot {
 
     @Override
     public void handleEvent(ArenaJoined event) {
-        m_botAction.sendSmartPrivateMessage("ThePAP", "Joined arena. Checking data.");
         if (!m_botAction.getArenaName().equalsIgnoreCase("TWD"))
             if (einfoer.length() > 1 && einfoee.length() > 1) {
-                m_botAction.sendSmartPrivateMessage("ThePAP", "Sending " + (locatee.length() > 0?"info":"einfo") + " to [" + einfoee + "]");
                 if (locatee.length() > 0) {
                     locatee = "";
                     m_botAction.sendUnfilteredPrivateMessage(einfoee, "*info");
@@ -152,16 +150,16 @@ public class twdbot extends SubspaceBot {
     public void handleEvent(Message event) {
         String message = event.getMessage();
         String name = m_botAction.getPlayerName(event.getPlayerID());
-        if (name == null)
+        // Weird check, might need optimization, but for some reason, the bot sometimes managed to link someone else's pID to his own name.
+        if (name == null ||
+                (event.getMessager() != null
+                        && name.equalsIgnoreCase(m_botAction.getBotName())
+                        && event.getMessager().equalsIgnoreCase(m_botAction.getBotName()) ))
             name = event.getMessager();
         int type = event.getMessageType();
 
-        m_botAction.sendSmartPrivateMessage("ThePAP", "Message received: [" + name + "]: " + message + "; Type: " + type);
-        m_botAction.sendSmartPrivateMessage("ThePAP", "pID: [" + event.getPlayerID() + "]; Name: [" + m_botAction.getPlayerName(event.getPlayerID()) + "]; Messager: ["+ event.getMessager() +"]");
         if (type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE || type == Message.CHAT_MESSAGE) {
-            m_botAction.sendSmartPrivateMessage("ThePAP", "Analyzing: 1");
             if (m_opList.isSysop(name) || isTWDOp(name)) {
-                m_botAction.sendSmartPrivateMessage("ThePAP", "Analyzing: 1.1");
                 if (message.startsWith("!ban ")) {
                     cmd_challengeBan(name, message.substring(message.indexOf(" ") + 1));
                     return;
@@ -196,7 +194,6 @@ public class twdbot extends SubspaceBot {
                 } else if (m_opList.isSysop(name) && message.equalsIgnoreCase("!relay")) {
                     cmd_relay(name);
                 } else if (type != Message.CHAT_MESSAGE) {
-                    m_botAction.sendSmartPrivateMessage("ThePAP", "Analyzing: 1.1.1");
                     // Operator commands
                     if (message.startsWith("!watch ")) {
                         String player = message.substring(message.indexOf(" ") + 1);
@@ -261,13 +258,11 @@ public class twdbot extends SubspaceBot {
                         m_botAction.die();
                     }
                     if (m_opList.isSmod(name)) {
-                        m_botAction.sendSmartPrivateMessage("ThePAP", "Analyzing: 1.1.1.1");
                         if (message.startsWith("!einfo "))
                             cmd_einfo(name, message);
                     }
                 }
             } else if (type != Message.REMOTE_PRIVATE_MESSAGE) {
-                m_botAction.sendSmartPrivateMessage("ThePAP", "Analyzing: 1.2");
                 // Player commands
                 if (message.equals("!resetname"))
                     cmd_ResetName(name, name, true);
@@ -288,7 +283,6 @@ public class twdbot extends SubspaceBot {
             }
 
             if (type != Message.REMOTE_PRIVATE_MESSAGE) {
-                m_botAction.sendSmartPrivateMessage("ThePAP", "Analyzing: 2");
                 // First: convert the command to a command with parameters
                 String[] temp = stringChopper(message, ' ');
                 if (temp != null && temp.length > 0 ) {
@@ -307,7 +301,6 @@ public class twdbot extends SubspaceBot {
         }
 
         if (type == Message.ARENA_MESSAGE) {
-            m_botAction.sendSmartPrivateMessage("ThePAP", "Analyzing: 3");
             if (event.getMessage().startsWith("Owner is ")) {
                 String squadOwner = event.getMessage().substring(9);
 
@@ -324,7 +317,6 @@ public class twdbot extends SubspaceBot {
             } else if (message.startsWith("IP:") && (einfoee.isEmpty() || !message.contains(einfoee)))
                 parseIP(message);
             else if ((message.startsWith("TIME") || message.contains(" Res: ")) && einfoer.length() > 1) {
-                m_botAction.sendSmartPrivateMessage("ThePAP", "Einfo received. Returning home.");
                 m_botAction.sendSmartPrivateMessage(einfoer, message);
                 einfoer = "";
                 einfoee = "";
@@ -338,7 +330,6 @@ public class twdbot extends SubspaceBot {
                     m_botAction.scheduleTask(goback, 1500);
                 }
             } else if (message.contains(" - ")) {
-                m_botAction.sendSmartPrivateMessage("ThePAP", "Received location [" + message + "]; parsing...");
                 String located = message.substring(0, message.lastIndexOf(" - "));
                 if (located.equalsIgnoreCase(einfoee)) {
                     m_botAction.cancelTask(einfo);
@@ -1075,21 +1066,17 @@ public class twdbot extends SubspaceBot {
     private void cmd_einfo(String name, String msg) {
         if (msg.length() < 8) return;
         String p = msg.substring(msg.indexOf(" ") + 1);
-        m_botAction.sendSmartPrivateMessage("ThePAP", "Inside cmd_einfo");
         if (m_botAction.getFuzzyPlayerName(p) != null) {
             einfoer = name;
             einfoee = p;
-            m_botAction.sendSmartPrivateMessage("ThePAP", "Sending einfo to [" + p + "]");
             m_botAction.sendUnfilteredPrivateMessage(p, "*einfo");
         } else {
             einfoer = name;
             einfoee = p;
-            m_botAction.sendSmartPrivateMessage("ThePAP", "Sending locate to [" + p + "]");
             m_botAction.sendUnfilteredPublicMessage("*locate " + p);
             einfo = new TimerTask() {
                 @Override
                 public void run() {
-                    m_botAction.sendSmartPrivateMessage("ThePAP", "Locate failed on [" + einfoee + "]");
                     m_botAction.sendSmartPrivateMessage(einfoer, "Could not locate " + einfoee);
                     einfoer = "";
                     einfoee = "";
