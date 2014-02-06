@@ -544,7 +544,7 @@ public class PubChallengeModule extends AbstractModule {
         if (ship1 == ship2)
             area = getEmptyDuelArea(ship1);
         else {
-            if (ship1 == 2 || ship1 == 8)
+            if (ship1 == 2 || ship1 == 8 || ship1 == 4)
                 area = getEmptyDuelArea(ship1);
             else
                 area = getEmptyDuelArea(ship2);
