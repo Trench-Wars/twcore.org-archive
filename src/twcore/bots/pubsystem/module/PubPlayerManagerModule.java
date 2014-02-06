@@ -838,7 +838,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             if (pubPlayer.getLastSwitchReward() != -1) {
                 long diff = System.currentTimeMillis()-pubPlayer.getLastSwitchReward();
                 if (diff < 10 * Tools.TimeInMillis.MINUTE) {
-                    m_botAction.sendPrivateMessage(playerID,"You have been switched but you may only recieve one award every 10 minutes.");
+                    m_botAction.sendPrivateMessage(playerID, "You have been switched but you may only receive one award every 10 minutes.");
                     return;
                 }
             }
