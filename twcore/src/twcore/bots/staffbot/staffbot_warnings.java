@@ -22,7 +22,7 @@ public class staffbot_warnings extends Module {
 
     private final static int MAX_NAME_SUGGESTIONS = 20;         // Max number of suggestions given
     // for a name match in !warn
-    private final static int WARNING_EXPIRE_TIME = Tools.TimeInMillis.WEEK * 2;
+    private final static int WARNING_EXPIRE_TIME = Tools.TimeInMillis.DAY * 30;
     // private final static int CHECK_LOG_DELAY = 30000; // Delay when *log is checked for *warnings UNNEEDED FOR RIGHT NOW
 
     private TimerTask getLog;

@@ -3,19 +3,14 @@ package twcore.bots.staffbot;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.Locale;
-import java.util.TimeZone;
 import java.util.TimerTask;
-import java.util.Vector;
 
 import twcore.bots.Module;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
-import twcore.core.OperatorList;
 import twcore.core.events.Message;
 import twcore.core.util.Tools;
 
