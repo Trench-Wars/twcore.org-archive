@@ -438,6 +438,7 @@ public class staffbot_badcommand_savelog extends Module {
             return date;
         }
 
+        /* Unused, commented it for now.
         public String getArena() {
             return arena;
         }
@@ -453,7 +454,7 @@ public class staffbot_badcommand_savelog extends Module {
         public String getCommand() {
             return command;
         }
-
+         */
         public String toString() {
             if (toPlayer.equals(""))
                 return date + ":  " + fromPlayer + " (" + arena + ") " + command;

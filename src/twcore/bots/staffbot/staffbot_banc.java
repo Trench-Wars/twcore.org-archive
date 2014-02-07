@@ -121,8 +121,15 @@ public class staffbot_banc extends Module {
             { 120, 60 * 24 * 7, 0, 0 } };
     private SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private final int BANC_MAX_DURATION = 525600; // (365 days in minutes)
-    @SuppressWarnings("unused")
-    private final static int BANC_EXPIRE_TIME = Tools.TimeInMillis.WEEK * 2;
+    
+    // Settings related to how far back warnings and bancs are displayed by default.
+    // There are three in total, but other modules will have to be altered as well when you adjust this.
+    private final static int BANC_EXPIRE_TIME = Tools.TimeInMillis.DAY * 30;
+    // Look up MySQL DATE_SUB on the Internet for this one. Dangerous if done wrong!
+    private final static String SQL_EXPIRE_TIME = "INTERVAL 30 DAY";
+    // The expire time in normal text, how it will be presented to the user.
+    private final static String BANC_EXPIRE_TIME_TEXT = "30 days";
+    
     @SuppressWarnings("unused")
     private final static int MAX_NAME_SUGGESTIONS = 20;
 
@@ -811,7 +818,7 @@ public class staffbot_banc extends Module {
      * */
     private void searchByName(String stafferName, String name, int limitBanCs, int limitWarnings) {
         try {
-            m_botAction.sendSmartPrivateMessage(stafferName, " ------ Latest bancs (last 2 weeks): ");
+            m_botAction.sendSmartPrivateMessage(stafferName, " ------ Latest bancs (last " + BANC_EXPIRE_TIME_TEXT + "): ");
             sendBanCs(stafferName, name, limitBanCs);
             sendWarnings(stafferName, name, limitWarnings);
             if (m_botAction.getOperatorList().isModerator(stafferName) || bancOp.containsKey(stafferName.toLowerCase()) || isTWDOp(stafferName)) {
@@ -936,9 +943,8 @@ public class staffbot_banc extends Module {
             String stringDateExpired = "";
             String stringDateNotExpired = "";
             Date date = rs.getDate("timeofwarning");
-            int expiredTime = Tools.TimeInMillis.WEEK * 2; //last month
 
-            Date expireDate = new java.sql.Date(System.currentTimeMillis() - expiredTime);
+            Date expireDate = new java.sql.Date(System.currentTimeMillis() - BANC_EXPIRE_TIME);
 
             if (date.before(expireDate) || date.before(pre))
                 stringDateExpired = new SimpleDateFormat("dd MMM yyyy").format(date);
@@ -963,7 +969,7 @@ public class staffbot_banc extends Module {
 
         if (lastestWarnings.size() > 0) {
 
-            m_botAction.sendSmartPrivateMessage(stafferName, " ------ Latest warnings (last 2 weeks): ");
+            m_botAction.sendSmartPrivateMessage(stafferName, " ------ Latest warnings (last " + BANC_EXPIRE_TIME_TEXT + "): ");
             m_botAction.remotePrivateMessageSpam(stafferName, lastestWarnings.toArray(new String[lastestWarnings.size()]));
         }
 
@@ -971,7 +977,7 @@ public class staffbot_banc extends Module {
             m_botAction.sendSmartPrivateMessage(stafferName, "There are " + expiredWarnings.size()
                     + " expired warnings. Use !search <player>:[limits]:[limitWarning] to see");
         else if (expiredWarnings.size() > 0) {
-            m_botAction.sendSmartPrivateMessage(stafferName, " ------ Expired warnings (more than 2 weeks): ");
+            m_botAction.sendSmartPrivateMessage(stafferName, " ------ Expired warnings (more than " + BANC_EXPIRE_TIME_TEXT + "): ");
             m_botAction.remotePrivateMessageSpam(stafferName, expiredWarnings.toArray(new String[lastestWarnings.size()]));
         }
 
@@ -1019,8 +1025,7 @@ public class staffbot_banc extends Module {
 
                 m_botAction.SQLClose(resultSet);
 
-                int expiredTime = Tools.TimeInMillis.WEEK * 2; // last month
-                Date expireDate = new java.sql.Date(System.currentTimeMillis() - expiredTime);
+                Date expireDate = new java.sql.Date(System.currentTimeMillis() - BANC_EXPIRE_TIME);
 
                 Iterator<String> i = nicks.iterator();
                 while (i.hasNext()) {
@@ -1422,8 +1427,12 @@ public class staffbot_banc extends Module {
      *            player who issued the command
      * @param parameters
      *            any command parameters
+     * @param showLBHelp
+     *            True if you want the "!listban -help" line displayed at the bottom.
+     * @param sinceStart
+     *            True if you want the records going back to the beginning of time.
      */
-    private void cmd_ListBan(String name, String parameters, boolean showLBHelp, boolean twoWeeks) {
+    private void cmd_ListBan(String name, String parameters, boolean showLBHelp, boolean sinceStart) {
         int viewcount = 10;
         parameters = parameters.toLowerCase();
         String sqlWhere = "";
@@ -1621,12 +1630,12 @@ public class staffbot_banc extends Module {
 
             } else {
                 if (sqlWhere.length() > 0) {
-                    if (!twoWeeks)
-                        sqlWhere = "WHERE (fdExpired IS NULL OR (fdExpired > DATE_SUB(NOW(), INTERVAL 2 WEEK))) AND " + sqlWhere;
+                    if (!sinceStart)
+                        sqlWhere = "WHERE (fdExpired IS NULL OR (fdExpired > DATE_SUB(NOW(), " + SQL_EXPIRE_TIME + "))) AND " + sqlWhere;
                     else
                         sqlWhere = "WHERE " + sqlWhere;
-                } else if (!twoWeeks)
-                    sqlWhere = "WHERE (fdExpired IS NULL OR (fdExpired > DATE_SUB(NOW(), INTERVAL 2 WEEK)))";
+                } else if (!sinceStart)
+                    sqlWhere = "WHERE (fdExpired IS NULL OR (fdExpired > DATE_SUB(NOW(), " + SQL_EXPIRE_TIME + ")))";
 
                 sqlQuery = "SELECT (fnElapsed < fnDuration OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fnElapsed, fcStaffer, fdCreated, fdExpired, fbLifted FROM tblBanc "
                         + sqlWhere + " ORDER BY fnID DESC LIMIT 0," + viewcount;
@@ -1745,12 +1754,10 @@ public class staffbot_banc extends Module {
                         String timeStr = argument.substring(3);
                         argument = argument.substring(0 , 3);                        
                         int time;
-                        int timeToTell = 0;
                         
                         if (timeStr.contains("d")) {
                             String justTime = timeStr.substring(0, timeStr.indexOf("d"));            
                             try { 
-                                timeToTell = Integer.parseInt(justTime);
                                 time = Integer.parseInt(justTime) * 1440;            
                             } catch (NumberFormatException e) {
                                 m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please format the time as  -d=<duration>");
@@ -1759,7 +1766,6 @@ public class staffbot_banc extends Module {
                         } else if (timeStr.contains("h")) {
                             String justTime = timeStr.substring(0, timeStr.indexOf("h"));            
                             try { 
-                                timeToTell = Integer.parseInt(justTime);
                                 time = Integer.parseInt(justTime) * 60;            
                             } catch (NumberFormatException e) {
                                 m_botAction.sendSmartPrivateMessage(name, "Syntax error. Please format the time as  -d=<duration>");

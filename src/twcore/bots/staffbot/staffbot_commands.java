@@ -415,6 +415,7 @@ public class staffbot_commands extends Module {
 	    }
 	}
     
+    @SuppressWarnings("unused")
     private void prepareMessage(String name, String[] message) {
         if (m_chat) {
             for (int i = 0; i < message.length; i++) {
