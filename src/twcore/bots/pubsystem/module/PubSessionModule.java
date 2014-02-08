@@ -5,7 +5,6 @@ import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
-import twcore.core.OperatorList;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
@@ -29,8 +28,6 @@ public class PubSessionModule extends AbstractModule {
     static int LM_COMP_RATIO_BETTER_THAN = 1;
     static int LM_COMP_DEATHS_EQUAL = 2;
     static int LM_SHIP_ANY = -1;
-    
-    private OperatorList oplist;
     
 	public PubSessionModule(BotAction botAction, PubContext context) {
 		super(botAction, context, "Session");		

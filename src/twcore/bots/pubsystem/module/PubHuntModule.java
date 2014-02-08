@@ -41,10 +41,11 @@ public class PubHuntModule extends AbstractModule {
 	
 	private boolean isRunning = false;
 	
-	private boolean startBetweenFlagTimeGame = false;
+	@SuppressWarnings("unused")
+    private boolean startBetweenFlagTimeGame = false;
 	
 	// This variable make sure to random the selection of prey
-	private boolean setPreyReverse = false;
+	//private boolean setPreyReverse = false;
 
 	public PubHuntModule(BotAction botAction, PubContext context) {
 		super(botAction, context, "Hunt");

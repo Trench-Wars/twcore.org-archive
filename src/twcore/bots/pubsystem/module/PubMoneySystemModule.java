@@ -2572,11 +2572,6 @@ public class PubMoneySystemModule extends AbstractModule {
         
         if (m_botAction.getOperatorList().isSmod(sender) || couponOperators.contains(sender.toLowerCase())) {
 
-
-            // Coupon System commands
-            boolean operator = couponOperators.contains(sender.toLowerCase());
-            boolean smod = m_botAction.getOperatorList().isSmod(sender);
-
             // (Operator/SMOD only)
             if (command.startsWith("!coupon") || command.startsWith("!c") ) {
 
