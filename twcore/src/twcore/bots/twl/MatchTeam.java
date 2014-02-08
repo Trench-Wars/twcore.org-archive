@@ -418,6 +418,7 @@ public class MatchTeam
 ;
 
     // sets the captain
+    @SuppressWarnings("unused")
     public void command_setcaptain(String name, String[] parameters)
     {
         // requirements:

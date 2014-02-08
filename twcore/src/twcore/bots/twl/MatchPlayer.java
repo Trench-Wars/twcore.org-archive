@@ -38,7 +38,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	private LagRequestTask lagRequestTask;
 	private int maxCurrPing;
 	private double maxPacketLoss;
-	private double maxSlowPackets;
+	@SuppressWarnings("unused")
+    private double maxSlowPackets;
 	private double maxStandardDeviation;
 	private int maxNumSpikes;
 
@@ -772,8 +773,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			int currentPing = playerLagInfo.getCurrentPing();
 			double s2c = playerLagInfo.getS2C();
 			double c2s = playerLagInfo.getC2S();
-			double s2cSlowPercent = playerLagInfo.getS2CSlowPercent();
-			double c2sSlowPercent = playerLagInfo.getC2SSlowPercent();
+			//double s2cSlowPercent = playerLagInfo.getS2CSlowPercent();
+			//double c2sSlowPercent = playerLagInfo.getC2SSlowPercent();
 			double spikeSD = playerLagInfo.getSpikeSD();
 			int numSpikes = playerLagInfo.getNumSpikes();
 			/*
