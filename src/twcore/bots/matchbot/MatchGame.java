@@ -50,14 +50,14 @@ public class MatchGame {
     String m_matchTypeName;
     int m_fnTeam1Score = 0;
     int m_fnTeam2Score = 0;
-    int m_fnMatchTypeID = 0;
+    int m_fnMatchTypeID = MatchTypeID.NONE;
     int m_fnMatchID = 0;
     int m_fnTeam1ID = 0;
     int m_fnTeam2ID = 0;
 
     int m_gameState = 0;
     int playersNum = 0;
-
+    
     // bot spec
     MatchPlayer playerSpectating;
 
@@ -186,15 +186,15 @@ public class MatchGame {
         try {
             int ladderTimeout = -1;
             switch (m_fnMatchTypeID) {
-                case 4:
+                case MatchTypeID.TWDD:
                     ladderTimeout = 6;
-                case 5:
+                case MatchTypeID.TWJD:
                     ladderTimeout = 6;
-                case 6:
+                case MatchTypeID.TWBD:
                     ladderTimeout = 10;
-                case 13:
+                case MatchTypeID.TWSD:
                     ladderTimeout = 10;
-                case 17:
+                case MatchTypeID.TWFD:
                     ladderTimeout = 10;
             }
             if (ladderTimeout == -1)
@@ -431,7 +431,7 @@ public class MatchGame {
 
     public void handleEvent(Prize event) {
         if (m_curRound != null) {
-            if (m_fnMatchTypeID == 6)
+            if (m_fnMatchTypeID == MatchTypeID.TWBD)
                 m_curRound.handleEvent(event);
 
         }
@@ -705,8 +705,8 @@ public class MatchGame {
                     MatchPlayer player = i.next();
 
                     if (playerSpectating == null || playerSpectating.m_fnPlayerState != 1
-                            || (m_fnMatchTypeID == 6 && playerSpectating.getShipType() != 5)) {
-                        if (m_fnMatchTypeID == 6 && player.getShipType() == 5) {
+                            || (m_fnMatchTypeID == MatchTypeID.TWBD && playerSpectating.getShipType() != Tools.Ship.TERRIER)) {
+                        if (m_fnMatchTypeID == MatchTypeID.TWBD && player.getShipType() == Tools.Ship.TERRIER) {
                             // Only if ter
                             m_botAction.spectatePlayer(player.m_player.getPlayerID());
                             playerSpectating = player;

@@ -33,6 +33,7 @@ import twcore.core.stats.Statistics;
 import twcore.core.util.Tools;
 import twcore.core.util.Tools.Prize;
 import twcore.core.util.json.JSONValue;
+import twcore.core.lvz.Objset;
 
 public class MatchPlayer implements Comparable<MatchPlayer> {
     /** This class holds 2 connections: 1 to the SS game, and 1 to the DB.
@@ -53,6 +54,7 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
     BotAction m_botAction;
     Player m_player;
     BotSettings m_rules;
+    Objset m_objset;
 
     String resolution = "";
     String MID = "";
@@ -88,7 +90,7 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
                     3 - Lagged (m_fnSpecAt deaths)
                     4 - Out (m_fnSpecAt deaths)
      */
-    int m_fnPlayerState = 0;
+    int m_fnPlayerState = NOT_IN_GAME;
     int m_fnMaxLagouts;
 
     boolean m_aboutToBeSubbed = false;
@@ -127,6 +129,14 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
     private static long SPAWN_TIME = 6000;
     private long lastDeath = 0;
 
+    // K/D LVZ - Base obj#s for K/D graphics
+    public static int LVZ_KILL_HUNDREDS = 1940;
+    public static int LVZ_KILL_TENS = 1950;
+    public static int LVZ_KILL_ONES = 1960;    
+    public static int LVZ_DEATH_HUNDREDS = 1970;
+    public static int LVZ_DEATH_TENS = 1980;
+    public static int LVZ_DEATH_ONES = 1990;
+    
     /** Creates a new instance of MatchPlayer */
     public MatchPlayer(String fcPlayerName, MatchTeam Matchteam) {
         useDatabase = false;
@@ -139,10 +149,11 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
         m_fnSpecAt = m_rules.getInt("deaths");
         m_player = m_botAction.getPlayer(m_fcPlayerName);
         m_fnFrequency = m_player.getFrequency();
-        m_fnPlayerState = 0;
+        m_fnPlayerState = NOT_IN_GAME;
         playerLagInfo = new PlayerLagInfo(m_botAction, fcPlayerName, m_rules.getInt("spikesize"));
         playerLagInfo.updateLag();
         m_statTracker = new TotalStatistics();
+        m_objset = m_botAction.getObjectSet();
         updateLagThreshold();
 
         if ((m_rules.getInt("storegame") != 0) || (m_rules.getInt("rosterjoined") != 0))
@@ -207,7 +218,7 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
     public void storePlayerResult(int fnMatchRoundID, int fnTeam) {
         try {
             int substituted = 0;
-            if (m_fnPlayerState == 2)
+            if (m_fnPlayerState == SUBSTITUTED)
                 substituted = 1;
 
             if (MID == "")
@@ -345,13 +356,13 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
 
         // m_fnPlayerState always = 1 at this point 
         // because getInGame() set it to 1 as soon as the player get in before the start of the game.
-        if (m_fnPlayerState == 0) {
-            m_fnPlayerState = 1;
+        if (m_fnPlayerState == NOT_IN_GAME) {
+            m_fnPlayerState = IN_GAME;
             m_statTracker.startNow();
             lagRequestTask = new LagRequestTask();
             m_botAction.scheduleTaskAtFixedRate(lagRequestTask, 0, m_rules.getInt("lagcheckdelay") * 1000);
         }
-
+        resetPersonalScoreLVZ();
     }
 
     // report kill
@@ -368,6 +379,7 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
         int killeeFreq = m_botAction.getPlayer(killeeID).getFrequency();
 
         m_statTracker.reportKill(fnPoints, killeeID, m_fnFrequency, shipType, killeeFreq);
+        updatePersonalScoreLVZ();
     }
 
     /**
@@ -410,11 +422,11 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
         if (m_statTracker.getStatistic(Statistics.DEATHS) == 1)
             m_botAction.sendUnfilteredPrivateMessage(getPlayerName(), "*einfo");
         // Lag check timer cancel
-        if ((((m_team.m_round.getGame().m_fnMatchTypeID == 17) && (m_statTracker.getTotalStatistic(Statistics.DEATHS) >= m_fnSpecAt)) || (m_statTracker.getStatistic(Statistics.DEATHS) >= m_fnSpecAt))
+        if ((((m_team.m_round.getGame().m_fnMatchTypeID == MatchTypeID.TWFD) && (m_statTracker.getTotalStatistic(Statistics.DEATHS) >= m_fnSpecAt)) || (m_statTracker.getStatistic(Statistics.DEATHS) >= m_fnSpecAt))
                 && (m_rules.getString("winby").equals("kills"))) {
             m_statTracker.getTotalStatistic(getDeaths());
-            if (m_fnPlayerState != 2) {
-                m_fnPlayerState = 4;
+            if (m_fnPlayerState != SUBSTITUTED) {
+                m_fnPlayerState = OUT;
                 if (lagRequestTask != null)
                     m_botAction.cancelTask(lagRequestTask);
             }
@@ -422,6 +434,7 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
             m_logger.specAndSetFreq(m_fcPlayerName, m_team.getFrequency());
             m_logger.sendArenaMessage(getPlayerName() + " is out. " + getKills() + " wins " + getDeaths() + " losses");
         }
+        updatePersonalScoreLVZ();
     }
 
     // report death
@@ -456,7 +469,7 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
     public void reportSubstituted() {
         m_aboutToBeSubbed = false;
         resetOutOfBorderTime();
-        m_fnPlayerState = 2;
+        m_fnPlayerState = SUBSTITUTED;
 
         //cancel lag checks
         if (lagRequestTask != null)
@@ -535,8 +548,8 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
             m_player = null;
         if (lagRequestTask != null)
             m_botAction.cancelTask(lagRequestTask);
-        if (m_fnPlayerState == 1)
-            m_fnPlayerState = 3;
+        if (m_fnPlayerState == IN_GAME)
+            m_fnPlayerState = LAGGED;
         m_fnLaggedTime = System.currentTimeMillis();
 
         if (m_rules.getInt("storegame") != 0)
@@ -545,18 +558,53 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
 
     // report end of game
     public void reportEndOfGame() {
-        if (m_fnPlayerState == 1) {
+        if (m_fnPlayerState == IN_GAME) {
             m_statTracker.endNow();
             if (lagRequestTask != null)
                 m_botAction.cancelTask(lagRequestTask);
         }
+    }
+        
+    public void updatePersonalScoreLVZ() {
+        int numdeaths = getDeaths();        
+        int numkills = getKills();
+        String deaths = Tools.rightString("" + numdeaths, 3);
+        String kills = Tools.rightString("" + numkills, 3);
+        
+        m_objset.hideAllObjects( m_player.getPlayerID() );
+        
+        if( numkills >= 100 )
+            m_objset.showObject( m_player.getPlayerID(), LVZ_KILL_HUNDREDS + Integer.parseInt("" + kills.charAt(0)) );
+        if( numkills >= 10 )
+            m_objset.showObject( m_player.getPlayerID(), LVZ_KILL_TENS + Integer.parseInt("" + kills.charAt(1)) );
+        m_objset.showObject( m_player.getPlayerID(), LVZ_KILL_ONES + Integer.parseInt("" + kills.charAt(2)) );
+        
+        if( numdeaths >= 100 )
+            m_objset.showObject( m_player.getPlayerID(), LVZ_DEATH_HUNDREDS + Integer.parseInt("" + deaths.charAt(0)) );
+        if( numdeaths >= 10 )
+            m_objset.showObject( m_player.getPlayerID(), LVZ_DEATH_TENS + Integer.parseInt("" + deaths.charAt(1)) );
+        m_objset.showObject( m_player.getPlayerID(), LVZ_DEATH_ONES + Integer.parseInt("" + deaths.charAt(2)) );
+        
+        m_botAction.setObjects( m_player.getPlayerID() );        
+    }
+    
+    public void resetPersonalScoreLVZ() {
+        m_objset.hideAllObjects( m_player.getPlayerID() );
+        m_objset.showObject( m_player.getPlayerID(), LVZ_KILL_ONES );
+        m_objset.showObject( m_player.getPlayerID(), LVZ_DEATH_ONES );
+        m_botAction.setObjects( m_player.getPlayerID() );        
+    }
+    
+    public void clearPersonalScoreLVZ() {
+        m_objset.hideAllObjects( m_player.getPlayerID() );
+        m_botAction.setObjects( m_player.getPlayerID() );
     }
 
     // get in, but not started yet
     public void getInGame(boolean fbSilent) {
         resetOutOfBorderTime();
         m_logger.setFreqAndShip(m_fcPlayerName, m_fnFrequency, m_statTracker.getShipType());
-        m_fnPlayerState = 1;
+        m_fnPlayerState = IN_GAME;
         if (m_rules.getInt("checkforlag") == 1) {
             lagRequestTask = new LagRequestTask();
             int lagcheckdelay = m_rules.getInt("lagcheckdelay");
@@ -577,7 +625,7 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
     public void getOutOfGame() {
         resetOutOfBorderTime();
         m_logger.doubleSpec(m_fcPlayerName);
-        m_fnPlayerState = 0;
+        m_fnPlayerState = NOT_IN_GAME;
         if (lagRequestTask != null)
             m_botAction.cancelTask(lagRequestTask);
     }
@@ -606,13 +654,13 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
 
     // return the amount of deaths the scoreboard should count for him.
     public int getDeaths() {
-        if (m_rules.getString("winby").equals("killrace") || ((m_fnPlayerState >= 1) && (m_fnPlayerState <= 2)))
+        if (m_rules.getString("winby").equals("killrace") || ((m_fnPlayerState >= IN_GAME) && (m_fnPlayerState <= SUBSTITUTED)))
             return m_statTracker.getTotalStatistic(Statistics.DEATHS);
-        if (m_fnPlayerState == 0)
+        if (m_fnPlayerState == NOT_IN_GAME)
             return 0;
-        if (m_fnPlayerState == 3)
+        if (m_fnPlayerState == LAGGED)
             return m_fnSpecAt;
-        if (m_fnPlayerState == 4)
+        if (m_fnPlayerState == OUT)
             return m_fnSpecAt;
         return 0;
     }
@@ -628,10 +676,8 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
         return m_fnLagouts;
     }
 
-    public boolean isLagged() {
-        if (m_fnPlayerState == 3)
-            return true;
-        return false;
+    public boolean isLagged() {        
+        return (m_fnPlayerState == LAGGED);
     }
 
     public void setLagByBot(boolean b) {
@@ -643,36 +689,33 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
     }
 
     public boolean isReadyToPlay() {
-        if (((m_fnPlayerState == 0) || (m_fnPlayerState == 1)) && (!m_aboutToBeSubbed))
+        if (((m_fnPlayerState == NOT_IN_GAME) || (m_fnPlayerState == IN_GAME)) && (!m_aboutToBeSubbed))
             return true;
-        else
-            return false;
+        return false;
     }
 
     public boolean isAllowedToPlay() {
-        if (((m_fnPlayerState == 0) || (m_fnPlayerState == 1) || (m_fnPlayerState == 3)) && (!m_aboutToBeSubbed))
+        if (((m_fnPlayerState == NOT_IN_GAME) || (m_fnPlayerState == IN_GAME) || (m_fnPlayerState == LAGGED)) && (!m_aboutToBeSubbed))
             return true;
-        else
-            return false;
+        return false;
     }
 
     public boolean isWasInGame() {
-        if (((m_fnPlayerState == 0) || (m_fnPlayerState == 1) || (m_fnPlayerState == 3) || (m_fnPlayerState == 4)) && (!m_aboutToBeSubbed))
+        if (((m_fnPlayerState == NOT_IN_GAME) || (m_fnPlayerState == IN_GAME) || (m_fnPlayerState == LAGGED) || (m_fnPlayerState == OUT)) && (!m_aboutToBeSubbed))
             return true;
-        else
-            return false;
+        return false;
     }
 
     public String getPlayerStateName() {
-        if (m_fnPlayerState == 0)
+        if (m_fnPlayerState == NOT_IN_GAME)
             return "not in game";
-        else if (m_fnPlayerState == 1)
+        else if (m_fnPlayerState == IN_GAME)
             return "in game";
-        else if (m_fnPlayerState == 2)
+        else if (m_fnPlayerState == SUBSTITUTED)
             return "substituted";
-        else if (m_fnPlayerState == 3)
+        else if (m_fnPlayerState == LAGGED)
             return "lagged out";
-        else if (m_fnPlayerState == 4)
+        else if (m_fnPlayerState == OUT)
             return "out";
         return "";
     }
@@ -743,7 +786,7 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
     }
 
     public void kickOutOfGame() {
-        m_fnPlayerState = 4;
+        m_fnPlayerState = OUT;
         if (lagRequestTask != null)
             m_botAction.cancelTask(lagRequestTask);
 
@@ -842,7 +885,7 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
             	m_botAction.sendArenaMessage("C2S Slow Packets: " + c2sSlowPercent + "%.  S2C Slow Packets: " + s2cSlowPercent + "%.");
             	m_botAction.sendArenaMessage("Spike: +- " + spikeSD + "ms.  Number of spikes: " + numSpikes + ".");
             */
-            if (m_fnPlayerState == 1) {
+            if (m_fnPlayerState == IN_GAME) {
                 if (currentPing > maxCurrPing)
                     specForLag("Current ping is: " + currentPing + "ms.  Maximum allowed ping is: " + maxCurrPing + "ms.");
                 else if (s2c > maxPacketLoss)

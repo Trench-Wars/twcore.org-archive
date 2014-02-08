@@ -374,12 +374,12 @@ public class MatchRound {
             m_logger.setFreq(event.getPlayerName(), NOT_PLAYING_FREQ);
         }
 
-        // TWSDX ONLY:
-        if (m_fnRoundState == 3 && m_game.m_fnMatchTypeID == 13 && flagClaimed) {
+        // TWSD ONLY:
+        if (m_fnRoundState == 3 && m_game.m_fnMatchTypeID == MatchTypeID.TWSD && flagClaimed) {
             m_botAction.showObjectForPlayer(event.getPlayerID(), 744);
         }
-        // TWSDX ONLY: Let the player know about the !rules command
-        if (m_game.m_fnMatchTypeID == 13) {
+        // TWSD ONLY: Let the player know about the !rules command
+        if (m_game.m_fnMatchTypeID == MatchTypeID.TWSD) {
             m_botAction.sendPrivateMessage(event.getPlayerID(), "Private message me with \"!rules\" for an explanation on how to play TWSD");
         }
     }
@@ -413,7 +413,7 @@ public class MatchRound {
             int freq = player.getFrequency();
 
             // TWSD ONLY:
-            if (m_game.m_fnMatchTypeID == 13) {
+            if (m_game.m_fnMatchTypeID == MatchTypeID.TWSD) {
 
                 if (flagClaimed == false) {
                     // the flag was claimed for the first time, put the spider logo on the phantom flag
@@ -560,7 +560,7 @@ public class MatchRound {
                     endGame();
 
                 // TWSD ONLY:
-                if (m_game.m_fnMatchTypeID == 13) {
+                if (m_game.m_fnMatchTypeID == MatchTypeID.TWSD) {
 
                     if (m_team1.hasFlag() && m_team1.getPlayer(killeeName, true) != null && event.getKilleeID() == m_team1.getFlagCarrier()) {
                         // team1 had the flag and the killed one was from team1 and it was the flagcarrier, now the killer is the flagcarrier.
@@ -671,7 +671,7 @@ public class MatchRound {
              */
             
             // this is the warper for DD's (not to be used until after twl 13')
-            if (m_game.m_fnMatchTypeID == 9) {
+            if (m_game.m_fnMatchTypeID == MatchTypeID.PRACTICE_WB) {
                 int y = event.getYLocation() / 16;
                 if (y < DD_WARP[3]) {
                     int[] xy = getSafeSpawnPoint(event.getPlayerID());
@@ -828,7 +828,7 @@ public class MatchRound {
         }
 
         // TWSDX ONLY
-        if (m_game.m_fnMatchTypeID == 13) {
+        if (m_game.m_fnMatchTypeID == MatchTypeID.TWSD) {
             help.add("!rules                                   - How to play TWSD");
         }
 
@@ -840,7 +840,7 @@ public class MatchRound {
             }
             help.add("!lag <player>                            - show <player>'s lag");
             help.add("!startinfo                               - shows who started this game");
-            if (m_game.m_fnMatchTypeID == 9) {
+            if (m_game.m_fnMatchTypeID == MatchTypeID.PRACTICE_WB) {
                 help.add("!radius <tiles> <count>                  - Set spawn radius to <tiles>, max <count> optional");
                 help.add("!shields                                 - Toggle shields prized on spawn");
                 help.add("!alert                                   - Toggle the spawn detection alert pm");
@@ -944,7 +944,7 @@ public class MatchRound {
             command_rpd(name, parameters);
 
         //TWSDX ONLY
-        if (command.equals("!rules") && m_game.m_fnMatchTypeID == 13)
+        if (command.equals("!rules") && m_game.m_fnMatchTypeID == MatchTypeID.TWSD)
             command_rules(name, parameters);
 
         if (command.length() > 3) {
@@ -1418,7 +1418,7 @@ public class MatchRound {
                 checkBlueout();
 
                 // TWSDX ONLY
-                if (m_game.m_fnMatchTypeID == 13) {
+                if (m_game.m_fnMatchTypeID == MatchTypeID.TWSD) {
                     m_botAction.resetFlagGame();
 
                     // Bot enters game at center to center the flag
@@ -1541,7 +1541,7 @@ public class MatchRound {
         m_logger.shipResetAll();
 
         // TWSDX ONLY
-        if (m_game.m_fnMatchTypeID != 13) {
+        if (m_game.m_fnMatchTypeID != MatchTypeID.TWSD) {
             m_logger.resetFlagGame();
         }
 
@@ -1556,7 +1556,7 @@ public class MatchRound {
         flagClaimed = false;
 
         // TWSDX ONLY: Announce the !rules command after starting the game in public chat
-        if (m_game.m_fnMatchTypeID == 13) {
+        if (m_game.m_fnMatchTypeID == MatchTypeID.TWSD) {
             m_botAction.sendPublicMessage("Private message me with \"!rules\" for an explanation on how to play TWSD");
         }
 
@@ -1580,7 +1580,7 @@ public class MatchRound {
 
         }
         
-        if (m_game.m_fnMatchTypeID == 9) {
+        if (m_game.m_fnMatchTypeID == MatchTypeID.PRACTICE_WB) {
             m_botAction.setPlayerPositionUpdating(300);
             maxCount = m_rules.getInt("maxcount");
         }
@@ -1688,7 +1688,7 @@ public class MatchRound {
             toggleBlueout(false);
 
             // TWSD ONLY: Remove the spider logo from middle & Update the flag status at the scoreboard (turn it off)
-            if (m_game.m_fnMatchTypeID == 13) {
+            if (m_game.m_fnMatchTypeID == MatchTypeID.TWSD) {
                 m_botAction.hideObject(744);
             }
 
@@ -1755,6 +1755,14 @@ public class MatchRound {
                 public void run() {
                     if (m_scoreBoard != null) {
                         m_scoreBoard.hideAllObjects();
+                        for( int i=0; i<10; i++ ) {
+                            m_scoreBoard.hideObject( MatchPlayer.LVZ_KILL_ONES + i);
+                            m_scoreBoard.hideObject( MatchPlayer.LVZ_KILL_TENS + i);
+                            m_scoreBoard.hideObject( MatchPlayer.LVZ_KILL_HUNDREDS + i);
+                            m_scoreBoard.hideObject( MatchPlayer.LVZ_DEATH_ONES + i);
+                            m_scoreBoard.hideObject( MatchPlayer.LVZ_DEATH_TENS + i);
+                            m_scoreBoard.hideObject( MatchPlayer.LVZ_DEATH_HUNDREDS + i);
+                        }
                         m_botAction.setObjects();
                     }
                     m_generalTime = 0;
@@ -2101,8 +2109,17 @@ public class MatchRound {
         if (updateScores != null)
             m_botAction.cancelTask(updateScores);
 
-        if (m_scoreBoard != null)
+        if (m_scoreBoard != null) {
             m_scoreBoard.hideAllObjects();
+            for( int i=0; i<10; i++ ) {
+                m_scoreBoard.hideObject( MatchPlayer.LVZ_KILL_ONES + i);
+                m_scoreBoard.hideObject( MatchPlayer.LVZ_KILL_TENS + i);
+                m_scoreBoard.hideObject( MatchPlayer.LVZ_KILL_HUNDREDS + i);
+                m_scoreBoard.hideObject( MatchPlayer.LVZ_DEATH_ONES + i);
+                m_scoreBoard.hideObject( MatchPlayer.LVZ_DEATH_TENS + i);
+                m_scoreBoard.hideObject( MatchPlayer.LVZ_DEATH_HUNDREDS + i);
+            }
+        }
 
         m_botAction.setObjects();
         m_generalTime = 0;
