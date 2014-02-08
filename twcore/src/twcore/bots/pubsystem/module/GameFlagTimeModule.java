@@ -1306,7 +1306,9 @@ public class GameFlagTimeModule extends AbstractModule {
         killsInBasePercent = sort(killsInBasePercent, false);
 
         // Achievements composed of more than 1 variable
+        @SuppressWarnings("unchecked")
         LinkedHashMap<String, Integer> bestTerrier = getBestOf(attaches, killsInBasePercent, lessdeaths);
+        @SuppressWarnings("unchecked")
         LinkedHashMap<String, Integer> basingKing = getBestOf(killsInBase, killsInBasePercent);
 
         // Make sure we have only terrier in bestTerrier

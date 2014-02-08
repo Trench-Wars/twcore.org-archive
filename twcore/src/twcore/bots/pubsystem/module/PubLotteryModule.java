@@ -86,6 +86,13 @@ public class PubLotteryModule extends AbstractModule {
     public void requestEvents(EventRequester eventRequester) {
 
     }
+    
+    /**
+     * Returns the status of this module.
+     */
+    public boolean isEnabled() {
+        return lotteryOn;
+    }
 
     /**
      * Checks the player's submitted ticket.

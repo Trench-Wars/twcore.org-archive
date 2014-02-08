@@ -63,12 +63,13 @@ public class PubUtilModule extends AbstractModule {
     private HashMap<String, Location> locations;
     private TreeMap<String, Staffer> staffers;
     
-    private TimerTask checkForAntiInSpawn;
+    //Part of anti in spawn check.
+    //private TimerTask checkForAntiInSpawn;
     
     private boolean privFreqEnabled = true;     // True if private frequencies are enabled    
     private boolean levAttachEnabled = true;    // True if Lev can attach on public freq
     private long uptime = 0;
-    private String dummy;   // So it's not reinstantiated w/ the constantly-used method getLocation
+    //private String dummy;   // So it's not reinstantiated w/ the constantly-used method getLocation
     //private boolean tilesetEnabled = false;
     //private HashSet<Region> locals;
 
