@@ -362,6 +362,9 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
             lagRequestTask = new LagRequestTask();
             m_botAction.scheduleTaskAtFixedRate(lagRequestTask, 0, m_rules.getInt("lagcheckdelay") * 1000);
         }
+        if(m_player == null) 
+            return;
+        
         resetPersonalScoreLVZ();
     }
 
