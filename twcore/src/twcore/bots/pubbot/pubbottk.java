@@ -851,6 +851,7 @@ public class pubbottk extends PubBotModule {
             return m_tkLog;
         }
 
+        @SuppressWarnings("unused")
         public String getLastTKd() {
         	return m_lastTKd;
         }
@@ -891,6 +892,7 @@ public class pubbottk extends PubBotModule {
         	return m_repeatKiller;
         }
 
+        @SuppressWarnings("unused")
         public long getLastTKTime() {
             return m_lastTKTime;
         }

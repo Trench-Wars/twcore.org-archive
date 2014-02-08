@@ -2,7 +2,6 @@ package twcore.bots.pubbot;
 
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -48,7 +47,7 @@ public class pubbotbanc extends PubBotModule {
 
     private static final long INFINITE_DURATION = 0;
     private static final int MAX_NAME_LENGTH = 19;
-    private static final int MAX_IDLE_TIME = 10; //mins
+    //private static final int MAX_IDLE_TIME = 10; //mins
     private static final int BANC_CONFIRM_TIME = 3000; //ms
     
     private TimerTask initActiveBanCs;
@@ -712,6 +711,7 @@ public class pubbotbanc extends PubBotModule {
         public void handleIdle(String msg) {
             String name = msg.substring(0, msg.indexOf(":"));
             if (!isBanced(name)) return;
+            /* Moving to afk arena is currently disabled.
             int sec = 0;
             try {
                 sec = Integer.valueOf(msg.substring(msg.indexOf("Idle:") + 6, msg.lastIndexOf("s")-1));
@@ -719,9 +719,9 @@ public class pubbotbanc extends PubBotModule {
                 Tools.printStackTrace(e);
                 return;
             }
-            // No longer sending to afk arena
-            //if (sec > MAX_IDLE_TIME * 60)
-            //    sendIdler(name);
+            if (sec > MAX_IDLE_TIME * 60)
+                sendIdler(name);
+            */
         }
 
         public void add(String name, BanC banc) {

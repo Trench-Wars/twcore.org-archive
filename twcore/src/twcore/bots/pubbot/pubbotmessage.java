@@ -89,6 +89,10 @@ public class pubbotmessage extends PubBotModule {
 		
 	}
 	
+	public String getBotName() {
+	    return botName;
+	}
+	
 	private class Queue<T> {
 		
 		ArrayList<T> objects;
@@ -111,9 +115,11 @@ public class pubbotmessage extends PubBotModule {
 			objects.add(obj);
 		}
 
+		/* Unused getter
 		public int size() {
 			return objects.size();
 		}
+		*/
 	}
 
 }
