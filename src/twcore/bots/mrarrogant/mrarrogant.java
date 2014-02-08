@@ -947,6 +947,7 @@ public class mrarrogant extends SubspaceBot
       return date;
     }
 
+    /* Unused getters.
     public String getArena()
     {
       return arena;
@@ -966,6 +967,7 @@ public class mrarrogant extends SubspaceBot
     {
       return command;
     }
+    */
 
     public String toString()
     {
