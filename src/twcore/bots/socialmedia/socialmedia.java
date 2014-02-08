@@ -250,9 +250,10 @@ public class socialmedia extends SubspaceBot {
             }
 
             if (event.getMessageType() == Message.ARENA_MESSAGE) {
+                /*
                 String arenamsg = event.getMessage();
                 String eventmsg = arenamsg.toLowerCase();
-                /*if (ba.getBotName().equals(twitterBot)) {
+                if (ba.getBotName().equals(twitterBot)) {
                     if (eventmsg.contains("?go base") || eventmsg.contains("?go wbduel") || eventmsg.contains("?go spidduel") || eventmsg.contains("?go javduel")
                             || eventmsg.contains("?go hockey")) {
                         try {
