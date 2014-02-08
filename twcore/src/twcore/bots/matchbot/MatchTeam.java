@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.HashSet;
+//import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -228,7 +228,7 @@ public class MatchTeam {
                 }
 
                 // TWSD ONLY:
-                if (m_round.getGame().m_fnMatchTypeID == 13) {
+                if (m_round.getGame().m_fnMatchTypeID == MatchTypeID.TWSD) {
                     int playerid = m_botAction.getPlayerID(p.getPlayerName());
                     if (this.m_flagOwned && m_flagCarrierID == playerid) {
                         // Reset partial flag game - flagcarrier specced
@@ -269,7 +269,8 @@ public class MatchTeam {
 
                 int score = event.getKilledPlayerBounty();
 
-                if (m_round.m_game.m_fnMatchTypeID == 13 && m_flagOwned) { // ONLY TWSD which has MatchType=13
+                // Only TWSD
+                if (m_round.m_game.m_fnMatchTypeID == MatchTypeID.TWSD && m_flagOwned) {
                     score = score * (m_round.m_game.settings_FlaggerKillMultiplier + 1);
                 }
                 p.reportKill(score, event.getKilleeID());
@@ -293,7 +294,7 @@ public class MatchTeam {
             }
 
             // TWSD ONLY:
-            if (m_round.getGame().m_fnMatchTypeID == 13) {
+            if (m_round.getGame().m_fnMatchTypeID == MatchTypeID.TWSD) {
                 int playerid = m_botAction.getPlayerID(p.getPlayerName());
                 if (this.m_flagOwned && m_flagCarrierID == playerid) {
                     // Reset partial flag game - flagcarrier specced
@@ -765,15 +766,15 @@ public class MatchTeam {
                 parameters[0] = p.getPlayerName();
 
                 // if twfd gametype
-                if (m_round.getGame().m_fnMatchTypeID == 17) {
+                if (m_round.getGame().m_fnMatchTypeID == MatchTypeID.TWFD) {
                     if (!(CheckLine(fnShip, 0) == true)) {
-                        m_logger.sendPrivateMessage(name, "You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
+                        m_logger.sendPrivateMessage(name, "Your line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
                         return;
                     }
                 }
 
                 // if twdd gametype
-                if (m_round.getGame().m_fnMatchTypeID == 4) {
+                if (m_round.getGame().m_fnMatchTypeID == MatchTypeID.TWDD) {
                     debug("Doing Resolution Check for: " + p.getPlayerName() + " cap: " + name);
                     ResCheck rc = new ResCheck(p.getPlayerName(), name, fnShip, ADD);
                     resCheck.put(p.getPlayerName().toLowerCase(), rc);
@@ -786,7 +787,7 @@ public class MatchTeam {
                 if (answer.equals("yes")) {
 
                     m_logger.sendPrivateMessage(name, "Player " + p.getPlayerName() + " added to " + m_fcTeamName);
-                    m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game");
+                    m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game.");
                     addInfo.add(p.getPlayerName().toLowerCase());
                     einfoer.add(p.getPlayerName());
 
@@ -843,7 +844,7 @@ public class MatchTeam {
             oldShip = p.getShipType();
 
             //if twfd gametype
-            if (m_round.getGame().m_fnMatchTypeID == 17) {
+            if (m_round.getGame().m_fnMatchTypeID == MatchTypeID.TWFD) {
                 if (!(CheckLine(0, oldShip) == true)) {
                     m_logger.sendPrivateMessage(name, "You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
                     return;
@@ -1011,7 +1012,7 @@ public class MatchTeam {
                                         if ((m_rules.getInt("maxship" + newShip) == 0)
                                                 || (m_rules.getInt("maxship" + newShip) > getPlayersRosteredInShip(newShip))) {
                                             //if twfd gametype
-                                            if (m_round.getGame().m_fnMatchTypeID == 17) {
+                                            if (m_round.getGame().m_fnMatchTypeID == MatchTypeID.TWFD) {
                                                 if (!(CheckLine(newShip, oldShip) == true)) {
                                                     m_logger.sendPrivateMessage(name, "You're line would be invalid. It must contain at least 1 Warbird, 1 Spider, and 1 Lancaster");
                                                     return;
@@ -1129,7 +1130,7 @@ public class MatchTeam {
             // put player back in, returns message to report if it's succesful
 
             //if twdd gametype
-            if (m_round.getGame().m_fnMatchTypeID == 4) {
+            if (m_round.getGame().m_fnMatchTypeID == MatchTypeID.TWDD) {
                 ResCheck rc = new ResCheck(lagger, LAG);
                 rc.p = p;
                 if (commandByOther)
@@ -1212,7 +1213,7 @@ public class MatchTeam {
                     pA = getPlayer(playerA);
                     if (pA != null) {
                         //if twdd gametype
-                        if (m_round.getGame().m_fnMatchTypeID == 4) {
+                        if (m_round.getGame().m_fnMatchTypeID == MatchTypeID.TWDD) {
                             playerB = m_botAction.getFuzzyPlayerName(playerB);
                             if (playerB != null) {
                                 ResCheck rc = new ResCheck(playerB, playerA, name, pA, SUB);
