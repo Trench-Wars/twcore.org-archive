@@ -98,6 +98,7 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
     boolean m_switchedShip = false;
     boolean m_lagByBot = false;
     boolean m_checkedIPMID = false;
+    boolean m_showPersonalScore = true;
 
     // Constants
     static final int NOT_IN_GAME = 0;
@@ -144,10 +145,10 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
         m_botAction = m_team.m_botAction;
         m_rules = m_team.m_rules;
         m_logger = m_team.m_logger;
+        m_player = m_botAction.getPlayer(m_fcPlayerName);
         m_fcPlayerName = fcPlayerName;
         m_fnMaxLagouts = m_rules.getInt("lagouts");
         m_fnSpecAt = m_rules.getInt("deaths");
-        m_player = m_botAction.getPlayer(m_fcPlayerName);
         m_fnFrequency = m_player.getFrequency();
         m_fnPlayerState = NOT_IN_GAME;
         playerLagInfo = new PlayerLagInfo(m_botAction, fcPlayerName, m_rules.getInt("spikesize"));
@@ -362,8 +363,6 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
             lagRequestTask = new LagRequestTask();
             m_botAction.scheduleTaskAtFixedRate(lagRequestTask, 0, m_rules.getInt("lagcheckdelay") * 1000);
         }
-        if(m_player == null) 
-            return;
         
         resetPersonalScoreLVZ();
     }
@@ -569,6 +568,8 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
     }
         
     public void updatePersonalScoreLVZ() {
+        if (m_player == null || !m_showPersonalScore )
+            return;
         int numdeaths = getDeaths();        
         int numkills = getKills();
         String deaths = Tools.rightString("" + numdeaths, 3);
@@ -592,6 +593,8 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
     }
     
     public void resetPersonalScoreLVZ() {
+        if (m_player == null || !m_showPersonalScore)
+            return;
         m_objset.hideAllObjects( m_player.getPlayerID() );
         m_objset.showObject( m_player.getPlayerID(), LVZ_KILL_ONES );
         m_objset.showObject( m_player.getPlayerID(), LVZ_DEATH_ONES );
@@ -599,8 +602,23 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
     }
     
     public void clearPersonalScoreLVZ() {
+        if (m_player == null)
+            return;
         m_objset.hideAllObjects( m_player.getPlayerID() );
         m_botAction.setObjects( m_player.getPlayerID() );
+    }
+    
+    public boolean togglePersonalScoreLVZ() {
+        if (m_player == null)
+            return false;
+        m_showPersonalScore = !m_showPersonalScore;
+        
+        if (m_showPersonalScore)
+            updatePersonalScoreLVZ();
+        else
+            clearPersonalScoreLVZ();
+        
+        return m_showPersonalScore;
     }
 
     // get in, but not started yet
