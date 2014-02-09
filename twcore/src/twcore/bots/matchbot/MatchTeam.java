@@ -606,11 +606,14 @@ public class MatchTeam {
             if (m_round.m_fnRoundState == 1) {
                 help.add("!list                                    - lists all players on this team");
                 help.add("!lagout                                  - puts you back in the game");
-            } else if (m_round.m_fnRoundState == 3) {
+            }
+            /*
+            else if (m_round.m_fnRoundState == 3) {
                 help.add("!list                                    - lists all players on this team");
                 help.add("!lagout                                  - puts you back in the game");
-            }
-            help.add("!checkme                                 - tells you if you can play from that computer");
+            } */
+            help.add("!checkme                                 - tells you if you can play from this computer");
+            help.add("!showkd                                  - toggles showing K/D display above radar");
         }
 
         return help;
@@ -682,13 +685,17 @@ public class MatchTeam {
             } else if (getPlayer(name) != null) {
                 if (command.equals("!list"))
                     command_list(name, parameters);
-                if ((command.equals("!lagout")) && (parameters.length == 0))
+                else if ((command.equals("!lagout")) && (parameters.length == 0))
                     command_lagout(name, parameters);
-                if (command.equals("!checkme")) {
+                else if (command.equals("!checkme")) {
                     m_botAction.sendUnfilteredPrivateMessage(name, "*info");
                     checkPlayerMID.put(name, true);
+                } else if (command.equals("!showkd")) {
+                    MatchPlayer mp = getPlayer(name);
+                    if (mp != null)
+                        m_botAction.sendPrivateMessage(name, "Personal K/D display: "
+                                + ( mp.togglePersonalScoreLVZ() ? "[ON]" : "[OFF]"));
                 }
-
             }
         } catch (Exception e) {}
 
