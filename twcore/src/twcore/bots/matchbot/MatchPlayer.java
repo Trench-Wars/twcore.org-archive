@@ -145,8 +145,8 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
         m_botAction = m_team.m_botAction;
         m_rules = m_team.m_rules;
         m_logger = m_team.m_logger;
-        m_player = m_botAction.getPlayer(m_fcPlayerName);
         m_fcPlayerName = fcPlayerName;
+        m_player = m_botAction.getPlayer(m_fcPlayerName);
         m_fnMaxLagouts = m_rules.getInt("lagouts");
         m_fnSpecAt = m_rules.getInt("deaths");
         m_fnFrequency = m_player.getFrequency();
