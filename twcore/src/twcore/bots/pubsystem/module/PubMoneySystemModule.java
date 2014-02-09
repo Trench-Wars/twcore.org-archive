@@ -1217,11 +1217,11 @@ public class PubMoneySystemModule extends AbstractModule {
                     winMsg = "> WARBIRD JACKPOT! <";
                     break;
                 case 2:
-                    winFactor = 80;
+                    winFactor = 75;
                     winMsg = ">>>> !!! JAVELIN JACKPOT !!! <<<";
                     break;
                 case 3:
-                    winFactor = 50;
+                    winFactor = 45;
                     winMsg = ">> SPIDER JACKPOT!! <<";
                     break;
                 case 4:
@@ -1264,13 +1264,13 @@ public class PubMoneySystemModule extends AbstractModule {
                     winFactor = 3;
                     winMsg = "Basefighter Matchup!";
                 } else if (hits[5] == 1 && hits[3] == 1 && hits[8] == 1) {
-                    winFactor = 8;
+                    winFactor = 7;
                     winMsg = "Basing Team Matchup!";
                 } else if (hits[5] == 1 && hits[7] == 1 && hits[8] == 1) {
-                    winFactor = 7;
+                    winFactor = 6;
                     winMsg = "Alt. Basing Matchup!";
                 } else if (hits[2] == 1 && hits[4] == 1 && hits[9] == 1) {
-                    winFactor = 6;
+                    winFactor = 5;
                     winMsg = "Bombing Run Matchup!";
                 } else if (hits[4] == 1 && hits[6] == 1 && hits[8] == 1) {
                     winFactor = 4;
@@ -1282,7 +1282,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     winFactor = 2;
                     winMsg = "LeviTerr Matchup!";
                 } else if (hits[5] >= 1) {
-                    // Each Terr has a 50% chance of giving a free play
+                    // Each Terr has a 33% chance of giving a free play
                     for (int k=0; k<hits[5]; k++)
                         if (r.nextInt(3) == 0)
                             winFactor = 1;
@@ -1356,18 +1356,18 @@ public class PubMoneySystemModule extends AbstractModule {
         String[] msg = {
                 "      TRENCH WARS Fruit Machine: Revenge of the Levi",
                 "[PAYOUT TABLE] - Given as a multiplier of amount bet",
-                "3 SPECTATORS ... x5            3 SPIDERS    ... x50",
+                "3 SPECTATORS ... x5            3 SPIDERS    ... x45",
                 "3 WEASELS    ... x10           3 TERRIERS   ... x60",
-                "3 SHARKS     ... x15           3 JAVELINS   ... x80",
+                "3 SHARKS     ... x15           3 JAVELINS   ... x75",
                 "3 WARBIRDS   ... x20           3 NIGHTWASPS ... x100",
                 "3 LANCS      ... x30           3 LEVIATHANS ... x200",
                 "[OTHER PAYOUTS]",
-                "Basing Team (Terr, Shark, Spider)           ... x8",
-                "Alternate Basing Team (Terr, Shark, Lanc)   ... x7",
-                "Bombing Run (Jav, NWasp, Levi)              ... x6",
+                "Basing Team (Terr, Shark, Spider)           ... x7",
+                "Alternate Basing Team (Terr, Shark, Lanc)   ... x6",
+                "Bombing Run (Jav, NWasp, Levi)              ... x5",
                 "All Fighter (WB, Lanc, Spider)              ... x5",
-                "Double LeviTerr (Terr, 2 Levis)             ... x5",
                 "Sneaky Team (Terr, Weasel, Shark)           ... x4",
+                "Double LeviTerr (Terr, 2 Levis)             ... x3",
                 "Base Fighter (any 3 Lancs or Spiders)       ... x3",
                 "LeviTerr (Terr, Levi)                       ... x2",
                 "Portal (every Terr)   ... 33% CHANCE FOR FREE PLAY",
