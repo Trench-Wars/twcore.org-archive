@@ -1155,6 +1155,11 @@ public class PubMoneySystemModule extends AbstractModule {
         int iterations = 1;
         int winnings = 0;
         
+        if (context.getPubChallenge().isDueling(sender)) {
+            m_botAction.sendSmartPrivateMessage(sender, "You cannot gamble while duelling.");
+            return;
+        }
+        
         if (command.contains(":")) {
             String[] parsed = command.split(":");
             if (parsed.length != 2) {
