@@ -213,13 +213,19 @@ public class PubChallengeModule extends AbstractModule {
                 m_botAction.sendSmartPrivateMessage(name, "You have returned from lagout.");
             }
 
+            Dueler d = duelers.get(name);
+
             if (duelers.get(name).type == Dueler.DUEL_CHALLENGER) {
-                m_botAction.warpTo(name, area.warp1);
                 m_botAction.setShip(name, challenge.ship1);
+                m_botAction.setFreq(name, getFreq());
+                m_botAction.warpTo(name, area.warp1);
+                m_botAction.warpTo(d.challenge.challengedName, area.warp2);
                 givePrize(name);
             } else {
-                m_botAction.warpTo(name, area.warp2);
                 m_botAction.setShip(name, challenge.ship2);
+                m_botAction.setFreq(name, getFreq());
+                m_botAction.warpTo(name, area.warp2);
+                m_botAction.warpTo(d.challenge.challengerName, area.warp1);
                 givePrize(name);
             }
 
@@ -544,7 +550,7 @@ public class PubChallengeModule extends AbstractModule {
         if (ship1 == ship2)
             area = getEmptyDuelArea(ship1);
         else {
-            if (ship1 == 2 || ship1 == 8 || ship1 == 4)
+            if (ship1 == 2 || ship1 == 8 || ship1 == 4 || ship1 == 6)
                 area = getEmptyDuelArea(ship1);
             else
                 area = getEmptyDuelArea(ship2);
@@ -724,6 +730,11 @@ public class PubChallengeModule extends AbstractModule {
             }
         } catch (Exception e) {
             m_botAction.sendPrivateMessage(name, "[ERROR]  Found player, but can't read the amount you have bet.  Usage: !beton <name>:<$amount>");
+            return;
+        }
+        
+        if (amt > 10000) {
+            m_botAction.sendPrivateMessage(name, "You may not bet more than 10000 at a time on any given duel.");
             return;
         }
 
@@ -1265,11 +1276,16 @@ public class PubChallengeModule extends AbstractModule {
 
         if (dueler.type == Dueler.DUEL_CHALLENGER) {
             m_botAction.setShip(name, challenge.ship1);
+            m_botAction.setFreq(name, getFreq());
             m_botAction.warpTo(name, challenge.area.warp1);
+            // Warp other player so they can't just go to where the first player spawns
+            m_botAction.warpTo(dueler.challenge.challengedName, challenge.area.warp2);
         } else {
             m_botAction.setShip(name, challenge.ship2);
             m_botAction.setFreq(name, getFreq());
             m_botAction.warpTo(name, challenge.area.warp2);
+            // Warp other player so they can't just go to where the first player spawns
+            m_botAction.warpTo(dueler.challenge.challengerName, challenge.area.warp1);
         }
         givePrize(name);
     }
