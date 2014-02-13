@@ -435,6 +435,9 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
             m_statTracker.endNow();
             m_logger.specAndSetFreq(m_fcPlayerName, m_team.getFrequency());
             m_logger.sendArenaMessage(getPlayerName() + " is out. " + getKills() + " wins " + getDeaths() + " losses");
+        } else {
+            // Check if teams are watching this player's lives, but only if not already out
+            checkWatches();
         }
         updatePersonalScoreLVZ();
     }
@@ -566,7 +569,10 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
                 m_botAction.cancelTask(lagRequestTask);
         }
     }
-        
+    
+    /**
+     * Updates personal score LVZ after each kill or death.
+     */
     public void updatePersonalScoreLVZ() {
         if (m_player == null || !m_showPersonalScore )
             return;
@@ -592,6 +598,9 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
         m_botAction.setObjects( m_player.getPlayerID() );        
     }
     
+    /**
+     * Resets all personal score LVZ to the starting state (0-0)
+     */
     public void resetPersonalScoreLVZ() {
         if (m_player == null || !m_showPersonalScore)
             return;
@@ -601,6 +610,9 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
         m_botAction.setObjects( m_player.getPlayerID() );        
     }
     
+    /**
+     * Clears all LVZ associated with personal score display.
+     */
     public void clearPersonalScoreLVZ() {
         if (m_player == null)
             return;
@@ -608,6 +620,10 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
         m_botAction.setObjects( m_player.getPlayerID() );
     }
     
+    /**
+     * Toggles score LVZ on/off.
+     * @return true if score LVZ is on after the toggle.
+     */
     public boolean togglePersonalScoreLVZ() {
         if (m_player == null)
             return false;
@@ -619,6 +635,29 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
             clearPersonalScoreLVZ();
         
         return m_showPersonalScore;
+    }
+    
+    
+    /**
+     * Runs a check for any death watches on either team that should be fired
+     * by this player dying.
+     */
+    public void checkWatches() {       
+        int deaths = m_statTracker.getStatistic(Statistics.DEATHS);        
+        
+        if (deaths >= m_team.m_watchTeamDeaths) {
+            m_botAction.sendOpposingTeamMessage( m_fcPlayerName, "[T]  " + m_fcPlayerName + " at " + deaths, 0);
+        }
+        
+        if (m_team.m_fnTeamNumber == 1 ) {
+            if (deaths >= m_team.m_round.m_team2.m_watchEnemyDeaths) {
+                m_botAction.sendOpposingTeamMessageByFrequency( m_team.m_round.m_team2.m_fnFrequency, "-E-  " + m_fcPlayerName + " at " + deaths);                
+            }
+        } else {
+            if (deaths >= m_team.m_round.m_team1.m_watchEnemyDeaths) {
+                m_botAction.sendOpposingTeamMessage( m_team.m_round.m_team1.m_fnFrequency, "-E-  " + m_fcPlayerName + " at " + deaths);                
+            }            
+        }
     }
 
     // get in, but not started yet
