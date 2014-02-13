@@ -284,25 +284,23 @@ public class matchbot extends SubspaceBot {
                 String bot = m_botAction.getBotName();
                 if (ipc.getBot() != null && !bot.equalsIgnoreCase(ipc.getBot()) && !arena.equalsIgnoreCase(ipc.getBot()))
                     return;
-                if (ipc.getType() == Command.DIE && 
-                        (ipc.getBot().equals("all") || 
-                            (ipc.getBot() != null && 
-                            (bot.equalsIgnoreCase(ipc.getBot()) 
-                                    || arena.equalsIgnoreCase(ipc.getBot()))))) {
-                    if (m_game == null && !m_isStartingUp) {
-                        ba.sendChatMessage("Got IPC DIE for bot/arena: " + ipc.getBot() + " (" + ipc.getCommand() + ")" );
-                        TimerTask d = new TimerTask() {
-                            @Override
-                            public void run() {
-                                m_botAction.die();
-                            }
-                        };
-                        m_botAction.scheduleTask(d, 3000);
-                    } else {
-                        m_botAction.ipcTransmit(IPC, new IPCCommand(Command.ECHO, TWDHUB, bot
-                                + " reports it will shutdown after the current game ends in " + arena));
-                        m_die = true;
-                        m_off = true;
+                if (ipc.getType() == Command.DIE && ipc.getBot() != null) {
+                    if (ipc.getBot().equals("all") || bot.equalsIgnoreCase(ipc.getBot()) || arena.equalsIgnoreCase(ipc.getBot())) {
+                        if (m_game == null && !m_isStartingUp) {
+                            ba.sendChatMessage("Got IPC DIE for bot/arena: " + ipc.getBot() + " (" + ipc.getCommand() + ")" );
+                            TimerTask d = new TimerTask() {
+                                @Override
+                                public void run() {
+                                    m_botAction.die();
+                                }
+                            };
+                            m_botAction.scheduleTask(d, 3000);
+                        } else {
+                            m_botAction.ipcTransmit(IPC, new IPCCommand(Command.ECHO, TWDHUB, bot
+                                    + " reports it will shutdown after the current game ends in " + arena));
+                            m_die = true;
+                            m_off = true;
+                        }
                     }
                 } else if (ipc.getType() == Command.STAY) {
                     m_botAction.ipcTransmit(IPC, new IPCCommand(Command.ECHO, TWDHUB, bot + " reports it will stay in " + arena));
