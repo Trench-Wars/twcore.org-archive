@@ -655,7 +655,7 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
             }
         } else {
             if (deaths >= m_team.m_round.m_team1.m_watchEnemyDeaths) {
-                m_botAction.sendOpposingTeamMessage( m_team.m_round.m_team1.m_fnFrequency, "-E-  " + m_fcPlayerName + " at " + deaths);                
+                m_botAction.sendOpposingTeamMessageByFrequency( m_team.m_round.m_team1.m_fnFrequency, "-E-  " + m_fcPlayerName + " at " + deaths);                
             }            
         }
     }
