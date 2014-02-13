@@ -391,7 +391,7 @@ public class twdhub extends SubspaceBot {
     }
     
     private void checkIn() {
-        ba.ipcTransmit(IPC, new IPCCommand(Command.CHECKIN, null));
+        ba.ipcTransmit(IPC, new IPCCommand(Command.CHECKIN, "all", "checkin"));
         TimerTask check = new TimerTask() {
             public void run() {
                 if (startup)
