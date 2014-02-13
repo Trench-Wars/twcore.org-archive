@@ -64,6 +64,9 @@ public class MatchTeam {
     int m_fnShipChanges;
 
     int m_lagID = 0;
+    
+    int m_watchTeamDeaths = -1;     // If positive, freq-PMs team deaths >value
+    int m_watchEnemyDeaths = -1;
 
     HashMap<String, Boolean> checkPlayerMID;
     TreeMap<String, ResCheck> resCheck;
@@ -584,6 +587,7 @@ public class MatchTeam {
                 help.add("!addplayer                               - request to add an extra player");
                 help.add("!addtime                                 - request to add an 2 minutes for lineups (not twbd)");
                 help.add("!lagout <player>                         - puts <player> back in the game");
+                help.add("!pa <player>                             - temporarily promote <player> to asscap");
                 if (m_rules.getInt("blueout") == 1)
                     help.add("!blueout                                 - enable/disable blueout");
             } else if (m_round.m_fnRoundState == 3) {
@@ -601,7 +605,10 @@ public class MatchTeam {
                 //                help.add("!lagger <player> - make me check <player>'s lag
                 // again (in case his lag increased during the game)");
             }
-            ;
+            
+            // Any roundstate cap/op cmds
+            help.add("!watch[all|team|nme] <deaths>            - freqPM all/team/nme over deaths (ex: !watchteam 8)");
+            
         } else if (getPlayer(name) != null) {
             if (m_round.m_fnRoundState == 1) {
                 help.add("!list                                    - lists all players on this team");
@@ -633,54 +640,62 @@ public class MatchTeam {
                 if (m_round.m_fnRoundState == 1) {
                     if (command.equals("!list"))
                         command_list(name, parameters);
-                    if (command.equals("!add"))
+                    else if (command.equals("!add"))
                         command_add(name, parameters);
-                    if (command.equals("!addplayer"))
+                    else if (command.equals("!addplayer"))
                         command_addplayer(name, parameters);
-                    if (command.equals("!remove"))
+                    else if (command.equals("!remove"))
                         command_remove(name, parameters);
-                    if (command.equals("!switch"))
+                    else if (command.equals("!switch"))
                         command_switch(name, parameters);
-                    if (command.equals("!change"))
+                    else if (command.equals("!change"))
                         command_change(name, parameters);
-                    if (command.equals("!ready"))
+                    else if (command.equals("!ready"))
                         command_ready(name, parameters);
-                    if (command.equals("!addtime"))
+                    else if (command.equals("!addtime"))
                     	command_addtime(name, parameters);
-                    if (command.equals("!cancel"))
+                    else if (command.equals("!cancel"))
                         command_cancel(name, parameters);
-                    if (command.equals("!lagout"))
+                    else if (command.equals("!lagout"))
                         command_lagout(name, parameters);
-                    if (command.equals("!blueout"))
+                    else if (command.equals("!blueout"))
                         command_blueout(name, parameters);
-                    if (command.equals("!pa")) {
+                    else if (command.equals("!pa")) {
                         command_promoteTemp(name, parameters);
                     }
                 } else if (m_round.m_fnRoundState == 2) {
                     if (command.equals("!blueout"))
                         command_blueout(name, parameters);
-                    if (command.equals("!addplayer"))
+                    else if (command.equals("!addplayer"))
                         command_addplayer(name, parameters);
                 } else if (m_round.m_fnRoundState == 3) {
                     if (command.equals("!add"))
                         command_add(name, parameters);
-                    if (command.equals("!addplayer"))
+                    else if (command.equals("!addplayer"))
                         command_addplayer(name, parameters);
-                    if (command.equals("!list"))
+                    else if (command.equals("!list"))
                         command_list(name, parameters);
-                    if (command.equals("!lagout"))
+                    else if (command.equals("!lagout"))
                         command_lagout(name, parameters);
-                    if (command.equals("!sub"))
+                    else if (command.equals("!sub"))
                         command_sub(name, parameters);
-                    if (command.equals("!switch"))
+                    else if (command.equals("!switch"))
                         command_switch(name, parameters);
-                    if (command.equals("!change"))
+                    else if (command.equals("!change"))
                         command_change(name, parameters);
-                    if (command.equals("!blueout"))
+                    else if (command.equals("!blueout"))
                         command_blueout(name, parameters);
                     //                    if (command.equals("!lagger")) command_lagger(name,
                     // parameters);
                 }
+                
+                // General Captain/Op cmds (regardless of round state)
+                if (command.equals("!watchall"))
+                    command_watch(name, parameters, 0);
+                else if (command.equals("!watchteam"))
+                    command_watch(name, parameters, 1);
+                else if (command.equals("!watchnme"))
+                    command_watch(name, parameters, 2);
 
             } else if (getPlayer(name) != null) {
                 if (command.equals("!list"))
@@ -1344,7 +1359,38 @@ public class MatchTeam {
                     m_round.requestBlueout(m_blueoutState);
                 m_logger.sendPrivateMessage(name, "If the other team also requested to turn off blueout, blueout will be taken off.");
             }
-
+        }
+    }
+    
+    /**
+     * Enables watches on
+     * @param name
+     * @param parameters
+     * @param type
+     */
+    public void command_watch(String name, String[] parameters, int type) {
+        int num = 0;
+        try {
+            num = Integer.parseInt( parameters[0] );
+        } catch (NumberFormatException e) {
+            m_botAction.sendPrivateMessage( name, "Please specify the number of deaths to watch for, i.e., !watchall 8" );
+            return;
+        }
+        
+        switch( type ) {
+        case 0:
+            m_watchTeamDeaths = num;
+            m_watchEnemyDeaths = num;
+            m_botAction.sendPrivateMessage( name, "Watching team and enemy deaths >= " + num );
+            break;
+        case 1:
+            m_watchTeamDeaths = num;
+            m_botAction.sendPrivateMessage( name, "Watching team deaths >= " + num );
+            break;
+        case 2:
+            m_watchEnemyDeaths = num;
+            m_botAction.sendPrivateMessage( name, "Watching enemy deaths >= " + num );
+            break;
         }
     }
 
