@@ -644,17 +644,17 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
      */
     public void checkWatches() {       
         int deaths = m_statTracker.getStatistic(Statistics.DEATHS);        
-        
-        if (deaths >= m_team.m_watchTeamDeaths) {
+                
+        if (m_team.m_watchTeamDeaths > 0 && deaths >= m_team.m_watchTeamDeaths ) {
             m_botAction.sendOpposingTeamMessage( m_fcPlayerName, "[T]  " + m_fcPlayerName + " at " + deaths, 0);
         }
         
         if (m_team.m_fnTeamNumber == 1 ) {
-            if (deaths >= m_team.m_round.m_team2.m_watchEnemyDeaths) {
+            if (m_team.m_round.m_team2.m_watchEnemyDeaths > 0 && deaths >= m_team.m_round.m_team2.m_watchEnemyDeaths) {
                 m_botAction.sendOpposingTeamMessageByFrequency( m_team.m_round.m_team2.m_fnFrequency, "-E-  " + m_fcPlayerName + " at " + deaths);                
             }
         } else {
-            if (deaths >= m_team.m_round.m_team1.m_watchEnemyDeaths) {
+            if (m_team.m_round.m_team1.m_watchEnemyDeaths > 0 && deaths >= m_team.m_round.m_team1.m_watchEnemyDeaths) {
                 m_botAction.sendOpposingTeamMessageByFrequency( m_team.m_round.m_team1.m_fnFrequency, "-E-  " + m_fcPlayerName + " at " + deaths);                
             }            
         }
