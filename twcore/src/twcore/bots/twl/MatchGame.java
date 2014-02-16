@@ -34,8 +34,7 @@ import twcore.core.events.ScoreReset;
 import twcore.core.events.WeaponFired;
 import twcore.core.util.Tools;
 
-public class MatchGame
-{
+public class MatchGame {
 
 	Connection m_connection;
 	BotAction m_botAction;
