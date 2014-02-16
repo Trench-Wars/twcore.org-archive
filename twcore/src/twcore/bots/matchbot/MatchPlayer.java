@@ -195,10 +195,8 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
      * @author FoN
      *
      * @param anotherPlayer Another matchplayer class from which it will compare points for MVP
-     * @exception throws exception if wrong class is passed
      */
-    public int compareTo(MatchPlayer anotherPlayer)// throws ClassCastException
-    {
+    public int compareTo(MatchPlayer anotherPlayer) {
         /*
         if (!(anotherPlayer instanceof MatchPlayer))
         	throw new ClassCastException("A MatchPlayer object expected.");
@@ -209,7 +207,6 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
     }
 
     /**
-     *
      * This function stores all the values in the database at the end of the game
      * It now also implements storing of individual ship database stats.
      *
@@ -226,16 +223,39 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
                 MID = "0";
 
             //first put stats into table: tblMatchRoundUser
-            String[] fields = { "fnMatchRoundID", "fnTeamUserID", "fnUserID", "fcUserName", "fnTeam", "fnShipTypeID", "fnScore", "fnWins",
-                    "fnLosses", "fcUserNameKO", "fcResolution", "fcIP", "fnMachineID", "fnLagout", "fnSubstituted" };
+            String[] fields = {
+                    "fnMatchRoundID",
+                    "fnTeamUserID",
+                    "fnUserID",
+                    "fcUserName",
+                    "fnTeam",
+                    "fnShipTypeID",
+                    "fnScore",
+                    "fnWins",
+                    "fnLosses",
+                    "fcUserNameKO",
+                    "fcResolution",
+                    "fcIP",
+                    "fnMachineID",
+                    "fnLagout",
+                    "fnSubstituted" };
 
-            String[] values = { Integer.toString(fnMatchRoundID), Integer.toString(m_dbPlayer.getTeamUserID()),
-                    Integer.toString(m_dbPlayer.getUserID()), Tools.addSlashesToString(m_fcPlayerName), Integer.toString(fnTeam),
-                    Integer.toString(m_statTracker.getShipType()), Integer.toString(m_statTracker.getTotalStatistic(Statistics.SCORE)),
+            String[] values = {
+                    Integer.toString(fnMatchRoundID),
+                    Integer.toString(m_dbPlayer.getTeamUserID()),
+                    Integer.toString(m_dbPlayer.getUserID()),
+                    Tools.addSlashesToString(m_fcPlayerName),
+                    Integer.toString(fnTeam),
+                    Integer.toString(m_statTracker.getShipType()),
+                    Integer.toString(m_statTracker.getTotalStatistic(Statistics.SCORE)),
                     Integer.toString(m_statTracker.getTotalStatistic(Statistics.TOTAL_KILLS)),
-                    Integer.toString(m_statTracker.getTotalStatistic(Statistics.DEATHS)), Tools.addSlashesToString(m_statTracker.getUserNameKO()),
-                    Tools.addSlashesToString(resolution), Tools.addSlashesToString(IPAddress), Tools.addSlashesToString(MID),
-                    Integer.toString(m_fnLagouts), Integer.toString(substituted) };
+                    Integer.toString(m_statTracker.getTotalStatistic(Statistics.DEATHS)),
+                    Tools.addSlashesToString(m_statTracker.getUserNameKO()),
+                    Tools.addSlashesToString(resolution),
+                    Tools.addSlashesToString(IPAddress),
+                    Tools.addSlashesToString(MID),
+                    Integer.toString(m_fnLagouts),
+                    Integer.toString(substituted) };
 
             m_botAction.SQLInsertInto(dbConn, "tblMatchRoundUser", fields, values);
 
@@ -262,7 +282,7 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
             String started, ended;
 
             while (i.hasNext()) {
-                MPS = (MatchPlayerShip) i.next();
+                MPS = i.next();
                 m_ftTimeStarted = MPS.getTimeStarted();
                 m_ftTimeEnded = MPS.getTimeEnded();
 
@@ -274,49 +294,110 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
                 started = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(m_ftTimeStarted);
                 ended = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(m_ftTimeEnded);
 
-                String[] shipFields = { "fnMatchRoundUserID", "fnShipTypeID", "fnScore", "fnDeaths", "fnSpawnDeaths", "fnWarbirdKill",
-                        "fnJavelinKill", "fnSpiderKill", "fnLeviathanKill", "fnTerrierKill", "fnWeaselKill", "fnLancasterKill", "fnSharkKill",
-                        "fnWarbirdTeamKill", "fnJavelinTeamKill", "fnSpiderTeamKill", "fnLeviathanTeamKill", "fnTerrierTeamKill", "fnWeaselTeamKill",
-                        "fnLancasterTeamKill", "fnSharkTeamKill", "fnFlagClaimed", "fnRating", "fnRepelsUsed", "fnBombsFired", "fnBulletsFired",
-                        "fnBurstsFired", "fnMinesFired", "fnPrizeTotal", "fnPrizePortal", "fnPrizeRepel", "fnPrizeBurst", "fnPrizeShrapnel",
-                        "fnPrizeFullCharge", "fnKillShortRange", "fnKillNormalRange", "fnKillLongRange", "fnKillUltraLongRange", "fnDeathOnAttach",
-                        "fnTimePlayed", "ftTimeStarted", "ftTimeEnded" };
+                String[] shipFields = {
+                        "fnMatchRoundUserID",
+                        "fnShipTypeID",
+                        "fnScore",
+                        "fnDeaths",
+                        "fnSpawnDeaths",
+                        "fnWarbirdKill",
+                        "fnJavelinKill",
+                        "fnSpiderKill",
+                        "fnLeviathanKill",
+                        "fnTerrierKill",
+                        "fnWeaselKill",
+                        "fnLancasterKill",
+                        "fnSharkKill",
+                        "fnWarbirdTeamKill",
+                        "fnJavelinTeamKill",
+                        "fnSpiderTeamKill",
+                        "fnLeviathanTeamKill",
+                        "fnTerrierTeamKill",
+                        "fnWeaselTeamKill",
+                        "fnLancasterTeamKill",
+                        "fnSharkTeamKill",
+                        "fnFlagClaimed",
+                        "fnRating",
+                        "fnRepelsUsed",
+                        "fnBombsFired",
+                        "fnBulletsFired",
+                        "fnBurstsFired",
+                        "fnMinesFired",
+                        "fnPrizeTotal",
+                        "fnPrizePortal",
+                        "fnPrizeRepel",
+                        "fnPrizeBurst",
+                        "fnPrizeShrapnel",
+                        "fnPrizeFullCharge",
+                        "fnKillShortRange",
+                        "fnKillNormalRange",
+                        "fnKillLongRange",
+                        "fnKillUltraLongRange",
+                        "fnDeathOnAttach",
+                        "fnTimePlayed",
+                        "ftTimeStarted",
+                        "ftTimeEnded" };
 
-                String[] shipValues = { Integer.toString(fnMatchRoundUserID), Integer.toString(MPS.getShipType()),
-                        Integer.toString(MPS.getStatistic(Statistics.SCORE)), Integer.toString(MPS.getStatistic(Statistics.DEATHS)),
-                        Integer.toString(MPS.getStatistic(Statistics.SPAWN_DEATHS)), Integer.toString(MPS.getStatistic(Statistics.WARBIRD_KILL)),
-                        Integer.toString(MPS.getStatistic(Statistics.JAVELIN_KILL)), Integer.toString(MPS.getStatistic(Statistics.SPIDER_KILL)),
-                        Integer.toString(MPS.getStatistic(Statistics.LEVIATHAN_KILL)), Integer.toString(MPS.getStatistic(Statistics.TERRIER_KILL)),
-                        Integer.toString(MPS.getStatistic(Statistics.WEASEL_KILL)), Integer.toString(MPS.getStatistic(Statistics.LANCASTER_KILL)),
-                        Integer.toString(MPS.getStatistic(Statistics.SHARK_KILL)), Integer.toString(MPS.getStatistic(Statistics.WARBIRD_TEAMKILL)),
+                String[] shipValues = {
+                        Integer.toString(fnMatchRoundUserID),
+                        Integer.toString(MPS.getShipType()),
+                        Integer.toString(MPS.getStatistic(Statistics.SCORE)),
+                        Integer.toString(MPS.getStatistic(Statistics.DEATHS)),
+                        Integer.toString(MPS.getStatistic(Statistics.SPAWN_DEATHS)),
+                        Integer.toString(MPS.getStatistic(Statistics.WARBIRD_KILL)),
+                        Integer.toString(MPS.getStatistic(Statistics.JAVELIN_KILL)),
+                        Integer.toString(MPS.getStatistic(Statistics.SPIDER_KILL)),
+                        Integer.toString(MPS.getStatistic(Statistics.LEVIATHAN_KILL)),
+                        Integer.toString(MPS.getStatistic(Statistics.TERRIER_KILL)),
+                        Integer.toString(MPS.getStatistic(Statistics.WEASEL_KILL)),
+                        Integer.toString(MPS.getStatistic(Statistics.LANCASTER_KILL)),
+                        Integer.toString(MPS.getStatistic(Statistics.SHARK_KILL)),
+                        Integer.toString(MPS.getStatistic(Statistics.WARBIRD_TEAMKILL)),
                         Integer.toString(MPS.getStatistic(Statistics.JAVELIN_TEAMKILL)),
                         Integer.toString(MPS.getStatistic(Statistics.SPIDER_TEAMKILL)),
                         Integer.toString(MPS.getStatistic(Statistics.LEVIATHAN_TEAMKILL)),
                         Integer.toString(MPS.getStatistic(Statistics.TERRIER_TEAMKILL)),
                         Integer.toString(MPS.getStatistic(Statistics.WEASEL_TEAMKILL)),
                         Integer.toString(MPS.getStatistic(Statistics.LANCASTER_TEAMKILL)),
-                        Integer.toString(MPS.getStatistic(Statistics.SHARK_TEAMKILL)), Integer.toString(MPS.getStatistic(Statistics.FLAG_CLAIMED)),
-                        Integer.toString(MPS.getStatistic(Statistics.RATING)), Integer.toString(MPS.getStatistic(Statistics.REPELS_USED)),
-                        Integer.toString(MPS.getStatistic(Statistics.BOMBS_FIRED)), Integer.toString(MPS.getStatistic(Statistics.BULLETS_FIRED)),
-                        Integer.toString(MPS.getStatistic(Statistics.BURSTS_FIRED)), Integer.toString(MPS.getStatistic(Statistics.MINES_FIRED)),
-                        Integer.toString(MPS.getStatistic(Statistics.PRIZES)), Integer.toString(MPS.getStatistic(Statistics.PRIZE_PORTAL)),
-                        Integer.toString(MPS.getStatistic(Statistics.PRIZE_REPEL)), Integer.toString(MPS.getStatistic(Statistics.PRIZE_BURST)),
+                        Integer.toString(MPS.getStatistic(Statistics.SHARK_TEAMKILL)),
+                        Integer.toString(MPS.getStatistic(Statistics.FLAG_CLAIMED)),
+                        Integer.toString(MPS.getStatistic(Statistics.RATING)),
+                        Integer.toString(MPS.getStatistic(Statistics.REPELS_USED)),
+                        Integer.toString(MPS.getStatistic(Statistics.BOMBS_FIRED)),
+                        Integer.toString(MPS.getStatistic(Statistics.BULLETS_FIRED)),
+                        Integer.toString(MPS.getStatistic(Statistics.BURSTS_FIRED)),
+                        Integer.toString(MPS.getStatistic(Statistics.MINES_FIRED)),
+                        Integer.toString(MPS.getStatistic(Statistics.PRIZES)),
+                        Integer.toString(MPS.getStatistic(Statistics.PRIZE_PORTAL)),
+                        Integer.toString(MPS.getStatistic(Statistics.PRIZE_REPEL)),
+                        Integer.toString(MPS.getStatistic(Statistics.PRIZE_BURST)),
                         Integer.toString(MPS.getStatistic(Statistics.PRIZE_SHRAPNEL)),
                         Integer.toString(MPS.getStatistic(Statistics.PRIZE_FULL_CHARGE)),
                         Integer.toString(MPS.getStatistic(Statistics.KILL_SHORT_RANGE)),
                         Integer.toString(MPS.getStatistic(Statistics.KILL_NORMAL_RANGE)),
                         Integer.toString(MPS.getStatistic(Statistics.KILL_LONG_RANGE)),
                         Integer.toString(MPS.getStatistic(Statistics.KILL_ULTRA_LONG_RANGE)),
-                        Integer.toString(MPS.getStatistic(Statistics.DEATH_ON_ATTACH)), Long.toString(MPS.timePlayed / 1000), started, ended };
+                        Integer.toString(MPS.getStatistic(Statistics.DEATH_ON_ATTACH)),
+                        Long.toString(MPS.timePlayed / 1000),
+                        started,
+                        ended };
 
                 m_botAction.SQLInsertInto(dbConn, "tblMatchRoundUserShip", shipFields, shipValues);
 
                 // EXTRA INFO!
 
-                String[] extraFields = { "fnMatchRoundUserID", "fnUserID", "fnShipTypeID", "fcKillers", "fcKillees" };
+                String[] extraFields = {
+                        "fnMatchRoundUserID",
+                        "fnUserID",
+                        "fnShipTypeID",
+                        "fcKillers",
+                        "fcKillees" };
 
-                String[] extraValues = { Integer.toString(fnMatchRoundUserID), Integer.toString(m_dbPlayer.getUserID()),
-                        Integer.toString(MPS.getShipType()), JSONValue.escape(JSONValue.toJSONString(MPS.killers)),
+                String[] extraValues = {
+                        Integer.toString(fnMatchRoundUserID),
+                        Integer.toString(m_dbPlayer.getUserID()),
+                        Integer.toString(MPS.getShipType()),
+                        JSONValue.escape(JSONValue.toJSONString(MPS.killers)),
                         JSONValue.escape(JSONValue.toJSONString(MPS.killees)) };
 
                 m_botAction.SQLInsertInto(dbConn, "tblMatchRoundUserExtra", extraFields, extraValues);
