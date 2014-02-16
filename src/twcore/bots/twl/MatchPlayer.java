@@ -27,8 +27,7 @@ import twcore.core.stats.DBPlayerData;
 import twcore.core.stats.Statistics;
 import twcore.core.util.Tools;
 
-public class MatchPlayer implements Comparable<MatchPlayer>
-{
+public class MatchPlayer implements Comparable<MatchPlayer> {
 	/** This class holds 2 connections: 1 to the SS game, and 1 to the DB.
 	 *  The SS connection is dynamic though, so it will have to refresh every
 	 *  PlayerLeft and PlayerEntered event.
@@ -38,8 +37,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	private LagRequestTask lagRequestTask;
 	private int maxCurrPing;
 	private double maxPacketLoss;
-	@SuppressWarnings("unused")
-    private double maxSlowPackets;
+    public double maxSlowPackets;
 	private double maxStandardDeviation;
 	private int maxNumSpikes;
 
@@ -68,18 +66,18 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	long m_fnLastLagCheck = 0;
 	boolean m_fbHasHalfBorderWarning = false;
 
-	// regular game stats
+	// Regular game stats
 	int m_deafaultShip = 1;
 	int m_fnSpecAt = 10;
 	int m_fnFrequency = 0;
 	int m_fnLagouts = 0;
-	/* playerstate: 0 - Not In Game (0 deaths)
+	/* Playerstate: 0 - Not In Game (0 deaths)
 	                1 - In Game
 	                2 - Substituted
 	                3 - Lagged (m_fnSpecAt deaths)
 	                4 - Out (m_fnSpecAt deaths)
 	 */
-	int m_fnPlayerState = 0;
+	int m_fnPlayerState = NOT_IN_GAME;
 	int m_fnMaxLagouts;
 
 	boolean m_aboutToBeSubbed = false;
@@ -87,7 +85,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	boolean m_switchedShip = false;
 	boolean m_lagByBot = false;
 
-	//constants
+	// Constants
 	static final int NOT_IN_GAME = 0;
 	static final int IN_GAME = 1;
 	static final int SUBSTITUTED = 2;
@@ -95,8 +93,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	static final int OUT = 4;
 
 	/** Creates a new instance of MatchPlayer */
-	public MatchPlayer(String fcPlayerName, MatchTeam Matchteam)
-	{
+	public MatchPlayer(String fcPlayerName, MatchTeam Matchteam) {
 		useDatabase = false;
 		m_team = Matchteam;
 		m_botAction = m_team.m_botAction;
@@ -107,7 +104,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		m_fnSpecAt = m_rules.getInt("deaths");
 		m_player = m_botAction.getPlayer(m_fcPlayerName);
 		m_fnFrequency = m_player.getFrequency();
-		m_fnPlayerState = 0;
+		m_fnPlayerState = NOT_IN_GAME;
 		playerLagInfo = new PlayerLagInfo(m_botAction, fcPlayerName, m_rules.getInt("spikesize"));
 		playerLagInfo.updateLag();
 		maxCurrPing = m_rules.getInt("maxcurrping");
@@ -129,31 +126,26 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	 *
 	 * @param anotherPlayer Another matchplayer class from which it will compare points for MVP
 	 */
-	public int compareTo(MatchPlayer anotherPlayer)
-	{
+	public int compareTo(MatchPlayer anotherPlayer) {
 		//this has to be done in reverse order so it can be sorted in decending order
 		return  anotherPlayer.getPoints() - this.getPoints();
 	}
 
 	/**
-	 *
 	 * This function stores all the values in the database at the end of the game
 	 * It now also implements storing of individual ship database stats.
 	 *
 	 * @param fnMatchRoundID The match round ID that is being played
 	 * @param fnTeam The team the player belongs to
 	 */
-	public void storePlayerResult(int fnMatchRoundID, int fnTeam)
-	{
-		try
-		{
+	public void storePlayerResult(int fnMatchRoundID, int fnTeam) {
+		try {
 			int substituted = 0;
-			if (m_fnPlayerState == 2)
+			if (m_fnPlayerState == SUBSTITUTED)
 				substituted = 1;
 
 			//first put stats into table: tblMatchRoundUser
-			String[] fields =
-				{
+			String[] fields = {
 					"fnMatchRoundID",
 					"fnUserID",
 					"fcUserName",
@@ -165,8 +157,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 					"fnLagout",
 					"fnSubstituted" };
 
-			String[] values =
-				{
+			String[] values = {
 					Integer.toString(fnMatchRoundID),
 					Integer.toString(m_dbPlayer.getUserID()),
 					Tools.addSlashesToString(m_fcPlayerName),
@@ -180,32 +171,27 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 
 			m_botAction.SQLInsertInto(dbConn, "tblTWL__MatchRoundUser", fields, values);
 
-			//get fnMatchRoundUserID
+			// get fnMatchRoundUserID
 			int fnMatchRoundUserID = 0;
 
-			try
-			{
+			try {
 				ResultSet qryMatchRoundUserID = m_botAction.SQLQuery(dbConn, "SELECT MAX(fnMatchRoundUserID) as fnMatchRoundUserID " + "FROM tblTWL__MatchRoundUser");
 
-				if (qryMatchRoundUserID.next())
-				{
+				if (qryMatchRoundUserID.next()) {
 					fnMatchRoundUserID = qryMatchRoundUserID.getInt("fnMatchRoundUserID");
 				}
-			}
-			catch (Exception e)
-			{
+			} catch (Exception e) {
 				Tools.printStackTrace(e);
 			}
 
-			//store for each ship
+			// store for each ship
 			java.util.Date m_ftTimeStarted;
 			java.util.Date m_ftTimeEnded;
 			MatchPlayerShip MPS;
 			ListIterator<MatchPlayerShip> i = m_statTracker.m_ships.listIterator();
 			String started, ended;
 
-			while (i.hasNext())
-			{
+			while (i.hasNext()) {
 				MPS = i.next();
 				m_ftTimeStarted = MPS.getTimeStarted();
 				m_ftTimeEnded = MPS.getTimeEnded();
@@ -218,8 +204,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				started = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(m_ftTimeStarted);
 				ended = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(m_ftTimeEnded);
 
-				String[] shipFields =
-					{
+				String[] shipFields = {
 						"fnMatchRoundUserID",
 						"fnShipTypeID",
 						"fnScore",
@@ -246,8 +231,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 						"ftTimeStarted",
 						"ftTimeEnded" };
 
-				String[] shipValues =
-					{
+				String[] shipValues = {
 						Integer.toString(fnMatchRoundUserID),
 						Integer.toString(MPS.getShipType()),
 						Integer.toString(MPS.getStatistic(Statistics.SCORE)),
@@ -276,67 +260,56 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 
 				m_botAction.SQLInsertInto(dbConn, "tblTWL__MatchRoundUserShip", shipFields, shipValues);
 			}
+		} catch (Exception e) {
+			Tools.printStackTrace(e);
 		}
-		catch (Exception e)
-		{
-			System.out.println("Error: " + e.getMessage() + e.getLocalizedMessage());
-			e.printStackTrace();
-		};
-	};
+	}
 
 	// sets rank
-	public void setRank(int fnRank)
-	{
+	public void setRank(int fnRank) {
 		m_fnRank = fnRank;
-	};
+	}
 
 	// set ship and freq
-	public void setShipAndFreq(int fnShipType, int fnFrequency)
-	{
-		if (m_statTracker.getShipType() != fnShipType)
+	public void setShipAndFreq(int fnShipType, int fnFrequency) {
+		if (m_statTracker.getShipType() != fnShipType) {
 			m_statTracker.createNewShip(fnShipType);
+		}
 		m_fnFrequency = fnFrequency;
-	};
+	}
 
 	// set amount of deaths
-	public void setSpecAt(int fnSpecAt)
-	{
+	public void setSpecAt(int fnSpecAt) {
 		m_fnSpecAt = fnSpecAt;
-	};
+	}
 
 	// warpto
-	public void warpTo(int x, int y)
-	{
+	public void warpTo(int x, int y) {
 		m_botAction.warpTo(m_fcPlayerName, x, y);
-	};
+	}
 
 	// report start of game
-	public void reportStartOfGame()
-	{
-		if (m_fnPlayerState == 0)
-		{
-			m_fnPlayerState = 1;
+	public void reportStartOfGame() {
+		if (m_fnPlayerState == NOT_IN_GAME) {
+			m_fnPlayerState = IN_GAME;
 			m_statTracker.startNow();
 			lagRequestTask = new LagRequestTask();
 			m_botAction.scheduleTaskAtFixedRate(lagRequestTask, 0, m_rules.getInt("lagcheckdelay") * 1000);
-		};
-	};
+		}
+	}
 
 	// report kill
-	public void reportKill(int fnPoints, int killeeID)
-	{
+	public void reportKill(int fnPoints, int killeeID) {
 		int shipType = m_botAction.getPlayer(killeeID).getShipType();
 		int killeeFreq = m_botAction.getPlayer(killeeID).getFrequency();
 
 		m_statTracker.reportKill(fnPoints, killeeID, m_fnFrequency, shipType, killeeFreq);
-	};
+	}
 
 	/**
-	 *
 	 * Adds repelUsed to stats
 	 */
-	public void reportRepelUsed()
-	{
+	public void reportRepelUsed() {
 		m_statTracker.reportRepelUsed();
 	}
 
@@ -345,29 +318,25 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	 *
 	 * Adds flagclaimed to stats
 	 */
-	public void reportFlagClaimed()
-	{
+	public void reportFlagClaimed() {
 		m_statTracker.reportFlagClaimed();
 	}
 
 	// report death
-	public void reportDeath()
-	{
+	public void reportDeath() {
 		resetOutOfBorderTime();
 		m_statTracker.reportDeath();
 
 		//lag check timer cancel
-		if ((m_statTracker.getStatistic(Statistics.DEATHS) >= m_fnSpecAt) && (m_rules.getInt("deaths") > 0))
-		{
-			if (m_fnPlayerState != 2)
-			{
-				m_fnPlayerState = 4;
+		if ((m_statTracker.getStatistic(Statistics.DEATHS) >= m_fnSpecAt) && (m_rules.getInt("deaths") > 0)) {
+			if (m_fnPlayerState != SUBSTITUTED) {
+				m_fnPlayerState = OUT;
 				if (lagRequestTask != null)
                     m_botAction.cancelTask(lagRequestTask);
 			}
 			m_logger.specAndSetFreq(m_fcPlayerName, m_team.getFrequency());
 			m_logger.sendArenaMessage(getPlayerName() + " is out. " + getKills() + " wins " + getDeaths() + " losses");
-		};
+		}
 	}
 
 	// report lagout
@@ -375,17 +344,16 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	public void reportLagout() {
 	    if (m_currentShip != null) m_currentShip.endNow();
 	    {
-	      m_fnPlayerState = 3;
+	      m_fnPlayerState = LAGGED;
 	lagRequestTask.cancel();
 	    }
-	};
+	}
 	 */
 
 	// report being substituted
-	public void reportSubstituted()
-	{
+	public void reportSubstituted() {
 		resetOutOfBorderTime();
-		m_fnPlayerState = 2;
+		m_fnPlayerState = SUBSTITUTED;
 
 		//cancel lag checks
 		if (lagRequestTask != null)
@@ -394,44 +362,36 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		m_fnSpecAt = m_statTracker.getStatistic(Statistics.DEATHS);
 		m_statTracker.endNow();
 
-		if (m_player != null)
-		{
+		if (m_player != null) {
 			m_logger.specAndSetFreq(m_fcPlayerName, m_team.getFrequency());
-		};
-	};
+		}
+	}
 
 	// substitute (put yourself in)
-	public void substitute(int newSpecAt)
-	{
+	public void substitute(int newSpecAt) {
 		m_fnSpecAt = newSpecAt;
 		getInGame(true);
-	};
+	}
 
 	// lagin (put back in game)
-	public String lagin()
-	{
+	public String lagin() {
 		resetOutOfBorderTime();
 		int fnRoundState = m_team.m_round.m_fnRoundState;
 		m_player = m_botAction.getPlayer(m_fcPlayerName);
 		int lagoutsecs = m_rules.getInt("waitafterlagout");
 
-		if (m_player != null)
-		{
-			if (isAllowedToPlay())
-			{
-				if (((System.currentTimeMillis() - m_fnLaggedTime) >= lagoutsecs * 1000) || (m_team.m_round.m_fnRoundState <= 2))
-				{
-					if ((m_fnLagouts < m_fnMaxLagouts) || (m_fnMaxLagouts == -1) || (fnRoundState == 0))
-					{
-						if (m_player.getShipType() == 0)
-						{
+		if (m_player != null) {
+			if (isAllowedToPlay()) {
+				if (((System.currentTimeMillis() - m_fnLaggedTime) >= lagoutsecs * 1000) || (m_team.m_round.m_fnRoundState <= 2)) {
+					if ((m_fnLagouts < m_fnMaxLagouts) || (m_fnMaxLagouts == -1) || (fnRoundState == 0)) {
+						if (m_player.getShipType() == 0) {
 							if (fnRoundState == 3)
 								m_fnLagouts++;
 							// if the player lagged out for over 5 minutes, create a new ship record:
 							/*
 							if (System.currentTimeMillis() - m_fnLaggedTime > 5*60*1000) {
 							    createNewShip(m_fnShipType);
-							};
+							}
 							 */
 							if (m_statTracker.getTotalStatistic(Statistics.TOTAL_KILLS) == 0 && m_statTracker.getTotalStatistic(Statistics.DEATHS) == 0)
 								m_botAction.shipReset(m_fcPlayerName);
@@ -439,26 +399,20 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 							if ((m_fnMaxLagouts > 0) && (fnRoundState == 3))
 								m_logger.sendPrivateMessage(m_fcPlayerName, "You have " + getLagoutsLeft() + " lagouts left");
 							return "yes";
-						}
-						else
+						} else
 							return "Player is not in spec mode";
-					}
-					else
+					} else
 						return "Player reached maximum number of lagouts";
-				}
-				else
+				} else
 					return "You have to wait at least " + lagoutsecs + " seconds before you can return in the game";
-			}
-			else
+			} else
 				return "Player isn't in game";
-		}
-		else
+		} else
 			return "Player isn't in the arena";
-	};
+	}
 
 	// lagout event (when a player lags out to spec)
-	public void lagout(boolean fbOutOfArena)
-	{
+	public void lagout(boolean fbOutOfArena) {
 		m_statTracker.endNow();
 
 		resetOutOfBorderTime();
@@ -466,30 +420,26 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			m_player = null;
 		if (lagRequestTask != null)
             m_botAction.cancelTask(lagRequestTask);
-		if (m_fnPlayerState == 1)
-			m_fnPlayerState = 3;
+		if (m_fnPlayerState == IN_GAME)
+			m_fnPlayerState = LAGGED;
 		m_fnLaggedTime = System.currentTimeMillis();
-	};
+	}
 
 	// report end of game
-	public void reportEndOfGame()
-	{
-		if (m_fnPlayerState == 1)
-		{
+	public void reportEndOfGame() {
+		if (m_fnPlayerState == IN_GAME) {
 			m_statTracker.endNow();
 			if (lagRequestTask != null)
                 m_botAction.cancelTask(lagRequestTask);
 		}
-	};
+	}
 
 	// get out of game
-	public void getInGame(boolean fbSilent)
-	{
+	public void getInGame(boolean fbSilent) {
 		resetOutOfBorderTime();
 		m_logger.setFreqAndShip(m_fcPlayerName, m_fnFrequency, m_statTracker.getShipType());
-		m_fnPlayerState = 1;
-		if (m_rules.getInt("checkforlag") == 1)
-		{
+		m_fnPlayerState = IN_GAME;
+		if (m_rules.getInt("checkforlag") == 1) {
 			lagRequestTask = new LagRequestTask();
 			int lagcheckdelay = m_rules.getInt("lagcheckdelay");
 			if (lagcheckdelay <= 5)
@@ -497,143 +447,124 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 			m_botAction.scheduleTaskAtFixedRate(lagRequestTask, 0, lagcheckdelay * 1000);
 		}
 
-		if (!fbSilent)
-		{
+		if (!fbSilent) {
 			if (m_rules.getInt("ship") == 0)
 				m_logger.sendArenaMessage(m_fcPlayerName + " in for " + m_team.m_fcTeamName + " with ship " + m_statTracker.getShipType());
 			else
 				m_logger.sendArenaMessage(m_fcPlayerName + " in for " + m_team.m_fcTeamName);
 		}
-	};
+	}
 
 	// get out of game
-	public void getOutOfGame()
-	{
+	public void getOutOfGame() {
 		resetOutOfBorderTime();
 		m_logger.doubleSpec(m_fcPlayerName);
-		m_fnPlayerState = 0;
+		m_fnPlayerState = NOT_IN_GAME;
 		if (lagRequestTask != null)
             m_botAction.cancelTask(lagRequestTask);
-	};
+	}
 
 	// reward
-	public void flagReward(int points)
-	{
+	public void flagReward(int points) {
 		m_statTracker.reportFlagReward(points);
-	};
+	}
 
-	public void setAboutToBeSubbed(boolean waarde)
-	{
+	public void setAboutToBeSubbed(boolean waarde) {
 		m_aboutToBeSubbed = waarde;
-	};
+	}
 
-	public void setShip(int ship)
-	{
-		if (ship != m_statTracker.getShipType())
-		{
+	public void setShip(int ship) {
+		if (ship != m_statTracker.getShipType()) {
 			m_statTracker.createNewShip(ship);
-		};
+		}
 		m_logger.setShip(m_fcPlayerName, m_statTracker.getShipType());
 
 		if (m_player != null)
 			if (m_player.getFrequency() != getFrequency())
 				m_logger.setFreq(m_fcPlayerName, getFrequency());
-	};
+	}
 
 	// return the amount of deaths the scoreboard should count for him.
-	public int getDeaths()
-	{
-		if ((m_fnPlayerState >= 1) && (m_fnPlayerState <= 2))
+	public int getDeaths() {
+		if ((m_fnPlayerState >= IN_GAME) && (m_fnPlayerState <= SUBSTITUTED))
 			return m_statTracker.getTotalStatistic(Statistics.DEATHS);
-		if (m_fnPlayerState == 0)
+		if (m_fnPlayerState == NOT_IN_GAME)
 			return 0;
-		if (m_fnPlayerState == 3)
+		if (m_fnPlayerState == LAGGED)
 			return m_fnSpecAt;
-		if (m_fnPlayerState == 4)
+		if (m_fnPlayerState == OUT)
 			return m_fnSpecAt;
 		return 0;
-	};
+	}
 
-	public String getLagoutsLeft()
-	{
+	public String getLagoutsLeft() {
 		if (m_fnMaxLagouts != -1)
 			return new Integer(m_fnMaxLagouts - m_fnLagouts).toString();
 		else
 			return "unlimited";
-	};
+	}
 
-	public int getLagOuts() { return m_fnLagouts; }
+	public int getLagOuts() {
+	    return m_fnLagouts;
+    }
 
-	public boolean isLagged()
-	{
-		if (m_fnPlayerState == 3)
-			return true;
-		return false;
-	};
+	public boolean isLagged() {
+		return (m_fnPlayerState == LAGGED);
+	}
 
-	public void setLagByBot(boolean b)
-	{
+	public void setLagByBot(boolean b) {
 		m_lagByBot = b;
 	}
 
-	public boolean getLagByBot()
-	{
+	public boolean getLagByBot() {
 		return m_lagByBot;
 	}
 
-	public boolean isReadyToPlay()
-	{
-		if (((m_fnPlayerState == 0) || (m_fnPlayerState == 1)) && (!m_aboutToBeSubbed))
+	public boolean isReadyToPlay() {
+		if (((m_fnPlayerState == NOT_IN_GAME) || (m_fnPlayerState == IN_GAME)) && (!m_aboutToBeSubbed))
 			return true;
 		else
 			return false;
-	};
+	}
 
-	public boolean isAllowedToPlay()
-	{
-		if (((m_fnPlayerState == 0) || (m_fnPlayerState == 1) || (m_fnPlayerState == 3)) && (!m_aboutToBeSubbed))
+	public boolean isAllowedToPlay() {
+		if (((m_fnPlayerState == NOT_IN_GAME) || (m_fnPlayerState == IN_GAME) || (m_fnPlayerState == LAGGED)) && (!m_aboutToBeSubbed))
 			return true;
 		else
 			return false;
-	};
+	}
 
-	public boolean isWasInGame()
-	{
-		if (((m_fnPlayerState == 0) || (m_fnPlayerState == 1) || (m_fnPlayerState == 3) || (m_fnPlayerState == 4)) && (!m_aboutToBeSubbed))
+	public boolean isWasInGame() {
+		if (((m_fnPlayerState == NOT_IN_GAME) || (m_fnPlayerState == IN_GAME) || (m_fnPlayerState == LAGGED) || (m_fnPlayerState == OUT)) && (!m_aboutToBeSubbed))
 			return true;
 		else
 			return false;
-	};
+	}
 
-	public String getPlayerStateName()
-	{
-		if (m_fnPlayerState == 0)
+	public String getPlayerStateName() {
+		if (m_fnPlayerState == NOT_IN_GAME)
 			return "not in game";
-		else if (m_fnPlayerState == 1)
+		else if (m_fnPlayerState == IN_GAME)
 			return "in game";
-		else if (m_fnPlayerState == 2)
+		else if (m_fnPlayerState == SUBSTITUTED)
 			return "substituted";
-		else if (m_fnPlayerState == 3)
+		else if (m_fnPlayerState == LAGGED)
 			return "lagged out";
-		else if (m_fnPlayerState == 4)
+		else if (m_fnPlayerState == OUT)
 			return "out";
 		return "";
-	};
+	}
 
-	public int getPoints()
-	{
+	public int getPoints() {
 		String winby = m_rules.getString("winby").toLowerCase();
 
-		if (winby.equals("score") || winby.equals("race"))
-		{
+		if (winby.equals("score") || winby.equals("race")) {
 			return getScore();
 		}
-		else if (winby.equals("kills"))
-		{
+		else if (winby.equals("kills")) {
 			return getKills();
 		}
-		else if (winby.equals("timerace"))
-		{
+		else if (winby.equals("timerace")) {
 			if (m_switchedShip)
 				return m_statTracker.getTotalStatistic(Statistics.RATING);
 			else
@@ -646,8 +577,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	 * Method getStatistics.
 	 * @return String A formated line of stats depending on the ship
 	 */
-	public String[] getTotalStatistics()
-	{
+	public String[] getTotalStatistics() {
 		return m_statTracker.getTotalStatisticsSummary();
 	}
 
@@ -655,38 +585,31 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	 * Method getStatistics.
 	 * @return String A formated line of stats depending on the ship
 	 */
-	public String[] getStatistics()
-	{
+	public String[] getStatistics() {
 		return m_statTracker.getStatisticsSummary();
-	};
+	}
 
-	public long getOutOfBorderTime()
-	{
+	public long getOutOfBorderTime() {
 		return m_fnOutOfBorderTime;
-	};
-	public void setOutOfBorderTime()
-	{
+	}
+	public void setOutOfBorderTime() {
 		m_fnOutOfBorderTime = System.currentTimeMillis();
 		m_fbHasHalfBorderWarning = false;
-	};
-	public void resetOutOfBorderTime()
-	{
+	}
+	public void resetOutOfBorderTime() {
 		m_fnOutOfBorderTime = 0;
 		m_fbHasHalfBorderWarning = false;
-	};
+	}
 
-	public void setHalfBorderWarning()
-	{
+	public void setHalfBorderWarning() {
 		m_fbHasHalfBorderWarning = true;
-	};
-	public boolean hasHalfBorderWarning()
-	{
+	}
+	public boolean hasHalfBorderWarning() {
 		return m_fbHasHalfBorderWarning;
-	};
+	}
 
-	public void kickOutOfGame()
-	{
-		m_fnPlayerState = 4;
+	public void kickOutOfGame() {
+		m_fnPlayerState = OUT;
 		if (lagRequestTask != null)
             m_botAction.cancelTask(lagRequestTask);
 
@@ -694,14 +617,12 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 
 		m_logger.specAndSetFreq(m_fcPlayerName, m_team.getFrequency());
 		m_logger.sendArenaMessage(getPlayerName() + " is out (too long outside of base). " + getKills() + " wins " + getDeaths() + " losses");
-	};
+	}
 
-	public int getActualDeaths()
-	{
+	public int getActualDeaths() {
 		return m_statTracker.getTotalStatistic(Statistics.DEATHS);
-	};
-	public int getKills()
-	{
+	}
+	public int getKills() {
 		return m_statTracker.getTotalStatistic(Statistics.TOTAL_KILLS);
 	}
 
@@ -710,8 +631,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	 *
 	 * @param statType @see twcore.misc.statistics.StatisticRequester.java for stattypes
 	 */
-	public int getTotalStatistic(int statType)
-	{
+	public int getTotalStatistic(int statType) {
 		return m_statTracker.getTotalStatistic(statType);
 	}
 
@@ -720,56 +640,44 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 	 *
 	 * @param statType @see twcore.misc.statistics.StatisticRequester.java for stattypes
 	 */
-	public int getStatistic(int statType)
-	{
+	public int getStatistic(int statType) {
 		return m_statTracker.getStatistic(statType);
-	};
-	public int getScore()
-	{
+	}
+	public int getScore() {
 		return m_statTracker.getStatistic(Statistics.SCORE);
-	};
-	public int getSpecAt()
-	{
+	}
+	public int getSpecAt() {
 		return m_fnSpecAt;
-	};
-	public int getPlayerState()
-	{
+	}
+	public int getPlayerState() {
 		return m_fnPlayerState;
-	};
-	public int getShipType()
-	{
+	}
+	public int getShipType() {
 		return m_statTracker.getShipType();
-	};
-	public String getPlayerName()
-	{
+	}
+	public String getPlayerName() {
 		return m_fcPlayerName;
-	};
-	public long getLaggedTime()
-	{
+	}
+	public long getLaggedTime() {
 		return m_fnLaggedTime;
-	};
+	}
 
-	public int getFrequency()
-	{
+	public int getFrequency() {
 		return m_fnFrequency;
 	}
 
-	public void handleEvent(Message event)
-	{
+	public void handleEvent(Message event) {
 		playerLagInfo.handleEvent(event);
 	}
 
-	public void specForLag(String reason)
-	{
+	public void specForLag(String reason) {
 		m_botAction.sendSmartPrivateMessage(m_fcPlayerName, "You have been placed into spectator mode due to lag.");
 		m_botAction.sendSmartPrivateMessage(m_fcPlayerName, reason);
 		m_logger.doubleSpec(m_fcPlayerName);
 	}
 
-	public void checkLag()
-	{
-		try
-		{
+	public void checkLag() {
+		try {
 			int currentPing = playerLagInfo.getCurrentPing();
 			double s2c = playerLagInfo.getS2C();
 			double c2s = playerLagInfo.getC2S();
@@ -784,8 +692,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				m_botAction.sendArenaMessage("C2S Slow Packets: " + c2sSlowPercent + "%.  S2C Slow Packets: " + s2cSlowPercent + "%.");
 				m_botAction.sendArenaMessage("Spike: +- " + spikeSD + "ms.  Number of spikes: " + numSpikes + ".");
 			*/
-			if (m_fnPlayerState == 1)
-			{
+			if (m_fnPlayerState == IN_GAME) {
 				if (currentPing > maxCurrPing)
 					specForLag("Current ping is: " + currentPing + "ms.  Maximum allowed ping is: " + maxCurrPing + "ms.");
 				else if (s2c > maxPacketLoss)
@@ -801,9 +708,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 				else if (numSpikes > maxNumSpikes)
 					specForLag("Number of recent spikes: " + spikeSD + ".  Maximum spikes allowed: " + maxNumSpikes + ".");
 			}
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
+		    Tools.printStackTrace(e);
 		}
 	}
 
@@ -812,13 +718,11 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		 *
 		 * This class is to congregate all the stats so they can be organised and added + removed easily
 		 */
-	private class TotalStatistics
-	{
+	private class TotalStatistics {
 		private MatchPlayerShip m_currentShip;
 		private LinkedList<MatchPlayerShip> m_ships;
 
-		public TotalStatistics()
-		{
+		public TotalStatistics() {
 			m_ships = new LinkedList<MatchPlayerShip>();
 		}
 
@@ -827,8 +731,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		*
 		* @param fnShipType Type of ship 1 - 8 corresponding to Wb - Shark
 		*/
-		public void createNewShip(int fnShipType)
-		{
+		public void createNewShip(int fnShipType) {
 			if (m_currentShip != null)
 				m_currentShip.endNow();
 			m_currentShip = new MatchPlayerShip(fnShipType);
@@ -844,8 +747,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		 * @param shipType The type of ship killed
 		 * @param killeeFreq The frequency of the killed
 		 */
-		public void reportKill(int fnPoints, int killeeID, int m_fnFrequency, int shipType, int killeeFreq)
-		{
+		public void reportKill(int fnPoints, int killeeID, int m_fnFrequency, int shipType, int killeeFreq) {
 			if (m_currentShip != null)
 				m_currentShip.reportKill(fnPoints, killeeID, m_fnFrequency, shipType, killeeFreq);
 
@@ -854,8 +756,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		/**
 		* Method reportRepelUsed.
 		*/
-		public void reportRepelUsed()
-		{
+		public void reportRepelUsed() {
 			if (m_currentShip != null)
 				m_currentShip.reportRepelUsed();
 		}
@@ -863,8 +764,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		/**
 		* Method reportDeath.
 		*/
-		public void reportDeath()
-		{
+		public void reportDeath() {
 			if (m_currentShip != null)
 				m_currentShip.reportDeath();
 		}
@@ -874,8 +774,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		 *
 		 * Adds flagclaimed to stats
 		 */
-		public void reportFlagClaimed()
-		{
+		public void reportFlagClaimed() {
 			if (m_currentShip != null)
 				m_currentShip.reportFlagClaimed();
 		}
@@ -884,8 +783,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		 * Adds to the m_score.
 		 * @param score The m_score to set
 		 */
-		public void reportFlagReward(int score)
-		{
+		public void reportFlagReward(int score) {
 			if (m_currentShip != null)
 				m_currentShip.flagReward(score);
 
@@ -895,8 +793,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		 * Method changeDeaths.
 		 * @param deaths
 		 */
-		public void changeDeaths(int deaths)
-		{
+		public void changeDeaths(int deaths) {
 			if (m_currentShip != null)
 				m_currentShip.changeDeaths(deaths);
 		}
@@ -904,8 +801,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		/**
 		* Method startNow.
 		*/
-		public void startNow()
-		{
+		public void startNow() {
 			if (m_currentShip != null)
 				m_currentShip.startNow();
 		}
@@ -913,8 +809,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		/**
 		 * Method endNow.
 		 */
-		public void endNow()
-		{
+		public void endNow() {
 			if (m_currentShip != null)
 				m_currentShip.endNow();
 		}
@@ -923,12 +818,10 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		 * Method getStatistics.
 		 * @return String depending on the ship type
 		 */
-		public String[] getTotalStatisticsSummary()
-		{
+		public String[] getTotalStatisticsSummary() {
 			Iterator<MatchPlayerShip> i = m_ships.iterator();
 			LinkedList<String> summary = new LinkedList<String>();
-			while (i.hasNext())
-			{
+			while (i.hasNext()) {
 				String[] summ = i.next().getStatisticsSummary();
 				for (int j = 0; j < summ.length; j++)
 					summary.add(summ[j]);
@@ -941,8 +834,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		 * Method getStatistics.
 		 * @return String depending on the ship type
 		 */
-		public String[] getStatisticsSummary()
-		{
+		public String[] getStatisticsSummary() {
 			return m_currentShip.getStatisticsSummary();
 		}
 
@@ -951,13 +843,11 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		 * @param i
 		 * @return int
 		 */
-		public int getTotalStatistic(int statType)
-		{
+		public int getTotalStatistic(int statType) {
 			Iterator<MatchPlayerShip> i = m_ships.iterator();
 			int total = 0;
 
-			while (i.hasNext())
-			{
+			while (i.hasNext()) {
 				total += i.next().getStatistic(statType);
 			}
 
@@ -969,16 +859,14 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		 * @param statType Type of statistic
 		 * @return int
 		 */
-		public int getStatistic(int statType)
-		{
+		public int getStatistic(int statType) {
 			return m_currentShip.getStatistic(statType);
 		}
 
 		/**
 		 * @return shipType the type of current ship
 		 */
-		public int getShipType()
-		{
+		public int getShipType() {
 			if (m_currentShip != null)
 				return m_currentShip.getShipType();
 			else
@@ -986,28 +874,23 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		}
 	}
 
-	private class MatchPlayerShip
-	{
+	private class MatchPlayerShip {
 		private Statistics m_statisticTracker;
 
 		private java.util.Date m_ftTimeStarted;
 		private java.util.Date m_ftTimeEnded;
 
-		public MatchPlayerShip(int fnShipType)
-		{
+		public MatchPlayerShip(int fnShipType) {
 			m_ftTimeStarted = new java.util.Date();
 
 			//statistics tracker
 			m_statisticTracker = new Statistics(fnShipType);
-		};
+		}
 
 		// report kill
-		public void reportKill(int fnPoints, int killeeID, int frequency, int shipType, int killeeFreq)
-		{
-			if (killeeFreq == frequency)
-			{
-				switch (shipType)
-				{
+		public void reportKill(int fnPoints, int killeeID, int frequency, int shipType, int killeeFreq) {
+			if (killeeFreq == frequency) {
+				switch (shipType) {
 					case 1 : //wb
 						m_statisticTracker.setStatistic(Statistics.WARBIRD_TEAMKILL);
 						break;
@@ -1040,11 +923,8 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 						m_statisticTracker.setStatistic(Statistics.SHARK_TEAMKILL);
 						break;
 				}
-			}
-			else
-			{
-				switch (shipType)
-				{
+			} else {
+				switch (shipType) {
 					case 1 : //wb
 						m_statisticTracker.setStatistic(Statistics.WARBIRD_KILL);
 						break;
@@ -1085,8 +965,7 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		/**
 		* Method reportRepelUsed.
 		*/
-		public void reportRepelUsed()
-		{
+		public void reportRepelUsed() {
 			m_statisticTracker.setStatistic(Statistics.REPELS_USED);
 		}
 
@@ -1095,19 +974,16 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		 *
 		 * Adds flagclaimed to stats
 		 */
-		public void reportFlagClaimed()
-		{
+		public void reportFlagClaimed() {
 			m_statisticTracker.setStatistic(Statistics.FLAG_CLAIMED);
 		}
 
 		// report death
-		public void reportDeath()
-		{
+		public void reportDeath() {
 			m_statisticTracker.setStatistic(Statistics.DEATHS);
 		}
 
-		public void flagReward(int points)
-		{
+		public void flagReward(int points) {
 			m_statisticTracker.setStatistic(Statistics.SCORE, points);
 		}
 
@@ -1115,73 +991,58 @@ public class MatchPlayer implements Comparable<MatchPlayer>
 		 * Method changeDeaths.
 		 * @param deaths
 		 */
-		public void changeDeaths(int deaths)
-		{
+		public void changeDeaths(int deaths) {
 			m_statisticTracker.changeStatistic(Statistics.DEATHS, deaths);
 		}
 
 		// report end of playership
-		public void endNow()
-		{
+		public void endNow() {
 			m_ftTimeEnded = new java.util.Date();
 		}
 
 		// report start of playership
-		public void startNow()
-		{
+		public void startNow() {
 			m_ftTimeStarted = new java.util.Date();
 		}
 
-		public int getShipType()
-		{
+		public int getShipType() {
 			return m_statisticTracker.getShipType();
 		}
 
-		public String[] getStatisticsSummary()
-		{
+		public String[] getStatisticsSummary() {
 			return m_statisticTracker.getStatisticsSummary();
 		}
 
-		public int getStatistic(int statType)
-		{
+		public int getStatistic(int statType) {
 			return m_statisticTracker.getIntStatistic(statType);
 		}
 
-		public java.util.Date getTimeStarted()
-		{
+		public java.util.Date getTimeStarted() {
 			return m_ftTimeStarted;
 		}
 
-		public java.util.Date getTimeEnded()
-		{
+		public java.util.Date getTimeEnded() {
 			return m_ftTimeEnded;
 		}
 
 	}
 
-	private class LagRequestTask extends TimerTask
-	{
-		public void run()
-		{
-			try
-			{
+	private class LagRequestTask extends TimerTask {
+		public void run() {
+			try {
 				playerLagInfo.updateLag();
 				m_botAction.scheduleTask(new LagCheckTask(), 3000);
-			}
-			catch (Exception e)
-			{
+			} catch (Exception e) {
 				if (lagRequestTask != null)
                     m_botAction.cancelTask(lagRequestTask);
 			}
 		}
 	}
 
-	private class LagCheckTask extends TimerTask
-	{
-		public void run()
-		{
+	private class LagCheckTask extends TimerTask {
+		public void run() {
 			checkLag();
 		}
 	}
 
-};
+}
