@@ -105,18 +105,19 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
 	static final int OUT = 4;
 
     // Kill shot range (value and less)
-    static final int DD_KILL_SHORT_RANGE = 15; // 0 to 15 pixel (16x16)
-    static final int DD_KILL_NORMAL_RANGE = 40;
-    static final int DD_KILL_LONG_RANGE = 80;
+    static final int LD_KILL_SHORT_RANGE = 15; // 0 to 15 pixel (16x16)
+    static final int LD_KILL_NORMAL_RANGE = 40;
+    static final int LD_KILL_LONG_RANGE = 80;
 
-    static final int JD_KILL_SHORT_RANGE = 8;
-    static final int JD_KILL_NORMAL_RANGE = 20;
-    static final int JD_KILL_LONG_RANGE = 34;
+    static final int LJ_KILL_SHORT_RANGE = 8;
+    static final int LJ_KILL_NORMAL_RANGE = 20;
+    static final int LJ_KILL_LONG_RANGE = 34;
 
+    /* Uncomment this whenever TWLS gets put back into action again.
     static final int SD_KILL_SHORT_RANGE = 15;
     static final int SD_KILL_NORMAL_RANGE = 35;
     static final int SD_KILL_LONG_RANGE = 60;
-
+     */
     // Death-On-Attach stats
     private static long DEATH_ON_ATTACH = 1500; // ms
     private long lastAttach = 0;
@@ -1324,41 +1325,42 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
 
         public void reportKillShotDistance(double distance) {
 
-            if (m_rules.getInt("matchtype") == 4) {
+            if (m_rules.getInt("matchtype") == MatchTypeID.TWLD) {
 
-                if (distance < DD_KILL_SHORT_RANGE) {
+                if (distance < LD_KILL_SHORT_RANGE) {
                     m_statisticTracker.setStatistic(Statistics.KILL_SHORT_RANGE);
-                } else if (distance < DD_KILL_NORMAL_RANGE) {
+                } else if (distance < LD_KILL_NORMAL_RANGE) {
                     m_statisticTracker.setStatistic(Statistics.KILL_NORMAL_RANGE);
-                } else if (distance < DD_KILL_LONG_RANGE) {
+                } else if (distance < LD_KILL_LONG_RANGE) {
                     m_statisticTracker.setStatistic(Statistics.KILL_LONG_RANGE);
                 } else {
                     m_statisticTracker.setStatistic(Statistics.KILL_ULTRA_LONG_RANGE);
                 }
-            } else if (m_rules.getInt("matchtype") == 5) {
+            } else if (m_rules.getInt("matchtype") == MatchTypeID.TWLD) {
 
-                if (distance < JD_KILL_SHORT_RANGE) {
+                if (distance < LJ_KILL_SHORT_RANGE) {
                     m_statisticTracker.setStatistic(Statistics.KILL_SHORT_RANGE);
-                } else if (distance < JD_KILL_NORMAL_RANGE) {
+                } else if (distance < LJ_KILL_NORMAL_RANGE) {
                     m_statisticTracker.setStatistic(Statistics.KILL_NORMAL_RANGE);
-                } else if (distance < JD_KILL_LONG_RANGE) {
+                } else if (distance < LJ_KILL_LONG_RANGE) {
                     m_statisticTracker.setStatistic(Statistics.KILL_LONG_RANGE);
                 } else {
                     m_statisticTracker.setStatistic(Statistics.KILL_ULTRA_LONG_RANGE);
                 }
-            } else if (m_rules.getInt("matchtype") == 13) {
+            } /* Uncomment this and adjust the 13 whenever TWLS gets activated again.
+            else if (m_rules.getInt("matchtype") == 13) {
 
-                if (distance < SD_KILL_SHORT_RANGE) {
+                if (distance < LS_KILL_SHORT_RANGE) {
                     m_statisticTracker.setStatistic(Statistics.KILL_SHORT_RANGE);
-                } else if (distance < SD_KILL_NORMAL_RANGE) {
+                } else if (distance < LS_KILL_NORMAL_RANGE) {
                     m_statisticTracker.setStatistic(Statistics.KILL_NORMAL_RANGE);
-                } else if (distance < SD_KILL_LONG_RANGE) {
+                } else if (distance < LS_KILL_LONG_RANGE) {
                     m_statisticTracker.setStatistic(Statistics.KILL_LONG_RANGE);
                 } else {
                     m_statisticTracker.setStatistic(Statistics.KILL_ULTRA_LONG_RANGE);
                 }
 
-            }
+            }*/
         }
 
 		/**
