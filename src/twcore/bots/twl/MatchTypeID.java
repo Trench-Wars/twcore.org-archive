@@ -1,7 +1,7 @@
 package twcore.bots.twl;
 
 /**
- * Modeled after Matchbot´s MatchTypeID.
+ * Modeled after Matchbot's MatchTypeID.
  * Values extracted from rules files.
  * @author Trancid
  */
