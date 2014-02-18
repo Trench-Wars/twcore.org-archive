@@ -1033,7 +1033,7 @@ public class MatchRound {
 
         m_fnRoundState = 1;
 
-        if (m_game.m_fnMatchTypeID > 0 && m_game.m_fnMatchTypeID < 4) {
+        if (m_game.m_fnMatchTypeID > MatchTypeID.NONE && m_game.m_fnMatchTypeID < MatchTypeID.MAX) {
             m_logger.sendArenaMessage("Captains, you have " + m_rules.getInt("lineuptime") + " minutes to set up your lineup correctly");
             m_scheduleTimer = new TimerTask() {
                 public void run() {

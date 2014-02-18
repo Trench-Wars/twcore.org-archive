@@ -29,6 +29,7 @@ import twcore.core.EventRequester;
 import twcore.core.OperatorList;
 import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaJoined;
+import twcore.core.events.BallPosition;
 import twcore.core.events.FlagClaimed;
 import twcore.core.events.FlagReward;
 import twcore.core.events.FrequencyChange;
@@ -40,8 +41,11 @@ import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
 import twcore.core.events.PlayerPosition;
+import twcore.core.events.Prize;
 import twcore.core.events.SQLResultEvent;
 import twcore.core.events.ScoreReset;
+import twcore.core.events.SoccerGoal;
+import twcore.core.events.TurretEvent;
 import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.stats.DBPlayerData;
@@ -113,8 +117,7 @@ public class twl extends SubspaceBot {
             return null;
         }
 
-        do
-        {
+        do {
             previousSpace = nextSpace;
             nextSpace = input.indexOf(deliniator, nextSpace + 1);
 
@@ -124,8 +127,7 @@ public class twl extends SubspaceBot {
                     list.add(stuff);
             }
 
-        }
-        while (nextSpace != -1);
+        } while (nextSpace != -1);
         String stuff = input.substring(previousSpace);
         stuff = stuff.trim();
         if (stuff.length() > 0) {
@@ -159,6 +161,10 @@ public class twl extends SubspaceBot {
         req.request(EventRequester.MESSAGE);
         req.request(EventRequester.ARENA_JOINED);
         req.request(EventRequester.WEAPON_FIRED);
+        req.request(EventRequester.SOCCER_GOAL);
+        req.request(EventRequester.BALL_POSITION);
+        req.request(EventRequester.PRIZE);
+        req.request(EventRequester.TURRET_EVENT);
     }
 
     /**
@@ -173,11 +179,21 @@ public class twl extends SubspaceBot {
         if (m_game != null) {
             m_game.handleEvent(event);
         }
+        
+        m_botAction.setReliableKills(1); // Reliable kills so the bot receives
+                                         // every packet
+        m_botAction.sendUnfilteredPublicMessage("?obscene");
     }
 
+    public void handleEvent(BallPosition event) {
+        if (m_game != null)
+            m_game.handleEvent(event);
+    }
+    
     public void handleEvent(LoggedOn event) {
         m_botAction.ipcSubscribe("MatchBot");
-
+        m_botAction.sendUnfilteredPublicMessage("?chat=robodev");
+        
         String def = m_botSettings.getString("Default" + getBotNumber());
         int typeNumber = getGameTypeNumber(def);
 
@@ -188,6 +204,7 @@ public class twl extends SubspaceBot {
             command_lock(m_botAction.getBotName(), param);
         }
         m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
+        m_botAction.setPlayerPositionUpdating(300);
     }
 
     public void handleEvent(FlagClaimed event) {
@@ -256,12 +273,28 @@ public class twl extends SubspaceBot {
         }
     }
 
+    public void handleEvent(Prize event) {
+        if (m_game != null)
+            m_game.handleEvent(event);
+    }
+
     public void handleEvent(ScoreReset event) {
         if (m_game != null)
             m_game.handleEvent(event);
     }
 
+    public void handleEvent(SoccerGoal event) {
+        if (m_game != null) {
+            m_game.handleEvent(event);
+        }
+    }
+    
     public void handleEvent(SQLResultEvent event) {
+    }
+    
+    public void handleEvent(TurretEvent event) {
+        if (m_game != null)
+            m_game.handleEvent(event);
     }
 
     public void handleEvent(Message event) {
@@ -552,7 +585,7 @@ public class twl extends SubspaceBot {
                 } else
                     m_botAction.sendPrivateMessage(name, "That game type does not exist");
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                Tools.printStackTrace(e);
             }
 
         }
@@ -824,7 +857,7 @@ public class twl extends SubspaceBot {
             m_rules.save();
             m_botAction.sendPrivateMessage(name, newP + " has been added to the access list");
         } catch (Exception e) {
-            System.out.println("Error in command_addaccess: " + e.getMessage());
+            Tools.printStackTrace("Error in command_addaccess: ", e);
         }
     }
 
@@ -849,7 +882,7 @@ public class twl extends SubspaceBot {
                 m_botAction.sendPrivateMessage(name, newP + " has been removed from the access list");
             }
         } catch (Exception e) {
-            System.out.println("Error in command_removeaccess: " + e.getMessage());
+            Tools.printStackTrace("Error in command_removeaccess: ", e);
         }
     }
 
