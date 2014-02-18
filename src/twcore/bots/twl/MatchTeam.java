@@ -967,7 +967,7 @@ public class MatchTeam {
             }
 
             // only for TWL games
-            if (m_rules.getInt("matchtype") < 4) {
+            if (m_rules.getInt("matchtype") < MatchTypeID.MAX) {
                 try {
                     ResultSet s = m_botAction.SQLQuery(dbConn, "SELECT tblTWL__LockDate.fdTWL__LockDate AS lockDate FROM tblTWL__LockDate, tblTeamUser WHERE tblTWL__LockDate.fcTWL__LockType = 'hard' AND tblTeamUser.fnUserID = '" + dbP.getUserID() + "' AND (tblTeamUser.fdJoined < tblTWL__LockDate.fdTWL__LockDate OR (tblTeamUser.fnTeamID = 11890 AND tblTeamUser.fnTWL = 1));");
                     if (!s.next()) {

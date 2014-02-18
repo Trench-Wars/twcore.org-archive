@@ -97,7 +97,7 @@ public class MatchGame {
             }
         }
 
-        if ((m_rules.getInt("storegame") == 1) && (m_rules.getInt("matchtype") != 0)) {
+        if ((m_rules.getInt("storegame") == 1) && (m_rules.getInt("matchtype") != MatchTypeID.NONE)) {
             if (m_fnMatchTypeID > MatchTypeID.NONE && m_fnMatchTypeID < MatchTypeID.MAX) {
                 m_fnMatchID = m_id;
             } else {
@@ -412,7 +412,7 @@ public class MatchGame {
     public void command_zone(String name, String[] parameters) {
 
         if (!announced) {
-            if (m_rules.getInt("matchtype") > 0 && m_rules.getInt("matchtype") < 4) {
+            if (m_rules.getInt("matchtype") > MatchTypeID.NONE && m_rules.getInt("matchtype") < MatchTypeID.MAX) {
                 announced = true;				
                 m_botAction.sendZoneMessage("TWL Season 18: [" + m_rules.getString("name") + "] " + m_fcTeam1Name + " vs. " + m_fcTeam2Name + " Type ?go " + m_botAction.getArenaName());
             } else {
