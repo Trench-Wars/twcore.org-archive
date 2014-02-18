@@ -364,7 +364,7 @@ public class pubsystem extends SubspaceBot
             Calendar cal = Calendar.getInstance();
             SimpleDateFormat sdf = new SimpleDateFormat("hh:mma, MMM dd yyyy");
             cal.add(Calendar.HOUR, 1);  // Server seems to be in a different timezone than botserv
-            m_botAction.sendSmartPrivateMessage(sender, "The current server time is: " + sdf.format(cal.getTime()) + "Eastern Time");
+            m_botAction.sendSmartPrivateMessage(sender, "The current server time is: " + sdf.format(cal.getTime()) + " EST/EDT (-5GMT/-6GMT)");
         } else if (m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) || m_botAction.getOperatorList().isBotExact(sender)) {
             if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE)) {
                 handleModCommand(sender, message);
