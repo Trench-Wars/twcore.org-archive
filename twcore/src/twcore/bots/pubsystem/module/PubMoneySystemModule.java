@@ -113,6 +113,7 @@ public class PubMoneySystemModule extends AbstractModule {
     private ArrayList<Integer> canBuyAnywhere;
     private boolean canLTBuyAnywhere = false;
     private boolean donationEnabled = false;
+    private boolean buyBlock = false;
 
     private String database;
     private MapRegions regions;
@@ -914,6 +915,11 @@ public class PubMoneySystemModule extends AbstractModule {
             doCmdItems(sender, false);
             return;
         }
+        if (buyBlock) {
+            m_botAction.sendPrivateMessage(sender, "A ninja has shut down the store -- you can't buy anything right now!");
+            return;
+        }
+        
         command = command.substring(command.indexOf(" ")).trim();
         if (command.indexOf(":") != -1) {
             String params = command.substring(command.indexOf(":") + 1).trim();
@@ -3112,6 +3118,30 @@ public class PubMoneySystemModule extends AbstractModule {
         };
         m_botAction.scheduleTaskAtFixedRate(displayFireworks, 2000, 150);
     }
+    
+    /**
+     * Executes the special shop item Fireworks.
+     * <p>
+     * This special command displays fireworks to all players.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the Fireworks
+     * @param params Currently unused
+     */
+    @SuppressWarnings("unused")
+    private void itemCommandBuyBlock(String sender, String params) {        
+        m_botAction.sendArenaMessage( "[BUYBLOCK] A sneaky prawn has shut down the store for 3 minutes!" );
+        buyBlock = true;
+        
+        final TimerTask reenableStore = new TimerTask() {
+            public void run() {
+                buyBlock = false;
+            }
+        };
+        m_botAction.scheduleTask(reenableStore, Tools.TimeInMillis.MINUTE * 3);
+    }
+    
     
     /**
      * This class is used by the {@link PubMoneySystemModule#itemCommandNukeBase(String, String) NukeBase} command.
