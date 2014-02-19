@@ -3761,7 +3761,7 @@ public class PubMoneySystemModule extends AbstractModule {
             }
             commandBot("!Timeout 300");
             commandBot("!Killable");
-            commandBot("!DieAtXShots 20");
+            commandBot("!DieAtXShots 30");
             commandBot("!QuitOnDeath");
             commandBot("!baseterr");
         }
