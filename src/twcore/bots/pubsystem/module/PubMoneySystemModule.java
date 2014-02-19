@@ -3811,10 +3811,10 @@ public class PubMoneySystemModule extends AbstractModule {
                 Thread.sleep(250);
             } catch (InterruptedException e) {}
             commandBot("!WarpTo " + coordRoofTurret.x + " " + coordRoofTurret.y);
-            commandBot("!RepeatFireOnSight 65 500");
+            commandBot("!RepeatFireOnSight 65 750");
             commandBot("!AimingAtEnemy");
             commandBot("!FastRotation");
-            commandBot("!Timeout 300");
+            commandBot("!Timeout 240");
             commandBot("!Aim");
 
             // The autobot needs to know what is the roof
