@@ -1644,7 +1644,7 @@ public class MatchTeam {
                 }
             }
         } else {
-            out.add("|                          ,------+------+------+-----------+------+------+-----------+----+");
+            out.add("|                          ,------+------+------+-----------+------+------+-----+-----------+----+");
             out.add("| " + Tools.formatString(m_fcTeamName, 23) + " /  "
                     + rightenString(Integer.toString(getDTotalStats(Statistics.TOTAL_KILLS)), 4) + " | "
                     + rightenString(Integer.toString(getDTotalStats(Statistics.DEATHS)), 4) + " | "
@@ -1652,9 +1652,10 @@ public class MatchTeam {
                     + rightenString(Integer.toString(getDTotalStats(Statistics.SCORE)), 9) + " | "
                     + rightenString(Integer.toString(getDTotalStats(Statistics.FLAG_CLAIMED)), 4) + " | "
                     + rightenString(Integer.toString(getDTotalStats(Statistics.TERRIER_KILL)), 4) + " | "
+                    + rightenString(Integer.toString(getTotalRepelsUsed()), 3) + " | "
                     + rightenString(Integer.toString(getDTotalStats(Statistics.RATING)), 9) + " | "
                     + rightenString(Integer.toString(getTotalLagOuts()), 2) + " |");
-            out.add("+------------------------'        |      |      |           |      |      |           |    |");
+            out.add("+------------------------'        |      |      |           |      |      |     |           |    |");
 
             for (int i = players.length - 1; i >= 0; i--) {
                 MatchPlayer p = players[i];
@@ -1665,6 +1666,7 @@ public class MatchTeam {
                         + rightenString(Integer.toString(p.getTotalStatistic(Statistics.SCORE)), 9) + " | "
                         + rightenString(Integer.toString(p.getTotalStatistic(Statistics.FLAG_CLAIMED)), 4) + " | "
                         + rightenString(Integer.toString(p.getTotalStatistic(Statistics.TERRIER_KILL)), 4) + " | "
+                        + rightenString(p.getRepelsPerDeath(), 3) + " | "
                         + rightenString(Integer.toString(p.getTotalStatistic(Statistics.RATING)), 9) + " | "
                         + rightenString(Integer.toString(p.getLagOuts()), 2) + " |");
             }
