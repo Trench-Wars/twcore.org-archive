@@ -278,6 +278,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                 checkFreq(event.getPlayerID(), event.getTeam(), false);
             //checkFreqSizes();
             }
+            checkLowPopSpawn();
         }
         
         if (pubPlayer != null) {
@@ -295,6 +296,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         String playerName = p.getPlayerName();
 
         removeFromLists(playerName);
+        checkLowPopSpawn();
         //checkFreqSizes();
     }
     
@@ -400,6 +402,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             if (!context.getPubUtil().isPrivateFrequencyEnabled()) {
                 checkFreq(event.getPlayerID(), event.getFrequency(), true);
             }
+            checkLowPopSpawn();
         }
     }
     
@@ -695,13 +698,14 @@ public class PubPlayerManagerModule extends AbstractModule {
             freq0.add(lowerName);
         if(freq == pubsystem.FREQ_1)
             freq1.add(lowerName);
-        
+    }
+    
+    private void checkLowPopSpawn() {
         int numPlayers = m_botAction.getFrequencySize(0) + m_botAction.getFrequencySize(1);
         if(numPlayers != -1 && numPlayers <= MAX_MID_SPAWN && !lowPopSpawning)
             lowPopSpawning = true;
         else if (numPlayers > MAX_MID_SPAWN && lowPopSpawning)
             lowPopSpawning = false;
-
     }
     
     /**
@@ -710,13 +714,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     private void removeFromLists(String playerName) {
         String lowerName = playerName.toLowerCase();
         freq0.remove(lowerName);
-        freq1.remove(lowerName);
-        
-        int numPlayers = m_botAction.getNumPlaying();
-        if(numPlayers != -1 && numPlayers <= MAX_MID_SPAWN && !lowPopSpawning)
-            lowPopSpawning = true;
-        else if (numPlayers > MAX_MID_SPAWN && lowPopSpawning)
-            lowPopSpawning = false;
+        freq1.remove(lowerName);        
     }
     
     public void enableLowPopWarp() { 
