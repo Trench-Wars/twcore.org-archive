@@ -167,14 +167,6 @@ public class twl extends SubspaceBot {
         req.request(EventRequester.TURRET_EVENT);
     }
 
-    /**
-     * @param event The weapon Fired event
-     */
-    public void handleEvent(WeaponFired event) {
-        if (m_game != null)
-            m_game.handleEvent(event);
-    }
-
     public void handleEvent(ArenaJoined event) {
         if (m_game != null) {
             m_game.handleEvent(event);
@@ -297,6 +289,14 @@ public class twl extends SubspaceBot {
             m_game.handleEvent(event);
     }
 
+    /**
+     * @param event The weapon Fired event
+     */
+    public void handleEvent(WeaponFired event) {
+        if (m_game != null)
+            m_game.handleEvent(event);
+    }
+    
     public void handleEvent(Message event) {
         boolean isStaff, isRestrictedStaff;
         String message = event.getMessage();

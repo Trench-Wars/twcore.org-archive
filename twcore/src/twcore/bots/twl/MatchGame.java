@@ -217,16 +217,6 @@ public class MatchGame {
         }
     }
 
-    /**
-     * @param event WeaponFired event
-     */
-    public void handleEvent(WeaponFired event) {
-        //m_logger.logEvent(event); too much extra overhead for database
-        if (m_curRound != null) {
-            m_curRound.handleEvent(event);
-        }
-    }
-
     public void handleEvent(ArenaJoined event) {
         m_logger.logEvent(event);
     }
@@ -314,6 +304,16 @@ public class MatchGame {
     }
     
     public void handleEvent(TurretEvent event) {
+        if (m_curRound != null) {
+            m_curRound.handleEvent(event);
+        }
+    }
+    
+    /**
+     * @param event WeaponFired event
+     */
+    public void handleEvent(WeaponFired event) {
+        //m_logger.logEvent(event); too much extra overhead for database
         if (m_curRound != null) {
             m_curRound.handleEvent(event);
         }

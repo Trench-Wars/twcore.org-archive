@@ -290,102 +290,10 @@ public class MatchRound {
         }
     }
 
-    /**
-     * Can get various weapon info and the player who used it
-     * Get repel used count
-     *
-     * @param event WeaponFired event
-     */
-    public void handleEvent(WeaponFired event) {
-        try {
-            if (m_fnRoundState == 3) {
-                String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
-                if (m_team1.getPlayer(playerName, true) != null)
-                    m_team1.handleEvent(event);
-                if (m_team2.getPlayer(playerName, true) != null)
-                    m_team2.handleEvent(event);
-            }
-        } catch (Exception e) {
-            Tools.printStackTrace(e);
-        }   
-    }
-
-    public void handleEvent(Prize event) {
-        try {
-            if (m_fnRoundState == 3) {
-                String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
-                if (m_team1.getPlayer(playerName, true) != null)
-                    m_team1.handleEvent(event);
-                if (m_team2.getPlayer(playerName, true) != null)
-                    m_team2.handleEvent(event);
-            }
-        } catch (Exception e) {
-            Tools.printStackTrace(e);
-        }
-    }
-
-    public void handleEvent(TurretEvent event) {
-        try {
-            if (m_fnRoundState == 3 && event.isAttaching()) {
-
-                String playerName = m_botAction.getPlayer(event.getAttacherID()).getPlayerName();
-                if (m_team1.getPlayer(playerName, true) != null)
-                    m_team1.handleEvent(event);
-                if (m_team2.getPlayer(playerName, true) != null)
-                    m_team2.handleEvent(event);
-            }
-        } catch (Exception e) {
-            Tools.printStackTrace(e);
-        }
-    }
-
-    /**
-     * Parses the FrequencyShipChange event to the team in which the player is
-     *
-     * @param event FrequencyShipChange event
-     */
-    public void handleEvent(FrequencyShipChange event) {
-        try {
-            String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
-            if (m_team1.getPlayer(playerName, true) != null)
-                m_team1.handleEvent(event);
-            if (m_team2.getPlayer(playerName, true) != null)
-                m_team2.handleEvent(event);
-
-            if ((m_team1.isDead() || m_team2.isDead()) && (m_fnRoundState == 3))
-                endGame();
-        } catch (Exception e) {
-            Tools.printStackTrace(e);
-        }
-    }
-
-    public void handleEvent( PlayerEntered event ){
-
-        if (m_blueoutState == 1){
-            m_botAction.sendPrivateMessage(event.getPlayerID(), "This game has blueout enabled.");
-        }
-
-        int exists = m_notPlaying.indexOf( event.getPlayerName().toLowerCase());
-        if( exists != -1 ){
-            m_botAction.spec( event.getPlayerName() );
-            m_botAction.spec( event.getPlayerName() );
-            m_logger.sendPrivateMessage( event.getPlayerName(), "notplaying mode is still on, captains will be unable to pick you");
-            m_logger.setFreq( event.getPlayerName(), NOT_PLAYING_FREQ);
-        }
-    }
-
-    /*
-     * Parses the FlagReward event to the correct team
-     */
-    public void handleEvent(FlagReward event) {
-        if (m_fnRoundState == 3) {
-            int freq = event.getFrequency();
-            if (m_team1.getFrequency() == freq)
-                m_team1.flagReward(event.getPoints());
-            if (m_team2.getFrequency() == freq)
-                m_team2.flagReward(event.getPoints());
-            if (m_team1.wonRace() || m_team2.wonRace())
-                endGame();
+    public void handleEvent(BallPosition event) {
+        if (waitingOnBall) {
+            startGame();
+            waitingOnBall = false;
         }
     }
 
@@ -421,53 +329,39 @@ public class MatchRound {
             }
         }
     }
-
+    
     /*
-     * Checks if lag reports are sent (in the shape of an arenamessage)
+     * Parses the FlagReward event to the correct team
      */
-    public void handleEvent(Message event) {
-        if ((event.getMessageType() == Message.PUBLIC_MESSAGE) && (m_blueoutState == 1) && (m_endGame != null) && (System.currentTimeMillis() - m_timeBOEnabled > 5000)) {
-            String name = m_botAction.getPlayerName(event.getPlayerID());
-            m_botAction.sendUnfilteredPublicMessage("?cheater " + name + " talking in blueout: " + name + "> " + event.getMessage());
-            m_botAction.sendUnfilteredPrivateMessage(event.getPlayerID(), "*warn Do not talk during blueout!");
+    public void handleEvent(FlagReward event) {
+        if (m_fnRoundState == 3) {
+            int freq = event.getFrequency();
+            if (m_team1.getFrequency() == freq)
+                m_team1.flagReward(event.getPoints());
+            if (m_team2.getFrequency() == freq)
+                m_team2.flagReward(event.getPoints());
+            if (m_team1.wonRace() || m_team2.wonRace())
+                endGame();
         }
-
-        if (event.getMessageType() == Message.ARENA_MESSAGE) {
-            String msg = event.getMessage();
-
-
-            if (m_fnRoundState == 1) {
+    }
+    
+    /**
+     * Parses the FrequencyShipChange event to the team in which the player is
+     *
+     * @param event FrequencyShipChange event
+     */
+    public void handleEvent(FrequencyShipChange event) {
+        try {
+            String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+            if (m_team1.getPlayer(playerName, true) != null)
                 m_team1.handleEvent(event);
+            if (m_team2.getPlayer(playerName, true) != null)
                 m_team2.handleEvent(event);
-            } else if (m_fnRoundState == 3) {
-                m_lagHandler.handleLagMessage(msg);
-            }
 
-            /*
-                        if (msg.startsWith("IP:")) {
-                            String[] pieces = msg.split("  ");
-                            String pName = pieces[3].substring(10);
-                            if (m_team1.getPlayer(pName, true) != null) m_team1.reportLaggerName(pName);
-                            if (m_team2.getPlayer(pName, true) != null) m_team2.reportLaggerName(pName);
-                        } else if (msg.startsWith("Ping:")) {
-                            String[] pieces = msg.split("  ");
-                            String lag = pieces[3].substring(8);
-                            lag = lag.substring(0, lag.length()-2);
-                            try {
-                                int msPing = Integer.parseInt(lag);
-                                m_team1.reportLaggerLag(msPing);
-                                m_team2.reportLaggerLag(msPing);
-                            } catch (Exception e) {
-                            };
-                        };
-             */
-            if (msg.equals("Public Messages LOCKED")) {
-                if (!m_blueoutDesiredState)
-                    m_botAction.toggleBlueOut();
-            } else if (msg.equals("Public Messages UNLOCKED")) {
-                if (m_blueoutDesiredState)
-                    m_botAction.toggleBlueOut();
-            }
+            if ((m_team1.isDead() || m_team2.isDead()) && (m_fnRoundState == 3))
+                endGame();
+        } catch (Exception e) {
+            Tools.printStackTrace(e);
         }
     }
 
@@ -531,37 +425,21 @@ public class MatchRound {
         }
     }
 
-    /*
-     * Parses the SoccerGoal event to the team in which the player is
-     */
-    public void handleEvent(SoccerGoal event) {
-        try {
-            int freq = event.getFrequency();
+    public void handleEvent( PlayerEntered event ){
 
-            if (freq == 0) {
-                m_fnTeam1Score++;
-                if (m_fnTeam1Score >= m_rules.getInt("goals"))
-                    endGame();
-            }
-            if (freq == 1) {
-                m_fnTeam2Score++;
-                if (m_fnTeam2Score >= m_rules.getInt("goals"))
-                    endGame();
-            }
-            System.out.println("Goal by: " + freq);
-            System.out.println("Score: " + m_fnTeam1Score + "-" + m_fnTeam2Score);
-        } catch (Exception e) {
-            Tools.printStackTrace(e);
+        if (m_blueoutState == 1){
+            m_botAction.sendPrivateMessage(event.getPlayerID(), "This game has blueout enabled.");
+        }
+
+        int exists = m_notPlaying.indexOf( event.getPlayerName().toLowerCase());
+        if( exists != -1 ){
+            m_botAction.spec( event.getPlayerName() );
+            m_botAction.spec( event.getPlayerName() );
+            m_logger.sendPrivateMessage( event.getPlayerName(), "notplaying mode is still on, captains will be unable to pick you");
+            m_logger.setFreq( event.getPlayerName(), NOT_PLAYING_FREQ);
         }
     }
-
-    public void handleEvent(BallPosition event) {
-        if (waitingOnBall) {
-            startGame();
-            waitingOnBall = false;
-        }
-    }
-
+    
     /*
      * Parses the PlayerLeft event to the team in which the player is
      */
@@ -574,7 +452,7 @@ public class MatchRound {
 
         if (m_team1.isDead() || m_team2.isDead())
             endGame();
-    };
+    }
 
     public void handleEvent(PlayerPosition event) {
         /* for round state 2:
@@ -651,6 +529,128 @@ public class MatchRound {
                         }
                     }
                 }
+            }
+        }
+    }
+    
+    public void handleEvent(Prize event) {
+        try {
+            if (m_fnRoundState == 3) {
+                String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+                if (m_team1.getPlayer(playerName, true) != null)
+                    m_team1.handleEvent(event);
+                if (m_team2.getPlayer(playerName, true) != null)
+                    m_team2.handleEvent(event);
+            }
+        } catch (Exception e) {
+            Tools.printStackTrace(e);
+        }
+    }
+
+    /*
+     * Parses the SoccerGoal event to the team in which the player is
+     */
+    public void handleEvent(SoccerGoal event) {
+        try {
+            int freq = event.getFrequency();
+
+            if (freq == 0) {
+                m_fnTeam1Score++;
+                if (m_fnTeam1Score >= m_rules.getInt("goals"))
+                    endGame();
+            }
+            if (freq == 1) {
+                m_fnTeam2Score++;
+                if (m_fnTeam2Score >= m_rules.getInt("goals"))
+                    endGame();
+            }
+            System.out.println("Goal by: " + freq);
+            System.out.println("Score: " + m_fnTeam1Score + "-" + m_fnTeam2Score);
+        } catch (Exception e) {
+            Tools.printStackTrace(e);
+        }
+    }
+
+    public void handleEvent(TurretEvent event) {
+        try {
+            if (m_fnRoundState == 3 && event.isAttaching()) {
+
+                String playerName = m_botAction.getPlayer(event.getAttacherID()).getPlayerName();
+                if (m_team1.getPlayer(playerName, true) != null)
+                    m_team1.handleEvent(event);
+                if (m_team2.getPlayer(playerName, true) != null)
+                    m_team2.handleEvent(event);
+            }
+        } catch (Exception e) {
+            Tools.printStackTrace(e);
+        }
+    }
+
+    /**
+     * Can get various weapon info and the player who used it
+     * Get repel used count
+     *
+     * @param event WeaponFired event
+     */
+    public void handleEvent(WeaponFired event) {
+        try {
+            if (m_fnRoundState == 3) {
+                String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+                if (m_team1.getPlayer(playerName, true) != null)
+                    m_team1.handleEvent(event);
+                if (m_team2.getPlayer(playerName, true) != null)
+                    m_team2.handleEvent(event);
+            }
+        } catch (Exception e) {
+            Tools.printStackTrace(e);
+        }   
+    }
+
+    /*
+     * Checks if lag reports are sent (in the shape of an arenamessage)
+     */
+    public void handleEvent(Message event) {
+        if ((event.getMessageType() == Message.PUBLIC_MESSAGE) && (m_blueoutState == 1) && (m_endGame != null) && (System.currentTimeMillis() - m_timeBOEnabled > 5000)) {
+            String name = m_botAction.getPlayerName(event.getPlayerID());
+            m_botAction.sendUnfilteredPublicMessage("?cheater " + name + " talking in blueout: " + name + "> " + event.getMessage());
+            m_botAction.sendUnfilteredPrivateMessage(event.getPlayerID(), "*warn Do not talk during blueout!");
+        }
+
+        if (event.getMessageType() == Message.ARENA_MESSAGE) {
+            String msg = event.getMessage();
+
+
+            if (m_fnRoundState == 1) {
+                m_team1.handleEvent(event);
+                m_team2.handleEvent(event);
+            } else if (m_fnRoundState == 3) {
+                m_lagHandler.handleLagMessage(msg);
+            }
+
+            /*
+                        if (msg.startsWith("IP:")) {
+                            String[] pieces = msg.split("  ");
+                            String pName = pieces[3].substring(10);
+                            if (m_team1.getPlayer(pName, true) != null) m_team1.reportLaggerName(pName);
+                            if (m_team2.getPlayer(pName, true) != null) m_team2.reportLaggerName(pName);
+                        } else if (msg.startsWith("Ping:")) {
+                            String[] pieces = msg.split("  ");
+                            String lag = pieces[3].substring(8);
+                            lag = lag.substring(0, lag.length()-2);
+                            try {
+                                int msPing = Integer.parseInt(lag);
+                                m_team1.reportLaggerLag(msPing);
+                                m_team2.reportLaggerLag(msPing);
+                            } catch (Exception e) {
+                            };
+                        };
+             */
+            if (msg.equals("Public Messages LOCKED")) {
+                if (!m_blueoutDesiredState)
+                    m_botAction.toggleBlueOut();
+            } else if (msg.equals("Public Messages UNLOCKED")) {
+                if (m_blueoutDesiredState)
+                    m_botAction.toggleBlueOut();
             }
         }
     }
