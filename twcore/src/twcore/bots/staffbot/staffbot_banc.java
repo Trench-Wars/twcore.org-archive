@@ -124,7 +124,7 @@ public class staffbot_banc extends Module {
     
     // Settings related to how far back warnings and bancs are displayed by default.
     // There are three in total, but other modules will have to be altered as well when you adjust this.
-    private final static int BANC_EXPIRE_TIME = Tools.TimeInMillis.DAY * 30;
+    private final static long BANC_EXPIRE_TIME = (long) Tools.TimeInMillis.DAY * 30;
     // Look up MySQL DATE_SUB on the Internet for this one. Dangerous if done wrong!
     private final static String SQL_EXPIRE_TIME = "INTERVAL 30 DAY";
     // The expire time in normal text, how it will be presented to the user.
