@@ -183,7 +183,11 @@ public class MatchTeam {
     public void handleEvent(WeaponFired event) {
         String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
         MatchPlayer p = getPlayer(playerName);
-        p.reportWeaponFired(event.getWeaponType());
+        if(event.isMine()) {
+            p.reportWeaponFired(WeaponFired.WEAPON_MINE);
+        } else {
+            p.reportWeaponFired(event.getWeaponType());
+        }
     }
 
     public void handleEvent(Prize event) {
