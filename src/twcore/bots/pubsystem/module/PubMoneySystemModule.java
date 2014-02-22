@@ -3159,7 +3159,7 @@ public class PubMoneySystemModule extends AbstractModule {
         
         final TimerTask disableLevis = new TimerTask() {
             public void run() {
-                m_botAction.sendArenaMessage( "[PUREPUB] is now in effect. LEVIS are disabled for the next 15 minutes!", Tools.Sound.CRYING );
+                m_botAction.sendArenaMessage( "[PUREPUB] is now in effect. LEVIS are disabled for the next 30 minutes!", Tools.Sound.CRYING );
                 playerManager.doSetCmd( m_botAction.getBotName(), "4 0");
             }
         };
@@ -3171,7 +3171,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 playerManager.doSetCmd( m_botAction.getBotName(), "4 1");
             }
         };
-        m_botAction.scheduleTask(reenableLevis, Tools.TimeInMillis.MINUTE * 20);
+        m_botAction.scheduleTask(reenableLevis, Tools.TimeInMillis.MINUTE * 35);
         
     }
     
