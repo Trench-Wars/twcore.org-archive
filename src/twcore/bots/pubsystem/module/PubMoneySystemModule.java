@@ -3120,18 +3120,18 @@ public class PubMoneySystemModule extends AbstractModule {
     }
     
     /**
-     * Executes the special shop item Fireworks.
+     * Executes the special shop item BuyBlock.
      * <p>
-     * This special command displays fireworks to all players.
+     * This special command blocks other players from buying anything at the store for a time.
      * <p>
      * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
      * which is not detected by Eclipse.
-     * @param sender Person who bought the Fireworks
+     * @param sender Person who bought the BuyBlock
      * @param params Currently unused
      */
     @SuppressWarnings("unused")
     private void itemCommandBuyBlock(String sender, String params) {        
-        m_botAction.sendArenaMessage( "[BUYBLOCK] A sneaky prawn has shut down the store for 3 minutes!" );
+        m_botAction.sendArenaMessage( "[BUYBLOCK] A sneaky prawn has shut down the store for 10 minutes!" );
         buyBlock = true;
         
         final TimerTask reenableStore = new TimerTask() {
@@ -3139,7 +3139,40 @@ public class PubMoneySystemModule extends AbstractModule {
                 buyBlock = false;
             }
         };
-        m_botAction.scheduleTask(reenableStore, Tools.TimeInMillis.MINUTE * 3);
+        m_botAction.scheduleTask(reenableStore, Tools.TimeInMillis.MINUTE * 10);
+    }
+    
+    
+    /**
+     * Executes the special shop item PurePub.
+     * <p>
+     * This special command disables levis for a short time.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the PurePub
+     * @param params Currently unused
+     */
+    @SuppressWarnings("unused")
+    private void itemCommandPurePub(String sender, String params) {
+        m_botAction.sendArenaMessage( "--[PUREPUB BUY]--  " + sender.toUpperCase() + " has purchased PUREPUB. Levis, you have 5 minutes before you are switched into another ship!", Tools.Sound.VIOLENT_CONTENT );
+        
+        final TimerTask disableLevis = new TimerTask() {
+            public void run() {
+                m_botAction.sendArenaMessage( "[PUREPUB] is now in effect. LEVIS are disabled for the next 15 minutes!", Tools.Sound.CRYING );
+                playerManager.doSetCmd( m_botAction.getBotName(), "4 0");
+            }
+        };
+        m_botAction.scheduleTask(disableLevis, Tools.TimeInMillis.MINUTE * 5);
+        
+        final TimerTask reenableLevis = new TimerTask() {
+            public void run() {
+                m_botAction.sendArenaMessage( "[PUREPUB] has finished -- LEVIS may now play once again.", Tools.Sound.BEEP2 );
+                playerManager.doSetCmd( m_botAction.getBotName(), "4 1");
+            }
+        };
+        m_botAction.scheduleTask(reenableLevis, Tools.TimeInMillis.MINUTE * 20);
+        
     }
     
     
