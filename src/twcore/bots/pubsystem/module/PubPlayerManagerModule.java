@@ -532,6 +532,16 @@ public class PubPlayerManagerModule extends AbstractModule {
     
     /**
      * Sets a given ship to a particular restriction.
+     * 
+     *   Values:
+     *   0  - No ships of this type allowed
+     *   1  - Unlimited number of ships of this type are allowed
+     *   #  - If the number of current ships of the type on this frequency is
+     *        greater than the total number of people on the frequency divided
+     *        by this number (ships of this type > total ships / weight), then the
+     *        ship is not allowed.  The exception to this rule is if the player is
+     *        the only one on the freq currently in the ship.
+     *
      */
     public void doSetCmd(String sender, String argString) {
         String[] args = argString.split(" ");
