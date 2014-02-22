@@ -3817,7 +3817,7 @@ public class PubMoneySystemModule extends AbstractModule {
          * After the perparations are done, send out a message to inform everyone.
          */
         protected void ready() {
-            m_botAction.sendArenaMessage("[BUY] " + sender + " has bought a turret that will occupy the roof for 5 minutes.");
+            m_botAction.sendArenaMessage("[BUY] " + sender + " has bought a turret that will occupy the roof for 4 minutes.");
         }
 
         /**
