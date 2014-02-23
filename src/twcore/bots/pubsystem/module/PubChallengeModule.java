@@ -275,8 +275,8 @@ public class PubChallengeModule extends AbstractModule {
 
         m_botAction.scheduleTask(new UpdateScore(w, l), 1 * Tools.TimeInMillis.SECOND);
 
-        m_botAction.scheduleTask(new EnergyDepletedTask(killer), 1 * 1000);
-        m_botAction.scheduleTask(new EnergyDepletedTask(killer), 2 * 1000);
+        //m_botAction.scheduleTask(new EnergyDepletedTask(killer), 1 * 1000);
+        //m_botAction.scheduleTask(new EnergyDepletedTask(killer), 2 * 1000);
         m_botAction.scheduleTask(new EnergyDepletedTask(killer), 3 * 1000);
         m_botAction.scheduleTask(new EnergyDepletedTask(killer), 4 * 1000);
 
