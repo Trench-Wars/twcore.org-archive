@@ -184,9 +184,11 @@ public class PubMapModule extends AbstractModule {
     private void setBase(int base, boolean force) {
         if (!force && ((currentBase == base && lastChange != 0) || baseChanger != null))
             return;
-        ba.sendArenaMessage("[BASE] Map changing to " + getBase(base) + " in 5 seconds.");
-        baseChanger = new BaseChange(base);
-        ba.scheduleTask(baseChanger, 5000);
+        try {
+            baseChanger = new BaseChange(base);
+            ba.scheduleTask(baseChanger, 5000);
+            ba.sendArenaMessage("[BASE] Map changing to " + getBase(base) + " in 5 seconds.");
+        } catch (IllegalStateException e) {}
     }
     
     private void warpForMedium() {

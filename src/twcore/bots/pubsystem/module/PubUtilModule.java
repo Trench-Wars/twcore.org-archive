@@ -356,7 +356,12 @@ public class PubUtilModule extends AbstractModule {
     	} catch (Exception e) {}
         m_botAction.sendSmartPrivateMessage(sender, "Bot logging off.");
         m_botAction.setObjects();
-        m_botAction.scheduleTask(new DieTask(), 300);
+        try {
+            m_botAction.scheduleTask(new DieTask(), 300);
+        } catch( IllegalStateException e) {
+            m_botAction.cancelTasks();
+            m_botAction.die();
+        }
     }
 
     /**
