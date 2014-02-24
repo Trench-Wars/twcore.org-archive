@@ -24,9 +24,9 @@ public class LvzMoneyPanel {
     	
     	// Padding with empty space
         if (afterMoney.length() > beforeMoney.length()) {
-        	beforeMoney = String.format("%1$#" + afterMoney.length() + "s", beforeMoney);  
+        	beforeMoney = String.format("%1$" + afterMoney.length() + "s", beforeMoney);  
         } else if (afterMoney.length() < beforeMoney.length()) {
-        	afterMoney = String.format("%1$#" + beforeMoney.length() + "s", afterMoney); 
+        	afterMoney = String.format("%1$" + beforeMoney.length() + "s", afterMoney); 
         }
 
         String playerName = botAction.getPlayerName(playerId);
