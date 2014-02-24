@@ -1401,7 +1401,7 @@ public class PubChallengeModule extends AbstractModule {
         else if (command.equalsIgnoreCase("!lagout"))
             returnFromLagout(sender);
         else if (command.equalsIgnoreCase("!od") || command.equalsIgnoreCase("!openduels"))
-            listOpenDuels(sender);
+            listOpenDuels(sender, true);
         else if (command.equalsIgnoreCase("!ld") || command.equalsIgnoreCase("!duels"))
             listDuels(sender);
         else if (command.equals("!npduel"))
@@ -1546,21 +1546,22 @@ public class PubChallengeModule extends AbstractModule {
 
         if (ops.isEmpty()) {
             m_botAction.sendSmartPrivateMessage(name, "There are currently no active duels.");
-            return;
         }
+        listOpenDuels(name,false);
     }
     
     /**
      * Lists all open challenges available.
      * @param name
      */
-    public void listOpenDuels(String name) {
-        if (openChallenges.size() < 1)
-            m_botAction.sendSmartPrivateMessage(name, "No open challenges found. To issue your own, type !challenge *:ship#:money");            
-        else
-            for (String challenger : openChallenges.keySet())
-            	
-                m_botAction.sendSmartPrivateMessage(name, challenger + ": " + openChallenges.get(challenger));        
+    public void listOpenDuels(String name, boolean pmIfNone) {
+        if (openChallenges.size() < 1) {
+            if (pmIfNone)
+                m_botAction.sendSmartPrivateMessage(name, "No open challenges found. To issue your own, type !challenge *:ship#:money");            
+        } else {
+            for (String challenger : openChallenges.keySet())            	
+                m_botAction.sendSmartPrivateMessage(name, challenger + ": " + openChallenges.get(challenger));
+        }
     }
 
     public void doSharkShrap(String name) {
