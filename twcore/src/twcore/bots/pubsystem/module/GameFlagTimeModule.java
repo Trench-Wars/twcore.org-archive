@@ -2120,6 +2120,8 @@ public class GameFlagTimeModule extends AbstractModule {
             if (p.getShipType() == Tools.Ship.SHARK) {
                 
                 PubPlayer pp = context.getPlayerManager().getPlayer(p.getPlayerName());
+                if (pp == null)
+                    return;
                 pp.setMinesCleared(false);
                 
                 // Don't warp those that are already in the safezone.
