@@ -30,15 +30,23 @@ public class PubPlayer implements Comparable<PubPlayer>{
 
     // Spawn points for the low population mid spawn.
     private static final Point[] COORDS_MIDSPAWN = {
-        new Point(539, 323),
-        new Point(485, 323),
-        new Point(474, 298),
-        new Point(550, 298)
+        new Point(539, 323),    // Mid near bottom
+        new Point(485, 323),    
+        new Point(474, 298),    // Mid behind the L blockades
+        new Point(550, 298),
+        
+        // Experimental points (to decrease spawnkilling issues)
+        new Point(512, 330),    // Mid, top of tube
+        new Point(512, 350),    // Tube
+        new Point(460, 284),    // Mid, L ear
+        new Point(564, 284),    // Mid, R ear
+        new Point(467, 341),    // Top of lower, side tubes, L side
+        new Point(557, 341),    // Top of lower, side tubes, R side
     };
     
     // Radius for the low population mid spawn. Amount must be equal to the amount of Points in COORDS_MIDSPAWN.
     private static final int[] RADIUS_MIDSPAWN = {
-        9, 9, 8, 8
+        9, 9, 8, 8, 5, 3, 7, 7, 3, 3
     };
     
     private BotAction m_botAction;
