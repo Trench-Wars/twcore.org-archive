@@ -622,6 +622,9 @@ public class hockeybot extends SubspaceBot {
                         }
                     }
                     break;
+                default:
+                    // Do nothing.
+                    break;
             }
         }
     }
@@ -2313,6 +2316,10 @@ public class hockeybot extends SubspaceBot {
             case GAME_OVER:
                 status = "Teams: " + team0.getName() + " vs. " + team1.getName()
                         + ". We are currently ending the game";
+                break;
+            case REVIEW:
+            case WAIT:
+                // Do nothing
                 break;
         }
 
