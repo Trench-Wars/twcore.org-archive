@@ -272,7 +272,7 @@ public class staffbot_badcommand_savelog extends Module {
 	    if (fromPlayer != null && command != null && opList.isZH(fromPlayer)) {
 	        commandLog = new CommandLog(date, arena, fromPlayer, toPlayer, command);
 	      
-	        if (isBadCommand(command)) {
+	        if (isBadCommand(arena, fromPlayer, toPlayer, command)) {
 	            m_botAction.sendChatMessage(2, "Illegal command: " + commandLog.toString());
 	        }
 	        commandQueue.add(commandLog);
@@ -344,8 +344,27 @@ public class staffbot_badcommand_savelog extends Module {
 	    return message.substring(beginIndex + 2);
 	}
     
-	private boolean isBadCommand(String command) {
-	    return command.startsWith("*kill") || command.startsWith("*shutup");
+	/**
+	 * Checks if a command is "dirty" ... shipresets now included if not in a private arena,
+	 * if done in pub to anyone, or if sent privately to oneself in any public arena.
+	 * @param arena
+	 * @param fromPlayer
+	 * @param toPlayer
+	 * @param command
+	 * @return
+	 */
+	private boolean isBadCommand(String arena, String fromPlayer, String toPlayer, String command) {
+	    if (command.startsWith("*kill") || command.startsWith("*shutup") )
+	        return true;
+	    if (command.startsWith("*shipreset")) {
+	        if (arena.startsWith("#"))
+	            return false;
+	        if (arena.startsWith("Public "))
+	            return true;
+	        if (fromPlayer.equals(toPlayer))
+	            return true;
+	    }
+	    return false;
 	}
       
     /**
