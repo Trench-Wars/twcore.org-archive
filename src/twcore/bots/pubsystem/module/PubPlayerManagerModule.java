@@ -712,9 +712,13 @@ public class PubPlayerManagerModule extends AbstractModule {
     
     private void checkLowPopSpawn() {
         int numPlayers = m_botAction.getFrequencySize(0) + m_botAction.getFrequencySize(1);
-        if(numPlayers != -1 && numPlayers <= MAX_MID_SPAWN && !lowPopSpawning)
-            lowPopSpawning = true;
-        else if (numPlayers > MAX_MID_SPAWN && lowPopSpawning)
+        int numPrivPlayers = m_botAction.getNumPlayers() - numPlayers;
+        if (numPrivPlayers > 0)
+            numPlayers += (numPrivPlayers / 2);
+        if (!lowPopSpawning) {
+            if (numPlayers <= MAX_MID_SPAWN)
+                lowPopSpawning = true;            
+        } else if (numPlayers > MAX_MID_SPAWN && lowPopSpawning)
             lowPopSpawning = false;
     }
     
