@@ -281,8 +281,8 @@ public class PubMoneySystemModule extends AbstractModule {
                             // No buying except in safe!
                             m_botAction.sendSmartPrivateMessage(playerName, Tools.shipName(p.getShipType()) + " can only !buy in safe.");
                             return;
-                        }                        
-                    }                    
+                        }
+                    }
                 }
                 
                 // Special case of the above. Is the player on a LT, while outside a safe and LTs being restricted to only be able to buy in a safe.
@@ -1307,6 +1307,14 @@ public class PubMoneySystemModule extends AbstractModule {
                                             
             if (winFactor > 0) {
                 if (winFactor > 1) {
+                    if (winFactor >= 5) {
+                        Player p = m_botAction.getPlayer( pp.getPlayerName() );
+                        if (p != null &&
+                                p.getShipType() != Tools.Ship.SPECTATOR &&
+                                ( pp.getLastDeath() + (Tools.TimeInMillis.MINUTE * 2) > System.currentTimeMillis() )) {
+                                winFactor++;
+                        }
+                    }
                     rollmsg += " $$ " + (bet * winFactor) + " $$";
                     //                                        
                     //[  SPID  ]   [  SPID  ]   [  LANC  ]    
@@ -1365,6 +1373,31 @@ public class PubMoneySystemModule extends AbstractModule {
      */
     private void doCmdFruitInfo(String sender) {
         String[] msg = {
+                
+                "$$$$$+..______________________________________________________.,",
+                "$$+( >>>>>>>>>>>TRENCH WARS Fruit Machine: Revenge of the Levi)|",
+                "$:(.;---------------------------------------------------------;|",
+                "$++.. [PAYOUT TABLE]  $ bet x #  ||                           ||",
+                "++...   3 SPECTATORS ... x5      ||    3 SPIDERS    ... x45   ||",
+                "+.. .   3 WEASELS    ... x10     ||    3 TERRIERS   ... x60   ||",
+                "|..,    3 SHARKS     ... x15     ||    3 JAVELINS   ... x75   ||",
+                "||..    3 WARBIRDS   ... x20     ||    3 NIGHTWASPS ... x100  ||",
+                "|..,    3 LANCS      ... x30     ||    3 LEVIATHANS ... x200  ||",
+                "|..   [OTHER PAYOUTS] ---------------------------------------< |",
+                "|.,     Basing Team (Terr, Shark, Spider)           ... x7    ||",
+                "|.      Alternate Basing Team (Terr, Shark, Lanc)   ... x6    ||",
+                "|.      Bombing Run (Jav, NWasp, Levi)              ... x5    ||",
+                "., .    All Fighter (WB, Lanc, Spider)              ... x5    ||",
+                "|| .    Sneaky Team (Terr, Weasel, Shark)           ... x4    ||",
+                ".|      Double LeviTerr (Terr, 2 Levis)             ... x3    ||",
+                ".| .    Base Fighter (any 3 Lancs or Spiders)       ... x3    ||",
+                ",|      LeviTerr (Terr, Levi)                       ... x2    ||",
+                "|| |    Portal (every Terr)   ... 33% CHANCE FOR FREE PLAY    ||",
+                "|:::::::::::::::::::,.     !fruit $:#     .,:::::::::::::::::::|",
+                "||  +1 to multipliers 5 and up when you are playing in-game    |",
+                "::::::::::::gl::::::::::::,.   :D   .,::::::::::::hf::::::::::::"
+
+                /*
                 "      TRENCH WARS Fruit Machine: Revenge of the Levi",
                 "[PAYOUT TABLE] - Given as a multiplier of amount bet",
                 "3 SPECTATORS ... x5            3 SPIDERS    ... x45",
@@ -1381,7 +1414,8 @@ public class PubMoneySystemModule extends AbstractModule {
                 "Double LeviTerr (Terr, 2 Levis)             ... x3",
                 "Base Fighter (any 3 Lancs or Spiders)       ... x3",
                 "LeviTerr (Terr, Levi)                       ... x2",
-                "Portal (every Terr)   ... 33% CHANCE FOR FREE PLAY",
+                "Portal (every Terr)   ... 33% CHANCE FOR FREE PLAY"
+                */
         };
         m_botAction.privateMessageSpam(sender, msg);
     }
