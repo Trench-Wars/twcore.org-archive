@@ -141,7 +141,7 @@ public class staffbot_obscene extends Module {
         if(m_botAction.getOperatorList().isSysop(name) || isBangOp(name)) {
             String[] spam = {
                     "----------------[Obscene: Sysop ]-----------------",
-                    " !addobscene <word>        - Adds a specific entry to obscene.txt.",
+                    " !addobscene <word>        - Adds a specific entry to obscene.txt. (Overwrites duplicates)",
                     " !listobscene              - Lists the current entries in obscene.txt.",
                     " !remobscene <word>        - Removes a specific entry from obscene.txt."
             };
@@ -228,7 +228,10 @@ public class staffbot_obscene extends Module {
             if(obsceneList != null && obsceneList.size() > 0) {
                 int size = obsceneList.size();
                 int columns = 100 / maxLen; 
-                int rows = obsceneList.size() / columns + 1;
+                int rows = obsceneList.size() / columns;
+                if(rows * columns != obsceneList.size())
+                    rows++;
+                
                 for(int i = 1; i < columns; i++) {
                     int len = maxLen * i;
                     for(int j = 0; j < rows && rows < obsceneList.size(); j++) {
