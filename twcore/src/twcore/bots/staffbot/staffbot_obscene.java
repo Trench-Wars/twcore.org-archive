@@ -128,7 +128,7 @@ public class staffbot_obscene extends Module {
         m_botAction.sendUnfilteredPublicMessage("*addword " + param);
         m_botAction.sendSmartPrivateMessage(name, "Added " + param + " to obscene.txt.");
         
-        recordChange("[" + m_user + "] added [" + m_word + "].");
+        recordChange("[" + m_user + "] added [" + param.toUpperCase() + "].");
         
         m_state = State.FREE;
     }
@@ -315,7 +315,7 @@ public class staffbot_obscene extends Module {
                 
                 m_botAction.sendSmartPrivateMessage(m_user, "Successfully removed " + m_word + " from obscene.txt.");
                 
-                recordChange("[" + m_user + "] removed [" + m_word + "].");
+                recordChange("[" + m_user + "] removed [" + m_word.toUpperCase() + "].");
             }
 
         } catch (NullPointerException npe) {
