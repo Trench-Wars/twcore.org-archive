@@ -272,20 +272,20 @@ public class staffbot_obscene extends Module {
             ArrayList<String> obsceneList = new ArrayList<String>();
             
             String line;
-            int maxLen = 0;
+            boolean removed = false;
             
             while ((line = br.readLine()) != null) {
-                obsceneList.add(line);
-                int len = line.length();
-                if(len > maxLen) {
-                    maxLen = len;
+                if(!removed && line.equalsIgnoreCase(m_word)) {
+                    removed = true;
+                } else {
+                    obsceneList.add(line);
                 }
             }
             
             br.close();
             fr.close();
             
-            if(obsceneList == null || obsceneList.isEmpty() || !obsceneList.remove(m_word)) {
+            if(obsceneList == null || obsceneList.isEmpty() || !removed) {
                 m_botAction.sendSmartPrivateMessage(m_user, m_word + " is not present in obscene.txt.");
             } else {
                 file.delete();
