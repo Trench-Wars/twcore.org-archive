@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package twcore.bots.staffbot;
 
 import java.io.BufferedReader;
@@ -24,7 +20,7 @@ import twcore.core.events.Message;
 import twcore.core.util.Tools;
 
 /**
- *
+ * Allows modification of obscene.txt with custom access levels, instead of the default SysOp level.
  * @author Trancid
  */
 public class staffbot_obscene extends Module {
