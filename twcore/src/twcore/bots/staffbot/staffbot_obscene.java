@@ -140,7 +140,7 @@ public class staffbot_obscene extends Module {
     public void cmd_help(String name) {
         if(m_botAction.getOperatorList().isSysop(name) || isBangOp(name)) {
             String[] spam = {
-                    "----------------[Obscene: Sysop ]-----------------",
+                    "----------------[ Obscene: Sysop ]-----------------",
                     " !addobscene <word>        - Adds a specific entry to obscene.txt. (Overwrites duplicates)",
                     " !listobscene              - Lists the current entries in obscene.txt.",
                     " !remobscene <word>        - Removes a specific entry from obscene.txt."
@@ -148,7 +148,7 @@ public class staffbot_obscene extends Module {
             m_botAction.smartPrivateMessageSpam(name, spam);
         } else if(m_botAction.getOperatorList().isSmodExact(name)) {
                 String[] spam = {
-                        "----------------[Obscene: SMod ]-----------------",
+                        "----------------[ Obscene: SMod ]-----------------",
                         " !listobscene              - Lists the current entries in obscene.txt.",
                 };
                 m_botAction.smartPrivateMessageSpam(name, spam);
