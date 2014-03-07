@@ -91,6 +91,7 @@ public class staffbot extends SubspaceBot {
         moduleHandler.loadModule("_staffchat_savelog");
         //moduleHandler.loadModule("_commands");
         moduleHandler.loadModule("_loginwatch");
+        moduleHandler.loadModule("_obscene");
 
         // start the log checking timer task for all modules
 
