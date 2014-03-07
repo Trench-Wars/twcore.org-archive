@@ -64,6 +64,7 @@ public class staffbot_banc extends Module {
             "             -player='<..>'     - Specifies player name",
             "             -d=#               - Specifies duration in minutes",
             "             -a=<...>           - Specifies access requirement, options; mod / smod / sysop",
+            "             -active            - Display only active bancs",
             "             -ip=<#.#.#.#> -ir  - Specifies IP or remove IP (-ir) so banc is not matched by IP",
             "             -mid=#  -mr        - Specifies MID or remove MID (-mr) so banc is not matched by MID",
             "             -notif=<yes/no>    - Specifies wether a notification is sent on staff chat",
@@ -442,6 +443,7 @@ public class staffbot_banc extends Module {
         String Argument[] = { " Arguments:", "             -player='<..>'     - Specifies player name",
                 "             -d=#               - Specifies duration in minutes",
                 "             -a=<...>           - Specifies access requirement, options; mod / smod / sysop",
+                "             -active            - Display only active bancs",
                 "             -ip=<#.#.#.#> -ir  - Specifies IP or remove IP (-ir) so banc is not matched by IP",
                 "             -mid=#  -mr        - Specifies MID or remove MID (-mr) so banc is not matched by MID",
                 "             -notif=<yes/no>    - Specifies wether a notification is sent on staff chat",
@@ -1511,6 +1513,12 @@ public class staffbot_banc extends Module {
 
                         sqlWhere += "fcMinAccess='" + accessString.toUpperCase() + "'";
 
+                    } else
+                    // -active
+                    if (argument.startsWith("-active")) {
+                        if (!sqlWhere.isEmpty())
+                            sqlWhere += " AND ";
+                        sqlWhere += "(fnElapsed < fnDuration OR fnDuration = 0)";
                     } else
                     // -ip=<#.#.#.#>
                     if (argument.startsWith("-ip=")) {
