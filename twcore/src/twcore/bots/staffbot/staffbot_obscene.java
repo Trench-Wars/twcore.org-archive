@@ -230,8 +230,9 @@ public class staffbot_obscene extends Module {
                 int columns = 100 / maxLen; 
                 int rows = obsceneList.size() / columns + 1;
                 for(int i = 1; i < columns; i++) {
+                    int len = maxLen * i;
                     for(int j = 0; j < rows && rows < obsceneList.size(); j++) {
-                        obsceneList.set(j, Tools.formatString(obsceneList.get(j), maxLen).concat(obsceneList.remove(rows)));
+                        obsceneList.set(j, Tools.formatString(obsceneList.get(j), len).concat(obsceneList.remove(rows)));
                     }
                 }
                 String[] spam = obsceneList.toArray(new String[obsceneList.size()]);
