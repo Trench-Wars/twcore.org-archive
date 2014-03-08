@@ -1339,36 +1339,44 @@ public class GameFlagTimeModule extends AbstractModule {
         int m10 = 500 + Math.max(0, (mins - 5) * 10);
         int m5 = 250 + Math.max(0, (mins - 5) * 5);
         int m2 = 100 + Math.max(0, (mins - 5) * 5);
+        
+        ArrayList<String> lines = new ArrayList<String>();
 
         if (basingKingName != null) {
-            m_botAction.sendArenaMessage(" - Basing King/Queen       : " + basingKingName + Tools.rightString(" (+$" + m10 + ")", 8) );
+            lines.add("- Basing King/Queen       : " + basingKingName + Tools.rightString(" (+$" + m10 + ")", 8) );
+            //m_botAction.sendArenaMessage("- Basing King/Queen       : " + basingKingName + Tools.rightString(" (+$" + m10 + ")", 8) );
             context.getPlayerManager().addMoney(basingKingName, m10, true);
         }
         if (mostKillName != null) {
-            m_botAction.sendArenaMessage(" - Most Veteran Like       : " + mostKillName + Tools.rightString(" (+$" + m5 + ")", 8) );
+            lines.add("- Most Veteran Like       : " + mostKillName + Tools.rightString(" (+$" + m5 + ")", 8) );
+            //m_botAction.sendArenaMessage("- Most Veteran Like       : " + mostKillName + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostKillName, m5, true);
         }
         if (mostFlagClaimed != null) {
-            m_botAction.sendArenaMessage(" - Flag Savior             : " + mostFlagClaimed + Tools.rightString(" (+$" + m5 + ")", 8) );
+            lines.add("- Flag Savior             : " + mostFlagClaimed + Tools.rightString(" (+$" + m5 + ")", 8) );
+            //m_botAction.sendArenaMessage("- Flag Savior             : " + mostFlagClaimed + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostFlagClaimed, m5, true);
         }
         if (bestTerrierName != null) {
-            m_botAction.sendArenaMessage(" - Best Terrier            : " + bestTerrierName + Tools.rightString(" (+$" + m5 + ")", 8) );
+            lines.add("- Best Terrier            : " + bestTerrierName + Tools.rightString(" (+$" + m5 + ")", 8) );
+            //m_botAction.sendArenaMessage("- Best Terrier            : " + bestTerrierName + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(bestTerrierName, m5);
         }
         if (mostTek != null) {
-            m_botAction.sendArenaMessage(" - Most Terrier Kills      : " + mostTek + Tools.rightString(" (+$" + m5 + ")", 8) );
+            lines.add("- Most Terrier Kills      : " + mostTek + Tools.rightString(" (+$" + m5 + ")", 8) );
+            //m_botAction.sendArenaMessage("- Most Terrier Kills      : " + mostTek + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostTek, m5);
         }
         if (mostLvk != null) {
-            m_botAction.sendArenaMessage(" - Most Leviathan Kills    : " + mostLvk + Tools.rightString(" (+$" + m5 + ")", 8) );
+            lines.add("- Most Leviathan Kills    : " + mostLvk + Tools.rightString(" (+$" + m5 + ")", 8) );
+            //m_botAction.sendArenaMessage("- Most Leviathan Kills    : " + mostLvk + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostLvk, m5);
         }
+        /* Unused achievements
         if (lessDeath != null) {
-            m_botAction.sendArenaMessage(" - Most Cautious           : " + lessDeath + Tools.rightString(" (+$" + m2 + ")", 8) );
+            m_botAction.sendArenaMessage("- Most Cautious           : " + lessDeath + Tools.rightString(" (+$" + m2 + ")", 8) );
             context.getPlayerManager().addMoney(lessDeath, m2);
         }
-        /* Unused achievements
         if (mostDeath != null) {
             m_botAction.sendArenaMessage(" - Most Reckless      : " + mostDeath);
         }
@@ -1377,8 +1385,7 @@ public class GameFlagTimeModule extends AbstractModule {
             //context.getPlayerManager().addMoney(mostTk, 0);
         }
         */
-
-        
+                
         // Let's have fun. Fake achievements!
         java.util.Random r = new Random();
         if (r.nextInt(10) == 0) {         
@@ -1390,124 +1397,139 @@ public class GameFlagTimeModule extends AbstractModule {
 
                     String text;
                     switch( r.nextInt(110) ) {
-                    case  0: text = " - Most Randomly Selected  : "; break;
-                    case  1: text = " - Most Pubbux Owed        : "; break;
-                    case  2: text = " - Most Extreme Politics   : "; break;
-                    case  3: text = " - Scariest                : "; break;
-                    case  4: text = " - Most Likely to Succeed  : "; break;
-                    case  5: text = " - Best Dressed            : "; break;
-                    case  6: text = " - Basement Dweller        : "; break;
-                    case  7: text = " - Most Lovable            : "; break;
-                    case  8: text = " - AFK Most of the Round   : "; break;
-                    case  9: text = " - Spawnkilling King/Queen : "; break;
-                    case 10: text = " - Basing Prince/Princess  : "; break;
-                    case 11: text = " - Most PMs Sent           : "; break;
-                    case 12: text = " - Forgot Mother's Bday    : "; break;
-                    case 13: text = " - Most Delicate           : "; break;
-                    case 14: text = " - Best Kisser             : "; break;
-                    case 15: text = " - Community Leader        : "; break;
-                    case 16: text = " - Most Thrust Used        : "; break;
-                    case 17: text = " - Mad                     : "; break;
-                    case 18: text = " - Best Lead in a Drama    : "; break;
-                    case 19: text = " - Most Help from Friends  : "; break;
-                    case 20: text = " - Best Gallery Pic        : "; break;
-                    case 21: text = " - Best Pubchat Arguer     : "; break;
-                    case 22: text = " - Overall Best Ever       : "; break;
-                    case 23: text = " - Quietest Riot           : "; break;
-                    case 24: text = " - Tiniest Dancer          : "; break;
-                    case 25: text = " - Sexy and Knows It       : "; break;
-                    case 26: text = " - In Love with a Ghost    : "; break;
-                    case 27: text = " - Most Aliases            : "; break;
-                    case 28: text = " - Biggest Elitist         : "; break;
-                    case 29: text = " - Fewest Moderator Warns  : "; break;
-                    case 30: text = " - Possibly Intoxicated    : "; break;
-                    case 31: text = " - Most Unintentional TKs  : "; break;
-                    case 32: text = " - Everybody Loves         : "; break;
-                    case 33: text = " - Biggest God Complex     : "; break;
-                    case 34: text = " - Longest Time in Safe    : "; break;
-                    case 35: text = " - Most Unduly Respected   : "; break;
-                    case 36: text = " - Most Overrated          : "; break;
-                    case 37: text = " - Most Underrated         : "; break;
-                    case 38: text = " - Least Intelligible      : "; break;
-                    case 39: text = " - Most Requests for Money : "; break;
-                    case 40: text = " - Most Ragequits          : "; break;
-                    case 41: text = " - Most Eats               : "; break;
-                    case 42: text = " - Highest Packetloss      : "; break;
-                    case 43: text = " - Most Friends            : "; break;
-                    case 44: text = " - Most Rock Bounces       : "; break;
-                    case 45: text = " - Best at Running Away    : "; break;
-                    case 46: text = " - Most Warps              : "; break;
-                    case 47: text = " - Most Serious            : "; break;
-                    case 48: text = " - Best Miner on Attack    : "; break;
-                    case 49: text = " - Least Time Outside Pub  : "; break;
-                    case 50: text = " - Most Relaxed            : "; break;
-                    case 51: text = " - Most Fragile Ego        : "; break;
-                    case 52: text = " - Happiest Overall        : "; break;
-                    case 53: text = " - Just Married            : "; break;
-                    case 54: text = " - Best Groomed            : "; break;
-                    case 55: text = " - Most PMs Sent to Self   : "; break;
-                    case 56: text = " - Most Believable Troll   : "; break;
-                    case 57: text = " - Just Dropped from Squad : "; break;
-                    case 58: text = " - Who, Exactly, is        : "; break;
-                    case 59: text = " - Most Titles Earned      : "; break;
-                    case 60: text = " - Most Flag-Ambivalent    : "; break;
-                    case 61: text = " - Most PMs to Staff       : "; break;
-                    case 62: text = " - Softest Skin            : "; break;
-                    case 63: text = " - Least Awake             : "; break;
-                    case 64: text = " - Most Profanity          : "; break;
-                    case 65: text = " - Best in Nightwasp       : "; break;
-                    case 66: text = " - Most Commands to Bot    : "; break;
-                    case 67: text = " - MOST CAPS USED          : "; break;
-                    case 68: text = " - Best Comedic Screenplay : "; break;
-                    case 69: text = " - Most Squad Invites      : "; break;
-                    case 70: text = " - Just Doesn't Care       : "; break;
-                    case 71: text = " - Most Triple Jav Bounces : "; break;
-                    case 72: text = " - Smallest                : "; break;
-                    case 73: text = " - Tallest                 : "; break;
-                    case 74: text = " - Best Supporting Actor   : "; break;
-                    case 75: text = " - Biggest Crush           : "; break;
-                    case 76: text = " - Takes Lots of Baths     : "; break;
-                    case 77: text = " - Most Yoga Classes Given : "; break;
-                    case 78: text = " - Philosophy Genius       : "; break;
-                    case 79: text = " - Won't Talk to Me :(     : "; break;
-                    case 80: text = " - Overall Most Awesome    : "; break;
-                    case 81: text = " - Totally the Bestest     : "; break;
-                    case 82: text = " - Most Texts While Flying : "; break;
-                    case 83: text = " - Hunted Most             : "; break;
-                    case 84: text = " - Best Overall Flavor     : "; break;
-                    case 85: text = " - Most Kawaii Banner      : "; break;
-                    case 86: text = " - never uses shift key    : "; break;
-                    case 87: text = " - Most Disturbing Dreams  : "; break;
-                    case 88: text = " - Fastest Levi            : "; break;
-                    case 89: text = " - Likes Shiny Things Most : "; break;
-                    case 90: text = " - Most Gullible           : "; break;
-                    case 91: text = " - Most Interest in Trains : "; break;
-                    case 92: text = " - Leland                  : "; break;
-                    case 93: text = " - Should Know Better      : "; break;
-                    case 94: text = " - Nice Hat                : "; break;
-                    case 95: text = " - Smallest PM Reply %     : "; break;
-                    case 96: text = " - Dies Over and Over      : "; break;
-                    case 97: text = " - Possible Sysop Recruit  : "; break;
-                    case 98: text = " - Most Time Avoiding Work : "; break;
-                    case 99: text = " - TW's Greatest Asset     : "; break;
-                    case 100: text= " - Won't Leave a Residue   : "; break;
-                    case 101: text= " - Dropped from TWL        : "; break;
-                    case 102: text= " - Universal ignore.txt    : "; break;
-                    case 103: text= " - hax                     : "; break;
-                    case 104: text= " - Great Pair of Legs      : "; break;
-                    case 105: text= " - Spiritual Guide         : "; break;
-                    case 106: text= " - Closet Non-Conformist   : "; break;
-                    case 107: text= " - My New Rap Name         : "; break;
-                    case 108: text= " - Most Grandchildren      : "; break;
-                    case 109: text= " - Never Ever Pubs         : "; break;
-                    default: text = " - Most Non-Conformist     : ";
+                    case  0: text = "- Most Randomly Selected  : "; break;
+                    case  1: text = "- Most Pubbux Owed        : "; break;
+                    case  2: text = "- Most Extreme Politics   : "; break;
+                    case  3: text = "- Scariest                : "; break;
+                    case  4: text = "- Most Likely to Succeed  : "; break;
+                    case  5: text = "- Best Dressed            : "; break;
+                    case  6: text = "- Basement Dweller        : "; break;
+                    case  7: text = "- Most Lovable            : "; break;
+                    case  8: text = "- AFK Most of the Round   : "; break;
+                    case  9: text = "- Spawnkilling King/Queen : "; break;
+                    case 10: text = "- Basing Prince/Princess  : "; break;
+                    case 11: text = "- Most PMs Sent           : "; break;
+                    case 12: text = "- Forgot Mother's Bday    : "; break;
+                    case 13: text = "- Most Delicate           : "; break;
+                    case 14: text = "- Best Kisser             : "; break;
+                    case 15: text = "- Community Leader        : "; break;
+                    case 16: text = "- Most Thrust Used        : "; break;
+                    case 17: text = "- Mad                     : "; break;
+                    case 18: text = "- Best Lead in a Drama    : "; break;
+                    case 19: text = "- Most Help from Friends  : "; break;
+                    case 20: text = "- Best Gallery Pic        : "; break;
+                    case 21: text = "- Best Pubchat Arguer     : "; break;
+                    case 22: text = "- Overall Best Ever       : "; break;
+                    case 23: text = "- Quietest Riot           : "; break;
+                    case 24: text = "- Tiniest Dancer          : "; break;
+                    case 25: text = "- Sexy and Knows It       : "; break;
+                    case 26: text = "- In Love with a Ghost    : "; break;
+                    case 27: text = "- Most Aliases            : "; break;
+                    case 28: text = "- Biggest Elitist         : "; break;
+                    case 29: text = "- Fewest Moderator Warns  : "; break;
+                    case 30: text = "- Possibly Intoxicated    : "; break;
+                    case 31: text = "- Most Unintentional TKs  : "; break;
+                    case 32: text = "- Everybody Loves         : "; break;
+                    case 33: text = "- Biggest God Complex     : "; break;
+                    case 34: text = "- Longest Time in Safe    : "; break;
+                    case 35: text = "- Most Unduly Respected   : "; break;
+                    case 36: text = "- Most Overrated          : "; break;
+                    case 37: text = "- Most Underrated         : "; break;
+                    case 38: text = "- Least Intelligible      : "; break;
+                    case 39: text = "- Most Requests for Money : "; break;
+                    case 40: text = "- Most Ragequits          : "; break;
+                    case 41: text = "- Most Eats               : "; break;
+                    case 42: text = "- Highest Packetloss      : "; break;
+                    case 43: text = "- Most Friends            : "; break;
+                    case 44: text = "- Most Rock Bounces       : "; break;
+                    case 45: text = "- Best at Running Away    : "; break;
+                    case 46: text = "- Most Warps              : "; break;
+                    case 47: text = "- Most Serious            : "; break;
+                    case 48: text = "- Best Miner on Attack    : "; break;
+                    case 49: text = "- Least Time Outside Pub  : "; break;
+                    case 50: text = "- Most Relaxed            : "; break;
+                    case 51: text = "- Most Fragile Ego        : "; break;
+                    case 52: text = "- Happiest Overall        : "; break;
+                    case 53: text = "- Just Married            : "; break;
+                    case 54: text = "- Best Groomed            : "; break;
+                    case 55: text = "- Most PMs Sent to Self   : "; break;
+                    case 56: text = "- Most Believable Troll   : "; break;
+                    case 57: text = "- Just Dropped from Squad : "; break;
+                    case 58: text = "- Who, Exactly, is        : "; break;
+                    case 59: text = "- Most Titles Earned      : "; break;
+                    case 60: text = "- Most Flag-Ambivalent    : "; break;
+                    case 61: text = "- Most PMs to Staff       : "; break;
+                    case 62: text = "- Softest Skin            : "; break;
+                    case 63: text = "- Least Awake             : "; break;
+                    case 64: text = "- Most Profanity          : "; break;
+                    case 65: text = "- Best in Nightwasp       : "; break;
+                    case 66: text = "- Most Commands to Bot    : "; break;
+                    case 67: text = "- MOST CAPS USED          : "; break;
+                    case 68: text = "- Best Comedic Screenplay : "; break;
+                    case 69: text = "- Most Squad Invites      : "; break;
+                    case 70: text = "- Just Doesn't Care       : "; break;
+                    case 71: text = "- Most Triple Jav Bounces : "; break;
+                    case 72: text = "- Smallest                : "; break;
+                    case 73: text = "- Tallest                 : "; break;
+                    case 74: text = "- Best Supporting Actor   : "; break;
+                    case 75: text = "- Biggest Crush           : "; break;
+                    case 76: text = "- Takes Lots of Baths     : "; break;
+                    case 77: text = "- Most Yoga Classes Given : "; break;
+                    case 78: text = "- Philosophy Genius       : "; break;
+                    case 79: text = "- Won't Talk to Me :(     : "; break;
+                    case 80: text = "- Overall Most Awesome    : "; break;
+                    case 81: text = "- Totally the Bestest     : "; break;
+                    case 82: text = "- Most Texts While Flying : "; break;
+                    case 83: text = "- Hunted Most             : "; break;
+                    case 84: text = "- Best Overall Flavor     : "; break;
+                    case 85: text = "- Most Kawaii Banner      : "; break;
+                    case 86: text = "- never uses shift key    : "; break;
+                    case 87: text = "- Most Disturbing Dreams  : "; break;
+                    case 88: text = "- Fastest Levi            : "; break;
+                    case 89: text = "- Likes Shiny Things Most : "; break;
+                    case 90: text = "- Most Gullible           : "; break;
+                    case 91: text = "- Most Interest in Trains : "; break;
+                    case 92: text = "- Leland                  : "; break;
+                    case 93: text = "- Should Know Better      : "; break;
+                    case 94: text = "- Nice Hat                : "; break;
+                    case 95: text = "- Smallest PM Reply %     : "; break;
+                    case 96: text = "- Dies Over and Over      : "; break;
+                    case 97: text = "- Possible Sysop Recruit  : "; break;
+                    case 98: text = "- Most Time Avoiding Work : "; break;
+                    case 99: text = "- TW's Greatest Asset     : "; break;
+                    case 100: text= "- Won't Leave a Residue   : "; break;
+                    case 101: text= "- Dropped from TWL        : "; break;
+                    case 102: text= "- Universal ignore.txt    : "; break;
+                    case 103: text= "- hax                     : "; break;
+                    case 104: text= "- Great Pair of Legs      : "; break;
+                    case 105: text= "- Spiritual Guide         : "; break;
+                    case 106: text= "- Closet Non-Conformist   : "; break;
+                    case 107: text= "- My New Rap Name         : "; break;
+                    case 108: text= "- Most Grandchildren      : "; break;
+                    case 109: text= "- Never Ever Pubs         : "; break;
+                    default: text = "- Most Non-Conformist     : ";
                     }
                     int amt = r.nextInt(48) + 2;    // Extremely small, awkward amount to show it's only a joke
-                    m_botAction.sendArenaMessage(text + p.getPlayerName() + Tools.rightString(" (+$" + amt + ")", 7) );
+                    lines.add( text + p.getPlayerName() + Tools.rightString(" (+$" + amt + ")", 8) );
+                    //m_botAction.sendArenaMessage(text + p.getPlayerName() + Tools.rightString(" (+$" + amt + ")", 8) );
                     context.getPlayerManager().addMoney(p.getPlayerName(), amt); // ...but yes, actually give it to them
                 }
             }
         }
+        
+        String output = "";
+        for ( String l : lines ) {
+            if ( output.equals("") ) {
+                output += Tools.formatString(l, 56);
+            } else {                
+                output += l;
+                m_botAction.sendArenaMessage(output);
+                output = "";
+            }
+        }
+        if ( !output.equals("") )
+            m_botAction.sendArenaMessage(output);
+
         
         if( r.nextInt(200) == 0 )   // Because very rare surprises are fun/festive!
             m_botAction.sendPublicMessage("Leland");
