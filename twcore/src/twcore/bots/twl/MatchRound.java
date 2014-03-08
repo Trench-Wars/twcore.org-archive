@@ -628,8 +628,10 @@ public class MatchRound {
             	m_team2.handleEvent(event);            	
             } else if (m_fnRoundState == 3) {
                 m_lagHandler.handleLagMessage(msg);
-            	m_team1.handleEvent(event);
-            	m_team2.handleEvent(event);
+                if(msg.contains("Res:")) {
+                	m_team1.handleEvent(event);
+                	m_team2.handleEvent(event);
+                }
             }
 
             /*
