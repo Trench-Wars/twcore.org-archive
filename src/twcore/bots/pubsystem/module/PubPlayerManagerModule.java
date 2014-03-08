@@ -99,6 +99,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             
             if (MSG_AT_FREQSIZE_DIFF != -1 && event.getMessage().equalsIgnoreCase("!switch")) {
                 if (freqSizeInfo[0] <= 1) {
+                    m_botAction.sendPrivateMessage(id, "Team adjustment not needed.");
                     voting = false;
                     return; 
                 }
