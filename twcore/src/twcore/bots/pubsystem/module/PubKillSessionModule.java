@@ -89,11 +89,12 @@ public class PubKillSessionModule extends AbstractModule {
 
 		if (!context.hasJustStarted()) {
 			if (context.getMoneySystem().isEnabled())
-				m_botAction.sendArenaMessage("[KILL-O-THON] has begun. Kill the most in " + length + " minutes and win $" + winnerMoney + ". (:tw-p:!killothon for score)");
+				m_botAction.sendArenaMessage("[KILL-O-THON] begins. Most in-base kills in " + length + "min wins $" + winnerMoney + ". (:tw-p:!killothon for score)");
 			else
 				m_botAction.sendArenaMessage("[KILL-O-THON] has begun. Kill the most in " + length + " minutes.");
 		}
-		
+
+		/*
 		if (locations.size() > 0) {
 			
 			String message = "";
@@ -103,6 +104,7 @@ public class PubKillSessionModule extends AbstractModule {
 			m_botAction.sendArenaMessage("[KILL-O-THON] To count, kills must be inside of: " + message.substring(2));
 			
 		}
+		*/
 		
 		try {
 			endSessionTask.cancel();
