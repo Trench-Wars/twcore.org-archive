@@ -747,16 +747,20 @@ public class MatchTeam {
 
         p = getPlayer(lagger);
         if (p != null && (m_rules.getInt("rosterjoined") == 0 || getTeamName().equalsIgnoreCase(m_botAction.getPlayer(lagger).getSquadName()))) {
-            // put player back in, returns message to report if it's succesful
+            // put player back in, returns message to report if it's successful
             message = p.lagin();
+        
             if (message.equals("yes")) {
+            	//Check Resolution Limits
+            	m_botAction.sendUnfilteredPrivateMessage(p.getPlayerName(), "*einfo");
+            	
                 if (m_rules.getInt("storegame") != 0)
                     m_round.events.add(MatchRoundEvent.lagin(p.m_dbPlayer.getUserID()));
                 
                 if (commandByOther)
                     m_logger.sendPrivateMessage(name, "Player is back in, " + p.getLagoutsLeft() + " lagouts left");
             } else {
-                // if not succesful, inform either the host/captain or the player himself:
+                // if not successful, inform either the host/captain or the player himself:
                 if (commandByOther)
                     m_logger.sendPrivateMessage(name, "Couldn't put player back in: " + message);
                 else
