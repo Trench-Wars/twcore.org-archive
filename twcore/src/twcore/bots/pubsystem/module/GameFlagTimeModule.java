@@ -895,11 +895,14 @@ public class GameFlagTimeModule extends AbstractModule {
         
         if (roundNum == 1) {
             intermission = INTERMISSION_GAME_SECS;
-            m_botAction.sendArenaMessage("[FLAG]  " + flagMinutesRequired + " consecutive minute"
-                    + (flagMinutesRequired == 1 ? "" : "s") + " to win.  Next game in " + getTimeString(intermission) );            
+            
+            m_botAction.sendArenaMessage("[FLAG] Hold for " + flagMinutesRequired + " consecutive minute"
+                    + (flagMinutesRequired == 1 ? "" : "s") + " to win.  Next game in " + getTimeString(intermission) + ". :tw-p:!warp to warp in" );            
         } else {
-            m_botAction.sendArenaMessage("[FLAG] " + (roundNum==MAX_FLAGTIME_ROUNDS ? "Final Round" : "Round " + roundNum) + " begins in " + getTimeString(intermission) + ".  (Score: " + freq0Score + " - " + freq1Score + ")"
-                    + (strictFlagTimeMode ? "" : (" :tw-p:!warp to warp in")));            
+            //Let's try not spamming between rounds (only games)
+            //m_botAction.sendArenaMessage("[FLAG] " + (roundNum==MAX_FLAGTIME_ROUNDS ? "Final Round" : "Round " + roundNum) + " begins in " + getTimeString(intermission) + ".  (Score: " + freq0Score + " - " + freq1Score + ")"
+            //        + (strictFlagTimeMode ? "" : (" :tw-p:!warp to warp in")));
+                        
         }
 
         m_botAction.cancelTask(startTimer);
@@ -2770,7 +2773,7 @@ public class GameFlagTimeModule extends AbstractModule {
             // Display mode info at 5 min increments, unless we are near the end of a game;
             //   also check for severe freq imbalance every minute
             if ((flagMinutesRequired * 60) - secondsHeld > 30) {
-                if (totalSecs % (5 * 60) == 0) { 
+                if (totalSecs % (10 * 60) == 0) { 
                     m_botAction.sendArenaMessage(getTimeInfo());
                     context.getPlayerManager().checkSpecTime();
                 }
