@@ -292,11 +292,15 @@ public class MatchTeam {
 
                 if(xResolution > xResolutionMax && yResolution > yResolutionMax) {
                     MatchPlayer p = getPlayer( name );
-                    if( p != null ) {
+                    if( p != null && m_round.m_fnRoundState == 1) {
                         p.getOutOfGame();
                         m_players.remove( p );
                         sendPrivateMessageToCaptains( name + " has a resolution ("+xResolution+"x"+yResolution+") that is higher then resolution limits. Player removed from your team." );
                         m_botAction.sendPrivateMessage( name , "You've been put to spectator because your resolution is violating the resolution limits. Please change your resolution.");
+                    }
+                    else if (p != null && (m_round.m_fnRoundState == 2 || m_round.m_fnRoundState == 3))
+                    {
+                    	m_botAction.specWithoutLock(p.getPlayerName());
                     }
                 }
             }
