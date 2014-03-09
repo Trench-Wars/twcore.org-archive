@@ -301,6 +301,9 @@ public class MatchTeam {
                     else if (p != null && (m_round.m_fnRoundState == 2 || m_round.m_fnRoundState == 3))
                     {
                     	m_botAction.specWithoutLock(p.getPlayerName());
+                    	sendPrivateMessageToCaptains( name + " has a resolution ("+xResolution+"x"+yResolution+") that is higher then resolution limits. Player is now a spectator." );
+                        m_botAction.sendPrivateMessage( name , "You've been put to spectator because your resolution is violating the resolution limits. Please change your resolution.");
+                    	
                     }
                 }
             }
