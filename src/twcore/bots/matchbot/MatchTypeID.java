@@ -24,4 +24,7 @@ public abstract class MatchTypeID {
     public static final int TWDTD                       = 18;
     public static final int TWDTJ                       = 19;
     public static final int TWDTB                       = 20;
+    public static final int AS_TWLD                     = 21;
+    public static final int AS_TWLJ                     = 22;
+    public static final int AS_TWLB                     = 23;
 }

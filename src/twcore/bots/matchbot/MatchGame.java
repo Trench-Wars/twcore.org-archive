@@ -431,7 +431,7 @@ public class MatchGame {
 
     public void handleEvent(Prize event) {
         if (m_curRound != null) {
-            if (m_fnMatchTypeID == MatchTypeID.TWBD)
+            if (m_fnMatchTypeID == MatchTypeID.TWBD || m_fnMatchTypeID == MatchTypeID.AS_TWLB)
                 m_curRound.handleEvent(event);
 
         }
@@ -705,8 +705,8 @@ public class MatchGame {
                     MatchPlayer player = i.next();
 
                     if (playerSpectating == null || playerSpectating.m_fnPlayerState != 1
-                            || (m_fnMatchTypeID == MatchTypeID.TWBD && playerSpectating.getShipType() != Tools.Ship.TERRIER)) {
-                        if (m_fnMatchTypeID == MatchTypeID.TWBD && player.getShipType() == Tools.Ship.TERRIER) {
+                            || ((m_fnMatchTypeID == MatchTypeID.TWBD || m_fnMatchTypeID == MatchTypeID.AS_TWLB) && playerSpectating.getShipType() != Tools.Ship.TERRIER)) {
+                        if ((m_fnMatchTypeID == MatchTypeID.TWBD  || m_fnMatchTypeID == MatchTypeID.AS_TWLB) && player.getShipType() == Tools.Ship.TERRIER) {
                             // Only if ter
                             m_botAction.spectatePlayer(player.m_player.getPlayerID());
                             playerSpectating = player;

@@ -800,7 +800,7 @@ public class MatchTeam {
                 }
 
                 // if twdd gametype
-                if (m_round.getGame().m_fnMatchTypeID == MatchTypeID.TWDD) {
+                if (m_round.getGame().m_fnMatchTypeID == MatchTypeID.TWDD || m_round.getGame().m_fnMatchTypeID == MatchTypeID.AS_TWLD) {
                     debug("Doing Resolution Check for: " + p.getPlayerName() + " cap: " + name);
                     ResCheck rc = new ResCheck(p.getPlayerName(), name, fnShip, ADD);
                     resCheck.put(p.getPlayerName().toLowerCase(), rc);
@@ -1156,7 +1156,7 @@ public class MatchTeam {
             // put player back in, returns message to report if it's succesful
 
             //if twdd gametype
-            if (m_round.getGame().m_fnMatchTypeID == MatchTypeID.TWDD) {
+            if (m_round.getGame().m_fnMatchTypeID == MatchTypeID.TWDD || m_round.getGame().m_fnMatchTypeID == MatchTypeID.AS_TWLD) {
                 ResCheck rc = new ResCheck(lagger, LAG);
                 rc.p = p;
                 if (commandByOther)
@@ -1239,7 +1239,7 @@ public class MatchTeam {
                     pA = getPlayer(playerA);
                     if (pA != null) {
                         //if twdd gametype
-                        if (m_round.getGame().m_fnMatchTypeID == MatchTypeID.TWDD) {
+                        if (m_round.getGame().m_fnMatchTypeID == MatchTypeID.TWDD || m_round.getGame().m_fnMatchTypeID == MatchTypeID.AS_TWLD) {
                             playerB = m_botAction.getFuzzyPlayerName(playerB);
                             if (playerB != null) {
                                 ResCheck rc = new ResCheck(playerB, playerA, name, pA, SUB);
