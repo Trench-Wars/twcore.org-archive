@@ -376,21 +376,21 @@ public class twl extends SubspaceBot {
         } else {
             if (isStaff) {
                 if (!m_isLocked) {
-                    if (!isRestrictedStaff || name.toLowerCase().equals("flared")){
+                    if (!isRestrictedStaff){
                         help.add("!listgames                               - list all available game types");
                         help.add("!game <typenumber>                       - start a game of <type>");
                         help.add("!game <typenumber>:<teamA>:<teamB>       - start a game of <type>");
                         help.add("!twlgame <game ID>                       - load a TWL game");
                     }
-                    if (!isRestrictedStaff || name.toLowerCase().equals("flared")) {
+                    if (!isRestrictedStaff) {
                         help.add("!go <arena>                              - makes the bot go to the specified arena");
                         help.add("!lock <typenumber>                       - lock at a free arena where the event can be hosted");
                     }
                 } else {
                     help.add("!game <squadA>:<squadB>                  - start a game of " + m_rules.getString("name") + " between teamA and teamB");
-                    if (name.toLowerCase().equals("flared") || !isRestrictedStaff) {
+                    if (!isRestrictedStaff) {
                         help.add("!unlock                                  - unlock the bot, makes it go back to ?go twl");
-                        if (m_opList.isSmod(name) || name.toLowerCase().equals("flared") ) {
+                        if (m_opList.isSmod(name)) {
                             help.add("!listaccess                              - list all the players who have special access to this game");
                             help.add("!addaccess <name>                        - add a player to the list");
                             help.add("!removeaccess <name>                     - remove a player from the list");
