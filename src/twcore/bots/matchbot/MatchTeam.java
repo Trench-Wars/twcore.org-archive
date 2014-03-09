@@ -142,9 +142,13 @@ public class MatchTeam {
         einfoer = new Einfoer();
         m_botAction.scheduleTask(einfoer, 2000, 2000);
         
-        if (m_botAction.getArenaName().equalsIgnoreCase("twdd") || m_botAction.getArenaName().equalsIgnoreCase("twdd2")) {
+        // Hardcoded exceptions until someone gets some time to rewrite the entire TWD stuff.
+        if (m_botAction.getArenaName().equalsIgnoreCase("twdd") || m_botAction.getArenaName().equalsIgnoreCase("twdd2") || m_botAction.getArenaName().toLowerCase().startsWith("twld")) {
             MAX_RES_X = 1440;
             MAX_RES_Y = 1024;
+        } else if(m_botAction.getArenaName().toLowerCase().startsWith("twlb") || m_botAction.getArenaName().toLowerCase().startsWith("twlj")) {
+            MAX_RES_X = 1920;
+            MAX_RES_Y = 1080;
         }
         
         if (fnTeamNumber == 1)
