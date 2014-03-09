@@ -33,11 +33,11 @@ public class twdhub extends SubspaceBot {
     private static final String IPC = "MatchBot";
     private static final String BOT_NAME = "MatchBot";
     private static final String PUBBOT = "TW-Guard";
-    private static final String TWBD = "6";
-    private static final String TWDD = "8";
-    private static final String TWFD = "13";
-    private static final String TWJD = "15";
-    private static final String TWSD = "19";
+    private static final String TWBD = "9";
+    private static final String TWDD = "11";
+    private static final String TWFD = "16";
+    private static final String TWJD = "18";
+    private static final String TWSD = "22";
     enum ArenaStatus { WAITING, READY, DYING };
 
     BotAction ba;
