@@ -96,7 +96,7 @@ public class staffbot_obscene extends Module {
             if (message.equals("!help")) {
                 cmd_help(name);
             } else if (message.equals("!listobscene")) {
-                cmd_listobscene(name);
+                cmd_listobscene(name, params);
             } else if(m_botAction.getOperatorList().isSysop(name) || isBangOp(name)) {
                 if(message.equals("!addobscene")) {
                     cmd_addobscene(name, params);
@@ -143,6 +143,7 @@ public class staffbot_obscene extends Module {
                     "----------------[ Obscene: Sysop ]-----------------",
                     " !addobscene <word>        - Adds a specific entry to obscene.txt. (Overwrites duplicates)",
                     " !listobscene              - Lists the current entries in obscene.txt.",
+                    " !listobscene <word>       - Lists only the entries in obscene.txt containing <word>.",
                     " !remobscene <word>        - Removes a specific entry from obscene.txt."
             };
             m_botAction.smartPrivateMessageSpam(name, spam);
@@ -150,6 +151,7 @@ public class staffbot_obscene extends Module {
                 String[] spam = {
                         "----------------[ Obscene: SMod ]-----------------",
                         " !listobscene              - Lists the current entries in obscene.txt.",
+                        " !listobscene <word>       - Lists only the entries in obscene.txt containing <word>.",
                 };
                 m_botAction.smartPrivateMessageSpam(name, spam);
             }
@@ -159,7 +161,7 @@ public class staffbot_obscene extends Module {
      * Lists the contents of obscene.txt. (SMod+)
      * @param name Issuer of the command.
      */
-    public void cmd_listobscene(String name) {
+    public void cmd_listobscene(String name, String param) {
         if(!m_state.equals(State.FREE)) {
             m_botAction.sendSmartPrivateMessage(name, "I'm currently in use. Try again later.");
             return;
@@ -168,6 +170,7 @@ public class staffbot_obscene extends Module {
         }
         
         m_user = name;
+        m_word = param;
         
         m_botAction.getServerFile("obscene.txt");
         m_botAction.sendSmartPrivateMessage(name, "Retreiving data. One moment please...");
@@ -202,6 +205,13 @@ public class staffbot_obscene extends Module {
      * Loads the received obscene.txt and displays it to the user.
      */
     private void listWords() {
+        Boolean filter = true;
+        
+        if(m_word == null || m_word.isEmpty()) {
+            filter = false;
+        } else {
+            m_word = m_word.toUpperCase();
+        }
         
         try {
             File file = m_botAction.getDataFile("obscene.txt");
@@ -214,6 +224,9 @@ public class staffbot_obscene extends Module {
             int maxLen = 0;
             
             while ((line = br.readLine()) != null) {
+                if(filter && !line.toUpperCase().contains(m_word))
+                    continue;
+                
                 obsceneList.add("[" + line + "] ");
                 int len = line.length() + 3;
                 if(len > maxLen) {
