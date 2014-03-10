@@ -1002,9 +1002,9 @@ public class hockeybot extends SubspaceBot {
             }
         }
 
-        /* Staff commands Moderator+ */
-        if (m_botAction.getOperatorList().isModerator(name)) {
+        if (m_botAction.getOperatorList().isER(name)) {
             if (cmd.equals("!die")) {
+            	m_botAction.sendChatMessage("HocketBot brutally murdered by "+name+" :'(");
                 m_botAction.die();
             }
         }
@@ -1480,11 +1480,9 @@ public class hockeybot extends SubspaceBot {
             hStaff.add("!hosttimeout                             Request a 30 second timeout (short: !hto)");
             hStaff.add("!setgamemode [<options>]             Use without options for details (short: !sgm)");
             hStaff.add("!vote <vote>                        Give your <vote> during the final goal review.");
+            hStaff.add("!off                                          stops the bot after the current game");
             if (opList.isER(name)) {
                 hStaff.add("!settimeout <amount>                Sets captain timeouts to <amount> (default: 1)");
-            }
-            if (opList.isModerator(name)) {
-                hStaff.add("!off                                          stops the bot after the current game");
                 hStaff.add("!die                                                           disconnects the bot");
             }
             if (opList.isSmod(name)) {
