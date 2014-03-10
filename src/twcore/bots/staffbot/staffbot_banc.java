@@ -921,7 +921,7 @@ public class staffbot_banc extends Module {
     private boolean sendWarnings(String stafferName, String name, int limit) throws SQLException {
 
         String query;
-        if (limit == 0 || limit == -1)
+        if (limit <= 0 )
             query = "SELECT * FROM tblWarnings WHERE name = '" + Tools.addSlashesToString(name) + "' ORDER BY timeofwarning ASC";
         else
             query = "SELECT * FROM tblWarnings WHERE name = '" + Tools.addSlashesToString(name) + "' ORDER BY timeofwarning ASC LIMIT 0," + limit;
