@@ -219,6 +219,8 @@ public class PubPlayerManagerModule extends AbstractModule {
                 			
                     if (rs.next()) {
                         player = getPlayerByResultSet(rs);
+                        if (player == null)
+                            return null;
                         player.setName(playerName);
                         m_botAction.SQLClose(rs);
                         return player;
@@ -471,7 +473,8 @@ public class PubPlayerManagerModule extends AbstractModule {
             player.setBestStreak(rs.getInt("fnBestStreak"));
             
         } catch (Exception e) {
-        	m_botAction.sendSmartPrivateMessage("poid","broke with "+e.getMessage());
+        	//m_botAction.sendSmartPrivateMessage("poid","broke with "+e.getMessage());
+            Tools.printLog( e.getMessage() );
         }
         
         return player;
