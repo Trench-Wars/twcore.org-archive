@@ -1004,7 +1004,7 @@ public class hockeybot extends SubspaceBot {
 
         if (m_botAction.getOperatorList().isER(name)) {
             if (cmd.equals("!die")) {
-            	m_botAction.sendChatMessage("HocketBot brutally murdered by "+name+" :'(");
+            	m_botAction.sendChatMessage("HockeyBot brutally murdered by "+name+" :'(");
                 m_botAction.die();
             }
         }
