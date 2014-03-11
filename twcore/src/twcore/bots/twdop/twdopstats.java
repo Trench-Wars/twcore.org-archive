@@ -182,9 +182,9 @@ public class twdopstats extends Module {
                 "fcComment"
         };
         String[] values = {
-                name,
-                player,
-                comment
+                Tools.addSlashes(name),
+                Tools.addSlashes(player),
+                Tools.addSlashes(comment)
         };
         m_botAction.SQLBackgroundInsertInto(mySQLHost, "tblTWDManualCall", fields, values);
         updateStatRecordsONIT(name);
