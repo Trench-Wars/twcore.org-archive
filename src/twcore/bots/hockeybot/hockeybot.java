@@ -997,15 +997,13 @@ public class hockeybot extends SubspaceBot {
        
         /* Staff commands ER+ */
         if (m_botAction.getOperatorList().isER(name)) {
-            if (cmd.equals("!settimeout")) {
-                cmd_settimeout(name, args);
-            }
-        }
-
-        if (m_botAction.getOperatorList().isER(name)) {
             if (cmd.equals("!die")) {
-            	m_botAction.sendChatMessage("HockeyBot brutally murdered by "+name+" :'(");
+                m_botAction.sendChatMessage("HockeyBot brutally murdered by "+name+" :'(");
                 m_botAction.die();
+            } else if (cmd.equals("!go")) {
+                cmd_go(name, args);
+            } else if (cmd.equals("!settimeout")) {
+                cmd_settimeout(name, args);
             }
         }
 
@@ -1420,6 +1418,33 @@ public class hockeybot extends SubspaceBot {
     }
 
     /**
+     * Handles the !go command (ER+)
+     * Moves the bot to a different arena.
+     * 
+     * @param name Name of the player that issues the command.
+     * @param args Arena that will be joined.
+     */
+    private void cmd_go(String name, String args) {
+        if(args.isEmpty()) {
+            m_botAction.sendSmartPrivateMessage(name, "Error: Please provide a target arena, '!go <arena>'");
+            return;
+        }
+        
+        if (currentState == HockeyState.OFF) {
+            m_botAction.sendSmartPrivateMessage(name, "As you command, my master. Moving to " + args + ".");
+            
+            try {
+                m_botAction.changeArena(args, (short) 3392, (short) 3392);
+            } catch (Exception e) {
+                m_botAction.changeArena(args);
+            }
+            
+        } else {
+            m_botAction.sendSmartPrivateMessage(name, "Error: Please turn the bot !off first.");
+        }
+    }
+    
+    /**
      * Handles the !help command
      * 
      * @param name name of the player
@@ -1464,14 +1489,14 @@ public class hockeybot extends SubspaceBot {
 
             hStaff.add("Hockey Help Menu: Staff Controls");
             hStaff.add("----------------------------------------------------------------------------------");
-            hStaff.add("!start                                                              starts the bot");
-            hStaff.add("!stop                                                                stops the bot");
-            hStaff.add("!ball                                          retrieves the ball (Emergency only)");
-            hStaff.add("!drop                                              drops the ball (Emergency only)");
-            hStaff.add("!resetball                           moves the ball to the center (Emergency only)");
-            hStaff.add("!decrease <freq>                        subtracts a goal from <freq> (short: !dec)");
-            hStaff.add("!increase <freq>                              adds a goal for <freq> (short: !inc)");
-            hStaff.add("!zone <message>                  sends time-restricted advert, message is optional");
+            hStaff.add("!start                                                              Starts the bot");
+            hStaff.add("!stop                                                                Stops the bot");
+            hStaff.add("!ball                                          Retrieves the ball (Emergency only)");
+            hStaff.add("!drop                                              Drops the ball (Emergency only)");
+            hStaff.add("!resetball                           Moves the ball to the center (Emergency only)");
+            hStaff.add("!decrease <freq>                        Subtracts a goal from <freq> (short: !dec)");
+            hStaff.add("!increase <freq>                              Adds a goal for <freq> (short: !inc)");
+            hStaff.add("!zone <message>                  Sends time-restricted advert, message is optional");
             hStaff.add("!forcenp <player>                                     Sets <player> to !notplaying");
             hStaff.add("!setcaptain <# freq>:<player>   Sets <player> as captain for <# freq> (short: !sc)");
             hStaff.add("!remcaptain <# freq>             Removes the captain of freq <# freq> (short: !rc)");
@@ -1480,10 +1505,11 @@ public class hockeybot extends SubspaceBot {
             hStaff.add("!hosttimeout                             Request a 30 second timeout (short: !hto)");
             hStaff.add("!setgamemode [<options>]             Use without options for details (short: !sgm)");
             hStaff.add("!vote <vote>                        Give your <vote> during the final goal review.");
-            hStaff.add("!off                                          stops the bot after the current game");
+            hStaff.add("!off                                          Stops the bot after the current game");
             if (opList.isER(name)) {
+                hStaff.add("!die                                                           Disconnects the bot");
+                hStaff.add("!go <arena>                                      Moves the bot to a custom <arena>");
                 hStaff.add("!settimeout <amount>                Sets captain timeouts to <amount> (default: 1)");
-                hStaff.add("!die                                                           disconnects the bot");
             }
             if (opList.isSmod(name)) {
                 hStaff.add("!allowzoner                         Forces the zone timers to reset allowing !zone");
@@ -1497,7 +1523,7 @@ public class hockeybot extends SubspaceBot {
             help.add("Hockey Help Menu");
             help.add("-----------------------------------------------------------------------");
             help.add("!notplaying                       Toggles not playing mode  (short !np)");
-            help.add("!cap                                            shows current captains!");
+            help.add("!cap                                            Shows current captains!");
             help.add("!lagout              Puts you back into the game if you have lagged out");
             help.add("!list                                    Lists all players on this team");
             help.add("!myfreq                              Puts you on your team's frequency.");
