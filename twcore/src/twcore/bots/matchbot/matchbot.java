@@ -280,37 +280,48 @@ public class matchbot extends SubspaceBot {
         if ((event.getChannel().equals(IPC)) && (!event.getSenderName().equals(m_botAction.getBotName()))) {
             if (event.getObject() instanceof IPCCommand) {
                 IPCCommand ipc = (IPCCommand) event.getObject();
-                String arena = m_botAction.getArenaName().toLowerCase();
-                String bot = m_botAction.getBotName();
-                if (ipc.getBot() != null && !bot.equalsIgnoreCase(ipc.getBot()) && !arena.equalsIgnoreCase(ipc.getBot()))
+                
+                if(ipc.getBot() == null)
                     return;
-                if (ipc.getType() == Command.DIE && ipc.getBot() != null) {
-                    if (ipc.getBot().equals("all") || bot.equalsIgnoreCase(ipc.getBot()) || arena.equalsIgnoreCase(ipc.getBot())) {
-                        if (m_game == null && !m_isStartingUp) {
-                            ba.sendChatMessage("Got IPC DIE for bot/arena: " + ipc.getBot() + " (" + ipc.getCommand() + ")" );
-                            TimerTask d = new TimerTask() {
-                                @Override
-                                public void run() {
-                                    m_botAction.die();
-                                }
-                            };
-                            m_botAction.scheduleTask(d, 3000);
-                        } else {
-                            m_botAction.ipcTransmit(IPC, new IPCCommand(Command.ECHO, TWDHUB, bot
-                                    + " reports it will shutdown after the current game ends in " + arena));
-                            m_die = true;
-                            m_off = true;
-                        }
+                
+                String target = ipc.getBot();
+                
+                // Do we have a valid target in the IPC message?
+                boolean tAll = target.equalsIgnoreCase("all");
+                boolean tMe = target.equalsIgnoreCase(ba.getBotName());
+                boolean tArena = target.equalsIgnoreCase(m_botAction.getArenaName());
+                
+                if(!tAll && !tMe && !tArena)
+                    return;
+                
+                // Valid for any allowed target.
+                if (ipc.getType() == Command.DIE) {
+                    if (m_game == null && !m_isStartingUp) {
+                        ba.sendChatMessage("Got IPC DIE for bot/arena: " + target + " (" + ipc.getCommand() + ")" );
+                        TimerTask d = new TimerTask() {
+                            @Override
+                            public void run() {
+                                m_botAction.die();
+                            }
+                        };
+                        m_botAction.scheduleTask(d, 3000);
+                    } else {
+                        m_botAction.ipcTransmit(IPC, new IPCCommand(Command.ECHO, TWDHUB, ba.getBotName()
+                                + " reports it will shutdown after the current game ends in " + ba.getArenaName()));
+                        m_die = true;
+                        m_off = true;
                     }
-                } else if (ipc.getType() == Command.STAY) {
-                    m_botAction.ipcTransmit(IPC, new IPCCommand(Command.ECHO, TWDHUB, bot + " reports it will stay in " + arena));
+                } else if (ipc.getType() == Command.STAY && tMe) {
+                    // Do only when this bot is targeted, and not in any other scenario.
+                    m_botAction.ipcTransmit(IPC, new IPCCommand(Command.ECHO, TWDHUB, ba.getBotName() + " reports it will stay in " + ba.getArenaName()));
                     m_die = false;
                     m_off = false;
-                } else if (ipc.getType() == Command.CHECKIN) {
+                } else if (ipc.getType() == Command.CHECKIN && (tMe || tAll)) {
+                    // Valid targets: Me && all
                     if (m_game != null)
-                        m_botAction.ipcTransmit(IPC, new IPCTWD(EventType.CHECKIN, arena, bot, m_game.m_fcTeam1Name, m_game.m_fcTeam2Name, m_game.m_fnMatchID, m_game.m_fnTeam1Score, m_game.m_fnTeam2Score));
+                        m_botAction.ipcTransmit(IPC, new IPCTWD(EventType.CHECKIN, ba.getArenaName(), ba.getBotName(), m_game.m_fcTeam1Name, m_game.m_fcTeam2Name, m_game.m_fnMatchID, m_game.m_fnTeam1Score, m_game.m_fnTeam2Score));
                     else if (m_isLocked)
-                        m_botAction.ipcTransmit(IPC, new IPCTWD(EventType.CHECKIN, arena, bot));
+                        m_botAction.ipcTransmit(IPC, new IPCTWD(EventType.CHECKIN, ba.getArenaName(), ba.getBotName()));
                 }
             } else if (event.getObject() instanceof IPCChallenge && TWDHUB.equalsIgnoreCase(event.getSenderName())) {
                 IPCChallenge ipc = (IPCChallenge) event.getObject();
