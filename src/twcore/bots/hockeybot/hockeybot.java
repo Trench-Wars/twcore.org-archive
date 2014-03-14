@@ -3233,7 +3233,7 @@ public class hockeybot extends SubspaceBot {
 
         //Build generic message if a custom one isn't passed to this function.
         if (message == null || message.isEmpty()) {
-            message = "A game of hockey is starting! Type ?go " + currentArena + "to play.";
+            message = "A game of hockey is starting! Type ?go " + currentArena + " to play.";
         } else if (message.toLowerCase().contains("?go")) {
             // Don't need to double up on the ?go's.
             m_botAction.sendPrivateMessage(name, "Please do not include ?go hockey in the zoner as I will add this for you automatically.");
