@@ -86,6 +86,7 @@ public class hockeybot extends SubspaceBot {
     private long zonerTimestamp;                            //Timestamp of the last zoner
     private long manualZonerTimestamp;                      //Timestamp of the last manualzoner
     private int maxTimeouts;                                //Maximum allowed timeouts per game.
+    private String currentArena;
     
     //Frequencies
     private static final int FREQ_SPEC = 8025;              //Frequency of specced players.
@@ -324,6 +325,8 @@ public class hockeybot extends SubspaceBot {
         botCrease = new Stack<String>();                // Face off crease zone list.
         
         scoreOverlay = new Overlay();                   // LVZ display overlay.
+        
+        currentArena = null;
 
     }
 
@@ -2671,6 +2674,7 @@ public class hockeybot extends SubspaceBot {
      * Starts the bot
      */
     private void start() {
+    	currentArena = m_botAction.getArenaName();
         m_botAction.setMessageLimit(8, false);
         m_botAction.setReliableKills(1);
         m_botAction.setLowPriorityPacketCap(8);
@@ -3229,10 +3233,10 @@ public class hockeybot extends SubspaceBot {
 
         //Build generic message if a custom one isn't passed to this function.
         if (message == null || message.isEmpty()) {
-            message = "A game of hockey is starting! Type ?go hockey to play.";
+            message = "A game of hockey is starting! Type ?go " + currentArena + "to play.";
         } else if (message.toLowerCase().contains("?go")) {
             // Don't need to double up on the ?go's.
-            m_botAction.sendPrivateMessage(name, "Please do not include ?go base in the zoner as I will add this for you automatically.");
+            m_botAction.sendPrivateMessage(name, "Please do not include ?go hockey in the zoner as I will add this for you automatically.");
             return;
         } else if (message.toLowerCase().contains("-" + name.toLowerCase())) {
             // Don't need to double up on the names.
@@ -3639,7 +3643,7 @@ public class hockeybot extends SubspaceBot {
             
             // Next two lines of code is to refresh the timer on the C2SNoDataTimeOut. (Prevents the error message "No data for X ms")
             disableWelcome = true;
-            m_botAction.changeArena(config.getArena());
+            m_botAction.changeArena(currentArena);
             
             startFaceOff();
             return;
