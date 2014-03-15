@@ -753,26 +753,26 @@ public class twdopalias extends Module {
     /**
      * Shows current watches.
      */
-    public void doShowWatchesCmd() {
+    public void doShowWatchesCmd(String sender) {
         if (watchedIPs.size() == 0) {
-            m_botAction.sendChatMessage("IP:   (none)");
+            m_botAction.sendSmartPrivateMessage(sender, "IP:   (none)");
         }
         for (String IP : watchedIPs.keySet()) {
-            m_botAction.sendChatMessage("IP:   " + IP + "  ( " + watchedIPs.get(IP) + " )");
+            m_botAction.sendSmartPrivateMessage(sender, "IP:   " + IP + "  ( " + watchedIPs.get(IP) + " )");
         }
 
         if (watchedMIDs.size() == 0) {
-            m_botAction.sendChatMessage("MID:  (none)");
+            m_botAction.sendSmartPrivateMessage(sender, "MID:  (none)");
         }
         for (String MID : watchedMIDs.keySet()) {
-            m_botAction.sendChatMessage("MID:  " + MID + "  ( " + watchedMIDs.get(MID) + " )");
+            m_botAction.sendSmartPrivateMessage(sender, "MID:  " + MID + "  ( " + watchedMIDs.get(MID) + " )");
         }
 
         if (watchedNames.size() == 0) {
-            m_botAction.sendChatMessage("Name: (none)");
+            m_botAction.sendSmartPrivateMessage(sender, "Name: (none)");
         }
         for (String Name : watchedNames.keySet()) {
-            m_botAction.sendChatMessage("Name: " + Name + "  ( " + watchedNames.get(Name) + " )");
+            m_botAction.sendSmartPrivateMessage(sender, "Name: " + Name + "  ( " + watchedNames.get(Name) + " )");
         }
     }
 
@@ -830,7 +830,7 @@ public class twdopalias extends Module {
             else if (command.equals("!clearmidwatch"))
                 doClearMIDWatchCmd();
             else if (command.equals("!showwatches"))
-                doShowWatchesCmd();
+                doShowWatchesCmd(sender);
             else if (command.equals("!sortbyname")) {
                 m_sortByName = true;
                 m_botAction.sendChatMessage("Sorting !alt cmds by name first.");
