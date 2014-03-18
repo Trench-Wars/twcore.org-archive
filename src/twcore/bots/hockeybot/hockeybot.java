@@ -3849,7 +3849,7 @@ public class hockeybot extends SubspaceBot {
             //Arenas
             arena = botSettings.getString("Arena").toLowerCase();
             
-            allowedArenaString = botSettings.getString("AllowedArenas").toLowerCase().split(",");
+            allowedArenaString = botSettings.getString("AllowedArenas").toLowerCase().trim().split(",");
             allowedArenas = new ArrayList<String>(Arrays.asList(allowedArenaString));
             
 
