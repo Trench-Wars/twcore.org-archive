@@ -1433,6 +1433,13 @@ public class hockeybot extends SubspaceBot {
             return;
         }
         
+        //Check if arena is in allowed list
+        if(!config.getAllowedArenas().contains(args.toLowerCase()))
+        {
+        	m_botAction.sendSmartPrivateMessage(name, "Sorry. I am not allowed to go to that arena. :(");
+        	return;
+        }
+        
         if (currentState == HockeyState.OFF) {
             m_botAction.sendSmartPrivateMessage(name, "As you command, my master. Moving to " + args + ".");
             
@@ -1440,6 +1447,14 @@ public class hockeybot extends SubspaceBot {
                 m_botAction.changeArena(args, (short) 3392, (short) 3392);
             } catch (Exception e) {
                 m_botAction.changeArena(args);
+            }
+            
+            //Try loading new config for arena..
+            if(!config.initZones(args.toLowerCase()))
+            {
+            	m_botAction.sendSmartPrivateMessage(name, "Could not load config. Shutting down.");
+            	Tools.printLog("HockeyBot: Failure loading config for" + args);
+            	m_botAction.die();
             }
             
         } else {
@@ -3799,6 +3814,7 @@ public class hockeybot extends SubspaceBot {
         private boolean allowZoner;                 // Whether or not the bot automatically sends out zoners.
         private boolean allowVote;                  // Allows a final goal review period, where ZH+ get to vote the validity of the goal.
         private int penaltyTime;                    // Standard penalty duration time.
+        ArrayList<String> allowedArenas;            // Allowed arenas the bot can join.
         
         /*
          * Settings from hockey.cfg
@@ -3827,9 +3843,15 @@ public class hockeybot extends SubspaceBot {
             int tmpAnnounceShipCounter;
             String[] maxShipsString;
             String[] goalieShipsString;
-
-            //Arena
-            arena = botSettings.getString("Arena");
+            String[] allowedArenaString;
+            
+            
+            //Arenas
+            arena = botSettings.getString("Arena").toLowerCase();
+            
+            allowedArenaString = botSettings.getString("AllowedArenas").toLowerCase().split(",");
+            allowedArenas = new ArrayList<String>(Arrays.asList(allowedArenaString));
+            
 
             //Allow final review voting
             allowVote = (botSettings.getInt("AllowVote") == 1);
@@ -3920,7 +3942,7 @@ public class hockeybot extends SubspaceBot {
             penaltyTime = botSettings.getInt("PenaltyTime");
             
             // Zone and coordinate configuration
-            if(!initZones()) {                      
+            if(!initZones(arena)) {                      
                 //Sorry folks, can't do anything if the zones fail to load.
                 m_botAction.die("Unable to load zones.");
             }
@@ -3936,24 +3958,24 @@ public class hockeybot extends SubspaceBot {
          * 
          * @return True when settings were read in correctly. False when critical files were not found. (The latter auto-kills the bot.)
          */
-        private boolean initZones() {
+        private boolean initZones(String arena) {
             BotSettings cfg;
             hockeyZones = new MapRegions();
             
             hockeyZones.clearRegions();
             
             try {
-                hockeyZones.loadRegionImage("hockey.png");
+                hockeyZones.loadRegionImage(arena + ".png");
             } catch (IOException e) {
                 e.printStackTrace();
-                Tools.printLog("ERROR: Failed to load zone image file hockey.png.");
+                Tools.printLog("ERROR: Failed to load zone image file "+ arena + ".png.");
                 return false;
             }
             try {
-                cfg = hockeyZones.loadRegionCfg("hockey.cfg");
+                cfg = hockeyZones.loadRegionCfg(arena + ".cfg");
             } catch (IOException e) {
                 e.printStackTrace();
-                Tools.printLog("ERROR: Failed to load zone config file hockey.cfg.");
+                Tools.printLog("ERROR: Failed to load zone config file " + arena + ".cfg.");
                 return false;
             }
             
@@ -4027,12 +4049,21 @@ public class hockeybot extends SubspaceBot {
         }
 
         /**
-         * Returns the arena name
+         * Returns the default arena name
          *
          * @return arena name
          */
         private String getArena() {
             return arena;
+        }
+        
+        /**
+         * Returns the allowed arenas
+         * 
+         * @return allowed arenas
+         */
+        private ArrayList<String> getAllowedArenas() {
+        	return allowedArenas;
         }
 
         /**
