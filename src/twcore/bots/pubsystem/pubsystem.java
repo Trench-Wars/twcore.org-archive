@@ -105,6 +105,7 @@ public class pubsystem extends SubspaceBot
     private String greeting;
     private String commentGreeting;
     private Log commentLog;
+    private Log commentLogAnon;
     
     private boolean printHelpSpaces = false;            // Whether to print spaces after each section
                                                         //   in !help spam
@@ -200,6 +201,11 @@ public class pubsystem extends SubspaceBot
 	            commentLog.write(header);
                 commentLog.write(Tools.formatString("=", header.length(), "="));
                 commentLog.write("");
+                commentLogAnon = new Log(m_botAction, "anon" + m_botAction.getBotSettings().getString("comment_log"));
+                commentLogAnon.write(Tools.formatString("=", header.length(), "="));
+                commentLogAnon.write(header);
+                commentLogAnon.write(Tools.formatString("=", header.length(), "="));
+                commentLogAnon.write("");
 	        } else
 	            commentGreeting = null;
 	            
@@ -502,6 +508,7 @@ public class pubsystem extends SubspaceBot
         
         if(commentLog != null) {
             commentLog.write(Tools.getTimeStamp() + ": " + Tools.formatString(sender, 19) + "> " + args);
+            commentLogAnon.write(Tools.getTimeStamp() + ": " + args);
             m_botAction.sendSmartPrivateMessage(sender, "Your comment has been forwarded to the Trench Wars developers.");
         }
     }
@@ -821,6 +828,13 @@ public class pubsystem extends SubspaceBot
             commentLog.write("");
             commentLog.write("");
             commentLog.close();
+        }
+        if(commentLogAnon != null) {
+            commentLogAnon.write("");
+            commentLogAnon.write("=== Session ended ===");
+            commentLogAnon.write("");
+            commentLogAnon.write("");
+            commentLogAnon.close();
         }
     	if (context!=null)
     		context.handleDisconnect();
