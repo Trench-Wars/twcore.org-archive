@@ -48,6 +48,8 @@ public class PubPlayerManagerModule extends AbstractModule {
     private int MAX_MID_SPAWN = -1; // Max Freq Size to enable mid spawning, -1 = off
     
     private int SHUFFLE_SIZE = -1;
+    
+    private int MAX_EXTRA_ON_PRIVATES = -1;
 
     private TreeMap<String, PubPlayer> players;         // Always lowercase!
     private TreeSet<String> freq0;                      // Players on freq 0
@@ -277,10 +279,10 @@ public class PubPlayerManagerModule extends AbstractModule {
 
         if (context.isStarted()) {
             checkPlayer(event.getPlayerID());
-            if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
-                checkFreq(event.getPlayerID(), event.getTeam(), false);
+            //if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
+            //    checkFreq(event.getPlayerID(), event.getTeam(), false);
             //checkFreqSizes();
-            }
+            //}
             checkLowPopSpawn();
         }
         
@@ -303,42 +305,6 @@ public class PubPlayerManagerModule extends AbstractModule {
         //checkFreqSizes();
     }
     
-    public void handleEvent(FrequencyChange event) {        
-        if (lowPopSpawning) {
-            Player player = m_botAction.getPlayer(event.getPlayerID());
-            if (player==null)
-                return;
-            PubPlayer pubPlayer;
-            pubPlayer = players.get(player.getPlayerName().toLowerCase());
-            if (pubPlayer!=null) {
-                if(!context.getPubChallenge().isDueling(pubPlayer.getPlayerName()) && player.isPlaying()) {
-                    pubPlayer.doLowPopSpawn(false);
-                }
-            }
-        }
-
-        /* Disabled until hunt running again
-        if (context.isStarted() && context.getPubHunt().isRunning()) {
-            Player player = m_botAction.getPlayer(event.getPlayerID());
-            if (player==null)
-                return;
-            HuntPlayer huntPlayer = context.getPubHunt().getPlayerPlaying(player.getPlayerName());
-            if (huntPlayer != null) {
-                if (huntPlayer.freq != event.getFrequency()) {
-                    m_botAction.setFreq(player.getPlayerID(), huntPlayer.freq);
-                    m_botAction.sendSmartPrivateMessage(player.getPlayerName(), "You cannot change your frequency during a game of hunt.");
-                }
-            } else {
-                checkPlayer(player.getPlayerID());
-                //if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
-                //    checkFreq(playerID, freq, true);
-                //    checkFreqSizes();
-                //}
-            }
-        }
-        */
-    }
-
     public void handleEvent(PlayerDeath event) {
         
         Player killer = m_botAction.getPlayer(event.getKillerID());
@@ -387,23 +353,76 @@ public class PubPlayerManagerModule extends AbstractModule {
         
     }
     
-    public void handleEvent(FrequencyShipChange event) {
+    public void handleEvent(FrequencyChange event) {        
+        if (lowPopSpawning) {
+            Player player = m_botAction.getPlayer(event.getPlayerID());
+            if (player==null)
+                return;
+            PubPlayer pubPlayer;
+            pubPlayer = players.get(player.getPlayerName().toLowerCase());
+            if (pubPlayer!=null) {
+                if(!context.getPubChallenge().isDueling(pubPlayer.getPlayerName()) && player.isPlaying()) {
+                    pubPlayer.doLowPopSpawn(false);
+                }
+            }
+        }
+        
+        if (context.isStarted()) {
+            if (event.getFrequency() > 1) {
+                if (!context.getPubUtil().isPrivateFrequencyEnabled()) {
+                    checkFreq(event.getPlayerID(), event.getFrequency(), true);
+                } else {
+                    checkCanSwitchToPrivate( event.getPlayerID(), event.getFrequency() );
+                }
+            }
+            checkLowPopSpawn();
+        }
 
-        Player p = m_botAction.getPlayer(event.getPlayerID());
-        if (p==null) return;
-        PubPlayer pubPlayer = players.get(p.getPlayerName().toLowerCase());
-        if (pubPlayer!=null) {
-            pubPlayer.handleShipChange(event);
-            if (lowPopSpawning)
+
+        /* Disabled until hunt running again
+        if (context.isStarted() && context.getPubHunt().isRunning()) {
+            Player player = m_botAction.getPlayer(event.getPlayerID());
+            if (player==null)
+                return;
+            HuntPlayer huntPlayer = context.getPubHunt().getPlayerPlaying(player.getPlayerName());
+            if (huntPlayer != null) {
+                if (huntPlayer.freq != event.getFrequency()) {
+                    m_botAction.setFreq(player.getPlayerID(), huntPlayer.freq);
+                    m_botAction.sendSmartPrivateMessage(player.getPlayerName(), "You cannot change your frequency during a game of hunt.");
+                }
+            } else {
+                checkPlayer(player.getPlayerID());
+                //if(!context.getPubUtil().isPrivateFrequencyEnabled()) {
+                //    checkFreq(playerID, freq, true);
+                //    checkFreqSizes();
+                //}
+            }
+        }
+        */
+    }
+
+    public void handleEvent(FrequencyShipChange event) {
+        if (lowPopSpawning) {
+            Player p = m_botAction.getPlayer(event.getPlayerID());
+            if (p==null)
+                return;
+            PubPlayer pubPlayer = players.get(p.getPlayerName().toLowerCase());
+            if (pubPlayer!=null) {
+                pubPlayer.handleShipChange(event);
                 if(!context.getPubChallenge().isDueling(pubPlayer.getPlayerName()) && p.isPlaying()) {
                     pubPlayer.doLowPopSpawn(false);
                 }
+            }
         }
 
         if (context.isStarted()) {
             checkPlayer(event.getPlayerID());
-            if (!context.getPubUtil().isPrivateFrequencyEnabled()) {
-                checkFreq(event.getPlayerID(), event.getFrequency(), true);
+            if (event.getFrequency() > 1) {
+                if (!context.getPubUtil().isPrivateFrequencyEnabled()) {
+                    checkFreq(event.getPlayerID(), event.getFrequency(), true);
+                } else {
+                    checkCanSwitchToPrivate( event.getPlayerID(), event.getFrequency() );
+                }
             }
             checkLowPopSpawn();
         }
@@ -821,6 +840,24 @@ public class PubPlayerManagerModule extends AbstractModule {
         }
     }
     
+    public void checkCanSwitchToPrivate( int pid, int freq ) {
+        if (MAX_EXTRA_ON_PRIVATES < 0)
+            return;
+
+        int freq0 = m_botAction.getPlayingFrequencySize(0);
+        int freq1 = m_botAction.getPlayingFrequencySize(1);
+        int privatePlayers = m_botAction.getPlayingFrequencySize(freq);
+        
+        if (privatePlayers >= freq0 + MAX_EXTRA_ON_PRIVATES || privatePlayers >= freq1 + MAX_EXTRA_ON_PRIVATES) {
+            if( freq0 > freq1 )
+                m_botAction.setFreq( pid, 1 );
+            else
+                m_botAction.setFreq( pid, 0 );
+            m_botAction.sendPrivateMessage(pid, "You have been placed back on a public frequency; moving to this private freq would make the game too imbalanced.");
+        }
+            
+    }
+    
     
     public void checkSpecTime() {
         Iterator<Player> i = m_botAction.getPlayerIterator();
@@ -1225,7 +1262,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         MSG_AT_FREQSIZE_DIFF = Integer.valueOf(m_botAction.getBotSettings().getString("msg_at_freq_diff"));
         MIDROUND_FREQSIZE_DIFF = Integer.valueOf(m_botAction.getBotSettings().getString("midround_freq_diff"));
         SHUFFLE_SIZE = Integer.valueOf(m_botAction.getBotSettings().getString("shuffle_size"));
-
+        MAX_EXTRA_ON_PRIVATES = m_botAction.getBotSettings().getInt("max_extra_on_privates");
     }
 
 
