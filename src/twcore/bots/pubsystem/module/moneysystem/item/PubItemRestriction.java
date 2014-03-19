@@ -205,7 +205,8 @@ public class PubItemRestriction {
 		if (maxArenaPerMinute!=-1) {
 			long diff = System.currentTimeMillis()-item.getLastTimeUsed();
 			if (diff < maxArenaPerMinute*Tools.TimeInMillis.MINUTE) {
-				throw new PubException("This item has been bought in the past " + maxArenaPerMinute + " minutes, please wait..");
+			    diff = ((maxArenaPerMinute*Tools.TimeInMillis.MINUTE) - diff) / 1000;
+				throw new PubException("This item has been bought in the past " + maxArenaPerMinute + " minutes; please wait " + diff + " more seconds ...");
 			}
 		}
 		
@@ -217,7 +218,8 @@ public class PubItemRestriction {
 					continue;
 				long diff = System.currentTimeMillis()-itemUsed.getTime();
 				if (diff < maxPerSecond*Tools.TimeInMillis.SECOND) {
-					throw new PubException("You have bought this item in the past " + maxPerSecond + " seconds, please wait...");
+	                diff = ((maxPerSecond*Tools.TimeInMillis.SECOND) - diff) / 1000;
+					throw new PubException("You have bought this item in the past " + maxPerSecond + " seconds; please wait " + diff + " more seconds ...");
 				}
 			}
 		}
@@ -228,16 +230,19 @@ public class PubItemRestriction {
                 PubItemUsed itemUsed = items.get(i);
                 long diff = System.currentTimeMillis()-itemUsed.getTime();
                 if (diff < globalCooldownBuy*Tools.TimeInMillis.SECOND) {
-                    throw new PubException("You must wait at least " + globalCooldownBuy + " seconds before you purchase another item , please wait...");
+                    diff = ((globalCooldownBuy*Tools.TimeInMillis.SECOND) - diff) / 1000;
+                    throw new PubException("You must wait at least " + globalCooldownBuy + " seconds between purchases; please wait " + diff + " more seconds ...");
                 }
             }
         }
 		
 		if (detachLevTerrCooldown !=-1 && (shipType == 4 || shipType == 5)) {
-                long diff = System.currentTimeMillis()-player.getLastDetachLevTerr();
-                if (diff < detachLevTerrCooldown * Tools.TimeInMillis.SECOND) 
-                    throw new PubException("You must wait at least " + detachLevTerrCooldown + " seconds after leaving your LevTerr to !buy , please wait...");                
-            }
+		    long diff = System.currentTimeMillis()-player.getLastDetachLevTerr();
+		    if (diff < detachLevTerrCooldown * Tools.TimeInMillis.SECOND) { 
+                diff = ((detachLevTerrCooldown*Tools.TimeInMillis.SECOND) - diff) / 1000;
+		        throw new PubException("You must wait at least " + detachLevTerrCooldown + " seconds after leaving your LevTerr to !buy; please wait " + diff + " more seconds ...");
+		    }
+		}
         
 		
 		if (maxPerLife!=-1) {
@@ -260,7 +265,7 @@ public class PubItemRestriction {
 				else if (count<maxConsecutive)
 					break;
 				if (count>=maxConsecutive)
-					throw new PubException("Only " + maxConsecutive + " consecutive buy of this item allowed.");
+					throw new PubException("Only " + maxConsecutive + " consecutive buys of this item allowed.");
 			}
 		}
 		
