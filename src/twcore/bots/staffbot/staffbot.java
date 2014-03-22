@@ -1,6 +1,9 @@
 package twcore.bots.staffbot;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.TimerTask;
+import java.util.Vector;
 
 import twcore.bots.ModuleHandler;
 import twcore.core.BotAction;
@@ -50,6 +53,10 @@ public class staffbot extends SubspaceBot {
     TimerTask getLog;
     String fileUser = "";
     private final static int CHECK_LOG_DELAY = 2000;
+    
+    private HashMap<String, Long> energyTracker = new HashMap<String, Long>();
+    private Vector<EnergyCheck> energyChecks;
+    private boolean isCheckingEnergy = false;
 
     /* Initialization code */
     public staffbot(BotAction botAction) {
@@ -127,6 +134,7 @@ public class staffbot extends SubspaceBot {
 
                 String[] smodHelp = { " !die                      - Disconnects Staffbot" };
 
+                String[] sysopHelp = { " !listenergy               - Shows everyone who is currently using the !energy/*energy command." };
                 String[] ownerHelp = { " !putfile                  - Uploads file to the zone (RARE CASE)" };
 
                 m_botAction.smartPrivateMessageSpam(senderName, help);
@@ -134,18 +142,26 @@ public class staffbot extends SubspaceBot {
                 if (m_botAction.getOperatorList().isSmod(senderName)) {
                     m_botAction.smartPrivateMessageSpam(senderName, smodHelp);
                 }
+                if (m_botAction.getOperatorList().isSysop(senderName)) {
+                    m_botAction.smartPrivateMessageSpam(senderName, sysopHelp);
+                }
                 if (m_botAction.getOperatorList().isOwner(senderName)) {
                     m_botAction.smartPrivateMessageSpam(senderName, ownerHelp);
                 }
             }
             if (m_botAction.getOperatorList().isSmod(senderName)) {
-                if (message.equalsIgnoreCase("!die")) {
+                if (message.equals("!die")) {
                     moduleHandler.unloadAllModules();
                     this.handleDisconnect();
                     m_botAction.die();
-                } else if (message.equalsIgnoreCase("!energy")) {
-                    m_botAction.sendUnfilteredPrivateMessage(senderName, "*energy");
-                    m_botAction.sendPrivateMessage(senderName, "Done. Do not abuse this.");
+                } else if (message.equals("!energy")) {
+                    cmd_energy(senderName);
+                }
+            }
+            
+            if (m_botAction.getOperatorList().isSysop(senderName)) {
+                if (message.equals("!listenergy")) {
+                    cmd_listEnergy(senderName);
                 }
             }
             if (m_botAction.getOperatorList().isOwner(senderName)) {
@@ -178,16 +194,180 @@ public class staffbot extends SubspaceBot {
                     }
                 }
             }
+            
+            if (senderName.equalsIgnoreCase("TWDBot")) {
+                energyResponse(message);
+            }
         } else if (event.getMessageType() == Message.ARENA_MESSAGE && !fileUser.equals("")) {
         	if (event.getMessage().startsWith("File received:")) {
         		m_botAction.sendSmartPrivateMessage(fileUser, event.getMessage());
         		fileUser = "";
+        	} else if(event.getMessage().contains("> ENERGY VIEWING TURNED ON/OFF")) {
+                // Example: Thu Mar 20 04:23:52:  Beasty> ENERGY VIEWING TURNED ON/OFF
+        	    // Fetch the name.
+        	    String name = event.getMessage().substring(22, event.getMessage().indexOf(">")).trim();
+        	    energyCheck(name);
         	}
+
         }
 
         moduleHandler.handleEvent(event);
     }
+    
+    /**
+     * Handles the !energy command (SMod+)
+     * Additionally reports the status.
+     * @param name Person who issued the command.
+     */
+    private void cmd_energy(String name) {
+        m_botAction.sendUnfilteredPrivateMessage(name, "*energy");
+        m_botAction.sendPrivateMessage(name, "Done. Do not abuse this.");
+        
+        energyCheck(name);
+    }
+    
+    /**
+     * Handles the !listenergy command (Sysop+)
+     * Updates the list, before spamming it to the requester.
+     * @param name Issuer of the command.
+     */
+    private void cmd_listEnergy(String name) {
+        if(energyTracker == null || energyTracker.isEmpty()) {
+            m_botAction.sendSmartPrivateMessage(name, "No one is currently using the energy command.");
+            return;
+        }
+        
+        m_botAction.sendSmartPrivateMessage(name, "Please hold... Updating the status of the list.");
+        Long time = System.currentTimeMillis();
+        Iterator<String> it = energyTracker.keySet().iterator();
+        while(it.hasNext()) {
+            energyChecks.add(new EnergyCheck(it.next(), time, true));
+        }
+        
+        if(!isCheckingEnergy) {
+            isCheckingEnergy = true;
+            m_botAction.sendSmartPrivateMessage("TWDBot", "!usage " + energyChecks.firstElement().name);
+        }
+        
+        SendResponse ttSendResponse = new SendResponse(name);
+        m_botAction.scheduleTask(ttSendResponse, 0, Tools.TimeInMillis.SECOND);
+    }
 
+    /**
+     * Adds a user to the list of energy checks that need to be done.
+     * @param name
+     */
+    private void energyCheck(String name) {
+        String lcName = name.toLowerCase();
+        if(!energyTracker.containsKey(lcName)) {
+            energyTracker.put(lcName, System.currentTimeMillis());
+            m_botAction.sendChatMessage(2, "[ENERGY] " + name + " has enabled energy tracking.");
+        } else {
+            energyChecks.add(new EnergyCheck(name, System.currentTimeMillis(),false));
+            if(!isCheckingEnergy
+                    || (!energyChecks.isEmpty()
+                            && energyChecks.get(0).time - System.currentTimeMillis() >= Tools.TimeInMillis.SECOND * 5)) {
+                isCheckingEnergy = true;
+                m_botAction.sendSmartPrivateMessage("TWDBot", "!usage " + energyChecks.firstElement().name);
+            }
+        }
+    }
+    /**
+     * Checks the energy status of a player for a few scenarios:
+     * Player used the energy command and was already on the active list:
+     * <ul>
+     *  <li>If the player has relogged in the meantime, if so, status is again active.
+     *  <li>If the player hasn't relogged in the meantime, the status is set to inactive.
+     * </ul>
+     * The list command was used:
+     * <ul>
+     *  <li>Player has relogged in the meantime, energy status is disabled.
+     *  <li>Player hasn't relogged in the meantime, energy status is still active.
+     * </ul>
+     * @param message The message that is used to determine the time of the last relog.
+     */
+    private void energyResponse(String message) {
+        // A few possible scenarios:
+        // 1. We are not checking and our checking list is empty.
+        // 2. We are checking but our checking list is empty.
+        // 3. We are not checking but our checking list is not empty.
+        // 4. We are checking and our checking list is not empty.
+        if(energyChecks == null || energyChecks.isEmpty()) {
+            // Scenarios 1 and 2 - Ignore message.
+            if(isCheckingEnergy)
+                isCheckingEnergy = false;
+            return;
+        } else if(!isCheckingEnergy) {
+            // Scenario 3 - Send out a request.
+            isCheckingEnergy = true;
+            m_botAction.sendSmartPrivateMessage("TWDBot", "!usage " + energyChecks.firstElement().name);
+            return;
+        } else {
+            // Scenario 4.
+            EnergyCheck ec = energyChecks.firstElement();
+            String lcName = ec.name.toLowerCase();
+            if(message.startsWith("TIME:")) {
+                // User found.
+                //     TWDBot> TIME: Session:    5:19:00  Total: 5495:50:00  Created: 10-14-2003 21:34:46
+                int start = message.indexOf("Session:");
+                int end = message.indexOf("Total:");
+                if(start > 0 && end > 0) {
+                    String[] splitTime = message.substring(start + 8, end).trim().split(":");
+                    long time = 0;
+                    int i = 0;
+                    try {
+                        switch(splitTime.length) {
+                        case 4:
+                            time += Long.parseLong(splitTime[i++]) * Tools.TimeInMillis.DAY;
+                        case 3:
+                            time += Long.parseLong(splitTime[i++]) * Tools.TimeInMillis.HOUR;
+                        case 2:
+                            time += Long.parseLong(splitTime[i++]) * Tools.TimeInMillis.MINUTE;
+                        case 1:
+                        default:
+                            time += Long.parseLong(splitTime[i++]) * Tools.TimeInMillis.SECOND;
+                        }
+                    } catch (NumberFormatException nfe) {
+                        // Do nothing. Worst case scenario, time = 0;
+                    }
+                    
+                    if(ec.silent) {
+                        // Check is done upon the list command. In this case we need to check
+                        // if the player relogged after the command was done and if so, remove from the list.
+                        if(ec.time - time > energyTracker.get(lcName)) {
+                            energyTracker.remove(lcName);
+                        }
+                    } else {
+                        // Check is done upon the energy command.
+                        if(System.currentTimeMillis() - time > energyTracker.get(lcName)) {
+                            // User has relogged.
+                            energyTracker.put(lcName, ec.time);
+                            m_botAction.sendChatMessage(2, "[ENERGY] " + ec.name + " has enabled energy tracking.");
+                        } else {
+                            // User has disabled energy.
+                            energyTracker.remove(lcName);
+                            m_botAction.sendChatMessage(2, "[ENERGY] " + ec.name + " has disabled energy tracking.");
+                        }
+                    }
+                }
+            } else if(message.startsWith("Could not locate")) {
+                // User not found.
+                energyTracker.remove(lcName);
+                if(!ec.silent) {
+                    m_botAction.sendChatMessage(2, "[ENERGY] " + ec.name + " has used the energy command, but the new status could not be determined.");
+                }
+            }
+        }
+        
+        // Finally, check if a new check is to be made.
+        if(energyChecks != null && !energyChecks.isEmpty()) {
+            isCheckingEnergy = true;
+            m_botAction.sendSmartPrivateMessage("TWDBot", "!usage " + energyChecks.firstElement().name);
+        } else {
+            isCheckingEnergy = false;
+        }
+    }
+    
     @Override
     public void handleEvent(SubspaceEvent event) {
         moduleHandler.handleEvent(event);
@@ -328,4 +508,49 @@ public class staffbot extends SubspaceBot {
         moduleHandler.handleEvent(event);
     }
 
+    /**
+     * Helper class for doing energy checks.
+     * @author Trancid
+     *
+     */
+    private class EnergyCheck {
+        protected String name;
+        protected long time;
+        protected boolean silent;
+        
+        protected EnergyCheck(String name, long time, boolean silent) {
+            this.name = name;
+            this.time = time;
+            this.silent = silent;
+        }
+    }
+    
+    private class SendResponse extends TimerTask {
+        private String name;
+        
+        protected SendResponse(String name) {
+            this.name = name;
+        }
+        
+        @Override
+        public void run() {
+            if(!isCheckingEnergy) {
+                this.cancel();
+            }
+        }
+        
+        @Override
+        public boolean cancel() {
+            if(energyTracker == null || energyTracker.isEmpty()) {
+                m_botAction.sendSmartPrivateMessage(name, "No one is currently using the energy command.");
+            } else {
+                m_botAction.sendSmartPrivateMessage(name, "The following users have the energy command active:");
+                Iterator<String> it = energyTracker.keySet().iterator();
+                while(it.hasNext()) {
+                    m_botAction.sendSmartPrivateMessage(name, it.next());
+                }
+            }
+            return super.cancel();
+        }
+    }
 }
