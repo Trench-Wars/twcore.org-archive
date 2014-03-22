@@ -194,10 +194,6 @@ public class staffbot extends SubspaceBot {
                     }
                 }
             }
-            
-            if (senderName.equalsIgnoreCase("TWDBot")) {
-                energyResponse(message);
-            }
         } else if (event.getMessageType() == Message.ARENA_MESSAGE && !fileUser.equals("")) {
         	if (event.getMessage().startsWith("File received:")) {
         		m_botAction.sendSmartPrivateMessage(fileUser, event.getMessage());
@@ -208,9 +204,18 @@ public class staffbot extends SubspaceBot {
         	    String name = event.getMessage().substring(22, event.getMessage().indexOf(">")).trim();
         	    energyCheck(name);
         	}
+        } else if ((event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) && event.getMessage().startsWith("TIME:")) {
 
+            // Commands
+            String message = event.getMessage().toLowerCase();
+            short sender = event.getPlayerID();
+            String senderName = event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ? event.getMessager() : m_botAction.getPlayerName(sender);
+
+            if (senderName.equalsIgnoreCase("TWDBot") && m_botAction.getOperatorList().isSysop(senderName)) {
+                energyResponse(message);
+            }
         }
-
+        
         moduleHandler.handleEvent(event);
     }
     
