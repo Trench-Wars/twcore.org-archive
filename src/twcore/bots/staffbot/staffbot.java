@@ -246,6 +246,7 @@ public class staffbot extends SubspaceBot {
         
         if(!isCheckingEnergy) {
             isCheckingEnergy = true;
+            debug("[ENERGY] Sending !usage " + energyChecks.firstElement().name);
             m_botAction.sendSmartPrivateMessage("TWDBot", "!usage " + energyChecks.firstElement().name);
         }
         
@@ -261,13 +262,15 @@ public class staffbot extends SubspaceBot {
         String lcName = name.toLowerCase();
         if(!energyTracker.containsKey(lcName)) {
             energyTracker.put(lcName, System.currentTimeMillis());
-            m_botAction.sendChatMessage(2, "[ENERGY] " + name + " has enabled energy tracking.");
+            m_botAction.sendSmartPrivateMessage("MessageBot", "!announce deans: [ENERGY] " + name + " has enabled energy tracking.");
+            debug("[ENERGY] " + name + " has enabled energy tracking.");
         } else {
             energyChecks.add(new EnergyCheck(name, System.currentTimeMillis(), false));
             if(!isCheckingEnergy
                     || (!energyChecks.isEmpty()
-                            && energyChecks.get(0).time - System.currentTimeMillis() >= Tools.TimeInMillis.SECOND * 5)) {
+                            && energyChecks.firstElement().time - System.currentTimeMillis() >= Tools.TimeInMillis.SECOND * 5)) {
                 isCheckingEnergy = true;
+                debug("[ENERGY] Sending !usage " + energyChecks.firstElement().name);
                 m_botAction.sendSmartPrivateMessage("TWDBot", "!usage " + energyChecks.firstElement().name);
             }
         }
@@ -294,16 +297,20 @@ public class staffbot extends SubspaceBot {
         // 4. We are checking and our checking list is not empty.
         if(energyChecks == null || energyChecks.isEmpty()) {
             // Scenarios 1 and 2 - Ignore message.
+            debug("[ENERGY] Scenario 1 or 2");
             if(isCheckingEnergy)
                 isCheckingEnergy = false;
             return;
         } else if(!isCheckingEnergy) {
             // Scenario 3 - Send out a request.
             isCheckingEnergy = true;
+            debug("[ENERGY] Scenario 3");
+            debug("[ENERGY] Sending !usage " + energyChecks.firstElement().name);
             m_botAction.sendSmartPrivateMessage("TWDBot", "!usage " + energyChecks.firstElement().name);
             return;
         } else {
             // Scenario 4.
+            debug("[ENERGY] Scenario 4");
             EnergyCheck ec = energyChecks.firstElement();
             String lcName = ec.name.toLowerCase();
             if(message.startsWith("TIME:")) {
@@ -335,6 +342,7 @@ public class staffbot extends SubspaceBot {
                         // Check is done upon the list command. In this case we need to check
                         // if the player relogged after the command was done and if so, remove from the list.
                         if(ec.time - time > energyTracker.get(lcName)) {
+                            debug("[ENERGY] Removing " + lcName);
                             energyTracker.remove(lcName);
                         }
                     } else {
@@ -342,11 +350,13 @@ public class staffbot extends SubspaceBot {
                         if(System.currentTimeMillis() - time > energyTracker.get(lcName)) {
                             // User has relogged.
                             energyTracker.put(lcName, ec.time);
-                            m_botAction.sendChatMessage(2, "[ENERGY] " + ec.name + " has enabled energy tracking.");
+                            m_botAction.sendSmartPrivateMessage("MessageBot", "!announce deans: [ENERGY] " + ec.name + " has enabled energy tracking.");
+                            debug("[ENERGY] " + ec.name + " has enabled energy tracking.");
                         } else {
                             // User has disabled energy.
                             energyTracker.remove(lcName);
-                            m_botAction.sendChatMessage(2, "[ENERGY] " + ec.name + " has disabled energy tracking.");
+                            m_botAction.sendSmartPrivateMessage("MessageBot", "!announce deans: [ENERGY] " + ec.name + " has disabled energy tracking.");
+                            debug("[ENERGY] " + ec.name + " has disabled energy tracking.");
                         }
                     }
                 }
@@ -354,7 +364,8 @@ public class staffbot extends SubspaceBot {
                 // User not found.
                 energyTracker.remove(lcName);
                 if(!ec.silent) {
-                    m_botAction.sendChatMessage(2, "[ENERGY] " + ec.name + " has used the energy command, but the new status could not be determined.");
+                    m_botAction.sendSmartPrivateMessage("MessageBot", "!announce deans: [ENERGY] " + ec.name + " has used the energy command, but the new status could not be determined.");
+                    debug("[ENERGY] " + ec.name + " has used the energy command, but the new status could not be determined.");
                 }
             }
         }
@@ -362,8 +373,10 @@ public class staffbot extends SubspaceBot {
         // Finally, check if a new check is to be made.
         if(energyChecks != null && !energyChecks.isEmpty()) {
             isCheckingEnergy = true;
+            debug("[ENERGY] Sending !usage " + energyChecks.firstElement().name);
             m_botAction.sendSmartPrivateMessage("TWDBot", "!usage " + energyChecks.firstElement().name);
         } else {
+            debug("[ENERGY] Disabling checks.");
             isCheckingEnergy = false;
         }
     }
@@ -542,8 +555,10 @@ public class staffbot extends SubspaceBot {
         @Override
         public boolean cancel() {
             if(energyTracker == null || energyTracker.isEmpty()) {
+                debug("[ENERGY] ttSR: no one using command.");
                 m_botAction.sendSmartPrivateMessage(name, "No one is currently using the energy command.");
             } else {
+                debug("[ENERGY] ttSR: Listing users.");
                 m_botAction.sendSmartPrivateMessage(name, "The following users have the energy command active:");
                 Iterator<String> it = energyTracker.keySet().iterator();
                 while(it.hasNext()) {
@@ -552,5 +567,9 @@ public class staffbot extends SubspaceBot {
             }
             return super.cancel();
         }
+    }
+    
+    private void debug(String message) {
+        m_botAction.sendSmartPrivateMessage("ThePAP", message);
     }
 }
