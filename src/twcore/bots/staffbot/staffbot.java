@@ -316,53 +316,55 @@ public class staffbot extends SubspaceBot {
         } else {
             // Scenario 4.
             debug("[ENERGY] Scenario 4");
-            EnergyCheck ec = energyChecks.firstElement();
+            EnergyCheck ec = energyChecks.remove(0);
             String lcName = ec.name.toLowerCase();
             if(message.startsWith("TIME:")) {
                 // User found.
                 //     TWDBot> TIME: Session:    5:19:00  Total: 5495:50:00  Created: 10-14-2003 21:34:46
                 int start = message.indexOf("Session:");
                 int end = message.indexOf("Total:");
-                if(start > 0 && end > 0) {
-                    String[] splitTime = message.substring(start + 8, end).trim().split(":");
-                    long time = 0;
-                    int i = 0;
-                    try {
-                        switch(splitTime.length) {
-                        case 4:
-                            time += Long.parseLong(splitTime[i++]) * Tools.TimeInMillis.DAY;
-                        case 3:
-                            time += Long.parseLong(splitTime[i++]) * Tools.TimeInMillis.HOUR;
-                        case 2:
-                            time += Long.parseLong(splitTime[i++]) * Tools.TimeInMillis.MINUTE;
-                        case 1:
-                        default:
-                            time += Long.parseLong(splitTime[i++]) * Tools.TimeInMillis.SECOND;
-                        }
-                    } catch (NumberFormatException nfe) {
-                        // Do nothing. Worst case scenario, time = 0;
+                if(start < 0 || end < 0) {
+                    debug("Could not locate Session or Total.");
+                }
+                
+                String[] splitTime = message.substring(start + 8, end).trim().split(":");
+                long time = 0;
+                int i = 0;
+                try {
+                    switch(splitTime.length) {
+                    case 4:
+                        time += Long.parseLong(splitTime[i++]) * Tools.TimeInMillis.DAY;
+                    case 3:
+                        time += Long.parseLong(splitTime[i++]) * Tools.TimeInMillis.HOUR;
+                    case 2:
+                        time += Long.parseLong(splitTime[i++]) * Tools.TimeInMillis.MINUTE;
+                    case 1:
+                    default:
+                        time += Long.parseLong(splitTime[i++]) * Tools.TimeInMillis.SECOND;
                     }
-                    
-                    if(ec.silent) {
-                        // Check is done upon the list command. In this case we need to check
-                        // if the player relogged after the command was done and if so, remove from the list.
-                        if(ec.time - time > energyTracker.get(lcName)) {
-                            debug("[ENERGY] Removing " + lcName);
-                            energyTracker.remove(lcName);
-                        }
+                } catch (NumberFormatException nfe) {
+                    // Do nothing. Worst case scenario, time = 0;
+                }
+                
+                if(ec.silent) {
+                    // Check is done upon the list command. In this case we need to check
+                    // if the player relogged after the command was done and if so, remove from the list.
+                    if(ec.time - time > energyTracker.get(lcName)) {
+                        debug("[ENERGY] Removing " + lcName);
+                        energyTracker.remove(lcName);
+                    }
+                } else {
+                    // Check is done upon the energy command.
+                    if(System.currentTimeMillis() - time > energyTracker.get(lcName)) {
+                        // User has relogged.
+                        energyTracker.put(lcName, ec.time);
+                        m_botAction.sendSmartPrivateMessage("MessageBot", "!announce deans: [ENERGY] " + ec.name + " has enabled energy tracking.");
+                        debug("[ENERGY] " + ec.name + " has enabled energy tracking.");
                     } else {
-                        // Check is done upon the energy command.
-                        if(System.currentTimeMillis() - time > energyTracker.get(lcName)) {
-                            // User has relogged.
-                            energyTracker.put(lcName, ec.time);
-                            m_botAction.sendSmartPrivateMessage("MessageBot", "!announce deans: [ENERGY] " + ec.name + " has enabled energy tracking.");
-                            debug("[ENERGY] " + ec.name + " has enabled energy tracking.");
-                        } else {
-                            // User has disabled energy.
-                            energyTracker.remove(lcName);
-                            m_botAction.sendSmartPrivateMessage("MessageBot", "!announce deans: [ENERGY] " + ec.name + " has disabled energy tracking.");
-                            debug("[ENERGY] " + ec.name + " has disabled energy tracking.");
-                        }
+                        // User has disabled energy.
+                        energyTracker.remove(lcName);
+                        m_botAction.sendSmartPrivateMessage("MessageBot", "!announce deans: [ENERGY] " + ec.name + " has disabled energy tracking.");
+                        debug("[ENERGY] " + ec.name + " has disabled energy tracking.");
                     }
                 }
             } else if(message.startsWith("Could not locate")) {
