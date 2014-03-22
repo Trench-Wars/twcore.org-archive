@@ -159,11 +159,12 @@ public class staffbot extends SubspaceBot {
                 }
             }
             
+            /* Disabling for now. Too unstable to properly test.
             if (m_botAction.getOperatorList().isSysop(senderName)) {
                 if (message.equals("!listenergy")) {
                     cmd_listEnergy(senderName);
                 }
-            }
+            } */
             if (m_botAction.getOperatorList().isOwner(senderName)) {
                 if (message.startsWith("!putfile ")) {
                     String msg = message.substring(9);
@@ -200,12 +201,16 @@ public class staffbot extends SubspaceBot {
         		fileUser = "";
         	} else if(event.getMessage().contains("> ENERGY VIEWING TURNED ON/OFF")) {
                 // Example: Thu Mar 20 04:23:52:  Beasty> ENERGY VIEWING TURNED ON/OFF
+        	    
+        	    // Disabling for now. Too unstable to properly test.
         	    // Fetch the name.
-        	    String name = event.getMessage().substring(22, event.getMessage().indexOf(">")).trim();
-        	    energyCheck(name);
+        	    //String name = event.getMessage().substring(22, event.getMessage().indexOf(">")).trim();
+        	    // energyCheck(name);
         	}
         } else if ((event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE) && event.getMessage().startsWith("TIME:")) {
 
+            // Disabling for now. Too unstable to properly test.
+            /*
             // Commands
             String message = event.getMessage().toLowerCase();
             short sender = event.getPlayerID();
@@ -213,7 +218,7 @@ public class staffbot extends SubspaceBot {
 
             if (senderName.equalsIgnoreCase("TWDBot") && m_botAction.getOperatorList().isSysop(senderName)) {
                 energyResponse(message);
-            }
+            }*/
         }
         
         moduleHandler.handleEvent(event);
@@ -228,7 +233,8 @@ public class staffbot extends SubspaceBot {
         m_botAction.sendUnfilteredPrivateMessage(name, "*energy");
         m_botAction.sendPrivateMessage(name, "Done. Do not abuse this.");
         
-        energyCheck(name);
+        // Disabling for now, too unstable to properly test.
+        //energyCheck(name);
     }
     
     /**
@@ -236,6 +242,7 @@ public class staffbot extends SubspaceBot {
      * Updates the list, before spamming it to the requester.
      * @param name Issuer of the command.
      */
+    @SuppressWarnings("unused")
     private void cmd_listEnergy(String name) {
         if(energyTracker == null || energyTracker.isEmpty()) {
             m_botAction.sendSmartPrivateMessage(name, "No one is currently using the energy command.");
@@ -263,6 +270,7 @@ public class staffbot extends SubspaceBot {
      * Adds a user to the list of energy checks that need to be done.
      * @param name
      */
+    @SuppressWarnings("unused")
     private void energyCheck(String name) {
         String lcName = name.toLowerCase();
         if(!energyTracker.containsKey(lcName)) {
@@ -294,6 +302,7 @@ public class staffbot extends SubspaceBot {
      * </ul>
      * @param message The message that is used to determine the time of the last relog.
      */
+    @SuppressWarnings("unused")
     private void energyResponse(String message) {
         // A few possible scenarios:
         // 1. We are not checking and our checking list is empty.
@@ -554,6 +563,7 @@ public class staffbot extends SubspaceBot {
         
         @Override
         public void run() {
+            debug("[ENERGY] ttSR running.");
             if(!isCheckingEnergy) {
                 this.cancel();
             }
