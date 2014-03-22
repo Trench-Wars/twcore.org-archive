@@ -55,7 +55,7 @@ public class staffbot extends SubspaceBot {
     private final static int CHECK_LOG_DELAY = 2000;
     
     private HashMap<String, Long> energyTracker = new HashMap<String, Long>();
-    private Vector<EnergyCheck> energyChecks;
+    private Vector<EnergyCheck> energyChecks = new Vector<EnergyCheck>();
     private boolean isCheckingEnergy = false;
 
     /* Initialization code */
@@ -263,7 +263,7 @@ public class staffbot extends SubspaceBot {
             energyTracker.put(lcName, System.currentTimeMillis());
             m_botAction.sendChatMessage(2, "[ENERGY] " + name + " has enabled energy tracking.");
         } else {
-            energyChecks.add(new EnergyCheck(name, System.currentTimeMillis(),false));
+            energyChecks.add(new EnergyCheck(name, System.currentTimeMillis(), false));
             if(!isCheckingEnergy
                     || (!energyChecks.isEmpty()
                             && energyChecks.get(0).time - System.currentTimeMillis() >= Tools.TimeInMillis.SECOND * 5)) {
