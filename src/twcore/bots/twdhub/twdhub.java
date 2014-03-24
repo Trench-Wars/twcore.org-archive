@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -38,6 +40,9 @@ public class twdhub extends SubspaceBot {
     private static final String TWFD = "16";
     private static final String TWJD = "18";
     private static final String TWSD = "22";
+    
+    public static final String DATABASE = "website";
+    
     enum ArenaStatus { WAITING, READY, DYING };
 
     BotAction ba;
@@ -51,6 +56,8 @@ public class twdhub extends SubspaceBot {
     HashMap<String, Arena> arenas;
     HashMap<String, Arena> bots;
     HashMap<String, Squad> squads;
+    HashMap<String, String> twdOps;
+    
     boolean shutdown;
     boolean startup;
     boolean DEBUG;
@@ -73,12 +80,15 @@ public class twdhub extends SubspaceBot {
         shutdown = false;
         DEBUG = false;
         debugger = "";
+        twdOps = new HashMap<String, String>();
     }
     
     public void handleEvent(LoggedOn event) {
         ba.ipcSubscribe(IPC);
         ba.sendUnfilteredPublicMessage("?chat=robodev,executive lounge,twdstaff");
         ba.joinArena(rules.getString("Arena"));
+        
+        updateTWDOps();
     }
     
     public void handleEvent(ArenaJoined event) {
@@ -152,7 +162,7 @@ public class twdhub extends SubspaceBot {
             else if (cmd.equals("!help"))
                 cmd_help(name);
             
-            if (oplist.isModerator(name)) {
+            if (oplist.isSmod(name) || isTWDOp(name)) {
                 if (cmd.equals("!die"))
                     cmd_die(name);
                 else if (cmd.startsWith("!send "))
@@ -161,10 +171,16 @@ public class twdhub extends SubspaceBot {
                     cmd_shutdown(name);
                 else if (cmd.equals("!check"))
                     cmd_reset(name);
+                else if (cmd.equals("!reset"))
+                    cmd_reset(name);               
+            }
+            
+            if(oplist.isSmod(name))
+            {
+            	if (cmd.equals("!update"))
+            		cmd_update(name);
                 else if (cmd.equals("!debug"))
                     cmd_debug(name);
-                else if (cmd.equals("!reset"))
-                    cmd_reset(name);
             }
         }
     }
@@ -286,13 +302,23 @@ public class twdhub extends SubspaceBot {
         msg.add(" !alert        - Toggles a PM alert whenever a new TWD match starts");
         msg.add(" !games        - List of games currently in progress");
         msg.add(" !list         - List of current bot values");
-        if (oplist.isModerator(name)) {
+        
+        
+        if (oplist.isSmod(name) || isTWDOp(name)){
+        	msg.add("- TWDOP+ -");
             msg.add(" !check        - Checks for any arenas needing bots");
             msg.add(" !reset        - Resets all trackers and calls for checkin (goto fix it cmd)");
-            msg.add(" !debug        - Toggle debug mode");
             msg.add(" !sdtwd        - Shutdown TWD: kill all matchbots (lets games finish)");
             msg.add(" !die          - Kills bot");
         }
+        
+        if(oplist.isSmod(name))
+        {
+        	msg.add("- SMOD+ -");
+        	msg.add(" !update        - Reloads and Updates Bot Operators.");
+        	msg.add(" !debug        - Toggle debug mode");
+        }
+
         ba.smartPrivateMessageSpam(name, msg.toArray(new String[msg.size()]));
     }
     
@@ -358,6 +384,13 @@ public class twdhub extends SubspaceBot {
         ba.sendChatMessage(2, "Disconnecting at the request of " + name);
         ba.sendChatMessage("Disconnecting at the request of " + name);
         handleDisconnect();
+    }
+    
+    private void cmd_update(String name)
+    {
+    	oplist = ba.getOperatorList();
+    	updateTWDOps();
+    	m_botAction.sendSmartPrivateMessage(name, "Updating Operators.");    	
     }
     
     private void cmd_debug(String name) {
@@ -594,6 +627,25 @@ public class twdhub extends SubspaceBot {
         }
     }
     
+    private void updateTWDOps() {
+        try {
+            ResultSet r = m_botAction.SQLQuery(DATABASE, "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '14' AND tblUser.fnUserID = tblUserRank.fnUserID");
+
+            if (r == null)
+                return;
+            
+            twdOps.clear();
+
+            while (r.next()) {
+                String name = r.getString("fcUsername");
+                twdOps.put(name.toLowerCase(), name);
+            }
+
+            m_botAction.SQLClose(r);
+        } catch (SQLException e) {
+            throw new RuntimeException("ERROR: Unable to update TWDOp list.");
+        }
+    }
     /**
      * Gets the Arena object and sets the bot name. Then sets the Arena status to READY
      * and sends !lock for the appropriate division and arena.
@@ -642,6 +694,9 @@ public class twdhub extends SubspaceBot {
         return name.startsWith("twdd") || name.startsWith("twbd") || name.startsWith("twjd") || name.startsWith("twsd") || name.startsWith("twfd");
     }
     
+    private boolean isTWDOp(String name) {    	
+    	return twdOps.containsKey(name.toLowerCase());
+    }
     class Arena {
         
         String name;
