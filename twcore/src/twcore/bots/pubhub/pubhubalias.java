@@ -453,7 +453,7 @@ public class pubhubalias extends PubBotModule {
         if (shownResults >= m_maxRecords)
             results.add(shownResults + " results shown, " + (totalResults - shownResults) + " repressed.  !maxrecords # to show if available (current: " + m_maxRecords + ")");
         else {
-            if (opList.isSysopExact(sender)) 
+            if (opList.isSysopExact(sender) || bangops.contains(sender)) 
                 results.add(shownResults + " results shown" + (hiddenResults > 0 ? ", " + (hiddenResults) + " hidden." : ". (None hidden)") );
             else
                 results.add("All " + shownResults + " results shown." );
@@ -1331,10 +1331,10 @@ public class pubhubalias extends PubBotModule {
                 doInfoCmd(sender, args);
                 record(sender, message);
             }
-            else if (opList.isSysopExact(sender) && command.equals("!infoall")) {
+            else if ((opList.isSysopExact(sender) || bangops.contains(sender)) && command.equals("!infoall")) {
                 doInfoAllCmd(sender, args);
                 record(sender, message);
-            } else if (opList.isSysopExact(sender) && command.startsWith("!priv"))
+            } else if ((opList.isSysopExact(sender) || bangops.contains(sender)) && command.startsWith("!priv"))
                 doPrivateAliases();
             else if (command.equals("!compare")) {
                 doCompareCmd(args);
@@ -1393,7 +1393,7 @@ public class pubhubalias extends PubBotModule {
             else if (command.equals("!aliasdeop"))
                 doRemAliasOp(sender, args);
             */
-            else if (command.equals("!altall") && opList.isSysopExact(sender)) {
+            else if (command.equals("!altall") && (opList.isSysopExact(sender) || bangops.contains(sender))) {
                 doAltNickCmd(sender, args, true);
                 record(sender, message);
             }
