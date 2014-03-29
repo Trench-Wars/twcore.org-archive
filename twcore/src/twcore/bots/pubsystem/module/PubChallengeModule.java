@@ -970,8 +970,10 @@ public class PubChallengeModule extends AbstractModule {
             if (challenge == null)
                 return;
             if (!challenge.isStarted()) {
-                challenges.remove(getKey(challenge));
-                m_botAction.sendSmartPrivateMessage(challenge.challengerName, "Challenge against " + challenge.challengedName + " removed. (timeout)");
+            	if(challenges.containsKey(getKey(challenge))) {
+            		challenges.remove(getKey(challenge));
+            		m_botAction.sendSmartPrivateMessage(challenge.challengerName, "Challenge against " + challenge.challengedName + " removed. (timeout)");
+               }
             }
         }
     }
