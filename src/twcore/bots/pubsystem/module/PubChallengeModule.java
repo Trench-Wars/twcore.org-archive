@@ -763,9 +763,9 @@ public class PubChallengeModule extends AbstractModule {
                 if (!c.isStarted()) {
                     if (tellPlayer)
                         if( c.challengedName.equals("*"))
-                            m_botAction.sendSmartPrivateMessage(name, "Open challenge removed." + (forTWChat ? "" : " TWChat users may not challenge."));
+                            m_botAction.sendSmartPrivateMessage(name, "Open challenge removed." + (forTWChat ? " TWChat users may not challenge." : ""));
                         else
-                            m_botAction.sendSmartPrivateMessage(name, "Challenge against " + c.challengedName + " removed." + (forTWChat ? "" : " TWChat users may not challenge."));                            
+                            m_botAction.sendSmartPrivateMessage(name, "Challenge against " + c.challengedName + " removed." + (forTWChat ? " TWChat users may not challenge." : ""));                            
                     it.remove();
                     totalRemoved++;
                 } else if( forTWChat ) {
@@ -781,7 +781,7 @@ public class PubChallengeModule extends AbstractModule {
                 m_botAction.sendSmartPrivateMessage(name, "No pending challenge to remove.");
         } else {
             if (tellPlayer && !forTWChat)
-                m_botAction.sendSmartPrivateMessage(name, "Removed " + totalRemoved + "challenges.");            
+                m_botAction.sendSmartPrivateMessage(name, "Removed " + totalRemoved + " challenge(s).");            
         }
     }
     
