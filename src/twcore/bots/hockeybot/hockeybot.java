@@ -1134,6 +1134,8 @@ public class hockeybot extends SubspaceBot {
 
             /* Add player */
             t.addPlayer(p, shipType);
+            /* Notify added player */
+            m_botAction.sendPrivateMessage(pName, "You have been added to the game.");
 
             /* Toggle turn */
             if (currentState == HockeyState.ADDING_PLAYERS) {
