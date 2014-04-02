@@ -435,8 +435,7 @@ public class pubbottk extends PubBotModule {
     	String tkedPlayerFullName = m_botAction.getFuzzyPlayerName(tkedPlayer);
     	
     	if(tkedPlayerFullName == null) {
-    		m_botAction.sendSmartPrivateMessage(staffname, "Cannot find player " + tkedPlayer);
-    		return;
+    		tkedPlayerFullName = tkedPlayer;
     	}
     	
         TreeMap <Long,String>tklog = tker.getTKLog();
