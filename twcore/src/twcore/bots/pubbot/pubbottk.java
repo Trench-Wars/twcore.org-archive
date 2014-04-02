@@ -432,16 +432,24 @@ public class pubbottk extends PubBotModule {
      * @param numToPrint
      */
     public void printTKLogByName( String staffname, TKInfo tker, String tkedPlayer ) {
+    	String tkedPlayerFullName = m_botAction.getFuzzyPlayerName(tkedPlayer);
+    	
+    	if(tkedPlayerFullName == null) {
+    		m_botAction.sendSmartPrivateMessage(staffname, "Cannot find player " + tkedPlayer);
+    		return;
+    	}
+    	
         TreeMap <Long,String>tklog = tker.getTKLog();
         Long lasttime = System.currentTimeMillis();
         String lastname;
-        m_botAction.sendSmartPrivateMessage( staffname, "[TK LOG for '" + tker.getName() + "' showing times for all TKs against player '" + tkedPlayer + "']" );
+        
+        m_botAction.sendSmartPrivateMessage( staffname, "[TK LOG for '" + tker.getName() + "' showing times for all TKs against player '" + tkedPlayerFullName + "']" );
         do {
             lasttime = tklog.lowerKey(lasttime);    // Get next biggest key entry
             if( lasttime == null )
                 return;
             lastname = tklog.get(lasttime);
-            if( lastname != null && lastname.equalsIgnoreCase( tkedPlayer ))
+            if( lastname != null && lastname.equalsIgnoreCase( tkedPlayerFullName ))
                 m_botAction.sendSmartPrivateMessage( staffname, Tools.formatString(lastname, 25) + Tools.getTimeDiffString(lasttime,true) + " ago");
         } while (lastname !=null );
     }
