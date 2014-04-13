@@ -96,8 +96,7 @@ public class ElimPlayer {
         if (game.bot.gameType == elim.ELIM && stats.getStat(StatType.DEATHS) >= specAt) {
             status = Status.OUT;
             stats.handleLoss();
-            ba.spec(name);
-            ba.spec(name);
+            ba.specWithoutLock(name);
             ba.sendArenaMessage(name + " is out. " + getScore());
             game.removePlayer(this);
             killer.handleKO();
@@ -168,8 +167,7 @@ public class ElimPlayer {
                         ba.scheduleTask(bounds, BOUNDS_TIME * Tools.TimeInMillis.SECOND);
                     } else if (status == Status.WARNED_IN) {
                         status = Status.OUT;
-                        ba.spec(name);
-                        ba.spec(name);
+                        ba.specWithoutLock(name);
                         ba.sendArenaMessage(name + " is out. " + getScore() + " (Out of bounds abuse)");
                         remove();
                     }
@@ -416,8 +414,7 @@ public class ElimPlayer {
                 ba.scheduleTask(spawn, SPAWN_BOUND * Tools.TimeInMillis.SECOND);
             } else {
                 status = Status.OUT;
-                ba.spec(name);
-                ba.spec(name);
+                ba.specWithoutLock(name);
                 ba.sendArenaMessage(name + " is out. " + getScore() + " (Too long outside base)");
                 remove();
                 spawn = null;
@@ -440,8 +437,7 @@ public class ElimPlayer {
         public void run() {
             if (status == Status.WARNED_OUT) {
                 status = Status.OUT;
-                ba.spec(name);
-                ba.spec(name);
+                ba.specWithoutLock(name);
                 ba.sendArenaMessage(name + " is out. " + getScore() + " (Too long outside base)");
                 remove();
             }
