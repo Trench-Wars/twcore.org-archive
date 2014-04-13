@@ -246,8 +246,7 @@ public class MatchRound {
 
         //repeated because players already on spec frequency need to be put back in
         //you have to do *spec twice.
-        m_botAction.spec(playerName);
-        m_botAction.spec(playerName);
+        m_botAction.specWithoutLock(playerName);
     }
 
     /*
@@ -368,8 +367,7 @@ public class MatchRound {
 
         Long exists = m_notPlaying.get(event.getPlayerName().toLowerCase());
         if (exists != null) {
-            m_botAction.spec(event.getPlayerName());
-            m_botAction.spec(event.getPlayerName());
+            m_botAction.specWithoutLock(event.getPlayerName());
             m_logger.sendPrivateMessage(event.getPlayerName(), "notplaying mode is still on, captains will be unable to pick you");
             m_logger.setFreq(event.getPlayerName(), NOT_PLAYING_FREQ);
         }
@@ -1230,8 +1228,7 @@ public class MatchRound {
                 m_team1.command_remove(name, tmp);
             if ((m_team2.getPlayer(name, true) != null) && (m_fnRoundState == 1))
                 m_team2.command_remove(name, tmp);
-            m_botAction.spec(name);
-            m_botAction.spec(name);
+            m_botAction.specWithoutLock(name);
             m_logger.sendPrivateMessage(name, "Not Playing mode turned on, captains will be unable to pick you");
             m_logger.setFreq(name, NOT_PLAYING_FREQ);
         } else {
@@ -1353,8 +1350,7 @@ public class MatchRound {
                         p.setLagByBot(true);
                     }
 
-                    m_botAction.spec(report.getName());
-                    m_botAction.spec(report.getName());
+                    m_botAction.specWithoutLock(report.getName());
                 }
             } catch (Exception e) {
                 Tools.printStackTrace(e);

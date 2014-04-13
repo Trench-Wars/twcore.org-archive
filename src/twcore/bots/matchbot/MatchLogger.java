@@ -202,8 +202,7 @@ public class MatchLogger
 	public void doubleSpec(String name)
 	{
 		announce("Speccing " + name);
-		m_botAction.spec(name);
-		m_botAction.spec(name);
+		m_botAction.specWithoutLock(name);
 	};
 
 	public void setShip(String name, int ship)
@@ -240,8 +239,7 @@ public class MatchLogger
 	public void specAndSetFreq(String name, int freq)
 	{
 		announce("Speccing " + name + " and putting player into freq " + freq);
-		m_botAction.spec(name);
-		m_botAction.spec(name);
+		m_botAction.specWithoutLock(name);
 		m_botAction.setFreq(name, freq);
 	};
 
