@@ -1,0 +1,30 @@
+HOW TO COMPUTE LOCATION, by Arobas+
+-----------------------------------
+
+Steps:
+1. Open your map on DCME.
+2. Draw the area you want with a unique color on the radar (green or pink).
+3. Save the "FULL RADAR" in BMP and, then recode it in PNG (GD can't handle BMP).
+4. Then, use this script to generate a list of coords
+5. Enjoy!
+
+<?php
+
+$im = imagecreatefrompng("YOUR_IMAGE.png");
+echo "safe";
+$string = "";
+for($i=0; $i<1024; $i++) {
+	for($j=0; $j<1024; $j++) {
+		$rgb = imagecolorat($im, $i, $j);
+		$r = ($rgb >> 16) & 0xFF;
+		$g = ($rgb >> 8) & 0xFF;
+		$b = $rgb & 0xFF;
+		if ($g==255 && $b==0 && $r==0) {
+			$string .= ",".$i.":".$j;
+		}
+	}
+}
+echo $string."\n";
+
+?>
+

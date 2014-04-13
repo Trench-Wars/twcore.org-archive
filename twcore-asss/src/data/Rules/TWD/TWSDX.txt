@@ -1,0 +1,83 @@
+[General]
+name=TWSD
+arena=twsd,twsd2,twsd3,twsd4,twsd5,twsd6,twsd7
+ship=3
+players=5
+minplayers=3
+deaths=-1
+score=-1
+time=5
+rounds=3
+maxrounds=5
+winby=score
+ondraw=extension
+extensiontime=5
+pickbyturn=0
+lineuptime=5
+points=50
+forfeit_loser_score=0
+forfeit_winner_score=50
+captainsfixed=0
+lagoutextension=60
+blueout=1
+subdelaytime=2
+
+# indicates whether or not the bot should zone for
+# matches between seeds. 0 - don't zone, other values
+# indicate how many ranks of the ladder should be zoned for.
+# (e.g. if set to 3 the bot will zone when squads within the 
+# top three play each other) zoneforladdertime sets the amount
+# of time to wait before zoning again in minutes.
+zoneforladder=3
+zoneforladdertime=90
+
+matchtype=13
+captain_can_start_game=1
+storegame=1
+loggame=0
+squadjoined=1
+rosterjoined=1
+shipchanges=0
+shipswitches=0
+substitutes=3
+lagouts=3
+aliascheck=1
+eligibleafter=1
+
+[Arena] 
+safe1x=423
+safe1y=431
+safe1xout=429
+safe1yout=437
+safe2x=599
+safe2y=593
+safe2xout=593
+safe2yout=587
+
+obj_countdown10=1
+obj_countdown54321=2
+obj_gogogo=3
+obj_gameover=4
+
+# Lag settings
+EnableLagLimits=1
+CurPing=360
+AvePing=320
+S2CPloss=3
+C2SPloss=3
+WeaponPloss=3
+SlowS2C=4
+SlowC2S=4
+Med=100
+SpikeCount=6
+waitafterlagout=15
+
+strictmidip=0
+specialaccess=
+# TWSDX setting only to enable the flags on scoreboard
+scoreboard_flags=1
+
+# !rules output
+# Since these settings need to be at one line, you can specify to start a new line (new PM) using "##"
+# For example; Line 1##Line 2##Line 3
+rules_command=TWSD rules / how to play:##-------------------------##Capture the flag to get more points on each kill. The team with the most points win.
