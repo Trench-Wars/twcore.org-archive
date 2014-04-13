@@ -1486,7 +1486,7 @@ public class BotAction
      */
     public void specWithoutLock(String playerName) {
         sendUnfilteredPrivateMessage(playerName, "*spec");
-        sendUnfilteredPrivateMessage(playerName, "*spec");
+        sendUnfilteredPrivateMessage(playerName, "*uspec");
     }
 
     /**
@@ -1497,7 +1497,7 @@ public class BotAction
      */
     public void specWithoutLock(int playerID) {
         sendUnfilteredPrivateMessage(playerID, "*spec");
-        sendUnfilteredPrivateMessage(playerID, "*spec");
+        sendUnfilteredPrivateMessage(playerID, "*uspec");
     }
 
     /**
