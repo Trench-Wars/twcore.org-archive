@@ -219,6 +219,7 @@ public class HubBot extends SubspaceBot {
      */
     public void handleEvent( ArenaJoined event ){
         m_botAction.sendChatMessage(m_botAction.getBotName() + " bot hub is now online.");
+        initOperators();
     }
 
     /**
