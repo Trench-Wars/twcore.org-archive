@@ -271,8 +271,7 @@ public class ElimGame {
                 bot.debug("Removing " + report.getName());
                 ba.sendPrivateMessage(report.getName(), report.getLagReport());
                 handleLagout(report.getName());
-                ba.spec(report.getName());
-                ba.spec(report.getName());
+                ba.specWithoutLock(report.getName());
             }
         }
     }
@@ -538,8 +537,7 @@ public class ElimGame {
             ElimPlayer ep = players.remove(low(player));
             if (ep != null)
                 ep.cancelTasks();
-            ba.spec(player);
-            ba.spec(player);
+            ba.specWithoutLock(player);
             ba.sendPrivateMessage(player, "You have been forcibly removed from the game.");
             ba.sendPrivateMessage(name, player + " has been removed from the game.");
             checkWinner();
