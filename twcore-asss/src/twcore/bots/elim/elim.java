@@ -1120,10 +1120,10 @@ public class elim extends SubspaceBot {
             name = event.getMessager();
 
         if (type == Message.ARENA_MESSAGE) {
-            if (msg.equals("Arena UNLOCKED") && arenaLock)
-                ba.toggleLocked();
-            else if (msg.equals("Arena LOCKED") && !arenaLock)
-                ba.toggleLocked();
+            if (msg.equals("Your ship has been unlocked.") && arenaLock)
+                ba.lockArena();
+            else if (msg.equals("You have been locked to spectator mode.") && !arenaLock)
+                ba.unlockArena();
             else if (game != null) {
                 game.handleHider(msg);
                 game.handleEvent(event);
