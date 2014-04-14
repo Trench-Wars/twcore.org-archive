@@ -1481,23 +1481,21 @@ public class BotAction
     /**
      * Sends a player immediately to spectator mode, and does not lock them there.
      * If the arena is unlocked, they will be able to re-enter.  This is the
-     * standard way to spec someone, and is equivalent to issuing two /*spec's.
+     * standard way to spec someone, and is equivalent to issuing a ?setship 9.
      * @param playerName The name of the player to be specced.
      */
     public void specWithoutLock(String playerName) {
-        sendUnfilteredPrivateMessage(playerName, "*spec");
-        sendUnfilteredPrivateMessage(playerName, "*uspec");
+        sendUnfilteredPrivateMessage(playerName, "?setship 9");
     }
 
     /**
      * Sends a player immediately to spectator mode, and does not lock them there.
      * If the arena is unlocked, they will be able to re-enter.  This is the
-     * standard way to spec someone, and is equivalent to issuing two /*spec's.
+     * standard way to spec someone, and is equivalent to issuing a ?setship 9.
      * @param playerID Player ID of the player you want to spec.
      */
     public void specWithoutLock(int playerID) {
-        sendUnfilteredPrivateMessage(playerID, "*spec");
-        sendUnfilteredPrivateMessage(playerID, "*uspec");
+        sendUnfilteredPrivateMessage(playerID, "?setship 9");
     }
 
     /**
