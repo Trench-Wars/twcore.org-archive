@@ -279,6 +279,12 @@ public class HubBot extends SubspaceBot {
         */
         Tools.printLog("Done initializing operators from operators.cfg");
         
+        
+        /** Generate the necessary moderate.txt, smod.txt, sysop.txt files.
+         * This assumes that the python staffconf and pymod modules are loaded to the server.
+         */        
+        m_botAction.sendUnfilteredPublicMessage("?reloadconf");
+        
         // Initiate process to auto-assign operators using the subgame staff files
         m_botAction.sendUnfilteredPublicMessage( "*getfile sysop.txt" );
         m_botAction.sendUnfilteredPublicMessage( "*getfile smod.txt" );
