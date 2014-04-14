@@ -1807,6 +1807,16 @@ public class BotAction
     {
         sendUnfilteredPublicMessage("*lock");
     }
+    
+    public void lockArena()
+    {
+    	sendUnfilteredPublicMessage("?lockarena -n");
+    }
+    
+    public void unlockArena()
+    {
+    	sendUnfilteredPublicMessage("?unlockarena -n");
+    }
 
     /**
      * Resets the flag game so that all stationary flags become neutral, and
