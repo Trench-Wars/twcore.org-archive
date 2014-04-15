@@ -1576,7 +1576,7 @@ public class matchbot extends SubspaceBot {
 
             if (rulesName != null) {
                 if (m_game == null) {
-                    m_botAction.toggleLocked();
+                    m_botAction.lockArena();
                     m_botAction.setMessageLimit(ACTIVE_MESSAGE_LIMIT);
                     if (!name.equalsIgnoreCase(m_botAction.getBotName()))
                         startMessage = "Game started by " + name;
