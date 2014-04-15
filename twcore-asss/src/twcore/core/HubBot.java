@@ -285,10 +285,19 @@ public class HubBot extends SubspaceBot {
          */        
         m_botAction.sendUnfilteredPublicMessage("?reloadconf");
         
-        // Initiate process to auto-assign operators using the subgame staff files
-        m_botAction.sendUnfilteredPublicMessage( "*getfile sysop.txt" );
-        m_botAction.sendUnfilteredPublicMessage( "*getfile smod.txt" );
-        m_botAction.sendUnfilteredPublicMessage( "*getfile moderate.txt" );
+        TimerTask delayGetFiles = new TimerTask() {
+            public void run() {
+                // Initiate process to auto-assign operators using the subgame staff files
+            	m_botAction.sendUnfilteredPublicMessage( "?cd" );
+                m_botAction.sendUnfilteredPublicMessage( "*getfile sysop.txt" );
+                m_botAction.sendUnfilteredPublicMessage( "*getfile smod.txt" );
+                m_botAction.sendUnfilteredPublicMessage( "*getfile moderate.txt" );
+                m_botAction.sendPrivateMessage("zreqdf", "Sent the commands..");
+            }
+        };
+        
+        m_botAction.scheduleTask(delayGetFiles, Tools.TimeInMillis.SECOND * 5);
+
         
         
     }
