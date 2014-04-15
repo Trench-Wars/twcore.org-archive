@@ -461,8 +461,8 @@ public class matchbot extends SubspaceBot {
             }
         } else if (messageType == Message.ARENA_MESSAGE) {
             String msg = event.getMessage();
-            if (msg.startsWith("Arena UNLOCKED"))
-                m_botAction.toggleLocked();
+            if (msg.startsWith("Your ship has been unlocked."))
+                m_botAction.lockArena();
         }
 
         // Send to spy to check for racist comments
