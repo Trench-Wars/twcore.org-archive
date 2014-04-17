@@ -218,6 +218,7 @@ public class HubBot extends SubspaceBot {
      * Sends online message once arena has been joined successfully.
      */
     public void handleEvent( ArenaJoined event ){
+        m_botAction.sendUnfilteredPublicMessage( "?chat=" + m_botAction.getGeneralSettings().getString( "Chat name" ) );
         m_botAction.sendChatMessage(m_botAction.getBotName() + " bot hub is now online.");
         initOperators();
     }
