@@ -2419,10 +2419,10 @@ public class bwjsbot extends SubspaceBot {
      * @param message Arena message
      */
     private void checkArenaLock(String message) {
-        if (message.equals("Arena UNLOCKED") && lockArena)
-            m_botAction.toggleLocked();
-        if (message.equals("Arena LOCKED") && !lockArena)
-            m_botAction.toggleLocked();
+        if (message.equals("Your ship has been unlocked.") && lockArena)
+            m_botAction.lockArena();
+        if (message.equals("You have been locked to spectator mode.") && !lockArena)
+            m_botAction.unlockArena();
     }
     
     /**
@@ -2485,7 +2485,7 @@ public class bwjsbot extends SubspaceBot {
      */
     private void lockArena() {
         lockArena = true;
-        m_botAction.toggleLocked();
+        m_botAction.lockArena();
     }
     
     /**
@@ -2493,7 +2493,7 @@ public class bwjsbot extends SubspaceBot {
      */
     private void unlockArena() {
         lockArena = false;
-        m_botAction.toggleLocked();
+        m_botAction.unlockArena();
     }
     
     /**
