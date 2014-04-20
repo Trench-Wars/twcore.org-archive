@@ -112,6 +112,7 @@ public class socialmedia extends SubspaceBot {
         twitterConfig.setOAuthConsumerSecret(twitterConsSecret);
         twitterConfig.setOAuthAccessToken(twitterAccessToken);
         twitterConfig.setOAuthAccessTokenSecret(twitterAccessTokenSecret);
+        twitterConfig.setUseSSL(true);
         twitterFactory = new TwitterFactory(twitterConfig.build());
         twitter = twitterFactory.getInstance();
 
