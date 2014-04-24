@@ -4,28 +4,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.ListIterator;
 import java.util.StringTokenizer;
 import java.util.TimerTask;
 import java.util.Vector;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.BufferedReader;
-import java.io.FileWriter;
-import java.io.IOException;
-
-
-
-
-
-
-
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -66,10 +52,6 @@ public class twdbot extends SubspaceBot {
     private HashMap<String, String> m_waitingAction;
     private String webdb = "website";
     private static final String IPC = "MatchBot";
-    
-    private String registerLogPath;
-    private static final String DATE_FORMAT = "EEE MMM dd yyyy HH:mm:ss zzz";
-    private SimpleDateFormat simpleDateFormat;
 
     private LinkedList<String> m_watches;
     private TimerTask einfo;
@@ -94,11 +76,7 @@ public class twdbot extends SubspaceBot {
 
         m_waitingAction = new HashMap<String, String>();
         m_requesters = new HashMap<String, String>();
-        
-        registerLogPath = ba.getCoreData().getGeneralSettings().getString("Core Location") + "/TWDregistrations.log";
-        
-        simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
-        
+
         //birthday = new SimpleDateFormat("HH:mm MM.dd.yy").format(Calendar.getInstance().getTime());
         m_watches = new LinkedList<String>();
         aliasRelay = m_botSettings.getInt("AliasRelay") == 1;
@@ -275,9 +253,8 @@ public class twdbot extends SubspaceBot {
                         cmd_RemoveIPMID(name, message.substring(13));
                     else if (message.startsWith("!listipmid "))
                         cmd_ListIPMID(name, message.substring(11));
-                    else if (message.startsWith("!last "))
-                    	cmd_lastRegistered(name, message.substring(6));
                     else if (message.equalsIgnoreCase("!die")) {
+                        this.handleDisconnect();
                         m_botAction.die();
                     }
                     if (m_opList.isSmod(name)) {
@@ -373,28 +350,7 @@ public class twdbot extends SubspaceBot {
         }
     }
     
-    private void cmd_lastRegistered(String name, String number) {
-    	int lines;
-    	
-		try {
-			lines = Integer.parseInt(number);
-		} catch(NumberFormatException e) {
-			lines = 5;
-		}
-		
-		if(lines > 30) {
-			m_botAction.sendSmartPrivateMessage(name, "Limit is 30.");
-			return;
-		}
-		
-		List<String> s = readRegisterLog(lines);
-		
-		for(int i = 0; i < s.size(); i ++)
-			m_botAction.sendSmartPrivateMessage(name, s.get(i));
-		
-	}
-
-	private void cmd_relay(String name) {
+    private void cmd_relay(String name) {
         aliasRelay = !aliasRelay;
         if (aliasRelay) {
             m_botAction.sendSmartPrivateMessage(name, "Alias relay messages: ENABLED");
@@ -684,10 +640,6 @@ public class twdbot extends SubspaceBot {
                                 + Tools.addSlashesToString(name) + "', " + Tools.addSlashesToString(mID) + ", " + "'" + Tools.addSlashesToString(IP)
                                 + "')");
                         m_botAction.sendSmartPrivateMessage(staffname, "Added IP " + IP + " and MID " + mID + " into a combined entry.");
-                        //Notify TWDOp chat
-                        m_botAction.sendChatMessage(2, "[Forced Registration](by "+staffname+") "+ name + " IP:" + IP + " MID:" + mID);
-                        //Log it
-                        writeToRegisterLog("[Forced Registration](by "+staffname+") "+ name + " IP:" + IP + " MID:" + mID);
                     }
                 }
             }
@@ -1383,8 +1335,6 @@ public class twdbot extends SubspaceBot {
                 return;
             }
             cmd_AddMIDIP(name, "name:" + name + "  ip:" + ip + "  mid:" + mid);
-            m_botAction.sendChatMessage(2, "[New Registration] " + register + " IP: " + ip + " MID "+ mid);
-            writeToRegisterLog("[New Registration] " + register + " IP: " + ip + " MID "+ mid);
             m_botAction.sendSmartPrivateMessage(register, "REGISTRATION SUCCESSFUL");
             m_botAction.sendSmartPrivateMessage(register, "NOTE: Only one name per household is allowed to be registered with TWD staff approval.  If you have family members that also play, you must register manually with staff (type ?help <msg>).");
             m_botAction.sendSmartPrivateMessage(register, "Holding two or more name registrations in one household without staff approval may result in the disabling of one or all names registered.");
@@ -1594,61 +1544,6 @@ public class twdbot extends SubspaceBot {
         } catch (Exception e) {
             m_botAction.sendSmartPrivateMessage(owner, "Database error, contact a TWD Op.");
         }
-    }
-    
-    private void writeToRegisterLog(String message) 
-    {
-    	try(BufferedWriter writer = new BufferedWriter(new FileWriter(registerLogPath, true))) {
-    		writer.write(simpleDateFormat.format(new Date() + ":  " + message));
-    		writer.close();
-    	} catch (IOException ioe) {
-    		Tools.printStackTrace(ioe);
-    	}
-    }
-    
-    
-    private List<String> readRegisterLog(int lines)
-    {
-    	List<String> msg = new ArrayList<String>();
-    	String lineContent;
-    	int currentLine = 0;
-    	
-    	try(BufferedReader reader = new BufferedReader(new FileReader(registerLogPath))) {
-    		int totalLines = 0;
-    		
-    		while(reader.readLine() != null) totalLines++;
-    		reader.close();
-    		
-    		try(BufferedReader read = new BufferedReader(new FileReader(registerLogPath)))
-    		{
-        		int startPoint = totalLines - lines;
-
-        		if(startPoint < 0) {
-        			startPoint = 0;
-        		}
-        		
-        		while( (lineContent = read.readLine()) != null  && totalLines != 0) {
-        			
-        			if(currentLine >= startPoint) {
-        				msg.add(lineContent);
-        			}
-        			
-        			currentLine++;
-        		}  
-        		read.close();
-    		} catch (IOException ioe) {
-    			System.out.println(ioe.getMessage());
-    		}    		
-    		
-    	} catch (IOException ioe) {
-    		System.out.println(ioe.getMessage());
-    		
-    	}
-    	
-    	if(msg.size() == 0)
-    		msg.add("Nothing to show here.");
-    	
-    	return msg;
     }
 
     class SquadOwner {
