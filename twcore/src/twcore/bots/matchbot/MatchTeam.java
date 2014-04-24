@@ -143,9 +143,14 @@ public class MatchTeam {
         m_botAction.scheduleTask(einfoer, 2000, 2000);
         
         // Hardcoded exceptions until someone gets some time to rewrite the entire TWD stuff.
-        if (m_botAction.getArenaName().equalsIgnoreCase("twdd") || m_botAction.getArenaName().equalsIgnoreCase("twdd2") || m_botAction.getArenaName().toLowerCase().startsWith("twld")) {
+        if (m_botAction.getArenaName().toLowerCase().startsWith("twld")) {
             MAX_RES_X = 1440;
             MAX_RES_Y = 1024;
+        } else if (m_botAction.getArenaName().startsWith("twdd")) {
+        	//24APR2014 POiD  Override to remove res checks for twdd as requested by TWD Head.
+        	//override to remove res check from TWDD* arenas for now.
+        	MAX_RES_X = 0;
+        	MAX_RES_Y = 0;
         } else if(m_botAction.getArenaName().toLowerCase().startsWith("twlb") || m_botAction.getArenaName().toLowerCase().startsWith("twlj")) {
             MAX_RES_X = 1920;
             MAX_RES_Y = 1080;
@@ -2455,7 +2460,8 @@ public class MatchTeam {
                 r[0] = Integer.valueOf(rx[0].trim());
                 r[1] = Integer.valueOf(rx[1].trim());
                 debug("Checking " + r[0] + "x" + r[1] + " resolution of: " + name + " cap: " + cap);
-                if (r[0] > MAX_RES_X || r[1] > MAX_RES_Y) {
+            	//24APR2014 POiD  A value of 0 in the MAX_RES_? field now means don't check
+                if ((MAX_RES_X !=0 && r[0] > MAX_RES_X) || (MAX_RES_Y != 0 && r[1] > MAX_RES_Y)) {
                     if (type == ADD) {
                         m_botAction.sendSmartPrivateMessage(name, "Maximum resolution for this arena is " + MAX_RES_X + "x" + MAX_RES_Y
                                 + ". Until you change your resolution, you cannot be added.");
