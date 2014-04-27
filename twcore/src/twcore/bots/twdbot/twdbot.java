@@ -243,8 +243,8 @@ public class twdbot extends SubspaceBot {
                         m_botAction.changeArena(message.substring(4));
                     else if (message.startsWith("!help"))
                         cmd_DisplayHelp(name, false);
-                    else if (message.startsWith("!add "))
-                        cmd_AddMIDIP(name, message.substring(5));
+                    //else if (message.startsWith("!add "))
+                     //   cmd_AddMIDIP(name, message.substring(5));
                     else if (message.startsWith("!removeip "))
                         cmd_RemoveIP(name, message.substring(10));
                     else if (message.startsWith("!removemid "))
@@ -973,7 +973,13 @@ public class twdbot extends SubspaceBot {
     }
 
     private void cmd_RegisterName(String name, String message, boolean p) {
-
+    	
+    	//Chat notification
+    	if(p)
+    		m_botAction.sendChatMessage(2, "[Registration Attempt] by " + name);
+    	else
+    		m_botAction.sendChatMessage(2, "[Forced Registration Attempt] by " + name + " on player " + message);
+    	
         Player pl = m_botAction.getPlayer(message);
         String player;
         if (pl == null) {
@@ -1136,8 +1142,9 @@ public class twdbot extends SubspaceBot {
                 " !register <name>             - force registers that name, that player must be in the arena",
                 " !regconflicts <name>         - Display the list of names causing conflicts when trying to register <name>",
                 " !registered <name>           - checks if the name is registered",
-                " !add name:<name>  ip:<IP>  mid:<MID>  ",
-                "                              - Adds <name> to DB with <IP> and/or <MID>",
+            //    " !last <#>                    - lists last registration attempts",
+            //    " !add name:<name>  ip:<IP>  mid:<MID>  ",
+            //    "                              - Adds <name> to DB with <IP> and/or <MID>",
                 " !removeip <name>:<IP>        - Removes <IP> associated with <name>",
                 " !removemid <name>:<MID>      - Removes <MID> associated with <name>",
                 " !removeipmid <name>          - Removes all IPs and MIDs for <name>",
@@ -1335,6 +1342,10 @@ public class twdbot extends SubspaceBot {
                 return;
             }
             cmd_AddMIDIP(name, "name:" + name + "  ip:" + ip + "  mid:" + mid);
+            
+            //Notify TWDOps of Successful Registration
+            m_botAction.sendChatMessage(2, "[Successful Registration] " + name + "   IP:" + ip + "  mID: " + mid);
+            
             m_botAction.sendSmartPrivateMessage(register, "REGISTRATION SUCCESSFUL");
             m_botAction.sendSmartPrivateMessage(register, "NOTE: Only one name per household is allowed to be registered with TWD staff approval.  If you have family members that also play, you must register manually with staff (type ?help <msg>).");
             m_botAction.sendSmartPrivateMessage(register, "Holding two or more name registrations in one household without staff approval may result in the disabling of one or all names registered.");
