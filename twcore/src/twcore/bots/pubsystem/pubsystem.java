@@ -454,7 +454,7 @@ public class pubsystem extends SubspaceBot
         	}
         	else if(command.equals("!modhelp") || command.equals("!helpmod") || command.equals("!hm"))
                 doHelpCmd(sender, true, false);
-            else if(command.equals("!hma"))
+            else if(command.equals("!hma") || command.equals("!helpmodall"))
                 doHelpCmd(sender, true, true);
         	else {
         		context.handleModCommand(sender, command);
