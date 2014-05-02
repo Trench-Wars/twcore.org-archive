@@ -367,6 +367,11 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(challenger, "Please wait 30 seconds before challenging this player again.");
             return;
         }
+        
+        if(openChal && spam.containsKey(key) && ((System.currentTimeMillis() - spam.get(key)) < 50 * Tools.TimeInMillis.SECOND)) {
+            m_botAction.sendSmartPrivateMessage(challenger, "Please wait 50 seconds before issuing another open challenge.");
+            return;
+        }
 
         PubPlayer pubChallenger = context.getPlayerManager().getPlayer(challenger);
         PubPlayer pubChallenged = context.getPlayerManager().getPlayer(challenged);
