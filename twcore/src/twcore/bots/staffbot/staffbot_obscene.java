@@ -147,7 +147,7 @@ public class staffbot_obscene extends Module {
                     " !remobscene <word>        - Removes a specific entry from obscene.txt."
             };
             m_botAction.smartPrivateMessageSpam(name, spam);
-        } else if(m_botAction.getOperatorList().isModeratorExact(name)) {
+        } else if(m_botAction.getOperatorList().isModeratorExact(name) || m_botAction.getOperatorList().isSmodExact(name)) {
                 String[] spam = {
                         "----------------[ Obscene: Mod+ ]-----------------",
                         " !listobscene              - Lists the current entries in obscene.txt.",
