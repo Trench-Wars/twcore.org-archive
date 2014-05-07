@@ -92,7 +92,7 @@ public class staffbot_obscene extends Module {
             }
         }
 
-        if (m_botAction.getOperatorList().isSmod(name)) {
+        if (m_botAction.getOperatorList().isModerator(name)) {
             if (message.equals("!help")) {
                 cmd_help(name);
             } else if (message.equals("!listobscene")) {
@@ -147,9 +147,9 @@ public class staffbot_obscene extends Module {
                     " !remobscene <word>        - Removes a specific entry from obscene.txt."
             };
             m_botAction.smartPrivateMessageSpam(name, spam);
-        } else if(m_botAction.getOperatorList().isSmodExact(name)) {
+        } else if(m_botAction.getOperatorList().isModeratorExact(name)) {
                 String[] spam = {
-                        "----------------[ Obscene: SMod ]-----------------",
+                        "----------------[ Obscene: Mod+ ]-----------------",
                         " !listobscene              - Lists the current entries in obscene.txt.",
                         " !listobscene <word>       - Lists only the entries in obscene.txt containing <word>.",
                 };
