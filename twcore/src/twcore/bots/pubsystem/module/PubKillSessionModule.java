@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.TimerTask;
+import java.sql.SQLException;
+import java.sql.ResultSet; 
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
@@ -27,6 +29,7 @@ public class PubKillSessionModule extends AbstractModule {
 	
 	private boolean sessionStarted = false;
 	public long startAt = 0;
+    private int killLeader = 0;
 	
 	private TimerTask pauseTask;
 	private TimerTask endSessionTask;
@@ -36,11 +39,13 @@ public class PubKillSessionModule extends AbstractModule {
 	private LinkedHashSet<Location> locations;
 	private HashSet<String> notplaying;
 	
-	private int killLeader = 0;
+	PubContext context;
+	
 
 	public PubKillSessionModule(BotAction botAction, PubContext context) {
 		super(botAction,context,"Kill-o-thon");
-
+		this.context = context;
+		
 		notplaying = new HashSet<String>();
 		locations = new LinkedHashSet<Location>();
 		kills = new HashMap<String,Integer>();
@@ -237,11 +242,106 @@ public class PubKillSessionModule extends AbstractModule {
 		String database = m_botAction.getBotSettings().getString("database");
 		
 		// The query will be closed by PlayerManagerModule
-		if (database!=null)
-		m_botAction.SQLBackgroundQuery(database, null, "UPDATE tblPlayerStats "
-			+ "SET fnKillothonWinner = fnKillothonWinner+1 "
-			+ "WHERE fcName='" + Tools.addSlashes(playerName) + "'");
-    	
+		Integer kotwins;
+		if (database!=null) {
+		    try {
+		        ResultSet rs = m_botAction.SQLQuery(database, "SELECT fnKillothonWinner FROM tblPlayerStats WHERE fcName='"
+		            + Tools.addSlashes(playerName) + "'");
+	            if (rs.next()) {
+	                kotwins = rs.getInt("fnKillothonWinner");
+	                checkKoTAward(playerName, kotwins+1);
+	            }
+                m_botAction.SQLClose(rs);
+		    } catch( SQLException e) {
+		    }
+		    
+		    m_botAction.SQLBackgroundQuery(database, null, "UPDATE tblPlayerStats "
+		            + "SET fnKillothonWinner = fnKillothonWinner+1 "
+		            + "WHERE fcName='" + Tools.addSlashes(playerName) + "'");
+		}    	
+    }
+    
+    /**
+     * Checks for and awards KoT special rewards.
+     * @param numWins
+     */
+    public void checkKoTAward( String name, int numWins ) {
+        String awardString = "";
+        int bonus = 0;
+        switch (numWins) {
+        case 1:
+            awardString = "You've won your first Kill-o-Thon! Have a nice fat bonus.";
+            bonus = 1000;
+            break;
+        case 3:
+            awardString = "That's a triple under your belt now. Keep up the good work.";
+            bonus = 250;
+            break;
+        case 5:
+            awardString = "I see you're getting the hang of this.";
+            bonus = 500;
+            break;
+        case 10:
+            awardString = "Well on the way to becoming an unstoppable assassin.";
+            bonus = 750;
+            break;
+        case 25:
+            awardString = "Striking fear into their trembling hearts.";
+            bonus = 1000;
+            break;
+        case 50:
+            awardString = "BEAST MODE ACTIVATED.";
+            bonus = 2000;
+            break;
+        case 75:
+            awardString = "Cheats?";
+            bonus = 4000;
+            break;
+        case 100:
+            awardString = "You might be able to go pro with this.";
+            bonus = 6000;
+            break;
+        case 150:
+            awardString = "Watch out, we got a badass here!";
+            bonus = 8000;
+            break;
+        case 200:
+            awardString = "Let me make sure I read that right...";
+            bonus = 10000;
+            break;
+        case 250:
+            awardString = "A LEGEND IN YOUR OWN TIME!";
+            bonus = 15000;
+            break;
+        case 500:
+            awardString = "WHO ARE YOU?!?!";
+            bonus = 25000;
+            break;
+        case 750:
+            awardString = "Let me take a minute to just stand here in awe.";
+            bonus = 50000;
+            break;
+        case 1000:
+            awardString = "YOU. ARE. A. GOD.";
+            bonus = 100000;
+            break;
+        case 5000:
+            awardString = "I don't know how you did it. I don't want to know. Just take my money and go.";
+            bonus = 150000;
+            break;
+        case 10000:
+            awardString = "To give you real money for this would only cheapen your accomplishment. Congratu-freakin'-lations.";
+            bonus = 1;
+            break;
+        }
+        
+        if (bonus > 0) {
+            m_botAction.sendPrivateMessage(name, "KILL-O-THON WINS MILESTONE ... " + numWins + " win" + (numWins==1?"":"s") + ".  Bonus: $" + bonus + "!  " + awardString );
+            context.getPlayerManager().addMoney(name, bonus);
+            
+            if (numWins >= 50)
+                m_botAction.sendArenaMessage( name + " has won Kill-o-Thon " + numWins + " times!", Tools.Sound.CROWD_OOO);
+        }
     }
 	
     public void doSettingCmd( String sender, String setting ) {
