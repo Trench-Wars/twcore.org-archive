@@ -222,6 +222,7 @@ public class PubStreakModule extends AbstractModule {
     	if (streak > player.getBestStreak()) {
     		
     		player.setBestStreak(streak);
+    		checkStreakMilestone(player, streak);
     		
     		String database = m_botAction.getBotSettings().getString("database");
     		
@@ -236,6 +237,107 @@ public class PubStreakModule extends AbstractModule {
     	}
     	
 	}
+    
+    /**
+     * Checks for streak milestones and gives bonuses if reached.
+     * @param pp Player
+     * @param numWins Streak amount
+     */
+    public void checkStreakMilestone( PubPlayer pp, int numWins ) {
+        String awardString = "";
+        int bonus = 0;
+        switch (numWins) {
+        case 5:
+            awardString = "Your first streak! Nice!";
+            bonus = 100;
+            break;
+        case 10:
+            awardString = "It seems you know what you're doing.";
+            bonus = 200;
+            break;
+        case 20:
+            awardString = "I doubt that was exactly what would be called 'easy.'";
+            bonus = 300;
+            break;
+        case 30:
+            awardString = "Sure you're not cheating?";
+            bonus = 400;
+            break;
+        case 40:
+            awardString = "The gods smile on you today.";
+            bonus = 500;
+            break;
+        case 50:
+            awardString = "Respect.";
+            bonus = 600;
+            break;
+        case 75:
+            awardString = "Don't blow it now!";
+            bonus = 700;
+            break;
+        case 100:
+            awardString = "100 dead spaceships and you without a scratch.";
+            bonus = 800;
+            break;
+        case 125:
+            awardString = "They come at you ... they come at you ... and they always seem to lose.";
+            bonus = 1000;
+            break;
+        case 150:
+            awardString = "Do you give lessons?";
+            bonus = 1500;
+            break;
+        case 175:
+            awardString = "This is starting to get a little ridiculous.";
+            bonus = 2000;
+            break;
+        case 200:
+            awardString = "To say you're on a roll is an understatement.";
+            bonus = 2500;
+            break;
+        case 250:
+            awardString = "Don't die.";
+            bonus = 5000;
+            break;
+        case 300:
+            awardString = "YOU'RE THE BEST ... AROUND! -- NOTHIN'S GONNA EVER KEEP YA DOWN!";
+            bonus = 10000;
+            break;
+        case 400:
+            awardString = "Pretty sure nobody's ever done this before.";
+            bonus = 25000;
+            break;
+        case 500:
+            awardString = "LEGEND. YOU ARE A LEGEND.";
+            bonus = 50000;
+            break;
+        case 750:
+            awardString = "You can't possibly expect to keep this going much longer.";
+            bonus = 100000;
+            break;
+        case 1000:
+            awardString = "PLEASE DON'T HURT ME, BASED GOD.";
+            bonus = 150000;
+            break;
+        case 5000:
+            awardString = "...wow. No words. No words for this.";
+            bonus = 250000;
+            break;
+        case 10000:
+            awardString = "To give you real money for this would only cheapen your accomplishment. Congratu-freakin'-lations.";
+            bonus = 1;
+            break;
+        }
+        
+        if (bonus > 0) {
+            m_botAction.sendPrivateMessage(pp.getPlayerName(), "PERSONAL STREAK MILESTONE REACHED ... " + numWins + " kills" + (numWins==1?"":"s") + "!  Bonus: $" + bonus + "!  " + awardString );
+            pp.addMoney(bonus);
+            
+            if (numWins >= 150)
+                m_botAction.sendZoneMessage( pp.getPlayerName() + " has made " + numWins + " kills without dying for the first time ever. End this madness! ?go", Tools.Sound.CROWD_GEE);
+        }
+    }
+
 
 	private void announceStreakBreaker(PubPlayer killer, PubPlayer killed, int streak, int money, boolean arena) {
     	String message = "[STREAK BREAKER!] " + killed.getPlayerName() + " (" + streak + " kills) broken by " + killer.getPlayerName() + "!";
