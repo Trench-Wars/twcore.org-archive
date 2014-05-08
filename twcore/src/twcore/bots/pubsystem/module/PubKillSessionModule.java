@@ -410,7 +410,7 @@ public class PubKillSessionModule extends AbstractModule {
     			message = "You have " + kills.get(sender) + " kills. ";
     		}
     		else {
-    			message = "You have 0 kill, what are you waiting for? ";
+    			message = "You have 0 kills, what are you waiting for? ";
     		}
     		
     		if (notplaying.contains(sender)) {
