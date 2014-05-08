@@ -42,6 +42,14 @@ public class PubPlayer implements Comparable<PubPlayer>{
         new Point(564, 284),    // Mid, R ear
         new Point(467, 341),    // Top of lower, side tubes, L side
         new Point(557, 341),    // Top of lower, side tubes, R side
+        
+        // Experimental lower spawn points (further decrease spawnkilling)
+        new Point(435, 333),    // Top lower ear, L side
+        new Point(589, 333),    // Top lower ear, R side
+        new Point(467, 359),    // Lower drop-circle, L side
+        new Point(557, 359),    // Lower drop-circle, R side
+        new Point(512, 377),    // Bottom of tube
+        
     };
     
     // Radius for the low population mid spawn. Amount must be equal to the amount of Points in COORDS_MIDSPAWN.
