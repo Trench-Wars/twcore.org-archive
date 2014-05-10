@@ -995,7 +995,7 @@ public class twdbot extends SubspaceBot {
     	try {
     		ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT ftTime, fcCommand, fnRegisteredMid, fcRegisteredIP FROM tblTWDBotCommands WHERE fcCommand LIKE 'register%' ORDER BY fnCommandID DESC LIMIT " + count);
     		
-    		if(rs.isBeforeFirst())
+    		if(!rs.isBeforeFirst())
     			m_botAction.sendPrivateMessage(name, "Nothing to show here.");
     		
     		while(rs.next())
@@ -1003,7 +1003,7 @@ public class twdbot extends SubspaceBot {
     			String msg = rs.getString("ftTime") + "  " + rs.getString("fcCommand") + "   ";
     			String ip = rs.getString("fnRegisteredMid");
     			String mid = rs.getString("fcRegisteredIP");
-    			if(ip != "0" && mid != "0") {
+    			if(ip == "0" && mid == "0") {
     				msg += "IP:" + ip;
     				msg += "  mID:" + mid;
     			}
