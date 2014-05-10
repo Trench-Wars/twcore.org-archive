@@ -256,7 +256,10 @@ public class twdbot extends SubspaceBot {
                     else if (message.equalsIgnoreCase("!die")) {
                         this.handleDisconnect();
                         m_botAction.die();
-                    }
+                    } else if(message.startsWith("!last "))
+                    	cmd_last(name, message.substring(6));
+                    else if(message.equalsIgnoreCase("!last"))
+                    	cmd_last(name, "5");
                     if (m_opList.isSmod(name)) {
                         if (message.startsWith("!einfo "))
                             cmd_einfo(name, message);
@@ -971,14 +974,50 @@ public class twdbot extends SubspaceBot {
         }
         cmd_GetResetTime(name, message, false, true);
     }
+    
+    private void cmd_last(String name, String count)
+    {
+    	int lines = 0;
+    	
+    	try {
+    		lines = Integer.getInteger(count);
+    	} catch(NumberFormatException e) {
+    		m_botAction.sendPrivateMessage(name, "Invalid argument.");
+    	}
+    	
+    	if(lines > 30) lines = 30;
+    	if(lines <= 0) lines = 1;
+    	
+    	try {
+    		ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT ftTime, fcCommand, fnRegisteredMid, fcRegisteredIP FROM tblTWDBotCommands WHERE fcCommand LIKE 'register%' ORDER BY fnCommandID DESC LIMIT " + count);
+    		while(rs.next())
+    		{
+    			String msg = rs.getString("ftTime") + "  " + rs.getString("fcCommand") + "   ";
+    			String ip = rs.getString("fnRegisteredMid");
+    			String mid = rs.getString("fcRegisteredIP");
+    			if(ip != "0" && mid != "0") {
+    				msg += "IP:" + ip;
+    				msg += "  mID:" + mid;
+    			}
+    			m_botAction.sendPrivateMessage(name, msg);
+    		}
+    		m_botAction.SQLClose(rs);
+    	} catch (SQLException e) {
+    		m_botAction.sendPrivateMessage(name, "Error. :(");
+    	}
+    }
 
     private void cmd_RegisterName(String name, String message, boolean p) {
     	
     	//Chat notification
-    	if(p)
+    	if(p) {
     		m_botAction.sendChatMessage(2, "[Registration Attempt] by " + name);
-    	else
+    		logCommand(null, name, "register attempt by " + name, "0", "0" );
+    	}
+    	else {
     		m_botAction.sendChatMessage(2, "[Forced Registration Attempt] by " + name + " on player " + message);
+    		logCommand(name, message, "register forced attempt by" + name + " on " + message, "0", "0" );
+    	}
     	
         Player pl = m_botAction.getPlayer(message);
         String player;
@@ -989,7 +1028,7 @@ public class twdbot extends SubspaceBot {
             player = message;
 
         DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, player);
-
+        
         if (dbP.isRegistered()) {
             m_botAction.sendSmartPrivateMessage(name, "This name has already been registered.");
             return;
@@ -1162,6 +1201,7 @@ public class twdbot extends SubspaceBot {
                 " !einfo <name>                - displays the einfo for <name> in any arena",
                 " !usage <name>                - displays the usage information for <name> in any arena",
                 " !twdops                      - displays a list of the current TWD Ops", 
+                " !last <x>                    - lists last registration attempts",
                 " !go <arena>                  - moves the bot" };
         String SModHelp[] = { 
                 "--------- SMOD COMMANDS --------------------------------------------------------------",
@@ -1345,6 +1385,7 @@ public class twdbot extends SubspaceBot {
             
             //Notify TWDOps of Successful Registration
             m_botAction.sendChatMessage(2, "[Successful Registration] " + name + "   IP:" + ip + "  mID: " + mid);
+            logCommand(null, name, "register [SUCCESSFUL]", ip, mid);
             
             m_botAction.sendSmartPrivateMessage(register, "REGISTRATION SUCCESSFUL");
             m_botAction.sendSmartPrivateMessage(register, "NOTE: Only one name per household is allowed to be registered with TWD staff approval.  If you have family members that also play, you must register manually with staff (type ?help <msg>).");
@@ -1555,6 +1596,47 @@ public class twdbot extends SubspaceBot {
         } catch (Exception e) {
             m_botAction.sendSmartPrivateMessage(owner, "Database error, contact a TWD Op.");
         }
+    }
+
+    private void logCommand(String staffName, String targetName, String command, String ipAddress, String machineID)
+    {
+    	
+    	
+    	if(command == null)
+    		return;
+
+    	boolean isStaffCommand = true;
+    	
+    	if(staffName == null && targetName != null) {
+    		staffName = targetName;
+    		isStaffCommand = false;
+    	}
+    	
+    	if(ipAddress == null)
+    		ipAddress = "0";
+    	
+    	if(machineID == null)
+    		machineID = "0";
+    	
+    	staffName = Tools.addSlashesToString(staffName);
+    	targetName = Tools.addSlashesToString(targetName);
+    	command = Tools.addSlashesToString(command);
+    	
+    	String query =
+    			"INSERT INTO `tblTWDBotCommands` SET"
+    			+ "`fnUserID` = (SELECT tblUser.`fnUserID` FROM tblUser WHERE tblUser.`fcUserName` = '" + staffName + "'),"
+    			+ "`fcCommand` = '" + command + "',"
+    			+ "`fnTargetUser` = (SELECT tblUser.`fnUserID` FROM tblUser WHERE tblUser.`fcUserName` = '" + targetName + "'),"
+    			+ "`fnRegisteredMid` = '" + machineID + "',"
+    			+ "`fcRegisteredIP` = '" + ipAddress + "'," 
+    			+ "`fnStaffCommand` = '" + (isStaffCommand ? "1" : "0") + "';";
+    	 
+    	
+    	try {
+    		m_botAction.SQLBackgroundQuery(webdb, null, query);
+    	} catch(Exception e) {
+    		Tools.printStackTrace(e);
+    	}
     }
 
     class SquadOwner {
