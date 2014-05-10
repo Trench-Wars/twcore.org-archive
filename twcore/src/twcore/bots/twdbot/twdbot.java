@@ -1003,7 +1003,7 @@ public class twdbot extends SubspaceBot {
     			String msg = rs.getString("ftTime") + "  " + rs.getString("fcCommand") + "   ";
     			String ip = rs.getString("fnRegisteredMid");
     			String mid = rs.getString("fcRegisteredIP");
-    			if(ip == "0" && mid == "0") {
+    			if(ip != "0" && mid != "0") {
     				msg += "IP:" + ip;
     				msg += "  mID:" + mid;
     			}
