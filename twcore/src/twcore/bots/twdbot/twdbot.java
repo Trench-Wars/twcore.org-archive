@@ -1024,7 +1024,7 @@ public class twdbot extends SubspaceBot {
     	}
     	else {
     		m_botAction.sendChatMessage(2, "[Forced Registration Attempt] by " + name + " on player " + message);
-    		logCommand(name, message, "register forced attempt by" + name + " on " + message, "0", "0" );
+    		logCommand(name, message, "register forced attempt by " + name + " on " + message, "0", "0" );
     	}
     	
         Player pl = m_botAction.getPlayer(message);
