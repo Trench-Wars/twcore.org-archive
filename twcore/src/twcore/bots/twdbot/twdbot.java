@@ -191,7 +191,11 @@ public class twdbot extends SubspaceBot {
                         m_botAction.sendChatMessage(3, "" + player + " has been added to challenge watch by " + name);
                         m_botAction.sendChatMessage(2, "" + player + " has been added to challenge watch by " + name);
                     }
-                } else if (m_opList.isSysop(name) && message.equalsIgnoreCase("!relay")) {
+                } else if(message.startsWith("!last "))
+                	cmd_list(name, message.substring(6));
+                else if(message.equalsIgnoreCase("!last"))
+                	cmd_list(name, "5");
+                else if (m_opList.isSysop(name) && message.equalsIgnoreCase("!relay")) {
                     cmd_relay(name);
                 } else if (type != Message.CHAT_MESSAGE) {
                     // Operator commands
@@ -256,10 +260,7 @@ public class twdbot extends SubspaceBot {
                     else if (message.equalsIgnoreCase("!die")) {
                         this.handleDisconnect();
                         m_botAction.die();
-                    } else if(message.startsWith("!last "))
-                    	cmd_last(name, message.substring(6));
-                    else if(message.equalsIgnoreCase("!last"))
-                    	cmd_last(name, "5");
+                    }
                     if (m_opList.isSmod(name)) {
                         if (message.startsWith("!einfo "))
                             cmd_einfo(name, message);
@@ -975,9 +976,12 @@ public class twdbot extends SubspaceBot {
         cmd_GetResetTime(name, message, false, true);
     }
     
-    private void cmd_last(String name, String count)
+    private void cmd_list(String name, String count)
     {
-    	int lines = 0;
+    	int lines = 1;
+    	
+    	if(count == null)
+    		count = "5";
     	
     	try {
     		lines = Integer.getInteger(count);
@@ -990,6 +994,10 @@ public class twdbot extends SubspaceBot {
     	
     	try {
     		ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT ftTime, fcCommand, fnRegisteredMid, fcRegisteredIP FROM tblTWDBotCommands WHERE fcCommand LIKE 'register%' ORDER BY fnCommandID DESC LIMIT " + count);
+    		
+    		if(rs.isBeforeFirst())
+    			m_botAction.sendPrivateMessage(name, "Nothing to show here.");
+    		
     		while(rs.next())
     		{
     			String msg = rs.getString("ftTime") + "  " + rs.getString("fcCommand") + "   ";
@@ -1385,7 +1393,7 @@ public class twdbot extends SubspaceBot {
             
             //Notify TWDOps of Successful Registration
             m_botAction.sendChatMessage(2, "[Successful Registration] " + name + "   IP:" + ip + "  mID: " + mid);
-            logCommand(null, name, "register [SUCCESSFUL]", ip, mid);
+            logCommand(null, name, "register " + name + " [SUCCESSFUL]", ip, mid);
             
             m_botAction.sendSmartPrivateMessage(register, "REGISTRATION SUCCESSFUL");
             m_botAction.sendSmartPrivateMessage(register, "NOTE: Only one name per household is allowed to be registered with TWD staff approval.  If you have family members that also play, you must register manually with staff (type ?help <msg>).");
