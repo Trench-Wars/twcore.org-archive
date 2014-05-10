@@ -191,9 +191,9 @@ public class twdbot extends SubspaceBot {
                         m_botAction.sendChatMessage(3, "" + player + " has been added to challenge watch by " + name);
                         m_botAction.sendChatMessage(2, "" + player + " has been added to challenge watch by " + name);
                     }
-                } else if(message.startsWith("!last "))
+                } else if(message.startsWith("!list "))
                 	cmd_list(name, message.substring(6));
-                else if(message.equalsIgnoreCase("!last"))
+                else if(message.equalsIgnoreCase("!list"))
                 	cmd_list(name, "5");
                 else if (m_opList.isSysop(name) && message.equalsIgnoreCase("!relay")) {
                     cmd_relay(name);
@@ -1209,7 +1209,7 @@ public class twdbot extends SubspaceBot {
                 " !einfo <name>                - displays the einfo for <name> in any arena",
                 " !usage <name>                - displays the usage information for <name> in any arena",
                 " !twdops                      - displays a list of the current TWD Ops", 
-                " !last <x>                    - lists last registration attempts",
+                " !list <#>                    - lists last registration attempts",
                 " !go <arena>                  - moves the bot" };
         String SModHelp[] = { 
                 "--------- SMOD COMMANDS --------------------------------------------------------------",
