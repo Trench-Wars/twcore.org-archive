@@ -2,6 +2,7 @@ package twcore.bots.twdbot;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -169,7 +170,11 @@ public class twdbot extends SubspaceBot {
                 } else if (message.startsWith("!chawas")) {
                     cmd_watches(name);
                     return;
-                } else if (message.startsWith("!sibling "))
+                } else if(message.startsWith("!list "))
+                	cmd_list(name, message.substring(6));
+                else if(message.equalsIgnoreCase("!list"))
+                	cmd_list(name, "5");
+                else if (message.startsWith("!sibling "))
                     cmd_sibling(name, message.substring(message.indexOf(" ")));
                 else if (message.startsWith("!addsibling "))
                     cmd_addSibling(name, message.substring(message.indexOf(" ")));
@@ -191,11 +196,7 @@ public class twdbot extends SubspaceBot {
                         m_botAction.sendChatMessage(3, "" + player + " has been added to challenge watch by " + name);
                         m_botAction.sendChatMessage(2, "" + player + " has been added to challenge watch by " + name);
                     }
-                } else if(message.startsWith("!list "))
-                	cmd_list(name, message.substring(6));
-                else if(message.equalsIgnoreCase("!list"))
-                	cmd_list(name, "5");
-                else if (m_opList.isSysop(name) && message.equalsIgnoreCase("!relay")) {
+                } else if (m_opList.isSysop(name) && message.equalsIgnoreCase("!relay")) {
                     cmd_relay(name);
                 } else if (type != Message.CHAT_MESSAGE) {
                     // Operator commands
@@ -1000,14 +1001,21 @@ public class twdbot extends SubspaceBot {
     		
     		while(rs.next())
     		{
-    			String msg = rs.getString("ftTime") + "  " + rs.getString("fcCommand") + "   ";
+    			java.sql.Timestamp time = rs.getTimestamp("ftTime");
+    			DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    			String timestr = format.format(time);
+    			String command = rs.getString("fcCommand");
     			String ip = rs.getString("fnRegisteredMid");
     			String mid = rs.getString("fcRegisteredIP");
-    			if(ip != "0" && mid != "0") {
-    				msg += "IP:" + ip;
-    				msg += "  mID:" + mid;
+    			
+    			//[DD/MM/YY HH:MM:SS] command_________________________________________________________________________  [123.45.6.782] [123483974]
+    			String msg = timestr + "  " + Tools.formatString(command, 80);
+    			
+    			if(ip != "0" || mid != "0") {
+    				msg += " [" + ip + "]" + " " + "[" + mid + "]";
     			}
-    			m_botAction.sendPrivateMessage(name, msg);
+    			
+    			m_botAction.sendSmartPrivateMessage(name, msg);
     		}
     		m_botAction.SQLClose(rs);
     	} catch (SQLException e) {
