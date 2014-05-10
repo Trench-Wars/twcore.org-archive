@@ -143,7 +143,8 @@ public class MatchTeam {
         m_botAction.scheduleTask(einfoer, 2000, 2000);
         
         // Hardcoded exceptions until someone gets some time to rewrite the entire TWD stuff.
-        if (m_botAction.getArenaName().toLowerCase().startsWith("twld")) {
+        //10MAY2014 POiD Requested dd3/dd4/dd5 to use res limits but not DD1/DD2.
+        if (m_botAction.getArenaName().toLowerCase().startsWith("twld") || m_botAction.getArenaName().toLowerCase().equals("twdd3") || m_botAction.getArenaName().toLowerCase().equals("twdd4") || m_botAction.getArenaName().toLowerCase().equals("twdd5")) {
             MAX_RES_X = 1440;
             MAX_RES_Y = 1024;
         } else if (m_botAction.getArenaName().startsWith("twdd")) {
