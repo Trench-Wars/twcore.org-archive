@@ -1632,9 +1632,9 @@ public class twdbot extends SubspaceBot {
     	
     	String query =
     			"INSERT INTO `tblTWDBotCommands` SET"
-    			+ "`fnUserID` = (SELECT tblUser.`fnUserID` FROM tblUser WHERE tblUser.`fcUserName` = '" + staffName + "'),"
+    			+ "`fnUserID` = (SELECT tblUser.`fnUserID` FROM tblUser WHERE tblUser.`fcUserName` = '" + staffName + "' LIMIT 0,1),"
     			+ "`fcCommand` = '" + command + "',"
-    			+ "`fnTargetUser` = (SELECT tblUser.`fnUserID` FROM tblUser WHERE tblUser.`fcUserName` = '" + targetName + "'),"
+    			+ "`fnTargetUser` = (SELECT tblUser.`fnUserID` FROM tblUser WHERE tblUser.`fcUserName` = '" + targetName + " LIMIT 0,1'),"
     			+ "`fnRegisteredMid` = '" + machineID + "',"
     			+ "`fcRegisteredIP` = '" + ipAddress + "'," 
     			+ "`fnStaffCommand` = '" + (isStaffCommand ? "1" : "0") + "';";
