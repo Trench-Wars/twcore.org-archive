@@ -984,7 +984,7 @@ public class twdbot extends SubspaceBot {
     		count = "5";
     	
     	try {
-    		lines = Integer.getInteger(count);
+    		lines = Integer.parseInt(count);
     	} catch(NumberFormatException e) {
     		m_botAction.sendPrivateMessage(name, "Invalid argument.");
     	}
