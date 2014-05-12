@@ -843,6 +843,12 @@ public class PubPlayerManagerModule extends AbstractModule {
     public void checkCanSwitchToPrivate( int pid, int freq ) {
         if (MAX_EXTRA_ON_PRIVATES < 0)
             return;
+        
+        //Ignore players already on a private frequency.
+        short playerFreq = m_botAction.getPlayer(pid).getFrequency();
+        
+        if(playerFreq != 0 || playerFreq != 1)
+        	return;
 
         int freq0 = m_botAction.getPlayingFrequencySize(0);
         int freq1 = m_botAction.getPlayingFrequencySize(1);
