@@ -296,6 +296,7 @@ public class PubSessionModule extends AbstractModule {
 	    int[][] kills = new int[8][8];
         int[][] killedby = new int[8][8];
         byte[] landmarks = new byte[100];
+        int bonus = 0;
 	    
 	    public SessionPlayer( String name ) {
 	        this.name = name;
@@ -426,89 +427,100 @@ public class PubSessionModule extends AbstractModule {
         }
         
         public void checkForLandmarkKills( int playership, int enemyship ) {
-            int bonus = 0;
+            int kills = getTotalKills();
             
             if( landmarks[0] == 0 ) {
-                if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 10000 ) ) {
-                    send( "10000 kills this session!! You are a machine!" );
+                if( kills == 10000 ) {
                     m_botAction.sendArenaMessage( "HUGE FREAKIN' LANDMARK:  " + name + " has just made - 10000 KILLS - in this session!!" );
                     bonus = 25000;
+                    send( "10000 kills this session!! You are a machine!" );
                     landmarks[0] = 1;
                 }
-            } else if( landmarks[1] == 0 ) {
-                if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 5000 ) ) {
-                    send( "5000 kills this session! Very freakin' nice!" );
+            }
+            if( landmarks[1] == 0 ) {
+                if( kills == 5000 ) {
                     m_botAction.sendArenaMessage( "BIG BIG LANDMARK:  " + name + " has just made  5000 KILLS  in this session!!" );
                     bonus = 10000;
+                    send( "5000 kills this session! Very freakin' nice!" );
                     landmarks[1] = 1;
                 }
-            } else if( landmarks[2] == 0 ) {
-                if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 1000 ) ) {
-                    send( "1000 kills this session! Nice one!!" );
+            }
+            if( landmarks[2] == 0 ) {
+                if( kills == 1000 ) {
                     m_botAction.sendArenaMessage( "BIG LANDMARK:  " + name + " has just made  1000 KILLS  in this session!!" );
                     bonus = 5000;
+                    send( "1000 kills this session! Nice one!!" );
                     landmarks[2] = 1;
                 }
-            } else if( landmarks[3] == 0 ) {
-                if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 500 ) ) {
-                    send( "500 kills this session!" );
+            }
+            if( landmarks[3] == 0 ) {
+                if( kills == 500 ) {
                     bonus = 4000;
+                    send( "500 kills this session!" );
                     landmarks[3] = 1;
                 }
-            } else if( landmarks[4] == 0 ) {
-                if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 400 ) ) {
-                    send( "400 kills this session!" );
+            }
+            if( landmarks[4] == 0 ) {
+                if( kills == 400 ) {
                     bonus = 3000;
+                    send( "400 kills this session!" );
                     landmarks[4] = 1;
                 }
-            } else if( landmarks[5] == 0 ) {
-                if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 300 ) ) {
-                    send( "300 kills this session!" );
+            }
+            if( landmarks[5] == 0 ) {
+                if( kills == 300 ) {
                     bonus = 2000;
+                    send( "300 kills this session!" );
                     landmarks[5] = 1;
                 }
-            } else if( landmarks[6] == 0 ) {
-                if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 200 ) ) {
-                    send( "200 kills this session!" );
+            }
+            if( landmarks[6] == 0 ) {
+                if( kills == 200 ) {
                     bonus = 1000;
+                    send( "200 kills this session!" );
                     landmarks[6] = 1;
                 }
-            } else if( landmarks[7] == 0 ) {
-                if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 100 ) ) {
-                    send( "100 kills this session!" );
+            }
+            if( landmarks[7] == 0 ) {
+                if( kills == 100 ) {
                     bonus = 500;
+                    send( "100 kills this session!" );
                     landmarks[7] = 1;
                 }
-            } else if( landmarks[41] == 0 ) {
-                if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 75 ) ) {
-                    send( "75 kills this session!" );
+            }
+            if( landmarks[41] == 0 ) {
+                if( kills == 75 ) {
                     bonus = 350;
+                    send( "75 kills this session!" );
                     landmarks[41] = 1;
                 }
-            } else if( landmarks[8] == 0 ) {
-                if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 50 ) ) {
-                    send( "50 kills this session!" );
+            }
+            if( landmarks[8] == 0 ) {
+                if( kills == 50 ) {
                     bonus = 250;
+                    send( "50 kills this session!" );
                     landmarks[8] = 1;
                 }
-            } else if( landmarks[48] == 0 ) {
-                if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 25 ) ) {
-                    send( "25 kills this session.  (PM !session to see details.)" );
+            }
+            if( landmarks[48] == 0 ) {
+                if( kills == 25 ) {
                     bonus = 100;
+                    send( "25 kills this session.  (PM !session to see details.)" );
                     landmarks[48] = 1;
                 }
             }
 
             if( landmarks[39] == 0 ) {
                 if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_DEATHS_EQUAL, 500 ) ) {
-                    send( "500 deaths this session.  (Anyone can die.  But you?  You die with class.)" );
                     bonus = 500;
+                    send( "500 deaths this session.  (Anyone can die.  But you?  You die with class.)" );
                     landmarks[39] = 1;
                 }
-            } else if( landmarks[40] == 0 ) {
+            }
+            if( landmarks[40] == 0 ) {
                 if( landmarkEventCheck( LM_SHIP_ANY, LM_SHIP_ANY, LM_COMP_DEATHS_EQUAL, 100 ) ) {
+                    bonus = 150;
                     send( "100 deaths this session.  Keep up the dead work!" );
-                    bonus = 250;
                     landmarks[40] = 1;
                 }
             }
@@ -521,38 +533,40 @@ public class PubSessionModule extends AbstractModule {
             case 1:
                 if( landmarks[9] == 0 ) {
                     if( landmarkEventCheck( 1, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 500 ) ) {
-                        send( "500 kills in a Warbird this session!  You are one badass sniper!" );
                         m_botAction.sendArenaMessage( "BIG BIG LANDMARK:  " + name + " has just made  500 KILLS  in JUST a WARBIRD ALONE this session!!", 1 );
                         bonus = 5000;
+                        send( "500 kills in a Warbird this session!  You are one badass sniper!" );
                         landmarks[9] = 1;
                     }
-                } else if( landmarks[10] == 0 ) {
+                }
+                if( landmarks[10] == 0 ) {
                     if( landmarkEventCheck( 1, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 250 ) ) {
-                        send( "250 kills in a Warbird this session!  You are the [wo]man." );
                         m_botAction.sendArenaMessage( "BIG LANDMARK:  " + name + " has just made  250 KILLS  in JUST a WARBIRD ALONE this session!", 1 );
                         bonus = 2500;
+                        send( "250 kills in a Warbird this session!  You are the [wo]man." );
                         landmarks[10] = 1;
                     }
-                } else if( landmarks[11] == 0 ) {
+                }
+                if( landmarks[11] == 0 ) {
                     if( landmarkEventCheck( 1, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 100 ) ) {
-                        send( "100 kills in a Warbird this session!" );
                         bonus = 1000;
+                        send( "100 kills in a Warbird this session!" );
                         landmarks[11] = 1;
                     }
                 }
                 
                 if( enemyship == 1 && landmarks[34] == 0 ) {
                     if( landmarkEventCheck( 1, 1, LM_COMP_KILLS_EQUAL, 50 ) ) {
-                        send( "Killed 100 Warbirds while in a Warbird this session!" );
                         bonus = 1000;
+                        send( "Killed 100 Warbirds while in a Warbird this session!" );
                         landmarks[34] = 1;
                     }
                 }
                 if( landmarks[38] == 0 ) {
                     if( landmarkEventCheck( 1, LM_SHIP_ANY, LM_COMP_RATIO_BETTER_THAN, 2.0 ) ) {
                         if( getTotalKills() > 100 ) {
-                            send( "Held at least a 2:1 ratio in WB with more than 100 kills!" );
                             bonus = 4000;
+                            send( "Held at least a 2:1 ratio in WB with more than 100 kills!" );
                             landmarks[38] = 1;
                         }
                     }
@@ -564,30 +578,32 @@ public class PubSessionModule extends AbstractModule {
             case 2:
                 if( landmarks[12] == 0 ) {
                     if( landmarkEventCheck( 2, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 500 ) ) {
-                        send( "500 kills in a Javelin this session!  Are you the bounce, or is the bounce... YOU?" );
                         m_botAction.sendArenaMessage( "BIG BIG LANDMARK:  " + name + " has just made  500 KILLS  in JUST a JAVELIN ALONE this session!!", 1 );
                         bonus = 6000;
+                        send( "500 kills in a Javelin this session!  Are you the bounce, or is the bounce... YOU?" );
                         landmarks[12] = 1;
                     }
-                } else if( landmarks[13] == 0 ) {
+                }
+                if( landmarks[13] == 0 ) {
                     if( landmarkEventCheck( 2, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 250 ) ) {
-                        send( "250 kills in a Javelin this session!  Been working on your angles in a private arena, haven't you?" );
                         m_botAction.sendArenaMessage( "BIG LANDMARK:  " + name + " has just made  250 KILLS  in JUST a JAVELIN ALONE this session!", 1 );
                         bonus = 4000;
+                        send( "250 kills in a Javelin this session!  Been working on your angles in a private arena, haven't you?" );
                         landmarks[13] = 1;
                     }
-                } else if( landmarks[14] == 0 ) {
+                }
+                if( landmarks[14] == 0 ) {
                     if( landmarkEventCheck( 2, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 100 ) ) {
-                        send( "100 kills in a Javelin this session!" );
                         bonus = 1500;
+                        send( "100 kills in a Javelin this session!" );
                         landmarks[14] = 1;
                     }
                 }
                 
                 if( landmarks[42] == 0 ) {
                     if( landmarkEventCheck( 2, 5, LM_COMP_KILLS_EQUAL, 25 ) ) {
-                        send( "Killed 25 Terrs while in a Jav this session!" );
                         bonus = 2000;
+                        send( "Killed 25 Terrs while in a Jav this session!" );
                         landmarks[42] = 1;
                     }
                 }
@@ -600,30 +616,32 @@ public class PubSessionModule extends AbstractModule {
             case 3:
                 if( landmarks[15] == 0 ) {
                     if( landmarkEventCheck( 3, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 500 ) ) {
-                        send( "500 kills in a Spider this session!  Redrum... redrum..." );
                         m_botAction.sendArenaMessage( "BIG BIG LANDMARK:  " + name + " has just made  500 KILLS  in JUST a SPIDER ALONE this session!!", 1 );
                         bonus = 5000;
+                        send( "500 kills in a Spider this session!  Redrum... redrum..." );
                         landmarks[15] = 1;
                     }
-                } else if( landmarks[16] == 0 ) {
+                }
+                if( landmarks[16] == 0 ) {
                     if( landmarkEventCheck( 3, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 250 ) ) {
-                        send( "250 kills in a Spider this session!  There is no base you CAN'T defend." );
                         m_botAction.sendArenaMessage( "BIG LANDMARK:  " + name + " has just made  250 KILLS  in JUST a SPIDER ALONE this session!", 1 );
                         bonus = 2500;
+                        send( "250 kills in a Spider this session!  There is no base you CAN'T defend." );
                         landmarks[16] = 1;
                     }
-                } else if( landmarks[17] == 0 ) {
+                }
+                if( landmarks[17] == 0 ) {
                     if( landmarkEventCheck( 3, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 100 ) ) {
-                        send( "100 kills in a Spider this session!" );
                         bonus = 1000;
+                        send( "100 kills in a Spider this session!" );
                         landmarks[17] = 1;
                     }
                 }
                 
                 if( landmarks[43] == 0 ) {
                     if( landmarkEventCheck( 3, 5, LM_COMP_KILLS_EQUAL, 25 ) ) {
-                        send( "Killed 25 Terrs while in a Spider this session!" );
                         bonus = 2000;
+                        send( "Killed 25 Terrs while in a Spider this session!" );
                         landmarks[43] = 1;
                     }
                 }
@@ -634,30 +652,33 @@ public class PubSessionModule extends AbstractModule {
             case 4:
                 if( landmarks[18] == 0 ) {
                     if( landmarkEventCheck( 4, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 500 ) ) {
-                        send( "500 kills in a Leviathan this session!  Pop goes the ba-ase..." );
                         m_botAction.sendArenaMessage( "BIG BIG LANDMARK:  " + name + " has just made  500 KILLS  in JUST a LEVI ALONE this session!!", 1 );
                         bonus = 4000;
+                        send( "500 kills in a Leviathan this session!  Pop goes the ba-ase..." );
                         landmarks[18] = 1;
                     }
-                } else if( landmarks[19] == 0 ) {
+                }
+                if( landmarks[19] == 0 ) {
                     if( landmarkEventCheck( 4, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 250 ) ) {
-                        send( "250 kills in a Leviathan this session!  You like esploshin?" );
                         m_botAction.sendArenaMessage( "BIG LANDMARK:  " + name + " has just made  250 KILLS  in JUST a LEVI ALONE this session!", 1 );
                         bonus = 2000;
+                        send( "250 kills in a Leviathan this session!  You like esploshin?" );
                         landmarks[19] = 1;
                     }
-                } else if( landmarks[20] == 0 ) {
+                }
+                if( landmarks[20] == 0 ) {
                     if( landmarkEventCheck( 4, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 100 ) ) {
-                        send( "100 kills in a Leviathan this session!" );
                         bonus = 1000;
+                        send( "100 kills in a Leviathan this session!" );
+                        m_botAction.sendArenaMessage(name + " has made 100 kills in Leviathan this session! Sick of it? Pitch in with friends to !buy purepub for 30 minutes.");
                         landmarks[20] = 1;
                     }
                 }
 
                 if( landmarks[35] == 0 ) {
                     if( landmarkEventCheck( 4, 6, LM_COMP_KILLS_EQUAL, 25 ) ) {
-                        send( "Killed 25 Weasels while in a Levi this session!" );
                         bonus = 1500;
+                        send( "Killed 25 Weasels while in a Levi this session!" );
                         landmarks[35] = 1;
                     }
                 }
@@ -667,30 +688,32 @@ public class PubSessionModule extends AbstractModule {
             case 5:
                 if( landmarks[21] == 0 ) {
                     if( landmarkEventCheck( 5, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 250 ) ) {
-                        send( "250 kills in a Terrier this session!  Those guys have GOT to be getting sick of bursts to the face..." );
                         m_botAction.sendArenaMessage( "BIG BIG LANDMARK:  " + name + " has just made  500 KILLS  in JUST a TERR ALONE this session!!", 1 );
                         bonus = 10000;
+                        send( "250 kills in a Terrier this session!  Those guys have GOT to be getting sick of bursts to the face..." );
                         landmarks[21] = 1;
                     }
-                } else if( landmarks[22] == 0 ) {
+                }
+                if( landmarks[22] == 0 ) {
                     if( landmarkEventCheck( 5, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 100 ) ) {
-                        send( "100 kills in a Terrier this session!  Make 'em see red..." );
                         m_botAction.sendArenaMessage( "BIG LANDMARK:  " + name + " has just made  250 KILLS  in a TERR this session!", 1 );
                         bonus = 5000;
+                        send( "100 kills in a Terrier this session!  Make 'em see red..." );
                         landmarks[22] = 1;
                     }
-                } else if( landmarks[23] == 0 ) {
+                }
+                if( landmarks[23] == 0 ) {
                     if( landmarkEventCheck( 5, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 50 ) ) {
-                        send( "50 kills in a Terrier this session!" );
                         bonus = 2000;
+                        send( "50 kills in a Terrier this session!" );
                         landmarks[23] = 1;
                     }
                 }
                 
                 if( landmarks[44] == 0 ) {
                     if( landmarkEventCheck( 5, 5, LM_COMP_KILLS_EQUAL, 25 ) ) {
-                        send( "Killed 25 Terrs while also in a Terr this session!" );
                         bonus = 2000;
+                        send( "Killed 25 Terrs while also in a Terr this session!" );
                         landmarks[44] = 1;
                     }
                 }
@@ -701,44 +724,47 @@ public class PubSessionModule extends AbstractModule {
             case 6:
                 if( landmarks[24] == 0 ) {
                     if( landmarkEventCheck( 6, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 750 ) ) {
-                        send( "750 kills in a Weasel this session!  Man, you have got to be the most annoying person to ever have lived, am I right?" );
                         m_botAction.sendArenaMessage( "BIG BIG LANDMARK:  " + name + " has just made  1000 KILLS  in JUST a WEASEL ALONE this session!!  Kill that guy for me, will ya?", 1 );
                         bonus = 10000;
+                        send( "750 kills in a Weasel this session!  Man, you have got to be the most annoying person to ever have lived, am I right?" );
                         landmarks[24] = 1;
                     }
-                } else if( landmarks[25] == 0 ) {
+                }
+                if( landmarks[25] == 0 ) {
                     if( landmarkEventCheck( 6, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 500 ) ) {
-                        send( "500 kills in a Weasel this session!  Pew pew pew" );
                         m_botAction.sendArenaMessage( "BIG LANDMARK:  " + name + " has just made  500 KILLS  in JUST a WEASEL ALONE this session!  The tears of fallen Levis and Terrs blanket the ground.", 1 );
                         bonus = 5000;
+                        send( "500 kills in a Weasel this session!  Pew pew pew" );
                         landmarks[25] = 1;
                     }
-                } else if( landmarks[26] == 0 ) {
+                }
+                if( landmarks[26] == 0 ) {
                     if( landmarkEventCheck( 6, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 250 ) ) {
-                        send( "250 kills in a Weasel this session!  Have they started to talk about you in pubchat yet?" );
                         bonus = 2500;
+                        send( "250 kills in a Weasel this session!  Have they started to talk about you in pubchat yet?" );
                         landmarks[26] = 1;
                     }
-                } else if( landmarks[27] == 0 ) {
+                }
+                if( landmarks[27] == 0 ) {
                     if( landmarkEventCheck( 6, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 100 ) ) {
-                        send( "100 kills in a Weasel this session!  Keep it up, why don't you?" );
                         bonus = 1000;
+                        send( "100 kills in a Weasel this session!  Keep it up, why don't you?" );
                         landmarks[27] = 1;
                     }
                 }
                 
                 if( landmarks[36] == 0 ) {
                     if( landmarkEventCheck( 6, 4, LM_COMP_KILLS_EQUAL, 50 ) ) {
-                        send( "Killed 50 Levis while in a Weasel this session!" );
                         bonus = 1500;
+                        send( "Killed 50 Levis while in a Weasel this session!" );
                         landmarks[36] = 1;
                     }
                 }
                 
                 if( landmarks[45] == 0 ) {
                     if( landmarkEventCheck( 6, 5, LM_COMP_KILLS_EQUAL, 25 ) ) {
-                        send( "Killed 25 Terrs while in a Weasel this session!" );
                         bonus = 2000;
+                        send( "Killed 25 Terrs while in a Weasel this session!" );
                         landmarks[45] = 1;
                     }
                 }
@@ -750,30 +776,32 @@ public class PubSessionModule extends AbstractModule {
             case 7:
                 if( landmarks[28] == 0 ) {
                     if( landmarkEventCheck( 7, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 500 ) ) {
-                        send( "500 kills in a Lancaster this session!  And that's how they do it in the big leagues." );
                         m_botAction.sendArenaMessage( "BIG BIG LANDMARK:  " + name + " has just made  500 KILLS  in JUST a LANC ALONE this session!!", 1 );
                         bonus = 5000;
+                        send( "500 kills in a Lancaster this session!  And that's how they do it in the big leagues." );
                         landmarks[28] = 1;
                     }
-                } else if( landmarks[29] == 0 ) {
+                }
+                if( landmarks[29] == 0 ) {
                     if( landmarkEventCheck( 7, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 250 ) ) {
-                        send( "250 kills in a Lancaster this session!  Will you need two seats for your gun, or four?" );
                         m_botAction.sendArenaMessage( "BIG LANDMARK:  " + name + " has just made  250 KILLS  in JUST a LANC ALONE this session!", 1 );
                         bonus = 2500;
+                        send( "250 kills in a Lancaster this session!  Will you need two seats for your gun, or four?" );
                         landmarks[29] = 1;
                     }
-                } else if( landmarks[30] == 0 ) {
+                }
+                if( landmarks[30] == 0 ) {
                     if( landmarkEventCheck( 7, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 100 ) ) {
-                        send( "100 kills in a Lancaster this session!" );
                         bonus = 1000;
+                        send( "100 kills in a Lancaster this session!" );
                         landmarks[30] = 1;
                     }
                 }
                 
                 if( landmarks[46] == 0 ) {
                     if( landmarkEventCheck( 7, 5, LM_COMP_KILLS_EQUAL, 25 ) ) {
-                        send( "Killed 25 Terrs while in a Lanc this session!" );
                         bonus = 2000;
+                        send( "Killed 25 Terrs while in a Lanc this session!" );
                         landmarks[46] = 1;
                     }
                 }
@@ -784,30 +812,32 @@ public class PubSessionModule extends AbstractModule {
             case 8:
                 if( landmarks[31] == 0 ) {
                     if( landmarkEventCheck( 4, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 250 ) ) {
-                        send( "250 kills in a Shark this session!  And they said it couldn't be done." );
                         m_botAction.sendArenaMessage( "BIG BIG LANDMARK:  " + name + " has just made  250 KILLS  in JUST a MOTORFREAKIN' SHARK this session!!!", 1 );
                         bonus = 5000;
+                        send( "250 kills in a Shark this session!  And they said it couldn't be done." );
                         landmarks[31] = 1;
                     }
-                } else if( landmarks[32] == 0 ) {
+                }
+                if( landmarks[32] == 0 ) {
                     if( landmarkEventCheck( 4, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 100 ) ) {
-                        send( "100 kills in a Shark this session!  Somewhere in between rep-rep-rep-die/rep-rep-rep-die you managed to kill some people?!" );
                         m_botAction.sendArenaMessage( "BIG LANDMARK:  " + name + " has just made  100 KILLS  in JUST a FREAKIN' SHARK this session!!", 1 );
                         bonus = 2500;
+                        send( "100 kills in a Shark this session!  Somewhere in between rep-rep-rep-die/rep-rep-rep-die you managed to kill some people?!" );
                         landmarks[32] = 1;
                     }
-                } else if( landmarks[33] == 0 ) {
+                }
+                if( landmarks[33] == 0 ) {
                     if( landmarkEventCheck( 4, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 50 ) ) {
-                        send( "50 kills in a Shark this session, you badass!" );
                         bonus = 1000;
+                        send( "50 kills in a Shark this session, you badass!" );
                         landmarks[33] = 1;
                     }
                 }
                 
                 if( landmarks[37] == 0 ) {
                     if( landmarkEventCheck( 8, 5, LM_COMP_KILLS_EQUAL, 25 ) ) {
-                        send( "Killed 25 Terrs while in a Shark this session!" );
                         bonus = 2000;
+                        send( "Killed 25 Terrs while in a Shark this session!" );
                         landmarks[37] = 1;
                     }
                 }
@@ -837,8 +867,8 @@ public class PubSessionModule extends AbstractModule {
             case 5:
                 if( landmarks[47] == 0 ) {
                     if( landmarkEventCheck( LM_SHIP_ANY, 5, LM_COMP_KILLS_EQUAL, 50 ) ) {
-                        send( "Killed 50 Terrs this session!" );
                         bonus = 2000;
+                        send( "Killed 50 Terrs this session!" );
                         landmarks[47] = 1;
                     }
                 }
@@ -855,12 +885,7 @@ public class PubSessionModule extends AbstractModule {
                 
                 break;
             */
-            }
-            
-            if (bonus > 0) {
-                m_botAction.sendPrivateMessage(name, "AWARD: $" + bonus);
-                context.getPlayerManager().addMoney(name, bonus);
-            }
+            }            
         }
         
         
@@ -939,7 +964,13 @@ public class PubSessionModule extends AbstractModule {
 
         
         public void send( String msg ) {
-            m_botAction.sendPrivateMessage( name, "LANDMARK!  " + msg );
+            if (bonus > 0) {            
+                m_botAction.sendPrivateMessage( name, "LANDMARK!  " + msg + "  [AWARD: $" + bonus + "]");
+                context.getPlayerManager().addMoney(name, bonus);
+                bonus = 0;
+            } else {
+                m_botAction.sendPrivateMessage( name, "LANDMARK!  " + msg );
+            }
         }
 
 	}
