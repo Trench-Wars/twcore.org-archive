@@ -1011,7 +1011,7 @@ public class twdbot extends SubspaceBot {
     			//[DD/MM/YY HH:MM:SS] command_________________________________________________________________________  [123.45.6.782] [123483974]
     			String msg = timestr + "  " + Tools.formatString(command, 67);
     			
-    			if(ip != "0" || mid != "0") {
+    			if(ip.equalsIgnoreCase("0") && mid.equalsIgnoreCase("0")) {
     				msg += " [" + ip + "]" + " " + "[" + mid + "]";
     			}
     			
