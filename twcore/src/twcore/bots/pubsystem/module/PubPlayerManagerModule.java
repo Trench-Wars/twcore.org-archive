@@ -372,6 +372,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                 if (!context.getPubUtil().isPrivateFrequencyEnabled()) {
                     checkFreq(event.getPlayerID(), event.getFrequency(), true);
                 } else {
+                	
                     checkCanSwitchToPrivate( event.getPlayerID(), event.getFrequency() );
                 }
             }
