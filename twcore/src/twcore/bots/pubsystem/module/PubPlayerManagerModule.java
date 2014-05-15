@@ -353,7 +353,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         
     }
     
-    public void handleEvent(FrequencyChange event) {
+    public void handleEvent(FrequencyChange event) {        
         if (lowPopSpawning) {
             Player player = m_botAction.getPlayer(event.getPlayerID());
             if (player==null)
@@ -371,7 +371,9 @@ public class PubPlayerManagerModule extends AbstractModule {
             if (event.getFrequency() > 1) {
                 if (!context.getPubUtil().isPrivateFrequencyEnabled()) {
                     checkFreq(event.getPlayerID(), event.getFrequency(), true);
-                } 
+                } else {                	
+                    checkCanSwitchToPrivate( event.getPlayerID(), event.getFrequency() );
+                }
             }
             checkLowPopSpawn();
         }
@@ -418,8 +420,6 @@ public class PubPlayerManagerModule extends AbstractModule {
             if (event.getFrequency() > 1) {
                 if (!context.getPubUtil().isPrivateFrequencyEnabled()) {
                     checkFreq(event.getPlayerID(), event.getFrequency(), true);
-                } else {
-                    checkCanSwitchToPrivate( event.getPlayerID(), event.getFrequency() );
                 }
             }
             checkLowPopSpawn();
