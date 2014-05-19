@@ -911,12 +911,12 @@ public class PubMoneySystemModule extends AbstractModule {
             return;
         }
         
-        if (!command.contains(" ")) {
-            doCmdItems(sender, false);
-            return;
-        }
         if (buyBlock) {
             m_botAction.sendPrivateMessage(sender, "A ninja has shut down the store -- you can't buy anything right now!");
+            return;
+        }
+        if (!command.contains(" ")) {
+            doCmdItems(sender, false);
             return;
         }
         
