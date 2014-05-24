@@ -1,15 +1,22 @@
 package twcore.bots.staffbot;
 
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.TreeMap;
 
 import twcore.bots.Module;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.events.InterProcessEvent;
 import twcore.core.events.Message;
+import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
 /**
@@ -20,15 +27,18 @@ import twcore.core.util.ipc.IPCMessage;
  */
 public class staffbot_loginwatch extends Module {
 	
-    private Map<String, String> watchedIPs;
-    private Map<String, String> watchedNames;
-    private Map<String, String> watchedMIDs;
+    private Map<String, WatchComment> watchedIPs;
+    private Map<String, WatchComment> watchedNames;
+    private Map<String, WatchComment> watchedMIDs;
+    
+    private SimpleDateFormat sdf = new SimpleDateFormat("MM/dd");
+    private static enum SortField { NONE, DATE, TRIGGER, ISSUER };
 
 	@Override
 	public void initializeModule() {
-        watchedIPs = Collections.synchronizedMap(new HashMap<String, String>());
-        watchedNames = Collections.synchronizedMap(new HashMap<String, String>());
-        watchedMIDs = Collections.synchronizedMap(new HashMap<String, String>());
+        watchedIPs = Collections.synchronizedMap(new HashMap<String, WatchComment>());
+        watchedNames = Collections.synchronizedMap(new HashMap<String, WatchComment>());
+        watchedMIDs = Collections.synchronizedMap(new HashMap<String, WatchComment>());
         m_botAction.ipcSubscribe("StaffBot Watch");
 
 
@@ -86,8 +96,8 @@ public class staffbot_loginwatch extends Module {
                 doClearNameWatchCmd();
             }  else if (command.equals("!clearmidwatch"))
                 doClearMIDWatchCmd();
-            else if (command.equals("!showwatches")) {
-                doShowWatchesCmd(sender);
+            else if (command.startsWith("!showwatches ")) {
+                doShowWatchesCmd(sender, command.substring(13), true);
             } else if (command.equals("!help")){
             	doHelpCmd(sender);
             }
@@ -119,7 +129,7 @@ public class staffbot_loginwatch extends Module {
     public void checkName(String name, String IP, String MacID) {
         if (watchedNames.containsKey(name.toLowerCase())) {
             m_botAction.sendChatMessage(4,"NAMEWATCH: '" + name + "' logged in.  (IP: " + IP + ", MID: " + MacID + ")");
-            m_botAction.sendChatMessage(4,"           " + watchedNames.get(name.toLowerCase()));
+            m_botAction.sendChatMessage(4,"           " + watchedNames.get(name.toLowerCase()).toString());
         }
     }
 
@@ -137,7 +147,7 @@ public class staffbot_loginwatch extends Module {
         for (String IPfragment : watchedIPs.keySet()) {
             if (IP.startsWith(IPfragment)) {
                 m_botAction.sendChatMessage(4,"IPWATCH: Match on '" + name + "' - " + IP + " (matches " + IPfragment + "*)  MID: " + MacID);
-                m_botAction.sendChatMessage(4,"         " + watchedIPs.get(IPfragment));
+                m_botAction.sendChatMessage(4,"         " + watchedIPs.get(IPfragment).toString());
             }
         }
     }
@@ -155,7 +165,7 @@ public class staffbot_loginwatch extends Module {
     public void checkMID(String name, String IP, String MacID) {
         if (watchedMIDs.containsKey(MacID)) {
             m_botAction.sendChatMessage(4,"MIDWATCH: Match on '" + name + "' - " + MacID + "  IP: " + IP);
-            m_botAction.sendChatMessage(4,"          " + watchedMIDs.get(MacID));
+            m_botAction.sendChatMessage(4,"          " + watchedMIDs.get(MacID).toString());
         }
     }
 	
@@ -183,7 +193,8 @@ public class staffbot_loginwatch extends Module {
             } else {
                 m_botAction.sendChatMessage(4,"Login watching enabled for '" + name + "'.");
             }
-            watchedNames.put(name.toLowerCase(), sender + ": " + comment);
+            String date = sdf.format(System.currentTimeMillis());
+            watchedIPs.put(name, new WatchComment(date, sender + ": " + comment));
             saveWatches();
         }
     }
@@ -212,7 +223,8 @@ public class staffbot_loginwatch extends Module {
             } else {
                 m_botAction.sendChatMessage(4,"Login watching enabled for MID: " + MID);
             }
-            watchedMIDs.put(MID, sender + ": " + comment);
+            String date = sdf.format(System.currentTimeMillis());
+            watchedIPs.put(MID, new WatchComment(date, sender + ": " + comment));
             saveWatches();
 
         }
@@ -242,7 +254,8 @@ public class staffbot_loginwatch extends Module {
             } else {
                 m_botAction.sendChatMessage(4,"Login watching enabled for IPs starting with " + IP);
             }
-            watchedIPs.put(IP, sender + ": " + comment);
+            String date = sdf.format(System.currentTimeMillis());
+            watchedIPs.put(IP, new WatchComment(date, sender + ": " + comment));
             saveWatches();
         }
     }
@@ -276,28 +289,110 @@ public class staffbot_loginwatch extends Module {
     }
 
     /**
-     * Shows current watches.
+     * New version for {@link #doShowWatchesCmd()}, handles the !showwatches and !showmywatches commands.
+     * <p>
+     * This version combines the standard result provided by !showwatches with optional parameters, being:
+     * <ul>
+     *  <li>Sort by date issued;
+     *  <li>Sort by trigger;
+     *  <li>Sort by issuer.
+     * </ul>
+     * The above can be combined by any of the following:
+     * <ul>
+     *  <li>Ascending or descending sort;
+     *  <li>Only show the watches issued by the user of the command.
+     * </ul>
+     * <p>
+     * Please do note that any sorting is done per "group" and that the result is still displayed in the appropriate chat.
+     * @param name Issuer of the command.
+     * @param args Optional arguments: [<code><</code>{d(ate), t(rigger), i(ssuer)}>:<code><</code>{a(scending), d(escending)}>]
+     * @param showAll True if all watches are to be shown, false if only the issuer's watches are to be shown.
      */
-    public void doShowWatchesCmd(String sender) {
+    public void doShowWatchesCmd(String name, String args, boolean showAll) {
+        SortField sortBy = SortField.NONE;
+        boolean sortDirection = false;
+        boolean nothingFound = true;
+        Map<String, WatchComment> tmpWatchComments = new TreeMap<String, WatchComment>();
+        
+        if(!args.isEmpty()) {
+            String[] splitArgs = args.toLowerCase().split(":");
+            
+            if(splitArgs.length != 2) {
+                m_botAction.sendSmartPrivateMessage(name, "Invalid arguments, please consult !help.");
+                return;
+            }
+            
+            if(splitArgs[0].startsWith("d"))
+                sortBy = SortField.DATE;
+            else if(splitArgs[0].startsWith("t"))
+                sortBy = SortField.TRIGGER;
+            else if(splitArgs[0].startsWith("i"))
+                sortBy = SortField.ISSUER;
+            else
+                sortBy = SortField.NONE;
+            
+            sortDirection = splitArgs[1].startsWith("a");
+        }
+        
         if (watchedIPs.size() == 0) {
-            m_botAction.sendSmartPrivateMessage(sender, "IP:   (none)");
+            m_botAction.sendSmartPrivateMessage(name, "IP:   (none)");
+        } else {
+            if(sortBy != SortField.NONE)
+                tmpWatchComments = WatchListSorter.sortByValue(watchedIPs, sortBy, sortDirection);
+            else
+                tmpWatchComments = watchedIPs;
+            for (String IP : tmpWatchComments.keySet()) {
+                WatchComment com = tmpWatchComments.get(IP);
+                if(!showAll && !com.comment.startsWith(name))
+                    continue;
+                
+                m_botAction.sendSmartPrivateMessage(name, com.date + " IP:   " + Tools.formatString(IP, 19) + "  ( " + com.comment + " )");
+                nothingFound = false;
+            }
+            if(nothingFound)
+                m_botAction.sendSmartPrivateMessage(name, "IP:   (none)");
         }
-        for (String IP : watchedIPs.keySet()) {
-            m_botAction.sendSmartPrivateMessage(sender, "IP:   " + IP + "  ( " + watchedIPs.get(IP) + " )");
-        }
-
+        
+        nothingFound = true;
+        
         if (watchedMIDs.size() == 0) {
-            m_botAction.sendSmartPrivateMessage(sender, "MID:  (none)");
+            m_botAction.sendSmartPrivateMessage(name, "MID:  (none)");
+        } else {
+            if(sortBy != SortField.NONE)
+                tmpWatchComments = WatchListSorter.sortByValue(watchedMIDs, sortBy, sortDirection);
+            else
+                tmpWatchComments = watchedMIDs;
+            for (String MID : tmpWatchComments.keySet()) {
+                WatchComment com = tmpWatchComments.get(MID);
+                if(!showAll && !com.comment.startsWith(name))
+                    continue;
+                
+                m_botAction.sendSmartPrivateMessage(name, com.date + " MID:  " + Tools.formatString(MID, 19) + "  ( " + com.comment + " )");
+                nothingFound = false;
+            }
+            if(nothingFound)
+                m_botAction.sendSmartPrivateMessage(name, "MID:  (none)");
         }
-        for (String MID : watchedMIDs.keySet()) {
-            m_botAction.sendSmartPrivateMessage(sender, "MID:  " + MID + "  ( " + watchedMIDs.get(MID) + " )");
-        }
-
+        
+        nothingFound = true;
+        
         if (watchedNames.size() == 0) {
-            m_botAction.sendSmartPrivateMessage(sender, "Name: (none)");
-        }
-        for (String Name : watchedNames.keySet()) {
-            m_botAction.sendSmartPrivateMessage(sender, "Name: " + Name + "  ( " + watchedNames.get(Name) + " )");
+            m_botAction.sendSmartPrivateMessage(name, "Name: (none)");
+        } else {
+            if(sortBy != SortField.NONE) 
+                tmpWatchComments = WatchListSorter.sortByValue(watchedNames, sortBy, sortDirection);
+            else
+                tmpWatchComments = watchedNames;
+            for (String Name : tmpWatchComments.keySet()) {
+                WatchComment com = tmpWatchComments.get(Name);
+                if(!showAll && !com.comment.startsWith(name))
+                    continue;
+                
+                m_botAction.sendSmartPrivateMessage(name, com.date + " Name: " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
+                nothingFound = false;
+            }
+            if(nothingFound)
+                m_botAction.sendSmartPrivateMessage(name, "Name: (none)");
         }
     }
     
@@ -333,11 +428,7 @@ public class staffbot_loginwatch extends Module {
 
         checkName(playerName, playerIP, playerMacID);
         checkIP(playerName, playerIP, playerMacID);
-        checkMID(playerName, playerIP, playerMacID);
-        //checkLName(playerName, playerIP, playerMacID);
-        //checkRName(playerName, playerIP, playerMacID);
-        //checkPName(playerName, playerIP, playerMacID);
-		
+        checkMID(playerName, playerIP, playerMacID);		
 	}
 
 	private void saveWatches() {
@@ -347,7 +438,8 @@ public class staffbot_loginwatch extends Module {
 
         // Save IP watches
         for (String IP : watchedIPs.keySet()) {
-            cfg.put("IPWatch" + i, IP + ":" + watchedIPs.get(IP));
+            WatchComment com = watchedIPs.get(IP);
+            cfg.put("IPWatch" + i, com.date + ":" + IP + ":" + com.comment);
             i++;
         }
         // Clear any other still stored IP watches
@@ -365,7 +457,8 @@ public class staffbot_loginwatch extends Module {
 
         // Save MID watches
         for (String MID : watchedMIDs.keySet()) {
-            cfg.put("MIDWatch" + i, MID + ":" + watchedMIDs.get(MID));
+            WatchComment com = watchedMIDs.get(MID);
+            cfg.put("MIDWatch" + i, com.date + ":" + MID + ":" + com.comment);
             i++;
         }
         // Clear any other still stored MID watches
@@ -383,10 +476,11 @@ public class staffbot_loginwatch extends Module {
 
         // Save Name watches
         for (String Name : watchedNames.keySet()) {
-            cfg.put("NameWatch" + i, Name + ":" + watchedNames.get(Name));
+            WatchComment com = watchedNames.get(Name);
+            cfg.put("NameWatch" + i, com.date + ":" + Name + ":" + com.comment);
             i++;
         }
-        // Clear any other still stored MID watches
+        // Clear any other still stored Name watches
         while (loop) {
             if (cfg.getString("NameWatch" + i) != null) {
                 cfg.remove("NameWatch" + i);
@@ -395,7 +489,7 @@ public class staffbot_loginwatch extends Module {
                 loop = false;
             }
         }
-
+        
         cfg.save();
     }
     
@@ -412,9 +506,9 @@ public class staffbot_loginwatch extends Module {
         while (loop) {
             String IPWatch = cfg.getString("IPWatch" + i);
             if (IPWatch != null && IPWatch.trim().length() > 0) {
-                String[] IPWatchSplit = IPWatch.split(":", 2);
-                if (IPWatchSplit.length == 2)       // Check for corrupted data
-                    watchedIPs.put(IPWatchSplit[0], IPWatchSplit[1]);
+                String[] IPWatchSplit = IPWatch.split(":", 3);
+                if (IPWatchSplit.length == 3)       // Check for corrupted data
+                    watchedIPs.put(IPWatchSplit[1], new WatchComment(IPWatchSplit[0], IPWatchSplit[2]));
                 i++;
             } else {
                 loop = false;
@@ -428,9 +522,9 @@ public class staffbot_loginwatch extends Module {
         while (loop) {
             String MIDWatch = cfg.getString("MIDWatch" + i);
             if (MIDWatch != null && MIDWatch.trim().length() > 0) {
-                String[] MIDWatchSplit = MIDWatch.split(":", 2);
-                if (MIDWatchSplit.length == 2)       // Check for corrupted data
-                    watchedMIDs.put(MIDWatchSplit[0], MIDWatchSplit[1]);
+                String[] MIDWatchSplit = MIDWatch.split(":", 3);
+                if (MIDWatchSplit.length == 3)       // Check for corrupted data
+                    watchedMIDs.put(MIDWatchSplit[1], new WatchComment(MIDWatchSplit[0], MIDWatchSplit[2]));
                 i++;
             } else {
                 loop = false;
@@ -444,15 +538,67 @@ public class staffbot_loginwatch extends Module {
         while (loop) {
             String NameWatch = cfg.getString("NameWatch" + i);
             if (NameWatch != null && NameWatch.trim().length() > 0) {
-                String[] NameWatchSplit = NameWatch.split(":", 2);
-                if (NameWatchSplit.length == 2)       // Check for corrupted data
-                    watchedNames.put(NameWatchSplit[0], NameWatchSplit[1]);
+                String[] NameWatchSplit = NameWatch.split(":", 3);
+                if (NameWatchSplit.length == 3)       // Check for corrupted data
+                    watchedNames.put(NameWatchSplit[1], new WatchComment(NameWatchSplit[0], NameWatchSplit[2]));
                 i++;
             } else {
                 loop = false;
             }
         }
+    }
+    
+    private class WatchComment {
+        String comment;
+        String date;
 
-        // Done loading watches
+        public WatchComment(String date, String comment) {
+            this.date = date;
+            this.comment = comment;
+        }
+
+        public String toString() {
+            return date + " " + comment;
+        }
+    }
+    
+    private static class WatchListSorter {
+
+        /**
+         * Sorts the given map according to the given parameters.
+         * @param map The map that needs to be sorted. Must be of the type Map<{@link String}, {@link WatchComment}>
+         * @param sortBy The field that is used to sort by.
+         * @param direction True for ascending, false for descending.
+         * @return
+         */
+        public static Map<String, WatchComment> sortByValue(Map<String, WatchComment> map, final SortField sortBy, final boolean direction) {
+            // Create a list of all the entries in the given map.
+            List<Map.Entry<String, WatchComment>> list = new LinkedList<Map.Entry<String, WatchComment>>(map.entrySet());
+
+            // Sort the list according to the rules inside the compare function.
+            Collections.sort( list, new Comparator<Map.Entry<String, WatchComment>>() {
+                public int compare( Map.Entry<String, WatchComment> wc1, Map.Entry<String, WatchComment> wc2 ) {
+                    switch(sortBy) {
+                    case DATE:
+                        return (wc1.getValue().date).compareTo( wc2.getValue().date ) * (direction?1:-1);
+                    case ISSUER:
+                        return (wc1.getValue().comment).compareTo( wc2.getValue().comment ) * (direction?1:-1);
+                    case TRIGGER:
+                        return (wc1.getKey().compareTo(wc2.getKey())* (direction?1:-1));
+                    case NONE:
+                    default:
+                        return (direction?1:-1);
+                    }
+                }
+            } );
+
+            // Put the sorted list back into a map, and return the result.
+            Map<String, WatchComment> result = new LinkedHashMap<String, WatchComment>();
+            for (Map.Entry<String, WatchComment> entry : list) {
+                result.put( entry.getKey(), entry.getValue() );
+            }
+            return result;
+        }
     }
 }
+
