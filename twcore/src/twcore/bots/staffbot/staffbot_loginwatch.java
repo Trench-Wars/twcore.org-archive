@@ -227,7 +227,7 @@ public class staffbot_loginwatch extends Module {
                 m_botAction.sendChatMessage(4,"Login watching enabled for MID: " + MID);
             }
             String date = sdf.format(System.currentTimeMillis());
-            watchedIPs.put(MID, new WatchComment(date, sender + ": " + comment));
+            watchedMIDs.put(MID, new WatchComment(date, sender + ": " + comment));
             saveWatches();
 
         }
