@@ -65,8 +65,9 @@ public class staffbot_loginwatch extends Module {
                 " !IPWatch   <IP>:<reason>       - Watches logins for <IP> with the specified <reason>", " !IPWatch   <IP>                - Disables the login watch for <IP>",
                 " !MIDWatch  <MID>:<reason>      - Watches logins for <MID> with the specified <reason>", " !MIDWatch  <MID>               - Disables the login watch for <MID>",
                 " !clearNameWatch                - Clears all login watches for names", " !clearIPWatch                  - Clears all login watches for IPs",
-                " !clearMIDWatch                 - Clears all login watches for MIDs", " !showWatches                   - Shows all current login watches"
-
+                " !clearMIDWatch                 - Clears all login watches for MIDs", 
+                " !showWatches [<Sort>:<Dir>]    - Shows all current login watches",
+                "                                  Sort options: d(ate), t(rigger), i(ssuer); Dir: A(scending), D(escending)"
         };
         m_botAction.smartPrivateMessageSpam(sender, message);
     }
@@ -96,8 +97,10 @@ public class staffbot_loginwatch extends Module {
                 doClearNameWatchCmd();
             }  else if (command.equals("!clearmidwatch"))
                 doClearMIDWatchCmd();
-            else if (command.startsWith("!showwatches ")) {
-                doShowWatchesCmd(sender, command.substring(13), true);
+            else if (command.equals("!showwatches")) {
+                doShowWatchesCmd(sender, "", true);
+            } else if (command.startsWith("!showwatches ")) {
+            	doShowWatchesCmd(sender, command.substring(13), true);
             } else if (command.equals("!help")){
             	doHelpCmd(sender);
             }
@@ -194,7 +197,7 @@ public class staffbot_loginwatch extends Module {
                 m_botAction.sendChatMessage(4,"Login watching enabled for '" + name + "'.");
             }
             String date = sdf.format(System.currentTimeMillis());
-            watchedIPs.put(name, new WatchComment(date, sender + ": " + comment));
+            watchedNames.put(name, new WatchComment(date, sender + ": " + comment));
             saveWatches();
         }
     }
