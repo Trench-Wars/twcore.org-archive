@@ -3191,6 +3191,21 @@ public class PubMoneySystemModule extends AbstractModule {
     private void itemCommandPurePub(String sender, String params) {
         m_botAction.sendArenaMessage( "--[PUREPUB BUY]--  " + sender.toUpperCase() + " has purchased PUREPUB. Levis, you have 5 minutes before you are switched into another ship!", Tools.Sound.VIOLENT_CONTENT );
         
+        final TimerTask chargeUpLevis = new TimerTask() {
+            public void run() {
+                Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
+                while( i.hasNext() ) {
+                    Player p = i.next();
+                    if( p != null && p.getShipType() == Tools.Ship.LEVIATHAN ) {
+                        m_botAction.sendPrivateMessage(p.getPlayerID(), "You will be changed out of Levi in 10 seconds. Time to wreak havoc!");
+                        m_botAction.specificPrize(p.getPlayerID(), Tools.Prize.SUPER);
+                        m_botAction.specificPrize(p.getPlayerID(), Tools.Prize.SHIELDS);
+                    }
+                }
+            }
+        };
+        m_botAction.scheduleTask(chargeUpLevis, Tools.TimeInMillis.SECOND * 290);
+        
         final TimerTask disableLevis = new TimerTask() {
             public void run() {
                 m_botAction.sendArenaMessage( "[PUREPUB] is now in effect. LEVIS are disabled for the next 30 minutes!", Tools.Sound.CRYING );
@@ -3205,9 +3220,38 @@ public class PubMoneySystemModule extends AbstractModule {
                 playerManager.doSetCmd( m_botAction.getBotName(), "4 1");
             }
         };
-        m_botAction.scheduleTask(reenableLevis, Tools.TimeInMillis.MINUTE * 35);
+        m_botAction.scheduleTask(reenableLevis, Tools.TimeInMillis.MINUTE * 35);        
+    }
+    
+    /**
+     * Executes the special shop item STFU.
+     * <p>
+     * This makes it so those in spectator mode can't speak.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the PurePub
+     * @param params Currently unused
+     */
+    @SuppressWarnings("unused")
+    private void itemCommandSTFU(String sender, String params) {
+        m_botAction.sendArenaMessage( "--[SPEC SILENCE BUY]--  Someone just purchased a big can of STFU for the spec freq. Spectators will not be allowed to speak in public for 20 minutes.", Tools.Sound.HALLELUJAH );
+        m_botAction.sendUnfilteredPublicMessage( "*lockspec" );
+        m_botAction.sendUnfilteredPublicMessage( "*lockpublic" );
+        m_botAction.sendUnfilteredPublicMessage( "*lockspec" );
+                
+        final TimerTask reenableLevis = new TimerTask() {
+            public void run() {
+                m_botAction.sendUnfilteredPublicMessage( "*lockspec" );
+                m_botAction.sendUnfilteredPublicMessage( "*lockpublic" );
+                m_botAction.sendUnfilteredPublicMessage( "*lockspec" );
+                m_botAction.sendArenaMessage( "[SPEC SILENCE] has finished -- spectators may once again speak in public.", Tools.Sound.BEEP2 );
+            }
+        };
+        m_botAction.scheduleTask(reenableLevis, Tools.TimeInMillis.MINUTE * 20);
         
     }
+
     
     
     /**
