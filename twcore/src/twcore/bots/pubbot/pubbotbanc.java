@@ -246,7 +246,10 @@ public class pubbotbanc extends PubBotModule {
                         else
                             m_botAction.sendPrivateMessage(current.getName(), "You've been silenced for " + current.getTime()
                                     + " (" + current.getRemaining() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
+                        
+                        m_botAction.sendPrivateMessage(current.getName(), "If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the Ban Operator.");
                         m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
+                       
                     }
                 } else if (message.equalsIgnoreCase("Player locked in spectator mode")) {
                     if (!current.isActive()) {
@@ -263,6 +266,8 @@ public class pubbotbanc extends PubBotModule {
                         else
                             m_botAction.sendPrivateMessage(current.getName(), "You've been locked into spectator for " + current.getTime()
                                     + " (" + current.getRemaining() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
+                        
+                        m_botAction.sendPrivateMessage(current.getName(), "If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the Ban Operator.");
                         m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
                     }
                 } else if (message.equalsIgnoreCase("Player free to enter arena")) {
@@ -481,6 +486,7 @@ public class pubbotbanc extends PubBotModule {
                 if (b != null) {
                     m_botAction.sendPrivateMessage(b.getName(), "You're banned from ship" + shipNumber + " with " + b.getRemaining() + " minutes remaining.");
                     m_botAction.sendPrivateMessage(b.getName(), "You've been put in spider. But you can change to: warbird(1), spider(3), terrier(5), weasel(6) or lancaster(7).");
+                    m_botAction.sendPrivateMessage(b.getName(), "If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the Ban Operator.");
                     m_botAction.setShip(b.getName(), 3);
                 }
             } catch (NullPointerException e) {
