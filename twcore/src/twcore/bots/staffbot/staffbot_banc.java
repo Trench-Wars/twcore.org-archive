@@ -2147,7 +2147,8 @@ public class staffbot_banc extends Module {
         LinkedList<String> l = new LinkedList<String>();
         for (BanC b : activeBanCs)
             l.add(b.getPlayername() + ":" + (b.getIP() != null ? b.getIP() : " ") + ":" + (b.getMID() != null ? b.getMID() : " ") + ":"
-                    + b.getDuration() + ":" + b.getType().toString() + ":" + b.getElapsed());
+                    + b.getDuration() + ":" + b.getType().toString() + ":" + b.getElapsed() + ":" + b.getId());
+        
         m_botAction.ipcTransmit(IPCBANC, new IPCEvent(l.listIterator(), 0, bot));
         /*
         for (BanC b : activeBanCs) {

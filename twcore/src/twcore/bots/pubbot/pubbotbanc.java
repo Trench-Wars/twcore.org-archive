@@ -27,14 +27,14 @@ import twcore.core.util.ipc.IPCMessage;
  * 
  * Behaviour: - when a player enters, sends a IPC message to pubhub's banc module with the player's name "entered <playername>"
  * 
- * - when the pubbot's alias module requests *info of the player, catch it and IPC it to pubhub's banc module "info <playername>:<ip>:<mid>" - on
+ * - when the pubbot's alias module requests *info of the player, catch it and IPC it to staffbot's banc module "info <playername>:<ip>:<mid>" - on
  * receiving IPC text 'silence <playername>', *shutup player - reply with IPC message that playername is silenced - on receiving IPC text 'unsilence
  * <playername>', un-*shutup player - reply with IPC message that playername is unsilenced - on receiving IPC text 'speclock <playername>', *spec
  * player - reply with IPC message that playername is spec-locked - on receiving IPC text 'unspeclock <playername>', un-*spec player - reply with IPC
  * message that playername is unspec-locked - on receiving IPC text 'kick <playername>', *kill player - reply with IPC message that playername is
  * kicked
  * 
- * Dependencies: - pubhub's banc module - pubbot's alias module
+ * Dependencies: - staffbot's banc module - pubbot's alias module
  * 
  * @author Maverick
  * 
@@ -247,7 +247,7 @@ public class pubbotbanc extends PubBotModule {
                             m_botAction.sendPrivateMessage(current.getName(), "You've been silenced for " + current.getTime()
                                     + " (" + current.getRemaining() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
                         
-                        m_botAction.sendPrivateMessage(current.getName(), "If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the Ban Operator.");
+                        m_botAction.sendPrivateMessage(current.getName(), "If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the Ban Operator. " + "(BanC #" + current.getBanCID() +")");
                         m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
                        
                     }
@@ -267,7 +267,7 @@ public class pubbotbanc extends PubBotModule {
                             m_botAction.sendPrivateMessage(current.getName(), "You've been locked into spectator for " + current.getTime()
                                     + " (" + current.getRemaining() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
                         
-                        m_botAction.sendPrivateMessage(current.getName(), "If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the Ban Operator.");
+                        m_botAction.sendPrivateMessage(current.getName(), "If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the Ban Operator. " + "(BanC #" + current.getBanCID() +")");
                         m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
                     }
                 } else if (message.equalsIgnoreCase("Player free to enter arena")) {
@@ -486,7 +486,7 @@ public class pubbotbanc extends PubBotModule {
                 if (b != null) {
                     m_botAction.sendPrivateMessage(b.getName(), "You're banned from ship" + shipNumber + " with " + b.getRemaining() + " minutes remaining.");
                     m_botAction.sendPrivateMessage(b.getName(), "You've been put in spider. But you can change to: warbird(1), spider(3), terrier(5), weasel(6) or lancaster(7).");
-                    m_botAction.sendPrivateMessage(b.getName(), "If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the Ban Operator.");
+                    m_botAction.sendPrivateMessage(b.getName(), "If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the Ban Operator. " + "(BanC #" + b.getBanCID() +")");
                     m_botAction.setShip(b.getName(), 3);
                 }
             } catch (NullPointerException e) {
@@ -778,6 +778,7 @@ public class pubbotbanc extends PubBotModule {
     class BanC {
 
         String name, originalName;
+        int banCID;
         String ip;
         String mid;
         long time;
@@ -788,7 +789,7 @@ public class pubbotbanc extends PubBotModule {
         int elapsed;
 
         public BanC(String info) {
-            // name:ip:mid:time
+        	//name:ip:mid:duration:type:elapsed:id#
             String[] args = info.split(":");
             name = args[0];
             lastUpdate = System.currentTimeMillis();
@@ -808,6 +809,7 @@ public class pubbotbanc extends PubBotModule {
             else
                 type = BanCType.SUPERSPEC;
             elapsed = Integer.valueOf(args[5]);
+            banCID = Integer.valueOf(args[6]);
             active = true;
             aliases = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
             aliases.add(originalName);
@@ -843,6 +845,11 @@ public class pubbotbanc extends PubBotModule {
 
         public BanCType getType() {
             return type;
+        }
+        
+        public int getBanCID()
+        {
+        	return banCID;
         }
 
         public boolean isActive() {
