@@ -1566,6 +1566,7 @@ public class PubChallengeModule extends AbstractModule {
             if (pmIfNone)
                 m_botAction.sendSmartPrivateMessage(name, "No open challenges found. To issue your own, type !challenge *:ship#:money");            
         } else {
+            m_botAction.sendSmartPrivateMessage(name, "Duels open to all challengers (!accept <name> to start the duel):");            
             for (String challenger : openChallenges.keySet())            	
                 m_botAction.sendSmartPrivateMessage(name, challenger + ": " + openChallenges.get(challenger));
         }
