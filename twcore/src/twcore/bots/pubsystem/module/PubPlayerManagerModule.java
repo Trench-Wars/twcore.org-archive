@@ -60,6 +60,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     private int[] freqSizeInfo = {0, 0};                // Index 0: size difference; 1: # of smaller freq
     
     private Vector<Integer> shipWeight;
+    private boolean allowLevisOnPrivates = true; 
     
     private String databaseName;
     
@@ -71,6 +72,8 @@ public class PubPlayerManagerModule extends AbstractModule {
     private boolean notify = false;
     private boolean voting = false;
     private boolean lowPopSpawning = false;
+    
+    
     private Random r = new Random();
     private TreeMap<Integer, Integer> votes;
 
@@ -593,6 +596,17 @@ public class PubPlayerManagerModule extends AbstractModule {
     }
     
     /**
+     * Sets status of whether or not Levis can play on private freqs.
+     * @param b True if you'll allow Levis on your privates; false if you won't
+     */
+    public void setAllowLevisOnPrivates(boolean b) {
+        if( b != allowLevisOnPrivates ) {
+            allowLevisOnPrivates = b;
+            specRestrictedShips();
+        }
+    }
+    
+    /**
      * Lists any ship restrictions in effect.
      */
     public void doRestrictionsCmd(String sender) 
@@ -642,6 +656,15 @@ public class PubPlayerManagerModule extends AbstractModule {
         Player player = m_botAction.getPlayer(playerID);
         if( player == null )
             return;
+        
+        if (!allowLevisOnPrivates) {
+            if (player.getFrequency() > 1 && player.getShipType() == Tools.Ship.LEVIATHAN) {
+                Random r = new Random();
+                m_botAction.sendPrivateMessage(playerID, "[SORTAPUREPUB] Levis are not currently allowed on private freqs.");
+                m_botAction.setFreq(playerID, r.nextInt(2));
+                return;
+            }
+        }
 
         int weight = shipWeight.get(player.getShipType()).intValue();
 

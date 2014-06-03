@@ -3228,6 +3228,38 @@ public class PubMoneySystemModule extends AbstractModule {
         };
         m_botAction.scheduleTask(reenableLevis, Tools.TimeInMillis.MINUTE * 35);        
     }
+
+    /**
+     * Executes the special shop item SortaPurePub.
+     * <p>
+     * This special command disables levis on private freqs for 30 minutes.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the PurePub
+     * @param params Currently unused
+     */
+    @SuppressWarnings("unused")
+    private void itemCommandSortaPurePub(String sender, String params) {
+        m_botAction.sendArenaMessage( "--[SORTA PUREPUB BUY]--  " + sender.toUpperCase() + " has purchased SORTA PUREPUB. Levis, you have 5 minutes before you are switched to a public frequency!", Tools.Sound.VIOLENT_CONTENT );
+        
+        final TimerTask kickLevisOffPrivates = new TimerTask() {
+            public void run() {
+                m_botAction.sendArenaMessage( "[SORTAPUREPUB] is now in effect. LEVIS are not allowed on private freqs for 30 minutes!", Tools.Sound.CRYING );
+                playerManager.setAllowLevisOnPrivates(false);
+            }
+        };
+        m_botAction.scheduleTask(kickLevisOffPrivates, Tools.TimeInMillis.MINUTE * 5);
+        
+        final TimerTask allowLevisOnYourPrivates = new TimerTask() {
+            public void run() {
+                m_botAction.sendArenaMessage( "[SORTAPUREPUB] has finished -- LEVIS may now play on private freqs once again.", Tools.Sound.BEEP2 );
+                playerManager.setAllowLevisOnPrivates(true);
+            }
+        };
+        m_botAction.scheduleTask(allowLevisOnYourPrivates, Tools.TimeInMillis.MINUTE * 35);        
+    }
+    
     
     /**
      * Executes the special shop item STFU.
