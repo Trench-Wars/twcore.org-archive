@@ -250,11 +250,20 @@ public class PubMoneySystemModule extends AbstractModule {
     private void buyItem(final String playerName, String itemName, String params) {
         boolean itemBanUpdateNeeded = false;
         boolean buyingForOther = false;
-        if (!params.trim().isEmpty()) {
-            PubItem prefetch = store.getItem(itemName);
-            if (prefetch != null && (prefetch.isPlayerStrict() || prefetch.isPlayerOptional()))
-                buyingForOther = true;
-        }
+        
+        
+        PubItem prefetch = store.getItem(itemName);
+        if (prefetch != null) {
+            if (!params.trim().isEmpty()) {
+                if (prefetch.isPlayerStrict() || prefetch.isPlayerOptional())
+                    buyingForOther = true;
+            }
+
+            if (buyBlock && !prefetch.isBuyBlockImmune()) {
+                m_botAction.sendPrivateMessage(playerName, "A ninja has shut down the store -- you can't buy any non-buyblock-immune items!");
+                return;
+            }
+        }        
 
         try {
 
@@ -912,10 +921,6 @@ public class PubMoneySystemModule extends AbstractModule {
             return;
         }
         
-        if (buyBlock) {
-            m_botAction.sendPrivateMessage(sender, "A ninja has shut down the store -- you can't buy anything right now!");
-            return;
-        }
         if (!command.contains(" ")) {
             doCmdItems(sender, false);
             return;

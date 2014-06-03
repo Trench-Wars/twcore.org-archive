@@ -24,6 +24,7 @@ public abstract class PubItem {
     protected boolean playerOptional = false;
     protected boolean playerStrict = false;
     protected boolean hidden = false;
+    protected boolean buyBlockImmune = false;
 
     public PubItem(String name, String displayName, String description, int price) {
         this.name = name;
@@ -86,6 +87,10 @@ public abstract class PubItem {
 		this.playerOptional = b;
 	}
 	
+    public void setBuyBlockImmune(boolean b) {
+        this.buyBlockImmune = b;
+    }
+    
 	public boolean isRestricted() {
 		return restriction != null;
 	}
@@ -135,4 +140,9 @@ public abstract class PubItem {
 	public int getImmuneTime() {
 	    return immuneTime;
 	}
+	
+	public boolean isBuyBlockImmune() {
+	    return buyBlockImmune;
+	}
+
 }

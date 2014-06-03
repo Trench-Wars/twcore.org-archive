@@ -201,6 +201,8 @@ public class PubStore {
 	    					item.setPlayerOptional(true);
 	    				} else if(option.startsWith("!strictplayer")) {
 	    					item.setPlayerStrict(true);
+                        } else if(option.startsWith("!bbimmune")) {
+                            item.setBuyBlockImmune(true);
 	    				} else if(option.startsWith("!prizesec")) {
 	    					int seconds = Integer.parseInt(option.substring(9));
 	    					if (item instanceof PubPrizeItem) {
