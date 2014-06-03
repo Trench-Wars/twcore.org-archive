@@ -114,6 +114,7 @@ public class PubMoneySystemModule extends AbstractModule {
     private boolean canLTBuyAnywhere = false;
     private boolean donationEnabled = false;
     private boolean buyBlock = false;
+    private static final int BONUS_FLAG = 10;     // Bux given extra for holding flag  
 
     private String database;
     private MapRegions regions;
@@ -1458,14 +1459,14 @@ public class PubMoneySystemModule extends AbstractModule {
             // Bonus money earned by holding the flag.
             int moneyByFlag = 0;
             if (player.getLastKillWithFlag()) {
-                moneyByFlag = 3;
+                moneyByFlag = BONUS_FLAG;
             }
 
             int total = moneyKiller + moneyKilled + moneyByLocation + moneyByFlag;
 
             String msg = "You were a " + Tools.shipName(shipKiller) + " (+$" + moneyKiller + ")";
-            msg += ", killed a " + Tools.shipName(shipKilled) + " (+$" + moneyKilled + "). ";
-            msg += "Location: " + context.getPubUtil().getLocationName(location) + " (+$" + moneyByLocation + ").";
+            msg += ", killed a " + Tools.shipName(shipKilled) + " (+$" + moneyKilled + ")";
+            msg += " in " + context.getPubUtil().getLocationName(location) + " (+$" + moneyByLocation + ")" + (moneyByFlag > 0 ? " while holding the flag (+$" + moneyByFlag + ")": ".") ;
 
             // Overide if kill in space
             //if (location.equals(Location.SPACE)) {
@@ -2531,7 +2532,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 if (context.getGameFlagTime().isRunning()) {
                     int freqWithFlag = context.getGameFlagTime().getFreqWithFlag();
                     if (freqWithFlag == killer.getFrequency()) {
-                        money += 3;
+                        money += BONUS_FLAG;
                         withFlag = true;
                     }
                 }
@@ -2561,8 +2562,8 @@ public class PubMoneySystemModule extends AbstractModule {
                 if (p != null) {
                     p.addMoney(money);
                     // [SPACEBUX] $1000 milestone!  Balance ... $5002  Last kill ... +$10  (!lastkill for details)
-                    if (p.getMoney() % 1000 < money) {
-                        m_botAction.sendPrivateMessage(playerName, "[PUBBUX] $1000 milestone.  Balance ... $" + p.getMoney() + "  Last kill ... +$" + money + "  (!lastkill for details)");
+                    if (p.getMoney() % 500 < money) {
+                        m_botAction.sendPrivateMessage(playerName, "[PUBBUX] $500 milestone.  Balance ... $" + p.getMoney() + "  Last kill ... +$" + money + "  (!lastkill for details)");
                     }
                 }
 

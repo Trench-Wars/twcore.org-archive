@@ -159,7 +159,7 @@ public class GameFlagTimeModule extends AbstractModule {
             if (t>0) terrBonusFrequency = t;
             t = m_botAction.getBotSettings().getInt("terr_bonus_min_players");
             if (t>0) terrBonusMinOnFreq = t;
-        }        
+        }
     }
     
     /**
@@ -1237,7 +1237,9 @@ public class GameFlagTimeModule extends AbstractModule {
         int secs = flagTimer.getTotalSecs();
         int mins = (secs / 60);
 
-        int moneyBonus = (flagTimer.freqsSecs.get(winnerFreq));
+        int moneyBonus = ((flagTimer.freqsSecs.get(winnerFreq)) * 3);
+        if (moneyBonus > 2000)
+            moneyBonus = 2000;
 
         // A normal frequency (0 or 1) won the round?
         if (winnerFreq == 0 || winnerFreq == 1) {
@@ -1285,13 +1287,13 @@ public class GameFlagTimeModule extends AbstractModule {
             else
                 killsInBasePercent.put(playerName, 0);
 
-        // Halve attaches for non-winners (not remove them from the running entirely!)
+        // 3/4 of attaches for non-winners
         for (String playerName : attaches.keySet()) {
             Player p = m_botAction.getPlayer(playerName);
             if (p != null && p.getFrequency() != winnerFreq) {
                 Integer i = attaches.get(playerName);
                 if (i != null && i > 0 )
-                    attaches.put(playerName, new Integer( (int)Math.round((float)i * 0.5)) );
+                    attaches.put(playerName, new Integer( (int)Math.round((float)i * 0.75)) );
                 else
                     attaches.put(playerName, 0);
             }
@@ -1328,7 +1330,7 @@ public class GameFlagTimeModule extends AbstractModule {
         String mostKillName = getPosition(kills, 1);
         String basingKingName = getPosition(basingKing, 1);
         //String mostDeath = getPosition(deaths, 1, 8, false);
-        String lessDeath = getPosition(lessdeaths, 1, 5, true);
+        //String lessDeath = getPosition(lessdeaths, 1, 5, true);
         String mostFlagClaimed = getPosition(flagClaims, 1);
         //String mostTk = getPosition(tks, 1, 8, false);
         String mostLvk = getPosition(lvks, 1);
@@ -1338,7 +1340,7 @@ public class GameFlagTimeModule extends AbstractModule {
         // Compute the money given
         int m10 = 500 + Math.max(0, (mins - 5) * 10);
         int m5 = 250 + Math.max(0, (mins - 5) * 5);
-        int m2 = 100 + Math.max(0, (mins - 5) * 5);
+        //int m2 = 100 + Math.max(0, (mins - 5) * 5);
         
         ArrayList<String> lines = new ArrayList<String>();
 
@@ -2418,12 +2420,15 @@ public class GameFlagTimeModule extends AbstractModule {
                         m_botAction.sendPrivateMessage(p.getPlayerName(), "Not bad at all! I'll give you $500 for this.");
                         context.getPlayerManager().addMoney(p.getPlayerName(), 500);
 
-                    } else if (remain < 25)
+                    } else if (remain < 26) {
                         m_botAction.sendArenaMessage("[FLAG] SAVE!: " + p.getPlayerName() + " claims flag for "
                                 + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with " + remain + " sec. left!");
-                    else
+                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Nice work. BONUS: $250");
+                        context.getPlayerManager().addMoney(p.getPlayerName(), 250);
+                    } else {
                         m_botAction.sendArenaMessage("[FLAG] Save: " + p.getPlayerName() + " claims flag for "
                                 + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with " + remain + " sec. left.");
+                    }
             }
 
             m_botAction.showObject(2400); // Shows flag claimed lvz
