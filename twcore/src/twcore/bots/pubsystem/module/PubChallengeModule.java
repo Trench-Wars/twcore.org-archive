@@ -1455,7 +1455,7 @@ public class PubChallengeModule extends AbstractModule {
             doIgnorePlayer(sender, command);
         else if (command.equals("!ignores"))
             getIgnoredPlayers(sender);
-        else if (command.equals("!leverage "))
+        else if (command.startsWith("!leverage "))
             doLeverage(sender, command.substring(10));
     }
     
