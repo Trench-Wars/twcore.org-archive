@@ -1189,7 +1189,7 @@ public class PubChallengeModule extends AbstractModule {
             
             // Placing this code here (before duel starts) to encourage more betting
             if (allowBets) {
-                String amtString = (challenge.amount >= 250 ? "$" + challenge.getAmount() : "peanuts"); 
+                String amtString = (challenge.amount >= 250 ? challenge.getAmount() : "peanuts"); 
                 if (ship1==ship2) {
                     m_botAction.sendArenaMessage( "- [" + Tools.shipNameSlang(ship1).toUpperCase() + " DUEL] - " + challenger + " vs " + accepter
                             + " for " + amtString +". Betting closes soon. Use :tw-p:!beton <name>:<$>");
@@ -1749,10 +1749,10 @@ public class PubChallengeModule extends AbstractModule {
                 Dueler op = duel.getOppositeDueler(player);
 
                 if (duel.ship1==duel.ship2) {
-                    m_botAction.sendSmartPrivateMessage(sender, "(" + subject.kills + "-" + op.kills + ") $" + duel.getAmount() + " "
+                    m_botAction.sendSmartPrivateMessage(sender, "(" + subject.kills + "-" + op.kills + ") " + duel.getAmount() + " "
                             + Tools.shipName(duel.ship1) + " duel vs " + op.name + ": $" + context.getPlayerManager().getPlayer(op.name).getMoney());
                 } else {
-                    m_botAction.sendSmartPrivateMessage(sender, "(" + subject.kills + "-" + op.kills + ") $" + duel.getAmount() + " "
+                    m_botAction.sendSmartPrivateMessage(sender, "(" + subject.kills + "-" + op.kills + ") " + duel.getAmount() + " "
                             + Tools.shipName(duel.ship1) + "vs" + Tools.shipName(duel.ship2) + " duel vs " + op.name + ": $" + context.getPlayerManager().getPlayer(op.name).getMoney());                    
                 }
 
