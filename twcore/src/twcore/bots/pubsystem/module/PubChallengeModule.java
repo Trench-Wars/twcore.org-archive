@@ -1779,6 +1779,7 @@ public class PubChallengeModule extends AbstractModule {
             this.spam = new HashMap<String, Long>();
             this.noplay = new LinkedList<String>();
             this.openChallenges = new HashMap<String,String>();
+            this.leverageInfo = new HashMap<String,Integer>();
 
             // Setting Duel Areas
             BotSettings cfg = new BotSettings(m_botAction.getBotSettings().getString("coords_config"));
