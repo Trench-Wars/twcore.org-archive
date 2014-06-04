@@ -1245,6 +1245,7 @@ public class GameFlagTimeModule extends AbstractModule {
         int moneyBonus = ((flagTimer.freqsSecs.get(winnerFreq)) * 3);
         if (moneyBonus > 2000)
             moneyBonus = 2000;
+        m_botAction.sendOpposingTeamMessageByFrequency(winnerFreq, "Your team won this round. End-round bonus: $" + moneyBonus);
 
         // A normal frequency (0 or 1) won the round?
         if (winnerFreq == 0 || winnerFreq == 1) {
