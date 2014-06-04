@@ -2229,6 +2229,16 @@ public class GameFlagTimeModule extends AbstractModule {
     private int calcYCoord(int yCoord, double randRadians, double randRadius) {
         return yCoord + (int) Math.round(randRadius * Math.cos(randRadians));
     }
+    
+    /**
+     * Public access to flagTimer time remaining.
+     * @return Time remaining; -1 if flag timer is not running
+     */
+    public int getTimeRemaining() {
+        if (flagTimer.isRunning())
+            return flagTimer.getTimeRemaining();
+        return -1;
+    }
 
     /**
      * This private class counts the consecutive flag time an individual team racks up. Upon reaching the time needed to win, it fires the end of the

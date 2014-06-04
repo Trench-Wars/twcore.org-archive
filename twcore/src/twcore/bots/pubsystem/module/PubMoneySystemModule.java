@@ -263,7 +263,15 @@ public class PubMoneySystemModule extends AbstractModule {
                 m_botAction.sendPrivateMessage(playerName, "A ninja has shut down the store -- you can't buy any non-buyblock-immune items!");
                 return;
             }
-        }        
+            
+            if (prefetch.isEndRoundBlocked()) {
+                int time = context.getGameFlagTime().getTimeRemaining();
+                if (time != -1 && time <= 30) {
+                    m_botAction.sendPrivateMessage(playerName, "Sorry, you can't buy this item when a team is so close to a round win.");
+                    return;
+                }
+            }
+        }
 
         try {
 
