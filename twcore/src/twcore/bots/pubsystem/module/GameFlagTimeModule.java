@@ -201,13 +201,15 @@ public class GameFlagTimeModule extends AbstractModule {
         if (p.getShipType() == Tools.Ship.TERRIER)
             if (levterrs.containsKey(p.getPlayerName()))
                 levterrs.remove(p.getPlayerName());
-        if (p.getShipType() == Tools.Ship.LEVIATHAN)
-            for (LevTerr lt : levterrs.values())
+        if (p.getShipType() == Tools.Ship.LEVIATHAN) {
+            for (LevTerr lt : levterrs.values()) {
                 if (lt.leviathans.contains(p.getPlayerName())) {
                     lt.removeLeviathan(p.getPlayerName());
                     if (lt.isEmpty())
                         lt.allowAlert(true);
                 }
+            }
+        }
     }
 
     @Override
@@ -356,12 +358,15 @@ public class GameFlagTimeModule extends AbstractModule {
             for (LevTerr lt : levterrs.values())
                 if (lt.leviathans.contains(killed.getPlayerName())) {
                     lt.removeLeviathan(killed.getPlayerName());
-                    if (lt.isEmpty())
+                    if (lt.isEmpty()) {
                         lt.allowAlert(true);
-                    if (event.getKilledPlayerBounty() > 30) {
-                        m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $150 + 3x its bounty in money! +$"
-                                + (150 + (event.getKilledPlayerBounty() * 3)));
-                        context.getPlayerManager().addMoney(killer.getPlayerName(), 150 + (event.getKilledPlayerBounty() * 3));
+                        int money = 500 + (event.getKilledPlayerBounty() * 5);
+                        m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x its bounty in money! +$"+ money);
+                        context.getPlayerManager().addMoney(killer.getPlayerName(), money);
+                    } else {
+                        int money = 250 + (event.getKilledPlayerBounty() * 3);
+                        m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x its bounty in money! +$"+ money);
+                        context.getPlayerManager().addMoney(killer.getPlayerName(), money);
                     }
                     break;
                 }
@@ -2969,6 +2974,9 @@ public class GameFlagTimeModule extends AbstractModule {
             return allowAlert;
         }
 
+        /**
+         * @param b True if the bot can alert the arena to the LT's presence
+         */
         public void allowAlert(boolean b) {
             allowAlert = b;
         }
