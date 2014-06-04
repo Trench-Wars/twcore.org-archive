@@ -415,8 +415,13 @@ public class PubChallengeModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(challenger, "I pity the fool who challenges himself for a duel.");
             return;
         }
-
-        Integer li = leverageInfo.get(challenger);
+        
+        Integer li = null;
+        
+        try {
+        	li = leverageInfo.get(challenger);
+        } catch(NullPointerException e) {}
+        
         if (moneyActive) {
             if (amount < 10) {
                 m_botAction.sendSmartPrivateMessage(challenger, "You must challenge someone for $10 or more.");
