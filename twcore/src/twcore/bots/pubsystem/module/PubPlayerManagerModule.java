@@ -49,7 +49,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     
     private int SHUFFLE_SIZE = -1;
     
-    private int MAX_EXTRA_ON_PRIVATES = -1;
+    private int MAX_EXTRA_ON_PRIVATES = 999;            // -999 to disable (in CFG)
 
     private TreeMap<String, PubPlayer> players;         // Always lowercase!
     private TreeSet<String> freq0;                      // Players on freq 0
@@ -862,15 +862,9 @@ public class PubPlayerManagerModule extends AbstractModule {
     }
     
     public void checkCanSwitchToPrivate( int pid, int freq ) {
-        if (MAX_EXTRA_ON_PRIVATES < 0)
+        if (MAX_EXTRA_ON_PRIVATES == 999)
             return;
         
-        //Ignore players already on a private frequency.
-        short playerFreq = m_botAction.getPlayer(pid).getFrequency();
-        
-        if(playerFreq != 0 || playerFreq != 1)
-        	return;
-
         int freq0 = m_botAction.getPlayingFrequencySize(0);
         int freq1 = m_botAction.getPlayingFrequencySize(1);
         int privatePlayers = m_botAction.getPlayingFrequencySize(freq);
