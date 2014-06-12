@@ -139,8 +139,6 @@ public class duelbot extends SubspaceBot {
         m_commandInterpreter.registerCommand("!readcomment", acceptedMessages, this, "do_getComment");
         m_commandInterpreter.registerCommand("!setgreet", acceptedMessages, this, "do_setGreetMessage");
         m_commandInterpreter.registerCommand("!shutdown", acceptedMessages, this, "do_shutDown");
-        m_commandInterpreter.registerCommand("!alias", acceptedMessages, this, "do_aliasCheck");
-        m_commandInterpreter.registerCommand("!aliasall", acceptedMessages, this, "do_aliasCheckAll");
         m_commandInterpreter.registerCommand("!disableuser", acceptedMessages, this, "do_opDisableName");
         m_commandInterpreter.registerCommand("!shutdowndie", acceptedMessages, this, "do_shutDownDie");
         m_commandInterpreter.registerCommand("!die", acceptedMessages, this, "do_die");
@@ -150,6 +148,8 @@ public class duelbot extends SubspaceBot {
         m_commandInterpreter.registerCommand("!setgreet", acceptedMessages, this, "do_setGreetMessage");
         m_commandInterpreter.registerCommand("!addhiddenop", acceptedMessages, this, "do_addHiddenOp");
         m_commandInterpreter.registerCommand("!removehiddenop", acceptedMessages, this, "do_removeHiddenOp");
+        m_commandInterpreter.registerCommand("!alias", acceptedMessages, this, "do_aliasCheck");
+        m_commandInterpreter.registerCommand("!aliasall", acceptedMessages, this, "do_aliasCheckAll");
 
         m_commandInterpreter.registerDefaultCommand(Message.ARENA_MESSAGE, this, "do_checkArena");
     }
@@ -920,7 +920,6 @@ public class duelbot extends SubspaceBot {
                     "| !allowuser <name>         - Allows <name> to register.                             |", "|*!banuser <name>:<comment> - Bans <name> from TWEL.                                *|",
                     "| !unbanuser <name>         - Unbans <name>                                          |", "| !banned                   - Lists all banned  users.                               |",
                     "| !comment <name>:<comment> - Recomments <name>'s ban.                              *|", "| !readcomment <name>       - Gets the ban comment for <name>                        |",
-                    "| !alias <name>             - Checks the database for <name>'s aliases.              |", "| !aliasall <name>          - Checks for names with the same IP/MID, IP, or MID.     |",
                     "| !disableuser <name>       - Disables <name> in the database.                       |", "| OTHERS: !die (kills bot)    !shutdown (prevents new duels)                         |",
                     "|      !shutdowndie  (prevents new games, kills bot when no duels are active)        |", "| * New bans automatically include the date at the beginning of the comment (not old)|",
                     "--------------------------------------------------------------------------------------" };
@@ -935,6 +934,7 @@ public class duelbot extends SubspaceBot {
             String help3[] = { " ", "--Head Operator commands--------------------------------------------------------------",
                     "| !addop <name>              - Adds <name> to the Duel Operators list (!ops)         |", "| !removeop <name>           - Removes <name> from the Duel Operators list (!ops)    |",
                     "| !addhiddenop <name>        - Adds <name> to the Hidden Operators list (!ops)       |", "| !removehiddenop <name>     - Removes <name> to the Hidden Operators list (!ops)    |",
+                    "| !alias <name>             - Checks the database for <name>'s aliases.              |", "| !aliasall <name>          - Checks for names with the same IP/MID, IP, or MID.     |",
                     "| !setgreet <greeting>       - Changes the arena greeting to <greeting>              |", "--------------------------------------------------------------------------------------" };
 
             m_botAction.privateMessageSpam(name, help3);
@@ -1104,7 +1104,7 @@ public class duelbot extends SubspaceBot {
     }
 
     public void do_aliasCheck(String name, String message) {
-        if (!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase()))
+        if (!leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase()))
             return;
 
         if (sql_enabledUser(message)) {
@@ -1150,7 +1150,7 @@ public class duelbot extends SubspaceBot {
     }
 
     public void do_aliasCheckAll(String name, String message) {
-        if (!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase()))
+        if (!leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase()))
             return;
 
         if (sql_enabledUser(message)) {
