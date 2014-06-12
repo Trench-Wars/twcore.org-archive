@@ -3203,24 +3203,24 @@ public class PubMoneySystemModule extends AbstractModule {
      */
     @SuppressWarnings("unused")
     private void itemCommandPurePub(String sender, String params) {
-        m_botAction.sendArenaMessage( "--[PUREPUB BUY]--  " + sender.toUpperCase() + " has purchased PUREPUB. Levis, you have 5 minutes before you are switched into another ship!", Tools.Sound.VIOLENT_CONTENT );
+        m_botAction.sendArenaMessage( "--[PUREPUB BUY]--  " + sender.toUpperCase() + " has purchased PUREPUB. 5 minutes until making kills in a Levi will result in a shipchange.", Tools.Sound.VIOLENT_CONTENT );
         
-        final TimerTask chargeUpLevis = new TimerTask() {
+        final TimerTask notifyLevis = new TimerTask() {
             public void run() {
                 Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
                 while( i.hasNext() ) {
                     Player p = i.next();
                     if( p != null && p.getShipType() == Tools.Ship.LEVIATHAN ) {
-                        m_botAction.sendPrivateMessage(p.getPlayerID(), "In 10 seconds, if you make any kills, you will be switched to another ship. To retain your bounty, consider staying in safe until PurePub is over.");
+                        m_botAction.sendPrivateMessage(p.getPlayerID(), "NOTE: 15 seconds remaining. If you make any kills as a Levi after this time, you will be switched to another ship. To retain your bounty, consider staying in safe until PurePub is over.");
                     }
                 }
             }
         };
-        m_botAction.scheduleTask(chargeUpLevis, Tools.TimeInMillis.SECOND * 285);
+        m_botAction.scheduleTask(notifyLevis, Tools.TimeInMillis.SECOND * 285);
         
         final TimerTask disableLevis = new TimerTask() {
             public void run() {
-                m_botAction.sendArenaMessage( "[PUREPUB] is now in effect. No new LEVIS, + existing Levis can't make kills (or they'll be switched) for the next 30 minutes!", Tools.Sound.CRYING );
+                m_botAction.sendArenaMessage( "[PUREPUB] is now in effect. For 30 minutes, no new LEVIS, + existing Levis can't make kills, or they'll be shipchanged!", Tools.Sound.CRYING );
                 playerManager.setPurePubStatus(true);
             }
         };
@@ -3247,11 +3247,25 @@ public class PubMoneySystemModule extends AbstractModule {
      */
     @SuppressWarnings("unused")
     private void itemCommandSortaPurePub(String sender, String params) {
-        m_botAction.sendArenaMessage( "--[SORTA PUREPUB BUY]--  " + sender.toUpperCase() + " has purchased SORTA PUREPUB. Levis, you have 5 minutes before you are switched to a public frequency!", Tools.Sound.VIOLENT_CONTENT );
+        m_botAction.sendArenaMessage( "--[SORTA PUREPUB BUY]--  " + sender.toUpperCase() + " has purchased SORTA PUREPUB. 5 minutes until making kills in a Levi while on a private freq will result in a shipchange.", Tools.Sound.VIOLENT_CONTENT );
+
+        final TimerTask notifyLevis = new TimerTask() {
+            public void run() {
+                Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
+                while( i.hasNext() ) {
+                    Player p = i.next();
+                    if( p != null && p.getShipType() == Tools.Ship.LEVIATHAN && p.getFrequency() > 1 ) {
+                        m_botAction.sendPrivateMessage(p.getPlayerID(), "NOTE: 15 seconds remaining. If you make any kills as Levi after this time on a private freq, you will be switched to another ship. To retain your bounty, consider staying in safe until PurePub is over.");
+                    }
+                }
+            }
+        };
+        m_botAction.scheduleTask(notifyLevis, Tools.TimeInMillis.SECOND * 285);
+
         
         final TimerTask enableSPP = new TimerTask() {
             public void run() {
-                m_botAction.sendArenaMessage( "[SORTAPUREPUB] is now in effect. Only LEVIS on PUBLIC freqs may make kills without being shipchanged for 30 minutes!", Tools.Sound.CRYING );
+                m_botAction.sendArenaMessage( "[SORTAPUREPUB] is now in effect. For 30 minutes, only LEVIS on PUBLIC freqs may make kills without being shipchanged!", Tools.Sound.CRYING );
                 playerManager.setSortaPurePubStatus(true);
             }
         };
