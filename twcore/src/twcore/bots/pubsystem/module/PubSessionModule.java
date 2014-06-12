@@ -354,6 +354,14 @@ public class PubSessionModule extends AbstractModule {
         public int getDeathsRaw( int x, int y ) {
             return killedby[x][y];
         }
+
+        public int getKills( int x, int y ) {
+            return kills[x-1][y-1];
+        }
+        
+        public int getDeaths( int x, int y ) {
+            return killedby[x-1][y-1];
+        }        
         
         // # kills
         public int getTotalKills() {
@@ -910,7 +918,7 @@ public class PubSessionModule extends AbstractModule {
                         return ( getTotalKillsOfShip( eship ) == value );
                     else
                         // as specific ship
-                        return ( getKillsRaw( pship, eship ) == value );
+                        return ( getKills( pship, eship ) == value );
                 }
             } else if( comparison == LM_COMP_DEATHS_EQUAL ) {
                 if( eship == LM_SHIP_ANY ) {
@@ -930,7 +938,7 @@ public class PubSessionModule extends AbstractModule {
                         return ( getTotalDeathsToShip( eship ) == value );
                     else
                         // as specific ship
-                        return ( getDeathsRaw( eship, pship ) == value );
+                        return ( getDeaths( eship, pship ) == value );
                 }
             } 
             return false;
@@ -955,7 +963,7 @@ public class PubSessionModule extends AbstractModule {
                         return ( getRatioFloat( getTotalKillsOfShip( eship ), getTotalDeathsToShip( eship ) ) >= value );
                     else
                         // as specific ship
-                        return ( getRatioFloat( getKillsRaw( pship, eship ), getDeathsRaw( pship, eship ) ) >= value );
+                        return ( getRatioFloat( getKills( pship, eship ), getDeaths( pship, eship ) ) >= value );
                 }
             }
             return false;
