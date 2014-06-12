@@ -60,7 +60,8 @@ public class PubPlayerManagerModule extends AbstractModule {
     private int[] freqSizeInfo = {0, 0};                // Index 0: size difference; 1: # of smaller freq
     
     private Vector<Integer> shipWeight;
-    private boolean allowLevisOnPrivates = true; 
+    private boolean isPurePub = false; 
+    private boolean isSortaPurePub = false; 
     
     private String databaseName;
     
@@ -273,6 +274,11 @@ public class PubPlayerManagerModule extends AbstractModule {
                 restrictions += Tools.shipName( i ) + "s limited.  ";
         }
         
+        if (isPurePub)
+            restrictions += "No new Leviathans; existing Levis can't kill (PurePub)";
+        if (isSortaPurePub)
+            restrictions += "No new Leviathans; existing Levis can't kill on private freqs (SortaPurePub)";
+        
         if (!context.getPubUtil().isLevAttachEnabled()) {
             restrictions += "Leviathan attach disabled on public frequencies.";
         }
@@ -342,6 +348,20 @@ public class PubPlayerManagerModule extends AbstractModule {
                 }
             }
         }
+        
+        // Check new PurePub and SortaPurePub ... Levis can exist, but can't make kills.
+        if (killer.getShipType() == Tools.Ship.LEVIATHAN) {
+            if (isPurePub) {
+                m_botAction.sendPrivateMessage(killer.getPlayerID(), "[PUREPUB] is enabled. By making a kill, you have opted out of saving your bounty during PurePub, and will be placed in a new ship.");
+                m_botAction.setShip(killer.getPlayerID(), 7);
+            } else if (isSortaPurePub) {
+                if (killer.getFrequency() > 1) {
+                    m_botAction.sendPrivateMessage(killer.getPlayerID(), "[SORTAPUREPUB] is enabled. By making a kill on a private freq, you have opted out of saving your bounty during SortaPurePub, and will be placed in a new ship.");
+                    m_botAction.setShip(killer.getPlayerID(), 7);
+                    return;
+                }
+            }
+        }
 
         // The following four if statements deduct the tax value from a player who TKs.
         if (tkTax > 0 && (killer.getFrequency() == killed.getFrequency()) && (killer.getShipType() != 8)) {
@@ -376,6 +396,14 @@ public class PubPlayerManagerModule extends AbstractModule {
                     checkFreq(event.getPlayerID(), event.getFrequency(), true);
                 } else {                	
                     checkCanSwitchToPrivate( event.getPlayerID(), event.getFrequency() );
+                }
+                Player player = m_botAction.getPlayer(event.getPlayerID());
+                if (player==null)
+                    return;
+
+                if (player.getShipType() == Tools.Ship.LEVIATHAN && isSortaPurePub) {
+                    m_botAction.sendPrivateMessage(event.getPlayerID(), "[SORTAPUREPUB] is enabled. You may not change onto a private freq as a Leviathan at this time.");                    
+                    m_botAction.setShip(event.getPlayerID(), 7);
                 }
             }
             checkLowPopSpawn();
@@ -420,12 +448,22 @@ public class PubPlayerManagerModule extends AbstractModule {
 
         if (context.isStarted()) {
             checkPlayer(event.getPlayerID());
-            if (event.getFrequency() > 1) {
+            if (event.getFrequency() > 1) {                
                 if (!context.getPubUtil().isPrivateFrequencyEnabled()) {
                     checkFreq(event.getPlayerID(), event.getFrequency(), true);
                 }
+                if (event.getShipType() == Tools.Ship.LEVIATHAN && isSortaPurePub) {
+                    m_botAction.sendPrivateMessage(event.getPlayerID(), "[SORTAPUREPUB] is enabled. You may not change into a Leviathan while on a private freq at this time.");                    
+                    m_botAction.setShip(event.getPlayerID(), 7);
+                }                
+            } else {
+                if (event.getShipType() == Tools.Ship.LEVIATHAN && isPurePub) {
+                    m_botAction.sendPrivateMessage(event.getPlayerID(), "[PUREPUB] is enabled. You may not change into a Leviathan at this time.");
+                    m_botAction.setShip(event.getPlayerID(), 7);
+                }                
             }
             checkLowPopSpawn();
+
         }
     }
     
@@ -594,16 +632,24 @@ public class PubPlayerManagerModule extends AbstractModule {
             throw new RuntimeException("Usage: !set <ship#> <weight#>");
         }
     }
+
+    /**
+     * Sets PurePub restriction status. If on, Levis may not make kills,
+     * or else be switched into a new ship.
+     * @param b True if PurePub is on
+     */
+    public void setPurePubStatus(boolean b) {
+        isPurePub = b;
+    }
+    
     
     /**
-     * Sets status of whether or not Levis can play on private freqs.
-     * @param b True if you'll allow Levis on your privates; false if you won't
+     * Sets PurePub restriction status. If on, Levis on private freqs may not make kills,
+     * or else be switched into a new ship.
+     * @param b True if you'll allow Levis to make kills on your privates; false if you won't
      */
-    public void setAllowLevisOnPrivates(boolean b) {
-        if( b != allowLevisOnPrivates ) {
-            allowLevisOnPrivates = b;
-            specRestrictedShips();
-        }
+    public void setSortaPurePubStatus(boolean b) {
+        isSortaPurePub = b;
     }
     
     /**
@@ -657,7 +703,9 @@ public class PubPlayerManagerModule extends AbstractModule {
         if( player == null )
             return;
         
-        if (!allowLevisOnPrivates) {
+        // Re-enable if doing a hard shipset with purepub buys
+        /* 
+        if (isSortaPurePub) {
             if (player.getFrequency() > 1 && player.getShipType() == Tools.Ship.LEVIATHAN) {
                 Random r = new Random();
                 m_botAction.sendPrivateMessage(playerID, "[SORTAPUREPUB] Levis are not currently allowed on private freqs.");
@@ -665,6 +713,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                 return;
             }
         }
+        */
 
         int weight = shipWeight.get(player.getShipType()).intValue();
 

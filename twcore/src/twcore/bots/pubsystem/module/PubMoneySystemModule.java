@@ -3211,27 +3211,25 @@ public class PubMoneySystemModule extends AbstractModule {
                 while( i.hasNext() ) {
                     Player p = i.next();
                     if( p != null && p.getShipType() == Tools.Ship.LEVIATHAN ) {
-                        m_botAction.sendPrivateMessage(p.getPlayerID(), "You will be changed out of Levi in 10 seconds. Time to wreak havoc!");
-                        m_botAction.specificPrize(p.getPlayerID(), Tools.Prize.SUPER);
-                        m_botAction.specificPrize(p.getPlayerID(), Tools.Prize.SHIELDS);
+                        m_botAction.sendPrivateMessage(p.getPlayerID(), "In 10 seconds, if you make any kills, you will be switched to another ship. To retain your bounty, consider staying in safe until PurePub is over.");
                     }
                 }
             }
         };
-        m_botAction.scheduleTask(chargeUpLevis, Tools.TimeInMillis.SECOND * 290);
+        m_botAction.scheduleTask(chargeUpLevis, Tools.TimeInMillis.SECOND * 285);
         
         final TimerTask disableLevis = new TimerTask() {
             public void run() {
-                m_botAction.sendArenaMessage( "[PUREPUB] is now in effect. LEVIS are disabled for the next 30 minutes!", Tools.Sound.CRYING );
-                playerManager.doSetCmd( m_botAction.getBotName(), "4 0");
+                m_botAction.sendArenaMessage( "[PUREPUB] is now in effect. No new LEVIS, + existing Levis can't make kills (or they'll be switched) for the next 30 minutes!", Tools.Sound.CRYING );
+                playerManager.setPurePubStatus(true);
             }
         };
         m_botAction.scheduleTask(disableLevis, Tools.TimeInMillis.MINUTE * 5);
         
         final TimerTask reenableLevis = new TimerTask() {
             public void run() {
-                m_botAction.sendArenaMessage( "[PUREPUB] has finished -- LEVIS may now play once again.", Tools.Sound.BEEP2 );
-                playerManager.doSetCmd( m_botAction.getBotName(), "4 1");
+                m_botAction.sendArenaMessage( "[PUREPUB] has finished -- LEVIS may now make kills once again.", Tools.Sound.BEEP2 );
+                playerManager.setPurePubStatus(false);
             }
         };
         m_botAction.scheduleTask(reenableLevis, Tools.TimeInMillis.MINUTE * 35);        
@@ -3251,21 +3249,21 @@ public class PubMoneySystemModule extends AbstractModule {
     private void itemCommandSortaPurePub(String sender, String params) {
         m_botAction.sendArenaMessage( "--[SORTA PUREPUB BUY]--  " + sender.toUpperCase() + " has purchased SORTA PUREPUB. Levis, you have 5 minutes before you are switched to a public frequency!", Tools.Sound.VIOLENT_CONTENT );
         
-        final TimerTask kickLevisOffPrivates = new TimerTask() {
+        final TimerTask enableSPP = new TimerTask() {
             public void run() {
-                m_botAction.sendArenaMessage( "[SORTAPUREPUB] is now in effect. LEVIS are not allowed on private freqs for 30 minutes!", Tools.Sound.CRYING );
-                playerManager.setAllowLevisOnPrivates(false);
+                m_botAction.sendArenaMessage( "[SORTAPUREPUB] is now in effect. Only LEVIS on PUBLIC freqs may make kills without being shipchanged for 30 minutes!", Tools.Sound.CRYING );
+                playerManager.setSortaPurePubStatus(true);
             }
         };
-        m_botAction.scheduleTask(kickLevisOffPrivates, Tools.TimeInMillis.MINUTE * 5);
+        m_botAction.scheduleTask(enableSPP, Tools.TimeInMillis.MINUTE * 5);
         
-        final TimerTask allowLevisOnYourPrivates = new TimerTask() {
+        final TimerTask disableSPP = new TimerTask() {
             public void run() {
-                m_botAction.sendArenaMessage( "[SORTAPUREPUB] has finished -- LEVIS may now play on private freqs once again.", Tools.Sound.BEEP2 );
-                playerManager.setAllowLevisOnPrivates(true);
+                m_botAction.sendArenaMessage( "[SORTAPUREPUB] has finished -- LEVIS may now make kills on private freqs once again.", Tools.Sound.BEEP2 );
+                playerManager.setSortaPurePubStatus(false);
             }
         };
-        m_botAction.scheduleTask(allowLevisOnYourPrivates, Tools.TimeInMillis.MINUTE * 35);        
+        m_botAction.scheduleTask(disableSPP, Tools.TimeInMillis.MINUTE * 35);        
     }
     
     
