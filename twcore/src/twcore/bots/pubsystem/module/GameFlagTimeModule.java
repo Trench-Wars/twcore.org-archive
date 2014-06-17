@@ -54,7 +54,9 @@ public class GameFlagTimeModule extends AbstractModule {
     private HashMap<String, Integer> killsInBase;           // Number of kills inside the base (mid+flagroom)
     private HashMap<String, HashSet<Integer>> ships;        // Type of ships used during a round
 
-    private HashMap<String, LevTerr> levterrs;          // Current lev terrs
+    private HashMap<String, LevTerr> levterrs;              // Current lev terrs
+    private TimerTask levInfo;                              // Msgs info about LTs as they form
+    
 
     // Kill weight per location
     private static HashMap<Location, Integer> locationWeight;
@@ -237,11 +239,16 @@ public class GameFlagTimeModule extends AbstractModule {
 
                     levTerr.addLeviathan(p2.getPlayerName());
 
-                    TimerTask task = new TimerTask() {
+                    try {
+                        levInfo.cancel();
+                    } catch (Exception e) {                        
+                    }
+                    
+                    TimerTask levInfo = new TimerTask() {
                         @Override
                         public void run() {
                             if (!levTerr.isEmpty() && levTerr.alertAllowed()) {
-                                String message = "[LEVTER Alert] " + p1.getPlayerName() + " (Terrier) with ";
+                                String message = "[LEVTERR Alert] " + p1.getPlayerName() + " (Terrier) with ";
                                 String lev = "";
                                 for (String name : levTerr.getLeviathans())
                                     lev += ", " + name;
@@ -256,7 +263,7 @@ public class GameFlagTimeModule extends AbstractModule {
                         }
                     };
                     try {
-                        m_botAction.scheduleTask(task, 5 * Tools.TimeInMillis.SECOND);
+                        m_botAction.scheduleTask(levInfo, 5 * Tools.TimeInMillis.SECOND);
                     } catch (IllegalStateException e) {
                         Tools.printStackTrace("LevTerr timer exception", e);
                     }
