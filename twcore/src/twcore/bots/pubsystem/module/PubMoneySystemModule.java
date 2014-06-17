@@ -3220,7 +3220,7 @@ public class PubMoneySystemModule extends AbstractModule {
         
         final TimerTask disableLevis = new TimerTask() {
             public void run() {
-                m_botAction.sendArenaMessage( "[PUREPUB] is now in effect. For 30 minutes, no new LEVIS, + existing Levis can't make kills, or they'll be shipchanged!", Tools.Sound.CRYING );
+                m_botAction.sendArenaMessage( "[PUREPUB] is now in effect. For 20 minutes, no new LEVIS, + existing Levis can't make kills, or they'll be shipchanged!", Tools.Sound.CRYING );
                 playerManager.setPurePubStatus(true);
             }
         };
@@ -3232,7 +3232,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 playerManager.setPurePubStatus(false);
             }
         };
-        m_botAction.scheduleTask(reenableLevis, Tools.TimeInMillis.MINUTE * 35);        
+        m_botAction.scheduleTask(reenableLevis, Tools.TimeInMillis.MINUTE * 25);        
     }
 
     /**
@@ -3265,7 +3265,7 @@ public class PubMoneySystemModule extends AbstractModule {
         
         final TimerTask enableSPP = new TimerTask() {
             public void run() {
-                m_botAction.sendArenaMessage( "[SORTAPUREPUB] is now in effect. For 30 minutes, only LEVIS on PUBLIC freqs may make kills without being shipchanged!", Tools.Sound.CRYING );
+                m_botAction.sendArenaMessage( "[SORTAPUREPUB] is now in effect. For 20 minutes, only LEVIS on PUBLIC freqs may make kills without being shipchanged!", Tools.Sound.CRYING );
                 playerManager.setSortaPurePubStatus(true);
             }
         };
@@ -3277,7 +3277,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 playerManager.setSortaPurePubStatus(false);
             }
         };
-        m_botAction.scheduleTask(disableSPP, Tools.TimeInMillis.MINUTE * 35);        
+        m_botAction.scheduleTask(disableSPP, Tools.TimeInMillis.MINUTE * 25);        
     }
     
     
