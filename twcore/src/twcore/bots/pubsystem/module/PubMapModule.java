@@ -187,7 +187,7 @@ public class PubMapModule extends AbstractModule {
         try {
             ba.sendArenaMessage("[BASE] Map changing to " + getBase(base) + " in 10 seconds.");
             baseChanger = new BaseChange(base);
-            ba.scheduleTask(baseChanger, 10000);
+            ba.scheduleTask(baseChanger, 12500);
         } catch (IllegalStateException e) {}
     }
     
