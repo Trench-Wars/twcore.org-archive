@@ -1101,7 +1101,7 @@ public class matchbot extends SubspaceBot {
                             + "LIMIT 10");
 
                     String squadsChalled = "You have challenged: ";
-
+                    int numSquads = 0;
                     while (squads.next()) {
                         String nmySquad = squads.getString("fcTeamName");
 
@@ -1110,10 +1110,12 @@ public class matchbot extends SubspaceBot {
                         m_botAction.sendSquadMessage(nmySquad, name + " is challenging you for a game of " + players + "vs" + players + " "
                                 + m_rules.getString("name") + " versus " + dp.getTeamName() + ". Captains/assistants, ?go "
                                 + m_botAction.getArenaName() + " and pm me with '!accept " + dp.getTeamName() + "'");
-                        if (!squads.isLast())
+                        if (!squads.isLast()) {
                             squadsChalled += nmySquad + ", ";
-                        else
-                            squadsChalled += "and " + nmySquad + ".";
+                            numSquads++;
+                        } else {
+                            squadsChalled += (numSquads <= 1 ? "and " : "") + nmySquad + "." ;
+                        }
                     }
                     m_botAction.SQLClose(squads);
                     m_botAction.sendSmartPrivateMessage(name, squadsChalled);
