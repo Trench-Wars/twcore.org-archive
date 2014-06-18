@@ -276,55 +276,16 @@ public class PubMoneySystemModule extends AbstractModule {
         try {
 
             if (playerManager.isPlayerExists(playerName)) {
-
-                // Wait, is this player dueling?
-                if (context.getPubChallenge().isDueling(playerName)) {
-                    m_botAction.sendSmartPrivateMessage(playerName, "You cannot buy an item while dueling.");
-                    return;
-                }
-
-                // Kill-o-thon running and he's the leader?
-                if (context.getPubKillSession().isLeader(playerName) && !buyingForOther) {
-                    m_botAction.sendSmartPrivateMessage(playerName, "You cannot buy an item while being a leader of kill-o-thon.");
-                    return;
+                
+                String buyTarget;
+                if (buyingForOther) {
+                    buyTarget = playerName;
+                } else {
+                    buyTarget = params.trim();
                 }
                 
-                // Is the player's ship on the list of ships that is restricted to only buy in safe?
-                Player p = m_botAction.getPlayer(playerName);
-                if(p != null && p.getShipType() != Tools.Ship.SPECTATOR && !buyingForOther) {
-                    // Only check this global restriction for players that are actually in a ship.
-                    if(canBuyAnywhere.isEmpty() || !canBuyAnywhere.contains((int) p.getShipType())) {
-                        Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
-                        if (r != null && !(Region.SAFE.equals(r))) {
-                            // No buying except in safe!
-                            m_botAction.sendSmartPrivateMessage(playerName, Tools.shipName(p.getShipType()) + " can only !buy in safe.");
-                            return;
-                        }
-                    }
-                }
-                
-                // Special case of the above. Is the player on a LT, while outside a safe and LTs being restricted to only be able to buy in a safe.
-                if(!canLTBuyAnywhere) {
-                    if (p.isShip(Ship.LEVIATHAN) && p.isAttached()) {
-                        Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
-                        if (r != null && !(Region.SAFE.equals(r))) {
-                            m_botAction.sendPrivateMessage(playerName, "LTs must be in a safety zone to purchase items.");
-                            return;
-                        }
-                    } else if (p.isShip(Ship.TERRIER) && p.hasAttachees()) {
-                        Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
-                        if (r != null && !(Region.SAFE.equals(r))) {
-                            LinkedList<Integer> playerIDs = p.getTurrets();
-                            for (Integer i : playerIDs) {
-                                Player a = m_botAction.getPlayer(i);
-                                if (a != null && a.isShip(Ship.LEVIATHAN)) {
-                                    m_botAction.sendPrivateMessage(playerName, "LTs must be in a safety zone to purchase items.");
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
+                if (isRestricted(buyTarget, playerName))
+                    return;
                 
                 // Is the player currently banned from using the shop?
                 if(!shopBans.isEmpty() && shopBans.containsKey(playerName.toLowerCase())) {
@@ -407,6 +368,87 @@ public class PubMoneySystemModule extends AbstractModule {
             Tools.printStackTrace(e);
         }
 
+    }
+    
+    /**
+     * Checks if an item is restricted for a specific player. 
+     * @param playerName Name of player who will receive item
+     * @param buyerName Name of player buying item (might be the same)
+     * @return True if the player can't buy the item
+     */
+    public boolean isRestricted( String playerName, String buyerName ) {
+        Player p = m_botAction.getPlayer(playerName);
+        
+        if (p == null)
+            p = m_botAction.getFuzzyPlayer(playerName);
+        if (p == null)
+            return true;
+        
+        boolean buyFor = p.getPlayerName().equalsIgnoreCase(buyerName);
+        
+        // Wait, is this player dueling?
+        if (context.getPubChallenge().isDueling(playerName)) {
+            if (!buyFor)
+                m_botAction.sendSmartPrivateMessage(buyerName, "You cannot buy an item while dueling.");
+            else
+                m_botAction.sendSmartPrivateMessage(buyerName, "You cannot buy an item for someone who is dueling.");                
+            return true;
+        }
+
+        // Kill-o-thon running and he's the leader?
+        if (context.getPubKillSession().isLeader(playerName)) {
+            if (!buyFor)
+                m_botAction.sendSmartPrivateMessage(buyerName, "You cannot buy an item while being a leader of the Kill-o-Thon.");
+            else
+                m_botAction.sendSmartPrivateMessage(buyerName, "You cannot buy an item for the leader of the Kill-o-Thon.");                
+            return true;
+        }
+        
+        // Is the player's ship on the list of ships that is restricted to only buy in safe?
+        //Player p = m_botAction.getPlayer(playerName);
+        if(p != null && p.getShipType() != Tools.Ship.SPECTATOR) {
+            // Only check this global restriction for players that are actually in a ship.
+            if(canBuyAnywhere.isEmpty() || !canBuyAnywhere.contains((int) p.getShipType())) {
+                Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
+                if (r != null && !(Region.SAFE.equals(r))) {
+                    // No buying except in safe!
+                    m_botAction.sendSmartPrivateMessage(buyerName, Tools.shipName(p.getShipType()) + " can only !buy in safe.");
+                    return true;
+                }
+            }
+        }
+        
+        // Special case of the above. Is the player on a LT, while outside a safe and LTs being restricted to only be able to buy in a safe.
+        if(!canLTBuyAnywhere) {
+            if (p.isShip(Ship.LEVIATHAN) && p.isAttached()) {
+                Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
+                if (r != null && !(Region.SAFE.equals(r))) {
+                    if (!buyFor)
+                        m_botAction.sendPrivateMessage(buyerName, "LTs must be in a safety zone to purchase items.");
+                    else
+                        m_botAction.sendPrivateMessage(buyerName, "LTs must be in a safety zone to have an item purchased for them.");
+                    return true;
+                }
+            } else if (p.isShip(Ship.TERRIER) && p.hasAttachees()) {
+                Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
+                if (r != null && !(Region.SAFE.equals(r))) {
+                    LinkedList<Integer> playerIDs = p.getTurrets();
+                    for (Integer i : playerIDs) {
+                        Player a = m_botAction.getPlayer(i);
+                        if (a != null && a.isShip(Ship.LEVIATHAN)) {
+                            if (!buyFor)
+                                m_botAction.sendPrivateMessage(buyerName, "LTs must be in a safety zone to purchase items.");
+                            else
+                                m_botAction.sendPrivateMessage(buyerName, "LTs must be in a safety zone to have an item purchased for them.");
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        
+        return false;
     }
 
     /**
