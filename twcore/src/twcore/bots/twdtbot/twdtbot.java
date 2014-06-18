@@ -121,15 +121,17 @@ public class twdtbot extends SubspaceBot {
     }
     
     private void cmd_signup(String name) {
-        DBPlayerData dbP = new DBPlayerData(m_botAction, db, name);
 
-        // a name has to be registered
+        // No longer needs to be registered in TWD.  -qan 6/17/14
+        /*
+        DBPlayerData dbP = new DBPlayerData(m_botAction, db, name);
         if (!dbP.isRegistered())
             m_botAction.sendPrivateMessage(name, "Your name is not registered. You must send !register to TWDBot in ?go twd before you signup for TWDT.");
         else if (!dbP.isEnabled())
             m_botAction.sendPrivateMessage(name, "Your name is not enabled. You must be registered and enabled in TWD to signup for TWDT.");
         else {
-            ResultSet rs = null;
+        */
+        ResultSet rs = null;
             
             try {
                 rs = ba.SQLQuery(db, "SELECT ftUpdated as t FROM tblDraft__Player WHERE fnSeason = " + season + " AND fcName = '" + Tools.addSlashesToString(name) + "' LIMIT 1");
@@ -138,7 +140,7 @@ public class twdtbot extends SubspaceBot {
                     t = t.substring(0, 10) + " at " + t.substring(11, 16);
                     ba.sendSmartPrivateMessage(name, "You already signed up on " + t + ".");
                 } else {
-                    ba.SQLBackgroundQuery(db, null, "INSERT INTO tblDraft__Player (fnUserID, fnSeason, fcName, fcPlayerStatusTypeID) VALUES(" + dbP.getUserID() + ", " + season + ", '" + Tools.addSlashesToString(name) + "', " + 7 + ")");
+                    ba.SQLBackgroundQuery(db, null, "INSERT INTO tblDraft__Player (fnSeason, fcName, fcPlayerStatusTypeID) VALUES(" + season + ", '" + Tools.addSlashesToString(name) + "', " + 7 + ")");
                     ba.SQLBackgroundQuery(db, null, "INSERT INTO tblDraft__PlayerReg (fcName, fnSeason) VALUES('" + Tools.addSlashesToString(name) + "', " + season + ")");
                     ba.sendSmartPrivateMessage(name, "Signup successful! To view your account and other information regarding the current season. Please visit http://www.trenchwars.org/twdt/ and login at the top of the page.");
                 }
@@ -148,13 +150,13 @@ public class twdtbot extends SubspaceBot {
             } finally {
                 ba.SQLClose(rs);
             }
-        }
+        //}
     }
     
     private void cmd_count(String name) {
         ResultSet rs = null;
         try {
-            rs = ba.SQLQuery(db, "SELECT COUNT(fnUserID) as c FROM tblDraft__Player WHERE fnSeason = " + season + "");
+            rs = ba.SQLQuery(db, "SELECT COUNT(fnDraftID) as c FROM tblDraft__Player WHERE fnSeason = " + season + "");
             
             if (rs.next())
                 ba.sendSmartPrivateMessage(name, "Total players registerd: " + rs.getInt("c"));
