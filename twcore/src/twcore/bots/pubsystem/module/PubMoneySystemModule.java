@@ -279,9 +279,9 @@ public class PubMoneySystemModule extends AbstractModule {
                 
                 String buyTarget;
                 if (buyingForOther) {
-                    buyTarget = playerName;
-                } else {
                     buyTarget = params.trim();
+                } else {
+                    buyTarget = playerName;
                 }
                 
                 if (isRestricted(buyTarget, playerName))
@@ -446,7 +446,6 @@ public class PubMoneySystemModule extends AbstractModule {
                 }
             }
         }
-
         
         return false;
     }
