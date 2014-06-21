@@ -946,7 +946,7 @@ public class pubhubalias extends PubBotModule {
                 m_botAction.sendChatMessage("Login watching enabled for '" + name + "'.");
             }
             String date = sdf.format(System.currentTimeMillis());
-            watchedPNames.put(lcname, new WatchComment(date, sender + ": " + comment));
+            watchedPNames.put(lcname.toLowerCase(), new WatchComment(date, sender + ": " + comment));
             saveWatches();
         }
     }
