@@ -197,7 +197,7 @@ public class staffbot_loginwatch extends Module {
                 m_botAction.sendChatMessage(4,"Login watching enabled for '" + name + "'.");
             }
             String date = sdf.format(System.currentTimeMillis());
-            watchedNames.put(name, new WatchComment(date, sender + ": " + comment));
+            watchedNames.put(name.toLowerCase(), new WatchComment(date, sender + ": " + comment));
             saveWatches();
         }
     }
