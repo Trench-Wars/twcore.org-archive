@@ -384,11 +384,11 @@ public class PubMoneySystemModule extends AbstractModule {
         if (p == null)
             return true;
         
-        boolean buyFor = p.getPlayerName().equalsIgnoreCase(buyerName);
+        boolean buyingForOther = !p.getPlayerName().equalsIgnoreCase(buyerName);
         
         // Wait, is this player dueling?
         if (context.getPubChallenge().isDueling(playerName)) {
-            if (!buyFor)
+            if (!buyingForOther)
                 m_botAction.sendSmartPrivateMessage(buyerName, "You cannot buy an item while dueling.");
             else
                 m_botAction.sendSmartPrivateMessage(buyerName, "You cannot buy an item for someone who is dueling.");                
@@ -397,7 +397,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
         // Kill-o-thon running and he's the leader?
         if (context.getPubKillSession().isLeader(playerName)) {
-            if (!buyFor)
+            if (!buyingForOther)
                 m_botAction.sendSmartPrivateMessage(buyerName, "You cannot buy an item while being a leader of the Kill-o-Thon.");
             else
                 m_botAction.sendSmartPrivateMessage(buyerName, "You cannot buy an item for the leader of the Kill-o-Thon.");                
@@ -423,7 +423,7 @@ public class PubMoneySystemModule extends AbstractModule {
             if (p.isShip(Ship.LEVIATHAN) && p.isAttached()) {
                 Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
                 if (r != null && !(Region.SAFE.equals(r))) {
-                    if (!buyFor)
+                    if (!buyingForOther)
                         m_botAction.sendPrivateMessage(buyerName, "LTs must be in a safety zone to purchase items.");
                     else
                         m_botAction.sendPrivateMessage(buyerName, "LTs must be in a safety zone to have an item purchased for them.");
@@ -436,7 +436,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     for (Integer i : playerIDs) {
                         Player a = m_botAction.getPlayer(i);
                         if (a != null && a.isShip(Ship.LEVIATHAN)) {
-                            if (!buyFor)
+                            if (!buyingForOther)
                                 m_botAction.sendPrivateMessage(buyerName, "LTs must be in a safety zone to purchase items.");
                             else
                                 m_botAction.sendPrivateMessage(buyerName, "LTs must be in a safety zone to have an item purchased for them.");
