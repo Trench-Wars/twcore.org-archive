@@ -106,6 +106,7 @@ public class pubsystem extends SubspaceBot
     private String commentGreeting;
     private Log commentLog;
     private Log commentLogAnon;
+    private Log publicChatLog;
     
     private boolean printHelpSpaces = false;            // Whether to print spaces after each section
                                                         //   in !help spam
@@ -194,9 +195,15 @@ public class pubsystem extends SubspaceBot
 	        if(commentGreeting.isEmpty())
 	            commentGreeting = null;
 	        
+            String header = "=== Session started at " + Tools.getTimeStamp() + " ===";
+            publicChatLog.write(Tools.formatString("=", header.length(), "="));
+            publicChatLog.write(header);
+            publicChatLog.write(Tools.formatString("=", header.length(), "="));
+            publicChatLog.write("");
+            publicChatLog = new Log(m_botAction, "PubChat.log");
+            
 	        if(commentGreeting != null && !m_botAction.getBotSettings().getString("comment_log").isEmpty()) {
 	            commentLog = new Log(m_botAction, m_botAction.getBotSettings().getString("comment_log"));
-	            String header = "=== Session started at " + Tools.getTimeStamp() + " ===";
 	            commentLog.write(Tools.formatString("=", header.length(), "="));
 	            commentLog.write(header);
                 commentLog.write(Tools.formatString("=", header.length(), "="));
@@ -208,7 +215,7 @@ public class pubsystem extends SubspaceBot
                 commentLogAnon.write("");
 	        } else
 	            commentGreeting = null;
-	            
+	        
 	        
     	} catch (Exception e) {
     		Tools.printStackTrace(e);
@@ -390,6 +397,11 @@ public class pubsystem extends SubspaceBot
                 }
             }
         }
+        
+        if (messageType == Message.PUBLIC_MESSAGE)
+            publicChatLog.write("P " + message);
+        else if (messageType == Message.TEAM_MESSAGE)
+            publicChatLog.write("T " + message);            
     }
 
 
@@ -822,19 +834,26 @@ public class pubsystem extends SubspaceBot
     }
 	
     public void handleDisconnect() {
-        if(commentLog != null) {
+        if (commentLog != null) {
             commentLog.write("");
             commentLog.write("=== Session ended ===");
             commentLog.write("");
             commentLog.write("");
             commentLog.close();
         }
-        if(commentLogAnon != null) {
+        if (commentLogAnon != null) {
             commentLogAnon.write("");
             commentLogAnon.write("=== Session ended ===");
             commentLogAnon.write("");
             commentLogAnon.write("");
             commentLogAnon.close();
+        }
+        if (publicChatLog != null) {
+            publicChatLog.write("");
+            publicChatLog.write("=== Session ended ===");
+            publicChatLog.write("");
+            publicChatLog.write("");
+            publicChatLog.close();
         }
     	if (context!=null)
     		context.handleDisconnect();
