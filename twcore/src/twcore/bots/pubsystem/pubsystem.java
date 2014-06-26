@@ -122,6 +122,27 @@ public class pubsystem extends SubspaceBot
         super(botAction);
         requestEvents();
 
+        // Setup all logs prior to logon
+        publicChatLog = new Log(m_botAction, "PubChat.log");
+        String header = "=== Session started at " + Tools.getTimeStamp() + " ===";
+        publicChatLog.write(Tools.formatString("=", header.length(), "="));
+        publicChatLog.write(header);
+        publicChatLog.write(Tools.formatString("=", header.length(), "="));
+        publicChatLog.write("");
+        
+        if(commentGreeting != null && !m_botAction.getBotSettings().getString("comment_log").isEmpty()) {
+            commentLog = new Log(m_botAction, m_botAction.getBotSettings().getString("comment_log"));
+            commentLog.write(Tools.formatString("=", header.length(), "="));
+            commentLog.write(header);
+            commentLog.write(Tools.formatString("=", header.length(), "="));
+            commentLog.write("");
+            commentLogAnon = new Log(m_botAction, "anon" + m_botAction.getBotSettings().getString("comment_log"));
+            commentLogAnon.write(Tools.formatString("=", header.length(), "="));
+            commentLogAnon.write(header);
+            commentLogAnon.write(Tools.formatString("=", header.length(), "="));
+            commentLogAnon.write("");
+        } else
+            commentGreeting = null;
     }
 
     /**
@@ -193,29 +214,7 @@ public class pubsystem extends SubspaceBot
 	        
 	        commentGreeting = m_botAction.getBotSettings().getString("CommentGreeting");
 	        if(commentGreeting.isEmpty())
-	            commentGreeting = null;
-	        
-            String header = "=== Session started at " + Tools.getTimeStamp() + " ===";
-            publicChatLog.write(Tools.formatString("=", header.length(), "="));
-            publicChatLog.write(header);
-            publicChatLog.write(Tools.formatString("=", header.length(), "="));
-            publicChatLog.write("");
-            publicChatLog = new Log(m_botAction, "PubChat.log");
-            
-	        if(commentGreeting != null && !m_botAction.getBotSettings().getString("comment_log").isEmpty()) {
-	            commentLog = new Log(m_botAction, m_botAction.getBotSettings().getString("comment_log"));
-	            commentLog.write(Tools.formatString("=", header.length(), "="));
-	            commentLog.write(header);
-                commentLog.write(Tools.formatString("=", header.length(), "="));
-                commentLog.write("");
-                commentLogAnon = new Log(m_botAction, "anon" + m_botAction.getBotSettings().getString("comment_log"));
-                commentLogAnon.write(Tools.formatString("=", header.length(), "="));
-                commentLogAnon.write(header);
-                commentLogAnon.write(Tools.formatString("=", header.length(), "="));
-                commentLogAnon.write("");
-	        } else
-	            commentGreeting = null;
-	        
+	            commentGreeting = null;	        
 	        
     	} catch (Exception e) {
     		Tools.printStackTrace(e);
@@ -397,6 +396,8 @@ public class pubsystem extends SubspaceBot
                 }
             }
         }
+        if (!context.isStarted())
+            return;
         
         if (messageType == Message.PUBLIC_MESSAGE)
             publicChatLog.write("P " + message);
