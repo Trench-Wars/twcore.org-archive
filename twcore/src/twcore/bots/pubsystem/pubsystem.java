@@ -400,9 +400,9 @@ public class pubsystem extends SubspaceBot
             return;
         
         if (messageType == Message.PUBLIC_MESSAGE)
-            publicChatLog.write("P " + message);
+            publicChatLog.write(Tools.rightString(sender + "> ", 24) + message);
         else if (messageType == Message.TEAM_MESSAGE)
-            publicChatLog.write("T " + message);            
+            publicChatLog.write("T" + Tools.rightString(sender + "> ", 23) + message);
     }
 
 
