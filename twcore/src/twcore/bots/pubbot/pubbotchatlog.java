@@ -11,7 +11,7 @@ public class pubbotchatlog extends PubBotModule{
 
 	private Stack<String> chat = new Stack<String>();
 	
-	private int maxSize = 50;
+	private int maxSize = 80;
 	
 	public void handleEvent(Message event){
 		
@@ -39,7 +39,6 @@ public class pubbotchatlog extends PubBotModule{
 								numberSizeChatLog = maxSize;
 							if(numberSizeChatLog > chat.size())
 								numberSizeChatLog = chat.size();
-						
 							for(int i = numberSizeChatLog - 1 ; i >= 0 ; i--) //will get lines of chats
 									if(chat.get(i) != null)
 										m_botAction.sendPrivateMessage(name, chat.get(i));
