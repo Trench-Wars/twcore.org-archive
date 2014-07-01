@@ -36,17 +36,19 @@ public class staffbot_badcommand_savelog extends Module {
     private String logFileName;
     private Date lastLogDate;
     private int year;
+    private boolean moduleEnabled = false;
     
     // TimerTasks
     private CheckLogTask checkLogTask = new CheckLogTask();
     
     @Override
     public void cancel() {
+        moduleEnabled = false;
         try {
             logFile.close();
         } catch(Exception e) {}
         
-        m_botAction.cancelTask(checkLogTask);  
+        m_botAction.cancelTask(checkLogTask);
     }
 
     @Override
@@ -65,6 +67,7 @@ public class staffbot_badcommand_savelog extends Module {
         }
         
         m_botAction.scheduleTaskAtFixedRate(checkLogTask, 0, CHECK_LOG_TIME);
+        moduleEnabled = true;
     }
 
 	@Override
@@ -74,6 +77,9 @@ public class staffbot_badcommand_savelog extends Module {
 	
 	@Override
 	public void handleEvent(Message event) {
+	    if (!moduleEnabled)
+	        return;
+	    
 	    String message = event.getMessage();
 	    String name = event.getMessager();
 	    if(event.getMessager() == null) {

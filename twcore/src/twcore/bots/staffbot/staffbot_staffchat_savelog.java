@@ -25,6 +25,8 @@ import twcore.core.util.Tools;
  */
 public class staffbot_staffchat_savelog extends Module {
     
+    private boolean moduleEnabled = false;
+    
 	// static variable used for names monitoring
 	public static final int MINUTE = 5;
     public static final int CHECK_LOG_TIME = MINUTE * Tools.TimeInMillis.MINUTE;
@@ -82,6 +84,8 @@ public class staffbot_staffchat_savelog extends Module {
         // Must be executed 10 seconds before "writeToLog"
         m_botAction.scheduleTaskAtFixedRate(checkStaffChat, (diff-10)*Tools.TimeInMillis.SECOND, CHECK_LOG_TIME);
         m_botAction.scheduleTaskAtFixedRate(writeToLog, diff*Tools.TimeInMillis.SECOND, CHECK_LOG_TIME);
+        
+        moduleEnabled = true;
     }
 
 	@Override
@@ -91,6 +95,8 @@ public class staffbot_staffchat_savelog extends Module {
 
 	
 	public void handleEvent(Message event) {
+	    if (!moduleEnabled)
+	        return;
 
 		String line = event.getMessage();
 		String playerName = event.getMessager();
@@ -155,6 +161,7 @@ public class staffbot_staffchat_savelog extends Module {
 	
     @Override
     public void cancel() {
+        moduleEnabled = false;
         try {
         	if (namesWriter != null)
         		namesWriter.close();
