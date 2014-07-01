@@ -63,6 +63,7 @@ public class staffbot_staffchat_savelog extends Module {
 		} catch (IOException e) {
 			Tools.printStackTrace(e);
 			cancel();
+			return;
 		}
         
         // Algo to have time looking like 00:05, 00:10, etc..
@@ -155,8 +156,10 @@ public class staffbot_staffchat_savelog extends Module {
     @Override
     public void cancel() {
         try {
-        	if (namesWriter!=null)
+        	if (namesWriter != null)
         		namesWriter.close();
+            if (textWriter != null)
+                namesWriter.close();
         } catch(IOException ioe) {}
         
         m_botAction.cancelTask(checkStaffChat);
