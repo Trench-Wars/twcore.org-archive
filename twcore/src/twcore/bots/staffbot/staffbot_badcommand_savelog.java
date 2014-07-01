@@ -44,7 +44,7 @@ public class staffbot_badcommand_savelog extends Module {
     public void cancel() {
         try {
             logFile.close();
-        } catch(IOException ioe) {}
+        } catch(Exception e) {}
         
         m_botAction.cancelTask(checkLogTask);  
     }
