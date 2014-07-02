@@ -2608,7 +2608,7 @@ public class GameFlagTimeModule extends AbstractModule {
             int[] freqsize = {0,0,0};
             boolean[] foundTerr = {false,false,false};
             boolean lt = false, outside = false;
-            Player[] terr = {null,null};
+            Player[] terr = {null,null,null};
             while (i.hasNext()) {
                 p = i.next();
                 if (p != null && p.getShipType() != Tools.Ship.SPECTATOR) {
