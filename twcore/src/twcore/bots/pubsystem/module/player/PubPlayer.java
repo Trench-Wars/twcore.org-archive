@@ -431,6 +431,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
         return lastFreqSwitch;
     }
     
+    public int getLastFreq() {
+        return lastFreq;
+    }
+    
     public int getDeathsOnShipItem() {
         return deathsOnShipItem;
     }
