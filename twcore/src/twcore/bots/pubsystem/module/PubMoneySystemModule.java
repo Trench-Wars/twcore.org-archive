@@ -1504,6 +1504,10 @@ public class PubMoneySystemModule extends AbstractModule {
             // Money from the ship
             int moneyKiller = shipKillerPoints.get(shipKiller);
             int moneyKilled = shipKillerPoints.get(shipKilled);
+            
+            boolean hunterKilledLevi = shipKilled == Tools.Ship.LEVIATHAN &&
+                    player.getLastFreq() == context.getGameFlagTime().getHunterFreq() &&
+                    context.getGameFlagTime().isHunterFreqEnabled();
 
             // Bonus money earned from the location.
             int moneyByLocation = 0;
@@ -1530,9 +1534,8 @@ public class PubMoneySystemModule extends AbstractModule {
 
             m_botAction.sendSmartPrivateMessage(sender, "You earned $" + total + " by killing " + player.getLastKillKilledName() + ".");
             m_botAction.sendSmartPrivateMessage(sender, msg);
-            if (player.getLastKillWithFlag()) {
-                m_botAction.sendSmartPrivateMessage(sender, "Bonus: Your team had the flag (+$3).");
-            }
+            if (hunterKilledLevi)
+                m_botAction.sendSmartPrivateMessage(sender, "BONUS: $15 for killing a Levi while on Hunter Freq.");
 
         } else {
             m_botAction.sendSmartPrivateMessage(sender, "You're still not in the system. Wait a bit to be added.");
@@ -2608,6 +2611,11 @@ public class PubMoneySystemModule extends AbstractModule {
                     moneyByLocation = locationPoints.get(location);
                     money += moneyByLocation;
                 }
+                
+                // Money for killing any Levi on hunter freq
+                if (killer.getFrequency() == context.getGameFlagTime().getHunterFreq() && context.getGameFlagTime().isHunterFreqEnabled())
+                    if (killed.getShipType() == Tools.Ship.LEVIATHAN )
+                        money += 15;
 
                 // Add money
                 String playerName = killer.getPlayerName();

@@ -56,6 +56,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
     private HashMap<String, LevTerr> levterrs;              // Current lev terrs
     private TimerTask levInfo;                              // Msgs info about LTs as they form
+    private TimerTask levCoordReporter;                     // Freq-msgs LT Hunter freq with LT coords
     
 
     // Kill weight per location
@@ -113,6 +114,12 @@ public class GameFlagTimeModule extends AbstractModule {
     private int terrBonusAmt = 250;       // Award amount
     private int terrBonusMinOnFreq = 3;   // Smallest # of players on freq to allow bonus
     
+    // LTHunter freq, for those dedicated to LT hunting
+    // PROS: Group-shared LT bounties; regularly PMs location of any LTs; provides 1 terr w/ terr bonus
+    // CONS: Levis can't join; can't earn round end bonus
+    private boolean hunterFreqEnabled = false;
+    private int hunterFreq = -1;
+    
     private final int LVZ_10TOSTART = 17100;
     private final int LVZ_60TOWIN = 17101;
     private final int LVZ_30TOWIN = 17102;
@@ -162,6 +169,36 @@ public class GameFlagTimeModule extends AbstractModule {
             t = m_botAction.getBotSettings().getInt("terr_bonus_min_players");
             if (t>0) terrBonusMinOnFreq = t;
         }
+        
+        if (m_botAction.getBotSettings().getInt("hunter_freq_enabled") == 1)
+            hunterFreqEnabled = true;
+        
+        if (hunterFreqEnabled) {
+            int t = m_botAction.getBotSettings().getInt("hunter_freq");
+            if (t>0) hunterFreq = t;
+            
+            levCoordReporter = new TimerTask() {
+                String msg = "";
+                
+                @Override
+                public void run() {
+                    for (LevTerr lt : levterrs.values()) {
+                        if (!lt.isEmpty()) {
+                            Player p = m_botAction.getPlayer(lt.terrierName);
+                            if (p != null)
+                                msg += p.getPlayerName() + " @ " + p.getTextCoords() + "     ";
+                        }
+                    }
+                    if (!msg.equals("")) {
+                        // Don't check if anyone's even on the freq; if not, msg will just not send
+                        m_botAction.sendOpposingTeamMessageByFrequency(hunterFreq, "LTs:   " + msg);
+                        msg = "";
+                    }
+                }
+            };
+            m_botAction.scheduleTaskAtFixedRate(levCoordReporter, 5000, 30000);
+        }
+
     }
     
     /**
@@ -249,15 +286,18 @@ public class GameFlagTimeModule extends AbstractModule {
                         public void run() {
                             if (!levTerr.isEmpty() && levTerr.alertAllowed()) {
                                 String message = "[LEVTERR Alert] " + p1.getPlayerName() + " (Terrier) with ";
+                                String hunterAdv = (hunterFreqEnabled ? "   =" + hunterFreq + " for LT Hunter freq." : "");
                                 String lev = "";
                                 for (String name : levTerr.getLeviathans())
                                     lev += ", " + name;
                                 message += lev.substring(2);
                                 int freq = p1.getFrequency();
                                 if (freq != 0)
-                                    m_botAction.sendOpposingTeamMessageByFrequency(0, message, 26);
+                                    m_botAction.sendOpposingTeamMessageByFrequency(0, message + hunterAdv, 26);
                                 if (freq != 1)
-                                    m_botAction.sendOpposingTeamMessageByFrequency(1, message, 26);
+                                    m_botAction.sendOpposingTeamMessageByFrequency(1, message + hunterAdv, 26);
+                                if (hunterFreqEnabled)
+                                    m_botAction.sendOpposingTeamMessageByFrequency(hunterFreq, message, 26);
                                 levTerr.allowAlert(false);
                             }
                         }
@@ -287,9 +327,12 @@ public class GameFlagTimeModule extends AbstractModule {
         String playerName = p.getPlayerName();
 
         PubPlayer pubPlayer = context.getPlayerManager().getPlayer(playerName);
-        if (pubPlayer != null) 
+        if (pubPlayer != null) {
             pubPlayer.setLastFreqSwitch(event.getFrequency());
-        
+            if (hunterFreqEnabled && pubPlayer.getLastFreq() != event.getFrequency() && event.getFrequency() == hunterFreq)
+                m_botAction.sendPrivateMessage(playerID, "[HUNTER]  LT bounties shared; +$15 for all Levi kills; LT coords updated; Terrs get bonus.");
+        }
+                
         /* Disabled until hunt re-enabled
         if (context.getPubHunt().isPlayerPlaying(playerName))
             return;
@@ -336,6 +379,8 @@ public class GameFlagTimeModule extends AbstractModule {
             if (pubPlayer != null) 
                 pubPlayer.setLastFreqSwitch(event.getFrequency());
         }
+        if (hunterFreqEnabled && event.getFrequency() == hunterFreq)
+            m_botAction.sendPrivateMessage(event.getPlayerID(), "[HUNTER]  LT bounties shared; +$15 for all Levi kills; LT coords updated; Terrs get bonus.");
         
         // Reset the time of a player for MVP purpose
         if (isRunning()) {
@@ -349,10 +394,8 @@ public class GameFlagTimeModule extends AbstractModule {
     public void handleEvent(PlayerDeath event) {
         if (!enabled ) return;
 
-        int killerID = event.getKillerID();
-        int killedID = event.getKilleeID();
-        Player killer = m_botAction.getPlayer(killerID);
-        Player killed = m_botAction.getPlayer(killedID);
+        Player killer = m_botAction.getPlayer(event.getKillerID());
+        Player killed = m_botAction.getPlayer(event.getKilleeID());
 
         if (killer == null || killed == null)
             return;
@@ -361,28 +404,75 @@ public class GameFlagTimeModule extends AbstractModule {
             if (levterrs.containsKey(killed.getPlayerName()))
                 levterrs.get(killed.getPlayerName()).allowAlert(true);
 
-        if (killed.getShipType() == Tools.Ship.LEVIATHAN)
-            for (LevTerr lt : levterrs.values())
+        // Check for slain LTs and award bonuses appropriately 
+        if (killed.getShipType() == Tools.Ship.LEVIATHAN) {
+            for (LevTerr lt : levterrs.values()) {
                 if (lt.leviathans.contains(killed.getPlayerName())) {
                     lt.removeLeviathan(killed.getPlayerName());
+                    
+                    int money = 0;
+                    boolean isHunterFreq = (killer.getFrequency() == hunterFreq);
+                    
+                    // Bonus to killer
                     if (lt.isEmpty()) {
                         lt.allowAlert(true);
-                        int money = 500 + (event.getKilledPlayerBounty() * 5);
-                        m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x its bounty in money! +$"+ money);
-                        context.getPlayerManager().addMoney(killer.getPlayerName(), money);
+                        money = 500 + (event.getKilledPlayerBounty() * 5);                        
+                        if (isHunterFreq) {
+                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x the Levi's bounty, plus a $250 Hunter Freq bonus!  +$"+ (money + 250));
+                            context.getPlayerManager().addMoney(killer.getPlayerName(), money + 250);                            
+                        } else {
+                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x the Levi's bounty!  +$"+ money);
+                            context.getPlayerManager().addMoney(killer.getPlayerName(), money);
+                        }
                     } else {
-                        int money = 250 + (event.getKilledPlayerBounty() * 3);
-                        m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x its bounty in money! +$"+ money);
-                        context.getPlayerManager().addMoney(killer.getPlayerName(), money);
+                        money = 250 + (event.getKilledPlayerBounty() * 3);
+                        if (isHunterFreq) {
+                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty, plus a $150 Hunter Freq bonus!  +$"+ money + 150);
+                            context.getPlayerManager().addMoney(killer.getPlayerName(), money + 150);                            
+                        } else {
+                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty!  +$"+ money);
+                            context.getPlayerManager().addMoney(killer.getPlayerName(), money);
+                        }
                     }
+                    
+                    // Hunter freq LT assist: share between all teammates near the Levi
+                    if (isHunterFreq) {
+                        Iterator<Player> i = m_botAction.getFreqPlayerIterator(hunterFreq);
+                        Location locKilled = context.getPubUtil().getLocation(killed.getXTileLocation(), killed.getYTileLocation());
+                        Location locHunter;
+                        if (locKilled == null)
+                            break;
+
+                        while (i.hasNext()) {
+                            Player p = i.next();
+                            // Assist award for all those on the hunter freq that did not make the actual kill.
+                            // Assists must be in the same Location as the Levi to get the award, but kills do not.
+                            if( p.getPlayerID() != event.getKillerID() ) {
+                                locHunter = context.getPubUtil().getLocation(killed.getXTileLocation(), killed.getYTileLocation());
+                                if (locHunter != null && locHunter.equals(locKilled)) {
+                                    if (lt.isEmpty()) {
+                                        m_botAction.sendPrivateMessage(p.getPlayerName(), "For assisting " + killer.getPlayerName() + " in killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x the Levi's bounty!  +$"+ money);
+                                        context.getPlayerManager().addMoney(p.getPlayerName(), money);
+                                    } else {
+                                        m_botAction.sendPrivateMessage(p.getPlayerName(), "For assisting " + killer.getPlayerName() + " in killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty!  +$"+ money);
+                                        context.getPlayerManager().addMoney(p.getPlayerName(), money);                                    
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
                     break;
                 }
+            }
+        }
 
         if (isRunning()) {
 
             if (killer.getPlayerName().equals(m_botAction.getBotName()))
                 return;
 
+            // Add kills and check for TK
             if (killer.getFrequency() == killed.getFrequency())
                 flagTimer.addTk(killer.getPlayerName());
             else {
@@ -390,6 +480,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 flagTimer.addPlayerDeath(killed.getPlayerName());
             }
 
+            // If Terr killed in FR, notify players if another Terr in FR or mid is still alive 
             if (killed.getShipType() == Tools.Ship.TERRIER) {
 
                 Location locKilled = context.getPubUtil().getLocation(killed.getXTileLocation(), killed.getYTileLocation());
@@ -1245,6 +1336,7 @@ public class GameFlagTimeModule extends AbstractModule {
         // Internal variables
         boolean gameOver = false;
         int winnerFreq = flagTimer.getHoldingFreq();
+        boolean hunterFreqWon = winnerFreq == hunterFreq; 
         int maxScore = (MAX_FLAGTIME_ROUNDS + 1) / 2;  // Score needed to win
         int secs = flagTimer.getTotalSecs();
         int mins = (secs / 60);
@@ -1252,7 +1344,11 @@ public class GameFlagTimeModule extends AbstractModule {
         int moneyBonus = ((flagTimer.freqsSecs.get(winnerFreq)) * 3);
         if (moneyBonus > 2000)
             moneyBonus = 2000;
-        m_botAction.sendOpposingTeamMessageByFrequency(winnerFreq, "Your team won this round. End-round bonus: $" + moneyBonus);
+        
+        if (!hunterFreqWon)
+            m_botAction.sendOpposingTeamMessageByFrequency(winnerFreq, "Your team won this round. End-round bonus: $" + moneyBonus);
+        else
+            m_botAction.sendOpposingTeamMessageByFrequency(winnerFreq, "NOTE: The LT Hunter freq won this round, but you receive no bonus for winning.");
 
         // A normal frequency (0 or 1) won the round?
         if (winnerFreq == 0 || winnerFreq == 1) {
@@ -1271,12 +1367,16 @@ public class GameFlagTimeModule extends AbstractModule {
                     + " (Bonus: +$" + moneyBonus + ")");
         
 
-        } else if (winnerFreq < 100)
+        } else if (hunterFreqWon) {
+            m_botAction.sendArenaMessage("[FLAG] END ROUND: Levi Hunters (freq " + winnerFreq + ") win the round after " + getTimeString(flagTimer.getTotalSecs())
+                    + ". (Bonus: NONE)");
+        } else if (winnerFreq < 100) {
             m_botAction.sendArenaMessage("[FLAG] END ROUND: Freq " + winnerFreq + " wins the round after " + getTimeString(flagTimer.getTotalSecs())
                     + ". (Bonus: +$" + moneyBonus + ")");
-        else
+        } else {
             m_botAction.sendArenaMessage("[FLAG] END ROUND: A PRIVATE FREQ wins the round after " + getTimeString(flagTimer.getTotalSecs()) + "! (Bonus: +$"
                     + moneyBonus + ")");
+        }
 
         // Clear any round restricted buyable items/commands
         context.getMoneySystem().resetRoundRestrictions();
@@ -1834,6 +1934,14 @@ public class GameFlagTimeModule extends AbstractModule {
 
     public boolean isAutoWarpEnabled() {
         return autoWarp;
+    }
+    
+    public boolean isHunterFreqEnabled() {
+        return hunterFreqEnabled;
+    }
+    
+    public int getHunterFreq() {
+        return hunterFreq;
     }
 
     /**
@@ -2497,16 +2605,22 @@ public class GameFlagTimeModule extends AbstractModule {
         public void checkTerrBonus() {
             Iterator<Player> i = m_botAction.getPlayerIterator();
             Player p, p2;
-            int[] freqsize = {0,0};
-            boolean[] foundTerr = {false,false};
+            int[] freqsize = {0,0,0};
+            boolean[] foundTerr = {false,false,false};
             boolean lt = false, outside = false;
             Player[] terr = {null,null};
             while (i.hasNext()) {
                 p = i.next();
-                if (p != null && p.getShipType() != Tools.Ship.SPECTATOR) {                    
-                    if (p.getFrequency() == 0) {
-                        freqsize[0]++;
+                if (p != null && p.getShipType() != Tools.Ship.SPECTATOR) {
+                    if (p.getFrequency() == 0 || p.getFrequency() == 1 || p.getFrequency() == hunterFreq) {
+                        int freq = p.getFrequency();
+                        if (freq == hunterFreq)
+                            freq = 2;
+                    
+                        freqsize[freq]++;
                         if (p.getShipType() == Tools.Ship.TERRIER) {
+                            
+                            // LTs can't get the bonus
                             for ( Integer turretid : p.getTurrets() ) {
                                 p2 = m_botAction.getPlayer(turretid);
                                 if (p2 != null && p2.getShipType() == Tools.Ship.LEVIATHAN) {
@@ -2516,41 +2630,21 @@ public class GameFlagTimeModule extends AbstractModule {
                             }
                             Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
                             if (loc != null)
-                                if (loc.equals(Location.SAFE) || loc.equals(Location.SPACE) || loc.equals(Location.UNKNOWN) )
-                                	outside = true;
+                                if (freq == hunterFreq) {
+                                    if (loc.equals(Location.SAFE) || loc.equals(Location.UNKNOWN) )
+                                        outside = true;
+                                } else {
+                                    if (loc.equals(Location.SAFE) || loc.equals(Location.SPACE) || loc.equals(Location.UNKNOWN) )
+                                        outside = true;                                    
+                                }
 
                             if( !lt && !outside ) {
-                                if( !foundTerr[0] ) {
-                                    terr[0] = p;
-                                    foundTerr[0] = true;
+                                if( !foundTerr[freq] ) {
+                                    terr[freq] = p;
+                                    foundTerr[freq] = true;
                                 } else {
                                     //2nd terr, so dump both of them
-                                    terr[0] = null;
-                                }
-                            }
-                        }
-                    } else if (p.getFrequency() == 1) {
-                        freqsize[1]++;
-                        if (p.getShipType() == Tools.Ship.TERRIER) {
-                            for ( Integer turretid : p.getTurrets() ) {
-                                p2 = m_botAction.getPlayer(turretid);
-                                if (p2 != null && p2.getShipType() == Tools.Ship.LEVIATHAN) {
-                                    lt = true;
-                                    break;
-                                }
-                            }
-                            Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
-                            if (loc != null)
-                                if (loc.equals(Location.SAFE) || loc.equals(Location.SPACE) || loc.equals(Location.UNKNOWN) )
-                                	outside = true;
-                            
-                            if( !lt && !outside ) {
-                                if( !foundTerr[1] ) {
-                                    terr[1] = p;
-                                    foundTerr[1] = true;
-                                } else {
-                                    //2nd terr, so dump both of them
-                                    terr[1] = null;
+                                    terr[freq] = null;
                                 }
                             }
                         }
@@ -2559,13 +2653,26 @@ public class GameFlagTimeModule extends AbstractModule {
                 lt = false;
                 outside = false;
             }
-            if (terr[0] != null && freqsize[0] >= terrBonusMinOnFreq ) {
-                context.getPlayerManager().addMoney(terr[0].getPlayerName(), terrBonusAmt);
-                m_botAction.sendPrivateMessage(terr[0].getPlayerID(), "BONUS: +$" + terrBonusAmt + " for being only non-LT Terr on freq." );
-            }
-            if (terr[1] != null && freqsize[1] >= terrBonusMinOnFreq ) {
-                context.getPlayerManager().addMoney(terr[1].getPlayerName(), terrBonusAmt);
-                m_botAction.sendPrivateMessage(terr[1].getPlayerID(), "BONUS: +$" + terrBonusAmt + " for being only non-LT Terr on freq." );
+            
+            for (int freq=0; freq<2; freq++)
+                if (terr[freq] != null && freqsize[freq] >= terrBonusMinOnFreq ) {
+                    context.getPlayerManager().addMoney(terr[freq].getPlayerName(), terrBonusAmt);
+                    m_botAction.sendPrivateMessage(terr[freq].getPlayerID(), "TERR BONUS: +$" + terrBonusAmt + "  (only non-LT Terr)" );
+                }
+            
+            // Hunter freq: must have LT somewhere to give award
+            if (terr[2] != null && freqsize[2] >= terrBonusMinOnFreq ) {
+                boolean activeLT = false;
+                for (LevTerr l : levterrs.values()) {
+                    if (!l.isEmpty()) {
+                        activeLT = true;
+                        break;
+                    }
+                }
+                if (activeLT) {
+                    context.getPlayerManager().addMoney(terr[hunterFreq].getPlayerName(), terrBonusAmt);
+                    m_botAction.sendPrivateMessage(terr[hunterFreq].getPlayerID(), "HUNTER TERR BONUS: +$" + terrBonusAmt + "  (only Terr on hunter freq chasing LTs)" );
+                }                
             }
             
         }

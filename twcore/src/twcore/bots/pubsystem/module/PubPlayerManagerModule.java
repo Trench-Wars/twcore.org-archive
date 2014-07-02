@@ -401,9 +401,14 @@ public class PubPlayerManagerModule extends AbstractModule {
                 if (player==null)
                     return;
 
-                if (player.getShipType() == Tools.Ship.LEVIATHAN && isSortaPurePub) {
-                    m_botAction.sendPrivateMessage(event.getPlayerID(), "[SORTAPUREPUB] is enabled. You may not change onto a private freq as a Leviathan at this time.");                    
-                    m_botAction.setShip(event.getPlayerID(), 7);
+                if (player.getShipType() == Tools.Ship.LEVIATHAN ) {
+                    if (isSortaPurePub) {
+                        m_botAction.sendPrivateMessage(event.getPlayerID(), "[SORTAPUREPUB] is enabled. You may not change onto a private freq as a Leviathan at this time.");                    
+                        m_botAction.setShip(event.getPlayerID(), 7);
+                    } else if(event.getFrequency() == context.getGameFlagTime().getHunterFreq() && context.getGameFlagTime().isHunterFreqEnabled()) {
+                        m_botAction.sendPrivateMessage(event.getPlayerID(), "This is a special frequency dedicated to hunting LeviTerrs. You can not be a Levi on this freq.");                    
+                        m_botAction.setShip(event.getPlayerID(), 3);
+                    }
                 }
             }
             checkLowPopSpawn();
@@ -452,10 +457,15 @@ public class PubPlayerManagerModule extends AbstractModule {
                 if (!context.getPubUtil().isPrivateFrequencyEnabled()) {
                     checkFreq(event.getPlayerID(), event.getFrequency(), true);
                 }
-                if (event.getShipType() == Tools.Ship.LEVIATHAN && isSortaPurePub) {
-                    m_botAction.sendPrivateMessage(event.getPlayerID(), "[SORTAPUREPUB] is enabled. You may not change into a Leviathan while on a private freq at this time.");                    
-                    m_botAction.setShip(event.getPlayerID(), 7);
-                }                
+                if (event.getShipType() == Tools.Ship.LEVIATHAN ) {
+                    if (isSortaPurePub) {
+                        m_botAction.sendPrivateMessage(event.getPlayerID(), "[SORTAPUREPUB] is enabled. You may not change into a Leviathan while on a private freq at this time.");                    
+                        m_botAction.setShip(event.getPlayerID(), 7);
+                    } else if(event.getFrequency() == context.getGameFlagTime().getHunterFreq() && context.getGameFlagTime().isHunterFreqEnabled()) {
+                        m_botAction.sendPrivateMessage(event.getPlayerID(), "This is a special frequency dedicated to hunting LeviTerrs. You can not be a Levi on this freq.");                    
+                        m_botAction.setShip(event.getPlayerID(), 3);
+                    }
+                }
             } else {
                 if (event.getShipType() == Tools.Ship.LEVIATHAN && isPurePub) {
                     m_botAction.sendPrivateMessage(event.getPlayerID(), "[PUREPUB] is enabled. You may not change into a Leviathan at this time.");
