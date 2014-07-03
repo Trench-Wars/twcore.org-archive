@@ -147,8 +147,9 @@ public class MatchTeam {
         if (m_botAction.getArenaName().toLowerCase().startsWith("twld") || m_botAction.getArenaName().toLowerCase().equals("twdd3") || m_botAction.getArenaName().toLowerCase().equals("twdd4") || m_botAction.getArenaName().toLowerCase().equals("twdd5")) {
             MAX_RES_X = 1440;
             MAX_RES_Y = 1024;
-        } else if (m_botAction.getArenaName().startsWith("twdd")) {
+        } else if (m_botAction.getArenaName().startsWith("twdd") || m_botAction.getArenaName().startsWith("twdtd") || m_botAction.getArenaName().startsWith("twtdj") || m_botAction.getArenaName().startsWith("twdtb") ) {
         	//24APR2014 POiD  Override to remove res checks for twdd as requested by TWD Head.
+            //3JUL2014  Dezmond TWDT has no res limits
         	//override to remove res check from TWDD* arenas for now.
         	MAX_RES_X = 0;
         	MAX_RES_Y = 0;
