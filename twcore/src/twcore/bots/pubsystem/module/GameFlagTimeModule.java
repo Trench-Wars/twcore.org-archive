@@ -2670,8 +2670,8 @@ public class GameFlagTimeModule extends AbstractModule {
                     }
                 }
                 if (activeLT) {
-                    context.getPlayerManager().addMoney(terr[hunterFreq].getPlayerName(), terrBonusAmt);
-                    m_botAction.sendPrivateMessage(terr[hunterFreq].getPlayerID(), "HUNTER TERR BONUS: +$" + terrBonusAmt + "  (only Terr on hunter freq chasing LTs)" );
+                    context.getPlayerManager().addMoney(terr[2].getPlayerName(), terrBonusAmt);
+                    m_botAction.sendPrivateMessage(terr[2].getPlayerID(), "HUNTER TERR BONUS: +$" + terrBonusAmt + "  (only Terr on hunter freq chasing LTs)" );
                 }                
             }
             
