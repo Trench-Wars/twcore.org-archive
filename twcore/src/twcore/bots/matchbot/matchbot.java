@@ -423,6 +423,12 @@ public class matchbot extends SubspaceBot {
 
             isStaff = false;
             isRestrictedStaff = false;
+            
+            if (m_opList.isBot(name)) {
+                isStaff = true;
+                isRestrictedStaff = false;
+            }
+
             if ((m_isLocked) && (m_rules != null)) {
                 if (m_rules.getString("specialaccess") != null) {
                     try {
@@ -434,11 +440,6 @@ public class matchbot extends SubspaceBot {
                         Tools.printStackTrace(e);
                     }
                 }
-            }
-
-            if (m_opList.isBotExact(name)) {
-                isStaff = true;
-                isRestrictedStaff = false;
             }
 
             if (stringChopper(message, ' ') == null)
