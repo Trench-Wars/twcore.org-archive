@@ -686,6 +686,9 @@ public class matchbot extends SubspaceBot {
                 isTWDOP = twdops.contains(name);
             } catch (Exception e) {}
         }
+        
+        if (!isTWDOP && isRestrictedStaff)
+        	isTWDOP = true;
 
         if (m_game != null)
             m_game.parseCommand(name, command, parameters, isStaff, isTWDOP);
