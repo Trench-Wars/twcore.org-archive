@@ -436,7 +436,7 @@ public class matchbot extends SubspaceBot {
                 }
             }
 
-            if (m_opList.isBot(name)) {
+            if (m_opList.isBotExact(name)) {
                 isStaff = true;
                 isRestrictedStaff = false;
             }
