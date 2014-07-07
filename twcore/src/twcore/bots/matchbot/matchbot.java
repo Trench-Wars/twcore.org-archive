@@ -333,7 +333,20 @@ public class matchbot extends SubspaceBot {
                     else if (ipc.getType() == EventType.TOPCHALLENGE)
                         do_challengeTopTeams(ipc.getName(), ipc.getSquad1(), ipc.getPlayers());
                 }
+            } else if (event.getObject() instanceof String) {
+                String s = (String) event.getObject();
+                if (s.equals("whatArena")) {
+                    m_botAction.ipcTransmit("MatchBot", "myArena:" + m_botAction.getArenaName());
+                }
+
+                if ((s.startsWith("myArena:")) && (m_isLocked) && (m_lockState == CHECKING_ARENAS)) {
+                    if (m_arenaList == null) {
+                        m_arenaList = new LinkedList<String>();
+                    }
+                    m_arenaList.add(s.substring(8).toLowerCase());
+                }
             }
+
         }
     }
 
@@ -421,15 +434,10 @@ public class matchbot extends SubspaceBot {
                 name = event.getMessager();
             }
 
-            isStaff = false;
+            isStaff = m_opList.isBot(name);
             isRestrictedStaff = false;
             
-            if (m_opList.isBot(name)) {
-                isStaff = true;
-                isRestrictedStaff = false;
-            }
-
-            if ((m_isLocked) && (m_rules != null)) {
+            if ((m_isLocked || m_game != null) && (m_rules != null)) {
                 if (m_rules.getString("specialaccess") != null) {
                     try {
                         if ((new String(":" + m_rules.getString("specialaccess").toLowerCase())).indexOf(":" + name.toLowerCase()) != -1) {
@@ -510,9 +518,10 @@ public class matchbot extends SubspaceBot {
                     if (!isRestrictedStaff) {
                         help.add("!unlock                                  - unlock the bot, makes it go back to ?go twd");
                         if (m_opList.isSmod(name)) {
-                            help.add("!listaccess                              - list all the players who have special access to this game");
-                            help.add("!addaccess <name>                        - add a player to the list");
-                            help.add("!removeaccess <name>                     - remove a player from the list");
+                            help.add("!listaccess [game number]                - list all the players who have special access to this game or to [game number]");
+                            help.add("!addaccess [game number:]<name>          - add a player to the list of the current game, or to [game number]");
+                            help.add("!removeaccess [game number:]<name>       - remove a player from the list of the current game, or from [game number]");
+                            help.add("  - Please note: For add- and removeaccess, if the username is a number, you must supply the game number.");
                         }
                     }
                 }
@@ -571,12 +580,17 @@ public class matchbot extends SubspaceBot {
                         command_setoff(name);
                     }
                 }
-                if ((command.equals("!listaccess")) && (m_opList.isSmod(name)))
-                    command_listaccess(name, parameters);
-                if ((command.equals("!addaccess")) && (m_opList.isSmod(name)))
-                    command_addaccess(name, parameters);
-                if ((command.equals("!removeaccess")) && (m_opList.isSmod(name)))
-                    command_removeaccess(name, parameters);
+                
+                // Commands to grant temporary access.
+                if (m_opList.isSmod(name)) {
+                	if (command.equals("!listaccess"))
+                		command_listaccess(name, parameters);
+                    if (command.equals("!addaccess"))
+                        command_addaccess(name, parameters);
+                    if (command.equals("!removeaccess"))
+                        command_removeaccess(name, parameters);
+                }
+   
             }
             if (m_game != null) {
                 if (command.equals("!pkg"))
@@ -687,12 +701,9 @@ public class matchbot extends SubspaceBot {
                 isTWDOP = twdops.contains(name);
             } catch (Exception e) {}
         }
-        
-        if (!isTWDOP && isRestrictedStaff)
-        	isTWDOP = true;
 
         if (m_game != null)
-            m_game.parseCommand(name, command, parameters, isStaff, isTWDOP);
+            m_game.parseCommand(name, command, parameters, isStaff, (isTWDOP || isRestrictedStaff));
     }
 
     private void power(String name, String[] parameters) {
@@ -1408,8 +1419,43 @@ public class matchbot extends SubspaceBot {
         }
     }
 
-    public String[] getAccessList() {
-        String accA[] = stringChopper(m_rules.getString("specialaccess"), ':');
+    /**
+     * Function to detect which rule set to use when changing access. One of the following scenarios may happen:
+     * <li>If a game number is provided, those rules will attempt to be loaded;
+     * <li>If no or an invalid game number is provided, the currently loaded rule set will be used;
+     * <li>If no or an invalid game number is provided, and currently no rule set is loaded, an error will be returned.
+     * @param name User to who messages should be sent
+     * @param parameters Command parameters of !listaccess, !addaccess or !removeaccess.
+     * @return The requested/applicable rule set, or null if no valid set was found.
+     */
+    public BotSettings getRuleSet(String name, String[] parameters) {
+    	BotSettings rules = null;
+    	try {
+    		// Try to parse from command parameters
+    		if (parameters.length >= 1 && getGameTypeName(Integer.parseInt(parameters[0])) != null) {
+                rules = new BotSettings( m_botAction.getGeneralSettings().getString("Core Location")
+                		+ "/data/Rules/" + getGameTypeName(Integer.parseInt(parameters[0])) + ".txt" );
+    		} else if(m_rules != null) {
+    			// When no or an invalid game number was provided, attempt to load the default set.
+    			rules = m_rules;
+    		} else {
+    			// If no default set was loaded, send the error message.
+    			m_botAction.sendSmartPrivateMessage(name, "No game mode is loaded. Please load a game, or use: !listaccess [game number]");
+    		}
+    	} catch (NumberFormatException nfe) {
+    		if (m_rules != null) {
+    			// Back-up to ensure that when an invalid game number is given, an attempt will be made to load the default set.
+    			rules = m_rules;
+    		} else {
+    			m_botAction.sendSmartPrivateMessage(name, "When providing a game number, please provide a valid one. (See: !listgames)");
+    		}
+    	}
+    	
+    	return rules;
+    }
+    
+    public String[] getAccessList(BotSettings rules) {
+        String accA[] = stringChopper(rules.getString("specialaccess"), ':');
         if (accA != null) {
             for (int i = 1; i < accA.length; i++)
                 accA[i] = accA[i].substring(1);
@@ -1419,26 +1465,42 @@ public class matchbot extends SubspaceBot {
     }
 
     public void command_listaccess(String name, String[] parameters) {
-        String accA[] = getAccessList();
+    	BotSettings rules = getRuleSet(name, parameters);
+
+    	if(rules == null) {
+    		// No valid rule set found/loaded.
+    		m_botAction.sendSmartPrivateMessage(name, "Access list could not be found.");
+    		return;
+    	}
+    	
+        String accA[] = getAccessList(rules);
         if (accA == null) {
             m_botAction.sendSmartPrivateMessage(name, "Access list could not be found.");
             return;
         }
-        m_botAction.sendPrivateMessage(name, "Access list for game: " + m_rules.getString("name"));
+        m_botAction.sendPrivateMessage(name, "Access list for game: " + rules.getString("name"));
         for (int i = 0; i < accA.length; i++) {
             m_botAction.sendPrivateMessage(name, accA[i]);
         }
     }
 
     public void command_addaccess(String name, String[] parameters) {
+    	BotSettings rules = getRuleSet(name, parameters);
+
+    	if(rules == null) {
+    		// No valid rule set found/loaded.
+    		m_botAction.sendSmartPrivateMessage(name, "Access list could not be found.");
+    		return;
+    	}
+    	
         try {
             String newP = parameters[0];
-            String acc = m_rules.getString("specialaccess");
+            String acc = rules.getString("specialaccess");
             if (!(acc.trim().equals("")))
                 acc = acc + ":";
             acc = acc + newP + "(Granted by " + name + ")";
-            m_rules.put("specialaccess", acc);
-            m_rules.save();
+            rules.put("specialaccess", acc);
+            rules.save();
             m_botAction.sendPrivateMessage(name, newP + " has been added to the access list");
         } catch (Exception e) {
             System.out.println("Error in command_addaccess: " + e.getMessage());
@@ -1446,9 +1508,17 @@ public class matchbot extends SubspaceBot {
     }
 
     public void command_removeaccess(String name, String[] parameters) {
+    	BotSettings rules = getRuleSet(name, parameters);
+
+    	if(rules == null) {
+    		// No valid rule set found/loaded.
+    		m_botAction.sendSmartPrivateMessage(name, "Access list could not be found.");
+    		return;
+    	}
+    	
         try {
             String newP = parameters[0].toLowerCase();
-            String acc = m_rules.getString("specialaccess");
+            String acc = rules.getString("specialaccess");
             int cutFrom = acc.toLowerCase().indexOf(newP);
             if (cutFrom != -1) {
                 int cutTo = acc.indexOf(":", cutFrom);
@@ -1461,8 +1531,8 @@ public class matchbot extends SubspaceBot {
                 if (cutTo > acc.length())
                     cutTo = acc.length();
                 acc = acc.substring(0, cutFrom - 1) + acc.substring(cutTo);
-                m_rules.put("specialaccess", acc);
-                m_rules.save();
+                rules.put("specialaccess", acc);
+                rules.save();
                 m_botAction.sendPrivateMessage(name, newP + " has been removed from the access list");
             }
         } catch (Exception e) {
