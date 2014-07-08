@@ -1485,6 +1485,11 @@ public class matchbot extends SubspaceBot {
     }
 
     public void command_addaccess(String name, String[] parameters) {
+    	if(parameters.length <= 0) {
+    		m_botAction.sendSmartPrivateMessage(name, "Please provide the name of the user that needs to be added.");
+    		return;
+    	}
+    	
     	BotSettings rules = getRuleSet(name, parameters);
 
     	if(rules == null) {
@@ -1494,7 +1499,7 @@ public class matchbot extends SubspaceBot {
     	}
     	
         try {
-            String newP = parameters[0];
+            String newP = parameters[parameters.length-1];
             String acc = rules.getString("specialaccess");
             if (!(acc.trim().equals("")))
                 acc = acc + ":";
@@ -1508,6 +1513,11 @@ public class matchbot extends SubspaceBot {
     }
 
     public void command_removeaccess(String name, String[] parameters) {
+    	if(parameters.length <= 0) {
+    		m_botAction.sendSmartPrivateMessage(name, "Please provide the name of the user that needs to be removed.");
+    		return;
+    	}
+    	
     	BotSettings rules = getRuleSet(name, parameters);
 
     	if(rules == null) {
@@ -1517,7 +1527,7 @@ public class matchbot extends SubspaceBot {
     	}
     	
         try {
-            String newP = parameters[0].toLowerCase();
+            String newP = parameters[parameters.length-1].toLowerCase();
             String acc = rules.getString("specialaccess");
             int cutFrom = acc.toLowerCase().indexOf(newP);
             if (cutFrom != -1) {
