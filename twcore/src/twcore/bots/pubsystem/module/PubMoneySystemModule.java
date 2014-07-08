@@ -1505,18 +1505,17 @@ public class PubMoneySystemModule extends AbstractModule {
             int moneyKiller = shipKillerPoints.get(shipKiller);
             int moneyKilled = shipKillerPoints.get(shipKilled);
             
-            boolean hunterKilledLevi = shipKilled == Tools.Ship.LEVIATHAN &&
-                    player.getLastFreq() == context.getGameFlagTime().getHunterFreq() &&
-                    context.getGameFlagTime().isHunterFreqEnabled();
+            boolean isHunterFreq = player.getLastFreq() == context.getGameFlagTime().getHunterFreq() && context.getGameFlagTime().isHunterFreqEnabled();
+            boolean hunterKilledLevi = shipKilled == Tools.Ship.LEVIATHAN && isHunterFreq;
 
             // Bonus money earned from the location.
             int moneyByLocation = 0;
-            if (locationPoints.containsKey(location)) {
+            if (locationPoints.containsKey(location) && !isHunterFreq) {
                 moneyByLocation = locationPoints.get(location);
             }
             // Bonus money earned by holding the flag.
             int moneyByFlag = 0;
-            if (player.getLastKillWithFlag()) {
+            if (player.getLastKillWithFlag() && !isHunterFreq) {
                 moneyByFlag = BONUS_FLAG;
             }
 
@@ -1524,7 +1523,8 @@ public class PubMoneySystemModule extends AbstractModule {
 
             String msg = "You were a " + Tools.shipName(shipKiller) + " (+$" + moneyKiller + ")";
             msg += ", killed a " + Tools.shipName(shipKilled) + " (+$" + moneyKilled + ")";
-            msg += " in " + context.getPubUtil().getLocationName(location) + " (+$" + moneyByLocation + ")" + (moneyByFlag > 0 ? " while holding the flag (+$" + moneyByFlag + ")": ".") ;
+            if (!isHunterFreq)
+                msg += " in " + context.getPubUtil().getLocationName(location) + " (+$" + moneyByLocation + ")" + (moneyByFlag > 0 ? " while holding the flag (+$" + moneyByFlag + ")": ".") ;
 
             // Overide if kill in space
             //if (location.equals(Location.SPACE)) {
@@ -2584,9 +2584,10 @@ public class PubMoneySystemModule extends AbstractModule {
             if (location != null) {
                 int money = 0;
                 boolean withFlag = false;
+                boolean isHunterFreq = pubPlayerKiller.getLastFreq() == context.getGameFlagTime().getHunterFreq() && context.getGameFlagTime().isHunterFreqEnabled();
 
                 // Money if team with flag
-                if (context.getGameFlagTime().isRunning()) {
+                if (context.getGameFlagTime().isRunning() && !isHunterFreq) {
                     int freqWithFlag = context.getGameFlagTime().getFreqWithFlag();
                     if (freqWithFlag == killer.getFrequency()) {
                         money += BONUS_FLAG;
@@ -2607,15 +2608,14 @@ public class PubMoneySystemModule extends AbstractModule {
 
                 // Money from the location
                 int moneyByLocation = 0;
-                if (locationPoints.containsKey(location)) {
+                if (locationPoints.containsKey(location) && !isHunterFreq) {
                     moneyByLocation = locationPoints.get(location);
                     money += moneyByLocation;
                 }
                 
                 // Money for killing any Levi on hunter freq
-                if (killer.getFrequency() == context.getGameFlagTime().getHunterFreq() && context.getGameFlagTime().isHunterFreqEnabled())
-                    if (killed.getShipType() == Tools.Ship.LEVIATHAN )
-                        money += 15;
+                if (isHunterFreq && killed.getShipType() == Tools.Ship.LEVIATHAN )
+                    money += 15;
 
                 // Add money
                 String playerName = killer.getPlayerName();
