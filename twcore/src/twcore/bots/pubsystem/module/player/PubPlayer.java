@@ -48,7 +48,14 @@ public class PubPlayer implements Comparable<PubPlayer>{
         new Point(589, 333),    // Top lower ear, R side
         new Point(467, 359),    // Lower drop-circle, L side
         new Point(557, 359),    // Lower drop-circle, R side
+        
+        // Very low spawn points
         new Point(512, 377),    // Bottom of tube
+        new Point(484, 353),    // Between tube and drop-circle, L side
+        new Point(540, 353),    // Between tube and drop-circle, R side 
+        new Point(450, 382),    // Near entrance to lowest ear, L side 
+        new Point(574, 382),    // Near entrance to lowest ear, R side 
+        new Point(512, 400),    // Entrance to lower 
         
     };
     
