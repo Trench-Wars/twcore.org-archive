@@ -330,7 +330,7 @@ public class GameFlagTimeModule extends AbstractModule {
         if (pubPlayer != null) {
             pubPlayer.setLastFreqSwitch(event.getFrequency());
             if (hunterFreqEnabled && pubPlayer.getLastFreq() != event.getFrequency() && event.getFrequency() == hunterFreq)
-                m_botAction.sendPrivateMessage(playerID, "[HUNTER]  LT bounties shared; +$15 for all Levi kills; LT coords updated; Terrs get bonus.");
+                m_botAction.sendPrivateMessage(playerID, "[HUNTER]  All LT bounties shared; +$15 for all Levi kills; solo Terrs get regular bonus.");
         }
                 
         /* Disabled until hunt re-enabled
@@ -2671,7 +2671,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 }
                 if (activeLT) {
                     context.getPlayerManager().addMoney(terr[2].getPlayerName(), terrBonusAmt);
-                    m_botAction.sendPrivateMessage(terr[2].getPlayerID(), "HUNTER TERR BONUS: +$" + terrBonusAmt + "  (only Terr on hunter freq chasing LTs)" );
+                    m_botAction.sendPrivateMessage(terr[2].getPlayerID(), "HUNTER TERR BONUS: +$" + terrBonusAmt + "  (only Terr on Hunter Freq chasing LTs)" );
                 }                
             }
             
