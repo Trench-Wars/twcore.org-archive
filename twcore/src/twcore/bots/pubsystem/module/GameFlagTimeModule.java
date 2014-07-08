@@ -427,7 +427,7 @@ public class GameFlagTimeModule extends AbstractModule {
                     } else {
                         money = 250 + (event.getKilledPlayerBounty() * 3);
                         if (isHunterFreq) {
-                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty, plus a $150 Hunter Freq bonus!  +$"+ money + 150);
+                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty, plus a $150 Hunter Freq bonus!  +$"+ (money + 150));
                             context.getPlayerManager().addMoney(killer.getPlayerName(), money + 150);                            
                         } else {
                             m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty!  +$"+ money);
