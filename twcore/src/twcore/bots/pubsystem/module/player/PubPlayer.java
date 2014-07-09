@@ -55,13 +55,16 @@ public class PubPlayer implements Comparable<PubPlayer>{
         new Point(540, 353),    // Between tube and drop-circle, R side 
         new Point(450, 382),    // Near entrance to lowest ear, L side 
         new Point(574, 382),    // Near entrance to lowest ear, R side 
-        new Point(512, 400),    // Entrance to lower 
+        new Point(512, 403),    // Entrance to lower 
         
     };
     
     // Radius for the low population mid spawn. Amount must be equal to the amount of Points in COORDS_MIDSPAWN.
     private static final int[] RADIUS_MIDSPAWN = {
-        9, 9, 8, 8, 5, 3, 7, 7, 3, 3
+        9, 9, 8, 8,
+        5, 3, 7, 7, 3, 3,
+        6, 6, 2, 2, 
+        6, 4, 4, 4, 4, 7
     };
     
     private BotAction m_botAction;
