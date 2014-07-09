@@ -466,7 +466,14 @@ public class GameFlagTimeModule extends AbstractModule {
                 }
             }
         }
-
+        
+        // Killed by Levi on private freq? Occasionally suggest they join the LT Hunter freq.
+        if (killer.getShipType() == Tools.Ship.LEVIATHAN && killer.getFrequency() > 1) {
+            Random r = new Random();
+            if (r.nextInt(10) == 0)
+                m_botAction.sendPrivateMessage(killed.getPlayerID(), "Killed by private-freq Levi. Want revenge? Get bonuses to LT kills on the Hunter freq. Type =99 to join.");
+        }
+        
         if (isRunning()) {
 
             if (killer.getPlayerName().equals(m_botAction.getBotName()))
