@@ -809,18 +809,26 @@ public class twdbot extends SubspaceBot {
 
     private void cmd_ResetName(String name, String message, boolean player) {
 
-        DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, message);
+        String resetname = message;
+        boolean keepRoster = false;
+        
+        if (!player && message.endsWith(":roster")) {
+            resetname = message.substring( 0, message.lastIndexOf(":roster") );
+            keepRoster = true;
+        }
+        
+        DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, resetname);
 
         if (!dbP.isRegistered()) {
             if (player)
-                m_botAction.sendSmartPrivateMessage(name, "Your name '" + message + "' has not been registered.");
+                m_botAction.sendSmartPrivateMessage(name, "Your name '" + resetname + "' has not been registered.");
             else
-                m_botAction.sendSmartPrivateMessage(name, "The name '" + message + "' has not been registered.");
+                m_botAction.sendSmartPrivateMessage(name, "The name '" + resetname + "' has not been registered.");
             return;
         }
 
         if (!dbP.isEnabled()) {
-            m_botAction.sendSmartPrivateMessage(name, "The name '" + message + "' is disabled and can't be reset.");
+            m_botAction.sendSmartPrivateMessage(name, "The name '" + resetname + "' is disabled and can't be reset.");
             return;
         }
 
@@ -829,7 +837,7 @@ public class twdbot extends SubspaceBot {
                 m_botAction.sendSmartPrivateMessage(name, "Unable to reset name.  Please contact a TWD Op for assistance.");
                 return;
             }
-            if (isBeingReset(name, message))
+            if (isBeingReset(name, resetname))
                 return;
             else if (!resetPRegistration(dbP.getUserID()))
                 m_botAction.sendSmartPrivateMessage(name, "Unable to reset name.  Please contact a TWD Op for assistance.");
@@ -839,6 +847,17 @@ public class twdbot extends SubspaceBot {
                 } catch (SQLException e) {
                     Tools.printStackTrace(e);
                 }
+                
+                dbP.getPlayerSquadData();
+                if (dbP.getTeamID() > 0) {
+                    m_botAction.sendSmartPrivateMessage(name, "You have been unrostered from '" + dbP.getTeamName() + "'.");
+                    try {
+                        m_botAction.SQLQueryAndClose(webdb, "UPDATE tblTeamUser SET fdQuit = NOW(), fnCurrentTeam = 0, fnApply=0 WHERE fnTeamUserID = " + dbP.getTeamUserID() );
+                    } catch (SQLException e) {
+                        Tools.printStackTrace(e);
+                    }                    
+                }
+                
                 m_botAction.sendSmartPrivateMessage(name, "Your name will be reset in 24 hours.");
             }
         } else {
@@ -846,6 +865,7 @@ public class twdbot extends SubspaceBot {
                 m_botAction.sendSmartPrivateMessage(name, "That name has been disabled.  If you are sure the player should be allowed to play, enable before resetting.");
                 return;
             }
+            
             if (!dbP.resetRegistration())
                 m_botAction.sendSmartPrivateMessage(name, "Error resetting name '" + message + "'.  The name may not exist in the database.");
             else {
@@ -853,6 +873,18 @@ public class twdbot extends SubspaceBot {
                     m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblTWDPlayerMID WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'");
                 } catch (SQLException e) {
                     Tools.printStackTrace(e);
+                }
+                
+                if (!keepRoster) {
+                    dbP.getPlayerSquadData();
+                    if (dbP.getTeamID() > 0) {
+                        m_botAction.sendSmartPrivateMessage(name, "Player was unrostered from '" + dbP.getTeamName() + "'. Use :roster at the end of name to keep roster while resetting.");
+                        try {
+                            m_botAction.SQLQueryAndClose(webdb, "UPDATE tblTeamUser SET fdQuit = NOW(), fnCurrentTeam = 0, fnApply=0 WHERE fnTeamUserID = " + dbP.getTeamUserID() );
+                        } catch (SQLException e) {
+                            Tools.printStackTrace(e);
+                        }                    
+                    }
                 }
                 m_botAction.sendSmartPrivateMessage(name, "The name '" + message + "' has been reset, and all IP/MID entries have been removed.");
 
@@ -1189,7 +1221,7 @@ public class twdbot extends SubspaceBot {
     private void cmd_DisplayHelp(String name, boolean player) {
         String help[] = { 
                 "--------- ACCOUNT MANAGEMENT COMMANDS ------------------------------------------------",
-                " !resetname <name>            - resets the name (unregisters it)",
+                " !resetname <name>            - resets/unregisters & unrosters name; add :roster to name to keep squad",
                 " !resettime <name>            - returns the time when the name will be reset",
                 " !cancelreset <name>          - cancels the !reset a player has issued",
                 " !enablename <name>           - enables the name so it can be used in TWD/TWL games",
