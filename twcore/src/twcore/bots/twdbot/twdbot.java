@@ -867,7 +867,7 @@ public class twdbot extends SubspaceBot {
             }
             
             if (!dbP.resetRegistration())
-                m_botAction.sendSmartPrivateMessage(name, "Error resetting name '" + message + "'.  The name may not exist in the database.");
+                m_botAction.sendSmartPrivateMessage(name, "Error resetting name '" + resetname + "'.  The name may not exist in the database.");
             else {
                 try {
                     m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblTWDPlayerMID WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'");
@@ -886,7 +886,7 @@ public class twdbot extends SubspaceBot {
                         }                    
                     }
                 }
-                m_botAction.sendSmartPrivateMessage(name, "The name '" + message + "' has been reset, and all IP/MID entries have been removed.");
+                m_botAction.sendSmartPrivateMessage(name, "The name '" + resetname + "' has been reset, and all IP/MID entries have been removed.");
 
             }
         }
