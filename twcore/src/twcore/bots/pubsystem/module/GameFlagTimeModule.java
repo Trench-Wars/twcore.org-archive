@@ -380,7 +380,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 pubPlayer.setLastFreqSwitch(event.getFrequency());
         }
         if (hunterFreqEnabled && event.getFrequency() == hunterFreq)
-            m_botAction.sendPrivateMessage(event.getPlayerID(), "[HUNTER]  LT bounties shared; +$15 for all Levi kills; LT coords updated; Terrs get bonus.");
+            m_botAction.sendPrivateMessage(event.getPlayerID(), "[HUNTER]  LT bounties shared; +$15 for all Levi kills; Terrs get bonus.");
         
         // Reset the time of a player for MVP purpose
         if (isRunning()) {
