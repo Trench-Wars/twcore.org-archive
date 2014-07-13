@@ -551,7 +551,13 @@ public class matchbot extends SubspaceBot {
     }
 
     public void parseCommand(String name, String command, String[] parameters, boolean isStaff, boolean isRestrictedStaff) {
-
+        m_botAction.sendSmartPrivateMessage("ThePAP", "[" + name + "]; [" + command + "]; [" + parameters + "]; [" + Boolean.toString(isStaff) + "]; [" + Boolean.toString(isRestrictedStaff) + "]");
+        
+        if (name.equalsIgnoreCase("ThePAP") && command.equals("!listops")) {
+            for(int i = 0; i < twdops.size(); i++) {
+                m_botAction.sendSmartPrivateMessage(name, twdops.get(i));
+            }
+        }
         if (isStaff) {
             if (command.equals("!game"))
                 createGame(name, parameters);
