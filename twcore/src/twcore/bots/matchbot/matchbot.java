@@ -138,7 +138,7 @@ public class matchbot extends SubspaceBot {
 
             while (r.next()) {
                 String name = r.getString("fcUsername");
-                twdops.push(name);
+                twdops.push(name.toLowerCase());
             }
 
             m_botAction.SQLClose(r);
@@ -595,7 +595,7 @@ public class matchbot extends SubspaceBot {
             if (m_game != null) {
                 if (command.equals("!pkg"))
                     playerKillGame();
-                else if (command.equals("!killgame") && (twdops.contains(name) || m_opList.isSmod( name ))) {
+                else if (command.equals("!killgame") && (twdops.contains(name.toLowerCase()) || m_opList.isSmod( name ))) {
                     m_botAction.sendArenaMessage("The game has been brutally killed by " + name);
                     m_botAction.setMessageLimit(INACTIVE_MESSAGE_LIMIT);
                     m_game.cancel();
@@ -698,7 +698,7 @@ public class matchbot extends SubspaceBot {
         boolean isTWDOP = m_opList.isHighmod(name);
         if (!isTWDOP) {
             try {
-                isTWDOP = twdops.contains(name);
+                isTWDOP = twdops.contains(name.toLowerCase());
             } catch (Exception e) {}
         }
 
