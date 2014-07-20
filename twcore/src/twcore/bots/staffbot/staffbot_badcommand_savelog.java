@@ -7,6 +7,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.TimerTask;
@@ -41,6 +42,9 @@ public class staffbot_badcommand_savelog extends Module {
     // TimerTasks
     private CheckLogTask checkLogTask = new CheckLogTask();
     
+    // Bad command relay ignoring capabilities
+    private HashSet<String> bcIgnoreList;
+    
     @Override
     public void cancel() {
         moduleEnabled = false;
@@ -48,6 +52,7 @@ public class staffbot_badcommand_savelog extends Module {
             logFile.close();
         } catch(Exception e) {}
         
+        bcIgnoreList.clear();
         m_botAction.cancelTask(checkLogTask);
     }
 
@@ -56,6 +61,8 @@ public class staffbot_badcommand_savelog extends Module {
         BotSettings botSettings = m_botAction.getBotSettings();
         fileNameFormat = new SimpleDateFormat("'" + botSettings.getString("logpath") + "/'ddMMMyyyy'.log'");
         logFileName = fileNameFormat.format(new Date());
+        
+        bcIgnoreList = new HashSet<String>();
         
         try {
             logFile = new FileWriter(new File(logFileName), true);
@@ -142,6 +149,8 @@ public class staffbot_badcommand_savelog extends Module {
                             " !log [time/minutes]           - Displays last commands of last specified minutes.",
                             " !logfrom <name>[:cmd][:time]  - Displays last commands from <name>.",
                             " !logto <name>[:cmd][:time]    - Displays last commands to <name>.",
+                            " !bcignore <name>              - Toggles relaying bad commands by <name> to smod chat. (Chat only command)",
+                            " !bcignorelist                 - Lists all staffers whose bad commands are not being relayed to smod chat."
                             };
 
                     m_botAction.smartPrivateMessageSpam(name, helpSmod);
@@ -245,7 +254,38 @@ public class staffbot_badcommand_savelog extends Module {
                 }
             }
 	    }
+	    
+	    if(event.getMessageType() == Message.CHAT_MESSAGE)
+	    {
+	    	if(m_botAction.getOperatorList().isSmod(name)) {
+	    		if(message.toLowerCase().startsWith("!bcignore ")) {
+	    			handleBadCommandIgnore(name, message.substring(10));
+	    		}
+	    		else if(message.toLowerCase().startsWith("!bcignorelist ")) {
+	    			m_botAction.sendChatMessage(2, "Ignoring bad commands from: ");
+	    			
+	    			for(String ignored:bcIgnoreList) {
+	    				m_botAction.sendChatMessage(2, "  *" + ignored);
+	    			}
+	    		}
+	    	}
+	    }
 	}
+	
+	private void handleBadCommandIgnore(String name, String toIgnore) {
+		if(toIgnore == null)
+			return;
+		
+		toIgnore = toIgnore.toLowerCase();
+		
+		if(bcIgnoreList.contains(toIgnore))	{
+			bcIgnoreList.remove(toIgnore);
+			m_botAction.sendChatMessage("Bad Command Relaying ENABLED for " + toIgnore);
+		} else {
+			bcIgnoreList.add(toIgnore);
+			m_botAction.sendChatMessage("Bad Command Relaying DISABLED for " + toIgnore);
+		}		
+	}		
 	
 	private void displayLog(String commander, String fromPlayer, String toPlayer, String command, int time) {
         Date lastDate = new Date(this.lastLogDate.getTime() - time * 60 * 1000);
@@ -279,7 +319,7 @@ public class staffbot_badcommand_savelog extends Module {
 	    if (fromPlayer != null && command != null && opList.isZH(fromPlayer)) {
 	        commandLog = new CommandLog(date, arena, fromPlayer, toPlayer, command);
 	      
-	        if (isBadCommand(arena, fromPlayer, toPlayer, command)) {
+	        if (isBadCommand(arena, fromPlayer, toPlayer, command) && !bcIgnoreList.contains(fromPlayer.toLowerCase())) {
 	            m_botAction.sendChatMessage(2, "Illegal command: " + commandLog.toString());
 	        }
 	        commandQueue.add(commandLog);
