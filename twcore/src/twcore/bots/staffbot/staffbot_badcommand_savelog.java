@@ -261,12 +261,15 @@ public class staffbot_badcommand_savelog extends Module {
 	    		if(message.toLowerCase().startsWith("!bcignore ")) {
 	    			handleBadCommandIgnore(name, message.substring(10));
 	    		}
-	    		else if(message.toLowerCase().startsWith("!bcignorelist ")) {
+	    		else if(message.equalsIgnoreCase("!bcignorelist")) {
 	    			m_botAction.sendChatMessage(2, "Ignoring bad commands from: ");
 	    			
-	    			for(String ignored:bcIgnoreList) {
+	    			if(bcIgnoreList.size() == 0)
+	    				m_botAction.sendChatMessage(2, "  *(None)");
+	    			
+	    			for(String ignored:bcIgnoreList)
 	    				m_botAction.sendChatMessage(2, "  *" + ignored);
-	    			}
+	    			
 	    		}
 	    	}
 	    }
@@ -280,10 +283,10 @@ public class staffbot_badcommand_savelog extends Module {
 		
 		if(bcIgnoreList.contains(toIgnore))	{
 			bcIgnoreList.remove(toIgnore);
-			m_botAction.sendChatMessage("Bad Command Relaying ENABLED for " + toIgnore);
+			m_botAction.sendChatMessage(2, "Bad Command Relaying ENABLED for " + toIgnore);
 		} else {
 			bcIgnoreList.add(toIgnore);
-			m_botAction.sendChatMessage("Bad Command Relaying DISABLED for " + toIgnore);
+			m_botAction.sendChatMessage(2, "Bad Command Relaying DISABLED for " + toIgnore);
 		}		
 	}		
 	
