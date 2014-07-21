@@ -144,7 +144,8 @@ public class MatchTeam {
         
         // Hardcoded exceptions until someone gets some time to rewrite the entire TWD stuff.
         //10MAY2014 POiD Requested dd3/dd4/dd5 to use res limits but not DD1/DD2.
-        if (m_botAction.getArenaName().toLowerCase().startsWith("twld") || m_botAction.getArenaName().toLowerCase().equals("twdd3") || m_botAction.getArenaName().toLowerCase().equals("twdd4") || m_botAction.getArenaName().toLowerCase().equals("twdd5")) {
+        //21JUL2014 Request by TWD Head to revert the previous change.
+        if (m_botAction.getArenaName().toLowerCase().startsWith("twld") || m_botAction.getArenaName().toLowerCase().equals("twdd") || m_botAction.getArenaName().toLowerCase().equals("twdd2")) {
             MAX_RES_X = 1440;
             MAX_RES_Y = 1024;
         } else if (m_botAction.getArenaName().toLowerCase().startsWith("twdd") || m_botAction.getArenaName().toLowerCase().startsWith("twdtd") || m_botAction.getArenaName().toLowerCase().startsWith("twdtj") || m_botAction.getArenaName().toLowerCase().startsWith("twdtb") ) {
