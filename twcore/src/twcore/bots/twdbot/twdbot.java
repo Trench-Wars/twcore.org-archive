@@ -460,7 +460,7 @@ public class twdbot extends SubspaceBot {
 
     private void cmd_sibling(String name, String params) {
         if (params == null || params.isEmpty())
-            m_botAction.sendChatMessage(2, "Usage: !sibling name");
+            m_botAction.sendSmartPrivateMessage(name, "Usage: !sibling name");
         try {
 
             //grab the sibling group ids for corresponding player
@@ -468,12 +468,12 @@ public class twdbot extends SubspaceBot {
                     + "SELECT fnUserID FROM tblUser WHERE fcUserName like '" + params.trim() + "' ORDER BY fnUserID ) and fnStaffRemoveUserID is NULL");
 
             if (groupSet == null || !groupSet.next()) {
-                m_botAction.sendChatMessage(2, "No registered siblings found for " + params.trim() + ".");
+                m_botAction.sendSmartPrivateMessage(name, "No registered siblings found for " + params.trim() + ".");
                 return;
             }
 
             do {
-                m_botAction.sendChatMessage(2, "Siblings found for " + params.trim() + ": ");
+                m_botAction.sendSmartPrivateMessage(name, "Siblings found for " + params.trim() + ": ");
 
                 //m_botAction.sendChatMessage(2, "");
                 
@@ -484,16 +484,16 @@ public class twdbot extends SubspaceBot {
                         + "WHERE fnTWDSiblingGroupID = '" + groupSet.getString(1) + "'" );
 
                 while (nameSet != null && nameSet.next())
-                    m_botAction.sendChatMessage(2, "  " + nameSet.getString(1));
+                    m_botAction.sendSmartPrivateMessage(name, "  " + nameSet.getString(1));
 
                 if (infoSet != null && infoSet.next()) {
-                    m_botAction.sendChatMessage(2, "Updated: " + infoSet.getString(2));
+                    m_botAction.sendSmartPrivateMessage(name, "Updated: " + infoSet.getString(2));
                     String comments[] = infoSet.getString(1).split("\\r?\\n");
                     for (int i=0; i<comments.length;i++)
                     {
                     	comments[i] = comments[i].trim();
                     	if (!comments[i].isEmpty())
-                    		m_botAction.sendChatMessage(2, "Comment: "+ comments[i]);
+                    		m_botAction.sendSmartPrivateMessage(name, "Comment: "+ comments[i]);
                     }
                     //m_botAction.sendChatMessage(2, "Comment: " + infoSet.getString(1));
                 }
