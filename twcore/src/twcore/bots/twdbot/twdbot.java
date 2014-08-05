@@ -1346,7 +1346,7 @@ public class twdbot extends SubspaceBot {
     public boolean resetPRegistration(int id, Integer rosterId) {
 
         try {
-            m_botAction.SQLQueryAndClose(webdb, "UPDATE tblAliasSuppression SET fdResetTime = NOW(), fnResetRoster = "+(rosterId==null?"NULL":Integer.toString(rosterId)) +" WHERE fnUserID = " + id);
+            m_botAction.SQLQueryAndClose(webdb, "UPDATE tblAliasSuppression SET fdResetTime = NOW(), fnResetRosterId = "+(rosterId==null?"NULL":Integer.toString(rosterId)) +" WHERE fnUserID = " + id);
             return true;
         } catch (Exception e) {
             return false;
