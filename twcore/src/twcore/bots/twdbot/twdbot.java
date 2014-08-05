@@ -1371,7 +1371,7 @@ public class twdbot extends SubspaceBot {
      */
     private void checkForRosterResets() {
         try {
-            ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT fnResetRosterId FROM tblAliasSuppression WHERE fdResetTime < DATE_SUB(NOW(), INTERVAL 1 DAY) AND fnResetRosterId != NULL");
+            ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT fnResetRosterId FROM tblAliasSuppression WHERE fdResetTime < DATE_SUB(NOW(), INTERVAL 1 DAY) AND fnResetRosterId IS NOT NULL");
             while(rs.next()) {
                 m_botAction.SQLQueryAndClose(webdb, "UPDATE tblTeamUser SET fdQuit = NOW(), fnCurrentTeam = 0, fnApply = 0 WHERE fnTeamUserID = " + rs.getInt(1) );
             }
