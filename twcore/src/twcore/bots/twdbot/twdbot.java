@@ -808,30 +808,40 @@ public class twdbot extends SubspaceBot {
     }
 
     private void cmd_ResetName(String name, String message, boolean player) {
+        
+        String resetname = message; 
+        boolean resetRoster = true; 
+        
+        if (!player && message.endsWith(":roster")) { 
+            resetname = message.substring( 0, message.lastIndexOf(":roster") ); 
+            resetRoster = false; 
+        } 
 
-        DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, message);
-
+        DBPlayerData dbP = new DBPlayerData(m_botAction, webdb, resetname); 
+        
         if (!dbP.isRegistered()) {
             if (player)
-                m_botAction.sendSmartPrivateMessage(name, "Your name '" + message + "' has not been registered.");
+                m_botAction.sendSmartPrivateMessage(name, "Your name '" + resetname + "' has not been registered.");
             else
-                m_botAction.sendSmartPrivateMessage(name, "The name '" + message + "' has not been registered.");
+                m_botAction.sendSmartPrivateMessage(name, "The name '" + resetname + "' has not been registered.");
             return;
         }
 
         if (!dbP.isEnabled()) {
-            m_botAction.sendSmartPrivateMessage(name, "The name '" + message + "' is disabled and can't be reset.");
+            m_botAction.sendSmartPrivateMessage(name, "The name '" + resetname + "' is disabled and can't be reset.");
             return;
         }
 
+        dbP.getPlayerSquadData();
+        
         if (player) {
             if (dbP.hasBeenDisabled()) {
                 m_botAction.sendSmartPrivateMessage(name, "Unable to reset name.  Please contact a TWD Op for assistance.");
                 return;
             }
-            if (isBeingReset(name, message))
+            if (isBeingReset(name, resetname))
                 return;
-            else if (!resetPRegistration(dbP.getUserID()))
+            else if (!resetPRegistration(dbP.getUserID(), (resetRoster?dbP.getTeamUserID():null)))
                 m_botAction.sendSmartPrivateMessage(name, "Unable to reset name.  Please contact a TWD Op for assistance.");
             else {
                 try {
@@ -839,23 +849,24 @@ public class twdbot extends SubspaceBot {
                 } catch (SQLException e) {
                     Tools.printStackTrace(e);
                 }
-                m_botAction.sendSmartPrivateMessage(name, "Your name will be reset in 24 hours.");
+                m_botAction.sendSmartPrivateMessage(name, "Your name will be reset" + (resetRoster?", and you will be unrostered":"") + " in 24 hours.");
             }
         } else {
             if (dbP.hasBeenDisabled()) {
                 m_botAction.sendSmartPrivateMessage(name, "That name has been disabled.  If you are sure the player should be allowed to play, enable before resetting.");
                 return;
             }
-            if (!dbP.resetRegistration())
-                m_botAction.sendSmartPrivateMessage(name, "Error resetting name '" + message + "'.  The name may not exist in the database.");
+            if (!dbP.resetRegistration(resetRoster))
+                m_botAction.sendSmartPrivateMessage(name, "Error resetting name '" + resetname + "'.  The name may not exist in the database.");
             else {
                 try {
                     m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblTWDPlayerMID WHERE fcUserName = '" + Tools.addSlashesToString(name) + "'");
                 } catch (SQLException e) {
                     Tools.printStackTrace(e);
                 }
-                m_botAction.sendSmartPrivateMessage(name, "The name '" + message + "' has been reset, and all IP/MID entries have been removed.");
-
+                m_botAction.sendSmartPrivateMessage(name, "The name '" + resetname + "' has been reset, and all IP/MID entries have been removed.");
+                if(resetRoster)
+                    m_botAction.sendSmartPrivateMessage(name, "Player was unrostered from '" + dbP.getTeamName() + "'. Use :roster at the end of name to keep roster while resetting."); 
             }
         }
     }
@@ -867,7 +878,7 @@ public class twdbot extends SubspaceBot {
             ResultSet s = m_botAction.SQLQuery(webdb, "SELECT * FROM tblAliasSuppression WHERE fnUserID = '" + dbP.getUserID()
                     + "' && fdResetTime IS NOT NULL");
             if (s.next()) {
-                m_botAction.SQLBackgroundQuery(webdb, "twdbot", "UPDATE tblAliasSuppression SET fdResetTime = NULL WHERE fnUserID = '"
+                m_botAction.SQLBackgroundQuery(webdb, "twdbot", "UPDATE tblAliasSuppression SET fdResetTime = NULL, fnRosterResetId = NULL WHERE fnUserID = '"
                         + dbP.getUserID() + "'");
 
                 if (player)
@@ -1189,7 +1200,7 @@ public class twdbot extends SubspaceBot {
     private void cmd_DisplayHelp(String name, boolean player) {
         String help[] = { 
                 "--------- ACCOUNT MANAGEMENT COMMANDS ------------------------------------------------",
-                " !resetname <name>            - resets the name (unregisters it)",
+                " !resetname <name>            - resets/unregisters & unrosters name; add :roster to name to keep squad",
                 " !resettime <name>            - returns the time when the name will be reset",
                 " !cancelreset <name>          - cancels the !reset a player has issued",
                 " !enablename <name>           - enables the name so it can be used in TWD/TWL games",
@@ -1326,22 +1337,46 @@ public class twdbot extends SubspaceBot {
         }
     }
 
-    public boolean resetPRegistration(int id) {
+    /**
+     * Readies a specific user for a name and, optionally, roster reset in 24 hours.
+     * @param id The TWD user id
+     * @param rosterId The TWD Team user id, or when no roster reset is wanted, null
+     * @return On success, true, otherwise, false
+     */
+    public boolean resetPRegistration(int id, Integer rosterId) {
 
         try {
-            m_botAction.SQLQueryAndClose(webdb, "UPDATE tblAliasSuppression SET fdResetTime = NOW() WHERE fnUserID = " + id);
+            m_botAction.SQLQueryAndClose(webdb, "UPDATE tblAliasSuppression SET fdResetTime = NOW(), fnResetRoster = "+(rosterId==null?"NULL":Integer.toString(rosterId)) +" WHERE fnUserID = " + id);
             return true;
         } catch (Exception e) {
             return false;
         }
     }
 
+    /**
+     * Checks whether 24 hours have past for pending resets, and if so, resets them. 
+     */
     public void checkForResets() {
+        checkForRosterResets();
         try {
             m_botAction.SQLBackgroundQuery(webdb, null, "DELETE FROM tblAliasSuppression WHERE fdResetTime < DATE_SUB(NOW(), INTERVAL 1 DAY);");
             m_botAction.SQLBackgroundQuery(webdb, null, "UPDATE tblChallengeBan SET fnActive = 0 WHERE fnActive = 1 AND fdDateCreated < DATE_SUB(NOW(), INTERVAL 1 DAY)");
         } catch (Exception e) {
             Tools.printLog("[TWDBot] Can't check for new names to reset...");
+        }
+    }
+    
+    /**
+     * Checks and resets a TWD user's roster, when 24 hours have passed.
+     */
+    private void checkForRosterResets() {
+        try {
+            ResultSet rs = m_botAction.SQLQuery(webdb, "SELECT fnResetRosterId FROM tblAliasSuppression WHERE fdResetTime < DATE_SUB(NOW(), INTERVAL 1 DAY) AND fnResetRosterId != NULL");
+            while(rs.next()) {
+                m_botAction.SQLQueryAndClose(webdb, "UPDATE tblTeamUser SET fdQuit = NOW(), fnCurrentTeam = 0, fnApply = 0 WHERE fnTeamUserID = " + rs.getInt(1) );
+            }
+        } catch (Exception e) {
+            Tools.printLog("[TWDBot] Can't check for new rosters to reset...");
         }
     }
 
