@@ -878,7 +878,7 @@ public class twdbot extends SubspaceBot {
             ResultSet s = m_botAction.SQLQuery(webdb, "SELECT * FROM tblAliasSuppression WHERE fnUserID = '" + dbP.getUserID()
                     + "' && fdResetTime IS NOT NULL");
             if (s.next()) {
-                m_botAction.SQLBackgroundQuery(webdb, "twdbot", "UPDATE tblAliasSuppression SET fdResetTime = NULL, fnRosterResetId = NULL WHERE fnUserID = '"
+                m_botAction.SQLBackgroundQuery(webdb, "twdbot", "UPDATE tblAliasSuppression SET fdResetTime = NULL, fnResetRosterId = NULL WHERE fnUserID = '"
                         + dbP.getUserID() + "'");
 
                 if (player)
@@ -1346,7 +1346,7 @@ public class twdbot extends SubspaceBot {
     public boolean resetPRegistration(int id, Integer rosterId) {
 
         try {
-            m_botAction.SQLQueryAndClose(webdb, "UPDATE tblAliasSuppression SET fdResetTime = NOW(), fnResetRosterId = "+(rosterId==null?"NULL":Integer.toString(rosterId)) +" WHERE fnUserID = " + id);
+            m_botAction.SQLQueryAndClose(webdb, "UPDATE tblAliasSuppression SET fdResetTime = NOW(), fnResetRosterId = "+((rosterId==null||rosterId.intValue() == 0)?"NULL":Integer.toString(rosterId)) +" WHERE fnUserID = " + id);
             return true;
         } catch (Exception e) {
             return false;
