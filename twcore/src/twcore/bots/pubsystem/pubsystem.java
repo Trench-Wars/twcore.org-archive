@@ -130,6 +130,10 @@ public class pubsystem extends SubspaceBot
         publicChatLog.write(Tools.formatString("=", header.length(), "="));
         publicChatLog.write("");
         
+        commentGreeting = m_botAction.getBotSettings().getString("CommentGreeting");
+        if(commentGreeting.isEmpty())
+            commentGreeting = null;	  
+        
         if(commentGreeting != null && !m_botAction.getBotSettings().getString("comment_log").isEmpty()) {
             commentLog = new Log(m_botAction, m_botAction.getBotSettings().getString("comment_log"));
             commentLog.write(Tools.formatString("=", header.length(), "="));
@@ -211,10 +215,6 @@ public class pubsystem extends SubspaceBot
 	        greeting = (m_botAction.getBotSettings().getString("Greeting"));
 	        if (greeting.isEmpty())
 	            greeting = null;
-	        
-	        commentGreeting = m_botAction.getBotSettings().getString("CommentGreeting");
-	        if(commentGreeting.isEmpty())
-	            commentGreeting = null;	        
 	        
     	} catch (Exception e) {
     		Tools.printStackTrace(e);
