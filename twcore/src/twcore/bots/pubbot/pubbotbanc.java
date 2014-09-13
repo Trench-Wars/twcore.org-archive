@@ -2,6 +2,7 @@ package twcore.bots.pubbot;
 
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -169,7 +170,8 @@ public class pubbotbanc extends PubBotModule {
                 	debug("Got IPC Banc Update.");
                     elapsed.stop();
                     @SuppressWarnings("unchecked")
-                    ListIterator<String> i = (ListIterator<String>) ipc.getList();
+                    List<String> l = (List<String>) ipc.getList();
+                    ListIterator<String> i = l.listIterator();
                     while (i.hasNext()) {
                         BanC b = new BanC(i.next());
                         debug("" + i.previousIndex());

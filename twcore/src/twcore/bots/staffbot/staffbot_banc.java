@@ -2149,7 +2149,7 @@ public class staffbot_banc extends Module {
             l.add(b.getPlayername() + ":" + (b.getIP() != null ? b.getIP() : " ") + ":" + (b.getMID() != null ? b.getMID() : " ") + ":"
                     + b.getDuration() + ":" + b.getType().toString() + ":" + b.getElapsed() + ":" + b.getId());
         
-        m_botAction.ipcTransmit(IPCBANC, new IPCEvent(l.listIterator(), 0, bot));
+        m_botAction.ipcTransmit(IPCBANC, new IPCEvent(l, 0, bot));
         /*
         for (BanC b : activeBanCs) {
             IPCEvent ipc = new IPCEvent(b, 0, bot);
