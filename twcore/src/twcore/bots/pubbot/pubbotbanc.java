@@ -167,14 +167,12 @@ public class pubbotbanc extends PubBotModule {
                 bot = Integer.valueOf(m_botAction.getBotName().substring(8));
             if (ipc.getType() < 0 || ipc.getType() == bot)
                 if (ipc.isAll()) {
-                	debug("Got IPC Banc Update.");
                     elapsed.stop();
                     @SuppressWarnings("unchecked")
                     List<String> l = (List<String>) ipc.getList();
                     ListIterator<String> i = l.listIterator();
                     while (i.hasNext()) {
                         BanC b = new BanC(i.next());
-                        debug("" + i.previousIndex());
                         handleBanC(b);
                     }
                 } else
