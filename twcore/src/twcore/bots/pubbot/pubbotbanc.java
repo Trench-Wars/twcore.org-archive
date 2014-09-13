@@ -172,6 +172,7 @@ public class pubbotbanc extends PubBotModule {
                     ListIterator<String> i = (ListIterator<String>) ipc.getList();
                     while (i.hasNext()) {
                         BanC b = new BanC(i.next());
+                        debug("" + i.previousIndex());
                         handleBanC(b);
                     }
                 } else
