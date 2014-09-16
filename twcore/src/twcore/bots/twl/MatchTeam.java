@@ -290,7 +290,7 @@ public class MatchTeam {
                 int xResolutionMax = m_rules.getInt("resolutionxmax");
                 int yResolutionMax = m_rules.getInt("resolutionymax");
 
-                if(xResolution > xResolutionMax && yResolution > yResolutionMax) {
+                if(xResolution > xResolutionMax || yResolution > yResolutionMax) {
                     MatchPlayer p = getPlayer( name );
                     if( p != null && m_round.m_fnRoundState == 1) {
                         p.getOutOfGame();
