@@ -289,6 +289,22 @@ public class MatchTeam {
                 int yResolution = Integer.parseInt(resolution.split("x")[1]);
                 int xResolutionMax = m_rules.getInt("resolutionxmax");
                 int yResolutionMax = m_rules.getInt("resolutionymax");
+            
+                //QUICKFIX for season 19: 1440x900 or 1280x1024
+                if(xResolution <= 1440)
+                {
+                	xResolutionMax = 1440;
+                	yResolutionMax = 900;
+                }
+                
+                if(xResolution <= 1280)
+                {
+                	xResolutionMax = 1280;
+                	yResolutionMax = 1024;
+                }
+                               	
+                
+                //Set Limits to 1440x900 to make this work
 
                 if(xResolution > xResolutionMax || yResolution > yResolutionMax) {
                     MatchPlayer p = getPlayer( name );
