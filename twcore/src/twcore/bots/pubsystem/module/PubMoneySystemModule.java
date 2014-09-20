@@ -4022,11 +4022,11 @@ public class PubMoneySystemModule extends AbstractModule {
             
             commandBot("!Go " + m_botAction.getArenaName().substring(8, 9));
             try {
-                Thread.sleep(2 * Tools.TimeInMillis.SECOND);
+                Thread.sleep(3 * Tools.TimeInMillis.SECOND);
             } catch (InterruptedException e) {}
             commandBot("!SetShipFreq 1:" + freq);
             try {
-                Thread.sleep(250);
+                Thread.sleep(350);
             } catch (InterruptedException e) {}
             commandBot("!WarpTo " + coordRoofTurret.x + " " + coordRoofTurret.y);
             commandBot("!RepeatFireOnSight 65 750");
