@@ -1640,11 +1640,12 @@ public class staffbot_banc extends Module {
             } else {
                 if (sqlWhere.length() > 0) {
                     if (!sinceStart)
-                        sqlWhere = "WHERE (fdExpired IS NULL OR (fdExpired > DATE_SUB(NOW(), " + SQL_EXPIRE_TIME + "))) AND " + sqlWhere;
+                    	sqlWhere = "WHERE (fdExpired IS NULL OR (fdExpired > DATE_SUB(NOW(), " + SQL_EXPIRE_TIME + ")) OR ( (fdExpired > DATE_SUB(NOW(), INTERVAL 1 MONTH)) AND fnDuration > 1440)) AND " + sqlWhere;
                     else
                         sqlWhere = "WHERE " + sqlWhere;
                 } else if (!sinceStart)
-                    sqlWhere = "WHERE (fdExpired IS NULL OR (fdExpired > DATE_SUB(NOW(), " + SQL_EXPIRE_TIME + ")))";
+                	sqlWhere = "WHERE (fdExpired IS NULL OR (fdExpired > DATE_SUB(NOW(), " + SQL_EXPIRE_TIME + ")) OR ( (fdExpired > DATE_SUB(NOW(), INTERVAL 1 MONTH)) AND fnDuration > 1440)) AND " + sqlWhere;
+
 
                 sqlQuery = "SELECT (fnElapsed < fnDuration OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fnElapsed, fcStaffer, fdCreated, fdExpired, fbLifted FROM tblBanc "
                         + sqlWhere + " ORDER BY fnID DESC LIMIT 0," + viewcount;
