@@ -129,7 +129,7 @@ public class staffbot_banc extends Module {
     // Look up MySQL DATE_SUB on the Internet for this one. Dangerous if done wrong!
     private final static String SQL_EXPIRE_TIME = "INTERVAL 14 DAY";
     // The expire time in normal text, how it will be presented to the user.
-    private final static String BANC_EXPIRE_TIME_TEXT = "14 days";
+    private final static String BANC_EXPIRE_TIME_TEXT = "14 days/1 month";
     // The final one is: WARNING_EXPIRE_TIME in staffbot_warnings
     
     @SuppressWarnings("unused")
