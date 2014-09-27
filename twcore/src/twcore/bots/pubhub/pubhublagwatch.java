@@ -63,13 +63,13 @@ public class pubhublagwatch extends PubBotModule {
             return;
 
         if(messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE || messageType == Message.CHAT_MESSAGE ){
-            if(message.equalsIgnoreCase("!lagwatchinfo "))
+            if(message.startsWith("!lagwatchinfo "))
                 doLagWatchInfo(name, message.substring(14));
-            if(message.equalsIgnoreCase("!lagwatchon "))
+            if(message.startsWith("!lagwatchon "))
                 doLagWatchOn(name, message.substring(12));
-            else if(message.equalsIgnoreCase("!lagwatchoff "))
+            else if(message.startsWith("!lagwatchoff "))
                 doLagWatchOff(name, message.substring(13));
-            else if(message.equalsIgnoreCase("!lagwatchclear "))
+            else if(message.startsWith("!lagwatchclear "))
                 doLagWatchClear(name, message.substring(15));
             else if(message.equalsIgnoreCase("!lagwatches"))
                 doLagWatches(name);
