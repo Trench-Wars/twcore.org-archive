@@ -66,59 +66,59 @@ public class pubhublagwatch extends PubBotModule {
             if(message.equalsIgnoreCase("!lagwatchinfo "))
                 doLagWatchInfo(name, message.substring(14));
             if(message.equalsIgnoreCase("!lagwatchon "))
-                doLagWatchOn(message.substring(12));
+                doLagWatchOn(name, message.substring(12));
             else if(message.equalsIgnoreCase("!lagwatchoff "))
-                doLagWatchOff(message.substring(13));
+                doLagWatchOff(name, message.substring(13));
             else if(message.equalsIgnoreCase("!lagwatchclear "))
-                doLagWatchClear(message.substring(15));
+                doLagWatchClear(name, message.substring(15));
             else if(message.equalsIgnoreCase("!lagwatches"))
-                doLagWatches();
+                doLagWatches(name);
         }
     }
     
-    public void doLagWatchOn(String player) {
+    public void doLagWatchOn(String staffer, String player) {
         try {
             lagWatched.add(player);
             m_botAction.SQLQueryAndClose(webdb, "INSERT INTO tblLagWatch (fcName) VALUES ('" + Tools.addSlashesToString(player) + "')");
             m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("lagwatchon " + player));           
-            m_botAction.sendChatMessage("Recording lag info for '" + player + "' after entering any pubbot-enabled arena. !lagwatchoff to disable.");
+            m_botAction.sendSmartPrivateMessage(staffer, "Recording lag info for '" + player + "' after entering any pubbot-enabled arena. !lagwatchoff to disable.");
         } catch (Exception e) {
-            m_botAction.sendChatMessage("Could not add player '" + player + "' -- already watched? Check !lagwatches.");
+            m_botAction.sendSmartPrivateMessage(staffer, "Could not add player '" + player + "' -- already watched? Check !lagwatches.");
         }
     }
 
-    public void doLagWatchOff(String player) {
+    public void doLagWatchOff(String staffer, String player) {
         if (!lagWatched.contains(player)) {
-            m_botAction.sendChatMessage("Not currently watching '" + player + "' -- please check spelling.");
+            m_botAction.sendSmartPrivateMessage(staffer, "Not currently watching '" + player + "' -- please check spelling.");
             return;
         }
         try {
             lagWatched.remove(player);
             m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblLagWatch WHERE fcName='" + Tools.addSlashesToString(player) + "'");
             m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("lagwatchoff " + player));           
-            m_botAction.sendChatMessage("No longer recording lag info for '" + player + "'. !lagwatchinfo to see all recorded data, or !lagwatchclear to remove data when no longer needed.");
+            m_botAction.sendSmartPrivateMessage(staffer, "No longer recording lag info for '" + player + "'. !lagwatchinfo to see all recorded data, or !lagwatchclear to remove data when no longer needed.");
         } catch (Exception e) {
-            m_botAction.sendChatMessage("Problem when removing player '" + player + "'.");
+            m_botAction.sendSmartPrivateMessage(staffer, "Problem when removing player '" + player + "'.");
         }
     }
     
-    public void doLagWatchClear(String player) {
+    public void doLagWatchClear(String staffer, String player) {
         try {
             m_botAction.SQLQueryAndClose(webdb, "DELETE FROM tblLagWatchData WHERE fcName='" + Tools.addSlashesToString(player) + "'");
-            m_botAction.sendChatMessage("All data for '" + player + "' removed.");
+            m_botAction.sendSmartPrivateMessage(staffer, "All data for '" + player + "' removed.");
         } catch (Exception e) {
-            m_botAction.sendChatMessage("Problem when removing data for player '" + player + "'.");
+            m_botAction.sendSmartPrivateMessage(staffer, "Problem when removing data for player '" + player + "'.");
         }
     }
 
-    public void doLagWatches() {
+    public void doLagWatches(String staffer) {
         try {
             String watchedList = "Currently watching: ";
             for( String watched : lagWatched)
                 watchedList += (watched + " ");
-            m_botAction.sendChatMessage(watchedList);
+            m_botAction.sendSmartPrivateMessage(staffer, watchedList);
         } catch (Exception e) {
-            m_botAction.sendChatMessage("Problem encountered listing watched players.");
+            m_botAction.sendSmartPrivateMessage(staffer, "Problem encountered listing watched players.");
         }
     }
     
@@ -133,7 +133,7 @@ public class pubhublagwatch extends PubBotModule {
             }
             m_botAction.SQLClose(r);
         } catch (Exception e) {
-            m_botAction.sendChatMessage("Problem getting lagwatch info.");
+            m_botAction.sendSmartPrivateMessage(staffer, "Problem getting lagwatch info.");
         }
 
     }
