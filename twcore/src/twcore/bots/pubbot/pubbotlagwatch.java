@@ -93,7 +93,7 @@ public class pubbotlagwatch extends PubBotModule {
         if(message != null && event.getMessageType() == Message.ARENA_MESSAGE) {
             if(message.startsWith("PING Current:") && !lagChecking.equals("")) {
                 try {
-                    m_botAction.SQLQueryAndClose(webdb, "INSERT INTO tblLagWatchData (fcName,fcLagLine) VALUES ('" + Tools.addSlashesToString(lagChecking) + "','(" + m_botAction.getArenaName() + ")  " + message + "'" );
+                    m_botAction.SQLQueryAndClose(webdb, "INSERT INTO tblLagWatchData (fcName,fcLagLine) VALUES ('" + Tools.addSlashesToString(lagChecking) + "','(" + m_botAction.getArenaName() + ")  " + message + "')" );
                 } catch(Exception e) {
                     Tools.printLog("Trouble logging lagwatched player '" + lagChecking + "' to database." );
                 }

@@ -128,7 +128,7 @@ public class pubhublagwatch extends PubBotModule {
             while (r.next()) {
                 String result = "";
                 result += datetimeFormat.format(r.getTimestamp("fdCreated"));
-                result += r.getString("fcLag");
+                result += r.getString("fcLagLine");
                 m_botAction.sendSmartPrivateMessage(staffer, result);
             }
             m_botAction.SQLClose(r);
