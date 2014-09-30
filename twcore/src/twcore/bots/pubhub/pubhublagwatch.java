@@ -1,12 +1,8 @@
 package twcore.bots.pubhub;
 
 import java.text.SimpleDateFormat;
-import java.util.TreeMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.sql.SQLException;
 import java.sql.ResultSet;
-import java.util.Date;
 
 import twcore.bots.PubBotModule;
 import twcore.core.EventRequester;
@@ -15,19 +11,15 @@ import twcore.core.events.InterProcessEvent;
 import twcore.core.util.ipc.IPCMessage;
 import twcore.core.util.Tools;
 
+/**
+ * Lagchecks players on lagwatch who stay in the arena for a short time, for use in TWD/TWL matches later on.
+ * @author qan
+ */
 public class pubhublagwatch extends PubBotModule {
 
-    /*
-     * String[] object of games
-     *0 - Arena Game is In
-     *1 - Freq 1 ID
-     *2 - Freq 2 ID
-     *3 - MatchBot hosting game
-     */
     private String webdb = "website";
     private String PUBBOTS = "pubBots";
     private HashSet<String> lagWatched;
-    private Date date;
     private SimpleDateFormat datetimeFormat = new SimpleDateFormat("[yyyy-MM-dd HH:mm] ");
 
     public void initializeModule(){
@@ -39,7 +31,6 @@ public class pubhublagwatch extends PubBotModule {
             while (r.next()) {
                 player = r.getString("fcName");
                 lagWatched.add(player);
-                m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("lagwatchon " + player));           
             }
             m_botAction.SQLClose(r);
         } catch (Exception e) {
@@ -65,16 +56,36 @@ public class pubhublagwatch extends PubBotModule {
         if(messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE || messageType == Message.CHAT_MESSAGE ){
             if(message.startsWith("!lagwatchinfo "))
                 doLagWatchInfo(name, message.substring(14));
-            if(message.startsWith("!lagwatchon "))
+            if (message.startsWith("!lagwatchon "))
                 doLagWatchOn(name, message.substring(12));
-            else if(message.startsWith("!lagwatchoff "))
+            else if (message.startsWith("!lagwatchoff "))
                 doLagWatchOff(name, message.substring(13));
-            else if(message.startsWith("!lagwatchclear "))
+            else if (message.startsWith("!lagwatchclear "))
                 doLagWatchClear(name, message.substring(15));
-            else if(message.equalsIgnoreCase("!lagwatches"))
+            else if (message.equalsIgnoreCase("!lagwatches"))
                 doLagWatches(name);
         }
     }
+
+    public void handleEvent(InterProcessEvent event) {
+        // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
+        if (event.getObject() instanceof IPCMessage == false)
+            return;
+
+        IPCMessage ipcMessage = (IPCMessage) event.getObject();
+        String message = ipcMessage.getMessage();
+        String recipient = ipcMessage.getRecipient();
+        String botSender = event.getSenderName();
+
+        if (recipient == null || recipient.equals(m_botAction.getBotName())) {
+            if (message.equals("lagwatchrequest")) {
+                // Notify the new pubbot of currently watched players
+                for (String player : lagWatched)
+                    m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("lagwatchon " + player, botSender));           
+            }
+        }
+    }
+        
     
     public void doLagWatchOn(String staffer, String player) {
         try {
@@ -115,7 +126,7 @@ public class pubhublagwatch extends PubBotModule {
         try {
             String watchedList = "Currently watching: ";
             for( String watched : lagWatched)
-                watchedList += (watched + " ");
+                watchedList += (watched + "  ");
             m_botAction.sendSmartPrivateMessage(staffer, watchedList);
         } catch (Exception e) {
             m_botAction.sendSmartPrivateMessage(staffer, "Problem encountered listing watched players.");

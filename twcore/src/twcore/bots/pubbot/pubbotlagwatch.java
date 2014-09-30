@@ -15,11 +15,8 @@ import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
 /**
- * Performs TWD-related functions:
- * 
- *    1. Notifies players entering of current TWD matches
- *    2. Lagchecks players on lagwatch who stay in the arena for 5 minutes, for use in TWD/TWL matches later on
- *
+ * Lagchecks players on lagwatch who stay in the arena for a short time, for use in TWD/TWL matches later on.
+ * @author qan
  */
 public class pubbotlagwatch extends PubBotModule {
 	
@@ -32,6 +29,7 @@ public class pubbotlagwatch extends PubBotModule {
     public void initializeModule(){
         lagWatched = new HashSet<String>();
         lagWatchTimers = new HashMap<String,LagWatchTimer>();
+        m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("lagwatchrequest", pubHubName));
     }
     
     public void cancel(){
@@ -52,7 +50,7 @@ public class pubbotlagwatch extends PubBotModule {
     	    LagWatchTimer lwt = new LagWatchTimer(p.getPlayerName());
     	    try {
     	        lagWatchTimers.put(p.getPlayerName(), lwt);
-    	        m_botAction.scheduleTask(lwt, Tools.TimeInMillis.MINUTE * 5);
+    	        m_botAction.scheduleTask(lwt, Tools.TimeInMillis.MINUTE * 3);
     	    } catch( Exception e) {
     	        m_botAction.cancelTask(lwt);
     	    }
@@ -93,7 +91,8 @@ public class pubbotlagwatch extends PubBotModule {
         if(message != null && event.getMessageType() == Message.ARENA_MESSAGE) {
             if(message.startsWith("PING Current:") && !lagChecking.equals("")) {
                 try {
-                    m_botAction.SQLQueryAndClose(webdb, "INSERT INTO tblLagWatchData (fcName,fcLagLine) VALUES ('" + Tools.addSlashesToString(lagChecking) + "','(" + m_botAction.getArenaName() + ")  " + message + "')" );
+                    String query = "INSERT INTO tblLagWatchData (fcName,fcLagLine) VALUES ('" + Tools.addSlashesToString(lagChecking) + "','(" + m_botAction.getArenaName() + ")  " + message + "')";
+                    m_botAction.SQLQueryAndClose(webdb, query );
                 } catch(Exception e) {
                     Tools.printLog("Trouble logging lagwatched player '" + lagChecking + "' to database." );
                 }
