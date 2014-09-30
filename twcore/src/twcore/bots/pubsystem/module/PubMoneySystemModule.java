@@ -3252,7 +3252,7 @@ public class PubMoneySystemModule extends AbstractModule {
      */
     @SuppressWarnings("unused")
     private void itemCommandPurePub(String sender, String params) {
-        m_botAction.sendArenaMessage( "--[PUREPUB BUY]--  " + sender.toUpperCase() + " has purchased PUREPUB. 5 minutes until making kills in a Levi will result in a shipchange.", Tools.Sound.VIOLENT_CONTENT );
+        m_botAction.sendArenaMessage( "--[PUREPUB BUY]--  " + sender.toUpperCase() + " has purchased PUREPUB. 60 seconds until making kills in a Levi will result in a shipchange.", Tools.Sound.VIOLENT_CONTENT );
         
         final TimerTask notifyLevis = new TimerTask() {
             public void run() {
@@ -3265,7 +3265,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 }
             }
         };
-        m_botAction.scheduleTask(notifyLevis, Tools.TimeInMillis.SECOND * 285);
+        m_botAction.scheduleTask(notifyLevis, Tools.TimeInMillis.SECOND * 45);
         
         final TimerTask disableLevis = new TimerTask() {
             public void run() {
@@ -3273,7 +3273,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 playerManager.setPurePubStatus(true);
             }
         };
-        m_botAction.scheduleTask(disableLevis, Tools.TimeInMillis.MINUTE * 5);
+        m_botAction.scheduleTask(disableLevis, Tools.TimeInMillis.MINUTE * 1);
         
         final TimerTask reenableLevis = new TimerTask() {
             public void run() {
@@ -3281,7 +3281,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 playerManager.setPurePubStatus(false);
             }
         };
-        m_botAction.scheduleTask(reenableLevis, Tools.TimeInMillis.MINUTE * 25);        
+        m_botAction.scheduleTask(reenableLevis, Tools.TimeInMillis.MINUTE * 21);
     }
 
     /**
@@ -3296,7 +3296,7 @@ public class PubMoneySystemModule extends AbstractModule {
      */
     @SuppressWarnings("unused")
     private void itemCommandSortaPurePub(String sender, String params) {
-        m_botAction.sendArenaMessage( "--[SORTA PUREPUB BUY]--  " + sender.toUpperCase() + " has purchased SORTA PUREPUB. 5 minutes until making kills in a Levi while on a private freq will result in a shipchange.", Tools.Sound.VIOLENT_CONTENT );
+        m_botAction.sendArenaMessage( "--[SORTA PUREPUB BUY]--  " + sender.toUpperCase() + " has purchased SORTA PUREPUB. 1 minutes until making kills in a Levi while on a private freq will result in a shipchange.", Tools.Sound.VIOLENT_CONTENT );
 
         final TimerTask notifyLevis = new TimerTask() {
             public void run() {
@@ -3309,7 +3309,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 }
             }
         };
-        m_botAction.scheduleTask(notifyLevis, Tools.TimeInMillis.SECOND * 285);
+        m_botAction.scheduleTask(notifyLevis, Tools.TimeInMillis.SECOND * 45);
 
         
         final TimerTask enableSPP = new TimerTask() {
@@ -3318,7 +3318,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 playerManager.setSortaPurePubStatus(true);
             }
         };
-        m_botAction.scheduleTask(enableSPP, Tools.TimeInMillis.MINUTE * 5);
+        m_botAction.scheduleTask(enableSPP, Tools.TimeInMillis.MINUTE * 1);
         
         final TimerTask disableSPP = new TimerTask() {
             public void run() {
@@ -3326,7 +3326,7 @@ public class PubMoneySystemModule extends AbstractModule {
                 playerManager.setSortaPurePubStatus(false);
             }
         };
-        m_botAction.scheduleTask(disableSPP, Tools.TimeInMillis.MINUTE * 25);        
+        m_botAction.scheduleTask(disableSPP, Tools.TimeInMillis.MINUTE * 21);
     }
     
     
