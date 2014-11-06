@@ -24,6 +24,7 @@ public class GaugeModule extends AbstractModule {
     private String database;
     
     private static final long DELAY = 10 * Tools.TimeInMillis.MINUTE; //in mS, 10 min set here
+    private static final long INITIAL_DELAY = 2 * Tools.TimeInMillis.MINUTE;
     
     private Task task = null;
     private boolean running = false;
@@ -36,7 +37,7 @@ public class GaugeModule extends AbstractModule {
     
     @Override
     public void start() {
-        m_botAction.scheduleTaskAtFixedRate(task, 0, DELAY);
+        m_botAction.scheduleTaskAtFixedRate(task, INITIAL_DELAY, DELAY);
         running = true;
     }
 
