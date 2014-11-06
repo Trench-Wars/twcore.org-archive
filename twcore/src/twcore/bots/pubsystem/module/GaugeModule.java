@@ -1,10 +1,14 @@
 package twcore.bots.pubsystem.module;
 
+import java.util.Iterator;
 import java.util.TimerTask;
+
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
+import twcore.core.game.Player;
+import twcore.core.util.Tools;
 
 /**
  * Gauge Module for Pub System
@@ -17,10 +21,9 @@ import twcore.core.EventRequester;
  */
 public class GaugeModule extends AbstractModule {
     
-    private static final String TABLE = "tblPubPop";
     private String database;
     
-    private static final long DELAY = 1000 * 60 * 10; //in mS, 10 min set here
+    private static final long DELAY = 10 * Tools.TimeInMillis.MINUTE; //in mS, 10 min set here
     
     private Task task = null;
     private boolean running = false;
@@ -103,9 +106,59 @@ public class GaugeModule extends AbstractModule {
 
         @Override
         public void run() {
-            int n = m_botAction.getNumPlaying();
-            m_botAction.SQLBackgroundQuery(database, "GaugeModule Insert", 
-                    "INSERT INTO " + TABLE + " (fcCount) VALUES (" + n + ");");
+        	
+            int warbirds = 0;
+            int javelins = 0;
+            int spiders = 0;
+            int leviathans = 0;
+            int terriers = 0;
+            int weasels = 0;
+            int lancasters = 0;
+            int sharks = 0;
+            int spectators = 0;
+            
+            Iterator<Player> i = m_botAction.getPlayerIterator();
+            
+            while(i.hasNext()) {
+            	Player p = i.next();
+            	
+            	switch((int)p.getShipType())
+            	{
+            	case Tools.Ship.WARBIRD:
+            		warbirds++;
+            		break;
+            	case Tools.Ship.JAVELIN:
+            		javelins++;
+            		break;
+            	case Tools.Ship.SPIDER:
+            		spiders++;
+            		break;
+            	case Tools.Ship.LEVIATHAN:
+            		leviathans++;
+            		break;
+            	case Tools.Ship.WEASEL:
+            		weasels++;
+            		break;
+            	case Tools.Ship.LANCASTER:
+            		lancasters++;
+            		break;
+            	case Tools.Ship.SHARK:
+            		sharks++;
+            		break;
+            	case Tools.Ship.SPECTATOR:
+            		spectators++;
+            		break;
+            	default:
+            		spectators++;
+            		break;
+            	}
+            }
+        
+        	String query = String.format("INSERT INTO `tblPubPopExtended`(`fcWarbirdCount`, `fcJavelinCount`, `fcSpiderCount`, `fcLeviCount`, `fcTerrierCount`, `fcWeaselCount`, `fcLancasterCount`, `fcSharkCount`, `fcSpecCount`) "
+        			+ "VALUES (%d,%d,%d,%d,%d,%d,%d,%d,%d)", warbirds, javelins, spiders, leviathans, terriers, weasels, lancasters, sharks, spectators);
+            
+        	m_botAction.SQLBackgroundQuery(database, "GaugeModule Insert", query);
+            	
         }
         
     }
