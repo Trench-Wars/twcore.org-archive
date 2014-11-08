@@ -40,7 +40,7 @@ public class BlockSpecModule extends AbstractModule {
     		return;
     	
     	if(isStaffer == false) {
-    		m_botAction.sendPrivateMessage(name, "Spectating on public frequencies is forbidden! D:");
+    		m_botAction.sendPrivateMessage(pid, "Spectating on public frequencies is forbidden! D:");
     		m_botAction.setShip(pid, Tools.Ship.WARBIRD);
     		m_botAction.specWithoutLock(pid);
     	}
