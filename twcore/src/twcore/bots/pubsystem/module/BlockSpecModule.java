@@ -30,7 +30,9 @@ public class BlockSpecModule extends AbstractModule {
     	boolean isStaffer = false;
     	
     	if(name != null)
-        	isStaffer = oplist.isZH(name);
+        	isStaffer = oplist.isZH(name) || oplist.isBot(name);
+    	else
+    		return;
 
     	if(isStaffer == false) {
     		m_botAction.sendPrivateMessage(name, "Spectating on private frequencies is forbidden! D:");
