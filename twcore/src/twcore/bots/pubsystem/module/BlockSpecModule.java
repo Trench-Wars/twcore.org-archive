@@ -32,7 +32,7 @@ public class BlockSpecModule extends AbstractModule {
     	boolean isStaffer = false;
     	
     	if(player != null)
-        	isStaffer = oplist.isBot(name);
+        	isStaffer = oplist.isBot(player.getPlayerName());
     	else
     		return;
 
