@@ -4,7 +4,9 @@ import twcore.bots.pubsystem.PubContext;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.OperatorList;
+import twcore.core.events.FrequencyChange;
 import twcore.core.events.FrequencyShipChange;
+import twcore.core.game.Player;
 import twcore.core.util.Tools;
 
 /*
@@ -20,22 +22,25 @@ public class BlockSpecModule extends AbstractModule {
 		oplist = m_botAction.getOperatorList();
 	}
     
-    public void handleEvent(FrequencyShipChange event) {
-    	if(event.getShipType() != Tools.Ship.SPECTATOR && (event.getFrequency() != 0 || event.getFrequency() != 1))
+    public void handleEvent(FrequencyChange event) {
+    	if(event.getFrequency() > 1)
     		return;
     	
     	short pid = event.getPlayerID();
-    	String name = m_botAction.getPlayerName(event.getPlayerID());
+    	Player player = m_botAction.getPlayer(pid);
     	
     	boolean isStaffer = false;
     	
-    	if(name != null)
-        	isStaffer = oplist.isZH(name) || oplist.isBot(name);
+    	if(player != null)
+        	isStaffer = oplist.isBot(name);
     	else
     		return;
 
+    	if(player.getShipType() != Tools.Ship.SPECTATOR)
+    		return;
+    	
     	if(isStaffer == false) {
-    		m_botAction.sendPrivateMessage(name, "Spectating on private frequencies is forbidden! D:");
+    		m_botAction.sendPrivateMessage(name, "Spectating on public frequencies is forbidden! D:");
     		m_botAction.setShip(pid, Tools.Ship.WARBIRD);
     		m_botAction.specWithoutLock(pid);
     	}
@@ -66,7 +71,7 @@ public class BlockSpecModule extends AbstractModule {
 
 	@Override
 	public void requestEvents(EventRequester eventRequester) {
-		eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
+		eventRequester.request(EventRequester.FREQUENCY_CHANGE);
 	}
 	
 	@Override

@@ -39,6 +39,7 @@ public class PubContext {
     private PubLotteryModule pubLottery;
     private GaugeModule gaugeModule;
     private BountyModule bountyModule;
+    private BlockSpecModule blockSpecModule;
 
     // Game module
     private GameFlagTimeModule gameFlagTime;
@@ -70,6 +71,7 @@ public class PubContext {
         getPubMap();
         getGauge();
         getBounty();
+        getBlockSpecModule();
         
 
         int seconds = (int) (System.currentTimeMillis() - start) / 1000;
@@ -227,6 +229,15 @@ public class PubContext {
         }
         return pubLottery;
     }
+    
+    public BlockSpecModule getBlockSpecModule() {
+    	if(blockSpecModule == null) {
+    		blockSpecModule = new BlockSpecModule(m_botAction, this);
+    		modules.put("BlockSpec", blockSpecModule);
+    	}
+    	
+    	return blockSpecModule;
+    }
 
     /** 11/25/13 - Adding explicit calls to modules for handling of general events,
      * so we're not iterating over this Map unnecessarily 500 times a second.
@@ -263,6 +274,7 @@ public class PubContext {
             pubSession.handleEvent(event);
             pubMap.handleEvent(event);            
             bountyModule.handleEvent(event);
+            blockSpecModule.handleEvent(event);
 
             // Gauge does not use events (at present)
             //gaugeModule.handleEvent(event);
