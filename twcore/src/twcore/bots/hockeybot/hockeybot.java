@@ -959,8 +959,8 @@ public class hockeybot extends SubspaceBot {
         }
 
 
-        /* Staff commands ZH+ */
-        if (m_botAction.getOperatorList().isZH(name)) {
+        /* Staff commands ZH+ & Hockey Ops*/
+        if (m_botAction.getOperatorList().isZH(name) || isHockeyOp(name)) {
             if (cmd.equals("!start")) {
                 cmd_start(name);
             } else if (cmd.equals("!stop")) {
@@ -1014,6 +1014,12 @@ public class hockeybot extends SubspaceBot {
         if (m_botAction.getOperatorList().isSmod(name)) {
             if (cmd.equals("!allowzoner")) {
                 cmd_allowZoner(name);
+            } else if (cmd.equals("!listhockeyops")) {
+                cmd_listhockeyops(name);
+            } else if (cmd.equals("!addhockeyop")) {
+            	cmd_addhockeyop(name, args);
+            } else if (cmd.equals("!removehockeyop")) {
+            	cmd_removehockeyop(name, args);
             }
         }
         
@@ -1024,7 +1030,68 @@ public class hockeybot extends SubspaceBot {
         }
     }
 
-    /** 
+    /**
+     * Removes a hockey op
+     * @param name - person removing hockeyOp
+     * @param hockeyOp - axed hockeyOp
+     */
+    private void cmd_removehockeyop(String name, String hockeyOp) {
+		if(hockeyOp != null && hockeyOp != "") {
+			if(config.removeHockeyOp(hockeyOp)) {
+				m_botAction.sendPrivateMessage(name, hockeyOp + " is no longer a hockey op.");
+			}
+			else {
+				m_botAction.sendPrivateMessage(name, "Error encountered while removing hockey op.");
+			}
+		} else {
+			m_botAction.sendPrivateMessage(name, "Error encountered while removing hockey op.");
+		}
+	}
+
+	/**
+	 * Adds a hockey op
+	 * @param name - person adding hockeyOp
+	 * @param hockeyOp - new hockeyOp
+	 */
+	private void cmd_addhockeyop(String name, String hockeyOp) {
+		if(hockeyOp != null && hockeyOp != "") {
+			if(config.removeHockeyOp(hockeyOp)) {
+				m_botAction.sendPrivateMessage(name, hockeyOp + " is now a hockey op.");
+			}
+			else {
+				m_botAction.sendPrivateMessage(name, "Error encountered while adding hockey op.");
+			}
+		} else {
+			m_botAction.sendPrivateMessage(name, "Error encountered while adding hockey op.");
+		}
+	}
+
+	/**
+	 * Lists the hockey ops to name
+	 * @param name - person requesting hockey op list
+	 */
+	private void cmd_listhockeyops(String name) {
+		if(config.getHockeyOps().size() > 0) {
+			m_botAction.sendPrivateMessage(name, "Hockey Ops:");
+			
+			for(String hockeyOp:config.getHockeyOps()) {
+				m_botAction.sendPrivateMessage(name, "  -" + hockeyOp);
+			}
+		}
+		else {
+			m_botAction.sendPrivateMessage(name, "There are currently no hockey ops.");
+		}
+		
+	}
+	
+	private boolean isHockeyOp(String name)
+	{
+		if(config.getHockeyOps().contains(name.toLowerCase()))
+			return true;
+		return false;
+	}
+
+	/** 
      * Handles the !add command (cap)
      *
      * @param name Name of the player who issued the command.
@@ -3792,6 +3859,10 @@ public class hockeybot extends SubspaceBot {
      * @author unknown
      *
      */
+    /**
+     * @author M. Ibraheem
+     *
+     */
     private class HockeyConfig {
 
         /*
@@ -3816,6 +3887,7 @@ public class hockeybot extends SubspaceBot {
         private boolean allowVote;                  // Allows a final goal review period, where ZH+ get to vote the validity of the goal.
         private int penaltyTime;                    // Standard penalty duration time.
         ArrayList<String> allowedArenas;            // Allowed arenas the bot can join.
+        ArrayList<String> hockeyOps;                // Hockey Ops
         
         /*
          * Settings from hockey.cfg
@@ -3845,6 +3917,7 @@ public class hockeybot extends SubspaceBot {
             String[] maxShipsString;
             String[] goalieShipsString;
             String[] allowedArenaString;
+            String[] hockeyOpsString;
             
             
             //Arenas
@@ -3852,6 +3925,10 @@ public class hockeybot extends SubspaceBot {
             
             allowedArenaString = botSettings.getString("AllowedArenas").toLowerCase().trim().split(",");
             allowedArenas = new ArrayList<String>(Arrays.asList(allowedArenaString));
+            
+            //Hockey Ops
+            hockeyOpsString = botSettings.getString("HockeyOps").toLowerCase().trim().split(",");
+            hockeyOps = new ArrayList<String>(Arrays.asList(hockeyOpsString));
             
 
             //Allow final review voting
@@ -4066,7 +4143,7 @@ public class hockeybot extends SubspaceBot {
         private ArrayList<String> getAllowedArenas() {
         	return allowedArenas;
         }
-
+        
         /**
          * Returns the maximum amount of players allowed
          *
@@ -4261,7 +4338,64 @@ public class hockeybot extends SubspaceBot {
         public boolean isGoalieShip(int shipType) {
             return goalieShips.contains(shipType);
         }
-    }
+        
+        /**
+         * @param name Name of the player
+         * @return true if player is successfully added; false if player is already hockey op or error saving config.
+         */
+		public boolean addHockeyOp(String name) {
+			name = name.toLowerCase();
+
+			if (!hockeyOps.contains(name)) {
+				hockeyOps.add(name);
+
+				String hockeyOpString = "";
+
+				for (String hockeyOp : hockeyOps) {
+					hockeyOpString += hockeyOp + ",";
+				}
+
+				botSettings.put("HockeyOps", hockeyOpString);
+				
+				if(botSettings.save()) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
+        /**
+         * @param name Name of the player
+         * @return true if player is successfully removed; false if player is not a hockey op or error saving config.
+         */
+		public boolean removeHockeyOp(String name) {
+			name = name.toLowerCase();
+
+			if (hockeyOps.contains(name)) {
+				hockeyOps.remove(name);
+
+				String hockeyOpString = "";
+
+				for (String hockeyOp : hockeyOps) {
+					hockeyOpString += hockeyOp + ",";
+				}
+
+				botSettings.put("HockeyOps", hockeyOpString);
+				
+				if(botSettings.save()) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		/**
+		 * @return Hockey Ops
+		 */
+		public ArrayList<String> getHockeyOps() {
+			return hockeyOps;
+		}
+	}
 
     /**
      * This class keeps track of anything player related. 
