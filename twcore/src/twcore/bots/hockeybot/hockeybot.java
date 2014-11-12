@@ -1055,7 +1055,7 @@ public class hockeybot extends SubspaceBot {
 	 */
 	private void cmd_addhockeyop(String name, String hockeyOp) {
 		if(hockeyOp != null && hockeyOp != "") {
-			if(config.removeHockeyOp(hockeyOp)) {
+			if(config.addHockeyOp(hockeyOp)) {
 				m_botAction.sendPrivateMessage(name, hockeyOp + " is now a hockey op.");
 			}
 			else {
@@ -1599,6 +1599,9 @@ public class hockeybot extends SubspaceBot {
             }
             if (opList.isSmod(name)) {
                 hStaff.add("!allowzoner                         Forces the zone timers to reset allowing !zone");
+                hStaff.add("!addhockeyop <name>                                     Adds <name> as a hockey op");
+                hStaff.add("!removehockeyop <name>                       Removes <name> from being a hockey op");
+                hStaff.add("!listhockeyops                                                    Lists hockey ops");
 
             }
             String[] spamStaff = hStaff.toArray(new String[hStaff.size()]);
