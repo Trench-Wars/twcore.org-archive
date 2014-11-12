@@ -1570,7 +1570,7 @@ public class hockeybot extends SubspaceBot {
 
             enhancedPrivateMessageSpam(name, spamCap);
 
-        } else if (args.contains("staff") && opList.isZH(name)) {
+        } else if (args.contains("staff") && (opList.isZH(name) || isHockeyOp(name))) {
             ArrayList<String> hStaff = new ArrayList<String>();
 
             hStaff.add("Hockey Help Menu: Staff Controls");
