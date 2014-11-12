@@ -3927,7 +3927,7 @@ public class hockeybot extends SubspaceBot {
             allowedArenas = new ArrayList<String>(Arrays.asList(allowedArenaString));
             
             //Hockey Ops
-            hockeyOpsString = botSettings.getString("HockeyOps").toLowerCase().trim().split(",");
+            hockeyOpsString = botSettings.getNonNullString("HockeyOps").toLowerCase().trim().split(",");
             hockeyOps = new ArrayList<String>(Arrays.asList(hockeyOpsString));
             
 
