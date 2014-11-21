@@ -489,26 +489,37 @@ public class twdhub extends SubspaceBot {
                             botRemove(div + "5");
                         }
                     } else if (!arena.isActive()) {
-                        botRemove(div + "3");
+                        if(div != "twdd") {
+                        	botRemove(div + "3");
+                        }
                         botRemove(div + "4");
                         botRemove(div + "5");
                     }
                 } else {
                     botSpawn(div + "2");
-                    botRemove(div + "3");
+                    
+                    if(div != "twdd") {
+                    	botRemove(div + "3");
+                    }
                     botRemove(div + "4");
                     botRemove(div + "5");
                 }
             } else if (!arena.isActive()) {
                 botRemove(div + "2");
-                botRemove(div + "3");
+                if(div != "twdd") {
+                	botRemove(div + "3");
+                }
                 botRemove(div + "4");
                 botRemove(div + "5");
             }
         } else {
             botSpawn(div);
             botRemove(div + "2");
-            botRemove(div + "3");
+            if(div != "twdd") {
+            	botRemove(div + "3");
+            } else {
+            	botSpawn(div + "3");
+            }
             botRemove(div + "4");
             botRemove(div + "5");
         }
