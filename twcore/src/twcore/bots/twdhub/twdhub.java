@@ -534,7 +534,7 @@ public class twdhub extends SubspaceBot {
 		// Now check if we need to spawn anyone..
 		while (realDivSize < idealDivSize) {
 			if (allowedSuffixNumbers.size() > 0) {
-				botSpawn(div + allowedSuffixNumbers.get(0));
+				botSpawn(div + allowedSuffixNumbers.remove(0));
 				realDivSize++;
 			}
 		}
