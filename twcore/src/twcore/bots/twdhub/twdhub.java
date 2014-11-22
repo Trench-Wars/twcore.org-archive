@@ -1,8 +1,10 @@
 package twcore.bots.twdhub;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Stack;
 import java.util.TimerTask;
 import java.util.Vector;
 import java.sql.ResultSet;
@@ -443,95 +445,102 @@ public class twdhub extends SubspaceBot {
         checkDiv("twsd");
         checkDiv("twfd");
     }
+    
+	private void checkDiv(String div) {
+		if (startup || shutdown)
+			return;
+		div = div.toLowerCase().substring(0, 4);
 
-    private void checkDiv(String div) {
-        if (startup || shutdown) return;
-        div = div.substring(0, 4).toLowerCase();
-        Arena arena;
-        if (arenas.containsKey(div)) {
-            arena = arenas.get(div);
-            if (arena.hasGame()) {
-                
-                if (arenas.containsKey(div + "2")) {
-                    arena = arenas.get(div + "2");
-                    if (arena.hasGame()) {
-                        botStay(arena.bot);
-                        
-                        if (arenas.containsKey(div + "3")) {
-                            arena = arenas.get(div + "3");
-                            if (arena.hasGame()) {
-                                botStay(arena.bot);
-                                
-                                if (arenas.containsKey(div + "4")) {
-                                    arena = arenas.get(div + "4");
-                                    if (arena.hasGame()) {
-                                        botStay(arena.bot);
-                                        
-                                        if (arenas.containsKey(div + "5")) {
-                                            arena = arenas.get(div + "5");
-                                            if (arena.hasGame())
-                                                botStay(arena.bot);
-                                        } else
-                                            botSpawn(div + "5");
-                                    } else if (!arena.isActive())
-                                        botRemove(div + "5");
-                                } else {
-                                    botSpawn(div + "4");
-                                    botRemove(div + "5");
-                                }
-                            } else if (!arena.isActive()) {
-                                botRemove(div + "4");
-                                botRemove(div + "5");
-                            }
-                        } else {
-                            botSpawn(div + "3");
-                            botRemove(div + "4");
-                            botRemove(div + "5");
-                        }
-                    } else if (!arena.isActive()) {
-                        if(div != "twdd") {
-                        	botRemove(div + "3");
-                        }
-                        botRemove(div + "4");
-                        botRemove(div + "5");
-                    }
-                } else {
-                    botSpawn(div + "2");
-                    
-                    if(div != "twdd") {
-                    	botRemove(div + "3");
-                    }
-                    botRemove(div + "4");
-                    botRemove(div + "5");
-                }
-            } else if (!arena.isActive()) {
-                botRemove(div + "2");
-                if(div != "twdd") {
-                	botRemove(div + "3");
-                }
-                botRemove(div + "4");
-                botRemove(div + "5");
-            }
-        } else {
-            botSpawn(div);
-            botRemove(div + "2");
-            if(div != "twdd") {
-            	botRemove(div + "3");
-            } else {
-            	botSpawn(div + "3");
-            }
-            botRemove(div + "4");
-            botRemove(div + "5");
-        }
-        /*
-        div = div.substring(0, 4).toLowerCase();
-        if(div.equals("twdd")) {
-            checkDivPartial(div, 1, 2);
-            checkDivPartial(div, 3, 5);
-        } else {
-            checkDivPartial(div, 1, 5);
-        }*/
-    }
+		// TODO: modify so this takes arena names from cfg.
+		Vector<String> alwaysKeepAlive = new Vector<String>();
+		// The following arenas need to be kept alive at all times
+		String[] alwaysKeepAliveStringArray = { "twdd", "twdd3", "twjd",
+				"twbd", "twsd", "twfd" };
+		alwaysKeepAlive.addAll(Arrays.asList(alwaysKeepAliveStringArray));
+
+		// Following numbers are allowed to be suffixed to the arena
+		Vector<String> allowedSuffixNumbers = new Vector<String>();
+		allowedSuffixNumbers.addAll(Arrays.asList(new String[] { "", "2", "3",
+				"4", "5" }));
+
+		// Arenas in division that currently have a bot.
+		Vector<String> currentDivArenas = new Vector<String>();
+
+		// Filter out the division we are currently looking into..
+		for (String arena : arenas.keySet()) {
+			if (arena.startsWith(div.toLowerCase()))
+				currentDivArenas.add(arena);
+		}
+
+		// Check the arenas that need to be kept alive
+		for (String keepAliveArena : alwaysKeepAlive) {
+			// if its not in the division, skip
+			if (!keepAliveArena.startsWith(div)) {
+				continue;
+			}
+
+			if (!currentDivArenas.contains(keepAliveArena)) {
+				botSpawn(keepAliveArena);
+			}
+		}
+
+		// Now check if there are dead arenas & if they are dead kill the bot &
+		// compute ideal arena size
+		// Remove elements from allowedSuffixNumbers as we find arenas
+
+		int idealDivSize = div.equals("twdd") ? 2 : 1;
+		int realDivSize = 0;
+
+		for (String arena : currentDivArenas) {
+			String arenaNum = "";
+
+			if (arena.length() > 4) {
+				arenaNum = arena.substring(0, 4);
+			}
+
+			realDivSize++;
+
+			if (alwaysKeepAlive.contains(arena)) {
+				allowedSuffixNumbers.remove(arenaNum);
+
+				if (arenas.get(arena).hasGame()) {
+					botStay(arena);
+					idealDivSize++;
+				}
+
+				continue;
+			}
+
+			// If a game is running in the arena, keep it running.. pop the
+			// number out of allowed suffixes
+			// Otherwise, kill it
+			if (arenas.get(arena).hasGame()) {
+				allowedSuffixNumbers.remove(arenaNum);
+				botStay(arena);
+				idealDivSize++;
+			} else {
+				// If we are larger than our ideal size, kill the bot.
+				if (realDivSize > idealDivSize) {
+					debug(div + " Ideal: " + idealDivSize + " Real:"
+							+ realDivSize);
+
+					if (!arenas.get(arena).isActive()) {
+						botRemove(arena);
+						realDivSize--;
+					}
+				}
+			}
+		}
+
+		// Now check if we need to spawn anyone..
+		while (realDivSize < idealDivSize) {
+			if (allowedSuffixNumbers.size() > 0) {
+				botSpawn(div + allowedSuffixNumbers.get(0));
+				realDivSize++;
+			}
+		}
+
+	}
     /*
     private void checkDivPartial(String div, int start, int end) {
         if (startup || shutdown) return;
