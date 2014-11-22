@@ -1,14 +1,13 @@
 package twcore.bots.twdhub;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Stack;
 import java.util.TimerTask;
 import java.util.Vector;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 import twcore.core.BotAction;
 import twcore.core.BotSettings;
@@ -21,11 +20,11 @@ import twcore.core.events.LoggedOn;
 import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
+import twcore.core.util.ipc.Command;
 import twcore.core.util.ipc.EventType;
 import twcore.core.util.ipc.IPCChallenge;
 import twcore.core.util.ipc.IPCCommand;
 import twcore.core.util.ipc.IPCTWD;
-import twcore.core.util.ipc.Command;
 
 /**
  *
@@ -497,11 +496,12 @@ public class twdhub extends SubspaceBot {
 			if (arena.length() > 4) {
 				arenaNum = arena.substring(0, 4);
 			}
+			
+			allowedSuffixNumbers.remove(arenaNum);
 
 			realDivSize++;
 
 			if (alwaysKeepAlive.contains(arena)) {
-				allowedSuffixNumbers.remove(arenaNum);
 
 				if (arenas.get(arena).hasGame()) {
 					botStay(arena);
@@ -515,7 +515,6 @@ public class twdhub extends SubspaceBot {
 			// number out of allowed suffixes
 			// Otherwise, kill it
 			if (arenas.get(arena).hasGame()) {
-				allowedSuffixNumbers.remove(arenaNum);
 				botStay(arena);
 				idealDivSize++;
 			} else {
