@@ -539,6 +539,7 @@ public class twdhub extends SubspaceBot {
 			
 			if (allowedSuffixNumbers.size() > 0) {
 				botSpawn(div + allowedSuffixNumbers.remove(0));
+				debug("Attempting to spawn: " + div + allowedSuffixNumbers.remove(0) );
 				realDivSize++;
 			}
 		}
