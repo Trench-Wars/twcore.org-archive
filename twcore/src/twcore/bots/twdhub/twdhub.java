@@ -530,7 +530,9 @@ public class twdhub extends SubspaceBot {
 				}
 			}
 		}
-
+		
+		debug(div + " Ideal: " + idealDivSize + " Real:"
+				+ realDivSize);
 		// Now check if we need to spawn anyone..
 		while (realDivSize < idealDivSize) {
 			if (allowedSuffixNumbers.size() > 0) {
