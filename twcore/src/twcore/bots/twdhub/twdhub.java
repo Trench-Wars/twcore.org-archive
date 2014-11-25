@@ -443,6 +443,7 @@ public class twdhub extends SubspaceBot {
         checkDiv("twjd");
         checkDiv("twsd");
         checkDiv("twfd");
+        arenaDebugDump(debugger);
     }
     
 	private void checkDiv(String div) {
@@ -721,6 +722,27 @@ public class twdhub extends SubspaceBot {
     private boolean isTWDOp(String name) {    	
     	return twdOps.containsKey(name.toLowerCase());
     }
+    
+	private void arenaDebugDump(String name) {
+		
+		if(debugger.equals("")) return;
+		
+		ArrayList<String> dump = new ArrayList<String>();
+
+		for (Arena a : arenas.values()) {
+			String status = a.name;
+			status += (" " + a.status.toString());
+			status += (" " + (a.expired ? "expired" : "not expired"));
+			status += (" " + a.bot);
+
+			dump.add(status);
+		}
+
+		String[] send = dump.toArray(new String[dump.size()]);
+
+		m_botAction.remotePrivateMessageSpam(name, send);
+	}
+    
     class Arena {
         
         String name;
