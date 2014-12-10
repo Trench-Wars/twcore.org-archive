@@ -93,12 +93,12 @@ public class PubMapModule extends AbstractModule {
         
         if (pop >= 14) {
             ba.setDoors(0);
-            ba.sendArenaMessage("Base is now changing to SANTA size!", 2);
+            //ba.sendArenaMessage("Base is now changing to SANTA size!", 2);
             lastChange = now;           
         }
         else if (pop < 14) {
             ba.setDoors(255);
-            m_botAction.sendArenaMessage("Base is now changing to ELF size!", 2);
+            //m_botAction.sendArenaMessage("Base is now changing to ELF size!", 2);
             lastChange = now;
         }
     }
