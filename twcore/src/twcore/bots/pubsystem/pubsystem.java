@@ -522,7 +522,7 @@ public class pubsystem extends SubspaceBot
         if(commentLog != null) {
             commentLog.write(Tools.getTimeStamp() + ": " + Tools.formatString(sender, 19) + "> " + args);
             commentLogAnon.write(Tools.getTimeStamp() + ": " + args);
-            m_botAction.sendSmartPrivateMessage(sender, "Your comment has been forwarded to the Trench Wars developers.");
+            m_botAction.sendSmartPrivateMessage(sender, "Your comment has been forwarded to the Trench Wars developers. If you need immediate assistance, please use ?help <msg>");
         }
     }
     

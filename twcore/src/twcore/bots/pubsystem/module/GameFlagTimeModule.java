@@ -185,8 +185,8 @@ public class GameFlagTimeModule extends AbstractModule {
                     for (LevTerr lt : levterrs.values()) {
                         if (!lt.isEmpty()) {
                             Player p = m_botAction.getPlayer(lt.terrierName);
-                            if (p != null)
-                                msg += p.getPlayerName() + " @ " + p.getTextCoords() + "     ";
+                            if (p != null) {}
+                               // msg += p.getPlayerName() + " @ " + p.getTextCoords() + "     ";
                         }
                     }
                     if (!msg.equals("")) {

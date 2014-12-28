@@ -370,7 +370,7 @@ public class PubChallengeModule extends AbstractModule {
         }
         
         if(openChal && spam.containsKey(key) && ((System.currentTimeMillis() - spam.get(key)) < 50 * Tools.TimeInMillis.SECOND)) {
-            m_botAction.sendSmartPrivateMessage(challenger, "Please wait 50 seconds before issuing another open challenge.");
+            m_botAction.sendSmartPrivateMessage(challenger, "Please wait 50 seconds before issuing another challenge.");
             return;
         }
 
@@ -493,6 +493,8 @@ public class PubChallengeModule extends AbstractModule {
         final Challenge challenge = new Challenge(amount, li, ship1, ship2, challenger, challenged, this);
         addChallenge(challenge);
         spam.put(challenger.toLowerCase() + "-" + challenged.toLowerCase(), System.currentTimeMillis());
+        //Put this in spam to stop the open challenge bug..
+        spam.put(challenger.toLowerCase() + "-" + "*", System.currentTimeMillis());
         if (openChal)
             m_botAction.scheduleTask(new RemoveChallenge(challenge), TIME_OPEN_CHALS_ACTIVE);
         else

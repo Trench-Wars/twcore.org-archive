@@ -899,8 +899,8 @@ public class PubPlayerManagerModule extends AbstractModule {
     {
         if( MSG_AT_FREQSIZE_DIFF == -1)
             return;
-        int freq0 = m_botAction.getPlayingFrequencySize(0);
-        int freq1 = m_botAction.getPlayingFrequencySize(1);
+        int freq0 = getPlayingFrequencySizeIgnoringBots(0);
+        int freq1 = getPlayingFrequencySizeIgnoringBots(1);
         int diff = java.lang.Math.abs( freq0 - freq1 );
         if( diff == freqSizeInfo[0] )
             return;
@@ -919,6 +919,22 @@ public class PubPlayerManagerModule extends AbstractModule {
             }
         }
     }
+    
+	public int getPlayingFrequencySizeIgnoringBots(int freq) {
+		int size = 0;
+
+		Iterator<Player> i = m_botAction.getFreqPlayerIterator(freq);
+
+		while (i.hasNext()) {
+			Player p = i.next();
+
+			if (!m_botAction.getOperatorList().isBotExact(p.getPlayerName())) {
+				size++;
+			}
+		}
+
+		return size;
+	}
     
     public void checkCanSwitchToPrivate( int pid, int freq ) {
         if (MAX_EXTRA_ON_PRIVATES == 999)
