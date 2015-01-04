@@ -29,7 +29,7 @@ public class pubbotlagwatch extends PubBotModule {
     public void initializeModule(){
         lagWatched = new HashSet<String>();
         lagWatchTimers = new HashMap<String,LagWatchTimer>();
-        m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("lagwatchrequest", pubHubName));
+        m_botAction.ipcTransmit(PUBBOTS, new IPCMessage("lagwatchrequest", getPubHubName()));
     }
     
     public void cancel(){
