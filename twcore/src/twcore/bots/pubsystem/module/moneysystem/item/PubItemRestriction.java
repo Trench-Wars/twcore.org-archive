@@ -22,6 +22,7 @@ public class PubItemRestriction {
 	private boolean buyableFromLevTerr = true;
 	private boolean buyableFromSpec = false;
 	private boolean publicFreqOnly = false;
+	private boolean buyableInSafeOnly = false;
 	private List<String> itemNotSameTime;
 	private TreeMap<Short, Long> freqUsed;
     private TreeMap<Short, Integer> freqUsedPerRound;
@@ -140,6 +141,10 @@ public class PubItemRestriction {
 		this.buyableFromSpec = b;
 	}
 	
+	public void buyableInSafeOnly(boolean b) {
+		this.buyableInSafeOnly = b;
+	}
+	
 	public void setbuyableFromLevTerr() {
 	    this.buyableFromLevTerr = false;
 	}
@@ -147,8 +152,13 @@ public class PubItemRestriction {
 	public boolean isBuyableFromLevTerr() {
 	    return buyableFromLevTerr;
 	}
+	
 	public boolean isBuyableFromSpec() {
 		return buyableFromSpec;
+	}
+	
+	public boolean isBuyableInSafeOnly() {
+		return buyableInSafeOnly;
 	}
 	
 	public int getMaxArenaPerMinute() {
@@ -195,6 +205,12 @@ public class PubItemRestriction {
 		if (!buyableFromSpec) {
 			if (player.isOnSpec()) {
 				throw new PubException("You cannot buy this item if you are a spectator.");
+			}
+		}
+		
+		if(buyableInSafeOnly) {
+			if(!player.isInSafeZone()) {
+				throw new PubException("You can only buy this item in a safe zone.");
 			}
 		}
 		

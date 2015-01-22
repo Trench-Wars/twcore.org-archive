@@ -210,6 +210,8 @@ public class PubStore {
 	    					if (item instanceof PubPrizeItem) {
 	    						((PubPrizeItem)item).setPrizeSeconds(seconds);
 	    					}
+	    				} else if(option.startsWith("!safeonly")) {
+	    					r.buyableInSafeOnly(true);
 	    				}
 	    			}
 	    			

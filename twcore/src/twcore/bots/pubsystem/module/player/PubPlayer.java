@@ -9,11 +9,11 @@ import java.util.TreeMap;
 import twcore.bots.pubsystem.module.PubUtilModule.Location;
 //import twcore.bots.pubsystem.module.PubUtilModule.Tileset;
 import twcore.bots.pubsystem.module.moneysystem.LvzMoneyPanel;
+import twcore.bots.pubsystem.module.moneysystem.item.PubCommandItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubItemUsed;
 //import twcore.bots.pubsystem.module.moneysystem.item.PubPrizeItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
-import twcore.bots.pubsystem.module.moneysystem.item.PubCommandItem;
 import twcore.core.BotAction;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerDeath;
@@ -379,6 +379,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     public boolean isOnSpec() {
         return ((int)m_botAction.getPlayer(name).getShipType()) == 0;
+    }
+    
+    public boolean isInSafeZone() {
+    	return m_botAction.getPlayer(name).isInSafe();
     }
     
     public void doSpawnMid() {
