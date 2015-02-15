@@ -645,7 +645,11 @@ public class MatchTeam {
     // Process commands given by a player
     public void parseCommand(String name, String command, String[] parameters, boolean isTWDOP) {
         try {
-            if ((isTWDOP) || (isCaptain(name))) {
+        	//Hackfix so zhs can host draft tourney -cre 2/15/15
+        	boolean draftTourneyAndStaffer = m_botAction.getOperatorList().isZH(name);
+        	draftTourneyAndStaffer = draftTourneyAndStaffer && m_botAction.getArenaName().toLowerCase().startsWith("twdt");   
+        	
+            if ((isTWDOP) || (isCaptain(name)) || draftTourneyAndStaffer) {
 
                 if (command.equals("!debug"))
                     debugger(name);
