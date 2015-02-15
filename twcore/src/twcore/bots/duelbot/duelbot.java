@@ -55,6 +55,7 @@ public class duelbot extends SubspaceBot {
     int s_duelLimit;		//Number of duels allowed per s_duelDays
     int s_duelDays;			//Number of days restriction is put on duels
     long lastZoner;			//Last time someone's streak was zoned.
+    boolean resLimits;      //Resolution limits for TWEL-D
     String from = "", to = "";
     String shutDownMessage = "";
     String greet = "Welcome, if you are new PM me with !help for more information.";
@@ -89,6 +90,8 @@ public class duelbot extends SubspaceBot {
     HashMap<Integer, TournyGame> tournyGames = new HashMap<Integer, TournyGame>();
     //Contains the list of tourny games running.
     HashMap<Integer, Integer> tournyGamesRunning = new HashMap<Integer, Integer>();
+    //Player Resolution Infos
+    HashMap<String, PlayerResolutionInfo> playerResolutions = new HashMap<String, PlayerResolutionInfo>();
 
     public duelbot(BotAction botAction) {
         super(botAction);
@@ -102,6 +105,8 @@ public class duelbot extends SubspaceBot {
 
         m_commandInterpreter = new CommandInterpreter(m_botAction);
         registerCommands();
+        int res = m_botSettings.getInteger("ResLimitsEnabled");
+        resLimits = (res > 0) ? true : false;
     }
 
     public void registerCommands() {
@@ -150,6 +155,7 @@ public class duelbot extends SubspaceBot {
         m_commandInterpreter.registerCommand("!removehiddenop", acceptedMessages, this, "do_removeHiddenOp");
         m_commandInterpreter.registerCommand("!alias", acceptedMessages, this, "do_aliasCheck");
         m_commandInterpreter.registerCommand("!aliasall", acceptedMessages, this, "do_aliasCheckAll");
+        m_commandInterpreter.registerCommand("!togglereslimits", acceptedMessages, this, "do_toggleResLimits");
 
         m_commandInterpreter.registerDefaultCommand(Message.ARENA_MESSAGE, this, "do_checkArena");
     }
@@ -234,7 +240,7 @@ public class duelbot extends SubspaceBot {
             m_botAction.sendPrivateMessage(_name, "Unable to issue challenge, you have enabled 'notplaying', toggle it off with !notplaying.");
             return;
         }
-
+        
         //Get the gametype requested and the opponent
         String pieces[] = _message.split(":");
         int gameType = 0;
@@ -262,6 +268,13 @@ public class duelbot extends SubspaceBot {
             } else
                 notPlaying.remove(opponent);
         }
+        
+        //Res Limit Check for TWEL-D
+        if(gameType == 1) {
+        	if(!checkAndNotifyResLimits(_name))
+        		return;
+        }
+        
         if (gameType == 4 || gameType == 5 || gameType == 6 || gameType == 8) {
             m_botAction.sendPrivateMessage(_name, "Unable to issue challenge, invalid league entered, valid leagues: (1-warbird, 2-javelin, 3-spider, 7-lancaster.)");
             return;
@@ -505,6 +518,10 @@ public class duelbot extends SubspaceBot {
         if (thisChallenge == null) {
             m_botAction.sendPrivateMessage(name, "Unable to accept challenge, `" + challenger + "` has not challenged you.");
             return;
+        }
+        if(thisChallenge.getGameType() == 1) {
+        	if(!checkAndNotifyResLimits(name))
+        		return;
         }
         if (thisChallenge.getElapsedTime() > s_challengeTime) {
             challenges.remove(challenger + name);
@@ -803,6 +820,13 @@ public class duelbot extends SubspaceBot {
 
         //Get the duel associated with this player
         Duel duel = playing.get(_name);
+        
+        //Check player's resolution
+        if(duel.getPlayer(_name).getShip() == Tools.Ship.WARBIRD) {
+        	if(!checkAndNotifyResLimits(_name)) {
+        		return;
+        	}
+        }
 
         //Get the stats object associated with this player
         DuelPlayerStats playerStats = duel.getPlayer(_name);
@@ -935,7 +959,8 @@ public class duelbot extends SubspaceBot {
                     "| !addop <name>              - Adds <name> to the Duel Operators list (!ops)         |", "| !removeop <name>           - Removes <name> from the Duel Operators list (!ops)    |",
                     "| !addhiddenop <name>        - Adds <name> to the Hidden Operators list (!ops)       |", "| !removehiddenop <name>     - Removes <name> to the Hidden Operators list (!ops)    |",
                     "| !alias <name>             - Checks the database for <name>'s aliases.              |", "| !aliasall <name>          - Checks for names with the same IP/MID, IP, or MID.     |",
-                    "| !setgreet <greeting>       - Changes the arena greeting to <greeting>              |", "--------------------------------------------------------------------------------------" };
+                    "| !setgreet <greeting>       - Changes the arena greeting to <greeting>              |", "| !togglereslimits          - Toggles resolution limits on/off for TWEL-D            |",
+                    "--------------------------------------------------------------------------------------" };
 
             m_botAction.privateMessageSpam(name, help3);
         }
@@ -1310,6 +1335,20 @@ public class duelbot extends SubspaceBot {
         m_botSettings.save();
         do_updateOps();
     }
+    
+    public void do_toggleResLimits(String name, String message) {
+    	if(!leagueHeadOps.containsKey(name.toLowerCase())) {
+    		return;
+    	}
+    	
+    	resLimits = resLimits ? false : true;   
+    	
+    	int settingsValue = resLimits ? 1 : 0; 
+    	m_botSettings.put("ResLimitsEnabled", settingsValue);    	
+    	m_botSettings.save();
+    	
+    	m_botAction.sendPrivateMessage(name, "Resolution limits for TWEL-D are now " + (resLimits ? "enabled." : "disabled."));
+    }
 
     /***********************************************
      * Various Bot Called Methods *
@@ -1397,6 +1436,24 @@ public class duelbot extends SubspaceBot {
         } catch (Exception e) {
             Tools.printStackTrace("Failed to signup new user", e);
         }
+    }
+    
+    public boolean checkAndNotifyResLimits(String name) {
+    	name = name.toLowerCase();
+    	
+    	if(playerResolutions.containsKey(name)) {
+    		PlayerResolutionInfo pri = playerResolutions.get(name);
+    		
+    		if(!pri.withinLimits()) {
+    			m_botAction.sendPrivateMessage(name, "Sorry, TWEL-D resolution limits are in effect. Limits are 1440x900 or 1280x1024.");
+    			return false;
+    		} else {
+    			return true;
+    		}
+    	} else {
+    		m_botAction.sendPrivateMessage(name, "Sorry, please re-enter the arena and try again!");
+    		return false;
+    	}
     }
 
     public void do_updateOps() {
@@ -2104,6 +2161,7 @@ public class duelbot extends SubspaceBot {
     public void handleEvent(PlayerEntered event) {
         String name = m_botAction.getPlayerName(event.getPlayerID());
         m_botAction.sendPrivateMessage(name, greet);
+        m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
     }
 
     public void handleEvent(FrequencyShipChange _event) {
@@ -2152,7 +2210,10 @@ public class duelbot extends SubspaceBot {
 
         //Get the player name for this event
         String name = m_botAction.getPlayerName(_event.getPlayerID()).toLowerCase();
-
+        
+        if(playerResolutions.containsKey(name)) {
+        	playerResolutions.remove(name);
+        }
         //Make sure the player is playing
         if (!playing.containsKey(name))
             return;
@@ -2800,4 +2861,34 @@ class NotPlaying {
         else
             return false;
     }
+}
+
+class PlayerResolutionInfo {
+	int x; //Resolution X
+	int y; //Resolution Y
+	int xResolutionMax;
+	int yResolutionMax;
+	boolean withinLimits = false;
+	
+	public PlayerResolutionInfo(int xRes, int yRes) {
+		x = xRes;
+		y = yRes;
+		
+		if(xRes <= 1440) {
+			xResolutionMax = 1440;
+         	yResolutionMax = 900;
+        }
+         
+        if(xRes <= 1280) {
+        	xResolutionMax = 1280;
+        	yResolutionMax = 1024;
+        }
+        
+        withinLimits = (xRes <= xResolutionMax || yRes <= yResolutionMax) ? true : false;
+	}
+	
+	public boolean withinLimits()
+	{
+		return withinLimits;
+	}
 }
