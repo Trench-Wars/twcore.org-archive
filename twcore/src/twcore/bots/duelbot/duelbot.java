@@ -1447,6 +1447,9 @@ public class duelbot extends SubspaceBot {
     }
     
     public boolean checkAndNotifyResLimits(String name) {
+    	
+    	if(!resLimits) return true;
+    	
     	name = name.toLowerCase();
     	
     	if(playerResolutions.containsKey(name)) {
