@@ -105,6 +105,7 @@ public class duelbot extends SubspaceBot {
 
         m_commandInterpreter = new CommandInterpreter(m_botAction);
         registerCommands();
+        m_botSettings = m_botAction.getBotSettings();
         int res = m_botSettings.getInteger("ResLimitsEnabled");
         resLimits = (res > 0) ? true : false;
     }
