@@ -1375,6 +1375,13 @@ public class duelbot extends SubspaceBot {
             sql_lagInfo(from, average);
             to = "";
             from = "";
+        } else if (message.indexOf( "Res:" ) != -1) {
+        	int start = message.indexOf("Res: ")+5;
+            String pName = message.substring( 0, message.indexOf( ":" ) ).toLowerCase();
+            String resolution = message.substring(start, message.indexOf(" ", start));
+            int xResolution = Integer.parseInt(resolution.split("x")[0]);
+            int yResolution = Integer.parseInt(resolution.split("x")[1]);
+            playerResolutions.put(pName, new PlayerResolutionInfo(xResolution, yResolution));
         }
     }
 
