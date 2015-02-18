@@ -106,7 +106,7 @@ public class pubbotlagwatch extends PubBotModule {
     	if(message.startsWith("lagwatchon "))
             doLagWatchOn(message.substring(11));
         else if(message.startsWith("lagwatchoff "))
-            doLagWatchOn(message.substring(12));
+            doLagWatchOff(message.substring(12));
     }
     
     public void doLagWatchOn(String message) {
