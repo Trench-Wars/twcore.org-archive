@@ -46,10 +46,10 @@ public class pubbotlagwatch extends PubBotModule {
     	Player p = m_botAction.getPlayer(event.getPlayerID());
     	if(p == null)return;
     	
-    	if (lagWatched.contains(p.getPlayerName())) {
-    	    LagWatchTimer lwt = new LagWatchTimer(p.getPlayerName());
+    	if (lagWatched.contains(p.getPlayerName().toLowerCase())) {
+    	    LagWatchTimer lwt = new LagWatchTimer(p.getPlayerName().toLowerCase());
     	    try {
-    	        lagWatchTimers.put(p.getPlayerName(), lwt);
+    	        lagWatchTimers.put(p.getPlayerName().toLowerCase(), lwt);
     	        m_botAction.scheduleTask(lwt, Tools.TimeInMillis.MINUTE * 3);
     	    } catch( Exception e) {
     	        m_botAction.cancelTask(lwt);
@@ -61,9 +61,9 @@ public class pubbotlagwatch extends PubBotModule {
         Player p = m_botAction.getPlayer(event.getPlayerID());
         if(p == null)return;
         
-        if (lagWatched.contains(p.getPlayerName())) {
+        if (lagWatched.contains(p.getPlayerName().toLowerCase())) {
             try {
-                LagWatchTimer lwt = lagWatchTimers.remove(p.getPlayerName());
+                LagWatchTimer lwt = lagWatchTimers.remove(p.getPlayerName().toLowerCase());
                 m_botAction.cancelTask(lwt);
             } catch (Exception e) {}
         }
@@ -104,20 +104,21 @@ public class pubbotlagwatch extends PubBotModule {
     
     public void handleBotIPC(String sender, String message){
     	if(message.startsWith("lagwatchon "))
-            doLagWatchOn(message.substring(11));
+            doLagWatchOn(message.substring(11).toLowerCase());
         else if(message.startsWith("lagwatchoff "))
-            doLagWatchOff(message.substring(12));
+            doLagWatchOff(message.substring(12).toLowerCase());
     }
     
     public void doLagWatchOn(String message) {
         try {
-            lagWatched.add(message);
+        	if(!lagWatched.contains(message.toLowerCase()))
+        		lagWatched.add(message.toLowerCase());
         } catch(Exception e) {}
     }
 
     public void doLagWatchOff(String message) {
         try {
-            lagWatched.remove(message);
+            lagWatched.remove(message.toLowerCase());
         } catch(Exception e) {}
     }
     
