@@ -46,7 +46,7 @@ public class pubbotlagwatch extends PubBotModule {
     	Player p = m_botAction.getPlayer(event.getPlayerID());
     	if(p == null)return;
     	
-    	if (lagWatched.contains(p.getPlayerName().toLowerCase())) {
+    	if (!lagWatched.contains(p.getPlayerName().toLowerCase())) {
     	    LagWatchTimer lwt = new LagWatchTimer(p.getPlayerName().toLowerCase());
     	    try {
     	        lagWatchTimers.put(p.getPlayerName().toLowerCase(), lwt);
