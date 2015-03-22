@@ -1660,6 +1660,8 @@ public class staffbot_banc extends Module {
                             String result = "";
                             result += (rs.getBoolean("active") ? "#" : "^");
                             result += Tools.formatString(rs.getString("fnID"), 4) + " ";
+                            if(m_botAction.getOperatorList().isSmod(name))
+                            	result += Tools.formatString("access:" + rs.getString("fcMinAccess"), 12);
                             result += "by " + Tools.formatString(rs.getString("fcStaffer"), 10) + " ";
                             result += datetimeFormat.format(rs.getTimestamp("fdCreated")) + " ";
                             result += Tools.formatString(rs.getString("fcType"), 7) + " ";
