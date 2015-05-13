@@ -125,11 +125,11 @@ public class staffbot_banc extends Module {
     
     // Settings related to how far back warnings and bancs are displayed by default.
     // There are three in total, but other modules will have to be altered as well when you adjust this.
-    private final static long BANC_EXPIRE_TIME = (long) Tools.TimeInMillis.DAY * 14;
+    private final static long BANC_EXPIRE_TIME = (long) Tools.TimeInMillis.DAY * 28;
     // Look up MySQL DATE_SUB on the Internet for this one. Dangerous if done wrong!
-    private final static String SQL_EXPIRE_TIME = "INTERVAL 14 DAY";
+    private final static String SQL_EXPIRE_TIME = "INTERVAL 28 DAY";
     // The expire time in normal text, how it will be presented to the user.
-    private final static String BANC_EXPIRE_TIME_TEXT = "14 days/1 month";
+    private final static String BANC_EXPIRE_TIME_TEXT = "4 weeks";
     // The final one is: WARNING_EXPIRE_TIME in staffbot_warnings
     
     @SuppressWarnings("unused")
@@ -1640,11 +1640,11 @@ public class staffbot_banc extends Module {
             } else {
                 if (sqlWhere.length() > 0) {
                     if (!sinceStart)
-                    	sqlWhere = "WHERE (fdExpired IS NULL OR (fdExpired > DATE_SUB(NOW(), " + SQL_EXPIRE_TIME + ")) OR ( (fdExpired > DATE_SUB(NOW(), INTERVAL 1 MONTH)) AND fnDuration >= 1440)) AND " + sqlWhere;
+                    	sqlWhere = "WHERE (fdExpired IS NULL OR (fdExpired > DATE_SUB(NOW(), " + SQL_EXPIRE_TIME + ")) AND " + sqlWhere;
                     else
                         sqlWhere = "WHERE " + sqlWhere;
                 } else if (!sinceStart)
-                	sqlWhere = "WHERE (fdExpired IS NULL OR (fdExpired > DATE_SUB(NOW(), " + SQL_EXPIRE_TIME + ")) OR ( (fdExpired > DATE_SUB(NOW(), INTERVAL 1 MONTH)) AND fnDuration >= 1440)) AND " + sqlWhere;
+                	sqlWhere = "WHERE (fdExpired IS NULL OR (fdExpired > DATE_SUB(NOW(), " + SQL_EXPIRE_TIME + ")) AND " + sqlWhere;
 
 
                 sqlQuery = "SELECT (fnElapsed < fnDuration OR fnDuration = 0) AS active, fnID, fcType, fcUsername, fcIP, fcMID, fcMinAccess, fnDuration, fnElapsed, fcStaffer, fdCreated, fdExpired, fbLifted FROM tblBanc "
