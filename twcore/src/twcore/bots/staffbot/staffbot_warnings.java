@@ -24,7 +24,7 @@ public class staffbot_warnings extends Module {
     // for a name match in !warn
     // When altering the expire time, don't forget to check staffbot_banc for:
     // BANC_EXPIRE_TIME, SQL_EXPIRE_TIME and BANC_EXPIRE_TIME_TEXT
-    private final static int WARNING_EXPIRE_TIME = Tools.TimeInMillis.DAY * 14;
+    private final static int WARNING_EXPIRE_TIME = Tools.TimeInMillis.DAY * 28;
     // private final static int CHECK_LOG_DELAY = 30000; // Delay when *log is checked for *warnings UNNEEDED FOR RIGHT NOW
 
     private TimerTask getLog;
