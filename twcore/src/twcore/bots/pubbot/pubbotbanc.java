@@ -3,11 +3,11 @@ package twcore.bots.pubbot;
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map.Entry;
+import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.ListIterator;
-import java.util.TimerTask;
 import java.util.Vector;
 
 import twcore.bots.PubBotModule;
@@ -50,7 +50,7 @@ public class pubbotbanc extends PubBotModule {
     private static final int MAX_NAME_LENGTH = 19;
     //private static final int MAX_IDLE_TIME = 10; //mins
     private static final int BANC_CONFIRM_TIME = 3000; //ms
-    
+
     private TimerTask initActiveBanCs;
     private Action act;
     private SendElapsed elapsed;
@@ -60,13 +60,13 @@ public class pubbotbanc extends PubBotModule {
     private TreeMap<String, BanC> bancSuper;
     private Vector<Object> actions;
     private TreeMap<String, Confirm> confirms;
-    
+
     private Object current;
     private boolean silentKicks;
     private String sendto;
-    
+
     private boolean proxy;
-    
+
     private boolean DEBUG;
     private String debugger;
 
@@ -87,7 +87,7 @@ public class pubbotbanc extends PubBotModule {
         String zoneIP = m_botAction.getGeneralSettings().getString("Server");
         String zonePort = m_botAction.getGeneralSettings().getString("Port");
         sendto = "*sendto " + zoneIP + "," + zonePort + "," + AFK_ARENA;
-        
+
         // Request active BanCs from StaffBot
         initActiveBanCs = new TimerTask() {
             @Override
@@ -131,7 +131,7 @@ public class pubbotbanc extends PubBotModule {
             m_botAction.sendUnfilteredPrivateMessage(name, "*einfo");
 
         if (!name.startsWith("^")) {
-            synchronized(confirms) {
+            synchronized (confirms) {
                 confirms.put(name, new Confirm(name));
             }
             m_botAction.sendUnfilteredPrivateMessage(name, "*info");
@@ -191,7 +191,7 @@ public class pubbotbanc extends PubBotModule {
         } else if (IPCPOLICE.equals(event.getChannel())) {
             IPCMessage ipc = (IPCMessage) event.getObject();
             String info = ipc.getMessage();
-            if (info == null) 
+            if (info == null)
                 return;
             debug("Got POLICE info for " + ipc.getRecipient() + ": " + info);
             if (ipc.getRecipient() != null && ipc.getRecipient().equalsIgnoreCase(m_botAction.getBotName()))
@@ -203,16 +203,19 @@ public class pubbotbanc extends PubBotModule {
     public void handleEvent(Message event) {
         String message = event.getMessage().trim();
         if (event.getMessageType() == Message.ARENA_MESSAGE)
-            if ((!proxy && message.contains("Proxy: ") && !message.contains("Not using proxy")) || (proxy && message.contains("Proxy: SOCKS5 proxy")) && !message.contains("Using NAT")) {
+            if ((!proxy && message.contains("Proxy: ") && !message.contains("Not using proxy")) || (proxy && message.contains("Proxy: SOCKS5 proxy"))
+                    && !message.contains("Using NAT")) {
                 String name = message.substring(0, message.indexOf(": U"));
-                String proxy = message.substring(message.indexOf("Proxy:"), message.indexOf("Idle:")-2);
+                String proxy = message.substring(message.indexOf("Proxy:"), message.indexOf("Idle:") - 2);
                 m_botAction.sendUnfilteredPrivateMessage(name, "*kill");
-                m_botAction.ipcSendMessage(IPCBANC, "KICKED:Player '" + name + "' has been kicked by " + m_botAction.getBotName() + " for using an unapproved proxy. (" + proxy + ")", "banc", m_botAction.getBotName());
+                m_botAction.ipcSendMessage(IPCBANC, "KICKED:Player '" + name + "' has been kicked by " + m_botAction.getBotName()
+                        + " for using an unapproved proxy. (" + proxy + ")", "banc", m_botAction.getBotName());
             } else if (message.contains("Proxy: ") && !message.contains("Not using proxy") && !message.contains("Using NAT")) {
-                String proxy = message.substring(message.indexOf("Proxy:"), message.indexOf("Idle:")-2);
+                String proxy = message.substring(message.indexOf("Proxy:"), message.indexOf("Idle:") - 2);
                 String name = message.substring(0, message.indexOf(": U"));
                 if (!opList.isBotExact(name))
-                    m_botAction.ipcSendMessage(IPCBANC, "PROXY:Player '" + name + "' detected by " + m_botAction.getBotName() + " using a proxy. (" + proxy + ")", "banc", m_botAction.getBotName());
+                    m_botAction.ipcSendMessage(IPCBANC, "PROXY:Player '" + name + "' detected by " + m_botAction.getBotName() + " using a proxy. ("
+                            + proxy + ")", "banc", m_botAction.getBotName());
             } else if (message.startsWith("IP:"))
                 checkBanCs(message);
             else if (message.contains("Idle: "))
@@ -222,7 +225,7 @@ public class pubbotbanc extends PubBotModule {
                 String name = current.getName();
                 if (message.equalsIgnoreCase(current.getName() + " can now speak")) {
                     if (!current.isActive()) {
-                        synchronized(confirms) {
+                        synchronized (confirms) {
                             confirms.remove(current.getName());
                         }
                         // The bot just unsilenced the player (and it's ok)
@@ -240,18 +243,19 @@ public class pubbotbanc extends PubBotModule {
                         m_botAction.sendUnfilteredPrivateMessage(name, "*shutup");
                     } else {
                         // The bot just silenced the player (and it's ok)
-                        synchronized(confirms) {
+                        synchronized (confirms) {
                             confirms.remove(current.getName());
                         }
                         if (current.getTime() == INFINITE_DURATION)
                             m_botAction.sendPrivateMessage(current.getName(), "You've been permanently silenced because of abuse and/or violation of Trench Wars rules.");
                         else
-                            m_botAction.sendPrivateMessage(current.getName(), "You've been silenced for " + current.getTime()
-                                    + " (" + current.getRemaining() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
-                        
-                        m_botAction.sendPrivateMessage(current.getName(), "If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the Ban Operator. " + "(BanC #" + current.getBanCID() +")");
+                            m_botAction.sendPrivateMessage(current.getName(), "You've been silenced for " + current.getTime() + " ("
+                                    + current.getRemaining() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
+
+                        m_botAction.sendPrivateMessage(current.getName(), "If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the Ban Operator. "
+                                + "(BanC #" + current.getBanCID() + ")");
                         m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
-                       
+
                     }
                 } else if (message.equalsIgnoreCase("Player locked in spectator mode")) {
                     if (!current.isActive()) {
@@ -259,22 +263,23 @@ public class pubbotbanc extends PubBotModule {
                         current = null;
                         m_botAction.spec(name);
                     } else {
-                        synchronized(confirms) {
+                        synchronized (confirms) {
                             confirms.remove(current.getName());
                         }
                         // The bot just spec-locked the player (and it's ok)
                         if (current.getTime() == INFINITE_DURATION)
                             m_botAction.sendPrivateMessage(current.getName(), "You've been permanently locked into spectator because of abuse and/or violation of Trench Wars rules.");
                         else
-                            m_botAction.sendPrivateMessage(current.getName(), "You've been locked into spectator for " + current.getTime()
-                                    + " (" + current.getRemaining() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
-                        
-                        m_botAction.sendPrivateMessage(current.getName(), "If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the Ban Operator. " + "(BanC #" + current.getBanCID() +")");
+                            m_botAction.sendPrivateMessage(current.getName(), "You've been locked into spectator for " + current.getTime() + " ("
+                                    + current.getRemaining() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
+
+                        m_botAction.sendPrivateMessage(current.getName(), "If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the Ban Operator. "
+                                + "(BanC #" + current.getBanCID() + ")");
                         m_botAction.ipcSendMessage(IPCBANC, current.getCommand(), "banc", m_botAction.getBotName());
                     }
                 } else if (message.equalsIgnoreCase("Player free to enter arena")) {
                     if (!current.isActive()) {
-                        synchronized(confirms) {
+                        synchronized (confirms) {
                             confirms.remove(current.getName());
                         }
                         // The bot just unspec-locked the player (and it's ok)
@@ -315,12 +320,12 @@ public class pubbotbanc extends PubBotModule {
             }
         }
     }
-    
+
     private void cmd_proxy(String name) {
         proxy = !proxy;
         m_botAction.sendSmartPrivateMessage(name, "Proxy kicking is: " + (proxy ? "DISABLED" : "ENABLED"));
     }
-    
+
     private void cmd_bancdebug(String name) {
         DEBUG = !DEBUG;
         if (DEBUG) {
@@ -337,30 +342,27 @@ public class pubbotbanc extends PubBotModule {
         m_botAction.sendSmartPrivateMessage(name, "Silent kicks are now " + (silentKicks ? "ENABLED." : "DISABLED."));
     }
 
-    private void cmd_bancs(String name) {        
-        if( bancSilence.size() > 0) {
+    private void cmd_bancs(String name) {
+        if (bancSilence.size() > 0) {
             m_botAction.sendSmartPrivateMessage(name, "[SILENCES]");
             for (BanC b : bancSilence.values())
-                m_botAction.sendSmartPrivateMessage(name, "" + Tools.formatString(b.getName(), 21) +
-                        Tools.formatString(" " + (b.ip != null ? b.ip : "*"), 18 ) +
-                        Tools.formatString(" " + (b.mid != null ? b.mid : "*"), 13 ) +
-                        "[" + b.getRemaining() + "]");
+                m_botAction.sendSmartPrivateMessage(name, "" + Tools.formatString(b.getName(), 21)
+                        + Tools.formatString(" " + (b.ip != null ? b.ip : "*"), 18) + Tools.formatString(" " + (b.mid != null ? b.mid : "*"), 13)
+                        + "[" + b.getRemaining() + "]");
         }
-        if( bancSuper.size() > 0) {
+        if (bancSuper.size() > 0) {
             m_botAction.sendSmartPrivateMessage(name, "[SUPERSPECS]");
             for (BanC b : bancSuper.values())
-                m_botAction.sendSmartPrivateMessage(name, "" + Tools.formatString(b.getName(), 21) +
-                        Tools.formatString(" " + (b.ip != null ? b.ip : "*"), 18 ) +
-                        Tools.formatString(" " + (b.mid != null ? b.mid : "*"), 13 ) +
-                        "[" + b.getRemaining() + "]");
+                m_botAction.sendSmartPrivateMessage(name, "" + Tools.formatString(b.getName(), 21)
+                        + Tools.formatString(" " + (b.ip != null ? b.ip : "*"), 18) + Tools.formatString(" " + (b.mid != null ? b.mid : "*"), 13)
+                        + "[" + b.getRemaining() + "]");
         }
-        if( bancSpec.size() > 0) {
+        if (bancSpec.size() > 0) {
             m_botAction.sendSmartPrivateMessage(name, "[SPECS]");
             for (BanC b : bancSpec.values())
-                m_botAction.sendSmartPrivateMessage(name, "" + Tools.formatString(b.getName(), 21) +
-                        Tools.formatString(" " + (b.ip != null ? b.ip : "*"), 18 ) +
-                        Tools.formatString(" " + (b.mid != null ? b.mid : "*"), 13 ) +
-                        "[" + b.getRemaining() + "]");
+                m_botAction.sendSmartPrivateMessage(name, "" + Tools.formatString(b.getName(), 21)
+                        + Tools.formatString(" " + (b.ip != null ? b.ip : "*"), 18) + Tools.formatString(" " + (b.mid != null ? b.mid : "*"), 13)
+                        + "[" + b.getRemaining() + "]");
         }
     }
 
@@ -381,21 +383,16 @@ public class pubbotbanc extends PubBotModule {
                 m_botAction.sendPrivateMessage(name, "Player not found");
         }
     }
-    
+
     private void cmd_help(String name, boolean isSmod) {
         if (isSmod) {
-            String[] msgs = {
-                    "!bancs     - List all active BanC's, including those not logged in",
-                    "!bancdebug - Logs all new BanC info & other actions to you via PM",
-                    "!kicks     - Toggles showing kicks for long names",
-                    "!proxy     - Toggles showing kicks for using a proxy"
-            };
+            String[] msgs = { "!bancs     - List all active BanC's, including those not logged in",
+                    "!bancdebug - Logs all new BanC info & other actions to you via PM", "!kicks     - Toggles showing kicks for long names",
+                    "!proxy     - Toggles showing kicks for using a proxy" };
             m_botAction.privateMessageSpam(name, msgs);
         }
-        String[] modmsgs = {
-                    "!list      - Lists active BanC's of any players in the arena",
-                    "!move      - Moves an idle BanC'd player to the afk arena"
-        };
+        String[] modmsgs = { "!list      - Lists active BanC's of any players in the arena",
+                "!move      - Moves an idle BanC'd player to the afk arena" };
         m_botAction.privateMessageSpam(name, modmsgs);
     }
 
@@ -404,25 +401,27 @@ public class pubbotbanc extends PubBotModule {
         String ip = getInfo(info, "IP:");
         String mid = getInfo(info, "MachineId:");
 
-        synchronized(confirms) {
+        synchronized (confirms) {
             if (confirms.containsKey(name))
                 confirms.remove(name);
         }
-        
+
         if (name.length() > MAX_NAME_LENGTH) {
             Player p = m_botAction.getPlayer(name.substring(0, MAX_NAME_LENGTH).trim());
             if (p != null) {
                 final int id = p.getPlayerID();
+                m_botAction.sendPrivateMessage(id, "You have been kicked from the server! Names containing more than 19 characters are no longer allowed in SSCU Trench Wars.");
                 TimerTask kick = new TimerTask() {
                     public void run() {
                         m_botAction.sendPrivateMessage(id, "You have been kicked from the server! Names containing more than 19 characters are no longer allowed in SSCU Trench Wars.");
                         m_botAction.sendUnfilteredPrivateMessage(id, "*kill");
                         if (!silentKicks)
-                            m_botAction.ipcSendMessage(IPCBANC, "KICKED:Player '" + name + "' has been kicked by " + m_botAction.getBotName() + " for having a name greater than " + MAX_NAME_LENGTH + " characters.", "banc", m_botAction.getBotName());
+                            m_botAction.ipcSendMessage(IPCBANC, "KICKED:Player '" + name + "' has been kicked by " + m_botAction.getBotName()
+                                    + " for having a name greater than " + MAX_NAME_LENGTH + " characters.", "banc", m_botAction.getBotName());
 
                     }
                 };
-                m_botAction.scheduleTask(kick, 3200);
+                m_botAction.scheduleTask(kick, 5000);
                 return;
             }
         }
@@ -486,9 +485,11 @@ public class pubbotbanc extends PubBotModule {
         if (shipNumber == 2 || shipNumber == 8 || shipNumber == 4) {
             try {
                 if (b != null) {
-                    m_botAction.sendPrivateMessage(b.getName(), "You're banned from ship" + shipNumber + " with " + b.getRemaining() + " minutes remaining.");
+                    m_botAction.sendPrivateMessage(b.getName(), "You're banned from ship" + shipNumber + " with " + b.getRemaining()
+                            + " minutes remaining.");
                     m_botAction.sendPrivateMessage(b.getName(), "You've been put in spider. But you can change to: warbird(1), spider(3), terrier(5), weasel(6) or lancaster(7).");
-                    m_botAction.sendPrivateMessage(b.getName(), "If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the Ban Operator. " + "(BanC #" + b.getBanCID() +")");
+                    m_botAction.sendPrivateMessage(b.getName(), "If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the Ban Operator. "
+                            + "(BanC #" + b.getBanCID() + ")");
                     m_botAction.setShip(b.getName(), 3);
                 }
             } catch (NullPointerException e) {
@@ -523,7 +524,7 @@ public class pubbotbanc extends PubBotModule {
     }
 
     private void sendIdler(String name) {
-        if(!m_botAction.getArenaName().equalsIgnoreCase(AFK_ARENA)) {
+        if (!m_botAction.getArenaName().equalsIgnoreCase(AFK_ARENA)) {
             String MOVE_MESSAGE = "You've been moved to the away-from-keyboard subarena - 'afk'. Type \"?go\" to return.";
             m_botAction.sendPrivateMessage(name, MOVE_MESSAGE);
             m_botAction.sendUnfilteredPrivateMessage(name, sendto);
@@ -560,9 +561,9 @@ public class pubbotbanc extends PubBotModule {
             endIndex = message.length();
         return message.substring(beginIndex, endIndex);
     }
-    
+
     void debug(String msg) {
-        if (DEBUG) 
+        if (DEBUG)
             m_botAction.sendSmartPrivateMessage(debugger, "[BanC] " + msg);
     }
 
@@ -597,21 +598,16 @@ public class pubbotbanc extends PubBotModule {
                     for (String name : confirms.keySet()) {
                         if (name == null) {
                             continue;
-                        } 
+                        }
                         Confirm conf = confirms.get(name);
                         if (conf == null) {
                             removes.add(name);
                         } else if (conf.expired()) {
                             removes.add(name);
                             if (!conf.info)
-                                m_botAction
-                                        .ipcSendMessage(IPCPOLICE, "BANC:" + name
-                                                + ":" + conf.type.toString() + ":"
-                                                + conf.time, null,
-                                                m_botAction.getBotName());
+                                m_botAction.ipcSendMessage(IPCPOLICE, "BANC:" + name + ":" + conf.type.toString() + ":" + conf.time, null, m_botAction.getBotName());
                             else
-                                m_botAction.ipcSendMessage(IPCPOLICE, "INFO:"
-                                        + name, null, m_botAction.getBotName());
+                                m_botAction.ipcSendMessage(IPCPOLICE, "INFO:" + name, null, m_botAction.getBotName());
                         }
                     }
                 }
@@ -622,7 +618,7 @@ public class pubbotbanc extends PubBotModule {
             }
         }
     }
-    
+
     /**
      * 
      * Confirm - simple class that holds the time the command was issued and the type of command.
@@ -630,13 +626,13 @@ public class pubbotbanc extends PubBotModule {
      * @author WingZero
      */
     class Confirm {
-        
+
         String name;
         BanCType type;
         long time;
         long issued;
         boolean info;
-        
+
         public Confirm(String name, BanCType type, long time) {
             this.name = name;
             this.type = type;
@@ -644,7 +640,7 @@ public class pubbotbanc extends PubBotModule {
             issued = System.currentTimeMillis();
             info = false;
         }
-        
+
         public Confirm(String name) {
             this.name = name;
             this.type = null;
@@ -652,7 +648,7 @@ public class pubbotbanc extends PubBotModule {
             issued = System.currentTimeMillis();
             info = true;
         }
-        
+
         public boolean expired() {
             return System.currentTimeMillis() - issued > BANC_CONFIRM_TIME;
         }
@@ -704,21 +700,22 @@ public class pubbotbanc extends PubBotModule {
             m_botAction.sendSmartPrivateMessage(name, "Currently active BanCs");
             m_botAction.sendSmartPrivateMessage(name, "Silences: ");
             for (Entry<String, BanC> e : silence.entrySet())
-                m_botAction.sendSmartPrivateMessage(name, "  " + Tools.formatString(e.getKey(), 21) +
-                        "[Remaining: " + e.getValue().getRemaining() + " (" + e.getValue().getElapsed() + ")]");
+                m_botAction.sendSmartPrivateMessage(name, "  " + Tools.formatString(e.getKey(), 21) + "[Remaining: " + e.getValue().getRemaining()
+                        + " (" + e.getValue().getElapsed() + ")]");
             m_botAction.sendSmartPrivateMessage(name, "SuperSpecs: ");
             for (Entry<String, BanC> e : ship.entrySet())
-                m_botAction.sendSmartPrivateMessage(name, "  " + Tools.formatString(e.getKey(), 21) +
-                        "[Remaining: " + e.getValue().getRemaining() + " (" + e.getValue().getElapsed() + ")]");
+                m_botAction.sendSmartPrivateMessage(name, "  " + Tools.formatString(e.getKey(), 21) + "[Remaining: " + e.getValue().getRemaining()
+                        + " (" + e.getValue().getElapsed() + ")]");
             m_botAction.sendSmartPrivateMessage(name, "Specs: ");
             for (Entry<String, BanC> e : spec.entrySet())
-                m_botAction.sendSmartPrivateMessage(name, "  " + Tools.formatString(e.getKey(), 21) +
-                        "[Remaining: " + e.getValue().getRemaining() + " (" + e.getValue().getElapsed() + ")]");
+                m_botAction.sendSmartPrivateMessage(name, "  " + Tools.formatString(e.getKey(), 21) + "[Remaining: " + e.getValue().getRemaining()
+                        + " (" + e.getValue().getElapsed() + ")]");
         }
 
         public void handleIdle(String msg) {
             String name = msg.substring(0, msg.indexOf(":"));
-            if (!isBanced(name)) return;
+            if (!isBanced(name))
+                return;
             /* Moving to afk arena is currently disabled.
             int sec = 0;
             try {
@@ -734,23 +731,23 @@ public class pubbotbanc extends PubBotModule {
 
         public void add(String name, BanC banc) {
             switch (banc.getType()) {
-                case SILENCE: 
+                case SILENCE:
                     if (!silence.containsKey(name)) {
-                        silence.put(name, banc); 
+                        silence.put(name, banc);
                         banc.setActive(true);
                         debug("Elapser added: " + name);
                     }
                     break;
-                case SUPERSPEC: 
+                case SUPERSPEC:
                     if (!ship.containsKey(name)) {
-                        ship.put(name, banc); 
+                        ship.put(name, banc);
                         banc.setActive(true);
                         debug("Elapser added: " + name);
                     }
                     break;
-                case SPEC: 
+                case SPEC:
                     if (!spec.containsKey(name)) {
-                        spec.put(name, banc); 
+                        spec.put(name, banc);
                         banc.setActive(true);
                         debug("Elapser added: " + name);
                     }
@@ -791,7 +788,7 @@ public class pubbotbanc extends PubBotModule {
         int elapsed;
 
         public BanC(String info) {
-        	//name:ip:mid:duration:type:elapsed:id#
+            //name:ip:mid:duration:type:elapsed:id#
             String[] args = info.split(":");
             name = args[0];
             lastUpdate = System.currentTimeMillis();
@@ -820,7 +817,7 @@ public class pubbotbanc extends PubBotModule {
         public int getElapsed() {
             return (int) (System.currentTimeMillis() - lastUpdate) / Tools.TimeInMillis.MINUTE;
         }
-        
+
         public String getRemaining() {
             return "" + (time - elapsed);
         }
@@ -848,10 +845,9 @@ public class pubbotbanc extends PubBotModule {
         public BanCType getType() {
             return type;
         }
-        
-        public int getBanCID()
-        {
-        	return banCID;
+
+        public int getBanCID() {
+            return banCID;
         }
 
         public boolean isActive() {
@@ -860,20 +856,19 @@ public class pubbotbanc extends PubBotModule {
 
         public boolean isMatch(String name, String ip, String mid) {
             boolean match = false;
-            if (this.ip != null 
-                    && ( ip.equals(this.ip)         // Full IP match
-                            || ( (this.ip.endsWith("*") || this.ip.endsWith("."))                     // Partial IP match
-                                    && ip.startsWith( this.ip.substring(0, this.ip.length() - 1) )))) // Indicated by ending . or *
+            if (this.ip != null && (ip.equals(this.ip) // Full IP match
+                    || ((this.ip.endsWith("*") || this.ip.endsWith(".")) // Partial IP match
+                    && ip.startsWith(this.ip.substring(0, this.ip.length() - 1))))) // Indicated by ending . or *
                 match = true;
             else if (this.mid != null && mid.equals(this.mid))
                 match = true;
             if (match) {
                 aliases.add(name);
                 this.name = name;
-            } else if (aliases.contains(name)) { 
-                    // For rare instances where 2 people match banC, erasing the 1st name
-                    // (this is an issue w/ partial IP, mainly)
-                    match = true;
+            } else if (aliases.contains(name)) {
+                // For rare instances where 2 people match banC, erasing the 1st name
+                // (this is an issue w/ partial IP, mainly)
+                match = true;
             }
             return match;
         }
