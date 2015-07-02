@@ -231,7 +231,7 @@ public class PubStore {
     public PubItem buy(String itemName, PubPlayer buyer, String params) throws PubException {
 
     	if (!opened)
-    		throw new PubException("The store is closed!");
+    		throw new PubException("Please use ?buy in a safezone!");
     	
     	PubPlayer player = buyer;
         PubItem item = getItem(itemName);
