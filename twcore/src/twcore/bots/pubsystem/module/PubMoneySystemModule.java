@@ -886,7 +886,7 @@ public class PubMoneySystemModule extends AbstractModule {
         Integer shipType = (int) (p == null ? Tools.Ship.SPECTATOR : p.getShipType());
 
         if (!store.isOpened()) {
-            lines.add("The store is closed, no items available.");
+            lines.add("Please use ?buy in a safezone!");
         } else {
             if(displayAll)
                 lines.add("List of all our store items. Each item has a set of restrictions.");
