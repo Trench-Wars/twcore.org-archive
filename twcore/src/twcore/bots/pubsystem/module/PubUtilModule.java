@@ -283,6 +283,7 @@ public class PubUtilModule extends AbstractModule {
 
         m_botAction.changeArena(argString);
         m_botAction.sendSmartPrivateMessage(sender, "Bot going to: " + argString);
+        context.start();
     }
 
     /**
