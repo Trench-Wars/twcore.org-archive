@@ -187,6 +187,7 @@ public class pubsystem extends SubspaceBot
 	        
 	        String arena = initialSpawn;
 	        int botNumber = m_botAction.getBotSettings().getInt(m_botAction.getBotName() + "Pub");
+	        Tools.printLog("New pubsystem bot #" + botNumber);
 	        
 	        if (m_botAction.getBotSettings().getString("Arena"+botNumber) != null) {
 	        	roamPub = false;
