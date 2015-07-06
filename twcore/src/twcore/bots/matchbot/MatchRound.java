@@ -514,6 +514,10 @@ public class MatchRound {
             try {
                 Player killee = m_botAction.getPlayer(event.getKilleeID());
                 Player killer = m_botAction.getPlayer(event.getKillerID());
+                
+                // Not much we can do; dump out. PlayerLeft should handle the fallout from this choice
+                if (killee == null || killer == null)
+                    return;
 
                 String killeeName = killee.getPlayerName();
                 String killerName = killer.getPlayerName();
