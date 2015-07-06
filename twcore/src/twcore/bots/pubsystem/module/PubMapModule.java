@@ -7,6 +7,8 @@ import java.util.Random;
 import java.util.TimerTask;
 import java.util.Collections;
 import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
@@ -53,6 +55,8 @@ public class PubMapModule extends AbstractModule {
     private boolean inPub;
     private boolean checkForHolidayLVZ;
     private Map<String,Boolean> usingHolidayLVZ;
+    private Set<String> shownLVZAfterEnterInShip;   // True if player has been shown LVZ after entering game in ship
+                                                    // (Bugfix for missing doors after download)
     
     private MapRegions regions;
     
@@ -76,7 +80,8 @@ public class PubMapModule extends AbstractModule {
             }
         };
         ba.scheduleTask(initialize, 5000);
-        usingHolidayLVZ = Collections.synchronizedMap( new HashMap<String,Boolean>() );         
+        usingHolidayLVZ = Collections.synchronizedMap( new HashMap<String,Boolean>() );
+        shownLVZAfterEnterInShip = Collections.synchronizedSet( new HashSet<String>() ); 
     }
 
     @Override
@@ -154,6 +159,13 @@ public class PubMapModule extends AbstractModule {
     public void handleEvent(FrequencyShipChange event) {
         if (enabled && inPub)
             doPopCheck();
+        if (event.getShipType() > Tools.Ship.SPECTATOR) {
+            Player p = m_botAction.getPlayer(event.getPlayerID());
+            if (p != null && !shownLVZAfterEnterInShip.contains( p.getPlayerName() )) {
+                doLVZ(p.getPlayerID(), true);
+                shownLVZAfterEnterInShip.add(p.getPlayerName());    // Don't need to remove on arena left, because d/l will not occur on return
+            }
+        }
     }
     
     private void doPopCheck() {
