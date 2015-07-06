@@ -2357,7 +2357,7 @@ public class GameFlagTimeModule extends AbstractModule {
      * @return Time remaining; -1 if flag timer is not running
      */
     public int getTimeRemaining() {
-        if (flagTimer.isRunning())
+        if (flagTimer != null && flagTimer.isRunning())
             return flagTimer.getTimeRemaining();
         return -1;
     }
