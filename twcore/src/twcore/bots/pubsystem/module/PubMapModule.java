@@ -154,16 +154,20 @@ public class PubMapModule extends AbstractModule {
     public void handleEvent(PlayerLeft event) {
         if (enabled && inPub)
             doPopCheck();
+        Player p = m_botAction.getPlayer(event.getPlayerID());
+        if (p != null)
+            shownLVZAfterEnterInShip.remove(p.getPlayerName());
     }
     
     public void handleEvent(FrequencyShipChange event) {
-        if (enabled && inPub)
+        if (enabled && inPub) {
             doPopCheck();
-        if (event.getShipType() > Tools.Ship.SPECTATOR) {
-            Player p = m_botAction.getPlayer(event.getPlayerID());
-            if (p != null && !shownLVZAfterEnterInShip.contains( p.getPlayerName() )) {
-                doLVZ(p.getPlayerID(), true);
-                shownLVZAfterEnterInShip.add(p.getPlayerName());    // Don't need to remove on arena left, because d/l will not occur on return
+            if (event.getShipType() > Tools.Ship.SPECTATOR) {
+                Player p = m_botAction.getPlayer(event.getPlayerID());
+                if (p != null && !shownLVZAfterEnterInShip.contains( p.getPlayerName() )) {
+                    doLVZ(p.getPlayerID(), true);
+                    shownLVZAfterEnterInShip.add(p.getPlayerName());
+                }
             }
         }
     }
