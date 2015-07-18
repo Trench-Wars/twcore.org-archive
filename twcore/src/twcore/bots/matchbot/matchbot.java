@@ -609,7 +609,7 @@ public class matchbot extends SubspaceBot {
                         TimerTask d = new TimerTask() {
                             @Override
                             public void run() {
-                                m_botAction.die("!killgame by " + name + " after shutdown mode initiated");
+                                m_botAction.die("!killgame given after shutdown mode initiated");
                             }
                         };
                         m_botAction.scheduleTask(d, 1500);

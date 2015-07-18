@@ -387,7 +387,7 @@ public class twdhub extends SubspaceBot {
         ba.cancelTasks();
         TimerTask die = new TimerTask() {
             public void run() {
-                ba.die("Termination via !die command from " + name);
+                ba.die("Termination via !die command");
             }
         };
         ba.scheduleTask(die, 2000);
