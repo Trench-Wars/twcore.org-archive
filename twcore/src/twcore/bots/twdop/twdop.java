@@ -126,7 +126,6 @@ public class twdop extends SubspaceBot {
             if (m_botAction.getOperatorList().isSmod(senderName)) {
                 if (message.equalsIgnoreCase("!die")) {
                     moduleHandler.unloadAllModules();
-                    this.handleDisconnect();
                     m_botAction.die("!die by " + senderName );
                 }
                 if (message.equalsIgnoreCase("!update")) {

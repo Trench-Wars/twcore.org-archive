@@ -105,10 +105,6 @@ public class mrarrogant extends SubspaceBot
     setupAccessList(accessString);
     m_botAction.scheduleTaskAtFixedRate(new CheckLogTask(), 0, CHECK_LOG_TIME);
   }
-  
-  public void handleDisconnect() {
-	  doDieCmd();
-  }
 
   /**
    * This method handles a message event.

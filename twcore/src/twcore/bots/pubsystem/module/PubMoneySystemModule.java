@@ -2390,12 +2390,6 @@ public class PubMoneySystemModule extends AbstractModule {
 
     }
 
-    /**
-     * Dummy function.
-     */
-    public void handleDisconnect() {
-
-    }
 
     /**
      * Handles the SQLResultEvent
